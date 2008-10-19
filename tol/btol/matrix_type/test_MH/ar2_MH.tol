@@ -1,0 +1,197 @@
+/*
+ * ar2_MH.tol --
+ * 
+ *   Implement example 7.2 of "Understanding Metroppolis-Hastings"
+ *
+ */
+
+/*
+ * Join vector is: (sigma2, ph1, ph2)
+ *
+ * data contain the following elements:
+ *
+ *   [1] Y2 = (y1, y2)
+ *   [2] Y  = (y1, y2, ..., yn)
+ *   [3] G_1 = Inv(G), G = Sum_3_n(w_t*Tra(w_t)), w_t = (y_t_1, y_t_2)
+ *   [4] phi_m = G_1 * Sum_3_n(w_t*y_t)
+ *   [5] r = n/2 (Inverted Gamma shape parameter)
+ *   [6] B = Linear Constrains for MH kernel.
+ *   [] b = independent vector in linear constrains
+ */
+
+Set build_data(Matrix Y)
+{
+  Real n = Rows(Y);
+  Real r = n/2;
+  Matrix Y2 = Col(MatDat(Y,1,1), MatDat(Y,2,1));
+  Matrix Y_1 = Sub(Y,1,1,n-2,1);
+  Matrix Y_2 = Sub(Y,2,1,n-2,1);
+  Matrix Y_3 = Sub(Y,3,1,n-2,1);
+  Real a11 = MatDat(Matrix Tra(Y_2)*Y_2,1,1);
+  Real a12 = MatDat(Matrix Tra(Y_2)*Y_1,1,1);
+  Real a22 = MatDat(Matrix Tra(Y_1)*Y_1,1,1);
+  Matrix G = ((a11,a12),(a12,a22));
+  Matrix G_1 = GaussInverse(G);
+  Matrix phi_m = G_1*Col(MatDat(Matrix Tra(Y_2)*Y_3,1,1),
+                         MatDat(Matrix Tra(Y_1)*Y_3,1,1));
+  Matrix B = ((1,1),(-1,1),(0,-1));
+  Matrix ib = Col(1,1,1);
+  Set data = [[Y2, Y, G_1, phi_m, r, B, ib]]
+};
+
+/*
+ * compute_V_1 --
+ *
+ *   compute Inv(V) and its determinant
+ */
+
+Set compute_V_1(Matrix Phi)
+{
+  //Text WriteLn("compute_V_1");
+  Real phi1 = MatDat(Phi,1,1);
+  Real phi2 = MatDat(Phi,2,1);
+  //Set View([[phi1, phi2]], "Std");
+  Real a11 = 1 - phi2*phi2;
+  Real a12 = -phi1*(1+phi2);
+  Matrix V_1 = ((a11,a12),
+                (a12,a11));
+  Real det = a11*a11 - a12*a12;
+  Set V_1_info = [[det, V_1]]
+};
+
+/*
+ *  AR2_sample_s2 --
+ *
+ *    Generate a direct sample for sigma2. Simulate from an inverted gamma
+ *    with parameters  shape=n/2 and
+ *    scale=Tra(Y2)*V_1*Y2 + Sum_3_n((1-phi1*B-phi2*B):Y)^2)
+ */
+
+Matrix AR2_sample_s2(Matrix sigma2, Matrix Phi, Matrix Join, Set data, Real ID)
+{
+  //Text WriteLn("AR2_sample_s2");
+  Matrix Y2 = data[1];
+  Matrix Y = data[2];
+  Real shape = data[5];
+  Set V_1 = compute_V_1(Phi);
+  Real phi1 = MatDat(Phi,1,1);
+  Real phi2 = MatDat(Phi,2,1);
+  Polyn ar2 = 1-phi1*B-phi2*B^2;
+  Real sq_e = MatSum(Matrix RPow(Sub(Matrix DifEq(ar2, Y),3,1,Rows(Y)-2,1),2));
+  Real scale = MatDat(Matrix Tra(Y2)*V_1[2]*Y2,1,1) + sq_e;
+  //Set View([[shape, sq_e, scale]], "Std");
+  //Matrix Col(Real Sqrt(1/RandGamma(shape,scale)))
+  //Matrix Col(Real Sqrt(1/RandGamma(shape,1/scale)))
+  //Matrix Col(Real 1/RandGamma(shape*2,scale))
+  Matrix Col(Real RandIChisq(shape, scale))
+};
+
+Matrix test_sample_sigma2(Real void)
+{
+  Matrix Y = AR2_generate(100,1.0,-0.5);
+  Set data = build_data(Y);
+  Matrix s2 =AR2_sample_s2(Col(0.1), Col(1.0,-0.5), Col(0.1,0.1,0.1), data)
+};
+
+/*
+ *  AR2_kernel_Phi --
+ *
+ *   Kernel generator for Phi.
+ */
+
+Matrix AR2_kernel_Phi(Matrix Phi, Matrix sigma2, Matrix Join, Set data, Real ID)
+{
+  //Text WriteLn("AR2_kernel_Phi");
+  //Set View([[data[4], data[3], data[6], data[7], MatDat(sigma2,1,1)]], "Std");
+  Matrix MHWSPut(ID, 1, sigma2);
+  Matrix sample = RandConstrainedMNormal(data[4], /* nu = phi_m */
+                                         data[3], /* COV = G_1 */
+                                         data[6], /* B */
+                                         data[7], /* b */
+                                         MatDat(sigma2,1,1), /* s2 */
+                                         100 /* MCMC size */);
+  //Set View([[sample]], "Std");
+  Matrix Tra(sample)
+};
+
+/*
+ *  AR2_pi
+ */
+
+Real AR2_pi(Matrix Phi, Matrix sigma2, Matrix Join, Set data, Real ID)
+{
+  //Set View([["AR2_pi", Phi]], "Std");
+  //Real tt = MHWSGet(ID, 1);
+  //Set View([["ws1", tt]], "Std");
+
+  Matrix Y2 = data[1];
+  Set V_1 = compute_V_1(Phi);
+  Real s2 = MatDat(sigma2,1,1);
+  //Set View([[s2, V_1[1], V_1[2], Matrix tmp = Tra(Y2)*V_1[2]*Y2]], "Std");
+  -Log(s2) + 0.5*Log(V_1[1]) - (0.5/s2)*MatDat(Matrix Tra(Y2)*V_1[2]*Y2,1,1)
+};
+
+/*
+ * AR2_generate --
+ *
+ *   Generate a sample from AR(2).
+ */
+
+Matrix AR2_generate(Real size, Real phi1, Real phi2)
+{
+  Matrix e = Gaussian(size,1,0,1);
+  Polyn ar2 = 1 - phi1*B - phi2*B^2;
+  Matrix Y = DifEq(1/ar2, e) 
+};
+
+/*
+ *  AR2_example --
+ *
+ *  Simulate a posterior mcmc.
+ */
+
+Matrix AR2_posterior(Matrix Y, Real burning, Real size)
+{
+  Set data = build_data(Y);
+  Set MH_def = [[
+                 [[1, /* dimension */ 
+                   0, /* direct sampler */
+		   Col(0.5), /* initial state */
+                   data, /* block data */
+		   AR2_sample_s2 /* inverted-gamma sampler */
+                 ]],
+                 [[2, /* dimension */ 
+                   2, /* generic MH */
+		   Col(0.1,0.1), /* initial state */
+                   data, /* block data */
+		   AR2_kernel_Phi, /* Phi sampler generator, it is a factor of
+                                    * the target density from which we know
+                                    * how to generate samples */
+                   AR2_pi, /* target density evaluator, in fact it is the
+                            * other target density factor that is uniformly
+                            * bounded */
+		   1 /* q is symmetric, so we do not have to provide the
+                      * kernel evaluator */
+                 ]]
+               ]];
+  Matrix MetropolisHastings(MH_def, burning, size, [[1,2]])
+};
+
+Matrix AR2_UMH_72(Real burning, Real size)
+{
+  Matrix AR2_posterior(AR2_generate(100,1.0,-0.5), burning, size)
+};
+
+/*
+
+ - Matrix AR2_UMH_72(500, 6000);
+
+ */
+
+Real t0= Copy(Time);
+Matrix mcmc = Tra(AR2_UMH_72(500, 5000));
+
+Real sigma = MatAvr(SubCol(mcmc,[[1]]));
+Real ar1= MatAvr(SubCol(mcmc,[[2]]));
+Real ar2= MatAvr(SubCol(mcmc,[[3]]));
+WriteLn("Elapsed time "<<Real(Time-t0)+" seconds");

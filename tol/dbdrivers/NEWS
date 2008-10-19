@@ -1,0 +1,8 @@
+2007-02-22 - Tol 1.1.5, Tol Database Drivers 1.0
+
+Tol Database Drivers project has a new loadable module to get direct database access
+to PostgreSQL engines.
+
+ODBC and MySQL drivers have been reimplemented for this new release.
+Now they fits better with both sides, Tol and the Database Managers.
+

@@ -1,0 +1,124 @@
+//////////////////////////////////////////////////////////////////////////////
+// PURPOSE: Creates useful functions and objects.  
+// 
+// WARNING: Some of this definition are used in the internal code of TolBase 
+//          and any change can originate unexpected errors and wrong working  
+//          for some TOL files. 
+//
+//          Note that this file cannot be compiled in TolBase because it's 
+//          internally compiled.    
+//
+//          So, If you decides, under your own responsability, to make changes
+//          in this file, those will not take effect until next executation of
+//          TolBase.    
+//
+//////////////////////////////////////////////////////////////////////////////
+
+//The name of the TOL executable
+Text TOLAppName = ToLower(GetFilePrefix(TOLSessionPath));
+//The path of tolsh to call it via system
+Text TOLSH_PATH  = 
+{
+  Text aux0 = GetEnv("TOLSH_PATH");
+  If(aux0!="", aux0, GetFilePath(TOLSessionPath))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//OIS doc info
+//////////////////////////////////////////////////////////////////////////////
+Set 
+{
+  Text PutValue(Ois.DefDoc->Name,"stdlib");
+  Text PutValue(Ois.DefDoc->Subject,I2(
+    "TOL Standard Library",
+    "Librería estandar de TOL"));
+  Text PutValue(Ois.DefDoc->Keys,I2(
+    "Standard,Library,Functions",
+    "Librería,estandar,Funciones"));
+  Text PutValue(Ois.DefDoc->Abstract,I2(
+      "Generic functions and objects extendedly used in TOL and needed for "
+      "most of main TOL applications.",
+      "Funciones y objetos de carácter general y de uso extendido que se "
+      "presuponen cargadas de antemano para muchas de las características "
+      "y en la mayoría de las aplicaciones de TOL."));
+  Text PutValue(Ois.DefDoc->Authors,I2(
+    "TOL-Project Development Team",  
+    "Equipo de Desarrollo de TOL-Project"));
+  Text PutValue(Ois.DefDoc->Distribution,I2(
+    "Public domain",                 
+    "Dominio público"));
+  Text PutValue(Ois.DefDoc->Repository,"www.tol-project.org");
+  Ois.DefDoc
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Packages tree of StdLib is loaded as local to allow browsing on inspector 
+//object
+//////////////////////////////////////////////////////////////////////////////
+Set StdLib.Tree = 
+{
+  Do Ois.UseModule("_packages.tol")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// Root NameBlock for library
+//////////////////////////////////////////////////////////////////////////////
+NameBlock StdLib = 
+{ 
+  Set StdLib.Tools = { Do Include("general/various/_tools.tol") };
+  Code PlainNamedObjects = StdLib.Tools::PlainNamedObjects;
+  //StdLib structures, functions, and variables are collected in a plain set
+  Set plain = PlainNamedObjects(StdLib.Tree);
+  //and converted to a NameBlock to allow specific access with prefix StdLib::
+
+  SetToNameBlock(plain) 
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Checks TOL release every day to detect obsolete versions
+//////////////////////////////////////////////////////////////////////////////
+Real CheckTOLReleaseIsUpdated = StdLib::CheckTOLRelease(1);
+
+//////////////////////////////////////////////////////////////////////////////
+//Backward compatility
+//////////////////////////////////////////////////////////////////////////////
+
+//Publishing NameBlock StdLib to allow calling without prefix StdLib:: until
+//tol v.1.1.7 will be released and NameBlock became mandatory
+Real StdLib.Using = UsingNameBlock(StdLib);
+
+//////////////////////////////////////////////////////////////////////////////
+// OIS initialization
+//////////////////////////////////////////////////////////////////////////////
+//OIS is now a mature and mandatory feature of TOL
+Real Ois.Implemented  = True;
+Code Ois.ModuleLoader = FindCode("Set","Ois.UseModule");
+
+//////////////////////////////////////////////////////////////////////////////
+// Tpa initialization
+//////////////////////////////////////////////////////////////////////////////
+Set { Tpa.Hosts = If(TOLAppName!="tolsh",Copy(Empty),
+  StdLib::Tpa::loadLastHosts(0)
+)};
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Check exists '_iniproject' to load user specific initialization files
+//////////////////////////////////////////////////////////////////////////////
+Set DefaultInitialProject = Case
+(
+  FileExist(GetEnv("HOME")+"/.tol/_iniproject.tol"),
+    Include(GetEnv("HOME")+"/.tol/_iniproject.tol"),
+  FileExist("../_iniproject.tol"),
+    Include("../_iniproject.tol"),
+  FileExist("../../_iniproject.tol"), 
+    Include("../../_iniproject.tol"),
+  FileExist("../../../_iniproject.tol"), 
+    Include("../../../_iniproject.tol"),
+  1==1,
+    Empty
+);
+
+
+

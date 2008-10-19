@@ -1,0 +1,70 @@
+////////////////////////////////////////////////////////////////////////////////
+// FILE: _tools.tol
+// PURPOSE: generic purpose tools
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+  Set PlainNamedObjects(Set set)
+////////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("PlainNamedObjects("<<Name(set)+")");
+  Set aux = For(1,Card(set),Set(Real k) 
+  { 
+  //WriteLn("  Element "+Grammar(set[k])+" "+Name(set[k]));
+    Text name = Name(set[k]);
+    Real hasName = And
+    (
+      name!="",
+      name==ToName(name),
+      name!="Empty"
+    );
+    Case
+    (
+      Grammar(set[k])=="Set", 
+      {
+      If(hasName, [[ set[k] ]], Empty) << 
+      PlainNamedObjects(set[k])
+      }, 
+      !hasName,       
+      {
+      Copy(Empty)
+      },
+      1==1,                   
+      {
+      [[ set[k] ]]
+      }
+    )
+  });
+  If(!Card(aux),aux, BinGroup("<<",aux))
+};
+////////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+"Returns a plain set of all elements with valid TOL name under a set and "
+"its sub-sets.",
+"Devuelve un conjunto plano con todos los elementos con nombre TOL v???lido "
+"bajo un onjunto y sus subconjuntos."),
+PlainNamedObjects); 
+////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+  Anything getOptArg(Set optArgs, Text name, Anything defValue)
+////////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(optArgs), defValue,
+  {
+    Real Do If(Card(optArgs),!HasIndexByName(optArgs),SetIndexByName(optArgs));
+    Real idx = FindIndexByName(optArgs,name);
+    If(!idx, defValue, optArgs[idx])
+  })
+};
+////////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+"Handles with generic sets of function optional arguments."
+"If <optArgs> has an element called <name> returns its value, else <defValue>",
+"Maneja conjuntos gen??ricos de argumentos opcionales de funciones."
+"Si el conjunto de opciones <optArgs> tiene un elemento llamado <name> "
+"entonces devuelve su valor y si no devuelve <defValue>"),
+getOptArg); 
+////////////////////////////////////////////////////////////////////////////////
+

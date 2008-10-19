@@ -1,0 +1,33 @@
+Set result = Copy(Empty);
+
+// DB variables:
+Real testDB    = False;                //If FALSE, no DB check will be done
+Text user      = "theUser";            // Same user/password...
+Text passwd    = "thePassword";        // ...for all test databases.
+Text dbName    = "theDatabaseName";    // Database name for native access.
+Text host      = "localhost";          // Host name for mysql access.
+Set aliasNames = [["test1","test2"]];  // two ODBC handlers
+
+Set testIt (Text dir) {
+    Set dirSet = GetDir(dir);
+    Set result = EvalSet(dirSet[2], Set (Text subdir) {
+      Set If (subdir == "tests",
+         {Set makeTests(dir + "/tests")},
+         {Set testIt(dir + "/" + subdir)})
+    })
+};
+
+Set makeTests (Text dir) {
+    Set testFiles = GetDir(dir);
+    Set tolfiles = Select(testFiles[1], Real (Text name) {
+      Real If (GetFileExtension(name)=="tol", 1, 0)
+    });
+    Set tf = EvalSet(tolfiles, Text (Text name) {
+      Text file = dir + "/" + name;
+      Set lres = [[file]] << Include(file);
+      Set (result := result << [[lres]]);
+      file
+    })
+};
+
+Set testIt(".");

@@ -1,0 +1,62 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE:    
+// PURPOSE: 
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Set CalcForecasting(Set modelo, 
+                      Date pasado, Date origen, 
+                      Real numPrev, Real alfa)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Date  iniDte = First(modelo[2][1]);
+
+  Real  sigma  = modelo[1][8];
+  Real  bc1    = modelo[2][2];
+  Real  bc2    = modelo[2][3];
+  Polyn dif    = modelo[2][6];
+  Polyn ar     = SetProd(modelo[2][7]);
+  Polyn ma     = SetProd(modelo[2][8]);
+  Polyn ari    = ar*dif;
+
+  Serie z      = SubSer(modelo[2][1],iniDte,origen);
+  Serie int    = modelo[3][4];
+  Date  first  = Succ(origen,Dating(z),1);
+  Date  last   = Succ(origen,Dating(z),numPrev);
+  Serie zero   = SubSer(CalInd(W,Dating(z)),first,last);
+
+  Serie tZ      = BoxCoxTransform(z+bc2,bc1);
+  Serie medtZ   = IfSer(IsUnknown(tZ), SumS(int)/SumS(Not(Not(int))), tZ);
+  Serie fulltZ  = medtZ<<IfSer(int, int, tZ)>>medtZ; 
+  Set   effects = EvalSet(modelo[2][9], ApplyPolyn),
+  Serie filter  = If(EQ(Card(effects), 0), CalInd(W,Dating(z)),SetSum(effects));
+  Serie noise   = If(EQ(Card(effects), 0), modelo[3][3],fulltZ - filter);
+  Serie residuals = modelo[3][1];
+  
+  Serie iNoise  = SubSer(noise, Max(iniDte, First(residuals)),origen);
+  Serie iRes    = SubSer(residuals,Max(iniDte, First(residuals)),origen);
+
+  Serie prevNoise = SolveDifEq(ma,ari,zero,residuals,noise);
+  Serie tPrev     = If(EQ(Card(effects), 0),prevNoise, prevNoise + filter);
+  
+  Polyn  psi     = Expand(ma/ari,numPrev);
+  Serie  psiSer  = SubSer(psi:Pulse(first,Dating(z)),first,last);
+  Serie  psiSer2 = psiSer^2;
+  Serie  error2  = DifEq((sigma^2)/(1-B),psiSer2,0);
+  Serie  error   = SqRt(error2);
+
+  Real  numSig = DistNormalInv(1-(alfa/2));
+  Serie tSup   = tPrev + numSig*error;
+  Serie tInf   = tPrev - numSig*error;
+
+  Serie lastP  = SubSer(z, last, last);
+  Serie k      = bc2+zero;
+  Serie transformed   =  BoxCoxTransform(modelo[2][1]+bc2,bc1);
+  Serie histPrev      = (BoxCoxInverseTransform(transformed-residuals,bc1)-bc2);
+  Serie Original      = SubSer(modelo[2][1],pasado,last);
+  Serie Prevision     = (BoxCoxInverseTransform(tPrev,bc1) - k);
+  Serie BandaSuperior = (BoxCoxInverseTransform(tSup,bc1)- k);
+  Serie BandaInferior = (BoxCoxInverseTransform(tInf,bc1)- k);
+  [[Original,Prevision,BandaSuperior,BandaInferior,
+    effects,transformed,residuals,filter,noise,prevNoise,histPrev]]
+};

@@ -1,0 +1,520 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _system.tol
+// PURPOSE : Multiplattform functions about calling operative system 
+//           Some functions are simple calls to existent TOL fucntions in 
+//           order to get a consistent multiplattform API
+// 
+// SUMMARY : 
+// 
+// OSCmdWait:   Calls OS and wait. Shows no console
+// OSCmdNoWait: Calls OS and no wait. Shows no console
+// OSConWait:   Calls OS and wait. Shows a console in Windows
+// OSConNoWait: Calls OS and no wait. Shows a console in Windows
+// OSPathQt:    Returns the quoted path with valid slashes 
+// OSFilExist:  Cheks if a file exists
+// OSFilRemove: Deletes a file.
+// OSFilCopy:   Copies a file to other directory or with a different name.
+// OSFilMove:   Moves a file to other directory or with a different name.
+// OSDirExist:  Cheks if a folder exists
+// OSDirMake:   Creates a directory and all its non existent parents
+// OSDirRemove: Removes a directory and all its files and folders recursively
+// OSDirCopy:   Copies a directory and all its files and folders recursively
+// OSDirMove:   Moves a directory and all its files and folders recursively
+// 
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// OBJECTS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+ Real OSTraceLevel = 0;
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Tracing level :
+  OSTraceLevel < 0 -> no tracing
+  OSTraceLevel = 0 -> Essential traces
+  OSTraceLevel = 1 -> User traces
+  OSTraceLevel = 2 -> Testing traces
+  OSTraceLevel = 3 -> Developping traces
+  OSTraceLevel > 4 -> Extended traces
+",
+"Nivel de trazdo :
+  OSTraceLevel < 0 -> lanzamiento sin trazas,
+  OSTraceLevel = 0 -> solo trazas esenciales,
+  OSTraceLevel = 1 -> trazas de usuario,
+  OSTraceLevel = 2 -> trazas de comprobación,
+  OSTraceLevel = 3 -> trazas de desarrollo,
+  OSTraceLevel > 4 -> trazas de desarrollo extendidas.
+"),
+OSTraceLevel);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text OSWinCmd = "cmd.exe /D /E:ON /C ";
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Windows command processor with specified arguemnts to can be called from "
+"WinSystem function.
+",
+"Procesador de comandos de Windows con los argumentos específcos para poder "
+"ser llamado desde la función WinSystem.
+"),
+OSWinCmd);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text OSConShowModeDescription = 
+//////////////////////////////////////////////////////////////////////////////
+I2("
+  0 : Hides the window and activates another window. 
+  1 : Activates and displays a window. If the window is minimized or "
+     "maximized, Windows restores it to its original size and position. An "
+     "application should specify this flag when displaying the window for "
+     "the first time.
+  2 : Activates the window and displays it as a minimized window. 
+  3 : Activates the window and displays it as a maximized window. 
+  4 : Displays a window in its most recent size and position. The active "
+     "window remains active. 
+  5 : Activates the window and displays it in its current size and position. 
+  6 : Minimizes the specified window and activates the next top-level window "
+     "in the Z order. 
+  7 : Displays the window as a minimized window. The active window remains "
+     "active. 
+  8 : Displays the window in its current state. The active window remains "
+     "active. 
+  9 : Activates and displays the window. If the window is minimized or "
+     "maximized, Windows restores it to its original size and position. An "
+     "application should specify this flag when restoring a minimized window
+","
+  0: Oculta la ventana y activa otra ventana.     
+  1: Activa y exhibe una ventana. Si se reduce al mínimo o se maximiza la "
+     "ventana, Windows la restaura a su tamaño original y posición. Un uso "
+     "debe especificar esta bandera al exhibir la ventana por primera vez.    
+  2: Activa la ventana y la exhibe como ventana reducida al mínimo.     
+  3: Activa la ventana y la exhibe como ventana maximizada.     
+  4: Exhibe una ventana en su tamaño y posición más recientes. La ventana "
+     "activa sigue siendo activa.     
+  5: Activa la ventana y la exhibe en su tamaño y posición actuales.     
+  6: Reduce al mínimo la ventana especificada y activa la ventana a nivel "
+     "superior siguiente en la orden de Z.     
+  7: Exhibe la ventana como ventana reducida al mínimo. La ventana activa "
+     "sigue siendo activa.     
+  8: Exhibe la ventana en su estado actual. La ventana activa sigue siendo "
+     "activa.     
+  9: Activa y exhibe la ventana. Si se reduce al mínimo o se maximiza la "
+     "ventana, Windows la restaura a su tamaño original y posición. Un uso "
+     "debe especificar esta bandera al restaurar una ventana reducida al "
+     "mínimo.
+");
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCIONES
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// Errors and traces management
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text OSTrace(Real level, Text trace)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text If(GE(OSTraceLevel,level),
+  {
+    Text WriteLn("[OSTrace "+Time+"] "+trace)
+  });
+  Text ""
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Shows a trace if current OSTraceLevel is greater or equal than given level.",
+"Muestra una traza si el valor actual de OSTraceLevel es mayor o igual que "
+"el nivel especificado.")+
+Description(OSTraceLevel),
+OSTrace);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSShowErr(Real ok, Text msgErr)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(ok,1,{WriteLn("<E>OS FAIL calling to \n"+msgErr+"</E>"),0})
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Shows a message error if it's no ok.",
+"Muestra el mensaje de error si ok es falso."),
+OSShowErr);
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// OSCmd/OSCon : Operative System Command related functions
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSCmdWait(Text order)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text OSTrace(3,"OSCmdWait("<<order+")");
+  If(OSUnix, 
+    System(order), 
+    If(Arguments(WinSystem,3,"NAME")=="",
+      System   (order),
+      WinSystem(OSWinCmd+order,0,true)))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Calls the operative system to do something and wait end of process.
+It will show no console but you need a TOL version having WinSystem with 3-th
+argument Real wait, or else console will be showed in TOLBase for Windows.
+To show it use OSConWait. 
+In TOL console mode OSCmdWait and OSConWait are equal.
+Returns TRUE if success or FALSE if an error happens.
+Realated functions : ",
+"Llama al sistema operativo para realizar una orden y espera hasta el 
+fin del proceso antes de retornar el control. No se muestra ninguna consola
+si se dispone de una versión de TOL con el tercer argumento Real wait en la 
+función WinSystem. En versiones antiguas se mostrará la consola en TOLBase
+para windows.
+Para mostrar la consola hay que usar OSConWait.
+En TOL en modo consola OSCmdWait y OSConWait som iguales.
+En caso de error devuelve FALSO y si no CIERTO.
+Funciones relacionadas: ")+
+"OSCmdWait, OSCmdNoWait, OSConWait, OSConNoWait, System, WinSystem",
+OSCmdWait);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSCmdNoWait(Text order)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text OSTrace(3,"OSCmdNoWait("<<order+")");
+  If(OSUnix, 
+    System(order+" &"), 
+    WinSystem(OSWinCmd+order,0))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Calls the operative system to do something and returns control without 
+waiting process ending.
+In Windows with recent TolBase versions it will show no console.
+To show it use OSConWait. 
+In TOL console mode mode OSCmdWait and OSConWait are equal.
+Returns TRUE if process was created but internal errors cannot be caught. So
+in TOLBase no console mode these errors will not be showed. In TOL console 
+mode errors will be showed in standard output when they happen, that could be
+much later.
+Realated functions : ",
+"Llama al sistema operativo para realizar una orden y retorna el control sin 
+esperar hasta el fin del proceso.
+En Windows con versiones recientes de TolBase no se muestra ninguna consola.
+Para mostrar la consola hay que usar OSConWait.
+En TOL en modo consola OSCmdWait y OSConWait som iguales.
+Devuelve CIERTO si pudo lanzar el proceso pero los errores internos del mismo
+no pueden ser capturados al devolverse el control sin esperar a que acabe.
+Por eso en TOLBase estos errors no aparecerán. En TOL de modo consola los 
+errores aparecerán en la salida estándar cuando ocurran que puede ser mucho 
+tiempo después.
+Funciones relacionadas: ")+
+"OSCmdWait, OSCmdNoWait, OSConWait, OSConNoWait, System, WinSystem",
+OSCmdNoWait);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSConWait(Text order, Real showMode)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text OSTrace(3,"OSConWait("<<order+","<<showMode+")");
+  If(OSUnix, 
+    System(order), 
+    If(Arguments(WinSystem,3,"NAME")=="",
+      System   (order),
+      WinSystem(OSWinCmd+order,showMode,true)))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Calls the operative system to do something and wait end of process.
+In TOLBase no console mode it will show a console in the specified mode:
+"+OSConShowModeDescription+" 
+To not show it use OSCmdWait. 
+In TOL console mode OSCmdWait and OSConWait are equal.
+Returns TRUE if success or FALSE if an error happens.
+Realated functions : ",
+"Llama al sistema operativo para realizar una orden y espera hasta el 
+fin del proceso antes de retornar el control.
+En Windows se muestra una consola con el modo de presentación especificado:
+"+OSConShowModeDescription+" 
+Para no mostrar la consola hay que usar OSCmdWait.
+En TOL en modo consola mode OSCmdWait y OSConWait som iguales.
+En caso de error devuelve FALSO y si no CIERTO.
+Funciones relacionadas: ")+
+"OSCmdWait, OSCmdNoWait, OSConWait, OSConNoWait, System, WinSystem",
+OSConWait);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSConNoWait(Text order, Real showMode)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text OSTrace(3,"OSConNoWait("<<order+","<<showMode+")");
+  If(OSUnix, 
+    System(order+" &"), 
+    WinSystem(OSWinCmd+order,showMode))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Calls the operative system to do something and returns control without 
+waiting process ending.
+In TOLBase no console mode it will show a console in the specified mode:
+"+OSConShowModeDescription+" 
+To not show it use OSCmdWait. 
+In TOL console mode OSCmdWait and OSConWait are equal.
+Returns TRUE if process was created but internal errors cannot be caught. So
+in TOLBase no console mode these errors will not be showed. In TOL console 
+mode errors will be showed in standard output when they happen, that could be
+much later.
+Realated functions : ",
+"Llama al sistema operativo para realizar una orden y retorna el control sin 
+esperar hasta el fin del proceso.
+En Windows se muestra una consola con el modo de presentación especificado:
+"+OSConShowModeDescription+" 
+Para no mostrar la consola hay que usar OSCmdWait.
+En TOL en modo consola OSCmdWait y OSConWait som iguales.
+Devuelve CIERTO si pudo lanzar el proceso pero los errores internos del mismo
+no pueden ser capturados al devolverse el control sin esperar a que acabe.
+Por eso en TOLBase estos errors no aparecerán. En TOL de modo consola los 
+errores aparecerán en la salida estándar cuando ocurran que puede ser mucho 
+tiempo después.
+Funciones relacionadas: ")+
+"OSCmdWait, OSCmdNoWait, OSConWait, OSConNoWait, System, WinSystem",
+OSConNoWait);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// OSPath : Operative System Path handling related functions
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Text OSPathQt(Text path)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text OSTrace(3,"OSPathQt("<<path+")");
+  Text aux1 = ReplaceSlash(path);
+  If(Sub(path,1,1)=="\"",aux1,"\""+aux1+"\"")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Returns the quoted path with valid slash for current operative system.",
+"Devuelve el camino entrecomillado con los slash adecuados para el sistema
+operativo en curso."),
+OSPathQt);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// OSFil : Operative System File handling related functions
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real OSFilExist(Text path)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSFilExist("<<path+")";
+  Text OSTrace(3,call);
+  FileExist(Replace(path,"\\","/"))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Returns true if exists a file with given path.",
+"Devuelve cierto si existe un fichero con el camino dado."),
+OSFilExist);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real OSFilRemove(Text file)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSFilRemove("<<file+")";
+  Text OSTrace(3,call);
+  Real ok = If(!OSFilExist(file), 1, FileDelete(file));
+  OSShowErr(ok,call)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Deletes a file.
+Returns TRUE if success or FALSE if an error happens",
+"Borra un fichero.
+En caso de error devuelve FALSO y si no CIERTO"),
+OSFilRemove);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real OSFilCopy(Text oldFil, Text newFil)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSFilCopy("<<oldFil+","+newFil+")";
+  Text OSTrace(3,call);
+  Real ok = OSCmdWait(
+    If(OSUnix, "cp ", "copy /Y ")+
+    OSPathQt(oldFil)+" "+OSPathQt(newFil));
+  OSShowErr(ok,call)
+
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Copies a file to other directory or with a different name.
+Destination folder must exists previously.
+Returns TRUE if success or FALSE if an error happens",
+"Copia un fichero a otro directorio o al mismo pero con otro nombre
+El directorio de destino debe existir previamente.
+En caso de error devuelve FALSO y si no CIERTO"),
+OSFilCopy);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real OSFilMove(Text oldFil, Text newFil)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSFilMove("<<oldFil+","+newFil+")";
+  Text OSTrace(3,call);
+  Real ok = OSCmdWait(
+    If(OSUnix, "mv ", "move ")+OSPathQt(oldFil)+" "+OSPathQt(newFil));
+  OSShowErr(ok,call)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Moves a file to other directory or with a different name.
+Destination folder must exists previously.
+Returns TRUE if success or FALSE if an error happens",
+"Mueve un fichero a otro directorio o al mismo pero con otro nombre
+El directorio de destino debe existir previamente.
+En caso de error devuelve FALSO y si no CIERTO"),
+OSFilMove);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// OSDir : Operative System File handling related functions
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real OSDirExist(Text path)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSDirExist("<<path+")";
+  Text OSTrace(3,call);
+  DirExist(Replace(path,"\\","/"))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Returns true if exists a directory with given path.",
+"Devuelve cierto si existe un directorio con el camino dado."),
+OSDirExist);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSDirMake(Text newDir_)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSDirMake("<<newDir_+")";
+  Real ok = 0;
+  If(newDir_!="", Real {
+      Text OSTrace(3,call);
+      Real len    = TextLength(newDir_);
+      Text aux1   = Sub(newDir_,len,len);
+      Text newDir = If(aux1<:[["/","\\"]],Sub(newDir_,1,len-1),newDir_);
+      Text newDirQt = OSPathQt(newDir);
+      Real ok := If(Or(!TextLength(newDirQt),DirExist(newDir)),1,
+                   OSCmdWait(If(OSUnix, "mkdir -p ", "mkdir ")+
+                             newDirQt))
+    });
+  OSShowErr(ok,call)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Creates a directory and all its needed and non existent parents."
+"In Windows command extensions must be enabled.
+Returns TRUE if success or FALSE if an error happens",
+"Crea un directorio y todos antecesores necesarios y no existentes."
+"En windows deben estar habilitadas las extensiones de comandos.
+En caso de error devuelve FALSO y si no CIERTO"),
+OSDirMake);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSDirRemove(Text path)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSDirRemove("<<path+")";
+  Text OSTrace(3,call);
+  Real ok = If(!OSDirExist(path),1,
+    OSCmdWait(If(OSUnix, "rm -r -f ", "rmdir /S/Q ")+OSPathQt(path)));
+  OSShowErr(ok,call)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"ATTENTION: Removes a directory and all its files and folders recursively.
+Returns TRUE if success or FALSE if an error happens",
+"ATENCIÓN: Borra un directorio y todos sus ficheros y carpetas 
+recursivamente.
+En caso de error devuelve FALSO y si no CIERTO"),
+OSDirRemove);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSDirCopy(Text oldDir, Text newDir)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSDirCopy("<<oldDir+","+newDir+")";
+  Text OSTrace(3,call);
+  Real ok = OSCmdWait(
+    If(OSUnix, "cp -r ", "xcopy /E /Y /R /H /I /Q ")+
+      OSPathQt(oldDir)+" "+OSPathQt(newDir));
+  OSShowErr(ok,call)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Copies a directory and all its files and folders recursively.
+Returns TRUE if success or FALSE if an error happens",
+"Copia un directorio y todos sus ficheros y carpetas recursivamente.
+En caso de error devuelve FALSO y si no CIERTO"),
+OSDirCopy);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real OSDirMove(Text oldDir, Text newDir)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSDirMove("<<oldDir+","+newDir+")";
+  Text OSTrace(3,call);
+  Text oldD = OSPathQt(oldDir);
+  Text newD = OSPathQt(newDir);
+  Real ok = If(OSUnix,
+    OSCmdWait("mvdir "+oldD+" "+newD),
+    {
+      Real ok1 = OSDirCopy(oldDir, newDir);
+      Real ok2 = OSDirRemove(oldDir);
+      ok1 & ok2  
+    });
+  OSShowErr(ok,call)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Moves a directory and all its files and folders recursively.
+Returns TRUE if success or FALSE if an error happens",
+"Mueve un directorio y todos sus ficheros y carpetas recursivamente.
+En caso de error devuelve FALSO y si no CIERTO"),
+OSDirMove);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// Tests
+//////////////////////////////////////////////////////////////////////////////
+Set If(OSTraceLevel<2,Empty,Include("_system_test.tol"));
+
+/* */

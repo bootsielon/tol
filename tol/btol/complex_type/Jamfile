@@ -1,0 +1,3 @@
+ln-H tol_bcmpgra.h ;
+
+objects objs : cmpgra.cpp ;

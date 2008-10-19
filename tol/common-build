@@ -1,0 +1,7 @@
+#!/bin/sh
+./configure \
+--enable-OIS \
+--enable-ZipArchive \
+--enable-pool \
+--enable-DS \
+--with-hashmap=google

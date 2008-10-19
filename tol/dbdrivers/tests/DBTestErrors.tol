@@ -1,0 +1,114 @@
+// Database tests. See README.txt for more info.
+// Date: July 14th, 2004.
+// Author: Manuel Balderrábano <manuelb@tol-project.org>
+
+// Test Description
+Text "Testing incorrect parameters handling using mysql and ODBC drivers...";
+
+//Test Operation
+Real {
+
+  //Struct definition:
+  Struct DBStructMySQL {
+    Text driver,
+    Text database,
+    Text host
+  };
+
+  //WRONG Struct definition (Argument Number):
+  Struct DBStructWrongMySQL1 {
+    Text one,
+    Text two
+  };
+
+  //WRONG Struct definition (Argument type):
+  Struct DBStructWrongMySQL2 {
+    Real one,
+    Real two,
+    Real three
+  };
+
+  Struct DBStructODBC {
+    Text driver
+  };
+
+  //Check for error consistency in DBOpen:
+  Real TestOpen(Set db1)
+  {
+    // - Check for non-existing alias:
+    Real res01 = If (Card(db1) == 0,
+      Real DBOpen("nonExistingAlias", "anyone", "anypassword")
+      ,
+      Real DBOpen("nonExistingAlias", "anyone", "anypassword", db1)
+      );
+    // - Check for bad user/password disabled: Needs Database and ODBC initialization.
+    //Real res02 = DBOpen("test", "user", "pass");
+    Real res02 = 0;
+    // - Check for all DB functions using an invalid database.
+    Real (Not(res01) & Not(res02))
+  };
+
+  //Check for error consistency in all DB functions:
+  Real TestDB(Real NULL)
+  {
+    Real res01 = DBActivate("nonExixtingAlias");
+    Real res02 = DBClose("nonExixtingAlias");
+    Real res03 = DBExecQuery ("any query");
+    Real res04 = Card( Set DBTable("any query"));
+    Real res05 = Card( MatSet(Matrix DBMatrix("any query")));
+    Real res06 = Card( Set DBSeries("any query", Diario, [["uno","dos"]]));
+    Real res07 = Card( Set DBSeriesTable("any query", Diario, [["uno","dos"]]));
+    Real res08 = Card( Set DBSeriesColumn("any query", Diario));
+    (Not(res01) &
+     Not(res02) &
+     If(res03==-1,1,0) &
+     Not(res04) &
+     Not(res05) &
+     Not(res06) &
+     Not(res07) &
+     Not(res08))
+  };
+
+  Real res = If (testDB,
+  {
+
+    // * Old ODBC format.
+    Real res01 = TestOpen(Set EMPTY);
+    Real res02 = TestDB(0);
+     // * New ODBC format.
+    Set ODBC = DBStructODBC("odbc");
+    Real res03 = TestOpen(Set ODBC);
+    Real res04 = TestDB(0);
+    // * Mysql.
+    Set MySQL = DBStructMySQL("mysql","","");
+    Real res05 = TestOpen(Set MySQL);
+    Real res06 = TestDB(0);
+
+    Set MySQLWrongArgs1 = DBStructWrongMySQL1("mysql","");
+    Real res07 = TestOpen(Set MySQLWrongArgs1);
+    //Real res008 = TestDB(0);
+  
+    Set MySQLWrongArgs2 = DBStructWrongMySQL2(5,6,7);
+    Real res08 = TestOpen(Set MySQLWrongArgs2);
+    //Real res010 = TestDB(0);
+  
+    // Test condition
+    If((res01 & res02 & res03 & res04 & res05 & res06 & res07 &
+        res08),
+    {
+      //WriteLn("Ok");
+      1
+    },
+    {
+      //WriteLn("Error");
+      0
+    })
+  },-2);
+
+  Real Case ( (res == 1), { WriteLn("Ok");1},
+              (res == 0), { WriteLn("Error");0},
+              (res == -1),{ WriteLn("Error-Check DB parameters in DBTestIni.tol");0},
+              (res == -2),{ WriteLn("Disabled");1})
+
+};
+

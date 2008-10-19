@@ -1,0 +1,29 @@
+//Test to verify if a Serie with a Dating attribute created inside a
+// function works.
+//Date: 31-08-2004
+//Author: Daniel Rus <danirus@tol-project.org>
+
+// Test Description
+Text "Testing a Serie with its Dating created inside a function ... ";
+
+Real {
+  Serie ser = Gaussian(0,1,Monthly);
+
+  Serie fun( Serie ser)
+  { 
+    TimeSet fec = Dating(ser);
+    Set s = MatSerSet(Row(1,2,3,4,5,6,7,8,9,10) ,fec , y2000);
+    Serie b = s[1] ;
+    b
+  };
+
+  Serie c = fun(ser);
+  Date firstDate = First(c);
+  
+  Real ok = If(firstDate == y2000m01d01, 1, 0);
+
+  WriteLn("Testing a Serie with its Dating created inside a function ... " 
+          + (Text If(ok,"OK","ERROR")));  
+  ok
+};
+ 

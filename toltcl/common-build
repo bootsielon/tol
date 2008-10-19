@@ -1,0 +1,8 @@
+#!/bin/sh
+./configure \
+--with-tcl=/usr/lib/tcl8.4 \
+--enable-OIS \
+--enable-ZipArchive \
+--enable-pool \
+--enable-DS \
+--with-hashmap=google

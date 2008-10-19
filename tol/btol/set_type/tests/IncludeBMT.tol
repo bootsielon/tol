@@ -1,0 +1,26 @@
+//Test to verify BMTFile and IncludeBMT based on bug: 
+// http://bugs.tol-project.org/show_bug.cgi?id=2
+//Date: 30-04-2004
+//Author: Daniel Rus <danirus@tol-project.org>
+
+// Test Description
+Text "Testing BMTFile and IncludeBMT... ";
+
+// Test Operations
+Real {
+    Text Write("Testing BMTFile and IncludeBMT... ");
+    Matrix MA = Rand(10,10,0,10);
+    Set BMTFile(SetOfMatrix(MA), "RandMatrix10x10.bmt");
+    Set SB = IncludeBMT("RandMatrix10x10.bmt");
+    Matrix MB = SB[1];
+
+    // Test Condition
+    Real std = MatFrobeniusNorm(MA-MB);
+    Real ok = If(std<=1.0E-6,1,0);
+    //If(Rows(MA)==Rows(MB), "Ok", "Error")
+    // Show Results
+    WriteLn(If(ok,"OK","ERROR"));
+    ok
+};
+
+

@@ -1,0 +1,282 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : blr_functions.tol
+// PURPOSE: 
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// STRUCTURES
+//////////////////////////////////////////////////////////////////////////////
+
+Struct MHParameterInf
+(
+  Text Name, 
+  Real Median, 
+  Real Average, 
+  Real StDs, 
+  Real TStudent, 
+  Real RefuseProb,
+  Real LimInf,
+  Real LimSup,
+  Real PriorNu,
+  Real PriorSigma,
+  Matrix FreqRel,
+  Matrix Chain 
+);
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set CoorTriplet(Set dims, Real row, Real col)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real nRow = row+dims[1][1];
+  Real nCol = col+dims[1][2];
+  Real cDims = Card(dims); 
+
+  Set nReg = SetOfReal(row, col);  
+  If(EQ(cDims, 1), SetOfSet(nReg), 
+   SetOfSet(nReg)<<
+   CoorTriplet(ExtractByIndex(dims,Range(2,cDims,1)), nRow, nCol))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Polyn MHGetInfoFromPolyn(Text key, Polyn arPol, Set parameterInf)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set index = GetCoefNotNull(arPol-1);
+  Set monomes = EvalSet(index, Polyn(Real d)
+  {
+    Text nameLag = key+"_AR_"+IntText(d);
+    Real value = Select(parameterInf, Real(Set reg)
+    { reg->Name == nameLag })[1]->Average;
+    value*(B^d) 
+  });
+  Polyn arEstim = 1-SetSum(monomes);
+  arEstim
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Set MHGetInfoFromInputDef(Text key, Set inputDef, Set parameterInf)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set effectsAux = EvalSet(inputDef, Set(Set reg)
+  {
+    Text name       = reg->Name;
+    Polyn omega     = reg->OmegaInfo->IniValue; 
+    Text nameEffect = key+"_"+name;
+    Serie x         = reg->X;
+    Set monomes = EvalSet(GetCoefNotNull(omega), Polyn(Real d)
+    {
+      Text nameLag = nameEffect+"_"+IntText(d);
+      Real value = Select(parameterInf, Real(Set reg)
+      { (reg->Name) == nameLag })[1]->Average;
+      value*(B^d) 
+    });
+    Polyn omegaEstim = SetSum(monomes);
+    Serie effect = omegaEstim:x;
+    Set regExt = reg<<SetOfPolyn(omegaEstim);
+    SetOfAnything(Eval("Serie Effect_"+nameEffect+" = effect;"), regExt)
+  });
+  Set effects = Traspose(effectsAux)[1];
+  Set inputDefExt = Traspose(effectsAux)[2];
+
+  Serie filter = SetSum(effects);
+
+  SetOfAnything(filter, effects, inputDefExt)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Set MHGetParameterInfo(Text key, Set parmeterInf)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set parameterInf = Select(parmeterInf, Real(Set reg)
+  {
+    Tokenizer(reg->Name, "_")[1] == key
+  });
+  parameterInf
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Set MHResult(Matrix param, Set names, Set inputDef)
+//////////////////////////////////////////////////////////////////////////////
+{  
+  Set parameterInf = For(1, Columns(param),Set(Real k)
+  {
+    Text name       = names[k];
+    Matrix paramk   = SubCol(param, [[k]]);
+    Real average    = MatAvr(paramk); 
+    Real median     = MatMedian(paramk);
+    Real deviation  = MatStDs(paramk);
+    Real varBeta    = deviation^2;
+    Real t          = average/deviation;
+    Real pValor     = 2*(1-DistT(Abs(t), Rows(paramk)-1));
+    
+    Matrix freRel  = FreqRel(paramk, 100, MatMin(paramk), MatMax(paramk)); 
+  
+
+    Set selReg = Select(inputDef, Real(Set reg)
+    {
+      name == reg->Name
+    });
+    Set paramSet = If(IsEmpty(selReg), 
+    MHParameterInf
+    (
+      name, median, average,
+      deviation,t, pValor, -TheMaxAbsValue, TheMaxAbsValue, ?, ?, freRel, paramk
+    ),
+    {
+      Set limInfo      = selReg[1]->LimInfo;
+      Set priorInfo    = selReg[1]->PriorInfo;
+      Real isLimInfo   = IsEmpty(limInfo);
+      Real isPriorInfo = IsEmpty(priorInfo);
+      Real limInf = If(isLimInfo, -TheMaxAbsValue, limInfo->LimInf);
+      Real limSup = If(isLimInfo, TheMaxAbsValue, limInfo->LimSup);
+      Real priorNu = If(isPriorInfo, ?, 
+      {
+        Text class = ToUpper(priorInfo->Class);
+        Case
+        (
+          class == "FIXED", priorInfo->Parameters->Value,
+          class == "NORMAL", priorInfo->Parameters->Nu,
+          1,?
+        )
+      });  
+      Real priorSigma = If(isPriorInfo, ?, 
+      {
+        Text class = ToUpper(priorInfo->Class);
+        Case
+        (
+          isPriorInfo, ?,
+          class == "FIXED",  0,
+          class == "NORMAL", priorInfo->Parameters->Sigma,
+          1,?
+        )
+      }); 
+      MHParameterInf
+      (
+        name, median, average,
+        deviation,t, pValor, limInf, limSup, priorNu, priorSigma, freRel, paramk
+      )
+    });
+    Eval("Set "+name+" = paramSet;") 
+  });
+  parameterInf
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Polyn CopyPolyn(Polyn pol, Matrix param)
+//////////////////////////////////////////////////////////////////////////////
+{ DeepCopy(SetOfPolyn(pol), param)[1] };
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set GetCoefNotNull(Polyn pol)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real deg = Degree(pol);
+  Set index = Select(Range(0, deg, 1), Real(Real d)
+  { NE(Coef(pol, d), 0) });
+  index
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix SVDInverse(Matrix a)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set svd   = SVD(a);
+  Matrix u  = svd[1];
+  Matrix d  = svd[2];
+  Matrix v  = svd[3];
+  Matrix d_1  = PseudoInverseDiag(d, 0.00000000000000000000000000001);
+  v*d_1*Tra(u)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real SVDDet(Matrix a)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set svd = SVD(a);
+  Matrix d = svd[2];
+  MatProd(SubDiag(d,0))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix FullWithZeroCol(Matrix a, Real ini, Real lon)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real row = Rows(a);
+  Real col = Columns(a);
+  Real end = col+ini;
+
+  If(Not(And(LE(1, ini), LE(col+ini, lon+1))), a,
+  {
+    Real colIni = ini-1;
+    Real colEnd = lon+1-end;
+    Case
+    (
+      And(EQ(colIni,0), EQ(colEnd, 0)), a,
+      And(NE(colIni,0), EQ(colEnd, 0)),
+      {
+        Matrix zeroIni = Rand(row,colIni,0,0);
+        zeroIni|a
+      },
+      And(EQ(colIni,0), NE(colEnd, 0)),
+      {
+        Matrix zeroEnd = Rand(row,colEnd,0,0);
+        a|zeroEnd
+      },
+      And(NE(colIni,0), NE(colEnd, 0)),
+      {
+        Matrix zeroIni = Rand(row,colIni,0,0);
+        Matrix zeroEnd = Rand(row,colEnd,0,0);
+        zeroIni|a|zeroEnd
+      }
+    )
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix FullWithZeroRow(Matrix a, Real ini, Real lon)
+//////////////////////////////////////////////////////////////////////////////
+{ Tra(FullWithZeroCol(Tra(a), ini, lon)) };
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix FullWithZeroSquare(Matrix a, Real ini, Real lon)
+//////////////////////////////////////////////////////////////////////////////
+{
+  FullWithZeroRow(FullWithZeroCol(a, ini, lon), ini, lon)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Anything PutDeepCopy(Real id_ws, Real pos, Set any)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Anything MHWSPut(id_ws, pos, DeepCopy(any))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("", PutDeepCopy);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set GetBlockLimits(Set s)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set GetBlockLimitsAux(Set s, Real c)
+  {
+    If(IsEmpty(s), s,
+    {
+      Real a = c+1;
+      Real b = a+s[1]-1;
+      If(EQ(Card(s),1), SetOfSet(SetOfReal(a, b)),
+      {
+        Set sNew = ExtractByIndex(s, Range(2, Card(s),1));
+        SetOfSet(SetOfReal(a, b))<<GetBlockLimitsAux(sNew, b)
+      })
+    })
+  };
+  GetBlockLimitsAux(s,0)
+};

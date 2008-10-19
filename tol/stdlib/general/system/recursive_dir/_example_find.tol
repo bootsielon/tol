@@ -1,0 +1,27 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _example_find.tol
+// PURPOSE : Examples of use of recursive_dir find functions
+//////////////////////////////////////////////////////////////////////////////
+
+/* */
+Set example_find.01 = RecDir.Grep
+(
+  "Struct ",
+  "../../..",  //initLibrary root
+  "*.tol",
+  true,
+  true,
+  1
+);
+/* */
+Set example_find.02 = RecDir.FindNotStandardAscii
+(
+  "¡…Õ”⁄⁄—·ÈÌÛ˙¸Ò°ø@",
+  "../../..",  //initLibrary root
+  "*.tol",
+  true,
+  true,
+  1
+);
+/* */
+

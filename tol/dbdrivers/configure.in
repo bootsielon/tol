@@ -1,0 +1,93 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_INIT([toldbd], [1.0], [danirus@tol-project.org], [toldbd])
+AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_SRCDIR([libtolbdb.h])
+AM_INIT_AUTOMAKE([toldbd], [1.0])
+
+TOLDBD_LT_VERSION="0:0:0"
+AC_SUBST(TOLDBD_LT_VERSION)
+
+AC_PROG_CC
+AC_PROG_LIBTOOL
+AC_HEADER_STDC
+
+TOLDBD_ENABLE_DEBUG
+TOLDBD_ENABLE_PACKAGE([odbc],[ODBC-client],[odbc],[SQLAllocHandle],[sql.h])
+TOLDBD_ENABLE_PACKAGE([mysql],[MySQL-client],
+                      [mysqlclient],[mysql_real_connect],[mysql/mysql.h])
+TOLDBD_ENABLE_PACKAGE([postgres],[PostgreSQL-client],
+                      [pq],[PQsetdbLogin],[postgresql/libpq-fe.h])
+
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+#--------------------------------------------------------------------
+# Print out some of the more important settings 
+#--------------------------------------------------------------------
+echo ""
+echo "  Configuration results:"
+echo ""
+if test "${ac_cv_odbc}"     != "yes" -a \ 
+        "${ac_cv_mysql}"    != "yes" -a \
+        "${ac_cv_postgres}" != "yes" ; then
+  echo "  No --enable-<dbengine> was used."
+  echo ""
+  echo "  At least one db engine must be enabled to generate its corresponding "
+  echo "  tol-db driver. Check with ./configure --help which --enable-<dbengine> "
+  echo "  options are available and use them to compile their drivers".
+  exit 1
+  break
+fi
+echo "  Directory where Tol-DBDrivers will be installed: $prefix/lib"
+echo ""
+if test "${ac_cv_odbc}" = "yes" ; then
+  echo "   UnixODBC Support:"
+  if test "${odbc_INC_DIR}" != "" ; then
+    echo "     Headers found in ${odbc_INC_DIR}"
+  else
+    echo "     Headers found in system directories"
+  fi
+  if test "${odbc_LIB_DIR}" != "" ; then
+    echo "     Library found in ${odbc_LIB_DIR}"
+  else
+    echo "     Library found in system directories"
+  fi
+  echo ""
+fi
+if test "${ac_cv_mysql}" = "yes" ; then
+  echo "   MySQL Client Support:"
+  if test "${mysql_INC_DIR}" != "" ; then
+    echo "     Headers found in ${mysql_INC_DIR}"
+  else
+    echo "     Headers found in system directories"
+  fi
+  if test "${mysql_LIB_DIR}" != "" ; then
+    echo "     Library found in ${mysql_LIB_DIR}"
+  else
+    echo "     Library found in system directories"
+  fi
+  echo ""
+fi
+if test "${ac_cv_postgres}" = "yes" ; then
+  echo "   PostgreSQL Client Support:"
+  if test "${postgres_INC_DIR}" != "" ; then
+    echo "     Headers found in ${postgres_INC_DIR}"
+  else
+    echo "     Headers found in system directories"
+  fi
+  if test "${postgres_LIB_DIR}" != "" ; then
+    echo "     Library found in ${postgres_LIB_DIR}"
+  else
+    echo "     Library found in system directories"
+  fi
+  echo ""
+fi
+echo "  To build Tol-DBDrivers 1.0 type:"
+echo "  make"
+echo "  make install"
+echo ""
+
+

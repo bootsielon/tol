@@ -1,0 +1,20 @@
+Main Todo Items
+===============
+
+We are looking for volunteers to do the following tasks.
+Consult the TODO files in each directory first for specific
+requirements.
+
+Things to do for release the first stable version of TOL:
+
+**Documentation**
+ TOL Reference Manual, and
+ TOL Tutorial
+ 
+**Other tasks**
+ -Fixing the ARMA Backasting (bmath/bstat/arma.cpp)
+ -TOL Evaluator: documentation and tunning
+ -Rewrite Matrix Tol Type implementation using GSL functions and algorithms.
+ -Migrating complex type support in TOL to GSL complex implementation
+ -Check the sanity of probability distribution class hierarchy
+  bmath/bstat/stat.cpp: using GSL and dcdflib

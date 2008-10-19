@@ -1,0 +1,186 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _arima.tol
+// PURPOSE :
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real Ois.ARIMAIsolate(Text PathDirSave,Set ModeloIni, Date IniEst, Date EndEst)      
+//////////////////////////////////////////////////////////////////////////////
+{
+  //////////////////////////////////////////////////////////////////////////////
+  // PATH
+  //////////////////////////////////////////////////////////////////////////////
+  WriteLn("Ois.ARIMAIsolate: path... "+ Time);
+  Real dirExists    = If(Not(DirExist(PathDirSave)),OSDirMake(PathDirSave),1);
+  Text PathFileEst  = PathDirSave +"estimation.tol";
+
+  //////////////////////////////////////////////////////////////////////////////
+  // EXTRACT INFO
+  //////////////////////////////////////////////////////////////////////////////
+  WriteLn("Ois.ARIMAIsolate: extract info... "+ Time);
+
+  //////////////////////////////////////////////////////////////////////////////
+  // SAVE INFO
+  //////////////////////////////////////////////////////////////////////////////
+  WriteLn("Ois.ARIMAIsolate: save info... "+ Time);
+  Text DatingOutput = DatingName(ModeloIni[1]);
+  Real ChkDatingName = ObjectExist("TimeSet", DatingOutput);
+  If(Not(ChkDatingName),
+  WriteLn("\nERROR:\n Ois.ARIMAIsolate: "+
+  "NO EXISTE EL TimeSet DE LA SERIE OUTPUT!!!\n"));
+  Real Ois.Create(PathDirSave+"/OIS/ModeloIni",Empty,ModeloIni);
+  
+  //////////////////////////////////////////////////////////////////////////////
+  // ESTIMATION FILE GENERATION
+  //////////////////////////////////////////////////////////////////////////////
+  WriteLn("Ois.ARIMAIsolate: file generation... "+ Time);
+  Text SlashLine = Repeat("/", 78);
+  Text GenBlockSep(Text insideBlock)
+  {
+    SlashLine +"\n"+
+    "// "+ insideBlock +"\n"+
+    SlashLine +"\n"+
+    "WriteLn(\"\n"+ ToLower(insideBlock) +"... \"+ Time);\n"
+  };
+  Text steps = "9";
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 1 de "+steps+"... "+ Time);
+  Text FileEst.1 = GenBlockSep("FILE    : estimation.tol")+
+  "
+  Text PathOutCome.cmd = \"outcome\";
+  Text PathOutCome = PathOutCome.cmd +\"/\";
+  Real If(!DirExist(PathOutCome.cmd),OSDirMake(PathOutCome.cmd),1);
+  Text PutDumpFile(PathOutCome +\"estimation.log\");
+  
+  Real SecondsIni = Copy(Time);
+  ";
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 2 de "+steps+"... "+ Time);
+  Text FileEst.2 = GenBlockSep("Load ModeloInicial")+
+  "
+  Set ModeloInicial = Ois.Load(\"OIS/ModeloIni\")[1];
+  ";
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 3 de "+steps+"... "+ Time);
+  Text IniEstTxt =
+  If(IniEst == UnknownDate, "First(Output)", FormatDate(IniEst, "%cy%Ym%md%d"));
+  Text EndEstTxt =
+  If(EndEst == UnknownDate, "Last(Output)", FormatDate(EndEst, "%cy%Ym%md%d"));
+  Text FileEst.3 = GenBlockSep("MODEL ESTIMATION")+
+  "
+  Date IniOutput = First(Output);
+  Date IniEstim  = If("+ IniEstTxt +" != IniOutput,
+  Max(IniOutput, "+ IniEstTxt +"),
+  Succ(IniOutput, Dating(Output), Degree(ARI.M)));
+  Date EndOutput = Last(Output);
+  Date EndEstim  = If("+ EndEstTxt +" != EndOutput,
+  Min(EndOutput, "+ EndEstTxt +"),
+  EndOutput);
+  Set  ModeloEstimado = Estimate(ModeloInicial, IniEstim, EndEstim);
+  ";
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 4 de "+steps+"... "+ Time);
+  Text FileEst.4 = GenBlockSep("SAVE RESULTS")+
+  "
+  Real Ois.Create(\"OIS/ModeloEstimado\",Empty,ModeloEstimado);
+  ";
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 5 de "+steps+"... "+ Time);
+  Text FileEst.5 = GenBlockSep("README FILE")+
+  "
+  Text PathReadMe = \"readme.txt\";
+  Text ReadMeContents =
+  \"TOL Version:
+  CPU:
+  RAM:
+  Project:
+  Diagnostics:
+  Enhancements suggested:
+  \";
+  Text WriteFile(PathReadMe, ReadMeContents);
+  ";
+  
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 6 de "+steps+"... "+ Time);
+  Text FileEst.6 = GenBlockSep("END INPUTS ESTIMATION")+
+  "
+  Real SecondsEnd = Copy(Time);
+  WriteLn(\"FIN DE LA ESTIMACION CON INPUTS\");
+  WriteLn(SecondsToText(SecondsEnd - SecondsIni));
+  ";
+  
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 7 de "+steps+"... "+ Time);
+  Text FileEst.7 = GenBlockSep("NOISE ESTIMATION")+
+  "
+  Serie NoiseEst = ModeloEstimado[3][3];
+  Set ModeloInicial.Noi = ModelDef(
+  NoiseEst,
+  1,
+  0,
+  Period.M,
+  Constant.M,
+  Dif.M,
+  AR.M,
+  MA.M,
+  Empty,
+  AllLinear
+  );
+  Set  ModeloEstimado.Noi = Estimate(ModeloInicial.Noi, IniEstim, EndOutput);
+  ";
+  
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 8 de "+steps+"... "+ Time);
+  Text FileEst.8 = GenBlockSep("SAVE RESULTS NOISE")+
+  "
+  Real Ois.Create(\"OIS/ModeloEstimado.Noi\",Empty,ModeloEstimado.Noi);
+  ";
+  
+  WriteLn("  Ois.ARIMAIsolate file generation: Paso 9 de "+steps+"... "+ Time);
+  Text FileEst.9 = GenBlockSep("END NOISE ESTIMATION")+
+  "
+  Real SecondsEnd.Noi = Copy(Time);
+  WriteLn(\"FIN DE LA ESTIMACION DEL NOISE\");
+  WriteLn(SecondsToText(SecondsEnd.Noi - SecondsIni));
+  ";
+  
+  Text FileEst =
+  FileEst.1 +"\n"+
+  FileEst.2 +"\n"+
+  FileEst.3 +"\n"+
+  FileEst.4 +"\n"+
+  FileEst.5 +"\n"+
+  FileEst.6 +"\n"+
+  FileEst.7 +"\n"+
+  FileEst.8 +"\n"+
+  FileEst.9 +"\n";
+  Text WriteFile(PathFileEst, FileEst);
+  And
+  (
+    dirExists,
+    ChkDatingName,
+    FileExist(PathFileEst)
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Crea un directorio en el que escribe una serie de ficheros de código TOL y 
+datos con toda la información necesaria para reproducir la estimación de un 
+modelo ARIMATF con la función Estimate. Este directorio se puede comprimir
+y enviar al desarrollador o adjuntarse a un bug en la página de tol-project
+si se desea reportar errores y/o problemas con una estimacion.
+
+ARGUMENTOS:
+  Text PathDirSave : directorio de volcado (terminado en barra) Si no existe
+                     se crea el directorio pero debe existir el padre.
+  Set  ModeloIni   : conjunto con estructura ModelDef que se desee estimar
+  Date IniEst      : fecha inicial de la estimacion
+  Date EndEst      : fecha final de la estimacion
+
+Obsérvese que los tres últimos argumentosa son precisamente los de la llamada
+a la función Estimate(ModeloIni,IniEst,EndEst), justo delante de la cual se 
+debe situar la llamada a Ois.ARIMAIsolate.
+
+Devuelve 1 si no hay errores.
+
+AUTHOR : Código original de atorre@bayesinf.com 2004/03/16
+         Adapatación funcional de vdebuen@tol-project.org 2006/03/21
+",
+Ois.ARIMAIsolate);
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+

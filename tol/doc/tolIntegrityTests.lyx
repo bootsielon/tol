@@ -1,0 +1,509 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme palatino
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage widemarginsa4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\topmargin 2cm
+\bottommargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle plain
+
+\layout Title
+
+TOL Integrity Tests
+\layout Standard
+
+Daniel Rus Morales 
+\size small 
+<danirus@tol-project.org>
+\layout Standard
+
+Copyright © 2004 by Bayes Decision, SL
+\layout Standard
+
+v1.0, 28-04-2004
+\layout Subsection*
+
+Revision History
+\layout Standard
+\align left 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="4" columns="3">
+<features>
+<column alignment="left" valignment="top" width="4cm">
+<column alignment="block" valignment="top" width="4cm">
+<column alignment="block" valignment="top" width="5cm">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+Revision 1.1
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+03-05-2004
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+Revised by: josp
+\end_inset 
+</cell>
+</row>
+<row>
+<cell multicolumn="1" alignment="left" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+Revision 1.0
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+30-04-2004
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+Revised by: danirus
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell multicolumn="1" alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+TIT are based on a Tol recursive function written on test-it.tol
+\end_inset 
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Abstract
+
+This document provides Tol-Project users and developers with guidelines
+ for understanding and developing Tol Integrity Tests.
+\layout Abstract
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Section
+
+Introduction
+\layout Standard
+
+Since Tol was written until today the language has improved a lot and has
+ changed from older versions to the present ones.
+ Between changes from ones to another versions Tol has increased their complexit
+y and functionality, doing the language more difficult to maintain.
+ When new features are implemented or bugs are resolved some Tol core code
+ has to be changed.
+ Those changes could generates not expected side effects in other functionalitie
+s not related with new implemented features or with bugs resolved.
+\layout Standard
+
+One way to avoid side effects while programming is to get the better knowledge
+ of all Tol code, as a whole.
+ But while this happens, and the beard grows, is necesessary to look for
+ a complementary solution.
+\layout Standard
+
+Tol Integrity Tests tries to be a mechanism that ensure us, at any moment,
+ that certain functionalities continue being presents and give us valid
+ results.
+\layout Section
+
+What is Tol Integrity Tests?
+\layout Standard
+
+Tol Integrity Tests are small Tol programs that check for functionalities.
+ Each small program check for certain functionality and return us the result.
+ Each test program is implemented using a small template.
+ This template has defined three parts; first part is a message that tell
+ us the functionality that is going to be checked, second part is the test
+ block of code, and third part is another message that informs of the results
+ obtained in the second part.
+ The first and third part are very simple, but the second part has to be
+ more complicated, depending on the functionality we want to check.
+\layout Subsection
+
+Tests based on a template
+\layout Standard
+
+The files to do the tests are designed so that after evaluating they results
+ in a 
+\family typewriter 
+\series bold 
+Set
+\family default 
+\series default 
+ with two elements where the first is a textual description of the test
+ and the second is a 
+\family typewriter 
+\series bold 
+Real
+\family default 
+\series default 
+ value indicating fail (0 value) success (1 value).
+ Lets go to see the template used to check each functionality, that is,
+ the template used to write each file in 
+\family typewriter 
+tests
+\family default 
+ directories.
+\layout Standard
+
+Text 
+\series bold 
+[bold and between brackets]
+\series default 
+ has to be replaced by real code:
+\layout Standard
+\added_space_top defskip \added_space_bottom defskip 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features>
+<column alignment="block" valignment="top" leftline="true" width="10cm">
+<column alignment="block" valignment="top" leftline="true" rightline="true" width="2cm">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout LyX-Code
+
+
+\size small 
+// Test Description
+\newline 
+Text "
+\series bold 
+[Testing ___ ...]
+\series default 
+");
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+first part
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout LyX-Code
+
+
+\size small 
+// Test Operation
+\newline 
+Real {
+\newline 
+
+\series bold 
+  
+\series default 
+WriteLn("
+\series bold 
+[Testing ___ ...]
+\series default 
+");
+\layout LyX-Code
+
+
+\series bold 
+\size small 
+  [tol code to do the test]
+\series default 
+
+\newline 
+
+\newline 
+  // The last expression must be a real 
+\newline 
+  // from the interval [0,1].
+ 0 means fail, 
+\newline 
+  // 1 means success.
+\newline 
+
+\newline 
+}
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\size small 
+second part
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Standard
+
+Now we show a test file as an example.
+ The following code implement a test for the functions 
+\family typewriter 
+\series bold 
+BMTFile
+\family default 
+\series default 
+ and 
+\family typewriter 
+\series bold 
+IncludeBMT
+\family default 
+\series default 
+ wich are used for writing and reading matrix in 
+\family typewriter 
+\series bold 
+BMT
+\family default 
+\series default 
+ format.
+\layout LyX-Code
+
+//Date: 30-04-2004
+\layout LyX-Code
+
+//Author: Daniel Rus <danirus@tol-project.org>
+\layout LyX-Code
+
+\layout LyX-Code
+
+// Test Description
+\layout LyX-Code
+
+\layout LyX-Code
+
+Text "Testing BMTFile and IncludeBMT...
+ ";
+\layout LyX-Code
+
+\layout LyX-Code
+
+// Test Operations
+\layout LyX-Code
+
+\layout LyX-Code
+
+Real {
+\layout LyX-Code
+
+    Text Write("Testing BMTFile and IncludeBMT...
+ ");
+\layout LyX-Code
+
+  
+\layout LyX-Code
+
+    Matrix MA = Rand(10,10,0,10);
+\layout LyX-Code
+
+    Set BMTFile(SetOfMatrix(MA), "RandMatrix10x10.bmt");
+\layout LyX-Code
+
+    Set SB = IncludeBMT("RandMatrix10x10.bmt");
+\layout LyX-Code
+
+    Matrix MB = SB[1];
+\layout LyX-Code
+
+\layout LyX-Code
+
+    // Test Condition
+\layout LyX-Code
+
+    
+\layout LyX-Code
+
+    Real std = MatFrobeniusNorm(MA-MB);
+\layout LyX-Code
+
+    Real ok = If(std<=1.0E-6,1,0);
+\layout LyX-Code
+
+\layout LyX-Code
+
+    // Show Results
+\layout LyX-Code
+
+\layout LyX-Code
+
+    WriteLn(If(ok,"OK","ERROR"));
+\layout LyX-Code
+
+    ok
+\layout LyX-Code
+
+}; 
+\layout Section
+
+How are organized?
+\layout Standard
+
+Under each directory of source code there is a 
+\begin_inset Quotes eld
+\end_inset 
+
+tests
+\begin_inset Quotes erd
+\end_inset 
+
+ directory with test files, in order to have the test files as close to
+ the code files as possible.
+ In that way, test files to prove functions of Set Tol type are under 
+\family typewriter 
+btol/set_type/tests/
+\family default 
+, and test files to prove functionalities of parser are under 
+\family typewriter 
+bparser/tests/
+\layout Subsection
+
+Starting tests: test-it.tol
+\layout Standard
+
+To make a whole test you have to execute file test-it.tol under root directory
+ of source code.
+ This file use a Tol recurvise function looking for 
+\begin_inset Quotes eld
+\end_inset 
+
+tests
+\begin_inset Quotes erd
+\end_inset 
+
+ directories and executing each file found in it with 
+\begin_inset Quotes eld
+\end_inset 
+
+tol
+\begin_inset Quotes erd
+\end_inset 
+
+ extension.
+\layout Section
+
+How you can contribute?
+\layout Standard
+
+Majority of tol code in TIT comes from bugs submitted to bugzilla (in http://bug
+s.tol-project.org), but more complex functionalities, like functions of statistica
+l analysis, need to be written from scratch.
+\layout Standard
+
+If you are an experienced Tol user, you can help us writing Tol Integrity
+ Tests.
+ 
+\the_end

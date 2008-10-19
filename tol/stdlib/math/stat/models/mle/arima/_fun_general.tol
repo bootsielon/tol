@@ -1,0 +1,1377 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE:    _model.tol (InitLibrary)
+// PURPOSE: Structures and functions for use with ARIMAX models 
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Definition of ARIMAX model with Box-Cox transformation and non linear
+// inputs
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Date EnsuredBeginOfEstimate(ModelDef mod)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real ARDeg = Degree(SetProd(mod->AR));
+  Real OmegaDeg = SetMax(EvalSet(Traspose(Extract(mod->Input,1))[1],Degree));
+  Succ(First(mod->Output),Dating(mod->Output),ARDeg+OmegaDeg)
+};
+PutDescription(I2(
+"Returns the maxumum date ensuring that Estimate will work over specificed "
+"model definition. Use",
+"Devuelve la fecha máxima que asegura que la función Estimate funcionará "
+"sobre la definición de modelo especificada. Uso")+": \n"+
+"Set Estimate(mod,EnsuredBeginOfEstimate(mod));\n",
+EnsuredBeginOfEstimate);
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetARMADegreeRange(ARIMADegreeRangeStruct arimaDegRange)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ARMADegreeRangeStruct 
+  ( 
+    arimaDegRange->Periodicity, 
+    arimaDegRange->MinARDegree,
+    arimaDegRange->MaxARDegree,
+    arimaDegRange->MinMADegree,
+    arimaDegRange->MaxMADegree
+  )
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetARMADegree(ARIMADegreeStruct arimaDeg)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ARMADegreeStruct 
+  ( 
+    arimaDeg->Periodicity, 
+    arimaDeg->ARDegree,
+    arimaDeg->MADegree
+  )
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetARMAStruct(ARIMAStruct arima)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ARMAStruct
+  ( 
+    arima->Periodicity, 
+    arima->AR,
+    arima->MA
+  )
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetARMATable(Set arimaTable)
+//////////////////////////////////////////////////////////////////////////////
+{
+  EvalSet(arimaTable, GetARMAStruct)
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetARMADegreeTable(Set arimaDegTable)
+//////////////////////////////////////////////////////////////////////////////
+{
+  EvalSet(arimaDegTable, GetARMADegree)
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetARMADegreeRangeTable(Set arimaDegRangeTable)
+//////////////////////////////////////////////////////////////////////////////
+{
+  EvalSet(arimaDegRangeTable, GetARMADegreeRange)
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetARIMADegreeStruct(ARIMAStruct arima)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real s = arima->Periodicity;
+  ARIMADegreeStruct
+  ( 
+    s, 
+    Degree(arima->AR)/s,
+    Degree(arima->MA)/s,
+    Degree(arima->DIF)/s
+  )
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMADegCases(ARIMADegreeRangeStruct dr) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set difCases = For(dr->MinDIFDegree, dr->MaxDIFDegree, Real(Real k) { k });
+  Set arCases  = For(dr->MinARDegree , dr->MaxARDegree , Real(Real k) { k });
+  Set maCases  = For(dr->MinMADegree , dr->MaxMADegree , Real(Real k) { k });
+  Set cp = CartProd(arCases,maCases,difCases);
+  Real n = Card(cp);
+//Set cps = For(0, n-1, Set (Real k) { cp[n-k] });
+  EvalSet(cp, Set(Set s){ARIMADegreeStruct(dr->Periodicity,s[1],s[2],s[3])})
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetARIMADegreeTable(Set arimaTable)
+//////////////////////////////////////////////////////////////////////////////
+{
+  EvalSet(arimaTable, GetARIMADegreeStruct)
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real ARIMAIsStationary(Set arima)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real ok = Copy(TRUE);
+  Set Do EvalSet(arima, Real (ARIMAStruct a)
+  {
+    Real s      = a->Periodicity;
+    Real testAR = IsStationary(a->AR);
+    Real testMA = IsStationary(a->MA);
+    Real test   = And(testAR, testMA);
+    ok := And(ok, test);
+    If(!testAR, WriteLn("(AR factor " << s + ") " << a->AR + 
+                        I2(" is not stationary.", " no es estacionario.")));
+    If(!testMA, WriteLn("(MA factor " << s + ") " << a->MA + 
+                        I2(" is not stationary.", " no es estacionario.")));
+    test 
+  });
+  ok
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Polyn ARIMAGetDIF(Set arima)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(arima), 1, 
+    SetProd(Traspose(arima)[4]))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Polyn ARIMAGetAR(Set arima)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(arima), 1, 
+    SetProd(Traspose(arima)[2]))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Polyn ARIMAGetARI(Set arima)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ARIMAGetAR(arima) * ARIMAGetDIF(arima)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Polyn ARIMAGetMA(Set arima)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(arima), 1, 
+    SetProd(Traspose(arima)[3]))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Real CalcStationarityPolynProb(Set param, Matrix paramCov, 
+                                 Text ar_ma, Real order, Real numSim)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real   n     = Card(param);
+  Set    index = Range(1,n,1);  
+  Text   key   = "Period "+FormatReal(order,"%.0lf");
+  Set    sel   = Select(index, Real(Real k)
+  {
+    Set p = param[k];
+    And(p->Name==ar_ma,TextBeginWith(p->Factor,key))
+  });
+  Real   m   = Card(sel);
+  Real If(m==0,0,
+  {
+    Set    ord = For(1,m,Real(Real k)
+    {
+      param[ sel[k] ]->Order
+    });
+    Matrix avr = SubRow(Tra(SetMat([[ Traspose(param)[4] ]])),sel);
+    Matrix cov = SubRow(SubCol(paramCov,sel),sel);
+    Matrix L   = Choleski(cov);
+    Matrix X01  = Gaussian(m,numSim,0,1);
+    Matrix XDif = L*X01;
+    Set    sim  = For(1,numSim,Real(Real k)
+    {
+      Matrix coef = SubCol(XDif, [[k]]) + avr;
+      Polyn  pol  = 1-SetSum(For(1,m,Polyn(Real k)
+      {
+        MatDat(coef,k,1)*B^ord[k] 
+      }));
+      !IsStationary(pol)
+    });
+    SetSum(sim)/numSim
+  })
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set CalcStationarityModelProb(Set param, Matrix paramCov, 
+                                Set arima, Real numSim)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set pares = For(1,Card(arima),Set(Real k)
+  {
+    Real order = arima[k][1];
+    Text ordTxt = FormatReal(order,"(%.0lf)");
+    Text ar = "AR"+ordTxt;
+    Text ma = "MA"+ordTxt;
+    Real p1=CalcStationarityPolynProb(param,paramCov,"AR",order,numSim);
+    Real p2=CalcStationarityPolynProb(param,paramCov,"MA",order,numSim);
+    [[
+      [[ar,arima[k][2],p1]],
+      [[ma,arima[k][3],p2]]
+    ]]
+  });
+  [[
+    [["Name","Polynomial","Refuse Prob."]]
+  ]]<<
+  BinGroup("<<",pares)
+};
+//////////////////////////////////////////////////////////////////////////////
+  Serie TransferOne(Set tr)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real d = Degree(tr->Delta);
+  Serie s = If
+  (  
+    d>0,
+    (tr->Omega):DifEq(1/tr->Delta,tr->InputSerie,0),
+     tr->Omega :tr->InputSerie
+  );
+  Eval(tr->Name + "Effect = s") 
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set TransferSerSet(Set transferSet)
+//////////////////////////////////////////////////////////////////////////////
+{
+  EvalSet(transferSet,TransferOne)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie TransferSum(Set transferSet)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Card(transferSet), SetSum(TransferSerSet(transferSet)), 0)
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMASetParameters(ARIMATransferStruct model, Set X)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("ARIMASetParameters");
+  Set treatment = If
+  (
+    !Card(model->Treatment),
+    Copy(Empty),
+    ARIMATreatment
+    { 
+      model->Treatment->FunctionName,
+      Copy(X[1]),
+      model->Treatment->ArgNames
+    }
+  );
+  Set TransferSet = For(1,Card(model->TransferSet),Set (Real k)
+  {
+    Set    tr    = (model->TransferSet)[k];
+    Set    trNew = X[2][k];
+    Real   o     = Degree(tr->Omega) | Coef(tr->Omega,0);
+    Real   d     = Degree(tr->Delta);
+    Matrix INIT  = If(d<=1,Row(0),Row(0)|trNew[3]);
+    TransferStruct  
+    (
+      tr->Name,
+      tr->Expression,
+      If(o,   trNew[1], 1),
+      If(d, 1-trNew[2], 1),
+      tr->InputSerie,
+      0
+//    If(d==0, 0, MatSerSet(INIT, Dating(tr->InputSerie),
+//                          First(tr->InitialValues))[1])
+    )
+  });
+
+  Set ARIMA = For(1,Card(model->ARIMA),Set (Real k)
+  {
+    Set  a   = (model->ARIMA)[k];
+    Real s   = a->Periodicity; 
+    Set aNew = X[3][k];
+    ARIMAStruct  
+    (
+      a->Periodicity,
+      If(Degree(a->AR),1-aNew[1],1),
+      If(Degree(a->MA),1-aNew[2],1),
+      a->DIF
+    )
+  });
+
+  Set Evaluation = Copy(Empty);
+  Set Results    = Copy(Empty);
+  ARIMATransferStruct  
+  (  
+    model->Name,
+    model->Output,
+    treatment,
+    model->BoxCox,
+    TransferSet,
+    ARIMA,
+    Evaluation,
+    Results
+  )
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMAGetParameters(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("ARIMAGetParameters");
+  Text  NULL = "1";
+  Set treatment = If
+  (
+    !Card(model->Treatment),
+    Copy(Empty),
+    model->Treatment->Arguments
+  );
+  Set transfer = EvalSet(model->TransferSet, Set (Set tr)
+  {
+    Polyn omega_0 = tr->Omega;
+    Polyn delta_1 = 1-tr->Delta;
+    Real  d       = Degree(tr->Delta);
+//  Matrix INIT   = Sub(SerMat(tr->InitialValues),1,2,1,d-1);
+//  [[omega_0,delta_1,INIT]]
+    [[omega_0,delta_1]]
+  });
+  Set arima = EvalSet(model->ARIMA, Set (ARIMAStruct a)
+  {
+    SetOfPolyn(1-a->AR,1-a->MA)
+  });
+  [[treatment,transfer,arima]]
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie ARIMAGetTreated(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set treat = model->Treatment;
+  Serie If(!Card(treat),model->Output,
+  {
+    Code fun = Find(treat->FunctionName);
+    fun(model->Output,treat->Arguments)
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie ARIMAGetTrans(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BoxCoxTransf(ARIMAGetTreated(model), model->BoxCox)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMAGetEffects(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TransferSerSet(model->TransferSet)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie ARIMAGetFilter(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TransferSum(model->TransferSet)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie ARIMAGetNoise(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ARIMAGetTrans(model) - ARIMAGetFilter(model)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie ARIMAGetDifNoise(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ARIMAGetDIF(model->ARIMA) : ARIMAGetNoise(model)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMAFromInitValues(ARIMATransferStruct model, 
+                          Serie initz, Serie initres)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("ARIMAEvaluate");
+  Polyn  ar = ARIMAGetAR (model->ARIMA);
+  Polyn  ma = ARIMAGetMA (model->ARIMA);
+  ARMAFromInitValues(ar,ma,ARIMAGetDifNoise(model), initz, initres)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMANullInit(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("ARIMAEvaluate");
+  Polyn  ar = ARIMAGetAR (model->ARIMA);
+  Polyn  ma = ARIMAGetMA (model->ARIMA);
+  ARMANullInit(ar,ma,ARIMAGetDifNoise(model))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMABackasting(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("ARIMAEvaluate");
+  Polyn  ar = ARIMAGetAR (model->ARIMA);
+  Polyn  ma = ARIMAGetMA (model->ARIMA);
+  ARMABackasting(ar,ma,ARIMAGetDifNoise(model))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMAGetEvaluation(ARIMATransferStruct mod)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("ARIMAGetEvaluation ");
+  Real   ev          = Card(mod->Evaluation);
+  Polyn  DIF         = ARIMAGetDIF(mod->ARIMA); 
+  Polyn  AR          = ARIMAGetAR (mod->ARIMA); 
+  Polyn  MA          = ARIMAGetMA (mod->ARIMA); 
+//Serie  Treated     = ARIMAGetTreated(mod); 
+//Serie  Transformed = BoxCoxTransf(Treated, mod->BoxCox); 
+  Serie  Treated     = mod->Output; 
+  Serie  Transformed = If(ev,mod->Evaluation->Transformed,
+                             BoxCoxTransf(Treated, mod->BoxCox)); 
+  Set    Effects     = TransferSerSet(mod->TransferSet);
+  Serie  Filter      = If(Card(Effects), SetSum(Effects), 0);
+  Serie  Noise       = Transformed - Filter;
+  Serie  DifNoise    = DIF : Noise;
+  Set    ARMAEv      = ARMABackasting(AR,MA,DifNoise);
+  Serie  Residuals   = ARMAEv[1];
+  Serie  InitA       = ARMAEv[2];
+  Serie  InitZ       = ARMAEv[3];
+  Set    ARIMAEvaluation
+  (
+    DIF,
+    AR,
+    MA,
+    mod->Output,
+    Treated,
+    Transformed,
+    Effects,
+    Filter,
+    Noise,
+    DifNoise,
+    Residuals,
+    InitZ,
+    InitA
+  )
+};
+
+
+////////////////////////////////////////////////////////////////////////////
+  Matrix ARIMAGetJacobian(ARIMATransferStruct mod)
+////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("ARIMAGetJacobian ");
+  Set ev = If(!Card(mod->Evaluation),ARIMAGetEvaluation(mod),mod->Evaluation);
+  Polyn  dif = ev->DIF; 
+  Polyn  ar  = ev->AR; 
+  Polyn  ma  = ev->MA; 
+  Set jacobTransfer = For(1,Card(mod->TransferSet),Set(Real k)
+  {
+    Set   tr     = (mod->TransferSet)[k];
+    Serie inp    = tr->InputSerie;
+    Serie eff    = (ev->Effects)[k];
+    Real  o      = Degree(tr->Omega);
+    Real  d      = Degree(tr->Delta);
+//  Serie Yomega =      -ARMABackasting(ar,(ma*tr->Delta),inp)[1];
+//  Serie Ydelta = If(d,-ARMABackasting(ar,(ma*tr->Delta),eff)[1],0);
+    Serie Yomega =      -ARMANullInit(ar,(ma*tr->Delta),inp)[1];
+    Serie Ydelta = If(d,-ARMANullInit(ar,(ma*tr->Delta),eff)[1],0);
+    jacobOmega   = For(0,o,Serie(Real j) { (B^j):Yomega });
+    jacobDelta   = For(1,d,Serie(Real j) { (B^j):Ydelta });
+    jacobOmega << jacobDelta
+  });
+  
+  Serie res   = ev->InitA << ev->Residuals;
+  Set jacobARIMA = For(1,Card(mod->ARIMA),Set(Real k)
+  {
+    Set   ak    = (mod->ARIMA)[k];
+    Real  s     = ak->Periodicity;
+    Real  p     = Degree(ak->AR);
+    Real  q     = Degree(ak->MA);
+    Serie Yfi   = If(p,-ARMABackastingSafe(1,ak->AR,res),0);
+    Serie Yteta = If(q, ARMABackastingSafe(1,ak->MA,res),0);
+    jacobFi     = For(1,p/s,Serie(Real j) { (B^(j*s)):Yfi   });
+    jacobTeta   = For(1,q/s,Serie(Real j) { (B^(j*s)):Yteta });
+    jacobFi << jacobTeta
+  });
+  
+  Set jacob = BinGroup("<<", jacobTransfer << jacobARIMA);
+  
+  Matrix Jacobian = Tra(SerSetMat(jacob));
+  Jacobian
+};
+
+
+  ////////////////////////////////////////////////////////////////////////////
+    Set EvaluateModel(Set X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+//  WriteLn("EvBackasting " << Real Columns(GetNumeric(X)));
+//  WriteLn("EvBackasting \n");
+//  Set Table(SetOfMatrix(Tra(GetNumeric(X))),"Std");
+    XX  := X;
+    mod := ARIMASetParameters(oldModel,X);
+/*
+    Do If(ARIMAIsStationary(mod->ARIMA),
+      Set (mod->Evaluation := ARIMAGetEvaluation(mod)));
+    Matrix  A = If(Card(mod->Evaluation),
+                   Tra(SerMat(mod->Evaluation->Residuals/0)),
+                   Tra(SerMat(mod->Output/0)));
+*/
+    Set (mod->Evaluation := ARIMAGetEvaluation(mod));
+    Matrix  A = Tra(SerMat(mod->Evaluation->Residuals));
+    [[A]]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+    Matrix EvFromInitValues(Set X)
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+//  WriteLn("EvFromInitValues " << Real Columns(GetNumeric(X)));
+//  WriteLn("EvFromInitValues \n");
+//  Set Table(SetOfMatrix(Tra(GetNumeric(X))),"Std");
+    Set modX = ARIMASetParameters(oldModel,X);
+    Serie res = ARIMAFromInitValues(modX,
+                                    mod->Evaluation->InitZ,
+                                    mod->Evaluation->InitA)[1];
+/*
+    Serie res = ARIMAGetAR(modX->ARIMA):DifEq(1/ARIMAGetMA(modX->ARIMA),
+                      ev[3]<<ARIMAGetDifNoise(modX),
+                      ev[2]);
+*/
+    Tra(SerMat(res))
+  };
+  
+    ////////////////////////////////////////////////////////////////////////////
+      Set PolToInfoSet(Polyn uPol,Real period,Real unit,Text name,Text factor)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+    //WriteLn("PolToInfoSet "+ name +" "+factor);
+
+      Polyn pol = If(unit,1-uPol,uPol);
+      Set   mon = Monomes(pol);
+      For(1,Card(mon), Set (Real k) 
+      { 
+        ParameterInformation
+        ( 
+          name,
+          factor,
+          Degree(mon[k]),
+          Coef(mon[k],Degree(mon[k])), 
+          0,0,0
+        )
+      })
+    };
+/*
+    ////////////////////////////////////////////////////////////////////////////
+      Set TransferToInitValuesInfoSet(TransferStruct tr)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+    //WriteLn("PolToInfoSet "+ name +" "+factor);
+      Real d = Degree(tr->Delta);
+      If(d<=1,Copy(EMPTY),
+      { 
+        Matrix INIT = Sub(SerMat(tr->InitialValues),1,2,1,d-1);
+        For(1,d-1, Set (Real k) 
+        { 
+          ParameterInformation
+          ( 
+            tr->Name,
+            I2("Initial value","Valor inicial"),
+            k,
+            MatDat(INIT,1,k), 
+            0,0,0
+          )
+        })
+       })
+    };
+*/
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMAFillResults(ARIMATransferStruct mod, Set marquardt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Do If(And(Card(marquardt),Card(marquardt[1])),
+  {
+    Serie  res  = mod->Evaluation->Residuals;
+    Matrix MX   = GetNumeric(XX);
+    Real   n    = Columns(MX);
+    Real   N    = CountS(res);
+    Real   stds = StDsS(res);
+    Real   var  = stds^2;
+
+    Matrix L      = marquardt[1][3];
+    Matrix LI     = LTInverse(L);
+    Matrix Cov    = RProd(Tra(LI)*LI,var);
+    Matrix Cor    = NormDiag(Cov);
+    Set    diag   = MatSet(SubDiag(Cov,0));
+    Set    ParVar = If(Card(diag),diag[1],MatSet(Rand(1,n,1/0,1/0))[1]);
+    
+    Set    i      = Copy(Empty);
+    Text R = "Regular";
+    Text S = "Seasonal";
+    Text O = "Omega";
+    Text D = "Delta";
+  
+    Set (i:=If(!Card(mod->Treatment),Copy(Empty),
+    {
+      Set args = mod->Treatment->Arguments;
+      For(1,Card(args),Set(Real k)
+      {
+        ParameterInformation
+        ( 
+          "Treatment "+mod->Treatment->FunctionName,
+          (mod->Treatment->ArgNames)[k],
+          k+1,
+          args[k], 
+          0,0,0
+        )
+      })   
+    }));
+    Set Do
+    ( 
+      For(1,Card(mod->TransferSet), Real(Real k)
+      {
+        Text name = ((mod->TransferSet)[k])->Name;
+        Set it1=PolToInfoSet(((mod->TransferSet)[k])->Omega,1,FALSE,name,O);
+        Set it2=PolToInfoSet(((mod->TransferSet)[k])->Delta,1,TRUE, name,D); 
+//      Set it3=TransferToInitValuesInfoSet((mod->TransferSet)[k]);
+//      Set(i:=i<<(it1<<it2<<it3));
+        Set(i:=i<<(it1<<it2));
+        k
+      })
+    );
+    Set Do EvalSet(mod->ARIMA, Set (Set a)
+    {
+      Real s    = a->Periodicity;
+      Text fact = "Period " << s;
+      Set Do (i:=i<<PolToInfoSet(a->AR, s, TRUE, "AR", fact));
+      Set Do (i:=i<<PolToInfoSet(a->MA, s, TRUE, "MA", fact));
+      a
+    });
+    Set Do For(1,n,Real(Real k) 
+    { 
+      (i[k])->Value      := MatDat(MX,1,k);
+      (i[k])->StDs       := SqRt(ParVar[k]);
+      (i[k])->TStudent   := (i[k])->Value / (i[k])->StDs;
+      (i[k])->RefuseProb := 1-DistT(Abs((i[k])->TStudent),N-n-1);
+      k
+    });
+
+    mod->Results := 
+    {
+      Real swartz = Log(var)+n*Log(N)/N;
+      Set  stat   = ARIMAStatisticsResults(n,N,stds,var,swartz);
+      Matrix aCor  = AutoCor(res,N/4);
+      Matrix paCor = PartAutoCor(res,N/4);
+      Set    iNames = EvalSet(i,Text(ParameterInformation pInfo)
+      {
+        pInfo->Name << "(" << pInfo->Factor << "," << pInfo->Order <<")"  
+      }); 
+      Matrix Cor0 = Cor - Diag(n,1);
+      Set bigCor = BigMatrixTable(Cor0,iNames,"Correlation",MinCorrelation);
+      Set  corrInfo = ARIMACorrelation  
+      (
+        L,
+        LI,
+        Cov,
+        Cor,
+        aCor,
+        paCor
+      );
+      Serie  norRes    = Abs(res/stds);
+      Set    bigRes    = Copy(Empty);
+      Do (Set EvalSet(Range(2.5,4,0.5), Real (Real k)
+      {
+        Text  name = "ResGE"<<k;
+//      Serie res  = And(LE(k,norRes),LT(norRes,k+0.5))*residuals;
+        Serie res  = LE(k,norRes)*res;
+        Serie aRes = DatCh(res,SerTms(res),FirstS);
+        Set   s    = If(SumS(res),SetOfSerie(Eval(name<<"=aRes")),EMPTY);
+        Do Set( bigRes:=bigRes<<s );
+        k
+      })); 
+      Set StationarityProb = CalcStationarityModelProb(i,Cov,mod->ARIMA,100);
+
+      Set Statistics      = stat;
+      Set Parameters      = i;
+      Set Correlations    = corrInfo;
+      Set BigCorrelation  = bigCor;
+      Set BigResiduals    = bigRes;
+      Set Diagnostics     = [[StationarityProb]];
+      ARIMAResults
+      (
+        Statistics,
+        Parameters,
+        Correlations,
+        BigCorrelation,
+        BigResiduals,
+        Diagnostics
+      )
+    }
+  });
+  mod
+};
+    
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMAEstimate(ARIMATransferStruct oldModel, Real tolerance, 
+                    Real numeric)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("ARIMAEstimate");
+  Set  X0  = ARIMAGetParameters(oldModel);
+  Set  ev  = Copy(Empty);
+  Set  mod = Copy(Empty);
+  Set  XX  = Copy(Empty);
+
+  ////////////////////////////////////////////////////////////////////////////
+    Matrix EvaluateJacobian(Set X, Matrix Y)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+//  WriteLn("EvJacobian n=" << Real Columns(GetNumeric(X)));
+    If(numeric,
+       NumericJacobian(X,Y,EvFromInitValues,tolerance),
+       ARIMAGetJacobian(ARIMASetParameters(mod,X)))
+  };
+  Set marquardt = TJMarquardt(EvaluateModel,EvaluateJacobian,X0,tolerance);
+  ARIMAFillResults(mod,marquardt)
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GroupFactARIMA(Set arimaTable)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set t = Traspose(arimaTable);
+  ARIMAStruct
+  (
+    1,
+    SetProd(t[2]),
+    SetProd(t[3]),
+    SetProd(t[4])
+  )
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set AproxARIMA(Set arimaDegreeTable, Serie z, Real maxIter)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set simulation = For(1,maxIter,Set(Real k)
+  {
+    Set   armaTable = RandFactARIMA(arimaDegreeTable);
+    Set   fact      = Traspose(armaTable);
+    Polyn ar        = SetProd(fact[2]);
+    Polyn ma        = SetProd(fact[3]);
+    Polyn dif       = SetProd(fact[4]);
+    Serie res       = (ar*dif):DifEq(1/ma,z);
+    Real  s         = StDsS(res);
+    WriteLn("" << s << ", ");
+    [[s,armaTable]]
+  });
+  Set sorted = Sort(simulation,CmpSet1);
+  WriteLn("\nInitial error " << sorted[maxIter][1]);
+  sorted[maxIter][2]
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set AproximateARIMA(Set ARIMADegreeTable, Serie z)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set adt = GetARMADegreeTable(ARIMADegreeTable);
+
+  Set   pq  = EvalSet(ARIMADegreeTable, Set(ARIMADegreeStruct a)
+  {
+    Real  sk = a->Periodicity;
+    Real  pk = a->ARDegree * sk;
+    Real  qk = a->MADegree * sk;
+    [[pk,qk]]
+  });
+  Real  p    = SetSum(pq[1]);
+  Real  q    = SetSum(pq[2]);
+  WriteLn("p = " << p);
+  WriteLn("q = " << q);
+//Set   mod0  = AutoRegression(z,2*(p+q));
+//Serie res   = mod0[1];
+  Real N = CountS(z);
+  Real m = Min(N/4,1+p+2*q);
+  Matrix aCor0  = SubCol(AutoCor(z,m), [[2]]);
+  Polyn piw     = DurbinPiWeights(aCor0,CountS(z),m,m);
+  Serie resPiw  = piw:z;
+  WriteLn("Pi-Weights error = " << Real StDsS(resPiw));
+//Set   arma0 = ARMAHannanRissanen(ARMADegreeStruct(1,p,q),z,resPiw);
+  Set   arma0 = 
+   If(And( p, q),ARMAFactHannanRissanen(adt,z,resPiw),
+   If(And( p,!q),[[Sub(piw,0,p),1]],
+   If(And(!p, q),[[1,Expand(1/piw,q)]],
+   If(And(!p,!q),[[1,1]]))));
+  Polyn ar0   = arma0[1];
+  Polyn ma0   = arma0[2];
+
+  Set arima = EvalSet(ARIMADegreeTable, Set(ARIMADegreeStruct a)
+  {
+    Real sk = a->Periodicity;
+    Real pk = a->ARDegree;
+    Real qk = a->MADegree;
+    Polyn dif1 = (1-(B^sk))^a->DIFDegree;
+    WriteLn("s=" << sk);
+
+    Set arMon = For(1,pk,Polyn (Real k) 
+    {
+      Real deg  = k*sk;
+      Real coef = Coef(ar0,deg);
+      coef*B^deg 
+    });
+    
+    Set maMon = For(1,qk,Polyn (Real k) 
+    {
+      Real deg  = k*sk;
+      Real coef = Coef(ma0,deg);
+      coef*B^deg 
+    });
+
+    Polyn ar1  = 1+SetSum(arMon);
+    Polyn ma1  = 1+SetSum(maMon);
+    Real  statAR = IsStationary(ar1);
+    Real  statMA = IsStationary(ma1);
+    WriteLn("ar = (" << statAR << ") " << ar1);
+    WriteLn("ma = (" << statMA << ") " << ma1);
+    Polyn ar2  = If(statAR,ar1,RandStationary(pk,sk));
+    Polyn ma2  = If(statMA,ma1,RandStationary(qk,sk));
+    ARIMAStruct(sk,ar2,ma2,dif1)
+  })
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set RandARIMATransferStruct(ARIMATransferStruct model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set mod = DeepCopy(model);
+  Do If(!Card(model->Treatment),Copy(Empty),
+  {
+    Set treatArgs = model->Treatment->Arguments;
+    model->Treatment->Arguments := 
+      For(1,Card(treatArgs), Real(Real x) { x*Rand(0.8,1.2) });
+    model->Treatment->Arguments
+  });
+  Do Set For(1,Card(mod->TransferSet), Real(Real k)
+  {
+    Set    tr = (mod->TransferSet)[k];
+    Polyn  omega = RandStationary(Degree(tr->Omega));
+    Polyn  delta = RandStationary(Degree(tr->Delta));
+    Serie  y     = delta:ARIMAGetTrans(model);
+    Serie  x     = omega:tr->InputSerie;
+    Matrix cov   = Cov(SerSetMat([[y,x]])); 
+    Real   regr  = MatDat(cov,1,2)/MatDat(cov,2,2);
+    Polyn ( tr->Omega := omega*regr );
+    Polyn ( tr->Omega := omega );
+    Polyn ( tr->Delta := delta );
+    k
+  });
+  Set adt   = GetARIMADegreeTable(mod->ARIMA);
+  mod->ARIMA := RandFactARIMA(adt);
+  mod
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set AproxARIMATransferStruct(ARIMATransferStruct model, Real maxIter)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set simulation = For(1,maxIter,Set(Real k)
+  {
+    Set   mod = RandARIMATransferStruct(model);
+/*
+    Polyn ar = ARIMAGetAR(mod->ARIMA);
+    Polyn ma = ARIMAGetMA(mod->ARIMA);
+    Serie res = ar:DifEq(ma, ARIMAGetDifNoise(mod));
+*/
+ 
+    Set (mod->Evaluation := ARIMAGetEvaluation(mod));
+    Real  s   = StDsS(mod->Evaluation->Residuals);
+    WriteLn("" << s << ", ");
+    [[s,mod]]
+  });
+  Set sorted = Sort(simulation,CmpSet1);
+  WriteLn("\nInitial error " << sorted[maxIter][1]);
+  sorted[maxIter][2]
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GenerateDifference(ARIMADegreeRangeStruct adr)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real s      = adr->Periodicity;
+  Real minDif = adr->MinDIFDegree;
+  Real maxDif = adr->MaxDIFDegree;
+  For(minDif,maxDif,Polyn (Real k) { (1-(B^s))^k })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GenerateDifferenceSet(Set statTable)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real n = Card(statTable);
+  If(n==0, Copy(Empty),
+  If(n==1, GenerateDifference(statTable[1]),
+  {
+    simpleDif = EvalSet(statTable,GenerateDifference);
+    cartProd  = Group("CartProd", simpleDif);
+    EvalSet(cartProd, Polyn(Set s) { SetProd(s) })
+  }))
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set CreateInput(Text name, Text expression,
+                  Polyn omega, Polyn delta, 
+                  Date initDate, Date lastDate)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real  o  = Degree(omega);
+  Real  d  = Degree(delta);
+  Serie inputSerie = Eval(expression);
+  Date  f1 = Succ(initDate,Dating(inputSerie),-1);
+  Date  fd = Succ(initDate,Dating(inputSerie),-d);
+  Date  fo = Succ(initDate,Dating(inputSerie),-o);
+  Serie initValues = SubSer(CalInd(W,Dating(inputSerie)),fd,f1);
+  Date  fi = First(inputSerie);
+  Date  li = Last(inputSerie);
+  Write(If(Or(fi>fo,li<lastDate),
+           "\nFaltan datos entre las fechas ["<<fo+","<<lastDate+
+           "] para el input " + name + "["<<fi+","<<li+"]",
+           ""));
+  TransferStruct  
+  (
+    name,
+    expression,
+    omega,
+    delta,
+    Eval(name+"=SubSer("+expression+",fo,lastDate)"),
+    initValues
+  )
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMAEstimModel(Serie output, 
+                      Set ARIMA,      // Conjunto de conjuntos con 
+                                      // estructura ARIMAStruct
+                      Set BoxCox,     // Conjunto con estructura BoxCoxStruct
+                      Set input,   
+                      Date iniEstim,
+                      Date endEstim,
+                      Set aprioriSet) //Conjunto de conjuntos con estructura
+                                      // ParameterAPrioriInf
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set ARIMAt = Traspose(ARIMA);
+  Set P   = ARIMAt[1];
+  Set AR  = ARIMAt[2];
+  Set MA  = ARIMAt[3];
+  Set DIF = ARIMAt[4];
+  Polyn dif = SetProd(DIF);
+  Real p = SetMax(P);
+ 
+  Set modDef = ModelDef
+  (
+   output,          
+   BoxCox->Exponent,
+   BoxCox->Constant, 
+   p,
+   0,
+   dif, 
+   AR,
+   MA, 
+   input , 
+   AllLinear 
+  );
+  Set result = If(!Card(aprioriSet),
+   Estimate(modDef,  iniEstim, endEstim),
+   Estimate(modDef,  iniEstim, endEstim, aprioriSet));
+  result
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Realiza el proceso de estimacion con todos los parametros posibles. Si 
+el conjunto de parametros a priori puede es vacio, se estima sin ellos.",
+ARIMAEstimModel);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set GetArimaFromLabel(Text label)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real lon    = TextLength(label);
+
+  Real posP   = TextFind(label, "P");
+  Real posAR  = TextFind(label, "AR");
+  Real posMA  = TextFind(label, "MA");
+  Real posDIF = TextFind(label, "DIF");
+
+  Text period = Sub(label, posP+1, posDIF-1);
+  Text polDIF = Sub(label, posDIF+3, posAR-1);
+  Text polAR  = Sub(label, posAR+2, posMA-1);
+  Text polMA  = Sub(label, posMA+2, lon);
+
+  Set periodSet = Tokenizer(period, "_");
+  Set polDIFSet = Tokenizer(polDIF, "_");
+  Set polARSet  = Tokenizer(polAR, "_");
+  Set polMASet  = Tokenizer(polMA, "_");
+
+  Real check    = EQ
+  (
+    Card(periodSet), 
+    Card(polDIFSet), 
+    Card(polARSet), 
+    Card(polMASet)
+  );
+
+  Set arima = If(Not(check), Empty,
+  {
+    Polyn GetPolynFromLabel(Text type, 
+                            Text polTxt,
+                            Real defCoef, 
+                            Real period)
+    {
+      Polyn pol = If(type == "DIF",
+      {
+        Real grade = Eval("Real "+polTxt+";");
+        (1-defCoef*(B^period))^grade
+      },
+      {
+        Real posPoint = TextFind(polTxt, ".");
+        If(LE(posPoint, 0), 
+        If(polTxt == "0", 1, 
+        {
+          Real grade = Eval("Real "+polTxt+";");
+          1+0.1*B^grade
+        }),
+        {
+          Set grades = Tokenizer(polTxt, ".");
+          Set gradesSet = For(1, Card(grades), Set(Real i)
+          {
+            Text grade = grades[i];
+            If(grade == "", 
+            {
+              Real ini = Eval("Real "+grades[i-1]+";")+1; 
+              Real end = Eval("Real "+grades[i+1]+";")-1; 
+              Range(ini, end, 1) 
+            },
+            {
+              SetOfReal
+              (
+                Eval("Real "+grade+";")
+              )
+            })
+          });
+          Set gradesTotal = BinGroup("<<", gradesSet);
+          Set monomes     = EvalSet(gradesTotal, Polyn(Real grade)
+           {If(EQ(grade,0), 0,-defCoef*(B^(grade))) });
+          1+SetSum(monomes) 
+        })
+      });
+      pol
+    };
+  
+    For(1, Card(periodSet), Set(Real conta)
+    {
+      Text periodTxt = periodSet[conta];
+      Text difTxt    = polDIFSet[conta];
+      Text arTxt     = polARSet[conta];
+      Text maTxt     = polMASet[conta];
+   
+      Real period  = Eval("Real "+periodTxt+";");
+      Polyn dif    = GetPolynFromLabel("DIF", difTxt, 1, period);
+      Polyn ar     = GetPolynFromLabel("AR", arTxt, 0.1, period);
+      Polyn ma     = GetPolynFromLabel("MA", maTxt, 0.1, period);
+      ARIMAStruct(period, ar, ma, dif)   
+    })
+  });
+  arima
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna un conjunto tabular con estructura ARIMAStruct 
+resultado de evaluar una mascara de texto con el formato
+P1_12DIF0_0AR0_0MA0.2..5_0..1.12.",
+GetArimaFromLabel);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Text GetLabelFromArmaPolyn(Polyn pol, Real period)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set  m = Monomes(pol-1);
+  Real M = Card(m);
+  If(M==0, "0",
+  {
+
+    SetSum(For(1,Card(m),Text(Real i)
+    {
+      If(i==1,"",".")+IntText(Degree(m[i]))
+    }))
+/*
+//VBR: Intento fallido de codificar el abreviador <..> pero no está claro qué
+//sucede cuando la estacionalidad no es 1 
+    Real d = Degree(m[1]);
+    Text s = ".";
+    IntText(d)+
+    SetSum(For(2,M,Text(Real i)
+    {
+      Real dd = Degree(m[i]);
+      If(dd==d+p, 
+      {
+        s := "..";
+        If(i==M,s+IntText(dd),"")
+      },
+      {
+        Text aux = s+IntText(dd);
+        s := ".";
+        aux 
+      })
+    }))
+*/
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("A partir de un polinomio AR ó MA "
+"retorna una mascara de texto con el formato de etiqueta utilizado en la "
+"función GetArimaFromLabel.\n"
+"Esta función no tiene mucho interés en sí misma para el usuario pero se "
+"usa en GetLabelFromArima para formar la etiqueta completa de una estructura "
+"ARIMA.\n"
+"Por el momento no se usará nunca el abreviador <..> pues no está nada clara "
+"cuál es la sintaxis del mismo cuando la estacionalidad no es 1. Esta "
+"notación puede ser útil cuando se forma la etiqueta a mano pero aquí es "
+"indiferente.",
+GetArimaFromLabel);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Text GetLabelFromArima(Set a)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text "P"+SetSum(For(1,Card(a),Text(Real j)
+  {
+    If(j>1,"_","")+
+    IntText(a[j]->Periodicity)
+  }))+
+  Text "DIF"+SetSum(For(1,Card(a),Text(Real j)
+  {
+    If(j>1,"_","")+
+    IntText(Degree(a[j]->DIF)/a[j]->Periodicity)
+  }))+
+  Text "AR"+SetSum(For(1,Card(a),Text(Real j)
+  {
+    If(j>1,"_","")+
+    GetLabelFromArmaPolyn(a[j]->AR,a[j]->Periodicity)
+  }))+
+  Text "MA"+SetSum(For(1,Card(a),Text(Real j)
+  {
+    If(j>1,"_","")+
+    GetLabelFromArmaPolyn(a[j]->MA,a[j]->Periodicity)
+  }))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("A partir de un conjunto tabular con estructura ARIMAStruct "
+"retorna una mascara de texto con el formato de etiqueta utilizado en la "
+"función GetArimaFromLabel.\n"
+"Por el momento no se usará nunca el abreviador <..> pues no está nada clara "
+"cuál es la sintaxis del mismo cuando la estacionalidad no es 1. Esta "
+"notación puede ser útil cuando se forma la etiqueta a mano pero aquí es "
+"indiferente.",
+GetArimaFromLabel);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Serie ARIMAGetGaussian(Text tARIMA,     // texto que define el modelo ARIMA 
+                       Date iniSer,     // inicio de la serie
+                       Date endSer,     // fin de la serie
+                       TimeSet fechado) // fechado  
+//////////////////////////////////////////////////////////////////////////////
+{
+  Ratio r = GetRatioFromLabel(tARIMA);
+  Serie g = SubSer(Gaussian(0, 1, fechado), iniSer ,endSer);
+  Serie DifEq(r,g)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Obtiene una serie entre dos fechados resultante de aplicar una gaussiana 
+entre 0 y 1 a un modelo ARIMA en un fechado dado.",
+ARIMAGetGaussian);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Anything ARIMADrawACFs(Serie ARIMAGaussian,   // Serie a graficar 
+                       Text title)            // titulo del gráfico
+
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(title=="",
+  {
+    Text TclChartSerieAutocor( Serie ARIMAGaussian, 
+    Set (SetOfSet(TclArgSt("-title", "Graph of ACFs and PACFs of ARIMA Model"))))
+  },
+  {
+    Text TclChartSerieAutocor( Serie ARIMAGaussian, 
+                               Set (SetOfSet(TclArgSt("-title", title))))
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Obtiene el gráfico de ACF y PACF dada una serie resultante de aplicar una
+gaussiana a un modelo ARIMA. Si el titulo no esta definido, se pone el titulo
+en inglés por defecto",
+ARIMADrawACFs);
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set DefaultMonthlyInput = SetOfSerie
+//////////////////////////////////////////////////////////////////////////////
+(
+  ConstMes  = CalVar(Mensual, Mensual),
+  DiasMes   = CalVar(C, Mensual),
+  FinSemMes = CalVar(WD(6)+WD(7), Mensual),
+  PascMes   = CalVar(Range(Easter,0,8), Mensual)
+);
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Ration ModelDefARMA(Set mod)
+//
+// PURPOSE: Constructs an ARIMA ration from a set with ModelDef structure
+//
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Set   AR   = mod->AR;
+  Set   MA   = mod->MA;
+  Polyn fi   = AR[1]*AR[2];
+  Polyn teta = MA[1]*MA[2];
+  fi/teta
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Ration ModelDefARIMA(Set mod)
+//
+// PURPOSE: Constructs an ARIMA ration from a set with ModelDef structure
+//
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Set   AR   = mod->AR;
+  Set   MA   = mod->MA;
+  Polyn fi   = AR[1]*AR[2]*mod->Dif;
+  Polyn teta = MA[1]*MA[2];
+  fi/teta
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// PURPOSE: Opers the polyn and the serie for an InputSet-structured set
+//
+//////////////////////////////////////////////////////////////////////////////
+Serie ApplyPolyn(Set inputDef)
+{
+  Text txt = I2("Effect ","Efecto ") + Identify(inputDef->X);
+  Set s = SetOfSerie((inputDef->Omega):(inputDef->X));
+  Serie PutDescription(txt,s[1]);
+  s[1]
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// PURPOSE: Sums the result of ApplyPolyn for all inputs in a set of
+//          InputSet-structured sets
+//
+//////////////////////////////////////////////////////////////////////////////
+Serie GroupInputs(Set inputs)
+{
+  Set   series = EvalSet(inputs, ApplyPolyn),
+  SetSum(series)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set CreateParameterAPrioriInf(Text name, Polyn p)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(p==0,Copy(Empty),
+  {
+    Set mon  = Monomes(p);
+    EvalSet(mon,Set(Polyn m) 
+    { 
+      Real d = Degree(m);
+      ParameterAPrioriInf(name,d,?,?)
+    })
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set CreateAllParameterAPriori(ModelDef ModelDefinition,
+                                Set      FixedAPriori)      
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set FreeAPriori =          
+    CreateParameterAPrioriInf("",ModelDefinition->Constant) <<
+    BinGroup("<<",EvalSet(ModelDefinition->Input,Set(ModelDef s) 
+    { 
+      WriteLn("CreateParameterAPrioriInf("+Identify(s->X)+","<<s->Omega+")");
+      CreateParameterAPrioriInf(Identify(s->X),s->Omega)
+    }))<<
+    CreateParameterAPrioriInf("RegularAR", (ModelDefinition->AR)[1]-1)<<
+    CreateParameterAPrioriInf("RegularMA", (ModelDefinition->MA)[1]-1)<<
+    CreateParameterAPrioriInf("EstacionalAR",(ModelDefinition->AR)[2]-1)<<
+    CreateParameterAPrioriInf("EstacionalMA",(ModelDefinition->MA)[2]-1);
+  
+  Set EvalSet(FreeAPriori, Set(ParameterAPrioriInf free)
+  {
+    Set sel = Select(FixedAPriori,Real(ParameterAPrioriInf fixed)
+    {
+      And(fixed->Name == free->Name, fixed->Order == free->Order)
+    });
+    If(Card(sel),sel[1],free)
+  })
+};
+
+
+
+

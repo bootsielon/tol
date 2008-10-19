@@ -1,0 +1,363 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _arma_process.tol
+// PURPOSE: Methods related with ARMA process
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock ARMAProcess = 
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Text _.autodoc.description = "Methods related with ARMA process";
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.StationarityBounds.2.1 =
+  "Returns stationary bounds for fi1 in a polynomial 1 - fi1*B - fi2*B^2";
+  Set StationarityBounds.2.1(Polyn pol, Real periodicity)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real fi2 = -Coef(pol, 2*periodicity);
+    SetOfReal(fi2-1,1-fi2)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.StationarityBounds.2.2 =
+  "Returns stationary bounds for fi2 in a polynomial 1 - fi1*B - fi2*B^2";
+  Set StationarityBounds.2.2(Polyn pol, Real periodicity)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real fi1 = -Coef(pol, periodicity);
+    Real max = If(fi1<=0, 1+fi1, 1-fi1);
+    SetOfReal(-1,max)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.StationarityBounds.2 =
+  "Returns stationary bounds for the coefficient of degree 1 or 2 of a "
+  "polynomial of degree 1 or 2";
+  Set StationarityBounds.2(Polyn pol, Real periodicity, Real degree)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real n = Degree(pol)/periodicity;
+    If(n==1, SetOfReal(-1,1),
+    {
+      Real d = degree/periodicity;
+      Case
+      (
+        d==1, ARMAProcess::StationarityBounds.2.1(pol, periodicity),
+        d==2, ARMAProcess::StationarityBounds.2.2(pol, periodicity)
+      )
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+    VMatrix AvoidSymRoundErr(VMatrix S)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    (S+Tra(S))*0.5
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+    VMatrix ExtendBandedSymToeplitz(VMatrix S, Real m)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real n = VRows(S);
+    Polyn pol = 
+    {
+      Polyn aux = MatPol(Reverse(VMat2Mat(SubRow(S,[[n]]))));
+      aux+ChangeBF(aux)-VMatDat(S,n,n)
+    };
+    VMatrix aux = (
+      ((S - Pol2VMat(pol, n, n)) | Zeros(n, m-n)) <<
+      Zeros(m-n,m)
+    )+Pol2VMat(pol, m, m);
+    AvoidSymRoundErr(aux)
+  }; 
+
+  ////////////////////////////////////////////////////////////////////////////
+    VMatrix ExtendBandedLowTriangToeplitz(VMatrix L, Real m)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real n = VRows(L);
+    Polyn pol = MatPol(Reverse(VMat2Mat(SubRow(L,[[n]]))));
+    VMatrix aux = (
+      ((L - Pol2VMat(pol, n, n)) | Zeros(n, m-n)) <<
+      Zeros(m-n,m)
+    )+Pol2VMat(pol, m, m);
+    aux
+  }; 
+
+  ////////////////////////////////////////////////////////////////////////////
+  NameBlock FastCholeskiCovFactor(Polyn ar_, Polyn ma_, Real m_)
+  ////////////////////////////////////////////////////////////////////////////
+  {[[
+    Text _.autodoc.description = 
+    "Computes a Fast Choleski decomposition of the covariance S=L*L' of an "
+    "ARMA process as a product of two virtual sparse banded matrices Li_ar "
+    "and L_ma matching \n"
+    "  L^-1 = L_ma ^-1 * Li_ar \n"
+    "  L    = Li_ar^-1 * L_ma  \n"
+    "Factorization is not explicitly built but just sparse factors are "
+    "stored in O(n*m) cells, instead of O(m^2) using directly Cholesky over "
+    "full covarianze matrix, being m the number of data and n=Max(p,q)+1+p, "
+    "where p and q are degrees of AR and MA polynomials. Usually m is much "
+    "greater than n, so a lot of CPU and RAM will be saved.\n"
+    "Factoring complexity is O(n^2*m) instead of O(m^3) over full covariance"
+    ".\n"
+    "Method filter makes products of type L^-1 * X applying internally "
+    "virtual matrix operators, where X can be a VMatrix, Matrix or Serie.\n"
+    "Data length of the serie or VMatrix or Matrix rows must be just m."
+    "If X is a VMatrix or a Matrix could have any number of columns and "
+    "filter will apply in every one. Filtering complexity requieres also "
+    "O(n*m) operations.\n"
+    "The logarithm of the determinant of full covariance is stored in "
+    "member _.logDetCov\n"
+    "Example:\n"
+    "NameBlock myFastChol = ARMAProcess::FastCholeskiCovFactor(ar,ma,m);\n"
+    "...\n"
+    "VMatrix Z1 = ...;\n"
+    "VMatrix E1 = myFastChol::filter(Z1);\n"
+    "...\n"
+    "Matrix Z2 = ...;\n"
+    "Matrix E2 = myFastChol::filter(Z2);\n"
+    "...\n"
+    "Serie Z3 = ...;\n"
+    "Serie E3 = myFastChol::filter(Z3);\n";
+    //Stores arguments as members
+    Polyn _.ar = ar_;
+    Polyn _.ma = ma_;
+    Real _.m  = m_;
+    //Stores degrees of AR and MA polynomials
+    Real _.p = Degree(_.ar);
+    Real _.q = Degree(_.ma);
+    //Calculates de minimum length of non Toeplitz main minor of factors
+    Real _.n = Max(_.p,_.q)+_.p+1;
+    //Calculates de main minor of length _.n of joint ARMA covariance
+    VMatrix _.cov_arma_n = 
+      Pol2VMat(ARMATACov(_.ar,_.ma,_.n), _.n, _.n);
+    //Calculates de main minor of length _.n of just pure AR covariance
+    VMatrix _.cov_ar_n = 
+      Pol2VMat(ARMATACov(_.ar,1,_.n), _.n, _.n);
+    //Does Choleski factorization of pure AR
+    VMatrix _.L_ar_n = CholeskiFactor(_.cov_ar_n,"X");
+    //Calculates the inverse of Choleski factorization of pure AR
+    VMatrix _.Li_ar_n = CholeskiSolve(_.L_ar_n,Eye(_.n),"L");
+    //Extends main minor of length _.n to full data length _.m as Toplitz from  
+    //last row. Terms _.n^2 is added and substracted to clean rounding error.
+    VMatrix _.Li_ar=
+      (ARMAProcess::ExtendBandedLowTriangToeplitz(_.Li_ar_n,_.m)+_.n^2)-_.n^2;
+    //Filters full ARMA covariance of AR factor 
+    VMatrix _.cov_ma_n = (_.Li_ar_n*_.cov_arma_n*Tra(_.Li_ar_n)+_.n^2)-_.n^2;
+    //Extends main minor of length _.n to full data length _.m as Toplitz from 
+    //last row and column getting a symmetric and sparse banded matrix
+    VMatrix _.cov_ma_m=
+      (ARMAProcess::ExtendBandedSymToeplitz(_.cov_ma_n,_.m)+_.n^2)-_.n^2;
+    //Does Choleski factorization of pseudo MA factor
+    VMatrix _.L_ma = CholeskiFactor(_.cov_ma_m,"X");
+    //Converts to Cholmod.R.Sparse
+    VMatrix _.L_ma_sp = Convert(_.L_ma,"Cholmod.R.Sparse");
+    //Calculates de logarithm of determinant of _.m ARMA covarianze 
+    Real _.logDetCov = 2*(-VMatSum(Log(SubBand(_.Li_ar,0)))+
+                           VMatSum(Log(SubBand(_.L_ma_sp, 0))));
+    //Filters a Matrix, VMatrix or Serie from inverse of Choleski factor of
+    //_.m ARMA covarianze 
+    Anything filter(Anything X)
+    {
+      Text g = Grammar(X);
+      Case
+      (
+        g=="VMatrix",
+        {
+          CholeskiSolve(_.L_ma,_.Li_ar*X,"PtL")
+        },
+        g=="Matrix",
+        {
+          VMatrix aux1 = Mat2VMat(X);
+          VMatrix aux2 = CholeskiSolve(_.L_ma,_.Li_ar*aux1,"PtL");
+          VMat2Mat(aux2)
+        },
+        g=="Serie",
+        {
+          Matrix  aux0 = Tra(SerSetMat([[X]]));
+          VMatrix aux1 = Mat2VMat(X);
+          VMatrix aux2 = CholeskiSolve(_.L_ma,_.Li_ar*aux1,"PtL");
+          Matrix  aux3 = VMat2Mat(aux2);
+          MatSerSet(Tra(aux3),Dating(X),First(X))[1]
+        },
+        1==1,
+        {
+          WriteLn("Cannot apply ARMACovFastCholeskiFactor::filter to type "+g)
+        }
+      )
+    }
+  ]]};
+
+  //////////////////////////////////////////////////////////////////////////////
+  NameBlock Eval.Almagro(Polyn ar, Polyn ma, VMatrix z_, Real sigma)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real    m     = VRows(z_);
+    Real    p     = Degree(ar);
+    Real    q     = Degree(ma);
+    If(!p & !q, [[
+    Polyn   _.ar    = ar;
+    Polyn   _.ma    = ma; 
+    VMatrix _.z     = z_;
+    VMatrix _.z0    = Rand(0,0,0,0);
+    VMatrix _.a0    = Rand(0,0,0,0);
+    Real    _.sigma = sigma;
+    Real    _.s2    = _.sigma*_.sigma;
+    Real    _.m     = m;
+    Real    _.p     = p;
+    Real    _.q     = q;
+    Real    _.q_p   = _.q+_.p;
+    Real    _.mxpq  = Max(_.p,_.q);
+    VMatrix _.a     = z_;
+    Real _.det_cov_z = 0;
+    Real _.det_cov_u = 0;
+    Real _.det_cov_G = 0;
+    Real _0.5_m_log2_PI_s2 = -0.5*_.m*Log(2*PI*_.s2);
+    Real _.logLH = _0.5_m_log2_PI_s2 - 0.5*_.m* VMatMoment(_.a,2)/_.s2
+    ]],[[
+    Polyn   _.ar    = ar;
+    Polyn   _.ma    = ma; 
+    VMatrix _.z     = z_;
+    Real    _.sigma = sigma;
+    Real    _.s2    = _.sigma*_.sigma;
+    Real    _.m     = m;
+    Real    _.p     = p;
+    Real    _.q     = q;
+    Real    _.q_p   = _.q+_.p;
+    Real    _.mxpq  = Max(_.p,_.q);
+
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix factor(VMatrix cov)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      CholeskiFactor(cov,"X")
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix solve.LLt(VMatrix L, VMatrix b)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      CholeskiSolve(L,b,"LLt")
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix solve.L(VMatrix L, VMatrix b)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      CholeskiSolve(L,b,"L")
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix solve.Lt(VMatrix L, VMatrix b)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      CholeskiSolve(L,b,"Lt")
+    };
+
+    VMatrix _.cov_u = Case(
+    _.p & _.q,
+    {
+      VMatrix _.cov_zz = Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p);
+    //WriteLn("_.cov_zz = "<<_.cov_zz);
+      VMatrix _.cov_aa = Eye(_.q);
+      VMatrix _.cov_za = Pol2VMat(Expand(_.ma/_.ar,_.mxpq), _.p, _.q);
+  //WriteLn("_.cov_za = "<<_.cov_za);
+
+      (_.cov_zz      | _.cov_za) <<
+      (Tra(_.cov_za) | _.cov_aa)
+    },
+    _.p & !_.q,
+    {
+      Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p)
+    //WriteLn("_.cov_zz = "<<_.cov_zz);
+    },
+    !_.p & _.q,
+    {
+    //WriteLn("_.cov_zz = "<<_.cov_zz);
+      Eye(_.q)
+    });
+
+  //WriteLn("_.cov_u = "<<_.cov_u);
+    VMatrix _.L_u  = factor(_.cov_u);
+    VMatrix _.covi_u = 
+    {
+      aux = solve.LLt(_.L_u,Eye(_.q_p));
+      ARMAProcess::AvoidSymRoundErr(aux)
+    };
+    VMatrix _.L_u_sp = Convert(_.L_u,"Cholmod.R.Sparse");
+    Real _.det_cov_u = 2*VMatSum(Log(SubBand(_.L_u_sp,0)));
+    VMatrix _.H1 = Pol2VMat(F^_.p*(1-_.ar), _.m, _.p);
+    VMatrix _.H2 = Pol2VMat(F^_.q*(_.ma-1), _.m, _.q);
+    VMatrix _.H = _.H1 | _.H2;
+    VMatrix _.G = 
+      DifEq(1/_.ma, _.H, Rand(0,_.q_p,0,0), Rand(_.q,_.q_p,0,0), 0.8, 1.E-17);
+    VMatrix _.GtG = MtMSqr(_.G);
+    VMatrix _.cov_G = _.covi_u + _.GtG;
+    VMatrix _.L_G   = factor(_.cov_G);
+    VMatrix _.L_G_sp = Convert(_.L_G,"Cholmod.R.Sparse");
+    Real _.det_cov_G = 2*VMatSum(Log(SubBand(_.L_G_sp,0)));
+    Real _.det_cov_z = _.det_cov_u + _.det_cov_G;
+    VMatrix _.pi_z = DifEq(_.ar/_.ma,_.z);
+    VMatrix _.G_pi_z = Tra(Tra(_.pi_z)*_.G);
+    VMatrix _.u = solve.LLt(_.L_G, _.G_pi_z);
+
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix Get.Z0(VMatrix u)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      Sub(u, 1,     1, _.p, 1)
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix Get.A0(VMatrix u)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      Sub(u, _.p+1, 1, _.q, 1)
+    };
+
+    VMatrix _.z0 = Get.Z0(_.u);
+    VMatrix _.a0 = Get.A0(_.u);
+    VMatrix _.v = solve.L(_.L_u, _.u); 
+    VMatrix _.a   = DifEq(_.ar/_.ma, _.z, _.z0, _.a0);
+    Real _0.5_m_log2_PI_s2 = -0.5*_.m*Log(2*PI*_.s2);
+    Real _.logLH = _0.5_m_log2_PI_s2 - 0.5*_.m*
+    (  
+      _.det_cov_z/_.m + 
+      (VMatMoment(_.a,2) + VMatMoment(_.u,2))/_.s2  
+    );
+
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix Draw.U_cond_Z(Real unused)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      VMatrix u01 = Gaussian(_.q_p,1,0,_.sigma);
+      _.u + solve.Lt(_.L_G, u01)
+    };
+
+    VMatrix _R0100 = Rand(0,  1,0,0);
+    VMatrix _Rq100 = Rand(_.q,1,0,0);
+/*    
+    ////////////////////////////////////////////////////////////////////////////
+    Real LogLH.Z_cond_U(Polyn ar, Polyn ma, VMatrix u)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      VMatrix H1 = Pol2VMat(F^_.p*(1-ar), _.m, _.p);
+      VMatrix H2 = Pol2VMat(F^_.q*(ma-1), _.m, _.q);
+      VMatrix H = H1 | H2;
+      VMatrix Hu = H*u;
+      VMatrix Gu = DifEq(1/ma,Hu,_R0100,_Rq100,0.8,1.E-17);
+      VMatrix piz = DifEq(ar/ma,_.z);
+      _0.5_m_log2_PI_s2 - 0.5*_.m*VMatMoment(piz-Gu,2)/_.s2
+    }
+*/
+    ////////////////////////////////////////////////////////////////////////////
+    Real LogLH.Z_cond_U(Polyn ar, Polyn ma, VMatrix z0, VMatrix a0)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      VMatrix a = DifEq(ar/ma,_.z, z0, a0);
+      _0.5_m_log2_PI_s2 - 0.5*_.m*VMatMoment(a,2)/_.s2
+    }
+  ]])}
+
+  
+]];
+
+

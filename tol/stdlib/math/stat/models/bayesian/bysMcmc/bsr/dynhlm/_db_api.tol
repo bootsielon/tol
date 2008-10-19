@@ -1,0 +1,137 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _db_api.tol
+// PURPOSE : Implements NameBlock BysMcmc::Bsr::DynHlm::DBApi
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock DBApi =
+//////////////////////////////////////////////////////////////////////////////
+[[  
+  Text _.autodoc.description = 
+  "DataBase schema and methods to handle with Bsr::DynHlm models";
+
+//////////////////////////////////////////////////////////////////////////////
+//Configuration section
+//////////////////////////////////////////////////////////////////////////////
+  //Database engine by default is MySql, that is the only one allowed at this 
+  //release
+  Real _.engine = SqlEngine::GesMys;
+
+  //Enables or disables SQL tracing
+  Real doQueryTrace = False;
+  
+  //Set of TOL alias for database tables
+  Set _.tableName = 
+  [[
+    /*01*/ Text GibbsBlk       = "bsrhlm_d_gibbs_block";
+    /*02*/ Text Nodetype       = "bsrhlm_d_node_type";
+    /*03*/ Text LevelNodTyp    = "bsrhlm_d_level_node_type";
+    /*04*/ Text Model          = "bsrhlm_d_model";
+    /*05*/ Text Session        = "bsrhlm_d_session";
+    /*06*/ Text ModSes         = "bsrhlm_d_model_session";
+    /*07*/ Text Level          = "bsrhlm_d_level";
+    /*08*/ Text Node           = "bsrhlm_d_node";
+    /*09*/ Text Parameter      = "bsrhlm_v_mix_parameter";
+    /*10*/ Text NonLinFlt      = "bsrhlm_v_mix_non_lin_filter";
+    /*11*/ Text OrderRel       = "bsrhlm_v_mix_order_relation";
+    /*12*/ Text ConstrBorder   = "bsrhlm_v_mix_cnstrnt_border";
+    /*13*/ Text ConstrLinComb  = "bsrhlm_v_mix_cnstrnt_lin_cmb";
+    /*14*/ Text ObsOutput      = "bsrhlm_v_obs_output";
+    /*15*/ Text ObsArimaBlk    = "bsrhlm_v_obs_arima_block";
+    /*16*/ Text ObsInput       = "bsrhlm_v_obs_input";
+    /*17*/ Text ObsTransFun    = "bsrhlm_v_obs_transferFunction";
+    /*18*/ Text LatSigBlk      = "bsrhlm_v_lat_sigma_block";
+    /*19*/ Text LatEqu         = "bsrhlm_v_lat_equ";
+    /*20*/ Text LatOutput      = "bsrhlm_v_lat_output";
+    /*21*/ Text LatInput       = "bsrhlm_v_lat_input";
+    /*22*/ Text PriEqu         = "bsrhlm_v_pri_equ";
+    /*23*/ Text PriOutput      = "bsrhlm_v_pri_output";
+    /*24*/ Text EstimStatus    = "bsrhlm_v_est_status";
+    /*25*/ Text ParamStats     = "bsrhlm_v_est_param_stats"
+  ]];
+  //The same list of database alias as a NameBlock
+  NameBlock _.table = SetToNameBlock(_.tableName);
+
+  //Database generic tools
+  Set _tools = Include("_db_api.tools.tol");
+  Code SetEngineToMySQL;
+  Code SqlTableTrace;
+  Code SqlExecTrace;
+  Code SqlFormatReal;
+  Code SqlFormatDate;
+  Code CreateSkeleton;
+  Code ForeignKey.Disable;
+  Code ForeignKey.Enable;
+  Code Mod.Create;
+  Code Mod.Delete;
+  Code Mod.SetBlocked;
+  Code Ses.Create;
+  Code Ses.Delete;
+  Code Ses.SetBlocked;
+  Code GibbsBlk.Create;
+
+  //Database tools related to a model-session
+  Set _tools.modses = Include("_db_api.tools.modses.tol");
+  Code ModSes.Create;
+  Code ModSes.SetLevels;
+  Code ModSes.Node.Create;
+  Code ModSes.Delete;
+  Code ModSes.Node.Delete;
+  Code ModSes.Replicate;
+  Code ModSes.Move;
+  Code ModSes.Rename;
+  Code ModSes.Node.Rename;
+  Code ModSes.CheckBlocked;
+  Code ModSes.SetBlocked;
+
+  //Database tools related to observational nodes of a model-session
+  Set _tools.modses.obs = Include("_db_api.tools.modses.obs.tol");
+  Code ModSes.Obs.Output.Create;
+  Code ModSes.Obs.Input.Create;
+  Code ModSes.Obs.TransFun.Create;
+  Code ModSes.Obs.SetArima;
+  Code ModSes.Obs.Create;
+  Code ModSes.Obs.CreateAll;
+  Code ModSes.Obs.Output.Serie.Rename;
+  Code ModSes.Obs.Input.Serie.Rename;
+
+  //Database tools related to latent nodes of a model-session
+  Set _tools.modses.lat = Include("_db_api.tools.modses.lat.tol");
+  Code ModSes.Lat.SigBlk.Create;
+  Code ModSes.Lat.Equ.Create;
+  Code ModSes.Lat.Output.Create;
+  Code ModSes.Lat.Input.Create;
+  Code ModSes.Lat.Homog_1.Create;
+  Code ModSes.Lat.Father.Param.Def;
+  Code ModSes.Lat.Child.Param.Def;
+  Code ModSes.Lat.Create;
+  Code ModSes.Lat.OutComb.Create;
+
+  //Database tools related to prior nodes of a model-session
+  Set _tools.modses.pri = Include("_db_api.tools.modses.pri.tol");
+  Code ModSes.Pri.Equ.Create;
+  Code ModSes.Pri.Output.Create;
+  Code ModSes.Pri.Homog_1.Create;
+
+  //Database tools related to mixed nodes of a model-session
+  Set _tools.modses.mix = Include("_db_api.tools.modses.mix.tol");
+  Code ModSes.Mix.Param.Create;
+  Code ModSes.Mix.OrderRelation.Create;
+  Code ModSes.Mix.Param.Delete;
+  Code ModSes.Mix.Param.Rename;
+
+  //Loading models from database
+  Set _load  = Include("_db_api.load.tol");
+  Code CreateSeriesHandler;
+  Code LoadNodeConstraints;
+  Code LoadObsNode;
+  Code LoadLatNode;
+  Code LoadPriNode;
+  Code LoadModelDef;
+
+  //Estimation related methods
+  Set _estim = Include("_db_api.estim.tol");
+  Code SaveParamStats;
+  Code GetLinearBlkEffects;
+  Code Estim
+]];

@@ -1,0 +1,169 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: _nonLinMaster.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::BasicMaster
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.NonLinMaster =
+"Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
+"Regression model with non linear blocks by passing it to method "
+"BysMcmc::BuildCycler";
+NameBlock NonLinMaster(BSR.ModelDef modelDef, 
+                       Set nonLinFilter,
+                       NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+
+  //--------------------------------------------------------------------------
+  // Read only members
+  //--------------------------------------------------------------------------
+  //The basic BSR master
+  NameBlock _.bsrMst = BysMcmc::Bsr::Gibbs::BasicMaster(modelDef, config);
+  //Model identifier is inherited from basic BSR
+  Text _.name = modelDef->DocInfo->Model.Name;  
+  //Setting NameBlock description
+  Text _.autodoc.description="Gibbs sampler for model "+_.name;
+  //Identifier prefix for messages
+  Text _MID = "[BSR."+_.name+"] ";
+  //The basic BSR master used as a block
+  NameBlock _.bsrBlk = BysMcmc::Bsr::Gibbs::BsrAsBlock
+  (
+    _.bsrMst,
+    1,
+    1,
+    config
+  );
+  //The non linear blocks created from given filters
+  Set _.nonLinBlk = 
+  {
+    Real firstCol = Card(_.bsrMst::get.colNames(0))+1;
+    Set aux = For(1,Card(nonLinFilter), NameBlock(Real numBlk)
+    {
+      NameBlock nb = BysMcmc::Bsr::Gibbs::NonLinBlock
+      (
+        nonLinFilter[numBlk], 
+        _.bsrMst,
+        numBlk+1, 
+        firstCol,
+        config
+      );
+      Real firstCol := nb::_.blockDef::_.lastCol+1;
+      Eval(ToName(nb::_.name)+"=nb")
+    });
+    aux
+  };
+  //All blocks in expected order
+  Set _.blocks = [[ _.bsrBlk ]] << _.nonLinBlk;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real ok.1 = _.bsrMst::initialize(0);
+    Real ok.2 = SetMin(EvalSet(_.nonLinBlk, Real(NameBlock nlb)
+    {
+      nlb::initialize(0)
+    }));
+    And(ok.1, ok.2)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Applies draw method of each block";
+  VMatrix draw(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix bsrDraw = _.bsrBlk::draw(numSim);
+    VMatrix nonLinDraw = Group("ConcatRows",
+    EvalSet(_.nonLinBlk, VMatrix(NameBlock nlb)
+    {
+      
+      nlb::draw(numSim)
+    }));
+    bsrDraw << nonLinDraw
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "Method of contitioned maximum likelihood";
+  VMatrix maxLikelihood(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix bsrMLE = _.bsrBlk::maxLikelihood(numSim);
+    VMatrix nonLinMLE= Group("ConcatRows",
+    EvalSet(_.nonLinBlk, VMatrix(NameBlock nlb)
+    {
+      
+      nlb::maxLikelihood(numSim)
+    }));
+    bsrMLE << nonLinMLE
+  };
+
+  //--------------------------------------------------------------------------
+  // Public methods used by NameBlock BuildCycler 
+  //--------------------------------------------------------------------------
+ 
+  Text get.name(Real unused) 
+  { 
+    _.name
+  }; 
+  Text get.session(Real unused) 
+  { 
+    _.bsrMst::_.modelDef->DocInfo->Session.Name
+  }; 
+  Text get.path(Real unused) 
+  { 
+    _.bsrMst::_.modelDef->DocInfo->Path 
+  }; 
+  Set get.colNames(Real unused) 
+  { 
+    BinGroup("<<",EvalSet(_.blocks, Set(NameBlock block)
+    {
+      block::_.blockDef::_.colNames
+    }))
+  };
+
+  //--------------------------------------------------------------------------
+  // Public methods for end user access and tools
+  //--------------------------------------------------------------------------
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Set values of all blocks from a given row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set EvalSet(_.blocks, Real(NameBlock block)
+    {
+      If(Or(!(block::_.blockDef::enabled),
+              block::_.blockDef::_.numCol<=0),0,
+         block::setStore(block::_.blockDef::getMcmc(values)))
+    });
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Set values of all blocks from a given row of a Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    setStore(SubRow(mcmc, [[row]]))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.eval =
+  "Set values of all blocks from a given row vector of values";
+  Set eval(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real Do setStore(values);
+    _.bsrMst::eval(values)
+  }
+
+]]};      
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.NonLinMaster,NonLinMaster);
+/////////////////////////////////////////////////////////////////////////////
+

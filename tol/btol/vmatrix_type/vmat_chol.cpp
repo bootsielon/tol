@@ -1,0 +1,709 @@
+/* vmat_chol.cpp: BVMat Choleski related methods
+               GNU/TOL Language.
+
+   Copyright (C) 2003-2005, Bayes Decision, SL (Spain [EU])
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   USA.
+ */
+
+#if defined(_MSC_VER)
+#include <win_tolinc.h>
+#endif
+
+#include <tol/tol_bvmat_impl.h>
+
+
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::bRd_choFac_X(const BVMat& X, BVMat& L,
+                           bool& isOk, bool& isNotPosDef)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  int i, j, res;
+  int n = X.s_.blasRdense_->nrow;
+  double* y = (double*)X.s_.blasRdense_->x;
+  L.BlasRDense(n,n);
+  double* x = (double*)L.s_.blasRdense_->x;
+  memcpy(x, y, n*n*sizeof(double));
+  res = clapack_dpotrf(CblasColMajor, CblasLower, n, x, n);
+  for(i=0; i<n; i++) for(j=i+1; j<n; j++) x[j*n+i] = 0;
+  isOk = (res==0);
+  isNotPosDef = (res>0);
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::bRd_choFac_XtX(const BVMat& X, BVMat& L,
+                             bool& isOk, bool& isNotPosDef)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  bRd_choFac_X(X.MtMSqr(),L,isOk,isNotPosDef);
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::bRd_choFac_XXt(const BVMat& X, BVMat& L,
+                             bool& isOk, bool& isNotPosDef)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  bRd_choFac_X(X.MMtSqr(),L,isOk,isNotPosDef);
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::cRs_choFac_X(const BVMat& X, BVMat& L, 
+                           bool& isOk, bool& isNotPosDef)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  int res;
+  L.code_ = ESC_chlmRfactor;
+  L.s_.chlmRfactor_ = cholmod_analyze(X.s_.chlmRsparse_,common_);
+  res = cholmod_factorize(X.s_.chlmRsparse_,L.s_.chlmRfactor_,common_);
+  isNotPosDef = (L.s_.chlmRfactor_->minor<L.s_.chlmRfactor_->n);
+  cholmod_change_factor
+  (
+    CHOLMOD_REAL,
+    1, 
+    L.s_.chlmRfactor_->is_super, 
+    0, 
+    0, 
+    L.s_.chlmRfactor_, 
+    common_
+  );
+  int check = L.Check();
+//isOk = (res!=0) && !isNotPosDef;
+  isOk = check && !isNotPosDef;
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::cRs_choFac_XtX(const BVMat& X, BVMat& L,
+                             bool& isOk, bool& isNotPosDef)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  cRs_choFac_X(X.T(),L,isOk,isNotPosDef);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::cRs_choFac_XXt(const BVMat& X, BVMat& L,
+                             bool& isOk, bool& isNotPosDef)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  cRs_choFac_X(X,L,isOk,isNotPosDef);
+}
+ 
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiFactor(const BVMat& X_, BVMat& L_, 
+                            ECholFacOri ori,  bool checkSymmetric)
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!X_.CheckDefined("CholeskiFactor")) { return(-1); }
+
+  BVMat* X__, *L__;
+  convertIfNeeded_cRt2cRs(X_,L_,X__,L__,"CholeskiSolve");
+  BVMat &X = *X__,  &L = *L__;
+  int r = X.Rows();
+  int c = X.Columns();
+  if((ori==ECFO_X)&&(r!=c))
+  {
+    err_cannot_apply("CholeskiFactor",I2("non square","no cuadrada"),X);
+    return(-1);
+  }
+  else if((ori==ECFO_XtX)&&(r<c))
+  {
+    err_cannot_apply("CholeskiFactor",
+      I2("row deficient to build",
+         "no tiene bastantes filas para construir")+ " S = X' X",X);
+    return(-2);
+  }
+  else if((ori==ECFO_XXt)&&(r>c))
+  {
+    err_cannot_apply("CholeskiFactor",
+      I2("column deficient to build",
+         "no tiene bastantes columnas para construir")+" S = X X'",X);
+    return(-3);
+  }
+  if(ori!=ECFO_X) { checkSymmetric=false; }
+  bool isNotSymm = (checkSymmetric)?!X.IsSymmetric():false;
+  bool isOk = true;
+  bool isNotPosDef=false;
+  if(isNotSymm)
+  {
+    err_cannot_apply("CholeskiFactor",
+      I2("non symmetric","no simetrica"),X);
+    return(-4);
+  }
+  if(checkSymmetric && !isNotSymm) { ((BVMat&)X).CompactSymmetric(false); }
+  const StrCholFac* cholFac = FindCholFac(X.code_, ori);
+  if(cholFac)
+  {
+    (*cholFac->fun)(X, L, isOk, isNotPosDef);
+  }
+  else
+  {
+    err_invalid_subtype("CholeskiFactor",X); 
+    isOk = false;
+  }
+  if(!isOk)
+  {
+    if(isNotPosDef)
+    {
+      err_cannot_apply("CholeskiFactor",
+                       I2("non positive definite",
+                          "no definida positiva"),X);
+      L.Delete();
+      return(-5);
+    }
+    return(-6);
+  }    
+  return(0);
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiFactor(const BVMat& X, BVMat& L,
+                            const BText& oriName, bool checkSymmetric)
+////////////////////////////////////////////////////////////////////////////////
+{
+  ECholFacOri ori = FindCFacName(oriName);
+  if(ori==ECFO_none)
+  {
+    err_cannot_apply("CholeskiFactor",
+    I2("Invalid origen identifier",
+       "Identificador de origen inválido")+" "+oriName+" "+
+    I2("should be one of these",
+       "debería ser uno de estos")+"\n"+CFacNames()+"\n",
+    L);
+    return(-3);
+  }
+  return(CholeskiFactor(X,L,ori,checkSymmetric));
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  BVMat BVMat::CholeskiFactor(ECholFacOri ori, bool checkSymmetric)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  CholeskiFactor(*this, aux, ori, checkSymmetric);
+  return(aux);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  BVMat BVMat::CholeskiFactor(const BText& oriName, bool checkSymmetric)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  CholeskiFactor(*this, aux, oriName, checkSymmetric);
+  return(aux);
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::bRd_bRd_cholSolLLt(const BVMat& L, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x = b;
+  int M = x.Rows   ();
+  int N = x.Columns();
+
+  cblas_dtrsm(CblasColMajor,CblasLeft,CblasLower,CblasNoTrans,CblasNonUnit,
+              M,N,1.0, 
+              (const double*)(L.s_.blasRdense_->x),M,
+              (      double*)(x.s_.blasRdense_->x),M);
+  cblas_dtrsm(CblasColMajor,CblasLeft,CblasLower,CblasTrans,CblasNonUnit,
+              M,N,1.0, 
+              (const double*)(L.s_.blasRdense_->x),M,
+              (      double*)(x.s_.blasRdense_->x),M);
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::bRd_bRd_cholSolLt(const BVMat& L, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x = b;
+  int M = x.Rows   ();
+  int N = x.Columns();
+  cblas_dtrsm(CblasColMajor,CblasLeft,CblasLower,CblasTrans,CblasNonUnit,
+              M,N,1.0, 
+              (const double*)(L.s_.blasRdense_->x),M,
+              (      double*)(x.s_.blasRdense_->x),M);
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::bRd_bRd_cholSolL(const BVMat& L, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x = b;
+  int M = x.Rows   ();
+  int N = x.Columns();
+  cblas_dtrsm(CblasColMajor,CblasLeft,CblasLower,CblasNoTrans,CblasNonUnit,
+              M,N,1.0, 
+              (const double*)(L.s_.blasRdense_->x),M,
+              (      double*)(x.s_.blasRdense_->x),M);
+  return(0);    
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::bRd_bRd_cholSolId(const BVMat& L, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  //Dense BLAS has not permutation implemented, so identity is taken
+  x = b;
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_bRd_cholSolPtLLtP(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_blasRdense;
+  x.s_.blasRdense_ = cholmod_solve
+  (
+    CHOLMOD_A,
+    factor.s_.chlmRfactor_,
+    b.s_.blasRdense_,
+    common_
+  );
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_bRd_cholSolLLt(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_blasRdense;
+  x.s_.blasRdense_ = cholmod_solve
+  (
+    CHOLMOD_LDLt,
+    factor.s_.chlmRfactor_,
+    b.s_.blasRdense_,
+    common_
+  );
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_bRd_cholSolPtL(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  cRs_bRd_cholSolPt(factor, b,   aux);
+  cRs_bRd_cholSolL (factor, aux, x  );
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_bRd_cholSolLtP(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  cRs_bRd_cholSolLt(factor, b,   aux);
+  cRs_bRd_cholSolP (factor, aux, x  );
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_bRd_cholSolL(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_blasRdense;
+  x.s_.blasRdense_ = cholmod_solve
+  (
+    CHOLMOD_L,
+    factor.s_.chlmRfactor_,
+    b.s_.blasRdense_,
+    common_
+  );
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_bRd_cholSolLt(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_blasRdense;
+  x.s_.blasRdense_ = cholmod_solve
+  (
+    CHOLMOD_Lt,
+    factor.s_.chlmRfactor_,
+    b.s_.blasRdense_,
+    common_
+  );
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_bRd_cholSolP(const BVMat& L, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_blasRdense;
+  x.s_.blasRdense_ = cholmod_solve
+  (
+    CHOLMOD_P,
+    L.s_.chlmRfactor_,
+    b.s_.blasRdense_,
+    common_
+  );
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_bRd_cholSolPt(const BVMat& L, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_blasRdense;
+  x.s_.blasRdense_ = cholmod_solve
+  (
+    CHOLMOD_Pt,
+    L.s_.chlmRfactor_,
+    b.s_.blasRdense_,
+    common_
+  );
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_cRs_cholSolPtLLtP(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_chlmRsparse;
+  cholmod_sparse * b_ = b.s_.chlmRsparse_;
+  if(b_->stype!=0)
+  {
+    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+  }
+  x.s_.chlmRsparse_ = cholmod_spsolve
+  (
+    CHOLMOD_A,
+    factor.s_.chlmRfactor_,
+    b_,
+    common_
+  );
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_cRs_cholSolLLt(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_chlmRsparse;
+  cholmod_sparse * b_ = b.s_.chlmRsparse_;
+  if(b_->stype!=0)
+  {
+    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+  }
+  x.s_.chlmRsparse_= cholmod_spsolve
+  (
+    CHOLMOD_LDLt,
+    factor.s_.chlmRfactor_,
+    b_,
+    common_
+  );
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
+  return(0);      
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_cRs_cholSolPtL(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_chlmRsparse;
+  cholmod_sparse * b_ = b.s_.chlmRsparse_;
+  if(b_->stype!=0)
+  {
+    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+  }
+  cholmod_sparse* aux = cholmod_spsolve
+  (
+    CHOLMOD_Pt,
+    factor.s_.chlmRfactor_,
+    b_,
+    common_
+  );
+  x.s_.chlmRsparse_= cholmod_spsolve
+  (
+    CHOLMOD_L,
+    factor.s_.chlmRfactor_,
+    aux,
+    common_
+  );
+  cholmod_free_sparse(&aux, common_); 
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_cRs_cholSolLtP(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_chlmRsparse;
+  cholmod_sparse * b_ = b.s_.chlmRsparse_;
+  if(b_->stype!=0)
+  {
+    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+  }
+  cholmod_sparse* aux = cholmod_spsolve
+  (
+    CHOLMOD_Lt,
+    factor.s_.chlmRfactor_,
+    b_,
+    common_
+  );
+  x.s_.chlmRsparse_= cholmod_spsolve
+  (
+    CHOLMOD_P,
+    factor.s_.chlmRfactor_,
+    aux,
+    common_
+  );
+  cholmod_free_sparse(&aux, common_); 
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
+  return(0);    
+};
+  
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_cRs_cholSolLt(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_chlmRsparse;
+  cholmod_sparse * b_ = b.s_.chlmRsparse_;
+  if(b_->stype!=0)
+  {
+    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+  }
+  x.s_.chlmRsparse_ = cholmod_spsolve
+  (
+    CHOLMOD_Lt,
+    factor.s_.chlmRfactor_,
+    b_,
+    common_
+  );
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_cRs_cholSolL(const BVMat& factor, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_chlmRsparse;
+  cholmod_sparse * b_ = b.s_.chlmRsparse_;
+  if(b_->stype!=0)
+  {
+    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+  }
+  x.s_.chlmRsparse_ = cholmod_spsolve
+  (
+    CHOLMOD_L,
+    factor.s_.chlmRfactor_,
+    b_,
+    common_
+  );
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_cRs_cholSolP(const BVMat& L, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_chlmRsparse;
+  cholmod_sparse * b_ = b.s_.chlmRsparse_;
+  if(b_->stype!=0)
+  {
+    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+  }
+  x.s_.chlmRsparse_ = cholmod_spsolve
+  (
+    CHOLMOD_P,
+    L.s_.chlmRfactor_,
+    b_,
+    common_
+  );
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
+  return(0);    
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::cRs_cRs_cholSolPt(const BVMat& L, const BVMat& b, BVMat& x)
+////////////////////////////////////////////////////////////////////////////////
+{
+  x.code_ = ESC_chlmRsparse;
+  cholmod_sparse * b_ = b.s_.chlmRsparse_;
+  if(b_->stype!=0)
+  {
+    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+  }
+  x.s_.chlmRsparse_ = cholmod_spsolve
+  (
+    CHOLMOD_Pt,
+    L.s_.chlmRfactor_,
+    b_,
+    common_
+  );
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
+  return(0);    
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiSolve (const BVMat& L_, const BVMat& B_, 
+                            BVMat& X, ECholSolSys sys)
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!L_.CheckDefined("CholeskiSolve")) { return(-1); }
+  if(!B_.CheckDefined("CholeskiSolve")) { return(-1); }
+  BVMat* L__, *B__;
+  convertIfNeeded_cRt2cRs(L_,B_,L__,B__,"CholeskiSolve");
+  BVMat &L = *L__,  &B = *B__;
+  int result = 0;
+  const StrCholSol* cholSol = FindCholSol(L.code_, B.code_, sys);
+  if(cholSol)
+  {
+    int c = L.Columns();
+    if(c!=B.Rows())
+    {
+      err_invalid_dimensions("CholeskiSolve",L,B);
+      result = -1;
+    }
+    else
+    {
+      (*cholSol->fun)(L, B, X);
+    }
+  }
+  else
+  {
+    err_invalid_subtypes("CholeskiSolve",L,B);
+    result = -2;
+  }
+  if(L__!=&L_) { delete L__; }
+  if(B__!=&B_) { delete B__; }
+  return(result);
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiSolve (const BVMat& L, const BVMat& B, 
+                            BVMat& X, const BText& sysName)
+////////////////////////////////////////////////////////////////////////////////
+{
+  int result = 0;
+  ECholSolSys sys = FindCSysName(sysName);
+  if(sys==ECSS_none)
+  {
+    err_cannot_apply("CholeskiSolve",
+    I2("Invalid system identifier",
+       "Identificador de sistema inválido")+" "+sysName+" "+
+    I2("should be one of these",
+       "debería ser uno de estos")+"\n"+CSysNames()+"\n",
+    L);
+    result = -3;
+  }
+  else
+  {
+    result = CholeskiSolve(L,B,X,sys);
+  }
+  return(result);
+}
+  
+
+
+////////////////////////////////////////////////////////////////////////////////
+  BVMat BVMat::CholeskiSolve(const BVMat& B, ECholSolSys sys) const
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  CholeskiSolve(*this,B,aux,sys);
+  return(aux);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  BVMat BVMat::CholeskiSolve(const BVMat& B, const BText& sysName) const
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  CholeskiSolve(*this,B,aux,sysName);
+  return(aux);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiInv (const BVMat& X, BVMat& Xi)
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!X.CheckDefined("CholeskiInv")) { return(-1); }
+  BVMat I;
+  int r = X.Rows();
+  int c = X.Columns();
+  if(c!=r)
+  {
+    err_cannot_apply("CholeskiInv",I2("non square","no cuadrada"),X);
+    return(-1);
+  }
+  switch(X.code_) {
+  case(ESC_blasRdense  ) :
+    I.Eye(X.code_, r);
+    bRd_bRd_cholSolLLt(X, I, Xi);
+    break;
+  case(ESC_chlmRfactor ) :
+    I.Eye(X.code_, r);
+    cRs_cRs_cholSolLLt(X, I, Xi);
+    break;
+  default:
+    err_cannot_apply("CholeskiInv","",X); 
+    return(-2); }
+  return(0);
+}
+    
+////////////////////////////////////////////////////////////////////////////////
+  BVMat BVMat::CholeskiInv() const
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  CholeskiInv(*this, aux);
+  return(aux);
+};
+

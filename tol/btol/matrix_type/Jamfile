@@ -1,0 +1,6 @@
+ln-H [ glob tol_*.h tol_*.hpp ] ;
+
+objects objs 
+    : matgra.cpp gibbssampler.cpp multimin.cpp tol_innerpoint.cpp
+    : <include>$(TOP)/bmath/gsl_ext
+    ;

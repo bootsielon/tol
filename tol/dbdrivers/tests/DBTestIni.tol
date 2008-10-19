@@ -1,0 +1,21 @@
+// Database tests. See README.txt for more info.
+// Date: September 29th, 2004.
+// Author: Manuel Balderrábano <manuelb@tol-project.org>
+
+// DB variables:
+
+//If FALSE, no DB check will be done:
+Real testDB    = False;
+
+// Same user/password for all test databases:
+Text user      = "user";
+Text passwd    = "password";
+
+// Database name for native access:
+Text dbName    = "test";
+
+//Host name for mysql access:
+Text host      = "localhost";
+
+// Aliasnames for two ODBC handlers:
+Set aliasNames = [["test2","test3"]];

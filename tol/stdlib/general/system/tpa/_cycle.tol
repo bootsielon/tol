@@ -1,0 +1,131 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _cycle.tol
+// PURPOSE : Tol Parallel Api. Parallel Cycling methods
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set doForEachTask(Set command)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("TRACE parallelEval 1");
+//Firstly we calculate the number of stages needed to do all commands with
+//the available servers
+  Real totProc = Card(command);
+  Real totServ = Card(_.serverList);
+  Real numStages = Ceil(totProc/totServ);
+//WriteLn("TRACE Tpa::parallelEval totProc="<<totProc);
+//WriteLn("TRACE Tpa::parallelEval totServ="<<totServ);
+//WriteLn("TRACE Tpa::parallelEval numStages="<<numStages);
+  Set result = BinGroup("<<",For(1, numStages, Set(Real stage)
+  {
+  //For each stage there is a window of corresponding processes
+    Real firstProc = (stage-1)*totServ+1;
+    Real lastProc  = Min(totProc, firstProc+totServ-1);
+  //WriteLn("TRACE Tpa::parallelEval stage["<<stage+"]=("<<firstProc<<lastProc+")");
+  //All process of the stage are executed without waiting the server answer
+    Set cycle = For(firstProc, lastProc, Text(Real numProc)
+    {
+      Real numServ = numProc-firstProc+1;
+    //Write("TRACE doForEachTask "+command+" ... "); 
+      Text id = TolServerEval(_.serverList[numServ]->host, 
+                              _.serverList[numServ]->port,
+                              command[numProc]);
+    //WriteLn(id);
+    //WriteLn("TRACE Tpa::parallelEval ["<<numProc+"]:"+id);
+      id
+    });
+  //Now we wait until all servers will end before to start the next stage
+    Write("TRACE doForEachTask waiting ... "); 
+    Text wait = TolServerWait("");
+  //WriteLn(wait); 
+    cycle
+  }));
+  result
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Runs in parallel a set of commands, it's to say, a set of TOL text "
+"expressions, each one in the same way that expected by Eval function."
+"Before to use this method, you must configure Tpa::_.serverList, the list of "
+"available servers to be used, for example using method Tpa::launchServers. "
+"If there is not enough servers to run all commands at the same time, they "
+"will be executed in several stages.",
+"Corre en paralelo un conjunto de comandos, es decir, un conjunto de textos "
+"con expresiones de TOL, cada una en la misma forma que espera la funci?n "
+"Eval. Antes de usar este m?tod hay que configurar Tpa::_.serverList, la "
+"lista de servidores, por ejemplo usando el m?todo Tpa::launchServers. "
+"Si no hay bastantes servidores para correr todos los comandos a la vez se "
+"har?n en varias etapas."),
+doForEachTask);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set doForEachServer(Code funcCommand)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set result = For(1, Card(_.serverList), Text(Real srvNum)
+  {
+    Text command = funcCommand(srvNum);
+  //Write("TRACE doForEachServer "+command+" ... "); 
+    Text id = TolServerEval(_.serverList[srvNum]->host, 
+                            _.serverList[srvNum]->port,
+                            command);
+  //WriteLn(id);
+    id
+  });
+  //Now we wait until all servers will end before to start the next stage
+//Write("TRACE doForEachServer waiting ... "); 
+  Text wait = TolServerWait("");
+//WriteLn(wait); 
+  result
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Runs in parallel a functional command given by a function \n"
+"  Text funcCommand(Real serverNumber) \n"
+"which resultant Tol expression will be evaluated for each server in "
+"Tpa::_.serverList",
+"Corre en paralelo un comando funcional dado por la funci?n \n"
+"  Text funcCommand(Real serverNumber) \n"
+"cuya expresi?n Tol resultante se evaluar? para cada servidor de "
+"Tpa::_.serverList"),
+doForEachServer);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set doForAssignedTasks(Set assign, Code funcCommand)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set result = EvalSet(assign, Text(stTaskForServer tskSrv)
+  {
+    If(!Card(tskSrv->tasks), "",
+    {
+      Text command = funcCommand(tskSrv->srvNum, tskSrv->tasks);
+    //Write("TRACE doForAssignedTasks "+command+" ... "); 
+      Text id = TolServerEval(_.serverList[tskSrv->srvNum]->host, 
+                              _.serverList[tskSrv->srvNum]->port,
+                              command);
+    //WriteLn(id);
+      id
+    })
+  });
+  //Now we wait until all servers will end before to start the next stage
+//Write("TRACE doForAssignedTasks waiting ... "); 
+  Text wait = TolServerWait("");
+//WriteLn(wait); 
+  result 
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Runs in parallel a functional command given by a function \n"
+"  Text funcCommand(Real serverNumber, Set tasks) \n"
+"which resultant Tol expression will be evaluated for the serverNumber-th "
+"server in Tpa::_.serverList if set tasks is not empty.",
+"Corre en paralelo un comando funcional dado por la funci?n \n"
+"  Text funcCommand(Real serverNumber, Set tasks) \n"
+"cuya expresi?n Tol resultante se evaluar? para el servidor serverNumber-"
+"?simo de Tpa::_.serverList si el conjunto tasks no es vac?o"),
+doForAssignedTasks);
+//////////////////////////////////////////////////////////////////////////////
+

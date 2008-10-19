@@ -1,0 +1,3 @@
+#!/bin/sh
+#\
+exec bjam gcc vtune hash_map=google zarch=yes --prefix=/usr/local/tol-gcc-vtune ${1+"$@"}

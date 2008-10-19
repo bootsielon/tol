@@ -1,0 +1,35 @@
+/* -*- mode: c++ -*- */
+
+Matrix seqTime = MatReadFile("seqtime.bbm");
+Set nameSeq = [[ "Sequential" ]];
+Matrix parTime = MatReadFile("partime.bbm");
+Set namePar = [[ "Parallel" ]];
+Matrix norm = MatReadFile("norm.bbm");
+Set nameError = [[ "Error" ]];
+
+Matrix timeRatio = SubCol(seqTime, [[1]]) | 
+                    SubCol(seqTime, [[2]])$/SubCol(parTime, [[2]]);
+
+Set For(1, Rows(timeRatio), Real(Real r) {
+  Real If(IsPosInf(MatDat(timeRatio, r, 2)),
+          Do PutMatDat(timeRatio, r, 2, 2), 0)
+});
+
+Set nameRatio = [["Ratio"]];
+
+ 
+Text id = TclChartMatrix(seqTime, [[ TclArgSt("-type", "1"),
+                                     TclArgSt("-names"   , TxtListTcl(nameSeq)) ]]);
+
+Text TclChartMatrix(parTime, [[ TclArgSt("-holdon", id),
+                             TclArgSt("-type", "1"),
+                             TclArgSt("-names"   , TxtListTcl(namePar))]]); 
+
+Text TclChartMatrix(norm, [[ TclArgSt("-holdon", id),
+                             TclArgSt("-type", "1"),
+                             TclArgSt("-names"   , TxtListTcl(nameError))]]); 
+
+Text TclChartMatrix(timeRatio, [[ TclArgSt("-holdon", id),
+                             TclArgSt("-type", "1"),
+                             TclArgSt("-names"   , TxtListTcl(nameRatio))]]); 
+

@@ -1,0 +1,21 @@
+//Test to verify operator + between Real type variables
+//Date: 30-04-2004
+//Author: Daniel Rus <danirus@tol-project.org>
+
+// Test Description
+Text "Testing Real + Real ... ";
+
+// Test Operation
+Real {
+  Real a = 1.0123456789;
+  Real b = 0.9876543211;
+
+  // Test Condition
+  Real ok = If((Real (a+b))==(Real 2), 1, 0);
+ 
+  // Show Results
+  WriteLn("Testing Real + Real ... " + (Text If(ok,"OK","ERROR")));  
+  ok
+};
+
+

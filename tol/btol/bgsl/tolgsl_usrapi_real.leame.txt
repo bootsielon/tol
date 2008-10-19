@@ -1,0 +1,178 @@
+//////////////////////////////////////////////////////////////////////////////
+// ARCHIVO:   tolgsl_usrapi_real.leame.txt
+// AUTOR:     vdebuen@tol-project.org
+// PROPÓSITO: instrucciones de manejo del paquete tolgsl_usrapi_real
+//////////////////////////////////////////////////////////////////////////////
+
+==============================================================================
+A. RESUMEN
+==============================================================================
+
+Paquete de funciones built-in TOL para que los usuarios puedan acceder a las
+funciones de la librería de código abierto GNU Scientific Library, tales que
+sus argumentos y valor de retorno son todos de tipo numérico.
+
+
+==============================================================================
+B. NOTAS PARA LOS DESARROLLADORES
+==============================================================================
+
+El paquete tolgsl_usrapi_real se compone de los siguientes archivos:
+1) tolgsl_usrapi_real.xml:      
+     Base de datos de las funciones GSL exportadas en la API de usuario TOL
+2) tolgsl_usrapi_real_def.tol:
+     Definición de estructuras y datos necesarios para la construcción de
+     la API
+3) tolgsl_usrapi_real_build.tol:
+     Construye el código C++ de generación de las funciones built-in de
+     usuario TOL
+4) tolgsl_usrapi_real.cpp :
+     Código C++ generado por el fichero tolgsl_usrapi_real_build.tol
+5) tolgsl_usrapi_real.leame.txt : este archivo
+
+ATENCIÓN: Para poder mantener adecuadamente este código con nuevas versiones
+de GSL o nuevos capítulos que se puedan añadir, no se debe editar el fichero
+tolgsl_usrapi_real.cpp sino los archivos de generación .tol o el de la base
+de datos .xml, según el tipo de cambio que se precise.
+
+==============================================================================
+C. DESCRIPCIÓN
+==============================================================================
+
+Todas las funciones incluidas disponen de las siguientes características:
+
+1) referencias a las páginas HTML del manual de GSL en las que se describen
+   las correspondientes funciones C originales.
+2) otro enlace a una página WEB de prestigio en la que se describen los
+   conceptos matemáticos subyacentes a la función en cuestión:
+    en.wikipedia.org, mathworld.wolfram.com, ...
+3) una comprobación previa de la presencia de omitidos en los argumentos y
+   en tal caso se devuelve siempre omitido.
+4) una comprobación de la versión de GSL necesaria para evitar errores de
+   compilación en C++
+
+
+==============================================================================
+D. CONTENIDO
+==============================================================================
+
+Hay 387 funciones en esta API de usuario TOL acerca de los siguientes
+capítulos de GSL
+
+------------------------------------------------------------------------------
+C1SpecialFun: Special Functions
+www.gnu.org/software/gsl/manual/html_node/Special-Functions.html
+------------------------------------------------------------------------------
+  -Probability functions : 3 functions;
+  -6-j Symbols : 1 functions;
+  -9-j Symbols : 1 functions;
+  -Airy Functions : 4 functions;
+  -Arctangent Integral : 1 functions;
+  -Associated Legendre Polynomials and Spherical Harmonics : 2 functions;
+  -Beta Functions : 2 functions;
+  -Carlson Forms : 4 functions;
+  -Circular Trigonometric Functions : 0 functions;
+  -Clausen Functions : 1 functions;
+  -Complementary Error Function : 1 functions;
+  -Complete Fermi-Dirac Integrals : 8 functions;
+  -Conical Functions : 6 functions;
+  -Conversion Functions : 0 functions;
+  -Coulomb Wave Function Normalization Constant : 0 functions;
+  -Coulomb Wave Functions : 0 functions;
+  -Dawson Function : 1 functions;
+  -Debye Functions : 4 functions;
+  -Derivatives of Airy Functions : 4 functions;
+  -Digamma Function : 3 functions;
+  -Ei(x) : 1 functions;
+  -Ei_3(x) : 1 functions;
+  -Error Function : 1 functions;
+  -Eta Function : 2 functions;
+  -Exponential Function : 0 functions;
+  -Exponential Integral : 2 functions;
+  -Factorials : 7 functions;
+  -Gamma Functions : 4 functions;
+  -Gegenbauer Functions : 4 functions;
+  -Hurwitz Zeta Function : 1 functions;
+  -Hyperbolic Integrals : 2 functions;
+  -Hyperbolic Trigonometric Functions : 1 functions;
+  -Hypergeometric Functions : 8 functions;
+  -Incomplete Beta Function : 1 functions;
+  -Incomplete Fermi-Dirac Integrals : 1 functions;
+  -Incomplete Gamma Functions : 3 functions;
+  -Irregular Bessel Functions - Fractional Order : 1 functions;
+  -Irregular Cylindrical Bessel Functions : 3 functions;
+  -Irregular Modified Bessel Functions - Fractional Order : 3 functions;
+  -Irregular Modified Cylindrical Bessel Functions : 6 functions;
+  -Irregular Modified Spherical Bessel Functions : 4 functions;
+  -Irregular Spherical Bessel Functions : 4 functions;
+  -Laguerre Functions : 4 functions;
+  -Lambert W Functions : 2 functions;
+  -Legendre Form of Complete Elliptic Integrals : 2 functions;
+  -Legendre Form of Incomplete Elliptic Integrals : 4 functions;
+  -Legendre Polynomials : 7 functions;
+  -Log Complementary Error Function : 1 functions;
+  -Logarithm and Related Functions : 4 functions;
+  -Normalized Hydrogenic Bound States : 2 functions;
+  -Pochhammer Symbol : 3 functions;
+  -Polygamma Function : 1 functions;
+  -Power Function : 1 functions;
+  -3-j Symbols : 1 functions;
+  -Radial Functions for Hyperbolic Space : 3 functions;
+  -Real Argument : 1 functions;
+  -Regular Bessel Function - Fractional Order : 1 functions;
+  -Regular Cylindrical Bessel Functions : 3 functions;
+  -Regular Modified Bessel Functions - Fractional Order : 2 functions;
+  -Regular Modified Cylindrical Bessel Functions : 6 functions;
+  -Regular Modified Spherical Bessel Functions : 4 functions;
+  -Regular Spherical Bessel Functions : 4 functions;
+  -Relative Exponential Functions : 4 functions;
+  -Restriction Functions : 0 functions;
+  -Riemann Zeta Function : 2 functions;
+  -Riemann Zeta Function Minus One : 2 functions;
+  -Synchrotron Functions : 2 functions;
+  -Transport Functions : 4 functions;
+  -Trigamma Function : 1 functions;
+  -Trigonometric Integrals : 2 functions;
+  -Zeros of Airy Functions : 2 functions;
+  -Zeros of Derivatives of Airy Functions : 2 functions;
+  -Zeros of Regular Bessel Functions : 3 functions;
+
+------------------------------------------------------------------------------
+C2ProbDistFun: Random Number Distributions
+www.gnu.org/software/gsl/manual/html_node/Random-Number-Distributions.html
+------------------------------------------------------------------------------
+  -The Hypergeometric Distribution : 4 functions;
+  -The Bernoulli Distribution : 2 functions;
+  -The Binomial Distribution : 4 functions;
+  -The Bivariate Gaussian Distribution : 1 functions;
+  -The Cauchy Distribution : 6 functions;
+  -The Chi-squared Distribution : 6 functions;
+  -General Discrete Distributions : 0 functions;
+  -The Exponential Distribution : 6 functions;
+  -The Exponential Power Distribution : 4 functions;
+  -The F-distribution : 6 functions;
+  -The Flat (Uniform) Distribution : 6 functions;
+  -The Gamma Distribution : 7 functions;
+  -The Gaussian Distribution : 15 functions;
+  -The Gaussian Tail Distribution : 4 functions;
+  -The Geometric Distribution : 4 functions;
+  -The Type-1 Gumbel Distribution : 6 functions;
+  -The Type-2 Gumbel Distribution : 6 functions;
+  -The Beta Distribution : 6 functions;
+  -The Landau Distribution : 2 functions;
+  -The Laplace Distribution : 6 functions;
+  -The Levy alpha-Stable Distributions : 1 functions;
+  -The Levy skew alpha-Stable Distribution : 1 functions;
+  -The Logarithmic Distribution : 2 functions;
+  -The Logistic Distribution : 6 functions;
+  -The Lognormal Distribution : 6 functions;
+  -The Negative Binomial Distribution : 4 functions;
+  -The Pareto Distribution : 6 functions;
+  -The Pascal Distribution : 4 functions;
+  -The Poisson Distribution : 4 functions;
+  -The Rayleigh Distribution : 6 functions;
+  -The Rayleigh Tail Distribution : 2 functions;
+  -The t-distribution : 6 functions;
+  -The Weibull Distribution : 6 functions;
+  -Shuffling and Sampling : 0 functions;
+

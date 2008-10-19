@@ -1,0 +1,111 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _bmtsarima_test.tol
+// PURPOSE: Example of use and test to check _bmtsarima.tol
+//          Bayesian Estimation of Multiple Time Series ARIMA models with 
+//          hierarquical inputs, normal a priori information and restriction 
+//          in parameters sampling.
+//////////////////////////////////////////////////////////////////////////////
+
+Serie residuals = SubSer(Gaussian(0,0.2, Mensual), y1998m12d01, y2006m10d01);
+Serie noise     = 
+ DifEq(1/(1-B^12), ApplyARMA(residuals, (1-0.5*B), 1-0.95*B^12));
+
+Serie inp1      = 1.6:Pulse(y2003m01d01, Mensual); 
+Serie inp2      = 1.4:Step(y2004m02d01, Mensual); 
+
+Serie filter       = inp1+inp2;
+Serie transformed  = noise+filter;
+Serie output       =
+ SubSer(BoxCoxInverseTransform(transformed, 0), y2000m12d01, y2006m10d01);
+
+
+Set input1 = SetOfSet
+(
+  PutStructure("BTSARIMAInputDef",
+  [[
+    "PulseProof",            
+    SubSer(Pulse(y2003m01d01, Mensual), y1999m01d01, y2006m12d01),
+    PutStructure("BTSARIMAPolynDef",
+    [[0.1, Copy(Empty), Copy(Empty)]]),
+    Empty
+  ]]), 
+  PutStructure("BTSARIMAInputDef",
+  [[
+    "StepProof",            
+    SubSer(Step(y2004m02d01, Mensual), y1999m01d01, y2006m12d01),
+    PutStructure("BTSARIMAPolynDef",
+    [[0.1, Copy(Empty), Copy(Empty)]]),
+    Empty
+  ]])
+);
+
+Set model1 = PutStructure( "BTSARIMAModelDef", [[
+  "Prueba",
+  output, 
+  BoxCoxStruct(0,0), // Conjunto con estructura BoxCoxStruct
+  SetOfPolyn(1-B^12), 
+  SetOfPolyn(1-0.5*B), 
+  SetOfPolyn(1-0.95*B^12), 
+  input1, 
+  y2001m12d01,
+  y2006m05d01
+]]);
+
+Set model2 = PutStructure( "BTSARIMAModelDef", [[
+  "Prueba2",
+  output, 
+  BoxCoxStruct(0,0), // Conjunto con estructura BoxCoxStruct
+  SetOfPolyn(1-B^12), 
+  SetOfPolyn(1-0.5*B), 
+  SetOfPolyn(1-0.95*B^12), 
+  input1, 
+  y2001m12d01,
+  y2006m05d01
+]]);
+Set modelSet = SetOfSet(model1, model2);
+Set hierSet = BLRHierDef
+(
+  SetOfSet(BLRParamDef("HpPulse",0.1, BLRPriorInfo("NORMAL",BLRPriorInfo.Normal
+  (
+    1.1,
+    0.5
+  )), Copy(Empty))),
+  SetOfSet(BLRHierSigmaBlock("HpPulse", 0.1)),
+  SetOfSet(BLRHierTree("HpPulse", "Prueba2_PulseProof_0", 1),
+           BLRHierTree("HpPulse", "Prueba_PulseProof_0", 1))
+);
+Set linConSet = SetOfSet
+(
+  BLRLinConDef
+  (
+     SetOfText("Prueba_PulseProof_0",
+    "Prueba2_PulseProof_0" ),
+     SetOfText("Nuevo",
+    "Prueba_StepProof_0" ),
+    SetMat(SetOfSet(SetOfReal(1, 1),SetOfReal(-1,0))),
+    SetOfSet(BLRParamDef("Nuevo",0.1, BLRPriorInfo("NORMAL",BLRPriorInfo.Normal
+  (
+    1.1,
+    0.5
+  )), Copy(Empty))),
+    Empty
+  )
+); 
+
+Set modelBLR       = BTSGetBLRModelSet(modelSet);
+Set modelBLRLinCon = BLR_AddLinCon(modelBLR, linConSet);
+
+Real calls   = 200;
+Real burning = 0.1*calls;
+Text fileSample = "";
+
+Real Show(0, "ALL");
+Set EstimateBTSARIMARec
+(
+  modelSet, 
+  hierSet, 
+  500, 
+  1, 
+  fileSample, 
+  4
+);

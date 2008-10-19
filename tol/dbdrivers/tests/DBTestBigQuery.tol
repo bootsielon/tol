@@ -1,0 +1,154 @@
+// Database tests. See README.txt for more info.
+// Date: September 29th, 2004.
+// Author: Manuel Balderrábano <manuelb@tol-project.org>
+
+// Test Description
+Text "Testing 4000-row puts and gets...";
+
+//Test Operation
+
+Real {
+
+  //Struct definition:
+  Struct DBStructMySQL {
+    Text driver,
+    Text database,
+    Text host
+  };
+
+  Struct DBStructODBC {
+    Text driver
+  };
+
+  //Init database including edge values:
+  Real InitDB(Real a)
+  { //Create all neccesary tables:
+    Real res01 = If (DBExecQuery("drop table pruebas1") == 0, 1, 0);
+    Real res02 = If (DBExecQuery("CREATE TABLE pruebas1 (
+                      `campo1` VARCHAR(1),
+                      `campo2` VARCHAR(5),
+                      `campo3` VARCHAR(10),
+                      `campo4` VARCHAR(40),
+                      `campo5` VARCHAR(100))
+                     ") == 0,1,0);
+    Real (res01 & res02)
+  };
+
+  //Insert "num" rows, odd NULL, even filled-up:
+  Real FillDB(Real num)
+  {
+    Set res =
+      For (1, num, Real (Real i)
+      {
+        Real res01 = DBExecQuery("insert into pruebas1 values (NULL,NULL,NULL,NULL,NULL)");
+        Real res02 = DBExecQuery("insert into pruebas1 values ('A',
+                                                   'ABCDE',
+                                                   'ABCDEFGHIJ',
+                                                   'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMN',
+'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV')
+                                 ");
+
+        Real (res01 & res02)
+      });
+    Real SetMin(res)
+  };
+
+  Real TestRow(Set row, Real num)
+  {
+    Real If(IsInteger(num/2),
+    {
+      Real (TextMatch(row[1],"A")&
+            TextMatch(row[2],"ABCDE")&
+            TextMatch(row[3],"ABCDEFGHIJ")&
+            TextMatch(row[4],"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMN")&
+            TextMatch(row[5],"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV"))
+    }
+    ,
+    {
+      Real ((TextLength(row[1])==0)&
+            (TextLength(row[2])==0)&
+            (TextLength(row[3])==0)&
+            (TextLength(row[4])==0)&
+            (TextLength(row[5])==0))
+    })
+  };
+
+  Real TestDB(Real num)
+  {
+    Set table = DBTable("select * from pruebas1");
+    //Test every value:
+    Set res =
+      For (1, num, Real (Real i)
+      {
+        Real TestRow(table[i],i)
+      });
+    Real SetMin(res)
+  };
+  Real res = If (testDB,
+  {
+    // * ODBC.
+    Set ODBC   = DBStructODBC("odbc");
+    Real res01 = DBOpen(aliasNames[1],user,passwd, ODBC);
+    // * Mysql.
+    Set MySQL  = DBStructMySQL("mysql",dbName,host);
+    Real res02 = DBOpen("testalias2",user,passwd, MySQL);
+
+    //Init and test all databases:
+    Real res03 = InitDB(0);
+    Real res04 = FillDB(2000);
+    Real res05 = TestDB(4000);
+
+    Real res06 = DBActivate(aliasNames[1]);
+    Real res07 = InitDB(0);
+    Real res08 = FillDB(2000);
+    Real res09 = TestDB(4000);
+
+    Real res20 = DBClose("testalias2");
+    Real res21 = DBClose(aliasNames[1]);
+    // Test condition
+    Real If((res01 & res02),
+    {
+      Real If((res03 & res04 & res05 & res06 & res07 & res08 & res09 & res20 & res21),
+        {
+          //WriteLn("Ok");
+          1
+      },
+      {
+        //WriteLn("Error.");
+        0
+      })
+    },
+    {
+      //WriteLn("Error-Check DB parameters in DBTestIni.tol");
+      -1
+    })
+
+  },-2);
+
+  Real Case ( (res == 1), { WriteLn("Ok");1},
+              (res == 0), { WriteLn("Error");0},
+              (res == -1),{ WriteLn("Error-Check DB parameters in DBTestIni.tol");0},
+              (res == -2),{ WriteLn("Disabled");1})
+
+};
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  

@@ -1,0 +1,581 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _fun_combination_test.tol
+// PURPOSE: Testing procedures for combination functions in 
+//         _fun_combination.tol
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// INCLUDES
+//////////////////////////////////////////////////////////////////////////////
+Set Include("_fun_combination.tol");
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+Matrix MatLog(Matrix z){Log(z)};
+
+Matrix MatExp(Matrix z){Exp(z)};
+
+Matrix MatId(Matrix z){z};
+
+//////////////////////////////////////////////////////////////////////////////
+Real DefTrace(Text grammar, Text var, Text value)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real exist = ObjectExist(grammar, var);
+  If(exist,
+  {
+//    Text WriteLn("[DefCtr]:["+var+"]: Existe y su valor es "<<Eval(var)+
+//                 ". Su nuevo valor es "<<Eval(grammar+" "+value+";"));
+    Eval(grammar+" ("+var+":= "+value+");");
+    exist
+  },
+  {
+//    Text WriteLn("[DefCtr]:["+var+"]: No existe.");
+    exist
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Traza las variables parametricas de definicion.",
+DefTrace);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real NumTolerance = 4;
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Tolerancia del algoritmo de estimacion.",
+Tolerance);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// PROCEDURES
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// Marquardt's Control Parameters
+//////////////////////////////////////////////////////////////////////////////
+Set MarqVarSet = SetOfSet
+(
+  SetOfText("Real", "Tolerance", "5*(10^(-NumTolerance))"),
+  SetOfText("Real", "RelativeTolerance","10^(-NumTolerance+1)"),
+  SetOfText("Real", "DiffDist", "0.0001"),
+  SetOfText("Real", "MarqFactor", "2"),
+  SetOfText("Real", "MinOutlierLikelyhood", "4"),
+  SetOfText("Real", "MarqLinMet", "Copy(Choleski)"),
+  SetOfText("Real", "MaxIter", "30"),
+  SetOfText("Real", "DoDiagnostics","1"),// Tiene que estar a 1 en Tolbase
+  SetOfText("Real", "DoStatistics", "0"),
+  SetOfText("Real", "NullInitResiduals", "1")
+);
+Set MarqVarEval = EvalSet(MarqVarSet, Real(Set reg)
+{
+  Text grammar = reg[1]; 
+  Text var     = reg[2];
+  Text value   = reg[3];
+  DefTrace(grammar, var, value) 
+});
+
+
+//////////////////////////////////////////////////////////////////////////////
+// MLH_Cov Test
+//////////////////////////////////////////////////////////////////////////////
+/*
+Serie res1 = SubSer(Gaussian(0, 1, Diario), y2003m01d01, y2007m12d31);
+Serie res2 = SubSer(Gaussian(0, 0.5, Diario), y2003m01d01, y2007m12d31);
+Serie res3 = SubSer(Gaussian(0, 0.3, Diario), y2003m01d01, y2007m12d31);
+
+
+Set resSet1  = SetOfSerie(res1, res2, res3);
+Matrix covMat1 = MLH_Cov(resSet1, Eval("Diario"));
+Matrix covMat11 = Cov(SerSetMat(resSet1, y2003m01d01, y2007m12d31));
+
+TimeSet CtSab = WD(6);
+Serie res4 = SubSer(Gaussian(0, 1, CtSab), y2005m01d01, y2007m12d31);
+Serie res5 = SubSer(Gaussian(0, 0.5, Diario), y2003m01d01, y2006m12d31);
+Serie res6 = SubSer(Gaussian(0, 0.3, Diario), y2007m01d01, y2007m12d31);
+
+
+Set resSet2  = SetOfSerie(res4, res5, res6);
+Matrix covMat2 = MLH_Cov(resSet2, Eval("Diario"));
+*/
+
+//////////////////////////////////////////////////////////////////////////////
+// Regular Test
+//////////////////////////////////////////////////////////////////////////////
+/*
+Real n = 20;
+
+Matrix cov  = SetDiag(Range(1,n-1,1)<<SetOfReal(0.01));
+Matrix nuZ1 = SetCol(NCopy(n-1, 2));
+Matrix nuZ2 = SetCol(NCopy(1, 5));
+
+Matrix a = Rand(1,1,0,0);
+Matrix A = SetRow(NCopy(n-1, 1));
+
+Matrix b = Rand(1,1,0,0);
+Matrix B = SetRow(NCopy(n-1, 1)<<SetOfReal(-1));
+
+Real ini_nonlintest00 = Msg("nonlintest00", "Ini");
+Matrix nonlintest00 = MLH_Trans_LinRel
+(
+  MatLog,
+  MatExp,
+  MatLog,
+  MatExp,
+  nuZ1,
+  nuZ2,
+  cov,
+  A,
+  a,
+  0
+);
+Real end_nonlintest00 = (Msg("nonlintest00", "End")-ini_nonlintest00)/1000;
+
+Matrix lintest01 = MLH_Trans_LinRel
+(
+  MatId,
+  MatId,
+  MatId,
+  MatId,
+  nuZ1,
+  nuZ2,
+  cov,
+  A,
+  a,
+  0
+);
+
+Matrix lintest02 = MLH_IdTrans_LinRel
+(
+  nuZ1<<nuZ2,
+  cov,
+  B,
+  b
+);
+
+Matrix lintest = lintest01|lintest02;
+*/
+////////////////////////////////////////////////////////////////////////////// 
+// Time test for non linear combination
+//////////////////////////////////////////////////////////////////////////////
+/*
+Set nonlintest01 = For(3, 90, Set(Real n)
+{
+  Matrix cov  = SetDiag(Range(1,n-1,1)<<SetOfReal(0.01));
+  Matrix nuZ1 = SetCol(NCopy(n-1, 2));
+  Matrix nuZ2 = SetCol(NCopy(1, 5));
+  
+  Matrix a = Rand(1,1,0,0);
+  Matrix A = SetRow(NCopy(n-1, 1));
+  
+  Real ini_nonlintest00 = Msg("nonlintest00", "Ini");
+  Matrix nonlintest00 = MLH_Trans_LinRel
+  (
+    MatLog,
+    MatExp,
+    MatLog,
+    MatExp,
+    nuZ1,
+    nuZ2,
+    cov,
+    A,
+    a,
+    0
+  );
+  Real end_nonlintest00 = (Msg("nonlintest00", "End")-ini_nonlintest00)/1000;
+  SetOfReal(n, end_nonlintest00)  
+});
+*/
+////////////////////////////////////////////////////////////////////////////// 
+// Test for ARIMA model combination
+//////////////////////////////////////////////////////////////////////////////
+/*
+Real KModels = 10;
+Real HFor    = 15;
+
+Matrix a = Rand(1,1,0,0);
+Matrix A = SetRow(NCopy(KModels-1, 1));
+
+
+TimeSet Tms  = C-WD(7);
+Date IniDate = y2000m01d01;
+Real NumData = 312*3;
+Date EndDate = Succ(IniDate, Tms, NumData);
+
+
+//P1_6_312DIF0_1_0AR1_0_312MA0_6_0
+
+Set RandSeed = For(1, KModels-1, Real(Real h)
+{
+  Rand(0,0.15)
+});
+
+Set SetMA  = For(1, KModels-1, Polyn(Real h)
+{
+  RandStationary(1, 6)
+});
+
+Set SetARI = For(1, KModels-1, Polyn(Real h)
+{
+  (1-B^6)*RandStationary(1, 1)*RandStationary(1, 312)
+});
+
+Set SetRes = For(1, KModels-1, Serie(Real h)
+{
+  SubSer(Gaussian(0, RandSeed[h] , Tms), IniDate, EndDate)
+});
+
+Set SetNoise =  For(1, KModels-1, Serie(Real h)
+{
+  Serie residuals = SetRes[h];
+  Polyn ma        = SetMA[h];
+  Polyn ari       = SetARI[h];
+  Real level      = Rand(0,1);
+
+  Date ini0       = Succ(IniDate, Tms, -Degree(ari));
+  Date end0       = Succ(IniDate, Tms, -1);  
+  Serie iniRes    = SubSer(Gaussian(0, 0.5 , Tms)+level, ini0, end0);
+  Serie noise     = ma:DifEq(1/ari, residuals, iniRes);
+  noise
+});
+
+Set SetFor = For(1, KModels-1, Serie(Real h)
+{
+  Serie residuals = SetRes[h];
+  Polyn ma        = SetMA[h];
+  Polyn ari       = SetARI[h];
+  Real level      = Rand(1,3);
+  Serie noise     = SetNoise[h];
+
+  Date iniFor     = Succ(EndDate, Tms, 1); 
+  Date endFor     = Succ(EndDate, Tms, HFor);
+ 
+  Serie zero      = SubSer(CalInd(W, Tms), iniFor, endFor); 
+  Serie inoise    = SubSer(noise, 
+   Succ(EndDate, Tms, -Degree(ari)-1), EndDate);
+  Serie prevNoise = ma:DifEq(1/ari, zero, inoise);
+  SubSer(Exp(prevNoise), iniFor, endFor)
+});
+
+Serie AddSerie = SetSum(EvalSet(SetNoise,Serie(Serie noise){Exp(noise)}));
+Set defModelAdd = ModelDef
+(
+  AddSerie,
+  0,0,
+  0,0,
+  1-(B^6),
+  SetOfPolyn(1-0.1*B,1, 1-0.1*B^312),
+  SetOfPolyn(1,1-0.1*B^6, 1),
+  Empty,
+  AllLinear
+);
+Set estModelAdd = Estimate(defModelAdd, IniDate, EndDate);
+Set forModelAdd = CalcForecasting(estModelAdd, EndDate, EndDate, 15, 0.05);  
+Serie AddRes = estModelAdd["Series"]["Residuals"];
+Serie AddFor = forModelAdd["Prevision"];
+Polyn AddMA  = SetProd(estModelAdd["Definition"]["MA"]);
+Polyn AddARI = (estModelAdd["Definition"]["Dif"])*
+        SetProd(estModelAdd["Definition"]["AR"]);
+
+Set MAFull  = SetMA<<SetOfPolyn(AddMA);
+Set ARIFull = SetARI<<SetOfPolyn(AddARI);
+Set ResFull = SetRes<<SetOfSerie(AddRes);
+Set ForFull = SetFor<<SetOfSerie(AddFor);
+
+Set SetTra    = MLHTransf(MatLog, MatLog);
+Set SetInvTra = MLHTransf(MatExp, MatExp);
+  
+
+Set InfoNLC = MLHInfo
+(
+  ResFull,
+  ForFull,
+  MAFull,
+  ARIFull,
+  SetTra,
+  SetInvTra
+);
+
+Set LinTrans = MLHConstrain(A, a);
+Set SetLinTrans = NCopy(HFor, LinTrans);
+Set ComResult = MLH_ForComb_LinRel
+(
+  InfoNLC, 
+  SetLinTrans,
+  "",
+  0
+);
+
+Set ComResultFixed = MLH_ForComb_AgRelWithFixed
+(
+  InfoNLC, 
+  LinTrans,
+  SetOfReal(1,10),
+  0 
+);
+
+Serie sumForCom = SetSum(ExtractByIndex(ComResult, Range(1, KModels-1,1)));
+Serie sumCom    = ComResult[KModels];
+Serie difer     = sumForCom-sumCom;
+*/
+
+////////////////////////////////////////////////////////////////////////////// 
+// Test for ARIMA model combination with non-linear relation
+// 
+// Note: This is a special case in wich we have the follow relation
+//       z1+...+zm+p1*w1+p2*w2+...+pk*wk = zn
+//       Where pi are probit models in Tms TimeSet, wk are regression 
+//       models in several TimeSet harmonic with Tms and zj are log-ARIMA models
+//       in Daily Tms 
+//////////////////////////////////////////////////////////////////////////////
+/*
+Real KModels = 10;
+Real MModels = 20;
+Real HFor    = 15;
+
+Matrix a = Rand(1,1,0,0);
+Matrix A = SetRow(NCopy(MModels, 1));
+
+
+TimeSet Tms  = C-WD(7);
+Date IniDate = y2000m01d01;
+Real NumData = 312*3;
+Date EndDate = Succ(IniDate, Tms, NumData);
+
+Date iniFor     = Succ(EndDate, Tms, 1); 
+Date endFor     = Succ(EndDate, Tms, HFor);
+
+
+// Constructions of m zj ARIMA models
+
+Set RandSeed = For(1, MModels, Real(Real h)
+{
+  Rand(0,0.15)
+});
+
+Set SetMA  = For(1, MModels, Polyn(Real h)
+{
+  RandStationary(1, 6)
+});
+
+Set SetARI = For(1, MModels, Polyn(Real h)
+{
+  (1-B^6)*RandStationary(1, 1)*RandStationary(1, 312)
+});
+
+Set SetRes = For(1, MModels, Serie(Real h)
+{
+  SubSer(Gaussian(0, RandSeed[h] , Tms), IniDate, EndDate)
+});
+
+Set SetNoise =  For(1, MModels, Serie(Real h)
+{
+  Serie residuals = SetRes[h];
+  Polyn ma        = SetMA[h];
+  Polyn ari       = SetARI[h];
+  Real level      = Rand(0,1);
+
+  Date ini0       = Succ(IniDate, Tms, -Degree(ari));
+  Date end0       = Succ(IniDate, Tms, -1);  
+  Serie iniRes    = SubSer(Gaussian(0, 0.5 , Tms)+level, ini0, end0);
+  Serie noise     = ma:DifEq(1/ari, residuals, iniRes);
+  noise
+});
+
+Set SetFor = For(1, MModels, Serie(Real h)
+{
+  Serie residuals = SetRes[h];
+  Polyn ma        = SetMA[h];
+  Polyn ari       = SetARI[h];
+  Real level      = Rand(1,3);
+  Serie noise     = SetNoise[h];
+
+  Date iniFor     = Succ(EndDate, Tms, 1); 
+  Date endFor     = Succ(EndDate, Tms, HFor);
+ 
+  Serie zero      = SubSer(CalInd(W, Tms), iniFor, endFor); 
+  Serie inoise    = SubSer(noise, 
+   Succ(EndDate, Tms, -Degree(ari)-1), EndDate);
+  Serie prevNoise = ma:DifEq(1/ari, zero, inoise);
+  SubSer(Exp(prevNoise), iniFor, endFor)
+});
+
+// Constructions k probit models
+// To simulate these models we use the fact that w = X*beta + e with e~N(0,1)
+// and y = 1 if w>0 else 0
+
+Set SetPSimRes = For(1, KModels, Serie(Real h)
+{
+  SubSer(Gaussian(0, 1 , Tms), IniDate, EndDate)
+});
+
+Set SetPSimW = For(1, KModels, Set(Real h)
+{
+  Serie residuals = SetPSimRes[h];
+  Set effectSet   = For(1, 5, Serie(Real k)
+  {
+    (1/k)*SubSer(Gaussian(0, 0.2, Tms), IniDate,  endFor)
+  });
+  Serie filter = SetSum(effectSet);
+  Serie w = residuals+filter;
+  SetOfSerie(filter, w)
+});
+
+Set SetPSimYFor = For(1, KModels, Set(Real h)
+{
+  Set reg = SetPSimW[h];
+  Serie filter = reg[1];
+  Serie w      = reg[2];
+  
+  Serie y      = GT(w,CalInd(W, Tms));
+  Serie pRes   = y-F01(filter); 
+  Serie pFor   = SubSer(F01(filter), iniFor, endFor);
+  SetOfSerie(pFor, y, pRes)
+});
+
+Set SetPRes = Traspose(SetPSimYFor)[3];
+Set SetPFor = Traspose(SetPSimYFor)[1];
+
+// Constructions k regression models
+// To simulate these models we use the fact that w = X*beta + e with e~N(0,1)
+// and y = 1 if w>0 else 0
+
+Set SetRegAux = For(1, KModels, Set(Real h)
+{
+  Real level = Rand(10, 100);
+  Real sigma = Rand(0, 0.3);
+  Real ini   = Floor(Rand(1,100));
+  Real end   = Floor(Rand(1,100)); 
+  Serie levelSer = level*SubSer(CalInd(C, Tms), iniFor, endFor);
+
+
+  Date iniNull = Succ(IniDate, Tms, ini);
+  Date endNull = Succ(EndDate, Tms, -end);
+
+  Serie indNull   = SetPSimYFor[h][2];
+
+  Serie residuals = 
+   SubSer(Gaussian(0, sigma , Tms), Succ(IniDate, Tms, ini) , 
+                                       Succ(EndDate, Tms, -end));
+  Serie y = Exp(residuals*indNull+Log(level*CalInd(C, Tms)));
+  TimeSet TmsNull = SerTms(indNull);
+  Serie resNull   = DatCh(residuals, TmsNull, FirstS);
+
+  SetOfAnything(levelSer, resNull, y)
+});
+
+Set SetRegRes = Traspose(SetRegAux)[2];
+Set SetRegFor = Traspose(SetRegAux)[1];
+
+// Add model
+
+Serie AddSerie = SetSumC(EvalSet(SetNoise,Serie(Serie noise){Exp(noise)})
+<<(Traspose(SetRegAux)[3]));
+
+Set defModelAdd = ModelDef
+(
+  AddSerie,
+  0,0,
+  0,0,
+  1-(B^6),
+  SetOfPolyn(1-0.1*B,1, 1-0.1*B^312),
+  SetOfPolyn(1,1-0.1*B^6, 1),
+  Empty,
+  AllLinear
+);
+Set estModelAdd = Estimate(defModelAdd, IniDate, EndDate);
+Set forModelAdd = CalcForecasting(estModelAdd, EndDate, EndDate, 15, 0.05);  
+
+Serie AddRes = estModelAdd["Series"]["Residuals"];
+Serie AddFor = forModelAdd["Prevision"];
+Polyn AddMA  = SetProd(estModelAdd["Definition"]["MA"]);
+Polyn AddARI = (estModelAdd["Definition"]["Dif"])*
+        SetProd(estModelAdd["Definition"]["AR"]);
+
+// Definition for combination
+
+Set MAFull  = SetMA<<NCopy(2*KModels, Polyn 1)<<SetOfPolyn(AddMA);
+Set ARIFull = SetARI<<NCopy(2*KModels, Polyn 1)<<SetOfPolyn(AddARI);
+Set ResFull = SetRes<<SetPRes<<SetRegRes<<SetOfSerie(AddRes);
+Set ForFull = SetFor<<SetPFor<<SetRegFor<<SetOfSerie(AddFor);
+
+
+Matrix MixTra(Matrix z1) 
+// Order in z1 is ARIMA models | Probit Models | Regresion models
+{
+  Log(SubRow(z1, Range(1, MModels, 1)))<<
+  InvF01(SubRow(z1, Range(MModels+1, KModels+MModels, 1)))<<
+  Log(SubRow(z1, Range(MModels+KModels+1, 2*KModels+MModels, 1)))
+};
+
+Matrix MixTraInv(Matrix z1)
+// Order in z1 is ARIMA models | Probit Models | Regresion models
+{
+  Exp(SubRow(z1, Range(1, MModels, 1)))<<
+  F01(SubRow(z1, Range(MModels+1, KModels+MModels, 1)))<<
+  Exp(SubRow(z1, Range(MModels+KModels+1, 2*KModels+MModels, 1)))
+};
+
+
+Set SetTra    = MLHTransf(MixTra, MatLog);
+Set SetInvTra = MLHTransf(MixTraInv, MatExp);
+  
+Matrix covMatFull = MLH_Cov(ResFull, Tms);
+
+
+Set InfoNLC = MLHInfo
+(
+  ResFull,
+  ForFull,
+  MAFull,
+  ARIFull,
+  SetTra,
+  SetInvTra
+);
+
+Matrix MixRel(Matrix z1, Set paramSet)
+{
+  Real m = paramSet[1];
+  Real k = paramSet[2];
+  
+  Matrix onem = Rand(1, m, 1, 1); 
+  Matrix z = SubRow(z1, Range(1, m, 1));
+  Matrix p = SubRow(z1, Range(m+1, m+k, 1));
+  Matrix w = SubRow(z1, Range(m+k+1, 2*k+m, 1)); 
+
+//Real Msg("onem", ""<<onem);  
+//Real Msg("z", ""<<z);  
+//Real Msg("P", ""<<p);  
+//Real Msg("W", ""<<w);  
+
+  Matrix z2 = onem*z+Tra(p)*w;
+//Real Msg("z2", ""<<z2);  
+  z2
+};
+
+Real dim1       = 2*KModels+MModels; 
+Real dim2       = 1;
+Set SetRel      = MLHRelation(MixRel, SetOfReal(MModels, KModels), dim1, dim2);
+Set SetRelTrans = NCopy(HFor, SetRel);
+Text Msg_Trace = "Off";
+Set ComResult = MLH_ForComb_Rel
+(
+  InfoNLC, 
+  SetRelTrans,
+  "Tms",
+  0
+);
+
+Serie sumForCom = SetSum(ExtractByIndex(ComResult, Range(1, MModels,1)))+
+SetSum(EvalSet(Range(MModels+1, MModels+KModels, 1), Serie(Real k)
+{
+  ComResult[k]*ComResult[k+KModels]
+}));
+Serie sumCom    = ComResult[dim1+dim2];
+Serie difer     = sumForCom-sumCom;
+
+*/
+
+

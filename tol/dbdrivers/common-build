@@ -1,0 +1,5 @@
+#!/bin/sh
+./configure \
+--enable-odbc \
+--enable-mysql \
+--enable-postgres

@@ -1,0 +1,57 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _axistimeset.tol (InitLibrary)
+// PURPOSE : Avails a method for automatical asignement of datings in time
+//           serie's graphics
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Set AxisDatingList = SetOfText
+//
+// PURPOSE : All the timesets that FitDating function will test
+//
+//////////////////////////////////////////////////////////////////////////////
+(
+  "Daily",
+  "Weekly",
+  "Decenial",
+  "Fornigthly",
+  "Monthly",
+  "Bimonthly",
+  "Quarterly",
+  "Thirdannual",
+  "HalfYearly",
+  "Yearly"
+);
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text FitDating(Date first, Date last, Real ticks) 
+//
+// PURPOSE : Returns the dating in AxisDatingList that have the closest to 
+//           ticks number of dates between first and last dates
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real CardAxis = Card(AxisDatingList);
+  Set RangeDating = Range(1,CardAxis,1);
+  Set getTicksBetween(Real n)
+  {
+    TimeSet tms = Eval(AxisDatingList[n]);
+    Real    dif = DateDif(tms,first,last);
+    Real    x   = Abs(dif-ticks);
+    [[n,AxisDatingList[n],x]]
+  }; 
+  Set TicksList = EvalSet(RangeDating, getTicksBetween);
+  Real getOptimum(Real n)
+  { 
+    If(n==Card(AxisDatingList), 
+      TRUE,
+      If(LE(TicksList[n][3],TicksList[n+1][3]),TRUE,FALSE))
+  };
+  Set selection = Select(Range(1,CardAxis-1,1), getOptimum);
+  Real numResult = If(Card(selection)==0, CardAxis, selection[1]);
+  AxisDatingList[numResult]
+};
+
+

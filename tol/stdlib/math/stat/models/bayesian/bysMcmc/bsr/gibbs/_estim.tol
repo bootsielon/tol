@@ -1,0 +1,215 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _estim.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs estimation methods
+/////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.EstimParsed =
+"Estimates a BSR model by Gibbs method\n"+
+"Argument `parsed` must be defined as the result of calling function "
+"BSR.Parse\n"+
+"Argument `notifier` is an event tracing handler and must has at least "
+"these public methods: \n"+
+" Real initializing(Real numVar,Text path) { ... };\n"+
+" Real simulating(Real numSim, Real timeAvg) { ... };\n"+
+" Real reporting(Real unused) { ... };\n"+
+" Real evaluating(Real unused) { ... };\n";
+
+Set EstimParsed(BSR.ModelDef parsed, 
+                Set nonLinFilter,
+                NameBlock config_,
+                NameBlock notifier)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock config = BysMcmc::BuildFullConfig(config_);
+//WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
+  NameBlock gibbs = If(!Card(nonLinFilter),
+  {
+    WriteLn("[BSR] Using Basic Master");
+    BysMcmc::Bsr::Gibbs::BasicMaster(parsed, config)
+  },
+  {
+    WriteLn("[BSR] Using Non Linear Filter Extended Master");
+    BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, config)
+  });	
+  NameBlock cycler = BysMcmc::BuildCycler(gibbs, config, notifier);
+  Text recover.path = cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
+  NameBlock recover = 
+  [[
+    Text _.name      = cycler::_.name;
+    Set  _.colNames  = cycler::_.sampler::get.colNames(0);
+    Set  _.repCfg    = cycler::bysInf_;
+    Text _.mcmc.path = cycler::_.path;
+    Real stored.simulations(Real unused)
+    {
+      Matrix mcmc.full = MatReadFile(path);
+      Rows(mcmc.full)
+    };
+    Set report(Real burnin, Real length, Real thinning)
+    {
+      BysMcmc::Inference::loadAndReport(
+        _.mcmc.path, burnin, length, thinning, 
+        _.name, _.colNames, _.repCfg)
+    }
+  ]];
+  Real Ois.Store([[recover]],recover.path);
+
+  Real cycler::generate(config::mcmc.burnin+config::mcmc.sampleLength); 
+
+  Real notifier::reporting(0);
+  Set estim = If(Not(config::do.report),
+  {
+    [[
+      parsed,
+      gibbs, 
+      cycler
+    ]]
+  },
+  {
+    Set report = cycler::report(config::mcmc.burnin, config::mcmc.sampleLength,config::mcmc.thinning);
+    Matrix param.average = 
+    {
+      Tra(SetMat(Extract(report::coda.summary, 2)))
+    };
+    If(!(config::do.eval),
+    {
+      [[
+        parsed,
+        gibbs, 
+        cycler,
+        report,
+        param.average
+      ]]
+    },
+    {
+      Real notifier::evaluating(0);
+      Set eval.average = gibbs::eval(param.average);
+      [[
+        parsed,
+        gibbs, 
+        cycler,
+        report,
+        param.average, 
+        eval.average  
+      ]]
+    })
+  });
+  Real SetIndexByName(estim);
+  estim
+};
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.EstimParsed,EstimParsed);
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.EstimAscii =
+"Estimates a BSR model by Gibbs method\n"+
+"Argument `ascii` must be an ASCII file path prepared to be parsed by "
+"function BSR.Parse\n"+
+"Argument `notifier` is an event tracing handler and must has at least "
+"these public methods: \n"+
+" Real parsing(Real numVar,Text path);\n"+
+" Real initializing(Real numVar,Text path);\n"+
+" Real simulating(Real numSim); \n"+
+" Real reporting(Real numVar,Text path);\n"+
+" Real evaluating(Real numVar,Text path);\n";
+Set EstimAscii(Text ascii_, 
+               Set nonLinFilter,
+               NameBlock config,
+               NameBlock notifier)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("TRACE EstimAscii Card(nonLinFilter) = "<<Card(nonLinFilter));
+  Text ascii = ascii_;
+  Real notifier::parsing(0);
+  Set parsed = BSR.Parse(ascii);
+  Set estim = [[ascii]] << EstimParsed(parsed,nonLinFilter,config,notifier);
+  Real SetIndexByName(estim);
+  estim
+};
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.EstimAscii,EstimAscii);
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.EstimAndNotify =
+"Estimates a BSR model by Gibbs method\n"+
+"Argument `modelDef` must be one of these things: \n "
+" - A Text containing an ASCII file path prepared to be parsed by "
+" function BSR.Parse\n"+
+" - A Set containing the result of calling function BSR.Parse\n"+
+" - A NameBlock with the minimum API accepted by standard importing method "
+"BysMcmc::Bsr::Import::Write\n"+
+"Argument `notifier` is an event tracing handler and must has at least "
+"these public methods: \n"+
+" Real parsing(Real numVar,Text path);\n"+
+" Real initializing(Real numVar,Text path);\n"+
+" Real simulating(Real numSim); \n"+
+" Real reporting(Real numVar,Text path);\n"+
+" Real evaluating(Real numVar,Text path);\n";
+Set EstimAndNotify(Anything modelDef, 
+                   NameBlock config,
+                   NameBlock notifier)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text g = Grammar(modelDef);
+  Set estim = Case
+  (
+    g=="Set",  EstimParsed(modelDef, Empty, config, notifier),
+    g=="Text", EstimAscii (modelDef, Empty, config, notifier),
+    g=="NameBlock", 
+    {
+      Text ascii = BysMcmc::Bsr::Import::Write(modelDef);
+    //WriteLn("TRACE EstimAndNotify FunctionExist('Set','modelDef::Get.NonLinFilter') = "<<FunctionExist("Set","modelDef::Get.NonLinFilter"));
+      Set nonLinFilter = 
+        If(!FunctionExist("Set","modelDef::Get.NonLinFilter"), Empty, 
+          modelDef::Get.NonLinFilter(0));
+    //WriteLn("TRACE EstimAndNotify Card(nonLinFilter) = "<<Card(nonLinFilter));
+      [[modelDef]] << EstimAscii(ascii, nonLinFilter, config, notifier)
+    },
+    1==1, 
+    {
+      Error("Not allowd type "+g+" for argument modelDef of "
+            "Bsr::Gibbs::Estim");
+      ""
+    }
+  );
+  Real SetIndexByName(estim);
+  estim
+};
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.EstimAndNotify,EstimAndNotify);
+/////////////////////////////////////////////////////////////////////////////
+  
+//////////////////////////////////////////////////////////////////////////////
+NameBlock NoNotifier(Real 0)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Real initializing(Real numVar,Text path) { Real 0 };
+  Real simulating(Real numSim, Real timeAvg) { Real 0 };
+  Real reporting(Real unused) { Real 0 };
+  Real evaluating(Real unused) { Real 0 }
+]]};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Estim =
+"Estimates a BSR model by Gibbs method\n"+
+"Argument `modelDef` must be one of these things: \n "
+" - A Text containing an ASCII file path prepared to be parsed by "
+" function BSR.Parse\n"+
+" - A Set containing the result of calling function BSR.Parse\n"+
+" - A NameBlock with the minimum API accepted by standard importing method "
+"BysMcmc::Bsr::Import::Write\n";
+Set Estim(Anything modelDef, 
+          NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  EstimAndNotify(modelDef, config, BysMcmc::Bsr::Gibbs::NoNotifier(0))
+};
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.Estim,Estim);
+/////////////////////////////////////////////////////////////////////////////
+  

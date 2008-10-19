@@ -1,0 +1,44 @@
+/* -*- mode: c++ -*- */
+
+/*
+  ststServerInfo --
+
+  Estructura para almacenar la informacion necesaria para comunicarse
+  con un servidor de calculo
+ */
+Struct _stServerInfo {
+  Text host;
+  Real port
+};
+
+/*
+   Conjunto de servers a utilizar en este ejemplo. Deberiamos
+   asegurarnos antes que los servidores estan ejecutandose.
+*/
+Set servers = [[
+                _stServerInfo("localhost", 40000),
+                _stServerInfo("localhost", 40001)
+                ]];
+
+Set paramTest = {
+
+  /*
+  Directorio de intercambio de datos. En este directorio se almacenan
+  los resultados parciales.
+ */
+  Text dataDir = If(ObjectExist("Text", "dataDir"), dataDir,
+                     If(OSUnix, "/tmp", "c:/temp"));
+
+  // Dimensiones del producto : C(MxN) = A(MxK)*B(KxN)
+  Real M = If(ObjectExist("Real", "M"), M, 700);
+  Real K = If(ObjectExist("Real", "K"), K, 700);
+  Real N = If(ObjectExist("Real", "N"), N, 700);
+
+  Set [[ M, N, K, dataDir ]]
+};
+
+WriteLn("Test configuration:");
+WriteLn("    M = "<<paramTest["M"]);
+WriteLn("    K = "<<paramTest["K"]);
+WriteLn("    N = "<<paramTest["N"]);
+WriteLn("    dataDir = "<<paramTest["dataDir"]);

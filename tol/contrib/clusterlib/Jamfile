@@ -1,0 +1,3 @@
+objects objs
+    : cluster.c  com.c  linpack.c  ranlib.c
+    ;

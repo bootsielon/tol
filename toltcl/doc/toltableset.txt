@@ -1,0 +1,237 @@
+/* mode: -*- c++ -*- */
+-------------------- Especificacion TCL -------------------------------
+
+tol::tableset create tablename SetReference
+ 
+tol::tableset destroy tablename
+
+ 
+tablename info
+
+ name
+
+    nombre de la referencia del conjunto
+  
+ datarows 
+
+    numero de filas (subconjuntos) incluyendo conjuntos vacios. La
+    existencia de un conjunto vacio == el conjunto no es graficable, a
+    menos que se pueda escojer como eje X al conjunto de indices
+    [0..row-1], pero esto ya se trataria en tcl.  columns: numero de
+    columnas, correspondiente al cardinal del subconjunto de mayor
+    cantidad de elementos.
+
+
+ rowsnames
+  
+    lista con los nombres de los elementos del conjunto.
+
+ header 
+
+    como se determino el header de las columnas, puede ser : struct|
+    row | generic. En caso de retornar firstRow tambien retorna
+    la cantidad de columnas explicitas(ya me explicare mejor).
+
+ 
+ columns
+
+    Para cada columna retoran una lista con su informacion, que
+    incluye: 
+
+      name     
+        nombre de la columna
+
+      type 
+
+        tipo de datos (inferido) de la columna. Hay que definir,
+	por ahora tenemos general|real|date. Si tipo es real entonces
+	contendra informacion adicional sobre reales extendidos como ? o
+        INF: {unknown yes|no INF yes|no}. 
+
+	eje,  {type real unknown yes INF no}  
+
+ grpname data get i j
+    
+    retorna el elemento que esta en la fila i column j
+ 
+ grpname data apply all script
+
+   - ejecuta 'script' para cada elemento de la tabla
+   - concatena al script 'i j value' (fila, columna y valor)
+ 
+ grpname data apply row idx script
+
+   - ejecuta 'script' para cada elemento de la fila 'idx'
+   - concatena al script 'j value' (columna valor)
+
+ grpname data apply column idx script
+
+   - ejecuta 'script' para cada elemento de la columna 'idx'
+   - concatena al script 'i value' (fila valor)
+
+ grpname data column idx
+ 
+   retorna los datos de la column idx si. Si el tipo de la columna no
+   es real retorna una lista con todos sus valores. Si el tipo de la
+   columna es real retorna una lista que contiene vectores blt y
+   posiblemente valores desconocidos,  ej, {Y1 Y2 {} {} Y3 *INF*
+
+
+ grpname data names
+
+   retorna una lista con los nombres de los subconjuntos que forman el
+   set. Que hacemos cuando algun 'subset' no sea set?, cuando no sea
+   sea estamos asumiendo que es un conjunto de un elemento, asi que
+   siempre tomaremos el name del syntaxobject. Aunque, por que no
+   retornar esta informacion en el subcomando 'info rows'
+
+------------------- Especificacion implementacion C++ -----------------
+
+JAVIER !!!! vamos a serpara la especificacion del comando en TCL de
+la especificacion de la implementacion en C.
+
+
+
+// Estructura de la información que se puede guardar:
+struct Tol_SetData {
+  int rows
+  int cols
+  header (de donde se ha obtenido)
+  struct Tol_ColumnData {
+    char *name
+    // lista de datos o
+    // lista de vectores Blt
+    (definir esto en C)
+    int type
+  }
+}
+
+// ¿Como guardo los datos? 
+//  A) como listas siempre y si me lo piden como vectores lo transformo
+//  B) como listas y siempre que pueda como vectores (el saber si puedo
+// o no lo se al final de recorrer el conjunto
+  
+}
+
+
+/*
+ El numero de filas lo obtengo del set directamente. (Si los nombres
+ de las columnas se obtienen del primer subconjunto,¿le quitamos uno 
+ al numero de filas? SI
+
+ Si tiene estructura el numero de filas, columnas y el tipo me lo da la
+ propia estructura, no tengo apenas problemas. 
+ 
+
+ El número de columnas no me lo da el primer subconjunto. --> Es un 
+ problema para ir añadiendo a la estructura Tol_ColumnData, p.ejem:
+
+  A   B   C
+  3   4   5
+  4   3
+  6   2   1   5
+  1   3   3
+
+--> <--
+ Si en TOL puedo pedir el numero de elementos que tiene el subconjunto
+ que mas elementos tiene (valga la redundancia) seria genial. NO SE PUEDE
+
+--> Ademas para este conjunto, ¿el nombre de las columnas seria de
+ firstRow: ['A', 'B', 'C', ''] o mixto entre generico y firstRow
+ ['A', 'B', 'C', 'Col4'] ?
+ MIXTO, NO PUEDE HABER UN NOMBRE DE COLUMNA VACIO
+
+
+Algoritmo para recoger datos:
+  
+  //  Cuando se trate cada subConjunto hay que tener en cuenta
+  // que se puede aumentar el número de columnas, en cuyo caso
+  // hay que actualizar la información que se tenga hasta entonces
+  // con vacios (para datos) y con nombres genericos (para nombres
+  // de columna)
+
+  cols  // las columnas que tiene el conjunto
+
+proc Main { } {
+  set structured 1
+  set rowData -1
+  set cols     0
+  set rows  [setRef->subItems]
+
+
+  set sub1Set (Primer subcjto de setRef)
+  set structure [sub1Set->structure]
+  if sub1Set->type == "Text" {
+    GetSubSetInfoAsLabel sub1Set &cols
+    incr rows -1
+    set rowData 0
+  } else {
+    set rowData 0
+    GetSubSetInfoAsData sub1Set &rowData &cols
+  }
+  
+
+  foreach subSet (menos el primero) setRef {
+      set structured [expr structured && (subSet->structure == structure)]
+      GetSubSetInfoAsData subSet &rowData &cols
+    }
+  }
+  if structured {
+    if (He cogido inf de header) {
+      meterla como datos
+    }
+  }
+  elseif (No he cogido inf de header) {
+    Meter nombres genericos
+  }
+}
+  
+  
+  proc GetSubSetInfoAsData (subSet &rowData &cols) {
+    set col 0
+    foreach it subSet {
+      if (col > cols ) {
+        set cols col
+        UpdateInfoRowsAnteriores
+      }
+      if (it->Type == "Real") {
+         if (it->Data == '?')  {
+           SetColType col Real?
+         } elseif (it->Data == Inf) {
+           SetColType col RealInf
+         } else {
+           SetColType col Real
+         }
+      } else {
+        SetColType col it->Type
+      }
+      SetColData col rowData it->Data
+      incr col
+    }
+    for (i=col; col < cols; i++) {
+      SetColData i rowData ""
+    }
+    incr rowData
+  }
+
+
+  proc UpdateInfoRowsAnteriores {
+    //Para cada columna que ya exista ir introduciendo vacios hasta llegar
+    //al numero de fila actual.
+  }
+
+
+  proc GetSubSetInfoAsLabel (subSet &cols) {
+    set col 0
+    foreach it subSet {
+      SetColName col it
+      incr col
+    }
+    set cols col
+  }
+
+
+  
+  SetColData col row data
+  SetColType col type
+  SetColName col name

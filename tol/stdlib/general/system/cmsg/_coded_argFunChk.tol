@@ -1,0 +1,125 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: ExtLib (Extended Library of TOL)
+// MODULE: CMsg (Controlled messages)
+// FILE: _coded_argFunChk.tol
+// PURPOSE: Implements the NameBlok Cmsg::Coded::ArgFunChk
+/////////////////////////////////////////////////////////////////////////////
+
+NameBlock ArgFunChk =
+[[
+  Text _ag = "CMsg::Coded::ArgFunChk";
+  Text _.autodoc.description = 
+  "Codified messages for argument checking of generic functions";
+
+  Set _.invType = CMsg.Coded.info(_ag,1, "error", Text(Set args)
+  {
+    Text f = args[1];
+    Text a = args[2];
+    Text t = args[3];
+    Text e = args[4];
+    I2("Invalid type ",
+       "Tipo de datos inválido "
+       "At argument", "En el argumento") + " "+t+ " "+a+" "+
+    I2("of function", "de la función") + " "+f+"\n"+
+    I2("Expected types were", 
+       "Los tipos esperados eran")+" "+e
+  });
+  Set _.hasUnknown = CMsg.Coded.info(_ag,1, "error", Text(Set args)
+  {
+    Text f = args[1];
+    Text a = args[2];
+    I2("At argument", "En el argumento") + " "+a+" "+
+    I2("of function", "de la función") + " "+f+" "+
+    I2("there are some unknown value.", 
+       "existe algún valor omitido.")
+  });
+  Set _.noPosIntArg = CMsg.Coded.info(_ag,2, "error", Text(Set args)
+  {
+    Text f = args[1];
+    Text a = args[2];
+    Real x = args[3];
+    I2("At argument", "En el argumento") + " "+a+" "+
+    I2("of function", "de la función") + " "+f+" "+
+    I2("a positive integer number was expected instead of ", 
+       "se esperaba un número entero positivo y no ") << 
+       FormatReal(x,"%.15lg")
+  });
+
+  Set _.noPosRealArg = CMsg.Coded.info(_ag,3, "error", Text(Set args)
+  {
+    Text f = args[1];
+    Text a = args[2];
+    Real x = args[3];
+    I2("At argument", "En el argumento") + " "+a+" "+
+    I2("of function", "de la función") + " "+f+" "+
+    I2("a positive real number was expected instead of ", 
+       "se esperaba un número real positivo y no ") << 
+       FormatReal(x,"%.15lg")
+  });
+
+  Set _.negativeArg = CMsg.Coded.info(_ag,4, "error", Text(Set args)
+  {
+    Text f = args[1];
+    Text a = args[2];
+    Real x = args[3];
+    I2("At argument", "En el argumento") + " "+a+" "+
+    I2("of function", "de la función") + " "+f+" "+
+    I2("a non negative real number was expected instead of ", 
+       "se esperaba un número real no negativo y no ") << 
+       FormatReal(x,"%.15lg")
+  });
+
+  Set _.outOfIntRankArg = CMsg.Coded.info(_ag,5, "error", Text(Set args)
+  {
+    Text f  = args[1];
+    Text a  = args[2];
+    Real x  = args[3];
+    Real x1 = args[4];
+    Real x2 = args[5];
+    Text rng = "["+FormatReal(x1,"%.15lg")+","+FormatReal(x2,"%.15lg")+"]";
+    I2("At argument", "En el argumento") + " "+a+" "+
+    I2("of function", "de la función") + " "+f+" "+
+    I2("a integer number in range "+rng+" was expected instead of ", 
+       "se esperaba un número entero en el rango "+rng+" y no ") << 
+       FormatReal(x,"%.15lg")
+  });
+
+  Set _.outOfRealRankArg = CMsg.Coded.info(_ag,6, "error", Text(Set args)
+  {
+    Text f  = args[1];
+    Text a  = args[2];
+    Real x  = args[3];
+    Text p1 = args[4];
+    Real x1 = args[5];
+    Real x2 = args[6];
+    Text p2 = args[7];
+    Text rng = p1+FormatReal(x1,"%.15lg")+","+FormatReal(x2,"%.15lg")+p2;
+    I2("At argument", "En el argumento") + " "+a+" "+
+    I2("of function", "de la función") + " "+f+" "+
+    I2("a real number in interval "+rng+" was expected instead of ", 
+       "se esperaba un número real en el intervalo "+rng+" y no ") << 
+       FormatReal(x,"%.15lg")
+  });
+
+  Set _.outOfDomainArg = CMsg.Coded.info(_ag,7, "error", Text(Set args)
+  {
+    Text f      = args[1];
+    Text a      = args[2];
+    Real x      = args[3];
+    Text domain = args[4];
+    I2("At argument", "En el argumento") + " "+a+" "+
+    I2("of function", "de la función") + " "+f+" "+
+    I2("a number in domain "+domain+" was expected instead of ", 
+       "se esperaba un número en el dominio "+domain+" y no ") << 
+       FormatReal(x,"%.15lg")
+  });
+
+  Set _.stlNotImp = CMsg.Coded.info(_ag,8, "stop", Text(Set args)
+  {
+    Text description  = args[1];
+    I2("Sorry, still not implemented method", 
+      "Disculpe, todavía no está implementado el metodo") + 
+    ":\n"+description
+  })
+
+]];

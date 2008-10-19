@@ -1,0 +1,199 @@
+2006-03-21 Jorge <josp@tol-project.org>
+	* generic/tolaccess.cpp: previous change does not handled
+	correctly the expression:
+
+	   Real a = 1;
+	   Real a := a + 1;
+
+	Related to bug 483. Objects are removed from stack in reverse
+	order. It is the same way as BSet::Delete().
+	
+2006-01-31 Jorge <josp@tol-project.org>
+	* generic/tolaccess.cpp: tol::console stack release now release
+	only those objects having NREFS <= 1. Related to bug report
+	http://bugs.tol-project.org/show_bug.cgi?id=433
+	
+2006-01-25 Jorge <josp@tol-project.org>
+	* generic/toltcl.c
+	* generic/toltclInt.h
+	* generic/tolaccess.cpp: tol::console eval ?-hidden? "expr", if
+	-hidden is present the variables created are protected from being
+	released by 'tol::console stack release'
+
+2006-11-16 Jorge <josp@tol-project.org>
+	* configure.in: setting version to 1.1.5
+	* toltcl.h: checking for macro PACKAGE_VERSION (set by TEA)
+	* toltcl.c: 
+	
+2006-11-05 Jorge <josp@tol-project.org>
+	* configure.in: TOL_LIB_DIR is hard-code into libtoltcl,
+	implementing --enable-OIS because headers <tol/...> need that macro
+	defined. When __USE_OIS__ be removed this option will not be
+	needed any more
+	
+2006-11-03 Jorge <josp@tol-project.org>
+	* tolaccess.cpp: Tol_GetReference (tolaccess.cpp:873), items was
+	allocated with insuficient memory!
+	* toltclInt.cpp: overloaded Tol_FindSet in order to return also if
+	the Set found is a SetFromFile.
+	
+2006-10-18 Jorge <josp@tol-project.org>
+	* all files: updated to TEA3
+	
+2006-09-07 Jorge <josp@tol-project.org>
+	* configure : PATCHLEVEL must be 3 in order to matc what is
+	provided in toltcl.
+	
+2006-06-07 Jorge <josp@tol-project.org>
+	* tolaccess.cpp
+	* toltcl.c
+	* toltclInt.h : new command tol::lc_format to format a double
+	value according to RealFormat and LC_NUMERIC
+	
+2006-04-25 Jorge <josp@tol-project.org>
+	* generic/tol_sergrp.cpp: GetHashBetween in order to speed up
+	the retrieve of the serie data. Cutting dead code.
+	* generic/toltcl.c: fixing a bug in Tol_InfoCmd.
+	* toltime.cpp:
+	
+2006-02-10  Víctor <vdebuen@tol-project.org>
+	* generic/tolaccess.cpp: Ambiguous term ParentPath to refer the TOL file (.tol, .bdt, ...) where an object was created  is replaced by SourcePath and the asociated BSetFromFile* Parent is replaced by Source
+
+2005-12-26 Jorge <josp@tol-project.org>
+	* generic/toltableset.c : obtaining the name of columns from the
+	names of the elements of the first row.
+	
+2005-10-25 Jorge <josp@tol-project.org>
+	* generic/tolaccess.cpp : Tol_GetSetPath considers first name as a
+	file name in order to detect names with spaces. Related to
+	TOLBug-311.
+	
+2005-10-25 Antonio Zamorano <azamorano@tol-project.org>
+   * generic/tolaccess.cpp : Wrong cast caused compilation errors in 64bits
+   architecture
+
+2005-10-21 Jorge <josp@tol-project.org>
+   * generic/toltclInt.h : prevent redefining macros: strcasecmp/strncasecmp
+
+2005-03-21 Jorge <josp@tol-project.org>
+
+	* generic/tolaccess.cpp fixing bug
+	http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=248
+	
+2004-12-29  Jorge <josp@tol-project.org>
+
+	* generic/tolaccess.cpp:
+	* generic/tolsergrp.cpp:
+	* generic/toltclInt.cpp: now variables names are looked for also
+	in the stack. This is particulary useful when invoking Tcl_Eval
+	from TOL code.
+2004-10-18  Jorge S. Pérez <josp@tol-project.org>
+
+	* win/toltcl.dsp: the options must be set also for Debug version
+
+	* win/toltcl.dsp: multithreaded DLL
+
+2004-09-22  Jorge S. Pérez <josp@tol-project.org>
+
+	* generic/tolaccess.cpp, generic/toltcl.c:
+	toltcl.c : spell checking
+
+	tolaccess.cpp : installed hook for Tcl_Eval from TOL
+
+2004-08-17  Daniel Rus <danirus@tol-project.org>
+
+	* generic/tolaccess.cpp:
+	Fix Bug 20 -> http://bugs.tol-project.org/show_bug.cgi?id=20
+
+	Each Tol Type shows information for each function (also operators) with the
+	format they should be used.
+
+	For example:
+	  Operator Real &, before changes -> Real &(Real x1, Real x2)
+	  Operator Real &, after changes ->  x1 & x2 {Real x1, Real x2}
+
+2004-07-21  Jorge S. Pérez <josp@tol-project.org>
+
+	* generic/tolsergrp.cpp:
+	- that pointer should be set to 0 at construction.
+
+	that bug was driving me crazy!
+
+2004-07-12  Daniel Rus <danirus@tol-project.org>
+
+	* generic/tolaccess.cpp:
+	solving http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=83
+
+	instead of checking for if ARG_INDEXES 'IsShared' we should only care about
+	last_index (the only object in the list we modify)
+
+2004-04-29  Jorge S. Pérez <josp@tol-project.org>
+
+	* generic/toltime.cpp:
+	Tol_CreateTMSCmd now use Tol_ResolveObject to find the referenced tol object
+
+2004-04-23  Daniel Rus <danirus@tol-project.org>
+
+	* generic/tolaccess.cpp:
+	New output channel for Tol, called Stdlog, used to redirect there less important message, and useful for nexts Integrity Tests of Tol.
+
+2004-04-14  Jorge S. Pérez <josp@tol-project.org>
+
+	* generic/tolaccess.cpp, generic/toltcl.c:
+	tolaccess.cpp: comment field in tol::info version now returns the correct compilation date
+
+	toltcl.c: fixed error message in arguments for tol::info version
+
+2004-04-13  Manuel Balderrábano  <manuelb@tol-project.org>
+
+	* README: Just a spelling mistake corrected.
+
+2004-04-05  Daniel Rus  <danirus@tol-project.org>
+
+	* generic/tolaccess.cpp: Fixed bug in InstallHciWriter
+
+	* ChangeLog: ChangeLog practically without changes
+
+	* generic/toltcl.h: new version
+
+	* generic/tolaccess.cpp: command info version without letter
+
+	* configure.in: version numbers update
+
+2004-04-05  Daniel Rus  <danirus@tol-project.org>
+
+	* generic/toltcl.h: new version
+	* generic/tolaccess.cpp: command info version without letter
+	* configure.in: version numbers update
+
+2003-11-04  Daniel Rus <daniel@uponeits.com>
+
+	* AUTHORS: Creating file and adding first authors of the gnu Toltcl
+	project.
+
+	* BUGS: File created but still without contents.
+
+	* COPYING: Terms and conditions of GNU/GPL License under Toltcl is
+	distributed.
+
+	* ChangeLog: First release of this file.
+
+	* INSTALL: First release of INSTALL file with instructions about
+	how to install the software under your operative system.
+
+	* NEWS: First release of NEWS file, with a description of the
+	things are news in the current release of toltcl. Current release is
+	still unstable. See TODO file to know what ewe are working on to
+	get the first stable release.
+
+	* README: First release of README file. With general information
+	of TOLL Project.
+
+	* THANKS: First release of THANKS file. The aim of this file is to
+	thanks all the people who have been collaborated in Toltcl.
+
+	* TODO: First release of TODO file. See check this file to get a
+	list of things to do to improve behavior of Toltcl.
+
+        * Redesign directory structure and integration installation
+	proccess with gnu autotools. Begin tol as gnu/tol from here.

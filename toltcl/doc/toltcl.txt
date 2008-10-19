@@ -1,0 +1,21 @@
+tol::grammars
+
+   returns the list of grammars
+
+tol::functions <grammar> [<function>]
+
+  returns the especification for a <function> defined in <grammar>.
+  if <function> is empty returns the list of functions defined in <grammar>
+  raises an error if <function> is not defined in <grammar> or <grammar> is
+  not defined.
+
+tol::variables <grammar> <variable>
+
+  return the especification for a <variable> defined in <grammar>.
+  if <variable> is empty returns the list of variables defined in <grammar>
+  raise an error if <variable> is not defined in <grammar> or grammar is
+  not defined.
+
+tol::eval <expression>
+
+  evaluate a tol <expression>

@@ -1,0 +1,11 @@
+2007-02-27 Daniel Rus <danirus@tol-project.org>
+	* dbdrivers/libtolodbc.c:
+	* dbdrivers/libtolmysql.c:
+	* dbdrivers/libtolpgsql.c:
+	* btol/bdb/bdspool.cpp: 4 methods have changed to fix a non reported 
+	bug: Tol should manage NULL numeric database values as Unknown.
+	bdspool.cpp:DBGetReal must return a BDat::Unknown() value in cases 
+	where a NULL value is returned from a Database.
+	libtolodbc.c:odbc_GetAsReal, libtolmysql.c:mysql_GetAsReal, and 
+	libtolpgsql.c:postgres_GetAsReal now return an int value of '2' in 
+	case of a NULL value was red from the current result set.

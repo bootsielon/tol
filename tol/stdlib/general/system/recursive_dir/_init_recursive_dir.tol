@@ -1,0 +1,8 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _init_recursive_dir.tol
+// PURPOSE : structures ans functions to do some actions over all or some 
+//           files under a directory and all its subdirectories   
+//////////////////////////////////////////////////////////////////////////////
+
+Set Include("_structs.tol");
+Set Include("_functions.tol");

@@ -1,0 +1,330 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _sqlmys.tol
+// PURPOSE : Funciones propias del gestor MySQL
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// CONSTANTS
+//////////////////////////////////////////////////////////////////////////////
+
+Text SqlMysFormatRealTol2Sql = "%.10lf";
+Date SqlMysDefaultTheBegin   = y1900m01d01h00i00s00;
+Date SqlMysDefaultTheEnd     = y3000m01d01h00i00s00;
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlMysFormatDate(Date dte)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Date dteAux = 
+   If(dte == TheBegin, SqlMysDefaultTheBegin,
+   If(dte == TheEnd,   SqlMysDefaultTheEnd, dte));
+
+  Text formatDate = FormatDate(dteAux, "%c%Y/%m/%d%u %h:%i:%s");
+  Real longfd     = TextLength(formatDate);
+  Text sqlFormat  = Case
+  (
+    //EQ(longfd, 4), "YYYY",
+    //EQ(longfd, 7), "YYYY/MM",
+    EQ(longfd, 10), "%Y/%m/%d",
+    EQ(longfd, 13), "%Y/%m/%d %H",
+    EQ(longfd, 16), "%Y/%m/%d %H:%i",
+    EQ(longfd, 19), "%Y/%m/%d %H:%i:%s",
+    True          , "%Y/%m/%d %H:%i:%s.%f"
+  );
+  "str_to_date('"+ formatDate +"', '"+ sqlFormat +"')" 
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de fecha con formato dependiente del de TOL al formato 
+equivalente MySQL.",
+SqlMysFormatDate);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlMysFormatReal(Real rea)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real isUnk = IsUnknown (rea);
+  Real isInf = IsInfinite(rea);
+  If(Or(isUnk, isInf), "convert(null,signed)", 
+   FormatReal(rea,SqlMysFormatRealTol2Sql))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de reales TOL a formato real de MySQL.",
+SqlMysFormatReal);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlMysFormatInteger(Real rea)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real isUnk = IsUnknown(rea);
+  Real isInf = IsInfinite(rea);
+  If(Or(isUnk, isInf), "convert(null,signed)", IntText(rea))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de reales TOL a formato entero de MySQL. Si el numero no es 
+entero lo redondea.",
+SqlMysFormatInteger);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlMysFormatText(Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{ If(txt == "", "convert(null,char)","'"+Replace(Replace(txt, "'", "''"),"\\", "\\\\")+"'") };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de text a char de MySql",
+SqlMysFormatText);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlMysFormatPolyn(Polyn pol)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  If(IsUnknownPolyn(pol), "convert(null, char)", "'"+FormatPolyn(pol)+"'") 
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de polyn a char de MySql",
+SqlMysFormatPolyn);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlMysInfoColumns(Text tabla)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  // Se ha modificado la query poniéndole un 'DISTINCT' porque sacaba la info
+  // duplicada. Falta comprobar que esto no provoca errores en otros ficheros
+  // que puedieran estar utilizando esta función en MySql
+  // query
+  Text strSql =
+"
+select distinct c.table_name               as Table_,
+       c.column_name              as Column_,
+       c.data_type                as Type_,
+       c.character_maximum_length as Length_,
+       c.numeric_precision        as Precision_,
+       c.numeric_scale            as Scale_,
+       case c.is_nullable
+         when 'YES' then 1
+         else 0
+       end                        as IsNull_,
+       case c.column_key
+         when 'PRI' then 1
+         else 0
+       end                        as IsKey_
+from information_schema.columns c
+where table_schema = '"+ DBName +"'
+  and upper(c.table_name) = upper('"+tabla+"')
+order by ordinal_position
+  ";
+  Set info = SqlDBTable(strSql, "StSqlInfoColums");
+  info
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de los campos de una tabla de MySql",
+SqlMysInfoColumns);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlMysInfoKeys(Text tabla)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  // query
+  Text strSql =
+"
+select table_name             as Table_,
+       constraint_name        as Index_,
+       column_name            as Column_
+FROM information_schema.key_column_usage
+where upper(table_name) = upper('"+ tabla +"')
+  and constraint_name = 'PRIMARY'
+order by ordinal_position
+";
+  Set info = SqlDBTable(strSql, "StSqlInfoKeys");
+  info
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de los campos clave de una tabla de MySql",
+SqlMysInfoKeys);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlMysInfoForeign(Text tabla)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  // query
+  Text strSql =
+"
+select table_name             as Table_,
+       constraint_name        as Index_,
+       column_name            as Column_,
+       referenced_table_name  as ForeignTable_,
+       'PRIMARY'              as ForeignIndex_,
+       referenced_column_name as ForeignColumn_
+FROM information_schema.key_column_usage
+where upper(table_name) = upper('"+ tabla +"')
+  and constraint_name <> 'PRIMARY'
+  and referenced_table_name is not null
+order by ordinal_position
+";
+  Set info = SqlDBTable(strSql, "StSqlInfoForeing");
+  info
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de las relacciones externas de una tabla de MySql",
+SqlMysInfoForeign);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlMysInfoDependent(Anything tabla)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Text gramTabla = Grammar(tabla);
+  // informacion de los campos claves
+  Text txtWhe = Case(
+    gramTabla == "Text"," upper(referenced_table_name) = upper('"+tabla+"') ",
+    gramTabla == "Set",
+    {
+      Set lstWhe = EvalSet(tabla, Text (Set set)
+      {
+         Text " ( upper(referenced_table_name) = upper('"+set->Table+"') 
+                and upper(referenced_column_name) = upper('"+set->Column+"'))"
+      });
+      Text TxtListItem (lstWhe, " or "+NL)
+    }, 
+    "",
+    {
+      WriteLn("ERROR: SqlMysInfoDependent2\n"+
+              "Gramatica '"+ gramTabla +"' desconocida!");
+      " = '"<< tabla +"'"
+    }
+  );
+  // query
+  Set info = If(txtWhe == "", Empty,
+  {
+    Text strSql =
+"
+select table_name             as Table_,
+       constraint_name        as Index_,
+       column_name            as Column_,
+       referenced_table_name  as ForeignTable_,
+       'PRIMARY'              as ForeignIndex_,
+       referenced_column_name as ForeignColumn_
+FROM information_schema.KEY_COLUMN_USAGE K
+where ("+ txtWhe +")
+order by table_name, constraint_name, ordinal_position
+";
+    Set info = SqlDBTable(strSql, "StSqlInfoForeing");
+    info
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de las tablas que dependen de una tabla dada en Oracle.
+La función puede recibir un Text o un Set.
+Parámetros:
+  tabla -> Text: Nombre de una tabla la Base de Datos
+           Set : Conjunto con la estructura 'StSqlInfoForeing'",
+SqlMysInfoDependent);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlMysInfoDependentAll(Anything tabla)
+//////////////////////////////////////////////////////////////////////////////
+{
+  // query
+  Set sGetTabDep = SqlMysInfoDependent(tabla);
+
+  Set info = If(IsEmpty(sGetTabDep), Empty,
+  {
+    Text gramTabla = Grammar(tabla);
+    Set cnj  = Case(
+      gramTabla == "Text", SetOfText(tabla),
+      gramTabla == "Set", tabla,
+      Empty,
+      {
+        WriteLn("ERROR: SqlMysInfoDependentAll\n"+
+                "Gramatica '"+ gramTabla +"' desconocida!");
+        Empty
+    });
+//    Set sGetTabDepTra = Traspose(sGetTabDep);
+//    Set infPk = Traspose(SetOfSet(sGetTabDepTra[1] , sGetTabDepTra[3]));
+    sGetTabDep << SqlMysInfoDependentAll(sGetTabDep)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Información de todas las tablas que dependen de una tabla dada en Oracle.
+La función puede recibir un Text o un Set.
+Parámetros:
+  tabla -> Text: Nombre de una tabla la Base de Datos
+           Set : Conjunto con la estructura 'StSqlInfoForeing'
+",
+SqlMysInfoDependentAll);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlMysForeignEnable(Text tabla, Text restriccion)
+//////////////////////////////////////////////////////////////////////////////
+{
+WriteLn("<W>SqlMysForeignEnable. MySql. Opcion por implementar</W>");
+  ""
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Sentencia para habilitar una clave ajena dada para MySql.
+Valida los cambios realizados.
+Parámetros:
+  tabla       -> Nombre de la tabla
+  restriccion -> Nombre de la resticcion
+Devuelve: El texto a ejecutar",
+SqlMysForeignEnable);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlMysForeignDisable(Text tabla, Text restriccion)
+//////////////////////////////////////////////////////////////////////////////
+{
+WriteLn("<W>SqlMysForeignDisable. MySql. Opcion por implementar</W>");
+  ""
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Sentencia para deshabilitar una clave ajena dada para MySql.
+Valida los cambios realizados.
+Parámetros:
+  tabla       -> Nombre de la tabla
+  restriccion -> Nombre de la resticcion
+Devuelve: El texto a ejecutar",
+SqlMysForeignDisable);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlMysShowTreeTable(Text nombreTabla, Real showSonTables){
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("<W>SqlMysShowTreeTable. MySql. Opcion por implementar</W>");
+  ""
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"  Dada una tabla, dibuja un árbol con las tablas que hacen referencia a ella 
+de forma recursiva si 'showSonTables' es TRUE, si no mostrará las
+tablas a las que ésta hace referencia recursivamente.
+  Se muestran también los campos, los que son Primary Key en capital.
+  La expresión '[...]' indica que dicha tabla ya ha sido representada.",
+SqlMysShowTreeTable);
+//////////////////////////////////////////////////////////////////////////////
+
+ 
+

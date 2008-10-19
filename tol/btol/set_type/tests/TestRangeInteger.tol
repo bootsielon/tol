@@ -1,0 +1,56 @@
+//Test to verify Range behaviour on Integer values.
+// Based on bug: http://bugs.tol-project.org/show_bug.cgi?id=143
+//Date: 09-09-2004
+//Author: Manuel Balderrábano <manuelb@tol-project.org>
+
+// Test Description
+Text "Testing Range behaviour on integer values...";
+
+// Test Operations
+Real {
+    Text Write("Testing Range behaviour on integer values...");
+    //Integer positive values, 1 step:
+    Set r1 = Range(1,1,1);
+    Set r1Test = [[1]];
+    Real res11 = Card(r1) == Card(r1Test);
+    Real res12 = (r1 == r1Test);
+    //Integer positive values, 2 step:
+    Set r2 = Range(1,2,1);
+    Set r2Test = [[1,2]];
+    Real res21 = Card(r1) == Card(r1Test);
+    Real res22 = (r1 == r1Test);
+    //Integer positive values, 3 steps:
+    Set r3 = Range(1,3,1);
+    Set r3Test = [[1,2,3]];
+    Real res31 = Card(r1) == Card(r1Test);
+    Real res32 = (r1 == r1Test);
+
+    //Integer non-positive values, 1 step:
+    Set r4 = Range(-1,-1,1);
+    Set r4Test = [[-1]];
+    Real res41 = Card(r1) == Card(r1Test);
+    Real res42 = (r1 == r1Test);
+    //Integer non-positive values, 2 step:
+    Set r5 = Range(-1,0,1);
+    Set r5Test = [[-1,0]];
+    Real res51 = Card(r1) == Card(r1Test);
+    Real res52 = (r1 == r1Test);
+    //Integer non-positive values, 3 steps:
+    Set r6 = Range(-1,1,1);
+    Set r6Test = [[-1,0,1]];
+    Real res61 = Card(r1) == Card(r1Test);
+    Real res62 = (r1 == r1Test);
+
+
+
+    Real ok = (res11 & res12 
+            & res21 & res22 
+            & res31 & res32
+            & res41 & res42
+            & res51 & res52
+            & res61 & res62);
+    WriteLn(If(ok,"OK","ERROR"));
+    ok
+};
+
+

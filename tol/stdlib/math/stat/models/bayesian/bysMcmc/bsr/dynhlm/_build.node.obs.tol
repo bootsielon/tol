@@ -1,0 +1,377 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : build.node.obs.tol
+// PURPOSE : observational level building methods
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Returns common information about a time serie that will be used as output
+//or input of a dynamic observational node
+NameBlock Obs.Serie.Info(
+  //Node identifier                           
+  Text id_node,                           
+  //Time serie identifier must be unique along whole hierarchy
+  Text name,
+  //Time serie data
+  Serie serie, 
+  //Number of needed initial values
+  Real numIniVal,
+  //The first date to be analyzed
+  Date first, 
+  //The last date to be analyzed
+  Date last, 
+  //If there are missing values it will be added prior information about it
+  //multiplying the standard deviation of the serie by this factor. 
+  //If you don't have prior information about this set it to +1/0
+  Real missing.sigmaFactor, 
+  //Minimum feasible value for missing values. 
+  //If you don't have prior information about this set it to -1/0
+  Real missing.lowerBound, 
+  //Maximum feasible value for missing values. 
+  //If you don't have prior information about this set it to +1/0
+  Real missing.upperBound)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Text _.id_node = id_node;
+  Text _.name = name;
+  Serie _.serie = serie;
+  Real _.avg = AvrS(_.serie);
+  Real _.missing.sigmaFactor = missing.sigmaFactor; 
+  Real _.missing.lowerBound  = missing.lowerBound; 
+  Real _.missing.upperBound  = missing.upperBound;
+
+  //Number of needed initial values
+  Real _.numIniVal = numIniVal;
+  //The first date of initial values when needed
+  Date _.firstIniVal = Succ(first,Dating(_.serie),-numIniVal);
+  //The last date of initial values when needed
+  Date _.lastIniVal = Succ(first,Dating(_.serie),-1);
+  //The first date to be analyzed
+  Date _.firstDate = first;
+  //The last date to be analyzed
+  Date _.lastDate  = last;
+  //Sorted list of analyzed dates
+  Set _.dates = Dates(Dating(_.serie), _.firstIniVal, _.lastDate);
+  Serie _.unk.left = SubSer(CalInd(Dating(_.serie),Dating(_.serie)), 
+                       _.firstIniVal, Succ(First(_.serie),Dating(_.serie),-1));
+  Serie _.unk.right = SubSer(CalInd(Dating(_.serie),Dating(_.serie)), 
+                       Succ(Last(_.serie),Dating(_.serie),+1),_.lastDate);
+  //TimeSet of missing values
+  Serie _.missing.serie = _.unk.left<<IsUnknown(_.serie)>>_.unk.right;
+  TimeSet _.missing.dating = SerTms(_.missing.serie);
+  //Sorted list of dates of missing values
+  Set _.missing.dates = Dates(_.missing.dating, _.firstIniVal, _.lastDate);
+  //Returns a unique identifier for a missing value
+  Text missing.name(Date dte)
+  {
+    Text txt = FormatDate(dte,"%cy%Ym%md%dh%hi%is%s");
+    "MissingBlk::"+_.id_node+"::"+_.name+"::"+txt
+  };
+  //Returns the expression of the t-th regression coefficient that could be a
+  //a known real datum or the identifier of a missing value
+  Text get.coef(Real t)
+  {
+  //WriteLn("TRACE get.coef t="<<t);
+    Date dte = _.dates[t+_.numIniVal];
+    Real x = SerDat(_.serie, dte);
+    If(IsUnknown(x),
+       "+"+missing.name(dte),
+       BysMcmc::Bsr::Import::RealTextS(x))
+  };
+  Text get.knownCoefOrAvg(Real t)
+  {
+  //WriteLn("TRACE get.knownCoefOrAvg t="<<t);
+    Date dte = _.dates[t+_.numIniVal];
+    Real x = SerDat(_.serie, dte);
+    BysMcmc::Bsr::Import::RealTextS(If(IsUnknown(x),_.avg, x))
+  };
+  //Sorted list of variables related to missing values
+  Set _.missing = EvalSet(_.missing.dates,Set(Date dte)
+  {
+    Bsr.Missing.Info(Text Name = missing.name(dte), 
+                     Real Average = AvrS(_.serie), 
+                     Real Sigma = StDsS(_.serie)*_.missing.sigmaFactor, 
+                     Real LowerBound = _.missing.lowerBound, 
+                     Real UpperBound = _.missing.upperBound)
+  })
+]]};
+
+//////////////////////////////////////////////////////////////////////////////
+//Returns full information about a time serie that will be used as input of 
+//a dynamic observational node
+NameBlock Obs.Input(
+  //Parameter identifier
+  Text id_parameter,
+  //The result of calling Build.Serie.info for an input serie
+  NameBlock serie.info,
+  //Initial value for the regression parameter
+  Real initValue, 
+  //Minimum feasible value for regression parmeter
+  //If you don't have prior information about this set it to -1/0
+  Real param.lowerBound, 
+  //Maximum feasible value for regression parmeter
+  //If you don't have prior information about this set it to +1/0
+  Real param.upperBound)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  NameBlock _.serie.info=serie.info;
+  Set _.param = Bsr.Param.Info(
+    "LinearBlk::"+_.serie.info::_.id_node+"::"+id_parameter, 
+    initValue, 
+    param.lowerBound, 
+    param.upperBound)
+]]};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Returns full information about a time serie that will be used as input of 
+//a dynamic observational node
+NameBlock Obs.TransFun(
+  //Node identifier
+  Text id_node,
+  //TransferFunction identifier
+  Text id_transferFunction,
+  //Numerator polynomial
+  Text te_omega,
+  //Denominator polynomial
+  Text te_delta,
+  //The result of calling Build.Serie.info for an input serie
+  NameBlock serie.info,
+  //Initial value for the regression parameter
+  Real initValue, 
+  //Minimum feasible value for regression parmeter
+  //If you don't have prior information about this set it to -1/0
+  Real param.lowerBound, 
+  //Maximum feasible value for regression parmeter
+  //If you don't have prior information about this set it to +1/0
+  Real param.upperBound)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  NameBlock _.serie.info=serie.info;
+  Text _.transferFunction = id_transferFunction;
+  Polyn _.omega = Eval(te_omega);
+  Polyn _.delta = Eval(te_delta);
+  Real _.p = Degree(_.omega);
+  Real _.q = Degree(_.delta);
+  Real _.h = Max(_.p, _.q);
+  Real _.hasDelta = _.q>0;
+  Set _.omegaParam = EvalSet(Monomes(_.omega), Set omegaBlk(Polyn mon)
+  {
+    Bsr.Param.Info(
+      "OmegaBlk::"+_.serie.info::_.id_node+"::"+id_transferFunction+
+      "::NumDeg."+IntText(Degree(mon)), 
+      initValue, 
+      param.lowerBound, 
+      param.upperBound)
+  });
+  Set _.deltaParam = EvalSet(Monomes(1-_.delta), Set deltaBlk(Polyn mon)
+  {
+    Real deg = Degree(mon);
+    Bsr.Param.Info(
+      "DeltaBlk::"+_.serie.info::_.id_node+"::"+id_transferFunction+
+      "::DenDeg."+IntText(deg), 
+      0, 
+      -deg, 
+      +deg)
+  });
+  Set _.denIniParam = For(1,_.h, Set denIni(Real lag)
+  {
+    Bsr.Param.Info(
+      "DeltaBlk::"+_.serie.info::_.id_node+"::"+id_transferFunction+
+      "::DenIni."+IntText(_.h-lag), 
+      0, 
+      -1/0, 
+      +1/0)
+  });
+  NameBlock _.deltaNonLinBlock = If(Not(_.hasDelta), UNKNOWN,
+  {
+    Serie ser = _.serie.info::_.serie;
+    Date fst0 = _.serie.info::_.firstIniVal;
+    Date lst0 = _.serie.info::_.lastIniVal;
+    Date fst  = _.serie.info::_.firstDate;
+    Date lst  = _.serie.info::_.lastDate;
+
+    BysMcmc::Bsr::Gibbs::DeltaTransfer
+    (
+      id_node+"::Noise",
+      _.transferFunction,
+      EvalSet(_.omegaParam, Text(Bsr.Param.Info pi) { pi->Name}),
+      _.omega, 
+      _.delta,
+      If(!_.p,Rand(0,1,0,0), Tra(SerSetMat([[ser]], fst0, lst0))),
+      Tra(SerSetMat([[ser]], fst,lst))
+    )
+  })
+]]};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Returns full information about a time serie that will be used as output of 
+//a dynamic observational node
+NameBlock Obs.Output(
+  //The result of calling Build.Serie.info for an input serie
+  NameBlock serie.info,
+  //A possibly empty set of ARIMA factors with structure ARIMAStruct
+  Set arima)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  NameBlock _.serie.info=serie.info;
+  Set _.arima.factors = arima
+]]};
+
+//////////////////////////////////////////////////////////////////////////////
+//Returns the NameBlock needed to build BSR information about an dynamic
+//observational node 
+NameBlock Obs(
+  //The result of calling Obs.Output
+  NameBlock output, 
+  //A set where each item is the result of calling Obs.Input
+  Set input,
+  //A set where each item is the result of calling Obs.TransFun
+  Set transFun,
+  //The result of calling BysMcmc::Bsr::Import::Constraints
+  NameBlock constraints,
+  Real forceZeroInputCoef)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  //Optional ad-hoc API.
+  Text _.id_node = output::_.serie.info::_.id_node;
+  Text _.series = output::_.serie.info::_.name;
+  NameBlock _.output = output;
+  Set _.input = input;
+  Set _.transFun = transFun;
+  Set _.transFun.omega = BinGroup("<<",EvalSet(_.transFun, Set(NameBlock tf)
+  {
+    tf::_.omegaParam
+  }));
+  Set _.transFun.serie = BinGroup("<<",EvalSet(_.transFun, Set(NameBlock tf)
+  {
+    EvalSet(Monomes(tf::_.omega), NameBlock(Polyn mon)
+    {[[
+      NameBlock serie = tf::_.serie.info;
+      Real degree = Degree(mon)
+    ]]})
+  }));
+
+  Set _.deltaNonLinBlk = 
+  {
+    Set sel = Select(_.transFun,Real(NameBlock tf)
+    {
+    //WriteLn("TRACE Obs Degree("+tf::_.transferFunction+"::_.delta="<<tf::_.delta+")="<<Degree(tf::_.delta));
+      tf::_.hasDelta
+    });
+  //WriteLn("TRACE Obs Card(sel)="<<Card(sel));
+    EvalSet(sel, NameBlock(NameBlock tf)
+    {
+      tf::_.deltaNonLinBlock
+    })
+  };
+
+  Real _.nInp = Card(_.input);
+  Real _.nTfo = Card(_.transFun.omega);
+
+  NameBlock _.constraints = constraints;
+  Real _.forceZeroInputCoef = forceZeroInputCoef;
+  Set _.missing = _.output::_.serie.info::_.missing << 
+    BinGroup("<<", EvalSet(_.input, Set(NameBlock inp)
+    {
+      inp::_.serie.info::_.missing
+    }));
+
+  //Mandatory methods that will be used by BysMcmc::Bsr::Import
+
+  //Returns the unique identifier of the regression segment
+  Text Get.Name(Real unused) { _.id_node };
+
+  /////////////////////////////////////////////////////////////////////////
+  // MAIN LINEAR BLOCK
+  Real Get.Param.Size(Real unused) { _.nInp + _.nTfo };
+  Set Get.Param(Real numParam) 
+  { 
+    If(numParam<=_.nInp, 
+      (_.input[numParam])::_.param,
+      _.transFun.omega[numParam-_.nInp])
+  };
+  Real Get.Param.ForceZero(Real term) { term > _.nInp };
+  /////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////////
+  // MISSING VALUES BLOCK
+  Real Get.Missing.Size(Real unused) {  Card(_.missing) };
+  Set Get.Missing(Real numMissing) { _.missing[numMissing] };
+  /////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////////
+  // SIGMA BLOCK
+  //Returns a Real fixed known sigma value as prior information or a 
+  //Text variable name to be simulated in the Sigma Gibbs block of BSR
+  Text Get.Sigma2(Real unused) 
+  { 
+    "SigmaBlk::"+_.id_node+"::Variance" 
+  };
+  /////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////////
+  // ARIMA BLOCK
+  //Returns the number of ARIMA factors for a regression segment about
+  //a discrete time process. If there is not a time process or is a 
+  //white noise process then returns 0
+  Real Get.ARIMA.Size(Real unused) { Card(_.output::_.arima.factors) };
+  //Returns the f-th ARIMA factor with structure ARIMAStruct
+  //In current version all AR or MA factors must have degrees 0, 1 or 2
+  //In order to define higher degrees you will need to add more 
+  //ARIMAStruct items
+  Set Get.ARIMA.Factor(Real f) { _.output::_.arima.factors[f] };
+  /////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////////
+  // REGRESSION EQUATIONS
+  Set Get.TimeInfo(Real unused)
+  {
+    BSR.NoiseTimeInfo
+    (
+      Dating(_.output::_.serie.info::_.serie),
+      _.output::_.serie.info::_.firstDate,
+      _.output::_.serie.info::_.lastDate
+    )
+  };
+  Real Get.Equation.Size(Real unused) 
+  { 
+    Card(_.output::_.serie.info::_.dates) 
+  };
+  //Returns Real known output or Text missing name
+  Text Get.Equation.Output(Real t)
+  {
+    _.output::_.serie.info::get.coef(t)
+  };
+  //Returns the number of input terms involved in t-th equation
+  Real Get.Equation.Input.Size(Real t) { _.nInp + _.nTfo };
+  //Returns Real known output or Text missing name of an input term
+  Text Get.Equation.Input.Coef(Real t, Real term)
+  {
+    If(term<=_.nInp, 
+    {
+      (_.input[term])::_.serie.info::get.coef(t)
+    },
+    {
+      NameBlock aux = _.transFun.serie[term-_.nInp];
+      aux::serie::get.knownCoefOrAvg(t-aux::degree)
+    })
+  };
+  //Returns the param name of an input term
+  Text Get.Equation.Input.Param(Real numEqu, Real term)
+  {
+    If(term<=_.nInp, 
+    {
+      ((_.input[term])::_.param)->Name
+    },
+    {
+      _.transFun.omega[term-_.nInp]->Name
+    })
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  // LINEAR CONSTRAINING INEQUATIONS
+  NameBlock Get.Constraints.Handler(Real unused) { _.constraints }
+
+]]};
+

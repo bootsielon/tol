@@ -1,0 +1,3 @@
+ln-H tol_bdtegra.h ;
+
+objects objs : dtegra.cpp ;

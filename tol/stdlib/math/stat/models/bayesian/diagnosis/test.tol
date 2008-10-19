@@ -1,0 +1,14 @@
+////////////////////////////////////////////////////////////////////////////////
+// FILE: _test.tol
+// PURPOSE: test for NameBlock RCODA
+////////////////////////////////////////////////////////////////////////////////
+
+Matrix sample = Rand(5000,2,0,1);
+Matrix raftery=RCODA::raftery.diag(sample,{[[Real varByCol=TRUE, 
+                                             Real verbose=TRUE]]});
+
+Set summary=RCODA::summary(sample,{[[Real varByCol=TRUE, 
+                                        Real verbose=TRUE]]});
+
+Set View([[raftery, summary]], "Std");
+

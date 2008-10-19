@@ -1,0 +1,33 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _buildNode.tol
+// PURPOSE : Implements NameBlock BysMcmc::Bsr::DynHlm::BuildNode
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock BuildNode =
+//////////////////////////////////////////////////////////////////////////////
+[[  
+  //read only autodoc
+  Text _.autodoc.description = 
+  "Building nodes related methods to handle with Bsr::DynHlm models";
+
+  //Methods related to Observational nodes
+  Set _build.node.obs = Include("_build.node.obs.tol");
+  Code Obs.Serie.Info;
+  Code Obs.Input;
+  Code Obs.TransFun;
+  Code Obs.Output;
+  Code Obs;
+
+  //Methods related to Latent nodes
+  Set _build.node.lat = Include("_build.node.lat.tol");
+  Code Lat.Homog;
+
+  //Methods related to Prior nodes
+  Set _build.node.pri = Include("_build.node.pri.tol");
+  Code Pri.Homog
+
+]];
+
+
+

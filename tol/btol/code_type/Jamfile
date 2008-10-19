@@ -1,0 +1,3 @@
+ln-H tol_bcode.h  tol_bcodgra.h ;
+
+objects objs : cod.cpp  codgra.cpp ;

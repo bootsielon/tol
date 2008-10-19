@@ -1,0 +1,12 @@
+February 28, 2007 - Tol Database Drivers 1.0
+
+This project provides three connectors between Tol and Database Engines:
+
+- A general connector to access any database through an ODBC Bridge.
+- A MySQL connector to get direct access to MySQL engines. 
+- A PostgreSQL connector to get direct access to PostgreSQL engines.
+
+Visit Tol Web Site in http://www.tol-project.org to know more about how to customize
+and use these connectors inside Tol programs.
+
+Daniel Rus <danirus@tol-project.org>

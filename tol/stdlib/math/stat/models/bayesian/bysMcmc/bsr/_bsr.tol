@@ -1,0 +1,28 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _bsr.tol
+// PURPOSE: Bayesian Sparse Regression methods
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock Bsr =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //read only autodoc
+  Text _.autodoc.description =
+  "Bayesian Sparse Regression methods.";
+
+  //private implementation
+  Set _import = Include("_import.tol");
+  Set _dynHlm = Include("dynhlm/_dynhlm.tol");
+  Set _gibbs = Include("gibbs/_gibbs.tol");
+
+  //Exporting public methods and members
+  NameBlock Gibbs;
+  NameBlock Import;
+  NameBlock DynHlm
+]];
+  
+
+
+
+

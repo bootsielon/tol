@@ -1,0 +1,508 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _sqlora.tol
+// PURPOSE : Funciones propias del gestor ORACLE
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// CONSTANTS
+//////////////////////////////////////////////////////////////////////////////
+
+Text SqlOraFormatRealTol2Sql = "%.5lf";
+Date SqlOraDefaultTheBegin   = y1990m01d01h00i00s00;
+Date SqlOraDefaultTheEnd     = y2010m01d01h00i00s00;
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlOraFormatDate(Date dte)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Date dteAux = 
+   If(dte == TheBegin, SqlOraDefaultTheBegin,
+   If(dte == TheEnd,   SqlOraDefaultTheEnd, dte));
+
+  Text formatDate = FormatDate(dteAux, "%c%Y/%m/%d%u %h:%i:%s");
+  Real longfd     = TextLength(formatDate);
+  Text sqlFormat  = Case
+  (
+    //EQ(longfd, 4), "YYYY",
+    //EQ(longfd, 7), "YYYY/MM",
+    EQ(longfd, 10), "YYYY/MM/DD",
+    EQ(longfd, 13), "YYYY/MM/DD HH24",
+    EQ(longfd, 16), "YYYY/MM/DD HH24:MI",
+    EQ(longfd, 19), "YYYY/MM/DD HH24:MI:SS",
+    True          , "YYYY/MM/DD HH24:MI:SS..."
+  );
+
+  "to_date('"+ formatDate +"', '"+ sqlFormat +"')" 
+
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de fecha con formato dependiente del de TOL al formato 
+equivalente ORACLE.",
+SqlOraFormatDate);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlOraFormatReal(Real rea)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real isUnk = IsUnknown(rea);
+  Real isInf = IsInfinite(rea);
+  If(Or(isUnk, isInf), "to_number(null)", 
+   FormatReal(rea,SqlOraFormatRealTol2Sql))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de reales TOL a formato real de ORACLE.",
+SqlOraFormatReal);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlOraFormatInteger(Real rea)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real isUnk = IsUnknown(rea);
+  Real isInf = IsInfinite(rea);
+  If(Or(isUnk, isInf), "to_number(null)", IntText(rea))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de reales TOL a formato entero de ORACLE. Si el numero no es 
+entero lo redondea.",
+SqlOraFormatInteger);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlOraFormatText(Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{ If(txt == "", "to_char(null)","'"+Replace(txt, "'", "''")+"'") };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de text a char de ORACLE",
+SqlOraFormatText);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlOraFormatPolyn(Polyn pol)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  If(IsUnknownPolyn(pol), "to_char(null)", "'"+FormatPolyn(pol)+"'") 
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de polyn a char de ORACLE",
+SqlOraFormatPolyn);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlOraInfoColumns(Text tabla)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  // query
+  Text strSql =
+"
+select tb.table_name                  as Table_, 
+       tb.column_name                 as Column_, 
+       tb.data_type                   as Type_,
+       tb.data_length                 as Length_, 
+       tb.data_precision              as Precision_,
+       tb.data_scale                  as Scale_,
+       decode(tb.nullable, 'Y', 1, 0) as IsNull_,
+       decode((select ic.column_name
+               from all_ind_columns ic, all_constraints c
+               where ic.table_name  = c.table_name
+                 and ic.index_name  = c.constraint_name
+                 and c.constraint_type = 'P'
+                 and ic.table_name  = tb.table_name
+                 and ic.column_name = tb.column_name), null, 0, 1) as IsKey_
+from all_tab_columns tb
+where upper(tb.table_name) = upper('"+tabla+"')
+order by tb.column_id
+";
+  Set info = SqlDBTable(strSql, "StSqlInfoColums");
+  info
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de los campos de una tabla de Oracle",
+SqlOraInfoColumns);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlOraInfoKeys(Text tabla)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  // query
+  Text strSql =
+"
+select ic.table_name  as Table_,
+       ic.index_name  as Index_,
+       ic.column_name as Column_
+from all_ind_columns ic, all_constraints c
+where ic.table_name = c.table_name
+  and ic.index_name = c.constraint_name
+  and c.constraint_type = 'P'
+  and upper(ic.table_name) = upper('"+tabla+"')
+order by ic.column_position
+";
+  Set info = SqlDBTable(strSql, "StSqlInfoKeys");
+  info
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de los campos clave de una tabla de Oracle",
+SqlOraInfoKeys);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlOraInfoForeign(Text tabla)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  // query
+  Text strSql =
+"
+select c.TABLE_NAME       as Table_,
+       c.CONSTRAINT_NAME  as Index_,
+       cc.column_name     as Column_,
+       c2.TABLE_NAME      as ForeignTable_,
+       c2.CONSTRAINT_NAME as ForeignIndex_,
+       cc2.column_name    as ForeignColumn_
+from  all_constraints c, all_constraints c2,
+      all_cons_columns cc, all_cons_columns cc2
+where c.R_CONSTRAINT_NAME = c2.CONSTRAINT_NAME
+  and c.r_owner           = c2.owner 
+  and c.constraint_type   = 'R'
+  and c.table_name        = cc.table_name
+  and c.constraint_name   = cc.constraint_name
+  and c2.table_name       = cc2.table_name
+  and c2.constraint_name  = cc2.constraint_name
+  and cc.position         = cc2.position
+  and upper(c.table_name) = upper('"+tabla+"')
+order by c.CONSTRAINT_NAME, cc.position
+";
+  Set info = SqlDBTable(strSql, "StSqlInfoForeing");
+  info
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de las relacciones externas de una tabla de Oracle",
+SqlOraInfoForeign);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlOraInfoDependent(Anything tabla)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Text gramTabla = Grammar(tabla);
+  // informacion de los campos claves
+  Text txtWhe = Case(
+    gramTabla == "Text", " upper(c2.TABLE_NAME) = upper('"+tabla+"') ",
+    gramTabla == "Set",
+    {
+      Set lstWhe = EvalSet(tabla, Text (Set set)
+      {
+         Text " ( upper(c2.TABLE_NAME) = upper('"+set->Table+"') 
+                  and upper(cc2.column_name) = upper('"+set->Column+"'))"
+      });
+      Text TxtListItem (lstWhe, " or "+NL)
+    }, 
+    "",
+    {
+      WriteLn("ERROR: SqlOraInfoDependent\n"+
+              "Gramatica '"+ gramTabla +"' desconocida!");
+      " = '"<< tabla +"'"
+    }
+  );
+  // query
+  Set info = If(txtWhe == "", Empty,
+  {
+    Text strSql =
+"
+select c.TABLE_NAME       as Table_,
+       c.CONSTRAINT_NAME  as Index_,
+       cc.column_name     as Column_,
+       c2.TABLE_NAME      as ForeignTable_,
+       c2.CONSTRAINT_NAME as ForeignIndex_,
+       cc2.column_name    as ForeignColumn_
+from  all_constraints c, all_constraints c2,
+      all_cons_columns cc, all_cons_columns cc2
+where c.R_CONSTRAINT_NAME = c2.CONSTRAINT_NAME
+  and c.r_owner           = c2.owner 
+  and c.constraint_type   = 'R'
+  and c.table_name        = cc.table_name
+  and c.constraint_name   = cc.constraint_name
+  and c2.table_name       = cc2.table_name
+  and c2.constraint_name  = cc2.constraint_name
+  and cc.position         = cc2.position
+  and ("+ txtWhe +")
+order by c.CONSTRAINT_NAME, cc.position
+";
+    Set info = SqlDBTable(strSql, "StSqlInfoForeing");
+    info
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de las tablas que dependen de una tabla dada en Oracle.
+La función puede recibir un Text o un Set.
+Parámetros:
+  tabla -> Text: Nombre de una tabla la Base de Datos
+           Set : Conjunto con la estructura 'StSqlInfoForeing'",
+SqlOraInfoDependent);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlOraGetDependantTables(Text tabla, Set columns)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+// informacion de los campos claves
+  Text txtWhe = " upper(c2.TABLE_NAME) = upper('"+tabla+"')" + 
+    If(IsEmpty(columns), "",
+    {
+      Set lstWhe = EvalSet(columns, Text (Text col)
+      {
+        Text " ( upper(cc2.column_name) = upper('"+col+"'))"
+      });
+      Text " and (" + TxtListItem (lstWhe, " or "+NL) + ")"
+     });
+  // query
+  Set info = If(txtWhe == "", Empty,
+  {
+    Text strSql =
+"
+select c.TABLE_NAME       as Table_,
+       c.CONSTRAINT_NAME  as Index_,
+       cc.column_name     as Column_,
+       c2.TABLE_NAME      as ForeignTable_,
+       c2.CONSTRAINT_NAME as ForeignIndex_,
+       cc2.column_name    as ForeignColumn_
+from  all_constraints c, all_constraints c2,
+      all_cons_columns cc, all_cons_columns cc2
+where c.R_CONSTRAINT_NAME = c2.CONSTRAINT_NAME
+  and c.r_owner           = c2.owner 
+  and c.constraint_type   = 'R'
+  and c.table_name        = cc.table_name
+  and c.constraint_name   = cc.constraint_name
+  and c2.table_name       = cc2.table_name
+  and c2.constraint_name  = cc2.constraint_name
+  and cc.position         = cc2.position
+  and ("+ txtWhe +")
+order by c.CONSTRAINT_NAME, cc.position
+";
+    Set info = SqlDBTable(strSql, "StSqlInfoForeing");
+    info
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de las tablas que dependen de una tabla dada. La función
+recibe un Text y un Set.
+Parámetros:
+  tabla    -> Text: Nombre de una tabla la Base de Datos
+  columns  -> Set : Conjunto de columnas de las cuales se quiere saber
+              qué claves externas están relacionadas a ella
+  gestor   -> SGBD activo 
+Devuelve un Set de estructuras StSqlInfoForeing 
+  (Text Table, Text Index, Text Column, Text ForeignTable,
+   Text ForeignIndex, Text ForeignColumn)
+",
+SqlOraGetDependantTables);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlOraInfoDependentAll(Anything tabla)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text gramTabla = Grammar(tabla);
+  Set currTab = 
+    Case(
+      gramTabla == "Text", SetOfText(ToUpper(tabla)),
+      gramTabla == "Set",  tabla,
+      1,
+      {
+        WriteLn("ERROR: SqlOraInfoDependentAll\n"+
+                "Gramatica '"+ gramTabla +"' desconocida!");
+        Copy(Empty)
+       });
+
+    Set sGetTabDep = 
+       If (
+         IsEmpty(currTab), 
+         Copy(Empty), 
+         {
+            Set sGetTabDep_ = SqlOraInfoDependent(tabla);
+            Set sGetTabDep = Select(sGetTabDep_, Real (Set s)
+             {
+               Not( s->Table <: currTab )
+             });
+            sGetTabDep << SqlOraInfoDependentAll(sGetTabDep)
+          })
+
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Información de todas las tablas que dependen de una tabla dada en Oracle.
+La función puede recibir un Text o un Set.
+Parámetros:
+  tabla -> Text: Nombre de una tabla la Base de Datos
+           Set : Conjunto con la estructura 'StSqlInfoForeing'
+",
+SqlOraInfoDependentAll);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlOraForeignEnable(Text tabla, Text restriccion)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text "alter table "+ tabla +" enable validate constraint "+ restriccion
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Sentencia para habilitar una clave ajena dada para Oracle.
+Valida los cambios realizados.
+Parámetros:
+  tabla       -> Nombre de la tabla
+  restriccion -> Nombre de la resticcion
+Devuelve: El texto a ejecutar",
+SqlOraForeignEnable);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlOraForeignDisable(Text tabla, Text restriccion)
+//////////////////////////////////////////////////////////////////////////////
+{
+// validate
+  Text "alter table "+ tabla +" disable constraint "+ restriccion
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Sentencia para deshabilitar una clave ajena dada para Oracle.
+Valida los cambios realizados.
+Parámetros:
+  tabla       -> Nombre de la tabla
+  restriccion -> Nombre de la resticcion
+Devuelve: El texto a ejecutar",
+SqlOraForeignDisable);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlOraShowTreeTable(Text nombreTabla, Real showSonTables){
+//////////////////////////////////////////////////////////////////////////////
+
+  Set ctoTablasAcum = Copy(Empty);
+
+  Text func_espacios(Real nEspacios, Text txt){
+    Set cto = For(1, nEspacios, Text(Real i){ txt });
+    If(Card(cto),
+      SetSum(cto),
+      "")
+  };
+
+
+  Text funcion(Text nombreTabla_2, Real numEspacios){
+
+    Text espacios = func_espacios(numEspacios, "|  ");
+
+    Text qry_cols =
+    "
+    SELECT column_name
+    FROM   all_tab_columns
+    WHERE  table_name = UPPER('"+ nombreTabla_2 +"')
+    ";
+    Set cto_cols = DBTable(qry_cols);
+  
+    Text cols = {
+      Text qry_pk =
+      "
+      SELECT t1.column_name
+      FROM   all_cons_columns t1, all_constraints t2
+      WHERE  t1.constraint_name = t2.constraint_name
+        AND  t2.constraint_type = 'P'
+        AND  t1.table_name = UPPER('"+ nombreTabla_2 +"')
+      ";
+      Set cto_pk_temp = DBTable(qry_pk);
+      Set cto_pk = If(Card(cto_pk_temp), 
+        Traspose(cto_pk_temp)[1],
+        Empty
+      );
+
+      Real card = Card(cto_cols);
+      If(card,
+      { Set cto = For(1, card-1, Text(Real i){
+          Text col = cto_cols[i][1];
+          If(col<:cto_pk, FirstToUpper(col, TRUE)+", ",  ToLower(col) +", ")
+        });
+        Text ultimo = {
+          Text col = cto_cols[card][1];
+          If(col<:cto_pk, FirstToUpper(col, TRUE), ToLower(col))
+        };
+
+        "("+ SetSum(cto) + ultimo +")"
+      }," --> ¡¡¡NO EXISTEN restricciones para esta tabla!!!")
+    };
+  
+    Text qry_tablas =
+    If(showSonTables,
+      "SELECT t2.table_name
+      FROM   all_constraints t1, all_constraints t2
+      WHERE  t1.constraint_name = t2.r_constraint_name
+        AND  t1.table_name = UPPER('"+ nombreTabla_2 +"')
+      ",
+      "
+      SELECT t1.table_name
+      FROM   all_constraints t1, all_constraints t2
+      WHERE  t1.constraint_name = t2.r_constraint_name
+        AND  t2.table_name = UPPER('"+ nombreTabla_2 +"')
+      "
+    );
+
+    Set cto_tablas_temp = DBTable(qry_tablas);
+  
+    Set cto_tablas = If(Card(cto_tablas_temp),
+      Traspose(cto_tablas_temp)[1],
+      Empty
+    );
+  
+
+   Real condParada = { 
+     Set cto = EvalSet(cto_tablas, Real(Text tabla){
+         nombreTabla_2 <: ctoTablasAcum
+     });
+     Real r = SetSum(cto);
+     If(IsUnknown(r), 0, r)
+     };
+    
+    Set {ctoTablasAcum := ctoTablasAcum + SetOfText(nombreTabla_2)};
+
+    Text ptosSusp = If(Card(cto_tablas),
+    {
+      Text espaciosVacios = func_espacios(numEspacios + 1, "|  ");
+      "\n"+ espaciosVacios +"· [...]"
+    }, "");
+
+    If(condParada, 
+      ToUpper(nombreTabla_2) + cols + ptosSusp,
+     { 
+       Set cto = EvalSet(cto_tablas, Text(Text tab){
+         "\n"+ espacios + "|  · "+ funcion(tab, numEspacios + 1)
+       });
+       ToUpper(nombreTabla_2) + cols + SetSum(cto)
+     }
+    )
+  };
+  funcion(nombreTabla, 0)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"  Dada una tabla, dibuja un árbol con las tablas que hacen referencia a ella 
+de forma recursiva si 'showSonTables' es TRUE, si no mostrará las
+tablas a las que ésta hace referencia recursivamente.
+  Se muestran también los campos, los que son Primary Key en capital.
+  La expresión '[...]' indica que dicha tabla ya ha sido representada.",
+SqlOraShowTreeTable);
+//////////////////////////////////////////////////////////////////////////////
+

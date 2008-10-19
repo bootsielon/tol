@@ -1,0 +1,43 @@
+////////////////////////////////////////////////////////////////////////////////
+// FILE: _regexp.tol
+// PURPOSE: Functions related to regular expression processing
+////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text RegReplace(Text regexp, Text string, Text subSpec, Set args)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real all = getOptArg(args, "all", FALSE);
+  Real nocase = getOptArg(args, "nocase", FALSE);
+  Text switches = If(all," -all ", "")+If(nocase," -nocase ","");
+  Text cmd = "regsub "+switches+" {"+regexp+"} {"+string+"} {"+subSpec+"}";
+  Set result = Tcl_Eval(cmd);
+  Text If(result["status"], result["result"],{
+      WriteLn("RegSub: "+result["result"]+"\nevaluating '"+cmd+"'","E");
+      string
+    })
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription
+  (
+   "Perform  substitutions  based  on regular expression pattern matching."
+   "Based on the tcl function regsub.\n"
+   "\n"
+   "See http://www.tcl.tk/man/tcl8.4/TclCmd/re_syntax.htm for a description\n"
+   "of the regular expression's syntax."
+   "\n"
+   "Arguments:\n"
+   "\n"
+   "Examples:\n"
+   "\n"
+   "Replace every instance of foo word with bar and ignoring case in\n"
+   "comparison:\n"
+   "    Text string = \"mira que foo hay encima del FOO\";\n"
+   "    Text RegReplace(\"foo\", string, \"bar\", {[[Real all=TRUE]]});\n"
+   "\n"
+   "the same as before but ignoring case:\n"
+   "    Text RegReplace(\"foo\", string, \"bar\", \n"
+   "                    {[[Real all=TRUE, Real nocase=TRUE]]});"
+   ,
+   RegReplace);
+//////////////////////////////////////////////////////////////////////////////

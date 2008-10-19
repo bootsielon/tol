@@ -1,0 +1,115 @@
+TODO-1- Documentacion
+
+  Documentacion de usuario/administrador y usuario/programador-tol
+
+TODO-2- Documentacion
+
+  Documentacion de desarrollador
+
+TODO-3- TEST
+
+  Test en varios servidores. Apoyarse en el test de producto de
+  matrices.
+
+TODO-4- ENHANCEMENT, hacer amigos rmtps <--> tolsh
+
+  Dotar al servidor RmtPS de un protocolo de control de tolsh. Una
+  idea puede ser algo asi:
+
+  - RmtPS se ejecuta como un daemon en la maquina servidora
+
+  - RmtPS tiene un archivo de configuracion que entre otras aspectos
+    puede contener una lista de puertos donde arrancar servidores
+    tolsh.
+
+  - Un cliente tiene una lista de ordenadores del cluster de calculo y
+    el puerto donde el daemon RmtPS esta escuchando. La primera
+    comunicacion es pedirle al RmtPS que arranque los servidores y que
+    nos de los puertos donde estan escuchando. Esto puede quedar
+    englobado en una funcion del API que podemos denominar
+    TolServerInit.
+
+  - Un cliente arranca el tolsh a traves de RmtPS y recibe ademas el
+    puerto donde el servidor tolsh atendera a peticiones escucha.
+
+TODO-5 ENHANCEMENT, hacer amigos tolbase <--> tolsh
+
+  Dotar a Tolbase de la capacidad de dialogar con TolServer de la misma
+  forma que tolsh lo hace.
+
+TODO-6 TEST/ROBUSTNES, RECONNECT
+
+  Verificar que el protocolo de RECONNECT controla perfectamente todas
+  las situaciones de excepcion que se presentan. Esto va en la linea
+  de mejorar la robusteza del servidor.
+
+TODO-7 ENHANCEMENT/DIAGNOSTIC, informacion de errores.
+
+  Facilitar informacion de errores que puedan producirse en la parte
+  del servidor durante la evaluacion de una tarea. El protocolo
+  TFINISH puede contener, ademas de ID de tarea, informacion adicional
+  sobre el numero de errores y warnings.
+
+TODO-8 BUG, particionar el buffer en trozos
+
+  El protocolo de comunicacion es orientado a buffer lleno. Esto puede
+  conducir a una situacion de error cuando la expresion a evaluar se
+  mayor que el tamaño del buffer. Una posible solucion seria adaptar
+  el protocolo de comunicacion para que se pueda pasar la expresion
+  particionada en trozos desde el cliente y el servidor se juntan,
+  cuando este toda la expresion unida es que se procede a registrar la
+  evaluacion.
+
+TODO-9 ENHANCEMENT, comunicacion de objetos TOL
+
+  TolServerGetObj(Text host, Real port, Text grammar, Text name)
+
+  
+  en toltcl necesitamos algo como:
+
+  tol::binget objref que retorna una imagen binaria del objeto
+
+  tol::binput objref binvalue
+
+  binvalue debe ser el resultado de un binget
+
+  el binvalue lo pasaremos por los canales de comunicacion
+
+  tolsh mantendra un cache de objref de forma tal que pueda atender a
+  peticiones sucesivas del mismo objeto.
+
+  el cache se podra (debera) invalidar por parte del cliente:
+
+    TolServerInvalidateCache(Text host, Real port)
+
+  tolsh deberia ser multithreaded asi si tol esta ocupado calculando
+  este puede atender a peticiones incrementando asi la robusteza del
+  protocolo de comunicacion entre el cliente y el servidor.
+
+TODO-10 Build, crear tclkit --thread-enable
+
+  Es importante con vistas a mantener tol en un thread separado de
+  tolsh, ver TODO-9.
+
+  Ya esta creado en Linux. Falta Windows.
+
+TODO-11 Bug, protocolo binario
+
+  Hay que cambiar el formato de los paquetes de comunicacion. Ahora
+  mismo se interpretan basados en regexp lo cual es inapropiado para
+  paquetes binarios. La solucion es usar 'binary format' para crear
+  los paquetes y 'binary scan' para decodificarlos.
+
+TODO-12 Check/BUG RECONNECT
+
+  Revisar en el codigo de tolclient/tolserver la parte relacionada a
+  RECONNECT.
+
+TODO-13 Performance-C++
+
+  Implementar tolserver/tolclient en C?
+
+TODO-14 FEATURE TolServerTaskStatus
+
+  Implementar TolServerTaskStatus para preguntar sobre el estado de
+  una tarea.

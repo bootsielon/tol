@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VBTol", "VBTol.vcproj", "{685703F0-4BB8-4982-89CC-AC5B5E2F6AE4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{685703F0-4BB8-4982-89CC-AC5B5E2F6AE4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{685703F0-4BB8-4982-89CC-AC5B5E2F6AE4}.Debug|Win32.Build.0 = Debug|Win32
+		{685703F0-4BB8-4982-89CC-AC5B5E2F6AE4}.Release|Win32.ActiveCfg = Release|Win32
+		{685703F0-4BB8-4982-89CC-AC5B5E2F6AE4}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

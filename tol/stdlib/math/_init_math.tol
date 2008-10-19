@@ -1,0 +1,24 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    :
+// PURPOSE :
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// CONSTANTES
+//////////////////////////////////////////////////////////////////////////////
+
+Real RPi  = Sqrt(Pi);
+Real R2Pi = Sqrt(2*Pi);
+
+
+//VBR: NIntegrate is obsolete and is redefined as IntegrateQAG for backward 
+//     compatibility reasons
+Code NIntegrate=IntegrateQAG;
+PutDescription(I2("Alias of function ","Alias de la función ")+" Real IntegrateQAG"+
+               I2(" created for backward compatibility reasons.",
+                  " creado por razones de comaptibilidad hacia atrás."),
+               NIntegrate);
+
+Set Include("optim/_init_optim.tol");
+Set Include("stat/_init_stat.tol");
+Set Include("R/_init_Rapi.tol");

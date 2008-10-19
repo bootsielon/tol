@@ -1,0 +1,3 @@
+ln-H tol_blanguag.h  tol_exportfu.h ;
+
+objects objs : language.cpp exportfu.cpp ;

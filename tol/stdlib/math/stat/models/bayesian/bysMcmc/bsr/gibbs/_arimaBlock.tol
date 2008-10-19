@@ -1,0 +1,705 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: arimaBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::ArimaBlock
+/////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.ArimaBlock =
+"Builds a NameBlock that can draw a Gibbs sample of a ARIMA block of a "
+"general regression model. Just ARIMA filtering is currently running but "
+"ARMA simulation is still not implemented";
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock ArimaBlock(Text name, Set NoiseDistrib, 
+                       Real numBlock, Real firstCol,
+                       NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Code _scalarSampler = config::bsr.scalarSampler.armaBlock;
+  //Selects noise with constant sigma
+  Set _.NoiseDistrib = NoiseDistrib;
+  Set _.arimaStructBlock = 
+  {
+  //WriteLn("TRACESelecting noise with known wariance");
+    Select(NoiseDistrib, Real(BSR.NoiseDistrib segment)
+    { Card(segment->Arima)>0 })
+  };
+  Set _.armaParamBlock = Copy(Empty);
+
+  //Message identificator
+  Text _MID = "["+name+"] ";
+  //Number of variant variances (dimension of sigma block)
+  Real    _.C          = Card(_.arimaStructBlock);
+  Real    _.m          = VRows(_.NoiseDistrib[1]->Li);
+  Real    _.numParam   = 0;
+  Real    _.numDifData = 0;
+  Real    _.isNeutral  = True;
+  VMatrix _.deterministicFilter   = Rand(0,0,0,0);
+  VMatrix _.noArmaId   = Rand(0,0,0,0);
+  Set     _.paramDesc  = Copy(Empty); 
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.enlargeSymVMatrix =
+  "Puts a block symmetric matrix into a joint blocks with zeros out of the "
+  "block cells";
+  VMatrix enlargeSymVMatrix(VMatrix A, Matrix equIdxVec)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix  triplet   = VMat2Triplet(A);
+    VMatrix tr        = Triplet(triplet,_.m,_.m, equIdxVec, equIdxVec);
+    Convert(tr,"Cholmod.R.Sparse")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.enlargeRowsVMatrix =
+  "Puts a block matrix into a joint blocks with zeros out of the "
+  "block rows";
+  VMatrix enlargeRowsVMatrix(VMatrix A, Matrix equIdxVec)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix  triplet   = VMat2Triplet(Convert(A,"Cholmod.R.Sparse"));
+    VMatrix tr        = Triplet(triplet,_.m,VColumns(A), equIdxVec);
+    Convert(tr,"Cholmod.R.Sparse")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.initializeNoArimaBlock =
+  "Initiaizes ARIMA invariant information for a noise block without "
+  "ARIMA struct";
+  Real initializeNoArimaBlock(BSR.NoiseDistrib segment)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" initializeNoArimaBlock ["+segment->Name+"] 1 "+Time);
+  //WriteLn("TRACE"+_MID+" initialize block["<<resBlockNum_+"] 2.1 "+Time);
+    Set equIdx = segment->EquIdx;
+    Matrix  equIdxVec = SetCol(equIdx);
+
+  //WriteLn("TRACE"+_MID+" initializeNoArimaBlock ["+segment->Name+"] 2 equIdx = "<<equIdx);
+    Real m = Card(equIdx);
+    Real numPar = 0;
+    Real difDegree = 0;
+    Real p = 0;
+    Real q = 0;
+    Polyn dif = 1;
+    Polyn ar = 1;
+    Polyn ma = 1;
+    Real numDifData = m;
+    VMatrix D = Eye(m);
+    Set segment->ArimaAuxInfo := 
+    [[
+      numPar, m, difDegree, p, q, numDifData, dif, ar, ma, D
+    ]];
+    Real SetIndexByName(segment->ArimaAuxInfo);
+    VMatrix _.deterministicFilter := 
+      _.deterministicFilter + enlargeSymVMatrix(D,equIdxVec);
+    VMatrix _.noArmaId := 
+      _.noArmaId + enlargeSymVMatrix(Eye(m),equIdxVec);
+    1
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.initializeArimaBlock =
+  "Initiaizes ARIMA invariant information for a noise block with ARIMA "
+  "struct";
+  Real initializeArimaBlock(BSR.NoiseDistrib segment)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" initializeArimaBlock ["+segment->Name+"] 1 "+Time);
+    Set     equIdx    = segment->EquIdx;
+    Matrix  equIdxVec = SetCol(equIdx);
+    Real numPar = 0;
+    Set For(1,Card(segment->Arima), Real(Real factorNum_)
+    {
+      Set arima = (segment->Arima)[factorNum_];
+      Real If(Degree(arima->AR)>2*arima->Periodicity,
+      {
+        Real CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotDrawArima,
+        [[
+          _MID,
+          segment->Name,
+          factorNum_,
+          "AR",
+          arima->Periodicity,
+          arima->AR
+        ]]);
+        _.cannotDrawArma := False
+      });
+      Set arParDsc = EvalSet(Monomes(1-arima->AR), Set set.arParDsc(Polyn mon)
+      {
+        Real deg = Degree(mon);
+        Real c = Coef(mon,deg);
+        Text name = "ArmaBlk::"+segment->Name+"::AR.F"+IntText(factorNum_)+".D"+IntText(deg);
+        ArmaParamDescStruct(name, resBlockNum_, factorNum_, "AR", deg, c, 0)
+      });
+      If(Degree(arima->MA)>2*arima->Periodicity,
+      {
+        Real CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotDrawArima,
+        [[
+          _MID,
+          segment->Name,
+          factorNum_,
+          "MA",
+          arima->Periodicity,
+          arima->MA
+        ]]);
+        _.cannotDrawArma := False
+      });
+      Set maParDsc = EvalSet(Monomes(1-arima->MA), Set set.maParDsc(Polyn mon)
+      {
+        Real deg = Degree(mon);
+        Real c = Coef(mon,deg);
+        Text name = "ArmaBlk::"+segment->Name+"::MA.F"+IntText(factorNum_)+".D"+IntText(deg);
+        ArmaParamDescStruct(name,resBlockNum_, factorNum_, "MA", deg, c, 0)
+      });
+      Set Append(_.paramDesc,arParDsc);
+      Set Append(_.paramDesc,maParDsc);
+      Real numPar := numPar+Card(arParDsc)+Card(maParDsc);
+      1
+    });
+  //WriteLn("TRACE"+_MID+" initializeArimaBlock ["+segment->Name+"] 2 equIdx = "<<equIdx);
+    Real m = Card(equIdx);
+    Polyn ar = ARIMAGetAR(segment->Arima);
+    Polyn ma = ARIMAGetMA(segment->Arima);
+    Polyn dif = ARIMAGetDIF(segment->Arima);
+    Real p = Degree(ar);
+    Real q = Degree(ma);
+    Real difDegree = Degree(dif);
+    Real If(Or(difDegree,p,q), _.isNeutral := False );
+    If(difDegree>m, Real CMsg::Coded::show
+      (BysMcmc::_.cmsg::_.nonEnoughtDataForARIMADif,[[_MID,segment->name,difDegree,m]]));
+    Real numDifData = m-difDegree;
+    VMatrix D = 
+    {
+      Matrix aux1 = PolMat(dif,m,m);
+      Rand(difDegree,m,0,0) <<
+      Mat2VMat(SubRow(aux1, Range(difDegree+1,m,1)),0,0.25,1.E-10)
+    };
+    VMatrix _.deterministicFilter := 
+      _.deterministicFilter + enlargeSymVMatrix(D,equIdxVec);
+    VMatrix If(!numPar,
+      _.noArmaId := _.deterministicFilter + enlargeSymVMatrix(Eye(m),equIdxVec));
+    VMatrix Li_ar = Rand(0,0,0,0);
+    VMatrix L_ma  = Rand(0,0,0,0);
+  //WriteLn("TRACE"+_MID+" initialize block["<<resBlockNum_+"] 2.2.7 "+Time);
+    Set segment->ArimaAuxInfo := 
+    [[
+       numPar, m, difDegree, p, q, numDifData, 
+       dif, ar, ma, Li_ar, L_ma,
+       D, equIdxVec
+    ]];
+    Real SetIndexByName(segment->ArimaAuxInfo);
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.calcArimaBlockLi =
+  "Calculates the Choleski decomposition and its inverse for a block with "
+  "ARIMA struct";
+  Real calcArimaBlockLi(BSR.NoiseDistrib segment)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::_.config::bsr.arimaFilter!=
+      BysMcmc::Options::Arima.Filter::FastChol, 0, {
+  //WriteLn("TRACE"+_MID+" calcArimaBlockLi ["+segment->Name+"] 1 ");
+    Set     aux         = segment->ArimaAuxInfo;
+    Real    m           = aux::m;
+    NameBlock fastChol  = ARMAProcess::FastCholeskiCovFactor(aux::ar, aux::ma, m);
+    Real If(VRows(fastChol::_.Li_ar)<=0, CMsg::Coded::show
+      (BysMcmc::_.cmsg::_.invCholFac,[[_MID+ " MA factor of equations block "+segment->Name]]));
+    Real If(VRows(fastChol::_.L_ma)<=0, CMsg::Coded::show
+      (BysMcmc::_.cmsg::_.invCholFac,[[_MID+ " MA factor of equations block "+segment->Name]]));
+    VMatrix aux::Li_ar := fastChol::_.Li_ar;
+    VMatrix aux::L_ma  := fastChol::_.L_ma;
+    1
+  })};
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.calcAllArimaBlockLi =
+  "Calculates the inverse of Choleski decomposition of ARIMA blocks all "
+  "together";
+  Real calcAllArimaBlockLi(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set If(And(Or(numSim<=1,_.blockDef::enabled),
+               _.blockDef::_.config::bsr.arimaFilter==
+               BysMcmc::Options::Arima.Filter::FastChol),
+    {
+    //WriteLn("TRACE"+_MID+" calcAllArimaBlockLi ("<<numSim+") ");
+      EvalSet(_.armaParamBlock, calcArimaBlockLi)
+    });
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.initialize =
+  "Initializes ARIMA invariant information for all noise blocks and "
+  "returns the total number of found ARMA parameters";
+  Real initialize(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    WriteLn(_MID+" Initializing block");
+    Real    _.numParam            := 0;
+    Real    _.numDifData          := 0;
+    VMatrix _.deterministicFilter := Zeros(_.m,_.m);
+    VMatrix _.noArmaId            := Zeros(_.m,_.m);
+    Set     _.paramDesc           := Copy(Empty);
+  //WriteLn("TRACE"+_MID+"Initializing ARIMA filters");
+  //WriteLn("TRACE "+_MID+" Initializing block 1");
+    Set initAll = For(1,Card(_.NoiseDistrib), Real(Real resBlockNum_)
+    {
+      Set segment = _.NoiseDistrib[resBlockNum_];//BSR.NoiseDistrib;
+      Set aux = segment->ArimaAuxInfo;
+    //WriteLn("TRACE"+_MID+" initialize block["<<resBlockNum_+"] 1 "+Time);
+      If(!Card(segment->Arima), initializeNoArimaBlock(segment), initializeArimaBlock(segment));
+      Real _.numParam   := _.numParam  +aux::numPar; 
+      Real _.numDifData := _.numDifData+aux::numDifData; 
+      aux::numPar
+    });
+  //WriteLn("TRACE "+_MID+" Initializing block 2 Card(_.arimaStructBlock)="<<Card(_.arimaStructBlock));
+    Set _.armaParamBlock := 
+    {
+    //WriteLn("TRACESelecting noise with known wariance");
+      Select(_.arimaStructBlock, Real(BSR.NoiseDistrib segment)
+      { (segment->ArimaAuxInfo)::numPar>0 })
+    };
+  //WriteLn("TRACE "+_MID+" Initializing block 4 ");
+    WriteLn("  "+_MID+" Original data length = "<< _.m);
+    WriteLn("  "+_MID+" Differenced data length = "<< _.numDifData);
+    WriteLn("  "+_MID+" ARMA parameters = "<< _.numParam);
+    1
+  };
+  Real _.cannotDrawArma = False;
+  Real _.initialized = initialize(0);
+  //Defining the block in the Markov Chain
+  NameBlock _.blockDef = 
+  {
+    NameBlock aux = BysMcmc::DefineBlock
+    (
+      name,
+      EvalSet(_.paramDesc, Text set.colName(ArmaParamDescStruct pd) { pd->name }),
+      numBlock,
+      firstCol,
+      config
+    );
+    Real aux::enabled := !_.cannotDrawArma;
+    aux
+  };
+  Real _.createFilters = calcAllArimaBlockLi(0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.show.arma =
+  "Shows arma terms";
+  Real show.arma(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set EvalSet(_.armaParamBlock, Real set.showArima(BSR.NoiseDistrib segment)
+    {
+      WriteLn("ARIMA("+segment->Name+")=\n"<<segment->Arima);
+      1
+    });
+    1
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.filterJustBlock =
+  "Filters matrix by Choleski decomposition of ARIMA covarianze of a "
+  "noise block";
+  VMatrix filterJustBlock(BSR.NoiseDistrib segment, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
+    Set aux = segment->ArimaAuxInfo;
+    If(Or(aux::p,aux::q),
+    {
+      Case(
+        _.blockDef::_.config::bsr.arimaFilter==
+        BysMcmc::Options::Arima.Filter::FastChol,
+          CholeskiSolve(aux::L_ma,aux::Li_ar*X,"L"),
+        _.blockDef::_.config::bsr.arimaFilter==
+        BysMcmc::Options::Arima.Filter::DifEq,
+          DifEq(aux::ma/aux::ar,X) )
+    },
+    {
+      X  
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.filter.deterministic =
+  "Filters a matrix just by deterministic terms";
+  VMatrix filter.deterministic(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.deterministicFilter*X
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.filter.arma =
+  "Filters a matrix just by arma terms";
+  VMatrix filter.arma(VMatrix DX)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+/*
+    Set s = EvalSet(_.armaParamBlock, VMatrix set.filterArima(BSR.NoiseDistrib segment)
+    {
+      VMatrix aux1 = filterJustBlock(segment,SubRow(DX, segment->EquIdx));
+      enlargeRowsVMatrix(aux1, (segment->ArimaAuxInfo)::equIdxVec)
+    });
+    SetSum(s)
+*/
+    Set s = EvalSet(_.armaParamBlock, Set set.filterArima(BSR.NoiseDistrib segment)
+    {
+      VMatrix aux1 = filterJustBlock(segment,SubRow(DX, segment->EquIdx));
+      [[aux1, (segment->ArimaAuxInfo)::equIdxVec]]
+    });
+    MergeRows(_.m, s)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.filter =
+  "Filters a matrix by Choleski decomposition of ARIMA covarianze of a "
+  "noise block";
+  VMatrix filter(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.isNeutral, X, {
+  //WriteLn("TRACE"+_MID+" filter 1 ("+Identify(X)+")="<< X);
+    VMatrix filterNoArma = filter.deterministic(X);
+  //WriteLn("TRACE"+_MID+" filter 2 filterNoArima="<< filterNoArma);
+    If(!Card(_.armaParamBlock),
+    {
+    //WriteLn("TRACE"+_MID+" filter 3.1");
+      filterNoArma
+    },
+    {
+      VMatrix fltNoArma = _.noArmaId*filterNoArma;
+    //WriteLn("TRACE"+_MID+" filter 3 fltNoArima="<<fltNoArma);
+      VMatrix fltArma = filter.arma(filterNoArma);
+    //WriteLn("TRACE"+_MID+" filter 4 fltArima="<< fltArma);
+      VMatrix flt = fltNoArma+fltArma;
+    //WriteLn("TRACE"+_MID+" filter 5 flt="<< flt);
+      flt
+    })
+  })};
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.scalar =
+  "Method of generation of a ARMA block by using current scalar method,"
+  " given by _scalarSampler, for each parameter";
+  VMatrix draw.scalar(Real numSim, VMatrix noise, VMatrix sigma.full, 
+                      Real calcMaxLikelihood)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" draw.scalar 1 noise="<<noise);
+    Matrix noise_ = VMat2Mat(noise);
+    Set arma.draw.all = 
+    EvalSet(_.paramDesc, Real arma.arms.draw(ArmaParamDescStruct pd)
+    {
+    //WriteLn("TRACE"+_MID+" draw.scalar 2 pd="<<pd);
+      Set segment     = _.NoiseDistrib[pd->resBlockNum];
+      Set arima  = segment->Arima;
+      Real sigma = Sqrt(VMatDat(sigma.full,segment->SigmaIndex,1));
+      Polyn dif  = ARIMAGetDIF(arima);
+      Set factor = arima[pd->factorNum];
+      Set equIdx = segment->EquIdx;
+      Set aux    = segment->ArimaAuxInfo;
+      Set polRef = SetOfPolyn(If(pd->arma=="AR", factor->AR, factor->MA));
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.1 polRef[1]="<<polRef[1]);
+      Real deg = pd->degree;
+      Set bounds = ARMAProcess::StationarityBounds.2(polRef[1], factor->Periodicity, deg);
+      Real x0 = bounds[1]+0.001;
+      Real x1 = bounds[2]-0.001;
+    //WriteLn("TRACE"+_MID+" draw.scalar 3 bounds=["<<x0+","<<x1+"]");
+      Real m = aux::m;
+      Real n = m - aux::difDegree;
+      Matrix pdNoise_ = SubRow(noise_,equIdx);
+
+      Real SetValue(Real x0)
+      {
+        Real x = If(1+x==1, 0.000001, x);
+      //WriteLn("TRACE"+_MID+" SetValue("<<x+")");
+        Real pd->numEvalDens := pd->numEvalDens+1;
+        Real x__ = PutCoef(polRef[1], deg, -x);
+        Real x_  = Coef(polRef[1],deg);
+        Polyn pol = polRef[1];
+        Real isStationary = IsStationary(pol);
+        If(!isStationary, Real CMsg::Coded::show
+          (BysMcmc::_.cmsg::_.nonStationaryDraw,[[_MID,pd->name,pol,x]]));
+        x
+      };
+
+      Matrix z = Sub(DifEq(dif/1,pdNoise_),aux::difDegree+1,1,n,1);
+      VMatrix z_ = Mat2VMat(z);
+      Polyn  ar = ARIMAGetAR(arima);
+      Polyn  ma = ARIMAGetMA(arima);
+      NameBlock almagro = ARMAProcess::Eval.Almagro(ar,ma,z_,sigma);
+
+      VMatrix u0 = almagro::Draw.U_cond_Z(0);
+      VMatrix z0 = almagro::Get.Z0(u0);
+      VMatrix a0 = almagro::Get.A0(u0);
+    //WriteLn("TRACE"+_MID+" draw.scalar almagro::_.p="<<almagro::_.p);
+    //WriteLn("TRACE"+_MID+" draw.scalar almagro::_.q="<<almagro::_.p);
+    //WriteLn("TRACE"+_MID+" draw.scalar almagro::_.z0="<<almagro::_.z0);
+    //WriteLn("TRACE"+_MID+" draw.scalar almagro::_.a0="<<almagro::_.a0);
+    //WriteLn("TRACE"+_MID+" draw.scalar u0="<<u0);
+    //WriteLn("TRACE"+_MID+" draw.scalar z0="<<z0);
+    //WriteLn("TRACE"+_MID+" draw.scalar a0="<<a0);
+/*
+      Real maxLogLikelihood = -1/0;
+      Real maxLogLikelihood.x = 0;
+*/
+
+      Real LogDens.Almagro.Z_cond_U(Real x)
+      {
+        Real Do SetValue(x);
+        Polyn  ar = ARIMAGetAR(arima);
+        Polyn  ma = ARIMAGetMA(arima);
+        Real llh = Copy(almagro::LogLH.Z_cond_U(ar,ma,z0,a0));
+/*
+        Real If(calcMaxLikelihood,
+          If(llh>maxLogLikelihood,
+          {
+            Real maxLogLikelihood   :=llh;
+            Real maxLogLikelihood.x := x
+          }));
+*/
+        llh 
+      };
+      Code LogDens = LogDens.Almagro.Z_cond_U;
+      Real If(Or(pd->coef<x0,pd->coef>x1), { pd->coef := Rand(x0,x1) }, 0);
+      /*
+      Real pd->coef := _scalarSampler(LogDens.Almagro.Z_cond_U,x0,x1);
+      Real If(calcMaxLikelihood, pd->coef := maxLogLikelihood.x);
+      */
+      Real pd->coef:= If(!calcMaxLikelihood, 
+      {
+        _scalarSampler(LogDens,x0,x1,pd->coef)
+      },
+      {
+        Real MinusLogDens(Real x_) { -LogDens(x_) };
+        Real y=0;
+        FibonacciMin(MinusLogDens, y, x0, x1, 1.E-5*n)
+      });
+
+    //WriteLn("TRACE"+_MID+" draw.scalar pd->coef="<<pd->coef);
+      pd->coef
+    });
+  //Real show.arma(0);
+    Matrix values = SetCol(arma.draw.all);
+  //WriteLn("TRACE"+_MID+" draw 3 "<<Matrix Tra(values));
+    Real Do setStore(values);
+  //WriteLn("TRACE"+_MID+" draw.scalar blockDef="<<Matrix VMat2Mat(Tra(_.blockDef::_.store)));
+    Real Do calcAllArimaBlockLi(numSim);
+  //WriteLn("TRACE"+_MID+" draw 5 ");
+    Real _.blockDef::checkNonFiniteValues(numSim);
+    Copy(_.blockDef::_.store)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Method of generation of arima block";
+  VMatrix draw(Real numSim, VMatrix noise, VMatrix sigBlk)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::enabled,
+    {
+      draw.scalar(numSim, noise, sigBlk, False)
+    },
+    {
+      Copy(_.blockDef::_.store)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "Method of contitioned maximum likelihood";
+  VMatrix maxLikelihood(Real numSim, VMatrix noise, VMatrix sigBlk)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    draw.scalar(numSim, noise, sigBlk, True)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::_.numCol<=0,0,{
+    Real _.blockDef::setStore(values);
+    Real k = 1;
+  //WriteLn("TRACE"+_MID+" setStore 1 _.blockDef::_.store="<<_.blockDef::_.store);
+    Set Do EvalSet(_.paramDesc, Real setValue(ArmaParamDescStruct pd)
+    {
+    //WriteLn("TRACE"+_MID+" setStore 2.0 pd="<<pd);
+    //WriteLn("TRACE"+_MID+" setStore 2.1 k="<<k);
+      Real deg = pd->degree;
+    //WriteLn("TRACE"+_MID+" setStore 2.2 deg="<<deg);
+      Real x = -VMatDat(_.blockDef::_.store, k, 1);
+    //WriteLn("TRACE"+_MID+" setStore 2.3 x="<<x);
+    //WriteLn("TRACE"+_MID+" setStore 2.4 arima["<<pd->factorNum+"]="<<(_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]);
+      Real If(pd->arma=="AR", 
+        PutCoef((_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]->AR,deg,x),
+        PutCoef((_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]->MA,deg,x));
+    //WriteLn("TRACE"+_MID+" setStore 2.5 arima["<<pd->factorNum+"]="<<(_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]);
+      Real (k := k+1);
+      1
+    });
+    Set Do EvalSet(_.armaParamBlock, Real set.arma(BSR.NoiseDistrib segment)
+    {
+      Set   aux      = segment->ArimaAuxInfo;
+      Polyn aux::ar := ARIMAGetAR (segment->Arima);
+      Polyn aux::ma := ARIMAGetMA (segment->Arima);
+    //WriteLn("TRACE"+_MID+" setStore("+segment->Name+") aux::ar="<<aux::ar);
+    //WriteLn("TRACE"+_MID+" setStore("+segment->Name+") aux::ma="<<aux::ma);
+      1
+    });
+    1})
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Sets _.store to the columns related to this block of a given row of a "
+  "Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //This note applys over all following methods 
+  ////////////////////////////////////////////////////////////////////////////
+  Text _explain.param ="\n"+
+  "Used parameters are the currently stored, but you can set a previously "
+  "simulated vector of parameters calling before to method "
+  "setMcmcRow. You also can set an arbitrary row vector of parameters using "
+  "method setStore, but then you must ensure that it's a valid set of "
+  "values.";
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getARIMA =
+  "Returns ARIMA definition of a given block of equations containinig a set "
+  "of ARIMAStruct's, please don´t modified it!."+_explain.param;
+  Set getARIMA(Real noiseBlockIndex) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set segment = _.NoiseDistrib[noiseBlockIndex];
+    segment->Arima
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getAuxARIMAInfo =
+  "Returns auxiliar ARIMA information about a given block of equations "
+  "containing aggreated dif, ar and ma polynomials and its degrees "
+  "and other internal information that you should not touch."+_explain.param;
+  Set getAuxARIMAInfo(Real noiseBlockIndex) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set segment = _.NoiseDistrib[noiseBlockIndex];
+    segment->ArimaAuxInfo
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.difEq.ARI.MA =
+  "Solves difference equations of direct ARIMA process of a given block of "
+  "regression equations:\n"
+  " Z = (theta(B)/(phi(B)*delta(B)))*E "+_explain.param;
+  Matrix difEq.ARI.MA
+  (
+    Real   noiseBlockIndex, 
+    Matrix E, 
+    Matrix E0, 
+    Matrix Z0
+  )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set segment = _.NoiseDistrib[noiseBlockIndex];
+    Set aux = segment->ArimaAuxInfo;
+    If(Or(aux::difDegree,aux::p,aux::q),
+    {
+      DifEq(aux::ma/(aux::dif*aux::ar), E, E0, Z0)
+    },
+    {
+      E
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.difEq.ARI.MA.0 =
+  "Is equal than difEq.ARI.MA but using zeroes as initial values."+
+  _explain.param;
+  Matrix difEq.ARI.MA.0
+  (
+    Real   noiseBlockIndex, 
+    Matrix E
+  )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set segment = _.NoiseDistrib[noiseBlockIndex];
+    Set aux = segment->ArimaAuxInfo;
+    If(Or(aux::difDegree,aux::p,aux::q),
+    {
+      Matrix E0 = Rand(aux::q,1,0,0);
+      Matrix Z0 = Rand(aux::p+aux::difDegree,1,0,0);
+      DifEq(aux::ma/(aux::dif*aux::ar), E, E0, Z0)
+    },
+    {
+      E
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.difEq.MA.ARI =
+  "Solves difference equations of inverse ARIMA process of a given block of "
+  "regression equations:\n"
+  " E = ((phi(B)*delta(B))/theta(B))*Z "+_explain.param;
+  Matrix difEq.MA.ARI
+  (
+    Real   noiseBlockIndex, 
+    Matrix Z, 
+    Matrix Z0, 
+    Matrix E0
+  )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set segment = _.NoiseDistrib[noiseBlockIndex];
+    Set aux = segment->ArimaAuxInfo;
+    If(Or(aux::difDegree,aux::p,aux::q),
+    {
+      DifEq((aux::dif*aux::ar)/aux::ma, Z, Z0, E0)
+    },
+    {
+      Z
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.difEq.MA.ARI.0 =
+  "Is equal than difEq.MA.ARI but using zeroes as initial values."+
+  _explain.param;
+  Matrix difEq.MA.ARI.0
+  (
+    Real   noiseBlockIndex, 
+    Matrix Z
+  )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set segment = _.NoiseDistrib[noiseBlockIndex];
+    Set aux = segment->ArimaAuxInfo;
+    If(Or(aux::difDegree,aux::p,aux::q),
+    {
+      Matrix E0 = Rand(aux::q,       1,0,0);
+      Matrix Z0 = Rand(aux::p+aux::difDegree,1,0,0);
+      DifEq((aux::dif*aux::ar)/aux::ma, Z, Z0, E0)
+    },
+    {
+      Z
+    })
+  }
+
+
+]]};

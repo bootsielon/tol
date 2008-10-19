@@ -1,0 +1,6 @@
+ln-H [ glob tol_*.h ] ;
+
+objects objs : 
+  graacc.cpp  grastk.cpp  opr.cpp       spfuninst.cpp  symboltable.cpp
+  gra.cpp     met.cpp     nameblock.cpp oprimp.cpp     str.cpp
+  graimp.cpp  spfun.cpp   syn.cpp ;

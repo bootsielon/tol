@@ -1,0 +1,331 @@
+Todas las declaraciones que se detallan a continuacio'n, que son las funciones
+que exporta la dll a los usuarios de Visual Basic, se encuentran en el mo'dulo
+Tol.bas que aparece en la carpeta VBasic
+
+
+-------------------------------------------------------------------------------
+
+Declare Sub TolInit Lib "VBTol.dll" (ByVal addr As Long, ByVal vmode As String, _
+                                     ByVal initlib As Integer)
+
+
+Esta funcio'n es la que realiza la inicializacio'n de Tol incluyendo entre otras
+cosas la carga de InitLibrary.
+
+Para'metros:
+
+ addr - la direccio'n de una funcio'n VB que sera' llamada toda vez que Tol
+        requiera la salida de algu'n texto, ya sea la impresio'n de un resultado,
+        un mensaje de error, etc., asi' estos mensajes sera'n filtrados por la
+        aplicacio'n VB para ser tratados de la manera que desee.
+
+ vmode - cadena de texto que especifica cua'les mensajes sera'n emitidos o no,
+         su sintaxis se puede expresar asi':
+
+         {v/m}[X...X] -> X={A,E,W,S,U,T}
+
+         El indicador en minu'sculas 'v' implica habilitacio'n de mensajes y
+         'm' deshabilitacio'n.
+
+         El indicador en mayu'sculas X={E,W,S,U,T} especifica el tipo de mensaje
+         al que modifica el indicador anterior:
+
+          A: Todos los mensajes (All)
+          E: Mensajes de Error
+          W: Mensajes de aviso (Warning)
+          S: Mensajes normales del Sistema como 'Ha sido incluido el fichero ...'
+          U: Mensajes de Usuario, es decir, los lanzados por las funciones
+             Write/WriteLn/View
+          T: Mensajes de Trazado para la depuracio'n de problemas
+
+         Por razones de compatibilidad hacia atra's se permiten las siguientes
+         formas simplificadas:
+
+         v: Habilita todos los mensajes salvo los de trazado. Es lo mismo que mT
+         m: Deshabilita todos los mensajes salvo los errores. Es lo mismo que vE
+   
+         Si no se pasa ningu'n argumento de verbosidad a TOL se usara'n los
+         valores por defecto:
+
+         vEU: Habilita so'lo los mensajes de error y de usuario y deshabilita
+              el resto
+
+ initlib - si su valor es diferente de cero se incluira'n las funciones de la
+           InitLibrary
+
+
+-------------------------------------------------------------------------------
+
+Declare Function TolEval Lib "VBTol.dll" (ByVal expr As String, ByRef nerror As Integer, _
+                                          ByRef nwarning As Integer) As Integer
+
+
+Es la funcio'n que nos permite evaluar expresiones Tol.
+
+Para'metros:
+
+ expr - texto que contiene la expresio'n Tol a evaluar.
+
+ nerror - nu'mero de errores que hubo durante la evaluacio'n.
+
+ nwarning - nu'mero de warnings que hubo durante la evaluacio'n.
+
+Retorna:
+
+ 1 o' 0, si se crearon o no, objetos Tol como resultado de la evaluacio'n.
+
+
+-------------------------------------------------------------------------------
+
+Declare Function TolDecompile Lib "VBTol.dll" (ByVal name As String) As Integer
+
+
+A trave's de esta funcio'n podemos decompilar objectos Tol que hayan sido creados
+con la funcio'n TolEval o con la familia de funciones TolCreateX, liberando asi'
+la memoria asignada a los mismos.
+
+Para'metros:
+
+ name - cadena que contiene el nombre del objeto.
+
+Retorna:
+
+ 1 si un objeto con ese nombre fue encontrado y decompilado,
+ de lo contrario retorna 0.
+
+
+Declare Function TolDecompileAll Lib "VBTol.dll" () As Integer
+
+
+Decompila todos los objectos Tol que hayan sido creados con la funcio'n TolEval
+o con la familia de funciones TolCreateX, es muy u'til sobre todo para la
+decompilacio'n de los objetos que fueron creados sin nombre.
+
+Retorna:
+
+ 1 si fue decompilado algu'n objeto, sino retorna 0.
+
+
+-------------------------------------------------------------------------------
+
+Declare Function TolGetText Lib "VBTol.dll" (ByVal lvalue As String, ByRef retvalue As String) As Integer
+
+Obtiene el valor de un objeto TOL de tipo Text.
+
+Para'metros:
+
+ lvalue - Nombre del objeto TOL, como el nombre del para'metro indica no necesariamente
+          tiene que ser el nombre de un objeto, sino que puede ser adema's cualquier
+          expresio'n de tipo Text que pueda estar en la parte izquierda de una sentencia
+          de asignacio'n.
+ retvalue - Variable de Visual Basic donde el valor del objeto sera' retornado.
+
+Retorna:
+
+ 1 si el objeto fue encontrado y su valor retornado, sino retorna 0.
+
+
+Declare Function TolCreateText Lib "VBTol.dll" (ByVal name As String, ByVal value As String) As Integer
+
+Crea un objeto TOL de tipo Text.
+
+Para'metros:
+
+ name - Nombre del objeto TOL.
+ value - Valor que contendra' el objeto TOL creado.
+
+Retorna:
+
+ 1 si el objeto fue creado, de lo contrario retorna 0.
+
+
+-------------------------------------------------------------------------------
+
+Const Known As Integer = 0
+Const Unknown As Integer = 1
+Const PosInf As Integer = 2
+Const NegInf As Integer = 3
+
+Type TolReal
+  kind As Integer
+  value As Double
+End Type
+
+Estructura para representar un objeto Tol de tipo Real, y Valores que puede tomar el campo 'kind'
+para contemplar los casos especiales como desconocido e infinito.
+
+
+Declare Function TolGetReal Lib "VBTol.dll" (ByVal lvalue As String, ByRef retvalue As TolReal) As Integer
+
+Obtiene el valor de un objeto TOL de tipo Real.
+
+Para'metros:
+
+ lvalue - Nombre del objeto TOL.
+ retvalue - Variable de Visual Basic donde el valor del objeto sera' retornado.
+
+Retorna:
+
+ 1 si el objeto fue encontrado y su valor retornado, sino retorna 0.
+
+
+Declare Function TolCreateReal Lib "VBTol.dll" (ByVal name As String, ByRef retvalue As TolReal) As Integer
+
+Crea un objeto TOL de tipo Real.
+
+Para'metros:
+
+ name - Nombre del objeto TOL.
+ value - Valor que contendra' el objeto TOL creado, es importante no olvidar valorizar el campo
+         'kind' de la estructura para que el objeto tol sea creado correctamente.
+
+Retorna:
+
+ 1 si el objeto fue creado, de lo contrario retorna 0.
+
+
+-------------------------------------------------------------------------------
+
+Type MaskCell
+  row As Long
+  col As Long
+  kind As Integer
+End Type
+
+Estructura para representar una ma'scara que indique las celdas de la matriz que
+contienen valores especiales, row,col es la posicio'n de la celda y kind indica
+el valor especial usando las mismas constantes que para el tipo Real.
+
+
+Declare Function TolGetMatrix Lib "VBTol.dll" (ByVal lvalue As String, ByRef retvalue() As Double, _
+                                               ByRef retmask() As MaskCell) As Integer
+
+Obtiene el valor de un objeto TOL de tipo Matrix.
+
+Para'metros:
+
+ lvalue - Nombre del objeto TOL.
+ retvalue - Variable de Visual Basic donde el valor del objeto sera' retornado.
+ retmask - Variable donde la ma'scara para las celdas con valores especiales sera' retornado,
+           si la matriz no contiene ningu'n valor especial este arreglo se retornara' vaci'o.
+
+Retorna:
+
+ 1 si el objeto fue encontrado y su valor retornado, sino retorna 0,
+ adema's retorna -1 si ocurre un error cri'tico como un error de
+ reservacio'n de memoria o que se haya declarado el para'metro retmask
+ con un tipo incorrecto, consulte el ejemplo para ver la declaracio'n correcta.
+
+
+Declare Function TolCreateMatrix Lib "VBTol.dll" (ByVal name As String, ByRef value() As Double, _
+                                                  ByRef mask() As MaskCell) As Integer
+
+Crea un objeto TOL de tipo Matrix.
+
+Para'metros:
+
+ name - Nombre del objeto TOL.
+ value - Valor que contendra' el objeto TOL creado, value no es ma's que un arreglo de
+         dos dimensiones que contiene los valores de las celdas de la matriz, en caso
+         de haber valores especiales como desconocido o infinito, e'stos sera'n
+         especificados en el para'metro mask, es bueno aclarar que independientemente del
+         rango de los i'ndices del para'metro value, los i'ndices de la matriz de tol
+         creada comenzara'n siempre por 1, es buena pra'ctica por tanto comenzar estos i'ndices
+         en 1, aunque la funcio'n acepta cualquier rango.   
+ mask - Arreglo que contiene la ma'scara para las celdas con valores especiales en la matriz,
+        mask no es ma's que un arreglo de una dimensio'n del tipo MaskCell que contiene tantos
+        elementos como valores especiales tenga el arreglo value, los valores de row y col se
+        refieren a las posiciones relativas segu'n los i'ndices del arreglo value y sera'n ajustados
+        a los i'ndices correctos en la matriz de Tol en caso necesario, si la matriz no
+        contiene ningu'n valor especial este arreglo se declarari'a sin rango alguno.
+         
+Retorna:
+
+ 1 si el objeto fue creado, de lo contrario retorna 0,
+ adema's retorna -1 si ocurre un error cri'tico como
+ que se haya declarado algu'n para'metro con un tipo o dimensio'n incorrecta,
+ consulte el ejemplo para ver las declaraciones correctas.
+
+
+Declare Function TolGetRange Lib "VBTol.dll" (ByVal lvalue As String, _
+    ByVal frow As Long, ByVal lrow As Long, ByVal fcol As Long, ByVal fcol As Long, _
+    ByRef retvalue() As Double, ByRef retmask() As MaskCell) As Integer
+
+Declare Function TolGetRow Lib "VBTol.dll" (ByVal lvalue As String, ByVal row As Long, _
+                                            ByRef retvalue() As Double, ByRef retmask() As MaskCell) As Integer
+
+Declare Function TolGetColumn Lib "VBTol.dll" (ByVal lvalue As String, ByVal col As Long, _
+                                               ByRef retvalue() As Double, ByRef retmask() As MaskCell) As Integer
+
+Declare Function TolGetCell Lib "VBTol.dll" (ByVal lvalue As String, ByVal row As Long, ByVal col As Long, _
+                                             ByRef retvalue As TolReal) As Integer
+
+Estas funciones obtienen los valores de un rango, una fila, una columna o una celda
+ de un objeto TOL de tipo Matrix.
+
+Para'metros:
+
+ lvalue - Nombre del objeto TOL.
+ retvalue - Variable de Visual Basic donde los valores del rango, fila, columna o celda
+            del objeto sera'n retornados. Para la funcio'n TolGetRange() los rangos de la
+            variable sera'n las del rango especificado, en el caso de TolGetRow() y TolGetColumn()
+            el arreglo devuelto siempre tendra' dos dimensiones aunque el rango de uno de ellos
+            sera' 1, y para TolGetCell() este para'metro es simplemente del tipo TolReal.
+ retmask - Variable donde la ma'scara para las celdas con valores especiales sera' retornado,
+           si la matriz no contiene ningu'n valor especial este arreglo se retornara' vaci'o.
+           La funcio'n TolGetCell() como es lo'gico no tendra' este para'metro.
+ frow, lrow, fcol, lcol (TolGetRange) - primera y u'ltima filas y columnas que definen el rango.
+ row (TolGetRow) - i'ndice de la fila a obtener.
+ col (TolGetColumn) - i'ndice de la columna a obtener.
+ row, col (TolGetCell) - posicio'n de la celda a obtener.
+
+Retorna:
+
+ 1 si el objeto fue encontrado, el rango, fila, columna o celda especificado fue correcto y
+ su valor retornado, sino retorna 0; para todas las funciones excepto TolGetCell() tambie'n
+ retorna -1 si ocurre un error cri'tico como un error de
+ reservacio'n de memoria o que se haya declarado el para'metro retmask
+ con un tipo incorrecto, consulte el ejemplo para ver la declaracio'n correcta.
+
+
+Declare Function TolPutRange Lib "VBTol.dll" (ByVal lvalue As String, ByVal row As Long, ByVal col As Long, _
+                                              ByRef value() As Double, ByRef mask() As MaskCell) As Integer
+
+Declare Function TolPutRow Lib "VBTol.dll" (ByVal lvalue As String, ByVal row As Long, _
+                                              ByRef value() As Double, ByRef mask() As MaskCell) As Integer
+
+Declare Function TolPutColumn Lib "VBTol.dll" (ByVal lvalue As String, ByVal col As Long, _
+                                              ByRef value() As Double, ByRef mask() As MaskCell) As Integer
+
+Declare Function TolPutCell Lib "VBTol.dll" (ByVal lvalue As String, ByVal row As Long, ByVal col As Long, _
+                                             ByRef value As TolReal) As Integer
+
+Estas funciones cambian los valores de un rango, una fila, una columna o una celda
+ de un objeto TOL de tipo Matrix.
+
+Para'metros:
+
+ lvalue - Nombre del objeto TOL.
+ value - Nuevos valores del rango, fila, columna o celda que sera'n cambiados en la matriz de Tol. 
+         Para las funciones TolPutRange(), TolPutRow() y TolPutColumn() el arreglo que contiene los
+         valores debe tener dos dimensiones aunque el rango de alguno de ellos sea 1,
+         y para TolPutCell() este para'metro es simplemente del tipo TolReal.
+ mask - Arreglo que contiene la ma'scara para las celdas con valores especiales en el rango, fila o 
+        columna, los valores row y col de cada elemento del arreglo se refieren a las posiciones
+        relativas segu'n los i'ndices del arreglo value, si el rango, fila o columna no
+        contienen ningu'n valor especial este arreglo se declarari'a sin rango alguno.
+        La funcio'n TolPutCell() como es lo'gico no tendra' este para'metro.
+ row, row (TolPutRange) - fila y columna donde comienza el rango a cambiar.
+ row (TolPutRow) - i'ndice de la fila a cambiar.
+ col (TolPutColumn) - i'ndice de la columna a cambiar.
+ row, col (TolPutCell) - posicio'n de la celda a cambiar.
+
+Retorna:
+
+ 1 si el objeto fue encontrado, el rango, fila, columna o celda especificado fue correcto y
+ sus valores cambiados, sino retorna 0; para todas las funciones excepto TolGetCell() tambie'n
+ para todas las funciones excepto TolGetCell() tambie'n
+ retorna -1 si ocurre un error cri'tico como un error de
+ reservacio'n de memoria o que se haya declarado el para'metro retmask
+ con un tipo incorrecto, consulte el ejemplo para ver la declaracio'n correcta.
+

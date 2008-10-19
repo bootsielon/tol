@@ -1,0 +1,11 @@
+# -*- mode: conf -*-
+import config ;
+
+ln-H tol_bdb.h  tol_bdspool.h ;
+
+local api_ver = [ config.version dbdriver ] ;
+api_ver = $(api_ver[1]) ;
+
+objects objs 
+    : bdb.cpp  bdspool.cpp  dbtol.cpp filehandle.cpp
+    : <define>DB_MODULES_SONAME=$(api_ver:E="0") ;

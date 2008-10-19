@@ -1,0 +1,177 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _sigmaBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::SigmaBlock
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.SigmaBlock =
+"Builds a NameBlock that can draw a Gibbs sample of a variance block of a "
+"general regression model.";
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock SigmaBlock(Text name, Set NoiseDistrib, 
+                       Real numBlock, Real firstCol,
+                       NameBlock  config)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Real _.m = VRows(NoiseDistrib[1]->Li);
+  //Selects noise with constant sigma
+  Set _.sigmaBlockCte = 
+  {
+  //WriteLn("TRACESelecting noise with known wariance");
+    Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
+    { d->SigmaIndex<=0 })
+  };
+  //Selects noise with variant sigma
+  Set _.sigmaBlockVar = 
+  {
+  //WriteLn("TRACESelecting noise with unknown wariance");
+    Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
+    { d->SigmaIndex>0 })
+  };
+  //Defining the block in the Markov Chain
+  NameBlock _.blockDef = BysMcmc::DefineBlock
+  (
+    name,
+    EvalSet(_.sigmaBlockVar, Text(BSR.NoiseDistrib d) { d->SigmaName });
+    numBlock,
+    firstCol,
+    config
+  );
+  //Message identificator
+  Text _MID = "["+_.blockDef::_.name+"] ";
+  //Number of variant variances (dimension of sigma block)
+  Real _.S = Card(_.sigmaBlockVar);
+  //A diagonal matrix with sum of all constant sigmas that will be used in 
+  //regression standarizing
+  VMatrix _.sigmaInvCte = If(!Card(_.sigmaBlockCte), Zeros(_.m),
+    BinGroup("+", EvalSet(_.sigmaBlockCte, VMatrix (BSR.NoiseDistrib d) 
+    { d->Li })));
+  //Sigma block current store
+  VMatrix _.sigmaInv = Rand(0,0,0,0);
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.sumOfSquares =
+  "Method of generation of sigma block containing draws of all variant "
+  "variances as inverses of a squared-chi";
+  NameBlock sumOfSquares(Real numSim, VMatrix noise, BSR.NoiseDistrib segment)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" draw.sigmaBlock 2 "+d->Name);
+    Real    m    = (segment->ArimaAuxInfo)::numDifData;
+    VMatrix ek   = SubRow(noise, segment->EquIdx);
+  //WriteLn("TRACE"+_MID+" draw.sigmaBlock 3 StDs(ek)="<< VMatStDs(ek));
+  //WriteLn("TRACE"+_MID+" draw.sigmaBlock 4 ek="<< VMat2Mat(Tra(ek)));
+    Real    rss_ = VMatDat(MtMSqr(ek),1,1);
+    Real    rss  = If(rss_==0, 
+    {
+      If(numSim>1, WriteLn(_MID+" Sampling  sum of squares of noise "
+        "is just zero ","W"));
+      0.0001*m
+    },
+    {
+      rss_
+    });
+    [[
+      Real m,
+      Real rss
+    ]]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.invRandChisq =
+  "Method of generation of sigma block containing draws of all variant "
+  "variances as inverses of a squared-chi";
+  VMatrix draw.invRandChisq(Real numSim, VMatrix noise)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" draw.sigmaBlock 1 noise="<<Matrix(VMat2Mat(Tra(noise))));
+    Set v = EvalSet(_.sigmaBlockVar,Real(BSR.NoiseDistrib segment)
+    {
+      NameBlock sumSqr = sumOfSquares(numSim, noise, segment);
+      sumSqr::rss/RandChisq(sumSqr::m)
+    });
+    Real Do setStore(SetCol(v));
+  //WriteLn("TRACE "+_MID+" draw.invRandChisq");
+    Real _.blockDef::checkNonFiniteValues(numSim);
+    Copy(_.blockDef::_.store)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Method of simulation of sigma block";
+  VMatrix draw(Real numSim, VMatrix noise)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::enabled,
+    {
+      draw.invRandChisq(numSim, noise)
+    },
+    {
+      Copy(_.blockDef::_.store)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "Method of contitioned maximum likelihood";
+  VMatrix maxLikelihood(Real numSim, VMatrix noise)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set ss = EvalSet(_.sigmaBlockVar,NameBlock(BSR.NoiseDistrib segment)
+    {
+      sumOfSquares(numSim, noise, segment)
+    });
+    Set v = EvalSet(ss,Real(NameBlock sumSqr)
+    {
+      sumSqr::rss/sumSqr::m
+    });
+    Real totSumSqr = SetSum(EvalSet(ss,Real(NameBlock sumSqr)
+    {
+      sumSqr::rss
+    }));
+    Real totNumData = SetSum(EvalSet(ss,Real(NameBlock sumSqr)
+    {
+      sumSqr::m
+    }));
+    Real stdErr = Sqrt(totSumSqr/totNumData);
+    WriteLn("MaxLikelihood step "+IntText(numSim)+" Standard error="<<stdErr);
+    Real Do setStore(SetCol(v));
+  //WriteLn("TRACE "+_MID+" maxLikelihood");
+    Real _.blockDef::checkNonFiniteValues(numSim);
+    Copy(_.blockDef::_.store)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row vector of values and prepares the "
+  "filter";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::_.numCol<=0,0,{
+    Real _.blockDef::setStore(values);
+    VMatrix sigmaInvVar = BinGroup("+", 
+    For(1,Card(_.sigmaBlockVar), VMatrix (Real k)
+    {
+      Real si = 1/Sqrt(VMatDat(_.blockDef::_.store,k,1));
+      _.sigmaBlockVar[k]->Li*si
+    }));
+  //WriteLn("TRACE"+_MID+" solve.stdReg 2");
+    VMatrix _.sigmaInv := sigmaInvVar + _.sigmaInvCte;
+    1 })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Sets _.store to the columns related to this block of a given row of a "
+  "Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
+  }
+
+]]};

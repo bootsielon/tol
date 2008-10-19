@@ -1,0 +1,33 @@
+//Test to verify CholeskiInverse Matrix Type function, based on bug:
+// http://bugs.tol-project.org/show_bug.cgi?id=3
+//Date: 30-04-2004
+//Author: Daniel Rus <danirus@tol-project.org>
+
+// Test Description
+Text "Testing CholeskiInverse... ";
+
+// Test Operations
+Real {
+  Write("Testing CholeskiInverse... ");
+  Matrix U = SetMat(SetOfSet
+  (
+     SetOfReal(1,0,0),
+     SetOfReal(0,1,0),
+     SetOfReal(0,0,1)
+   ));
+
+  Matrix A = SetMat(SetOfSet
+  (
+     SetOfReal(1/4,1/8,1/9),
+     SetOfReal(1/8,1/8,1/9),
+     SetOfReal(1/9,1/9,1/9)
+   ));
+
+  Matrix A_ = CholeskiInverse(A);
+  Real ok = If(U==(Matrix A*A_),1,0);
+  // Show Results
+  WriteLn(If(ok,"OK","ERROR"));
+  ok
+};
+
+ 

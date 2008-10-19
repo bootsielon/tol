@@ -1,0 +1,23 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _dynHlm.tol
+// PURPOSE: Dynamic Hierarchical Linear Model 
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock DynHlm =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //read only autodoc
+  Text _.autodoc.description =
+  "Dynamic Hierarchical Linear Model. Observational level has time series as "
+  "output and input data with optional ARIMA structure.";
+
+  //DataBase schema and methods to handle with Bsr::DynHlm models
+  Set _db_api    = Include("_db_api.tol");
+  NameBlock DBApi;
+
+  //Building nodes related methods to handle with Bsr::DynHlm models
+  Set _buildNode = Include("_build.node.tol");
+  NameBlock BuildNode
+]];
+  

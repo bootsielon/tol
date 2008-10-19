@@ -1,0 +1,440 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _server.tol
+// PURPOSE : Tol Parallel Api. Servers launching methods
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Text formatServer(stServerInfo srv)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text srv->host+
+       ":"+FormatReal(srv->port,"%g")+ 
+       "#"+FormatReal(srv->pid,"%g")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Standard string of server definition host:port",
+"Cadena est?ndard de definici?n de un servidor m?quina:puerto"),
+formatServer);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Text descServer(stServerInfo srv)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text "TolServer{"+srv->host+
+       ":"+FormatReal(srv->port,"%g")+ 
+       "#"+FormatReal(srv->pid,"%g")+"}"
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Full description string of TOL server host:port#PID",
+"Cadena completa de descripci?n de un servidor m?quina:puerto#PID"),
+descServer);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Set parseServer(Text hostPort)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set tok = Tokenizer(hostPort,":");
+  stServerInfo
+  (
+    Text host = tok[1];
+    Real port = Eval(tok[2]),
+    Real speed = -1        
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Returns the Tap::stServerInfo corresponding to a standard string of server "
+"definition host:port",
+"Devuelve la estructura Tap::stServerInfo correspondiente a una cadena "
+"est?ndard de definici?n de un servidor m?quina:puerto"),
+parseServer);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real waitCond(Text fid, Text cond)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real checkIter = -_.iterSleep;
+  Real condIsOk = 0;
+  Write(fid+"Waiting for "+cond+" ... ");
+  While(checkIter<=0,
+  {
+    Real condIsOk := Eval(cond);
+    Real checkIter := If(condIsOk, 1,
+    {
+      Write(".");
+      Real sleep = Sleep(_.sleep);
+      checkIter+1
+    })
+  });
+  If(condIsOk, WriteLn(" OK!"), WriteLn("FAIL!"));
+  condIsOk
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Waits until enforcing a condition resulting from the evaluation of an Tol "
+"expression. The argument <fid> is just a prefix to the message tracking. "
+"It will check if the condition is met, and if not, sleep _.sleep seconds for "
+"not using CPU. This process is repeated until a maximum number of _.iterSleep "
+"times before returning if it has succeeded or not fulfil the condition.",
+"Espera hasta que se cumpla una condici?n resultante de la evaluaci?n de una "
+"expresi?n Tol. El argumento <fid> es solo un prefijo para el mensaje de "
+"trazado. Se comprobar? si la condicion se cumple y, en caso contrario, "
+"dormir? _.sleep segundos para no usar CPU. Este proceso se repetir? hasta un "
+"numero _.iterSleep m?ximo de veces antes de retornar si se ha conseguido "
+"cumplir o no la condici?n."),
+waitCond);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set launchServer(Text host, Real port, Real speed)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("TRACE launchServer 1.1 host="<<host+" port="<<port);
+  Real hostAlive = RemotePing(host,_.rmtpsdPort);
+//WriteLn("TRACE launchServer 1.2 hostAlive="<<hostAlive);
+  Text fid = "[Tpa::launchServer] ";
+  Set result = If(!hostAlive,
+  {
+    WriteLn(fid+"Service rmtpsd not found at host "+
+          host+":"+IntText(_.rmtpsdPort),"W");
+    Copy(Empty)
+  },
+  {
+  //WriteLn("TRACE launchServer 1.3");
+    Text command = "tolsh -server "+IntText(port);
+  //WriteLn("TRACE launchServer 1.4 command="<<command);
+    Real pid = RemoteExec(host, _.rmtpsdPort, command);
+  //WriteLn("TRACE launchServer 1.5 pid="<<pid);
+    Set srv = stServerInfo(host, port, pid, speed);
+  //WriteLn("TRACE launchServer 1.6 srv="<<srv);
+    Text desc = ToName(descServer(srv));
+  //WriteLn("TRACE launchServer 1.7 desc="<<desc);
+    If(pid<=0, 
+    {
+      WriteLn(fid+"Fail calling "+desc,"W");
+      Copy(Empty)
+    },
+    {
+      Real alive = waitCond(fid,"RemoteAlive(\""+host+"\","+IntText(_.rmtpsdPort)+","+IntText(pid)+")");
+      If(!alive,
+      {
+        WriteLn(fid+"Aborted or lost "+desc,"W");
+        Copy(Empty)
+      },
+      {
+        Real serverPing = waitCond(fid,"TolServerPing(\""+host+"\","+IntText(port)+")");
+        If(!serverPing, 
+        {
+          WriteLn(fid+"Not listening "+desc,"W");
+          Copy(Empty)
+        },
+        {
+          Text name = ToName(formatServer(srv));
+        //WriteLn("TRACE launchServer 2.1 name="<<name);
+          Set server = [[ Eval("Set "+name+"=srv") ]];
+        //WriteLn("TRACE launchServer 2.2");
+          Set Append(_.serverList, server);
+        //WriteLn("TRACE launchServer 2.3");
+          Text autoConfigServer =
+            "Text Tpa::_.sharedRoot:=\""+Tpa::_.sharedRoot+"\";"
+            "Set  Tpa::_.serverInfo:=Tpa::stServerInfo(\""+host+"\","+
+                  IntText(port)+","+IntText(pid)+","<<speed+");";
+          Text eval = TolServerEval(host, port, autoConfigServer);
+          Text wait = TolServerWait("");
+          server[1]
+        })
+      })
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Launches a remote tolsh server in the specified host and port, as a thread "
+"process of the corresponding remote tolsh dispatcher.",
+"Lanza un servidor remoto en la maquina y puerto especificados, como un "
+"proceso hijo del correspondiente despachador remoto de tolsh"),
+launchServer);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real killServer(stServerInfo srv)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set _.serverList := _.serverList - [[srv]];
+  Real ok = RemoteKill(srv->host, _.rmtpsdPort, srv->pid);
+//WriteLn("TRACE Tpa::killServer("+formatServer(srv)+") = "<<ok);
+  ok
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Kills a remote tolsh server.",
+"Termina un servidor remoto de tolsh."),
+killServer);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set killServerList(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set s = Copy(_.serverList);
+  EvalSet(s, killServer)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Kills all tolsh servers in _.serverList",
+"Termina los servidores remotos de tolsh de _.serverList"),
+killServerList);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real showAllServersAtHosts(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set For(1,Card(_.hostList), Real(Real h)
+  {
+    Real RemoteExec(_.hostList[h]->host, _.rmtpsdPort, "pgrep -u rmtpsd tolsh");
+    1 
+  });
+  1
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Shows all tolsh servers in all hosts of _.hostList."
+"Only allowed for linux hosts",
+"Muestra los servidores remotos de tolsh de todos los hosts de _.hostList"
+"Sólo funciona en hosts linux"),
+showAllServersAtHosts);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real killAllServersAtHosts(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real showAllServersAtHosts(0);
+  Set For(1,Card(_.hostList), Real(Real h)
+  {
+    Real RemoteExec(_.hostList[h]->host, _.rmtpsdPort, "pkill -u rmtpsd tolsh");
+    1 
+  });
+  Real showAllServersAtHosts(0);
+  1
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Kills all tolsh servers in all hosts of _.hostList."
+"Only allowed for linux hosts",
+"Termina los servidores remotos de tolsh de todos los hosts de _.hostList"
+"Sólo funciona en hosts linux"),
+killAllServersAtHosts);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real testLocalSpeed(Real numIter)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real sum = 0;
+  Real k=0;
+  Real t0 = Copy(Time);
+  Real While(k<numIter; { Real sum := sum+k; Real k := k +1 });
+  Real t1 = Copy(Time)-t0;
+  Real speed = numIter/(t1*1E6);
+//WriteLn("LOCAL_TRACE Tpa::testLocalSpeed("+IntText(numIter)+") = "<<speed);
+  speed
+}; 
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Tests the speed of local host for a cycle of numIter iterations",
+"Testea la velocidad de la m?quina local para un ciclo del n?mero de "
+"iteraciones especificado"),
+testLocalSpeed);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real testRemoteSpeed(Real numIter, stServerInfo srv)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("TRACE testRemoteSpeed 1 srv="+formatServer(srv));
+  Real sum = 0;
+  Real k=0;
+  Real t0 = Copy(Time);
+  Text id = TolServerEval(srv->host, srv->port, 
+    "Real Tpa::testLocalSpeed("+IntText(numIter)+");");
+  If(id=="", 
+  {
+  //WriteLn("TRACE testRemoteSpeed 2.a");
+    0
+  },
+  {
+  //WriteLn("TRACE testRemoteSpeed 2.b");
+    Text wait = TolServerWait("");    
+  //WriteLn("TRACE testRemoteSpeed 3.b");
+    Real t1 = Copy(Time)-t0;
+    numIter/(t1*1E6)
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Tests the speed of a remote server for a cycle of numIter iterations",
+"Testea la velocidad de un servidor remoto para un ciclo del n?mero de "
+"iteraciones especificado"),
+testRemoteSpeed);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real _hostSpeed(stHostInfo hostInf)
+//////////////////////////////////////////////////////////////////////////////
+{
+  hostInf->cpuNum * hostInf->cpuSpeed
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Returns the total joint speed of all cpu's of a host\n"
+"Private method for internal use of Tpa",
+"Devuelve la velocidad conjunta de las CPU's de una m?quina\n"
+"M?todo privado para uso interno de Tpa"),
+_hostSpeed);
+//////////////////////////////////////////////////////////////////////////////
+
+//VBR: Hay que permitir cargar una tabla de hosts cualquiera
+//////////////////////////////////////////////////////////////////////////////
+Set loadLastHosts(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!FileExist(_spth+"_.hostList.bst"),_.hostList,
+  {
+    Set _.hostList   := Include(_spth+"_.hostList.bst");
+  //Write("Tpa::_.hostList"); Set View(_.hostList,""); WriteLn("");
+    _.hostList
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Set loadLastServers(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!FileExist(_spth+"_.serverList.bst"),_.serverList,
+  {
+    Set _.serverList := Include(_spth+"_.serverList.bst");
+  //Write("Tpa::_.serverList"); Set View(_.serverList,""); WriteLn("");
+    _.serverList
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real showHostList(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("\nTpa::_.hostList="); Set View(_.hostList,""); WriteLn("");
+  0
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real showServerList(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("\nTpa::_.serverList="); Set View(_.serverList,""); WriteLn("");
+  0
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Set initCluster(Text sharedRoot, Real numServ)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("launchServers numServ="<<numServ);
+  Text _.sharedRoot := sharedRoot;
+//Tests the speed of each host and store results in the read only member 
+//_.hostList to be affordable by users
+  Set For(1,Card(_.hostList), Real(Real h)
+  {
+    Set srv = launchServer(_.hostList[h]->host, _.dispatcherPort, -1);
+    Real speed = If(!Card(srv),0,
+    {
+      Real speed = testRemoteSpeed(numIterTestSpeed,srv);
+      Real kill = killServer(srv);
+      speed
+    });
+    Real _.hostList[h]->cpuSpeed := speed;
+    speed
+  });
+  Set BSTFile(_.hostList,_spth+"_.hostList.bst");
+  Real showHostList(0);
+//Sorts the hosts by growning joint speed of all CPU's of each host
+  Set _.hostList := Sort(_.hostList, Real(stHostInfo a, stHostInfo b)
+  {
+    Compare(_hostSpeed(b), _hostSpeed(a))
+  });
+  Real showHostList(0);
+//Calculates the joint speed of all CPU's of all hosts
+  Real sumWeights = SetSum(EvalSet(_.hostList, _hostSpeed));
+//WriteLn("TRACE  sumWeights="<<sumWeights);
+//Calculates the number of servers to assign to a speed unit
+  Real servBySpeedUnit = numServ/sumWeights;
+//WriteLn("TRACE  servBySpeedUnit="<<servBySpeedUnit);
+//Assigns to each host the rounded number of servers proportionally to the 
+//joint speed of all CPU's of each one
+  Set dist = EvalSet(_.hostList, Real(stHostInfo hostInf)
+  {
+    Round(_hostSpeed(hostInf) * servBySpeedUnit)
+  });
+//WriteLn("TRACE  dist="<<dist);
+//This is the total number of assigned 
+  Real procSum = SetSum(dist);
+//WriteLn("TRACE  procSum="<<procSum);
+//Due to rounding errors it's possible that the total number of assigned 
+//servers will not be exactly the specified. So we will tune updating the
+//assignements of faster hosts.
+  Real hostNum = 1;
+  Real While(procSum>numServ,
+  {
+    Real dist[hostNum] := dist[hostNum]-1;
+    Real procSum := procSum-1;
+    Real hostNum := hostNum+1
+  });
+  Real hostNum := 1;
+  Real While(procSum<numServ,
+  {
+    Real dist[hostNum] := dist[hostNum]+1;
+    Real procSum := procSum+1;
+    Real hostNum := hostNum+1
+  });
+//WriteLn("TRACE dist="<<dist);
+//Assigns to servers sequential ports starting at _.dispatcherPort+1 and store 
+//results in the read only member _.serverList to be affordable by users
+  Set For(1,Card(_.hostList), Set(Real numHost)
+  {
+    Real speed = (_.hostList[numHost]->cpuSpeed * _.hostList[numHost]->cpuNum) 
+                 / dist[numHost];
+    For(1,dist[numHost], Set (Real portLag)
+    {
+      launchServer(_.hostList[numHost]->host, _.dispatcherPort+portLag, speed)
+    })
+  });
+  Real showServerList(0);
+  Set BSTFile(_.serverList,_spth+"_.serverList.bst");
+//Launches all defined servers
+  _.serverList
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Launch the given number of tolsh servers distributed among the specified "
+"list of available hosts in a balanced way. Firstly, it test the joint speed "
+"of conexion and CPU of each host and afterwords assign the servers "
+"proportionally to the product of this speed by the number of CPU's of each "
+"one.",
+"Lanza el numero especificado de servidores distribuidos de forma balanceada "
+"entre la lista de maquinas indicada. Primero prueba la velocidad conjunta "
+"de conexion y CPU de cada maquina y luego asigna los servidores de forma "
+"proporcional a dicha velocidad por el numero de CPU's de cada una"),
+initCluster);
+//////////////////////////////////////////////////////////////////////////////
+

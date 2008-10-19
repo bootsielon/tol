@@ -1,0 +1,49 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _ratio.tol
+// PURPOSE: Funciones generales que devuelven Ratio
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Ratio GetRatioFromLabel (Text txtArima)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set arima01 = GetArimaFromLabel(txtArima);
+  Set arima02 = For(1,Card(arima01),Set(Real tt) 
+  {
+    Set ss = arima01[tt];
+
+    Real periodo = ss->Periodicity;
+    Set ar       = Monomes(ss->AR-1);
+    Set ma       = Monomes(ss->MA-1);
+    Polyn dif    = ss->DIF;
+    Polyn polAR = If(Eq(Card(ar),0), {
+      Polyn 0.1
+    },
+    {
+      Polyn BinGroup("+", EvalSet(ar,Polyn(Polyn pp)
+       { pp*B^(periodo-1) }))+ (Polyn 1)
+    });
+    Polyn polMA = If(Eq(Card(ma),0), {
+      Polyn 0.1
+    },
+    {
+      Polyn BinGroup("+",  EvalSet(ma, Polyn(Polyn pp)
+       { pp*B^(periodo-1) }))+ (Polyn 1)
+    });
+    ARIMAStruct(periodo, polAR, polMA, dif) 
+  });
+  Polyn AR  = BinGroup("*", Traspose(arima02)[2]);
+  Polyn MA  = BinGroup("*", Traspose(arima02)[3]);
+  Polyn DIF = BinGroup("*", Traspose(arima02)[4]);
+  Ratio piw = (AR*DIF)/MA;
+  piw
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Dado un Text con la definición de un modelo ARIMA, devuelve un Ratio de la 
+forma ARI/MA.",GetRatioFromLabel);
+//////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,22 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _ini_engine.tol
+// PURPOSE : Inclusion de ficheros del directorio gestor
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock SqlEngine =
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set _SqlEngine =
+  [[
+    Set Include("_sqltools.tol");
+    Set Include("_sqlpos.tol");
+    Set Include("_sqlora.tol");
+    Set Include("_sqlmic.tol");
+    Set Include("_sqlmys.tol");
+    Set Include("_sqlter.tol");
+    //Set Include("_sqlacc.tol");
+    Set Include("_sql.tol")
+  ]];
+  SetToNameBlock(PlainNamedObjects(_SqlEngine))
+};

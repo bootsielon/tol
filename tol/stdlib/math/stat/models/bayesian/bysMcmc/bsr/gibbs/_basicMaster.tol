@@ -1,0 +1,765 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: _basicMaster.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::BasicMaster
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.BasicMaster =
+"Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
+"Regression model by passing it to method BysMcmc::BuildCycler";
+NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  //--------------------------------------------------------------------------
+  // Configuration members
+  //--------------------------------------------------------------------------
+  NameBlock config_ = BysMcmc::BuildFullConfig(config);
+
+  //--------------------------------------------------------------------------
+  // Read only members
+  //--------------------------------------------------------------------------
+
+  //Internal reference to model definition
+  Set _.modelDef = modelDef;
+  Text _.name = _.modelDef->DocInfo->Model.Name;  
+  //Setting NameBlock description
+  Text _.autodoc.description="Gibbs sampler for model "+_.name;
+  Text _MID = "[BSR."+_.name+"] ";
+  NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock
+  (
+    "BSR.MainLinBlock."+_.name,
+    EvalSet(_.modelDef->LinearBlock, Text(BSR.LinearBlock b){ b->Name }),
+    1,
+    1,
+    config_
+  );
+
+  NameBlock _.sig.blk = BysMcmc::Bsr::Gibbs::SigmaBlock
+  (
+    "BSR.SigmaBlock."+_.name,
+    _.modelDef->NoiseDistrib,
+    2,
+    _.lin.blk::_.blockDef::_.lastCol+1,
+    config_
+  );
+
+  NameBlock _.arm.blk = BysMcmc::Bsr::Gibbs::ArimaBlock
+  (
+    "BSR.ArimaBlock."+_.name,
+    _.modelDef->NoiseDistrib,
+    3, 
+    _.sig.blk::_.blockDef::_.lastCol+1,
+    config_
+  );
+
+  NameBlock _.inpMis.blk = BysMcmc::Bsr::Gibbs::InputMissingBlock
+  (
+    "BSR.InputMissingBlock."+_.name,
+    _.modelDef->InputMissingBlock,
+    4,
+    _.arm.blk::_.blockDef::_.lastCol+1,
+    config_
+  );
+
+  NameBlock _.outMis.blk = BysMcmc::Bsr::Gibbs::OutputMissingBlock
+  (
+    "BSR.OutputMissingBlock."+_.name,
+    _.modelDef->OutputMissingBlock,
+    5,
+    _.inpMis.blk::_.blockDef::_.lastCol+1,
+    config_
+  );
+
+  Set _.blocks =
+  [[
+    _.lin.blk,
+    _.sig.blk,
+    _.arm.blk,
+    _.inpMis.blk,
+    _.outMis.blk
+  ]];
+
+  //Number of variables of linear regression (dimension of linear block)
+  Real _.N = VColumns(_.modelDef->X);
+  //Number of equations of linear regression
+  Real _.M = VRows   (_.modelDef->X);
+  //Number of equations of differenced linear regression
+  Real _.DM = _.arm.blk::_.numDifData;
+
+  //Output filtered by missing values
+  VMatrix _.YplusV = Rand(0,0,0,0);
+  //Input filtered by missing values
+  VMatrix _.XplusU = Rand(0,0,0,0);
+  //ARIMA noise
+  VMatrix _.noise  = Rand(0,0,0,0);
+  //Linear block values
+  VMatrix _.beta   = Rand(0,0,0,0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix findMatchingBeta(VMatrix givenInitVal)
+  //Assigning initial values to linear block variables
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!VRows(_.modelDef->a), givenInitVal,
+    {
+    //WriteLn("TRACESearching valid initial values");
+      Real givenMatch = VMatMax(_.modelDef->A*givenInitVal-_.modelDef->a)<=0;
+      If(givenMatch, 
+      {
+        WriteLn(_MID+"Given init values matches constrain inequations.");
+        givenInitVal
+      },
+      {
+        WriteLn(_MID+"Given init values doesn't match constrain inequations."
+                "Trying zero solution ...", "W");
+        Real zeroMatch = VMatMax(-_.modelDef->a)<=0;
+        If(zeroMatch, 
+        {
+          WriteLn(_MID+"Zero solution matches constrain inequations.");
+          Rand(_.N,1,0,0)
+        },
+        {
+          WriteLn(_MID+"Zero init values doesn't match constrain inequations.\n"
+                    "Trying constrained minimum norm solution ...", "W");
+          Matrix  Dt    = VMat2Mat(Tra(_.modelDef->A));
+          Matrix  d     = VMat2Mat(_.modelDef->a);
+          Matrix  I     = Diag(_.N,1);
+          Matrix  Z     = Rand(_.N,1,0,0);
+          Matrix  cnstr = Rquadprog::solveQP(I, Z, -Dt, -d,
+                                            {[[Real verbose=TRUE]]})[1];
+          VMatrix cnstr_ = Mat2VMat(cnstr);
+          Real cnstrMatch=VMatMax(_.modelDef->A*cnstr_-_.modelDef->a)<=0;
+          If(cnstrMatch, 
+          {
+            WriteLn(_MID+"Constrained minimum norm solution "
+                         "matches constrain inequations.");
+            cnstr_
+          },
+          {
+            WriteLn(_MID+"Constrained minimum norm solution doesn't match "
+                         "constrain inequations.", "E");
+            givenInitVal
+          }) 
+        })
+      })
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" _.lin.blk.init 1");
+    Matrix aux=SetCol(EvalSet(_.modelDef->LinearBlock,Real(BSR.LinearBlock b)
+    { b->InitialValue }));
+  //WriteLn("TRACE"+_MID+" _.lin.blk.init 2");
+    VMatrix beta0 = findMatchingBeta(Mat2VMat(aux));
+  //WriteLn("TRACE"+_MID+" _.lin.blk.init 3");
+    Real ok = _.lin.blk::initialize(beta0, _.modelDef->A, _.modelDef->a);
+  //WriteLn("TRACE"+_MID+" _.lin.blk.init 4");
+    VMatrix _.beta   := _.lin.blk::_.blockDef::_.store;
+    VMatrix sig_0 = _.sig.blk::draw(0, _.modelDef::Y - _.modelDef::X*_.beta);
+  //WriteLn("TRACE"+_MID+" _.lin.blk.init 5");
+    VMatrix _.YplusV := _.outMis.blk::filter(_.modelDef::Y);
+  //WriteLn("TRACE"+_MID+" _.lin.blk.init 6");
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef::X);
+  //WriteLn("TRACE"+_MID+" _.lin.blk.init 7");
+    VMatrix _.noise := _.YplusV-_.XplusU*_.beta;
+    VMatrix arm = _.arm.blk::draw(0, _.noise,_.sig.blk::_.blockDef::_.store);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 3");
+    VMatrix e = _.arm.blk::filter(_.noise);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 4");
+    VMatrix sig_1 = _.sig.blk::draw(0, e);
+    ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Converts the original regression to standarized noise N(0,I) and "
+  "solves it";
+  VMatrix draw(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.1");
+    VMatrix om = If(Not(_.outMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+    {
+      _.outMis.blk::draw(numSim,_.arm.blk,_.sig.blk::_.sigmaInv,
+                         _.modelDef::Y-_.XplusU*_.beta)
+    });
+    VMatrix _.YplusV := _.outMis.blk::filter(_.modelDef::Y);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.3");
+    VMatrix im = If(Not(_.inpMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+    {
+      _.inpMis.blk::draw(numSim,_.arm.blk,_.sig.blk::_.sigmaInv, 
+                         _.beta, _.YplusV-_.modelDef::X*_.beta)
+    });
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef::X);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.5");
+    VMatrix _.noise := _.YplusV - _.XplusU*_.beta;
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 2");
+    VMatrix arm = If(Not(_.arm.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+    _.arm.blk::draw(numSim, _.noise, _.sig.blk::_.blockDef::_.store));
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 3");
+    VMatrix e = _.arm.blk::filter(_.noise);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 4");
+    VMatrix sig = If(Not(_.sig.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+      _.sig.blk::draw(numSim, e));
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 5");
+    VMatrix si = _.sig.blk::_.sigmaInv;
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 7");
+    VMatrix Y01 = _.arm.blk::filter(si*_.YplusV); 
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 6");
+    VMatrix X01 = _.arm.blk::filter(si*_.XplusU); 
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 8");
+    VMatrix _.beta := If(Not(_.lin.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+      _.lin.blk::draw(numSim, Y01, X01));
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 9");
+    _.beta << sig << arm << im << om
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "";
+  VMatrix maxLikelihood(Real numIter)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix om = If(Not(_.outMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+    {
+      _.outMis.blk::maxLikelihood(numSim,_.arm.blk,_.sig.blk::_.sigmaInv,
+                                  _.modelDef::Y-_.XplusU*_.beta)
+    });
+    VMatrix _.YplusV := _.outMis.blk::filter(_.modelDef::Y);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.3");
+    VMatrix im = If(Not(_.inpMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+    {
+      _.inpMis.blk::maxLikelihood(numSim,_.arm.blk,_.sig.blk::_.sigmaInv, 
+                                  _.beta, _.YplusV-_.modelDef::X*_.beta)
+    });
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef::X);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.5");
+    VMatrix _.noise := _.YplusV - _.XplusU*_.beta;
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 2");
+    VMatrix arm = If(Not(_.arm.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+    _.arm.blk::maxLikelihood(numSim, _.noise, _.sig.blk::_.blockDef::_.store));
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 3");
+    VMatrix e = _.arm.blk::filter(_.noise);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 4");
+    VMatrix sig = If(Not(_.sig.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+      _.sig.blk::maxLikelihood(numSim, e))/*config_::mls.FunnelGibbs.sigmaFactor*/;
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 5");
+    VMatrix si = _.sig.blk::_.sigmaInv;
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 7");
+    VMatrix Y01 = _.arm.blk::filter(si*_.YplusV); 
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 6");
+    VMatrix X01 = _.arm.blk::filter(si*_.XplusU); 
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 8");
+    VMatrix _.beta := If(Not(_.lin.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+      _.lin.blk::maxLikelihood(numSim, Y01, X01));
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 9");
+    _.beta << sig << arm << im << om
+  };
+
+
+
+  //--------------------------------------------------------------------------
+  // Public methods used by NameBlock BuildCycler 
+  //--------------------------------------------------------------------------
+ 
+  Text get.name(Real unused) 
+  { 
+    _.name
+  }; 
+  Text get.session(Real unused) 
+  { 
+    _.modelDef->DocInfo->Session.Name
+  }; 
+  Text get.path(Real unused) 
+  { 
+    _.modelDef->DocInfo->Path 
+  }; 
+  Set get.colNames(Real unused) 
+  { 
+    BinGroup("<<",EvalSet(_.blocks, Set(NameBlock block)
+    {
+      block::_.blockDef::_.colNames
+    }))
+  };
+
+  //--------------------------------------------------------------------------
+  // Public methods for end user access and tools
+  //--------------------------------------------------------------------------
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Set values of all blocks from a given row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set EvalSet(_.blocks, Real(NameBlock block)
+    {
+      If(Or(!(block::_.blockDef::enabled),
+              block::_.blockDef::_.numCol<=0),0,
+         block::setStore(block::_.blockDef::getMcmc(values)))
+    });
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Set values of all blocks from a given row of a Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    setStore(SubRow(mcmc, [[row]]))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setSegmentInputCol =
+  "";
+  Real setSegmentInputCol(Matrix Xj, Real segmentNum, Real column)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set equIdx = (_.modelDef->NoiseDistrib)[segmentNum]->EquIdx;
+    //VBR: Se asume que las ecuaciones de un segmento son consecutivas!
+    PutVMatBlock(_.modelDef::X, equIdx[1], column, Xj)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setSegmentOutput =
+  "";
+  Real setSegmentOutput(Matrix Yj, Real segmentNum)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set equIdx = (_.modelDef->NoiseDistrib)[segmentNum]->EquIdx;
+    //VBR: Se asume que las ecuaciones de un segmento son consecutivas!
+    PutVMatBlock(_.modelDef::Y, equIdx[1], 1, Yj)
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member._eval =
+  "Set values of all blocks from a given row vector of values";
+  Set _eval(Matrix values, Real useTimeInfo, Real justWithTimeInfo) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" eval 1");
+    Real setStore(values);
+  //WriteLn("TRACE"+_MID+" eval 2");
+    VMatrix _.YplusV := _.outMis.blk::filter(_.modelDef::Y);
+    VMatrix fullOutput.mis = _.outMis.blk::filter(_.modelDef::Y*0);
+  //WriteLn("TRACE"+_MID+" eval 3");
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef::X);
+  //WriteLn("TRACE"+_MID+" eval 4");
+    VMatrix _.beta := _.lin.blk::_.blockDef::_.store;
+    VMatrix fullFilter = _.modelDef::X*_.beta;
+    VMatrix fullFilter.full = _.XplusU*_.beta;
+    VMatrix fullFilter.mis = fullFilter.full - fullFilter;
+    VMatrix fullNoise  = _.YplusV - fullFilter.full;
+  //WriteLn("TRACE"+_MID+" eval 5");
+  //WriteLn("TRACE"+_MID+" eval 6");
+    Set all.segments = Range(1,Card(_.arm.blk::_.NoiseDistrib),1);
+    Set select = If(!justWithTimeInfo, all.segments, 
+      Select(all.segments, Real(Real k)
+      {
+        Set segment = (_.arm.blk::_.NoiseDistrib)[k];
+        Card(segment->TimeInfo)
+      }));
+    EvalSet(select, Set(Real k)
+    {
+    //WriteLn("TRACE"+_MID+" eval 7["<<k+"].1");
+      Set segment = (_.arm.blk::_.NoiseDistrib)[k];
+    //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2");
+      Text name = Replace(segment->Name,"::Noise","");
+    //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.1");
+      Matrix output_ = VMat2Mat(SubRow(_.modelDef::Y,segment->EquIdx));
+      Matrix output.mis_ = VMat2Mat(SubRow(fullOutput.mis,segment->EquIdx));
+      Matrix output.full = output_+output.mis_;
+      Matrix output = IfMat(output.mis_,RProd(output_,?),output_);
+      Matrix output.mis  = IfMat(output.mis_,output.mis_,RProd(output.mis_,?));
+      Matrix filter_ = VMat2Mat(SubRow(fullFilter,segment->EquIdx));
+      Matrix filter.mis_ = VMat2Mat(SubRow(fullFilter.mis,segment->EquIdx));
+      Matrix filter.full = filter_+filter.mis_;
+      Matrix filter = IfMat(filter.mis_,RProd(filter_,?),filter_);
+      Matrix filter.mis  = IfMat(filter.mis_,filter.mis_,RProd(filter.mis_,?));
+      Matrix noise = VMat2Mat(SubRow(fullNoise,segment->EquIdx));
+    //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.2 segment->SigmaIndex="<<segment->SigmaIndex);
+      Real sigma  = If(segment->SigmaIndex<=0, 
+        VMatDat(segment->L,(segment->EquIdx)[1],(segment->EquIdx)[1]),
+        Sqrt(VMatDat(_.sig.blk::_.blockDef::_.store,segment->SigmaIndex,1)));
+    //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.3");
+      Set ti = If(useTimeInfo, segment->TimeInfo, Copy(Empty));
+    //WriteLn("TRACE"+_MID+" eval 7["<<k+"].3");
+      Set arima = segment->Arima;
+      Real hasArima = Card(arima)>0;
+
+      Matrix difNoise = noise;
+      Matrix residuals = noise;
+      Matrix forecast = output.full - noise;
+      Real difDeg = 0;
+      Real If(hasArima,
+      {
+        Set aux = segment->ArimaAuxInfo;
+        Real m = aux::m;
+        Real d = aux::difDegree;
+        Real difDeg:=d;
+        Real n = m - d;
+        Polyn dif  = ARIMAGetDIF(arima);
+        Matrix difNoise := Sub(DifEq(dif/1,noise),d+1,1,n,1);
+        NameBlock almagro = ARMAProcess::Eval.Almagro(
+          aux::ar,aux::ma,Mat2VMat(difNoise),sigma);
+        Matrix residuals := VMat2Mat(almagro::_.a);
+        Matrix forecast := Sub(output.full,d+1,1,n,1)-residuals;
+        1
+      });
+      Real avr = MatAvr(residuals);
+      Real stdErr = Sqrt(MatDat(MtMSqr(residuals),1,1)/Rows(residuals));       
+
+      Set aux = If(Card(ti),
+      { 
+      //WriteLn("TRACE"+_MID+" eval 7["<<k+"].4");
+        Date first = ti->FirstDate;
+        Date difFirst = Succ(first, ti->Dating, difDeg);
+        Serie serOutput      = MatSerSet(Tra(output),     ti->Dating, first)[1];
+        Serie serOutput.mis  = MatSerSet(Tra(output.mis), ti->Dating, first)[1];
+        Serie serOutput.full = MatSerSet(Tra(output.full),ti->Dating, first)[1];
+        Serie serFilter      = MatSerSet(Tra(filter),     ti->Dating, first)[1];
+        Serie serFilter.mis  = MatSerSet(Tra(filter.mis), ti->Dating, first)[1];
+        Serie serFilter.full = MatSerSet(Tra(filter.full),ti->Dating, first)[1];
+        Serie serNoise       = MatSerSet(Tra(noise),      ti->Dating, first)[1];
+        If(hasArima,
+        { 
+          Serie serDifNoise  = MatSerSet(Tra(difNoise), ti->Dating, difFirst)[1];
+          Serie serResiduals = MatSerSet(Tra(residuals),ti->Dating, difFirst)[1];
+          Serie serForecast  = MatSerSet(Tra(forecast), ti->Dating, difFirst)[1];
+          [[sigma, stdErr, avr, serOutput, serOutput.mis, serOutput.full, 
+            serFilter, serFilter.mis, serFilter.full, serNoise, serForecast,
+            serDifNoise, serResiduals, arima]]
+        },
+        {
+          Serie serForecast = MatSerSet(Tra(forecast), ti->Dating, first)[1];
+          [[sigma, stdErr, avr, serOutput, serOutput.mis, serOutput.full,
+            serFilter, serFilter.mis, serFilter.full, serNoise, serForecast]]
+        })
+      },
+      {
+        If(hasArima,
+        { 
+          [[sigma, stdErr, avr, output, output.mis, output.full, 
+            filter, filter.mis, filter.full, noise, forecast,
+            difNoise, residuals, arima]]
+        },
+        {
+          [[sigma, stdErr, avr, output, output.mis, output.full, 
+            filter, filter.mis, filter.full, noise, forecast]]
+        })
+      });
+      Real SetIndexByName(aux);
+      Eval(name+"=aux")
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.eval =
+  "Set values of all blocks from a given row vector of values";
+  Set eval(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _eval(values, True, False)
+  };
+/*
+  VBR: no está acabada aún.
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.forecast.bands =
+  "";
+  Set forecast.bands(Matrix param.mcmc, Real confidence) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real q = (1-confidence)/2;
+    Set evals = Traspose(For(1,Rows(param.mcmc),Set(Real r)
+    {
+      _eval(SubRow(param.mcmc,[[r]]), True, True)
+    }));
+    For(1,Card(_.arm.blk::_.NoiseDistrib), Set(Real k)
+    {
+      Set segment = (_.arm.blk::_.NoiseDistrib)[k];
+    //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2");
+      Text name = Replace(segment->Name,"::Noise","");
+      Matrix forecast = SerMat((evals[k])::serForecast);
+      Matrix bands = Group("ConcatColumns",
+      For(1,Columns(forecast.mcmc),Matrix(Real c)
+      {
+        Matrix C = SubCol(forecast.mcmc,[[c]]);
+        Real q1  = MatQuantile(C,  q);
+        Real avg = MatAvg(C);
+        Real q2  = MatQuantile(C,1-q);
+        Col(q1,avg,q2)
+      }));
+      Set series = MatSerSet(bands,Dating())
+      Set aux = 
+      [[
+        (evals[k])::serOutput.full,
+        (evals[k])::serForecast
+      Eval()
+    })
+  };
+*/
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getRegEquBlock =
+  "Gets the index of a regression equation block specified by its name or "
+  "position.\n"
+  "If the specified name is not found or the position is out of range no "
+  "block will be referenced and an error message will be shown";
+  Real getRegEquBlock(Anything resBlock)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text g = Grammar(resBlock);
+    Case
+    (
+      g=="Real", 
+      {
+        Real n = Card(_.modelDef->NoiseDistrib);
+        If(And(resBlock<=n,resBlock>=1), resBlock, 
+        {
+          Real CMsg::Coded::show(BysMcmc::_.cmsg::_.indexOutOfRange,
+            [[_MID+"::getRegEquBlock", resBlock, 1, n]]),
+          -1
+        })
+      },
+      g=="Text", 
+      {
+        Real f = FindIndexByName(_.modelDef->NoiseDistrib,resBlock);
+        If(f, f, 
+        {
+          Real CMsg::Coded::show(BysMcmc::_.cmsg::_.notFoundName,
+            [[_MID+"::getRegEquBlock",resBlock]]),
+          -1
+        })
+      },
+      1==1,      
+      {
+        Real CMsg::Coded::show(BysMcmc::_.cmsg::_.invalidType,
+            [[_MID+"::getRegEquBlock",resBlock]]),
+        -2
+      }
+    )
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.subRegEquBlockV =
+  "Extracts from a matrix A the rows corresponding to a block of regression "
+  "equations specified by resBlock as is described in method getRegEquBlock";
+  VMatrix subRegEquBlockV(Anything resBlock, VMatrix A)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real blk = getRegEquBlock(resBlock);
+    SubRow(A,(_.modelDef->NoiseDistrib)[blk]->EquIdx)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.subDifRegEquBlockV =
+  "Extracts from a matrix A the rows corresponding to a block of regression "
+  "equations specified by resBlock as is described in method getRegEquBlock, "
+  "and applys the corresponding ARIMA difference filter if exists.";
+  VMatrix subDifRegEquBlockV(Anything resBlock, VMatrix A)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real blk = getRegEquBlock(resBlock);
+    Set segment = (_.modelDef->NoiseDistrib)[blk];
+    Set aux = segment->ArimaAuxInfo;
+    If(Not(aux::difDegree), SubRow(A,segment->EquIdx),
+    {
+      VMatrix D  = (segment->ArimaAuxInfo)::D;
+      VMatrix A_ = SubRow(A,segment->EquIdx); 
+      VMatrix DA = D*A_;
+      SubRow(DA,Range(aux::difDegree+1,aux::m,1))
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.subRegEquBlock =
+  "Extracts from a matrix A the rows corresponding to a block of regression "
+  "equations specified by resBlock as is described in method getRegEquBlock";
+  Matrix subRegEquBlock(Anything resBlock, Matrix A)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real blk = getRegEquBlock(resBlock);
+    SubRow(A,(_.modelDef->NoiseDistrib)[blk]->EquIdx)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.subDifRegEquBlock =
+  "Extracts from a matrix A the rows corresponding to a block of regression "
+  "equations specified by resBlock as is described in method getRegEquBlock, "
+  "and applys the corresponding ARIMA difference filter if exists.";
+  Matrix subDifRegEquBlock(Anything resBlock, Matrix A)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real blk = getRegEquBlock(resBlock);
+    Set segment = (_.modelDef->NoiseDistrib)[blk];
+    Set aux = segment->ArimaAuxInfo;
+    DifEq(aux::dif/1,SubRow(A,segment->EquIdx))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getInput =
+  "Returns original input matrix filtered by current missing block values "
+  "for a block of regression equations specified by resBlock as is described "
+  "in method getRegEquBlock";
+  Matrix getInput(Anything resBlock, Set beta.index)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix X_U = _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix X = SubCol(X_U,beta.index);
+    VMat2Mat(subRegEquBlockV(resBlock, X))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getOutput =
+  "Returns original output matrix filtered by current missing block values "
+  "for a block of regression equations specified by resBlock as is described "
+  "in method getRegEquBlock";
+  Matrix getOutput(Anything resBlock)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix Y = _.outMis.blk::filter(_.modelDef::Y);
+    VMat2Mat(subRegEquBlockV(resBlock, Y))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getNoise =
+  "Returns integrated noise for a given vector of linear block parameters "
+  "Y-X*b for a block of regression equations specified by resBlock as is "
+  "described in method getRegEquBlock";
+  Matrix getNoise(Anything resBlock, Set beta.index, Matrix beta)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real blk = getRegEquBlock(resBlock);
+    Matrix X = getInput(blk, beta.index);
+    Matrix Y = getOutput(blk);
+    Y-X*beta
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getDifInputFull =
+  "Returns differenced input matrix filtered by current missing block "
+  "values D(B)*X for full block of regression equations specified by resBlock "
+  "as is described in method getRegEquBlock";
+  Matrix getDifInputFull(Anything resBlock)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix X_U = _.inpMis.blk::filter(_.modelDef::X);
+    VMat2Mat(subDifRegEquBlockV(resBlock, X_U))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getDifInput =
+  "Returns differenced input matrix filtered by current missing block "
+  "values D(B)*X for a block of regression equations specified by resBlock "
+  "as is described in method getRegEquBlock";
+  Matrix getDifInput(Anything resBlock, Set beta.index)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix X_U = _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix X = SubCol(X_U,beta.index);
+    VMat2Mat(subDifRegEquBlockV(resBlock, X))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getDifOutput =
+  "Returns differenced output matrix filtered by current missing block "
+  "values D(B)*Y for a block of regression equations specified by resBlock "
+  "as is described in method getRegEquBlock";
+  Matrix getDifOutput(Anything resBlock)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix Y_V = _.outMis.blk::filter(_.modelDef::Y);
+    VMat2Mat(subDifRegEquBlockV(resBlock, Y_V))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getDifNoise =
+  "Returns differenced noise for a given vector of linear block parameters "
+  "D(B)*Y - D(B)*X*b for a block of regression equations specified by "
+  "resBlock as is described in method getRegEquBlock";
+  Matrix getDifNoise(Anything resBlock, Set beta.index, Matrix beta)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real blk = getRegEquBlock(resBlock);
+    Matrix X = getDifInput(blk, beta.index);
+    Matrix Y = getDifOutput(blk);
+    Y-X*beta
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getResiduals =
+  "Returns residuals for a given vector of linear block parameters "
+  "(D(B)*phi(B)/theta(B))*(Y-X*b) for a block of regression equations "
+  "specified by resBlock as is described in method getRegEquBlock";
+  Matrix getResiduals(Anything resBlock, Set beta.index, Matrix beta)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real    blk = getRegEquBlock(resBlock);
+    Set     segment  = (_.modelDef->NoiseDistrib)[blk];
+    Matrix  Z   = getNoise(blk, beta.index, beta);
+    Set     ev  = ARIMALevinsonEval(segment->Arima, Z);
+    ev::a
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.timeForecast =
+  "Returns time forecast for a block of regression equations representing a "
+  "time series with unknown sigma and optional ARIMA structure.\n"
+  "The block of equations is the specified by resBlock as is described "
+  "in method getRegEquBlock.";
+  Matrix timeForecast.mcmc(Matrix   mcmc, 
+                           Anything resBlock, 
+                           Set      beta.idx,
+                           Matrix   inputForecast)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    NameBlock lin = _.lin.blk::_.blockDef;
+    NameBlock sig = _.sig.blk::_.blockDef;
+
+    Real blk = getRegEquBlock(resBlock);
+    Real T = Rows(inputForecast);
+    Real N = Rows(mcmc);
+    Set  segment = (_.modelDef->NoiseDistrib)[blk];
+    Set aux = segment->ArimaAuxInfo;
+    Real sigmaIndex = segment->SigmaIndex;
+    Set sigma.names = [[segment->SigmaName]];
+    Set sigma.idx = sig::getMcmcColIndexes(sigma.names);
+    Matrix s.mcmc = Sqrt(SubCol(mcmc,sigma.idx));
+    Matrix beta.mcmc = SubCol(mcmc,beta.idx);
+    Matrix X_b.mcmc = beta.mcmc*Tra(inputForecast);
+    Matrix noise_.mcmc = If(Or(aux::difDegree,aux::p,aux::q),
+    {
+      Real pd = aux::p+aux::difDegree;
+      Real m  = aux::m;
+      Set pdEquIdx = ExtractByIndex(segment->EquIdx, Range(m-pd+1,m,1));
+
+      Matrix X0 = VMat2Mat(SubCol(SubRow(_.modelDef->X, pdEquIdx),beta.idx));
+      Matrix Y0 = VMat2Mat(       SubRow(_.modelDef->Y, pdEquIdx));
+      Group("ConcatRows",For(1,N,Matrix(Real numSim)
+      {
+        Real   s  = MatDat(s.mcmc,numSim,1);
+        Matrix E0 = Gaussian(aux::q,1,0,s);
+        Matrix E  = Gaussian(T,     1,0,s);
+        Matrix Z0 = Y0-X0*Tra(SubRow(beta.mcmc,[[numSim]]));
+        Matrix Z  = _.arm.blk::difEq.ARI.MA(blk,E,E0,Z0);
+        Tra(Z)
+      }))
+    },
+    {
+      Group("ConcatColumns",For(1,T,Matrix(Real t)
+      {
+        Gaussian(N,1,0,1) $* s.mcmc
+      }))
+    });
+    X_b.mcmc + noise_.mcmc
+  }
+]]};      
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.BasicMaster,BasicMaster);
+/////////////////////////////////////////////////////////////////////////////
+  

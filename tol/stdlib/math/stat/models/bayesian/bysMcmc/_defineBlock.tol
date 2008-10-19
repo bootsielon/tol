@@ -1,0 +1,179 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _defineBlock.tol
+// PURPOSE: Declares method BysMcmc::DefineBlock
+// PURPOSE: Generic handler for blocks of variables in MonteCarlo Markov 
+//          Chain methods
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DefineBlock =
+"Creates common information handler about each MCMC block"
+"Arguments are:\n"
+"  Text name: Identifies the block.\n"
+"  Set colNames: Identifiers of block parameters that must be all unique.\n"
+"  Real numBlock: The position of this block in full MCMC.\n"
+"  Real firstCol: First column of this block in full MCMC\n"
+"  NameBlock config: User configuration parameters\n";
+NameBlock DefineBlock(Text name, 
+                      Set colNames, 
+                      Real numBlock, 
+                      Real firstCol,
+                      NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real numCol = Card(colNames);
+  WriteLn("[BysMcmc::DefineBlock] Block "
+          "("+IntText(numBlock)+") "+name+" of size "+IntText(numCol));
+  NameBlock blockDef = [[
+  //Identifies the block.
+  Text _.name = name;
+  //Identifiers of block parameters that must be all unique
+  Set _.colNames = colNames;
+  //The position of this block in full MCMC
+  Real _.numBlock = numBlock;
+  //Number of parameters in the block
+  Real _.numCol = numCol;
+  //First column of this block in full MCMC
+  Real _.firstCol = firstCol;
+  //Last column of this block in full MCMC
+  Real _.lastCol = firstCol+_.numCol-1;
+  //Indexes of columns of this block in full MCMC
+  Set _.colIdx = Range(_.firstCol, _.lastCol, 1);
+  //User configuration parameters
+  NameBlock _.config   = config;
+  //Stores current values of parameters
+  VMatrix _.store = Rand(_.numCol,1,0,0);
+  //Flag that enables/disables the block
+  Real enabled  = _.numCol>0;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Puts name to each parameter and indexes the set _.colNames
+  Real _.initialize = 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    Set Do For(1, _.numCol, Real(Real k)
+    {
+      Text PutName(_.colNames[k],_.colNames[k]);
+      k
+    });
+    If(_.numCol, SetIndexByName(_.colNames), 0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getStoreColIndex =
+  "Returns the index with given column name in local block store";
+  Real getStoreColIndex(Text colName) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real idx = FindIndexByName(_.colNames, colName);
+    Real If(idx>0, idx,
+    {
+      Real CMsg::Coded::show(BysMcmc::_.cmsg::_.notFoundName,
+        [["[Block "+_.name+"::getStoreColIndex]",colName]]),
+      0
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getStoreColIndexes =
+  "Returns the set of indexes in local store with given column names";
+  Set getStoreColIndexes(Set colNames) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    EvalSet(colNames, getStoreColIndex)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getMcmcColIndex =
+  "Returns the index with given column name in global MCMC";
+  Real getMcmcColIndex(Text colName) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real idx = FindIndexByName(_.colNames, colName);
+    Real If(idx>0, _.colIdx[idx],
+    {
+      Real CMsg::Coded::show(BysMcmc::_.cmsg::_.notFoundName,
+        [["[Block "+_.name+"::getMcmcColIndex]",colName]]),
+      0
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getMcmcColIndexes =
+  "Returns the set of indexes inMCMC with given column names";
+  Set getMcmcColIndexes(Set colNames) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    EvalSet(colNames, getMcmcColIndex)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getMcmc =
+  "Extracts from MCMC columns related to this block";
+  Matrix getMcmc(Matrix mcmc) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.numCol<=0, Rand(Rows(mcmc),0,0,0),
+      SubCol(mcmc, _.colIdx))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.getMcmcRow =
+  "Extracts from a row of MCMC columns related to this block";
+  Matrix getMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.numCol<=0, Rand(1,0,0,0),
+      SubCol(SubRow(mcmc,[[row]]), _.colIdx))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row or column vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_.name+"::setStore("<<Rows(values)+"x"<<Columns(values));
+    If(_.numCol<=0, 0,
+    {
+      VMatrix _.store := Mat2VMat(If(Rows(values)==1,Tra(values),values));
+    //WriteLn("TRACE "+_.name+"::_.store("<<VRows(_.store)+"x"<<VColumns(_.store));
+      1
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Sets _.store to the columns related to this block of a given row of a "
+  "Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    setStore(getMcmcRow(mcmc, row))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.average =
+  "Extracts from MCMC columns related to this block and returns its average";
+  Matrix average(Matrix mcmc) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix subMcmc = getMcmc(mcmc);
+    Real r = Rows(subMcmc);
+    Matrix avr = Rand(1, r, 1/r, 1/r);
+    Tra(avr*subMcmc)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.checkNonFiniteValues =
+  "Checks that the current stored vector of parameters has just finite real "
+  "values, and not unknown (NAN) of infinte ones.";
+  Real checkNonFiniteValues(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real ok = VMatMin(IsFinite(_.store));
+    Real If(!ok, CMsg::Coded::show
+      (BysMcmc::_.cmsg::_.unkInfBlock,[[_.name,numSim,_.store]]));
+    ok
+  }]]
+};

@@ -1,0 +1,24 @@
+//Test to verify QuantileS from 0.25 to 1.0 and MaxS
+//Date: 31-08-2004
+//Author: Daniel Rus <danirus@tol-project.org>
+
+// Test Description
+Text "Testing QuantileS and MaxS ... ";
+
+// Test Operation
+Real {
+  Serie ser = SubSer(Gaussian(10000, 10), y2000m01d01, y2000m01d31);  
+  Real q25 = QuantileS(ser, y2000m01d01, y2000m01d31, 0.25);  
+  Real q50 = QuantileS(ser, y2000m01d01, y2000m01d31, 0.50);  
+  Real q75 = QuantileS(ser, y2000m01d01, y2000m01d31, 0.75);  
+  Real q100 = QuantileS(ser, y2000m01d01, y2000m01d31, 1.0);  
+  Real max = MaxS(ser, y2000m01d01, y2000m01d31);
+
+  // Test Condition
+  Real ok = If(And(q25<q50,q50<q75,q75<q100,q100==max), 1, 0);
+ 
+  // Show Results
+  WriteLn("Testing QuantileS and MaxS ... " + (Text If(ok,"OK","ERROR")));  
+  ok
+};
+

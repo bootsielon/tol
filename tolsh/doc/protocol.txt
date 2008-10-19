@@ -1,0 +1,79 @@
+       Protocolo de mensajes entre cliente y servidor
+       ==============================================
+
+ 
+Entre el cliente (tolclient) y el servidor (tolserver) se establece un
+procolo de comunicacion basado en mensajes.
+
+Dado que se pasaran objetos binarios como resultado de
+TolServerGetObj, el canal de comunicacion se mantendra en formato
+binario.
+
+Cuando se haga referencia a un campo de tipo <string> (cadena de
+longitud variable) entenderemos el siguiente formato:
+
+  <string> := <length:I><data>
+
+  <length:I> es un entero de tamaño 4
+  <data> es un array de bytes de longitud igual al campo anterior.
+
+Formato de mensajes
+===================
+
+Un mensaje entre el cliente y servidor tiene el siguiente formato:
+
+<CMD><value>
+
+<CMD>   - es una cadena de longitud fija (A10) que identifica el comando.
+
+<value> - es un <string> interpretado por el comando <CMD>
+
+Comandos de servidor
+====================
+
+Los valores que acepta el servidor en el campo <CMD> son los siguientes:
+
+PING     - verificar si el servidor esta vivo.
+
+TOLEVAL  - solicitud de evaluacion de expresion fuente TOL.
+
+RECONN   - solicitud de reconexion de tarea.
+
+SHUTDOWN - solicitud de apagado de servidor.
+
+TCANCEL  - solicitud de cancelacion de tarea.
+
+GETOBJ   - solicitud de valor de un objeto TOL.
+
+en la direccion cliente->servidor el campo <data> asociado a <value>
+adopta el siguiente formato:
+
+  <value> := <idrq><args>
+
+donde:
+
+  <idrq> - es una cadena de longitud variable que identifica la solicitud
+           enviada al servidor.
+ 
+  <args> - es un array de bytes que es interpretado segun sea el valor
+           de <CMD>.
+
+ <CMD><idrq:string><args>
+
+
+Comandos de cliente 
+===================
+
+Los valores que acepta el cliente en el campo <CMD> son los siguientes:
+
+CRITICAL - error critico en el servidor.
+
+ACKPING - reconocimiento de señal PING.
+
+RECONN - reconocimiento de reconexion de tarea.
+
+TSTART - inicio de tarea solicitada.
+
+TFINISH - fin de ejecucion de tarea.
+
+RECOBJ - recibe un objeto solicitado 

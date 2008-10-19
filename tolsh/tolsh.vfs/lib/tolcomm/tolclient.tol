@@ -1,0 +1,116 @@
+/* -*- mode: c++ -*- */
+/**
+ * tolclient.tol --
+ * 
+ */
+
+/**
+ *  TolServerPing -- Verifica si un servidor tolserver esta escuchando
+ *
+ *  Argumentos:
+ *
+ *    Host:
+ *    Port:
+ *
+ *  Resultado:
+ *  
+ */
+Real TolServerPing(Text Host, Real Port)
+{
+
+  Text cmd = "::tolclient::server_ping "+Host+" "+FormatReal(Port, "%.0lf");
+  Set result = Tcl_Eval(cmd);
+  Real If(result["status"], Eval(result["result"]),{
+      WriteLn("TolServerPing: "+result["result"],"E");
+      Real 0
+    })
+};
+PutDescription("Verifica si un servidor TOLSERVER esta ejecutandose en un "
+               "ordenador remoto y esta escuchando peticiones."
+               "Retorna 1 si el servidor esta ejecutandose o 0 en caso "
+               "contrario",
+               TolServerPing);
+
+/**
+ *  TolServerEval --Evalua una expresion en un servidor TOL remoto.
+ *
+ *  Argumentos:
+ *
+ *    Host:
+ *    Port:
+ *
+ *  Resultado:
+ *  
+ */
+Text TolServerEval(Text Host, Real Port, Text TolExpr)
+{
+
+  Text cmd =
+    "::tolclient::server_eval " + Host + " " +
+    FormatReal(Port, "%.0lf") + " {" + TolExpr + "}";
+  Set result = Tcl_Eval(cmd);
+  Text If(result["status"], result["result"],{
+      WriteLn("TolServerEval: "+result["result"],"E");
+      Text ""
+    })
+};
+PutDescription("Ejecuta una expresion TOL evaluandola en el servidor de calculo "
+               "remoto TOLSERVER esta ejecutandose en el host dado y esta "
+               "escuchando peticiones en port"
+               "Retorna inmediatamente un identificador de la solicitud de "
+               "evaluacion si TOLSERVER llego a aceptarla o vacio si se produjo "
+               "algun error durante la tramitacion de la solcitud.\n"
+               "Vease ademas TolServerWait",
+               TolServerEval);
+
+
+/**
+ *  TolServerWait --Espera porque se complete una lista de solicitud
+ *  de ejecucion remota.
+ *
+ *  Argumentos:
+ *
+ *    Host:
+ *    Port:
+ *    Lista:
+ *
+ *  Resultado:
+ *  
+ */
+Text TolServerWait(Text ReqsList)
+{
+
+  Text cmd = "::tolclient::server_wait " + ReqsList;
+  Set result = Tcl_Eval(cmd);
+  Text If(result["status"], result["result"],{
+      WriteLn("TolServerWait: "+result["result"],"E");
+      Text ""
+    })
+};
+PutDescription("Espera hasta que se complete la ejecucion remota asociada a la "
+               "lista de solicitudes pasada como argumentos en el argumento "
+               "ReqsList. ReqList es una cadena que contiene los identificadores "
+               "de las solicitudes separados por espacios",
+               TolServerWait);
+
+Text TolServerNewHost(Text host, Real Port)
+{
+  Text cmd = "::tolclient::cluster_new_host";
+  
+  Set result = Tcl_EvalEx([[cmd, host, FormatReal(Port, "%.0lf")]]);
+  Text If(result["status"], result["result"],{
+      WriteLn("TolServerNewHost: "+result["result"],"E");
+      Text ""
+    })
+};
+
+Text TolServerClusterEval(Set Tasks)
+{
+  Set tclcmd = [["::tolclient::cluster_eval"]];
+  Set Append(tclcmd, Tasks);
+  Set result = Tcl_EvalEx(tclcmd);
+  Text If(result["status"], result["result"],{
+      WriteLn("TolServerClusterEval: "+result["result"],"E");
+      Text ""
+    })
+};

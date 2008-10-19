@@ -1,0 +1,115 @@
+//////////////////////////////////////////////////////////////////////////////
+// LIBRARY: ExtLib (Extended Library of TOL)
+// MODULE: CMsg (Controlled messages)
+// FILE: _coded.tol
+// PURPOSE: Implements the NameBlok Cmsg::Coded
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock Coded =
+//////////////////////////////////////////////////////////////////////////////
+[[
+//read only autodoc
+  Text _.autodoc.description = 
+  "Handling with codified messages to end user. Codified messages have "
+  "CMsg.Coded.info structure containing this fields:\n"
+  "  Text agent_:    The subsystem that is sending the message.\n"
+  "  Real code_:     The code number.\n"
+  "  Text severity_: The severity status identifier.\n"
+  "  Code handler_:  The message handler Text (Set args) {...}.\n"
+  "The severity status indicates the type of message (Error, Warning, Info) "
+  "and the action to do after showing it (Abort, Stop, Continue).\n"
+  "a function to handle with this kind of messages, buildin the message "
+  "contens from a set of optional external arguments that will be passed to "
+  "method Cmsg::Coded::show.\n"
+  "It's highly recommended to write all the messages related to a subsystem "
+  "based on a NameBlock, as a private sub-NameBlock called _cmsgs in order "
+  "to standarize TOL codification and to avoiding global variables.\n";
+
+//public API
+  Real show(CMsg.Coded.info msgInfo, Set args)
+  {
+    //WriteLn("CMsg::Code->show("+Name(msgInfo)+", "<<args+")");
+    Text ag = msgInfo->agent_;
+    Text sevNam = msgInfo->severity_;
+    Real sevCod = _.status[msgInfo->severity_]->code_;
+    Text sevBrf = _.status[msgInfo->severity_]->brief_;
+    Real If(LT(_.status.current_,sevCod), 
+               _.status.current_ := sevCod);
+    //WriteLn("CMsg::Code->show 2");
+    Text prefix = "["+ag+" "+sevBrf+
+                      FormatReal(msgInfo->code_,"%04.0lf")+"] ";
+    //WriteLn("CMsg::Code->show 3");
+    Code getMsg = msgInfo->handler_;
+    //WriteLn("CMsg::Code->show 3.1");
+    Text m = getMsg(args); 
+    //WriteLn("CMsg::Code->show 3.2");
+    Text msg = prefix+m;
+    //WriteLn("CMsg::Code->show 3.3");
+    Real sev = Case
+    (
+      sevNam == "abort",
+      {  
+        WriteLn(msg+"\n"+
+          I2("TOL process will be aborted at this point.",
+             "El proceso TOL se abortará en este punto."),"E");
+        Real Exit(-sevCod); 
+        sevCod
+      },
+      sevNam == "stop",
+      {  
+        WriteLn(msg+"\n"+
+          I2(ag+" system will be stoped at this point.",
+             "El sistema "+ag+" se detendrá en este punto."),"E");
+        Real Stop;
+        sevCod
+      },
+      sevNam == "error",
+      {  
+        WriteLn(msg+"\n"+
+          I2(ag+" system will try to continue.",
+          "El sistema "+ag+" intentará continuar."),"E");
+        sevCod
+      },
+      sevNam == "warning",
+      {  
+        WriteLn(msg,"W");
+        sevCod
+      },
+      sevNam == "info",
+      {  
+        WriteLn(msg);
+        sevCod
+      },
+      1==1,
+      {  
+        WriteLn(msg+"\n"+
+          I2("Unknown security code.",
+             "Código de severidad desconocido.")+"\n"+
+          I2(ag+" system will be stoped at this point.",
+             "El sistema "+ag+" se detendrá en este punto."),"E");
+        Real Stop;
+        _.status["stop"]->code_
+      }
+    );
+    msgInfo->code_
+  };
+
+//read only API
+  Set _.status = { SetOfSet
+  (
+    abort   = CMsg.Coded.status(9,"Abort",  "A"),   
+    stop    = CMsg.Coded.status(7,"Stop",   "S"),   
+    error   = CMsg.Coded.status(5,"Error",  "E"),   
+    warning = CMsg.Coded.status(3,"Warning","W"),   
+    info    = CMsg.Coded.status(1,"Info",   "I")
+  )};
+  Real _.status.current_ = 0;
+
+//private API
+  Real _status.idx = SetIndexByName(_.status);
+  Set _argFunChk = Include("_coded_argFunChk.tol");
+
+//public API
+  NameBlock ArgFunChk
+]];

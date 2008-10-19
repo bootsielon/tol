@@ -1,0 +1,820 @@
+* (06-Aug-2008) What is new in Tol v1.1.7 b.0.10.alpha:
+
+  Fixes the following bugs:
+  ========================
+    596, 597, 599, 600
+    Fixed bug in IsStationary fails when the polynomial has zero coefficients
+    Fixed bugs in dense Choleski methods
+    Fixed bugs in BPol2sparse and SubCells
+    Fixed bug in additive statistic functions (VMatAvr, VMatSum, VMatMoment,...)
+    Fixed bug in RecDir.DoWithTree
+    Fixed bugs when no prior is submited for missing values of BSR
+    Fixed bug in profiling hash key
+    Fixed bug in ARMAACovGamma must return empty matrix for the null polynomial
+
+  Kernel
+    Enhancement of BFSMEM memory assignation checking to avoid some invalid accesses
+    
+  Statistics
+    New built-in function ARIMAAlmagroEval for evaluation of logarithm of likelihood of ARIMA models
+
+  VMatrix  
+    New functions DifEq and BackDifEq with or without specific initial values
+    Allowing convertion between Blas.R.Dense and Cholmod.R.Sparse and viceverse
+    
+  BSR
+    Using faster method LogDens.Almagro.Z_cond_U in draw.ARMS
+    New BSR specialization DynHlm for Dynamic Hierarchical Linear Model
+    New general API for importing model definition
+    New methods BysMcmc::Bsr::Gibbs::Estim and Bsr::Gibbs::Instance(...)::eval
+    Adding optional time info assigned to each segment of noise
+    Adding and grouping documental information 
+
+
+
+* (10-Jul-2008) What is new in Tol v1.1.7 b.0.9.alpha:
+
+  Fixes the following bugs:
+  ========================
+    580, 588, 590, 591, 592, 594
+   
+  Kernel
+    New feature TolOprProfiler to get performance profiling of called TOL functions
+    New BCore::MemAssignInfo to have a simpler way to detect and avoid some memory leakks by using BFSMEM system
+    
+  Matrix
+    Fixed bug in default argument Y0 for DifEq and BackDifEq
+    Fixed bug in PreProdDiag
+    Applying faster matrix cycling methos to some functions
+    
+  VMatrix
+    Forzing LLt transformation and other MatLab lchol options
+    Adding methods related to difference equations
+    New methods IsFinite nd InUnknown
+    New built-in functions Pol2VMat, SubBand
+    Forzing Structure Alignement to 8 for cholmod.h
+    
+    
+  Polyn
+    Fixed bug in IsStationary that failed when the polynomial has zero coefficients
+    
+  Statistics
+    Avoiding white noise model in ARMAAutoCovarianzeVector
+    Using faster LevinsonARMA instead of standard Levinson
+    Fixed bug calculating logLH in ARIMALevinsonEval. The error did not change the maximum of likelihood.
+    BSR new blocks: Input and output missing, ARIMA
+    
+    
+* (19-May-2008) What is new in Tol v1.1.7 b.0.8.alpha:
+
+  Fixes the following bugs:
+  ========================
+    564, 567, 568, 
+    570, 572, 573, 574, 577, 578, 579, 
+    582, 583z
+
+  Kernel
+  ======     
+   -Adding explicit field BGrammar precedence_ to select the lesser one in case of ambiguity
+   -Priorized optional types for arguments of built-in functions
+     
+  Matrix
+  ======
+    Checking dimensions on MatProd
+    New internal method replicateTriang  
+    Fixed bug  in dpotri that was returned as triangular instead of symmetric
+    Fixed bug inBDBClassify
+     
+  VMatrix
+  =======
+   -New TOL data type VMatrix to handle with sparse and dense matrices all together. This type is 
+    not completely developped and is a feature in testing state. Please, handle with care!
+    * Current matrix subtypes are CHOLMOD sparse, factor and triplet and BLAS column major dense.
+    * System has been designed to be easily upgraded with new subtypes as Toeplitz, Hankel, 
+      Vandermonde, ...
+    * There are all kind of matrix related operations, not all developed already, that has been
+      implemented to be the more efficient and the more transparent for the end user. System 
+      can convert internally, if needed, from dense to sparse, sparse to triplet, etc.; to make
+      an operation be posible or faster between differently stored matrices
+      - arithmetic: sum, rest, product, ...
+      - linear algebra: Choleski decomposition and system solving, ...
+      - access and building: cell, band and block access, concatenation, ...
+      - input/output: (including OIS storement) etc)
+             
+  Statistics
+  ==========
+   -New StdLib::Rkde: API between TOL and R KDE (Kernel Density Estimation)
+   -New StdLib::BysMcmc: Generic Bayesian MonteCarlo Markov Chain Methods and applications
+   -New StdLib::BysMcmc:BSR (Bayesian Sparse Regression) 
+    *Estimates a sparse linear, constrained or not, regression by MCMC Gibbs method
+    *Can use Boost Spirit to parse a human-like-formated description of the model
+    *Stores data as sparse CHOLMOD matrix and implements all steps 
+    *The system is designed to be easily upgraded to handle with non linearities
+     (missing data, ARIMA, decaying transfer functions, heterocedasticity, ...)
+       
+  Others
+  ========
+   -Forcing no lazy behaviour in constructor of special series
+   -Fixes the function description field for DBClose.       
+   -Bringing "Tol Extensions Loader" back to live.
+   -New StdLib::CMsg: Controlled Messages is a system to handling with any type of messages 
+    to end user in a controlled way
+   
+   
+* (18-Mar-2008) What is new in Tol v1.1.7 b.0.7.alpha:
+
+  Fixes the following bugs:
+  ========================
+     566 : Matrix product does not recognize the unknown type
+           http://bugs.tol-project.org/show_bug.cgp?id=566
+     565 : Error in RSS calculus in LinReg function
+           http://bugs.tol-project.org/show_bug.cgp?id=565
+     563 : Zip Error using Ois.UseModule
+           http://bugs.tol-project.org/show_bug.cgp?id=563
+     561 : Insuficient description of GibbsConstrainedMNormal
+           http://bugs.tol-project.org/show_bug.cgp?id=561
+     559 : MatReadFile causes TOL crash reading a bmt  
+           http://bugs.tol-project.org/show_bug.cgp?id=559
+     558 : Range bad functioning    
+           http://bugs.tol-project.org/show_bug.cgp?id=558
+     555 : New file handling functions
+           http://bugs.tol-project.org/show_bug.cgp?id=555
+     553 : TOL crash due to a wrong handling with a big matrix
+           http://bugs.tol-project.org/show_bug.cgp?id=553
+     548 : While command doesn't  return a value
+           http://bugs.tol-project.org/show_bug.cgp?id=548
+     216 : Function "Text Argumets". It does not use the optional parameters
+           http://bugs.tol-project.org/show_bug.cgp?id=216
+
+  Matrix
+  ======
+    -API of TOL for using BLAS and LAPACK functions
+      *Using BLAS dgemm in generic matrix products
+      *Using BLAS dsyrk in MtMSqr
+      *Using BLAS dtrmm in triangular matrix products
+      *Using BLAS dtrsm in TrSolve, LTSolve and LTInverse
+      *Using LAPACK dpotrf in choleski method
+      *Using LAPACK dpotrf and dpotri in CholeskiInverse
+      *Using BLAS-LAPACK methods in LinearRegression and LinReg
+    -Using open source ATLAS as default implementation of BLAS and LAPACK
+
+  Statistics
+  ==========
+   -New AlgLib Hypothesis testing: 
+     *AlgLib.JarqueBeraTest  
+     *AlgLib.StudentTtest1
+     *AlgLib.StudentTtest2  
+     *AlgLib.UnequalVarianceTTest
+     *AlgLib.OneSampleSignTest  
+     *AlgLib.WilcoxonSignedRankTest
+     *AlgLib.MannWhitneyUtest  
+     *AlgLib.VarianceChiSquareTest
+     *AlgLib.VarianceFTest  
+     *AlgLib.PearsonCorrelationSignificance  
+     *AlgLib.SpearmanRankCorrelationSignificance 
+     *AlgLib.Mann.Whitney.U.test
+
+   -Estimate is internally evaluated in local scope to avoid export unexpected symbols 
+
+  System
+  ======
+   -OIS: Ois.DefRoot can be defined as Operative System environment variable Ois.DefRoot or
+      Ois_DefRoot to allow use it at linux.
+
+   -New Input/Output built-in TOL functions (enhancement bug 555)
+    (See examples of use at 
+       http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol_tests/tol/ImportExport/filehandler/test_0001/test.tol,
+       http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol_tests/tol/ImportExport/filehandler/test_0002/test.tol )
+     *SysErrNum: Returns the system error code corresponding to the last happened error
+     *SysErrMsg: Returns the system error message corresponding to a specified code.
+     *FOpen:     Opens a file using C function fopen and returns an integer value, which 
+                 is used to refer to the file
+     *FGetText:  Reads a string from a file until the character delim is readed,
+                 maxSize characters are reached or file ends 
+     *FPutText:  Writes a string in a open file
+     *FEof:      Tests the end-of-file indicator for the stream pointed to by stream,
+                 returning non-zero EOF value if it is set 
+     *FFlush:    The function FFlush forces a write of all user-space buffered data for
+                 the given output or update stream via the stream's underlying write
+                 function
+     *FClose:    Closes the file associated with handle that was the result of calling 
+                 FOpen. The function returns 0 if successful, EOF to indicate an error
+
+  StdLib
+  ======
+   -OIS: Fixed an error in Ois.CheckUpdCaducity function. It was calling to Ois.ModuleTime 
+         instead of Ois.GetModuleTime. (stdlib/data/ois/_ois.tol)
+
+   -NameBlok's to call R 
+     *Rapi: TOL API for R (stdlib/math/R)
+     *Rglpk: an interface to the GNU Linear Programing Kit for solving large-scale 
+             linear programming (LP), mixed integer linear programming (MILP) and 
+             other related problems (stdlib/math/optim/LP)
+     *Rquadprog: Functions to solve Quadratic Programming Problems (stdlib/math/optim/QP)
+     *RCoda: output analysis and diagnostics for MonteCarlo Markov Chains (MCMC)
+             (stdlib/math/stat/models/bayesian/diagnosis)
+
+   -BLR 
+     *New strategy simulation that offers a much better efficiency without any loss of 
+      accuracy or numerical strength (stdlib/math/stat/models/bayesian/linear/_blrc_kernel.tol)
+
+  TCL
+  ===
+    Tcl_EvalEx, accept a Set as a Tcl command
+
+
+* (06-Fab-2008) What is new in Tol v1.1.7 b.0.6.alpha:
+
+  Fixes the following bugs:
+    539 : InnerPoint finds a not valid point
+          http://bugs.tol-project.org/show_bug.cgp?id=539
+    540 : random crash in arms function
+          http://bugs.tol-project.org/show_bug.cgp?id=540
+    541 : TOL Crash wrting a large parse error
+          http://bugs.tol-project.org/show_bug.cgp?id=541
+    542 : Anything type does not work well
+          http://bugs.tol-project.org/show_bug.cgp?id=542
+    544 : Tol crash with FibonacciMin function
+          http://bugs.tol-project.org/show_bug.cgp?id=544
+    545 : Fail in FibonacciMin function with low tolerance
+          http://bugs.tol-project.org/show_bug.cgp?id=545
+    547 : TextOccurrences does not find strings with size greater than 1 char
+          http://bugs.tol-project.org/show_bug.cgp?id=547
+    549 : TolServerEval fail with expressions containing \n inside
+          http://bugs.tol-project.org/show_bug.cgp?id=549
+    554 : TextToDate function does not convert properly
+          http://bugs.tol-project.org/show_bug.cgp?id=554
+
+  NameBlock
+    Adding Text _.autodoc.member.<member_name> to a NameBlock force that this member has this text as description  
+    
+  Set    
+    New built-in function HasIndexByName to ask if a Set is indexed by name
+    New method StdLib::getOptArg to work with sets of optional arguments
+    
+  Text
+    New function StdLib::RegReplace in order to do substitutions with regular expressions
+        
+  Statistics
+    NameBlock StdLib::Rapi  : file-based API for calling R programs
+    NameBlock StdLib::LP    : API for R package Rglpk, the R interface to the GNU Linear Programing Kit (GLPK version 4.25)
+    NameBlock StdLib::QP    : API for R package quadprog for solve Quadratic Programming problems
+    NameBlock StdLib::RCODA : API for R package CODA, Output analysis and diagnostics for MonteCarlo Markov Chains (MCMC)
+    
+
+* (26-Dec-2007) What is new in Tol v1.1.7 b.0.5.alpha:
+
+  Fixes the following bugs:
+    530: A new extended API for Classify
+         http://bugs.tol-project.org/show_bug.cgp?id=530
+    533: InnerPoint crashes in a cycle
+         http://bugs.tol-project.org/show_bug.cgp?id=533
+    535: Unknown crash with DifEq
+         http://bugs.tol-project.org/show_bug.cgp?id=535
+           
+  Linear Algebra
+    Adding new method InnerPoint to get a point matching a system of linear inequations
+  
+  Set
+    New built-in function FindIndexByName to get the position in a indexed by name set of an element knowing its name.
+    Best comparing of sets
+  
+  StdLib
+    Adding NameBlock Tpa (Tol Parallel Api) to handle with tolsh servers
+    New functions RecDir.Count.Line and RecDir.Count.Char to count recursively number of lines and characters of specified files under a directory
+    Fixed bug in ReportAllBatteries that avoids uptol to work fine with some paths
+    
+  Wisual C++ Project
+    Eliminating DUMA configuration
+
+
+* (10-Dec-2007) What is new in Tol v1.1.7 b.0.4.alpha:
+
+  Fixes the following bugs:
+    524: Built-in function Replace failed under certain circumstances.
+         http://bugs.tol-project.org/show_bug.cgp?id=524
+    526: Built-in funcion Datch failed under certain circumstances.
+         http://www.tol-project.org/show_bug.cgi?id=526
+    528: Tol fails to load stdlib under unix/linux.
+         http://www.tol-project.org/show_bug.cgi?id=528
+
+* (26-Nov-2007) What is new in Tol v1.1.7 b.0.3.alpha:
+
+  Time
+    New built-in variable Real CpuClock that returns the CPU usage elapsed in seconds from session started
+    Now Real Time returns the time elapsed in seconds from session started.
+  
+  NameBlock
+    Fixed bug 523. NameBlock members must treated as global or system variables when are used as the dating of a time serie
+
+  StdLib
+    general/grammars/_real.tol: 
+      Added and extension in Msg function
+      CheckTOLRelease must check the three versions: old-stable, official and development
+    Fixed an errors related to SVD decomposition of coavariance metrices in
+      math/stat/models/bayesian/arima/_bmtsarima.tol:
+      math/stat/models/mle/arima/_fun_combination.tol:
+
+      
+* (19-Nov-2007) What is new in Tol v1.1.7 b.0.2.alpha:
+
+  OIS
+    Fixing bug 520 by using an optional parameter Real oisHasPriorityOnConflict in Ois.Load. 
+    If oisHasPriorityOnConflict is false then, when a referenceable object exist already with 
+    the same name of an object inside an OIS image, the older object will be used instead of OIS one.
+    This option could be usaefull, for example, to recover old OIS images with damaged objects, as 
+    a dating that has been bounded between default dates at building time. If oisHasPriorityOnConflict 
+    is true, that's default behaviour, OIS object will be used to reproduce exactly as was built.
+  
+  NameBlock
+    Global functions must set NameBlock::current_ to NULL to avoid invalid access to members
+
+  Matrix	 
+    Fixing bug 522. Ensuring access to valid cells in Matrix Sub.
+    Added warning message of invalid access at MatDat and PutMatDat
+
+  StdLib
+    CheckTOLRelease must check the three versions: old-stable, official and development
+
+    
+* (13-Nov-2007) What is new in Tol-1.1.6:
+
+Bugs Fixed
+
+Below we provide three lists of bugs grouped by their different state of resolution:
+    * List of 45 bugs resolved and fixed during the development cycle.
+    * List of 10 bugs that we know about, and are currently working on.
+    * List of 19 bugs postponed for a later resolution.
+More details in http://bugs.tol-project.org.
+
+Outstanding Internal Changes
+
+Following is a list of outstanding internal changes applied in the core implementation which provide more reliability and efficiency, and around 25% to 50% of performance improvement in respect with the previous release. Read more.
+
+    * Symbol Table implementation replaced in favor of the Google hash_map.
+    * Improved memory allocation for small Tol objects.
+    * Simplified Real type implementation to facilitate the integration with external libraries such as GSL and BLAS.
+    * Improved initialization process.
+    * Some memory leaks have been fixed.
+
+Kernel
+
+    * When the result of evaluating an If/Case condition is an unknown value, the evaluation is stopped and the unknown value corresponding with the data type of the expression is returned.
+    * Parse function now gives back information about parenthesis used in the original expression, to facilitate the work of Unparse.
+    * Text Grammar(Anything) function returns "Struct" when an structured Set object is used as a parameter.
+    * A new structured type called NameBlock 
+
+StdLib
+
+The so called Tol Init Library has been substituted by the Standard Library. The latter includes the former to provide full backward compatibility. It will be reorganized using NameBlocks to reach a new level of maturity and abstraction, providing modularity advantages as well.
+
+StdLib includes:
+
+    * Bayesian estimation for linear models, probit models, and vector ARIMA. All them with hierarchical inputs, a priori information, and linear constraints.
+    * Stronger AIA than the one provided built-in with Tol.
+    * New function CheckTOLRelease verifies whether a new release is available.
+    * New functions such as HasUnknown, HasPosInf, HasNegInf, HasAllFinite, CheckBST, CheckBDT, CheckBMT, IncludeLocalTol, PlainNamedObjects, etc.
+
+Set Algebra
+
+    * New function Set Append(Set old, Set newElements) to incorporate elements in a set using a more efficient way than: Set old := old << newElements
+    * New function Set EvalSetOfCode(Set funciones, Anything arg) that returns a Set with all results given back from each function belonging to the first parameter (Set functions) and executed with the common arguments given in the second parameter (Anything arg).
+    * New syntax operator :: to access members of a Set, as a cleaner approach for accessing elements, instead of using angle brackets [""] as it was mandatory until this release.
+    * New function Real SetIndexByName(Set s) to index every element of a Set, reducing the complexity of accessing them. It is based on the Google hash_map.
+
+Real Arithmetic
+
+    * New functions Real IsPosInf(Real x), Real IsNegInf(Real x), Real IsFinite(Real x)
+    * New behavior when comparing unknown and infinite values:
+      Any given number or unknown value can not be greater than +infinite, what let us to say:
+
+      ? > +Inf == false;
+      ? <= +Inf == true;
+      Any given number or unknown value can not be less than -infinite, what let us to say:
+
+      ? < -Inf == false;
+      ? >= -Inf == true; 
+
+Real Linear Algebra
+
+    * New functions PreProdDiag and PostProdDiag to compute the virtual product of diagonal matrices.
+    * New functions SubTriang and SetTriang to provide an optimized store for triangular matrices.
+    * New function TrSolve based on dtrsm BLAS function (level-3), for the efficient resolution of triangular systems.
+    * New functions Matrix Sign(Matrix m), Matrix SetSum(Set s), Real MatMin(Matrix m), Real MatMax(Matrix m)
+    * A new warning messages will be shown when Choleski is not working.
+
+Interpolation and Real Functions Approaching
+
+New APIs have been implemented into Tol for the use of interpolation and real functions approaching.
+
+    * Tol uses GSL functions for performing interpolation in combination with scalar and vectorial generation functions, gsl_interp and gsl_vector_interp.
+    * Tol uses AlgLib functions for interpolation and approximatio. AlgLib is more efficient than GSL and let us to save all needed information with OIS, through functions AlgLib.Interp.Vector.CreateWorkSpace and AlgLib.Interp.Vector.LoadWorkSpace.
+
+Statistical and Probability Functions
+
+    * R2, Pearson, and Partial Correlation statistics has been fixed.
+    * New function UniKerDnsEstOptBnw, abbreviation of Univariate Kernel Density Estimation with Optimal Bandwith, a program developed by Vikas C. Raykar under the terms of LGPL license and publicly available.
+    * New function RandMultinomial based on GSL function gsl_ran_multinomial.
+    * Deep improvements in behavior, variety of parameters and documentation of function GibbsConstrainedMNorm.
+
+Input/output
+
+Database Access
+
+        * Several bugs fixed related with numerical data types.
+        * MYSQL_TYPE_NEWDECIMAL is available for MySQL instances >= 50024.
+
+Files
+
+        * Data file formats BDT and BST now support longer lines. In older versions it was able to have 16384 characters per line, but now it accepts 1048576 line characters. If there was longer lines a warning message will be displayed to notice the problem and let the user fix it.
+        * BMT Matrices can hold unknown values in their cells, and varia ble length text.
+        * New function MatAppendFile for inserting rows in a Matrix, in the binary format BBM.
+        * New function MatReadCell to get the content of a Matrix cell in the binary format BBM.
+
+OIS
+
+        * OIS modules images with referential integrity already saves information about the source file of each object visible in Tolbase.
+        * Symbols with no conflict will be available in global scopes, although this is could lead our application to an unpredictible behavior. It is recommended to load images in local scopes as far as it was possible.
+        * Switched off several warning messages relevant only for debugging
+          porposes.
+        * If there is a system environment variable called Ois.DefRoot, the so called Tol variable will take its value from there, to facilitate and customize each configuration case.
+
+
+
+* (22-Fab-2007) What is new in Tol-1.1.5:
+
+Database Access
+
+Tol Database Access is made of three components: the Tol-Database Functions API, the Tol-Database Connector, and the Tol-Database Drivers. In this very new release two of those components have been almost new implemented, the Connector and the Drivers.
+
+The Connector has a new improved implementation that ensures a more reliable connection. Apart from that, now the connector will give back the users messages coming from the DBRMS, messages related with operations the DBRMS are leading with.
+
+A new direct driver has been implemented to connect to PostgreSQL, and also the driver to connect with MySQL DBRMS has been improved. If your projects retrieve data from MySQL or PostgreSQL we really encourage you to use these new direct drivers instead of the slower ODBC-Tol driver, that has been also reviewed and fixed.
+
+See examples in TOL tests DB
+OIS
+
+The largest change in Tol 1.1.5 is OIS. OIS stands for Object Index and Serialization. It is a powerful subsystem that provides a way to save live objects and giving them back to live in another session, even on different computers. OIS was mainly developed during second half of 2006 and enough tested during this last development cycle.
+
+This official release comes with a new OIS feature, Tol Data and Source Storage Method, that includes the following properties:
+
+    * Handle TOL Source Modules with reference integrity for fast library loading
+    * InitLibrary has been converted to an OIS module.
+    * Storing and loading data in OIS images, with or without reference integrity
+    * Warning message for BSI and BMM deprecated due to these files should be replaced by OIS images. 
+
+You can follow next links to watch an OIS introduction (PPT) and to read the OIS User Manual
+
+See examples the in TOL tests CVS project.
+Kernel
+
+Implemented a new Memory Pool Manager called "Bayes Fixed Size Memory". A longer description around is available in FSMEM.odt (document based on ODF standard document format).
+
+With this new Memory Manager Tol improves the handle of massive little objects, doing it faster and more controlled way. It is a transparent feature for Tol users, and brings these visible advantages:
+
+    * Ensure that an object is alive before handle it in the local stack.
+    * Avoid memory leaks related to local dating of a time serie in circumstances like detected in bugs 224, 428, 444, 456.
+    * Enhanced security of BText methods. 
+
+Boolean Algebra
+
+A new implementation of internal boolean algebra.
+See examples in TOL tests
+
+    * Handling with unknowns:
+      And(?,0) -> false
+      Or(?,1) -> true
+    * Allowing short-circuit calculations:
+          o When If expression is unknown no branch (then nor else ones) will be evaluated.
+          o When a condition of Case is unknown its branch will be not evaluated.
+          o Fisrt false argument in And stops evaluation and returns false (this feature has been temporaly disabled).
+          o First true argument in Or stops evaluation and returns true (this feature has been temporaly disabled).
+          o Fisrt non matching comparisson of functions LT, LE, EQ, GE, GT stops evaluation and returns false (this feature has been temporaly disabled). 
+
+Statistics and Probability functions
+
+Implemented a new method of AIA (Automatic analysis of Intervention of temporary series). To know more about this feature write in a terminal screen:
+tol -v -c"WriteLn(Description(AIA))"
+
+And visit related TOL tests.
+Data Mining
+
+A new built-in function called Cluster has been imported to Tol for the hierarchic vectors classification. It is based on the open source library called The C Clustering Library.
+
+Other methods like k-means, Self-Organizing Maps, and Main Component Analysis could be incorporated. To see a description executes in a terminal screen:
+tol -v -c"WriteLn(Description(Cluster))"
+TOLSH
+
+Is a new Tol feature that brings Tcl code execution to the Tol Console, based on the Toltcl library.
+
+
+
+
+* (11-Nov-2006) What is new in Tol-1.1.4:
+
+Kernel
+
+    * Improvement of performance of internal TOL symbols searching methods and structures:
+          o Syntax tree tokens detects constant literals (numbers, strings and dates)
+          o Syntax tree tokens store references to undeletable system objects (type names, built-in functions, ...)
+          o New local stack structure with a super fast dictionary tree with cost O(1) in RAM and CPU 
+    * Allowing use of a local Struct.
+      See examples in test of bug 246
+    * Integrity of system constants: no longer the constant system objects will be modified. When an assignation of a constant is a done, an internal copy of the object is created so no unexpected collateral effect will take place.
+      See examples in Tol tests (under construction)
+    * By value pass of objects for builder operator (=), but on type Set.
+      See examples in TOL tests CreationAndCopy
+    * User Tol objects now have Description and Expression like separated functions, but only the description is modifiable by the user whereas the expression will only fill up Tol when the variable Real DoUnparseNodes is certain. When there is no description, user will receive the expression if exists, or the empty string. The Identify function returns the first non empty text of the list Name(), LocalName(), Expression(), Description() 
+
+Tol-Tester
+
+Creation of TOL-Tester: An automatic Tests Control System for Tol versions. The Tol-Tester project ensures a sane behavior of Tol implementation Code during the development cycle.
+Read this notes for further information.
+System
+
+    * New optional argument to control waiting mode in TOL built-in function WinSystem(Text command, Real showMode [, Real wait=FALSE])
+    * New InitLibrary functions for calling operative system in a multiplattform API.
+      See the code available at general/_system.tol 
+
+Messages
+
+    * Enable extended type messages in Write and WriteLn with an optional argument and new user functions Error and Warning in InitLibrary.
+    * Best verbosity/mute handling in command line Tol Console.
+      To know more about this feature write in your console
+      tol -help
+    * Functions that returns Anything can returns no object without send any error message and can be used in any scope.
+    * Standard TOL log file start .log is moved to %APPDATA%\to\syslog in windows and ~/.tol in linux
+    * New function PutLanguage to set the current human language of TOL messages
+    * Each message of error or warning will adjoin a correlative number so that the user can find more easily first of them and follow the track more comfortably to them.
+    * The Real variables TOL NError and Real NWarning have been created in order to return the number of errors and warnings emitted until the moment in the session, so that the users can verify in run time if a process is working correctly. 
+
+Matrix Type
+
+New functions of matrices have been implemented:
+
+    * The built-in TOL functions of Matrix type f01, F01 and Inv01 implement the density, the distribution and its inverse for variates with uncorrelated standard multinormal distribution.
+    * The operators of matrices (+, -, *) now admit like second element as much a matrix as a real number. 
+
+See examples in TOL tests (under construction)
+TimeSet Type
+
+A deep enhancement of TimeSet Algebra implementation using concepts described here.
+
+New advantages are:
+
+    * Almost all bugs reported about TimeSet has been solved.
+    * Faster methods for almost all successor an predecessor methods.
+    * Enhanced cache methods.
+    * Auto-abortable calculations in empty and bounded TimeSet's to avoid infinite cycles (a warning will be sent).
+    * The begin is set to 1582-12-31 (Gregorian calendar begins at 1582-10-15) 
+
+See examples in TOL tests TimeSetCoherence
+Serie Type
+
+    * BDT series are no more lazy to avoid some collateral problems.
+    * New built-in Tol function Serie EvalSerie(Serie S, Code realToRealFunction) 
+
+Text Type
+
+    * Enhancement of some functions: BeginWith, EndAt, Reverse.
+    * New system information objects TOLSessionPath and TOLVersion 
+
+Statistics and Probability functions
+
+    * Enhancement of unknown treatment in distribution functions.
+    * New faster methods for truncated normal distribution:
+          o Scalar: DensMultiNormalTrunc, DensTruncatedNormal, DistTruncatedNormal, DistTruncatedNormalInv, DrawTruncatedNormal
+          o Vectorial: RandTruncatedMultNormal, LogDensTruncatedMultNormal 
+    * New methods Markov Chain Monte Carlo (MCMC) for the sampling of implicitly defined probability distributions using built-in functions GibbsSampler and MetropolisHastings.
+      To know more about this feature write in your terminal screen:
+      tol -vU -c"WriteLn(Description(GibbsSampler))" \
+      -c"WriteLn(Description(MetropolisHastings))"
+    * Solving bugs in definition, naming and using of R2, Pearson, Correlation and other statistics
+    * New package of TOL built-in functions to allow TOL users to work with GSL functions which both returning and arguments are all of numeric type.
+      Read more here
+    * Enhancements in function Estimate (Max. Likelihood ARIMA models estimator):
+          o When a step gives worst result than previous iteration estimation of missing values must remains unchanged.
+          o An error will be emited if an input hasn't InputDef structure.
+          o In the ARMAAutoCovarianzeVector function used internally by Estimate there was an invalid access of memory when there is no part AR in a model and a smaller number of autocovarianzas is asked for or just as degree MA, which could give rise to falls or strange behaviors of random and irreproducible form. 
+
+          
+          
+* (16-Feb-2005) What is new in Tol-1.1.3:
+
+** New user function to generate a markov chain for a truncated multivariate
+   normal, the truncation region given by a set of linear constraints Bx <=
+   b. The functions are:
+
+	GibbsConstrainedMNormal -- to obtain the whole chain.
+	
+	RandConstrainedMNormal -- to obtain only the last sample in the
+	chain.
+
+** User function RandIChisq now accept a scale parameter in order to simulate
+   a scaled inversed chi-squared.
+
+** New Tol feature: User Functions Overloading.
+
+   Now Tol let us create more than one function with the same name, but
+   returning different data types. What does this new feature mean?
+
+   We can write code like this below:
+     ____________________________
+     Real func (Real param) { param };
+     Text func (Text param) { param };
+     Real a = func(12);
+     Text b = func("It Works!");
+
+   After execute it, both variables, "Real a" and "Text b", has their own
+   respective values. In both of these sentences, Tol can get the Type involved
+   in the operation, reading the Left-side sentence. But sometimes, when we
+   give a User Function as an argument for another function, Tol can not
+   recognise which is the Tol Type associated with the overloaded function we
+   need. In those cases Tol returns the first function encountered. 
+
+   Next example shows that particular case:
+     _______________________________________________________________________
+     Set  getNameSP(Text vorname, Text name) { SetOfAnything(vorname, name) };
+     Set  getNameUK(Text vorname, Text name) { SetOfAnything(name, vorname) };
+     Text getNameSP(Text vorname, Text name) { vorname + " " + name };
+     Text getNameUK(Text vorname, Text name) { name + ", " + vorname };
+     Text names(Text vorname, Text name, Code fun) { fun(vorname, name) };
+
+     Text aText = names("Peter", "Jackson", Text getNameSP);
+
+   There are 5 functions. Two of them called "getNameSP" returning a Set and a
+   Text. Other two more called "getNameUK" returning also a Set and a
+   Text. And the last of them called "names" and returning a Text. This last
+   one receive a Code as one of their arguments.
+   Then function "names" is called using  "Text getNameSP" as its 3th
+   argument. If this argument was given without a particular type, Tol will
+   try to get the first function created that was called "getNameSP", that
+   would be "Set getNameSP" function.
+
+   Other example of use of this new feature is the possibility to create a
+   User Function with the same name as a Built-In function:
+
+     _____________________________________________________
+     Set DensCauchy(Set s) 
+       { Set EvalSet(s, Real (Real e) { DensCauchy(e) }) };
+
+     Set sIn = SetOfReal(1,2,3,4);
+     Set sOut = DensCauchy(sIn);
+   
+   DensCauchy is a Built-In Real Type function, but in this example we have
+   created a User Function called also DensCauchy. We can create a new User
+   Function called as other one, always that the new one returns something
+   different than the old one.
+
+** MakeGlobal changes.
+   
+   MakeGlobal function let us export more than one local variable to the
+   global scope, and in every place of the local code. Until now we can export
+   only one local variable and it must be related with the result
+   returned. Now we can execute code like this:
+   _______________________
+   Real func(Real param) {
+     Real locvar1 = 10;
+     MakeGloba(locvar1);  // exporting to global scope
+     Real locvar2 = 20;   // exporting to global scope
+     MakeGlobal(locvar2);
+     param
+   };	    
+   Real x = 1;
+   Real y = func(x);
+   Real a = locvar1;  // now, after func call, locvar1 is global
+   Real b = locvar2;  // now, after func call, locvar2 is global
+
+** Dynamic Scope avaliable at compile time.
+
+   Like many common languages, Tol uses a Lexical implementation of the
+   Scope. But at the beginning, Tol had another implementation: a Dynamic
+   Scope, meaning that a code like this:
+     _______________________________
+     Real r = 4;
+     Real fun(Real q) {q+r};
+     Real b = { Real r = 1; fun(8) };
+
+   Assigns 9 to variable "b".
+
+   A Dynamic Scope means that each time Tol needs a variable, looks for it
+   into the calls stack.
+   To enable Dynamic Scope you must compile Tol with --enable-DS (under
+   Linux/Unix) or defining a macro called __USE_DYNSCOPE__ in compile time.
+
+** External compilation of TOL DB Access using --enable-dbdrivers
+
+   New configure option --enable-dbdrivers force Tol to be compiled with
+   support for direct access to databases. In order to acomplish this we can
+   specify several configure command line options. If you don't give such
+   options, configure looks for the sources and libraries that needs to build
+   Tol properly with DB Direct Access Support. 
+   Check INSTALL file to know which options command line options are related
+   with this new feature.
+
+** Fixed bugs: 165, 171, 184, 191, 192, 194, 197, 199, 205, 214, 215, 216,
+   218, 219, 223, 225, 226, 227, 229, 230, 233, 237, 240, 246, 247, 249
+
+   You can access them directly using next URL:
+
+http://bugs.tol-project.org/buglist.cgi?product=TOL&bug_status=RESOLVED&resolution=FIXED&bugidtype=include&chfield=resolution&chfieldfrom=2004-10-27&chfieldto=2005-02-15&cmdtype=doit
+
+----------------------------------------------------------------------
+
+* What is new in Tol-1.1.2:
+
+** Tol is much more stable now than few months ago. We have resolved more than
+   100 bugs since the first version, but Tol is still an unstable
+   product, for many reasons. One of them is related with the Documentation
+   Project, we are still without manuals, tutorials, technical
+   reports...
+   On the other side, Tol continues having some implementation problems with
+   itsinternal modules, which are blocking all possibilities to release an
+   stable product before their correction.
+   Among the new features list for this version, we can emphasize:
+
+** TIT: Tol Integrity Tests
+   In the main directory yoo can see a new file called test-it.tol. Running
+   this program you can start a global language consistency test across the
+   directory tree. The program looks for "test" directories where we are
+   adding individual tests to verify specific features of Tol.
+
+** The Evalutor
+   It does not allow creating variables using an identifier allready used by
+   other variable of a different type.
+   A great number of corrections have been applied to the Evaluation Engine.
+
+** The Parser
+   Improves its behavior with a better recognition of comments inside code,
+   giving more complete information about the places where syntactical errors
+   are.On the other side, the maximal identifier length has been limited to
+   255.
+
+** Random Number Generation
+   Random and distributed number generator has been added, based on:
+    * Cauchy  (RandCaucy)
+    * LogNormal (RandLogNormal)
+
+** Tcl_Eval implemented, as taken from the function description
+
+	Set Tcl_Eval(Text script)
+
+	Evaluate a Tcl script. The return value is a Set with two elements
+	    status : a Real indicating success (1) or fail (0)
+	    result : a Text with the evaluation result
+	Example:
+
+	    Set tcl_res = Tcl_Eval("set tcl_platform(platform)");
+	    If (tcl_res["status"], WriteLn("Running on platform
+	    "+tcl_res["result"]), WriteLn("Error in Tcl_Eval"))
+
+** Database access
+   TOL DDBB API has been re-programmed to open up the possibility of using
+   multiple native drivers. At the same time, ODBC and MySQL drivers have been
+   developed. Of course, no changes have been made to the TOL DB API, and
+   a big change: Dynamic libraries saves some memory if a driver is not used.
+
+** There are many little changes that we can't list here. Nevertheless we can
+   give the URL of TOL Bug Report System (based on Bugzilla) to track all bugs
+   which have been resolved:
+   http://bugs.tol-project.org/buglist.cgi?bug_status=RESOLVED&resolution=FIXED
+
+----------------------------------------------------------------------
+
+* What was new in Tol-1.1.1:
+
+** New estimation engine:
+  -Maximum likelihood estimation of ARIMA models
+  -Non linear least squares method improvement
+
+** New user function QRDecomposition to implement QR decomposition of a
+   matrix.
+
+** New random generators from distributions:
+   -RandChisq : random variate from a xi-squared distribution with n degree of
+    freedom.
+   -RandIChisq : random variate from an inverse xi-squared distribution with n
+    degree of freedom.
+   -RandGamma : random variate from a gamma distribution with parameters a and
+    b.
+
+** Changed version numbers to unify all packages: Tol, Toltcl and Tolbase
+
+** Bugs fixed:
+  -BMTFile(Set) (http://bugs.tol-project.org/show_bug.cgi?id=2)
+  -CholeskiInverse (http://bugs.tol-project.org/show_bug.cgi?id=3)
+  -QuantileS (http://bugs.tol-project.org/show_bug.cgi?id=4)
+  -configure checks GSL version (http://bugs.tol-project.org/show_bug.cgi?id=5)
+  -Timing traces (http://bugs.tol-project.org/show_bug.cgi?id=15)
+  -If sentence (http://bugs.tol-project.org/show_bug.cgi?id=18)
+
+
+* What was new in Tol-0.1.9:
+
+** Changed project structure in order to put under gnu autoconf utilities
+Now support autoconf shell script "configure" to build the library
+
+** tol library become a new Open Source project under gnu/GPL license terms.
+TOL was an internal project developed from 1995 at Bayes Decisión, SA 
+(Spain, Madrid). Is the base software used with TOLBase, another open source
+project. TOLBase is a user interface written in tcl/tk for programming in tol.

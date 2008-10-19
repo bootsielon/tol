@@ -1,0 +1,53 @@
+tolbase -  Compiling under Windows platform
+
+This file what is needed to compile tolbase under windows
+platform. The source code has being prepared to be compiled with
+Microsoft VC++ version 6. A project file tolbase.dsp is provided to
+generate de executable tolbase.exe.
+
+Software requirement
+====================
+
+In order to create tolbase.exe we must to link against the Tcl/Tk
+libraries. tolbase also depends on this Tcl/Tk extension in runtime:
+BLT (2.4z), BWidget (1.7), snit (0.91), tclodbc, TkTable and toltcl.
+All this extensions, but toltcl, can be obtained from
+http://www.tol-project.org/downloads/tolbase_addons.zip. The contents
+of this file must be unpacked and copied to the tolbase's directory
+lib.
+
+Normally we must copy the last compilation of toltcl.dll to the
+location lib/toltcl/toltcl.dll.
+
+Environment variables
+=====================
+
+Libraries and header files dependencies of tolbase are solved with the
+environment variables TCL_INCLUDE, TCL_LIB. TCL_INCLUDE points to the
+location of Tcl include files, TCL_LIB points to the location of Tcl
+libraries (.lib). For instance, if Tcl/Tk was installed in "c:\tcltk"
+then the values for those variables could be:
+
+TCL_INCLUDE = c:\tcltk\include
+
+TCL_LIB = c:\tcltk\lib
+
+Runtime requirement
+===================
+
+Below is a graph of dependencies for tolbase (there are others but
+those are solved using the tcl's package mechanism). In order to solve
+the dependencies wrt. tol.dll, gsl.dll and gslcblas.dll this must be
+found either in the search path of windows (PATH environment variable)
+or located in the same place of tolbase.exe. This last is the one we
+use to distribute tolbase.
+
+tolbase.exe
+  |
+  |____ toltcl.dll
+  |         |
+  |         |_____ tol.dll
+  |                   |
+  |                   |____ gsl.dll, gslcblas.dll
+  |
+  |____ tcl84.dll, tk84.dll 

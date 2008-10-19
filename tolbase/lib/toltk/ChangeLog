@@ -1,0 +1,17 @@
+2004/09/23 Jaime García <jgarcia@tol-project.org>
+
+        * tolmethods.tcl. Tol_SerieChart modificada para evitar el
+          error al intentar graficar un conjunto vacío como source
+
+2004/01/14 Javier Portugal <javipor@tol-project.org>
+    
+        * tolinspect.tcl. Añadida al menú contextual del inspector de
+          objetos la opción de liberar los objetos seleccionados de 
+          la consola.
+
+2004/01/11 Jorge Suit Perez Ronda <jsperez@tol-project.org>
+    
+        * panedw.tcl y scrollw.tcl. Modificadas dos funciones por
+          compatibilidad con la versión de BWidget 1.7.1, que pasa a 
+          sustituir a la version anterior.
+

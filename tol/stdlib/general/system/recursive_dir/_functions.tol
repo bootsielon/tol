@@ -1,0 +1,384 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _recursive_dir.tol
+// PURPOSE : functions to do some actions over all or some files under a
+//           directory and all its subdirectories   
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+   Set RecDir.DoWithTree(Code fun, 
+                          Text root, 
+                          Text match, 
+                          Real caseSens, 
+                          Real processFile,
+                          Real processDir,
+                          Real recursive,
+                          Real verbose)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set dir = GetDir(root);
+  Set sel = Select(dir[1], Real(Text fileName) 
+  { 
+    TextMatch(fileName,match,caseSens)
+  });
+
+  NameBlock process = 
+  [[
+    Set do_file(Real unused)
+    {
+      EvalSet(sel,Anything(Text fileName)
+      {
+         Text fileFullPath = root+"/"+fileName;
+         fun(fileFullPath, true)
+      })
+    };
+  
+    Set do_dir(Real unused)
+    {
+      BinGroup("<<", EvalSet(dir[2],Anything(Text subDir)
+      {
+         Text fileFullPath = root+"/"+subDir;
+         If(processDir<recursive,
+         {
+           [[fun(fileFullPath, false)]] << 
+           RecDir.DoWithTree(fun,root+"/"+subDir,
+                                 match, caseSens,
+                                 processFile, processDir, recursive,
+                                 verbose)
+         },
+         {
+           RecDir.DoWithTree(fun,root+"/"+subDir,
+                                 match, caseSens,
+                                 processFile, processDir, recursive,
+                                 verbose) <<
+           [[fun(fileFullPath, false)]] 
+         })
+      }))
+    }
+  ]];
+  
+  If(processFile < recursive,
+  {
+    process::do_file(0) << process::do_dir(0)
+  },
+  {   
+    process::do_dir(0) << process::do_file(0)
+  })
+};
+/*
+//////////////////////////////////////////////////////////////////////////////
+   Set RecDir.DoWithTree(Code fun, 
+                         Text root, 
+                         Text match, 
+                         Real caseSens, 
+                         Real processFile,
+                         Real processDir,
+                         Real recursive,
+                         Real verbose)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set dir = GetDir(root);
+  Set sel = Select(dir[1], Real(Text fileName) 
+  { 
+    TextMatch(fileName,match,caseSens)
+  });
+  Set do = SetOfSet
+  (
+    //Function to process files
+    RecDir.FunOrderStr("fil",processFile, Set (Real unused)
+    {
+      EvalSet(sel,Set(Text fileName)
+      {
+        Text fileFullPath = root+"/"+fileName;
+        If(verbose>10, WriteLn("  RecDir.DoWithTree "+Identify(fun)+
+                               " for file "+fileFullPath+" "));
+        RecDir.DoWithTree.Reg(fileFullPath, fun(fileFullPath, true))
+      })
+    }),
+    //Function to process directories
+    RecDir.FunOrderStr("dir",processDir, Set (Real unused)
+    {
+      EvalSet(dir[2], Set(Text subDir)
+      {
+        Text dirFullPath = root+"/"+subDir;
+        If(verbose>10, WriteLn("  RecDir.DoWithTree "+Identify(fun)+
+                               " for dir "+dirFullPath+" "));
+        RecDir.DoWithTree.Reg(dirFullPath, fun(dirFullPath, false))
+      })
+    }),
+    //Function to process directories recursively
+    RecDir.FunOrderStr("rec",recursive, Set (Real unused)
+    {
+      BinGroup("<<", 
+        EvalSet(dir[2], Set(Text subDir)
+        {
+          RecDir.DoWithTree(fun,root+"/"+subDir,
+                            match, caseSens,
+                            processFile, processDir, recursive,
+                            verbose)
+        })) 
+    })
+  );
+  Set selDo = Select(do, Real(RecDir.FunOrderStr a) 
+  { 
+    a->order_>0
+  });
+  If(verbose>11, WriteLn("Selected processes "<<selDo));
+  Set sortedDo = Sort(selDo,Real(RecDir.FunOrderStr a, RecDir.FunOrderStr b) 
+  { 
+    Compare(a->order_, b->order_)
+  });
+  If(verbose>11, WriteLn("Sorted processes "<<sortedDo));
+  BinGroup("<<", EvalSet(sortedDo,Set(RecDir.FunOrderStr a) 
+  { 
+    If(verbose>11, WriteLn("Processing ["+a->type_+"]"));
+    Code f = a->fun_;
+    f(0) 
+  }))
+};
+*/
+
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Ejecuta la función fun de tipo \n"
+" Anything(Text path, Real isFile) \n "
+"para todos los ficheros y/o directorios del directorio root que respondan "
+"al modelo wildcards dado por el argumento match.\n "
+"Ver la función TextMatch para saber más acerca de los wildcards.\n"
+"Si caseSens no es 0 match distingue entre mayúsculas y minúsculas.\n"
+"Si processFile no es 0 procesa los archivos (isFile=true).\n"
+"Si processDir no es 0 procesa los directorios (isFile=false).\n"
+"Si recursive no es 0 entra recursivamente en los subdirectorios.\n"
+"Cuando no es cero, el valor se estos tres parámatros indica el orden "
+"en que se procesan los resultados de cada tipo.\n"
+"Si verbose>0 muestra una traza de los archivos procesados.\n"
+"Devuelve un conjunto de pares con estructura RecDir.DoWithTree.Reg en el "
+"que el primer elemento es cada uno de los caminos completos de los ficheros "
+"y directorios procesados, y el segundo es el resultado del proceso.", 
+RecDir.DoWithTree);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Set RecDir.Grep(Text searched,
+                  Text root, 
+                  Text match, 
+                  Real caseSens, 
+                  Real recursive,
+                  Real verbose)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set allFound = Copy(Empty);
+  ////////////////////////////////////////////////////////////////////////////
+    Real RecDir.Grep.find(Text fileName, Real isFile)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!isFile,WriteLn("El argumento Real isFile de RecDir.Grep.find "
+                       "debería ser cierto","E"));
+    Text txt = ReadFile(fileName);
+    Set lines = Tokenizer(txt,"\n");
+    If(verbose>1,
+       WriteLn("Searching for searched string in file "+fileName));
+    Real found = SetMax(For(1,Card(lines),Real(Real i)
+    {
+      If(verbose>2,
+         WriteLn("Line "+IntText(i)));
+      Text line = lines[i];
+      Real found = TextFind(line, searched);
+      Real If(found<=0,0,
+      {
+        Set allFound := allFound<<[[RecDir.TextFound.Reg(fileName,i,line)]];
+        If(verbose>2, 
+          WriteLn("At line "<<IntText(i)+" column "+IntText(found)+"","W"));
+        1 
+      });
+      found
+    }))
+  };
+    
+  Set report = RecDir.DoWithTree
+  (
+    RecDir.Grep.find, 
+    root, 
+    match, 
+    caseSens, 
+    true,
+    false,
+    recursive,
+    verbose
+  );
+  [[report, allFound]]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Busca mediante la función RecDir.DoWithTree, archivos que "
+"contengan el texto dado por el argumento searched.\n"
+"Ver RecDir.DoWithTree para saber qué son el resto de parámetros.\n"
+"Devuelve dos tablas, una con el resultado de RecDir.DoWithTree y otra con "
+"estructura RecDir.TextFound.Reg con los ficheros que han dado positivo.",
+RecDir.Grep);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set RecDir.FindNotStandardAscii(Text nonStdButAllowed,
+                                  Text root, 
+                                  Text match, 
+                                  Real caseSens, 
+                                  Real recursive,
+                                  Real verbose)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set allFound = Copy(Empty);
+  ////////////////////////////////////////////////////////////////////////////
+    Real RecDir.FindNotStandardAscii.find(Text fileName, Real isFile)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!isFile,WriteLn("El argumento Real isFile de "
+                       "RecDir.FindNotStandardAscii.find"
+                       "debería ser cierto","E"));
+    Text txt = ReadFile(fileName);
+    Set lines = Tokenizer(txt,"\n");
+    If(verbose>1,
+       WriteLn("Searching for non allowed characters in file "+fileName));
+    Text report = SetSum(For(1,Card(lines),Text(Real i)
+    {
+      If(verbose>2,
+         WriteLn("Line "+IntText(i)));
+      Text line = lines[i];
+      Text found = SetSum(For(1,TextLength(line),Text(Real j)
+      {
+        Real code = ASCII(line,j);
+        Text char = Char(code);
+        Real ok_a = LE(code,127);
+        Real ok_b = TextFind(nonStdButAllowed,char);
+        Real ok_c  = Or(ok_a, ok_b);
+        If((verbose>3)&!ok_c,
+           WriteLn("Char "+IntText(j)+"; code="<<code+"; char='"<<char+"'"+
+                   "; oka="<<ok_a+
+                   "; okb="<<ok_b+
+                   "; ok="<<ok_c));
+        If(ok_c,"",char+"["+IntText(code)+"] ")
+      }));
+      Real If(found=="",0,
+      {
+        Set allFound := allFound<<[[RecDir.TextFound.Reg(fileName,i,found)]];
+        If(verbose>2, 
+          WriteLn("At line "<<IntText(i)+" found characters '"+found+"'","W"));
+        1 
+      });
+      found
+    }));
+    TextLength(report)
+  };
+    
+  Set report = RecDir.DoWithTree
+  (
+    RecDir.FindNotStandardAscii.find, 
+    root, 
+    match, 
+    caseSens, 
+    true,
+    false,
+    recursive,
+    verbose
+  );
+  [[report, allFound]]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Busca mediante la función RecDir.DoWithTree, archivos que "
+"contengan caracteres ASCII por encima del 127, salvo los contenidos en el "
+"argumento nonStdButAllowed.\n"
+"Ver RecDir.DoWithTree para saber qué son el resto de parámetros.\n"
+"Devuelve dos tablas, una con el resultado de RecDir.DoWithTree y otra con "
+"estructura RecDir.TextFound.Reg con los ficheros que han dado positivo.",
+RecDir.FindNotStandardAscii);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set RecDir.Count.Line(Text root, 
+                        Text match,
+                        Real caseSens, 
+                        Real recursive,
+                        Real verbose)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real totalLines = 0;
+  ////////////////////////////////////////////////////////////////////////////
+    Real RecDir.Count.Line.item(Text fileName, Real isFile)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text txt = ReadFile(fileName);
+    Set lines = Tokenizer(txt,"\n");
+    Real numLines = Card(lines);
+    If(verbose>1,
+       WriteLn("Counting lines of file "+fileName+": "<<numLines));
+    Real totalLines := totalLines + numLines;
+    numLines
+  };
+  Set report = RecDir.DoWithTree
+  (
+    RecDir.Count.Line.item, 
+    root, 
+    match, 
+    caseSens, 
+    1,
+    0,
+    2,
+    verbose
+  );
+  If(verbose>1,
+    WriteLn("Counting lines of dir "+root+": "<<totalLines));
+  [[report, totalLines]]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Cuenta recursivamente las líneas de los archivos "
+"especificados por el argumento <match> bajo un directorio raíz.\n"
+"Ver RecDir.DoWithTree para saber qué son el resto de parámetros.\n"
+"Devuelve dos tablas, una con el resultado de RecDir.DoWithTree y otra con "
+"estructura RecDir.TextFound.Reg con los ficheros que han dado positivo.",
+RecDir.Count.Line);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Set RecDir.Count.Char(Text root, 
+                        Text match,
+                        Real caseSens, 
+                        Real recursive,
+                        Real verbose)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real totalChars = 0;
+  ////////////////////////////////////////////////////////////////////////////
+    Real RecDir.Count.Char.item(Text fileName, Real isFile)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real numChars = FileBytes(fileName);
+    If(verbose>1,
+       WriteLn("Counting characters of file "+fileName+": "<<numChars));
+    Real totalChars := totalChars + numChars;
+    numChars
+  };
+  Set report = RecDir.DoWithTree
+  (
+    RecDir.Count.Char.item, 
+    root, 
+    match, 
+    caseSens, 
+    1,
+    0,
+    2,
+    verbose
+  );
+  If(verbose>1,
+    WriteLn("Counting characters of dir "+root+": "<<totalChars));
+  [[report, totalChars]]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Cuenta recursivamente los caracteres de los archivos "
+"especificados por el argumento <match> bajo un directorio raíz.\n"
+"Ver RecDir.DoWithTree para saber qué son el resto de parámetros.\n"
+"Devuelve dos tablas, una con el resultado de RecDir.DoWithTree y otra con "
+"estructura RecDir.TextFound.Reg con los ficheros que han dado positivo.",
+RecDir.Count.Char);
+//////////////////////////////////////////////////////////////////////////////
+
+
+

@@ -1,0 +1,157 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    :
+// PURPOSE :
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Matrix NumericJacobian(Set X, Matrix Y, Code evalFun, Real tolerance)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+//WriteLn("NumericJacobian");
+  Matrix MX  = GetNumeric(X);
+  Real   n   = Columns(MX);
+  Real   dif = tolerance/n;
+  Matrix Yt = Tra(Y);
+//WriteLn("Y("<<Rows(Yt)<<","<<Columns(Yt)+")");
+//Set Table([[Yt]],"");
+  Set partialDer = For(1, n, Matrix(Real k)
+  {
+//  Matrix MXk = Copy(MX);
+//  Do Real PutMatDat(MXk,1,k,MatDat(MXk,1,k)+dif);
+    Matrix MXk1 = Sub(MX,1,1,1,k-1);
+    Matrix MXk2 = Row(MatDat(MX,1,k)+dif);
+    Matrix MXk3 = Sub(MX,1,k+1,1,n-k);
+    Matrix MXk  = MXk1 | MXk2 | MXk3;
+    Set Xk = DeepCopy(X,MXk);
+    Matrix MYk  = evalFun(Xk); 
+//  WriteLn("MYk("<<Rows(MYk)<<","<<Columns(MYk)<<")");
+//  Set Table([[MYk]],"");
+    Matrix Difk = MYk-Yt;
+    Matrix Derk = RProd(Difk,1/dif);
+    Derk
+  });
+  Matrix J = Group("ConcatColumns",partialDer);
+//Set Table([[J]],"");
+  J
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Polyn SetStatPol(Polyn p)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Quotient((1-p)/B)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Polyn GetStatPol(Polyn p)
+//////////////////////////////////////////////////////////////////////////////
+{
+  1-B*p
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ParamMarquardt(Code fun, Set initParam)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix EvalFun(Matrix X)
+  {
+    GetNumeric(fun(DeepCopy(initParam,X)))
+  };
+  Matrix X0 = GetNumeric(initParam);
+  Set    S0 = fun(initParam);
+  Matrix Y0 = GetNumeric(S0);
+  Real   N  = Columns(Y0);
+  Real   n  = Columns(X0);
+  Set    m  = Marquardt(n,N,EvalFun,X0);
+  Set    X  = DeepCopy(initParam,m[1]);
+  Set    Y  = DeepCopy(S0,m[2]);
+
+  Matrix Res    = m[2];
+  Real   var    = MatDat(Tra(Res)*Res,1,1)/N;
+  Real   stds   = Sqrt(var);
+  Matrix L      = m[3];
+  Matrix LI     = LTInverse(L);
+  Matrix Cov    = RProd(Tra(LI)*LI,var);
+  Matrix Cor    = NormDiag(Cov);
+  Set    param  = For(1,n,Set(Real k)
+  {
+    Text name = "Var "+FormatReal(k,"%.0lf");
+    Real val  = MatDat(m[1],1,k);
+    Real sig  = Sqrt(MatDat(Cov,k,k));
+    Real t    = val/sig;
+    Real pr   = 1-DistT(Abs(t),Max(1,N-n-1));
+    LinRegParamInf(name,val,sig,t,pr)
+  });
+  Set Correlations = [[L,LI,Cov,Cor]];
+  [[m,SetOfSet(X,Y),param,Correlations]]
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ParamJMarquardt(Code fun, Code jacobian, Set initParam)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix EvalFun(Matrix X)
+  {
+    GetNumeric(fun(DeepCopy(initParam,X)))
+  };
+  Matrix JacobianFun(Matrix X, Matrix Y)
+  {
+    jacobian(DeepCopy(initParam,X),Y)
+  };
+  Matrix X0 = GetNumeric(initParam);
+  Set    S0 = fun(initParam);
+  Matrix Y0 = GetNumeric(S0);
+  Real   n  = Columns(X0);
+  Real   N  = Columns(Y0);
+  Set    m  = Marquardt(n,N,EvalFun,X0,JacobianFun);
+  Set    X  = DeepCopy(initParam,m[1]);
+  Set    Y  = DeepCopy(S0,m[2]);
+  [[m,SetOfSet(X,Y)]]
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set TMarquardt(Code fun, Set initParam, Real tolerance)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real t = Copy(Tolerance);
+  Real (Tolerance := tolerance);
+  Set m = ParamMarquardt(fun,initParam);
+  Real (Tolerance := t);
+  m
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set TJMarquardt(Code fun, Code jacobian, Set initParam, Real tolerance)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real t = Copy(Tolerance);
+  Real (Tolerance := tolerance);
+  Set m = ParamJMarquardt(fun,jacobian,initParam);
+  Real (Tolerance := t);
+  m
+};
+
+/*
+//////////////////////////////////////////////////////////////////////////////
+// SAMPLES
+//////////////////////////////////////////////////////////////////////////////
+
+  Matrix m  = (1,2,3,4,5);
+  Polyn  P  = 1+0.1*B+0.2*B^2+0.3*B^3+0.4*B^4;
+  Polyn  Q1 = SetStatPol(RandStationary(6,1));
+  Set    S0 = [[-1,-2,-3,-4]];
+  Set    S1 = [[3,m,P,S0,Q1,Empty]];
+  Matrix Y1 = GetNumeric(S1);
+
+WriteLn(Time);  
+Set Proof = For(1,100,Set(Real k)
+{
+  Matrix Y2 = RProd(Y1,k);
+  DeepCopy(S1,Y2)
+});
+Real n = Card(Proof);
+WriteLn("Prueba de " << n);
+WriteLn(Time);  
+
+*/

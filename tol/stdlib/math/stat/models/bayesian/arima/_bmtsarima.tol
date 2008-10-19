@@ -1,0 +1,687 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : bmtsarima.tol
+// PURPOSE: Bayesian Estimation of Multiple Time Series ARIMA models with 
+//          hierarquical inputs, normal a priori information and restriction 
+//          in parameters sampling.
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// CONSTANTS
+//////////////////////////////////////////////////////////////////////////////
+Real BTS.InputWithLevel = Copy(TRUE);
+
+
+//////////////////////////////////////////////////////////////////////////////
+// STRUCTURES
+//////////////////////////////////////////////////////////////////////////////
+
+Struct BTSARIMAInputDef
+{
+  Text Name,            // Nombre de la serie temporal input 
+  Serie X,              // Serie input
+  Set OmegaInfo,	// Informacion sobre el polinomio Omega BTSARIMAPolynDef
+  Set DeltaInfo 	// Informacion sobre el polinomio Delta BTSARIMAPolynDef
+};
+
+Struct BTSARIMAPolynDef
+{
+  Polyn IniValue,       // Valor inicial del polinomio 
+  Set PriorInfo,        // Conjunto con estructura BTSARIMAPriorInfo que 
+                        // contiene la informacion a priori
+  Set LimInfo           // Conjunto con estructura BTSARIMALimInfo que 
+                        // contiene los limites en el muestreo
+};
+
+Struct BTSARIMAPriorInfo
+{
+  Text Class,
+  Set Parameters
+};
+
+Struct BTSARIMAPriorInfo.Normal
+{
+  Polyn Nu,
+  Polyn Sigma
+};
+
+Struct BTSARIMAPriorInfo.Fixed
+{
+  Polyn Value
+};
+
+Struct BTSARIMALimInfo
+{
+  Polyn LimInf,
+  Polyn LimSup
+};
+
+Struct BTSARIMAModelDef
+{
+  Text  Name,
+  Serie Output, 
+  Set   BoxCox, // Conjunto con estructura BoxCoxStruct
+  Set   Dif, 
+  Set   AR, 
+  Set   MA,
+  Set   BTSARIMAInputDefinition, // Conjunto de conjuntos con estructura 
+                                 // BTSARIMAInputDef
+  Date IniEstim,
+  Date EndEstim
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+/*
+//////////////////////////////////////////////////////////////////////////////
+Matrix FreqRel(Matrix M, Real sample, Real ini, Real end)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix F   = If(EQ(ini,end,0), Frequency(M, sample), 
+                   Frequency(M, sample, ini, end));
+  Real total = MatSum(SubCol(F, SetOfReal(2)));
+  SubCol(F, SetOfReal(1))|RProd(SubCol(F, SetOfReal(2)), 1/total)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Calcula la frecuencia relativa de los elementos de una 
+matriz columna.", 
+FreqRel);
+//////////////////////////////////////////////////////////////////////////////
+Date SetMinDate(Set setDate)
+//////////////////////////////////////////////////////////////////////////////
+{
+If(EQ(Card(setDate),1), setDate[1], Group("Min",setDate))
+};
+
+Date SetMaxDate(Set setDate)
+//////////////////////////////////////////////////////////////////////////////
+{
+If(EQ(Card(setDate),1), setDate[1], Group("Max",setDate))
+};
+
+Real IsEmpty(Set s){EQ(Card(s),0)};
+*/
+//////////////////////////////////////////////////////////////////////////////
+Set GetLagSeries(Serie ser, Polyn pol)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set index = GetCoefNotNull(pol);
+  EvalSet(index, Serie(Real lag)
+  { (B^lag):ser })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",
+GetLagSeries);
+//////////////////////////////////////////////////////////////////////////////
+
+Matrix MSVD(Matrix mat)
+{
+  Set svdInfo = SVD(mat);
+  Matrix U = svdInfo[1];
+  Matrix D = svdInfo[2];
+  U*SqRt(D)
+};
+
+Matrix MInvSVD(Matrix mat)
+{
+  Set svdInfo = SVD(mat);
+  Matrix U = svdInfo[1];
+  Matrix D_1 = PseudoInverseDiag(svdInfo[2],0);
+  SqRt(D_1)*Tra(U)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Serie ApplyL(Serie ser, Matrix L)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix m     = Tra(SerSetMat([[ser]]));
+//  Text WriteLn("Rows L: "+IntText(Rows(L)));
+//  Text WriteLn("Rows m: "+IntText(Rows(m)));
+  Matrix mT    = L*m;
+  MatSerSet(Tra(mT), Eval(DatingName(ser)), First(ser))[1]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",
+ApplyL);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Serie ApplyARMA(Serie ser, Polyn AR, Polyn MA)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix sigma = ARMAACov(AR, MA, CountS(ser));
+  Matrix ct    = MSVD(sigma);
+  ApplyL(ser, ct)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",
+ApplyARMA);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Serie ApplyARMAInv(Serie ser, Polyn AR, Polyn MA)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix sigma = ARMAACov(AR, MA, CountS(ser));
+//  Text WriteLn("SIGMA "<<sigma);
+//  Text WriteLn("CountS "+IntText( CountS(ser)));
+  Matrix ctInv = MInvSVD(sigma);
+  ApplyL(ser, ctInv)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",
+ApplyARMAInv);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set BTSGetBLRModelDef(Set model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text  nameOut  = model->Name;
+  Serie output   = model->Output; 
+  Set   BCInfo   = model->BoxCox;
+  Set   difSet   = model->Dif;
+  Set   arSet    = model->AR;
+  Set   maSet    = model->MA;
+  Set   input    = model->BTSARIMAInputDefinition;
+  Date  iniEstim = model->IniEstim;
+  Date  endEstim = model->EndEstim;
+
+  Polyn arPol  = SetProd(arSet);
+  Polyn maPol  = SetProd(maSet);
+  Polyn difPol = SetProd(difSet);
+
+Text WriteLn("Processing Output "+nameOut);
+  Real expBC = BCInfo->Exponent;
+  Real cteBC = BCInfo->Constant;
+
+  Serie transformed   = BoxCoxTransform(output+cteBC, expBC);
+  Serie difTransformed = difPol:transformed;
+ 
+  Serie difTransfARMA    = ApplyARMAInv(difTransformed, arPol, maPol);
+
+  Date iniOut = Max(First(difTransfARMA), iniEstim);
+  Date endOut = Min(Last(difTransfARMA), endEstim);
+
+  Set ARMAXSet    = BinGroup("<<", EvalSet(input, Set(Set reg)
+  {
+    Serie inpSer         = reg->X;
+    Serie difInpSer      = difPol:inpSer; 
+    Serie difInpSerSub   = 
+//     SubSer(difInpSer,iniOut,endOut); 
+     SubSer(difInpSer,First(difTransfARMA),Last(difTransfARMA)); 
+
+    Serie difInpSerARMA  = ApplyARMAInv(difInpSerSub, arPol, maPol);
+    Polyn omega          = reg->OmegaInfo->IniValue;
+    GetLagSeries(difInpSerARMA, omega)
+  }));
+
+  Date iniInp = SetMaxDate(EvalSet(ARMAXSet, First));
+  Date endInp = SetMinDate(EvalSet(ARMAXSet, Last)); 
+ 
+  Date ini = Max(iniOut, iniInp);
+  Date end = Min(endOut, endInp);
+
+
+  Set sY = 
+  {
+    Serie difOutput = SubSer(difTransfARMA, ini, end);
+    Matrix y = Tra(SerMat(difOutput));
+    SetOfMatrix(y)
+  };
+
+  Set sX = SetOfText("TRIPLET")<<
+  {
+    Matrix x = Tra(SerSetMat(ARMAXSet, ini, end));
+    SetOfSet(SetOfReal(1,1)<<SetOfMatrix(x))
+  };
+
+  Set inputDefinition = BinGroup("<<", EvalSet(input, Set(Set reg)
+  {
+    Text nameInp   = reg->Name;
+    Polyn omega    = reg->OmegaInfo->IniValue;
+    Set priorInfo  = reg->OmegaInfo->PriorInfo;
+    Set limInfo    = reg->OmegaInfo->LimInfo; 
+
+    Set index = GetCoefNotNull(omega);
+
+    EvalSet(index, Set(Real lag)
+    { 
+      Text nameLag     = nameOut+"_"+nameInp+"_"+IntText(lag);
+      Real iniValueLag = Coef(omega, lag);
+      Set priorInfoLag = If(IsEmpty(priorInfo), Empty, 
+      {
+        If(Not(ToUpper(priorInfo->Class) == "NORMAL"), Empty,
+        {
+          Real nu    = Coef(priorInfo->Parameters->Nu, lag);
+          Real sigma = Coef(priorInfo->Parameters->Sigma, lag); 
+          Set parameters = BLRPriorInfo.Normal(nu, sigma);
+          Text class = "NORMAL";
+          BLRPriorInfo(class, parameters)
+        })
+      });
+
+      Set limInfoLag = If(IsEmpty(limInfo), Empty, 
+      {
+        Real limInf = Coef(limInfo->LimInf, lag);
+        Real limSup = Coef(limInfo->LimSup, lag);
+
+        BLRLimInfo(limInf, limSup)
+      });
+      BLRParamDef(nameLag, iniValueLag, priorInfoLag, limInfoLag)
+    })   
+  }));
+
+  Set sigmaDefinition = 
+  {
+    Text nameSig  = nameOut+"_Sigma";
+    Real iniValue = 0.1;
+    Set priorInfo = Copy(Empty);
+    Set limInfo   = Copy(Empty);
+    SetOfSet(BLRParamDef(nameSig, iniValue, priorInfo, limInfo))  
+  };  
+  BLRModelDef(sY, sX, Empty, inputDefinition, sigmaDefinition)
+  //BLRModelDef(sY, sX, inputDefinition, sigmaDefinition)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",
+BTSGetBLRModelDef);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set BTSGetBLRModelSet(Set modelSet)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set modelEval = EvalSet(modelSet, Set(Set model)
+  { BTSGetBLRModelDef(model)});
+  Set modelBLR = If(EQ(Card(modelEval), 1), modelEval[1],
+  BinGroup("BLR_UnionModelDef", modelEval));
+
+  modelBLR
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",
+BTSGetBLRModelSet);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set BTSARIMAGetResult(Set modelSet, Set modelBLR, Matrix mhResult)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set inputDefinition = modelBLR->InputDefinition; 
+  Set sigmaDefinition = modelBLR->SigmaDefinition; 
+  Set allDefinition   = inputDefinition<<sigmaDefinition;
+
+  Set names  = Traspose(inputDefinition)[1]<<Traspose(sigmaDefinition)[1];
+  Set parametersInf = MHResult(Tra(mhResult), names, allDefinition);
+
+  Matrix CovParam = Cov(mhResult);
+  Matrix CorParam = Cor(mhResult);
+
+  Set modelOutputs = EvalSet(modelSet, Set(Set model)
+  {
+    Text  nameOut  = model->Name;
+    Serie output   = model->Output; 
+    Set   BCInfo   = model->BoxCox;
+    Set   difSet   = model->Dif;
+    Set   arSet    = model->AR;
+    Set   maSet    = model->MA;
+
+    Date  iniEstim = model->IniEstim;
+    Date  endEstim = model->EndEstim;
+  
+    Set   inputWL  = model->BTSARIMAInputDefinition;
+    Set   input    = If(BTS.InputWithLevel, inputWL,
+    EvalSet(inputWL, Set(Set btsInpDef)
+    {
+      Serie inpWL = SubSer(btsInpDef->X,iniEstim,Last(btsInpDef->X));
+      BTSARIMAInputDef(
+      btsInpDef->Name,
+      inpWL - SerDat(inpWL, iniEstim),
+      btsInpDef->OmegaInfo,
+      btsInpDef->DeltaInfo)
+    }));
+
+    Polyn arPol  = SetProd(arSet);
+    Polyn maPol  = SetProd(maSet);
+    Polyn difPol = SetProd(difSet);
+  
+  
+    Real expBC = BCInfo->Exponent;
+    Real cteBC = BCInfo->Constant;
+  
+    Serie transformed    = BoxCoxTransform(output+cteBC, expBC);
+
+    Set infoInput = MHGetInfoFromInputDef(nameOut, input, parametersInf);
+
+    Serie filter          = infoInput["filter"];
+    Serie noise           = transformed-filter;
+    Serie difNoise        = difPol:noise;
+// Usando DifEq para calcular Residuos
+    Ratio MaInv = 1 / maPol;
+    Serie difArNoise      = (arPol * difPol) : noise;
+
+    Serie residuals = DifEq(MaInv, difArNoise);
+
+//  Verificar porque no funciona ApplyArmaInv
+//    Serie residuals       = ApplyARMAInv(difNoise, arPol, maPol);
+    Serie fullTransformed = transformed;    
+    Serie prevHisTrans    = fullTransformed-residuals;
+    Serie interruptions   = CalInd(W, Dating(transformed));
+
+    Set effects           = infoInput["effects"];
+    Set inputDefExt       = infoInput["inputDefExt"];
+    Set parameterInfo = MHGetParameterInfo(nameOut, parametersInf);
+
+    Set series = SetOfSerie
+    (
+      Eval("Serie Residuals = residuals;"),
+      Eval("Serie Noise = noise;"),
+      Eval("Serie DifNoise = difNoise;"),
+      Eval("Serie Interruptions = interruptions;"),
+      Eval("Serie FullTransformed = fullTransformed;"),
+      Eval("Serie Transformed = transformed;"),
+      Eval("Serie PrevHisTrans = prevHisTrans;"),
+      Eval("Serie Filter = filter;")
+    )<<SetOfSet(Eval("Set Effects = effects;"));
+  
+    Set result = SetOfSet
+    (
+      Eval("Set Definition = model;"), 
+      Eval("Set Series = series;"), 
+      Eval("Set ParameterInfo = parameterInfo;"),
+      Eval("Set InputDefEst = inputDefExt;")
+    );
+    Eval("Set "+nameOut+ " = result;")    
+  }); 
+  Set information = SetOfMatrix(CovParam,CorParam,mhResult);
+  SetOfSet
+  (
+    Eval("Set ModelOutputs = modelOutputs;"),
+    Eval("Set ParametersInf = parametersInf;"),
+    Eval("Set Information = information;"),
+    modelBLR
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",
+BTSARIMAGetResult);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set BTSARIMAEstimateLikelyhood(Set modelResult)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set model  = modelResult["Definition"];
+  Set series = modelResult["Series"];
+
+  Text  nameOut  = model->Name;
+  Serie output   = model->Output; 
+  Set   BCInfo   = model->BoxCox;
+  Set   difSet   = model->Dif;
+  Set   arSet    = model->AR;
+  Set   maSet    = model->MA;
+  Set   input    = model->BTSARIMAInputDefinition;
+  Date  iniEstim = model->IniEstim;
+  Date  endEstim = model->EndEstim;
+
+  Real expBC = BCInfo->Exponent;
+  Real cteBC = BCInfo->Constant;
+  Serie transformed = BoxCoxTransform(output+cteBC, expBC);
+  Serie filter      = series["Filter"]; 
+
+  Set arimaSet = difSet<<arSet<<maSet;
+
+  Real maxDeg = SetMax(EvalSet(arimaSet,Degree));
+  Set model_MLH = ModelDef
+  (
+    transformed-filter, 1, 0, maxDeg, 0, SetProd(difSet), arSet, maSet, 
+    Copy(Empty), Copy(Empty)
+  );
+ 
+  Set result_MLH     = Estimate(model_MLH, iniEstim, endEstim);
+  Set definition_MLH = result_MLH["Definition"];
+  Set newARSet       = definition_MLH["AR"];
+  Set newMASet       = definition_MLH["MA"];
+  
+  Set newModel = BTSARIMAModelDef
+  ( 
+    nameOut,
+    output, 
+    BCInfo, // Conjunto con estructura BoxCoxStruct
+    difSet, 
+    newARSet, 
+    newMASet, 
+    input,
+    iniEstim,
+    endEstim
+  );
+  newModel
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",
+BTSARIMAEstimateLikelyhood);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set EstimateBTSARIMAConLin
+(
+  Set modelSet,   // Conjunto de conjuntos con estructura BTSARModelDef
+  Set hierSet,    // Conjunto con estructura BLRHierDef
+  Set linConSet,  // Conjunto de conjuntos con estructura BLRLinConDef
+  Real calls,     // Llamadas en el sampleo
+  Real burning,   // Numero de descartes
+  Text fileSample // Archivo de guardado
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+Real Msg("EstimateBTSARIMA", "Comienza la carga de datos");
+  Set modelBLR   = BTSGetBLRModelSet(modelSet);
+  Set modelBLR_C = 
+   If(IsEmpty(linConSet), modelBLR, BLR_AddLinCon(modelBLR, linConSet));
+  Set modelBLR_CH = 
+   If(IsEmpty(hierSet), modelBLR_C, BLR_AddHierarchy(modelBLR_C, hierSet));
+  Set modelBLR_CHP = BLR_AddPrior(modelBLR_CH);
+Real Msg("EstimateBTSARIMA", "Comienza la estimacion bayesiana");
+  Matrix mhResult = BLR(modelBLR_CHP, calls, burning, fileSample);
+Real Msg("EstimateBTSARIMA", "Termina la estimacion bayesiana");
+  BTSARIMAGetResult(modelSet, modelBLR_CHP, mhResult)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("", EstimateBTSARIMAConLin);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set EstimateBTSARIMA
+(
+  Set modelSet,   // Conjunto de conjuntos con estructura BTSARModelDef
+  Set hierSet,    // Conjunto con estructura BLRHierDef
+  Real calls,     // Llamadas en el sampleo
+  Real burning,   // Numero de descartes
+  Text fileSample // Archivo de guardado
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  EstimateBTSARIMAConLin(modelSet, hierSet, Empty, calls, burning, fileSample)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("", EstimateBTSARIMA);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set EstimateBTSARIMARec
+
+(
+  Set modelSet,    // Conjunto de conjuntos con estructura BTSARModelDef
+  Set hierSet,     // Conjunto con estructura BLRHierDef
+  Set callSet,      // Llamadas en el sampleo
+  Real burning,    // Numero de descartes
+  Text fileSample, // Archivo de guardado
+  Real callRec   // Numero de veces que se samplea la estructura ARIMA 
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(EQ(callRec,0), 
+    EstimateBTSARIMA(modelSet, hierSet, callSet[1], burning, fileSample),
+  {
+    Set result = 
+     EstimateBTSARIMA(modelSet, hierSet, callSet[1], burning, fileSample);
+    Set newRes = EvalSet(result[1], BTSARIMAEstimateLikelyhood);
+    Set newCallSet = If(EQ(Card(callSet),1), Empty,
+	  ExtractByIndex(callSet, Range(2, Card(callSet), 1)));  
+    EstimateBTSARIMARec(newRes, hierSet, newCallSet, burning, fileSample, callRec-1)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set EstimateBTSARIMAC_Redux
+(
+  Set modelSet,   // Conjunto de conjuntos con estructura BTSARModelDef
+  Set hierSet,    // Conjunto con estructura BLRHierDef
+  Set linConSet,  // Conjunto de conjuntos con estructura BLRLinConDef
+  Set constSet,   // Conjunto de restricciones con matriz B y b
+  Real calls,     // Llamadas en el sampleo
+  Real burning,   // Numero de descartes
+  Text fileSample // Archivo de guardado
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set modelBLR   = BTSGetBLRModelSet(modelSet);
+  Set modelBLR_C = 
+   If(IsEmpty(linConSet), modelBLR, BLR_AddLinCon(modelBLR, linConSet));
+  Set modelBLR_CH = 
+   If(IsEmpty(hierSet), modelBLR_C, BLR_AddHierarchy(modelBLR_C, hierSet));
+  Set modelBLR_CHP = BLR_AddPrior(modelBLR_CH);
+
+  Set params = EvalSet(modelBLR_CHP->InputDefinition, Text(Set inp)
+  { inp->Name });
+  
+  Matrix mat.B = constSet[1];
+  Matrix mat.b = constSet[2];
+
+  Matrix beta0 = SetCol(EvalSet(modelBLR_CHP->InputDefinition, Real(Set reg)
+  {
+    reg->IniValue
+  }));
+  
+  Matrix mhResultC = BLRC(
+  SetOfAnything(modelBLR_CHP, mat.B, mat.b, beta0), 
+  // allConstraints[1], allConstraints[2]),
+  calls,
+  burning,
+  fileSample);
+
+  BTSARIMAGetResult(modelSet, modelBLR_CHP, mhResultC)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Set EstimateBTSARIMAC
+(
+  Set modelSet,   // Conjunto de conjuntos con estructura BTSARModelDef
+  Set hierSet,    // Conjunto con estructura BLRHierDef
+  Set linConSet,  // Conjunto de conjuntos con estructura BLRLinConDef
+  Set constSet,   // Conjunto de restricciones con estructura BTSConstSt
+  Real calls,     // Llamadas en el sampleo
+  Real burning,   // Numero de descartes
+  Text fileSample // Archivo de guardado
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set modelBLR   = BTSGetBLRModelSet(modelSet);
+  Set modelBLR_C = 
+   If(IsEmpty(linConSet), modelBLR, BLR_AddLinCon(modelBLR, linConSet));
+  Set modelBLR_CH = 
+   If(IsEmpty(hierSet), modelBLR_C, BLR_AddHierarchy(modelBLR_C, hierSet));
+  Set modelBLR_CHP = BLR_AddPrior(modelBLR_CH);
+
+  Set params = EvalSet(modelBLR_CHP->InputDefinition, Text(Set inp)
+  { Text inp->Name });
+
+  Set constraints2BMat = EvalSet(constSet, Set(Set const)
+  {
+    Set parMulConst = const->ParamMult;
+    Set paramConst.CheckExist = EvalSet(parMulConst, Real(Set parMul)
+    {
+      Text paramConstName = parMul->Param;
+      Real parExist = paramConstName <: params;
+      If(parExist, Copy(TRUE),
+      {
+        Text WLERROR("EstimateBTSARIMAC\n"+
+                "Parametro mal definido en restriccion.\n"+
+                "Param: "+ paramConstName +" -> "<< const + NL);
+        Copy(FALSE)
+      })
+    });
+
+    EvalSet(params, Real(Text parNam)
+    { BLRC_ParamMultInConst(const, parNam) })
+  });
+  
+  Set constraints2bMat = EvalSet(constSet, Set(Set const)
+  {
+    SetOfReal(const->Value)
+  });
+  
+  Matrix mat.BAux = SetMat(constraints2BMat);
+  Matrix mat.bAux = SetMat(constraints2bMat);
+
+  Matrix beta0 = SetCol(EvalSet(modelBLR_CHP->InputDefinition, Real(Set reg)
+  {
+    reg->IniValue
+  }));
+
+  Set mat.Set = BLR2BLRC(modelBLR_CHP, SetOfMatrix(mat.BAux, mat.bAux));
+  Matrix mat.B = mat.Set[1];
+  Matrix mat.b = mat.Set[2];
+
+  Matrix mhResultC = BLRC(
+  SetOfAnything(modelBLR_CHP, mat.B, mat.b, beta0), 
+  // allConstraints[1], allConstraints[2]),
+  calls,
+  burning,
+  fileSample);
+
+  BTSARIMAGetResult(modelSet, modelBLR_CHP, mhResultC)
+};
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set EstimateBTSARIMACRec
+(
+  Set modelSet,    // Conjunto de conjuntos con estructura BTSARModelDef
+  Set hierSet,     // Conjunto con estructura BLRHierDef
+  Set linConSet,   // Conjunto de conjuntos con estructura BLRLinConDef
+  Set constSet,    // Conjunto de restricciones con estructura BTSConstSt o 
+                   // sin estructura con B y b
+  Set callSet,      // Llamadas en el sampleo
+  Real burning,    // Numero de descartes
+  Text fileSample, // Archivo de guardado
+  Real callRec     // Numero de veces que se samplea la estructura ARIMA 
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Code estimator = Case(
+    IsEmpty(constSet), EstimateBTSARIMAC,
+    StructName(constSet[1])== "", EstimateBTSARIMAC_Redux,
+    1, EstimateBTSARIMAC
+  );
+  If(EQ(callRec,0), 
+    estimator(modelSet, hierSet, linConSet, constSet,
+                      callSet[1], burning, fileSample),
+  {
+    Set result = 
+     estimator(modelSet, hierSet, linConSet, constSet,
+                       Min(callSet[1], 1000), Min(burning, 100), fileSample);
+    Set newCallSet = If(EQ(Card(callSet),1), Empty,
+	   ExtractByIndex(callSet, Range(2, Card(callSet), 1))); 					   
+    Set newRes = EvalSet(result[1], BTSARIMAEstimateLikelyhood);
+    EstimateBTSARIMACRec(newRes, hierSet, linConSet, constSet,
+                         newCallSet, burning, fileSample, callRec-1)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,48 @@
+//Test to verify Real * Serie, as seen on bugs:
+//  http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=164
+//  http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=173
+//  http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=174
+//  http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=177
+//  http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=191
+//Date: 28-10-2004
+//Author: Manuel Balderrábano <manuelb@tol-project.org>
+
+// Test Description
+Text description = "Testing Serie operations against Real...";
+
+// Test Operations
+Real {
+  Text Write(description);
+  //Bug 164:
+  Serie testSerie1 = SubSer(Gaussian(0,1), y2000, y2001);
+  Serie testOut10  = (Real 0.8)* testSerie1;
+  //Bug 173:
+  Serie testOut20 = Exp(1)*CalInd( C, Diario);
+  //Bug 174:
+  Real testA = 1;
+  Real testB = 2;
+  Serie testSerie21 = Pulse( y2004m01 , Diario);
+  Serie testOut30 = (testA)*testSerie21;
+  Serie testOut31 = (testA*testB)*testSerie21;
+   //Bug 177:
+  Serie testOut40 = (-testA)*Pulse( y2004m01 , Diario);
+  //Bug 191:
+  Serie testOut50 = 5*DaysInMonth;
+  //Check:
+  Real res01 = CountS(testOut10);
+  Real res02 = CountS(testOut20);
+  Real res03 = CountS(testOut30);
+  Real res04 = CountS(testOut40);
+  Real res05 = CountS(testOut50);
+
+  Real ok =  Not(IsUnknown(res01)|
+    IsUnknown(res02) |
+    IsUnknown(res03) |
+    IsUnknown(res04) |
+    IsUnknown(res05)
+  );
+  WriteLn(If(ok,"OK","ERROR"));
+  ok
+};
+
+

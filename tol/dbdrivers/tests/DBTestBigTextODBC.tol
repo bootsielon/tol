@@ -1,0 +1,101 @@
+// Database tests. See README.txt for more info.
+// Date: July 15th, 2004.
+// Author: Manuel Balderrábano <manuelb@tol-project.org>
+
+// Test Description
+Text "Testing ODBC 64 KB text fields...";
+
+//Test Operation
+
+Real {
+
+  Struct DBStructODBC {
+    Text driver
+  };
+
+  //Init database including edge values:
+  Real InitDB(Real a)
+  { //Create all neccesary tables:
+    Real res01 = If (DBExecQuery("drop table pruebas1") == 0, 1, 0);
+    Real res02 = If (DBExecQuery("CREATE TABLE pruebas1 (
+                      `campo1` VARCHAR(1),
+                      `campo2` VARCHAR(255),
+                      `campo3` TEXT,
+                      `campo4` TEXT,
+                      `campo5` TEXT)
+                     ") == 0,1,0);
+
+    Real (res01 & res02)
+  };
+
+  Real FillDB(Real num)
+  {
+    Set res =
+      For (1, num, Real (Real index)
+      {
+        Real res01 = DBExecQuery("insert into pruebas1 values ('A','"+
+        Repeat("ABCDE",25) + "', NULL, 'A','"+
+        Repeat("ABCDEFGHIJ",6400)+"')");
+        Real (res01)
+      });
+    Real SetMin(res)
+  };
+
+  Real TestRow(Set row)
+  {
+    Real (TextMatch(row[1],"A")&
+          TextMatch(row[2],Repeat("ABCDE",25))&
+          ((TextLength(row[3]) == 0))&
+          TextMatch(row[4],"A")&
+          TextMatch(row[5],Repeat("ABCDEFGHIJ",6400))
+         )
+  };
+
+  Real TestDB(Real num)
+  {
+    Set table = DBTable("select * from pruebas1");
+    //Test every value:
+    Set res =
+      For (1, num, Real (Real i)
+      {
+        Real TestRow(table[i])
+      });
+    Real SetMin(res)
+  };
+
+  Real res = If (testDB,
+  {
+    Set ODBC   = DBStructODBC("odbc");
+    Real res01 = DBOpen(aliasNames[1],user,passwd, ODBC);
+
+    Real res02 = InitDB(0);
+    Real res03 = FillDB(100);
+    Real res04 = TestDB(100);
+
+    Real res20 = DBClose(aliasNames[1]);
+
+    // Test condition
+    Real If((res01),
+    {
+      If((res02 & res03 & res04 & res20),
+      {
+        //WriteLn("Ok");
+        1
+      },
+      {
+        //WriteLn("Error.");
+        0
+      })
+    },
+    {
+      //WriteLn("Error-Check DB parameters in DBTestIni.tol");
+      -1
+    })
+  },-2);
+
+  Real Case ( (res == 1), { WriteLn("Ok");1},
+              (res == 0), { WriteLn("Error");0},
+              (res == -1),{ WriteLn("Error-Check DB parameters in DBTestIni.tol");0},
+              (res == -2),{ WriteLn("Disabled");1})
+};
+

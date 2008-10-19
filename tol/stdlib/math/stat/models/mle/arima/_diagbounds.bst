@@ -1,0 +1,12 @@
+TestBounds              ; Accept ; Refuse ;
+FstRegAutCorBounds      ; 0.40   ; 0.80   ;
+FstSeaAutCorBounds      ; 0.40   ; 0.80   ;
+SndRegAutCorBounds      ; 0.40   ; 0.80   ;
+SndSeaAutCorBounds      ; 0.40   ; 0.80   ;
+RegBoxPierceLjungBounds ; 0.30   ; 0.70   ;
+SeaBoxPierceLjungBounds ; 0.30   ; 0.70   ;
+FisherBounds            ; 0.30   ; 0.70   ;
+MinSignificationBounds  ; 0.30   ; 0.50   ;
+MaxCorrelationBounds    ; 0.60   ; 0.85   ;
+MixedSignCorrBounds     ; 0.33   ; 0.66   ;
+UnitRootsProbBounds     ; 0.20   ; 0.40   ;

@@ -1,0 +1,303 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: structs.tol
+// PURPOSE: Structures needed to handle with Stat::Bys
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+//Configuration of Bayesian Inference report
+/////////////////////////////////////////////////////////////////////////////
+Struct BysInf.Report.Config
+{
+//parameters for method RCODA::raftery.diag(...) 
+  Real raftery.diag.q_,   //the quantile to be estimated 
+  Real raftery.diag.r_,   //the margin of error 
+  Real raftery.diag.s_,   //the probability for interval (q-r,q+r) 
+  Real raftery.diag.eps_, //precision required for estimate of convergence
+//Autocorrelation function parameters                                  
+  Real acf.lag_,
+//histogram parameters                                  
+  Real histogram.parts_,
+//kerDens parameters                                  
+  Real kerDens.points_
+};
+
+
+/////////////////////////////////////////////////////////////////////////////
+//Returned Bayesian Inference statistics
+/////////////////////////////////////////////////////////////////////////////
+Struct BysInf.Coda.Summary.Stats
+{
+  Text varName_,  //Parameter identifier
+  Real mean_,     //Sample average
+  Real sd_,       //Sample standar deviation
+  Real naive.se_, //Naive estimator of standard error of sample mean
+  Real tmser.se_, //Standard error of sample mean filtered of autocorrelation
+  Real q.001_,    //   1/1000 sample quantile
+  Real q.025_,    //  25/1000 sample quantile
+  Real q.250_,    // 250/1000 sample quantile
+  Real q.500_,    // 500/1000 sample quantile (median)
+  Real q.750_,    // 750/1000 sample quantile
+  Real q.975_,    // 975/1000 sample quantile 
+  Real q.999_     // 999/1000 sample quantile
+};  
+
+/////////////////////////////////////////////////////////////////////////////
+//Bayesian Diagnostics with method RCODA::raftery.diag
+/////////////////////////////////////////////////////////////////////////////
+Struct BysInf.Coda.Diag.Raftery
+{
+  Text   varName_,     //Parameter identifier
+  Real   length_,      //L The number of calculated simulations 
+  Real   burnin_,      //M the length of burn-in 
+  Real   size_,        //N the required sample size 
+  Real   size.min_,    //Nmin the minimum sample size based on zero acf
+  Real   dep.factor_,  //I = (M+N)/Nmin: the dependence factor
+  Real   remain_       //1-Max(0,Min(1,(L-M)/(N-M))): the complementary ratio  
+                       //of avalaible and required lengths after skiping 
+                       //burn-in
+};
+
+/////////////////////////////////////////////////////////////////////////////
+//Comparing Coda.Diag.Raftery information about two reports
+/////////////////////////////////////////////////////////////////////////////
+Struct StRepCmp.Coda.Diag.Raftery 
+{ 
+  Text varName_, 
+  Real rep1.length, 
+  Real rep2.length,
+  Real rep1.burnin, 
+  Real rep2.burnin,
+  Real rep1.size, 
+  Real rep2.size,
+  Real rep1.size.min, 
+  Real rep2.size.min,
+  Real rep1.dep.factor, 
+  Real rep2.dep.factor,
+  Real rep1.remain, 
+  Real rep2.remain
+};
+
+/////////////////////////////////////////////////////////////////////////////
+//Comparing Coda.Summary.Stats information about two reports
+/////////////////////////////////////////////////////////////////////////////
+Struct StRepCmp.Coda.Summary.Stats 
+{ 
+  Text varName_,                    //Variable name
+  Real diff_,                       //difference between averages a1-a2
+  Real diff.rel_,                   //relative difference |a1-a2|/|a1|
+  Real diff.K.sigmas.tmser_,        //standarized difference |a1-a2|/(ts1)
+  Real mannWhitneyUtest.bothtails_, //pvalue of two tails Mann-Whitney U test
+  Real mannWhitneyUtest.lefttail_,  //pvalue of left tail Mann-Whitney U test
+  Real mannWhitneyUtest.righttail_, //pvalue of right tail Mann-Whitney U test
+  Real rep1.mean_,       //a1: average for 1-st report  
+  Real rep2.mean_,       //a2: average for 2-nd report   
+  Real rep1.sd_,         //s1: standard error for 1-st report
+  Real rep2.sd_,         //s2: standard error for 2-st report
+  Real rep1.naive.se_,   //ns1=s1/Sqrt(N1) sampling deviation of average 
+  Real rep2.naive.se_,   //ns2=s2/Sqrt(N2) sampling deviation of average
+  Real rep1.tmser.se_,   //ts1=s1*(1-r1)/((1+r1)*Sqrt(N1)) uncorrelated smp.dev.
+  Real rep2.tmser.se_,   //ts2=s2*(1-r2)/((1+r2)*Sqrt(N2)) uncorrelated smp.dev.
+  Real rep1.q.001_,      //Quantile 0.001 for 1-st report  
+  Real rep2.q.001_,      //Quantile 0.001 for 2-st report
+  Real rep1.q.025_,      
+  Real rep2.q.025_,
+  Real rep1.q.250_,
+  Real rep2.q.250_,
+  Real rep1.q.500_,
+  Real rep2.q.500_,
+  Real rep1.q.750_,
+  Real rep2.q.750_,
+  Real rep1.q.975_,
+  Real rep2.q.975_,
+  Real rep1.q.999_,
+  Real rep2.q.999_
+};
+
+
+/////////////////////////////////////////////////////////////////////////////
+//Comparing ACF information about two reports
+/////////////////////////////////////////////////////////////////////////////
+Struct StRepCmp.AcfByVar
+{ 
+  Real lag, 
+  Real rep1.acf, 
+  Real rep2.acf, 
+  Real sigma.1, 
+  Real sigma.2, 
+  Real sigma.3, 
+  Real sigma_1, 
+  Real sigma_2, 
+  Real sigma_3  
+};
+
+/////////////////////////////////////////////////////////////////////////////
+//Comparing ACF information about two reports
+/////////////////////////////////////////////////////////////////////////////
+Struct StRepCmp.Acf 
+{ 
+  Text varName_, 
+  Real lag, 
+  Real rep1.acf, 
+  Real rep2.acf, 
+  Real sigma.1, 
+  Real sigma.2, 
+  Real sigma.3, 
+  Real sigma_1, 
+  Real sigma_2, 
+  Real sigma_3
+};
+
+/////////////////////////////////////////////////////////////////////////////
+//Structure for ARMA param handling
+/////////////////////////////////////////////////////////////////////////////
+Struct ArmaParamDescStruct
+(
+  Text name,
+  Real resBlockNum,
+  Real factorNum,
+  Text arma,
+  Real degree,
+  Real coef,
+  Real numEvalDens
+);
+
+/////////////////////////////////////////////////////////////////////////////
+//Parameter information in a BSR model definition
+/////////////////////////////////////////////////////////////////////////////
+Struct Bsr.Param.Info
+{
+  Text Name,              // Unique identidier of the parameter
+  Real InitValue,         // Given by user initial value or ?
+  Real Prior.LowerBound,  // Prior minimum feasible value or -1/0
+  Real Prior.UpperBound   // Prior minimum feasible value or +1/0
+};  
+
+/////////////////////////////////////////////////////////////////////////////
+//Missing value with optional normal prior information in a BSR model 
+/////////////////////////////////////////////////////////////////////////////
+Struct Bsr.Missing.Info
+{
+  Text Name,              // Unique identidier of the missing value
+  Real Prior.Average,     // Prior average or initial value 
+  Real Prior.Sigma,       // Prior standard deviation or +1/0 
+  Real Prior.LowerBound,  // Prior minimum feasible value or -1/0
+  Real Prior.UpperBound   // Prior minimum feasible value or +1/0
+};  
+
+/////////////////////////////////////////////////////////////////////////////
+//Order restriction over parameters in a BSR model 
+// Lower <= Upper
+/////////////////////////////////////////////////////////////////////////////
+Struct Bsr.OrderRelation.Info
+{
+  Text Lower, //Left parameter
+  Text Upper  //Right parameter
+};  
+
+/////////////////////////////////////////////////////////////////////////////
+//Linear combination term over a parameter of a BSR model
+// Coefficient * Parameter
+/////////////////////////////////////////////////////////////////////////////
+Struct Bsr.LinearCombTerm
+{
+  Real Coefficient, 
+  Text Parameter
+};  
+
+/////////////////////////////////////////////////////////////////////////////
+//Generic restriction over parameters in a BSR model 
+// LowerBound <= c_1 * alfa_1 + ... + c_n * alfa_n <= UpperBound
+/////////////////////////////////////////////////////////////////////////////
+Struct Bsr.GenericConstraint.Info
+{
+  Real LowerBound, //Left border value or -1/0
+  Set  LinearComb, //A set of Bsr.LinearCombTerm
+  Real UpperBound  //Right border value or +1/0
+};  
+
+
+Struct Bsr.DynHlm.DBStrConstrBorder
+{
+  Real LowerBound, //Left border value or -1/0
+  Real NumInequation,
+  Real UpperBound  //Right border value or +1/0
+};
+
+Struct Bsr.DynHlm.DBStrObsOutput
+{
+  Text id_series, 
+  Real missingPriorSigmaFactor, 
+  Real missingPriorLowerBound, 
+  Real missingPriorUpperBound, 
+  Date firstDate, 
+  Date lastDate
+};
+
+Struct Bsr.DynHlm.DBStrObsInput
+{
+  Text id_parameter, 
+  Text id_series, 
+  Real missingPriorSigmaFactor, 
+  Real missingPriorLowerBound, 
+  Real missingPriorUpperBound, 
+  Real paramInitValue, 
+  Real paramPriorLowerBound, 
+  Real paramPriorUpperBound 
+};
+Struct Bsr.DynHlm.DBStrObsTransFun
+{
+  Text id_transferFunction, 
+  Text te_omega,
+  Text te_delta,
+  Text id_series, 
+  Real missingPriorSigmaFactor, 
+  Real missingPriorLowerBound, 
+  Real missingPriorUpperBound, 
+  Real paramInitValue, 
+  Real paramPriorLowerBound, 
+  Real paramPriorUpperBound 
+};
+Struct Bsr.DynHlm.DBStrARIMA
+{
+  Real period,
+  Text AR, 
+  Text MA, 
+  Text DIF 
+} ;   
+Struct Bsr.DynHlm.DBStrLatEqu
+{
+  Real nu_equation, 
+  Real sigma_factor 
+};
+Struct Bsr.DynHlm.DBStrLatOutput
+{
+  Real nu_equation, 
+  Text child, 
+  Real coef 
+};
+Struct Bsr.DynHlm.DBStrLatInput
+{
+  Real nu_equation, 
+  Text father, 
+  Real coef 
+};
+Struct Bsr.DynHlm.DBStrPriEqu
+{
+  Real nu_equation, 
+  Real average, 
+  Real sigma 
+};
+Struct Bsr.DynHlm.DBStrPriOutput
+{
+  Real nu_equation, 
+  Text child, 
+  Real coef 
+};
+Struct Bsr.DynHlm.DBStrNonLinFlt
+{
+  Text node,
+  Text nameBlock
+};
+

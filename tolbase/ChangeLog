@@ -1,0 +1,2581 @@
+﻿2007-10-22 Javier Portugal <javipor@tol-project.org>
+     * lib/toltk/tolbase.tcl
+     Option Recover from Log re-implemented. It wasn't working since
+	 version 1.1.5
+	 
+2007-06-14 Jaime García <jgarcia@tol-project.org>
+             * lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+             Search option implemented for bcomboboxplus
+
+2007-02-27 Jaime García <jgarcia@tol-project.org>
+               * lib/byswidget/bfunctions/bfsql.tcl
+               double type added to solve an error with mysql database type
+
+2007-03-01 Jorge <josp@tol-project.org>
+	* lib/toltk/tolbase.tcl: unifying version information showed at
+	About dialog.
+	
+2007-02-27 Jaime García <jgarcia@tol-project.org>
+	* lib/toltk/setgraph.tcl: Fix to bug 460
+
+2007-02-26 Jorge <josp@tol-project.org>
+	* lib/byswidget/beditmaster.tcl: Fix to bug 473 -- computing
+	length of text type fields must not rely on scale being returned
+	as unknown '?', instead a
+	regexp {^char|varchar|varchar2|text|nchar|ntext$} $type should be
+	used. Trimming Text returned from TOL queries as \" and not {"},
+	because i breaks syntax highlighting in emacs.
+
+2007-02-22 Jorge <josp@tol-project.org>
+	* lib/byswidget/bodbc/bodbc.tcl: _Connect use DBActivate instead
+	of DBClose+DBOpen. New basic method _ActivateAlias, _OpenAlias,
+	_CloseAlias.
+
+2007-02-20 Jorge <josp@tol-project.org>
+	* lib/byswidget/bodbc/bodbc.tcl: fixing a bug using DBGetOpened
+	
+2007-02-01 Jorge <josp@tol-project.org>
+	* lib/rmtps_client: package implementig the API for remote process
+	control, based on a communication with rmtps_server.
+	* lib/toltk/init_toltk.tcl: loading rmtps_client code
+
+2007-01-30 Jorge <josp@tol-project.org>
+	* toltk/editor.tcl
+	* toltk/tolbase.tcl
+	* toltk/tolprj.tcl: preventing <Fx> keys from being processed if
+	they are captured first.
+	
+2007-01-05 Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/bfilter/bfilter.tcl
+       Widget modified to select description in operator combobox and set
+       default operator to "LIKE". Operator descriptions changed too.
+
+2006-12-18 Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       bug 459 solved
+
+2006-11-30 Jorge <josp@tol-project.org>
+	* toltk/setgraph.tcl: fixed bug 9. :SetGraph::GetTickLabel should
+	use ::bayesGraph::FormatNumberAxis
+	* toltk/bysgropt.tcl: commenting puts.
+	
+2006-11-20 Jorge <josp@tol-project.org>
+	* toltk/bysgraph.tcl: fixed bug 449, we should use Img when
+	instead of -format GIF from BLT when writing .gif.
+	
+2006-11-15 Jorge <josp@tol-project.org>
+	* toltk/tolbase.tcl: Enhancement 447, <Control-Key-k> disabled on
+	Text.
+	
+2006-11-13  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       Solve problems with advanced order in multi-word header
+
+2006-10-27  Jaime García <jgarcia@tol-project.org>
+       * lib/toltk/tolbase.tcl
+       Add Object Inspector options to show or not it as user visualization
+       decision.
+
+2006-09-15  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/mdi/mdi.tcl
+       option -activeforeground setted "by default" to avoid critical slave 
+       problems
+
+2006-07-25  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/mdi/mdi.tcl
+       raise "inexplicable"  bug  fixed
+
+2006-07-24  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/beditmaster/beditmaster.tcl
+       Button bar modified. Now there are two buttons groups to "minimize" 
+       widget dimensions
+
+2006-07-19  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/btable/bfilter.tcl
+       Operator LIKE added to operators list
+       * tolbase/lib/byswidget/bfunctions/bftoltcl.tcl
+       Function TolGetFieldsValues modified to solve spacing fields values
+
+2006-07-10  Jorge <josp@tol-project.org>
+	* lib/byswidget/blistboxplus/blistboxplus.tcl:
+	* lib/byswidget/blistorder/blistorder.tcl:	
+	* lib/byswidget/btreeviewplus/btreeviewplus.tcl: when creating a
+	widget $win must be used instead of $self. Not using 'install'
+	because of a "hidden" bug in blt::treeview. Now the bug does not
+	show.
+	
+2006-07-04  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+      right button function options modified. Now table headers are selected 
+      in order to do generic table functions
+
+2006-06-27  Jaime García <jgarcia@tol-project.org>
+      * lib/toltk/bystext.tcl
+      variable names changed and reasigned to fix bug number 411
+
+2006-06-29  Jorge S. Pérez <josp@tol-project.org>
+	* lib/toltk/tolbase.tcl: Control-c is used by <<Copy>>, instead
+	Ctrl-k will be used to stop any execution in progress.
+
+2006-06-27  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       Add -postordercmd to table options
+
+2006-06-12  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       Solved a problem during opening advanced order more than one time.
+
+2006-05-29  Jorge S. Pérez <josp@tol-project.org>
+	* lib/toltk/tolbase.tcl: Control-c now stop any execution in
+	progress.
+
+2006-04-25  Jorge S. Pérez <josp@tol-project.org>
+	* lib/toltk/sergraph.tcl,tolinspe.tcl: measuring time for DrawSeries.
+	
+2006-04-113  Jorge S. Pérez <josp@tol-project.org>
+	* lib/toltk/init_toltk.tcl: [info script] could be a link on unix. added
+	autostart comment at header.	
+	* lib/toltk/tolinspe.tcl : use ::toltk_script_path instead
+	of [info script]
+2006-02-23  Roberto Cuesta Soto <rcsoto@tol-project.org>
+       * tolbase/lib/byswidget/bfunctions/bflistbox.tcl
+       Function "lbOnKeyPress". Improved the extended method of search
+       and to but widget
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       * tolbase/lib/byswidget/btreeviewplus/btreeviewplus.tcl          
+       It has been perfected and added the following options: 
+       .- Search of the elements of the list by coincidence of the pressed keys
+       .- In order to qualify this option, in time of programming it
+          is had the options: 
+          .- keypress: value logical to indicate if it is desired to activate 
+          .- colkeypress: column by which it is wanted to make the search
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       It has been qualified and corrected the following options: 
+       .- When doing double click in the bars of scroll does not close the list 
+       .- When showing the list, this receives focus 
+       .- it is allowed to select the row marked with tecja Enter 
+       .- When opening the list, shows noticeable the selected element 
+       .- Added contextual menu with the options 
+          .- To open list 
+          .- Clear selection elements
+          .- To copy the main element
+          .- To copy all the row
+       * tolbase/lib/byswidget/beditmaster/beditmaster.tcl
+       * tolbase/lib/byswidget/barima/barima.tcl
+       * tolbase/lib/toltk/bysgropt.tcl
+       * tolbase/lib/toltk/calendar.tcl
+       * tolbase/lib/toltk/fusearch.tcl
+       Use of the new functionality implemented in the Blistboxplus and
+       Bcomboboxplus
+
+2006-02-07  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/toltk/tolbase.tcl
+       * tolbase/lib/toltk/toolbar.tcl
+       All modifications needed to make different button toolbars added 
+       * tolbase/lib/toltk/newButtonDiag.tcl
+       form to create new Button added
+       * tolbase/lib/toltk/newToolarDiag.tcl
+       form to create new Toolbar added
+
+2006-01-02  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/beditselector/beditselector.tcl
+       method "postcommand" added.
+
+2005-12-07  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       method "fillSQL" has been changed. NumSql2Tol function
+       return -5 in count(*) query in windows so it's pached
+       getting absolute value. It's a provisional change
+
+2005-11-29  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/bodbc/bodbc.tcl
+       set focus in the first field not filled.
+       * tolbase/lib/byswidget/bfunctions/bfsql.tcl
+       SqlFormatField function modified to solve an error with 
+       MySql dateformat due to ".%f" microseconds format
+
+2005-11-25  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/btab/btab.tcl
+       Text in the tabs is now shorter.
+       * tolbase/lib/byswidget/btable/btable.tcl
+       Now user has the possibility to execute functions 
+       with the selected cells
+       Fixed bug when the structure that defines user's 
+       functions does not exist
+
+2005-11-23  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/btab
+       Added widget btab.
+       * tolbase/lib/byswidget/loadByswidget.tcl
+       * tolbase/lib/byswidget/pkgIndex.tcl 
+       Added widget btab
+
+2005-10-31  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Fixed bug when filtering elements
+
+2005-10-28  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       setType accepts now format for the column
+       fillSerie has format parameter too to change date format
+       This changes are included to fix bug #325
+       * tolbase/lib/byswidget/bfunctions/bftoltcl.tcl
+       Added function that changes TOL date format to Tcl date format
+       * tolbase/lib/toltk/sergraph.tcl 
+       Fixed bug #325
+	
+2005-10-26  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       Fixed bug with -cols -rows options. Added function getTable
+	
+2005-10-21  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/tolinspe.tcl
+       Enabled pop-up menu of left tree of inspector. Actually it works 
+       only with the first level files and Set objects.
+       Added new comments.
+
+2005-10-20  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/bfilter/bfilter.tcl
+       Added method to get the buttonbox
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       bindtags are changed to allow binds to blistboxplus
+
+2005-10-18  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bsersel/bsersel.tcl
+       Deprecated bselectfields widget has been replaced by bcomboboxplus.
+       * tolbase/lib/byswidget/bccomboboxplus/bccomboboxplus.tcl
+       Added variable blstentry and methods setEntry, getwidget and 
+       SetValueView by compatibility with bselectfields wigdet.
+       The postcommand and modifycommand aren't executed when widget is 
+       initializing itself.
+       Fixed bug in values method using with parameter clean.
+       * tolbase/lib/byswidget/bfunctions/bfobjects.tcl
+       Added widget type Bcomboboxplus in BfoCleanWidget and BfoActivateWidget 
+       procedures.
+       Fixed bug with widget type BEntryDate in BfoCleanWidget procedure and 
+       another one with widget type Bcomboboxplus in BfoGetText procedure.
+       * tolbase/lib/byswidget/beditmaster/beditmaster.tcl
+       Deprecated bselectfields widget has been replaced by bcomboboxplus. 
+       Bcomboboxplus widget allows to have date fields (showed in TolBase with 
+       BEntryDate widget) in the key fields of the table.
+       * tolbase/lib/toltk/calendar.tcl
+       Icons of arrows modified.
+       * tolbase/lib/byswidget/bdialog/bdialog.tcl
+       Fixed bug: widget save geometry only if it were closed with button X in 
+       the right upper corner of the dialog.
+
+2005-10-14  Jaime García <jgarcia@tol-project.org>
+       * tolbase/lib/byswidget/barima/barima.tcl
+       Default dating implemented. Now it's use to fill dating field with 
+       defaultDating value.
+       * tolbase/lib/byswidget/barima/barima.tcl
+       old TimeSet restored. Sorry about confusion (mistake).
+
+2005-10-11  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bdialog/bdialog.tcl
+       New wigdet that allows save and load its geometry in the ini file.
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Added new option -iniconfig that allows to save in the ini file the 
+       last directory selected when using the pop-up menu option "Load from 
+       file" or "Save to file".
+
+2005-10-07  Antonio Zamorano azamorano@tol-project.org>
+       * tolbase/lib/toltk/init_toltk.tcl
+       Modified the location of the file "project.ini".
+       The file looks for next to the file "_ iniproject.tol". If it does not
+       find it it looks for it in his previous position.
+
+2005-10-07  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       Added function that exports data to Microsoft Excel (requires cwind).
+       Binds changed: now ctrl+a copies whole table and ctrl+o opens table
+
+2005-10-06  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/bfunctions/bfsql.tcl
+       Added function NumSql2Tol.
+
+2005-10-05  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       Function fillSQL is added, fills table from SQL statment.
+       Functions _AdjustColumn and _TablePasteHandler are much faster.
+       * tolbase/lib/byswidget/bfilter/bilter.tcl
+       Now operator combo is not cleaned when another field is selected
+       * tolbase/lib/byswidget/beditmaster/beditmaster.tcl
+       Now the table can be shown
+
+2005-10-05  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/fusearch.tcl
+       Path of the document function search stored in the namespace array 
+       widget.
+       Added accelerator keys Ctrl+W to View definition and Ctrl+G to 
+       perform search from blistboxplus.
+       * tolbase/lib/toltk/bystext.tcl
+       Small changes related to the function search.
+       * tolbase/lib/byswidget/beditmaster/beditmaster.tcl
+       Added scrollbar to show it when the content of the widget is taller 
+       than its vertical size.
+
+2005-10-04  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/fusearch.tcl
+       Fixed some binds of accelerator keys.
+       Entry of name of function get focus on create the widget.
+       All grammars are selected only if on create the form hasn't any 
+       selected grammar, otherwise takes the selected grammars saved in 
+       .ini file.
+       Added function SearchWord to invoke this form and search a word 
+       in the names of the functions.
+       * tolbase/lib/toltk/bystext.tcl
+       Shows the dialog of find text with the first word selected.
+       Added proc SearchShow that shows the form of function search with 
+       the first word selected.
+       * tolbase/lib/toltk/editor.tcl
+       Added accelerator key CTRL+G show the form of function search 
+       with the first word selected.
+       * tolbase/lib/byswidget/beditselector/beditselector.tcl
+       Snit methods of the widget reordered by visibility.
+
+2005-09-30  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       The arrow cursor will be changed to a watch when executing 
+       a postcommand or a modifycmd.
+       Fixed bug of v.24 again.
+       * tolbase/lib/byswidget/mdi/mdi.tcl
+       Mdi takes the default help page defined in the project.
+       * tolbase/lib/byswidget/toltk/project.tcl
+       Added variable where is definied the section of help by default.
+
+2005-09-28  Antonio Zamorano <azamorano@tol-project.org>
+       *tolbase/lib/byswidget/btable/btable.tcl
+       Added function to copy whole table.
+
+2005-09-27  Antonio Zamorano <azamorano@tol-project.org>
+       *tolbase/lib/byswidget/bfilter/bfilter.tcl
+       New options added -showbuttons -okcommand -cancelcommand.
+       *tolbase/lib/byswidget/bfunctions/bftoltcl.tcl 
+       Small changes in TolGetFieldValues.
+       *tolbase/lib/byswidget/bfunctions/bfsql.tcl
+       Added function Sql2Tol.
+       *tolbase/lib/byswidget/btable/btable.tcl
+       Added function to copy headers.
+       Changed the color of the headers (a bit lighter).
+
+2005-09-23  Antonio Zamorano <azamorano@tol-project.org>
+       *tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Small changes in bfieldsdialog's call.
+       *tolbase/lib/byswidget/bfieldsdialog/bfieldsdialog.tcl
+       ComboBoxes are now bcomboboxesplus.
+
+2005-09-22  Jaime García Calvo <jgarcia@tol-project.org>
+       *tolbase/lib/byswidget/bfunctions/bftoltcl.tcl
+       Function TolGetFieldValues added. It's used to get list values from
+       a field/table set
+
+2005-09-21  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/tolbase.tcl
+       Holds the application to avoid problems when the user 
+       clicks on some item when the beginning files are being loaded.
+       * tolbase/lib/toltk/fusearch.tcl
+       When the functions search is performing the search, now shows 
+       the cursor as a watch.
+
+2005-09-16  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/barima/barima.tcl
+       Changed icons that were badly placed.
+       Fix problem when press button "delete from list" when 
+       haven't any element item.
+
+2005-09-14  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/tolbase.tcl
+       * tolbase/lib/toltk/project.tcl
+       Added to help menu a section of tolbase.
+       * tolbase/lib/byswidget/bfunctions/bfmessages.tcl
+       The proc ShowHelp detects when the path of the help isn't 
+       correctly established, and when it happens it shows the dialog of 
+       configuration of paths of tolbase.
+
+2005-09-12  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bfunctions/bfmessages.tcl
+       Added proc ShowHelp to show a section of help in browser.
+       * tolbase/lib/toltk/bysgropt.tcl
+       * tolbase/lib/toltk/setgraph.tcl
+       * tolbase/lib/byswidget/bodbc/bodbc.tcl
+       Added help on press F1 key in dialog.
+       * tolbase/lib/toltk/calendar.tcl
+       * tolbase/lib/toltk/drawarima.tcl
+       * tolbase/lib/toltk/sergraph.tcl
+       * tolbase/lib/toltk/sqltable.tcl
+       * tolbase/lib/toltk/tolmethods.tcl
+       * tolbase/lib/toltk/fuseach.tcl
+       Added option -helpkey in creation of forms.
+       * tolbase/lib/toltk/corgraph.tcl
+       Key F1 reserved for help. The change of panels will be 
+       able to be done with keys F2, F3, F4 and F5.
+       * tolbase/lib/toltk/editor.tcl
+       Added option -helpkey in creation of forms.
+       Added help on press F1 key in dialog of options and in 
+       editor frame.
+       * bsd/tolbase/lib/toltk/project.tcl
+       * lib/byswidget/mdi/mdi.tcl
+       Modified to support -helpkey option.
+       * bsd/tolbase/lib/toltk/tolprj.tcl
+       Added help on press F1 key in dialog of options.
+       Added option -helpkey in creation of this form.
+       * bsd/tolbase/lib/toltk/tolinspe.tcl
+       Added option -helpkey in creation of a lot of forms.
+       Fixed bug when try to graph a unknown matrix.
+       * bsd/tolbase/lib/toltk/tolbase.tcl
+       Added option -helpkey in creation of forms.
+       Added help on press F1 key in dialog of options.
+
+2005-09-06  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/barima/barima.tcl
+       * tolbase/lib/byswidget/blistorder/blistorder.tcl
+       * tolbase/lib/byswidget/bsersel/bsersel.tcl
+       * tolbase/lib/byswidget/btable/btable.tcl
+       * tolbase/lib/toltk/bysgraph.tcl
+       * tolbase/lib/toltk/mulselec.tcl
+       * tolbase/lib/toltk/sqltable.tcl
+       * tolbase/lib/toltk/tolbase.tcl
+       Substitution of icons.
+       * tolbase/lib/byswidget/beditselector/beditselector.tcl
+       * tolbase/lib/toltk/bystable.tcl
+       * tolbase/lib/toltk/bystext.tcl
+       * tolbase/lib/toltk/calendar.tcl
+       * tolbase/lib/toltk/editor.tcl
+       * tolbase/lib/toltk/setgraph.tcl
+       Visual improvements in the dialog windows and 
+       substitution of icons.
+       * tolbase/lib/toltk/bysgropt.tcl
+       * tolbase/lib/toltk/sergraph.tcl
+       * tolbase/lib/toltk/tolprj.tcl
+       Visual improvements in the dialog windows, substitution 
+       of icons, and fixed some translations.
+       * tolbase/lib/toltk/objects.tcl
+       Substitution of icons and fixed some translations.
+       * tolbase/lib/toltk/tolinspe.tcl
+       Fixed some translations.
+       * tolbase/lib/toltk/msgs/es.msg
+       Updated with new and fixed translations.
+
+2005-09-05  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/images
+       * tolbase/lib/byswidget/toltk/images
+       Added and deleted icons
+       * tolbase/lib/byswidget/btable/btable.tcl
+       Some visual enhancements in options of btable
+       Some visual enhancements in advanced selector of order
+
+2005-08-31  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/tolbase.tcl
+       Fixed great amount of small problems of aspect and 
+       behavior of the dialog of options of TOLBase.
+       Proc ::TolConsole::OptionsCreate modified to allow 
+       optionally create and show the dialog of options with the 
+       focus in a specific tab of options.
+       Added help path to path options of TolBase.
+       * tolbase/lib/byswidget/bfunctions/bfmessages.tcl
+       Modified the proc ShowMessage to allow not show the 
+       MessageBox optionally.
+       Added proc ShowBrowserPage: It shows a web page on the 
+       internet browser. If this option isn't established it uses 
+       the default browser under Windows.
+       Added proc ShowBrowserPage: It shows a PDF document on 
+       the internet browser. 
+
+2005-08-30  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/init_toltk.tcl
+       Added text tags (bold, big, normal, small, verybig, 
+       centered, underline, grey, red, green, blue) to 
+       Tolcon_Trace.
+       Tcl/Tk errors appears on red bold font in debug window.
+       * tolbase/lib/toltk/tolbase.tcl
+       To select the path of the browser and the PDF viewer, 
+       uses a dialog OpenFile with the directory and the 
+       appropriate file type according to the operating system.
+
+2005-08-29  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Fixed incorrect translation of the word "File" in the 
+       pop-up menu.
+
+2005-08-09  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/mdi/mdi.tcl
+       * tolbase/lib/toltk/project.tcl
+       Small changes to try give more stability to the 
+       application.
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Added new activate mode: "descnoedit".
+       Deleted refresing of pop-up blistboxplus when configure 
+       its hidden columns.
+
+2005-08-08  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/editor.tcl
+       Fixed bug #288: To detect when a file has been changed.
+       The editor takes the time of modification of the file 
+       opened and notices the user if the file has been modified.
+
+2005-07-28  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bodbc/bodbc.tcl
+       When the user selects a module, the cursor is located in 
+       the first field non filled.
+
+2005-07-27  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/toltk/tolinspe.tcl
+       Reorganized creation procedure of TolInspector.
+       Added new comments to code of creation.
+
+2005-07-27  Antonio Zamorano <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Added method selectIndex that selects an index in
+       blistboxplus and shows the content in bcomboboxplus.
+
+2005-07-14  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/barima/barima.tcl
+       The widget now reads and writes in the INI the TimeSet
+       selected.
+       * tolbase/lib/toltk/fusearch.tcl
+       This document now reads and writes in the INI the 
+       grammars selected.
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Fixed bug: horizontal position of the pop-up list was wrong 
+       if the widget is in the right border of the screen.
+
+2005-07-13  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/barima/barima.tcl
+       Added selector of timeSets.
+       Entrys for the selection of Periods and Differences 
+       replaced by bcomboboxplus.
+       Added method get to recover values of components of the 
+       barima widget.
+       It allows to select Periods based on the selected timeSet.
+       Added labels of field required.
+       Enhanced messages to the user.
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Added method getEntryKey to get the path to the entry with 
+       the key field.
+       * tolbase/lib/toltk/drawarima.tcl
+       Added selection of timeSet necessary to graph.
+       Enhanced messages to the user.
+       * tolbase/lib/toltk/fusearch.tcl
+       Fixed bug: fuseach took global bind of Control+F, and when 
+       the instance of fusearch was not loaded was an error.
+
+2005-07-08  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/barima/barima.tcl
+       Added option -coderequired -codeeditable and -value.
+       And other small changes.
+       * tolbase/lib/toltk/drawarima.tcl
+       Added to repository.
+       * tolbase/lib/toltk/tolbase.tcl
+       Added menu item: Analysis Tools->ARIMA->Draw ACF and PACF
+
+2005-07-07  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/barima
+       Added widget barima: editor of ARIMA models.
+       * tolbase/lib/byswidget/bfunctions/bfmessages.tcl
+       Added file with functions used to show messages to user.
+
+2005-07-05  Roberto Cuesta Soto <rcsoto@tol-project.org>
+       * tolbase/lib/byswidget/mdi/mdi.tcl
+       Added to the method "setgeometry"
+       * tolbase/lib/toltk/tolmethods.tcl
+       Added the function "Tol_SerieAutocor".
+       Use the function "setgeometry" to give size to the draw forms
+       * tolbase/lib/byswidget/bfunctions/bflist.tcl
+       Modified the function "ljoin" so that the parameters are optional
+
+2005-06-30  Antonio Zamorano Martín <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/btable/btable.tcl
+       * tolbase/lib/byswidget/btable/pkgIndex.tcl
+       Component btable added to the repository
+       * tolbase/lib/toltk/tolmethods.tcl
+       * tolbase/lib/toltk/corgraph.tcl
+       * tolbase/lib/toltk/sergraph.tcl
+       * tolbase/lib/toltk/setgraph.tcl
+       * tolbase/lib/toltk/tolinspe.tcl
+       BysTable, EditTable, SetTable, SerTable, MatTable,
+       AutocorTable,StaTable changed with new component btable.
+       * tolbase/lib/toltk/tolbase.tcl
+       Managment of recent table files has changed with new
+       btable.
+       *tolbase/lib/byswidget/msgs/en.msg
+       *tolbase/lib/byswidget/msgs/es.msg
+       Messages updated for btable
+       *tolbase/lib/byswidget/loadByswidget.tcl
+       *tolbase/lib/byswidget/pkgIndex.tcl
+       Files modified to handle new component btable 
+
+2005-06-23  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl          
+       Added option -varcol:  Name of the field whose entry will 
+       be associated the variable defined in the option -variable. 
+       Test proc modified.
+       Fixed bug: pop-up list was not showed if it were packed in 
+       a Dialog.
+
+2005-06-23  Roberto Cuesta Soto (rcsoto@bayesinf.com)
+      * tolbase/lib/toltk/tolbase.tcl
+      Added new functionality on the options of TolBase.
+      Options of a project can be added to a filling up the variables:
+        ::TolConsole::data(proc,OnOptionCreate)    -> Create widget 
+        ::TolConsole::data(proc,OnOptionDestroy)  -> Destroy widget
+        ::TolConsole::data(proc,OnOptionApply)     -> Methos apply
+
+      * tolbase/lib/toltk/bysgraph.tcl
+      * tolbase/lib/toltk/bysgropt.tcl
+      * tolbase/lib/toltk/corgraph.tcl
+      * tolbase/lib/toltk/sergraph.tcl 
+      * tolbase/lib/toltk/setgraph.tcl 
+      View: http://news.tol-project.org/modules.php?name=News&file=article&sid=17&mode=&order=0&thold=0
+
+2005-06-21  Antonio Zamorano Martín <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/bfont/bfont.tcl
+       Added option -label.
+       Now option -variable can handle with variables instead 
+       of fonts.
+       * tolbase/lib/byswidget/bcolor/bcolor.tcl
+       Added optional menu (-optmenu) and -label options.
+       Now option -variable can handle with variables instead 
+       of colors.
+
+2005-06-20 Jaime García Calvo <jgarcia@tol-project.org>
+       *tolbase/lib/byswidget/bfilter/bfilter.tcl  
+       geometry added. Now panels geometry is implemented
+
+2005-06-15  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Fixed problems of use of options -readonly and -nomenu.
+       When filters, the hidden columns are not showed.
+       * tolbase/lib/byswidget/btreeviewplus/btreeviewplus.tcl
+       Fixed problems of use of options -readonly and -nomenu.
+       When filters, the hidden columns are not showed.
+       Color of the selection darker, just like in blistboxplus.
+
+2005-06-14  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Fixed bug: both, modifycmd and postcommand were executed 
+       once when the widget isn't created.
+       Added modifycmd and postcommand to test method.
+
+2005-06-13 Jaime García Calvo <jgarcia@tol-project.org>
+       *tolbase/lib/byswidget/bfilter/bfilter.tcl    
+       Filter widget now launch function parameters when user clicks
+       on the component list (beditselector and bcomboboxplus)
+
+2005-06-11 Javier Portugal Alonso <javipor@tol-project.org>
+       *tolbase/lib/toltk/editor.tcl    
+       Added option 'Insert function schema' to editor.
+       It inserts a function schema (or any block of code) that
+       is defined in a file (whose path is defined in editor
+       options).
+
+2005-06-08 Jaime García Calvo <jgarcia@tol-project.org>
+       *tolbase/lib/byswidget/bfilter/bfilter.tcl    
+       Filter widget it's now finished, translated and tested.
+
+2005-06-08 Jaime García Calvo <jgarcia@tol-project.org>
+       *tolbase/lib/byswidget/bfilter/bfilter.tcl    
+       Filter widget it's now implemented to suppot SQL and TOL
+       filters and logical operators implemented in tol too.
+
+2005-06-08  Antonio Zamorano Martín <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/bfont/bfont.tcl
+       Component that provides an interface to select an
+       available font.
+       * tolbase/lib/byswidget/bcolor/bcolor.tcl
+       Component that provides an interface to select a
+       color.
+
+2005-06-06 Jaime García Calvo <jgarcia@tol-project.org>
+       *tolbase/lib/byswidget/bfilter/bfilter.tcl    
+       Filter widget it's now implemented to suppot SQL and TOL
+       filters
+
+2005-06-03 Jaime García Calvo <jgarcia@tol-project.org>
+       *tolbase/lib/byswidget/bfunctions/bftoltcl.tcl
+       ValidateData function created. It's used to validate Tol
+       data type to use un bfilter widget
+
+2005-06-02 Jaime García Calvo <jgarcia@tol-project.org>
+       *tolbase/lib/byswidget/bfilter/bfilter.tcl    
+       *tolbase/lib/byswidget/bfilter/pkgIndex.tcl
+       A filter Widget has been created. It's a widget to
+       generate filter expressions
+
+2005-06-01  Javier Portugal Alonso <javipor@tol-project.org>
+       * tolbase/lib/toltk/editor.tol
+       * tolbase/lib/toltk/tolprj.tol
+       Calls to ::tol::decompile functions are made throught
+       ::TolInspector::DecompileFile to clear objects that were
+       added to spool
+
+2005-06-01  Antonio Zamorano Martín <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/bfunctions/bfstring.tcl
+       Added function CheckDateTime, that validates a string
+       with datetime format.
+
+2005-05-27  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Added option -keydate to pack a bentrydate instead of an 
+       Entry for the key field.
+       Added option -fieldsdate to pack bentrydates instead of 
+       Entrys for each one of the fields.
+       And option -font.
+       * tolbase/lib/byswidget/bentrydate/bentrydate.tcl
+       Added install to delegate options and methods to the 
+       Entry of the bentrydate.
+       Fixed bug with packing order of its widgets.
+
+2005-05-26  Antonio Zamorano Martín <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/blistorder/blistorder.tcl
+       Component that adds order funcionality to blistboxplus.
+
+2005-05-19  Antonio Zamorano Martín <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/bmultiselect/bmultiselect.tcl
+       Now functions to move up and down are not triggered when
+       the right list is empty, or there is not active selection.
+
+2005-05-18  Antonio Zamorano Martín <azamorano@tol-project.org>
+       * tolbase/lib/byswidget/bmultiselect/bmultiselect.tcl
+       Added funcionality to move items of the listbox on the 
+       right side.
+
+2005-05-18  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Fixed bug: pop-up blistboxplus don't allow multiple 
+       selection.
+       * tolbase/lib/byswidget/bfieldsdialog/bfieldsdialog.tcl
+       Added option -titles to allow show the title of each 
+       field, if it isn't given, it will be shown its name like 
+       now.
+       Messages updated.
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Given option -titles to the bfieldsdialog.
+       Messages updated.
+
+2005-05-16  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       To the values of option -widthlb has been added the 
+       posibility of give to it a value "auto". Then, it 
+       autoadjust the width of pop up blistboxplus to width of 
+       entry of the key.
+
+2005-05-15  Javier Portugal Alonso <javipor@tol-project.org>
+       * tolbase/lib/byswidget/bfunctions/bftoltcl.tcl
+       * tol/initlibrary/tclutils/_tclutils.tol
+      Added function TclLst2TolSet in tcl tol that converts a
+      TCL list into a TOL set.
+
+2005-05-13  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Fixed bug: when the widget changes its state to disabled, 
+       on double click it was showing the pop up blistboxplus.
+       Fixed method activate.
+       * tolbase/lib/byswidget/bfunctions/bfobjects.tcl
+      Added procedure BfoSetText to set the input text on a 
+      widget depending its type.
+
+2005-05-12  Javier Portugal Alonso <javipor@tol-project.com>
+       * tolbase/lib/toltk/editable.tcl
+       * tolbase/lib/toltk/editor.tcl
+       * tolbase/lib/toltk/tolbase.tcl
+       * tolbase/lib/toltk/tolprj.tcl
+       * tolbase/lib/toltk/msgs/es.msg
+       * tolbase/lib/toltk/msgs/po.msg
+       Added recent files ordered menus, that uses ascii order 
+      instead of cronological order to show recent files for
+      editor files, included files, table edited files and
+      proyect edited files.
+
+2005-05-10  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Added method _Init to inicialize the bcomboboxplus
+       widget.
+
+2005-04-05  Javier Portugal Alonso <javipor@tol-project.org>
+       * tolbase/lib/byswidget/msgs/po.msg
+       Added portugues messages file
+
+2005-05-04  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Fixed bug: pop up blistboxplus will not show if hasn't 
+       items
+       Fixed bug: scrollbar of pop up blistboxplus will not 
+       appear unless it is necessary. 
+       And other small changes.
+
+2005-04-28  Javier Portugal Alonso <javipor@tol-project.org>
+       * tolbase/lib/toltk/tolinspect.tcl
+       Fixed bug when trying to access to global TOL object
+       GuiFunctions and it doesn't exist.
+
+2005-04-28  Javier Portugal Alonso <javipor@tol-project.org>
+       * tolbase/lib/byswidget/bfunctions/bftoltcl.tcl
+       * tolbase/lib/byswidget/bfunctions/bfstring.tcl
+       Moved functions GetUniqueName y GetGlobalUniqueName
+       from file 'bfstring.tcl' to file 'bftoltcl.tcl'
+
+2005-04-27  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/beditmaster/beditmaster.tcl
+       Fixed bug: keeps the geometry of dialog when close it 
+       with button "X".
+
+2005-04-27  Roberto Cuesta Soto <rcsoto@tol-project.org>
+       * tolbase/lib/toltk/tolmethods.tcl
+       Extended the function "Tol_SerieTabulate" so that it allows
+       tabular a set of series.
+
+2005-04-27  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/beditmaster/beditmaster.tcl
+         Added method getExtraFrame to have an aditional frame 
+         on edit master widget.
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+         Fixed bugs in methods first and last.
+       * tolbase/lib/byswidget/beditselector/beditselector.tcl
+         The first time that appears a dialog of an beditselector 
+         will do it in middle of the screen.
+
+2005-04-04  Roberto Cuesta Soto <rcsoto@tol-project.org>
+       * tolbase/lib/toltk/setgraph.tcl
+       Corrected the function that selects the columns to
+       graph depending on the specified option.
+
+2005-04-04  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/btreeviewplus/btreeviewplus.tcl
+       New method getId that retrieves id from an entry by a 
+       name pattern.
+
+2005-04-01  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/btreeviewplus/btreeviewplus.tcl
+       New method update added to solve bug when a expanded node 
+       of tree is collapsed and back to expand it.
+
+2005-03-31  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Method values modified to get the value of all, or of any 
+       column of bcomboboxplus.
+
+2005-03-30  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bfunctions/bfobjects.tcl
+       Added widget type Bcomboboxplus in function BfoGetText.
+
+2005-03-21  Roberto Cuesta Soto <rcsoto@tol-project.org>
+       * tolbase/lib/toltk/tolbase.tcl
+       Resolved bud:
+       http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=243
+
+2005-03-02  Hugo Amorós <hamoros@tol-project.org>
+       * tolbase/lib/byswidget/btreeviewplus/btreeviewplus.tcl
+       Added option -full -parent to method getName.
+
+2005-03-02  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Added option -values: List of initial values to load in 
+       blistboxplus.
+
+2005-02-28  Javier Portugal Alonso <javipor@bayesinf.com>
+       * tolbase/lib/toltk/project.tcl
+       Added option -geometry to CreateForm procedure
+       * tolbase/lib/toltk/tolmethods.tcl
+       TCL arguments are passed from TOL to TCL in text format,
+       except when a tol objet is required.
+
+2005-02-25  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Changed name of the option -title to -titles.
+       Added option -text: content of the entry of the key field.
+
+2005-02-24  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Fixed bug: the position of the pop-up blistboxplus wasn't 
+       correct the first time that it was showed.
+       Improved visibility of the selection.
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Improved visibility of the selection.
+
+2005-02-24 Hugo Amorós <hamoros@tol-project.org>
+       * tolbase/lib/byswidget/beditmaster/beditmaster.tcl
+       Added GetWidget method to obtain the widget path of a
+       field identified by index or name of the field.
+
+2005-02-23  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bfunctions/bltSend.tcl
+       Includes procedures necessary to make the Drag&Drop of BLT
+
+2005-02-23 Hugo Amorós <hamoros@bayesinf.com>
+       * tolbase/lib/toltk/tolmethods.tcl
+       Bug fixed: tabset has unknown parent.
+
+2005-02-22  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/btreeviewplus/btreeviewplus.tcl
+       Test proc modified with drag&drop capabilities
+
+2005-02-18  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Added option -variable. It's the name of the variable with text of 
+       key value selected.
+
+2005-02-17  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       If it is needed, now the size of entrys of bcomboboxplus autoadjusts.
+       Fixed bug: empty space when hiding entrys hidden.
+       Added to the option - nrows: number of rows of blistboxplus.
+       Added to the option - widthlb: Width of blistboxplus.
+
+2005-02-17  Hugo Amorós Salvador <hamoros@bayesinf.com>
+       * tolbase/lib/byswidget/mdi/mdi.tcl
+       Added option -resizable to Mdidoc that controls when user can or
+       cannot resize the window.
+
+2005-02-15  Oscar Fernández García <ofernandez@tol-project.org>
+       * tolbase/lib/byswidget/bcomboboxplus/bcomboboxplus.tcl
+       Now only the option -cols is required.
+       Removed the option -nrowslb
+       Has been modified to be able to put none or a single element in the -width
+       option.
+       Options -showlabelkey and -showlabel are not required.
+       If the option -colslb is not defined, takes the value of -cols.
+       If the option -colkey is not defined, takes the value of first column
+       of -cols.
+
+2005-01-28  Hugo Amorós Salvador <hamoros@tol-project.org>
+       * tolbase/lib/toltk/tolinspe.tcl
+       * tolbase/lib/byswidget/loadByswidget.tcl
+       * tolbase/lib/byswidget/pkgIndex.tcl
+       * tolbase/lib/byswidget/btreeviewplus/btreeviewplus.tcl
+       * tolbase/lib/byswidget/btreeviewplus/pkgIndex.tcl
+       Added gcf optional parameter to ::TolInspector::DrawSeries
+       Added new rewritten btreeview component (btreeviewplus)
+
+2005-01-31  Roberto Cuesta Soto <rcsoto@tol-project.org>
+       * lib/toltk/tolmethods.tcl
+       * lib/toltk/setgraph.tcl
+       * lib/toltk/sergraph.tcl
+       * lib/toltk/bysgropt.tcl.tcl
+       Modified the functions of Tol: TclChartSerie, TclChartSet and TclChartMatrix.
+       Mdified the option "title" is as I title of the graph and the window
+
+2005-01-28  Hugo Amorós Salvador <hamoros@tol-project.org>
+       * tolbase/lib/toltk/tolmethods.tcl
+       * tolbase/lib/byswidget/beditselector/beditselector.tcl
+       * tolbase/lib/byswidget/blistboxplus/blistboxplus.tcl
+       Bug fixed in beditselector, when empty -label given the label is not packed
+       so no void space is showed.
+       Blistboxplus now allows specification of a list of ids from which retrieve
+       data.
+       Bug fixed in blistboxplus, when there is no entry in the list box there
+       was not way to show menu.
+       Added functions Tol_SetTabulate and Tol_SerieTabulate to tabulate a tol
+       set and tol serie respectively.
+
+2005-01-25  Hugo Amorós Salvador <hamoros@tol-project.org>
+       * tolbase/lib/byswidget/beditselector/beditselector.tcl
+       * tolbase/lib/toltk/edittable.tcl
+       Fixed a bug in edittable.
+       Bugs fixed in beditselector and added optoin -lwidth for setting the width
+       of the label component (for aligment with other editselectors purposes)
+
+2005-01-20  Hugo Amorós Salvador <hamoros@tol-project.org>
+       * tolbase/lib/toltk/msgs/es.msg
+       * tolbase/lib/toltk/tolbase.tcl
+       Added a "program paths" tab in TolBase options dialog which allows to
+       specify paths for the browser and a PDFViewer so we can launch this
+       programs to view help, data, ...
+
+2005-01-20  Hugo Amorós Salvador <hamoros@tol-project.org>
+       * lib/byswidget/bfunctions/progressbar.tcl
+       Added a progressbar file which encapsules a progressbar dialog,
+       its goal is to be used by _progressbar.tol which provides tol code
+       programmers the ability to display a progress bar for their
+       large-time waiting processes
+
+2005-01-20  Oscar Fernandez Garcia <ofernandez@tol-project.org>
+       * lib/byswidget/bcomboboxplus
+       Added this new component that replaces bselectfields
+
+2005-01-13  Oscar Fernandez Garcia <ofernandez@tol-project.org>
+       * lib/toltk/funseach.tcl
+       Form changed of dialog to document
+       Reordering of the elements of the form
+       Allows not case sensitive search
+       Shows the results of the search by means of blisboxplus
+       Search functions in files included in proyect
+       If it's possible, allows to visualize the function within the file
+
+2005-01-12  Oscar Fernandez Garcia <ofernandez@tol-project.org>
+       * lib/byswidgets/blistboxplus/blistboxplus.tcl
+       Added option to allow to not show pop-up menu.
+       Fixed problems when trying to close the pop-up menu.
+       Added new methods: getMenu, first, last, addPrevious, addNext, previous, next, 
+       addAllPrevious and addAllNext.
+
+2005-01-11  Roberto Cuesta Soto <rcsoto@tol-project.org>
+       * lib/byswidgets/bfunctions/bfstring.tcl
+       Add new function "GetGlobalUniqueName", gets a unique name
+       independent of grammar
+
+       * lib/toltk/setgraph.tcl
+       * lib/toltk/tolmethods.tcl
+       Created an interface to allow to create a graph using the call of a function.
+       This form it is allowed to create a graph of serie, sets or matrices being
+       used the functions of Tol: TclChartSerie, TclChartSet and TclChartMatrix.
+       Wiew article:
+         http://news.tol-project.org/modules.php?name=News&file=article&sid=12&mode=&order=0&thold=0
+
+       * lib/toltk/tclIndex
+       Normalized the value of 'dir' to obtain the full path.
+
+2005-01-11  Hugo Amoros  <hamoros@tol-project.org>
+       * lib/toltk/project.tcl:
+       Bug solved: when clicking on a document from window menu, if it is
+       withdrawn now is restored
+
+2004-12-24 JOSP <josp@tol-project.org>
+	* lib/byswidget/mdi/mdi.tcl
+	new option -backimg in order to specify a background image. See
+	test_mdi.
+	
+2004-12-20 JOSP <josp@tol-project.org>
+	* lib/toltk/bysgropt.tcl
+	Fixing http://bugs.tol-project.org/show_bug.cgi?id=209
+	
+2004-12-13  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+       * lib/byswidgets/bodbc/bodbc.tcl
+       New option -autoconnect added to bodbc.
+       If "1" is specified, it connects automatically with Data Base.
+
+
+2004-12-10  Hugo Amoros  <hamoros@tol-project.org>
+       * lib/byswidgets/mdi/mdi.tcl
+       * lib/toltk/project.tcl:
+       New option -modal added to mdi documents. A mdi document can be now "modal"
+       That means it get focus until it's destroyed.
+
+2004-12-07  Hugo Amoros  <hamoros@tol-project.org>
+       * lib/byswidgets/bfunctions/bftolinfo.tcl:
+       * lib/byswidgets/bfunctions/bftoltcl.tcl:
+       * lib/byswidgets/bfunctions/pkgIndex.tcl:
+       bftolinfo renamed to bftoltcl
+       this functions have been added to the new file: TclGetVar, TclGetRef, TclGetFromSet, TclGetIdFromName
+       Thess new functions facilitates the use of toltcl
+
+2004-11-30 josp <josp@tol-project.org>
+       * win/tolbase.dsp:
+       Size of stack allocation is increased. This is not a final solution
+       as we can reach a deepest recursion level wich can break this size down.
+       Linker option set to: /stack:0x1400000
+       Fixed bugs 176 & 194
+
+2004-11-24  Hugo Amoros  <hamoros@tol-project.org>
+       * lib/byswidgets/blistboxplus.tcl:
+       Better looking: better looking for columns, added option -icon for
+       displaying a default image in the first column, also added method
+       icon for setting the icon for a specific entry
+       * lib/byswidgets/bfieldsdialog.tcl:
+       Better griding of its components
+
+2004-11-17  Hugo Amoros  <hamoros@tol-project.org>
+       * lib/toltk/sergraph.tcl:
+       bug fixed, when displaying a serie the "Show statistics table"
+       button produced an error
+
+2004-10-15  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/sergraph.tcl:
+	Corrected error when putting like legend of the series the description of
+    the series. Function: SeriesGraph::CreateLine
+
+2004-10-15  Javier Portugal  <javipor@tol-project.org>
+	
+	* lib/toltk/init_toltk.tcl: Used global variable without declaration
+
+	* lib/toltk/project.tcl:
+	bug fixed, now multiproject load works on window clients
+
+2004-10-14  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/bysgropt.tcl, lib/toltk/sergraph.tcl:
+	Protected I calculate of "step" in the functions :
+
+	  ::bayesGraph::FixYAxisStep
+	  ::SeriesGraph::ComputeStepX
+
+	when we operated with great numbers
+
+2004-10-14  Javier Portugal  <javipor@tol-project.org>
+    
+    * lib/toltk/editor.tcl:
+	Position of option Compile F11 changed in contextual menu
+
+2004-10-14  Hugo Amoros  <hamoros@tol-project.org>
+
+	* lib/toltk/init_toltk.tcl, lib/toltk/project.ini, lib/toltk/project.tcl, lib/toltk/tolbase.tcl:
+	Now, various projects can be loaded within TolBase Gui, also if no project
+    requires TolCon (this is a call to ::project::UseTolCon from project code)
+    TolBase is not loaded.
+
+	The project.ini file has now a different structure:
+	---
+	[Project]      # required and required to be first
+	title=         # title of the main window, can be left empty (then used
+                     TOLBase)
+	splash=        # full path to slpash iamge to use, can be left empty
+	               # (then used the image in
+                     $toltklibrary/toltk/images/splash.gif)
+	[PrjName1]
+	name=          # name of the namespace of the project
+	path=          # path of the project files, there must be a tcl dir within
+	               # and a file named name.tcl with a name::name function
+	               # this function is the one which tolbase will load
+	               # from here user must load the rest of files for the project
+	[PrjName2]
+	...
+
+2004-10-11  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/sergraph.tcl:
+	Modified the function "CreateLine" to correct to allow normal funcionminto
+    of the following code:
+
+	Modified function "CreateLine"
+
+	Set conjunto = SetOfSet(SetOfSerie(DiasDelMes,DomingosDelMes),
+	                        SetOfSerie(DiasDelMes,DomingosDelMes),
+	                        SetOfSerie(DiasDelMes,DomingosDelMes)
+	                       );
+	Set noFunciona = For(1,3, Set (Real k)
+	\{
+
+	  Set  series = SetOfSerie(Eval("Serie "+FormatReal(k)+"_Original  =
+       conjunto[k][1]"), Eval("Serie "+FormatReal(k)+"_Prevision =
+       conjunto[k][2]"));
+	  Set  grafico   = Chart(series,"");
+	  [[ ruta, series ,grafico]]
+	});
+
+	the function failed when looking for the description of the series to chart
+
+2004-10-07  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/beditselector/beditselector.tcl:
+	added option -msgeometry for configuring the multiselect dialog dimensions
+    and position
+
+2004-10-06  Javier Portugal <javipor@tol-project.org>
+
+	* lib/toltk/tolbase.tcl: used eval.gif instead of Eval.gif
+
+	* lib/toltk/images/eval.gif: eval in lowercase added
+
+	* lib/toltk/images/Eval.gif: Eval with uppercase removed
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl, lib/byswidget/beditselector/beditselector.tcl:
+	addedd option font for the blistboxpluses
+
+2004-10-05  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/bfunctions/autoscroll.tcl: should fix a bug
+
+2004-10-05  Javier Portugal <javipor@tol-project.org>
+    
+	* lib/toltk/tolinspe.tcl:
+	Fixed bug 168.
+    http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=168
+
+2004-10-05  Hugo Amorós <hamoros@tol-project.org>
+	
+    * lib/byswidget/bfieldsdialog/bfieldsdialog.tcl:
+	when a bfieldsdialog has a apply or add button, the return keypress binds
+    does the procedure call and gives focus back to first entry (for adding
+    elements faster without clicks..)
+
+	* lib/byswidget/blistboxplus/blistboxplus.tcl: bugs fixed
+
+2004-10-04  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl:
+	fixed small bug, changed left for right
+
+	* lib/byswidget/blistboxplus/blistboxplus.tcl:
+	listbox (treeview) has to grow when resizing parent and other small changes
+
+2004-10-04  Javier Portugal <javipor@tol-project.org>
+
+    * lib/toltk/msgs/po.msg: *** empty log message ***
+
+	* lib/toltk/bfsql.tcl:
+	function bfSqlDistinctTable shouldn't be used. We must improve it's
+    functionallity or delete this file
+
+	* lib/toltk/editor.tcl, lib/toltk/tolbase.tcl:
+	Added option Compile to editor (only compiles without saving), If any text
+    is selected it compiles this part of code in eval window, otherwise file is
+    included (not compiled in console). It should be very useful, an almost eval
+    window can be replaced
+
+2004-10-04  Javier Portugal  <javipor@tol-project.org>
+	
+	* lib/toltk/init_toltk.tcl:
+	Enable or Disable tcl traces is managed by a global variable (can be changed
+    from TOL, thanks to Tcl_Eval function)
+
+	* lib/toltk/tolinspe.tcl:
+	Calls to users functions are saved in _eval.tol
+
+2004-10-04  Hugo Amorós <hamoros@tol-project.org>
+    
+	* lib/byswidget/bmultiselect/bmultiselect.tcl:
+	now autoexpands itself if needed
+
+	methods for passing all items between lists fixed
+
+	* lib/byswidget/blistboxplus/blistboxplus.tcl:
+	now autoexpands itself if needed
+	method clear fixed
+
+	* lib/byswidget/beditselector/beditselector.tcl:
+	added options: -selcols -entcols -hlpcols which must be subsets of -cols and
+    indicates which columns must be displayed in the bmultiselect component,
+    entry component and the help text displayed from the entry respectively.
+
+	component estandarized
+
+	added methods, like get commands with columns
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl:
+	added option -hiddencols (columns from -cols which are not been to be
+    displayed in the ListBox children)
+
+2004-10-03  Roberto Cuesta Soto <rcsoto@tol-project.org>
+
+	* lib/byswidget/beditmaster/beditmaster.tcl:
+	Added to option "-conection" where it is specified that connection must use
+    the component to connect itself to Data Base
+
+2004-10-01  Hugo Amorós  <hamoros@tol-project.org>
+
+	* lib/toltk/init_toltk.tcl, lib/toltk/project.tcl:
+	Added option -b (batch) to tolbase command line options, this options makes
+    tolbase run without showing any window and exits inmediatly when doing all
+    tasks. These option is only useful when combined with -i <file> options which
+    includes tol files that could process data and produce some type of result.
+
+	* lib/byswidget/mdi/mdi.tcl, lib/toltk/editable.tcl, lib/toltk/tolprj.tcl:
+	bug 149 solved
+
+2004-10-01  Hugo Amorós  <hamoros@tol-project.org>
+	
+	* lib/toltk/bysgropt.tcl, lib/toltk/sergraph.tcl:
+	added information images to a pair of buttons
+
+	* lib/byswidget/loadByswidget.tcl:
+	removed badddialog added bfieldsdialog
+
+2004-09-30  Daniel Rus  <danirus@tol-project.org>
+
+	* Makefile.in: Two things in Makefile.in:
+	1: Create byswidget/bfieldsdialog directory, and add it to the deploy chain
+	2: Remove byswidget/badddialog directory
+
+2004-09-30  Hugo Amorós  <hamoros@tol-project.org>
+    
+	* lib/byswidget/badddialog/badddialog.tcl, lib/byswidget/badddialog/pkgIndex.tcl:
+	reemplaced by bfieldsdialog
+
+	* lib/byswidget/beditselector/beditselector.tcl, lib/byswidget/blistbox/blistbox.tcl:
+	upgrades his badddialog to a bfieldsdialog widget
+
+	* lib/byswidget/blistboxplus/blistboxplus.tcl:
+	upgrades his badddialog to a bfieldsdialog widget and adds features to the
+    filter dialog
+
+	* lib/byswidget/bfieldsdialog/bfieldsdialog.tcl, lib/byswidget/bfieldsdialog/pkgIndex.tcl:
+	this component is an enhanced and more general version of badddialog which is
+    going to be removed
+
+	* lib/byswidget/msgs/es.msg: new messages for bfieldsdialog
+
+	* lib/byswidget/images/accept.gif, lib/byswidget/images/apply.gif, lib/byswidget/images/infor.gif:
+	new images for bfieldsdialog
+
+	* lib/byswidget/images/add.gif: *** empty log message ***
+
+2004-09-29  Daniel Rus  <danirus@tol-project.org>
+
+	* Makefile.in: Two things in Makefile.in:
+	1: Create byswidget/blistboxplus directory, and add it to the deploy chain
+	2: Remove byswidget/blistcontrol directory
+
+2004-09-29  Hugo Amorós  <hamoros@tol-project.org>
+    
+	* lib/toltk/tolinspe.tcl:
+	bug fixed (auto correlation graph was not closing with Control-F4)
+
+	* lib/byswidget/badddialog/badddialog.tcl:
+	bug fixed. (if no fields is passed, an implicity void field is assumed)
+
+2004-09-28  Roberto Cuesta Soto <rcsoto@tol-project.org>
+
+	* lib/byswidget/bfunctions/bftolinfo.tcl:
+	Reviewed the TclRefToNameTol function so that it admits global variables
+    Add commnets
+    New function: TclRefToNameTol
+	Obtain the name of an object TOL, of the form, name of the joint father, if
+    it has, and indices of the set, if it has
+
+	* lib/toltk/msgs/en.msg, lib/toltk/msgs/es.msg, lib/toltk/tolinspe.tcl:
+	Functions of user: Added the possibility of operating with any variable, as
+    long as it belongs to a global object with name
+
+2004-09-28  Hugo Amorós <hamoros@tol-project.org>
+    
+    * lib/byswidget/beditselector/beditselector.tcl:
+	adapted to new badddialog
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl: bug fixed
+
+	* lib/byswidget/blistboxplus/blistboxplus.tcl, lib/byswidget/blistbox/blistbox.tcl:
+	adapted to new badddialog
+
+	* lib/byswidget/badddialog/badddialog.tcl:
+	badddialog now permits multiple fields/elements (option -fields), this can be
+    packed horizontally or vertically accordingly to the new -orientation option
+
+	A new test function has been written to test this new capabilities
+
+	* lib/byswidget/pkgIndex.tcl: replaced blistcontrol by blistboxplus
+
+	* lib/byswidget/loadByswidget.tcl: removed blistcontrol
+
+	* lib/byswidget/bfunctions/pkgIndex.tcl:
+	sourced autoscroll for blistboxplus
+
+	* lib/byswidget/blistcontrol/blistcontrol.tcl, lib/byswidget/blistcontrol/pkgIndex.tcl, lib/byswidget/blistbox+/blistbox+.tcl, lib/byswidget/blistbox+/pkgIndex.tcl:
+	reemplaced by blistboxplus
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl:
+	blistcontrol remplaced by blistboxplus (for the lists with multiple columns)
+	componentet estandarized
+	added options (initialdir, width, height)
+	removed multicolumn option, uses multiple columns if options cols != ""
+
+	* lib/byswidget/blistboxplus/blistboxplus.tcl: readonly listboxes
+
+2004-09-27  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/blistboxplus/blistboxplus.tcl, lib/byswidget/blistboxplus/pkgIndex.tcl:
+	blistbox+ renamed yto blistboxplus (no uncommon caracters)
+
+	* lib/byswidget/loadByswidget.tcl: loads blistboxplus
+
+2004-09-27  Manuel Balderrábano  <manuelb@tol-project.org>
+
+    * Makefile.in: Modified to install new byswidget/bodbc files.
+
+	byswidget/blistbox+ will be updated later because of a possible name change.
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl:
+	Labels for selected or unselected listboxes are only transalated if they
+    haven't been specified by user. Otherwise it's supposed to be translated by
+    user.
+
+	* lib/byswidget/beditselector/beditselector.tcl:
+	multiple selector is expanded to fill toplevel
+
+	* lib/toltk/tolinspe.tcl: TreeView ordered selection
+
+2004-09-25  Roberto Cuesta Soto   <rcsoto@tol-project.org>
+
+	* lib/byswidget/bfunctions/bftolinfo.tcl: Added the functions:
+	TclInfoFun - get information of a function TOL
+	TclInfoInc - get  inforamci? of a file including in TOL
+
+	* lib/byswidget/images/play.gif, lib/byswidget/images/stop.gif:
+	Button form bodbc
+
+	* lib/byswidget/msgs/es.msg: Message from bodbc
+
+	* lib/byswidget/bodbc/pkgIndex.tcl: Add widget bodbc
+
+	* lib/byswidget/bfunctions/bftolinfo.tcl, lib/byswidget/bfunctions/pkgIndex.tcl:
+	Add function for access variables TOL
+
+	* lib/byswidget/loadByswidget.tcl: Add new widget : bodbc
+
+	* lib/byswidget/pkgIndex.tcl: Add new widget -> bodbc
+
+2004-09-24  Manuel Balderrábano  <manuelb@tol-project.org>
+
+	* lib/byswidget/bodbc/bodbc.tcl, lib/byswidget/bodbc/pkgIndex.tcl:
+	New module to connection  ODBC
+
+	* lib/byswidget/bfunctions/bftolinfo.tcl, lib/byswidget/bfunctions/pkgIndex.tcl:
+	Added functions of access to tol
+
+	* lib/byswidget/bfunctions/autoscroll.tcl, lib/byswidget/bfunctions/bflistbox.tcl, lib/byswidget/bfunctions/pkgIndex.tcl:
+	modifications for the new component blistbox+
+
+	* lib/byswidget/blistbox+/blistbox+.tcl, lib/byswidget/blistbox+/pkgIndex.tcl:
+	new component to substitute blistcontrol due to limitations in the base
+    component used by blistcontrol (listcontrol), blistbox+ uses a treeview with
+    one level
+
+2004-09-21  Hugo Amorós  <hamoros@tol-project.org>
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl: bug fixed
+
+2004-09-20  Hugo Amorós  <hamoros@tol-project.org>
+
+	* lib/toltk/calendar.tcl, lib/toltk/corgraph.tcl, lib/toltk/editable.tcl, lib/toltk/editor.tcl, lib/toltk/sergraph.tcl, lib/toltk/setgraph.tcl, lib/toltk/sqltable.tcl, lib/toltk/tolbase.tcl, lib/toltk/tolinspe.tcl, lib/toltk/tolprj.tcl:
+	CTRL-F4 closes editors, tables, graphs, ...
+
+2004-09-17  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/mdi/mdi.tcl:
+	arrange in cascade does not modify the child window sizes anymore
+
+	* lib/toltk/editable.tcl, lib/toltk/editor.tcl, lib/toltk/tolbase.tcl, lib/toltk/tolprj.tcl:
+	bug: the recent file list is only saved when a file of this type is closed.
+    fixed.
+
+2004-09-17  Hugo Amorós <hamoros@tol-project.org>
+	
+	* lib/toltk/init_toltk.tcl:
+	added option -i <file> to tolbase command line parameters to include a .prj
+    .bdt .bst .bmt or .tol file
+
+	* lib/toltk/init_toltk.tcl, lib/toltk/tolprj.tcl:
+	tolbase can be invoked now in command line especifying a project file with -r
+    option before, so the project file will be automatically loaded and compiled
+
+2004-09-16  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/toltk/editor.tcl, lib/toltk/init_toltk.tcl:
+	tolbase can now be invoked with -r option before each file we want to be
+    opened and automatically compiled
+
+	* lib/byswidget/bfunctions/bfobjects.tcl:
+	Fixed Cut and Paste error. There were some lines that make no sense.
+
+	* Makefile.in:
+	Added two new widgets to byswidget family: badddialog and beditselecttor to
+    installation dirs.
+	Also, a Fix for Bug #151, wich was only failing under Linux is included at
+    installation time.
+
+	* lib/toltk/project.tcl, lib/toltk/tolbase.tcl:
+	command "close all" back in window file type menu, since interface moving to
+    mdi
+
+	* lib/toltk/tolbase.tcl:
+	When tolbase is closed inmediatly after executed various error messages was
+    displayed depending of the closing stage. Fixed.
+
+	Refers bug:
+	http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=121
+
+	* lib/toltk/project.tcl:
+	Gives the title name to TolBase before mdi widgets are created. This corrects
+    a bug when saving maximized object inspector.
+
+	* lib/toltk/tolbase.tcl:
+	Added function selectdoc, before it uses the one in the mdi test code.
+
+	* lib/toltk/init_toltk.tcl:
+	If we exit tolbase with object inspector maximized, when executing tolbase
+    again the title is not set correctly. The title is now set from project.tcl
+    so the mdimenu catches it after it is set.
+
+	* lib/byswidget/mdi/mdi.tcl:
+	the title got crazy when maximizing many windows, accumulating all titles,
+    Fixed.
+	also when a window is maximized and we maximize a second one if we switch to
+    the first via window menu and try to restore the window restored was the
+    first maximized. Fixed.
+
+	* lib/byswidget/fmenu/fmenu.tcl: sunken menubuttons when overmoused
+
+2004-09-15  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/beditmaster/beditmaster.tcl:
+	bug: SystemButtonFace is not recognized in unix platform. fixed
+	bug: tclodbc problems in unix platforms when making query commands, as a
+    result the fields (which are not keys) were not filled. Fixed.
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl:
+	blistcontrols of a bmultiselect in readonly mode
+
+2004-09-14  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/toltk/images/insobj.gif: background changed to transparent
+
+	* lib/toltk/editable.tcl, lib/toltk/tolprj.tcl:
+	bug: various instances of the same table/project could be opened. fixed
+	bug: when opening a table/project with a double-click in the open dialog the
+    window was not raised. fixed
+
+2004-09-13  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/toltk/editor.tcl:
+	bug: when opening a tol file if doing double-click on a file, it is opened
+    but not rised
+	fixed.
+
+	* lib/byswidget/beditmaster/beditmaster.tcl:
+	varchar(255) fields now are like Text.
+
+	* lib/byswidget/byscommon/byscommon.tcl, lib/byswidget/bselectfields/bselectfields.tcl, lib/byswidget/btoplevel/btoplevel.tcl, lib/byswidget/btreeview/btreeview.tcl, lib/byswidget/badddialog/badddialog.tcl, lib/byswidget/bcombobox/bcombobox.tcl, lib/byswidget/beditmaster/beditmaster.tcl, lib/byswidget/beditselector/beditselector.tcl, lib/byswidget/bfilter/bfilter.tcl, lib/byswidget/bguifunction/bguifunction.tcl, lib/byswidget/blistbox/blistbox.tcl, lib/byswidget/blistcontrol/blistcontrol.tcl, lib/byswidget/bmultiselect/bmultiselect.tcl:
+	removed test include code
+	a package require is sufficient
+	removed required snit, added require byscommon which requires snit
+
+	* lib/byswidget/bcombobox/bcombobox.tcl: cleaned code
+
+	* lib/toltk/bysgraph.tcl:
+	Modified the component that receives the focus when showing a graph.
+	Of this form is not the black border by defect.
+
+	* lib/byswidget/bfunctions/bfobjects.tcl: checkbutton functions
+
+	* lib/byswidget/beditmaster/beditmaster.tcl:
+	bit (checkbutton) and Text methods implemented.
+
+2004-09-12  Javier Portugal <javipor@tol-project.org>
+
+	* lib/byswidget/loadByswidget.tcl, lib/byswidget/pkgIndex.tcl:
+	Add beditselector to package byswidget
+
+2004-09-10  Jorge S. Pérez <josp@tol-project.org>
+
+	* lib/toltk/tolbase.tcl:
+	http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=131 fixed
+
+	* lib/byswidget/fmenu/fmenu.tcl: related to bug
+	http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=131
+
+	now we can define entries of type cascade with -postcommand option.
+
+2004-09-09  Roberto Cuesta Soto <rcsoto@tol-project.org>
+
+	* lib/byswidget/images/exit.gif: exit image for badddialog
+
+	* lib/toltk/msgs/es.msg:
+	Corrected message in form of selection of columns to chart
+
+	* lib/toltk/bysgropt.tcl: New position for the option "self fit"
+
+2004-09-08  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/mdi/mdi.tcl: minor bugs fixed, test code works again
+
+	* lib/byswidget/mdi/mdi.tcl:
+	bug fixed: when restoring a maximized saved setting window (like the object
+    inspector) the decorations of the window were mantained.
+
+	* lib/toltk/project.ini: Delete entrys
+
+	* lib/byswidget/blistcontrol/blistcontrol.tcl:
+	added command insert to the menu that displays a badddialog
+
+	* lib/byswidget/blistbox/blistbox.tcl:
+	added insert to the menu that displays a badddialog
+
+	* lib/byswidget/beditselector/beditselector.tcl:
+	removed the hardened add dialog, now uses badddialog
+
+	* lib/byswidget/badddialog/badddialog.tcl:
+	badddialog now needs to be drawed externaly, added draw command
+
+	* lib/toltk/msgs/es.msg, lib/toltk/bysgraph.tcl, lib/toltk/bysgropt.tcl:
+	Graph. Added option to self fit to the axes to the values of the lines when
+    opening the graph
+
+	* lib/toltk/tolbase.tcl: *** empty log message ***
+
+	* lib/byswidget/loadByswidget.tcl: added badddialog
+
+	* lib/byswidget/badddialog/badddialog.tcl, lib/byswidget/badddialog/pkgIndex.tcl:
+	badddialog ->  new bayes dialog widget to add items to another widget
+
+2004-09-07  Jaime  <author@zell>
+
+	* lib/toltk/project.ini: *** empty log message ***
+
+	* lib/byswidget/images/add.gif, lib/byswidget/images/cancel.gif, lib/byswidget/images/lapiz.gif:
+	images for beditselector
+
+	* lib/byswidget/blistbox/blistbox.tcl:
+	GetMenu method  -> to get menu path
+
+2004-09-06  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/beditselector/beditselector.tcl, lib/byswidget/beditselector/pkgIndex.tcl:
+	new component beditselector
+
+	* lib/byswidget/bfunctions/bflist.tcl:
+	added l_sub function for use in beditselector
+
+	* lib/byswidget/msgs/es.msg: new messages for beditselector
+
+	* lib/byswidget/images/puntos.gif: image added
+
+	* lib/toltk/project.ini, lib/toltk/tolbase.tcl: actualizacion
+
+2004-09-02  Manuel Balderrábano <manuelb@tol-project.org>
+
+	* Makefile.in:
+	Changes to install all new tolbase libs: blistcontrol, bmultiselect.
+
+2004-09-01  Javier Portugal <javipor@tol-project.org>
+
+	* lib/byswidget/bmultiselect/images/AllDereIzq.gif, lib/byswidget/bmultiselect/images/AllIzqDere.gif, lib/byswidget/bmultiselect/images/DereIzq.gif, lib/byswidget/bmultiselect/images/IzqDere.gif, lib/byswidget/bmultiselect/images/cancel_txt.gif, lib/byswidget/bmultiselect/images/ok_txt.gif:
+	*** empty log message ***
+
+	* lib/byswidget/images/AllDereIzq.gif, lib/byswidget/images/AllIzqDere.gif, lib/byswidget/images/Date.gif, lib/byswidget/images/DereIzq.gif, lib/byswidget/images/IzqDere.gif, lib/byswidget/images/cancel_txt.gif, lib/byswidget/images/ok_txt.gif:
+	all images of the widgets in the same directory
+
+	* lib/byswidget/msgs/es.msg: *** empty log message ***
+
+	* lib/byswidget/btreeview/btreeview.tcl:
+	Changed test, and adapted to byscommon package
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl:
+	bug fixed (no more the widget packs itselfs)
+
+	* lib/byswidget/blistbox/blistbox.tcl: bug fixed to allow testing
+
+	* lib/byswidget/loadByswidget.tcl, lib/byswidget/byscommon/byscommon.tcl, lib/byswidget/bmultiselect/bmultiselect.tcl, lib/byswidget/bmultiselect/pkgIndex.tcl:
+	Changes to force "package require byswidget" to load all bayes widgets.
+
+	* lib/byswidget/pkgIndex.tcl:
+	Changes to force "package require byswidget" to load all bayes widgets
+
+	* lib/toltk/msgs/es.msg, lib/byswidget/msgs/es.msg:
+	*** empty log message ***
+
+2004-08-31  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/pkgIndex.tcl: added blistcontrol and bmultiselect
+
+	* lib/byswidget/bmultiselect/bmultiselect.tcl, lib/byswidget/bmultiselect/pkgIndex.tcl, lib/byswidget/bmultiselect/images/AllDereIzq.gif, lib/byswidget/bmultiselect/images/AllIzqDere.gif, lib/byswidget/bmultiselect/images/DereIzq.gif, lib/byswidget/bmultiselect/images/IzqDere.gif, lib/byswidget/bmultiselect/images/cancel_txt.gif, lib/byswidget/bmultiselect/images/ok_txt.gif:
+	new multi select widget (ported to snit, uses blistbox or blistcontrol for multiple column list)
+
+	* lib/byswidget/blistcontrol/blistcontrol.tcl, lib/byswidget/blistcontrol/pkgIndex.tcl:
+	new widget blistcontrol, like a blistbox but with multiple columns
+
+	* lib/byswidget/mdi/mdi.tcl: fixes a bug
+
+2004-08-30  Javier Portugal <javipor@tol-project.org>
+
+	* lib/toltk/msgs/po.msg: *** empty log message ***
+
+	* lib/toltk/editor.tcl, lib/toltk/msgs/es.msg:
+	Only one edit window of the same TOL file can be opened.
+
+	Fixes bug:
+	http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=122
+
+	* lib/toltk/init_toltk.tcl, lib/toltk/tolbase.tcl:
+	Some trivial fixes due to Bug #124. (Tol / TOL)
+
+	* lib/toltk/tolbase.tcl, lib/toltk/tolprj.tcl:
+	Trivial fix due to Bug #124. (Tol / TOL)
+
+	* lib/toltk/msgs/de.msg, lib/toltk/msgs/en.msg, lib/toltk/msgs/es.msg, lib/toltk/msgs/po.msg, lib/toltk/msgs/ru.msg:
+	Changes due to Bug # 124:
+	http://bugs.tol-project.org/show_bug.cgi?id=124
+
+	* lib/toltk/bysgropt.tcl: Changed default options for graphs
+
+2004-08-27  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/toltk/editor.tcl:
+	altgr-e combination in a text editor causes the invocation of the selectAll
+    command on window systems. Fixed, now only displays the euro symbol.
+
+	fixes bug:
+	http://bugs.tol-project.org/cgi-bin/bugzilla/show_bug.cgi?id=128
+
+2004-08-25  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/toltk/tolprj.tcl: fixes the add node to a new project created bug
+
+2004-08-13  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/toltk/tolbase.tcl:
+	fixed some binds and correct the toolbar recovery status bug
+
+	* lib/toltk/project.tcl: correct ctrl+Tab cicle bug
+
+	* lib/toltk/editor.tcl: correct bug
+
+2004-08-12  Hugo Amoros  <hamoros@tol-project.org>
+
+	* lib/byswidget/bguifunction/bguifunction.tcl:
+	When an argument is of Text type, its returned between quotes
+
+	* lib/byswidget/mdi/mdi.tcl:
+	double click in the document window menu icon closes the window
+
+	* lib/byswidget/mdi/mdi.tcl: method bind for mdidoc.
+
+	* lib/byswidget/mdi/mdi.tcl:
+	now we can bind on mdi widgets (not on toplevel).
+
+	* lib/byswidget/mdi/mdi.tcl:
+	Document class and document widget changed to Mdidoc and mdidoc to avoid
+	conflict with Document in mkWidget.
+
+2004-08-12  Hugo Amoros  <hamoros@tol-project.org>
+	
+	* lib/byswidget/mdi/mdi.tcl, lib/toltk/calendar.tcl, lib/toltk/corgraph.tcl, lib/toltk/editable.tcl, lib/toltk/editor.tcl, lib/toltk/sergraph.tcl, lib/toltk/setgraph.tcl, lib/toltk/sqltable.tcl, lib/toltk/tolbase.tcl, lib/toltk/tolinspe.tcl, lib/toltk/tolprj.tcl:
+	clean and more compatible code for mdi and btoplevel windows
+
+	* lib/toltk/editor.tcl, lib/toltk/tclIndex, lib/toltk/tolprj.tcl:
+	Corrected the operation of the keys of fast access.
+	The editor of projects has added: new, open and save
+
+	* lib/toltk/tolbase.tcl: correct about button bug
+
+2004-08-11  Hugo Amorós <hamoros@tol-project.org>
+
+	* lib/byswidget/beditmaster/beditmaster.tcl: corrected minor bug
+
+	* lib/byswidget/mdi/mdi.tcl: added document switch capability
+
+	* lib/toltk/msgs/es.msg: menumdi window translations
+
+	* lib/toltk/tolbase.tcl: added suport for project menus
+
+	* lib/toltk/project.tcl: added ctrl+tab document switch bind
+
+	* lib/toltk/calendar.tcl: correct focus bug
+
+	* lib/toltk/bysgropt.tcl: Modified defautl graph options
+
+2004-08-10  Hugo Amoros  <hamoros@tol-project.org>
+
+	* lib/toltk/init_toltk.tcl: eliminated relative path:
+	../byswidget/mdi/mdi.tcl
+
+	* lib/toltk/init_toltk.tcl: Temporary change for the correct operation
+
+	* lib/toltk/project.ini: Modified path of project.ini for used TolBase
+
+2004-08-10  Hugo Amoros  <hamoros@tol-project.org>
+	
+	* lib/byswidget/fmenu/fmenu.tcl, lib/byswidget/mdi/mdi.tcl, lib/toltk/calendar.tcl, lib/toltk/corgraph.tcl, lib/toltk/editable.tcl, lib/toltk/editor.tcl, lib/toltk/project.ini, lib/toltk/project.tcl, lib/toltk/sergraph.tcl, lib/toltk/setgraph.tcl, lib/toltk/sqltable.tcl, lib/toltk/tclIndex, lib/toltk/tolbase.tcl, lib/toltk/tolinspe.tcl, lib/toltk/tolprj.tcl:
+	Tolbase interface changed to MDI
+
+	* lib/byswidget/blistbox/blistbox.tcl:
+	fixed bugs and added a test function
+
+2004-08-09  author  <author@zell>
+
+	* lib/byswidget/blistbox/blistbox.tcl: Add BListBox to repository
+
+	* lib/toltk/images/insobj.gif: Image to Object Inspector
+
+	* lib/byswidget/blistbox/blistbox.tcl: *** empty log message ***
+
+2004-08-06  author  <author@zell>
+
+	* lib/byswidget/blistbox/blistbox.tcl:
+	Insert mehod syntax of tk listbox widget is:
+	pathName insert index ?element element ...?
+    that inserts zero or more new elements in the list just before the element
+    given by index. If index is specified as end then the new elements are added
+    to the end of the list. Returns an empty string.
+	blistbox must have same behaviour
+
+	* lib/byswidget/blistbox/blistbox.tcl:
+	Delete mehod syntax of tk listbox widget is:
+	pathName delete firlst ?last?
+	where first and last are indices specifying the first and last elements in
+    the range to delete. If last isn't specified it defaults to first. blistbox
+    must have same behaviour
+
+	* lib/byswidget/blistbox/blistbox.tcl:
+	Correct special list managment with insertspecial, insert, deletespecial and
+    delete methods
+
+	Added a test function
+
+2004-08-05  author  <author@zell>
+
+	* lib/byswidget/beditmaster/beditmaster.tcl:
+	Changed method SetLstValues for '$widget configure -bvalues $lst'. in call to
+    bselectfields
+
+	* lib/byswidget/bselectfields/bselectfields.tcl:
+	Changed method SetLstValues for '$widget configure -bvalues $lst'. This
+    widget should be reviewed, modifing other methods giving then a tcler's style
+
+2004-08-04  author  <author@zell>
+
+	* lib/toltk/calendar.tcl, lib/toltk/objects.tcl: Fixed small bugs
+
+	* lib/byswidget/bfunctions/bfstring.tcl, lib/byswidget/byscommon/byscommon.tcl:
+	prevent tcl error when using 08 as integer
+
+	* lib/byswidget/bentrydate/bentrydate.tcl: *** empty log message ***
+
+2004-08-02  author  <author@zell>
+
+	* lib/byswidget/msgs/es.msg: *** empty log message ***
+
+	* lib/toltk/msgs/es.msg, lib/toltk/msgs/po.msg:
+	Translated some messages
+
+	* lib/toltk/calendar.tcl:
+	If month begins with 0 (to prevent that 08 gives an error as invalid integer)
+    the inital 0 is removed
+
+	* lib/toltk/odbc.tcl: Some messages translated
+
+2004-07-31  author  <author@zell>
+
+	* lib/toltk/ctext.tcl:
+	Fixed small bug. when destroying a ctext widget a procedure was still alive
+    and raised a crash when re-creating it
+
+	* lib/byswidget/bselectfields/bselectfields.tcl:
+	Changed default options for mc listbox, they should be given as args.
+	Fixed bug, -fillcolumn option was established to desc (but it couldn't exist)
+	Add comment for crash when clicking outside application when a bselectfields
+    toplevel is drawed
+
+2004-07-27  author  <author@zell>
+
+	* lib/toltk/settable.tcl:
+	set table can be used without button and status bars
+
+2004-07-20  author  <author@zell>
+
+	* lib/toltk/init_toltk.tcl:
+	A name is given for the main window of TolBase.
+
+	* lib/byswidget/bfunctions/bfstring.tcl:
+	You can give a seed for function GetUniqueName, so it returns an unused name
+    for a variable of the grammar given which name starts with sedd
+
+2004-07-14  author  <author@zell>
+
+	* lib/toltk/editor.tcl: Cleaned some traces
+
+	* lib/toltk/bysgropt.tcl:
+	Axis Graph options such as rotate or length  (those who have spinbox) can be
+    edited by user
+
+2004-07-13  author  <author@zell>
+
+	* lib/toltk/init_toltk.tcl, lib/toltk/project.tcl:
+	When associating a .tol, .bdt, .bst, .bmt, .prj file with tolbase,
+    subapplication of tolbase is opened
+
+	* generic/tkAppInit.c:
+	more changes in order to insert init_toltk.tcl as the first argument in the
+	command line. Now it seem to work on unix. Must be checked on windows.
+
+	* generic/tkAppInit.c:
+	more changes in order to insert init_toltk.tcl as the first argument in the
+	command line.
+
+	* generic/tkAppInit.c:
+	commit to be compiled on windows (Javier will compile it)
+	The change is in order to insert init_toltk.tcl as the first argument in the
+	command line. Now LoadMainTcl is not needed.
+
+2004-07-10  author  <author@zell>
+
+	* lib/byswidget/bguifunction/bguifunction.tcl, lib/toltk/tolinspe.tcl:
+	Fixed small bugs on GUI User Functions
+
+	* lib/toltk/tolinspe.tcl, lib/byswidget/bguifunction/guifunction.tol, lib/byswidget/bguifunction/bguifunction.tcl:
+	First version of Graphical Interface User Defined Functions
+
+2004-07-09  author  <author@zell>
+
+	* lib/toltk/bystext.tcl: Fixed syntax bug
+
+	* lib/toltk/sqltable.tcl: Improved BayesSQL:
+	 Show columns names and types in left tree
+	 Fixed small bug when closing bayesSQL in next 5 seconds before last query
+     execution
+	 Allows insert, update and delete sentences
+
+	* lib/toltk/bystext.tcl, lib/toltk/tolbase.tcl:
+	Eval window of objet's inspector has Syntax Check option as editor. Check is
+    done only for selected text (if there is selected text, otherwise entire text
+    is checked)
+
+	* lib/toltk/bystext.tcl:
+	Syntax Check now is done only for selected text (if there is selected text,
+    otherwise entire file is checked)
+
+	* lib/byswidget/mdi/mdi.tcl: Added shortcuts to the example
+
+	* lib/byswidget/fmenu/fmenu.tcl:
+	Menus with key shortcuts, for example "&File"
+
+	* lib/toltk/bystable.tcl: cell navigation using <Tab>
+
+	* bootstrap: unnecessary here
+
+	* Makefile.in, configure:
+	Makefile.in needs some changes in order to deal with the new BysWidget
+    directory structure
+
+	* lib/byswidget/btreeview/btreeview.tcl, lib/byswidget/bcombobox/bcombobox.tcl:
+	*** empty log message ***
+
+2004-07-07  author  <author@zell>
+
+	* lib/byswidget/bentrydate/bentrydate.tcl: fixed small bug
+
+2004-07-06  author  <author@zell>
+
+	* lib/byswidget/bguifunction/guifunction.tol: Updated description
+
+	* lib/byswidget/pkgIndex.tcl: *** empty log message ***
+
+	* lib/byswidget/bguifunction/bguifunction.tcl, lib/byswidget/bguifunction/guifunction.tol, lib/byswidget/bguifunction/pkgIdex.tcl:
+	Package for a dialog widget adpator that asks for parameters of a function.
+
+2004-07-02  author  <author@zell>
+
+	* lib/toltk/bystext.tcl, lib/toltk/sqltable.tcl, lib/toltk/tolbase.tcl:
+	When eval window contains a selected text only the selection is compiled,
+    else all text of eval window is compiled. Added function to bystext (and also
+    used in sqltable)
+
+2004-06-30  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/sergraph.tcl, lib/toltk/tclIndex:
+	Add funtion ::SeriesGraph::AddSerieToGraph.
+	It allows to add a new series to the graph. In phase of development.
+
+2004-06-28  author  <author@zell>
+
+	* lib/toltk/setgraph.tcl:
+	Reduced separation between the button of the automatic generator of series
+
+2004-06-23  author  <author@zell>
+
+	* lib/toltk/tolprj.tcl: Accelerator keys in contextual menu
+
+	* lib/toltk/tolbase.tcl: BDT files can be included by Include option
+
+	* lib/toltk/editor.tcl: When editor is opened gets focus
+
+2004-06-22  author  <author@zell>
+
+	* lib/toltk/msgs/en.msg, lib/toltk/msgs/es.msg: New messages
+
+	* lib/toltk/setgraph.tcl, lib/toltk/tclIndex: Automatic generation:
+	.- Replaced button by radiobutton
+	.- Check the selection series
+
+	Series to draw:
+	.- Added witch information column X and Y
+
+2004-06-21  author  <author@zell>
+
+	* lib/byswidget/bselectfields/bselectfields.tcl:
+	Multiple list box takes focus when it's created .
+
+	* lib/toltk/setgraph.tcl:
+	Listbox of series selection grows when resizing the column's selection form
+
+	* lib/toltk/bysgropt.tcl, lib/toltk/init_toltk.tcl, lib/toltk/tclIndex, lib/toltk/tolprj.tcl:
+	bflist.tcl, bflistbox.tcl, bfobjects.tcl, bfstring.tcl are moved into
+    bfunctions.
+	Rest of files: As files in byswidgets are organized in packages we to make
+    "package require" where needed.
+
+	* lib/byswidget/btoplevel/btoplevel.tcl, lib/byswidget/btoplevel/pkgIndex.tcl:
+	sorry
+
+	* lib/toltk/tclIndex: updated
+
+	* lib/toltk/bflist.tcl, lib/toltk/bflistbox.tcl, lib/toltk/bfobjects.tcl, lib/toltk/bfstring.tcl, lib/toltk/calendar.tcl, lib/toltk/init_toltk.tcl, lib/toltk/mulselec.tcl, lib/toltk/odbc.tcl, lib/toltk/project.tcl, lib/toltk/sqltable.tcl, lib/toltk/tolprj.tcl:
+	bflist.tcl, bflistbox.tcl, bfobjects.tcl, bfstring.tcl are moved into
+    bfunctions.
+
+	Rest of files: As files in byswidgets are organized in packages we to make
+    "package require" where needed.
+
+	* lib/byswidget/byscommon/byscommon.tcl, lib/byswidget/byscommon/pkgIndex.tcl, lib/byswidget/fmenu/fmenu.tcl, lib/byswidget/fmenu/pkgIndex.tcl, lib/byswidget/mdi/mdi.tcl, lib/byswidget/mdi/pkgIndex.tcl, lib/byswidget/bfunctions/bflist.tcl, lib/byswidget/bfunctions/bflistbox.tcl, lib/byswidget/bfunctions/bfobjects.tcl, lib/byswidget/bfunctions/bfstring.tcl, lib/byswidget/bfunctions/bfunctions.tcl, lib/byswidget/bfunctions/pkgIndex.tcl, lib/byswidget/blistbox/blistbox.tcl, lib/byswidget/blistbox/pkgIndex.tcl, lib/byswidget/bselectfields/bselectfields.tcl, lib/byswidget/bselectfields/pkgIndex.tcl, lib/byswidget/btreeview/btreeview.tcl, lib/byswidget/btreeview/pkgIndex.tcl, lib/byswidget/bcombobox.tcl, lib/byswidget/bcombobox/bcombobox.tcl, lib/byswidget/bcombobox/pkgIndex.tcl, lib/byswidget/beditmaster.tcl, lib/byswidget/beditmaster/beditmaster.tcl, lib/byswidget/beditmaster/pkgIndex.tcl, lib/byswidget/bentrydate.tcl, lib/byswidget/bentrydate/bentrydate.tcl, lib/byswidget/bentrydate/pkgIndex.tcl, lib/byswidget/bfilter.tcl, lib/byswidget/bfilter/bfilter.tcl, lib/byswidget/bfilter/pkgIndex.tcl, lib/byswidget/blistbox.tcl, lib/byswidget/bselectfields.tcl, lib/byswidget/btoplevel.tcl, lib/byswidget/btreeview.tcl, lib/byswidget/byswidget.tcl, lib/byswidget/ini_byswidget.tcl, lib/byswidget/pkgIndex.tcl, lib/byswidget/tclIndex:
+	The files in byswidgets are organized in packages
+
+2004-06-19  author  <author@zell>
+
+	* lib/toltk/tolprj.tcl:
+	Bound some actions with short keys Compile(F9), Decompile (F8), Insert Node
+    (Ins), Delete Node (Del), View Node Attribures (Space) and Open Node (Return)c
+
+	* lib/toltk/tolprj.tcl:
+Binded some actions with short keys: Compile (F9), Decompile (F8), Add node
+    (Ins), Delete node (Sup), view attributes (Space) and Open node (Return)
+
+	* lib/toltk/tolbase.tcl: Info of GCF file writes a CR+LF at the end
+
+2004-06-18  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/Mdi.tcl, lib/toltk/editable.tcl, lib/toltk/editor.tcl, lib/toltk/project.tcl, lib/toltk/sergraph.tcl, lib/toltk/setgraph.tcl, lib/toltk/sqltable.tcl, lib/toltk/tclIndex, lib/toltk/tolbase.tcl, lib/toltk/tolprj.tcl:
+	Eliminated the tests made with MDI for the interface of TolBase.
+
+	Erased the file mdi.tcl.
+
+	Following step, to use new format MDI.
+
+	* lib/toltk/msgs/en.msg, lib/toltk/msgs/es.msg: New messages
+
+	* lib/toltk/tolprj.tcl:
+	Solved a little bug introduced when solving bugs 54,70.
+
+	As a result of bugs 54 and 70 fixing efforts a new entry was added into the
+    contextual menu of the nodes, but the traced actions associated to it were
+    not put to date.
+
+	Now the numbers of affected menu indexes have been fixed in
+    ::TolProject::CompileNode procedure.
+
+	* lib/byswidget/msgs/es.msg: *** empty log message ***
+
+2004-06-17  author  <author@zell>
+
+	* lib/toltk/sqltable.tcl: Title of Bayes SQL was wrong
+
+	* lib/toltk/tolbase.tcl:
+	Tabs for eval/output/info window moved to top side. It gives a better
+    distribution and less mouse movements are needed
+
+	* lib/toltk/objects.tcl, lib/toltk/tclIndex, lib/toltk/tolprj.tcl:
+	Fixed bugs 54 and 70.
+
+	Now:
+
+	1) paths to nodes are stored in a relative way in case of belonging to the
+    same unit as the project base directory, otherwise the full path will be
+    stored.
+
+	2) when adding a node it searches from the last opened node directory or the
+    project base directory.
+
+	3) nodes can be added "in the middle". To do this select "Add node" in the
+    contextual menu that should appear attached to the node below which a new
+    node is to be inserted.
+
+2004-06-16  author  <author@zell>
+
+	* lib/toltk/images/PRJFile.gif:
+	File necessary when includes proyect with the IncludePRJ command
+
+2004-06-15  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/editable.tcl, lib/toltk/editor.tcl, lib/toltk/sergraph.tcl, lib/toltk/setgraph.tcl, lib/toltk/sqltable.tcl, lib/toltk/tclIndex, lib/toltk/tolprj.tcl:
+	Control of sizes and position of the different forms.
+	We used widget btoplevel.
+
+	* lib/toltk/tolbase.tcl, lib/toltk/project.tcl:
+	Control of forms with MDI
+
+	* lib/toltk/Mdi.tcl:
+	Added funcionality to read a write to the file .ini
+
+2004-06-08  author  <author@zell>
+
+	* lib/toltk/tolbase.tcl:
+	Tabs for eval/output/info window moved to top side. It gives a better
+    distribution and less mouse movements are needed
+
+2004-06-07  author  <author@zell>
+
+	* lib/toltk/bysgropt.tcl: The error has been corrected.
+	The problem was that all the segments like lines treated.
+
+2004-06-03  author  <author@zell>
+
+	* TODO: Added a new comment line bug in tol code highlighting.
+
+2004-05-27  author  <author@zell>
+
+	* lib/toltk/editor.tcl:
+	Commented out a puts line when Ctrl-Key was pushed, so that the OS was
+    printed in stdout.
+
+2004-05-26  author  <author@zell>
+
+	* lib/toltk/bystext.tcl:
+	Ctrol+X didn't work. Removed clipboard clear sentences. Now it works fine.
+
+2004-05-24  author  <author@zell>
+
+	* lib/toltk/init_toltk.tcl: Tolcon_Trace must have only return sentence
+
+	* lib/toltk/Mdi.tcl, lib/toltk/editor.tcl, lib/toltk/tolinspe.tcl:
+	Mdi.tcl: client cursors parameterization in order to make Mdi work on linux.
+
+	editor.tcl:
+	tolinspe.tcl: fixed an error related to the font in the editor when for some
+    reason the font used in the editor has not the -size defined.
+
+2004-05-21  author  <author@zell>
+
+	* Makefile.in:
+	little clock image does not appear in installed Tolbase under gnu platform. A
+     reference to this file must be added to Makefile.in
+
+2004-05-17  author  <author@zell>
+
+	* lib/byswidget/blistbox.tcl: Added ne funcionality.
+	It can specify on list wich aditinal information to the items.
+
+2004-05-10  author  <author@zell>
+
+	* lib/toltk/bystable.tcl:
+	treeview.xbm and treeview_m.xbm now are read from toltk_images_path and not
+	from blt location.
+
+	* lib/toltk/odbc.tcl, lib/toltk/project.tcl, lib/toltk/tclIndex:
+	odbc.tcl. Replace "bcombobox" by "ComboBox"
+	project.tcl. Modified function "CreateForm". Show the form if exists.
+	tclIndex. Update
+
+	* lib/toltk/images/treeview.xbm, lib/toltk/images/treeview_m.xbm:
+	copied from blt to images in order to not depend on blt_libPath variable
+    (mostly on linux)
+
+	* lib/toltk/bfobjects.tcl:
+	BfoActivateWidget : revised the function. Value "select" permitited in
+    parameter "stt" (state)
+
+	* lib/toltk/bystext.tcl:
+	Added some reserved words for SQL (and SQL Server functions)
+
+	* lib/toltk/sqltable.tcl: Add menu entry refresh highlight
+
+	* lib/toltk/ctext.tcl:
+	highlighted text is bold only when color is black
+
+	* lib/toltk/bystext.tcl, lib/toltk/editor.tcl, lib/toltk/sqltable.tcl, lib/toltk/tolbase.tcl:
+	Created function ::BayesText::CreateHLText to create a window with highlight
+    text. It has a parameter to give language syntax to highlight
+
+2004-05-07  author  <author@zell>
+
+	* lib/toltk/bystable.tcl, lib/toltk/editor.tcl:
+	Fix a bug 34 ( http://bugs.tol-project.org/show_bug.cgi?id=34 )
+	Revise  the functionality the keys in text and tables Editor .
+	Fix a Cut, Redo and Undo in Editor.
+
+	* lib/toltk/bfobjects.tcl:
+	Change option "readonly" by "select" in bslectfields.tcl. This option enable
+    the selection for "bselectfields".
+
+	* lib/byswidget/beditmaster.tcl, lib/byswidget/bselectfields.tcl:
+	Change option "readonly" by "select". This option enable the selection for
+    "bselectfields".
+
+2004-05-06  author  <author@zell>
+
+	* lib/byswidget/bentrydate.tcl:
+	Added option "-bformat" -> allows specifier to date format visualization.
+	Deleted option "-bseparator".
+
+2004-05-05  author  <author@zell>
+
+	* lib/byswidget/beditmaster.tcl, lib/byswidget/bselectfields.tcl:
+	Change meaning -bpostcomand by -bmodigycmd
+
+	* lib/toltk/tolbase.tcl: Bind of F6 done to .
+
+	* lib/toltk/init_toltk.tcl: Delete source Mdi.tcl
+
+	* lib/toltk/tolinspe.tcl, lib/toltk/Mdi.tcl:
+	Changes made in version 1.4 were deleted by error
+
+	* lib/toltk/Mdi.tcl, lib/toltk/mdictrl.tcl, lib/toltk/mdidtext.tcl, lib/toltk/mdimaster.tcl, lib/toltk/mdimisc.tcl, lib/toltk/mdislave.tcl, lib/toltk/mditext.tcl, lib/toltk/mditool.tcl:
+	All mdi files packed in Mdi.tcl
+
+	* lib/toltk/tolinspe.tcl: DrawAutocoorSerie modified
+
+2004-05-04  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/images/Close.gif, lib/toltk/images/Max.gif, lib/toltk/images/Mclose.gif, lib/toltk/images/Min.gif, lib/toltk/images/Mmin.gif, lib/toltk/images/Mnorm.gif, lib/toltk/images/Norm.gif, lib/toltk/images/listoutput.gif, lib/toltk/images/tinyclock.gif:
+	Imagenes necessary to use MDI
+
+	* lib/toltk/images/Close.gif, lib/toltk/images/Max.gif, lib/toltk/images/Mclose.gif, lib/toltk/images/Min.gif, lib/toltk/images/Mmin.gif, lib/toltk/images/Mnorm.gif, lib/toltk/images/Norm.gif, lib/toltk/images/tinyclock.gif:
+	Error when commit images
+
+	* lib/toltk/images/Close.gif, lib/toltk/images/Max.gif, lib/toltk/images/Mclose.gif, lib/toltk/images/Min.gif, lib/toltk/images/Mmin.gif, lib/toltk/images/Mnorm.gif, lib/toltk/images/Norm.gif, lib/toltk/images/tinyclock.gif:
+	Imagenes necessary to use MDI
+
+2004-05-04  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+	
+	* lib/toltk/Mdi.tcl, lib/toltk/bystable.tcl, lib/toltk/calendar.tcl, lib/toltk/corgraph.tcl, lib/toltk/editable.tcl, lib/toltk/editor.tcl, lib/toltk/ini.tcl, lib/toltk/init_toltk.tcl, lib/toltk/mdictrl.tcl, lib/toltk/mdidtext.tcl, lib/toltk/mdimaster.tcl, lib/toltk/mdimisc.tcl, lib/toltk/mdislave.tcl, lib/toltk/mditext.tcl, lib/toltk/mditool.tcl, lib/toltk/panedw.tcl, lib/toltk/prjmenu.tcl, lib/toltk/project.tcl, lib/toltk/sergraph.tcl, lib/toltk/sqltable.tcl, lib/toltk/tclIndex, lib/toltk/tolbase.tcl, lib/toltk/tolinspe.tcl, lib/toltk/tolprj.tcl:
+	Archives necessary forcontrol MDI.
+	Necessary modifications so that functions in way MDI.
+	In order to prove funcionamineto MDI, in tolbase.tcl, change a 1:
+	  set data(mdiMode)          [$rini TolConsole MdiMode 0]
+
+	MAKE
+	  Calendar, corgraph, sergraph, tolbase, tolinpe
+
+	TODO
+	  editable, editor, tolprj, sqltable
+	  Chat Matrix and Set
+
+	* lib/byswidget/btoplevel.tcl, lib/byswidget/byswidget.tcl:
+	parameter -bini it can be [true, false, 1, 0]
+
+	* lib/toltk/tolinspe.tcl:
+	Button-3 doesn't select on Object Inspector as Button-1 does because when
+    selecting multiple entries last one is unselected
+
+2004-05-03  author  <author@zell>
+
+	* lib/toltk/tolbase.tcl:
+	Eval, Output & Info window show scroll bars only when needed.
+	Blt::Tree does not communicate the correct scroll region's parameters
+
+	* lib/toltk/tolbase.tcl:
+	Eval window's buttonbar and TolBase's statusbar packed with -before option to
+    avoid windows to disappear when resizing their parents.
+
+	* lib/toltk/tolbase.tcl:
+	Buttonbar of Eval window seems to disapear when eval window is too small. Bug
+    partialy fixed packing button bar on the top side of the window. See comment
+    in code.
+
+2004-04-30  author  <author@zell>
+
+	* lib/toltk/tolbase.tcl:
+	Options changed to obtain more space for tol inspector windows
+
+	* Makefile.in, configure: new files to deploy at install time
+
+	* lib/toltk/tolbase.tcl:
+	Por que se puso otra ves timeset en lugar de TimeSet???????
+
+	* lib/toltk/tolbase.tcl:
+	Button bar of window eval can be moved (using MkWidgets toolbar command)
+
+	* lib/toltk/tclIndex, lib/toltk/tolbase.tcl: Status bar shows time
+
+2004-04-29  author  <author@zell>
+
+	* lib/toltk/tolinspe.tcl:
+	When inspecting a TimeSet now use the 'reference' instead of the name.
+	This is related to a change in toltcl.
+
+	* lib/toltk/tolbase.tcl:
+	'Bitmap::get timeset' should be 'Bitmap::get TimeSet'
+
+	* lib/toltk/init_toltk.tcl:
+	Fixed small bug in reading default lenguaje option. It wasn't fixed, Ini
+    options were written in project.ini
+
+	* lib/toltk/tclIndex: Added file toolbar.tcl
+
+	* lib/toltk/images/about.gif, lib/toltk/images/bysSql.gif, lib/toltk/images/cascade.gif, lib/toltk/images/changeview.gif, lib/toltk/images/duplicate.gif, lib/toltk/images/evalwin.gif, lib/toltk/images/funsearch.gif, lib/toltk/images/infowin.gif, lib/toltk/images/newfile.gif, lib/toltk/images/newproject.gif, lib/toltk/images/newtable.gif, lib/toltk/images/outputwin.gif, lib/toltk/images/tilehor.gif, lib/toltk/images/tilever.gif:
+	Buttons for ButtonBar of TolBase
+
+	* lib/toltk/tolbase.tcl, lib/toltk/toolbar.tcl:
+	Added a button bar y a status bar to main form of tolbase
+
+	* lib/toltk/calendar.tcl:
+	Replaced "ComboBox" of selection of TimeSet by "bcombobox"
+
+	* lib/toltk/bflist.tcl:
+	Modified the function "ljoin" so that it does not return any element if list
+    parameter is empty
+
+	* lib/byswidget/bcombobox.tcl:
+	The method of load of values is controlled.
+	Changed way of inizializaci? of the variables of list type.
+
+	* lib/toltk/tolinspe.tcl:
+	Button-3 selects on Object Inspector as Button-1 does
+
+	* lib/toltk/bysgropt.tcl:
+	Fixed error number 8 of tol-project.org
+    (http://bugs.tol-project.org/show_bug.cgi?id=8)
+
+2004-04-28  author  <author@zell>
+
+	* lib/toltk/init_toltk.tcl:
+	Fixed small bug in reading default lenguaje option
+
+2004-04-27  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/bysgropt.tcl, lib/toltk/sergraph.tcl:
+	To apply to maximum and minimum to the axes: it is checked that they are
+    valid l?itis
+
+2004-04-26  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/bysgropt.tcl, lib/toltk/sergraph.tcl, lib/toltk/setgraph.tcl:
+	Fix a bug:
+	Correct configuration of number of tick in axis
+	Visualization of labels to show options in the axis
+	In graphs of matrix, modified the form to obtain the minimum and maximum of
+    an axis
+
+	* lib/byswidget/bselectfields.tcl:
+	Bselecfields allows helptext and now expands correctly
+
+	* lib/byswidget/btoplevel.tcl: Comment rewritten
+
+	* lib/byswidget/bentrydate.tcl:
+	Configured master frame of bentrydate to grow correctly
+
+	* lib/byswidget/beditmaster.tcl:
+	Allows button links to call other procedures
+
+2004-04-23  author  <author@zell>
+
+	* lib/toltk/init_toltk.tcl:
+	Languaje must be selected before loading package byswidgets.
+
+2004-04-21  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/init_toltk.tcl:
+	It's not necessary to require version 2.8 of Tktable for the moment (we will
+    use specific features of this version in the future, as sort for tables)
+
+	* lib/toltk/msgs/es.msg: Added new message
+
+2004-04-21  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+	
+	* lib/toltk/bysgraph.tcl, lib/toltk/bysgropt.tcl, lib/toltk/corgraph.tcl, lib/toltk/sergraph.tcl, lib/toltk/setgraph.tcl, lib/toltk/tclIndex:
+	Graphic-related changes:
+
+	.- "ConfAxis" function removed. It copied the max and min axis and copied
+    them into variables. Now that information is readen directly from the graph.
+
+	.- After a "Zoom extend" tick values are recalculated.
+
+	.- "Jump to first data", "Jump to last data", "Play backwards" and "Play
+    forward" options modified to work correctly in the 4 axis.
+
+	.- Too small "stepsize" and changing axis limits bug fixed. It has been
+    modified to admit 200 tocks at most.
+
+	.- The axis limit initial configuration now depends on GCF, unless "see all"
+    option activated.
+
+	.- Title tab removed. Now the graph title can be established from the "style"
+    tab. Axis names from "Axis" -> "title" as well.
+
+	.- When changing line mapping, the associated axis is shown if not allready
+    visible.
+
+	.- When viewing a Set or Serie with texts added to X axis, the same tabs are
+    shown in the X2 axis.
+
+	Autocorrelation graphs:
+
+	.- "Langs" and "Sigmas" options aplied only to active graph. Before this fix,
+    they were aplied to all graphs.
+
+	Set graphs:
+
+	.- Tab viewing function added for X2 axis. For both X and X2 axis now the
+    graph shows up tabs without dividing values.
+
+2004-04-16  author  <author@zell>
+
+	* TODO:
+	Some ctext bugs. Require a somehow complex solution, so will take some time.
+
+2004-04-15  author  <author@zell>
+
+	* lib/toltk/ctext.tcl:
+	Fixed a problem when adding text to allready highlighted text in quotes.
+	Now is highlighted without need of refreshing.
+
+	* lib/toltk/init_toltk.tcl: Messed up with last update
+
+	* lib/toltk/editor.tcl, lib/toltk/init_toltk.tcl, lib/toltk/tclIndex:
+	When opening the editor, "Right reference line option" now is applied
+
+	* lib/toltk/bystext.tcl, lib/toltk/tolbase.tcl:
+	Add highlight syntax in eval window
+	F6 changes view mode between "tol inspector maximized", "tol inspector and
+    windows eval/output/info" and "windows eval/output/info" maximized" replacing
+    old keys F5,F6,F7
+	Now F5 key update highlights
+
+	* lib/toltk/tolmethods.tcl:
+	Deleted procedure Tolcon_Trace. It was rewritten the original procedure
+    Tolcon_Trace in ifile nit_toltk.tcl
+
+2004-04-14  author  <author@zell>
+
+	* lib/toltk/bystable.tcl, lib/toltk/init_toltk.tcl, lib/toltk/tclIndex:
+	Update to TkTable version 2.8
+	If necessary table grows in rows or columns when pasting data
+
+	* lib/toltk/ctext.tcl, lib/toltk/editor.tcl:
+	Some bugs regarding comment and quotes highlighting have been solved.
+
+	Changes:
+
+	1.- Updated ctext from 2.6.10 to 3.1.3.
+	2.- Made the old tweaks to make it work with tolbase.
+	3.- Made some more tweaking in ctext.tcl and editor.tcl to fix some bugs.
+
+2004-04-13  author  <author@zell>
+
+	* README: Just a spelling mistake corrected.
+
+2004-04-12  author  <author@zell>
+
+	* conf.tcl:
+	function __test had a problem with last if sentence from version 1.1.1
+
+2004-04-05  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* NEWS: TolBase NEWS
+
+2004-04-05  Jorge S. Pérez <josp@tol-project.org>
+	
+	* lib/toltk/bystext.tcl:
+	Temporary file __check__.tol used for syntax checking is now created in HOME,
+	in order to avoid invalid access to write protect area.
+
+	* lib/toltk/init_toltk.tcl: New version TolBase
+
+2004-04-05  Jorge S. Pérez <josp@tol-project.org>
+
+	* lib/toltk/bystext.tcl:
+	Temporary file __check__.tol used for syntax checking is now
+	created in HOME, in order to avoid invalid access to write protect
+	area.
+	
+2004-04-05  Roberto Cuesta Soto <rcsoto@tol-project.org>
+
+	* lib/toltk/init_toltk.tcl: New version TolBase
+
+2004-04-02  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/tclIndex: Add functions. Refresh file.
+
+	* lib/toltk/bystable.tcl, lib/toltk/editor.tcl:
+	Fixed small bug, when "Control + key", with the key in capital
+	letters is used. The error has been corrected so much in the text
+	editors like in the tables.
+	
+2004-04-02  Daniel Rus  <danirus@tol-project.org>
+
+	* configure, configure.in: new common schema for version numbering
+	* Makefile.in: toltk/images/clear.gif mustn't longer exist
+	* lib/toltk/ChangeLog: ChangeLog for changes only in this directory
+	* Makefile.in: New Makefile.in
+
+2004-04-02  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/init_toltk.tcl, lib/toltk/tclIndex:
+	Update for version 4.3.8
+
+2004-04-01  Javier Portual  <javipor@tol-project.org>
+
+	* lib/toltk/corgraph.tcl:
+	fixed small bug, when specifing an integer value in option 'each' of x axis
+    ticks for correlation graphs
+	* lib/Makefile, lib/Makefile.am, lib/Makefile.in:
+	Restore make files deleted by error
+
+2004-04-01  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/bysgraph.tcl, lib/toltk/bysgropt.tcl, lib/toltk/sergraph.tcl:
+	Numerical format to all the axes of a graph of Set can be specified
+
+	* lib/CambiosVersion, lib/ChangeLog, lib/Makefile, lib/Makefile.am, lib/Makefile.in:
+	Delete files
+
+	* lib/_header.tol, lib/bflist.tcl, lib/bflistbox.tcl, lib/bfobjects.tcl, lib/bfsql.tcl, lib/bfstring.tcl, lib/bftrview.tcl, lib/bfwidget.tcl, lib/bysgraph.tcl, lib/bysgropt.tcl, lib/bystable.tcl, lib/bystext.tcl, lib/calendar.tcl, lib/corgraph.tcl, lib/cortable.tcl, lib/ctext.tcl, lib/ediselec.tcl, lib/editable.tcl, lib/editor.tcl, lib/fusearch.tcl, lib/graph.tcl, lib/iniFile.tcl, lib/iniparseBys.tcl, lib/init_toltk.tcl, lib/listorde.tcl, lib/mattable.tcl, lib/mclistbox.tcl, lib/mulselec.tcl, lib/objects.tcl, lib/odbc.tcl, lib/panedw.tcl, lib/prjmenu.tcl, lib/project.tcl, lib/scrollw.tcl, lib/sergraph.tcl, lib/sertable.tcl, lib/setgraph.tcl, lib/settable.tcl, lib/sqltable.tcl, lib/statable.tcl, lib/supertext.tcl, lib/tclIndex, lib/tolbase.sh, lib/tolbase.tcl, lib/tolinspe.tcl, lib/tolmethods.tcl, lib/tolprj.tcl, lib/toltk.rc:
+	Delete files.
+
+2004-03-25  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/sergraph.tcl:
+	Modified the form to obtain the description of a series
+
+2004-03-24  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/init_toltk.tcl:
+	The route from toltk is concatenated to file project.ini so that a project
+    can be executed from TolBase.exe
+	* lib/toltk/msgs/en.msg: Added new message
+	* lib/toltk/sergraph.tcl:
+	Changed the way to obtain the description of a Series.
+	The command "Text Description(object)" is used, instead of
+	"::tol::info variable Serie object"
+	
+	* lib/toltk/init_toltk.tcl, lib/toltk/project.ini:
+	Design load from a configuration file.
+	In the configuration file own values of the project are specified.
+
+2004-03-23  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/init_toltk.tcl, lib/toltk/tolbase.tcl:
+	Obtain the GCFFile file of .ini and showed to message in the window output
+
+2004-03-23  Jorge S. Pérez <josp@tol-project.org>
+
+	* lib/byswidget/images/off.gif, lib/byswidget/images/on.gif:
+	uploaded as binary
+	* lib/byswidget/images/off.gif, lib/byswidget/images/on.gif:
+	removed because reside as ASCII
+
+2004-03-23  Roberto Cuesta Soto  <rcsoto@tol-project.org>
+
+	* lib/toltk/images/tablestat.gif: Image Table Statistics
+	* INSTALL: Modified file name of installation in Windows
+
+2004-03-17 Manuel Valderrabano  <manolo@tol-project.org>
+
+	* INSTALL: Added instructions to see where tolbase files are installed.
+	* INSTALL: Some minor checks related mainly to language.
+
+2004-02-27  Daniel Rus  <danirus@local>
+
+	* INSTALL, NEWS, README, THANKS:
+	Updating some old texts to new ones. This files were originally copied from
+    Toltcl project. Now are updated to Tolbase.
+
+2004-01-14  Daniel Rus <daniel@uponeits.com>
+
+	* AUTHORS: Creating file and adding first authors of the gnu_tolbase
+	project.
+
+	* BUGS: File created but still without contents.
+
+	* COPYING: Terms and conditions of GNU/GPL License under Tolbase is 
+	distributed.
+
+	* ChangeLog: First release of this file.
+
+	* INSTALL: First release of INSTALL file with instructions about
+	how to install the software under your operative system.
+
+	* NEWS: First release of NEWS file, with a description of the
+	things are news in the current release of Tolbase. Current release is
+	still unstable. See TODO file to know what ewe are working on to
+	get the first stable release.
+
+	* README: First release of README file. With general information
+	of TOLL Project.
+
+	* THANKS: First release of THANKS file. The aim of this file is to
+	thanks all the people who have been collaborated in Tolbase.
+
+	* TODO: First release of TODO file. See check this file to get a
+	list of things to do to improve behavior of Tolbase.
+
+        * Redesign directory structure and integration installation
+	proccess with gnu autotools. Begin tol as gnu/tol from here.
+

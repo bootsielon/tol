@@ -1,0 +1,334 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _db_api.tools.lat.tol
+// PURPOSE : Implements database tools related methods of NameBlock 
+//           BysMcmc::Bsr::DynHlm::DBApi
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new latent sigma block register
+Real ModSes.Lat.SigBlk.Create(Text dbName, 
+                              Text model, 
+                              Text session,
+                              Text node, 
+                              Real sigma)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::LatSigBlk+"\n"+
+  "VALUES('"+model+"','"+session+"','"+node+"',"+
+  If(IsUnknown(sigma),"NULL",BysMcmc::Bsr::Import::RealTextS(sigma))+")");
+  Eval("ModSes.Lat.SigBlk.Create.ok=ok")
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new latent equation register
+Real ModSes.Lat.Equ.Create(Text dbName, 
+                           Text model, 
+                           Text session,
+                           Text node_father,
+                           Real numEqu,
+                           Real sigma_factor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::LatEqu+"\n"+
+  "VALUES('"+model+"','"+session+"',"
+  "'"+node_father+"',"+
+  IntText(numEqu)+","+
+  SqlFormatReal(sigma_factor)+")");
+  Eval("ModSes.Lat.Equ.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new latent output register
+Real ModSes.Lat.Output.Create(Text dbName, 
+                              Text model, 
+                              Text session,
+                              Text node_father,
+                              Real numEqu,
+                              Text node_child,
+                              Text parameter_child,
+                              Real coef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::LatOutput+"\n"+
+  "VALUES('"+model+"','"+session+"',"
+  "'"+node_father+"',"+
+  IntText(numEqu)+","+
+  "'"+node_child+"','"+parameter_child+"',"+
+  SqlFormatReal(coef)+")");
+  Eval("ModSes.Lat.Output.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new latent input register
+Real ModSes.Lat.Input.Create(Text dbName, 
+                             Text model, 
+                             Text session,
+                             Text node_father,
+                             Real numEqu,
+                             Text parameter_father,
+                             Real coef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::LatInput+"\n"+
+  "VALUES('"+model+"','"+session+"',"
+  "'"+node_father+"',"+
+  IntText(numEqu)+","+
+  "'"+parameter_father+"',"+
+  SqlFormatReal(coef)+")");
+  Eval("ModSes.Lat.Input.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real ModSes.Lat.Homog_1.Create(Text dbName, 
+                               Text model, 
+                               Text session,
+                               Text id_node,
+                               Text description,
+                               Real level,
+                               Real number,
+                               Text id_parameter, 
+                               Real initValue,
+                               Real sigma,
+                               Real minimum,
+                               Real maximum,
+                               Set  node_childs)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real ok = If(Card(node_childs)<=1,
+  {
+    Text aux = If(Card(node_childs)," but one "," "); 
+    WriteLn("Cannot create latent node "+id_node+" due to related input"
+    " is disabled along all"+aux+"child nodes","W");
+    0
+  },
+  {
+    WriteLn("Creating latent node "+id_node+" for "<<Card(node_childs)+
+            " nodes");
+    Real ok.1 = ModSes.Node.Create
+    (
+      dbName, id_model, id_session, id_node, 
+      "LAT",
+      level,
+      number,
+      description
+    );
+    Real ok.2 = ModSes.Mix.Param.Create
+    (
+      dbName, id_model, id_session, id_node, 
+      id_parameter,
+      "LinearBlk",
+      initValue,
+      minimum,
+      maximum
+    );
+    Real ok.3 = ModSes.Lat.SigBlk.Create(dbName, model, session, id_node, sigma);
+    Real ok.4 = SetMin(For(1,Card(node_childs), Real lat.equ(Real k)
+    {
+      NameBlock child = node_childs[k];
+      Real ModSes.Lat.Equ.Create(
+        dbName, model, session, id_node, k,
+        child::_.sigma_factor);
+      Real ModSes.Lat.Output.Create(
+        dbName, model, session, id_node, k,
+        child::_.id_node,
+        child::_.id_parameter,
+        1.0);
+      Real ModSes.Lat.Input.Create(
+        dbName, model, session, id_node, k,
+        id_parameter,
+        1.0);
+      1 
+    }));
+    And(ok.1,ok.2,ok.3,ok.4)
+  });
+  Eval("ModSes.Lat.Homog_1.Create."+id_node+".ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock ModSes.Lat.Father.Param.Def(
+  Text id_parameter, 
+  Real init_value, 
+  Real min, 
+  Real max)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Text _.id_parameter = id_parameter;
+  Real _.init_value = init_value;
+  Real _.min = min;
+  Real _.max = max
+]]};
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock ModSes.Lat.Child.Param.Def(
+  Text id_node, 
+  Text id_parameter, 
+  Real sigma_factor)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Text _.id_node = id_node;
+  Text _.id_parameter = id_parameter;
+  Real _.sigma_factor = sigma_factor
+]]};
+
+/////////////////////////////////////////////////////////////////////////////
+Real ModSes.Lat.Create  (Text dbName,
+                         Text id_model,
+                         Text id_session,
+                         Text id_node,
+                         Text description,
+                         Real level,
+                         Real number,
+       Set father_parameters, //Set de NameBlocks retornados por New.Param.Def
+       Set node_childs, //Set de NameBlocks retornados por New.Param.Ref
+       Real sigma, // Valor de sigma-block para todo el nodo latente regresivo.
+       Matrix X) // Matriz de regresion del nodo latente, tiene filas = Card(node_childs) 
+//////////////////////////////////////////////////////////////////////////////
+{
+   Real ok = If (Card(node_childs)<1,     
+       {
+        WriteLn ("Cannot create latent node "+id_node+" due to "
+                 "related input is disabled allong all child nodes","W");
+        0        
+       },
+       {
+        WriteLn ("Creating latent node "+id_node+" for "<< Card(node_childs)+
+                 " nodes"); 
+        Real ok.1 = ModSes.Node.Create 
+        (
+         dbName, id_model, id_session, id_node,
+         "LAT",
+         level,
+         number,
+         description 
+        );
+        /* Iteramos por father_parameters para crear las definiciones de los hiper. */
+        Set tmp = EvalSet (father_parameters, Real (NameBlock fathernam){
+          Real ModSes.Mix.Param.Create (dbName, id_model, id_session, id_node,
+                fathernam::_.id_parameter, 
+                "LinearBlk",
+                fathernam::_.init_value, 
+                fathernam::_.min, 
+                fathernam::_.max)                         
+        });
+        Real ok.2 = If (Real SetMin (tmp)==1,1,0);
+        Real ok.3 = ModSes.Lat.SigBlk.Create(dbName, id_model, id_session, 
+                                                              id_node, sigma);
+
+        Real ok.4 = SetMin(For (1, Card(node_childs), Real (Real i){ //ciclo por ecuaciones nodo
+            Real ModSes.Lat.Equ.Create(dbName, id_model, id_session, id_node, i,
+                                       (node_childs[i])::_.sigma_factor);
+
+              Real ModSes.Lat.Output.Create(dbName, id_model, id_session, id_node, 
+               i,
+               (node_childs[i])::_.id_node,
+               (node_childs[i])::_.id_parameter,
+               1.0);
+
+              Set For (1, Card(father_parameters), Real (Real j){
+                Real If (MatDat(X,i,j)==0,0,   
+                  Real ModSes.Lat.Input.Create(dbName, id_model, id_session, 
+                       id_node,
+                       i,
+                       (father_parameters[j])::_.id_parameter,
+                       MatDat(X,i,j))  
+                         )
+               
+              });
+              1 
+         })); 
+        And(ok.1,ok.2,ok.3,ok.4)        
+       }); //Fin de If de ok
+    Eval("ModSes.Lat.Generic_1.Create."+id_node+".ok = ok")
+}; // Fin de la funcion ModSes.Lat.Generic_1.Create
+
+/////////////////////////////////////////////////////////////////////////////
+Real ModSes.Lat.OutComb.Create (Text dbName,
+                                Text id_model,
+                                Text id_session,
+                                Text id_node,
+                                Text description,
+                                Real level,
+                                Real number,
+       Set father_parameters, //Set de NameBlocks retornados por New.Param.Def
+       Set node_childs, //Set de NameBlocks retornados por New.Param.Ref
+       Real sigma, // Valor de sigma-block para todo el nodo latente regresivo.
+       Matrix X,  // Matriz de regresion X del nodo latente, tiene filas = Card(node_childs) 
+       Matrix Y,  // Matriz de regresion Y del nodo latente, tiene filas = Card(node_childs) 
+       Set SigmaBlock) // [[ sigma_1, sigma_2, ...., sigma_n ]], n --> numero de ecuaciones del nodo
+//////////////////////////////////////////////////////////////////////////////
+{
+   Real ok = If (Card(node_childs)<1,     
+       {
+        WriteLn ("Cannot create latent node "+id_node+" due to "
+                 "related input is disabled allong all child nodes","W");
+        0        
+       },
+       {
+        WriteLn ("Creating latent node "+id_node+" for "<< Card(node_childs)+
+                 " nodes"); 
+        Real ok.1 = ModSes.Node.Create 
+        (
+         dbName, id_model, id_session, id_node,
+         "LAT",
+         level,
+         number,
+         description 
+        );
+        /* Iteramos por father_parameters para crear las definiciones de los hiper. */
+        Set tmp = EvalSet (father_parameters, Real (NameBlock fathernam){
+          Real ModSes.Mix.Param.Create (dbName, id_model, id_session, id_node,
+                fathernam::_.id_parameter, 
+                "LinearBlk",
+                fathernam::_.init_value, 
+                fathernam::_.min, 
+                fathernam::_.max)                         
+        });
+        Real ok.2 = If (Real SetMin (tmp)==1,1,0);
+        Real ok.3 = ModSes.Lat.SigBlk.Create(dbName, id_model, id_session, 
+                                                              id_node, sigma);
+
+        Real ok.4 = SetMin(For (1, Rows(Y), Real (Real k){ //ciclo en las ecuaciones del nodo
+                           
+            Real ModSes.Lat.Equ.Create(dbName, id_model, id_session, id_node, k,
+                                       SigmaBlock[k]);
+
+               Set For (1, Card(node_childs), Real (Real i){
+                   Real If (MatDat(Y,k,i)==0,0,
+                   Real ModSes.Lat.Output.Create(dbName, id_model, id_session, id_node,
+                   k,
+                   (node_childs[i])::_.id_node,
+                   (node_childs[i])::_.id_parameter,
+                   MatDat(Y,k,i))
+                    )
+                });
+                   
+                 
+                 Set For (1, Card(father_parameters), Real (Real j){
+                  Real If (MatDat(X,k,j)==0,0,   
+                    Real ModSes.Lat.Input.Create(dbName, id_model, id_session, 
+                         id_node,
+                         k,
+                         (father_parameters[j])::_.id_parameter,
+                         MatDat(X,k,j))  
+                           )
+                 
+                 });
+               
+              1 
+         })); // Fin por ecuaciones de nodo latente
+        And(ok.1,ok.2,ok.3,ok.4)        
+       }); //Fin de If de ok
+    Eval("ModSes.Lat.Generic_2.Create."+id_node+".ok = ok")
+}; // Fin de la funcion ModSes.Lat.Generic_2.Create
+
+

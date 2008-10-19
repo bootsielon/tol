@@ -1,0 +1,130 @@
+//////////////////////////////////////////////////////////////////////////////
+// LIBRARY: ExtLib (Extended Library of TOL)
+// MODULE: CMsg (Controlled messages)
+// FILE: _phase.tol
+// PURPOSE: Implements the NameBlok Cmsg::Phase
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock Phase =
+//////////////////////////////////////////////////////////////////////////////
+[[
+//read only autodoc
+  Text _.autodoc.description =
+  "Shows a phase if the level is less or equal than maxLevel_, that controls "
+  "directly the verbosity level of phasing messages, that are as a special "
+  "type of tracing ones, that inform to the user when a new step or sub-step "
+  "starts or ends.\n"
+  "You can divide a process in phases to get debugging and controlling "
+  "information about each one. Phases can be included in sub-phases until "
+  "a maximum of maxLevel_.\n"
+  "Each time you call the method CMsg::Phase::show a begining phase message "
+  "is sent. When the level descends an ending message of all old ended "
+  "phases is sent containing infromation about timing and used RAM in each "
+  "one. All this information is also stored internally in a public read "
+  "only member called CMsg::Phase::_.history_ that is a table of elements "
+  "with structure CMsg.Phase.history.\n"
+  "You can configure this feature in a TOL session changing this value "
+  "before running your code:\n"
+  "  Real CMsg::Phase::maxLevel_ := your_preference;\n"
+  "To disable it set to cero.";
+  
+//public API
+  Real  maxLevel_  = 5;
+
+  //////////////////////////////////////////////////////////////////////////
+  Real show(Real level, Text phase)
+  //////////////////////////////////////////////////////////////////////////
+  {
+/* * /
+    WriteLn("//////////////////////////////////////////////////////////////"
+            "////////////");
+    WriteLn("CMsg::Phase 1: begining");
+    WriteLn
+    (
+      "\n  level="+IntText(level)+
+      "\n  phase=<"+phase+">"+
+      "\n  maxLevel_="+IntText(maxLevel_)+
+      "\n  _lastLevel_="+IntText(_lastLevel_)+
+      "\n  _beginSec_="<<_beginSec_+
+      "\n  _histPos_="<<_histPos_
+    );
+/* */
+    Real ok = If(GT(level,maxLevel_), 0,
+    {
+    //WriteLn("CMsg::Phase 2: Collecting instant info.");
+      Set  memSt     = MemoryStatus(0); 
+      Real mem       = (memSt["TotalVirtual"]-memSt["AvailVirtual"])/(2^20);
+      Text timeStamp = Copy(Time);
+      Real sec       = Copy(Time);
+      Date now       = Copy(Now); 
+    //WriteLn("CMsg::Phase 3");
+      Real If(And(_lastLevel_>0, LE(level,_lastLevel_)),
+      {
+      //WriteLn("CMsg::Phase 3.1: Closing ended phases.");
+        Set Do EvalSet(Range(_lastLevel_, Max(1,level), 1), Real(Real lvl)
+        {
+          Real hPos = Copy(_histPos_[lvl]);
+          Real elapsedTime   = sec - _beginSec_[lvl];
+          Real balanceOfMem  = mem - _.history_[hPos]->beginMem_;
+          Real _.history_[hPos]->elapsedTime_   := elapsedTime;
+          Real _.history_[hPos]->balanceOfMem_  := balanceOfMem;
+          Real _beginSec_ [lvl] := Copy(?);
+          Real _histPos_  [lvl] := -1;
+          WriteLn("[CMsg::Phase] <"+_.history_[hPos]->phase_+">"
+                  " ends after "<<FormatReal(elapsedTime,"%.3lfsec.")+
+                  " with a mem balance of "<<
+                  FormatReal(balanceOfMem,"%.3lfMB"));
+          lvl
+        });
+        1
+      });
+    //WriteLn("CMsg::Phase 4: Cheking ending phase (level==0)");
+      Real If(!level,0,
+      {
+        //WriteLn("CMsg::Phase 5: Starting new phase");
+        Real _lastLevel_ := level;
+        Real pos = Card(_.history_)+1;
+        Set _.history_ := _.history_ << [[CMsg.Phase.history
+        {
+          phase,    
+          pos, 
+          level,
+          beginTime = now,
+          Copy(?),
+          beginMem = mem,
+          Copy(?)
+        }]];
+        Real _beginSec_ [level] := sec;
+        Real _histPos_  [level] := pos;
+
+      //WriteLn("CMsg::Phase 6");   
+        WriteLn("[CMsg::Phase] <"+phase+">"
+                " begins at "+timeStamp+ 
+                " using "+FormatReal(mem,"%.3lfMB"));
+        1
+      });
+      1
+    });
+    ok      
+  };
+  //////////////////////////////////////////////////////////////////////////
+  Real reset(Real 0)
+  //////////////////////////////////////////////////////////////////////////
+  {
+    Set  _.history_  := Copy(Empty);
+    Set  _histPos_   := For(1,maxLevel_,Real(Real k){Copy(0)});
+    Set  _beginSec_  := For(1,maxLevel_,Real(Real k){Copy(Time)});
+    Real _lastLevel_ := -1;
+    1
+  }; 
+//read only API
+  Set  _.history_  = Copy(Empty);
+
+//private API
+  Real _lastLevel_ = Copy(?);
+  Set  _histPos_   = Copy(Empty);
+  Set  _beginSec_  = Copy(Empty);
+  Real _reset      = reset(0) 
+]];
+

@@ -1,0 +1,267 @@
+# -*- mode: conf -*-
+
+import common ;
+import config ;
+import modules ;
+import os ;
+import option ;
+import package ;
+import path ;
+import property ;
+import virtual-target ;
+
+# ECHO ARGV [ modules.peek : ARGV ] ;
+
+path-constant TOP : . ;
+
+local os ;
+if [ modules.peek : UNIX ]
+{ 
+  os = UNIX ;
+}
+else 
+{ 
+  os ?= [ os.name ] ; 
+}
+
+rule trim-nl ( str )
+{
+  return [ MATCH "([^
+]*)" : $(str) ] ;
+}
+
+if $(os) = UNIX
+{
+  os-reqs = <define>UNIX ;
+  build-date = [ trim-nl [ SHELL "date +%F" ] ] ;
+  build-time = [ trim-nl [ SHELL "date '+%T %z %Z'" ] ] ;
+}
+
+# por que no usar algo como?
+# configure version 1.1.6 ;
+#
+
+constant TOL_VERSION : 1.1.7 ;
+
+# Configure a feature hash_map which can take the following values:
+#   msvc   ==>  __USE_HASH_MAP__=__HASH_MAP_NATIVE__
+#   google ==>  __USE_HASH_MAP__=__HASH_MAP_GOOGLE__
+#
+#  the default value is NATIVE
+#
+configure enable : hash_map : __USE_HASH_MAP__ 
+                 : native,__HASH_MAP_NATIVE__
+                   google,__HASH_MAP_GOOGLE__ ;
+
+# Configure a feature pool which can take the following values:
+#   none   ==>  __USE_POOL__=__POOL_NONE__
+#   bfsmen ==>  __USE_POOL__=__POOL_BFSMEM__
+#
+#  the default value is bfsmem
+#
+configure enable : pool : __USE_POOL__ 
+                 : bfsmem,__POOL_BFSMEM__ none,__POOL_NONE__ ;
+
+# Configure a feature 'zarch'  which can take the following values:
+#   yes ==>  #define __USE_ZIP_ARCHIVE__
+#   no  ==>  
+#
+#   the default value is: yes
+#
+configure enable : zarch : __USE_ZIP_ARCHIVE__ : yes no ;
+
+# Configure a feature 'nameblock'  which can take the following values:
+#   yes ==>  #define __USE_NAMESPACE__
+#   no  ==>  
+#
+#   the default value is: yes
+#
+#configure enable : nameblock : __USE_NAMEBLOCK__ : yes no ;
+
+# Configure a feature 'dynscope' which can take the following values:
+#   yes ==>  #define __USE_DYNSCOPE__
+#   no  ==>
+#
+#   the default value is: yes
+# 
+configure enable : dynscope : __USE_DYNSCOPE__ : yes no ;
+
+configure version : dbdrivers : 0 ;
+
+config.read [ path.join $(TOP) prj-config.jam  ] ;
+
+variant vtune : <optimization>speed <debug-symbols>on <define>NDEBUG ;
+
+project tol
+  : requirements <toolset>gcc:<cxxflags>-fno-strict-aliasing
+                 <include>.
+                 <include>$(TOP)
+                 [ config.includes ]
+                 $(os-reqs)
+                 <define>HAVE_CONFIG_H
+                 <define>USE_DELAY_INIT
+                 <define>__POOL_NONE__=0
+                 <define>__POOL_BFSMEM__=1
+                 <define>__HASH_MAP_MSVC__=1
+                 <define>__HASH_MAP_GOOGLE__=2
+                 <define>__HASH_MAP_GCC__=3
+                 <define>__HASH_MAP_ICC__=4
+  ;
+
+rule tag-lib ( name : type ? : property-set )
+{
+   return [ common.format-name 
+            <base> $(TOL_VERSION) : $(name) : $(type) : $(property-set) ] ;
+}
+
+rule tag-exe ( name : type ? : property-set )
+{
+   if $(type) = EXE
+   {
+       return [ virtual-target.add-prefix-and-suffix
+                $(name)$(TOL_VERSION) : $(type) : $(property-set) ] ;
+   }
+}
+
+rule obj-req ( props * )
+{
+    local result ;
+
+    if ( <hash_map>native in $(props) )
+    {
+        if ( <toolset>msvc in $(props) )
+        {
+            result = <define>__HASH_MAP_NATIVE__=__HASH_MAP_MSVC__ ;
+        }
+        else if ( <toolset>gcc in $(props) )
+        {
+            result = <define>__HASH_MAP_NATIVE__=__HASH_MAP_GCC__ ;
+        }
+        else if ( <toolset>intel in $(props) )
+        {
+            result = <define>__HASH_MAP_NATIVE__=__HASH_MAP_ICC__ ;
+        }
+    }
+    
+    return $(result) ;
+}
+
+rule objects ( name : sources + : requirements * )
+{
+  local t_list = ;
+
+  for o in $(sources)
+  {
+    local t =  $(o:B) ;
+    obj $(t) 
+      : $(o)
+      : <include>. <conditional>@obj-req $(requirements) ;
+      t_list += $(t) ;
+  }
+  alias $(name) : $(t_list) ;
+}
+
+rule ln-H ( h_list + )
+{
+  local cwd = [ PWD ] ;
+  local caller = [ CALLER_MODULE ] ;
+  # echo caller is $(caller) ;
+  local caller-location = [ modules.binding $(caller) ] ; 
+  caller-location = $(caller-location:D) ;
+  # echo cl is $(caller-location) ;
+  caller-location = [ path.root $(caller-location) $(cwd) ] ;
+  for h in $(h_list)
+  {
+    h-location = [ path.root $(h) $(caller-location) ] ;
+    local n = $(h:B)$(h:S) ;
+    make $(TOP)/tol/$(n) : $(h-location) : @myln ;
+  }
+}
+
+rule myln 
+{
+}
+
+actions myln
+{
+  ln -s -f $(>) $(<) ;
+}
+
+ln-H [ glob *.h ] ;
+
+#local subdirs = bbasic bmath bparser btol contrib dbdrivers initLibrary 
+#                lang OIS
+
+local subdirs = bbasic bmath bparser btol contrib lang OIS ;
+local all-obj-aliases ;
+for dir in $(subdirs)
+{
+  build-project $(dir) ;
+  all-obj-aliases += $(dir)//objs ;
+}
+
+local config-prefix = [ config.get-prefix tol ] ;
+local libdir = [ config.get-libdir tol ] ;
+local stdlib-location = [ path.join $(libdir) tol$(TOL_VERSION) stdlib ] ;
+
+ECHO stdlib-location es $(stdlib-location) ;
+
+obj init : init.cpp
+         : <define>TOLINIT_LIB_DIR=\\\"$(stdlib-location)\\\" 
+           <define>__TOL_BUILD_DATE__=\"\\\"$(build-date)\\\"\"
+           <define>__TOL_BUILD_TIME__=\"\\\"$(build-time)\\\"\"
+           <conditional>@obj-req
+         ;
+
+config.genlib gsl ;
+
+config.genlib lapack ;
+
+config.genlib cholmod ;
+
+config.genlib bz2 ;
+
+config.genlib ziparch  ;
+alias libziparch : ziparch : <zarch>yes ;
+alias libziparch :         : <zarch>no ;
+
+config.genlib z ;
+alias libz : z : <zarch>yes ;
+alias libz :   : <zarch>no ;
+
+lib dl ;
+
+all_libs = gsl lapack cholmod bz2 libziparch libz dl ;
+
+lib tol
+    : init $(all-obj-aliases) $(all_libs)
+    : <tag>@tag-lib 
+    ;
+
+build-project dbdrivers ;
+
+exe tolcon
+    : tol.cpp tol
+    ;
+
+package.install install-tol
+    : # requirements
+      <install-default-prefix>$(config-prefix)
+      <install-header-subdir>tol
+      <dll-path>$(libdir) [ config.hardcode-dll-paths ]
+    : # binaries
+      tolcon
+    : # libraries
+      tol dbdrivers
+    : # headers
+      [ glob tol/*.h tol/*.hpp ]
+    ;
+
+install install-stdlib
+      : [ path.glob-tree stdlib : *.tol *.tcl *.bst *.txt *.R : CVS ]
+      : <install-source-root>stdlib <location>$(stdlib-location) ;
+
+explicit install-stdlib ;
+
+alias install : install-stdlib install-tol ;
+explicit install ;

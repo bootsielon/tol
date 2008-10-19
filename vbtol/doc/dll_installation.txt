@@ -1,0 +1,23 @@
+Requerimientos necesarios para el uso de VBTol.dll
+
+
+- En el PATH debe estar incluido el camino donde se encuentra la dll asi' como
+  las dema's dll de Tol, ej:
+
+  C:\users\lramirez\TOL\trunk\tdtdoc\win-uptol\ActiveTOL\bin
+
+  Aclaremos que esta dll funciona so'lo a partir de la versio'n 1.1.7 del Tol,
+  por lo que debe tenerse cuidado de que no exista en los caminos de bu'squeda
+  de Visual Basic al tratar de resolver las referencias externas, alguna dll
+  de Tol de versiones anteriores.
+
+- Si se quiere tener acceso a las funciones de la InitLibrary se debe
+  definir la variable de entorno TOL_LIBRARY con el camino de la carpeta
+  stdlib, ej:
+
+  C:\users\lramirez\TOL\trunk\tdtdoc\win-uptol\ActiveTOL\bin\stdlib
+
+
+
+En la carpeta tests aparecen ejemplos sencillos del uso de la dll en los
+ficheros testX.xls (m'odulos testX)

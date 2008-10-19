@@ -1,0 +1,54 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+#AC_PREREQ(2.52)
+AC_INIT(${srcdir}/pkgIndex.tcl)
+
+AC_CONFIG_AUX_DIR(tclconfig)
+CONFIGDIR=${srcdir}/tclconfig
+AC_SUBST(CONFIGDIR)
+AM_INIT_AUTOMAKE(Tolbase, 1.1.7, daniel@uponeits.com)
+
+#--------------------------------------------------------------------
+# Set your package name and version numbers here.  The NODOT_VERSION is
+# required for constructing the library name on systems that don't like
+# dots in library names (Windows).  The VERSION variable is used on the
+# other systems.
+#--------------------------------------------------------------------
+
+PACKAGE=tolbase
+
+MAJOR_VERSION=1
+MINOR_VERSION=1
+PATCHLEVEL=7
+
+VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${PATCHLEVEL}
+NODOT_VERSION=${MAJOR_VERSION}${MINOR_VERSION}${PATCHLEVEL}
+
+AC_SUBST(PACKAGE)
+AC_SUBST(VERSION)
+
+
+TEA_INIT
+TEA_PATH_TCLCONFIG
+TEA_LOAD_TCLCONFIG
+TEA_PREFIX
+
+# Checks for programs.
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+
+TEA_PROG_TCLSH
+TEA_PROG_WISH
+
+# Checks for TCL packages
+#TB_CHECK_TCLPKG("Tktablet", [AC_MSG_ERROR([Tktablet not found])])
+TB_CHECK_TCLPKG("Tktable", [AC_MSG_ERROR([Tktable not found])])
+TB_CHECK_TCLPKG("snit", [AC_MSG_ERROR([snit not found])])
+TB_CHECK_TCLPKG("BLT", [AC_MSG_ERROR([BLT not found])])
+TB_CHECK_TCLPKG("tkdnd", [AC_MSG_ERROR([tkdnd not found])])
+#TB_CHECK_TCLPKG("Toltcl", [AC_MSG_ERROR([Toltcl not found])])
+
+AC_SUBST(ac_aux_dir)
+AC_OUTPUT([Makefile])

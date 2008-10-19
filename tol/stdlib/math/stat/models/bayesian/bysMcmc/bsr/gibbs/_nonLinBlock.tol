@@ -1,0 +1,320 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: _nonLinBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::NonLinBlock
+/////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.NonLinBlock =
+"Builds a NameBlock that can draw a MCMC sample of a generic Gibbs block "
+"defined by a non linear filter over the output or a set of inputs of a "
+"given BSR model.\n"
+"Arguments are:\n"
+"  NameBlock filterEval: Evaluates the non linear filter of inputs or "
+   "output. Must have next mandatory methods:\n"
+"    Text get.name(Real unused): Identifies the filter\n"
+"    Text get.segmentName(Real unused): Identifies the segment\n"
+"    Text get.colNames(Real unused): Parameters of non linear block\n"
+"    Set get.linBlkNames(Real unused): Parameters of linear block \n"
+"      This method must exist just for input filters.\n"
+"    Set get.bounds(i,u): Returns left and right bounds for i-th \n"
+"      parameter for current values of the rest of them.\n"
+"    Matrix eval(Matrix param): Returns the filter matrix\n"
+"  NameBlock bsr: Result of calling BsrAsBlock\n"
+"  Real numBlock: The order of this block in full MCMC.\n"
+"  Real firstCol: First column of this block in full MCMC\n"
+"  NameBlock config: User configuration parameters\n";
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock NonLinBlock(
+    //Filter evaluator
+    NameBlock filterEval, 
+    //Basic BSR that will be modified by filter
+    NameBlock bsr,
+    //Number of block in non linear master
+    Real numBlock, 
+    //First column in MCMC
+    Real firstCol,
+    //Configuration parameters
+    NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  //Scalar sampler
+  Code _scalarSampler = config::bsr.scalarSampler.nonLinBlock;
+  //Basic BSR that will be modified by filter
+  NameBlock _.bsr = bsr;
+  //Filter evaluator
+  NameBlock _.filterEval = filterEval;
+  //Filter name
+  Text _.name = _.filterEval::get.name(0);
+  //Message identificator
+  Text _MID = "[NonLinBlock("+_.name+")]";
+  //Name of affected segment in BSR
+  Text _.segmentName = _.filterEval::get.segmentName(0);
+  //Number of affected segment in BSR
+  Real _.segmentNum = FindIndexByName((_.bsr::_.modelDef)->NoiseDistrib,
+                                      _.segmentName);
+  //Affected segment in BSR
+  Set _.segment = If(!_.segmentNum,
+  {
+    Real CMsg::Coded::show(BysMcmc::_.cmsg::_.notFoundSegment,
+    [[
+      _MID,
+      _.segmentName
+    ]]);
+    Copy(Empty)
+  },
+  {
+    ((_.bsr::_.modelDef)->NoiseDistrib)[_.segmentNum]
+  });
+  //Number of non linear parameters
+  Set _.colNames = _.filterEval::get.colNames(0);
+  //For input filters is +1, for output ones -1
+  Real _.signNoise = If(
+    FunctionExist("Set","_.filterEval::get.linBlkNames"),
+    +1,-1);
+  //Names of affected parameters in linear block 
+  //(just for input filters)
+  Set _.linBlkNames = If(Eq(_.signNoise,-1), Copy(Empty),
+  {
+    _.filterEval::get.linBlkNames(0)
+  });
+  //Positions of columns of affected parameters in linear block 
+  //(just for input filters)
+  Set _.filterColIdx = If(Eq(_.signNoise,-1), 1,
+  {
+    _.bsr::_.lin.blk::_.blockDef::getStoreColIndexes(_.linBlkNames)
+  });
+  //Total number of affected parameters in linear block 
+  //It's 0 for output filters
+  Real _.filterColNum = Card(_.filterColIdx);
+  //Defining the block in the Markov Chain
+  NameBlock _.blockDef = BysMcmc::DefineBlock
+  (
+    _.name,
+    _.colNames,
+    numBlock,
+    firstCol,
+    config
+  );
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Called by BysMcmc::Bsr::Gibbs::NonLinMaster at initialization time
+  Real initialize(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real ok = _.filterEval::initialize(0);
+    Real setStore(_.filterEval::get.parameter(0));
+    ok
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.scalar =
+  "Method of generation of a non linear block by using current scalar method,"
+  " given by scalarSampler for each parameter";
+  VMatrix draw.scalar(Real numSim, 
+                      Real calcMaxLikelihood) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" draw.scalar 1 calcMaxLikelihood="<<calcMaxLikelihood);
+    VMatrix   fullNoise = _.bsr::_.noise;
+    NameBlock arimaBlk  = _.bsr::_.arm.blk;
+    NameBlock sigBlk    = _.bsr::_.sig.blk;
+    Matrix u = VMat2Mat(_.blockDef::_.store);
+    Matrix linBlkParam= If(Eq(_.signNoise,-1), Col(1),
+      SubRow(VMat2Mat(_.bsr::_.lin.blk::_.blockDef::_.store), 
+                         _.filterColIdx));
+    Matrix Fi = _.filterEval::eval(u);
+    Matrix Z = VMat2Mat(SubRow(fullNoise,_.segment->EquIdx)*_.signNoise) + 
+               Fi * linBlkParam;
+    Set aux = _.segment->ArimaAuxInfo;
+    Set arima = _.segment->Arima;
+    Polyn dif = ARIMAGetDIF(arima);
+    Real sigma2 = VMatDat(sigBlk::_.blockDef::_.store,_.segment->SigmaIndex,1);
+    Real d = aux::difDegree;
+    Real p = aux::p;
+    Real q = aux::q;
+    Real m = aux::m;
+    Real n = m - d;
+  //WriteLn("TRACE ");Set View([[d,p,q,m,n]],""); WriteLn("");
+  //WriteLn("TRACE"+_MID+" draw.scalar 2");
+    Set draw.all = For(1,Card(_.blockDef::_.colNames), 
+    Real scalar.draw.one(Real i)
+    {
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.["+IntText(i)+"].1");
+      Set bounds = _.filterEval::get.bounds(i,u);
+      Real x0 = bounds[1];
+      Real x1 = bounds[2];
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.["+IntText(i)+"].2");
+    //WriteLn("TRACE"+_MID+" draw.scalar arimaBlk::_.blockDef::enabled=["<<arimaBlk::_.blockDef::enabled+"]");
+    //WriteLn("TRACE"+_MID+" draw.scalar d=["<<d+"]");
+    //WriteLn("TRACE"+_MID+" draw.scalar p=["<<p+"]");
+    //WriteLn("TRACE"+_MID+" draw.scalar q=["<<q+"]");
+    //WriteLn("TRACE"+_MID+" draw.scalar bounds=["<<x0+","<<x1+"]");
+    //WriteLn("TRACE"+_MID+" draw.scalar linBlkParam="<<linBlkParam);
+      Matrix EvalFilteredNoise(Real x)
+      {
+        Real old = MatDat(u,i,1);
+        Real Do PutMatDat(u,i,1,x);
+        Matrix Fi = _.filterEval::eval(u);
+        Real Do PutMatDat(u,i,1,old);
+        Z-Fi*linBlkParam
+      };
+/*
+      Real maxLogLikelihood = -1/0;
+      Real maxLogLikelihood.x = 0;
+      Real UpdateMaxLogLikelihood(Real x, Real llh)
+      {
+      //WriteLn("TRACE"+_MID+" UpdateMaxLogLikelihood("<<x+","<<llh+")");
+        Real If(calcMaxLikelihood,
+          If(llh>maxLogLikelihood,
+          {
+          //WriteLn("TRACE"+_MID+" UpdateMaxLogLikelihood from ("<<maxLogLikelihood.x+","<<maxLogLikelihood+") to ("<<x+","<<llh+")");
+            Real maxLogLikelihood   :=llh;
+            Real maxLogLikelihood.x := x
+          }));
+        1
+      };
+*/
+      Real LogDens.WhiteNoise(Real x)
+      {
+        Matrix ei = EvalFilteredNoise(x);
+        Real ld = -0.5*MatDat(MtMSqr(ei),1,1)/sigma2;
+      //WriteLn("TRACE LogDens.WhiteNoise("+_.colNames[i]+","<<x+")="<<ld);
+      //Real UpdateMaxLogLikelihood(x,ld);
+        ld
+      };
+      Real LogDens.ARMA(Real x)
+      {
+        Matrix Zi = EvalFilteredNoise(x);
+        VMatrix Zi_ = Mat2VMat(Zi);
+        VMatrix ei_ = arimaBlk::filterJustBlock(_.segment, Zi_);
+        Matrix  ei  = VMat2Mat(ei_);
+        Real ld = -0.5*MatDat(MtMSqr(ei),1,1)/sigma2;
+      //WriteLn("TRACE LogDens.ARMA("+_.colNames[i]+","<<x+")="<<ld);
+      //Real UpdateMaxLogLikelihood(x,ld);
+        ld
+      };
+      Real LogDens.ARIMA(Real x)
+      {
+        Matrix Zi = EvalFilteredNoise(x);
+      //WriteLn("TRACE Zi("<<Rows(Zi)+","<<Columns(Zi)+")");
+        Matrix Wi = Rand(d,1,0,0) << Sub(DifEq(dif/1,Zi),d+1,1,n,1);
+      //WriteLn("TRACE Wi("<<Rows(Wi)+","<<Columns(Wi)+")");
+        VMatrix Wi_ = Mat2VMat(Wi);
+        VMatrix ei_ = arimaBlk::filterJustBlock(_.segment, Wi_);
+      //WriteLn("TRACE ei_("<<VRows(ei_)+","<<VColumns(ei_)+")");
+        Matrix  ei  = VMat2Mat(Sub(ei_,d+1,1,n,1));
+      //WriteLn("TRACE ei("<<Rows(ei)+","<<Columns(ei)+")");
+        Real ld = -0.5*MatDat(MtMSqr(ei),1,1)/sigma2;
+      //WriteLn("TRACE LogDens.ARIMA("+_.colNames[i]+","<<x+")="<<ld);
+      //Real UpdateMaxLogLikelihood(x,ld);
+        ld
+      };
+      Code LogDens = Case(
+        Or(Not(arimaBlk::_.blockDef::enabled),And(Not(p),Not(q))), 
+          LogDens.WhiteNoise,
+        d==0,                     
+          LogDens.ARMA,
+        1==1,                     
+          LogDens.ARIMA );
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.["+IntText(i)+"].3");
+      Real x = MatDat(u,i,1);
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.["+IntText(i)+"].4");
+      Real If(Or(x<x0,x>x1), x := Rand(x0,x1) );
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.["+IntText(i)+"].5");
+      Real x:= If(!calcMaxLikelihood, 
+      {
+        _scalarSampler(LogDens,x0,x1,x)
+      },
+      {
+        Real MinusLogDens(Real x_) { -LogDens(x_) };
+        Real y=0;
+        FibonacciMin(MinusLogDens, y, x0, x1, 1.E-5*n)
+      });
+    //WriteLn("TRACE draw.scalar x= "<<x);
+    //WriteLn("TRACE draw.scalar calcMaxLikelihood.x= "<<calcMaxLikelihood.x);
+    //WriteLn("TRACE draw.scalar x= "<<x);
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.["+IntText(i)+"].6");
+      Real PutMatDat(u,i,1,x);
+    //WriteLn("TRACE"+_MID+" draw.scalar x="<<x);
+      x
+    });
+  //WriteLn("TRACE"+_MID+" draw.scalar 3");
+  //Real show.arma(0);
+    Matrix values = SetCol(draw.all);
+  //WriteLn("TRACE"+_MID+" draw 3 "<<Matrix Tra(values));
+    Real Do setStore(values);
+  //WriteLn("TRACE"+_MID+" draw 5 ");
+    Real _.blockDef::checkNonFiniteValues(numSim);
+  //WriteLn("TRACE"+_MID+" draw.scalar 4");
+    Copy(_.blockDef::_.store)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Method of generation of non linear block ";
+  VMatrix draw(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" draw 1");
+    If(_.blockDef::enabled,
+    {
+    //WriteLn("TRACE"+_MID+" draw 2");
+      draw.scalar(numSim, False)
+    },
+    {
+    //WriteLn("TRACE"+_MID+" draw 3");
+      Copy(_.blockDef::_.store)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "Method of contitioned maximum likelihood";
+  VMatrix maxLikelihood(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" maxLikelihood 1");
+    draw.scalar(numSim, True)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::_.numCol<=0,0,
+    {
+      Real _.blockDef::setStore(values);
+      Matrix Fi = _.filterEval::eval(VMat2Mat(_.blockDef::_.store));
+      If( _.signNoise == -1, 
+      {
+        _.bsr::setSegmentOutput(Fi,_.segmentNum)
+      },
+      {
+        SetMin(For(1,_.filterColNum,Real(Real column)
+        {
+          _.bsr::setSegmentInputCol(
+            SubCol(Fi,[[column]]),
+            _.segmentNum, 
+            _.filterColIdx[column])
+        }))
+      })
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Sets _.store to the columns related to this block of a given row of a "
+  "Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
+  }
+
+]]};
+
+

@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _timer.tol
+// PURPOSE: methods related to timer
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock Timer = [[
+  /*
+      Timer::Start --
+
+      Create a NameBlock to meassure time elapse since its creation
+      until Finish method be invoked.
+
+      Example:
+       
+        NameBlock tm0 = Timer::Start("TASK");
+        
+        ... do the task ...
+
+        Real tm0::Finish(0);
+   */
+  NameBlock Start(Text msg)
+  {
+    WriteLn("Starting " << msg);
+    NameBlock [[ 
+      Text _.msg = msg;
+      Real _.t0 = Copy(Time);
+      
+      Real Finish(Real void)
+      {
+        Real elapsed = Copy(Time)-_.t0;
+        WriteLn("DONE " << _.msg 
+                        << " after "
+                        << FormatReal(elapsed, "%g sec"));
+        Real elapsed
+      }
+    ]]
+  }
+]];
+

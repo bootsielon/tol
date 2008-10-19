@@ -1,0 +1,96 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _db_api.tools.pri.tol
+// PURPOSE : Implements database tools related methods of NameBlock 
+//           BysMcmc::Bsr::DynHlm::DBApi
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new latent equation register
+Real ModSes.Pri.Equ.Create(Text dbName, 
+                           Text model, 
+                           Text session,
+                           Text node_father,
+                           Real numEqu,
+                           Real average,
+                           Real sigma)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::PriEqu+"\n"+
+  "VALUES('"+model+"','"+session+"',"
+  "'"+node_father+"',"+
+  IntText(numEqu)+","+
+  SqlFormatReal(average)+","+
+  SqlFormatReal(sigma)+")");
+  Eval("ModSes.Pri.Equ.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new prior output register
+Real ModSes.Pri.Output.Create(Text dbName, 
+                              Text model, 
+                              Text session,
+                              Text node_father,
+                              Real numEqu,
+                              Text node_child,
+                              Text parameter_child,
+                              Real coef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::PriOutput+"\n"+
+  "VALUES('"+model+"','"+session+"',"
+  "'"+node_father+"',"+
+  IntText(numEqu)+","+
+  "'"+node_child+"','"+parameter_child+"',"+
+  SqlFormatReal(coef)+")");
+  Eval("ModSes.Pri.Output.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real ModSes.Pri.Homog_1.Create(Text dbName, 
+                               Text model, 
+                               Text session,
+                               Text id_node,
+                               Text description,
+                               Set  node_childs)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real ok = If(Card(node_childs)<1,
+  {
+    Text aux = If(Card(node_childs)," but one "," "); 
+    WriteLn("Cannot create prior node "+id_node+" due to related input"
+    " is disabled along all"+aux+"child nodes","W");
+    0
+  },
+  {
+    WriteLn("Creating latent node "+id_node+" for "<<Card(node_childs)+
+            " observational nodes");
+    Real ok.1 = ModSes.Node.Create
+    (
+      dbName, id_model, id_session, id_node, 
+      "PRI",
+      888888888,
+      1,
+      description
+    );
+    Real ok.2 = SetMin(For(1,Card(node_childs), Real pri.equ(Real k)
+    {
+      NameBlock child = node_childs[k];
+      Real ModSes.Pri.Equ.Create(
+        dbName, model, session,id_node,k,
+        child::_.average,
+        child::_.sigma);
+      Real ModSes.Pri.Output.Create(
+        dbName, model, session,id_node,k,
+        child::_.id_node,
+        child::_.id_parameter,
+        1.0)
+    }));
+    And(ok.1,ok.2)
+  });
+  Eval("ModSes.Pri.Homog_1.Create."+id_node+".ok=ok")
+};
+

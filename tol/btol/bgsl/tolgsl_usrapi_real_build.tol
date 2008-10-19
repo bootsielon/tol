@@ -1,0 +1,306 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE: tolgsl_usrapi_real_build.tol
+// PURPOSE: generates C++ source code tolgsl_usrapi_real.cpp containing
+// TOL built-in functions to allow TOL users to work with GSL functions which 
+// both returning and arguments are all of numeric type 
+// First to run this file, you need to compile tolgsl_usrapi_real_def.tol
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// Generating information
+//////////////////////////////////////////////////////////////////////////////
+Text cpp          = "tolgsl_usrapi_real.cpp";
+Text author       = "vdebuen@tol-project.org";
+Text lastModified = FormatDate(Now,"%c%Y-%m-%d %h:%i:%s");
+
+//////////////////////////////////////////////////////////////////////////////
+// Parsing arguments and generating C++ code for each allowed GSL function
+//////////////////////////////////////////////////////////////////////////////
+Set def.fun.args = EvalSet(def.fun,Set(gsl.fun.info f)
+{
+
+  Text type    = f->type_;
+  Text name    = f->name_;
+  Text args    = f->args_;
+  Text group   = f->group_;
+  Real gslfver = f->gsl_needed_version_;
+  Text GSLFVER = IntText(gslfver);
+  Set groupReg = Select(def.group,Real(Set a) { a[2]==group });
+
+  If(!Card(groupReg),
+  {
+    WriteLn("Group not found for GSL funtion "+name+" that will be skiped");
+    gsl.fun.args.info
+    (
+      "",
+      "",
+      type,
+      name,
+      args,
+      ?,
+      "",
+      Empty
+    )
+  },
+  {
+
+    Text class     = groupReg[1]->class_;
+    Text gsl_link  = groupReg[1]->gsl_link_;
+    Text math_link = groupReg[1]->math_link_;
+
+    Set  classReg       = Select(def.class,Real(Set a) { a[1]==class });
+    Text class_title    = classReg[1]->title_;
+    Text class_gsl_link = classReg[1]->gsl_link_;
+
+    Text argLst = ReplaceTable(args,
+    [[
+      [["(",""]],
+      [[")",""]],
+      [[", ",","]],
+      [[" *","*"]],
+      [["unsigned int","uint"]],
+      [["const unsigned int","cuint"]],
+      [["const double","cdouble"]],
+      [["const gsl_rng*","cgrp"]],
+      [["const gsl_ran_discrete_t*","cgrdp"]]
+    ]]);
+    Set argTok = Tokenizer(argLst,",");
+    Real hasNotValidTypes = FALSE;
+    Real tolArgCum = 0;
+    Text ADec = "";
+    Text ADef = "";
+    Set argTable = EvalSet(argTok,Set(Text tok)
+    {
+      Set tt = Tokenizer(tok," ");
+      Text type = tt[1];
+      Text name = tt[2];
+      If(Card(tt)!=2,WriteLn("<E>Error: invalid argument list "<<
+        f+"\n"+argLst+"</E>")); 
+      Real If(Or(TextFind(type,"*"),
+                 TextFind(type,"cgrdp"),
+                 TextFind(name,"[]")), hasNotValidTypes := TRUE);
+      Text tolType = Case
+      (
+        type=="double", "Real",
+        type=="int",    "Real",
+        type=="uint",   "Real",
+        1==1,           ""           
+      );
+      Real tolArgCum := tolArgCum + (tolType!="");
+      Real tolArgNum = If(tolType!="",Copy(tolArgCum),0);
+      Text tolExpr = Case
+      (
+        type=="double",     "Real(Arg("+IntText(tolArgNum)+"))",
+        type=="int",        "(int)Real(Arg("+IntText(tolArgNum)+"))",
+        type=="uint",       "(unsigned int)Real(Arg("+IntText(tolArgNum)+"))",
+        type=="gsl_mode_t", "GSL_PREC_DOUBLE",
+        type=="cgrp",       "BProbDist::rng()",
+        1==1,               ""           
+      );
+      Text ADec := ADec + If(tolType=="","",
+                             If(ADec=="","",", ")+tolType+" "+name);
+      Text ADef := ADef + If(tolExpr=="","",
+                             If(ADef=="","",", ")+tolExpr);
+      [[type,name,tolType,tolArgNum,tolExpr]]
+    });
+    Real numArgs = Card(argTable);
+    Text NA = If(!tolArgCum,"1",IntText(tolArgCum));
+    Text If(!tolArgCum,ADec := "Real unused");
+    Text cln = "\\n\"\n  \"";
+    Text description = 
+    "[GSL: GNU Scientific Library] ["+class+"] ["+group+"]"+cln+
+
+    "GSL chapter: "+class_title+" "+cln+
+    "  "+class_gsl_link+cln+
+    "You can see a description of correspondent C function at GSL manual page: "+cln+
+    "  "+gsl_link+cln+
+    If(math_link=="","",
+    "Mathematical concepts about this function are exposed at : "+cln+
+    "  "+math_link);
+
+    Text decdef = If(hasNotValidTypes,"",
+"
+//--------------------------------------------------------------------
+  DecDefIntOprDatGsl(1, "+name+", "+NA+", "+NA+", 
+  \"("+ADec+")\",
+  \""+description+"\");
+  void BDat_"+name+"::CalcContens()
+//--------------------------------------------------------------------
+{ 
+  contens_.PutKnown(false);
+  for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
+#if (GSL_VERSION_NUM >= "+GSLFVER+")
+  contens_ = "+name+"("+ADef+"); 
+#else
+  ErrorGslFVer("+GSLFVER+",\""+name+"\");
+#endif
+}
+");
+    gsl.fun.args.info
+    (
+      class,
+      group,
+      type,
+      name,
+      args,
+      hasNotValidTypes,
+      decdef,
+      argTable
+    )
+  })
+});
+
+//////////////////////////////////////////////////////////////////////////////
+// Fields position in structure gsl.fun.args.info
+//////////////////////////////////////////////////////////////////////////////
+Real class.pos            = 1;
+Real group.pos            = 2;
+Real type.pos             = 3;
+Real name.pos             = 4;
+Real args.pos             = 5;
+Real hasNotValidTypes.pos = 6;
+Real decdef.pos           = 7;
+Real argTable.pos         = 8;
+
+//////////////////////////////////////////////////////////////////////////////
+// All found argument types
+//////////////////////////////////////////////////////////////////////////////
+Set fun.args.types = 
+{
+  Set aux1 = BinGroup("<<",BinGroup("<<",Extract(def.fun.args,argTable.pos)));
+  Set aux2 = Classify(aux1,Real(Set a, Set b) { Compare(a[1],b[1]) });
+  EvalSet(aux2, Set(Set cl) 
+  { 
+    Text type = cl[1][1];
+    Real num  = Card(cl);
+    [[type, num]]
+  })
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Sorting functions information by class,group,name
+//////////////////////////////////////////////////////////////////////////////
+Set def.fun.args.sorted = Sort(def.fun.args,Real(Set a, Set b)
+{
+  Compare(a->class_,b->class_)*100+
+  Compare(a->group_,b->group_)*10+
+  Compare(a->name_, b->name_ )
+});
+
+//////////////////////////////////////////////////////////////////////////////
+// Extracting C++ expression for all GSL allowed functions
+//////////////////////////////////////////////////////////////////////////////
+Text api = SetSum(Traspose(Extract(def.fun.args.sorted,decdef.pos))[1]);
+
+//////////////////////////////////////////////////////////////////////////////
+// Generic information about GSL in this TOL user´s API
+//////////////////////////////////////////////////////////////////////////////
+Text def.group.doc =
+{
+  Set aux1 = Classify(def.group, Real(Set a, Set b) 
+  { 
+    Compare(a->class_,b->class_)
+  });
+  "/*\n"+
+  "
+There are "+IntText(Card(def.fun.args.sorted))+
+  " functions in this TOL user's API about these GSL chapters \n"+
+  SetSum(EvalSet(aux1,Text(Set cl)
+  {
+    Text class    = cl[1][1];
+    Set  classReg = Select(def.class,Real(Set a) { a[1]==class });
+    Text class_title    = classReg[1]->title_;
+    Text class_gsl_link = classReg[1]->gsl_link_;
+    "\n  -"+class_title+" ("+class_gsl_link+"):\n"+
+    SetSum(EvalSet(cl,Text(gsl.group.info g)
+    {
+      Set f=Select(def.fun.args.sorted,Real (Set a) 
+     { 
+       And(a->group_==g->group_, a->decdef_!="")
+     });
+      "    -"+g->group_+" : "+IntText(Card(f))+" functions;\n"
+    }))
+  }))+"
+*/"  
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// Writing C++ file
+//////////////////////////////////////////////////////////////////////////////
+WriteFile(cpp,
+"/* "+cpp+": 
+
+   Copyright (C) 2003 - Bayes Decision, SL (Spain [EU])
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   USA.
+ */
+
+/*!
+  \file   "+cpp+"
+  \author "+author+"
+  \date   "+lastModified+"
+
+  \brief  TOL Built-in functions to allow TOL users to work with GSL functions 
+          which both returning and arguments are all of numeric type 
+*/
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// ATTENTION!! NOTE FOR DEVELOPPERS:
+//
+//   This code has been automatically generated with TOL
+//   Please don´t edit it. Any change should be made in TOL files
+// 
+//     tolgsl_api_real_def.tol
+//     tolgsl_api_real_build.tol
+// 
+//////////////////////////////////////////////////////////////////////////////
+
+"+def.group.doc+"
+
+#if defined(_MSC_VER)
+#include <win_tolinc.h>
+#endif
+
+#include <tol/tol_gsl.h>
+#include <gsl/gsl_sf.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_cdf.h>
+#include <tol/tol_bprdist.h>
+
+//--------------------------------------------------------------------
+// specialized macro for GSL reals to real functions declaration
+//--------------------------------------------------------------------
+
+//Numerical representation of GSL string version
+#define GSL_VERSION_NUM 10400
+
+#define DecDefIntOprDatGsl(ORD, NAME, MINARG, MAXARG, LISTARGS, DESC)   \
+  DeclareContensClass(BDat, BDatTemporary, BDat_##NAME); \
+  DefIntOpr(ORD, BDat_##NAME, #NAME, MINARG, MAXARG, LISTARGS, DESC, BOperClassify::RealArythmetic_GSL_);
+
+#define  ErrorGslFVer(GSLFVER, funName) \
+  Error(I2(\"Needed GSL version \", \"Se necesita la version de GSL \") << GSLFVER<< \
+        I2(\" in order to use function \", \" para usar la función \") << funName);
+
+"+
+api);
+
+BTraceInit("+cpp+");
+
+/* */

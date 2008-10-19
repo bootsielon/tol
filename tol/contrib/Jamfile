@@ -1,0 +1,10 @@
+local subdirs = kmlocal clusterlib alglib optimal_bw ;
+
+local contrib-objs ;
+for local d in $(subdirs)
+{
+  build-project $(d) ;
+  contrib-objs += $(d)//objs ;
+}
+
+alias objs : $(contrib-objs) ;

@@ -1,0 +1,341 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _db_api.estim.tol
+// PURPOSE : Implements model estimation related methods of NameBlock 
+//           BysMcmc::Bsr::DynHlm::DBApi
+//////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////
+//Stores in database CODA report information of a given estimation
+Real SaveParamStats(Text dbName, Text model, Text session, Set estim)
+////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("[SaveParamStats] Storing in data base diagnostics about "
+    "estimated parameters");
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::ParamStats+"\n"
+  "WHERE id_model='"+model+"' AND id_session='"+session+"';\n");
+  Set summary  = estim::report::coda.summary;
+  Set raftery_ = estim::report::coda.raftery.diag;
+  Set raftery  = If(Card(raftery_)==Card(summary)+1, raftery_, Copy(Empty));
+  Set For(1,Card(estim::report::coda.summary),Real save.param(Real k)
+  {
+    Set cs = summary[k];
+    Set cr = If(Card(raftery), raftery[k], 
+                BysInf.Coda.Diag.Raftery("",?,?,?,?,?,?));
+    WriteLn("[SaveParamStats] Storing "+cs->varName_);
+    Set token = Tokenizer(Replace(cs->varName_,"::",":"),":");
+    Text gibbs_blk = token[1];
+    Text id_node = token[2];
+    Text id_parameter = token[3]+If(Card(token)==3,"",
+      SetSum(For(4,Card(token),Text build.member(Real tk) 
+      {"::"+token[tk]} )));
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+    "INSERT INTO "+dbName+"."+_table::ParamStats+"\n"
+    "VALUES('"+
+     model+"','"+
+     session+"','"+
+     id_node+"','"+
+     id_parameter+"','"+
+     gibbs_blk+"',"<<
+     IntText(k)+","<<
+     SqlFormatReal(cs->mean_)+","<<
+     SqlFormatReal(cs->sd_)+","<<
+     SqlFormatReal(cs->naive.se_)+","<<
+     SqlFormatReal(cs->tmser.se_)+","<<
+     SqlFormatReal(cs->q.001_)+","<<
+     SqlFormatReal(cs->q.025_)+","<<
+     SqlFormatReal(cs->q.250_)+","<<
+     SqlFormatReal(cs->q.500_)+","<<
+     SqlFormatReal(cs->q.750_)+","<<
+     SqlFormatReal(cs->q.975_)+","<<
+     SqlFormatReal(cs->q.999_)+","<<
+     SqlFormatReal(cr->length_)+","<<
+     SqlFormatReal(cr->burnin_)+","<<
+     SqlFormatReal(cr->size_)+","<<
+     SqlFormatReal(cr->size.min_)+","<<
+     SqlFormatReal(cr->dep.factor_)+","<<
+     SqlFormatReal(cr->remain_)+")" )
+  });
+  1
+};
+
+/////////////////////////////////////////////////////////////////////////////
+//Builds linear block effects for a row vector of parameters related to the
+//given set of variable names corresponding to the BSR-HLM estimation with
+//the specified series.handler
+Set GetLinearBlkEffects(Set colNames_, 
+                        Matrix param, 
+                        NameBlock gibbs, 
+                        NameBlock series.handler)
+/////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("[GetLinearBlkEffects] Building series of linear block effects");
+  Set colNames = EvalSet(colNames_,Text(Text name) 
+  { 
+    Text expr = ToName(name)+"=name";
+    Eval(expr) 
+  });
+  Real SetIndexByName(colNames);
+
+  Set LinearBlk.Effects = EvalSet(series.handler::_.obs.node, Set(NameBlock nsh)
+  {
+    WriteLn("[GetLinearBlkEffects] Building node "+nsh::_.id_node);
+    Set effect = EvalSet(nsh::_.input, Serie(NameBlock inp)
+    {
+      Text inpName = Name(inp);
+      WriteLn("[GetLinearBlkEffects] Building input "+inpName);
+      Ratio tf = If(!ObjectExist("Ratio","inp::_.transferFunction"),1/1,
+        inp::_.transferFunction);
+      Polyn omega = Numerator  (tf);
+      Polyn delta = Denominator(tf);
+      Real p = Degree(omega);
+      Real q = Degree(delta);
+      Real h = Max(p,q);
+      Real noTransFunFlag = h==0;
+     
+      Serie eff = Case(
+      Not(inp::_.enabled), 
+      {
+        inp::_.serie*0
+      },
+      noTransFunFlag,
+      {
+        Real coef = 
+        {
+          Text varName = "LinearBlk::"+nsh::_.id_node+"::"+inpName+"::Coef";
+          Text varNameTol = ToName(varName);
+          Real k = FindIndexByName(colNames, varNameTol);
+          If(!k, WriteLn("Cannot find lineal parameter called "+
+            varNameTol+" in set \n"<<colNames,"E"));
+          MatDat(param,1,k)
+        };
+        inp::_.serie * coef
+      },
+      1==1,
+      {
+        Polyn omega.estim = SetSum(EvalSet(Monomes(omega),Polyn(Polyn mon)
+        {
+          Text varName = "OmegaBlk::"+nsh::_.id_node+"::"+
+                         inpName+"::NumDeg."+IntText(Degree(mon));
+          Text varNameTol = ToName(varName);
+          Real k = FindIndexByName(colNames, varNameTol);
+          If(!k, WriteLn("Cannot find omega parameter called "+
+            varNameTol+" in set \n"<<colNames,"E"));
+          MatDat(param,1,k)
+        }));
+        Polyn delta.estim = SetSum(EvalSet(Monomes(1-delta),Polyn(Polyn mon)
+        {
+          Text varName = "DeltaBlk::"+nsh::_.id_node+"::"+
+                         inpName+"::DenDeg."+IntText(Degree(mon));
+          Text varNameTol = ToName(varName);
+          Real k = FindIndexByName(colNames, varNameTol);
+          If(!k, WriteLn("Cannot find delta parameter called "+
+            varNameTol+" in set \n"<<colNames,"E"));
+          MatDat(param,1,k)
+        }));
+        Set denIni.estim = For(1,h,Real denIni.param(Real lag)
+        {
+          Text varName = "DeltaBlk::"+nsh::_.id_node+"::"+
+                         inpName+"::DenIni."+IntText(h-lag);
+          Text varNameTol = ToName(varName);
+          Real k = FindIndexByName(colNames, varNameTol);
+          If(!k, WriteLn("Cannot find delta init value parameter called "+
+            varNameTol+" in set \n"<<colNames,"E"));
+          MatDat(param,1,k)
+        });
+        If(!h, 
+        {
+          DifEq(tf, inp::_.serie)
+        },
+        {
+          Date fst.ser = First(inp::_.serie);
+          Date fst.p   = Succ(fst.ser, Dating(inp::_.serie), p);
+          Date fst.q   = Succ(fst.p,   Dating(inp::_.serie),-q);
+          Serie denIni.ser = MatSerSet(SetRow(denIni.estim), Dating(inp::_.serie), fst.q)[1];
+          DifEq(omega.estim/delta.estim, inp::_.serie, denIni.ser)
+        })
+      });
+      Eval(inpName+".Effect = eff")
+    });
+    Set Eval(nsh::_.id_node+".Effect=effect")
+  })
+};
+
+
+////////////////////////////////////////////////////////////////////////////
+//Estimates a BSR-HLM model and stores in data base status information 
+//during process and CODA diagnostics over parameters at the end
+//Returns the MCMC, the CODA report and the evaluation time series and 
+//effects using parameter average.
+Set Estim(Text dbName, 
+          Text model, 
+          Text session, 
+          Text resultRootPath,
+          NameBlock seriesHandler, 
+          NameBlock config_)
+////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock config = BysMcmc::BuildFullConfig(config_);
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  //Resets model-session register at EstimStatus table
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::EstimStatus+"\n"
+  "WHERE id_model='"+model+"' AND id_session='"+session+"';\n");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::EstimStatus+"\n"
+  "VALUES('"+
+    model+"','"+
+    session+"',"+
+    "1,"+
+    "NULL,"+   //te_path_data_out
+    "NULL,"+   //nu_mcmc_var
+    IntText(config::mcmc.burnin)+","+
+    IntText(config::mcmc.sampleLength)+","+
+    IntText(config::mcmc.cacheLength)+","+
+    "0,"+      //nu_mcmc_currentLength
+    "NULL,"+   //vl_mcmc_time_avg
+    "0,"+      //nu_error
+    "0,"+      //nu_warning
+    "NULL,"+   //dh_loading
+    "NULL,"+   //dh_parsing
+    "NULL,"+   //dh_initializing
+    "NULL,"+   //dh_simulating
+    "NULL,"+   //dh_reporting
+    "NULL,"+   //dh_evaluating
+    "NULL,"+   //dh_saving
+    "NULL)");  //dh_ending
+
+  //Creates the data base notifier of current status
+  NameBlock dbNotifier =
+  [[
+    Text _.dbName = dbName;
+    Text _.model  = model;
+    Text _.session  = session;
+    Real _.nErr = Copy(NError);
+    Real _.nWar = Copy(NWarning);
+
+    //Generic events notifier
+    Real notify_messages(Real unused)
+    {
+      Real DBExecQuery(
+      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
+      "SET nu_error = "+IntText(NError-_.nErr)+" \n"+
+      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
+      Real DBExecQuery(
+      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
+      "SET nu_warning = "+IntText(NWarning-_.nWar)+" \n"+
+      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
+      1
+    };
+    //Generic events notifier
+    Real notify_process(Text processField)
+    {
+      WriteLn("[dbNotifier] notify_process("+processField+")");
+      Real notify_messages(0);
+      Real DBExecQuery(
+      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
+      "SET "+processField+" = "+
+      BysMcmc::Bsr::DynHlm::DBApi::SqlFormatDate(Now)+" \n"+
+      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
+      1
+    };
+
+    //Model load event notifier
+    Real loading(Real unused)
+    {
+      Real notify_process("dh_loading")
+    };
+    //Model parser event notifier
+    Real parsing(Real unused)
+    {
+      Real notify_process("dh_parsing")
+    };
+    //Initialization event notifier
+    Real initializing(Real numVar, Text path)
+    {
+      Real notify_process("dh_initializing");
+      Real DBExecQuery(
+      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
+      "SET nu_mcmc_var = "+IntText(numVar)+" \n"+
+      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
+      Real DBExecQuery(
+      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
+      "SET te_path_data_out = '"+path+"' \n"+
+      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
+      1
+    };
+    //Simulation events notifier
+    Real simulating(Real numSim, Real timeAvg)
+    {
+      Real If(!numSim, notify_process("dh_simulating"), notify_messages(0));
+      Real DBExecQuery(
+      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
+      "SET nu_mcmc_currentLength = "+IntText(numSim)+" \n"+
+      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
+      Real DBExecQuery(
+      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
+      "SET vl_mcmc_time_avg = "<<timeAvg+" \n"+
+      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
+      1
+    };
+    //Report event notifier
+    Real reporting(Real unused) 
+    { 
+      Real notify_process("dh_reporting") 
+    };
+    //Evaluation event notifier
+    Real evaluating(Real unused) 
+    {
+      Real notify_process("dh_evaluating")
+    };
+    //Evaluation event notifier
+    Real saving(Real unused) 
+    {
+      Real notify_process("dh_saving")
+    };
+    //Process termination event notifier
+    Real ending(Real unused) 
+    {
+      Real notify_process("dh_ending");
+      BysMcmc::Bsr::DynHlm::DBApi::ModSes.SetBlocked(
+        _.dbName, _.model, _.session, false);
+      1
+    }
+  ]];
+
+  Real dbNotifier::loading(0);
+  NameBlock model.def = BysMcmc::Bsr::DynHlm::DBApi::LoadModelDef
+  (
+    dbName,
+    id_model,
+    id_session,
+    resultRootPath,
+    series.handler
+  );
+  Set bsr.estim_ = BysMcmc::Bsr::Gibbs::EstimAndNotify
+  ( model.def, config, dbNotifier);
+  Set bsr.estim = If(Not(config::do.linear.effects),bsr.estim_,
+  {
+    Set linear.effects = GetLinearBlkEffects(
+      bsr.estim_::report::colNames, 
+      bsr.estim_::param.average, 
+      bsr.estim_::gibbs,
+      series.handler);
+    bsr.estim_ << [[linear.effects]]
+  });
+  Real SetIndexByName(bsr.estim);
+  Real dbNotifier::saving(0);
+  Real Ois.Store(bsr.estim, bsr.estim::ascii+".estim.oza");
+  Real If(config::do.report,BysMcmc::Bsr::DynHlm::DBApi::SaveParamStats
+  (
+    dbName,
+    id_model,
+    id_session,
+    bsr.estim
+  ));
+  Real dbNotifier::ending(0);
+  bsr.estim
+};
+

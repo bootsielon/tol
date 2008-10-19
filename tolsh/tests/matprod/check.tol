@@ -1,0 +1,11 @@
+/* -*- mode: c++ -*- */
+ 
+Matrix parC = MatReadFile("parC.bbm");
+Matrix seqC = MatReadFile("seqC.bbm");
+Matrix diffC = parC - seqC;
+Real norm = MatFrobeniusNorm(diffC);
+WriteLn("|parC-seqC|="<<norm);
+Matrix errorData = Rand(1, 2, 0, 0);
+Real Do PutMatDat(errorData, 1, 1, Rows(diffC));
+Real Do PutMatDat(errorData, 1, 2, norm);
+Matrix MatAppendFile("norm.bbm", errorData);

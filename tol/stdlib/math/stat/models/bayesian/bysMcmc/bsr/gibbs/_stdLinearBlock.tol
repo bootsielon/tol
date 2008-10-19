@@ -1,0 +1,274 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _stdLinearBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::StdLinearBlock
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.StdLinearBlock =
+"Builds a NameBlock that can draw a Gibbs sample of an standarized linear "
+"block of a general regression model with variant input and ouput regression "
+"matrices and optional but fixed constraining inequations.";
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock StdLinearBlock(Text name, Set colNames, 
+                           Real numBlock, Real firstCol,
+                           NameBlock  config)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  //Generic block storement
+  NameBlock _.blockDef = BysMcmc::DefineBlock
+  (
+    name,
+    colNames,
+    numBlock,
+    firstCol,
+    config
+  );
+  //Messages IDentifier
+  Text    _MID = "["+_.blockDef::_.name+"] ";
+  //Number of columns or variables
+  Real    _.N  = _.blockDef::_.numCol;
+  //Number of restrictions
+  Real    _.R  = 0;
+  //Matrix of coefficients of constraining inequations
+  VMatrix _.A  = Rand(0,0,0,0); 
+  //The transpose of _.A
+  VMatrix _.At = Rand(0,0,0,0);
+  //Matrix of border of constraining inequations
+  VMatrix _.a  = Rand(0,0,0,0);
+  //Cholesky decomposition of current information matrix that is not
+  //explicitely stored
+  VMatrix _.L  = Rand(0,0,0,0);
+  //If you know that design matrix will be the same for all simulations you
+  //should to set this member as TRUE to avoid unneeded Cholesky 
+  //factorizations
+  Real design.is.constant = False;
+
+  //Maximum accepted rounding error for Choleski operations
+  Real _.eps  = _.blockDef::_.config::bsr.cholesky.epsilon*_.N*(_.N+1);
+  //Current number of simulations with high rounding error in solution
+  Real _.cholSolRoundErrNumWarn = 0;
+  //Current maximum of rounding error in solution
+  Real _.cholSolMaxRoundErr     = 0;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Initializes the block and checks that constrains are matched
+  Real initialize(VMatrix beta0, VMatrix A, VMatrix a)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+" initialize 1 beta0="<<beta0);
+    Real ok = TRUE;
+    VMatrix  (_.blockDef::_.store) := beta0;
+    Real    _.N    := VRows(beta0);
+  //WriteLn("TRACE "+_MID+" initialize 2 _.N="<<_.N);
+    Real    _.R    := VRows(A);
+  //WriteLn("TRACE "+_MID+" initialize 3 _.R="<<_.R);
+    VMatrix _.A    := A; 
+  //WriteLn("TRACE "+_MID+" initialize 4 _.A="<<_.A);
+    VMatrix _.At   := Tra(A);
+  //WriteLn("TRACE "+_MID+" initialize 5 _.At="<<_.At);
+    VMatrix _.a    := a;
+  //WriteLn("TRACE "+_MID+" initialize 6 _.a="<<_.a);
+    Code    _drawer   := If(_.R, draw.constrained, draw.unconstrained);
+  //WriteLn("TRACE "+_MID+" initialize 7");
+    VMatrix (_.blockDef::_.store) := If(!_.R, beta0,
+    {
+    //WriteLn("TRACE "+_MID+" initialize 8.1");
+      Real givenMatch = VMatMax(_.A*beta0 - _.a)<=0;
+    //WriteLn("TRACE "+_MID+" initialize 8.2");
+      If(givenMatch, 
+      {
+        WriteLn(_MID+"Given init values matches constrain inequations.");
+        beta0
+      },
+      {
+        WriteLn(_MID+"Given init values doesn't match constrain inequations."
+                "Trying zero solution ...", "W");
+        Real zeroMatch = VMatMax(-_.a)<=0;
+        If(zeroMatch, 
+        {
+          WriteLn(_MID+"Zero solution matches constrain inequations.");
+          Rand(_.N,1,0,0)
+        },
+        {
+          WriteLn(_MID+"Zero init values doesn't match constrain inequations.","W");
+          Real ok := FALSE;
+          beta0
+        })
+      })
+    });
+  //WriteLn("TRACE "+_MID+" initialize 9");
+    ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Update Cholesky factorization matrix _.L 
+  //If design matrix is assumed as constant does it just the first time
+  Real factorize(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(And(design.is.constant,VRows(_.L)), 0,
+    {
+      Real sparse = VNonNullCells(X)/(VRows(X)*VColumns(X));
+
+      VMatrix _.L := If(sparse<.20, 
+      {
+        CholeskiFactor(X,"XtX")
+      },
+      {
+        VMatrix X_   = Convert(X,"Blas.R.Dense");
+        VMatrix XtX_ = MtMSqr(X_);
+        VMatrix XtX  = Convert(XtX_,"Cholmod.R.Sparse");
+        CholeskiFactor(XtX,"X")
+      });
+      1
+    }) 
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //Solves the linear system corresponding to the standarized linear regression
+  NameBlock solve(Real numSim, VMatrix Y, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+" solve 1 X="<< VMat2Mat(X));
+    Real Do factorize(X);
+    Real If(VRows(_.L)<=0, CMsg::Coded::show
+      (BysMcmc::_.cmsg::_.invCholFac,[[_MID,""]]));
+    //WriteLn("TRACE "+_MID+" solve 3");
+    Real If(numSim==1, _.cholSolRoundErrNumWarn := 0 );
+
+  //WriteLn("TRACE "+_MID+" solve 4");
+    VMatrix XtY  = Tra(Tra(Y)*X);
+  //WriteLn("TRACE "+_MID+" solve 5 XtY="<<Matrix(VMat2Mat(Tra(XtY))));
+    VMatrix nu   = CholeskiSolve(_.L,XtY,"PtLLtP");
+  //WriteLn("TRACE "+_MID+" solve 6 nu="<<Matrix(VMat2Mat(Tra(nu))));
+    Real    err = VMatMax(Abs(XtY-Tra(Tra(X*nu)*X)));
+  //WriteLn("TRACE "+_MID+" solve 7 err="<<err);
+    Real If(err>=_.eps, 
+    {
+      Real _.cholSolRoundErrNumWarn := _.cholSolRoundErrNumWarn+1;
+      Real _.cholSolMaxRoundErr := Max(_.cholSolMaxRoundErr,err);
+      0
+    });
+    Real If(numSim & !(numSim%_.blockDef::_.config::bsr.cholesky.warningFreq),
+    {
+      If(_.cholSolRoundErrNumWarn,
+        WriteLn(_MID+"Cholesky solving had rounding error in interval ["<<
+          _.eps + ","<<_.cholSolMaxRoundErr+" for "<<_.cholSolRoundErrNumWarn+
+          " times of "<<numSim,"W"));
+      0
+    });
+  //WriteLn("TRACE "+_MID+" solve 8");
+    NameBlock [[ XtY, nu, err ]]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.unconstrained =
+  "Method of generation of a linear block in unconstrained case";
+  VMatrix draw.unconstrained(Real numSim, VMatrix Y, VMatrix X, NameBlock sr)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 2");
+    VMatrix   b1 = Gaussian(_.N,1,0,1);
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 3 b1="<<Matrix(VMat2Mat(Tra(b1))));
+    VMatrix   b2 = CholeskiSolve(_.L,b1,"LtP");
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 4 _.L="<<Matrix(VMat2Mat(_.L)));
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 4 b2="<<Matrix(VMat2Mat(Tra(b2))));
+    VMatrix  (_.blockDef::_.store) := sr::nu+b2;
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 5");
+    Copy(_.blockDef::_.store)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.constrained =
+  "Method of generation of a linear block in constrained case";
+  VMatrix draw.constrained(Real numSim, VMatrix Y, VMatrix X, NameBlock sr)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix   Ls  = Convert(_.L, "Cholmod.R.Sparse");
+    VMatrix   d   = _.a - _.A*sr::nu;
+    VMatrix   D   = Tra(CholeskiSolve(_.L,_.At,"PtL"));
+  //WriteLn("TRACE "+_MID+" draw.constrained 2 check D="<<Real VMatMax(Abs(_.At-CholeskiSolve(_.L,Ls*Tra(D),"Pt"))));
+    VMatrix   dif = _.blockDef::_.store-sr::nu;
+    VMatrix   b0  = Tra(Tra(CholeskiSolve(_.L,dif,"P"))*Ls);
+  //WriteLn("TRACE "+_MID+" draw.constrained 3 check b0="<<Real VMatMax(Abs(dif-CholeskiSolve(_.L,b0,"LtP"))));
+    VMatrix   b1  = TruncStdGaussian(D,d,b0,1,
+                     _.blockDef::_.config::bsr.truncMNormal.gibbsNumIter);
+    VMatrix   b2  = CholeskiSolve(_.L,b1,"LtP");
+  //WriteLn("TRACE "+_MID+" draw.constrained 4 check b2="<<Real VMatMax(Abs(b0-Tra(Tra(CholeskiSolve(_.L,b1,"P"))*Ls))));
+    VMatrix  (_.blockDef::_.store) := sr::nu+b2;
+    Copy(_.blockDef::_.store)
+  };
+
+  Code _drawer = draw.constrained;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Draws a simulation of a linear block in current case, constrained or not";
+  VMatrix draw(Real numSim, VMatrix Y, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::enabled,
+    {
+      NameBlock sr  = solve(numSim,Y,X);
+      VMatrix aux = _drawer(numSim, Y, X, sr);
+    //WriteLn("TRACE "+_MID+" draw");
+      Real _.blockDef::checkNonFiniteValues(numSim);
+      aux
+    },
+    {
+      Copy(_.blockDef::_.store)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "Method of contitioned maximum likelihood";
+  VMatrix maxLikelihood(Real numSim, VMatrix Y, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    NameBlock sr = solve(numSim,Y,X);
+  //WriteLn("TRACE "+_MID+" maxLikelihood sr::nu="<<Matrix(Tra(VMat2Mat(sr::nu))));
+    VMatrix aux = If(!_.R, 
+    {
+      sr::nu
+    },
+    {
+      VMatrix d = _.a - _.A*sr::nu;
+      If(VMatMax(d)>=0, sr::nu, 
+      {
+        WriteLn("Cannot do maxLikelihood for constrained linear block "+
+          _.blockDef::_.name,"W");
+        draw.constrained(numSim, Y, X, sr)
+      })
+    });
+    VMatrix  (_.blockDef::_.store) := aux;
+  //WriteLn("TRACE "+_MID+" maxLikelihood aux="<<Matrix(Tra(VMat2Mat(aux))));
+    Real _.blockDef::checkNonFiniteValues(numSim);
+    Copy(_.blockDef::_.store)
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::_.numCol<=0,0,{
+      _.blockDef::setStore(values) 
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Sets _.store to the columns related to this block of a given row of a "
+  "Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
+  }
+
+]]};

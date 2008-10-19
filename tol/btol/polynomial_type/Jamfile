@@ -1,0 +1,3 @@
+ln-H tol_bpolgra.h ;
+
+objects objs : polgra.cpp ;

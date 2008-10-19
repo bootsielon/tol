@@ -1,0 +1,159 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _db_api.tools.mix.tol
+// PURPOSE : Implements database tools related methods of NameBlock 
+//           BysMcmc::Bsr::DynHlm::DBApi
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new parameter register
+Real ModSes.Mix.Param.Create(Text dbName, 
+                             Text model, 
+                             Text session,
+                             Text node, 
+                             Text parameter,
+                             Text gibbs_blk,
+                             Real initValue,
+                             Real minimum,
+                             Real maximum)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::Parameter+"\n"+
+  "VALUES('"+model+"','"+session+"','"+node+"','"+
+  parameter+"','"+gibbs_blk+"',"+
+  SqlFormatReal(initValue)+","+
+  SqlFormatReal(minimum)+","+
+  SqlFormatReal(maximum)+")");
+  Eval("ModSes.Mix.Param.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Deletes all registers related to a given node-parameter into a specified 
+//model-session 
+Real ModSes.Mix.Param.Delete(Text dbName, 
+                             Text model, 
+                             Text session,
+                             Text id_node,
+                             Text from_param)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.CheckBlocked(
+    dbName, model, session, true);
+  Real ForeignKey.Disable(0);
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::Parameter+"\n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node='"+id_node+"' AND id_parameter='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::ObsInput+"\n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node='"+id_node+"' AND id_parameter='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::LatOutput+"\n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_child='"+id_node+"' AND id_parameter_child='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::LatInput+"\n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_father='"+id_node+"' AND id_parameter_father='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::LatInput+"\n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_child='"+id_node+"' AND id_parameter_child='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::PriOutput+"\n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_child='"+id_node+"' AND id_parameter_child='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::OrderRel+"\n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_lower='"+id_node+"' AND id_parameter_lower='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::OrderRel+"\n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_upper='"+id_node+"' AND id_parameter_upper='"+from_param+"';");
+  Real ForeignKey.Enable(0);
+  1
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real ModSes.Mix.Param.Rename(Text dbName, 
+                             Text model, 
+                             Text session,
+                             Text id_node,
+                             Text from_param,
+                             Text to_param)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.CheckBlocked(
+    dbName, model, session, true);
+  Real ForeignKey.Disable(0);
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "UPDATE "+dbName+"."+_table::Parameter+"\n"+
+  "SET id_parameter = '"+to_param+"' \n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node='"+id_node+"' AND id_parameter='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "UPDATE "+dbName+"."+_table::ObsInput+"\n"+
+  "SET id_parameter = '"+to_param+"' \n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node='"+id_node+"' AND id_parameter='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "UPDATE "+dbName+"."+_table::ObsInput+"\n"+
+  "SET id_parameter = '"+to_param+"' \n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node='"+id_node+"' AND id_parameter='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "UPDATE "+dbName+"."+_table::LatOutput+"\n"+
+  "SET id_parameter_child = '"+to_param+"' \n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_child='"+id_node+"' AND id_parameter_child='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "UPDATE "+dbName+"."+_table::LatInput+"\n"+
+  "SET id_parameter_father = '"+to_param+"' \n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_father='"+id_node+"' AND id_parameter_father='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "UPDATE "+dbName+"."+_table::PriOutput+"\n"+
+  "SET id_parameter_child = '"+to_param+"' \n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_child='"+id_node+"' AND id_parameter_child='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "UPDATE "+dbName+"."+_table::OrderRel+"\n"+
+  "SET id_parameter_lower = '"+to_param+"' \n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_lower='"+id_node+"' AND id_parameter_lower='"+from_param+"';");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "UPDATE "+dbName+"."+_table::OrderRel+"\n"+
+  "SET id_parameter_upper = '"+to_param+"' \n"+
+  "WHERE id_model='"+model+"' AND id_session='"+session+
+  "' AND id_node_upper='"+id_node+"' AND id_parameter_upper='"+from_param+"';");
+  Real ForeignKey.Enable(0);
+  1
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new order relation register
+Real ModSes.Mix.OrderRelation.Create(Text dbName, 
+                                     Text model, 
+                                     Text session,
+                                     Text nodeLower, 
+                                     Text parameterLower,
+                                     Text nodeUpper, 
+                                     Text parameterUpper)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::OrderRel+"\n"+
+  "VALUES('"+model+"','"+session+"',"
+  "'"+nodeLower+"','"+parameterLower+"',"+
+  "'"+nodeUpper+"','"+parameterUpper+"')");
+  Eval("ModSes.Mix.OrderRelation.Create.ok=ok")
+};

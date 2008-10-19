@@ -1,0 +1,768 @@
+# $Id: config.jam,v 1.11 2008/02/27 13:04:35 josp Exp $
+#
+# Copyright 2006 Jorge Suit Perez Ronda <josp.jorge@gmail.com>
+# Copyright 2006 Mateusz Loskot <mateusz@loskot.net>
+
+# Distributed under <TODO> License 
+#
+
+# Boost.Build configuration module provides rules to manage GNU
+# Autoconf-like options.
+#
+
+import builtin modules path ;
+import feature : feature ;
+
+###############################################################################
+#
+#  rule configure --
+#
+#    rule to configure packages and enables. It is a dispatching
+#    routine First argument is what to configure: lib, enable or
+#    build. Rest of arguments depende on what is being configured.
+#
+#  Examples:
+#
+#    configure lib    : gsl : /usr/local/gsl ;
+#    configure enable : zarch : __USE_ZIP_ARCHIVE__ ;
+#    configure build  : dbdrivers
+#
+#  See below:
+#
+#   - rule lib to learn about 'configure lib'
+#
+#   - rule enable to learn about 'configure enable'
+#
+#   - rule build to lear about 'configure build
+#
+###############################################################################
+rule configure 
+{
+    $(1) $(2) : $(3) : $(4) : $(5) : $(6) ;
+}
+
+###############################################################################
+#  rule lib --
+#
+#    Generates configuration option for given prebuild package. This
+#    rule is used to specify where includes and libraries for a given
+#    package are located.
+#
+#  Arguments:
+#
+#    pkg - the name of the external package.
+#
+#    prefix - prefix location where pkg is installed, from this value
+#             the include libraries location for this packages
+#             defaults to $(prefix)/include and $(prefix)/lib.
+#
+#    incls - includes location for pkg, this value override the
+#            default value given by $(prefix)/include.
+#
+#    libs  - libraries location for pkg, this value override the
+#            default value given by $(prefix)/libs.
+#
+#  If none the arguments is given then the compiler tool will be
+#  responsible of looking for the includes and libs.
+#
+#  This rule it supposed to be used by means of calling the rule
+#  configure.
+#
+#  Examples:
+#
+#    configure lib : gsl ;
+#    configure lib : cholmod : /usr/local/cholmod ;
+#    configure lib : mysql : : /usr/include/mysql ;
+#
+#  The rule can be invoked indirectly by means of command line arguments:
+#    
+#    --with-PKG=
+#    --with-PKG-includes=
+#    --with-PKG-libraries=
+#
+#  See also rule cmdline.
+#
+###############################################################################
+rule _lib_ ( pkg : prefix ? : incls ? : libs ? )
+{
+    if $(pkg) in $(.all.pkgs)
+    {
+        ECHO reconfiguring package $(pkg) ;
+    }
+    else
+    {
+        ECHO configuring package $(pkg) ;
+       .all.pkgs += $(pkg) ;
+    }
+    if $(incls)
+    {
+        .with.$(pkg).incls = $(incls) ;
+    }
+    if $(libs)
+    {
+        .with.$(pkg).libs = $(libs) ;
+    }
+    if $(prefix) 
+    {
+        .with.$(pkg).incls ?= [ path.join $(prefix) include ] ;
+        .with.$(pkg).libs  ?= [ path.join $(prefix) lib ] ;
+    }
+ }
+
+rule path ( id : dir ? )
+{
+    if $(dir)
+    {
+        if $(.paths.$(id))
+        {
+            ECHO redefining path $(id) from $(.paths.$(id)) to $(dir) ;
+        }
+        .paths.$(id) = $(dir) ;
+        modules.call-in $(.read.caller) : path-constant $(id) : $(dir) ;
+        $(id) = [ modules.peek $(.read.caller) : $(id) ] ;
+    }
+    else
+    {
+        return $(.paths.$(id)) ;
+    }
+}
+
+rule lib ( pkg : features * )
+{
+    if $(.libs.$(pkg))
+    {
+        ECHO reconfiguring package $(pkg) ;
+        .libs.$(pkg).include = ;
+        .libs.$(pkg).features = ;
+        .libs.$(pkg).needs = ;
+    }
+    else
+    {
+        ECHO configuring package $(pkg) ;
+        .libs.all += $(pkg) ;
+    }
+    local libpath = ;
+    local libname = ;
+    for local f in $(features)
+    {
+       local matched = [ MATCH <(prefix|name|include|search|needs)>(.+) : $(f) ] ;
+        if $(matched)
+        {
+            switch "$(matched[1])"
+            {
+                case "prefix" :
+                {
+                    .libs.$(pkg).include ?= [ path.join $(matched[2]) include ] ;
+                    libpath ?= [ path.join $(matched[2]) lib ] ;
+                }
+                case "name" :
+                {
+                    libname = $(matched[2]) ;
+                }
+                case "include" :
+                {
+                    .libs.$(pkg).include = $(matched[2]) ;
+                }
+                case "search" :
+                {
+                    libpath = $(matched[2]) ;
+                }
+                case "needs" :
+                {
+                    .libs.$(pkg).needs += $(matched[2]) ;
+                }
+            }
+        }
+        else
+        {
+            ECHO ignoring unknown feature $(f) when configuring package '$(pkg)' ;
+        }
+    }
+    if $(libname)
+    {
+        .libs.$(pkg).features += <name>$(libname) ;
+    }
+    if $(libpath)
+    {
+        .libs.$(pkg).features += <search>$(libpath) ;
+    }
+}
+
+#################################################################################
+#
+# is-configured
+#
+# Checks if requeted package has been configured.
+#
+#################################################################################
+rule is-configured ( pkg )
+{
+    if $(pkg) in $(.libs.all)
+    {
+        return yes ;
+    }
+}
+
+rule includes ( pkg ? )
+{
+    local feature = ;
+    local pkg_list = $(pkg) ;
+    pkg_list ?= $(.libs.all) ;
+    for local p in $(pkg_list)
+    {
+        if $(.libs.$(p).include)
+        {
+            feature += <include>$(.libs.$(p).include) ;
+        }
+        else
+        {
+            ECHO "there is no include feature defined for package '$(p)', using default search" ;
+        }
+    }
+    return $(feature) ;
+}
+
+rule genlib ( pkg ? : scope ? )
+{
+    local pkg_list = $(pkg) ;
+    pkg_list ?= $(.libs.all) ;
+    scope ?= [ CALLER_MODULE ] ;
+    for local p in $(pkg_list)
+    {
+        if ! $(.libs.$(p).features)
+        {
+            ECHO defining target lib for package '$(pkg)' with empty feature list ;
+        }
+        for local dep in $(.libs.$(pkg).needs)
+        {
+            genlib $(dep) : $(scope) ;
+        }
+
+        modules.call-in $(scope) : lib $(p) : $(.libs.$(pkg).needs) : $(.libs.$(p).features) ;
+    }
+}
+
+rule version ( module : api ? : minor ? : release ? )
+{
+    if ! $(module)
+    {
+        
+        if $(.all.version$(module))
+        {
+            ECHO at config.version -- module $(module) has no version defined ;
+            return "0 0 0" ;
+        }
+        else
+        {
+            return $(.all.version$(module)) ;
+        }
+    }
+    else
+    {
+        if $(.all.version$(module))
+        {
+            ECHO at config.version -- redefining version for module $(module). $(.all.version$(module)) --> $(api) $(minor) $(release) ; 
+        }
+        .all.version$(module) = "$(api) $(minor) $(release)" ;
+    }
+}
+
+###############################################################################
+#
+#  include-feature --
+#
+#    Generates <include> attribute for a package. If pkg is ommited
+#    the list of <include> features for all packages configured by
+#    'configure lib' are returned.
+#
+###############################################################################
+rule include-feature ( pkg ? )
+{
+    if $(pkg) 
+    {
+        if $(.with.$(pkg).incls)
+        {
+            return <include>$(.with.$(pkg).incls) ;
+        }
+    } 
+    else 
+    {
+        local incls ;
+        for local p in $(.all.pkgs)
+        {
+            if $(.with.$(p).incls)
+            {
+                incls += <include>$(.with.$(p).incls) ;
+            }
+        }
+        return $(incls) ;
+    }
+}
+
+###############################################################################
+#
+#  search-feature --
+#
+#    Generates <search> feature for a package previously configured by
+#    'configure lib'. Used when defining a main target lib associated
+#    to this package.
+#
+#  Examples:
+#
+#    lib gsl      : : [ config.search-feature gsl ] ;
+#    lib gslcblas : : [ config.search-feature gsl ] ;
+#    lib cholmod  : : [ config.search-feature cholmod ] ;
+#
+###############################################################################
+rule search-feature ( pkg )
+{
+    if $(.with.$(pkg).libs)
+    {
+        return <search>$(.with.$(pkg).libs) ;
+    }  
+}
+
+###############################################################################
+#
+#  hardcode-dll-paths  --
+#
+#    generate the list of <dll-path> features for all packages
+#    configured by 'configure lib' and for which there is a <search>
+#    feature defined either by prefix or libs location.
+#
+###############################################################################
+rule hardcode-dll-paths ( pkg ? )
+{
+    if $(pkg)
+    {
+        if $(.with.$(pkg).libs)
+        {
+            return <dll-path>$(.with.$(pkg).libs) ;
+        }  
+    }
+    else
+    {
+        local props ;
+        for local p in $(.all.pkgs)
+        {
+            if $(.with.$(p).libs)
+            {
+                props += <dll-path>$(.with.$(p).libs) ;
+            }
+        }
+        return $(props) ;      
+    }
+}
+
+###############################################################################
+#
+#  enable --
+#
+#    This rule is used to define build features asociated to a set of
+#    <define> values.
+#
+#  Arguments:
+#
+#    name : the name of the generated feature
+#
+#    define : the macro define name asociated to this feature. This
+#             value can be tagged by <optional> which means that the
+#             feature will be optional. In case of being optional, the
+#             macro define will only be defined if the feature is
+#             explicitly requested in the build invocation.
+#
+#    values : the list of values that this features can take an
+#             possibly the corresponding value the macro define will
+#             take. Each value of the list could take the form: FV,MV
+#             where FV is the value taken by the feature and MV is the
+#             value taken by the macro define. MV is optional,if not
+#             given then the macro define will take the same value FM
+#             as the feature. The list "no yes" or "yes no" of values
+#             are treated specially:
+#
+#             - "no yes" means that the macro will no be defined by
+#             default and will be defined only if the feature take the
+#             value "yes".
+#
+#             - "yes no" means that the macro will be defined by
+#             default, will be undefined only if the feature take the
+#             value "no".
+#
+#             If values is not given the it defaults to the list "no
+#             yes".
+#
+#  Examples:
+#
+#    configure enable : zarch : __USE_ZIP_ARCHIVE__ ;
+#
+#    configure enable : dynscope : __USE_DYNSCOPE__ : yes no ;
+#
+#    configure enable : pool : __USE_POOL__ 
+#                     : none,__POOL_NONE__ bfsmem,__POOL_BFSMEM__ ;
+#
+#  The feature declared is used in the same way as other bjam features
+#  in the bjam's command line invocation, for instance:
+#
+#    bjam zarch=yes pool=bfsmem
+#
+#  will be translated in <define>__USE_ZIP_ARCHIVE_ and
+#  <define>"__USE_POOL__=__POOL_BFSMEM__" being defined.
+#
+###############################################################################
+rule enable ( name : define ? : values * )
+{
+    local feat_prop = ;
+
+    if $(define)
+    {
+        local _define = [ MATCH <optional>(.+) : $(define) ] ;
+        if $(_define)
+        {
+            feat_prop = optional ;
+            define = $(_define) ;
+        }
+    }
+    else   
+    {
+        define = __USE_$(name)__ ;
+    }
+    local values_f = ;
+    for local V in $(values)
+    {
+        local val_split = [ MATCH "(.+),(.+)" : $(V) ] ;
+        if $(val_split)
+        {
+            values_f += $(val_split[1]) ;
+        }
+    }
+    local noyes = no yes ;
+    local yesno = yes no ;
+    if ! $(values)
+    {
+        values = no yes ;
+        values_f = no yes ;
+    }
+    if ! $(values_f)
+    {
+        values_f = $(values) ;
+    }
+    feat_prop += propagated composite link-incompatible ;
+    local only_one_define = 0 ;
+    if ( $(values) = $(noyes) ) || ( $(values) = $(yesno) )
+    {
+        only_one_define = 1 ;
+        # feat_prop += optional ;
+    }
+
+    # define de feature
+    #
+    feature $(name) : $(values_f) : $(feat_prop) ;
+
+    if $(only_one_define) = 1
+    {
+        feature.compose <$(name)>yes : <define>$(define) ;
+    }
+    else
+    {
+        for local DV in $(values)
+        {
+            local val_split = [ MATCH "(.+),(.+)" : $(DV) ] ;
+            local val1 = ;
+            local val2 = ;
+            if $(val_split)
+            {
+                val1 = $(val_split[1]) ;
+                val2 = $(val_split[2]) ;
+            }
+            else
+            {
+                val1 = $(DV) ;
+                val2 = $(DV) ;
+            }
+            feature.compose <$(name)>$(val1) : <define>\"$(define)=$(val2)\" ;
+        }
+    }
+}
+
+###############################################################################
+#
+#  build --
+#
+#  This rule mark the package or module pkg as being requested to be
+#  built.  Later we can check in any Jamfile of the project is was
+#  requested by invoking [ config.should-build $(pkg) ]. See rule
+#  should-build. 
+#
+#  There is command line argument which is traslated to an invocation
+#  of this rule: 
+#
+#    --build-PKG=
+#
+#  See also rule cmdline.
+#
+###############################################################################
+rule build ( pkgs + : what ? )
+{
+    if ! $(what)
+    {
+        what = yes ;
+    }
+    else
+    {
+        if ! $(what) in "yes no"
+        {
+           ECHO invalid value '$(what)' for build, should be yes or no. Assuming yes. ;
+           what = yes ;
+        }
+    }
+    for local p in $(pkgs)
+    {
+        if $(p) in $(.builds.all)
+        {
+            ECHO reconfiguring build for $(p) to $(what) ;
+        }
+        else
+        {
+            .builds.all += $(p) ;
+        }
+        .build.$(p) = $(what) ;
+    }
+}
+###############################################################################
+#
+#  should-build --
+#
+#  Check if the give package has being requested to be built. See also
+#  rule build.
+#
+###############################################################################
+rule should-build ( pkg )
+{
+  if $(.build.$(pkg)) = yes
+  {
+    return yes ;
+  }
+}
+
+###############################################################################
+#
+#  prefix --
+#
+#    Configure a default prefix to be used when installing.
+# 
+#    tag argument does not work well, it is suppose to be used in
+#    get-prefix when computing dynamic prefix but package.install does
+#    not handle <conditional> as a main target.
+#
+#    This rule can be invoked indirectly by means of command line argument:
+#
+#      --prefix
+#
+#    See also rule cmdline and get-prefix.
+#
+###############################################################################
+rule prefix ( prefix : tag ? )
+{
+    if $(.prefix)
+    {
+        ECHO discarging previous prefix $(.prefix) ;
+    }
+    .prefix = [ path.make $(prefix) ] ;
+    .prefix.tag = $(tag) ;
+    ECHO configuring prefix to $(.prefix) ;
+}
+
+###############################################################################
+#
+#  get-prefix
+#
+#    Return the default prefix to be used when installing. Command
+#    line option --prefix is handled.
+#
+#    If configure.prefix was not used a default prefix is build (the
+#    same logic as package.install is implemented, see also
+#    https://zigzag.cs.msu.su:7813/boost.build/ticket/117 for a bug in
+#    package.install).
+#
+###############################################################################
+rule get-prefix ( name : properties * )
+{
+    local prefix = $(.prefix) ;
+    if ! $(prefix)
+    {
+        if [ modules.peek : NT ] { prefix = C:\\$(name) ; }
+        else if [ modules.peek : UNIX ] { prefix = /usr/local ; }        
+    }
+    if $(.prefix.tag)
+    {
+        local tool = [ feature.get-values <toolset> : $(properties) ] ;
+        local dbg = [ feature.get-values <debug-symbols> : $(properties) ] ;
+        if $(dbg) = "on"
+        {
+            prefix = $(prefix)-$(tool)-debug ;
+        }
+        else
+        {
+            prefix = $(prefix)-$(tool)-release ;
+        }
+    }
+    return $(prefix) ;
+}
+
+###############################################################################
+#
+#  get-libdir
+#
+#    return the default prefix for installing libs. Command line
+#    option --libdir is handled.
+#
+###############################################################################
+rule get-libdir ( name : properties * )
+{
+    local prefix = [ get-prefix $(name) : $(properties) ] ;
+
+    return [ option.get libdir : $(prefix)/lib ] ;
+}
+
+###############################################################################
+#
+#  read --
+#
+#    read the given configuration file if it is given. After that the
+#    command line options are processed. Some of the config options
+#    given in file can be overwritten this way.
+# 
+#    --with-PKG-name= ??? FALTA
+#    --with-PKG-prefix= ???? FALTA
+#    --with-PKG-includes=
+#    --with-PKG-libraries=
+#    --prefix=
+#    --build-PKG=yes|no
+#
+###############################################################################
+rule read ( file ? )
+{
+    .read.caller = [ CALLER_MODULE ] ;
+
+    if $(file)
+    {
+        if [ path.exists $(file) ]
+        {
+            include $(file) ;
+        }
+        else
+        {
+            ECHO configuration file $(file) does not exist ;
+        }
+    }
+    # now process command line arguments
+    cmdline ;
+}
+
+local rule trim-left-nulls ( list * )
+{
+    local _list ;
+
+    for local i in $(list)
+    {
+        if $(i)
+        {
+            _list += $(i) ;
+        }
+    }
+    return $(_list) ;
+}
+
+local cmdl_all_pkgs ;
+
+###############################################################################
+#
+# cmdline
+#
+# command line option processing. See rule read.
+#
+#  --with-PKG-name= ??? FALTA
+#  --with-PKG-prefix= ???? FALTA
+#  --with-PKG-includes=
+#  --with-PKG-libraries=
+#  --build-PKG=
+#  --prefix=
+#
+###############################################################################
+rule cmdline ( options * )
+{
+    if $(options)
+    {
+        list_opts = $(options) ;
+    }
+    else
+    {
+        list_opts = [ modules.peek : ARGV ] ;
+    }
+    for opt in $(list_opts)
+    {
+        local matched = [ trim-left-nulls 
+                            [ MATCH "--(with|build)-(.+)|(prefix)=(.+)" 
+                                    : $(opt) ] ] ;
+
+        # ECHO matched --> $(matched) ;
+
+        switch $(matched[1])
+        {
+            case prefix :
+            {
+                configure prefix : $(matched[2]) ;
+            }
+            case with :
+            {
+                local with = [ trim-left-nulls [ MATCH
+                                 "([^-]+)-(includes|libraries)=(.+)|([^=]+)(=(.*))?"
+                                 : $(matched[2]) ] ] ;
+                #ECHO $(opt) --> $(with[1]) - $(with[2]) - $(with[3]) ;
+                local p = $(with[1]) ;
+                if ! ( $(p) in $(cmdl_all_pkgs) )
+                {
+                    cmdl_all_pkgs += $(p) ;          
+                }
+                local sub_feat = $(with[2]) ;
+                if [ MATCH (includes|libraries) : $(sub_feat) ]
+                {
+                    #ECHO "pkg_$(p)_$(sub_feat) --> $(with[3]) "  ;
+                    pkg_$(p)_$(sub_feat) = $(with[3]) ;
+                }
+                else
+                {
+                   pkg_$(p)_prefix = $(with[3]) ;
+                }
+            }
+            case build :
+            {
+                local bpkg = [ MATCH (.+)=(.+)? : $(matched[2]) ] ;
+                if $(bpkg)
+                {
+                    build $(bpkg[1]) $(bpkg[2]) ;
+                }
+                else
+                {
+                    build $(matched[2]) ;
+                }
+            }
+        }
+    }
+
+    for local p in $(cmdl_all_pkgs)
+    {
+        # ECHO configure $(p) - $(pkg_$(p)_includes) - $(pkg_$(p)_libraries) ;
+        configure lib 
+            : $(p) : $(pkg_$(p)_prefix) 
+                   : $(pkg_$(p)_includes) 
+                   : $(pkg_$(p)_libraries) ;
+        pkg_$(p)_prefix = ;
+        pkg_$(p)_includes = ;
+        pkg_$(p)_libraries = ;
+    }
+
+    cmdl_all_pkgs = ;
+}
+
+IMPORT config : configure : : configure ;

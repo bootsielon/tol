@@ -1,0 +1,470 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: def.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-05-08
+//PURPOSE: Testing full linear block aproach to simulating a Hierarchycal 
+//         Linear Model with restrictions of inequality by using NameBlock
+//         StdLib::BysMcmc.
+//////////////////////////////////////////////////////////////////////////////
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+
+Text model.name   = "bysMcmc.test_01";
+Text model.description = 
+"Randomly generation of a hierarchycal lineal model with these simple
+structure:
+  1: a set of K1 observational nodes with the same number n of variables
+     and data length m
+  2: a set of n latent nodes with one central parameter for each distinct
+     observational variable with specified standard deviation
+  3: a central prior equation for each latent variable with specified
+     standard deviation
+  4: a set of sparse linear inequalities over the observational variables
+";
+Text session.name   = "RS_"<<rndSeed;
+Text session.authors = "vdebuen@tol-project.org";
+Text session.description = 
+"Random seed="<<rndSeed;
+
+Text model.data.path = TolAppDataPath+"StdLib/tests/";
+
+//Number of variables of each observational node
+Real n  = IntRand(10,10);
+//Data length of each observational node
+Real m  = IntRand(100,100);
+//Number of observational nodes
+Real K1 = IntRand(4,4);
+//Total number of variables at obervational level
+Real N1 = n*K1;
+//Total data length at obervational level
+Real M1 = m*K1;
+//Total number of variables at latent level
+Real N2 = n;
+//Total data length at latent level
+Real M2 = n*K1;
+//Total data length at prior level
+Real M3 = n;
+//Total number of variables
+Real N = N1+N2;
+//Total data length
+Real M = M1+M2+M3;
+
+WriteLn("Generating random prior nodes "+Time);
+Set priNodes = For(1,1,Set(Real h)
+{
+  //Node identifier
+  Text   id = "NodePri."+IntText(h);
+  //Average matrix
+  Matrix nu = Rand(n,1,-1,1);
+  //Standard error
+  Real   s = Rand(0.10,0.20);
+  //Standard residuals
+  Matrix e = Gaussian(n,1,0,s);
+  //Output data
+  Matrix Y = nu+e;
+  //Position of first row
+  Real i = M1+M2+1;
+
+  Eval(id+"=[[ id, nu, s, e, Y, i]]")
+});
+
+WriteLn("Generating random latent nodes "+Time);
+Set latNodes = For(1, n, Set(Real h)
+{
+  //Node identifier
+  Text   id = "NodeLat."+IntText(h);
+  Set varNames = SetOfText
+  (
+    id+"_Var.nu"
+  );
+
+  //Input matrix
+  Matrix X = Rand(K1,1,1,1);
+  //Real beta block
+  Matrix b = Col(MatDat((priNodes[1])::Y,h,1));
+
+  //Standard error
+  Real   s = Rand(0.10,0.20);
+  //Standard residuals
+  Matrix e = Gaussian(K1,1,0,s);
+  //Sample standard error
+  Real   sse = MatStDs(e);
+  //Output data
+  Matrix Y = X*b + e;
+  //Position of first row
+  Real i = M1+(h-1)*K1+1;
+  //Position of first column
+  Real j = N1+(h-1)*1+1;
+
+  Eval(id+"=[[ id, varNames, X, b, s, e, sse, Y, i, j]]")
+});
+
+/* */
+WriteLn("Generating random observational nodes "+Time);
+Set obsNodes = For(1, K1, Set(Real k)
+{
+  //Node identifier
+  Text   id = "NodeObs."+IntText(k);
+  Set varNames = For(1,n,Text(Real j)
+  {
+    id+"_Var."+IntText(j)
+  });
+  //Input matrix
+  Matrix aux = Rand(m,n,-1,1);
+  Matrix X = IfMat(LT(Abs(aux),Rand(m,n,0.5,0.5)),Rand(m,n,0,0),aux);
+  //Real beta block
+  Matrix b = SetCol(For(1,n,Real(Real h)
+  {
+    MatDat((latNodes[h])::Y,k,1)
+  }));
+  //Standard deviation
+  Real   s = Rand(0.50,0.90);
+  //Standard residuals
+  Matrix e = Gaussian(m,1,0,s);
+  //Sample standard error
+  Real   sse = MatStDs(e);
+  //Output data
+  Matrix Y = X*b + e;
+  //Original sum of squares
+  Real yy = MatDat(MtMSqr(Y),1,1);
+  //Position of first row
+  Real i = (k-1)*m+1;
+  //Position of first column
+  Real j = (k-1)*n+1;
+ 
+  Eval(id+"=[[ id, varNames, X, b, s, e, sse, Y, yy, i, j]]")
+});
+
+WriteLn("Descriptors of columns in Markov Chain "+Time);
+Set colNames = BinGroup("<<", For(1,K1,Set(Real k)
+{
+  (obsNodes[k])::varNames
+})) << BinGroup("<<", For(1,n,Set(Real h)
+{
+  (latNodes[h])::varNames
+})) << For(1,K1,Text(Real k)
+{
+  (obsNodes[k])::id+"_Sigma2"
+});
+
+
+WriteLn("Joint beta matrix (Real generated values "+Time);
+Matrix _beta =
+{
+  Matrix b.obs = Group("ConcatRows", For(1,Card(obsNodes),Matrix(Real k)
+  {
+    (obsNodes[k])::b
+  }));
+  Matrix b.lat = Group("ConcatRows", For(1,Card(latNodes),Matrix(Real k)
+  {
+    (latNodes[k])::b
+  }));
+  b.obs << b.lat
+};
+
+WriteLn("Joint sigma matrix (Real generated values) "+Time);
+Matrix _variance =
+{
+  Matrix s2.obs = SetCol(For(1,Card(obsNodes),Real(Real k)
+  {
+    (obsNodes[k])::s^2
+  }));
+  s2.obs
+};
+
+WriteLn("Initial values of blocks) "+Time);
+Matrix beta0     = Rand(N, 1, -1, 1);
+Matrix variance0 = Rand(K1,1,  0, 0);
+
+WriteLn("Domain coefficients matrix "+Time);
+VMatrix domain.D = 
+{
+  (Eye(N1,N1,0,1) <<
+   (Eye(N1,N1,0,1)-Eye(N1,N1,-K1,1))) |
+   Zeros(2*N1,N2)
+};
+
+WriteLn("Domain border matrix "+Time);
+Real R = VRows(domain.D);
+VMatrix domain.d =
+{
+  VMatrix domain.d.min._beta = domain.D*Mat2VMat(_beta); 
+//WriteLn("TRACE domain.d.min._beta="<< VMat2Mat(domain.d.min._beta));
+  VMatrix domain.d.min.beta0 = domain.D*Mat2VMat(beta0);
+//WriteLn("TRACE domain.d.min.beta0="<< VMat2Mat(domain.d.min.beta0));
+  VMatrix domain.d.min = Max(domain.d.min._beta,domain.d.min.beta0);
+//WriteLn("domain.d.min="<< VMat2Mat(domain.d.min));
+  domain.d.min+Rand(R,1,0.01,0.1)
+};
+//WriteLn(""<<Matrix VMat2Mat(domain.D));
+
+//WriteLn("TRACE domain.d="<<domain.d);
+//WriteLn("TRACE domain.check._beta="<<VMat2Mat(domain.D*Mat2VMat(_beta)-domain.d));
+//WriteLn("TRACE domain.check.beta0="<<VMat2Mat(domain.D*Mat2VMat(beta0)-domain.d));
+
+Real domain.ok = And
+(
+  VMatMax(domain.D*Mat2VMat(_beta)-domain.d)<=0,
+  VMatMax(domain.D*Mat2VMat(beta0)-domain.d)<=0
+);
+
+WriteLn("Joint output matrix "+Time);
+VMatrix Y =
+{
+  Matrix Y.obs = Group("ConcatRows", For(1,Card(obsNodes),Matrix(Real k)
+  {
+    (obsNodes[k])::Y
+  }));
+  VMatrix Y.lat = Zeros(M2,1);
+  Matrix Y.pri = -(priNodes[1])::nu;
+  Mat2VMat(Y.obs) << Y.lat << Mat2VMat(Y.pri)
+};
+
+WriteLn("Joint input matrix "+Time);
+VMatrix X =
+{
+  VMatrix X.obs = Group("ConcatRows", For(1,K1,VMatrix(Real k)
+  {
+    Zeros(m,n*(k-1)) |
+    Mat2VMat((obsNodes[k])::X) |
+    Zeros(m,n*(K1-k)+N2)
+  }));
+  VMatrix X.lat.1 = Zeros(M2,N1);
+  VMatrix X.lat.2 = Group("ConcatRows", For(1,n,VMatrix(Real h)
+  {
+    Zeros(K1,(h-1)) |
+    Mat2VMat((latNodes[h])::X ) |
+    Zeros(K1,(n-h))
+  }));
+  VMatrix X.lat   = X.lat.1 | X.lat.2;
+  VMatrix X.pri.1 = Zeros(M3,N1);
+  VMatrix X.pri.2 = Eye(n)*(-1);
+  VMatrix X.pri   = X.pri.1 | X.pri.2;
+  Matrix tripletDef = Group("ConcatRows",For(1,n,Matrix(Real h)
+  {
+    Group("ConcatRows",For(1,K1,Matrix(Real k)
+    {
+      Real i = (latNodes[h])::i - 1 + k;
+      Real j = (obsNodes[k])::j - 1 + h;
+      Real x = -1;
+      Row(i,j,x)
+    }))
+  }));
+  VMatrix Xt = Triplet(tripletDef, M, N);
+  (X.obs << X.lat << X.pri) + Xt
+};
+
+WriteLn("Writing model in BSR format "+Time);
+Text bys.sparse.reg.path = 
+{
+  Text bsr = model.data.path+"parse.bsr";
+  WriteLn("  bys.sparse.reg.path="+bsr);
+  Real OSDirMake(model.data.path);
+  Real f = FOpen(bsr,"w");
+  WriteLn("Writing header "+Time);
+  Real FPutText(f,
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Bayesian Sparsed Regression \n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"+
+  "Model.Name = \""+model.name+"\";\n"
+  "Model.Description = \n\""+Replace(model.description,"\n","\\n\"\n\"")+"\";\n"
+  "Session.Name = \""+session.name+"\";\n"
+  "Session.Description = \n\""+Replace(session.description,"\n","\\n\"\n\"")+"\";\n"
+  "Session.Authors = \""+session.authors+"\";\n"
+  "\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Regression Variables Declarations with initial values\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"
+  );
+  WriteLn("Writing Linear Block "+Time);
+  Real j = 0;
+  Real declareVariable(Text name)
+  {
+    j := j+1;
+    FPutText(f,""+name+" <- "+
+             FormatReal(MatDat(beta0,j,1),"%+.018lg")+";\n")
+  };
+  Set For(1,K1,Real(Real k)
+  {
+    Set EvalSet((obsNodes[k])::varNames, declareVariable);
+    1
+  });
+  Set For(1,n,Real(Real h)
+  {
+    Set EvalSet((latNodes[h])::varNames, declareVariable);
+    1
+  });
+  WriteLn("Writing Residuals Distributions "+Time);
+  Real FPutText(f,
+  "\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Regression Residuals Declarations Normal(0,sigma^2)\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"
+  );
+  Set For(1,K1,Real(Real k)
+  {
+    Text sigmaName = (obsNodes[k])::id+"_Sigma2";
+    Text resName   = (obsNodes[k])::id+"_Residuals";
+    FPutText(f,""+resName+"["+IntText(Rows((obsNodes[k])::e))+"] "
+    "~ Normal(0,"+sigmaName+");\n")
+  });
+  Set For(1,n,Real(Real h)
+  {
+    Text sigmaName = FormatReal((latNodes[h])::s^2,"%.18lg");
+    Text resName   = (latNodes[h])::id+"_Residuals";
+    FPutText(f,""+resName+"["+IntText(Rows((latNodes[h])::e))+"] "
+    "~ Normal(0,"+sigmaName+");\n")
+  });
+  Real 
+  {
+    Text sigmaName = FormatReal((priNodes[1])::s^2,"%.18lg");
+    Text resName   = (priNodes[1])::id+"_Residuals";
+    FPutText(f,""+resName+"["+IntText(Rows((priNodes[1])::e))+"] "
+    "~ Normal(0,"+sigmaName+");\n")
+  };
+  WriteLn("Writing Regression equations "+Time);
+  Real FPutText(f,
+  "\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Regression equations \n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"
+  );
+  Text term(Real x, Text v)
+  { 
+    Case
+    (
+      Eq(x, 0), "",
+      Eq(x, 1), "+"+v+" ", 
+      Eq(x,-1), "-"+v+" ", 
+      Eq(1, 1), FormatReal(x,"%+.18lg")+"*"+v+" "
+    )
+  };
+
+  WriteLn("  Writing Regression equations for observational nodes"+Time);
+  Set For(1,K1,Real(Real k)
+  {
+    Text resName = (obsNodes[k])::id+"_Residuals";
+    WriteLn("    Writing Regression equations for node "+resName+" "+Time);
+    Real i = 1;
+    Matrix Yk = (obsNodes[k])::Y;
+    Matrix Xk = (obsNodes[k])::X;
+    Set    Nk = (obsNodes[k])::varNames;
+    While(i<=m,
+    {
+    //WriteLn("    Writing equation["<<i+"] NObject="<<NObject);
+      Text aux1 = FormatReal(MatDat(Yk,i,1),"%+.18lg")+ " == "+ resName+"["+FormatReal(i,"%.0lf")+"]";
+    //Text aux1 = FormatReal(MatDat(Yk,i,1),"%+.18lg")+ " == "+ resName+"["+IntText(i)+"]";
+      Real FPutText(f, aux1);
+      Real j= 1;
+      While(j<=n,
+      {
+      //Text aux2 = term(MatDat(Xk,i,j),Nk[j]);
+        Real x = MatDat(Xk,i,j);
+        Text v = Nk[j];
+        Text aux2 = Case
+        (
+          Eq(x, 0), "",
+          Eq(x, 1), "+"+v+" ", 
+          Eq(x,-1), "-"+v+" ", 
+          Eq(1, 1), FormatReal(x,"%+.18lg")+"*"+v+" "
+        );
+        Real FPutText(f, aux2);
+        Real j := j+1
+      });
+      Real FPutText(f, ";\n");
+      Real i := i+1
+    });
+    1
+  });
+
+  WriteLn("  Writing Regression equations for latent nodes"+Time);
+  Set For(1,n,Real(Real h)
+  {
+    Text resName = (latNodes[h])::id+"_Residuals";
+    WriteLn("    Writing Regression equations for node "+resName+" "+Time);
+    Set Do For(1,K1,Real(Real i)
+    {
+      Do FPutText(f,""+
+      "0 == "+resName+"["+IntText(i)+"]"+
+      {
+        Real x = -1;
+        Text v = ((obsNodes[i])::varNames)[h];
+        term(x,v)
+      }+
+      {
+        Real x = MatDat((latNodes[h])::X,i,1);
+        Text v = ((latNodes[h])::varNames)[1];
+        term(x,v)
+      }+
+      ";\n");
+      1
+    });
+    1
+  });
+
+  WriteLn("  Writing Regression equations for prior nodes"+Time);
+  Real
+  {
+    Text resName = (priNodes[1])::id+"_Residuals";
+    WriteLn("    Writing Regression equations for node "+resName+" "+Time);
+    Set Do For(1,n,Real(Real i)
+    {
+      Do FPutText(f,""+
+      FormatReal(-MatDat((priNodes[1])::nu,i,1),"%+.18lg")+
+      " == "+resName+"["+IntText(i)+"]"+
+      {
+        Real x = -1;
+        Text v = ((latNodes[i])::varNames)[1];
+        term(x,v)
+      }+
+      ";\n");
+      1
+    });
+    1
+  };
+  WriteLn("  Writing constrain inequations"+Time);
+  Real FPutText(f,
+  "\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Restriction inequations \n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"
+  );
+  Set Do For(1,R,Real(Real i)
+  {
+    Matrix rowTriplets = VMat2Triplet(SubRow(domain.D,[[i]]));
+    Do FPutText(f,""+
+    FormatReal(VMatDat(domain.d,i,1),"%+.018lg")+
+    " >= "+
+    SetSum(For(1,Rows(rowTriplets),Text(Real h)
+    {
+      Real j = MatDat(rowTriplets,h,2);
+      Real x = MatDat(rowTriplets,h,3);
+      Text v = colNames[j];
+      term(x,v)
+    }))+";\n");
+    1
+  });
+  Real FClose(f);
+  bsr
+};
+
+WriteLn("Reading model in RLR format "+Time);
+Set bsr.parsed = BSR.Parse(bys.sparse.reg.path);
+
+Real ok.Y = (VMatMax(Abs(bsr.parsed::Y-Y))+10)==10;
+Real ok.X = (VMatMax(Abs(bsr.parsed::X-X))+10)==10;
+Real ok.a = (VMatMax(Abs(bsr.parsed::a-domain.d))+10)==10;
+Real ok.A = (VMatMax(Abs(bsr.parsed::A-domain.D))+10)==10;
+
+//VMatrix S = SetSum(bsr.parsed::VS)+bsr.parsed.CS;
+//Real ok.S = VMatMax(Abs(bsr.parsed::Y-Y));
+
+
+

@@ -1,0 +1,43 @@
+# -*- mode: conf -*-
+
+import config ;
+import type ;
+
+rule tag ( name : type ? : property-set )
+{
+    if $(type) = SHARED_LIB
+    {
+        local suffix = [ type.generated-target-suffix $(type) 
+                                                      : $(property-set) ] ;
+        local version = [ config.version dbdriver ] ;
+        suffix = .$(suffix) ;
+        return $(name)$(version[1]:E="0")$(suffix:E="") ;
+    }
+}
+
+if [ config.should-build tolodbc ]
+{
+    config.genlib odbc ;
+    lib tolodbc 
+        : libtolodbc.c odbc
+        : $(odbc_inc) <tag>@tag
+        ;
+}
+
+if [ config.should-build tolmysql ]
+{
+    config.genlib mysql ;
+    lib tolmysql
+        : libtolmysql.c mysql
+        : [ config.includes mysql ] <tag>@tag
+        ;
+}
+
+if [ config.should-build tolpgsql ] 
+{
+    config.genlib pgsql ;
+    lib tolpgsql
+        : libtolpgsql.c pgsql
+        : [ config.include-feature pgsql ] <tag>@tag
+        ;
+}

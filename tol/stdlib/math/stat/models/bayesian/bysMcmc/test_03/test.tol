@@ -1,0 +1,77 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-05-08
+//PURPOSE: Testing full linear block aproach to simulating a Hierarchycal 
+//         Linear Model with restrictions of inequality by using NameBlock
+//         StdLib::BysMcmc.
+//////////////////////////////////////////////////////////////////////////////
+
+//Creates a random model and writes it in "parse.bsr"
+Set Include("load.tol");
+
+Set estim = { BysMcmc::Bsr::Gibbs::Estim(mod::bsr.parsed, 
+  NameBlock Config =
+  [[
+    Real mcmc.sampleLength = 2500;
+    Real mcmc.cacheLength = 100;
+    Real mcmc.burnin = 100;
+  //MLS step configuration
+    Text mls.method  = BysMcmc::Options::Mls.Method::FunnelGibbs;
+    Real mls.maxIter = 10;
+    Real mls.tolerance = 0.01;
+    Real mls.FunnelGibbs.sigmaFactor = 0.01;
+    Real do.resume = False
+  ]])};
+
+Struct CompareStruct 
+{
+  Real Index,
+  Text Name,
+  Real RealValue,
+  Real Estimated,
+  Real Difference,
+  Real Sigma,
+  Real K_SigDif
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Table this set to view real and estimated parameters
+//////////////////////////////////////////////////////////////////////////////
+Set CompareTable = 
+{  
+  Matrix var.real = 
+    mod::_beta << 
+    mod::_variance <<
+    mod::_arma <<
+    mod::_inpMis <<
+    mod::_outMis;
+  For(1,Card(estim::report::colNames), Set(Real k)
+  {
+    Real x.r = MatDat(var.real,k,1);
+    Real x.e = (estim::report::coda.summary)[k]->mean_;
+    Real x.d = x.r-x.e;
+    Real x.s = Sqrt((estim::report::coda.summary)[k]->sd_);
+    Real x.k = x.d/x.s;
+    CompareStruct
+    (
+      k, 
+      estim::report::colNames[k], 
+      x.r, 
+      x.e, 
+      x.d,
+      x.s,
+      x.k 
+    )
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Chart this set to view real and estimated parameters
+//////////////////////////////////////////////////////////////////////////////
+Set CompareChart = Extract(CompareTable,3,4);
+
+Set DifChart  = Extract(CompareTable,5);
+Set KDifChart = Extract(CompareTable,7);
+
+/* */

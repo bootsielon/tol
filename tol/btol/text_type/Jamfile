@@ -1,0 +1,3 @@
+ln-H tol_btxtgra.h ;
+
+objects objs : txtgra.cpp ;

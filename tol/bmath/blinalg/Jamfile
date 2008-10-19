@@ -1,0 +1,6 @@
+ln-H tol_blas.h  tol_blinalg.h  tol_bmfstpro.h  tol_bsvdsep.h  tol_lapack.h ;
+
+objects objs 
+    : divconq.cpp  matimp.cpp    svdsep.cpp    tol_lapack.cpp
+      linalg.cpp   mfastpro.cpp  tol_blas.cpp
+      ;

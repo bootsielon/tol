@@ -1,0 +1,1129 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _real.tol
+// PURPOSE : Funciones de Real
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real Periodicity(Serie s)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text datingName = DatingName(s);
+  Real p = If
+  (
+    datingName == "C",             7, If(
+    datingName == "Diario",        7, If(
+    datingName == "Mensual",      12, If(
+    datingName == "D(1)",         12, If(
+    datingName == "Bimensual",     6, If(
+    datingName == "Trimestral",    4, If(
+    datingName == "Cuatrimestral", 3, 
+                                   1  ))))))                    
+  );
+  p
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real GetSerCovarianze(Serie ser1, Serie ser2)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set s = SerSetTable([[ser1,ser2]]);
+  SetCovarianze(s[1],s[2])
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real GetSerCorrelation(Serie ser1, Serie ser2)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set s = SerSetTable([[ser1,ser2]]);
+  SetCorrelation(s[1],s[2])
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real IntRand(Real min, Real max)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Floor(Rand(min,max+1-1.E-15))
+};
+
+////////////////////////////////////////////////////////////////////////////// 
+   Real SwartzInf(Serie res, Real n)
+//
+// PURPOSE: Returns the Swartz Information value
+//
+////////////////////////////////////////////////////////////////////////////// 
+{ 
+  Real N = CountS(res); 
+  Real s = StDsS (res); 
+  2*Log(s) + n * Log(N)/N
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Real CalcPeriodicity (TimeSet tms)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text datingName = Name(tms);
+  Real p = If
+  (
+    datingName == "C",             7, If(
+    datingName == "Diario",        7, If(
+    datingName == "Mensual",      12, If(
+    datingName == "D(1)",         12, If(
+    datingName == "Bimensual",     6, If(
+    datingName == "Trimestral",    4, If(
+    datingName == "Cuatrimestral", 3, 
+                                   12 ))))))
+  );
+  p
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real Touch(Text grammar, Text varName, Anything value)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(ObjectExist(grammar, varName), 
+  {
+    Text sentence = grammar+" ("+varName+" := value); ";
+    Eval(sentence);
+    True
+  }, False)   
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Changes the value of an existing variable and returns True.
+If the variable is not exist returns False", "Cambia el valor de una variable
+existente y devuelve verdadero, en caso contrario falso"),
+Touch);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real IsTolName(Text name)
+//////////////////////////////////////////////////////////////////////////////
+{ Replace(ToName(name), "'", "_") == name };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Returns True if name is a TOL variable identifier name, 
+otherwise returns False", "Devuelve verdadero si el nombre intorducido se 
+puede usar como identificador de variable y falso en otro caso"),
+IsTolName);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real SerPearsonCoef(Serie ser01,Serie ser02)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Date fsDate = If(First(ser01) > First(ser02),First(ser01),First(ser02));
+  Date lsDate = If(Last(ser01)  > Last(ser02), Last(ser01), Last(ser02));
+ 
+  Matrix matser01 = SerMat(SubSer(ser01,fsDate,lsDate ));
+  Matrix matser02 = SerMat(SubSer(ser02,fsDate,lsDate ));
+  
+  Set setser01 = BinGroup("+",MatSet(matser01));
+  Set setser02 = BinGroup("+",MatSet(matser02));
+  
+  SetPearsonCoef(setser01,setser02)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna el coeficiente de correlacion de Pearson entre dos series.",
+SerPearsonCoef);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real HasUnknown(Anything any)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text graAny = Grammar(any);
+  Case
+  ( 
+    graAny == "Matrix", MatMax(IsUnknown(any))==1,
+    graAny == "Serie",  MaxS  (IsUnknown(any))==1,
+    True, 
+    {
+      WriteLn
+      (
+        I2("ERROR: "+graAny+" grammar is not considered by HasUnknown.",
+           "ERROR: Gramatica "+graAny+" no considerada por HasUnknown.")
+      );
+      False
+    }
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Returns True if argument is a Matrix or a Serie and has "
+"unknown values, otherwise returns False.", 
+"Devuelve verdadero si el argumento es de tipo Matriz o Serie y tiene "
+"valores desconocidos, en otro caso devuelve falso"), 
+HasUnknown);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real HasPosInf(Anything any)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text graAny = Grammar(any);
+  Case
+  ( 
+    graAny == "Matrix", MatMax(IsPosInf(any))==1,
+    graAny == "Serie",  MaxS  (IsPosInf(any))==1,
+    True, 
+    {
+      WriteLn
+      (
+        I2("ERROR: "+graAny+" grammar is not considered by HasPosInf.",
+           "ERROR: Gramatica "+graAny+" no considerada por HasPosInf.")
+      );
+      False
+    }
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Returns True if argument is a Matrix or a Serie and has "
+"positive infinite values, otherwise returns False.", 
+"Devuelve verdadero si el argumento es de tipo Matriz o Serie y tiene "
+"valores infinitos positivos, en otro caso devuelve falso"), 
+HasPosInf);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real HasNegInf(Anything any)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text graAny = Grammar(any);
+  Case
+  ( 
+    graAny == "Matrix", MatMax(IsNegInf(any))==1,
+    graAny == "Serie",  MaxS  (IsNegInf(any))==1,
+    True, 
+    {
+      WriteLn
+      (
+        I2("ERROR: "+graAny+" grammar is not considered by HasNegInf.",
+           "ERROR: Gramatica "+graAny+" no considerada por HasNegInf.")
+      );
+      False
+    }
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Returns True if argument is a Matrix or a Serie and has "
+"negative infinite values, otherwise returns False.", 
+"Devuelve verdadero si el argumento es de tipo Matriz o Serie y tiene "
+"valores infinitos negativos, en otro caso devuelve falso"), 
+HasNegInf);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real HasAllFinite(Anything any)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text graAny = Grammar(any);
+  Case
+  ( 
+    graAny == "Matrix", MatMin(IsFinite(any))==1,
+    graAny == "Serie",  MinS  (IsFinite(any))==1,
+    True, 
+    {
+      WriteLn
+      (
+        I2("ERROR: "+graAny+" grammar is not considered by HasAllFinite.",
+           "ERROR: Gramatica "+graAny+" no considerada por HasAllFinite.")
+      );
+      False
+    }
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Returns True if argument is a Matrix or a Serie and all "
+"its values are finite and known, otherwise returns False.", 
+"Devuelve verdadero si el argumento es de tipo Matriz o Serie y todos sus "
+"valores son valores finitos conocidos, en otro caso devuelve falso"), 
+HasAllFinite);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real IsEmpty(Anything any)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Text graAny = Grammar(any);
+  Case
+  ( 
+    graAny == "Set",    EQ(Card(any),0) ,
+    graAny == "Matrix", Rows(any)*Columns(any)==0,
+    graAny == "Serie",  CountS(any)==0,
+    True, 
+    {
+      WriteLn
+      (
+        I2("ERROR: "+graAny+" grammar is not considered by IsEmpty.",
+           "ERROR: Gramatica "+graAny+" no considerada por IsEmpty.")
+      );
+      False
+    }
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Returns True if argument is a Set, a Matrix or a Serie "
+"and has no elements, otherwise returns False.", 
+"Devuelve TRUE si el objeto es de tipo Set, Matrix o Serie y no tiene ningún "
+"elemento , en otro caso devuleve FALSE."),
+IsEmpty);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real IsNull(Anything any)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text graAny = Grammar(any);
+  Case
+  ( 
+    graAny == "Real",   EQ(any, 0),
+    graAny == "Matrix", And(EQ(MatMax(any),0),EQ(MatMin(any),0)),
+    graAny == "Serie",  And(EQ(MaxS  (any),0),EQ(MinS  (any),0)),
+    True, 
+    {
+      WriteLn
+      (
+        I2("ERROR: "+graAny+" grammar is not considered by IsNull.",
+           "ERROR: Gramatica "+graAny+" no considerada por IsNull.")
+      );
+      False
+    }
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Returns True if argument object is zero, otherwise returns
+False", "Devuelve verdadero si el objeto argumento es nulo, en otro caso
+devuelve falso"), 
+IsNull);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real SaveTable(Set table, Text pathTable)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(table),
+  {
+    Text WriteLn("El conjunto tabular "+Name(table)+" es vacio.");
+    False
+  },
+  {    
+    Text oldEditor = PutEditor("");
+    Set Table(SetOfSet(table), pathTable);
+    Text PutEditor(oldEditor);
+    Real FileExist(pathTable)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Salva a disco un conjunto con estructura de tabla sin que se vea en pantalla
+en la direccion indicada por el path. Si el conjunto es vacio no se realiza 
+la grabacion y retorna False, en otro caso retorna si se pudo o no grabar.",
+SaveTable);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real IsSerNull(Serie ser)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  And(EQ(MaxS(ser),0),EQ(MinS(ser),0)) 
+};
+
+/*
+Real IsSerNull_Deprecated = 0;
+//////////////////////////////////////////////////////////////////////////////
+Real IsSerNull(Serie ser)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  If(IsSerNull_Deprecated,1,
+  {
+    WriteLn("<W>DEPRECATED: Atención, esta función está obsoleta, use "
+            "IsNull.</W>");
+    IsSerNull_Deprecated := 1;
+    0
+  };
+  And(EQ(MaxS(ser),0),EQ(MinS(ser),0)) 
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna TRUE si la serie es nula, en otro caso devuelve FALSE.",
+IsSerNull);
+//////////////////////////////////////////////////////////////////////////////
+*/
+
+//////////////////////////////////////////////////////////////////////////////
+Real IsInfinite(Real r)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Or(IsPosInf(r), IsNegInf(r))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Devuelve uno si el real considerado es +INF o -INF y cero en caso 
+contrario.",
+IsInfinite);
+//////////////////////////////////////////////////////////////////////////////
+/*
+//////////////////////////////////////////////////////////////////////////////
+Real IsLaterVersion(Text version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real verExist = ObjectExist("Text", "Version");
+  If(Not(verExist), 
+  {
+    Text WriteLn(I2("This version is sooTrue,
+  {
+    
+
+  }) 
+
+
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("");
+//////////////////////////////////////////////////////////////////////////////
+*/
+//////////////////////////////////////////////////////////////////////////////
+  Real IsUnknownPolyn(Polyn pol)
+//////////////////////////////////////////////////////////////////////////////
+{ IsUnknown(EvalPol(pol,1)) };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Devuelve TRUE si el polinomio argumento es el polinomio desconocido y FALSE
+en caso contrario. NOTA: Falta el caso con polinomios en F.",
+IsUnknownPolyn);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real IsUnknownDate(Date dat)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text datText = FormatDate(dat, "%cy%Ym%md%d");
+  datText == "Unknown"
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Devuelve TRUE si la fecha argumento es desconocida y FALSE en caso
+contrario.",
+IsUnknownDate);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real AvrS0(Serie ser)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Serie s1 = Not(EQ(ser,0)),
+  SumS(ser)/(SumS(s1)+Not(SumS(s1)))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Calcula la media de una serie sin tener en cuenta sus valores nulos.",
+AvrS0);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real StdS0(Serie ser)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Serie s1 = ser^2,
+  Real  s2 = AvrS0(s1),
+  Real  s3 = AvrS0(ser),
+  Real  s4 = s3^2,
+  Real  s5 = s2 - s4,
+  Sqrt(s5)
+}; 
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Calcula la desviacion tipica de una serie sin tener en cuenta sus valores
+nulos.",
+StdS0);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real AvrSinOmit(Set sReal)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set realNoOmit = Select(sReal, Real(Real r) { Not(IsUnknown(r)) });
+  Real numNoOmit  = Card(realNoOmit);
+  Real suma = SetSum(realNoOmit);
+  suma/numNoOmit
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Devuelve la media de un conjunto de reales pasado como parametro sin tener
+en cuenta los omitidos para el calculo.",
+AvrSinOmit);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real CorrS(Serie ser01,Serie ser02)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set s         = AdjustSetSer(SetOfSerie(ser01, ser02));
+  Real CovS     = AvrS(s[1]*s[2])-AvrS(s[1])*AvrS(s[2]);
+  Real varSer01 = AvrS(s[1]^2)-AvrS(s[1])^2;
+  Real varSer02 = AvrS(s[2]^2)-AvrS(s[2])^2;
+  CovS/SqRt(varSer01*varSer02)
+}; 
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Devuelve el coeficiente de correlacion de dos series en el intervalo temporal 
+comun a ambas.",
+CorrS);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real HayOmitSer(Serie ser, Date desde, Date hasta)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Serie subSer     = SubSer(ser, desde, hasta);
+  Serie serIndOmit = IsUnknown(subSer);
+  GT(SumS(serIndOmit), 0)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Indicador del numero de valores omitidos que tiene una serie entre dos fechas
+dadas.",
+HayOmitSer);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real TxtIsDigit(Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text chr = If(txt!="", Sub(txt,1,1), " ");
+  Real isD = And(chr>="0", chr<="9");
+  isD
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna TRUE si el caracter 1 del texto txt es un digito (0..9)",
+TxtIsDigit);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real TxtIsNaturalNumber(Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(txt=="", FALSE,
+  {
+    Set chrSet = TxtGetCharSet(txt);
+    Set chrCtr = EvalSet(chrSet, Real(Text chr) { Or(chr<"0", chr>"9") });
+    Not(SetSum(chrCtr))
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna TRUE si el texto txt esta formado solo por digitos del 0 al 9.",
+TxtIsNaturalNumber);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Real TxtIsIntegerNumber(Text txtNum)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text txt = Compact(txtNum);
+  If(txt=="", FALSE,
+  {
+    Set  chrSet = TxtGetCharSet(Compact(txt));
+    Text chrFst = chrSet[1];
+    If(And(chrFst!="+",chrFst=="-",TxtIsDigit(txt)), FALSE,
+    {
+      Set chrCtr = For(2,Card(chrSet), Real(Real chr)
+                   { Or(chrSet[chr]<"0", chrSet[chr]>"9") });
+      Not(SetSum(chrCtr))
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna TRUE si el texto txt esta formado solo por digitos del 0 al 9 o
+los signos + y -.",
+TxtIsIntegerNumber);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real FindPattern(Text pattern, Set setTxt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(setTxt), 0,
+  {
+    Set conditions = EvalSet(setTxt, Real(Text txt)
+    { GT(TextFind(txt, pattern), 0) });
+    GT(SetSum(conditions), 0)
+  }) 
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna TRUE si el patron aparece en el conjunto de textos. En otro caso 
+retorna FALSE.",
+FindPattern);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real FindSetPattern(Set setPattern, Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(setPattern), 0,
+  {
+    Set conditions = EvalSet(setPattern, Real(Text pattern)
+    { GT(TextFind(txt, pattern),0) });
+    GT(SetSum(conditions),0)
+  }) 
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna TRUE si algun patron del conjunto de patrones aparece en texto.
+ En otro caso retorna FALSE.",
+FindSetPattern);
+//////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+  Real MaxMatrix (Matrix mat)
+//
+// PURPOSE : Calcula el valor maximo de las entradas de una matriz <mat>.
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  MatMax(mat)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Real MaxMatrix (Matrix mat):\n"
+"Calcula el valor maximo de las entradas de una matriz <mat>. "
+"Función obsoleta: es mejor usar la función nativa MatMax", MaxMatrix);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real MinMatrix (Matrix mat)
+//
+// PURPOSE : Calcula el valor minimo de las entradas de una matriz <mat>.
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  MatMin(mat)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Real MinMatrix (Matrix mat):\n"
+"Calcula el valor minimo de las entradas de una matriz <mat>."
+"Función obsoleta: es mejor usar la función nativa MatMin", MinMatrix);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real VerifyDim(Matrix M1, Matrix M2)
+//////////////////////////////////////////////////////////////////////////////
+{
+  And(EQ(Rows(M1),Rows(M2)),EQ(Columns(M1),Columns(M2)))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Real CtrTime(Real iniTime)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real sec = Copy(Time) - iniTime;
+  Text WriteLn("\n****************************************");
+  Text WriteLn("** "+ SecondsToText(sec) +" **");
+  Text WriteLn("****************************************");
+  sec
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Saca por pantalla un control de tiempo a partir de un tiempo medido 
+anteriormente.",
+CtrTime);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real AreEqualPolyn(Polyn pol01, Polyn pol02)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real isUnk01 = IsUnknownPolyn(pol01);
+  Real isUnk02 = IsUnknownPolyn(pol02);
+  Real condEqMaxDegree = EQ(Degree(pol01), Degree(pol02));
+  If(Or(isUnk01, isUnk02), Copy(FALSE),
+  {
+    If(Not(condEqMaxDegree), Copy(FALSE),
+    {
+      Set sMon01 = Monomes(pol01);
+      Set sMon02 = Monomes(pol02);
+      Real condEqNumMon = Eq(Card(sMon01), Card(sMon02));
+      If(Not(condEqNumMon), Copy(FALSE),
+         {
+           If(And(IsEmpty(sMon01), IsEmpty(sMon02)), Copy(TRUE),
+           {
+             Set x = For(1, Card(sMon01), Real(Real r)
+             {
+               Real degMon01 = Degree(sMon01[r]);
+               Real degMon02 = Degree(sMon02[r]);
+               degMon01 - degMon02
+             });
+            Real Not(SetSum(x))
+           })
+         })
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Dados dos polinomios, devuelve TRUE si ambos son iguales, es decir si tienen:
+1.- El mismo grado maximo,
+2.- El mismo numero de monomios y
+3.- Todos los monomios del mismo grado.",
+AreEqualPolyn);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real Ver2Num( Text version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Ver2NumGen(version,".",4)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Convierte una cadena que representa una version (numeros 
+separados por '.') a número para poder realizar comparaciones entre
+versiones", Ver2Num);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real Ver2NumGen(
+  Text version, // Version en formato x.y...
+  Text sepVer,  // Separador de elementos dentro de la version
+  Real padVer   // Maximo número de digitos para una parte de version
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set setNum    = Tokenizer(version,sepVer);
+  Set setNumExt = EvalSet(setNum, Text(Text item) {
+    Text itemExt = Repeat("0",padVer)+item;
+    Text txt = Sub(itemExt,TextLength(itemExt)-padVer+1, TextLength(itemExt));
+    txt
+  });
+  Text num = BinGroup("+",setNumExt);
+  Eval("Real "+num)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Convierte una cadena que representa una version (numeros 
+separados por un separador) a número para poder realizar comparaciones entre
+versiones. Se puede indicar el máximo número de digitos de los elementos de
+la versión", Ver2NumGen);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real Inclusion(Set a, Set b)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(a), True,
+  {
+    Real k   = 1;
+    Real chk = Copy(True);
+    Real ca  = Card(a);
+    Real While(And(chk, LE(k, ca)),
+    {
+       If((a[k] <: b), Real(k:=k+1), Real (chk:=Copy(False)))
+    });
+    chk
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Return True if a set is included into b and False in 
+otherwise","Retorna True si el conjunto a esta incluido en b y False en 
+otro caso."),
+Inclusion);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real CompareSet(Set a, Set b)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text nameStructa = StructName(a);
+  Text nameStructb = StructName(b);
+  If(And(nameStructa == "", nameStructb == ""), a==b,
+  If(Not(nameStructa == nameStructb), False,
+  {
+    Text args    = Arguments(FindCode("Set", nameStructa));
+
+    Set grammars = Tokenizer(Tcl_Eval("::tol::info grammars")[1], " ");
+    Set argsSet = EvalSet(grammars, Set(Text grammar)
+    { SetOfText(grammar+" ", "") })<<
+    SetOfSet(SetOfText(")", ""), SetOfText("(", ""));
+
+    Text argsReplace = Replace(ReplaceTable(args,argsSet), " ", "");
+    Set fields = Tokenizer(argsReplace, ",");
+    Set chk = EvalSet(fields, Real(Text field)
+    { 
+      Anything aVal = Eval("a->"+field);
+      Anything bVal = Eval("b->"+field);
+      Text gra = Grammar(Eval("a->"+field));
+      If(gra == "Set", CompareStructSet(aVal, bVal),
+      { aVal == bVal })
+    });
+    SetMin(chk) 
+  }))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Return True if a set is equal to b set and both with the 
+same structure.","Retorna True si el conjunto a es igual a b  y tienen la 
+misma estructura."),
+CompareSet);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real Ceil(Real r){
+//////////////////////////////////////////////////////////////////////////////
+  Floor(r) + Not(Not(r%1))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2("Return the smaller integer greater or just as the number
+given to function.","Retorna el menor entero mayor o igual que en numero 
+introducido."),
+Ceil);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real AvrS0Dates(Serie ser, Date fecIni, Date fecFin)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Serie s1 = Not(EQ(ser,0));
+  SumS(ser, fecIni, fecFin)/
+  (SumS(s1,fecIni,fecFin)+Not(SumS(s1,fecIni,fecFin)))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Calcula la media de una serie entre dos fechas sin tener en cuenta sus 
+valores nulos.",
+AvrS0Dates);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real StdS0Dates(Serie ser, Date fecIni, Date fecFin)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Serie s1 = ser^2,
+  Real  s2 = AvrS0Dates(s1, fecIni, fecFin),
+  Real  s3 = AvrS0Dates(ser, fecIni, fecFin),
+  Real  s4 = s3^2,
+  Real  s5 = s2 - s4,
+  Sqrt(s5)
+}; 
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Calcula la desviacion tipica de una serie entre dos fechas sin tener en cuenta
+sus valores nulos.",
+StdS0Dates);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real ModeDifDates(Text unidad, Date fecIni, Date fecFin)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real fini = DateToIndex(fecIni);
+  Real fend = DateToIndex(fecFin);
+  Real factor = If(ToUpper(unidad) == "H", 24,
+  {
+    Real If(ToUpper(unidad) == "M", 24*60, 24*60*60)
+  });
+  Real dif = Round((fend-fini)*factor)
+}; 
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Calcula la diferencia entre fechas. La diferencia con DifDates es que esta
+diferencia se calcula en Segundos (mode S), Minutos (mode M) u Horas (mode H).
+",
+ModeDifDates);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real TruncNormExpect(Real nu, Real sigma, Real a, Real b)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(GE(a,b),0,
+  {
+    Real aDist = Case
+    (
+      EQ(a,1/0), 1, 
+      EQ(a,-1/0), 0, 
+      1, DistNormal((a-nu)/sigma)
+    );
+    Real bDist = Case
+    (
+      EQ(b,1/0), 1, 
+      EQ(b,-1/0), 0, 
+      1, DistNormal((b-nu)/sigma)
+    );
+    Real aDens = Case
+    (
+      EQ(a,1/0), 0, 
+      EQ(a,-1/0), 0, 
+      1, DensNormal((a-nu)/sigma)
+    );
+    Real bDens = Case
+    (
+      EQ(b,1/0), 0, 
+      EQ(b,-1/0), 0, 
+      1, DensNormal((b-nu)/sigma)
+    );
+
+    Real den = bDist-aDist;
+    Real num = aDens-bDens;
+
+    nu+num*sigma/den
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Calcula la esperanza de una normal truncada de parametros
+(nu, sigma) y extremos (a,b). En los extremos se pueden introducir valores
+infinitos.[Ref: Norman L. Johnson y Samuel Kotz, 1970]- Continuous univariate
+distributions-1- Wiley Interscience Publication.p81",
+TruncNormExpect);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real MakeDir(Text path_)
+//////////////////////////////////////////////////////////////////////////////
+{
+  OSDirMake(path_)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Crea un directorio por medio de System. 
+               Esta función está obsoleta y se debe usar OSDirMake",
+MakeDir);
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real MapeS(Serie S1, Serie S2, Date D1, Date D2)
+//////////////////////////////////////////////////////////////////////////////
+{
+Serie dif = Abs((S1-S2)/S1);
+Real  n_data = CountS(S1,D1,D2);
+Real MAPE_Tot = (1/n_data)*SumS(dif,D1,D2)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Function that calculates the Mean Absolute Percentage Error
+(MAPE) between the original series and the estimated one, where S1 is the 
+original one and S2 is the estimated, D1 e D2 are the respective 
+beginning and ending dates that we want to calculate the error, and n_data is 
+the observation number between dates D1 and D2",
+MapeS);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real PutWarning (Text txt , Real rea )
+//
+// PURPOSE : Pone un WARNING al mensaje dado por <txt> y devuelve un <rea>.
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("<W>Warning:"+txt+"</W>","W");
+  rea
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Real PutWarning (Text txt , Real rea ):\n"
+"Pone un WARNING al mensaje dado por <txt> y devuelve un <rea>.", PutWarning);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real ErrorMsg(Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("<E>Error: "+txt+"</E>","E");
+  0
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription(
+  "Muestra un mensaje de error al usuario y devuelve cero.",
+  ErrorMsg);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real Msg(Text nameCode, Text msg)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text subMsg = Sub(msg, 1,4);
+    Case(
+     subMsg == "TIME",
+     {
+       Set tok = Tokenizer(msg, "_");
+       Real iniTime = Eval("Real "+tok[2]+";"); 
+       Real time    = Copy(Time)*1000;
+       Text WriteLn("\n["+ nameCode+"."+Time+
+       "]: Milesimas trancurridas desde punto "+tok[2]+" = "+
+       IntText((time-iniTime)));  
+       Copy(Time)*1000
+     },
+     subMsg == "TLOC",
+     {
+       Copy(Time)*1000
+     }, 
+     subMsg == "TGLB",
+     {
+       If(ObjectExist("Text", "Msg_Trace"), 
+	   If(Msg_Trace == "On",
+       {
+        Text WriteLn("\n["+ nameCode +"."+Time+"]: "+Replace(msg, "TGLB", ""));
+        Copy(Time)*1000
+       }, Copy(Time)*1000), Copy(Time)*1000)
+     }, 
+     1, 
+     {
+       Text WriteLn("\n["+ nameCode +"."+Time+"]: "+msg); 
+       Copy(Time)*1000
+   })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Saca un mensaje por pantalla anadiendo el Time.", Msg);
+//////////////////////////////////////////////////////////////////////////////
+
+Text GetVersionFromTolProject(Text branch)
+{
+  Text tcl_helper = "
+package require http
+
+proc ::check_url_error { url data } {
+  if {![regexp {v\d\.\d\.\d b\.\d+} $data]} {
+    error \"url $url is not available or has an invalid contents\"
+  }
+}
+
+proc ::get_win_release { {branch {official}} } {
+  set name last_${branch}_tol_release_win.txt
+  set url \"http://www.tol-project.org/pub/bin/win/${name}\"
+  
+  set data [http::data [http::geturl $url]]
+  check_url_error $url $data
+  set data
+}";
+  
+  Set result0 = Tcl_Eval(tcl_helper);
+  Text If(result0["status"], Text {
+      
+      Set result = Tcl_Eval("::get_win_release " + branch);
+      Text If(result["status"], Text result["result"],
+        {
+          WriteLn(result["result"], "W");
+          Text ""
+        })
+    },
+    {
+      WriteLn(result0["result"], "W");
+      Text ""
+    })  
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Real CheckTOLRelease(Real maxDaysOfDelay)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Or(OSUnix,ToLower(GetFilePrefix(TOLSessionPath))!="tolbase"),1,
+  {
+    Date last_tol_release_check = If(FileExist("last_tol_release_check.tol"),
+    {
+      Include("last_tol_release_check.tol")[1]
+    },
+    {
+      y1583
+    });
+    Real delay = DateToIndex(Now)-DateToIndex(last_tol_release_check);
+    Real If(delay < maxDaysOfDelay, 
+    {
+      WriteLn(I2("Last TOL updating check TOL was made at ",
+                 "La última comprobación de la actualización de TOL se hizo en ")
+              <<last_tol_release_check);
+      -1
+    },
+    {
+      WriteLn(I2("Checking if TOL is updated.",
+                 "Comprobando si TOL está actualizado."));
+      Text WriteFile("last_tol_release_check.tol", 
+                     "Date last_tol_release_check = "+
+                     FormatDate(Now,"%cy%Ym%md%dh%hi%is%s")+";\n");
+      Text tol_site = "http://www.tol-project.org";
+      Text lastOldStableWin = GetVersionFromTolProject("oldstable");
+      Text lastOfficialWin  = GetVersionFromTolProject("official");
+      Text lastDevelopmWin  = GetVersionFromTolProject("development");
+      Real ostOK = (Text lastOldStableWin!="");
+      Real ofcOK = (Text lastOfficialWin!="");
+      Real devOK = (Text lastDevelopmWin!="");
+      Text msg="";
+      Real check = If(Or(!ostOK, !ofcOK, !devOK),
+      {
+        WriteLn(msg:=I2("Cannot check TOL release.",
+                        "No se pudo chequear la versión de TOL."),"W");
+        -1
+      },
+      {
+        Text current   = Tokenizer(Version,         " ")[1];
+        Text oldStable = Tokenizer(lastOldStableWin," ")[1];
+        Text official  = Tokenizer(lastOfficialWin, " ")[1];
+        Text developm  = Tokenizer(lastDevelopmWin, " ")[1];
+        Text ostMsg = I2("The last old-stable version of TOL for windows is ",
+                         "La versión estable con mantenimiento más antigua de TOL para windows es ")+
+                         lastOldStableWin;
+        Text ofcMsg = I2("The last official version of TOL for windows is ",
+                         "La última versión oficial de TOL para windows es ")+
+                         lastOfficialWin;
+        Text devMsg = I2("The last development version of TOL for windows is ",
+                         "La última versión de desarrollo de TOL para windows es ")+
+                         lastDevelopmWin;
+        Text unkMsg = I2("You are using a too old, too new or unknown TOL "
+                         "version ",
+                         "Está usando una versión demasiado vieja, "
+                         "demasiado nueva, o desconocida de TOL ")+Version+
+                         "\n"+ostMsg+
+                         "\n"+ofcMsg+
+                         "\n"+devMsg;
+        Text obsMsg = I2("You have an obsolete TOL version ",
+                         "Su versión de TOL está obsoleta ")+
+                         Version+"."+
+                         "\n"+ostMsg+
+                         "\n"+ofcMsg+
+                         "\n"+devMsg+"\n"+
+                         I2("Please update it from official web page of TOL ",
+                            "Por favor actualícela desde la página oficial "
+                            "de TOL ")+ tol_site+"\n";
+        Text updMsg = I2("TOL is updated.",
+                         "TOL está actualizado.");
+        Text last = Case
+        (
+          current==oldStable,  { WriteLn(ostMsg);     lastOldStableWin },
+          current==official,   { WriteLn(ofcMsg);     lastOfficialWin  },
+          current==developm,   { WriteLn(devMsg);     lastDevelopmWin  },
+          1==1,                { WriteLn(unkMsg,"W"); lastOfficialWin  }
+        );
+        Case
+        ( 
+          last == Version, { WriteLn(msg:=updMsg    ), 0},
+          last >  Version, { WriteLn(msg:=obsMsg,"W"), 1},
+          last <  Version, { WriteLn(msg:=unkMsg,"W"), 2}
+        )
+      });
+      Real ok = If(check==0, 1,
+      {
+        Text doTest = TclTkMessageBox(SetOfSet(
+                        TclArgSt("-title",   "Dialogo TclWarning"),
+                        TclArgSt("-message", msg),
+                        TclArgSt("-icon",    "warning")));
+        0
+      });
+      check
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Comprueba si hay disponible una versión de TOL actualizada.", 
+               CheckTOLRelease);
+//////////////////////////////////////////////////////////////////////////////
+
+
+/* */

@@ -1,0 +1,1706 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _sql.tol
+// PURPOSE : Funciones de formato de datos de TOL a SQL dependiente del gestor
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// STRUCT
+//////////////////////////////////////////////////////////////////////////////
+
+Struct StSqlInfoColums
+{
+  Text Table,
+  Text Column,
+  Text Type,
+  Real Length,
+  Real Precision,
+  Real Scale,
+  Real IsNull,
+  Real IsKey
+};
+
+Struct StSqlInfoKeys
+{
+  Text Table,
+  Text Index,
+  Text Column
+};
+
+Struct StSqlTableParent
+{
+  Text Table,
+  Text Column
+};
+
+Struct StSqlInfoForeing
+{
+  Text Table,
+  Text Index,
+  Text Column,
+  Text ForeignTable,
+  Text ForeignIndex,
+  Text ForeignColumn
+};
+
+
+Struct StSqlInfoForeingRed
+{
+  Text Table,
+  Set  SetCol
+};
+
+
+Struct StSqlFunDepTab
+{
+  Text Table,     // Tabla sobre la que se aplica la función
+  Set  SetCol,    // Columnas que restringen el conjunto de tablas relacionadas
+                  // Se consideran relacionadas aquellas con FK a las columnas
+                  // de este conjunto. Si es vacio a cualquiera
+  Real LevAct,    // Nivel actual de llamada
+  Real LevMax,    // Número de niveles relacionados
+  Set  Filter,    // Filtro sobre la tabla actual (con estructura StSqlFilter)
+  Set  SetTblRel, // Conjunto de tablas relacionadas para la tabla actual
+  Real Gestor     // Gestor actual
+};
+
+Struct StSqlFunDepTabRes
+{
+  Anything ResFunPre,
+  Anything ResFunPos,
+  Set       SetTblRel
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// Estructura para indica un filtro sobre una tabla. A partir de ella se
+// puede crear una query de la forma:
+// select distinct (campos que forman la PK)
+// from TxtListItem(From,",")
+// where TxtListItem(Whwere," and ")
+//////////////////////////////////////////////////////////////////////////////
+Struct StSqlFilter
+{
+  Set From,   // Conjunto de tablas que van al from
+  Set Where   // Conjunto de restricciones (o joins) que van al where
+              // (al formar la query se les unirá por and)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// CONSTANTS
+//////////////////////////////////////////////////////////////////////////////
+Real GesMic = 0;
+Real GesOra = 1;
+Real GesMys = 2;
+Real GesAcc = 3;
+Real GesPos = 4;
+Real GesTer = 5;
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real SqlTrace(Text nameCode, Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Not(SqlTra), 0, Msg(nameCode, txt))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Trazador de Sql.", SqlTrace);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlToTolName(Text field)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text 
+  " Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(
+      Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(
+      Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(
+      Replace(Replace(Replace(Replace(Replace(Replace(Replace(Replace(
+      Replace(Replace(Replace("+ field +", '"+Quotes+"', '_'), '''', '_'), 
+      '¾', '_'), '·', '_'), '±', '_'), 'ß', '_'), 'Ý', '_'), 'Ð', '_'), 
+      '¦', '_'), 'Ë', '_'), '}', '_'), '[', '_'), ']', '_'), '(', '_'),
+      ')', '_'), ':', '_'), ',', '_'), '%', '_'), '-', '_'), '+', '_'),
+      '/', '_'), '=', '_'), '*', '_'), '&', '_'), '@', '_'), 'º', '_'), 
+      'Á', 'A'), 'á', 'a'), 'É', 'E'), 'é', 'e'), 'Í', 'I'), 'í', 'i'),
+      'Ó', 'O'), 'ó', 'o'), 'Ú', 'U'),  'ú', 'u'), '`', '_'), '!', '_')"
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna la fución necesaria para obtener para un campo de la
+Base de Datos un texto que sea valido para un objeto TOL.",
+SqlToTolName);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlSysDate(Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text sysDate = Case
+  (
+    EQ(gestor, GesMic), "getDate()",
+    EQ(gestor, GesOra), "sysDate",
+    EQ(gestor, GesMys), "Now()",
+    EQ(gestor, GesAcc), "date()",
+    EQ(gestor, GesPos), "date(Now())",
+    True, ""
+  );
+  sysDate
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna la hora del sistema.",SqlSysDate);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlConcat(Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+Real PutWarning("SqlConcat Deprecated: Use SQLDBMSStringConcatenation.", 0);
+  Text concat = Case
+  (
+    EQ(gestor, GesMic), "+",
+    EQ(gestor, GesOra), "||",
+    EQ(gestor, GesMys), "||",
+    EQ(gestor, GesPos), "||",
+    EQ(gestor, GesAcc), "&"
+  );
+  concat
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Función Deprecated: Retorna el caracter de concatenacion de textos.", SqlConcat);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SQLDBMSStringConcatenation(Set strAConcatenar, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set concatFun = Case
+  (
+    EQ(gestor, GesMic), [[ "", "+"  ]],
+    EQ(gestor, GesOra), [[ "", "||" ]],
+    EQ(gestor, GesMys), [[ "concat", "," ]],
+    EQ(gestor, GesPos), [[ "", "||" ]], 
+    EQ(gestor, GesAcc), [[ "", "&" ]]
+  );
+   Text ret = concatFun[1] + "("+TxtListItem(strAConcatenar, concatFun[2])+")"
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna la parte de sentencia SQL que concatena los elementos del conjunto pasado como parámetro.", SQLDBMSStringConcatenation);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlIsNull(Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text isNull = Case
+  (
+    EQ(gestor, GesMic), "IsNull",
+    EQ(gestor, GesOra), "nvl",
+    EQ(gestor, GesMys), "IfNull", 
+    EQ(gestor, GesPos), "coalesce",
+    EQ(gestor, GesTer), "coalesce",
+    EQ(gestor, GesAcc), "SqlIsNull. Access. Opción por implementar."
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna la función que compara los valores de dos campos, devolviendo el
+primero si este no es nulo o el segundo si el primero es nulo.", SqlIsNull);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlLn(Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text Ln = Case
+  (
+    EQ(gestor, GesMic), "LOG",
+    EQ(gestor, GesOra), "LN",
+    EQ(gestor, GesMys), "LN",
+    EQ(gestor, GesPos), "LN",
+    EQ(gestor, GesAcc), "SqlLn. Access. Opción por implementar."
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna la función que devuelve el logaritmo neperiano", SqlLn);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlGetDatePart(Text format, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text fmt = Case
+  (
+    EQ(gestor, GesMic),
+    Case
+    (
+      format == "Y",  "yyyy",  // Año largo (yyyy).
+      format == "y",  "yy",    // Año corto (yy).
+      format == "m",  "mm",    // Mes en número (mm).
+      format == "n",  "mm",    // Nombre del mes corto (mmm).
+      format == "N",  "mm",    // Nombre del mes largo (mmmm).
+      format == "d",  "dd",    // Día del mes (dd).
+      format == "w",  "dw",    // Nombre corto del día de la semana (ddd).
+      format == "W",  "dw",    // Nombre largo del día de la semana (dddd).
+      format == "dw", "dw",    // Número del dia de la semana.
+      format == "H",  "hh",    // Hora (00..23).
+      format == "h",  "hh",    // Hora (00..23).
+      format == "i",  "mi",    // Minuto.
+      format == "s",  "ss"     // Segundo
+    ),
+    EQ(gestor, GesOra), 
+    Case
+    (
+      format == "Y",  "YYYY",  // Año largo (yyyy).
+      format == "y",  "YY",    // Año corto (yy).
+      format == "m",  "MM",    // Mes en número (mm).
+      format == "n",  "MON",   // Nombre del mes corto (mmm).
+      format == "N",  "MONTH", // Nombre del mes largo (mmmm).
+      format == "d",  "DD",    // Día del mes (dd).
+      format == "w",  "DY",    // Nombre corto del día de la semana (ddd).
+      format == "W",  "DAY",   // Nombre largo del día de la semana (dddd).
+      format == "dw", "D",     // Número del dia de la semana.
+      format == "H",  "HH24",  // Hora (00..23).
+      format == "h",  "HH12",  // Hora (01..12).
+      format == "i",  "MI",    // Minuto.
+      format == "s",  "SS"     // Segundo
+    ),
+    EQ(gestor, GesMys),
+    Case
+    (
+      format == "Y",  "%Y",  // Año largo (yyyy).
+      format == "y",  "%y",  // Año corto (yy).
+      format == "m",  "%m",  // Mes en número (mm).
+      format == "n",  "%b",  // Nombre del mes corto (mmm).
+      format == "N",  "%M",  // Nombre del mes largo (mmmm).
+      format == "d",  "%d",  // Día del mes (dd).
+      format == "w",  "%a",  // Nombre corto del día de la semana (ddd).
+      format == "W",  "%W",  // Nombre largo del día de la semana (dddd).
+      format == "dw", "%w",  // Número del dia de la semana.
+      format == "H",  "%H",  // Hora (00..23).
+      format == "h",  "%h",  // Hora (01..12).
+      format == "i",  "%i",  // Minuto.
+      format == "s",  "%d"   // Segundo
+    ),
+    EQ(gestor, GesPos), 
+    Case
+    (
+      format == "Y",  "YYYY",  // Año largo (yyyy).
+      format == "y",  "YY",    // Año corto (yy).
+      format == "m",  "MM",    // Mes en número (mm).
+      format == "n",  "MON",   // Nombre del mes corto (mmm).
+      format == "N",  "MONTH", // Nombre del mes largo (mmmm).
+      format == "d",  "DD",    // Día del mes (dd).
+      format == "w",  "DY",    // Nombre corto del día de la semana (ddd).
+      format == "W",  "DAY",   // Nombre largo del día de la semana (dddd).
+      format == "dw", "D",     // Número del dia de la semana.
+      format == "H",  "HH24",  // Hora (00..23).
+      format == "h",  "HH12",  // Hora (01..12).
+      format == "i",  "MI",    // Minuto.
+      format == "s",  "SS"     // Segundo
+    ),
+    EQ(gestor, GesAcc),
+    Case
+    (
+      format == "Y",  "aaaa",  // Año largo (yyyy).
+      format == "y",  "aa",  // Año corto (yy).
+      format == "m",  "mm",  // Mes en número (mm).
+      format == "n",  "mmm",  // Nombre del mes corto (mmm).
+      format == "N",  "mmmm",  // Nombre del mes largo (mmmm).
+      format == "d",  "dd",  // Día del mes (dd).
+      format == "w",  "ddd",  // Nombre corto del día de la semana (ddd).
+      format == "W",  "dddd",  // Nombre largo del día de la semana (dddd).
+      format == "dw", "s",  // Número del dia de la semana.
+      format == "H",  "hh",  // Hora (00..23).
+      format == "h",  "hh",  // Hora (00..23).
+      format == "i",  "nn",  // Minuto.
+      format == "s",  "ss"   // Segundo
+    )
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna el formato a aplicar en SQL para obtener la parte de una fecha para
+cualquier gestor.
+Parámetros:
+  format -> Indica el formato que queremos obtener. Se ha tomado como base los
+            formatos existentes en TOL. Como TOL se queda un poco corto se ha
+            ampliado con otros formatos interesantes que proporcionan los
+            distintos gestores.
+   'Y' // Año largo (yyyy).
+   'y  // Año corto (yy).
+   'm  // Mes en número (mm).
+   'n' // Nombre del mes corto (mmm).
+   'N' // Nombre del mes largo (mmmm).
+   'd' // Día del mes (dd).
+   'w' // Nombre corto del día de la semana (ddd).
+   'W' // Nombre largo del día de la semana (dddd).
+   'dw // Número del dia de la semana.
+   'H' // Hora (00..23).
+   'h' // Hora (01..12).
+   'i' // Minuto.
+   's' // Segundo
+", 
+SqlGetDatePart);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlDifDates(Text fecha1, Text fecha2, Text unidad, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  // get factor
+  Real factor = Case
+  (
+    Eq(gestor, GesMys),
+    {
+      Real Case
+      (
+        ToUpper(unidad)=="M",  1 / 60,
+        ToUpper(unidad)=="H",  1 / (60 * 60),
+        ToUpper(unidad)=="D",  1 / (60 * 60 * 24),
+        1,                     1
+      )
+    },
+    1,
+    {  
+      Real Case
+      (
+        ToUpper(unidad)=="H",  24,
+        ToUpper(unidad)=="M",  24 * 60,
+        ToUpper(unidad)=="S",  24 * 60 * 60,
+        1,                     1
+      )
+    }
+  );  
+  // get function query
+  Text difMinNow = Case
+  (
+    EQ(gestor, GesMic), 
+      "floor(cast(("+ fecha1 +")-("+ fecha2 +") as float) * "+ 
+      Format(factor, "")+")",
+    EQ(gestor, GesOra), 
+      "floor((("+ fecha1 +")-("+ fecha2 +") ) * "+ Format(factor, "")+")",
+    EQ(gestor, GesMys),
+      "floor(time_to_sec(timediff("+ fecha1 +","+ fecha2 +"))* "+ 
+      Format(factor, "")+")",
+    EQ(gestor, GesPos), 
+      "floor((("+ fecha1 +")-("+ fecha2 +") ) * "+ Format(factor, "")+")"  
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna la sentencia SQL para restar dos fechas dadas y
+obtene el resultado en la unidad de medida indicada
+Parámetros:
+  fecha1: Fecha minuendo
+  fecha2: Fecha sustrayendo
+  undidad: D -> Dias, H -> Horas, M -> Minutos, S -> Segundos.",
+SqlDifDates);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlSubString(Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text concat = Case
+  (
+    EQ(gestor, GesMic), "substring",
+    EQ(gestor, GesOra), "substr",
+    EQ(gestor, GesMys), "Substring",
+    EQ(gestor, GesPos), "substring",
+    EQ(gestor, GesAcc), "SqlSubString. Access. Opción por implementar."
+  );
+  concat
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el caracter de subcadena para querys.", SqlSubString);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlConvertText(Text txt, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text convTxt = Case
+  (
+    EQ(gestor, GesMic), "rtrim(convert(char(255), "+ txt +"))",
+    EQ(gestor, GesOra), "to_char("+ txt +")",
+    EQ(gestor, GesMys), "cast("+ txt +" as char)",
+    EQ(gestor, GesPos), "to_char("+ txt +")",
+    EQ(gestor, GesTer), "rtrim(cast("+ txt +" as char(255)))",    
+    EQ(gestor, GesAcc), "SqlConvertText. Access. Opción por implementar."
+  );
+  convTxt
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna la expresion sql de conversion a texto de una
+variable dependiendo del gestor de la base de datos.",
+SqlConvertText);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlIdentityGen(Real Gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+   Text Case(
+     Gestor==GesOra, "ROWNUM",
+     Gestor==GesMic, "IDENTITY(int, 1, 1)",
+     Gestor==GesPos, "CTID", //devuelve el orden con un dupla.
+     1,              "To Implement"
+   )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Retorna la función que retorna un valor numérico en cada fila retornada por 
+la consulta. En SQL sólo funciona si se usa en una sentencia SELECT INTO.",
+SqlIdentityGen);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlStDs(Text Field, Real Gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+   Text Case(
+     Gestor==GesOra, "STDDEV("+Field+")",
+     Gestor==GesMic, "STDEV("+Field+")",
+     Gestor==GesMys, "STD("+Field+")",
+	 Gestor==GesPos, "STDDEV("+Field+")",
+     1,              "To Implement"
+   )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Retorna la función que calcula la desviación estándar del campo <<Field>> en 
+el gestor.", SqlStDs);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlRestOfDivision(Text Divider, Text Divisor, Real Gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+   Text Case(
+     Gestor==GesOra, "MOD("+Divider+", "+Divisor+")",
+     Gestor==GesPos, "MOD("+Divider+", "+Divisor+")",
+     Or(Gestor==GesMic, Gestor==GesMys), Divider+" % "+Divisor,
+     1,              "To Implement"
+   )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Retorna la función que calcula el módulo entre <<Divider>> y <<Divisor>> en 
+el gestor.", SqlRestOfDivision);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFloor(Text field, Real Gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+   Text "FLOOR("+field+")"
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Retorna la función que calcula el floor de <<field>> en 
+el gestor.", SqlFloor);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFieldToStr(Text field, Text format, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text fmt = Case
+  (
+    EQ(gestor, GesMic), " CAST(DATEPART("+ format +", "+ field +") as char)",
+    EQ(gestor, GesOra), " to_char("+ field +", '"+ format +"') ",
+    EQ(gestor, GesPos), " to_char("+ field +", '"+ format +"') ",
+    EQ(gestor, GesTer), field + "(FORMAT '"+ format + "')", 
+    EQ(gestor, GesMys), Case
+    ( 
+      // special case por Week Day
+      format == "%w", " If(date_format("+ field +", '"+ format +"')=0, 7, "+
+                          "date_format("+ field+", '"+format +"'))",
+      1,              " date_format("+ field+", '"+format +"')"
+    ),
+    EQ(gestor, GesAcc), " format ("+ field +", '"+ format +"') "
+  );
+  fmt
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Funcion de conversion de un campo de una tabla de la Base de
+Datos de tipo fecha a texto, aplicandole un formato dado.",
+SqlFieldToStr);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFieldToNumber(Text field, Text format, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text fmt = Case
+  (
+    EQ(gestor, GesMic), " convert("+ format +", "+ field +")",
+    EQ(gestor, GesOra), "",
+    EQ(gestor, GesPos), "",
+    EQ(gestor, GesTer), "",    
+    EQ(gestor, GesMys), "",
+    EQ(gestor, GesAcc), ""
+  );
+  fmt
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Funcion de conversion de un campo de una tabla de la Base de
+Datos a numero, aplicandole el tipo indicado.",
+SqlFieldToNumber);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormat(Anything var, Real gestor, Text format)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text gestorTxt = Case
+  (
+    EQ(gestor, GesMic), "Mic",
+    EQ(gestor, GesOra), "Ora",
+    EQ(gestor, GesMys), "Mys",
+    EQ(gestor, GesPos), "Pos",
+    EQ(gestor, GesTer), "Ter",
+    True, ""
+  );
+  Text gcodeText = "Sql"+gestorTxt +"Format"+format;
+  If(Not(ObjectExist("Code", gcodeText)), 
+  {
+    Real SqlTrace("SqlFormat", "No existe el gestor o formato desconocido");
+    "null"
+  },
+  {
+    Code gcode = Eval("Code "+gcodeText+"; ");
+    gcode(var)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Formateador de Sql.",SqlFormat);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormatAny(Anything var, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text gramVar = Grammar(var);
+  Text format = Case(
+    gramVar == "Date", SqlFormatDate(var, gestor),
+    gramVar == "Real",
+    {
+      Text If(Eq(Floor(var), var), 
+        SqlFormatInteger(var, gestor), 
+        SqlFormatReal(var, gestor)
+      )
+    },
+    gramVar == "Text", SqlFormatText(var, gestor),
+    gramVar == "Polyn", SqlFormatPolyn(var, gestor),
+    "",
+    {
+      WriteLn("ERROR: SqlFormatAny\n"+
+              "Gramatica '"+ gramVar +"' desconocida!");
+      ""
+    }
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Formateador cualquier tipo de datos de Sql.",
+SqlFormatAny);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlInfo(Anything var, Real gestor, Text format_)
+//////////////////////////////////////////////////////////////////////////////
+{
+  
+  Text gestorTxt = Case
+  (
+    EQ(gestor, GesMic), "Mic",
+    EQ(gestor, GesOra), "Ora",
+    EQ(gestor, GesMys), "Mys",
+    EQ(gestor, GesPos), "Pos",
+    True, ""
+  );
+
+  Text gcodeText = "Sql"+gestorTxt +"Info"+format_;
+  If(Not(ObjectExist("Code", gcodeText)), 
+  {
+    Real SqlTrace("SqlInfo", "No existe el gestor o formato desconocido");
+    EMPTY
+  },
+  {
+    Code gcode = Eval("Code "+gcodeText+"; ");
+    Set ResFun = gcode(var)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Informacion de objetos de la Base de Datos.",SqlInfo);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlInfoDependentAll(Anything tabla, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  SqlInfo(tabla, gestor, Text "DependentAll")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de todas las tablas que dependen de una tabla dada. La función
+puede recibir un Text o un Set.
+Parámetros:
+  tabla  -> Text: Nombre de una tabla la Base de Datos
+            Set : Conjunto con la estructura 'StSqlInfoForeing
+  gestor -> SGBD activo 
+Devuelve: 
+  Text Tabla  -> Nombre de la tabla
+  Text Clave  -> Nombre de la clave ajena
+  Text Campo  -> Nombre del campo
+  Text TablaAjena -> Nombre de la tabla a la que hace referencia
+  Text ClaveAjena -> Nombre del indice al que hace referencia
+  Text CampoAjeno -> Nombre del campo de la tabla ajena al que hace referencia
+",
+SqlInfoDependentAll);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormatDate(Date dte, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ SqlFormat(dte, gestor, "Date") };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de fecha con formato dependiente del de TOL al formato 
+equivalente ORACLE.",
+SqlFormatDate);
+//////////////////////////////////////////////////////////////////////////////
+
+Text SqlFormatReal(Real rea, Real gestor)
+{ SqlFormat(rea, gestor, "Real") };
+PutDescription(
+"Formateador de reales TOL a formato real.",
+SqlFormatReal);
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormatInteger(Real rea, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ SqlFormat(rea, gestor, "Integer") };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de reales TOL a formato entero de ORACLE. Si el numero no es 
+entero lo redondea.",
+SqlFormatInteger);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormatText(Text txt, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ SqlFormat(txt, gestor, "Text") };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de text a char del gestor",
+SqlFormatText);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormatPolyn(Polyn pol, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ SqlFormat(pol, gestor, "Polyn") };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Formateador de polyn a char del gestor",
+SqlFormatPolyn);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real SqlDBExecQuery(Text query)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real If(SqlTra, SqlTrace("SqlDBExecQuery", "\n Query:<"+query+">"));
+  Real exec  = If(SqlExec, DBExecQuery(query),
+  {
+    Real SqlTrace("SqlDBExecQuery",
+    "Variable Real SqlExec = FALSE. query:\n<"+query+">"); 
+    Copy(FALSE)
+  });
+
+  If(LT(exec, 0),
+  { 
+    Real SqlTrace("SqlDBExecQuery", "ERROR: Fallo en la query:\n<"+query+">"); 
+    False 
+  },
+  {
+    Real SqlTrace("SqlDBExecQuery", "OK"); 
+    exec
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Llama a la funcion DBExecQuery.",
+SqlDBExecQuery);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix SqlDBMatrix(Text query, Real defectValue)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real trace = SqlTrace("SqlDBMatrix", "Query:\n"+query);
+  DBMatrix(query, defectValue)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Llama a la funcion DBMatrix.", 
+SqlDBMatrix);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlDBTable(Text query, Text nameStruct)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real trace = SqlTrace("SqlDBTable", "Query:\n"+query);
+  Set dbTabResult =
+  If(nameStruct == "", DBTable(query), DBTable(query, nameStruct));
+  Real SqlTrace("SqlDBTable", "  end Query.");
+
+  dbTabResult
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Llama a la funcion DBTable . Si no se quiere dar estrutura a la tabla se 
+pasa como argumento la cadena vacia.",
+SqlDBTable);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlDBSeries(Text query, Anything tmsAn, Set  names,
+                Set  descriptions, Real defectValue)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real checkTms = If(Grammar(tmsAn) == "TimeSet", TRUE,
+                  If(Grammar(tmsAn) == "Text",    TRUE,
+  {
+    WriteLn("ERROR: SqlDBSeries\nEl segundo argumento no es ni de tipo "+
+            "TimeSet ni de tipo Text.");
+    FALSE
+  }));
+
+  Real SqlTrace("SqlDBSeries", "Query:\n"+query);
+  Set dbSerResult =DBSeries(query,
+           If(Grammar(tmsAn) == "Text", Eval(tmsAn +";"), tmsAn),
+           names,
+           If(IsEmpty(descriptions), names, descriptions),
+           defectValue);
+  Real SqlTrace("SqlDBSeries", "  end Query.");
+
+  dbSerResult
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Llama a la funcion DBSeries.",
+SqlDBSeries);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlDBSeriesColumn(Text query, Anything tmsAn, Real defectValue)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real checkTms = If(Grammar(tmsAn) == "TimeSet", TRUE,
+                  If(Grammar(tmsAn) == "Text",    TRUE,
+  {
+    WriteLn("ERROR: SqlDBSeriesColumn\nEl segundo argumento no es ni de tipo"+
+            " TimeSet ni de tipo Text.");
+    FALSE
+  }));
+
+  Real SqlTrace("SqlDBSeriesColumn", "Query:\n"+query);
+  Set dbSerColResult = DBSeriesColumn(query,
+                 If(Grammar(tmsAn) == "Text", Eval(tmsAn +";"), tmsAn),
+                 defectValue);
+  Real SqlTrace("SqlDBSeriesColumn", "  end Query.");
+
+  dbSerColResult
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Llama a la funcion DBSeriesColumn.",
+SqlDBSeriesColumn);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlDBSeriesTable(Text query, Anything tmsAn, Set names,
+                     Set  descriptions, Real defectValue)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real checkTms = If(Grammar(tmsAn) == "TimeSet", TRUE,
+                  If(Grammar(tmsAn) == "Text",    TRUE,
+  {
+    WriteLn("ERROR: SqlDBSeriesTable\nEl segundo argumento no es ni de tipo "+
+            "TimeSet ni de tipo Text.");
+    FALSE
+  }));
+
+  Real SqlTrace("SqlDBSeriesTable", "Query:\n"+query);
+  Set dbSerTabResult = DBSeriesTable(query,
+                If(Grammar(tmsAn) == "Text", Eval(tmsAn +";"), tmsAn),
+                names,
+                If(IsEmpty(descriptions), names, descriptions),
+                defectValue);
+  Real SqlTrace("SqlDBSeriesTable", "  end Query.");
+
+  dbSerTabResult
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Llama a la funcion DBSeriesTable.",
+SqlDBSeriesTable);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlDBTableColumn(Text query, Real indexNumber, Real prefixNumber,
+                     Real invertName, Text pad, Real defaultValue)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real SqlTrace("SqlDBTableColumn", "Query:\n"+query);
+  Set dbTabColResult = DBTableColumn
+  (query, indexNumber, prefixNumber, invertName, pad, defaultValue);
+  Real SqlTrace("SqlDBTableColumn", "  end Query.");
+
+  dbTabColResult
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Llama a la funcion DBTableColumn.",
+SqlDBTableColumn);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real SqlInsertFast(Text nameTable, Set data, Real saveQuery)
+//////////////////////////////////////////////////////////////////////////////
+{
+
+  Text pathTemp = If(ObjectExist("Text","PathTemp"),
+    PathTemp,
+    GetEnv("TEMP")
+  );
+  Set recordSel = EvalSet(data, Text(Set reg)
+  {
+    Set recordSet = For(1, Card(reg), Text(Real conta)
+    {
+      Text grammar = Grammar(reg[conta]);
+      Code sqlFormatCode = Eval("Code SqlFormat"+grammar+"; ");
+      sqlFormatCode(reg[conta], GesAct)      
+    });
+    "select "+TxtListItem(recordSet, ", ")+" from dual"
+  });
+
+  Set cluster   = ForCluster(recordSel, NumLotIns);
+  Text saveTime = ReplaceTable(Time,
+  [[ [[ " ", "_" ]],
+     [[ "/",  "" ]] ,
+     [[ ":", "." ]] ]]);
+
+  Text pathSave = pathTemp + nameTable +"@"+ saveTime +"@";
+  Set recordIns = For(1, Card(cluster), Real(Real n)
+  {
+    Text fileQuery = pathSave + IntText(n) +".sql";
+    Set lotRecordSel = cluster[n];
+    Text queryIns = 
+     "insert into "+nameTable+NL+TxtListItem(lotRecordSel, " UNION ALL\n");
+    Text If(saveQuery, WriteFile(fileQuery, queryIns), "");
+    Real SqlDBExecQuery(queryIns)
+  });
+
+  Real cRecordIns = Card(recordSel);
+  Real sIns       = SetSum(recordIns);
+
+  Real SqlTrace("SqlInsertFast","Registros insertados: "+IntText(sIns));
+  Real SqlTrace("SqlInsertFast","Registros totales: "+IntText(cRecordIns));
+
+  If(EQ(cRecordIns, sIns),
+  {
+    Real SqlTrace("SqlInsertFast","Estado del proceso: OK");
+    Card(recordIns)
+  },
+  {
+    Real SqlTrace("SqlInsertFast",
+                  "Estado del proceso: Hubo problemas en la insercion.");
+    False
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Funcion de insercion rapida de datos en una tabla. Si se desea guardar la/s
+query/ies de insercion se ha de pasar el tercer parametro como TRUE, entonces
+se guardaran en un directorio temporal",
+SqlInsertFast);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlDBActivate(Text alias)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text oldAlias = Copy(ActiveAlias);
+
+  Real checkAlias = If(Or(alias == oldAlias, alias == ""), 1, 
+  {
+    Real active = DBActivate(alias);
+    Text (ActiveAlias := If(active, alias, ActiveAlias)); 
+    Set  (SetActiveAlias := 
+     If(active, (SetActiveAlias-SetOfText(alias))<<SetOfText(alias), 
+    SetActiveAlias));
+    0
+  }); 
+
+  oldAlias
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el alias de la base de datos activa antigua y activa 
+la base de datos de referencia", SqlDBActivate);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real SqlDBOpen(Text alias, Text user, Text password)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real open = DBOpen(alias, user, password);
+  Set  (SetActiveAlias := 
+   If(open, (SetActiveAlias-SetOfText(alias))<<SetOfText(alias), 
+    SetActiveAlias));
+  Text (ActiveAlias := If(open, alias, ActiveAlias));
+  open
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el alias de la base de datos activa antigua y activa 
+la base de datos de referencia", SqlDBOpen);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real SqlDBClose(Text alias)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real close = DBClose(alias);
+  Set  (SetActiveAlias := 
+   If(close, (SetActiveAlias-SetOfText(alias)), SetActiveAlias));
+
+  Text (ActiveAlias := 
+   If(IsEmpty(SetActiveAlias), "", 
+                               Copy(SetActiveAlias[Card(SetActiveAlias)])));
+  close
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el alias de la base de datos activa antigua y activa 
+la base de datos de referencia", SqlDBClose);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlInfoColumns(Text tabla, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Real SqlTrace("Sqlinfocolumns", tabla + "  " << gestor);
+  SqlInfo(tabla, gestor, "Columns")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"
+Set estructurado con información de los campos de una tabla.
+Parametros: tabla  -> nombre de la tabla
+            gestor -> SGBD activo 
+Devuelve: 
+  Text Tabla -> Nombre de la tabla
+  Text Campo -> Nombre del campo
+  Text Tipo  -> Tipo de datos
+  Real Longitud  -> Longitud del dato
+  Real Precision -> Precisión
+  Real Escala    -> Escala
+  Real EsNulo    -> 1: admite valores nulos, 0: no,
+  Real EsClave   -> 1: es clave, 0: no
+",
+SqlInfoColumns);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlInfoKeys(Text tabla, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  SqlInfo(tabla, gestor, "Keys")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"
+Set estructurado con información de los campos clave de una tabla.
+Parametros: tabla  -> nombre de la tabla
+            gestor -> SGBD activo 
+Devuelve: 
+  Text Tabla  -> Nombre de la tabla
+  Text Indice -> Nombre de la clave primaria
+  Text Campo  -> Nombre del campo
+",
+SqlInfoColumns);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlInfoForeign(Text tabla, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  SqlInfo(tabla, gestor, "Foreign")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"
+Set estructurado con información de las claves ajenas de una tabla.
+Parametros: tabla  -> nombre de la tabla
+            gestor -> SGBD activo 
+Devuelve: 
+  Text Tabla  -> Nombre de la tabla
+  Text Clave  -> Nombre de la clave ajena
+  Text Campo  -> Nombre del campo
+  Text TablaAjena -> Nombre de la tabla a la que hace referencia
+  Text ClaveAjena -> Nombre del indice al que hace referencia
+  Text CampoAjeno -> Nombre del campo de la tabla ajena al que hace referencia
+",
+SqlInfoForeign);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlInfoDependent(Text tabla, Set columns, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Set DependantTablesSet = Case
+  (
+    EQ(gestor, GesMic), SqlMicGetDependantTables(tabla, columns),
+    EQ(gestor, GesOra), SqlOraGetDependantTables(tabla, columns),
+    True, Copy(Empty)
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Información de las tablas que dependen de una tabla dada. La función
+recibe un Text y un Set.
+Parámetros:
+  tabla    -> Text: Nombre de una tabla la Base de Datos
+  columns  -> Set : Conjunto de columnas de las cuales se quiere saber
+              qué claves externas están relacionadas a ella. Si no se da
+              ninguna se asume que son todas las columnas de la tabla.
+  gestor   -> SGBD activo 
+Devuelve un Set de estructuras StSqlInfoForeing 
+  (Text Table, Text Index, Text Column, Text ForeignTable,
+   Text ForeignIndex, Text ForeignColumn)
+",
+SqlInfoDependent);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlForeign(Text table, Text foreign, Real gestor, Text format)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text gestorTxt = Case
+  (
+    EQ(gestor, GesMic), "Mic",
+    EQ(gestor, GesOra), "Ora",
+    EQ(gestor, GesMyS), "Mys",
+	EQ(gestor, GesPos), "Pos",
+    True, ""
+  );
+  Text gcodeText = "Sql"+gestorTxt +"Foreign"+format;
+  If(Not(ObjectExist("Code", gcodeText)), 
+  {
+    Real SqlTrace("SqlForeign", "No existe el gestor o formato desconocido");
+    EMPTY
+  },
+  {
+    Code gcode = Eval("Code "+gcodeText+"; ");
+    gcode(table, foreign)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Funcionalidades sobre claves ajenas.",SqlForeign);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlGetTableParent(Text table, Text field, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set info = SqlInfoForeign(table, gestor);
+  Set setTbl = Select(info, Real(Set reg) {
+//Filtramos las FKs que se refieren al campo y que no son recursivas
+    And(reg->Table==table, reg->Column==field, reg->ForeignTable!=table)
+  }); 
+  Set ParTab = Case(
+// Si no existen más dependencias devuelve el campo y la tabla
+      IsEmpty(setTbl), SetOfSet(StSqlTableParent(table, field)), 
+// Llamada recursiva (tabla referenciada) para obtener la primera definición
+      1, SqlGetTableParent(setTbl[1][4], setTbl[1][6], gestor)
+   );
+//   Text WriteLn("The Parent table of ("+table+","+field+") is "<<ParTab);
+   ParTab
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Dado un par, tabla y campo, devuelve la tabla y el nombre del
+campo, donde se definine por primera vez.", SqlGetTableParent);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlForeignDisable(Text table, Text foreign, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  SqlForeign(table, foreign, gestor, "Disable")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Sentencia para habilitar una clave ajena dada. Valida los cambios realizados.
+Parámetros:
+  table   -> Nombre de la tabla
+  foreign -> Nombre de la restricciona deshabilitar
+  gestor  -> SGBD activo 
+Devuelve: La sentencia a ejecutar
+",
+SqlForeignDisable);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlForeignEnable(Text table, Text foreign, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  SqlForeign(table, foreign, gestor, "Enable")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Sentencia para deshabilitar una clave ajena dada.
+Valida los cambios realizados.
+Parámetros:
+  table   -> Nombre de la tabla
+  foreign -> Nombre de la restricciona deshabilitar
+  gestor  -> SGBD activo 
+Devuelve: La sentencia a ejecutar
+",
+SqlForeignEnable);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real SqlTableInsert(Text idTable, Set reg)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set infCol = SqlInfoColumns(idTable, GesAct);
+  If(NE(Card(reg), Card(infCol)),
+  {
+    WriteLn("Numero de campos de la tabla "+ idTable +
+            " y del conjunto a insertar diferentes");
+    Copy(False)
+  },  
+  {
+    Set recIns = For(1, Card(infCol), Text(Real np)
+    {
+      SqlFormatAny(reg[np], GesAct)
+    });
+    Text values = TxtListItem(recIns, ",");
+    Text query = "insert into "+idTable+" values ("+values+");";
+    Real SqlDBExecQuery(query)
+  })  
+
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Inserta en la tabla <idTable> el conjunto <reg>",
+SqlTableInsert);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real SqlTableInsertSet(Text idTable, Set setReg, Real mode)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set infCol = SqlInfoColumns(idTable, GesAct);
+  Set recordIns = EvalSet(setReg, Text(Set reg)
+  {
+    If(NE(Card(reg), Card(infCol)),
+    {
+      WriteLn("Numero de campos de la tabla "+ idTable +
+              " y del conjunto a insertar diferentes");
+      ""
+    },  
+    {
+      Set recIns = For(1, Card(infCol), Text(Real np)
+      {
+        SqlFormatAny(reg[np], GesAct)
+      });
+      "select "+TxtListItem(recIns, ",")+" from dual "
+    }) 
+  
+  });
+
+  Set ins = EvalSet(ForCluster(recordIns, 500), Real(Set lotRecord)
+  {
+    Text queryIns = "insert into "+ idTable+NL+
+                    TxtListItem(lotRecord, "Union All "+NL)+";";
+    Real Case(EQ(mode, -1), 
+    {
+      Text nameFile = "Sql"+ idTable +"InsertSet"+Dte2TxtComplete(Now)+"_"+
+                      IntText(Rand(0,999));
+      Text WriteFile(pathTemp+nameFile+".sql", queryIns);
+      False
+    },
+     EQ(mode, 0), Real SqlDBExecQuery(queryIns),
+     EQ(mode, 1), 
+    {
+      Text nameFile = "Sql"+ idTable +"InsertSet"+Dte2TxtComplete(Now)+"_"+
+                      IntText(Rand(0,999));
+      Text WriteFile(pathTemp+nameFile+".sql", queryIns);
+      Real SqlDBExecQuery(queryIns)
+    })
+  });
+  Real cRecordIns = Card(recordIns);
+  Real sIns       = SetSum(ins);
+
+
+  Real SqlTrace("SqlTableInsertSet", "Registros insertados: "+IntText(sIns));
+  Real SqlTrace("SqlTableInsertSet", "Registros totales: "+IntText(cRecordIns));
+
+  Real If(EQ(cRecordIns, sIns),
+  {
+    Real SqlTrace("SqlTableInsertSet", "OK");
+    Card(recordIns)
+  },
+  {
+    Text WriteLn("Ha habido problemas en la insercion");
+    False
+  })
+
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Inserta en la tabla <idTable> el conjunto registros <setReg>.
+El parametro mode puede ser -1, 0, o 1: 
+   - -1: Se escribe un query en temp del proyecto con fecha y hora.
+   - 0 : Se ejecuta el query.
+   - 1 : Se ejecuta y escribe.",
+SqlTableInsertSet);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real SqlTableUpdate
+(
+  Text idTable,
+  Set  datWhe,
+  Set  datUp
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set infCol = SqlInfoColumns(idTable, GesAct);
+  Set wheCol = Select(infCol, Real(Set s)
+  {
+    s->IsKey  
+  });
+  Set upCol = Select(infCol, Real(Set s)
+  {
+    Not(s->IsKey)
+  });
+  Real If(NE(Card(datWhe), Card(wheCol)), 
+  {
+    WriteLn("El numero de campos no es igual a la clave primaria de la tabla");
+    Copy(False)
+  },
+  If(NE(Card(datUp), Card(upCol)), 
+  {
+    WriteLn("El numero de campos a actualizar no es igual al numero de columnas");
+    Copy(False)
+  },
+  {
+    Set sWhe = For(1, Card(wheCol), Text(Real n)
+    {
+      wheCol[n][2] +" = "+ SqlFormatAny(datWhe[n], GesAct) +NL
+    });
+
+    Set sSet = For(1, Card(upCol), Text(Real n)
+    {
+      upCol[n][2] +" = "+ SqlFormatAny(datUp[n], GesAct)
+    });
+
+    Text qry =
+    "update "+ idTable + NL +
+    "set    "+ TxtListItem(sSet, ","+ NL) + NL +
+    "where  "+ TxtListItem(sWhe, "and ");
+    Real SqlDBExecQuery(qry)
+  }))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Actualiza la tabla <idTable> donde el conjunto <datUp> corresponde a los 
+campos no primarios a actualizar y el conjunto <datWhe> que corresponde a los 
+campos de la clave primaria a filtrar",
+SqlTableUpdate);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlTableGet
+(
+  Text idTable,
+  Set  datWhe
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set infCol = SqlInfoColumns(idTable, GesAct);
+  Set wheCol = Select(infCol, Real(Set s)
+  {
+    s->IsKey  
+  });
+  
+  Set SSt = EvalSet(infCol, Text(Set s)
+  {
+    Text type = SqlPrsType2Tol(s->Type);
+    type +" "+ If((Text s->Column)<:ReservedWords, 
+                  "F"+ s->Column, s->Column)
+  });
+  Set IncludeText("Struct Sql"+ Sub(idTable, TextLength(DBPrefix)+1, 
+                                    TextLength(idTable)) +"St("+ 
+                   TxtListItem(SSt, ","+NL) +")");
+  Set result = If(NE(Card(datWhe), Card(wheCol)), 
+  {
+    WriteLn("El numero de campos no es igual a la clave primaria de la tabla");
+    Empty
+  },
+  {
+    Set sWhe = For(1, Card(wheCol), Text(Real n)
+    {
+      wheCol[n][2] +" = "+ SqlFormatAny(datWhe[n], GesAct) +NL
+    });
+    Text qry =
+    "select *"+ NL +
+    "from  "+ idTable + NL +
+    "where "+ TxtListItem(sWhe, "and ");
+    Set querySet = SqlDBTable(qry, ""); //Poner estructura
+    If(IsEmpty(querySet),
+    {
+      Real SqlTrace("SqlTableGet",
+      "ERROR: no se encuentra el registro asociado a 
+      <"+ TxtListItem(Traspose(wheCol)[2], ",") +">");
+      Empty
+    }, querySet[1])
+
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Obtiene de la tabla <idTable> el registro asociado a la clave primaria 
+<datWhe>",
+SqlTableGet);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlGetTblFie(Set setTblRel)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set setTblRelUq = Unique(Traspose(setTblRel)[1]);
+  
+  EvalSet(setTblRelUq, Set (Text table) {
+    Set setSel = Select(setTblRel, Real (Set reg) { reg->Table == table });
+    Set setSelFil = ExtractField(setSel, "Column");
+    StSqlInfoForeingRed(table, setSelFil)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Convierte un conjunto de conjuntos con estructura 
+StSqlInfoForeing, del tipo:
+ Table      Index     Column    ForeignTable   ForeignIndex    ForeignColumn
+ table1      ...      t1fieldl  ...            ...             ... 
+ table1      ...      t1field2  ...            ...             ... 
+ table1      ...      t1field3  ...            ...             ... 
+ table2      ...      t2fieldl  ...            ...             ... 
+ table2      ...      t2field2  ...            ...             ... 
+ table2      ...      t2field3  ...            ...             ... 
+en un conjunto con estructura StSqlInfoForeingRed, del tipo:
+ Table       SetCol
+ table1      SetOfText(t1fieldl,t1field2,t1field3)
+ table2      SetOfText(t2fieldl,t2field2,t2field3)
+",
+SqlGetTblFie);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlGetTblRelFie(Set setTblRel)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set setTblRelUq = Unique(Traspose(setTblRel)[1]);
+  
+  EvalSet(setTblRelUq, Set (Text table) {
+    Set setSel = Select(setTblRel, Real (Set reg) { reg->Table == table });
+    Set setSelFil = ExtractField(setSel, "Column");
+    StSqlInfoForeingRed(table, setSelFil)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Convierte un conjunto de conjuntos con estructura 
+StSqlInfoForeing, del tipo:
+ Table      Index     Column    ForeignTable   ForeignIndex    ForeignColumn
+ table1      ...      t1fieldl  ...            ...             ... 
+ table1      ...      t1field2  ...            ...             ... 
+ table1      ...      t1field3  ...            ...             ... 
+ table2      ...      t2fieldl  ...            ...             ... 
+ table2      ...      t2field2  ...            ...             ... 
+ table2      ...      t2field3  ...            ...             ... 
+en un conjunto con estructura StSqlInfoForeingRed, del tipo:
+ Table       SetCol
+ table1      SetOfText(t1fieldl,t1field2,t1field3)
+ table2      SetOfText(t2fieldl,t2field2,t2field3)
+",
+SqlGetTblRelFie);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlGetNewFilter(
+  Set  filter,   // Filtro sobre la tabla referenciada con estructura StSqlFilter
+  Text tableRef, // Tabla referenciada
+  Text tableAct, // Tabla sobre la que se quiere obtener el nuevo filtro
+  Real gestor)  
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set tblFrom = filter->From;
+  Set resWhe  = filter->Where;
+
+  Set setTblRel = SqlInfoDependent(tableRef,Copy(Empty),gestor);
+
+  Set good = Select(setTblRel, Real(Set reg) { reg->Table == tableAct });
+  // Comprobar si es vacio. TODO
+
+  // Separar en grupos de FK que estemos tratando.
+  // Una tabla puede tener dos FK a la misma tabla (uno para cada rol)
+  Set setCla =Classify(good, Real(Set s1, Set s2)
+  {
+    Compare(s1->Index, s2->Index)
+  });
+
+  Text newFil = TxtListItem(
+    EvalSet(setCla, Text (Set cla) {
+      "("+TxtListItem(
+        EvalSet(cla, Text (Set reg) {
+          tableAct+"."+reg->Column +" = "+tableRef+"."+reg->ForeignColumn
+        }),
+        " and ")+")"
+    }),
+    " or "+NL
+  );
+  Set StSqlFilter(
+    tblFrom << SetOfText(tableAct),
+    resWhe << SetOfText(newFil)
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("A partir de un filtro con estructura StSqlFilter sobre una
+tabla A, transforma el filtro a un filtro sobre una tabla B, siempre y cuando
+está tenga una FK a la primera.",
+SqlGetNewFilter);
+//////////////////////////////////////////////////////////////////////////////
+  
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlGetFilterQry(Text table, Set filter, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set infCol = SqlInfoColumns(table,gestor);
+  Set infColPK = Select(infCol, Real (Set reg) {
+    reg->IsKey
+  });
+
+  Text pSel = TxtListItem( EvalSet(infColPK, Text (Set reg) {
+    reg->Table+"."+reg->Column
+  }), ", ");
+  Text pFro = TxtListItem(filter->From,", ");
+  Text pWhe = TxtListItem(filter->Where,NL+"  and ");
+  Text "select "+pSel +NL+
+        "from "+pFro +NL+
+        "where ("+pWhe+")"
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Obtiene una query (select + from + where) que selecciona
+las PK de una tabla que se pasa por argumento y un filtro (dado por un
+conjunto con estructura StSqlFilter) sobre dicha tabla",
+SqlGetFilterQry);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlAplFunDepTab(
+  Text table,  // Tabla sobre la que se aplica la función
+  Set  setCol, // Columnas que restringen el conjunto de tablas relacionadas
+               // Se consideran relacionadas aquellas con FK a las columnas
+               // de este conjunto. Si es vacio a cualquiera
+  Real levMax, // Número de niveles relacionados
+  Set  filter, // Filtro sobre la tabla actual (con estructura StSqlFilter)
+  Code funPre, // Función a aplicar antes de la llamada recursiva
+  Code funPos, // Función a aplicar a la vuelta de la llamada recursiva.
+  Real gestor) // Gestor de BBDD
+//////////////////////////////////////////////////////////////////////////////
+{
+  SqlAplFunDepTabRec(
+    table,
+    setCol,
+    0,
+    levMax,
+    filter,
+    funPre,
+    funPos,
+    gestor)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+",
+SqlAplFunDepTab);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set SqlAplFunDepTabRec(
+  Text table,  // Tabla inicial sobre la que lanzar la función
+  Set  setCol, // Columnas que restringen el conjunto de tablas relacionadas
+               // Se consideran relacionadas aquellas con FK a las columnas
+               // de este conjunto. Si es vacio a cualquiera
+  Real levAct, // Nivel actual de llamada
+  Real levMax, // Número de niveles relacionados
+  Set  filter, // Filtro sobre la tabla actual (con estructura StSqlFilter)
+  Code funPre, // Función a aplicar antes de la llamada recursiva
+  Code funPos, // Función a aplicar a la vuelta de la llamada recursiva.
+  Real gestor) // Gestor de BBDD
+//////////////////////////////////////////////////////////////////////////////
+{
+/*  Text WriteLn(
+    "table:  " <<table  << NL <<
+    "setCol: " <<setCol << NL <<
+    "levAct: " <<levAct << NL <<
+    "levMax: " <<levMax << NL);*/
+
+  Set setTblRel = SqlInfoDependent(table,setCol,gestor);  
+
+  Set infTab = StSqlFunDepTab(
+    table,
+    setCol,
+    levAct,
+    levMax,
+    filter,
+    setTblRel,
+    gestor
+  );
+  If(Or(IsEmpty(setTblRel),GT(levAct,levMax)),
+  {
+    Anything resPre = funPre(infTab);
+    Anything resPos = funPos(infTab);
+    Eval("Set "+table+" = StSqlFunDepTabRes(resPre,resPos,Copy(Empty))")
+  },
+  {
+    Anything resPre = funPre(infTab);
+    // Si quito a la tabla actual, no puedo usar filtro para relaciones
+    // a la misma tabla, aparte las FK son a tabla, cjto de campos, lo cual
+    // ya evita bucles infinitos
+    Set setTblRelUq = SqlGetTblRelFie(setTblRel);
+    Set resRec = EvalSet(setTblRelUq, Set (Set reg) {
+      Set newFil = SqlGetNewFilter(filter, table, reg->Table, gestor);
+      SqlAplFunDepTabRec(
+        reg->Table,
+        reg->SetCol,
+        levAct+1,
+        levMax,
+        newFil,
+        funPre,
+        funPos,
+        gestor)
+    });
+    Anything resPos = funPos(infTab);
+    Eval("Set "+table+" = StSqlFunDepTabRes(resPre,resPos,resRec)")
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Función recursiva que dada una tabla, aplica una función
+que se pasa como argumento sobre la misma (funPre), busca las tablas que
+tienen una FK a dicha tabla, y se llama recursivamente para cada una de esas
+tablas. A la vuelta de las llamadas recursivas aplica para cada una de ellas
+otra función que se pasa como argumento (funPos).
+Se puede aplicar un filtro sobre la tabla inicial que va transformándose a un
+filtro sobre la tabla relacionada, para aplicar opciones de forma restrictiva.
+Ejemplos de utilidad de esta función son: borrado en cascada, conteo de 
+registros relacionados, exportación de datos, etc.",
+SqlAplFunDepTabRec);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlIsNumericCompare(Real gestor, Text column, Real toTrue)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text isTrue = Case
+  (
+    EQ(gestor, GesMic), If(toTrue == True, "1", "0"),
+    EQ(gestor, GesOra), "",
+    EQ(gestor, GesMys), "",
+    EQ(gestor, GesPos), "",
+    EQ(gestor, GesTer), "",
+    EQ(gestor, GesAcc), If(toTrue == True, "1", "0")
+  );
+  Text isNumeric = Case
+  (
+    EQ(gestor, GesMic), "isNumeric("+column+") = " + isTrue,
+    EQ(gestor, GesOra), "SqlIsNumericCompare. Oracle. Opción por implementar.",
+    EQ(gestor, GesMys), "SqlIsNumericCompare. MySQL. Opción por implementar.",
+    EQ(gestor, GesPos), "SqlIsNumericCompare. PostGres. Opción por implementar.",
+    EQ(gestor, GesTer), "SqlIsNumericCompare. Teradata. Opción por implementar.",
+    EQ(gestor, GesAcc), "IsNumeric("+column+") = " + isTrue
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna la función que comprueba si un dato es numerio o no.
+Si el parametro toTrue es \"True\" se devolvera la expresion que evalua el 
+isNumeric a True, si no, a False.
+", SqlIsNumericCompare);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlIsNumeric(Real gestor, Text column, Real toTrue)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text isNumeric = Case
+  (
+    EQ(gestor, GesMic), "isNumeric("+column+") ",
+    EQ(gestor, GesOra), "SqlIsNumeric. Oracle. Opción por implementar.",
+    EQ(gestor, GesMys), "SqlIsNumeric. MySQL. Opción por implementar.",
+    EQ(gestor, GesPos), "SqlIsNumeric. PostGres. Opción por implementar.",
+    EQ(gestor, GesTer), "SqlIsNumeric. Teradata. Opción por implementar.",
+    EQ(gestor, GesAcc), "IsNumeric("+column+") " 
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna la función que comprueba si un dato es numerio o no.
+", SqlIsNumeric);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlCastExprAsInteger(Text expr, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text Case
+  (
+    EQ(gestor, GesMic), "cast("+expr+" as int) ",
+    EQ(gestor, GesOra), "cast("+expr+" as integer) ",
+    EQ(gestor, GesMys), "cast("+expr+" as signed) ",
+    EQ(gestor, GesPos), "SqlCastExprAsInteger. PostGres. Opción por implementar.",
+    EQ(gestor, GesTer), "SqlCastExprAsInteger. Teradata. Opción por implementar.",
+    EQ(gestor, GesAcc), "SqlCastExprAsInteger. Access. Opción por implementar."
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna la sentencia que hace una conversión de una expresión (puede ser 
+un número o una combinación de columnas hacia un número entero.
+", SqlCastExprAsInteger);
+//////////////////////////////////////////////////////////////////////////////
+

@@ -1,0 +1,11 @@
+//////////////////////////////////////////////////////////////////////////////
+// PURPOSE: Includes all files of initlibrary in just one module
+//////////////////////////////////////////////////////////////////////////////
+
+Set Include("general/_init_general.tol");
+Set Include("data/_init_data.tol");
+Set Include("gui/_init_gui.tol");
+Set Include("math/_init_math.tol");
+
+
+

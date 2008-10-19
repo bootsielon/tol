@@ -1,0 +1,258 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _inputMissingBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::InputMissingBlock
+/////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.InputMissingBlock =
+"Builds a NameBlock that can draw a Gibbs sample of a Input Missing block "
+"of a Bayesian Sparse Regression model";
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock InputMissingBlock(Text name, Set inputMissingBlock, 
+                              Real numBlock, Real firstCol,
+                              NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(inputMissingBlock), [[
+  NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock(
+    name, 
+    EvalSet(inputMissingBlock, Text(BSR.MissingBlock b){ b->Name }), 
+    numBlock, 
+    firstCol, 
+    config);
+  NameBlock _.blockDef = _.lin.blk::_.blockDef;
+  Real initialize(Real unused){ 0 };
+  VMatrix filter(VMatrix X) { X };
+  VMatrix draw(Real numSim,NameBlock arima,VMatrix si,VMatrix beta,VMatrix Z) 
+  { _.blockDef::_.store };
+  Code maxLogLikelihood = draw
+  ]], [[
+  //Defining the block in the Markov Chain
+  NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock(
+    name, 
+    EvalSet(inputMissingBlock, Text(BSR.MissingBlock b){ b->Name }), 
+    numBlock, 
+    firstCol, 
+    config);
+  NameBlock _.blockDef = _.lin.blk::_.blockDef;
+  //Message identificator
+  Text _MID = "["+_.blockDef::_.name+"] ";
+  //Number of input missing variables (dimension of input missing block)
+  Real _.N = Card(_.modelDef->InputMissingBlock);
+  //Input missing pairs (equation,variable)
+  Matrix _.tj = {
+  //WriteLn("TRACE "+_MID+" 1");
+    SetMat(Extract(inputMissingBlock, 3,4))
+  };
+  //Input missing pairs (equation,missing)
+  Matrix _.tk = 
+  {
+  //WriteLn("TRACE "+_MID+" 2");
+    SetMat(Extract(inputMissingBlock, 3,2))
+  };
+  //Input missing index j
+  Set _.j = Traspose(Extract(inputMissingBlock, 4))[1];
+  //Selecting input missing variables with prior information
+  Set _.prior.sel = Select(inputMissingBlock, Real(BSR.MissingBlock b)
+  {
+    b->Prior != "None"
+  });
+  //Number of input missing prior equations
+  Real _.prior.M = Card(_.prior.sel);
+  //Average vector of input missing priors
+  Matrix _.prior.nu = If(Not(_.prior.M),Rand(0,1,0,0),
+  {
+  //WriteLn("TRACE "+_MID+" 3");
+    SetMat(Extract(_.prior.sel, 6))
+  });
+  //Inverse of standard deviation vector of input missing priors
+  Matrix _.prior.si = If(Not(_.prior.M),Rand(0,1,0,0),
+  {
+  //WriteLn("TRACE "+_MID+" 4");
+    Matrix s2 = SetMat(Extract(_.prior.sel, 7));
+    RPow(s2,-1/2)
+  });
+  //Standarized output of input missing priors
+  VMatrix _.prior.Y = If(Not(_.prior.M),Rand(0,1,0,0), 
+    Mat2VMat(_.prior.nu $* _.prior.si));
+  //Standarized input of input missing priors
+  VMatrix _.prior.X = If(Not(_.prior.M),Rand(0,_.N,0,0),
+  {
+  //WriteLn("TRACE "+_MID+" _.prior.X 1");
+  //WriteLn("TRACE "+_MID+" 5");
+    Matrix aux1= SetMat(Traspose([[Set Range(1,_.prior.M,1)]]));
+  //WriteLn("TRACE "+_MID+" 6");
+    Matrix aux2= SetMat(Extract(_.prior.sel, 2));
+    Matrix triplet =  aux1 | aux2 | _.prior.si;
+  //WriteLn("TRACE "+_MID+" _.prior.X 2 triplet=\n"<<triplet);
+    VMatrix tr = Triplet(triplet,_.prior.M,_.N);
+  //WriteLn("TRACE "+_MID+" _.prior.X 3");
+    VMatrix pX = Convert(tr,"Cholmod.R.Sparse");
+  //WriteLn("TRACE "+_MID+" _.prior.X 4");
+    pX
+  });
+  ///////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+" _.lin.blk.initialize 1");
+    //Given initial values of block variables
+  //WriteLn("TRACE "+_MID+" 7");
+    VMatrix u = Mat2VMat(SetMat(Extract(inputMissingBlock, 6)));
+    //Selecting input missing variables with left truncated prior information
+    Set leftConstrainedPrior.sel = 
+      Select(_.prior.sel, Real(BSR.MissingBlock b)
+      {
+        GT(b->MinBound,-1/0)
+      });
+    //Selecting input missing variables with right truncated prior information
+    Set rightConstrainedPrior.sel = 
+      Select(_.prior.sel, Real(BSR.MissingBlock b)
+      {
+        LT(b->MaxBound,1/0)
+      });
+  //WriteLn("TRACE "+_MID+" _.lin.blk.initialize 2");
+    //Number of input missing with left constrained prior 
+    Real left.R = Card(leftConstrainedPrior.sel);
+    //Number of input missing with left constrained prior 
+    Real right.R = Card(rightConstrainedPrior.sel);
+    //Number of input missing with constrained prior 
+    Real R = left.R + right.R;
+    //Border of input missing constrains
+    VMatrix prior.a = If(!R, Rand(0,0,0,0), 
+    {
+    //WriteLn("TRACE "+_MID+" 8");
+      VMatrix aux1=If(!left.R,  Rand(0,1,0,0), 
+        (-Mat2VMat(SetMat(Extract(leftConstrainedPrior.sel,  8)))));
+    //WriteLn("TRACE "+_MID+" 9");
+      VMatrix aux2=If(!right.R, Rand(0,1,0,0), 
+        (+Mat2VMat(SetMat(Extract(rightConstrainedPrior.sel, 9)))));
+      aux1<<aux2
+    });
+  //WriteLn("TRACE "+_MID+" _.lin.blk.initialize 3");
+    //Coefficients of input missing constrains
+    VMatrix prior.A = If(!R, Rand(0,0,0,0), 
+    {
+      Set left.range  = Range(1,        left.R, 1);
+      Set right.range = Range(1+left.R, R,      1);
+    //WriteLn("TRACE "+_MID+" 10");
+      Matrix left  = If(!left.R, Rand(0,3,0,0), 
+                                 SetMat(Traspose([[left.range]])) | 
+                                 SetMat(Extract(leftConstrainedPrior.sel, 2)) | 
+                                 Rand(left.R,1,-1,-1));
+    //WriteLn("TRACE "+_MID+" 11");
+      Matrix right = If(!right.R, Rand(0,3,0,0),
+                                  SetMat(Traspose([[right.range]])) | 
+                                  SetMat(Extract(rightConstrainedPrior.sel, 2)) | 
+                                  Rand(right.R,1,+1,+1));
+      Convert(Triplet(left<<right,R,_.N),"Cholmod.R.Sparse")
+    });
+  //WriteLn("TRACE "+_MID+" _.lin.blk.initialize 4");
+    Real ok = _.lin.blk::initialize(u,prior.A,prior.a);
+  //WriteLn("TRACE "+_MID+" _.lin.blk.initialize 5");
+    ok
+  };
+  Real _initialized = initialize(0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.filter =
+  "Filter regression input with current missing block values. You can set a "
+  "previously simulated vector of paramters calling before to method "
+  "setMcmcRow";
+  VMatrix filter(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(Not(_.blockDef::enabled), X,
+    {
+      Matrix tr = _.tj | VMat2Mat(_.blockDef::_.store);
+      VMatrix U =Triplet(tr,VRows(X),VColumns(X));
+      X+Convert(U,"Cholmod.R.Sparse")
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.buildLinearSystem =
+  "Builds linear system related to input missing block";
+  NameBlock buildLinearSystem(NameBlock arima, //ArimaBlock filter
+                              VMatrix   si,    //SigmaBlock filter
+                              VMatrix   beta,  //Non filtered LinearBlock parameters 
+                              VMatrix   Z      // 
+  )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real    M = VRows(Z);
+    VMatrix b_= SubRow(beta, _.j);
+    Matrix  b = VMat2Mat(b_);
+  //WriteLn("TRACE "+_MID+" draw 2 b="<<b);
+    VMatrix B = (Convert(Triplet(_.tk | b, M, _.N),"Cholmod.R.Sparse"));
+  //WriteLn("TRACE "+_MID+" draw 3 B="<<B);
+    VMatrix Y01 = arima::filter(si*Z) << _.prior.Y;
+  //WriteLn("TRACE "+_MID+" draw 4 Y01="<<Y01);
+    VMatrix X01 = arima::filter(si*B) << _.prior.X;
+    [[Y01, X01]]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Method of generation of input missing block";
+  VMatrix draw(Real      numSim, 
+               NameBlock arima, //ArimaBlock filter
+               VMatrix   si,    //SigmaBlock filter
+               VMatrix   beta,  //Non filtered LinearBlock parameters 
+               VMatrix   Z      // 
+               )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(Not(_.blockDef::enabled), _.blockDef::_.store,
+    {
+      NameBlock ls = buildLinearSystem(arima,si,beta,Z);
+      VMatrix _.blockDef::_.store := _.lin.blk::draw(numSim, ls::Y01, ls::X01);
+      _.blockDef::_.store
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "Method of contitioned maximum likelihood";
+  VMatrix maxLikelihood(Real      numSim, 
+                        NameBlock arima, //ArimaBlock filter
+                        VMatrix   si,    //SigmaBlock filter
+                        VMatrix   beta,  //Non filtered LinearBlock parameters 
+                        VMatrix   Z      //
+               )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(Not(_.blockDef::enabled), _.blockDef::_.store,
+    {
+      NameBlock ls = buildLinearSystem(arima,si,beta,Z);
+      VMatrix _.blockDef::_.store:=
+        _.lin.blk::maxLikelihood(numSim, ls::Y01, ls::X01);
+      _.blockDef::_.store
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::_.numCol<=0,0,{
+      _.blockDef::setStore(values) 
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Sets _.store to the columns related to this block of a given row of a "
+  "Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
+  }
+
+]])};

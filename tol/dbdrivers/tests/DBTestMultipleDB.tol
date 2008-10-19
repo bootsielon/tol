@@ -1,0 +1,80 @@
+// Database tests. See README.txt for more info.
+// Date: July 14th, 2004.
+// Author: Manuel Balderrábano <manuelb@tol-project.org>
+
+// Test Description
+Text "Testing multiple database handling...";
+
+//Test Operation
+
+Real {
+  //Struct definition:
+  Struct DBStructMySQL {
+    Text driver,
+    Text database,
+    Text host
+  };
+  Struct DBStructODBC {
+    Text driver
+  };
+  Real res = If (testDB,
+  {
+  //Opens one old-style ODBC database:
+  Real res01=DBOpen(aliasNames[1],user,passwd);
+  //Opens one New-style ODBC databases:
+  Set db1=DBStructODBC("odbc");
+  Real res02=DBOpen(aliasNames[2],user,passwd,db1);
+  //Opens two MySQL databases:
+  Set db2=DBStructMySQL("mysql", dbName, host);
+  Real res03=DBOpen("aliasTest3",user,passwd,db2);
+  Real res04=DBOpen("aliasTest4",user,passwd,db2);
+  //Now activate all of them, backwards style:
+  Real res05 = DBActivate("aliasTest4");
+  Real res06 = DBActivate("aliasTest3");
+  Real res07 = DBActivate(aliasNames[2]);
+  Real res08 = DBActivate(aliasNames[1]);
+  //Close the LAST one in the list(not active)
+  Real res09 = DBClose("aliasTest4");
+  //Close the FIRST one in the list(active)
+  Real res10 = DBClose(aliasNames[1]);
+  //Open two more mysql database to check closing was ok:
+  Real res11 = DBOpen("aliasTest4",user,passwd,db2);
+  Real res12 = DBOpen(aliasNames[1],user,passwd,db2);
+  //Close a MIDDLE in the list(Not active):
+  Real res13 = DBClose(aliasNames[2]);
+  //Activate a middle one:
+  Real res14 = DBActivate("aliasTest4");
+  //Close a MIDDLE in the list(active):
+  Real res15 = DBClose("aliasTest4");
+  //close the remaining:
+  Real res16 = DBClose(aliasNames[1]);
+  Real res17 = DBClose("aliasTest3");
+
+  // Test condition
+
+  Real If((res01 & res02 & res03 & res04),
+  {
+    If((res05 & res06 & res07 & res08 & res09 & res10 & res11 & res12 &
+        res13 & res14 & res15 & res16 & res17),
+        {
+          //WriteLn("Ok");
+          1
+        },
+        {
+          //WriteLn("Error.");
+          0
+        })
+  },
+  {
+     //WriteLn ("Error-Check DB parameters in DBTestIni.tol");
+     -1
+     })
+   },-2);
+
+  Real Case ( (res == 1), { WriteLn("Ok");1},
+              (res == 0), { WriteLn("Error");0},
+              (res == -1),{ WriteLn("Error-Check DB parameters in DBTestIni.tol");0},
+              (res == -2),{ WriteLn("Disabled");1})
+
+};
+

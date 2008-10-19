@@ -1,0 +1,285 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+## Copyright (C) 2003-2008, Bayes Inference, SA
+## Written by Daniel Rus Morales <daniel@uponeits.com>
+
+AC_INIT([tol], [1.1.7], [daniel@uponeits.com],[tol])
+AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_SRCDIR([COPYING])
+AM_CONFIG_HEADER([config.h])
+AM_INIT_AUTOMAKE([tol], [1.1.7])
+
+TOL_LT_VERSION="0:0:0"
+AC_SUBST(TOL_LT_VERSION)
+
+AC_PROG_CPP
+AC_PROG_CC
+AC_PROG_CXX
+#AC_LIBLTDL_CONVENIENCE
+AC_PROG_LIBTOOL
+
+BYs_ENABLE_DEBUG
+
+###
+## dl Dynamic Loader Support ##
+BYs_CHECK_HEADER([dl],[dlfcn.h],[The Dynamic Loader])
+BYs_CHECK_LIB([dl],[dlsym],[The Dynamic Loader])
+AM_CONDITIONAL(HAVE_dl_CPPFLAGS, [test "x${dl_CPPFLAGS}" != "x"])
+AM_CONDITIONAL(HAVE_dl_LDFLAGS, [test "x${dl_LDFLAGS}" != "x"])
+
+###
+## GSL Support ##
+BYs_SET_ARG_WITH([gsl],[GSL])
+AC_CHECK_FILE([/usr/lib/pkgconfig/gsl.pc],[
+  AC_CACHE_VAL([ac_cv_header_gsl],[ac_cv_header_gsl=yes])
+  AC_CACHE_VAL([ac_cv_lib_gsl],[ac_cv_lib_gsl=yes])
+  AC_CACHE_VAL([ac_cv_lib_gslcblas],[ac_cv_lib_gslcblas=yes])
+  AC_SUBST([gsl_CPPFLAGS],[`pkg-config --cflags gsl`])
+  AC_SUBST([gsl_LDFLAGS],[`pkg-config --libs gsl`])
+],[
+  BYs_CHECK_HEADER([gsl],[gsl/gsl_version.h],[GNU Scientific Library])
+  BYs_CHECK_LIB([gsl],[gsl_rng_alloc],[GNU Scientific Library])
+  BYs_CHECK_LIB([gslcblas],[cblas_zsymm],[GNU CBlas Library])
+])
+AM_CONDITIONAL(HAVE_gsl_CPPFLAGS, [test "x${gsl_CPPFLAGS}" != "x"])
+AM_CONDITIONAL(HAVE_gsl_LDFLAGS, [test "x${gsl_LDFLAGS}" != "x"])
+AM_CONDITIONAL(HAVE_gslcblas_LDFLAGS, [test "x${gslcblas_LDFLAGS}" != "x"])
+
+###
+## Blas Support ##
+BYs_SET_ARG_WITH([blas],[Basic Linear Algebra Subprograms])
+BYs_CHECK_HEADER([blas],[cblas.h],[Basic Linear Algebra Subprograms])
+BYs_CHECK_LIB([blas],[cblas_dtrsm],[Basic Linear Algebra Subprograms])
+AM_CONDITIONAL(HAVE_blas_CPPFLAGS, [test "x${blas_CPPFLAGS}" != "x"])
+AM_CONDITIONAL(HAVE_blas_LDFLAGS, [test "x${blas_LDFLAGS}" != "x"])
+
+###
+## Lapack Support ##
+BYs_SET_ARG_WITH([lapack],[Linear Algebra Package])
+BYs_CHECK_HEADER([lapack],[clapack.h],[Linear Algebra Package])
+BYs_CHECK_LIB([lapack],[lapack_atlas],[Linear Algebra Package])
+AM_CONDITIONAL(HAVE_lapack_CPPFLAGS, [test "x${lapack_CPPFLAGS}" != "x"])
+AM_CONDITIONAL(HAVE_lapack_LDFLAGS, [test "x${lapack_LDFLAGS}" != "x"])
+
+###
+## CHOLMOD Support ##
+BYs_SET_ARG_WITH([cholmod],[Sparse Cholesky Factorization])
+BYs_CHECK_HEADER([cholmod],[cholmod.h],[Sparse Cholesky Factorization])
+BYs_CHECK_LIB([cholmod],[cholmod_start],[Sparse Cholesky Factorization])
+AM_CONDITIONAL(HAVE_cholmod_CPPFLAGS, [test "x${cholmod_CPPFLAGS}" != "x"])
+AM_CONDITIONAL(HAVE_cholmod_LDFLAGS, [test "x${cholmod_LDFLAGS}" != "x"])
+
+###
+## BZip2 Support ##
+BYs_SET_ARG_WITH([bz2],[BZip2 Data Compression])
+BYs_CHECK_HEADER([bz2],[bzlib.h],[BZip2 Data Compression])
+BYs_CHECK_LIB([bz2],[BZ2_bzBuffToBuffCompress],[BZip2 Data Compression])
+AM_CONDITIONAL(HAVE_bz2_CPPFLAGS, [test "x${bz2_CPPFLAGS}" != "x"])
+AM_CONDITIONAL(HAVE_bz2_LDFLAGS, [test "x${bz2_LDFLAGS}" != "x"])
+
+###
+## ZipArchive Support ##
+BYs_SET_ARG_WITH([ziparch],[The ZipArchive Library])
+BYs_CHECK_HEADER([ziparch],[ZipArchive.h],[The ZipArchive Library])
+BYs_CHECK_LIB([ziparch],[_init],[The ZipArchive Library])
+AM_CONDITIONAL(HAVE_ziparch_CPPFLAGS, [test "x${ziparch_CPPFLAGS}" != "x"])
+AM_CONDITIONAL(HAVE_ziparch_LDFLAGS, [test "x${ziparch_LDFLAGS}" != "x"])
+
+# Checks for header files.
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_HEADER_TIME
+AC_CHECK_HEADERS([float.h malloc.h stdlib.h utime.h unistd.h \
+		values.h varargs.h locale.h langinfo.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+
+#---------------------------------------------
+# Handle command line option 
+#---------------------------------------------
+AC_ARG_WITH([hashmap],
+	AC_HELP_STRING([--with-hashmap=<model>],
+		[<model> may be one of: google, msvc, gcc, icc]),
+	[tol_hashmap=$withval])
+
+AC_DEFINE([__USE_NAMEBLOCK__],[1],[No description])
+AC_DEFINE([__HASH_MAP_MSVC__],[1],[No description])
+AC_DEFINE([__HASH_MAP_GOOGLE__],[2],[No description])
+AC_DEFINE([__HASH_MAP_GCC__],[3],[No description])
+AC_DEFINE([__HASH_MAP_ICC__],[4],[No description])
+
+if test "${tol_hashmap}" = "google" ; then
+  AC_DEFINE([__USE_HASH_MAP__],[__HASH_MAP_GOOGLE__],[No description])
+elif test "${tol_hashmap}" = "msvc" ; then
+  AC_DEFINE([__USE_HASH_MAP__],[__HASH_MAP_MSVC__],[No description])
+elif test "${tol_hashmap}" = "icc" ; then
+  AC_DEFINE([__USE_HASH_MAP__],[__HASH_MAP_ICC__],[No description])
+else
+  AC_DEFINE([__USE_HASH_MAP__],[__HASH_MAP_GCC__],[No description])
+fi
+
+AC_ARG_ENABLE([TC],[AC_HELP_STRING([--enable-TC],[Turn on Time Continuous (alpha)])],[AC_DEFINE([__USE_TC__],[1],[Active Time Continuous (alpha)])][CTIME=true])
+
+AC_ARG_ENABLE([DS],[AC_HELP_STRING([--enable-DS],[Turn on Dynamic Scope (instead of Lexical Scope)])],[AC_DEFINE([__USE_DYNSCOPE__],[1],[Active Dynamic Scope (instead of Lexical Scope)])])
+
+AC_ARG_ENABLE([EXT-LOADER],[AC_HELP_STRING([--enable-EXT-LOADER],[Activate Tol Extensions Loading Support (under development)])],[AC_DEFINE([__USE_EXT_LOADER__],[1],[Activate Tol Extensions Loading Support (under development)])])
+
+AC_ARG_ENABLE([DBTIME_MONITOR],[AC_HELP_STRING([--enable-DBTIME-MONITOR],[Turn on monitoring of database time consumption])],[AC_DEFINE([__DBTIME_MONITOR__],[1],[Active Database Time Consumption Monitor])][DBTIME_MONITOR=true])
+
+AC_ARG_ENABLE([OIS],[AC_HELP_STRING([--enable-OIS],[Turn on OIS (Object Serialization)])],[AC_DEFINE([__USE_OIS__],[1],[Active Tol Object Serialization])][OIS=true])
+
+AC_ARG_ENABLE([pool],[AC_HELP_STRING([--enable-pool],[Still no description])],[pool=true])
+
+case "${target}" in
+  *-hpux*)
+    SHLIB_SUFFIX="sl"
+    ;;
+  *)
+    SHLIB_SUFFIX="so"
+    ;;
+esac
+
+case "${target_os}" in
+  *darwin*)
+    DARWIN=yes
+    ;;
+esac
+
+AC_DEFINE([UNIX],[1],[Unix System])
+AC_DEFINE([USE_DELAY_INIT],[1],[Set Delayed Initialization])
+
+AC_DEFINE([DB_MODULES_SONAME],[0],[API version of the Tol Database Modules])
+
+# Checks for library functions.
+AC_FUNC_CLOSEDIR_VOID
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_STAT
+AC_FUNC_STRFTIME
+AC_FUNC_STRTOD
+AC_CHECK_FUNCS([floor socket strrchr getcwd strstr \
+		strchr strerror gethostbyaddr gethostbyname round])
+#AC_REPLACE_FUNCS([memset mkdir strdup])
+
+# Check for function getdaytime
+AC_CHECK_FUNCS(gettimeofday, [], 
+ [AC_MSG_ERROR([gettimeofday function not found, libtai cannot be compiled])])
+
+AM_CONDITIONAL(OIS, test "x${OIS}" != "x")
+
+AC_DEFINE([__POOL_NONE__],[0],[no description])
+AC_DEFINE([__POOL_BFSMEM__],[1],[no description])
+
+if test "${pool}" = "true"; then
+   AC_DEFINE([__USE_POOL__],[__POOL_BFSMEM__],[no description])
+else
+   AC_DEFINE([__USE_POOL__],[__POOL_NONE__],[no description])
+fi
+
+#------------------------------------------------------------
+# where to install Tol Init Library
+#------------------------------------------------------------
+TOLINIT_LIB_DIR=""
+
+if test "${prefix}" = "NONE" ; then
+  TOLINIT_LIB_DIR="/usr/local/lib/tol1.1.7/stdlib"
+else
+  TOLINIT_LIB_DIR="$prefix/lib/tol1.1.7/stdlib"
+fi
+
+#------------------------------------------------------------
+# where to install LEAPSECS_DATFILE_DIR
+#------------------------------------------------------------
+LEAPSECS_DATFILE_DIR=""
+
+if test "${prefix}" = "NONE" ; then
+  LEAPSECS_DATFILE_DIR=/usr/local/etc
+else
+  LEAPSECS_DATFILE_DIR=$prefix/etc
+fi
+
+
+#------------------------------------------------------------
+# variables exported to Makefiles
+#------------------------------------------------------------
+AC_SUBST(ac_aux_dir)
+
+AH_TEMPLATE([TOLINIT_LIB_DIR],[Set Path to Tol Init Library])
+AC_DEFINE_UNQUOTED([TOLINIT_LIB_DIR], "$TOLINIT_LIB_DIR")
+
+AH_TEMPLATE([LEAPSECS_DATFILE_DIR],[Set path to leapsecs.dat file])
+AC_DEFINE_UNQUOTED([LEAPSECS_DATFILE_DIR], "$LEAPSECS_DATFILE_DIR")
+
+AC_CONFIG_FILES([Makefile
+		 lang/Makefile
+		 replace/Makefile
+                 bparser/Makefile
+                 bbasic/Makefile
+		 OIS/Makefile
+                 bmath/Makefile
+                 bmath/dcdflib/Makefile
+                 bmath/mathobjects/Makefile
+                 bmath/barith/Makefile
+                 bmath/bfunct/Makefile
+                 bmath/blinalg/Makefile
+                 bmath/bprdist/Makefile
+                 bmath/bstat/Makefile
+                 bmath/csparse/Makefile
+                 bmath/gsl_ext/Makefile
+                 btol/Makefile
+                 btol/bdb/Makefile
+                 btol/bgrammar/Makefile
+                 btol/bgsl/Makefile
+                 btol/bmodel/Makefile
+                 btol/bmonte/Makefile
+                 btol/code_type/Makefile
+                 btol/complex_type/Makefile
+                 btol/date_type/Makefile
+                 btol/matrix_type/Makefile
+                 btol/vmatrix_type/Makefile
+                 btol/polynomial_type/Makefile
+                 btol/ratio_type/Makefile
+                 btol/real_type/Makefile
+                 btol/serie_type/Makefile
+                 btol/set_type/Makefile
+                 btol/text_type/Makefile
+                 btol/timeset_type/Makefile
+		 contrib/Makefile
+                 contrib/clusterlib/Makefile
+                 contrib/kmlocal/Makefile
+		 contrib/alglib/Makefile
+		 contrib/optimal_bw/Makefile
+                 stdlib/Makefile
+                 tol/Makefile])
+
+AC_OUTPUT
+
+#--------------------------------------------------------------------
+# Print out some of the more important settings 
+#--------------------------------------------------------------------
+echo ""
+echo "  ** Configuration results **"
+echo ""
+echo " Contrib Packages found:"
+echo "   GNU GSL... headers: ${ac_cv_header_gsl}, library: ${ac_cv_lib_gsl}"
+echo "    GNU GSL CBLAS library: ${ac_cv_lib_gslcblas}"
+echo "   BLAS...... headers: ${ac_cv_header_blas}, library: ${ac_cv_lib_blas}"
+echo "   LAPACK.... headers: ${ac_cv_header_lapack}, library: ${ac_cv_lib_lapack}"
+echo "   CHOLMOD... headers: ${ac_cv_header_cholmod}, library: ${ac_cv_lib_cholmod}"
+echo "   BZip2..... headers: ${ac_cv_header_bz2}, library: ${ac_cv_lib_bz2}"
+echo "   ZipArchive headers: ${ac_cv_header_ziparch}, library: ${ac_cv_lib_ziparch}"
+echo "   dl........ headers: ${ac_cv_header_dl}, library: ${ac_cv_lib_dl}"
+echo ""
+echo "  Directories where TOL is to be installed:"
+echo ""
+echo "    \"\$prefix\" is $prefix"
+echo "    libtol.$SHLIB_SUFFIX to be installed in  $prefix/lib"
+echo "    Tol InitLibrary to be installed in  $TOLINIT_LIB_DIR"
+echo "    tolcon to be installed in  $prefix/bin"
+echo ""
+echo "  To build TOL v1.1.7 type:"
+echo "  make"
+echo "  make install"
+echo ""

@@ -1,0 +1,535 @@
+/* -*- mode: c++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : tol_tester_fun.tol
+// PURPOSE : functions used in tol_tester.tol
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Text GetTolBugzillaLink(Real bugNumber)
+//////////////////////////////////////////////////////////////////////////////
+{
+  "http://bugs.tol-project.org/show_bug.cgi?id="+IntText(bugNumber)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Text GetComputerName(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text If(OSName=="UNIX",GetEnv("HOSTNAME"),GetEnv("COMPUTERNAME"))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// The path for tol executable to be tested
+//////////////////////////////////////////////////////////////////////////////
+Text MyTOLSessionPath(Real void)
+{
+  Text aux  = GetEnv("TOLSessionPath");
+  Text aux2 = If(aux!="",aux,If(ObjectExist("Text","TOLSessionPath"), 
+  {
+    Replace(TOLSessionPath,"tolbase.exe","tol.exe")
+  },
+  {
+    ""
+  }));
+  Real If(aux2=="", WriteLn
+  (
+    "<E>WARNING:"+
+    I2("TOLSessionPath not found as environment nor TOL variable",
+       "No existe TOLSessionPath ni como variabe de entorno ni en TOL")+
+    "</E>"
+  ));
+  aux2
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+// The path for tolsh executable to be used when testing Toltcl
+//////////////////////////////////////////////////////////////////////////////
+Text MyTclshPath(Real void)
+{
+  Text aux = GetEnv("TCLSH_PATH");
+  If(aux!="",aux,If(ObjectExist("Text","TOLSessionPath"),
+  {
+    Text aux = GetFilePath(GetAbsolutePath(TOLSessionPath))+"/tclsh";
+    If(FileExist(aux),aux,"tclsh")
+  },"tclsh"))
+};
+
+////////////////////////////////////////////////////////////////////////////
+// The root path where test will write log's and all resulting files
+////////////////////////////////////////////////////////////////////////////
+Text TestResultRoot(Real void) 
+{
+  TolAppDataPath+"tests_results/"
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Text GetResultRelDir(Date beginTime, 
+                        Text baseDir, 
+                        Text parameters, 
+                        Real iter, 
+                        Real maxIter)
+//////////////////////////////////////////////////////////////////////////////
+{
+  "test_"+FormatDate(beginTime,"%Y_%m_%d_%h_%i")+"/"+
+  If(parameters=="","",GetFilePrefix(parameters)+"/")+baseDir+
+  If(maxIter==1,"","/iter_"+FormatReal(iter,"%08.0lf"))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Text GetResultDir(Date beginTime, 
+                     Text baseDir, 
+                     Text parameters, 
+                     Real iter, 
+                     Real maxIter)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TestResultRoot(0)+GetResultRelDir(beginTime,baseDir,parameters,iter,maxIter)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Text FilterForBst(Text field)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ReplaceTable(field,
+  [[
+    [["\"","´"]],
+    [["'","´"]],   //" Restablece el resaltado de sintaxis del editor
+    [[";",","]]
+  ]])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set CalcReportStats(Text title, Set tests)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set tr = Traspose(tests);
+  Set stats = 
+  [[
+    Real batterySize = Card(tests);
+    Real minQuality  = SetMin(tr[ 6]);
+    Real avgQuality  = SetAvr(tr[ 6]);
+    Real unkQuality  = SetSum(EvalSet(tr[ 6], Real(Real x) { IsUnknown(x) }));
+    Real avgErrors   = SetAvr(tr[12]);
+    Real avgWarnings = SetAvr(tr[13]);
+    Real avgMemKb    = SetAvr(tr[14]);
+    Real avgCores    = SetAvr(tr[17]);
+    Real avgObjects  = SetAvr(tr[18]);
+    Real avgSeconds  = SetAvr(tr[19])
+  ]];
+  WriteLn("\nStatistics for tests battery ["+title+"]"+
+          "\n  tests number = "<<FormatReal(batterySize,"%.0lf")+
+          "\n  minQuality   = "<<FormatReal(100*minQuality,"%6.2lf")+"%"+
+          "\n  avgQuality   = "<<FormatReal(100*avgQuality,"%6.2lf")+"%"+
+          "\n  unkQuality   = "<<FormatReal(100*unkQuality,"%6.2lf")+"%"+
+          "\n  avgErrors    = "<<avgErrors+
+          "\n  avgWarnings  = "<<avgWarnings+
+          "\n  avgObjects   = "<<avgObjects+
+          "\n  avgSeconds   = "<<avgSeconds+"\n\n");
+  stats
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Runs all set of batteries of TOL tests
+  Set ReportAllBatteries(Set TestConfigTable)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text cleanPath(Text aux0)
+  {
+    Text aux1 = Replace(aux0,"\t","\\t");
+    Text aux2 = Replace(aux1,"\\","/");
+    Text aux3 = ReplaceTable(aux2,[["//","/"]]);
+    If(TextEndAt(aux3,"/"),aux3,aux3+"/")
+  };
+  Text resRoot = cleanPath(TestResultRoot(0));
+  Real doDupTest = ObjectExist("Text","DupTestIndicatorPath");
+//WriteLn("doDupTest = "<<doDupTest);
+  Text DupTestIndicatorPath_ = If(!doDupTest,"",cleanPath(DupTestIndicatorPath));
+//WriteLn("TRAZA ReportAllBatteries DupTestIndicatorPath='"+DupTestIndicatorPath_+"'");
+  Real If (!doDupTest, 0,
+    OSDirMake(DupTestIndicatorPath_));
+  Date PutDefaultDates(y1990,Succ(Today, Anual, 4));
+  Text log = TestResultRoot(0)+"test_current.log";
+  Text PutDumpFile(log);
+  Real OSFilRemove(resRoot+"OK.txt");
+  Real OSFilRemove(resRoot+"FAIL.txt");
+  Real OSFilRemove(resRoot+"WARNING.txt");
+  Real If(ObjectExist("Real",  "MinQualityForError"),
+          MinQualityForError,   MinQualityForError  =0.10);
+  Real If(ObjectExist("Real",  "AvgQualityForWarning"),
+          AvgQualityForWarning, AvgQualityForWarning=0.90);
+  Date If(ObjectExist("Date",  "TestBeginTag"),
+          TestBeginTag,         TestBeginTag =Copy(Now));
+  Text WriteLn("Version de TOL    : " + Version);
+  Text WriteLn("Sistema operativo : " + OSName);
+  Text WriteLn("Compilador        : " + CppCompiler);
+  Set AllBatteries = 
+  {
+    Set aux = Select(TestConfigTable,Real(Set s)
+    {
+      s->Times
+    });
+    EvalSet(aux,Set(Set cfg) { ReportTester(cfg, TestBeginTag) })
+  };
+  //Joins the tables of reports and details of all batteries in just two tables
+  //There are all results you need to see in this file
+  Set AllReport = BinGroup("<<",EvalSet(AllBatteries,Set(Set s) { s[1] }));
+  Set AllDetail = BinGroup("<<",EvalSet(AllBatteries,Set(Set s) { s[2] }));
+  Set stats = CalcReportStats("ALL MERGED",AllDetail);
+  Text indicator = Case
+  (
+    stats["minQuality"]<=MinQualityForError,      "FAIL",
+    Or(stats["avgQuality"]<=AvgQualityForWarning,
+       stats["unkQuality"]> 0),                   "WARNING",
+    1==1,                                         "OK"
+  )+".txt";
+  Text endLog = resRoot+"test_"+
+                FormatDate(TestBeginTag,"%Y_%m_%d_%h_%i")+
+                "/"+indicator;
+  Real OSFilCopy(log, endLog);
+  Text resInd = resRoot + indicator;
+  Real OSFilCopy(log, resRoot+indicator);
+//WriteLn("resInd :"<<resInd);
+  Real If (!doDupTest, 0,
+  {
+    Text dupInd = DupTestIndicatorPath_+indicator;
+  //WriteLn("dupInd :"<<dupInd);
+    OSFilCopy(resInd, dupInd)
+  });
+  [[AllBatteries,AllReport,AllDetail]]
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Set ReportTester(strBatteryConfig config, Date beginTime)
+// Runs all test.tol located bellow baseDir:
+// - call RunTests the specified number of times
+// - create baseDir/test_yymmddhhmmss storing the resulting BST and a report
+//   about test results.
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text baseDir = config->Root;
+  Real times   = config->Times;
+  Text param   = If(config->Parameters=="","",
+                    GetFilePrefix(config->Parameters)+"/");
+  Text title   = param+baseDir+"("<<IntText(times)+" times)";
+  WriteLn("\nReportTester of battery "+title);
+  If(!times, Empty,
+  { 
+    Set aux = BinGroup("<<",For(1,times,Set(Real k)
+    {
+      RunTests(beginTime,baseDir,config->Parameters,k,times)
+    }));
+    Text dirResult = TestResultRoot(0)+"test_"+FormatDate(beginTime,"%Y_%m_%d_%h_%i")+"/"+
+                     param+baseDir;
+    Real OSDirMake  (dirResult);
+    Set tests = BSTFile(aux,dirResult+"/test.results.bst");
+    Set stats = CalcReportStats(title, tests);
+    Set batteryReport = BSTFile([[strTestBattery
+    (
+      baseDir,
+      config->Parameters,
+      beginTime,
+      OSName,
+      CppCompiler,
+      Version,
+      GetComputerName(0),
+      stats["batterySize"],
+      stats["minQuality"],
+      stats["avgQuality"],
+      stats["unkQuality"],
+      stats["avgErrors"],
+      stats["avgWarnings"],
+      stats["avgMemKb"],
+      stats["avgCores"],
+      stats["avgObjects"],
+      stats["avgSeconds"]
+    )]], dirResult+"/battery_report.bst");
+    batteryResult = [[batteryReport, tests]]
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Set DoTest(Date beginTime, 
+              Text baseDir, 
+              Text parameters, 
+              Real iter, 
+              Real maxIter)
+// Does a standard TOL test
+//   1. Initializes all control variables
+//   2. Compiles a test.tol located bellow baseDir
+//   3. Gets changes on control variables
+//   4. Returns test metrics set
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text dirResult = GetResultDir(beginTime,baseDir,parameters,iter,maxIter);
+  Text bst       = dirResult+"/test.bst";
+  Text log       = ReplaceSlash(dirResult+"/test.log");
+  Text PutDumpFile(log);
+  Real PutRandomSeed(If(ObjectExist("Real","test_rand_seed"), test_rand_seed, 0));
+  Real test_rand_seed_ = GetRandomSeed(0);
+  WriteLn("test_rand_seed_ = " << IntText(test_rand_seed_));
+  Text my_param     = Case
+  (
+    parameters=="",        "",
+    FileExist(parameters), parameters,
+    1==1,                  baseDir+"/"+parameters
+  );
+  Text my_test      = baseDir+"/test.tol";
+  Real initErrors   = Copy(NError);
+  Real initWarnings = Copy(NWarning);
+  Real initTime     = Copy(Time);
+  Real initMemAvail = Copy(MemoryStatus(0)["AvailPhys"]/1024);
+  Real initCores    = Copy(NCore);
+  Real initObjects  = Copy(NObject);
+  Real maxCores     = 0;
+  Real maxObjects   = 0;
+  Set  inc_res      = 
+  {
+    Set _inc_param_  = If(parameters=="",Empty,Include(my_param));
+    Set _test_       = Include(my_test); 
+    Real (maxObjects:=Copy(NObject-initObjects));
+    Real (maxCores  :=Copy(NCore  -initCores));
+    Set _testStatus_ = If(Card(_test_),_test_[Card(_test_)], Empty);
+    If(StructName(_testStatus_)=="strTestStatus", 
+    {
+      DeepCopy(_testStatus_)
+    },
+    {
+      // create a valid test result for an invalid test 
+      strTestStatus("Invalid test", "", 0,
+                    "a test.tol must result in only one object being it "
+                    "a Set of type strTestStatus",
+                    "","","","tol-project.org")
+    })
+  };
+  Real EmitedErrors   = NError       - initErrors;
+  Real EmitedWarnings = NWarning     - initWarnings;
+  Real CreatedCores   = NCore        - initCores;
+  Real CreatedObjects = NObject      - initObjects;
+  Real NonDeletedCores   = NCore        - maxCores;
+  Real NonDeletedObjects = NObject      - maxObjects;
+  Real ElapsedSeconds = Time         - initTime;
+  Real UsedMemoryKb   = initMemAvail - MemoryStatus(0)["AvailPhys"]/1024;
+  Set  my_metric      = strTestMetric
+  (
+    baseDir,
+    parameters,
+    beginTime,
+    FilterForBst(inc_res->Description),
+    inc_res->Link,
+    inc_res->Quality,
+    FilterForBst(inc_res->Notes),
+    inc_res->DBServerType,
+    inc_res->DBServerHost,
+    inc_res->DBAlias,
+    inc_res->Author,
+    EmitedErrors,
+    EmitedWarnings,
+    UsedMemoryKb,
+    CreatedCores,
+    CreatedObjects,
+    NonDeletedCores,
+    NonDeletedObjects,
+    ElapsedSeconds,
+    test_rand_seed_
+  );
+  Set Do BSTFile([[my_metric]],bst);
+  my_metric
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Set CallSystemTest(Date beginTime, 
+                      Text baseDir, 
+                      Text parameters, 
+                      Real iter, 
+                      Real maxIter)
+// Calls the system to run a TOIL standard test
+//////////////////////////////////////////////////////////////////////////////
+{
+  Write("Running test "<<baseDir+
+        " iteration "<<IntText(iter)+
+        " of "<<IntText(maxIter)+" ... ");
+  Text relDirRes = GetResultRelDir(beginTime,baseDir,parameters,iter,maxIter);
+  Text dirResult = TestResultRoot(0)+relDirRes;
+  Text bst = dirResult+"/test.bst";
+  Text tol = dirResult+"/test.tol";
+  Text log = ReplaceSlash(dirResult+"/test.log");
+  Real If(!DirExist(dirResult),OSDirMake(dirResult),1);
+  Real If(FileExist(bst),OSFilRemove(bst),0);
+  Real If(FileExist(log),OSFilRemove(log),0);
+  Text order =
+    ""+ReplaceSlash(MyTOLSessionPath(0))+" -mA "+
+  //"\""+GetFilePath(MyTOLSessionPath(0))+"/initlibrary/_inittol.tol\" "+
+    "-c\"Set DoTest("<<beginTime+","+
+                    "\\\""+baseDir+"\\\","+
+                    "\\\""+parameters+"\\\","+
+                    IntText(iter)+","+
+                    IntText(maxIter)+");\" ";
+//WriteLn("\norder = \n"<<order);
+  Real ok = If(OSUnix,                            System   (order),
+            If(Arguments(WinSystem,3,"NAME")=="", System   (order),
+                                                  WinSystem(order,0,true)));
+  
+//WriteLn("ok = "<<ok);
+  Real waitBst = If(!FileExist(bst),Sleep(2),0);
+  Set table = If(And(ok,FileExist(bst)),IncludeBST(bst),Empty);
+  Set metric = If(Card(table),table[1], strTestMetric
+  (
+    baseDir,
+    parameters,
+    beginTime,
+    "Not ended test",
+    "",
+    0,
+    "Test has not well defined or TOL has crashed",
+    "",
+    "",
+    "",
+    "tol-project.org",
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?
+  ));
+  Real q = metric->Quality;
+  Real tm = metric->ElapsedSeconds;
+  WriteLn("Quality= "<<FormatReal(100*q,"%6.2lf")+"% in "+FormatReal(tm,"%8.3lf")+" seconds");
+  Real reportFail = ObjectExist("Text","DupTestIndicatorPath");
+  Real failCode   = Or(IsUnknown(q), Eq(q,0));
+  Real If(And(reportFail, failCode), 
+          OSFilCopy(log, DupTestIndicatorPath+"/"+
+                         ToName(relDirRes+".log")));
+  metric
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Set RunTests(Date beginTime, 
+                Text baseDir, 
+                Text parameters, 
+                Real iter, 
+                Real maxIter)
+// Runs in recursive way a set of test.tol located bellow baseDir:
+// - every test gets it´s log redirectioned to path_to_test/test_<iter>.log
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set dirSet = GetDir(baseDir);
+  Set deepTest = EvalSet(dirSet[2], Set(Text subdir)
+  {
+    RunTests(beginTime,baseDir+"/"+subdir, parameters, iter, maxIter)
+  });
+  Set sub_metrics = BinGroup("<<", deepTest);
+  Text my_test = baseDir+"/test.tol";
+
+  Set aux = If(!FileExist(my_test), sub_metrics,
+  {
+    Set my_metric = 
+      CallSystemTest(beginTime,baseDir,parameters,iter,maxIter);
+    sub_metrics << [[my_metric]]
+  }) 
+};
+
+/*
+  RunToltclTest --
+
+  Run a test.tcl file located in 'cwd'. test.tcl will receive and
+  argument specifying a directory where the result of the test will be
+  left. The result of the test has the structure:
+
+    Struct strToltclStatus {
+      Real Errors;
+      Real Warnings;
+      Real quality_;
+      Text partial_
+    };
+
+  test.tcl should leave in $argv1/toltcl.bst the result of the
+  test. If after running the test that does not exist the test will be
+  assumed failed.
+
+  Assume following dynamic scope in TOL:
+
+  dirResult -- if this code is called from DoTest then dirResult
+  is the dir where this test can put its files.
+
+  baseDir -- if this code is called from DoTest then baseDir is the
+  dir from where test.tol is Included
+
+  initErrors -- if this code is called from DoTest then initErrors is
+  the value of NError before starting the test, in that case that value
+  should be adjusted in order to reflect the number of errors detected
+  during the Toltcl test.
+
+  initWarnings -- if this code is called from DoTest then initWarnings
+  is the value of NWarning before starting the test, in that case that
+  value should be adjusted in order to reflect the number of warnings
+  detected during the Toltcl test.
+ */
+
+Set RunToltclTest(Real dummy)
+{
+  // Ejecutar el tclsh test.tcl que debe existir en . y darle el path
+  // donde dejar los resultados
+  Text the_bst = If (ObjectExist("Real", "DoTesting"),
+                     If (DoTesting,
+                         Text dirResult+"/tt_test.bst",
+                         Text "tt_test.bst"),
+                     Text "tt_test.bst");
+  Real If(FileExist(the_bst),OSFilRemove(the_bst),0);
+  Text the_test = If (ObjectExist("Real", "DoTesting"),
+                     If (DoTesting,
+                         Text GbaseDir+"/test.tcl",
+                         Text "test.tcl"),
+                     Text "test.tcl");
+  Text the_tester = If (ObjectExist("Text", "ToltclTester"),
+                         Text ToltclTester,
+                         Text "_toltclTester.tcl");
+  //WriteLn(the_test);
+  Set If (FileExist(the_test),
+    {
+      Text order = MyTclshPath(0) + " \"" + the_tester + "\" \"" + the_test + "\" \""  + the_bst + "\"";
+      WriteLn(order);
+      Real nerror= Copy(NError);
+      Real ok = OSCmdWait(order);
+      Real call_ok = If (NError>nerror,
+        {
+          WriteLn("Error ejecutando " + order);
+          Real 0
+        }, Real ok);
+      
+      // Leer los resultados si existes y retornarlo
+      //WriteLn(the_bst);
+      Real waitBst = If(!FileExist(the_bst),Sleep(2),0);
+      Set table = If(And(call_ok,FileExist(the_bst)),IncludeBST(the_bst),Empty);
+      Set tt_metric = If(Card(table),
+        {
+          Real If(ObjectExist("Real", "DoTesting"),
+                  If(DoTesting,
+                    {
+                      Real initErrors := initErrors-table->Errors;
+                      Real initWarnings := initWarnings-table->Warnings;
+                      1}), 1);
+          Set table[1]
+        },
+        strToltclStatus
+        (0,0,0,
+         "test.tcl could not be execute or does not generate results"
+         ))
+    },
+    {
+      Set strToltclStatus
+        (0, 0, 0,
+         "File " + the_test + " does not exists")
+    })
+};
+
+/* */
+
+

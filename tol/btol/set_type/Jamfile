@@ -1,0 +1,5 @@
+ln-H tol_bsetgra.h  tol_bset.h ;
+
+objects objs 
+    : kmeans_tolapi.cpp  set.cpp  setgra.cpp  setgrainc.cpp clustergra.cpp
+    : <include>$(TOP)/btol/real_type <include>$(TOP)/contrib/kmlocal ;

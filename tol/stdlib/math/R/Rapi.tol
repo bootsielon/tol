@@ -1,0 +1,232 @@
+////////////////////////////////////////////////////////////////////////////////
+// FILE: Rapi.tol
+// PURPOSE: TOL file-based API for calling R programs
+////////////////////////////////////////////////////////////////////////////////
+
+NameBlock Rapi =
+[[
+  //Acknowledgements
+  Text _R_citation(Real void) {
+  "R Development Core Team (2007). R: A language and environment for "
+  "statistical computing. R Foundation for Statistical Computing, "
+  "Vienna, Austria. ISBN 3-900051-07-0, \n"
+  "URL http://www.R-project.org.\n"};
+  //read only autodoc
+  Text _.autodoc.description =
+  "TOL API for R \n"+
+  "External requirements:\n"
+  " 1. Install R (>=2.6.0) and ensure that is added to system path "
+  "environment\n"
+  "Acknowledgements:\n"+
+  _R_citation(0)+"\n";
+
+  Set _.autodoc.authors = [["josp@tol-project.org", "vdebuen@tol-project.org"]];
+
+  Text _R.cmd = "R CMD BATCH --vanilla";
+  Text _tmpdir = Replace(TmpDir, "\\", "/");
+  Text _cwd = GetAbsolutePath(".");
+  Text _TOLutils.R = _cwd+"/"+ "TOLutils.R";
+  Text _tmp.in.R = _tmpdir+"/"+"in%S.R";
+  Text _tmp.R.out = _tmpdir+"/"+"Rout%S.log";
+  Text _tmp.args.R = _tmpdir+"/"+"args%S.R";
+
+  //////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.GetTmpArgs =
+  "";
+  Text GetTmpArgs(Real unused)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _tmp.args.R
+  };
+  
+  //////////////////////////////////////////////////////////////////////////////
+  Text _randID(Real unused)
+  //Returns a mixed PID&random key to generate a unique ID.
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    GetPID(0)+"_"+FormatReal(IntRand(0,999999),"%g")
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Text _GetAsText(Set array, Real idx, Text type)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text Case
+    (
+     type=="char",
+       {
+         Text "'"+array[idx]+"'"
+       },
+     type=="real",
+       {
+         Text FormatReal(array[idx], "%.15lg")
+       },
+     type=="int",
+       {
+         Text FormatReal(array[idx],"%.0lg")
+       },
+     type=="bool",
+       {
+         Text If(array[idx],"TRUE","FALSE")
+       },
+     1,
+       {
+         WriteLn("[Rglpk::GetAsText] Invalid requested conversion type, "
+                 "must be \"char\", \"real\" or \"int\"","E");
+         Real Stop;
+         ""
+       }
+   )
+  };
+  
+  //////////////////////////////////////////////////////////////////////////////
+  Text _ArgArray(Set array, Text name, Text type)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real card = Card(array);
+    If(card==0, "",
+    {
+      Text arg = name+"=c("+SetSum(Set For(1,card,Text(Real k)
+          {
+            Text If(k==1,"",",")+_GetAsText(array, k, type)
+          }))+")"
+     })
+  };
+  
+  //////////////////////////////////////////////////////////////////////////////
+  Text _ArgReal(Real v, Text name, Text type)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text name+"="+_GetAsText([[v]],1,type)
+  };
+
+  Text _ArgText(Text txt, Text name)
+  {
+    Text name+"='"+txt+"'"
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.CreateArgList =
+  "";
+  Text CreateArgList(Text varname, Set items)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real first=1;
+    Text argList = varname+"=list("+SetSum(EvalSet(items,Text(Set item)
+      {
+        Text gra = Grammar(item[1]);
+        Text arg = 
+          Case(
+               gra=="Set",
+                 {
+                   _ArgArray(item[1], item[2], item[3])
+                 },
+               gra=="Text",
+                 {
+                   _ArgText(item[1], item[2])
+                 },
+               gra=="Real",
+                 {
+                   _ArgReal(item[1], item[2], item[3])
+                 },
+               1==1,
+                 {     
+                   WriteLn("[Rglpk::CreateArgList] Invalid type"+gra+
+                           ", only Text, Real and Sets can be passed to R","E");
+                   Real Stop
+              });
+          Text If(arg=="", "",
+            {
+              Text If(first, {Real first:=0; Text ""}, Text ",")+arg
+            })
+                        
+      }))+")" 
+  };
+  
+  //////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.RunRScript =
+  "Preliminary description, should be improved and better formated:\n"
+  "\n"
+  "Evaluate an R script.\n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "script: the R code to evaluate. The script may contains the pattern %S "
+  "which is substituted by the value of a unique indentifier\n"
+  "\n"
+  "args.bbm: a Set of pairs (Sets) [[ mat, file.bbm ]], where mat is a Matrix "
+  "and file.bbm is the path where mat will be stored before executing the "
+  "script. The Text file.bbm may contains the pattern %S which is substituted "
+  "by the value of a unique indentifier\n"
+  "\n"
+  "argsList: Is an R list expression which is written in a file with name "
+  "returned by Rapi::GetTmpArgs(0). The contents of this Text may contains the "
+  "pattern %S which is substituted by the value of a unique indentifier"
+  "\n"
+  "result.names: a Set of BBM file names. Each file name may contains the "
+  "pattern %S which is substituted by the value of a unique indentifier\n"
+  "verbose:\n"
+  "\n"
+  "Result value:\n"
+  "\n"
+  "When the R excution has finished, for each file name in result.names one "
+  "Matrix is read. The result is a Set containing all matrices read.";
+  Set RunRScript(Text script, Set args.bbm, Text argsList, Set result.names,
+                 Real verbose)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text rndID = _randID(0);
+    
+    // Write temporary BBM's
+    Set tmps.bbm = EvalSet(args.bbm, Text(Set info.bbm) {
+        Text If(Card(info.bbm)==1, "", {
+            Text bbm = Replace(info.bbm[1], "%S", rndID);
+            Matrix MatWriteFile(bbm, info.bbm[2]);
+            Text bbm
+          })
+      });
+
+    Text args.R = If(argsList=="", "", {
+        Text _argsList = Replace(argsList, "%S", rndID);
+        Text _args.R = Replace(_tmp.args.R, "%S", rndID);
+        Text WriteFile(_args.R, _argsList);
+        Text _args.R
+      });
+      
+   Text _script  = "source('"+_TOLutils.R+"'); "+
+     ReplaceTable(script,  [[ [["%S", rndID]], [["%A", args.R]] ]]);
+
+    // Write temporary R scripts
+    Text in.R = Replace(_tmp.in.R, "%S", rndID);
+    Text WriteFile(in.R, _script);
+
+    Text R.out = Replace(_tmp.R.out, "%S", rndID);
+
+    Text oscmd = _R.cmd+" "+in.R+" "+R.out;
+    If (verbose,
+        WriteLn("[Rapi::RunRScript] Executing :\n<"+oscmd));
+    Real OSCmdWait(oscmd);
+    If (verbose,
+        WriteLn("[Rapi:RunRScript] R output was :\n<"+ReadFile(R.out)));
+
+    // Remove remporaly results
+    
+    Set EvalSet(tmps.bbm, Real(Text bbm) {
+        Real If(bbm=="", 0, OSFilRemove(bbm))
+      });
+
+    Real OSFilRemove(in.R);
+    Real OSFilRemove(args.R);
+    Real OSFilRemove(R.out);
+    
+    // Collect results
+    Set result = EvalSet(result.names, Matrix(Text result) {
+        Text res.bbm = Replace(result, "%S", rndID);
+        Matrix matres = MatReadFile(res.bbm);
+        Real OSFilRemove(res.bbm);
+        Matrix matres
+      })
+  }
+
+]]
+

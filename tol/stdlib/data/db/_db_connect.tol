@@ -1,0 +1,99 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE: _db_connect.tol
+// PURPOSE: Data base connections
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock DBConnect =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Text _.autodoc.description = 
+  "Allows a simpler way of DataBase connection handling.\n"
+  "User just needs to cretae all connections  at the begin of a project:\n"
+  "\n"
+  "  NameBlock MyDbc_1 = DBConnect::Create(...);\n"
+  "  NameBlock MyDbc_2 = DBConnect::Create(...);\n"
+  "\n"
+  "Afterwords user can call MyDbc_n::Open(0) or better MyDbc_n::Activate(0) "
+  "indistinctly due to the handler remember if it's open or not and call the "
+  "appropiate internal method in a transparent way."
+  "Method MyDbc_n::Close(0) is not mandatory although it should be "
+  "recommended to avoid server overhead.";
+
+  //Stores all available connections
+  Set _.allConnections = Copy(Empty);
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Ctreates a generic database connection handler
+  NameBlock Create(Text alias, Text user, Text password, 
+                   Text driver, Text defaultDataBase, Text server,
+                   Text purpose)
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    NameBlock dbc = 
+    [[
+      Text _.autodoc.description = 
+        I2("Data base conexion ",
+           "Conexión con la base de datos ")+alias+"\n"+
+        I2("Purpose: ","Propósito: ")+purpose;
+
+      Text _.alias     = alias;
+      Text _.user      = user;
+      Text _.password  = password;
+      Text _.driver    = driver;
+      Text _.server    = server;
+      Text _.defaultDB = defaultDataBase;
+      Real _.isOpen    = false;
+
+      Real Open(Real unused) 
+      { 
+        If(_.isOpen, 1,
+        {
+          Real ok = DBOpen(_.alias, _.user, _.password, 
+                           [[_.driver, _.defaultDB, _.server]]);
+          Real _.isOpen := ok;
+          WriteLn("[DBConnect::"+_.alias+"::Open] "+
+           I2("Connection is ", "La conexión ")+
+           If(ok,I2("is OK","tuvo exito"),I2("has failed","ha fallado")));
+          ok
+        })
+      };
+      Real Activate(Real unused) 
+      { 
+        If(!_.isOpen, Open(0), DBActivate(_.alias) )
+      };
+      Real Close(Real unused) 
+      { 
+        If(!_.isOpen, 0, 
+        {
+          Real _.isOpen := false;
+          DBClose(_.alias)
+        })
+      };
+      Real Check(Real unused)
+      {
+        WriteLn("[DBConnect::Create] "+
+          I2("Checking connection to ",
+             "Chequeando la conexión a ")+_.alias);
+        Real ok.open = Open(0);
+        If(!ok.open, false, Close(0))
+      }
+    ]];
+    Set Append(_.allConnections, [[ Eval("NameBlock "+alias+"=dbc") ]]);
+    _.allConnections[Card(_.allConnections)]
+  };
+
+  Real OpenAll(Real unused)
+  {
+    SetMin(EvalSet(_.allConnections, Real(NameBlock dbc) { dbc::Open(0) }))
+  };
+  Real CheckAll(Real unused)
+  {
+    SetMin(EvalSet(_.allConnections, Real(NameBlock dbc) { dbc::Check(0) }))
+  };
+  Real CloseAll(Real unused)
+  {
+    SetMin(EvalSet(_.allConnections, Real(NameBlock dbc) { dbc::Close(0) }))
+  }
+]];
+

@@ -1,0 +1,169 @@
+/* -*- mode: c++ -*- */
+/**
+ * rmtps_client.tol --
+ * 
+ */
+
+/**
+ *  RemotePing -- Verifica si un servidor RMTPS esta escuchando
+ *
+ *  Argumentos:
+ *
+ *    Host:
+ *    Port:
+ *
+ *  Resultado:
+ *  
+ */
+Real RemotePing(Text Host, Real Port)
+{
+
+  Set result = Tcl_Eval("::rmtps_client::server_ping "+Host+" "+
+                        FormatReal(Port, "%.0lf"));
+  Real If(result["status"], Eval(result["result"]),{
+      WriteLn("RemotePing: "+result["result"],"E");
+      Real 0
+    })
+};
+PutDescription("Verifica si un servidor RMTPS_SERVER esta ejecutandose en un "
+               "ordenador remoto y esta escuchando peticiones."
+               "Retorna 1 si el servidor esta ejecutandose o 0 en caso "
+               "contrario",
+               RemotePing);
+
+/**
+ *  RemoteExec -- Ejecuta un comando en remoto
+ *
+ *  Argumentos:
+ *
+ *    Host:
+ *    Port:
+ *    CmdLine:
+ *
+ *  Resultado:
+ *  
+ */
+Real RemoteExec(Text Host, Real Port, Text CmdLine)
+{
+
+  Set result = Tcl_Eval("::rmtps_client::ps_run "+Host+" "+
+                        FormatReal(Port, "%.0lf")+
+                        " {"+CmdLine+"}");
+  Real If(result["status"], Eval(result["result"]),{
+      WriteLn("RemoteExec: "+result["result"],"E");
+      Real 0
+    })
+};
+PutDescription("Ejecuta en un ordenador remoto un comando dado en CmdLine. "
+               "CmdLine tambien contiene los argumentos separados por "
+               "espacios. "
+               "Retorna el PID del proceso ejecutado o 0 si algun error "
+               "ocurrio durante el intento de ejecucion del comando. "
+               "Necesita que un servidor RmtPS_Server este escuchando en el "
+               "puerto Port del ordenador Host",
+               RemoteExec);
+
+/**
+ *  RemoteAlive -- Verifica, en remoto, si un proceso continua vivo
+ *
+ *  Argumentos:
+ *
+ *    Host:
+ *    Port:
+ *    PID:
+ *
+ *  Resultado:
+ *  
+ */
+Real RemoteAlive(Text Host, Real Port, Real PID)
+{
+  Set result = Tcl_Eval("::rmtps_client::ps_is_active "+Host+" "+
+                        FormatReal(Port, "%.0lf")+
+                        " " + FormatReal(PID, "%.0lf"));
+  Real If(result["status"], {
+      Real alive = Eval(result["result"]);
+      If(Eq(alive,-1), {
+          WriteLn("hubo un error en ::rmtps_server::on_ps_alive, "
+                  "rmtps_client no lo esta reportando por ahora. "
+                  "Mientras tanto puede chequear el log del servidor", "W");
+          Real 0
+        }, alive)
+    }, {
+      WriteLn("RemoteAlive: "+result["result"],"E");
+      Real 0
+    })
+};
+PutDescription("Verifica si un proceso dado por su PID continua vivo en un "
+               "ordenador remoto. "
+               "Retorna 1 si el proceso esta en la lista de procesos activos, "
+               "0 si el proceso no esta activo o -1 si hubo un error durante "
+               "la operacion remota, por ejemplo: PID invalido. "
+               "Necesita que un servidor RmtPS_Server este escuchando en el "
+               "puerto Port del ordenador Host",
+               RemoteAlive);
+
+/**
+ *  RemoteKill -- Termina la ejecucion de un proceso activo
+ *
+ *  Argumentos:
+ *
+ *    Host:
+ *    Port:
+ *    PID:
+ *
+ *  Resultado:
+ *  
+ */
+Real RemoteKill(Text Host, Real Port, Real PID)
+{
+  Set result = Tcl_Eval("::rmtps_client::ps_kill "+Host+" "+
+                        FormatReal(Port, "%.0lf")+
+                         " " + FormatReal(PID, "%.0lf"));
+  Real If(result["status"], {
+      Real killed = Eval(result["result"]);
+      If(Eq(killed,-1), {
+          WriteLn("hubo un error en ::rmtps_server::on_ps_kill, "
+                  "rmtps_client no lo esta reportando por ahora. "
+                  "Mientras tanto puede chequear el log del servidor","W");
+          Real 0
+        }, killed)
+    }, {
+      WriteLn("RemoteKill: "+result["result"],"E");
+      Real 0
+    })
+};
+PutDescription("Termina la ejecucion de un proceso, dado por su PID, en un "
+               "ordenador remoto. "
+               "Retorna 1 si el proceso se pudo finalizar o 0 si ocurrio un "
+               "error, por ejemplo: PID invalido, o no hay permisos "
+               "suficientes. "
+               "Necesita que un servidor RmtPS_Server este escuchando en el "
+               "puerto Port del ordenador Host",
+               RemoteKill);
+
+/**
+ *  RemoteProcessInitTcl -- Carga el codigo tcl del cliente de RmtPS_Client
+ *
+ *  Carga rmtps_client.tcl. Si durante la carga retorna con error se
+ *  retorna 0 y un mensaje de error se muestra en la salida
+ *  estandar. Si la carga fue satisfactoria se retorna 1.
+ *  
+ *  Argumentos:
+ *
+ *    path - camino del archivo rmtps_client.tcl
+ *
+ *  Resultado:
+ *
+ *    
+ */
+Real RemoteProcessInitTcl(Text path)
+{
+  Set result = Tcl_Eval("source {"+path+"}");
+  //Set View(result, "Std");
+  Real If(result["status"], 1, {
+      WriteLn("RemoteProcessInit: "+result["result"],"E");
+      Real 0
+    })
+};
+
+/*Real RemoteProcessInitTcl(GetAbsolutePath("rmtps_client.tcl"));*/

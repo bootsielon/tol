@@ -1,0 +1,144 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    :
+// PURPOSE :
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set FactorizePolyn(Polyn pol, Real tolerance)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ////////////////////////////////////////////////////////////////////////////
+    Set EvFactPol(Set F)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set    fact = EvalSet(F, Polyn(Polyn p){1-p});
+    Polyn  prod = SetProd(fact);
+    Polyn  dif  = prod-pol; 
+    [[dif]]
+  };
+  Real   d    = Degree(pol);
+  Set    F01  = If(d%2, SetOfPolyn(1-RandStationary(1)), Copy(Empty));
+  Set    F02  = For(1,Floor(d/2),Polyn(Real k){1-RandStationary(2)});
+  Set    marq = TMarquardt(EvFactPol,F01<<F02,tolerance);
+  Set    F    = marq[2][1];
+  Set    Fact1= EvalSet(F, Polyn(Polyn f){1-f});
+  Set    FRC  = EvalSet(Fact1, Set(Polyn f)
+  {
+    If(Degree(f)==1, [[f]],
+    {
+      Real a = Coef(f,2);
+      Real b = Coef(f,1);
+      Real c = Coef(f,0);
+      Real discrim = b^2-4*a*c;
+//    WriteLn("a="<<a<<" b="<<b<<" c="<<c<<" dis="<<discrim);
+      If(discrim<0,[[f]],
+      { 
+        Real  sd = Sqrt(discrim); 
+        Real  x1 = (-b+sd)/(2*a);
+        Real  x2 = (-b-sd)/(2*a);
+        Polyn f1 = 1-B/x1;
+        Polyn f2 = 1-B/x2;
+        [[f1,f2]]
+      })
+    })
+  });
+  Set    Fact  = BinGroup("<<",FRC);  
+  Polyn  Prod = SetProd(Fact);
+  [[Fact,Prod,marq]]
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set FactPolyn(Polyn pol, Real tolerance)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real s = tolerance+1;
+  Set Fact = Copy(Empty);
+  Real While(s>tolerance,
+  {
+    Set(Fact := FactorizePolyn(pol, tolerance));
+    Set marq = Fact[3];
+    Matrix Y = marq[1][2];
+    s := Sqrt(MatDat(Tra(Y)*Y,1,1));
+//  WriteLn("s = " << s << " t = " << tolerance);
+    s
+  });
+  Fact 
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set GetPolynRoots(Polyn pol, Real tolerance)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set Fact = FactPolyn(pol,tolerance);
+  Set roots = EvalSet(Fact[1], Set(Polyn pol)
+  {
+    If(Degree(pol)==1, 
+    {
+      Complex a = Coef(pol,1);
+      Complex b = Coef(pol,0);
+      Complex x = -b/a;
+      [[x]] 
+    },
+    {
+      Complex a = Coef(pol,2);
+      Complex b = Coef(pol,1);
+      Complex c = Coef(pol,0);
+      Complex sd = Sqrt(b^2-4*a*c); 
+      Complex x1 = (-b+sd)/(2*a);
+      Complex x2 = (-b-sd)/(2*a);
+      [[x1,x2]]
+    })
+  });
+  Set Roots  = BinGroup("<<",roots);
+  [[Roots,Fact]]
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set NextGraefeIter(Set s)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Polyn p = s[1];
+  Real  n = s[2];
+  q = ChangeB(p,-B);
+  pq = ChangeBDegree(p*q,0.5);
+  If(n>1, If(Degree(pq)<Degree(p), p, NextGraefeIter(pq,n-1)), pq)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//  Set Graefe(Polyn pol, Real tolerance)
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Polyn TunnicliffeWilsonAlg(Polyn cBF, Polyn tetha)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Polyn c       = ChangeBF(ChangeB(Coef(cBF,0)+cBF,F)/2);
+  Real degTetha = Degree(tetha);
+  Real degC     = Degree(c); 
+  Polyn tethaF  = ChangeBF((F^degC)*tetha);
+
+  Matrix A1     = PolMat(tetha, degC+1, degC+1);
+  Matrix invInd = SetRow(Range(degC+1, 1,-1));
+  Matrix A2     = PivotByColumns(PolMat(tethaF, degC+1, degC+1),invInd);
+
+  Matrix A = A1+A2;
+  Matrix cCoef = Reverse(PolMat(c, degC+1, 1));
+  Matrix G = MultiFitLinear(A,cCoef);
+  MatPol(Reverse(Tra(G)))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el polinomio solucion de la ecuacion:
+c(B,F)=tetha(F)g(B)+tetha(B)g(F) mediante el algoritmo de G.Tunnicliffe Wilson.
+El polinomio c se expresa como c0+c1(B+F)+c2(B^2+F^2)+...+cr(B^r+F^r).
+Ver en Apendice pag 336 de Seasonal Adjustment by Signal Extraction por Burman
+Ejemplo:
+Polyn c      = 3.8-1.9*(B+F)+8*(B^2+F^2);
+Polyn tetha  = 1-0.9*B-0.8*B^2;
+Polyn gPol   = TunnicliffeWilsonAlg(c, tetha);
+Polyn cProof = ChangeBF(gPol)*tetha+ChangeBF(tetha)*gPol;
+", TunnicliffeWilsonAlg);
+//////////////////////////////////////////////////////////////////////////////

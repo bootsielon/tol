@@ -1,0 +1,3 @@
+ln-H tol_gsl.h ;
+
+objects objs : tolgsl.cpp  tolgsl_usrapi_real.cpp  tolgsl_interp.cpp ;

@@ -1,0 +1,214 @@
+/* -*- mode: c++ -*- */
+
+/*
+   ----------------------------------------------------------------------
+                 Version paralela del producto de matrices
+   ----------------------------------------------------------------------  
+ */
+
+Set Include("config.tol");
+Set Include("utils.tol");
+Set Include("data.tol");
+
+Text FormatServer(Set srv)
+{
+  Text srv->host+":"+FormatReal(srv->port,"%g")
+};
+
+/*
+  Divide --
+
+  Divide el problema C = A*B en n subproblemas mas pequeño, donde n es
+  el numero de procesos dado en el argumento nproc.
+
+  Para dividir el problema en n subproblemas se particiona A por
+  columnas y B por filas:
+
+  A = (A1,A2,...,An)
+  
+       / B1 \
+       | B2 |
+  B=   | .  |
+       | .  |
+       | .  |
+       \ Bn /
+
+  Asi el producto C = A*B = A1*B1 + ... + An*Bn
+
+  Divide recibe un argumento dataDir donde escribir las matrices Ai y
+  Bi.
+  
+ */
+Real Divide(Text dataDir, Matrix A, Matrix B, Real nproc)
+{
+  Text prefixA = dataDir+"/A";
+  Text prefixB = dataDir+"/B";
+  Real base = 1;
+  Real RA = Rows(A);
+  Real CA = Columns(A);
+  Real RB = Rows(B);
+  Real CB = Columns(B);
+  Real size = Floor(CA/nproc);
+  Real R = CA-size*nproc;
+  Set For(1, nproc-1, Real (Real p) {
+      Text suffix = FormatReal(p,"%g")+".bbm";
+      Matrix sA = Sub(A, 1, base, RA, size);
+      Matrix MatWriteFile(prefixA+suffix, sA);
+      Matrix sB = Sub(B, base, 1, size, CB);
+      Matrix MatWriteFile(prefixB+suffix, sB);
+      Real base := Copy(base+size)
+    });
+  Real {
+    Text suffix = FormatReal(nproc,"%g")+".bbm";
+    Matrix sA = Sub(A, 1, base, RA, CA-base+1);
+    Matrix MatWriteFile(prefixA+suffix, sA);
+    Matrix sB = Sub(B, base, 1, RB-base+1, CB);
+    Matrix MatWriteFile(prefixB+suffix, sB);
+    Real 1
+  }
+};
+
+/*
+  Distribute --
+
+  Distribuye el calculo de cada uno de los terminos Ai*Bi entre los n
+  procesos de calculos disponibles. La informacion de cada uno de los
+  procesos de calculso esta data en el argumento server (ver
+  _stServerInfo).
+
+  El directorio donde se encuentran las matrices Ai y Bi esta dado en
+  el argumento dataDir.
+
+  El pseudo-codigo que se envia a los servidores de calculos es el
+  siguiente:
+  
+  Real {
+    Matrix A = MatReadFile("Ai.bbm");
+    Matrix B = MatReadFile("Bi.bbm");
+    Matrix MatWriteFile("Ci.bbm", A*B);
+    Real 1
+  };
+
+  De esta forma el resultado parcial de Ai*Bi queda almacenado en Ci
+
+  Esta funcion retorna un conjunto con los n identificadores de tareas
+  asignados por los servidores de calculo.
+  
+  */
+Set Distribute(Text dataDir, Set servers)
+{
+  Text prefixA = dataDir+"/A";
+  Text prefixB = dataDir+"/B";
+  Text prefixC = dataDir+"/C";
+  Text _code_ =
+  "Real {
+    Matrix A = MatReadFile(\"%A%i.bbm\");
+    Matrix B = MatReadFile(\"%B%i.bbm\");
+    Matrix C = Do MatWriteFile(\"%C%i.bbm\", A*B);
+    Real 1
+  };";
+  Real nproc = Card(servers);
+  Real p = 1;
+  Text code = Compact(ReplaceTable(_code_, [[ SetOfText("%A",prefixA),
+                                              SetOfText("%B",prefixB),
+                                              SetOfText("%C",prefixC)]]));
+  Set tasks = EvalSet(servers, Text (Set srv) {
+      Text id = TolServerEval(srv->host, srv->port,
+                              Replace(code,"%i",FormatReal(p,"%g")));
+      Real p := Copy(p+1);
+      Text id
+    })
+};
+
+/*
+  CollectSum --
+
+  Recoge los resultado parciales Ci = Ai*Bi almacenados por los
+  procesos de calculo en dataDir.
+
+  Retorna el valor de la suma:
+
+     C = C1 + ... + Ci + ... + Cn
+ */
+Matrix CollectSum(Text dataDir, Real nproc)
+{
+  Text prefixC = dataDir+"/C";
+
+  Set partials = For(1, nproc, Matrix (Real p) {
+      Matrix MatReadFile(prefixC+FormatReal(p,"%g")+".bbm")
+    });
+
+  Matrix C = Do SetSum(partials)
+};
+
+/*
+  RunParallel --
+
+  Rutina principal de paralelizacion del producto C = A * B.
+
+  Sigue la filosofia divide y venceras:
+
+    - Divide : Divide A*B en n subproblemas Ai*Bi balanceados
+
+    - Distribute : Distribuye entre los "esclavos" las n tareas Ai*Bi
+
+    - CollectSum : Recoge los resultados parciales y calcula el
+      resultado final C = A1*B1 + ... + An*Bn
+
+  Retorna el resultado C.
+ */
+Matrix RunParallel(Matrix A, Matrix B, Set servers, Text dataDir)
+{
+  Real nproc = Card(servers);
+  Real Divide(dataDir, A, B, nproc);
+  Set tasks = Distribute(dataDir, servers);
+  Text TolServerWait("");
+  Matrix C = CollectSum(dataDir, nproc)
+};
+
+Matrix MeasureParallel(Matrix A, Matrix B, Set servers, Text dataDir,
+                       Real iters)
+{
+  Set tm = StartTimer("MeasureParallel : " << iters << " iterations");
+
+  Real k=1;
+
+  Real While(k<=iters-1,
+    {
+      Matrix RunParallel(A, B, servers, dataDir);
+      Real k:=k+1
+    });
+
+  Matrix C = RunParallel(A, B, servers, dataDir);
+
+  Real elapsed = FinishTimer(tm);
+  
+  Matrix timeData = Rand(1, 2, 0, 0);
+  Real Do PutMatDat(timeData, 1, 1, Rows(C));
+  Real Do PutMatDat(timeData, 1, 2, elapsed);
+  Matrix MatAppendFile("partime.bbm", timeData);
+
+  Matrix C
+};
+
+
+Set EvalSet(servers, Real (Set srv) {
+    If(TolServerPing(srv->host,srv->port), Real {
+        WriteLn("The server " + FormatServer(srv) + " is ready");
+        1
+      }, {
+        WriteLn("The server " + FormatServer(srv) + " is not ready");
+        Real Stop
+      })
+  });
+
+
+/* Leo los datos*/
+Set data = ReadData(paramTest);
+
+/* Ejecuto version paralela */
+Matrix parC = MeasureParallel(data[1],data[2],
+                              servers, paramTest["dataDir"], 1);
+
+/* */
+Matrix MatWriteFile("parC.bbm", parC);

@@ -1,0 +1,3 @@
+ln-H tol_btmser.h  tol_btsrgra.h  tol_btsrgrai.h  tol_btsrgrav.h  tol_btsrgrp.h ;
+
+objects objs : srg.cpp  tsr.cpp  tsrgra.cpp  tsrgrai.cpp  tsrgrav.cpp ;

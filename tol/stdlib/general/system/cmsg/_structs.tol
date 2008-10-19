@@ -1,0 +1,43 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: ExtLib (Extended Library of TOL)
+// MODULE: CMsg (Controlled messages)
+// FILE: _structs.tol
+// PURPOSE: Structures needed to handle with CMsg
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Identify the code of a coded message
+//////////////////////////////////////////////////////////////////////////////
+Struct CMsg.Phase.history
+{
+  Text phase_,        //Phase identifier
+  Real pos_,          //Chronological order
+  Real level_,        //Deep level in phasing tree
+  Date beginTime_,    //Starting instant date and time
+  Real elapsedTime_,  //Elapsed time or phase duration
+  Real beginMem_,     //Starting instant used RAM in MBytes
+  Real balanceOfMem_  //Difference between final and starting used RAM MBytes
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Identify the code of severity of a coded message
+//////////////////////////////////////////////////////////////////////////////
+Struct CMsg.Coded.status
+{
+  Real code_, //Code number
+  Text name_, //Status identifier
+  Text brief_ //Abreviature of status identifier
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Identify the code of a coded message
+//////////////////////////////////////////////////////////////////////////////
+Struct CMsg.Coded.info
+{
+  Text agent_,     //The subsystem that is sending the message
+  Real code_,      //The code number
+  Text severity_,  //The severity status identifier
+  Code handler_    //The message handler Text (Set args) {...}
+};
+
+

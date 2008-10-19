@@ -1,0 +1,34 @@
+/* -*- mode: c++ -*- */
+
+/*
+   ----------------------------------------------------------------------
+                     Funciones utilitarias
+   ----------------------------------------------------------------------
+ */
+
+Set StartTimer(Text msg)
+{
+  WriteLn("Starting " << msg);
+  Set [[ msg, Real t0 = Copy(Time) ]]
+};
+
+Set StartATimer(Text msg)
+{
+  WriteLn("Starting " << msg);
+  Set [[ msg, Date d0 = Copy(Now) ]]
+};
+
+Real FinishTimer(Set tm)
+{
+  Real elapsed = Copy(Time)-tm[2];
+  WriteLn("DONE " << tm[1] << " after " << FormatReal(elapsed, "%g sec"));
+  Real elapsed
+};
+
+Real FinishATimer(Set tm)
+{
+  Real elapsed = (DateToIndex(Copy(Now))-DateToIndex(tm[2]))*24*3600;
+  WriteLn("DONE " << tm[1] << " after " << FormatReal(elapsed, "%g sec"));
+  Real elapsed
+};
+

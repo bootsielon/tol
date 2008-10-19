@@ -1,0 +1,3 @@
+ln-H tol_bratgra.h  tol_bratio.h ;
+
+objects objs : ratgra.cpp ;

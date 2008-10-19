@@ -1,0 +1,3 @@
+ln-H tol_barith.h ;
+
+objects objs : arith.cpp ;

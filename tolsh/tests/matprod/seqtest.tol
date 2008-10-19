@@ -1,0 +1,49 @@
+/* -*- mode: c++ -*- */
+
+/*
+   ----------------------------------------------------------------------
+                 Version secuencial del producto de matrices
+   ----------------------------------------------------------------------  
+ */
+
+Set Include("config.tol");
+Set Include("utils.tol");
+Set Include("data.tol");
+
+Matrix RunSequential(Matrix A, Matrix B)
+{
+  Matrix C = Do A*B
+};
+
+Matrix MeasureSequential(Matrix A, Matrix B, Real iters)
+{
+  Set tm = StartTimer("MeasureSequential : " << iters << " iterations");
+
+  Real k=1;
+
+  Real While(k<=iters-1;
+    {
+      Matrix RunSequential(A,B);
+      Real k:=k+1
+    });
+
+  Matrix C = RunSequential(A,B);
+
+  Real elapsed = FinishTimer(tm);
+  
+  Matrix timeData = Rand(1, 2, 0, 0);
+  Real Do PutMatDat(timeData, 1, 1, Rows(C));
+  Real Do PutMatDat(timeData, 1, 2, elapsed);
+  Matrix MatAppendFile("seqtime.bbm", timeData);
+
+  Matrix C
+};
+
+/* Leo los datos*/
+Set data = ReadData(paramTest);
+
+/* Ejecuto version secuencial */
+Matrix seqC = MeasureSequential(data[1],data[2],1);
+
+/* */
+Matrix MatWriteFile("seqC.bbm", seqC);

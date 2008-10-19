@@ -1,0 +1,593 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : HtmlUtil.tol
+// PURPOSE : Constants and functions to generate HTML pages
+//////////////////////////////////////////////////////////////////////////////
+
+//Text PutRealFormat("%8.4lf");
+//Text PutRealFormat("%8.4lf");
+Text PutTableRealFormat(8,4);
+
+//////////////////////////////////////////////////////////////////////////////
+// RGB Colors constants
+//////////////////////////////////////////////////////////////////////////////
+Text Red    = "#ff0000";
+Text Blue   = "#0000ff";
+Text Green  = "#00ff00";
+Text White  = "#ffffff";
+Text Black  = "#000000";
+Text Gray   = "#888888";
+Text TitCol = Blue;
+
+//////////////////////////////////////////////////////////////////////////////
+// HTML constants
+//////////////////////////////////////////////////////////////////////////////
+Text BR = "<br>"+NL;
+Text HR = "<center> <hr> </center>"+NL;
+Text BHR = BR+HR+BR;
+
+Real CHARTWIDTH  = 600;
+Real CHARTHEIGHT = 400;
+Real CHARTBORDER =   0;
+
+Text HTMLRoot      = ".";
+Text GIFRoot       = ".";
+Text URLRoot       = ".";
+
+//Text HTMLChartType = "GIF"; 
+Text HTMLChartType = "JAVA"; 
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// HTML Functions
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlPage(Text txt, Text title, Text background, Text bgcolor)
+
+// PURPOSE: Constructs a valid HTML page with the given contents,
+//          background gif and background color
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text bgTag = If(background!="", "background="+background, "");
+  Text bcTag = If(bgcolor   !="", "bgcolor="   +bgcolor,    "");
+  "<html><head>"+NL+
+  "<META HTTP-EQUIV='Content-type' "+
+    "CONTENT='text/html; charset=ISO-8859-1'>"+NL+
+  "<title>"+title+"</title>"+NL+
+  "</head>"+NL+"<body "+bgTag+" "+bcTag+">"+NL+
+  txt+NL+
+  "</body>"+NL+"</html>"+NL
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Text HtmlWritePage(Text file, Text title, Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text html = HtmlPage(HtmlTitle(title,1,Blue)+txt,title,"",White);
+  WriteFile(file, html);
+//Real ShellExecute(Replace(htmlPage,"/","\\"),"open");
+//WriteLn(htmlPage);
+  file
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Text WriteHtmlBegin(Text title, Text background, Text bgcolor)
+
+// PURPOSE: Constructs a valid HTML page with the given contents,
+//          background gif and background color  
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text bgTag = If(background!="", "background="+background, "");
+  Text bcTag = If(bgcolor   !="", "bgcolor="   +bgcolor,    "");
+  WriteLn
+  (
+    "<html><head>"+NL+
+    "<META HTTP-EQUIV='Content-type' "+
+      "CONTENT='text/html; charset=ISO-8859-1'>"+NL+
+    "<title>"+title+"</title>"+NL+
+    "</head>"+NL+"<body "+bgTag+" "+bcTag+">"+NL 
+  )
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlTime(Text color)
+
+// PURPOSE: Converts a text to HTML header of given order and color
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text month   = FormatDate(Today,"%N");
+  Text weekDay = FormatDate(Today,"%W");
+  Text day     = FormatDate(Today,"%d");
+  Text year    = FormatDate(Today,"%Y");
+  "<p><font color="+color+"><b>"+
+  "Creado el "+weekDay+", " + day + " de " + month + " de " + year + " a las "+(Text Time)+
+  "</b></font></p>"
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text WriteHtmlEnd(Text color)
+
+// PURPOSE: Constructs a valid HTML page with the given contents,
+//          background gif and background color  
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn(HtmlTime(color) + "</body>"+NL+"</html>"+NL )
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlCode(Text txt)
+
+// PURPOSE: Converts a text to HTML header of given order and color
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  "<pre><code>" + txt + "</code></pre>"
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlIndex(Text txt)
+
+// PURPOSE: Converts a text to HTML header of given order and color
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text ref = Replace(txt," ","_");
+  "<a href='#"+ref+"'>"+txt+"</a>\n"
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlTitle(Text txt, Real ord, Text color)
+
+// PURPOSE: Converts a text to HTML header of given order and color
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text ref = Replace(txt," ","_");
+  Text ordTxt = FormatReal(ord,"%.0lf");
+  "<a name='"+ref+"'>\n"+
+  "  <h"+ordTxt+"><font color="+color+">"+txt+"</font></h"+ordTxt+">\n"+
+  "</a>\n"
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlPeriodicTableOfSerie(Serie ser)
+
+// PURPOSE: Creates an HTML page width a periodic table of series 
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text old = PutEditor("");
+  Text tmpDir = Replace(TmpDir,"\\","/"); 
+  Text rand = FormatReal(Rand(0,99999999),"%0.lf");
+  Text SerFile = tmpDir + "/" + rand + ".txt";
+  Set  PeriodicTable(SetOfSerie(ser), SerFile);
+  Text html = HtmlTable(SerFile);
+  Real SystemDelete(SerFile);
+  Text PutEditor(old);
+  BR + html + BR 
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Text HtmlMatrixTable(Matrix mat, Set xNames, Set yNames, Text name)
+
+// PURPOSE: Creates an HTML table width the correlation matrix of series
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text old = PutEditor("");
+  Text tmpDir = Replace(TmpDir ,"\\","/"); 
+  Text rand = FormatReal(Rand(0,99999999),"%0.lf");
+  Set matSet = MatrixTable(mat,xNames,yNames,name);
+  Text fileName = tmpDir + "/Mat" + rand + ".txt";
+  Set  Table(SetOfSet(matSet),fileName);
+  Text WriteFile(fileName, Replace(ReadFile(fileName),Quotes,""));
+  Text html = HtmlTable(fileName);
+  Real SystemDelete(fileName);
+  Text PutEditor(old);
+  html
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlSeedAutoCorReport(Set series, Code autoCorFunc, Text concept)
+
+// PURPOSE: Creates an HTML text width a autoCorFunc-autocorrelation report
+//           of a time series
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text old = PutEditor("");
+  Text tmpDir = Replace(TmpDir,"\\","/"); 
+  Text rand = FormatReal(Rand(0,99999999),"%0.lf");
+  TimeSet tms = Dating(series[1]);
+  Real p = CalcPeriodicity(tms);
+  Real   N    = CountS(series[1]);
+  Real   size = Min(N,30,Max(3*p,N/4));
+  Matrix mat  = autoCorFunc(series[1],size);
+  Text fileName = tmpDir + "/Mat" + rand + ".txt";
+  Set  Table([[mat]],fileName);
+  Text htmlChart = CORJavaChart(fileName,"",p); 
+  Text WriteFile(fileName, "N;PACOR;SIGMA;" + NL + ReadFile(fileName));
+  Text htmlTable = HtmlTable(fileName);
+  Text serName   = Identify(series[1]);
+  Text report = 
+    "<OL>" +
+    "  <LI>" + HtmlTitle("Gráfico de "+concept+" de "+serName,3,TitCol)+
+      htmlChart  +
+      BR +
+    "  <LI>" + HtmlTitle("Tabla de "+concept+" de "+ serName,3,TitCol)+
+      htmlTable +
+    "</OL>";
+
+  Real SystemDelete(fileName);
+  Text PutEditor(old);
+  report
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlLinearRegression(Set ser, Real period)
+
+// PURPOSE: Creates an HTML text width a linear regression report of series
+//
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Text old = PutEditor("");
+  
+  Text tmpDir = Replace(TmpDir,"\\","/"); 
+
+  Text rand = FormatReal(Rand(0,99999999),"%0.lf");
+
+  Text outputName = Identify(ser[1]);
+
+  Serie output = ser[1];
+
+  Text CreaInputExpresion(Real n, Real k)
+  {
+    Text name = Identify(ser[n]);
+    Text expr = "(B^"+k+"):("+name+");";
+    expr
+  };    
+  Set    ARIEst = AutoRegInt(output, period);
+  Polyn  DIF    = ARIEst[1];
+  Polyn  AR     = ARIEst[2];
+  Polyn  ARI    = DIF*AR;
+  Real degree   = Degree(ARI)-1;
+
+  Set  inputBackNames = For
+  (
+    1,
+    Card(ser),
+    Set s(Real n)
+    { 
+      If
+      (
+        n==1, 
+        For(1, degree, Text(Real k) { CreaInputExpresion(n,k) } ),
+        For(0, 2,      Text(Real k) { CreaInputExpresion(n,k) } )
+      )
+    }
+  );
+  Set idSet = BinGroup("<<",inputBackNames);
+  Set input = EvalSet(idSet, Serie (Text expr) { Eval(expr) } );
+
+  Real n = Card(input);
+
+  Set lr = LinearRegression
+  (
+    output,
+    input
+  );
+
+  
+  Set param = lr[2];
+  Set ParInf = 
+  {
+    Set For
+    ( 
+      1,n,
+      Set linePar(Real i)
+      {
+        Text id = idSet[i];  
+        Set p1 = param[i];
+        Set p2 = SetOfReal(p1[2],p1[3],p1[4],p1[5]);
+        [[id]] + p2
+      }
+    )
+  };
+  
+  Set ExprInf = 
+  {
+    Set For
+    ( 
+      1,n,
+      Text lineExpr(Real i)
+      {
+        Real j = n-i+1;
+        Text id = idSet[j];  
+        Set p1 = param[j];
+        Real coef = p1[2];
+        Real aCoef = Abs(coef); 
+        Text sig = If(coef>0, "+",  "-");
+        NL + "    " + sig + aCoef + "*" + id
+      }
+    )
+  };
+
+  Real outStd = StDsS(output);
+  Set  info   = lr[3];
+  Real err    = info[5];
+  Real sw     = info[6]*2;
+  Text expression = "Est" + outputName + " = " + 
+                    Text (BinGroup("+", ExprInf)) + 
+                    NL + "    + Gaussian(0," + err +")";
+
+  Text InfoFile = 
+  {
+    Text txt = 
+      "Concepto;"                         + "Valor"  + ";" + NL +
+      "Fecha inicial;"                    + info[ 1] + ";" + NL +
+      "Fecha final;"                      + info[ 2] + ";" + NL +
+      "Número de datos;"                  + info[ 3] + ";" + NL +
+      "Número de variables;"              + info[ 4] + ";" + NL +
+      "Error estandar de "+outputName+";" + outStd   + ";" + NL +
+      "Error estandar de los residuos;"   + err      + ";" + NL +
+      "Inform. Swartz;"                   + sw       + ";" + NL +
+      "F de Snedecor;"                    + info[10] + ";" + NL +
+      "Alfa;"                             + info[11] + ";" + NL; 
+    WriteFile(tmpDir + "/Info"+rand+".txt", txt)
+  };
+  
+  Text ParFile =
+  {
+    Text pFile = tmpDir + "/Par" + rand + ".txt";
+    Set Table(SetOfSet(ParInf),pFile);
+    Text t1 = ReadFile(pFile);
+    Text t2 = Replace(t1, Quotes, "");
+    Text head = "Nombre; Valor; Desv. Típ.; t de Student; 1-Alfa;"+NL;
+    WriteFile(pFile,head+t2)
+  };
+
+  Serie residuals = lr[1];
+  Serie prevHist  = output - residuals;
+
+  Set seriesReport = [[output,prevHist]];
+
+  Text aiaHtml = ""; 
+  Set aia = AIA(residuals+0, 1/ARI);
+  Real If(Card(aia),
+  {
+    Text AIAFile = tmpDir + "/AIA" + rand + ".txt";
+    Set Table([[aia]],AIAFile);
+    Text 
+    (
+      aiaHtml := 
+      "  <LI>" + HtmlTitle("Análisis de Intervención Automático",3,TitCol)+
+        HtmlTable(AIAFile)+ BR
+    );
+    Real SystemDelete(AIAFile)
+  });
+
+  Text report = 
+    "<OL>" +
+    "  <LI>" + HtmlTitle("Gráfico de previsión",3,TitCol)+
+      HtmlBdtChart(seriesReport) +  BR +
+    "  <LI>" + HtmlTitle("Información",3,TitCol)+
+      HtmlTable(InfoFile)+ BR +
+    "  <LI>" + HtmlTitle("Parámetros",3,TitCol)+
+      HtmlTable(ParFile)+ BR +
+    aiaHtml +
+    "  <LI>" + HtmlTitle("Correlaciones de los parámetros",3,TitCol)+ 
+      HtmlMatrixTable(lr[5],idSet,idSet,"Correlación") + BR +
+    "  <LI>" + HtmlTitle("Gráfico de error de la previsión",3,TitCol)+
+      HtmlBdtChart([[residuals]]) +  BR +
+    "  <LI>" + HtmlTitle("Autocorrelaciones de los residuos", 3, Blue) +
+               HtmlAutoCorReport([[residuals]]) + BR +
+    "  <LI>" + HtmlTitle("Tabla de previsión histórica",3,TitCol)+
+      HtmlBdtTable([[output,prevHist,residuals]]) +
+    "</OL>";
+  
+  
+  Real SystemDelete(InfoFile);
+  Real SystemDelete(ParFile);
+
+      
+  Text PutEditor(old);
+  report 
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Text HtmlAutoRegression(Serie z, 
+                          Real  period, 
+                          Date  prevFirst, 
+                          Real  prevNum, 
+                          Real  alfa,
+                          Real  doPrevHist,
+                          Real  doResAna)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set   mod   = AriIdentif(z, period, prevFirst, prevNum, alfa);
+  Polyn Ari   = mod->ARI;
+  Real  Sigma = mod->Sigma;
+
+  Serie residuos = mod->Residuals;
+  Set mb = mod->Bands;
+  Set   bands = If
+  (
+    And( doPrevHist, alfa> 0), mb,                                    If(
+    And( doPrevHist, alfa<=0), SetOfSerie(mb[1], mb[3], mb[5]),       If(
+    And(!doPrevHist, alfa> 0), SetOfSerie(mb[1], mb[2], mb[3],mb[4]), If( 
+                             SetOfSerie(mb[1], mb[3])                  )))
+  );
+  Set   tabBands = If
+  (
+   alfa>0, 
+   SetOfSerie(mb[2],mb[3],mb[4]),
+   SetOfSerie(mb[3])
+  );
+
+//Set bands = mod->Bands;
+  
+  Real  bct   = mod->BoxCox;
+  Real  level = alfa*100;
+  Real  err   = StDsS(residuos);
+  Text  arExpr = "(" << Ari << ")";
+  arExpr := Replace(arExpr, "+" , NL + " " + "@");
+  arExpr := Replace(arExpr, "@" , "+");
+  arExpr := Replace(arExpr, "-" , NL + " " + "@");
+  arExpr := Replace(arExpr, "@" , "-");
+  Text name = Name(z);
+  Text trz = If(bct==1, ""+name, If(bct==0, "Log("+name+")+1", ""+name+"^"+FormatReal(bct)));
+  
+  Text  expression = arExpr + " : "+NL+ trz + NL +
+                     " = Gaussian(0," + FormatReal(err) +")";
+  Text tabTitle = If
+  (
+   alfa>0, 
+   "Prevision con bandas de error al nivel de confianza " + FormatReal(level) + "%",
+   "Previsión"
+  );
+  Text prevHistTxt = If
+  (
+    doPrevHist,
+    "  <LI>" + HtmlTitle("Previsiön histórica con retardo uno", 3, Blue) +
+               HtmlBdtTable(SetOfSerie(mb[1],mb[5])),
+    "" 
+  );
+  Text resAnaTxt = If
+  (
+    doResAna,
+    "  <LI>" + HtmlTitle("Expresión de la autoregresión",3,TitCol)+ BR +
+               HtmlCode(expression)+ BR +
+    "  <LI>" + HtmlTitle("Gráfico de los residuos",3,TitCol)+
+               HtmlBdtChart([[residuos]]) +  BR +
+    "  <LI>" + HtmlTitle("Autocorrelaciones de los residuos", 3, Blue) +
+               HtmlAutoCorReport([[residuos]],FALSE,FALSE,0,0,period) + BR,
+    "" 
+  );
+  Text html = "<OL>" +
+    "  <LI>" + HtmlTitle("Gráfico de la previsión", 3, Blue) +
+               HtmlBdtChart(bands) + BR +
+    "  <LI>" + HtmlTitle(tabTitle, 3, Blue) +
+               HtmlBdtTable(tabBands) +  BR +
+    prevHistTxt +
+    resAnaTxt +
+    "</OL>";
+  html
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlHiddenInput(Text name, Text value)
+
+// PURPOSE: Creates a text with a HTML hidden input
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+   "<INPUT TYPE=Hidden NAME="+name+" VALUE="+  
+     Quotes + value + Quotes + ">" + NL 
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlTextInput(Text label, Text name, Text value)
+
+// PURPOSE: Creates a text with a HTML text input
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+    "<tr valign=top>  " + NL +
+    "  <td >  <strong>"+ label +"</strong> </td>" + NL +
+    "  <td >  <INPUT TYPE=Text NAME="+name+" VALUE="+
+      Quotes + value + Quotes + ">  </td>" + NL +
+    "</tr>"
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text HtmlProtectedInput(Text label, Text name, Text value)
+
+// PURPOSE: Creates a text with a HTML hidden input and a label
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+    "<tr valign=top>  " + NL +
+    "  <td >  <strong>"+ label +"</strong> </td>" + NL +
+    "  <td >  " + value + NL + 
+              HtmlHiddenInput(name,value) + "  </td>" + NL +
+    "</tr>"
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Text HtmlGetParameters(Text Expression,
+                         Text InputFields,
+                         Text KeyName)
+//////////////////////////////////////////////////////////////////////////////
+{
+  "<html>"+NL+
+  "<head>"+NL+
+  "<META HTTP-EQUIV="+Quotes+"Content-type"+Quotes+" CONTENT="+Quotes+
+    "text/html; charset=ISO-8859-1"+Quotes+">"+NL+
+  NL+
+  "<title>Parámetros</title>"+NL+
+  NL+
+  "</head>"+NL+
+  "<body background="+Quotes+""+Quotes+" bgcolor=#FFFFFF  "+
+    "leftmargin=0 topmargin=0>"+NL+
+  NL+
+  NL+
+  "  <FORM METHOD=POST ACTION="+Quotes+"TolEval.exe"+Quotes+">"+NL+
+  NL+
+  NL+
+  NL+
+  HtmlHiddenInput("KeyName",KeyName)+NL+
+  HtmlHiddenInput("Expression",Expression)+NL+
+  NL+
+  NL+
+  "  <CENTER><table cellpadding=2 cellspacing=0 border=2>"+NL+
+  NL+
+  InputFields +
+  NL+
+  "  </table></CENTER>"+NL+
+  "  <br>"+NL+
+  NL+
+  "<CENTER><INPUT TYPE=submit VALUE=ACEPTAR></CENTER>"+NL+
+  NL+
+  "</FORM>"+NL+
+  "</body>"+NL+
+  "</html>"+NL
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Real CallIExplore(Text htmlPage)
+
+// PURPOSE: Converts a text to HTML header of given order and color
+//
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real WinSystem("c:\\Archivos de programa\\Microsoft Internet\\iexplore.exe "+
+                 Replace(htmlPage,"/","\\"),1)
+};
+
+

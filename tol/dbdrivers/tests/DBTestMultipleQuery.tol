@@ -1,0 +1,185 @@
+// Database tests. See README.txt for more info.
+// Date: July 20th, 2004.
+// Author: Manuel Balderrábano <manuelb@tol-project.org>
+
+// Test Description
+Text "Testing multiple database querys...";
+
+//Test Operation
+
+Real {
+
+  //Number of rows that will be checked divided by 2 (0 leads to an error):
+  //Please notice that there will be (16 x num) row operations!
+  Real num = 10;
+
+  //Struct definition:
+  Struct DBStructMySQL {
+    Text driver,
+    Text database,
+    Text host
+  };
+  Struct DBStructODBC {
+    Text driver
+  };
+
+  //Init database including edge values:
+  Real InitDB(Real unused)
+  { //Create all neccesary tables:
+    Real res01 = If (DBExecQuery("drop table pruebas1") == 0, 1, 0);
+    Real res02 = If (DBExecQuery("CREATE TABLE pruebas1 (
+                      `campo1` VARCHAR(10),
+                      `campo2` VARCHAR(5),
+                      `campo3` VARCHAR(10),
+                      `campo4` VARCHAR(40),
+                      `campo5` VARCHAR(100))
+                     ") == 0,1,0);
+    Real (res01 & res02)
+  };
+
+  Real FillDB(Real num, Text alias1, Text alias2, Real switch)
+  {
+    Real DBActivate(alias1);
+    Set res =
+      For (1, (num*2), Real (Real index)
+      {
+        Text marker = If(switch,
+        {
+          Text If( Real IsInteger(index/2),
+            {
+              Real DBActivate(alias1);
+              Text alias1
+            },
+            {
+              Real DBActivate(alias2);
+              Text alias2
+            })
+        },
+        {
+          Text If( (index >= Real (num+ Real 1)),
+          {
+            Real DBActivate(alias2);
+            Text alias2
+          },
+          Text alias1)
+        });
+        Real res01 = DBExecQuery("insert into pruebas1 values (NULL,NULL,NULL,NULL,NULL)");
+        Real res02 = DBExecQuery("insert into pruebas1 values ('"+marker+"',
+                                                   'ABCDE',
+                                                   'ABCDEFGHIJ',
+                                                   'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMN',
+'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV')");
+
+
+        (res01 & res02)
+      });
+      Real SetMin(res)
+  };
+
+  Real TestRow(Set row, Real num, Text marker)
+  {
+    Real If(IsInteger(num/2),
+    {
+      Real (TextMatch(row[1],marker)&
+            TextMatch(row[2],"ABCDE")&
+            TextMatch(row[3],"ABCDEFGHIJ")&
+            TextMatch(row[4],"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMN")&
+            TextMatch(row[5],"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV"))
+    }
+    ,
+    {
+      Real ((TextLength(row[1])==0)&
+            (TextLength(row[2])==0)&
+            (TextLength(row[3])==0)&
+            (TextLength(row[4])==0)&
+            (TextLength(row[5])==0))
+    })
+  };
+
+  Real CheckDB(Real num, Text alias1, Text alias2)
+  {
+    Real DBActivate(alias1);
+    Set table1 = DBTable("select * from pruebas1");
+    Real DBActivate(alias2);
+    Set table2 = DBTable("select * from pruebas1");
+    //Test every value:
+    Set res =
+      For (1, num, Real (Real i)
+      {
+        Real res01 = TestRow(table1[i],i,alias1);
+        Real res02 = TestRow(table2[i],i,alias2);
+        (res01 & res02)
+      });
+    Real SetMin(res)
+  };
+
+
+  Real res = If (testDB,
+  {
+
+
+  //Opens one old-style ODBC database:
+  Real res01 = DBOpen(aliasNames[1],user,passwd);
+  Real res02 = InitDB(0);
+  //Opens one New-style ODBC databases:
+  Set db1 = DBStructODBC("odbc");
+  Real res03 = DBOpen(aliasNames[2],user,passwd,db1);
+  Real res04 = InitDB(0);
+  //Opens three MySQL databases:
+  Set db2 = DBStructMySQL("mysql", dbName, host);
+  Real res05 = DBOpen("testalias3",user,passwd,db2);
+  Real res06 = InitDB(0);
+  // We have opened and initialized a total of 3 databases with 1 table each.
+  // Fill alternatively and check straight ahead:
+  Real res07 = FillDB (num, aliasNames[1], "testalias3",1);
+  Real res08 = CheckDB(num, aliasNames[1], "testalias3");
+  //Clean up aliasNames[1]:
+  Real res09 = DBActivate(aliasNames[1]);
+  Real res10 = InitDB(0);
+  // Fill straight and check:
+  Real res11 = FillDB (num, aliasNames[2], aliasNames[1], 0);
+  Real res12 = CheckDB(num, aliasNames[2], aliasNames[1]);
+  //Clean up aliasNames[2]:
+  Real res13 = DBActivate(aliasNames[2]);
+  Real res14 = InitDB(0);
+  //Clean up test3:
+  Real res15 = DBActivate("testalias3");
+  Real res16 = InitDB(0);
+
+  // Fill alternatively and check:
+  Real res17 = FillDB (num, aliasNames[2], "testalias3", 1);
+  Real res18 = CheckDB(num, aliasNames[2], "testalias3");
+
+  //Close:
+  Real res93 = DBClose(aliasNames[2]);
+  Real res94 = DBClose(aliasNames[1]);
+  Real res95 = DBClose("testalias3");
+
+  // Test condition
+  Real If((res01 & res02 & res03 & res04 & res05 & res06),
+  {
+    If((res07 & res08 & res09 & res10 & res11 & res12 &
+        res13 & res14 & res15 & res16 & res17 & res18 &
+        res93 & res94 & res95),
+        {
+          //WriteLn("Ok");
+          1
+        },
+        {
+          //WriteLn("Error.");
+          0
+        })
+   },
+   {
+      //WriteLn ("Error-Check DB parameters in DBTestIni.tol");
+      -1
+    })
+  },-2);
+
+  Real Case ( (res == 1), { WriteLn("Ok");1},
+              (res == 0), { WriteLn("Error");0},
+              (res == -1),{ WriteLn("Error-Check DB parameters in DBTestIni.tol");0},
+              (res == -2),{ WriteLn("Disabled");1})
+
+};
+

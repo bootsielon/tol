@@ -1,0 +1,5 @@
+objects objs
+    : KCtree.cpp  KM_ANN.cpp     KMdata.cpp  KMfilterCenters.cpp  KMrand.cpp
+      KCutil.cpp  KMcenters.cpp  KMeans.cpp  KMlocal.cpp          KMterm.cpp
+    ;
+

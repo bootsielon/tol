@@ -1,0 +1,304 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : bprobit.tol
+// PURPOSE: Bayesian Probit Model with limits, linear constraints between 
+//          parameters, prior information and hierarquical structures in 
+//          parameters sampling
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// CONSTANTS
+//////////////////////////////////////////////////////////////////////////////
+Real BProbit_Result.CalcIndDist = Copy(FALSE);
+Set  ContingencyValues = SetOfReal(0.5, 0.7, 0.9);
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set BLR_ChangeY(Set index, Set ySet, Set model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set sY   = model->SY;
+  Set sX   = model->SX;
+  Set sS   = model->SS;
+  Set iDef = model->InputDefinition;
+  Set sDef = model->SigmaDefinition;
+
+  Set newSY = For(1,Card(sY), Matrix(Real k)
+  { If(k<:index, ySet[k], sY[k]) }); 
+
+  BLRModelDef
+  (
+    newSY,
+    sX,
+    sS,
+    iDef,
+    sDef
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna un conjunto con estructura BLRModelDef, resultado de 
+modificar el conjunto SY con los valores del conjunto de matrices ySet en las
+posiciones index",
+BLR_ChangeY);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix BProbit_MHGenBetaBlock
+(
+  Matrix BMat, // Beta actuales
+  Matrix OMat, // Omega 
+  Matrix JMat, // Beta y Omega 
+  Set data     // Datos para el bloque
+//  Real idWS    // Indicador del WS
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  // Acceso a la informacion de datos del bloque
+  Set defModel  = data["defModel"];
+  Set linSet    = data["linNewSet"];
+  Code BLRCode  = data["BLRCode"]; 
+
+  // Generacion de la muestra
+  Set index   = SetOfReal(1);
+  Set ySet    = SetOfMatrix(OMat);
+  Set model   = BLR_ChangeY(index, ySet, defModel);   
+
+  Set modelFil = If(IsEmpty(linSet), model, SetOfAnything(model)<<linSet);
+  Matrix beta = BLRCode(modelFil, 1, 1 , "");
+  // Vector de salida
+  beta
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("", BProbit_MHGenBetaBlock);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix BProbit_MHGenOmegaBlock
+(
+  Matrix OMat, // Omega actuales
+  Matrix BMat, // Beta 
+  Matrix JMat, // Omega y Beta 
+  Set data     // Datos para el bloque
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  // Acceso a la informacion de datos del bloque
+  Matrix X         = data["X"];
+  Set limSet       = data["omega.LimSet"];
+
+  Matrix limInf  = limSet[1];
+  Matrix limSup  = limSet[2];
+
+  // Generacion de la muestra
+  Matrix nuOmega   = X*BMat;
+  Matrix omega     = 
+   RandTruncatedMultNormal(nuOmega, SetCol(SetOfReal(1)), limInf, limSup, 1, 1);
+
+  // Vector de salida
+  omega
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",BProbit_MHGenOmegaBlock);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix BProbit
+(
+  Matrix Y,     // Matriz de 0 y 1
+  Matrix X,     // Matriz que define por columnas las variables 
+  Set inputDef, // Conjunto que define los inputs 
+                // (tiene estructura  BLRParamDef)  
+  Set hierSet,  // Conjunto que define la jerarquia 
+                // (tiene estructura BLRHierDef)
+  Set linSet,   // Conjunto con dos matrices B y b que definen B*beta <= b
+  Real calls, 
+  Real burning, 
+  Text fileSample
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  // Datos generales
+  Set sY        = SetOfMatrix(Y);
+  Set sX        = SetOfText("TRIPLET")<<
+                  SetOfSet(SetOfReal(1,1)<<SetOfMatrix(X));
+  Set sS        = Empty;
+
+  Set sigmaDef  = SetOfSet
+  (
+    BLRParamDef
+    (
+      "SigmaY", 
+      1,
+      BLRPriorInfo("FIXED", BLRPriorInfo.Fixed(1)),
+      Empty
+    )
+  );
+
+  Set sModel = BLRModelDef
+  (
+    sY,
+    sX,
+    sS,
+    inputDef,
+    sigmaDef
+  );
+  Set pModel   = BLR_AddPrior(sModel);
+
+  Real doHier = Not(IsEmpty(hierSet));
+  Real doLin  = Not(IsEmpty(linSet));
+  Set defModel  = If(doHier, BLR_AddHierarchy(pModel, hierSet), pModel);
+  Set linNewSet = If(doLin, BLR2BLRC(defModel, linSet), linSet);
+//Real Msg("linNewSet", ""<<linNewSet);
+  Code BLRCode  = If(doLin, BLRC, BLR); 
+
+  Real size     = Rows(Y); 
+  Real numVar   = Columns(X);  
+  Matrix MatMAV = Rand(size, 1, TheMaxAbsValue, TheMaxAbsValue);
+
+  // Definicion de informacion para el bloque de la variable latente
+  Real   omega.Size        = size;
+  Real   omega.ModeSampler = 0;
+  Matrix omega.IniValue    = Rand(omega.Size, 1, 1, 1); 
+  Set omega.BlockData      = 
+  {
+    Set omega.LimSet = 
+    {
+      Matrix limInf = WeightProd(-MatMAV, Not(Y));
+      Matrix limSup = WeightProd(MatMAV, Y);
+     
+      SetOfMatrix(limInf,limSup)
+    };
+    SetOfAnything(X, omega.LimSet)
+  };  
+  Code omega.BlockGen = BProbit_MHGenOmegaBlock;
+
+  Set omega.BlockDef = MHBlockDef
+  (
+    omega.Size,
+    omega.ModeSampler,
+    omega.IniValue,
+    omega.BlockData,
+    omega.BlockGen
+  );
+
+  // Definicion de informacion para el bloque de los parametros
+  Real   beta.Size        = numVar;
+  Real   beta.ModeSampler = 0;
+  Matrix beta.IniValue    = SetCol(EvalSet(inputDef, Real(Set reg)
+  { reg->IniValue })); 
+  Set beta.BlockData      = SetOfAnything(defModel, BLRCode, linNewSet);
+  Code beta.BlockGen = BProbit_MHGenBetaBlock;
+
+  Set beta.BlockDef = MHBlockDef
+  (
+    beta.Size,
+    beta.ModeSampler,
+    beta.IniValue,
+    beta.BlockData,
+    beta.BlockGen
+  );
+
+  // Definicion de los parametros de entrada y WS
+  Set defMH     = SetOfSet(omega.BlockDef, beta.BlockDef); 
+  Set defWSMH   = Empty;
+   
+  Matrix mhRes = If(fileSample == "", 
+    MetropolisHastings(defMH, burning, calls),
+  {
+    Text ext    = GetFileExtension(fileSample);
+    Text path   = GetFilePath(fileSample);
+    Text name   = path+ext;
+    Set monitor = SetOfAnything(ext, name, 1, 0);
+    MetropolisHastings(defMH, burning, calls, monitor)
+  });
+  SubRow(mhRes, Range(size+1, size+numVar, 1))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("", BProbit);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set BProbit_Result
+(
+  Matrix Y,     // Matriz de 0 y 1
+  Matrix X,     // Matriz que define por columnas las variables 
+  Set inputDef, // Conjunto que define los inputs 
+                // (tiene estructura  BLRParamDef)  
+  Set hierSet,  // Conjunto que define la jerarquia 
+                // (tiene estructura BLRHierDef)
+  Set linSet,   // Conjunto con dos matrices B y b que definen B*beta <= b
+  Real calls, 
+  Real burning, 
+  Text fileSample
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real Msg("BProbit_Result", "Comienza el calculo de la cadena de Markov");
+  Matrix MarkovChain =
+  BProbit(Y, X, inputDef, hierSet, linSet, calls,burning, fileSample);
+  Real Msg("BProbit_Result", "Calculando resultados");
+
+  Real n      = Rows(Y);
+  Real numVar = Columns(X);
+ 
+  Real Msg("BProbit_Result", "     Calculando estadisticas de parametros");
+  Set paramNames   = Traspose(inputDef)[1];
+  Set ParamInf     = MHResult(Tra(MarkovChain), paramNames, inputDef);
+  
+  Real Msg("BProbit_Result", 
+                    "     Calculando matrices de informacion de parametros");
+  Matrix CovMat = Cov(MarkovChain);
+  Matrix CorMat = Cor(MarkovChain); 
+  Matrix D      = SVD(CovMat)[2];
+
+  Set ParamMat = SetOfMatrix(CovMat, CorMat, D);
+
+  Matrix ColOne = Rand(calls, 1, 1, 1); 
+  Matrix Acum   = RProd(ColOne, 1/calls);
+
+  Real Msg("BProbit_Result", "     Calculando valores medios");
+  Matrix PValorMC     = F01(X*MarkovChain);
+  Matrix PValorAvg    = PValorMC*Acum;
+
+  Real Msg("BProbit_Result", "     Calculando residuos");
+  Matrix ResidualsMC  = Y*Tra(ColOne)-PValorMC;
+  Matrix ResidualsAvg = ResidualsMC*Acum; 
+
+  Real Msg("BProbit_Result", "     Calculando contingencias");
+  Set ContingencyTables = EvalSet(ContingencyValues, Set(Real valueCont)
+  {
+    Eval("Set Contingency"+ IntText(valueCont*100) +
+         " = ContingencyTable(Y, PValorAvg, valueCont);")
+  });
+
+  Real Msg("BProbit_Result", "     Calculando distribucion por individuo"); 
+  Set IndividualDistribution = If(Not(BProbit_Result.CalcIndDist),
+  Copy(Empty),
+  For(1, n, Set(Real k)
+  {
+    Real RealValue  = MatDat(Y, k, 1);
+    Real EstimValue = MatDat(PValorAvg, k, 1);
+    Matrix MCK      = SubCol(Tra(PValorMC), [[k]]); 
+    Matrix EmpiricalDistribution = 
+     FreqRel(MCK, 100, MatMin(MCK), MatMax(MCK));
+    SetOfAnything(RealValue, EstimValue, EmpiricalDistribution)
+  }));
+  
+  Real Msg("BProbit_Result", "Presentando resultados"); 
+  SetOfAnything
+  (
+    MarkovChain,
+    ParamInf,
+    ParamMat,
+    PValorMC,
+    PValorAvg,
+    ResidualsMC,
+    ResidualsAvg,
+//  IndividualDistribution,
+    ContingencyTables
+  )
+};
+
+

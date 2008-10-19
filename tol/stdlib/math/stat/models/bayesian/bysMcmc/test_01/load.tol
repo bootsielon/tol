@@ -1,0 +1,29 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: load.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-05-08
+//PURPOSE: Testing full linear block aproach to simulating a Hierarchycal 
+//         Linear Model with restrictions of inequality by using NameBlock
+//         StdLib::BysMcmc.
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real CMsg::Trace::show(1,"Configurating model");
+//////////////////////////////////////////////////////////////////////////////
+
+Set mod = { Do Ois.UseModule("def.tol") };
+
+WriteLn("Checking domain constrains : "<<If(mod::domain.ok,"OK","FAIL"));
+WriteLn("Checking parsed model in RLR format "+Time);
+WriteLn("  Checking ok.Y : "<<If(mod::ok.Y,"OK","FAIL"));
+WriteLn("  Checking ok.X : "<<If(mod::ok.X,"OK","FAIL"));
+WriteLn("  Checking ok.a : "<<If(mod::ok.a,"OK","FAIL"));
+WriteLn("  Checking ok.A : "<<If(mod::ok.A,"OK","FAIL"));
+
+//Model data path to store related files
+Real PutRandomSeed(mod::rndSeed);
+Real GetRandomSeed(0);
+WriteLn("rndSeed="<<mod::rndSeed);
+
+/* */

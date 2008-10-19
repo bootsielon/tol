@@ -1,0 +1,118 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    :
+// PURPOSE :
+//////////////////////////////////////////////////////////////////////////////
+
+
+Set Plot(Code f, Real from, Real until, Real points)
+{
+  Real d     = (until-from)/points;
+  Set  X     = For(0,points,Real(Real n){from+n*d});
+  Set  XY    = EvalSet(X, Set(Real x){SetOfReal(x,f(x))});
+  Set  h     = SetOfSet(SetOfText("x",Compact(Identify(f)+"(x)")));
+  Set  table = h << XY;
+  Set  Chart(SetOfSet(table),"");
+  table 
+};
+
+Set PlotSet(Set sf, Real from, Real until, Real points)
+{
+  Real d     = (until-from)/points;
+  Set  X     = For(0,points,Real(Real n){from+n*d});
+  Set  XY    = EvalSet(X, Set(Real x)
+  {
+    Y = EvalSet(sf, Real(Code f){f(x)});
+    SetOfReal(x)<<Y
+  });
+  Set  title = EvalSet(sf, Text(Code f){Compact(Identify(f))});
+  Set  h     = SetOfSet(SetOfText("x")<<title);
+  Set  table = h << XY;
+  Set  Chart(SetOfSet(table),"");
+  table 
+};
+
+
+Set PlotXMatrix(Matrix Mat, Real x0, Real x1)
+{
+  Real   d = (x1-x0)/(Rows(Mat)-1);
+  Set    r = Range(x0,x1,d);
+  Matrix R = SetRow(r);
+  Matrix X = Tra(ConcatRows(R,Tra(Mat)));
+  Chart([[X]],"")
+};
+
+
+Set PlotMatrix(Matrix Mat)
+{
+  PlotXMatrix(Mat,1,Rows(Mat))
+};
+
+
+Set PlotXMatSet(Set s, Real x0, Real x1)
+{
+  Real   d = (x1-x0)/(Rows(s[1])-1);
+  Set    r = Range(x0,x1,d);
+  Matrix R = SetRow(r);
+  Set    S = [[R]] << EvalSet(s, Tra);
+  Matrix X = Tra(Group("ConcatRows",S));
+  Chart([[X]],"")
+};
+
+Set PlotMatSet(Set s)
+{
+  PlotXMatSet(s,1,Rows(s[1]))
+};
+
+Set PlotPolyn(Polyn pol, Real x0, Real x1, Real N)
+{
+  Real PolynFun(Real x) { EvalPol(pol, x) };
+  Plot(PolynFun, x0, x1, N)
+};
+
+Set PlotRation(Ration Rat, Real x0, Real x1, Real N)
+{
+  Real RationFun(Real x) { EvalRat(rat, x) };
+  Plot(RationFun, x0, x1, N)
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+Set SetHistConMult( Set dataSet, Set colS, Real partes)
+// PORPUSE :  Dado un conjunto de conjuntos de reales y un indice con i-columnas
+//            devuelve el histograma conjunto de las i-columnas
+/////////////////////////////////////////////////////////////////////////
+{
+Set  data  = EvalSet(colS,  Set(Real i){ Traspose(dataSet)[i]  });
+Set  matS  = EvalSet(data,  Matrix(Set conj) { SetMat([[conj]]) });
+Set  maxS  = EvalSet (matS , Real( Matrix s) {MatMax(s)});
+Set  minS  = EvalSet (matS , Real( Matrix s) {MatMin(s)});
+Real max   = SetMax(maxS);
+Real min   = SetMin(minS);
+Set hist_i = EvalSet(colS,  Set(Real i)
+{
+ Set sample = Traspose(dataSet)[i];
+ Matrix h   = SetMat([[sample]]);
+ Set     s  = MatSerSet(h, Diario, y2001m01d01);
+ Matrix  frec = SerFrequency(s[1], partes, min, max);
+ Traspose( MatSet(frec))
+ });
+Set frec    = Traspose(hist_i)[2];
+Set clases  = hist_i[1][1];
+Set histS   = Traspose([[clases]]<<frec);
+histS
+};
+/////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Dado un conjunto de conjuntos de reales [dataSet] y dado un conjunto\n"
+"de indices [colS] te devuelve el histograma conjunto\n"
+"Set  dataSet = For(1,1000,  Set ( Real k)\n"
+"{\n"
+"Real x1 = DistNormalInv(Rand(0,1),1,1);\n"
+"Real x2 = DistNormalInv(Rand(0,1),2,1);\n"
+"Real x3 = DistNormalInv(Rand(0,1),3,1);\n"
+"[[ x1 ,x2,x3  ]] \n"
+"});\n"
+"\n"
+"Set histMult_1 = SetHistConMult ( dataSet, [[1,2]], 20 );\n"
+"Set histMult_2 = SetHistConMult ( dataSet, [[2,3]], 20 );\n"
+, SetHistConMult);

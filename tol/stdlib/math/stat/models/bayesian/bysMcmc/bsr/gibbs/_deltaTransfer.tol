@@ -1,0 +1,195 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: _deltaTransfer.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::DeltaTransfer
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DeltaTransfer =
+"Builds a NameBlock that can be used as non linear filter by method "
+"NonLinBlock in order to simulate delta polynomials of transfer functions \n"
+" delta(B)*y = omega(B)*x\n"
+"Parameters are delta coefficients and h=Max(Degree(delta),Degree(omega)) "
+"initial values of y\n"
+"Arguments are:\n"
+"  Text   segmentName : identifier of affected output segment\n"
+"  Text   inputName   : identifier of affectd input group\n"
+"  Set    linBlkNames : identifiers of affected linear block parameters\n"
+"  Polyn  omega       : structure of numerator of transfer function\n" 
+"  Polyn  delta       : structure of numerator of transfer function\n"
+"  Matrix x           : original input data\n"
+"";
+//////////////////////////////////////////////////////////////////////////////
+NameBlock DeltaTransfer
+(
+  Text   segmentName,
+  Text   inputName,
+  Set    linBlkNames,
+  Polyn  omega, 
+  Polyn  delta,
+  Matrix x0,
+  Matrix x
+)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  //Identifier of segment
+  Text _.segmentName = segmentName;
+  //Identifier of original input
+  Text _.inputName = inputName;
+  //Name of linear parameters affected by this filter (omega)
+  Set _.linBlkNames = linBlkNames;
+  //Numerator polynomial is needed just for structural questions but 
+  //coefficients are irrelevant
+  Polyn _.omega = omega;
+  //Denominator polynomial is the main tarjet of this filter 
+  Polyn _.delta = delta;
+  //Periodocity is extracted from delta as the lest non null coefficient 
+  //So delta must be a full filled polynomial
+  Real  _.periodicity = Degree(Monomes(_.delta)[2]); 
+  //Initial values of original input
+  Matrix _.x0 = x0;
+  //Original input
+  Matrix _.x = x;
+
+  Real _.m = Rows(x);
+  Real _.p = Degree(_.omega);
+  Real _.q = Degree(_.delta);
+  Real _.h = Max(_.p,_.q); 
+  Matrix _.y0  = Rand(_.h,1,0,0);
+  Matrix _.y0q = Rand(_.q,1,0,0);
+  Matrix _.y   = _.x;
+  Set _.omegaDeg = EvalSet(Monomes(_.omega), Degree);
+  Set _.deltaDeg = EvalSet(Monomes(_.delta), Degree);
+  Real _.s = Card(_.omegaDeg);
+  Real _.r = Card(_.deltaDeg);
+  Text _.cleanSegmentName = Replace(_.segmentName,"::Noise","");
+  Text _.name = "DeltaBlk::"+_.cleanSegmentName+"::"+_.inputName;
+  Set _.denDegNames = EvalSet(Monomes(1-_.delta),Text(Polyn mon)
+  {
+    _.name+"::DenDeg."+IntText(Degree(mon))
+  });
+  Set _.denIniNames = For(1,_.h,Text(Real lag)
+  {
+    _.name+"::DenIni."+IntText(_.h-lag)
+  });
+  Set _.colNames = _.denDegNames << _.denIniNames;
+
+  ///////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Real ok = Case(
+    _.q > 2,
+    {
+      WriteLn("DeltaTransfer "+_.segmentName+"::"+_.inputName+" has degree "
+        <<_.q << ">2","E");
+      Real Stop;
+      False
+    },
+    _.q <= 0,
+    {
+      WriteLn("DeltaTransfer "+_.segmentName+"::"+_.inputName+" has degree "
+        <<_.q << "<=0","E");
+      Real Stop;
+      False
+    },
+    _.r-1 == _.q, 1,
+    {
+      WriteLn("DeltaTransfer "+_.segmentName+"::"+_.inputName+" has non "
+        "full filled delta "<<_.delta,"E");
+      Real Stop;
+      False
+    },
+    1==1, True);
+    ok
+  };
+
+  //Auxiliar variables used to skip zeroes in delta coefficients
+  Matrix _one.q.1 = Rand(_.q,1,1,1);
+  Matrix _eps.q.1 = Rand(_.q,1,0.000001,0.000001);
+
+  ///////////////////////////////////////////////////////////////////////////
+  Real set.parameter(Matrix paramValues)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE DeltaTransfer()::set.parameter 1");
+    Matrix delta_ = Sub(paramValues, 1, 1, _.q, 1);
+    Matrix delta = IfMat(Eq(_one.q.1,delta_+1), _eps.q.1, delta_);
+  //WriteLn("TRACE DeltaTransfer()::set.parameter 2");
+    Matrix _.y0 := Sub(paramValues, _.r, 1, _.h, 1);
+  //WriteLn("TRACE _.y0=("<<Replace(""<<Matrix Tra(_.y0),"\n","")+")");
+  //WriteLn("TRACE DeltaTransfer()::set.parameter 3");
+    Matrix _.y0q := Sub(_.y0, _.h-_.q+1, 1, _.q, 1); 
+  //WriteLn("TRACE _.y0q=("<<Replace(""<<Matrix Tra(_.y0q),"\n","")+")");
+    Polyn _.delta := 1-B*MatPol(Tra(delta));
+    1
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Matrix get.parameter(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    PolMat(F*(1-_.delta),_.q,1) << _.y0
+  };
+
+  //Auxiliar variables used to calculate limits for initial values of
+  //transference
+  Real _x.avg  = (MatMax(_.x)+MatMin(_.x))/2;
+  Real _x.sig  = (MatMax(_.x)-MatMin(_.x));
+  Real _.x.min  = _x.avg - 100*_x.sig;
+  Real _.x.max  = _x.avg + 100*_x.sig;
+
+
+/////////////////////////////////////////////////////////////////////////////
+//Mandatory methods for all non linear filters
+/////////////////////////////////////////////////////////////////////////////
+  //Identifies the filter
+  Text get.name       (Real unused) { _.name };
+  //Identifies the segment
+  Text get.segmentName(Real unused) { _.segmentName };
+  //Parameters of non linear block
+  Set  get.colNames   (Real unused) { _.colNames };
+  //Parameters of linear block. This method must exist just for input filters
+  Set  get.linBlkNames(Real unused) { _.linBlkNames };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Set get.bounds(Real paramIdx, Matrix paramValues) 
+  //Returns left and right bounds for i-th \n parameter for current values of 
+  //the rest of them
+  ///////////////////////////////////////////////////////////////////////////
+  { 
+  //WriteLn("TRACE DeltaTransfer()::get.bounds");
+    Real set.parameter(paramValues);
+    If(i<=_.r-1,
+    {
+      ARMAProcess::StationarityBounds.2(
+        _.delta, _.periodicity, i*_.periodicity)
+    },
+    {
+      SetOfReal(_.x.min, _.x.max)
+    })
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Matrix eval(Matrix paramValues)
+  //Returns the filter matrix
+  ///////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE DeltaTransfer()::eval");
+    Real set.parameter(paramValues);
+  //WriteLn("TRACE DeltaTransfer()::eval _.delta="<<_.delta);
+  //WriteLn("TRACE DeltaTransfer()::eval _.y0q=("<<Replace(""<<Matrix Tra(_.y0q),"\n","")+")");
+    Matrix _.y := DifEq(1/_.delta, _.x, _.x0, _.y0q);
+  //WriteLn("TRACE DeltaTransfer()::eval _.y=("<<Replace(""<<Matrix Tra(_.y),"\n","")+")");
+    Matrix   y  = _.y0<<_.y;
+  //WriteLn("TRACE DeltaTransfer()::eval y=("<<Replace(""<<Matrix Tra(y),"\n","")+")");
+    Matrix Y = Group("ConcatColumns",EvalSet(_.omegaDeg,Matrix(Real deg)
+    {
+      Sub(y,_.h-deg+1,1,_.m,1)
+    }));
+    Y
+  }
+
+]]};

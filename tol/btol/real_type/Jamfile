@@ -1,0 +1,6 @@
+ln-H tol_armseval.h  tol_arms.h  tol_bdatgra.h ;
+
+objects objs :
+  arms.cpp      datgralg.cpp  datgrast.cpp  datgsrst.cpp
+  armseval.cpp  datgra.cpp    datgrapr.cpp  datgrav.cpp   llkarma.cpp 
+  : <include>$(TOP)/bmath/gsl_ext ;

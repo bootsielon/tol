@@ -1,0 +1,4 @@
+aclocal -I config
+libtoolize -c --force
+automake --add-missing --copy
+autoconf

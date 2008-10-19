@@ -1,0 +1,68 @@
+//////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _bsrAsBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::BsrAsBlock
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.BsrAsBlock =
+"Builds a NameBlock that can draw a Gibbs sample of a full BSR used as block "
+"of any other simulator.";
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock BsrAsBlock(NameBlock bsrInstance, 
+                       Real numBlock, 
+                       Real firstCol,
+                       NameBlock  config)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  NameBlock _.bsr = bsrInstance;
+  //Defining the block in the Markov Chain
+  NameBlock _.blockDef = BysMcmc::DefineBlock
+  (
+    _.bsr::get.name(0),
+    _.bsr::get.colNames(0);
+    numBlock,
+    firstCol,
+    config
+  );
+  //Message identificator
+  Text _MID = "["+_.blockDef::_.name+" as block] ";
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Method of simulation of BSR as block";
+  VMatrix draw(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.bsr::draw(numSim)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "Method of contitioned maximum likelihood";
+  VMatrix maxLikelihood(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.bsr::maxLikelihood(numSim)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.bsr::setStore(values)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Sets _.store to the columns related to this block of a given row of a "
+  "Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
+  }
+
+]]};

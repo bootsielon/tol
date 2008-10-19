@@ -1,0 +1,5 @@
+ln-H tol_bdayinfo.h  tol_btmset.h   tol_btmsgra.h
+     tol_bmoninfo.h  tol_btmsexc.h  tol_btmsgrav.h
+     ;
+
+objects objs : dnf.cpp  mnf.cpp  tms.cpp  tmsgra.cpp  tmsgrav.cpp ;

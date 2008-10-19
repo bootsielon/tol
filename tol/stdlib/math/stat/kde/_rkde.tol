@@ -1,0 +1,98 @@
+////////////////////////////////////////////////////////////////////////////////
+// FILE: _rkde.tol
+// PURPOSE: TOL API for R KDE (Kernel Density Estimation)
+////////////////////////////////////////////////////////////////////////////////
+
+NameBlock Rkde =
+[[
+  //Acknowledgements
+  Text _R_citation(Real void) {
+  "R Development Core Team (2007). R: A language and environment for "
+  "statistical computing. R Foundation for Statistical Computing, "
+  "Vienna, Austria. ISBN 3-900051-07-0, \n"
+  "URL http://www.R-project.org.\n"};
+
+  //read only autodoc
+  Text _.autodoc.description =
+  "TOL API for R functions about Kernel Density Estimation \n"+
+  "External requirements:\n"
+  " 1. Install R (>=2.6.0) and ensure that is added to system path "
+  "environment\n"
+  " 2. Installing R stats package\n"
+  "Acknowledgements:\n"+
+     _R_citation(0)+"\n";
+  
+  Set _.autodoc.authors = [["vdebue@tol-project.org"]];
+
+  Text _cwd = GetAbsolutePath(".");
+  Text _tolRkde.R = _cwd+"/"+ "tolRkde.R";
+  Text _tmpdir = Replace(TmpDir, "\\", "/");
+  Text _sample.bbm = _tmpdir+"/"+"sample%S.bbm";
+  Text _X.bbm = _tmpdir+"/"+"X%S.bbm";
+  Text _Y.bbm = _tmpdir+"/"+"Y%S.bbm";
+
+  //////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.density =
+  "Rkde::density is a function to interface with the R function "
+  "density \n"
+  "\n"
+  "URL http://www.R-project.org.\n"
+  "\n"
+  "Description\n"
+  "The (S3) generic function density computes kernel density estimates. Its "
+  "default method does so with the given kernel and bandwidth for univariate "
+  "observations. \n"
+  "\n"
+  "Arguments:\n"
+  "\n"
+  "   sample: a vector with the sample data.\n"
+  "\n"
+  "   n: the number of equally spaced points at which the density is to be "
+  "      estimated. When n > 512, it is rounded up to the next power of 2 "
+  "      for efficiency reasons (fft)..\n"
+  "\n"
+  "Return Value:\n"
+  "\n"
+  "     A matrix of two columns with (x,y) pairs of density evaluations\n"
+  "};\n"
+  ;
+  Matrix density(Matrix sample, Set optArgs)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    // Prepare exchange files
+    
+    // Extract extra arguments
+    Real n       = getOptArg(optArgs, "n",       512);
+    Real verbose = getOptArg(optArgs, "verbose", FALSE);
+
+    Set args.info =
+      [[
+        [[n, "n", "int"]],
+        [[verbose, "verbose", "bool"]],
+        [[_sample.bbm, "sample.bbm"]],
+        [[_X.bbm, "X.bbm"]],
+        [[_Y.bbm, "Y.bbm"]]
+      ]];
+    Set args.bbm =
+    [[
+      [[ _sample.bbm,  sample  ]]
+    ]];
+
+    Text argList = Rapi::CreateArgList("Rkde_args", args.info);
+        
+    Set result.names =
+    [[
+      _X.bbm,
+      _Y.bbm
+    ]];
+    
+    Text script = 
+      "source('"+_tolRkde.R+"'); "
+      "Rkde_density.TOL('"+_sample.bbm+"','%A')";
+
+    Set result = Rapi::RunRScript(script, args.bbm, argList, result.names,
+                                  verbose);
+    result[1] | result[2]
+  }
+
+]];

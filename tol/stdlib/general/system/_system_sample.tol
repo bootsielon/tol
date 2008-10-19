@@ -1,0 +1,295 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _system_test.tol
+// PURPOSE : tests over file _system.tol
+//////////////////////////////////////////////////////////////////////////////
+
+Text PutRealFormat("%.0lf");
+Text _test_tmp      = TmpDir+"_tol_system_test";
+Text _test_dir_0    = TmpDir+"_tol_system_test_3141516";
+Text _test_dir_1    = _test_dir_0+"/I_CANT_BELIVE_THIS_PATH_1";
+Text _test_dir_2    = _test_dir_0+"/I_CANT_BELIVE_THIS_PATH_2";
+Text _test_file_11  = _test_dir_1+"/file1.txt";
+Text _test_file_12  = _test_dir_1+"/file2.txt";
+Text _test_file_21  = _test_dir_2+"/file1.txt";
+Text _test_file_22  = _test_dir_2+"/file2.txt";
+Text _test_nonexist = TmpDir+"jj9487532.exe";
+Real _test_num      = 1;
+Real _test_ok       = 1;
+
+WriteLn("\n");
+Text OSTrace(2,"
+//////////////////////////////////////////////////////////////////////////////
+// Tracing well built commands
+// No error message should be sent
+//////////////////////////////////////////////////////////////////////////////
+");
+
+Text OSTrace(2,"Deletes all testing folder tree");
+Real { test = If(OSDirRemove(_test_dir_0),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Makes _test_dir_1");
+Real { test = If(OSDirMake(_test_dir_1+"/"),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSDirExist(_test_dir_1),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Creates _test_file_11");
+Text WriteFile(_test_file_11,"FILE for testing");
+
+Real { test = If(OSFilExist(_test_file_11),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Moves _test_dir_1 to _test_dir_2");
+Real { test = If(OSDirMove(_test_dir_1, _test_dir_2),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSDirExist(_test_dir_2),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSDirExist(_test_dir_1),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_11),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSFilExist(_test_file_21),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Copies _test_dir_2 to _test_dir_1");
+Real { test = If(OSDirCopy(_test_dir_2, _test_dir_1),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSDirExist(_test_dir_2),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSDirExist(_test_dir_1),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSFilExist(_test_file_11),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_12),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSFilExist(_test_file_21),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_22),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Copies _test_file_21 to _test_file_22");
+Real { test = If(OSFilCopy(_test_file_21, _test_file_22),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSFilExist(_test_file_11),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_12),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSFilExist(_test_file_21),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSFilExist(_test_file_22),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Moves _test_file_21 to _test_file_12");
+Real { test = If(OSFilMove(_test_file_21, _test_file_12),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_21),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(OSFilExist(_test_file_12),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Removes _test_file_11");
+Real { test = If(OSFilRemove(_test_file_11),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_11),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Removes _test_dir_0");
+Real { test = If(OSDirRemove(_test_dir_0),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_11),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_12),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_21),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSFilExist(_test_file_22),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSDirExist(_test_dir_2),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSDirExist(_test_dir_1),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Real { test = If(!OSDirExist(_test_dir_0),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Waits 2 seconds showing a console in Windows OS");
+Real { test = If(OSConWait("sleep 2",1),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Waits 2 seconds without showing any console");
+Real { test = If(OSCmdWait("sleep 2"),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+
+WriteLn("\n");
+Text OSTrace(2,"
+//////////////////////////////////////////////////////////////////////////////
+// Tracing wrong built commands
+// An error message should be sent in each test
+//////////////////////////////////////////////////////////////////////////////
+");
+
+Text OSTrace(2,"Calls unexistent executable "+_test_nonexist+" and wait");
+Real { test = If(!OSCmdWait(_test_nonexist),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+Text OSTrace(2,"Moves unexistent file _test_file_22 to _test_file_12");
+Real { test = If(!OSFilMove(_test_file_22, _test_file_12),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+
+WriteLn("\n");
+Text OSTrace(2,"
+//////////////////////////////////////////////////////////////////////////////
+// Tracing wrong built commands with in no waiting mode
+// No error message should be sent in TOLBase no console mode
+//////////////////////////////////////////////////////////////////////////////
+");
+
+Text OSTrace(2,"Calls unexistent executable "+_test_nonexist+" and no wait");
+Real { test = If(!OSCmdNoWait(_test_nonexist),
+{Text OSTrace(2,"Test _system "<<_test_num+" OK"), 1},
+{Text OSTrace(2,"<E>Test _system "<<_test_num+" FAILS</E>"), 0});
+Real _test_ok := _test_ok+test};
+Real _test_num := _test_num+1;
+
+

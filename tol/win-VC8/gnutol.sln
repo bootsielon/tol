@@ -1,0 +1,72 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tollib", "tollib.vcproj", "{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}"
+	ProjectSection(ProjectDependencies) = postProject
+		{24C5C2A9-CA02-465E-A717-E002BD576BF2} = {24C5C2A9-CA02-465E-A717-E002BD576BF2}
+		{AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C} = {AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C}
+		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA} = {5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}
+		{10793CDE-F71F-4DAB-919F-CA5CD86C98EE} = {10793CDE-F71F-4DAB-919F-CA5CD86C98EE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tolcon", "tolcon.vcproj", "{2207A1D7-F7B9-4870-A392-3A49D399CFAC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43} = {9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtolpgsql", "libtolpgsql\libtolpgsql.vcproj", "{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build_date_gen", "build_date_gen\build_date_gen.vcproj", "{24C5C2A9-CA02-465E-A717-E002BD576BF2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtolodbc", "libtolodbc\libtolodbc.vcproj", "{AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtolmysql", "libtolmysql\libtolmysql.vcproj", "{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		profile|Win32 = profile|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}.Debug|Win32.Build.0 = Debug|Win32
+		{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}.profile|Win32.ActiveCfg = profile|Win32
+		{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}.profile|Win32.Build.0 = profile|Win32
+		{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}.Release|Win32.ActiveCfg = Release|Win32
+		{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}.Release|Win32.Build.0 = Release|Win32
+		{2207A1D7-F7B9-4870-A392-3A49D399CFAC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2207A1D7-F7B9-4870-A392-3A49D399CFAC}.Debug|Win32.Build.0 = Debug|Win32
+		{2207A1D7-F7B9-4870-A392-3A49D399CFAC}.profile|Win32.ActiveCfg = profile|Win32
+		{2207A1D7-F7B9-4870-A392-3A49D399CFAC}.profile|Win32.Build.0 = profile|Win32
+		{2207A1D7-F7B9-4870-A392-3A49D399CFAC}.Release|Win32.ActiveCfg = Release|Win32
+		{2207A1D7-F7B9-4870-A392-3A49D399CFAC}.Release|Win32.Build.0 = Release|Win32
+		{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}.Debug|Win32.Build.0 = Debug|Win32
+		{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}.profile|Win32.ActiveCfg = profile|Win32
+		{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}.profile|Win32.Build.0 = profile|Win32
+		{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}.Release|Win32.ActiveCfg = Release|Win32
+		{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}.Release|Win32.Build.0 = Release|Win32
+		{24C5C2A9-CA02-465E-A717-E002BD576BF2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{24C5C2A9-CA02-465E-A717-E002BD576BF2}.Debug|Win32.Build.0 = Debug|Win32
+		{24C5C2A9-CA02-465E-A717-E002BD576BF2}.profile|Win32.ActiveCfg = profile|Win32
+		{24C5C2A9-CA02-465E-A717-E002BD576BF2}.profile|Win32.Build.0 = profile|Win32
+		{24C5C2A9-CA02-465E-A717-E002BD576BF2}.Release|Win32.ActiveCfg = Release|Win32
+		{24C5C2A9-CA02-465E-A717-E002BD576BF2}.Release|Win32.Build.0 = Release|Win32
+		{AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C}.Debug|Win32.Build.0 = Debug|Win32
+		{AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C}.profile|Win32.ActiveCfg = profile|Win32
+		{AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C}.profile|Win32.Build.0 = profile|Win32
+		{AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C}.Release|Win32.ActiveCfg = Release|Win32
+		{AD1A45B5-BCF0-4E9E-94AC-EC7CEE4EDE3C}.Release|Win32.Build.0 = Release|Win32
+		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.Debug|Win32.Build.0 = Debug|Win32
+		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.profile|Win32.ActiveCfg = profile|Win32
+		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.profile|Win32.Build.0 = profile|Win32
+		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.Release|Win32.ActiveCfg = Release|Win32
+		{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

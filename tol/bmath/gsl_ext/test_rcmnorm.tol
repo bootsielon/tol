@@ -1,0 +1,61 @@
+/* -*- mode: c++ -*- */
+Matrix nu = Col(2.0, 2.0);
+Matrix COV = ((1.0, 4/5.0),(4/5.0, 1.0));
+Matrix iCOV = GaussInverse(COV);
+Matrix X0 = Col(2.0, 1.0);
+
+Matrix B = ((-1.0, 1.0), (0.0, -1.0));
+//Matrix B = ((-1.0, 0.0), (0.0, -1.0));
+Matrix b = Col(0.0, 0.0);
+Real size = 100;
+Real burning = 1;
+
+Matrix tolLLt = Choleski(COV);
+
+Matrix MCsample1 = GibbsConstrainedMNormal(nu, COV, B, b, 1, size,burning, X0);
+
+
+Matrix gslLLt = ((1,  0),
+              (0.8, 0.6));
+
+Set svd = SVD(COV);
+
+Matrix Ai = svd[1]*SqRt(svd[2]);
+Matrix D = B*Ai;
+
+//Set View(svd,"Std");
+//Set View([[Ai,D]],"Std");
+
+//Set View([[tolLLt]],"Std");
+
+
+Matrix tolMCsample = GibbsConstrainedMNormal(nu, [["fact_chol",tolLLt]], B, b,1, size, burning);
+
+Matrix gslMCsample = GibbsConstrainedMNormal(nu, [["fact_chol",gslLLt]], B, b,1, size, burning);
+
+Matrix Diag2Col(Matrix M)
+{
+  Matrix SetCol(Set For(1,Real Min(Rows(M),Columns(M)), Real (Real r)
+      {
+        Real MatDat(M,r,r)
+      }))
+};
+
+Matrix fsvdMCsample =  GibbsConstrainedMNormal(nu, 
+                                               [["fact_svd",svd[1],
+                                                 SqRt(SubDiag(svd[2],0)) ]],
+                                                 B, b, 1.0, size, burning);
+
+Matrix  iLLt = Choleski(iCOV);
+
+Matrix icholMCsample = GibbsConstrainedMNormal(nu, [["fact_ichol",iLLt]], B, b,
+                                               1, size, burning);
+
+Set isvd = SVD(iCOV);
+
+Matrix isvdMCsample =  GibbsConstrainedMNormal(nu, 
+                                               [["fact_isvd",isvd[1],
+                                                 SqRt(Tra(SubDiag(isvd[2],0))) ]],
+                                               B, b, 1.0, size, burning);
+
+Matrix allMCMC = MCsample1 | tolMCsample | gslMCsample | fsvdMCsample | icholMCsample | isvdMCsample;

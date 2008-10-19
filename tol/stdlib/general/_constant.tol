@@ -1,0 +1,126 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE:    _constant.tol 
+// PURPOSE: Useful constants objects
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Real constants 
+//////////////////////////////////////////////////////////////////////////////
+
+Real FALSO     = False;
+Real Falso     = False;
+Real CIERTO    = True;
+Real Cierto    = True;
+
+Real TheMinAbsValue = 3.92530e-323;
+Real TheMaxAbsValue = 1.79769e+308;
+
+
+//////////////////////////////////////////////////////////////////////////////
+// OS-relative constants 
+//////////////////////////////////////////////////////////////////////////////
+Real OSUnix    = OSName=="UNIX";
+Real OSWin     = OSName=="WINDOWS";
+Text SLASH     = If(OSUnix, "/",    "\\");
+
+Text ConcatSys = If(OSUnix, "cat ", "type ");
+Text DeleteSys = If(OSUnix, "rm ",  "del ");
+Text CopySys   = If(OSUnix, "cp ",  "copy ");
+
+
+Text NewLine = Char(10); NL = NewLine;
+Text Quotes  = Char(34); 
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Various date objects frequently used 
+//////////////////////////////////////////////////////////////////////////////
+Date UnLunes     = y2001m1d1;
+Date UnMartes    = y2001m1d2;
+Date UnMiercoles = y2001m1d3;
+Date UnJueves    = y2001m1d4;
+Date UnViernes   = y2001m1d5;
+Date UnSabado    = y2001m1d6;
+Date UnDomingo   = y2001m1d7;
+
+Date AMonday    = y2001m1d1;
+Date ATuesday   = y2001m1d2;
+Date AWednesday = y2001m1d3;
+Date AThursday  = y2001m1d4;
+Date AFriday    = y2001m1d5;
+Date ASaturday  = y2001m1d6;
+Date ASunday    = y2001m1d7;
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Various time sets objects frequently used 
+//////////////////////////////////////////////////////////////////////////////
+TimeSet Horario       = Mi(0);
+TimeSet FinDeSemana   = WD(6)+WD(7);
+TimeSet Semanal       = WD(1);
+TimeSet Decenal       = D(1)+D(11)+D(21);
+TimeSet Quincenal     = D(1)+D(16);
+TimeSet Semimensual   = D(1) + ( D(15)*M(2) + D(16)*(C-M(2)) );
+TimeSet Mensual       = D(1);
+TimeSet Bimestral     = D(1)*(M(1)+M(3)+M(5)+M(7)+M(9)+M(11));
+
+//VBR: Se mantiene por compatibilidad hacia atrás pero no es el significado
+//correcto en castellano pues en realidad sería equivalente a Semimensual
+//y no a bimestral (ver http://bugs.tol-project.org/show_bug.cgi?id=493)
+TimeSet Bimensual     = D(1)*(M(1)+M(3)+M(5)+M(7)+M(9)+M(11)); 
+
+TimeSet Trimestral    = D(1)*(M(1)+M(4)+M(7)+M(10));
+TimeSet Cuatrimestral = D(1)*(M(1)+M(5)+M(9));
+TimeSet Semestral     = D(1)*(M(1)+M(7));
+TimeSet Anual         = D(1)*M(1);
+TimeSet Bianual       = Periodic(y1900,2,Anual);
+TimeSet Bianual1      = Periodic(y1901,2,Anual);
+
+TimeSet Hourly        = Mi(0);
+TimeSet Weekly        = WD(1);
+TimeSet WeekEnd       = WD(6)+WD(7);
+TimeSet Decenial      = D(1)+D(11)+D(21);
+TimeSet Fornigthly    = D(1)+D(16);
+TimeSet Semimonthly   = D(1) + ( D(15)*M(2) + D(16)*(C-M(2)) );
+TimeSet Monthly       = D(1);
+TimeSet Bimonthly     = D(1)*(M(1)+M(3)+M(5)+M(7)+M(9)+M(11));
+TimeSet Quarterly     = D(1)*(M(1)+M(4)+M(7)+M(10));
+TimeSet Thirdannual   = D(1)*(M(1)+M(5)+M(9));
+TimeSet HalfYearly    = D(1)*(M(1)+M(7));
+TimeSet Yearly        = D(1)*M(1);
+TimeSet Biyearly      = Periodic(y1900,2,Anual);
+TimeSet Biyearly1     = Periodic(y1901,2,Anual);
+
+TimeSet PseudoMensual = Range(D(1),0,6)*WD(1);
+TimeSet PseudoAnual   = Range(M(1)*D(1),0,6)*WD(1);
+
+//////////////////////////////////////////////////////////////////////////////
+// Various time series objects frequently used 
+//////////////////////////////////////////////////////////////////////////////
+
+Serie   DiasDelMes       = CalVar(C,     Mensual);
+Serie   DiasDelAño       = CalVar(C,     Anual);
+Serie   LunesDelMes      = CalVar(WD(1), Mensual);
+Serie   MartesDelMes     = CalVar(WD(2), Mensual);
+Serie   MiercolesDelMes  = CalVar(WD(3), Mensual);
+Serie   JuevesDelMes     = CalVar(WD(4), Mensual);
+Serie   ViernesDelMes    = CalVar(WD(5), Mensual);
+Serie   SabadosDelMes    = CalVar(WD(6), Mensual);
+Serie   DomingosDelMes   = CalVar(WD(7), Mensual);
+
+Serie   DaysInMonth      = CalVar(C,     Monthly);
+Serie   DaysInYear       = CalVar(C,     Yearly);
+Serie   MondayInMonth    = CalVar(WD(1), Monthly);
+Serie   TuesdayInMonth   = CalVar(WD(2), Monthly);
+Serie   WednesdayInMonth = CalVar(WD(3), Monthly);
+Serie   ThursayInMonth   = CalVar(WD(4), Monthly);
+Serie   FridayInMonth    = CalVar(WD(5), Monthly);
+Serie   SaturdayInMonth  = CalVar(WD(6), Monthly);
+Serie   SundayInMonth    = CalVar(WD(7), Monthly);
+
+
+

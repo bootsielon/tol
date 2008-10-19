@@ -1,0 +1,4 @@
+ln-H [ glob tol_*.h ] ;
+
+objects objs 
+  : ar.cpp  arma.cpp  linreg.cpp  logit.cpp  stat.cpp  test.cpp unitroot.cpp ;

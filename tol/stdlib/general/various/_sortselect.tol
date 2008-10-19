@@ -1,0 +1,46 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    :
+// PURPOSE :
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Real CmpSet1 (Set a1, Set a2) 
+//////////////////////////////////////////////////////////////////////////////
+{ -Compare(a1[1],a2[1]) };
+
+//////////////////////////////////////////////////////////////////////////////
+  Set SortAndSelect(Set table, Real MinSig)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set table2 =   If(Card(table)>1,
+    Sort(table, CmpSet1),
+    table);
+
+  Real sumMeassure =  If(Card(table)>1, 
+                         SetSum(Traspose(table2)[1]),
+                         (table[1])[1]);
+  Real cumul = 0;
+  Set table3 = EvalSet(table2, Set (Set a)
+  {
+    Real      pr = a[1]/sumMeassure;
+    Anything  s  = a[2];
+    Real(cumul := pr + cumul);
+    [[pr, s, Copy(cumul)]]
+  });
+  Set table4 = Select(Range(1,Card(table3),1), Real(Real k)
+  {
+    Set       a   = table3[k];
+    Real      pr  = a[1];
+    Anything  s   = a[2];
+    Real      cum = a[3];
+    Or(EQ(k,1), LE(cum,1-MinSig), GE(pr,MinSig))
+  });
+  EvalSet(table4, Set(Real k)
+  {
+    Set       a   = table3[k];
+    Real      pr  = a[1];
+    Anything  s   = a[2];
+    [[pr, s]]
+  })
+};
+

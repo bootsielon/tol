@@ -1,0 +1,8 @@
+LIBRARY "VBTol"
+
+EXPORTS
+    TolInit				@1
+    TolEval				@2
+    TolDecompile		@3
+    TolDecompileAll		@4
+    

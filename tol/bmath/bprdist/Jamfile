@@ -1,0 +1,3 @@
+ln-H tol_bmultvar.h  tol_bprdist.h ;
+
+objects objs : multvar.cpp  prd.cpp slice_sampler.cpp ;

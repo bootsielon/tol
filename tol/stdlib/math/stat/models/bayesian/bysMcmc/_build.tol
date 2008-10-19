@@ -1,0 +1,287 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: _build.tol
+// PURPOSE: Declares method BysMcmc::BuildCycler
+/////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.BuildCycler =
+"Builds a NameBlock that is able to generate a Markov Chain of a model "
+"by cycling calls of a given individual drawer and gives a set of tools to " 
+"make Bayesian Inference about it. \n"
+"NameBlock modelSampler is a handler of the model to be simulated and must have "
+"at least these public methods: \n"
+" Text get.name     (Real unused); //Model name\n"
+" Text get.session  (Real unused); //Session tag name\n"
+" Text get.path     (Real unused); //Path to store Markov Chain as BBM\n"
+" Set  get.colNames (Real unused); //Names of Markov Chain variables\n"
+" Matrix draw       (Real numSim); //Draws a simulation of Markov Chain\n";
+"NameBlock notifier is an event tracing handler and must has at least these "
+"public methods: \n"
+" Real initializing(Real numVar,Text path);//Notifies sampler initialization";
+" Real simulating(Real numSim); //Notifies current simulation\n";
+NameBlock BuildCycler(NameBlock modelSampler, 
+                      NameBlock config, 
+                      NameBlock notifier)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  //--------------------------------------------------------------------------
+  // Read only members
+  //--------------------------------------------------------------------------
+  //Internal reference to sampler definition
+  NameBlock _.sampler  = modelSampler;
+  NameBlock _.notifier = notifier;
+  //Stores the sampler name
+  Text _.name = _.sampler::get.name(0)+"."+_.sampler::get.session(0);
+  //Puts the Markov Chain path relative to sampler path
+  Text _.path = _.sampler::get.path(0)+_.name+".mcmc.bbm";
+  //The number of variables of Markov Chain
+  Real _.n = Card(_.sampler::get.colNames(0));
+  //Timer member that can be externally consulted 
+  Real _.time = 0;
+  Real _mcmc.maxTime = config::mcmc.maxTime;
+  //Setting NameBlock description
+  Text _.autodoc.description="MCMC cycling builder for model "+_.name;
+
+  //--------------------------------------------------------------------------
+  // Configuration members
+  //--------------------------------------------------------------------------
+  //The number of simulations cached in RAM before to disc writing
+  Real cacheLength_ = config::mcmc.cacheLength;
+  //If resume is true and there was old simulations in _.path, new ones will 
+  //be added at the end. In other case old simulations will be lost.
+  Real resume_ = config::do.resume;
+  //Bayesian inference configuration
+  Set bysInf_ = {BysInf.Report.Config
+  (
+    Real raftery.diag.q   = config::report.raftery.diag.q,
+    Real raftery.diag.r   = config::report.raftery.diag.r,
+    Real raftery.diag.s   = config::report.raftery.diag.s,
+    Real raftery.diag.eps = config::report.raftery.diag.eps,
+    Real acf.lag          = config::report.acf.lag,
+    Real histogram.parts  = config::report.histogram.parts,
+    Real kerDens.points   = config::report.kerDens.points
+  )};
+
+  //--------------------------------------------------------------------------
+  // Public methods
+  //--------------------------------------------------------------------------
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.generate =
+  "Generates and stores a Markov Chain with sampleLength simulations and "
+  "return the number of successfully saved ones";
+  Real generate(Real sampleLength)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[BuildCycler()::generate] ";
+    Real _.notifier::initializing(_.n, _.path);
+    Real _.sampler::initialize(0);
+    Real WriteLn(_MID+_.name+
+      "\n Storing MCMC in file  : "<<_.path+
+      "\n Number of variables   : "<<_.n+
+      "\n Number of simulations : "<<sampleLength+
+      "\n Cache length          : "<<cacheLength_+
+      "\n Resume                : "<<If(resume_,"True","False")+
+      If(_mcmc.maxTime<1/0,
+      "\n MaxTime               : "<<_mcmc.maxTime+" seconds",""));
+  //Ensures path is all right 
+    Real OSDirMake(GetFilePath(_.path));
+
+  //Resume or clean old simulations
+    Real savedSimulations = If(!resume_, 
+    {
+      Real OSFilRemove(_.path);
+      0
+    },
+    {
+      If(!FileExist(_.path),0,
+      {
+        Matrix old.mcmc = MatReadFile(_.path);
+        Real m = Rows(old.mcmc);
+        Real n = Columns(old.mcmc);
+        Case(
+        Not(m),
+        {
+          Real OSFilRemove(_.path);
+          0
+        },
+        n==_.n, 
+        {
+          Real WriteLn(_MID+" resuming "<<m+" old simulations");
+          Matrix lastRow = Sub(old.mcmc,m,1,1,_.n);
+        //WriteLn("TRACE "+_MID+" lastRow="<<lastRow);
+          Real _.sampler::setStore(lastRow);
+          m
+        },
+        1==1,
+        {
+          Real WriteLn(_MID+" Cannot resume due to old MCMC saved on "+
+            _.path+" has "+IntText(n)+" columns instead "
+            "of current nummber of parameters "+IntText(_.n)+".\n"
+            "Old MCMC will be removed","W");
+          Real OSFilRemove(_.path);
+          0
+        }) 
+      })
+    });
+    //Cache matrix to store up to cacheLength rows before to append it to the
+    //BBM file
+    Matrix cache = Rand(0,_.n,0,0);
+    //Initializes the timer
+    Real t0 = Copy(Time);
+    Real t1 = Copy(Time);
+    Real _.notifier::simulating(0, 0);
+    Real numErr0 = Copy(NError);
+    Real numSim = savedSimulations+1;
+  //WriteLn("TRACE "+_MID+" savedSimulations="<<savedSimulations);
+  //WriteLn("TRACE "+_MID+" numSim="<<numSim);
+    Real okMls = Case(Or(numSim>1, 
+       config::mls.method==BysMcmc::Options::Mls.Method::None),
+    { 
+      1 
+    },
+    config::mls.method==BysMcmc::Options::Mls.Method::FunnelGibbs,
+    {
+      Real numIter = 1;
+      While(numIter<=config::mls.maxIter,
+      {
+        VMatrix param = _.sampler::maxLikelihood(numIter);
+        Real numIter := numIter+1 
+      });
+      1
+    },
+    1==1,
+    {
+      WriteLn(_MID+"Unknown Maximum Likelihood Step method "+
+              config::mls.method, "E");
+      0
+    });
+    Real end = !okMls;
+    While(!end,
+    {
+    //WriteLn("TRACE "+_MID+" 2");
+      Real doCache = Or(cacheLength_==1,numSim%cacheLength_==1);
+    //WriteLn("TRACE "+_MID+" 3");
+      Real If(doCache,
+      {
+        If(cacheLength_>1,
+        {
+          Write(_MID+"Simulating iterations "+
+            IntText(numSim)+"-"+IntText(numSim+cacheLength_-1))
+        },
+        {
+          Write(_MID+"Simulating iteration "+ IntText(numSim))
+        });
+        If(!Rows(cache), WriteLn(" ... "),
+        {
+          Real t2 = Copy(Time);
+          Real _.time := (t2-t1)/cacheLength_;
+          WriteLn(" [time by simulation:"<<_.time+"]");
+          Real _.notifier::simulating(numSim-1, _.time);
+          Real t1 := t2
+        });
+        1
+      });
+    //WriteLn("TRACE "+_MID+" 4");
+      VMatrix draw_ = _.sampler::draw(numSim);
+    //WriteLn("TRACE "+_MID+" 5");
+      Matrix  draw  = VMat2Mat(draw_);
+    //WriteLn("TRACE "+_MID+" 6");
+      Matrix cache := cache << Tra(draw);
+    //WriteLn("TRACE "+_MID+"7");
+      Real If(doCache,
+      {
+        Matrix Do MatAppendFile(_.path, cache);
+        Real savedSimulations := numSim;
+        Matrix cache := Rand(0,_.n,0,0);
+        1
+      });
+      Real Case(
+      GE(numSim,sampleLength),
+      {
+        WriteLn("Simulation process has ended succesfully");
+        Real end := True
+      },
+      GE(Time-t0,_mcmc.maxTime),
+      {
+        WriteLn("Maximum time has been elapsed and process will be stoped",
+                "W");
+        Real end := True
+      },
+      GT(NError,numErr0), 
+      {
+        Real CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotContinueSimulation,
+        [[
+          _MID,
+          Real (NError-numErr0)
+        ]]);
+        Real end := True
+      });
+    //WriteLn("TRACE "+_MID+" 8");
+      Real numSim := numSim+1
+    });
+    Matrix Do MatAppendFile(_.path, cache);
+    Real savedSimulations := sampleLength;
+    Real _.time := (Time - t0)/sampleLength;
+    WriteLn(" [time by simulation:"<<_.time+"]");
+    Real _.notifier::simulating(sampleLength, _.time);
+    //WriteLn("TRACE "+_MID+" 1");
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.loadFullMcmc =
+  "Loads the full stored Markov Chain previouslu generated.";
+  Matrix loadFullMcmc(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    MatReadFile(_.path)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.loadMcmc =
+  "Loads the stored Markov Chain generated by method generate skiping "
+  "first burnin rows and selecting one of each thinning ones.";
+  Matrix loadMcmc(Real burnin, Real length, Real thinning)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Inference::loadMcmc(_.path, burnin, length, thinning)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.report =
+  "Returns a report about Bayesian Inference over the Markov Chain, "
+  "including some CODA items.";
+  Set report(Real burnin, Real length, Real thinning)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Inference::loadAndReport(
+      _.path, burnin, length, thinning, 
+      _.name, _.sampler::get.colNames(0), bysInf_)
+  }
+
+]]};
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.BuildCycler,BuildCycler);
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+NameBlock Get.Recover(Text rootPath, Text id_model, Text id_session)
+/////////////////////////////////////////////////////////////////////////////
+{
+  Text path = rootPath+id_model+"."+id_session+".recover.oza";
+  WriteLn("Recovering path "+path);
+  Set Include(path);
+  recover 
+};
+
+/////////////////////////////////////////////////////////////////////////////
+Set RecoveAndReport(Text rootPath, Text id_model, Text id_session,
+                    Real burnin, Real length, Real thinning)
+/////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock recover = BysMcmc::Get.Recover(
+    rootPath, id_model, id_session);
+  Set report = recover::report(burnin,length,thinning)
+}

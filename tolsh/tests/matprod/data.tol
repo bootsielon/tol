@@ -1,0 +1,41 @@
+/* -*- mode: c++ -*- */
+
+/*
+   ----------------------------------------------------------------------
+                     Funciones de carga de datos
+   ----------------------------------------------------------------------
+ */
+Real GenerateData(Text fileM, Real R, Real C)
+{
+  WriteLn("Generating random matrix "<<fileM<<" of size " << R <<"X"<< C);
+  Matrix MatWriteFile(fileM, Rand(R,C,0,1));
+  Real 1
+};
+
+Set ReadData(Set param)
+{
+  Real M = param["M"];
+  Real K = param["K"];
+  Real N = param["N"];
+  
+  Text fileA = "A.bbm";
+  Text fileB = "B.bbm";
+
+  Real If(FileExist(fileA), Real {
+      Matrix A = MatReadFile(fileA);
+      Real If(Rows(A)!=M | Columns(A)!=K,
+              GenerateData(fileA, M, K))
+    }, GenerateData(fileA, M, K));
+  
+  Real If(FileExist(fileB), Real {
+      Matrix B = MatReadFile(fileB);
+      Real If(Rows(B)!=K | Columns(B)!=N,
+              GenerateData(fileB, K, N))
+    }, GenerateData(fileB, M, K));
+
+  Matrix A = MatReadFile(fileA);
+  Matrix B = MatReadFile(fileB);
+
+  Set [[ A, B ]]
+};
+

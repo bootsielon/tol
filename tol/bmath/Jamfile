@@ -1,0 +1,13 @@
+ln-H [ glob tol_*.h ] ;
+
+subdirs = barith bfunct blinalg bprdist bstat dcdflib gsl_ext mathobjects ;
+
+for dir in $(subdirs)
+{
+  build-project $(dir) ;
+  bmath_objs += $(dir)//objs ;
+}
+
+objects my_objs : matfun.cpp ;
+
+alias objs : my_objs $(bmath_objs) ;

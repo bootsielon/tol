@@ -1,0 +1,37 @@
+//////////////////////////////////////////////////////////////////////////////
+// LIBRARY: ExtLib (Extended Library of TOL)
+// MODULE: CMsg (Controlled messages)
+// FILE: _trace.tol
+// PURPOSE: Implements the NameBlok Cmsg::Trace
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock Trace =
+//////////////////////////////////////////////////////////////////////////////
+[[
+//read only autodoc
+  Text _.autodoc.description =
+  "Shows a trace if the level is less or equal than maxLevel_, that controls "
+  "directly the verbosity level of tracing messages."
+  "You can configure this feature in a TOL session changing this value "
+  "before running your code:\n"
+  "  Real CMsg::Trace::maxLevel_ := your_preference;\n"
+  "To disable it set to cero.";
+
+//public API
+  Real show(Real level, Text msg)
+  {
+    If(level>maxLevel_, 0,
+    {
+      WriteLn("[CMsg::Trace] "+msg);
+      1
+    })
+  };
+
+//private API
+  Real maxLevel_ = 3
+]];
+
+
+  
+/* */

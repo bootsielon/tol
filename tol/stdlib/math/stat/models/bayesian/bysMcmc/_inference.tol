@@ -1,0 +1,37 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _inf.tol
+// PURPOSE: Declares NameBlok BysMcmc::Inference
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock Inference =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //read only autodoc
+  Text _.autodoc.description =
+  "Bayesian Inference over MonteCarlo Markov Chains.";
+
+  //private implementation
+  Set _functions = Include("_inference_functions.tol");
+
+  Real _.raftery.diag.burnin = ?;
+  Real _.raftery.diag.size   = ?;
+  Real _.raftery.diag.remain = ?;
+
+  //public API
+  Code get.coda.raftery.diag;
+  Code get.coda.summary;
+  Code get.sample;
+  Code get.acf;
+  Code get.histogram;
+  Code get.kerDens;
+  Code report;
+  Code compare.reports;
+  Code loadMcmc;
+  Code loadAndReport
+]];
+  
+
+

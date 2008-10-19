@@ -1,0 +1,116 @@
+/* tol_cdflib.h - GNU/TOL Language.
+
+   Copyright (C) 2003 - Bayes Decision, SL (Spain [EU])
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   USA.
+ */
+
+#ifndef __CDFLIB__
+#define __CDFLIB__ 1
+
+#include <tol/tol_bcommon.h>
+
+BEGIN_DECLS
+
+double algdiv(double*,double*);
+double alngam(double*);
+double alnrel(double*);
+double apser(double*,double*,double*,double*);
+double basym(double*,double*,double*,double*);
+double bcorr(double*,double*);
+double betaln(double*,double*);
+double bfrac(double*,double*,double*,double*,double*,double*);
+void bgrat(double*,double*,double*,double*,double*,double*,int*i);
+double bpser(double*,double*,double*,double*);
+void bratio(double*,double*,double*,double*,double*,double*,int*);
+double brcmp1(int*,double*,double*,double*,double*);
+double brcomp(double*,double*,double*,double*);
+double bup(double*,double*,double*,double*,int*,double*);
+void cdfbet(int*,double*,double*,double*,double*,double*,double*,
+            int*,double*);
+void cdfbin(int*,double*,double*,double*,double*,double*,double*,
+            int*,double*);
+void cdfchi(int*,double*,double*,double*,double*,int*,double*);
+void cdfchn(int*,double*,double*,double*,double*,double*,int*,double*);
+void cdff(int*,double*,double*,double*,double*,double*,int*,double*);
+void cdffnc(int*,double*,double*,double*,double*,double*,double*,
+            int*s,double*);
+void cdfgam(int*,double*,double*,double*,double*,double*,int*,double*);
+void cdfnbn(int*,double*,double*,double*,double*,double*,double*,
+            int*,double*);
+void cdfnor(int*,double*,double*,double*,double*,double*,int*,double*);
+void cdfpoi(int*,double*,double*,double*,double*,int*,double*);
+void cdft(int*,double*,double*,double*,double*,int*,double*);
+void cdftnc(int*,double*,double*,double*,double*,double*,int*,double*);
+void cumbet(double*,double*,double*,double*,double*,double*);
+void cumbin(double*,double*,double*,double*,double*,double*);
+void cumchi(double*,double*,double*,double*);
+void cumchn(double*,double*,double*,double*,double*);
+void cumf(double*,double*,double*,double*,double*);
+void cumfnc(double*,double*,double*,double*,double*,double*);
+void cumgam(double*,double*,double*,double*);
+void cumnbn(double*,double*,double*,double*,double*,double*);
+void cumnor(double*,double*,double*);
+void cumpoi(double*,double*,double*,double*);
+void cumt(double*,double*,double*,double*);
+void cumtnc(double*,double*,double*,double*,double*);
+double devlpl(double [],int*,double*);
+double dinvnr(double *p,double *q);
+static void E0000(int,int*,double*,double*,unsigned long*,
+                  unsigned long*,double*,double*,double*,
+                  double*,double*,double*,double*);
+void dinvr(int*,double*,double*,unsigned long*,unsigned long*);
+void dstinv(double*,double*,double*,double*,double*,double*,
+            double*);
+double dt1(double*,double*,double*);
+static void E0001(int,int*,double*,double*,double*,double*,
+                  unsigned long*,unsigned long*,double*,double*,
+                  double*,double*);
+void dzror(int*,double*,double*,double*,double *,
+           unsigned long*,unsigned long*);
+void dstzr(double *zxlo,double *zxhi,double *zabstl,double *zreltl);
+double erf1(double*);
+double erfc1(int*,double*);
+double esum(int*,double*);
+double exparg(int*);
+double fpser(double*,double*,double*,double*);
+double gam1(double*);
+void gaminv(double*,double*,double*,double*,double*,int*);
+double gamln(double*);
+double gamln1(double*);
+double Xgamm(double*);
+void grat1(double*,double*,double*,double*,double*,double*);
+void gratio(double*,double*,double*,double*,int*);
+double gsumln(double*,double*);
+double psi(double*);
+double rcomp(double*,double*);
+double rexp(double*);
+double rlog(double*);
+double rlog1(double*);
+double spmpar(int*);
+double stvaln(double*);
+double fifdint(double);
+double fifdmax1(double,double);
+double fifdmin1(double,double);
+double fifdsign(double,double);
+long fifidint(double);
+long fifmod(long,long);
+void ftnstop(const char*);
+extern int ipmpar(int*);
+
+END_DECLS
+
+#endif

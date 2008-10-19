@@ -1,0 +1,1159 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _text.tol
+// PURPOSE: Funciones generales que devuelven Text.
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TxtFormListGen(
+  Set   valSet,    // Objeto a formatear
+  Text  iniTxt,    // Inicio de la lista
+  Text  endTxt,    // Final de la lista
+  Text  sepTxt,    // Separador de la lista
+  Set   fmtSet)    // Conjunto de formatos (estructura FmtSt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real card = Card(valSet);
+  If(EQ(card, 0), // Set Vacio
+  { 
+    Set grammarObj = Select(fmtSet, Real(Set reg)
+    { (reg->Typ) == "Set" })[1];
+    Text iniTxtObj = grammarObj->Ini;
+    Text endTxtObj = grammarObj->End;
+    iniTxtObj+endTxtObj
+  },
+  {
+    Set list = EvalSet(valSet, Text(Anything obj)
+    {
+      Text grammar = Grammar(obj);
+      Set grammarObj = Select(fmtSet, Real(Set reg)
+      { (reg->Typ) == grammar })[1];
+      Text iniTxtObj = grammarObj->Ini;
+      Text endTxtObj = grammarObj->End;
+      Set  argTxtObj = grammarObj->Arg;
+    
+      If(grammar == "Set",
+        TxtFormListGen(obj, iniTxtObj, endTxtObj, sepTxt, fmtSet),
+        {
+          Anything objFmt = EvalObj(obj, grammarObj->Fun, argTxtObj);
+          Text objFmtTxt = objFmt;
+          iniTxtObj+objFmtTxt+endTxtObj
+        }) 
+    });
+    Text concat(Text a, Text b)
+    { a+sepTxt+b };
+    iniTxt+BinGroup("concat", list)+endTxt
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Retorna un texto resultado de formar una lista con todos los valores de
+valSet como lista textual de valores.
+Los parametros de control son los siguiente:
+ - iniTxt es el inicio de la lista, por ejemplo <(>, <[[>, <>, etc.
+ - endTxt es el final  de la lista, por ejemplo <)>, <]]>, <>, etc.
+ - sepTxt es el separador, por ejemplo <; >, <,>, <>, etc.
+ - fmtSet es un conjunto con estructura FmtSt que para cada gramatica
+ puede especificar el delimitador de inicio y fin de esa gramática, así 
+ como una funcion para formatear el elemento.
+",TxtFormListGen);
+//////////////////////////////////////////////////////////////////////////////
+
+Struct FmtSt
+{
+  Text Typ, // Tipo o gramatica a formatear
+  Text Ini, // Delimitador de inicio
+  Text End, // Delimitador de fin
+  Code Fun, // Funcion para formatear el objeto
+  Set  Arg  // Argumentos adicionales para la funcion de formateo
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text Format(Anything val, Text datFmt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text gra = Grammar(val);
+  Case(
+    gra=="Text" , val,
+    gra=="Polyn", FormatPolyn(val),
+    gra=="Real" , If(datFmt=="", FormatReal(val),
+                                 FormatReal(val,datFmt)),
+    gra=="Date" , dteDet+If(dteFmt=="", FormatDate(val),
+                                        FormatDate(val,dteFmt))+dteDet,
+    1, {
+         Text WriteLn("<E>Not valid grammar</E>");
+         "Not valid grammar"
+       }
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Convierte un objeto en texto con un formato dado. Actualmente
+formatea Textos, Polinomios, Reales y Fechas, para formatear Matrices, se
+podría pasar el formato %r%c (r:separador de filas, c:separador de columnas)
+",Format);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text FormatIntReal(Real val, Text datFmt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(EQ(val,Round(val)),IntText(val),FormatReal(val,datFmt))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Formatea un número real si tiene parte decimal con el formato
+<datFmt> y si no lo formatea como entero (sin decimales).
+",FormatIntReal);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Text IntText(Real n)
+//////////////////////////////////////////////////////////////////////////////
+{
+  FormatReal(n,"%.0lf")
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+  "Converts to text an integer number.",
+  "Convierte a texto un número entero. Si el número no es entero lo "
+  "redondea."),
+  IntText);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Text RealText(Real x, Real c, Real d)
+//////////////////////////////////////////////////////////////////////////////
+{
+  FormatReal(x,"%"+IntText(c)+"."+IntText(d)+"lf")
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+  "Converts to text a real number.",
+  "Convierte a texto un número real con el número de cifras y decimales "
+  "indicados."),
+  RealText);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Text SecondsToText(Real x)
+//////////////////////////////////////////////////////////////////////////////
+{
+  FormatDate(IndexToDate(1+ x/(24*3600)),
+  "%c%h horas %i minutos %s segundos")
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+  "Converts to date-time formatted text a number of seconds.",
+  "Convierte a texto formateado de fecha y hora un número de segundos "),
+  SecondsToText);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Text ReplaceSlash(Text path)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(OSUnix, Replace(path,  "\\", "/"), Replace(path,  "/", "\\"))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetUniqueName(Text grammar, Text seed)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real free = 0;
+  Real i    = 0;
+  Text name = Copy(seed);
+  Real While (Eq(free,0), 
+  {
+    Real free := If(ObjectExist(grammar,name),
+    {
+      Real i := i + 1;
+      Text name := seed + "_" +IntText(i);
+      0
+    },1)
+    
+  });
+  name
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Gets a unique name for a TOL variable of a given grammar
+begging with seed.",
+GetUniqueName);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text ToFirstUpper(Text txt) {
+//////////////////////////////////////////////////////////////////////////////
+  WriteLn("<W>Fucntion DEPRECATED. Use: FirstToUpper(···,TRUE)</W>");
+  FirstToUpper(txt, TRUE)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Fucntion DEPRECATED. Use: FirstToUpper(···,TRUE)",
+ToFirstUpper);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetNamePC(Real unUsed)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text infoIPPath  = Replace(TmpDir, "/", "\\")+"infoID.txt";
+  Text commandLine = "ping localhost -n 1 > "+infoIPPath;
+  Real exec        = System(commandLine);
+  Text infoIP      = ReadFile(infoIPPath);
+  Text tok1        = Tokenizer(infoIP, ".")[1]; 
+  Set  tok2Set     = Tokenizer(tok1, " ");
+  Real cTok2Set    = Card(tok2Set);
+  tok2Set[cTok2Set]  
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el nombre del PC local",
+GetNamePC);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TxtList(Set valSet)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TxtFormList(valSet, "", "", ",", "", "%.0lf", "", "%c%Y%m%d")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Lista el conjunto valSet utilizando el separador < , >.",TxtList);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TxtListItem(Set valSet, Text item)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TxtFormList(valSet, "", "", item, "", "%.0lf", "", "%c%Y%m%d")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Lista el conjunto valSet utilizando el separador item. Esta funcion sustituye
+a UnionItem.",TxtListItem);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text TxtListItemQuote(Set valSet, Text item)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TxtFormList(valSet, "", "", item, "'", "%.0lf", "", "%c%Y%m%d")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Lista el conjunto valSet utilizando el separador item con comillas simples
+para los textos. Esta funcion sustituye a UnionItem.", TxtListItemQuote);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text UnionItem(Set txtSet, Text item)
+//////////////////////////////////////////////////////////////////////////////
+{
+/*
+  Real card = Card(txtSet);
+  Text ultimo = If(card==0, "", txtSet[card]);
+
+  Set setPlus = For(1, card-1, Text (Real k)
+  {
+    txtSet[k] + item
+  }); 
+  SetSum(setPlus) + ultimo
+*/
+Text WLWARNING("\nUnionItem:\n Función DEPRECATED. Usar TxtListItem");
+  TxtListItem(txtSet, item)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Funcion DEPRECATED. Usar TxtListItem", UnionItem);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text TimeComplete(Real lapse)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real second = lapse%60;
+  Real minute = Floor(lapse/60)%60;
+  Real hour   = Floor(lapse/3600);
+  FormatReal(hour, "%02.0lf")+":"+FormatReal(minute, "%02.0lf")+":"+
+  FormatReal(second, "%02.0lf")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text Tms2Txt(TimeSet tms)
+//////////////////////////////////////////////////////////////////////////////
+{ DatingName(CalInd(C, tms)) };
+
+//////////////////////////////////////////////////////////////////////////////
+Text Dte2TxtComplete(Date dte)
+//////////////////////////////////////////////////////////////////////////////
+{ FormatDate(dte, "%cy%Ym%md%dh%hi%is%s") };
+
+//////////////////////////////////////////////////////////////////////////////
+Text Dte2TxtC(Date dte)
+//////////////////////////////////////////////////////////////////////////////
+{ FormatDate(dte, "%c%Y%m%d") };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Convierte a formato de texto completo la fecha dte.",
+Dte2TxtC);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TxtFormList(Set  valSet,
+                 Text iniTxt, // Inicio de la lista
+                 Text endTxt, // Final  de la lista
+                 Text sepTxt, // Separador de la lista
+                 Text txtDet, // Delimitacion de textos
+                 Text datFmt, // Formato para numeros reales
+                 Text dteDet, // Delimitacion de fechas
+                 Text dteFmt) // Formato para fechas
+//////////////////////////////////////////////////////////////////////////////
+{
+  TxtFormListDel(valSet, iniTxt, endTxt, sepTxt, txtDet, txtDet,
+                 datFmt, "", "", dteFmt, dteDet, dteDet)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna un texto resultado de formar una lista con todos los valores de
+valSet como lista textual de valores.
+Los parametros de control son los siguiente:
+ - iniTxt es el inicio de la lista, por ejemplo <(>, <[[>, <>, etc.
+ - endTxt es el final  de la lista, por ejemplo <)>, <]]>, <>, etc.
+ - sepTxt es el separador, por ejemplo <; >, <,>, <>, etc.
+ - txtDet es la delimitacion de textos, por ejemplo, la comilla doble, la
+   simple para Sql o ninguno.
+ - datFmt es el formato para numeros reales, por ejemplo, <%.0lf> o ninguno
+   (entonces se utiliza el formato por defecto que haya en ese momento).
+ - dteDet es la delimitacion de fechas, por ejemplo, la comilla doble, la
+   simple para Sql o ninguno.
+ - dteFmt es el formato para fechas, por ejemplo, <%c%Y%m%d> o ninguno
+   (entonces se utiliza el formato por defecto que haya en ese momento).
+Los polinomios los delimita como textos.
+Solo admite valores de tipo Text, Polyn, Real y Date.",
+TxtFormList);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TxtFormListDel(Set  valSet,
+                    Text iniTxt, // Inicio de la lista
+                    Text endTxt, // Final  de la lista
+                    Text sepTxt, // Separador de la lista
+                    Text txtSuf, // Sufijo de los textos
+                    Text txtPre, // Prefijo de los textos
+                    Text datFmt, // Formato para numeros reales
+                    Text datSuf, // Sufijo de los reales
+                    Text datPre, // Prefijo de los reales
+                    Text dteFmt, // Formato para fechas
+                    Text dteSuf, // Sufijo de las fechas
+                    Text dtePre) // Prefijo de las fechas
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text format(Anything val)
+  {
+    Text gra = Grammar(val);
+    If(gra=="Text" , txtSuf+val+txtPre,
+    If(gra=="Polyn", txtSuf+FormatPolyn(val)+txtPre,
+    If(gra=="Real" , datSuf+If(datFmt=="", FormatReal(val),
+                                    FormatReal(val,datFmt))+datPre,
+    If(gra=="Date" , dteSuf+If(dteFmt=="", FormatDate(val),
+                                          FormatDate(val,dteFmt))+dtePre,
+                     "Not valid grammar"))))
+  };
+
+  Real card = Card(valSet);
+  Text body =
+    If(EQ(card,0), "",
+    If(EQ(card,1), format(valSet[1]),
+    If(EQ(card,2), format(valSet[1])+sepTxt+format(valSet[2]),
+                   {
+                     Set txtVal = For(2,card,Text(Real p)
+                     { sepTxt + format(valSet[p]) });
+                     format(valSet[1]) + BinGroup("+",txtVal)
+                   })));
+  If (body=="", "", iniTxt+body+endTxt)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna un texto resultado de formar una lista con todos los valores de
+valSet como lista textual de valores.
+Los parametros de control son los siguiente:
+ - iniTxt es el inicio de la lista, por ejemplo <(>, <[[>, <>, etc.
+ - endTxt es el final  de la lista, por ejemplo <)>, <]]>, <>, etc.
+ - sepTxt es el separador, por ejemplo <; >, <,>, <>, etc.
+ - txtSuf es el sufijo a concatenar a los textos, por ejemplo, la comilla
+   doble, la simple para Sql o ninguno.
+ - txtPre es el prefijo a concatenar a los textos, por ejemplo, la comilla
+   doble, la simple para Sql o ninguno.
+ - datFmt es el formato para numeros reales, por ejemplo, <%.0lf> o ninguno
+   (entonces se utiliza el formato por defecto que haya en ese momento).
+ - datSuf es el sufijo a concatenar a los reales, por ejemplo, la comilla
+   doble, la simple para Sql o ninguno.
+ - datPre es el prefijo a concatenar a los reales, por ejemplo, la comilla
+   doble, la simple para Sql o ninguno.
+ - dteFmt es el formato para fechas, por ejemplo, <%c%Y%m%d> o ninguno
+   (entonces se utiliza el formato por defecto que haya en ese momento)
+ - dteSuf es el sufijo a concatenar a las fechas, por ejemplo, la comilla
+   doble, la simple para Sql o ninguno.
+ - dtePre es el prefijo a concatenar a los textos, por ejemplo, la comilla
+   doble, la simple para Sql o ninguno.
+Los polinomios los delimita como textos.
+Solo admite valores de tipo Text, Polyn, Real y Date.",
+TxtFormListDel);
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+ Text Filler(Set setText)
+//
+// PURPOSE: Devuelve una lista de textos separados por "," a partir de un 
+//          conjunto de textos
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(EQ(Card(setText),0),"",
+  If(EQ(Card(setText),1),setText[1],
+  {  
+    Set txt01   = For(1,Card(setText)-1,Text(Real t){setText[t]+","});
+    Text result = BinGroup("+",txt01) << setText[Card(setText)]
+  }))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+ Text DatesList(Set setDates)
+//
+// Purpose : Devuelve el conjunto de fechas en una lista separadas por ","
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set datesTx = EvalSet(setDates,Text(Date d){FormatDate(d)});
+  Filler(datesTx)
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text DayInWeek(Date dat)
+//
+// PORPUSE: Devuelve el dia de la semana de una fecha.
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text datext = FormatDate(dat);
+  If(Belong(dat,WD(1)),datext+" is Monday",
+  If(Belong(dat,WD(2)),datext+" is Tuesday",
+  If(Belong(dat,WD(3)),datext+" is Wednesday",
+  If(Belong(dat,WD(4)),datext+" is Thursday",
+  If(Belong(dat,WD(5)),datext+" is Friday",
+  If(Belong(dat,WD(6)),datext+" is Saturday",datext+" is Sunday"))))))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Text DayWeek(Date dat)
+//
+// PORPUSE: Devuelve el dia de la semana de una fecha.
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Belong(dat,WD(1)), "MONDAY",
+   If(Belong(dat,WD(2)),"TUESDAY",
+    If(Belong(dat,WD(3)),"WEDNESDAY",
+     If(Belong(dat,WD(4)),"THURSDAY",
+      If(Belong(dat,WD(5)),"FRIDAY",
+       If(Belong(dat,WD(6)),"SATURDAY",
+     "SUNDAY"))))))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Devuelve el nombre Largo del dia de la semana en Ingles de una
+fecha ",
+ DayWeek);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TextSpace(Real n)
+//
+// PURPOSE: Retorna el texto con n caracteres blanco. Por ejemplo, si n es 3
+//          retorna "   ".
+//
+//////////////////////////////////////////////////////////////////////////////
+{ TextReplicate("", " ", n) };
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TextLeftPad(Text txt, Real n)
+//
+// PURPOSE: Retorna un texto a partir de txt con los suficientes blancos
+//          por la izquierda como para que la longitud total del nuevo texto
+//          sea n. Si la longitud de txt es mayor o igual a n retorna txt.
+//          Por ejemplo, si txt es "123" y n es 4 retorna " 123".
+//
+//////////////////////////////////////////////////////////////////////////////
+{ TextSpace(n-TextLength(txt))+txt };
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TextLeftPadWith(Text txt, Text char, Real n)
+//
+// PURPOSE: Retorna un texto a partir de txt con los suficientes caracteres
+//          char por la izquierda como para que la longitud total del nuevo
+//          texto sea n. Si la longitud de txt es mayor o igual a n retorna
+//          txt.
+//          Por ejemplo, si txt es "123", char es "." y n es 5 retorna
+//          "..123".
+//          Si char contiene mas de un caracter se queda con el primero.
+//
+//////////////////////////////////////////////////////////////////////////////
+{ TextReplicate("",Sub(char,1,1),n-TextLength(txt))+txt };
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TextRightPad(Text txt, Real n)
+//
+// PURPOSE: Retorna el texto a partir de txt con los suficientes blancos
+//          por la derecha como para que la longitud total del nuevo texto
+//          sea n. Si la longitud de txt es mayor o igual a n retorna txt.
+//          Por ejemplo, si txt es "123" y n es 4 retorna "123 ".
+//
+//////////////////////////////////////////////////////////////////////////////
+{ txt+TextSpace(n-TextLength(txt)) };
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TextRightPadWith(Text txt, Text char, Real n)
+//
+// PURPOSE: Retorna un texto a partir de txt con los suficientes caracteres
+//          char por la derecha como para que la longitud total del nuevo
+//          texto sea n. Si la longitud de txt es mayor o igual a n retorna
+//          txt.
+//          Por ejemplo, si txt es "123", char es "." y n es 5 retorna
+//          "123..".
+//          Si char contiene mas de un caracter se queda con el primero.
+//
+//////////////////////////////////////////////////////////////////////////////
+{ txt+TextReplicate("",Sub(char,1,1),n-TextLength(txt)) };
+
+//////////////////////////////////////////////////////////////////////////////
+   Set TextFilterNullInternal(Set setTxt, Real i)
+//
+// PURPOSE: Retorna un set a partir de un conjunto de textos eliminado 
+//          las cadenas vacias. La recursion la realiza a partir de la
+//          posicion i del conjunto.
+//          Funcion recursiva:
+//          - Si i es mayor que el cardinal del conjunto ya no hay nada que
+//            hacer.
+//          - Si existe un elemento i nulo retorna el resultado de filtrar el
+//            resto del set.
+//          - Si el elemento i no es nulo retorna el resultado de concatenar
+//            dicho elemento con el resultado de filtrar el resto del set.
+//         
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  If(i>Card(setTxt), Empty,
+     If(setTxt[i]=="",
+        TextFilterNullInternal(setTxt,i+1),
+        SetOfText(setTxt[i])<<TextFilterNullInternal(setTxt,i+1)))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text FormatPolynUsu(Polyn pol, Text formatPolyn)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(formatPolyn == "", 
+  FormatPolyn(pol),
+ {
+   Text fmtReal = Copy(PutFormatReal(fomatPolyn));
+   Text polTxt  = FormatPolyn(pol);
+   Text FormatPolyn(fmtReal);
+   polTxt
+ })   
+  
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text RepTok(Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set tokens = SetOfSet
+  (
+    SetOfText("(", "_"),
+    SetOfText(")", "_"),
+    SetOfText("{", "_"),
+    SetOfText("}", "_"),
+    SetOfText("[", "_"),
+    SetOfText("]", "_"),
+    SetOfText(":", "_"),
+    SetOfText(",", "_"),
+    SetOfText(".", "_"),
+    SetOfText("-", "_"),
+    SetOfText("+", "_"),
+    SetOfText("/", "_"),
+    SetOfText("=", "_"),
+    SetOfText(" ", "_"),
+    SetOfText("*", "_")
+  );
+  ReplaceTable(txt, tokens)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text AnnoWeek(Date dte)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Date lunAnt           = Succ(dte, WD(1), -1);
+  Date lunPos           = Succ(lunAnt, WD(1), 1);
+  Date lunGood          = If(lunPos == dte, dte, lunAnt);
+  Text txtAnno          = Sub(FormatDate(lunGood, "%c%Y%m%d"), 1, 4);
+  TimeSet Eval("allLunAnnoTms = WD(1)*Y("+txtAnno+");");
+  Set datLunHasFecEnAnn =
+   Dates(allLunAnnoTms, Date Eval("y"+txtAnno+"m01d01"), lunGood);
+  Text txtSem           = FormatReal(Card(datLunHasFecEnAnn), "%02.0lf");
+  Text txtAnnoSem       = txtAnno+txtSem;
+    txtAnnoSem
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Calcula la semana que ocupa dentro del anno una fecha. Se calcula la primera 
+semana del anno como la que contiene al primer lunes del anno. Para aquellos 
+dias que caen fuera de esa semana y estan dentro del anno que se desea 
+calcular se asignan a la ultima semana del anno anterior. Por ejemplo: En
+1999 la primera semana del anno es la que contiene el dia y1999m01d04,
+por tanto para la fecha y1999m01d01 la semana que se le asigna es 199852.",
+AnnoWeek);
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TextReplicate(Text txt, Text pattern, Real n)
+//
+// PURPOSE: Retorna el texto txt concetenándole n veces el patrón n. Si n es
+//          menor o igual que 0 retorna el texto txt. Por ejemplo, si txt
+//          es "Alfa", pattern es "Xz" y n es 3 retorna "AlfaXzXzXz". 
+//          Función recursiva que mientras n sea mayor que cero concatena el
+//          patrón pattern y se anida recursivamente con n-1.
+//
+//////////////////////////////////////////////////////////////////////////////
+{ If(n<=0, txt, TextReplicate(txt, pattern, n-1)+pattern) };
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TextJointInternal(Set setTxt, Text pattern, Real i)
+//
+// PURPOSE: Retorna un texto a partir de un conjunto de líneas de textos
+//          separándolos por el patrón pattern. Si el conjunto es el
+//          conjunto vacío entonces retorna la cadena vacía.
+//          Función recursiva que comienza la concatenación a partir de
+//          la posición i del conjunto.
+//          - Si i es mayor que el cardinal entonces se trata de un error
+//            y retorna la cadena vacía.
+//          - Si i es igual que el cardinal entonces retorna el último
+//            texto y la recursión ha terminado.
+//          - En otro caso concatena el texto con el patrón y con una 
+//            llamada recursiva.       
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Real c = Card(setTxt);
+  If(i>c, "",
+     If(i==c, setTxt[i],
+        setTxt[i]+pattern+TextJointInternal(setTxt,pattern,i+1)))
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TextJoint(Set setTxt, Text pattern)
+//
+// PURPOSE: Retorna un texto a partir de un conjunto de líneas de textos
+//          separándolos por el patrón pattern. Si el conjunto es el
+//          conjunto vacío entonces retorna la cadena vacía.
+//          Por ejemplo: si pattern es "->"
+//             [[ "12", "34", "56" ]] => "12->34->56"
+//////////////////////////////////////////////////////////////////////////////
+{ TextJointInternal(setTxt, pattern, 1) };
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text Qt(Text txt) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  Quotes+txt+Quotes
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el texto txt entre comillas",
+Qt);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text TraceTime(Text txt, Real open, Text iniTime)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(open, 
+  {
+    Text time = Copy(Time);
+    Text WriteLn("\n<<< "+txt+". Tiempo: "+time+" >>>");
+    time
+  },
+  {
+    Text time = Copy(Time);
+    Text WriteLn("\n<<< "+txt+". Tiempo: "+time+" >>>");
+    Real lapse = (Hash(TextToDate(time))-Hash(TextToDate(iniTime)))*24*3600;
+    Text WriteLn("<<< Lapso transcurrido: "+SecondsToText(lapse)+" >>>\n");
+    time
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Trazador de tiempos",
+TraceTime);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+   Text TxtRight(Text txt, Real n)
+//
+// PURPOSE: 
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real long = TextLength(txt);
+  Real dif = TextLength(txt)-n;
+  Text parte = Sub(txt,dif+1,long)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna los caracteres de la derecha de un texto según
+el número introducido.",
+TxtRight);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text BQt(Text txt)
+//////////////////////////////////////////////////////////////////////////////
+{ Quotes+txt+Quotes };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna el texto entre comillas",
+BQt);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text EncodeYN(Real trueOrFalse)
+//////////////////////////////////////////////////////////////////////////////
+{ If(trueOrFalse, "Y", "N") };
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Codifica un real devolviendo un texto 'Y' si vale TRUE o 'N' si es FALSE.",
+EncodeYN);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text Hexadecimal(Real numDecimal){
+//////////////////////////////////////////////////////////////////////////////
+   Real resto.r    = numDecimal%16;
+   Real cociente.r = (numDecimal - resto.r)/16;
+
+   Text resto = Case(resto.r <=  9, FormatReal(resto.r, "%.0f"),
+                     resto.r == 10, "A",
+                     resto.r == 11, "B",
+                     resto.r == 12, "C",
+                     resto.r == 13, "D",
+                     resto.r == 14, "E", 
+                     resto.r == 15, "F",
+                     1, "¡Error!");
+
+   Text resultado = If(cociente.r < 16, 
+                       FormatReal(cociente.r,"%.0f")+resto,
+                       Hexadecimal(cociente.r)+resto);
+  resultado
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Dado un numero en sistema decimal, 'numDecimal', devuelve su representacion 
+hexadecimal.",
+Hexadecimal);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetTextIfExist(Text name)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real objExi = ObjectExist("Text", name);
+  If(objExi, Eval(name +";"), "")       
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Devuelve el valor de la variable de texto 'name' si existe. Si no, devuelve
+el texto vacio.",
+GetTextIfExist);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text UnionItemAny(Set txtSet, Text item)
+//////////////////////////////////////////////////////////////////////////////
+{  
+  Set txtSetAny = Select(txtSet, Real(Text txt)
+  {
+    txt!=""
+  });
+  UnionItem(txtSetAny, item)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Concatena los texto no vacios de un conjunto de textos con el separador item."
+,UnionItemAny);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TextIndent(Text txt, Real n) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set lines = Tokenizer(txt,NL);
+  Text spaces = Repeat(" ",n);
+  TxtFormList(lines, spaces, "", NL+spaces, "", "%.0lf", "", "%c%Y%m%d")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Dado el texto 'txt', lo devuelve identado 'n' espacios",
+TextIndent);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetFreRelSql( Text qryBas) // consulta con la frecuencia absoluta
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text qry = 
+    "select inter, value/sumValue as value"+NL+
+    "from ("+NL+ TextIndent(qryBas,6)+") A,"+NL+
+    "     (select sum(value) as sumValue"+NL+
+    "      from ("+NL+TextIndent(qryBas,12)+") TMP"+NL+
+    "     ) B";
+  qry
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Devuelve la consulta que convierte una frecuncia absoluta en 
+frecuencia relativa. Recibe una consulta con los campos inter (intervalo) y
+value (frecuencia absoluta) y devuelve las columnas inter (intervalo) y value
+(frecuencia relativa)",
+GetFreRelSql);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetFreRelAcuSql(
+  Text qryBas, // consulta con la fr. relativa
+  Real mode)   // 0. Acumulada a izquierda, 1. Acumulada a derecha
+//////////////////////////////////////////////////////////////////////////////
+{
+
+ Text comp = If(EQ(mode,0),">=","<=");
+ Text qry = 
+   "select A.inter, sum(B.value) as value"+NL+
+   "from ("+NL+TextIndent(qryBas,6)+") A,"+NL+
+   "     ("+NL+TextIndent(qryBas,6)+") B"+NL+
+   "where A.inter "+comp+" B.inter"+NL+
+   "group by A.inter";
+  qry
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Devuelve la consulta que convierte una frecuncia absoluta en 
+frecuencia relativa. Recibe una consulta con los campos inter (intervalo) y
+value (frecuencia absoluta) y devuelve las columnas inter (intervalo) y value 
+(frecuencia relativa)",
+GetFreRelAcuSql);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetFreSql(
+  Text qry,    // consulta con variable (nombre columna = k)
+  Real sample, // Número de intervalos
+  Real ini,    // Primer intervalo
+  Real fin,    // Ultimo intervalo
+  Real order)  // flag que indica si se da ordenado o no
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real r = (fin -ini)/sample;
+  Text rTxt = SqlFormatReal(r,GesAct);
+  Text minTxt = SqlFormatReal(ini,GesAct);
+  Text maxTxt = SqlFormatReal(fin,GesAct);
+  Text inter = 
+"case when k <= "+minTxt+" then "+minTxt+NL+
+"     when k >= "+maxTxt+" then "+maxTxt+NL+
+"     else "+rTxt+"*round(k/"+rTxt+",0) end";
+  Text query = 
+    "select "+inter+" as inter, count(*) as value"+NL+
+    "from   ( "+NL+TextIndent(qry,6)+") QRY"+NL+
+    "group by "+inter+
+    If(order, NL+"order by inter","");
+  query
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Devuelve la consulta que hace un análisis de frecuencia de
+sample intervalos para una query que devuelve una columna con nombre k. 
+Devuelve una query con dos columnas. En la primera columna contiene el límite
+superior de cada intervalo. En la segunda columna contiene el número de
+valores de M que pertenecen a cada intervalo. Dichas columnas se llaman inter
+y value respectivamente",
+GetFreSql);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text ToTolName(Text txt_)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set numChaSet = SetOfText("0", "1", "2", "3", "4",
+                            "5", "6", "7", "8", "9");
+
+  Text txt = LTrim(txt_);
+  If(Sub(txt, 1, 1) <: numChaSet, ToTolName("_"+txt),
+  {  
+    Set tokens = SetOfSet
+    (
+      SetOfText(Quotes, " "),
+      SetOfText("¾", " "),
+      SetOfText("·", " "),
+      SetOfText("±", " "),
+      SetOfText("'", " "),
+      SetOfText("ß", " "),
+      SetOfText("Ý", " "),
+      SetOfText("Ð", " "),
+      SetOfText("¦", " "),
+      SetOfText("Ë", " "),
+      SetOfText("}", " "),
+      SetOfText("[", " "),
+      SetOfText("]", " "),
+      SetOfText("(", " "),
+      SetOfText(")", " "),
+      SetOfText(":", " "),
+      SetOfText(",", " "),
+      SetOfText("%", " "),
+      SetOfText("-", " "),
+      SetOfText("+", " "),
+      SetOfText("/", " "),
+      SetOfText("=", " "),
+      SetOfText("*", " "),
+      SetOfText("&", " "),
+      SetOfText("@", " "),
+      SetOfText("º", " "),
+      SetOfText("Á", "A"),
+      SetOfText("á", "a"),
+      SetOfText("É", "E"),
+      SetOfText("é", "e"),
+      SetOfText("Í", "I"),
+      SetOfText("í", "i"),
+      SetOfText("Ó", "O"),
+      SetOfText("ó", "o"),
+      SetOfText("Ú", "U"),
+      SetOfText("ú", "u")
+    );
+    Text filTxt = ReplaceTable(txt, tokens);
+    Set toks    = Tokenizer(filTxt, " ");
+    Set tokSet  = EvalSet(toks, Text(Text tok)
+    {
+      Text fu = FirstToUpper(Replace(ToUpper(tok), "Ñ", "N"), TRUE);
+      fu
+    });
+    Text last   = tokSet[Card(tokSet)];
+    Text txtFil = If(GT(TextFind(last,"("),0), 
+    {
+      Text filLast = 
+        FirstToUpper(Replace(Replace(last, "(", ""), ")", ""), TRUE);
+      filLast+SetSum(tokSet-SetOfText(tokSet[Card(tokSet)]))
+    }, SetSum(tokSet));
+    txtFil
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Cambia una expresion eliminando caracteres no validos en "+
+"el nombre de una variable TOL y eliminando espacios. Devuelve la expresion "+
+"en minusculas salvo la primera letra de cada palabra del texto original. Si "+
+"la expresion comienza por una cifra añade al inicio de esta el caracter '_', "+
+"es decir '20' -> '_20', '  20' -> '  _20'",
+ToTolName);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text ShowTree(Set code_codeFather){
+//////////////////////////////////////////////////////////////////////////////
+   Text func(Set cto, Text cf, Text item, Text itemIni){
+
+     Set cto_filt = Select(cto, Real (Set reg){
+       reg[2]==cf
+     });
+
+     Set cto_supl = cto - cto_filt;
+
+     Set ctoTxt = EvalSet(cto_filt, Text(Set reg){
+       
+       Set ctoResto = For(3, Card(reg), Text(Real k){
+         " | "<<reg[k]
+       });
+       Text reg_3 = SetSum(ctoResto);
+
+       "\n"+ item + itemIni+ reg[1] + Replace(reg_3, "\n", " ")+
+       func(cto_supl, reg[1], item +"|   ", "· ")
+       
+     });
+
+     SetSum(ctoTxt)
+   };
+   
+  func(Unique(code_codeFather),"","", "+ ") +"\n"
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Escribe en forma de árbol una tabla recursiva de la forma 'code_codeFather'.
+Ejemplo:
+
+Set cto = [[
+ [[\"España\", \"\"]],
+ [[\"México\", \"\"]],
+ [[\"Aragón\", \"España\"]],
+ [[\"Madrid\", \"España\"]],
+ [[\"Zaragoza\", \"Aragón\"]],
+ [[\"Monterrey\", \"México\"]]
+]];
+
+WriteLn(ShowTree(cto));
+
+", ShowTree);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text LTrim(Text t){
+//////////////////////////////////////////////////////////////////////////////
+  Real numCar = TextLength(t);
+  Real cont = Copy(1);
+  Text caracter = Sub(t, cont, cont);
+  Real While(And(Or(caracter==" ",
+                    caracter=="\n",
+                    caracter=="\t"),
+                 LE(cont, numCar)),
+  { Real {cont := cont + 1};
+    Text {caracter := Sub(t, cont, cont)};
+    1
+  });
+  Sub(t, cont, numCar)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Dada una cadena de texto, elimina de la parte izquierda de dicha cadena todos
+los caracteres que sean blanco, salto de linea o tabulador, hasta encontrar 
+en la cadena dada un caracter distinto de blanco, salto de linea o tabulador,
+devolviendo la subcadena resultante.",
+LTrim);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text RTrim(Text t){
+//////////////////////////////////////////////////////////////////////////////
+  Real numCar = TextLength(t);
+  Real cont = Copy(numCar);
+  Text caracter = Sub(t, cont, cont);
+  Real While(And(Or(caracter==" ",
+                    caracter=="\n",
+                    caracter=="\t"),
+                 GE(cont, 1)),
+  { Real {cont := cont - 1};
+    Text {caracter := Sub(t, cont, cont)};
+    1
+  });
+  Sub(t, 1, cont)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Dada una cadena de texto, elimina de la parte derecha de dicha cadena todos
+los caracteres que sean blanco, salto de linea o tabulador, hasta encontrar 
+en la cadena dada un caracter distinto de blanco, salto de linea o tabulador,
+devolviendo la subcadena resultante.",
+RTrim);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text QuitaAcentos (Text text)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Replace(
+   Replace(
+    Replace(
+     Replace(
+      Replace(
+       Replace(
+        Replace(
+         Replace(
+           Replace(
+            Replace(
+             Replace(
+              Replace(
+               Replace(text, " ", "_"),
+                                 "-",""),
+                                  "Á","A"),
+                                   "á","a"),
+                                    "É","E"),
+                                     "é","e"),
+                                      "Í","I"),
+                                       "í","i"),
+                                        "Ó","O"),
+                                         "ó","o"),
+                                          "Ú","U"),
+                                           "ú","u"),
+                                            "ñ","nn")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Quita los acentos de la palabra
+", QuitaAcentos);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Text GetDirPaths(Text dir)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set  getDir = GetDir(dir);
+  Set  filSet   = getDir[1];
+  Set  dirSet  = getDir[2];
+  Set  filRep = EvalSet(filSet, Text(Text fil) { dir+SLASH+fil+"\n" });
+
+  Set  dirRep   = EvalSet(dirSet, Text(Text subDir)
+    { GetDirPaths(dir+SLASH+subDir) });
+
+  If(EQ(Card(filRep),0), "", SetSum(filRep))+ 
+                                    If(EQ(Card(dirRep),0), "", SetSum(dirRep))
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+  "Returns a string containing all complete paths to every file in the"
+  " <dir> directory.",
+  "Devuelve un texto con los paths completos de todos los"
+  " ficheros que cuelgan dentro del directorio <dir>."),
+  GetDirPaths);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Text Trace(Anything x)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Identify(x) + " =\t" << x
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Text TraceLn(Anything x)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Identify(x) + " =\n" << x +"\n"
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Text TraceInt(Real x)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Identify(x) + " =\t" + FormatReal(x,"%.0lf")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Text TraceReal(Real x)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Identify(x) + " =\t" << x
+};

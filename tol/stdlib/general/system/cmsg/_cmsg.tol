@@ -1,0 +1,37 @@
+//////////////////////////////////////////////////////////////////////////////
+// LIBRARY: ExtLib (Extended Library of TOL)
+// MODULE: CMsg (Controlled messages)
+// FILE: cmsg.tol
+// PURPOSE: Implements the NameBlok Cmsg
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock CMsg =
+//////////////////////////////////////////////////////////////////////////////
+[[
+//read only autodoc
+  Text _.autodoc.description =
+  "CMsg: Controlled Messages is a system to handling with any type of "
+  "messages to end user in a controlled way. CMsg contains a NameBlock to "
+  "handling with each type of messages: Trace, Phase, and Coded.";
+
+  Set _.autodoc.keys = 
+  [["message", "control", "user", "trace", "phase", "codified"]];
+  Set _.autodoc.authors = 
+  [["vdebuen@tol-project.org"]];
+
+//private API
+  Set _trace = Include("_trace.tol");
+  Set _phase = Include("_phase.tol");
+  Set _coded = Include("_coded.tol");
+  Set _log   = Include("_log.tol");
+
+//public API
+  NameBlock Trace;
+  NameBlock Phase;
+  NameBlock Coded;
+  NameBlock Log
+
+]];  
+  
+/* */

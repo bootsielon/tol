@@ -1,0 +1,475 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: _inference_functions.tol
+// PURPOSE: Implements methods of NameBlok BysMcmc::Inference
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+Set get.sample(Text                 name, 
+               Set                  colNames, 
+               BysInf.Report.Config repCfg, 
+               Matrix               mcmc)
+//Extracts each column of a Markov chain and renames as the corresponding
+//parameter name
+/////////////////////////////////////////////////////////////////////////////
+{
+  Real CMsg::Phase::show(2,"1.3 BysMcmc::Inference::get.sample of "+name_);
+  Real n = Columns(mcmc);
+  Set aux = For(1,n, Matrix(Real j)
+  {
+    Matrix mc      = SubCol(mcmc,[[j]]);
+    Eval(ToName(colNames[j])+".Sample=mc")
+  });
+  Eval(name+".Sample=aux")
+};
+
+
+/////////////////////////////////////////////////////////////////////////////
+Set get.coda.raftery.diag(Text                 name, 
+                          Set                  colNames,
+                          BysInf.Report.Config repCfg,
+                          Matrix               mcmc)
+//Calls to method RCODA::raftery.diag and builds a table with structure of
+//BysInf.Coda.Diag.Raftery, adding a final register with the worst results
+/////////////////////////////////////////////////////////////////////////////
+{
+  Real m = Rows(mcmc);
+  Real v = Columns(mcmc);
+  Real CMsg::Phase::show(2,"1.1 BysMcmc::Inference::get.coda.raftery.diag of "+
+                           name+"("<<m+" sim. x "<<v+" var.)");
+  Matrix diag=RCODA::raftery.diag(mcmc, {[[
+    Real verbose=TRUE, 
+    Real varByCol=TRUE, 
+    Real q=repCfg->raftery.diag.q_, 
+    Real r=repCfg->raftery.diag.r_,
+    Real s=repCfg->raftery.diag.s_,
+    Real eps=repCfg->raftery.diag.eps_]]});
+    
+  Real n = Rows(diag);
+  Real _.raftery.diag.remain  := 0;
+  Set aux = For(1,n, Set(Real j)
+  {
+    Real burnin     = MatDat(diag,j,1), 
+    Real size       = MatDat(diag,j,2), 
+    Real size.min   = MatDat(diag,j,3), 
+    Real dep.factor = MatDat(diag,j,4),
+    Real remain     = 1-Max(0,Min(1,(m-burnin)/(size-burnin)));
+    Real If(_.raftery.diag.remain< remain,
+            _.raftery.diag.remain:=remain);
+    Set res = BysInf.Coda.Diag.Raftery
+    (
+      colNames[j],
+      m, 
+      burnin, 
+      size, 
+      size.min, 
+      dep.factor,
+      remain
+    )
+  }) <<
+  [[
+    BysInf.Coda.Diag.Raftery
+    ( 
+      "#MaxValues#",
+      m,
+      Real _.raftery.diag.burnin := MatMax(SubCol(diag,[[1]])),
+      Real _.raftery.diag.size   := MatMax(SubCol(diag,[[2]])),
+      MatMax(SubCol(diag,[[3]])),
+      MatMax(SubCol(diag,[[4]])),
+      _.raftery.diag.remain
+    )
+  ]];
+  Eval(name+".Diag.Raftery=aux")
+};
+
+
+/////////////////////////////////////////////////////////////////////////////
+Set get.coda.summary(Text                   name, 
+                     Set                    colNames,
+                     BysInf.Report.Config repCfg,
+                     Matrix                 mcmc)
+//Calls to method RCODA::summary and builds a table with structure of
+//BysInf.Coda.Summary
+/////////////////////////////////////////////////////////////////////////////
+{
+  Real CMsg::Phase::show(2,"1.2 BysMcmc::Inference::get.coda.summary of "+name);
+  Set coda.summary = RCODA::summary(mcmc, {[[
+    Real verbose=FALSE, 
+    Real varByCol=TRUE,
+    Set  quantiles=[[.001,.025,.250,.500,.750,.975,.999]] ]]});
+  Matrix varstats = coda.summary[1];
+  Matrix varquant = coda.summary[2];  
+  Set summary = For(1,n, Set(Real j)
+  {
+    BysInf.Coda.Summary.Stats
+    {
+      colNames[j],
+      Real mean     = MatDat(varstats,j,1),
+      Real sd       = MatDat(varstats,j,2),
+      Real naive.se = MatDat(varstats,j,3),
+      Real tmser.se = MatDat(varstats,j,4),
+      Real q.001    = MatDat(varquant,j,1),
+      Real q.025    = MatDat(varquant,j,2),
+      Real q.250    = MatDat(varquant,j,3), 
+      Real q.500    = MatDat(varquant,j,4),
+      Real q.750    = MatDat(varquant,j,5),
+      Real q.975    = MatDat(varquant,j,6),
+      Real q.999    = MatDat(varquant,j,7)
+    }
+  });
+  Eval(name+".Coda.Summary=summary")
+};
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+Set get.acf(Text                   name, 
+            Set                    colNames,
+            BysInf.Report.Config repCfg, 
+            Set                    sample)
+//Builds the sample autocorrelation function (ACF) of each parameter
+/////////////////////////////////////////////////////////////////////////////
+{
+  If(repCfg->acf.lag_==0, Copy(Empty), {
+  Real CMsg::Phase::show(2,"1.5 BysMcmc::Inference::get.acf of "+name_);
+  Real n = Card(sample);
+  Real m = Rows(sample[1]);
+//If(n!=Card(colNames),error
+  Set aux = For(1,n, Matrix(Real j)
+  {
+    Matrix mc  = sample[j];
+    Serie  s   = MatSerSet(Tra(mc),C,Today)[1];
+    Matrix acf = AutoCor(s,repCfg->acf.lag_);
+    Eval(ToName(colNames[j])+".ACF = acf")
+  });
+  Eval(name+".ACF=aux")
+})};
+
+/////////////////////////////////////////////////////////////////////////////
+Set get.histogram(Text                   name, 
+                  Set                    colNames, 
+                  BysInf.Report.Config repCfg, 
+                  Set                    sample)
+//Builds the sample histogram of frequencies of each parameter
+/////////////////////////////////////////////////////////////////////////////
+{
+  If(repCfg->histogram.parts_==0, Copy(Empty), {
+  Real CMsg::Phase::show(2,"1.6 BysMcmc::Inference::get.histogram of "+name_);
+  Real n = Card(sample);
+  Real m = Rows(sample[1]);
+//If(n!=Card(colNames),error
+  Set aux = For(1,n, Matrix(Real j)
+  {
+    Matrix mc   = sample[j];
+    Matrix frq_ = Frequency(mc,repCfg->histogram.parts_);
+    Matrix frq  = SubCol(frq_,[[1]]) | (SubCol(frq_,[[2]])*(1/m)); 
+    Eval(ToName(colNames[j])+".FRQ = frq")
+  });
+  Eval(name+".FRQ=aux")
+})};
+
+/////////////////////////////////////////////////////////////////////////////
+Set get.kerDens(Text                   name, 
+                Set                    colNames, 
+                BysInf.Report.Config repCfg, 
+                Set                    sample)
+//Builds the kerenl density aproximation of each parameter
+/////////////////////////////////////////////////////////////////////////////
+{
+  If(repCfg->kerDens.points_==0, Copy(Empty), {
+  Real CMsg::Phase::show(2,"1.7 BysMcmc::Inference::get.kerDens of "+name_);
+  Real n = Card(sample);
+  Real m = Rows(sample[1]);
+//If(n!=Card(colNames),error
+  Set aux = For(1,n, Matrix(Real j)
+  {
+    Real CMsg::Phase::show(3,"1.7."+IntText(j)+
+     " BysMcmc::Inference::get.kerDens of variable "+colNames[j]);
+/*
+    Matrix mc    = sample[j];
+    Matrix F     = Frequency(mc,100);
+    Real   step  = (MatDat(F,100,1)-MatDat(F,1,1))/repCfg->kerDens.points_;
+    Set    r     = Range(MatDat(F,1,1), MatDat(F,100,1), step);
+    Matrix T     = Tra(SetMat([[r]]));
+    Matrix KDT   = T | UniKerDnsEstOptBnw(mc,T,0,
+                                          repCfg->kerDens.numIter_,
+                                          repCfg->kerDens.epsilon_);
+*/
+    Matrix KDT   = Rkde::density(sample[j],{[[Real n=repCfg->kerDens.points_, 
+                                    Real verbose=TRUE]]});
+    Eval(ToName(colNames[j])+".kerDens = KDT")
+  });
+  Eval(name+".FRQ=aux")
+})};
+
+ 
+
+/////////////////////////////////////////////////////////////////////////////
+Set report(Text                 name_, 
+           Set                  colNames_,
+           BysInf.Report.Config repCfg_,
+           Matrix               mcmc_)
+//Builds the full report about a Markov chain including arguments of calling 
+// and results of next methods
+//   get.sample
+//   get.coda.raftery.diag
+//   get.coda.summary
+//   get.acf
+//   get.histogram
+//   get.kerDens
+/////////////////////////////////////////////////////////////////////////////
+{
+  Real CMsg::Phase::show(1,"1. BysMcmc::Inference::report of "+name_);
+  Text name = ToName(name_);
+  Set colNames = colNames_;
+  Set repCfg = repCfg_;
+  Matrix mcmc = mcmc_;
+  Real n = Columns(mcmc);
+  Real m = Rows   (mcmc);
+  Set coda.raftery.diag = get.coda.raftery.diag(name, colNames, repCfg, mcmc);
+  Set coda.summary = get.coda.summary(name, colNames, repCfg, mcmc);
+  Set sample = get.sample(name, colNames, repCfg, mcmc);
+  Set acf = get.acf(name, colNames, repCfg, sample);
+  Set histogram = get.histogram(name, colNames, repCfg, sample);
+  Set kerDens = get.kerDens(name, colNames, repCfg, sample);
+  Set aux = 
+  [[
+    name, 
+    colNames, 
+    repCfg, 
+    mcmc, 
+    sample,
+    coda.raftery.diag, 
+    coda.summary,
+    acf, 
+    histogram, 
+    kerDens
+  ]];
+  Do PutDescription("Model name",
+    aux::name);
+  Do PutDescription("Names of all variables of the Markov Chain",
+    aux::colNames);
+  Do PutDescription("Configuration of this Bayesian Inference report",
+    aux::repCfg);
+  Do PutDescription("The Markov Chain matrix where each simulation is "
+    "a row and each variable is a column",
+    aux::mcmc);
+  Do PutDescription("Each individual column of tha Markov Chain with its "
+    "corresponding name to be easily tabulated or charted",
+    aux::sample);
+  Do PutDescription("The result of CODA Raftery convergency test for each "
+    "individual variable",
+    aux::coda.raftery.diag);
+  Do PutDescription("The CODA summary information about each individual "
+    "variable",
+    aux::coda.summary);
+  Do PutDescription("Observed AutoCorrelation Function for each individual "
+    "sample",aux::acf);
+  Do PutDescription("Observed histogram of density for each individual "
+    "sample",aux::histogram);
+  Do PutDescription("Aproximated kernel density for each individual sample",
+    aux::kerDens);
+  Eval(name+".REPORT=aux")
+};
+
+/////////////////////////////////////////////////////////////////////////////
+Set compare.reports(Set rep1, Set rep2)
+/////////////////////////////////////////////////////////////////////////////
+{
+  Text name1 = ToName(rep1::name);
+  Text name2 = ToName(rep2::name);
+  Set colNames = rep1::colNames;
+  Real If(colNames!=rep2::colNames, Stop); 
+  Real CMsg::Trace::show(1,"1. BysMcmc::Inference::compare.reports coda.raftery.diag");
+  Set coda.raftery.diag = For(1,Card(rep1::coda.raftery.diag),Set(Real k)
+  {
+    Set aux1 = (rep1::coda.raftery.diag)[k];
+    Real CMsg::Trace::show(2,"1."+IntText(k)+" "+aux1->varName_);
+    Set aux2 = (rep2::coda.raftery.diag)[k];
+    StRepCmp.Coda.Diag.Raftery
+    (
+      aux1->varName_,
+      aux1->length_,
+      aux2->length_,
+      aux1->burnin_,
+      aux2->burnin_,
+      aux1->size_,
+      aux2->size_,
+      aux1->size.min_,
+      aux2->size.min_,
+      aux1->dep.factor_,
+      aux2->dep.factor_,
+      aux1->remain_,
+      aux2->remain_
+    )
+  });
+  Real CMsg::Trace::show(1,"2. BysMcmc::Inference::compare.reports coda.summary");
+  Set coda.summary = For(1,Card(colNames),Set(Real k)
+  {
+    Text varName = colNames[k];
+    Real CMsg::Trace::show(2,"2."+IntText(k)+" "+varName);
+    Set aux1 = (rep1::coda.summary)[k];
+    Set aux2 = (rep2::coda.summary)[k];
+    Real diff = aux1->mean_-aux2->mean_;
+    Real diff.rel = diff / Abs(aux1->mean_);
+    Real diff.K.sigmas.tmser_ = diff / aux1->tmser.se_;
+    Matrix sample1 = (rep1::sample)[k];
+    Matrix sample2 = (rep2::sample)[k];
+    
+    Set mannWhitneyUtest = AlgLib.MannWhitneyUtest(sample1, sample2);
+    
+    StRepCmp.Coda.Summary.Stats
+    (
+      varName,
+      diff,      
+      diff.rel,
+      diff.K.sigmas.tmser_,
+      mannWhitneyUtest::bothtails,
+      mannWhitneyUtest::lefttail,
+      mannWhitneyUtest::righttail,
+      aux1->mean_,
+      aux2->mean_,
+      aux1->sd_,
+      aux2->sd_,
+      aux1->naive.se_,
+      aux2->naive.se_,
+      aux1->tmser.se_,
+      aux2->tmser.se_,
+      aux1->q.001_,
+      aux2->q.001_,
+      aux1->q.025_,
+      aux2->q.025_,
+      aux1->q.250_,
+      aux2->q.250_,
+      aux1->q.500_,
+      aux2->q.500_,
+      aux1->q.750_,
+      aux2->q.750_,
+      aux1->q.975_,
+      aux2->q.975_,
+      aux1->q.999_,
+      aux2->q.999_
+    )
+  });
+  Real CMsg::Trace::show(1,"3. BysMcmc::Inference::compare.reports acfByVar");
+  Set acfByVar = For(1,Card(colNames),Set(Real k)
+  {
+    Text varName = colNames[k];
+    Real CMsg::Trace::show(2,"3."+IntText(k)+" "+varName);
+    Matrix acf1 = (rep1::acf)[k];
+    Matrix acf2 = (rep2::acf)[k];
+    Matrix cmp = 
+      SubCol(acf1,[[1,2]])  |
+      SubCol(acf2,[[2]])    |
+     (SubCol(acf2,[[3]])*1) | 
+     (SubCol(acf2,[[3]])*2) | 
+     (SubCol(acf2,[[3]])*3) | 
+     (SubCol(acf2,[[3]])*Real(-1)) | 
+     (SubCol(acf2,[[3]])*Real(-2)) | 
+     (SubCol(acf2,[[3]])*Real(-3)) ;
+    Set aux = For(1,Rows(cmp),Set(Real lag)
+    {
+      StRepCmp.AcfByVar
+      (
+        MatDat(cmp,lag,1),
+        MatDat(cmp,lag,2),
+        MatDat(cmp,lag,3),
+        MatDat(cmp,lag,4),
+        MatDat(cmp,lag,5),
+        MatDat(cmp,lag,6),
+        MatDat(cmp,lag,7),
+        MatDat(cmp,lag,8),
+        MatDat(cmp,lag,9)
+      )
+    });
+    Eval(varName+"=aux")
+  });
+  Real CMsg::Trace::show(1,"4. BysMcmc::Inference::compare.reports acf");
+  Set acf = BinGroup("<<", For(1,Card(acfByVar),Set(Real k)
+  {
+    Text varName = colNames[k];
+    Real CMsg::Trace::show(2,"4."+IntText(k)+" "+varName);
+    EvalSet(acfByVar[k], Set(StRepCmp.AcfByVar a)
+    {
+      StRepCmp.Acf
+      (
+        varName,
+        a->lag, 
+        a->rep1.acf, 
+        a->rep2.acf, 
+        a->sigma.1, 
+        a->sigma.2, 
+        a->sigma.3, 
+        a->sigma_1, 
+        a->sigma_2, 
+        a->sigma_3  
+      )
+    })
+  }));
+  
+  Real CMsg::Trace::show(1,"5. BysMcmc::Inference::compare.reports histogramByVar");
+  Set histogramByVar = For(1,Card(colNames),Matrix(Real k)
+  {
+    Text varName = colNames[k];
+    Real CMsg::Trace::show(2,"5."+IntText(k)+" "+varName);
+    Matrix sample1 = (rep1::sample)[k];
+    Matrix sample2 = (rep2::sample)[k];
+    Real min = Min(MatMin(sample1),MatMin(sample2));
+    Real max = Min(MatMax(sample1),MatMax(sample2));
+    Real invPoints = 1/Rows(sample1); 
+    Matrix hist1 = Frequency(sample1,100,min,max);
+    Matrix hist2 = Frequency(sample2,100,min,max);
+    Matrix cmp = 
+      SubCol(hist1,[[1]])  |
+     (SubCol(hist1,[[1]])*invPoints)  |
+     (SubCol(hist2,[[2]])*invPoints);
+    Eval(varName+"=cmp")
+  });
+  
+  [[
+    coda.raftery.diag,
+    coda.summary,
+    acfByVar,
+    acf,
+    histogramByVar
+  ]]
+
+};
+
+////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.loadMcmc =
+"Loads the stored Markov Chain generated by method generate skiping "
+"first burnin rows and selecting one of each thinning ones.";
+Matrix loadMcmc(Text path, Real burnin, Real length, Real thinning)
+////////////////////////////////////////////////////////////////////////////
+{
+  Matrix aux = MatReadRows(path, burnin, length*thinning);
+  SubRow(aux,Range(1,length*thinning,thinning))
+};
+
+/////////////////////////////////////////////////////////////////////////////
+  Set loadAndReport(Text path, Real burnin, Real length_, Real thinning, 
+                    Text name, Set colNames_, Set repCfg)
+/////////////////////////////////////////////////////////////////////////////
+{
+  Matrix mcmc.full = MatReadFile(path);
+  Real max = (Rows(mcmc.full)-burnin)/thinning;
+  Real length = Min(max,length_);
+  Matrix mcmc_ = BysMcmc::Inference::loadMcmc(path, burnin, length, thinning);
+  Set idx_ = Range(1,Columns(mcmc_),1);
+  Set idx = Select(idx_,Real(Real col)
+  {
+    MatMax(Abs(SubCol(mcmc_,[[col]])))
+  });
+  Matrix mcmc = SubCol(mcmc_, idx);
+  Set colNames = ExtractByIndex(colNames_,idx);
+  BysMcmc::Inference::report
+  (
+    name,
+    colNames,
+    repCfg,
+    mcmc
+  )
+};
+
+/* */

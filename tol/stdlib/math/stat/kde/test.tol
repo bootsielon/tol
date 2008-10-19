@@ -1,0 +1,34 @@
+////////////////////////////////////////////////////////////////////////////////
+// FILE: _test.tol
+// PURPOSE: test for NameBlock Rkde
+////////////////////////////////////////////////////////////////////////////////
+
+Real points = 512;
+Matrix sample = Gaussian(10000,1,0,1);
+Matrix hist=Frequency(sample, 100);
+Matrix dens.rkde = Rkde::density(sample,{[[Real n=points, 
+                                    Real verbose=TRUE]]});
+Matrix dens.obw = 
+{
+  Matrix F     = hist;
+  Real   step  = (MatDat(F,100,1)-MatDat(F,1,1))/(points-1);
+  Set    r     = Range(MatDat(F,1,1), MatDat(F,100,1), step);
+  Matrix T     = Tra(SetMat([[r]]));
+  Matrix KDT   = T | UniKerDnsEstOptBnw(sample,T)
+};
+
+Matrix dens.true.rkde = SetMat(For(1,Rows(dens.rkde),Set(Real k)
+{
+  Real x = MatDat(dens.rkde,k,1);
+  Real y_= MatDat(dens.rkde,k,2);
+  Real y = DensNormal(x);
+  SetOfReal(x,y,y_)
+}));
+Matrix dens.true.obw = SetMat(For(1,Rows(dens.obw),Set(Real k)
+{
+  Real x = MatDat(dens.obw,k,1);
+  Real y_= MatDat(dens.obw,k,2);
+  Real y = DensNormal(x);
+  SetOfReal(x,y,y_)
+}));
+

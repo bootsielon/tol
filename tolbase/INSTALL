@@ -1,0 +1,19 @@
+Tolbase - TOL Graphic User Interface 
+=========================================
+
+Installation Instructions
+=========================
+
+This file describes how to install Tolbase package for Unix and Linux.
+[See the file ./win/INSTALL for details on how to build under Windows.]
+
+   All you have to do is (as root) "make install"
+   
+   Tolbase is a Tcl package that uses Toltcl Library and Tol Library. 
+   This is the reason why these two packages have to be installed 
+   previously on target system.
+   The necessary files are installed under /usr/lib/tolbase1.1.2
+
+   If you want to install tolbase under a different destination 
+   directory, you can use "configure" script with the --prefix option.
+

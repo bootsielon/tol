@@ -1,0 +1,92 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _cmsgs.tol
+// PURPOSE: Codified messages of BysMcmc
+/////////////////////////////////////////////////////////////////////////////
+
+NameBlock _.cmsg =
+[[
+  Text _ag = "BysMcmc";
+  Text _.autodoc.description = 
+  "Codified messages for "+_ag;
+
+  Set _.invalidType = CMsg.Coded.info(_ag,1, "stop", Text(Set args)
+  {
+    Text mid  = args[1];
+    Text type = args[2];
+    mid+": Not allowed type "+type
+  });
+  Set _.notFoundName = CMsg.Coded.info(_ag,2, "stop", Text(Set args)
+  {
+    Text    mid    = args[1];
+    Text    name   = args[2];
+    mid+": Not found item with name "+name
+  });
+  Set _.indexOutOfRange = CMsg.Coded.info(_ag,3, "stop", Text(Set args)
+  {
+    Text    mid    = args[1];
+    Real    index  = args[2];
+    Real    min    = args[3];
+    Real    max    = args[4];
+    mid+": Item "<<index+" out of range ["<<min+","<<max+"]"
+  });
+  Set _.unkInfBlock = CMsg.Coded.info(_ag,4, "error", Text(Set args)
+  {
+    Text    name   = args[1];
+    Real    numSim = args[2];
+    VMatrix store  = args[3];
+    "Block "+name+" has unknown or infinite values at "
+    "simulation "<<numSim+ ":"<<Matrix VMat2Mat(store,true)
+  });
+  Set _.invCholFac = CMsg.Coded.info(_ag,5, "stop", Text(Set args)
+  {
+    Text mid = args[1];
+    mid+"Cannot factorize main linear block."
+  });
+  Set _.nonEnoughtDataForARIMADif = CMsg.Coded.info(_ag,6, "stop", Text(Set args)
+  {
+    Text  mid  = args[1];
+    Text  desc = args[2];
+    Polyn d    = args[3];
+    Real  m    = args[4];
+    _MID+" Difference degree "<<d+" is greater than length "<<
+      m+" of block "+desc
+  });
+  Set _.nonStationaryDraw = CMsg.Coded.info(_ag,7, "error", Text(Set args)
+  {
+    Text  mid  = args[1];
+    Text  desc = args[2];
+    Polyn pol  = args[3];
+    Real  x    = args[4];
+    mid+" "+desc+": non stationary "<<pol+" drawing x="<<x
+  });
+  Set _.cannotDrawArima = CMsg.Coded.info(_ag,8, "error", Text(Set args)
+  {
+    Text  mid    = args[1];
+    Text  block  = args[2];
+    Real  factor = args[3];
+    Text  arma   = args[4];
+    Real  period = args[5];
+    Polyn pol    = args[6];
+    mid+": Sorry, cannot draw "+arma+" polynomial "<<pol+" at "<<factor+" factor "
+    "of equations block "+block+" with degree great than 2*"<<period+"\n"
+    "Full ARMA block will be disabled and just initial values will be used for "
+    "ARMA filtering. You can define another factor adding more ARIMAStruct "
+    "elements in your model definition in order to be able of simulate larger "+
+    arma+" factorized polynomials."
+  });
+  Set _.notFoundSegment = CMsg.Coded.info(_ag,9, "stop", Text(Set args)
+  {
+    Text    mid    = args[1];
+    Text    name   = args[2];
+    mid+": Not found segment with name "+name
+  });
+  Set _.cannotContinueSimulation = CMsg.Coded.info(_ag,10, "error", Text(Set args)
+  {
+    Text mid    = args[1];
+    Real numErr = args[2];
+    mid+"Cannot continue with simulation due to there are "+
+    IntText(numErr)+" non controlled errors"
+  })
+]];

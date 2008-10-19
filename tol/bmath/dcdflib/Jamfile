@@ -1,0 +1,3 @@
+ln-H tol_cdflib.h ;
+
+objects objs : dcdflib.c  ipmpar.c ;

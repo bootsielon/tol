@@ -1,0 +1,5 @@
+ln-H tol_baia.h  tol_bmaia.h  tol_bestim.h  tol_bmodel.h ;
+
+objects objs :
+  aia.cpp    maia.cpp foread.cpp   moddiag.cpp  modprev.cpp
+  estim.cpp  modcalc.cpp  model.cpp    sparselinreg.cpp ;

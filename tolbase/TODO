@@ -1,0 +1,16 @@
+Main Todo Items
+===============
+
+We are looking for volunteers to do the following tasks.
+Consult the TODO files in each directory first for specific
+requirements.
+
+Things to do for release the first stable version of TOL:
+
+* Fix three bugs related to highlighting:
+
+  - // comment line "text"
+  - // comment line /* comment
+    still highlights this line as comment */
+  - " text with // false comments"; Real a = 5;
+  - //Text t02 = 1+B+B^2; 

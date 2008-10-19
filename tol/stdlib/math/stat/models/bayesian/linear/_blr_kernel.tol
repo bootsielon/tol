@@ -1,0 +1,313 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : blr.tol
+// PURPOSE: Bayesian Linear Regression with limits in parameters sampling
+//          and prior information in sigma blocks.
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// CONSTANTS
+//////////////////////////////////////////////////////////////////////////////
+Text BLR_SMNP_Mode = "SVD"; // Inversion via SVD
+
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set BLR_SMNP
+(
+  Set sX,
+  Set sY,
+  Set sXY, 
+  Set sXX, 
+  Set sigma2Set, 
+  Set sigma2Num
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+// La entrada de sX es un triplet y cada uno de los bloques 
+// han de ser matrices
+  Set covBetaSet = For(1, Card(sigma2Set), Set(Real k)
+  {
+    Matrix xkxk = sXX[k];
+    Matrix xkyk = sXY[k];
+ 
+    Real sk    = sigma2Set[k];  
+    Matrix xk2 = RProd(xkxk, 1/sk);  
+    Matrix betak = RProd(xkyk, 1/sk);
+    SetOfMatrix(xk2, betak)
+  });   
+  Set traCovBetaSet = Traspose(covBetaSet);
+  Matrix covBeta_1  = BinGroup("+", traCovBetaSet[1]); 
+  Matrix covBeta    = If(BLR_SMNP_Mode == "SVD", 
+   SVDInverse(covBeta_1), UnknownMatrix);
+  Matrix L          = If(BLR_SMNP_Mode == "SVD", Choleski(covBeta),
+  CholeskiInverse(Choleski(covBeta_1)));
+
+  Matrix sumBetak = BinGroup("+",  traCovBetaSet[2]);
+  Matrix beta     = If(BLR_SMNP_Mode == "SVD", covBeta*sumBetak,
+  {
+    Matrix ConjugateGradientSolve(covBeta_1, sumBetak)
+  });
+
+  SetOfMatrix(beta, L, covBeta)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",BLR_SMNP);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix BLR_MHGenBetaBlock
+(
+  Matrix BMat, // Beta actuales
+  Matrix SMat, // Sigma 
+  Matrix JMat, // Beta y Sigma 
+  Set data,    // Datos para el bloque
+  Real idWs    // Indicador del WS
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  // Acceso a la informacion de datos del bloque
+  Set sX           = data["sX"];
+  Set sY           = data["sY"];
+  Set sXX          = data["sXX"];
+  Set sXY          = data["sXY"];
+  Set sYY          = data["sYY"];
+  Set blockSizeSet = data["blockSizeSet"];
+  Set limSet       = data["beta.LimSet"];
+
+  Matrix limInf  = limSet[1];
+  Matrix limSup  = limSet[2];
+
+  // Generacion de la muestra
+  Set sigma2Set = MatSet(Tra(SMat))[1];
+  Set paramSet  = BLR_SMNP(sX, sY, sXY, sXX, sigma2Set, blockSizeSet);
+
+  Matrix nuBeta   = paramSet[1];
+  Matrix lCovBeta = paramSet[2];
+  Matrix covBeta  = paramSet[3];
+  Matrix beta = 
+   Tra(RandRectangleMNormal(nuBeta, [["FULL_SVD", covBeta]], limInf, limSup, 1, 1));
+
+  // Actualizacion de la informacion del WS
+  Set e2Set = For(1, Card(sigma2Set), Matrix(Real k)
+  {
+    Matrix yk2  = sYY[k];
+    Matrix xk2  = sXX[k];
+    Matrix xkyk = sXY[k];
+
+    Matrix ek2  = yk2 - RProd(Tra(beta)*xkyk, 2)+Tra(beta)*xk2*beta;
+    ek2 
+  });
+
+  Real nCall       = MHWSGet(idWs, 2)[1];
+  Real newCall     = nCall+1;
+  Anything PutDeepCopy(idWs, 1, e2Set);
+  Anything PutDeepCopy(idWs, 2, SetOfReal(newCall));
+
+  // Vector de salida
+  beta
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",BLR_MHGenBetaBlock);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix BLR_MHGenSigma2Block
+(
+  Matrix SMat, // Sigma2 actuales
+  Matrix BMat, // Beta
+  Matrix JMat, // Beta y Sigma 
+  Set data,    // Datos para el bloque
+  Real idWs    // Indicador del WS
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  // Acceso a la informacion del WS
+  Set e2Set   = MHWSGet(idWs, 1); 
+  Real nCall  = MHWSGet(idWs, 2)[1];
+
+  Real If(EQ(nCall%100,0), 
+   Msg("BLR", "Iteration number "+IntText(nCall)), False);
+
+  // Acceso a la informacion de datos del bloque
+  Set priorSet      = data["sigma2.PriorSet"];
+  Set blockSizeSet  = data["blockSizeSet"]; 
+  
+  // Generacion de la muestra
+  Set sigma2Set = For(1, Card(e2Set), Real(Real k)
+  {
+    Real doSigma = priorSet[k];
+    If(IsUnknown(doSigma),
+    {
+      Matrix ek2 = e2Set[k];
+      Real mk    = MatDat(ek2, 1, 1);
+      Real nk    = blockSizeSet[k]; 
+      
+      Real chi2Inv = mk/RandChisq(nk-1);
+      chi2Inv
+    }, doSigma^2)
+  });
+
+  // Actualizacion de la informacion del WS
+  Matrix sigma2 = SetCol(sigma2Set);
+
+  // Vector de salida
+  sigma2
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("",BLR_MHGenSigma2Block);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix BLR(Set model, Real calls, Real burning, Text fileSample)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set sY        = model->SY;
+  Set sX        = model->SX;
+  Set sS        = model->SS; // Esta matriz contiene las inversas de las 
+                             // matrices de covarianza
+
+  Set inputDef  = model->InputDefinition;
+  Set sigmaDef  = model->SigmaDefinition;
+
+  // Datos generales
+  Set blockSizeSet = EvalSet(sY, Rows);
+
+  // Definicion de informacion para el bloque de las varianzas
+  Real    sigma2.Size        = Card(sigmaDef);
+  Real    sigma2.ModeSampler = 0;
+  Matrix  sigma2.IniValue    = SetCol(EvalSet(sigmaDef, Real(Set reg)
+  { reg->IniValue })); 
+  Set sigma2.BlockData    = 
+  {
+    Set  sigma2.PriorSet = EvalSet(sigmaDef, Real(Set reg)
+    {
+      Set priorInfo   = reg->PriorInfo;
+      Real priorValue = If(IsEmpty(priorInfo), ?, 
+      {
+        Text class = ToUpper(priorInfo->Class);
+        Case
+        (
+          class == "FIXED", priorInfo->Parameters->Value,
+          1, ?
+        )
+      });  
+      priorValue
+    });
+    SetOfAnything(sigma2.PriorSet, blockSizeSet)
+  };
+  Code sigma2.BlockGen = BLR_MHGenSigma2Block;
+
+  Set sigma2.BlockDef = MHBlockDef
+  (
+    sigma2.Size,
+    sigma2.ModeSampler,
+    sigma2.IniValue,
+    sigma2.BlockData,
+    sigma2.BlockGen
+  );
+
+  // Definicion de informacion para el bloque de los parametros
+  Real   beta.Size        = Card(inputDef);
+  Real   beta.ModeSampler = 0;
+  Matrix beta.IniValue    = SetCol(EvalSet(inputDef, Real(Set reg)
+  { reg->IniValue })); 
+  Set beta.BlockData      = 
+  {
+    Set beta.LimSet = 
+    {
+      Set setLim = EvalSet(inputDef, Set(Set reg)
+      {
+        Set limInfoSet = reg->LimInfo;
+   
+        Real limInf    = If(IsEmpty(limInfoSet), -TheMaxAbsValue, 
+        {
+          Real limInfAux = limInfoSet->LimInf;
+          If(IsUnknown(limInfAux), -TheMaxAbsValue, limInfAux)
+        });
+        Real limSup    = If(IsEmpty(limInfoSet), TheMaxAbsValue, 
+        {
+          Real limSupAux = limInfoSet->LimSup;
+          If(IsUnknown(limSupAux),  TheMaxAbsValue, limSupAux)
+        });  
+    
+        SetOfReal(limInf, limSup)
+      });
+    
+      Set traSetLim = Traspose(setLim);
+    
+      Matrix limInf = SetCol(traSetLim[1]);
+      Matrix limSup = SetCol(traSetLim[2]);
+     
+      SetOfMatrix(limInf,limSup)
+    };
+    
+    Set sXXY = For(1, sigma2.Size, Set(Real k)
+    {
+      Set bk     = sX[k+1];
+      Real colk  = bk[2];
+      Matrix xk  = bk[3];
+      Matrix yk  = sY[k]; 
+
+      Matrix xk2Aux = Case
+      (
+        IsEmpty(sS), Tra(xk)*xk,
+        IsEmpty(sS[k]), Tra(xk)*xk,
+        1, { Matrix s_1 = sS[k][3]; Tra(xk)*s_1*xk}
+      );
+
+      Matrix xkykAux = Case
+      (
+        IsEmpty(sS), Tra(xk)*yk,
+        IsEmpty(sS[k]), Tra(xk)*yk,
+        1, { Matrix s_1 = sS[k][3]; Tra(xk)*s_1*yk}
+      );
+
+      Matrix yk2     = Case
+      (
+        IsEmpty(sS), Tra(yk)*yk,
+        IsEmpty(sS[k]), Tra(yk)*yk,
+        1, { Matrix s_1 = sS[k][3]; Tra(yk)*s_1*yk}
+      );
+
+      Matrix xk2  = FullWithZeroSquare(xk2Aux, colk, beta.Size);  
+      Matrix xkyk = FullWithZeroRow(xkykAux, colk, beta.Size);
+      SetOfMatrix(xk2, xkyk, yk2)
+    });
+    Set sXX = Traspose(sXXY)[1];
+    Set sXY = Traspose(sXXY)[2];   
+    Set sYY = Traspose(sXXY)[3];   
+    SetOfAnything(sX, sY, sXX, sXY, sYY, beta.LimSet, blockSizeSet)
+  };
+  Code beta.BlockGen = BLR_MHGenBetaBlock;
+
+  Set beta.BlockDef = MHBlockDef
+  (
+    beta.Size,
+    beta.ModeSampler,
+    beta.IniValue,
+    beta.BlockData,
+    beta.BlockGen
+  );
+
+  // Definicion de los parametros de entrada y WS
+  Set defMH     = SetOfSet(beta.BlockDef, sigma2.BlockDef); 
+  Set defWSMH   = SetOfAnything(Copy(Empty),SetOfReal(0));
+   
+  Matrix mhRes = If(fileSample == "", 
+    MetropolisHastings(defMH, burning, calls, defWSMH),
+  {
+    Text ext    = GetFileExtension(fileSample);
+    Text name   = GetFilePath(fileSample)+GetFileName(fileSample);
+    Set monitor = SetOfAnything(ext, name, 1, 0);
+    MetropolisHastings(defMH, burning, calls, defWSMH, monitor)
+  });
+
+  mhRes
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("", BLR);
+//////////////////////////////////////////////////////////////////////////////
+

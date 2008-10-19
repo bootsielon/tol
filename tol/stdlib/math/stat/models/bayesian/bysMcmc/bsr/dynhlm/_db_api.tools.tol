@@ -1,0 +1,232 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _db_api.tools.tol
+// PURPOSE : Implements database tools related methods of NameBlock 
+//           BysMcmc::Bsr::DynHlm::DBApi
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Set current data base engine to MySQL
+  Real SetEngineToMySQL(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text _.engine := SqlEngine::GesMys;
+  0
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Trace and execute a SELECT query returning a TOL Set table
+Set SqlTableTrace(Text query, Text structure)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(doQueryTrace,
+    WriteLn("[Bsr::DynHlm::DBApi::SqlTableTrace] Query=\n"+query)); 
+  If(structure=="",
+    DBTable(query),
+    DBTable(query, structure))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Trace and execute a non SELECT query returning nothing but success or not
+Real SqlExecTrace(Text query)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(doQueryTrace,
+    WriteLn("[Bsr::DynHlm::DBApi::SqlExecTrace] Query=\n"+query)); 
+  Real DBExecQuery(query);
+  1
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormatDate(Date dte)
+//////////////////////////////////////////////////////////////////////////////
+{
+  SqlEngine::SqlFormatDate(dte, _.engine)
+ //FormatDate(dte,"'%c%Y-%m-%d %h:%i:%s'")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormatReal(Real x)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsFinite(x),BysMcmc::Bsr::Import::RealTextS(x),"NULL")
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Creates in database skeleton with all bsrhlm_ prefixed tables needed to 
+//work with BysMcmc::Bsr::DynHlm::DBApi
+Real CreateSkeleton(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text qry = ReadFile("db_bsrhlm_"+_currentDBEngine+".sql");
+  SqlExecTrace(qry)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Disables keys of all bsrhlm_ tables and sets FOREIGN_KEY_CHECKS to 0
+Real ForeignKey.Disable(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set EvalSet(_.tableName,Real(Text table)
+  {
+    SqlExecTrace("ALTER TABLE "+table+" DISABLE KEYS;")
+  });
+  SqlExecTrace("SET FOREIGN_KEY_CHECKS=0;");
+  0
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Enables keys of all bsrhlm_ tables and and sets FOREIGN_KEY_CHECKS to 1
+Real ForeignKey.Enable(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  SqlExecTrace("SET FOREIGN_KEY_CHECKS=1;");
+  Set EvalSet(_.tableName,Real(Text table)
+  {
+    SqlExecTrace("ALTER TABLE "+table+" ENABLE KEYS;")
+  });
+  0
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts or updates a model register
+Real Mod.Create(Text dbName, Text model, Text description)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = If(Not(BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT count(*) FROM "+dbName+"."+_table::Model+"\n"
+    "WHERE id_model='"+model+"';","")[1][1]),
+  {
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+      "INSERT INTO "+_table::Model+"\n"
+      "VALUES('"+model+"','"+description+"')\n")
+  },
+  {
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+      "UPDATE "+dbName+"."+_table::Model+"\n"+
+      "SET ds_model = '"+description+"' \n"+
+      "WHERE id_model='"+model+"' ;")
+  });
+  Eval("Mod.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Deletes all model-sessions with given model
+Real Mod.Delete(Text dbName, Text model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Set sessions = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT id_session FROM "+dbName+"."+_table::ModSes+"\n"
+    "WHERE id_model='"+model+"';","");
+  Real ok = SetMin(EvalSet(sessions, Real(Set session)
+  {
+    ModSes.Delete(dbName, model, session[1])
+  }));
+  Eval("Mod.Delete.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Locks-unlocks all model-sessions with given model
+Real Mod.SetBlocked(Text dbName, Text model, Real blocked)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Set sessions = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT id_session FROM "+dbName+"."+_table::ModSes+"\n"
+    "WHERE id_model='"+model+"';","");
+  Real ok = SetMin(EvalSet(sessions, Real(Set session)
+  {
+    ModSes.SetBlocked(dbName, model, session[1], blocked)
+  }));
+  Eval("Mod.Delete.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a session register
+Real Ses.Create(Text dbName, Text session, Text description, Text authors)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = If(Not(BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT count(*) FROM "+dbName+"."+_table::Session+"\n"
+    "WHERE id_session='"+session+"';","")[1][1]),
+  {
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+      "INSERT INTO "+_table::Session+"\n"
+      "VALUES('"+session+"','"+description+"',"
+              "'"+authors+"',"+SqlFormatDate(Now)+")\n")
+  },
+  {
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+      "UPDATE "+dbName+"."+_table::Session+"\n"+
+      "SET "
+        "ds_session = '"+description+"', \n"+
+        "te_authors = '"+authors+"', \n"+
+        "dh_creation = "+SqlFormatDate(Now)+" \n"+
+      "WHERE id_session='"+session+"' ;")
+  });
+  Eval("Ses.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Deletes all model-sessions with given session
+Real Ses.Delete(Text dbName, Text session)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Set models = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT id_model FROM "+dbName+"."+_table::ModSes+"\n"
+    "WHERE id_model='"+model+"';","");
+  Real ok = SetMin(EvalSet(models, Real(Set model)
+  {
+    ModSes.Delete(dbName, model[1], session)
+  }));
+  Eval("Ses.Delete.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Locks-unlocks all model-sessions with given session
+Real Ses.SetBlocked(Text dbName, Text session, Real blocked)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Set models = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT id_model FROM "+dbName+"."+_table::ModSes+"\n"
+    "WHERE id_model='"+model+"';","");
+  Real ok = SetMin(EvalSet(models, Real(Set model)
+  {
+    ModSes.SetBlocked(dbName, model[1], session)
+  }));
+  Eval("Ses.Delete.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a session register
+Real GibbsBlk.Create(Text dbName, Text gibbs_blk, Text description)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = If(Not(BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT count(*) FROM "+dbName+"."+_table::GibbsBlk+"\n"
+    "WHERE id_gibbs_blk='"+gibbs_blk+"';","")[1][1]),
+  {
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+      "INSERT INTO "+_table::GibbsBlk+"\n"
+      "VALUES('"+gibbs_blk+"','"+description+"')\n")
+  },
+  {
+    Text desc.old = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+      "SELECT ds_gibbs_blk FROM "+dbName+"."+_table::GibbsBlk+"\n"
+      "WHERE id_gibbs_blk='"+gibbs_blk+"';","")[1][1];
+    If(desc.old==description,1,
+    {
+      WriteLn("[BysMcmc::Bsr::DynHlm::DBApi::GibbsBlk.Create] "
+              "Gibbs block "+gibbs_blk+" is already defined with "
+              "other description.", "W");
+      0
+    })
+  });
+  Eval("Ses.Create.ok=ok")
+};

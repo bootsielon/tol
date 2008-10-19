@@ -1,0 +1,98 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _init_tpa.tol
+// PURPOSE : Tol Parallel Api
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock Tpa =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Text _.autodoc.description = 
+  "TPA (Tol Parallel Api). High level methods to work with internal TPA "
+  "TCL functions that are available in tolsh. An daemon service of rmtps "
+  "must be running on each available host at port 6668 before to be used by "
+  "any client. This NameBlock implements an easy to use API for client side "
+  "and allows storement for some server side and common side information.";
+  Text _spth = GetFilePath(GetSourcePath(_.autodoc.description));
+
+  //host information structure
+  Struct stHostInfo 
+  {
+    Text host;      //IP or HOST 
+    Real cpuNum;    //Number of CPU's
+    Real cpuSpeed   //CPU speed tested by testLocalSpeed
+  };
+  //tolsh server information structure
+  Struct stServerInfo 
+  {
+    Text host;      //IP or HOST 
+    Real port;      //port communication adress
+    Real pid;       //process identificator
+    Real speed      //estimated speed
+  };
+  //assignation of tasks to servers
+  Struct stTaskForServer
+  {
+    Real srvNum; //position of server in _.serverList
+    Set  tasks   //Set of tasks assigned to the srvNum-th server
+  };
+  //////////////////////////// 
+  //Both Client-Server data //
+  //////////////////////////// 
+  //The shared root for all servers an the client
+  Text _.sharedRoot = "";
+
+  //////////////////////////// 
+  //Client data             //
+  //////////////////////////// 
+  //default port fot tolsh dispatcher
+  Real _.rmtpsdPort = 6668;
+  //first available port for tolsh servers
+  Real _.dispatcherPort = 40000;
+  //list of available hosts for clients. Empty for servers
+  Set _.hostList   = Copy(Empty);
+  //list of available servers for clients. Empty for servers
+  Set _.serverList = Copy(Empty);
+  //Number of tries for waiting a condition
+  Real _.iterSleep = 10;
+  //default sleeping time between condition asking
+  Real _.sleep = 1;
+  //Used in launchServers to test hosts speed.
+  Real numIterTestSpeed = 100000;
+
+  //////////////////////////// 
+  //Server data             //
+  //////////////////////////// 
+  //Server information
+  Set _.serverInfo = stServerInfo("",0,0,-1);
+
+  //implementation of server launching methods
+  Set _server = Include("_server.tol");
+  //declarations
+  Code _hostSpeed;
+  Code formatServer;
+  Code descServer;
+  Code waitCond;
+  Code launchServer;
+  Code killServer;
+  Code killServerList;
+  Code showAllServersAtHosts;
+  Code killAllServersAtHosts;
+  Code testLocalSpeed;
+  Code testRemoteSpeed;
+  Code loadLastHosts;
+  Code loadLastServers;
+  Code showHostList;
+  Code showServerList;
+  Code initCluster;
+
+  //implementation of parallel cycling
+  Set _cycle = Include("_cycle.tol");
+  //declarations
+  Code doForEachTask;
+  Code doForEachServer;
+  Code doForAssignedTasks
+]];
+
+
+

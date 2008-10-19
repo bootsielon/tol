@@ -1,0 +1,171 @@
+////////////////////////////////////////////////////////////////////////////////
+// Bayesian Sparsed Regression 
+////////////////////////////////////////////////////////////////////////////////
+
+Name = "bysMcmc.test_02.RS_1783092325";
+Author = "vdebuen@tol-project.org";
+Description = 
+"Randomly generation of a hierarchycal lineal model with these simple\n"
+"structure:\n"
+"  1: a set of K1 observational nodes with the same number n of variables\n"
+"     and data length m\n"
+"  2: a set of n latent nodes with one central parameter for each distinct\n"
+"     observational variable with specified standard deviation\n"
+"  3: a central prior equation for each latent variable with specified\n"
+"     standard deviation\n"
+"  4: a set of sparse linear inequalities over the observational variables\n"
+"";
+
+////////////////////////////////////////////////////////////////////////////////
+// Regression Variables Declarations with initial values
+////////////////////////////////////////////////////////////////////////////////
+
+NodeObs.1_Var.1 <- +0.97671083826571703;
+NodeObs.1_Var.2 <- -0.19868205254897475;
+NodeObs.1_Var.3 <- +0.7327108602039516;
+NodeObs.1_Var.4 <- -0.089024588465690613;
+NodeObs.2_Var.1 <- -0.052704731002449989;
+NodeObs.2_Var.2 <- -0.23274111235514283;
+NodeObs.2_Var.3 <- +0.10857382696121931;
+NodeObs.2_Var.4 <- +0.67251194035634398;
+NodeObs.3_Var.1 <- +0.53201563330367208;
+NodeObs.3_Var.2 <- +0.04062345065176487;
+NodeObs.3_Var.3 <- +0.89309453032910824;
+NodeObs.3_Var.4 <- +0.56718682823702693;
+NodeLat.1_Var.nu <- -0.59844245202839375;
+NodeLat.2_Var.nu <- +0.64619092363864183;
+NodeLat.3_Var.nu <- +0.80545406648889184;
+NodeLat.4_Var.nu <- -0.60671397717669606;
+
+////////////////////////////////////////////////////////////////////////////////
+// Regression Missing Input Declarations 
+////////////////////////////////////////////////////////////////////////////////
+
+MissInp.NodeObs.4.20 ? ~ TruncatedNormal(-0.6188620878383517,0.09574757094091094,-6.188620878383517,0);
+MissInp.NodeObs.6.27 ? ~ TruncatedNormal(-0.7764887581579387,0.1507336978864145,-7.764887581579387,0);
+MissInp.NodeObs.10.44 ? ~ TruncatedNormal(-0.7212241245433688,0.1300410594558372,-7.212241245433688,0);
+MissInp.NodeObs.7.40 ? ~ TruncatedNormal(0.9469757499173284,0.2241907677328716,0,9.469757499173284);
+MissInp.NodeObs.2.19 ? ~ Normal(-0.9800567789934576,0.2401278225127577);
+
+////////////////////////////////////////////////////////////////////////////////
+// Regression Residuals Declarations Normal(0,sigma^2)
+////////////////////////////////////////////////////////////////////////////////
+
+NodeObs.1_Residuals[20] ~ Normal(0,NodeObs.1_Sigma2);
+NodeObs.2_Residuals[20] ~ Normal(0,NodeObs.2_Sigma2);
+NodeObs.3_Residuals[20] ~ Normal(0,NodeObs.3_Sigma2);
+NodeLat.1_Residuals[3] ~ Normal(0,0.017215561151099665);
+NodeLat.2_Residuals[3] ~ Normal(0,0.014853253174364643);
+NodeLat.3_Residuals[3] ~ Normal(0,0.015689285794912914);
+NodeLat.4_Residuals[3] ~ Normal(0,0.027577513753386185);
+NodePri.1_Residuals[4] ~ Normal(0,0.024483251718498182);
+
+////////////////////////////////////////////////////////////////////////////////
+// Regression equations 
+////////////////////////////////////////////////////////////////////////////////
+
++1.096398968960181 == NodeObs.1_Residuals[1]-0.50234516989439726*NodeObs.1_Var.1 -0.70981542812660336*NodeObs.1_Var.2 ; //Reg.Equ.1
+-0.51381922320662576 == NodeObs.1_Residuals[2]+0.84954736987128854*NodeObs.1_Var.3 -0.96295511675998569*NodeObs.1_Var.4 ; //Reg.Equ.2
+-2.0515961769277755 == NodeObs.1_Residuals[3]+0.55626700259745121*NodeObs.1_Var.1 +0.93401955952867866*NodeObs.1_Var.2 -0.79346446273848414*NodeObs.1_Var.3 -0.50958092464134097*NodeObs.1_Var.4 ; //Reg.Equ.3
+-0.53206635253106982 == NodeObs.1_Residuals[4]+0.72560802521184087*NodeObs.1_Var.1 +0.81816965667530894*NodeObs.1_Var.2 +0.51864720601588488*NodeObs.1_Var.4 ; //Reg.Equ.4
+-0.79816726336126109 == NodeObs.1_Residuals[5]+0.60621488047763705*NodeObs.1_Var.1 +0.59228622866794467*NodeObs.1_Var.2 +0.95003191707655787*NodeObs.1_Var.3 +0.64820096176117659*NodeObs.1_Var.4 ; //Reg.Equ.5
+-1.2724099294961899 == NodeObs.1_Residuals[6]+0.6437067398801446*NodeObs.1_Var.1 +0.96955185383558273*NodeObs.1_Var.2 -0.54942334163933992*NodeObs.1_Var.4 ; //Reg.Equ.6
+-0.55053351260097905 == NodeObs.1_Residuals[7]+0.73800605023279786*NodeObs.1_Var.2 +0.50387787725776434*NodeObs.1_Var.4 ; //Reg.Equ.7
++1.2215510060177284 == NodeObs.1_Residuals[8]-0.70911219157278538*NodeObs.1_Var.4 ; //Reg.Equ.8
+-0.4305041606478508 == NodeObs.1_Residuals[9]-0.58729178830981255*NodeObs.1_Var.2 -0.85861387569457293*NodeObs.1_Var.4 ; //Reg.Equ.9
++0.28316087551663893 == NodeObs.1_Residuals[10]-0.95189010072499514*NodeObs.1_Var.1 +0.89505254710093141*NodeObs.1_Var.3 -0.91155666299164295*NodeObs.1_Var.4 ; //Reg.Equ.10
++1.268066996842826 == NodeObs.1_Residuals[11]-0.62311356421560049*NodeObs.1_Var.1 -0.69283063290640712*NodeObs.1_Var.4 ; //Reg.Equ.11
+-0.32878932628186264 == NodeObs.1_Residuals[12]+0.83079599915072322*NodeObs.1_Var.1 -0.95291675627231598*NodeObs.1_Var.3 ; //Reg.Equ.12
+-1.1344213700654606 == NodeObs.1_Residuals[13]; //Reg.Equ.13
++0.3100767154935683 == NodeObs.1_Residuals[14]+0.55504306824877858*NodeObs.1_Var.1 -0.849313925486058*NodeObs.1_Var.2 -0.70319997565820813*NodeObs.1_Var.3 ; //Reg.Equ.14
+-0.79498689277087486 == NodeObs.1_Residuals[15]+0.64816036727279425*NodeObs.1_Var.2 +0.61904655722901225*NodeObs.1_Var.4 ; //Reg.Equ.15
+-0.84938044634078402 == NodeObs.1_Residuals[16]+0.94116315571591258*NodeObs.1_Var.1 +0.66716646077111363*NodeObs.1_Var.3 ; //Reg.Equ.16
+-1.1949283909766206 == NodeObs.1_Residuals[17]+0.66220921277999878*NodeObs.1_Var.1 +0.9832342928275466*NodeObs.1_Var.3 ; //Reg.Equ.17
+-1.1501527731527537 == NodeObs.1_Residuals[18]+0.73964639427140355*NodeObs.1_Var.1 +0.94259281968697906*NodeObs.1_Var.2 -0.86795148346573114*NodeObs.1_Var.3 +0.97150574065744877*NodeObs.1_Var.4 ; //Reg.Equ.18
++0.21182430596252588 == NodeObs.1_Residuals[19]+MissInp.NodeObs.2.19*NodeObs.1_Var.2 -0.96430030139163136*NodeObs.1_Var.3 -0.72877760697156191*NodeObs.1_Var.4 ; //Reg.Equ.19
+-0.5456351915135107 == NodeObs.1_Residuals[20]-0.90377019252628088*NodeObs.1_Var.3 +MissInp.NodeObs.4.20*NodeObs.1_Var.4 ; //Reg.Equ.20
++0.39744280222627326 == NodeObs.2_Residuals[1]; //Reg.Equ.21
++0.18254991061112674 == NodeObs.2_Residuals[2]+0.72367488592863083*NodeObs.2_Var.1 -0.66855353489518166*NodeObs.2_Var.2 -0.8074429938569665*NodeObs.2_Var.3 -0.61217680759727955*NodeObs.2_Var.4 ; //Reg.Equ.22
+-0.086913136294697324 == NodeObs.2_Residuals[3]-0.97595193330198526*NodeObs.2_Var.1 +0.73981406725943089*NodeObs.2_Var.2 -0.7204204685986042*NodeObs.2_Var.4 ; //Reg.Equ.23
++0.29672667958704524 == NodeObs.2_Residuals[4]+0.67530715931206942*NodeObs.2_Var.2 +0.57420845050364733*NodeObs.2_Var.3 ; //Reg.Equ.24
++0.15853226785088251 == NodeObs.2_Residuals[5]; //Reg.Equ.25
++0.20853115870091704 == NodeObs.2_Residuals[6]+0.71543498570099473*NodeObs.2_Var.3 ; //Reg.Equ.26
++0.62568051278151271 == NodeObs.2_Residuals[7]-0.75447298446670175*NodeObs.2_Var.1 +MissInp.NodeObs.6.27*NodeObs.2_Var.2 +0.92009527608752251*NodeObs.2_Var.3 -0.81231898255646229*NodeObs.2_Var.4 ; //Reg.Equ.27
+-0.5332266548129132 == NodeObs.2_Residuals[8]-0.66106673469766974*NodeObs.2_Var.1 +0.88379000127315521*NodeObs.2_Var.2 -0.76575684454292059*NodeObs.2_Var.4 ; //Reg.Equ.28
++0.063011152623278208 == NodeObs.2_Residuals[9]; //Reg.Equ.29
++0.23646360034680236 == NodeObs.2_Residuals[10]; //Reg.Equ.30
+-0.26370390082849671 == NodeObs.2_Residuals[11]-0.79443020606413484*NodeObs.2_Var.3 ; //Reg.Equ.31
+-0.93228617875622255 == NodeObs.2_Residuals[12]+0.54420439526438713*NodeObs.2_Var.1 +0.65154252992942929*NodeObs.2_Var.2 +0.88610209990292788*NodeObs.2_Var.4 ; //Reg.Equ.32
+-0.13383025436235865 == NodeObs.2_Residuals[13]-0.87100127339363098*NodeObs.2_Var.4 ; //Reg.Equ.33
+-0.72800126676684662 == NodeObs.2_Residuals[14]-0.55450822412967682*NodeObs.2_Var.4 ; //Reg.Equ.34
++0.98590460686246006 == NodeObs.2_Residuals[15]-0.86702378932386637*NodeObs.2_Var.1 ; //Reg.Equ.35
++0.5675345139084772 == NodeObs.2_Residuals[16]-0.65622674115002155*NodeObs.2_Var.2 ; //Reg.Equ.36
++0.31712760963400399 == NodeObs.2_Residuals[17]-0.68831317545846105*NodeObs.2_Var.1 +0.65729387849569321*NodeObs.2_Var.3 -0.86405908409506083*NodeObs.2_Var.4 ; //Reg.Equ.37
+-0.13138338042563591 == NodeObs.2_Residuals[18]+0.87751671299338341*NodeObs.2_Var.1 -0.92579958075657487*NodeObs.2_Var.3 -0.628697719424963*NodeObs.2_Var.4 ; //Reg.Equ.38
++0.66426009745168457 == NodeObs.2_Residuals[19]-0.55725936032831669*NodeObs.2_Var.1 +0.97531640576198697*NodeObs.2_Var.3 ; //Reg.Equ.39
+-1.9537757958644211 == NodeObs.2_Residuals[20]+0.93483429728075862*NodeObs.2_Var.1 +0.70201275870203972*NodeObs.2_Var.2 +MissInp.NodeObs.7.40*NodeObs.2_Var.3 -0.69872113410383463*NodeObs.2_Var.4 ; //Reg.Equ.40
++0.89278090611196692 == NodeObs.3_Residuals[1]-0.88832220202311873*NodeObs.3_Var.1 +0.89480171399191022*NodeObs.3_Var.2 ; //Reg.Equ.41
++0.16200633518069432 == NodeObs.3_Residuals[2]-0.84191962983459234*NodeObs.3_Var.2 +0.99505805829539895*NodeObs.3_Var.3 -0.92733375867828727*NodeObs.3_Var.4 ; //Reg.Equ.42
++0.087032048182687338 == NodeObs.3_Residuals[3]-0.75294688623398542*NodeObs.3_Var.4 ; //Reg.Equ.43
+-0.65108717793171533 == NodeObs.3_Residuals[4]+MissInp.NodeObs.10.44*NodeObs.3_Var.2 +0.76788454223424196*NodeObs.3_Var.3 -0.89012699387967587*NodeObs.3_Var.4 ; //Reg.Equ.44
+-1.0135620914751082 == NodeObs.3_Residuals[5]-0.66220306744799018*NodeObs.3_Var.4 ; //Reg.Equ.45
+-0.11856042383417736 == NodeObs.3_Residuals[6]+0.67061023786664009*NodeObs.3_Var.2 ; //Reg.Equ.46
++1.3550648671434939 == NodeObs.3_Residuals[7]-0.86493184790015221*NodeObs.3_Var.2 ; //Reg.Equ.47
++0.6164136614045741 == NodeObs.3_Residuals[8]-0.63849056465551257*NodeObs.3_Var.1 +0.80825540516525507*NodeObs.3_Var.3 +0.88417648151516914*NodeObs.3_Var.4 ; //Reg.Equ.48
++0.33131658008868792 == NodeObs.3_Residuals[9]-0.96857347991317511*NodeObs.3_Var.2 -0.84051361167803407*NodeObs.3_Var.3 ; //Reg.Equ.49
+-0.35030256903909263 == NodeObs.3_Residuals[10]+0.69869648665189743*NodeObs.3_Var.3 +0.66819525137543678*NodeObs.3_Var.4 ; //Reg.Equ.50
++2.1196793929343758 == NodeObs.3_Residuals[11]-0.91939040552824736*NodeObs.3_Var.1 -0.5945477494969964*NodeObs.3_Var.2 ; //Reg.Equ.51
++1.0614286164704776 == NodeObs.3_Residuals[12]-0.80384737905114889*NodeObs.3_Var.1 +0.73976156441494823*NodeObs.3_Var.2 ; //Reg.Equ.52
+-0.14056517152370962 == NodeObs.3_Residuals[13]+0.92058872198686004*NodeObs.3_Var.2 ; //Reg.Equ.53
++0.12520367878803279 == NodeObs.3_Residuals[14]-0.63168765557929873*NodeObs.3_Var.2 ; //Reg.Equ.54
++0.55604954191371836 == NodeObs.3_Residuals[15]-0.50218251999467611*NodeObs.3_Var.1 +0.50048593804240227*NodeObs.3_Var.2 +0.91051513515412807*NodeObs.3_Var.4 ; //Reg.Equ.55
+-0.40515512846785218 == NodeObs.3_Residuals[16]-0.62894315319135785*NodeObs.3_Var.3 -0.54661952145397663*NodeObs.3_Var.4 ; //Reg.Equ.56
++0.80848348189019137 == NodeObs.3_Residuals[17]+0.85745842661708593*NodeObs.3_Var.4 ; //Reg.Equ.57
+-2.063256005935167 == NodeObs.3_Residuals[18]+0.69478408852592111*NodeObs.3_Var.1 +0.70837940648198128*NodeObs.3_Var.2 -0.91067341482266784*NodeObs.3_Var.4 ; //Reg.Equ.58
++0.67419720767883562 == NodeObs.3_Residuals[19]+0.53511238098144531*NodeObs.3_Var.1 -0.67690515099093318*NodeObs.3_Var.2 +0.91835045721381903*NodeObs.3_Var.4 ; //Reg.Equ.59
++0.16736383037710639 == NodeObs.3_Residuals[20]+0.53524405555799603*NodeObs.3_Var.1 +0.5659729870967567*NodeObs.3_Var.4 ; //Reg.Equ.60
+0 == NodeLat.1_Residuals[1]-NodeObs.1_Var.1 +NodeLat.1_Var.nu ; //Reg.Equ.61
+0 == NodeLat.1_Residuals[2]-NodeObs.2_Var.1 +NodeLat.1_Var.nu ; //Reg.Equ.62
+0 == NodeLat.1_Residuals[3]-NodeObs.3_Var.1 +NodeLat.1_Var.nu ; //Reg.Equ.63
+0 == NodeLat.2_Residuals[1]-NodeObs.1_Var.2 +NodeLat.2_Var.nu ; //Reg.Equ.64
+0 == NodeLat.2_Residuals[2]-NodeObs.2_Var.2 +NodeLat.2_Var.nu ; //Reg.Equ.65
+0 == NodeLat.2_Residuals[3]-NodeObs.3_Var.2 +NodeLat.2_Var.nu ; //Reg.Equ.66
+0 == NodeLat.3_Residuals[1]-NodeObs.1_Var.3 +NodeLat.3_Var.nu ; //Reg.Equ.67
+0 == NodeLat.3_Residuals[2]-NodeObs.2_Var.3 +NodeLat.3_Var.nu ; //Reg.Equ.68
+0 == NodeLat.3_Residuals[3]-NodeObs.3_Var.3 +NodeLat.3_Var.nu ; //Reg.Equ.69
+0 == NodeLat.4_Residuals[1]-NodeObs.1_Var.4 +NodeLat.4_Var.nu ; //Reg.Equ.70
+0 == NodeLat.4_Residuals[2]-NodeObs.2_Var.4 +NodeLat.4_Var.nu ; //Reg.Equ.71
+0 == NodeLat.4_Residuals[3]-NodeObs.3_Var.4 +NodeLat.4_Var.nu ; //Reg.Equ.72
++0.943274503108114 == NodePri.1_Residuals[1]-NodeLat.1_Var.nu ; //Reg.Equ.73
++0.74663122417405248 == NodePri.1_Residuals[2]-NodeLat.2_Var.nu ; //Reg.Equ.74
++0.19638350326567888 == NodePri.1_Residuals[3]-NodeLat.3_Var.nu ; //Reg.Equ.75
+-0.39475306216627359 == NodePri.1_Residuals[4]-NodeLat.4_Var.nu ; //Reg.Equ.76
+
+////////////////////////////////////////////////////////////////////////////////
+// Restriction inequations 
+////////////////////////////////////////////////////////////////////////////////
+
++1.0515726046962663 >= +NodeObs.1_Var.1 ;
+-0.12155347219668329 >= +NodeObs.1_Var.2 ;
++0.80258759787073364 >= +NodeObs.1_Var.3 ;
++0.53655810504046209 >= +NodeObs.1_Var.4 ;
+-0.016930208345875143 >= +NodeObs.2_Var.1 ;
+-0.16218690964858978 >= +NodeObs.2_Var.2 ;
++0.14197973278816789 >= +NodeObs.2_Var.3 ;
++0.73940823307726533 >= +NodeObs.2_Var.4 ;
++0.57848858427722005 >= +NodeObs.3_Var.1 ;
++0.11446328733814881 >= +NodeObs.3_Var.2 ;
++0.92318727971520276 >= +NodeObs.3_Var.3 ;
++0.61917253507068382 >= +NodeObs.3_Var.4 ;
++1.0112787552829832 >= +NodeObs.1_Var.1 ;
+-0.13216068271314724 >= +NodeObs.1_Var.2 ;
++0.76376029476756235 >= +NodeObs.1_Var.3 ;
++1.5620825204548765 >= -NodeObs.1_Var.1 +NodeObs.1_Var.4 ;
++0.17149491685675458 >= -NodeObs.1_Var.2 +NodeObs.2_Var.1 ;
+-0.54302040306164956 >= -NodeObs.1_Var.3 +NodeObs.2_Var.2 ;
++0.22120418414007872 >= -NodeObs.1_Var.4 +NodeObs.2_Var.3 ;
++1.5302991282146192 >= -NodeObs.2_Var.1 +NodeObs.2_Var.4 ;
++0.86455509027000521 >= -NodeObs.2_Var.2 +NodeObs.3_Var.1 ;
++0.029266831628046941 >= -NodeObs.2_Var.3 +NodeObs.3_Var.2 ;
++0.2464756476902403 >= -NodeObs.2_Var.4 +NodeObs.3_Var.3 ;
++1.5848788874182522 >= -NodeObs.3_Var.1 +NodeObs.3_Var.4 ;

@@ -1,0 +1,370 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE:    _chart.tol 
+// PURPOSE: Functions utility of TCL for graphic
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TclChartSerie(Set source, Set valArg)
+//   Set source,    // Set of series to graph
+//   Set valArg:
+//     -title,      // Title of chart
+//     -geometry,   // MDI geometry
+//     -gcfFile,    // Configuration file
+//     -file        // Save to file. If empty, show graph
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set defArg = SetOfSet (
+    TclArgSt("-title",    ""),
+    TclArgSt("-geometry", ""),
+    TclArgSt("-gcfFile",  ""),
+    TclArgSt("-file",     "")
+  );
+  Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
+
+  Text cmd = "Tol_SerieChart "+
+              BBr( TclGAV("-title", aplArg)    )+
+              " source "  + 
+              BBr( TclGAV("-gcfFile", aplArg)  )+ " "+
+              BBr( TclGAV("-geometry", aplArg) )+ " "+ 
+              BBr( TclGAV("-file", aplArg)     );
+  Text TclTrace(cmd);
+  Set evalTcl = Tcl_Eval(cmd);
+  Text If(Not(evalTcl[2]),
+    WriteLn("<E>Error al graficar la serie. "+ evalTcl[1]+"</E>")
+  );
+  evalTcl["result"]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Función para graficar un conjunto de series. Si se desea guardar el gráfico a
+disco, se ha de especificar un valor en el parámetro <file>.
+El valor de retorno es un texto con el path del grafico visualizado  result : 
+un Text con el path del gráfico visualizado o el error generado en caso de 
+producirse
+Únicamente funciona desde TolBase.
+Parámetros:
+  source   -> SetOfSerie. Conjunto con las series a graficar.
+  valArg:  -> Conjunto con los siguientes argumentos (estructura TclArgSt):
+   -title    -> Título de la ventana del gráfico.
+   -geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
+              Al especificar la geometría de la ventana hay que tener en
+              cuenta, que se refiere a la geometría de la ventana, no a la del
+              gráfico. Hay que sumar '14' como ancho y '92' como alto para
+              salvar el título, barra de botones y barra de estado.
+   -gcfFile  -> Fichero de configuración de grafico.
+   -file     -> Fichero donde se guarda el gráfico. Si se especifica valor en
+              este parámetro el grafico se cerrara una vez guardado a disco.
+Ejemplo:
+  Serie ser1 = Rand(-10, 10, Diario);
+  Serie ser2 = Rand(-15, 15, Diario);
+  Text TclChartSerie(SetOfSerie(ser1, ser2), SetOfSet(
+    TclArgSt(\"-title\",    \"Gráfico de Series\"),
+    TclArgSt(\"-geometry\", \"814x692+1+1\"),
+    TclArgSt(\"-gcf\",      \"../barras.gcf\"),
+    TclArgSt(\"-file\",     \"ser.jpg\")));
+", TclChartSerie);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TclChartMatrix(Matrix source, Set valArg)
+//   Matrix source, // Matrix to graph
+//   Set valArg:
+//   - title,    // Title of chart
+//   - geometry, // MDI geometry
+//   - gcfFile,  // Configuration file
+//   - file,     // Save to file. If empty, show graph
+//   - type,     // significant only for a set of sets or matrix
+//                  // "0" - custom, you must fill pairs field which
+//                  //   has the x and y column index correspondence
+//                  // "1" - all to one
+//                  // "2" - all to generic
+//                  // "3" - even to odd
+//   - names,    // Set of names of the lines
+//   - pairs     // Set of column index pairs to graph
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set defArg =
+    SetOfSet(
+             TclArgSt("-title",    ""),
+             TclArgSt("-geometry", ""),
+             TclArgSt("-gcfFile",  ""),
+             TclArgSt("-file",     ""),
+             TclArgSt("-type",    "1"),
+             TclArgSt("-names",   "{}"),
+             TclArgSt("-pairs",   "{}"),
+             TclArgSt("-holdon",   ""));
+  
+  Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
+
+  Set setSource = MatSet(source);
+  TclChartSet(setSource, aplArg)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Función para graficar una matriz. Si se desea guardar el gráfico a disco, se
+ha de especificar un valor en el parámetro <file>.
+El valor de retorno es un Set con dos elementos
+  status : un Real indicando éxito (0) or fallo (1)
+  result : un Text con el path del gráfico visualizado o el error generado en
+           caso de producirse
+Únicamente funciona desde TolBase.
+Parámetros:
+  source   -> Matriz con los datos a graficar.
+  title    -> Título de la ventana del gráfico.
+  geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
+              Al especificar la geometría de la ventana hay que tener en
+              cuenta, que se refiere a la geometría de la ventana, no a la del
+              gráfico. Hay que sumar '14' como ancho y '92' como alto para
+              salvar el título, barra de botones y barra de estado.
+  gcfFile  -> Fichero de configuración de grafico.
+  file     -> Fichero donde se guarda el gráfico. Si se especifica valor en
+              este parámetro el grafico se cerrara una vez guardado a disco.
+  type     -> Se especifica las líneas a graficar. Posibles valores:
+                0 - especifico, se especifican los pares en la variable
+                    <pairs> de las columnas a graficar
+                1 - todas contra la primera
+                2 - todas contra la genérica
+                3 - impares contra pares
+  names    -> SetOfText con los nombres de las columnas a graficar. Si no
+              se especifica se ponen nombres por defecto.
+  pairs    -> SetOfSet(SetOfReal). Conjunto de conjunto de pares de reales.
+              En cada conjunto se especifica que columna es la X y la Y.
+              Ej: SetOfSet(SetOfReal(2,1),SetOfReal(3,1))
+Ejemplo:
+  Matrix mat1  = Rand(100, 10, -10, 10);
+  Set names    = SetOfText(\"uno\",\"dos\",\"tres\",\"cuatro\",\"cinco\");
+  Set pairs    = SetOfSet(
+    SetOfReal(1,10),
+    SetOfReal(2,9),
+    SetOfReal(3,8),
+    SetOfReal(4,7),
+    SetOfReal(5,6)
+  );
+ Text TclChartMatrix(mat1, SetOfSet(
+   TclArgSt(\"-title\",    \"Gráfico de matriz\"),
+   TclArgSt(\"-geometry\", \"814x692+10+10\"),
+   TclArgSt(\"-gcfFile\",  \"../barras.gcf\"),
+   TclArgSt(\"-file\",     \"ser.jpg\"),
+   TclArgSt(\"-type\",     \"0\"),
+   TclArgSt(\"-names\",    TxtListTcl(names)),
+   TclArgSt(\"-pairs\",    TxtListTcl(pairs))
+ ));", TclChartMatrix);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text TclChartSet(Set source, Set valArg)
+//   Set source,   // Set of sets
+//   Set valArg:
+//   - title,    // Title of chart
+//   - geometry, // MDI geometry
+//   - gcfFile,  // Configuration file
+//   - file,     // Save to file. If empty, show graph
+//   - type,     // significant only for a set of sets or matrix
+//                  // "0" - custom, you must fill pairs field which
+//                  //   has the x and y column index correspondence
+//                  // "1" - all to one
+//                  // "2" - all to generic
+//                  // "3" - even to odd
+//   - names,    // Set of names of the lines
+//   - pairs     // Set of column index pairs to graph
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set defArg = SetOfSet (
+    TclArgSt("-title",    ""),
+    TclArgSt("-geometry", ""),
+    TclArgSt("-gcfFile",  ""),
+    TclArgSt("-file",     ""),
+    TclArgSt("-type",     "1"),
+    TclArgSt("-names",    "{}"),
+    TclArgSt("-pairs",    "{}"),
+    TclArgSt("-holdon",    "")
+  );
+  Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
+
+  Text cmd =
+    "Tol_SetChartMethod "+ 
+    BBr( TclGAV("-title", aplArg)    ) +
+    " source "  + 
+    BBr( TclGAV("-gcfFile", aplArg)  ) +" "+
+    BBr( TclGAV("-geometry", aplArg) ) +" "+
+    BBr( TclGAV("-file", aplArg)     ) +" "+
+    TclGAV("-names", aplArg)           +" "+
+    TclGAV("-type", aplArg)            +" "+
+    TclGAV("-pairs", aplArg)           +" "+
+    TclGAV("-holdon", aplArg) ;
+
+  Text TclTrace(cmd);
+  Set evalTcl = Tcl_Eval(cmd);
+  Text If(Not(evalTcl[2]),
+    WriteLn("<E>Error al graficar el conjunto. "+ evalTcl[1]+"</E>")
+  );
+  evalTcl["result"]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Función para graficar una conjunto. Si se desea guardar el gráfico a disco, se
+ha de especificar un valor en el parámetro <file>.
+El valor de retorno es un Set con dos elementos
+  status : un Real indicando éxito (0) or fallo (1)
+  result : un Text con el path del gráfico visualizado o el error generado en
+           caso de producirse
+Únicamente funciona desde TolBase.
+Parámetros:
+  source   -> Set con los datos a graficar.
+  title    -> Título de la ventana del gráfico.
+  geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
+              Al especificar la geometría de la ventana hay que tener en
+              cuenta, que se refiere a la geometría de la ventana, no a la del
+              gráfico. Hay que sumar '14' como ancho y '62' como alto para
+              salvar el título, barra de botones y barra de estado.
+  gcfFile  -> Fichero de configuración de grafico.
+  file     -> Fichero donde se guarda el gráfico. Si se especifica valor en
+              este parámetro el grafico se cerrara una vez guardado a disco.
+  type     -> Se especifica las líneas a graficar. Posibles valores:
+                0 - especifico, se especifican los pares en la variable
+                    <pairs> de las columnas a graficar
+                1 - todas contra la primera
+                2 - todas contra la genérica
+                3 - impares contra pares
+  names    -> SetOfText con los nombres de las columnas a graficar. Si no
+              se especifica se ponen nombres por defecto.
+  pairs    -> SetOfSet(SetOfReal). Conjunto de conjunto de pares de reales.
+              En cada conjunto se especifica que columna es la X y la Y.
+              Ej: SetOfSet(SetOfReal(2,1),SetOfReal(3,1))
+Ejemplo:
+  Set set1 = 
+    SetOfSet(
+      SetOfText(\"a\",\"s\",\"d\",\"f\",\"g\",\"h\"),
+      SetOfReal( 1,  2,  3,  4,  5,  6),
+      SetOfReal(12, 34, 35, 65, 76, 43),
+      SetOfReal( 3,  7,  4,  2,  9,  6),
+      SetOfReal( 2,  4,  5,  5,  6,  3));
+  Set set1Tra = Traspose(set1);
+  Set pairs    = SetOfSet(
+    SetOfReal(2,3),
+    SetOfReal(4,5)
+  );
+  Set names    = SetOfText(\"uno\",\"dos\",\"tres\",\"cuatro\");
+
+  Text TclChartSet(set1Tra,SetOfSet(
+   TclArgSt(\"-title\",    \"Gráfico de conjuntos 1\"),
+   TclArgSt(\"-geometry\", \"814x692+10+10\"),
+   TclArgSt(\"-gcfFile\",  \"\"),
+   TclArgSt(\"-file\",     \"\"),
+   TclArgSt(\"-type\",     \"0\"),
+   TclArgSt(\"-names\",    TxtListTcl(Copy(Empty))),
+   TclArgSt(\"-pairs\",    TxtListTcl(pairs))
+ ));
+
+  Text TclChartSet(set1Tra,SetOfSet(
+   TclArgSt(\"-title\",    \"Gráfico de conjuntos 2\"),
+   TclArgSt(\"-geometry\", \"814x692+10+10\"),
+   TclArgSt(\"-gcfFile\",  \"\"),
+   TclArgSt(\"-file\",     \"\"),
+   TclArgSt(\"-type\",     \"1\"),
+   TclArgSt(\"-names\",    TxtListTcl(names)),
+   TclArgSt(\"-pairs\",    TxtListTcl(Copy(Empty)))
+ ));", TclChartSet);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text TclChartSerieAutocor(Serie source, Set valArg)
+//   Set source,    // Series to autocorrelation graph
+//   Set valArg:
+//     -title,      // Title of chart
+//     -geometry,   // MDI geometry
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set defArg = SetOfSet (
+    TclArgSt("-title",    ""),
+    TclArgSt("-geometry", "")
+  );
+  Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
+
+  Text cmd = "Tol_SerieAutocor "+
+              " source "  + 
+              BBr( TclGAV("-title"   , aplArg) ) +" "+
+              BBr( TclGAV("-geometry", aplArg) );
+  Text TclTrace(cmd);
+  Set evalTcl = Tcl_Eval(cmd);
+  Text If(Not(evalTcl[2]),
+    WriteLn("<E>Error al graficar la serie de autocorrelaciones. "+ 
+            evalTcl[1]+"</E>")
+  );
+  evalTcl["result"]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Función para graficar la serie de autocorrelaciones de una serie.
+El valor de retorno es un texto con el path del grafico visualizado
+result : un Text con el path del gráfico visualizado o el error generado en
+caso de producirse
+Únicamente funciona desde TolBase.
+Parámetros:
+  source   -> SetOfSerie. Conjunto con las series a graficar.
+  valArg:  -> Conjunto con los siguientes argumentos (estructura TclArgSt):
+   -title    -> Título de la ventana del gráfico.
+   -geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
+              Al especificar la geometría de la ventana hay que tener en
+              cuenta, que se refiere a la geometría de la ventana, no a la del
+              gráfico. Hay que sumar '14' como ancho y '92' como alto para
+              salvar el título, barra de botones y barra de estado.
+Ejemplo:
+  Serie ser1 = Rand(-10, 10, Diario);
+  Text TclChartSerieAutocor(ser1, SetOfSet(
+    TclArgSt(\"-title\",    \"Gráfico de Autocorrelaciones\"),
+    TclArgSt(\"-geometry\", \"814x692+1+1\")));
+", TclChartSerieAutocor);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text TclChartTimeSet(Set source, Set valArg)
+//   TimeSet source,   // Set of TimeSet
+//   Text    title,    // Title for the table
+//   Text    geometry) // MDI geometry specification
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set defArg = SetOfSet (
+    TclArgSt("-title", ""),
+    TclArgSt("-geometry", "")
+  );
+  Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );  
+
+  Set setResult = EvalSet(source, Text(TimeSet tms) {
+    Text cmd = "::TolInspector::ViewTimeSet tms "+
+      TclGAKV("-title"   , aplArg, 1)+" "+
+      TclGAKV("-geometry", aplArg, 1);
+WriteLn(cmd);
+    Set evalTcl = Tcl_Eval(cmd);
+    Text If(Not(evalTcl[2]),
+      WriteLn("<E>Error al mostrar el TimeSet. "+ evalTcl[1]+"</E>")
+    );
+    evalTcl["result"]+NL
+  });
+  Text If(IsEmpty(setResult), "", BinGroup("+",setResult))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("
+Función para graficar un conjunto de TimeSet.
+En esta primera versión se muestra un experto en calendario por TimeSet.
+El valor de retorno es un Text
+  result : un Text con el path del gráfico visualizado o el error generado en
+           caso de producirse
+Únicamente funciona desde TolBase.
+Parámetros:
+  source   -> Set con los datos a graficar.
+  valArg:  -> Conjunto con los siguientes argumentos (estructura TclArgSt):
+   -title    -> Título de la ventana del experto en calendarios.
+   -geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
+              Al especificar la geometría de la ventana hay que tener en
+              cuenta, que se refiere a la geometría de la ventana, no a la del
+              experto en calendarios.
+Ejemplo:
+  Text TclChartTimeSet(SetOfTimeSet(Mensual, Easter), SetOfSet(
+    TclArgSt(\"-title\",\"Visualizando un TimeSet\"),
+    TclArgSt(\"-geometry\", \"100x100+1+1\")
+  ));
+", TclChartTimeSet);
+//////////////////////////////////////////////////////////////////////////////
