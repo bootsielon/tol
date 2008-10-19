@@ -140,8 +140,7 @@ int Tol_CreateTMSCmd( Tcl_Interp * interp, Tcl_Obj * tmscmd,
     return TCL_ERROR;
   }
 
-  if (!(tol_obj=Tol_ResolveObject(interp, tmsname, gra))) {
-    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));    
+  if (!(tol_obj=Tol_ResolveObject(interp, tmsname, obj_result/*, gra*/))) {
     return TCL_ERROR;
   }
 

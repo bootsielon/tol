@@ -441,7 +441,6 @@ proc ::Editor::OnConfigure { this w h } {
      "bnew"         "CmdNew"      "[mc [list New white document]] (CTRL+N)" \
      "bopen"        "CmdOpen"     "[mc Open] (CTRL+A)" \
      "bsave"        "CmdSave"     "[mc Save] (CTRL+S)" \
-     "bsaveas"      "CmdSaveAs"   "[mc "Save As"] (CTRL+G)" \
      "sep1"        "--"          ""\
      "bcut"         "CmdCut"      "[mc Cut] (CTRL+X)" \
      "bcopy"        "CmdCopy"     "[mc Copy] (CTRL+C)" \

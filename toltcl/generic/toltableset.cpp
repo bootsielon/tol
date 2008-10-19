@@ -2,7 +2,7 @@
                     as a table.
                     GNU/tolTcl Library
 
-   Copyright (C) 2001, 2002, 2003 - Bayes Decisión, SL
+   Copyright (C) 2001, 2002, 2003 - Bayes DecisiÃ³n, SL
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include <tol/tol_bcommon.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bmatgra.h>
+#include <tol/tol_bvmatgra.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>
 
@@ -160,7 +161,6 @@ public:
   Tcl_Interp * GetInterp(void) {
     return interp;
   }
-
   int GetRows() {
     return rows;
   }
@@ -257,10 +257,10 @@ protected:
 
 class Tol_TableMatrix : public Tol_Table {
 public:
-  Tol_TableMatrix(Tcl_Interp * _interp, char * matname, BMat * mat,
+  Tol_TableMatrix(Tcl_Interp * _interp, char * matname, BMatrix<double> *mat,
                   Tcl_Obj * obj_result);
 protected:
-  int Build(BMat * mat, Tcl_Obj * obj_result);  
+  int Build(BMatrix<double> *mat, Tcl_Obj * obj_result);  
 };
 
 /*
@@ -1598,7 +1598,7 @@ int Tol_TableSet::Build( BSet * set, Tcl_Obj * obj_result )
  *     was created.
  */
 
-Tol_TableMatrix::Tol_TableMatrix(Tcl_Interp * _interp, char * matname, BMat * mat,
+Tol_TableMatrix::Tol_TableMatrix(Tcl_Interp * _interp, char * matname, BMatrix<double> *mat,
                                  Tcl_Obj * obj_result)
   : Tol_Table(_interp, matname)
 {
@@ -1611,7 +1611,7 @@ Tol_TableMatrix::Tol_TableMatrix(Tcl_Interp * _interp, char * matname, BMat * ma
  *    Build the actual ADT from a BMat object. Return success state.
  */
 
-int Tol_TableMatrix::Build(BMat * mat, Tcl_Obj * obj_result)
+int Tol_TableMatrix::Build(BMatrix<double> *mat, Tcl_Obj * obj_result)
 {
   Tol_ColumnData * ptrCol;
   int colSize =  mat->Columns();
@@ -1631,7 +1631,8 @@ int Tol_TableMatrix::Build(BMat * mat, Tcl_Obj * obj_result)
         sprintf(buffer, "row %d", row);
         Tcl_IncrRefCount(rowsNames[row]=Tcl_NewStringObj(buffer, -1));
       }
-      ptrCol->AppendBDat(interp,(*mat)(row,col));
+      BDat dat((*mat)(row,col));
+      ptrCol->AppendBDat(interp, dat);
     }
   }
   return TCL_OK;
@@ -1672,8 +1673,7 @@ int Tol_CreateTable(Tcl_Interp * interp,
   }
 
   // syn = Tol_GetObjFromReference( interp, GraSet(), setref, obj_result );
-  if (!(syn=Tol_ResolveObject(interp, objref, ismat?GraMatrix():GraSet()))) {
-    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));    
+  if (!(syn=Tol_ResolveObject(interp, objref, obj_result))) {
     return TCL_ERROR;
   }
 
@@ -1682,19 +1682,37 @@ int Tol_CreateTable(Tcl_Interp * interp,
   BText objname( syn->Name() );
   Tol_Table * ptrTable;
   if (ismat) {
-    BMat * ptrMat = &(((BUserMat*)syn)->Contens());
+    BMatrix<double> vmat;
+    BMatrix<double> &theMat = vmat;
+    if (syn->Grammar()==GraVMatrix()) {
+      BVMat &V = VMat((BSyntaxObject *)syn);
+      V.GetDMat(vmat);
+    } else if (syn->Grammar()==GraMatrix()) {
+      theMat = ((DMat&)Mat((BSyntaxObject *)syn));
+    } else {  
+      Tcl_AppendStringsToObj( obj_result, Tcl_GetString(objref),
+                              " is not a valid Matrix|VMatrix object", NULL );    
+      return TCL_ERROR;
+    }
+    
     ptrTable = new Tol_TableMatrix( interp, objname.Buffer(),
-                                    ptrMat, obj_result );
-  } else {
-    BSet * ptrSet = &(((BUserSet*)syn)->Contens());
+                                    &theMat, obj_result );
+  } else if ( syn->Grammar()==GraSet() ) {
+    
+    BSet *ptrSet = &(Set((BSyntaxObject*)syn));
     ptrTable = new Tol_TableSet( interp, objname.Buffer(),
                                  ptrSet, obj_result );
+  } else {  
+    Tcl_AppendStringsToObj( obj_result, Tcl_GetString(objref),
+                            " is not a valid Set object", NULL );    
+    return TCL_ERROR;
   }
   if ( ptrTable->CmdStatus() != TCL_OK ) {
     delete ptrTable;
     return TCL_ERROR;
   }
   ptrTable->CreateCommand(tblname);
+  
   return TCL_OK;
 }
 

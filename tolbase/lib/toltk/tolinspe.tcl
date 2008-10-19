@@ -33,7 +33,7 @@ if {"unix" eq $::tcl_platform(platform)} {
 ## PURPOSE: Auxiliary procedure to show a string
 ##
 ##/////////////////////////////////////////////////////////////////////////////
-#  puts $args
+#puts $args
 #}
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ namespace eval ::TolInspector {
   
   # name of the current TOL set variable.
   variable tolset ""
-  variable tolindex
+  variable tolindex ""
   # estas variables desapareceran cuando ::tol::forallchild admita scripts
   # completos y no solo nombres de proc
   variable at_set
@@ -488,6 +488,7 @@ proc ::TolInspector::CreateMenus {} {
   set data_menu(Complex,File)  [menu $data_menu(main).mcxf -tearoff 0]
   set data_menu(Date,File)     [menu $data_menu(main).mdaf -tearoff 0]
   set data_menu(Matrix,File)   [menu $data_menu(main).mmaf -tearoff 0]
+  set data_menu(VMatrix,File)  [menu $data_menu(main).mvmf -tearoff 0]
   set data_menu(Polyn,File)    [menu $data_menu(main).mpof -tearoff 0]
   set data_menu(Ratio,File)    [menu $data_menu(main).mraf -tearoff 0]
   set data_menu(Real,File)     [menu $data_menu(main).mref -tearoff 0]
@@ -502,6 +503,7 @@ proc ::TolInspector::CreateMenus {} {
   set data_menu(Complex,Functions)  [menu $data_menu(main).mcxfu -tearoff 0]
   set data_menu(Date,Functions)     [menu $data_menu(main).mdafu -tearoff 0]
   set data_menu(Matrix,Functions)   [menu $data_menu(main).mmafu -tearoff 0]
+  set data_menu(VMatrix,Functions)  [menu $data_menu(main).mvmfu -tearoff 0]
   set data_menu(Polyn,Functions)    [menu $data_menu(main).mpofu -tearoff 0]
   set data_menu(Ratio,Functions)    [menu $data_menu(main).mrafu -tearoff 0]
   set data_menu(Real,Functions)     [menu $data_menu(main).mrefu -tearoff 0]
@@ -642,8 +644,8 @@ proc ::TolInspector::TrimContent { grammar content } {
 #   args[3] -> path
 #   args[4] -> desc
 #   Si grammar == "Code"
-#    args[5] -> øes una variable?
-#   Si grammar == "Set"
+#    args[5] -> ¬øes una variable?
+#   Si grammar == "Set" || "NameBlock"
 #    args[5] -> indexes of the set
 #    args[6] -> is file?
 #    args[7] -> has subset?
@@ -656,19 +658,19 @@ proc ::TolInspector::TrimContent { grammar content } {
   variable ht_funcs
   variable blt_functree
 
-  #Tolcon_Trace "InsertChild $args"
+  #puts "InsertChild: args=$args [info level 1]"
   set grammar [lindex $args 0]
   set name    [lindex $args 1]
   set content [lindex $args 2]
   set path    [lindex $args 3]
   set desc    [lindex [lindex $args 4] 0]
   if {[llength [lindex $args end]] >= 2} {
-    set ref [list [lindex [lindex $args end] 0] [lrange [lindex $args end] 1 end]]
-    #Tolcon_Trace "InsertChild.  ref=$ref"
+    #set ref [list [lindex [lindex $args end] 0] [lrange [lindex $args end] 1 end]]
+    set ref [concat [lindex [lindex $args end] 0] [lrange [lindex $args end] 1 end]]
   } else {
     set ref ""      
   }
-
+  #puts "InsertChild: ref=$ref"
   switch $grammar {
     Code {
       set isvar [lindex $args 5]
@@ -678,6 +680,7 @@ proc ::TolInspector::TrimContent { grammar content } {
         Insert_HTItem $ht_funcs $blt_functree $grammar $name $content $path $desc $ref
       }
     }
+    NameBlock -
     Set {
       # args[5] is the index of the set object
       # args[6] is the flag file
@@ -693,7 +696,7 @@ proc ::TolInspector::TrimContent { grammar content } {
 
 # si grammar == "Set"
 #   args[0] -> indexes
-#   args[1] -> øis a file?
+#   args[1] -> ¬øis a file?
 #   args[2] -> subtype
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -709,28 +712,31 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
 
   set brief_cont [TrimContent $grammar $content]
   set brief_desc [TrimContent DONTCARE $desc]
+  #puts "Insert_HTItem: args=$args"
   if {[llength [lindex $args end]] >= 2} {
     set ref_value [lindex [lindex $args end] 1]
-  } elseif {[regexp -- "console|pool" $node_prefix]} {
-    set ref_value [list ""]
-    eval lappend ref_value $tolindex $item_id
+  } elseif {[regexp -- "console" $node_prefix]} {
+    set ref_value [list Console]
+	eval lappend ref_value $tolindex $item_id
   } else {
     set ref_value ""
   }
+
+  #puts "Insert_HTItem: ref_value=$ref_value tolindex=$tolindex item_id=$item_id node_prefix=$node_prefix"
+  #puts "\ttolset=$tolset"
   set data [list Index      $item_id \
                 Content     $brief_cont \
                 Path        $path \
                 Description $brief_desc \
                 Reference   $ref_value]
 
-  if { [string equal "Set" $grammar] } {
+  if {$grammar eq "Set" || $grammar eq "NameBlock"} {
     if {[string length $tolset] || [regexp "console" $node_prefix]} {
       # OJO: si tolset == "" no implica que no estemos en un Set
       # por ejemplo un Set de la consola.
       set item [GetItemName $node_prefix [lindex $args 0]]
       #Tolcon_Trace "InsertHTItem. item(if): $item"
     } else {
-      #Tolcon_Trace "Insert_HTItem. get -full anchor: [$ht_tree get -full anchor]"
       switch [lindex [$ht_tree get -full anchor] end] {
         root-files {
           set item file$item_id
@@ -745,10 +751,13 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
           set item item$item_id
         }
       }
-      #Tolcon_Trace "InsertHTItem. item(else): $item"
     }
     # aqui hay que pedir el bitmap en funcion del subtype: args[2]
-    set icon_grammar [SubTypeImage [lindex $args 2]]
+    if {$grammar eq "Set"} {
+      set icon_grammar [SubTypeImage [lindex $args 2]]
+    } else {
+      set icon_grammar [::Bitmap::get "NameBlock"]
+    }
   } else {
     set item "item$item_id"
     set icon_grammar [::Bitmap::get $grammar]
@@ -803,7 +812,6 @@ proc ::TolInspector::OpenObject { index } {
 #   index : The id of the node opened
 #
 #/////////////////////////////////////////////////////////////////////////////
-  #Tolcon_Trace "LLAMADA A OPENOBJECT. index=$index"
   variable tolset
   variable tolindex
   variable at_set
@@ -811,15 +819,15 @@ proc ::TolInspector::OpenObject { index } {
   variable ht_tree
   variable data
 
-  set path [$ht_tree get -full $index]
-  puts "OpenObject : index = $index"
-  puts "OpenObject : path = $path"
+  #puts "OpenObject: index=$index"
+  set path [$ht_tree get -full $index] 
   if { $index } {
     set parent1 [lindex $path 1]
     if { [set isfile [string equal $parent1 "root-files"]] ||
          [set isconsole [string equal $parent1 "root-console"]] ||
          [string equal $parent1 "root-pool"] } {
       set lpath [llength $path]
+      #puts "lpath = $lpath"
       if { $lpath == 2 } {
         if { $isfile } {
           InsertFiles
@@ -829,34 +837,44 @@ proc ::TolInspector::OpenObject { index } {
           InsertPoolObj
         }
       } else {
-        puts "en OpenObject path = $path"
+        #puts "OpenObject: path = $path"
         set leaf [lindex $path end]
         set leaf_info [split $leaf "-"]
         set node_prefix [lindex $leaf_info 0]
         set _tolset $tolset
+		puts "OpenObject: node_prefix = $node_prefix"
         if { [string equal $parent1 "root-pool"] } {
           #Tolcon_Trace "OpenObject. tolset=$tolset"
           set tolset $data(pool,reference,[lindex $leaf_info 0])
-          #Tolcon_Trace "OpenObject. tolset=$tolset, leaf_info=$leaf_info"
+          #puts "OpenObject: Spool: tolset=$tolset, leaf_info=$leaf_info"
           if { $lpath == 3 } {
             set tolindex [lrange $tolset 1 end]
             set tolset [lindex $tolset 0]
           } else {
             set tolindex [lrange $leaf_info 1 end]
-            set tolset [lindex $tolset 0]
+		    if {[lindex $tolset 0] eq "Console"} {
+		      set tolset [lindex $tolset 0]  
+		    } else {
+		      set tolset [lrange $tolset 0 1]
+		    }
+            #set tolindex [lrange $tolset 1 end]
+            #set tolset [lindex $tolset 0]
+            #lappend tolindex [lindex $leaf_info end]
           }
           #Tolcon_Trace "OpenObject. tolset=$tolset"
         } elseif {[regexp -- "console(.+)" $node_prefix --> idx_con]} {
-          set tolset ""
+          set tolset "Console"
+		  #puts "OpenObject: Console: leaf_info = $leaf_info"
           if {[llength $leaf_info] == 1} {
             set tolindex $idx_con
           } else {
+            #set tolindex [list $idx_con [lrange $leaf_info 1 end]]
             set tolindex [lrange $leaf_info 1 end]
           }
         } else {
           set idx [$ht_tree find -name $node_prefix]
           array set aryData [$ht_tree entry cget $idx -data]
-          set tolset $aryData(FileName)
+          set tolset [list File $aryData(FileName)]
           #set tolset [$ht_tree entry cget [$ht_tree find -name $node_prefix] -label]
           if { $lpath == 3 } {
             set tolindex ""
@@ -866,8 +884,9 @@ proc ::TolInspector::OpenObject { index } {
         }
         Busy
         set at_set $index
-        set set_ref [eval list [list $tolset] $tolindex]
-puts "set_ref = $set_ref"
+        #set set_ref [eval list [list $tolset] $tolindex]
+        set set_ref [eval list $tolset $tolindex]
+        #puts "OpenObject: set_ref = $set_ref"
         ::tol::forallchild $set_ref ::TolInspector::InsertSubset
         set tolset $_tolset
         NotBusy
@@ -916,7 +935,7 @@ proc ::TolInspector::InsertFiles { } {
     set tag_file "file$index"
     set blt_idx [$blt_tree insert "root-files" \
              -label $tag_file -tags $tag_file]
-    # Tail del fichero. PodrÌa hacerse configurable por el usuario
+    # Tail del fichero. Podr√≠a hacerse configurable por el usuario
     set label [file tail $f]
     $ht_tree entry configure $blt_idx -label $label\
     -icons  [list $img $img] -button $button -data [list "FileName" $f]
@@ -936,9 +955,13 @@ proc ::TolInspector::InsertConsoleObj { } {
   set index 1
   foreach co [::tol::console stack list] {
     set grammar [lindex $co 0]
-    if { [string equal $grammar "Set" ] } {
+    if {$grammar eq "Set" || $grammar eq "NameBlock"} {
       # SUBTYPE: icono en funcion de [lindex $co 7]
-      set icon [SubTypeImage [lindex $co 7]]
+      if {$grammar eq "Set"} {
+        set icon [SubTypeImage [lindex $co 7]]
+      } else  {
+        set icon [::Bitmap::get "NameBlock"]
+      }
       set name [lindex $co 1]
       #tol::forallchild $name HasSubset
       set has_button [lindex $co 6]
@@ -968,9 +991,9 @@ proc ::TolInspector::InsertPoolObj { } {
   foreach _obj $data(pool,objects) {
     #Tolcon_Trace "InsertPoolObj. _obj=$_obj"
     array set obj $_obj
-    if { [string equal $obj(grammar) "Set"] } {
+    if { [string equal $obj(grammar) "Set"] || [string equal $obj(grammar) "NameBlock"] } {
       #Si la referencia del objeto tiene espacios en la ruta, el 
-      # llength me darÌa > 1, por eso aÒado la 2™ parte de la condicion
+      # llength me dar√≠a > 1, por eso a√±ado la 2¬™ parte de la condicion
       if { ([llength $obj(reference)] > 1) && \
             ![string equal $obj(reference) $obj(objName)]} {
         set infoObj [::tol::info variable $obj(reference)]
@@ -991,8 +1014,14 @@ proc ::TolInspector::InsertPoolObj { } {
         }
       }
       set has_button [lindex $infoObj 6]
-      set icon [SubTypeImage [lindex $infoObj 7]]
-      $ht_tree insert -at root-pool end "pool$index" -label $name \
+      #set icon [SubTypeImage [lindex $infoObj 7]]
+      if {$obj(grammar) eq "Set"} {
+        set icon [SubTypeImage [lindex $infoObj 7]]
+      } else  {
+        set icon [::Bitmap::get "NameBlock"]
+      }
+
+	  $ht_tree insert -at root-pool end "pool$index" -label $name \
         -icon [list $icon $icon] -button $has_button
       #Tolcon_Trace "InsertPoolObj. name=$name"
       if { ([llength $obj(reference)] > 1) && \
@@ -1023,7 +1052,6 @@ proc ::TolInspector::InsertSubset { args } {
 #    args[8] -> subtype
 #
 #/////////////////////////////////////////////////////////////////////////////
-  #Tolcon_Trace "InsertSubset, args=$args"
   variable ht_tree
   variable at_set
   variable tolset
@@ -1031,7 +1059,9 @@ proc ::TolInspector::InsertSubset { args } {
   variable has_button 0
   variable blt_tree
 
-  if {[string equal [lindex $args 0] Set]} {
+  #puts "InsertSubset, args=$args"
+  set grammar [lindex $args 0]
+  if {$grammar eq "Set" || $grammar eq "NameBlock"} {
     set name    [lindex $args 1]
     set content [lindex $args 2]
     set idx     [lindex $args 5]
@@ -1039,15 +1069,19 @@ proc ::TolInspector::InsertSubset { args } {
     set has_button [lindex $args 7]
     set subtype [lindex $args 8]
     #tol::forallchild $tolset $idx HasSubset
-    set icon [SubTypeImage $subtype]
-    # Tail por si es un fichero. PodrÌa hacerse configurable por el usuario
+    if {$grammar eq "Set"} {
+      set icon [SubTypeImage $subtype]
+    } else {
+      set icon [::Bitmap::get "NameBlock"]
+    }
+    # Tail por si es un fichero. Podr√≠a hacerse configurable por el usuario
     set label [file tail $name]
-puts [list InsertSubset, idx {lindex $args 5} = $idx]
+    #puts [list InsertSubset, idx {lindex $args 5} = $idx]
     set idnew [$blt_tree insert $at_set -label [GetItemName $node_prefix $idx]]
 
-puts "InsertSubset, node_prefix = $node_prefix"
-puts "InsertSubset, idnew = $idnew"
-puts "InsertSubset, -label = [GetItemName $node_prefix $idx]"
+    #puts "InsertSubset, node_prefix = $node_prefix"
+    #puts "InsertSubset, idnew = $idnew"
+    #puts "InsertSubset, -label = [GetItemName $node_prefix $idx]"
 
     if {$label eq ""} {
       if {[set label [TrimContent DONTCARE [lindex $args 4]]] eq ""} {
@@ -1167,6 +1201,7 @@ proc ::TolInspector::SelectObject { } {
   #Tolcon_Trace "LLAMADA A SELECTOBJECT"
   variable w_tabset
   variable ht_tree
+  #variable set_type ""
   variable tolset
   variable tolindex
   #variable closing
@@ -1183,18 +1218,19 @@ proc ::TolInspector::SelectObject { } {
 
   set tolset ""
   if { $index } {
-puts "SelectObject index = $index"
-puts "SelectObject full = [$ht_tree get -full $index]"
-    set info_node [split [lindex [$ht_tree get -full $index] end] "-"]
+    #puts "SelectObject index = $index"
+    #puts "SelectObject: full = [$ht_tree get -full $index]"
+    set info_node [split [lindex [$ht_tree get -full $index] end] "-"] ;# ojo si el path tiene -
     set node_type [lindex $info_node 0]
     set node_name [lindex $info_node 1]
-puts "info_node = $info_node"
+    #puts "SelectObject: info_node = $info_node"
   } else {
     set node_type root
     set node_name root
   }
 
   Busy
+  #puts "SelectObject: node_type = $node_type"
   switch -regexp $node_type  {
     root {
       switch $node_name {
@@ -1219,21 +1255,28 @@ puts "info_node = $info_node"
       SelectGrammar
     }
     default {
-puts "node_type = $node_type"
       set node_prefix $node_type
-      if { [regexp -- "pool" $node_type] } {
+	  #puts "SelectObject: node_prefix = $node_prefix"
+	  if {[regexp -- "pool" $node_type]} {
         set tolset $data(pool,reference,[lindex $node_type 0])
-        #Tolcon_Trace "SelectObject. tolset=$tolset, info_node=$info_node"
+        #puts "SelectObject: Spool: tolset=$tolset, info_node=$info_node"
         if { [llength $info_node] == 1 } {
           set tolindex [lrange $tolset 1 end]
           set tolset [lindex $tolset 0]
         } else {
+          #set tolindex [lrange $tolset 1 end]
+          #set tolset [lindex $tolset 0]
+          #lappend tolindex [lindex $info_node end]
           set tolindex [lrange $info_node 1 end]
-          set tolset [lindex $tolset 0]
+		  if {[lindex $tolset 0] eq "Console"} {
+		    set tolset [lindex $tolset 0]  
+		  } else {
+		    set tolset [lrange $tolset 0 1]
+		  }
         }
-      #Tolcon_Trace "SelectObject. tolset=$tolset, tolindex=$tolindex"
       } elseif {[regexp -- "console(.+)" $node_type --> idx_con]} {
-        set tolset ""
+	    #puts "SelectObject: Console: tolset=$tolset info_node=$info_node idx_con=$idx_con"
+        set tolset "Console"
         #set idx [$ht_tree find -name $node_type]
         #array set aryData [$ht_tree entry cget $idx -data]
         #set tolindex [eval list $aryData(FileName) [lrange $info_node 1 end]]
@@ -1241,13 +1284,17 @@ puts "node_type = $node_type"
           set tolindex $idx_con
         } else {
           set tolindex [lrange $info_node 1 end]
+          #set tolindex [concat [list $idx_con] $tolindex]
         }
       } else {
         set idx [$ht_tree find -name $node_type]
         array set aryData [$ht_tree entry cget $idx -data]
-        set tolset $aryData(FileName)
+		#puts "SelectObject: FileName=$aryData(FileName) info_node=$info_node"
+        set tolset [list File $aryData(FileName)]
         set tolindex [lrange $info_node 1 end]
+        #set tolindex [lrange $info_node 2 end]
       }
+	  #puts "SelectObject end: tolset=$tolset, tolindex=$tolindex"
       SelectSet
     }
   }
@@ -1295,7 +1342,8 @@ proc ::TolInspector::SelectConsoleRoot { } {
 #  $w_tabset tab configure Functions -state disabled
   
   foreach co [::tol::console stack list] {
-    set gra  [lindex $co 0]
+   #puts "SelectConsoleRoot: co = $co"
+   set gra  [lindex $co 0]
     set name [lindex $co 1]
     set cont [lindex $co 2]
     set path [lindex $co 3]
@@ -1304,15 +1352,18 @@ proc ::TolInspector::SelectConsoleRoot { } {
       Code {
         InsertChild $gra $name $cont $path [list $desc] 0
       }
+      NameBlock -
       Set {
+        #puts "switch: SelectConsoleRoot $gra"
         InsertChild $gra $name $cont $path [list $desc] \
-            $item_id [lindex $co 5] [lindex $co 6] [lindex $co 7] "Reference [list {} $item_id]"
+            $item_id [lindex $co 5] [lindex $co 6] [lindex $co 7] \
+            [list Reference [list "Console" $item_id]]
       }
       default {
-        InsertChild $gra $name $cont $path [list $desc] "Reference [list {} $item_id]"
+        InsertChild $gra $name $cont $path [list $desc] \
+            [list Reference [list "Console" $item_id]]
       }
     }
-    #eval "InsertChild [lrange $co 0 4] $item_id [lindex $co end]" 
   }
 }
 
@@ -1334,11 +1385,12 @@ proc ::TolInspector::SelectPoolRoot { } {
 
   array unset data pool,variables,*
   # Para cada uno de los objetos que debe haber en el spool
-  # busco la informaciÛn del nodo y lo inserto en el treeview de la derecha
+  # busco la informaci√≥n del nodo y lo inserto en el treeview de la derecha
   foreach _obj $data(pool,objects) {
     array set obj $_obj
     #Si la referencia del objeto tiene espacios en la ruta, el
-    # llength me darÌa > 1, por eso aÒado la 2™ parte de la condicion
+    # llength me dar√≠a > 1, por eso a√±ado la 2¬™ parte de la condicion
+    #puts "SelectPoolRoot: obj(grammar)=$obj(grammar) obj(objName)=$obj(objName) obj(reference)=$obj(reference)"
     if { ([llength $obj(reference)] > 1) && ![string equal $obj(reference) $obj(objName)]} {
       if {$obj(grammar) eq "Code"} {
         set infoObj [concat [list $obj(grammar) $obj(objName)] \
@@ -1354,8 +1406,9 @@ proc ::TolInspector::SelectPoolRoot { } {
           set infoObj [concat [list $obj(grammar) $obj(reference)] \
                [::tol::info function $obj(graApply) $obj(reference)]]
         } else  {
-          set infoObj [concat [list $obj(grammar) $obj(reference)] \
-               [::tol::info variable $obj(grammar) $obj(reference)]]
+          #set infoObj [concat [list $obj(grammar) $obj(reference)] \
+          #     [::tol::info variable $obj(grammar) $obj(reference)]]
+          set infoObj [::tol::info variable [list $obj(grammar) $obj(reference)]]
         }
         #Tolcon_Trace "tol info (var|function) Grammar nameGlobal"
       } else {
@@ -1376,7 +1429,8 @@ proc ::TolInspector::SelectPoolRoot { } {
       Code {
         InsertChild $gra $name $cont $path [list $desc] 0 "Reference $obj(reference)"
       }
-      Set {
+      Set -
+      NameBlock {
         InsertChild $gra $name $cont $path [list $desc] \
             $item_id [lindex $infoObj 5] [lindex $infoObj 6] [lindex $infoObj 7] "Reference $obj(reference)"
       }
@@ -1412,20 +1466,20 @@ proc ::TolInspector::SelectGrammar { } {
     }
     foreach var  [::tol::info variables $grammar] {
       if {[catch {
-        set vinfo [::tol::info variables $grammar $var]
+        set vinfo [::tol::info variables [list $grammar $var]]
       } msg]} {
         Tol_HciWriter "<E>in ::TolInspector::SelectGrammar : $msg\n</E>"
         continue
       }
       if { [string equal $grammar "Code"] } {
         #Tolcon_Trace "Code : -- $vinfo --"
-        InsertChild $grammar $var [lindex $vinfo 0] [lindex $vinfo 1] [list [lindex $vinfo 2]] 1  
+        InsertChild $grammar $var [lindex $vinfo 2] [lindex $vinfo 3] [list [lindex $vinfo 4]] 1  
       } elseif { [string equal $grammar "Set"] } {
         #Tolcon_Trace "Set : -- $vinfo --"
-        InsertChild $grammar $var [lindex $vinfo 0] [lindex $vinfo 1] [list [lindex $vinfo 2]] \
-          $item_id [lindex $vinfo 3] [lindex $vinfo 4] [lindex $vinfo 5]
+        InsertChild $grammar $var [lindex $vinfo 2] [lindex $vinfo 3] [list [lindex $vinfo 4]] \
+          $item_id [lindex $vinfo 5] [lindex $vinfo 6] [lindex $vinfo 7]
       } else {
-        InsertChild $grammar $var [lindex $vinfo 0] [lindex $vinfo 1] [list [lindex $vinfo 2]] $item_id 0
+        InsertChild $grammar $var [lindex $vinfo 2] [lindex $vinfo 3] [list [lindex $vinfo 4]] $item_id 0
       }  
     }
   } else {
@@ -1458,16 +1512,16 @@ proc ::TolInspector::SelectSet { } {
   #variable selecting_set
   
   #  if { $selecting_set } {
-  #    puts "eoooo ..."
+  #puts "eoooo ..."
   #    return
   #  }
   ClearHiertables
   #  set selecting_set 1
-  puts "tolset = $tolset"
-  puts "tolindex = $tolindex"
   set item_id 1
-  set set_ref [eval list [list $tolset] $tolindex]
-  puts "set_ref = $set_ref"
+  
+  #puts "SelectSet: tolset=$tolset tolindex=$tolindex"
+  set set_ref [eval list $tolset $tolindex]
+  #puts "SelectSet: set_ref = $set_ref"
   ::tol::forallchild $set_ref ::TolInspector::_InsertChild
   #  set selecting_set 0
 }
@@ -1526,16 +1580,21 @@ proc ::TolInspector::OpenVariable { index } {
   set node_anchor [lindex [$ht_tree get -full anchor] end]
   
   set tree_index -1
-  if { ![regexp -- "grammar-" $node_anchor] &&
-       [string equal [lindex $item_data([lindex [$ht_vars entry cget $index -data] end]) 2] "Set"] } {
-    $ht_tree open anchor
-    set local_name [lindex [$ht_vars get -full $index] end]
-    set idx_anchor [$ht_tree index anchor]
-    if { [set tree_index [$blt_tree findchild $idx_anchor $local_name]] == -1 } {
-      foreach idx [$ht_tree entry children anchor] {
-        if { [string equal $local_name [lindex [$ht_tree get -full $idx] end]] } {
-          set tree_index $idx
-          break
+  #puts "OpenVariable = $item_data([lindex [$ht_vars entry cget $index -data] end])"
+  if { ![regexp -- "grammar-" $node_anchor] } {
+    set grammar [lindex $item_data([lindex [$ht_vars entry cget $index -data] end]) 2]
+    if {$grammar eq "Set" || $grammar eq "NameBlock"} {
+      $ht_tree open anchor
+      #puts "full = [$ht_vars get -full $index]"
+      set local_name [lindex [$ht_vars get -full $index] end]
+      set idx_anchor [$ht_tree index anchor]
+      #puts "a buscar $local_name dentro de $idx_anchor"
+      if {[set tree_index [$blt_tree findchild $idx_anchor $local_name]] == -1} {
+        foreach idx [$ht_tree entry children anchor] {
+          if { [string equal $local_name [lindex [$ht_tree get -full $idx] end]] } {
+            set tree_index $idx
+            break
+          }
         }
       }
     }
@@ -1741,45 +1800,51 @@ proc ::TolInspector::PostVariable { x y } {
   set InRootConsole [string equal [lindex [$ht_tree get -full anchor] end] "root-console"]
   set InRootPool  [string equal [lindex [$ht_tree get -full anchor] end] "root-pool"]
   set InRootFiles [string equal [lindex [$ht_tree get -full anchor] end] "root-files"]
+  #puts "PostVariable: InRootConsole,InRootPool,InRootFiles = $InRootConsole,$InRootPool,$InRootFiles"
   set node_act [$ht_vars index current]
   if { [string length $node_act] } {      
     set vars_selected [$ht_vars curselection]
     if { [lsearch $vars_selected $node_act] >= 0 } {
       foreach var $vars_selected {
         array set aryData [$ht_vars entry cget $var -data]
+	    #puts "PostVariable: aryData = [array get aryData]"
         set itemid $aryData(Index)
         set path   $aryData(Path)
         set grammar [lindex $item_data($itemid) 2]
         set objName [$ht_vars entry cget $var -label]
-#puts "OBJECT=$objName, PATH=$path"
-        if {[llength $aryData(Reference)]} {
-          set object $aryData(Reference)
-        } else {
-          if { $InRootPool } {
-            set object $data(pool,variables,$itemid)
+        #puts "OBJECT=$objName, PATH=$path"
+        if { $InRootPool } {
+          set object $data(pool,variables,$itemid)
+		} else {
+          if {[llength $aryData(Reference)]} {
+            #set object [lindex $aryData(Reference) 0]
+			set object [lrange $aryData(Reference) 0 end]
           } else {
             if { [string length $tolset] } {
-              set object [concat [list $tolset] $tolindex $itemid]
+              #set object [concat [list File $tolset] $tolindex $itemid]
+              set object [concat $tolset $tolindex $itemid]
+			  #puts "tolset = $tolset"
             } else {
               if [llength $objName] {
-                set object [list $objName]
+                set object [list $grammar $objName]
               } else {
-                set object $objName
-               }
+			    set object $objName
+              }
             }
           }
         }
-#puts "OBJECT=$object OBJNAME=$objName TOLSET=$tolset PATH=$path"
+        #puts "PostVariable: OBJECT=$object OBJNAME=$objName TOLSET=$tolset PATH=$path GRAMMAR=$grammar"
         switch -- $grammar {
           Code    -
           Complex -
           Date    -
           Matrix  -
+          VMatrix -
           Polyn   -
           Ratio   -
           Real    -
           Serie   -
-         Anything -
+          Anything -
           Text    -
           TimeSet {
             lappend options_selected($grammar) [list $object $objName $path]
@@ -1787,14 +1852,20 @@ proc ::TolInspector::PostVariable { x y } {
           Set {
             # Si el objeto se da como referencia
             if { [llength $object] > 1 }  {
-              set info [::tol::info var $object]
-              set isFile [expr [lindex $info 7] == 4]
+			  #puts "PostVariable: Set: object = $object"
+              if {$InRootFiles} {
+                set isFile 1
+              } else {
+                set info [::tol::info var $object]
+                set isFile [expr [lindex $info 7] == 4]
+              }
               #set desc [lindex $info 4]
             } else {
               if {[catch "::tol::info included $object" info]} {
-                set info [::tol::info var Set $objName]
-                set isFile [expr [lindex $info 5] == 4]
-                #set desc [lindex $info 2]
+                set info [::tol::info var [list Set $objName]]
+                #set isFile [expr [lindex $info 5] == 4]
+                set isFile [expr [lindex $info 7] == 4]
+                #set desc [lindex $info 4]
               } else {
                 #set info [::tol::info included $objName]
                 #set isFile [expr [lindex $info 4] == 4]
@@ -1814,11 +1885,13 @@ proc ::TolInspector::PostVariable { x y } {
       if { [llength $grammar_selected] } {
         foreach grammar $grammar_selected {
           switch -- $grammar {
-            Matrix  { 
+            VMatrix -
+            Matrix  {
               $data_menu(main) add cascade -label [mc "Export matrix"]\
               -menu $data_menu(Matrix,Export)
-              if {[llength $options_selected(Matrix)] == 1} {
-                set object [lindex [lindex $options_selected(Matrix) 0] 0]
+              if {[llength $options_selected($grammar)] == 1} {
+                set object [lindex [lindex $options_selected($grammar) 0] 0]
+                puts "PostVariable:Matrix: object=$object"
                 $data_menu(main) add command -label [mc "Table matrix"] \
                   -command [list ::TolInspector::TableMatrix $object]
                 $data_menu(Matrix,Export) add command -label "BDT" \
@@ -1969,6 +2042,7 @@ proc ::TolInspector::PostVariable { x y } {
             }
           } ;# end del switch
           $data_menu(main) add separator
+          puts "grammar = $grammar"
           $data_menu(main) add cascade -label [mc "Functions"] \
              -menu $data_menu($grammar,Functions)
           ShowMenuUserFunc $grammar
@@ -1998,12 +2072,11 @@ proc ::TolInspector::PostVariable { x y } {
         $data_menu(main) add command -label [mc "To Eval window"] \
                 -command [list ::TolInspector::AddToEvalWindow $ht_vars]
         $data_menu(main) add separator
-    if { $InRootConsole} {
-      $data_menu(main) add command -label [mc "Decompile"] \
-        -command [list ::TolInspector::ClearConsoleObjSel $ht_vars]
-      $data_menu(main) add separator
-    }
-
+        if { $InRootConsole} {
+          $data_menu(main) add command -label [mc "Decompile"] \
+            -command [list ::TolInspector::ClearConsoleObjSel $ht_vars]
+          $data_menu(main) add separator
+        }
         $data_menu(main) add command -label [mc "Select all"] \
                 -command [list ::TolInspector::SelectAll $ht_vars]
         $data_menu(main) add command -label [mc "Toggle selection"] \
@@ -2036,7 +2109,7 @@ proc ::TolInspector::PostFunction { x y } {
   variable tolindex
   
   array unset options_selected
-  
+  puts "PostFunction"
   foreach it [array names data_menu] {
     $data_menu($it) delete 0 end
   }
@@ -2062,7 +2135,7 @@ proc ::TolInspector::PostFunction { x y } {
             set object $objName
           }
         }
-        # La ˙nica gram·tica seleccionable en ht_funcs es Code
+        # La √∫nica gram√°tica seleccionable en ht_funcs es Code
         lappend code_selected [list $object $objName $path]
       }
     
@@ -2119,8 +2192,8 @@ proc ::TolInspector::PostTree { x y } {
   variable tolset
   variable tolindex
   variable item_id
-#puts "ht_tree: $ht_tree"
-  #No terminado todavÌa
+  #puts "ht_tree: $ht_tree"
+  #No terminado todav√≠a
   #return
   array unset options_selected
   
@@ -2128,26 +2201,26 @@ proc ::TolInspector::PostTree { x y } {
     $data_menu($it) delete 0 end
   }
   set InRootPool  [string equal [lindex [$ht_tree get -full anchor] end-1] "root-pool"]
-#puts "InRootPool: $InRootPool"
+  #puts "InRootPool: $InRootPool"
   # InRootFiles has a value 1 if node is a File
   set InRootFiles [string equal [lindex [$ht_tree get -full anchor] end-1] "root-files"]
-#puts "InRootFiles: $InRootFiles"
+  #puts "InRootFiles: $InRootFiles"
   # index of the selected node
   set node_act [$ht_tree index current]
-#puts "node_act: $node_act"  
+  #puts "node_act: $node_act"  
   if { [string length $node_act] } {
     set vars_selected [$ht_tree curselection]
-#puts "vars_selected: $vars_selected"      
+    #puts "vars_selected: $vars_selected"      
     if { [lsearch $vars_selected $node_act] >= 0 } { ;# Not root node
       set index [$ht_tree index anchor]
-#puts "index: $index"    
+      #puts "index: $index"    
       if { $index } {
         set info_node [split [lindex [$ht_tree get -full $index] end] "-"]
-#puts "info_node: $info_node"  
+        #puts "info_node: $info_node"  
         set node_type [lindex $info_node 0]
-#puts "node_type: $node_type"          
+        #puts "node_type: $node_type"          
         set node_name [lindex $info_node 1]
-#puts "node_name: $node_name"          
+        #puts "node_name: $node_name"          
       } else { ;# root node
         set node_type root
         set node_name root
@@ -2157,11 +2230,9 @@ proc ::TolInspector::PostTree { x y } {
         root -
         grammar { return }
       }
-        
       # label of object showed in the tree
       set objName [$ht_tree entry cget $index -label]
-      
-#puts "1objName: $objName"
+      #puts "1objName: $objName"
       set object $objName
 
       if {$InRootFiles} {
@@ -2170,13 +2241,13 @@ proc ::TolInspector::PostTree { x y } {
           set objName $aryData(FileName)
         }
       }
-#puts "2objName: $objName"   
+      #puts "2objName: $objName"   
       if { $InRootPool } {
-#puts "es InRootPool"        
+        #puts "es InRootPool"        
         set itemid $item_id
         set object $data(pool,variables,$itemid)
       } else {
-#puts "NO InRootPool"
+        #puts "NO InRootPool"
         if { [string length $tolset] } {          
           set object [concat [list $tolset] $tolindex]
         } else {
@@ -2190,35 +2261,36 @@ proc ::TolInspector::PostTree { x y } {
 #Tolcon_Trace "object=$object, label=$objName" {red}
 #Tolcon_Trace "***********************************" {red}
       set stackList [::tol::console stack list]
-#puts "stackList: $stackList"
+      #puts "stackList: $stackList"
       set stackValue {}
       foreach stackItem $stackList {
-#puts "stackItem: $stackItem"
-#puts "lindex $stackValue 1: [lindex $stackValue 1]"
-#puts "objName: $objName"  
+        #puts "stackItem: $stackItem"
+        #puts "lindex $stackValue 1: [lindex $stackValue 1]"
+        #puts "objName: $objName"  
         if {[lindex $stackItem 1] eq $objName} {
           set stackValue $stackItem
         }
         break
       }
-#puts "stackValue: $stackValue"
+      #puts "stackValue: $stackValue"
       set grammar [lindex $stackValue 0]      
-#puts "grammar: $grammar"
-#set full_data $item_data($index) ;# {value} {desc} {grammar}   
- #     set grammar [lindex $full_data 2]
+      #puts "grammar: $grammar"
+      #set full_data $item_data($index) ;# {value} {desc} {grammar}   
+      #set grammar [lindex $full_data 2]
       
-  #      foreach fun  [::tol::info functions $grammar] {
-  #  set finfo [::tol::info functions $grammar $fun]
-  #  InsertChild Code $fun [lindex $finfo 0] [lindex $finfo 1] [list [lindex $finfo 2]] 0    
-  #}
+      #foreach fun  [::tol::info functions $grammar] {
+      #  set finfo [::tol::info functions $grammar $fun]
+      #  InsertChild Code $fun [lindex $finfo 0] [lindex $finfo 1] [list [lindex $finfo 2]] 0    
+      #}
       if {[catch {set info [::tol::info included $objName]}]} {
         if { !($grammar eq "")} {
-          if {[catch {set info [::tol::info var $grammar $object]}]} {
-            set info [concat [list "$grammar" $objName ] [::tol::info var $grammar $objName]]
-            Tolcon_Trace "INFO de ::tol::info var Set objName"
+          if {[catch {set info [::tol::info var [list $grammar $object]}]} {
+            #set info [concat [list "$grammar" $objName ] [::tol::info var $grammar $objName]]
+			set info [::tol::info var [list $grammar $objName]]
+            #Tolcon_Trace "INFO de ::tol::info var Set objName"
           } else  {
-            set info [::tol::info var $grammar $object]
-            Tolcon_Trace "INFO de ::tol::info var $grammar object"
+            set info [::tol::info var [list $grammar $object]]
+            #Tolcon_Trace "INFO de ::tol::info var $grammar object"
           }        
           set isFile [expr [lindex $info 5] == 4]
         } else {
@@ -2227,13 +2299,13 @@ proc ::TolInspector::PostTree { x y } {
 
       } else {
         set info [::tol::info included $objName]
-        Tolcon_Trace "INFO de ::tol::info included objName"
+        #Tolcon_Trace "INFO de ::tol::info included objName"
         set isFile 1
       }
-#puts "paso"
+      #puts "paso"
 
       if $isFile {
-#puts "entro como fichero"        
+        #puts "entro como fichero"        
         $data_menu(main) add command -label [mc "View file"] \
                 -command [list ::TolInspector::ViewFile $objName]
         if $InRootFiles {
@@ -2241,7 +2313,7 @@ proc ::TolInspector::PostTree { x y } {
                 -command [list ::TolInspector::DecompileFile $objName]
         }
       } else {
-#puts "no entro como fichero"        
+        #puts "no entro como fichero"        
         if { $grammar eq "Set" } {
           $data_menu(main) add command -label [mc "Table set"] \
                 -command [list ::TolInspector::TableSet $object]
@@ -2325,21 +2397,24 @@ proc ::TolInspector::AddToSpool {ht origin} {
     set itemid $aryData(Index)
     set path   $aryData(Path)
     set grammar [lindex $item_data($itemid) 2]
- 
     set objName [$ht entry cget $var -label]
+	#puts "AddToSpool: Reference=$aryData(Reference) tolset=$tolset grammar=$grammar"
     if {[llength $aryData(Reference)]} {
       set reference $aryData(Reference)
     } else {
       if { [string length $tolset] } {
-        set object [concat [list $tolset] $tolindex $itemid]
+        #set object [concat [list $tolset] $tolindex $itemid]
+        #set object [concat [list File $tolset] $tolindex $itemid]
+        set object [concat $tolset $tolindex $itemid]
+        #puts "AddToSpool: object=$object"
         set reference [::tol::info reference $object]
-        #Tolcon_Trace "reference de ::tol::info reference $object"
       } else {
-        if [string equal $grammar Set] {
-          set reference [::tol::info reference [list $objName]]
+        if {$grammar eq "Set"} {
+          #puts "AddToSpool: origin=$origin"
+          set reference [::tol::info reference [list Set $objName]]
           #Tolcon_Trace "reference de ::tol::info reference [list $objName]"
         } else {
-          if [catch {set reference [::tol::info reference $grammar $objName]}] {
+          if [catch {set reference [::tol::info reference [list $grammar $objName]]}] {
             set reference $objName
             #Tolcon_Trace "reference NO SE QUE PONER"
           }
@@ -2376,9 +2451,9 @@ proc ::TolInspector::AddToSpool {ht origin} {
     }
     if {!$inserted} {
       lappend data(pool,objects) $_objpool
-      #Tolcon_Trace "P.O. after ADD: $data(pool,objects)"
+      #puts "AddToSpool: P.O. after ADD: $data(pool,objects)"
     } else  {
-      Tolcon_Trace "$_objpool ALREADY IN SPOOL"
+      #puts "$_objpool ALREADY IN SPOOL"
     }
   }
   
@@ -2449,7 +2524,7 @@ proc ::TolInspector::DrawSet {setref {type 0}} {
 #/////////////////////////////////////////////////////////////////////////////
   variable group_id
   variable w_tabset
-puts "::TolInspector::DrawSet. setref: $setref"
+  #puts "::TolInspector::DrawSet. setref: $setref"
   incr group_id
   if {[llength $setref] > 1} {
     set name [lindex [::tol::info variable $setref] 1]
@@ -2471,7 +2546,7 @@ puts "::TolInspector::DrawSet. setref: $setref"
           pack $tlf.g -fill both -expand yes
           $tl restore
           update
-          # Esta opciÛn se debe aplicar cuando el gr·fico estÈ empacado
+          # Esta opci√≥n se debe aplicar cuando el gr√°fico est√© empacado
           ::bayesGraph::GrapOptApplyAxisTicks $Instance ${Instance}::options gr,0
         } else {
           destroy $tl
@@ -2492,7 +2567,7 @@ puts "::TolInspector::DrawSet. setref: $setref"
         pack $tlf.g -fill both -expand yes
         $tl restore
         update
-        # Esta opciÛn se debe aplicar cuando el gr·fico estÈ empacado        
+        # Esta opci√≥n se debe aplicar cuando el gr√°fico est√© empacado        
         ::bayesGraph::GrapOptApplyAxisTicks $Instance ${Instance}::options gr,0
       }
     }
@@ -2538,7 +2613,7 @@ proc ::TolInspector::DrawMatrix {matref} {
         pack $tlf.g -fill both -expand yes
 	    $tl restore
         update
-        # Esta opciÛn se debe aplicar cuando el gr·fico estÈ empacado
+        # Esta opci√≥n se debe aplicar cuando el gr√°fico est√© empacado
         ::bayesGraph::GrapOptApplyAxisTicks $Instance ${Instance}::options gr,0
       } else {
         destroy $tl
@@ -2591,20 +2666,13 @@ proc ::TolInspector::TableSet { set } {
 
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::TableMatrix { matrix } {
-#/////////////////////////////////////////////////////////////////////////////  
-  # name
-  if {[llength $matrix] > 1} {
-    set nameMatrix [lindex [::tol::info variable $matrix] 1]
-  } else {
-    set nameMatrix $matrix
-  }
-
+#/////////////////////////////////////////////////////////////////////////////
   set mattb [::tol::matrix $matrix]
   # create
   set tl [::project::CreateForm \
-      -title "[mc "Matrix table"]: $nameMatrix" \
-      -iniconfig MatrixTable \
-      -type Tables -helpkey "Tb4Edt"
+              -title "[mc {Matrix table}]: [lindex $mattb 0]" \
+              -iniconfig MatrixTable \
+              -type Tables -helpkey "Tb4Edt"
   ]
   set tlf [$tl getframe]
   # create matrix
@@ -2614,6 +2682,10 @@ proc ::TolInspector::TableMatrix { matrix } {
   $tlf.t fillMatrix $mattb
   $tl bind <Control-F4> [list $tl kill]  
   pack $tlf.t -fill both -expand yes
+
+  #if {$grammar == "VMatrix"} {
+    #::tol::console stack release "zxw._.wxz"
+  #}
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -2634,6 +2706,7 @@ proc ::TolInspector::DrawSerie { } {
   variable options_selected
   upvar \#0 ::TolInspector::options_selected(Serie) series_selected
   
+  #puts "DrawSerie: series_selected=$series_selected"
   set series ""
   foreach it $series_selected {
     lappend series [lindex $it 0]
@@ -2671,9 +2744,9 @@ proc ::TolInspector::DrawSeries { series {gcf ""}} {
     set t2 [time {
     set Instance [::SeriesGraph::Create $tlf.g $sergrp]
     }]
-    puts "t0 = $t0"
-    puts "t1 = $t1"
-    puts "t2 = $t2"
+    #puts "t0 = $t0"
+    #puts "t1 = $t1"
+    #puts "t2 = $t2"
     if { $gcf != "" } {
       ::bayesGraph::LoadGCF $Instance $gcf
     }
@@ -2681,7 +2754,7 @@ proc ::TolInspector::DrawSeries { series {gcf ""}} {
     pack $tlf.g -fill both -expand yes
     $tl bind <Control-F4> [list $tl kill]
     update
-    # Esta opciÛn se debe aplicar cuando el gr·fico estÈ empacado
+    # Esta opci√≥n se debe aplicar cuando el gr√°fico est√© empacado
     #::bayesGraph::GrapOptApplyAxisTicks $Instance ${Instance}::options gr,0
   }
 }
@@ -2821,7 +2894,7 @@ proc ::TolInspector::ViewTimeSet { tms args } {
   
   incr group_id
   
-  puts "::TolInspector::ViewTimeSet $tms"
+  #puts "::TolInspector::ViewTimeSet $tms"
   # args
   array set opts [list \
     -title "[mc "TimeSet calendar"]: $tms" \
@@ -2900,7 +2973,7 @@ proc ::TolInspector::ViewFile {name} {
 #/////////////////////////////////////////////////////////////////////////////
   #  En name puede venir el nombre de un archivo o el de una variable
   # que hace referencia a un archivo.
-puts "ViewFile. name=$name"
+  #puts "ViewFile. name=$name"
   if [file isfile $name] {
     set path $name
   } else  {
@@ -2922,14 +2995,14 @@ proc ::TolInspector::DecompileFile {name} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   variable data
-puts "DECOMPILE 1.1, name=$name"
+  #puts "DECOMPILE 1.1, name=$name"
   if {[file isfile $name]} {
     set path $name
   } else  {
     set path [::tol::info path $name]
   }
-puts "DECOMPILE 1.2"
-  #Comprobar si el archivo ya est· abierto y si es asÌ poner que no est· compilado
+  #puts "DECOMPILE 1.2"
+  #Comprobar si el archivo ya est√° abierto y si es as√≠ poner que no est√° compilado
   if [namespace exists ::Editor] {
     foreach ins [namespace children ::Editor] {
       upvar \#0 ${ins}::data dataEd
@@ -2938,7 +3011,7 @@ puts "DECOMPILE 1.2"
       }
     }
   }
-puts "DECOMPILE 1.3"
+  #puts "DECOMPILE 1.3"
   #Quitar del spool todos los objetos provenientes de este archivo
   
   foreach _obj $data(pool,objects) {
@@ -2967,15 +3040,16 @@ proc ::TolInspector::ReadUserFunctions {} {
   set obj GuiFunction
 
   if { [llength [set infAry [TclInfoVar Set $obj]] ] } {
+    #Tolcon_Trace "ReadUserFunctions: infAry = $infAry"
     array set info $infAry
     set nFun [lindex $info(CONTENT) 0]
     #Tolcon_Trace "Numero de funciones =$nFun"
     for  {set idf 1} {$idf <= $nFun} {incr idf} {
-      array set ifNameFun [TclInfoRef [list $obj $idf 1]]
-      array set ifNameGui [TclInfoRef [list $obj $idf 2]]
-      array set ifTypeGui [TclInfoRef [list $obj $idf 3]]
-      array set ifTypeOut [TclInfoRef [list $obj $idf 4]]
-      array set ifParams  [TclInfoRef [list $obj $idf 5]]
+      array set ifNameFun [TclInfoRef [list Set $obj $idf 1]]
+      array set ifNameGui [TclInfoRef [list Set $obj $idf 2]]
+      array set ifTypeGui [TclInfoRef [list Set $obj $idf 3]]
+      array set ifTypeOut [TclInfoRef [list Set $obj $idf 4]]
+      array set ifParams  [TclInfoRef [list Set $obj $idf 5]]
       #Hago lindex $a(CONTENT) 0 para quitar las comillas
       set regFun($idf,nameFun) [lindex $ifNameFun(CONTENT) 0]
       set regFun($idf,nameGui) [lindex $ifNameGui(CONTENT) 0]
@@ -2984,10 +3058,10 @@ proc ::TolInspector::ReadUserFunctions {} {
       set nPar [lindex $ifParams(CONTENT) 0]
       #Tolcon_Trace "Numero de parametros =$nPar"
       for  {set idp 1} {$idp <= $nPar} {incr idp} {
-        array set ipNameGui [TclInfoRef [list $obj $idf 5 $idp 1]]
-        array set ipTypePar [TclInfoRef [list $obj $idf 5 $idp 2]]
-        array set ipTypeSel [TclInfoRef [list $obj $idf 5 $idp 3]]
-        array set ipListVal [TclInfoRef [list $obj $idf 5 $idp 4]]
+        array set ipNameGui [TclInfoRef [list Set $obj $idf 5 $idp 1]]
+        array set ipTypePar [TclInfoRef [list Set $obj $idf 5 $idp 2]]
+        array set ipTypeSel [TclInfoRef [list Set $obj $idf 5 $idp 3]]
+        array set ipListVal [TclInfoRef [list Set $obj $idf 5 $idp 4]]
         set regPar($idp,nameGui) [lindex $ipNameGui(CONTENT) 0]
         set regPar($idp,typePar) [lindex $ipTypePar(CONTENT) 0]
         set regPar($idp,typeSel)         $ipTypeSel(CONTENT)
@@ -2995,7 +3069,7 @@ proc ::TolInspector::ReadUserFunctions {} {
         #Tolcon_Trace "nVal=$nVal"
         set lstVal ""
         for  {set idv 1} {$idv <= $nVal} {incr idv} {
-           array set iVal [TclInfoRef [list $obj $idf 5 $idp 4 $idv]]
+           array set iVal [TclInfoRef [list Set $obj $idf 5 $idp 4 $idv]]
            lappend lstVal [lindex $iVal(CONTENT) 0]
         }
         set regPar($idp,lstVal) $lstVal
@@ -3018,7 +3092,8 @@ proc ::TolInspector::ShowMenuUserFunc {gra} {
 #/////////////////////////////////////////////////////////////////////////////
   variable data_menu
   variable regFunLst
-
+  
+  puts "ShowMenuUserFunc: gra=$gra"
   if {[expr [info exist ::TolInspector::regFunLst] && [llength $regFunLst] ]} {
     array set regFun $regFunLst
     regsub -all ,nameGui \
@@ -3084,7 +3159,7 @@ proc ::TolInspector::CallUserFunction {grammar idx} {
       Ite {
         foreach item $itemsName {
           set cmd "$regFun($idx,typeOut) $regFun($idx,nameFun) ($item $txtPars)"
-          Tolcon_Trace "Ite.cmd=$cmd"
+          #Tolcon_Trace "Ite.cmd=$cmd"
           ::tol::console eval $cmd
           ::TolConsole::SaveEval $cmd
         }
@@ -3093,7 +3168,7 @@ proc ::TolInspector::CallUserFunction {grammar idx} {
         set item [join $itemsName ,]
         set setCmd "SetOf[lindex $typeGui 1] ($item)"
         set cmd "$regFun($idx,typeOut) $regFun($idx,nameFun) ($setCmd $txtPars)"
-        Tolcon_Trace "Set.cmd=$cmd"
+        #Tolcon_Trace "Set.cmd=$cmd"
         ::tol::console eval $cmd
         ::TolConsole::SaveEval $cmd
       }
@@ -3114,7 +3189,7 @@ namespace eval ::LoadStatus {
 #    
 #  set f [toplevel .topStatus]
 #  #wm protocol $path WM_DELETE_WINDOW [list ::Editor::OnDelete $this]
-#  # bind Destroy m·s abajo
+#  # bind Destroy m√°s abajo
 #  
 #  label $f.lfile -text $file
 #  # frame y label para barra de estado

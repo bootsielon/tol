@@ -66,7 +66,12 @@ set trace 1
   package require Tktable
   package require -exact BLT 2.4
   package require tclodbc
-  package require -exact Toltcl 1.1.7
+  if {[info exist ::env(USE_TOLTCL)]} {
+    puts "requested to load Toltcl from $::env(USE_TOLTCL)"
+    load $::env(USE_TOLTCL)
+  } else {
+    package require -exact Toltcl 1.1.7
+  }
   package require rmtps_client
   package require byswidget
   package require mkWidgets 1.3
@@ -204,7 +209,6 @@ set trace 1
   return ""
 }
 
-
 if {[info exist ::env(DEBUG_TOLTCL)] && $::env(DEBUG_TOLTCL) eq "yes"} {
   set tt_debug "d"  
 } else {
@@ -308,7 +312,7 @@ if { [winfo exists .__debugwin] } {
 
 # Evalute the client TOL code to expose rmtps_client functionality
 #
-::rmtps_client::define_TOLAPI
+::rmtps_client::define_TOLAPI 
 
 
 #Cargo word.tcl (version modificada por Bayes)

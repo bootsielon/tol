@@ -284,42 +284,21 @@ int Tol_CreateSerieGrp _ANSI_ARGS_((Tcl_Interp * interp,
 extern
 int Tol_ParseDate(Tcl_Interp * interp, char * what, BDate & date);
 
-/*! return the set with name obj_name, in case of error return NULL
- *  and leave a description in obj_result. Also looks for files.
- */
-extern
-const BSyntaxObject * Tol_FindSet (Tcl_Obj * obj_name,
-				   Tcl_Obj * obj_result);
-
-/*! overloaded version to be used in case we need to know if the Set
-    found is a SetFromFile or not */
-extern
-const BSyntaxObject * Tol_FindSet (Tcl_Obj * obj_name,
-				   Tcl_Obj * obj_result, int& is_file);
-
 /*!
  *  Tol_ResolveObject --
  *
- *     Resolve a SyntaxObject given a toltcl object reference. A reference is
- *     {setname i1 i2 ... in} or a global name
- *     setname is a global set name (including a file name) or, if empty, is
- *     stack's console. The grammar of the object found is matched to the
- *     given argument grammar. If the return value is NULL the corresponding
- *     message is left in interp.
- */
-const BSyntaxObject * Tol_ResolveObject(Tcl_Interp * interp,
-					Tcl_Obj * obj_ref,
-					BGrammar *  match_gra);
-
-/*! given a tol set in syn_obj, returns its child corresponding to
- *  the set of indexes indexes of size n.
- *  In case of error return NULL and leave a description in obj_result
+ *     Resolve a SyntaxObject given a toltcl object reference. A
+ *     reference is {TYPE ?container? i1 i2 ... in} or a global
+ *     container's name of type File|Set|NameBlock|Console. When TYPE
+ *     is Console then container is not given. The grammar of the
+ *     object found is matched to the given argument grammar. If the
+ *     return value is NULL an error message is left in interp.
  */
 extern
-const BSyntaxObject * Tol_FindChild ( Tcl_Interp *    interp,
-				      const BSyntaxObject * syn_obj,
-				      Tcl_Obj **      indexes, int n,
-				      Tcl_Obj *       obj_result);
+const BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
+					Tcl_Obj    *obj_ref,
+                                        Tcl_Obj    *obj_result/*,
+                                        BGrammar   *grammar=NULL*/);
 
 extern
 int Tol_ListToDate _ANSI_ARGS_(( Tcl_Interp * interp, Tcl_Obj * list,

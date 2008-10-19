@@ -62,6 +62,7 @@ proc Tol_SerieChartMethod { sergrp fileDest } {
   set top [$tl getframe]
 
   set isphoto [expr {$fileDest ne ""}]
+  #Tolcon_Trace "set isphoto [expr {$fileDest ne {}}]"
   set Instance [::SeriesGraph::Create $top.g $sergrp \
                     -photo $isphoto -fileGCF $fileGCF]
   bind $top.g <Destroy> +[list ::tol::seriegrp destroy $sergrp]
@@ -245,8 +246,7 @@ proc Tol_SerieAutocor { source {title ""} {geometry {}} } {
 #/////////////////////////////////////////////////////////////////////////////
 
 #/////////////////////////////////////////////////////////////////////////////
-proc Tol_SetChartMethod { title source gcfFile geometry filetosave lstNames
-                          type lstPairs {holdon ""}} {
+proc Tol_SetChartMethod { title source gcfFile geometry filetosave lstNames type lstPairs } {
 #
 # PURPOSE: Hook of Chart method
 #
@@ -263,7 +263,6 @@ proc Tol_SetChartMethod { title source gcfFile geometry filetosave lstNames
 #            -> 3 for even data columns to odd ones
 #   lstPairs -> when type is 0 pairs is the list of correspondence beetwen index
 #               columns to data columns (x-y pairs)
-#   holdon   -> tell if the new graph goes into a new context or an existing one
 #
 #/////////////////////////////////////////////////////////////////////////////
   # GCF
@@ -279,19 +278,9 @@ proc Tol_SetChartMethod { title source gcfFile geometry filetosave lstNames
     set wTitle [mc "Set graph"]
   }
   # MDI
-  if {$holdon ne "" && (![winfo exists $holdon] || [winfo class $holdon] ne "Mdidoc")} {
-    Tol_HciWriter "<W>[mc {Graphic requested to be drawn on %s but that graphic context does not exist or is not a valid grafic windows} $holdon]</W>"
-    set holdon ""
-  } 
-  if {[winfo exists $holdon]} {
-    set tl $holdon
-  } else {
-    puts "no existe '$holdon' por eso ... ::project::CreateForm"
-
-    set tl [::project::CreateForm \
-                -title $wTitle -type Graphs -iniconfig SetGraph -geometry $geometry]
-    $tl setgeometry $geometry
-  }
+  set tl [::project::CreateForm \
+    -title $wTitle -type Graphs -iniconfig SetGraph -geometry $geometry]
+  $tl setgeometry $geometry  
   set top [$tl getframe]
   # if source is a list is interpreted as a set name and indexes accesing a element
   if { [llength $source] > 1 } {
@@ -309,23 +298,16 @@ proc Tol_SetChartMethod { title source gcfFile geometry filetosave lstNames
   ::tol::tableset create $cmd $source
   set Instance [::SetGraphDialog::DrawSet $top.g $cmd $source $type $lstPairs \
     $lstNames $gcfFile [list $title]]
-  if {$holdon ne ""} {
-    ::tol::tableset destroy $cmd
-    if { [llength $source] > 1} {
-      ::tol::stack release $source
-    }
-  } else {
-    bind $top.g <Destroy> +[list ::tol::tableset destroy $cmd]
-    if { [llength $source] > 1} {
-      bind $top.g <Destroy> +[list ::tol::stack release $source]
-    }
-    pack $top.g -fill both -expand yes
-    update
-    ::bayesGraph::GrapOptApplyAxisTicks $Instance ${Instance}::options gr,0
-    if { [string length $filetosave] } {
-      ::bayesGraph::TakePhoto $Instance $filetosave
-      after idle "destroy $tl"
-    }
+  bind $top.g <Destroy> +[list ::tol::tableset destroy $cmd]
+  if { [llength $source] > 1} {
+    bind $top.g <Destroy> +[list ::tol::stack release $source]
+  }
+  pack $top.g -fill both -expand yes
+  update
+  ::bayesGraph::GrapOptApplyAxisTicks $Instance ${Instance}::options gr,0
+  if { [string length $filetosave] } {
+    ::bayesGraph::TakePhoto $Instance $filetosave
+    after idle "destroy $tl"
   }
   return $tl
 }

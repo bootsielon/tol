@@ -809,6 +809,7 @@ proc ::BayesText::TolSyntaxCheck {editor} {
         -message [mc "Syntax check done successfully"]
     } else  {
       # hay errores
+	  #puts "TolSyntaxCheck (hay errores)"
       ShowSyntaxErrors $editor [lindex $check 1]
     }
     # borrar el archivo
@@ -865,17 +866,19 @@ proc ::BayesText::TolFileSyntaxCheck {path} {
   set ok 0
   # evaluamos el archivo
   set tolCheck "Text __EditorCheck = ParseError(ReadFile(\"$path\"))"
+  #puts "TolFileSyntaxCheck: tolCheck = $tolCheck"
   if {[catch {::tol::console eval $tolCheck}]} {
     Tolcon_Trace "Falla porque TOL está ocupado"
   } else  {
     # comprobamos si ha dado algun error
-    if {![catch { set objInfo [::tol::info variable Text __EditorCheck]}]} {
+    if {![catch { set objInfo [::tol::info variable [list Text __EditorCheck]]}]} {
+	  #puts "TolFileSyntaxCheck: objInfo = $objInfo"
       # destruimos la variable creada en TOL
       ::tol::console stack release __EditorCheck
       #Tolcon_Trace "ParseError devuelve: [lindex $objInfo 0]"
-      set ok [string equal [lindex $objInfo 0] "\"\""]
+      set ok [string equal [lindex $objInfo 2] "\"\""]
       if !$ok {
-        set ok [list $ok [lindex $objInfo 0]]
+        set ok [list $ok [lindex $objInfo 2]]
       }
     }
   }
@@ -988,7 +991,7 @@ proc ::BayesText::init_msqctext { w } {
 proc ::BayesText::init_tolctext { w } {
 #/////////////////////////////////////////////////////////////////////////////
   ctext::addHighlightClass $w grammars black [list Anything Code Complex \
-    CDate CTimeSet Date Matrix Polyn Ration Real Serie Set Special Struct \
+    CDate CTimeSet Date Matrix NameBlock Polyn Ration Real Serie Set Special Struct \
     Text TimeSet]  
 
   ctext::addHighlightClass $w stackControl black {BinGroup Case Copy Dating\

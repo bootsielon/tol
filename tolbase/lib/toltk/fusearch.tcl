@@ -361,11 +361,12 @@ proc ::funcSearch::Search {} {
       # and description
       set funcsIncluded ""
       foreach f $resultIncludedNoDup {       
-        set inf [::tol::info var Code $f]
-        if { [ContentCodeGrammar [array names result] [lindex $inf 0] ] } {
-          if {[regexp "(.*)$tmpOpt(var,desc)(.*)" [lindex $inf 2]]} {
+        set inf [::tol::info var [list Code $f]]
+		#puts "funcSearch::Search: inf = $inf"
+        if { [ContentCodeGrammar [array names result] [lindex $inf 2] ] } {
+          if {[regexp "(.*)$tmpOpt(var,desc)(.*)" [lindex $inf 4]]} {
             lappend funcsIncluded \
-              [list $f [lindex $inf 0] [lindex $inf 1] [lindex $inf 2]]
+              [list $f [lindex $inf 2] [lindex $inf 3] [lindex $inf 4]]
           }
         }
       }
@@ -428,13 +429,14 @@ proc ::funcSearch::Search {} {
       # and description
       set funcsIncluded ""
       foreach f $resultIncludedNoDup {      
-        set inf [::tol::info var Code $f]
+        set inf [::tol::info var [list Code $f]]
+		#puts "funcSearch::Search: inf = $inf"
         set iU [string toupper $inf]
         set tU [string toupper $tmpOpt(var,desc)]
-        if { [ContentCodeGrammar [array names result] [lindex $inf 0] ] } {
-          if {[regexp "(.*)${tU}(.*)" [lindex $iU 3]]} {
+        if { [ContentCodeGrammar [array names result] [lindex $inf 2] ] } {
+          if {[regexp "(.*)${tU}(.*)" [lindex $iU 5]]} {
             lappend funcs \
-              [list $f [lindex $inf 0] [lindex $inf 1] [lindex $inf 2]]
+              [list $f [lindex $inf 2] [lindex $inf 3] [lindex $inf 4]]
           }
         }  
       }

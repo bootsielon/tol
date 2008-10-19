@@ -864,7 +864,7 @@ Tol_InfoCmd(clientData, interp, objc, objv)
   if ( objc == 1) {
     Tcl_AppendStringsToObj( obj_result, "wrong # args: should be '",
                       Tcl_GetString(objv[0]),
-                      " ?arg arg ...?'", NULL);
+                      " ?arg arg ...?'", NULL );
     tcl_result = TCL_ERROR;
   } else {
     arg = Tcl_GetString(objv[1]);
@@ -880,11 +880,13 @@ Tol_InfoCmd(clientData, interp, objc, objv)
         tcl_result = TCL_ERROR;
       }
     } else if (!strncasecmp("reference", arg, length)) {
-      if (objc > 4 || objc < 3) {
+//      if (objc > 4 || objc < 3) {
+      if (objc != 3) {
         Tcl_AppendStringsToObj(obj_result,
                                "wrong # args: should be '",
                                Tcl_GetString(objv[0]),
-                               " reference ?grammar? obj'",
+//                               " reference ?grammar? obj'",
+                               " reference {grammar|container objname ?indexes?}'",
                                NULL);
         tcl_result = TCL_ERROR;	
       } else
@@ -1092,16 +1094,18 @@ Tcl_Interp *interp;             /* Current interpreter */
      Tcl_Obj *CONST objv[];  /* Argument objects */
      Tcl_Obj * obj_result;
 {
-  if ( objc < 2 || objc > 3 ) {
+//  if ( objc < 2 || objc > 3 ) {
+  if ( objc != 2 ) {
     Tcl_AppendStringsToObj(obj_result,
                      "wrong # args: should be '",
                      Tcl_GetString(objv[0]),
-                     " variables (graname|setelem) ?varname?'",
+                     " {grammar|container ?objname? ?indexes?}",
                      NULL);
     return TCL_ERROR;
   }
-  return  objc == 2 ? Tol_SetVariablesObj(interp, objv[1], obj_result) :
-    Tol_SetVariableInfoObj(objv[1], objv[2], obj_result);
+//  return  objc == 2 ? Tol_SetVariablesObj(interp, objv[1], obj_result) :
+//    Tol_SetVariableInfoObj(objv[1], objv[2], obj_result);
+  return  Tol_SetVariablesObj(interp, objv[1], obj_result);
 }
 
 

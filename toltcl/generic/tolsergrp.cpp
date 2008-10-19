@@ -65,14 +65,16 @@ static int Tol_CreateSerieGrpData(Tcl_Interp * interp,
 				  Tol_SerieGroup ** tsgPtr,
 				  BDate & begin,
 				  BDate & end,
-				  int RangeIsDefault);
+				  int RangeIsDefault,
+                                  Tcl_Obj *obj_result);
 
 static int Tol_CreateSerieGrpData(Tcl_Interp * interp,
 				  BList * series,
 				  Tol_SerieGroup ** tsgPtr,
 				  BDate & begin,
 				  BDate & end,
-				  int RangeIsDefault);
+				  int RangeIsDefault,
+                                  Tcl_Obj *obj_result);
 
 #define TICK_END -1
 #define TICK_TCL  1
@@ -486,6 +488,13 @@ int Tol_SerieGroup::AddTicks( int objc, Tcl_Obj * CONST objv[] )
   Tcl_DString uniBuffer;
 
   BGrammar * gra = GraTimeSet();
+
+  if ( !gra ) {
+    Tcl_AppendResult(interp,
+                     "TimeSet grammar not found", NULL);
+    return TCL_ERROR;
+  }
+
   BUserTimeSet * uts;
 
   CTickCursor * tickCursor;
@@ -835,10 +844,9 @@ int Tol_CreateSerieGrp(Tcl_Interp * interp,
 
   }
   tcl_code = Tol_CreateSerieGrpData(interp,objc,series,&sgrp,
-                                    I0,I1,isDefault);
+                                    I0,I1,isDefault,obj_result);
   if ( tcl_code != TCL_OK ) {
     Tol_FreeSerieGroup(sgrp);
-    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
     return TCL_ERROR;
   }
   
@@ -885,10 +893,9 @@ int Tol_CreateSerieGrp(Tcl_Interp * interp,
   int isDefault = 1;
 
   tcl_code = Tol_CreateSerieGrpData(interp,series,&sgrp,
-                                    I0,I1,isDefault);
+                                    I0,I1,isDefault,obj_result);
   if ( tcl_code != TCL_OK ) {
     Tol_FreeSerieGroup(sgrp);
-    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
     return TCL_ERROR;
   }
   
@@ -1535,18 +1542,22 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
                             Tol_SerieGroup ** tsgPtr,
                             BDate & begin,
                             BDate & end,
-                            int RangeIsDefault)
+                            int RangeIsDefault,
+                            Tcl_Obj *obj_result)
 {
   
-  BGrammar * gra = BGrammar::FindByName("Serie");
+  BGrammar * gra = GraSerie();
+
+  if ( !gra ) {
+    Tcl_AppendStringsToObj( obj_result,
+                            "Serie grammar not found", NULL );
+    return TCL_ERROR;
+  }
+
   scursors cursors;
   Tol_SerieGroup * tsg = NULL;
 
   *tsgPtr = NULL;
-  if (!gra) {
-    Tcl_AppendResult(interp,"grammar 'Serie' not found",NULL);
-    return TCL_ERROR;
-  }
 
   tsg = *tsgPtr = Tol_AllocSerieGroup();
   _CHECK_PTR_(tsg);
@@ -1590,7 +1601,8 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
     if ( Tol_GroupFindSerie(Tcl_GetString(series[i]),tsg) != -1 )
       continue;
     //uts = Tol_GetTimeSerie(interp,series[i]);
-    uts = (BUserTimeSerie*)Tol_ResolveObject(interp, series[i], GraSerie());
+    uts = (BUserTimeSerie*)Tol_ResolveObject(interp, series[i], obj_result/*,
+                                             gra*/);
     if ( !uts )
       return TCL_ERROR;
 
@@ -1598,9 +1610,9 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
 
     sername = Tcl_GetString(series[i]);
     if (!uts->HasDating()) {
-      Tcl_AppendResult(interp, "\"",
-                       sername,
-                       "\" does not have dating", NULL );
+      Tcl_AppendStringsToObj(obj_result, "'",
+                             sername,
+                             "' does not have dating", NULL );
       return TCL_ERROR;
     }
     /* exists and have dating */
@@ -1631,7 +1643,7 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
       if (tsc->useful)
         return BadAlloc(interp);
       /* por aqui no deberia pasar, REVISALO!!! */
-      Tcl_AppendResult(interp,"invalid range of dates",NULL);
+      Tcl_AppendStringsToObj(obj_result,"invalid range of dates",NULL);
       return TCL_ERROR;
     }
     if ( flagDating == 0 ) {
@@ -1644,7 +1656,8 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
   /* now we have a set of cursors */
   
   if (cursors.last==-1) {
-    Tcl_AppendResult(interp,"the set of serie given have no data",NULL);
+    Tcl_AppendStringsToObj(obj_result,
+                           "the set of serie given have no data",NULL);
     return TCL_ERROR;
   }
 
@@ -1783,7 +1796,8 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
                             Tol_SerieGroup ** tsgPtr,
                             BDate & begin,
                             BDate & end,
-                            int RangeIsDefault)
+                            int RangeIsDefault,
+                            Tcl_Obj *obj_result)
 { 
   int objc = LstLength(series);
   scursors cursors;
@@ -1861,7 +1875,8 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
       if (tsc->useful)
         return BadAlloc(interp);
       /* por aqui no deberia pasar, REVISALO!!! */
-      Tcl_AppendResult(interp,"invalid range of dates",NULL);
+      Tcl_AppendStringsToObj(obj_result,
+                             "invalid range of dates",NULL);
       return TCL_ERROR;
     }
     if ( flagDating == 0 ) {
@@ -1876,7 +1891,8 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
   /* now we have a set of cursors */
   
   if (cursors.last==-1) {
-    Tcl_AppendResult(interp,"the set of serie given have no data",NULL);
+    Tcl_AppendStringsToObj(obj_result,
+                           "the set of serie given have no data",NULL);
     return TCL_ERROR;
   }
 
@@ -2032,8 +2048,10 @@ int Tol_GetAutoCorr( Tcl_Interp * interp,
     if ( !strcmp( type_name, valid_types[i] ) )
       break;
   if ( i == NTYPES ) {
-    Tcl_AppendStringsToObj( obj_result, "invalid autocorrelation funtion type '",
-                            type_name, "' must be: ACF, PACF, IACF or IPACF", NULL );
+    Tcl_AppendStringsToObj(obj_result,
+                           "invalid autocorrelation funtion type '",
+                           type_name, "' must be: ACF, PACF, IACF or IPACF",
+                           NULL );
     return TCL_ERROR;
   }
 
@@ -2041,12 +2059,12 @@ int Tol_GetAutoCorr( Tcl_Interp * interp,
 
   BUserTimeSerie * uts;
   //uts = Tol_GetTimeSerie( interp, objv[1] );
-  uts = (BUserTimeSerie*)Tol_ResolveObject(interp, objv[1], GraSerie());
-  int size_cor = -1;
+  uts = (BUserTimeSerie*)Tol_ResolveObject(interp, objv[1], obj_result/*,
+                                           GraSerie()*/);
   if ( !uts ) {
-    Tcl_AppendObjToObj( obj_result, Tcl_GetObjResult(interp) );
     return TCL_ERROR;
   }
+  int size_cor = -1;
   if ( objc == 3 ) {
     tcl_code = Tcl_GetIntFromObj( interp, objv[2], &size_cor );
     if ( tcl_code != TCL_OK ) {
@@ -2199,9 +2217,9 @@ int Tol_ComputeSerieStat(Tcl_Interp * interp,
   bool found;
   
   // uts = Tol_GetTimeSerie( interp, objv[0] );
-  uts = (BUserTimeSerie*)Tol_ResolveObject(interp, objv[0], GraSerie());
+  uts = (BUserTimeSerie*)Tol_ResolveObject(interp, objv[0],
+                                           obj_result/*,GraSerie()*/);
   if ( !uts ) {
-    Tcl_AppendObjToObj(obj_result, Tcl_GetObjResult(interp));
     return TCL_ERROR;
   }
   Tcl_Obj * listv[2];
@@ -2229,8 +2247,8 @@ int Tol_ComputeSerieStat(Tcl_Interp * interp,
         }
       }
       if (found == false) {
-        Tcl_AppendStringsToObj(obj_result, "bad statistics name \"",
-                          Tcl_GetString(objv[i+1]),"\"", NULL);
+        Tcl_AppendStringsToObj(obj_result, "bad statistics name '",
+                          Tcl_GetString(objv[i+1]),"'", NULL);
         Tcl_Free((char*)(stats));
         return TCL_ERROR;
       }      

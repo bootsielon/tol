@@ -9,7 +9,7 @@ namespace eval ::SetGraph {
 
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::SetGraph::Create {path info set tableset {fileGCF {}} {title {}}} {
+  proc ::SetGraph::Create {path info set tableset {fileGCF {}} { title {}}} {
 #
 # PURPOSE: Creates an instance of a bayesGraph and inserts the graph lines
 #
@@ -29,27 +29,18 @@ proc ::SetGraph::Create {path info set tableset {fileGCF {}} {title {}}} {
 # RETURN: The instance of the graph.
 #
 #/////////////////////////////////////////////////////////////////////////////
-  if {[winfo exists $path] && [winfo class $path] eq "bayesGraph"} {
-    set Instance "::bayesGraph::$path"
-    set holdon 1
-  } else {
-    set Instance [::bayesGraph::Create $path g]
-    set holdon 0
-  }
+  set Instance [::bayesGraph::Create $path g]
   upvar \#0 ${Instance}::widgets widgets
   upvar \#0 ${Instance}::data data
   upvar \#0 ${Instance}::options opt
+  set data(namespace) SetGraph
+  set data(proc,OnComputeStepX)  ::SetGraph::ComputeStepX
+  set data(proc,OnEvalWindow)    ::SetGraph::EvalWindow
+  set data(proc,OnToTable)       ::SetGraph::ToTable
+  set data(proc,OnWriteIni)      ::SetGraph::WriteIni
+  set data(proc,xAxisCommand)    [list ::SetGraph::GetTickLabel $Instance]
+  set data(proc,x2AxisCommand)   [list ::SetGraph::GetTickLabel $Instance]
 
-  if {!$holdon} {
-    set data(namespace) SetGraph
-    set data(proc,OnComputeStepX)  ::SetGraph::ComputeStepX
-    set data(proc,OnEvalWindow)    ::SetGraph::EvalWindow
-    set data(proc,OnToTable)       ::SetGraph::ToTable
-    set data(proc,OnWriteIni)      ::SetGraph::WriteIni
-    set data(proc,xAxisCommand)    [list ::SetGraph::GetTickLabel $Instance]
-    set data(proc,x2AxisCommand)   [list ::SetGraph::GetTickLabel $Instance]
-  }
-  
   set gr 0
   set grpath $widgets(gr,$gr)
 
@@ -60,29 +51,14 @@ proc ::SetGraph::Create {path info set tableset {fileGCF {}} {title {}}} {
   set gInfo(xTicks)  ""
 
   array set gInfo $info
+  set data(xTicks) $gInfo(xTicks)
 
-  if {!$holdon} {
-    set data(xTicks) $gInfo(xTicks)
-    
-    set data(gr,$gr,set) $set
-    set data(gr,$gr,tableset) $tableset
-    set data(gr,$gr,OnGetXTicks)    ::SetGraph::GetXTicks  
-    set data(gr,$gr,OnGetXValues)   ::SetGraph::GetXValues  
-  }
+  set data(gr,$gr,set) $set
+  set data(gr,$gr,tableset) $tableset
+  set data(gr,$gr,OnGetXTicks)    ::SetGraph::GetXTicks  
+  set data(gr,$gr,OnGetXValues)   ::SetGraph::GetXValues  
   # insert the series into the graph
-  if {$holdon} {
-    set ii 0
-    foreach item [$grpath element names] {
-      regexp {l(\d+)-(\d+)} $item ==> i
-      if {$i>$ii} {
-        set ii $i
-      }
-      incr ii
-    }
-  } else {
-    set ii  0
-  }
-  set i 0
+  set i  0
   foreach vec $gInfo(vectors) {
     set j  0
     set segs  {}
@@ -90,52 +66,39 @@ proc ::SetGraph::Create {path info set tableset {fileGCF {}} {title {}}} {
     set xdata [lindex $vec 0]
     set ydata [lindex $vec 1]
 
-    $grpath line create l$ii-$j -xdata $xdata -ydata $ydata
-    lappend segs l$ii-$j
+    $grpath line create l$i-$j -xdata $xdata -ydata $ydata
+    lappend segs l$i-$j
     if { $j } {
       $grpath line configure l$i-$j -label ""
     } else {
-      set _label_ [lindex $gInfo(names) $i]
-      foreach _it_ [$grpath element names] {
-        if {$_label_ eq [$grpath element cget $_it_ -label]} {
-          append _label_ "x"
-        }
-      }
-      $grpath line configure l$ii-0 -label $_label_
+      $grpath line configure l$i-0 -label [lindex $gInfo(names) $i]
     }
     incr i
-    incr ii
     lappend data(gr,$gr,elements) $segs
   }
+   
+  # configurar grafico
+#  $grpath axis configure x  -command "::SetGraph::GetTickLabel $Instance" 
   ::bayesGraph::BindLegend $Instance
 
-  if {!$holdon} {
-    # configurar grafico
-    #  $grpath axis configure x  -command "::SetGraph::GetTickLabel $Instance" 
-    
-    #Establecer el fichero GCF del que se lee
-    #Establecer el fichero GCF del que se lee
-    if {[string length $fileGCF]} {
-      ::bayesGraph::LoadGCF $Instance $fileGCF
-    } else  {
-      ::bayesGraph::LoadGCF $Instance
-    }
+  #Establecer el fichero GCF del que se lee
+  #Establecer el fichero GCF del que se lee
+  if {[string length $fileGCF]} {
+    ::bayesGraph::LoadGCF $Instance $fileGCF
+  } else  {
+    ::bayesGraph::LoadGCF $Instance
   }
-  ReadIni $Instance $holdon
-    
+  ReadIni $Instance
   Configure $Instance
-  
-  if {!$holdon} {
-    #set title chart
-    if {[string length $title]} {
-      ::bayesGraph::SetMainTitle $Instance $title
-    }  
-    if {[string equal [winfo class [winfo parent $widgets(this)]] Toplevel]} {
-      wm geometry [winfo parent $widgets(this)] $data(geometry)
-      wm state    [winfo parent $widgets(this)] $data(wm,state)
-    }
-  }
 
+  #set title chart
+  if {[string length $-title]} {
+    ::bayesGraph::SetMainTitle $Instance $title
+  }  
+  if {[string equal [winfo class [winfo parent $widgets(this)]] Toplevel]} {
+    wm geometry [winfo parent $widgets(this)] $data(geometry)
+    wm state    [winfo parent $widgets(this)] $data(wm,state)
+  }
   return $Instance
 }
 
@@ -162,6 +125,7 @@ proc ::SetGraph::ComputeStepX {this min max total} {
     # validamos que max, min y total tengan valor
     set step [expr ($max-$min)/$total]
   }
+#Tolcon_Trace "ComputeStepX. Devuelvo step=$step"
   return $step
 }
 
@@ -312,7 +276,7 @@ proc ::SetGraph::ToTable {this} {
 
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::SetGraph::ReadIni {this {holdon 0}} {
+  proc ::SetGraph::ReadIni {this} {
 #
 # PURPOSE: Reads set graph specific options from .ini file. First of all, 
 #          reads options from BayesGraph. Ini file is the active graphic
@@ -324,12 +288,10 @@ proc ::SetGraph::ReadIni {this {holdon 0}} {
 #/////////////////////////////////////////////////////////////////////////////
   upvar \#0 ${this}::data data
 
-  if {!$holdon} {
-    set rini ::iniFile::ReadGCF
-    set data(geometry)   [$rini SetGraph geometry 800x600]
-    set data(wm,state)   [::iniFile::ReadWMState $rini SetGraph]
-  }
-  ::bayesGraph::ReadIni $this $holdon
+  set rini ::iniFile::ReadGCF
+  set data(geometry)   [$rini SetGraph geometry 800x600]
+  set data(wm,state)   [::iniFile::ReadWMState $rini SetGraph]
+  ::bayesGraph::ReadIni $this
 }
 
 
@@ -418,7 +380,7 @@ proc ::SetGraph::ReadIni {this {holdon 0}} {
 }
       
 #/////////////////////////////////////////////////////////////////////////////
-proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fileGCF {}} {title {}}} {
+  proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fileGCF {}} {title {}}} {
 #
 # PURPOSE: Checks if the set is graphicable and if so, draws and assistant 
 #          that allows to choose x and y columns for the elements to draw.
@@ -436,7 +398,6 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
 #   names    -> names for the series/points,..
 #   fileGcf  -> file configuration graph
 #   title    -> list of title of chart
-#   holdon   -> tell if the new graph goes into a new context or an existing one
 #
 #/////////////////////////////////////////////////////////////////////////////
   variable data
@@ -524,6 +485,7 @@ proc ::SetGraphDialog::DrawSet {path tableset set type {pairs {}} {names {}} {fi
       DrawDialog
       if [llength $data(vectors)] {
         set info [list vectors $data(vectors) names $data(names) xTicks $data(xTicks)]
+        #Tolcon_Trace "info: $info"
         set Instance [::SetGraph::Create $path $info $set $tableset]
         bind $path <Destroy> +[list ::SetGraphDialog::OnDestroyGraph $data(nameVectors)]
         return $Instance
@@ -891,6 +853,7 @@ Tolcon_Trace "X. No se puede graficar [lindex $data(var,listX) $indexX]: $firLin
   for {set i 0} {$i<[expr [llength $data(var,listY)] - 1]} {incr i 2} {
     set colX [lindex [lindex $data(var,listY) $i] 0]
     set colY [lindex $data(var,listY) [expr $i + 1]]
+Tolcon_Trace "colX: $colX   colY: $colY"
     # control: uniqueXAxis
     set ok [::SetGraphDialog::CheckAddSerie $colX]
     if {$ok} {
@@ -957,6 +920,7 @@ Tolcon_Trace "X. No se puede graficar: $colX"
       }
     }
   }
+Tolcon_Trace "CheckAddSerie $indexX: data(uniqueXAxis): $data(uniqueXAxis). ok: $ok" 
   return $ok
 }
 
@@ -1062,6 +1026,7 @@ Tolcon_Trace "X. No se puede graficar: $colX"
 #          be added.
 #
 #/////////////////////////////////////////////////////////////////////////////
+#Tolcon_Trace "AddLine colX: $colX  colY: $colY  name: $name  lstLines: $lstLines"
   variable tmpOpt
   variable data
   # parent ?
@@ -1138,6 +1103,7 @@ Tolcon_Trace "X. No se puede graficar: $colX"
     if {[$tmpOpt(widget,lbSeries) size]==0} {
       set data(uniqueXAxis) ""
     }
+#Tolcon_Trace "DelItem. Borramos elemento idx: $idx de la lista data(selected): $data(selected)" 
   }
 }
 
@@ -1195,6 +1161,7 @@ Tolcon_Trace "X. No se puede graficar: $colX"
       set vecX  [$data(tableset) data column $colX]
     }
     set vecsY [$data(tableset) data column $colY]
+    #Tolcon_Trace "vecX: $vecX, vecsY: $vecsY"
     if {[llength $vecsY] > 1} {
       set i 0
       set subVectors ""

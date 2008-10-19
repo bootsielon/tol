@@ -32,6 +32,8 @@
 #include <tol/tol_bcommon.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bmatgra.h>
+#include <tol/tol_bvmatgra.h>
+#include <tol/tol_bnameblock.h>
 #include <tol/tol_bspfun.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btsrgra.h>
@@ -158,11 +160,6 @@ int Tol_EvalExpr (Tcl_Obj * obj_expr, int hidden, Tcl_Obj * obj_result)
   
   Tcl_DStringInit(&dstr);
   expr = Tcl_UtfToExternalDString(NULL,Tcl_GetString(obj_expr),-1,&dstr);
-/*
-  Std(BText("\nTol_EvalExpr ")+
-      "LEVEL = "+BGrammar::Level()+ "\n"
-      "BEGIN {\n"+expr+"\n} END Tol_EvalExpr\n");
-*/
   tol_result = MultyEvaluate(expr);
   Tcl_DStringFree(&dstr);
   if(tol_result) {
@@ -183,7 +180,9 @@ int Tol_GetStructure( Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * obj_result 
 
   Tcl_DStringInit( &dstr );
   Tcl_UtfToExternalDString( NULL, Tcl_GetString(name), -1, &dstr );
-  if ( Tcl_DStringLength( &dstr ) && (structure = FindStruct(Tcl_DStringValue(&dstr)))) {
+  if ( Tcl_DStringLength( &dstr ) &&
+       (structure = FindStruct(Tcl_DStringValue(&dstr)))) {
+    
     Tcl_Obj * tmp[2];
     Tcl_Obj * info[2];
     Tcl_Obj ** fields;
@@ -218,6 +217,17 @@ int Tol_GetStructure( Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * obj_result 
   return TCL_OK;
 }
 
+BSet* ContainerGetSet(const BSyntaxObject *container)
+{
+  if (container) {
+    if (container->Grammar()==GraSet())
+      return &(((BUserSet*)container)->Contens());
+    else if (container->Grammar()==GraNameBlock())
+      return &(((BUserNameBlock*)container)->Contens().Set());
+  }
+  return NULL;
+}
+  
 /*
  * Return the path of a set if it is a file, trigger an error in other case
  *
@@ -225,9 +235,6 @@ int Tol_GetStructure( Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * obj_result 
 
 int Tol_GetSetPath( Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * obj_result )
 {
-  Tcl_Obj ** items;
-  int n;
-  int tcl_code;
   Tcl_DString uniBuffer;
   const BSyntaxObject * syn;
 
@@ -238,26 +245,12 @@ int Tol_GetSetPath( Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * obj_result )
   syn = (BSyntaxObject*)BSetFromFile::FindCompiled(fname);
   Tcl_DStringFree(&uniBuffer);
   if (!syn) {
-    /* look for subitem given in name */
-    tcl_code = Tcl_ListObjGetElements(interp,name,&n,&items);
-    if (tcl_code != TCL_OK) {
-      Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
-      return TCL_ERROR;
-    }
-    if ( n > 1 ) {
-      /* is a list & should be a member of a set */
-      
-      syn = Tol_FindSet( items[0], obj_result );
-      if ( !syn )
-        return TCL_ERROR;
-      syn = Tol_FindChild(interp,syn,items+1,n-1,obj_result);
-    }//  else
-//       syn = Tol_FindSet(name,obj_result);
+    syn = Tol_ResolveObject(interp, name, obj_result);
   }
   if ( !syn )
     return TCL_ERROR;
-  BSet & set = ((BUserSet*)syn)->Contens();
-  if ( set.SubType() >= BSet::MODFile && set.SubType() <= BSet::BMIFile ) {
+  BSet *ptrSet = ContainerGetSet(syn);
+  if ( ptrSet->SubType() >= BSet::MODFile && ptrSet->SubType() <= BSet::BMIFile ) {
     Tcl_DString dstr;
     BText path( syn->TolPath() );
 
@@ -334,14 +327,12 @@ int Tol_ListStack(Tcl_Interp * interp,int objc,Tcl_Obj *CONST objv[],
     Tcl_DStringFree(&dstr);
     
     /* IS THE OBJECT A FILE? */
-#ifdef ISFILE_IMPLEMENTED
     robjv[5] = Tcl_NewIntObj(so->IsFile());
-#else
-    robjv[5] = Tcl_NewIntObj(0);
-#endif
-    if ( so->Grammar()==GraSet() ) {
+////    if ( so->Grammar()==GraSet() ) {
+    if ( so->Grammar()==GraSet() || so->Grammar()==GraNameBlock()) {
       /* HAS SUBSET */
-      ptrSet = &(((BUserSet*)so)->Contens());
+////      ptrSet = &(((BUserSet*)so)->Contens());
+      ptrSet = ContainerGetSet(so);
       tmpCard = ptrSet->Card();
       for (j=1; j<=tmpCard; ++j )
         if ( (*ptrSet)[j]->Grammar()==GraSet() )
@@ -470,200 +461,201 @@ BSyntaxObject * Tol_GetConsoleObject(int index )
 
 
 /*
- * return the set with name obj_name, in case of error return NULL
- * and leave a description in obj_result. Also looks for files.
+ * return the container (File, Set or NameBlock) with name obj_name,
+ * in case of error return NULL and leave a description in
+ * obj_result.
  * 
  */
-const BSyntaxObject * Tol_FindSet(Tcl_Obj * obj_name, Tcl_Obj * obj_result)
+const BSyntaxObject * Tol_FindGlobalContainer(const char* Type,
+                                              const char* obj_name,
+                                              Tcl_Obj*    obj_result)
 {
-  int is_file;
-
-  return Tol_FindSet(obj_name, obj_result, is_file);
-}
-
-const BSyntaxObject * Tol_FindSet(Tcl_Obj * obj_name, Tcl_Obj * obj_result, int& is_file)
-{
-  BGrammar * gra = GraSet();
-
-  if (!gra) {
-    Tcl_SetStringObj( obj_result, "grammar 'Set' not found", -1);
-    return NULL;
-  }
+  BGrammar *gra;
+  BSyntaxObject* var;
   Tcl_DString uniBuffer;
 
+  if (!strcmp(Type, "Set"))
+    gra = GraSet();
+  else if (!strcmp(Type, "NameBlock"))
+    gra = GraNameBlock();
+  else if (!strcmp(Type, "File"))
+    gra = NULL;
+  else {
+    Tcl_AppendStringsToObj(obj_result,"type '",
+                           Type,
+                           "' is not a container grammar", NULL );
+    return NULL;
+  }
   Tcl_DStringInit(&uniBuffer);
-  Tcl_UtfToExternalDString(NULL,Tcl_GetString(obj_name),-1,&uniBuffer);
-  BSyntaxObject* var = gra->FINDVARIABLE(Tcl_DStringValue(&uniBuffer));
-  if (var) {
-    is_file = 0;
-  } else {
+  Tcl_UtfToExternalDString(NULL,obj_name,-1,&uniBuffer);
+  if (!gra) {
+    /* should look in Files */
     BText fname(Tcl_DStringValue(&uniBuffer));
-    var = (BSyntaxObject*)BSetFromFile::FindCompiled(fname);
-    if (var) {
-      is_file = 1;
-    } else {
-      Tcl_AppendStringsToObj(obj_result,"\"",
-                             Tcl_GetString(obj_name),
-                             "\" isn't a variable in grammar Set", NULL );
+    if (!(var=(BSyntaxObject*)BSetFromFile::FindCompiled(fname))) {
+      Tcl_AppendStringsToObj(obj_result,"file \"",
+                             obj_name,
+                             "\" is not included", NULL );
     }
+  } else if (!(var=gra->FINDVARIABLE(Tcl_DStringValue(&uniBuffer)))) {
+      Tcl_AppendStringsToObj(obj_result,"\"",
+                             obj_name,
+                             "\" isn't a ", Type, " variable", NULL );
   }
   Tcl_DStringFree(&uniBuffer);
   return var;
 }
 
 /*
- * given a tol set in syn_obj, returns its child corresponding to
- * the set of indexes indexes of size n.
- * In case of error return NULL and leave a description in obj_result
+ * given a tol set, returns its child corresponding to the set of
+ * indexes indexes of size n.  In case of error return NULL and leave
+ * a description in obj_result.
  *
  */
 
-const BSyntaxObject * Tol_FindChild( Tcl_Interp *    interp,
-				     const BSyntaxObject * syn_obj,
-				     Tcl_Obj **      indexes, int n,
-				     Tcl_Obj *       obj_result)
+const BSyntaxObject * Tol_FindChild(Tcl_Interp    *interp,
+                                    const BSyntaxObject *syn_obj,
+                                    Tcl_Obj       **indexes, int n,
+                                    Tcl_Obj       *obj_result)
 {
   int tcl_code;
   Tcl_DString dstr;
-  BSet * set;
+  BSet *container;
   int idx, card;
   int i;
 
   for (i=0; i<n; ++i) {
-    //set = Set(syn_obj);
-    /* ojo con este cambio */
-    set = &(((BUserSet*)syn_obj)->Contens());
-    card = set->Card();
+    if (!(container = ContainerGetSet(syn_obj))) {
+      BText info(syn_obj->Info());
+      Tcl_DStringInit(&dstr);
+      Tcl_ExternalToUtfDString(NULL,info,-1,&dstr);
+      Tcl_AppendStringsToObj(obj_result,"object \"",
+                             Tcl_DStringValue(&dstr),
+                             "\" is not a container",
+                             NULL);
+      Tcl_DStringFree(&dstr);
+      break;
+    }
+    /* get the current object index */
     tcl_code = Tcl_GetIntFromObj(interp,indexes[i],&idx);
     if (tcl_code != TCL_OK) {
       Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
       break;
     }
-    if (idx >= 1 && idx<=card) {
-      syn_obj = (*set)[idx];
-      if (i < n - 1 && syn_obj->Grammar() != GraSet()) {
-        BText info(syn_obj->Info());
-        Tcl_DStringInit(&dstr);
-        Tcl_ExternalToUtfDString(NULL,info,-1,&dstr);
-        Tcl_AppendStringsToObj(obj_result,"object \"", Tcl_DStringValue(&dstr),"\" at position \"",
-                               Tcl_GetString(indexes[i]), "\" is not a set",NULL);
-        Tcl_DStringFree(&dstr);
-        break;
-      }
-    } else {
-      Tcl_AppendStringsToObj(obj_result,"Index out of range \"",
-                             Tcl_GetString(indexes[i]), "\"",NULL);
+    card = container->Card();
+    if (idx<1 || idx>card) {
+      Tcl_AppendStringsToObj(obj_result,
+                             "index '",
+                             Tcl_GetString(indexes[i]),
+                             "' out of range",
+                             NULL);
       break;
     }
+    /* take the next object in the list */
+    syn_obj = (*container)[idx];
   }
   return i == n ? syn_obj : NULL;
 }
 
-
 /*!
  *  Tol_ResolveObject --
  *
- *     Resolve a SyntaxObject given a toltcl object reference. A reference is
- *     {setname i1 i2 ... in} or a global name
- *     setname is a global set name (including a file name) or, if empty, is
- *     stack's console. The grammar of the object found is matched to the
- *     given argument grammar. If the return value is NULL the corresponding
- *     message is left in interp.
+ *     Resolve a SyntaxObject given a toltcl object reference. A
+ *     reference is {TYPE ?container? i1 i2 ... in} or a global
+ *     container's name of type File|Set|NameBlock|Console. When TYPE
+ *     is Console then container is not given. The grammar of the
+ *     object found is matched to the given argument grammar. If the
+ *     return value is NULL an error message is left in interp.
  */
 
-const BSyntaxObject * Tol_ResolveObject(Tcl_Interp * interp,
-					Tcl_Obj * obj_ref,
-					BGrammar *  match_gra)
+const BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
+                                        Tcl_Obj    *obj_ref,
+                                        Tcl_Obj    *obj_result)
 {
   Tcl_Obj ** items;
   int n;
   int tcl_code;
+  char * type;
 
   /* look for subitem given in obj_ref */
   tcl_code = Tcl_ListObjGetElements(interp, obj_ref, &n, &items);
-  if (tcl_code != TCL_OK)
+  if (tcl_code != TCL_OK) {
+    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
     return NULL;
+  }
 
-  // this Tcl_Obj is to put error messages
-  Tcl_Obj * obj_result = Tcl_NewObj();
+  // this Tcl_Obj is to leave error messages
   const BSyntaxObject * syn = NULL;
-  const char * graname = match_gra?match_gra->Name().String():"";
 
-  if (n > 1) {
-    /* is a list & should be a member of a set */
-    if (*Tcl_GetString(items[0])) {
-      if ((syn=Tol_FindSet(items[0], obj_result))) {
-        // global set found
-        if ((syn=Tol_FindChild(interp, syn, items+1, n-1, obj_result)))
-          if (match_gra && syn->Grammar()!=match_gra) {
-            // grammar missmatch
-            Tcl_AppendStringsToObj(obj_result, "object '",
-                                   Tcl_GetString(obj_ref), "' ",
-                                   "found but does not belong to grammar ",
-                                   "'", graname, NULL);
-            syn = NULL;
-          }
+  if (n >= 2) {
+    type = Tcl_GetString(items[0]);
+    if (!strcmp(type,"Console") || !strcmp(type,"File") ||
+        !strcmp(type,"Set") || !strcmp(type,"NameBlock") ) {
+      if (!strcmp(type,"Console")) {
+        // is a reference in the console, items[1] is the first index in
+        // the path, following indexes are indexes withing containers.
+        int i1;
+        if ((tcl_code = Tcl_GetIntFromObj(interp,items[1],&i1)!=TCL_OK)) {
+          Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
+          return NULL;
+        }
+        if (!(syn=Tol_GetConsoleObject(i1))) {
+          Tcl_AppendStringsToObj(obj_result, "index ",
+                                 Tcl_GetString(items[1]),
+                                 " not found in console", NULL);
+          return NULL;
+        }
+      } else {
+      /* should be File, Set or NameBlock, it is a hierarchical container */
+        if (!(syn=Tol_FindGlobalContainer(Tcl_GetString(items[0]),
+                                          Tcl_GetString(items[1]),
+                                          obj_result))) {
+          return NULL;
+        }
+      }
+      assert(syn);
+      if (n>2) {
+        // there are more indexes & syn should be a Container
+        if (!(syn=Tol_FindChild(interp,
+                                syn, items+2, n-2, obj_result))) {
+          return NULL;
+        }
       }
     } else {
-      // is a reference in the console
-      int i1;
-      if ((tcl_code = Tcl_GetIntFromObj(interp,items[1],&i1)!=TCL_OK)) {
-        Tcl_DecrRefCount(obj_result);
-        return NULL;
-      }
-      if (!(syn=Tol_GetConsoleObject(i1)))
-        Tcl_AppendStringsToObj(obj_result, "index ",
-                               Tcl_GetString(items[1]),
-                               " not found in console", NULL);
-      else {
-        // first index found in console
-        if (n>2) {
-          // there are more indexes & syn should be a Set
-          if (syn->Grammar()==GraSet())
-            syn=Tol_FindChild(interp, syn, items+2, n-2, obj_result);
-          else {
-            Tcl_AppendStringsToObj(obj_result, "invalid object reference in console '",
-                                   Tcl_GetString(obj_ref),
-                                   "' first index '", Tcl_GetString(items[1]),
-                                   "' should be a Set", NULL);
-            syn = NULL;
-          }
+      if (n==2) {
+        // look global var in grammar
+        BGrammar * gra;
+        gra = BGrammar::FindByName(type);
+        if (!gra) {
+          Tcl_AppendStringsToObj(obj_result, "\"",
+			                           type,
+			                           "\" isn't a grammar", NULL);
+          return NULL;
         }
-        // match grammar
-        if (syn && match_gra && syn->Grammar()!=match_gra) {
-          // grammar missmatch
-          Tcl_AppendStringsToObj(obj_result, "object '",
-                                 Tcl_GetString(obj_ref), "' ",
-                                 "found but does not belong to grammar ",
-                                 "'", graname, "'", NULL);
-          syn = NULL;
-        }
+        Tcl_DString dstr;
+        Tcl_DStringInit(&dstr);
+        Tcl_UtfToExternalDString(NULL,Tcl_GetString(items[1]),-1,&dstr);
+        if (!(syn = gra->FINDVARIABLE(Tcl_DStringValue(&dstr))))
+          Tcl_AppendStringsToObj(obj_result, "variable '",
+                                 obj_ref, "' not found in grammar '",
+                                 gra->Name().String(), "'", NULL);
+        Tcl_DStringFree(&dstr);
+        /* found and matched */
+        return syn;
       }
-    }
-  } else if (n==1) {
-    // look for a global variable
-    char * var_name = Tcl_GetString(items[0]);
-    if (match_gra==GraSet())
-      syn = Tol_FindSet(items[0], obj_result);
-    else {
-      // look global var in match_gra
-      Tcl_DString dstr;
-      Tcl_DStringInit(&dstr);
-      Tcl_UtfToExternalDString(NULL,var_name,-1,&dstr);
-      if (!(syn = match_gra->FINDVARIABLE(Tcl_DStringValue(&dstr))))
-        Tcl_AppendStringsToObj(obj_result, "variable '",
-                               var_name, "' not found in grammar '",
-                               graname, "'", NULL);
-      Tcl_DStringFree(&dstr);
     }
   } else {
-    // n == 0
-    Tcl_AppendStringsToObj(obj_result,
-                           "empty set reference in ResolveObject",
-                           NULL);
+      Tcl_AppendStringsToObj(obj_result,
+                             "incorrect object reference in ResolveObject",
+                             NULL);
   }
-  // always set the object result & release obj_release.
-  Tcl_SetObjResult(interp, obj_result);
+/*  if (grammar && syn && syn->Grammar()!=grammar) {
+    Tcl_AppendStringsToObj(obj_result, "grammar for object '",
+                           Tcl_GetString(obj_ref),
+                           "' does not match grammar '",
+                           grammar->Name().String(), "'", NULL);
+    syn = NULL;
+  }
+*/
   return syn;
 }
 
@@ -675,8 +667,9 @@ int Tol_FindSOInSet(BSet * ptrSet, const BSyntaxObject * syn,
   
   for (j = 1; j <= ptrSet->Card(); j++) {
     so = (*ptrSet)[j];
-    if (so == syn || (so->Grammar() == GraSet() &&
-		      Tol_FindSOInSet(&(((BUserSet*)so)->Contens()),
+    BSet *ptrSet;
+    if (so == syn || ((ptrSet=ContainerGetSet(so)) &&
+		      Tol_FindSOInSet(ptrSet,
 				      syn, indexes))) {
       /* found!!! */
       indexes.AppendObject((void*)j);      
@@ -704,16 +697,23 @@ int Tol_GetReference(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   BSet * ptrSet;
   ToltclPool indexes;
   Tcl_DString dstr;
-  int j, idx, is_file;
-  char * graname = "Set";
+  int j;
+  char * graname, * objname;
 
   assert(!Tcl_IsShared(obj_result));
-  
-  //Tcl_DStringInit(&dstr);
-  if (objc == 2) {
+  tcl_code = Tcl_ListObjGetElements(interp,objv[0],&n,&items);
+  assert(tcl_code == TCL_OK);
+  if (n<2) {
+    Tcl_AppendStringsToObj(obj_result,
+                           "wrong # args: should be 'tol::info",
+                           " reference {grammar|container objname ?indexes?}'",
+                           NULL);
+    return TCL_ERROR;	
+  }
+  if (n==2 && strcmp(Tcl_GetString(items[0]),"Console")) {
   // global access
     BGrammar * gra;
-    graname = Tcl_GetString(objv[0]);
+    graname = Tcl_GetString(items[0]);
     gra = BGrammar::FindByName(graname);
     if (!gra) {
       Tcl_AppendStringsToObj( obj_result, "\"",
@@ -721,90 +721,86 @@ int Tol_GetReference(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 			      "\" isn't a grammar", NULL);
       return TCL_ERROR;
     }
-    Tcl_UtfToExternalDString(NULL,Tcl_GetString(objv[1]),-1,&dstr);
+    objname = Tcl_GetString(items[1]);
+    Tcl_UtfToExternalDString(NULL,objname,-1,&dstr);
     syn = gra->FINDVARIABLE(Tcl_DStringValue(&dstr));
     Tcl_DStringFree(&dstr);
     if (!syn) {
       Tcl_AppendStringsToObj(obj_result, "\"",
-			     Tcl_GetString(objv[1]),
+			     Tcl_GetString(items[1]),
 			     "\" isn't a variable in grammar ",
 			     graname, NULL);
       return TCL_ERROR;
     }
-  } else {
-    // member access
-    tcl_code = Tcl_ListObjGetElements(interp,objv[0],&n,&items);
-    if (tcl_code != TCL_OK) {
-      Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
-      return TCL_ERROR;
-    }
-    if (n<=1) {
-      Tcl_AppendStringsToObj(obj_result, "invalid set element reference \"",
-			     Tcl_GetString(objv[0]),
-			     "\" : should be a list of of the form {set_name i1 ... ik}",
-			     NULL);
-      return TCL_ERROR;      
-    }
-    syn = Tol_FindSet(items[0], obj_result, is_file);
-    if (!syn)
-      return TCL_ERROR;
-    if (n > 1) {
-      if (!Tol_FindChild(interp, syn, items+1, n-1, obj_result))
-	return TCL_ERROR;
-      if (is_file) {
-        /* here we have in objv[0] the answer */
-        Tcl_SetListObj(obj_result, n, items);
-        return TCL_OK;
-      }
-      // append the indexes in reverse order
-      
-      for (j=n-1; j > 0; j--) {
-	Tcl_GetIntFromObj(interp, items[j], &idx);
-	indexes.AppendObject((void*)idx);
-      }
-    }  
-  }
-  source = syn->Source();
-  if (!source) {
-    /* is a global variable not defined inside a file */
-    Tcl_ExternalToUtfDString(NULL, syn->Name(), -1, &dstr);
-    Tcl_AppendStringsToObj(obj_result, Tcl_DStringValue(&dstr), NULL);
-    Tcl_DStringFree(&dstr);
-    return TCL_OK;
-  } else {
-    ptrSet = &(((BUserSet*)source)->Contens());
-    if (Tol_FindSOInSet(ptrSet, syn, indexes)) {
-      items = (Tcl_Obj**)Tcl_Alloc(sizeof(Tcl_Obj*) * (indexes.GetSize()+1));
-      //items = (Tcl_Obj**)malloc(sizeof(Tcl_Obj*) * (indexes.GetSize()+1));
-      Tcl_ExternalToUtfDString(NULL, source->Name(), -1, &dstr);
+    source = syn->Source();
+    if (!source) {
+      /* is a global variable not defined inside a file */
+      items = (Tcl_Obj**)Tcl_Alloc(sizeof(Tcl_Obj*) * 2);
+      Tcl_ExternalToUtfDString(NULL, graname, -1, &dstr);
       items[0] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
       Tcl_DStringFree(&dstr);
-      int last = indexes.GetLast();
-      for(j = last; j >= 0; j--)
-        items[last+1-j] = Tcl_NewIntObj(long(*indexes._GetObject(j)));
-      Tcl_SetListObj(obj_result, indexes.GetSize()+1, items);
+      Tcl_ExternalToUtfDString(NULL, objname, -1, &dstr);
+      items[1] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
+      Tcl_DStringFree(&dstr);
+      Tcl_SetListObj(obj_result, 2, items);
       Tcl_Free((char*)items);
-      //free(items);
       return TCL_OK;
-    } else {
-      /* this should not happend because syn should be inside syn->source */
-      Tcl_AppendStringsToObj(obj_result,
-                             "internal error: syn not found in syn->Source()",
-                             NULL);
+    }
+  } else {
+    // member access
+    if (!(syn=Tol_ResolveObject(interp,objv[0],obj_result))) {
       return TCL_ERROR;
     }
+    /* here we have a valid reference */
+    tcl_code = Tcl_ListObjGetElements(interp,objv[0],&n,&items);
+    assert(tcl_code == TCL_OK);
+    if (!strcmp(Tcl_GetString(items[0]),"File") ||
+        !strcmp(Tcl_GetString(items[0]),"Console")) {
+      /* here we have in objv[0] the answer */
+      Tcl_SetListObj(obj_result, n, items);
+      return TCL_OK;      
+    }
+    source = syn->Source();
+    if (!source) {
+      /* here we have in objv[0] the answer too */
+      Tcl_SetListObj(obj_result, n, items);
+      return TCL_OK;
+    }
+  }
+  /* at this point variable has to be defined inside a file */
+  assert(source);
+  ptrSet = &(((BUserSet*)source)->Contens());
+  if (Tol_FindSOInSet(ptrSet, syn, indexes)) {
+    items = (Tcl_Obj**)Tcl_Alloc(sizeof(Tcl_Obj*) * (indexes.GetSize()+2));
+    Tcl_ExternalToUtfDString(NULL, "File", -1, &dstr);
+    items[0] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
+    Tcl_DStringFree(&dstr);
+    Tcl_ExternalToUtfDString(NULL, source->Name(), -1, &dstr);
+    items[1] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
+    Tcl_DStringFree(&dstr);
+    int last = indexes.GetLast();
+    for(j = last; j >= 0; j--)
+      items[last+2-j] = Tcl_NewIntObj(long(*indexes._GetObject(j)));
+    Tcl_SetListObj(obj_result, indexes.GetSize()+2, items);
+    Tcl_Free((char*)items);
+    return TCL_OK;
+  } else {
+    /* this should not happend because syn should be inside syn->source */
+    Tcl_AppendStringsToObj(obj_result,
+                             "internal error: syn not found in syn->Source()",
+                             NULL);
+    return TCL_ERROR;
   }
 }
 
 
 /*
  * Iterate over a first level's children of a given set.  The set
- * could be tolset if the indexes is empty or tolset[i1][i2]...[ik]
- * for the given indexes {i1,i2,...,ik}
+ * could be a container Set, File or NameBlock if the index list is
+ * empty or container[i1][i2]...[ik] for the given indexes
+ * {i1,i2,...,ik}
  *
  */
-
-/* OJO con la declaracion de tmpSet */
 
 int Tol_IterChildren(Tcl_Interp * interp,
                      int objc,
@@ -824,26 +820,61 @@ int Tol_IterChildren(Tcl_Interp * interp,
 #define ARG_STRUCT    ARG_SUBTYPE+1
 #define NUM_ARGS      ARG_STRUCT+1
 
-  const BSyntaxObject* var_set;
+  const BSyntaxObject* container;
   Tcl_DString dstr;
   Tcl_Obj * ArgIndexes;
   int tcl_code, cont_loop;
   int i, card ;
   int n, index_length;
   Tcl_Obj ** items;
+
+  int length = 0;
   
-  if (!(var_set=Tol_ResolveObject(interp, objv[0], GraSet()))) {
-    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));    
+  if (Tcl_ListObjLength(interp,objv[0],&length)!=TCL_OK) {
+    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
     return TCL_ERROR;
   }
+  if (length<2) {
+    Tcl_AppendStringsToObj(obj_result,
+                           "invalid object reference '",
+                           Tcl_GetString(objv[0]),
+                           "must be {TYPE ?name? i1 i2 ... ik}",
+                           NULL);
+    return TCL_ERROR;
+  }
+
+  if (!(container=Tol_ResolveObject(interp, objv[0], obj_result))) {
+    return TCL_ERROR;
+  }
+  BSet *set = ContainerGetSet(container);
+  if (!set) {
+    Tcl_AppendStringsToObj(obj_result,
+                           "object '",
+                           Tcl_GetString(objv[0]),
+                           "' is not a valid container ",
+                           NULL);
+      return TCL_ERROR;
+  }
+  
+  card = set->Card();
+  
   int datac;
   Tcl_Obj * datav[NUM_ARGS];
   // is ok to ask for a list
   Tcl_ListObjGetElements(interp,objv[0],&n,&items);
-  if (n>1)
-    ArgIndexes = Tcl_NewListObj(n-1,items+1);
-  else
-    ArgIndexes = Tcl_NewListObj(0,NULL);
+  
+  if (strcmp(Tcl_GetString(items[0]),"Console")) {
+    if (n>2)
+      ArgIndexes = Tcl_NewListObj(n-2,items+2);
+    else
+      ArgIndexes = Tcl_NewListObj(0,NULL);
+  } else {
+    if (n>1)
+      ArgIndexes = Tcl_NewListObj(n-1,items+1);
+    else
+      ArgIndexes = Tcl_NewListObj(0,NULL);
+  }
+
   datav[ARG_SCRIPT] = objv[1];
   
   datav[ARG_GRAMMAR] = Tcl_NewObj();
@@ -862,23 +893,16 @@ int Tol_IterChildren(Tcl_Interp * interp,
   for (i=ARG_GRAMMAR; i<NUM_ARGS; ++i)
     Tcl_IncrRefCount(datav[i]);
   
-  /* var_set is a good tol set */
-  
-  BSet & set = ((BUserSet*)var_set)->Contens(); //Set(var);
-  card = set.Card();
-  BSyntaxObject* syn_i;
+  BSyntaxObject *syn_i;
+  BSet          *set_i; /* just in case syn_i be a container */
   /* now iter over its children */
   
   Tcl_DStringInit(&dstr);
   BText btxt;
   
-  /* used to verify if a set has subsets */
-  BSet * ptrSet = 0;
-  int tmpCard;
-  int j;
-  
+ 
   for (i=1; i<=card; ++i) {
-    syn_i = set[i];
+    syn_i = (*set)[i];
     
     /* read the grammar */
     
@@ -941,7 +965,7 @@ int Tol_IterChildren(Tcl_Interp * interp,
       Tcl_SetStringObj(datav[ARG_DESC],Tcl_DStringValue(&dstr),-1);
     Tcl_DStringFree(&dstr);
     
-    if (syn_i->Grammar()==GraSet()) {
+    if ((set_i=ContainerGetSet(syn_i))) {
       /* update last index */
       if (Tcl_IsShared(last_index)) {
         last_index = Tcl_NewIntObj(i);
@@ -976,10 +1000,10 @@ int Tol_IterChildren(Tcl_Interp * interp,
       Tcl_SetIntObj(datav[ARG_ISFILE],0);
 #endif
       /* verify if has subset */
-      ptrSet = &(((BUserSet*)syn_i)->Contens());
-      tmpCard = ptrSet->Card();
+      int tmpCard = set_i->Card();
+      int j;
       for (j=1; j<=tmpCard; ++j )
-        if ( (*ptrSet)[j]->Grammar()==GraSet() )
+        if (ContainerGetSet((*set_i)[j]))
           break;
       if (Tcl_IsShared(datav[ARG_HASSUBSET])) {
         Tcl_DecrRefCount(datav[ARG_HASSUBSET]);
@@ -992,14 +1016,14 @@ int Tol_IterChildren(Tcl_Interp * interp,
         
       if (Tcl_IsShared(datav[ARG_SUBTYPE])) {
         Tcl_DecrRefCount(datav[ARG_SUBTYPE]);
-        datav[ARG_SUBTYPE] = Tcl_NewIntObj(ptrSet->SubType());
+        datav[ARG_SUBTYPE] = Tcl_NewIntObj(set_i->SubType());
         Tcl_IncrRefCount(datav[ARG_SUBTYPE]);
       } else
-        Tcl_SetIntObj(datav[ARG_SUBTYPE],ptrSet->SubType());
+        Tcl_SetIntObj(datav[ARG_SUBTYPE],set_i->SubType());
         
       /* STRUCT INFO */
-      if ( ptrSet->Struct() ) {
-        btxt = ptrSet->Struct()->Name();
+      if ( set_i->Struct() ) {
+        btxt = set_i->Struct()->Name();
         Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
       }
       if (Tcl_IsShared(datav[ARG_STRUCT])) {
@@ -1043,13 +1067,26 @@ int Tol_GetMatrixContent(Tcl_Interp * interp,
                          Tcl_Obj * obj_result)
 {
   //BGrammar * gra = NULL;
-  const BSyntaxObject * tol_obj = NULL;
+  const BSyntaxObject *tol_obj = NULL;
    
-  if (!(tol_obj=Tol_ResolveObject(interp, obj_name, GraMatrix()))) {
-    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));    
+  if (!(tol_obj=Tol_ResolveObject(interp, obj_name, obj_result))) {
     return TCL_ERROR;
   }
-     
+
+  BMatrix<double> vmat;
+  BMatrix<double> &theMat = vmat;
+
+  if (tol_obj->Grammar()==GraVMatrix()) {
+    BVMat &V = VMat((BSyntaxObject *)tol_obj);
+    V.GetDMat(vmat);
+  } else if (tol_obj->Grammar()==GraMatrix()) {
+    theMat = ((DMat&)Mat((BSyntaxObject *)tol_obj));
+  } else {  
+    Tcl_AppendStringsToObj( obj_result, Tcl_GetString(obj_name),
+                            " is not a valid Matrix|VMatrix object", NULL );    
+    return TCL_ERROR;
+  }
+    
 #define IT_NAME 0
 #define IT_ROWS 1
 #define IT_COLS 2
@@ -1061,18 +1098,18 @@ int Tol_GetMatrixContent(Tcl_Interp * interp,
   int r, Rows, c, Cols;
   BDat & dat = BDat::Unknown();
   
-  BMatrix<BDat> & mat = (BMatrix<BDat>&)(((BUserMat*)tol_obj)->Contens());
+  //BMatrix<BDat> & mat = (BMatrix<BDat>&)(((BUserMat*)tol_obj)->Contens());
   
   //items[IT_NAME] = Tcl_NewStringObj(tol_obj->Identify(),-1);
   items[IT_NAME] = Tcl_NewStringObj(GetObjectName(tol_obj),-1);
-  Rows = mat.Rows();
-  Cols = mat.Columns();
+  Rows = theMat.Rows();
+  Cols = theMat.Columns();
   items[IT_ROWS] = Tcl_NewIntObj(Rows);
   items[IT_COLS] = Tcl_NewIntObj(Cols);
   subitems = (Tcl_Obj**)Tcl_Alloc( sizeof(Tcl_Obj*)*Rows*Cols );
   for ( r = 0; r < Rows; ++r )
     for ( c = 0; c < Cols; ++c ) {
-      dat = mat(r,c);
+      dat = theMat(r,c);
       if (dat.IsKnown())
         subitems[r*Cols+c] = Tcl_NewDoubleObj(dat.Value());
       else
@@ -1094,25 +1131,15 @@ int Tol_GetSerieContent(Tcl_Interp * interp,
                         Tcl_Obj *CONST objv[],
                         Tcl_Obj * obj_result)
 {
-  BGrammar * gra = BGrammar::FindByName("Serie");
-
-  if (!gra) {
-    Tcl_SetStringObj( obj_result, "grammar 'Serie' not found", -1);
-    return TCL_ERROR;
-  }
- 
-  Tcl_Obj * ser_name = objv[0];
-
-  const BSyntaxObject* var = gra->FINDVARIABLE(Tcl_GetString(ser_name));
+  const BSyntaxObject* var = Tol_ResolveObject(interp,
+                                               objv[0],
+                                               obj_result/*,
+                                               GraSerie()*/);
   if (!var) {
-    Tcl_AppendStringsToObj( obj_result, "\"",
-                            Tcl_GetString(ser_name),
-                            "\" isn't a variable in grammar Serie", NULL );
     return TCL_ERROR;
   }
 
   // parse dates arguments
-
   
   BDate I0, I1;
   int tcl_code;
@@ -1153,7 +1180,7 @@ int Tol_GetSerieContent(Tcl_Interp * interp,
 
   if ( !tms ) {
     Tcl_AppendStringsToObj(obj_result,"Serie \"",
-                           Tcl_GetString(ser_name),
+                           Tcl_GetString(objv[0]),
                            "\" does not have dating", NULL);
     return TCL_ERROR;
   }
@@ -1395,7 +1422,7 @@ int Tol_InfoFile(Tcl_Interp * interp, Tcl_Obj * file,
   int tmpCard = ptrSet->Card();
   int j;
   for (j=1; j<=tmpCard; ++j )
-    if ( (*ptrSet)[j]->Grammar()==GraSet() )
+    if (ContainerGetSet((*ptrSet)[j]))
       break;
   info[3] = Tcl_NewIntObj(j<=tmpCard);
     
@@ -1553,35 +1580,25 @@ int Tol_FillFunctionInfo(BOperator * opr, Tcl_Obj * obj_result)
 /*
  *
  * Fill in obj_result the functions defined for grammar gra_name.  If gra_name
- * is a list it is considered as an object reference {set i1 ... ik}
+ * is a list it is considered as an object reference {type ?name? i1 ... ik}
  *
  */
 
 int Tol_SetFunctionsObj (Tcl_Interp * interp, Tcl_Obj * gra_name,
                          Tcl_Obj * obj_result)
 {
-  Tcl_Obj * name;
-  Tcl_Obj ** items;
-  int n;
-  int tcl_code;
-
-  /* first try gra_name as a list */
+  int length = 0;
   
-  tcl_code = Tcl_ListObjGetElements(interp,gra_name,&n,&items);
-  if (tcl_code != TCL_OK) {
+  if (Tcl_ListObjLength(interp,gra_name,&length)!=TCL_OK) {
     Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
     return TCL_ERROR;
   }
-  if ( n > 1 ) {
-    /* is a list & should be a member of a set */
+  if (length>1) {
+    const BSyntaxObject *syn;
+    if (!(syn=Tol_ResolveObject(interp, gra_name, obj_result))) {
+      return TCL_ERROR;
+    }
     
-    const BSyntaxObject * syn = Tol_FindSet( items[0], obj_result );
-
-    if ( !syn )
-      return TCL_ERROR;
-    syn = Tol_FindChild(interp,syn,items+1,n-1,obj_result);
-    if ( !syn )
-      return TCL_ERROR;
     if (syn->Grammar() != GraCode()) {
       Tcl_AppendStringsToObj(obj_result, "'", Tcl_GetString(gra_name),
 			     "' is not a function object", NULL);
@@ -1596,8 +1613,8 @@ int Tol_SetFunctionsObj (Tcl_Interp * interp, Tcl_Obj * gra_name,
     BSpFunHash::const_iterator iter;
     for(iter=spf.begin(); iter!=spf.end(); iter++)
     {
-      name = Tcl_NewStringObj(iter->second->Name(), -1);
-      Tcl_ListObjAppendElement(interp, obj_result, name);
+      Tcl_ListObjAppendElement(interp, obj_result,
+                               Tcl_NewStringObj(iter->second->Name(), -1));
     }
     if (QuickSort(interp,obj_result) != TCL_OK) {
       Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
@@ -1622,9 +1639,10 @@ int Tol_SetFunctionsObj (Tcl_Interp * interp, Tcl_Obj * gra_name,
     }
     return TCL_OK;
   }
-  Tcl_AppendStringsToObj( obj_result, "\"",
-                          Tcl_GetString(gra_name),
-                          "\" isn't a grammar", NULL );
+
+  Tcl_AppendStringsToObj(obj_result, "'",
+                         Tcl_GetString(gra_name),
+                         "' isn't a grammar", NULL);
   return TCL_ERROR;
 }
 
@@ -1680,29 +1698,6 @@ int Tol_SetFunctionInfoObj (Tcl_Obj * gra_name,
       Tcl_DStringFree(&dstr);
       if (opr) {
 	return Tol_FillFunctionInfo(opr, obj_result);
-	/*
-	Tcl_DString dstr_info;
-	Tcl_DStringInit(&dstr_info);
-	Tcl_DStringAppend(&dstr_info, Tcl_GetString(gra_name), -1);
-	Tcl_DStringAppend(&dstr_info, " ", -1);
-	// dstr comes with the function name
-	Tcl_DStringAppend(&dstr_info, Tcl_DStringValue(&dstr), -1);
-	Tcl_DStringFree(&dstr);
-        Tcl_ExternalToUtfDString(NULL,opr->Arguments(),-1,&dstr);
-	Tcl_DStringAppend(&dstr_info, Tcl_DStringValue(&dstr), -1);
-        Tcl_DStringFree(&dstr);
-        //Tcl_ExternalToUtfDString(NULL,opr->Info(),-1,&dstr);
-        info[0] = Tcl_NewStringObj(Tcl_DStringValue(&dstr_info), -1);
-        Tcl_DStringFree(&dstr_info);
-        Tcl_ExternalToUtfDString(NULL,opr->SourcePath(),-1,&dstr);
-        info[1] = Tcl_NewStringObj(dstr.string, -1);
-        Tcl_DStringFree(&dstr);
-        Tcl_ExternalToUtfDString(NULL,opr->Description(),-1,&dstr);
-        info[2] = Tcl_NewStringObj(dstr.string, -1);
-        Tcl_DStringFree(&dstr);
-        Tcl_SetListObj(obj_result, 3, info);
-        return TCL_OK;
-	*/
       }
       // release the previous use of dstr
       //Tcl_DStringFree(&dstr);
@@ -1725,8 +1720,20 @@ int SynObj2TclObj( const BSyntaxObject * var, Tcl_Obj * info[] )
 {
   Tcl_DString dstr;
   int infoc;
-  
+
   Tcl_DStringInit(&dstr);
+
+  /* GRAMMAR */
+  info[0] = Tcl_NewStringObj(var->Grammar()->Name().String(), -1);
+    
+  /* NAME */
+  BText synname(GetObjectName(var));
+  Tcl_ExternalToUtfDString(NULL,synname,-1,&dstr);
+  info[1] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
+  Tcl_DStringFree(&dstr);
+    
+  /* REST OF FIELDS */
+  
   BText varInfo(var->Info());
   BText varPath(var->SourcePath());
   BText varDesc(var->Description());
@@ -1737,186 +1744,112 @@ int SynObj2TclObj( const BSyntaxObject * var, Tcl_Obj * info[] )
   else pch = "";
   
   Tcl_ExternalToUtfDString(NULL,pch,-1,&dstr);
-  info[0] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
+  info[2] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
   Tcl_DStringFree(&dstr);
   
   /* OBJECT PATH */
   Tcl_ExternalToUtfDString(NULL,varPath,-1,&dstr);
-  info[1] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
+  info[3] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
   Tcl_DStringFree(&dstr);
   
   /* OBJECT DESCRIPTION */
   Tcl_ExternalToUtfDString(NULL,varDesc,-1,&dstr);
-  info[2] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
+  info[4] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
   Tcl_DStringFree(&dstr);
   
 #ifdef ISFILE_IMPLEMENTED
-  info[3] = Tcl_NewIntObj(var->IsFile());
+  info[5] = Tcl_NewIntObj(var->IsFile());
 #else
-  info[3] = Tcl_NewIntObj(0);
+  info[5] = Tcl_NewIntObj(0);
 #endif
-  //info[4] = Tcl_NewIntObj(var->System());
-  
-  if ( (var->Mode()==BOBJECTMODE) && (var->Grammar() == GraSet() )) {
-    BSet * ptrSet = &(((BUserSet*)var)->Contens());
+  //info[6] = Tcl_NewIntObj(var->System());
+  BSet *ptrSet;
+  if ((ptrSet=ContainerGetSet(var))) {
     /* HAS SUBSET */
     int tmpCard = ptrSet->Card();
     int j;
     for (j=1; j<=tmpCard; ++j )
       if ( (*ptrSet)[j]->Grammar()==GraSet() )
         break;
-    info[4] = Tcl_NewIntObj(j<=tmpCard);
+    info[6] = Tcl_NewIntObj(j<=tmpCard);
       
     /* SUBTYPE */
-    info[5] = Tcl_NewIntObj( ptrSet->SubType() );
+    info[7] = Tcl_NewIntObj( ptrSet->SubType() );
       
     /* STRUCTURE */
     if ( ptrSet->Struct() ) {
       BText btxt( ptrSet->Struct()->Name() );
       Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
-      info[6] = Tcl_NewStringObj( Tcl_DStringValue(&dstr), -1 );
+      info[8] = Tcl_NewStringObj( Tcl_DStringValue(&dstr), -1 );
       Tcl_DStringFree( &dstr );
     } else
-      info[6] = Tcl_NewStringObj( NULL, 0 );
-    infoc = 7;
+      info[8] = Tcl_NewStringObj( NULL, 0 );
+    infoc = 9;
   } else
-    infoc = 4;
+    infoc = 6;
   
   return infoc;
 }
 
+int Tol_SetVariableInfoObj (Tcl_Obj * gra_name,
+                            Tcl_Obj * var_name,
+                            Tcl_Obj * obj_result);
+
 /*!
  * Fill in obj_result the variables defined for grammar gra_name.
- * Or the element set info if gra_name is a reference of an element 
- * of a global set.
+ * Or the element info if gra_name is a reference of an element 
+ * of a global container.
  */
-int Tol_SetVariablesObj (Tcl_Interp * interp, Tcl_Obj * gra_name,
-                         Tcl_Obj * obj_result)
+int Tol_SetVariablesObj (Tcl_Interp *interp, Tcl_Obj *gra_name,
+                         Tcl_Obj *obj_result)
 {
-  BGrammar * gra;
-  /* verificar primero si gra_name es la referencia a un item de un
-   * conjunto, esto es [llength $gra_name] > 1
-   */
-
+  const BSyntaxObject *syn ;
+  
+  int length = 0;
   Tcl_Obj ** items;
-  int n;
   int tcl_code;
-    
-  /* look for subset given in objv[1]*/
-  tcl_code = Tcl_ListObjGetElements(interp,gra_name,&n,&items);
-  if (tcl_code != TCL_OK) {
+  
+  if (Tcl_ListObjLength(interp,gra_name,&length)!=TCL_OK) {
     Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
     return TCL_ERROR;
   }
-  if ( n > 1 ) {
-    const BSyntaxObject * syn;
-
-    if (!(syn=Tol_ResolveObject(interp, gra_name, NULL))) {
-      Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
+  if (length!=1) {
+    if (length == 2) {
+      tcl_code = Tcl_ListObjGetElements(interp,gra_name,&length,&items);
+      assert(tcl_code == TCL_OK);
+      if (strcmp(Tcl_GetString(items[0]),"Console"))
+        return Tol_SetVariableInfoObj(items[0], items[1], obj_result);
+    }
+    if (!(syn=Tol_ResolveObject(interp, gra_name, obj_result))) {
       return TCL_ERROR;
     }
-    Tcl_DString dstr;
+//    Tcl_DString dstr;
     Tcl_Obj * info[9];
     int infoc;
-
-    BText grname(syn->Grammar()->Name());
-    //BText synname(syn->Identify());
-    BText synname(GetObjectName(syn));
-
-    /* GRAMMAR */
-    info[0] = Tcl_NewStringObj(grname, -1);
-
-    /* NAME */
-    Tcl_DStringInit(&dstr);
-    Tcl_ExternalToUtfDString(NULL,synname,-1,&dstr);
-    info[1] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
-    Tcl_DStringFree(&dstr);
     
-    /* REST OF FIELDS */
-    infoc = SynObj2TclObj( syn, info+2 ) + 2;
+    infoc = SynObj2TclObj(syn, info);
     Tcl_SetListObj(obj_result,infoc,info);
     return TCL_OK;
   }
-  gra = BGrammar::FindByName(Tcl_GetString(gra_name));
-  if (gra) {
-    BList * lstVar = gra->GetVariables();
-    if (BList2TclList(interp,lstVar,obj_result,&GetIdentify) != TCL_OK) {
-      Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
-      DESTROY(lstVar);
-      return TCL_ERROR;
-    }
-    DESTROY(lstVar);
-    if (QuickSort(interp,obj_result) != TCL_OK) {
-      Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
-      return TCL_ERROR;
-    }
-    return TCL_OK;
+  BGrammar *gra = BGrammar::FindByName(Tcl_GetString(gra_name));
+  if (!gra) {
+    Tcl_AppendStringsToObj( obj_result, "'",
+                            Tcl_GetString(gra_name),
+                            "' isn't a grammar", NULL );
+    return TCL_ERROR;
   }
-  Tcl_AppendStringsToObj( obj_result, "\"",
-                          Tcl_GetString(gra_name),
-                          "\" isn't a grammar", NULL );
-  return TCL_ERROR;
-
-  // The code below is death!!!!!
-
-  /* look for subset given in objv[1]*/
-  tcl_code = Tcl_ListObjGetElements(interp,gra_name,&n,&items);
-  if (tcl_code != TCL_OK) {
+  BList * lstVar = gra->GetVariables();
+  if (BList2TclList(interp,lstVar,obj_result,&GetIdentify) != TCL_OK) {
+    Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
+    DESTROY(lstVar);
+    return TCL_ERROR;
+  }
+  DESTROY(lstVar);
+  if (QuickSort(interp,obj_result) != TCL_OK) {
     Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
     return TCL_ERROR;
   }
-  if ( n > 1 ) {
-    /* is a list & should be a member of a set */
-    
-    const BSyntaxObject * syn = Tol_FindSet( items[0], obj_result );
-    Tcl_DString dstr;
-
-    if ( !syn )
-      return TCL_ERROR;
-    syn = Tol_FindChild(interp,syn,items+1,n-1,obj_result);
-    if ( !syn )
-      return TCL_ERROR;
-    Tcl_Obj * info[9];
-    int infoc;
-    BText grname(syn->Grammar()->Name());
-    //BText synname(syn->Identify());
-    BText synname(GetObjectName(syn));
-
-    /* GRAMMAR */
-    Tcl_ExternalToUtfDString(NULL,grname,-1,&dstr);
-    info[0] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
-    Tcl_DStringFree(&dstr);
-
-    /* NAME */
-
-    Tcl_ExternalToUtfDString(NULL,synname,-1,&dstr);
-    info[1] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
-    Tcl_DStringFree(&dstr);
-    
-    /* REST OF FIELDS */
-    infoc = SynObj2TclObj( syn, info+2 ) + 2;
-    Tcl_SetListObj(obj_result,infoc,info);
-    return TCL_OK;
-  }
-  gra = BGrammar::FindByName(Tcl_GetString(gra_name));
-  if (gra) {
-    BList * lstVar = gra->GetVariables();
-    if (BList2TclList(interp,lstVar,obj_result,&GetIdentify) != TCL_OK) {
-      Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
-      DESTROY(lstVar);
-      return TCL_ERROR;
-    }
-    DESTROY(lstVar);
-    if (QuickSort(interp,obj_result) != TCL_OK) {
-      Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
-      return TCL_ERROR;
-    }
-    return TCL_OK;
-  }
-  Tcl_AppendStringsToObj( obj_result, "\"",
-                          Tcl_GetString(gra_name),
-                          "\" isn't a grammar", NULL );
-  return TCL_ERROR;
+  return TCL_OK;
 }
 
 /*
@@ -1939,7 +1872,7 @@ int Tol_SetVariableInfoObj (Tcl_Obj * gra_name,
     Tcl_DStringFree(&dstr);
 
     if (var) {
-      Tcl_Obj * info[7];
+      Tcl_Obj * info[9];
       int infoc;
       infoc = SynObj2TclObj( var, info );
       Tcl_SetListObj(obj_result,infoc,info);
