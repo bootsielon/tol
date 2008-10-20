@@ -108,7 +108,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="If Exist ..\postbuild.bat (&#x0D;&#x0A;call ..\postbuild.bat $(OutDir)\$(TargetFileName) $(InputDir)..\..\..\ActiveTOL\bin&#x0D;&#x0A;) else (&#x0D;&#x0A;copy $(OutDir)\$(TargetFileName)  %windir%\system32&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="If Exist ..\postbuild.bat (&#x0D;&#x0A;call ..\postbuild.bat $(OutDir)\$(TargetFileName) $(InputDir)..\..\..\windows\ActiveTOL\bin&#x0D;&#x0A;) else (&#x0D;&#x0A;copy $(OutDir)\$(TargetFileName)  %windir%\system32&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -204,7 +204,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="If Exist ..\postbuild.bat (&#x0D;&#x0A;call ..\postbuild.bat $(OutDir)\$(TargetFileName) $(InputDir)..\..\..\ActiveTOL\bin&#x0D;&#x0A;) else (&#x0D;&#x0A;copy $(OutDir)\$(TargetFileName)  %windir%\system32&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="If Exist ..\postbuild.bat (&#x0D;&#x0A;call ..\postbuild.bat $(OutDir)\$(TargetFileName) $(InputDir)..\..\..\windows\ActiveTOL\bin&#x0D;&#x0A;) else (&#x0D;&#x0A;copy $(OutDir)\$(TargetFileName)  %windir%\system32&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -304,7 +304,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="If Exist ..\postbuild.bat (&#x0D;&#x0A;call ..\postbuild.bat $(OutDir)\$(TargetFileName) $(InputDir)..\..\..\ActiveTOL\bin&#x0D;&#x0A;) else (&#x0D;&#x0A;copy $(OutDir)\$(TargetFileName)  %windir%\system32&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="If Exist ..\postbuild.bat (&#x0D;&#x0A;call ..\postbuild.bat $(OutDir)\$(TargetFileName) $(InputDir)..\..\..\windows\ActiveTOL\bin&#x0D;&#x0A;) else (&#x0D;&#x0A;copy $(OutDir)\$(TargetFileName)  %windir%\system32&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -400,7 +400,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="If Exist ..\postbuild.bat (&#x0D;&#x0A;call ..\postbuild.bat $(OutDir)\$(TargetFileName) $(InputDir)..\..\..\ActiveTOL\bin&#x0D;&#x0A;) else (&#x0D;&#x0A;copy $(OutDir)\$(TargetFileName)  %windir%\system32&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="If Exist ..\postbuild.bat (&#x0D;&#x0A;call ..\postbuild.bat $(OutDir)\$(TargetFileName) $(InputDir)..\..\..\windows\ActiveTOL\bin&#x0D;&#x0A;) else (&#x0D;&#x0A;copy $(OutDir)\$(TargetFileName)  %windir%\system32&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
