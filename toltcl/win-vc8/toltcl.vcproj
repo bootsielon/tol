@@ -111,7 +111,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="If Exist postbuild.bat (&#x0D;&#x0A;call postbuild.bat $(OutDir)\$(TargetFileName) ..\..\ActiveTol\lib\toltcl&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="If Exist postbuild.bat (&#x0D;&#x0A;call postbuild.bat $(OutDir)\$(TargetFileName) ..\..\windows\ActiveTol\lib\toltcl&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -212,7 +212,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="If Exist postbuild.bat (&#x0D;&#x0A;call postbuild.bat $(OutDir)\$(TargetFileName) ..\..\ActiveTol\lib\toltcl&#x0D;&#x0A;)&#x0D;&#x0A;"
+				CommandLine="If Exist postbuild.bat (&#x0D;&#x0A;call postbuild.bat $(OutDir)\$(TargetFileName) ..\..\windows\ActiveTol\lib\toltcl&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
