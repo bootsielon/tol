@@ -596,7 +596,14 @@
   if(!L_.CheckDefined("CholeskiSolve")) { return(-1); }
   if(!B_.CheckDefined("CholeskiSolve")) { return(-1); }
   BVMat* L__, *B__;
-  convertIfNeeded_cRt2cRs(L_,B_,L__,B__,"CholeskiSolve");
+  if(L_.code_==ESC_blasRdense)
+  {
+    convertIfNeeded2bRd(L_,B_,L__,B__,"CholeskiSolve");
+  }
+  else
+  {
+    convertIfNeeded_cRt2cRs(L_,B_,L__,B__,"CholeskiSolve");
+  }
   BVMat &L = *L__,  &B = *B__;
   int result = 0;
   const StrCholSol* cholSol = FindCholSol(L.code_, B.code_, sys);
