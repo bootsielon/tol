@@ -1,0 +1,154 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for GibbsConstrainedMNormal function
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "GibbsConstrainedMNormal" ;
+  Real PutRandomSeed(0);
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Matrix nu = Col(2.0, 2.0);
+  Matrix COV = ((1.0, 4/5.0),(4/5.0, 1.0));
+  Matrix iCOV = GaussInverse(COV);
+
+  Real size = 10000;
+  Real burning = 1;
+
+  Matrix gslLLt = ((1,  0),
+                   (0.8, 0.6));
+  Matrix tolLLt = Choleski(COV);
+  Matrix iLLt = Choleski(iCOV);
+  Set    svd = SVD(COV);
+  Set    isvd = SVD(iCOV);
+  Matrix Ai = svd[1]*Sqrt(svd[2]);
+
+  Set Cases = 
+  [[
+    Set Case1 = 
+    {[[
+      Matrix B  =   ((-1.0, +1.0), 
+                     ( 0.0, -1.0));
+      Matrix b  = Col(-0.2,  
+                      -1.8);
+      Matrix X0 = b
+    ]]};
+    Set Case2 = 
+    {[[
+      Matrix B  =   ((+1.0, -1.0), 
+                     ( 0.0, -1.0));
+      Matrix b  = Col(+0.2,    
+                      -1.8);
+      Matrix X0 = b
+    ]]};
+    Set Case3 = 
+    {[[
+      Matrix B  =   ((-1.0, +1.0), 
+                     ( 0.0, +1.0));
+      Matrix b  = Col(-0.2,  
+                      +1.8);
+      Matrix X0 = b
+    ]]};
+    Set Case4 = 
+    {[[
+      Matrix B  =   ((+1.0, -1.0), 
+                     ( 0.0, +1.0));
+      Matrix b  = Col(+0.2,  
+                      +1.8);
+      Matrix X0 = b
+    ]]}
+  ]];
+
+  Matrix FullNonTruncated = 
+  {
+    Matrix U = Gaussian(Rows(nu), 4*size, 0, 1);
+    Matrix NU = Rand(1,4*size,MatDat(nu,1,1),MatDat(nu,1,1)) <<
+                Rand(1,4*size,MatDat(nu,2,1),MatDat(nu,2,1));
+    Tra(NU + Ai*U)
+  };
+    
+  Set FullDividing = EvalSet(Cases, Matrix(Set case)
+  {
+    Matrix b_ = Rand(1,4*size,MatDat(case::b,1,1),MatDat(case::b,1,1)) <<
+                Rand(1,4*size,MatDat(case::b,2,1),MatDat(case::b,2,1));
+    Matrix BU = case::B*Tra(FullNonTruncated);
+    Matrix sel = EQ(Row(1,1)*LE(BU,b_),Rand(1,4*size,2,2));
+    Set index = Select(Range(1,4*size,1), Real(Real k) { MatDat(sel,1,k) });
+    SubRow(FullNonTruncated, index)
+  });
+
+  //////////////////////////////////////////////////////////////////////////////
+    Set getAllSamples(Real k)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Set    case = Cases[k];
+    Matrix B    = case::B;
+    Matrix b    = case::b;
+    Matrix X0   = case::X0; 
+    Real   size = Rows(FullDividing[k]);
+  [[
+    Matrix MCsample1     = GibbsConstrainedMNormal(nu, COV, 
+      B, b, 1, size,burning, X0);
+    Matrix tolMCsample   = GibbsConstrainedMNormal(nu, [["fact_chol",tolLLt]], 
+      B, b,1, size, burning);
+    Matrix gslMCsample   = GibbsConstrainedMNormal(nu, [["fact_chol",gslLLt]], 
+      B, b,1, size, burning);
+    Matrix fsvdMCsample  = GibbsConstrainedMNormal(nu, [["fact_svd",svd[1], 
+      Matrix Sqrt(SubDiag(svd[2],0)) ]], B, b, 1.0, size, burning);
+    Matrix icholMCsample = GibbsConstrainedMNormal(nu, [["fact_ichol",iLLt]], 
+      B, b, 1, size, burning);
+    Matrix isvdMCsample  = GibbsConstrainedMNormal(nu, [["fact_isvd",isvd[1],
+      Matrix Sqrt(Tra(SubDiag(isvd[2],0))) ]],  B, b, 1.0, size, burning);
+    Matrix allMCMC = FullDividing[k] | 
+      MCsample1 | tolMCsample | gslMCsample | 
+      fsvdMCsample | icholMCsample | isvdMCsample
+  ]]};
+    
+  Set TruncatedSamples = For(1,Card(Cases), getAllSamples);
+
+  Set TruncatedUnion = EvalSet(Traspose(TruncatedSamples),Matrix(Set c)
+  {
+    Matrix aux = Group("ConcatRows", c);
+    Eval("Full_"+Name(c[1])+"=aux")
+  });
+  Matrix StudentTtest2 = SetMat(BinGroup("<<", 
+  For(1, Card(TruncatedUnion)-1, Set(Real j)
+  {
+    [[ AlgLib.StudentTtest2(SubCol(FullNonTruncated,[[1]]), 
+                            SubCol(TruncatedUnion[j],[[1]])),
+      AlgLib.StudentTtest2(SubCol(FullNonTruncated,[[2]]), 
+                            SubCol(TruncatedUnion[j],[[2]])) ]]
+  })));
+  Real eqMinProb = MatMin(SubCol(StudentTtest2,[[1  ]]));
+  Real neMaxProb = MatMax(SubCol(StudentTtest2,[[2,3]]));
+
+  Set avr = BinGroup("<<", For(1, Card(TruncatedUnion)-1, Set(Real j)
+  {[[ [[
+    MatAvr(SubCol(FullNonTruncated, [[1]])), 
+    MatAvr(SubCol(TruncatedUnion[j],[[1]])) ]] , [[
+    MatAvr(SubCol(FullNonTruncated, [[2]])), 
+    MatAvr(SubCol(TruncatedUnion[j],[[2]])) ]] ]]
+  }));
+
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    eqMinProb,
+    neMaxProb
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError)*eqMinProb;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

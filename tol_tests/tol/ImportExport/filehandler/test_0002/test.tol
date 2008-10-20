@@ -1,0 +1,68 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for file handling functions
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Parsing a file of one column to get another one with two "
+                  "columns" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Text inputPath       = "one_field.txt";
+  Text outputPath      = "two_fields.csv";
+  Text outputCheckPath = "two_fields.check.csv";
+
+  Real input  = FOpen(inputPath,  "r", True, True);
+  Real output = FOpen(outputPath, "w", True, True);
+
+  Text first_field = "";
+  Real end = False;
+  Real While(!end,
+  {
+    Text line = FGetText(input,100,"\n");
+    Real end = FEof(input);
+    If(!end,
+    {
+      Real p = TextFind(line,":");
+    //WriteLn("TRACE line='"+line+"' eof = "<<FEof(input));
+      Real If(p, 
+      {
+        Text first_field := Sub(line,1,p-1);
+      //WriteLn("TRACE Processing first_field "+first_field);
+        0
+      },
+      {
+        FPutText(output, first_field+","+line+",\n")
+      })
+    })
+  });
+
+  Real FClose(output);
+  Real FClose(input);
+
+  Text txt1 = ReadFile(outputCheckPath);
+  Text txt2 = ReadFile(outputPath);
+  Real okOutput = txt1 == txt2;
+
+  Real OSFilRemove(outputPath);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    okOutput
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, okOutput);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */

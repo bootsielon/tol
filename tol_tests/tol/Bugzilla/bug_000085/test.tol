@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 85;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "F-Snedecor Distribution";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real x93 = DistF (3.86, 9,3);
+    Real x39 = DistF (3.86, 3,9);
+    Real q93 = Abs(x93-0.853105098088957)<1.E-15;
+    Real q39 = Abs(x39-0.949921614663876)<1.E-15
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, q93, q39);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

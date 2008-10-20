@@ -1,0 +1,253 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "VMatrix CHOLMOD CholeskiSolve methods for ARMA process" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+Real PutRandomSeed(406742613);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("rndSeed="<<rndSeed);
+
+//////////////////////////////////////////////////////////////////////////////
+  Polyn ARMAGamma(Polyn ar, Polyn ma, Real n)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix aux1 = Tra(ARMATACov(ar,ma,n));
+  Polyn  aux2 = MatPol(aux1);
+  aux2 + ChangeBF(aux2) - MatDat(aux1,1,1)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  VMatrix AvoidSymRoundErr(VMatrix S)
+//////////////////////////////////////////////////////////////////////////////
+{
+  (S+Tra(S))*0.5
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  VMatrix ExtendBandedSymToeplitz(VMatrix S, Real m)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real n = VRows(S);
+  Polyn pol = 
+  {
+    Polyn aux = MatPol(Reverse(VMat2Mat(SubRow(S,[[n]]))));
+    aux+ChangeBF(aux)-VMatDat(S,n,n)
+  };
+  VMatrix aux = (
+    ((S - Pol2VMat(pol, n, n)) | Zeros(n, m-n)) <<
+    Zeros(m-n,m)
+  )+Pol2VMat(pol, m, m);
+  AvoidSymRoundErr(aux)
+}; 
+
+
+//////////////////////////////////////////////////////////////////////////////
+  VMatrix ExtendBandedLowTriangToeplitz(VMatrix L, Real m)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real n = VRows(L);
+  Polyn pol = MatPol(Reverse(VMat2Mat(SubRow(L,[[n]]))));
+  VMatrix aux = (
+    ((L - Pol2VMat(pol, n, n)) | Zeros(n, m-n)) <<
+    Zeros(m-n,m)
+  )+Pol2VMat(pol, m, m);
+  aux
+}; 
+
+
+  Real   m      = IntRand(150, 150);
+  
+  Real   p1     = IntRand(1,3);
+  Polyn  ar1    = RandStationary(p1);
+  Real   q1     = IntRand(1,3);
+  Polyn  ma1    = RandStationary(q1);
+  
+  Real   p7     = 1*IntRand(1,1);
+  Polyn  ar7    = RandStationary(p7,7);
+  Real   q7     = 0*IntRand(1,3);
+  Polyn  ma7    = RandStationary(q7,7);
+  
+  Polyn  ar = ar1*ar7;
+  Polyn  ma = ma1*ma7;
+  
+  Real p = Degree(ar);
+  Real q = Degree(ma);
+  
+  Real n = Max(p,q)+p;
+  
+//Dense Choleski of large length m
+  Matrix cov_arma_m_ = ARMAACov(ar,ma,m);
+  Matrix L_arma_m_   = Choleski(cov_arma_m_);
+  Matrix Li_arma_m_  = LTInverse(L_arma_m_);
+
+  Matrix cov_ar_m_ = ARMAACov(ar,1,m);
+  Matrix L_ar_m_   = Choleski(cov_ar_m_);
+  Matrix Li_ar_m_  = LTInverse(L_ar_m_);
+  
+  Matrix cov_theta_m.1_ = (Li_ar_m_*cov_arma_m_*Tra(Li_ar_m_)+m^2)-m^2;
+  Matrix L_theta_m.1_ = Choleski(cov_theta_m.1_);
+
+//Dense Choleski of short length n
+  Matrix cov_arma_n_  = ARMAACov(ar,ma,n);
+  Matrix cov_ar_n_    = ARMAACov(ar,1,n);
+  Matrix L_ar_n_      = Choleski(cov_ar_n_);
+  Matrix Li_ar_n_     = LTInverse(L_ar_n_);
+  Matrix cov_theta_n_ = (Li_ar_n_*cov_arma_n_*Tra(Li_ar_n_)+n^2)-n^2;
+
+  Polyn gamma_theta_BF_ = 
+  {
+    Polyn aux = MatPol(Reverse(SubRow(cov_theta_n_,[[n]])));
+    aux+ChangeBF(aux)-MatDat(cov_theta_n_,n,n)
+  };
+  
+  Matrix cov_theta_m_ = 
+    (
+      ((cov_theta_n_ - PolMat(gamma_theta_BF_, n, n)) | Rand(n, m-n, 0, 0)) <<
+      Rand(m-n,m,0,0)
+    )+
+    PolMat(gamma_theta_BF_, m, m); 
+  
+  Real quality.cov_theta_m_ = 1-MatMax(Abs(cov_theta_m_-cov_theta_m.1_));
+  WriteLn("quality.cov_theta_m_ = "<<quality.cov_theta_m_);
+
+  Matrix L_theta_m_ = Choleski(cov_theta_m_);
+  Real quality.L_theta_m_ = 1-MatMax(Abs(L_theta_m_-L_theta_m.1_));
+  WriteLn("quality.L_theta_m_ = "<<quality.L_theta_m_);
+
+  
+//Sparse Choleski of large length m
+  VMatrix cov_arma_m = Pol2VMat(ARMAGamma(ar,ma,m), m, m);
+  Real quality.cov_arma_m = 1-MatMax(Abs(VMat2Mat(cov_arma_m)-cov_arma_m_));
+  WriteLn("quality.cov_arma_m = "<<quality.cov_arma_m);
+
+  VMatrix L_arma_m.1   = CholeskiFactor(cov_arma_m,"X");
+  Real quality.L_arma_m.1 = 1-MatMax(Abs(VMat2Mat(L_arma_m.1)-L_arma_m_));
+  WriteLn("quality.L_arma_m.1 = "<<quality.L_arma_m.1);
+
+  VMatrix Li_arma_m.1  = CholeskiSolve(L_arma_m.1,Eye(m),"L");
+  VMatrix Lis_arma_m.1 = Convert(Li_arma_m.1,"Cholmod.R.Sparse");
+  Real quality.Li_arma_m.1 = 1-MatMax(Abs(VMat2Mat(Li_arma_m.1)-Li_arma_m_));
+  WriteLn("quality.Li_arma_m.1 = "<<quality.Li_arma_m.1);
+
+  VMatrix cov_ar_m = Pol2VMat(ARMAGamma(ar,1,m), m, m);
+  Real quality.cov_ar_m = 1-MatMax(Abs(VMat2Mat(cov_ar_m)-cov_ar_m_));
+  WriteLn("quality.cov_ar_m = "<<quality.cov_ar_m);
+
+  VMatrix L_ar_m   = CholeskiFactor(cov_ar_m,"X");
+  Real quality.L_ar_m = 1-MatMax(Abs(VMat2Mat(L_ar_m)-L_ar_m_));
+  WriteLn("quality.L_ar_m = "<<quality.L_ar_m);
+
+  VMatrix Li_ar_m.1  = CholeskiSolve(L_ar_m,Eye(m),"L");
+  Matrix VMat2Mat(Li_ar_m.1);
+  Real quality.Li_ar_m.1 = 1-MatMax(Abs(VMat2Mat(Li_ar_m.1)-Li_ar_m_));
+  WriteLn("quality.Li_ar_m.1 = "<<quality.Li_ar_m.1);
+
+  VMatrix cov_theta_m.1 = 
+    AvoidSymRoundErr((Li_ar_m.1*cov_arma_m*Tra(Li_ar_m.1)+m^2)-m^2);
+  Matrix VMat2Mat(cov_theta_m.1-Tra(cov_theta_m.1));
+  Real quality.cov_theta_m.1 = 1-MatMax(Abs(VMat2Mat(cov_theta_m.1)-cov_theta_m.1_));
+  WriteLn("quality.cov_theta_m.1 = "<<quality.cov_theta_m.1);
+
+  VMatrix L_theta_m.1 = CholeskiFactor(cov_theta_m.1,"X");
+
+//Sparse Choleski of short length n
+  VMatrix cov_arma_n = Pol2VMat(ARMAGamma(ar,ma,n), n, n);
+  Real quality.cov_arma_n = 1-MatMax(Abs(VMat2Mat(cov_arma_n)-cov_arma_n_));
+  WriteLn("quality.cov_arma_n = "<<quality.cov_arma_n);
+
+  VMatrix cov_ar_n = Pol2VMat(ARMAGamma(ar,1,n), n, n);
+  Real quality.cov_ar_n = 1-MatMax(Abs(VMat2Mat(cov_ar_n)-cov_ar_n_));
+  WriteLn("quality.cov_ar_n = "<<quality.cov_ar_n);
+
+  VMatrix L_ar_n   = CholeskiFactor(cov_ar_n,"X");
+  Real quality.L_ar_n = 1-MatMax(Abs(VMat2Mat(L_ar_n)-L_ar_n_));
+  WriteLn("quality.L_ar_n = "<<quality.L_ar_n);
+
+  VMatrix Li_ar_n  = CholeskiSolve(L_ar_n,Eye(n),"L");
+  Real quality.Li_ar_n = 1-MatMax(Abs(VMat2Mat(Li_ar_n)-Li_ar_n_));
+  WriteLn("quality.Li_ar_n = "<<quality.Li_ar_n);
+
+  VMatrix cov_theta_n = (Li_ar_n*cov_arma_n*Tra(Li_ar_n)+n^2)-n^2;
+
+  VMatrix cov_theta_m = ExtendBandedSymToeplitz(cov_theta_n, m);
+  Real quality.cov_theta_m = 1-VMatMax(Abs(cov_theta_m-cov_theta_m.1));
+  WriteLn("quality.cov_theta_m = "<<quality.cov_theta_m);
+
+  VMatrix Li_ar_m = ExtendBandedLowTriangToeplitz(Li_ar_n, m);
+  Matrix VMat2Mat(Li_ar_m);
+  Real quality.Li_ar_m = 1-VMatMax(Abs(Li_ar_m-Li_ar_m.1));
+  WriteLn("quality.Li_ar_m = "<<quality.Li_ar_m);
+
+  VMatrix L_theta_m = CholeskiFactor(cov_theta_m,"X");
+  VMatrix Ls_theta_m = Convert(L_theta_m,"Cholmod.R.Sparse");
+  Matrix VMat2Mat(Ls_theta_m);
+  Real quality.Ls_theta_m = 1-MatMax(Abs(VMat2Mat(Ls_theta_m)-L_theta_m_));
+  WriteLn("quality.Ls_theta_m = "<<quality.Ls_theta_m);
+
+  VMatrix Li_arma_m  = CholeskiSolve(L_theta_m,Li_ar_m,"L");
+  Matrix VMat2Mat(Li_arma_m);
+  Real quality.L_arma_m = 1-VMatMax(Abs(Li_arma_m-Lis_arma_m.1));
+  WriteLn("quality.L_arma_m = "<<quality.L_arma_m);
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0,numErr1,
+    quality.cov_theta_m_ ,
+    quality.L_theta_m_ ,
+    quality.cov_arma_m ,
+    quality.L_arma_m.1 ,
+    quality.Li_arma_m.1 ,
+    quality.cov_ar_m ,
+    quality.L_ar_m ,
+    quality.Li_ar_m.1 ,
+    quality.cov_theta_m.1 ,
+    quality.cov_arma_n ,
+    quality.cov_ar_n ,
+    quality.L_ar_n ,
+    quality.Li_ar_n ,
+    quality.cov_theta_m ,
+    quality.Li_ar_m ,
+    quality.Ls_theta_m ,
+    quality.L_arma_m
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = Eq(numErr1==numErr0)*Max(0,Min(
+    quality.cov_theta_m_ ,
+    quality.L_theta_m_ ,
+    quality.cov_arma_m ,
+    quality.L_arma_m.1 ,
+    quality.Li_arma_m.1 ,
+    quality.cov_ar_m ,
+    quality.L_ar_m ,
+    quality.Li_ar_m.1 ,
+    quality.cov_theta_m.1 ,
+    quality.cov_arma_n ,
+    quality.cov_ar_n ,
+    quality.L_ar_n ,
+    quality.Li_ar_n ,
+    quality.cov_theta_m ,
+    quality.Li_ar_m ,
+    quality.Ls_theta_m ,
+    quality.L_arma_m
+  ));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

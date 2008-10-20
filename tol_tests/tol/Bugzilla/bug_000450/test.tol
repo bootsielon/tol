@@ -1,0 +1,33 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 450;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Include a bdt file make me to do a mistake";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Set s = Include("test.bdt");
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real c  = Card(s),
+    Real x1 = SerDat(s[1],y2004m04d02),
+    Real x2 = SerDat(s[2],y2004m04d02)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, c==2, IsUnknown(x1), x2==2);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

@@ -1,0 +1,51 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for file handling functions
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Checking FOpen error messages" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  
+  Text inputPath  = "one_field.txt";
+  Text outputPath = "two_fields.cvs";
+
+  Real OSFilRemove(inputPath);
+  Real OSFilRemove(outputPath);
+
+  Real input  = FOpen(inputPath,  "r", True, True);
+  Real output = FOpen(outputPath, "w", True, True);
+
+  Real FClose(output);
+  Real FClose(input);
+
+  Real okInput  = !OSFilExist(inputPath);
+  Real okOutput =  OSFilExist(outputPath);
+
+  Real OSFilRemove(inputPath);
+  Real OSFilRemove(outputPath);
+
+  Real numErr = Copy(NError) - numErr0;
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr,
+    okInput,
+    okOutput
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr==2, okInput, okOutput);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */

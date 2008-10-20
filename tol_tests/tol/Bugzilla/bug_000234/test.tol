@@ -1,0 +1,66 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 234;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Struct  St ( Polyn a)   fails  evaluating polynomies (V 1.1.2 Jan 13 2005 for WINDOWS)";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Struct St(Polyn a);
+  WriteLn("Test part 1");
+  //  FAIL  
+  Set  conj1  = SetOfSet
+  (
+     St( -1),  // Fail -- Its return  1   instead of -1
+     St(  2)
+  );
+  Set View(conj1,"");
+  WriteLn("\nTest part 2");
+  // Works 
+  Set  conj2  = SetOfSet
+  (
+     St( Polyn  -1),         
+     St( Polyn   2)
+  ) ;
+  Set View(conj2,"");
+  WriteLn("\nTest part 3");
+  // FAIL ( Return a different error meassege )
+  Set  conj3  = SetOfSet
+  (
+    St(1-B)
+  );
+  Set View(conj3,"");
+  WriteLn("");
+  //Extented information about test behaviour
+  Polyn p_1 = -1;
+  Polyn p_2 =  2;
+  Polyn p_3 =  1-B;
+  Polyn pc1_1 = conj1[1][1];
+  Polyn pc1_2 = conj1[2][1];
+  Polyn pc2_1 = conj2[1][1];
+  Polyn pc2_2 = conj2[2][1];
+  Polyn pc3_1 = conj3[1][1];
+  Set partialResults_ = 
+  [[
+    Real ok1 = (p_1 == pc1_1) & (p_2 == pc1_2);
+    Real ok2 = (p_1 == pc2_1) & (p_2 == pc2_2);
+    Real ok3 = (p_3 == pc3_1)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, 1);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

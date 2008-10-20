@@ -1,0 +1,34 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 471;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Suma de TimeSet sin nombre";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+  Real GlobalizeSeries := False;
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set unnamed_timeset = Include("unnamed_timeset.tol");
+
+ //Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real o = ObjectExist("Set", "unnamed_timeset");
+    Real c = If(!o,-1,Card(unnamed_timeset))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError,c==1);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

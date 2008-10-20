@@ -1,0 +1,122 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for random numbers generation
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+   "Test of coherence and completeness of truncated bi-normal" ;
+
+//We go to divide the real plane in 4 quadrants and draw a bidimensional
+//truncated normal sample of the same size in each one.
+//Joining of 4 samples must fill the full plane area of a bidimensional
+//non truncated normal 
+  Real n = 2;     // The dimension of a plane
+  Real s = 250;  // The length of each sample
+  Real sigma = 1; // The standard deviation
+//Generating a random covarianze matrix
+  Matrix cov = 
+  {
+    Real m = 100;
+    Matrix X = Rand(m,n,-sigma,sigma);
+    Matrix Y = Rand(n,n,-1,1);
+    Matrix XY = X*Y;
+    MtMSqr(XY)
+  //Diag(n,1)
+  };
+//Choleski decomposition and its inverse
+  Matrix L   = Choleski(cov);
+  Matrix Lt  = Tra(L);
+  Matrix Li  = LTInverse(L);
+//The average of distribution is null in order to simplify calculations
+  Matrix nu  = Rand(n,1,0,0);
+  
+//The left and right borders of each quadrant
+  Real   sk  = Max(Sqrt(MatDat(cov,1,1)),Sqrt(MatDat(cov,2,2)));
+  Real   k0  = -5*sigma*sk;
+  Real   k1  = 0;
+  Real   k2  = +5*sigma*sk;
+  Matrix a00 = Col(k0,k0); b00 = L*Col(k1,k1);
+  Matrix a01 = Col(k1,k0); b01 = L*Col(k2,k1);
+  Matrix a10 = Col(k0,k1); b10 = L*Col(k1,k2);
+  Matrix a11 = Col(k1,k1); b11 = L*Col(k2,k2);
+  Matrix bounds = Tra(a00|b00|a01|b01|a10|b10|a11|b11);
+//Sampling non truncated bidimensional normal to get area for each 
+//quadrant
+  Matrix c_  = L*Gaussian(n,s*4*10,0,sigma);
+  Matrix ct_ = Tra(c_);
+  Matrix ctcovic_ = RProd(MtMSqr(Tra(Li*c_)),1/(Columns(c_)-1));
+
+  Matrix aux = SetMat( For(1,Columns(c_),Set (Real j) 
+  { 
+    Matrix cj = SubCol(c_,[[j]]);
+    Real s00 = And( MatSum(LE(a00,cj))==n, MatSum(LE(cj,b00))==n);
+    Real s01 = And( MatSum(LE(a01,cj))==n, MatSum(LE(cj,b01))==n);
+    Real s10 = And( MatSum(LE(a10,cj))==n, MatSum(LE(cj,b10))==n);
+    Real s11 = And( MatSum(LE(a11,cj))==n, MatSum(LE(cj,b11))==n);
+    [[s00,s01,s10,s11]]
+  }));
+  Real s00 = MatAvr(SubCol(aux,[[1]]));
+  Real s01 = MatAvr(SubCol(aux,[[2]]));
+  Real s10 = MatAvr(SubCol(aux,[[3]]));
+  Real s11 = MatAvr(SubCol(aux,[[4]]));
+ 
+//Sampling each quadrant
+  Matrix c00 = RandTruncatedMultNormal(nu,L,a00,b00,sigma,s*4*s00);
+  Matrix c01 = RandTruncatedMultNormal(nu,L,a01,b01,sigma,s*4*s01);
+  Matrix c10 = RandTruncatedMultNormal(nu,L,a10,b10,sigma,s*4*s10);
+  Matrix c11 = RandTruncatedMultNormal(nu,L,a11,b11,sigma,s*4*s11);
+
+//Testing coherence of restrictions
+  Real r00 = SetProd(For(1,Columns(c00),Real(Real j) 
+  { 
+    Matrix cj = SubCol(c00,[[j]]);
+    Real And( MatSum(LE(a00,cj))==n, MatSum(LE(cj,b00))==n)
+  }));
+  Real r01 = SetProd(For(1,Columns(c01),Real(Real j) 
+  { 
+    Matrix cj = SubCol(c01,[[j]]);
+    Real And( MatSum(LE(a01,cj))==n, MatSum(LE(cj,b01))==n)
+  }));
+  Real r10 = SetProd(For(1,Columns(c10),Real(Real j) 
+  { 
+    Matrix cj = SubCol(c10,[[j]]);
+    Real And( MatSum(LE(a10,cj))==n, MatSum(LE(cj,b10))==n)
+  }));
+  Real r11 = SetProd(For(1,Columns(c11),Real(Real j) 
+  { 
+    Matrix cj = SubCol(c11,[[j]]);
+    Real And( MatSum(LE(a11,cj))==n, MatSum(LE(cj,b11))==n)
+  }));
+//Joining 4 samples
+  Matrix c   = c00|c01|c10|c11;
+  Matrix ct  = Tra(c);
+//Testing independence of Li-transformed samples
+  Matrix ctcovic = RProd(MtMSqr(Tra(Li*c)),1/(Columns(c)-1));
+  Matrix C = NormDiag(ctcovic);
+  Matrix D = Tra(BinGroup("|",For(1,n-1,Matrix(Real k) { SubDiag(C,k) })));
+  Matrix W = Log(WeightProd(RSum(D,1),RPow(RSum(-D,1),-1)))*0.5;
+  Real mxc = MatMax(Abs(W));
+  Real p1  = 2*DistT(mxc,n-1)-1;
+  Real h   = (n*(n-1)/2);
+  Real H   = 1/(1-p1);
+  Real ph  = p1^h;
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    r00,r01,r10,r11
+  ]];
+//This is a messure of the success of the test 
+  Real quality_ = And(r00,r01,r10,r11)*(1-ph);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

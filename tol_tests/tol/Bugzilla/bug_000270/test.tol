@@ -1,0 +1,61 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 270;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Include BST removes tailing spaces of text elements";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Struct PruebaSt
+  {
+    Text TextUno,
+    Text TextDos
+  };
+  // Structured set with more than one space in text elements
+  Set miSet = SetOfSet(
+    PruebaSt("Cadena 1 con mas de   un espacio al final        ", "y yo tb     "),
+    PruebaSt("Cadena 2 con mas de   un espacio al final        ", "y yo tb     "),
+    PruebaSt("Cadena 3 con mas de   un espacio al final        ", "y yo tb     ")
+  );
+  // Save BST file
+  Set BSTFile(miSet, "prueba.bst");
+  // Open BST file
+  Set miSet2 = IncludeBST("prueba.bst");
+  // Set miSet2 doesn't have tailing spaces at end of texts
+  Real OSFilRemove("prueba.bst");
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+     Real ok11 = miSet[1]->TextUno == miSet2[1]->TextUno,
+     Real ok12 = miSet[1]->TextDos == miSet2[1]->TextDos,
+     Real ok21 = miSet[2]->TextUno == miSet2[2]->TextUno,
+     Real ok22 = miSet[2]->TextDos == miSet2[2]->TextDos,
+     Real ok31 = miSet[3]->TextUno == miSet2[3]->TextUno,
+     Real ok32 = miSet[3]->TextDos == miSet2[3]->TextDos
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    ok11,ok12,ok21,ok22,ok31,ok32
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

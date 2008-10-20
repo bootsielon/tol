@@ -1,0 +1,55 @@
+/* -*- mode: C++ -*- */
+
+Set Ois.Load("debugT06K01.oza");
+
+///////////////////////////////////////////
+Real logf (Real x, Set SetInfo)
+///////////////////////////////////////////
+{
+
+  Real Fk1 = SetInfo["Fk1"];
+  Real Sk  = SetInfo["Sk"];
+  Real Hk  = SetInfo["Hk"];
+  Real sig2  = SetInfo["sig2"];
+
+  Real res = -(1/(2*sig2))*(Log(1 + x) - Fk1)^2 + Sk*Log(x) +
+    (Hk - Sk)*Log(1 - x) - Log(1 + x);
+  /*WriteLn("x = "+FormatReal(x)+"; logf = "+FormatReal(res));*/
+  res
+
+}; // fin de logf
+
+// Ciclo buggy
+
+Real k=9;
+Real Fk1 = MatDat (F, k, 1);
+Real Sk	 = MatDat (S, k, 1);
+Real Hk	 = MatDat (H, k ,1);
+Real pK	 = MatDat (Ro, k ,1);
+Real sig2 = MatDat (Sigma2, 1 ,1);
+
+Set SetInfo = [[ Fk1, Sk, Hk, sig2 ]];
+
+Set rango = Range(10^(-10),1-10^(-10),0.003);
+
+Set reslogf = EvalSet(rango,Real(Real t){
+  Real logf(t,SetInfo)
+});
+
+Matrix plotLogf = (SetCol(rango) | SetCol(reslogf));
+
+/*
+WriteLn("k: "+FormatReal(k));
+WriteLn("Fk1: "+FormatReal(Fk1));
+WriteLn("Sk: "+FormatReal(Sk));
+WriteLn("Hk: "+FormatReal(Hk));
+WriteLn("pK: "+FormatReal(pK));
+
+WriteLn("");
+*/
+
+Set arms_sample = For(1, 100, Real(Real kk) {
+    /*WriteLn("iter = "<<kk);*/
+    Real ARMS(logf, 10^(-10), 1-10^(-10), Min(Max(pK,10^(-10)),1-10^(-10)),
+	      SetInfo)
+});

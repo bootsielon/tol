@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: TOL standard test
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_   = "<insert_your_mail>"; 
+  Text link_    = "<insert_a_link_to_doc_if_exist>";
+  Text summary_ = "<insert_a_brief_description>";
+
+  Real numErr0 = Copy(NError);
+
+//Write here the test TOL code
+
+
+  Real ok = <your_condition>;
+
+  Real numErr1 = Copy(NError);
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real numErr0,
+    Real numErr1
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == numErr1, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

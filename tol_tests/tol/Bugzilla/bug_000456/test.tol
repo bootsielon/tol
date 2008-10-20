@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 456;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Series return of Estimate";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Set Include("estimation.tol");
+  Set datingName_ = SetOfText
+  (
+    DatingName(ME[3][1]),
+    DatingName(ME[3][2]),
+    DatingName(ME[3][3]),
+    DatingName(ME[3][4]),
+    DatingName(ME[3][5]),
+    DatingName(ME[3][6]),
+    DatingName(ME[3][7]),
+    DatingName(ME[3][8]),
+    DatingName(ME[3][9][1])
+  );
+  Set ok_ = EvalSet(datingName_,Real(Text name){name=="FirstMondayInMonth"}); 
+//Extented information about test behaviour
+  Set partialResults_ =  ok_;
+
+//This is a messure of the success of the test 
+  Real quality_ = Group("And",ok_);
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

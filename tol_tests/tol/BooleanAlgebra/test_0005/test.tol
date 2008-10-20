@@ -1,0 +1,118 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Boolean Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+    "Comparisson operations with unknowns, finite and infinite numbers";
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real DoUnparseNodes := 2;
+  Set X      = SetOfText("-1/0","1/0","?");
+  Set binOpr = SetOfText("==","!=","<",">","<=",">=");
+  Set checkingCompare    = EvalSet(CartProd(X,binOpr,X),Text(Set s) 
+  {
+    Text expr = TextLeftPad(s[1]+s[2]+s[3],20);
+  //WriteLn(expr);
+    expr
+  });
+  Set expected_cmp = SetOfReal
+  (
+    /*          -1/0==-1/0 ->  */ true,
+    /*           -1/0==1/0 ->  */ false,
+    /*             -1/0==? ->  */ ?,
+    /*          -1/0!=-1/0 ->  */ false,
+    /*           -1/0!=1/0 ->  */ true,
+    /*             -1/0!=? ->  */ ?,
+    /*           -1/0<-1/0 ->  */ false,
+    /*            -1/0<1/0 ->  */ true,
+    /*              -1/0<? ->  */ ?,
+    /*           -1/0>-1/0 ->  */ false,
+    /*            -1/0>1/0 ->  */ false,
+    /*              -1/0>? ->  */ false,
+    /*          -1/0<=-1/0 ->  */ true,
+    /*           -1/0<=1/0 ->  */ true,
+    /*             -1/0<=? ->  */ true,
+    /*          -1/0>=-1/0 ->  */ true,
+    /*           -1/0>=1/0 ->  */ false,
+    /*             -1/0>=? ->  */ ?,
+    /*           1/0==-1/0 ->  */ false,
+    /*            1/0==1/0 ->  */ true,
+    /*              1/0==? ->  */ ?,
+    /*           1/0!=-1/0 ->  */ true,
+    /*            1/0!=1/0 ->  */ false,
+    /*              1/0!=? ->  */ ?,
+    /*            1/0<-1/0 ->  */ false,
+    /*             1/0<1/0 ->  */ false,
+    /*               1/0<? ->  */ false,
+    /*            1/0>-1/0 ->  */ true,
+    /*             1/0>1/0 ->  */ false,
+    /*               1/0>? ->  */ ?,
+    /*           1/0<=-1/0 ->  */ false,
+    /*            1/0<=1/0 ->  */ true,
+    /*              1/0<=? ->  */ ?,
+    /*           1/0>=-1/0 ->  */ true,
+    /*            1/0>=1/0 ->  */ true,
+    /*              1/0>=? ->  */ true,
+    /*             ?==-1/0 ->  */ ?,
+    /*              ?==1/0 ->  */ ?,
+    /*                ?==? ->  */ ?,
+    /*             ?!=-1/0 ->  */ ?,
+    /*              ?!=1/0 ->  */ ?,
+    /*                ?!=? ->  */ ?,
+    /*              ?<-1/0 ->  */ false,
+    /*               ?<1/0 ->  */ ?,
+    /*                 ?<? ->  */ ?,
+    /*              ?>-1/0 ->  */ ?,
+    /*               ?>1/0 ->  */ false,
+    /*                 ?>? ->  */ ?,
+    /*             ?<=-1/0 ->  */ ?,
+    /*              ?<=1/0 ->  */ true,
+    /*                ?<=? ->  */ ?,
+    /*             ?>=-1/0 ->  */ true,
+    /*              ?>=1/0 ->  */ ?,
+    /*                ?>=? ->  */ ?
+  );
+
+  Set checking_cmp = EvalSet(checkingCompare,Real(Text expr) { Eval(expr) });
+
+  Set check_cmp = For(1,Card(checking_cmp),Set(Real k)
+  {
+    Real x1 = checking_cmp[k];
+    Real x2 = expected_cmp[k];
+    Real u1 = IsUnknown(x1);
+    Real u2 = IsUnknown(x2);
+    Real ok = Case
+    (
+      u1 != u2, false,
+      u1 &  u2, true,
+      x1 == x2, true,
+      x1 != x2, false       
+    );
+    WriteLn(checkingCompare[k]+" = "+Format(x1,"%.0lf")+
+            " expected value: "+Format(x2,"%.0lf")+
+            " "+If(ok,"OK","FAIL"));
+    [[checkingCompare[k], checking_cmp[k], expected_cmp[k], ok ]]
+  });
+  Real ok_cmp = Group("And",Traspose(check_cmp)[4]);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    ok_cmp
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok_cmp);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */

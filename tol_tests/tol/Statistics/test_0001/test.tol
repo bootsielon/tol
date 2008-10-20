@@ -1,0 +1,70 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test about Statistics
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org";
+  Text link_ = "";
+  Text summary_ = "AlgLib.Mann.Whitney.U.test" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real N = IntRand(5000, 10000);
+  Matrix x   = Rand(N,                 1, -10.0, 10.0);
+  Matrix y.0 = Rand(N,                 1, -10.0, 10.0);
+  Matrix y.1 = Rand(IntRand(N*2, 4*N), 1, -10.0, 10.0);
+  Matrix y.2 = Rand(IntRand(N*2, 4*N), 1, -11.0, 11.0);
+  Matrix y.3 = Rand(IntRand(N*2, 4*N), 1, -10.0, 11.0);
+  Matrix y.4 = Rand(IntRand(N*2, 4*N), 1, -11.0, 10.0);
+  Set tests =
+  [[
+    Set test.0 = AlgLib.Mann.Whitney.U.test(x,y.0);
+    Set test.1 = AlgLib.Mann.Whitney.U.test(x,y.1);
+    Set test.2 = AlgLib.Mann.Whitney.U.test(x,y.2);
+    Set test.3 = AlgLib.Mann.Whitney.U.test(x,y.3);
+    Set test.4 = AlgLib.Mann.Whitney.U.test(x,y.4)
+  ]];
+
+  Matrix freq.x   = Frequency(x,  10,-11,11);
+  Matrix freq.y.0 = Frequency(y.0,10,-11,11);
+  Matrix freq.y.1 = Frequency(y.1,10,-11,11);
+  Matrix freq.y.2 = Frequency(y.2,10,-11,11);
+  Matrix freq.y.3 = Frequency(y.3,10,-11,11);
+  Matrix freq.y.4 = Frequency(y.4,10,-11,11);
+
+  Matrix freq.x.y = SubCol(freq.x,  [[1]]) |
+                   (SubCol(freq.x,  [[2]])*Real(1/Rows(x  )))|
+                   (SubCol(freq.y.0,[[2]])*Real(1/Rows(y.0)))|
+                   (SubCol(freq.y.1,[[2]])*Real(1/Rows(y.1)))|
+                   (SubCol(freq.y.2,[[2]])*Real(1/Rows(y.2)))|
+                   (SubCol(freq.y.3,[[2]])*Real(1/Rows(y.3)))|
+                   (SubCol(freq.y.4,[[2]])*Real(1/Rows(y.4)));
+
+/* * /
+//Extented information about test behaviour
+  Set partialResults_ =
+  [[
+    Real ok1 = MatSet(T11)==MatSet(T12),
+    Real ok2 = MatSet(T21)==MatSet(T22),
+    Real ok3 = MatSet(T31)==MatSet(T32),
+    Real ok4 = MatSet(T41)==MatSet(T42),
+    Real ok5 = MatSet(T51)==MatSet(T52),
+    Real ok6 = MatSet(T61)==MatSet(T62),
+    Real ok7 = MatSet(T71)==MatSet(T72),
+    Real ok8 = MatSet(T81)==MatSet(T82),
+    Real ok9 = MatSet(T91)==MatSet(T92),
+    Real ok  = And(ok1,ok2,ok3,ok4,ok5,ok6,ok7,ok8,ok9)
+  ]];
+
+//This is a messure of the success of the test
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

@@ -1,0 +1,12 @@
+Struct TransformacionesSt
+{
+  Text Type; 
+  Text code; 
+  Text Name; 
+  Text ExpresionXLS
+};
+
+Text LPrecio="prx";
+
+Set t = Include("test.bst");
+Set BSTFile(t,"Std");

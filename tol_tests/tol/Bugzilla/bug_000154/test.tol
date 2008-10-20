@@ -1,0 +1,42 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 154;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "DatCh doesnt work correctly again";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Serie s1 = SubSer(CalInd(C,Diario),y2003m07d12,y2004m01d31);
+  Serie s2 = DatCh(s1,Mensual,SumS);
+  // Serie s2 starts in y2003m08d01 and should start in y2003m07d01.
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Date f = First(s2)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    f==y2003m07d01
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

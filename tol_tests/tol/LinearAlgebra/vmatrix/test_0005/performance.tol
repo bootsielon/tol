@@ -1,0 +1,152 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : performance.tol
+// PURPOSE: performance analysis for VMatrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+Real PutRandomSeed(764345);
+Real rndSeed = GetRandomSeed(0);
+
+WriteLn("rndSeed="<<rndSeed);
+
+Struct CholeskiPerfStr
+{
+  Real iter,
+  Real nrow,
+  Real ncol,
+  Real X.nz,
+  Real y.nz,
+  Real b.nz,
+  Real XtX.nz,
+  Real L.nz,
+  Real quality, 
+  Real tMult, 
+  Real tFact, 
+  Real tSolv,
+  Real _quality,
+  Real _tMult,
+  Real _tFact,
+  Real _tSolv
+};
+
+//Simulation parameters
+Real _repeat =  10;
+Real min     = -10;
+Real max     = +10;
+Real numIter =  10;
+
+Set performance = For(1,numIter, Set(Real iter)
+{
+  Real c  = IntRand(10,1000);
+  Real r  = IntRand(c,10*c);
+  Real nz = Round(r*c)*Rand(0.001,0.02);  
+
+  VMatrix X = Rand(r,c,min,max,"Cholmod.R.Sparse",nz)+Eye(r,c);
+  VMatrix b = Rand(c,1,min,max,"Cholmod.R.Sparse",0.5*c);
+  VMatrix y = X*b;
+
+  Matrix _X = VMat2Mat(X);
+  Matrix _b = VMat2Mat(b);
+  Matrix _y = VMat2Mat(y);
+
+  Real X.nz   = VNonNullCells(X  )/(VRows(X  )*VColumns(X  ));
+  Real y.nz   = VNonNullCells(y  )/(VRows(y  )*VColumns(y  ));
+  Real b.nz   = VNonNullCells(b  )/(VRows(b  )*VColumns(b  ));
+
+//Sparse VMatrix Choleski methods
+  VMatrix Xty = Tra(Tra(y)*X);
+  Real t0 = Copy(Time);
+/*
+  Real repeatMult = _repeat*Min(100,Ceil(1+(r*c)/X.nz));
+  VMatrix XtX = 
+  {
+    Set For(2,repeatMult,Real(Real k) 
+    { VMatrix MtMSqr(X); 1 });
+    MtMSqr(X)
+  };
+  Real tMult = (Copy(Time)-t0)/repeatMult;
+  Real XtX.nz = VNonNullCells(XtX)/(VRows(XtX)*VColumns(XtX));
+  Real repeatFact = _repeat*Min(10,Ceil(1+(r*c)/XtX.nz));
+//WriteLn("repeatFact="<<repeatFact);
+  Real t0 := Copy(Time);
+  VMatrix L = 
+  {
+    Set For(2,repeatFact,Real(Real k) 
+    { VMatrix CholeskiFactor(XtX); 1 });
+    CholeskiFactor(XtX)
+  };
+  Real tFact = (Copy(Time)-t0)/repeatFact;
+*/
+  Real repeatFact = _repeat*Min(10,Ceil(1+(r*c)/X.nz));
+//WriteLn("repeatFact="<<repeatFact);
+  Real t0 := Copy(Time);
+  VMatrix L = 
+  {
+    Set For(2,repeatFact,Real(Real k) 
+    { VMatrix CholeskiFactor(X,"XtX"); 1 });
+    CholeskiFactor(X,"XtX")
+  };
+  Real tFact = (Copy(Time)-t0)/repeatFact;
+
+  Real L.nz   = VNonNullCells(L  )/(VRows(L  )*VColumns(L  ));
+  Real repeatSolv = _repeat*Min(100,Ceil(1+(r*c)/L.nz));
+  Real t0 := Copy(Time);
+  VMatrix b_ = 
+  {
+    Set For(2,repeatSolv,Real(Real k) 
+    { VMatrix CholeskiSolve(L,Xty,"LLt"); 1 });
+    Drop(CholeskiSolve(L,Xty,"LLt"),1.E-15)
+  };
+  Real tSolv = (Copy(Time)-t0)/repeatSolv;
+  Real t3 = Copy(Time);
+  Real quality = 1-MatMax(Abs(_b-VMat2Mat(b_)));
+
+//Dense Matrix Choleski methods
+  Matrix _Xty = Tra(Tra(_y)*_X);
+  Real t0 := Copy(Time);
+  Matrix _XtX  = 
+  {
+    Set For(2,_repeat,Real(Real k) 
+    { Matrix MtMSqr(_X); 1 });
+    MtMSqr(_X)
+  };
+  Real _tMult = (Copy(Time)-t0)/_repeat;
+  Real _repeatFact = 1;
+  Real t0 := Copy(Time);
+  Matrix _L = 
+  {
+    Set For(2,_repeatFact,Real(Real k) 
+    { Matrix Choleski(_XtX); 1 });
+    Choleski(_XtX)
+  };
+  Real _tFact = (Copy(Time)-t0)/_repeatFact;
+  Real t0 := Copy(Time);
+  Matrix _b_ = 
+  {
+    Set For(2,_repeat,Real(Real k) 
+    { Matrix TrSolve(_L,TrSolve(_L,_Xty,1,0,1),1,1,1); 1 });
+    TrSolve(_L,TrSolve(_L,_Xty,1,0,1),1,1,1)
+  };
+  Real _tSolv = (Copy(Time)-t0)/_repeat;
+  Real _quality = 1-MatMax(Abs(_b-_b_));
+
+  Set results = CholeskiPerfStr
+  (
+    iter, r, c,
+//  X.nz, y.nz, b.nz, XtX.nz, L.nz,
+    X.nz, y.nz, b.nz, 0,      L.nz,
+//  quality, tMult, tFact, tSolv,
+    quality,     0, tFact, tSolv,
+   _quality,_tMult,_tFact,_tSolv
+  );
+
+  WriteLn(ReplaceTable(""<<results,
+  [[ 
+    [["CholeskiPerfStr(",""]],
+    [[")",""]],
+    [[",","\t"]]
+  ]]));
+  results
+});
+
+Set BSTFile(performance, "performance.csv");
+/* */

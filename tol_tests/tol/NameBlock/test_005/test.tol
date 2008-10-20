@@ -1,0 +1,60 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for NameBlock Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "NameBlock Instamces" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  /* */
+
+  NameBlock Ejemplo = [[
+  //Constructor privado sin argumentos de usuario
+  NameBlock _build(Real unused)
+  {[[
+    //Exportación de miembros
+    Text texto = "hola";
+    Text Dime(Real unused) { texto }
+  ]]};
+  
+  //Constructor con argumento de usuario
+  NameBlock build(Text saludo)
+  {
+    NameBlock aux = _build(0);
+    Text aux::texto := saludo;
+    aux
+  }]];
+  
+  NameBlock ejemplo.1 = Ejemplo::build("T1");
+  NameBlock ejemplo.2 = Ejemplo::build("T2");
+  
+  Text T1=ejemplo.1::Dime(0);
+  Text T2=ejemplo.2::Dime(0);
+  
+  Real numErr1 = Copy(NError);
+  
+  /* */
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    T1, T2
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == numErr1, T1=="T1", T2=="T2");
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+/* */
+
+

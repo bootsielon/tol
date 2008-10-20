@@ -1,0 +1,98 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test of database handling with TOL
+//          requieres an active database connection
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Creates, inserts, selects and drops over a simple table";
+
+//Write here the initial test TOL code if needed
+
+  Real numErrIni = Copy(NError); //Initial number of errors
+
+  Write("Checking if there are active databases ... ");
+  Set  dbConns = DBGetOpened("");
+  Real ok0 = Card(dbConns)>0;
+  WriteLn(If(ok0,"OK","FAIL"));
+
+  Text tableName = "a_simple_table";
+//SQL for droping table
+  Text dropTable = "drop table if exists "+tableName;
+//SQL for creating table 
+  Text createTable = "create table "+tableName+" (A varchar(1), B Date)";
+//SQL for inserting data
+  Text insertData = 
+    "insert into "+tableName+" \n"
+    "select null, str_to_date('20060304','%Y%m%d') from dual";
+//SQL for selecting data
+  Text selectData = "select * from "+tableName;
+
+  Write("Executing query 1 ... ");
+  Real execQuery1 = DBExecQuery(dropTable);
+  WriteLn(IntText(execQuery1));
+  Write("Executing query 2 ... ");
+  Real execQuery2 = DBExecQuery(createTable);
+  WriteLn(IntText(execQuery2));
+  Write("Executing query 3 ... ");
+  Real execQuery3 = DBExecQuery(insertData);
+  WriteLn(IntText(execQuery3));
+  Write("Executing query 4 ... ");
+  Set  dbTable = DBTable(selectData);
+  Real execQuery4 = Card(dbTable);
+  WriteLn(IntText(execQuery4));
+  Write("Executing query 5 ... ");
+  Real execQuery5 = DBExecQuery(dropTable);
+  WriteLn(IntText(execQuery5));
+
+  Real numErrorEnd = Copy(NError); //Final number of errors
+
+//Expected number of errors is numErrIni+3 if no database connection is 
+//active. Else, if a_simple_table not exists execQuery1 will be -1 and an
+//error will be sent.
+  Real numErrorExpected = If(ok0, numErrIni, numErrIni+3);
+
+//Checks if expected errors is equal to obtained errors
+  Real ok1 = numErrorExpected == numErrorEnd;
+//Checks second query. If no database connection then should return -1
+  Real ok2 = If(ok0,execQuery2==0,execQuery2<0);
+//Checks third query. If no database connection then should return -1
+  Real ok3 = If(ok0,execQuery3==1,execQuery3<0);
+//Checks third query. If no database connection then should return -1
+  Real ok4 = If(ok0,execQuery4==1,execQuery4==0);
+//Checks third query. If no database connection then should return -1
+  Real ok5 = If(ok0,execQuery5==0,execQuery5<0);
+//Checks all queries
+  Real okAll = And(ok1,ok2,ok3,ok4,ok5);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErrIni, numErrorEnd, numErrorExpected,
+    execQuery1, execQuery2, execQuery3,
+    ok0,ok1,ok2,ok3,ok4,ok5,okAll
+  ]];
+
+//This is a messure of the success of the test 
+// If a database connection is available then 
+//   if okAll returns true
+//   if not okAll returns false
+// If no database connection is available then 
+//   if okAll then returns ? due no conclusion is posible
+//   if not okAll then return false due some is wrong
+  Real quality_ = If(ok0, okAll, If(okAll, ?, false));
+
+  Real Dbt.Exists = ObjectExist("Set","Dbt.Connect");
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    If(Dbt.Exists,Dbt.Connect->engine_, ""),
+                    If(Dbt.Exists,Dbt.Connect->host_,   ""),
+                    If(Dbt.Exists,Dbt.Connect->alias_,  ""),
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+

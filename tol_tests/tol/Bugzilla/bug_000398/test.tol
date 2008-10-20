@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 398;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "B operator malfunctioning";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  TimeSet CtSab=WD(6);
+  Serie s = CalInd(W, Diario) << SubSer(CalInd(C, Diario),y2004,y2005);
+  Serie b = B:s;
+  Serie ctsab = CalInd(W, CtSab) << SubSer(CalInd(C, CtSab),y2004,y2005);
+  Serie bs = B:ctsab;
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Date f = First(bs)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = f==TheBegin;
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

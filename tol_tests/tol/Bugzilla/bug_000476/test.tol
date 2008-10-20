@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 476;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Command involving Serie and TimeSet crashes TOL";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+  Real GlobalizeSeries := False;
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set pobDec = SetOfReal(18616630,  19990669,  21388551,  23677095,  26014278,  28117873,  30582936,  33956047,  37742561,  39433942);
+  Serie pobDecenalEspagna2 = MatSerSet(SetRow(pobDec),Periodic(y1900,10,Anual),y1900)[1];
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real sumMat = SetSum(pobDec);
+    Real sumSer = SumS(pobDecenalEspagna2);
+    Real ok = sumMat==sumSer
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError,ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

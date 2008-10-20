@@ -1,0 +1,169 @@
+//////////////////////////////////////////////////////////////////////////////  
+// FILE: ma.1.arms.tol
+// PURPOSE: Example of use of ARMS to simulate a pure MA(1) model
+//////////////////////////////////////////////////////////////////////////////  
+
+Real PutRandomSeed(1257333001);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("rndSeed="<<rndSeed);
+
+Real   m  = IntRand(15000,15000); 
+
+Real   q   = 1;
+Polyn  ma_ = 1-0.95*B; //RandStationary(q);
+
+//Generates initial white noise
+Matrix a0_  = Gaussian(q,1,0,1);
+//Generates white noise
+Matrix a_   = Gaussian(m,1,0,1);
+Real a.s = Sqrt(MatDat(MtMSqr(a_),1,1)/m);
+
+//No initial MA noise is needed
+Matrix z0_  = Rand(0,0,0,0);
+//Generates MA noise
+Matrix Z_   = DifEq(ma_,a_,a0_,z0_);
+//Converts MA noise to VMatrix
+VMatrix Z   = Mat2VMat(Z_);
+
+Set ARIMA = [[ARIMAStruct(1,1,RandStationary(q,1),1)]];
+Real t0=Copy(Time);
+Set testTime = For(1,10, Real (Real k)
+{
+  Set ev = ARIMALevinsonEval(ARIMA, Z_);
+  ev::logLH
+});
+Real time=(Copy(Time)-t0)/Card(testTime);
+
+/* * /
+Real theta1  = 0.95;
+
+  Real  gamma0 = 1+theta1^2;
+  Real  gamma1 = -theta1;
+  VMatrix COV = Eye(m,m,0,gamma0)+Eye(m,m,-1,gamma1)+Eye(m,m,1,gamma1);
+Matrix VMat2Mat(COV);
+Matrix ARMAACov(1,1-theta1*B,m);
+
+  VMatrix L = CholeskiFactor(COV,"X");
+Matrix VMat2Mat(L);
+  VMatrix L_ = Convert(L,"Cholmod.R.Sparse");
+Matrix VMat2Mat(L_);
+  Real logDetL = VMatSum(Log(SubBand(L_)));
+  VMatrix e = CholeskiSolve(L,Z,"L");
+Matrix VMat2Mat(e);
+Real logDens = -logDetL-0.5*VMatMoment(e,2);
+
+/* * /
+
+Real K0 = -m/2*Log(Sqrt(2*PI));
+
+
+//////////////////////////////////////////////////////////////////////////////  
+   Real LogDens.MA.1.Choleski(Real theta1)
+// 
+// Calculates Log of density of a MA(1) noise
+// 
+//   Log(f(theta)) = -m/2 * Log(2*PI) - Log |S| - 1/2* z´ * S**-1 z
+// 
+// If S = L*L´ and  L*e = z
+// 
+//   Log(f(theta)) ||= -Log |L| - 1/2 * a´ a
+// 
+//////////////////////////////////////////////////////////////////////////////  
+{
+  Real  gamma0 = 1+theta1^2;
+  Real  gamma1 = -theta1;
+  VMatrix COV = Eye(m,m,0,gamma0)+Eye(m,m,-1,gamma1)+Eye(m,m,1,gamma1);
+  VMatrix L = CholeskiFactor(COV,"X");
+  VMatrix L_ = Convert(L,"Cholmod.R.Sparse");
+  Real logDetL = VMatSum(Log(SubBand(L_)));
+  VMatrix e = CholeskiSolve(L,Z,"L");
+  -K0-logDetL-0.5*m*VMatMoment(e,2)
+};
+
+Set ARIMA = [[ARIMAStruct(1,1,RandStationary(q,1),1)]];
+
+//////////////////////////////////////////////////////////////////////////////  
+   Real LogDens.MA.1.Levinson(Real theta1)
+// 
+//////////////////////////////////////////////////////////////////////////////  
+{
+  Real PutCoef(ARIMA[1]->MA,1,-theta1);
+  Set ev = ARIMALevinsonEval(ARIMA, Z_);
+  Real Copy(ev::logLH)
+};
+
+
+//////////////////////////////////////////////////////////////////////////////  
+   Real LogDens.MA.1.Levinson.Approx(Real theta1)
+// 
+//////////////////////////////////////////////////////////////////////////////  
+{
+//Real theta1 = 0.94;
+  Real m0 = Min(m/5,200*q);
+  Real PutCoef(ARIMA[1]->MA,1,-theta1);
+  Set ev = ARIMALevinsonEval(ARIMA, Sub(Z_,1,1,m0,1));
+  Real logDetL = Log(ev::ACOVDetN)*m0/2;
+  Matrix e0 = Sub(ev::a,m0-q,1,q,1);
+  Matrix z  = Sub(Z_,m0+1,1,m-m0,1);
+  Matrix e = ev::a << DifEq(1/ARIMA[1]->MA,z,Rand(0,0,0,0),e0);
+  Real  (-K0-logDetL-0.5*MatDat(MtMSqr(e),1,1))
+};
+
+
+
+/* * /
+//Creating data to plot function LogDens.MA.1
+Set plot = EvalSet(Range(-0.99,0.99,0.01), Set(Real theta1)
+{
+  SetOfReal
+  (
+    theta1,
+    LogDens.MA.1.Choleski(theta1),
+    LogDens.MA.1.Levinson(theta1),
+    LogDens.MA.1.Levinson.Approx(theta1)
+  )
+});
+
+/* * /
+
+//Markov Chain parameters
+Real theta1 = 0;
+Real iter = 1;
+Real burnin = 100;
+Real sampleLength = 2000;
+Real traceLength = 100;
+Matrix mcmc = Rand(0,q,0,0);
+Real t0 = Copy(Time);
+//Markov Chain simulation
+While(iter<=sampleLength, 
+{
+  If(iter & !(iter%traceLength), WriteLn("Iter "<<iter+" Time:"+Time) );
+  Real theta1 := ARMS(LogDens.MA.1.Choleski, -1, 1, theta1);
+  Matrix mcmc := mcmc << Row(theta1); 
+  Real iter := iter+1
+});
+Real timeBySimulation = (Copy(Time)-t0)/sampleLength;
+WriteLn("Time by simulation="<<timeBySimulation);
+
+/* * /
+//Markov Chain reporting
+Set report = BysMcmc::Inference::report
+(
+  "MA.RIS",
+  For(1,q,Text(Real d){ "Theta."+IntText(d) }),
+  BysInf.Report.Config
+  (
+    Real raftery.diag.q   = 0.025,
+    Real raftery.diag.r   = 0.007,   
+    Real raftery.diag.s   = 0.950,   
+    Real raftery.diag.eps = 0.001, 
+    Real acf.lag          = 20,
+    Real histogram.parts  = 100,
+    Real kerDens.points   = 100,
+    Real kerDens.numIter  = 2,
+    Real kerDens.epsilon  = 0.001
+  ),
+  Sub(mcmc,burnin,1,sampleLength-burnin,q)
+);
+
+/* */

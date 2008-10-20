@@ -1,0 +1,63 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 202;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "error with timesets";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Date d1 = y2005m01d01;
+  Date d2 = y2005m12d31;
+  
+  // this does not produce errors
+  TimeSet tms01 = (Succ(D(30)*M(8),-1,WD(5))) +
+                  (D(17)*M(1) * (C-Y(1999)-Y(1998)-Y(2002)-Y(2003)-Y(2004)) +
+                   Day(y1999m04d06) + Day(y1998m04d14) + Day(y2002m04d02) +
+  Day(y2003m04d22) + Day(y2004m04d13));
+  Serie ser01   = SubSer(CalInd(tms01, tms01), d1, d2);
+  
+  // this one produces errors when trying to view or tabulate the result serie
+  TimeSet tms02 = (D(11)*M(2) + Day(y2001m03d05)) +
+                  (Succ(D(1)*M(6),1,WD(1)) * (C-Y(2003)) + Day(y2003m06d09));
+  Serie ser02   = SubSer(CalInd(tms02, tms02), d1, d2);
+  
+  // another one
+  TimeSet tms03 = (D(11)*M(2) + Day(y2001m03d05)) +
+                  (Range(D(2)*M(6), 0, 6)*WD(1) * (C-Y(2003)) +
+  Day(y2003m06d09));
+  Serie ser03   = SubSer(CalInd(tms03, tms03), d1, d2);
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real sum1 = SumS(ser01),
+    Real sum2 = SumS(ser02),
+    Real sum3 = SumS(ser03)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    sum1==2, 
+    sum2==2, 
+    sum3==2
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

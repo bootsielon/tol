@@ -1,0 +1,283 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE: MassiveSimulationTestOfTimeSetCoherence.tol
+// PURPOSE: Genera conjuntos temporales aleatorios para comprobar la 
+//          coherencia del álgebra del tiempo.
+// AUTHOR: vdebuen@tol-project.org
+//////////////////////////////////////////////////////////////////////////////
+
+Real DoUnparseNodes:=2;
+Real Timeout         =     120;
+Real TimeoutExceeded =       0;
+Real BatteryNumber   =       1;
+Real MaxBatterySize  =     100;
+Real MaxDeepLevel    =       5;
+Date PutDefaultDates(y1990,y2010);
+Real initErrorNumber_ = Copy(NError);
+Real initWarningNumber_= Copy(NWarning);
+
+WriteLn(
+"
+//////////////////////////////////////////////////////////////////////////////
+// TimeSet simulation test
+//////////////////////////////////////////////////////////////////////////////
+");
+
+//////////////////////////////////////////////////////////////////////////////
+// Draws a random date between default dates
+//////////////////////////////////////////////////////////////////////////////
+Date Rand_Date(Real unused)
+{
+  DefFirst+IntRand(1,DefaultDatesDiff)
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Generation of Basic non bounded basic TimeSet's
+//////////////////////////////////////////////////////////////////////////////
+Set TS_Basic =
+  SetOfText("W","C","Easter") << 
+  For(1, 7,Text(Real k) { "WD("<<IntText(k)<<")" }) << 
+  For(1,31,Text(Real k) {  "D("<<IntText(k)<<")" }) << 
+  For(1,12,Text(Real k) {  "M("<<IntText(k)<<")" });
+
+Text TestTS_Rand_Basic(Real unused)
+{
+  Real r = IntRand(1,Card(TS_Basic));
+//WriteLn("\nTestTS_Rand_Basic["<<IntText(level)<<","<<r<<"] ... ");
+  Text result = TS_Basic[r];
+//WriteLn("\nTestTS_Rand_Basic["<<IntText(level)<<","<<r<<"] : "<<result);
+  result
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// Generation of Basic bounded TimeSet's
+//////////////////////////////////////////////////////////////////////////////
+Text TestTS_Rand_Bounded(Real unused)
+{
+//WriteLn("\nTestTS_Rand_Bounded["<<IntText(level)<<","<<r<<"] ... ");
+  Real MaxLen = 1000;
+  Real r = IntRand(1,100);
+  Text result = Case
+  (
+    r<=10, 
+    {
+      "Y("<<IntText(IntRand(Year(DefFirst),Year(DefLast)))<<")"
+    },
+    r<=70, 
+    {
+      "Day("<<Rand_Date(0)<<")"
+    },
+    r<=90, 
+    {
+      Real L = 1+Round((Rand(0,1)^3)*MaxLen);
+      Real f = IntRand(1,DefaultDatesDiff-L);
+      "In("<<Date(DefFirst+f)<<","<<Date(DefFirst+(f+L))<<")"
+    },
+    r<=100, 
+    {
+      Real L = 1+Round((Rand(0,1)^3)*MaxLen);
+      Text d = SetSum(For(1,L,Text(Real u) 
+      { 
+        If(u>1,",","")<<Rand_Date(0)
+      }));
+      "DatesOfSet([["<<d<<"]])"
+    }
+  );
+//WriteLn("\nTestTS_Rand_Bounded["<<IntText(level)<<","<<r<<"] : "<<result);
+  result
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// Generation of Internal binary operations with TimeSet's
+//////////////////////////////////////////////////////////////////////////////
+Text TestTS_Rand_Binary(Real unbounded, Real needBracket, Real level, Real auxNum)
+{
+//WriteLn("\nTestTS_Rand_Binary["<<IntText(level)<<","<<r<<"] ... ");
+  Set TS_Binary = [["+","-","*"]];
+
+  Real r = IntRand(1,Card(TS_Binary));
+  Text result = If(needBracket,"(","")+
+                TestTS_Rand(unbounded, TRUE, level+1,auxNum)+
+                TS_Binary[r]+
+                TestTS_Rand(unbounded, TRUE, level+1,auxNum)+
+                If(needBracket,")","");
+//WriteLn("\nTestTS_Rand_Binary["<<IntText(level)<<","<<r<<"] : "<<result);
+  result
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Generation of Internal N-ary operations with TimeSet's
+//////////////////////////////////////////////////////////////////////////////
+Text TestTS_Rand_Nary(Real unbounded, Real needBracket, Real level, Real auxNum)
+{
+//WriteLn("\nTestTS_Rand_Binary["<<IntText(level)<<","<<r<<"] ... ");
+  Set TS_Nary = [["Union","Intersection"]];
+  Real r = IntRand(1,Card(TS_Nary));
+  Real N = 2+Round((Rand(0,1)^4)*20);
+  Text result = TS_Nary[r]+"("+SetSum(For(1,N,Text(Real n)
+  {
+    If(GT(n,1),",","")+
+    TestTS_Rand(unbounded, TRUE, level+1,auxNum)
+  }))+")";
+//WriteLn("\nTestTS_Rand_Binary["<<IntText(level)<<","<<r<<"] : "<<result);
+  result
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Generation of Traslated TimeSet's
+//////////////////////////////////////////////////////////////////////////////
+Text TestTS_Rand_Traslated(Real unbounded, Real needBracket, Real level, Real auxNum)
+{
+//WriteLn("\nTestTS_Rand_Traslated["<<IntText(level)<<","<<r<<"] ... ");
+  Real MaxLapsus = 100;
+  Text units = TestTS_Rand(TRUE,needBracket,level+1,auxNum);
+  Real L = Round((Rand(0,1)^4)*MaxLapsus)*If(LE(Rand(0,1),.5),-1,1);
+
+  Text result = Case
+  (
+    r<=20, 
+    {
+      "Periodic("<<Rand_Date(0)<<","<<IntText(L)<<","<<units<<")"
+    },
+    r<=80, 
+    {
+      "Succ("<<TestTS_Rand(unbounded,needBracket,level+1,auxNum)<<","<<IntText(L)<<
+               ","<<units<<")"
+    },
+    r<=100, 
+    {
+      Real R = Round((Rand(0,1)^4)*MaxLapsus);
+      "Range("<<TestTS_Rand(unbounded,needBracket,level+1,auxNum)<<","<<IntText(L)<<
+                ","<<IntText(R)<<","<<units<<")"
+    }
+  );
+
+//WriteLn("\nTestTS_Rand_Traslated["<<IntText(level)<<","<<r<<"] : "<<result);
+  result
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Generation of Arbitrary TimeSet's
+//////////////////////////////////////////////////////////////////////////////
+Text TestTS_Rand(Real unbounded, Real needBracket, Real level, Real auxNum)
+{
+  Real end = level>=MaxLevel;
+  Real r = 1+99*Rand(0,1)^((level+1));
+//WriteLn("\nTestTS_Rand["<<IntText(level)<<","<<r<<"] ... ");
+  Text result = Case
+  (
+    (r<=0.5) & !end & !unbounded,  
+      TestTS_Rand_Bounded(0),
+    (r<= 10) | end,  
+      TestTS_Rand_Basic(0),
+   ((r<= 20) | end) & (level>0) & (auxNum>1),  
+      "CtAux"<<IntText(IntRand(1,auxNum-1)),
+    (r<= 70),  
+      TestTS_Rand_Binary   (unbounded,needBracket,level+1, auxNum),
+    (r<= 80),  
+      TestTS_Rand_Nary     (unbounded,needBracket,level+1, auxNum),
+    (r<=100),  
+      TestTS_Rand_Traslated(unbounded,needBracket,level+1, auxNum)
+  );
+//WriteLn("\nTestTS_Rand["<<IntText(level)<<","<<r<<"] : "<<result);
+  result
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// Arbitrary Set of related TimeSet's with specified maximum depth level
+//////////////////////////////////////////////////////////////////////////////
+Set TestTS_Simulation(Real MaxLevel)
+{
+  Real DefaultDatesDiff = DateDif(C,DefFirst,DefLast);
+  Real NumExpressions = IntRand(1,MaxBatterySize/MaxLevel);
+  Set TimeSetExpressions = For(1,NumExpressions,Text(Real iter)
+  {
+    Text expr = TestTS_Rand(0,0,0,iter);
+    Text name = "CtAux"<<IntText(iter);
+    Text msg  = "Testing integrity of TimeSet "<<name<<"="<<expr;
+    Text tms  = 
+    "WriteLn(\"Iteration "<<IntText(iter)<<" of "<< IntText(NumExpressions) <<
+             " beginning at " << Time+") "+msg<<"\");\n"+
+    "Set "<<name<<"_Reg = [[\n"+
+    "Real "<<name<<"_Init  = Copy(Time);\n"+
+    "TimeSet "<<name<<" = "<<expr<<";\n"+
+    "Text Test"<<name<<" = TestCoherenceOfTimeSet("<<name<<",1,DefFirst,DefLast,Timeout);\n"+
+    "Real Card(Dates("<<name<<",DefFirst,DefLast));\n"+
+    "Real "<<name<<"_Elapsed = Copy(Time)-"<<name<<"_Init;\n"+
+    "Real (TimeoutExceeded := TimeoutExceeded + ("<<name<<"_Elapsed>Timeout));"
+    "Text "<<name<<"_Expr = \""<<expr<<"\"\n"
+    "]];\n"+
+    "TimeSet PutDescription(\""<<expr<<"\","<<name<<");\n"+
+    "WriteLn("+Quotes+"Time elapsed = "+Quotes+"<<"+name<<"_Elapsed <<"+Quotes+" seconds"+Quotes+");\n\n";
+  //WriteLn(tms);
+    tms
+  });
+  Set SerieExpressions = For(1,NumExpressions,Text(Real a)
+  {
+    Text A = "CtAux"+IntText(a);
+    Text name = "SrAux"<<IntText(a);
+    "Real \n"
+    "{\n"
+    "  Real "<<name<<"_Init  = Copy(Time);\n"+
+    "  Real aux1 = AvrS(CalVar(C,"+A+"));\n"+
+    "  Real aux2 = AvrS(CalInd("+A+",C));\n"+
+    "  Real aux3 = aux1*aux2;\n"+
+    "  WriteLn(\"aux1=AvrS(CalVar(C,"+A+"))=\"<< aux1);\n"+
+    "  WriteLn(\"aux2=AvrS(CalInd("+A+",C))=\"<< aux2);\n"+
+    "  WriteLn(\"aux3=aux1*aux2=\"<<             aux3);\n"+
+    "  Real "<<name<<"_Elapsed = Copy(Time)-"<<name<<"_Init;\n"+
+    "  WriteLn("+Quotes+"Time elapsed = "+Quotes+"<<"+name<<"_Elapsed <<"+Quotes+" seconds"+Quotes+");\n"+
+    "  aux3\n"+
+    "};\n\n"
+  });
+  Set EvalSimulation = IncludeText
+  (
+    "\n//TimeSet algebra test\n"+
+    SetSum(TimeSetExpressions)+
+    "\n//Series algebra test\n"+
+    SetSum(SerieExpressions)
+  )
+};
+
+Real iniTime = Copy(Time);
+Real iniMem  = Copy(MemoryStatus(0)["AvailPhys"]);
+Real iniTms  = 0;
+Real simTime = 0;
+Set TestBattery = For(1,BatteryNumber,Real(Real k) 
+{ 
+  Real t0 = Copy(Time);
+  Real S =
+  {
+    Set sim = TestTS_Simulation(IntRand(1,MaxDeepLevel));
+    Copy(Card(sim))
+  }; 
+  simTime := Copy(simTime + Copy(Time)-t0);
+  Real iniTms := Copy(iniTms + S);
+  Real usedMem = (iniMem-MemoryStatus(0)["AvailPhys"])/1024;
+  WriteLn("
+//////////////////////////////////////////////////////////////////////////////
+// Report of simulation number "<<k<<"
+//////////////////////////////////////////////////////////////////////////////
+");
+  WriteLn("Number of tested TimeSet's = "<<iniTms<<"\n");
+  WriteLn("Used Memory                = "<<usedMem<<" Kb\n");
+  WriteLn("Used CPU                   = "<<simTime<<" seconds\n");
+  WriteLn("Number of errors           = "<<IntText(NError-initErrorNumber_)<<"\n");
+  WriteLn("Number of warnings         = "<<IntText(NWarning-initWarningNumber_)<<"\n");
+  WriteLn("Number of timeouts         = "<<IntText(TimeoutExceeded)<<"\n");
+  
+  Real Sleep(5);
+//Set View(sim,"Std");
+  WriteLn("\n
+//////////////////////////////////////////////////////////////////////////////
+// End of report "<<k<<"
+//////////////////////////////////////////////////////////////////////////////
+\n");
+//Set tms = DeepCopy(Extract(sim,2));
+  Copy(S)
+});
+  
+/* */

@@ -1,0 +1,103 @@
+//////////////////////////////////////////////////////////////////////////////
+Real SVDDet_(Matrix cov)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Rows(cov)==2,
+  {
+    MatDat(cov,1,1)*MatDat(cov,2,2)-MatDat(cov,1,2)*MatDat(cov,2,1)
+  },
+  {
+    Set svd = SVD(cov);
+    Matrix d = svd[2];
+    MatProd(SubDiag(d,0))
+  })
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real SVDDet(Matrix cov)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set svd = SVD(cov);
+  Matrix d = svd[2];
+  MatProd(SubDiag(d,0))
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix SchurReduxMatrix(Polyn p)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real n_        = Degree(p);
+  Real a0_       = Coef(p,0);
+  Matrix In_1    = Diag(n_-1, 1);
+  Matrix In_1Est = Diag(n_-1, 1, 0);
+  Matrix redux_  = RProd(In_1-RProd(In_1Est, a0_), (1-a0_^2)^(-1));
+  redux_};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Genera la matriz de restricciones k-esima para aplicarlas a 
+los coeficientes de un polinomio y obtener el polinomio k-esimo de Schur.",
+SchurReduxMatrix);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Polyn SchurReduxPolyn(Polyn p)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real n__        = Degree(p);
+  Matrix m        = SubRow(PolMat(p, n__, 1), Range(2, n__, 1));
+  Matrix matRedux = SchurReduxMatrix(p);
+  MatPol(Tra(matRedux*m))+B^(n__-1)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Polyn SchurNormPolyn(Polyn p)
+//////////////////////////////////////////////////////////////////////////////
+{
+  p/Coef(p, Degree(p))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Set SchurDraw(Polyn p, Matrix cov)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real n. = Degree(p);
+  If(LE(n.,1), SetOfReal(DrawTruncatedNormal(Coef(p,0), MatDat(cov,1,1), -1, 1)) , 
+  {
+    Matrix nuVector = PolMat(p, n., 1);
+    Real   nu       = MatDat(nuVector, 1, 1);
+    Matrix cov22    = Sub(cov, 2, 2, n.-1, n.-1);
+    Matrix cov12    = Sub(cov, 2, 1, 1, n.-1);
+    Matrix cov11    = Sub(cov, 1, 1, 1, 1);
+    Real   sigma    = SqRt(SVDDet(cov22)/SVDDet(cov)); 
+    Real   a0.      = DrawTruncatedNormal(nu, sigma, -1, 1);
+    Matrix nu2      = SubRow(nuVector, Range(2, n., 1)); 
+    Real   difp0a0  = -Coef(p,0)+a0.;
+    Matrix redux    = SchurReduxMatrix(p+difp0a0);
+    Matrix cov11i   = InverseDiag(cov11);
+    Matrix cov12t   = Tra(cov12);
+    Matrix cov12t11i= cov12t*cov11i;
+    Matrix newPol   = redux*(nu2+cov12t11i*(Diag(1,a0.)-Diag(1,nu)));
+  //Matrix difa0nu  = Diag(1,a0.)-Diag(1,nu);
+  //Matrix newPol   = redux*(nu2+cov12t11i*difa0nu);
+    Matrix newCov   = Tra(redux)*(cov22+cov12t11i*cov12)*redux;
+    Matrix aux1     = newCov;
+    Matrix aux2     = newPol;
+    Polyn  aux3     = MatPol(Tra(aux2))+B^(n.-1);
+    Set    aux4     = SchurDraw(aux3, aux1); 
+    Set    aux5     = SetOfReal(a0.); 
+    Set    aux6     = aux5<<aux4;
+    aux6 
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Muestrea un polinomio de Schur mediante el metodo Almagro 
+condicionado a una media dada por p (polinomio normalizado en el grado maximo)
+y su matriz de covarianzas cov. Los parametros que se muestrean seran los 
+prefijados como distintos de cero en el polinomio p",
+SchurDraw);
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+

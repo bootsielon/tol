@@ -1,0 +1,91 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test of massive AIA
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "efficence of massive AIA";
+
+  Set Include("../common.tol");
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real t2 = Copy(Time);
+  WriteLn("t2="+Time);
+  Real mem2 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];
+
+  Set ois = Ois.Load(oisPath)[1];
+  Real t3 = Copy(Time);
+  WriteLn("t3="+Time);
+  Real mem3 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];
+
+  Set massive_aia = Include("massive_aia.tol");
+  Real t4 = Copy(Time);
+  WriteLn("t4="+Time);
+  Real mem4 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];
+
+  Real ois.ok.2 = Ois.Store(aia.results,oisAiaPath);
+  Real t5 = Copy(Time);
+  WriteLn("t5="+Time);
+  Real mem5 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numOfSeries,
+    numOfData,
+    Real totalData = numOfSeries*numOfData,
+    Real oisAiaSize = FileBytes(oisAiaPath),
+    Real oisLoadMem = mem3-mem2,
+    Real aiaMem = mem4-mem3,
+    Real aiaSaveMem = mem5-mem4,
+    Real oisLoadTime = t3-t2,
+    Real aiaTime = t4-t3,
+    Real aiaSaveTime = t5-t4,
+    Real propEstAIA  = numEstAIA  / (Card(aia.results)*numOfData),
+    Real propEstStep = numEstStep / (Card(aia.results)*numOfData),
+    ois.ok.2
+  ]];
+  Text PutRealFormat("%.15lg");
+
+  WriteLn("");
+  Set For(1,Card(partialResults_),Real(Real k)
+  {
+    WriteLn(Name(partialResults_[k])+"\t=\t"<<partialResults_[k]);
+    k
+  });
+  WriteLn("");
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError,ois.ok.2)*
+                  cumQuality/Card(aia.results);
+
+  WriteLn("AIALevel\t"
+          "numOfSeries\t"
+          "numOfData\t"
+          "probAIA\t"
+          "propEstAIA\t"
+          "probStep\t"
+          "propEstStep\t"
+          "quality\t"
+          "miliseconds/serie\t");
+  WriteLn(""<<
+          Aia.OptionsDef->optMaxOrder_+"\t"<<
+          numOfSeries+"\t"<<
+          numOfData+"\t"<<
+          probAIA+"\t"<<
+          propEstAIA+"\t"<<
+          probStep+"\t"<<
+          propEstStep+"\t"<<
+          quality_+"\t"<<
+          Real (1000*aiaTime/numOfSeries)+"\t");
+  
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */

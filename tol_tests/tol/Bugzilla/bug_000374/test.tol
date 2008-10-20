@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 374;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Unordered timeset problem.";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Set fechas = SetOfDate(y2006m03d10, y2006m03d03, y2006m03d6);
+  Date FecIni= y2006m03d01;
+  Date FecFin= y2006m03d08;
+  Set fechasAux = Unique(SetOfDate(FecIni)+fechas+SetOfDate(FecFin));
+  TimeSet Lista = DatesOfSet(fechasAux);
+  Set sFecRango = Dates(Lista, FecIni,FecFin);
+   
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Text t1 = ""<<(fechasAux-[[y2006m03d10]]);
+    Text t2 = ""<<sFecRango
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = t1==t2;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

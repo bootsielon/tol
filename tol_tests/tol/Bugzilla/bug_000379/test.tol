@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 379;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Problem when including a text";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Date FunXX ( Set unused )
+  {
+    Set  CreaInpLin = IncludeText("Set Include(\"aa.tol\");");
+    y2005
+  };
+
+  Date a =FunXX(Copy(Empty));
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    a
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = a==y2005;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

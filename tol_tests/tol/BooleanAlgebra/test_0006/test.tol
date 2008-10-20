@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Boolean Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+    "Logical operations with unknowns, finite and infinite numbers";
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set If(FunctionExist("Text","TextLeftPad"),Empty,Include("fun.tol"));
+  Real DoUnparseNodes := 2;
+  Set X      = SetOfText("0","1","-1/0","1/0","?");
+  Set monOpr = SetOfText("","!");
+  Set binOpr = SetOfText("&","|");
+  Set domain = CartProd(monOpr,monOpr,X,binOpr,monOpr,X);
+
+  Set checkingExpr = EvalSet(domain ,Text(Set s) 
+  {
+    Text expr = TextLeftPad
+     (s[1]+"("+s[2]+"("+s[3]+")"+s[4]+s[5]+"("+s[6]+")"+")",20);
+  //WriteLn(expr);
+    expr
+  });
+
+  Set checkTable = EvalSet(checkingExpr,Set(Text expr) 
+  { 
+    [[expr, Real Eval(expr) ]]
+  });
+
+  Matrix check    = Tra(SetMat([[Traspose(checkTable)[2] ]]));
+  Matrix expected = Include("expected.bmt")[1];
+  
+  Real ok = MatMax(Abs(expected-check))==0;
+
+  Set partialResults_ = 
+  [[
+    ok
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */

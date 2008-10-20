@@ -1,0 +1,117 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for NameBlock Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Name block basic syntax rules" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  /* */
+  NameBlock MyNS1 =  
+  [[
+    Text _.autodoc.description = 
+    "NameBlock de ejemplo 1 de NameBlock/test_001";
+    Real _aux_1 = 1;
+    Real _aux_2 = 2;
+    Real exported_1 = _aux_1+_aux_2;
+    Real exported_2 = _aux_1-_aux_2 
+  ]];
+  
+  NameBlock MyNS2 = 
+  [[
+    NameBlock NS1 = 
+    [[
+      Real _aux_1 = 1;
+      Real _aux_2 = 2;
+      Real a = _aux_1+_aux_2;
+      Real b = _aux_1-_aux_2 
+    ]];
+    NameBlock NS2 = 
+    [[
+      Real _fun_aux(Real x) { x*4 }; 
+      Real fun_a(Real x) { x+1 };
+      Real fun_b(Real x) { _fun_aux(x)-1 }
+    ]]
+  ]];
+  
+  NameBlock MyNS3 = 
+  [[
+    Set _ns1 = Include("NS1.tol");
+    Set _ns2 = Include("NS2.tol");
+    NameBlock NS1;
+    NameBlock NS2
+  ]];
+
+  NameBlock MyNS4 = 
+  [[
+    Real _fun_aux(Real x) { x*4 }; 
+    Real fun_a(Real x) { x+1 };
+    Real fun_b(Real x, Real y) { x+y };
+    Real fun_c(Real x) { _fun_aux(x)-1 }
+  ]];
+  
+  NameBlock MyNS5 = 
+  [[
+    Struct mystr { Real x_; Text t_ };
+    Set real2mystr(Real x) 
+    { 
+      mystr(x,""+FormatReal(x,"%.15lg"))
+    };
+    Set a2 = real2mystr(2)
+  ]];
+  
+  Real MyNS1::exported_1 := -1;
+
+  Real      check.1.1 = MyNS1::exported_1;
+  Real      check.1.2 = MyNS1::exported_1;
+  Text      check.1.3 = MyNS1::_.autodoc.description;
+  NameBlock check.2.1 = MyNS2::NS2;
+  Real      check.2.2 = check.2.1::fun_a(MyNS2::NS1::a);
+  NameBlock check.3.1 = MyNS3::NS2;
+  Real      check.3.2 = check.3.1::fun_a(MyNS3::NS1::a);
+  Real      check.4.1 = MyNS4::fun_a(3);
+  Real      check.4.2 = MyNS4::fun_b(3,4);
+  Real      check.4.3 = MyNS4::fun_c(3);
+  Set       check.5.1 =
+  [[
+    MyNS5::mystr(1,"uno"),
+    MyNS5::real2mystr(4.0),
+    MyNS5::real2mystr(Pi)
+  ]];
+  
+  /* */
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok.1.1 =  ObjectExist("Real",      "check.1.1"),
+    Real ok.1.2 =  ObjectExist("Real",      "check.1.2"),
+    Real ok.1.3 =  ObjectExist("Text",      "check.1.3"),
+    Real ok.1.4 =  MyNS1::exported_1==-1;
+    Real ok.2.1 =  ObjectExist("NameBlock", "check.2.1"),
+    Real ok.2.2 =  ObjectExist("Real",      "check.2.2"),
+    Real ok.3.1 =  ObjectExist("NameBlock", "check.3.1"),
+    Real ok.3.2 =  ObjectExist("Real",      "check.3.2"),
+    Real ok.4.1 =  ObjectExist("Real",      "check.4.1"),
+    Real ok.4.2 =  ObjectExist("Real",      "check.4.2"),
+    Real ok.4.3 =  ObjectExist("Real",      "check.4.3"),
+    Real ok.5.1 =  ObjectExist("Set",       "check.5.1")
+  ]];
+
+  Real ok = Group("And", partialResults_);
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+/* */

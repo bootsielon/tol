@@ -1,0 +1,98 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary and you e-mail
+  Real bugNum_ = 4;
+  Text email_ = "josp@tol-project.org"; 
+  Text summary_ = "Fallo en la funcion QuantileS()";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Matrix A =   ((1/4,1/8,1/9),
+  	        (1/8,1/8,1/9),
+                (1/9,1/9,1/9));
+  Matrix AI = CholeskiInverse(A);
+  Matrix expected = ((1.0,0.0,0.0),
+                     (0.0,1.0,0.0),
+                     (0.0,0.0,1.0));
+
+  Struct strQValues {
+    Real q25,
+    Real q50,
+    Real q51,
+    Real q52,
+    Real q75,
+    Real q90
+  };
+  Set Q = [[0.25, 0.50, 0.51, 0.52, 0.75, 0.90]];
+  Text ser_file = "bug04.bdt";
+  Text q_file = "bug04.bst";
+
+  Real If(FileExist(ser_file), 0,
+  {
+    // generate data files needed by the test 
+    Serie ser_bug04 = SubSer(Gaussian(10000, 10), y2000m01d01, y2000m01d31);
+    Set BDTFile([[ser_bug04]], ser_file);
+    Set q_result0 = EvalSet(Q, Real(Real q_i) {
+      QuantileS(ser_bug04, y2000m01d01, y2000m01d31, q_i)
+    });
+    Set q_result = PutStructure("strQValues", q_result0);
+    Set BSTFile([[q_result]], q_file);
+    Real 1.0
+  });
+  Real save_GS = GlobalizeSeries;
+  Real GlobalizeSeries := 0.0;
+  Serie ser_bug = IncludeBDT(ser_file)[1];
+  Real OSFilRemove(ser_file);
+  Set q_data = IncludeBST(q_file)[1];
+  Real OSFilRemove(q_file);
+  Real GlobalizeSeries := save_GS;
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Set q_data,
+    Real qCard = Card(q_data);
+    Real QCard = Card(Q)
+  ]];
+  Text reason_  = "";
+  Real quality_ = If(Card(q_data) != Card(Q),
+  {
+    Text reason_ := "Failed while reading test data. Cardinal of stored data is different from requested on test.";
+    0
+  }, 
+  {
+    // check order 
+    Set cmp_order = For(1, Card(q_data)-1, Real(Real idx) 
+    {
+      Real q_data[idx+1]-q_data[idx]
+    });
+    Real If(SetMin(cmp_order)<=0, 
+    {
+      Text reason_ = "Quantiles sequence must be increasing\n"+
+                     "Partial results = "<<partialResults_;
+      0
+    }, 
+    {
+      // check result 
+      Set cmp_q = For(1, Card(Q), Real(Real idx) 
+      {
+        Real st_i = q_data[idx] -
+                    QuantileS(ser_bug, y2000m01d01, y2000m01d31, Q[idx])
+      });
+      Exp(-(MatFrobeniusNorm(SetCol(cmp_q))^2))
+    })
+});
+
+//Return the results 
+  Set resultStr_ =  strTestStatus(summary_, link_, quality_, 
+                      "Partial results = "<<partialResults_+
+                      If(reason_=="","","\n"+reason_),
+                      "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                      email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

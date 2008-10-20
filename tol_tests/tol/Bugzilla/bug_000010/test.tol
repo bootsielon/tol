@@ -1,0 +1,58 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 10;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "TimeSet global & TimeSet no global";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+// TimeSet global. It works correctly. 
+Serie   ser_glo = Gaussian(0,1,Monthly)+Gaussian(1,0.5,Monthly);
+TimeSet fec_glo = Dating(ser_glo);
+Serie fun_glo( Serie ser)
+{ 
+  Set   s = MatSerSet(Row(1,2,3,4,5,6,7,8,9,10) ,fec_glo, y2000);
+  Serie b = s[1] ;
+  b
+};
+
+Serie c_glo=fun_glo(ser_glo);
+
+//TimeSet not global. Error when operating with Serie c. 
+
+Serie   ser_loc = Gaussian(0,1,Monthly)+Gaussian(1,0.5,Monthly);
+Serie fun_loc( Serie ser)
+{ 
+  TimeSet fec = Dating(ser);
+  Set   s = MatSerSet(Row(1,2,3,4,5,6,7,8,9,10) ,fec , y2000);
+  Serie b = s[1] ;
+  b
+};
+
+Serie c_loc = fun_loc(ser_loc);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[ 
+     Real diff1 = MaxS(Abs(c_loc-c_glo)); 
+     Real diff2 = Abs(SumS(c_loc)-SumS(c_glo))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, diff1==0, diff2==0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

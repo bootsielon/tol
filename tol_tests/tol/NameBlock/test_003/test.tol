@@ -1,0 +1,92 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for NameBlock Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Functions related to NameBlock: "
+                  "UsingNameBlock, GetNameBlock, FullName" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  /* */
+  NameBlock MyNS =  
+  [[
+  //Private:
+    Text _.autodoc.description = 
+    "NameBlock de ejemplo de NameBlock/test_003";
+    Real _fun_aux(Real x) { x*4 };
+    Real _aux_1 = 1;
+    Real _aux_2 = 2;
+  //Public:
+    Struct mystr { Real x_; Text t_ };
+    Set real2mystr(Real x) 
+    { 
+      mystr(x,""+FormatReal(x,"%.15lg"))
+    };
+  //Private:
+    Set  _aux_3 = real2mystr(2);
+  //Public:
+    Real fun_a(Real x) { _fun_aux(x)+1 };
+    Real fun_b(Real x) { _fun_aux(x)-1 };
+    Real exported_1 = _aux_1+_aux_2;
+    Real exported_2 = _aux_1-_aux_2*_aux_3->x_
+  ]];
+
+  Set check.1 = 
+  [[
+    Real ok.1.1.1 = !FunctionExist("Real","fun_a"),
+    Real ok.1.1.2 = !FunctionExist("Real","fun_b"),
+    Real ok.1.2.1 = !ObjectExist  ("Real","exported_1"),
+    Real ok.1.2.2 = !ObjectExist  ("Real","exported_2")
+  ]];
+  Real ok.1 = Group("And",check.1);
+   
+  Real UsingNameBlock(MyNS);
+
+  Set check.2 = 
+  [[
+    Real ok.2.1.1 =  FunctionExist("Real","fun_a"),
+    Real ok.2.1.2 =  FunctionExist("Real","fun_b"),
+    Real ok.2.2.1 =  ObjectExist  ("Real","exported_1"),
+    Real ok.2.2.2 =  ObjectExist  ("Real","exported_2")
+  ]];
+  Real ok.2 = Group("And",check.2);
+
+  Text fn.1.1 = FullName(fun_a);
+  Text fn.1.2 = FullName(fun_b);
+  Text fn.2.1 = FullName(exported_1);
+  Text fn.2.2 = FullName(exported_2);
+
+  Text nb.1.1 = GetNameBlock(fun_a);
+  Text nb.1.2 = GetNameBlock(fun_b);
+  Text nb.2.1 = GetNameBlock(exported_1);
+  Text nb.2.2 = GetNameBlock(exported_2);
+
+  Set check.3 = 
+  [[
+    Real ok.3.1.1 = fn.1.1 == nb.1.1+"::fun_a",
+    Real ok.3.1.2 = fn.1.2 == nb.1.2+"::fun_b",
+    Real ok.3.2.1 = fn.2.1 == nb.2.1+"::exported_1",
+    Real ok.3.2.2 = fn.2.2 == nb.2.2+"::exported_2"
+  ]];
+  Real ok.3 = Group("And",check.3);
+
+  /* */
+//Extented information about test behaviour
+  Set partialResults_ = check.1 << check.2 << check.3;
+  Real ok = ok.1 & ok.2 & ok.3;
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+/* */

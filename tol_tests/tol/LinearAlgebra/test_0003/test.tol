@@ -1,0 +1,78 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Matrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Matrix pivoting" ;
+
+/*
+//Checks this functions
+Matrix RowPivots(Matrix x)
+Matrix ColumnPivots(Matrix x)
+Matrix PivotByColumns(Matrix x, Matrix p)
+Matrix PivotByRows(Matrix x, Matrix p)
+//Still non checked 
+Matrix TrasposePivots(Matrix p, Real dim)
+*/
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real r       = IntRand(2,10);
+  Real c       = IntRand(2,10);
+  
+  Matrix A = ForMat(r,c,Real(Real i, Real j)
+  {
+    Rand(10*(i-1),10*i)*IntRand(-1,1)
+  });
+
+  Matrix B = ForMat(r,c,Real(Real i, Real j)
+  {
+    Rand(10*(j-1),10*j)*If(IntRand(0,1),1,-1)
+  });
+
+  Matrix RevCol = Diag(c,1,-1);
+  Matrix RevRow = Diag(r,1,-1);
+  
+  Matrix Arr = RevRow*A;
+  Matrix Brc = B*RevCol;
+
+  Matrix A_ = RevRow*Arr;
+  Matrix B_ = Brc*RevCol;
+
+  Matrix Ap = RowPivots     (A);
+  Matrix Bp = ColumnPivots  (B);
+  Matrix AP = PivotByRows   (A,Ap);
+  Matrix BP = PivotByColumns(B,Bp);
+  Real { 
+  WriteLn("A =\n"<<A);
+  WriteLn("Ap=\n"<<Ap);
+  WriteLn("AP=\n"<<AP);
+  WriteLn("B =\n"<<Matrix B);
+  WriteLn("Bp=\n"<<Bp);
+  WriteLn("BP=\n"<<BP); 0 };
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    r,c,
+    Real ok01 = MatSet(A  )==MatSet(A_  ),
+    Real ok02 = MatSet(B  )==MatSet(B_  ),
+    Real ok03 = MatSet(Arr)==MatSet(AP  ),
+    Real ok04 = MatSet(Brc)==MatSet(BP  ),
+    Real ok  = And(ok01,ok02,ok03,ok04)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  Real { WriteLn(""<<resultStr_); 0 };
+  Set resultStr_
+
+
+/* */

@@ -1,0 +1,45 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 418;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Errors loading initial TOL file ./initlibrary/_inittol.tol";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Serie s1 = SubSer(CalVar(WD(1), Mensual),y2006m01d01,y2006m12d31);
+  Serie s2 = SubSer(CalVar(WD(2), Mensual),y2006m01d01,y2006m12d31);
+  Serie s3 = SubSer(CalVar(WD(3), Mensual),y2006m01d01,y2006m12d31);
+  Serie s4 = SubSer(CalVar(WD(4), Mensual),y2006m01d01,y2006m12d31);
+  Serie s5 = SubSer(CalVar(WD(5), Mensual),y2006m01d01,y2006m12d31);
+  Serie s6 = SubSer(CalVar(WD(6), Mensual),y2006m01d01,y2006m12d31);
+  Serie s7 = SubSer(CalVar(WD(7), Mensual),y2006m01d01,y2006m12d31);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real  n1 = SumS(s1);
+    Real  n2 = SumS(s2);
+    Real  n3 = SumS(s3);
+    Real  n4 = SumS(s4);
+    Real  n5 = SumS(s5);
+    Real  n6 = SumS(s6);
+    Real  n7 = SumS(s7);
+    Real  n  = n1+n2+n3+n4+n5+n6+n7
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = n==365;
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

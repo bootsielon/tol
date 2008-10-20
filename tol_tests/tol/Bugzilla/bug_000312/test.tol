@@ -1,0 +1,46 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 312;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "An improvement for TextToDate function";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Date d0 = y2005m09d30;
+    Text f1 = "%cy%Ym%md%d";
+    Text t1 = FormatDate(d0, f1);
+    Date d1 = TextToDate(t1, f1);
+    Text f2 = "%c%Y-%m-%d";
+    Text t2 = FormatDate(d0, f2);
+    Date d2 = TextToDate(t2, f2);
+    Text f3 = "%c%Y%m%d";
+    Text t3 = FormatDate(d0, f3);
+    Date d3 = TextToDate(t3, f3);
+    Text f4 = "%c%m%d%Y";
+    Text t4 = FormatDate(d0, f4);
+    Date d4 = TextToDate(t4, f4)
+    
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError,d1==d0,d2==d0,d3==d0,d4==d0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

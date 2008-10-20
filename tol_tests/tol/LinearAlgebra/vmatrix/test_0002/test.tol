@@ -1,0 +1,123 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "VMatrix creation and access methods" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  //Simulation parameters
+  Real r   = 30;
+  Real c   = 50;
+  Real nz  = Round(r*c*0.05);  
+  Real min = -10;
+  Real max = +10;
+
+  WriteLn("Checking MergeRows");
+  VMatrix C1 = Rand(1,2,1,1);
+  VMatrix C2 = Rand(1,2,2,2);
+  VMatrix C3 = Rand(1,2,3,3);
+  VMatrix C  = MergeRows(6,  
+  [[
+    [[C2, Col(3)]],
+    [[C1, Col(1)]],
+    [[C3, Col(5)]]
+  ]]);
+  Matrix _C = VMat2Mat(C);
+  Matrix _C_ = 
+  (
+    (1, 1),
+    (0, 0),
+    (2, 2),
+    (0, 0),
+    (3, 3),
+    (0, 0)
+  );  
+
+
+  WriteLn("Checking Rand");
+  VMatrix A    = Rand(r,c,min,max,"Cholmod.R.Sparse",nz);
+  WriteLn("Checking Eye");
+  VMatrix B    = A << Eye(c);
+  WriteLn("Checking PutVMatDat");
+  Real    put  = PutVMatDat(B,r+1,1,2);
+  Matrix _B    = VMat2Mat(B);
+  Matrix _B_   = VMat2Mat(A) << Diag(c,1);
+  Real   _put1 = PutMatDat(_B_,r+1,1,2);
+  WriteLn("Checking Zeros");
+  VMatrix Zs   = Zeros(r,c);
+  VMatrix Zd   = Zeros(r,c);
+  WriteLn("Checking VMat2Triplet");
+  Matrix  triplet = VMat2Triplet(B);
+  Matrix rowIdx = SetRow(Range(r+c+1,2*(r+c),1));
+  Matrix colIdx = SetRow(Range(c+1,2*c,1));
+  WriteLn("Checking Triplet");
+  VMatrix B_moved = Triplet(triplet, 2*(r+c), 2*c, rowIdx,colIdx);
+  Matrix _B_moved = VMat2Mat(B_moved);
+  VMatrix B_moved_ = Zeros(2*(r+c),c)|(Zeros(r+c,c)<<B);
+  WriteLn("Checking Enlarge");
+  VMatrix B_enlarged = Enlarge(B_moved, 2+2*(r+c), 3+2*c, 3, 4);
+  Matrix  _B_enlarged = VMat2Mat(B_enlarged);
+  VMatrix B_moved__ = Sub(Convert(B_enlarged,"Cholmod.R.Sparse"), 
+                       3, 4, 2*(r+c), 2*c);
+  Matrix  _B_moved__ = VMat2Mat(B_moved__);
+  WriteLn("Checking PutVMatBlock");
+  VMatrix B2   = B << (Rand(7,7,4,4) | Zeros(7,c-7));
+  Matrix _B2   = VMat2Mat(B2);
+  Matrix _D    = Rand(3,4,1,1);
+  Real   _put2 = PutVMatBlock(B2,r+c+3,2,_D);
+  VMatrix D    = Sub(B2,r+c+3,2,3,4);
+  Matrix _D_   = VMat2Mat(D);
+  Matrix _B2_  = VMat2Mat(B2);
+
+  WriteLn("Building check results");
+  Set ok = 
+  [[
+    Real okC     = MatMax(Abs(_C-_C_))==0;
+    Real okA_1   = VNonNullCells(A)==nz;
+    Real okA_2   = VRows(A)==r, VColumns(A)==c;
+    Real okB_1   = MatMax(Abs(_B-_B_))==0;
+    Real okB_2   = VNonNullCells(B)==nz+c; 
+    Real okB_3   = VRows(B)==r+c, VColumns(B)==c;
+    Real okZs_1  = MatMax(VMat2Mat(Zs))==0;
+    Real okZs_2  = VNonNullCells(Zs)==0;
+    Real okZs_3  = VRows(Zs)==r, VColumns(Zs)==c;
+    Real okZd_1  = MatMax(VMat2Mat(Zd))==0;
+    Real okZd_2  = VNonNullCells(Zd)==0;
+    Real okZd_3  = VRows(Zd)==r, VColumns(Zd)==c;
+    Real okGet_1 = VMatDat( B,r+1,1)==2;
+    Real okGet_2 = VMatDat( B,r+1,2)==0;
+    Real okGet_3 = IsUnknown(VMatDat( B,r+c+1,2));
+    Real okPut_1 = put==0;
+    Real okMoved = VMatMax(Abs(B_moved-B_moved_))==0;
+    Real okEnlarged = VMatMax(Abs(B_moved-B_moved__))==0;
+    Real okPutBlock = MatMax(Abs(_D-_D_))==0;
+    Real okErr  = (numErr0+1 == Copy(NError))
+  ]];  
+
+  Real numErr1 = Copy(NError);
+
+  Real VMatPrint(A, "stdout",3);
+  Real VMatPrint(B, "stdout",3);
+  Real VMatPrint(Zs,"stdout",3);
+  Real VMatPrint(Zd,"stdout",3);
+
+//Extented information about test behaviour
+  Set partialResults_ = ok;
+
+//This is a messure of the success of the test 
+  Real quality_ = Group("And", ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

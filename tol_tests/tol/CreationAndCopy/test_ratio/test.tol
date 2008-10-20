@@ -1,0 +1,45 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for collateral effects of operators = and :=
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+   "test for collateral effects of operators = and := for Ratio objects" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  
+    Ratio   a = 1/(1+B+B^2);
+    WriteLn("a="<<a);
+    Ratio   b = (1+B)/(1-B); 
+    WriteLn("b="<<b);
+    Ratio   c = a;
+    Real   ok1 = Ratio(c)==Ratio(a);
+    WriteLn("c="<<Ratio(c)+" == "<<Ratio(a)+" -> "<<ok1);
+    Ratio   (c := b); 
+    Real   ok2 = Ratio(c)==Ratio(b);
+    WriteLn("c="<<Ratio(c)+" == "<<Ratio(b)+" -> "<<ok2);
+    Real   ok3 = Ratio(a)!=Ratio(b);
+    WriteLn("a="<<Ratio(a)+" != "<<Ratio(b)+" -> "<<ok3);
+    
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Ratio(a),Ratio(b),Ratio(c),ok1,ok2,ok3
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok1, ok2, ok3);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+

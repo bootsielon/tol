@@ -1,0 +1,59 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 301;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Conjunto temporal no progresivo";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  TimeSet CtSem445 = D(1)*M(1)+(WD(6)-(Range(D(1)*M(1), -5, 2, Diario)));
+  TimeSet CtMes445 = D(1)*M(1)+Succ(D(1)*M(1),4,CtSem445)+
+                     Succ(D(1)*M(1),8,CtSem445)+Succ(D(1)*M(1),13,CtSem445)+
+                     Succ(D(1)*M(1),17,CtSem445)+Succ(D(1)*M(1),21,CtSem445)+
+                     Succ(D(1)*M(1),26,CtSem445)+
+                     Succ(D(1)*M(1),30,CtSem445)+
+                     Succ(D(1)*M(1),34,CtSem445)+
+                     Succ(D(1)*M(1),39,CtSem445)+
+                     Succ(D(1)*M(1),43,CtSem445)+
+                     Succ(D(1)*M(1),47,CtSem445);
+  TimeSet CtTriMes445 = D(1)*M(1)+Succ(D(1)*M(1),13,CtSem445)+
+                        Succ(D(1)*M(1),26,CtSem445)+
+                        Succ(D(1)*M(1),39,CtSem445);
+  TimeSet CtCuaMes445 =  D(1)*M(1)+Succ(D(1)*M(1),17,CtSem445)+
+                         Succ(D(1)*M(1),34,CtSem445);
+  Serie ff01          = SubSer(CalInd(C,CtSem445),y1995,y2005);
+  Serie ff02          = SubSer(CalInd(C,CtMes445),y1995,y2005);
+  Serie ff03          = SubSer(CalInd(C,CtTriMes445),y1995,y2005);
+  Serie ff04          = SubSer(CalInd(C,CtCuaMes445),y1995,y2005);
+  
+  Set tbl1 = BDTFile([[ff01]], "ff01.bdt");
+  Set tbl2 = BDTFile([[ff02]], "ff02.bdt");
+  Set tbl3 = BDTFile([[ff02]], "ff03.bdt");
+  Set tbl4 = BDTFile([[ff02]], "ff04.bdt");
+  Real OSFilRemove("ff01.bdt");
+  Real OSFilRemove("ff02.bdt");
+  Real OSFilRemove("ff03.bdt");
+  Real OSFilRemove("ff04.bdt");
+  
+//Extented information about test behaviour
+  Set partialResults_ =Empty;
+
+//This is a messure of the success of the test 
+  Real quality_ = numErr0==NError;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

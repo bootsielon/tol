@@ -1,0 +1,46 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for collateral effects of operators = and :=
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+   "test for collateral effects of operators = and := for Complex objects" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  
+    Complex   a = 1+2*i;
+    WriteLn("a="<<a);
+    Complex   b = 3-4*i; 
+    WriteLn("b="<<b);
+    Complex   c = a;
+    Real   ok1 = Complex(c)==Complex(a);
+    WriteLn("c="<<Complex(c)+" == "<<Complex(a)+" -> "<<ok1);
+    Complex   (c := b); 
+    Real   ok2 = Complex(c)==Complex(b);
+    WriteLn("c="<<Complex(c)+" == "<<Complex(b)+" -> "<<ok2);
+    Real   ok3 = Complex(a)!=Complex(b);
+    WriteLn("a="<<Complex(a)+" != "<<Complex(b)+" -> "<<ok3);
+    
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Complex a, Complex b, Complex c,ok1,ok2,ok3
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok1, ok2, ok3);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+
+

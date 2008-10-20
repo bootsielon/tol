@@ -1,0 +1,57 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 150 ;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Problem with AutoCor functions";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+  
+  Serie calInd = CalInd(WD(4), Diario);
+  // Observe that the first serie has two zeros less than the second one
+  Serie calNormal = SubSer(calInd, y2002m01d03, y2003m01d01);
+  Serie calZero   = SubSer(calInd, y2002m01d01, y2003m01d01);
+  
+  // All is OK: cork = covk/cov0
+  Matrix covNormal = AutoCov(calNormal,40);
+  Matrix corNormal_= Sub(RProd(covNormal,1/MatDat(covNormal,1,2)),2,2,39,1);
+  Matrix corNormal = Sub(AutoCor(calNormal,40),1,2,39,1);
+  
+  // There is a problem: cork =! covk/cov0
+  // The problem is that corZero = corNormal (I think that the number of data to 
+  // calculate estimated covarianzes in both cases is the same, when we have two 
+  // zeros more in the second case than the first one)
+  Matrix covZero = AutoCov(calZero,40);
+  Matrix corZero_= Sub(RProd(covZero,1/MatDat(covZero,1,2)),2,2,39,1);
+  Matrix corZero = Sub(AutoCor(calZero,40),1,2,39,1);
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+     Real diff1 = MatMax(Abs(corNormal-corNormal_)),
+     Real diff2 = MatMax(Abs(corZero  -corZero_  ))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    diff1<=1.0E-15, 
+    diff2<=1.0E-15
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

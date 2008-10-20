@@ -1,0 +1,45 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 350;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Series definition with Include inside {}";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Set ejem = {
+    Serie serie = SubSer(CalVar(Diario,Mensual),y2002,y2003);
+    Set BDTFile(SetOfSerie(serie),"ejem.bdt")
+  };
+  Serie s =
+  {
+    Set    ss = Include("ejem.bdt"); 
+    Serie serie = ss[1]; 
+    serie
+  };
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real x = MaxS(Abs(ejem[1]-s))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, x==0);
+  Real OSFilRemove("ejem.bdt");
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+
+

@@ -1,0 +1,14 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _toltclTester.tol
+// PURPOSE : call all prepared tests about TOLTCL features checking
+//////////////////////////////////////////////////////////////////////////////
+
+//Select the number of execution of each available test battery
+//Obviously, deterministic tests should be executed just one time, but,
+//probably, you want to run simulation tests a number of times on depending
+//on the total time you can dedicate to this now.
+//Also you can set 0 times to skype a battery
+Set Results = ReportAllBatteries(SetOfSet
+(
+  strBatteryConfig("Bugzilla",          "",                       1)
+));

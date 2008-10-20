@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for OIS behaviour
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Reloading infinite time series from an OIS image" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Text oisPath = Ois.GetModulePath("ois:/test/test_0001/s01");
+  Real aux_1 = 
+  {
+    Set s01 = Include("test_01.tol");
+    Ois.Store(s01,oisPath);
+    1
+  };
+  Set Include(oisPath);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real s1 = SumS(OctSer);
+    Real s2 = SumS(MarSer);
+    Real s3 = SumS(MarSerCor)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, s1==9, s2==9, s3==8);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

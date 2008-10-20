@@ -1,0 +1,106 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix Difference Equations functions
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Difference Equations functions" ;
+  Real PutRandomSeed(1323431179);
+  Real rndSeed = GetRandomSeed(0);
+  WriteLn("rndSeed="<<rndSeed);
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real chop = 1.E-17;
+
+Set check.quality(Real ncol, Text subType, Real nonZeroRatio)
+{
+  //Real ncol=1; Text subType="Cholmod.R.Sparse"; Real nonZeroRatio=0.5443418298382312;
+    WriteLn("Doing  check.quality("<<ncol+","+subType+","<<nonZeroRatio+")");
+    Set result = [[
+
+    Real   p1     = IntRand(1,3);
+    Polyn  ar1    = RandStationary(p1);
+    Real   q1     = IntRand(1,3);
+    Polyn  ma1    = RandStationary(q1);
+    
+    Real   p7     = 1*IntRand(1,1);
+    Polyn  ar7    = RandStationary(p7,7);
+    Real   q7     = 0*IntRand(1,3);
+    Polyn  ma7    = RandStationary(q7,7);
+    
+    Polyn  ar = ar1*ar7;
+    Polyn  ma = ma1*ma7;
+
+  //Polyn ar = 1-B;
+  //Polyn ma = 1;     
+    Real p = Degree(ar);
+    Real q = Degree(ma);
+    
+    Real   m   = IntRand(1, 10000);
+
+    VMatrix _a = Rand(m,ncol,0,1,subType,nonZeroRatio*m*ncol);
+
+    Matrix  a    = VMat2Mat(_a);  
+    Matrix  a0   = Rand(q,ncol,0,1);
+    Matrix  z0   = Rand(p,ncol,0,1);
+    Matrix  z    = DifEq(ma/ar,a,a0,z0);
+    VMatrix _a0  = Mat2VMat(a0);
+    VMatrix _z0  = Mat2VMat(z0);
+    VMatrix _z   = Mat2VMat(z);
+    VMatrix _z_  = DifEq(ma/ar,_a,_a0,_z0, 
+                         0.5,chop);
+    Matrix z_ = VMat2Mat(_z_);
+
+    Set view = For(1,ncol, Matrix(Real j)
+    {
+      SubCol(z,[[j]])|SubCol(z_,[[j]])
+    });
+    Real a_nzcr = VNonNullCells(_a,  chop)/(m*ncol);
+    Real z_nzcr = VNonNullCells(_z_, chop)/(m*ncol);
+    Real quality.DifEq.1 = 1-MatMax(Abs(z-z_)) ]];
+  //WriteLn("  TRACE m = "<<m);
+  //WriteLn("  TRACE nonNullCells before DifEqu = "<<a_nzcr);
+  //WriteLn("  TRACE nonNullCells after DifEqu  = "<<z_nzcr);
+  //WriteLn("  TRACE quality.DifEq.1 = "<<result::quality.DifEq.1);
+  //WriteLn("  TRACE a0="<<Matrix Tra(result::a0));
+  //WriteLn("  TRACE  a="<<Matrix Tra(result::a));
+  //WriteLn("  TRACE  z0="<<Matrix Tra(result::z0));
+  //WriteLn("  TRACE  z="<<Matrix Tra(result::z));
+  //WriteLn("  TRACE  z_="<<Matrix Tra(result::z_));
+    result
+  }; 
+  
+  Set check = For(1, 100, Set(Real k)
+  {
+    WriteLn("TRACE test iteration "<<k);
+    Real str = Rand(0,1);
+    Text st = If(str<=0.5,"Blas.R.Dense","Cholmod.R.Sparse");
+    Real nzc = Rand(0,0.005); 
+    check.quality(Rand(1,20),st,nzc)
+  });
+
+  Real quality.DifEq.1 = Group("Min",
+    EvalSet(check,Real(Set s) { s::quality.DifEq.1 }));
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1,
+    quality.DifEq.1
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == numErr1)*quality.DifEq.1;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

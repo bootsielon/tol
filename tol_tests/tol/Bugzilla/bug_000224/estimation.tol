@@ -1,0 +1,36 @@
+  Set SimulateARIMA(TimeSet tms, Date from, Real size, Set input,
+                    Real sig2, Real deg_dif, Polyn pol_ar, Polyn pol_ma)
+  {
+    Date to = Succ(from, tms, size-1);
+    
+    Serie at = SubSer(Gaussian(0,sig2,tms), Succ(from,tms,-100), to);
+    Polyn pol_dif = If(deg_dif==0, 1, 1-B^deg_dif);
+    Serie Nt = SubSer(DifEq(pol_ma/(pol_dif*pol_ar),at), from, to);
+    Set input_fil = EvalSet(input, Serie (Set inp) {Serie inp[1]:inp[2]});
+    Serie filter = BinGroup("+", input_fil);
+    
+    Set ModelDef(filter+Nt, 1, 0, deg_dif, 0, pol_dif,
+                 [[pol_ar, 1]],
+                 [[1, pol_ma]],
+                 input,
+                 AllLinear)
+  };
+  
+  Serie GenStep(TimeSet tms, Date from, Real size, Real point)
+  {
+    Date to = Succ(from,tms,size-1);
+    Serie SubSer(Step(Succ(from,tms,point-1),tms), from, to)
+  };
+  
+  Set test_one(Real a)
+  {
+    Set inputs = [[InputDef(1.2, GenStep(Mensual, y2004, 600, 150)),
+                  InputDef(-1.3, GenStep(Mensual, y2004, 600, 300))]];
+  
+    Set mod = SimulateARIMA(Mensual, y2004, 600, inputs, 1.0, 0, 1-0.7*B,1);
+  
+    Set Estimate(mod, First(mod[1]), Last(mod[1]))
+  };
+  
+  Set est = test_one(1);
+

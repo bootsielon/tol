@@ -1,0 +1,65 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : estimation.tol
+// PURPOSE: code for bug http://bugs.tol-project.org/show_bug.cgi?id=341
+//////////////////////////////////////////////////////////////////////////////
+
+Date Ini = y2001m01d01;
+Date Fin = y2002m01d01;
+
+// Se crea una tendencia a partir de la fecha inicial
+
+Serie ser = SubSer(Trend(Ini, Diario), Ini, Fin);
+
+// Se crea la serie 'ser%7' para que tenga estructura semanal
+
+Serie modulo_7 = ser - 7*Floor(ser/7);
+
+// Se crea un filtro
+
+Serie filter = 10*CalInd(M(2), Diario);
+
+// Se multiplica la serie 'modulo_7' por 'ser' para que tenga tendencia 
+//   y se le suma el filtro
+
+Serie output = ser*modulo_7 + filter;
+
+
+Set modelDef = ModelDef(
+  output, 
+  1, 
+  0, 
+  7, 
+  0, 
+  // en lugar de dos diferencias estacionales
+  //   se le pasa una y se estima el parametro AR(7)
+  (1 - B^7), 
+  SetOfPolyn(1 + 0.1*B, 1),
+  // no se le pasa MA
+  SetOfPolyn(1, 1), 
+  // se le pasa el filtro como input
+  SetOfSet(InputDef(0.99, filter)), 
+  AllLinear
+);
+
+// se estima el modelo
+Set modelEst = Estimate(Set modelDef);
+
+// Se copia la serie filter estimada
+Serie filter_est = Copy(modelEst[3][8]);
+
+// se crea una serie de ceros
+Serie ceros = SubSer(CalInd(W, Diario), Ini, Fin);
+
+// se suma la serie nula al filter estimado
+Serie filtro_new = modelEst[3][8] + ceros;
+
+// se reasigna
+Serie (modelEst[3][8] := filtro_new);
+
+// las series del siguiente conjunto deberían ser iguales
+
+Set seriesIguales = SetOfSerie(filter_est, filtro_new, modelEst[3][8]);
+
+// sin embargo las dos últimas están desfasadas 7 días hacia el futuro,
+//   tantos como el grado del polinomio del AR
+

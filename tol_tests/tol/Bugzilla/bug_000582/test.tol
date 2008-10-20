@@ -1,0 +1,53 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary and you e-mail
+  Real bugNum_ = 582;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "strange behaviour in CountS";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  //The first CountS reports 100 items while the second 110
+  
+  Serie s1 = SetSer(MatSet(Rand(100,1,0,1)),y2000m01d01,Daily);
+  
+  Serie s2 = s1 >> SubSer(UnknownSerie,Last(s1),Succ(Last(s1),Daily,10));
+  
+  Real dim1 = CountS(s2);
+  
+  WriteLn("Dimensión de la serie antes de realizar la operación\n dim=" +
+  IntText(dim1));
+  
+  Matrix aux = SerMat(s2);
+  
+  Real dim2 = CountS(s2);
+  WriteLn("Dimensión de la serie despues de realizar la operación\n dim=" +
+  IntText(dim2));
+  
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1,
+    Real ok = dim1==dim2
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */

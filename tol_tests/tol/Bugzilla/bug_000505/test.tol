@@ -1,0 +1,42 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary and you e-mail
+  Real bugNum_ = 505;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Median() function and the unknown real number";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real m1 = Median(?,3,2);
+  Real m2 = Median(2,?,3);
+  Real m3 = Median(3,2,?);
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok1 = And(!IsUnknown(m1),m1==2.5);
+    Real ok2 = And(!IsUnknown(m2),m2==2.5);
+    Real ok3 = And(!IsUnknown(m3),m3==2.5);
+    Real noErr = numErr1 == numErr0
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(noErr,ok1,ok2,ok3);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

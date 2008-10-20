@@ -1,0 +1,44 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 454;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Mysterious error message";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set Rebaja = Range(1,1,1);
+  Set Distribucion = EvalSet(Rebaja, Set(Real reb)
+  {
+    Set dist = For(0,1, Real(Real venta)
+    {
+      Real distVen = DensNormal(venta, 50+50*Exp(reb)/(1+Exp(reb)),10);
+      SetOfReal(venta, distVen)
+    });
+    dist
+  });
+  Text logTxtEnd = ReadFile(GetDumpFile(0)); 
+  Text expectedLogEnd = I2("Fail in function","Fallo en funci"); 
+  Real pos = TextFind(logTxtEnd, expectedLogEnd);       
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok = pos>0
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0+3==NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

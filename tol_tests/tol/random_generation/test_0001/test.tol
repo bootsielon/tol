@@ -1,0 +1,51 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for random numbers generation
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Controlled reproducibility of uniform random number generation" ;
+
+//Write here the initial test TOL code if needed
+  Real PutRandomSeed(0);
+  Real seed_1=GetRandomSeed(0);
+  Matrix g1 = Gaussian(1,10,0,1);
+  WriteLn("seed_1="<<seed_1<<"; g1="<<g1);
+  Real PutRandomSeed(0);
+  Real seed_2=GetRandomSeed(0);
+  Matrix g2 = Gaussian(1,10,0,1);
+  WriteLn("seed_2="<<seed_2<<"; g2="<<g2);
+  
+  Real PutRandomSeed(seed_1);
+  Real seed_1_=GetRandomSeed(0);
+  Matrix g3 = Gaussian(1,10,0,1);
+  WriteLn("seed_1_="<<seed_1_<<"; g3="<<g3);
+  Real PutRandomSeed(seed_2);
+  Real seed_2_=GetRandomSeed(0);
+  Matrix g4 = Gaussian(1,10,0,1);
+  WriteLn("seed_2_="<<seed_2_<<"; g4="<<g4);
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real d12 = MatMax(Abs(g1-g2));
+    Real d13 = MatMax(Abs(g1-g3));
+    Real d24 = MatMax(Abs(g2-g4))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(d12, !d13, !d24);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+
+

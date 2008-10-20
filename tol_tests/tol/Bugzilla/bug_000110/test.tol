@@ -1,0 +1,63 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 110;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "TimeSet Crack in succesor and intersection (Non progressive TimeSet?)";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  // TimeSet Crack in succesor and intersection (Non progressive TimeSet?)
+  
+  TimeSet tmsSuc = Succ(Easter, 2, WD(1)); // Tol Objects -> View timeset Works
+  
+  TimeSet tmsA22 = D(22) * M(4); // Tol Objects -> View timeset Works
+  
+  TimeSet tmsInt = tmsSuc * tmsA22; // Tol Objects -> View timeset CRACK
+  
+  
+  // TimeSet previous ocurrence: 1974/04/22
+  // TimeSet next ocurrence:     1047/04/22
+  
+  // Other test
+  Serie   serSuc = CalVar(tmsSuc, Monthly);
+  Real    sumSuc = SumS(serSuc, y2000, y2005);
+  Set     View([[sumSuc]], ""); 
+  
+  // Error message, I do not know if is correct.
+  // The cualifier <Non progressive TimeSet> is dificult to understand
+  // 
+  // ERROR: Non progressive TimeSet. Successor of 2.00005e+007 cannot be
+  //        2.00005e+007
+  //      Calculations will be interrumped.
+  
+  /* Crack
+  Serie   serInt = CalVar(tmsInt, Monthly);
+  Real    sumInt = SumS(serInt, y2000, y2005);
+  Set     View([[sumInt]], ""); // CRACK
+  */
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    sumSuc
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, sumSuc==5);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

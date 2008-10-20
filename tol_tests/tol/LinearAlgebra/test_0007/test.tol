@@ -1,0 +1,80 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Matrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_  = "http://wiki.localbayes.es/Languages/Tol/CodingStandards";
+  Text summary_ = "Triangular Toeplitz Matrix and polynomials" ;
+
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  
+  //Matrices dimension
+  Real n = 100;
+  
+  //Random retard polynomial
+  Polyn pol = RandStationary(IntRand(1,5));
+  //Polyn pol = 1-B;
+  Polyn polF = ChangeBF(pol);
+  Real  deg = Degree(pol);
+  Polyn polInv = Expand(1/pol,n);
+
+  //Rand column and row vectors  
+  Matrix x  = Rand(n,1,-1,1);
+  Matrix xt = Tra(x);
+
+  //Generates a retard matrix
+  Matrix T       = PolMat(pol, n, n);
+  //Explicit calculation of the inverse
+  Matrix TInv.1  = LTInverse(T);
+  //Iplicit retard calculation of the inverse
+  Matrix TInv.2  = PolMat(polInv,n,n);
+  
+  //Explicit calculation of matrix-vector pre-product
+  Matrix aux.2.1 = T*x;
+  //Implicit retard calculation of matrix-vector product
+  Matrix aux.2.2 = DifEq(pol/1,x);
+
+  //Explicit calculation of vector-matrix post-product
+  Matrix aux.3.1 = xt*T;
+  //Implicit retard calculation of vector-matrix post-product
+  Matrix aux.3.2 = Tra(BackDifEq(pol/1,x));
+
+  //Explicit solving of linear system
+  Matrix aux.4.1 = TInv.1*x;
+  //Implicit solving of linear system using polynomial finite expansion
+  Matrix aux.4.2 = DifEq(polInv/1,x);
+  //Implicit solving of linear system using finite differences 
+  Matrix aux.4.3 = DifEq(1/pol,x,Rand(0,0,0,0),Rand(deg,1,0,0));
+
+  Set ok.detail = 
+  [[
+    Real ok.1   = MatEQ(TInv.1, TInv.2);
+    Real ok.2   = MatEQ(aux.2.1,aux.2.2);
+    Real ok.3   = MatEQ(aux.3.1,aux.3.2);
+    Real ok.4.2 = MatEQ(aux.4.1,aux.4.2);
+    Real ok.4.3 = MatEQ(aux.4.1,aux.4.3)
+  ]];
+  Real ok.all = Group("And",ok.detail);
+
+//Extented information about test behaviour
+  Set partialResults_ = ok.detail <<
+  [[
+    numErr0, n, pol, deg
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok.all);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  Real { WriteLn(""<<resultStr_); 0 };
+  Set resultStr_
+
+
+/* */  

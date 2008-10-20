@@ -1,0 +1,46 @@
+Real NumTolerance = 6;
+  Text NewFormatReal = "%6.10lf";
+  Text OldFormatReal = PutRealFormat(NewFormatReal);
+  Real (Tolerance  := 5*(10^(-NumTolerance)));
+  Real (RelativeTolerance  := 10^(-NumTolerance+1));
+  Real (DiffDist   := 0.001);
+  Real (MarqFactor := 2);
+  //Real (MinOutlierLikelyhood := 4);
+  Real (MarqLinMet := Copy(Choleski));
+  Real (MaxIter    := 100);
+  Real (DoStatistics      := 1);
+  Real (DoDiagnostics     := 1);
+  Real (NullInitResiduals := 0);
+  Real (CGMaxIter := 30);
+
+TimeSet FirstMondayInMonth = Succ(Succ(M(1),-1,C),1,WD(1));
+Serie g0 = SubSer(Gaussian(0, 1, FirstMondayInMonth), y1700m01d01, y2016m01d01);
+Serie r0 = DifEq(((1-0.8*B^12)*(1-0.6*B))/((1-B)*(1-B^12)), g0);
+Serie i1 = CalVar(WD(1),FirstMondayInMonth);
+Serie z0 = r0+4*i1;
+
+
+Serie g = SubSer(g0, y1990m01d01, Last(g0));
+Serie z = SubSer(z0, y1990m01d01, Last(z0));
+Serie dz = ((1-B)*(1-B^12)):z;
+
+
+Set MD = ModelDef
+(
+  z, 1, 0, 12, 0, 
+  (1-B)*(1-B^12), 
+  SetOfPolyn(1 , 1), 
+  SetOfPolyn(1-0.1*B, 1-0.1*B^12), 
+  SetOfSet
+  (
+    InputDef(.1,i1)
+  ),
+  Copy(Empty)
+);
+Set ME = Estimate(MD, Succ(First(z),FirstMondayInMonth,12), Last(z));
+
+Serie ME[3][1];
+Serie ME[3][2];
+Serie ME[3][3];
+
+Serie g0_ = g0 + 0*ME[3][1];

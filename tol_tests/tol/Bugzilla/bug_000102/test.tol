@@ -1,0 +1,40 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 102;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Matrix definition";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Matrix a1  = Row(1,-1,0,0,0,0);  
+  Matrix a2  = ((1,-1,0,0,0,0));  // Don´t work  
+  Matrix a3 = ((1,0),(0,1));      // Work
+  Matrix a4 = ((1,1));            // this works
+  Matrix a5 = ((1,-1));           // Also this works
+  Matrix a6 = ((1,-1),(-1,1));    // and this works too
+  Matrix a7 = ((3));              // but this doesn't work because it considered a Real   
+  Matrix a8 = Col(3);             // Instead of last form, use this other: 
+  
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real diff_1_2 = MatMax(Abs(a1-a2))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0+2==NError, diff_1_2==0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

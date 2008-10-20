@@ -1,0 +1,46 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 44;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "SubCol does not return the correct columns.";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Matrix k = ((1,2,3),(1,2,3),(1,2,3));
+  Set    s = SetOfReal(4.02,4.03);
+  Matrix m = SetCol(s);
+  Matrix f = Floor(m);
+  Matrix d = m - f;
+  Matrix p = RProd(d, 100);
+  Set   s2 = MatSet(p);
+  Set   s3 = BinGroup("<<", s2);
+  Matrix r = SubCol(k,s3);
+  WriteLn ("Set  s2 = \n"<<s2);
+  WriteLn ("Matrix r = \n"<<r);
+  Matrix r2 = SubCol(k, SetOfReal(2, 3));
+  WriteLn ("Matrix r2 = \n"<<r2);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok = (Rows(r)==3) & (Columns(r)==2)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

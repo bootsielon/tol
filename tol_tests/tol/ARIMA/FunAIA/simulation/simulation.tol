@@ -1,0 +1,47 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : simulation.tol
+// PURPOSE: Simulates a massive set o blocks of random ARIMA serie with 
+//          randomized pulses and steps 
+//////////////////////////////////////////////////////////////////////////////
+
+//Set Include("common.tol");
+
+Date fstRes = y1999;
+Date fst = y2000;
+Date lst = Succ(fst,C,numOfData);  
+Set  dates = Dates(C,fst,lst);
+Set  pulses = EvalSet(dates,Serie(Date d) { Eval("Pulse("<<d+",C)") });
+Set  steps  = EvalSet(dates,Serie(Date d) { Eval("Step ("<<d+",C)") });
+
+Set data = For(1,numOfSeries,Set(Real i)
+{
+  Text setName = "Set_"<<IntText(i);
+  Text serName = "Serie_"<<IntText(i);
+
+  Serie residuals = SubSer(Gaussian(0,1,C),fstRes,lst);
+  Serie noise = SubSer(DifEq(ma/ari,residuals),fst,lst);
+  Set datesPulse = Select(dates,Real(Date d) { Real Rand(0,1)<=probPulse });
+  Set datesStep  = Select(dates,Real(Date d) { Real Rand(0,1)<=probStep  });
+  Set outliers = 
+    EvalSet(datesPulse,Set(Date d)
+    {
+      Real sign = If(LE(Rand(0,1),0.5),1,-1);
+      Aia.OutlierInfo("PulseOut", "C", d, sign*Rand(MinOutlierLikelyhood,
+                                           2*MinOutlierLikelyhood))
+    }) <<
+    EvalSet(datesStep,Set(Date d)
+    {
+      Real sign = If(LE(Rand(0,1),0.5),1,-1);
+      Aia.OutlierInfo("StepOut", "C", d, sign*Rand(MinOutlierLikelyhood,
+                                          2*MinOutlierLikelyhood))
+    });
+  Serie filter = If(!Card(outliers),0*noise,
+                    SetSum(EvalSet(outliers,Aia.OutlierInfo.GetSerie)));
+  Serie output = noise+filter;
+  Text  outExp = SetSum(EvalSet(outliers,Aia.OutlierInfo.GetInpDefExpression));
+  Real a = AvrS(output);
+
+  Eval(setName+" = [[output,outExp]];")
+});
+
+/* */

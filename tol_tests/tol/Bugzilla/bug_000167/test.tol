@@ -1,0 +1,42 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 167;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Efficiency problem when dealing with some TimeSet operations ?";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real t0_ = Copy(Time);
+  Set aux01 = Include("aux01.tol");
+  Set aux = For(1,1000000,Real(Real k) { k });
+  Real tm_ = Copy(Time)-t0_;
+  Real t0 = Copy(Time);
+  Set dates = Dates(FesPrePuenteVie, y1990,y2010);
+  Real tm = Copy(Time)-t0;
+  Real speed = tm_/tm;
+  Real qSpeed = Min(1,speed);
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real tm_,
+    Real tm,
+    Real speed,
+    Real c = Card(dates)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, c==47) * qSpeed;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

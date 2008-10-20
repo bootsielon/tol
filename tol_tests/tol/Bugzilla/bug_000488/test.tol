@@ -1,0 +1,55 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+
+//Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 488;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "error message in estimation function";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErrIni = Copy(NError); //Initial number of errors
+
+  /////////////////////////////////////////////////////////////////
+  Date IniEst = y2004m01d01;
+  Date EndEst = IniEst+10;
+  
+  TimeSet TmsY = Diario;
+  Serie y = SubSer(Trend(IniEst, TmsY)+Gaussian(0, 0.2, TmsY), IniEst, EndEst);
+  
+  Set ModDef = ModelDef
+  (
+   y,
+   1,
+   0,
+   1,
+   0,
+   1,
+   SetOfPolyn(1, 1-.1*B^100),
+   SetOfPolyn(1, 1),
+   Empty,
+   Empty
+  );
+  
+  Set Estimacion = Estimate(ModDef, IniEst, EndEst);
+
+  Real numErrEnd = Copy(NError); //Final number of errors
+
+  Real quality_ = numErrEnd > numErrIni;
+
+  /////////////////////////////////////////////////////////////////
+  
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "",
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};
+
+

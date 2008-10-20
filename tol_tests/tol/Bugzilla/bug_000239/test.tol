@@ -1,0 +1,50 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 239;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Embedded TimeSet functions causes TOL to die";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  TimeSet LC(TimeSet t){
+  //////////////////////////////////////////////////////
+  // LC: lunes cercanos: transfiere los dias pertenecientes
+  //     a t entre semana al lunes mas cercano. Si el dia es 
+  //     sabado, domingo o lunes, no lo toca
+  ///////////////////////////////////////////////////////
+  TimeSet TsSDL = WD(1) + WD(6) + WD(7); //Sabado, Domingo y Lunes
+  TimeSet TsMXJ = WD(2) + WD(3) + WD(4); //Martes, Miercoles y Jueves
+  TimeSet TsV   = WD(5);
+  TimeSet final= t*TsSDL + Succ(t*TsMXJ,-1,Semanal) + Succ(t*TsV,+1,Semanal)
+  };
+  
+  TimeSet SD=WD(6)+WD(7); //Sabados y Domingos
+  TimeSet CC=Succ(Easter,60); //Corpus Christi
+  TimeSet LCCC=LC(CC); // Lunes previo al Corpus Christi
+  TimeSet festivos= SD + LCCC;
+  Set s1 = Dates(festivos,y2006,y2007);
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+     Real c1 = Card(s1)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, c1==106);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

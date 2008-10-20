@@ -1,0 +1,48 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 351;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Unknown crash in Serie function";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  //////////////////////////////////////////////////////////////////////////////
+  Serie IntTrend(Serie ind)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Serie ten = DifEq(1/(1-B),SubSer(ind,y2002, y2020));
+    ten - (0*ind)<<Expand(B:(ind * ten)*Not(ind),0)
+  };
+  Serie IndNav         = CalInd((Range(M(12)*D(1),0,36)),Diario);
+  Serie IntTNav2  = IntTrend(IndNav)^2;
+
+  Serie ind = IndNav;
+  Serie ten = DifEq(1/(1-B),SubSer(ind,y2002, y2020));
+  Serie res = (ten - (0*ind)<<Expand(B:(ind * ten)*Not(ind),0))^2;
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+     Real x = MaxS(Abs(IntTNav2-res));
+     Real numErr = Copy(NError)-numErr0
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(x==0,numErr==0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

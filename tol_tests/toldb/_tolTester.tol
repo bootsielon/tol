@@ -1,0 +1,97 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : tol_tester.tol
+// PURPOSE : call all prepared tests about TOL features checking are binding 
+// to decide if a version should be published or not.
+//////////////////////////////////////////////////////////////////////////////
+
+Set Include("dbt.tol");
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!IMPORTANT NOTE: READ THIS THE FIRST TIME YOU RUN THIS FILE!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// 
+//All possible connections to allowed engines are stored in file 
+// dbt.engine.allowed.bst
+//If not exists then Dbt.Engine.Allowed.Get(0) creates one with default 
+//values: 
+// 
+// database = "toltests";
+// user     = "toltester";
+// password = "pwdtt";
+// host =
+//  "localhost" in all engines allowed for your operative system
+//  "<Other_OS_Name>_host" in all engines allowed for other operative systems
+// 
+//You should ensure that default values is all you want to check or edit this
+//file before run tests.
+// 
+//The tester will use this set to try connections with all them that has the
+//available_ field to 1. You should set 0 all items you can´t access.
+// 
+//Save a backup copy of the edited file to avoid accidental regeneration 
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Set Dbt.Engine.Allowed = Dbt.Engine.Allowed.Get(0);
+
+//Ensuring what engines are ready in this moment
+Set Dbt.Engine.Active = Dbt.Engine.Active.Update(0);
+
+Set EvalSet(Dbt.Engine.Active, Text(Set ci)
+{
+  Real OSDirMake("by_engine/common");
+  Real OSDirMake("by_engine/"+ci->engine_);
+  Text fileName = "by_engine/"+ci->engine_+"/"+ci->alias_+".tol";
+  Text WriteFile(fileName,
+"//////////////////////////////////////////////////////////////////////////////\n"
+"//FILE    : "+fileName+"                                                      \n"
+"//PURPOSE : Connection to toltests database                                   \n"
+"//AUTHOR  : Created automatically by toldb/_tolTester.tol                     \n"
+"//////////////////////////////////////////////////////////////////////////////\n"
+"\n"
+"Set Include(\"../../dbt.tol\");\n"
+"\n"
+"Set Dbt.Connect = Dbt.Open(Dbt.ConnectInfo\n"
+"(\n"
+"  \""+ci->os_+"\",\n"
+"  \""+ci->engine_+"\",\n"
+"  \""+ci->driver_+"\",\n"
+"  \""+ci->database_+"\",\n"
+"  \""+ci->host_+"\",\n"
+"  \""+ci->port_+"\",\n"
+"  \""+ci->alias_+"\",\n"
+"  \""+ci->user_+"\",\n"
+"  \""+ci->password_+"\",\n"
+"  "+IntText(ci->available_)+"\n"
+"));\n"
+"\n");
+  Real OSFilCopy(fileName,"by_engine/common/"+ci->alias_+".tol");
+  fileName
+});
+
+Text Dbt.EngPath = Dbt.RootPath(0)+"by_engine/";
+Text Dbt.EngComPath = Dbt.EngPath+"common/";
+
+/* */
+//Select the number of execution of each available test battery
+//Obviously, deterministic tests should be executed just one time, but,
+//probably, you want to run simulation tests a number of times on depending
+//on the total time you can dedicate to this now.
+//Also you can set 0 times to skype a battery
+
+Set Battery_1 = EvalSet(Dbt.Engine.Active,Set(Set ci)
+{
+  strBatteryConfig("by_engine/common", 
+                   Dbt.EngComPath+ci->alias_+".tol",  
+                   1)
+});
+
+Set Battery_2 = EvalSet(Dbt.Engine.Active,Set(Set ci)
+{
+  strBatteryConfig("by_engine/"+ci->engine_, 
+                   Dbt.EngPath+ci->engine_+"/"+ci->alias_+".tol",  
+                   1)
+});
+
+Set Results = ReportAllBatteries(Battery_1<<Battery_2);
+
+
+/* */

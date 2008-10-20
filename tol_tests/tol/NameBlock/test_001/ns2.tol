@@ -1,0 +1,7 @@
+//Fichero ns2.tol
+NameBlock NS2 = 
+[[
+  Real _fun_aux(Real x) { x*4 };
+  Real fun_a(Real x) { _fun_aux(x)+1 };
+  Real fun_b(Real x) { _fun_aux(x)-1 }
+]];

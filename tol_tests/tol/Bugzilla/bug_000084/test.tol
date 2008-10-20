@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 84;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "DatCh doesn't work";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Serie ser = SubSer(CalInd(In(y2003m05d01, y2003m05d21), Diario),y2003m01d01,
+  y2003m11d01);
+  Serie sums = DatCh(ser, Semanal, SumS);
+  
+//Serie sums has wrong data. Curiosly, this code works ok
+  
+  Serie ser2 = CalInd(In(y2003m05d01, y2003m05d21), Diario);
+  Serie sums2 = DatCh(ser2, Semanal, SumS);
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real diff = MaxS(Abs(sums-sums2))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, diff==0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

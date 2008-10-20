@@ -1,0 +1,34 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : performance.tol
+// PURPOSE: performance analysis for Matrix Algebra 
+//////////////////////////////////////////////////////////////////////////////
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Matrix Choleski" ;
+
+  Real PutRandomSeed(876554);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real baseSize = 10;
+  Set For(1, baseSize, Set(Real k)
+  {
+    Real n  = 100*k;
+    Matrix X = Rand(n,n,-10,10);
+    Real t0 = Copy(Time);
+    Matrix XtX = Tra(X)*X;
+    Real t1 = Copy(Time);
+    Real timeProd = t1-t0;
+    Real numIter = baseSize-k+1;
+    Set For(1, numIter, Real(Real j)
+    {
+      Matrix L = Choleski(XtX);
+      j
+    });
+    Real timeCholeski = (Copy(Time)-t1)/numIter;
+    Set s = [[n,timeProd,timeCholeski]];
+    Set View(s,"");
+    s
+  });
+
+/* */

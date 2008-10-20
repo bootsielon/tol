@@ -1,0 +1,32 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : SimulArimaParam_ShortGen.tol
+// PURPOSE : Parámetros del simulador de modelos ARIMA por generación 
+//           aleatoria.
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Opciones de simulación 
+// Por simplicidad sólo se simulan modelos ARIMA con dos factores, uno regular
+// y otro estacional, aunque se podría extender a varias estacionalidades.
+//////////////////////////////////////////////////////////////////////////////
+
+Set SimulationParameters =
+[[
+  Real Sigma            =   0.1; //Desviación típica de los residuos
+  Real MinCycles        =     6;   //Mínimo de ciclos estacionales del output
+  Real MinData          =    40;   //Mínima longitud de la serie output 
+  Real MaxData          =   500;   //Máxima longitud de la serie output 
+  Real MaxInterruptions =    10;   //Máximo nº de interrupciones
+  Real MaxInputs        =    10;   //Máximo nº de inputs
+  Real MaxRegDIF        =     0;   //Máximo nº de diferencias regulares
+  Real MaxSeaDIF        =     0;   //Máximo nº de diferencias estacionales
+  Real MaxRegAR         =     2;   //Máximo grado AR regular
+  Real MaxRegMA         =     2;   //Máximo grado AR estacional
+  Real MaxSeaAR         =     0;   //Máximo grado MA regular
+  Real MaxSeaMA         =     0;   //Máximo grado MA estacional
+  Real RestrictLTqp     = True;
+//Posibles estacionalidades 
+  Set  PeriodsTable     = [[ 1 ]]
+]];
+

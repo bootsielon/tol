@@ -1,0 +1,4 @@
+  Polyn pol_ = 0.1-2*B^2;
+  Matrix cov_ = SetDiag(SetOfReal(.5,0.00001,0.00001,0.00001,0.00001,0.00001,.5));
+  Set a_ = SchurDraw(pol_,cov_);
+

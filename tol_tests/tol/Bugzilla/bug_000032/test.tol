@@ -1,0 +1,43 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 32;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Failure in Tol. It blocks when timeset is created.";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  TimeSet CtUltDiaMes=Succ(D(1),-1,Diario);
+  TimeSet CtQuintoDom=Succ(CtUltDiaMes,5,WD(7));
+  TimeSet CtUltDom=Succ(D(1),-1,WD(7));
+  TimeSet Ct5Dom=CtQuintoDom*CtUltDom;
+  TimeSet CtMeses5Dom=Succ(Ct5Dom,-1,D(1));
+  TimeSet CtPrimDom=Succ(CtUltDiaMes,1,WD(7));
+  TimeSet Resta=CtQuintoDom-CtPrimDom;
+  Set s1 = Dates(CtMeses5Dom, y2000, y2009);
+  Set s2 = Dates(Resta, y2000, y2009);
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real c1 = Card(s1);
+    Real c2 = Card(s2)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, Eq(c1,c2,38));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

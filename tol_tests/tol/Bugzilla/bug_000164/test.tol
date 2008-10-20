@@ -1,0 +1,43 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 164;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "TOL  break down Serie out  = (Real 0.8)* ser ;";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Serie ser = SubSer(Gaussian(0,1), y2000, y2001);
+  Serie out  = (Real 0.8)* ser ;
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real sum1 = AvrS(ser),  
+    Real sum2 = AvrS(out),
+    Real diff = Abs(sum2-sum1*0.8)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    diff<=1.E-15
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

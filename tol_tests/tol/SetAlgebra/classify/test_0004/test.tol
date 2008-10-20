@@ -1,0 +1,47 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Set Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "http://en.wikipedia.org/wiki/De_Morgan_duality";
+  Text summary_ = "Classify with partial order relations" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set s = [[ "aefg",  "ada", "fefg", "fadabbbg" , "efg", "abbb" ]];
+  Real f(Text a, Text b)
+  {
+    Compare( TextLength(a), TextLength(b))
+  };
+  Set classes = Classify(s, f, "partial order"); 
+  
+  WriteLn("Classes = \n"<<classes);
+
+  Set expected = 
+  [[  
+    [[ "ada", "efg" ]],           //Class of strings with length 3
+    [[ "abbb", "fefg", "aefg" ]], //Class of strings with length 4 
+    [[ "fadabbbg" ]]              //Class of strings with length 8  
+  ]];
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real cmp = (classes == expected);
+    Real ok = !IsUnknown(cmp) & cmp
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

@@ -1,0 +1,51 @@
+Matrix m = Col(0,0);
+Matrix S = ((1, .9),
+	    (.9, 1));
+Matrix S_1 = GaussInverse(S);
+Matrix Lt = Choleski(S);
+
+Matrix BiNormal(Matrix mu)
+{
+  Matrix mu + Lt * (Matrix Gaussian(Rows(mu), 1, 0, 1))
+};
+
+Real d1 = 0.75;
+Real d2 = 1.0;
+
+Real target_density(Matrix x, Matrix cx, Matrix join, Set data)
+{
+  //Text WriteLn("----- target_density -----");
+  Matrix xm = x - m;
+  Real den = -0.5*MatDat(Tra(xm)*S_1*xm,1,1);
+  //Set View([[x, den]], "Std");
+  //Text WriteLn("");
+  Real den
+};
+
+Matrix kernel_drawer1(Matrix x, Matrix cx, Matrix join, Set data)
+{
+  Matrix x + Col(Real Rand(-d1, d1), Real Rand(-d2, d2))
+};
+
+Set MH_def = [[
+               [[2, /* dimension */ 
+                 2, /* generic MH */
+		 m, /* initial state */
+                 Copy(Empty), /* block data */
+		 kernel_drawer1, /* kernel generator */
+                 target_density, /* log density evaluator */
+		 1 /* q is symmetric */
+               ]]
+             ]];
+
+Set samples = For(1, 1000, Matrix (Real i) {
+  BiNormal(m)
+});
+
+//Matrix join = BinGroup("|", samples);
+//Matrix join_t = Tra(join);
+
+// Real target_density(Col(0,0), Col(0,0), Col(0,0), Empty);
+
+Matrix chain = MetropolisHastings(MH_def, 10, 10);
+Matrix chain_t = Tra(chain);

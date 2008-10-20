@@ -1,0 +1,51 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 451;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Fall of the program executing the AIA function";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+Text CtC.D = "C-WD(7)";
+Text DatingExpr = CtC.D;
+TimeSet Dating = Eval(DatingExpr);
+Serie Sr   = Gaussian(0, 1 , Dating)*CalInd(C-Day(y2006m11d23),Dating)+
+20*Pulse(y2006m11d20, Dating) ;
+Serie subSr = SubSer(Sr, y2004, y2007);
+TimeSet autoDating = SerTms(subSr);
+Serie AutoSr = DatCh(subSr,autoDating,FirstS);
+Set SetSr = SetOfSerie(AutoSr);
+Polyn  ARI = 1.0000000000-0.2676547219*B-B^6+0.2676547219*B^7;
+Polyn  MA  = 1.0000000000-0.8630160567*B^6;
+Ration PiW = ARI/MA;
+Set Outliers = SetOfRation
+(
+  PulseOut
+);
+Set aia = AIA(SetSr[1], PiW, Outliers);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real c = Card(aia)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, c);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};
+

@@ -1,0 +1,17 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test_01.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Real fun1(Real p1) { x };
+  Real fun2(Real p2)
+  {
+    Real fun3(Real x) { fun1(x) };
+    fun3(p2)
+  };
+  Real a = 1;
+  Real x = 2;
+  Real r = fun2(a);
+
+WriteLn("With dynamic scope r="<<r+" should be equal to a="<<a);
+WriteLn("With static scope r="<<r+" should be equal to x="<<x);

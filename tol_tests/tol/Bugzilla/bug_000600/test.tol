@@ -1,0 +1,47 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  600;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "funcion PutSerDat pone valor unknown en la serie";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real x=5;
+  WriteLn("x="<<x);
+  Serie datos = MatSerSet(Rand(1,100,100,110),Daily,y2000m01d01)[1];
+  Real y0=SerDat(datos,Succ(First(datos), Dating(datos),100/2));
+  WriteLn("y0="<<y0);
+  Real PutSerDat(datos,Succ(First(datos), Dating(datos),100/2),x);
+  Real y1=SerDat(datos,Succ(First(datos), Dating(datos),100/2));
+  WriteLn("y1="<<y1);
+
+  Real ok = y1==x;
+
+  Real numErr1 = Copy(NError);
+
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1, x, y0, y1, ok
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */

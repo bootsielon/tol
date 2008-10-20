@@ -1,0 +1,52 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 229;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "MonteCarloPlain does not work in Versión 1.1.2 Jan 13 2005 for WINDOWS";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Matrix X = Col(1000);
+  Real N = 10000;
+  Real UserFunc( Matrix X)
+       {
+        Real x  = MatDat(X, 1,1);
+        Real Px = DensNormal(x,0,1);
+      //WriteLn("x: "<<x+"Px "<<Px);
+        Px
+       };
+  
+  Set plain = MonteCarloPlain(UserFunc,1,Col(-10),Col(10),N);
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real v = plain[1],
+    Real s = plain[2],
+    Real t = (v-1)/s,
+    Real p = 2*DistNormal(-t)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0
+  ) * p;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

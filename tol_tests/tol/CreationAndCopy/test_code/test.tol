@@ -1,0 +1,54 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for collateral effects of operators = and :=
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+   "test for collateral effects of operators = and := for Code objects" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+    Real FunA(Real x_) {  x_ };
+    Real FunB(Real x_) { -x_ };
+    Code A = FunA; 
+    Real x = 3;
+    Real   a = A(x);
+    WriteLn("a: "<<a);
+    Code B = FunB; 
+    Real   b = B(x);
+    WriteLn("b: "<<b);
+    Code C = A; 
+    Real   c = C(x);
+    Real   ok1 = EQ(c,a);
+    WriteLn("c: "<<c+" == "<<a+" -> "<<ok1);
+    Code (C := B); 
+    Real   c_ = C(x);
+    Real   ok2 = EQ(c_,b);
+    WriteLn("c: "<<c_+" == "<<b+" -> "<<ok2);
+    Real   a_ = A(x);
+    Real   ok3 = NE(b,a_);
+    WriteLn("a: "<<a_+" != "<<b+" -> "<<ok3);
+    
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    a,b,c,c_,a_,ok1,ok2,ok3
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok1, ok2, ok3);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+
+

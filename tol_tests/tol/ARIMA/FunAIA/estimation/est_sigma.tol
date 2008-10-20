@@ -1,0 +1,21 @@
+
+
+  Set Include("../common.tol");
+  Set ois = 
+  {
+    Set aux = Include(oisPath);
+    aux
+  };
+
+
+  Set s = ois["data"][1];
+  Serie output = s[1]-AvrS(s[1]);
+  Serie noise = (1-B):output;
+  Date f = First(noise);
+  Date l = Last(noise);
+  Real p  = 1/3;
+  Real q1 = QuantileS(noise,f,l,p);
+  Real q2 = QuantileS(noise,f,l,1-p);
+  Real sigma_ = (q2-q1)/(-2*DistNormalInv(p));
+  
+

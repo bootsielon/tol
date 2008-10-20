@@ -1,0 +1,35 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 52;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Density Functions Correction";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real a1 = DensUniform(1,0,2);
+    Real ok1 = a1==0.5,
+    Real a2 = DensGamma(3,1,1/4);
+    Real ok2 = Abs(a2-2.45768494133128e-005)<1.E-15,
+    Real a3 = DensExp(3,1),
+    Real ok3 = Abs(a3-0.0497870683678639)<1.E-15
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, ok1, ok2, ok3);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

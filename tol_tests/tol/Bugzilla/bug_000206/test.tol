@@ -1,0 +1,60 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 206;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "estimates fail when the name of the input timeset isn´t the the name of the output timeset";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  /////////////////////////////////////////////////////////////////
+  Date IniEst = y2004m01d01;
+  Date EndEst = y2004m10d01;
+  
+  TimeSet TmsY = Diario;
+  TimeSet TmsX = Diario;
+  Serie y = SubSer(Trend(IniEst, TmsY)+Gaussian(0, 0.2, TmsY), IniEst, EndEst);
+  Serie x = SubSer(Trend(IniEst, TmsX), IniEst, EndEst);
+  
+  Set ModDef = ModelDef
+  (
+   y,
+   1,
+   0,
+   1,
+   0,
+   1,
+   SetOfPolyn(1, 1),
+   SetOfPolyn(1, 1),
+   SetOfSet(InputDef(0.1, x)),
+   If(ObjectExist("Set", "AllLinnear"), AllLinnear, AllLinear)
+  );
+  
+  Set EstLineal = LinearRegression(y, SetOfSerie(x));
+  Set Estimacion = Estimate(ModDef, IniEst, EndEst);
+  WriteLn("");
+  /////////////////////////////////////////////////////////////////
+  Real numErr1 = Copy(NError);
+  
+//Extented information about test behaviour
+  Set partialResults_ = [[numErr0, numErr1]];
+
+
+//This is a messure of the success of the test 
+  Real quality_ = numErr0==numErr1;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

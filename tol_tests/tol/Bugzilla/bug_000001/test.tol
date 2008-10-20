@@ -1,0 +1,37 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary and you e-mail
+  Real bugNum_ = 1;
+  Text email_ = "josp@tol-project.org"; 
+  Text summary_ = "BMTFile(Set): Additional carry return";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Matrix a = Rand(10,10,0,1);
+  Text bmt = "test_bug02.bmt";
+  Set BMTFile([[a]], bmt);
+  Set a_inc = IncludeBMT(bmt);
+  Real FileDelete(bmt);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real difNorm = MatFrobeniusNorm(a-a_inc[1])
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = Do(Exp(-difNorm^2));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

@@ -1,0 +1,166 @@
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+//                          TOL-Tester                                      //
+//                                                                          //
+//////////////////////////////////////////////////////////////////////////////
+
+==============================================================================
+A) Definición de TOL-Tester
+==============================================================================
+
+Se trata de un sistema estándar de chequeo del comportamiento del lenguaje TOL
+y de las herramientas relacionadas como TOLBase. Antes de publicar cada nueva
+versión se debe comprobar que TOL actúa como se espera lo cual no suele ser 
+nada trivial dado el extenso número de aplicaciones del lenguaje.
+
+
+==============================================================================
+B) Estructura de TOL-Tester
+==============================================================================
+
+En el directorio raíz se encuentran los ficheros TOL comunes a todas las 
+baterías de tests además de éste fichero de ayuda.
+
+  - _testCommon.tol : Estructuras y funciones auxiliares comunes
+  - _testConfig.tol : Parámetros de configuración comunes
+  
+Los tests se encuentran clasificados en directorios dependiendo del PRODUCTO
+concreto que se intenta probar. Dentro de cada producto existirán directorios 
+dedicados a las distintas baterías de tests que lo comprueban, en virtud del 
+TEMA a chequear. El par PRODUCTO/TEMA define una BATERÏA de tests 
+relacionados entre sí.
+
+Dentro de cada batería puede haber una estructura totalmente libre de 
+subdirectorios que se recorrerán recursivamente en busca de archivos
+test.tol los cuales se interpretarán como cada uno de los tests particulares
+de la batería asociada. De esta manera cada batería se puede adaptar a sus
+necesidades de forma muy flexible sin perder generalidad ni facilidad de uso.
+
+A cada uno de los paths relativos a la batería que contengan un test le 
+llamaremos BASE del test. Es decir los tests se definen en los ficheros de 
+la forma  PRODUCTO/TEMA/BASE/test.tol
+
+Por el momento existen los siguientes productos y temas
+  
+ -tol: los tests acerca del lenguaje propiamente dicho sin que intervenga
+       ningún módulo auxiliar
+      
+   -tol/Bugzilla:         comprueba que los bugs resueltos siguen funcionando
+   -tol/ARIMA:            Tests de simulación acerca de modelos ARIMA
+   -tol/TimeSetCoherence: Tests de simulación acerca del álgebra del tiempo
+   
+ -tolcon: los tests acerca del ejecutable de TOL en modo de consola
+   
+   -tolcon/Bugzilla: comprueba que los bugs resueltos siguen funcionando
+    
+ -toltcl: los tests acerca de la API de comunicación de TCL con TOL para la
+          construcción de interfaces
+
+   -toltcl/Bugzilla: comprueba que los bugs resueltos siguen funcionando
+                     
+ -toldb: los tests acerca de la conexión de TOL con bases de datos
+  
+   -toldb/Bugzilla: comprueba que los bugs resueltos siguen funcionando
+
+
+==============================================================================
+B) Modo de empleo de TOL-Tester
+==============================================================================
+
+En cada directorio existe un archivo _tolTester.tol que se encarga de realizar
+todo lo necesario, y que debe ser compilado con la versión de TOL que se desea
+comprobar. 
+
+Antes de hacerlo es conveniente repasar la configuración de la lista de 
+baterías de tests que se desean comprobar en el conjunto TestConfigTable de
+registros con estructura strBatteryConfig definida en _testCommon.tol
+
+Los test se pueden ejecutar una o varias veces o incluso ninguna si así se
+especifica en TestConfigTable, para facilitar de este modo la adaptación a 
+diferentes situaciones de chequeo de cada una de las baterías. Por ejemplo,
+tras un cambio profundo de TOL o al publicarse una nueva versión sería
+conveniente realizar un chequeo exhaustivo que puede durar varias horas, 
+pero tras una leve modificación quizás sólo queremos probar alguna batería
+en concreto o un poco de todo, de forma que dure apenas unos minutos. Nos 
+referiremos a cada una de estas ejecuciones con el término ITER.
+
+Opcionalmente, un test puede tener un fichero de parametrización PARAM que  
+se puede usar, por ejemplo, para modular el volumen de las simulaciones 
+efectuadas. 
+
+==============================================================================
+C) Visualización de resultados
+==============================================================================
+
+La mayoría de los tests serán deterministas en el sentido de que sólo pueden
+salir bien o mal, pero otras veces no es posible determinar tal cosa y tan
+sólo se puede dar una medida probabilística e incluso subjetiva de la calidad
+obtenida.
+
+El programa irá sacando una traza del cada test con el resultado de su 
+calidad en una norma probabilística de 0 a 100% así como el tiempo empleado.
+
+Al final de cada batería se dará un pequeño resumen de sus resultados y una 
+vez terminada la compilación es posible ver sendos resumenes a nivel de 
+batería (AllReport) y a nivel de test (AllDetail) donde se puede encontrar
+información adicional acerca de los tests que no hayan dado el resultado 
+esperado.
+
+Cada test genera de forma automática un directorio de resultados localizado 
+en PRODUCTO/.result/test_YYYY_MM_DD_HH_MM/[PARAM_]TEMA/BASE[/ITER] en el que 
+se almacenan estos ficheros
+  
+  - test.bat: fichero de llamada del test por si se quiere 
+                          reproducir posteriormente
+  - test.log: fichero de salida estándar de la ejecución para
+                          buscar posibles errores o anomalías 
+  - test.bst: fichero de resultados utilizado después para generar
+                          las tablas de resúmenes.
+
+Nota: YYYY_MM_DD_HH_MM significa año,mes,día,hora,minuto 
+
+==============================================================================
+D) Funcionamiento interno de TOL-Tester
+==============================================================================
+  
+Cada test retornara un Set de estructura strTestStatus definida en 
+_testCommon.tol con la informacion de los resultados propiamente dichos y 
+elementos desriptivos y auxiliares. La llamada a cada uno se hará usando el 
+sistema operativo para arrancar una nueva sesión TOL para evitar por un lado 
+efectos colaterales entre los distintos tests así como salvaguardar el proceso
+de lanzamiento de posibles caídas provocadas en uno de ellos.
+
+El que invoca cada test (tol_tester) se encarga de recolectar las metricas que
+son generales para todos los tests además de la devuelta en el strTestStatus, 
+confeccionando un conjunto de estructura strTestMetric definida en 
+_testCommon.tol, en la que se incluye la información heredada de la batería a 
+la que pertenece así como de los cambios de estado de ciertas variables: 
+tiempo y memoria empleados, número de errores y warnings, etc.
+
+Cuando se finaliza un batería concreta se genera un conjunto con estructura
+strTestBattery definida en _testCommon.tolen el que se incluye información 
+sobre la propia definición de la batería, sobre las condiciones de ejecución 
+del test (sistema operativo, versión del compilador y de TOL, momento de 
+inicio), así como algunos estadísticos de resumen de los resultados obtenidos.
+
+
+==============================================================================
+E) Tareas por hacer en TOL-Tester
+==============================================================================
+
+1- En una etapa posterior podria ser interesante almacenar toda la informacion
+en una base de datos a modo de realizar queries avanzadas que permitan hacer 
+un diagnostico automatico del resultado de los tests.
+
+2- En ocasiones la ejecución de un test puede ocasionar un ciclo infinito o
+que se quede a la espera por cualquier motivo (especialmente en windows que
+tiene por costumbre sacar ventanas para cualquier tontería). En tales casos 
+sería necesario poder lanzar los tests como hilos y quedar a la espera hasta
+que el test acabe o transcurra un tiempo máximo. Mientars no sea así los tests
+se tendrán que seguir lanzando bajo la tutela de un operario.
+
+3- Otra posibilidad relacionada con la anterior sería lanzar los tests contra
+otras máquinas de forma remota utilizando TRC o cualquier otro método, para
+liberar recursos en la máquina cliente y dedicar máquinas específicas a las 
+tareas de chequeo de versiones de TOL.
+

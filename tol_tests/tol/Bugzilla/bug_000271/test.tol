@@ -1,0 +1,42 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 271;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Tol crushes witn a negative Succ() - In() TimeSet";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+//Tol goes into an endless loop when this piece of code is run:
+  TimeSet ts1 = ( Succ(D(1), -2, WD(5)) - In(y2000m10d01, y2005m02d28));
+  Set s1 = Dates(ts1,y2000,y2001);
+//on the other hand this works:
+  TimeSet ts2 = ( Succ(D(1), 2, WD(5)) - In(y2000m10d01, y2005m02d28));
+  Set s2 = Dates(ts2,y2000,y2001);
+
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real c1 = Card(s1);
+    Real c2 = Card(s2)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, Eq(c1,c2,9));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

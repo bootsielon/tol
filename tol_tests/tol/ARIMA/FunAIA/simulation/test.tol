@@ -1,0 +1,62 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test of massive AIA
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Simulation of massive AIA stored in OIS";
+
+  Set Include("../common.tol");
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real FileDelete(oisPath);
+
+  Real t0 = Copy(Time);
+  WriteLn("t0="+Time);
+  Real mem0 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];
+
+  Set simulation = { Set aux = Include("simulation.tol"); aux };
+  Real t1 = Copy(Time);
+  WriteLn("t1="+Time);
+  Real mem1 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];
+
+  Real ois.ok.1 = Ois.Store(simulation,oisPath);
+  Real t2 = Copy(Time);
+  WriteLn("t2="+Time);
+  Real mem2 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numOfSeries,
+    numOfData,
+    Real totalData     = numOfSeries*numOfData,
+    Real oisSize       = FileBytes(oisPath),
+    Real randBuildMem  = mem1-mem0,
+    Real oisCreateMem  = mem2-mem1,
+    Real randBuildTime = t1-t0,
+    Real oisCreateTime = t2-t1,
+    ois.ok.1
+  ]];
+  Text PutRealFormat("%.15lg");
+  WriteLn("");
+  Set For(1,Card(partialResults_),Real(Real k)
+  {
+    WriteLn(Name(partialResults_[k])+"\t=\t"<<partialResults_[k]);
+    k
+  });
+  WriteLn("");
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError,ois.ok.1);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */

@@ -1,0 +1,45 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 307;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Error in DatCh";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Set q = Include("test.bdt");
+  Serie m = DatCh(ven, Mensual, AvrS);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real c = CountS(m);
+    Real ok0 = EQ(c,80),
+    Real ok1 = EQ(Round(SerDat(m,y2001m03),8),1503.77419355),
+    Real ok2 = EQ(Round(SerDat(m,y2001m04),8),1438.33333333),
+    Real ok3 = EQ(Round(SerDat(m,y2004m09),8),1195.83333333)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    ok0,ok1,ok2,ok3
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

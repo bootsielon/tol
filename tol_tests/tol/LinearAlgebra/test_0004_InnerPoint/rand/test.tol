@@ -1,0 +1,65 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Matrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "InnerPoint Example with simulated data" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+
+/* */
+//Esta configuración tarda 431.78125 segundos con sólo 19 restricciones 
+//y 13 variables
+
+//Real PutRandomSeed(1090483495); 
+  Real PutRandomSeed(0); 
+  Real rows = IntRand(1,20);
+  Real cols = IntRand(1,20);
+/* * /
+  Real PutRandomSeed(0);
+  Real rows = IntRand(1,10);
+  Real cols = IntRand(1,10);
+/* */
+
+  Real seed=GetRandomSeed(0);
+  WriteLn("seed="<<seed);
+  WriteLn("rows="<<rows);
+  WriteLn("cols="<<cols);
+
+  Matrix B  = Rand(rows, cols, -10, 10);
+  Matrix X0 = Rand(cols, 1,    -10, 10);
+  Matrix c  = Rand(rows, 1,      0, 10)+B*X0;
+
+  Real t0 = Copy(Time);
+  Set X = InnerPoint(B, c);
+  Real time = Copy(Time)-t0;
+  Matrix borderDist = B*X::InnerPoint-c;
+  Real maxBorderDist = MatMax(borderDist);
+
+  WriteLn("time="<<time);
+  WriteLn("seed\trows\tcols\tmaxBorderDist\ttime");
+  WriteLn(""<<seed<<"\t"<<rows<<"\t"<<cols<<"\t"<<maxBorderDist<<"\t"<<time);
+
+
+  //Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+     Real ok = maxBorderDist<=1.E-15
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  Real { WriteLn(""<<resultStr_); 0 };
+  Set resultStr_
+
+
+/* */

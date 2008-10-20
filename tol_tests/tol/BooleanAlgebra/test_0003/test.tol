@@ -1,0 +1,64 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Boolean Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Binary comparisson operations without unknowns" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real n = 2;
+  Real N = 1000;
+  Set  X = MatSet(Rand(N,2,-1000,1000));   
+
+  Set table = EvalSet(X, Set (Set xy)
+  {
+    Real x = xy[1]; 
+    Real y = xy[2]; 
+    xy<<
+    SetOfReal
+    (
+      lt  = LT(x,y),
+      lt_ = x<y,
+      eq  = Eq(x,y),
+      eq_ = x==y,
+      gt  = GT(x,y),
+      gt_ = x>y,
+      le  = LE(x,y),
+      le_ = x<=y,
+      ge  = GE(x,y),
+      ge_ = x>=y,
+      test_lt = lt==lt_,
+      test_eq = eq==eq_,
+      test_gt = gt==gt_,
+      test_le = le==le_,
+      test_ge = ge==ge_,
+      test_leqt = le == lt | eq,
+      test_geqt = ge == gt | eq,
+      test_lt_eq_gt = And(lt+eq+gt==1,Max(lt,eq,gt)==1,Min(lt,eq,gt)==0)
+    )
+  });
+  Set tableTr = Traspose(table);
+  Set tests   = For(11,18,Real (Real k) { SetSum(tableTr[n+11]) });
+  Set okTests = EvalSet(tests,Real(Real num) { num==N });
+
+//Extented information about test behaviour
+  Set partialResults_ = tests << okTests <<
+  [[
+    Real ok  = Group("And",okTests)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

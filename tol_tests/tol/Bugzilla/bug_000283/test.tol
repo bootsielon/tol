@@ -1,0 +1,45 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 283;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "TolBase falls in error";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+    Real FunPrueba(Text txt)
+    {
+      If(Not(Real VarNoExiste), "", WriteLn(txt))
+    };
+    
+    Real p = FunPrueba("Hola");
+    
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok  = ObjectExist("Real","p")
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0+2, 
+    NWarning == numWar0, 
+    ok
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

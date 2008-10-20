@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Massive Simulation Test Of Text Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+
+  Set Include("../RandomText.tol");
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real size_ = IntRand(10,100);
+  Real maxLength_ = IntRand(10,1000);
+  WriteLn("size_="<<size_);
+  WriteLn("maxLength_="<<maxLength_);
+  Set info = RandomSetOfTxtLenInfo(size_, maxLength_);
+
+//Checking BeginWith
+  Set tBeginWith = For(1,size_,Real(Real k)
+  {
+    Real cut = IntRand(-2, info[k]->len_+2);
+    Text t1 = Sub(info[k]->txt_,1,cut);
+    Real ok = TextBeginWith(info[k]->txt_,t1);
+  //WriteLn("TextBeginWith('"+info[k]->txt_+"','"+t1+"') = "<<ok);
+    ok
+  });
+  Real okBeginWith = Real SetSum(tBeginWith)==size_;
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    size_,
+    maxLength_,
+    okBeginWith
+  ]];
+
+  Text summary_ = "TextBeginWith Coherence";
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    numErr0==NError,
+    okBeginWith
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

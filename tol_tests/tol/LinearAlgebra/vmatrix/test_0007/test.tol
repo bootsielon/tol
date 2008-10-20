@@ -1,0 +1,152 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Mixed CHOLMOD and BLAS Choleski methods
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Mixed CHOLMOD and BLAS Choleski methods" ;
+  Real PutRandomSeed(0);
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("rndSeed="<<rndSeed);
+
+Real   m  = IntRand(10,10); 
+
+Real   q  = 1;
+Polyn  ma = 1-0.95*B; //RandStationary(q);
+WriteLn("ma="<<ma);
+
+Matrix a0   = Gaussian(q,1,0,1);
+Matrix a    = Gaussian(m,1,0,1);
+Real   s2_  = MatVar(a);
+Matrix z0   = Rand(0,0,0,0);
+Matrix Z_   = DifEq(ma,a,a0,z0);
+
+//Real theta1 = Rand(-1,1);
+Real theta1 = -Coef(ma,1);
+Real gamma0 = 1+theta1^2;
+Real gamma1 = -theta1;
+
+VMatrix Z = Mat2VMat(Z_,0,1,0);
+Real s2Z = VMatDat(MtMSqr(Z),1,1)/m;
+
+WriteLn("TRACE 1 s2Z="<<s2Z);
+VMatrix COV = Eye(m,m,0,gamma0)+Eye(m,m,-1,gamma1)+Eye(m,m,1,gamma1);
+WriteLn("TRACE 2");
+Matrix  COV_ = VMat2Mat(COV);
+WriteLn("TRACE 3");
+VMatrix factor  = CholeskiFactor(COV,"X");
+
+VMatrix B = Mat2VMat(DifEq(1/(1-B),Rand(m,1,1,1),Rand(0,0,0,0),Col(0)));
+Matrix B_ = VMat2Mat(B);
+
+VMatrix PB = CholeskiSolve(factor,B,"Pt");
+Matrix PB_ = VMat2Mat(PB);
+
+VMatrix PtB = CholeskiSolve(factor,B,"P");
+Matrix PtB_ = VMat2Mat(PB);
+
+VMatrix PPtB = CholeskiSolve(factor,PtB,"Pt");
+Matrix PPtB_ = VMat2Mat(PPtB);
+
+Real quality.1 = 1-VMatMax(Abs(B-PPtB));
+WriteLn("TRACE 3 quality.1="<<quality.1);
+
+Matrix  VMat2Mat(factor);
+VMatrix Ls = Convert(factor,"Cholmod.R.Sparse");
+Matrix VMat2Mat(Ls);
+VMatrix LiB = CholeskiSolve(factor, B,"L");
+Matrix VMat2Mat(LiB);
+VMatrix LLiB = Ls*LiB; 
+Matrix VMat2Mat(LLiB);
+
+VMatrix PtL = CholeskiSolve(factor, Ls, "Pt");
+VMatrix PtLLtP.1 = MMtSqr(PtL);
+Matrix VMat2Mat(PtLLtP.1);
+Real quality.2 = 1-VMatMax(Abs(PtLLtP.1-COV));
+WriteLn("TRACE 4 quality.2="<<quality.2);
+
+VMatrix LtB = CholeskiSolve(factor,B,"Lt");
+Matrix LtB_ = VMat2Mat(LtB);
+
+
+
+Matrix  L_ = Choleski(COV_);
+Matrix  Li = LTInverse(L_);
+WriteLn("TRACE 5");
+Real quality.3 = 1-MatMax(Abs(COV_-L_*Tra(L_)));
+WriteLn("TRACE 6 quality.3="<<quality.3);
+
+VMatrix LLtP = CholeskiSolve(factor, COV, "Pt");
+Matrix VMat2Mat(LLtP);
+VMatrix LtP  = CholeskiSolve(factor, LLtP, "L");
+Matrix VMat2Mat(LtP);
+VMatrix LtP_  = (CholeskiSolve(factor, COV, "PtL")+m)-m;
+Matrix VMat2Mat(LtP_);
+VMatrix PtLLtP.2 = MtMSqr(LtP);
+Matrix VMat2Mat(PtLLtP.2);
+Real quality.4 = 1-VMatMax(Abs(PtLLtP.2-COV));
+WriteLn("TRACE 7 quality.4="<<quality.4);
+
+//VMatrix E  = CholeskiSolve(factor,Z,"PtL");
+VMatrix E  = CholeskiSolve(factor,CholeskiSolve(factor,Z,"Pt"),"L");
+Matrix VMat2Mat(Z-PtL*E);
+Real quality.5 = 1-VMatMax(Abs(Z-PtL*E));
+WriteLn("TRACE 8 quality.5="<<quality.5);
+
+Matrix  E_ = TrSolve(L_,Z_);
+WriteLn("TRACE 9");
+Matrix (Z_-L_*E_);
+Real quality.6 = 1-MatMax(Abs(Z_-L_*E_));
+WriteLn("TRACE 10 quality.6="<<quality.6);
+
+Matrix E_E = E_ | VMat2Mat(E);
+WriteLn("TRACE 11");
+
+Real s2E  = VMatDat(MtMSqr(E ),1,1)/m;
+WriteLn("TRACE 12 s2E="<<s2E);
+Real s2E_ =  MatDat(MtMSqr(E_),1,1)/m;
+WriteLn("TRACE 13 s2E_="<<s2E_);
+Real quality.7 = 1-(s2E-s2E_);
+WriteLn("TRACE 14 quality.7="<<quality.7);
+VMatrix COViZ = CholeskiSolve(factor,Z,"PtLLtP");
+Real s2ZtCOViZ = VMatDat(Tra(Z)*COViZ,1,1)/m;
+WriteLn("TRACE 15 s2ZtCOViZ="<<s2ZtCOViZ);
+
+  Real numErr1 = Copy(NError);
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1,
+    quality.1, 
+    quality.2, 
+    quality.3, 
+    quality.4, 
+    quality.5, 
+    quality.6, 
+    quality.7
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = Eq(numErr0 == numErr1)*Max(0,Min( 
+    quality.1, 
+    quality.2, 
+    quality.3, 
+    quality.4, 
+    quality.5, 
+    quality.6, 
+    quality.7));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

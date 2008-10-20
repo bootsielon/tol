@@ -1,0 +1,64 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Boolean Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "http://en.wikipedia.org/wiki/De_Morgan_duality";
+  Text summary_ = "N-ary boolean Morgan Laws" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+//Binary operators needs one or more operands
+  Real n = IntRand(1,10);
+//This is all possible n-tuples of boolean values
+  Set X = [[0,1]]^n;       
+  Real N = Card(X);
+
+//For each n-tuple of boolean values calculates all components of both 
+//Morgan Laws
+// 1) ! ( A[1] & A[2] & ... & A[n]) = !A[1] | !A[2] | ... | !A[n]
+// 2) ! ( A[1] | A[2] | ... & A[n]) = !A[1] & !A[2] & ... & !A[n]
+  Set table = EvalSet(X, Set (Set x)
+  {
+    Set not = EvalSet(x, Not);
+    x << SetOfReal
+    (
+      /*1*/and=Group("And",x),
+      /*2*/not_and=!and,
+      /*3*/or_not=Group("Or",not),
+      /*4*/test_morgan_1=not_and==or_not,
+      /*5*/or=Group("Or",x),
+      /*6*/not_or=!or,
+      /*7*/and_not=Group("And",not),
+      /*8*/test_morgan_2=not_or==and_not
+    )
+  });
+//Extracts columns of both Morgan Laws
+  Set tableTr = Traspose(table); 
+  Set morgan_1 = tableTr[n+4];
+  Set morgan_2 = tableTr[n+8];
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+  //Checks that Morgan Laws match for all pairs of boolean values
+    Real N1  = SetSum(morgan_1);
+    Real N2  = SetSum(morgan_2);
+    Real ok1 = N1==N;
+    Real ok2 = N2==N;
+    Real ok  = And(ok1,ok2)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

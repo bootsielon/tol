@@ -1,0 +1,35 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 469;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "GSL solving on matrices with empty dimensions";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+  Real GlobalizeSeries := False;
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Matrix A = Rand(0,0,0,1);
+  Matrix x = Rand(0,0,0,1);
+  Matrix b = MinimumResidualsSolve(A,x);
+ //Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real r = Rows(b),
+    Real c = Columns(b)
+  ]];
+
+  Real OSFilRemove("data.oza");
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError,r==0,c==0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

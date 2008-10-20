@@ -1,0 +1,55 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Massive Simulation Test of ARIMA Estimate function
+//////////////////////////////////////////////////////////////////////////////
+
+//Set {
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+
+//Write here the initial test TOL code if needed
+  Set s1_ = Include("../SimulArima/SimulArima.tol");
+  Set s2_ = Include("../SimulArima/SimulArimaTF.tol");
+  Set s3_ = Include("../SimulArima/SimulArimaTFEstim.tol");
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Text 
+      "NumDat:"<<IntText(N)<<";"<<
+      "NumInt:"<<IntText(I)<<";"<<
+      "NumInp:"<<IntText(NumInputs)<<";"<<
+      "period:"<<IntText(period)<<";"<<
+      "d1:"<<IntText(d1)<<";"<<
+      "d2:"<<IntText(d2)<<";"<<
+      "p1:"<<IntText(p1)<<";"<<
+      "p2:"<<IntText(p2)<<";"<<
+      "q1:"<<IntText(q1)<<";"<<
+      "q2:"<<IntText(q2)<<";"<<
+      "freeDeg:"<<IntText(freedomDegree)<<";"<<
+      "maxAbsDifSig:"<<maxAbsDifSig<<";"<<
+      "MxaJtA:"<<MxaJtA<<";"<<
+      "StdJtA:"<<StdJtA<<";"<<
+      "Sigma:"<<Sigma<<";"<<
+      "SigmaEst:"<<SigmaEst<<";"<<
+      "stdErr:"<<stdErr<<";"<<
+      "lhNorm:"<<lhNorm<<";"<<
+      "lhNormEst:"<<lhNormEst<<";"<<
+      "corSimEstRes:"<<corSimEstRes<<";"<<
+      "res_chi_refuse:"<<res_chi_refuse<<";"
+  ]];
+
+  Text summary_ = "Massive Simulation Test Of TOL Estimate function";
+
+//This is a messure of the success of the test 
+  Real quality_ = If(lhNormEst<lhNorm,1,Max(0,corSimEstRes));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};
+

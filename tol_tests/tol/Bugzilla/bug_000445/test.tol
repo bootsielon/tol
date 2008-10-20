@@ -1,0 +1,37 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 445;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Errors in addition in matrix";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+Matrix a = Rand(1,1,1,1);
+Matrix b = Rand(1,2,2,1);
+Matrix c = a+b;
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real rows    = Rows(c);
+    Real columns = Columns(c)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, !rows, !columns);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  Set resultStr_;
+
+

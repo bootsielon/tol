@@ -1,0 +1,13 @@
+//No va en OIS la recarga
+Date GlIniDat = y2001;
+Date GlLasDat = y2010;
+Date PutDefaultDates(GlIniDat,GlLasDat);
+
+TimeSet DlsOctTms = Succ(Succ(M(11)*D(1),-8,Daily),1,WD(7));
+TimeSet DlsMarTms = Succ(Succ(M(4)*D(1),-8,Daily),1,WD(7));
+Real Delay = 0.78;
+
+Serie OctSer = CalInd(DlsOctTms,Daily);
+Serie MarSer = CalInd(DlsMarTms,Daily);
+Serie MarSerCor = CalInd(DlsMarTms-Y(2003),Daily);
+

@@ -1,0 +1,49 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 330;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Sort function";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Set Set01 = SetOfAnything(Real 1, Text "hola");
+  Set Set01_Ord = Sort(Set01, Real(Anything any01, Anything any02)
+  {
+    Text gram01 = Grammar(any01);
+    Text gram02 = Grammar(any02);
+  WriteLn("gram01: "+ gram01);
+  WriteLn("gram02: "+ gram02);
+    Compare(gram01, gram02)
+  });
+    
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok1 = Set01_Ord[1]==1,
+    Real ok2 = Set01_Ord[2]=="hola"
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    ok1,ok2
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

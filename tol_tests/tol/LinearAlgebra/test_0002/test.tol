@@ -1,0 +1,95 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Matrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Handling with rows, columns, diagonals and blocks of "
+                  "matrices" ;
+
+/*
+Matrix ConcatRows(Matrix mat1 [, Matrix mat2, ...])
+mat1 << mat2 {Matrix mat1, Matrix mat2}
+Matrix ConcatColumns(Matrix mat1 [, Matrix mat2, ...])
+mat1 | mat2 {Matrix mat1 , Matrix mat2}
+
+Matrix Sub(Matrix m, Real row, Real column, Real height, Real width)
+Matrix SubCol(Matrix m , Set columnsIndex)
+Matrix SubRow(Matrix m , Set rowsIndex)
+Matrix SubDiag(Matrix m, Real diagIndex)
+
+Matrix Reverse(Matrix mat)
+Matrix Tra(Matrix mat)
+
+//Faltan las siguientes funciones por chequear
+Matrix Row(Real x1 [, Real x2, ...])
+Matrix Col(Real x1 [, Real x2, ...])
+Matrix Diag(Real n, Real x, [Real direction=1])
+
+Matrix SetMat(Set s)
+Matrix SetRow(Set s)
+Matrix SetCol(Set s)
+Matrix SetDiag(Set diagValues)
+*/
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real   n1  = IntRand(1,10);
+  Real   n2  = IntRand(1,10);
+  Matrix A11 = Rand(n1,n1,-10,10);
+  Matrix A12 = Rand(n1,n2,-10,10);
+  Matrix A21 = Rand(n2,n1,-10,10);
+  Matrix A22 = Rand(n2,n2,-10,10);
+
+
+  Matrix A = (A11 | A12) <<
+             (A21 | A22);
+
+  Matrix A_= ConcatRows(ConcatColumns(A11,A12),
+                        ConcatColumns(A21,A22));
+
+  Matrix A11_ = Sub(A,   1,   1,n1,n1);
+  Matrix A12_ = Sub(A,   1,n1+1,n1,n2);
+  Matrix A21_ = Sub(A,n1+1,   1,n2,n1);
+  Matrix A22_ = Sub(A,n1+1,n1+1,n2,n2);
+  Matrix A.1  = SubCol(A, Range(    1,n1,  1));
+  Matrix A.2  = SubCol(A, Range(n1+1,n1+n2,1));
+  Matrix A1.  = SubRow(A, Range(    1,n1,  1));
+  Matrix A2.  = SubRow(A, Range(n1+1,n1+n2,1));
+  Matrix A..  = A.1 |  A.2; 
+  Matrix A.._ = A1. << A2.; 
+  Matrix D    = SubDiag(A,  0);
+  Matrix D_   = SubDiag(A11,0) | SubDiag(A22,0);
+ 
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    n1,n2,
+    Real ok01 = MatEQ(A,A_  ),
+    Real ok02 = MatEQ(A11,A11_),
+    Real ok03 = MatEQ(A12,A12_),
+    Real ok04 = MatEQ(A21,A21_),
+    Real ok05 = MatEQ(A22,A22_),
+    Real ok06 = MatEQ(A,A.. ),
+    Real ok07 = MatEQ(A,A.._),
+    Real ok08 = MatEQ(D,D_  ),
+    Real ok09 = MatEQ(D,D_  ),
+    Real ok10 = MatEQ(A12,Tra(Tra(A12))),
+    Real ok11 = MatEQ(A21,Reverse(Reverse(A21))),
+    Real ok  = And(ok01,ok02,ok03,ok04,ok05,ok06,ok07,ok08,ok09,
+                   ok10,ok11)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

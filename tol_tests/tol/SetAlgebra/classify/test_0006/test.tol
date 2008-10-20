@@ -1,0 +1,70 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Set Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "http://en.wikipedia.org/wiki/Equivalence_relation";
+  Text summary_ = "Classify with symmetric relations" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  
+  Set primeOptions = 
+  [[
+    [[2,3]],
+    [[5,7,11]],
+    [[17,19]]
+  ]];
+
+  Set s = For(1, 100, Real(Real k)
+  { 
+    Real k = IntRand(1,3);
+    Real f = IntRand(1,3);
+    SetProd(For(1,f, Real(Real h)
+    {
+      Real j = IntRand(1,Card(primeOptions[k]));
+      primeOptions[k][j]
+    }))
+  });
+
+
+  //Maximum Common Divisor of two positive integer numbers
+  Real MCD(Real a, Real b)
+  {
+    //Note that MCD is a symmetric function: MCD(a,b)=MCD(b,a)
+    If(a<b,MCD(b,a),
+    {
+      Real c = a % b;
+      If(!c, b, MCD(b,c))
+    })
+  };
+  //Symmetric binary relation
+  Real f(Real a, Real b)
+  {
+    Real mcd = MCD(a, b);
+  //WriteLn("MCD("<<a+","<<b+")="<<mcd);
+    mcd > 1
+  };
+  Set classes = Classify(s, f, "symmetric");
+
+  WriteLn("Classes = \n"<<classes);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok = Card(classes)==Card(primeOptions)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

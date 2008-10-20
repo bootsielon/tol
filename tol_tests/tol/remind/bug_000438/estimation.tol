@@ -1,0 +1,213 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : estimation.tol
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+file    : estimation.tol... "+ Time);
+
+  Text PathOutCome.cmd = "outcome";
+  Text PathOutCome = PathOutCome.cmd +"/";
+  Real If(!DirExist(PathOutCome.cmd),OSDirMake(PathOutCome.cmd),1);
+  Text PutDumpFile(PathOutCome +"estimation.log");
+  
+  Real SecondsIni = Copy(Time);
+  
+//////////////////////////////////////////////////////////////////////////////
+// ESTIMATION CONSTANTS
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+estimation constants... "+ Time);
+
+  Real NumTolerance = 4;
+  Text NewFormatReal = "%6.10lf";
+  Text OldFormatReal = PutRealFormat(NewFormatReal);
+  Real (Tolerance  := 5*(10^(-NumTolerance)));
+  Real (RelativeTolerance  := 10^(-NumTolerance+1));
+  Real (DiffDist   := 0.0001);
+  Real (MarqFactor := 2);
+  //Real (MinOutlierLikelyhood := 4);
+  Real (MarqLinMet := Copy(Choleski));
+  Real (MaxIter    := 30);
+  Real (DoStatistics      := 0);
+  Real (DoDiagnostics     := 0);
+  Real (NullInitResiduals := 0);
+  
+//////////////////////////////////////////////////////////////////////////////
+// PATH
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+path... "+ Time);
+
+  //If it's not defined yet, create here the TimeSet Daily
+  Text PathOutputSr = "output.bdt";
+  Text PathParEst   = "parest.bst";
+  Text PathInputSr  = "input.bsi";
+  Text PathInputBst = "input.bst";
+  
+//////////////////////////////////////////////////////////////////////////////
+// STRUCT
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+struct... "+ Time);
+
+  Struct ReducedModelDefSt
+  (
+  Real  FstTransfor,
+  Real  SndTransfor,
+  Real  Period,
+  Real  Constant,
+  Polyn Dif,
+  Set   AR,
+  Set   MA
+  );
+  
+//////////////////////////////////////////////////////////////////////////////
+// INCLUDES
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+includes... "+ Time);
+
+  Set OutputSr  = Include(PathOutputSr);
+  Text ParEstBstTxt = ReadFile(PathParEst);
+  Text ParEstBstTxt.SP = WriteFile(PathParEst,
+  ReplaceTable(ParEstBstTxt, [[ [[ "[[", "SetOfPolyn(" ]],
+                                [[ "]]", ")" ]] ]])); 
+  Set ParEstBst = Include(PathParEst)[1];
+  Set InputSr   = Include(PathInputSr);
+  Set InputBst  = Include(PathInputBst);
+  
+//////////////////////////////////////////////////////////////////////////////
+// ESTIMATION PARAM
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+estimation param... "+ Time);
+
+  Real  FstTransfor.M = ParEstBst->FstTransfor;
+  Real  SndTransfor.M = ParEstBst->SndTransfor;
+  Real  Period.M      = ParEstBst->Period;
+  Real  Constant.M    = ParEstBst->Constant;
+  Polyn Dif.M         = ParEstBst->Dif;
+  Set   AR.M          = ParEstBst->AR;
+  Set   MA.M          = ParEstBst->MA;
+  Polyn ARI.M         = Dif.M * BinGroup("*", AR.M);
+  
+
+  Set Input2Est = EvalSet(InputBst, Set(Set inp)
+  {
+    InputDef(inp->Omega, Eval( (inp->X) +";"))
+  });
+  
+//////////////////////////////////////////////////////////////////////////////
+// MODEL DEF
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+model def... "+ Time);
+
+  Set ModeloInicial = ModelDef(
+  Output,
+  FstTransfor.M,
+  SndTransfor.M,
+  Period.M,
+  Constant.M,
+  Dif.M,
+  AR.M,
+  MA.M,
+  Input2Est,
+  AllLinear
+  );
+  
+//////////////////////////////////////////////////////////////////////////////
+// MODEL ESTIMATION
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+model estimation... "+ Time);
+
+  Date IniOutput = First(Output);
+  Date IniEstim  = If(y2003m04d01 != IniOutput,
+  Max(IniOutput, y2003m04d01),
+  Succ(IniOutput, Dating(Output), Degree(ARI.M)));
+  Date EndOutput = Last(Output);
+  Date EndEstim  = If(y2006m03d31 != EndOutput,
+  Min(EndOutput, y2006m03d31),
+  EndOutput);
+  Set  ModeloEstimado = Estimate(ModeloInicial, IniEstim, EndEstim);
+  
+//////////////////////////////////////////////////////////////////////////////
+// SAVE RESULTS
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+save results... "+ Time);
+
+  Set SeriesEst = ExtractByIndex(ModeloEstimado[3], Range(1,8,1));
+  Set BSIFile(SeriesEst, PathOutCome +"series.bsi");
+  Set ParametersEst = ModeloEstimado[4];
+  Set BSTFile(ParametersEst, PathOutCome +"paramest.bst");
+  
+//////////////////////////////////////////////////////////////////////////////
+// README FILE
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+readme file... "+ Time);
+
+  Text PathReadMe = "readme.txt";
+  Text ReadMeContents =
+  "TOL Version:
+  CPU:
+  RAM:
+  Project:
+  Diagnostics:
+  Enhancements suggested:
+  ";
+  Text WriteFile(PathReadMe, ReadMeContents);
+  
+//////////////////////////////////////////////////////////////////////////////
+// END INPUTS ESTIMATION
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+end inputs estimation... "+ Time);
+
+  Real SecondsEnd = Copy(Time);
+  WriteLn("FIN DE LA ESTIMACION CON INPUTS");
+  WriteLn(SecondsToText(SecondsEnd - SecondsIni));
+  
+//////////////////////////////////////////////////////////////////////////////
+// NOISE ESTIMATION
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+noise estimation... "+ Time);
+
+  Serie NoiseEst = ModeloEstimado[3][3];
+  Set ModeloInicial.Noi = ModelDef(
+  NoiseEst,
+  1,
+  0,
+  Period.M,
+  Constant.M,
+  Dif.M,
+  AR.M,
+  MA.M,
+  Empty,
+  AllLinear
+  );
+  Set  ModeloEstimado.Noi = Estimate(ModeloInicial.Noi, IniEstim, EndOutput);
+  
+//////////////////////////////////////////////////////////////////////////////
+// SAVE RESULTS NOISE
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+save results noise... "+ Time);
+
+  Set SeriesEst.Noi = ExtractByIndex(ModeloEstimado.Noi[3], Range(1,8,1));
+  Set BSIFile(SeriesEst.Noi, PathOutCome +"series_noi.bsi");
+  Set ParametersEst.Noi = ModeloEstimado.Noi[4];
+  Set BSTFile(ParametersEst.Noi, PathOutCome +"paramest_noi.bst");
+  
+//////////////////////////////////////////////////////////////////////////////
+// END NOISE ESTIMATION
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("
+end noise estimation... "+ Time);
+
+  Real SecondsEnd.Noi = Copy(Time);
+  WriteLn("FIN DE LA ESTIMACION DEL NOISE");
+  WriteLn(SecondsToText(SecondsEnd.Noi - SecondsIni));
+  

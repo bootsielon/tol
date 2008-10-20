@@ -1,0 +1,40 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary and you e-mail
+  Real bugNum_ = 515;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "New funcion Append in Set";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set set1  = [[1,2,3]];
+  Set set1_ = Copy(set1);
+  Set View(set1,"");
+  Set set2  = [[4,5]];
+  Set Append(set1,set2); 
+  Set View(set1,"");
+  
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real okErr = numErr1 == numErr0;
+    Real ok = Card(set1)==5
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(okErr, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

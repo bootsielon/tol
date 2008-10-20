@@ -1,0 +1,43 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 441;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Group function doesn't work upper 2^15=32768 elements";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Set If(FunctionExist("Date","SetMaxDate"),Empty,Include("fun.tol"));
+
+  Set  s1 = Dates(C, y2000, Succ(y2000,C,2^15-3));
+  Set  s2 = Dates(C, y2000, Succ(y2000,C,2^15-2));
+  Set  s3 = Dates(C, y2000, Succ(y2000,C,2^15-1));
+  Set  s4 = Dates(C, y2000, Succ(y2000,C,2^15  ));
+  Date d1 = SetMaxDate(s1);
+  Date d2 = SetMaxDate(s2);
+  Date d3 = SetMaxDate(s3);
+  Date d4 = SetMaxDate(s4);
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real x3 = ObjectExist("Date","d3");
+    Real x4 = ObjectExist("Date","d4")
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, x3, x4);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

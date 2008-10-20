@@ -1,0 +1,45 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary and you e-mail
+  Real bugNum_ = 545;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Fail in FibonacciMin function with low tolerance";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real tolerance = 1.E-12;
+  Real S2(Real delta)
+  {
+    WriteLn("S2("<<delta+")="<<(delta^2));
+    delta^2
+  };
+  Real delta_=0.5;
+  Real s2_ = FibonacciMin(S2,delta_,-1,1,tolerance);
+
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0,
+    numErr1,
+    tolerance,
+    s2_
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, !IsUnknown(s2_), Abs(s2_)<=Max(1.E-15,tolerance));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

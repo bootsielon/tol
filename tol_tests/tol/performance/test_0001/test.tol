@@ -1,0 +1,43 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Massive Simulation Test Of TimeSet Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Performance test 1: Linearity of simple While cycle" ;
+
+//Write here the initial test TOL code if needed
+  Matrix data = SetMat(EvalSet([[10000,20000,50000,100000,200000,500000,1000000]], Set(Real N)
+  {
+    Real t0 = Copy(Time);
+    Real x = 0;
+    Real While(x<N, x:=x+1);
+    Real tm = Copy(Time-t0);
+    Set aux = [[x,tm]];
+    View(aux,"");
+    aux
+  }));
+
+  Set lr = LinReg(SubCol(data,[[2]]),SubCol(data,[[1]]));
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real R2 = lr["Information"]["R2"]
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = Max(0,R2);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+
+

@@ -1,0 +1,170 @@
+// Festivos
+Serie FesSaoPaulo.FundacaoDeSaoPaulo = CalInd(D(25)*M(1)-WD(7), Diario);
+Serie FesSaoPaulo.RevolucaoDeSaoPaulo = CalInd(D(9)*M(7)-WD(7), Diario);
+
+// Natal Novo Paixao 02 03
+Serie FesBrasil.Natal_02 = CalInd(Y(2002)*D(25)*M(12)-WD(7), Diario);
+Serie FesBrasil.Natal_Escalon_PreAnoNovo_02 = CalInd(Range(Y(2002)*D(26)*M
+(12),0,4), Diario);
+Serie FesBrasil.Natal_PreSolo24_02 = CalInd(Y(2002)*D(24)*M(12)-WD(7), 
+Diario);
+Serie FesBrasil.Natal_PulsoDomingoEntre26y30_02 = CalInd((Range(Y(2002)*D
+(26)*M(12),0,4))*WD(7), Diario);
+Serie FesBrasil.Natal_PulsoSabadoEntre26y30_02 = CalInd((Range(Y(2002)*D(26)
+*M(12),0,4))*WD(6), Diario);
+Serie FesBrasil.Ano_Novo_03 = CalInd(Y(2003)*D(1)*M(1)-WD(7), Diario);
+Serie FesBrasil.Ano_Novo_Pre_02 = CalInd(Y(2002)*D(31)*M(12)-WD(7), Diario);
+Serie FesBrasil.Paixao_03 = CalInd(Succ(Y(2003)*Easter,-6), Diario);
+//0.1+0.1*B+0.1*B^2+0.1*B^3+0.1*B^4+0.1*B^5+0.1*B^6
+
+// Natal Novo Paixao 03 04
+Serie FesBrasil.Natal_03 = CalInd(Y(2003)*D(25)*M(12)-WD(7), Diario);
+Serie FesBrasil.Natal_Escalon_PreAnoNovo_03 = CalInd(Range(Y(2003)*D(26)*M
+(12),0,4), Diario);
+Serie FesBrasil.Natal_PreSolo24_03 = CalInd(Y(2003)*D(24)*M(12)-WD(7), 
+Diario);
+Serie FesBrasil.Natal_PulsoDomingoEntre26y30_03 = CalInd((Range(Y(2003)*D
+(26)*M(12),0,4))*WD(7), Diario);
+Serie FesBrasil.Natal_PulsoSabadoEntre26y30_03 = CalInd((Range(Y(2003)*D(26)
+*M(12),0,4))*WD(6), Diario);
+Serie FesBrasil.Ano_Novo_04 = CalInd(Y(2004)*D(1)*M(1)-WD(7), Diario);
+Serie FesBrasil.Ano_Novo_Pre_03 = CalInd(Y(2003)*D(31)*M(12)-WD(7), Diario);
+Serie FesBrasil.Paixao_04 = CalInd(Succ(Y(2004)*Easter,-6), Diario);
+//0.1+0.1*B+0.1*B^2+0.1*B^3+0.1*B^4+0.1*B^5+0.1*B^6
+
+// Natal Novo Paixao Common
+Serie FesBrasil.Natal_Common = CalInd(D(25)*M(12)-WD(7), Diario);
+Serie FesBrasil.Natal_Escalon_PreAnoNovo_Common = CalInd(Range(D(26)*M
+(12),0,4), Diario);
+Serie FesBrasil.Natal_PreSolo24_Common = CalInd(D(24)*M(12)-WD(7), Diario);
+Serie FesBrasil.Natal_PulsoDomingoEntre26y30_Common = CalInd((Range(D(26)
+*M(12),0,4))*WD(7), Diario);
+Serie FesBrasil.Natal_PulsoSabadoEntre26y30_Common = CalInd((Range(D(26)*M
+(12),0,4))*WD(6), Diario);
+Serie FesBrasil.Ano_Novo_Common = CalInd(D(1)*M(1)-WD(7), Diario);
+Serie FesBrasil.Ano_Novo_Pre_Common = CalInd(D(31)*M(12)-WD(7), Diario);
+Serie FesBrasil.Paixao_Common = CalInd(Succ(Easter,-6), Diario);
+//0.1+0.1*B+0.1*B^2+0.1*B^3+0.1*B^4+0.1*B^5+0.1*B^6
+
+// ciclo semanal Natal 02_03, 03_04
+TimeSet nav_02 = In(y2002m12d23, y2003m1d6, Diario);
+TimeSet nav_03 = In(y2003m12d22, y2004m1d5, Diario);
+Serie cs1_02 = CalInd(nav_02*WD(1), Diario) - CalInd(nav_02*WD(7), Diario);
+Serie cs2_02 = CalInd(nav_02*WD(2), Diario) - CalInd(nav_02*WD(7), Diario);
+Serie cs3_02 = CalInd(nav_02*WD(3), Diario) - CalInd(nav_02*WD(7), Diario);
+Serie cs4_02 = CalInd(nav_02*WD(4), Diario) - CalInd(nav_02*WD(7), Diario);
+Serie cs5_02 = CalInd(nav_02*WD(5), Diario) - CalInd(nav_02*WD(7), Diario);
+Serie cs6_02 = CalInd(nav_02*WD(6), Diario) - CalInd(nav_02*WD(7), Diario);
+Serie cs1_03 = CalInd(nav_03*WD(1), Diario) - CalInd(nav_03*WD(7), Diario);
+Serie cs2_03 = CalInd(nav_03*WD(2), Diario) - CalInd(nav_03*WD(7), Diario);
+Serie cs3_03 = CalInd(nav_03*WD(3), Diario) - CalInd(nav_03*WD(7), Diario);
+Serie cs4_03 = CalInd(nav_03*WD(4), Diario) - CalInd(nav_03*WD(7), Diario);
+Serie cs5_03 = CalInd(nav_03*WD(5), Diario) - CalInd(nav_03*WD(7), Diario);
+Serie cs6_03 = CalInd(nav_03*WD(6), Diario) - CalInd(nav_03*WD(7), Diario);
+Serie niv_02 = CalInd(nav_02, Diario);
+Serie niv_03 = CalInd(nav_03, Diario);
+
+// ciclo semanal Natal
+TimeSet semana25 = Range(Range(M(12)*D(25), -6, 0)*WD(1),0,6);
+TimeSet semana31 = Range(Range(M(12)*D(25), -6, 0)*WD(1),0,6);
+
+// niveles iguales para los dos años, distintos para las dos semanas
+Serie nivSemana25 = CalInd(semana25, Diario);
+Serie nivSemana31 = CalInd(semana31, Diario);
+
+// ciclos distintos para los dos años, iguales para las dos semanas
+TimeSet navp_02 = In(y2002m12d23, y2003m1d5, Diario);
+TimeSet navp_03 = In(y2003m12d22, y2004m1d4, Diario);
+Serie cps1_02 = CalInd(navp_02*WD(1)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_02*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps2_02 = CalInd(navp_02*WD(2)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_02*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps3_02 = CalInd(navp_02*WD(3)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_02*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps4_02 = CalInd(navp_02*WD(4)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_02*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps5_02 = CalInd(navp_02*WD(5)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_02*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps6_02 = CalInd(navp_02*WD(6)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_02*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps1_03 = CalInd(navp_03*WD(1)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_03*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps2_03 = CalInd(navp_03*WD(2)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_03*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps3_03 = CalInd(navp_03*WD(3)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_03*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps4_03 = CalInd(navp_03*WD(4)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_03*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps5_03 = CalInd(navp_03*WD(5)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_03*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+Serie cps6_03 = CalInd(navp_03*WD(6)-D(24)-D(25)-D(31)-D(1), Diario) - 
+                CalInd(navp_03*WD(7)-D(24)-D(25)-D(31)-D(1), Diario);
+
+
+// Carnaval
+Serie FesBrasil.CarnavalEsp = CalInd(Succ(Easter, -56, Diario), Diario);
+Serie FesBrasil.Carnaval_EscalonNeg = CalInd(Range(Succ(Easter,-55),0,4), 
+Diario);
+Serie FesBrasil.Carnaval_Pulsos = CalInd(Succ(Easter,-50), Diario);
+//0.1+0.1*B+0.1*B^2+0.1*B^3+0.1*B^4
+
+Serie FesBrasil.Pre_CorpusChristi = CalInd(Succ(Easter, 59)-WD(7), Diario);
+Serie FesBrasil.CorpusChristi = CalInd(Succ(Easter, 60)-WD(7), Diario);
+Serie FesBrasil.DiaDoTrabalho = CalInd(D(1)*M(5)-WD(7), Diario);
+Serie FesBrasil.Finados = CalInd(D(1)*M(11)-WD(7), Diario);
+Serie FesBrasil.IndependenciaDoBrasil = CalInd(D(7)*M(9)-WD(7), Diario);
+
+
+Serie FesBrasil.NSAparecida = CalInd(D(12)*M(10)-WD(7), Diario);
+Serie FesBrasil.ProclamacaoDaRepublica = CalInd(D(15)*M(11)-WD(7), Diario);
+Serie FesBrasil.Tiradentes = CalInd(D(21)*M(4)-WD(7), Diario);
+
+
+TimeSet FesBrasilSaoPaulo =
+(
+ SerTms(FesSaoPaulo.FundacaoDeSaoPaulo) +
+ SerTms(FesSaoPaulo.RevolucaoDeSaoPaulo) +
+
+ SerTms(FesBrasil.Natal_Common) +
+ SerTms(FesBrasil.Natal_Escalon_PreAnoNovo_Common) +
+ SerTms(FesBrasil.Natal_PreSolo24_Common) +
+ SerTms(FesBrasil.Natal_PulsoDomingoEntre26y30_Common) +
+ SerTms(FesBrasil.Natal_PulsoSabadoEntre26y30_Common) +
+ SerTms(FesBrasil.Ano_Novo_Common) +
+ SerTms(FesBrasil.Ano_Novo_Pre_Common) +
+ SerTms(FesBrasil.Paixao_Common) +
+
+ SerTms(FesBrasil.CarnavalEsp) +
+ SerTms(FesBrasil.Carnaval_EscalonNeg) +
+ SerTms((0.1+0.1*B+0.1*B^2+0.1*B^3+0.1*B^4):FesBrasil.Carnaval_Pulsos) +
+
+ SerTms(FesBrasil.Pre_CorpusChristi) +
+ SerTms(FesBrasil.CorpusChristi) +
+ SerTms(FesBrasil.DiaDoTrabalho) +
+ SerTms(FesBrasil.Finados) +
+ SerTms(FesBrasil.IndependenciaDoBrasil) +
+ SerTms(FesBrasil.NSAparecida) +
+ SerTms(FesBrasil.ProclamacaoDaRepublica) +
+ SerTms(FesBrasil.Tiradentes)
+);
+
+TimeSet FesEspeciales = 
+(
+ SerTms(FesBrasil.CarnavalEsp) +
+ SerTms(FesBrasil.Carnaval_EscalonNeg) +
+ SerTms((0.1+0.1*B+0.1*B^2+0.1*B^3+0.1*B^4):FesBrasil.Carnaval_Pulsos) + 
+ SerTms(FesBrasil.Finados)
+); 
+
+TimeSet FesNoEspeciales = FesBrasilSaoPaulo-FesEspeciales;
+TimeSet FesSab          = FesNoEspeciales*WD(6);
+TimeSet FesPuenteVie    = FesNoEspeciales*WD(5);
+TimeSet FesPuenteJue    = FesNoEspeciales*WD(4);
+TimeSet FesPuenteMar    = FesNoEspeciales*WD(2);
+
+TimeSet FesPrePuenteVie = Succ(FesPuenteVie, -1);
+TimeSet FesPrePuenteJue = Succ(FesPuenteJue, -1);
+TimeSet FesPrePuenteMar = Succ(FesPuenteMar, -4);
+TimeSet FesPosPuenteVie = Succ(FesPuenteVie, 3);
+TimeSet FesPosPuenteJue = Succ(FesPuenteJue, 4);
+TimeSet FesPosPuenteMar = Succ(FesPuenteMar, 1);

@@ -1,0 +1,135 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix TruncStdGaussian function
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "TruncStdGaussian" ;
+  Real PutRandomSeed(0);
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  WriteLn("TRACE 1");
+
+  Real size = 1000;
+  Real burning = 1;
+
+  Set Cases = 
+  [[
+    Set Case1 = 
+    {[[
+      Matrix B  =   ((-1.0, +1.0), 
+                     ( 0.0, -1.0));
+      Matrix b  = Col(-0.2,  
+                      -0.2);
+      Matrix X0 = Col(+2.0,
+                      +1.0)
+    ]]};
+    Set Case2 = 
+    {[[
+      Matrix B  =   ((+1.0, -1.0), 
+                     ( 0.0, -1.0));
+      Matrix b  = Col(+0.2,    
+                      -0.2);
+      Matrix X0 = Col(+1.0,
+                      +1.0)
+    ]]};
+    Set Case3 = 
+    {[[
+      Matrix B  =   ((-1.0, +1.0), 
+                     ( 0.0, +1.0));
+      Matrix b  = Col(-0.2,  
+                      +0.2);
+      Matrix X0 = Col(+2.0,
+                      -1.0)
+    ]]};
+    Set Case4 = 
+    {[[
+      Matrix B  =   ((+1.0, -1.0), 
+                     ( 0.0, +1.0));
+      Matrix b  = Col(+0.2,  
+                      +0.2);
+      Matrix X0 = Col(-1.0,
+                      -1.0)
+    ]]}
+  ]];
+
+  Matrix FullNonTruncated = 
+  {
+    Gaussian(4*size, 2, 0, 1)
+  };
+    
+  Set FullDividing = EvalSet(Cases, Matrix(Set case)
+  {
+    Matrix b_ = Rand(1,4*size,MatDat(case::b,1,1),MatDat(case::b,1,1)) <<
+                Rand(1,4*size,MatDat(case::b,2,1),MatDat(case::b,2,1));
+    Matrix BU = case::B*Tra(FullNonTruncated);
+    Matrix sel = EQ(Row(1,1)*LE(BU,b_),Rand(1,4*size,2,2));
+    Set index = Select(Range(1,4*size,1), Real(Real k) { MatDat(sel,1,k) });
+    SubRow(FullNonTruncated, index)
+  });
+
+  //////////////////////////////////////////////////////////////////////////////
+    Matrix getAllSamples(Real k)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Set     case = Cases[k];
+    VMatrix B    = Mat2VMat(case::B);
+    VMatrix b    = Mat2VMat(case::b);
+    VMatrix X0   = Mat2VMat(case::X0); 
+  //WriteLn("B =\n"<<Matrix VMat2Mat(B ));
+  //WriteLn("b =\n"<<Matrix VMat2Mat(b ));
+  //WriteLn("X0=\n"<<Matrix VMat2Mat(X0));
+  //WriteLn("B*X0 =\n"<<Matrix VMat2Mat(B*X0));
+  //WriteLn("b-B*X0 =\n"<<Matrix VMat2Mat(b-B*X0));
+    Real    size = Rows(FullDividing[k]);
+    VMatrix tr   = Tra(TruncStdGaussian(B, b, X0, size, burning));
+    VMat2Mat(tr)
+  };
+//Matrix getAllSamples(1);
+
+  Set TruncatedSamples = For(1,Card(Cases), getAllSamples);
+    
+  Matrix FullDivUnion = Group("ConcatRows", FullDividing);
+  Matrix TruncatedUnion = Group("ConcatRows", TruncatedSamples);
+//WriteLn("TruncatedUnion=\n"<<TruncatedUnion);
+  WriteLn("TRACE 2");
+
+  Matrix StudentTtest2 = SetMat(
+    [[ AlgLib.StudentTtest2(SubCol(FullNonTruncated,[[1]]), 
+                            SubCol(TruncatedUnion,[[1]])),
+      AlgLib.StudentTtest2(SubCol(FullNonTruncated,[[2]]), 
+                            SubCol(TruncatedUnion,[[2]])) ]]);
+  WriteLn("TRACE 2.1");
+  Real eqMinProb = MatMin(SubCol(StudentTtest2,[[1  ]]));
+  WriteLn("TRACE 2.2");
+  Real neMaxProb = MatMax(SubCol(StudentTtest2,[[2,3]]));
+  WriteLn("TRACE 3");
+
+  Set avr = [[ [[
+    MatAvr(SubCol(FullNonTruncated, [[1]])), 
+    MatAvr(SubCol(TruncatedUnion,   [[1]])) ]] , [[
+    MatAvr(SubCol(FullNonTruncated, [[2]])), 
+    MatAvr(SubCol(TruncatedUnion,   [[2]])) ]] ]];
+  Set View(avr,"");
+  WriteLn("");
+//Extented information about test behaviour
+  WriteLn("TRACE 4");
+  Set partialResults_ = 
+  [[
+    eqMinProb,
+    neMaxProb
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError)*eqMinProb;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

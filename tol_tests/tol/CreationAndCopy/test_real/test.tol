@@ -1,0 +1,46 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for collateral effects of operators = and :=
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+   "test for collateral effects of operators = and := for Real objects" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  
+    Real   a = Rand(1,2);
+    WriteLn("a="<<a);
+    Real   b = Rand(-2,1); 
+    WriteLn("b="<<b);
+    Real   c = a;
+    Real   ok1 = EQ(c,a);
+    WriteLn("c="<<c+" == "<<a+" -> "<<ok1);
+    Real   (c := b); 
+    Real   ok2 = EQ(c,b);
+    WriteLn("c="<<c+" == "<<b+" -> "<<ok2);
+    Real   ok3 = NE(a,b);
+    WriteLn("a="<<a+" != "<<b+" -> "<<ok3);
+    
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    a,b,c,ok1,ok2,ok3
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok1, ok2, ok3);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+
+

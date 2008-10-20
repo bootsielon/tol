@@ -1,0 +1,54 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 404;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "confusion with the quotes when a Set contains comments";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Set Param = SetOfAnything("GaliciaDeCine",        // Promocion
+                            "All",                // Ediciones
+                            "y2006m05d01",        // Fecha Inicial
+                            "y2006m06d11",        // Fecha Final
+                            "All",                // Dia de la semana
+                            "1#2#3#4",        // Campos a visualizar
+                            "1",                        // Agregacion por fechas
+                            "1"                        // Agregacion por ediciones
+                            );
+  Set Param2 = SetOfAnything("GaliciaDeCine", "All", "y2006m05d01",
+                             "y2006m06d11", "All", "1#2#3#4", "1", "1");
+  Text ParamEdi    = Param[2];
+  Text ParamFecIni = Param[3];
+  Date FecIniTxt = Eval(ParamFecIni);
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real Igual_Bien = ParamEdi == "All",
+    Real Igual_Mal = ParamEdi == "All\""
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    Igual_Bien & !Igual_Mal
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

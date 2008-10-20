@@ -1,0 +1,47 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 215;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Ceash with Arguments(), FindCode() and Struct";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Struct StTest
+  {
+    Text field01,
+    Real field01
+  };
+  Text args1 = Arguments(FindCode("StTest","Set"));
+  Text args2 = Arguments(FindCode("Set","StTest"));
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok1 = args1=="error",
+    Real ok2 = args2=="(Text field01, Real field01)"
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    ok1, ok2
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

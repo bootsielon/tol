@@ -1,0 +1,54 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : badfile.tol
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real ScalarNormalConditional(Real nu, Real sigma, Real limInf, Real limSup)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(GT(limInf, limSup), ?,
+  {
+    Real min = 
+     If(LE(limInf, -TheMaxAbsValue), 0, DistNormal(limInf, nu, sigma));
+    Real max =  
+     If(GE(limSup,  TheMaxAbsValue), 1, DistNormal(limSup, nu, sigma));
+    Real u   = Rand(min, max);
+//Real Msg("ScalarNormalConditional", "min -> "<<min);
+//Real Msg("ScalarNormalConditional", "max -> "<<max);
+ 
+    Real var = DistNormalInv(u, nu, sigma);
+    Case
+    (
+      GT(var,  TheMaxAbsValue),  TheMaxAbsValue,
+      LT(var, -TheMaxAbsValue), -TheMaxAbsValue,
+      1, var
+    )  
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Generacion de una variable alaeatoria normal truncada con 
+media nu y varianza sigma y limites (limInf, limSup)",
+ScalarNormalConditional);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix MultNormalConditionalMode
+(
+  Matrix Nu, 
+  Matrix Cov, 
+  Matrix LimInf, 
+  Matrix LimSup,
+  Real mode      //0 Sin limite, //1 LimInf, //2 LimSup, //3 LimInf y LimSup
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+//Real Msg("MultNormalConditionalMode", "mode ->"<<mode);
+  Case
+  (
+    EQ(mode, 0), MultNormal(Nu, Cov),
+    EQ(mode, 1), MultNormalConditionalInf(Nu, Cov, LimInf),
+    EQ(mode, 2), MultNormalConditionalSup(Nu, Cov, LimSup),
+    EQ(mode, 3), MultNormalConditional(Nu, Cov, LimInf, LimSup),
+    And(NE(mode, 0),NE(mode, 1),NE(mode, 2),NE(mode, 3)),MultNormal(Nu, Cov))
+  ) 
+};

@@ -1,0 +1,43 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 58;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "BSIFile doesn´t create the associated BSDFile";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  
+  Set s0 =  
+  {
+    Serie Ser01 = SubSer(Gaussian(110, 10, Mensual),DefFirst,DefLast);
+    Serie Ser02 = SubSer(Gaussian(110, 10, Mensual),DefFirst,DefLast);
+    Set BSIFile(SetOfSerie(Ser01, Ser02), "kk.bsi");
+    [[Ser01,Ser02]]
+  };
+  Set s1 = IncludeBSI("kk.bsi");
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+     Real diff1 = MaxS(Abs(s0["Ser01"]-s1["Ser01"])),
+     Real diff2 = MaxS(Abs(s0["Ser02"]-s1["Ser02"]))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, diff1==0, diff2==0);
+  Real OSFilRemove("kk.bsi");
+  Real OSFilRemove("kk.bsd");
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

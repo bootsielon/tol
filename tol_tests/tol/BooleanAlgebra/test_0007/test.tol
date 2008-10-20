@@ -1,0 +1,99 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Boolean Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+    "Functions IsPosInf, IsNegInf, IsUnknown, IsFinite, "
+    "HasUnknown, HasPosInf, HasNegInf, HasAllFinite";
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real DoUnparseNodes := 2;
+
+//Testing Real functions
+  Set X.1.1 = SetOfReal(1/0,-1/0,0/0,0);
+  Set X.1.2 = BinGroup("<<",For(1,100,Set(Real k)
+  {
+    Real x = Rand(1.E-300,1);
+    SetOfReal( x,-x, 1/x, -1/x)
+  }));
+  Set monOpr = SetOfText("IsPosInf","IsNegInf","IsUnknown","IsFinite");
+  Set checking(Real x)
+  {
+    Set ev = EvalSet(monOpr,Real(Text fun) { Eval(fun+"(x)") });
+  //WriteLn(""<<x+"->"<<ev);
+    ev
+  };
+  Matrix expected.1 = Diag(4,1);
+  Matrix expected.2 = Rand(Card(X.1.2),3,0,0) | Rand(Card(X.1.2),1,1,1);
+
+//Testing Matrix functions
+  Matrix check.1.1 = SetMat(EvalSet(X.1.1, checking));
+  Matrix check.1.2 = SetMat(EvalSet(X.1.2, checking));
+
+  Matrix X.2.1 = Tra(SetMat([[X.1.1]]));
+  Matrix X.2.2 = Tra(SetMat([[X.1.2]]));
+  Matrix check.2.1 = IsPosInf (X.2.1)|
+                     IsNegInf (X.2.1)|
+                     IsUnknown(X.2.1)|
+                     IsFinite (X.2.1);
+  Matrix check.2.2 = IsPosInf (X.2.2)|
+                     IsNegInf (X.2.2)|
+                     IsUnknown(X.2.2)|
+                     IsFinite (X.2.2);
+
+//Testing Serie functions
+  Serie X.3.1 = MatSerSet(Tra(X.2.1),C,Today)[1];
+  Serie X.3.2 = MatSerSet(Tra(X.2.2),C,Today)[1];
+  Matrix check.3.1 = Tra(SerSetMat(SetOfSerie(IsPosInf (X.3.1),
+                                              IsNegInf (X.3.1),
+                                              IsUnknown(X.3.1),
+                                              IsFinite (X.3.1))));
+  Matrix check.3.2 = Tra(SerSetMat(SetOfSerie(IsPosInf (X.3.2),
+                                              IsNegInf (X.3.2),
+                                              IsUnknown(X.3.2),
+                                              IsFinite (X.3.2))));
+  Set ok_list = SetOfReal
+  (
+    Real ok.1.1   = MatMax(Abs(expected.1-check.1.1))==0;
+    Real ok.1.2   = MatMax(Abs(expected.2-check.1.2))==0;
+    Real ok.2.1   = MatMax(Abs(expected.1-check.2.1))==0;
+    Real ok.2.2   = MatMax(Abs(expected.2-check.2.2))==0;
+    Real ok.3.1   = MatMax(Abs(expected.1-check.3.1))==0;
+    Real ok.3.2   = MatMax(Abs(expected.2-check.3.2))==0;
+    Real ok.2.1.A =  HasUnknown  (X.2.1);
+    Real ok.2.1.B =  HasPosInf   (X.2.1);
+    Real ok.2.1.C =  HasNegInf   (X.2.1);
+    Real ok.2.1.D = !HasAllFinite(X.2.1);
+    Real ok.2.2.A = !HasUnknown  (X.2.2);
+    Real ok.2.2.B = !HasPosInf   (X.2.2);
+    Real ok.2.2.C = !HasNegInf   (X.2.2);
+    Real ok.2.2.D =  HasAllFinite(X.2.2);
+    Real ok.3.1.A =  HasUnknown  (X.3.1);
+    Real ok.3.1.B =  HasPosInf   (X.3.1);
+    Real ok.3.1.C =  HasNegInf   (X.3.1);
+    Real ok.3.1.D = !HasAllFinite(X.3.1);
+    Real ok.3.2.A = !HasUnknown  (X.3.2);
+    Real ok.3.2.B = !HasPosInf   (X.3.2);
+    Real ok.3.2.C = !HasNegInf   (X.3.2);
+    Real ok.3.2.D =  HasAllFinite(X.3.2)
+ );
+ Real ok = Group("And", ok_list);
+
+//Extented information about test behaviour
+  Set partialResults_ = ok_list;
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError,  ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */

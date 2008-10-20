@@ -1,0 +1,38 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 434;
+  Text email_ = "vdebuen@tol-project.org"; 
+
+  Text summary_ = "segmentation fault when indexing inline the result from IncludeBDT";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real 
+  {
+    Set BDTFile([[ Serie s1 = SubSer(Gaussian(0,1),y2000m1, y2000m2)]], "tmp_ser.bdt");
+    1
+  };
+  Serie ser = IncludeBDT("tmp_ser.bdt")[1];
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real avrSer = AvrS(ser) 
+  ]];
+//This is a messure of the success of the test 
+  Real quality_ = ObjectExist("Serie","ser");
+  Real OSFilRemove("tmp_ser.bdt");
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};

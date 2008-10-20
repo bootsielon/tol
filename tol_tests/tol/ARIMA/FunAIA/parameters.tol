@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : parameters.tol
+// PURPOSE: AIA simulation parameters
+//////////////////////////////////////////////////////////////////////////////
+
+Real numOfSeries = 100;
+Real numOfData   = 30;
+Real probPulse   = 0.10;
+Real probStep    = 0.50/numOfData;
+Real probAIA     = probPulse+probStep;
+Real MinOutlierLikelyhood := 3.5;
+
+Polyn dif = 1-B;
+Polyn ar  = 1;
+Polyn ma  = 1-0.95*B;
+Polyn ari = ar*dif;
+
+//Text oisExtenssion = ".oza";
+Text oisExtension = "";
+
+Text oisPath = 
+  Ois.DefRoot+
+  "test/ARIMA/FunAIA/series_"+
+  IntText(numOfSeries)+"_"+
+  IntText(numOfData)+oisExtension;
+
+Text oisAiaPath = 
+  Ois.DefRoot+
+  "test/ARIMA/FunAIA/aia_"+
+  IntText(numOfSeries)+"_"+
+  IntText(numOfData)+oisExtension;
+
+
+WriteLn("OIS path : "+oisPath);
+
+

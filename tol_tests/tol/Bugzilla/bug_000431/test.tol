@@ -1,0 +1,47 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 431;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Problems with logical functions and unknown values";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    //Real Logical operations (And + Or) doenst work rigth with Unknown values
+    Real a1 = Or (?,1);
+    //Should give you 1 but gives you ?
+    Real q1 = And(!IsUnknown(a1),a1==1);
+  
+    Real a2 = Or (1,?);
+    //Gives you 1, the right value.
+    Real q2 = And(!IsUnknown(a2),a2==1);
+  
+    Real a3 = And (?,0);
+    //Should give you 0 but gives you ?
+    Real q3 = And(!IsUnknown(a3),a3==0);
+  
+    Real a4 = And (0,?);
+    //Gives you 0, the right value.
+    Real q4 = And(!IsUnknown(a4),a4==0)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(q1,q2,q3,q4);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};
+

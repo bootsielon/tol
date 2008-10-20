@@ -1,0 +1,38 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 409;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Annoying: PutMatDat does not work inside For...";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErrors_ = Copy(NError);
+  Matrix A1 = Col(1,2,3,4,5,6);
+  Matrix A2 = Copy(A1);
+  Set For(1, Rows(A1), Real(Real ThN)
+  {
+    Do PutMatDat(A1, ThN, 1, Rows(A1)-ThN+1)
+  });  
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real x = MatMax(Abs(A1-A2))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = x!=0;
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

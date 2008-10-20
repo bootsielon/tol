@@ -1,0 +1,49 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Set Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "http://en.wikipedia.org/wiki/De_Morgan_duality";
+  Text summary_ = "Classify with binary relations" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set s = [[2 ,  4, 7, 15 , 26, 33, 35]];
+  //Non symmetric binary relation
+  Real f(Real a, Real b)
+  {
+    a % b == 0
+  };
+  Set classes = Classify(s, f, "binary"); 
+
+  WriteLn("Classes = \n"<<classes);
+
+  Set expected = 
+  [[
+    [[ 2, 4, 26 ]], //Class of numbers that are divisible by 2
+    [[ 7, 35 ]],    //Class of numbers that are divisible by 7
+    [[ 15 ]],       //Class of numbers that are divisible by 15
+    [[ 33 ]]        //Class of numbers that are divisible by 33
+  ]];
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real cmp = (classes == expected);
+    Real ok = !IsUnknown(cmp) & cmp
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

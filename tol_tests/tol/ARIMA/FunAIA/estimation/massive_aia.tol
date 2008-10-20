@@ -1,0 +1,65 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : massive_aia.tol
+// PURPOSE: test of efficence in Set of Series stored in OIS  
+//////////////////////////////////////////////////////////////////////////////
+
+//Set Include("common.tol");
+//Set ois = Include(oisPath);
+
+
+Real cumQuality = 0;
+Real numIter    = 0;
+Real numEstAIA  = 0;
+Real numEstStep = 0;
+
+Real DoStatistics  := 0;
+Real DoDiagnostics := 0;
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set DoAIAFromOIS(Set s)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set   s           = data[1];
+  Text  name        = Name(s);
+  Serie ser         = s[1]-AvrS(s[1]);
+  Set   aiaModInf   = [[Aia.SelectModel(name,ser,Aia.OptionsDef)]];
+  Set   stepInf     = [[Aia.SearchSteps(name, aiaModInf[1])]];
+  Set   aia         = aiaModInf[1]->aia_;
+  Serie res         = aiaModInf[1]->res_;
+  Serie filter      = aiaModInf[1]->filter_;
+  Set   Inputs      = IncludeText(s[2]);
+  Real  n           = Card(Inputs);
+  Real  n_          = Card(aia);
+  Serie Filter      = If(!n,0*ser,
+                         GroupInputs(Inputs)+0*ser);
+  Real  maxSigma_0  = MaxS(Abs(res)/StDsS(res));
+  Real  probOutlier = Min(1,maxSigma_0/MinOutlierLikelyhood);
+  Real  quality     = Case
+  ( 
+    !n_ & !n, 1,
+    !n_ &  n, 1-probOutlier,
+     n_ & !n, probOutlier,
+     n_ &  n, Max(0,GetSerCorrelation(Filter,filter))
+  );
+
+  Real (numEstAIA  := numEstAIA  + Card(aia));
+  Real (numEstStep := numEstStep + stepInf  [1]["stepPosNum"]
+                                 + stepInf  [1]["stepNegNum"]);
+  Real (numIter := numIter +1);
+  Real (cumQuality := cumQuality + quality);
+  WriteLn("quality["<<numIter+"]="<<quality+
+          " avrQuality="<<Real(cumQuality/numIter));
+  Set compare = [[filter,Filter,Inputs,aia,maxSigma_0,probOutlier,quality]];
+  Eval("DoAIAFromOIS."+IntText(numIter)+"=[[aiaModInf,stepInf,compare]]")
+};
+
+Set aia.results = For(1,Card(data),Set(Real k) { DoAIAFromOIS(data[k]) });
+//Set aia.results = EvalSet(data,DoAIAFromOIS);
+//Set aia.results = [[ DoAIAFromOIS(data[20]) ]];
+
+
+
+
+
+/* */

@@ -1,0 +1,70 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Matrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Matrix arithmetic" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real r = 3;
+  Real c = 5;
+  Matrix A_ = Rand(r,c,-10,10);
+  Matrix B_ = Rand(r,c,-10,10);
+  Real   x  = Rand(-10,10);
+//Internal Sum 
+  Matrix T11 = A_+B_;
+  Matrix T12 = Tra(Tra(B_)+Tra(A_));
+//Sum with real
+  Matrix T21 = A_+x;
+  Matrix T22 = Tra(Tra(A_)+x);
+//Rest
+  Matrix T31 = A_-B_;
+  Matrix T32 = -Tra(Tra(B_)-Tra(A_));
+//Rest with real
+  Matrix T41 = A_-x;
+  Matrix T42 = Tra(Tra(A_)-x);
+//Matrix product
+  Matrix T51 = Tra(A_)*B_;
+  Matrix T52 = Tra(Tra(B_)*A_);
+//Product with real
+  Matrix T61 = A_*x;
+  Matrix T62 = Tra(Tra(A_)*x);
+//Cell by cell product
+  Matrix T71 = A_ $* B_; 
+  Matrix T72 = Tra(Tra(B_)$*Tra(A_));
+//Cell by cell quotient
+  Matrix T81 = A_ $/ B_; 
+  Matrix T82 = Tra(Tra(A_)$/Tra(B_));
+//Power to real
+  Matrix T91 = Abs(A_)^x;
+  Matrix T92 = Tra(Tra(Abs(A_))^x);
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok1 = MatSet(T11)==MatSet(T12),
+    Real ok2 = MatSet(T21)==MatSet(T22),
+    Real ok3 = MatSet(T31)==MatSet(T32),
+    Real ok4 = MatSet(T41)==MatSet(T42),
+    Real ok5 = MatSet(T51)==MatSet(T52),
+    Real ok6 = MatSet(T61)==MatSet(T62),
+    Real ok7 = MatSet(T71)==MatSet(T72),
+    Real ok8 = MatSet(T81)==MatSet(T82),
+    Real ok9 = MatSet(T91)==MatSet(T92),
+    Real ok  = And(ok1,ok2,ok3,ok4,ok5,ok6,ok7,ok8,ok9)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

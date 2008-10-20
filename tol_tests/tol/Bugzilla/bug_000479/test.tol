@@ -1,0 +1,30 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 479;
+  Text email_ = "josp@tol-project.org"; 
+  Text summary_ = "text expression fail when used as Set index";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+
+  Real numErr0 = Copy(NError);
+  Text a = "p";
+  Set ss = [[Real p1=0]];
+  Real it = ss[Text a+"1"];
+
+  Real quality_ = (NError == numErr0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "",
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};
+

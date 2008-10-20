@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 468;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "WriteLn";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+  Real GlobalizeSeries := False;
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+//Checking that special functions return description as expected
+  Text desc = Description(FindCode("Anything","WriteLn"));
+
+ //Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok_E = TextFind(desc,I2("Error","Error"))>0,
+    Real ok_W = TextFind(desc,I2("Warning","Avisos (Warning)"))>0,
+    Real ok_S = TextFind(desc,I2("System Information","Información de Sistema"))>0,
+    Real ok_U = TextFind(desc,I2("User Information","Información del Usuario"))>0,
+    Real ok_T = TextFind(desc,I2("Tracing information for debuging","Información de trazado para depuración"))>0,
+    Real ok = And(ok_E,ok_W,ok_S,ok_U,ok_T)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError,ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

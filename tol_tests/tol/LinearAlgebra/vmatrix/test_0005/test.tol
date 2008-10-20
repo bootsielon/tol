@@ -1,0 +1,132 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "VMatrix Choleski methods" ;
+  Real PutRandomSeed(23421);
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real c = IntRand(7,700);
+  Real r = IntRand(2000,2000);
+  Real nz = c*r; //Min(Round(r*c)*Rand(0.001,0.05),3000);  
+  Real min = -10;
+  Real max = +10;
+
+  WriteLn("TRACE 1 "+Time);
+  VMatrix X = Rand(r,c,min,max,"Cholmod.R.Sparse",nz)+Eye(r,c);
+  Real X.nz   = VNonNullCells(X  )/(VRows(X  )*VColumns(X  ));
+  Matrix _X  = VMat2Mat(X);
+
+  WriteLn("TRACE 2 "+Time);
+  VMatrix b = Rand(c,1,min,max,"Cholmod.R.Sparse",0.5*c);
+  Real b.nz = VNonNullCells(b  )/(VRows(b  )*VColumns(b  ));
+  Matrix _b = VMat2Mat(b);
+
+  WriteLn("TRACE 3 "+Time);
+  VMatrix y   = X*b;
+  Real y.nz   = VNonNullCells(y  )/(VRows(y  )*VColumns(y  ));
+  VMatrix Xty = Tra(Tra(y)*X);
+
+  WriteLn("TRACE 4 "+Time);
+  VMatrix XtX = MtMSqr(X);
+  Real XtX.nz = VNonNullCells(XtX)/(VRows(XtX)*VColumns(XtX));
+  Matrix _XtX = VMat2Mat(XtX);
+  Matrix _XtX_= MtMSqr(_X);
+  Real XtX.quality = 1-MatMax(Abs(_XtX-_XtX_));
+
+  WriteLn("TRACE 5 "+Time);
+  VMatrix L = CholeskiFactor(XtX);
+  Real L.nz = VNonNullCells(L  )/(VRows(L  )*VColumns(L  ));
+  Matrix _L = VMat2Mat(L);
+
+  WriteLn("TRACE 6 "+Time);
+  VMatrix b_ = Drop(CholeskiSolve(L, Xty,"PtLLtP"),1.E-15);
+  Matrix _b_ = VMat2Mat(b_);
+  Real b_.quality   = 1-MatMax(Abs(_b-_b_));
+
+  WriteLn("TRACE 7 "+Time);
+  VMatrix b__ = Drop(CholeskiSolve(L, Xty,"LLt"),1.E-15);
+  Matrix (_b | VMat2Mat(b__));
+
+  WriteLn("TRACE 8 "+Time);
+  VMatrix L2 = CholeskiFactor(X,"XtX");
+  Real L2.nz = VNonNullCells(L2 )/(VRows(L2 )*VColumns(L2 ));
+  Matrix _L2 = VMat2Mat(L2);
+  
+  WriteLn("TRACE 9 "+Time);
+  VMatrix b2 = Drop(CholeskiSolve(L2,Xty,"PtLLtP"),1.E-15);
+  Matrix _b2 = VMat2Mat(b2);
+  Real b2.quality   = 1-MatMax(Abs(_b-_b2));
+
+  WriteLn("TRACE 10 "+Time);
+  VMatrix b3.1 = CholeskiSolve(L2,Xty,  "P");
+  VMatrix b3.2 = CholeskiSolve(L2,b3.1, "L");
+  VMatrix b3.3 = CholeskiSolve(L2,b3.2, "Lt");
+  VMatrix b3   = CholeskiSolve(L2,b3.3, "Pt");
+  Matrix _b3   = VMat2Mat(b3);
+  Real b3.quality   = 1-MatMax(Abs(_b-_b3));
+
+  WriteLn("TRACE 11 "+Time);
+  VMatrix L_   = CholeskiSolve(L2, Convert(L2, "Cholmod.R.Sparse"), "Pt");
+  Matrix _L_   = VMat2Mat(L_);
+  VMatrix LtL_ = MMtSqr(L_);
+  Matrix _LtL_ = VMat2Mat(LtL_);
+  Real LtL_.quality = 1-VMatMax(Abs(LtL_-XtX));
+
+  WriteLn("TRACE 12 "+Time);
+  VMatrix PXtX  = CholeskiSolve(L2, XtX, "P");
+  VMatrix L_2t  = CholeskiSolve(L2, PXtX, "L");
+  VMatrix L_2   = Tra(L_2t);
+  VMatrix LtL_2 = MMtSqr(L_2);
+  Real LtL_2.quality = 1-VMatMax(Abs(LtL_2-XtX));
+
+  WriteLn("TRACE 13 "+Time);
+  VMatrix I = CholeskiSolve(L2, XtX, "PtLLtP");
+  Real I.quality = 1-VMatMax(Abs(I-Eye(c)));
+
+  Matrix (_b | _b_ | _b2 | _b3 | (_b-_b_)| (_b-_b2)| (_b-_b3));
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    r,
+    c,
+    X.nz,
+    y.nz,
+    b.nz,
+    XtX.nz,
+    L.nz,
+    L2.nz,
+    b_.quality,
+    b2.quality,
+    b3.quality,
+    XtX.quality,
+    LtL_.quality,
+    LtL_2.quality,
+    I.quality
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError)*Max(0,Min
+  (
+    b_.quality,
+    b2.quality,
+    b3.quality,
+    XtX.quality,
+    LtL_.quality,
+    LtL_2.quality,
+    I.quality
+  ));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

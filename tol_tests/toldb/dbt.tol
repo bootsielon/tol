@@ -1,0 +1,144 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : dbt.tol
+// PURPOSE : Structures and functions of Data Base Tests
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Struct Dbt.EngineType
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Text os_,      //Operative System
+  Text engine_,  //Database Engine
+  Text driver_   //Client Driver
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Struct Dbt.EngineInfo
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Text driver_,    //Client Driver
+  Text database_,  //Database name
+  Text host_,      //Database Engine Server Host
+  Text port_       //Database Engine Server Port
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Struct Dbt.ConnectInfo
+//////////////////////////////////////////////////////////////////////////////
+{ 
+  Text os_,        //Operative System  
+  Text engine_,    //Database Engine
+  Text driver_,    //Client Driver
+  Text database_,  //Database name
+  Text host_,      //Database Engine Server Host
+  Text port_,      //Database Engine Server Port
+  Text alias_,     //Alias of connection (if driver is ODBC must be defined)
+  Text user_,      //User with rights over database_
+  Text password_,  //User password to access database_
+  Real available_  //USed to specify if connection is available and ready
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Text Dbt.RootPath(Real unused) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  GetFilePath(GetAbsolutePath(GetSourcePath(Dbt.RootPath)))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set Dbt.ConnectInfoSeed(Dbt.EngineType ct)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text alias = "TolTests_"+ct->engine_+"_"+ct->os_+"_"+ct->driver_;
+  Text user  = "toltester";
+  Text pwd   = "pwdtt";
+  Text dbn   = "toltests";
+  Text host  = If(ToLower(ct->os_)==ToLower(OSName),
+                  "localhost",
+                  ct->os_+"_host");
+  Text port  = "";
+  Set  eng   = Dbt.EngineInfo(ct->driver_,dbn,host,port);
+  Set Dbt.ConnectInfo 
+  (
+    ct->os_,
+    ct->engine_,
+    ct->driver_,
+    dbn,host,port,
+    alias,user,pwd,
+    1
+  )
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set Dbt.Open(Dbt.ConnectInfo ci)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set  eng   = Dbt.EngineInfo(ci->driver_,ci->database_,ci->host_,ci->port_);
+  Real open  = If(ci->driver_=="odbc",
+                  DBOpen(ci->alias_,ci->user_,ci->password_),
+                  DBOpen(ci->alias_,ci->user_,ci->password_,eng));
+  Set Dbt.ConnectInfo 
+  (
+    ci->os_,
+    ci->engine_,
+    ci->driver_,
+    ci->database_,
+    ci->host_,
+    ci->port_,
+    ci->alias_,
+    ci->user_,
+    ci->password_,
+    open
+  )
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set Dbt.Try(Dbt.ConnectInfo ci)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set  con = Dbt.Open(ci);
+  Real close = If(con->available_,DBClose(con->alias_),?);
+  Eval(con->alias_+"=con")
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set Dbt.Engine.Allowed.Get(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text fileName = Dbt.RootPath(0)+"dbt.engine.allowed.bst";
+  If(FileExist(fileName), Include(fileName),
+  { 
+    Set engine.type = Include(Dbt.RootPath(0)+"dbt.engine.type.bst");
+    Set seed = EvalSet(engine.type,Dbt.ConnectInfoSeed);
+    Set BSTFile(seed,fileName);
+    seed
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set Dbt.Engine.Active.Get(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Include(Dbt.RootPath(0)+"dbt.engine.active.bst")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set Dbt.Engine.Active.Update(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set allowed = Select(Dbt.Engine.Allowed.Get(0),Real(Dbt.ConnectInfo c) 
+  { 
+    c->available_ 
+  });
+  Set try = EvalSet(allowed,Dbt.Try);
+  Set Dbt.Engine.Active = Select(try,Real(Dbt.ConnectInfo c) 
+  { 
+    c->available_ 
+  });
+  Set BSTFile(Dbt.Engine.Active,Dbt.RootPath(0)+"dbt.engine.active.bst");
+  Dbt.Engine.Active
+};
+
+
+

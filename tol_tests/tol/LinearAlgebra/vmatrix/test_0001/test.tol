@@ -1,0 +1,87 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "VMatrix conversion methods" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real r = 30;
+  Real c = 50;
+  Matrix A_ = Round(Rand(r,c,-10,10));
+  Matrix B_ = Round(Rand(r,c,-.6,.6));
+//WriteLn("A=\n"<<A_);
+//WriteLn("B=\n"<<B_);
+  VMatrix A      = Mat2VMat(A_);
+  VMatrix A_spa  = Convert(A,     "Cholmod.R.Sparse");
+  VMatrix A_tri  = Convert(A_spa, "Cholmod.R.Triplet");
+  VMatrix A_spa_ = Convert(A_tri, "Cholmod.R.Sparse");
+  VMatrix B      = Mat2VMat(B_);
+  VMatrix B_den  = Convert(B,     "Blas.R.Dense");
+  VMatrix B_tri  = Convert(B,     "Cholmod.R.Triplet");
+  VMatrix B_spa  = Convert(B_den, "Cholmod.R.Sparse");
+  VMatrix B_spa_ = Convert(B_tri, "Cholmod.R.Sparse");
+  Text stA      = SubType(A);
+  Text stA_spa  = SubType(A_spa);
+  Text stA_tri  = SubType(A_tri);
+  Text stA_spa_ = SubType(A_spa_);
+  Text stB      = SubType(B);
+  Text stB_den  = SubType(B_den);
+  Text stB_tri  = SubType(B_tri);
+  Text stB_spa  = SubType(B_spa);
+  Text stB_spa_ = SubType(B_spa_);
+  WriteLn("stA="<<stA);
+  WriteLn("stB="<<stB);
+
+  Real stOk = And
+  (
+    stA      =="Blas.R.Dense",
+    stA_spa  =="Cholmod.R.Sparse",
+    stA_tri  =="Cholmod.R.Triplet",
+    stA_spa_ =="Cholmod.R.Sparse",
+    stB      =="Cholmod.R.Sparse",
+    stB_den  =="Blas.R.Dense",
+    stB_tri  =="Cholmod.R.Triplet",
+    stB_spa  =="Cholmod.R.Sparse",
+    stA_spa_ =="Cholmod.R.Sparse"
+  );
+
+  Real chkOk = And
+  (
+    MatMax(Abs(A_-VMat2Mat(A     )))==0,
+    MatMax(Abs(A_-VMat2Mat(A_spa )))==0,
+    MatMax(Abs(A_-VMat2Mat(A_tri )))==0,
+    MatMax(Abs(A_-VMat2Mat(A_spa_)))==0,
+    MatMax(Abs(B_-VMat2Mat(B     )))==0,
+    MatMax(Abs(B_-VMat2Mat(B_den )))==0,
+    MatMax(Abs(B_-VMat2Mat(B_tri )))==0,
+    MatMax(Abs(B_-VMat2Mat(B_spa )))==0,
+    MatMax(Abs(B_-VMat2Mat(B_spa_)))==0
+  );
+
+  WriteLn("stOk="<<stOk);
+  WriteLn("chkOk="<<chkOk);
+  
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    stOk,
+    chkOk
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, stOk, chkOk);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

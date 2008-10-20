@@ -1,0 +1,31 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Real DoUnparseNodes := 2;
+//Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 484;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "BDT File needs to finish with an empty line";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+
+  Real numErr0 = Copy(NError);
+
+  Set bdt = Include("test.bdt");
+
+  Real quality_ = And(NError == numErr0, Last(ven)==y2005m08d31);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "",
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};
+
+

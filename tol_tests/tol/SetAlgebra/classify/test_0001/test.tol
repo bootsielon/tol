@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Set Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "http://en.wikipedia.org/wiki/De_Morgan_duality";
+  Text summary_ = "Classify with equivalence relations" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set s = [[ [[1,2,2,2]], [[1,1,2,2]], [[1,2,1,2]], [[2,2,1,2]], 
+             [[1,1,1,1]], [[2,1,2,1]] ]];
+  Real CompareReal(Real x, Real y) { Compare(x,y) };
+  Real f(Set a, Set b)
+  {
+    Text a_ = ""<<Sort(a, CompareReal);
+    Text b_ = ""<<Sort(b, CompareReal);
+    Write("{"<<a+"}~{"<<b+"}={"<<a_+"}=={"<<b_+"}");
+    Real ok = a_ == b_;
+    WriteLn("="<<ok);
+    ok
+  };
+  Set classes = Classify(s, f, "equivalence");
+  WriteLn("Classes = \n"<<classes);
+
+  Set expected = 
+  [[ 
+    [[ [[1,2,2,2 ]], [[2,2,1,2]] ]],
+    [[ [[1,1,2,2 ]], [[1,2,1,2]], [[2,1,2,1]] ]],
+    [[ [[1,1,1,1 ]] ]]
+  ]];
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real cmp = (classes == expected);
+    Real ok = !IsUnknown(cmp) & cmp
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

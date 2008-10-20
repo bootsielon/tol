@@ -1,0 +1,52 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 383;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Estimate makes TOL crash when ModelDef has a wrong bad definition";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Serie aleatoria = SubSer(Gaussian(0, 0.1), y1998, y2002);
+  Serie output = aleatoria+(Pulse(y2000, Diario)*Real 0.5);
+  Set mod = ModelDef
+  (
+    output,
+    1,
+    0,
+    7,
+    ?,
+    1,
+    SetOfPolyn(1, 1),
+    SetOfPolyn(1, 1),
+    //SetOfSet(InputDef(0.1, Pulse(y2000, Diario))),
+    InputDef(0.1, Pulse(y2000, Diario)),
+    AllLinear
+  );
+  Real numErr0 = Copy(NError);
+  Set est1 = Estimate(mod, y1998, y2002);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real q1 = Card(est1)==0; 
+    Real numErr = Copy(NError)-numErr0;
+    Real q2 = numErr==1
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(q1,q2);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

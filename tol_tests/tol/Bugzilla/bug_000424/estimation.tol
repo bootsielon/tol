@@ -1,0 +1,24 @@
+Set Include("ipi.bdt");
+
+Serie Tri1 = CalInd(M(1), Trimestral);
+Serie Tri2 = CalInd(M(4), Trimestral)-Tri1;
+Serie Tri3 = CalInd(M(7), Trimestral)-Tri1;
+Serie Tri4 = CalInd(M(10), Trimestral)-Tri1;
+Set InpIPI = SetOfSet(InputDef(0.1, Tri2),
+                   InputDef(0.1, Tri3),
+                   InputDef(0.1, Tri4));
+
+Serie IPITri = DatCh(IPI, Trimestral, SumS);
+
+Set MDP = ModelDef(Log(IPITri), 1, 0, 4, 0, Polyn 1-B,
+                 [[ Polyn 1, Polyn 1 ]], [[ Polyn 1-0.1*B, Polyn 1 ]],
+                 InpIPI, Copy(Empty));
+Set MEP = Estimate(MDP, First(IPITri), y2006);
+
+Polyn ma   = BinGroup("*", MEP[2][8]);
+Polyn ari  = (BinGroup("*", MEP[2][7])*MEP[2][6]);
+Ration psi = ma/ari;
+Serie residuals =  MEP[3][1];
+Serie noise =  MEP[3][3];
+Serie NIpi  = DifEq(psi, residuals)+SerDat(noise,First(noise));
+Serie difference = noise-NIpi;

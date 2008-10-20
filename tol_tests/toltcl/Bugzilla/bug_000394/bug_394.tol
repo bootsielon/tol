@@ -1,0 +1,2 @@
+TimeSet SegTemPV = M(7)*D(2);
+TimeSet SegSemPV = Range(Succ(SegTemPV-WD(7), 1, WD(1))+Succ(SegTemPV*WD(7), 1, Diario),0,6);

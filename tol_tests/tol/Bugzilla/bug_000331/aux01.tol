@@ -1,0 +1,6 @@
+  Set s1 = [[1, 2 ]];
+  Set s2 = [[ "a", "b" ]];
+  Real a = 1;
+  b = BinGroup("+", s1);
+  c = BinGroup("<<", s2);
+

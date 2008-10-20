@@ -1,0 +1,24 @@
+/* -*- mode: c++ -*- */
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 407;
+  Text email_ = "josp@tol-project.org"; 
+  Text summary_ = "Decompile a TimeSet expression is not working";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+ 
+  Set result_ = RunToltclTest(0);
+//This is a messure of the success of the test, should be between 0 and 1 
+  Real quality_ = result_->quality_;
+  Set partialResults_ = [[ result_->partial_ ]];
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};

@@ -1,0 +1,48 @@
+//////////////////////////////////////////////////////////////////////////////
+Serie EstimCensoredData
+(
+  Serie ser,
+  Serie top, 
+  Serie filter,
+  Real sigma
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Serie indCensoredData = EQ(ser, top);
+
+  Date first   = FirstNotEqual(ser, First(ser), 0);
+  TimeSet auto = SerTms(indCensoredData);
+
+  Serie filterAuto    = DatCh(filter, auto, FirstS);
+  Serie filterAutoSub = SubSer(filterAuto, first, Last(filterAuto));
+
+  Serie topAuto       = DatCh(top, auto, FirstS);
+  Serie topAutoSub    = SubSer(topAuto, first, Last(filterAuto));
+
+  Matrix mFilterAuto = Tra(SerMat(filterAutoSub));
+  Matrix mTopAuto    = Tra(SerMat(topAutoSub));
+
+  Real n             = Rows(mFilterAuto);
+  Matrix lCovBeta    = Diag(n, sigma);
+  Matrix limInf      = mTopAuto; 
+  Matrix limSup      = Rand(n, 1, TheMaxAbsValue, TheMaxAbsValue); 
+
+  Matrix censored    = 
+   RandTruncatedMultNormal(mFilterAuto, lCovBeta, limInf, limSup, 1, 1);
+  Set setCensored = MatSerSet(Tra(censored), auto, first);
+  IfSer(indCensoredData, InvCh(setCensored[1], CalInd(W, Diario)), ser)
+};
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+Serie top    = 199*CalInd(C,Diario);
+Serie serAux = SubSer(top-Gaussian(10, 10, Diario), y2004m01d01, y2006m02d01);
+Serie ser    = IfSer(GT(top, serAux), serAux,top);
+
+Serie filter = AvrS(ser)*CalInd(C,Diario);
+Real sigma = StDsS(serAux); 
+
+
+Serie final = EstimCensoredData(ser, top, filter,sigma);
+

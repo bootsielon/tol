@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 377;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Problem in defining real numbers in scientific format";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+ 
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real var1=1e+308;   //Syntactic error
+    Real var2= 1e+308;  //OK: note the blank after the equal sign
+    Real var3=-1e+308;   //Syntactic error
+    Real var4= -1e+308;   //Syntactic error
+    Real var5= - 1e+308   //OK: note the blank after the - sign and equal sign
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = EQ(var1,var2,-var3,-var4,-var5);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

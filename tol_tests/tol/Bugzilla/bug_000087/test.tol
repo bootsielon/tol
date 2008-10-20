@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 87;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Parser problem";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Serie VerJul11E = CalInd(In(y2003m01d01,y2005m01d01), Diario);
+  Serie VerSep12E = CalInd(In(y2003m01d01,y2005m01d01), Diario);
+  
+  Serie SumMVerJulE = VerJul11E-VerSep12E;        //(1)
+  
+  Serie SumMVerJul2E = VerJul11E - VerSep12E;   //(2)   
+  
+//(1) doesn´t work, (2)  does work
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real diff = MaxS(Abs(SumMVerJulE-SumMVerJul2E))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, diff==0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

@@ -1,0 +1,59 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 442;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "BinGroup yields a crash with high number of elements";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+Date SetMinDate1(Set setDate)
+{ If(EQ(Card(setDate),1), setDate[1], BinGroup("Min",setDate)) };
+Date SetMinDate2(Set setDate)
+{ If(EQ(Card(setDate),1), setDate[1], Group("Min",setDate)) };
+
+Date d0 = y1900;
+Real t00  = Copy(Time);
+Write("\n["<<Time+"]Creating sDat ... ");
+Set sDat = Dates(C, d0, y2010);
+Real t01  = Copy(Time)-t00;
+Write(" in "<<t01<< " seconds");
+
+Real t10  = Copy(Time);
+Write("\n["<<Time+"]Creating d1 ... ");
+Date d1 = SetMinDate1(sDat);
+Real t11  = Copy(Time)-t10;
+Write(" in "<<t11<< " seconds");
+
+Real t20 = Copy(Time);
+Write("\n["<<Time+"]Creating d2 ... ");
+Date d2 = SetMinDate2(sDat);
+Real t21 = Copy(Time)-t20;
+Write(" in "<<t21<< " seconds");
+
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real c = Card(sDat),
+    t01,t11,t21
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, d1==d0, d2==d0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

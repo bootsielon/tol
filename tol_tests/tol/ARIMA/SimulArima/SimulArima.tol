@@ -1,0 +1,223 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : simularima.tol
+// PURPOSE : Simulador de modelos ARIMA por generación aleatoria.
+//////////////////////////////////////////////////////////////////////////////
+
+Set Include("SimulArimaParam.tol");
+
+WriteLn("\n\n"
+"////////////////////////////////////////////////////////////////////////////"
+"\n"
+"//                      ARIMA TIME SERIES SIMULATOR                       //"
+"\n"
+"////////////////////////////////////////////////////////////////////////////"
+"\n\n"
+);
+Real SimulationBeginTime = Copy(Time);
+WriteLn("Comienzo de la simulacion: "+Time);
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMASizes =
+//////////////////////////////////////////////////////////////////////////////
+[[
+//Longitud de la serie output tomada como uniforme bajo la transformación 
+//de BoxCox(0,1/2) para producir más casos de series cortas que largas.
+  Real N         = Max(MinData, 
+                       (MinCycles+MaxSeaDIF)*PeriodsTable[1],
+                       MinData+Round(Rand(0, (MaxData-MinData)^(1/2))^2));
+  Set  pTable    = Select(PeriodsTable,Real(Real per){LE(per,N/MinCycles)});
+  Real period    = pTable[IntRand(1,Card(pTable))];
+  Real s1        = 1;
+  Real s2        = period;
+  Real d1        = IntRand(0,MaxRegDIF);
+  Real d2        = IntRand(0,MaxSeaDIF);
+  Real p1_       = Min(Floor(period/2)-1,Max(0,IntRand(0,MaxRegAR)));
+  Real q1_       = Min(Floor(period/2)-1,Max(0,IntRand(0,MaxRegMA)));
+  Real p2_       = Max(0,IntRand(0,MaxSeaAR));
+  Real q2_       = Max(0,IntRand(0,MaxSeaMA));
+  Real minRand   = If(Or(p1_+q1_+p2_+q2_,MaxInputs),0,IntRand(1,4));
+  Real p1__      = Max(EQ(minRand,1),p1_);
+  Real q1__      = Max(EQ(minRand,2),q1_);
+  Real p2__      = Max(EQ(minRand,3),p2_);
+  Real q2__      = Max(EQ(minRand,4),q2_);
+
+  Real p1      = If(RestrictLTqp,          Max(p1__,q1__)+(p1__==q1__), p1__);
+  Real q1      = If(RestrictLTqp,          Min(p1__,q1__),              q1__);
+  Real p2      = If(RestrictLTqp&MaxSeaAR, Max(p2__,q2__)+(p2__==q2__), p2__);
+  Real q2      = If(RestrictLTqp&MaxSeaAR, Min(p2__,q2__),              q2__);
+
+  Real d         = d1+d2*period;
+  Real p         = p1+p2*period;
+  Real q         = q1+q2*period;
+  Real armaParam = p1+p2+q1+q2;
+  Set  viewARIMA =
+  {
+    WriteLn("\nARIMADegrees:\n");
+    Set v = View(
+    [[
+      Set RegularSizes  = [[s1,d1,p1,q1]],
+      Set SeasonalSizes = [[s2,d2,p2,q2]],
+      Set JointSizes    = [[0, d ,p ,q ]]
+    ]],"Std");
+    WriteLn("\n");
+    v
+  }
+]];
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMAPolynomials =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Polyn  Dif1 = If(NE(s1,0),(1-B^s1)^d1,1);
+  Polyn  Dif2 = If(NE(s2,0),(1-B^s2)^d2,1);
+  Polyn  AR1  = RandStat(p1,s1);
+  Polyn  AR2  = RandStat(p2,s2);
+  Polyn  MA1  = RandStat(q1,s1);
+  Polyn  MA2  = RandStat(q2,s2);
+  Polyn  Dif  = Dif1*Dif2;
+  Polyn  AR   = AR1*AR2;   
+  Polyn  MA   = MA1*MA2;   
+  Polyn  ARI  = AR*Dif;
+  Ration Psi  = MA/AR;
+  Ration Pi   = AR/MA;
+  Ration DPsi = MA/(Dif*AR);
+  Ration DPi  = (Dif*AR)/MA;
+  Ration DifFilter = 1/Dif;
+  Set ARIMA = 
+  [[
+    ARIMAStruct(s1,AR1,MA1,Dif1),
+    ARIMAStruct(s2,AR2,MA2,Dif2)
+  ]];
+  Set viewDeg =
+  {
+    WriteLn("\nEstructura ARIMA :");
+    Set v = View(SetOfPolyn(Dif1,Dif2,AR1,AR2,MA1,MA2,Dif,AR,MA),"Std");
+    WriteLn("\n");
+    v
+  }
+]];
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set ARIMASeries =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Date ini  = y2000m01d01;
+  Date fin  = Succ(ini,C,N-1); 
+  Date inid = Succ(ini,C,d);
+  Real x0   = Rand(10,30)*Sigma;
+  Real x1   = x0+10*Rand(-1,1)*Sigma;
+  Set Ciclo_0 = If(!d2, Copy(Empty), For(0,1*(period-1), Real(Real n) 
+  { 
+    Real  m = Rand(-1,1)*Sigma;
+    Real  x = .7*x1+.2*x0+.95*m;
+    Real  (x0 := Copy(x1));
+    Real  (x1 := Copy(x ));
+    x
+  }));
+  Set Ciclo = If(!d2, Copy(Empty), For(0,period-1, Serie(Real n) 
+  { 
+    Real  m = Rand(-1,1)*Sigma;
+    Real  x = x1+m;
+    Real  (x0 := Copy(x1));
+    Real  (x1 := Copy(x ));
+    Serie (x*B^n):Cos(Trend(ini,C)*Real(2*PI*n/period))
+  }));
+  Serie InitValues =If(!d2,CalInd(W,Diario), Group("Sum",Ciclo))+ Real(d1*x0);
+
+  Real initLength = Min(20000,Max(100*N,1000*(d+p+q)));
+  //WriteLn("\nCalculando las series de residuos y ruido ARIMA : "+Time);  
+  // N(0,Sigma) distributed Residuals serie
+  Serie res = Gaussian(0, Sigma, Diario);
+  //Set Table([[res]],"Std");
+  Date ini0 = ini-Real(initLength);
+  Serie Residuals_= SubSer(res,ini0,fin);
+  Serie Noise_    = DifEq(1/(Dif*AR), MA:Residuals_, 
+                          SubSer(InitValues,ini0+q-d-p,ini0+q-1));
+  Serie Residuals = SubSer(Residuals_,inid,fin);
+  Serie Noise     = SubSer(Noise_,    ini,fin);
+  Real  NoiseStDev=StDsS(Noise);
+  Serie DifNoise_ = Dif:Noise_;
+  Serie DifNoise  = Dif:Noise;
+  Real  DifNoiseStDev=StDsS(DifNoise)
+]];
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set EvalRealARIMA =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //Evaluación del modelo ARIMA simulado
+  Set ev = ARIMALevinsonEval(ARIMA, Tra(SerMat(Noise)));
+  //Comparación enre los residuos reales simulados y los estimados por la
+  //esperanza condicionada al ruido diferenciado
+  Set ResidualsComparison = 
+  [[
+    Serie Residuals;
+    Serie evalRes  = 
+    {
+      Matrix res = ev[4];
+      Date   ini = Succ(Last(DifNoise),Diario,-Rows(ev[4])+1);
+      If(!Rows(res), 0*DifNoise, MatSerSet(Tra(res),Diario,ini)[1])
+    };
+    Serie ResDif = Residuals-evalRes;
+    Real  maxAbsDifSig  = MaxS(Abs(ResDif))/Sigma;
+    Real  RefuseProb = 
+    {
+      refuseProb = 2*DistNormal(maxAbsDifSig)-1;
+      WriteLn(Trace(maxAbsDifSig));
+      WriteLn(Trace(refuseProb));
+      refuseProb
+    }
+  ]] ;
+  //Test sobre las funciones de autocorrelación ACF, PACF e IACF
+  //Estas funciones se representan como series para facilitar su
+  //visualización gráfica.
+  Set ACorTest = 
+  [[
+  //Las ACF cumplen la ecuación AR:ACF=0 a partir del grado p+q
+    Serie sACor    = MatSerSet(Tra(ev[6]),C,ini)[1];
+    Serie ARsACor  = SubSer(AR:sACor,ini+p+q,fin);
+  //Las IACF cumplen la ecuación MA:IACF=0 a partir del grado p+q
+    Serie sIACor   = MatSerSet(Tra(ev[8]),C,ini)[1];
+    Serie MAsIACor = SubSer(MA:sIACor,ini+p+q,fin);
+  //Las PACF convergen hacia la ecuación MA:PACF=0 
+    Serie sPACor   = MatSerSet(Tra(ev[7]),C,ini)[1];
+    Serie MAsPACor = SubSer(MA:sPACor,ini+p+q,fin);
+  //Test sobre el determinante de la matriz de autocovarianzas
+    Real ev[9];
+    Real ACorDetDerivedFromPACor =
+    {
+      Serie a=Log(1-SubSer(sPACor,ini+1,fin)^2);
+      Serie b=DifEq(1/(1-B),a);
+      Serie c=DifEq(1/(1-B),b);
+      MatDat(ev[5],1,1)*Exp((SumS(b))/(CountS(a)))
+    }
+  ]];
+  Real logLikelihood = 
+  {
+    Real N_            = Rows(ev[2]);
+    Real ACovDetN      = ev[ 9];
+    Real WACovInvW     = ev[10];
+   -(N_/2)*Log(2*pi*e*ACovDetN*WACovInvW/N_)
+  };
+  //Parámetros de interés de la evaluación del modelo ARIMA
+  Set View(
+  [[
+    Real Nd             = CountS(Noise)-d;
+    Real stdDifNoise    = Sqrt(AvrS(DifNoise^2));
+    Real stdResiduals   = Sqrt(AvrS(Residuals^2));
+    Real stdEvalRes     = Sqrt(AvrS(evalRes^2));
+    Real sigmaEst       = Sqrt(ev[10]/Nd);
+    Real sqrtACovDetN   = Sqrt(ev[ 9]);
+    Real sqrtWACoef     = Sqrt(ev[10]/ev[11]);
+    Real likelyHoodCoef = sqrtWACoef*sqrtACovDetN;
+    Real lhNorm         = likelyHoodCoef*Sqrt(ev[11]/Nd);
+    logLikelihood
+  ]], "") 
+]];
+
+WriteLn("\n");
+
+/* */

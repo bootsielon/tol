@@ -1,0 +1,39 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 408;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "A DatCh with W TimeSet makes TOL remain in suspense";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  WriteLn("1");
+  Serie srCeros = CalInd(W, Diario);
+  WriteLn("2");
+  TimeSet tms = SerTms(srCeros);
+  WriteLn("3");
+  Serie AutoCeros1= DatCh(srCeros, tms, FirstS);
+  WriteLn("4");
+  Serie AutoCeros2 = DatCh(srCeros, W, FirstS);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real q0 = SumS(srCeros)==0;
+    Real q1 = IsUnknown(SumS(AutoCeros1));
+    Real q2 = IsUnknown(SumS(AutoCeros2))
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(q0,q1,q2);
+//Return the results 
+  Set strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    "vdebuen@tol-project.org")
+};
+

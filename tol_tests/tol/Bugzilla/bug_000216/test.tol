@@ -1,0 +1,78 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 216;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Function \"Text Argumets\". It does not use the optional parameters";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Real f(Real p1, Text p2) { p1*p1 };
+
+  Set pairs = SetOfSet
+  (
+    SetOfText
+    (
+      Arguments(TextFind), 
+      I2("(Text chain, Text searched [, Real from = 1 [, Real ocurrence = 1 [, Real direction = 1]]])",
+         "(Text cadena, Text buscado [, Real desde = 1 [, Real ocurrencia = 1 [, Real direccion = 1]]])")
+    ),
+    SetOfText
+    (
+      Arguments(TextFind,1,"TYPE"),
+      "Text"
+    ),
+    SetOfText
+    (
+      Arguments(TextFind,1,"NAME"),
+      I2("chain","cadena")
+    ),
+    SetOfText
+    (
+      Arguments(TextFind,1),
+      I2("Text chain","Text cadena")
+    ),
+    SetOfText
+    (
+      Arguments(f, 1, "NAME"),
+      "p1"
+    ),
+    SetOfText
+    (
+      Arguments(Arguments, 2, "TYPE"),
+      "Real"
+    )
+  );
+  Set View(pairs,"");
+  Set okPairs = EvalSet(pairs, Real(Set pair) { pair[1]==pair[2] });
+  Set View(okPairs,"");
+
+//Extented information about test behaviour
+  Set partialResults_ = okPairs <<
+  [[
+    Real okAllPairs = Group("And", okPairs)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    okAllPairs
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

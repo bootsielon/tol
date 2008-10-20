@@ -1,0 +1,46 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Set {
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 427;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Operations with unknown values don`t return unknown values";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Matrix a  = Col(?,1,9);  WriteLn("a=\n"<<a);
+  Matrix b  = Col(10,9,1); WriteLn("b=\n"<<b);
+  Matrix c1 = Tra(a)*b;    WriteLn("a'b=\n"<<c1);
+  Matrix c2 = Tra(b)*a;    WriteLn("b'a=\n"<<c2);
+  Matrix c3 = a+b;         WriteLn("a+b=\n"<<c3);
+  Matrix c4 = a*?;         WriteLn("a*?=\n"<<c4);
+ 
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real x1  = IsUnknown(MatDat(c1, 1,1));
+    Real x2  = IsUnknown(MatDat(c2, 1,1));
+    Real x31 = IsUnknown(MatDat(c3, 1,1));
+    Real x32 = IsUnknown(MatDat(c3, 2,1));
+    Real x33 = IsUnknown(MatDat(c3, 3,1));
+    Real x4  = IsUnknown(MatDat(c4, 1,1)) 
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError,x1,x2,x31,!x32,!x33,x4);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};
+

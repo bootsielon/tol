@@ -1,0 +1,64 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 533;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "InnerPoint crashes in a cycle";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+  Real GlobalizeSeries := False;
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Set For(1,100,Real(Real k)
+  {
+    WriteLn("Iteration "<<k);
+    Matrix A.1 = 
+    (
+      (-1, 0, 0, 0, 0), 
+      (0, -1, 0, 0, 0), 
+      (0.5, 0.5, -1, 0, 0), 
+      (0.5, 0.5, 0, -1, 0), 
+      (0.5, 0.5, 0, 0, -1), 
+      (1, 0, 0, 0, 0), 
+      (0, 1, 0, 0, 0), 
+      (0, 0, 1, 0, 0), 
+      (0, 0, 0, 1, 0), 
+      (0, 0, 0, 0, 1)
+    ); 
+    Matrix a.1 = Col
+    (
+      -0.1, 
+      -0.1, 
+       0, 
+       0, 
+       0, 
+       0.3, 
+       0.3, 
+       0.9, 
+       0.9, 
+       0.9
+    );
+    Set X.1 = InnerPoint(A.1,a.1);
+    k
+  });
+
+ //Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real errors = numErr0-NError
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

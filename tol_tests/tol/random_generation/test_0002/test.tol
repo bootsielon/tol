@@ -1,0 +1,49 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for random numbers generation
+//////////////////////////////////////////////////////////////////////////////
+
+//Set {
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Independence of uniform random sequences" ;
+  Real m = 1000;
+  Real n = 3;
+//Write here the initial test TOL code if needed
+  Matrix R = BinGroup("<<",For(1,n,Matrix(Real k)
+  {
+    Real PutRandomSeed(0);
+    Real GetRandomSeed(0);
+    Gaussian(1,m,0,1)
+  }));
+  
+  Matrix C = Cor(R);
+//VBR: esta línea tira tol
+//Matrix D = BinGroup("<<",For(2,n,Matrix(Real k) { SubDiag(C,k) }));
+  Matrix D = Tra(BinGroup("|",For(1,n-1,Matrix(Real k) { SubDiag(C,k) })));
+  Matrix W = Log(WeightProd(RSum(D,1),RPow(RSum(-D,1),-1)))*0.5;
+  Matrix W1= RProd(W,Sqrt(m-3));
+  Matrix F = Frequency(W1,10);
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real mxc = MatMax(Abs(W1));
+    Real p1  = 2*DistT(mxc,n-1)-1;
+    Real h   = (n*(n-1)/2);
+    Real H   = 1/(1-p1);
+    Real ph  = p1^h
+  ]];
+//This is a messure of the success of the test 
+  Real quality_ = 1-ph;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};
+
+

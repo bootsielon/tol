@@ -1,0 +1,43 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 273;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Date Succ(date, timeSet, -k), with k>0";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Date fec = y2003m04d23;
+  Set aux = 
+  [[
+    Date fec.01 = Succ(fec, Succ(D(1), -2, WD(5)), -1);
+    Date fec.02 = Succ(fec, Succ(D(1), -2, WD(5)), -2);
+    Date fec.03 = Succ(fec, Succ(D(1), -2, WD(5)), -3);
+    Date fec.04 = Succ(fec, Succ(D(1), -2, WD(5)), -4)
+  ]];
+  Set sol = [[  y2003m04d18, y2003m03d21, y2003m02d21, y2003m01d24 ]];
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Text t1 = ""<<aux;
+    Text t2 = ""<<sol
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, t1==t2);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+};
+

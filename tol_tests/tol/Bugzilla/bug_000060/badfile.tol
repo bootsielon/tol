@@ -1,0 +1,353 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : pestimation.tol
+// PURPOSE : Estimation processes and functions
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Inicio de la sesion de estimacion
+//////////////////////////////////////////////////////////////////////////////
+ WriteLn("SqlEstStart(EstSession, Output, Dating)...");
+Set EstKey     = SqlEstStart(EstSession, Output, Dating);  
+Set InfoEstSes = SqlEstSesGet(EstSession);
+Text EstSessionIni = If(IsEmpty(InfoEstSes), "", InfoEstSes->SessionIni);
+
+Set InfoOutDat = SqlOutDatGet(Output, Dating);
+
+//////////////////////////////////////////////////////////////////////////////
+// Estructura BoxCox
+//////////////////////////////////////////////////////////////////////////////
+Real SqlEstUpdateState(EstKey, "Definicion de estructura BOX-COX");
+Real SqlProConUpdateTrace(IdProcess, "Definicion de estructura BOX-COX");
+
+Set InfoTransf = SqlTraGet(InfoOutDat->Transformation); 
+Set BoxCox     = BoxCoxStruct(InfoTransf->Power,InfoTransf->Translation);
+  
+
+//////////////////////////////////////////////////////////////////////////////
+// Estructura ARIMA
+//////////////////////////////////////////////////////////////////////////////
+Real SqlEstUpdateState(EstKey, "Definicion del modelo ARIMA");
+Real SqlProConUpdateTrace(IdProcess, "Definicion del modelo ARIMA");
+
+//Set ARIMA = SqlEvalARIMA(InfoOutDat->Arima);
+Set ARIMA = GetArimaFromLabel(InfoOutDat->Arima);
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Conjunto Temporal de Omitidos
+//////////////////////////////////////////////////////////////////////////////
+Real SqlEstUpdateState(EstKey, "Calculando el TimeSet de omitidos");
+
+Real SqlProConUpdateTrace(IdProcess, "Calculando el TimeSet de omitidos");
+
+Text    TimeSetOmitDB = InfoOutDat->TimeSetOmit;
+
+TimeSet TimeSetOmit   = If(TimeSetOmitDB == "", W, Eval(TimeSetOmitDB +";"));
+
+
+////////////////////////////////////////////////////////////////////////////
+// Serie Output: Carga de datos
+////////////////////////////////////////////////////////////////////////////
+
+Real SqlEstUpdateState(EstKey, "Construccion de la serie output");
+Real SqlProConUpdateTrace(IdProcess, "Construccion de la serie output");
+Text FunTra    = InfoTransf->FunctionTra;
+Text FunTraInv = InfoTransf->FunctionTraInv;
+
+Code Transf    = If(FunTra == "", TraIdentity, Eval(FunTra)); 
+Code TransfInv = If(FunTraInv == "", TraIdentityInv, Eval(FunTraInv)); 
+
+Set ParamOutDat = SqlOutDatGetParam(Output, Dating);
+
+//Serie OutputOrig = SqlOutGetData(Output);
+
+Set   OutputSet   = SqlNodInfGetOpe(ParamOutDat->Cabecera, 
+                                    ParamOutDat->Producto,
+                                    ParamOutDat->Nodo,
+                                    ParamOutDat->Inicio,
+                                    UnknownDate);
+
+//Provisional hasta que funcione SqlOutDatGetParam modificar IniTmp
+/*
+Set OutputSet = SqlNodInfGetOpe("ELMUNDO", "DIARIO", "CAMCAP", y2000m01d02,
+                                UnknownDate);
+*/
+//SrFiltro.SubOut
+Serie OutputOrig = OutputSet -> Venta;
+PutDescription("Serie de datos original", OutputOrig);
+Serie Output     = If(FunTra == "", OutputOrig, Transf(OuputOrig));
+PutDescription("Serie a estimar. Serie de datos transformados por la funcion
+Transf", Output);
+
+Serie OutputBoxCox = BoxCoxTransf(Output, BoxCox);
+PutDescription("Serie Output con la transformacion BoxCox", Output);
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Fechas de estimacion
+//////////////////////////////////////////////////////////////////////////////
+Real SqlEstUpdateState(EstKey, "Fechas de estimacion");
+Real SqlProConUpdateTrace(IdProcess, "Fechas de estimacion");
+
+Date IniOut    = If(IsUnknownDate(InfoOutDat->IniEst), First(OutputOrig),
+                                                      InfoOutDat->IniEst);
+
+Date IniEstSes = If(IsUnknownDate(InfoEstSes->IniDate), First(OutputOrig),
+                                                        InfoEstSes->IniDate);
+Date EndEstSes = If(IsUnknownDate(InfoEstSes->EndDate), Last(OutputOrig),
+                                                        InfoEstSes->EndDate);    
+
+
+//Date IniEstSes = If(IsEmpty(InfoEstSes), First(OutputOrig), UnknownDate); 
+Date EndOut    = If(IsUnknownDate(InfoOutDat->EndEst), Last(OutputOrig), 
+                                                       InfoOutDat->EndEst);
+//Date EndEstSes = If(IsEmpty(InfoEstSes), Last(OutputOrig), UnknownDate);  
+Date IniEstim = Max(IniOut, IniEstSes);
+Date EndEstim = Min(EndOut, EndEstSes);
+
+Real DegARIMA =
+{
+  Polyn aR  = BinGroup("*", Traspose(ARIMA)[2]);
+  Polyn mA  = BinGroup("*", Traspose(ARIMA)[3]);
+  Polyn dif = BinGroup("*", Traspose(ARIMA)[4]);
+  Degree(aR * mA * dif)
+};
+Date IniInput = Succ(IniEstim, Eval(Dating +";"), -(DegARIMA+7));
+
+Text WriteLn("IniOut:    "<<IniOut);
+Text WriteLn("IniEstSes: "<<IniEstSes);
+Text WriteLn("EndOut:    "<<EndOut);
+Text WriteLn("EndEstSes: "<<EndEstSes);
+Text WriteLn("IniEstim:  "<<IniEstim);
+Text WriteLn("EndEstim:  "<<EndEstim);
+Text WriteLn("IniInput:  "<<IniInput);
+  
+
+//////////////////////////////////////////////////////////////////////////////
+// Session Inicial
+//////////////////////////////////////////////////////////////////////////////
+Real Able2Agg = EstSessionIni != "";
+PutDescription("Indica si en la estimacion en curso se puede agregar.",
+Able2Agg);
+
+Real EstSetInpEffIsSaved = If(Not(Able2Agg), Copy(FALSE),
+SqlEstSetInpEffIsSaved(EstSessionIni, Output, Dating));
+Set  SetInpEff.SesIni    = If(Not(EstSetInpEffIsSaved), Empty,
+SqlEstSetInpEffGetSeries(EstSessionIni, Output, Dating, IniInput, EndEstim));
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Efectos Verano de la sesion inicial
+//////////////////////////////////////////////////////////////////////////////
+Set SEffVerSesIni   = Select(SetInpEff.SesIni, Real(Serie sr)
+{ Or(TextMatch(Name(sr), "*Verano*"), TextMatch(Name(sr), "*CicVer*")) });
+Serie SrEffAgrVer   = If(!Card(SEffVerSesIni), 
+                          CalInd(W,Dating(OutputOrig)), SetSum(SEffVerSesIni));
+Serie OutputFiltVer = IfSer(Not(OutputOrig), OutputOrig,
+                            OutputOrig << Exp(OutputBoxCox - SrEffAgrVer));
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Carga de los conjuntos de inputs
+// * El conjunto CalcSetInput sustituye a las inclusiones que aparecen
+// arriba
+//////////////////////////////////////////////////////////////////////////////
+Real SqlEstUpdateState(EstKey, "Construccion de inputs para el output");
+Real SqlProConUpdateTrace(IdProcess,
+                          "Construccion de inputs para el output");
+
+Set OutputSetInput = SqlOutSetInpGetSetInput(Output, Dating);
+
+
+Real SqlEstUpdateState(EstKey, "Guardando en EstimationSetInput");
+Real EstSetInpSave = SqlEstSetInpSave(EstKey);
+
+
+
+Real SqlEstUpdateState(EstKey, "Calculando los inputs");
+
+Set CalcSetInput   = EvalSet(OutputSetInput, Text(Set s)
+{
+  Text nameSet = s->SetInput;
+  Text exprInp = SqlSetInpCalculation(nameSet);
+  Text WriteLn("trace: "+ exprInp);
+  //"WriteLn("+ Quotes + ToUpper(nameSet) +"..."+ Quotes +");\n"+
+   exprInp
+});
+
+Real EmptyCalcSetInput = IsEmpty(CalcSetInput);
+//Text CreaInpTxt = BinGroup("+", CalcSetInput);
+
+Text CreaInpTxt = If(EmptyCalcSetInput, "",
+                     BinGroup("+", CalcSetInput));
+
+//Set  CreaInp  = IncludeText(CreaInpTxt);
+
+Set  CreaInp    = If(EmptyCalcSetInput, Empty,
+		     IncludeText(CreaInpTxt));
+
+
+Set InfoSetInput = EvalSet(OutputSetInput, Set(Set s)
+{
+  Text  nameSet        = s->SetInput;
+  Set   sSetInpRecur   = SqlSetInpGetSISonRecur(nameSet);
+  Text  agreg          = s->AggregationType;
+  Text  agregEst       = If(And(agreg != "NOT", Able2Agg), agreg,
+  {
+    If(Able2Agg,
+       WriteLn("WARNING: No se puede agregar el conjunto "+ nameSet +". "+
+               "No hay sesion de estimacion inicial definida."));
+    "NOT"
+  });
+
+  Set   sInputDB       = SqlInpGetInput(Traspose(sSetInpRecur)[1]);
+  Set   sInputDef      = InputDB2InputDef(sInputDB, Dating);
+  Set   sInfo = SetOfAnything(nameSet, sInputDef, sInputDB, agregEst);
+  Eval("Set sInfo"+ nameSet +" = sInfo;")
+});
+
+  
+//Set Input = If(IsEmpty(OutputSetInput), Empty, 
+  //             BinGroup("<<",  Traspose(InfoSetInput)[2]));
+
+Set InputDB = If(IsEmpty(OutputSetInput), Empty, 
+{
+  Set infoSetInput.T = Traspose(InfoSetInput);
+  Set infoSetInput.WAgg = For(1, Card(infoSetInput.T[3]), Set(Real n)
+  {
+    EvalSet(infoSetInput.T[3][n], Set(Set sInp)
+    { PutStructure("InputDBAggSt", SetOfText(infoSetInput.T[4][n])<<sInp) })
+  });
+  BinGroup("<<",  infoSetInput.WAgg)
+}));
+
+// Conjunto de inputs a estimar (sin contar los agregados)
+Set SetInput.Est = Select(InfoSetInput, Real(Set s) { s[4] == "NOT" });
+
+
+Set Input.NotAgg.PolDB = If(IsEmpty(SetInput.Est), Empty, 
+                            BinGroup("<<",  Traspose(SetInput.Est)[2]));
+Set Input.NotAgg = If(IsEmpty(Input.NotAgg.PolDB), Empty,
+If(Not(Able2Agg), Input.NotAgg.PolDB,
+EvalSet(Input.NotAgg.PolDB, Set(Set s)
+{
+  Polyn polDB  = s->Omega;
+  Polyn polEst = SqlEstInpGetEstimatedPolyn(EstSessionIni, Output,
+                                            Dating, Name(s->X));
+  Polyn polIni = If(IsUnknownPolyn(polEst), polDB,
+  If(EQ(Degree(polDB), Degree(polEst)), polEst,
+  {
+    WriteLn("ERROR: \n"+
+            "Polinomio inicial en la BBDD con distinto grado del estimado!"+
+            "Cogiendo polinomio inicial de la tabla Input de la BBDD.");
+    polDB
+  }));
+  InputDef(polIni, s->X)
+})));
+
+// Conjunto de inputs a restar del output en la estimacion
+Set SetInput.Out = Select(InfoSetInput, Real(Set s) { s[4] == "OUT" });
+Serie SrFiltro.SubOut = If(Or(Not(Able2Agg), IsEmpty(SetInput.Out)),
+CalInd(W, Eval(Dating+";")), 
+SetSum(EvalSet(SetInput.Out, Serie(Set s)
+{
+ Eval("Serie "+SqlEstSetInpEffNameSrAgg(EstSessionIni,Output,Dating,s[1])+";")
+//Eval("Serie "+ EstSessionIni +"."+ Output +"."+ Dating +"."+ s[1] +";")
+})));
+
+// Conjunto de inputs a estimar como agregados
+Set SetInput.Set = Select(InfoSetInput, Real(Set s) { s[4] == "SET" });
+Set Input.SetInp = If(Or(Not(Able2Agg), IsEmpty(SetInput.Set)), Empty, 
+EvalSet(SetInput.Set, Set(Set s)
+{
+  Eval("Serie "+ s[1] +
+  " = "+ SqlEstSetInpEffNameSrAgg(EstSessionIni,Output,Dating,s[1]) +";");
+  Eval("InputDef(1, "+ s[1] +");")
+}));
+
+// Conjunto de inputs a estimar como agregados en una sola serie
+Set SetInput.Fil = Select(InfoSetInput, Real(Set s) { s[4] == "FIL" });
+Serie SrFiltro.Input = If(Or(Not(Able2Agg), IsEmpty(SetInput.Fil)),
+CalInd(W, Eval(Dating+";")), 
+SetSum(EvalSet(SetInput.Fil, Serie(Set s)
+{
+ Eval("Serie "+SqlEstSetInpEffNameSrAgg(EstSessionIni,Output,Dating,s[1])+";")
+})));
+Set Input.Fil = If(Or(Not(Able2Agg), IsEmpty(SetInput.Fil)), Empty,
+SetOfSet(InputDef(1, SrFiltro.Input)));
+
+Set Input = Input.NotAgg << Input.SetInp << Input.Fil;
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Estimacion del Modelo
+//////////////////////////////////////////////////////////////////////////////
+Serie Output.Filt = Output - SrFiltro.SubOut;
+PutDescription("Serie Output menos posibles conjuntos de input agregados",
+Output);
+
+Set AprioriSet = Empty;
+
+Real SqlEstUpdateState(EstKey, "Estimando modelo ...");
+Real SqlProConUpdateTrace(IdProcess, "Estimando modelo ...");
+
+Set ModDefEst = EstimModel
+(
+Output,
+TimeSetOmit,
+ARIMA,
+BoxCox,
+Input,
+SrFiltro.SubOut,
+IniEstim,
+EndEstim,
+AprioriSet
+);
+
+Set ModDef = ModDefEst[1];
+Set ModEst = ModDefEst[2];
+Set StdRes = ModDefEst[3];
+Set InputNull = ModDefEst[4];
+Real SqlEstUpdateState(EstKey, "Finalizacion de la estimacion del modelo");
+Real SqlProConUpdateTrace(IdProcess,
+                          "Finalizacion de la estimacion del modelo");
+
+
+If(GT(Card(InputNull), 0),
+WriteLn("WARNING: "+
+        "Hay inputs que no han entrado en la estimacion!!!\n"<< InputNull));
+
+//////////////////////////////////////////////////////////////////////////////
+// Comprobacion de los resultados de la estimacion
+//////////////////////////////////////////////////////////////////////////////
+Real DesTipEst = If(ObjectExist("Set", "ModEst"),
+                    If(IsEmpty(ModEst), ?, ModEst[1][8]),
+                    ?);
+Real EstOK = Not(IsUnknown(DesTipEst));
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Grabacion de los resultados en la Base de Datos
+//////////////////////////////////////////////////////////////////////////////
+Real SqlEstUpdateState(EstKey, "Volcado a la base de datos");
+Real SqlProConUpdateTrace(IdProcess, "Volcado a la base de datos");
+
+Real CtrSav = If(And(EstOK, SqlSavEst),
+SqlSaveEstimation(Output, ModEst, EstKey, InputDB),
+{
+  Text txt = If(Not(EstOK), "Error en la estimacion", "Variable SqlSavEst");
+  WriteLn("WARNING: No se guardan los resultados en la BD. "+ txt +".");
+  FALSE
+});
+
+WriteLn("WARNING: Guardando en estimation con CtrSav TRUE. "+
+        "Revisar la funcion SqlSaveEstimation");
+//Set  InfoEndEst = SqlEstBuildInfo(InfoOutDat, ModEst,OutputSetInput,CtrSav);
+Set  InfoEndEst = SqlEstBuildInfo(InfoOutDat, ModEst, OutputSetInput, TRUE);
+Real CtrEnd = SqlEstEnd(EstKey, InfoEndEst);
+Real ActEnd = SqlProConUpdateTraActExe(IdProcess, "Output estimado", "Y");
+Real Exit = SqlProConUpdateTraAct(IdProcess, "Proceso finalizado", "N");
+
+

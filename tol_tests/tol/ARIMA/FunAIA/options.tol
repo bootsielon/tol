@@ -1,0 +1,25 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : options.tol
+// PURPOSE: options to configurate AIA execution
+//////////////////////////////////////////////////////////////////////////////
+
+Set Aia.OptionsDef = Aia.OptionsInfo
+(
+  Set  SetOfRation //outlierShapes
+  (
+    StepOut,                      
+    PulseOut
+  ), 
+  Real { optMaxOrder                    =      2 },
+  Real { optMaxCrossNum                 =     30 },
+  Real { optMinNonZeroParamProb         =    .9995 },
+  Real { optMaxEigenValueRelativeRange  =    100 },
+  Real { minimumOutputLength            =     10 }, 
+  Real { preestimIter                   =     10 },        
+  Set  { arimaDef = SetOfSet // Modelos ARIMA tentativos
+  (
+    SetOfSet(ARIMAStruct(1, 1-0.5*B, 1,       1  )),
+    SetOfSet(ARIMAStruct(1, 1,       1-0.7*B, 1-B)),
+    SetOfSet(ARIMAStruct(1, 1-0.5*B, 1,       1-B))
+  )}
+);

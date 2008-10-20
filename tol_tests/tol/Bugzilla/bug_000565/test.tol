@@ -1,0 +1,84 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary and you e-mail
+  Real bugNum_ = 565;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Error in RSS calculus in LinReg  function";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Simulated data y = alfa+beta X+e
+  ////////////////////////////////////////////////////////////////////////////
+
+  Real n=50;  //lenght of the simulated sample
+  Real alfa=1;
+  Real beta=2;
+  Real Sigma=0.5;
+  Matrix X1 = SetCol(NCopy(n, 1));
+  Matrix X2 = Rand(n,1,0,1);
+  Matrix X =X1|X2; //explanatory Matrix
+  Matrix Y  = RProd(X1, alfa)+RProd(X2, beta)
+             + Gaussian(n, 1, 0, Sigma); //response Matrix
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Using LinReg RSS (residual square sum )
+  ////////////////////////////////////////////////////////////////////////////
+  Set  Resp1=LinReg(Y,X);
+/* */
+  ////////////////////////////////////////////////////////////////////////////
+  // Using Estimate is fine!
+  ////////////////////////////////////////////////////////////////////////////
+
+  Serie Yr = SetSer(MatSet(Y),y2005m02,Mensual);
+  Serie Const = CalInd(C,Mensual);
+  Serie Xr = SetSer(MatSet(X2),y2005m02,Mensual);
+  Set Input_1 = SetOfSet(
+    InputDef(0.1, Const),
+    InputDef(0.1, Xr)
+  );
+  Set modelDef = ModelDef(
+   Yr,           //Serie Output,
+   1,            //Real  FstTransfor,
+   0,            //Real  SndTransfor,
+   12,           //Real  Period,
+   0,            //Real  Constant,
+   1,            //Polyn Dif,
+   SetOfPolyn(1,1),   //Set   AR,
+   SetOfPolyn(1,1),   //Set   MA,
+   Input_1,      //Set   Input,
+   Copy(Empty)   //Set   NonLinInput
+  );
+  Set Resp2 = Estimate(modelDef);
+
+  Real RSS1 = Resp1::Information::RSS;
+  Real RSS2 = Resp2::Information::RSS;
+  Real fSnd = Max(RSS1 / RSS2, RSS2 / RSS1);
+  Real p = 2*DistF(fSnd,n-1,n-1)-1;
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1,
+    RSS1, RSS2, fSnd, p
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0)*(1-p);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */

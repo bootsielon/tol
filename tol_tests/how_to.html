@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.2  (Win32)">
+	<META NAME="AUTHOR" CONTENT="V&iacute;ctor de Buen Remiro">
+	<META NAME="CREATED" CONTENT="20070702;14482265">
+	<META NAME="CHANGEDBY" CONTENT="V&iacute;ctor de Buen Remiro">
+	<META NAME="CHANGED" CONTENT="20070702;16463998">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { size: 21cm 29.7cm; margin: 2cm }
+		P { margin-bottom: 0.21cm }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="es-ES" DIR="LTR">
+<H1>TOL TESTS</H1>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm">En esta p&aacute;gina se
+explica c&oacute;mo se ejecutan y se comprueban los tests de la
+bater&iacute;a est&aacute;ndar de chequeo de versiones de TOL, para
+que quede constancia y por si alg&uacute;n desarrollador a&uacute;n
+no domina este tema, pues es muy importante pasarlos siempre que se
+suban cambios al CVS para una nueva release, tanto del head como de
+la versi&oacute;n oficial.</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm">El primer paso es obviamente
+	bajarse del cvs el repositorio tol_tests correspondiente a la rama
+	de tol a evaluar (head, 1.1.5 o lo que toque). Dentro de ese
+	directorio hay un subdirectorio para cada programa o aplicaci&oacute;n
+	a chequear, tol, toltcl, etc.; los cuales contienen a su vez
+	paquetes de tests organizados en una estructura de directorios de
+	profundidad arbitraria. Cualquier fichero de nombre test.tol dentro
+	de esa jerarqu&iacute;a ser&aacute; considerado como un test. Los
+	paquetes se agrupan virtualmente en bater&iacute;as independientes
+	de paquetes tests que se ejecutan secuencialmente mediante archivos
+	tol de definici&oacute;n de bater&iacute;as. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Si el tol que queremos probar est&aacute;
+	ubicado en <FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">&lt;release_path&gt;</FONT></FONT>
+	la orden gen&eacute;rica para correr una bater&iacute;a de tests de
+	tol definida en un fichero <FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">&lt;batery_path_name&gt;</FONT></FONT><FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">.tol</FONT></FONT>;
+	entonces debemos correr la orden <FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">&lt;release_path&gt;</FONT></FONT><FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">/tol&quot;
+	-v </FONT></FONT><FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">&lt;batery_path_name&gt;</FONT></FONT><FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">.tol</FONT></FONT>
+		</P>
+	<LI><P>Las bater&iacute;as disponibles actualmente son 
+	</P>
+	<OL>
+		<LI><P STYLE="margin-bottom: 0cm"><FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">tol_tests/tol/_tolTester.tol</FONT></FONT>
+		: bater&iacute;a de los paquetes de tests obligatorios que deben
+		pasarse sin errores forzosamente. Ubic&aacute;ndose en <FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">tol_tests/</FONT></FONT>
+		se debe ejecutar la orden 
+		</P>
+		<P STYLE="margin-bottom: 0cm"><FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">&lt;release_path&gt;</FONT></FONT><FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">/tol&quot;
+		-v tol/_tolTester.tol</FONT></FONT> &nbsp; 
+		</P>
+		<LI><P STYLE="margin-bottom: 0cm"><FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">tol_tests/tol/_tolTester.tol</FONT></FONT>
+		: bater&iacute;a de los paquetes de tests que ocasionalmente dan
+		errores conocidos pero a&uacute;n sin arreglar. Si se dan errores
+		se puede continuar pero hay que comunicarlo al grupo TDT para que
+		el autor del test lo revise. Ubic&aacute;ndose en <FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">tol_tests/</FONT></FONT>
+		se debe ejecutar la orden 
+		</P>
+		<P STYLE="margin-bottom: 0cm"><FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">&lt;release_path&gt;</FONT></FONT><FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">/tol&quot;
+		-v tol/_tolTester_knownbugs.tol</FONT></FONT> 
+		</P>
+	</OL>
+	<LI><P>Durante la ejecuci&oacute;n de la bater&iacute;a por la
+	consola se da tan s&oacute;lo una l&iacute;nea por test ejecutado
+	con el grado de calidad (<FONT COLOR="#993300"><FONT FACE="courier new, monospace">Quality</FONT></FONT>)
+	en porcentaje y el tiempo empleado. Cuando <FONT COLOR="#993300"><FONT FACE="courier new, monospace">Quality=0%</FONT></FONT>
+	se ha producido un error. Cuando <FONT COLOR="#993300"><FONT FACE="courier new, monospace">Quality=100%
+	</FONT></FONT>es que todo haya funcionado perfectamente pero a veces
+	los resultados no son deterministas sino que tienen componentes
+	aleatorios por lo que la calidad no tien porqu&eacute; ser el 100% a
+	pesar de haber funcionado todo bien. Los resultados de calidad baja
+	pero positiva dan lugar a warnings y es conveniente avisar al autor
+	del test. lo mismo que si hay errores que no sepa uno a qu&eacute;
+	se pueden deber. Por ejemplo este es un ejemplo de salida en windows
+	donde se ha dado un error 
+	</P>
+	<PRE>        <FONT COLOR="#993300"><FONT FACE="courier new, monospace">BuildTOL_WIN32_1.1.5\tol_tests&gt;&quot;..\ActiveTOL\bin\tol.exe&quot; -v tol/_tolTester.tol</FONT></FONT> 
+<FONT COLOR="#993300">        <FONT FACE="courier new, monospace">Initializing</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">TOL OIS: versi&oacute;n implementada: 02.03</FONT></FONT> 
+<FONT COLOR="#993300">        <FONT FACE="courier new, monospace">Cargando la libreria estandar de TOL</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">C:/projects-c++/bayes/BuildTOL_WIN32_1.1.5/ActiveTOL/bin/initlibrary/_inittol.tol</FONT></FONT>        
+<FONT COLOR="#993300">        <FONT FACE="courier new, monospace">OIS:</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">Cargando el m&oacute;dulo InitLibrary::_lib.tol</FONT></FONT> <FONT COLOR="#993300"><FONT FACE="courier new, monospace">Ha</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">sido incluido el fichero</FONT></FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">BuildTOL_WIN32_1.1.5/ActiveTOL/bin/initlibrary/_inittol.tol [0.391</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">sec.]</FONT></FONT>
+<FONT COLOR="#993300">        El </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">fichero de volcado de salida se ubica en</FONT></FONT> <FONT COLOR="#993300"><FONT FACE="courier new, monospace">G:/Documents</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">and Settings/vdebuen/Datos de</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">programa/tol/tests_results/test_current.log</FONT></FONT> 
+<FONT COLOR="#993300">        <FONT COLOR="#993300"><FONT FACE="courier new, monospace">Version </FONT></FONT><FONT FACE="courier new, monospace">de TOL : v1.1.5 b.13 2007-07-02 10:28:28 i686-win</FONT></FONT>
+        <FONT COLOR="#993300"><FONT FACE="courier new, monospace">Sistema</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">operativo : WINDOWS</FONT></FONT> <FONT COLOR="#993300"><FONT FACE="courier new, monospace">Compilador</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">: MSVC_1400</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">ReportTester of battery Bugzilla(1 times)</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">Running test Bugzilla/bug_000001 iteration 1 of 1 ... Quality= 100.00% in</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">0.140 seconds</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">Running test Bugzilla/bug_000002 iteration 1 of 1 ... Quality=  70.00%</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">in 0.031 seconds</FONT></FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">Running test Bugzilla/bug_000003 iteration 1 of 1 ... Quality=  20.00%</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">in 0.141 seconds</FONT></FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">Running test Bugzilla/bug_000004 iteration 1 of 1 ... Quality= </FONT></FONT><FONT COLOR="#993300">  </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">0.00% in 0.204 seconds</FONT></FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">Running test Bugzilla/bug_000005 iteration 1 of 1 ...</FONT></FONT> 
+        </PRE><P>
+	La &uacute;ltima l&iacute;nea acabada en puntos suspensivos indica
+	que el test est&aacute; en ejecuci&oacute;n. Al final de cada
+	paquete se da un resumen parcial de los resultados del mismo que
+	ofrece este aspecto 
+	</P>
+	<PRE>        <FONT COLOR="#993300"><FONT FACE="courier new, monospace">Statistics</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">for tests battery [TestVolumeMedium/ARIMA/FunEstimate(5 times)]</FONT></FONT>        <FONT COLOR="#993300"> </FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">tests number = 5</FONT></FONT> <FONT COLOR="#993300"> </FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">minQuality   = 100.00%</FONT></FONT> <FONT COLOR="#993300"> </FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgQuality   = 100.00%</FONT></FONT> <FONT COLOR="#993300"> </FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">unkQuality   = 0.00%</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgErrors</FONT></FONT><FONT COLOR="#993300">    </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">= 0.000000</FONT></FONT> <FONT COLOR="#993300"> </FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgWarnings  = 1.200000</FONT></FONT> <FONT COLOR="#993300"> </FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgObjects   = 2900.800000</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgSeconds</FONT></FONT><FONT COLOR="#993300">   </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">= 4.772000</FONT></FONT> </PRE><P>
+	Al final de la bater&iacute;a se da elresumen total. 
+	</P>
+	<PRE>        <FONT COLOR="#cc6600"><FONT FACE="courier new, monospace">Statistics</FONT></FONT><FONT COLOR="#cc6600"> </FONT><FONT COLOR="#cc6600"><FONT FACE="courier new, monospace">for tests battery [ALL MERGED]</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">tests</FONT></FONT><FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">number = 25</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">minQuality   = 78.61%</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgQuality</FONT></FONT><FONT COLOR="#993300">   </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">= 97.97%</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">unkQuality</FONT></FONT><FONT COLOR="#993300">   </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">= 100.00%</FONT></FONT> <FONT COLOR="#993300"> </FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgErrors    = 0.000000</FONT></FONT> <FONT COLOR="#993300"> </FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgWarnings  = 2.880000</FONT></FONT> <FONT COLOR="#993300"> </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgObjects</FONT></FONT>
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgObjects   = -1127.280000</FONT></FONT> 
+<FONT COLOR="#993300">        </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">avgSeconds</FONT></FONT><FONT COLOR="#993300">   </FONT><FONT COLOR="#993300"><FONT FACE="courier new, monospace">= 10.208920</FONT></FONT>     </PRE><P STYLE="margin-bottom: 0cm">
+	En ambos casos el principal dato es que se cumpla <FONT COLOR="#993300"><FONT FACE="courier new, monospace">minQuality
+	&gt; 0</FONT></FONT></P>
+	<LI><P>Al final de la ejecuci&oacute;n se pueden ver los resultados
+	y los logs de los tests realizados en el directorio 
+	</P>
+	<P><FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">&lt;TOL_APP_DATA_HOME&gt;</FONT></FONT><FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">/tests_results/</FONT></FONT><FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">test_YYYY_MM_DD_HH_MM</FONT></FONT>
+		</P>
+	<P>donde <FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">&lt;APP_DATA_HOME&gt;
+	</FONT></FONT>es en windows: <FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">%APPDATA%/tol</FONT></FONT><FONT COLOR="#ff0000">
+	</FONT>y en linux: <FONT COLOR="#3333ff"><FONT FACE="courier new, monospace">$HOME/.tol</FONT></FONT>
+	y <FONT COLOR="#ff0000"><FONT FACE="courier new, monospace">YYYY_MM_DD_HH_MM</FONT></FONT>
+	se refiere a la fecha y la hora hasta el minuto de comienzo de la
+	sesi&oacute;n de chequeo. Dentro de ese directorio habr&aacute; un
+	directorio para cada paquete de tests por el que se puede navegar
+	para encontrar los diferentes informes y ficheros de logs. 
+	</P>
+	<LI><P>Si se quiere ejecutar un test concreto para el que se ha
+	visto un problema s&oacute;lo es necesario compilar el fichero con
+	el &uacute;nico requisito de cargar previamente la initlibrary (o
+	stdlib), y da lo mismo hacerlo con tol o con tolbase, a no ser que
+	se trate de un test de tcl.</P>
+</OL>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>

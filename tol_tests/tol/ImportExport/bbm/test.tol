@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for BBM backward compatibility
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real
+  {
+    Matrix A = Rand(2,3,-20,20);
+    Text PutRealFormat("%.15lf");
+    Matrix B = MatWriteFile("B.bbm", A);
+    Set BMTFile([[A]],"A.bmt");
+    1
+  };
+
+/* */
+  Matrix A_ = Include("A.bmt")[1];
+  Matrix B_ = MatReadFile("B.bbm");
+  Matrix C_ = MatAppendFile("B.bbm",A_*2);
+  Matrix D_ = A_ << (A_*2);
+  Matrix E_ = MatReadFile("B.bbm");
+  Write("\nB=\n"<<B); 
+  Write("\nD=\n"<<D_); 
+
+  Real OSFilRemove("A.bmt");
+  Real OSFilRemove("B.bbm");
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real dif_1 = MatMax(Abs(A_-B_));
+    Real ok_1  = dif_1<=1.E-15;
+    Real dif_2 = MatMax(Abs(D_-E_));
+    Real ok_2  = dif_2<=1.E-15
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok_1, ok_2);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */

@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Text PutRealFormat("%.15g");
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 222;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "About NIntegrate function...";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//for bug 222
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Real FD(Real x){DensNormal(x)};
+  Real desde = -100.96;
+  Real hasta = 1000.96;
+  Real tolerance = 1.E-13;
+
+//for bug 223
+  Real fun (Real x) {Real x+1}; 
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real result_222_1 = IntegrateQAG(FD, desde, hasta, tolerance),
+    Real result_222_2 = NIntegrate(FD, desde, hasta, tolerance),
+    Real dif_222_1 = Abs(result_222_1-1),
+    Real dif_222_2 = Abs(result_222_2-1),
+    Real result_223 = IntegrateQAG(fun, 0, 1)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    NError   == numErr0, 
+    NWarning == numWar0, 
+    result_222_1 == result_222_2,
+    dif_222_1<=tolerance,
+    result_223 == 1.5
+  );
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

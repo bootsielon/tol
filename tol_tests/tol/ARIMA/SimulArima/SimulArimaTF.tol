@@ -1,0 +1,88 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : SimulArimaTF.tol
+// PURPOSE : Simulador de modelos ARIMA con función de transferencia e 
+//           interrupciones por generación aleatoria.
+//           Tests de calidad de los modelos estimados con la función 
+//           Estimate.
+//////////////////////////////////////////////////////////////////////////////
+
+//Set If(ObjectExist("Serie","Noise"),Empty, Include("SimulArima.tol"));
+
+//////////////////////////////////////////////////////////////////////////////
+// Generación aleatoria de las interrupciones de la serie output
+//////////////////////////////////////////////////////////////////////////////
+Set InterruptionsCalc =
+[[
+  Real max = Min(MaxInterruptions,(N-d)*1/7);
+  Serie Rand01C = SubSer(Rand(0,1,C),ini,fin);
+  Real InterruptionLevel =  Round(Rand(0,max^(1/2))^2)/N;
+  Serie Rand01CIntLev = LT(Rand01C,InterruptionLevel);
+  Serie NoiseInt = IfSer(Rand01CIntLev,?,0*Noise);
+  Serie ARINoiseInt = SubSer(NoiseInt,ini,fin);
+  Serie NoiseZero = Noise*0;
+  Serie InterruptedNoise = Noise+NoiseInt;
+  Real I=SumS(IsUnknown(InterruptedNoise))
+]];
+
+//////////////////////////////////////////////////////////////////////////////
+//Generación aleatoria de los inputs
+//////////////////////////////////////////////////////////////////////////////
+Set InputsCalc = 
+[[
+  Set AIAOptions = [["Pulse","Compens","Step"]];
+  Date iniFilter = Succ(ini, C, -d-p-1);
+  Serie SubIniFilter(Serie s) { SubSer(s,iniFilter,fin) };
+  Real NumInputs=
+  {
+    Real max    = Min(MaxInputs,(N-I-d)/7-4);
+    Real noARMA = EQ(p1+q1+p2+q2,0);
+    Real ninp = Max(noARMA,Round(Rand(0,max^(1/2))^2));
+    WriteLn("\nFiltro aleatorio ("+IntText(ninp)+") : \n");
+    ninp
+  };
+  Set V = If(NumInputs==0,Copy(Empty),
+  IncludeText(SetSum(For(1,NumInputs,Text(Real k)
+  {
+    Real VPos = DateDif(C,ini,fin)*0.1;
+    Text K = IntText(k);
+    Real h = Floor((VPos*k)/NumInputs);
+    Date iniK = Succ(fin,C,-h);
+    Text txt =
+      "Serie V"+K+" = (Real Sign(Rand(-1,1))*Rand(3,15)*Sigma)*"
+      "SubIniFilter("+AIAOptions[IntRand(1,Card(AIAOptions))]+
+      "("<<iniK+", Diario));";
+    WriteLn(txt);
+    txt
+  }))));
+  Serie Zero = CalInd(W,Diario);
+  Set Input = If(NumInputs==0,Empty,For(1,NumInputs,Set(Real k) 
+  { 
+    InputDef(k/NumInputs,V[k]) 
+  }));
+  Serie Filter = If(NumInputs==0,Zero, GroupInputs(Input))
+]];
+
+//Número de variables
+Real n = NumInputs+p1+q1+p2+q2;
+//Grados de libertad
+Real freedomDegree = N-I-d-n;
+//Serie output sin interrupciones
+Serie OutputFull = Noise+Filter;
+//Serie output con interrupciones
+Serie Output     = InterruptedNoise+Filter;
+
+WriteLn("Periodicidad       = "+IntText(period));
+WriteLn("Numero de datos    = "+IntText(N));
+WriteLn("Interrupciones     ~ "+IntText(I));
+WriteLn("Numero de inputs   = "+IntText(NumInputs));
+WriteLn("Variables          ~ "+IntText(n));
+WriteLn("Grados de libertad ~ "+IntText(freedomDegree));
+
+WriteLn("\nLongitud de los residuos iniciales de la simulación : "+
+        IntText(initLength));
+WriteLn(Trace(stdResiduals));
+WriteLn(Trace(stdDifNoise ));
+
+WriteLn("Fin de la simulación ARIMA : "+Time);
+
+

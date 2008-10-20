@@ -1,0 +1,78 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 130;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "DatCh() can lose the initial period";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  // When the First(s) of s is in the middle of a period of TimeSet t
+  // DatCh(s, t, StatisticFunction) lose the initial value.
+  // Check if is this the behaviour that we want for DatCh() but
+  // there is a difference bewteen new TOL and old TOL
+  Serie con002 = CalInd(C,C)*2; // Infinite serie constant value 2
+  // Finite from 4/16 to 6/15
+  Serie aprjun = SubSer(con002, y2004m04d16, y2004m06d15);
+  // Finite from 8/16 to 9/15
+  Serie augsep = SubSer(con002, y2004m08d16, y2004m09d15);
+  // Finite with unknown values in all july and first days of august
+  Serie aprsep = aprjun >> augsep;
+  // Change the timeset
+  Serie mthSer = DatCh(aprsep, Monthly, AvrS);
+  Set view = EvalSet(Dates(Monthly, y2004m4, y2004m9), Real(Date dte)
+  {
+    Text WriteLn(FormatDate(dte,"%c%Y/%m")+" "+
+                 FormatReal(SerDat(mthSer,dte), "%.0lf"));
+    TRUE
+  });
+  Text WriteLn("the serie began at "+FormatDate(First(mthSer),"%c%Y/%m"));
+  
+  /* Old TOL trace:
+  // TOL (Lenguaje Orientado al Tiempo) Versión 2.0.1999.12.03 para WINDOWS
+  ...
+  TOL ha sido inicializado
+  Tiempo de carga : 0:00:02
+  2004/04 2                        ! April HAS its value
+  2004/05 2
+  2004/06 2
+  2004/07 ?                        ! correct in both TOLs
+  2004/08 2
+  2004/09 2
+  the serie began at 2004/04
+  Ha sido incluído el fichero E:/sw/tol/bugs/error200408-130.tol
+  */
+  
+  
+  /* CVS TOL trace:
+  2004/04 ?                         ! April HAS NOT its value
+  2004/05 2
+  2004/06 2
+  2004/07 ?                         ! correct in both TOLs
+  2004/08 2
+  2004/09 2
+  the serie began at 2004/05
+  Included file E:/sw/tol/bugs/error200408-130.tol
+  */
+  
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real x = SerDat(mthSer,y2004m04d01)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, !IsUnknown(x), x==2);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_

@@ -1,0 +1,56 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 296;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Types nonrecognized in MySql";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+//Write here the initial test TOL code if needed
+  Real numErrIni = Copy(NError);
+  Real numWarIni = Copy(NWarning);
+
+  Write("Checking if therea are active databases ... ");
+  Set  dbConns = DBGetOpened("");
+  Real ok0 = Card(dbConns)>0;
+  WriteLn(If(ok0,"OK","FAIL"));
+
+  Text qry ="
+  select count(*)
+  from
+  (
+    select 'hola' from dual
+  ) t";
+  Set s = DBTable(qry);
+  Real r = s[1][1];
+
+
+  Real numErrorEnd   = Copy(NError);   //Final number of errors
+  Real numWarningEnd = Copy(NWarning); //Final number of warnigs
+
+//Expected number of errors 
+  Real numErrorExpected = If(ok0, numErrIni, numErrIni+4);
+
+ //Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real okErr = numErrorEnd == numErrorExpected,
+    Real okWar = numWarningEnd == numWarIni,
+    Real okInf = If(!ok0,!ObjectExist("Real","r"),Eq(r,1)),
+    Real okQry = And(okErr,okWar,okInf)
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = If(ok0, okQry, If(okQry, ?, false));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

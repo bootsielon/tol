@@ -1,0 +1,105 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary and you e-mail
+  Real bugNum_ = 579;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Error in PutValue for Series";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWarn0 = Copy(NWarning);
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Ejemplo 1
+  //   El comportamiento de la reasignación varía dependiendo
+  //   de si se accede previamente a la serie.
+  //   Supongo que es herencia del TOL Lazy.
+
+  Date fd.a  = y2000;
+  Date ld.a  = y2004;
+  Date fd.b  = y2001;
+  Date ld.b  = y2005;
+  Date pul.a = y2002;
+  Date pul.b = y2003;
+
+  Serie s1 = SubSer(Pulse(pul.a),fd.a,ld.a);
+  Serie s2 = s1;
+  Serie s1 := SubSer(Pulse(pul.b),fd.b,ld.b);
+  WriteLn("\n*** Ejemplo 1 (a) ***");
+  WriteLn("serie  \tfirst    \tlast    \t"<<pul.b+" value:");
+  WriteLn("s1:\t"<<First(s1)<<"\t"<<Last(s1)<<"\t"<<SerDat(s1,pul.b));
+  WriteLn("s2:\t"<<First(s2)<<"\t"<<Last(s2)<<"\t"<<SerDat(s2,pul.b));
+  Set ok.fd.1 =
+  [[
+    Real ok.fd.1.a.1 = First(s1)==fd.b;
+    Real ok.ld.1.a.1 = Last(s1)==ld.b;
+    Real ok.sd.1.a.1 = SerDat(s1,pul.b)==1;
+    Real ok.fd.1.a.2 = First(s2)==fd.a;
+    Real ok.ld.1.a.2 = Last(s2)==ld.a;
+    Real ok.sd.1.a.2 = SerDat(s2,pul.b)==0
+  ]];
+  
+  Serie f1 = SubSer(Pulse(pul.a),fd.a,ld.a);
+  Serie f2 = f1;
+  Real SerDat(f2,pul.a); 
+
+  Serie f1 := SubSer(Pulse(pul.b),fd.b,ld.b);
+  WriteLn("\n*** Ejemplo 1 (b) ***");
+  WriteLn("serie  \tfirst    \tlast    \t"<<pul.b+" value:");
+  WriteLn("f1:\t"<<First(f1)<<"\t"<<Last(f1)<<"\t"<<SerDat(f1,pul.b));
+  WriteLn("f2:\t"<<First(f2)<<"\t"<<Last(f2)<<"\t"<<SerDat(f2,pul.b));
+
+  Set ok.fd.2 =
+  [[
+    Real ok.fd.2.b.1 = First(f1)==fd.b;
+    Real ok.ld.2.b.1 = Last(f1)==ld.b;
+    Real ok.sd.2.b.1 = SerDat(f1,pul.b)==1;
+    Real ok.fd.2.b.2 = First(f2)==fd.a;
+    Real ok.ld.2.b.2 = Last(f2)==ld.a;
+    Real ok.sd.2.b.2 = SerDat(f2,pul.b)==0
+  ]];
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Ejemplo 2
+  //   Vemos hasta qué punto la reasignación no es volver a asignar.
+
+  //   Para evitar que el resultado dependa de cuales son 
+  //   las fechas inicio y final por defecto, fijamos unas.
+  Date PutDefaultDates(y2008,y2009);
+
+  Serie s3 = Pulse(pul.b);
+  WriteLn("\n*** Ejemplo 2 (a) ***");
+  WriteLn("serie  \tfirst    \tlast    \t"<<pul.b+" value:");
+  WriteLn("s3:\t"<<First(s3)<<"\t"<<Last(s3)<<"   \t"<<SerDat(s3,pul.b));
+
+  Serie s3 := Pulse(pul.b);
+  WriteLn("\n*** Ejemplo 2 (b) ***");
+  WriteLn("serie  \tfirst    \tlast    \t"<<pul.b+" value:");
+  WriteLn("s3:\t"<<First(s3)<<"\t"<<Last(s3)<<"\t"<<SerDat(s3,pul.b));
+
+  Real numErr1 = Copy(NError);
+  Real numWarn1 = Copy(NWarning);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1, numWarn0, numWarn1
+  ]] << ok.fd.1 << ok.fd.2;
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0,Group("And", ok.fd.1<<ok.fd.2));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */

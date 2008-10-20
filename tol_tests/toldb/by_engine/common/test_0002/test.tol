@@ -1,0 +1,88 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test of database handling with TOL
+//          requieres an active database connection
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Creates and drops a table with time series";
+
+//Write here the initial test TOL code if needed
+
+  Real numErrIni = Copy(NError); //Initial number of errors
+
+  Write("Checking if therea are active databases ... ");
+  Set  dbConns = DBGetOpened("");
+  Real ok0 = Card(dbConns)>0;
+  WriteLn(If(ok0,"OK","FAIL"));
+       
+  Real execQueryDrop1_1 = DBExecQuery("drop table ser1");
+  Serie ser1 = SubSer(Gaussian(0,1,Diario), y2005m1d1, y2005m12d31);
+  Real createSeriesTable1 = DBCreateSeriesTable("ser1", SetOfSerie(ser1));
+  //--
+  Real execQueryDrop2_1 = DBExecQuery("drop table series");
+  Serie ser2 = SubSer(Gaussian(0,1,Diario), y2005m7d1, y2006m6d30);
+  Real createSeriesTable2 = DBCreateSeriesTable("series", SetOfSerie(ser1,ser2));
+  //--
+  Set setSeries1 = DBSeries("select * from series", Diario, SetOfText("ser1a","ser1b"));
+  //--
+  Text getSer1SQL = "select 'serie1', Date, ser1" +
+                   "  from series" +
+                   " where ser1 IS NOT NULL";
+  Set setSeries2 = DBSeriesColumn(getSer1SQL, Diario);
+  //--
+  Text getSeriesSQL = "select 'ser', Date, ser1, ser2 from series";
+  Set setSeries3 = DBSeriesTable(getSeriesSQL, Diario, SetOfText("Data1", "Data2"));
+  //--
+  Set setSeries4 = DBTable("Select * from series");
+  //--
+  Text getMatrixSQL = "Select ser1, ser2 " +
+                     "  from series "     +
+                     " where ser1 is not NULL and ser2 is not NULL";
+  Matrix mat = DBMatrix(getMatrixSQL);
+  
+  Real execQueryDrop1_2 = DBExecQuery("drop table ser1");
+  Real execQueryDrop2_2 = DBExecQuery("drop table series");
+
+  Real numErrorEnd = Copy(NError); //Final number of errors
+
+//Expected number of errors is numErrIni+3 if no database connection is 
+//active. Else, if a_simple_table not exists execQuery1 will be -1 and an
+//error will be sent.
+  Real numErrorExpected = If(ok0, numErrIni, numErrIni+16)+
+                          2*(execQueryDrop1_1<0)+
+                          2*(execQueryDrop2_1<0);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErrIni, numErrorEnd, numErrorExpected,
+    createSeriesTable1,
+    createSeriesTable2,
+    Real numSer1 = Card(setSeries1), Real ok1 = numSer1==If(!ok0,0,2),
+    Real numSer2 = Card(setSeries2), Real ok2 = numSer2==If(!ok0,0,1),
+    Real numSer3 = Card(setSeries3), Real ok3 = numSer3==If(!ok0,0,1),
+    Real numSer4 = Card(setSeries4), Real ok4 = numSer4==If(!ok0,0,546),
+    Real numRows = Rows(mat),        Real ok5 = numRows==If(!ok0,0,184),   
+    Real numCols = Columns(mat),     Real ok6 = numCols==If(!ok0,0,2),
+    Real okQry   = And(ok1,ok2,ok3,ok4,ok5,
+                       execQueryDrop1_2==0,
+                       execQueryDrop2_2==0)
+  ]];
+
+  Real quality_ = If(ok0, okQry, If(okQry, ?, false));
+
+  Real Dbt.Exists = ObjectExist("Set","Dbt.Connect");
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    If(Dbt.Exists,Dbt.Connect->engine_, ""),
+                    If(Dbt.Exists,Dbt.Connect->host_,   ""),
+                    If(Dbt.Exists,Dbt.Connect->alias_,  ""),
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+
+/* */

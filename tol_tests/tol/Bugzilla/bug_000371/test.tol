@@ -1,0 +1,75 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Set {
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 371;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "export of data of a set-table";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+//Structure to test BSTFile
+  Struct test_struct
+  {
+    Real a_,
+    Real b_
+  };
+  
+  //Rewrites a new file using default header and tabulator "\t" as column 
+  //separator. Last one that has no "\t" but just row separator "\n"  
+  Set BSTFile(
+  [[
+    test_struct(1,2),
+    test_struct(3,4)
+  ]],"test_01.txt","_DEFAULT_HEADER_",1,"\t","\n");
+  
+  //Appends to existing file without header and the same separators
+  Set BSTFile(
+  [[
+    test_struct(5,6),
+    test_struct(7,8)
+  ]],"test_01.txt","",0,"\t","\n");
+  
+  
+  //Time series to test BDTFile and StatFile
+  Serie s1 = SubSer(Gaussian( 0,1,C),y2005,y2005m12d31);
+  Serie s2 = SubSer(Gaussian(10,1,C),y2005,y2005m12d31);
+  Serie s3 = SubSer(Gaussian( 0,1,C),y2006,y2006m12d31);
+  Serie s4 = SubSer(Gaussian(10,1,C),y2006,y2006m12d31);
+  
+  //Rewrites a new file using specific header and ";" as column separator. Last
+  //one that has row separator ";\n"  
+  Set BDTFile([[s1,s2]],"test_02.bdt","C;S_1_3;S_2_4");
+  //Appends to existing file without header and the same separators
+  Set BDTFile([[s3,s4]],"test_02.bdt","",0,";",";\n");
+  
+  //Rewrites a new file using default header and "|" as column separator. Last
+  //one that has row separator "\n"  
+  Set StatFile([[s1,s2]],"test_03.csv","_DEFAULT_HEADER_",1,";","\n");
+  //Appends to existing file without header and the same separators
+  Set StatFile([[s3,s4]],"test_03.csv","",0,";","\n");
+     
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+      Real numErr = Copy(NError)-numErr0
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = numErr==0;
+  Real OSFilRemove("test_01.txt");
+  Real OSFilRemove("test_02.bdt");
+  Real OSFilRemove("test_03.csv");
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+//};

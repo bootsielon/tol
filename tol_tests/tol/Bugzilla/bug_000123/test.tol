@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary 
+  Real bugNum_ = 123;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "More than 2 empty lines at the end of BDT -> infinite loop";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Set s = Include("test.bdt");
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok1 = Card(s)==1,
+    Real ok2 = First(s[1])==y2004m01d12;
+    Real ok3 = Last (s[1])==y2004m08d09;
+    Real ok4 = SerDat(s[1],y2004m01d12)==1;
+    Real ok5 = SerDat(s[1],y2004m08d09)==2;
+    Real ok6 = SumS(s[1]^2)==5
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0==NError, ok1, ok2, ok3, ok4, ok5, ok6);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+

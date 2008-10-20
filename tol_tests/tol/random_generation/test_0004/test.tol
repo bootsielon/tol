@@ -1,0 +1,87 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for random numbers generation
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+   "Test of UniKerDnsEstOptBnw" ;
+
+  Real numErr0 = Copy(NError);
+
+  Real PutRandomSeed(3245324);
+  Real rnd_seed=GetRandomSeed(0);
+  WriteLn("rnd_seed "+IntText(rnd_seed));
+
+  Real   modes = IntRand(10,10);
+  Matrix nu    = Rand(modes,1,-100, +100);
+  Matrix sigma = Rand(modes,1,   1,  +10);
+  Set BMTFile([[nu]],   "nu.bmt");
+  Set BMTFile([[sigma]],"sigma.bmt");
+  Real   N      = 30000;
+  Matrix weight = 
+  {
+    Matrix aux = Rand(1, modes, 100, 1000);
+    Tra(aux) * (1/MatSum(aux))
+  };
+  Matrix Nmode = Tra(RandMultinomial(1, N, Tra(weight)));
+
+  Real Dens(Real x)
+  {
+    SetSum(For(1,modes,Real(Real k)
+    {
+      MatDat(weight,k,1)*DensNormal(x,MatDat(nu,k,1),MatDat(sigma,k,1))
+    }))
+  };
+
+  Matrix X = Group("ConcatRows",For(1,modes,Matrix(Real k)
+  {
+    Gaussian(MatDat(Nmode,k,1),1,MatDat(nu,k,1),MatDat(sigma,k,1))
+  }));
+  Set BMTFile([[X]],   "X.bmt");
+
+  Matrix F     = Frequency(X,100);
+  Real   parts = 1000;
+  Real   step  = (MatDat(F,100,1)-MatDat(F,1,1))/parts;
+  Set    r     = Range(MatDat(F,1,1), MatDat(F,100,1), step);
+  Matrix T     = Tra(SetMat([[r]]));
+  Real   t0    = Copy(Time);
+  Matrix KD    = UniKerDnsEstOptBnw(X,T,0,2,1.E-3);
+  Real   tm    = Copy(Time)-t0;
+  WriteLn("Time for UniKerDnsEstOptBnw "<<tm+" / "+IntText(N)+"="<<(tm/N));
+  Matrix D     = SetMat(For(1,Rows(T),Set(Real n)
+  {
+    Real f=Dens(MatDat(T,n,1));
+    [[f]]
+  }));
+  Matrix CmpKde = T | KD | D;
+  Set BMTFile([[CmpKde]],"CmpKde.bmt");
+
+  Matrix dif = D-KD;
+  Real difStdErr = MatStDs(dif);
+  WriteLn("Standard error for UniKerDnsEstOptBnw "<<difStdErr);
+  
+  Real MatAvr(KD);
+  Real MatAvr(D);
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    Real ok    = numErr1 == numErr0;
+    Real okStd = difStdErr < Sqrt(1/Rows(X))
+  ]];
+//This is a messure of the success of the test 
+  Real quality_ = And(ok,okStd);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

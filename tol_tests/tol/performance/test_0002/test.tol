@@ -1,0 +1,81 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Checking lost RAM 
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Performance test 2: Checking lost RAM " ;
+
+  Real numErr0 = Copy(NError);
+  Real nObject0 = Copy(NObject);
+//Write here the initial test TOL code if needed
+
+Set WriteLn("nObject="<<Real(NObject-nObject0));
+//Real While(numCycle<5,
+
+Set WriteLn("nTRACE 1 Object="<<Real(NObject-nObject0));
+Real ini=1;
+Set WriteLn("nTRACE 2 Object="<<Real(NObject-nObject0));
+Real end=3;
+Set WriteLn("nTRACE 3 Object="<<Real(NObject-nObject0));
+Real cycleSim (Real sim)
+{
+  sim
+};
+Set WriteLn("nTRACE 4 Object="<<Real(NObject-nObject0));
+//Real EnableTraceMemory:= true;
+Real iter = 1;
+Real nObject1 = Copy(NObject);
+Set WriteLn("nTRACE 5.0 Object="<<Real(NObject-nObject0));
+While(iter < 6,
+{
+  Set WriteLn("nTRACE 5."<<iter+" Object="<<Real(NObject-nObject0));
+  Set aux = For(ini, end, Real (Real sim)
+  {
+    sim+ini
+  });
+  Real iter := iter+1
+});
+Real iter := 1;
+Real nObject2 = Copy(NObject);
+Set WriteLn("nTRACE 6.0 Object="<<Real(NObject-nObject0));
+While(iter < 6,
+{
+  Set WriteLn("nTRACE 6."<<iter+" Object="<<Real(NObject-nObject0));
+  Set aux = For(ini, end, Real (Real sim)
+  {
+    sim+ini
+  });
+  Real iter := iter+1
+});
+Real nObject3 = Copy(NObject);
+//Real EnableTraceMemory:= false;
+Set WriteLn("nTRACE 7 Object="<<Real(NObject-nObject0));
+
+WriteLn("");
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    nObject0,nObject1,nObject2,nObject3
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And
+  (
+    numErr0==numErr1,
+    nObject2 == nObject1+1,
+    nObject3 == nObject2+1);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */

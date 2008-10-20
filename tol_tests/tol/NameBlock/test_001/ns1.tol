@@ -1,0 +1,8 @@
+//Fichero ns1.tol
+NameBlock NS1 = 
+[[
+  Real _aux_1 = 1;
+  Real _aux_2 = 2;
+  Real a = _aux_1+_aux_2;
+  Real b = _aux_1-_aux_2 
+]];
