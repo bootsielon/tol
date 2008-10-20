@@ -1053,8 +1053,8 @@ static void InitVerboseMode()
 //If no verbose/mode is used then it will be used next initial 
 //default values: Only user and error/warning messages will be 
 //displayed.
-  BOut::PutAllTerm  (BFALSE);
-  BOut::PutAllHci   (BFALSE);
+  BOut::PutAllTerm  (BTRUE);
+  BOut::PutAllHci   (BTRUE);
   BOut::PutErrorHci (BTRUE);
   BOut::PutErrorTerm(BTRUE);
   BOut::PutInfoTerm (BTRUE);
@@ -1280,7 +1280,11 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
         InitGrammars();
         if(initTOL) { LoadInitLibrary(argv[0]); }
         if(arg.HasName()) {
-          BText command = BText("\nSet Include(\"")+argv[i]+"\")";
+          BText fName = argv[i];
+          fName = Replace(fName,"\n","/n");
+          fName = Replace(fName,"\t","/t");
+          fName = Replace(fName,"\\","/");
+          BText command = BText("\nSet Include(\"")+fName+"\")";
           BSyntaxObject* result = GraSet()->EvaluateExpr(command);
           if(result)
           {
