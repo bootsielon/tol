@@ -36,6 +36,7 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdtegra.h>
+//#include <contrib/fftw/bfft.h>
 
 //#define _USE_GSL_MARQUARDT_
 
@@ -1501,6 +1502,144 @@ void BSetARIMAAlmagroEval::CalcContens()
   contens_.RobElement(lst);
   contens_.SetIndexByName();
 }
+/*
+//--------------------------------------------------------------------
+void Taper_TukeyHanning(double rho, BArray<double>& h)
+//--------------------------------------------------------------------
+{
+  static double pi = BDat::Pi().Value();
+  int n = h.Size();
+  int l = (int)rho*n;
+  int t;
+  h.AllocBuffer(n);
+  double* H = h.GetBuffer();
+  double HS2 = 0;
+  for(t=0; t<l; t++, H++)
+  {
+    *H =  0.5*(1-cos(pi*(t+0.5)))/l;
+    HS2 += *H * *H;
+  }
+  for(t; t<n-l; t++, H++)
+  {
+    *H = 1;
+    HS2 += *H * *H;
+  }
+  for(t; t<n; t++, H++)
+  {
+    *H =  0.5*(1-cos(pi*(n-t-0.5)))/l;
+    HS2 += *H * *H;
+  }
+  H = h.GetBuffer();
+  double HS = sqrt(HS2);
+  for(t=0; t<n; t++, H++)
+  {
+    *H/=HS;
+  }
+}
+
+/*
+//--------------------------------------------------------------------
+struct harmonic_power
+//--------------------------------------------------------------------
+{
+  bool   calculated_;
+  double exp_2_pi_i_  
+}
+
+
+//--------------------------------------------------------------------
+  complex eval_hasrmonic_pol(const BPol& pol, int T, int k)
+//--------------------------------------------------------------------
+{
+  register int n  = pol->Size();
+  register int i, deg, nextDeg;
+  register double  y = 0;
+  register const BMonome<BDat>* aux = pol.Buffer()+(n-1);
+  deg = aux.Degree();
+  z = exp(2*pi*)
+  for(i=n-1; i>=0; i--)
+  {
+    y += aux.Coef();
+    aux--;
+    nextDeg = (i>0)?aux.Degree():0
+    y *= z^(deg-nextDeg);
+    deg = nextDeg;
+  }
+  return(y);
+}
+
+//--------------------------------------------------------------------
+  double power_spectrum(const BPol& ar, const BPol& ma, int n, int k)
+//--------------------------------------------------------------------
+{
+
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetARIMATaperedWhittelEval);
+DefExtOpr(1, BSetARIMATaperedWhittelEval, "ARIMATaperedWhittelEval", 2, 4, "Ratio arma Matrix Real Matrix",
+          "(Set arima, Matrix output [, Real sigma=1.0, Matrix taper=TukeyHanningTaper(2/Sqrt(T))])",
+  I2("Calculates the tapered Whittle aproximation to ARIMA log-likelihood upon on spectrañ density.\n"
+     "See more on http://epub.wu-wien.ac.at/dyn/virlib/wp/mediate/epub-wu-01_9dc.pdf?ID=epub-wu-01_9dc"
+     "NOTE: If output matrix is well differenced arima must have difference "
+     "polynomial 1 in all seasonalities.\n"
+     "If all works fine, returns following information:\n",
+     "Calcula el logaritmo de la verosimilitud aproximada de un modelo ARIMA mediante el método "
+     "de Wittle disminuido (tapered) basado en la densidad espectral.\n"
+     "Ver más detalles en http://epub.wu-wien.ac.at/dyn/virlib/wp/mediate/epub-wu-01_9dc.pdf?ID=epub-wu-01_9dc"
+     "NOTA: Si la matriz de output ya está diferenciada hay que introducir"
+     "en arima el polinomio de diferencias 1 en todas las estacionalidades.\n"
+     "Si todo funciona correctamente devuelve lo siguiente:\n")+
+  "Matrix z:"+      I2("Noise",
+                       "Ruido")+"\n"+
+  "Matrix w:"+      I2("Differenced noise",
+                      "Ruido diferenciado")+"\n"+
+  "Real logLH:"+    I2("-Sum {Log(S(j)) + (1/(2*PI)*I(j)/S(j)); j=1...T} : Logarithm of spectral density function",
+                       "-Sum {Log(S(j)) + (1/(2*PI)*I(j)/S(j)); j=1...T} : Logaritmo de la función de densidad espectral")+"\n"+
+	BOperClassify::Sthocastic_);
+//--------------------------------------------------------------------
+void BSetARIMATaperedWhittelEval::CalcContens()
+//--------------------------------------------------------------------
+{
+  BInt i, p, q;
+  BRat& arma = Rat(Arg(1));
+  BMat& z = Mat(Arg(2));
+  BDat  sigma = (Arg(3))?Dat(Arg(3)):1.0;
+  BArray<BARIMAFactor> factor;
+  factor.ReallocBuffer(s.Card());
+
+  for(i=p=q=0; i<s.Card(); i++)
+  {
+    BSet& si = Set(s[i+1]);
+    factor(i).s_   = (BInt)Real(si.Field("Periodicity"));
+    factor(i).dif_ = Pol(si.Field("DIF"));
+    factor(i).ar_  = Pol(si.Field("AR"));
+    factor(i).ma_  = Pol(si.Field("MA"));
+    p += factor(i).ar_.Degree();
+    q += factor(i).ma_.Degree();
+  }
+  if(!(p+q))
+  {
+  }
+  BARIMA model;
+  model.PutFactors(factor);
+  model.PutOutputData(z);
+  model.CalcLikelihood_Almagro(sigma);
+
+  BInt N_     = model.w_.Rows();
+  BList* aux = NULL;
+  BList* lst = NULL;
+  LstFastAppend(lst,aux,NewFND(BMat, z,        model.z_));
+  LstFastAppend(lst,aux,NewFND(BMat, w,        model.w_));
+  LstFastAppend(lst,aux,NewFND(BDat, ACOVDetN, model.aCovDetN_));
+  LstFastAppend(lst,aux,NewFND(BDat, wtACOViw, model.wtCoviw_));
+  LstFastAppend(lst,aux,NewFND(BDat, aS2,      model.ata_));
+  LstFastAppend(lst,aux,NewFND(BDat, logLH,    model.logLikelihood_));
+  contens_.RobElement(lst);
+  contens_.SetIndexByName();
+}
+*/
+
 
 //--------------------------------------------------------------------
   void ARMAGohbergSemenculInvACovMultVector_Step1
