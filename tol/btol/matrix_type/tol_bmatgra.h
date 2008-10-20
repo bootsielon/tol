@@ -34,8 +34,6 @@
 #define BSystemMat    BGraConstant    < BMat >
 #define BMatTemporary BTmpContens     < BMat >
 
-
-template class TOL_API BMatrix         < BDat >;
 template class TOL_API BGraContensBase < BMat >;
 template class TOL_API BGraContens     < BMat >;
 

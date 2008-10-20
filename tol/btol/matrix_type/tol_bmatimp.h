@@ -27,6 +27,9 @@
 #define BMat BMatrix<BDat>
 #define DMat BMatrix<double>
 
+template class TOL_API BMatrix< double >;
+template class TOL_API BMatrix< BDat >;
+
 #ifndef _MSC_VER
 double Sign     (double a);
 double Sqrt     (double a);
