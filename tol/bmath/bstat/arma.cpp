@@ -1450,7 +1450,6 @@ void BARIMA::OutputDataUpdated()
   int mxpq = Maximum(p_,q_); 
   if(!CheckStationary()) { return(false); }
   if(!CalcAutoCovarianze(mxpq)) { return(false); }
-  CalcAutoCorrelation();
 
   BPolyn<BDat>& ar = prod_.ar_;
   BPolyn<BDat>& ma = prod_.ma_;
