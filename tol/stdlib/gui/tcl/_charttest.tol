@@ -52,7 +52,7 @@ Set pairsMat = SetOfSet(SetOfReal(1,2), SetOfReal(3,4), SetOfReal(5,6),
 WriteLn("Draw Set ...");
 
 Text myChart1 = TclChartSet(mySetGra, SetOfSet (
-  TclArgSt("-title"   , "Mi grÃ¡fico 1"),
+  TclArgSt("-title"   , "Mi gráfico 1"),
   TclArgSt("-geometry", "400x400+1+1" ),
   TclArgSt("-gcfFile" , ""            ),
   TclArgSt("-type"    , "0"           ),
@@ -61,26 +61,26 @@ Text myChart1 = TclChartSet(mySetGra, SetOfSet (
 ));
 
 Text myChart2 = TclChartSet(mySetGraText, SetOfSet (
-  TclArgSt("-title"   , "Mi grÃ¡fico 2"),
+  TclArgSt("-title"   , "Mi gráfico 2"),
   TclArgSt("-type"    , "2"           )
 ));
 
 Text myChart3 = TclChartSet(mySetGraText2, SetOfSet (
-  TclArgSt("-title"   , "Mi grÃ¡fico 3"),
+  TclArgSt("-title"   , "Mi gráfico 3"),
   TclArgSt("-type"    , "3"           )
 ));
 
 WriteLn("Draw Matrix ...");
 
 Text myChart4 = TclChartMatrix(myMat, SetOfSet (
-    TclArgSt("-title",    "Mi grÃ¡fico 4" ),
+    TclArgSt("-title",    "Mi gráfico 4" ),
     TclArgSt("-geometry", "814x692+15+15"),
     TclArgSt("-type"    , "1"            )
 ));
 
 
 Text myChart5 = TclChartMatrix(myMat2, SetOfSet (
-    TclArgSt("-title",    "Mi grÃ¡fico 5"  ),
+    TclArgSt("-title",    "Mi gráfico 5"  ),
     TclArgSt("-geometry", "1038x892+20+20"),
     TclArgSt("-type",     "0"             ),
     TclArgSt("-names",    TxtListTcl(namesMat) ),
@@ -91,17 +91,17 @@ WriteLn("Draw Serie ...");
 
 Text myChart6 = TclChartSerie(SetOfSerie(mySer1, mySer2),
   SetOfSet (
-    TclArgSt("-title",    "GrÃ¡fico de Series 1")
+    TclArgSt("-title",    "Gráfico de Series 1")
 ));
 
 Text myChart7 = TclChartSerie(SetOfSerie(mySer1, mySer2),
   SetOfSet (
-    TclArgSt("-title",    "GrÃ¡fico de Series 2"),
+    TclArgSt("-title",    "Gráfico de Series 2"),
     TclArgSt("-geometry", "814x692+1+1")
 ));
 
 WriteLn("Draw Autocorrelation Serie ...");
 
 Text TclChartSerieAutocor(mySer1, SetOfSet(
-  TclArgSt("-title",    "GrÃ¡fico de Autocorrelaciones"),
+  TclArgSt("-title",    "Gráfico de Autocorrelaciones"),
   TclArgSt("-geometry", "814x692+1+1")));
