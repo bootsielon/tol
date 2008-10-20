@@ -1,0 +1,2320 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:BysMcmc::Bsr::Gibbs"
+
+\end_inset
+
+BysMcmc::Bsr::Gibbs
+\end_layout
+
+\begin_layout Standard
+Se describen los miembros y métodos generales del 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs
+\series default
+ que implementa los métodos de simulación propiamente dichos de la clase
+ de modelos de BSR y sus extenciones.
+\end_layout
+
+\begin_layout Section
+Descripción
+\end_layout
+
+\begin_layout Standard
+Se encuentra en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_gibbs.tol"
+
+\end_inset
+
+ y se trata de la pieza fundamental de BSR y sus extensiones pues contiene
+ los métodos de simulación de cada uno de los bloques posibles por separado,
+ así como el ensamblaje de los bloques del BSR básico en un sólo simulador
+ maestro para poder ser utilizados recursivamente como un bloque dentro
+ de otro simulador maestro.
+ 
+\end_layout
+
+\begin_layout Standard
+Cada bloque será un NameBlock que deberá contener al menos lo siguiente:
+\end_layout
+
+\begin_layout Itemize
+Un miembro
+\series bold
+ NameBlock _.blockDef
+\series default
+ creado con el método 
+\series bold
+BysMcmc::DefineBlock
+\series default
+ explicado en 
+\begin_inset LatexCommand ref
+reference "sub:Nameblock-BysMcmc::DefineBlock()"
+
+\end_inset
+
+ que incluye las características comunes a todos los bloques de simulación.
+\end_layout
+
+\begin_layout Itemize
+Un método
+\series bold
+ Real setStore(Matrix values)
+\series default
+ que cambia el valor de los parámetros llamando al método 
+\series bold
+_.blockDef::setStore(values)
+\series default
+ y se ocupa luego, si procede, de actualizar todos los miembros internos
+ necesarios para el condicionamiento a dichos valores en el resto de bloques
+ que dependen de él.
+ Para ello debe conocer perfectamente la semántica de dichos bloques.
+\end_layout
+
+\begin_layout Itemize
+Un método
+\series bold
+ VMatrix draw(Real numSim, ...)
+\series default
+ que genera la 
+\series bold
+numSim
+\series default
+-ésima simulación de los valores de los parámetros en función de una serie
+ de argumentos condicionantes opcionales.
+ El método maestro que ensambla los diferentes bloques debe conocer la sintaxis
+ de los métodos 
+\series bold
+draw
+\series default
+ de cada uno de sus bloques hijo.
+ Este método debe llamar finalmente a 
+\series bold
+setStore
+\series default
+ antes de devolver el vector de valores simulados para asegurar la cadena
+ de condicionamientos.
+\end_layout
+
+\begin_layout Standard
+Cada maestro será un NameBlock que deberá contener al menos los métodos
+ exigidos al argumento 
+\series bold
+NameBlock modelSampler
+\series default
+ del método 
+\series bold
+BysMcmc::BuildCycler()
+\series default
+ según se describe en 
+\begin_inset LatexCommand ref
+reference "sub:Nameblock-BysMcmc::BuildCycler()"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+También incluye los métodos de llamada a la estimación bayesiana (simulación+dia
+gnosis+inferencia) para ser aplicados sobre un master de simulación concreto
+ de la forma más transparente posible.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::BasicMaster()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::BasicMaster()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::BasicMaster(BSR.ModelDef modelDef, NameBlock
+ config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_basicMaster.tol"
+
+\end_inset
+
+ y sirve para crear el simulador maestro de un modelo BSR básico, es decir
+ sin extensiones, tal y como se define en 
+\begin_inset LatexCommand ref
+reference "sec:clase_modelos_BSR"
+
+\end_inset
+
+.
+ El argumento 
+\series bold
+modelDef
+\series default
+ se almacena en el miembro 
+\series bold
+Set _.modelDef
+\series default
+ pues contiene toda la información necesaria para definir el modelo y poder
+ simular sus parámetros, organizada según la estructura 
+\series bold
+BSR.ModelDef
+\series default
+:
+\end_layout
+
+\begin_layout Itemize
+Set DocInfo: Información documental del modelo con estructura BSR.DocInfo
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Text Model.Name
+\series default
+: Nombre del modelo que identifica el objetivo del mismo sin distinguir
+ entre diferentes sesiones o implementaciones del mismo.
+\end_layout
+
+\begin_layout Itemize
+T
+\series bold
+ext Model.Description
+\series default
+: Descripción del objetivo del modelo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text Session.Name
+\series default
+: Nombre de la sesión o implementación concreta del modelo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text Session.Description
+\series default
+: Descripción de los detalles de implementación, forma concreta del modelo,
+ etc.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text Session.Authors
+\series default
+: Nombre o mejor e-mail del autor o autores separados por comas
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text Session.Creation
+\series default
+: Fecha de creación de la sesión
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text Path
+\series default
+: Camino absoluto del directorio donde almacenar resultados auxiliares y
+ la propia cadena de Markov.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+
+\series bold
+Set LinearBlock
+\series default
+: Tabla de parámetros del bloque lineal principal y sus valores iniciales
+ dada por filas de estructura BSR.LinearBlock
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Text Name
+\series default
+: Nombre del parámetro
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real InitialValue
+\series default
+: Valor inicial.
+ Los valores iniciales deberían cumplir las restricciones pues aún no existe
+ un método seguro y eficiente de encontrarlos de forma genérica.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+
+\series bold
+Set InputMissingBlock
+\series default
+: Tabla de omitidos del input con elementos de estructura 
+\series bold
+BSR.MissingBlock
+\series default
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Text Name
+\series default
+: Nombre de la variable de omisión.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Index
+\series default
+: El índice 
+\begin_inset Formula $k=1\ldots K_{0}$
+\end_inset
+
+ identificador del omitido.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Row
+\series default
+: El número de ecuación 
+\begin_inset Formula $t=1\ldots M$
+\end_inset
+
+ en la que aparece el omitido.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Col
+\series default
+: El número de columna aquí no tiene sentido pues el output sólo tiene una
+ columna.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text Prior
+\series default
+: Identificador del tipo de a priori.
+ Puede ser la cadena vacía, 
+\series bold
+
+\begin_inset Quotes eld
+\end_inset
+
+Normal
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+ o 
+\series bold
+
+\begin_inset Quotes eld
+\end_inset
+
+TruncatedNormal
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Nu
+\series default
+: La media de la distribución a priori o el valor inicial si no hay a priori
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Sigma2
+\series default
+: La varianza de la distribución a priori o 
+\begin_inset Formula $+\infty$
+\end_inset
+
+ si no hay a priori
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real MinBound
+\series default
+: El límite inferior o 
+\begin_inset Formula $-\infty$
+\end_inset
+
+ si se desconoce o no existe.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real MaxBound
+\series default
+: El límite superior o 
+\begin_inset Formula $+\infty$
+\end_inset
+
+ si se desconoce o no existe.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+
+\series bold
+Set OutputMissingBlock
+\series default
+: Tabla de omitidos del output con elementos de esa misma estructura 
+\series bold
+BSR.MissingBlock, 
+\series default
+salvo que el número de columna aquí no tiene mucho sentido pues el output
+ sólo tiene una columna y se rellena siempre a 1.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set NoiseDistrib
+\series default
+: Tabla de definición de la distribución del ruido de cada segmento y del
+ propio segmento, definido cada uno por un elemento de estructura BSR.NoiseDistri
+b
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Text Name
+\series default
+: Identificador del segmento.
+ Por ejemplo en un modelo jerárquico se suele usar el nombre del nodo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Nu
+\series default
+: Media del ruido.
+ De momento debe ser cero y es posible que desaparezca.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text SigmaName
+\series default
+: Si no es la cadena vacía indica que la varianza de este segmento es un
+ parámetro desconocido a simular en el modelo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real SigmaIndex
+\series default
+: En el caso de el campo anterior no sea la cadena vacía indica la posición
+ del parámetro varianza dentro del bloque de varianzas.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set Arima
+\series default
+: Estructura ARIMA del segmento.
+ Puede ser un conjunto vacío o de elementos con estructura 
+\series bold
+ARIMAStruct
+\series default
+ como se describe en 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::ArimaBlock()"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set ArimaAuxInfo
+\series default
+: Información auxiliar que se creará y manejará internamente en el bloque
+ ARIMA como se describe en 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::ArimaBlock()"
+
+\end_inset
+
+.
+ Se debe pasar el conjunto vacío.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix Cov
+\series default
+: Matriz de covarianzas del segmento.
+ Por el momento debe ser diagonal.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix L
+\series default
+: Descomposición de Choleski de Cov.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix Li
+\series default
+: Inversa de L.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set EquIdx
+\series default
+: Índices de las ecuaciones contenidas en el segmento.
+ Deben ser consecutivas para mayor eficiencia.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set TimeInfo
+\series default
+: Información temporal del segmento si es que la dimensión del mismo es
+ el tiempo.
+ Se utiliza en la creación de informes de evaluación de resultados pero
+ no en la simulación en sí misma.
+ Si no la tiene es el conjunto vacío y en oto caso se especifica mediante
+ un conjunto con estructura BSR.NoiseTimeInfo:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+TimeSet Dating
+\series default
+: Fechado de las series involucradas.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Date FirstDate
+\series default
+: Fecha de inicio.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Date LastDate
+\series default
+: Fecha final.
+\end_layout
+
+\end_deeper
+\end_deeper
+\begin_layout Itemize
+
+\series bold
+VMatrix Y
+\series default
+: Matriz de output en términos originales con todos los segmentos ordenados
+ secuencialmente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix X
+\series default
+: Matriz sparse de input en términos originales con todos los segmentos
+ ordenados secuencialmente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix a
+\series default
+: Matriz de frontera de las inecuaciones lineales que restringen los parámetros
+ del bloque lineal
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix A
+\series default
+: Matriz de coeficientes de las inecuaciones lineales que restringen los
+ parámetros del bloque lineal
+\end_layout
+
+\begin_layout Standard
+Los bloques manejados por el maestro básico son los siguientes
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+NameBlock _.lin.blk
+\series default
+: El bloque lineal principal se crea llamando a 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::StdLinearBlock 
+\series default
+(ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::StdLinearBlock()"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+NameBlock _.sig.blk
+\series default
+: El bloque de varianzas se crea llamando a 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::SigmaBlock 
+\series default
+(ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::SigmaBlock()"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+NameBlock _.arm.blk
+\series default
+: El bloque ARMAs se crea llamando a 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::ArimaBlock 
+\series default
+(ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::ArimaBlock()"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+NameBlock _.inpMis.blk
+\series default
+: El bloque de omitidos del input se crea llamando a 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::InputMissingBlock 
+\series default
+(ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::InputMissingBlock()"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+NameBlock _.outMis.blk
+\series default
+: El bloque de varianzas se crea llamando a 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::OutputMissingBlock 
+\series default
+(ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::OututMissingBlock()"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Standard
+Todos ellos se almacenan dentro de un miembro 
+\series bold
+Set _.blocks
+\series default
+ que garantiza el orden ejecución de algunos métodos genéricos de bloques.
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+VMatrix findMatchingBeta(VMatrix givenInitVal)
+\series default
+ comprueba que los valores iniciales son congruentes con las restricciones
+ y en caso contrario intenta encontrar otros que sí lo sean aunque esto
+ último no está garantizado por el momento
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+Real initialize(Real unused)
+\series default
+ llama a 
+\series bold
+findMatchingBeta
+\series default
+ e inicializa todos los bloques.
+\end_layout
+
+\begin_layout Standard
+El método principal 
+\series bold
+VMatrix draw(Real numSim)
+\series default
+ muestrea todos los bloques en el orden adecuado, almacena resultados intermedio
+s para mayor eficiencia y finalmente concatena las muestras de los bloques
+ según el orden establecido.
+\end_layout
+
+\begin_layout Standard
+Como es obvio, este NameBlock implementa los métodos obligatorios de un
+ simulador maestro según se describe en 
+\begin_inset LatexCommand ref
+reference "sub:Nameblock-BysMcmc::BuildCycler()"
+
+\end_inset
+
+, y además el método 
+\series bold
+Real setStore(Matrix values)
+\series default
+ que se utilizará para usar el simulador como un bloque de otro simulador
+ maestro, tal y como se explica en 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::BsrAsBlock()"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::StdLinearBlock()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::StdLinearBlock()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::StdLinearBlock(Text name, Set colNames, Real
+ numBlock, Real firstCol, NameBlock config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_stdLinearBlock.tol"
+
+\end_inset
+
+ y sirve para crear el simulador de un bloque lineal estandarizado, no necesaria
+mente el bloque lineal principal de una regresión, sino que también puede
+ ser el utilizado en los tratamientos de omitidos y cualquier otra situación
+ que requiera simular los parámetros de una regresión lineal con restricciones
+ de desigualdad lineal opcionales, tal y como se describe en el capítulo
+ 
+\begin_inset LatexCommand ref
+reference "cha:El-bloque-lineal"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+En tiempo de creación del bloque no se sabe apenas nada aún de las dimensiones
+ y aún menos del contenido de sus miembros que serán introducidos posteriormente
+ mediante una llamada al método 
+\series bold
+Real initialize(VMatrix beta0, VMatrix A, VMatrix a)
+\series default
+, que se ocupa de asignar valores iniciales de los parámetros 
+\begin_inset Formula $\beta_{0}$
+\end_inset
+
+, almacenar las restricciones 
+\begin_inset Formula $A\cdot\beta\leq a$
+\end_inset
+
+ que han de ser, si las hay, inmutables a lo largo de las simulaciones,
+ y de comprobar que se cumplen para los valores iniciales, es decir que
+ 
+\begin_inset Formula $A\cdot\beta_{0}\leq a$
+\end_inset
+
+.
+ Lógicamente, la matriz 
+\series bold
+A
+\series default
+, si no está vacía, debe tener tantas columnas como filas tenga 
+\series bold
+beta0
+\series default
+, y tantas filas como 
+\series bold
+a
+\series default
+.
+ También se ocupa de asignar el método de muestreo al miembro oculto 
+\series bold
+_drawer
+\series default
+, ya que se dispone de métodos diferenciados de muestreo para el caso de
+ haber restricciones 
+\series bold
+VMatrix draw.constrained(Real numSim, VMatrix Y, VMatrix X)
+\series default
+, o no haberlas 
+\series bold
+VMatrix draw.unconstrained(Real numSim, VMatrix Y, VMatrix X).
+
+\series default
+ 
+\end_layout
+
+\begin_layout Standard
+En ambos casos la matriz 
+\series bold
+X
+\series default
+ debe tener tantas columnas como filas tuviera la matriz 
+\series bold
+beta0
+\series default
+ en la llamada a 
+\series bold
+initialize
+\series default
+, pero el número de filas puede variar en cada iteración siempre que coincida
+ con el de la matriz 
+\series bold
+Y.
+ 
+\series default
+Los dos métodos llaman inicialmente al método 
+\series bold
+NameBlock solve(Real numSim, VMatrix Y, VMatrix X)
+\series default
+ para calcular el vector de medias y la descomposición de la matriz de covarianz
+as de la multinormal asociada a la regresión lineal tal y como se describe
+ en la ecuación 
+\begin_inset LatexCommand ref
+reference "eq:media-cov-bloque-lineal"
+
+\end_inset
+
+.
+ En el caso sin restricciones el método implementa las ecuaciones 
+\begin_inset LatexCommand ref
+reference "eq:muestreo-bloque-lineal-sin-restricciones"
+
+\end_inset
+
+ de forma casi trivial.
+ Si hay restricciones se implementa el algoritmo 
+\begin_inset LatexCommand ref
+reference "sub:Algoritmo-de-simulación-trunc-multi-normal"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+El método principal 
+\series bold
+VMatrix draw(Real numSim, VMatrix Y, VMatrix X)
+\series default
+ llamará finalmente al 
+\series bold
+_drawer
+\series default
+ si el bloque está habilitado, pues en otro caso devuelve el último valor
+ almacenado de forma constante, lo cual, si no hay ninguna injerencia externa,
+ supondrá devolver siempre 
+\series bold
+beta0
+\series default
+.
+\end_layout
+
+\begin_layout Standard
+Hay que hacer notar que, para cumplir con la condición de estandarización,
+ es preciso dividir cada fila de Y y de X por la sigma correspondiente al
+ segmento en el que se encuentre, y, si existe parte ARIMA, es necesario
+ también filtrar previamente tanto el input como el output antes de llamar
+ a este método draw.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::SigmaBlock()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::SigmaBlock()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::SigmaBlock(Text name, Set NoiseDistrib, Real
+ numBlock, Real firstCol, NameBlock config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_sigmaBlock.tol"
+
+\end_inset
+
+ y sirve para crear el simulador de un bloque de varianzas tal y como se
+ describe en el capítulo 
+\begin_inset LatexCommand ref
+reference "cha:El-bloque-de-varianzas"
+
+\end_inset
+
+.
+ El bloque contiene los parámetros 
+\begin_inset Formula $\sigma_{k}^{2}$
+\end_inset
+
+ correspondientes a las varianzas de cada uno de los segmentos de regresión
+ con varianza desconocida, los cuales se referencian en el miembro 
+\series bold
+Set _.sigmaBlockVar
+\series default
+ creado en tiempo de creación del manejador a partir del argumento de llamada
+ 
+\series bold
+Set NoiseDistrib
+\series default
+ con elementos de estructura 
+\series bold
+BSR.NoiseDistrib
+\series default
+, uno para cada segmento, y que se corresponde con el campo de igual nombre
+ de la estructura 
+\series bold
+BSR.ModelDef
+\series default
+ almacenado en el miembro 
+\series bold
+Set _.modelDef
+\series default
+ del simulador maestro creado con 
+\series bold
+BysMcmc::Bsr::Gibbs::BasicMaster()
+\series default
+.
+\end_layout
+
+\begin_layout Standard
+El método principal 
+\series bold
+VMatrix draw(Real numSim, VMatrix noise)
+\series default
+ llamará a 
+\series bold
+VMatrix draw.invRandChisq(Real numSim, VMatrix noise)
+\series default
+ si el bloque está habilitado, pues en otro caso devuelve el último valor
+ almacenado de forma constante.
+ En este caso será el generador maestro quien se ocupe de asignar un valor
+ inicial pues el valor por defecto es cero.
+\end_layout
+
+\begin_layout Standard
+Quedan por implementar los siguientes aspectos:
+\end_layout
+
+\begin_layout Itemize
+Introducción de información a priori sobre cada varianza
+\end_layout
+
+\begin_layout Itemize
+Introducción de información latente para un grupo de varianzas
+\end_layout
+
+\begin_layout Itemize
+Modelos heterocedásticos
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::ArimaBlock()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::ArimaBlock()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::ArimaBlock(Text name, Set NoiseDistrib, Real
+ numBlock, Real firstCol, NameBlock config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_arimaBlock.tol"
+
+\end_inset
+
+ y sirve para crear el simulador del bloque de parámetros ARMA tal y como
+ se describe en el capítulo 
+\begin_inset LatexCommand ref
+reference "cha:El-bloque-ARIMA"
+
+\end_inset
+
+.
+ El bloque contiene los parámetros 
+\begin_inset Formula $\phi,\theta$
+\end_inset
+
+ correspondientes a los polinomios AR y MA respectivamente de cada uno de
+ los segmentos de regresión para los que se haya definido dicha estructura,
+ los cuales se referencian en el miembro 
+\series bold
+Set _.armaParamBlock
+\series default
+ creado en tiempo de creación del manejador a partir del argumento de llamada
+ 
+\series bold
+Set NoiseDistrib
+\series default
+ con elementos de estructura 
+\series bold
+BSR.NoiseDistrib
+\series default
+, uno para cada segmento,que se almacena en el miembro 
+\series bold
+Set _.NoiseDistrib
+\series default
+ y que se corresponde con el campo de igual nombre de la estructura 
+\series bold
+BSR.ModelDef
+\series default
+ almacenado en el miembro 
+\series bold
+Set _.modelDef
+\series default
+ del simulador maestro creado con 
+\series bold
+BysMcmc::Bsr::Gibbs::BasicMaster()
+\series default
+.
+ En el miembro 
+\series bold
+Set _.arimaParamBlock
+\series default
+ se almacenan los índices de todos aquellos que tengan estructura ARIMA,
+ es decir los de 
+\series bold
+_.armaParamBlock
+\series default
+ más los que tengan sólo estructura determinista definida habitualmente
+ mediante un polinomio unitario, también llamado de diferencias pues suele
+ ser de la forma 
+\begin_inset Formula $\left(1-B^{k}\right)^{n}$
+\end_inset
+
+.
+ Estas estructuras deterministas obviamente no tienen parámetros que simular
+ y se usan sólo para filtrar las matrices de input y output de la regresión
+ lineal y construir así el ruido diferenciado o ruido ARMA.
+\end_layout
+
+\begin_layout Standard
+Los polinomios AR y MA están en todo momento recogidos en el campo 
+\series bold
+Set Arima
+\series default
+ de cada elemento del miembro 
+\series bold
+_.NoiseDistrib
+\series default
+.
+ Cada elemento corresponde a un factor de estacionalidad arbitraria y tiene
+ estructura 
+\series bold
+ARIMAStruct
+\series default
+, siendo los grados de los factores AR y MA 0, 1 ó 2.
+ Al margen de ello se almacena toda la información auxiliar, alguna aparentement
+e ?, necesaria para acelerar los cálculos en el campo 
+\series bold
+Set ArimaAuxInfo
+\series default
+ que no tiene una estructura fija pues su contenido depende de si hay parte
+ ARMA, sólo diferencias o nada de parte ARIMA.
+\end_layout
+
+\begin_layout Standard
+Toda esta información auxiliar se asigna mediante el método 
+\series bold
+Real initialize(Real unused)
+\series default
+ que se llama antes de la propia creación del almacén genérico _.blockDef
+ , ya que antes de eso ni siquiera se conocen aún el número ni los nombres
+ de las variables AR y MA implicadas.
+\end_layout
+
+\begin_layout Standard
+Una vez simulados los parámetros ARMA, se llama al método 
+\series bold
+Real calcAllArimaBlockLi(Real numSim)
+\series default
+ llama para cada segmento 
+\series bold
+_.armaParamBlock
+\series default
+ al método 
+\series bold
+Real calcArimaBlockLi(BSR.NoiseDistrib segment)
+\series default
+ que llama a su vez a 
+\series bold
+ARMAProcess::FastCholeskiCovFactor
+\series default
+ implementado en 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/arima/_arma_process.tol"
+
+\end_inset
+
+, para calcular la descomposición sintética explicada en 
+\begin_inset LatexCommand ref
+reference "sub:Algoritmo-de-la-descomposición-ARMA-sintética"
+
+\end_inset
+
+.
+ También se le llama al principio del todo para que se pueda utilizar el
+ filtro ARIMA con los valores iniciales.
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+VMatrix filter(VMatrix X)
+\series default
+ se ocupa de filtrar de la parte ARIMA conjunta a una matriz (input,output,noise
+,etc.) referida a todos los segmentos que no sean de ruido blanco puro, filtrando
+ primero la parte determinista mediante una llamada a 
+\series bold
+VMatrix filter.deterministic(VMatrix X)
+\series default
+; y luego se encarga de la parte estocástica el método 
+\series bold
+VMatrix filter.arma(VMatrix DX)
+\series default
+ que llama en ciclo para cada segmento al método 
+\series bold
+VMatrix filterJustBlock(BSR.NoiseDistrib segment, VMatrix X)
+\series default
+ que se ocupa de filtrar la parte ARMA de un segmento concreto aplicando
+ el algoritmo 
+\begin_inset LatexCommand ref
+reference "sub:Algoritmo-de-filtrado ARMA sintético"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Si el bloque está habilitado, pues en otro caso devuelve el último valor
+ almacenado de forma constante, el método principal 
+\series bold
+VMatrix draw(Real numSim, VMatrix noise, VMatrix sigBlk)
+\series default
+ llamará a 
+\series bold
+VMatrix draw.ARMS(Real numSim, VMatrix noise, VMatrix sigBlk)
+\series default
+ que aplica el método ARMS de simulación de los parámetros AR y MA uno por
+ uno condicionados al resto, tal y como se describe en 
+\begin_inset LatexCommand ref
+reference "sec:Distribución-condicionada-de-los-parámetros-ARMA"
+
+\end_inset
+
+.
+ Los límites de muestreo de cada factor AR ó MA se calculan mediante ARMAProcess
+::StationarityBounds.2 implementada también en 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/arima/_arma_process.tol"
+
+\end_inset
+
+.
+ Para ello, primero simula los valores iniciales condicionados a los valores
+ actuales de los productos ARMA, mediante el método 
+\series bold
+ARMAProcess::Eval.Almagro(...)::Draw.U_cond_Z(0)
+\series default
+ implementado en 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/arima/_arma_process.tol"
+
+\end_inset
+
+, pero no los almacena en la cadena de Markov ya que son fácilmente reproducible
+s en el remoto caso en que hicieran falta, y pueden ocupar mucho espacio
+ si la estacionalidad de los factores es grande.
+ Luego se simulan todos los parámetros ARMA condicionados a dichos valores
+ iniciales con el método ARMS aplicado ala función de densidad implementada
+ en ese mismo fichero con el nombre 
+\series bold
+ARMAProcess::Eval.Almagro(...)::LogLH.Z_cond_U(0)
+\series default
+.
+\end_layout
+
+\begin_layout Standard
+Quedan por implementar los siguientes aspectos:
+\end_layout
+
+\begin_layout Itemize
+Introducción de información a priori sobre cada parámetro ARMA
+\end_layout
+
+\begin_layout Itemize
+Introducción de información latente para un grupo de parámetros referidos
+ a un mismo parámetro (mismos indicadores de factor, estacionalidad, AR
+ ó MA, grado) en diferentes segmentos con estructura ARIMA equivalente.
+\end_layout
+
+\begin_layout Itemize
+Pruebas con el método Slice Sampler alternativo a ARMS que además no precisa
+ de un intervalo exacto de límites de simulación.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::InputMissingBlock()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::InputMissingBlock()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::InputMissingBlock(Text name, Set inputMissingBloc
+k, Real numBlock, Real firstCol, NameBlock config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_inputMissingBlock.tol"
+
+\end_inset
+
+ y sirve para crear el simulador de un bloque de valores omitidos en el
+ input, tal y como se describe en el capítulo 
+\begin_inset LatexCommand ref
+reference "cha:El-bloque-de-omitidos"
+
+\end_inset
+
+.
+ El bloque contiene los parámetros 
+\begin_inset Formula $u$
+\end_inset
+
+ correspondientes a los valores desconocidos de todos los inputs de cada
+ uno de los bloques de regresión.
+ 
+\end_layout
+
+\begin_layout Standard
+El acceso a los datos en el modelo BSR lo proporciona el argumento 
+\series bold
+inputMissingBlock
+\series default
+ con elementos de estructura 
+\series bold
+BSR.MissingBlock
+\series default
+, uno para dato omitido, y que viene dado siempre como el campo
+\series bold
+ _.modelDef->InputMissingBlock
+\series default
+ de la estructura 
+\series bold
+BSR.ModelDef
+\series default
+ correspondiente al miembro 
+\series bold
+Set _.modelDef
+\series default
+ del simulador maestro creado con 
+\series bold
+BysMcmc::Bsr::Gibbs::BasicMaster()
+\series default
+.
+ Este argumento incluye en cada elemento 
+\series bold
+inputMissingBlock
+\series default
+[k] con la estructura 
+\series bold
+BSR.MissingBlock 
+\series default
+definida en 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::BasicMaster()"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En resumen, la distribución a priori puede ser una cualquiera de estas
+\end_layout
+
+\begin_layout Itemize
+no informativa: si es 
+\series bold
+Sigma2
+\series default
+ igual a 
+\begin_inset Formula $+\infty$
+\end_inset
+
+ y 
+\series bold
+MinBound
+\series default
+ y 
+\series bold
+MaxBound
+\series default
+ son 
+\begin_inset Formula $-\infty$
+\end_inset
+
+ y 
+\begin_inset Formula $+\infty$
+\end_inset
+
+ respectivamente.
+\end_layout
+
+\begin_layout Itemize
+uniforme en un intervalo: si es 
+\series bold
+Sigma2
+\series default
+ igual a 
+\begin_inset Formula $+\infty$
+\end_inset
+
+ y al menos uno de los dos límites 
+\series bold
+MinBound
+\series default
+ o 
+\series bold
+MaxBound
+\series default
+ son finitos.
+ 
+\end_layout
+
+\begin_layout Itemize
+normal: si es 
+\series bold
+Sigma2
+\series default
+ un valor finito y
+\series bold
+ MinBound
+\series default
+ y 
+\series bold
+MaxBound
+\series default
+ son 
+\begin_inset Formula $-\infty$
+\end_inset
+
+ y 
+\begin_inset Formula $+\infty$
+\end_inset
+
+ respectivamente.
+\end_layout
+
+\begin_layout Itemize
+normal truncada: si es 
+\series bold
+Sigma2
+\series default
+ un valor finito y al menos uno de los dos límites 
+\series bold
+MinBound
+\series default
+ o
+\series bold
+ MaxBound
+\series default
+ son finitos.
+ 
+\end_layout
+
+\begin_layout Standard
+La información a priori se recoge en los siguientes miembros, todos ellos
+ son inmutables a lo largo de las simulaciones y referidos a la fórmula
+ 
+\begin_inset LatexCommand ref
+reference "eq:apriori-omitidos-input"
+
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix _.prior.
+\series default
+si: Puesto que la distribución a priori es independiente para cada omitido
+ su covarianza es diagonal y se puede definir la inversa de su descomposición
+ de Choleski, es decir 
+\begin_inset Formula $L_{u}$
+\end_inset
+
+, como un vector.
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix _.prior.X
+\series default
+: La matriz de Cholesky 
+\begin_inset Formula $L_{u}$
+\end_inset
+
+ extendida con ceros donde no hay información a priori.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix _.prior.Y
+\series default
+: El producto 
+\begin_inset Formula $L_{u}\cdot\mu_{u}$
+\end_inset
+
+ extendido con ceros donde no hay información a priori.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix _.prior.A
+\series default
+: La matriz de coeficientes de las inecuaciones 
+\begin_inset Formula $A_{u}$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+VMatrix _.prior.a
+\series default
+: La matriz de frontera de las inecuaciones 
+\begin_inset Formula $a_{u}$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+Los campos 
+\series bold
+Index
+\series default
+, 
+\series bold
+Row
+\series default
+, y 
+\series bold
+Col
+\series default
+ definen la matriz booleana 
+\begin_inset Formula $\delta^{v}\in\{0,1\}^{M\times K_{0}}$
+\end_inset
+
+de ubicación de los omitidos.
+ Para optimizar los procesos de actualización y extracción de la información
+ necesaria se crean una serie de miembros de indexación creados a partir
+ de los campos de ubicación, y por tanto inmutables durante la simulación:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Matrix _.tj
+\series default
+: La matriz de pares (ecuación, variable) ó (Row,Col) ó 
+\begin_inset Formula $\left(t,j\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Matrix _.tk
+\series default
+: La matriz de pares (ecuación, omitido) ó (Row,Index) ó 
+\begin_inset Formula $\left(t,k\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set _.j
+\series default
+: El conjunto de variables afectadas por omitidos
+\end_layout
+
+\begin_layout Standard
+Todos estos miembros inmutables se asignan mediante el método 
+\series bold
+Real initialize(Real unused)
+\series default
+ que se llama en la propia creación.
+\end_layout
+
+\begin_layout Standard
+Con toda esta información se genera internamente un bloque lineal llamando
+ a 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::StdLinearBlock
+\series default
+ (ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::StdLinearBlock()"
+
+\end_inset
+
+) que se almacenará como el miembro 
+\series bold
+NameBlock _.lin.blk
+\series default
+ 
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+VMatrix draw(Real numSim, NameBlock arima, VMatrix si, VMatrix beta, VMatrix
+ Z)
+\series default
+ , construye las matrices de input 
+\series bold
+X01
+\series default
+ y output 
+\series bold
+Y01
+\series default
+ de la regresión estandarizada y simula los omitidos llamando a 
+\series bold
+_.lin.blk::draw(numSim, Y01, X01)
+\series default
+.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::OututMissingBlock()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::OututMissingBlock()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::OutputMissingBlock(Text name, Set outputMissingBl
+ock, Real numBlock, Real firstCol, NameBlock config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_outputMissingBlock.tol"
+
+\end_inset
+
+ y sirve para crear el simulador de un bloque de valores omitidos en el
+ output, tal y como se describe en el capítulo 
+\begin_inset LatexCommand ref
+reference "cha:El-bloque-de-omitidos"
+
+\end_inset
+
+.
+ El bloque contiene los parámetros 
+\begin_inset Formula $v$
+\end_inset
+
+ correspondientes a los valores desconocidos de todos los inputs de cada
+ uno de los bloques de regresión.
+ 
+\end_layout
+
+\begin_layout Standard
+El acceso a los datos en el modelo BSR lo proporciona el argumento 
+\series bold
+outputMissingBlock
+\series default
+ con elementos de estructura 
+\series bold
+BSR.MissingBlock
+\series default
+, uno para dato omitido, y que viene dado siempre como el campo
+\series bold
+ _.modelDef->OutputMissingBlock
+\series default
+ de la estructura 
+\series bold
+BSR.ModelDef
+\series default
+ correspondiente al miembro 
+\series bold
+Set _.modelDef
+\series default
+ del simulador maestro creado con 
+\series bold
+BysMcmc::Bsr::Gibbs::BasicMaster()
+\series default
+.
+ Este argumento incluye en cada elemento 
+\series bold
+outputMissingBlock
+\series default
+[k] con estructura 
+\series bold
+BSR.MissingBlock
+\series default
+ definida en 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::BasicMaster()"
+
+\end_inset
+
+, salvo que aquí el campo 
+\series bold
+Real Col
+\series default
+ del número de columna no tiene ningún sentido pues el output sólo tiene
+ una columna.
+ Por eso, en este caso sólo los campos 
+\series bold
+Index
+\series default
+, 
+\series bold
+Row
+\series default
+ definen la matriz booleana 
+\begin_inset Formula $\delta^{v}\in\{0,1\}^{M\times K_{0}}$
+\end_inset
+
+de ubicación de los omitidos.
+ Para optimizar los procesos de actualización y extracción de la información
+ necesaria se crea el miembro de indexación 
+\series bold
+Set _.t
+\series default
+ que almacena el conjunto de ecuaciones afectadas por omitidos en el output
+ y se crea a partir de los campos de ubicación, y es por tanto inmutable
+ durante la simulación.
+\end_layout
+
+\begin_layout Standard
+Los campos que almacenan la información a priori son idénticos a los del
+ caso de omitidos del input recién vistos.
+\end_layout
+
+\begin_layout Standard
+Todos los miembros inmutables se asignan mediante el método 
+\series bold
+Real initialize(Real unused)
+\series default
+ que se llama en la propia creación.
+\end_layout
+
+\begin_layout Standard
+Con toda esta información se genera internamente un bloque lineal llamando
+ a 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::StdLinearBlock
+\series default
+ (ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::StdLinearBlock()"
+
+\end_inset
+
+) que se almacenará como el miembro 
+\series bold
+NameBlock _.lin.blk
+\series default
+ 
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+VMatrix draw(Real numSim, NameBlock arima, VMatrix si, VMatrix beta, VMatrix
+ Z)
+\series default
+ , construye las matrices de input 
+\series bold
+X01
+\series default
+ y output 
+\series bold
+Y01
+\series default
+ de la regresión estandarizada y simula los omitidos llamando a 
+\series bold
+_.lin.blk::draw(numSim, Y01, X01)
+\series default
+.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::BsrAsBlock()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::BsrAsBlock()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::BsrAsBlock(NameBlock bsrInstance, Real numBlock,
+ Real firstCol, NameBlock config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_bsrAsBlock.tol"
+
+\end_inset
+
+ y permite usar el simulador maestro del modelo básico BSR como un bloque
+ de otro simulador maestro.
+ El argumento 
+\series bold
+bsrInstance
+\series default
+ define el modelo BSR básico que fue generado previamente con
+\series bold
+ NameBlock BysMcmc::Bsr::Gibbs::BasicMaster 
+\series default
+(ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::BasicMaster()"
+
+\end_inset
+
+) y el bloque se define simplemente como la concatenación de los bloques
+ internos del BSR.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::NonLinBlock()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::NonLinBlock()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::NonLinBlock(NameBlock filterEval, NameBlock
+ bsr, Real numBlock, Real firstCol, NameBlock config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_nonLinBlock.tol"
+
+\end_inset
+
+ y permite simular un bloque correspondiente a un filtro no lineal arbitrario
+ 
+\series bold
+filterEval
+\series default
+, como los definidos en 
+\begin_inset LatexCommand ref
+reference "cha:El-bloque-de-filtro-no-lineal"
+
+\end_inset
+
+ que afecta al output o a parte del input de un modelo BSR básico 
+\series bold
+bsr
+\series default
+ creado con 
+\series bold
+BasicMaster
+\series default
+ (ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::BasicMaster()"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+Un fitro no lineal es un NameBlock que tiene los siguientes métodos obligatorios
+:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text get.name(Real unused)
+\series default
+: Identificador del filtro
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text get.segmentName(Real unused)
+\series default
+: Identificador del segmento
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text get.colNames(Real unused)
+\series default
+: Nombres de los parámetros del bloque no lineal
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set get.bounds(i,param)
+\series default
+: Devuelve los límites inferior y superior del i-ésimo parámetro dados los
+ valores actuales del resto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Matrix eval(Matrix param)
+\series default
+: Evalúa el filtro no lineal para un vector de valores concretos de los
+ parámetros.
+ El número de filas debe ser la longitud del segmento y el de columnas será
+ 1 si es un filtro del output, o el cardinal de 
+\series bold
+get.linBlkNames(0)
+\series default
+ si es del input.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set get.linBlkNames(Real unused)
+\series default
+: Nombres de los parámetros del bloque lineal afectados por un bloque lineal
+ del input.
+ Lógicamente este método sólo debe existir si es un filtro del input, y
+ de hecho es la única forma que tiene el bloque de saber si es del output
+ o del input, si no existe es del output y si existe es del input.
+\end_layout
+
+\begin_layout Standard
+Si llamamos 
+\begin_inset Formula $W$
+\end_inset
+
+ al valor actual del ruido ARIMA o ruido no diferenciado del model BSR básico
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+W=F_{0}-X\cdot\beta-{\displaystyle \sum_{r=1}^{R}F_{r}\cdot\alpha_{r}}\end{equation}
+
+\end_inset
+
+entonces el output de la regresión no lineal del bloque lineal del input
+ es (ver 
+\begin_inset LatexCommand ref
+reference "eq:non-lin-filter-intput"
+
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+Z_{k}=F_{0}-X\cdot\beta-{\displaystyle \sum_{\begin{array}{c}
+r=1\\
+r\neq k\end{array}}^{R}F_{r}\cdot\alpha_{r}}=F_{k}\cdot\alpha_{k}+W\end{equation}
+
+\end_inset
+
+y el del output es (ver 
+\begin_inset LatexCommand ref
+reference "eq:non-lin-filter-output"
+
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+Z_{0}=X\cdot\beta+{\displaystyle \sum_{\begin{array}{c}
+r=1\end{array}}^{R}F_{r}\cdot\alpha_{r}}=F_{0}-W\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Esto ofrece una forma rápida de evaluar dichos output que además es prácticament
+e idéntica para el input y el output, salvo el signo de 
+\begin_inset Formula $W$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+El método principal 
+\series bold
+VMatrix draw(Real numSim)
+\series default
+ llamará a 
+\series bold
+VMatrix draw.ARMS(Real numSim)
+\series default
+ si el bloque está habilitado, pues en otro caso devuelve el último valor
+ almacenado de forma constante.
+\end_layout
+
+\begin_layout Standard
+Una vez simulados los valores se debe evaluar el filtro resultante de los
+ mismos y actualizar, o bien el output o bien la parte de input correspondiente,
+ de lo cual se encarga el método 
+\series bold
+Real setStore(Matrix values)
+\series default
+ llamando a los métodos 
+\series bold
+_.bsr::setSegmentOutput
+\series default
+ ó 
+\series bold
+_.bsr::setSegmentInputCol
+\series default
+ respectivamente.
+ Es importante destacar que las matrices que se le pasen a dichos métodos
+ tengan la misma estructura sparse que los correspondientes bloques en las
+ matrices originales para asegurar una actualización eficiente sin transformacio
+nes internas de la matriz.
+ Si no se está seguro de que esta estructura sea inmutable independientemente
+ de los parámetros no lineales entonces lo más aconsejable es considerar
+ dichos bloques matriciales como densos en la definición original del modelo.
+ Para ello basta con explicitar los coeficientes cero en las expresiones
+ de la regresión que toquen en el fichero ASCII con formato BSR (ver 
+\begin_inset LatexCommand ref
+reference "cha:El-formato-ASCII-BSR"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::DeltaTransfer()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::DeltaTransfer()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock DeltaTransfer ( Text segmentName, Text inputName, Set linBlkNames,
+ Polyn omega, Polyn delta, Matrix x0, Matrix x )
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_deltaTransfer.tol"
+
+\end_inset
+
+ y define un filtro no lineal correspondiente a una función de transferencia
+ con deltas como el explicado en 
+\begin_inset LatexCommand ref
+reference "sub:Función-de-transferencia-no-lineal-deltas"
+
+\end_inset
+
+, y que se puede usar como argumento de 
+\series bold
+NonLinBlock
+\series default
+ (Ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::NonLinBlock()"
+
+\end_inset
+
+), es decir cumple con la API mínima exigida.
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+get.bounds
+\series default
+ cacula los límites de muestreo de cada factor delta mediante ARMAProcess::Stati
+onarityBounds.2 implementada también en 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/arima/_arma_process.tol"
+
+\end_inset
+
+.
+ Los límites de los valores iniciales de transferencia no están definidos
+ pero como ARMS los requiere se le pasan valores suficientemente grandes.
+\end_layout
+
+\begin_layout Standard
+El método de evaluación 
+\series bold
+eval
+\series default
+ no es más que resolver la ecuación en diferencias y devolver una matriz
+ con una columna para cada monomio omega, con su correspondiente retardo.
+\end_layout
+
+\begin_layout Standard
+Quedan por implementar los siguientes aspectos:
+\end_layout
+
+\begin_layout Itemize
+Posibilidad de incluir los omitidos que hagan falta tanto en los valores
+ iniciales 
+\begin_inset Formula $x_{0}$
+\end_inset
+
+ como en los datos del input original propiamente dicho 
+\begin_inset Formula $x$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Pruebas con el método Slice Sampler alternativo a ARMS que además no precisa
+ de un intervalo exacto de límites de simulación.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Método-BysMcmc::Bsr::Gibbs::NonLinMaster()"
+
+\end_inset
+
+Método BysMcmc::Bsr::Gibbs::NonLinMaster()
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs::NonLinMaster(BSR.ModelDef modelDef, Set nonLinFilt
+er, NameBlock config)
+\series default
+ se implementa en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_nonLinMaster.tol"
+
+\end_inset
+
+ y permite simular un modelo BSR extendido con filtros no lineales arbitrarios
+ como los definidos en 
+\begin_inset LatexCommand ref
+reference "cha:El-bloque-de-filtro-no-lineal"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+En primer lugar se crea el master del BSR básico a partir del 
+\series bold
+modelDef
+\series default
+, llamando a 
+\series bold
+BasicMaster
+\series default
+ (ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::BasicMaster()"
+
+\end_inset
+
+) y luego se crea un bloque a partir de ese master llamando a 
+\series bold
+BsrAsBlock 
+\series default
+(ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::BsrAsBlock()"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Standard
+Luego para cada filtro no lineal se genera un bloque que lo gestione con
+ 
+\series bold
+NonLinBlock
+\series default
+ (ver 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::NonLinBlock()"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+Todos los bloques, el de BSR y los no lineales, se almacenan dentro de un
+ miembro 
+\series bold
+Set _.blocks
+\series default
+ que garantiza el orden ejecución de algunos métodos genéricos de bloques.
+\end_layout
+
+\begin_layout Standard
+El método principal 
+\series bold
+VMatrix draw(Real numSim)
+\series default
+ simplemente muestrea todos los bloques en el orden adecuado y concatena
+ las muestras de los bloques según el orden establecido.
+\end_layout
+
+\begin_layout Standard
+Como es obvio, este NameBlock implementa los métodos obligatorios de un
+ simulador maestro según se describe en 
+\begin_inset LatexCommand ref
+reference "sub:Nameblock-BysMcmc::BuildCycler()"
+
+\end_inset
+
+, y además el método 
+\series bold
+Real setStore(Matrix values)
+\series default
+ que se podrá utilizar para usar el simulador como un bloque de otro simulador
+ maestro definido por el usuario.
+\end_layout
+
+\end_body
+\end_document

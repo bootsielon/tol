@@ -1,0 +1,634 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:El-bloque-de-omitidos"
+
+\end_inset
+
+El bloque de omitidos
+\end_layout
+
+\begin_layout Standard
+En la simulación de Gibbs de una regresión lineal generalizada con datos
+ omitidos en el input y en el output, si se condiciona al resto de parámetros,
+ se obtiene otra regresión lineal cuyos parámetros son los valores omitidos.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:MissingBlock_Antecedentes"
+
+\end_inset
+
+Descripción
+\end_layout
+
+\begin_layout Standard
+Sea el modelo de regresión lineal con omitidos
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\triangle\cdot\left(Y+\delta^{v}\cdot v-\left(X+\delta^{u}\cdot u\right)\cdot\beta\right)=a\\
+a\sim N\left(0,\Sigma\right)\\
+a\in\mathbb{R}^{m}\\
+Y,V=\delta^{v}\cdot v\in\mathbb{R}^{M}\\
+\nabla\in\mathbb{R}^{m\times M}\wedge M\geqslant m\\
+\beta\in\mathbb{R}^{n}\wedge X,U=\delta^{u}\cdot u\in\mathbb{R}^{M\times n}\\
+v\in\mathbb{R}^{K_{0}},u\in\mathbb{R}^{K}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\beta$
+\end_inset
+
+ son los parámetros del bloque lineal de la regresión,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $n$
+\end_inset
+
+ es el número de parámetros a estimar de la regresión,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Y$
+\end_inset
+
+ es la matriz de output del modelo y es completamente conocida, aunque puede
+ cambiar de una simulación para otra si estamos en el marco de una simulación
+ de Gibbs con más bloques involucrados.
+ Donde es desconocida se coloca un cero.
+\end_layout
+
+\begin_layout Itemize
+La matriz booleana 
+\begin_inset Formula $\delta^{v}\in\{0,1\}^{M\times K_{0}}$
+\end_inset
+
+ es el operador lineal de ubicación que transforma el vector de parámetros
+ 
+\begin_inset Formula $v$
+\end_inset
+
+ en el vector de outputs omitidos 
+\begin_inset Formula $V$
+\end_inset
+
+ ubicados en los índices adecuados.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $M$
+\end_inset
+
+ es el número de datos del output
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $X$
+\end_inset
+
+ es la matriz de iputs del modelo y es completamente conocida y de rango
+ completo, aunque puede cambiar de una simulación para otra lo mismo que
+ el output.
+ Donde es desconocida se coloca un cero.
+\end_layout
+
+\begin_layout Itemize
+El tensor tridimensional booleano 
+\begin_inset Formula $\delta^{u}\in\{0,1\}^{M\times n\times K}$
+\end_inset
+
+ es el operador lineal de ubicación que transforma el vector de parámetros
+ 
+\begin_inset Formula $u$
+\end_inset
+
+ en la matriz de inputs omitidos 
+\begin_inset Formula $U$
+\end_inset
+
+ ubicados en los índices adecuados.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $m$
+\end_inset
+
+ es el número de datos de contraste del modelo, o número de residuos, y
+ ha de ser mayor que el de variables,
+\end_layout
+
+\begin_layout Itemize
+La matriz 
+\begin_inset Formula $\triangle$
+\end_inset
+
+ es el operador lineal de filtrado determinista, normalmente definido como
+ la matriz de Toeplitz correspondiente a un polinomio de raíces unitarias.
+ Este operador puede ser degenerado, cuando es 
+\begin_inset Formula $M>m$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $a$
+\end_inset
+
+ es el ruido del modelo cuya distribución se propone como hipótesis principal
+ del mismo,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\Sigma$
+\end_inset
+
+ es la matriz de covarianzas, usualmente será o bien una matriz diagonal
+ o bien la matriz de autocovarianzas de un proceso ARMA
+\end_layout
+
+\begin_layout Standard
+Al conjunto de índices en los que se dan interrupciones en el output se
+ le llamará
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}^{0}=\left\{ t_{1}^{0},\ldots,t_{K_{0}}^{0}\right\} \end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+La matriz de datos conocidos de output 
+\begin_inset Formula $Y$
+\end_inset
+
+ valen 
+\begin_inset Formula $0$
+\end_inset
+
+ en las interrupciones y las matriz de datos desconocidos de output 
+\begin_inset Formula $V$
+\end_inset
+
+ vale 
+\begin_inset Formula $0$
+\end_inset
+
+ fuera de las interrupciones y un valor a estimar dentro
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y_{t}=0\forall t\in\mathcal{I}^{0}\\
+V_{t}=0\forall t\notin\mathcal{I}^{0}\\
+V_{t_{k}^{0}}=v_{k}\forall k=1\ldots K_{0}\\
+v=\left(v_{1}\ldots v_{K_{0}}\right)^{T}\in\mathbb{R}^{K_{0}}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+De forma análoga para cada input 
+\begin_inset Formula $j=1\ldots n$
+\end_inset
+
+ se define el conjunto de índices en los que se dan interrupciones
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\begin{array}{c}
+\mathcal{I}^{j}=\left\{ t_{1}^{j},\ldots,t_{K_{j}}^{j}\right\} \end{array}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+La matriz de datos conocidos de input 
+\begin_inset Formula $X$
+\end_inset
+
+ valen 
+\begin_inset Formula $0$
+\end_inset
+
+ en las interrupciones y las matriz de datos desconocidos de output 
+\begin_inset Formula $U$
+\end_inset
+
+ vale 
+\begin_inset Formula $0$
+\end_inset
+
+ fuera de las interrupciones y un valor a estimar dentro
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+X_{j,t}=0\forall t\in\mathcal{I}^{j}\\
+U_{t,j}=0\forall t\notin\mathcal{I}^{j}\\
+U_{t_{k}^{j},j}=w_{k}^{j}\forall k=1\ldots K_{j}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si se concatenan los vectores 
+\begin_inset Formula $w^{j}$
+\end_inset
+
+ se obtiene un único vector de omitidos de inputs 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+u^{T}=\left(w_{1}^{1T}\ldots w_{K_{1}}^{1T},w_{1}^{2T}\ldots w_{K_{2}}^{2T},...,w_{1}^{nT}\ldots w_{K_{n}}^{nT}\right)\in\mathbb{R}^{K}\\
+K=\sum_{j=1}^{n}K_{j}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Esto es equivalente a establecer la función de indexación 
+\begin_inset Formula $S\left(j,k\right)$
+\end_inset
+
+ tal que 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+u_{S\left(j,k\right)}=w_{k}^{j}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Es obvio que condicionando a los vectores de los bloques de omitidos 
+\begin_inset Formula $u,v$
+\end_inset
+
+ queda una regresión lineal.
+ Veremos a continuación que esta relación es recíproca.
+ 
+\end_layout
+
+\begin_layout Section
+Distribución condicionada de los omitidos del output
+\end_layout
+
+\begin_layout Standard
+Si se conocen 
+\begin_inset Formula $\beta,\sigma^{2},\Sigma,U$
+\end_inset
+
+ y una descomposición simétrica 
+\begin_inset Formula $\Sigma=L\cdot L^{T}$
+\end_inset
+
+ entonces, premultiplicando por 
+\begin_inset Formula $L^{-1}$
+\end_inset
+
+ y llevando al lado izquierdo todo lo conocido, a lo cual llamaremos 
+\begin_inset Formula $D$
+\end_inset
+
+, se tiene que 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+D=\dot{L}^{-1}\cdot\left(Y-\left(X+U\right)\cdot\beta\right)=-\dot{L}^{-1}\cdot V+\varepsilon\\
+\dot{L}^{-1}=L^{-1}\cdot\triangle\\
+\varepsilon=L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Extrayendo de 
+\begin_inset Formula $-L^{-1}$
+\end_inset
+
+ las columnas correspondientes a las interrupciones en una matriz 
+\begin_inset Formula $H$
+\end_inset
+
+ resulta una regresión lineal en los parámetros de output desconocidos 
+\begin_inset Formula $v$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+D=H\cdot v+\varepsilon\\
+\varepsilon\sim N\left(0,I_{m}\right)\\
+H_{t,k}=-\dot{L}_{t,t_{k}^{0}}^{-1}\forall k=1\ldots K_{0}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si existe algún conocimiento a priori, sobre los valores que pueden adoptar
+ los omitidos, y éste es expresable como una multinormal truncada, 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+v\sim N\left(\mu_{v},\Sigma_{v}\right)\\
+A_{v}\cdot v\leq a_{v}\end{array}\end{equation}
+
+\end_inset
+
+y se dispone de una descomposición simétrica 
+\begin_inset Formula $\Sigma_{v}^{-1}=L_{v}\cdot L_{v}^{T}$
+\end_inset
+
+, entonces no hay más que añadir a la regresión las ecuaciones e inecuaciones
+ pertinentes
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+D=H\cdot v+\varepsilon\\
+L_{v}\cdot\mu_{v}=L_{v}\cdot v+\varepsilon_{v}\\
+A_{v}\cdot v\leq a_{v}\\
+\varepsilon\sim N\left(0,I_{m}\right)\\
+\varepsilon_{v}\sim N\left(0,I_{K_{0}}\right)\end{array}\label{eq:apriori-omitidos-output}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En cualquier caso, definiendo 
+\begin_inset Formula \begin{equation}
+\breve{D}=\left(\begin{array}{c}
+D\\
+L_{v}\cdot\mu_{v}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\breve{H}=\left(\begin{array}{cc}
+H, & L_{v}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\breve{\varepsilon}=\left(\begin{array}{c}
+\varepsilon\\
+\varepsilon_{v}\end{array}\right)\end{equation}
+
+\end_inset
+
+se tiene una regresión lineal estandarizada con restricciones 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\breve{D}=\breve{H}\cdot v+\breve{\varepsilon}\\
+A_{v}\cdot v\leq a_{v}\\
+\breve{\varepsilon}\sim N\left(0,I_{m+K_{0}}\right)\end{array}\end{equation}
+
+\end_inset
+
+que se puede tratar como se explicaba en el capítulo 
+\begin_inset LatexCommand ref
+reference "sub:LinearBlock_Antecedentes"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Distribución condicionada de los omitidos del input
+\end_layout
+
+\begin_layout Standard
+Si se conocen 
+\begin_inset Formula $\beta,\sigma^{2},\Sigma,V$
+\end_inset
+
+ y una descomposición simétrica 
+\begin_inset Formula $\Sigma=L\cdot L^{T}$
+\end_inset
+
+ entonces, premultiplicando por 
+\begin_inset Formula $L^{-1}$
+\end_inset
+
+ y llevando al lado izquierdo todo lo conocido, a lo cual llamaremos 
+\begin_inset Formula $C$
+\end_inset
+
+, se tiene que 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+C=\dot{L}^{-1}\cdot\left(Y+V-X\cdot\beta\right)=\dot{L}^{-1}\cdot U\cdot\beta+\varepsilon\\
+\dot{L}^{-1}=L^{-1}\cdot\nabla\triangle\\
+\varepsilon=L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El producto de matrices 
+\begin_inset Formula $L^{-1}\cdot U\cdot\beta$
+\end_inset
+
+ se puede expresar alternativamente como otro producto 
+\begin_inset Formula $G\cdot u$
+\end_inset
+
+ en el que sólo interviene el vector de inputs omitidos 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+{\displaystyle \sum_{t=1}^{m}\sum_{i=1}^{m}\dot{L}_{t,i}^{-1}}U_{i,j}\beta_{j}{\textstyle ={\displaystyle \sum_{t=1}^{m}\sum_{j=1}^{n}\sum_{k=1}^{K_{j}}\begin{array}{c}
+\dot{L}_{t,t_{k}^{j}}^{-1}\beta_{j}w_{k}^{j}\end{array}}}={\displaystyle \sum_{t=1}^{m}\sum_{s=1}^{K}\begin{array}{c}
+G_{t,s}u_{s}\end{array}}\\
+G_{t,s}=L_{t,t_{k}^{j}}^{-1}\beta_{j}\wedge s=S\left(j,k\right)\\
+G\in\mathbb{R}^{M\times K}\wedge w\in\mathbb{R}^{K}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Resulta pues una regresión lineal en los parámetros de input desconocidos
+ 
+\begin_inset Formula $u$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+C=G\cdot u+\varepsilon\\
+\varepsilon\sim N\left(0,I_{m}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si existe algún conocimiento a priori, sobre los valores que pueden adoptar
+ los omitidos, y éste es expresable como una multinormal truncada, 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+v\sim N\left(\mu_{u},\Sigma_{u}\right)\\
+A_{u}\cdot u\leq a_{u}\end{array}\end{equation}
+
+\end_inset
+
+y se dispone de una descomposición simétrica 
+\begin_inset Formula $\Sigma_{u}^{-1}=L_{u}\cdot L_{u}^{T}$
+\end_inset
+
+, entonces no hay más que añadir a la regresión las ecuaciones e inecuaciones
+ pertinentes
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+C=G\cdot u+\varepsilon\\
+L_{u}\cdot\mu_{u}=L_{u}\cdot u+\varepsilon_{u}\\
+A_{u}\cdot u\leq a_{u}\\
+\varepsilon\sim N\left(0,I_{m}\right)\\
+\varepsilon_{u}\sim N\left(0,I_{K}\right)\end{array}\label{eq:apriori-omitidos-input}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En cualquier caso, definiendo 
+\begin_inset Formula \begin{equation}
+\breve{C}=\left(\begin{array}{c}
+C\\
+L_{u}\cdot\mu_{u}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\breve{G}=\left(\begin{array}{cc}
+G, & L_{u}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\breve{\varepsilon}=\left(\begin{array}{c}
+\varepsilon\\
+\varepsilon_{u}\end{array}\right)\end{equation}
+
+\end_inset
+
+se tiene una regresión lineal estandarizada con restricciones 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\breve{C}=\breve{G}\cdot u+\breve{\varepsilon}\\
+A_{u}\cdot u\leq a_{u}\\
+\breve{\varepsilon}\sim N\left(0,I_{m+K}\right)\end{array}\end{equation}
+
+\end_inset
+
+que se puede tratar como se explicaba en el capítulo 
+\begin_inset LatexCommand ref
+reference "sub:LinearBlock_Antecedentes"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

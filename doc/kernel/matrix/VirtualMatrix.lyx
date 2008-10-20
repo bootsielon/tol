@@ -1,0 +1,1613 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\begin_preamble
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage widemarginsa4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Virtual Matrix en TOL
+\layout Author
+
+Jorge Suit Pérez y Víctor de Buen
+\layout Abstract
+
+La implementación de matrices virtuales pretende dotar al lenguaje de programaci
+ón TOL
+\begin_inset Foot
+collapsed false
+
+\layout Standard
+
+TOL:
+\emph on 
+ Time Oriented Language
+\emph default 
+, un lenguage interpretado de programación
+\emph on 
+ open-source
+\emph default 
+ cuya página web es 
+\begin_inset LatexCommand \htmlurl[TOL-project]{http://www.tol-project.org}
+
+\end_inset 
+
+ y que ha desarrollado por el grupo 
+\begin_inset LatexCommand \htmlurl[Bayes]{http://www.bayesforecast.com}
+
+\end_inset 
+
+
+\end_inset 
+
+
+\emph on 
+ 
+\emph default 
+de un mecanismo de definición de matrices de forma implícita con el doble
+ objetivo de ahorrar memoria, al no tener que almacenar explícitamente todas
+ las celdas de la matriz; y permitir al mismo tiempo la utilización de algoritmo
+s específicamente diseñados para formas especiales de matrices (Sparse,
+ Toeplitz, Vandermonde, ...)
+\layout Section
+
+Definición genérica de matriz virtual
+\layout Standard
+
+Una matriz virtual puede definirse de formas muy variopintas pero es necesario
+ contar con un interfaz mínimo común con el que interactuar con los posibles
+ algoritmos de una forma inequívoca y eficaz.
+ La estructura TOL podría definirse de esta forma:
+\layout LyX-Code
+
+Struct VMatrix 
+\layout LyX-Code
+
+{ 
+\layout LyX-Code
+
+  Text      type_,
+\layout LyX-Code
+
+  Anything  param_,
+\layout LyX-Code
+
+  Set       methods_,
+\layout LyX-Code
+
+  Set       properties_
+\layout LyX-Code
+
+};
+\layout Enumerate
+
+
+\emph on 
+Text type_
+\emph default 
+: Identifica el tipo de matriz virtual que se usará para asegurar que se
+ puede utilizar un método concreto con los objetos de dicho tipo o bien
+ dar los errores o warnings pertinentes.
+ Esta etiqueta será mejor usarla en modo 
+\shape italic 
+case insensitive
+\shape default 
+, es decir sin distinguir mayúsculas de minúsculas.
+\layout Enumerate
+
+
+\emph on 
+Anything param_
+\emph default 
+: Parámetros opcionales, dependientes del tipo de matriz virtual, que constituye
+n la información básica utilizada por los métodos genéricos de acceso.
+ Si es un sólo objeto se puede introducir tal cual, y si no, como un conjunto
+ de objetos con estructura arbitraria dependiente del tipo de matriz.
+ Si no se precisan argumentos opcionales se pasará el conjunto 
+\family typewriter 
+Empty
+\family default 
+.
+\layout Enumerate
+
+
+\emph on 
+Set methods_
+\emph default 
+: Conjunto de métodos de acceso eficaz a las propiedades de la matriz, lo
+ cual depende tanto del tipo de matriz como de los algoritmos que se le
+ van a aplicar.
+ En casos especiales de aplicación de un método particular que no precise
+ usar todos estos métodos, o bien ya estén predefinidos para el tipo de
+ matriz virtual, entonces se pueden omitir pasando el conjunto 
+\family typewriter 
+Empty
+\family default 
+.
+\layout Enumerate
+
+
+\emph on 
+Set properties_
+\emph default 
+: Conjunto de propiedades estructurales conocidas de la matriz, como por
+ ejemplo si se trata o no de una matriz.
+ Existen propiedades primarias con etiqueta propia, propiedades derivadas
+ de la mezcla de otras y propiedades incompatibles entre sí
+\begin_deeper 
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsSqr=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Sqr
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para especificar que la matriz es cuadrada, { 
+\begin_inset Formula $Rows\left(A\right)=Cols\left(A\right)$
+\end_inset 
+
+ }
+\begin_inset Foot
+collapsed false
+
+\layout Standard
+
+VMP son las siglas de Virtual Matrix Property
+\end_inset 
+
+
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsVer=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Ver
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para especificar que la matriz es vertical, { 
+\begin_inset Formula $Rows\left(A\right)>Cols\left(A\right)$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsHor=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Hor
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para especificar que la matriz es horizontal, { 
+\begin_inset Formula $Rows\left(A\right)<Cols\left(A\right)$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsReg=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Reg
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para especificar que la matriz es regular, { 
+\begin_inset Formula $rank\left(A\right)=Min\left\{ Rows\left(A\right),Cols\left(A\right)\right\} $
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsSym=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Sym
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+,
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Sqr
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para especificar que la matriz es simétrica, { 
+\begin_inset Formula $A_{i,j}=A_{j,i}$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsLowTri=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+LowTri
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para matrices triangulares inferiores no necesariamente cuadradas, {
+ 
+\begin_inset Formula $A_{i,j}=0\forall i>j$
+\end_inset 
+
+}
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsUppTri=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+UppTri
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para matrices triangulares superiores no necesariamente cuadradas, {
+ 
+\begin_inset Formula $A_{i,j}=0\forall i<j$
+\end_inset 
+
+}
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsColVec=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Ver
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+,
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Vec
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+,
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+LowTri
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para especificar que la matriz es un vector columna, { 
+\begin_inset Formula $Rows\left(A\right)=1$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsRowVec=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Hor
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+,
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Vec
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+,
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+UppTri
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para especificar que la matriz es un vector fila, { 
+\begin_inset Formula $Cols\left(A\right)=1$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsDiag=Set VMP_IsLowTri+VMP_IsUppTri+VMP_IsSym
+\family default 
+ : para matrices diagonales, { 
+\begin_inset Formula $A_{i,j}=0\forall i\neq j$
+\end_inset 
+
+} Obsérvese que una matiz puede ser triangular por arriba y por abajo pero
+ no cuadrada, en cuyo caso no se considerará como matriz diagonal, aunque
+ lo sea de forma incompleta.
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_HasUnitDiag=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+UnitDiag
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para matrices con diagonal constante igual a 1, { 
+\begin_inset Formula $A_{i,i}=1$
+\end_inset 
+
+}
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsOrthCols=VMP_IsOrth=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+OrthCols
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+,
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Reg
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para matrices ortogonales por columnas o simplemente otrtogonales, {
+ 
+\begin_inset Formula $A^{T}A\; is\: diagonal$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsOrthRows=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+OrthRows
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+,
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+Reg
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para matrices ortogonales por filas, { 
+\begin_inset Formula $AA^{T}\; is\: diagonal$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_HasUnitCols=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+UnitCols
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para matrices de columnas con norma unitaria, { 
+\begin_inset Formula $A^{T}A\; has\: unit\: diagonal$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_HasUnitRows=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+UnitRows
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para matrices de filas con norma unitaria, { 
+\begin_inset Formula $AA^{T}\; has\: unit\: diagonal$
+\end_inset 
+
+ }
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsOrthNormCols = VMP_IsOrth+VMP_HasUnitCols
+\family default 
+ : para matrices ortonormales por columnas, o simplemente ortonormales
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsOrthNormRows = VMP_IsOrth+VMP_HasUnitRows
+\family default 
+ : para matrices ortonormales por filas
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsTriDiag=[[
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+TriDiag
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\family typewriter 
+]]
+\family default 
+ : para matrices tridiagonales no necesariamente cuadradas, { 
+\begin_inset Formula $A_{i,j}=0\forall\left|i-j\right|>1$
+\end_inset 
+
+}
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsLowBiDiag=VMP_IsTriDiag+VMP_LowTri
+\family default 
+ : para matrices bidiagonales inferiores no necesariamente cuadradas
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsUppBiDiag=VMP_IsTriDiag+VMP_UppTri
+\family default 
+ : para matrices bidiagonales superiores no necesariamente cuadradas
+\layout Enumerate
+
+
+\family typewriter 
+Set VMP_IsIdent=VMP_IsDiag+VMP_HasUnitDiag+IsOrthNormCols+IsOrthNormRows+VMP_IsT
+riDiag
+\family default 
+ : para la matriz identidad,
+\layout Enumerate
+
+etc.
+\end_deeper 
+\layout Standard
+
+Se ha visto que una matriz puede mezclar varias propiedades, pero estas
+ mezclas no se pueden dar de forma arbitraria, por lo que será necesario
+ incorporar un sistema de control de congruencia.
+ Estas propiedades sólo aseguran que de presentarse en la lista la propiedad
+ se cumple, pero en caso contrario simplemente se entenderá que se desconoce
+ si la matriz observa o no dicha propiedad.
+ Por ejemplo una matriz resultado de una cierta operación puede resultar
+ ser simétrica de forma casual en cuyo caso no se especificará que lo es.
+ Para especificarlo explícitamente se pueden incluir propiedades del tipo
+ 
+\begin_inset Quotes erd
+\end_inset 
+
+NOT SYM
+\begin_inset Quotes erd
+\end_inset 
+
+ para asegurar activamente que la matriz no es simétrica o 
+\begin_inset Quotes erd
+\end_inset 
+
+NOT REG
+\begin_inset Quotes erd
+\end_inset 
+
+ para especificar que es singular a ciencia cierta.
+ Existen tres tipos de comportamiento que pueden adoptar los algoritmos
+ cuando necesitan saber si una matriz cumple o no una propiedad no especificada:
+\layout Enumerate
+
+Algunas propiedades se pueden obtener de la definición de la matriz de forma
+ sencilla y rápida, como por ejemplo, si es cuadrada o un vector fila.
+ En estos casos se incorporará la información automáticamente siempre que
+ sea pertinente.
+ 
+\layout Enumerate
+
+Para otras propiedades puede ser relativamente costoso pero asumible, como
+ por ejemplo si es triangular superior o simétrica.
+ En este caso una variable global
+\begin_inset Foot
+collapsed false
+
+\layout Standard
+
+Se le podría llamar VMP_FORCE_CALC_UNKNOWN_PROPERTIES o algo similar
+\end_inset 
+
+ gobernará lo que el usuario prefiere hacer en estos casos.
+ En cualquier caso TOL emitirá un 
+\shape italic 
+warning
+\shape default 
+ avisando de ello al usuario por si se tratara de un defecto de definición.
+\layout Enumerate
+
+Otras propiedades requieren costes realmente prohibitivos como por ejemplo
+ saber si una matriz es regular u otronormal.
+ En estos casos TOL lanzará un 
+\shape italic 
+warning
+\shape default 
+ y no procesará ningún algoritmo que requiera dicha propiedad no especificada.
+\layout Section
+
+Tipos básicos de matrices virtuales
+\layout Subsection
+
+Dense
+\layout Standard
+
+Una matriz de tipo "dense
+\begin_inset Quotes erd
+\end_inset 
+
+ (densa o llena) es la que se define explícitamente como un objeto TOL Matrix
+ o un Real
+\layout LyX-Code
+
+Set d1 = VMatrix("Dense", Matrix A, Empty, Set properties);
+\layout LyX-Code
+
+Set d2 = VMatrix("Dense", Real   a, Empty, Set properties);
+\layout Standard
+
+No es necesario implementar métodos de acceso particulares pues el propio
+ objeto matriz ya los proporciona.
+ En el caso de definirse mediante un número real se entenderá la matriz
+ (1x1) cuya única celda es dicho número.
+\layout Subsection
+
+Scan
+\layout Standard
+
+Una matriz "Scan
+\begin_inset Quotes erd
+\end_inset 
+
+ es la que se define implícitamente por sus propios métodos de acceso y
+ parámetros opcionales
+\layout LyX-Code
+
+Set d = VMatrix("Scan", Set param, VMatrixScanner(...), Set properties);
+\layout Standard
+
+El conjunto de métodos de acceso a una matriz deberá tener la siguiente
+ estructura para poder ser utilizado en los algoritmos genéricos de forma
+ eficaz:
+\layout LyX-Code
+
+Struct VMatrixScanner 
+\layout LyX-Code
+
+{
+\layout LyX-Code
+
+  Code getRows_,
+\layout LyX-Code
+
+  Code getColumns_,
+\layout LyX-Code
+
+  Code getCell_,
+\layout LyX-Code
+
+  Code getRow_,
+\layout LyX-Code
+
+  Code getColumn_
+\layout LyX-Code
+
+};
+\layout Enumerate
+
+
+\emph on 
+Code getRows_
+\emph default 
+ : Función TOL declarada como 
+\family typewriter 
+Real (VMatrix v)
+\family default 
+.
+ Devuelve el número de filas.
+ 
+\layout Enumerate
+
+
+\emph on 
+Code getColumns_
+\emph default 
+: Función TOL declarada como 
+\family typewriter 
+Real (VMatrix v)
+\family default 
+.
+ Devuelve el número de columnas.
+\layout Enumerate
+
+
+\emph on 
+Code getCell_
+\emph default 
+: Función TOL declarada como 
+\family typewriter 
+Real (VMatrix v, Real i, Real j)
+\family default 
+.
+ Devuelve el valor de la celda situada en la intersección de la fila i-ésima
+ y la columna j-ésima.
+ Puede ser útil en algoritmos que precisen de acceso aleatorio a una celda
+ en particular.
+\layout Enumerate
+
+
+\emph on 
+Code getRow_
+\emph default 
+: Función TOL declarada como 
+\family typewriter 
+Real (VMatrix v, Real i)
+\family default 
+.
+ Devuelve una matriz vector fila llena.
+ Se utilizará ampliamente en métodos virtuales de suma y multiplicación
+ de matrices.
+\layout Enumerate
+
+
+\emph on 
+Code getColumn_
+\emph default 
+: Función TOL declarada como 
+\family typewriter 
+Real (VMatrix v, Real j)
+\family default 
+.
+ Devuelve una matriz vector columna llena.
+ Se utilizará ampliamente en métodos virtuales de suma y multiplicación
+ de matrices.
+\layout Standard
+
+Cuando los métodos de cálculo, este tipo de matriz podría acelerarse de
+ forma opcional utilizando caché en disco para almacenar los resultados
+ obtenidos y no voler a repetir dichos cálculos.
+\layout Paragraph
+
+Ejemplo
+\layout Standard
+
+En cualquier problema de regresión o interpolación de fenómenos en el espacio-ti
+empo aparecen facilmente matrices gigantescas que en realidad dependen de
+ tan sólo las coordenadas espaciales, pongamos 
+\begin_inset Formula $\left(x,y,z\right)$
+\end_inset 
+
+ en el espacio tridimensional, y el momento 
+\begin_inset Formula $t$
+\end_inset 
+
+ en el que sucede el fenómeno estudiado, que podemos representar como una
+ función 
+\begin_inset Formula $u\left(x,y,z,t\right)$
+\end_inset 
+
+, que puede ser escalar o vectorial, y de la cual se conoce un conjunto
+ de observaciones 
+\begin_inset Formula $\left\{ u_{n}=u\left(x_{n},y_{n},z_{n},t_{n}\right)\right\} _{n=1\ldots N}$
+\end_inset 
+
+, de las cuales queremos extraer una fórmula de interpolación que permita
+ calcular su valor en un punto arbitrario del espacio-tiempo.
+\layout Standard
+
+Las familias típicas de funciones básicas de interpolación son los polinomios,
+ bien en la forma simple de monomios separados 
+\begin_inset Formula $\{1,x,x^{2},...\},\{1,x,y,x^{2},xy,y^{2},...\}$
+\end_inset 
+
+, bien ortogonalizados (Hermite, Chebychev, ...).
+ Otra familia típica, usada cuando el fenómeno tiene cierta estructura periódica
+, es la familia harmónica de sinusoidales (series de Fourier)
+\layout Standard
+
+
+\begin_inset Formula $\{1\},\{ sin\left(jx2\pi\right),cos\left(jx2\pi\right)\}_{j=1,2,3,\ldots},$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $\{1\},\{ sin\left(\left(jx+ky\right)2\pi\right),cos\left(\left(jx+ky\right)2\pi\right)\}_{j,k=1,2,3,\ldots},$
+\end_inset 
+
+...
+ 
+\layout Standard
+
+En el caso concreto de los fenómenos meteorológicos, las estructuras periódicas
+ (ondas) aparecen en el tiempo y en las coordenadas de longitud y latitud
+ 
+\begin_inset Formula $\left(x,y\right)$
+\end_inset 
+
+ de forma no necesariamente independiente del tiempo, mientras que en la
+ altura la periodicidad se diluye debido al pequeño espesor relativo de
+ la atmósfera.
+ Por esta razón se tomará una matriz e regresión como la expuesta a continuación
+ para hallar la función de interpolación, una vez obtenidos los valores
+ 
+\begin_inset Formula $\left\{ x_{n},y_{n},z_{n},t_{n}\right\} _{n=1\ldots N}$
+\end_inset 
+
+, para los que supondremos que 
+\begin_inset Formula $x_{n},y_{n},t_{n}$
+\end_inset 
+
+, están normalizados en el intervalo 
+\begin_inset Formula $\left[0,1\right]$
+\end_inset 
+
+,
+\layout LyX-Code
+
+Matrix input  = Group("ConcatColumns",
+\layout LyX-Code
+
+  SetOfMatrix
+\layout LyX-Code
+
+  (
+\layout LyX-Code
+
+    1,
+\layout LyX-Code
+
+    z,
+\layout LyX-Code
+
+    RPow(z,2)
+\layout LyX-Code
+
+  )<<
+\layout LyX-Code
+
+  BinGroup("<<",For(1,OrderT,Set(Real i)
+\layout LyX-Code
+
+  {
+\layout LyX-Code
+
+    BinGroup("<<",For(1,OrderX,Set(Real j)
+\layout LyX-Code
+
+    {
+\layout LyX-Code
+
+      For(1,OrderY,Matrix(Real k) 
+\layout LyX-Code
+
+      { 
+\layout LyX-Code
+
+        Matrix ti = RProd(t, 2*Pi*i);
+\layout LyX-Code
+
+        Matrix xj = RProd(x, 2*Pi*j);
+\layout LyX-Code
+
+        Matrix yk = RProd(y, 2*Pi*k);
+\layout LyX-Code
+
+        Sin(ti+xj+yk) | Cos(ti+xj+yk)
+\layout LyX-Code
+
+      })
+\layout LyX-Code
+
+    }))
+\layout LyX-Code
+
+  }))
+\layout LyX-Code
+
+);
+\layout Standard
+
+Cuando se precisa un nivel de detalle muy fino, los tamaños de las series
+ de Fourier (
+\family typewriter 
+OrderT
+\family default 
+,
+\family typewriter 
+ OrderX 
+\family default 
+y
+\family typewriter 
+ OrderY
+\family default 
+) han de hacerse mayores y el tamaño total de la matriz 
+\family typewriter 
+3+OrderT*OrderX*OrderY 
+\family default 
+se puede hacer excesivo y superar facilmente la RAM disponible en la computadora
+, teniendo en cuenta que el número de observaciones es de cientos de miles
+ al día, y es conveniente hacer la interpolación con los datos de al menos
+ un día, para asegurar un recubrimiento geográfico suficiente, debido a
+ la heterogeneidad de frecuencias de las observaciones emitidas por las
+ diferentes estaciones meteorológicas.
+\layout Standard
+
+Sin embargo, para los cálculos de la regresión no es necesario mantener
+ en memoria toda la matriz al mismo tiempo sino que sólo necesitamos tener
+ cada columna por separado, por lo que se puede definir del siguiente modo
+ en TOL
+\layout LyX-Code
+
+//Estructura de parámetros de definición de la matriz virtual
+\layout LyX-Code
+
+Struct MeteoParamDef
+\layout LyX-Code
+
+{
+\layout LyX-Code
+
+  Real   numObs_,
+\layout LyX-Code
+
+  Real   orderX_,
+\layout LyX-Code
+
+  Real   orderY_,
+\layout LyX-Code
+
+  Real   orderT_,
+\layout LyX-Code
+
+  Matrix x_,
+\layout LyX-Code
+
+  Matrix y_,
+\layout LyX-Code
+
+  Matrix z_,
+\layout LyX-Code
+
+  Matrix t_
+\layout LyX-Code
+
+};
+\layout LyX-Code
+
+\layout LyX-Code
+
+//Función de creación de la matriz virtual
+\layout LyX-Code
+
+Set MeteoInput(MeteoParamDef param)
+\layout LyX-Code
+
+{
+\layout LyX-Code
+
+  VMatrix
+\layout LyX-Code
+
+  (
+\layout LyX-Code
+
+    "Scan", 
+\layout LyX-Code
+
+    param,
+\layout LyX-Code
+
+    VMatrixScanner
+\layout LyX-Code
+
+    {
+\layout LyX-Code
+
+      Real getRows(VMatrix this) { this->param->numObs_ },
+\layout LyX-Code
+
+      Real getCols(VMatrix this) 
+\layout LyX-Code
+
+      { 
+\layout LyX-Code
+
+        3
+\family typewriter 
++
+\family default 
+this->param->o
+\family typewriter 
+rderT
+\family default 
+_
+\family typewriter 
+*
+\layout LyX-Code
+
+          this->param->o
+\family typewriter 
+rderX
+\family default 
+_
+\family typewriter 
+*
+\layout LyX-Code
+
+          this->param->o
+\family typewriter 
+rderY
+\family default 
+_ 
+\layout LyX-Code
+
+      },
+\layout LyX-Code
+
+      getCell=UnknownCode, //No se precisa este método
+\layout LyX-Code
+
+      getRow =UnknownCode, //No se precisa este método
+\layout LyX-Code
+
+      Matrix getColumn(VMatrix this, Real col)
+\layout LyX-Code
+
+      {
+\layout LyX-Code
+
+        If(col<=3, RPow(this->param->z_,col),
+\layout LyX-Code
+
+        {
+\layout LyX-Code
+
+          Real   nx  = this->param->o
+\family typewriter 
+rderX
+\family default 
+_;
+\layout LyX-Code
+
+          Real   ny  = this->param->o
+\family typewriter 
+rder
+\family default 
+Y_;
+\layout LyX-Code
+
+          Real   nt  = this->param->o
+\family typewriter 
+rder
+\family default 
+T_;
+\layout LyX-Code
+
+          Real   nxy = nx*ny;
+\layout LyX-Code
+
+          Real   c0  = col-3;
+\layout LyX-Code
+
+          Real   i   = Floor(c0/nxy);
+\layout LyX-Code
+
+          Real   c1  = c0-i*nxy
+\layout LyX-Code
+
+          Real   j   = Floor(c1/ny);
+\layout LyX-Code
+
+          Real   c2  = c1-j*nx;
+\layout LyX-Code
+
+          Real   k   = Floor(c/2);
+\layout LyX-Code
+
+          Real   sc  = c2-k;
+\layout LyX-Code
+
+          Matrix ti  = RProd(this->param->t, 2*Pi*i);
+\layout LyX-Code
+
+          Matrix xj  = RProd(this->param->x, 2*Pi*j);
+\layout LyX-Code
+
+          Matrix yk  = RProd(this->param->y, 2*Pi*k);
+\layout LyX-Code
+
+          If(!sc, Sin(ti+xj+yk),Cos(ti+xj+yk))
+\layout LyX-Code
+
+        }
+\layout LyX-Code
+
+      }
+\layout LyX-Code
+
+    }, 
+\layout LyX-Code
+
+    Set properties=Empty
+\layout LyX-Code
+
+  )
+\layout LyX-Code
+
+};
+\layout Subsection
+
+Sparse
+\layout Standard
+
+Una matriz "Sparse
+\begin_inset Quotes erd
+\end_inset 
+
+ es la que por tener una gran cantidad de ceros se define implícitamente
+ de forma que sólo hay que especificar los valores no nulos.
+ 
+\layout LyX-Code
+
+Set d4 = VMatrix("Sparse", [["SUBTYPE", S_1, S_2, ..., S_k]], Empty, Set properties
+));
+\layout Standard
+
+No es necesario implementar métodos de acceso particulares pues el propio
+ objeto sparse-matrix ya los proporciona.
+ Existen muchos subtipos de matriz sparse atendiendo al método de especificación
+, por ello una matriz "sparse" se define mediante un conjunto 
+\begin_inset Quotes erd
+\end_inset 
+
+param
+\begin_inset Quotes erd
+\end_inset 
+
+ donde el primer elemento especifica un tipo de "sparsidad" y los elementos
+ restantes definen los valores distintos de cero.
+ Se tienen los tipos de matrices "sparse":
+\layout Enumerate
+
+"DIAG" : matriz diagonal densa por bloques.
+\layout Enumerate
+
+"SDIAG" : matriz diagonal "sparse" por bloques.
+\layout Enumerate
+
+"ROW" : matriz fila densa por bloques.
+\layout Enumerate
+
+"SROW" : matriz fila "sparse" por bloques.
+\layout Enumerate
+
+"COL" : matriz columna densa por bloques.
+\layout Enumerate
+
+"SCOL" : matriz columna "sparse" por bloques.
+\layout Enumerate
+
+"TRIPLET" : matriz rectangular "sparse" por bloque dada por coordenadas
+ de
+\layout Enumerate
+
+bloques.
+\layout Standard
+
+La forma de los elementos S_i depende del tipo "sparsidad" "SUBTYPE" y hacen
+ referencia a submatrices o bloques.
+ Un bloque puede ser:
+\layout Enumerate
+
+Un valor escalar : Real.
+\layout Enumerate
+
+Una matriz densa : Matrix.
+\layout Enumerate
+
+Una matriz sparse : Set [["SUBTYPE", S_1, S_2, ..., S_k]] (permite definicion
+ recursiva).
+\layout Enumerate
+
+Una matriz virtual : VMatrix (también permite definicion recursiva aún más
+ genérica).
+\layout Standard
+
+En realidad bastaría con el último caso pues engloba al resto pero se dan
+ el resto de opciones para evitar expresiones demasiado engorrosas.
+ En adelante una submatriz o bloque se denominara BLOCK.
+ Para cada block B,m(B) nos da la cantidad de filas del bloque; y n(B),
+ la cantidad de columnas del bloque.
+ Por simplicidad de notacion se puede usar m_i, n_i para denotar la cantidad
+ de filas y columnas del bloque i-esimo cuando el referido bloque quede
+ claro en el contexto.
+\layout Standard
+
+Especificamos ahora para cada tipo la forma de lo elementos S_i.
+\layout Subsubsection
+
+Subtype "DIAG"
+\layout Standard
+
+El tipo "DIAG" define una matriz diagonal por bloque que se obtiene al concatena
+r en diagonal cada uno de los bloques S_i.
+ El bloque S_1 comienza en la coordenada (1,1).
+ Si la diagonal principal de S_i termina en las coordenadas (d_i,d_i), d_i
+ = min(m_i,n_i), entonces el bloque S_{i+1} comienza en la coordenada (di+1,di+1
+).
+\layout Subsubsection
+
+Subtype "SDIAG"
+\layout Standard
+
+El tipo "SDIAG" define una matriz diagonal "sparse" por bloque que se obtiene
+ de colocar cada bloque en sus coordenadas diagonal especificada.
+ La forma de S_i es {d_i, B_i}.
+ El bloque B_i se coloca a partir de las coordenadas (d_i,d_i).
+\layout Subsubsection
+
+Subtype "ROW"
+\layout Standard
+
+El tipo "ROW" define una matriz fila por bloques que se obtiene de concatenar
+ horizontalmente cada uno de los bloques S_i.
+ El bloque S_1 comienza en la coordenada (1,1).
+ El bloque S_{i+1} comienza en las coordenadas (1,n_i+1).
+\layout Subsubsection
+
+Subtype "SROW"
+\layout Standard
+
+El tipo "SROW" define una matriz fila "sparse" por bloque que se obtiene
+ de colocar cada bloque en sus coordenadas de fila especificada.
+ La forma de S_i es {n_i, B_i}.
+ El bloque B_i se coloca a partir de las coordenadas (1,n_i).
+\layout Subsubsection
+
+Subtype "COL"
+\layout Standard
+
+El tipo "COL" define una matriz columna por bloques que se obtiene deconcatenar
+ verticalmente cada uno de los bloques S_i.
+ El bloque S_1 comienza en la coordenada (1,1).
+ El bloque S_{i+1} comienza en las coordenadas (m_i+1,1).
+\layout Subsubsection
+
+Subtype "SCOL"
+\layout Standard
+
+El tipo "SCOL" define una matriz fila "sparse" por bloque que se obtiene
+ de colocar cada bloque en sus coordenadas de columna especificada.
+ La forma de S_i es {m_i, B_i}.
+ El bloque B_i se coloca a partir de las coordenadas (m_i,1).
+\layout Subsubsection
+
+Subtype "TRIPLET"
+\layout Standard
+
+El tipo "TRIPLET" define una matriz rectangular "sparse" por bloque que
+ se obtiene de colocar cada bloque en las coordenadas rectangulares especificada
+s.
+ La forma de S_i es {m_i, n_i, B_i}.
+ El bloque B_i se coloca a partir de las coordenadas (m_i, n_i).
+\layout Subsection
+
+Displacement
+\layout Standard
+
+Las matrices con estructura de desplazamiento son tipos muy especiales de
+ matrices que, aún pudiendo ser normalemente matrices llenas, son definibles
+ mediante muy pocos parámetros, 
+\begin_inset Formula $O\left(n=rows+columns\right)$
+\end_inset 
+
+ en lugar de 
+\begin_inset Formula $O\left(rows\times columns\right)$
+\end_inset 
+
+; y para los que se cuenta con algoritmos de multiplicación, inversión o
+ regresión super rápidos con órdenes superlineales 
+\begin_inset Formula $O\left(nlog^{h}n\right)$
+\end_inset 
+
+ (
+\shape italic 
+superfast methods
+\shape default 
+), casi todos ellos relacionados con el algoritmo de Schur, la transformada
+ rápida de Fourier y con métodos de interpolación y regresión en general.
+ También existen métodos de resolución de sistemas lineales arbitrarios
+ basados en precondicionadores con estructura de desplazamiento que aceleran
+ la solución de problemas genéricos, lo cual hace aún más interesante contar
+ con est
+\layout Standard
+
+Existen multitud de subtipos de matrices con estructura de desplazamiento
+ que se irán introduciendo conforme se hagan necesarias: Toeplitz, Hankel,
+ Circulant, Cauchy, Vandermonde, Toeplitz-like, Cauchy-like, Toeplitz+Henkel-lik
+e, etc
+\layout LyX-Code
+
+Set d = VMatrix("Displacement", [["SUBTYPE", param1, param2, ...]], Empty,
+ Set properties));
+\layout Standard
+
+No es necesario en estos casos implementar métodos de acceso particulares.
+\layout Subsubsection
+
+Subtype 
+\begin_inset Quotes erd
+\end_inset 
+
+Toeplitz
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+Una matriz de tipo "Toeplitz
+\begin_inset Quotes erd
+\end_inset 
+
+ es la que se define implícitamente mediante los elementos comunes de cada
+ diagonal principal, o sea que 
+\begin_inset Formula $T_{i,j}=t_{i-j}$
+\end_inset 
+
+.
+\layout LyX-Code
+
+Set d1 = VMatrix("Displacement", [["Toeplitz", Polyn  t]], Empty, Set properties
+);
+\layout LyX-Code
+
+\layout Standard
+
+El coeficiente de grado cero se refiere a la diagonal principal central,
+ los coeficientes de los monomios con grado negativo (F) se corresponden
+ a las diagonales principales por debajo de la diagonal principal central,
+ y los de grado positivo (B) a las diagonales principales superiores.
+\layout Standard
+
+Este tipo de matrices serán especialmente útiles para la definición de matrices
+ de espacio de estado de modelos que involucren procesos ARMA o VARMA, así
+ como matrices de covarianzas de procesos estacionarios, etc.
+ 
+\layout Subsubsection
+
+Subtype 
+\begin_inset Quotes erd
+\end_inset 
+
+Hankel
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+Una matriz de tipo "Hankel
+\begin_inset Quotes erd
+\end_inset 
+
+ es la que se define implícitamente mediante los elementos comunes de cada
+ diagonal secundaria, o sea que 
+\begin_inset Formula $T_{i,j}=t_{i+j}$
+\end_inset 
+
+.
+\layout LyX-Code
+
+Set d1 = VMatrix("Displacement", [["Hankel", Polyn  t]], Empty, Set properties);
+\layout Standard
+
+La definición a partir del polinomio son análogos a los de la matriz de
+ Toeplitz.
+ Aparece de foma más rara pero no involucra apenas coste pues casi todos
+ los métodos de las matrices de Toeplitz son facilmente asimilables para
+ las matrices de Hankel.
+\the_end

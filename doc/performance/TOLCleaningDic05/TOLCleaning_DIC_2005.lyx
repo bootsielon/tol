@@ -1,0 +1,1423 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\begin_preamble
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage widemarginsa4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Proceso de limpieza de TOL previo al desarrollo de OISS
+\layout Author
+
+Víctor de Buen
+\layout Abstract
+
+El propósito fundamental del presente proceso de limpieza de TOL es dejar
+ una versión de TOL algo más despejada de elementos estériles y confusos
+ así como prepararla para el desarrollo de sistemas que le den una mayor
+ agilidad y robustez a los proyectos desarrollados en TOL, de forma que
+ dé tiempo al equipo de desarrollo a diseñar e implementar un nuevo lenguaje
+ MOLE sin bloquear por ello ni a los analistas ni a los desarrolladores.
+\layout Section
+
+Objetivos
+\layout Standard
+
+En términos del código C++, el objetivo principal era más que nada disponer
+ los templates básicos adecuados para más adelante poder instanciar objetos
+ TOL serializables de forma indexada y probablemente utilizando memoria
+ externa, lo cual se consigue básicamente virtualizando los métodos principales
+ de los objetos Name, Description, Contens, etc.; y esa ha sido la principal
+ labor, afectando a la jerarquía de templates BRen*, BTmp*, BGraContens*,
+ BGraObject* y en general a todas las clases derivadas de BSyntaxObject.
+\layout Standard
+
+Sin embargo, aprovechando el tirón, se le ha dado un repasito general a
+ TOL haciendo buena parte de esa limpieza de la que tanto habíamos hablado,
+ eliminando campos superfluos e incorporándolos eventualmente en su lugar
+ correspondiente en la jerarquía de clases.
+ 
+\layout Standard
+
+A las clases BSet, BTimeSerie y derivadas, BSerieGroup y BSerieTable también
+ se les ha dado un repaso importante pues son las que sustentan la mayor
+ parte de las operaciones de TOL.
+\layout Section
+
+Resultados
+\layout Standard
+
+Como efecto colateral se consigue que desaparezcan algunos errores en la
+ recompilación, especialmente de funciones TOL de usuario, y, dependiendo
+ de los procesos ejecutados, una disminución del consumo de memoria usada
+ por TOL desde un 20% hasta más del 90%, y un ligero aumento en velocidad,
+ que puede ser desde apenas perceptible hasta un 40%; lo cual en modo alguno
+ alguno justificarían el trabajo hecho, el cual cobra sentido sólo por el
+ hecho de conseguir una jerarquía de clases más limpia y potente.
+ 
+\layout Standard
+
+El principal problema de memoria se debe a que los objetos no se borran
+ convenientemente a causa del lío que supone el tratamiento de las referencias
+ vía BList y BSet, las cuales llevan bastante mala vida, pues se manipulan
+ en exeso a veces, provocando interferencias entre ellas, además de las
+ llamadas directas a InNRefs y DecNRefs.
+ Se ha mejorado parcialmente esto devolvíéndose ahora bastante más memoria
+ que antes por lo que en algunas ocasiones, cuando se hacen procesos repetitivos
+ muy pesados, el ahorro de memoria puede ser brutal.
+\layout Standard
+
+Sin embargo, en el momento en el que se produzca cualquier pequeño desorden
+ en los procesos de destrucción se seguirán quedando objetos huérfanos de
+ lista que les pueda ordenar destruirse y por eso pasa lo que pasa.
+ Eso es realmente muy complicado de detectar sin tener casos de código TOL
+ sencillo que reproduzcan y aislen los problemas por lo que no se ha dedicado
+ apenas tiempo a ello aunque algo sí ha mejorado la situación.
+\layout Standard
+
+Además, este problema quedará salvado, o al menos paliado en gran medida
+ con el desarrollo de OISS, que está explicado en el documento OISS.pdf.
+\layout Standard
+
+Aprovechando las ventajas del diseño modificado, o simplemente porque venía
+ al paso, se han efectuado algunos otros pequeños cambios de menor alcance
+ como por ejemplo:
+\layout Itemize
+
+Los objetos de tipo autocontenido se declaraban internamente por referencia
+ mediante la instanciación de un objeto BRenContens<Any> apuntando al objeto
+ resultante de la parte izquierda del igual.
+ Esta filosofía lazzy es muy útil cuando los objetos referenciados son muy
+ grandes como pueden ser algunas matrices o conjuntos, pero al mismo tiempo
+ obliga a mantener en memoria todo el árbol de objetos necesarios para su
+ evaluación, lo cual puede ser que ocupe mucho más.
+ Ahora se dispone de otra clase BCopyContens<Any> que copia el contenido
+ del objeto y lo destruye en ese mismo momento liberando la memoria del
+ árbol de evaluación de forma temprana.
+ Este tipo de evaluación hungry se reserva a los objetos más bien pequeños
+ que en principio serán Real, Complex, Date, Polyn, Ratio y Text; aunque
+ habrá que estudiar cómo funciona mejor e incluso, ya para el nuevo MOLE,
+ se puede hacer parametrizable por el usuario si se observa que depende
+ mucho de la naturaleza del proyecto.
+ 
+\layout Itemize
+
+Ya no se pueden modificar los objetos constantes del sistema.
+ Cuando se hacen asignaciones de constantes se crea una copia interna del
+ objeto con BCopyContens<Any> de forma que no se produzcan los efectos colateral
+es impredictibles y muy peligrosos a que nos tiene acostumbrados TOL.
+ En el siguiente ejemplo, XXX queda como [[1,2]] mientras que YYY y Empty
+ permanecen vacíos y la última línea no tiene ningún efecto salvo dar un
+ mensaje de error al usuario
+\layout LyX-Code
+
+Set XXX = Empty;
+\layout LyX-Code
+
+Set (XXX:=[[1,2]]);
+\layout LyX-Code
+
+Set YYY = Empty;
+\layout LyX-Code
+
+Set (Empty:=[[1,2,3]]);
+\layout Itemize
+
+Ya se pueden crear estructuras locales.
+ El problema era simplemente que la función FindLocal no estaba preparada
+ para buscar por Mode sino sólo por nombre y encontraba primero la función
+ asociada a la estructura que tiene tipo Code por lo que no se reconocía
+ como un Struct.
+ Lo único que hay que hacer es tomar la pila local y hacer la búsqueda ad-hoc
+ del Struct.
+\layout Itemize
+
+Los elementos de un conjunto S se pueden referenciar como S[x] donde x es
+ un objeto de tipo Real o de tipo Text.
+ Cuando x es una constante de texto necesariamente ha de comenzar por el
+ carácter comilla doble <
+\begin_inset Quotes erd
+\end_inset 
+
+>, por lo que se puede hacer esa comprobación inicial para ahorrarse el
+ intento de evaluación de x como Real, ahorrando un tiempo que puede llegar
+ a ser importante en algunas circunstancias.
+\layout Itemize
+
+Los objetos TOL de usuario tienen ahora Description y Expression como funciones
+ separadas, pero sólo la descripción es modificable por el usuario mientras
+ que la expresión la rellenará TOL sólo cuando UnparseNodes sea cierta.
+ Cuando no hay descripción el usuario recibirá la expresión, si es que tiene.
+ La función Identify devuelve el primer texto no vacío de la lista Name(),
+ LocalName(), Expression(), Description().
+\layout Itemize
+
+El nombre local sólo existe en los objetos referenciantes BCopyContens<Any>,
+ BRenContens<Any>, BRenObject<Any>
+\layout Itemize
+
+En la función Frecuency se estaba dividiendo en una parte de más que luego
+ no se devolvía por lo que los análisis de frecuencias estaban incompletos.
+\layout Itemize
+
+En la función ARMAAutoCovarianzeVector había un acceso inválido de memoria
+ cuando no hay parte AR en un modelo y se solicita un número de autocovarianzas
+ menor o igual que el grado MA, lo cual puede dar lugar a caídas o comportamient
+os extraños de forma aleatoria e irreproducible.
+\layout Itemize
+
+En el AIA no se destruía la copia de la serie de residuos construida para
+ no modificar la serie pasada como argumento.
+ Esto no traía consecuencias en cuanto a las referencias pero sí que ocupaba
+ el espacio correspondiente al área de datos duplicada que nunca se devolvía.
+\layout Itemize
+
+Cada mensaje de error o de aviso llevará adjunto un número correlativo para
+ que el usuario pueda encontrar más facilmente el primero de ellos y seguirles
+ la pista más cómodamente.
+\layout Itemize
+
+Se han creado las variables TOL Real NError y Real NWarning que devuelven
+ el número de erores y avisos emitidos hasta el momento en la sesión, para
+ que los usuarios puedan comprobar en tiempo de ejecución si un proceso
+ está funcionando correctamente.
+\layout Itemize
+
+Se han hecho algunos cambios a nivel interno en modo de depuración para
+ facilitar la búsqueda de fallos de memoria creando una tabla en un fichero
+ de texto con los eventos de creación y destrucción de objetos de forma
+ que se pueda cargar en una base de datos para investigar lo que está ocurriendo
+ cuando algo falla.
+ Esto es tranasparente al usuario TOL y afecta sólo al desarrollador.
+\layout Itemize
+
+También pensando en el desarrollador y en el usuario avanzado se ha mejorado
+ la sintaxis y la ayuda en línea de los comandos de TOL Interactivo (tol.exe
+ -d ...)
+\begin_deeper 
+\layout Itemize
+
+<tol expression> : ejecuta una expresión TOL
+\layout Itemize
+
+$HELP : muestra esta ayuda
+\layout Itemize
+
+$SYS <command> : ejecuta un comando del sistema operativo
+\layout Itemize
+
+$GRAMMAR : especifica la gramática por defecto
+\layout Itemize
+
+$DELETE : borra objetos TOL creados previamente
+\layout Itemize
+
+$DUMP : muestra un objeto TOL
+\layout Itemize
+
+$STATUS : muestra algunas estadísticas acerca del estado de TOL
+\layout Itemize
+
+$SHOW_CLASS_SIZES : muestra el tamaño de algunas clases C++ internas
+\layout Itemize
+
+$END : sale del modo interactivo de TOL
+\end_deeper 
+\layout Subsection
+
+Robustez
+\layout Standard
+
+De momento se han probado a través de la VPN procesos, principalmente de
+ tipo pestimation.tol, de los SADD's almacenados en el CVS de Bayes, de proyectos
+ bastante variados
+\layout Enumerate
+
+Banco do Brasil
+\begin_deeper 
+\layout Enumerate
+
+Test_BB_000_InitSADD: Sólo carga el SADD del proyecto y la lista de agencias
+ desde la base de datos
+\layout Enumerate
+
+Test_BB_001_ARIMATFEst: Modelo ARIMATF de la serie de Variación de efectivo
+ de una agencia
+\layout Enumerate
+
+Test_BB_002_ARIMAIdentif: Identificación de modelos ARIMA más probables
+ para la serie de Variación de Efectivo de una agencia
+\layout Enumerate
+
+Test_BB_003_ARIMASearch: Estimación de los modelos ARIMA alternativos más
+ probables para la serie de Variación de Efectivo de una agencia
+\layout Enumerate
+
+Test_BB_004_VARMA: Modelo modelo VARMA aproximado linealmente de la serie
+ de Variación de efectivo de un grupo de agencias
+\layout Enumerate
+
+Test_BB_005_SAM: Simulación del Saldo Autónomo Mínimo
+\end_deeper 
+\layout Enumerate
+
+Cocacola
+\begin_deeper 
+\layout Enumerate
+
+Estimación ARIMA de un producto 
+\layout Enumerate
+
+Estimación bayesiana
+\end_deeper 
+\layout Enumerate
+
+Voz de Galicia
+\begin_deeper 
+\layout Enumerate
+
+Estimación de una serie global
+\layout Enumerate
+
+Estimación de un punto de venta
+\layout Enumerate
+
+Previsión
+\end_deeper 
+\layout Enumerate
+
+Feda
+\begin_deeper 
+\layout Enumerate
+
+Combinación de previsiones: Los resultados son idénticos pero utiliza 50
+ MB de RAM en la versión nueva y 80 MB en la vieja y tarda 369 segundos
+ en lugar de 690, con lo que los ahorros son del 47% en tiempo y del 38%
+ en memoria.
+\end_deeper 
+\layout Standard
+
+Los resultados de la versión de desarrollo de limpieza DEV-VERSION son idénticos
+ a los de la versión CVS-20051220 que se ha tomado como referencia en todos
+ los casos.
+\layout Standard
+
+Sería necesario probar otros tipos de procesos, tanto de estimación de todos
+ los tipos, (VARMA, bayesianos, jerárquicos, ...), como de procesos que no
+ sean de modelización para estar seguros de que no hay errores de importancia
+ antes de subir los cambios al CVS.
+\layout Standard
+
+Yo veo en los proyectos que hay muchos programas TOL que podría probar,
+ pero no me atrevo para no fastidiar, por lo que es necesario que desde
+ los proyectos se seleccione una colección de procesos lo más variados que
+ sea posible e intentando que no sean demasiado pesados de forma gratuita,
+ para poder hacer muchas pruebas en el menor tiempo posible.
+ 
+\layout Standard
+
+Con esta colección de procesos se creará una batería de tests que nos servirá
+ más adelante para probar de forma sistemática nuevas versiones de TOL,
+ o incluso el nuevo desarrollo de TOL, adaptando el código si es necesario,
+ pero con el mayor grado de compatibilidad que sea razonable conseguir.
+\layout Subsection
+
+Eficiencia
+\layout Standard
+
+Tomando como caso de comparación la estimación de modelos de agencia del
+ Banco do Brasil se han obtenido los siguientes resultados.
+\layout Standard
+
+
+\lang english
+
+\begin_inset Float figure
+placement htbp
+wide false
+collapsed false
+
+\layout Caption
+
+
+\lang english
+
+\begin_inset LatexCommand \label{tol-performance}
+
+\end_inset 
+
+TOL performance
+\layout Standard
+\align center 
+
+\lang english
+
+\begin_inset Graphics
+	filename C:/projects-c++/bayes/tol-project/toldoc/TOLCleaningDic05/tolperformance.eps
+	display color
+	scale 66.6
+	rotateOrigin center
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Standard
+
+Se ha utilizado el tol.exe y se ha separado el proceso en módulos correspondiente
+s a los tests del Banco do Brasil por ser los que se han podido hacer en
+ local y en los que tiene sentido medir el tiempo de proceso, que está dominado
+ por la interconexión en el caso de acceder de forma remota por la VPN al
+ código TOL y/o la base de datos.
+ Las mediciones abarcan
+\layout Enumerate
+
+Cores: Cualquier instancia de cualquier clase heredada de BCore, lo cual
+ incluye todos los elementos del lenguaje, las listas, los árboles y otros
+ heredados de BObject que carecen normalmente de importancia relativa.
+ Estos han descendido notablemente al no heredar BText de BAtom y emplearse
+ muchas menos listas que antes ya que BSet ya no contiene una lista, ni
+ tampoco BSerieGroup ni BSerieTable.
+\layout Enumerate
+
+Objects: Objetos heredados de BSyntaxObject, es decir, los propiamente relaciona
+dos con el lenguaje.
+ Estos han descendido porque se borran los objetos de los tipos pequeños
+ con el operdor de declaración y sobre todo porque hay menos errores que
+ dejen referencias de más y se borran más objetos innecesarios.
+\layout Enumerate
+
+Kb: Memoria adjudicada al proceso por el sistema operativo Windows una vez
+ ejecutado el test restándole la correspondiente a la inicialización del
+ proyecto SADD (Test BB000 InitSADD) para calcular el consumo debido exclusivame
+nte a cada test.
+ Como estos se ejecutan en una pila local (o sea entre llaves {}), y devolviendo
+ copia de los resultados para la estadística de tests, TOL debería devolver
+ prácticamente toda la memoria.
+ Aunque tiene cierto componente aleatorio pues el S.O.
+ puede otorgar más de lo solicitado, esto no supone demasiada variación.
+ El ahorro depende mucho del tipo de proceso que ejecuta el test ya que
+ el TOL del CVS puede perder más o menos memoria según las operaciones que
+ se realizan.
+\layout Enumerate
+
+Time Elapsed: Tiempo empleado por cada proceso medido en segundos.
+ En algunos procesos no se mejora prácticamente nada pero en otros se gana
+ un 30% en velocidad y en otros que se han probado aparte mucho más, especialmen
+te cuando la memoria consumida desciende mucho y se evita el uso de memoria
+ virtual.
+\layout Section
+
+Resumen de los cambios introducidos en el código
+\layout Standard
+
+Los cambios afectan a 87 de los 267 ficheros *.c, *.cpp; *.
+ h; *.hpp que componen el proyecto TOL y afectan a las áreas más importantes
+ del lenguaje aunque también hay algunos cambios menores que se han hecho
+ necesarios o que venían al paso.
+\layout Standard
+
+A continuación se detallan por categorías conceptuales los cambios realizados
+ seguidos de los ficheros afectados por cada uno o a veces de forma conjunta
+ para un grupo de cambios consecutivos íntimamente relacionados entre sí.
+\layout Standard
+
+(Aún faltan de reportar los últimos cambios, para ello tengo que hacer un
+ diff en local del TOL del CVS actual con la versión de desarrollo)
+\layout Subsection
+
+Basic objects related changes
+\layout Enumerate
+
+Virtual methods IsDeadObj and System are been downloaded from BSyntaxObject
+ to this level to allow a best memory tracing
+\begin_deeper 
+\layout Enumerate
+
+bbasic/tol_batom.h
+\end_deeper 
+\layout Enumerate
+
+Changed memory trace handling
+\begin_deeper 
+\layout Enumerate
+
+bbasic/atm.cpp
+\end_deeper 
+\layout Enumerate
+
+Constant factor 2 for Add reallocation replaced by ReallocMarginFactor defined
+ as 1.2
+\begin_deeper 
+\layout Enumerate
+
+bbasic/tol_barray.h : 
+\end_deeper 
+\layout Enumerate
+
+BText::defectSize_ = 0 instead of old unused value of 64, due to constant
+ 1 was used
+\begin_deeper 
+\layout Enumerate
+
+bbasic/txt.cpp : 
+\end_deeper 
+\layout Enumerate
+
+Now BText doesn't inherites from BAtom.
+ To insert strings in lists BObject will be used.
+\begin_deeper 
+\layout Enumerate
+
+bbasic/tol_btext.h
+\layout Enumerate
+
+bbasic/txt.cpp
+\layout Enumerate
+
+bbasic/tol_bdir.h
+\layout Enumerate
+
+bbasic/dir.cpp 
+\layout Enumerate
+
+bbasic/dirtext.cpp 
+\layout Enumerate
+
+bbasic/tol_bopt.h
+\layout Enumerate
+
+bbasic/opt.cpp 
+\layout Enumerate
+
+bbasic/opttext.cpp
+\layout Enumerate
+
+bparser/par.cpp
+\end_deeper 
+\layout Enumerate
+
+New access functions to miliseconds and string formated of process elapsed
+ timebbasic/tol_btimer.h
+\begin_deeper 
+\layout Enumerate
+
+bbasic/timer.cpp
+\end_deeper 
+\layout Subsection
+
+Math objects related changes
+\layout Enumerate
+
+Frequency(...) must divide in just n parts instead of n+1
+\begin_deeper 
+\layout Enumerate
+
+bmath/bstat/stat.cpp
+\end_deeper 
+\layout Enumerate
+
+Fixed invalid memory access in ARMAAutoCovarianzeVector function, when no
+ AR is defined and number of required autocovariances is less or equal than
+ MA degree that could cause random secondary effects, even system crashes.
+\begin_deeper 
+\layout Enumerate
+
+bmath/bstat/barma.cpp
+\end_deeper 
+\layout Subsection
+
+Kernel-grammar related changes
+\layout Enumerate
+
+BField inherites from BObject instead of BSyntaxObject
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/tol_bstruct.h
+\end_deeper 
+\layout Enumerate
+
+New IsAutoContens() method of grammars to be used in futurebtol/bgrammar/str.cpp
+ : 
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/tol_bgrammar.h
+\layout Enumerate
+
+btol/bgrammar/graacc.cpp
+\end_deeper 
+\layout Enumerate
+
+Unparsing is used just in Evaluate(BText expression) instead of Evaluate(BTree
+ tree) to savememory and process time.
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/graimp.cpp
+\end_deeper 
+\layout Subsection
+
+Syntax-hierarchy related changes
+\layout Enumerate
+
+Unused class BSyntaxImage and related functions has been eliminated 
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/tol_bsyntax.h
+\layout Enumerate
+
+btol/bgrammar/syn.cpp
+\layout Enumerate
+
+btol/bgrammar/tol_bgrammar.h
+\layout Enumerate
+
+btol/bgrammar/graacc.cpp
+\layout Enumerate
+
+btol/bgrammar/tol_bmethod.h
+\layout Enumerate
+
+btol/bgrammar/met.cpp
+\end_deeper 
+\layout Enumerate
+
+Boolean members system_, released_, calculated_, and calculating_ are compacted
+ in a protected bit-struct flags_ member at BSyntaxObject using just a byte
+ all together
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/tol_bsyntax.h
+\layout Enumerate
+
+btol/bgrammar/tol_bgencon.h
+\layout Enumerate
+
+btol/bgrammar/tol_bgenobj.h
+\layout Enumerate
+
+btol/lang/language.cpp 
+\end_deeper 
+\layout Enumerate
+
+BSyntaxObject Mode constants are moved to tol_bsyntax.h
+\begin_deeper 
+\layout Enumerate
+
+tol_bcommon.h,
+\layout Enumerate
+
+btol/bgrammar/tol_bsyntax.h
+\layout Enumerate
+
+btol/bgrammar/syn.cpp
+\end_deeper 
+\layout Enumerate
+
+BSyntaxObject::flags_.system_ is set to true for all BSyntaxObjects until
+ TOLHasBeenInitialized() return true, when InitGrammars ends
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/tol_bsyntax.h
+\layout Enumerate
+
+lang/language.cpp
+\end_deeper 
+\layout Enumerate
+
+Old BSyntaxObject tolPath_ is restricted to BSetFromFile to be used in new
+ method ParentPath() to access to path of the file where the object was
+ created in.
+ New BSynObjOptInfo class to optional storement of name_, description_,
+ localName_ and parent_ in BSyntaxObject just when needed.
+ Changed memory trace handling
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/tol_bsyntax.h
+\layout Enumerate
+
+btol/bgrammar/syn.cpp
+\end_deeper 
+\layout Enumerate
+
+Class BRenamed is eliminated, BRenamedGen is renamed as BRefObject.
+ In BTmpObject args_ member is now a BList* instead of a BSet and a short
+ card_, and BSyntaxObject** array_ are used to accelerate accesses to arguments.
+ 
+\layout Enumerate
+
+New template classes has been inserted in *Contens* template hierarchy.
+ A new template BGraContensBase<Any> without contens_ to save memory when
+ is this member is not needed and allowing virtual access to it.
+ A
+\layout Enumerate
+
+New template BGraContensFND<Any,Name_,Description_> usefull to returned
+ objects by built-in functions saving memory in each instance.
+ 
+\layout Enumerate
+
+A new temlpate BCopyContens<Any> to use instead of BRenContens<Any> to low
+ size types as Real, Complex, Date, Text, Polyn, Ration.
+ This objects copy the contens of referenced object and try to destroy it.
+ If isn't posible, destroying will be delayed to the live end of encapsulating
+ object.
+\layout Enumerate
+
+BGraConstant<Any> modifications of name, description or value are disabled
+\layout Enumerate
+
+BRenContens<Any>::New(const BText& name, BSyntaxObject* obj) method will
+ call BCopyContens<Any>::New when obj were a System variable to avoid involuntar
+y constant objects modifications
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/tol_bgentmp.h
+\layout Enumerate
+
+btol/bgrammar/tol_bgencon.h
+\layout Enumerate
+
+btol/bgrammar/tol_bgenobj.h
+\layout Enumerate
+
+lang/language.cpp
+\end_deeper 
+\layout Enumerate
+
+Access to BSet BTmpObject<Any>::Args() must be replaced by BList* ArgList()
+ or DupArgList()
+\begin_deeper 
+\layout Enumerate
+
+btol
+\backslash 
+matrix_type
+\backslash 
+matgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+set_type
+\backslash 
+setgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bgrammar
+\backslash 
+tol_bgentmp.h
+\end_deeper 
+\layout Enumerate
+
+Access to BSet BTmpObject<Any>::Args().Card() must be replaced by NumArgs()
+\begin_deeper 
+\layout Enumerate
+
+btol
+\backslash 
+bmonte
+\backslash 
+mc-integrator.cpp
+\layout Enumerate
+
+btol
+\backslash 
+matrix_type
+\backslash 
+matgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+armseval.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+datgrapr.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+datgrast.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+datgrav.cpp
+\layout Enumerate
+
+btol
+\backslash 
+set_type
+\backslash 
+setgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+timeset_type
+\backslash 
+tmsgrav.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bgrammar
+\backslash 
+tol_bgentmp.h:
+\layout Enumerate
+
+lang
+\backslash 
+language.cpp
+\end_deeper 
+\layout Enumerate
+
+Access to BSyntaxObject or inherited boolean members system_, released_,
+ calculated_, and calculating_ must be changed to flags_.* or BSyntaxObject::Put*
+ functions
+\begin_deeper 
+\layout Enumerate
+
+btol
+\backslash 
+bmonte
+\backslash 
+mc-integrator.cpp
+\layout Enumerate
+
+btol
+\backslash 
+cseries_type
+\backslash 
+ctsrgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+matrix_type
+\backslash 
+multimin.cpp
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+tsrgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+set_type
+\backslash 
+setgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bgrammar
+\backslash 
+tol_bgencon.h
+\layout Enumerate
+
+btol
+\backslash 
+bgrammar
+\backslash 
+tol_bgenobj.h
+\layout Enumerate
+
+btol
+\backslash 
+bgrammar
+\backslash 
+tol_bsyntax.h
+\layout Enumerate
+
+btol
+\backslash 
+set_type
+\backslash 
+tol_bsetgra.h:
+\layout Enumerate
+
+lang
+\backslash 
+language.cpp
+\end_deeper 
+\layout Enumerate
+
+BSystem* objects that shouldn't be system constants are changed to BUser*
+ to inherite from BGraContens<Any> instead of undeletable system class BGraConst
+ant<Any>
+\begin_deeper 
+\layout Enumerate
+
+btol
+\backslash 
+matrix_type
+\backslash 
+matgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+datgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+datgsrst.cpp
+\layout Enumerate
+
+btol
+\backslash 
+text_type
+\backslash 
+txtgra.cpp
+\layout Enumerate
+
+lang
+\backslash 
+language.cpp
+\end_deeper 
+\layout Subsection
+
+TOL Functions and Code-type related changes
+\layout Enumerate
+
+New BOperator::AddSystemOperator() to control different creating processes
+ of built-in and user functions that were never deleted internally
+\layout Enumerate
+
+New bool BuildingMethod() function to special treatment of overloading of
+ method's functions
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/tol_boper.h
+\layout Enumerate
+
+btol/bgrammar/opr.cpp
+\end_deeper 
+\layout Enumerate
+
+Fixed forbidden accesses to code->Contens() for non BUSerFunction objects
+\layout Enumerate
+
+When BuildingMethod() is false Mode() must be equal to so.Mode() to match
+\begin_deeper 
+\layout Enumerate
+
+btol/bgrammar/txthash.cpp : 
+\layout Enumerate
+
+btol/bgrammar/met.cpp :
+\end_deeper 
+\layout Enumerate
+
+Internal BCode::operator_ is changed from BUserFunction* to BStandardOperator*
+\layout Enumerate
+
+btol/code_type/tol_bcodgra.h : 
+\layout Enumerate
+
+BUserFunCode::Mode() is changed to BOBJECTMODE instead of BUSERFUNMODE that
+ is reserved to internal operators and unused class BCodeCreator has been
+ eliminated
+\begin_deeper 
+\layout Enumerate
+
+btol/code_type/tol_bcode.h
+\layout Enumerate
+
+btol/code_type/cod.cpp
+\end_deeper 
+\layout Subsection
+
+Set-type related changes
+\layout Enumerate
+
+At BSet class BList* element_ is eliminated.
+ 
+\layout Enumerate
+
+When a list is needed a copy is available through ToList().
+ 
+\layout Enumerate
+
+Access to BSet BTmpObject<Any>::Args() must be replaced by BList* ArgList()
+ or DupArgList().
+ New class BGraContensFNDSet<BSet, Name_, Description_> inherited from BGraConte
+nsFND<Any,Name_,Description_> to allow special constructors of bulit-in
+ functions returned sets.
+ 
+\layout Enumerate
+
+BSet constructor from BList* and operator= to BList* are eliminated to replace
+ in this case by PutElement or RobElement.
+ 
+\layout Enumerate
+
+Allocation methods: DeleteBuffer() method is renamed as Delete().
+ ReallocBuffer is renamed as Realloc and protected and is added a new protected
+ Alloc method and the only one public will be PrepareStore, in order to
+ avoid invalid memory accesses.
+\begin_deeper 
+\layout Enumerate
+
+btol
+\backslash 
+bdb
+\backslash 
+bdb.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bdb
+\backslash 
+bdspool.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bgrammar
+\backslash 
+graimp.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bgrammar
+\backslash 
+spfuninst.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+aia.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+estim.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+foread.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+modcalc.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+model.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmonte
+\backslash 
+mc-integrator.cpp
+\layout Enumerate
+
+btol
+\backslash 
+matrix_type
+\backslash 
+matgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+matrix_type
+\backslash 
+multimin.cpp
+\layout Enumerate
+
+btol
+\backslash 
+polynomial_type
+\backslash 
+polgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+datgrast.cpp
+\layout Enumerate
+
+btol
+\backslash 
+set_type
+\backslash 
+set.cpp
+\layout Enumerate
+
+btol
+\backslash 
+set_type
+\backslash 
+setgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+set_type
+\backslash 
+tol_bset.h
+\layout Enumerate
+
+btol
+\backslash 
+text_type
+\backslash 
+txtgra.cpp
+\layout Enumerate
+
+lang
+\backslash 
+language.cpp
+\end_deeper 
+\layout Subsection
+
+Real-type related changes
+\layout Enumerate
+
+New controls about number of errors and warnings exported to TOL user
+\begin_deeper 
+\layout Enumerate
+
+btol/real_type/datgra.cpp
+\layout Enumerate
+
+bbasic/out.cpp
+\end_deeper 
+\layout Subsection
+
+Complex-type related changes
+\layout Enumerate
+
+BCmpConstant* i_ is changed to BParamCmp
+\begin_deeper 
+\layout Enumerate
+
+btol/complex_type/cmpgra.cpp
+\end_deeper 
+\layout Subsection
+
+Serie-type related changes
+\layout Enumerate
+
+Dating_->nRefs_ is not touched by BTimeSerie because is non needed feature.
+ Unused hashDat_ member has been eliminated
+\begin_deeper 
+\layout Enumerate
+
+btol/serie_type/tol_btmser.h
+\layout Enumerate
+
+btol/serie_type/tsrgra.cpp
+\end_deeper 
+\layout Enumerate
+
+BData data_ is now really protected eliminating GetDataBuffer() access.
+ New BTimeSerie member functions PutBufDat to change a dat, or Realloc,
+ Alloc and Delete to manage memory
+\begin_deeper 
+\layout Enumerate
+
+btol
+\backslash 
+bdb
+\backslash 
+bdb.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bdb
+\backslash 
+bdspool.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+modprev.cpp
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+srg.cpp
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+tsr.cpp:
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+tsrgra.cpp:
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+tsrgrav.cpp:
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+tol_btmser.h:
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+tol_btsrgrp.h
+\layout Enumerate
+
+btol
+\backslash 
+set_type
+\backslash 
+setgra.cpp
+\end_deeper 
+\layout Enumerate
+
+New BData class inherited from BArray<BDat> to control Time Series used
+ volume
+\begin_deeper 
+\layout Enumerate
+
+bmath/mathobjects/tol_bdat.h
+\layout Enumerate
+
+bmath/mathobjects/dat.cpp
+\end_deeper 
+\layout Enumerate
+
+BSerieGroup and BSerieTable use now a BArray<BUserTimeSerie*> instead of
+ a BSet to store Series in order to avoid secondary effects of references
+ over them.
+ 
+\layout Enumerate
+
+Now the only one creator for BSerieGroup and BSerieTable has no arguments.
+ Then you can add a Serie, a BList*, a BSet or another BSerieGroup or BSerieTabl
+e.
+ After you can use BSerieGroup to prepare operations between series or test
+ dating and date bounds of a collection of series or you can fill a BSerieTable
+ with data from collected series.
+\begin_deeper 
+\layout Enumerate
+
+btol
+\backslash 
+bdb
+\backslash 
+bdspool.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+estim.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+modcalc.cpp
+\layout Enumerate
+
+btol
+\backslash 
+bmodel
+\backslash 
+tol_bmodel.h
+\layout Enumerate
+
+btol
+\backslash 
+matrix_type
+\backslash 
+matgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+datgra.cpp
+\layout Enumerate
+
+btol
+\backslash 
+real_type
+\backslash 
+datgsrst.cpp
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+srg.cpp
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+tol_btsrgrp.h
+\layout Enumerate
+
+btol
+\backslash 
+serie_type
+\backslash 
+tsrgrai.cpp
+\layout Enumerate
+
+btol
+\backslash 
+text_type
+\backslash 
+txtgra.cpp
+\layout Enumerate
+
+lang
+\backslash 
+language.cpp
+\end_deeper 
+\layout Enumerate
+
+BList* outLst_ and inLst_ are eliminated from BModel to apply new BSerieTable
+ advantages
+\begin_deeper 
+\layout Enumerate
+
+btol/bmodel/foread.cpp
+\layout Enumerate
+
+btol/bmodel/modcalc.cpp
+\layout Enumerate
+
+btol/bmodel/model.cpp
+\layout Enumerate
+
+btol/bmodel/tol_bmodel.h
+\end_deeper 
+\layout Subsection
+
+Console related changes
+\layout Enumerate
+
+Revisited commands and user help for interactive console mode of tol.exe
+\begin_deeper 
+\layout Enumerate
+
+lang/language.cpp
+\the_end

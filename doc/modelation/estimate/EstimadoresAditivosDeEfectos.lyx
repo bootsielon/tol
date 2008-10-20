@@ -1,0 +1,1064 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\begin_preamble
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage widemarginsa4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Estimadores aditivos de efectos
+\layout Author
+
+Víctor de Buen
+\layout Abstract
+
+Se obtienen métodos estadísticos que miden los efectos en términos originales
+ de las variables independientes en modelos estadísticos univariantes con
+ filtro lineal, cuando la variable dependiente se introduce bajo transformación
+ no lineal.
+ Se hará especial hincapié en la transformación logarítmica bajo supuesto
+ de normalidad y en el caso en el que se busca una descomposición aditiva
+ de grupos de efectos.
+ Se utilizará la nomenclatura típica del análisis de series temporales pero
+ los resultados son válidos para cualquier tipo de magnitud de ordenamiento
+ de los vectores.
+ Se suponen conocimientos de regresión lineal y de optimización no lineal
+ con restricciones.
+\layout Paragraph
+
+Introducción
+\layout Standard
+
+La métrica en la que se introduce en un modelo la variable aleatoria dependiente
+, se debe escoger teniendo en cuenta la naturaleza de la magnitud observada,
+ la forma en que las variables independendientes interactúan con la misma,
+ y en virtud de criterios estadísticos como la homocedasticidad o el análisis
+ de frecuencias de los residuos.
+ 
+\layout Standard
+
+Sin embargo, a veces es necesario conocer en términos originales cuál es
+ la influencia de cada input en particular, o de ciertos grupos de inputs
+ que den una descomposición aditiva de la variable estudiada, para alcanzar
+ así una visión más gráfica e intuitiva del comportamiento del modelo.
+ De esto precisamente nos encargaremos a continuación.
+ 
+\layout Paragraph
+
+Antecedentes
+\layout Standard
+
+En el caso general de modelos univariantes con filtro lineal se tendrá que
+\layout Standard
+
+
+\begin_inset Formula \[
+T\left(z_{t}\right)-\sum_{k=1}^{K}\omega_{k}x_{kt}=e_{t}\forall t=1\ldots N\]
+
+\end_inset 
+
+donde
+\layout Enumerate
+
+el output 
+\begin_inset Formula $z_{t}$
+\end_inset 
+
+ o variable dependiente del modelo es un vector aleatorio; y 
+\layout Enumerate
+
+el ruido 
+\begin_inset Formula $e_{t}$
+\end_inset 
+
+, son realizaciones de una variable aleatoria de la que no se tiene control
+ ni observación directa pero que se postula con cierta distribución de probabili
+dad que puede ser fija o variable en el espacio de índices y de la que se
+ pueden deducir diferentes propiedades.
+ Para su cálculo puede utilizarse un conjunto de parámetros adicionales
+ que no vienen al caso en este estudio, como por ejemplo los coeficientes
+ polinomiales si se tratara de un modelo ARIMA;
+\layout Enumerate
+
+los inputs 
+\begin_inset Formula $x_{kt}$
+\end_inset 
+
+ o variables independientes pueden ser tanto aleatorias como deterministas;
+\layout Enumerate
+
+los parámetros del filtro lineal 
+\begin_inset Formula $\omega_{k}$
+\end_inset 
+
+ se estiman junto aquellos posibles parámetros que intervengan en el cálculo
+ del ruido;
+\layout Enumerate
+
+
+\begin_inset Formula $T:D\subset\Re\rightarrow I\subset\mathfrak{\Re}$
+\end_inset 
+
+ es una función de transformación biyectiva en su dominio con función inversa
+ conocida 
+\begin_inset Formula $T^{-1}:I\subset\mathfrak{\Re}\rightarrow D\subset\Re$
+\end_inset 
+
+;
+\layout Paragraph
+
+Definiciones
+\layout Standard
+
+Supongamos que deseamos saber qué parte de 
+\begin_inset Formula $z_{t}$
+\end_inset 
+
+ se debe exclusivamente al input 
+\begin_inset Formula $x_{jt}$
+\end_inset 
+
+.
+ En primer lugar definiremos la variable aleatoria 
+\emph on 
+output filtrado del input 
+\begin_inset Formula $j$
+\end_inset 
+
+-ésimo
+\emph default 
+ 
+\begin_inset Formula $z_{jt}$
+\end_inset 
+
+ correspondiente al valor del output si no existiera el efecto del input
+ 
+\begin_inset Formula $j$
+\end_inset 
+
+-ésimo 
+\layout Standard
+
+
+\begin_inset Formula \[
+T\left(z_{jt}\right)-\sum_{k\neq j}\omega_{k}x_{kt}=T\left(z_{t}\right)-\sum_{k=1}^{K}\omega_{k}x_{kt}=T\left(z_{t}\right)-\omega_{j}x_{jt}-\sum_{k\neq j}\omega_{k}x_{kt}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+T\left(z_{jt}\right)=T\left(z_{t}\right)-\omega_{j}x_{jt}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+z_{jt}=T^{-1}\left(T\left(z_{t}\right)-\omega_{j}x_{jt}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+La diferencia con el valor real es la variable aleatoria buscada, o sea,
+ el 
+\emph on 
+efecto o filtro en términos originales del input 
+\begin_inset Formula $j$
+\end_inset 
+
+-ésimo
+\layout Standard
+
+
+\begin_inset Formula \[
+f_{jt}=z_{t}-z_{jt}=z_{t}-T^{-1}\left(T\left(z_{t}\right)-\omega_{j}x_{jt}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Se define también el 
+\emph on 
+efecto o filtro conjunto en términos originales de un subconjunto de inputs
+\emph default 
+ de al menos dos elementos 
+\begin_inset Formula $J\subset K$
+\end_inset 
+
+ como
+\begin_inset Formula \[
+F_{Jt}=z_{t}-T^{-1}\left(T\left(z_{t}\right)-\sum_{i\in J}\omega_{i}x_{it}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Por último, se define el
+\emph on 
+ efecto o filtro global
+\emph default 
+ de todos los inputs o simplemente filtro como
+\begin_inset Formula \[
+F_{t}=z_{t}-T^{-1}\left(T\left(z_{t}\right)-\sum_{i=1}^{K}\omega_{i}x_{it}\right)\]
+
+\end_inset 
+
+
+\layout Subparagraph
+
+Caso de la transformación logarítmica
+\layout Standard
+
+Por ejemplo, en el caso de la distribución logarítmica se tiene que el efecto
+ en términos originales es
+\layout Standard
+
+
+\begin_inset Formula \[
+f_{jt}=z_{t}-z_{jt}=z_{t}-\exp\left(\ln\left(z_{t}\right)-\omega_{j}x_{jt}\right)=z_{t}\left(1-\exp\left(-\omega_{j}x_{jt}\right)\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+F_{Jt}=z_{t}\left(1-\exp\left(-\sum_{i\in J}\omega_{i}x_{it}\right)\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+En este caso se dice que los inputs producen efectos multiplicativos por
+ aplicarse el filtro en forma exponencial.
+ Obsérvese también que cuando el valor del filtro transformado es uniformemente
+ bastante más pequeño que 1 en valor absoluto, entonces su exponencial se
+ puede aproximar como
+\layout Standard
+
+
+\begin_inset Formula \[
+\exp\left(-x\right)=1-x+O\left(x^{2}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+f_{jt}=z_{t}\left(\omega_{j}x_{jt}+O\left(\left(\omega_{j}x_{jt}\right)^{2}\right)\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Por este motivo a veces se interpreta el efecto en términos de porcentaje
+ sobre la serie original, aunque se trata simplemente de una aproximación
+ que no siempre es válida.
+\layout Paragraph
+
+Descripción del problema general
+\layout Standard
+
+Obsérvese que si, como en el ejemplo anterior, la transformación es no lineal
+ entonces las esperanzas de los efectos en términos originales no son aditivas,
+ es decir, la esperanza del efecto unión de dos o más inputs no es igual
+ a la esperanza de la suma de los efectos por separado
+\layout Standard
+
+
+\begin_inset Formula \[
+E\left[F_{Jt}\right]\neq\sum_{j\in J}E\left[f_{jt}\right]\]
+
+\end_inset 
+
+y lo mismo le puede pasar a otros estimadores como el máximo verosímil.
+ De forma general se puede exigir que se cumpla la propiedad aditiva con
+ respecto a varios subconjuntos de al menos 
+\begin_inset Formula $J_{s}\forall s=1\ldots S$
+\end_inset 
+
+
+\layout Standard
+
+Sin embargo se pueden construir otros estimadores de los efectos basados
+ en estimadores de las realizaciones no observadas 
+\begin_inset Formula $\widetilde{\omega}_{jt}$
+\end_inset 
+
+ en cada posición 
+\begin_inset Formula $t$
+\end_inset 
+
+ de los parámetros 
+\begin_inset Formula $\omega_{j}$
+\end_inset 
+
+, de los cuales sí que tenemos al menos alguna aproximación de su distribución
+ conjunta
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{f}_{jt}=z_{t}-T^{-1}\left(T\left(z_{t}\right)-\widetilde{\omega}_{jt}x_{jt}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{F}_{st}=\widetilde{F}_{J_{s}t}=z_{t}-T^{-1}\left(T\left(z_{t}\right)-\sum_{i\in J_{s}}\widetilde{\omega}_{it}x_{it}\right)\]
+
+\end_inset 
+
+Buscaremos estos estimadores de forma que sean congruentes con la propiedad
+ aditiva respecto a la familia de subconjuntos 
+\begin_inset Formula $\left\{ J_{s}\right\} _{s=1\ldots S}$
+\end_inset 
+
+ o sea, que cumplan las propiedades
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{F}_{J_{s}t}-\sum_{j\in J_{s}}\widetilde{f}_{jt}=0\forall s=1\ldots S\]
+
+\end_inset 
+
+ al mismo tiempo que alcanzan alguna propiedad típica de los estimadores
+ como que los 
+\begin_inset Formula $\widetilde{\omega}_{j}$
+\end_inset 
+
+ tengan máxima verosimilitud.
+ Es decir se trata de añadir una lista de restricciones al método estadístico
+ de estimación seleccionado.
+ 
+\layout Standard
+
+Nótese que el número de restricciones 
+\begin_inset Formula $S$
+\end_inset 
+
+ no puede superar al de inputs implicados 
+\begin_inset Formula $C=card\left[\bigcup_{s=1}^{S}J_{s}\right]$
+\end_inset 
+
+ .
+ Si se pretendiera conseguir un conjunto de estimadores completamente aditivos
+ habría que incluir todos los subconjuntos de dos o más inputs, es decir,
+ tendríamos 
+\begin_inset Formula $S=2^{K}-K$
+\end_inset 
+
+ restricciones lo cual sería inviable en la práctica con apenas unos pocos
+ inputs.
+ Por lo tanto hay que ser cautos al elegir los subconjuntos de inputs sobre
+ los que se pretende que se cumpla la aditividad.
+ 
+\layout Standard
+
+Si los subconjuntos de inputs tienen una jerarquía o estructura arbórea,
+ entonces se pueden añadir las condiciones de aditividad correspondientes
+ a cada nodo de forma trivial sin aumentar demasiado la complejidad.
+\layout Paragraph
+
+Una solución máximo-verosímil en caso de normalidad
+\layout Standard
+
+En este caso se tiene al menos una estimación de la media y de la matriz
+ de covarianzas de los parámetros y en el caso de residuos normales los
+ parámetros siguen una t de student multivariante que se puede aproximar
+ por una multinormal:
+\layout Standard
+
+
+\begin_inset Formula \[
+\omega=\left(\omega_{j}\right)~N\left(\widehat{\omega}=\left(\widehat{\omega}_{j}\right),\Sigma=\left(\sigma_{ij}\right)\right)\wedge i,j\in\bigcup_{s=1}^{S}J_{s}\]
+
+\end_inset 
+
+donde supondremos independencia entre los inputs, es decir: 
+\begin_inset Formula $\Sigma$
+\end_inset 
+
+ es definida positiva y existe una transformación del tipo 
+\begin_inset Formula $\Sigma=L\cdot L^{T}$
+\end_inset 
+
+.
+\layout Standard
+
+Nótese que se refiere a los índices implicados en la familia de subconjuntos
+ de inputs que no tienen porqué ser todos los del filtro lineal.
+ Resolveremos el problema para cada 
+\begin_inset Formula $t=1\ldots N$
+\end_inset 
+
+ por separado, para disminuir la complejidad aunque las variables no tienen
+ porqué ser independientes, por lo que podemos prescindir de dicho índice.
+ Tomando la transformación 
+\begin_inset Formula $\zeta=L^{-1}\left(\widetilde{\omega}-\widehat{\omega}\right)$
+\end_inset 
+
+ el problema es entonces el de maximizar la verosimilitud bajo el supuesto
+ de normalidad es equivalente al de minimizar
+\layout Standard
+
+
+\begin_inset Formula \[
+\min\zeta^{T}\zeta\]
+
+\end_inset 
+
+sujeto a las restricciones
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{F}_{J_{s}}-\sum_{j\in J_{s}}\widetilde{f}_{j}=0\forall s=1\ldots S\]
+
+\end_inset 
+
+donde recordamos que
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{\omega}=\widehat{\omega}+L\zeta\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{f}_{j}=z-T^{-1}\left(T\left(z\right)-\widetilde{\omega}_{j}x_{j}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{F}_{s}=z-T^{-1}\left(T\left(z\right)-\sum_{i\in J}\widetilde{\omega}_{i}x_{i}\right)\]
+
+\end_inset 
+
+
+\layout Subparagraph
+
+Caso de la transformación logarítmica
+\layout Standard
+
+El problema en este caso se plantea del siguiente modo
+\layout Standard
+
+
+\begin_inset Formula \[
+\min_{\delta}\zeta^{T}\zeta\]
+
+\end_inset 
+
+sujeto a las restricciones
+\layout Standard
+
+
+\begin_inset Formula \[
+z\left(1-\exp\left(-\sum_{i\in J}\widetilde{\omega}_{i}x_{i}\right)\right)=z\left(\sum_{j\in J_{s}}\left(1-\exp\left(-\widetilde{\omega}_{j}x_{j}\right)\right)\right)\forall s=1\ldots S\]
+
+\end_inset 
+
+que también se pueden escribir así
+\layout Standard
+
+
+\begin_inset Formula \[
+1-\exp\left(-\sum_{i\in J}\widetilde{\omega}_{i}x_{i}\right)=C_{s}-\sum_{j\in J_{s}}\exp\left(-\widetilde{\omega}_{j}x_{j}\right)\forall s=1\ldots S\]
+
+\end_inset 
+
+donde 
+\begin_inset Formula $C_{s}=card\left(J_{s}\right)$
+\end_inset 
+
+
+\layout Paragraph
+
+Una variante del problema: descomposición aditiva del filtro global
+\layout Standard
+
+El caso más usual en la práctica, al que llamaremos
+\emph on 
+ descomposición aditiva del filtro global
+\emph default 
+, es aquel en el que se tienen los inputs agregados parcialmente en efectos
+ del mismo tipo y se desea que la suma de los efectos en términos originales
+ sea igual al efecto conjunto total máximo-verosímil, es decir, se tiene
+ una partición 
+\begin_inset Formula $\left\{ J_{u}\right\} _{u=1\ldots U}$
+\end_inset 
+
+ de 
+\begin_inset Formula $\left\{ 1\ldots K\right\} $
+\end_inset 
+
+ y se ha de cumplir, prescindiento del subíndice 
+\begin_inset Formula $t$
+\end_inset 
+
+ 
+\layout Standard
+
+
+\begin_inset Formula \[
+\sum_{u=U}^{U}\widetilde{F}_{u}=\widehat{F}\]
+
+\end_inset 
+
+donde
+\begin_inset Formula \[
+\widetilde{F}_{u}=\widetilde{F}_{J_{u}}=z-T^{-1}\left(T\left(z\right)-\sum_{i\in J_{u}}\widetilde{\omega}_{i}x_{i}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\widehat{F}=z-T^{-1}\left(T\left(z\right)-\sum_{i=1}^{K}\widehat{\omega}_{i}x_{i}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Es decir se da por buena la estimación conjunta para que no interfiera con
+ la transformación máximo-verosímil del ruido del modelo y se modifican
+ sólo las estimaciones de los grupos de inputs para que den una descomposición
+ aditiva del filtro total en términos originales.
+\layout Subparagraph
+
+La solución máximo-verosímil en caso de normalidad
+\layout Standard
+
+En este caso los parámetros de los inputs pertenecientes al mismo grupo
+ pueden modificarse solidariamente puesto que sólo se tiene en cuenta la
+ suma de sus efectos.
+ Puesto que los parámetros 
+\begin_inset Formula $\omega_{j}$
+\end_inset 
+
+ siguen aproximadamente una multinormal conocida, cualquier vector de combinacio
+nes lineales de ellos es una multinormal conocida.
+ En este caso definiremos
+\layout Standard
+
+
+\begin_inset Formula \[
+g=~N\left(\widehat{g},\Upsilon=\left(\gamma_{uv}\right)_{u,v=1\ldots U}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+g_{u}=\sum_{i\in J_{u}}\omega_{j}x_{i}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\widehat{g}_{u}=\sum_{i\in J_{u}}\widehat{\omega}_{j}x_{i}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\gamma_{uv}=\sum_{i\in J_{u}}\sum_{j\in J_{v}}\sigma_{ij}x_{i}x_{j}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Ahora habría que minimizar las nuevas sumas de cuadrados, donde, por comodidad
+ notacional se ha usado de nuevo la letra 
+\begin_inset Formula $L$
+\end_inset 
+
+ para descomponer la nueva matriz de covarianzas 
+\begin_inset Formula $\Upsilon=L\cdot L^{T}$
+\end_inset 
+
+, que evidentemente es también definida positiva.
+ Tomando la transformación 
+\begin_inset Formula $\eta=L^{-1}\left(g-\widehat{g}\right)$
+\end_inset 
+
+ el problema es entonces el de minimizar
+\layout Standard
+
+
+\begin_inset Formula \[
+\min y\left(\eta\right)=\eta^{T}\eta\]
+
+\end_inset 
+
+sujeto a la restricción no lineal
+\begin_inset Formula \[
+h\left(\eta\right)=\sum_{u=U}^{U}z-T^{-1}\left(T\left(z\right)-\left(\widehat{g}_{u}+\sum_{v=1}^{U}L_{uv}\eta_{v}\right)\right)-\widehat{F}=0\]
+
+\end_inset 
+
+
+\layout Subparagraph
+
+Una solución aproximada
+\layout Standard
+
+Si no tenemos suficiente información o recursos de cálculo adecuados una
+ solución aproximada de este problema sería repartir la discordancia, volviendo
+ a poner los índices 
+\begin_inset Formula $t$
+\end_inset 
+
+ para mayor claridad
+\layout Standard
+
+
+\begin_inset Formula \[
+d_{t}=\widehat{F}_{t}-\sum_{u=1}^{U}\widehat{F}_{ut}\]
+
+\end_inset 
+
+de forma proporcional a una medida de dispersión 
+\begin_inset Formula $s_{u}$
+\end_inset 
+
+ de las series 
+\begin_inset Formula $F_{ut}$
+\end_inset 
+
+, como por ejemplo podría ser
+\layout Standard
+
+
+\begin_inset Formula \[
+s_{u}=T^{-1}\left(\sqrt{\gamma_{uu}}\right)\]
+
+\end_inset 
+
+y calculando los estimadores de los filtros como 
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{F}_{ut}=\widehat{F}_{ut}+\frac{s_{u}d}{\sum_{v=1}^{U}s_{v}}\]
+
+\end_inset 
+
+que evidentemente dan una descomposición aditiva
+\layout Standard
+
+
+\begin_inset Formula \[
+\sum_{u=U}^{U}\widetilde{F}_{ut}=\sum_{u=U}^{U}\left(\widehat{F}_{ut}+\frac{s_{u}d}{\sum_{v=1}^{U}s_{v}}\right)=\sum_{u=U}^{U}\widehat{F}_{ut}+d=\widetilde{F}_{ut}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Es decir modificamos más los filtros más variables y menos los más estables
+ para alcanzar el objetivo de una forma muy rápida, aunque no muy robusta,
+ ya que la medida de dispersión elegida no concuerda exáctamente con la
+ correspondiente a la función de verosimilitud.
+\layout Paragraph*
+
+Descomposición aditiva del filtro global bajo transformación logarítmica
+\layout Standard
+
+En este caso los filtros en términos originales se definen como
+\layout Standard
+
+
+\begin_inset Formula \[
+\widetilde{F}_{u}=z\left(1-\exp\left(-g_{u}\right)\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\widehat{F}=z\left(1-\exp\left(-\sum_{u=1}^{U}g_{u}\right)\right)\]
+
+\end_inset 
+
+
+\layout Subparagraph
+
+La solución máximo-verosímil en caso de normalidad
+\layout Standard
+
+El problema es el de minimizar
+\layout Standard
+
+
+\begin_inset Formula \[
+\min y\left(\eta\right)=\eta^{T}\eta\]
+
+\end_inset 
+
+sujeto a la restricción no lineal
+\layout Standard
+
+
+\begin_inset Formula \[
+h\left(\eta\right)=\sum_{u=1}^{U}\left(1-\exp\left(-\widehat{g}_{u}-\sum_{v=1}^{U}L_{uv}\eta_{v}\right)\right)-\frac{\widehat{F}}{z}=0\]
+
+\end_inset 
+
+reescribible como
+\layout Standard
+
+
+\begin_inset Formula \[
+h\left(\eta\right)=U-\frac{\widehat{F}}{z}-\sum_{u=1}^{U}\exp\left(-\widehat{g}_{u}-\sum_{v=1}^{U}L_{uv}\eta_{v}\right)=0\]
+
+\end_inset 
+
+o en forma matricial
+\layout Standard
+
+
+\begin_inset Formula \[
+h\left(\eta\right)=\kappa-\mathbf{1}_{U}^{T}\chi\left(\eta\right)=0\]
+
+\end_inset 
+
+donde
+\begin_inset Formula \[
+\kappa=U-\frac{\widehat{F}}{z}\]
+
+\end_inset 
+
+
+\begin_inset Formula \[
+\mathbf{1}_{U}^{T}=\left(1\ldots1\right)\in\Re^{1\times U}\]
+
+\end_inset 
+
+
+\begin_inset Formula \[
+\chi\left(\eta\right)=\left(\chi_{u}\left(\eta\right)\right)_{u=1\ldots U}\in\Re^{U\times1}\]
+
+\end_inset 
+
+
+\begin_inset Formula \[
+\chi_{u}\left(\eta\right)=\exp\left(-\widehat{g}_{u}-\sum_{v=1}^{U}L_{uv}\eta_{v}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Utilizaremos también la notación matricial 
+\layout Standard
+
+
+\begin_inset Formula \[
+\chi\left(\eta\right)=\exp\left(-\widehat{g}-L\eta\right)\]
+
+\end_inset 
+
+en la que exponencial se aplica elemento a elemento del vector.
+\layout Standard
+
+Al haber sólo restricciones de igualdad es lo mismo que minimizar sin restriccio
+nes la función lagrangiana
+\layout Standard
+
+
+\begin_inset Formula \[
+\min\mathcal{L}\left(\eta,\lambda\right)=y\left(\eta\right)+\lambda h\left(\eta\right)\]
+
+\end_inset 
+
+y lo mismo que resolver el sistema de 
+\begin_inset Formula $U+1$
+\end_inset 
+
+ ecuaciones no lineales
+\layout Standard
+
+
+\begin_inset Formula \[
+\bigtriangledown_{\eta}\mathcal{L}\left(\eta,\lambda\right)=\bigtriangledown_{\eta}y\left(\eta\right)+\lambda\bigtriangledown_{\eta}h\left(\eta\right)=0\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+h\left(\eta\right)=0\]
+
+\end_inset 
+
+
+\layout Standard
+
+Puesto que 
+\layout Standard
+
+
+\begin_inset Formula \[
+\bigtriangledown_{\eta}y\left(\eta\right)=2\eta\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\bigtriangledown_{\eta}h\left(\eta\right)=L^{T}\chi\left(\eta\right)\]
+
+\end_inset 
+
+se tiene el sistema no lineal
+\layout Standard
+
+
+\begin_inset Formula \[
+2\eta+\lambda L^{T}\chi\left(\eta\right)=0\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\kappa-\mathbf{1}_{U}^{T}\chi\left(\eta\right)=0\]
+
+\end_inset 
+
+
+\layout Standard
+
+Obsérvese que la primera ecuación es en realidad una identidad vectorial
+ de 
+\begin_inset Formula $U$
+\end_inset 
+
+ ecuaciones mientras que la primera es una identidad escalar.
+ Multiplicamos ambas ecuaciones por los premultiplicadores del término no
+ lineal 
+\begin_inset Formula $\chi\left(\eta\right)$
+\end_inset 
+
+ en la otra ecuación para obtener el par de ecuaciones escalares
+\layout Standard
+
+
+\begin_inset Formula \[
+2\mathbf{1}_{U}^{T}L^{-T}\eta+\lambda\mathbf{1}_{U}^{T}\chi\left(\eta\right)=0\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\lambda\kappa-\lambda\mathbf{1}_{U}^{T}\chi\left(\eta\right)=0\]
+
+\end_inset 
+
+De la suma de ambas se deduce
+\layout Standard
+
+
+\begin_inset Formula \[
+2\mathbf{1}_{U}^{T}L^{-T}\eta+\lambda\kappa=0\]
+
+\end_inset 
+
+lo cual permite despejar
+\layout Standard
+
+
+\begin_inset Formula \[
+\lambda=\frac{-2\mathbf{1}_{U}^{T}L^{-T}\eta}{\kappa}\]
+
+\end_inset 
+
+y sustituir en las ecuaciones originales para obtener el siguiente sistema
+ no lineal
+\layout Standard
+
+
+\begin_inset Formula \[
+\kappa\eta-\left(\mathbf{1}_{U}^{T}L^{-T}\eta\right)L^{T}\chi\left(\eta\right)=0\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\kappa-\mathbf{1}_{U}^{T}\chi\left(\eta\right)=0\]
+
+\end_inset 
+
+
+\layout Subparagraph
+
+Algoritmo
+\layout Standard
+
+A continuación se ofrece un método iterativo no diferencial diseñado 
+\shape italic 
+ad-hoc
+\shape default 
+ para este problema.
+ Obsérvese que si 
+\begin_inset Formula $\kappa=0$
+\end_inset 
+
+ entonces la solución trivial es válida, es decir, 
+\begin_inset Formula $\eta=0$
+\end_inset 
+
+.
+ En otro caso se parte de una solución trivial de la segunda ecuación
+\layout Standard
+
+
+\begin_inset Formula \[
+\chi_{u}^{\left(1\right)}=\frac{\kappa}{U}\forall u=1\ldots U\]
+
+\end_inset 
+
+y se ejecuta un ciclo cuya 
+\begin_inset Formula $n$
+\end_inset 
+
+-esima iteración sería en notación matricial
+\layout Standard
+
+
+\begin_inset Formula \[
+\eta^{\left(n\right)}=L^{-1}\left(-\widehat{g}-\ln\left(\chi^{\left(n\right)}\right)\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\eta^{\left(n+1\right)}=\frac{1}{k}\left(\mathbf{1}_{U}^{T}L^{-T}\eta^{\left(n\right)}\right)L^{T}\chi^{\left(n\right)}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+x=\exp\left(\widehat{g}+L\eta^{\left(n+1\right)}\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\chi^{\left(n+1\right)}=\frac{\kappa}{U\mathbf{1}_{U}^{T}x}x\]
+
+\end_inset 
+
+
+\layout Standard
+
+Obsérvese que las funciones logaritmo y exponencial se aplican elemento
+ a elemento del vector.
+\the_end

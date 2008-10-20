@@ -1,0 +1,987 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter cmtl
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 4
+\tocdepth 4
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\series bold
+\size huge
+BSR 1.0: Bayesian Sparse Regression
+\end_layout
+
+\begin_layout Author
+Víctor de Buen
+\end_layout
+
+\begin_layout Author
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Email
+vdebuen@gmail.com
+\end_layout
+
+\begin_layout URL
+www.tol-project.org
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\series bold
+\size huge
+BSR 1.0: Bayesian Sparse Regression
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 3cm*
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size huge
+Un sistema de simulación MCMC de modelos de regresión lineal sparse
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 3cm*
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\series bold
+\size largest
+Guía del programador y manuales de usuario 
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace 3cm*
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\series bold
+\shape italic
+\size larger
+Octubre de 2008
+\series default
+\shape default
+\size default
+
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Summary*
+En este documento se presenta la versión inicial 1.0, aún en desarrollo,
+ de un sistema abierto escrito en TOL
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+ver 
+\begin_inset LatexCommand htmlurl
+target "www.tol-project.org"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ para la simulación e inferencia bayesianas de tipo MonteCarlo-Markov Chain
+ (MCMC) mediante el algoritmo de Gibbs, sobre modelos de regresión lineal
+ sparse con estructura arbitraria (jerárquicos, redes bayesianas, ...) con
+ restricciones de desigualdad lineal, con tratamiento de omitidos y filtros
+ no lineales, ambas tanto en el input como en el output, así como con estructura
+s ARIMA.
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Gracias a Jorge Suit Pérez y Luis M.
+ Artiles Martínez por su paciente revisión de errores, a José Almagro por
+ la inspiración y a todo el equipo de Bayes en general por su apoyo incondiciona
+l.
+\end_layout
+
+\begin_layout Standard
+
+\size larger
+\color red
+Documento en construcción!
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Chapter*
+Introducción
+\end_layout
+
+\begin_layout Standard
+BSR es un sistema de estimación de modelos por simulación bayesiana, cuyo
+ objetivo es satisfacer de la forma más eficiente posible las necesidades
+ más comunes que nos encontramos los analistas de datos a la hora de resolver
+ los problemas de previsión que nos proponen nuestros clientes.
+ Muy a menudo dichos problemas suelen ser planteables como modelos jerárquicos
+ lineales, en adelante HLM (Hierarchical Lineal Model), en los que aparecen
+ ciertas no linealidades en el nivel observacional, como la presencia de
+ estructura ARIMA, datos omitidos en el input o el output, heterocedasticidad,
+ etc.; así como algunos efectos aditivos no lineales más complejos como funciones
+ de transferencia (deltas) y otros más particulares que pueden aparecer
+ en algunos proyectos.
+ 
+\end_layout
+
+\begin_layout Standard
+Cada uno de estos problemas es más o menos complicado de resolver, y el
+ método utilizado para hacerlos cooperar es la simulación MCMC de Gibbs.
+ El mayor problema técnico con diferencia proviene paradójicamente del teóricame
+nte más sencillo, que es la parte lineal.
+ Esto es debido a que, incluso en problemas no muy grandes, conlleva una
+ cantidad de cálculo insoportable (complejidad cúbica), si no se trata de
+ una forma específica para aprovechar la gran cantidad de ceros que contiene
+ la matriz del diseño (sparse matrix).
+ Se trata de un sistema bastante complejo que ha servido de motor de evolución
+ de TOL, al arrastrar como elementos previos indispensables la incorporación
+ de NameBlock, un nuevo tipo de datos orientado al objeto (OOP) y VMatrix,
+ matrices con un sistema de operaciones diseñado para hacer transparente
+ al usuario las cuestiones estructurales y algorítmicas del álgebra matricial,
+ tanto denso (BLAS-LAPACK) como sparse (CHOLMOD).
+ En versiones ulteriores, se incorporará también la posibilidad de trabajo
+ en paralelo en memoria compartida (OpenMP) y distribuida (Open MPI), para
+ poder atacar problemas de grandes dimensiones (cientos de miles o millones
+ de variables).
+ 
+\end_layout
+
+\begin_layout Standard
+Un sistema complejo y potente supone en principio una gran fuente de errores
+ así como una dificultad extrema en su uso y aprendizaje, por lo que desde
+ el primer momento se ha tenido en cuenta la triple vertiente: eficiencia
+ en el diseño algorítmico, robustez de los resultados mediante tests diagnóstico
+s y flexibilidad de manejo.
+ Esta última característica se logra merced a un sistema de capas de interfaz
+ (API's) de distintos niveles, las cuales se apoyan cada una en la anterior.
+ Las capas más interiores son más complicadas de utilizar, pero son más
+ flexibles y permiten diseñar modelos más complejos, como redes bayesianas,
+ y cualquier tipo de regresión lineal generalizada con las extensiones comentada
+s anteriormente, e incluso cualquier otra para la que se pueda dar un método
+ de simulación condicionado al resto de componentes.
+ Las capas exteriores son más rígidas pues se restringen a modelos cada
+ vez más ceñidos a una clase muy concreta de modelos jerárquicos, pero a
+ cambio ofrecen un manejo muy cómodo en el que el usuario define el modelo
+ en unas pocas líneas de código TOL que queda registrado en una base de
+ datos relacional (BsrHlm) que incluirá finalmente un resumen diagnóstico
+ de los resultados obtenidos en la simulación.
+\end_layout
+
+\begin_layout Standard
+Esta documentación se encuentra dividida en tres partes en función del tipo
+ de lector objetivo, lo cual se indica en el prólogo de cada una, así que
+ debe ser éste el que decida, en función de dichas indicaciones, qué partes
+ debe leer con mayor atención y cuáles puede ojear o incluso eludir.
+ Aunque cada una puede ser leída de forma independiente, las partes se presentan
+ en el orden natural de dependencias:
+\end_layout
+
+\begin_layout Itemize
+Parte I: Documentación matemática de BSR
+\end_layout
+
+\begin_layout Itemize
+Parte II: Guía del programador de BSR
+\end_layout
+
+\begin_layout Itemize
+Parte III: Manual de usuario de BSR-HLM
+\end_layout
+
+\begin_layout Part
+Documentación matemática de BSR
+\end_layout
+
+\begin_layout Standard
+Esta parte interesa a los desarrolladores matemáticos de BSR y a todos aquellos
+ que deseen comprender cómo funcionan las cosas por dentro desde el punto
+ de vista del cálculo numérico y la estadística.
+ Aquí se describen los conceptos y algoritmos matemáticos manejados por
+ BSR para la simulación, diagnosis e inferencia bayesianas de la clase de
+ modelos admisible.
+\end_layout
+
+\begin_layout Standard
+Estos son los requisitos matemáticos previos necesarios para comprender
+ sin dificultad los conceptos y algoritmos presentados en esta parte:
+\end_layout
+
+\begin_layout Itemize
+Simulación e inferencia bayesianas
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Generalidades de los métodos de MonteCarlo
+\end_layout
+
+\begin_layout Itemize
+Cadenas de Markov
+\end_layout
+
+\begin_layout Itemize
+Método de Gibbs
+\end_layout
+
+\begin_layout Itemize
+Método univariante ARMS 
+\end_layout
+
+\begin_layout Itemize
+Diagnosis (CODA)
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Modelos de regresión gaussiana
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Regresión lineal
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Distribución condicionada del bloque lineal
+\end_layout
+
+\begin_layout Itemize
+Distribución condicionada de la varianza
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Regresión ARIMA 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Procesos estacionarios 
+\end_layout
+
+\begin_layout Itemize
+Ecuaciones en diferencias regulares y estacionales (factorización) 
+\end_layout
+
+\begin_layout Itemize
+La función de autocovarianzas
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+El modelo jerárquico
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Nodos observacionales
+\end_layout
+
+\begin_layout Itemize
+Nodos latentes
+\end_layout
+
+\begin_layout Itemize
+Nodos a priori
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Redes bayesianas
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+Estos son los resúmenes de cada capítulo:
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+Definición de la clase de modelos admisibles en BSR
+\emph default
+: describe la clase de modelos admisibles en BSR así como el método de Gibbs
+ por bloques aplicado para la simulación.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+El bloque lineal con restricciones lineales
+\emph default
+: Casi todos los modelos de regresión contienen uno o varios bloques lineales
+ que suelen acumular la mayor parte de las variables por lo que es imprescindibl
+e atacar su simulación de la manera más eficiente posible, especialmente
+ si se trata de matrices sparse como es bastante habitual, sobre todo en
+ modelos estructurados como los modelos jerárquicos o las redes bayesianas.
+ También es muy importante poder forzar restricciones en forma de inecuaciones
+ sobre los parámetros de este bloque lineal.
+ Para ello es necesario manejar algoritmos sumamente eficientes de generación
+ de multinormales truncadas, descomposiciones de Cholesky y resolución de
+ sistemas lineales sparse y densos, que permitan al mismo tiempo conjugarse
+ con otros bloques de variables (Sigma, ARMA, Missing, ...) dentro del marco
+ del método de simulación de Gibbs.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+El bloque de varianzas
+\emph default
+: En un modelo de regresión con función de contraste arbitraria puede haber
+ uno o varios bloques de de residuos que se postulan independientes de los
+ que se quiere estimar su varianza.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+El bloque ARIMA
+\emph default
+: En la simulación de Gibbs de un modelo ARMA se puede utilizar el método
+ de simulación univariante ARMS para obtener realizaciones de los parámetros
+ ARMA, si se fuerza a que los polinomios AR y MA estén factorizados en monomios
+ y binomios.
+ La matriz de covarianzas de un proceso ARMA genérico de longitud 
+\begin_inset Formula $m$
+\end_inset
+
+ es una matriz de Toeplitz simétrica que es más densa cuanto más cerca de
+ la unidad estén las raíces de la parte AR.
+ Para el caso MA puro es una matriz muy sparse de densidad aproximada 
+\begin_inset Formula $q/m$
+\end_inset
+
+.
+ En este artículo se describe una descomposición factorial de la matriz
+ de covarianzas en el caso ARMA general mediante matrices sparse que se
+ obtienen con coste computacional 
+\begin_inset Formula $O\left(n^{2}m\right)$
+\end_inset
+
+, en lugar del coste 
+\begin_inset Formula $O\left(m^{3}\right)$
+\end_inset
+
+ del método de Cholesky denso, donde 
+\begin_inset Formula $n=\max\left(p,q\right)+1+p$
+\end_inset
+
+, siendo 
+\begin_inset Formula $p$
+\end_inset
+
+ y 
+\begin_inset Formula $q$
+\end_inset
+
+ los grados de los polinomios AR y MA respectivamente.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+El bloque de omitidos
+\emph default
+: En la simulación de Gibbs de una regresión lineal generalizada con datos
+ omitidos en el input y en el output, si se condiciona al resto de parámetros,
+ se obtiene otra regresión lineal cuyos parámetros son los valores omitidos.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+El bloque no lineal
+\emph default
+: Muy a menudo se observan comportamientos de inputs que no actúan de forma
+ lineal en el filtrado de fenómenos complejos.
+ En el caso concreto de que la forma de actuar sea aditiva con respecto
+ al ruido del modelo, es posible formalizar un método genérico ARMS de simulació
+n de Gibbs de cada parámetro condicionado al resto.
+ Se expone también el caso concreto de la función de transferencia no lineal
+ (deltas).
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+Diagnosis
+\emph default
+: Cuando ya se dispone de una cadena de Markov para un modelo comienza la
+ etapa de diagnosis que certifique la calidad de los resultados obtenidos
+ e informe de la potencia alcanzable por las ulteriores inferencias que
+ se puedan extraer de él.
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+Mantenimiento y producción
+\emph default
+: Una vez que acaba la etapa de análisis y diseño de un modelo se pasa a
+ la etapa de producción en la que el modelo se usará para hacer inferencia
+ de una u otra forma: predicción, decisión, etc.
+ Durante esta etapa el modelo debe mantenerse en estado de revista, es decir,
+ debe ir adaptándose a los nuevos datos que vayan conociéndose e incorporando
+ eventuales nuevas variables.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P1_S1_Clase_de_modelos.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P1_S2_Bloque_lineal.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P1_S3_Bloque_de_varianzas.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P1_S4_Bloque_ARIMA.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P1_S5_Bloque_de_omitidos.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P1_S6_Bloque_no_lineal.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P1_S7_Diagnosis.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P1_S8_Mantenimiento_y_produccion.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part
+Guía del programador de BSR
+\end_layout
+
+\begin_layout Standard
+Esta parte interesa a todos los desarrolladores de BSR y a todos aquellos
+ que deseen comprender cómo funciona BSR por dentro desde el punto de vista
+ informático.así como a los usuarios de BSR que se enfrenten a problemas
+ complejos que no se pueden representar dentro del clásico modelo jerárquico
+ lineal, bien porque se tengan estructuras reticulares, porque haya componentes
+ lineales o por cualquier otra causa.
+ 
+\end_layout
+
+\begin_layout Standard
+Aquí se describe la metodología de la implementación, tanto en C++ como
+ en TOL y SQL de todo lo relacionado con el sistema BSR desde los algoritmos
+ matemáticos a las API de definición de modelos; y también cómo sacarle
+ el máximo partido a BSR utilizando la API virtual de definición de modelos
+ así como la incorporación de las extensiones no lineales y cualquier otra
+ modificación del modelo que sea representable como un bloque de Gibbs,
+ independientemente del método de simulación interno al bloque, que puede
+ ser Metropolis-Hastings o cualquier otro.
+\end_layout
+
+\begin_layout Standard
+Para llegar a una comprensión adecuada se debe haber entendido previamente
+ la Parte I de este libro.
+ Estos son los requisitos previos sobre TOL necesarios para comprender sin
+ dificultad la implementación presentada en esta parte:
+\end_layout
+
+\begin_layout Itemize
+Nivel avanzado en las características de TOL hasta la versión 1.1.6
+\end_layout
+
+\begin_layout Itemize
+Ciertos conocimientos mínimos sobre las nuevas características de la nueva
+ versión de TOL 1.1.7, la primera sobre la que funciona BSR
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+NameBlock: 
+\begin_inset LatexCommand htmlurl
+target "http://www.tol-project.org/es/node/40"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+VMatrix: 
+\begin_inset LatexCommand htmlurl
+target "http://www.tol-project.org/es/node/90"
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+Estos son los resúmenes de cada capítulo:
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+BysMcmc
+\emph default
+: Se describen los miembros y métodos generales del NameBlock BysMcmc cuyo
+ propósito es aglutinar todas las funcionalidades relacionadas con la inferencia
+ bayesiana basada en métodos de simulación MCMC (MonteCarlo Markov Chain)
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+BysMcmc::Bsr::Gibbs
+\emph default
+: Se describen los miembros y métodos generales del 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs
+\series default
+ que implementa los métodos de simulación propiamente dichos de la clase
+ de modelos de BSR y sus extenciones.
+\end_layout
+
+\begin_layout Standard
+
+\size larger
+\color red
+...
+ pendiente!
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P2_S1_BysMcmc.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P2_S2_Gibbs.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P2_S3_Formato_ASCII_BSR.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P2_S4_Import.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P2_S5_DynHlm.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Part
+Manual de usuario de BSR-HLM
+\end_layout
+
+\begin_layout Standard
+En esta parte interesa a todos los usuarios de BSR que se enfrenten a problemas
+ que se pueden representar dentro del clásico modelo jerárquico lineal,
+ con las extensiones de estructura ARIMA y datos omitidos en el nivel observacio
+nal.
+ Se describe la base de datos del sistema BSR-HLM, los métodos para interactuar
+ con ella a diferentes niveles, usando la interfaz gráfica o una plantilla
+ de modelo en TOL según las necesidades de cada caso.
+ También se detallan los resultados obtenidos tras una simulación, los métodos
+ de diagnosis y en general todo lo relacionado con el manejo básico de BSR
+ tanto en la fase de análisis como en la de mantenimiento de un proyecto
+ de modelación.
+\end_layout
+
+\begin_layout Standard
+Estos son los resúmenes de cada capítulo:
+\end_layout
+
+\begin_layout Standard
+
+\size larger
+\color red
+...
+ pendiente!
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P3_S1_BsrHlm_base_de_datos.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P3_S2_BsrHlm_plantilla_de_modelo.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \input{BSR_P3_S3_BsrHlm_casuistica.lyx}
+preview true
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
+\begin_layout Part
+Referencias
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "Bayesian Data Analysis"
+key "Bayesian-Data-Analysis"
+
+\end_inset
+
+Bayesian Data Analysis, by Andrew Gelman, John B.
+ Carlin, Hal S.
+ Stern, and Donald B.
+ Rubin
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "Box-Jenkins"
+key "Box-Jenkins"
+
+\end_inset
+
+George Box, Gwilym M.
+ Jenkins, Time Series Analysis: Forecasting & Control, 1976 
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "ARMS"
+key "ARMS-Gilks-Best-Tan"
+
+\end_inset
+
+Gilks, W.
+ R., Best, N.
+ G.
+ and Tan, K.
+ K.
+ C.
+ (1995) Adaptive rejection Metropolis sampling.
+ Applied Statistics, 44, 455-472.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "Sampling Truncated Multinormal"
+key "Efficient_Gibbs_Sampling_Truncated_Multivariate_Normal"
+
+\end_inset
+
+Efficient Gibbs Sampling of Truncated Multivariate Normal with Application
+ to Constrained Linear Regression.
+ Gabriel Rodriguez-Yam, Richard A.
+ Davis, and Louis L.
+ Scharf.
+ 
+\begin_inset LatexCommand htmlurl
+target "http://www.stat.colostate.edu/~rdavis/papers/CLR.pdf"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "One Sample Wilcoxon Test"
+key "Small-Sample-Power-of-the-One-Sample-Wilcoxon-Test-for-Non-Normal-Shift-Alternatives"
+
+\end_inset
+
+Small Sample Power of the One Sample Wilcoxon Test for Non-Normal Shift
+ Alternatives.
+ Harvey J.
+ Arnold.
+ Source: Ann.
+ Math.
+ Statist.
+ Volume 36, Number 6 (1965), 1767-1778.
+ 
+\begin_inset LatexCommand htmlurl
+target "http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aoms/1177699805"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "ARCH in UK"
+key "ARCH-UK"
+
+\end_inset
+
+Robert F.
+ Engle, Autoregressive Conditional Heteroscedasticity with Estimates of
+ Variance of United Kingdom Inflation, 1982 
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "GARCH"
+key "GARCH"
+
+\end_inset
+
+Tim Bollerslev, Generalized Autoregressive Conditional Heteroskedasticity,
+ 1986 
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "User Guide for CHOLMOD"
+key "Cholmod_User_Guide"
+
+\end_inset
+
+User Guide for CHOLMOD: a sparse Cholesky factorization and modification
+ package.
+ Timothy A.
+ Davis Dept.
+ of Computer and Information Science and Engineering Univ.
+ of Florida, Gainesville, FL.
+ 
+\begin_inset LatexCommand htmlurl
+target "http://www.cise.ufl.edu/research/sparse/cholmod/CHOLMOD/Doc/UserGuide.pdf"
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "The quadprog R Package"
+key "QuadProg-R-Package"
+
+\end_inset
+
+The quadprog Package: Functions to solve Quadratic Programming Problems.S
+ original by Berwin A.
+ Turlach <berwin.turlach@anu.edu.au> R port by Andreas Weingessel <Andreas.Weingesse
+l@ci.tuwien.ac.at>.
+ 
+\begin_inset LatexCommand htmlurl
+target "http://cran.r-project.org/web/packages/quadprog/quadprog.pdf"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset LatexCommand bibitem
+label "CODA"
+key "CODA-Convergence-diagnosis-output-analysis"
+
+\end_inset
+
+CODA: Convergence diagnosis and output analysis software for Gibbs sampling
+ output, Version 0.30 (1995) by Nicky Best, Mary Kathryn Cowles, Karen Vines
+ 
+\begin_inset LatexCommand htmlurl
+target "http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.48.6445&rep=rep1&type=pdf"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

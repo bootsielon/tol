@@ -1,0 +1,3525 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:BysMcmc::Bsr::Import"
+
+\end_inset
+
+API BysMcmc::Bsr::Import
+\end_layout
+
+\begin_layout Standard
+Se describen los miembros y métodos generales del NameBlock BysMcmc::Bsr::Import
+\end_layout
+
+\begin_layout Section
+Descripción
+\end_layout
+
+\begin_layout Standard
+El 
+\family typewriter
+\series bold
+API
+\series default
+ BysMcmc::Bsr::Import
+\family default
+, en lo adelante 
+\family typewriter
+\series bold
+API
+\series default
+ Import
+\family default
+, es un nivel de abstracción que permite definir modelos 
+\series bold
+BSR
+\series default
+ sin necesidad de conocer el formato en archivo de dichos modelos.
+ Semánticamente esta orientado a los conceptos ya definidos en la sección
+ 
+\begin_inset LatexCommand ref
+reference "sec:clase_modelos_BSR"
+
+\end_inset
+
+ y se centran en los segmentos de regresión y la estructura del error.
+\end_layout
+
+\begin_layout Standard
+Por recordar, un modelo 
+\series bold
+BSR
+\series default
+ define una regresion lineal restringida compuesta de segmentos de regresion
+ con errores independientes entre sí y un sistema de restricciones lineales
+ entre los parámetros.
+ 
+\end_layout
+
+\begin_layout Standard
+El 
+\family typewriter
+\series bold
+API
+\series default
+ Import
+\family default
+ es un mecanismo para definir las caracteristicas de cada uno de los segmentos
+ de regresión tales como: 
+\end_layout
+
+\begin_layout Itemize
+estructura temporal de las observaciones
+\end_layout
+
+\begin_layout Itemize
+distribución del error
+\end_layout
+
+\begin_layout Itemize
+parámetros lineales
+\end_layout
+
+\begin_layout Itemize
+omitidos en el output e inputs
+\end_layout
+
+\begin_layout Itemize
+restricciones entre los parámetros
+\end_layout
+
+\begin_layout Standard
+Para cada una de las categorías anteriores deben definirse un conjunto de
+ métodos que dan acceso a los elementos de las mismas, por ejemplo en la
+ definición de los parámetros lineales de un segmento debemos tener un método
+ para retornar el número de parámetros del segmento y otro para retornar
+ la información del i-ésimo parámetro.
+ Este estilo de interfaz se ha escogido para dar flexibilidad a la hora
+ de definir el modelo 
+\color red
+(amplia un poco más esto)
+\color inherit
+.
+\end_layout
+
+\begin_layout Standard
+De forma global el modelo 
+\series bold
+BSR
+\series default
+ debe satisfacer también unos requerimientos de interfaz como son retornar
+ el número de segmentos que lo componen, el i-ésimo segmento y las restricciones
+ entre parámetros de diferentes bloques.
+ El segmento retornado debe ser un 
+\family typewriter
+NameBlock
+\family default
+ que cumpla con el API del segmento requerida.
+\end_layout
+
+\begin_layout Standard
+En las secciones siguientes describiremos en detalle los metodos que deben
+ implementarse a nivel global del modelo BSR como a nivel de segmento.
+ Finalmente describiremos mediante un ejemplo el uso del 
+\family typewriter
+\series bold
+API
+\series default
+ Import.
+\end_layout
+
+\begin_layout Section
+NameBlock del sistema BSR
+\end_layout
+
+\begin_layout Standard
+Un sistema BSR se implementa a través de un NameBlock que debe responder
+ a un interfaz que permita conocer atributos como: nombre del modelo, directorio
+ de salida del modelo .bsr, nombre de la session, número de segmentos de
+ regresion así como el acceso a cada uno de los segmentos, entre otros.
+\end_layout
+
+\begin_layout Standard
+A partir de un NameBlock o instancia que cumpla los requeriemiento del API
+ Import podemos generar el archivo .bsr asociado mediante la función 
+\family typewriter
+Text BysMcmc::Bsr::Import::Write(NameBlock BSR)
+\family default
+.
+ Esta función retorna el camino del archivo generado.
+ 
+\end_layout
+
+\begin_layout Standard
+El nombre del archivo y la localización es determinado haciendo uso de metodos
+ que deben estar implementados en el NameBlock
+\end_layout
+
+\begin_layout Standard
+A continuación se describe en detalles los métodos requeridos en el API
+ de un 
+\family typewriter
+NameBlock
+\family default
+ para un sistema 
+\family typewriter
+BSR
+\family default
+.
+ Para ligar la descripción a un ejemplo concreto usaremos el siguiente modelo
+ simple 
+\begin_inset Formula $ARMA(2,1)$
+\end_inset
+
+ para un nodo de observación:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{rl}
+y_{t} & =\beta_{0}+\sum_{1}^{k}\beta_{i}x_{t,i}+z_{t}\\
+\phi\left(B\right)z_{t} & =\theta\left(B\right)\varepsilon_{t},\varepsilon_{t}\sim N(0,\sigma^{2})\\
+\phi(B) & =1-\phi_{1}B-\phi_{2}B^{2}\\
+\theta(B) & =1-\theta_{1}B\\
+\beta_{1} & \ge\beta_{2}\end{array}\end{equation}
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "eq:mod_exa_bsr"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Doc.Model.Name el método 
+\family typewriter
+Text Get.Doc.Model.Name(Real void)
+\family default
+ debe retornar un identificador del modelo.
+ Ejemplo:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Doc.Model.Name(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text "BSRExample"
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Doc.Model.Description el método 
+\family typewriter
+Text Get.Doc.Model.Description(Real void)
+\family default
+ implementa una función que retorna una descripción del modelo.
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Doc.Model.Description(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text "Modelo simple ARMA(2,1)"
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Doc.Session.Name el método 
+\family typewriter
+Text Get.Doc.Session.Name(Real void)
+\family default
+ implementa una función que retorna un identificador de la sessión.
+ Para un mismo modelo podemos tener diferentes sesiones que consiste en
+ una parametrización distinto.
+ Poder mantener diferentes sesiones de un modelo nos permite almacenar y
+ comparar los resultado para diferentes versiones del modelo.
+ El modelo BSR para una sesión dada se escribe en directorio indicado por
+ el valor de retorno de la función 
+\family typewriter
+Text Get.Doc.Path(Real void)
+\family default
+.
+ Ejemplo: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Doc.Session.Name(Real void) 
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text _.session.id
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Doc.Session.Description el método 
+\family typewriter
+Text Get.Doc.Session.Description(Real void)
+\family default
+ implementa una función que retorna una descripción de la sessión.
+ Ejemplo:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Doc.Session.Description(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text "Session "+_.session.id+" para el modelo: " +
+\end_layout
+
+\begin_layout Standard
+
+       Get.Doc.Model.Name(0) + " " + Get.Doc.Model.Description(0)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Doc.Session.Authors el método 
+\family typewriter
+Text Get.Doc.Session.Authors(Real void)
+\family default
+ retorna una cadena que contenga los autores de la sesión.
+ Ejemplo:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Doc.Session.Authors(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text "user@bayesforecast.com"
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Doc.Path el método 
+\family typewriter
+Text Get.Doc.Path(Real void)
+\family default
+ retorna el directorio de salida donde se escribirá el archivo .bsr asociado
+ al modelo.
+ Ejemplo:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Doc.Path(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text _.path.out
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.LinReg.Size el método 
+\family typewriter
+Real Get.LinReg.Size(Real void)
+\family default
+ retorna el número de segmentos independientes del sistema BSR.
+ Ejemplo:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.LinReg.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  // para el ejemplo actual solo tenemos un segmento de regresión
+\end_layout
+
+\begin_layout Standard
+
+  Real 1
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.LinReg.Segment el método 
+\family typewriter
+NameBlock Get.LinReg.Segment(Real iS)
+\family default
+ retorna el 
+\family typewriter
+NameBlock
+\family default
+ que implementa el API import para el segmento con ndice 
+\family typewriter
+iS
+\family default
+.
+ El API que debe satisfacer este 
+\family typewriter
+NameBlock
+\family default
+ lo describimos en la sección 
+\begin_inset LatexCommand ref
+reference "sec:API-segmento-BSR"
+
+\end_inset
+
+.
+ Ejemplo:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Get.LinReg.Segment(Real iS)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  // en este caso retornamos el NameBlock para el único segmento
+\end_layout
+
+\begin_layout Standard
+
+  // que se modela para mas de un segmento de regresión se suele
+\end_layout
+
+\begin_layout Standard
+
+  // usar un Set que es indexado por iS: _bsr.blocks[iS]
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock _.bsr.ARMA.2_1
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Constraints.Handler el método 
+\family typewriter
+NameBlock Get.Constraints.Handler(Real void)
+\family default
+ retorna el 
+\family typewriter
+NameBlock
+\family default
+ que implementa el interfaz necesaria para definir las restricciones entre
+ parametros de diferentes segmentos.
+ En la sección 
+\begin_inset LatexCommand ref
+reference "sec:Restricciones-en-BSR"
+
+\end_inset
+
+ se describe el API que debe satisfacerse.
+ Para nuestro ejemplo como solo tenemos un segmento de regresión las restriccion
+es están definidas en dicho segmento, no obstante también las podíamos haber
+ definido en el las restricciones globales.
+ Ejemplo:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Get.Constraints.Handler(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  // retornamos un NameBlock predefinido para el caso
+\end_layout
+
+\begin_layout Standard
+
+  // no restringido
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock BysMcmc::Bsr::Import::Unconstrained(0)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finalmente el una función que retorna el NameBlock que implementa el API
+ del sistema BSR del para el modelo anterior sería similar a:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Build.Example.BSR(Text path.out, Text session.id,
+\end_layout
+
+\begin_layout Standard
+
+                            Serie Y, Set X)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock [[
+\end_layout
+
+\begin_layout Standard
+
+    Text _.path.out = path.out;
+\end_layout
+
+\begin_layout Standard
+
+    Text _.session.id = session.id;
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock _.bsr.ARMA.2_1 = [[
+\end_layout
+
+\begin_layout Standard
+
+      Text _.dating.name = DatingName(Y);
+\end_layout
+
+\begin_layout Standard
+
+      Date _.first = First(Y);
+\end_layout
+
+\begin_layout Standard
+
+      Date _.last = Last(Y),
+\end_layout
+
+\begin_layout Standard
+
+      Matrix _.Y = SerMat(Y);
+\end_layout
+
+\begin_layout Standard
+
+      Matrix _.X = SerSetMat(X);
+\end_layout
+
+\begin_layout Standard
+
+      /* ...
+ */
+\end_layout
+
+\begin_layout Standard
+
+      /* aquí implementamos el NameBlock para el nodo de observación */
+\end_layout
+
+\begin_layout Standard
+
+    ]];
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Model.Name(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text "BSRExample"
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Model.Description(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text "Modelo simple ARMA(3,1)"
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Session.Name(Real void) 
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text _.session.id
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Session.Description(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text "Session "+_.session.id+" para el modelo: " +
+\end_layout
+
+\begin_layout Standard
+
+           Get.Doc.Model.Name(0) + " " + Get.Doc.Model.Description(0)
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Session.Authors(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text "user@bayesforecast.com"
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Path(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text _.path.output
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Real Get.LinReg.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      // para el ejemplo actual solo tenemos un segmento de regresión
+\end_layout
+
+\begin_layout Standard
+
+      Real 1
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock Get.LinReg.Segment(Real iS)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      // en este caso retornamos el NameBlock para el único segmento
+\end_layout
+
+\begin_layout Standard
+
+      // que se modela para mas de un segmento de regresión se suele
+\end_layout
+
+\begin_layout Standard
+
+      // usar un Set que es indexado por iS: _bsr.blocks[iS]
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock _.bsr.ARMA.2_1
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock Get.Constraints.Handler(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      // retornamos un NameBlock predefinido para el caso
+\end_layout
+
+\begin_layout Standard
+
+      // no restringido
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock BysMcmc::Bsr::Import::Unconstrained(0)
+\end_layout
+
+\begin_layout Standard
+
+    }
+\end_layout
+
+\begin_layout Standard
+
+  ]]
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+API del segmento BSR
+\begin_inset LatexCommand label
+name "sec:API-segmento-BSR"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Después de haber visto el API global del un sistema BSR, ahora pasamos al
+ API de un segmento BSR concreto
+\end_layout
+
+\begin_layout Description
+Get.Name la función 
+\family typewriter
+Get.Name(Real void)
+\family default
+ retorna el nombre del segmento BSR.
+ Debe ser un nombre único entre todos los segmentos del sistema BSR.
+ En el ejemplo que llevamos pudiera quedar así: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Name(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text "ObsY"
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Sigma2 
+\family typewriter
+la función Anything Get.Sigma2(Real void)
+\family default
+ retorna un identificador o un valor para el parámetro 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ del segmento de regresión.
+ Si se retorna un 
+\family typewriter
+Text
+\family default
+ entonces se asume un identificador de parámetro
+\begin_inset Formula $\sigma$
+\end_inset
+
+ desconocido y se simulará según su distribución condicional, en tal caso
+ el identificador debe ser único entre todos los nombres de parémetros 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ de todos los segmentos.
+ Si el valor retornado es un 
+\family typewriter
+Real
+\family default
+ entonces se asume una 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ conocida y no se simula.
+ En nuestro ejemplo 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ es desconocido por tanto le damos un nombre: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Sigma2(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text "sigma2"
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.TimeInfo si el segmento tiene estructura temporal, el método 
+\family typewriter
+Set Get.TimeInfo(Real void)
+\family default
+ retorna información asociada al fechado del segmento.
+ Ejemplo: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Set Get.TimeInfo(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Set BSR.NoiseTimeInfo(TimeSet Eval(_.dating.name), _.first, _.last)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+el objeto resultado debe ser de tipo 
+\family typewriter
+BSR.NoiseTimeInfo
+\family default
+ que es una estructura definida internamente en TOL y que tiene la siguiente
+ definición: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Struct BSR.NoiseTimeInfo
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  TimeSet Dating,
+\end_layout
+
+\begin_layout Standard
+
+  Date FirstDate,
+\end_layout
+
+\begin_layout Standard
+
+  Date LastDate
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.ARIMA.Size la función 
+\family typewriter
+Get.ARIMA.Size(Real void)
+\family default
+ retorna el número de factores 
+\family typewriter
+ARIMA
+\family default
+ para el segmento 
+\family typewriter
+BSR
+\family default
+.
+ Si el segmento es no dinámico o es un ruido blanco entonces se debe retornar
+ 0.
+ Recuérdese que en la versión actual un factor 
+\family typewriter
+ARIMA
+\family default
+ no debe superar el grado 2.
+ Un polinomio de grado superior a 2 debe darse descompuesto en factores
+ de grado 2 ó 1.
+ Para el modelo 
+\begin_inset LatexCommand ref
+reference "eq:mod_exa_bsr"
+
+\end_inset
+
+ con un factor bastaría.
+ 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.ARIMA.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real 1
+\end_layout
+
+\begin_layout Standard
+
+}; 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.ARIMA.Factor la función 
+\family typewriter
+Get.ARIMA.Factor(Real f)
+\family default
+ retorna el f-ésimo factor del ruido 
+\family typewriter
+ARIMA
+\family default
+.
+ El valor del argumento 
+\family typewriter
+f
+\family default
+ va desde 1 hasta 
+\family typewriter
+n=Get.ARIMA.Size(0)
+\family default
+.
+ El valor de retorno de la función debe ser un Set con estructura 
+\family typewriter
+ARIMAStruct
+\family default
+:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Struct ARIMAStruct
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real Periodicity,
+\end_layout
+
+\begin_layout Standard
+
+  Polyn AR,
+\end_layout
+
+\begin_layout Standard
+
+  Polyn MA,
+\end_layout
+
+\begin_layout Standard
+
+  Polyn DIF
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+Para el modelo 
+\begin_inset LatexCommand ref
+reference "eq:mod_exa_bsr"
+
+\end_inset
+
+ la función sería: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Set Get.ARIMA.Factor(Real f)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Set ARIMAStruct(1, 1-0.1*B-0.1*B^2, 1-0.1*B, 1)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Param.Size la función 
+\family typewriter
+Real Get.Param.Size(Real void)
+\family default
+ retorna el número de parámetros lineales de la regresión.
+ En el caso del ejemplo que llevamos se corresponde 
+\family typewriter
+Rows(X)=3
+\family default
+ ya que los variables predictivas están almacenadas por filas:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.Param.Size(Real void) 
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real Rows(_.X)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Param la función 
+\family typewriter
+Set Get.Param(Real numParam)
+\family default
+ retorna la información para el i-ésimo parámetro.
+ El valor del argumento 
+\family typewriter
+iP
+\family default
+ va desde 
+\family typewriter
+1
+\family default
+ hasta 
+\family typewriter
+n=Get.Param.Size(0)
+\family default
+.
+ El valor de retorno de la función es 
+\family typewriter
+Set
+\family default
+ con estructura 
+\family typewriter
+Bsr.Param.Info
+\family default
+:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Struct Bsr.Param.Info
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text Name,              // identificador único del parámetro
+\end_layout
+
+\begin_layout Standard
+
+  Real InitValue,         // valor inicial conocido o ?
+\end_layout
+
+\begin_layout Standard
+
+  Real Prior.LowerBound,  // cota inf.
+ del intervalo de definición o -1/0
+\end_layout
+
+\begin_layout Standard
+
+  Real Prior.UpperBound   // cota sup.
+ del intervalo de definición o +1/0
+\end_layout
+
+\begin_layout Standard
+
+};   
+\end_layout
+
+\end_inset
+
+En nuestro caso retornamos los nombres 
+\family typewriter
+beta_1
+\family default
+, 
+\family typewriter
+beta_2
+\family default
+,..., 
+\family typewriter
+beta_k
+\family default
+ y todos no acotados: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Set Get.Param(Real iP)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Set Bsr.Param.Info("beta_"+IntText(iP), Real Rand(0,1), -1/0, 1/0)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Missing.Size la función 
+\family typewriter
+Real Get.Missing.Size(Real void)
+\family default
+ retorna el número de parámetros asociados a los valores omitidos de las
+ observaciones y variables.
+ En nuestro caso no tenemos omitidos por lo que retornamos 0.
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.Missing.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real 0
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Missing la función 
+\family typewriter
+Set Get.Missing(Real iP)
+\family default
+ retorna la información acerca del i-ésimo valor/parámetro omitido.
+ El valor del argumento 
+\family typewriter
+iP
+\family default
+ va desde 
+\family typewriter
+1
+\family default
+ hasta 
+\family typewriter
+n=Get.Missing.Size(0).
+
+\family default
+ El valor de retorno es la información a priori para este parámetro y que
+ será usada en el muestreo del parámetro.
+ Esta información es dada como un Set con estructura Bsr.Missing.Info: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Struct Bsr.Missing.Info
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text Name,              // identificador único para el valor missing
+\end_layout
+
+\begin_layout Standard
+
+  Real Prior.Average,     // prior media or initial value
+\end_layout
+
+\begin_layout Standard
+
+  Real Prior.Sigma,       // sigma del prior or +1/0 si no inf.
+\end_layout
+
+\begin_layout Standard
+
+  Real Prior.LowerBound,  // límite inf.
+ del intervalo o -1/0
+\end_layout
+
+\begin_layout Standard
+
+  Real Prior.UpperBound   // límite sup.
+ del intervalo o +1/0
+\end_layout
+
+\begin_layout Standard
+
+};   
+\end_layout
+
+\end_inset
+
+como no tenemos omitidos retornamos el conjunto vacío:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Set Get.Missing(Real iP)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Set Empty
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Equation.Size la función 
+\family typewriter
+Real Get.Equation.Size(Real void)
+\family default
+ retorna el número de ecuaciones del segmento.
+ Para nuestro ejemplo tendríamos la implementación:Para nuestro ejemplo
+ como solo tenemos un segmento de regresión las restricciones están definidas
+ en dicho segmento, no obstante también las podíamos haber definido en el
+ las restricciones globales.
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.Equation.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  // _.X e _.Y están dispuestas por filas
+\end_layout
+
+\begin_layout Standard
+
+  Real Columns(_.X);
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Equation.Output la función 
+\family typewriter
+{Text|Real} Get.Equation.Output(Real iE)
+\family default
+ retorna el valor de la observación i-ésima para el segmento.
+ El valor del parámetro 
+\family typewriter
+iE
+\family default
+ va desde 
+\family typewriter
+1
+\family default
+ hasta 
+\family typewriter
+n=Get.Equation.Size(0)
+\family default
+.
+ El valor de retorno puede ser un 
+\family typewriter
+Text
+\family default
+ o un 
+\family typewriter
+Real
+\family default
+.
+ Cuando el valor de la observación es omitido debemos retornar el identifcador
+ de parámetro definido con 
+\family typewriter
+Get.Missing
+\family default
+.
+ Si el valor es conocido se debe retornar el valor observado.
+ En nuestro ejemplo las observaciones están en la variable 
+\family typewriter
+_.Y
+\family default
+: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.Equation.Output(Real iE)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real MatDat(_.Y,1,iE)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Equation.Input.Size la función 
+\family typewriter
+Real Get.Equation.Input.Size(Real iE)
+\family default
+ retorna el número de términos distintos de 0 que tiene la ecuación i-esima.
+ El valor del parámetro 
+\family typewriter
+iE
+\family default
+ va desde 1 hasta 
+\family typewriter
+n=Get.Equation.Size(0)
+\family default
+.
+ En nuestro ejemplo la matriz 
+\family typewriter
+X
+\family default
+ es densa y todas las ecuaciones tienen el mismo número de términos distintos
+ de 
+\family typewriter
+0
+\family default
+: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.Equation.Input.Size(Real iE)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real Rows(_.X)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Equation.Input.Coef la función 
+\family typewriter
+{Text|Real} Get.Equation.Input.Coef(Real iE, Real iT)
+\family default
+ retorna el coeficiente t-ésimo término de la e-ésima ecuación.
+ El valor del parámetro 
+\family typewriter
+iE
+\family default
+ va desde 
+\family typewriter
+1
+\family default
+ hasta 
+\family typewriter
+n=Get.Equation.Size(0)
+\family default
+, mientras que el valor del parámetro 
+\family typewriter
+iT
+\family default
+ va desde 
+\family typewriter
+1
+\family default
+ hasta 
+\family typewriter
+n=
+\family default
+Get.Equation.Input.Size
+\family typewriter
+(0)
+\family default
+.
+ El valor de retorno puede ser un 
+\family typewriter
+Text
+\family default
+ o un 
+\family typewriter
+Real
+\family default
+.
+ Cuando el valor de la variable es omitido debemos retornar el identificador
+ de parámetro definido con 
+\family typewriter
+Get.Missing
+\family default
+.
+ Si el valor es conocido se debe retornar el valor observado de la variable.
+ En nuestro ejemplo todos los valores son conocidos y los coeficiente de
+ las ecuaciones están por columnas: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.Equation.Input.Coef(Real iE, Real iT)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real MatDat(_.X, iT,iE)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Equation.Input.Param la función 
+\family typewriter
+Text Get.Equation.Input.Param(Real iE, Real iT)
+\family default
+ retorna el identificador del parámetro del t-ésimo término en la e-ésima
+ ecuación.
+ Los identificadores de parámetros pueden estar definidos en cualquiera
+ de los segmentos del sistema BSR.
+ En nuestro ejemplo los identificadores de parámetros son del tipo 
+\family typewriter
+beta
+\family default
+_k
+\family typewriter
+:
+\family default
+ 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.Equation.Input.Param(Real iE, Real iT)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text "beta_"+IntText(iT)
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Constraints.Handler la función 
+\family typewriter
+NameBlock Get.Constraints.Handler(Real void)
+\family default
+ el método 
+\family typewriter
+NameBlock Get.Constraints.Handler(Real void)
+\family default
+ retorna el 
+\family typewriter
+NameBlock
+\family default
+ que implementa el interfaz necesaria para definir las restricciones entre
+ parametros de este segmentos.
+ En la sección 
+\begin_inset LatexCommand ref
+reference "sec:Restricciones-en-BSR"
+
+\end_inset
+
+ se describe el API que debe satisfacerse.
+ En el modelo planetado en 
+\begin_inset LatexCommand ref
+reference "eq:mod_exa_bsr"
+
+\end_inset
+
+ solo tenemos una restricción lineal de tipo orden 
+\begin_inset Formula $\beta1\ge\beta2$
+\end_inset
+
+ y pudiera quedar:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Get.Constraints.Handler(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock Explicit.Constraints([["0>=-beta_1+beta_2"]])
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Restricciones en BSR
+\begin_inset LatexCommand label
+name "sec:Restricciones-en-BSR"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Las restricción en un sistema 
+\family typewriter
+BSR
+\family default
+ la podemos definir dentro de un segmento de regresión en el caso en que
+ sean restricciones que involucren a parámetros propios de ese segmento
+ o a nivel global si es que se involucran parámetros de diferentes segmentos.
+\end_layout
+
+\begin_layout Standard
+La definición de las restricciones es dada mediante un 
+\family typewriter
+NameBlock
+\family default
+ que debe satisfacer unos equerimientos de interfaz.
+ Primeramente definimos unas estructuras que son necesarias en el API de
+ restricciones.
+ 
+\end_layout
+
+\begin_layout Description
+Bsr.OrderRelation.Info es una estructura para codificar las relaciones de
+ orden entre dos parámetros
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Lower <= Upper 
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+Struct Bsr.OrderRelation.Info
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text Lower, //Left parameter
+\end_layout
+
+\begin_layout Standard
+
+  Text Upper  //Right parameter
+\end_layout
+
+\begin_layout Standard
+
+};  
+\end_layout
+
+\end_inset
+
+por ejemplo en nuestro caso tenemos la restricción 
+\begin_inset Formula $\beta1\ge\beta2$
+\end_inset
+
+ la cual quedaría codificada de esta manera: 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+
+\family typewriter
+Set Bsr.OrdeRelation.Info(
+\begin_inset Quotes eld
+\end_inset
+
+beta_2
+\begin_inset Quotes erd
+\end_inset
+
+,
+\begin_inset Quotes erd
+\end_inset
+
+beta_1
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+Bsr.LinearCombTerm es una estructura para codificar un término de una combinación
+ lineal de parámetros
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+///////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Coefficient * Parameter 
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+Struct Bsr.LinearCombTerm
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real Coefficient,
+\end_layout
+
+\begin_layout Standard
+
+  Text Parameter
+\end_layout
+
+\begin_layout Standard
+
+};   
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Bsr.GenericConstraint.Info es una estructura para codificar una combinación
+ lineal de parámetros acotada a un intervalo.
+ 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+///////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// LowerBound <= c_1*alfa_1 + ...
+ + c_n*alfa_n <= UpperBound
+\end_layout
+
+\begin_layout Standard
+
+///////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+Struct Bsr.GenericConstraint.Info
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real LowerBound, // cota inferior de la combinación lineal o -1/0
+\end_layout
+
+\begin_layout Standard
+
+  Set  LinearComb, // un conjutno de Bsr.LinearCombTerm
+\end_layout
+
+\begin_layout Standard
+
+  Real UpperBound  // cota superior de la combinación lineal o +1/0
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A continuación describimos los requerimientos del 
+\family typewriter
+API
+\family default
+ de restricciones expresadas en un conjunto de funciones que deben estar
+ implementadas en el 
+\family typewriter
+NameBlock
+\family default
+:
+\end_layout
+
+\begin_layout Description
+Get.OrderRelation.Size la función 
+\family typewriter
+Real Get.OrderRelation.Size (Real void)
+\family default
+ retorna el número de restricciones de orden.
+ Para nuestro ejemplo tenemos solo una:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.OrderRelation.Size (Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real 1
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.OrderRelation la función 
+\family typewriter
+Set  Get.OrderRelation (Real r)
+\family default
+ retorna la r-ésima relación de orden entre dos parámetros.
+ El parámetro r va desde 
+\family typewriter
+1
+\family default
+ hasta 
+\family typewriter
+n=Get.OrderRelation.Size(0)
+\family default
+.
+ El valor de retorno es una estructura del tipo 
+\family typewriter
+Bsr.OrdeRelation.Info
+\family default
+.
+ Siguiendo nuestro ejemplo:
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Set  Get.OrderRelation (Real r)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Set Bsr.OrdeRelation.Info("beta_2","beta_1")
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.GenericConstraint.Size la función 
+\family typewriter
+Real Get.GenericConstraint.Size (Real void)
+\family default
+ retorna el número de restricciones genéricas.
+ Las restricciones genéricas son aquella que no pueden definirse como restriccio
+nes de dominio de un parámetro o como relaciones de orden entre dos parámetros.
+ Este es el tipo de restricción líneal más general que podemos expresar
+ y por tanto los otros tipos de restricciones, como las de orden, pueden
+ expresarse también de este tipo.
+ En nuestro caso como ya hemos definido la restricción como de orden no
+ la definimos como genérica: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.GenericConstraint.Size (Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real 0
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.GenericConstraint la función 
+\family typewriter
+Set  Get.GenericConstraint (Real r)
+\family default
+ retorna la r-ésima restricción genérica.
+ El argumento 
+\family typewriter
+r
+\family default
+ va desde 
+\family typewriter
+1
+\family default
+ hasta 
+\family typewriter
+n=Get.GenericConstraint.Size(0)
+\family default
+.
+ El valor de retorno es un 
+\family typewriter
+Set
+\family default
+ con estructura 
+\family typewriter
+Bsr.GenericConstraint.Info
+\family default
+.
+ Por ejemplo la restricción de orden ya definida anteriormente podríamos
+ definirla de esta manera: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Set  Get.GenericConstraint (Real r)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Set Bsr.GenericConstraint.Info
+\end_layout
+
+\begin_layout Standard
+
+  ( 0.0,
+\end_layout
+
+\begin_layout Standard
+
+    [[Set Bsr.LinearCombTerm(1.0,  "beta_1"),
+\end_layout
+
+\begin_layout Standard
+
+      Set Bsr.LinearCombTerm(-1.0, "beta_2")]],
+\end_layout
+
+\begin_layout Standard
+
+    +1/0 )
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.ExplicitConstraint.Size la función 
+\family typewriter
+Real Get.ExplicitConstraint.Size(Real void)
+\family default
+ retorna el número de restricciónes explícitas.
+ Las restricciones explícitas son restricciones en formato texto tal y como
+ se escriben en el archivo 
+\family typewriter
+.bsr
+\family default
+.
+ Para nuestro ejemplo no definimos ninguna restricción del tipo explícita
+ ya que han sido convenientemente definidas anteriormente: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Real Get.ExplicitConstraint.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real 0
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.ExplicitConstraint la función 
+\family typewriter
+Text Get.ExplicitConstraint(Real r)
+\family default
+ retorna la r-ésima restricción explícita.
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+Text Get.ExplicitConstraint(Real r)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Text ""
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Se dan también funciones de conveniencia para construir un 
+\family typewriter
+NameBlock
+\family default
+ que satisfaga el 
+\family typewriter
+API
+\family default
+ de definición de restricciones.
+ Estas funciones son:
+\end_layout
+
+\begin_layout Description
+Order.Relations la función 
+\family typewriter
+NameBlock Order.Relations(Set order.relations)
+\family default
+ crea un 
+\family typewriter
+NameBlock
+\family default
+ de restricciones en la que solo están definidas restricciones de orden.
+ Ejemplo: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Order.Relations([[Bsr.OrdeRelation.Info("beta_2","beta_1")]])
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Generic.Constraints la función 
+\family typewriter
+NameBlock
+\family default
+ 
+\family typewriter
+Generic.Constraints(Set generic.constraints)
+\family default
+ crea un 
+\family typewriter
+NameBlock
+\family default
+ de restricciones en la que solo están definidas restricciones genéricas.
+ Ejemplo: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Generic.Constraints
+\end_layout
+
+\begin_layout Standard
+
+(
+\end_layout
+
+\begin_layout Standard
+
+[[
+\end_layout
+
+\begin_layout Standard
+
+  Bsr.GenericConstraint.Info
+\end_layout
+
+\begin_layout Standard
+
+  ( 0.0,
+\end_layout
+
+\begin_layout Standard
+
+    [[Set Bsr.LinearCombTerm(1.0,  "beta_1"),
+\end_layout
+
+\begin_layout Standard
+
+      Set Bsr.LinearCombTerm(-1.0, "beta_2")]],
+\end_layout
+
+\begin_layout Standard
+
+    +1/0 )
+\end_layout
+
+\begin_layout Standard
+
+]]
+\end_layout
+
+\begin_layout Standard
+
+)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Explicit.Constraints la función 
+\family typewriter
+NameBlock Explicit.Constraints(Set explicit.constraints)
+\family default
+ crea un 
+\family typewriter
+NameBlock
+\family default
+ de restricciones en la que solo están definidas restricciones explícitas.
+ Ejemplo: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Explicit.Constraints([["0<=+beta_1-beta_2"]])
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Constraints la función 
+\family typewriter
+NameBlock Constraints(Set order.relations,Set generic.constraints,Set explicit.cons
+traints)
+\family default
+ crea un 
+\family typewriter
+NameBlock
+\family default
+ de restricciones a partir de los 3 tipos de restricciones posibles.
+ Ejemplo: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Constraints(Empty,Empty,[["0<=+beta_1-beta_2"]])
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Unconstrained la función 
+\family typewriter
+NameBlock Unconstrained(Real void)
+\family default
+ crea un 
+\family typewriter
+NameBlock
+\family default
+ de restricciones vacío.
+ Ejemplo: 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Unconstrained(0)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Ejemplo de API Import 
+\end_layout
+
+\begin_layout Standard
+El código completo para el ejemplo dado en las ecuaciones 
+\begin_inset LatexCommand ref
+reference "eq:mod_exa_bsr"
+
+\end_inset
+
+ quedaría de la siguiente manera:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock Build.Example.BSR(Text path.out, Text session.id,
+\end_layout
+
+\begin_layout Standard
+
+                            Serie Y, Set X)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  Real beta1 = Rand(-1,1);
+\end_layout
+
+\begin_layout Standard
+
+  Real beta2 = Rand(-1,beta1); 
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock [[
+\end_layout
+
+\begin_layout Standard
+
+    Text _.path.out = path.out;
+\end_layout
+
+\begin_layout Standard
+
+    Text _.session.id = session.id;
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock _.bsr.ARMA.2_1 = [[
+\end_layout
+
+\begin_layout Standard
+
+      Text _.dating.name = DatingName(Y);
+\end_layout
+
+\begin_layout Standard
+
+      _.first = First(Y);
+\end_layout
+
+\begin_layout Standard
+
+      _.last = Last(Y),
+\end_layout
+
+\begin_layout Standard
+
+      Matrix _.Y = SerMat(Y);
+\end_layout
+
+\begin_layout Standard
+
+      Matrix _.X = SerSetMat(X);
+\end_layout
+
+\begin_layout Standard
+
+      Set _.beta.ini = [[beta1, beta2]];
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Text Get.Name(Real void)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Text "ObsY"
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Text Get.Sigma2(Real void)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Text "sigma2"
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Set Get.TimeInfo(Real void)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Set BSR.NoiseTimeInfo(TimeSet Eval(_.dating.name), _.first, _.last)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Real Get.ARIMA.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Real 1
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Set Get.ARIMA.Factor(Real f)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Set ARIMAStruct(1, 1-0.1*B-0.1*B^2, 1-0.1*B, 1)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Real Get.Param.Size(Real void) 
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Real Rows(_.X)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Set Get.Param(Real iP)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Real value = If(iP>2,Real Rand(-1,1),_.beta.ini[iP]);
+\end_layout
+
+\begin_layout Standard
+
+        Set Bsr.Param.Info("beta_"+IntText(iP), value, -1/0, 1/0) 
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Real Get.Missing.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Real 0
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Set Get.Missing(Real iP)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Set Empty
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Real Get.Equation.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        // _.X e _.Y están dispuestas por filas
+\end_layout
+
+\begin_layout Standard
+
+        Real Columns(_.X)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Real Get.Equation.Output(Real iE)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Real MatDat(_.Y,1,iE)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Real Get.Equation.Input.Size(Real iE)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Real Rows(_.X)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Real Get.Equation.Input.Coef(Real iE, Real iT)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Real MatDat(_.X, iT,iE)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Text Get.Equation.Input.Param(Real iE, Real iT)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        Text "beta_"+IntText(iT)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock Get.Constraints.Handler(Real void)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        NameBlock BysMcmc::Bsr::Import::Explicit.Constraints([["0>=-beta1+beta2"]
+])
+\end_layout
+
+\begin_layout Standard
+
+      }
+\end_layout
+
+\begin_layout Standard
+
+    ]];
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Model.Name(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text "BSRExample"
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Model.Description(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text "Modelo simple ARMA(2,1)"
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Session.Name(Real void) 
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text _.session.id
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Session.Description(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text "Session "+_.session.id+" para el modelo: " +
+\end_layout
+
+\begin_layout Standard
+
+           Get.Doc.Model.Name(0) + " " + Get.Doc.Model.Description(0)
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Session.Authors(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text "user@bayesforecast.com"
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Text Get.Doc.Path(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      Text _.path.out
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    Real Get.LinReg.Size(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      // para el ejemplo actual solo tenemos un segmento de regresión
+\end_layout
+
+\begin_layout Standard
+
+      Real 1
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock Get.LinReg.Segment(Real iS)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      // en este caso retornamos el NameBlock para el único segmento
+\end_layout
+
+\begin_layout Standard
+
+      // que se modela para mas de un segmento de regresión se suele
+\end_layout
+
+\begin_layout Standard
+
+      // usar un Set que es indexado por iS: _bsr.blocks[iS]
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock _.bsr.ARMA.2_1
+\end_layout
+
+\begin_layout Standard
+
+    };
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock Get.Constraints.Handler(Real void)
+\end_layout
+
+\begin_layout Standard
+
+    {
+\end_layout
+
+\begin_layout Standard
+
+      // retornamos un NameBlock predefinido para el caso
+\end_layout
+
+\begin_layout Standard
+
+      // no restringido
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock BysMcmc::Bsr::Import::Unconstrained(0)
+\end_layout
+
+\begin_layout Standard
+
+    }
+\end_layout
+
+\begin_layout Standard
+
+  ]]
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

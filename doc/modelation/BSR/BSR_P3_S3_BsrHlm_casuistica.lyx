@@ -1,0 +1,243 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:Casuística"
+
+\end_inset
+
+Casuística
+\end_layout
+
+\begin_layout Standard
+Se describen diferentes casos y modalidades de uso del sistema Bsr-Hlm,
+ especialmente indicados para sistemas de modelación masiva de series de
+ demanda, pero que pueden muchas veces extrapolarse a otros fenómenos.
+ 
+\end_layout
+
+\begin_layout Section
+Introducción
+\end_layout
+
+\begin_layout Standard
+En la modelación masiva de los Sistemas de Atención Dinámica de la Demanda
+ es bastante habitual que el número de variables crezca desmesuradamente
+ dada la complejidad de los sistemas de promoción, efectos calendario, meteoroló
+gicos, etc.; que se entrelazan entre sí en formas que no siempre son fáciles
+ de parametrizar escuetamente.
+ Al aumentar los grados de libertad, los modelos estimados por máxima verosimili
+tud de forma independiente pueden sobreajustar los datos, con consecuencias
+ fatales en la inferencia extramuestral que de ellos se pueda desprender.
+ 
+\end_layout
+
+\begin_layout Standard
+Uno de los objetivos fundamentales de la estimación bayesiana de un Modelo
+ Jerárquico Lineal (HLM, Hierarquical Lineal Model) es restringir de forma
+ probabilística el conjunto de valores que pueden adoptar los parámetros
+ que intervienen en los distintos modelos, merced a todo el conocimiento
+ a priori de que se disponga, para reducir los grados de libertad reales
+ y alcanzar una mayor superficie de contraste.
+\end_layout
+
+\begin_layout Standard
+Por razones de eficiencia y simplicidad algorítmica, las restricciones probabilí
+sticas han de tener concretamente distribuciones multinormales truncadas.
+ Por lo tanto, las relaciones entre un conjunto de variables aleatorias
+ se deberán expresar paramétricamente diciendo que dichas variables, o cierta
+ combinación lineal de ellas, tienen una distribución conjunta multinormal
+ truncada por un conjunto de restricciones desigualdad lineal, con un vector
+ de medias y una matriz de covarianzas que debe explicitar el analista para
+ ajustar su conocimiento a priori.
+\end_layout
+
+\begin_layout Section
+Restricciones de homogeneidad
+\end_layout
+
+\begin_layout Standard
+Este tipo de restricciones aparecen cuando se sabe que determinados parámetros
+ no deberían ser demasiado distintos de ciertos otros por responder a fenómenos
+ del mismo tipo en circunstancias parecidas.
+ Se trata simplemente de aplicar el principio de continuidad que es uno
+ de los pilares de la ciencia moderna, restringiendo de forma probabilística
+ el conjunto de valores que pueden adoptar los parámetros que intervienen
+ para reducir la libertad de movimiento de los parámetros y alcanzar una
+ mayor superficie de contraste sin restar la dimensionalidad necesaria para
+ adaptarse a la complejidad intrínseca a la naturaleza del problema.
+\end_layout
+
+\begin_layout Subsection
+Homogeneidad simple o unifactorial
+\end_layout
+
+\begin_layout Standard
+Tenemos 
+\begin_inset Formula $m$
+\end_inset
+
+ nodos observados 
+\begin_inset Formula $\left\{ N_{j}^{\text{obs}}\right\} _{j=1\ldots m}$
+\end_inset
+
+ en los que aparece en cada uno una variable 
+\begin_inset Formula $\beta_{k[i,j]}^{(1)}$
+\end_inset
+
+ referida a un mismo input 
+\begin_inset Formula $i$
+\end_inset
+
+ para todos ellos, y que presumimos que no debe variar mucho de uno a otro.
+ Con 
+\begin_inset Formula $k[i,j]$
+\end_inset
+
+ representamos la función de indexación que devuelve la variable asociada
+ al 
+\begin_inset Formula $i$
+\end_inset
+
+ -ésimo input para el 
+\begin_inset Formula $j$
+\end_inset
+
+-ésimo nodo observado.
+ En el caso de distribución de prensa valdría de ejemplo una promoción concreta
+ que \InsetSpace \space{}
+afecta a una región geográfica específica.
+\end_layout
+
+\begin_layout Standard
+La restricción de homogeneidad que se desea imponer es que dichas variables
+ han de estar en torno a un mismo valor fijo con errores independientes
+ entre sí.
+ Para ello se definirá un nodo latente con una sola variable por cada input
+ y matriz de covarianzas diagonal dependiente tanto del input como del output.
+\end_layout
+
+\begin_layout Standard
+El usuario tiene que definir los valores 
+\begin_inset Formula $\sigma_{k}$
+\end_inset
+
+ con los que controlará el grado de homogeneidad que quiere forzar.
+ En ausencia de información más concreta, un criterio bastante razonable
+ para reducir las hipótesis
+\shape italic
+ a priori
+\shape default
+ a un sólo parámetro, es hacer que las varianzas sean inversamente proporcionale
+s a las longitudes muestrales de cada nodo observado.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\sigma_{k[i,j]}^{2}=\sigma_{k[i,1]}^{2}\frac{T_{j}}{T_{1}}\forall j=1\ldots m\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Por supuesto que el usuario puede establecer otro tipo de configuración
+ de varianzas e incluso establecer covarianzas no nulas entre los distintos
+ nodos observados, pero ello debería de estar fundamentado en un conocimiento
+ 
+\shape italic
+a priori
+\shape default
+ al menos tan sólido como la proporcionalidad de la varianza muestral respecto
+ al inverso de la longitud de la muestra.
+\end_layout
+
+\begin_layout Standard
+Si además se quiere forzar que las variables de los nodos observados estén
+ en el entorno de un valor fijo 
+\begin_inset Formula $\overset{\circ}{\mu}_{i}$
+\end_inset
+
+ para cada input conocido como resultado, por ejemplo, de una estimación
+ global previa, entonces bastaría con añadir a lo anterior un nodo 
+\shape italic
+a priori
+\shape default
+ con matriz de covarianzas diagonal
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\beta_{i}^{(2)}\sim N(\overset{\circ}{\mu}_{i},\overset{\circ}{\Sigma}_{i})\wedge\overset{\circ}{\Sigma}_{i,i'}=0\forall i\neq i'\wedge\overset{\circ}{\Sigma}_{i,i}=\overset{\circ}{\sigma}_{i}^{2}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

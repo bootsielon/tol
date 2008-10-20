@@ -1,0 +1,1392 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass linuxdoc
+\language spanish
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+\added_space_top vfill \added_space_bottom vfill 
+HOWTO: 
+\begin_inset Quotes eld
+\end_inset 
+
+Desarrollo de TOL
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Standard
+
+Copyright (c) 2003 Daniel Rus <daniel@uponeits.com> y Jorge Suit Pérez <jsperez@b
+ayesinf.com>
+\layout Standard
+
+Concedidos los derechos de copia, distribución y/o modificación de éste
+ documento bajo los términos de la 
+\begin_inset Quotes eld
+\end_inset 
+
+GNU Free Documentation License
+\begin_inset Quotes erd
+\end_inset 
+
+, Versión 1.2 o posteriores publicadas por la Free Software Fundation.
+ 
+\layout Standard
+
+Para involucrarse en el desarrollo de TOL es necesario saber cómo: encontrar
+ la información y el código de TOL, usar el CVS, y compilar.
+ El objetivo de éste documento ayuda a realizar estas tareas sin perder
+ demasiado tiempo.
+\layout Standard
+
+Éste documento esta dirigido a nuevos desarrolladores, a desarrolladores
+ ocasionales, y a todo aquel que este considerando contribuir al desarrollo
+ del Lenguaje TOL.
+ El documento resuelve las cuestiones básicas con las que todo desarrollador
+ se encuentra al implicarse en el desarrollo del lenguaje.
+\layout Section
+
+Código Fuente e Información General
+\layout Standard
+
+TOL es un lenguaje de programación interpretado, funcional, declarativo,
+ orientado al manejo de estructuras temporales, desarrollado desde 1995
+ para XXXXX.
+ Hasta 2002 en el desarrollo del lenguaje estuvieron implicados varias personas,
+ entre las que destacan, Victor de Buen, Antonio Salmerón, XXXXX...
+ A partir de 2002 el proyecto dió un giro hacia el Software Libre y nos
+ incorporamos a él otros desarrolladores.
+ 
+\layout Standard
+
+En la fecha en la que se escribe este documento el Software esta dividido
+ en varias partes:
+\layout Itemize
+
+
+\series bold 
+libTol
+\series default 
+: la biblioteca tol
+\layout Itemize
+
+
+\series bold 
+tolcon
+\series default 
+: un intérprete y entorno interactivo usado para ejecutar ficheros con código
+ tol
+\layout Itemize
+
+
+\series bold 
+libTolTcl
+\series default 
+: la biblioteca de enlaza de Tol con el lenguaje Tcl
+\layout Itemize
+
+
+\series bold 
+tolBase
+\series default 
+: la Iinterfaz Gráfica de Usuario de Tol, escrita como una extensión de
+ Tcl.
+\layout Standard
+
+Hay muchos modos de colaborar con estos proyectos.
+ Se puede escribir nuevo código para el lenguaje, mejorar el que ya hay,
+ escribir documentación, traducir Tol a otros idiomas, reportar errores
+ y sugerir nuevas prestaciones.
+ 
+\layout Standard
+
+Si quieres involucrarte en el desarrollo de código, o estas pensando en
+ ello, continua leyendo.
+ 
+\layout Standard
+
+Si puedes contribuir de alguna otra manera, generando documentación o traduciend
+o Tol a otros idiomas, por favor, visita éstos otros documentos: XXXXX.
+\layout Standard
+
+Tol esta bajo la licencia GNU GPL de la Free Software Fundation.
+ 
+\layout Standard
+
+El código fuente de Tol esta estructurado en:
+\layout Itemize
+
+clases básicas
+\layout Itemize
+
+núcleo (parsing, tipos básicos y entorno de ejecución)
+\layout Itemize
+
+operadores y funciones soportadas por los tipos básicos
+\layout Itemize
+
+algoritmos matemáticos
+\layout Standard
+
+Tol utiliza algunos algoritmos de la GNU Scientific Library (GSL), y de
+ la implementación que hace ésta de los algoritmos básicos del álgebra lineal
+ (BLAS) por lo que será necesario disponer del paquete GSL en el entorno
+ de desarrollo.
+ Para obtener GNU GSL visita 
+\family sans 
+http://www.gnu.org
+\family default 
+.
+\layout Subsection
+
+URLs
+\layout Standard
+
+Lista de URLs relacionadas con tol.
+\layout Standard
+
+Página Web principal de tol: 
+\family sans 
+\series bold 
+http://www.tol-project.org
+\layout Standard
+
+Página Web de los desarrolladores: 
+\family sans 
+\series bold 
+http://devel.tol-project.org
+\layout Standard
+
+Página Web sobre los informes de errores: 
+\family sans 
+\series bold 
+http://bugs.tol-project.org
+\layout Standard
+
+Acceso al Código Fuente y Binarios: 
+\family sans 
+\series bold 
+ftp://ftp.tol-project.org
+\layout Standard
+
+Acceso al árbol cvs de tol: 
+\family sans 
+\series bold 
+http://webcvs.tol-project.org
+\layout Standard
+
+Página Web de Bayes Decisión SL, la empresa que desarrolla tol: 
+\family sans 
+\series bold 
+http://www.bayesinf.com
+\layout Subsection
+
+Listas de Correo
+\layout Standard
+
+Los proyectos de tol tienen varias listas de correo.
+\layout Itemize
+
+
+\series bold 
+\shape italic 
+tol-devel
+\series default 
+\shape default 
+, donde los desarrolladores de tol hablan sobre las cuestiones relacionadas
+ con el desarrollo de tol y las aplicaciones que le rodean.
+\layout Itemize
+
+
+\series bold 
+\shape italic 
+toltcl-devel
+\series default 
+\shape default 
+, igual que la anterior pero orientada a la biblioteca TolTcl.
+\layout Itemize
+
+
+\series bold 
+\shape italic 
+tolbase-devel
+\series default 
+\shape default 
+, igual que la anterior pero orientada a la Interfaz Gráfica TolBase.
+\layout Itemize
+
+
+\series bold 
+\shape italic 
+tol-cvs
+\series default 
+\shape default 
+, es la lista que recoge los cambios que se van aplicando al repositorio
+ de código fuente.
+\layout Itemize
+
+
+\series bold 
+\shape italic 
+tol-users
+\series default 
+\shape default 
+, donde los usuarios de tol hablan sobre el uso del lenguaje y la resolución
+ de problemas con tol.
+\layout Itemize
+
+
+\series bold 
+\shape italic 
+tol-announce
+\series default 
+\shape default 
+, donde se anuncian las novedades relativas a tol.
+\layout Standard
+
+Para suscribirse hay que enviar un mensaje a <
+\series bold 
+\shape italic 
+nombredelalistadecorreo-request@tol-project.org
+\series default 
+\shape default 
+> con el mensaje 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\shape italic 
+subscribe myid@mydomainname
+\shape default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+, donde 
+\shape italic 
+myid@mydomainname
+\shape default 
+ es la cuenta de correo electrónico de quien se suscribe.
+ Por ejemplo, para suscribirse a 
+\series bold 
+\shape italic 
+tol-devel
+\series default 
+\shape default 
+ hay que enviar un correo electrónico a <
+\series bold 
+\shape italic 
+tol-devel-request@tol-project.org
+\series default 
+\shape default 
+>.
+\layout Section
+
+CVS de Tol
+\layout Subsection
+
+Introducción
+\layout Standard
+
+El CVS de Tol es el repositorio de código fuente de todos los proyectos
+ relacionados con Tol.
+ Se puede acceder a su contenido a través de:
+\layout Enumerate
+
+World Wide Web: 
+\family sans 
+\series bold 
+webcvs.tol-project.org
+\layout Enumerate
+
+la descarga de los tarball (tar.gz y tar.bz2) por FTP
+\layout Enumerate
+
+la utilidad de linea de comandos 
+\begin_inset Quotes eld
+\end_inset 
+
+cvs
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Enumerate
+
+una interfaz gráfica de cvs
+\layout Standard
+
+Los métodos 1 y 2 son métodos de solo-lectura de acceso al código fuente
+ y están disponibles públicamente, en cambio, los métodos 3 y 4 permiten
+ también el acceso de lectura y escrita.
+\layout Standard
+
+El método 1 permite navegar por los directorios de los proyectos y acceder
+ al código fuente.
+ Es recomendable solamente para acceder a determinados ficheros, pero no
+ para trabajar con todo el árbol de código.
+\layout Standard
+
+Los tarball reunen el código del cvs en momentos determinados y bajo números
+ de versión de manera que se van liberando a medida que los proyectos van
+ evolucionando.
+ 
+\layout Standard
+
+El repositorio cvs recoge los cambios que los desarrolladores van haciendo
+ al código fuente.
+ Cada vez que un desarrollador realiza un cambio en el cvs incluye un comentario
+, de manera que el desarrollo del código puede ser seguido más fácilmente.
+ Estos cambios son enviados a la lista de correo 
+\series bold 
+\shape italic 
+tol-cvs@tol-project.org
+\series default 
+\shape default 
+.
+\layout Standard
+
+El código en el CVS puede ser marcado en cualquier momento de manera que
+ se pueda volver siempre a la posición fijada por la marca establecida.
+ El código en el CVS también puede ser ramificado en diferentes lineas de
+ desarrollo.
+ Las ramificaciones comienzan siempre en las marcas establecidas.
+ La rama marcada como 
+\begin_inset Quotes eld
+\end_inset 
+
+HEAD
+\begin_inset Quotes erd
+\end_inset 
+
+ se emplea como rama principal del árbol de código, donde se van incorporando
+ los desarrollos.
+ Cuando llega el momento de liberar nuevas versiones de los proyectos, estas
+ se marcan en el cvs con nombres distintos, lo que permitirá tenerlas organizada
+s.
+\layout Standard
+
+El acceso al árbol de código fuente a través del método 3 y 4 se explica
+ con más detalle en la siguiente subsección.
+\layout Subsection
+
+Cómo obtener una cuenta del CVS
+\layout Standard
+
+Se puede obtener una cuenta de acceso de escritura al CVS de TOL siempre
+ que la persona que la solicite este vinculada con el desarrollo del lenguaje
+ o con alguno de los módulos que lo componen.
+ Para solicitar la cuenta es necesario enviar un email indicándolo al administra
+dor del sistema a <
+\series bold 
+\shape italic 
+sysadmin@tol-project.org
+\series default 
+\shape default 
+>.
+ 
+\layout Standard
+
+Hay dos métodos de acceso al CVS: 
+\family typewriter 
+pserver
+\family default 
+ o 
+\family typewriter 
+ssh
+\family default 
+.
+\layout Standard
+
+Para obtener acceso a través del primer método es necesario incluir en el
+ email la password del usuario.
+ Ésta puede ser generada mediante el siguiente comando perl:
+\layout Standard
+
+
+\family typewriter 
+perl -e print
+\backslash 
+ crypt
+\backslash 
+('password','xx'
+\backslash 
+)
+\backslash 
+.
+\backslash 
+"
+\backslash 
+
+\backslash 
+n
+\backslash 
+"
+\layout Standard
+
+En dicho comando 
+\family typewriter 
+password
+\family default 
+ es la clave con la que accederá al CVS, y 
+\family typewriter 
+xx
+\family default 
+ son dos caracteres del conjunto (
+\family typewriter 
+a-zA-Z0-9./
+\family default 
+).
+ La salida del comando es la password cifrada que debe adjuntar en el email.
+\layout Standard
+
+Para acceder al CVS a través del método 
+\family typewriter 
+ssh
+\family default 
+ es necesario generar un par de claves, una pública y otra privada.
+ Para crear el par de claves puede ejecutar la siguiente utilidad que probableme
+nte tenga instalada en su sistema:
+\layout Standard
+
+
+\family typewriter 
+ssh-keygen -t dsa
+\layout Standard
+
+A continuación siga las instrucciones que se le muestran.
+ Una vez finalizado tendrá dos nuevos ficheros generados con una clave cada
+ uno.
+ El fichero generado con extensión .
+\family typewriter 
+pub
+\family default 
+ contiene la clave pública y el otro la clave privada.
+ Junto al email que nos envie no olvide adjuntar el fichero con la clave
+ pública.
+ El fichero con la clave privada lo necesitará en todas aquellas máquinas
+ desde las que quiera acceder al CVS.
+\layout Subsection
+
+Uso del CVS
+\layout Standard
+
+Probablemente la utilidad 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+cvs
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+ este ya instalada en su sistema.
+ Si no es así, debería consultar 
+\family typewriter 
+http://www.cvshome.org
+\family default 
+, donde podrá obtener la mejor información sobre la misma.
+ 
+\layout Standard
+
+Para aprender a usar el CVS es muy recomendable leer el manual que esta
+ disponible en la página web mencionada.
+ No obstante aqui se recogen los comandos más típicos.
+\layout Subsection
+
+Acceso al CVS a través de la cuenta de usuario
+\layout Standard
+
+En éste apartado vamos a asumir que ya tiene una cuenta de usuario para
+ acceder al CVS.
+ Supongamos que el nombre de usuario de su cuenta de CVS es 
+\family typewriter 
+cvsuser
+\family default 
+.
+ Para poder acceder al CVS necesitará tener creada la variable de entorno
+ 
+\family typewriter 
+CVSROOT
+\family default 
+ y establecida a 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+:pserver:cvsuser@cvs.tol-project.org:/home/tolcvs
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+Si esta realizando el acceso a través de 
+\family typewriter 
+ssh
+\family default 
+ tendrá que cambiar, en la variable 
+\family typewriter 
+CVSROOT
+\family default 
+ la palabra 
+\family typewriter 
+\series bold 
+pserver
+\family default 
+\series default 
+ por la palabra 
+\family typewriter 
+\series bold 
+ext
+\family default 
+\series default 
+, así como establecer otra variable de entorno denominada 
+\family typewriter 
+CVS_RSH
+\family default 
+ con valor 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+ssh
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsection
+
+Acceso al CVS a través del usuario anónimo
+\layout Standard
+
+En caso de que no tenga una cuenta de usuario para acceder al CVS, puede
+ emplear el usuario 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+\series bold 
+anonymous
+\family default 
+\series default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ En ese caso tiene que establecer la variable de entorno 
+\family typewriter 
+CVSROOT
+\family default 
+ al siguiente valor 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+:pserver:anonymous@cvs.tol-project.org:/home/tolcvs
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsection
+
+Descargar un módulo
+\layout Standard
+
+Actualmente el CVS cuenta con los siguientes módulos: 
+\family typewriter 
+tol
+\family default 
+, 
+\family typewriter 
+toltcl
+\family default 
+ y 
+\family typewriter 
+tolbase
+\family default 
+.
+\layout Standard
+
+Para descargar alguno de ellos es necesario usar el comando 
+\family typewriter 
+checkout
+\family default 
+ del cvs:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 checkout -r HEAD nombredelmódulo
+\layout Standard
+
+La opción 
+\family typewriter 
+-r
+\family default 
+ le dice al cvs que rama del módulo quiere descargar.
+ Si no se indica ninguna rama con la opción 
+\family typewriter 
+-r
+\family default 
+ se descarga el módulo de la rama principal, 
+\family typewriter 
+HEAD
+\family default 
+.
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 checkout nombredelmódulo
+\layout Standard
+
+Para descargar la rama Tol_1_1_10 del módulo tol utilizaremos el comando:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 checkout -r Tol_1_1_10 tol
+\layout Subsection
+
+Descargar un directorio contenido en un módulo
+\layout Standard
+
+En algunas circunstancias puede que solo le interese trabajar con determinados
+ directorios de un módulo.
+ Para descargar solo determinados directorio de un módulo podemos emplear
+ la opción -l del cvs que indica que no descargue recursivamente todos los
+ subdirectorios contenidos en el módulo indicado:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 co -l tol
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 co -l tol/bdat
+\layout Standard
+
+El primer comando descarga el contenido del directorio raíz del módulo tol,
+ es decir, sus ficheros, sin descargar ninguno de sus directorios hijos.
+ El segundo comando descargará el directorio bdat contenido en el módulo
+ tol y lo ubicará dentro del anterior directorio.
+\layout Subsection
+
+Actualización del código previamente descargado
+\layout Standard
+
+El código que ha desargado del CVS puede estar siendo modificado por otros
+ desarrolladores que trabajan con sus copias descargadas en sus sistemas.
+ El código modificado, después de ser probado, es enviado al repositorio.
+ Dispone de otro comando que le permite actualizar la copia de código que
+ descargó y así permanecer actualizado a los cambios que se realizan en
+ el CVS.
+ Dicho comando es el comando 
+\family typewriter 
+update
+\family default 
+ del cvs:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 update -P -d tol
+\layout Standard
+
+Si ya se encuentra dentro del directorio quiere actualizar no es necesario
+ especificarlo:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 update -P -d
+\layout Standard
+
+La opción 
+\family typewriter 
+-P
+\family default 
+ indica que sean eliminados los directorios vacios, la opción 
+\family typewriter 
+-d
+\family default 
+ indica que sean construidos aquellos directorios que se hayan añadido al
+ CVS desde la última descarga.
+\layout Subsection
+
+Entregar los cambios al repositorio
+\layout Standard
+
+Para enviar los cambios al repositorio y que estos estén disponibles para
+ el resto de usuarios del CVS tenemos que emplear el comando 
+\family typewriter 
+commit
+\family default 
+ del 
+\family typewriter 
+cvs
+\family default 
+:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 commit nomarch
+\layout Standard
+
+
+\family typewriter 
+nomarch
+\family default 
+ es el nombre del archivo que estamos entregando al CVS.
+ Podemos entregar una lista de archivos con una solo sentencia 
+\family typewriter 
+cvs commit
+\family default 
+ simplemente indicando el camino y el nombre a los mismos:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 commit nomarch1 camino2/nomarch2 camino3/nomarch3 ...
+ 
+\layout Standard
+
+Una vez ejecutado el comando se nos solicitará una explicación de los cambios
+ que estamos entregando al CVS.
+ Todos los cambios que se realicen en el código deben ir acompañados, en
+ el 
+\family typewriter 
+commit
+\family default 
+, de éste comentario explicativo de los cambios que se realizan, algo escueto,
+ pero lo suficientemente descriptivo.
+ Podemos indicar la opción 
+\family typewriter 
+-m
+\family default 
+ a 
+\family typewriter 
+commit
+\family default 
+ para incluir directamente el comentario en la linea de comando:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4 commit -m 
+\begin_inset Quotes eld
+\end_inset 
+
+set macros *_C_DECLS to use C functions with C++ code
+\begin_inset Quotes erd
+\end_inset 
+
+ tol_bcommon.h
+\layout Standard
+
+Puedes establecer la variable de entorno 
+\family typewriter 
+EDITOR
+\family default 
+ o 
+\family typewriter 
+CVSEDITOR
+\family default 
+ a tu editor favorito para que el cvs lo invoque al hacer el 
+\family typewriter 
+commit
+\family default 
+ sin la opción 
+\family typewriter 
+-m
+\family default 
+.
+\layout Subsection
+
+Añadir un fichero
+\layout Standard
+
+Para añadir un fichero 
+\family typewriter 
+nomarch.cpp
+\family default 
+ a un directorio 
+\family typewriter 
+dir
+\family default 
+:
+\layout Standard
+
+
+\family typewriter 
+cd dir
+\layout Standard
+
+
+\family typewriter 
+cvs add nomarch.cpp
+\layout Standard
+
+
+\family typewriter 
+cvs commit -m 
+\begin_inset Quotes eld
+\end_inset 
+
+explanatory comment
+\begin_inset Quotes erd
+\end_inset 
+
+ nomarch.cpp
+\layout Standard
+
+Hasta que no hagamos el 
+\family typewriter 
+cvs commit
+\family default 
+ el nuevo fichero no pasará a formar parte del directorio 
+\family typewriter 
+dir
+\family default 
+ en el CVS.
+\layout Subsection
+
+Borrar un fichero
+\begin_inset LatexCommand \label{sec:Borrar-un-fichero}
+
+\end_inset 
+
+
+\layout Standard
+
+Para borrar un fichero nomarch.cpp de un directorio dir:
+\layout Standard
+
+
+\family typewriter 
+cd dir
+\layout Standard
+
+
+\family typewriter 
+rm nomarch.cpp
+\layout Standard
+
+
+\family typewriter 
+cvs remove nomarch.cpp
+\layout Standard
+
+
+\family typewriter 
+cvs commit -m 
+\begin_inset Quotes eld
+\end_inset 
+
+explanatory comment
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Subsection
+
+Añadir un directorio
+\layout Standard
+
+Si necesitamos añadir código al proyecto y tenemos que hacerlo en un nuevo
+ directorio, hay que seguir los siguientes pasos.
+ Suponiendo que el directorio que queremos crear se llama 
+\family typewriter 
+nomdir
+\family default 
+ y que vamos a añadir el fichero 
+\family typewriter 
+nomarch.cpp
+\family default 
+ al directorio 
+\family typewriter 
+nomdir
+\family default 
+, todo ello bajo el directorio del proyecto 
+\family typewriter 
+tol
+\family default 
+:
+\layout Standard
+
+
+\family typewriter 
+cd tol
+\layout Standard
+
+
+\family typewriter 
+mkdir nomdir
+\layout Standard
+
+ahora escribimos el nuevo fichero (
+\family typewriter 
+nomarch.cpp
+\family default 
+)
+\layout Standard
+
+
+\family typewriter 
+cvs add nomdir
+\layout Standard
+
+
+\family typewriter 
+cvs add nomarch.cpp
+\layout Standard
+
+
+\family typewriter 
+cvs commit -m 
+\begin_inset Quotes eld
+\end_inset 
+
+explanatory comment
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+El fichero y el directorio no se añadirá al repositorio hasta que no ejecute
+ el 
+\family typewriter 
+commit
+\family default 
+.
+ Para poder añadir un directorio al repositorio es necesario que éste contenga
+ ficheros.
+\layout Subsection
+
+Borrar un directorio
+\layout Standard
+
+Para borrar un directorio es necesario primero borrar todos el contenido
+ de éste.
+ Por ejemplo, para borrar el directorio nomdir, que contiene el fichero
+ nomarch.cpp:
+\layout Standard
+
+
+\family typewriter 
+cd tol/nomdir
+\layout Standard
+
+ahora borramos el fichero nomarch.cpp siguiendo el método explicado en 
+\begin_inset LatexCommand \ref{sec:Borrar-un-fichero}
+
+\end_inset 
+
+, y continuamos borrando el directorio:
+\layout Standard
+
+
+\family typewriter 
+cd ..
+\layout Standard
+
+
+\family typewriter 
+cvs -P update
+\layout Standard
+
+El último comando eliminará el directorio nomdir localmente.
+\layout Subsection
+
+Almacenar las opción habituales
+\layout Standard
+
+El sistema CVS ofrece la posibilidad de almacenar las opciones más usadas
+ en un fichero de recurso, ~/.cvsrc.
+ Recomendamos emplear los siguientes valores en dicho fichero:
+\layout Standard
+
+
+\family typewriter 
+cvs -z4
+\layout Standard
+
+
+\family typewriter 
+diff -u
+\layout Standard
+
+
+\family typewriter 
+update -dP
+\layout Standard
+
+
+\family typewriter 
+checkout -P
+\layout Standard
+
+La primera linea indica que la opción -
+\family typewriter 
+z4
+\family default 
+ se aplicará cada vez que aparezca el comando 
+\family typewriter 
+cvs 
+\family default 
+en la linea de comandos.
+ La opción 
+\family typewriter 
+-z4
+\family default 
+ aplica el nivel 4 de compresión.
+ La segunda linea indica que la salida del comando 
+\family typewriter 
+cvs diff
+\family default 
+ sea conforme al formato unidiff, más sencilla de interpretar que la salida
+ normal.
+ Las opciones 
+\family typewriter 
+-dP
+\family default 
+ dadas a 
+\family typewriter 
+update
+\family default 
+ indican que se obtengan los nuevos directorios del árbol y que se borren
+ aquellos que hayan quedado vacíos.
+ La opción 
+\family typewriter 
+-P
+\family default 
+ de 
+\family typewriter 
+checkout
+\family default 
+ indica que no se descarguen los directorios vacíos.
+\layout Section
+
+Software adicional y compilación
+\layout Standard
+
+Existen actualmente tres proyectos englobados bajo el nombre TOL-project:
+\layout Standard
+
+La biblioteca libTol, que contiene el lenguaje, la biblioteca libTolTcl
+ que sirve de enlace entre Tol y el lenguaje Tcl, y la extensión de Tcl
+ denominada tolBase (interfaz gráfica de usuario para el manejo del lenguaje
+ Tol).
+\layout Standard
+
+Cada una de estas piezas se construyen por separado y tienen unos requerimientos
+ distintos de compilación.
+\layout Standard
+
+La biblioteca libTol requiere la presencia de otras bibliotecas para su
+ compilación.
+ Éstas son la GSL (GNU Scientifc Library) y una implementación de ODBC,
+ que en el caso de estar compilando en Unix o Linux puede ser la implementación
+ UnixODBC o la que realiza Open Link llamada iODBC.
+\layout Standard
+
+Por lo que respecta a la biblioteca libTolTcl de enlace entre Tol y Tcl,
+ es necesario tener instalado las bibliotecas de código de Tcl/Tk del lenguaje
+ así como los ficheros include que lo componen.
+\layout Standard
+
+El programa TolBase requiere para su correcto funcionamiento de Tcl/tk 8.4,
+ Tktable2.7, TclODBC, BLT2.4 y Tol.
+\layout Subsection
+
+Compilación del Código Fuente
+\layout Standard
+
+Tanto si se accede al código a través del CVS como a través de los tarball,
+ cada uno de los proyectos dispone de la información para construir el software
+ en sistemas Unix y gnu/Linux empleando las herramientas comúnmente conocidas
+ como GNU Autotools.
+\layout Standard
+
+Cada proyecto cuenta con un guión bootstrap que toma el fichero 
+\family sans 
+configure.in
+\family default 
+ para crear un shell script 
+\family sans 
+configure
+\family default 
+.
+ El shell script configure creará los ficheros 
+\family sans 
+Makefile
+\family default 
+ necesarios para construir cada proyecto.
+ En cada proyecto se incluye un fichero 
+\family sans 
+INSTALL
+\family default 
+ con instrucciones que explican cúales son las opciones que podemos emplear
+ para invocar 
+\family sans 
+configure
+\family default 
+ adecuadamente.
+\layout Standard
+
+Bajo el directorio win se incluyen los ficheros que necesita el entorno
+ de compilación Visual C de Microsoft.
+ Aunque bajo dicho sistema operativo, previa instalación de la implementación
+ de Shell Cygwin (
+\family sans 
+http://www.cygwin.com
+\family default 
+), se pueden utizar las GNU Autotools.
+\layout Section
+
+Documentación
+\layout Standard
+
+Es necesario documentar el trabajo de desarrollo.
+ En dicho trabajo existen dos actividades de documentación: la documentación
+ del código, y la documentación general.
+\layout Standard
+
+La documentación del código de la biblioteca de tol, libTol, se analiza
+ por Doxygen, una herramienta de generación automática de documentación,
+ y se generan las páginas HTML de la API de Tol, disponibles en 
+\family sans 
+http://devel.tol-project.org/tolapi/index.html
+\family default 
+.
+ Con apenas aplicar ciertas normas de estilo en los comentarios del código
+ fuente, Doxygen generará una atractiva documentación muy útil para navegar
+ por el código.
+\layout Standard
+
+La documentación general del trabajo de desarrollo es aquella relacionada
+ con la explicación, en un formato humanizado, del trabajo realizado.
+ Explicar para que sirven las nuevas funciones creadas, o algún nuevo tipo
+ de utilidad que se haya añadido al lenguaje, o explicar los cambios que
+ se han realizado y como hay que emplear las nuevas características.
+ Esta documentación esta disponible en 
+\family sans 
+http://devel.tol-project.org/doc/index.html
+\family default 
+, en los formatos: 
+\family sans 
+html
+\family default 
+, 
+\family sans 
+ps
+\family default 
+, 
+\family sans 
+dvi
+\family default 
+ y 
+\family sans 
+pdf
+\family default 
+.
+ Para generar la nueva documentación se pueden usar editores como LyX (
+\family sans 
+http://www.lyx.org
+\family default 
+).
+\layout Subsection
+
+Documentando el Código Fuente
+\layout Standard
+
+Las reglas básicas que se emplean para documentar el código empleando Doxygen
+ se explican en el documento 
+\begin_inset Quotes eld
+\end_inset 
+
+Source Code Organization
+\begin_inset Quotes erd
+\end_inset 
+
+ (
+\family sans 
+http://devel.tol-project.org/doc/srcCodeOrg.html
+\family default 
+), pero aqui hacemos una breve explicación de las mismas.
+\layout Standard
+
+Siempre que sea n
+\layout Subsubsection
+
+Tipos de comentarios de documentación
+\layout Standard
+
+Para que Doxygen genere documentación a partir de los comentarios en una
+ línea de C++ o los comentarios en múltiples líneas comunes a C y C++, es
+ necesario acompañarlos del signo de admiración.
+ Los comentarios en una linea tienen el siguiente aspecto:
+\layout Verbatim
+
+//! comentario en una línea para que sea captado por Doxygen
+\layout Standard
+
+Los comentario en múltiples lineas tienen éste otro aspecto:
+\layout Verbatim
+
+/*! Esto es un comentario en
+\newline 
+ *  múltiples líneas para que lo
+\newline 
+ *  capte Doxygen
+\newline 
+ */
+\layout Subsubsection
+
+Comentar Atributos
+\layout Standard
+
+Los comentarios de los atributos de una clase aparecen comentados así:
+\layout Verbatim
+
+Any* buffer_; //!< Storage pointer
+\layout Verbatim
+
+BInt maxSize_; //!< Maximum number of items that has been stored
+\layout Subsubsection
+
+Comentar Métodos y Funciones
+\layout Verbatim
+
+//! Add a new obj to buffer_
+\layout Verbatim
+
+/*! Verify if 
+\backslash 
+a obj exist in buffer_ using a function of type
+\newline 
+ *  BorderCriterium and calling Find method.
+ Then insert 
+\backslash 
+a obj
+\newline 
+ *  in buffer_ with Add method.
+\newline 
+ */
+\newline 
+BBool AddUnique(const Any@ obj, BOrderCriterium order)
+\newline 
+{
+\newline 
+  BBool unique = (Find(obj, order)<0);
+\newline 
+  if(unique) { Add(obj); }
+\newline 
+  return (unique);
+\newline 
+}
+\layout Standard
+
+El primero comentario, el de una sola línea, aparecera como comentario breve
+ en la documentación junto a la declaración del método.
+ El comentario de múltiples líneas aparecerá en la descripción detallada
+ del método.
+ Doxygen tiene elementos que permiten resaltar los parámetros de los métodos
+ y funciones, y los tipos devueltos.
+ También permite crear enlaces html a otras funciones mencionadas en el
+ comentario.
+\layout Section
+
+Envio de código a TOL-project
+\layout Standard
+
+Si esta participando en el desarrollo de alguno de los proyectos de TOL
+ pero no tiene una cuenta en el CVS (algo frecuente si las colaboraciones
+ son esporádicas o se realizan solo en determinadas partes del código) el
+ código se envia por correo electrónico a alguno de los mantenedores de
+ los proyectos con los que tiene contacto.
+ Las direcciones de correo electrónico de estas personas se encuentran a
+ menudo en los ficheros fuente de los proyectos o bien en el fichero AUTHORS
+ de cada proyecto.
+\layout Section
+
+Acerca de éste documento
+\layout Subsection
+
+Dónde encontrarlo
+\layout Standard
+
+La versión actualizada de éste documento se puede encontrar en 
+\family sans 
+http://devel.tol-project.org/doc/comoDesarrolloDeTol/
+\layout Subsection
+
+Otros Formatos
+\layout Standard
+
+Se puede encontrar una copia de éste documento en formato html, ps, dvi
+ y pdf en el URL anterior.
+\layout Subsection
+
+Cambios
+\layout Standard
+
+Cambios desde la versión <14 de Noviembre de 2003> a <fijar_fecha>
+\layout Itemize
+
+Cambio 1
+\layout Itemize
+
+Cambio 2
+\layout Itemize
+
+...
+\the_end

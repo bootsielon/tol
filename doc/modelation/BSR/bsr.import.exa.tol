@@ -1,0 +1,208 @@
+NameBlock Build.Example.BSR(Text path.out, Text session.id,
+                            Serie Y, Set X)
+{
+  Real beta1 = Rand(-1,1);
+  Real beta2 = Rand(-1,beta1);
+
+  NameBlock [[
+    Text _.path.out = path.out;
+    Text _.session.id = session.id;
+    NameBlock _.bsr.ARMA.2_1 = [[
+      Text _.dating.name = DatingName(Y);
+      Date _.first = First(Y);
+      Date _.last = Last(Y),
+      Matrix _.Y = SerMat(Y);
+      Matrix _.X = SerSetMat(X);
+      Set _.beta.ini = [[beta1, beta2]];
+  
+      Text Get.Name(Real void)
+      {
+        Text "ObsY"
+      };
+
+      Text Get.Sigma2(Real void)
+      {
+        Text "sigma2"
+      };
+
+      Set Get.TimeInfo(Real void)
+      {
+        Set BSR.NoiseTimeInfo(TimeSet Eval(_.dating.name), _.first, _.last)
+      };
+
+      Real Get.ARIMA.Size(Real void)
+      {
+        Real 1
+      };
+
+      Set Get.ARIMA.Factor(Real f)
+      {
+        Set ARIMAStruct(1, 1-0.1*B-0.1*B^2, 1-0.1*B, 1)
+      };
+
+      Real Get.Param.Size(Real void) 
+      {
+        Real Rows(_.X)
+      };
+
+      Set Get.Param(Real iP)
+      {
+        Real value = If(iP>2, Real Rand(-1,1),
+                        _.beta.ini[iP]);
+        Set Bsr.Param.Info("beta_"+IntText(iP), value, -1/0, 1/0)
+      };
+
+      Real Get.Missing.Size(Real void)
+      {
+        Real 0
+      };
+
+      Set Get.Missing(Real iP)
+      {
+        Set Empty
+      };
+
+      Real Get.Equation.Size(Real void)
+      {
+        // _.X e _.Y están dispuestas por filas
+        // asi las ecuaciones estan por columnas
+        Real Columns(_.X)
+      };
+
+      Real Get.Equation.Output(Real iE)
+      {
+        Real MatDat(_.Y,1,iE)
+      };
+
+      Real Get.Equation.Input.Size(Real iE)
+      {
+        Real Rows(_.X) 
+      };
+
+      Real Get.Equation.Input.Coef(Real iE, Real iT)
+      {
+        Real MatDat(_.X, iT,iE)
+      };
+
+      Text Get.Equation.Input.Param(Real iE, Real iT)
+      {
+        Text "beta_"+IntText(iT)
+      };
+
+      NameBlock Get.Constraints.Handler(Real void)
+      {
+        NameBlock BysMcmc::Bsr::Import::Explicit.Constraints([["0>=-beta_1+beta_2"]])
+      }
+    ]];
+
+    Text Get.Doc.Model.Name(Real void)
+    {
+      Text "BSRExample"
+    };
+
+    Text Get.Doc.Model.Description(Real void)
+    {
+      Text "Modelo simple ARMA(2,1)"
+    };
+
+    Text Get.Doc.Session.Name(Real void) 
+    {
+      Text _.session.id
+    };
+
+    Text Get.Doc.Session.Description(Real void)
+    {
+      Text "Session "+_.session.id+" para el modelo: " +
+           Get.Doc.Model.Name(0) + " " + Get.Doc.Model.Description(0)
+    };
+
+    Text Get.Doc.Session.Authors(Real void)
+    {
+      Text "user@bayesforecast.com"
+    };
+
+    Text Get.Doc.Path(Real void)
+    {
+      Text _.path.out
+    };
+
+    Real Get.LinReg.Size(Real void)
+    {
+      // para el ejemplo actual solo tenemos un segmento de regresión
+      Real 1
+    };
+
+    NameBlock Get.LinReg.Segment(Real iS)
+    {
+      // en este caso retornamos el NameBlock para el único segmento
+      // que se modela para mas de un segmento de regresión se suele
+      // usar un Set que es indexado por iS: _bsr.blocks[iS]
+      NameBlock _.bsr.ARMA.2_1
+    };
+
+    NameBlock Get.Constraints.Handler(Real void)
+    {
+      // retornamos un NameBlock predefinido para el caso
+      // no restringido
+      NameBlock BysMcmc::Bsr::Import::Unconstrained(0)
+    }
+  ]]
+};
+
+/*
+NameBlock bsr.config = [[
+//MCMC dimensions
+  Real mcmc.burnin        =  100; 
+  Real mcmc.sampleLength  = 2000;
+  Real mcmc.cacheLength   =  100;
+//Basic master configuration
+  Real basic.cholesky.epsilon          = 1.E-10;
+  Real basic.cholesky.warningFreq      = 100;
+  Real basic.truncMNormal.gibbsNumIter = 5;
+//Report configuration
+  Real report.raftery.diag.q   = 0.025;
+  Real report.raftery.diag.r   = 0.007;   
+  Real report.raftery.diag.s   = 0.950;   
+  Real report.raftery.diag.eps = 0.001; 
+  Real report.acf.lag          = 20,
+  Real report.histogram.parts  = 100;
+  Real report.kerDens.points   = 0;
+//Generic flags
+  Real do.resume          =  False;
+  Real do.report          =  True;
+  Real do.eval            =  True;
+  Real do.linear.effects  =  True
+]];
+
+
+Serie WN = SubSer(Gaussian(0,1),y2000,y2008);
+Polyn AR = (1-0.7*B)*(1-0.3*B);
+Polyn MA = 1-0.2*B;
+Ration Q = MA/AR;
+Serie Z = DifEq(Q,WN);
+Real K = 4;
+Real beta1=Rand(-1,1);
+Real beta2=Rand(-1,beta1);
+Set BETA = [[beta1, beta2]]<<For(3,K, Real(Real ik) {Rand(-1,1)});
+Set X = For(1,K,Serie(Real _k)
+  {
+   Real s = Rand(0,1);
+   Real l = Rand(0,10);
+   Serie SubSer(Rand(l,l) + Gaussian(0,s),y2007,y2008)});
+
+
+Serie Y = SetSum(For(1,K,Serie(Real _k)
+  {Serie BETA[_k]*X[_k]})) + SubSer(Z,y2007,y2008);
+
+NameBlock bsr.import = Build.Example.BSR("/tmp/", Text "session01", Serie Y, Set X);
+
+Text file.bsr = BysMcmc::Bsr::Import::Write(bsr.import);
+
+Set bsr.parsed = BSR.Parse(file.bsr);
+
+Set bsr.estim = { BysMcmc::Bsr::Gibbs::Estim
+                    (
+                     Set modelDef = bsr.parsed,
+                     NameBlock bsr.config
+                    )};
+*/

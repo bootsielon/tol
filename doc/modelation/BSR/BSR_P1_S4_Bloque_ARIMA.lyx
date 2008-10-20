@@ -1,0 +1,1448 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:El-bloque-ARIMA"
+
+\end_inset
+
+El bloque ARIMA
+\end_layout
+
+\begin_layout Standard
+En la simulación de Gibbs de un modelo ARMA se puede utilizar el método
+ de simulación univariante ARMS para obtener realizaciones de los parámetros
+ ARMA, si se fuerza a que los polinomios AR y MA estén factorizados en monomios
+ y binomios.
+ La matriz de covarianzas de un proceso ARMA genérico de longitud 
+\begin_inset Formula $m$
+\end_inset
+
+ es una matriz de Toeplitz simétrica que es más densa cuanto más cerca de
+ la unidad estén las raíces de la parte AR.
+ Para el caso MA puro es una matriz muy sparse de densidad aproximada 
+\begin_inset Formula $q/m$
+\end_inset
+
+.
+ En este artículo se describe una descomposición factorial de la matriz
+ de covarianzas en el caso ARMA general mediante matrices sparse que se
+ obtienen con coste computacional 
+\begin_inset Formula $O\left(n^{2}m\right)$
+\end_inset
+
+, en lugar del coste 
+\begin_inset Formula $O\left(m^{3}\right)$
+\end_inset
+
+ del método de Cholesky denso, donde 
+\begin_inset Formula $n=\max\left(p,q\right)+1+p$
+\end_inset
+
+, siendo 
+\begin_inset Formula $p$
+\end_inset
+
+ y 
+\begin_inset Formula $q$
+\end_inset
+
+ los grados de los polinomios AR y MA respectivamente.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:ArmaBlock_Antecedentes"
+
+\end_inset
+
+Descripción
+\end_layout
+
+\begin_layout Standard
+Sea el proceso ARIMA
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\begin{array}{c}
+\phi\left(B\right)\triangle\left(B\right)w_{t}=\theta\left(B\right)e_{t}\end{array}\\
+e_{t}\sim N\left(0,\sigma^{2}\right)\\
+z_{t}=\triangle\left(B\right)w_{t}\\
+\deg\left(\phi\left(B\right)\right)=p\\
+\deg\left(\theta\left(B\right)\right)=q\\
+t=1\ldots m\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+tal que los polinomios AR y MA se encuentran factorizados en monomios o
+ binomios de estacionalidades 
+\begin_inset Formula $s_{k}$
+\end_inset
+
+ arbitrarias de la siguiente manera
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\phi\left(B\right)=1-{\displaystyle \sum_{j=1}^{p}\phi_{j}B^{j}}={\displaystyle \prod_{k=1}^{K}\phi^{k}\left(B^{s_{k}}\right)}\\
+\theta\left(B\right)=1-{\displaystyle \sum_{j=1}^{q}\theta_{j}B^{j}}={\displaystyle \prod_{k=1}^{K}\theta^{k}\left(B^{s_{k}}\right)}\\
+\deg\left(\phi^{k}\left(B\right)\right)=p_{k}\\
+\deg\left(\theta^{k}\left(B\right)\right)=q_{k}\\
+\phi^{k}\left(B^{s_{k}}\right)=\begin{cases}
+1-\phi_{1}^{k}B^{s_{k}} & si\: p_{k}=1\\
+1-\phi_{1}^{k}B^{s_{k}}-\phi_{2}^{k}B^{2s_{k}} & si\: p_{k}=2\end{cases}\\
+\theta^{k}\left(B^{s_{k}}\right)=\begin{cases}
+1-\theta_{1}^{k}B^{s_{k}} & si\: q_{k}=1\\
+1-\theta_{1}^{k}B^{s_{k}}-\theta_{2}^{k}B^{2s_{k}} & si\: q_{k}=2\end{cases}\\
+p={\displaystyle \sum_{k=1}^{K}p_{k}s_{k}}\\
+q={\displaystyle \sum_{k=1}^{K}q_{k}s_{k}}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El método ARMS
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Ver
+\begin_inset LatexCommand cite
+key "ARMS-Gilks-Best-Tan"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ es capaz de simular cualquier distribución de probabilidad univariante
+ dada una función proporcional a la función de densidad y el intervalo de
+ dominio en el que se encuentra definida.
+ Normalmente se utiliza el logaritmo de la densidad salvo una constante
+ que ofrece la misma información con menos problemas numéricos.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sec:Distribución-condicionada-de-los-valores-iniciales-ARMA"
+
+\end_inset
+
+Distribución condicionada de los valores iniciales
+\end_layout
+
+\begin_layout Standard
+Para poder evaluar la ecuación en diferencias es preciso conocer 
+\begin_inset Formula $p$
+\end_inset
+
+ valores iniciales del ruido
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+z^{0}=\left\{ z_{t}\right\} _{t=1-p\ldots0}\end{array}\end{equation}
+
+\end_inset
+
+ y 
+\begin_inset Formula $q$
+\end_inset
+
+ valores iniciales de los residuos
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+e^{0}=\left\{ e_{t}\right\} _{t=1-q\ldots0}\end{array}\in\mathbb{R}^{q}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+De esta forma se puede escribir la ecuación en diferencias en notación matricial
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\left(\begin{array}{cccccccccc}
+-\phi_{p} & \cdots & -\phi_{1} & 1 & 0 &  &  & \cdots &  & 0\\
+\vdots & \ddots & \vdots & -\phi_{1} & \ddots & \ddots &  &  &  & \vdots\\
+0 & \cdots & -\phi_{p} & \vdots & -\phi_{1} & 1 & 0 &  &  & 0\\
+0 & \cdots & 0 & -\phi_{p} & \cdots & -\phi_{1} & 1 & 0 &  & 0\\
+0 & \cdots & 0 & 0 & -\phi_{p} & \cdots & -\phi_{1} & 1 & \ddots & \vdots\\
+\vdots &  & \vdots & \vdots & \ddots & \ddots & \ddots & \ddots & \ddots & 0\\
+0 & \cdots & 0 & 0 & \cdots & 0 & -\phi_{p} & \cdots & -\phi_{1} & 1\end{array}\right)\cdot\left(\begin{array}{c}
+z_{1-p}\\
+\vdots\\
+z_{0}\\
+z_{1}\\
+\vdots\\
+z_{m}\end{array}\right)\\
+\\=\\
+\\\left(\begin{array}{cccccccccc}
+-\theta_{p} & \cdots & -\theta_{1} & 1 & 0 &  &  & \cdots &  & 0\\
+\vdots & \ddots & \vdots & -\theta_{1} & \ddots & \ddots &  &  &  & \vdots\\
+0 & \cdots & -\theta_{p} & \vdots & -\theta_{1} & 1 & 0 &  &  & 0\\
+0 & \cdots & 0 & -\theta_{p} & \cdots & -\theta_{1} & 1 & 0 &  & 0\\
+0 & \cdots & 0 & 0 & -\theta_{p} & \cdots & -\theta_{1} & 1 & \ddots & \vdots\\
+\vdots &  & \vdots & \vdots & \ddots & \ddots & \ddots & \ddots & \ddots & 0\\
+0 & \cdots & 0 & 0 & \cdots & 0 & -\theta_{p} & \cdots & -\theta_{1} & 1\end{array}\right)\cdot\left(\begin{array}{c}
+e_{1-q}\\
+\vdots\\
+e_{0}\\
+z_{1}\\
+\vdots\\
+z_{m}\end{array}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Dividiendo el sistema en bloques se puede escribir como
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\left(\begin{array}{cc}
+\Phi^{0} & \Phi\end{array}\right)\cdot\left(\begin{array}{c}
+z^{0}\\
+z\end{array}\right)=\left(\begin{array}{cc}
+\Theta^{0} & \Theta\end{array}\right)\cdot\left(\begin{array}{c}
+e^{0}\\
+e\end{array}\right)\\
+\Phi^{0}=\left(\begin{array}{ccc}
+-\phi_{p} & \cdots & -\phi_{1}\\
+\vdots & \ddots & \vdots\\
+0 & \cdots & -\phi_{p}\\
+0 & \cdots & 0\\
+0 & \cdots & 0\\
+\vdots &  & \vdots\\
+0 & \cdots & 0\end{array}\right)\in\mathbb{R}^{m\times p}\wedge\Phi=\left(\begin{array}{ccccccc}
+1 & 0 &  &  & \cdots &  & 0\\
+-\phi_{1} & \ddots & \ddots &  &  &  & \vdots\\
+\vdots & -\phi_{1} & 1 & 0 &  &  & 0\\
+-\phi_{p} & \cdots & -\phi_{1} & 1 & 0 &  & 0\\
+0 & -\phi_{p} & \cdots & -\phi_{1} & 1 & \ddots & \vdots\\
+\vdots & \ddots & \ddots & \ddots & \ddots & \ddots & 0\\
+0 & \cdots & 0 & -\phi_{p} & \cdots & -\phi_{1} & 1\end{array}\right)\in\mathbb{R}^{m\times m}\\
+\Theta^{0}=\left(\begin{array}{ccc}
+-\theta_{p} & \cdots & -\theta_{1}\\
+\vdots & \ddots & \vdots\\
+0 & \cdots & -\theta_{p}\\
+0 & \cdots & 0\\
+0 & \cdots & 0\\
+\vdots &  & \vdots\\
+0 & \cdots & 0\end{array}\right)\in\mathbb{R}^{m\times q}\wedge\Theta=\left(\begin{array}{ccccccc}
+1 & 0 &  &  & \cdots &  & 0\\
+-\theta_{1} & \ddots & \ddots &  &  &  & \vdots\\
+\vdots & -\theta_{1} & 1 & 0 &  &  & 0\\
+-\theta_{p} & \cdots & -\theta_{1} & 1 & 0 &  & 0\\
+0 & -\theta_{p} & \cdots & -\theta_{1} & 1 & \ddots & \vdots\\
+\vdots & \ddots & \ddots & \ddots & \ddots & \ddots & 0\\
+0 & \cdots & 0 & -\theta_{p} & \cdots & -\theta_{1} & 1\end{array}\right)\in\mathbb{R}^{m\times m}\\
+z^{0}\in\mathbb{R}^{p}\wedge z\in\mathbb{R}^{p}\\
+e^{0}\in\mathbb{R}^{q}\wedge e\in\mathbb{R}^{q}\end{array}\end{equation}
+
+\end_inset
+
+o lo que es lo mismo
+\begin_inset Formula \begin{equation}
+\Phi^{0}\cdot z^{0}+\Phi\cdot z=\Theta^{0}\cdot e^{0}+\Theta\cdot e\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+De la última fórmula se deduce la siguiente expresión matricial con distribución
+ conocida
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+e=\Theta^{-1}\cdot\left(\Phi\cdot z+\Phi^{0}\cdot z^{0}-\Theta^{0}\cdot e^{0}\right)\sim N\left(0,\sigma^{2}I_{m}\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si se define el vector conjunto de valores iniciales 
+\begin_inset Formula \begin{equation}
+u=\left(\begin{array}{c}
+z^{0}\\
+e^{0}\end{array}\right)\end{equation}
+
+\end_inset
+
+entonces, dados 
+\begin_inset Formula $\sigma^{2},\phi,\theta$
+\end_inset
+
+ se tiene la siguiente regresión lineal 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\Pi\cdot z=G\cdot u+e\\
+\Pi=\Theta^{-1}\Phi\\
+G=\Theta^{-1}\left(\begin{array}{cc}
+-\Phi^{0}, & \Theta^{0}\end{array}\right)\end{array}u=\left(z^{0},e^{0}\right)\end{equation}
+
+\end_inset
+
+con lo que su distribución condicionada es
+\begin_inset Formula \begin{equation}
+u\begin{array}{c}
+\left|\phi,\theta,\sigma^{2}\right.\sim N\left(\frac{1}{\sigma^{2}}\left(G^{T}\cdot G\right)^{-1}\cdot G^{T}\cdot\Pi\cdot z,\;\frac{1}{\sigma^{2}}\left(G^{T}\cdot G\right)^{-1}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Nótese que las matrices 
+\begin_inset Formula $\Phi^{0},\Theta^{0},\Phi,\Theta$
+\end_inset
+
+ son matrices de Toeplitz triangulares por lo que las operaciones de productos
+ y resolución de sistemas lineales son desarrollables como ecuaciones en
+ diferencias.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sec:Distribución-condicionada-de-los-parámetros-ARMA"
+
+\end_inset
+
+Distribución condicionada de los parámetros ARMA
+\end_layout
+
+\begin_layout Standard
+Dados la varianza 
+\begin_inset Formula $\sigma^{2}$
+\end_inset
+
+, los valores iniciales 
+\begin_inset Formula $u$
+\end_inset
+
+ y todos los parámetros ARMA salvo uno cualquiera de ellos, digamos 
+\begin_inset Formula $\vartheta$
+\end_inset
+
+, por el teorema de Bayes, el logaritmo de su densidad condicionada al resto
+ de parámetros es proporcional a la de los residuos resultantes de aplicar
+ la ecuación en diferencias para cada posible valor de dicho parámetro,
+ que tomando logaritmos es
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\lg f\left(\vartheta\right)=Cte_{1}-\frac{m}{2}\lg2\pi\sigma^{2}-\frac{1}{2\sigma^{2}}e\left(\vartheta\right)^{T}e\left(\vartheta\right)=Cte-\frac{1}{2\sigma^{2}}e\left(\vartheta\right)^{T}e\left(\vartheta\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Dado un valor cualquiera de 
+\begin_inset Formula $\vartheta$
+\end_inset
+
+ quedan completamente determinados los polinomios 
+\begin_inset Formula $\phi,\theta$
+\end_inset
+
+; así que es posible calcular los residuos, para lo cual no es preciso recurrir
+ a la fórmula del párrafo anterior, pues resulta evidente que es completamente
+ equivalente a despejar los residuos en la ecuación en diferencias del modelo
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+e_{t}={\displaystyle z_{t}-\sum_{j=1}^{p}\phi_{j}z_{t-j}+\sum_{j=1}^{q}\theta_{j}e_{t-j}}\end{equation}
+
+\end_inset
+
+que da un método de cálculo mucho más eficiente de los mismos.
+\end_layout
+
+\begin_layout Standard
+Si existe información a priori o de tipo latente sobre todos o algunos de
+ los parámetros 
+\begin_inset Formula $\vartheta$
+\end_inset
+
+, sólo es necesario poder escribirla en términos de una distribución normal
+ univariante 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\vartheta\sim N\left(\mu_{\vartheta},\sigma_{\vartheta}^{2}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En el caso de ser información a priori 
+\begin_inset Formula $\mu_{\vartheta}$
+\end_inset
+
+ será constante y si es latente será el valor actual del correspondiente
+ hiperparámetro o combinación lineal de hiperparámetros.
+ Esto se traduce a una simple ampliación de los residuos estandarizados
+ 
+\begin_inset Formula \begin{equation}
+\lg f\left(\vartheta\right)=Cte-\frac{1}{2\sigma^{2}}e\left(\vartheta\right)^{T}e\left(\vartheta\right)-\frac{1}{2}\left(\frac{\vartheta-\mu_{\vartheta}}{\sigma_{\vartheta}}\right)^{2}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:Dominio-de-estacionariedad"
+
+\end_inset
+
+Dominio de estacionariedad de monomios y binomios
+\end_layout
+
+\begin_layout Standard
+Para poder aplicar el método ARMS es necesario además explicitar en qué
+ dominio es evaluable la función de densidad, lo cual en este caso consiste
+ en saber en qué intervalo es estacionario el factor polinomial al que pertenece
+ el parámetro 
+\begin_inset Formula $\vartheta$
+\end_inset
+
+ de turno.
+ Basta recordar que un polinomio es estacionario si todas sus raíces están
+ fuera del círculo unidad.
+ En los casos de grado 1 y 2 se puede establecer esa condición de una forma
+ analítica.
+\end_layout
+
+\begin_layout Standard
+En un monomio de la forma 
+\begin_inset Formula $1-\alpha x$
+\end_inset
+
+ esto se cumple sí y sólo sí
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\alpha x-1=0\Longleftrightarrow x=\frac{1}{\alpha}\\
+\left\Vert x\right\Vert _{2}>1\Longleftrightarrow\left|\alpha\right|<1\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En un binomio de la forma 
+\begin_inset Formula $1-\beta x-\alpha x^{2}$
+\end_inset
+
+ esto se cumple sí y sólo sí
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\alpha x^{2}+\beta x-1=0\Longleftrightarrow x=\frac{-\beta\pm\sqrt{\beta^{2}+4\alpha}}{2\alpha}\\
+\left\Vert x\right\Vert _{2}>1\Longleftrightarrow\left\Vert \frac{-\beta\pm\sqrt{\beta^{2}+4\alpha}}{2\alpha}\right\Vert _{2}>1\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:Gráfico-de-simulaciones-grado_2"
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename stationarity-pol-deg-2.PNG
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+Gráfico de simulaciones de polinomios estacionarios de grado 2.
+ El sector parabólico inferior corresponde a las raíces complejas y el resto
+ hacia arriba a las reales.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si 
+\begin_inset Formula $4\alpha<\beta^{2}$
+\end_inset
+
+ las raíces son complejas conjugadas y su módulo es el mismo para ambas
+ 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\left\Vert \frac{-\beta\pm\boldsymbol{\mathrm{i}}\sqrt{-\left(\beta^{2}+4\alpha\right)}}{2\alpha}\right\Vert _{2}^{2}=\frac{\left|\beta\right|^{2}+\left|\beta^{2}+4\alpha\right|}{4\alpha^{2}}=\frac{\beta^{2}-\beta^{2}-4\alpha}{4\alpha^{2}}=\frac{-1}{\alpha}>1\Longleftrightarrow\alpha>-1\\
+-1<\alpha<\frac{\beta^{2}}{4}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si 
+\begin_inset Formula $4\alpha>\beta^{2}$
+\end_inset
+
+ las raíces son reales y su módulo puede ser distinto para cada una.
+ Las fronteras de la región se completan resolviendo las ecuaciones 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\frac{-\beta\pm\sqrt{\beta^{2}+4\alpha}}{2\alpha}=1\Longleftrightarrow\alpha=1-\beta\\
+\frac{-\beta\pm\sqrt{\beta^{2}+4\alpha}}{2\alpha}=-1\Longleftrightarrow\alpha=1+\beta\end{array}\end{equation}
+
+\end_inset
+
+Las condiciones de estacionariedad son por tanto las siguientes (ver figura
+ 
+\begin_inset LatexCommand ref
+reference "fig:Gráfico-de-simulaciones-grado_2"
+
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Itemize
+Si 
+\begin_inset Formula $\vartheta=\alpha$
+\end_inset
+
+ es un parámetro de un monomio 
+\begin_inset Formula $1-\alpha x$
+\end_inset
+
+ entonces la anterior fórmula es evaluable en 
+\begin_inset Formula $\alpha\in\left(-1,1\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Si 
+\begin_inset Formula $\vartheta=\alpha$
+\end_inset
+
+ es el parámetro de orden 2 de un binomio 
+\begin_inset Formula $1-\beta x-\alpha x^{2}$
+\end_inset
+
+ entonces la región factible es en 
+\begin_inset Formula $\alpha\in\left(-1,1-\left|\beta\right|\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Si 
+\begin_inset Formula $\vartheta=\beta$
+\end_inset
+
+ es el parámetro de orden 1 de un binomio 
+\begin_inset Formula $1-\beta x-\alpha x^{2}$
+\end_inset
+
+ entonces es estacionario en 
+\begin_inset Formula $\beta\in\left(\alpha-1,1-\alpha\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "fig:Gráfico-de-simulaciones-grado_3"
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename stationarity-pol-deg-3.PNG
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+Gráfico de simulaciones de polinomios estacionarios de grado 3.
+ El dominio de estacionariedad no es una región conexa.
+ Fijado el coeficiente de grado 2 el de grado 3 no está delimitado en un
+ intervalo sino en la unión de dos intervalos inconexos y no se puede aplicar
+ el método ARMS
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+La razón por la que se obliga a disponer de factores de grado máximo 2 es
+ que la región de estacionariedad de un polinomio de grado 1 es simplemente
+ el intervalo 
+\begin_inset Formula $\left[-1,1\right]$
+\end_inset
+
+ y para grado 2 es un triángulo, lo cual permite, una vez fijado uno de
+ los parámetros obtener el intervalo en el que el otro permanece en la región
+ de estacionariedad.
+ Para grados superiores las regiones son complicadas de definir analíticamente
+ por lo que resulta bastante complicado fijar el intervalo de estacionariedad
+ de cada parámetro condicionado al resto (ver figura 
+\begin_inset LatexCommand ref
+reference "fig:Gráfico-de-simulaciones-grado_3"
+
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Standard
+Por el teorema fundamental del álgebra todo polinomio de coeficientes reales
+ es factorizable en monomios y binomios, por lo cual esta exigencia no supone
+ ninguna restricción en la clase de modelos.
+ Incuso es posible forzar la presencia de raíces reales imponiendo la factorizac
+ión en binomios si es que existe alguna razón de peso para pensar que debe
+ ser así.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Condicionamiento-a-los-ARMA"
+
+\end_inset
+
+Condicionamiento a los parametros ARMA
+\end_layout
+
+\begin_layout Standard
+El modelo ARIMA con función de transferencia lineal se puede escribir así
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\triangle\cdot Y=\triangle\cdot X\cdot\beta+z\\
+z\sim N\left(0,\sigma^{2}\Sigma\left(\phi,\theta,m\right)\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+donde 
+\begin_inset Formula \begin{equation}
+\Sigma\left(\phi,\theta,m\right)=\left\{ \sigma_{i,j}\left(\phi,\theta\right)=\gamma_{i-j}\left(\phi,\theta\right)\right\} _{i,j=1\ldots m}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+es la matriz de covarianzas de orden 
+\begin_inset Formula $m$
+\end_inset
+
+ de la serie estandarizada 
+\begin_inset Formula $Z/\sigma$
+\end_inset
+
+, que depende exclusivamente de 
+\begin_inset Formula $\left(\phi,\theta,m\right)$
+\end_inset
+
+ y es la matriz de Toeplitz generada por las autocovarianzas del proceso
+ ARMA
+\begin_inset Formula \begin{equation}
+\left\{ \gamma_{k}\left(\phi,\theta\right)=E\left[z_{t},z_{t-k}\right]\right\} _{k=0,1,2,\ldots}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+que son los coeficientes del polinomio de retardo infinito simétrico
+\begin_inset Formula \begin{equation}
+\gamma\left(B+F\right)=\frac{\theta\left(B\right)\theta\left(F\right)}{\phi\left(B\right)\phi\left(F\right)}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Vista la matriz de covarianzas de una forma más gráfica quedaría así:
+\begin_inset Formula \begin{equation}
+\Sigma\left(\phi,\theta,m\right)=\left(\begin{array}{ccccc}
+\gamma_{0} & \gamma_{1} & \gamma_{2} & \cdots & \gamma_{m-1}\\
+\gamma_{1} & \gamma_{0} & \gamma_{1} & \ddots & \vdots\\
+\gamma_{2} & \gamma_{1} & \gamma_{0} & \ddots & \gamma_{2}\\
+\vdots & \ddots & \ddots & \ddots & \gamma_{1}\\
+\gamma_{m-1} & \cdots & \gamma_{2} & \gamma_{1} & \gamma_{0}\end{array}\right)\in\mathbb{R}^{m\times m}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si se dispone de una descomposición simétrica como la de Cholesky 
+\begin_inset Formula \begin{equation}
+\Sigma\left(\phi,\theta,m\right)=L\left(\phi,\theta,m\right)\cdot L^{T}\left(\phi,\theta,m\right)\end{equation}
+
+\end_inset
+
+ésta se podrá emplear para filtrar las matrices de input y output de la
+ regresión lineal, resolviendo sistemas lineales en 
+\begin_inset Formula $L\left(\phi,\theta,m\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{'}=L^{-1}\left(\phi,\theta,m\right)\cdot\triangle\cdot Y\\
+X^{'}=L^{-1}\left(\phi,\theta,m\right)\cdot\triangle\cdot X\\
+e=L^{-1}\left(\phi,\theta,m\right)Z\end{array}\end{equation}
+
+\end_inset
+
+resultando la regresión lineal
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{'}=X^{'}\cdot\beta+e\\
+e\sim N\left(0,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+que permite realizar la simulación de los parámetros lineales y la varianza
+ condicionados a los parámetros ARMA.
+\end_layout
+
+\begin_layout Standard
+Efectuar la descomposición de Cholesky genérica tendría complejidad cúbica
+ en el orden de la matriz 
+\begin_inset Formula $O\left(m^{3}\right)$
+\end_inset
+
+ y aunque existen diferentes métodos de calcular la descomposición de Cholesky
+ con complejidades superlineales 
+\begin_inset Formula $O\left(m\cdot\lg^{2}m\right)$
+\end_inset
+
+, luego la matriz 
+\begin_inset Formula $L\left(\phi,\theta,m\right)$
+\end_inset
+
+ no tiene ninguna estructura especial y la resolución de los sistemas referidos
+ tiene complejidad cuadrática 
+\begin_inset Formula $O\left(m^{2}\right)$
+\end_inset
+
+, lo cual supone tiempos de cálculo insoportables con apenas unos cientos
+ de datos.
+\end_layout
+
+\begin_layout Standard
+A continuación se presenta un método implícito de descomposición sintética
+ mucho más rápido de obtener los mismos resultados.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:Descomposición-sintética"
+
+\end_inset
+
+Descomposición sintética
+\end_layout
+
+\begin_layout Paragraph*
+Lema 1
+\end_layout
+
+\begin_layout Standard
+Dada la descomposición de Cholesky de la matriz de covarianzas de orden
+ 
+\begin_inset Formula $m$
+\end_inset
+
+ del proceso AR puro
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\Sigma\left(\phi,1,m\right)=L\left(\phi,1,m\right)\cdot L^{T}\left(\phi,1,m\right)\end{equation}
+
+\end_inset
+
+la inversa de dicha descomposición 
+\begin_inset Formula $L^{-1}\left(\phi,1,m\right)$
+\end_inset
+
+ para cualquier 
+\begin_inset Formula $m>n=\max\left(p,q\right)+1+p$
+\end_inset
+
+ es de Toeplitz a partir de la fila 
+\begin_inset Formula $n$
+\end_inset
+
+ por lo que es conocida sin coste adicional alguno sin más que repetir en
+ cada fila de 
+\begin_inset Formula $L^{-1}\left(\phi,1,n\right)$
+\end_inset
+
+ los valores de la fila 
+\begin_inset Formula $n$
+\end_inset
+
+ desplazados una columna hacia delante: 
+\begin_inset Formula \begin{equation}
+L^{-1}\left(\phi,1,m\right)=\left(\begin{array}{ccccc}
+\vartheta_{1,1} & \cdots & 0 & \cdots & 0\\
+\vdots & \ddots & \vdots & \ddots & \vdots\\
+\vartheta_{n,1} & \cdots & \vartheta_{n,n} &  & 0\\
+\vdots & \ddots &  & \ddots & \vdots\\
+0 & \cdots & \vartheta_{n,1} & \cdots & \vartheta_{n,n}\end{array}\right)\in\mathbb{R}^{m\times m}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Eso la convierte además en una matriz de Toeplitz de bandas con ceros fuera
+ de las 
+\begin_inset Formula $n$
+\end_inset
+
+ primeras bandas que es muy sparse cuando crece 
+\begin_inset Formula $m$
+\end_inset
+
+ pues el número de datos no ceros es menor que 
+\begin_inset Formula $n\cdot m$
+\end_inset
+
+.
+ Nótese que la matriz de descomposición 
+\begin_inset Formula $L\left(\phi,1,m\right)$
+\end_inset
+
+ propiamente dicha no es sparse en general, aunque para raíces muy lejanas
+ del círculo unidad los términos más alejados de la unidad se acercan rápidament
+e a cero.
+\end_layout
+
+\begin_layout Paragraph*
+Lema 2
+\end_layout
+
+\begin_layout Standard
+La matriz de covarianzas de orden 
+\begin_inset Formula $m>n$
+\end_inset
+
+ del proceso ARMA filtrada simétricamente de la descomposición de las covarianza
+s del proceso AR puro, es decir,
+\begin_inset Formula \begin{equation}
+\Upsilon\left(\phi,\theta,m\right)=L^{-1}\left(\phi,1,m\right)\cdot\Sigma\left(\phi,\theta,m\right)\cdot L^{-T}\left(\phi,1,m\right)\end{equation}
+
+\end_inset
+
+también es simétrica y de Toeplitz partir de la fila y columna 
+\begin_inset Formula $n$
+\end_inset
+
+ por lo que es conocida sin coste adicional alguno, una vez calculada 
+\begin_inset Formula $\Upsilon\left(\phi,\theta,m\right)$
+\end_inset
+
+, sin más que repetir en cada fila (y columna) los valores de la fila (y
+ columna) 
+\begin_inset Formula $n$
+\end_inset
+
+ desplazados una columna (fila) hacia delante (abajo).
+ Se trata por ende de una matriz de Toeplitz de bandas con ceros fuera de
+ las 
+\begin_inset Formula $n$
+\end_inset
+
+ primeras bandas que es muy sparse cuando crece 
+\begin_inset Formula $m$
+\end_inset
+
+ pues el número de datos no ceros es menor que 
+\begin_inset Formula $\left(2\cdot n-1\right)\cdot m$
+\end_inset
+
+:
+\begin_inset Formula \begin{equation}
+\Upsilon\left(\phi,\theta,m\right)=\left(\begin{array}{ccccc}
+\upsilon_{1,1} & \cdots & \upsilon_{n,1} & \cdots & 0\\
+\vdots & \ddots & \vdots & \ddots & \vdots\\
+\upsilon_{n,1} & \cdots & \upsilon_{n,n} &  & \upsilon_{n,1}\\
+\vdots & \ddots &  & \ddots & \vdots\\
+0 & \cdots & \upsilon_{n,1} & \cdots & \upsilon_{n,n}\end{array}\right)\in\mathbb{R}^{m\times m}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Por construcción del método de Cholesky 
+\begin_inset Formula $\Upsilon\left(\phi,\theta,m\right)=\Lambda\left(\phi,\theta,m\right)\cdot\Lambda^{T}\left(\phi,\theta,m\right)$
+\end_inset
+
+ se tiene que el factor 
+\begin_inset Formula $\Lambda\left(\phi,\theta,m\right)$
+\end_inset
+
+ es igualmente de bandas con ceros fuera de las 
+\begin_inset Formula $n$
+\end_inset
+
+ primeras bandas, siendo el número de datos no ceros menor que 
+\begin_inset Formula $n\cdot m$
+\end_inset
+
+:
+\begin_inset Formula \begin{equation}
+\Lambda\left(\phi,\theta,m\right)=\left(\begin{array}{ccccc}
+\lambda_{1,1} & \cdots & 0 & \cdots & 0\\
+\vdots & \ddots & \vdots & \ddots & \vdots\\
+\lambda_{n,1} & \cdots & \lambda_{n,n} &  & 0\\
+\vdots & \ddots &  & \ddots & \vdots\\
+0 & \cdots & \lambda_{n,1} & \cdots & \lambda_{n,n}\end{array}\right)\in\mathbb{R}^{m\times m}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph*
+Corolario 1
+\end_layout
+
+\begin_layout Standard
+Mezclando las dos fórmulas anteriores 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\Upsilon\left(\phi,\theta,m\right)=\Lambda\left(\phi,\theta,m\right)\cdot\Lambda^{T}\left(\phi,\theta,m\right)=L^{-1}\left(\phi,1,m\right)\cdot\Sigma\left(\phi,\theta,m\right)\cdot L^{-T}\left(\phi,1,m\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+L\left(\phi,1,m\right)\cdot\Lambda\left(\phi,\theta,m\right)\cdot\Lambda^{T}\left(\phi,\theta,m\right)\cdot L^{T}\left(\phi,1,m\right)=\Sigma\left(\phi,\theta,m\right)=L\left(\phi,\theta,M\right)\cdot L^{T}\left(\phi,\theta,M\right)\end{equation}
+
+\end_inset
+
+se obtiene de forma inmediata una expresión de la descomposición de Cholesky
+ de la matriz de covarianzas para cualquier entero 
+\begin_inset Formula $m$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+L\left(\phi,\theta,m\right)=L\left(\phi,1,m\right)\cdot\Lambda\left(\phi,\theta,m\right)\end{equation}
+
+\end_inset
+
+que, aunque no es en general sparse.
+\end_layout
+
+\begin_layout Paragraph*
+Corolario 2
+\end_layout
+
+\begin_layout Standard
+Sin embargo sí que permite un mecanismo de filtrado sparse en dos fases.
+ En el caso del filtrado ARMA comentado anteriormente se tiene que calcular
+ 
+\begin_inset Formula $V$
+\end_inset
+
+ dado 
+\begin_inset Formula $U$
+\end_inset
+
+ de forma que
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+U=L\left(\phi,\theta,m\right)\cdot V\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Para ello se calcula primero 
+\begin_inset Formula \begin{equation}
+W=L^{-1}\left(\phi,1,m\right)\cdot U=\Lambda\left(\phi,\theta,m\right)\cdot V\end{equation}
+
+\end_inset
+
+teniendo en cuenta que 
+\begin_inset Formula $L^{-1}\left(\phi,1,m\right)$
+\end_inset
+
+ es sparse, para luego despejar 
+\begin_inset Formula $V$
+\end_inset
+
+ en el sistema sparse
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+W=\Lambda\left(\phi,\theta,m\right)\cdot V\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph*
+Corolario 3
+\end_layout
+
+\begin_layout Standard
+En un proceso AR puro es 
+\begin_inset Formula $\Lambda\left(\phi,\theta,m\right)=I_{m}$
+\end_inset
+
+y 
+\begin_inset Formula $L^{-1}\left(\phi,\theta,m\right)=L^{-1}\left(\phi,1,m\right)$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph*
+Corolario 4
+\end_layout
+
+\begin_layout Standard
+En un proceso MA puro es 
+\begin_inset Formula $L^{-1}\left(\phi,1,m\right)=I_{m}$
+\end_inset
+
+ y 
+\begin_inset Formula $L\left(\phi,\theta,m\right)=\Lambda\left(\phi,\theta,m\right)$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:Algoritmo-de-la-descomposición-ARMA-sintética"
+
+\end_inset
+
+Algoritmo de la descomposición ARMA sintética
+\end_layout
+
+\begin_layout Subparagraph*
+Entrada
+\end_layout
+
+\begin_layout Standard
+Los polinomios
+\begin_inset Formula $\phi,\theta$
+\end_inset
+
+ y el tamaño de la serie 
+\begin_inset Formula $m$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subparagraph*
+Salida
+\end_layout
+
+\begin_layout Standard
+Dos matrices sparse 
+\begin_inset Formula $L^{-1}\left(\phi,1,m\right)$
+\end_inset
+
+ y 
+\begin_inset Formula $\Lambda\left(\phi,\theta,m\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subparagraph*
+Método
+\end_layout
+
+\begin_layout Enumerate
+Se calcula 
+\begin_inset Formula $n=\max\left(p,q\right)+1+p$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se calcula 
+\begin_inset Formula $\Sigma\left(\phi,1,n\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se calcula la descomposición de Cholesky de orden 
+\begin_inset Formula $n$
+\end_inset
+
+ tal que 
+\begin_inset Formula $\Sigma\left(\phi,1,n\right)=L\left(\phi,1,n\right)\cdot L^{T}\left(\phi,1,n\right)$
+\end_inset
+
+ que será en general más densa cuanto más cerca de la unidad estén las raíces
+ 
+\begin_inset Formula $\phi$
+\end_inset
+
+, siendo la complejidad máxima de este paso 
+\begin_inset Formula $O\left(n^{3}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se calcula la inversa de dicha descomposición 
+\begin_inset Formula $L^{-1}\left(\phi,1,n\right)$
+\end_inset
+
+ con coste 
+\begin_inset Formula $O\left(n^{3}\right)$
+\end_inset
+
+ a lo peor.
+\end_layout
+
+\begin_layout Enumerate
+Si 
+\begin_inset Formula $m>n$
+\end_inset
+
+ entonces se expande la última fila de 
+\begin_inset Formula $L^{-1}\left(\phi,1,n\right)$
+\end_inset
+
+ otras 
+\begin_inset Formula $m-n$
+\end_inset
+
+ veces para formar la matriz sparse 
+\begin_inset Formula $L^{-1}\left(\phi,1,m\right)$
+\end_inset
+
+.
+ De lo contrario se extrae como el menor principal de orden 
+\begin_inset Formula $m$
+\end_inset
+
+.
+ El número de celdas no nulas a almacenar es como máximo 
+\begin_inset Formula $n\cdot m$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Enumerate
+Se calcula 
+\begin_inset Formula $\Sigma\left(\phi,\theta,n\right)$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Enumerate
+Se calcula 
+\begin_inset Formula $\Upsilon\left(\phi,\theta,n\right)=L^{-1}\left(\phi,1,n\right)\cdot\Sigma\left(\phi,\theta,n\right)\cdot L^{-T}\left(\phi,1,n\right)$
+\end_inset
+
+ lo cual conlleva un coste menor o igual que 
+\begin_inset Formula $O\left(n^{3}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Si 
+\begin_inset Formula $m>n$
+\end_inset
+
+ entonces se expanden las últimas fila y columna de 
+\begin_inset Formula $\Upsilon\left(\phi,\theta,n\right)$
+\end_inset
+
+ otras 
+\begin_inset Formula $m-n$
+\end_inset
+
+ veces para formar la matriz sparse simétrica 
+\begin_inset Formula $\Upsilon\left(\phi,\theta,m\right)$
+\end_inset
+
+.
+ De lo contrario se extrae como el menor principal de orden 
+\begin_inset Formula $m$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se calcula la descomposición de Cholesky de orden 
+\begin_inset Formula $m$
+\end_inset
+
+ de la matriz sparse 
+\begin_inset Formula $\Upsilon\left(\phi,\theta,m\right)=\Lambda\left(\phi,\theta,m\right)\cdot\Lambda^{T}\left(\phi,\theta,m\right)$
+\end_inset
+
+ con complejidad 
+\begin_inset Formula $O\left(n^{2}m\right)$
+\end_inset
+
+y tamaño a almacenar de 
+\begin_inset Formula $n\cdot m$
+\end_inset
+
+ celdas como máximo
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:Algoritmo-de-filtrado ARMA sintético"
+
+\end_inset
+
+Algoritmo de filtrado ARMA sintético
+\end_layout
+
+\begin_layout Subparagraph*
+Entrada
+\end_layout
+
+\begin_layout Standard
+Las matrices sparse 
+\begin_inset Formula $L^{-1}\left(\phi,1,m\right)$
+\end_inset
+
+ y 
+\begin_inset Formula $\Lambda\left(\phi,\theta,m\right)$
+\end_inset
+
+ generadas por el algoritmo anterior
+\end_layout
+
+\begin_layout Standard
+La matriz o vector 
+\begin_inset Formula $U$
+\end_inset
+
+ a filtrar, que puede ser densa o sparse.
+\end_layout
+
+\begin_layout Subparagraph*
+Salida
+\end_layout
+
+\begin_layout Standard
+La matriz filtrada 
+\begin_inset Formula $V=\Lambda\left(\phi,\theta,m\right)\cdot L^{-1}\left(\phi,1,m\right)\cdot Z$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subparagraph*
+Método
+\end_layout
+
+\begin_layout Enumerate
+Se calcula el producto de matriz sparse por matriz o vector 
+\begin_inset Formula $W=L^{-1}\left(\phi,1,m\right)\cdot Z$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se resuelve el sistema triangular sparse 
+\begin_inset Formula $W=\Lambda\left(\phi,\theta,m\right)\cdot V$
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

@@ -1,0 +1,1164 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:Definición-de-la-clase-de-modelos-admisibles-en-BSR"
+
+\end_inset
+
+Definición de la clase de modelos admisibles en BSR
+\end_layout
+
+\begin_layout Standard
+Se formula el tipo de modelos que es capaz de tratar BSR en la forma más
+ general posible, así como el método de Gibbs por bloques aplicado para
+ la simulación.
+\end_layout
+
+\begin_layout Section
+Evolución de la modelación en TOL
+\end_layout
+
+\begin_layout Standard
+Uno de los tipos de modelos más utilizados en la previsión de series temporales
+ es el modelo ARIMA con función de transferencia lineal (omega)
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Ver 
+\begin_inset LatexCommand cite
+key "Box-Jenkins"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
+ El estimador máximo verosímil de TOL para esta clase de modelos es la función
+ Estimate y durante años ha servido para modelar fenómenos realmente complicados
+, gracias a su eficiencia de cálculo y a su facilidad de manejo, el tratamiento
+ de omitidos en el output, etc.
+ Sin embargo, presenta graves problemas inherentes al propio método de estimació
+n máximo verosímil.
+\end_layout
+
+\begin_layout Standard
+El más grave de todos ocurre cuando existen correlaciones múltiples entre
+ grupos de variables de forma que los parámetros capturan bien el efecto
+ conjunto pero no el particular de cada uno.
+ Variables que deberían dar valores positivos se estiman como negativos
+ y al revés simplemente porque ocurren casi de la misma forma que otros
+ efectos de signo contrario.
+ A veces es suficiente reformular los inputs de forma que sean lo más ortogonale
+s entre sí que sea posible, pero otras veces no es viable hacerlo sin perder
+ expresabilidad en el modelo o simplemente no hay datos suficientes en la
+ muestra para poder distinguir inputs muy distintos en el fondo pero iguales
+ en la forma para la muestra disponible.
+ En estos casos es necesario que el analista pueda expresar toda la información
+ a priori de que disponga para ayudar al estimador.
+ En general si no se dispone de una adecuada información a priori, al hacer
+ previsiones, el modelo funciona de forma muy distinta si éstas son extramuestra
+les o intramuestrales.
+ En general, cuanto más información a priori fidedigna haya menos discrepancia
+ se encontrará.
+ Mucho cuidado con inventarse información a priori no justificada porque
+ eso es seguro mucho peor que no dar ninguna información.
+ Hubo algún intento de introducir mecanismos en este sentido para el estimador
+ MLE pero no se llegó a ningún resultado aceptable.
+\end_layout
+
+\begin_layout Standard
+Por razones de diferente tipo, a veces se conoce el signo o un intervalo
+ de dominio de determinados parámetros, o bien que el efecto de unos debe
+ ser mayor que el de otros (relaciones de orden), o, en general, se conoce
+ cualquier tipo de restricción lineal.
+ Este tipo de restricciones complican la convergencia de los métodos de
+ optimización usados en MLE por lo que nunca se consiguió incorporarlos
+ adecuadamente.
+\end_layout
+
+\begin_layout Standard
+A la hora de manejar datos de clientes reales es muy frecuente que falten
+ datos, no sólo de las series output a analizar, sino también de los inputs
+ empleados en su explicación.
+ Para un estimador MLE esto supone una fuente más de no linealidad que complica
+ aún más la implementación y la convergencia del método.
+\end_layout
+
+\begin_layout Standard
+Por los mismos motivos nunca llegaron a funcionar debidamente en el MLE
+ otros sistemas de componentes no lineales, como funciones de transferencia
+ amortiguadas (deltas) y otras propias del negocio en cuestión que no es
+ posible ajustar a una forma no lineal paramétrica concreta sino que pueden
+ tener formas arbitrarias cualesquiera.
+\end_layout
+
+\begin_layout Standard
+Lo anterior se refiere a la descripción del modelo de regresión univariante
+ de un nodo de observación concreto, como puede ser cada uno de los puntos
+ de venta de un producto concreto, o cada una de las variantes de un producto
+ o cualquier tipo de entidad que se quiera analizar en detalle.
+ Pero también existen relaciones entre los parámetros de diferentes nodos
+ de observación.
+ Estas relaciones pueden ser expresadas a veces mediante una estructura
+ jerárquica lineal mediante hiperparámetros no observables que se agrupan
+ en nodos que llamaremos latentes y que se relacionan linealmente con los
+ parámetros de los nodos obervados, o bien, con otros hiperparámetros de
+ nodos latentes de niveles inferiores.
+ Estas estructuras dan lugar a un aumento brutal del número de variables
+ que un sistema MLE no puede soportar.
+\end_layout
+
+\begin_layout Standard
+Este tipo de modelos jerárquicos se pueden ver como un caso particular de
+ regresión lineal sparse, una vez filtrados el resto de efectos (ARIMA,
+ omitidos, ...) de los nodos observacionales.
+ Pero existen otras clases de modelos, como las redes bayesianas en los
+ que las relaciones entre los parámetros e hiperparámetros no tienen porqué
+ darse sólo en un sentido jerárquico, sino de forma arbitraria, manteniéndose
+ sin embargo la característica sparse de la matriz de diseño conjunta.
+ No es posible ni siquiera soñar con un estimador MLE capaz de trabajar
+ con estas clases de modelos.
+ En esta generalización, lo que realmente es común a todas ellas es que
+ existen nodos de información o segmentos de regresión, observados o no,
+ que introducen ecuaciones de regresión que involucran a parámetros del
+ llamado bloque lineal, que pueden estar sujetos a restricciones de desigualdad
+ lineal.
+ Cada uno de estos segmentos tienen asociado un vector de residuos que puede
+ tener o no una estructura de serie temporal, estructura ARIMA, datos omitidos,
+ filtros no lineales, etc.
+\end_layout
+
+\begin_layout Standard
+Todas estas razones han llevado a la conclusión irrevocable de que es preciso
+ un sistema de estimación bayesiana basado en simulaciones de Montecarlo
+ de cadenas de Markov (MCMC) generadas con métodos como Gibbs o Metropolis-Hasti
+ngs.
+ Varios han sido los intentos de implementación de estos sistemas, destacando
+ entre todos BLR y HLM, y aunque los resultados han sido en general de una
+ alta calidad, no se puede decir lo mismo respecto a la generalidad de los
+ modelos admitidos ni de la eficiencia en los cálculos.
+\end_layout
+
+\begin_layout Section
+Formalización de la clase de modelos de BSR
+\begin_inset LatexCommand label
+name "sec:clase_modelos_BSR"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A continuación se va a describir el modelo de regresión con restricciones
+ lineales subdivisible en 
+\begin_inset Formula $K$
+\end_inset
+
+ segmentos de regresión cuyo único nexo en común es el vector 
+\begin_inset Formula $\beta\in\mathbb{R}^{n}$
+\end_inset
+
+ de los parámetros a estimar en el bloque lineal conjunto de la regresión.
+ Para el 
+\begin_inset Formula $k$
+\end_inset
+
+-ésimo segmento de regresión, sean 
+\begin_inset Formula $Y^{\left(k\right)}\in\mathbb{R}^{M_{k}}$
+\end_inset
+
+ el vector de output original a analizar, y 
+\begin_inset Formula $X^{\left(k\right)}\in\mathbb{R}^{M_{k}\times n}$
+\end_inset
+
+ la matriz de inputs originales explicativos del segmento.
+ La relación de regresión no se da, en general, sobre estos términos originales
+ sino que se precisa hacer una serie de filtrados que se describen a continuació
+n.
+\end_layout
+
+\begin_layout Standard
+Tanto el input como el output originales pueden tener omitidos, los cuales
+ deben ser sustituidos por ceros, para permitir realizar las operaciones
+ aritméticas y algebraicas necesarias para su simulación y filtrado.
+ Llamaremos 
+\begin_inset Formula $v^{\left(k\right)}$
+\end_inset
+
+y 
+\begin_inset Formula $u^{\left(k\right)}$
+\end_inset
+
+ a los vectores de parámetros correspondientes a los omitidos del output
+ y el input respectivamente, y 
+\begin_inset Formula $\delta^{v^{\left(k\right)}}$
+\end_inset
+
+y 
+\begin_inset Formula $\delta^{u^{\left(k\right)}}$
+\end_inset
+
+ a los operadores lineales de ubicación
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Se aconseja no pararse ahora demasiado en los detalles que se explicarán
+ bien a fondo en el capítulo 
+\begin_inset LatexCommand ref
+reference "sub:MissingBlock_Antecedentes"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ .
+ De esta manera resultan el output y los inputs filtrados de omitidos, o
+ simplemente filtrados sin más
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\check{Y}^{\left(k\right)}=Y^{\left(k\right)}+\delta^{v^{\left(k\right)}}\cdot v^{\left(k\right)}\end{array}\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\check{X}^{\left(k\right)}=X^{\left(k\right)}+\delta^{u^{\left(k\right)}}\cdot u^{\left(k\right)}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+La relación entre ambos es lo que define propiamente el segmento de regresión
+ lineal en los parámetros lineales 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\check{Y}^{\left(k\right)}=\check{X}^{\left(k\right)}\beta+w^{\left(k\right)}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El vector 
+\begin_inset Formula $w^{\left(k\right)}\in\mathbb{R}^{M_{k}}$
+\end_inset
+
+ es el que se llamará ruido ARIMA o ruido sin diferenciar del segmento.
+ Si se define la matriz 
+\begin_inset Formula $\triangle^{\left(k\right)}\in\mathbb{R}^{m_{k}\times M_{k}}$
+\end_inset
+
+ como el operador lineal de rango 
+\begin_inset Formula $m_{k}\leq M_{k}$
+\end_inset
+
+ de filtrado determinista, normalmente definido como la matriz de Toeplitz
+ correspondiente a un polinomio de raíces unitarias, se obtendrá el ruido
+ ARMA o ruido diferenciado 
+\begin_inset Formula $z^{\left(k\right)}\in\mathbb{R}^{m_{k}}$
+\end_inset
+
+ 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+z^{\left(k\right)}=\triangle^{\left(k\right)}w^{\left(k\right)}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si no hay estructuras de este tipo se establece 
+\begin_inset Formula $m_{k}=M_{k}$
+\end_inset
+
+ y 
+\begin_inset Formula $\triangle^{\left(k\right)}=I_{m_{k}}$
+\end_inset
+
+.
+ La distribución de este ruido ARMA viene dada por la ecuación en diferencias
+ del modelo ARMA
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Más detalles en el capítulo 
+\begin_inset LatexCommand ref
+reference "sub:ArmaBlock_Antecedentes"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\phi^{\left(k\right)}\left(B\right)z_{t}^{\left(k\right)}=\theta^{\left(k\right)}\left(B\right)e_{t}^{\left(k\right)}\\
+e^{\left(k\right)}\sim N\left(0,\sigma_{k}^{2}I_{m_{k}}\right)\end{array}\end{equation}
+
+\end_inset
+
+siendo 
+\begin_inset Formula $\sigma_{k}^{2}\in\mathbb{R}^{+}$
+\end_inset
+
+ el parámetro varianza
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Más detalles en 
+\begin_inset LatexCommand ref
+reference "sub:SigmaBlock_Antecedentes"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ de 
+\begin_inset Formula $e^{\left(k\right)}\in\mathbb{R}^{m_{k}}$
+\end_inset
+
+, los residuos incorrelados del segmento.
+ En algunos segmentos puede venir prefijado el valor de la varianza como
+ un dato a priori del modelo en lugar de como un parámetro a simular.
+\end_layout
+
+\begin_layout Standard
+Sea
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+ la matriz
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+
+\begin_inset Formula \begin{equation}
+\left.L^{\left(k\right)}\right.^{-1}=\frac{1}{\sigma_{k}}L^{-1}\left(\phi^{\left(k\right)},\theta^{\left(k\right)},m_{k}\right)\end{equation}
+
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+ de descomposición simétrica de la matriz de covarianzas del modelo ARMA
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Más detalles en 
+\begin_inset LatexCommand ref
+reference "sub:Condicionamiento-a-los-ARMA"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
+ Si se premultiplican por ella el output e input filtrados y diferenciados
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{'\left(k\right)}=\left.L^{\left(k\right)}\right.^{-1}\triangle^{\left(k\right)}\check{Y}^{\left(k\right)}\\
+X^{'\left(k\right)}=\left.L^{\left(k\right)}\right.^{-1}\triangle^{\left(k\right)}\check{X}^{\left(k\right)}\end{array}\end{equation}
+
+\end_inset
+
+se obtiene la expresión del segmento de regresión lineal estandarizada
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{'\left(k\right)}=X^{'\left(k\right)}\check{\beta}+\epsilon^{\left(k\right)}\\
+\epsilon^{\left(k\right)}\sim N\left(0,I_{m_{k}}\right)\end{array}\end{equation}
+
+\end_inset
+
+donde 
+\begin_inset Formula $\epsilon^{\left(k\right)}=\frac{1}{\sigma_{k}}e^{\left(k\right)}\in\mathbb{R}^{m_{k}}$
+\end_inset
+
+ son los residuos estandarizados del segmento.
+\end_layout
+
+\begin_layout Standard
+Si se definen de forma conjunta para todos los segmentos de regresión, los
+ vectores de output y residuos conjuntos y la matriz conjunta de inputs,
+ 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\left.Y^{'}\right.^{T}=\left(\left.Y^{'\left(1\right)}\right.^{T},\ldots,\left.Y^{'\left(K\right)}\right.^{T}\right)\\
+\epsilon^{T}=\left(\epsilon^{\left(1\right)T},\ldots,\epsilon^{\left(K\right)T}\right)\\
+X^{'}=\left(X^{'(1)},\ldots,X^{'(K)}\right)\end{array}\end{equation}
+
+\end_inset
+
+se obtiene la regresión lineal principal conjunta del modelo
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{'}=X^{'}\cdot\check{\beta}^{T}+\epsilon\\
+\epsilon\sim N\left(0,I_{m}\right)\\
+m={\displaystyle \sum_{k=1}^{K}m_{k}}\end{array}\end{equation}
+
+\end_inset
+
+donde el vector conjunto de parámetros estará sujeto opcionalmente a un
+ sistema de inecuaciones lineales arbirarias de la forma
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+C\cdot\check{\beta}\leq c\end{array}\end{equation}
+
+\end_inset
+
+siendo 
+\begin_inset Formula $C\in\mathbb{R}^{\rho\times n}$
+\end_inset
+
+ la matriz de coeficientes de restricción y 
+\begin_inset Formula $c\in\mathbb{R}^{\rho}$
+\end_inset
+
+ el vector de frontera, ambos conocidos y fijos
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Más detalles en 
+\begin_inset LatexCommand ref
+reference "sub:LinearBlock_Antecedentes"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En resumen, es posible clasificar los símbolos empleados asegún su papel
+ en la simulación
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Datos
+\emph default
+: vienen dados en la propia definición del modelo y son 
+\begin_inset Formula $C,c,Y^{\left(k\right)},X^{\left(k\right)},\triangle^{\left(k\right)},\delta^{v^{\left(k\right)}},\delta^{u^{\left(k\right)}}$
+\end_inset
+
+y algunos 
+\begin_inset Formula $\sigma_{k}^{2}$
+\end_inset
+
+ prefijados
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Parámetros
+\emph default
+: son los valores que se quieren simular para poder hacer luego inferencia
+ bayesiana sobre ellos o sobre funciones de ellos, lo cual incluye al resto
+ de los 
+\begin_inset Formula $\sigma_{k}^{2}$
+\end_inset
+
+ no prefijados y a 
+\begin_inset Formula $\beta,\alpha^{\left(k\right)},\phi^{\left(k\right)},\theta^{\left(k\right)},v^{\left(k\right)},u^{\left(k\right)}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Ruidos
+\emph default
+: son variables aleatorias cuya distribución se propone como hipótesis del
+ modelo y son 
+\begin_inset Formula $w^{\left(k\right)},z^{\left(k\right)},e^{\left(k\right)},\epsilon^{\left(k\right)}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+Filtros
+\emph default
+: son variables auxiliares que se hacen necesarias durante la simulación
+ de las diferentes componentes, como 
+\begin_inset Formula $\check{Y}^{\left(k\right)},\check{X}^{\left(k\right)},Y^{'\left(k\right)},X^{'\left(k\right)}$
+\end_inset
+
+y otras que irán surgiendo en la explicación detallada de cada bloque.
+\end_layout
+
+\begin_layout Section
+Extensiones de la clase de modelos BSR
+\end_layout
+
+\begin_layout Standard
+Esta clase de modelos recién presentada puede ser ampliada mediante comoposición
+ con otros modelos de tipo BSR o de otro tipo, como de bloques no lineales,
+ heterocedasticidad, etc.
+ De hecho, tanto la parte ARIMA como los omitidos podrían haber sido considerado
+s como extensiones de la clase de modelos lineales, pero la estrecha relación
+ entre todos estos bloques y las múltiples implicaciones entre sus respectivos
+ filtrados hacen que sean más eficientes los algoritmos si se consideran
+ dentro de un mismo marco.
+ Cuando quepa duda de sobre qué se está hablando se especificará bien la
+ clase básica de modelos BSR o bien la clase extendida de modelos BSR.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:El-modelo-jerárquico"
+
+\end_inset
+
+El modelo jerárquico lineal HLM
+\end_layout
+
+\begin_layout Standard
+A continuación se verá cómo el modelo jerárquico se puede expresar como
+ un caso particular de la clase de modelos recién descrita.
+\end_layout
+
+\begin_layout Standard
+Los nodos observacionales admitirían opcionalmente parte ARIMA, datos omitidos
+ y filtros no lineales.
+ Todos los parámetros de este nivel son propiedad exclusiva de cada nodo
+ observacional, incluidos los del bloque lineal, por lo que no hay ningún
+ parámetro en común entre nodos observacionales.
+\end_layout
+
+\begin_layout Standard
+La ecuación típica de un nodo latente es de la forma 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\vartheta\sim N\left(X\cdot\eta,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El símbolo 
+\begin_inset Formula $\eta$
+\end_inset
+
+ de los hiperparámetros del nodo latente formará parte del bloque lineal
+ 
+\begin_inset Formula $\beta$
+\end_inset
+
+ general del modelo y el símbolo 
+\begin_inset Formula $\vartheta$
+\end_inset
+
+ es un vector de parámetros del bloque lineal de nodos previamente definidos,
+ es decir, bien parámetros 
+\begin_inset Formula $\beta$
+\end_inset
+
+ o 
+\begin_inset Formula $\alpha$
+\end_inset
+
+
+\size larger
+\color red
+ 
+\size default
+\color inherit
+de nodos observacionales, o bien hiperparámetros 
+\begin_inset Formula $\eta$
+\end_inset
+
+ de nodos latentes previos.
+ La varianza 
+\begin_inset Formula $\sigma^{2}$
+\end_inset
+
+ puede ser un valor conocido dado o bien un parámetro a estimar, aunque
+ esto último puede dar problemas de convergencia si no hay suficiente superficie
+ de respuesta, es decir si hay pocas observaciones con respecto al número
+ de variables.
+ 
+\end_layout
+
+\begin_layout Standard
+Si se reescribe la ecuación del nodo latente de esta forma
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+0=\vartheta-X\cdot\eta+e\\
+e\sim N\left(0,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+es decir, si se define el vector de output como 
+\begin_inset Formula $0$
+\end_inset
+
+, entonces se puede escribir como un segmento de regresión de BSR muy simple,
+ sin parte ARIMA, ni datos omitidos ni filtro no lineal.
+\end_layout
+
+\begin_layout Standard
+La ecuación típica de un nodo a priori es de la forma 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\vartheta\sim N\left(\mu,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El símbolo 
+\begin_inset Formula $\vartheta$
+\end_inset
+
+ es un vector de parámetros del bloque lineal de nodos previamente definidos,
+ es decir, bien parámetros 
+\begin_inset Formula $\beta$
+\end_inset
+
+ o 
+\begin_inset Formula $\alpha$
+\end_inset
+
+
+\size larger
+\color red
+ 
+\size default
+\color inherit
+de nodo observacionales , o bien hiperparámetros 
+\begin_inset Formula $\eta$
+\end_inset
+
+ de nodos latentes previos.
+ La varianza 
+\begin_inset Formula $\sigma^{2}$
+\end_inset
+
+ suele ser un valor conocido dado en este tipo de nodos, aunque perfectamente
+ podría ser un parámetro a estimar, con los mismos problemas referidos para
+ los nodos latentes.
+\end_layout
+
+\begin_layout Standard
+Si se reescribe la ecuación del nodo latente de esta forma
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mu=\vartheta+e\\
+e\sim N\left(0,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+es decir, si se define el vector de output como 
+\begin_inset Formula $\mu$
+\end_inset
+
+, entonces se puede escribir como un segmento de regresión de BSR muy simple,
+ sin parte ARIMA, ni datos omitidos ni filtro no lineal.
+\end_layout
+
+\begin_layout Standard
+El bloque lineal de un modelo HLM tendría pues la siguiente forma de regresión
+ lineal con residuos independientes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\left(\begin{array}{c}
+Y^{O}\\
+Y^{L}\\
+Y^{P}\end{array}\right)=\left(\begin{array}{cc}
+X^{O} & 0\\
+\nabla_{O}^{L} & -X^{L}\\
+\nabla_{O}^{P} & \nabla_{L}^{P}\end{array}\right)\cdot\left(\begin{array}{c}
+\beta\\
+\vartheta\end{array}\right)+\left(\begin{array}{c}
+e^{O}\\
+e^{L}\\
+Ye^{P}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+Y=\left(\begin{array}{c}
+Y^{O}\\
+Y^{L}\\
+Y^{P}\end{array}\right)=\left(\begin{array}{c}
+Y^{O_{1}}\\
+\vdots\\
+Y^{O_{K_{O}}}\\
+0\\
+\vdots\\
+0\\
+\mu^{P_{1}}\\
+\vdots\\
+\mu^{P_{K_{P}}}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+X=\left(\begin{array}{cc}
+X^{O} & 0\\
+\nabla_{O}^{L} & X^{L}\\
+\nabla_{O}^{P} & \nabla_{L}^{P}\end{array}\right)=\left(\begin{array}{cccccc}
+X^{O_{1}} & \cdots & 0 & 0 & \cdots & 0\\
+\vdots & \ddots & \vdots & \vdots &  & \vdots\\
+0 & \cdots & X^{O_{K_{O}}} & 0 & \cdots & 0\\
+\nabla_{O_{1}}^{L_{1}} & \cdots & \nabla_{O_{K_{O}}}^{L_{1}} & -X^{L_{1}} & \cdots & 0\\
+\vdots &  & \vdots & \vdots & \ddots & \vdots\\
+\nabla_{O_{1}}^{L_{K_{L}}} & \cdots & \nabla_{O_{K_{O}}}^{L_{S_{L}}} & 0 & \cdots & -X^{L_{K_{L}}}\\
+\nabla_{O_{1}}^{P_{1}} & \cdots & \nabla_{O_{K_{O}}}^{P_{1}} & \nabla_{L_{1}}^{P_{1}} & \cdots & \nabla_{L_{K_{L}}}^{P_{1}}\\
+\vdots &  & \vdots & \vdots &  & \vdots\\
+\nabla_{O_{1}}^{P_{K_{P}}} & \cdots & \nabla_{O_{K_{O}}}^{P_{K_{P}}} & \nabla_{L_{1}}^{P_{K_{P}}} & \cdots & \nabla_{L_{K_{L}}}^{P_{K_{P}}}\end{array}\right)\label{eq:hlm_X_blocks}\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+e=\left(\begin{array}{c}
+e^{O}\\
+e^{L}\\
+e^{P}\end{array}\right)=\left(\begin{array}{c}
+e^{O_{1}}\\
+\vdots\\
+e^{O_{K_{O}}}\\
+e^{L_{1}}\\
+\vdots\\
+e^{L_{K_{L}}}\\
+e^{P_{1}}\\
+\vdots\\
+e^{P_{K_{P}}}\end{array}\right)\wedge e^{k}\sim N\left(0,\sigma_{k}^{2}I\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Los índices 
+\begin_inset Formula $O_{1}=1,\ldots,O_{K_{O}}$
+\end_inset
+
+ se refieren a los segmentos de regresión correspondientes a los nodos observaci
+onales, 
+\begin_inset Formula $L_{1}=O_{K_{O}}+1,\ldots,L_{K_{L}}=O_{K_{O}}+O_{K_{L}}$
+\end_inset
+
+ a los latentes y 
+\begin_inset Formula $P_{1}=O_{K_{O}}+O_{K_{L}+1},\ldots,P_{K_{P}}=K$
+\end_inset
+
+, de forma que todos los segmentos existentes son 
+\begin_inset Formula $K=K_{O}+K_{L}+K_{P}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Las dimensiones de los bloques son las siguientes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+X^{O_{j}}\in\mathbb{R}^{m_{O_{j}}\times n_{O_{j}}}\\
+X^{L_{j}}\in\mathbb{R}^{m_{L_{j}}\times n_{L_{j}}}\\
+\nabla_{i}^{L_{j}}\in\mathbb{R}^{m_{L_{j}}\times n_{O_{i}}}\\
+\nabla_{i}^{P_{j}}\in\mathbb{R}^{m_{P_{j}}\times n_{O_{i}}}\\
+n_{O}={\displaystyle \sum_{k=1}^{K_{O}}n_{O_{k}}}\wedge n_{L}={\displaystyle \sum_{k=1}^{K_{L}}n_{L_{k}}}\wedge n=n_{O}+n_{L}\\
+m_{O}={\displaystyle \sum_{k=1}^{K_{O}}m_{O_{k}}}\wedge m_{L}={\displaystyle \sum_{k=1}^{K_{L}}m_{L_{k}}}\wedge m_{P}={\displaystyle \sum_{k=1}^{K_{P}}m_{P_{k}}}\wedge m=m_{O}+m_{L}+m_{P}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Las matrices de coeficientes que ligan los nodos observacionales con los
+ latentes 
+\begin_inset Formula $\nabla_{O_{j}}^{L_{i}}$
+\end_inset
+
+ , al igual que las de 
+\begin_inset Formula $\nabla_{O_{j}}^{P_{i}}$
+\end_inset
+
+ y los 
+\begin_inset Formula $\nabla_{L_{j}}^{P_{i}}$
+\end_inset
+
+, son todas ellas diagonales con valores 1 ó 0 y estan conjuntamente restringida
+s a que sólo una de entre todas ellas puede tener un 1 en una fila dada,
+ y lo mismo para una columna específica.
+ Es decir, una variable sólo puede estar relacionada con una sola ecuación
+ de un nodo, bien latente bien a priori.
+ Es decir, el bloque de 
+\begin_inset Formula $X$
+\end_inset
+
+ 
+\begin_inset Formula \begin{equation}
+\nabla_{O}^{*}=\left(\begin{array}{c}
+\nabla_{O}^{L}\\
+\nabla_{O}^{P}\end{array}\right)\end{equation}
+
+\end_inset
+
+ tiene todas las celdas nulas excepto un máximo de 
+\begin_inset Formula $n_{O}$
+\end_inset
+
+ celdas iguales a 1.
+ Análogamente el bloque 
+\begin_inset Formula \begin{equation}
+\nabla_{*}^{P}=\left(\begin{array}{cc}
+\nabla_{O}^{P} & \nabla_{L}^{P}\end{array}\right)\end{equation}
+
+\end_inset
+
+tiene todas las celdas nulas excepto un máximo de 
+\begin_inset Formula $n=n_{O}+n_{L}$
+\end_inset
+
+ celdas iguales a 1; y al mismo tiempo 
+\begin_inset Formula $\nabla_{L}^{P}$
+\end_inset
+
+ tiene todas las celdas nulas excepto un máximo de 
+\begin_inset Formula $n_{L}$
+\end_inset
+
+.
+ La finalidad de estas restricciones es que se asegure que no existen ecuaciones
+ incongruentes entre sí para un mismo parámetro hijo.
+\end_layout
+
+\begin_layout Standard
+Se pone ahora de manifiesto la estructura sparse el modelo HLM de la que
+ se venía hablando anteriormente.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sec:El-modelo-jerárquico-combinado"
+
+\end_inset
+
+El modelo jerárquico lineal de output combinado HLM-OC
+\end_layout
+
+\begin_layout Standard
+Una generalización del modelo jerárquico que aparece de forma bastante natural
+ es aquella en la que el output de un nodo latente o a priori no es directamente
+ un único parámetro de un nodo hijo sino que puede ser cualquier combinación
+ lineal de parámetros hijo.
+ La estructura matricial de bloques es exactamente igual que la expresada
+ en la ecuación 
+\begin_inset LatexCommand ref
+reference "eq:hlm_X_blocks"
+
+\end_inset
+
+, sólo que ahora las matrices de bloque 
+\begin_inset Formula $\nabla_{*}^{*}$
+\end_inset
+
+ no tienen porqué ser de valores 1 ó 0, sino que pueden tener valores arbitrario
+s, aunque eso sí, se mantienen las mismas restricciones entre ellas, es
+ decir, si un parámetro aparece en uno de esos bloques no debería aparecer
+ en ningún otro, y además deben ser todas ellas de rango completo igual
+ al número de filas de cada una.
+\end_layout
+
+\begin_layout Standard
+La ecuación del nodo latente con output combinado sería de la forma 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\nabla\cdot\vartheta\sim N\left(X\cdot\eta,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+reescribible como
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+0=\nabla\cdot\vartheta-X\cdot\eta+e\\
+e\sim N\left(0,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+La ecuación del nodo a priori con output combinado sería de la forma 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\nabla\cdot\vartheta\sim N\left(\mu,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+reescribible como
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mu=\nabla\cdot\vartheta-X\cdot\eta+e\\
+e\sim N\left(0,\sigma^{2}I\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Resulta evidente que no deja de ser un caso particular de la clase de modelos
+ de BSR, e incluso lo seguiría siendo sin cumplir esas restricciones, las
+ cuales tienen por único objetivo el asegurar que los modelos son congruentes.
+ A veces, por comodidad, se relajará la notación y se llamará simplemente
+ modelo jerárquico a esta generalización.
+\end_layout
+
+\begin_layout Section
+Simulación de Gibbs
+\end_layout
+
+\begin_layout Standard
+El método de simulación de Gibbs
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Ver 
+\begin_inset LatexCommand cite
+key "Bayesian-Data-Analysis"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ consiste en tomar cada variable o bloque de variables del cual se conoce
+ un método de simulación para su distribución condicionada al resto de variables
+ del modelo.
+ Luego se actualizan los valores de ese bloque y toda aquella información
+ auxiliar derivada de las mismas para pasar a simular otro bloque.
+ Existen diversas estrategias para el orden de los bloques: ciclos, secuencias
+ simétricas, selección aleatoria simple, selección de permutaciones aleatorias,
+ etc.
+ Empíricamente se ha observado que el mejor orden para esta clase de modelos
+ es el siguiente:
+\end_layout
+
+\begin_layout Enumerate
+Bloques de output omitidos
+\end_layout
+
+\begin_layout Enumerate
+Bloques de input omitidos
+\end_layout
+
+\begin_layout Enumerate
+Bloques ARMA
+\end_layout
+
+\begin_layout Enumerate
+Bloque de varianzas
+\end_layout
+
+\begin_layout Enumerate
+Bloque lineal
+\end_layout
+
+\begin_layout Standard
+La simulación de cada bloque supone una serie de actuaciones sobre ciertas
+ componentes del modelo que se ven afectadas por los cambios en dicho bloque.
+ Por ejemplo, al cambiar los omitidos del output 
+\begin_inset Formula $v^{\left(k\right)}$
+\end_inset
+
+ se modifica el output filtrado 
+\begin_inset Formula $\check{Y}^{\left(k\right)}$
+\end_inset
+
+ y por tanto el diferenciado 
+\begin_inset Formula $Y^{'\left(k\right)}$
+\end_inset
+
+, y lo mismo le ocurre a éste último si se tocan los parámetros ARMA del
+ output.
+ Es de vital importancia por tanto que estén perfectamente identificados
+ todas las componentes auxiliares que comunican a unos bloques con otros
+ y que el orden de simulación esté perfectamente establecido para que los
+ condicionamientos se propaguen adecuadamente.
+\end_layout
+
+\end_body
+\end_document

@@ -1,0 +1,1482 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:BysMcmc"
+
+\end_inset
+
+BysMcmc
+\end_layout
+
+\begin_layout Standard
+Se describen los miembros y métodos generales del NameBlock BysMcmc cuyo
+ propósito es aglutinar todas las funcionalidades relacionadas con la inferencia
+ bayesiana basada en métodos de simulación MCMC (MonteCarlo Markov Chain)
+\end_layout
+
+\begin_layout Section
+Descripción
+\end_layout
+
+\begin_layout Standard
+El fichero principal de este apartado es 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_bysMcmc.tol"
+
+\end_inset
+
+, en el cual se define el 
+\series bold
+NameBlock BysMcmc
+\series default
+ que incluye métodos genéricos para el manejo de cadenas de Markov independiente
+mente del método concreto utilizado para generarlas e incluso de la clase
+ de modelos que se simulan.
+ Se encarga de la definición de la parte común a todos los bloques de variables
+ con sus correspondientes métodos de acceso y actualización, así como de
+ la logística del proceso de llamadas al simulador concreto que se esté
+ usando, el almacenamiento de la cadena en caché RAM y su escritura periódica
+ en disco y sus correspondientes mensajes de estado de proceso.
+ También incluye funciones de diagnosis sobre la convergencia de la cadena
+ de Markov y de inferencia sobre la misma, pero sólo de aquellos métodos
+ completamente genéricos, es decir, que son independientes de la clase de
+ modelos concreta y de todo tipo de semántica asociada a las variables.
+\end_layout
+
+\begin_layout Standard
+Por último, incluye el simulador la clase de modelos BSR y los de sus extensione
+s, que por el momento son las únicas con soporte en BysMcmc, aunque en el
+ futuro podrá haber otras clases de modelos estándar que cuelguen de aquí.
+ Por supuesto que el analista puede crear su propio simulador para una clase
+ concreta de modelos y llamar a los métodos de BysMcmc sin tener que incluirlo
+ dentro de este NameBlock.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sec:Opciones-del-sistema"
+
+\end_inset
+
+Opciones y configuración
+\end_layout
+
+\begin_layout Standard
+El miembro 
+\series bold
+NameBlock Options
+\series default
+ centraliza todas las opciones de los valores que pueden adoptar los parámetros
+ cualitativos de configuración de los distintos componentes de BysMcmc
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+//Configuration default values over all BysMcmc related components
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+  //Options used over all BysMcmc related components
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock Options =
+\end_layout
+
+\begin_layout Standard
+
+  [[
+\end_layout
+
+\begin_layout Standard
+
+    //Scalar samplers draws a univariant distribution given the logarithm
+ of
+\end_layout
+
+\begin_layout Standard
+
+    //density function and a domain interval
+\end_layout
+
+\begin_layout Standard
+
+    //The API of a scalar sampler  is given by a function like this
+\end_layout
+
+\begin_layout Standard
+
+    //  Real (Code logDens, Real x0, Real x1)
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock Scalar.Sampler = 
+\end_layout
+
+\begin_layout Standard
+
+    [[
+\end_layout
+
+\begin_layout Standard
+
+      Real Arms(Code logDens, Real x0, Real x1)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        ARMS(logDens, x0, x1)
+\end_layout
+
+\begin_layout Standard
+
+      };
+\end_layout
+
+\begin_layout Standard
+
+      Real Slice(Code logDens, Real x0, Real x1)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+        MatDat(SliceSampler1D(logDens, x0, x1),1,1)
+\end_layout
+
+\begin_layout Standard
+
+      }
+\end_layout
+
+\begin_layout Standard
+
+    ]]
+\end_layout
+
+\begin_layout Standard
+
+  ]];
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El miembro 
+\series bold
+NameBlock Config
+\series default
+ centraliza todos los parámetros de configuración de los distintos componentes
+ de BysMcmc que contiene los valores por defecto de cada uno de los parámetros
+ de configuración.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+//Configuration default values over all BysMcmc related components
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+  //Configuration default values over all BysMcmc related components
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock Config =
+\end_layout
+
+\begin_layout Standard
+
+  [[
+\end_layout
+
+\begin_layout Standard
+
+  //MCMC dimensions
+\end_layout
+
+\begin_layout Standard
+
+    //The final number realizations that will remain after burnin
+\end_layout
+
+\begin_layout Standard
+
+    Real mcmc.sampleLength = 2000;
+\end_layout
+
+\begin_layout Standard
+
+    //The frequency of simulation notifying and chain cache updating
+\end_layout
+
+\begin_layout Standard
+
+    Real mcmc.cacheLength = 100;
+\end_layout
+
+\begin_layout Standard
+
+    //The number of first realizations that will be skiped at inference
+ and 
+\end_layout
+
+\begin_layout Standard
+
+    //diagnostic time
+\end_layout
+
+\begin_layout Standard
+
+    Real mcmc.burnin = 100;
+\end_layout
+
+\begin_layout Standard
+
+    //Only one of each this number of simulations will be selected for 
+\end_layout
+
+\begin_layout Standard
+
+    //inference and diagnostic
+\end_layout
+
+\begin_layout Standard
+
+    Real mcmc.thinning = 1; //thinningg
+\end_layout
+
+\begin_layout Standard
+
+    //Maximum of time in seconds dedicated to simulation
+\end_layout
+
+\begin_layout Standard
+
+    //Process will be stoped after mcmc.sampleLength + mcmc.burnin 
+\end_layout
+
+\begin_layout Standard
+
+    //simulations or mcmc.maxTime seconds will be elapsed
+\end_layout
+
+\begin_layout Standard
+
+    Real mcmc.maxTime = 1/0;
+\end_layout
+
+\begin_layout Standard
+
+  //Basic master configuration
+\end_layout
+
+\begin_layout Standard
+
+    //If solution error is great than this value a warning will be shown
+\end_layout
+
+\begin_layout Standard
+
+    Real bsr.cholesky.epsilon = 1.E-13;
+\end_layout
+
+\begin_layout Standard
+
+    //The notifying frequency of Cholesky warning
+\end_layout
+
+\begin_layout Standard
+
+    Real bsr.cholesky.warningFreq = 100;
+\end_layout
+
+\begin_layout Standard
+
+    //The number of burnin realizations in Gibbs drawing of truncated 
+\end_layout
+
+\begin_layout Standard
+
+    //multinormal
+\end_layout
+
+\begin_layout Standard
+
+    Real bsr.truncMNormal.gibbsNumIter = 0;
+\end_layout
+
+\begin_layout Standard
+
+    //Scalar sampler used in ARMA block of basic BSR can be a member of
+ 
+\end_layout
+
+\begin_layout Standard
+
+    //BysMcmc::Options::Scalar.Sampler or an API equivalent function
+\end_layout
+
+\begin_layout Standard
+
+    Code bsr.scalarSampler.armaBlock = Options::Scalar.Sampler::Arms;
+\end_layout
+
+\begin_layout Standard
+
+    //Scalar sampler used in ARMA block of basic BSR can be a member of
+ 
+\end_layout
+
+\begin_layout Standard
+
+    //BysMcmc::Options::Scalar.Sampler or an API equivalent function
+\end_layout
+
+\begin_layout Standard
+
+    Code bsr.scalarSampler.nonLinBlock = Options::Scalar.Sampler::Arms;
+\end_layout
+
+\begin_layout Standard
+
+    //Arima filter method
+\end_layout
+
+\begin_layout Standard
+
+    Text bsr.arimaFilter = Options::Arima.Filter::FastChol;
+\end_layout
+
+\begin_layout Standard
+
+  //CODA and other diagnostic report configuration
+\end_layout
+
+\begin_layout Standard
+
+    //The quantile to be estimated in Raftery test
+\end_layout
+
+\begin_layout Standard
+
+    Real report.raftery.diag.q = 0.025;
+\end_layout
+
+\begin_layout Standard
+
+    //The desired margin of error of the estimate in Raftery test
+\end_layout
+
+\begin_layout Standard
+
+    Real report.raftery.diag.r = 0.007;  
+\end_layout
+
+\begin_layout Standard
+
+    //The probability of obtaining an estimate in the interval (q-r,q+r)
+ in 
+\end_layout
+
+\begin_layout Standard
+
+    //Raftery test
+\end_layout
+
+\begin_layout Standard
+
+    Real report.raftery.diag.s = 0.950;  
+\end_layout
+
+\begin_layout Standard
+
+    //Precision required for estimate of time to convergence in Raftery
+ test
+\end_layout
+
+\begin_layout Standard
+
+    Real report.raftery.diag.eps = 0.001;
+\end_layout
+
+\begin_layout Standard
+
+    //Lag of AutoCorrelation Function 
+\end_layout
+
+\begin_layout Standard
+
+    Real report.acf.lag= 20;
+\end_layout
+
+\begin_layout Standard
+
+    //Number of divisions in histograms
+\end_layout
+
+\begin_layout Standard
+
+    Real report.histogram.parts = 100;
+\end_layout
+
+\begin_layout Standard
+
+    //Number of divisions in kernel density aproximations
+\end_layout
+
+\begin_layout Standard
+
+    Real report.kerDens.points = 0;
+\end_layout
+
+\begin_layout Standard
+
+  //Generic flags
+\end_layout
+
+\begin_layout Standard
+
+    //Number of existent realizations to be recovered from disk
+\end_layout
+
+\begin_layout Standard
+
+    Real do.resume = 0;
+\end_layout
+
+\begin_layout Standard
+
+    //Enables or disables CODA and other diagnostic reports
+\end_layout
+
+\begin_layout Standard
+
+    Real do.report = True;
+\end_layout
+
+\begin_layout Standard
+
+    //Enables or disables in-sample evaluation of forecasting, filter, noise,
+ 
+\end_layout
+
+\begin_layout Standard
+
+    //residuals, ...
+\end_layout
+
+\begin_layout Standard
+
+    Real do.eval = True;
+\end_layout
+
+\begin_layout Standard
+
+    //Enables or disables in-sample evaluation of individual linear effects
+\end_layout
+
+\begin_layout Standard
+
+    Real do.linear.effects = True
+\end_layout
+
+\begin_layout Standard
+
+  ]];
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+GetCfgVal
+\series default
+ busca un parámetro en el NameBlock de configuración del usuario y, si no
+ lo encuentra, devuelve esl valor por defecto definido en BysMcmc::Config
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+//Searches a parameter in the user defined configuration NameBlock and,
+ if
+\end_layout
+
+\begin_layout Standard
+
+//not exists returns default value of BsyMcmc::Config
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+Anything GetCfgVal(NameBlock config, Text member)
+\end_layout
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\begin_layout Standard
+
+  StdLib::GetConfigValue(config,member,Eval("BysMcmc::Config::"+member))
+\end_layout
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sub:Nameblock-BysMcmc::BuildCycler()"
+
+\end_inset
+
+Método NameBlock BysMcmc::BuildCycler()
+\end_layout
+
+\begin_layout Standard
+En 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_build.tol"
+
+\end_inset
+
+ se define este método fundamental de la clase usada para obtener el constructor
+ y manejador de la cadena de Markov, el cual se ocupa de la logística de
+ almacenamiento y trazado del proceso, de forma independiente del algoritmo
+ de simulación, siendo el propio BSR un caso particular, el cual será el
+ argumento principal (
+\series bold
+NameBlock modelSampler
+\series default
+) de este método, debiendo contener la siguiente API obligatoria:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+//Identificador del modelo
+\end_layout
+
+\begin_layout Standard
+
+Text get.name (Real unused)
+\end_layout
+
+\begin_layout Standard
+
+//Identificador de la sesión de trabajo
+\end_layout
+
+\begin_layout Standard
+
+Text get.session (Real unused)
+\end_layout
+
+\begin_layout Standard
+
+//Camino donde se almacena la cadena de Markov en formato binario BBM
+\end_layout
+
+\begin_layout Standard
+
+Text get.path (Real unused)
+\end_layout
+
+\begin_layout Standard
+
+//Nombres de los parámetros de la cadena de Markov
+\end_layout
+
+\begin_layout Standard
+
+Set get.colNames (Real unused)
+\end_layout
+
+\begin_layout Standard
+
+//Simula una realización de la cadena de Markov
+\end_layout
+
+\begin_layout Standard
+
+Matrix draw (Real numSim)
+\end_layout
+
+\begin_layout Standard
+
+//Evalúa los componentes (filtro, ruido, residuos, previsión, ...) de cada
+ 
+\end_layout
+
+\begin_layout Standard
+
+//segmento de la regresión para un vector concreto de parámetros.
+\end_layout
+
+\begin_layout Standard
+
+//Este método no es necesario para la simulación pero sí es recomendable
+ 
+\end_layout
+
+\begin_layout Standard
+
+//para su posterior diagnosis e inferencia.
+\end_layout
+
+\begin_layout Standard
+
+Set eval(Matrix values) 
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El argumento del método es 
+\series bold
+NameBlock config
+\series default
+ centraliza todos los parámetros de configuración de los distintos componentes,
+ es decir, los de BysMcmc::Config vistos en la sección anterior.
+ Sólo es preciso incluir aquellos que se quieran cambiar, aunque no hay
+ ningún problema en explicitar los valores por defecto.
+ Usualmente se deseará modificar al menos los parámetros de configuración
+ de la longitud de la cadena, por ejemplo así 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+NameBlock my_config =
+\end_layout
+
+\begin_layout Standard
+
+[[
+\end_layout
+
+\begin_layout Standard
+
+  Real mcmc.burnin        =  500;
+\end_layout
+
+\begin_layout Standard
+
+  Real mcmc.sampleLength  = 5000
+\end_layout
+
+\begin_layout Standard
+
+]];
+\end_layout
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El último argumento del método es 
+\series bold
+NameBlock notifier
+\series default
+, el cual se utiliza como canal especializado de notificaciones de eventos
+ relacionados con la, como puede ser una base de datos (Ver 
+\series bold
+NameBlock dbNotifier
+\series default
+ en la función 
+\series bold
+BysMcmc::Bsr::DynHlm::DBApi::Estim
+\series default
+ de 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.estim.tol"
+
+\end_inset
+
+) , una barra de progreso en una interfaz gráfica, o cualquier otro sistema
+ especializado que cumpla la API obligatoria:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+//////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+//Notifica la inicialización de la cadena de Markov, 
+\end_layout
+
+\begin_layout Standard
+
+//informando del número de variables y el path de almacenamiento
+\end_layout
+
+\begin_layout Standard
+
+Real initializing(Real numVar, Text path)
+\end_layout
+
+\begin_layout Standard
+
+//Notifica que se está simulando la realización 
+\end_layout
+
+\begin_layout Standard
+
+//numSim de la cadena de Markov
+\end_layout
+
+\begin_layout Standard
+
+Real simulating(Real numSim)
+\end_layout
+
+\begin_layout Standard
+
+///////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El NameBlock devuelto por 
+\family typewriter
+\series bold
+BysMcmc::BuildCycler
+\family default
+\series default
+ cuenta con una serie de métodos y miembros que permiten crear y manejar
+ con comodidad las cadenas de Markov.
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+Real generate(Real sampleLength)
+\series default
+ genera la cadena de Markov y la almacena temporalmente en una matriz en
+ memoria que se irá añadiendo, con llamadas a la función built-in 
+\series bold
+MatAppendFile,
+\series default
+ al fichero binario permanente cada cierto número de simulaciones dado por
+ el valor del campo 
+\series bold
+Real cacheLength_
+\series default
+, cuyo valor por defecto es 100 pero que el usuario puede cambiar a su antojo.
+ Este campo también define la frecuencia con que ocurren las notificaciones
+ de la simulación en curso.
+ Normalmente el número de simulaciones que se le pasará será 
+\series bold
+mcmc.burnin+mcmc.sampleLength*mcmc.thinning
+\series default
+.
+ Si se supera el tiempo máximo 
+\series bold
+mcmc.maxTime
+\series default
+, entonces se finalizará la simulación aunque no se hayan realizado todas
+ las muestras requeridas.
+\end_layout
+
+\begin_layout Standard
+Mediante el campo 
+\series bold
+Real resume_
+\series default
+, que por defecto está deshabilitado, es posible especificar que se reutilicen
+ las realizaciones de una cadena de Markov previamente simulada y almacenada
+ en disco, en un archivo con el mismo camino actual, para no perder el trabajo
+ realizado tras cualquier circunstancia que aborte la simulación.
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+Matrix loadMcmc(Real burnin, Real length, Real thinin)
+\series default
+ recarga un total de 
+\series bold
+length
+\series default
+ simulaciones de una cadena de Markov previamente almacenada descartando
+ las 
+\series bold
+burnin
+\series default
+ primeras simulaciones y extrayendo del resto una de cada 
+\series bold
+thinin
+\series default
+.
+ Esto permite hacer inferencia con diferentes submuestras para contrastar
+ los resultados.
+\end_layout
+
+\begin_layout Standard
+El método 
+\series bold
+Set report(Real burnin, Real length, Real thinin)
+\series default
+ devuelve un informe de diagnosis e inferencia básica (ver 
+\begin_inset LatexCommand ref
+reference "sub:BysMcmc::Inference"
+
+\end_inset
+
+) sobre la subcadena construida según se indica en el párrafo anterior.
+ El miembro 
+\series bold
+bysInf_
+\series default
+ permite modificar la configuración de dicho informe y tiene la estructura
+ 
+\series bold
+BysInf.Report.Config
+\series default
+ que se puede ver en 
+\begin_inset LatexCommand url
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_structs.tol"
+
+\end_inset
+
+ y que se comentarán más adelante en
+\begin_inset LatexCommand ref
+reference "sub:BysMcmc::Inference"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Antes de comenzar a simular se almacena en un fichero 
+\series bold
+*.recover.oza
+\series default
+ la información necesaria para poder hacer informes parciales de la cadena
+ MCMC sin necesidad de esperar a que acabe la simulación.
+ Este fichero se recarga con el método 
+\series bold
+BysMcmc::Get.Recover
+\series default
+ o bien se puee llamar directamente a 
+\series bold
+BysMcmc::RecoveAndReport
+\series default
+ para que lo recupere y lance el informe con 
+\series bold
+report
+\series default
+.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sub:Nameblock-BysMcmc::DefineBlock()"
+
+\end_inset
+
+Método NameBlock BysMcmc::DefineBlock()
+\end_layout
+
+\begin_layout Standard
+En 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_defineBlock.tol"
+
+\end_inset
+
+ se define este método que crea el manejador de la información común a cada
+ bloque de variables de una MCMC, como el conjunto indexado de los nombres
+ de los parámetros, que deben ser únicos, para poder acceder por nombre
+ a los mismos; una matriz para almacenar los valores en curso de los parámetros;
+ las posiciones de ubicación de los mismos dentro de la cadena MCMC completa;
+ un flag para habilitar o deshabilitar el bloque, etc.
+\end_layout
+
+\begin_layout Standard
+Se trata de un método de uso interno del sistema por lo que el usuario final
+ no necesita acceder nunca a este miembro.
+\end_layout
+
+\begin_layout Standard
+El programador de un nuevo simulador debería fijarse en cómo se usa en el
+ caso de los bloques de BSR para crear sus propios bloques de simulación.
+ 
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sub:BysMcmc::_.cmsg"
+
+\end_inset
+
+Miembro BysMcmc::_.cmsg
+\end_layout
+
+\begin_layout Standard
+En el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_cmsgs.tol"
+
+\end_inset
+
+ se define este miembro que incluye los mensajes de error empleados por
+ los métodos propios y los de los NameBlock hijos que lo precisen.
+ Es de uso interno del sistema por lo que el usuario no necesita acceder
+ nunca a este miembro.
+ Se hace uso del paquete 
+\series bold
+CMsg::Coded
+\series default
+ implementado en 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/general/system/cmsg/_coded.tol"
+
+\end_inset
+
+.
+ Los mensajes codificados como 
+\series bold
+
+\begin_inset Quotes eld
+\end_inset
+
+Stop
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+ se entienden como errores irrecuperables del proceso de compilación TOL
+ que se estuviera llevando a cabo, y provocarán la parada inmediata del
+ mismo mediante la orden 
+\series bold
+Real Stop
+\series default
+, para no perder más tiempo, pues ya es seguro que no se va a llegar a ninguna
+ parte, e incluso es posible que de esta forma se proteja al ejecutable
+ de una caída incontrolada.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sub:BysMcmc::Inference"
+
+\end_inset
+
+Método BysMcmc::Inference
+\end_layout
+
+\begin_layout Standard
+En 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_inference.tol"
+
+\end_inset
+
+ se define este miembro que incluye los métodos para la diagnosis e inferencia
+ bayesianas a partir de cadenas de Markov previamente simuladas definidos
+ en el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_inference_functions.tol"
+
+\end_inset
+
+.
+ Todos los métodos se llaman internamente salvo el método 
+\series bold
+report,
+\series default
+ que les llama al resto y es a su vez llamado por el estimador al final
+ de la simulación, y el 
+\series bold
+compare.reports
+\series default
+ que puede ser usado manualmente por el analista para comparar los informes
+ de dos cadenas de simulaciones sobre el mismo modelo con los mismos parámetros.
+ El contenido de un informe devuelto por 
+\series bold
+report
+\series default
+ es el siguiente
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Text name
+\series default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set colNames
+\series default
+: Nombres de las variables de la cadena de Markov
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set repCfg
+\series default
+: Parámetros de configuración usados
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Matrix mcmc
+\series default
+: la cadena de Markov en la que cada fila es una simulación concreta y cada
+ columna se refiere al parámetro de la misma posición en colNames
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set sample
+\series default
+: conjunto de matrices columna extraídas de la anterior para facilitar la
+ visualización gráfica de la cadena de Markov de cada variable.
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set coda.raftery.diag
+\series default
+: Una tabla con una fila para el resultado del test de Raftery de CODA 
+\begin_inset LatexCommand cite
+key "CODA-Convergence-diagnosis-output-analysis"
+
+\end_inset
+
+ de cada variable con la estructura 
+\series bold
+BysInf.Coda.Diag.Raftery
+\series default
+ que se puede ver en 
+\begin_inset LatexCommand url
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_structs.tol"
+
+\end_inset
+
+.
+ Los campos del miembro 
+\series bold
+bysInf_
+\series default
+ que comienzan por 
+\series bold
+raftery.diag.
+
+\series default
+ afectan al test de Raftery según se explica en la documentación de CODA.
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set coda.summary
+\series default
+: Una tabla con una fila para el resultado del sumario CODA 
+\begin_inset LatexCommand cite
+key "CODA-Convergence-diagnosis-output-analysis"
+
+\end_inset
+
+ de cada variable con la estructura 
+\series bold
+BysInf.Coda.Summary.Stats
+\series default
+ que se puede ver en 
+\begin_inset LatexCommand url
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_structs.tol"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set acf
+\series default
+: Los 
+\series bold
+bysInf_->acf.lag_
+\series default
+ primeros términos de la función de autocorrelación observada de la cadena
+ de Markov de cada parámetro
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set histogram
+\series default
+: Histograma de frecuencias de 
+\series bold
+bysInf_->histogram.parts_
+\series default
+ partes de la cadena de Markov de cada parámetro
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set acf
+\series default
+: Función de autocorrelación observada de la cadena de Markov de cada parámetro
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+Set kerDens
+\series default
+: Aproximación kernel-density de la densidad de probabilidad de la cadena
+ de Markov de cada parámetro.
+ Por defecto está deshabilitada porque lleva bastante tiempo de cálculo
+ y a menudo no se utiliza para nada.
+ Si se desea analizar hay que cambiar 
+\series bold
+bysInf_->kerDens.points
+\series default
+ de 0 al número de puntos en los que se quiera evaluar la densidad aproximada,
+ antes de llamar a 
+\series bold
+report
+\series default
+.
+\end_layout
+
+\begin_layout Standard
+El metodo 
+\series bold
+loadAndReport
+\series default
+ permite recuperar de disco una cadena MCMC y efectuar el informe llamando
+ a 
+\series bold
+report
+\series default
+ con ella.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+\begin_inset LatexCommand label
+name "sub:BysMcmc::Bsr"
+
+\end_inset
+
+Método BysMcmc::Bsr
+\end_layout
+
+\begin_layout Standard
+En 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/_bsr.tol"
+
+\end_inset
+
+ se define este miembro que incluye el simulador específico de BSR que se
+ ocupa de todo el manejo específico de la clase de modelos BSR y que consta
+ a su vez de otros tres ficheros
+\end_layout
+
+\begin_layout Itemize
+En 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_gibbs.tol"
+
+\end_inset
+
+ se define el miembro 
+\series bold
+NameBlock BysMcmc::Bsr::Gibbs
+\series default
+ que incluye el simulador de Gibbs de BSR propiamente dicho que se explica
+ en detalle en 
+\begin_inset LatexCommand ref
+reference "cha:BysMcmc::Bsr::Gibbs"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+En 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/_import.tol"
+
+\end_inset
+
+ se define el miembro 
+\series bold
+NameBlock BysMcmc::Bsr::Import
+\series default
+ que contiene la API genérica de definición de modelos de BSR cuya descripción
+ se encuentra en 
+\begin_inset LatexCommand ref
+reference "cha:BysMcmc::Bsr::Import"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+En 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_dynhlm.tol"
+
+\end_inset
+
+ se define el miembro 
+\series bold
+NameBlock BysMcmc::Bsr::DynHlm
+\series default
+ que contiene la API de definición de modelos de la clase restringida al
+ caso jerárquico lineal HLM dinámico, en el sentido de que las observaciones
+ ocurren en el tiempo.
+ Para un estudio en profundidad de este tema ver 
+\begin_inset LatexCommand ref
+reference "cha:BysMcmc::Bsr::DynHlm"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Otro componente fundamental de BSR es la API de definición de modelos en
+ ficheros de datos ASCII con formato .bsr, el cual está implementado en la
+ función built-in C++ de TOL Bsr.Parse que se describe en 
+\begin_inset LatexCommand ref
+reference "cha:El-formato-ASCII-BSR"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

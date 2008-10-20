@@ -1,0 +1,859 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:El-bloque-lineal"
+
+\end_inset
+
+El bloque lineal con restricciones lineales
+\end_layout
+
+\begin_layout Standard
+Casi todos los modelos de regresión contienen uno o varios bloques lineales
+ que suelen acumular la mayor parte de las variables por lo que es imprescindibl
+e atacar su simulación de la manera más eficiente posible, especialmente
+ si se trata de matrices sparse como es bastante habitual, sobre todo en
+ modelos estructurados como los modelos jerárquicos o las redes bayesianas.
+ También es muy importante poder forzar restricciones en forma de inecuaciones
+ sobre los parámetros de este bloque lineal.
+ Para ello es necesario manejar algoritmos sumamente eficientes de generación
+ de multinormales truncadas, descomposiciones de Cholesky y resolución de
+ sistemas lineales sparse y densos, que permitan al mismo tiempo conjugarse
+ con otros bloques de variables (Sigma, ARMA, Missing, ...) dentro del marco
+ del método de simulación de Gibbs.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:LinearBlock_Antecedentes"
+
+\end_inset
+
+Descripción
+\end_layout
+
+\begin_layout Standard
+Sea el modelo de regresión lineal estandarizada de rango completo con restriccio
+nes lineales
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y=X\cdot\beta+\varepsilon\\
+C\cdot\beta\leq c\\
+\varepsilon\sim N\left(0,I\right)\\
+Y,\varepsilon\in\mathbb{R}^{m}\\
+\beta\in\mathbb{R}^{n}\wedge X\in\mathbb{R}^{m\times n}\\
+c\in\mathbb{R}^{\rho}\wedge C\in\mathbb{R}^{\rho\times n}\\
+m>n\\
+rank\left(X\right)=n\end{array}\end{equation}
+
+\end_inset
+
+donde 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\beta$
+\end_inset
+
+ son los parámetros a estimar de la regresión,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $n$
+\end_inset
+
+ es el número de parámetros a estimar de la regresión,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $m$
+\end_inset
+
+ es el número de datos de contraste del modelo y ha de ser mayor que el
+ de variables,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\rho$
+\end_inset
+
+ es el número de restricciones de inecuaciones lineales,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Y$
+\end_inset
+
+ es la matriz de output estandarizado del modelo y es completamente conocida,
+ aunque puede cambiar de una simulación para otra si estamos en el marco
+ de una simulación de Gibbs con más bloques involucrados.
+ Para estandarizarla normalmente se habrá dividido previamente cada segmento
+ por su correspondiente parámetro de desviación típica, y también se habrá
+ filtrado eventualmente de las partes no lineales: ARMA, omitidos, etc.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $X$
+\end_inset
+
+ es la matriz de iputs del modelo y es completamente conocida y de rango
+ completo, aunque puede cambiar de una simulación para otra lo mismo que
+ el output.
+ Para estandarizarla normalmente se hará igual que con el output.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\varepsilon$
+\end_inset
+
+ son los residuos estandarizados del modelo cuya distribución se propone
+ como hipótesis principal del mismo,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $C$
+\end_inset
+
+ es la matriz de coeficientes de restricción, que es conocida y también
+ podría cambiar en cada simulación
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $c$
+\end_inset
+
+ es el vector de frontera de restricción que es igualmente conocida aunque
+ no necesariamente fija.
+ 
+\end_layout
+
+\begin_layout Section
+Simulación del bloque lineal de rango completo
+\end_layout
+
+\begin_layout Standard
+Condicionando a la varianza 
+\begin_inset Formula $\sigma^{2}$
+\end_inset
+
+, la distribución de 
+\begin_inset Formula $\beta$
+\end_inset
+
+ es de sobras conocida y no ofrece mayores dificultades a nivel teórico,
+ pues se trata simplemente de una multinormal truncada
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\beta\sim TN\left(\mu,\sigma^{2}\Sigma,C\cdot\beta\leq c\right)\end{array}\end{equation}
+
+\end_inset
+
+o bien una multinormal sin truncar si no hay restricciones, es decir, si
+ 
+\begin_inset Formula $\rho=0$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\beta\sim N\left(\mu,\sigma^{2}\Sigma\right)\end{array}\end{equation}
+
+\end_inset
+
+En ambos casos la media y la matriz de covarianzas son las mismas
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\Sigma=\left(X^{T}\cdot X\right)^{-1}\\
+\mu=\Sigma\cdot X^{T}\cdot Y\end{array}\label{eq:media-cov-bloque-lineal}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si se dispone de una descomposición simétrica de la matriz de información,
+ como podría ser la de Cholesky o cualquier otra que cumpla
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+X^{T}\cdot X=L\cdot L^{T}\\
+\Sigma=L^{-T}\cdot L^{-1}\end{array}\end{equation}
+
+\end_inset
+
+entonces es posible definir el cambio de variable de estandarización
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\beta=L^{-T}\cdot z+\mu\\
+z=L^{T}\cdot\left(\beta-\mu\right)\\
+E\left[z\right]=0\\
+Cov\left[z\right]=L^{T}\cdot\Sigma\cdot L=I\end{array}\label{eq:muestreo-bloque-lineal-sin-restricciones}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Las restricciones sobre esta nueva variable quedarían así
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+C\cdot\left(L^{-T}\cdot z+\mu\right)\leq c\\
+C\cdot L^{-T}\cdot z\leq c-C\cdot\mu\end{array}\end{equation}
+
+\end_inset
+
+y definiendo
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+D=C\cdot L^{-T}\\
+d=c-C\cdot\mu\end{array}\end{equation}
+
+\end_inset
+
+se obtiene que la distribución de es una multinormal independiente truncada
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+z\sim TN\left(0,I,D\cdot z\leq d\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Algoritmo de factorización
+\end_layout
+
+\begin_layout Standard
+Aunque a nivel teórico el método presentado no ofrece gran dificultad, no
+ es trivial obtener la descomposición de Cholesky de una forma eficiente
+ cuando el número de datos 
+\begin_inset Formula $m$
+\end_inset
+
+ y sobre todo el de variables 
+\begin_inset Formula $n$
+\end_inset
+
+ empiezan a crecer.
+ Para empezar, algo tan aparentemente inofensivo como el producto 
+\begin_inset Formula $X^{T}\cdot X$
+\end_inset
+
+ precisa nada menos que de 
+\begin_inset Formula $n^{2}\cdot m$
+\end_inset
+
+ productos y 
+\begin_inset Formula $n^{2}\cdot\left(m-1\right)$
+\end_inset
+
+ sumas de números reales.
+ Con unos pocos cientos de variables y apenas unos miles de datos se va
+ a los centenares de millones de operaciones.
+ Cuando 
+\begin_inset Formula $X$
+\end_inset
+
+ es fija a lo largo de las simulaciones no tiene ninguna importancia, pero
+ si no es así hay que repetir el proceso miles o decenas de miles de veces
+ con lo cual se alcanza sin dificultad los billones de operaciones aritméticas.
+\end_layout
+
+\begin_layout Standard
+Si 
+\begin_inset Formula $X$
+\end_inset
+
+ cambia dependiendo de forma univariante o como mucho bivariante es posible
+ utilizar un método de interpolación para ahorrar tiempo de computación.
+ Este es el caso de la matriz de diseño extendido de un nodo observacional
+ dentro de un modelo jerárquico.
+\end_layout
+
+\begin_layout Standard
+Si 
+\begin_inset Formula $X$
+\end_inset
+
+ es sparse entonces existen métodos de descomposición de 
+\begin_inset Formula $X^{T}\cdot X$
+\end_inset
+
+ sin necesidad de construir explícitamente el producto.
+ Concretamente el paquete CHOLMOD 
+\begin_inset LatexCommand cite
+key "Cholmod_User_Guide"
+
+\end_inset
+
+ dispone de un método muy eficiente tanto en la descomposición, como en
+ la resolución de los sistemas triangulares asociados.
+\end_layout
+
+\begin_layout Standard
+Para el cálculo de 
+\begin_inset Formula $\mu$
+\end_inset
+
+ conviene disponer los cálculos así
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mu=L^{-T}\cdot\left(L^{-1}\cdot\left(Y^{T}\cdot X\right)\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Algoritmo de factorización precondicionada
+\end_layout
+
+\begin_layout Standard
+Cuando la cadena de Markov ha convergido es de esperar que no haya grandes
+ diferencias entre las matrices 
+\begin_inset Formula $L$
+\end_inset
+
+ de simulaciones consecutivas.
+ Si es así puede ser de gran ayuda usar la descomposición 
+\begin_inset Formula $L_{0}$
+\end_inset
+
+ de la iteración anterior como precondicionador de la actual, puesto que
+ se tendrá lo siguiente
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\dot{X}=X\cdot L_{0}\\
+\dot{X}^{T}\cdot\dot{X}=\dot{L}\cdot\dot{L}^{T}\simeq I\end{array}\end{equation}
+
+\end_inset
+
+lo cual hace suponer que las 
+\begin_inset Formula $\dot{X}$
+\end_inset
+
+ y 
+\begin_inset Formula $\dot{L}$
+\end_inset
+
+ transformadas son más sparse que las correspondientes matrices originales,
+ y por tanto más rápidas de factorizar.
+ Es posible que para que realmente sean sparse sea necesario truncar los
+ valores próximos a 0 según un parámetro de tolerancia predefinido.
+ Esto será útil también independientemente de que se precondicione o no,
+ si existen circunstancias que provoquen valores próximos a 0 que puedan
+ ser truncados, como por ejemplo si existe parte ARMA, puede ocurrir que
+ variables originalmente sparse se conviertan en falsas densas con valores
+ cercanos a 0.
+ Una vez realizada esta factorización se obtendrá la original teniendo en
+ cuenta que
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+X^{T}\cdot X=L_{0}^{-T}\cdot\dot{X}^{T}\cdot\dot{X}\cdot L_{0}^{-1}=L_{0}^{-T}\cdot\dot{L}\cdot\dot{L}^{T}\cdot L_{0}^{-1}\end{array}\end{equation}
+
+\end_inset
+
+es decir
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+L=L_{0}^{-T}\cdot\dot{L}\\
+L^{-1}=\dot{L}^{-1}\cdot L_{0}^{T}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En principio no sería necesario tampoco actualizar la 
+\begin_inset Formula $L_{0}$
+\end_inset
+
+ en cada iteración sino tras un determinado número de iteraciones que incluso
+ podría ser creciente conforme la cadena se va estabilizando.
+ Un criterio razonable es el tiempo que lleva el cálculo realizado con precondic
+ionamiento con respecto al tiempo que llevó la última vez que se factorizó
+ la matriz 
+\begin_inset Formula $X^{T}\cdot X$
+\end_inset
+
+ original.
+ Mientras el tiempo sea sustancialmente menor merecerá la pena continuar
+ con la misma matriz de precondicionamiento.
+ Si ya la primera iteración cuesta más o apenas poco menos el método de
+ factorización original, entonces se vuelve a este durante un número dado
+ de iteraciones.
+ Si este número se define como infinito o simplementente mayor que la longitud
+ de la cadena, entonces nunca se intenta el método precondicionado y todo
+ queda como estaba.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:Algoritmo-de-simulación-trunc-multi-normal"
+
+\end_inset
+
+Algoritmo de simulación de la multinormal estandarizada truncada
+\end_layout
+
+\begin_layout Standard
+El algoritmo utilizado para generar los 
+\begin_inset Formula $z$
+\end_inset
+
+ está basado en el 
+\emph on
+Sampler TN2
+\emph default
+ descrito en las páginas 9-11 del artículo 
+\begin_inset LatexCommand cite
+key "Efficient_Gibbs_Sampling_Truncated_Multivariate_Normal"
+
+\end_inset
+
+, y de hecho es conceptualmente idéntico salvo que en la implementación
+ de la fórmula 24 se evitan los productos 
+\begin_inset Formula $D_{-j}\cdot z_{-j}$
+\end_inset
+
+ actualizando el vector 
+\begin_inset Formula $D\cdot z$
+\end_inset
+
+ que se calcula sólo una vez al principio.
+\end_layout
+
+\begin_layout Standard
+El algoritmo es el siguiente
+\end_layout
+
+\begin_layout Enumerate
+Se parte de un vector 
+\begin_inset Formula $z$
+\end_inset
+
+ que cumple las restricciones 
+\begin_inset Formula $D\cdot z\leq d$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se calcula y almacena el producto 
+\begin_inset Formula $\zeta=D\cdot z\in\mathbb{R}^{\rho}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Para cada columna 
+\begin_inset Formula $j=1\ldots n$
+\end_inset
+
+ de 
+\begin_inset Formula $D$
+\end_inset
+
+ se siguen los siguientes pasos
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+Se extrae el vector 
+\begin_inset Formula $\zeta^{j}=\left(D_{j,1}\cdot z_{j},\ldots,D_{j,r}\cdot z_{j}\right)^{T}\in\mathbb{R}^{r}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se calcula 
+\begin_inset Formula $\zeta^{-j}=\zeta-\zeta^{j}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se calcula el límite inferior 
+\begin_inset Formula $\begin{array}{c}
+\lambda_{j}=\underset{i=1\ldots\rho}{\max}\left\{ \left.\frac{d_{i}-\zeta_{-j}}{D_{i,j}}\right|D_{i,j}<0\right\} \end{array}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se calcula el límite superior 
+\begin_inset Formula $\begin{array}{c}
+\kappa_{j}=\underset{i=1\ldots\rho}{\min}\left\{ \left.\frac{d_{i}-\zeta_{i}^{-j}}{D_{i,j}}\right|D_{i,j}>0\right\} \end{array}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se simula la normal truncada estándar univariante 
+\begin_inset Formula $\xi_{j}\sim TN\left(0,1,\lambda_{j},\kappa_{j}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se modifica 
+\begin_inset Formula $\zeta\leftarrow\zeta^{-j}+\left(D_{j,1}\cdot\xi_{j},\ldots,D_{j,r}\cdot\xi_{j}\right)^{T}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Se modifica la componente igualándola al valor simulado 
+\begin_inset Formula $z_{j}\leftarrow\xi_{j}$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Subsection
+Inicialización de la cadena de Markov con una solución factible
+\end_layout
+
+\begin_layout Standard
+
+\size large
+\color red
+Pendiente!!
+\end_layout
+
+\begin_layout Section
+Descomposición de bloques lineales
+\end_layout
+
+\begin_layout Standard
+Cuando el bloque lineal de un modelo tiene demasiadas variables puede ser
+ necesario dividirlo en varias partes para acometerlo bien secuencialmente
+ o bien en paralelo si sus dimensiones sobrepasan la capacidad de la máquina
+ y el diseño del modelo lo permite.
+\end_layout
+
+\begin_layout Subsection
+Descomposición del modelo jerárquico
+\end_layout
+
+\begin_layout Standard
+El modelo jerárquico HLM presentado en 
+\begin_inset LatexCommand ref
+reference "sub:El-modelo-jerárquico"
+
+\end_inset
+
+, es un caso típico de modelo divisible de forma natural.
+ Cada nodo observacional es independiente del resto de nodos observacionales
+ y está relacionado con una reducida selección de ecuaciones de los nodos
+ latentes y a priori de forma exclusiva, es decir, cada ecuación latente
+ o a priori sólo afecta a un nodo observacional como máximo, ya que alternativam
+ente podría afectar a un nodo latente.
+ Aunque esto mismo se podría decir para los nodos latentes de cada nivel
+ con respecto al nivel superior, lo normal es que, en los modelos masivos
+ donde puede ser interesante la descomposición, el tamaño relativo de la
+ parte latente y a priori es insignificante con respecto a la observacional
+ por lo que no es necesario descomponerlos.
+\end_layout
+
+\begin_layout Standard
+Se dispone por tanto de una partición inconexa de las ecuaciones del modelo
+ en una serie de bloques con las ecuaciones ligadas a cada nodo observacional,
+ más otro bloque con el resto de ecuaciones ligadas a los nodos latentes.
+ En cada bloque observacional se debe introducir las ecuaciones respetando
+ los segmentos de donde provienen, es decir, debe haber un segmento para
+ las ecuaciones del nodo observacional y otro segmento para las ecuaciones
+ de cada nodo padre, latente o a priori.
+ Nótese que la varianza de los nodos latentes que no estén fijas serán un
+ parámetro más de condicionamiento externo para los bloques observacionales,
+ mientras que las varianzas de estos no serán parámetros condicionantes
+ del bloque de latentes, que sólo dependen de las variables del bloque lineal
+ de sus hijos.
+\end_layout
+
+\begin_layout Standard
+Esta descomposición en bloques permite además ejecutar las simulaciones
+ de los nodos observacionales en paralelo como bloques de Gibbs condicionados
+ al bloque único de los nodos latentes, y después habría que simular éste
+ bloque conjunto de latentes condicionado a todos los observacionales.
+\end_layout
+
+\begin_layout Standard
+Lo dicho anteriormente reza para el modelo HLM sin restricciones de desigualdad
+ ya que si existiera alguna de ellas que afectera a varios nodos al mismo
+ tiempo entonces la distribución de los mismos ya no sería independiente
+ y habría que mantenerlos dentro de un mismo bloque de Gibbs.
+ En este caso sería necesario dividir los nodos en clases de equivalencia
+ con la relación 'existe una restricción de desigualdad entre variables
+ de ambos nodos'.
+ En el peor de los casos se podría tener todos los nodos en una misma clase
+ y no sería posible la simulación en paralelo.
+\end_layout
+
+\begin_layout Standard
+Los nodos que estuvieran relacionados aún se podrían dividir en un bloque
+ BSR para cada uno, sólo que la simulación habría que hacerla secuencial
+ dentro de la clase de nodos relacionados, puesto que todos dependen de
+ todos.
+ Esto podría ser útil si no fuera posible almacenar en RAM el bloque conjunto
+ de toda la clase de nodos relacionados.
+\end_layout
+
+\begin_layout Subsection
+Descomposición del modelo jerárquico con output combinado
+\end_layout
+
+\begin_layout Standard
+El modelo jerárquico con output combinado HLM-OC presentado en 
+\begin_inset LatexCommand ref
+reference "sec:El-modelo-jerárquico-combinado"
+
+\end_inset
+
+, es también un modelo divisible aunque en este caso sólo son separables
+ los nodos que no comparten variables con coeficiente no nulo en los bloques
+ 
+\begin_inset Formula $\nabla_{*}^{*}$
+\end_inset
+
+ de ninguna ecuación latente ni a priori.
+ En este caso sería necesario dividir los nodos en clases de equivalencia
+ con la relación 'existe o bien una restricción de desigualdad, o bien una
+ combinación de output latente o a priori, entre variables de ambos nodos
+ '.
+\end_layout
+
+\begin_layout Subsection
+Simulación del bloque lineal de rango incompleto
+\end_layout
+
+\begin_layout Standard
+Otro caso en el que puede ser útil descomponer un modelo BSR en varios ocurre
+ cuando hay menos datos que variables en el bloque lineal, o en general,
+ cuando se tiene un modelo de rango incompleto.
+ Si la matriz 
+\begin_inset Formula $X$
+\end_inset
+
+ no fuera de rango completo, 
+\begin_inset Formula $rank\left(X\right)=r<n$
+\end_inset
+
+ ´, siempre que no tenga ninguna columna totalmente nula, aún sería posible
+ simular los 
+\begin_inset Formula $\beta$
+\end_inset
+
+ rompiéndolos en 
+\begin_inset Formula $J$
+\end_inset
+
+ trozos 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+X\cdot\beta\end{array}=\left(\begin{array}{ccc}
+X^{\left(1\right)} & \cdots & X^{\left(J\right)}\end{array}\right)\cdot\left(\begin{array}{c}
+\beta^{\left(1\right)}\\
+\vdots\\
+\beta^{\left(J\right)}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\beta^{(j)}\in\mathbb{R}^{n_{j}}\wedge X^{(j)}\in\mathbb{R}^{m\times n_{j}}\forall j=1\ldots J\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+elegiendo los bloques de forma que 
+\begin_inset Formula \begin{equation}
+n_{j}=rank\left(X_{j}\right)<m\end{equation}
+
+\end_inset
+
+ .
+ Es decir, si hay más variables que datos hay que romper en tantos bloques
+ como haga falta para que cada bloque tenga al menos tantos datos como variables
+, y si hay colinealidades hay que romperlas poniendo una de las columnas
+ implicadas en un bloque distinto.
+\end_layout
+
+\begin_layout Standard
+En estos modelos la varianza debería ser dada como un parámetro fijo y no
+ ser simulada, o bien serlo con algún tipo de restricciones o distribución
+ a priori
+\end_layout
+
+\begin_layout Standard
+Otra cuestión aparte es que la simulación los modelos de rango incompleto
+ realmente llegue a converjer, es decir, una cosa es que se pueda simular
+ algo condicionando a otro algo y otra cosa es que eso converja a alguna
+ parte.
+ La experiencia demuestra que incluso con modelos de rango completo pero
+ con mucha correlación entre variables, la cadena no converge sino que se
+ da paseos entre lo que soluciones prácticamente equivalentes.
+ Si eso ocurre sin llegar a ser colineal, está claro que con rango incompleto
+ es de esperar problemas de ese estilo.
+\end_layout
+
+\begin_layout Standard
+Incluso en el caso en que convergiera la superficie de respuesta de este
+ tipo de modelos, es menor que 1, 
+\begin_inset Formula $m/n<1$
+\end_inset
+
+, por lo que habría que ser extraordinariamente cautos a la hora de hacer
+ inferencia con ellos, pues incluso con superficies de respuesta de 
+\begin_inset Formula $m/n=10$
+\end_inset
+
+ pueden aparecer facilmente problemas de sobreajuste, de forma que se obtienen
+ buenos resultados intra-muestrales pero las inferencias extra-muestrales
+ son significativamente peores.
+\end_layout
+
+\begin_layout Standard
+Nótese que en este caso no cabe la posibilidad de ejecución en paralelo
+ ya que cada bloque depende de todos los demás, por lo que el condicionamiento
+ ha de ser secuencial.
+\end_layout
+
+\begin_layout Standard
+En cualquier caso, siempre que sea posible, será preferible añadir información
+ a priori razonable de forma que la matriz del diseño resulte de rango completo.
+ Por ejemplo, en un modelo con 
+\begin_inset Formula $k_{obs}$
+\end_inset
+
+ nodos observacionales con 
+\begin_inset Formula $m_{obs}$
+\end_inset
+
+ datos y 
+\begin_inset Formula $n_{obs}$
+\end_inset
+
+ variables relativas a los mismos conceptos en cada nodo, si tiene sentido
+ aplicar un hiperparámetro a cada una de las 
+\begin_inset Formula $n_{obs}$
+\end_inset
+
+ entonces se añaden 
+\begin_inset Formula $k_{obs}\cdot n_{obs}$
+\end_inset
+
+ ecuaciones latentes y si además se dispone de información a priori sobre
+ dichos hiperparámetros, se agregarán otras 
+\begin_inset Formula $n_{obs}$
+\end_inset
+
+ ecuaciones a priori.
+\end_layout
+
+\end_body
+\end_document

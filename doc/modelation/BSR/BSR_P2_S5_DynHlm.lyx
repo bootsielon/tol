@@ -1,0 +1,1548 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:BysMcmc::Bsr::DynHlm"
+
+\end_inset
+
+BysMcmc::Bsr::DynHlm
+\end_layout
+
+\begin_layout Standard
+Se describen los miembros y métodos generales del NameBlock BysMcmc::Bsr::DynHlm
+\end_layout
+
+\begin_layout Section
+Descripción
+\end_layout
+
+\begin_layout Standard
+Como ya se ha dicho anteriormente el caso del modelo jerárquico aparece
+ de forma natural en multitud de ocasiones y su especial estructura sparse
+ por bloques permite simplificaciones importantes a la hora de la definición
+ del modelo.
+ En particular es especialemente apta para ser almacenada en una base de
+ datos que facilite la inserción, modificación y mantenimiento en general
+ de diversos modelos y versiones ó sesiones del mismo, de forma que se automatic
+e al máximo las tareas de definición, diagnosis, inferencia y todas las
+ tareas que conlleva un sistema de modelación masiva tanto en la etapa de
+ desarrollo como en la de producción.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sec:El-script-de-La-base-de-datos-Bsr-Hlm"
+
+\end_inset
+
+El script de la base de datos del sistema Bsr-Hlm
+\end_layout
+
+\begin_layout Standard
+De todo ellos se ocupan los miembros y métodos de este 
+\series bold
+NameBlock BysMcmc::Bsr::DynHlm
+\series default
+ implementado en 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_dynhlm.tol"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El script SQL 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/db_bsrhlm_mysql.sql"
+
+\end_inset
+
+ contiene todo lo necesario para convertir una base de datos existente en
+ el sistema de gestión de modelos de 
+\series bold
+BysMcmc::Bsr::DynHlm
+\series default
+ que llamaremos en lo sucesivo sistema Bsr-Hlm.
+\end_layout
+
+\begin_layout Standard
+En el capítulo 
+\begin_inset LatexCommand ref
+reference "cha:La-base-de-datos-del-sistema-Bsr-Hlm"
+
+\end_inset
+
+ se explica con detalle todo lo relativo a las tablas del sistema y sus
+ relaciones.
+ Baste decir aquí que existen varios grupos de tablas
+\end_layout
+
+\begin_layout Itemize
+Dimensionales: Aquellas que definen los valores que pueden adoptar determinados
+ campos de otras tablas
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Del sistema: aquellas cuyos valores vienen dados por el propio sistema y
+ no deben ser modificadas por el usuario.
+\end_layout
+
+\begin_layout Itemize
+De usuario: aquellas que vienen vacías de fábrica y en las que el usuario,
+ mediante el programa de interfaz que elija, debe introducir datos propios.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+ModSes: Aquellas que definen una sesión concreta de un modelo específico.
+ Deben ser rellenadas por el programa de interfaz de usuario.
+ El índice de todas estas tablas comienza siempre por los campos (id_model,
+ id_session) que definen el objetivo y la versión concreta del modelo en
+ cuestión.
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Genéricas: aquellas que no se refieren a ningún tipo de nodo en particular.
+\end_layout
+
+\begin_layout Itemize
+Observacionales: aquellas que se refieren a los nodos observacionales.
+\end_layout
+
+\begin_layout Itemize
+Latentes: aquellas que se refieren a los nodos latentes.
+\end_layout
+
+\begin_layout Itemize
+A priori: aquellas que se refieren a los nodos a priori.
+\end_layout
+
+\begin_layout Itemize
+Mixtas: aquellas que se refieren a los nodos mixtos, es decir que pueden
+ relacionar diversos tipos de nodos.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Resultados: Aquellas que recojen resultados de la simulación y que son rellenada
+s por el propio sistema Bsr-Hlm durante y después del proceso.
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+NameBlock BysMcmc::Bsr::DynHlm::DbApi
+\end_layout
+
+\begin_layout Standard
+En el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tol"
+
+\end_inset
+
+ se implementa la cabecera del 
+\series bold
+NameBlock BysMcmc::Bsr::DynHlm::DbApi
+\series default
+ que incluye los métodos específicos de manejo de la base de datos del sistema
+ Bsr-Hlm.
+\end_layout
+
+\begin_layout Standard
+Todos los métodos precisan que previamente haya sido abierta y activa la
+ conexión a la base de datos del sistema Bsr-Hlm.
+ 
+\end_layout
+
+\begin_layout Standard
+Se han clasificado dichos métodos en distintos ficheros según el tipo de
+ datos a los que afectan:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.tol"
+
+\end_inset
+
+: Contiene las utilidades SQL genéricas y las de manejo de las tablas dimensiona
+les:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Real SetEngineToMySQL(Real unused)
+\series default
+: Establece en el miembro 
+\series bold
+_.engine
+\series default
+ el motor de base de datos a emplear.
+ De momento el único admitido es MySql.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set SqlTableTrace(Text query, Text structure)
+\series default
+: Ejecuta una consulta de tipo 
+\series bold
+SELECT
+\series default
+ y devuelve el contenido en un conjunto con la estructura dada, si no es
+ la cadena vacía en cuyo caso se devuelve una tabla no estructurada.
+ Si el miembro de configuración doQueryTrace está habilitado se escribirá
+ primero la consulta por la salida estándar.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real SqlExecTrace(Text query)
+\series default
+: Ejecuta una consulta de modificación (
+\series bold
+INSERT
+\series default
+, 
+\series bold
+DELETE
+\series default
+, 
+\series bold
+UPDATE
+\series default
+, 
+\series bold
+ALTER
+\series default
+, ...) y devuelve 1 en caso de éxito.
+ Si el miembro de configuración doQueryTrace está habilitado se escribirá
+ primero la consulta por la salida estándar.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text SqlFormatDate(Date dte)
+\series default
+: Transforma una fecha en un texto admisible como fecha por el motor de
+ la base de datos dado en el miembro 
+\series bold
+_.engine.
+ 
+\series default
+Si la fecha no es válida devuelve el texto 
+\series bold
+'NULL' 
+\series default
+para que sea tratado como tal por la base de datos.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Text SqlFormatReal(Real x)
+\series default
+: Transforma un número real en un texto admisible como número de precisión
+ doble por el motor de la base de datos dado en el miembro 
+\series bold
+_.engine.
+ 
+\series default
+Si el número no es finito devuelve el texto 
+\series bold
+'NULL' 
+\series default
+para que sea tratado como tal por la base de datos.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real CreateSkeleton(Real unused)
+\series default
+: Ejecuta el script de la base de datos del sistema (ver 
+\begin_inset LatexCommand ref
+reference "sec:El-script-de-La-base-de-datos-Bsr-Hlm"
+
+\end_inset
+
+) en la base de datos activa.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ForeignKey.Disable(Real unused)
+\series default
+: Desactiva las claves ajenas que relacionan las tablas para permitir hacer
+ modificaciones controladas.
+ No se debe usar si no se está seguro de que las modificaciones serán congruente
+s con dichas claves.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ForeignKey.Enable(Real unused)
+\series default
+: Reestablece las claves ajenas que relacionan las tablas después de haber
+ hecho modificaciones controladas.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Mod.Create(Text dbName, Text model, Text description)
+\series default
+: Crea un nuevo registro de modelo o modifica uno existente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Mod.Delete(Text dbName, Text model)
+\series default
+: Elimina, si existe, un registro de modelo y todos los registros asociados
+ a todas las sesiones del mismo en todas las tablas del sistema.
+ Se debe usar por tanto con mucho cuidado pues supone la eliminación de
+ todo rastro del modelo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Mod.SetBlocked(Text dbName, Text model, Real blocked)
+\series default
+: Bloquea o desbloquea todas las model-session asociadas a un modelo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Ses.Create(Text dbName, Text model, Text description)
+\series default
+: Crea un nuevo registro de sesión o modifica uno existente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Ses.Delete(Text dbName, Text model)
+\series default
+: Elimina, si existe, un registro de sesión y todos los registros asociados
+ a todas los modelos de la misma en todas las tablas del sistema.
+ Se debe usar por tanto con mucho cuidado pues supone la eliminación de
+ todo rastro de la sesión.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real Ses.SetBlocked(Text dbName, Text model, Real blocked)
+\series default
+: Bloquea o desbloquea todas las model-session asociadas a una sesión.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.tol"
+
+\end_inset
+
+: Contiene las utilidades de manejo de las tablas de tipo ModSes genéricas:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Real ModSes.CheckBlocked(Text dbName, Text model, Text session, Real forzeStop)
+\series default
+: Comprueba si una model-session está bloqueada y en tal caso, si 
+\series bold
+forzeStop
+\series default
+ es cierto se para el proceso de compilación TOL en curso con 
+\series bold
+Real Stop
+\series default
+.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.SetBlocked(Text dbName, Text model, Text session, Real blocked)
+\series default
+: Establece el estado de bloqueo de una model-session al valor 
+\series bold
+blocked
+\series default
+.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Create(Text dbName, Text model, Text session)
+\series default
+: Crea un registro de model-session.
+ Un modelo puede tener diferentes sesiones y una sesión se puede referir
+ a varios modelos.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.SetLevels(Text dbName, Text model, Text session, Real maxLatLevel,
+ Real hasPrior, Real hasMixture)
+\series default
+: Establece los niveles de jerarquía admnisibles del modelo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ModSes.Node.Create(Text dbName, Text model, Text session, Text node, Text
+ nodeType, Real level, Real number, Text description)
+\series default
+: Crea un nuevo registro de nodo.
+ Si ya existiera uno con ese nombre en esa model-session dará error de SQL.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Delete(Text dbName, Text model, Text session)
+\series default
+: Borra todos los registros asociados a una model-session en todas las tablas
+ del sistema.
+ Se debe usar por tanto con mucho cuidado pues supone la eliminación de
+ todo rastro de la model-session.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Replicate(Text from_dbName, Text from_model, Text from_session,
+ Text to_dbName, Text to_model, Text to_session)
+\series default
+: Hace una copia de una model-session.
+ Como es lógico, al menos uno de los tres descriptores de destino 
+\series bold
+to_dbName, to_model, to_session
+\series default
+ debe ser distintos de los correspondientes descriptores de origen 
+\series bold
+from_dbName, from_model, from_session
+\series default
+.
+ Si es 
+\series bold
+to_dbName
+\series default
+ distinta de 
+\series bold
+from_dbName
+\series default
+ esto permite transmitir modelos entre distintas bases de datos dentro del
+ mismo gestor.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Move(Text from_dbName, Text from_model, Text from_session, Text
+ to_dbName, Text to_model, Text to_session)
+\series default
+: Copia una model-session de origen en otra de destino como se explica en
+ la función anterior y luego borra la de origen.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Node.Rename(Text dbName, Text model, Text session, Text from_node,
+ Text to_node)
+\series default
+: Renombra un nodo dentro de una model-session extendiendo el cambio a todas
+ las tablas afectadas para mantener la integridad referencial.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Node.Delete(Text dbName, Text model, Text session, Text from_node)
+\series default
+: Borra un nodo un nodo dentro de una model-session extendiendo el cambio
+ a todas las tablas afectadas para mantener la integridad referencial.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.obs.tol"
+
+\end_inset
+
+: Contiene las utilidades de manejo de las tablas de tipo ModSes Observacionales
+:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Obs.Output.Create(...)
+\series default
+: Crea el registro de output 
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Obs.Input.Create(...)
+\series default
+: Crea un registro de input 
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Obs.TransFun.Create(...)
+\series default
+: Crea un registro de función de transferencia omega(B)/delta(B) 
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Obs.SetArima(Text dbName, Text model, Text session, Text node,
+ Set arima)
+\series default
+: Crea un registro de factor ARIMA para cada elemento con estructura ARIMAStruct
+ del argumento 
+\series bold
+arima
+\series default
+.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\begin_inset LatexCommand label
+name "ite:Real-ModSes.Obs.Create"
+
+\end_inset
+
+Real ModSes.Obs.Create(Text dbName, Text model, Text session, NameBlock node)
+\series default
+: Crea todos los registros necesarios para la definición de un nodo observaciona
+l a partir de un manejador TOL del nodo con esta API mínima
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock node =
+\end_layout
+
+\begin_layout Standard
+
+[[
+\end_layout
+
+\begin_layout Standard
+
+  //##Nombre del nodo 
+\end_layout
+
+\begin_layout Standard
+
+  Text _.id_node;
+\end_layout
+
+\begin_layout Standard
+
+  //##Descripción del nodo 
+\end_layout
+
+\begin_layout Standard
+
+  Text _.description;
+\end_layout
+
+\begin_layout Standard
+
+  //##Devuelve una serie del nodo dado un identificador único   
+\end_layout
+
+\begin_layout Standard
+
+  Serie GetSerie(Text id_serie);
+\end_layout
+
+\begin_layout Standard
+
+  //##Información adicional del modelo sobre el output
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock _.output =
+\end_layout
+
+\begin_layout Standard
+
+  [[
+\end_layout
+
+\begin_layout Standard
+
+    //##Nombre con el que reconoce la serie en la base de datos 
+\end_layout
+
+\begin_layout Standard
+
+    Text  _.name;
+\end_layout
+
+\begin_layout Standard
+
+    //##Serie output
+\end_layout
+
+\begin_layout Standard
+
+    Serie _.serie;
+\end_layout
+
+\begin_layout Standard
+
+    //##Número de sigmas para la distribución a priori de los 
+\end_layout
+
+\begin_layout Standard
+
+    //omitidos se multiplicará por la desviación típica muestral 
+\end_layout
+
+\begin_layout Standard
+
+    //de la serie.
+ La media a priori será la de la propia serie.
+ 
+\end_layout
+
+\begin_layout Standard
+
+    Real  _.mis_pri_sig_fac;
+\end_layout
+
+\begin_layout Standard
+
+    //##Valor mínimo a priori para los omitidos
+\end_layout
+
+\begin_layout Standard
+
+    Real  _.mis_pri_min;
+\end_layout
+
+\begin_layout Standard
+
+    //##Valor máximo a priori para los omitidos
+\end_layout
+
+\begin_layout Standard
+
+    Real  _.mis_pri_max;
+\end_layout
+
+\begin_layout Standard
+
+    //##Fecha inicial de estimación del nodo.
+ Si la serie empieza 
+\end_layout
+
+\begin_layout Standard
+
+    //más tarde se rellenará con omitidos
+\end_layout
+
+\begin_layout Standard
+
+    Date  _.firstDate;
+\end_layout
+
+\begin_layout Standard
+
+    //##Fecha final de estimación del nodo.
+ Si la serie acaba antes 
+\end_layout
+
+\begin_layout Standard
+
+    //se rellenará con omitidos, lo cual es un método de previsión 
+\end_layout
+
+\begin_layout Standard
+
+    //muy simple
+\end_layout
+
+\begin_layout Standard
+
+    Date  _.lastDate;
+\end_layout
+
+\begin_layout Standard
+
+    //##Parte ARIMA asociada
+\end_layout
+
+\begin_layout Standard
+
+    Set   _.arima;
+\end_layout
+
+\begin_layout Standard
+
+  ]];
+\end_layout
+
+\begin_layout Standard
+
+  //##Información adicional del modelo sobre los inputs 
+\end_layout
+
+\begin_layout Standard
+
+  //Cada elemento es un NameBlock cuyo nombre será el identificador
+\end_layout
+
+\begin_layout Standard
+
+  //en la base de datos de BsrHlm y es obligatorio que se llame    
+\end_layout
+
+\begin_layout Standard
+
+  //igual que la correspondiente serie input
+\end_layout
+
+\begin_layout Standard
+
+  Set _.input = SetOfNameBlock(
+\end_layout
+
+\begin_layout Standard
+
+    //## input.1.name es el nombre con el que reconoce la serie en 
+\end_layout
+
+\begin_layout Standard
+
+    //la base de datos 
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock input.1.name =                                            
+\end_layout
+
+\begin_layout Standard
+
+    [[
+\end_layout
+
+\begin_layout Standard
+
+      //##Serie input 
+\end_layout
+
+\begin_layout Standard
+
+      Serie _.serie;
+\end_layout
+
+\begin_layout Standard
+
+      //##Si es falso no se usará este input 
+\end_layout
+
+\begin_layout Standard
+
+      Real  _.enabled;
+\end_layout
+
+\begin_layout Standard
+
+      //#Función de transferencia.
+ Es opcional con valor por defecto 1/1       
+\end_layout
+
+\begin_layout Standard
+
+      Ratio _.transferFunction;
+\end_layout
+
+\begin_layout Standard
+
+      //##Número de sigmas para la distribución a priori de los omitidos
+\end_layout
+
+\begin_layout Standard
+
+      Real  _.mis_pri_sig_fac,
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor mínimo a priori para los omitidos  
+\end_layout
+
+\begin_layout Standard
+
+      Real  _.mis_pri_min;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor máximo a priori para los omitidos 
+\end_layout
+
+\begin_layout Standard
+
+      Real  _.mis_pri_max;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor inicial del parámetro
+\end_layout
+
+\begin_layout Standard
+
+      Real _.initValue;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor mínimo a priori del parámetro
+\end_layout
+
+\begin_layout Standard
+
+      Real _.minimum;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor máximo a priori del parámetro
+\end_layout
+
+\begin_layout Standard
+
+      Real _.maximum
+\end_layout
+
+\begin_layout Standard
+
+    ]],
+\end_layout
+
+\begin_layout Standard
+
+    ...
+\end_layout
+
+\begin_layout Standard
+
+  )
+\end_layout
+
+\begin_layout Standard
+
+]];
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Obs.CreateAll(Text dbName, Text model, Text session, Set nodes)
+\series default
+: Crea un conjunto de nodos observacionales a partir de un conjunto de manejador
+es TOL del nodo con la API mínima recién definida.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Obs.Output.Serie.Rename(Text dbName, Text model, Text session, Text
+ from_serie, Text to_serie)
+\series default
+: Renombra una serie output en todas las tablas donde es necesario.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Obs.Input.Serie.Rename(Text dbName, Text model, Text session, Text
+ from_serie, Text to_serie)
+\series default
+: Renombra una serie input en todas las tablas donde es necesario.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.lat.tol"
+
+\end_inset
+
+: Contiene las utilidades de manejo de las tablas de tipo ModSes Latentes
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Lat.SigBlk.Create(...)
+\series default
+: Crea el registro del Sigma-Block.
+ de un nodo latente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Lat.Equ.Create(...)
+\series default
+: Crea el registro de una ecuación de un nodo latente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Lat.Output.Create(...)
+\series default
+: Crea el registro de un término output para una ecuación de un nodo latente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Lat.Input.Create(...)
+\series default
+: Crea el registro de un término input para una ecuación de un nodo latente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\begin_inset LatexCommand label
+name "ite:Real-ModSes.Lat.Homog_1.Create"
+
+\end_inset
+
+Real ModSes.Lat.Homog_1.Create(Text dbName, Text model, Text session, Text
+ id_node, Text description, Real level, Real number, Text id_parameter,
+ Real initValue, Real sigma, Real minimum, Real maximum, Set node_childs)
+\series default
+: Crea todos los registros necesarios para definir un nodo latente de homogenida
+d simple sobre un conjunto de variables de los nodos hijo con esta API 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  Set node_childs = SetOfNameBlock(
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock child.1 = 
+\end_layout
+
+\begin_layout Standard
+
+    [[
+\end_layout
+
+\begin_layout Standard
+
+      Text _.id_node;
+\end_layout
+
+\begin_layout Standard
+
+      Text _.id_parameter;
+\end_layout
+
+\begin_layout Standard
+
+      Real _.sigma_factor
+\end_layout
+
+\begin_layout Standard
+
+    ]],
+\end_layout
+
+\begin_layout Standard
+
+    ...
+\end_layout
+
+\begin_layout Standard
+
+  )
+\end_layout
+
+\begin_layout Standard
+
+]];
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Lat.Create(...)
+\series default
+: Crea todos los registros necesarios para definir un nodo latente genérico.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Lat.OutComb.Create(...)
+\series default
+: Crea todos los registros necesarios para definir un nodo latente genérico
+ con output combinado.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.pri.tol"
+
+\end_inset
+
+: Contiene las utilidades de manejo de las tablas de tipo ModSes A priori
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Pri.Equ.Create(...)
+\series default
+: Crea el registro de una ecuación de un nodo a priori.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Pri.Output.Create(...)
+\series default
+: Crea el registro de un término output para una ecuación de un nodo a priori.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\begin_inset LatexCommand label
+name "ite:Real-ModSes.Pri.Homog_1.Create"
+
+\end_inset
+
+Real ModSes.Pri.Homog_1.Create(Text dbName, Text model, Text session, Text
+ id_node, Text description, Set node_childs)
+\series default
+: Crea todos los registros necesarios para definir un nodo latente de homogenida
+d simple sobre un conjunto de variables de los nodos hijo con esta API 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},extendedchars=true"
+inline false
+status open
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+  Set node_childs = SetOfNameBlock(
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock child.1 = 
+\end_layout
+
+\begin_layout Standard
+
+    [[
+\end_layout
+
+\begin_layout Standard
+
+      Text _.id_node;
+\end_layout
+
+\begin_layout Standard
+
+      Text _.id_parameter;
+\end_layout
+
+\begin_layout Standard
+
+      Real _.average;
+\end_layout
+
+\begin_layout Standard
+
+      Real _.sigma
+\end_layout
+
+\begin_layout Standard
+
+    ]],
+\end_layout
+
+\begin_layout Standard
+
+    ...
+\end_layout
+
+\begin_layout Standard
+
+  )
+\end_layout
+
+\begin_layout Standard
+
+]];
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Pri.OutComb.Create(...)
+\series default
+: Crea todos los registros necesarios para definir un nodo a priori genérico
+ con output combinado.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.mix.tol"
+
+\end_inset
+
+: Contiene las utilidades de manejo de las tablas de tipo ModSes Mixtas
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Mix.Param.Create(...)
+\series default
+: Crea el registro de un parámetro a simular en el modelo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Mix.Param.Delete(...)
+\series default
+: Borra el registro de un parámetro a simular en el modelo en todas las
+ tablas donde aparece.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Real ModSes.Mix.OrderRelation.Create(...)
+\series default
+: Crea el registro de una relación de orden entre dos parámetros del bloque
+ lineal.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.load.tol"
+
+\end_inset
+
+: Contiene los métodos de carga de modelos previamente definidos en la base
+ de datos
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+NameBlock CreateSeriesHandler(Set obs.node.handlers)
+\series default
+: Crea el manejador de series del modelo a partir de un conjunto de NameBlock's
+ como el definido en la función 
+\series bold
+ModSes.Obs.Create
+\series default
+ (ver 
+\begin_inset LatexCommand ref
+reference "ite:Real-ModSes.Obs.Create"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock LoadNodeConstraints(Text dbName, Text model, Text session, Text
+ id_node)
+\series default
+: Carga el importador a BSR-ASCII de las restricciones que sólo afectan
+ a parámetros de un nodo determinado, o bien, si 
+\series bold
+id_node
+\series default
+ es igual a 
+\series bold
+"MIXTURE"
+\series default
+, de las restricciones que afectan a más de un nodo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock LoadObsNode(...)
+\series default
+: Carga el importador a formato ASCII-BSR de un nodo observacional.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock LoadLatNode(...)
+\series default
+: Carga el importador a formato ASCII-BSR de un nodo latente.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock LoadPriNode(...)
+\series default
+: Carga el importador a formato ASCII-BSR de un nodo a priori.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock LoadModelDef(...)
+\series default
+: Carga el importador a formato ASCII-BSR de un modelo Bsr-Hlm completo.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.estim.tol"
+
+\end_inset
+
+: Contiene los métodos de estimación de modelos una vez cargados los datos
+ de definición del modelo.
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+Real SaveParamStats(Text dbName, Text model, Text session, Set estim)
+\series default
+: Guarda en la base de datos los resultados de las estadísticas de diagnosis
+ sobre la estimación de los parámetros resultante de la simulación de un
+ modelo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set GetLinearBlkEffects(...)
+\series default
+: Crea las series de efectos lineales correspondientes a cada input o función
+ de transferencia de cada nodo.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Set Estim(Text dbName, Text model, Text session, Text resultRootPath, NameBlock
+ seriesHandler, NameBlock config)
+\series default
+: Simula y devuelve los resultados de diagnosis y de evaluación según se
+ especifique en la configuración dada, y escribe en la base de datos la
+ información de estado durante la simulación y, al final de la misma, las
+ estadísticas de diagnosis sobre la estimación de los parámetros.
+\end_layout
+
+\end_deeper
+\begin_layout Section
+
+\family typewriter
+NameBlock BysMcmc::Bsr::DynHlm::BuildNode
+\end_layout
+
+\begin_layout Standard
+En el fichero 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_build.node.tol"
+
+\end_inset
+
+ se implementa la cabecera del 
+\series bold
+NameBlock BysMcmc::Bsr::DynHlm::BuildNode
+\series default
+ que incluye los métodos específicos para la importación de nodos jerárquicos
+ al formato BSR-ASCII, es decir los NameBlock de gestión de segmentos explicados
+ en 
+\begin_inset LatexCommand ref
+reference "sec:API-segmento-BSR"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Se han clasificado dichos métodos en distintos ficheros según el tipo de
+ nodos a los que afectan:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_build.node.obs.tol"
+
+\end_inset
+
+: Contiene las funciones relativas a los nodos observacionales
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+NameBlock Obs.Serie.Info(...)
+\series default
+: Crea el manejador de una serie de observaciones, independientemente de
+ si es un unput o el output del nodo, incluyendo la información relativa
+ a los omitidos y a los valores iniciales, si es que se trata de un input
+ con función de transferencia.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock Obs.Output(...)
+\series default
+: Crea el manejador del output.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock Obs.Input(...)
+\series default
+: Crea el manejador de un input sin función de transferencia.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock Obs.TransFun(...)
+\series default
+: Crea el manejador de un input con función de transferencia.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock Obs.TransFun(...)
+\series default
+: Crea el manejador de un input con función de transferencia.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock Obs.TransFun(...)
+\series default
+: Crea el manejador de un input con función de transferencia.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock Obs.TransFun(...)
+\series default
+: Crea el manejador de un input con función de transferencia.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NameBlock Obs(...)
+\series default
+: Crea el importador de un nodo observacional.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_build.node.lat.tol"
+
+\end_inset
+
+: Contiene las funciones relativas a los nodos latentes.
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+NameBlock Lat.Homog(...)
+\series default
+: Crea el importador de un nodo latente homogéneo simple.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_build.node.pri.tol"
+
+\end_inset
+
+: Contiene las funciones relativas a los nodos a priori.
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\series bold
+NameBlock Lat.Homog(...)
+\series default
+: Crea el importador de un nodo a priori homogéneo simple.
+\end_layout
+
+\end_body
+\end_document

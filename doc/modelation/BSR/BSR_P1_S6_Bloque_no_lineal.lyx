@@ -1,0 +1,788 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:El-bloque-de-filtro-no-lineal"
+
+\end_inset
+
+El bloque de filtro no lineal
+\end_layout
+
+\begin_layout Standard
+Muy a menudo se observan comportamientos de inputs que no actúan de forma
+ lineal en el filtrado de fenómenos complejos y de outputs que hay que transform
+ar de forma no lineal para obtener relaciones lineales con los algunos inputs
+ concretos.
+ En ambos casos se trata de modificar bien un output o bien uno o varios
+ inputs en el modelo de regresión lineal, y en ambos es posible formalizar
+ un método genérico ARMS de simulación de Gibbs de cada parámetro condicionado
+ al resto.
+ Se expone también el caso concreto de la función de transferencia no lineal
+ (deltas).
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:NonLinearFilterBlock_Antecedentes"
+
+\end_inset
+
+Descripción
+\end_layout
+
+\begin_layout Standard
+Sea el modelo de regresión con partes no lineales
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\triangle\cdot\left(F_{0}-X\cdot\beta-{\displaystyle \sum_{r=1}^{R}F_{r}\cdot\alpha_{r}}\right)+a\\
+a\sim N\left(0,\Sigma\right)\\
+Y,a\in\mathbb{R}^{m}\\
+\beta\in\mathbb{R}^{n}\wedge X\in\mathbb{R}^{m\times n}\\
+F_{r}=f_{r}\left(\tau_{r}\right)\in\mathbb{R}^{m\times h_{r}}\\
+\alpha_{r}\in\mathbb{R}^{h_{r}}\\
+\tau_{r}\in\mathbb{R}^{R_{r}}\\
+F_{0}=f_{0}\left(\tau_{0}\right)\in\mathbb{R}^{m}\\
+\tau_{0}\in\mathbb{R}^{R_{0}}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+donde
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\beta$
+\end_inset
+
+ son los parámetros del bloque lineal original de la regresión,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $n$
+\end_inset
+
+ es el número de parámetros a estimar de la regresión,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $M$
+\end_inset
+
+ es el número de datos del output,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $m$
+\end_inset
+
+ es el número de datos de contraste del modelo y ha de ser mayor que el
+ de variables,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $X$
+\end_inset
+
+ es la matriz de iputs estrictamente lineales del modelo y es completamente
+ conocida y de rango completo.
+\end_layout
+
+\begin_layout Itemize
+La matriz 
+\begin_inset Formula $\triangle$
+\end_inset
+
+ es el operador lineal de filtrado determinista, normalmente definido como
+ la matriz de Toeplitz correspondiente a un polinomio de raíces unitarias.
+ Este operador puede ser degenerado, cuando es 
+\begin_inset Formula $M>m$
+\end_inset
+
+ (ver 
+\begin_inset LatexCommand ref
+reference "sub:ArmaBlock_Antecedentes"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $a$
+\end_inset
+
+ son los residuos del modelo cuya distribución se propone como hipótesis
+ principal del mismo,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\Sigma$
+\end_inset
+
+ es la matriz de covarianzas, usualmente será o bien una matriz diagonal
+ o bien la matriz de autocovarianzas de un proceso ARMA (ver 
+\begin_inset LatexCommand ref
+reference "sub:ArmaBlock_Antecedentes"
+
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\tau_{0}$
+\end_inset
+
+ y 
+\begin_inset Formula $\tau_{r}$
+\end_inset
+
+ son los vectores de parámetros de los filtros no lineales del output y
+ el input respectivamente y 
+\begin_inset Formula $f_{0}$
+\end_inset
+
+ y 
+\begin_inset Formula $f_{r}$
+\end_inset
+
+ sus correspondientes funciones de filtrado no lineal
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $F_{0}$
+\end_inset
+
+ es el vector de output generado por el filtro no lineal.
+ Si no hay parámetros 
+\begin_inset Formula $\tau_{0}$
+\end_inset
+
+ , es decir si 
+\begin_inset Formula $R_{0}=0$
+\end_inset
+
+, entonces será una matriz constante 
+\begin_inset Formula $F_{0}=Y$
+\end_inset
+
+ como en una regresión usual.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $F_{r}$
+\end_inset
+
+ es la 
+\begin_inset Formula $r$
+\end_inset
+
+-ésima matriz de o inputs filtrados.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\alpha_{r}$
+\end_inset
+
+ son ampliaciones de los parámetros del bloque lineal para los nuevos input,
+\end_layout
+
+\begin_layout Standard
+En el caso de covarianzas diagonales o ARMA, este modelo es una extensión
+ del modelo correspondiente a un segmento de regresión de la clase BSR,
+ ya que condicionando a los parámetros no lineales 
+\begin_inset Formula $\tau$
+\end_inset
+
+, es obvio que resulta una regresión lineal expresable por bloques
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\triangle\cdot F_{0}{\displaystyle =Z}=\triangle\cdot\left(\begin{array}{cccc}
+X & F_{1} & \cdots & F_{R}\end{array}\right)\left(\begin{array}{c}
+\beta\\
+\alpha_{1}\\
+\vdots\\
+\alpha_{R}\end{array}\right)+a\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Cada filtro no lineal aditivo del input viene dado por una función real
+ arbitraria 
+\begin_inset Formula $f_{r}$
+\end_inset
+
+ que devuelve una matriz de efectos para un vector de parámetros dados dentro
+ de un dominio convexo y cerrado 
+\begin_inset Formula $\Omega_{r}^{f}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+F_{r}=f_{r}\left(\tau_{r}\right):\Omega_{r}^{f}\subseteq\mathbb{R}^{R_{r}}\rightarrow\mathbb{R}^{M\times h_{r}}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Estos filtros tienen asociado un vector de parámetros lineales 
+\begin_inset Formula $\alpha_{r}$
+\end_inset
+
+ que serán estimados como el de un input lineal una vez fijados los parámetros
+ no lineales 
+\begin_inset Formula $\tau_{r}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+El filtro no lineal del output viene dado por una función real arbitraria
+ 
+\begin_inset Formula $f_{0}$
+\end_inset
+
+ que devuelve un vector de output filtrado para un vector de parámetros
+ dados dentro de un dominio convexo y cerrado 
+\begin_inset Formula $\Omega_{0}^{f}$
+\end_inset
+
+ y un vector de output original 
+\begin_inset Formula $Y$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+F_{0}=f_{0}\left(\tau_{0}\right):\Omega_{0}^{f}\times\mathbb{R}^{M}\subseteq\mathbb{R}^{R_{0}}\times\mathbb{R}^{M}\rightarrow\mathbb{R}^{M}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Nótese que la función no lineal de filtro del input 
+\begin_inset Formula $f_{r}$
+\end_inset
+
+ podría hacerse cargo de los parámetros 
+\begin_inset Formula $\alpha_{r}$
+\end_inset
+
+ y añadirse este efecto al filtro no lineal del output, por lo que en apariencia
+ no aportan nada dichos 
+\begin_inset Formula $\alpha_{r}$
+\end_inset
+
+ y podría definirse el modelo usando sólo el filtro del output sin pérdida
+ de generalidad.
+ La diferencia está en el método de cálculo de las simulaciones usado internamen
+te.
+ El filtro del output tiene la ventaja de que es más rápido en ejecución,
+ especialmente si 
+\begin_inset Formula $X$
+\end_inset
+
+ y 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+ son fijos o existe algún método rápido de descomposición para ambas, pues
+ en tal caso no es necesario recalcular las desde cero en cada simulación.
+ Sin embargo pueden dar problemas si alguno de los parámetros del filtro
+ no lineal tiene alta correlación con otros lineales o no, pues en ese caso
+ la cadena de Markov puede resultar demasiado autocorrelada y precisar de
+ longitudes mayores para hacer 
+\emph on
+thinin
+\emph default
+.
+ Por esta razón se ofrecen ambas posibilidades de definición para aplicar
+ en cada caso la más adecuada, o cualquier mezcla de ambas.
+\end_layout
+
+\begin_layout Section
+Distribución condicionada de los parámetros no lineales
+\end_layout
+
+\begin_layout Standard
+Si se conocen todos los vectores de parámetros no lineales salvo un 
+\begin_inset Formula $\tau_{k}$
+\end_inset
+
+ del input y los 
+\begin_inset Formula $\alpha,\beta,\Sigma$
+\end_inset
+
+ y una descomposición simétrica 
+\begin_inset Formula $\Sigma=L\cdot L^{T}$
+\end_inset
+
+ entonces, premultiplicando por 
+\begin_inset Formula $L^{-1}$
+\end_inset
+
+ y llevando todo al lado derecho, salvo los residuos cuya distribución es
+ conocida, se tiene la siguiente igualdad 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\varepsilon=L^{-1}\cdot\triangle\cdot\left(Z_{k}-f_{k}\left(\tau_{k}\right)\cdot\alpha_{k}\right)\\
+Z_{k}=F_{0}-X\cdot\beta-{\displaystyle \sum_{\begin{array}{c}
+r=1\\
+r\neq k\end{array}}^{R}F_{r}\cdot\alpha_{r}}\\
+\varepsilon=-L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\label{eq:non-lin-filter-intput}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si fijamos ahora todos los componentes de 
+\begin_inset Formula $\tau_{k}=\left(\tau_{k,1},\ldots,\tau_{k,R_{k}}\right)$
+\end_inset
+
+ salvo cierto 
+\begin_inset Formula $\tau_{k,i}\wedge i\in\left\{ 1,\ldots,R_{k}\right\} $
+\end_inset
+
+ entonces es posible aplicar el método ARMS si se dispone de un método que
+ permita construir el dominio de 
+\begin_inset Formula $\tau_{k,i}$
+\end_inset
+
+ condicionado por los 
+\begin_inset Formula $\left\{ \tau_{k,j}\right\} _{j\neq i}$
+\end_inset
+
+, para lo que es preciso disponer de dos funciones tales que dicho dominio
+ se exprese como el intervalo cerrado
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\omega_{k,i}^{f}\left(\tau_{k}\right)\leq\tau_{k,i}\leq\Omega_{k,i}^{f}\left(\tau_{k}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Nótese que al exigirse convexidad y cierre al dominio genérico 
+\begin_inset Formula $\Omega_{r}^{f}$
+\end_inset
+
+ del vector 
+\begin_inset Formula $\tau_{k}$
+\end_inset
+
+, el dominio de cada componente es necesariamente un intervalo cerrado,
+ por ser la intersección de aquel con un hiperplano.
+\end_layout
+
+\begin_layout Standard
+Por el teorema de Bayes, el logaritmo de la densidad de 
+\begin_inset Formula $\tau_{k,i}$
+\end_inset
+
+ condicionada al resto de parámetros es proporcional a la de los residuos
+ resultantes de aplicar la ecuación en diferencias para cada posible valor
+ de dicho parámetro, que tomando logaritmos es
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\lg h\left(\tau_{k,i}\right)=Cte_{1}-\frac{m}{2}\lg2\pi-\frac{1}{2}\varepsilon^{T}\varepsilon=Cte-\frac{1}{2}\varepsilon^{T}\varepsilon\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si existe información a priori o de tipo latente sobre todos o algunos de
+ los parámetros no lineales, sólo es necesario poder escribirla en términos
+ de una distribución normal univariante 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\tau_{k,i}\sim N\left(\mu_{\tau_{k,i}},\sigma_{\tau_{k,i}}^{2}\right)\end{array}\end{equation}
+
+\end_inset
+
+En el caso de ser información a priori 
+\begin_inset Formula $\mu_{\tau_{k,i}}$
+\end_inset
+
+ será constante y si es latente será el valor actual del correspondiente
+ hiperparámetro o combinación lineal de hiperparámetros.
+ Esto se traduce a una simple ampliación de los residuos estandarizados
+ 
+\begin_inset Formula \begin{equation}
+\lg h\left(\tau_{k,i}\right)=Cte-\frac{1}{2}\varepsilon^{T}\varepsilon-\frac{1}{2}\left(\frac{\tau_{k,i}-\mu_{\tau_{k,i}}}{\sigma_{\tau_{k,i}}}\right)^{2}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Para el filtro no lineal del output el proceso de simulación es prácticamente
+ el mismo: si se conocen todos los vectores de parámetros no lineales salvo
+ el del output 
+\begin_inset Formula $\tau_{0}$
+\end_inset
+
+ del input y los 
+\begin_inset Formula $\alpha,\beta,\Sigma$
+\end_inset
+
+ y una descomposición simétrica 
+\begin_inset Formula $\Sigma=L\cdot L^{T}$
+\end_inset
+
+ entonces, premultiplicando por 
+\begin_inset Formula $L^{-1}$
+\end_inset
+
+ y llevando todo al lado derecho, salvo los residuos cuya distribución es
+ conocida, se tiene la siguiente igualdad 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\varepsilon=L^{-1}\cdot\triangle\cdot\left(Z_{0}-f_{0}\left(\tau_{0}\right)\right)\\
+Z_{0}=X\cdot\beta+{\displaystyle \sum_{\begin{array}{c}
+r=1\end{array}}^{R}F_{r}\cdot\alpha_{r}}\\
+\varepsilon=L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\label{eq:non-lin-filter-output}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A partir de ahí es exactamente igual que con el input por lo que no se explicita
+n las fórmulas.
+\end_layout
+
+\begin_layout Standard
+Hay que hacer notar que en este esquema los resultados de los filtros no
+ lineales no pueden tener omitidos.
+ Si los datos originales a partir de los cuales se construye, y que sólo
+ el propio filtro conoce, tuviera omitidos, entonces el propio filtro debería
+ encargarse de su simulación.
+ Una posible solución de carácter general sería que los valores desconocidos
+ fueran simplemente una variable más que se simula con ARMS igual que los
+ demás.
+ Eso sería muy sencillo de tratar pero probablemente no sería muy eficiente
+ si hay muchos omitidos.
+\end_layout
+
+\begin_layout Section
+Casos particulares
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:Función-de-transferencia-no-lineal-deltas"
+
+\end_inset
+
+Función de transferencia no lineal (deltas)
+\end_layout
+
+\begin_layout Standard
+Sea el modelo de series temporales con función de transferencia no lineal
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+y_{t}=\frac{\omega\left(B\right)}{\delta\left(B\right)}x_{t}+a_{t}\\
+a\sim N\left(0,\Sigma\right)\\
+t=1\ldots m\end{array}\end{equation}
+
+\end_inset
+
+donde los polinomios implicados son de la forma
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\omega\left(B\right)={\displaystyle \sum_{i=0}^{h}\omega_{i}B^{i}}\\
+\delta\left(B\right)=1-{\displaystyle \sum_{j=1}^{d}\delta_{j}B^{j}}\end{array}\end{equation}
+
+\end_inset
+
+siendo 
+\begin_inset Formula $\delta\left(B\right)$
+\end_inset
+
+ estacionario, es decir, tal que sus raíces están todas fuera del círculo
+ unidad.
+\end_layout
+
+\begin_layout Standard
+Esto es expresable dentro de la clase de modelos descritos anteriormente
+ 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y=f\left(\delta,z^{0},x^{0}\right)\cdot\omega+a\\
+a\sim N\left(0,\Sigma\right)\\
+Y,a\in\mathbb{R}^{m}\\
+F=f\left(\delta,z^{0},x^{0}\right)\in\mathbb{R}^{m\times h}\end{array}\end{equation}
+
+\end_inset
+
+donde la función de filtro no lineal se forma a partir del resultado de
+ la ecuación en diferencias 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+z_{t}={\displaystyle \sum_{j=1}^{d}\delta_{j}z_{t-j}}+x_{t}\\
+F_{t,i}=z_{t-i}\forall i=1\ldots h\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Los valores inciales 
+\begin_inset Formula $x^{0}=\left(x_{1-h},\ldots,x_{0}\right)$
+\end_inset
+
+ del input original 
+\begin_inset Formula $x_{t}$
+\end_inset
+
+ pueden ser conocidos o no, en cuyo caso se incluirán como variables a simular,
+ lo mismo que si existen otros valores desconocidos en cualquier otro punto
+ de 
+\begin_inset Formula $x_{t}$
+\end_inset
+
+ se deberían adjuntar con estos valores iniciales.
+ Los valores iniciales 
+\begin_inset Formula $z^{0}=\left(z_{1-k},\ldots,z_{0}\right)$
+\end_inset
+
+ , con 
+\begin_inset Formula $k=\max\left(h,d\right)$
+\end_inset
+
+, son siempre desconocidos y deben ser simulados.
+ Lo más sencillo sería considerarlos todos ellos variables auxiliares no
+ lineales sin más y que sea el propio método ARMS el que los simule.
+ Para todos estos parámetros el dominio es siempre la recta real, aunque
+ es recomendable dar un intervalo lo más acotado que sea posible con la
+ información de que se disponga, así como se debe tener en cuenta la información
+ a priori sobre los mismos.
+\end_layout
+
+\begin_layout Standard
+Para los parámetros 
+\begin_inset Formula $\delta$
+\end_inset
+
+ rigen las mismas condiciones de estacionariedad descritas en 
+\begin_inset LatexCommand vref
+reference "sub:Dominio-de-estacionariedad"
+
+\end_inset
+
+ para los parámetros AR y MA por lo que es necesario imponer la misma restricció
+n sobre el grado que no puede ser mayor que 2.
+ Si fuera preciso usar un grado mayor habría que factorizar 
+\begin_inset Formula $\delta\left(B\right)$
+\end_inset
+
+ de forma similar a la allí descrita, sin ninguna pérdida de generalidad.
+\end_layout
+
+\begin_layout Subsection
+Filtrado en términos originales
+\end_layout
+
+\begin_layout Standard
+Ocurre a veces que la mayor parte de los efectos que inciden sobre una serie
+ output ocurren bajo cierta transformación que produce además residuos más
+ homocedásticos que en términos originales.
+ Muy a menudo se trata de la transformación logarítmica, es decir, se tiene
+ una mayoría de efectos multiplicativos en términos originales, sin que
+ eso sea obstáculo para que pueda existir algún que otro efecto aditivo.
+ Este modelo de regresión no lineal se escribiría así
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Log\left(Y+X^{\alpha}\cdot\alpha\right)=X^{\beta}\cdot\beta+a\\
+a\sim N\left(0,\Sigma\right)\end{array}\end{equation}
+
+\end_inset
+
+lo cual se puede escribir dentro de la clase expuesta mediante un filtro
+ no lineal de output
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+f_{0}\left(\alpha\right)=Log\left(Y+X^{\alpha}\cdot\alpha\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Modelo probit
+\end_layout
+
+\begin_layout Standard
+Con una pequeña extensión en la definición de los filtros, que permita sustituir
+ las funciones 
+\begin_inset Formula $f_{0}$
+\end_inset
+
+ por generadores de variables aleatorias, con o sin parámetros, es posible
+ simular modelos cualitativos como el probit.
+ En estos modelos el output original es una variable cualitativa booleana,
+ es decir, 
+\begin_inset Formula $Y_{t}\in\left\{ 0,1\right\} $
+\end_inset
+
+.
+ Para ello se definirá como filtro del output el generador aleatorio condicionad
+o al bloque lineal 
+\begin_inset Formula $\beta$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+f_{0,t}\leftarrow\left\{ \begin{array}{cc}
+TN\left(X\cdot\beta,1,f_{0,t}\leq X\cdot\beta\right) & \forall Y_{t}=0\\
+TN\left(X\cdot\beta,1,X\cdot\beta\leq f_{0,t}\right) & \forall Y_{t}=1\end{array}\right.\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Una vez generado este filtro de output se tiene de nuevo un modelo de regresión
+ lineal perfectamente asumible por BSR.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+f_{0}=X\cdot\beta+\epsilon\\
+\epsilon\sim N\left(0,I\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En este caso no hay ningún parámetro que simular, si no que se simula directamen
+te el output, por lo que evidentemente no sería necesario incluir los métodos
+ de obtención de intervalos.
+ Matemáticamente no tiene sentido decir que 
+\begin_inset Formula $f_{0}$
+\end_inset
+
+ sea una función, pues no depende de ningún parámetro, pero no habría ningún
+ problema en pensar que existe un parámetro 
+\begin_inset Formula $\tau_{0}$
+\end_inset
+
+ irrelevante que luego nos abstenemos de simular.
+ Informáticamente se tratará sin ningún problema como un caso particular
+ de dimensión del vector de parámetros igual 0.
+\end_layout
+
+\end_body
+\end_document

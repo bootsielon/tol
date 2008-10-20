@@ -1,0 +1,414 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:El-bloque-de-varianzas"
+
+\end_inset
+
+El bloque de varianzas
+\end_layout
+
+\begin_layout Standard
+En un modelo de regresión con función de contraste arbitraria puede haber
+ uno o varios bloques de de residuos que se postulan independientes de los
+ que se quiere estimar su varianza.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:SigmaBlock_Antecedentes"
+
+\end_inset
+
+Descripción
+\end_layout
+
+\begin_layout Standard
+Un modelo genérico de regresión normal puede verse como un conjunto de funciones
+ arbitrarias de contraste de segmentos de residuos normales independientes
+ con varianzas desconocidas
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+e_{k}=\mathbb{f}^{k}\left(Y^{k},\Upsilon\right)\forall k=1\ldots K\\
+e_{k}\sim N\left(0,\sigma_{k}^{2}I\right)\\
+\Upsilon\in\mathbb{R}^{n}\\
+Y^{k},e_{k}\in\mathbb{R}^{m_{k}}\\
+{\displaystyle \sum_{k=1}^{K}m_{k}}>n\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+donde 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\sigma_{k}^{2}$
+\end_inset
+
+ es el parámetro del bloque de varianzas o 
+\begin_inset Formula $\sigma$
+\end_inset
+
+-block referido al 
+\begin_inset Formula $k$
+\end_inset
+
+-ésimo segmento de regresión,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\Upsilon$
+\end_inset
+
+ son todos los parámetros de la regresión excepto los del bloque de varianzas,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $n$
+\end_inset
+
+ es el número de parámetros a estimar de la regresión,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Y^{k}$
+\end_inset
+
+ es el vector de output conocido del 
+\begin_inset Formula $k$
+\end_inset
+
+-ésimo segmento de regresión.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathbb{f}^{k}$
+\end_inset
+
+ es la función arbitraria de contraste del 
+\begin_inset Formula $k$
+\end_inset
+
+-ésimo segmento de regresión y formaliza las hipótesis que se desean contrastar
+ sobre el output.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $m_{k}$
+\end_inset
+
+ es el número de datos de contraste del 
+\begin_inset Formula $k$
+\end_inset
+
+-ésimo segmento,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $e_{k}$
+\end_inset
+
+ son los residuos del 
+\begin_inset Formula $k$
+\end_inset
+
+-ésimo segmento de regresión, y su distribución se propone como hipótesis
+ principal del mismo,
+\end_layout
+
+\begin_layout Section
+Simulación del bloque de varianzas
+\end_layout
+
+\begin_layout Standard
+Condicionando al resto de parámetros 
+\begin_inset Formula $\Upsilon$
+\end_inset
+
+se obtienen los vectores de residuos de un segmento concreto, prescindiendo
+ del índice 
+\begin_inset Formula $k$
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+e=f\left(Y,\Upsilon\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+La suma de sus cuadrados dividida por la varianza se distribuyen como una
+ 
+\begin_inset Formula $\chi_{m-1}^{2}$
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\frac{1}{\sigma^{2}}{\displaystyle \sum_{t=1}^{m}e_{t}^{2}\sim\chi_{m-1}^{2}}\end{array}\end{equation}
+
+\end_inset
+
+luego 
+\begin_inset Formula $\sigma_{k}^{2}$
+\end_inset
+
+ se puede simular así
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\sigma^{2}\sim\frac{s^{2}}{\chi_{m-1}^{2}}\\
+s^{2}={\displaystyle \sum_{t=1}^{m}e_{t}^{2}}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Información a priori
+\end_layout
+
+\begin_layout Standard
+En 
+\begin_inset LatexCommand cite
+key "Bayesian-Data-Analysis"
+
+\end_inset
+
+, sección 14.8, subsección "Prior information about variance parameters"
+ página 384, se propone un método de incluir información a priori sobre
+ la varianza de un modelo de regresión con residuos normales, equivalente
+ a añadir 
+\begin_inset Formula $m_{0}$
+\end_inset
+
+ residuos auxiliares con un valor central de varianza a priori 
+\begin_inset Formula $\sigma_{0}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\sigma^{2}\sim\frac{m_{0}\sigma_{0}^{2}+s^{2}}{\chi_{m_{0}+m-1}^{2}}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Para que el prior no sea dependiente de la longitud actual del segmento,
+ es preferible definirlo en virtud del peso del valor central a priori en
+ la distribución a posteriori
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\lambda_{0}=\frac{m_{0}}{m_{0}+m}\in\left[0,1\right]\end{array}\end{equation}
+
+\end_inset
+
+obteniéndose el valor de 
+\begin_inset Formula $m_{0}$
+\end_inset
+
+ en función de 
+\begin_inset Formula $m$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+m_{0}=m\frac{\lambda_{0}}{1-\lambda_{0}}\in\left[0,1\right]\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Obsérvese que dar un peso 
+\begin_inset Formula $\lambda_{0}=0$
+\end_inset
+
+ es equivalente a no tener ningún a priori para 
+\begin_inset Formula $\sigma^{2}$
+\end_inset
+
+, o más exactamente a suponer a priori uniforme en 
+\begin_inset Formula $\left(0,\infty\right)$
+\end_inset
+
+, y un peso 
+\begin_inset Formula $\lambda_{0}=1$
+\end_inset
+
+ es equivalente a un prior determinista, es decir a fijar 
+\begin_inset Formula $\sigma^{2}=\sigma_{0}^{2}$
+\end_inset
+
+.
+ Este parámetro peso se puede interpretar como la credibilidad del a priori.
+\end_layout
+
+\begin_layout Section
+Modelos heterocedásticos
+\end_layout
+
+\begin_layout Standard
+A veces ocurre que la varianza dentro de un segmento no permanece constante
+ sino que cambia de magnitud en virtud de ciertos fenómenos endógenos y
+ exógenos, es decir, que se puede considerar que la serie de varianzas,
+ bajo cierta transformación tiene su propio modelo ARIMA con función de
+ transferencia, lo cual es una generalización natural de los modelos ARCH
+ y GARCH 
+\begin_inset Foot
+status open
+
+\begin_layout Standard
+Ver 
+\begin_inset LatexCommand cite
+key "ARCH-UK"
+
+\end_inset
+
+ y 
+\begin_inset LatexCommand cite
+key "GARCH"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+La forma de tratar este problema en BSR es la composición de bloques de
+ modelos en el que se crea un modelo BSR anexo al principal en el que para
+ cada segmento heterocedástico del principal, habrá un segmento de regresión
+ cuyo output será la serie estandarizada de cuadrados de residuos heterocedástic
+os
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+u_{t,k}^{2}=\left(\frac{1}{m}{\displaystyle \sum_{t=1}^{m}e_{k,t}^{2}}\right)^{-1}e_{k,t}^{2}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Una vez simulado el modelo producirá unas previsiones normalizadas 
+\begin_inset Formula $\hat{u}_{t,k}^{2}$
+\end_inset
+
+, es decir, tales que 
+\begin_inset Formula \begin{equation}
+\frac{1}{m}{\displaystyle \sum_{t=1}^{m}\hat{u}_{k,t}^{2}}=1\end{equation}
+
+\end_inset
+
+que se utilizarán para reconstruir el modelo lineal en términos homocedásticos
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\dot{Y}_{k,t}=\frac{1}{\hat{u}_{k,t}}Y_{k,t}\\
+\dot{X}_{k,t,j}=\frac{1}{\hat{u}_{k,t}}X_{k,t,j}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

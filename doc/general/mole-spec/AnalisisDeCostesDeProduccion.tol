@@ -1,0 +1,153 @@
+//////////////////////////////////////////////////////////////////////////////
+// AnalisisDeCostesDeProduccion.tol
+// Análisis de costes de las diferentes opciones 
+//   A- Mantener y hacer crecer el TOL actual 
+//   B- Migrar todo a uno o varios lenguajes (R, bugs, ...) y adpatarlos
+//   C- Crear un nuevo lenguaje TOL2/MOLE
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Estructura de definición de cada componente del coste
+//////////////////////////////////////////////////////////////////////////////
+Struct CosteOpcionStr
+{
+  Text Clave,        //Clave de la componente de coste
+  Text Concepto,     //Nombre descriptivo de la componente
+  Text Relacion,     //Relación de orden entre el coste de las opciones
+  Real CosteBaseMin, //Mínimo coste base en unidades arbitrarias
+  Real CosteBaseMax  //Máximo coste base en unidades arbitrarias
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set DefCoste = 
+// Se definen las características de cada componente de coste asignándoles de
+// forma arbitaria pero con ciertos visos de racionalidad
+//////////////////////////////////////////////////////////////////////////////
+[[
+  CosteOpcionStr("C1","DESARROLLO",   "B<<A<=C", 1.00, 2.00),
+  CosteOpcionStr("C2","IMPLANTACION", "A<=C<<B", 0.50, 1.00),
+  CosteOpcionStr("C3","APRENDIZAJE",  "B<<A<=C", 0.10, 0.30),
+  CosteOpcionStr("C4","MANTENIMIENTO","B<=C<<A", 0.50, 1.00),
+  CosteOpcionStr("C5","DEPENDENCIA",  "C==A<<B", 1.00, 2.00)
+]];
+
+//////////////////////////////////////////////////////////////////////////////
+//Estructura de definición de los factores de conversión de las relaciones de
+//orden
+//////////////////////////////////////////////////////////////////////////////
+Struct FactorRelacionStr
+{
+  Text Relacion,    //Igual:"==", Algo menor:"<=", Mucho menor:"<<" 
+  Real FactorMin,   //Factor mínimo de coste adjudicado a la relación
+  Real FactorMax    //Factor máximo de coste adjudicado a la relación
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Set DefFactor = 
+// Se definen las características de cada componente de coste asignándoles de
+// forma arbitaria pero con ciertos visos de racionalidad
+//////////////////////////////////////////////////////////////////////////////
+[[
+  FactorRelacionStr("==", 1.00, 1.00),
+  FactorRelacionStr("<=", 1.01, 1.25),
+  FactorRelacionStr("<<", 1.25, 2.00)
+]];
+
+//////////////////////////////////////////////////////////////////////////////
+//Estructura de los resultados de la evaluación de costes
+//////////////////////////////////////////////////////////////////////////////
+Struct EvalCosteStr
+{
+  Real CosteBase1, //Coste base de la componente C1: DESARROLLO
+  Real CosteBase2, //Coste base de la componente C2: IMPLANTACION
+  Real CosteBase3, //Coste base de la componente C3: APRENDIZAJE 
+  Real CosteBase4, //Coste base de la componente C4: MANTENIMIENTO
+  Real CosteBase5, //Coste base de la componente C5: DEPENDENCIA
+  Real Alfa,       //Factor de coste adjudicado a una relación <=
+  Real Beta,       //Factor de coste adjudicado a una relación <<
+  Real CosteA,     //Coste relativo de la opción A (TOL1)
+  Real CosteB,     //Coste relativo de la opción B (R+Bugs+...)
+  Real CosteC      //Coste relativo de la opción C (TOL2/MOLE)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Real CosteFactor(Text rel, Real alfa, Real beta)
+// PURPOSE: Establece una relación cuantitativa asociada a una relación de 
+//          orden en virtud de los siguientes factores de conversión:
+//    1 : factor de coste adjudicado a una relación ==
+// alfa : factor de coste adjudicado a una relación <=
+// beta : factor de coste adjudicado a una relación <<
+//////////////////////////////////////////////////////////////////////////////
+{
+   Case(rel=="==",1,
+        rel=="<=",alfa,
+        rel=="<<",beta)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+   Set SimulaCostes(Real unused)
+// PURPOSE: Simula los parámetros de la estructura de costes como uniformes
+//          dentro del rango de cada uno y evalua los costes asociados
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set cb = For(1,Card(DefCoste),Real(Real k)
+  {
+    Rand(DefCoste[k]->CosteBaseMin, DefCoste[k]->CosteBaseMax)
+  });
+  Real alfa = Rand(DefFactor[2]->FactorMin, DefFactor[2]->FactorMax);
+  Real beta = Rand(DefFactor[3]->FactorMin, DefFactor[3]->FactorMax);
+
+  Real CA = 0;
+  Real CB = 0;
+  Real CC = 0;
+
+  Text ev = SetSum(For(1,Card(DefCoste),Text(Real k)
+  {  
+  //WriteLn("SimulaCostes("<<alfa<<","<<beta<<") ["<<k<<"]");
+    Text rel  = DefCoste[k]->Relacion;
+    Real base = cb[k];
+    Text Opt1 = Sub(rel,1,1);
+    Text Rel1 = Sub(rel,2,3);
+    Text Opt2 = Sub(rel,4,4);
+    Text Rel2 = Sub(rel,5,6);
+    Text Opt3 = Sub(rel,7,7);
+    
+    Real C1 = base;
+    Real C2 = C1*CosteFactor(Rel1, alfa, beta);
+    Real C3 = C2*CosteFactor(Rel2, alfa, beta);
+    
+    Text ev = 
+    "Real C"+Opt1+":= C"+Opt1+" + "<<C1<<";\n"+
+    "Real C"+Opt2+":= C"+Opt2+" + "<<C2<<";\n"+
+    "Real C"+Opt3+":= C"+Opt3+" + "<<C3<<";\n";
+  //WriteLn(ev);
+    ev
+  }));
+  Set IncludeText(ev);
+  Real min = Min(CA,CB,CC);
+  Real CA := CA/min;
+  Real CB := CB/min;
+  Real CC := CC/min;
+  EvalCosteStr(Copy(cb[1]),Copy(cb[2]),Copy(cb[3]),Copy(cb[4]),Copy(cb[5]),
+               Copy(alfa),Copy(beta),
+               Copy(CA),Copy(CB),Copy(CC))
+};
+
+
+Set Simulacion = For(1,10000,Set(Real k)
+{
+  SimulaCostes(0)
+});
+
+Matrix Sim    = SetMat(Simulacion);
+Real   CosteA = MatSum(SubCol(Sim,[[ 8]]))/Card(Simulacion);
+Real   CosteB = MatSum(SubCol(Sim,[[ 9]]))/Card(Simulacion);
+Real   CosteC = MatSum(SubCol(Sim,[[10]]))/Card(Simulacion);
+
+WriteLn(
+"\nCoste Opción A = "<<CosteA+
+"\nCoste Opción B = "<<CosteB+
+"\nCoste Opción C = "<<CosteC);
+
+
+/* */

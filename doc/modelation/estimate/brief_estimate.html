@@ -1,0 +1,1751 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.2  (Win32)">
+	<META NAME="CREATED" CONTENT="20060801;9371426">
+	<META NAME="CHANGEDBY" CONTENT="V&iacute;ctor de Buen Remiro">
+	<META NAME="CHANGED" CONTENT="20070604;10565050">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { size: 21cm 29.7cm }
+		H5.western { font-family: "Albany", sans-serif; font-size: 11pt }
+		H5.cjk { font-family: "HG Mincho Light J"; font-size: 11pt }
+		H5.ctl { font-family: "Arial Unicode MS"; font-size: 11pt }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="es-ES" DIR="LTR">
+<P STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=6>Una
+breve biblia de la funci&oacute;n Estimate</FONT></FONT></P>
+<P><U><B>por V&iacute;ctor de Buen: vdebuen@bayesinf.com</B></U></P>
+<H1>Descripci&oacute;n de la funci&oacute;n</H1>
+<P ALIGN=JUSTIFY>Estima el modelo ARIMA con funci&oacute;n de
+transferencia 
+</P>
+<P STYLE="margin-top: 0.21cm">(D(B)*P(B)):Zt = Sum(Wk(B) Xtk) +
+Q(B):At.</P>
+<P ALIGN=JUSTIFY>Se trata de un modelo de regresi&oacute;n no lineal
+y como tal presenta dificultades de estimaci&oacute;n importantes
+adem&aacute;s de las que presenta el modelo de regresi&oacute;n
+lineal. Se asume que el usuario tiene conocimientos medios de
+estad&iacute;stica y conoce los rudimentos para formular un modelo
+estad&iacute;stico sensato, con un n&uacute;mero de variables
+adecuado al tama&ntilde;o muestral, con variables de filtro
+significativas y de rango completo, y una estructura estacional ARIMA
+congruente con el autocorrelograma.</P>
+<P ALIGN=JUSTIFY>Esta funci&oacute;n hace una estimaci&oacute;n
+m&aacute;ximo veros&iacute;mil con un m&eacute;todo iterativo de
+aproximaci&oacute;n progresiva, pero bas&aacute;ndose en una
+transformaci&oacute;n de los residuos tal que la minimizaci&oacute;n
+de su suma de cadrados coincida ex&aacute;ctamente con el m&aacute;ximo
+de la funci&oacute;n de verosimilitud. Es decir, puede que no alcanze
+el punto de m&aacute;xima verosimilitud pero la verosimilitud del
+mejor punto alcanzado es realmente la que dice que es.</P>
+<H1>Variables de control</H1>
+<P ALIGN=JUSTIFY>El comportamiento de Estimate depende efectivamente
+de un conjunto de par&aacute;metros globales, lo cual fue quiz&aacute;s
+un error de dise&ntilde;o en su momento, ya que deber&iacute;an al
+menos estar organizados de una forma m&aacute;s razonable, aunque hay
+que entender que por una parte algunas de estas variablas afectan
+tambi&eacute;n a otros algoritmos por lo que es necesario que sean
+globales, y, por otro lado, pasarlas como argumentos opcionales en
+cada llamada podr&iacute;a ser bastante inc&oacute;modo.</P>
+<P ALIGN=JUSTIFY>Los valores por defecto que se dan en el SADD son
+los que funcionaron en su d&iacute;a en los proyectos que se
+estuvieran haciendo pero en cada nuevo proyectyo se deber&iacute;an
+ajustar al tama&ntilde;o y la forma de las series analizadas. En
+casos extremos, incluso puede que se haga necesario ajustarlos para
+cada una de ellas.</P>
+<P ALIGN=JUSTIFY>Todos los afectan a Estimate son los que se recogen
+en el archivo source/system/definition.tol del SADD y que se
+describen a continuaci&oacute;n. 
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=0>
+	<COL WIDTH=13*>
+	<COL WIDTH=32*>
+	<COL WIDTH=210*>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ffcc99">
+			<P ALIGN=LEFT><FONT COLOR="#2300dc"><B>Tipo</B></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ffcc99">
+			<P ALIGN=LEFT><FONT COLOR="#2300dc"><B>Nombre</B></FONT></P>
+		</TD>
+		<TD WIDTH=82% BGCOLOR="#ffcc99">
+			<P ALIGN=LEFT><FONT COLOR="#2300dc"><B>Descripci&oacute;n</B></FONT></P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Tolerance</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Tolerancia para m&eacute;todos num&eacute;ricos
+			iterativos de optimizaci&oacute;n y resoluci&oacute;n de
+			ecuaciones. Cuando la diferencia entre dos valores consecutivos de
+			la funci&oacute;n objetivo es menor en valor absoluto que dicha
+			cota la iteraci&oacute;n se para para evitar un exeso de consumo
+			de CPU cuando el beneficio obtenido ya no lo compensa. Casi todos
+			los m&eacute;todos tienen convergencia casi cuadr&aacute;tica pero
+			cuando crece el n&uacute;mero de variables y correlaciones
+			aplanado excesivamente la funci&oacute;n cerca del &oacute;ptimo,
+			entonces la convergencia se hace lineal dando lugar a un proceso
+			demasiado largo para la ventaja obtenida en cada iteraci&oacute;n.
+			Lo normal es poner un valor 10 &oacute; 100 veces menor que la
+			unidad que se considere como poco relevante.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>RelativeTolerance</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Tolerancia relativa para m&eacute;todos num&eacute;ricos
+			iterativos. El objetivo es el mismo que el de la variable Real
+			Tolerance s&oacute;lo que aqu&iacute; la m&eacute;trica es la
+			relativa, es decir, la diferencia en tanto por uno con respecto al
+			valor de la funci&oacute;n objetivo de la iteraci&oacute;n
+			anterior. A veces es m&aacute;s eficiente esta m&eacute;trica
+			cuando se quieren controlar diferentes funciones objetivo con la
+			misma parametrizaci&oacute;n. En tal caso se fija la tolererancia
+			m&iacute;nima de todas ellas con Tolerance y se aplica el valor
+			deseado de RelativeTolerance para que no haga m&aacute;s
+			iteraciones en los procesos de funci&oacute;n objetivo de mayor
+			volumen.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>MaxIter</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>M&aacute;ximo de iteraciones para m&eacute;todos
+			num&eacute;ricos iterativos. Sirve para evitar caer en ciclos
+			demasiado largos e incluso infinitos en casos de error en la
+			definici&oacute;n de la funci&oacute;n objetivo o de alg&uacute;n
+			proceso de c&aacute;lculo. En procesos masivos en los que se
+			pretenda ahorrar en el tiempo total de estimaci&oacute;n s&oacute;lo
+			cabe el m&eacute;todo heur&iacute;stico de bajar este n&uacute;mero
+			m&aacute;ximo de iteraciones y comprobar como repercute en la
+			calidad de los resultados.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>CGMaxIter</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>M&aacute;ximo de iteraciones para el m&eacute;todo
+			del gradiente conjugado utilizado en la funci&oacute;n Estimate
+			cuando los m&eacute;todos diferenciales como Marquardt y el
+			descenso curvil&iacute;neo fracasan. Este m&eacute;todo consume
+			m&aacute;s recursos cuando hay muchas variables pero es el m&aacute;s
+			robusto de todos cuando hay mucha correlaci&oacute;n entre
+			variables y puede sacar al estimador de situaciones complicadas.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>DiffDist</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Distancia de puntos para aproximaciones
+			diferenciales numericas. Cuando se utiliza diferenciaci&oacute;n
+			num&eacute;rica ordinaria o parcial, como es el caso del jacobiano
+			num&eacute;rico, es necesario definir cu&aacute;l es el tama&ntilde;o
+			de paso para la aproximaci&oacute;n del l&iacute;mite cuando dicho
+			paso tiende a cero, que corresponde a la definici&oacute;n
+			anal&iacute;tica de derivada. Es decir, se trata del valor que se
+			le suma a cada variable independiente componente del vector de
+			par&aacute;metros del problema para explorar la diferncia
+			resultante en la funci&oacute;n objetivo. Internamente se intenta
+			normalizar pero esto no resulta trivial y es muy recomendable que
+			los valores de todas las componentes sean de un orden de magnitud
+			similar. Si esto no ocurre el proceso ser&aacute; m&aacute;s
+			sensible a unas variables que a otras e ir&aacute; &ldquo;renqueando&rdquo;
+			m&aacute;s lentamente hacia la soluci&oacute;n o incluso puede
+			llegar a desviarse tanto que no la encuentre. Para ello es
+			conveniente que los inputs del problema est&aacute;n en unidades
+			similares.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>MarqFactor</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Par&aacute;metro de factor lambda en el m&eacute;todo
+			de minimizaci&oacute;n cuadr&aacute;tica de Marquardt. Afecta m&aacute;s
+			a la eficiencia de la estimaci&oacute;n que a los resultados
+			obtenidos y en general no es conveniente tocar este par&aacute;metro
+			si no se conoce profundamente el m&eacute;todo de Marquardt.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>DoDiagnostics</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Deshabilitado de momento. La funci&oacute;n Estimate
+			de modelos ARIMA realizar&aacute; los diagn&oacute;sticos de los
+			modelos si esta variable es TRUE. Dichos diagn&oacute;sticos son
+			en gran medida bastante heur&iacute;sticos y habr&iacute;a que
+			hacer un esfuerzo para actualizarlos. Quda pendiente una
+			explicaci&oacute;n detallada de lo que hay y lo que deber&iacute;a
+			haber.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>DoStatistics</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>La funci&oacute;n Estimate de modelos ARIMA
+			realizar&aacute; las estad&iacute;sticas de los modelos si esta
+			variable es TRUE.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>NullInitResiduals</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>La funci&oacute;n Estimate de modelos ARIMA tomar&aacute;
+			residuos iniciales nulos si esta variable es TRUE. Esta opci&oacute;n
+			se dio para evitar el c&aacute;lculo de los valres iniciales de la
+			ecuaci&oacute;n en diferencias del modelo ARMA, que en algunas
+			versiones anteriores de TOL pod&iacute;an ser excesivamente
+			costosas. No se debe utilizar esta opci&oacute;n salvo en casos
+			extremos de series muy largas con inicios muy suaves y a&uacute;n
+			as&iacute; no tiene demasiado sentido pues el coste computacional
+			no es relevante actualmente.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>MinOutlierLikelyhood</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>El m&iacute;nimo valor admisible para la razon de
+			verosimilitud de 'outliers'(t-Student). Es la significaci&oacute;n
+			m&iacute;nima que ha de dar la estimaci&oacute;n parcial de una
+			anomal&iacute;a en una serie con un modelo preestimado. Esta
+			variable no afecta a Estimate sino a la funci&oacute;n AIA que se
+			utiliza a menudo tras un paso inicial de estimaci&oacute;n para
+			eliminar las anomal&iacute;as en segundo paso. 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>MarqLinMet</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>M&eacute;todo lineal usado en cada iteraci&oacute;n
+			del m&eacute;todo de Marquardt(Householder o Givens) En realidad
+			esta variable est&aacute; obsoleta pues se usa siempre una
+			variante del m&eacute;todo de Lanczos que ha demostrado ser el m&aacute;s
+			robusto y eficiente de todos los m&eacute;todos de resoluci&oacute;n
+			de sistemas lineales.</P>
+		</TD>
+	</TR>
+</TABLE>
+<H1>Argumentos de entrada</H1>
+<P ALIGN=JUSTIFY>Los argumentos de entrada obligatorios se introducen
+en un conjunto con estructura ModelDef con los campos que se enumeran
+en la siguiente tabla. Opcionalmente se pueden especificar fechas de
+comienzo y fin de la estimaci&oacute;n distintas de las de la serie
+output. Si se pasan fechas externas a la serie, se le a&ntilde;adir&aacute;n
+los omitidos necesarios los cuales se tratar&aacute;n internamente
+como el resto de interrupciones. Existen otros par&aacute;metros
+opcionales pero son a t&iacute;tulo experimental y nunca dieron
+buenos resultados as&iacute; que no se detallan.</P>
+<H2>La estructura ModelDef</H2>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=0>
+	<COL WIDTH=13*>
+	<COL WIDTH=32*>
+	<COL WIDTH=211*>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ffcc99">
+			<P ALIGN=LEFT><FONT COLOR="#2300dc"><B>Tipo</B></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ffcc99">
+			<P ALIGN=LEFT><FONT COLOR="#2300dc"><B>Nombre</B></FONT></P>
+		</TD>
+		<TD WIDTH=82% BGCOLOR="#ffcc99">
+			<P ALIGN=LEFT><FONT COLOR="#2300dc"><B>Descripci&oacute;n</B></FONT></P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Serie</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Output</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>La serie para la que se pretende estimar el modelo
+			en t&eacute;rminos originales.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>FstTransfor</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>T&eacute;rmino lineal en la transformaci&oacute;n de
+			Box-Cox a sumar a la serie output (Output-FstTransfor)^SndTransfor</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>SndTransfor</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>T&eacute;rmino exponencial en la transformaci&oacute;n
+			de Box-Cox a sumar a la serie output
+			(Output-FstTransfor)^SndTransfor. Cuando SndTransfor es cero se
+			entiende Log(Output-FstTransfor)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Period</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>M&aacute;xima periodicidad de la parte ARMA</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Constant</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Constante del modelo. No se usa. P&aacute;sese 0 &oacute;
+			?. Si se quiere que el modelo tenga constante m&eacute;tase un
+			input constante.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Dif</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Polinomio de diferencias del modelo. En realidad se
+			puede pasar cualquier estructura polinomial determinista.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>AR</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Conjunto de factores autoregresivos para las
+			distintas estacionalidades o periodicidades. Cuando una
+			periodicidad no tiene parte AR se especificar&aacute; el polinomio
+			1. Nunca se debe dejar vac&iacute;a o saltarse porque entonces se
+			pierde el paralelismo con la parte MA.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>MA</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Conjunto de factores de media m&oacute;vil para las
+			distintas estacionalidades o periodicidades. Cuando una
+			periodicidad no tiene parte MA se especificar&aacute; el polinomio
+			1. Nunca se debe dejar vac&iacute;a o saltarse porque entonces se
+			pierde el paralelismo con la parte AR.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=17 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Input</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Conjunto de inputs y sus funciones de transferencia
+			lineales en elementos con estructura InputDef. La matriz de dise&ntilde;o
+			resultante tras diferenciar las series inputos y aplicarles cada
+			uno de los omegas con su grado correspondiente, debe ser de rango
+			completo, y es aconsejable que est&eacute; num&eacute;ricamente
+			bien condicionada, es decir, que no hayan tampoco autovalores
+			pr&oacute;ximos a cero; para poder aplicar adecuadamente las
+			hip&oacute;tesis usuales de regresi&oacute;n. En caso contrario
+			los resultados estad&iacute;sticos ser&aacute;n poco fiables a
+			nivel inferencial y adem&aacute;s el proceso de estimaci&oacute;n
+			se ver&aacute; perturbado num&eacute;ricamente produciendo como
+			m&iacute;nimo una ralentizaci&oacute;n de la convergencia de los
+			m&eacute;todos iterativos tanto mayor cuanto mayor sea la
+			dimensi&oacute;n del n&uacute;cleo (kernel).</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=5% HEIGHT=16 BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>NonLinInput</B></I></FONT></P>
+		</TD>
+		<TD WIDTH=82%>
+			<P ALIGN=LEFT>Funciones de transferencia no lineales. No se usa.
+			Se puede pasar el conjunto vac&iacute;o a partir de la versi&oacute;n
+			1.1.5, antes se ten&iacute;a que pasar AllLinear o algo similar.</P>
+		</TD>
+	</TR>
+</TABLE>
+<H1>Conjunto de resultados y su interpretaci&oacute;n</H1>
+<P ALIGN=JUSTIFY>Los resultados de la funci&oacute;n Estimate se
+devuelven en un conjunto ramificado de conjuntos clasificados por
+&aacute;reas</P>
+<TABLE COLS=3 WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=0>
+	<COL WIDTH=100*>
+	<COL WIDTH=148*>
+	<COL WIDTH=2056*>
+	<TR>
+		<TD BGCOLOR="#ffcc99">
+			<P><FONT COLOR="#2300dc"><B>&Aacute;rea</B></FONT> 
+			</P>
+		</TD>
+		<TD BGCOLOR="#ffcc99">
+			<P><FONT COLOR="#2300dc"><B>Elemento</B></FONT> 
+			</P>
+		</TD>
+		<TD BGCOLOR="#ffcc99">
+			<P><FONT COLOR="#2300dc"><B>Descripci&oacute;n</B></FONT> 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Information</B></I></FONT></P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT>Informaci&oacute;n b&aacute;sica acerca de las
+			dimensiones y los principales estad&iacute;sticos del modelo.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>FirstDate</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Fecha de inicio de la estimaci&oacute;n</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>LastDate</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Fecha de fin de la estimaci&oacute;n</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>DataNumber</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Longitud de la serie diferenciada</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>VarNumber</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>N&uacute;mero de variables</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Average</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Media de los residuos. Debe ser cercana a cero.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>RSS</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Suma de cuadrados de los residuos</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Variance</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Varianza de los residuos</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Sigma</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Desviaci&oacute;n t&iacute;pica de los residuos</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Asymmetry</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Coeficiente de asimetr&iacute;a de los residuos.
+			Debe ser cercano a cero</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Kurtosis</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Coeficiente de kurtosis de los residuos</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Pearson</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Coeficiente de Pearson. Correlaci&oacute;n entre la
+			serie output y la de previsi&oacute;n.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>R2</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Coeficiente R2. Es el cuadrado del coeficiente de
+			Pearson.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Swartz</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Criterio de informaci&oacute;n de Swartz.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Qualification</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Deshabilitado</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Arith-Qualif</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Deshabilitado</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>MaxLHSigma</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Estimaci&oacute;n m&aacute;ximo veros&iacute;mil de
+			la desviaci&oacute;n t&iacute;pica de los residuos.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>normMaxLH</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Norma modificada de los residuos cuyo m&iacute;nimo
+			coincide con la m&aacute;xima verosimilitud. 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Definition</B></I></FONT></P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT>Definici&oacute;n del modelo resultante en una
+			estructura ModelDef similar a la usada para la estimaci&oacute;n
+			pero con los valores resultantes de la misma.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Series</B></I></FONT></P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT>Series involucradas en los c&aacute;lculos del
+			modelo</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Residuals</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Serie de residuos del modelo. Deben ser
+			independientes y normales de media nula y varianza constante. Debe
+			presentar por tanto un autocorrelograma casi plano.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>DifNoise</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Serie de ruido diferenciado, ruido ARMA o ruido
+			estacionario. Debe presentar un autocorrelograma convergente a
+			cero m&aacute;s o menos r&aacute;pidamente.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Noise</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Serie de ruido sin diferenciar o ruido ARIMA no
+			necesariamente estacionario. Si hay diferencias debe presentar un
+			autocorrelograma divergente o de convergencia extremadamente
+			lenta.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Interruptions</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Serie de interrupciones estimadas. Tiene un valor
+			estimado para cada fecha en la que la serie output transformada es
+			desconocida.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>FullTransformed</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>La serie output transformada rellenada con las
+			interrupciones estimadas donde fuera desconocida.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Transformed</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>La serie output transformada tal como se le pas&oacute;
+			al modelo</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>PrevHistTrans</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>La serie de previsi&oacute;n hist&oacute;rica una
+			fecha por delante es la suma del filtro de transferencia y el
+			ruido ARIMA</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Filter</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>La serie de filtro es la suma de los efectos de
+			todas las series inputs apllic&aacute;ndoles las funciones de
+			transferencia estimadas por el modelo, es decir, la suma de los
+			efectos ex&oacute;genos o elementos causales externos, en
+			contraposici&oacute;n a los a los efectos inerciales o efectos
+			end&oacute;genos incorporados en la parte ARIMA del modelo.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Effects</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Cada una de las series inputs una vez aplicada la
+			correspondiente funci&oacute;n de transferencia estimada. Todas
+			ellas juntas suman el filtro</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Parameters</B></I></FONT></P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT>Resumen de la informaci&oacute;n estad&iacute;stica
+			sobre la estimaci&oacute;n de los par&aacute;metros. Para cada uno
+			se ofrece un registro con la estructura ParameterInf que contiene
+			los siguientes campos</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Text Name</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Nombre identificador de la variable</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real Factor</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Factor identificador de la componente de la funci&oacute;n
+			de transferencia. Actualmente s&oacute;lo se usa en la parte ARMA
+			para identificar el n&uacute;mero de factor estacional</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real Order</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Grado del polinomio al que afecta (AR, MA en la
+			parte inercial, OMEGA en el filtro externo, pues DELTA no hay de
+			momento).</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real Value</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Valor estimado del par&aacute;metro</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real StDs</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Desviaci&oacute;n t&iacute;pica del par&aacute;metro.
+			Este campo s&oacute;lo aparece si DoStatistics es cierto.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real TStudent</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Estad&iacute;stico t-student de la distribuci&oacute;n
+			marginal del par&aacute;metro para el contraste de la hip&oacute;tesis
+			de que no es nulo. Este campo s&oacute;lo aparece si DoStatistics
+			es cierto.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Real RefuseProb</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Probabilidad de rechazo del par&aacute;metro por ser
+			nulo. Este campo s&oacute;lo aparece si DoStatistics es cierto.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Correlations</B></I></FONT></P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Jacobian</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Jacobiano de los residuos en el punto de m&aacute;xima
+			verosimilitud encontrado. En el m&iacute;nimo deber&iacute;a ser
+			J'*a = 0.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>U</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Matriz ortonormal de autovectores izquierdos
+			(left-eigenvectors) en la descomposici&oacute;n de valor singular
+			del Jacobiano 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>D</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Matriz diagonal de autovaloes (eigenvalues)
+			ordenados de mayor a menor en la descomposici&oacute;n de valor
+			singular del Jacobiano. Deben ser todos estrictamente positivos y
+			preferentemente lo m&aacute;s lejanos a cero que sea posible pues
+			miden la significaci&oacute;n de las componentes prioncipales del
+			modelo.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>V</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Matriz ortonormal de autovectores derechos
+			(left-eigenvectors) en la descomposici&oacute;n de valor singular
+			del Jacobiano 
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Kernel</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Deshabilitado</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Information Matrix</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Matriz de informaci&oacute;n de la regresi&oacute;n
+			no lineal, es decir, MI = J'*J</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>COV</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Matriz de covarianzas de los par&aacute;metros, COV
+			= MI^(-1) * sigma^2</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>COR</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Matriz de correlaciones de los par&aacute;metros
+			COR(i,j) = COV(i,j)/Sqrt(COV(i,i)*COV(j,j))</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>ACOR</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Autocorrelaciones muestrales de los residuos</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff8080">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>PACOR</B></I></FONT></P>
+		</TD>
+		<TD>
+			<P ALIGN=LEFT>Autocorrelaciones parciales muestrales de los
+			residuos</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT><FONT COLOR="#ffffff"><I><B>Diagnostics</B></I></FONT></P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P><BR>
+			</P>
+		</TD>
+		<TD BGCOLOR="#ff9966">
+			<P ALIGN=LEFT>Deshabilitado</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-top: 0.21cm"><BR><BR>
+</P>
+<H1 STYLE="page-break-before: auto; page-break-after: auto">Colinealidad
+m&uacute;ltiple: c&oacute;mo detectarla y evitarla</H1>
+<P ALIGN=JUSTIFY>Como ya se ha dicho la hip&oacute;tesis de rango
+completo es una condici&oacute;n irrenunciable de los modelos de
+regresi&oacute;n en los que se enmarca el modelo ARIMA con funci&oacute;n
+de transferencia. Sin embargo la comprobaci&oacute;n de que tal cosa
+es cierta es a menudo mucho m&aacute;s compleja que la estimaci&oacute;n
+misma. El estimador detecta perfectamente los casos de colinealidad
+simple, es decir, las variables que son nulas y las que tienen
+correlaci&oacute;n unitaria con otras, pero la colinealidad m&uacute;ltiple
+es mucho m&aacute;s compleja. En cualquier caso esta eliminaci&oacute;n
+autom&aacute;tica tiene sentido en procesos de estimaci&oacute;n
+masiva en donde el analista no puede entrar a comprobar cada caso
+constantemente, pero debe tenerse como tarea primordial la revisi&oacute;n
+de las variables propuestas para no introducir variables absurdas y
+eliminarlas de forma razonable y de ra&iacute;z.</P>
+<P ALIGN=JUSTIFY>En este apartado se explica mediante un ejemplo como
+detectar y evitar manualmente situaciones de colinealidad m&uacute;ltiple
+o correlaci&oacute;n m&uacute;ltiple cercana a la unidad, lo cual es
+num&eacute;ricamente casi igual de peligroso. Lo primero que hay que
+hacer es asegurarse de que la variable global DoStatistics no est&eacute;
+desactivada antes de llamar a Estimate, para que aplique el c&aacute;lculo
+de la descomposici&oacute;n SVD del jacobiano y dem&aacute;s c&aacute;lculos
+asociados a las covarianzas. 
+</P>
+<P ALIGN=JUSTIFY>Una vez estimado el modelo hay que comprobar si los
+&uacute;ltimos autovalores son nulos o muy pr&oacute;ximos a cero.
+Para ello se pueden extraer los autovalores con esta l&iacute;nea TOL</P>
+<P STYLE="margin-bottom: 0cm"><FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Matrix
+eigenvalues = Tra(SubDiag(ModeloEstimado[&quot;Correlations&quot;][&quot;D&quot;],0));</FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY>En el caso expuesto, por ejemplo, hab&iacute;a 4
+autovalores nulos nulos y he extra&iacute;do los 4 &uacute;ltimos
+autovectores as&iacute;<BR><FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><BR>Matrix
+SubCol(ModeloEstimado[&quot;Correlations&quot;][&quot;V&quot;],[[n-3,n-2,n-1,n]])</FONT></FONT></FONT></P>
+<P ALIGN=JUSTIFY>De esa matriz se extraen los coeficientes que no
+sean nulos para ver qu&eacute; par&aacute;metros del modelo
+intervienen en las colinealidades. Una posibilidad es copiar en una
+hoja de c&aacute;lculo la tabla de par&aacute;metros anteponiendo los
+autovectores del n&uacute;cleo y hacer la extracci&oacute;n:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=0>
+	<COL WIDTH=24*>
+	<COL WIDTH=24*>
+	<COL WIDTH=24*>
+	<COL WIDTH=24*>
+	<COL WIDTH=23*>
+	<COL WIDTH=21*>
+	<COL WIDTH=19*>
+	<COL WIDTH=19*>
+	<COL WIDTH=18*>
+	<COL WIDTH=27*>
+	<COL WIDTH=33*>
+	<TR>
+		<TD WIDTH=9% HEIGHT=7 BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>EV[n-3]</B></FONT></P>
+		</TD>
+		<TD WIDTH=9% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>EV[n-2]</B></FONT></P>
+		</TD>
+		<TD WIDTH=9% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>EV[n-1]</B></FONT></P>
+		</TD>
+		<TD WIDTH=9% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>EV[n]</B></FONT></P>
+		</TD>
+		<TD WIDTH=9% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>Name</B></FONT></P>
+		</TD>
+		<TD WIDTH=8% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>Factor</B></FONT></P>
+		</TD>
+		<TD WIDTH=7% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>Order</B></FONT></P>
+		</TD>
+		<TD WIDTH=8% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>Value</B></FONT></P>
+		</TD>
+		<TD WIDTH=7% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>StDs</B></FONT></P>
+		</TD>
+		<TD WIDTH=11% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>TStudent</B></FONT></P>
+		</TD>
+		<TD WIDTH=13% BGCOLOR="#ff9966">
+			<P ALIGN=CENTER><FONT COLOR="#ffffff"><B>RefuseProb</B></FONT></P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.02</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>3.93</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>-0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>7</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.12</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.02</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-5.69</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>-0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_2</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>14</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.02</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-1.5</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.13</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.57</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P ALIGN=CENTER>input_3</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.53</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.02</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>24.75</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_4</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.29</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.02</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-12.14</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_4</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>7</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.15</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>4.51</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_5</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.34</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>12</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_6</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.06</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.02</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>3.29</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_6</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.11</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.02</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-5.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>-0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_7</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>2</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.01</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-7.94</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_7</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>2</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.01</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>2.97</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>0.57</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.04</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>-0.03</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>input_8</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>1</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.29</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0.02</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>12.82</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>0</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY>Obs&eacute;rvese que aunque las t-student son casi
+todas bastante significativas, la significaci&oacute;n conjunta de 4
+de las 12 variables es cero. El motivo es que el estad&iacute;stico
+t-student expresa tan s&oacute;lo la distribuci&oacute;n marginal de
+cada par&aacute;metro. En este caso, a la vista de los autovectores
+se deduce inmediatamente que existen estas 4 colinealidades</P>
+<H5 CLASS="western" STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm; font-weight: medium; page-break-after: avoid">
+<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Serie
+kernel_1 = 0*Output - (B^0):input_1 + (B^7):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_1</SPAN></FONT></FONT></FONT>
++ (B^14):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_2;</SPAN></FONT></FONT></FONT></FONT></FONT></FONT></H5>
+<H5 CLASS="western" STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm; font-weight: medium; page-break-after: avoid">
+<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Serie
+kernel_2 = 0*Output + (B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_3</SPAN></FONT></FONT></FONT>
+-(B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_4</SPAN></FONT></FONT></FONT>
++ (B^ 7):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_4</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
+<H5 CLASS="western" STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm; font-weight: medium; page-break-after: avoid">
+<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Serie
+kernel_3 = 0*Output + (B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_5</SPAN></FONT></FONT></FONT>
+- (B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_6</SPAN></FONT></FONT></FONT>
++ (B^ 0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_6</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
+<H5 CLASS="western" STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm; font-weight: medium; page-break-after: avoid">
+<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Serie
+kernel_4 = 0*Output + (B^2):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_7
+</SPAN></FONT></FONT></FONT>- (B^2):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_7</SPAN></FONT></FONT></FONT>
+&ndash; (B^ 0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_8</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
+<P ALIGN=JUSTIFY STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm">Estas
+cuatro series, combinaciones lineales de inputs, son nulas en el
+intervalo de estimaci&oacute;n, es decir forman el n&uacute;cleo de
+la matriz de informaci&oacute;n J'J. La t&eacute;cnica es la misma
+empleada en an&aacute;lisis de componentes principales, s&oacute;lo
+que en vez de buscar lo m&aacute;s significativo buscamos lo que no
+significa nada. 
+</P>
+<P ALIGN=JUSTIFY>Se puede intentar automatizar este proceso de
+eliminaci&oacute;n de variables colineales, pero no es trivial y es
+peligroso, aunque no menos que lo que se hace ahora con las
+correlaciones simples cmo ya se ha dicho antes. Lo que s&iacute; es
+pr&aacute;cticamente inmediato es poner un mensaje de error o al
+menos de warning cuando hayan autovalores cercanos a cero.</P>
+<P ALIGN=JUSTIFY>Tambi&eacute;n se observa a menudo que hay docenas
+de componentes de significaci&oacute;n irrisoria, especialmente
+cuando la superficie de contrate del modelo es demasiado pobre, es
+decir cuando el cociente entre el n&uacute;mero de datos y el de
+variables es muy peque&ntilde;o. Para que el modelo se pueda
+considerar como estad&iacute;sticamente robusto muchos autores
+recomiendan superficies de contraste de 30 a 1 y en ning&uacute;n
+caso bajar de 10 datos por variable.</P>
+<H1>Detalles de la implementaci&oacute;n</H1>
+<P ALIGN=JUSTIFY>La funci&oacute;n Estimate busca el punto de <U>m&aacute;xima
+verosimilitud exacta de un modelo ARIMA con interrupciones y funci&oacute;n
+de transferencia lineal</U> (sin deltas). Se trata de un algoritmo
+bastante complejo pues la simple evaluaci&oacute;n de la funci&oacute;n
+objetivo contiene la resoluci&oacute;n de una ecuaci&oacute;n en
+diferencias de la que hay que estimar sus valores iniciales teniendo
+en cuenta la distribuci&oacute;n conjunta de las dos series
+involucradas: los residuos y el ruido. Adem&aacute;s, la construcci&oacute;n
+del filtro lineal puede tener un gran n&uacute;mero de variables y el
+c&aacute;lculo del jacobiano y su manipulaci&oacute;n en los m&eacute;todos
+num&eacute;ricos iterativos de optimizaci&oacute;n lo complica a&uacute;n
+m&aacute;s y es necesario contar con una serie de herramientas
+internas dificilmente explicables a quien no est&aacute; introducido
+en el noble arte del c&aacute;lculo num&eacute;rico. 
+</P>
+<P ALIGN=JUSTIFY>El m&eacute;todo es en resumen una mezcla del
+algoritmo del Gradiente Conjugado (<FONT COLOR="#0000ff"><B>CG:
+Conjugate Gradient</B></FONT>), el m&eacute;todo de B&uacute;squeda
+Curvil&iacute;nea (<FONT COLOR="#0000ff"><B>CS: Curvilinear Search</B></FONT>)
+y el de <FONT COLOR="#0000ff"><B>Levenberg-Martquardt</B></FONT>
+(<FONT COLOR="#0000ff"><B>LM</B></FONT>), que a su vez es mezcla del
+m&eacute;todo de <FONT COLOR="#0000ff"><B>Gauss-Newton</B></FONT>
+(<FONT COLOR="#0000ff"><B>GN</B></FONT>) y el m&eacute;todo de
+descenso m&aacute;s r&aacute;pido (<FONT COLOR="#0000ff"><B>SD:
+Steepest Descent</B></FONT>). Se trata pues de un complejo artefacto
+que no siempre es facil de manejar ni de interpretar y que en ning&uacute;n
+caso es capaz de hacer magia: si se le pasa una funci&oacute;n
+objetivo o unos inputs aberrantes da siempre valores aberrantes. Como
+a toda m&aacute;quina se le debe tratar con cari&ntilde;o y
+condescendencia y hay que saber interpretar su comportamiento, raz&oacute;n
+por la cual se presentan estas notas.</P>
+<P ALIGN=JUSTIFY>En la red privada de Bayes ubicados en
+<FONT COLOR="#008000">&ldquo;</FONT><FONT COLOR="#008000"><I>N:\document\BAYES\CONCEPT\ARMA&rdquo;</I></FONT>,
+o en esta intranet navegando hasta <FONT COLOR="#008000">&ldquo;</FONT><FONT COLOR="#008000"><I>Document
+Manager / Tecnolog&iacute;a / Modelaci&oacute;n / Max Likelihood
+ARIMA Estimate&rdquo;</I></FONT>, se encuentran algunos documentos
+relacionados con el desarrollo te&oacute;rico y la implementaci&oacute;n
+de este m&eacute;todo de estimaci&oacute;n m&aacute;ximo-veros&iacute;mil
+</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT COLOR="#0000ff"><B>EstConInt3.doc</B></FONT>:
+	Definici&oacute;n te&oacute;rica y proposici&oacute;n de un m&eacute;todo
+	de c&aacute;lculo de los valores iniciales y de las interrupciones 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT COLOR="#0000ff"><B>ArmaPolCov.doc</B></FONT>:
+	C&aacute;lculo de la matriz de autocovarianzas de un modelo ARMA 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm"><FONT COLOR="#0000ff"><B>Un
+	estimador de modelos ARIMA con FT.ppt</B></FONT>: Presentaci&oacute;n
+	del m&eacute;todo general de estimaci&oacute;n m&aacute;ximo
+	veros&iacute;mil aplicado al caso ARIMA con funci&oacute;n de
+	transferencia. 
+	</P>
+	<LI><P><FONT COLOR="#0000ff"><B>InformeImplementaci&oacute;nDeLaEstimacionARIMA_Mar2004.doc</B></FONT>:
+	&Uacute;ltimos ajustes desarrollados sobre la implementaci&oacute;n
+	de la funci&oacute;n Estimate 
+	</P>
+</OL>
+<H1 ALIGN=JUSTIFY STYLE="margin-top: 0cm"><BR><BR>
+</H1>
+</BODY>
+</HTML>

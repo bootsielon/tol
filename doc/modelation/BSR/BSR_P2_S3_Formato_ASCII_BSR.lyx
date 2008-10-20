@@ -1,0 +1,850 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:El-formato-ASCII-BSR"
+
+\end_inset
+
+El formato ASCII-BSR
+\end_layout
+
+\begin_layout Standard
+Se describe el formato ASCII-BSR de definición de modelos con la función
+ built-in BSR.Parse
+\end_layout
+
+\begin_layout Section
+Descripción
+\end_layout
+
+\begin_layout Standard
+La estructura de datos que deine un modelo básico BSR explicada en 
+\begin_inset LatexCommand ref
+reference "sec:Método-BysMcmc::Bsr::Gibbs::BasicMaster()"
+
+\end_inset
+
+ está diseñada para la máxima eficiencia en la simulación de todos los bloques,
+ pero es realmente complicada de manejar por el analista, e incluso por
+ sistemas automatizados escritos en TOL, es muy difícil de manejar y visualizar
+ y es prácticamente imposible de mantener en un sistema en producción.
+\end_layout
+
+\begin_layout Standard
+Para paliar este problema existe un formato de definición de modelos en
+ ficheros ASCII con extensión .bsr que permite escribir el modelo con una
+ sintaxis muy próxima a las expresiones matemáticas involucradas, que en
+ casos de modelos pequeños se podría incluso escribir a mano, pero que además
+ es bastante fácil de generar mecánicamente desde programas TOL o incluso
+ desde cualquier otro lenguaje de programación que permita escritura formateada.
+\end_layout
+
+\begin_layout Section
+Ejemplo
+\end_layout
+
+\begin_layout Standard
+En los directorios test_01, test_02 y test_03 disponibles en 
+\begin_inset LatexCommand htmlurl
+target "http://cvs.tol-project.org/viewcvs.cgi/tol/stdlib/math/stat/models/bayesian/bysMcmc/"
+
+\end_inset
+
+ se puede ver ejemplos de modelos generados automáticamente de forma aleatoria
+ en los que los archivos def.tol construyen ficheros .bsr a partir de ciertos
+ parámetros dimensionales para el chequeo de calidad del simulador BSR básico.
+\end_layout
+
+\begin_layout Standard
+A continuación se puede ver un ejemplo generado automáticamente con el ejemplo
+ test_03 de un modelo HLM muy sencillo pero completo, con sólo dos nodos
+ observacionales con parte ARIMA y omitidos en el input y en el output,
+ y con un nodo latente para cada variable observacional y otro a priori
+ para los hiperparámetros latentes.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\tiny\ttfamily},breaklines=true,extendedchars=true,numbers=left,numberstyle={\tiny}"
+inline false
+status open
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Bayesian Sparsed Regression 
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+Model.Name = "bysMcmc.test_03";
+\end_layout
+
+\begin_layout Standard
+
+Model.Description = 
+\end_layout
+
+\begin_layout Standard
+
+"Randomly generation of a hierarchycal lineal model with these simple
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"structure:
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"  1: a set of K1 observational nodes with the same number n of variables
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"     and data length m
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"  2: a set of n latent nodes with one central parameter for each distinct
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"     observational variable with specified standard deviation
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"  3: a central prior equation for each latent variable with specified
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"     standard deviation
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"  4: a set of sparse linear inequalities over the observational variables
+\backslash
+n"
+\end_layout
+
+\begin_layout Standard
+
+"";
+\end_layout
+
+\begin_layout Standard
+
+Session.Name = "RS_1483339472";
+\end_layout
+
+\begin_layout Standard
+
+Session.Description = 
+\end_layout
+
+\begin_layout Standard
+
+"Random seed=1483339472";
+\end_layout
+
+\begin_layout Standard
+
+Session.Authors = "vdebuen@tol-project.org";
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Regression Variables Declarations with initial values
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+NodeObs.1_Var.1 <- +0.53803037013858557;
+\end_layout
+
+\begin_layout Standard
+
+NodeObs.1_Var.2 <- +0.46934376657009125;
+\end_layout
+
+\begin_layout Standard
+
+NodeObs.1_Var.3 <- -0.22560517396777868;
+\end_layout
+
+\begin_layout Standard
+
+NodeObs.2_Var.1 <- +0.86625403119251132;
+\end_layout
+
+\begin_layout Standard
+
+NodeObs.2_Var.2 <- -0.15567512763664126;
+\end_layout
+
+\begin_layout Standard
+
+NodeObs.2_Var.3 <- -0.075121806003153324;
+\end_layout
+
+\begin_layout Standard
+
+NodeLat.1_Var.nu <- +0.15836594998836517;
+\end_layout
+
+\begin_layout Standard
+
+NodeLat.2_Var.nu <- -0.85943601280450821;
+\end_layout
+
+\begin_layout Standard
+
+NodeLat.3_Var.nu <- +0.18600673880428076;
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Regression Missing Input Declarations 
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+MissInp.NodeObs.3.13 ? ~ Normal(0.896203693933785,0.2007952652551403);
+\end_layout
+
+\begin_layout Standard
+
+MissInp.NodeObs.6.30 ? ~ Normal(0.6046165255829692,0.09139028575200531);
+\end_layout
+
+\begin_layout Standard
+
+MissInp.NodeObs.3.2 ? ~ TruncatedNormal(0.9820013050921261,0.2410816408006598,0,9.8200
+13050921261);
+\end_layout
+
+\begin_layout Standard
+
+MissInp.NodeObs.5.40 ? ~ Normal(-0.7318465355783701,0.1338998379095156);
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Regression Missing Output Declarations 
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+MissOut.NodeObs.31 ? <- -0.4157893265383703;
+\end_layout
+
+\begin_layout Standard
+
+MissOut.NodeObs.40 ? <- -0.3029720514576624;
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Regression Residuals Declarations Normal(0,sigma^2)
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+NodeObs.1_Residuals[20 dating Daily from y2008m08d09 until y2008m08d28] ~
+ Normal(0,NodeObs.1_Sigma2*ARIMA.COV([[  ARIMAStruct( 1, 1-1.70970212223966*B+0.9668
+93838252872*B^2, 1, 1), ARIMAStruct( 7, 1, 1, 1)]]));
+\end_layout
+
+\begin_layout Standard
+
+NodeObs.2_Residuals[20 dating Daily from y2008m08d09 until y2008m08d28] ~
+ Normal(0,NodeObs.2_Sigma2*ARIMA.COV([[  ARIMAStruct( 1, 1-0.0191113898593219*B+0.12
+9901138134301*B^2, 1, 1), ARIMAStruct( 7, 1, 1, 1)]]));
+\end_layout
+
+\begin_layout Standard
+
+NodeLat.1_Residuals[2] ~ Normal(0,0.03276045051869933);
+\end_layout
+
+\begin_layout Standard
+
+NodeLat.2_Residuals[2] ~ Normal(0,0.030080604978733022);
+\end_layout
+
+\begin_layout Standard
+
+NodeLat.3_Residuals[2] ~ Normal(0,0.010264774427016805);
+\end_layout
+
+\begin_layout Standard
+
+NodePri.1_Residuals[3] ~ Normal(0,0.011844979275860658);
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Regression equations 
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
++5.2435581658297865 == NodeObs.1_Residuals[1]; //Reg.Equ.1
+\end_layout
+
+\begin_layout Standard
+
++2.1913126132131682 == NodeObs.1_Residuals[2]+MissInp.NodeObs.3.2*NodeObs.1_Var.3
+ ; //Reg.Equ.2
+\end_layout
+
+\begin_layout Standard
+
++0.12304427448649291 == NodeObs.1_Residuals[3]+0.63090779585763812*NodeObs.1_Var.1
+ +0.54491685889661312*NodeObs.1_Var.2 +0.94600624032318592*NodeObs.1_Var.3 ; //Reg.Equ.3
+\end_layout
+
+\begin_layout Standard
+
+-2.6088045980742529 == NodeObs.1_Residuals[4]-0.66879721963778138*NodeObs.1_Var.2
+ ; //Reg.Equ.4
+\end_layout
+
+\begin_layout Standard
+
+-6.0452993628906073 == NodeObs.1_Residuals[5]; //Reg.Equ.5
+\end_layout
+
+\begin_layout Standard
+
+-6.3822864805891921 == NodeObs.1_Residuals[6]+0.95094704767689109*NodeObs.1_Var.1
+ -0.54092238331213593*NodeObs.1_Var.2 ; //Reg.Equ.6
+\end_layout
+
+\begin_layout Standard
+
+-6.6295145939371594 == NodeObs.1_Residuals[7]+0.93608348118141294*NodeObs.1_Var.1
+ +0.9823420150205493*NodeObs.1_Var.2 ; //Reg.Equ.7
+\end_layout
+
+\begin_layout Standard
+
+-5.5561393799341996 == NodeObs.1_Residuals[8]+0.7666153940372169*NodeObs.1_Var.2
+ -0.66276752250269055*NodeObs.1_Var.3 ; //Reg.Equ.8
+\end_layout
+
+\begin_layout Standard
+
+-3.1295982695386888 == NodeObs.1_Residuals[9]-0.56221867958083749*NodeObs.1_Var.1
+ -0.90145999845117331*NodeObs.1_Var.3 ; //Reg.Equ.9
+\end_layout
+
+\begin_layout Standard
+
++0.76951244117245921 == NodeObs.1_Residuals[10]; //Reg.Equ.10
+\end_layout
+
+\begin_layout Standard
+
++2.9132946114405867 == NodeObs.1_Residuals[11]+0.95396953029558063*NodeObs.1_Var.3
+ ; //Reg.Equ.11
+\end_layout
+
+\begin_layout Standard
+
++5.7416648977148181 == NodeObs.1_Residuals[12]-0.95996885281056166*NodeObs.1_Var.3
+ ; //Reg.Equ.12
+\end_layout
+
+\begin_layout Standard
+
++6.3831794474164543 == NodeObs.1_Residuals[13]-0.64427804760634899*NodeObs.1_Var.2
+ +MissInp.NodeObs.3.13*NodeObs.1_Var.3 ; //Reg.Equ.13
+\end_layout
+
+\begin_layout Standard
+
++4.0282180180201248 == NodeObs.1_Residuals[14]-0.90212121233344078*NodeObs.1_Var.1
+ ; //Reg.Equ.14
+\end_layout
+
+\begin_layout Standard
+
++4.3505297967804113 == NodeObs.1_Residuals[15]+0.85422466974705458*NodeObs.1_Var.1
+ -0.78263330226764083*NodeObs.1_Var.3 ; //Reg.Equ.15
+\end_layout
+
+\begin_layout Standard
+
+-1.8762849597824245 == NodeObs.1_Residuals[16]-0.71285796910524368*NodeObs.1_Var.1
+ -0.58573955669999123*NodeObs.1_Var.3 ; //Reg.Equ.16
+\end_layout
+
+\begin_layout Standard
+
+-5.6888365292228968 == NodeObs.1_Residuals[17]+0.98112034006044269*NodeObs.1_Var.2
+ -0.79486409109085798*NodeObs.1_Var.3 ; //Reg.Equ.17
+\end_layout
+
+\begin_layout Standard
+
+-8.3673617279440613 == NodeObs.1_Residuals[18]; //Reg.Equ.18
+\end_layout
+
+\begin_layout Standard
+
+-8.0537960538725955 == NodeObs.1_Residuals[19]+0.52584361424669623*NodeObs.1_Var.2
+ +0.67250693123787642*NodeObs.1_Var.3 ; //Reg.Equ.19
+\end_layout
+
+\begin_layout Standard
+
+-5.9263487197705214 == NodeObs.1_Residuals[20]-0.96396565064787865*NodeObs.1_Var.2
+ +0.8175902683287859*NodeObs.1_Var.3 ; //Reg.Equ.20
+\end_layout
+
+\begin_layout Standard
+
+-0.6068887599917272 == NodeObs.2_Residuals[1]+0.56295138271525502*NodeObs.2_Var.2
+ ; //Reg.Equ.21
+\end_layout
+
+\begin_layout Standard
+
++2.0939562031264218 == NodeObs.2_Residuals[2]+0.65345998154953122*NodeObs.2_Var.1
+ -0.71942238695919514*NodeObs.2_Var.3 ; //Reg.Equ.22
+\end_layout
+
+\begin_layout Standard
+
++0.60038804953399949 == NodeObs.2_Residuals[3]-0.84704046417027712*NodeObs.2_Var.2
+ ; //Reg.Equ.23
+\end_layout
+
+\begin_layout Standard
+
+-1.0713915154528588 == NodeObs.2_Residuals[4]-0.93844964541494846*NodeObs.2_Var.1
+ ; //Reg.Equ.24
+\end_layout
+
+\begin_layout Standard
+
+-0.32125826101136556 == NodeObs.2_Residuals[5]+0.51997147314250469*NodeObs.2_Var.1
+ -0.63292960310354829*NodeObs.2_Var.2 ; //Reg.Equ.25
+\end_layout
+
+\begin_layout Standard
+
+-0.54762880703286565 == NodeObs.2_Residuals[6]-0.50578109361231327*NodeObs.2_Var.1
+ ; //Reg.Equ.26
+\end_layout
+
+\begin_layout Standard
+
++2.4653275135908528 == NodeObs.2_Residuals[7]+0.54335346445441246*NodeObs.2_Var.1
+ -0.93712931545451283*NodeObs.2_Var.2 -0.72416583448648453*NodeObs.2_Var.3 ; //Reg.Equ.2
+7
+\end_layout
+
+\begin_layout Standard
+
++0.52714812684114365 == NodeObs.2_Residuals[8]+0.95070930058136582*NodeObs.2_Var.1
+ -0.97863368503749371*NodeObs.2_Var.3 ; //Reg.Equ.28
+\end_layout
+
+\begin_layout Standard
+
+-1.0270370273766312 == NodeObs.2_Residuals[9]-0.88577614538371563*NodeObs.2_Var.1
+ +0.54846574366092682*NodeObs.2_Var.3 ; //Reg.Equ.29
+\end_layout
+
+\begin_layout Standard
+
++0.25652362241255156 == NodeObs.2_Residuals[10]-0.61568234255537391*NodeObs.2_Var.2
+ +MissInp.NodeObs.6.30*NodeObs.2_Var.3 ; //Reg.Equ.30
+\end_layout
+
+\begin_layout Standard
+
++MissOut.NodeObs.31 == NodeObs.2_Residuals[11]-0.73601436568424106*NodeObs.2_Var.3
+ ; //Reg.Equ.31
+\end_layout
+
+\begin_layout Standard
+
++0.38486138593475 == NodeObs.2_Residuals[12]; //Reg.Equ.32
+\end_layout
+
+\begin_layout Standard
+
+-0.1153939096162494 == NodeObs.2_Residuals[13]-0.52979899849742651*NodeObs.2_Var.1
+ ; //Reg.Equ.33
+\end_layout
+
+\begin_layout Standard
+
++0.20153337099189605 == NodeObs.2_Residuals[14]; //Reg.Equ.34
+\end_layout
+
+\begin_layout Standard
+
+-0.60618407368998284 == NodeObs.2_Residuals[15]-0.61933115171268582*NodeObs.2_Var.1
+ ; //Reg.Equ.35
+\end_layout
+
+\begin_layout Standard
+
++1.0049067997452399 == NodeObs.2_Residuals[16]+0.86020477814599872*NodeObs.2_Var.2
+ -0.98850312503054738*NodeObs.2_Var.3 ; //Reg.Equ.36
+\end_layout
+
+\begin_layout Standard
+
+-0.72396483131240752 == NodeObs.2_Residuals[17]+0.87632823176681995*NodeObs.2_Var.3
+ ; //Reg.Equ.37
+\end_layout
+
+\begin_layout Standard
+
++0.27870237026751166 == NodeObs.2_Residuals[18]; //Reg.Equ.38
+\end_layout
+
+\begin_layout Standard
+
+-0.74122059405715657 == NodeObs.2_Residuals[19]-0.75435957591980696*NodeObs.2_Var.1
+ -0.91726320842280984*NodeObs.2_Var.2 ; //Reg.Equ.39
+\end_layout
+
+\begin_layout Standard
+
++MissOut.NodeObs.40 == NodeObs.2_Residuals[20]-0.72136184806004167*NodeObs.2_Var.1
+ +MissInp.NodeObs.5.40*NodeObs.2_Var.2 ; //Reg.Equ.40
+\end_layout
+
+\begin_layout Standard
+
+0 == NodeLat.1_Residuals[1]-NodeObs.1_Var.1 +NodeLat.1_Var.nu ; //Reg.Equ.41
+\end_layout
+
+\begin_layout Standard
+
+0 == NodeLat.1_Residuals[2]-NodeObs.2_Var.1 +NodeLat.1_Var.nu ; //Reg.Equ.42
+\end_layout
+
+\begin_layout Standard
+
+0 == NodeLat.2_Residuals[1]-NodeObs.1_Var.2 +NodeLat.2_Var.nu ; //Reg.Equ.43
+\end_layout
+
+\begin_layout Standard
+
+0 == NodeLat.2_Residuals[2]-NodeObs.2_Var.2 +NodeLat.2_Var.nu ; //Reg.Equ.44
+\end_layout
+
+\begin_layout Standard
+
+0 == NodeLat.3_Residuals[1]-NodeObs.1_Var.3 +NodeLat.3_Var.nu ; //Reg.Equ.45
+\end_layout
+
+\begin_layout Standard
+
+0 == NodeLat.3_Residuals[2]-NodeObs.2_Var.3 +NodeLat.3_Var.nu ; //Reg.Equ.46
+\end_layout
+
+\begin_layout Standard
+
+-0.6096816505305469 == NodePri.1_Residuals[1]-NodeLat.1_Var.nu ; //Reg.Equ.47
+\end_layout
+
+\begin_layout Standard
+
++0.66229855222627521 == NodePri.1_Residuals[2]-NodeLat.2_Var.nu ; //Reg.Equ.48
+\end_layout
+
+\begin_layout Standard
+
++0.46403526607900858 == NodePri.1_Residuals[3]-NodeLat.3_Var.nu ; //Reg.Equ.49
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Restriction inequations 
+\end_layout
+
+\begin_layout Standard
+
+////////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
++1.1888731951872438 >= +NodeObs.1_Var.1 ;
+\end_layout
+
+\begin_layout Standard
+
++0.50465998947620394 >= +NodeObs.1_Var.2 ;
+\end_layout
+
+\begin_layout Standard
+
+-0.21083058095071464 >= +NodeObs.1_Var.3 ;
+\end_layout
+
+\begin_layout Standard
+
++0.9361133812088519 >= +NodeObs.2_Var.1 ;
+\end_layout
+
+\begin_layout Standard
+
+-0.13837098166579381 >= +NodeObs.2_Var.2 ;
+\end_layout
+
+\begin_layout Standard
+
+-0.0033603257639333584 >= +NodeObs.2_Var.3 ;
+\end_layout
+
+\begin_layout Standard
+
++1.1404310412146701 >= +NodeObs.1_Var.1 ;
+\end_layout
+
+\begin_layout Standard
+
++0.52799691481748601 >= +NodeObs.1_Var.2 ;
+\end_layout
+
+\begin_layout Standard
+
+-0.73132390667684377 >= -NodeObs.1_Var.1 +NodeObs.1_Var.3 ;
+\end_layout
+
+\begin_layout Standard
+
++1.3114740782628398 >= -NodeObs.1_Var.2 +NodeObs.2_Var.1 ;
+\end_layout
+
+\begin_layout Standard
+
++0.13644857598003002 >= -NodeObs.1_Var.3 +NodeObs.2_Var.2 ;
+\end_layout
+
+\begin_layout Standard
+
+-0.86476675785612311 >= -NodeObs.2_Var.1 +NodeObs.2_Var.3 ;
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

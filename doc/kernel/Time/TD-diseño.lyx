@@ -1,0 +1,2431 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language spanish
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage widemarginsa4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Álgebra del Tiempo Diario
+\layout Author
+
+Víctor de Buen
+\layout Abstract
+
+En este documento se dan las principales bases teóricas para la implementación
+ del 
+\series bold 
+álgebra del tiempo diario
+\series default 
+ especialmente diseñada para el lenguaje de programación 
+\emph on 
+open-source
+\emph default 
+ TOL (
+\emph on 
+Time Oriented Language
+\emph default 
+) cuya página web es 
+\begin_inset LatexCommand \htmlurl[TOL-project]{http://www.tol-project.org}
+
+\end_inset 
+
+, y que ha sido desarrollado por el grupo 
+\begin_inset LatexCommand \htmlurl[Bayes]{http://www.bayesforecast.com}
+
+\end_inset 
+
+.
+\layout Abstract
+
+El propósito del álgebra del tiempo es dotar al lenguaje de un método potente
+ y sencillo de manejar que permita la manipulación de secuencias temporales
+ complejas utilizadas en el análisis estadístico de series temporales en
+ tiempo discreto con base diaria, especialmente en lo que se respecta al
+ llamado tiempo social que alude a todos aquellos aspectos de tipo social
+ que pueden influir en los fenómenos analizados, como son los festivos,
+ los puentes, las vacaciones, el calendario escolar, fines de semana, estacional
+idades anual, semanal, y diaria, usos horarios de invierno y verano, nocturnidad
+, horario de oficina, etc.; o cualquier otra estructura temporal derivada
+ de los mismos.
+\layout Abstract
+\pagebreak_bottom 
+Se introducen formalizaciones matemáticas de instante de tiempo y conjunto
+ temporal, así como de las operaciones algebraicas que es posible definir
+ sobre ellos.
+ Nótese que las propiedades básicas que se van a exponer servirían igualmente
+ para cualquier otra discretización en lugar de la diaria, y no necesariamente
+ a intervalos regulares.
+ Queda para un posterior documento la extensión al tiempo continuo.
+\layout Abstract
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Section
+\pagebreak_top 
+Instantes de Tiempo Diario
+\layout Standard
+
+Los 
+\series bold 
+instantes de tiempo con base diaria
+\series default 
+, a los que llamaremos indistintamente fecha ó IT de aquí en adelante, se
+ definen como días completos en el calendario gregoriano y se identifican
+ con el punto de la recta real correspondiente al instante inicial del día,
+ es decir las 0 horas 0 minutos, 0 segundos, 0 milésimas de segundo, etc.
+ Si situamos el 0 en un punto de origen cualquiera y definimos la unidad
+ en la recta real como 24 horas se puede identificar con los números enteros
+ el conjunto de los instantes de tiempo diario 
+\begin_inset Formula $\mathfrak{C}_{D}$
+\end_inset 
+
+ mediante la función biyectiva
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+I\left(x\right):\:\mathfrak{C}_{D}\rightarrow\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+que devuelve índice de la fecha, es decir, la posición relativa al punto
+ de origen en número de días trasncurridos desde el mismo.
+ Evidentemente existe su función inversa
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+I^{-1}\left(n\right):\:\mathbb{Z}\rightarrow\mathfrak{C}_{D}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+En virtud de estas funciones se definen de forma trivial las operaciones
+ de traslación diaria de fechas
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{l}
+x+n=I^{-1}\left(I\left(x\right)+n\right)\\
+x-n=I^{-1}\left(I\left(x\right)-n\right)\end{array}\right\} \:\forall x\in\mathfrak{C}_{D},\: n\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+así como las relaciones de orden usuales
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{l}
+x=y\Leftrightarrow I\left(x\right)=I\left(y\right)\\
+x<y\Leftrightarrow I\left(x\right)<I\left(y\right)\\
+x>y\Leftrightarrow I\left(x\right)>I\left(y\right)\end{array}\right\} \:\forall x,y\in\mathfrak{C}_{D}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El conjunto 
+\begin_inset Formula $\mathfrak{C}_{D}$
+\end_inset 
+
+ se amplía con los instantes límite impropios
+\begin_inset Formula $\left\{ -\infty,\infty\right\} $
+\end_inset 
+
+ que se usará para extender los conceptos de sucesor y predecesor como se
+ verá más adelante, así como con el IT desconocido o indeterminado 
+\begin_inset Formula $?$
+\end_inset 
+
+, el cual se utilizará para expresar que no existe o no es calculable el
+ resultado de una expresión que debería devolver un IT.
+\layout Standard
+
+Sobre los IT se definirán mediante el calendario gregoriano las funciones
+ componentes de la fecha
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+Y_{x}=year\left(x\right)=\in\mathbb{Z}\\
+M_{x}=month\left(x\right)=1\ldots12\\
+D_{x}=monthday\left(x\right)=1\ldots31\\
+W_{x}=weekday\left(x\right)=1\ldots7\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+También se define la función de construcción de fechas a partir de sus component
+es
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+x=YMD\left(y,m,d\right)\Leftrightarrow Y_{x}=y\:\wedge\: M_{x}=m\:\wedge\: D_{x}=d\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Nos referimos aquí al objeto matemático fecha que se identifica con un número
+ entero en contraposición con el objeto informático que interesa almacenar
+ en base a sus componentes para mayor eficiencia.
+\layout Section
+\pagebreak_top 
+Conjuntos Temporales Discretos
+\layout Standard
+
+Un 
+\series bold 
+conjunto temporal discreto en base diaria
+\series default 
+, en adelante 
+\series bold 
+CT
+\series default 
+, es un tipo especial de conjunto de instantes de tiempo con cierta estructura
+ y que cumple determinadas normas que se explican a continuación.
+ Más adelante se exponen algunas propiedades importantes así como algunas
+ operaciones algebraicas que se pueden definir entre CT's y también otras
+ que relacionan CT's e IT's.
+\layout Subsection
+
+Definición y propiedades de un CT
+\layout Standard
+
+Un CT es un conjunto ordenado o sucesión de instantes de tiempo propios.
+ A la familia de todos los conjuntos temporales le llamaremos 
+\begin_inset Formula $\mathcal{CT}_{D}$
+\end_inset 
+
+ .
+ Nótese que la cardinalidad de 
+\begin_inset Formula $\mathcal{CT}_{D}$
+\end_inset 
+
+ será por tanto la misma que la del conjunto de las partes de los números
+ enteros 
+\begin_inset Formula $\mathcal{P}\left(\mathbb{Z}\right)$
+\end_inset 
+
+, es decir, la potencia del continuo 
+\begin_inset Formula $\infty^{\infty}$
+\end_inset 
+
+.
+\layout Subsubsection
+
+Funciones de sucesión simple de un ITen un CT
+\layout Standard
+
+Se define el IT 
+\series bold 
+sucesor de un IT en un CT
+\series default 
+, como el menor elemento de CT estrictamente mayor que ese IT.
+ De forma análoga se define el
+\series bold 
+ predecesor de un IT en un CT
+\series default 
+, como el mayor elemento de CT estrictamente menor que dicho IT.
+ La notación empleada será
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{l}
+x+A=\min\left\{ \left.t\in A\right|t>x\right\} \\
+x-A=\max\left\{ \left.t\in A\right|t<x\right\} \end{array}\right\} \forall x\in\mathfrak{C}_{D},\: A\in\mathcal{CT}_{D}\label{eq:SimpleSuccessorDefinition}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Nótese que estas operaciones no son internas sino que el primer elemento
+ es un IT y el segundo un CT, por lo que no tienen sentido las propiedades
+ asociativa o conmutativa ni ninguna otra atribuíble a los signos de suma
+ y resta usuales.
+ Sin embargo sí se cumplen algunas normas bastante obvias, tal y como se
+ desprende a la vista de la figura
+\lang english
+
+\begin_inset LatexCommand \ref{Succ-Sample-IT}
+
+\end_inset 
+
+
+\lang spanish
+ , que aún así serán de gran utilidad más adelante
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\left(x+A\right)-A\leq x<x+A\\
+\left(x-A\right)+A\geq x>x-A\\
+\left(x+A\right)-A=x\Leftrightarrow x\in A\\
+\left(x-A\right)+A=x\Leftrightarrow x\in A\\
+\left(x+A\right)-A=x-A<x\Leftrightarrow x\notin A\\
+\left(x-A\right)+A=x+A>x\Leftrightarrow x\notin A\end{array}\label{eq:SimpleSuccessorRelations}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\lang english
+
+\begin_inset Float figure
+placement htbp
+wide false
+collapsed false
+
+\layout Caption
+
+
+\lang english
+
+\begin_inset LatexCommand \label{Succ-Sample-IT}
+
+\end_inset 
+
+Ejemplos de sucesión de un IT en un CT
+\layout Standard
+\align center 
+
+\lang english
+
+\begin_inset Graphics
+	filename SuccSample01.eps
+	display color
+	scale 33
+	rotateOrigin center
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Funciones de sucesión compuesta de un ITen un CT
+\layout Standard
+
+Se puede extender recursivamente la definición de
+\series bold 
+ sucesor y predecesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimos de un IT en un CT
+\series default 
+ del siguiente modo 
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{ccc}
+x+1\times A=x+A & \qquad & x+n\times A=\left(x+\left(n-1\right)\times A\right)+A\\
+x-1\times A=x-A & \qquad & x-n\times A=\left(x-\left(n-1\right)\times A\right)-A\end{array}\right\} \forall n>1,\, n\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El caso de 
+\begin_inset Formula $n=0$
+\end_inset 
+
+ es realmente singular pues para que exista 
+\begin_inset Formula $x+0\times A=x-0\times A$
+\end_inset 
+
+ es necesario que se igualen las dos reglas de recursión anteriores
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x+0\times A=\left(x-A\right)+A\\
+x-0\times A=\left(x+A\right)-A\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Si 
+\begin_inset Formula $x\in A$
+\end_inset 
+
+ entonces está claro que 
+\begin_inset Formula $\left(x-A\right)+A=x=\left(x+A\right)-A$
+\end_inset 
+
+ pero si 
+\begin_inset Formula $x\notin A$
+\end_inset 
+
+ entonces el sucesor en 
+\begin_inset Formula $A$
+\end_inset 
+
+ del predecesor de 
+\begin_inset Formula $x$
+\end_inset 
+
+ en 
+\begin_inset Formula $A$
+\end_inset 
+
+ es el mismo que el sucesor de 
+\begin_inset Formula $x$
+\end_inset 
+
+ en 
+\begin_inset Formula $A$
+\end_inset 
+
+, ya que no puede existir ningún elemento de 
+\begin_inset Formula $A$
+\end_inset 
+
+ entre ambos y por tanto
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x-A=\left(x+A\right)-A<x<\left(x-A\right)+A=x+A\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Así pues no se puede definir 
+\begin_inset Formula $x+0\times A$
+\end_inset 
+
+ de forma congruente con las fórmulas generales, por lo que se ha toma arbitrari
+amente el criterio de devolver la fecha desconocida 
+\begin_inset Formula $?$
+\end_inset 
+
+, es decir
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+x+0\times A=\left\{ \begin{array}{cc}
+x & si\: x\in A\\
+? & si\: x\notin A\end{array}\right.\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se pueden extender las normas anteriormente descritas en 
+\begin_inset LatexCommand \ref{eq:SimpleSuccessorRelations}
+
+\end_inset 
+
+ para las operaciones sucesor y predecesor simples
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{l}
+\left(x+n\times A\right)-n\times A\leq x<\left(x+n\times A\right)-\left(n-1\right)\times A\\
+\left(x-n\times A\right)+n\times A\geq x>\left(x-n\times A\right)+\left(n-1\right)\times A\\
+\left(x+n\times A\right)-n\times A=x\Leftrightarrow x\in A\\
+\left(x-n\times A\right)+n\times A=x\Leftrightarrow x\in A\\
+\left(x+n\times A\right)-n\times A<x\Leftrightarrow x\notin A\\
+\left(x-n\times A\right)+n\times A<x\Leftrightarrow x\notin A\end{array}\right\} \forall n\in\mathbb{Z}^{+}\label{eq:ComposedSuccessorRelations}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Diferencia de dos IT's en un CT
+\layout Standard
+
+Se define la función diferencia en un CT 
+\begin_inset Formula $A\in\mathcal{CT}_{D}$
+\end_inset 
+
+ entre dos IT 
+\begin_inset Formula $x\leq y\in\mathfrak{C}_{D}$
+\end_inset 
+
+, como el número de IT's de ese CT superiores a 
+\begin_inset Formula $x$
+\end_inset 
+
+ y no superiores a 
+\begin_inset Formula $y$
+\end_inset 
+
+, es decir
+\begin_inset Formula \begin{equation}
+\nabla_{A}\left(x,y\right)=Card\left\{ \left.t\in A\:\right|\: x\leq t<y\right\} \quad\forall x\leq y\in\mathfrak{C}_{D},\: A\in\mathcal{CT}_{D}\end{equation}
+
+\end_inset 
+
+Igualmente se pude definir como el número de IT's de ese CT inferiores a
+ 
+\begin_inset Formula $y$
+\end_inset 
+
+ y no inferiores a 
+\begin_inset Formula $x$
+\end_inset 
+
+.
+ Es decir
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\nabla_{A}\left(x,y\right)=Card\left\{ \left.t\in A\:\right|\: x<t\leq y\right\} \quad\forall x\leq y\in\mathfrak{C}_{D},\: A\in\mathcal{CT}_{D}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Otras formas de expresar lo mismo son
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\nabla_{A}\left(x,y\right)=\max\left\{ \left.n\in\mathbb{N}\:\right|\: x+n\times A\leq y\right\} \\
+\nabla_{A}\left(x,y\right)=\max\left\{ \left.n\in\mathbb{N}\:\right|\: y-n\times A\geq x\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+También se define, por simetría, la diferencia negativa
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\nabla_{A}\left(y,x\right)=-\nabla_{A}\left(x,y\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Aunque las siguientes relaciones se cumplen de forma trivial pueden no resultar
+ a veces del todo intuitivas:
+\layout Enumerate
+
+La diferencia entre un elemento y sí mismo es nula siempre y si dos fechas
+ tienen diferencia nula en 
+\begin_inset Formula $A$
+\end_inset 
+
+ su sucesor o su predecesor en ese mismo 
+\begin_inset Formula $A$
+\end_inset 
+
+ coinciden.
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\nabla_{A}\left(x,x\right)=0\\
+\nabla_{A}\left(x,y\right)=0\Rightarrow\begin{array}{c}
+x+A=y+A\end{array}\:\vee\: x-A=y-A\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Enumerate
+
+Para todo par de fechas de 
+\begin_inset Formula $A$
+\end_inset 
+
+ su distancia es invariante a las traslaciones en 
+\begin_inset Formula $A$
+\end_inset 
+
+ y sólo es nula si son iguales.
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+x,y\in A\Rightarrow\left\{ \begin{array}{l}
+\nabla_{A}\left(x,y\right)=\nabla_{A}\left(x\pm n\times A,y\pm n\times A\right)\\
+\nabla_{A}\left(x,y\right)=0\Leftrightarrow x=y\end{array}\right.\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Enumerate
+
+Si la diferencia entre dos IT's cualesquiera es positiva el primero es estrictam
+ente mayor que el primero y si es negativa entonces es estrictamente menor.
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\nabla_{A}\left(x,y\right)>0\Rightarrow y>x\\
+\nabla_{A}\left(x,y\right)<0\Rightarrow y<x\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Enumerate
+
+El recíproco no se cumple estrictamente pues la distancia puede anularse
+ si no pertenecen al conjunto y no hay ningún elemento entre ambos.
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+y>x\Rightarrow\nabla_{A}\left(x,y\right)\geq0\\
+y<x\Rightarrow\nabla_{A}\left(x,y\right)\leq0\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Fechados y conjuntos acotados
+\layout Standard
+
+El ínfimo y el supremo de un CT se definen como es ordinario
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf A=\max\left\{ \left.x\:\right|\: y\notin A\:\forall\: y\leq x\right\} \\
+\sup A=\min\left\{ \left.x\:\right|\: y\notin A\:\forall\: y\geq x\right\} \end{array}\end{equation}
+
+\end_inset 
+
+Se llamará 
+\series bold 
+fechado
+\series default 
+ a un conjunto temporal 
+\begin_inset Formula $F\in\mathcal{CT}_{D}$
+\end_inset 
+
+ no acotado inferior ni superiormente, es decir, que cumpla que
+\begin_inset Formula \begin{equation}
+\forall t\in\mathbb{Z}\:\exists\, x,y\in F\bot x<t<y\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+o lo que es lo mismo 
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf F=-\infty\\
+\sup F=\infty\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Los fechados tienen una gran importancia pues son la base para la creación
+ de series temporales en tiempo continuo, así como para la definición de
+ algunas operaciones importantes de CT's que se verán más adelante.
+\layout Standard
+
+Aunque los instantes impropios 
+\begin_inset Formula $-\infty,\:?,\:\infty$
+\end_inset 
+
+ no pertenecen nunca a ningún CT, a veces se obrará como si así fuera por
+ comodidad notacional en el caso de los instantes límite 
+\begin_inset Formula $-\infty,\:\infty$
+\end_inset 
+
+, puesto que pertenecen asintóticamente a todos los fechados.
+ Se puede hablar de semifechados por la izquierda o por la derecha para
+ aquellos CT que estén acotados sólo por la izquierda o por la derecha,
+ respectivamente.
+\layout Standard
+
+Para los fechados se cumplen las siguientes reglas asintóticas de sucesión
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{l}
+\infty+n\times F=\infty\\
+\infty-n\times F=\infty\\
+-\infty+n\times F=-\infty\\
+-\infty-n\times F=-\infty\end{array}\right\} \forall n\in\mathbb{Z}^{+}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para los CT's acotados en un intervalo 
+\begin_inset Formula $\left[a,b\right]$
+\end_inset 
+
+, se tiene sin embargo que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{l}
+\infty+n\times A=\infty\\
+\infty-n\times A=b\\
+-\infty+n\times A=a\\
+-\infty-n\times A=-\infty\end{array}\right\} \forall n\in\mathbb{Z}^{+}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para la fecha desconocida en cualquier caso siempre se tiene que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+?\pm n\times A=?\:\forall n\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Notas para la implementación de los métodos de cálculo asociados a CT's
+\layout Standard
+
+Un CT se puede construir de varias formas, definiendo uno o más métodos
+ de cálculo asociados al mismo:
+\layout Itemize
+
+Por enumeración exhaustiva de sus elementos, siempre que sea un conjunto
+ finito.
+\layout Itemize
+
+Mediante una función booleana explícita de pertenencia que devuelva 
+\emph on 
+cierto
+\emph default 
+ para cada IT que sea elemento suyo y 
+\emph on 
+falso
+\emph default 
+ para el resto.
+\layout Itemize
+
+Implícitamente, mediante un IT que le pertenezca y una regla de recursión
+ reversible, es decir, que permita calcular cuál es el IT de ese conjunto
+ inmediatamente superior (
+\series bold 
+sucesor
+\series default 
+) o inferior (
+\series bold 
+predecesor
+\series default 
+) a un IT cualquiera.
+\layout Standard
+
+Sin embargo, será indispensable implementar al menos los métodos de inclusión
+ 
+\begin_inset Formula $x\in A$
+\end_inset 
+
+ y sucesión simple 
+\begin_inset Formula $x\pm A$
+\end_inset 
+
+ para cada clase de CT de la forma más eficiente que sea posible aprovechando
+ las características propias de cada uno, ya que estos métodos se utilizarán
+ de forma masiva en conjuntos y series temporales.
+ Siempre que sea posible y dé mayores prestaciones, también se implementarán
+ los métodos de sucesión compuesta 
+\begin_inset Formula $x\pm n\times A$
+\end_inset 
+
+, ya que, aunque por defecto se pueden definir por recursión de sucesores
+ y predecesores, se usarán tan a menudo que cualquier mejora producirá important
+es ahorros en el tiempo de proceso.
+\layout Standard
+
+Otro método de gran utilidad asociado a un CT y que merece la pena programar
+ de la forma más eficiente posible, por el uso intensivo que se hace de
+ él, es el que devuelve la lista ordenada de todos los elementos de un CT
+ entre dos fechas, al cual denotaremos como método de extracción
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+extract\left(A,x,y\right)=A\cap\left[x,y\right]=\left\{ \left.t_{k}\in A\:\right|\: x\leq t_{1}<t_{2}<\cdots<t_{n}\leq y\right\} \quad\forall x\leq y\in\mathfrak{C}_{D},\: A\in\mathcal{CT}_{D}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Cuando el método de extración sea muy costoso será conveniente almacenar
+ los resultados en memoria porque es muy habitual que se vuelvan a requerir
+ extracciones contenidas o iguales.
+ Diremos entonces que el CT usa extracción con caché.
+ Cuando un CT es una expresión resultante de otros CT's que no están referenciad
+os por ningún otro se debe eliminar la caché de estos últimos una vez construida
+ la caché final, ya que no volverán a ser consultadas y sería un espacio
+ de memoria inútil.
+ Es posible introducir un método general de control de la caché por parte
+ del usuario mediante un parámetro que indique el tiempo mínimo por elemento
+ de caché que justifica su uso.
+ Si no se especifica nada en la definición un CT no usará caché y la extracción
+ se realizará mediante el algoritmo genérico
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+t_{1}=\left(x-A\right)+A\\
+t_{k}=t_{k-1}+A\:\forall k=2,3,\ldots\wedge t_{k}\leq y\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Cada instancia de conjunto temporal deberá implementar también los métodos
+ 
+\begin_inset Formula $\inf A$
+\end_inset 
+
+, 
+\begin_inset Formula $\sup A$
+\end_inset 
+
+ y 
+\begin_inset Formula $\nabla A$
+\end_inset 
+
+.
+ Si no es posible calcular analíticamente dichas propiedades se implementará
+ al menos cotas aproximadas de los mismos que se utilizarán para optimizar
+ los cálculos de sucesión en determinados casos patológicos que se estudiarán
+ más adelante.
+\layout Section
+
+CT's primarios
+\layout Standard
+
+Los conjuntos temporales primarios son los que no requieren de otros CT's
+ para su definición y pueden ser constantes o paramétricos si admiten diferentes
+ formas en función de ciertos argumentos
+\layout Subsection
+
+CT's constantes
+\layout Standard
+
+Se trata de conjuntos temporales constantes en el sentido de que se definen
+ sin necesidad de especificar ningún parámetro.
+ La condición de incluir los interiores de todos sus elementos se desprende
+ de las propias definiciones de forma trivial por lo que no se demuestra
+ en cada caso.
+ Todas estas constantes son fechados excepto el conjunto vacío.
+\layout Subsubsection
+
+Fechado básico conjunto universal 
+\begin_inset Formula $\mathbb{U}$
+\end_inset 
+
+
+\layout Standard
+
+Llamaremos conjunto universal C al conjunto de todos los IT posibles que
+ en esta implementación será el conjunto 
+\begin_inset Formula $\mathbb{U}=\mathfrak{C}_{D}$
+\end_inset 
+
+.
+ Las funciones de sucesión compuestas se reducen en este caso a la expresión
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+x+n\times\mathbb{U}=x+n\:\forall n\in\mathbb{Z},\: x\in\mathbb{U}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Evidentemente se tiene que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf\mathbb{U}=-\infty\\
+\sup\mathbb{U}=\infty\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Conjunto vacío: 
+\begin_inset Formula $\emptyset$
+\end_inset 
+
+
+\layout Standard
+
+Llamaremos 
+\begin_inset Formula $\emptyset$
+\end_inset 
+
+ al conjunto temporal vacío, es decir, al que no contiene ningún IT propio.
+ Evidentemente no se trata de un fechado aunque tampoco se puede decir que
+ esté acotado por lo que se hablará a veces de fechado vacío.
+ El sucesor 
+\series bold 
+
+\begin_inset Formula $n$
+\end_inset 
+
+
+\series default 
+-ésimo se calcula así:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+x+n\times\emptyset=\left\{ \begin{array}{cc}
+-\infty & si\: n<0\\
+? & si\: n=0\\
+\infty & si\: n>0\end{array}\right.\forall n\in\mathbb{Z},\: x\in\mathbb{U}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por convenio se entenderá que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf\emptyset=\infty\\
+\sup\emptyset=-\infty\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La extracción siempre devuelve la lista vacía.
+\layout Subsubsection
+
+Fechado básico pascual: Easter
+\layout Standard
+
+Llamaremos Easter al conjunto de todos los IT pertenecientes a los domingos
+ de Pascua de cualquier año.
+ La definición del domingo de Pascua es relativamente sencilla: se trata
+ del primer domingo posterior a la primera luna llena tras el equinoccio
+ de primavera.
+ Sin embargo los métodos con los que la iglesia calcula las efemérides astronómi
+cas es muy primitivo y recurre a ciertas modificaciones 
+\emph on 
+ad-hoc,
+\emph default 
+ por lo que no siempre coincide con la definición exacta.
+ 
+\layout Standard
+
+Se parte de la base de existencia de una función 
+\begin_inset Formula $easter\left(year\right)$
+\end_inset 
+
+ que devuelve el domingo de Pascua para cualquier año:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+x\in Easter\Leftrightarrow x=easter\left(year\left(x\right)\right)\end{equation}
+
+\end_inset 
+
+El sucesor 
+\series bold 
+
+\begin_inset Formula $n$
+\end_inset 
+
+
+\series default 
+-ésimo se calcula así:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+x+n\times Easter=\left\{ \begin{array}{cc}
+easter\left(n+y\right) & si\: x<easter\left(y\right)\\
+easter\left(1+n+y\right) & si\: x\geq easter\left(y\right)\end{array}\right.\wedge y=year\left(x\right)\end{equation}
+
+\end_inset 
+
+Es evidente que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf Easter=-\infty\\
+\sup Easter=\infty\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsection
+
+CT acotados
+\layout Standard
+
+Aquí se describen algunas clases de CT's finitos construidos de forma muy
+ sencilla a partir de IT's
+\layout Subsubsection
+
+CT atómico: 
+\family typewriter 
+Day
+\layout Standard
+
+Dado un IT 
+\begin_inset Formula $x$
+\end_inset 
+
+ cualquiera se define su CT atómico como
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+Day(x)=\left\{ x\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+CT monoanual: 
+\family typewriter 
+Year
+\layout Standard
+
+Dado un entero cualquiera 
+\begin_inset Formula $y$
+\end_inset 
+
+ cualquiera se define su CT monoanual como el intervalo de las fechas de
+ dicho año
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+Year\left(Y\right)=\left\{ x\in\mathbb{U}\,|\, Y_{x}=Y\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+CT intervalo entre dos IT's: 
+\family typewriter 
+In
+\layout Standard
+
+Dados dos IT's 
+\begin_inset Formula $a$
+\end_inset 
+
+ y 
+\begin_inset Formula $b$
+\end_inset 
+
+ cualesquiera se define el CT intervalo como
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+In\left(a,b\right)=\left\{ x\in\mathbb{U}\,|\, a\leq x\leq b\right\} \forall a,b\in\mathbb{U}\wedge\: a\leq b\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Puede no haber límite inferior o superior haciendo 
+\begin_inset Formula $a=-\infty$
+\end_inset 
+
+ ó 
+\begin_inset Formula $b=\infty$
+\end_inset 
+
+ respectivamente.
+ Nótese también que los CT atómicos y monoanulaes son casos particulares
+ de intervalos, por lo que se pueden utilizar en los tres casos las siguientes
+ implementaciones para las operaciones de sucesión y extracción
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x+n\times In\left(a,b\right)=\left\{ \begin{array}{cc}
+a+n-1 & \forall x+n-1<a\\
+x+n & \forall a\leq x+n-1<b\\
+\infty & \forall x+n-1\geq b\end{array}\right.\\
+x-n\times In\left(a,b\right)=\left\{ \begin{array}{cc}
+b-n+1 & \forall x+n-1>b\\
+x-n & \forall a<x+n-1\leq b\\
+-\infty & \forall x+n-1\leq a\end{array}\right.\end{array}\forall x\in\mathbb{U}\: n\in\mathbb{Z}^{+}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La extracción es tan sencilla que no precisa caché en ningún caso.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+extract\left(In\left(a,b\right),x,y\right)=\left[a,b\right]\cap\left[x,y\right]=\left[\max\left\{ a,x\right\} ,\min\left\{ b,y\right\} \right]\end{equation}
+
+\end_inset 
+
+Evidentemente se tiene que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf In\left(a,b\right)=a\\
+\sup In\left(a,b\right)=b\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+CT generado por una lista de ITs: 
+\family typewriter 
+SetOfDates
+\layout Standard
+
+Dada una lista finita cualquiera de IT's, se puede construir una sucesión
+ disjunta ordenando previamente el conjunto y eliminando los elementos repetidos
+ para optimizar los métodos de cálculo.
+ A esta operación le llamaremos conjunto temporal generado por una lista
+ finita de IT's
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+SetOfDates\left(x_{1},\ldots,x_{N}\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Al estar ordenada la lista permite la búsqueda binaria con coste
+\begin_inset Formula $N\log N$
+\end_inset 
+
+ por lo que se puede implementar muy facilmente la función de determinación
+ de pertenencia de una fecha cualquiera así como su sucesor y predecesor.
+ La sucesión compuesta, una vez alcazado un elemento perteneciente a la
+ lista se reduce a una traslación en el intervalo de índices
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x_{j}+n\times SetOfDates\left(x_{1},\ldots,x_{N}\right)=\left\{ \begin{array}{cl}
+-\infty & \forall j+n<1\\
+x_{j+n} & \forall1\leq j+n\leq N\\
+\infty & \forall j+n>N\end{array}\right.\end{array}\forall j=1\ldots N\wedge n\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para el método de extracción basta con localizar los índices correspondientes
+ a los extremos y extraer todos los interiores.
+ Obviamente no precisa caché pues el propio CT ya es en sí mismo una caché
+ al estar definido exhaustivamente.
+\layout Standard
+
+Evidentemente se tiene que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf SetOfDates\left(x_{1},\ldots,x_{N}\right)=x_{1}\\
+\sup SetOfDates\left(x_{1},\ldots,x_{N}\right)=x_{N}\\
+\nabla SetOfDates\left(x_{1},\ldots,x_{N}\right)=\max_{k=2\ldots N}\left\{ x_{k}-x_{k-1}\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsection
+
+Fechados básicos de CT's 
+\layout Standard
+
+Los 
+\emph on 
+fechados básicos
+\emph default 
+ son los creados mediante funciones que devuelven conjuntos temporales a
+ partir de un parámetro dado, a las que llamaremos 
+\emph on 
+funciones básicas de CT's
+\emph default 
+.
+ Todos estos conjuntos temporales son fechados básicos parciales, en el
+ sentido de que no recubren la recta real, y que se definen por cada valor
+ particular que puede tomar determinada coordenada gregoriana.
+ Puesto que todos ellos son fechados se tiene que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf F=-\infty\\
+\sup F=\infty\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Month(M)
+\layout Standard
+
+La función 
+\series bold 
+Month
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en un mes del año
+ dado para cualquier año pasado, presente o futuro
+\begin_inset Formula \begin{equation}
+x\in M\left(m\right)\Leftrightarrow M_{x}=m\quad\forall m=1\ldots12\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Las funciones se sucesión simple se calculan directamente mediante estas
+ sencillas reglas
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x+M\left(m\right)=\left\{ \begin{array}{cc}
+x+1 & \forall d<LDM\left(m\right)\\
+YMD\left(Y_{x}+n-\left[\frac{m-1}{M_{x}}\right],m\right) & \forall d=LDM\left(m\right)\end{array}\right.\\
+x-M\left(m\right)=\left\{ \begin{array}{cc}
+x-1 & \forall d>LDM\left(m\right)\\
+YMD\left(Y_{x}-n+\left[\frac{M_{x}-1}{m}\right],m\right) & \forall d=1\end{array}\right.\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+donde 
+\begin_inset Formula $\begin{array}{c}
+\left[\frac{a}{b}\right]\end{array}$
+\end_inset 
+
+ representa la parte entera del cociente de números naturales.
+\layout Subsubsection
+
+Day(D)
+\layout Standard
+
+La función 
+\series bold 
+Day
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en un día de mes
+ dado para cualquier mes y cualquier año pasado, presente o futuro
+\begin_inset Formula \begin{equation}
+x\in D\left(d\right)\Leftrightarrow D_{x}=d\quad\forall d=1\ldots31\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Las funciones de sucesión compuesta se calculan así
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x+n\times D\left(d\right)=YMD\left(Y_{x}+\left[\frac{m}{12}\right],\:\left(M_{x}+m\right)\,\mathbf{mod}\,12,d\right)\wedge m=n-\left[\frac{d-1}{D_{x}}\right]\\
+x-n\times D\left(d\right)=YMD\left(Y_{x}-\left[\frac{m}{12}\right],\:\left(M_{x}-m\right)\,\mathbf{mod}\,12,d\right)\wedge m=n-\left[\frac{D_{x}-1}{d}\right]\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+WeekDay(W)
+\layout Standard
+
+La función 
+\series bold 
+WeekDay
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en una día de la
+ semana dado para cualquier semana pasada, presente o futura
+\begin_inset Formula \begin{equation}
+x\in WD\left(w\right)\Leftrightarrow W_{x}=w\quad\forall w=1\ldots7\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Las funciones de sucesión compuesta se calculan así
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x+n\times WD\left(w\right)=x+\left(w-W_{x}\right)\,\mathbf{mod}\,7+7\left(n-\left[\frac{w-1}{W_{x}}\right]\right)\\
+x-n\times WD\left(w\right)=x-\left(W_{x}-w\right)\,\mathbf{mod}\,7-7\left(n-\left[\frac{W_{x}-1}{w}\right]\right)\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Section
+
+CT's secundarios
+\layout Standard
+
+Son aquellos que se definen en función de otros CT's según ciertas reglas
+ particulares de cada caso dando estructura y expresibilidad al álgebra
+ del tiempo.
+\layout Subsection
+
+Operaciones Booleanas
+\layout Standard
+
+Las siguientes operaciones entre conjuntos temporales le dan a 
+\begin_inset Formula $\mathcal{CT}_{D}$
+\end_inset 
+
+ una estructura de álgebra de Boole.
+ Con ellas y otras más que se verán más adelante se pueden construir expresiones
+ que den forma a las secuencias temporales más complicadas que se pueden
+ encontrar en el análisis de series temporales.
+\layout Subsubsection
+
+Diferencia de CT's
+\layout Standard
+
+La diferencia de dos conjuntos temporales 
+\begin_inset Formula $A$
+\end_inset 
+
+ y 
+\begin_inset Formula $B$
+\end_inset 
+
+ es el conjunto temporal de las fechas de 
+\begin_inset Formula $A$
+\end_inset 
+
+ que no están en 
+\begin_inset Formula $B$
+\end_inset 
+
+.
+ 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x\in A-B\end{array}\Leftrightarrow x\in A\wedge\cdots\wedge x\notin B\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se define el complementario de un CT como la diferencia del conjunto universal
+ y dicho CT.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\overline{A}\in\mathbb{U}-A\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La diferencia de fechados distintos es un fechado.
+ Las funciones de sucesor tienen el mismo problema de recursión que en la
+ intersección.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x+\left(A-B\right)=\left\{ \begin{array}{cc}
+x+A & si\; x+A\notin B\\
+\left(x+A\right)+\left(A-B\right) & si\; x+A\in B\end{array}\right.\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x-\left(A-B\right)=\left\{ \begin{array}{cc}
+x-A & si\; x+A\notin B\\
+\left(x-A\right)-\left(A-B\right) & si\; x+A\in B\end{array}\right.\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El método de extracción consiste como es lógico en extraer las listas de
+ 
+\begin_inset Formula $A$
+\end_inset 
+
+ y 
+\begin_inset Formula $B$
+\end_inset 
+
+ y recorrer la de 
+\begin_inset Formula $A$
+\end_inset 
+
+ eliminando los que estén en 
+\begin_inset Formula $B$
+\end_inset 
+
+, y almacenando los resultados en la caché.
+ 
+\layout Standard
+
+El ínfimo y el supremo no están determinados para la diferencia de CT's
+ pero claramente se tiene que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf\left(A-B\right)\geq\inf A\\
+\sup\left(A-B\right)\leq\sup B\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+También se dispone de las siguientes reglas particulares
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+A-A=\emptyset\\
+A-\mathbb{U}=\emptyset\\
+A-\emptyset=A\end{array}\end{equation}
+
+\end_inset 
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{cc}
+M\left(m\right)-M\left(m'\right)=M\left(m\right) & \forall m\neq m'\\
+D\left(d\right)-D\left(d'\right)=D\left(d\right) & \forall d\neq d'\\
+WD\left(w\right)-WD\left(w'\right)=WD\left(w\right) & \forall w\neq w'\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Unión de CT's
+\layout Standard
+
+La unión de dos o más conjuntos temporales es la reordenación de los elementos
+ de todos ellos.
+ Obviamente, la unión de fechados es también un fechado.
+ 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x\in A_{1}\cup\cdots\cup A_{N}\end{array}\Leftrightarrow x\in A_{1}\vee\cdots\vee x\in A_{N}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El sucesor de un IT en la unión de CT's es el mínimo de los sucesores en
+ cada uno y el predecesor es el máximo.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x+\left(A_{1}\cup\cdots\cup A_{N}\right)=\min\left\{ x+A_{1},\cdots,x+A_{N}\right\} \\
+x-\left(A_{1}\cup\cdots\cup A_{N}\right)=\max\left\{ x-A_{1},\cdots,x-A_{N}\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+No existe ninguna forma de acelerar la sucesión compuesta pero sí la extracción
+ que se ha de implementar con el conocido algoritmo 
+\emph on 
+merge-sort
+\emph default 
+ para mezcla de listas ordenadas.
+ El trabajo realizado hará aconsejable usar caché de extracción en la mayoría
+ de los casos.
+\layout Standard
+
+El ínfimo y el supremo están perfectamente definidos para la unión de CT's
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf\left(A_{1}\cup\cdots\cup A_{N}\right)=\min_{k=1\ldots N}\left\{ \inf A_{k}\right\} \\
+\sup\left(A_{1}\cup\cdots\cup A_{N}\right)=\max_{k=1\ldots N}\left\{ \sup A_{k}\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Intersección de CT's
+\layout Standard
+
+La intersección de dos o más conjuntos temporales es la reordenación de
+ los elementos que pertenecen a todos ellos simulaténeamente.
+ 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x\in A_{1}\cap\cdots\cap A_{N}\end{array}\Leftrightarrow x\in A_{1}\wedge\cdots\wedge x\in A_{N}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La intersección de fechados puede ser un fechado o no serlo.
+ La intersección de fechados no disjuntos es un fechado.
+\layout Standard
+
+El sucesor simple de un IT en la intersección de CT's es algo más complicado
+ que el de la unión y sólo se puede definir recursivamente
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{+}=\left\{ \left.y_{k}^{+}=x_{k}+A_{k}\right|\forall k=1\ldots N\right\} \quad Z^{+}=\left\{ \left.y_{k}^{+}\right|y_{k}^{+}\in A_{j}\forall j=1\ldots N\right\} \\
+x+\left(A_{1}\cap\cdots\cap A_{N}\right)=\left\{ \begin{array}{cc}
+\min\left(Z^{+}\right) & si\; Z^{+}\neq\emptyset\\
+\max\left(Y^{+}\right)+\left(A_{1}\cap\cdots\cap A_{N}\right) & si\; Z^{+}=\emptyset\end{array}\right.\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{-}=\left\{ \left.y_{k}^{-}=x_{k}-A_{k}\right|\forall k=1\ldots N\right\} \quad Z^{-}=\left\{ \left.y_{k}^{-}\right|y_{k}^{-}\in A_{j}\forall j=1\ldots N\right\} \\
+x-\left(A_{1}\cap\cdots\cap A_{N}\right)=\left\{ \begin{array}{cc}
+\max\left(Z^{-}\right) & si\; Z^{-}\neq\emptyset\\
+\min\left(Y^{-}\right)-\left(A_{1}\cap\cdots\cap A_{N}\right) & si\; Z^{-}=\emptyset\end{array}\right.\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Este caracter recursivo da lugar a un ciclo infinito cuando el resultado
+ de una intersección es acotado o vacío.
+ Por ello se debe disponer de un mecanismo que analize simbólicamente las
+ expresiones para evitar esa situación.
+ En cualquier caso sería conveniente dar un mensaje de advertencia cuando
+ se sobrepasara determinado número de iteraciones considerado como excesivo.
+ También sería bueno parar el ciclo y dar un mensaje de aviso a partir de
+ un número máximo de iteraciones.
+ Ambos límites deberían ser definibles por el usuario.
+\layout Standard
+
+Para la extracción sin embargo no hay ningún problema pues se procederá
+ a la extracción de cada uno los CT's a intersecar 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+extract\left(A_{k},a,b\right)\end{array}=\left\{ t_{k,1},\ldots,t_{k,n_{k}}\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+y a continuación se eliminan aquellos elementos que no pertenezcan a alguno
+ de esos CT's, lo cual no requiere recursión aunque sí el esfuerzo suficiente
+ para usar caché.
+ Se puede recorrer la lista de uno cualquiera y buscar cada uno de sus elementos
+ en las listas de todos los demás.
+ Concretamente se debe usar el que dé coste computacional mínimo
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\min_{k=1\ldots N}\end{array}\left\{ n_{k}\prod_{j\neq k}\log_{2}n_{j}\right\} \end{equation}
+
+\end_inset 
+
+El ínfimo y el supremo no están determinados para la intersección de CT's
+ pero sí existen acotaciones genéricas útiles
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf\left(A_{1}\cap\cdots\cap A_{N}\right)\geq\max_{k=1\ldots N}\left\{ \inf A_{k}\right\} \\
+\sup\left(A_{1}\cap\cdots\cap A_{N}\right)\leq\min_{k=1\ldots N}\left\{ \sup A_{k}\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+También se cumplen las siguientes reglas 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathbb{U}\cap A=A\cap A=A\\
+\emptyset\cap A=\emptyset\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\overline{A_{1}\cap\cdots\cap A_{N}}=\overline{A_{1}}\cup\cdots\cup\overline{A_{N}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{cc}
+M\left(m\right)\cap M\left(m'\right)=\emptyset & \forall m\neq m'\\
+D\left(d\right)\cap D\left(d'\right)=\emptyset & \forall d\neq d'\\
+WD\left(w\right)\cap WD\left(w'\right)=\emptyset & \forall w\neq w'\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{cc}
+M\left(m\right)\cap D\left(d\right)\neq\emptyset & \forall m=1,3\ldots12\wedge d=1\ldots31\\
+M\left(2\right)\cap D\left(d\right)\neq\emptyset & \forall d=1\ldots29\\
+M\left(2\right)\cap D\left(30\right)=\emptyset\\
+M\left(m\right)\cap D\left(31\right)=\emptyset & \forall m=2,4,6,9,11\\
+M\left(m\right)\cap WD\left(w\right)\neq\emptyset & \forall m=1\ldots12\wedge w=1\ldots7\\
+D\left(d\right)\cap WD\left(w\right)\neq\emptyset & \forall d=1\ldots30\wedge w=1\ldots7\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsection
+
+Operadores de Traslación en un CT
+\layout Standard
+
+Los operadores de traslación de conjuntos construyen un CT mediante desplazamien
+tos de IT's a lo largo de otro CT.
+\layout Subsubsection
+
+Conjuntos periódicos
+\layout Standard
+
+La operación modular de un IT 
+\begin_inset Formula $c$
+\end_inset 
+
+ llamado centro, con periodicidad 
+\begin_inset Formula $p>0$
+\end_inset 
+
+ en el conjunto de unidades de traslación 
+\begin_inset Formula $U$
+\end_inset 
+
+ tal que 
+\begin_inset Formula $c\in U$
+\end_inset 
+
+ devuelve todos los IT de 
+\begin_inset Formula $U$
+\end_inset 
+
+ cuya distancia en 
+\begin_inset Formula $U$
+\end_inset 
+
+ a 
+\begin_inset Formula $c$
+\end_inset 
+
+ sea múltiplo de dicha periodicidad 
+\begin_inset Formula $p$
+\end_inset 
+
+.
+\begin_inset Formula \begin{equation}
+c\,\mathbf{mod}\, p\times U=\left\{ u\in U\:|\:\exists n\in\mathbb{Z}\:\bot\: u=c+\left(p\cdot n\right)\times U\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+o dicho de otro modo
+\begin_inset Formula \begin{equation}
+c\,\mathbf{mod}\, p\times U=\left\{ u\in U\:|\:\nabla_{A}\left(u,c\right)=0\,\mathbf{mod}\, p\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Si 
+\begin_inset Formula $c\notin U$
+\end_inset 
+
+ no se pueden definir los métodos de forma sencilla y resulta de poca utilidad
+ por lo que se tomará como centro 
+\begin_inset Formula $c+U$
+\end_inset 
+
+.
+ Si 
+\begin_inset Formula $p=0$
+\end_inset 
+
+ entonces 
+\begin_inset Formula $c\,\mathbf{mod}\,0\times U=\emptyset$
+\end_inset 
+
+ y si 
+\begin_inset Formula $p<0$
+\end_inset 
+
+ se invertirá el signo.
+\layout Standard
+
+El sucesor y el predecesor simples son obviamente
+\begin_inset Formula \begin{equation}
+\begin{array}{ccc}
+x+\left(c\,\mathbf{mod}\, p\times U\right) & = & \left(x+U\right)+\nabla_{A}\left(x+U,c\right)\,\mathbf{mod}\, p\\
+x-\left(c\,\mathbf{mod}\, p\times U\right) & = & \left(x-U\right)-\nabla_{A}\left(c,x-U\right)\,\mathbf{mod}\, p\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El sucesor y el predecesor compuesto se pueden acelerar haciendo uso de
+ la siguiente propiedad
+\begin_inset Formula \begin{equation}
+y\in c\,\mathbf{mod}\, p\times U\Rightarrow y+k\times\left(c\,\mathbf{mod}\, p\times U\right)=y+\left(k·p\right)\times U\;\forall k\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La extracción debe usar caché porque el cálculo de la sucesión compuesta
+ en 
+\begin_inset Formula $U$
+\end_inset 
+
+ puede ser costoso.
+ Se extraen los elementos 
+\begin_inset Formula $u_{k}$
+\end_inset 
+
+ de 
+\begin_inset Formula $U$
+\end_inset 
+
+ en el intervalo extendido
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\begin{array}{c}
+extract\left(c\,\mathbf{mod}\, p\times U,a,b\right)\Rightarrow\end{array}a'=\min\left\{ a,c\right\} \wedge b'=\max\left\{ b,c\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se busca la posición de 
+\begin_inset Formula $c=u_{j}$
+\end_inset 
+
+ y se seleccionan los elementos de la forma 
+\begin_inset Formula $u_{\left(j\,\mathbf{mod}\, p\right)+h·k}$
+\end_inset 
+
+
+\layout Standard
+
+Obviamente los conjuntos periódicos no pueden estar acotados y son siempre
+ fechados por lo que el ínfimo y el supremo son infinitos
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf\left(c\,\mathbf{mod}\, p\times U\right)=\left\{ \begin{array}{cc}
+-\infty & \forall p\neq0\\
+c & p=0\wedge c\in U\\
+\infty & p=0\wedge c\notin U\end{array}\right.\\
+\sup\left(c\,\mathbf{mod}\, p\times U\right)=\left\{ \begin{array}{cc}
+\infty & \forall p\neq0\\
+c & p=0\wedge c\in U\\
+-\infty & p=0\wedge c\notin U\end{array}\right.\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Obsérvese que los fechados de los días de la semana son casos particulares
+ de fechados periódicos
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+WD\left(w\right)=\left(c_{0}+w\right)\,\mathbf{mod}\,7\times\mathbb{U}\;\forall w=1\ldots7\end{array}\end{equation}
+
+\end_inset 
+
+donde 
+\begin_inset Formula $c_{0}$
+\end_inset 
+
+ es un domingo cualquiera
+\layout Subsubsection
+
+Sucesor de un CT en otro
+\layout Standard
+
+Se define el conjunto sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo de un conjunto 
+\begin_inset Formula $C$
+\end_inset 
+
+, en otro 
+\begin_inset Formula $U$
+\end_inset 
+
+ al conjunto de todas las fechas sucesores 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimas en el conjunto 
+\begin_inset Formula $U$
+\end_inset 
+
+, al que llamaremos de unidades de traslación, de elementos del conjunto
+ 
+\begin_inset Formula $C$
+\end_inset 
+
+, al que denominaremos centro de traslaciones.
+ En la figura 
+\lang english
+
+\begin_inset LatexCommand \ref{Succ-Sample-CT}
+
+\end_inset 
+
+
+\lang spanish
+ se pueden ver algunos ejemplos de sucesión de CT's
+\layout Standard
+
+
+\lang english
+
+\begin_inset Float figure
+placement htbp
+wide false
+collapsed false
+
+\layout Caption
+
+
+\lang english
+
+\begin_inset LatexCommand \label{Succ-Sample-CT}
+
+\end_inset 
+
+Ejemplos de sucesión de un CT en otro
+\layout Standard
+\align center 
+
+\lang english
+
+\begin_inset Graphics
+	filename SuccSample02.eps
+	display color
+	scale 33
+	rotateOrigin center
+
+\end_inset 
+
+
+\end_inset 
+
+
+\layout Standard
+
+Todo esto se expresa así
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{c}
+C+n\times U=\left\{ \left.x\in U\right|\exists c\in C\bot x=c+n\times U\right\} \\
+C-n\times U=\left\{ \left.x\in U\right|\exists c\in C\bot x=c-n\times U\right\} \end{array}\right\} \forall n\in\mathbb{Z}^{+}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Llevando al límite nulo ambas expresiones se obtiene
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+C+0\times U=C-0\times U=\left\{ \left.x\in U\right|\exists c\in C\bot x=c-0\times U=c+0\times U\right\} \end{array}=C\cap U\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+De las relaciones expuestas en 
+\begin_inset LatexCommand \ref{eq:ComposedSuccessorRelations}
+
+\end_inset 
+
+ se deduce directamente que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+x=c+n\times U\Leftrightarrow x-n\times U\leq c<x-\left(n-1\right)\times U\\
+x=c-n\times U\Leftrightarrow x+n\times U\geq c>x+\left(n-1\right)\times U\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+por lo que se puede disponer de los siguientes métodos directos de determinación
+ de la pertenencia
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{c}
+C+n\times U=\left\{ \left.x\in U\right|x-n\times U\leq\left(x-\left(n-1\right)\times U\right)-C\right\} \\
+C-n\times U=\left\{ \left.x\in U\right|x+n\times U\geq\left(x+\left(n-1\right)\times U\right)+C\right\} \end{array}\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Partiendo directamente de la definición de sucesor y predecesor simple dada
+ en 
+\begin_inset LatexCommand \ref{eq:SimpleSuccessorDefinition}
+
+\end_inset 
+
+ se pueden definir para cualquier IT 
+\begin_inset Formula $x$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{l}
+x+\left(C+n\times U\right)=\min\left\{ \left.z=c+n\times U\right|c\in C\wedge z>x\right\} \\
+x+\left(C-n\times U\right)=\min\left\{ \left.z=c-n\times U\right|c\in C\wedge z>x\right\} \\
+x-\left(C+n\times U\right)=\max\left\{ \left.z=c+n\times U\right|c\in C\wedge z<x\right\} \\
+x-\left(C-n\times U\right)=\max\left\{ \left.z=c-n\times U\right|c\in C\wedge z<x\right\} \end{array}\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+En cada uno de los cuatro casos anteriores se cumple la siguiente regla
+ respectivamente
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left.\begin{array}{l}
+u=x+U\in C+n\times U\Rightarrow x+\left(C+n\times U\right)=u\\
+u=x+U\in C-n\times U\Rightarrow x+\left(C-n\times U\right)=u\\
+v=x-U\in C+n\times U\Rightarrow x-\left(C+n\times U\right)=v\\
+v=x-U\in C-n\times U\Rightarrow x-\left(C-n\times U\right)=v\end{array}\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Queda por resolver qué ocurre cuando 
+\begin_inset Formula $u$
+\end_inset 
+
+ ó 
+\begin_inset Formula $v$
+\end_inset 
+
+ no pertenecen a 
+\begin_inset Formula $C\pm n\times U$
+\end_inset 
+
+, es decir, según el caso
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+u\notin C+n\times U\Rightarrow\left(u-\left(n-1\right)\times U\right)-C<u-n\times U<u-\left(n-1\right)\times U\\
+\Rightarrow x+\left(C+n\times U\right)=\left(\left(u-n\times U\right)+C\right)+n\times U\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+u\notin C-n\times U\Rightarrow\left(u+\left(n-1\right)\times U\right)+C>u+n\times U>u+\left(n-1\right)\times U\\
+\Rightarrow x+\left(C-n\times U\right)=\left(\left(u+\left(n-1\right)\times U\right)+C\right)-n\times U\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+v\notin C+n\times U\Rightarrow\left(v-\left(n-1\right)\times U\right)-C<v-n\times U<v-\left(n-1\right)\times U\\
+\Rightarrow x-\left(C+n\times U\right)=\left(\left(v-\left(n-1\right)\times U\right)-C\right)+n\times U\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+v\notin C-n\times U\Rightarrow\left(v+\left(n-1\right)\times U\right)+C>v+n\times U>v+\left(n-1\right)\times U\\
+\Rightarrow x-\left(C-n\times U\right)=\left(\left(v+n\times U\right)-C\right)-n\times U\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Al igual que con la mayoría de las operaciones de CT's, no existe ninguna
+ forma de acelerar la sucesión compuesta pero sí la extracción, que habrá
+ de tener caché.
+ Esta se implementará extrayendo previamente los 
+\begin_inset Formula $u_{k}$
+\end_inset 
+
+ de los elementos de 
+\begin_inset Formula $U$
+\end_inset 
+
+ y los 
+\begin_inset Formula $c_{k}$
+\end_inset 
+
+ de los elementos de 
+\begin_inset Formula $C$
+\end_inset 
+
+ en el intervalo extendido 
+\begin_inset Formula $\left[a',b'\right]$
+\end_inset 
+
+ definido así
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\begin{array}{c}
+extract\left(C+n\times U,a,b\right)\Rightarrow\end{array}a'=a-n\times U\wedge b'=b\\
+\begin{array}{c}
+extract\left(C-n\times U,a,b\right)\Rightarrow\end{array}a'=a\wedge b'=b+n\times U\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se recorre la extracción 
+\begin_inset Formula $u_{k}$
+\end_inset 
+
+ de los elementos de 
+\begin_inset Formula $U$
+\end_inset 
+
+ con lo que 
+\begin_inset Formula $u_{k}\pm h\times U=u_{k\pm h}$
+\end_inset 
+
+ y se usa búsqueda binaria para el cálculo de 
+\begin_inset Formula $c_{j}=u_{k\pm\left(n-1\right)}\pm C$
+\end_inset 
+
+, reduciéndose drásticamente el coste computacional, especialmente cuando
+ 
+\begin_inset Formula $U$
+\end_inset 
+
+ y 
+\begin_inset Formula $C$
+\end_inset 
+
+ son a su vez expresiones complejas de CT's.
+\layout Standard
+
+El ínfimo y el supremo no están determinados para el sucesor de un CT en
+ otro pero sí se sabe que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf\left(C+n\times U\right)\geq\max\left\{ \left(\inf C\right)+n\times U,\inf U\right\} \\
+\sup\left(C+n\times U\right)\leq\min\left\{ \left(\sup C\right)+n\times U,\sup U\right\} \\
+\inf\left(C-n\times U\right)\geq\max\left\{ \left(\inf C\right)-n\times U,\inf U\right\} \\
+\sup\left(C-n\times U\right)\leq\min\left\{ \left(\sup C\right)-n\times U,\sup U\right\} \\
+\inf\left(C\pm0\times U\right)=\inf\left(C\cap U\right)\geq\max\left\{ \inf C,\inf U\right\} \\
+\sup\left(C\pm0\times U\right)=\sup\left(C\cap U\right)\leq\min\left\{ \sup C,\sup U\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+También se cumple la siguiente regla para la intersección con cualquier
+ CT 
+\begin_inset Formula $A$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{cc}
+A\cap U=\emptyset\Rightarrow A\cap\left(C\pm n\times U\right)=\emptyset & \forall n\in\mathbb{Z}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Rango de sucesores de un CT en otro
+\layout Standard
+
+La operación rango de sucesores se basa en la anterior operación de sucesión
+ de CT's y se define como la unión de sucesores consecutivos en un rango
+ de números enteros
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\begin{array}{l}
+C+\left[r,s\right]\times U=\,\cup_{k=r}^{s}\left(C+k\times U\right)\;\forall r\leq\, s\in\mathbb{Z}\end{array}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Como tanto la unión como la sucesión ya han sido exploradas se puede decir
+ que se trata de una operación no básica en el álgebra del tiempo, aunque
+ es bueno definir los métodos 
+\emph on 
+ad hoc
+\emph default 
+ para aprovechar los cálculos realizados pues se pueden evitar la mitad
+ de los cálculos ya que el 
+\begin_inset Formula $u_{k\pm\left(n-1\right)}$
+\end_inset 
+
+ de una iteración será el 
+\begin_inset Formula $u_{k\pm n}$
+\end_inset 
+
+ de la anterior o la siguente según el caso.
+\layout Standard
+
+Puesto que se trata de la unión de sucesores, el ínfimo y el supremo se
+ calculan como
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\inf\left(C+\left[r,s\right]\times U\right)=\min_{k=r\ldots s}\left\{ \inf\left(C+k\times U\right)\right\} \\
+\sup\left(C+\left[r,s\right]\times U\right)=\max_{k=r\ldots s}\left\{ \sup\left(C+k\times U\right)\right\} \\
+\inf\left(C-\left[r,s\right]\times U\right)=\min_{k=r\ldots s}\left\{ \inf\left(C-k\times U\right)\right\} \\
+\sup\left(C-\left[r,s\right]\times U\right)=\max_{k=r\ldots s}\left\{ \sup\left(C-k\times U\right)\right\} \end{array}\end{equation}
+
+\end_inset 
+
+También se cumple la siguiente regla para la intersección con cualquier
+ CT 
+\begin_inset Formula $A$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{cc}
+A\cap U=\emptyset\Rightarrow C+\left[r,s\right]\times U=\emptyset & \forall r,s\in\mathbb{Z}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Section
+
+Tests de calidad del álgebra del tiempo
+\layout Standard
+
+La complejidad algorítmica del álgebra temporal descrita requiere la implementac
+ión de una serie de tests de integridad de los diferentes métodos de cualquier
+ CT de los anteriormente descritos así como cualquier expresión compuesta
+ definible mediante los operadores de forma anidada.
+\layout Subsection
+
+Tests de coherencia de un CT concreto
+\layout Standard
+
+En general el método más sencillo de programar es el de la pertenencia por
+ lo que lo más sensato es comprobar que el resto de métodos son coherentes
+ con el mismo.
+\layout Standard
+
+Así pues, primero se tomarán todas las fechas entre dos límites dados y
+ se seleccionará de forma exhaustiva la lista de las fechas que pertenecen
+ al CT mediante el método de cáclulo directo de 
+\begin_inset Formula $x\in A$
+\end_inset 
+
+.
+ 
+\layout Standard
+
+Después se llamará al método particular de extracción en ese mismo intervalo
+ y se comprobará que efectivamente da lugar a exáctamente la misma lista
+ que el método exhaustivo.
+ 
+\layout Standard
+
+Si no existe ninguna fecha en ese intervalo no hay nada más que comprobar.
+\layout Standard
+
+Si hay al menos dos fechas en el intervalo se calculará progresivamente
+ la lista de sucesores a partir de la primera extraída para comprobar que
+ el método 
+\begin_inset Formula $x+A$
+\end_inset 
+
+ va dando exáctamente el siguiente elemento de la lista extraída.
+\layout Standard
+
+Análogamente se calculará regresivamente la lista de predecesores a partir
+ de la última extraída para comprobar que el método 
+\begin_inset Formula $x-A$
+\end_inset 
+
+ va dando exáctamente el anterior elemento de la lista extraída.
+\layout Standard
+
+Por último se generarán fechas aletatorias en el intervalo del test, no
+ necesariamente de 
+\begin_inset Formula $A$
+\end_inset 
+
+, y se comprobará que el resultado del sucesor y el predecesor coinciden
+ con el método de búsqueda binaria en la lista extraída.
+\layout Standard
+
+Dada la lentitud que tendría un programa TOL que hiciese este test se ha
+ desarrollado en C++ la función built-in
+\layout Standard
+
+
+\emph on 
+Text TestIntegrityOfTimeSet
+\layout Standard
+
+
+\emph on 
+(TimeSet tms 
+\layout Standard
+
+
+\emph on 
+[, Date from=DefFirst, Date until=DefLast, 
+\layout Standard
+
+
+\emph on 
+Real numSim=1000, Real maxLag=1]) 
+\layout Standard
+
+Esta función devuelve el texto OK si todo ha ido bien o bien un texto avisando
+ de que ninguna fecha del intervalo le pertenece o en su caso un mensaje
+ detallando la incoherencia detectada.
+\layout Subsection
+
+Simulación aleatoria de expresiones
+\layout Standard
+
+En el fichero TOL SimulationMassiveTestOfTimeSetCoherence.tol se dispone
+ de un sistema de generación aleatoria de expresiones de conjuntos temporales
+ del nivel de complejidad que se desee e incorporando todas las funciones
+ y objetos de tipo TimeSet que existen en el álgebra del tiempo.
+\layout Standard
+
+Se trata de un conjunto de funciones que construyen expresiones TOL de texto
+ que son unas de tipo básico para construir CT's primarios, es decir que
+ no dependen de otros CT's para su definición (WD(3), M(8), ...), y otras funciones
+ mutuamente recursivas que devuelven expresiones de CT's secundarios ((WD(3)+M(8
+))*D(1), ...).
+\layout Standard
+
+Para aumentar la complejidad sin restar legibilidad e imitar el proceso
+ de análisis usual de series temporales se simula un bloque de variables
+ de forma que se puedan usar en las fórmulas las variables previamente creadas.
+\the_end

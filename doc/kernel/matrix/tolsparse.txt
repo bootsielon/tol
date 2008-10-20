@@ -1,0 +1,110 @@
+----------------------------------------
+Especificacion TOL de una matriz sparse:
+----------------------------------------
+
+Una matriz "sparse" se define mediante un conjunto donde el primer
+elemento especifica un tipo de "sparsidad" y los elementos restantes
+definen los valores distintos de cero:
+
+   {"TYPE", S_1, S_2, ..., S_k}
+
+Se tienen los tipos de matrices "sparse":
+
+  - "IDENT"   : matriz identidad.
+
+  - "DIAG"    : matriz diagonal densa por bloques.
+
+  - "SDIAG"   : matriz diagonal "sparse" por bloques.
+
+  - "ROW"     : matriz fila densa por bloques.
+
+  - "SROW"    : matriz fila "sparse" por bloques.
+
+  - "COL"     : matriz columna densa por bloques.
+
+  - "SCOL"    : matriz columna "sparse" por bloques.
+
+  - "TRIPLET" : matriz rectangular "sparse" por bloque dada por
+                coordenadas de bloques.
+
+La matriz identidad se define con un valor que indica el tamaño de la
+matriz:
+[["IDENT", N]]
+
+La forma de los elementos S_i depende del tipo "sparsidad" "TYPE" y
+hacen
+referencia a submatrices o bloques. Un bloque puede ser:
+
+  - Un valor escalar : Real.
+  
+  - Una matriz densa : Matrix.
+
+  - Una matriz sparse : definicion recursiva.
+
+En adelante una submatriz o bloque se denominara BLOCK. Para cada block
+B,
+m(B) nos da la cantidad de filas del bloque; y n(B), la cantidad de
+columnas
+del bloque. Por simplicidad de notacion se puede usar m_i, n_i para
+denotar la
+cantidad de filas y columnas del bloque i-esimo cuando el referido
+bloque
+quede claro en el contexto.
+
+Especificamos ahora para cada tipo la forma de lo elementos S_i.
+
+"DIAG"
+
+El tipo "DIAG" define una matriz diagonal por bloque que se obtiene al
+concatenar en diagonal cada uno de los bloques S_i. El bloque S_1
+comienza en la coordenada (1,1). Si la diagonal principal de S_i
+termina en las coordenadas (d_i,d_i), d_i = min(m_i,n_i), entonces el
+bloque S_{i+1} comienza en la coordenada (di+1,di+1).
+
+"SDIAG"
+
+El tipo "SDIAG" define una matriz diagonal "sparse" por bloque que se
+obtiene de colocar cada bloque en sus coordenadas diagonal
+especificada. La forma de S_i es {d_i, B_i}. El bloque B_i se coloca a
+partir de las coordenadas (d_i,d_i).
+
+"ROW"
+
+El tipo "ROW" define una matriz fila por bloques que se obtiene de
+concatenar horizontalmente cada uno de los bloques S_i. El bloque S_1
+comienza en la coordenada (1,1). El bloque S_{i+1} comienza en las
+coordenadas (1,n_i +1).
+
+"SROW"
+
+El tipo "SROW" define una matriz fila "sparse" por bloque que se
+obtiene de colocar cada bloque en sus coordenadas de fila
+especificada. La forma de S_i es {n_i, B_i}. El bloque B_i se coloca a
+partir de las coordenadas (1,n_i).
+
+"COL"
+
+El tipo "COL" define una matriz columna por bloques que se obtiene de
+concatenar verticalmente cada uno de los bloques S_i. El bloque S_1
+comienza en la coordenada (1,1). El bloque S_{i+1} comienza en las
+coordenadas (m_i+1,1).
+
+"SCOL"
+
+El tipo "SCOL" define una matriz fila "sparse" por bloque que se obtiene
+de colocar cada bloque en sus coordenadas de columna especificada. La
+forma de
+S_i es {m_i, B_i}. El bloque B_i se coloca a partir de las coordenadas
+(m_i,1).
+
+"TRIPLET"
+
+El tipo "TRIPLET" define una matriz rectangular "sparse" por bloque
+que se obtiene de colocar cada bloque en las coordenadas rectangulares
+especificadas. La forma de S_i es {m_i, n_i, B_i}. El bloque B_i se
+coloca a partir de las coordenadas (m_i, n_i).
+
+
+Set sX = [["diag", 1, 2, 3, 4]];
+Matrix y = Col(1,1,1,1);
+Set reg = SparseLinearRegression(y, sX);

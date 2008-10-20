@@ -1,0 +1,2237 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+\begin_inset LatexCommand label
+name "cha:La-base-de-datos-del-sistema-Bsr-Hlm"
+
+\end_inset
+
+La base de datos del sistema Bsr-Hlm
+\end_layout
+
+\begin_layout Standard
+Se describen las diferentes utilidades de la base de datos del sistema de
+ definición de modelos BSr-Hlm
+\end_layout
+
+\begin_layout Section
+Descripción
+\end_layout
+
+\begin_layout Standard
+La base de datos del sistema Bsr-Hlm no es exactamente una base de datos
+ sino un mero conjunto de tablas relacionadas entre sí cuyos nombres comienzan
+ por el prefijo 
+\series bold
+bsrhlm_
+\series default
+ y que se pueden imbricar en una base de datos existente conviviendo con
+ otras tablas de datos más o menos relacionados con el proyecto en cuestión,
+ o bien estar aisladas en una base de datos dedicada para uno o varios proyectos
+ no demasiado grandes.
+ Por el momento sólo está disponible para el gestor de MySql pero más adelante
+ se irá independizando la implementación del gestor concreto, incluyendo
+ al menos los gestores de Postgree Sql, Oracle y Microsoft Sql Server.
+\end_layout
+
+\begin_layout Section
+Tablas
+\end_layout
+
+\begin_layout Standard
+A continuación se describen cada una de las tablas y sus campos.
+ Los que se presentan subrayados forman la clave primaria.
+ Las claves ajenas se representan mediante la palabra clave FK y un enlace
+ al campo de la tabla maestra.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_d_gibbs_block"
+
+\end_inset
+
+bsrhlm_d_gibbs_block
+\end_layout
+
+\begin_layout Standard
+Se introducén los distintos tipos de bloques GIBBS
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+\bar under
+ 
+\begin_inset LatexCommand label
+name "enu:bsrhlm_d_gibbs_block-id_gibbs_blk"
+
+\end_inset
+
+id_gibbs_blk
+\series default
+\bar default
+: Identificador del tipo de bloque GIBBS
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ ds_gibbs_blk
+\series default
+: Descripción del tipo de bloque GIBBS
+\end_layout
+
+\begin_layout Standard
+Los valores admitidos actualmente son:
+\end_layout
+
+\begin_layout Itemize
+'LinearBlk';'Main linear regression'
+\end_layout
+
+\begin_layout Itemize
+'SigmaBlk';'Variance of each segment of regression'
+\end_layout
+
+\begin_layout Itemize
+'ArmaBlk';'AutoRegressive Moving Average'
+\end_layout
+
+\begin_layout Itemize
+'MissingBlk';'Missing values of input and output'
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_d_node_type"
+
+\end_inset
+
+bsrhlm_d_node_type
+\end_layout
+
+\begin_layout Standard
+Se introducen los tipos de nodos que van a tener los modelos y su descripción.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+\bar under
+ 
+\begin_inset LatexCommand label
+name "enu:bsrhlm_d_node_type-id_node_type"
+
+\end_inset
+
+id_node_type
+\series default
+\bar default
+: Identificador del tipo de nodo 
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ ds_node_type
+\series default
+: Descrición del tipo de nodo 
+\end_layout
+
+\begin_layout Standard
+Hay 4 tipos de nodos, observacionales, latentes, a priori y mixtos.
+ La descrición de cada uno de los nodos esta a continuación.
+ 
+\end_layout
+
+\begin_layout Itemize
+'OBS':Los nodos observacionales están en el primer nivel de la jerarquía
+\end_layout
+
+\begin_layout Itemize
+'LAT':'Latent nodes are in the second and upper levels of hierarchical tree'
+ 
+\end_layout
+
+\begin_layout Itemize
+'PRI':'Prior nodes stablish normality hypotesys about parameters of observationa
+l and latent nodes' 
+\end_layout
+
+\begin_layout Itemize
+'MIX':'The mixture node is used to represent entities that are not linked
+ to a specific node but to an unespecified set of nodes.
+ If its used, it must be just one node called MIXTURE of type MIX at table
+ node' 
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_d_level_node_type"
+
+\end_inset
+
+bsrhlm_d_level_node_type 
+\end_layout
+
+\begin_layout Standard
+Se introducen los tipos de nodos y el nivel que tienen asociado
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+\bar under
+ id_node_type
+\series default
+\bar default
+: Identificador del tipo de nodo.
+ FK[
+\begin_inset LatexCommand ref
+reference "enu:bsrhlm_d_node_type-id_node_type"
+
+\end_inset
+
+] bsrhlm_d_node_type.id_node_type 
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_level
+\series default
+: Nivel del tipo de nodo asociado
+\end_layout
+
+\begin_layout Standard
+Los registros dados por el sistema como válidos en principio son
+\end_layout
+
+\begin_layout Itemize
+'OBS';0
+\end_layout
+
+\begin_layout Itemize
+'LAT';1
+\end_layout
+
+\begin_layout Itemize
+'LAT';2
+\end_layout
+
+\begin_layout Itemize
+'LAT';3
+\end_layout
+
+\begin_layout Itemize
+'LAT';4
+\end_layout
+
+\begin_layout Itemize
+'LAT';5
+\end_layout
+
+\begin_layout Itemize
+'LAT';6
+\end_layout
+
+\begin_layout Itemize
+'LAT';7
+\end_layout
+
+\begin_layout Itemize
+'LAT';8
+\end_layout
+
+\begin_layout Itemize
+'LAT';9
+\end_layout
+
+\begin_layout Itemize
+'PRI'; 888888888
+\end_layout
+
+\begin_layout Itemize
+'MIX'; 999999999
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_d_model"
+
+\end_inset
+
+bsrhlm_d_model
+\end_layout
+
+\begin_layout Standard
+Se introducen los modelos que se van a estimar
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ ds_model
+\series default
+: Descripción del modelo
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_d_session"
+
+\end_inset
+
+bsrhlm_d_session 
+\end_layout
+
+\begin_layout Standard
+Tabla con las sesiones de estimación.
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ ds_session
+\series default
+: Descripción de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ te_authors
+\series default
+: Autores de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_creation
+\series default
+: Fecha y hora de creación de la sesión
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_d_model_session"
+
+\end_inset
+
+bsrhlm_d_model_session
+\end_layout
+
+\begin_layout Standard
+Tabla que asocial modelo con sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_d_level"
+
+\end_inset
+
+bsrhlm_d_level
+\end_layout
+
+\begin_layout Standard
+Tabla que describe para cada par modelo y sesión que tipos de nodos tiene.
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_type
+\series default
+\bar default
+: Identificador del tipo de nodo
+\end_layout
+
+\begin_layout Enumerate
+Entero 
+\series bold
+\bar under
+nu_level
+\series default
+\bar default
+: Nivel del nodo
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_d_node"
+
+\end_inset
+
+bsrhlm_d_node
+\end_layout
+
+\begin_layout Standard
+Tabla que describe los nodos que tiene cada modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ id_node_type
+\series default
+: Identificador del tipo de nodo
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_level
+\series default
+: Nivel del nodo
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_node
+\series default
+:
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ ds_node
+\series default
+: Descripción del nodo 
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_mix_parameter"
+
+\end_inset
+
+bsrhlm_v_mix_parameter
+\end_layout
+
+\begin_layout Standard
+Tabla con los parámetros que tiene cada nodo observacional
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter
+\series default
+\bar default
+: Identificador del parámetro
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ id_gibbs_blk
+\series default
+: Tipo de bloque del parámetro
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_prm_ini
+\series default
+: Valor inicial del parámetro
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_prm_min
+\series default
+: Valor mínimo del parámetro
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_prm_max
+\series default
+: Valor máximo del parámetro
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_mix_non_lin_filter"
+
+\end_inset
+
+bsrhlm_v_mix_non_lin_filter
+\end_layout
+
+\begin_layout Standard
+Tabla con los parámetros que tiene cada nodo observacional
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_series
+\series default
+\bar default
+: Identificador del input/output modificado
+\end_layout
+
+\begin_layout Enumerate
+Entero 
+\series bold
+\bar under
+nu_lin_blk_param
+\series default
+\bar default
+: Número de parámetros afectados en el bloque lineal
+\end_layout
+
+\begin_layout Enumerate
+Entero 
+\series bold
+\bar under
+nu_non_lin_blk_param
+\series default
+\bar default
+: Número de parámetros simulados en el bloque no lineal
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_mix_order_relation"
+
+\end_inset
+
+bsrhlm_v_mix_order_relation
+\end_layout
+
+\begin_layout Standard
+Tabla que define las restricciones de orden entre parámetros
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_lower
+\series default
+\bar default
+: Identificador del nodo que va a tener el menor de los parámetros
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter_lower
+\series default
+\bar default
+: Identificador del menor parámetro
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_upper
+\series default
+\bar default
+: Identificador del nodo que va a tener el mayor de los parámetros
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter_upper
+\series default
+\bar default
+: Identificador del parámetro mayor
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_mix_cnstrnt_border"
+
+\end_inset
+
+bsrhlm_v_mix_cnstrnt_border
+\end_layout
+
+\begin_layout Standard
+Tabla que define las ecuaciones de las restricciones de orden a<=f(x)>=b
+ :
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ 
+\bar under
+nu_inequation
+\series default
+\bar default
+: Identificador de la ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ id_node
+\series default
+: Identificador del nodo mixto
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_left_border
+\series default
+: Limite izquierdo de la ecuación
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_right_border
+\series default
+: Limite derecho de la ecuación
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_mix_cnstrnt_lin_cmb"
+
+\end_inset
+
+bsrhlm_v_mix_cnstrnt_lin_cmb
+\end_layout
+
+\begin_layout Standard
+Tabla que define las ecuaciones de las restriciones de orden a<=f(x)>=b
+ :
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ 
+\bar under
+nu_inequation
+\series default
+\bar default
+: Identificador de la ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo que va a tener uno de los parámetros de la ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter
+\series default
+\bar default
+: Identificador del parámetro
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_coef
+\series default
+: Valor que va a multiplicar al parámetro en la ecuación
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_obs_output"
+
+\end_inset
+
+bsrhlm_v_obs_output
+\end_layout
+
+\begin_layout Standard
+Tabla con los output de los nodos observacionales
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo observacion
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ id_series
+\series default
+: Nombre de la serie output
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_sig_fac
+\series default
+: Número de sigmas entre los que pueden variar los omitidos respecto a la
+ media
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_min
+\series default
+: Valor minimo de los omitidos
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_max
+\series default
+: Valor máximo de los omitidos
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_start
+\series default
+: Fecha de inicio de la estimación
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_end
+\series default
+: Fecha de fin de la estimación
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_obs_arima_block"
+
+\end_inset
+
+bsrhlm_v_obs_arima_block
+\end_layout
+
+\begin_layout Standard
+Tabla para definir el modelo ARIMA de los observacionales
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo observacional
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ 
+\bar under
+nu_factor
+\series default
+\bar default
+: Identificador de cada periodo
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_period
+\series default
+: Periodo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ te_ar
+\series default
+: Parte AR
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ te_ma
+\series default
+: Parte MA
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ te_dif
+\series default
+: Parte diferencial
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_obs_input"
+
+\end_inset
+
+bsrhlm_v_obs_input
+\end_layout
+
+\begin_layout Standard
+Definición de los inputs de los observacionales
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter
+\series default
+\bar default
+: Identificador del parámetro.
+ Usualmente es id_series+
+\begin_inset Quotes erd
+\end_inset
+
+::Coef
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ id_series
+\series default
+: Nombre de la serie input
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_sig_fac
+\series default
+: Número de sigmas entre los que pueden variar los omitidos respecto a la
+ media
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_min
+\series default
+: Valor mínimo de los omitidos
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_max
+\series default
+: Valor máximo de los omitidos
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_obs_transferFunction"
+
+\end_inset
+
+bsrhlm_v_obs_transferFunction
+\end_layout
+
+\begin_layout Standard
+Definición de las funciones de transferencia de los inputs observacionales
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_transferFunction
+\series default
+\bar default
+: Identificador de la funciópn de transferencia.
+ Puede haber varias para una misma serie input.
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ te_omega
+\series default
+: Polinomio numerador de la función de transferencia
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ te_delta
+\series default
+: Polinomio denominador de la función de transferencia
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ id_series
+\series default
+: Nombre de la serie input
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_sig_fac
+\series default
+: Número de sigmas entre los que pueden variar los omitidos respecto a la
+ media
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_min
+\series default
+: Valor mínimo de los omitidos
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mis_pri_max
+\series default
+: Valor máximo de los omitidos
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_lat_sigma_block"
+
+\end_inset
+
+bsrhlm_v_lat_sigma_block
+\end_layout
+
+\begin_layout Standard
+Tabla para definir el sigma block de los modelos jerárquicos
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+\bar under
+ id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo latente
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_sigma
+\series default
+: Sigma block del nodo latente
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_lat_output"
+
+\end_inset
+
+bsrhlm_v_lat_equ
+\end_layout
+
+\begin_layout Standard
+Tabla para definir las ecuaciones de un nodo latente
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_father
+\series default
+\bar default
+: Identificador del nodo latente padre
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ 
+\bar under
+nu_equation
+\series default
+\bar default
+: Número de ecuación
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_sigma_factor
+\series default
+: Valor por el que se altera el sigma-block del nodo latente para esta ecuación
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_lat_output"
+
+\end_inset
+
+bsrhlm_v_lat_output
+\end_layout
+
+\begin_layout Standard
+Tabla para definir las combinaciones de los parámetros hijos en el output
+ de cada ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_father
+\series default
+\bar default
+: Identificador del nodo latente padre
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ 
+\bar under
+nu_equation
+\series default
+\bar default
+: Número de ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_child
+\series default
+\bar default
+: Identificador del nodo hijo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter_child
+\series default
+\bar default
+: Identificador del parámetro del hijo
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_coef
+\series default
+: Coeficiente de la variable hija en el output
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_lat_input"
+
+\end_inset
+
+bsrhlm_v_lat_input
+\end_layout
+
+\begin_layout Standard
+Tabla para definir las combinaciones de los parámetros padre en el input
+ de cada ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_father
+\series default
+\bar default
+: Identificador del nodo latente padre
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ 
+\bar under
+nu_equation
+\series default
+\bar default
+: Número de ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter_father
+\series default
+\bar default
+: Identificador del parámetro padre
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_coef
+\series default
+: Valor del parámetro de relación del nodo padre con el nodo hijo
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_lat_output"
+
+\end_inset
+
+bsrhlm_v_pri_equ
+\end_layout
+
+\begin_layout Standard
+Tabla para definir las ecuaciones de un nodo a priori
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_father
+\series default
+\bar default
+: Identificador del nodo a priori padre
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ 
+\bar under
+nu_equation
+\series default
+\bar default
+: Número de ecuación
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_average
+\series default
+: Media a priori
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_sigma
+\series default
+: Varianza a priori
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_pri_output"
+
+\end_inset
+
+bsrhlm_v_pri_output
+\end_layout
+
+\begin_layout Standard
+Tabla para definir las combinaciones de los parámetros hijos en el output
+ de cada ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_father
+\series default
+\bar default
+: Identificador del nodo a priori
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ 
+\bar under
+nu_equation
+\series default
+\bar default
+: Número de ecuación
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node_child
+\series default
+\bar default
+: Identificador del nodo que tiene el parámetro
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter_child
+\series default
+\bar default
+: Identificador del parámetro hijo
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_coef
+\series default
+: Coeficiente de la variable hija en el output
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_est_status"
+
+\end_inset
+
+bsrhlm_v_est_status 
+\end_layout
+
+\begin_layout Standard
+Tabla que almacena los resultados del proceso de estimación estimación,
+ tiempo,…
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ in_blocked
+\series default
+: Bloquea el modelo-sesión para proteger los datos
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ te_path_data_out
+\series default
+: Path del log de salida
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_mcmc_var
+\series default
+: Número de variables
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_mcmc_burnin
+\series default
+: Número de burning
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_mcmc_sampleLength
+\series default
+: Número de iteraciones del modelo 
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_mcmc_cacheLength
+\series default
+: 
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_mcmc_currentLength
+\series default
+: 
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mcmc_time_avg
+\series default
+: Tiempo medio de estimación
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_error
+\series default
+: Número de errores
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_warning
+\series default
+: Número de warnings
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_loading
+\series default
+: Inicio de la carga
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_parsing
+\series default
+: Inicio del parseo
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_initializing
+\series default
+: Hora de inicializacion
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_simulating
+\series default
+: Hora de simulación
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_reporting
+\series default
+: Hora del reporte
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_evaluating
+\series default
+: Hora de la evaluación
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_saving
+\series default
+: Hora del salvado
+\end_layout
+
+\begin_layout Enumerate
+Fecha
+\series bold
+ dh_ending
+\series default
+: Hora de la finalización
+\end_layout
+
+\begin_layout Subsection
+\begin_inset LatexCommand label
+name "sub:bsrhlm_v_est_param_stats"
+
+\end_inset
+
+bsrhlm_v_est_param_stats
+\end_layout
+
+\begin_layout Standard
+Tabla que almacena los parámetros del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_model
+\series default
+\bar default
+: Identificador del modelo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_session
+\series default
+\bar default
+: Identificador de la sesión
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_node
+\series default
+\bar default
+: Identificador del nodo
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ 
+\bar under
+id_parameter
+\series default
+\bar default
+: Identificador del parámetro
+\end_layout
+
+\begin_layout Enumerate
+Texto
+\series bold
+ id_gibbs_blk
+\series default
+: Identificador del bloque gibbs
+\end_layout
+
+\begin_layout Enumerate
+Entero
+\series bold
+ nu_mcmc_index
+\series default
+:
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_mean
+\series default
+: Media
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_sd
+\series default
+: Desviación estandar
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_naive_se
+\series default
+:
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_tmser_se
+\series default
+:
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_q_001
+\series default
+: quantil 1%
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_q_025
+\series default
+: quantil 2.5%
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_q_250
+\series default
+: quantil 25%
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_q_500
+\series default
+: quantil 50%
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_q_750
+\series default
+: quantil 75%
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_q_975
+\series default
+: quantil 97.5%
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_q_999
+\series default
+: quantil 99%
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ 
+\series default
+v
+\series bold
+l_raftery_length
+\series default
+:
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_raftery_burnin
+\series default
+: 
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_raftery_size
+\series default
+:
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_raftery_size_min
+\series default
+:
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_raftery_dep_factor
+\series default
+:
+\end_layout
+
+\begin_layout Enumerate
+Real
+\series bold
+ vl_raftery_remain
+\series default
+:
+\end_layout
+
+\begin_layout Section
+Diagrama de relaciones entre las tablas
+\end_layout
+
+\begin_layout Standard
+En la figura siguiente se muestran las relaciones de clave ajena existente
+ entre las diferentes tablas del sistema Bsr-Hlm
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement t
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename DiagramaTablasBSR.pdf
+	scale 80
+	rotateAngle 90
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

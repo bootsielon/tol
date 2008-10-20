@@ -1,0 +1,4691 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language spanish
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize a4paper
+\paperpackage widemarginsa4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Álgebra del Tiempo Continuo
+\layout Author
+
+Daniel Rus y Víctor de Buen
+\layout Abstract
+
+En este documento se dan las principales bases teóricas para la implementación
+ del 
+\series bold 
+álgebra del tiempo continuo
+\series default 
+ especialmente diseñada para el lenguaje de programación 
+\emph on 
+open-source
+\emph default 
+ TOL (
+\emph on 
+Time Oriented Language
+\emph default 
+) cuya página web es 
+\begin_inset LatexCommand \htmlurl[TOL-project]{http://www.tol-project.org}
+
+\end_inset 
+
+, y que ha sido desarrollado por el grupo 
+\begin_inset LatexCommand \htmlurl[Bayes]{http://www.bayesforecast.com}
+
+\end_inset 
+
+.
+\layout Abstract
+
+El propósito del álgebra del tiempo es dotar al lenguaje de un método potente
+ y sencillo de manejar que permita la manipulación de secuencias temporales
+ complejas utilizadas en el análisis estadístico de series temporales, tanto
+ en tiempo continuo como discreto, especialmente en lo que se respecta al
+ llamado tiempo social que alude a todos aquellos aspectos de tipo social
+ que pueden influir en los fenómenos analizados, como son los festivos,
+ los puentes, las vacaciones, el calendario escolar, fines de semana, estacional
+idades anual, semanal, y diaria, usos horarios de invierno y verano, nocturnidad
+, horario de oficina, etc.; o cualquier otra estructura temporal derivada
+ de los mismos.
+\layout Abstract
+
+Cuando se habla de tiempo continuo en realidad se hace referencia a que
+ las secuencias temporales no tienen porqué ser regulares sino que pueden
+ seguir cualquier sucesión creciente de puntos de la recta real, aunque
+ en la práctica se limitará la precisión temporal a cierta granularidad
+ máxima, que en este caso será el segundo.
+ Es decir, el tiempo manejado no es realmente continuo sino discreto, pero
+ admite secuencias irregulares y con un grado de precisión que se estima
+ más que suficiente por ahora, aunque en todo momento se deja la puerta
+ abierta a precisiones más altas.
+\layout Abstract
+\pagebreak_bottom 
+Se introducen formalizaciones matemáticas de granularidad temporal, instante
+ de tiempo y conjunto temporal, así como de las operaciones algebraicas
+ que es posible definir sobre ellos.
+\layout Abstract
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Section
+\pagebreak_top 
+Granularidad Temporal
+\layout Standard
+
+La granularidad temporal hace referencia a las unidades básicas o granos
+ de medición del tiempo como el segundo, el minuto, la hora, etc.
+ A continuación se describe el concepto formal de granularidad en la recta
+ real y su aplicación al caso del tiempo y sus relaciones con el calendario
+ gregoriano.
+\layout Subsection
+
+Definición de granularidad
+\layout Standard
+
+Una 
+\series bold 
+granularidad
+\series default 
+ 
+\begin_inset Formula $g$
+\end_inset 
+
+ en la recta real es una sucesión infinita monótona estrictamente creciente
+ de números reales
+\begin_inset Formula \begin{equation}
+g=\left\{ x_{k}\in\mathbb{R}\right\} _{k\in\mathbb{Z}}\bot x_{k}<x_{k+1}\forall k\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por ser siempre creciente estrictamente se tiene que necesariamente es no
+ acotada ni por la izquierda ni por la derecha, más concretamente se cumple
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\lim_{k\rightarrow-\infty}x_{k}=-\infty\wedge\lim_{k\rightarrow\infty}x_{k}=\infty\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Dada la granularidad 
+\begin_inset Formula $g$
+\end_inset 
+
+ definida anteriormente se define el operador 
+\begin_inset Formula \begin{equation}
+k\bullet g=x_{k}\forall k\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+que no es sino otra forma de escribir la sucesión de forma que se haga referecia
+ explícita a la granularidad, un mero truco notacional.
+\layout Subsection
+
+Ordenación de granularidades
+\layout Standard
+
+Se dirá que una sucesión 
+\begin_inset Formula $g$
+\end_inset 
+
+ 
+\emph on 
+es más fina que
+\emph default 
+ otra 
+\begin_inset Formula $h$
+\end_inset 
+
+ y escribiremos 
+\begin_inset Formula $g\supset h$
+\end_inset 
+
+ ó 
+\begin_inset Formula $h\subset g$
+\end_inset 
+
+, o bien que 
+\begin_inset Formula $h$
+\end_inset 
+
+ 
+\emph on 
+es más gruesa que
+\emph default 
+ 
+\begin_inset Formula $g$
+\end_inset 
+
+ y escribiremos 
+\begin_inset Formula $h>g$
+\end_inset 
+
+ ó 
+\begin_inset Formula $g<h$
+\end_inset 
+
+, si la sucesión que define a 
+\begin_inset Formula $h$
+\end_inset 
+
+ está incluida en la que define a 
+\begin_inset Formula $g$
+\end_inset 
+
+, es decir
+\begin_inset Formula \begin{equation}
+\forall\: n\in\mathbb{Z}\:\exists\: m\in\mathbb{Z}\:\bot\: m\bullet g=n\bullet h\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+A la operación que devuelve ese entero 
+\begin_inset Formula $m$
+\end_inset 
+
+ la llamaremos 
+\emph on 
+cociente granular
+\emph default 
+ y la denotaremos con el símbolo de la inversión sobre la granularidad 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+m=g^{-1}\left(n\bullet h\right)\Leftrightarrow m\bullet g=n\bullet h\quad\forall n\in\mathbb{Z},\forall k\in\mathbb{Z},\: h>g\label{eq:GraQuo}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se define la granularidad continua 
+\begin_inset Formula $g_{\infty}$
+\end_inset 
+
+ como el límite superior de todas las granularidades en orden de más gruesa
+ a más fina.
+\layout Subsection
+
+El calendario gregoriano
+\layout Standard
+
+Cuando la magnitud física que representa la recta real es el tiempo se hablará
+ de granularidades temporales.
+ Estas se suelen definir mediante cualquier regla de cálculo de la sucesión
+ 
+\begin_inset Formula $\left\{ k\bullet g\right\} _{k\in\mathbb{Z}}$
+\end_inset 
+
+, como puede ser dar un punto de partida 
+\begin_inset Formula $0\bullet g$
+\end_inset 
+
+ y una regla de sucesión temporal que permita reconstruir la sucesión de
+ forma recursiva
+\begin_inset Formula \begin{equation}
+\left(m+1\right)\bullet g=Succ\left(m\bullet g\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+A las granularidades temporales correspondientes a las unidades básicas
+ de tiempo en el 
+\series bold 
+calendario gregoriano
+\series default 
+
+\begin_inset Foot
+collapsed false
+
+\layout Standard
+
+En 1582 fue cuando se inició el calendario gregoriano por mandato del Papa
+ Gregorio XIII, corrigiendo el anterior calendario juliano que había provocado
+ un desfase de 10 días con respecto al ciclo anual, y que fueron eliminados
+ del calendario por decreto, pasando directamente del 4 al 15 de octubre
+ y dando lugar a cosas tan curiosas como que la gente protestara en grandes
+ revueltas creyendo que se le habían restado 10 días de vida, o que Santa
+ Teresa muriera el día 4 y fuera enterrada el día 15, es decir, al día siguiente.
+ Todos los países no adoptaron la nueva regla al unísono; esta es la razón
+ de que Cervantes y Shakespeare muriesen formalmente en la misma fecha,
+ el 23 de abril de 1616, pero con diez días de diferencia.
+ Pero en cualquier caso se tomará el 1583 como primer año del calendario
+ gregoriano.
+ El calendario juliano introducía el concepto de año bisiesto con un día
+ más, el 29 de febrero, cada 4 años.
+ El gregoriano mejoraba esa aproximación eliminando un bisiesto cada siglo
+ que no fuera múltiplo de 4.
+\end_inset 
+
+ les llamaremos 
+\emph on 
+granularidades temporales básicas
+\emph default 
+ y son las correspondientes a las sucesiones de los años, los meses, los
+ días, las horas, los minutos, y los segundos.
+ Es posible extender muy facilmente esta definición a granularidades más
+ finas como la milésima de segundo, o el nanosegundo pero por razones técnicas
+ la presente implementación se limita al segundo.
+ De esta forma se define la base gregoriana de granularidades dispuestas
+ en orden de más gruesa a más fina
+\begin_inset Formula \begin{equation}
+\mathcal{G}_{6}=\left\{ \begin{array}{cc}
+g_{\mathbf{y}}: & \mathbf{anual}\\
+g_{\mathbf{m}}: & \mathbf{mensual}\\
+g_{\mathbf{d}}: & \mathbf{diaria}\\
+g_{\mathbf{h}}: & \mathbf{horaria}\\
+g_{\mathbf{i}}: & \mathbf{minutal}\\
+g_{\mathbf{s}}: & \mathbf{secundal}\end{array}\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Al conjunto 
+\begin_inset Formula $\mathcal{IG}_{6}=\left\{ \mathbf{y},\mathbf{m},\mathbf{d},\mathbf{h},\mathbf{i},\mathbf{s}\right\} $
+\end_inset 
+
+ le llamaremos índice de la base gregoriana de granularidades.
+ 
+\layout Standard
+
+Así, la granularidad del segundo es más fina que la del minuto y que todas
+ las demás y la del año es la más gruesa: 
+\begin_inset Formula $g_{\mathbf{y}}>g_{\mathbf{m}}>g_{\mathbf{d}}>g_{\mathbf{h}}>g_{\mathbf{i}}>g_{\mathbf{s}}$
+\end_inset 
+
+.
+ Se recalca esta cuestión de orden para que no se confunda el lector en
+ lo que resta del documento.
+ 
+\layout Standard
+
+Para la granularidad diaria 
+\begin_inset Formula $\left\{ k\bullet g_{\mathbf{d}}\right\} _{k\in\mathbb{Z}}$
+\end_inset 
+
+ sus elementos son el número de días transcurridos desde un punto de origen
+ común a todas las granularidades 
+\begin_inset Formula $0\bullet g_{r}=0\:\forall r\in\mathcal{IG}_{6}$
+\end_inset 
+
+, que se suele tomar en muchas aplicaciones, bases de datos y hojas de cálculo
+ como el IT que comienza el 1 de enero de 1900 a las 0 horas, 0 minutos
+ y 0 segundos.
+ Nótese que las granularidades que van del día al segundo son regulares
+ en el sentido de que los intervalos entre sus elementos tienen igual longitud
+ dentro de cada una, es decir, 
+\begin_inset Formula \begin{equation}
+\exists\lambda_{r}\in\mathbb{R}^{+}\bot\left(k+1\right)\bullet g_{r}-k\bullet g_{r}=\lambda_{r}\Rightarrow k\bullet g_{r}=k\times\lambda_{r}\forall k\in\mathbb{Z},\: r=\mathbf{d},\mathbf{h},\mathbf{i},\mathbf{s}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La unidad del calendario gregoriano es el día y por lo tanto 
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\lambda_{\mathbf{d}}=1\\
+\lambda_{\mathbf{h}}=\frac{1}{24}\\
+\lambda_{\mathbf{i}}=\frac{1}{24\times60}=\frac{1}{1440}\\
+\lambda_{\mathbf{s}}=\frac{1}{24\times60\times60}=\frac{1}{86400}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+También se pueden definir otras granularidades como la semanal 
+\begin_inset Formula $g_{\mathbf{w}}$
+\end_inset 
+
+, que es regular con 
+\begin_inset Formula $\lambda_{\mathbf{w}}=7$
+\end_inset 
+
+, aunque no formarán parte de la base gregoriana.
+\layout Standard
+
+Sin embargo las granularidades mensual y la anual son irregulares pues hay
+ meses más largos que otros y lo mismo pasa con los años y sólo se tienen
+ los valores aproximados de las periodicidades 
+\begin_inset Formula $\lambda_{\mathbf{y}}\approx365.2425$
+\end_inset 
+
+ y 
+\begin_inset Formula $\lambda_{\mathbf{m}}\approx30.436875$
+\end_inset 
+
+.
+ 
+\layout Standard
+
+Para la granularidad mensual 
+\begin_inset Formula $k\bullet g_{\mathbf{m}}$
+\end_inset 
+
+ son los días transcurridos tras los 
+\begin_inset Formula $n$
+\end_inset 
+
+ primeros meses desde el punto de origen si 
+\begin_inset Formula $k\geq0$
+\end_inset 
+
+, o bien los días que faltan hasta ese punto contando desde 
+\begin_inset Formula $-n$
+\end_inset 
+
+ meses antes si es 
+\begin_inset Formula $k<0$
+\end_inset 
+
+.
+ 
+\layout Standard
+
+Análogamente, 
+\begin_inset Formula $k\bullet g_{\mathbf{y}}$
+\end_inset 
+
+ son los días transcurridos tras los 
+\begin_inset Formula $k$
+\end_inset 
+
+ primeros años desde el punto de origen si 
+\begin_inset Formula $k\geq0$
+\end_inset 
+
+ o bien los días que faltan hasta ese punto contando desde 
+\begin_inset Formula $-k$
+\end_inset 
+
+ años antes si es 
+\begin_inset Formula $k<0$
+\end_inset 
+
+.
+ 
+\layout Standard
+
+Existen métodos sencillos para la determinación de 
+\begin_inset Formula $k\bullet g_{\mathbf{m}}$
+\end_inset 
+
+ y 
+\begin_inset Formula $k\bullet g_{\mathbf{y}}$
+\end_inset 
+
+ a partir de la regla de cálculo de los años bisiestos que son básicamente
+ los múltiplos de 4 que no lo son de 100 a no ser que sean de 400.
+ Esto da un error en el ciclo anual menor de 3 días cada 10000 años, por
+ lo que se puede dar por válido al menos hasta el año 1582+3333=4915.
+\layout Standard
+
+A efectos de implementación se usará la librería open-source 
+\begin_inset LatexCommand \htmlurl[libtai]{http://cr.yp.to/libtai.html}
+
+\end_inset 
+
+ para el almacenamiento y manipulación de fechas y tiempos.
+\layout Section
+\pagebreak_top 
+Instantes de Tiempo
+\layout Standard
+
+Los instantes de tiempo, pueden medirse en un rango de unidades que va de
+ años a segundos.
+ Estas unidades representan la granularidad de cada uno de ellos.
+ Un instante de tiempo se define tomando valores en cada uno de los conceptos
+ para los cuales existe una granularidad: año, mes, día, hora, minuto y
+ segundo.
+ Pueden omitirse secuencialmente de derecha a izquierda sin que falte nunca
+ el último de todos, el año.
+ Dos instantes de tiempo guardan una relación de orden entre sí.
+ Por otro lado, un instante de tiempo puede estar contenido dentro de otro.
+ 
+\layout Standard
+
+A continuación se dará contenido formal matemático a estas ideas intuitivas.
+\layout Subsection
+
+Definición de Instante de Tiempo
+\layout Standard
+
+Desde el punto de vista matemático un 
+\series bold 
+instante de tiempo continuo
+\series default 
+ o simplemente instante de tiempo, a partir de ahora 
+\series bold 
+IT
+\series default 
+, es un intervalo de Borel de la recta real de la forma
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g_{r}\right)=\left[k\bullet g_{r},\left(k+1\right)\bullet g_{r}\right)\subset\mathbb{R}\wedge r\in\mathcal{IG}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+donde 
+\begin_inset Formula $k\in\mathbb{Z}$
+\end_inset 
+
+ es un número entero cualquiera, 
+\begin_inset Formula $g_{r}$
+\end_inset 
+
+ es una granularidad básica gregoriana, 
+\begin_inset Formula $k\bullet g_{r}\in\mathbb{R}$
+\end_inset 
+
+ representa el punto de inicio del IT y 
+\begin_inset Formula $\left(k+1\right)\bullet g_{r}\in\mathbb{R}$
+\end_inset 
+
+ su límite superior, que no le pertenece propiamente, por ser un intervalo
+ abierto por la derecha.
+\layout Standard
+
+He aquí algunos ejemplos válidos de IT
+\layout Itemize
+
+El día 9 de febrero de 1900 es el IT 
+\begin_inset Formula $\mathcal{I}\left(40,g_{\mathbf{d}}\right)=\left[40,41\right)$
+\end_inset 
+
+
+\layout Itemize
+
+El mes de enero de 1900 es el IT 
+\begin_inset Formula $\mathcal{I}\left(0,g_{\mathbf{m}}\right)=\left[0,31\right)$
+\end_inset 
+
+
+\layout Standard
+
+Al conjunto de todos los IT para cualquiera de estas 6 granularidades le
+ llamaremos 
+\begin_inset Formula $\mathfrak{C}_{6}$
+\end_inset 
+
+.
+ La cardinalidad de cada 
+\begin_inset Formula $\mathfrak{C}_{R>6}$
+\end_inset 
+
+ definible por extensión de la base de granularidades sería la del infinito
+ numerable 
+\begin_inset Formula $\infty$
+\end_inset 
+
+.
+ Sólo en el límite 
+\begin_inset Formula $\mathfrak{C}_{\infty}$
+\end_inset 
+
+ se alcanzaría la cardinalidad del continuo 
+\begin_inset Formula $\infty^{\infty}$
+\end_inset 
+
+.
+\layout Subsubsection
+
+Ampliación de 
+\begin_inset Formula $\mathfrak{C}_{6}$
+\end_inset 
+
+ con instantes de tiempo impropios
+\layout Standard
+
+El conjunto de los IT de una misma granularidad es una teselación de la
+ recta real, es decir, la intersección de cada par de ellos es nula y su
+ unión es toda la recta real.
+ Cada uno de ellos define por tanto una sucesión infinita en la cual es
+ posible definir los instantes de tiempo límite como los límites a los que
+ convergen, para todas las granularidades, las sucesiones de instantes por
+ la izquierda y por la derecha
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(-\infty\right)=\lim_{k\rightarrow-\infty}\mathcal{I}\left(k,g\right)=\left\{ -\infty\right\} \forall g\in\mathcal{G}_{6}\\
+\mathcal{I}\left(\infty\right)=\lim_{k\rightarrow\infty}\mathcal{I}\left(k,g\right)=\left\{ \infty\right\} \forall g\in\mathcal{G}_{6}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Obsérvese que dichos instantes límite no son propiamente intervalos sino
+ que se trata de puntos de la recta real ampliada con los que se amplía
+ a su vez el conjunto 
+\begin_inset Formula $\mathfrak{C}_{6}$
+\end_inset 
+
+.
+ 
+\layout Standard
+
+También se amplía el concepto de IT con el IT desconocido o indeterminado
+ 
+\begin_inset Formula $\mathcal{I}\left(?\right)$
+\end_inset 
+
+ que se utilizará para expresar que no existe el resultado de una expresión
+ que debería devolver un IT.
+ Este IT indeterminado no pertenece realmente a 
+\begin_inset Formula $\mathfrak{C}_{6}$
+\end_inset 
+
+ pero en ocasiones se escribirá 
+\begin_inset Formula $\mathfrak{C}_{6}-\left\{ \mathcal{I}\left(?\right)\right\} $
+\end_inset 
+
+ para recalcarlo.
+ Del mismo modo se escribirá 
+\begin_inset Formula $\mathfrak{C}_{6}-\left\{ \mathcal{I}\left(-\infty\right),\mathcal{I}\left(\infty\right)\right\} $
+\end_inset 
+
+ o cualquier combinación de exclusiones.
+ A estos tres IT's se les llamará IT's impropios y al resto, los que se
+ pueden expresar como 
+\begin_inset Formula $\mathcal{I}\left(k,g\right)$
+\end_inset 
+
+ , se les llamará IT propios.
+ Si no se indica otra cosa se entenderá siempre que un IT es propio.
+\layout Subsection
+
+Estructura Algebraica de 
+\begin_inset Formula $\mathfrak{C}_{6}$
+\end_inset 
+
+
+\layout Standard
+
+Se van a definir operaciones algebraicas entre instantes de tiempo y entre
+ estos y los números enteros que permitirán manejar estos objetos desde
+ un punto vista formal.
+\layout Subsubsection
+
+Operaciones externas
+\layout Standard
+
+A continuación se describen algunas funciones de acceso a las propiedades
+ de un IT y otras funciones relacionadas con el tratamiento del tiempo
+\layout Paragraph
+
+Granularidad
+\layout Standard
+
+A la sucesión 
+\begin_inset Formula $g$
+\end_inset 
+
+ le llamaremos granularidad del IT, y a la función que la devuelve 
+\begin_inset Formula \begin{equation}
+granul\left(\mathcal{\mathcal{I}}\left(k,g\right)\right)=g\in\mathcal{G}_{6}\quad\forall k\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Paragraph
+
+Ordinal
+\layout Standard
+
+Al valor entero 
+\begin_inset Formula $k$
+\end_inset 
+
+ le llamaremos ordinal del IT y a la función correspondiente 
+\begin_inset Formula \begin{equation}
+ord\left(\mathcal{\mathcal{I}}\left(k,g\right)\right)=k\in\mathbb{Z}\quad\forall g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Paragraph
+
+Punto de inicio
+\layout Standard
+
+Al valor real 
+\begin_inset Formula $t=k\bullet g$
+\end_inset 
+
+ le llamaremos punto de inicio, y a la función que devuelve dicho punto
+ de inicio para un IT le llamaremos 
+\begin_inset Formula \begin{equation}
+startOf\left(\mathcal{I}\left(k,g\right)\right)=t=k\bullet g\in\mathbb{R}\quad\forall k\in\mathbb{Z}\: g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Paragraph
+
+Distancia en una granularidad
+\layout Standard
+
+Se define la función distancia entre dos puntos reales en una granularidad
+ 
+\begin_inset Formula $g_{r}\in\mathcal{G}_{6}$
+\end_inset 
+
+ como el número de IT's de esa granularidad incluidos entre esos dos puntos.
+ Es decir
+\begin_inset Formula \begin{equation}
+\left\langle t,\, t'\right\rangle _{g_{r}}=Card\left\{ \left.\mathcal{\mathcal{I}}\left(j,g_{r}\right)\right|t\leq j\bullet g_{r}\wedge\left(j+1\right)\bullet g_{r}<t'\right\} \quad\forall t,t'\in\mathbb{R}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se define la distancia entre dos IT's en una granularidad como la distancia
+ entre sus puntos de origen en esa misma granularidad.
+\begin_inset Formula \begin{equation}
+\left\langle \mathcal{\mathcal{I}}\left(k,g\right),\,\mathcal{\mathcal{I}}\left(k',g'\right)\right\rangle _{g_{r}}=\left\langle k\bullet g,\, k'\bullet g'\right\rangle _{g_{r}}\quad\forall k,k'\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+En particular para dos IT's con granularidad 
+\begin_inset Formula $g_{r}$
+\end_inset 
+
+ se tiene que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\left\langle \mathcal{\mathcal{I}}\left(k,g_{r}\right),\,\mathcal{\mathcal{I}}\left(k',g_{r}\right)\right\rangle _{g_{r}}=\left\langle k\bullet g_{r},\, k'\bullet g_{r}\right\rangle _{g_{r}}=\left\{ \begin{array}{cc}
+k'-k & si\: k'>k\\
+0 & si\: k'\leq k\end{array}\right.\quad\forall k,k'\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Obviamente, cuanto más fina es la granularidad mayor es la distancia entre
+ los mismos puntos.
+\layout Paragraph
+
+Funciones de coordenadas gregorianas
+\layout Standard
+
+En virtud del calendario gregoriano se definen también las funciones de
+ coordenadas gregorianas
+\begin_inset Formula \begin{equation}
+\begin{array}{cccc}
+year\left(t\right) & :\mathbb{R}\rightarrow & RG_{\mathbf{y}}=\mathbb{Z}\cap & \left[1583,\,4999999\right]\\
+month\left(t\right) & :\mathbb{R}\rightarrow & RG_{\mathbf{m}}=\mathbb{Z}\cap & \left[1,\,12\right]\\
+day\left(t\right) & :\mathbb{R}\rightarrow & RG_{\mathbf{d}}=\mathbb{Z}\cap & \left[1,\,31\right]\\
+hour\left(t\right) & :\mathbb{R}\rightarrow & RG_{\mathbf{h}}=\mathbb{Z}\cap & \left[0,\,23\right]\\
+minute\left(t\right) & :\mathbb{R}\rightarrow & RG_{\mathbf{i}}=\mathbb{Z}\cap & \left[0,\,59\right]\\
+second\left(t\right) & :\mathbb{R}\rightarrow & RG_{\mathbf{s}}=\mathbb{Z}\cap & \left[0,\,59\right]\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+que devuelven para cada punto de la recta real el año, mes, día, hora, minuto
+ y segundo al que corresponde en dicho calendario.
+ A los conjuntos 
+\begin_inset Formula $RG_{r}$
+\end_inset 
+
+ les llamaremos 
+\emph on 
+rangos de coordenadas gregorianas
+\emph default 
+.
+ También se define del mismo modo la función que devuelve el día de la semana
+ que, aunque no es una coordenada de la base tiene mucha importancia en
+ el tratamiento del tiempo social.
+ 
+\begin_inset Formula \begin{equation}
+weekDay\left(t\right):\mathbb{R}\rightarrow RG_{\mathbf{w}}=\mathbb{Z}\cap\left[1,\,7\right]\end{equation}
+
+\end_inset 
+
+
+\layout Paragraph
+
+Representación de instantes de tiempo
+\layout Standard
+
+Un IT 
+\begin_inset Formula $\mathcal{I}\left(k,g_{r}\right)$
+\end_inset 
+
+ se puede representar como una 
+\begin_inset Formula $r$
+\end_inset 
+
+-tupla con 
+\begin_inset Formula $r=1\ldots6$
+\end_inset 
+
+
+\begin_inset Formula \begin{equation}
+IT\left(c_{1},...,c_{r}\right):RG_{1}\times\cdots\times RG_{r}\rightarrow\mathfrak{C}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+donde los 
+\begin_inset Formula $c_{k=1..s}$
+\end_inset 
+
+ son las coordenadas gregorianas del punto de inicio del IT incluyendo sólo
+ las significativas en su granularidad.
+\begin_inset Formula \begin{equation}
+\begin{array}{cccc}
+c_{1}= & year\left(k\bullet g_{r}\right) & \quad c_{2}= & month\left(k\bullet g_{r}\right)\\
+c_{3}= & day\left(k\bullet g_{r}\right) & \quad c_{4}= & hour\left(k\bullet g_{r}\right)\\
+c_{5}= & minute\left(k\bullet g_{r}\right) & \quad c_{6}= & second\left(k\bullet g_{r}\right)\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La función de representación 
+\begin_inset Formula $IT\left(c_{1},...,c_{s}\right)$
+\end_inset 
+
+ también se puede expresar como 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+IT\left(c_{1},...,c_{6}\right)=y\left\langle c_{1}\right\rangle m\left\langle c_{2}\right\rangle d\left\langle c_{3}\right\rangle h\left\langle c_{4}\right\rangle i\left\langle c_{5}\right\rangle s\left\langle c_{6}\right\rangle \end{equation}
+
+\end_inset 
+
+Por ejemplo:
+\layout Itemize
+
+
+\begin_inset Formula $it_{1}=IT(2005)=y2005$
+\end_inset 
+
+ será el IT que representa al año 2005, su granularidad será 
+\begin_inset Quotes eld
+\end_inset 
+
+anual
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Itemize
+
+
+\begin_inset Formula $it_{2}=IT(2005,5)=y2005m5$
+\end_inset 
+
+ será el IT que representa el mes 5 del año 2005, su granularidad será 
+\begin_inset Quotes eld
+\end_inset 
+
+mensual
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Itemize
+
+
+\begin_inset Formula $it_{3}=IT(2005,5,15)=y2005m5d15$
+\end_inset 
+
+ será el IT que representa el día 15 de Mayo de 2005, su granularidad será
+ 
+\begin_inset Quotes eld
+\end_inset 
+
+diaria
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Itemize
+
+
+\begin_inset Formula $it_{4}=IT(2005,5,15,0)=y2005m5d15h0$
+\end_inset 
+
+ será el IT que representa la hora 0 del día 15 de Mayo de 2005, su granularidad
+ será 
+\begin_inset Quotes eld
+\end_inset 
+
+horaria
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Itemize
+
+
+\begin_inset Formula $it_{5}=IT(2005,5,15,0,53)=y2005m5d15h0i53$
+\end_inset 
+
+ será el IT que representa el minuto 53 de la hora 0 del día 15 de Mayo
+ de 2005, su granularidad será 
+\begin_inset Quotes eld
+\end_inset 
+
+minutal
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Itemize
+
+
+\begin_inset Formula $it_{6}=IT(2005,5,15,0,53,12)=y2005m5d15h0i53s12$
+\end_inset 
+
+ será el IT que representa el segundo 12 del minuto 53 de la hora 0 del
+ día 15 de Mayo de 2005, su granularidad será 
+\begin_inset Quotes eld
+\end_inset 
+
+secundal
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsubsection
+
+Relación de Equivalencia
+\layout Standard
+
+Se define la siguiente relación binaria entre instantes de tiempo
+\begin_inset Formula \begin{equation}
+\mathcal{\mathcal{I}}\left(k,g\right)=\mathcal{\mathcal{I}}\left(k',g'\right)\Leftrightarrow k=k'\wedge g=g'\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Es decir dos instantes de tiempo son iguales si y sólo si tienen el mismo
+ origen y la misma granularidad.
+ Obviamente se trata de una 
+\emph on 
+relación de equivalencia
+\emph default 
+, es decir, cumple las propiedades 
+\emph on 
+reflexiva
+\emph default 
+, 
+\emph on 
+simétrica
+\emph default 
+ y 
+\emph on 
+transitiva
+\emph default 
+.
+\layout Subsubsection
+
+Operadores siguiente y anterior de un IT
+\begin_inset LatexCommand \label{sub:IT-Siguiente-de-un-IT}
+
+\end_inset 
+
+
+\layout Standard
+
+El 
+\series bold 
+IT siguiente de un IT
+\series default 
+ es el instante de tiempo inmediatamente superior en la granularidad del
+ IT, lo cual se puede expresar formalmente como 
+\begin_inset Formula \[
+\mathcal{I}\left(k,g\right)+1=\mathcal{I}\left(k+1,g\right)=\left[\left(k+1\right)\bullet g,\left(k+2\right)\bullet g\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Del mismo modo el 
+\series bold 
+IT anterior de un IT
+\series default 
+ es el instante de tiempo inmediatamente inferior en la granularidad del
+ IT, lo cual se puede expresar formalmente como 
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)-1=\mathcal{I}\left(k-1,g\right)=\left[\left(k-1\right)\bullet g,k\bullet g\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Estas operaciones se pueden aplicar recursivamente 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{\mathcal{I}}\left(k,g\right)+n=\mathcal{\mathcal{I}}\left(k+n,g\right)=\left[\left(k+n\right)\bullet g,\left(k+n+1\right)\bullet g\right)\forall n\in\mathbb{Z}^{+}\\
+\mathcal{\mathcal{I}}\left(k,g\right)-n=\mathcal{\mathcal{I}}\left(k-n,g\right)=\left[\left(k-n\right)\bullet g,\left(k-n+1\right)\bullet g\right)\forall n\in\mathbb{Z}^{+}\\
+\mathcal{I}\left(k,g\right)+0=\mathcal{I}\left(k,g\right)-0=\mathcal{I}\left(k+0,g\right)=\mathcal{I}\left(k,g\right)\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por lo tanto se puede extender el concepto de 
+\series bold 
+IT siguiente 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo de un IT
+\series default 
+ a todo 
+\begin_inset Formula $\mathbb{Z}$
+\end_inset 
+
+.
+\layout Standard
+
+Obsérvese que esta operación es neutra respecto a los IT impropios
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(-\infty\right)+n=\mathcal{I}\left(-\infty\right)\forall n\in\mathbb{Z}\\
+\mathcal{I}\left(\infty\right)+n=\mathcal{I}\left(\infty\right)\forall n\in\mathbb{Z}\\
+\mathcal{I}\left(?\right)+n=\mathcal{I}\left(?\right)\forall n\in\mathbb{Z}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+He aquí algunos ejemplos ilustrativos:
+\layout Standard
+
+
+\begin_inset Formula $y2005+1=y2006$
+\end_inset 
+
+ 
+\layout Standard
+
+
+\begin_inset Formula $y2005-1=y2004$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $y2005m3-10=y2004m5$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $y2006m9d4h23+2=y2006m9d5h1$
+\end_inset 
+
+
+\layout Subsubsection
+
+Relación de Orden
+\layout Standard
+
+Se define la siguiente relación binaria entre instantes de tiempo
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)<\mathcal{I}\left(k',g'\right)\Leftrightarrow\left(k\bullet g<k'\bullet g'\right)\vee\left(k\bullet g=k'\bullet g'\wedge g<g'\right)\end{equation}
+
+\end_inset 
+
+que se lee así: un IT 
+\emph on 
+es estrictamente menor que
+\emph default 
+ otro si y sólo sí, o bien comienza antes, o bien comienza en el mismo momento
+ pero acaba antes.
+ Por ejemplo,
+\begin_inset Formula $y2005<y2006$
+\end_inset 
+
+, 
+\begin_inset Formula $y2005m1<y2005$
+\end_inset 
+
+
+\layout Standard
+
+En virtud de dicha relación se puede definir la relación binaria
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\leq\mathcal{I}\left(k',g'\right)\Leftrightarrow\mathcal{I}\left(k,g\right)<\mathcal{I}\left(k',g'\right)\vee\mathcal{I}\left(k,g\right)=\mathcal{I}\left(k',g'\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Esta relación cumple las propiedades de una 
+\emph on 
+relación de orden total
+\layout Itemize
+
+
+\emph on 
+Reflexiva
+\emph default 
+: todo IT es menor o igual que sí mismo, 
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\leq\mathcal{I}\left(k,g\right)\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+
+\emph on 
+Antisimétrica
+\emph default 
+: si un IT es menor o igual que otro y viceversa entonces son iguales 
+\begin_inset Formula \begin{equation}
+\mathcal{\mathcal{I}}\left(k,g\right)\leq\mathcal{\mathcal{I}}\left(k',g'\right)\wedge\mathcal{I}\left(k',g'\right)\leq\mathcal{\mathcal{I}}\left(k,g\right)\Rightarrow\mathcal{\mathcal{I}}\left(k,g\right)=\mathcal{\mathcal{I}}\left(k',g'\right)\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+
+\emph on 
+Transitiva
+\emph default 
+: si un IT es menor o gual que otro y éste lo es respecto a un tercero entonces
+ el primero es menor o igual que este último 
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\leq\mathcal{\mathcal{I}}\left(k',g'\right)\wedge\mathcal{\mathcal{I}}\left(k',g'\right)\leq\mathcal{\mathcal{I}}\left(k'',g''\right)\Rightarrow\mathcal{\mathcal{I}}\left(k,g\right)=\mathcal{\mathcal{I}}\left(k'',g''\right)\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+
+\emph on 
+Conexa
+\emph default 
+: dados dos IT cualesquiera uno de los dos es menor o igual que el otro
+\begin_inset Formula \begin{equation}
+\mathcal{\mathcal{I}}\left(k,g\right)\leq\mathcal{\mathcal{I}}\left(k',g'\right)\vee\mathcal{\mathcal{I}}\left(k',g'\right)\leq\mathcal{I}\left(k,g\right)\forall\mathcal{I}\left(k,g\right),\mathcal{I}\left(k',g'\right)\in\mathfrak{C}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por lo tanto es posible definir de la forma usual las funciones típicas
+ de un orden total como el mínimo y el máximo de un conjunto de IT's o el
+ límite por la izquierda y por la derecha.
+\layout Standard
+
+Obsérvese que no es posible comparar un IT con 
+\begin_inset Formula $\mathcal{I}\left(?\right)$
+\end_inset 
+
+ y que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(-\infty\right)<\mathcal{\mathcal{I}}\left(k,g\right)<\mathcal{I}\left(\infty\right)\forall\mathcal{I}\left(k,g\right)\in\mathfrak{C}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Relación de Inclusión
+\layout Standard
+
+Se define la siguiente relación binaria de inclusión entre instantes de
+ tiempo como 
+\begin_inset Formula \begin{equation}
+it'\subset it\Leftrightarrow startOf(it)\leqslant startOf(it')\wedge startOf(Succ(it))\geqslant startOf(Succ(it'))\end{equation}
+
+\end_inset 
+
+ que se lee así: un IT está incluido en otro si no comienza antes ni termina
+ después.
+ En la notación usada anteriormente se expresaría así
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+it'=\mathcal{\mathcal{I}}\left(k',g'\right)\subset\mathcal{\mathcal{I}}\left(k,g\right)=it\Leftrightarrow k\bullet g\leq k'\bullet g'\wedge\left(k'+1\right)\bullet g'\leq\left(k+1\right)\bullet g\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por ejemplo 
+\begin_inset Formula $y2005m1\subset y2005$
+\end_inset 
+
+, 
+\begin_inset Formula $y2005m1d1h12\subset y2005m1d1$
+\end_inset 
+
+, 
+\begin_inset Formula $y2005m1d1h12i6\subset y2005m1$
+\end_inset 
+
+.
+ 
+\layout Standard
+
+Obsérvese que la inclusión no está definida si interviene 
+\begin_inset Formula $\mathcal{I}\left(?\right)$
+\end_inset 
+
+ y que tanto 
+\begin_inset Formula $\mathcal{I}\left(-\infty\right)$
+\end_inset 
+
+ como 
+\begin_inset Formula $\mathcal{I}\left(\infty\right)$
+\end_inset 
+
+ ni incluyen ni están incluidos en ningún otro IT.
+\layout Standard
+
+Se define también la relación de inclusión estricta
+\begin_inset Formula \begin{equation}
+it'\subsetneq it\Leftrightarrow it'\subset it\wedge it\neq it'\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Esta relación cumple las propiedades de una relación de 
+\emph on 
+orden parcial
+\emph default 
+ pero no un orden total, pues claramente no es conexa, ya que puede ocurrir
+ que un instante temporal no esté incluido en otro ni éste en aquel.
+ En tal caso, uno de ellos será estrictamente menor que el otro, ya que
+ lo que no puede haber es instantes temporales solapados parcialmente, debido
+ a la propia definición de la base de granularidades gregoriana.
+\layout Subsubsection
+
+Interior de un IT
+\layout Standard
+
+Para cada IT se puede definir la clase de todos los IT's que están incluidos
+ en ese IT, a la que llamaremos 
+\series bold 
+interior de un IT
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Inside\left(it\right)=\left\{ it'\in\mathfrak{C}_{6}\left|it'\subset it\right.\right\} \label{eq:inside}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por ejemplo 
+\begin_inset Formula \[
+Inside\left(y2005m1d1h12i6\right)=\left\{ y2005m1d1h5i6,\, y2005m1d1h5i6s0,\,...,\, y2005m1d1h5i6s59\right\} \]
+
+\end_inset 
+
+
+\layout Standard
+
+Obviamente, el interior de un IT contiene el interior de cada uno de sus
+ elementos y por lo tanto los elementos del interior de un IT tienen todas
+ las granularidades menos gruesas que la de ese IT, excepto él mismo, claro
+ está, que tiene la granularidad más gruesa de todos.
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{\mathcal{I}}\left(k',g'\right)\in Inside\left(\mathcal{\mathcal{I}}\left(k,g\right)\right)\Rightarrow Inside\left(\mathcal{\mathcal{I}}\left(k',g'\right)\right)\subset Inside\left(\mathcal{\mathcal{I}}\left(k,g\right)\right)\\
+\mathcal{\mathcal{I}}\left(k',g'\right)\in Inside\left(\mathcal{\mathcal{I}}\left(k,g\right)\right)-\left\{ \mathcal{\mathcal{I}}\left(k,g\right)\right\} \Rightarrow g'<g\\
+g'\leq g\Rightarrow\exists\mathcal{\mathcal{I}}\left(k',g'\right)\in Inside\left(\mathcal{\mathcal{I}}\left(k,g\right)\right)\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Como corolario se puede extraer que el interior de un IT tiene al menos
+ un elemento de granularidad secundal.
+\layout Subsubsection
+
+Contenedores de un IT
+\layout Standard
+
+Para cada IT 
+\begin_inset Formula $\mathcal{I}\left(k,h\right)$
+\end_inset 
+
+ de granularidad 
+\begin_inset Formula $h<g$
+\end_inset 
+
+ existe un único IT de granularidad 
+\begin_inset Formula $g$
+\end_inset 
+
+ que lo incluye, pongamos 
+\begin_inset Formula $\mathcal{I}\left(l,g\right)$
+\end_inset 
+
+, al que llamaremos 
+\emph on 
+contenedor de 
+\emph default 
+
+\begin_inset Formula $\mathcal{I}\left(k,h\right)$
+\end_inset 
+
+ 
+\emph on 
+en la granularidad
+\emph default 
+ 
+\begin_inset Formula $g>h$
+\end_inset 
+
+ y se escribirá
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(l,g\right)=g^{-1}\mathcal{I}\left(k,h\right)\Leftrightarrow\mathcal{I}\left(k,h\right)\subset\mathcal{I}\left(l,g\right)\Leftrightarrow k\in\left[a,b\right]\cap\mathbb{Z}\;\forall h<g\label{eq:container}\end{equation}
+
+\end_inset 
+
+donde a los valores límite 
+\begin_inset Formula $a$
+\end_inset 
+
+ y 
+\begin_inset Formula $b$
+\end_inset 
+
+ de la expresión anterior les llamaremos
+\emph on 
+ límites superior e inferior de
+\emph default 
+ 
+\begin_inset Formula $\mathcal{I}\left(l,g\right)$
+\end_inset 
+
+ 
+\emph on 
+en la granularidad
+\emph default 
+ 
+\begin_inset Formula $h<g$
+\end_inset 
+
+.
+ Según se puede ver en la ecuación 
+\begin_inset LatexCommand \vref{eq:GraQuo}
+
+\end_inset 
+
+ se pueden calcular mediante inversiones granulares de los puntos inicial
+ y final de 
+\begin_inset Formula $\mathcal{I}\left(l,g\right)$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+a=\liminf_{h}\left(\mathcal{I}\left(l,g\right)\right)=h^{-1}\left(l\bullet g\right)\\
+b=\limsup_{h}\left(\mathcal{I}\left(l,g\right)\right)=h^{-1}\left(\left(l+1\right)\bullet g\right)-1\end{array}\;\forall h<g\label{eq:limgra}\end{equation}
+
+\end_inset 
+
+
+\layout Section
+\pagebreak_top 
+Conjuntos Temporales
+\layout Standard
+
+Un 
+\series bold 
+conjunto temporal
+\series default 
+, en adelante 
+\series bold 
+CT
+\series default 
+, es un tipo especial de conjunto de instantes de tiempo con cierta estructura
+ y que cumple determinadas normas que se explican a continuación.
+ Más adelante se exponen algunas propiedades importantes así como algunas
+ operaciones algebraicas que se pueden definir entre CT's y también otras
+ que relacionan CT's e IT's.
+\layout Subsection
+
+Definición y propiedades de un CT
+\layout Standard
+
+Un CT es un conjunto de instantes de tiempo propios de cualquier granularidad
+ básica que incluye el interior de cada uno de sus elementos.
+ 
+\layout Standard
+
+A la familia de todos los conjuntos temporales le llamaremos 
+\begin_inset Formula $\mathcal{CT}_{6}$
+\end_inset 
+
+ y se tendrá 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+CT\in\mathcal{CT}_{6}\Leftrightarrow CT\subset\mathfrak{C}_{6}-\left\{ \mathcal{I}\left(?\right),\mathcal{I}\left(-\infty\right)\mathcal{I}\left(\infty\right)\right\} \;\wedge\; Inside\left(it\right)\subset CT\:\forall it\in CT\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La cardinalidad de 
+\begin_inset Formula $\mathcal{CT}_{6}$
+\end_inset 
+
+ será por tanto la misma que la del conjunto 
+\begin_inset Formula $\mathcal{P}\left(\mathfrak{C}_{6}\right)$
+\end_inset 
+
+ de las partes de 
+\begin_inset Formula $\mathfrak{C}_{6}$
+\end_inset 
+
+, es decir, la del continuo 
+\begin_inset Formula $\infty^{\infty}$
+\end_inset 
+
+.
+\layout Subsubsection
+
+Sucesiones disjuntas de IT's
+\layout Standard
+
+Llamaremos 
+\emph on 
+sucesión disjunta de IT's
+\emph default 
+ a una sucesión de IT's tales que ninguno de ellos está incluido en ningún
+ otro.
+ Puesto que los IT's no se pueden solapar parcialmente es lo mismo que decir
+ que todos sus elementos son disjuntos.
+ Es decir una sucesión disjunta es de la forma
+\begin_inset Formula \begin{equation}
+S=\left\{ it_{j}\right\} _{j\in J\subset\mathbb{Z}}\bot it_{j}\subsetneq it_{j'}\forall j\neq j'\wedge j,\, j'\in J\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+donde 
+\begin_inset Formula $J$
+\end_inset 
+
+ es el conjunto de índices enteros contiguos de la sucesión que tiene efecto
+ puramente nominal, es decir, dos sucesiones disjuntas se considerarán iguales,
+ si y sólo si ambas tienen exactamente los mismos elementos, independientemente
+ de que sus conjuntos de índices sean iguales, o bien sea el uno cualquier
+ translación del otro.
+ Al conjunto de todas las sucesiones disjuntas de IT's le llamaremos 
+\begin_inset Formula $\mathcal{SD}_{6}$
+\end_inset 
+
+.
+\layout Standard
+
+Se define la 
+\emph on 
+suma
+\emph default 
+ 
+\emph on 
+disjunta de dos sucesiones disjuntas de IT's 
+\emph default 
+y se representará mediante el operador 
+\begin_inset Formula $S\oplus S'$
+\end_inset 
+
+ como la sucesión disjunta resultante de la unión de ambas sucesiones, eliminand
+o de cada una todos aquellos IT's que estén incluidos estrictamente en algún
+ elemento de la otra sucesión.
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+S\oplus S'=\left\{ \left.it\in S\right|\nexists it'\in S'\bot it\subsetneq it'\right\} \cup\left\{ \left.it'\in S'\right|\nexists it\in S\bot it'\subsetneq it\right\} \\
+S\oplus S'\in\mathcal{SD}_{6}\;\forall S,\: S'\in\mathcal{SD}_{6}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se define el 
+\emph on 
+producto disjunto de dos sucesiones disjuntas de IT's 
+\emph default 
+como su propia intersección y se representará mediante el operador 
+\begin_inset Formula $S_{1}\otimes S_{2}=S_{1}\cap S_{2}$
+\end_inset 
+
+.
+ Como ningún elemento de 
+\begin_inset Formula $S_{1}$
+\end_inset 
+
+ incluye a ningun otro de 
+\begin_inset Formula $S_{1}$
+\end_inset 
+
+ y ningún elemento de 
+\begin_inset Formula $S_{2}$
+\end_inset 
+
+ incluye a ninguno de 
+\begin_inset Formula $S_{2}$
+\end_inset 
+
+, los que pertenezcan a ambos a la vez tampoco incluirán a ningún otro de
+ la intersección.
+\begin_inset Formula \begin{equation}
+S\otimes S'=S_{1}\cap S_{2}\in\mathcal{SD}_{6}\;\forall S,\: S'\in\mathcal{SD}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se define la 
+\emph on 
+diferencia
+\emph default 
+ 
+\emph on 
+disjunta de dos sucesiones disjuntas de IT's 
+\emph default 
+y se representará mediante el operador 
+\begin_inset Formula $S_{1}\ominus S_{2}$
+\end_inset 
+
+ como la sucesión disjunta de los elementos de 
+\begin_inset Formula $S_{1}$
+\end_inset 
+
+ que no incluyen estrictamente a ningún elemento de 
+\begin_inset Formula $S_{2}$
+\end_inset 
+
+.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+S\ominus S'=\left\{ \left.it\in S\right|\nexists it'\in S'\bot it'\subsetneq it\right\} \in\mathcal{SD}_{6}\;\forall S,\: S'\in\mathcal{SD}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Llamaremos
+\emph on 
+ conjunto temporal generado por una sucesión disjunta
+\emph default 
+ a la unión de los interiores de los elementos de esa sucesión
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\underbrace{S}=\bigcup_{it\in S}Inside\left(it\right)\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Sucesión maximal de un CT
+\layout Standard
+
+Para todo elemento IT de un CT existe un elemento máximo de CT que le contiene,
+ al que llamaremos 
+\emph on 
+elemento maximal de IT en CT
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Maximal\left(it,CT\right)=it'\Leftrightarrow it''\subset it'\in CT\:\forall\: it\subset it''\in CT\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Se dice que un IT de un CT es un 
+\emph on 
+elemento maximal
+\emph default 
+ de ése CT si es su propio maximal en CT, es decir, si no pertenece al interior
+ de ningún otro elemento de ese CT.
+ A la sucesión disjunta, finita o infinita, de los elementos maximales de
+ un CT, ordenada de menor a mayor, le llamaremos 
+\emph on 
+sucesión maximal 
+\emph default 
+de ese CT
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Maximal\left(CT\right)=\overbrace{CT}=\left\{ it_{j}\right\} _{j\in J\subset\mathbb{Z}}\wedge\left\{ \begin{array}{c}
+it_{j}=Maximal\left(it_{j},CT\right)\\
+it_{j}<it_{j+1}\end{array}\right.\forall j,\, j+1\in J\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Los interiores de dos elementos maximales distintos de un mismo CT son conjuntos
+ disjuntos, es decir
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+it\neq it'\Leftrightarrow Inside\left(it\right)\cap Inside\left(it'\right)=\emptyset\;\forall it,it'\in\overbrace{CT}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por lo tanto, todo CT es el 
+\emph on 
+conjunto temporal generado por su sucesión maximal 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+CT=\overbrace{\underbrace{CT}}=\bigcup_{it\in\overbrace{CT}}Inside\left(it\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El 
+\series bold 
+sucesor maximal de un IT en un CT
+\series default 
+ se define como el primer elemento maximal del CT que es estrictamente posterior
+ a dicho IT.
+ Análogamente, el 
+\series bold 
+predecesor maximal de un IT en un CT
+\series default 
+ se define como el último elemento maximal del CT que es estrictamente anterior
+ a dicho IT.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+it+\overbrace{CT}=it'\Leftrightarrow it'\in\overbrace{CT}\wedge it<it'\leq it''\:\forall it''\in\overbrace{CT}\\
+it-\overbrace{CT}=it'\Leftrightarrow it'\in\overbrace{CT}\wedge it>it'\geq it''\:\forall it''\in\overbrace{CT}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Sucesor
+\series bold 
+ 
+\series default 
+y predecesor de un IT en un CT
+\layout Standard
+
+Se define el punto
+\emph on 
+ inmediatamente superior a un IT en un CT
+\emph default 
+, o 
+\series bold 
+supremo de un IT en un CT
+\series default 
+, como el menor valor real posterior al punto final de ese IT tal que existe
+ algún elemento del CT cuyo punto de inicio sea ese valor.
+ De forma análoga se define el punto
+\emph on 
+ inmediatamente inferior a un IT en un CT
+\emph default 
+, o 
+\series bold 
+ínfimo de un IT en un CT
+\series default 
+, como el mayor valor real estrictamente menor que el punto inicial de ese
+ IT tal que existe algún elemento del CT cuyo punto final sea ese valor.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+\sup\left(\mathcal{I}\left(k,g\right),CT\right)=\min\left\{ \left.t\in\mathbb{R}\right|\exists\mathcal{I}\left(k',g'\right)\in CT\bot\left(k+1\right)\bullet g\leq t=k'\bullet g'\right\} \\
+\inf\left(\mathcal{I}\left(k,g\right),CT\right)=\max\left\{ \left.t\in\mathbb{R}\right|\exists\mathcal{I}\left(k',g'\right)\in CT\bot k\bullet g>t=\left(k'+1\right)\bullet g'\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Al subconjunto de CT de los elementos cuyo origen es el supremo de un IT
+ en ese CT se le llamará 
+\series bold 
+subconjunto supremo de IT en CT
+\series default 
+.
+ De forma análoga, al subconjunto de CT de los elementos cuyo origen es
+ el ínfimo de un IT en ese CT se le llamará 
+\series bold 
+subconjunto ínfimo de IT en CT
+\series default 
+.
+ 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+cSup\left(\mathcal{I}\left(k,g\right),CT\right)=\left\{ \left.\mathcal{I}\left(k',g'\right)\in CT\right|k'\bullet g'=\sup\left(\mathcal{I}\left(k,g\right),CT\right)\right\} \\
+cInf\left(\mathcal{I}\left(k,g\right),CT\right)=\left\{ \left.\mathcal{I}\left(k',g'\right)\in CT\right|k'\bullet g'=\inf\left(\mathcal{I}\left(k,g\right),CT\right)\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El subconjunto supremo de un IT en un CT es el interior del sucesor maximal
+ de IT en CT.
+ Del mismo modo, el subconjunto ínfimo de un IT en un CT es el interior
+ del predecesor maximal de IT en CT.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+cSup\left(\mathcal{I}\left(k,g\right),CT\right)=Inside\left(\mathcal{I}\left(k,g\right)+\overbrace{CT}\right)\\
+cInf\left(\mathcal{I}\left(k,g\right),CT\right)=Inside\left(\mathcal{I}\left(k,g\right)-\overbrace{CT}\right)\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El 
+\series bold 
+sucesor de un IT en un CT
+\series default 
+ se define como el elemento del subconjunto supremo de IT en CT que tiene
+ la máxima granularidad no superior a la del propio IT.
+ El 
+\series bold 
+predecesor de un IT en un CT
+\series default 
+ se define como el elemento del subconjunto ínfimo de IT en CT que tiene
+ máxima granularidad no superior a la del propio IT.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(k,g\right)+CT=\mathcal{I}\left(k',g'\right)\Leftrightarrow\mathcal{I}\left(k',g'\right)\in X=cSup\left(\mathcal{I}\left(k,g\right),CT\right)\wedge g''<g'\leq g\forall\mathcal{I}\left(k'',g''\right)\in X\\
+\mathcal{I}\left(k,g\right)-CT=\mathcal{I}\left(k',g'\right)\Leftrightarrow\mathcal{I}\left(k',g'\right)\in Y=cInf\left(\mathcal{I}\left(k,g\right),CT\right)\wedge g''<g'\leq g\forall\mathcal{I}\left(k'',g''\right)\in Y\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Tanto el sucesor como el predecesor de un IT en un CT, si existen, entonces
+ son únicos por su propia definición, ya que no puede haber dos IT's distintos
+ con la misma granularidad y el mismo origen en el supremo, ni tampoco con
+ el mismo final en el ínfimo.
+\layout Subsubsection
+
+Sucesor 
+\series bold 
+
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo 
+\series default 
+de un IT en un CT
+\layout Standard
+
+Se puede extender recursivamente la definición de
+\series bold 
+ sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo de un IT en un CT
+\series default 
+ del siguiente modo 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+it+n\times CT=\left(it+\left(n-1\right)\times CT\right)+CT\;\forall n\in\mathbb{Z}^{+}\\
+it-n\times CT=\left(it-\left(n-1\right)\times CT\right)-CT\;\forall n\in\mathbb{Z}^{+}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El caso de 
+\begin_inset Formula $n=0$
+\end_inset 
+
+ es realmente singular pues para que exista 
+\begin_inset Formula $it+0\times CT=it-0\times CT$
+\end_inset 
+
+ es necesario que se igualen las dos reglas de recursión anteriores
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+it+0\times CT=\left(it-CT\right)+CT\\
+it-0\times CT=\left(it+CT\right)-CT\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Si 
+\begin_inset Formula $it\in CT$
+\end_inset 
+
+ entonces está claro que 
+\begin_inset Formula $\left(it-CT\right)+CT=it=\left(it+CT\right)-CT$
+\end_inset 
+
+ pero si 
+\begin_inset Formula $it\notin CT$
+\end_inset 
+
+ entonces el sucesor en 
+\begin_inset Formula $CT$
+\end_inset 
+
+ del predecesor de 
+\begin_inset Formula $it$
+\end_inset 
+
+ en 
+\begin_inset Formula $CT$
+\end_inset 
+
+ es el mismo que el sucesor de 
+\begin_inset Formula $it$
+\end_inset 
+
+ en 
+\begin_inset Formula $CT$
+\end_inset 
+
+, ya que no puede existir ningún elemento de 
+\begin_inset Formula $CT$
+\end_inset 
+
+ entre ambos y por tanto
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\left(it+CT\right)=\left(it-CT\right)+CT\\
+\left(it+CT\right)-CT<\left(it-CT\right)+CT\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Así pues no se puede definir 
+\begin_inset Formula $it+0\times CT$
+\end_inset 
+
+ por lo que se ha de devolver 
+\begin_inset Formula $\mathcal{I}\left(?\right)$
+\end_inset 
+
+.
+ Es decir
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+it+0\times CT=\left\{ \begin{array}{cc}
+it & si\: it\in CT\\
+\mathcal{I}\left(?\right) & si\: it\notin CT\end{array}\right.\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Granularidad de un CT
+\layout Standard
+
+Cada elemento de un CT puede tener una granularidad distinta y todo CT tiene
+ al menos un IT de granularidad secundal.
+ Sin embargo nada le obliga a tener elementos de granularidad mayor que
+ una dada.
+ La granularidad de los elementos maximales de un CT conforman la sucesión
+ de granularidades máximas que pueden tener sus elementos en cada intervalo
+ de la recta real definido por cada IT maximal.
+ Llamaremos 
+\emph on 
+granularidad minimax de un CT
+\emph default 
+ o simplemente 
+\emph on 
+granularidad de un CT
+\emph default 
+ a la menos gruesa de las granularidades de sus elementos maximales.
+\begin_inset Formula \begin{equation}
+granul\left(CT\right)=\min_{it\in\overbrace{CT}}\left\{ granul\left(it\right)\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+En determinadas circunstancias, cuando se calcula el sucesor de un IT en
+ un conjunto, el conocer su granularidad puede ayudar a ahorrar trabajo
+ en la búsqueda dentro del subconjunto supremo de ese IT en el CT.
+ La información es particularmente útil en conjuntos temporales 
+\begin_inset Formula $Ct$
+\end_inset 
+
+ un conjunto de granularidad 
+\begin_inset Formula $g$
+\end_inset 
+
+ fija para todos sus maximales.
+ En tal caso, para cada IT de granularidad 
+\begin_inset Formula $h<g$
+\end_inset 
+
+ se puede calcular el contenedor de 
+\begin_inset Formula $\mathcal{I}\left(k,h\right)$
+\end_inset 
+
+ de granularidad 
+\begin_inset Formula $g$
+\end_inset 
+
+, así como los límites inferior y superior de dicho contenedor, según se
+ vio en las ecuaciones 
+\begin_inset LatexCommand \ref{eq:container}
+
+\end_inset 
+
+ y 
+\begin_inset LatexCommand \vref{eq:limgra}
+
+\end_inset 
+
+ y que se escriben aquí como funciones de 
+\begin_inset Formula $\left(k,h,g\right)$
+\end_inset 
+
+ 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(l,g\right)=g^{-1}\mathcal{I}\left(k,h\right)\\
+a\left(k,h,g\right)=\liminf_{h}\left(\mathcal{I}\left(l,g\right)\right)=h^{-1}\left(l\bullet g\right)\\
+b\left(k,h,g\right)=\limsup_{h}\left(\mathcal{I}\left(l,g\right)\right)=h^{-1}\left(\left(l+1\right)\bullet g\right)-1\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Si 
+\begin_inset Formula $\mathcal{I}\left(k,h\right)\notin Ct$
+\end_inset 
+
+ entonces ningún elemento de granularidad 
+\begin_inset Formula $h$
+\end_inset 
+
+ incluido en su contenedor de granularidad 
+\begin_inset Formula $g$
+\end_inset 
+
+ puede pertenecer a 
+\begin_inset Formula $Ct$
+\end_inset 
+
+; y si 
+\begin_inset Formula $\mathcal{I}\left(k,h\right)\in Ct$
+\end_inset 
+
+ entonces todos los elementos de granularidad 
+\begin_inset Formula $h$
+\end_inset 
+
+ incluidos en su contenedor de granularidad 
+\begin_inset Formula $g$
+\end_inset 
+
+ pertenecen a 
+\begin_inset Formula $Ct$
+\end_inset 
+
+:
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(j,h\right)\in Ct\:\forall a\left(k,h,g\right)\leq j\leq b\left(k,h,g\right)\Leftrightarrow\mathcal{I}\left(k,h\right)\in Ct\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por un lado, si 
+\begin_inset Formula $\mathcal{I}\left(k,h\right)\in Ct$
+\end_inset 
+
+ tenemos un método que reduce drásticamente el coste computacional del sucesor
+ 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,h\right)+n\times Ct=\mathcal{I}\left(k+n,h\right)\:\forall n=a-k,...,b-k\label{eq:nsucgratmset}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por otro lado, si 
+\begin_inset Formula $\mathcal{I}\left(k,h\right)\notin Ct$
+\end_inset 
+
+ el sucesor y el predecesor simples hay que buscarlos fuera de su contenedor
+ de granularidad 
+\begin_inset Formula $g$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(k,h\right)+Ct=\mathcal{I}\left(b\left(k,h,g\right),h\right)+Ct\\
+\mathcal{I}\left(k,h\right)-Ct=\mathcal{I}\left(a\left(k,h,g\right),h\right)-Ct\end{array}\label{eq:presucgraset}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Fechados
+\layout Standard
+
+Se llamará 
+\series bold 
+fechado
+\series default 
+ a un conjunto temporal 
+\begin_inset Formula $F\in\mathcal{CT}_{6}$
+\end_inset 
+
+ no acotado inferior ni superiormente, es decir, que cumpla que
+\begin_inset Formula \begin{equation}
+\forall t\in\mathbb{R}\:\exists\,\mathcal{\mathcal{I}}\left(k,g\right),\mathcal{\mathcal{I}}\left(k',g'\right)\in F\bot k\bullet g<t<k'\bullet g'\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Evidentemente, la sucesión maximal de un fechado no está acotada ni inferior
+ ni superiormente.
+\layout Standard
+
+El sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo de un IT finito 
+\begin_inset Formula $it\in\mathfrak{C}_{6}-\left\{ \mathcal{\mathcal{I}}\left(-\infty\right),\mathcal{\mathcal{I}}\left(\infty\right)\right\} $
+\end_inset 
+
+ también es finito, es decir 
+\begin_inset Formula \begin{equation}
+it+n\times F\notin\left\{ \mathcal{\mathcal{I}}\left(-\infty\right),\mathcal{\mathcal{I}}\left(\infty\right)\right\} \forall n\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Los fechados tienen una gran importancia pues son la base para la creación
+ de series temporales en tiempo continuo, así como para la definición de
+ algunas operaciones importantes de CT's que se verán más adelante.
+ 
+\layout Standard
+
+Aunque los instantes impropios 
+\begin_inset Formula $\mathcal{I}\left(-\infty\right),\:\mathcal{I}\left(?\right),\:\mathcal{I}\left(\infty\right)$
+\end_inset 
+
+ no pertenecen a ningún CT, a veces se obrará como si así fuera por comodidad
+ notacional.
+ Los instantes límite pueden pertenecer asintóticamente a un CT, y no así
+ el instante indeterminado.
+ En el caso de los fechados, los instantes límite 
+\begin_inset Formula $\mathcal{I}\left(-\infty\right),\:\mathcal{I}\left(\infty\right)$
+\end_inset 
+
+ le pertenecen asintóticamente.
+ Se puede hablar de semifechados por la izquierda o por la derecha para
+ aquellos CT que estén acotados sólo por la izquierda o por la derecha,
+ respectivamente.
+\layout Subsubsection
+
+Distancia en un CT
+\layout Standard
+
+Se define la función distancia entre dos puntos reales en un CT como el
+ número de IT's maximales de ese CT incluidos entre esos dos puntos.
+ Es decir
+\begin_inset Formula \begin{equation}
+\left\langle t,\, t'\right\rangle _{CT}=Card\left\{ \left.\mathcal{\mathcal{I}}\left(j,g\right)\in\overbrace{CT}\right|t\leq j\bullet g<\left(j+1\right)\bullet g<t'\right\} \quad\forall t,\, t'\in\mathbb{R}\end{equation}
+
+\end_inset 
+
+Se define la distancia entre dos IT's en un CT como la distancia entre sus
+ puntos de origen en ese mismo CT.
+\begin_inset Formula \begin{equation}
+\left\langle \mathcal{\mathcal{I}}\left(k,g\right),\,\mathcal{\mathcal{I}}\left(k',g'\right)\right\rangle _{CT}=\left\langle k\bullet g,\, k'\bullet g'\right\rangle _{CT}\quad\forall k,\, k'\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Notas para la implementación de CT's
+\layout Standard
+
+Un CT se puede construir de varias formas:
+\layout Itemize
+
+Por enumeración exhaustiva de sus elementos maximales, siempre que sea un
+ conjunto finito.
+\layout Itemize
+
+Mediante una función booleana explícita de pertenencia que devuelva 
+\emph on 
+cierto
+\emph default 
+ para cada IT que sea elemento suyo y 
+\emph on 
+falso
+\emph default 
+ para el resto.
+\begin_inset Formula \begin{equation}
+Include\left(CT,it\right)=\left\{ \begin{array}{cc}
+1 & si\, it\in CT\\
+0 & si\, it\notin CT\end{array}\right.\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+Implícitamente, mediante un IT que le pertenezca y una regla de recursión
+ reversible, es decir, que permita calcular cuál es el IT de ese conjunto
+ inmediatamente superior (
+\series bold 
+sucesor
+\series default 
+) o inferior (
+\series bold 
+predecesor
+\series default 
+) a un IT cualquiera.
+ 
+\layout Standard
+
+Sin embargo, será indispensable implementar al menos los métodos 
+\begin_inset Formula $Include\left(CT,it\right)$
+\end_inset 
+
+, 
+\begin_inset Formula $it+CT$
+\end_inset 
+
+ y 
+\begin_inset Formula $it-CT$
+\end_inset 
+
+ para cada clase de CT y cada posible granularidad de 
+\begin_inset Formula $it$
+\end_inset 
+
+ de la forma más eficiente que sea posible aprovechando las características
+ propias de cada uno, ya que estos métodos se utilizarán de forma masiva
+ en conjuntos y series temporales.
+ Siempre que sea posible y dé mayores prestaciones, también se implementará
+ el método extendido 
+\begin_inset Formula $it+n\times CT$
+\end_inset 
+
+, ya que, aunque por defecto este método se puede definir por recursión
+ de sucesores y predecesores, se usará tan a menudo que cualquier mejora
+ producirá importantes ahorros en el tiempo de proceso.
+\layout Subsection
+
+CT finitos
+\layout Standard
+
+Aquí se describen algunas clases de CT's finitos construidos de forma muy
+ sencilla a partir de IT's
+\layout Subsubsection
+
+CT interior de un IT: 
+\family typewriter 
+Inside
+\layout Standard
+
+Dado un IT cualquiera se define el CT interior de ese IT como ya se ha descrito
+ en 
+\begin_inset LatexCommand \vref{eq:inside}
+
+\end_inset 
+
+
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+Inside\left(it\right)=\left\{ it'\in\mathfrak{C}_{6}\left|it'\subset it\right.\right\} \label{eq:inside}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+CT generado por una lista de ITs: 
+\family typewriter 
+SetOfCTimes
+\layout Standard
+
+Dada una lista finita cualquiera de IT's, se puede construir una sucesión
+ disjunta ordenando previamente el conjunto y eliminando los elementos que
+ estén incluidos en otros, construyendo así su sucesión maximal que servirá
+ para optimizar los métodos de cálculo.
+ A esta operación le llamaremos conjunto temporal generado por una lista
+ finita de IT's
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+SetOfCTimes(\left\{ it_{j}\right\} _{j=1,...,n})\,=\,\bigcup_{j=1}^{n}Inside\left(it_{j}\right)\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+CT intervalo entre dos IT's: 
+\family typewriter 
+In
+\layout Standard
+
+Dados dos IT's 
+\begin_inset Formula $a$
+\end_inset 
+
+ y 
+\begin_inset Formula $b$
+\end_inset 
+
+ cualesquiera se define el CT intervalo como
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+\left[a,b\right]=In\left(a,b\right)=\left\{ it\in\mathfrak{C}_{6}\,|\, a\leq it\leq b\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Subsection
+
+CT's constantes
+\layout Standard
+
+Se trata de conjuntos temporales constantes en el sentido de que se definen
+ sin necesidad de especificar ningún parámetro.
+ La condición de incluir los interiores de todos sus elementos se desprende
+ de las propias definiciones de forma trivial por lo que no se demuestra
+ en cada caso.
+ Todas estas constantes son fechados excepto el conjunto vacío.
+\layout Standard
+
+En primer lugar se describen los fechados básicos completos, en el sentido
+ de que recubren toda la recta real en las diferentes granularidades básicas.
+ Después se tratan el conjunto vacío y el fechado básico pascual.
+\layout Subsubsection
+
+Fechado básico completo anual o conjunto universal
+\layout Standard
+
+Llamaremos conjunto universal (cAll) o fechado anual (cYearly) al conjunto
+ de todos los IT posibles que en esta implementación será el conjunto 
+\begin_inset Formula $\mathfrak{C}_{6}$
+\end_inset 
+
+
+\begin_inset Formula \begin{equation}
+it\in cAll\;\forall it\in\mathfrak{C}_{6}\end{equation}
+
+\end_inset 
+
+Evidentemente todos sus maximales tienen granularidad anual y por tanto
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+granul\left(cAll\right)=g_{\mathbf{y}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El sucesor 
+\series bold 
+
+\begin_inset Formula $n$
+\end_inset 
+
+
+\series default 
+-ésimo se calcula así:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)+n\times cAll=\mathcal{I}\left(k,g\right)+n=\mathcal{I}\left(k+n,g\right)\forall n,\, k\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El conjunto universal y el fechado anual coinciden porque no se contemplan
+ granularidades mayores que la anual.
+ Si se considereran las granularidades correspondientes a las décadas o
+ los siglos no sería así, pero siempre habría una granularidad máxima tal
+ que el fechado completo correspondiente correspondería al conjunto universal.
+\layout Subsubsection
+
+Fechados básicos completos no universales: mensual, diario, horario, minutal
+ y secundal
+\layout Standard
+
+El resto de fechados básicos completos son los siguientes:
+\layout Itemize
+
+Fechado mensual 
+\series bold 
+cMonthly:
+\series default 
+ el conjunto de todos los IT de granularidad mensual o menos gruesa.
+ 
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cMonthly\Leftrightarrow g\leq g_{\mathbf{m}}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+Fechado diario 
+\series bold 
+cDaily:
+\series default 
+ el conjunto de todos los IT de granularidad diaria o menos gruesa.
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cDaily\Leftrightarrow g\leq g_{\mathbf{d}}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+Fechado horario 
+\series bold 
+cHourly:
+\series default 
+ el conjunto de todos los IT de granularidad horaria o menos gruesa.
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cHourly\Leftrightarrow g\leq g_{\mathbf{h}}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+Fechado minutal 
+\series bold 
+cMinutely:
+\series default 
+ el conjunto de todos los IT de granularidad minutal o menos gruesa.
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cMinutely\Leftrightarrow g\leq g_{\mathbf{i}}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+Fechado secundal 
+\series bold 
+cSecondly:
+\series default 
+ el conjunto de todos los IT de granularidad secundal o menos gruesa
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cSecondly\Leftrightarrow g=g_{\mathbf{s}}\end{equation}
+
+\end_inset 
+
+
+\layout Paragraph
+
+Operaciones de sucesión de IT's
+\layout Standard
+
+A efectos puramente formales, no de implementación, denominamos de forma
+ genérica 
+\begin_inset Formula $FBC\left(g\right)$
+\end_inset 
+
+ al fechado básico completo de granularidad 
+\begin_inset Formula $g$
+\end_inset 
+
+.
+ A continuación se describe un método de cálculo de las funciones de sucesión
+ para el caso 
+\begin_inset Formula $r=\mathbf{m}=2$
+\end_inset 
+
+, es decir, 
+\begin_inset Formula $FBC\left(g_{\mathbf{m}}\right)=cMonthly$
+\end_inset 
+
+ de forma que sirva de ejemplo y de aclaración, y después se extrapola al
+ caso general.
+\layout Subparagraph
+
+Caso particular: 
+\begin_inset Formula $cMonthly$
+\end_inset 
+
+ 
+\layout Standard
+
+El sucesor 
+\series bold 
+
+\begin_inset Formula $n$
+\end_inset 
+
+
+\series default 
+-ésimo en cMonthly para IT's de granularidad 
+\series bold 
+
+\begin_inset Formula $h\leq g_{\mathbf{m}}$
+\end_inset 
+
+
+\series default 
+ se calcula así:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,h\right)+n\times cMonthly=\mathcal{I}\left(k+n,h\right)\;\forall n,\, k\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para CT's de granularidad anual se tienen las siguientes reglas de cálculo:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+IT\left(y\right)+n\times cMonthly=\left(IT\left(y\right)+cMonthly\right)+\left(n-1\right)\times cMonthly\:\forall n\in\mathbb{Z}^{+}\\
+IT\left(y\right)-n\times cMonthly=\left(IT\left(y\right)-cMonthly\right)-\left(n-1\right)\times cMonthly\:\forall n\in\mathbb{Z}^{+}\\
+IT\left(y\right)+0\times cMonthly=I\left(?\right)\\
+IT\left(y\right)+cMonthly=IT\left(y+1,1\right)=\\
+IT\left(y\right)-cMonthly=IT\left(y-1,12\right)\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Si 
+\begin_inset Formula $\mathcal{I}\left(k,g_{\mathbf{y}}\right)=IT\left(y\right)$
+\end_inset 
+
+ , según se puede ver en la ecuación 
+\begin_inset LatexCommand \vref{eq:limgra}
+
+\end_inset 
+
+, la expresión 
+\begin_inset Formula $\mathcal{I}\left(g_{\mathbf{m}}^{-1}\left(k\bullet g_{\mathbf{y}}\right),g_{\mathbf{m}}\right)$
+\end_inset 
+
+ es el primer mes del año 
+\begin_inset Formula $y$
+\end_inset 
+
+, y por tanto 
+\begin_inset Formula $\mathcal{I}\left(g_{\mathbf{m}}^{-1}\left(\left(k+1\right)\bullet g_{\mathbf{y}}\right)-1,g_{\mathbf{m}}\right)$
+\end_inset 
+
+ es el último mes del año 
+\begin_inset Formula $y$
+\end_inset 
+
+.
+\layout Subparagraph
+
+Caso general: 
+\begin_inset Formula $FBC\left(g\right)$
+\end_inset 
+
+ 
+\layout Standard
+
+El sucesor 
+\series bold 
+
+\begin_inset Formula $n$
+\end_inset 
+
+
+\series default 
+-ésimo en 
+\begin_inset Formula $FBC\left(g\right)$
+\end_inset 
+
+ para IT's de granularidad 
+\series bold 
+
+\begin_inset Formula $h\leq g$
+\end_inset 
+
+
+\series default 
+ se calcula así:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,h\right)+n\times FBC\left(g\right)=\mathcal{I}\left(k+n,h\right)\;\forall n,\, k\in\mathbb{Z}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para IT's de granularidad 
+\series bold 
+
+\begin_inset Formula $h>g$
+\end_inset 
+
+
+\series default 
+ se calcula con las siguientes reglas:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(k,h\right)+n\times FBC\left(g\right)=\left(\mathcal{I}\left(k,h\right)+FBC\left(g\right)\right)+\left(n-1\right)\times FBC\left(g\right)\:\forall n\in\mathbb{Z}^{+}\\
+\mathcal{I}\left(k,h\right)-n\times FBC\left(g\right)=\left(\mathcal{I}\left(k,h\right)-FBC\left(g\right)\right)-\left(n-1\right)\times FBC\left(g\right)\:\forall n\in\mathbb{Z}^{+}\\
+\mathcal{I}\left(k,h\right)+0\times FBC\left(g\right)=I\left(?\right)\\
+\mathcal{I}\left(k,h\right)+FBC\left(g\right)=\mathcal{I}\left(g^{-1}\left(\left(k+1\right)\bullet h\right),g\right)\\
+\mathcal{I}\left(k,g\right)-FBC\left(g\right)=\mathcal{I}\left(g^{-1}\left(k\bullet h\right)-1,g\right)\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Conjunto vacío: cEmpty
+\layout Standard
+
+Llamaremos cEmpty al conjunto temporal vacío, es decir, al que no contiene
+ ningún IT propio.
+\begin_inset Formula \begin{equation}
+it\notin cEmpty\;\forall it\in\mathfrak{C}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Evidentemente no se trata de un fechado aunque tampoco se puede decir que
+ esté acotado.
+ Se introduce en este punto preciso porque se trata del conjunto límite
+ de la sucesión de los fechados básicos completos cuando la granularidad
+ tiende al continuo, y por tanto se puede decir que 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+granul\left(cEmpty\right)=g_{\infty}\end{equation}
+
+\end_inset 
+
+El sucesor 
+\series bold 
+
+\begin_inset Formula $n$
+\end_inset 
+
+
+\series default 
+-ésimo se calcula así:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)+n\times cEmpty=\left\{ \begin{array}{cc}
+\mathcal{I}\left(-\infty\right) & si\: n<0\\
+\mathcal{I}\left(?\right) & si\: n=0\\
+\mathcal{I}\left(\infty\right) & si\: n>0\end{array}\right.\forall n,\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Fechado básico pascual: cEaster
+\layout Standard
+
+Llamaremos cEaster al conjunto de todos IT pertenecientes a los domingos
+ de Pascua de cualquier año, que por estar incluidos en un día del año han
+ de tener granularidades diaria, horaria, minutal o secundal y todos sus
+ maximales tienen granularidad diaria, luego
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+granul\left(cEaster\right)=g_{\mathbf{d}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La definición del domingo de Pascua es relativamente sencilla: se trata
+ del primer domingo posterior a la primera luna llena tras el equinoccio
+ de primavera.
+ Sin embargo los métodos con los que la iglesia calcula las efemérides astronómi
+cas es muy primitivo y recurre a ciertas modificaciones 
+\emph on 
+ad-hoc,
+\emph default 
+ por lo que no siempre coincide con la definición exacta.
+ Aunque como se ha dicho en esta implementación se utiliza la librería 
+\emph on 
+libtai
+\emph default 
+ se incluye aquí el siguiente código C++ que calcula de forma sencilla el
+ domingo de Pascua para cualquier año para que el lector observe el grado
+ de complejidad del cálculo.
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+void CalcEaster(int year, int& monthEaster, int& dayEaster)
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+{
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  long y, g, c, x, z, d, e, n;
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  g=y%19+1; // Calcular el numero aureo
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  c=y/1OO+1; 
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  x=3*c/4-12; 
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  z=(8*c+5)/25-5; 
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  d=5*y/4-x-10; 
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  e=(11*g+20+z-x)%30; // Calcular la epacta
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  if (e==25&&g>11) e--;
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  // Calcular la fecha de la luna
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  // segun el ciclo de Meton 
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  n=44-e; 
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  if (n<21) n+=30; // Si la fecha es anterior al 21 de
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+                   // marzo aumentar a abril
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  n=n+7-(d+n)%7; 
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  if(n>31) { monthEaster = 4; dayEaster = n-31; }
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+  else     { monthEaster = 3; dayEaster = n; }
+\layout LyX-Code
+
+
+\size footnotesize 
+\color blue
+}
+\layout Standard
+
+Merced a esta función se puede determinar el IT 
+\begin_inset Formula $easter\left(year\right)=IT(year,monthEaster,dayEaster)$
+\end_inset 
+
+ para cualquier año:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cEaster\Leftrightarrow\mathcal{I}\left(k,g\right)\subset easter\left(year\left(k\bullet g\right)\right)\end{equation}
+
+\end_inset 
+
+El sucesor 
+\series bold 
+
+\begin_inset Formula $n$
+\end_inset 
+
+
+\series default 
+-ésimo se calcula así para 
+\begin_inset Formula $g\geq g_{\mathbf{d}}$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g_{\mathbf{d}}\right)+n\times cEaster=\left\{ \begin{array}{cc}
+easter\left(n+y\right) & si\:\mathcal{I}\left(k,g_{\mathbf{d}}\right)<easter\left(y\right)\\
+easter\left(1+n+y\right) & si\:\mathcal{I}\left(k,g_{\mathbf{d}}\right)\geq easter\left(y\right)\end{array}\right.\wedge y=year\left(k\bullet g_{\mathbf{d}}\right)\end{equation}
+
+\end_inset 
+
+
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)+n\times cEaster=\mathcal{I}\left(g_{\mathbf{d}}^{-1}\left(\left(k+1\right)\bullet g\right)-1,g\right)+n\times cEaster\;\forall n,\, k\in\mathbb{Z},\, g>g_{\mathbf{d}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para 
+\begin_inset Formula $g<g_{\mathbf{d}}$
+\end_inset 
+
+ el sucesor se calcula siguiendo el método dado en las ecuaciones 
+\begin_inset LatexCommand \ref{eq:nsucgratmset}
+
+\end_inset 
+
+ y 
+\begin_inset LatexCommand \vref{eq:presucgraset}
+
+\end_inset 
+
+.
+\layout Subsection
+
+Funciones básicas de CT's 
+\layout Standard
+
+Los 
+\emph on 
+conjuntos temporales básicos
+\emph default 
+ son los creados mediante funciones que devuelven conjuntos temporales a
+ partir de un parámetro dado, a las que llamaremos 
+\emph on 
+funciones básicas de CT's
+\emph default 
+.
+ Al igual que ocurría con las constantes, la condición de incluir los interiores
+ de todos sus elementos se desprende de las propias definiciones de forma
+ trivial por lo que no se demuestra en cada caso.
+ Todos estos conjuntos temporales básicos son fechados excepto cYear.
+\layout Subsubsection
+
+Función cYear(Y)
+\layout Standard
+
+La función cYear devuelve el conjunto temporal de todos los IT incluidos
+ en un año dado
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cYear\left(Y\right)\Leftrightarrow year\left(k\bullet g\right)=Y\quad\forall Y\in RG_{\mathbf{y}},\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Evidentemente no es un fechado y su único maximal es 
+\begin_inset Formula $IT\left(Y\right)$
+\end_inset 
+
+ de granularidad anual y por tanto
+\begin_inset Formula \begin{equation}
+granul\left(cYear\left(Y\right)\right)=g_{\mathbf{y}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Si 
+\begin_inset Formula $\mathcal{I}\left(k+n,g\right)$
+\end_inset 
+
+ queda dentro del año 
+\begin_inset Formula $Y$
+\end_inset 
+
+, entonces será el sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo de 
+\begin_inset Formula $\mathcal{I}\left(k,g\right)$
+\end_inset 
+
+ en 
+\begin_inset Formula $cYear\left(Y\right)$
+\end_inset 
+
+.
+ El sucesor en 
+\begin_inset Formula $cYear\left(Y\right)$
+\end_inset 
+
+ del último instante de ese año para cada granularidad será 
+\begin_inset Formula $\mathcal{I}\left(\infty\right)$
+\end_inset 
+
+ y análogamente el predecesor del primero será 
+\begin_inset Formula $\mathcal{I}\left(-\infty\right)$
+\end_inset 
+
+.
+ Todo esto expresado formalmente queda así:
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)+n\times cYear\left(Y\right)=\left\{ \begin{array}{cccc}
+\mathcal{I}\left(k+n,g\right) & si & year\left(\left(k+n\right)\bullet g\right)=Y\\
+\mathcal{I}\left(?\right) & si & year\left(k\bullet g\right)\neq Y & \wedge n=0\\
+\mathcal{I}\left(-\infty\right) & si & year\left(\left(k+n\right)\bullet g\right)<Y & \wedge n<0\\
+\mathcal{I}\left(\infty\right) & si & year\left(\left(k+n\right)\bullet g\right)>y & \wedge n>0\end{array}\right.\forall n,\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Fechados básicos parciales: cMonth(M), cDay(D), cHour(H), cMinute(Mi), cSecond(S
+), sWeekDay(W)
+\layout Standard
+
+En esta sección se tratan los llamados fechados básicos parciales, en el
+ sentido de que no recubren la recta real, y que se definen por cada valor
+ particular que puede tomar la coordenada gregoriana correspondiente a cada
+ granularidad desde la mensual a la secundal; añadiéndose la granularidad
+ semanal, que no es básica propiamente hablando, pero que por su gran utilidad
+ se tratará como si lo fuera a estos efectos.
+\layout Itemize
+
+La función 
+\series bold 
+cMonth
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en un mes del año
+ dado para cualquier año pasado, presente o futuro
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cMonth\left(M\right)\Leftrightarrow g\leq g_{\mathbf{m}}\wedge month\left(k\bullet g\right)=M\quad\forall M\in RG_{\mathbf{m}},\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+La función 
+\series bold 
+cDay
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en un día de mes
+ dado para cualquier mes y cualquier año pasado, presente o futuro
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cDay\left(D\right)\Leftrightarrow g\leq g_{\mathbf{d}}\wedge day\left(k\bullet g\right)=D\quad\forall D\in RG_{\mathbf{d}},\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+La función 
+\series bold 
+cHour
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en una hora dada
+ para cualquier día pasado, presente o futuro
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cHour\left(H\right)\Leftrightarrow g\leq g_{\mathbf{h}}\wedge hour\left(k\bullet g\right)=H\quad\forall H\in RG_{\mathbf{h}},\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+La función 
+\series bold 
+cMinute
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en una hora dada
+ para cualquier hora de cualquier día pasado, presente o futuro
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cMinute\left(Mi\right)\Leftrightarrow g\leq g_{\mathbf{i}}\wedge minute\left(k\bullet g\right)=Mi\quad\forall Mi\in RG_{\mathbf{i}},\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+La función 
+\series bold 
+cSecond
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en una hora dada
+ para cualquier hora de cualquier día pasado, presente o futuro
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cSecond\left(S\right)\Leftrightarrow g\leq g_{\mathbf{s}}\wedge second\left(k\bullet g\right)=S\quad\forall S\in RG_{\mathbf{s}},\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Itemize
+
+La función 
+\series bold 
+cWeekDay
+\series default 
+ devuelve el conjunto temporal de todos los IT incluidos en una día de la
+ semana dado para cualquier semana pasada, presente o futura
+\begin_inset Formula \begin{equation}
+\mathcal{I}\left(k,g\right)\in cWeekDay\left(W\right)\Leftrightarrow g\leq g_{\mathbf{d}}\wedge weekDay\left(k\bullet g\right)=W\quad\forall W\in RG_{\mathbf{w}},\, k\in\mathbb{Z},\, g\in\mathcal{G}_{6}\end{equation}
+
+\end_inset 
+
+
+\layout Paragraph
+
+Operaciones de sucesión de IT's
+\layout Standard
+
+A efectos puramente formales, no de implementación, denominamos de forma
+ genérica 
+\begin_inset Formula $FBP\left(g_{r},\: c_{r}\right)$
+\end_inset 
+
+ al fechado básico parcial de granularidad 
+\begin_inset Formula $g_{r}$
+\end_inset 
+
+ y coordenada gregoriana 
+\begin_inset Formula $c_{r}$
+\end_inset 
+
+.
+ A continuación se describe un método de cálculo de las funciones de sucesión
+ para el caso 
+\begin_inset Formula $r=\mathbf{m}=2$
+\end_inset 
+
+, es decir, 
+\begin_inset Formula $FBP\left(g_{\mathbf{m}},\: M\right)=cMonth\left(M\right)$
+\end_inset 
+
+ de forma que sirva de ejemplo y de aclaración, y después se extrapola al
+ caso general.
+\layout Subparagraph
+
+Caso particular: 
+\begin_inset Formula $cMonth\left(M\right)$
+\end_inset 
+
+ 
+\layout Standard
+
+Para IT's de granularidad mensual el sucesor y el predecesor simples en
+ 
+\begin_inset Formula $cMonth\left(M\right)$
+\end_inset 
+
+ se calculan de forma muy sencilla
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+IT\left(y,m\right)+cMonth\left(M\right)=\left\{ \begin{array}{cc}
+IT\left(y,M\right) & \forall m<M\\
+IT\left(y+1,M\right) & \forall m\geq M\end{array}\right.\\
+IT\left(y,m\right)-cMonth\left(M\right)=\left\{ \begin{array}{cc}
+IT\left(y,M\right) & \forall m>M\\
+IT\left(y-1,M\right) & \forall m\leq M\end{array}\right.\end{array}=\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para CT's de granularidad anual se tiene
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+IT\left(y\right)+cMonth\left(M\right)=IT\left(y,12\right)+cMonth\left(M\right)\\
+IT\left(y\right)-cMonth\left(M\right)=IT\left(y,1\right)-cMonth\left(M\right)\end{array}=\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Recuérdese que para extrapolar los resultados a otras granularidades es
+ más conveniente expresar 
+\begin_inset Formula $IT\left(y,m\right)=\mathcal{I}\left(k,g_{\mathbf{m}}\right)$
+\end_inset 
+
+ y
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+IT\left(y,1\right)=\mathcal{I}\left(g_{\mathbf{m}}^{-1}\left(k\bullet g_{\mathbf{y}}\right),g_{\mathbf{m}}\right)\\
+IT\left(y,12\right)=\mathcal{I}\left(g_{\mathbf{m}}^{-1}\left(\left(k+1\right)\bullet g_{\mathbf{y}}\right)-1,g_{\mathbf{m}}\right)\end{array}=\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Una vez internado en el propio 
+\begin_inset Formula $cMonth\left(M\right)$
+\end_inset 
+
+ el sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo es trivial
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+IT\left(y,M\right)+n\times cMonth\left(M\right)=IT\left(y+n,M\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+De esta forma, se dispone de un método muy rápido para el cálculo del sucesor
+ 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo para las granularidades mensual y anual, o sea, para 
+\begin_inset Formula $h\geq g_{\mathbf{m}}$
+\end_inset 
+
+: 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(k,h\right)+n\times cMonth\left(M\right)=\left(\mathcal{I}\left(k,h\right)+cMonth\left(M\right)\right)+\left(n-1\right)\times cMonth\left(M\right)\\
+\mathcal{I}\left(k,h\right)-n\times cMonth\left(M\right)=\left(\mathcal{I}\left(k,h\right)-cMonth\left(M\right)\right)-\left(n-1\right)\times cMonth\left(M\right)\end{array}\:\forall n\in\mathbb{Z}^{+}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+ya que tanto 
+\begin_inset Formula $\mathcal{I}\left(k,h\right)+cMonth\left(M\right)$
+\end_inset 
+
+ como 
+\begin_inset Formula $\mathcal{I}\left(k,h\right)-cMonth\left(M\right)$
+\end_inset 
+
+ pertenecen siempre a 
+\begin_inset Formula $cMonth\left(M\right)$
+\end_inset 
+
+ para 
+\begin_inset Formula $h\geq g_{\mathbf{m}}$
+\end_inset 
+
+.
+\layout Subparagraph
+
+Caso general: 
+\begin_inset Formula $FBP\left(g_{r},\: c_{r}\right)$
+\end_inset 
+
+ 
+\layout Standard
+
+Para IT's de granularidad 
+\begin_inset Formula $g_{r}$
+\end_inset 
+
+ el sucesor y el predecesor simples en 
+\begin_inset Formula $FBP\left(g_{r},\: c_{r}\right)$
+\end_inset 
+
+ se calculan de forma muy sencilla
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+IT\left(c'_{1},\,...,\, c'_{r-1},\, c'_{r}\right)+FBP\left(g_{r},\: c_{r}\right)=\left\{ \begin{array}{cc}
+IT\left(c'_{1},\,...,\, c'_{r-1},\, c'_{r},c'_{r}\right) & \forall c'_{r}<c_{r}\\
+IT\left(c'_{1},\,...,\, c'_{r-1}+1,\, c'_{r}\right) & \forall c'_{r}\geq c_{r}\end{array}\right.\\
+IT\left(c'_{1},\,...,\, c'_{r-1},\, c'_{r}\right)-FBP\left(g_{r},\: c_{r}\right)=\left\{ \begin{array}{cc}
+IT\left(c'_{1},\,...,\, c'_{r-1},\, c'_{r},c'_{r}\right) & \forall c'_{r}>c_{r}\\
+IT\left(c'_{1},\,...,\, c'_{r-1}-1,\, c'_{r}\right) & \forall c'_{r}\leq c_{r}\end{array}\right.\end{array}=\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para CT's de granularidad 
+\begin_inset Formula $h>g_{r}$
+\end_inset 
+
+ se tiene
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(k,h\right)+FBP\left(g_{r},\: c_{r}\right)=\mathcal{I}\left(g_{r}^{-1}\left(\left(k+1\right)\bullet h\right)-1,g_{r}\right)+FBP\left(g_{r},\: c_{r}\right)\\
+\mathcal{I}\left(k,h\right)-FBP\left(g_{r},\: c_{r}\right)=\mathcal{I}\left(g_{r}^{-1}\left(k\bullet h\right),g_{r}\right)-FBP\left(g_{r},\: c_{r}\right)\end{array}=\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Si tenemos 
+\begin_inset Formula $\mathcal{I}\left(k,g_{r}\right)\in FBP\left(g_{r},\: c_{r}\right)$
+\end_inset 
+
+ el sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo se calcula simplemente desplazándolo su punto de inicio 
+\begin_inset Formula $n-1$
+\end_inset 
+
+ veces en la granularidad 
+\begin_inset Formula $g_{r-1}$
+\end_inset 
+
+, que es la inmediatamente más gruesa que 
+\begin_inset Formula $g_{r}$
+\end_inset 
+
+, y una vez en el propio 
+\begin_inset Formula $FBP\left(g_{r},\: c_{r}\right)$
+\end_inset 
+
+, lo cual se puede expresar como
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(k,g_{r}\right)+n\times FBP\left(g_{r},\: c_{r}\right)=\mathcal{I}\left(l+n-1,g_{r-1}\right)+FBP\left(g_{r},\: c_{r}\right)\\
+\mathcal{I}\left(k,g_{r}\right)-n\times FBP\left(g_{r},\: c_{r}\right)=\mathcal{I}\left(l-n+1,g_{r-1}\right)-FBP\left(g_{r},\: c_{r}\right)\end{array}\:\forall n\in\mathbb{Z}^{+}\end{equation}
+
+\end_inset 
+
+donde 
+\begin_inset Formula $\mathcal{I}\left(l,g_{r-1}\right)$
+\end_inset 
+
+ es el contenedor de 
+\begin_inset Formula $\mathcal{I}\left(k,g_{r}\right)$
+\end_inset 
+
+ en la granularidad 
+\begin_inset Formula $g_{r-1}$
+\end_inset 
+
+, tal y como se describe en la ecuación 
+\begin_inset LatexCommand \vref{eq:container}
+
+\end_inset 
+
+.
+\layout Standard
+
+De esta forma, se dispone de un método muy rápido para el cálculo del sucesor
+ 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo para las granularidades 
+\begin_inset Formula $h\geq g_{r}$
+\end_inset 
+
+ : 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\mathcal{I}\left(k,h\right)+n\times FBP\left(g_{r},\: c_{r}\right)=\left(\mathcal{I}\left(k,h\right)+FBP\left(g_{r},\: c_{r}\right)\right)+\left(n-1\right)\times FBP\left(g_{r},\: c_{r}\right)\\
+\mathcal{I}\left(k,h\right)-n\times FBP\left(g_{r},\: c_{r}\right)=\left(\mathcal{I}\left(k,h\right)-FBP\left(g_{r},\: c_{r}\right)\right)-\left(n-1\right)\times FBP\left(g_{r},\: c_{r}\right)\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para 
+\begin_inset Formula $h<g_{r}$
+\end_inset 
+
+ el sucesor se calcula siguiendo el método dado en las ecuaciones 
+\begin_inset LatexCommand \ref{eq:nsucgratmset}
+
+\end_inset 
+
+ y 
+\begin_inset LatexCommand \vref{eq:presucgraset}
+
+\end_inset 
+
+.
+\layout Subsection
+
+Operaciones Booleanas
+\layout Standard
+
+Las siguientes operaciones entre conjuntos temporales le dan a 
+\begin_inset Formula $\mathcal{P}\left(\mathfrak{C}_{6}\right)$
+\end_inset 
+
+ una estructura de álgebra de Boole.
+ Con ellas y otras más que se verán más adelante se pueden construir expresiones
+ que den forma a las secuencias temporales más complicadas que se pueden
+ encontrar en el análisis de series temporales.
+\layout Subsubsection
+
+Operación Suma de CT's
+\layout Standard
+
+La 
+\emph on 
+suma maximal
+\emph default 
+ o simplemente suma de dos conjuntos temporales es el conjunto generado
+ por la sucesión resultante de la unión disjunta de las sucesiones maximales
+ de ambos
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Ct_{1}+Ct_{2}=\underbrace{\overbrace{Ct_{1}}\oplus\overbrace{Ct_{2}}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Dicho de otra forma: el maximal de la suma de CT's es la suma disjunta de
+ sus maximales.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\overbrace{Ct_{1}+Ct_{2}}=\overbrace{Ct_{1}}\oplus\overbrace{Ct_{2}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Es decir, los maximales de 
+\begin_inset Formula $Ct_{1}+Ct_{2}$
+\end_inset 
+
+ son los maximales de 
+\begin_inset Formula $Ct_{1}$
+\end_inset 
+
+ que no están incluidos en ningún maximal de 
+\begin_inset Formula $Ct_{2}$
+\end_inset 
+
+ y los maximales de 
+\begin_inset Formula $Ct_{2}$
+\end_inset 
+
+ que no están incluidos en ningún maximal de 
+\begin_inset Formula $Ct_{1}$
+\end_inset 
+
+.
+ Por lo tanto sólo se puede asegurar en términos generales que
+\begin_inset Formula \begin{equation}
+granul\left(Ct_{1}+Ct_{2}\right)\geq\min\left\{ granul\left(Ct_{1}\right),\: granul\left(Ct_{2}\right)\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\series bold 
+\noun on 
+Proposición:
+\noun default 
+ 
+\series default 
+La suma de conjuntos temporales coincide con la unión de ambos conjuntos
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Ct_{1}+Ct_{2}=Ct_{1}\cup Ct_{2}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\series bold 
+\noun on 
+Demostración:
+\series default 
+\noun default 
+ Los elementos de 
+\begin_inset Formula $\underbrace{\overbrace{Ct_{1}}\oplus\overbrace{Ct_{2}}}$
+\end_inset 
+
+ están incluidos en elementos que pertenecen a 
+\begin_inset Formula $Ct_{1}$
+\end_inset 
+
+ o a 
+\begin_inset Formula $Ct_{2}$
+\end_inset 
+
+ por lo que también pertenecen a uno u otro, y se tiene que 
+\begin_inset Formula $\underbrace{\overbrace{Ct_{1}}\oplus\overbrace{Ct_{2}}}\subset Ct_{1}\cup Ct_{2}$
+\end_inset 
+
+.
+ Si 
+\begin_inset Formula $it\in Ct_{1}$
+\end_inset 
+
+ entonces 
+\begin_inset Formula $\exists it_{1}\in\overbrace{Ct_{1}}\subset\underbrace{\overbrace{Ct_{1}}}\subset\underbrace{\overbrace{Ct_{1}}\oplus\overbrace{Ct_{2}}}\bot it\subset it_{1}$
+\end_inset 
+
+ luego 
+\begin_inset Formula $it\in\underbrace{\overbrace{Ct_{1}}\oplus\overbrace{Ct_{2}}}$
+\end_inset 
+
+.
+ Del mismo modo se demuestra que si 
+\begin_inset Formula $it\in Ct_{2}$
+\end_inset 
+
+ entonces 
+\begin_inset Formula $it\in\underbrace{\overbrace{Ct_{1}}\oplus\overbrace{Ct_{2}}}$
+\end_inset 
+
+.
+ Luego 
+\begin_inset Formula $Ct_{1}\cup Ct_{2}\subset\underbrace{\overbrace{Ct_{1}}\oplus\overbrace{Ct_{2}}}$
+\end_inset 
+
+.
+\layout Standard
+
+Obviamente , la suma de fechados es también un fechado.
+\layout Standard
+
+El sucesor de un IT en la suma de dos CT's es el mínimo de los sucesores
+ en cada uno y el predecesor es el máximo.
+\layout Subsubsection
+
+Operación Producto de CT's
+\layout Standard
+
+El 
+\emph on 
+producto maximal 
+\emph default 
+o simplemente producto de dos conjuntos temporales es el conjunto generado
+ por la intersección de las sucesiones maximales de ambos
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Ct_{1}*Ct_{2}=\underbrace{\overbrace{Ct_{1}}\otimes\overbrace{Ct_{2}}}\end{equation}
+
+\end_inset 
+
+Dicho de otra forma: el maximal del producto de CT's es el producto disjunto
+ de sus maximales.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\overbrace{Ct_{1}*Ct_{2}}=\overbrace{Ct_{1}}\otimes\overbrace{Ct_{2}}\end{equation}
+
+\end_inset 
+
+Es decir, los maximales de 
+\begin_inset Formula $Ct_{1}*Ct_{2}$
+\end_inset 
+
+ son los maximales comunes a 
+\begin_inset Formula $Ct_{1}$
+\end_inset 
+
+ y 
+\begin_inset Formula $Ct_{2}$
+\end_inset 
+
+ y se puede asegurar que
+\begin_inset Formula \begin{equation}
+granul\left(Ct_{1}*Ct_{2}\right)=\min\left\{ granul\left(Ct_{1}\right),\: granul\left(Ct_{2}\right)\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\series bold 
+\noun on 
+Proposición:
+\noun default 
+ 
+\series default 
+El producto de dos conjuntos temporales coincide con la intersección de
+ ambos conjuntos
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Ct_{1}*Ct_{2}=Ct_{1}\cap Ct_{2}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\series bold 
+\noun on 
+Demostración:
+\series default 
+\noun default 
+ Los elementos de 
+\begin_inset Formula $\underbrace{\overbrace{Ct_{1}}\otimes\overbrace{Ct_{2}}}$
+\end_inset 
+
+ están incluidos en elementos que pertenecen a 
+\begin_inset Formula $Ct_{1}$
+\end_inset 
+
+ y a 
+\begin_inset Formula $Ct_{2}$
+\end_inset 
+
+ por lo que también pertenecen a uno y a otro, y se tiene que 
+\begin_inset Formula $\underbrace{\overbrace{Ct_{1}}\otimes\overbrace{Ct_{2}}}\subset Ct_{1}\cap Ct_{2}$
+\end_inset 
+
+.
+ Si 
+\begin_inset Formula $it\in Ct_{1}\cap Ct_{2}$
+\end_inset 
+
+ entonces existe un 
+\begin_inset Formula $it'$
+\end_inset 
+
+ que es elemento maximal de 
+\begin_inset Formula $Ct_{1}\cap Ct_{2}$
+\end_inset 
+
+, o sea 
+\begin_inset Formula $\exists it'\in\overbrace{Ct_{1}\cap Ct_{2}}\bot it\subset it'$
+\end_inset 
+
+.
+ Luego 
+\begin_inset Formula $it'$
+\end_inset 
+
+ pertenece a ambos conjuntos y no hay ningún otro elemento en ellos que
+ lo contenga, por lo tanto es maximal en cada uno de ellos, es decir, 
+\begin_inset Formula $it'\in\overbrace{Ct_{1}}\cap\overbrace{Ct_{2}}$
+\end_inset 
+
+=
+\begin_inset Formula $\overbrace{Ct_{1}}\otimes\overbrace{Ct_{2}}$
+\end_inset 
+
+.
+ Por lo tanto 
+\begin_inset Formula $it\in\underbrace{\overbrace{Ct_{1}}\otimes\overbrace{Ct_{2}}}$
+\end_inset 
+
+ y 
+\begin_inset Formula $Ct_{1}\cap Ct_{2}\subset\underbrace{\overbrace{Ct_{1}}\otimes\overbrace{Ct_{2}}}$
+\end_inset 
+
+.
+\layout Standard
+
+La granularidad del producto de CT's es obviamente la mínima de las granularidad
+es de cada uno
+\begin_inset Formula \begin{equation}
+granul\left(Ct_{1}*Ct_{2}\right)=\min\left\{ granul\left(Ct_{1}\right),\: granul\left(Ct_{2}\right)\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El producto de fechados puede ser un fechado o no serlo.
+\layout Standard
+
+El sucesor de un IT en el producto de dos CT's es algo más complicado que
+ el de la suma .
+ Primero se calcula el sucesor en 
+\begin_inset Formula $it'=it+Ct_{1}$
+\end_inset 
+
+.
+ Si 
+\begin_inset Formula $it'\in Ct_{2}$
+\end_inset 
+
+ ya está hecho.
+ Si no, se calcula 
+\begin_inset Formula $it''=it'+Ct_{2}$
+\end_inset 
+
+.
+ Si 
+\begin_inset Formula $it''\in Ct_{1}$
+\end_inset 
+
+ ya está hecho y si no se pone 
+\begin_inset Formula $it\leftarrow it''$
+\end_inset 
+
+ y se continua calculando sucesores alternativamente en uno y otro conjunto
+ hasta que se encuentre uno que pertenezca al otro conjunto o nos devuelva
+ un IT impropio.
+ De forma análoga se calcula el predecesor retrocediendo en cada uno de
+ los CT's y haciendo las mismas comprobaciones en cada iteración.
+\layout Standard
+
+Este caracter recursivo da lugar a un ciclo infinito cuando el resultado
+ de una intersección es vacío.
+ Por ello se debe disponer de un mecanismo que analize simbólicamente las
+ expresiones para evitar esa situación.
+ En cualquier caso sería conveniente dar un mensaje de advertencia cuando
+ se sobrepasara determinado número de iteraciones considerado como excesivo.
+ También sería bueno para el ciclo y dar un mensaje de error a partir de
+ un úmero máximo de iteraciones.
+ Ambos límites deberían ser definibles por el usuario.
+\layout Subsubsection
+
+Operación Diferencia de CT's
+\layout Standard
+
+La 
+\emph on 
+diferencia maximal
+\emph default 
+, o simplemente diferencia de dos conjuntos temporales es el conjunto temporal
+ generado por la diferencia disjunta de las sucesiones maximales de ambos
+ conjuntos
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Ct_{1}\ominus Ct_{2}=\underbrace{\overbrace{Ct_{1}}\ominus\overbrace{Ct_{2}}}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Dicho de otra forma: el maximal de la diferencia de CT's es la diferencia
+ disjunta de sus maximales.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\overbrace{Ct_{1}\ominus Ct_{2}}=\overbrace{Ct_{1}}\ominus\overbrace{Ct_{2}}\end{equation}
+
+\end_inset 
+
+Es decir, los maximales de 
+\begin_inset Formula $Ct_{1}\ominus Ct_{2}$
+\end_inset 
+
+ son los maximales de 
+\begin_inset Formula $Ct_{1}$
+\end_inset 
+
+ que no incluyen a los de 
+\begin_inset Formula $Ct_{2}$
+\end_inset 
+
+.
+ Por lo tanto sólo se puede asegurar que
+\begin_inset Formula \begin{equation}
+granul\left(Ct_{1}\ominus Ct_{2}\right)\geq granul\left(Ct_{1}\right)\end{equation}
+
+\end_inset 
+
+Se demuestra de forma trivial que la diferencia maximal no coincide con
+ la diferencia usual de conjuntos
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Ct_{1}\ominus Ct_{2}\neq Ct_{1}-Ct_{2}=\left\{ it\in\mathfrak{C}_{6}|it\in Ct_{1}\wedge it\notin Ct_{2}\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Por ejemplo 
+\begin_inset Formula $cDaily-cHourly$
+\end_inset 
+
+ contendría el IT y2005m1d1 pero no el y2005m1d1h1 que pertenece al interior
+ del primero.
+ Luego 
+\begin_inset Formula $cDaily-cHourly$
+\end_inset 
+
+ no es un conjunto temporal mientras que 
+\begin_inset Formula $cDaily\ominus cHourly$
+\end_inset 
+
+ sería el conjunto vacío pues cada IT maximal de 
+\begin_inset Formula $cDaily$
+\end_inset 
+
+ contiene IT's maximales de 
+\begin_inset Formula $cHourly$
+\end_inset 
+
+ y serían todos eliminados.
+ 
+\layout Standard
+
+Otro ejemplo: el conjunto 
+\begin_inset Formula $cDaily\ominus cHour\left(8\right)=cHourly\ominus cHour\left(8\right)$
+\end_inset 
+
+ contendría todas las horas excepto la octava de cada día.
+\layout Standard
+
+La diferencia de fechados puede ser un fechado o no serlo.
+\layout Standard
+
+Para calcular el sucesor de un IT en la diferencia de fechados primero se
+ calcula el sucesor en 
+\begin_inset Formula $it'=it+Ct_{1}$
+\end_inset 
+
+.
+ Si 
+\begin_inset Formula $it'\notin Ct_{2}$
+\end_inset 
+
+ ya está hecho.
+ Si no, se calcula 
+\begin_inset Formula $it''=it'+Ct_{1}$
+\end_inset 
+
+.
+ Si 
+\begin_inset Formula $it''\notin Ct_{2}$
+\end_inset 
+
+ ya está hecho y si no, se continua calculando sucesores en 
+\begin_inset Formula $Ct_{1}$
+\end_inset 
+
+ hasta que se encuentre uno que no esté en 
+\begin_inset Formula $Ct_{2}$
+\end_inset 
+
+ o nos devuelva un IT impropio.
+ De forma análoga se calcula el predecesor retrocediendo en 
+\begin_inset Formula $Ct_{1}$
+\end_inset 
+
+ y haciendo las mismas comprobaciones en cada iteración.
+ Considérese válido aquí todo lo referente a los ciclos infinitos explicado
+ en el apartado anterior.
+\layout Subsection
+
+Operadores de Traslación en un Fechado
+\layout Standard
+
+Los operadores de traslación de conjuntos construyen un CT basándose en
+ desplazar todos sus IT's a lo largo de un fechado.
+\layout Subsubsection
+
+Operación cSucc
+\layout Standard
+
+Se define el conjunto sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo de un conjunto 
+\begin_inset Formula $Ct$
+\end_inset 
+
+ en un fechado 
+\begin_inset Formula $F$
+\end_inset 
+
+, y se expresa 
+\begin_inset Formula $cSuccInCT\left(Ct,n,F\right)$
+\end_inset 
+
+ ó 
+\begin_inset Formula $Ct+n\times F$
+\end_inset 
+
+, como el conjunto temporal generado por la sucesión disjunta obtenida al
+ aplicar el sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo en el fechado 
+\begin_inset Formula $F$
+\end_inset 
+
+ a todos los IT maximales de 
+\begin_inset Formula $Ct$
+\end_inset 
+
+, al que llamaremos conjunto de origen de la traslación.
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\overbrace{Ct+n\times F}=\left\{ it\in F\:|\:\exists\, it'\in\overbrace{Ct}\,\wedge\, it=it'+n\times F\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+La granularidad del conjunto sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo es la mínima de las granularidades de 
+\begin_inset Formula $Ct$
+\end_inset 
+
+ y 
+\begin_inset Formula $F$
+\end_inset 
+
+.
+\begin_inset Formula \begin{equation}
+granul\left(Ct+n\times F\right)=\min\left\{ granul\left(Ct\right),\: granul\left(F\right)\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El conjunto sucesor de un fechado en un fechado es también un fechado.
+\layout Paragraph
+
+Cálculo de la función de pertenencia a 
+\begin_inset Formula $Ct+n\times F$
+\end_inset 
+
+ 
+\layout Standard
+
+El método de cálculo será constructivo, es decir, se intentará encontrar
+ el IT de 
+\begin_inset Formula $Ct$
+\end_inset 
+
+ cuyo sucesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo es el IT dado.
+ Si se consigue se devuelve 
+\emph on 
+cierto
+\emph default 
+ y si no se consigue se devuelve 
+\emph on 
+falso.
+ 
+\layout Standard
+
+Sea 
+\begin_inset Formula $it\in F$
+\end_inset 
+
+ y supongamos que 
+\begin_inset Formula $n\in\mathbb{Z}^{+}$
+\end_inset 
+
+, entonces llamamos
+\layout Standard
+
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features>
+<column alignment="left" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $it'=it-\left(n-1\right)\times F$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+al predecesor 
+\begin_inset Formula $\left(n-1\right)$
+\end_inset 
+
+-ésimo en 
+\begin_inset Formula $F$
+\end_inset 
+
+ de 
+\begin_inset Formula $it$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $it''=it'-Ct\in Ct$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+al predecesor en 
+\begin_inset Formula $Ct$
+\end_inset 
+
+ de 
+\begin_inset Formula $it'$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $it'''=it-n\times F=it'-F\in Ct$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+al predecesor 
+\begin_inset Formula $n$
+\end_inset 
+
+-ésimo en 
+\begin_inset Formula $F$
+\end_inset 
+
+ de 
+\begin_inset Formula $it$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\layout Standard
+
+Entonces se se puede asegurar que
+\begin_inset Formula \begin{equation}
+it\in Ct+n\times F\Leftrightarrow it\in F\,\wedge it'''\leq it''\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para comprobarlo sólo hay que visualizar la secuencia temporal que forman
+ los IT's definidos
+\begin_inset Formula \begin{equation}
+it'''=it-n\times F\leq it''<it'=it-\left(n-1\right)\times F<\cdots<it-F<it\end{equation}
+
+\end_inset 
+
+Salta a la vista que existe 
+\begin_inset Formula $it''\in Ct$
+\end_inset 
+
+ tal que 
+\begin_inset Formula $it''+n\times F=it$
+\end_inset 
+
+.
+\layout Standard
+
+Para 
+\begin_inset Formula $Ct-n\times F$
+\end_inset 
+
+ con 
+\begin_inset Formula $n\in\mathbb{Z}^{+}$
+\end_inset 
+
+se puede desarrollar un argumento análogo al anterior definiendo 
+\begin_inset Formula $it'=it+\left(n-1\right)\times F$
+\end_inset 
+
+ y 
+\begin_inset Formula $it''=it'+Ct\in Ct$
+\end_inset 
+
+ para formar la secuencia
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+it'+F=it+n\times F>it''\leq it'=it+\left(n-1\right)\times F>\cdots>it+F>it\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Cuando 
+\begin_inset Formula $n=0$
+\end_inset 
+
+ se tiene 
+\begin_inset Formula $Ct\pm0\times F=Ct*F$
+\end_inset 
+
+ y, en resumen, se puede asegurar que 
+\begin_inset Formula $\forall\: n\in\mathbb{Z}$
+\end_inset 
+
+ se cumple que
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+it\in Ct+n\times F\Leftrightarrow it\in F\wedge\left\{ \begin{array}{cccccc}
+n=0 & \wedge & it\in Ct &  &  & \vee\\
+n\neq0 & \wedge & it'=it-n\times F\in Ct &  &  & \vee\\
+n>0 & \wedge & \; it'\notin Ct & \wedge & it'-Ct>it'-F & \vee\\
+n<0 & \wedge & \; it'\notin Ct & \wedge & it'+Ct<it'+F\end{array}\right.\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Cada llamada a la función de pertenencia a 
+\begin_inset Formula $S=Ct+n\times F$
+\end_inset 
+
+ requiere un coste computacional que se puede expresar así.
+ 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+C\left(\in S\right)\leq C\left(\in F\right)+C\left(\in Ct\right)+C\left(\pm Ct\right)+C\left(\pm n\times F\right)\end{equation}
+
+\end_inset 
+
+
+\layout Paragraph
+
+Cálculo del sucesor 
+\begin_inset Formula $h$
+\end_inset 
+
+-ésimo de un IT en 
+\begin_inset Formula $Ct+n\times F$
+\end_inset 
+
+ 
+\layout Standard
+
+En el apartado anterior se ha calculado el 
+\begin_inset Formula $it''\in Ct$
+\end_inset 
+
+ tal que 
+\begin_inset Formula $it''+n\times F=it$
+\end_inset 
+
+ dado un 
+\begin_inset Formula $it\in F$
+\end_inset 
+
+.
+ Si 
+\begin_inset Formula $it\in F$
+\end_inset 
+
+
+\layout Standard
+
+Pues bien, si calculamos 
+\begin_inset Formula $\dot{it}=it''+Ct$
+\end_inset 
+
+ , es evidente que 
+\begin_inset Formula $\dot{it}+n\times F\in Ct+n\times F$
+\end_inset 
+
+ y que 
+\begin_inset Formula $\dot{it}+n\times F>it$
+\end_inset 
+
+ así como que no puede haber ningún otro elemento de 
+\begin_inset Formula $Ct+n\times F$
+\end_inset 
+
+ situado entre 
+\begin_inset Formula $it=it''+n\times F$
+\end_inset 
+
+ y 
+\begin_inset Formula $\dot{it}+n\times F$
+\end_inset 
+
+ que ha de ser forzosamente el sucesor de 
+\begin_inset Formula $it$
+\end_inset 
+
+ en 
+\begin_inset Formula $Ct+n\times F$
+\end_inset 
+
+.
+\layout Standard
+
+Por lo tanto, para calcular el sucesor o el predecesor simple de un IT se
+ tendrá en cuenta lo siguiente
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+it+\left(Ct+n\times F\right)=\left(it''+Ct\right)+n\times F\\
+it+\left(Ct+n\times F\right)=\left(it''-Ct\right)+n\times F\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El coste computacional en este caso será
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+C\left(\pm S\right)\leq C\left(\in F\right)+C\left(\in Ct\right)+2\cdot C\left(\pm Ct\right)+C\left(\pm2\cdot n\times F\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Una vez calculado el primer sucesor o predecesor, los siguientes son simplemente
+ sucesores o predecesores en en el fechado 
+\begin_inset Formula $F$
+\end_inset 
+
+ .
+ Así pues, se tienen las siguientes fórmulas que reducen el cálculo del
+ sucesor 
+\begin_inset Formula $h$
+\end_inset 
+
+-ésimo de un IT a una sola ejecución de la función sucesor seguida por el
+ sucesor 
+\begin_inset Formula $h-1$
+\end_inset 
+
+-ésimo en el fechado 
+\begin_inset Formula $F$
+\end_inset 
+
+ .
+ Lo mismo ocurre si se quiere el predecesor 
+\begin_inset Formula $h$
+\end_inset 
+
+-ésimo 
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+it+h\times\left(Ct+n\times F\right)=\left(it+\left(Ct+n\times F\right)\right)+\left(h-1\right)\times F\;\forall h\in\mathbb{Z}^{+}\\
+it-h\times\left(Ct+n\times F\right)=\left(it-\left(Ct+n\times F\right)\right)-\left(h-1\right)\times F\;\forall h\in\mathbb{Z}^{+}\end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El coste computacional total será
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+C\left(\pm h\times S\right)\leq C\left(\in F\right)+C\left(\in Ct\right)+2\cdot C\left(\pm Ct\right)+C\left(\pm\left(2\cdot n+h-1\right)\times F\right)\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Operación cRange
+\layout Standard
+
+La operación rango de sucesores o cRange se basa en la anterior cSucc y
+ se define como la unión de sucesores consecutivos en un rango de números
+ enteros
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+Ct+\left[n,m\right]\times F=cRangeInCT(Ct,\, n,\, m,\, F)\,=\,\cup_{j=n}^{m}\left(Ct+j\times F\right)\;\forall n\leq\, m\in\mathbb{Z}\\
+Ct+\left[n,m\right]\times F\,=\,\left\{ it\in F|\exists j=n\ldots m,it'\in Ct\wedge it=it'+j\times F\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+\align center 
+La granularidad del conjunto cRange es la mínima de las granularidades de
+ 
+\begin_inset Formula $Ct$
+\end_inset 
+
+ y 
+\begin_inset Formula $F$
+\end_inset 
+
+.
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+granul\left(cRangeInCT\left(Ct,n,F\right)\right)=\min\left\{ granul\left(Ct\right),\: granul\left(F\right)\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Para no repetir los cálculos es conveniente implementar los métodos de pertenenc
+ia y sucesión de forma explícita en lugar de recurrir a la suma de los cSucc.
+ De esta forma se reaprovechan los cálculos de los sucesores consecutivos
+ de forma recursiva
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+it'_{j}=it\pm j\times F=it'_{j-1}\pm F\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Como los 
+\begin_inset Formula $Ct+n\times F$
+\end_inset 
+
+ se calculan de forma diferente según sea 
+\begin_inset Formula $n$
+\end_inset 
+
+ positiva, negativa o nula puede ser necesario separar 
+\begin_inset Formula $Ct+\left[n,m\right]\times F$
+\end_inset 
+
+ de forma que se tengan bloques de rangos 
+\begin_inset Formula $Ct+\left[n',m'\right]\times F$
+\end_inset 
+
+ todos positivos o todos negativos.
+\layout Standard
+
+El coste operacional de evaluar 
+\begin_inset Formula $it\in RS=Ct+\left[n,m\right]\times F$
+\end_inset 
+
+ será
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+C\left(\in RS\right)\leq C\left(\in F\right)+L\cdot C\left(\in Ct\right)+C\left(\pm Ct\right)+C\left(\pm\left(M+1\right)\times F\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+donde 
+\begin_inset Formula $L=m-n+1$
+\end_inset 
+
+ es la longitud del rango y 
+\begin_inset Formula $M=\left\{ \left|m\right|+\left|n\right|\; si\: m\cdot n\leq0,\left|m-n\right|\; si\: m\cdot n=0\right\} $
+\end_inset 
+
+ 
+\layout Standard
+
+El coste operacional de evaluar 
+\begin_inset Formula $it+RS$
+\end_inset 
+
+ será
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+C\left(\pm RS\right)\leq C\left(\in F\right)+\left(L+1\right)\cdot C\left(\in Ct\right)+C\left(\pm Ct\right)+C\left(\pm\left(2\cdot M+1\right)\times F\right)\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+El coste operacional de evaluar 
+\begin_inset Formula $it+h\times RS$
+\end_inset 
+
+ será
+\layout Standard
+
+
+\begin_inset Formula \begin{equation}
+Cost\left(\times RS\right)\leq Cost\left(\in F\right)+\left(L+1\right)\cdot Cost\left(\in Ct\right)+Cost\left(\pm Ct\right)+Cost\left(\pm\left(2\cdot M+h\right)\times F\right)\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Operación cPeriodic
+\layout Standard
+
+La operación cPeriodic devuelve todos los IT cuya distancia en un fechado
+ 
+\begin_inset Formula $F$
+\end_inset 
+
+ a un 
+\begin_inset Formula $\mathcal{I}\left(k,g\right)$
+\end_inset 
+
+ fijo sea múltiplo de una periodicidad 
+\begin_inset Formula $p$
+\end_inset 
+
+.
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+cPeriodicSucc(\mathcal{I}\left(k,g\right),\, p,\, F)\,=\,\left\{ it'\in F|\exists n\in\mathbb{Z}\:\bot\: it'=\mathcal{I}\left(k,g\right)+\left(p\cdot n\right)\times F\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Standard
+
+Su granularidad es la mínima de las de 
+\begin_inset Formula $it$
+\end_inset 
+
+ y 
+\begin_inset Formula $F$
+\end_inset 
+
+
+\begin_inset Formula \begin{equation}
+cPeriodicSucc(it,\, p,\, F)=\min\left\{ granul\left(it\right),\: granul\left(F\right)\right\} \end{equation}
+
+\end_inset 
+
+
+\layout Subsection
+
+Operadores de Auto-Traslación
+\layout Standard
+
+Los operadores de auto-traslación de conjuntos construyen un CT basándose
+ en desplazar todos sus IT's maximales en su propia granularidad.
+\layout Subsubsection
+
+Operación cSelfSucc
+\layout Standard
+
+Se define el conjunto 
+\begin_inset Formula $n$
+\end_inset 
+
+-autosucesor de un conjunto 
+\begin_inset Formula $Ct$
+\end_inset 
+
+, al que llamaremos conjunto de origen del desplazamiento, como el conjunto
+ temporal generado por la sucesión disjunta resultante de desplazar los
+ IT's maximales de 
+\begin_inset Formula $Ct$
+\end_inset 
+
+, un total de 
+\begin_inset Formula $n$
+\end_inset 
+
+ veces cada IT maximal en su propia granularidad.
+ 
+\begin_inset Formula \begin{equation}
+cSelfSucc\left(Ct,n\right)=Ct+n=\left\{ \mathcal{I}\left(k,g\right)\in\mathfrak{C}_{6}|\mathcal{I}\left(k-n,g\right)\in Ct\right\} \end{equation}
+
+\end_inset 
+
+La granularidad del conjunto 
+\begin_inset Formula $n$
+\end_inset 
+
+-desplazado es obviamente la misma que la de 
+\begin_inset Formula $Ct$
+\end_inset 
+
+.
+\begin_inset Formula \begin{equation}
+granul\left(cSelfSucc\left(Ct,n\right)\right)=granul\left(Ct\right)\end{equation}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Operación cSelfRange
+\layout Standard
+
+La operación rango de desplazamientos o cRangeMove se basa en la anterior
+ cMove y se define como la unión de desplazamientos consecutivos en un rango
+ de números enteros
+\layout Standard
+\align center 
+
+\begin_inset Formula \begin{equation}
+\begin{array}{l}
+cRangeMove(Ct,\, n,\, m)\,=\,\bigcup_{k=n}^{m}Ct+k\;\forall n,\, m\in\mathbb{Z}\\
+cRangeMove(Ct,\, n,\, m)\,=\,\left\{ \mathcal{I}\left(k,g\right)\in\mathfrak{C}_{6}|\exists j=n...m\bot\mathcal{I}\left(k-j,g\right)\in Ct\right\} \end{array}\end{equation}
+
+\end_inset 
+
+
+\layout Standard
+\align center 
+La granularidad del conjunto cRange es evidentemente la de 
+\begin_inset Formula $Ct$
+\end_inset 
+
+.
+\begin_inset Formula \begin{equation}
+granul\left(cMove\left(Ct,n\right)\right)=granul\left(Ct\right)\end{equation}
+
+\end_inset 
+
+
+\layout Subsection
+
+Operadores de Desplazamiento Granular
+\layout Standard
+
+Los operadores de desplazamineto de conjuntos construyen un CT basándose
+ en desplazar todos sus IT's un número de unidades en una granularidad dada.
+\layout Subsubsection
+
+Operación cSuccInG
+\layout Subsubsection
+
+Operación cRangeInC
+\the_end

@@ -1,0 +1,310 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+Diagnosis
+\end_layout
+
+\begin_layout Standard
+Cuando ya se dispone de una cadena de Markov para un modelo comienza la
+ etapa de diagnosis que certifique la calidad de los resultados obtenidos
+ e informe de la potencia alcanzable por las ulteriores inferencias que
+ se puedan extraer de él.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Convergencia"
+
+\end_inset
+
+Convergencia de la cadena de Markov
+\end_layout
+
+\begin_layout Standard
+Lo primero que hay que comprobar antes de poder hacer ningún otro tipo de
+ inferencia es que la cadena de Markov recién construida ha convergido a
+ un punto La diagnosis de convergencia debe cerciorarse de que la etapa
+ de simulaciones desechadas (burning) ha sido en efecto suficiente para
+ asegurar la convergencia del paseo aleatorio hacia la distribución a posteriori.
+ Se debe comprobar también que la secuencia simulada para cada parámetros
+ no esté pobremente mezclada (poorly mixing) y que no exista una alta correlació
+n en dicha secuencia.
+ El paquete CODA de R dispone de métodos de diagnosis de convergencia como
+ los de Geweke, Gelman & Rubin, Raftery & Lewis y otros que se describen
+ en 
+\begin_inset LatexCommand cite
+key "CODA-Convergence-diagnosis-output-analysis"
+
+\end_inset
+
+.
+ Los tests más confiables son los que, como el de Gelman & Rubin, toman
+ dos o más cadenas creadas a partir de distintos valores iniciales, pero
+ son también los más complicados de utilizar y pueden suponer un coste de
+ simulación extra muy alto al multiplicar el burning así como una compleja
+ logística informática de procesamiento.
+ De los tests de una sola cadena el más completo es el de Raftery & Lewis
+ pues da estimaciones bastante aceptables del burning y el thinning.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Significacion"
+
+\end_inset
+
+Significación de los parámetros
+\end_layout
+
+\begin_layout Standard
+Un parámetro es necesario o significativo en un modelo si realmente el modelo
+ con dicho parámetro es mejor que sin él.
+ Hay por tanto tantas formas de definir la significación como de comparar
+ la calidad de modelos.
+ Por otra parte no parece muy eficiente estimar todos los modelos con y
+ sin cada uno de los parámetros.
+ La medida que se utiliza para medir esta significación es la probabilidad
+ de que el parámetro sea cero.
+ Cuando la distribución del parámetro es aproximadamente normal esta probabilida
+d se puede medir como el p-value del clásico test de significación de la
+ t-Student para una muestra.
+ En el caso de BSR se tendrán parámetros cuya distribución marginal a posteriori
+ sea normal o normal truncada para los parámetros lineales y de omitidos,
+ chi cuadradas para la varianza y otras distribuciones de las que ni siquiera
+ se tiene una representación analítica, como los parámetros ARMA y los de
+ los filtros no lineales.
+ Por esta razón se precisa un test de significación más general como es
+ el 
+\begin_inset LatexCommand htmlurl
+name "One Sample Sign Test"
+target "http://www.alglib.net/statistics/hypothesistesting/signtest.php"
+
+\end_inset
+
+ que es el de mayor potencia dentro de los tests no paramétricos válidos
+ para cualquier distribución 
+\begin_inset LatexCommand cite
+key "Small-Sample-Power-of-the-One-Sample-Wilcoxon-Test-for-Non-Normal-Shift-Alternatives"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Correlación"
+
+\end_inset
+
+Alta correlación múltiple entre parámetros
+\end_layout
+
+\begin_layout Standard
+Si en la cadena de Markov se resta la media de las realizaciones de cada
+ columna y se multiplica su traspuesta por sí misma se obtiene la matriz
+ de covarianzas muestrales de los parámetros.
+ Si la longitud de la cadena es mucho mayor que el número de variables se
+ tendrá una estimación insesgada de la matriz de covarianzas poblacional
+ (ver 
+\begin_inset LatexCommand htmlurl
+target "http://en.wikipedia.org/wiki/Estimation_of_covariance_matrices"
+
+\end_inset
+
+).
+ Dividiendo filas y columnas por su correspondiente elemento diagonal se
+ obtiene la matriz de correlaciones muestrales y calculando su descomposición
+ de Jordan se puede comprobar si hay autovalores cercanos a la unidad.
+ Se toma el autovector 
+\begin_inset Formula $v$
+\end_inset
+
+ correspondiente al mínimo autovalor 
+\begin_inset Formula $\lambda$
+\end_inset
+
+ y se pretende contrastar la hipótesis de que es nulo, 
+\begin_inset Formula $\lambda=0$
+\end_inset
+
+, es decir que existe colinealidad entre las variables 
+\begin_inset Formula $\Upsilon$
+\end_inset
+
+ 
+\begin_inset Formula \begin{equation}
+v^{T}\cdot\Upsilon=\lambda\cdot\Upsilon=0\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si se toma una componente no nula cualquiera 
+\begin_inset Formula $v_{k}\neq0$
+\end_inset
+
+, la ecuación anterior es equivalente a 
+\begin_inset Formula \begin{equation}
+\underset{j\neq k}{\sum}v_{j}\cdot\Upsilon_{j}=-v_{k}\cdot\Upsilon_{k}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Para contrastar la hipótesis así expresada se puede usar el test no paramétrico
+ como el 
+\begin_inset LatexCommand htmlurl
+name "Mann-Whitney U-test"
+target "http://www.alglib.net/statistics/hypothesistesting/mannwhitneyu.php"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si el p-value es mayor que cierto umbral se procede a repetir el test para
+ el siguiente autovalor para detectar otras posibles colinealidades.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Normalidad"
+
+\end_inset
+
+Normalidad e independencia de los residuos
+\end_layout
+
+\begin_layout Standard
+La hipótesis fundamental del modelo es que los residuos estandarizados de
+ cada segmento de regresión tienen distribución multinormal estándar independien
+te.
+ Como los residuos no son conocidos sino que se deben calcular para cualquier
+ posible combinación de parámetros lo que se hará es hacer las comprobaciones
+ para los residuos correspondientes a los valores medios de los parámetros
+ en la cadena de Markov.
+ Para contrastar la normalidad se puede usar un test como el 
+\begin_inset LatexCommand htmlurl
+name "Jarque-Bera test"
+target "http://www.alglib.net/statistics/hypothesistesting/jarqueberatest.php"
+
+\end_inset
+
+.
+ Para la independencia el test más completo y usado es el 
+\begin_inset LatexCommand htmlurl
+name "Ljung-Box test"
+target "http://en.wikipedia.org/wiki/Ljung-Box_test"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\color red
+Detector de outliers.
+\end_layout
+
+\begin_layout Standard
+
+\color red
+Detector de heterocedasticidad.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Raices_ARMA_unitarias"
+
+\end_inset
+
+Polinomios ARMA no estacionarios
+\end_layout
+
+\begin_layout Standard
+Dada una realización de los coeficientes de un polinomio AR ó MA de grado
+ máximo 2, es trivial calcular el módulo de sus raíces reales o complejas.
+ Si se repite el proceso para cada fila de la cadena de Markov simulada
+ previamente entonces se obtienen cadenas de Markov de los módulos de las
+ raíces y se puede aplicar el anteriormente nombrado 
+\begin_inset LatexCommand htmlurl
+name "One Sample Sign Test"
+target "http://www.alglib.net/statistics/hypothesistesting/signtest.php"
+
+\end_inset
+
+ para contrastar si es igual a 1.
+\end_layout
+
+\end_body
+\end_document

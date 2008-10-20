@@ -1,0 +1,534 @@
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass amsbook
+\begin_preamble
+\usepackage{a4wide}
+%\documentclass[spanish]{article}
+\usepackage{babel}
+\usepackage{a4wide}
+\usepackage{varioref}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage{longtable}
+
+%\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
+\hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
+\end_preamble
+\language spanish
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+Mantenimiento y producción
+\end_layout
+
+\begin_layout Standard
+Una vez que acaba la etapa de análisis y diseño de un modelo se pasa a la
+ etapa de producción en la que el modelo se usará para hacer inferencia
+ de una u otra forma: predicción, decisión, etc.
+ Durante esta etapa el modelo debe mantenerse en estado de revista, es decir,
+ debe ir adaptándose a los nuevos datos que vayan conociéndose e incorporando
+ eventuales nuevas variables.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Reestimación"
+
+\end_inset
+
+Reestimación
+\end_layout
+
+\begin_layout Standard
+Durante la etapa de mantenimiento de un modelo se dispone siempre de una
+ cadena de Markov correspondiente a la última sesión de simulación de las
+ variables del modelo.
+ Periódicamente, se añadirá un intervalo de nuevos datos observados de input
+ y output, sin que desaparezcan variables ni se modifique la formulación
+ del modelo, salvo quizás por la incorporación de alguna variable nueva
+ que trate de explicar algún acontecimiento del que no había precedentes
+ en la muestra.
+ Entonces es lícito suponer que las variables que no tienen datos en ese
+ nuevo intervalo ni correlacionan con otras que sí los tengan, no deberían
+ cambiar nada con respecto a las ya simuladas.
+ Es decir, esta modificación supone dividir las variables del modelo en
+ dos categorías: 
+\end_layout
+
+\begin_layout Itemize
+las variables consideradas como 
+\emph on
+vigentes 
+\emph default
+que no dependen de los nuevos datos incorporados, y
+\end_layout
+
+\begin_layout Itemize
+las variables susceptibles de haber quedado 
+\emph on
+obsoletas
+\emph default
+.
+\end_layout
+
+\begin_layout Standard
+Si es sostenible la hipótesis de que la distribución de las variables vigentes
+ condicionadas por las obsoletas no se puede ver afectada por la incorporación
+ de los nuevos datos y variables, entonces no es preciso simular de nuevo
+ dichas variables, sino que basta con leerlas directamente de la cadena
+ de Markov previamente almacenada.
+ En tal caso sólo será preciso volver a simular las variables obsoletas
+ condicionadas a las vigentes recién leídas.
+ No se podría por tanto ampliar la longitud de la nueva cadena de Markov.
+\end_layout
+
+\begin_layout Section
+Simulación parcial
+\end_layout
+
+\begin_layout Standard
+Tanto si se ha fijado un valor constante para un parámetro como si se leen
+ sus valores de una cadena previamente almacenada, los pasos a seguir a
+ partir de ahí son básicamente los mismos dependiendo del bloque concreto
+ al que pertenece el parámetro.
+ A esta técnica le llamaremos simulación parcial y acontinuación se detallan
+ algunas notas sobre su implementación en cada caso.
+\end_layout
+
+\begin_layout Subsection
+El bloque lineal
+\end_layout
+
+\begin_layout Standard
+Si llamamos 
+\begin_inset Formula $\beta^{0}$
+\end_inset
+
+ a los parámetros que no es necesario simular pues ya se dispone de un valor,
+ fijo o leído de una MCMC previa, y 
+\begin_inset Formula $\beta^{1}$
+\end_inset
+
+ a los que hay que simular, entonces tendremos
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y=X^{0}\cdot\beta^{0}+X^{1}\cdot\beta^{1}+\varepsilon\\
+C^{0}\cdot\beta^{0}+C^{1}\cdot\beta^{1}\leq c\\
+\varepsilon\sim N\left(0,I\right)\\
+Y,\varepsilon\in\mathbb{R}^{m}\\
+\beta^{0}\in\mathbb{R}^{n_{0}}\wedge X^{0}\in\mathbb{R}^{m\times n_{0}}\\
+\beta^{1}\in\mathbb{R}^{n_{1}}\wedge X^{1}\in\mathbb{R}^{m\times n_{1}}\\
+c\in\mathbb{R}^{\rho}\wedge C^{0}\in\mathbb{R}^{\rho\times n_{0}}\wedge C^{1}\in\mathbb{R}^{\rho\times n_{1}}\\
+m>n=n_{0}+n_{1}\\
+rank\left(X\right)=n\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Puesto que 
+\begin_inset Formula $\beta^{0}$
+\end_inset
+
+ es conocido definiendo 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{1}=Y-X^{0}\cdot\beta^{0}\\
+c^{1}=c-C^{0}\cdot\beta^{0}\end{array}\end{equation}
+
+\end_inset
+
+se tendrá la regresión con restricciones
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+Y^{1}=X^{1}\cdot\beta^{1}+\varepsilon\\
+C^{1}\cdot\beta^{1}\leq c^{1}\\
+\varepsilon\sim N\left(0,I\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Nótese que en la nuevas matrices de restricciones 
+\begin_inset Formula $C^{1}$
+\end_inset
+
+y 
+\begin_inset Formula $c^{1}$
+\end_inset
+
+ habría que eliminar todas las filas que no tengan coeficientes no nulos
+ para los 
+\begin_inset Formula $\beta^{1}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+En el caso particular en que todos los parámetros del bloque lineal estuvieran
+ fijados, es decir, 
+\begin_inset Formula $n=n_{0}$
+\end_inset
+
+, o lo que es lo mismo, 
+\begin_inset Formula $n_{1}=0$
+\end_inset
+
+, no habría nada que simular en este bloque lineal, por lo que bastaría
+ con filtrar el output que sería por sí mismo el vector de ruido estandarizado
+ del modelo: 
+\begin_inset Formula $Y^{1}=Y-X^{0}\cdot\beta^{0}=\varepsilon$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+El bloque de omitidos
+\end_layout
+
+\begin_layout Standard
+Los omitidos se simulan en realidad como un bloque lineal, por lo que la
+ solución es idéntica al caso anterior
+\end_layout
+
+\begin_layout Subsection
+El bloque de varianzas
+\end_layout
+
+\begin_layout Standard
+Como se simulan de una en una de forma independiente no ofrece ninguna dificulta
+d, simplemente se simulan las que hay que simular y las otras no.
+\end_layout
+
+\begin_layout Subsection
+El bloque ARMA
+\end_layout
+
+\begin_layout Standard
+Internamente se simulan usando un ARMS, aunque en un futuro es posible que
+ se usen otros métodos más eficientes, especialmente para la parte AR, por
+ lo que sería recomendable no permitir la fijación de cada parámetro AR
+ ó MA en particular, sino de toda la parte ARMA de un segmento concreto.
+ Eso sí, unos segmentos podrían tener la parte ARMA fija y otros no.
+\end_layout
+
+\begin_layout Standard
+En cualquier caso la parte de filtrado ARIMA del resto de bloques habría
+ que seguir manteniéndola en cualquier caso.
+\end_layout
+
+\begin_layout Subsection
+Los bloques de filtros no lineales
+\end_layout
+
+\begin_layout Standard
+Cabe decir lo mismo que en el apartado del bloque ARMA.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Remodelación"
+
+\end_inset
+
+Remodelación
+\end_layout
+
+\begin_layout Standard
+Cada cierto tiempo se acumulan demasiados cambios eventuales que deben reformula
+rse de una forma más genérica, o bien ocurre que los nuevos datos contradicen
+ las hipótesis que antes funcionaban correctamente, bien por error en el
+ diseño del modelo, o bien porque el propio fenómeno está cambiando y evoluciona
+ndo, lo cual es muy habitual por ejemplo en los nuevos mercados, pero que
+ es inherente a casi cualquier proceso complejo.
+\end_layout
+
+\begin_layout Standard
+En estos casos ya no es posible reestimar el modelo viejo con las nuevas
+ incorporaciones sino que hay que reestimar todas conjuntamente, aunque
+ sí es posible a veces introducir como información a priori una aproximación
+ relajada de la distribución a posteriori de la vieja simulación.
+ En un modelo jerárquico esto es equivalente a sustituir la jerarquía de
+ nodos latentes por un solo nivel a priori que permite la simulación en
+ paralelo de cada nodo observacional como un modelo independiente de los
+ demás, lo cual proporciona un mecanismo de escalabilidad sumamente eficiente.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Previsión-bayesiana"
+
+\end_inset
+
+Previsión bayesiana
+\end_layout
+
+\begin_layout Standard
+Lo primero que hay que dejar claro es que en el sentido bayesiano, dar una
+ previsión de una variable aleatoria no consiste en dar un número específico;
+ ni la media, ni la moda ni ningún otro estadístico concreto, si no una
+ formulación de la distribución de probabilidad de dicha variable.
+ En algunas clases de modelos esa distribución se puede concretar en base
+ a ciertos parámetros, por ejemplo si es una normal basta con la media y
+ la varianza, pero el método no paramétrico más empleado es dar una muestra
+ suficientemente larga de simulaciones, lo cual en nuestro caso se concreta
+ en una cadena de Markov-Montecarlo (MCMC).
+ 
+\end_layout
+
+\begin_layout Standard
+Si en un modelo en el que algunos segmentos de regresión corresponden a
+ series temporales, incluimos en el intervalo muestral las fechas para las
+ que se quiere estimar la previsión introduciendo omitidos para los outputs,
+ pues lógicamente son desconocidos, por eso se quieren prever, entonces
+ la cadena de Markov correspondiente a esos omitidos tras la simulación
+ del modelo nos da un conjunto de realizaciones de la distribución conjunta
+ a posteriori de las previsiones correspondientes.
+ Esto es tanto como decir que la previsión es sólo un caso particular de
+ simulación de datos omitidos referidos al futuro.
+\end_layout
+
+\begin_layout Standard
+Si se conjuga este concepto con el anterior de reestimación (
+\begin_inset LatexCommand ref
+reference "sub:Reestimación"
+
+\end_inset
+
+) entonces se puede ver que una forma rápida de construir las previsiones
+ de un modelo ya estimado cuando aparecen nuevos datos input y/o output
+ es considerar como vigentes todas las variables salvo los omitidos del
+ output correspondientes al periodo de previsión.
+ El proceso de reestimación así definido tendría como resultado una cadena
+ de Markov que contendría la distribución conjunta de las previsiones en
+ el periodo especificado.
+ En esta redefinición del modelo original sólo sería necesario introducir
+ los últimos datos de cada segmento observacional necesarios para la evaluación
+ ARIMA.
+\end_layout
+
+\begin_layout Standard
+Por supuesto que se puede considerar obsoleta alguna variable más, lo cual
+ queda al albur del analista que debe decidirlo en función de la magnitud
+ de los cambios que se aprecien en los datos recién llegados, y de este
+ modo se obtiene la reestimación y la previsión en un sólo paso de simulación
+ parcial.
+\end_layout
+
+\begin_layout Section
+\begin_inset LatexCommand label
+name "sub:Inferencia-y-decisión"
+
+\end_inset
+
+Inferencia y decisión bayesianas
+\end_layout
+
+\begin_layout Standard
+Una vez obtenida la MCMC 
+\begin_inset Formula $\left\{ \Upsilon_{s}\right\} _{s=1\ldots S}$
+\end_inset
+
+ de la distribución a posteriori de la previsión 
+\begin_inset Formula $\Upsilon$
+\end_inset
+
+, hacer inferencia bayesiana es algo básicamente trivial, lo cual no sucede
+ por casualidad, sino porque ese es precisamente el objetivo de generar
+ muestras de cualquier tipo.
+\end_layout
+
+\begin_layout Itemize
+Para obtener un estadístico de tipo esperanza basta con calcular su promedio
+ a lo largo de las muestras:
+\begin_inset Formula \begin{equation}
+E\left[f\left(\Upsilon\right)\right]=\int_{\Omega}f\left(\Upsilon\right)\mathrm{d}\Upsilon=\frac{1}{S}\underset{s=1}{\overset{S}{\sum}}f\left(\Upsilon_{s}\right)\pm O\left(\frac{1}{\sqrt{S}}\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Para la media, por ejemplo, sería como es obvio
+\begin_inset Formula \begin{equation}
+\overline{\Upsilon}=\frac{1}{S}\underset{s=1}{\overset{S}{\sum}}\Upsilon_{s}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Una decisión bayesiana basada en una función de coste es también un caso
+ particular de estadístico esperanza.
+ Una función de coste muy habitual en los sistemas de atención dinámica
+ de la demanda, y que nos servirá perfectamente de ilustración del método,
+ es la función de coste asimétrico de servicio
+\begin_inset Formula \begin{equation}
+C\left(\widetilde{\Upsilon},\Upsilon\right)=\begin{cases}
+a\left(\Upsilon-\widetilde{\Upsilon}\right) & \forall\Upsilon>\widetilde{\Upsilon}\\
+b+c\left(\widetilde{\Upsilon}-\Upsilon\right) & \forall\Upsilon\leq\widetilde{\Upsilon}\end{cases}\end{equation}
+
+\end_inset
+
+que devuelve el coste de tomar la decisión 
+\begin_inset Formula $\widetilde{\Upsilon}$
+\end_inset
+
+ y que el valor real sea finalmente 
+\begin_inset Formula $\Upsilon$
+\end_inset
+
+ teniendo en cuenta que si sobran unidades, cada una de ellas con lleva
+ un coste 
+\begin_inset Formula $a>0$
+\end_inset
+
+ , el llamado coste unitario de devolución, mientras que si faltan unidades
+ puede haber un coste de oportunidad 
+\begin_inset Formula $b\geq0$
+\end_inset
+
+ independiente de cuantas se hayan dejado de servir, además del coste 
+\begin_inset Formula $c>0$
+\end_inset
+
+ de no haber vendido cada unidad que faltó.
+ La decisión óptima desde el punto de vista bayesiano sería la que minimiza
+ la esperanza del coste total
+\begin_inset Formula \begin{equation}
+E\left[C\left(\widetilde{\Upsilon},\Upsilon\right)\right]\simeq\overline{C\left(\widetilde{\Upsilon},\Upsilon\right)}=\frac{1}{S}\underset{s=1}{\overset{S}{\sum}}C\left(\widetilde{\Upsilon},\Upsilon_{s}\right)\end{equation}
+
+\end_inset
+
+Para encontrarla, siempre que se trate de una distribución unimodal, se
+ puede utilizar el método de la bisectriz o el de Fibonacci evaluando 
+\begin_inset Formula $\overline{C\left(\widetilde{\Upsilon},\Upsilon\right)}$
+\end_inset
+
+ dentro del intervalo 
+\begin_inset Formula $\widetilde{\Upsilon}\in\left[\underset{s=1\ldots S}{\min}\Upsilon_{s},\underset{s=1\ldots S}{\max}\Upsilon_{s}\right]$
+\end_inset
+
+.
+ Si no es unimodal existen métodos más complicados aunque es una situación
+ realmente extraña por lo que no merece la pena extenderse en ello.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Para obtener un estadístico de tipo cuantil simplemente se calcula dicho
+ cuantil sobre la muestra.
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Para la mediana, por ejemplo, se ordena la cadena de menor a menor
+\begin_inset Formula \begin{equation}
+\Upsilon_{s_{1}}\leq\Upsilon_{s_{2}}\leq\ldots\leq\Upsilon_{s_{S}}\end{equation}
+
+\end_inset
+
+y se toma el valor 
+\begin_inset Formula \begin{equation}
+Q_{1/2}=\begin{cases}
+\Upsilon_{s_{S/2}} & \forall s\,\mathrm{mod}\,2=1\\
+\frac{\Upsilon_{s_{\left(S-1\right)/2}}+\Upsilon_{s_{\left(S+1\right)/2}}}{2} & \forall s\,\mathrm{mod}\,2=0\end{cases}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Para dar un intervalo simétrico de confianza 
+\begin_inset Formula $1-\alpha$
+\end_inset
+
+ se calculan los cuantiles muestrales 
+\begin_inset Formula $Q_{\alpha/2}$
+\end_inset
+
+ y 
+\begin_inset Formula $Q_{1-\alpha/2}$
+\end_inset
+
+.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Para estimar la moda o valor más probable, siempre que se trate de una distribuc
+ión unimodal, claro está, se debe utilizar algún método de estimación de
+ la función de densidad, como el 
+\begin_inset LatexCommand htmlurl
+name "kernel-density"
+target "http://en.wikipedia.org/wiki/Kernel_density_estimation"
+
+\end_inset
+
+, y luego aplicar un método de optimización adecuado para encontrar su máximo.
+\end_layout
+
+\end_body
+\end_document
