@@ -1,0 +1,31 @@
+#ifndef ATL_INSTINFO_H
+   #define ATL_INSTINFO_H
+
+#define ATL_ARCH "HAMMER32SSE2"
+#define ATL_INSTFLAGS "-1 0 -a 1"
+#define ATL_F2CDEFS "-DAdd__ -DF77_INTEGER=int -DStringSunStyle"
+#define ATL_ARCHDEFS "-DATL_OS_WinNT -DATL_ARCH_HAMMER -DGCCWIN -DUseClock -DATL_SSE2 -DATL_SSE1 -DATL_3DNow -DATL_GAS_x8632"
+#define ATL_DKCFLAGS "-fomit-frame-pointer -mfpmath=387 -O2 -falign-loops=4 -m32"
+#define ATL_DKC "gcc"
+#define ATL_SKCFLAGS "-fomit-frame-pointer -mfpmath=387 -O2 -falign-loops=4 -m32"
+#define ATL_SKC "gcc"
+#define ATL_DMCFLAGS "-fomit-frame-pointer -mfpmath=387 -O2 -falign-loops=4 -m32"
+#define ATL_DMC "gcc"
+#define ATL_SMCFLAGS "-fomit-frame-pointer -mfpmath=387 -O2 -falign-loops=4 -m32"
+#define ATL_SMC "gcc"
+#define ATL_ICCFLAGS "-DL2SIZE=4194304 -I/cygdrive/c/cygwin//prj/ATLAS/WINDOWS_AMD64ATHLON/include -I/prj/ATLAS/WINDOWS_AMD64ATHLON/..//include -I/prj/ATLAS/WINDOWS_AMD64ATHLON/..//include/contrib -DAdd__ -DF77_INTEGER=int -DStringSunStyle -DATL_OS_WinNT -DATL_ARCH_HAMMER -DGCCWIN -DUseClock -DATL_SSE2 -DATL_SSE1 -DATL_3DNow -DATL_GAS_x8632 -DPentiumCPS=2000 -fomit-frame-pointer -mfpmath=387 -O2 -falign-loops=4 -m32"
+#define ATL_ICC "gcc"
+#define ATL_F77FLAGS "-O -m32"
+#define ATL_F77 "g77"
+#define ATL_DKCVERS "gcc (GCC) 3.4.4 (cygming special, gdc 0.12, using dmd 0.125)"
+#define ATL_SKCVERS "gcc (GCC) 3.4.4 (cygming special, gdc 0.12, using dmd 0.125)"
+#define ATL_DMCVERS "gcc (GCC) 3.4.4 (cygming special, gdc 0.12, using dmd 0.125)"
+#define ATL_SMCVERS "gcc (GCC) 3.4.4 (cygming special, gdc 0.12, using dmd 0.125)"
+#define ATL_ICCVERS "gcc (GCC) 3.4.4 (cygming special, gdc 0.12, using dmd 0.125)"
+#define ATL_F77VERS "GNU Fortran (GCC) 3.4.4 (cygming special, gdc 0.12, using dmd 0.125)"
+#define ATL_SYSINFO "CYGWIN_NT-5.1 bernouilli 1.5.25(0.156/4/2) 2007-12-14 19:21 i686 Cygwin"
+#define ATL_DATE    "Mon Mar  3 22:42:10     2008"
+#define ATL_UNAM    "vdebuen"
+#define ATL_VERS    "3.8.1"
+
+#endif
