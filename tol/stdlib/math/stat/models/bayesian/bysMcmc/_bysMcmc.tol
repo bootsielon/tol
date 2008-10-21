@@ -123,7 +123,7 @@ NameBlock BysMcmc =
     Real report.kerDens.points = 0;
   //Generic flags
     //Number of existent realizations to be recovered from disk
-    Real do.resume = 0;
+    Real do.resume = False;
     //Enables or disables CODA and other diagnostic reports
     Real do.report = True;
     //Enables or disables in-sample evaluation of forecasting, filter, noise, 
