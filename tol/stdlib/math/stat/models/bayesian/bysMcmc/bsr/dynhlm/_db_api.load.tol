@@ -15,13 +15,15 @@
   //Se comprueba la unicidad de nombres y se indexa para acelerar búsquedas
   Real _check_unique = SetIndexByName(_.obs.node);
 
+
   ///////////////////////////////////////////////////////////////////////////
-  //Returns the asked serie of a node
-  Serie GetSerie(Text id_node, Text id_serie)
+  //Returns the asked serie or vector of a node
+  Anything GetSerie(Text id_node, Text id_serie)
   ///////////////////////////////////////////////////////////////////////////
   {
     (_.obs.node[id_node])::GetSerie(id_serie)
   };
+
   ///////////////////////////////////////////////////////////////////////////
   //Returns the asked non linear filter of a node
   NameBlock GetNonLinFlt(Text id_node, Text id_nonLinFlt)
@@ -129,12 +131,12 @@
     "SELECT \n"+
     "  A.vl_coef, Concat(B.id_gibbs_blk,'::',A.id_node,'::',A.id_parameter)  \n"+
     "FROM \n"+
-    "  "+dbName+"."+_table::ConstrLinComb+" as A \n"
-    "  "+dbName+"."+_table::Parameter+" as B \n"
+    "  "+dbName+"."+_table::ConstrLinComb+" as A, \n"+
+    "  "+dbName+"."+_table::Parameter+" as B \n"+
     "WHERE \n"+
     "  A.id_model='"+_.model.name+"' AND \n"+
     "  A.id_session='"+_.session.name+"' AND\n"+
-    "  A.nu_inequation="+IntText(b->nu_inequation)+" AND \n"
+    "  A.nu_inequation="+IntText(b->NumInequation)+" AND \n"+
     "  B.id_model='"+_.model.name+"' AND \n"+
     "  B.id_session='"+_.session.name+"' AND\n"+
     "  A.id_node=B.id_node AND \n"+
@@ -209,7 +211,7 @@ NameBlock LoadObsNode(Text dbName,
   });
 //WriteLn("TRACE LoadObsNode 5");
   NameBlock output = {BysMcmc::Bsr::DynHlm::BuildNode::Obs.Output(
-    BysMcmc::Bsr::DynHlm::BuildNode::Obs.Serie.Info(
+    BysMcmc::Bsr::DynHlm::BuildNode::Obs.Data.Info(
       id_node,db_output->id_series, 
       modelHandler::GetSerie(id_node, db_output->id_series), 
       0,
@@ -248,7 +250,7 @@ NameBlock LoadObsNode(Text dbName,
   {
     BysMcmc::Bsr::DynHlm::BuildNode::Obs.Input(
       db_inp->id_parameter,
-      BysMcmc::Bsr::DynHlm::BuildNode::Obs.Serie.Info(
+      BysMcmc::Bsr::DynHlm::BuildNode::Obs.Data.Info(
         id_node,db_inp->id_series, 
         modelHandler::GetSerie(id_node, db_inp->id_series),
         0,
@@ -284,7 +286,6 @@ NameBlock LoadObsNode(Text dbName,
   NameBlock buildTransFun(Bsr.DynHlm.DBStrObsTransFun db_tf)
   {
     Real p = Degree(Eval(db_tf->te_omega));
-    Serie output = modelHandler::GetSerie(id_node, db_tf->id_series);
     BysMcmc::Bsr::DynHlm::BuildNode::Obs.TransFun(
       id_node,
       db_tf->id_transferFunction,
@@ -292,7 +293,7 @@ NameBlock LoadObsNode(Text dbName,
       db_tf->te_delta,
       BysMcmc::Bsr::DynHlm::BuildNode::Obs.Serie.Info(
         id_node,db_tf->id_series, 
-        output,
+        modelHandler::GetSerie(id_node, db_tf->id_series),
         p,
         db_output->firstDate, 
         db_output->lastDate,
