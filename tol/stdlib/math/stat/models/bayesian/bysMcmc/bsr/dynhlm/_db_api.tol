@@ -112,11 +112,13 @@ NameBlock DBApi =
   Code ModSes.Pri.Equ.Create;
   Code ModSes.Pri.Output.Create;
   Code ModSes.Pri.Homog_1.Create;
+  Code ModSes.Pri.Out.Comb.Create;
 
   //Database tools related to mixed nodes of a model-session
   Set _tools.modses.mix = Include("_db_api.tools.modses.mix.tol");
   Code ModSes.Mix.Param.Create;
   Code ModSes.Mix.OrderRelation.Create;
+  Code ModSes.Mix.Constraint.Create;
   Code ModSes.Mix.Param.Delete;
   Code ModSes.Mix.Param.Rename;
 
@@ -135,3 +137,6 @@ NameBlock DBApi =
   Code GetLinearBlkEffects;
   Code Estim
 ]];
+
+
+
