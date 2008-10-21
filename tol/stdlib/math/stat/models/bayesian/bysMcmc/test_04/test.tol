@@ -18,16 +18,16 @@ WriteLn("Current Random Seed = "<<rndSeed);
 
 //////////////////////////////////////////////////////////////////////////////
 //NOTA IMPORTANTE: Los comentarios dentro de un NameBlock precedidos de ## 
-//significan que el mÃ©todo o miembro a continuaciÃ³n es obligatorio para 
+//significan que el método o miembro a continuación es obligatorio para 
 //ser usado por la API BsrHLM, debe estar presente con el mismo nombre, tipo y 
-//estructura interna. Por supuesto el contenido sÃ­ puede cambiar para 
+//estructura interna. Por supuesto el contenido sí puede cambiar para 
 //adaptarse al caso del modelo analizado.
-//Los precedidos de un sÃ³lo # son recomendables pero no obligatorios y se 
-//puede cambiar el nombre sin problemas pero respetando la acciÃ³n si es 
+//Los precedidos de un sólo # son recomendables pero no obligatorios y se 
+//puede cambiar el nombre sin problemas pero respetando la acción si es 
 //posible.
-//Los miembros y mÃ©todos de un NameBlock que empiezan con _ son privados y 
+//Los miembros y métodos de un NameBlock que empiezan con _ son privados y 
 //no se pueden acceder desde fuera, a noser que empiecen por _. en cuyo caso
-//son de sÃ³lo lectura, es decir, se pueden consultar pero no modificar desde
+//son de sólo lectura, es decir, se pueden consultar pero no modificar desde
 //fuera del NameBlock
 //////////////////////////////////////////////////////////////////////////////
 
@@ -38,31 +38,31 @@ Real BysMcmc::Bsr::DynHlm::DBApi::doQueryTrace := False;
 Real DBConnection::BsrHlm::Activate(0);
 
 //////////////////////////////////////////////////////////////////////////////
-WriteLn("Creando en la base de datos el Ã¡rea documental");
+WriteLn("Creando en la base de datos el área documental");
 //////////////////////////////////////////////////////////////////////////////
 
 //Identificador del objetivo modelo.
-//DeberÃ­a distinguir de forma inequÃ­vocamente el proyecto, el concepto que
+//Debería distinguir de forma inequívocamente el proyecto, el concepto que
 //se quiere analizar y otros detalles como el fechado o intervalo al que se 
 //refiere.
 //Se recomienda usar el mismo nombre del fichero y dejarlo fijo.
 Text id_model =  "Tdt.Test.Delta";
 
-//DescripciÃ³n del objetivo modelo
+//Descripción del objetivo modelo
 //Sin extenderse demasiado debe dejar muy claro l oque pretende el modelo
-Text ds_model = "Modelo generado automÃ¡ticamente por simulaciÃ³n para el "
-"chequeo de la implementaciÃ³n de la simulaciÃ³n de funciones de transferencia "
-"no lineales (delta), sobre un solo output y una sola funciÃ³n de "
+Text ds_model = "Modelo generado automáticamente por simulación para el "
+"chequeo de la implementación de la simulación de funciones de transferencia "
+"no lineales (delta), sobre un solo output y una sola función de "
 "transferencia, sin omitidos ni parte ARIMA";
 
-//Identificador de la sesiÃ³n o implementaciÃ³n
+//Identificador de la sesión o implementación
 //Es recomendable cambiarla cada vez que se produzca un cambio no trivial en 
-//la definiciÃ³n y que siga algÃºn tipo de orden, cronolÃ³gico, alfabÃ©tico u
+//la definición y que siga algún tipo de orden, cronológico, alfabético u
 //ordinal que permita a simple vista saber cual es anterior a otra.
-//Si una sesiÃ³n va asociada a un Ãºnico modelo es prudente que el nombre lo 
+//Si una sesión va asociada a un único modelo es prudente que el nombre lo 
 //recoja para evitar confusiones. En este caso se infija con A3Aud7CH como
 //abreviatura del nombre del modelo.
-Text id_session =  "SES_Tdt.Test.Delta.SLICE"+IntText(rndSeed);
+Text id_session =  "SES_Tdt.Test.Delta."+IntText(rndSeed);
 
 //Esta orden desbloquea todas las sesiones relativas a este modelo
 Real BysMcmc::Bsr::DynHlm::DBApi::Mod.SetBlocked(
@@ -72,14 +72,14 @@ Real BysMcmc::Bsr::DynHlm::DBApi::Mod.Delete(
   DBConnection::BsrHlm::_.defaultDB, id_model);
 
 
-//DescripciÃ³n de la sesiÃ³n o implementaciÃ³n
+//Descripción de la sesión o implementación
 //Se recomienda introducir un comentario sobre los cambios introducidos con
-//respecto a la Ãºltima sesiÃ³n
-Text ds_session =  "Modelo de un aÃ±o en diario con funciÃ³n de transferencia "
+//respecto a la última sesión
+Text ds_session =  "Modelo de un año en diario con función de transferencia "
 " omega_1/(1-delta_1*B) y un input de nivel";
 
 //Autores
-//Deben firmar al menos los que han hecho los cambios de la presente sesiÃ³n,
+//Deben firmar al menos los que han hecho los cambios de la presente sesión,
 //preferentemente con su email separados por ;
 Text ds_authors  = 
   "vdebuen@tol-project.org;";
@@ -93,11 +93,11 @@ Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Create(
   DBConnection::BsrHlm::_.defaultDB, id_model, id_session);
 
 //////////////////////////////////////////////////////////////////////////////
-WriteLn("Creando en la base de datos los niveles de la jerarquÃ­a");
+WriteLn("Creando en la base de datos los niveles de la jerarquía");
 //////////////////////////////////////////////////////////////////////////////
 Real {BysMcmc::Bsr::DynHlm::DBApi::ModSes.SetLevels(
   DBConnection::BsrHlm::_.defaultDB, id_model, id_session,
-  Real maxLatLevel = 0,       //MÃ¡ximo nivel de latencia
+  Real maxLatLevel = 0,       //Máximo nivel de latencia
   Real hasPrior    = False,   //Indica si hay nodo a priori
   Real hasMixture  = False)}; //Indica si hay restricciones que afectan a
                               //variables de distintos nodos
@@ -136,7 +136,7 @@ NameBlock GetTimeInterval(Date fst, Date lst)
 
 //////////////////////////////////////////////////////////////////////////////
 //Crea el manejador de series de un nodo observacional concreto
-//En este caso sÃ³lo hay un nodo observacional 
+//En este caso sólo hay un nodo observacional 
   NameBlock node.series.handler(Real nu_node)
 //////////////////////////////////////////////////////////////////////////////
 {[[
@@ -144,13 +144,13 @@ NameBlock GetTimeInterval(Date fst, Date lst)
   Text te_node = FormatReal(nu_node,"%04.0lf");
   //##Nombre del nodo
   Text _.id_node = "Obs.Node_"+te_node;
-  //##DescripciÃ³n del nodo
-  Text _.description = "Nodo observacional nÃºmero "+te_node;
+  //##Descripción del nodo
+  Text _.description = "Nodo observacional número "+te_node;
 
   //Para recorte de series input y output
   NameBlock time.interval = GetTimeInterval(y2008m01d01, y2008m12d31);
 
-  //GeneraciÃ³n de inputs
+  //Generación de inputs
   NameBlock gen.input(Real minCoef, Real maxCoef, Serie shape)
   {[[
     Serie  _.input  = time.interval::sub(shape,0);
@@ -161,14 +161,14 @@ NameBlock GetTimeInterval(Date fst, Date lst)
     Matrix _.param.denIni = Rand(0,1,0,0)
   ]]};
 
-  //GeneraciÃ³n de la funciones de transferencia
+  //Generación de la funciones de transferencia
   NameBlock gen.transFun(Real minCoef, Real maxCoef, Serie shape,
                          Real omega_deg, Real delta_deg)
   {[[
     Real _.minCoef = minCoef;
     Real _.maxCoef = maxCoef;
     Real  _.omega_deg = omega_deg;
-  //ARMS se cae sin mÃ¡s con delta de grado 2
+  //ARMS se cae sin más con delta de grado 2
     Real  _.delta_deg = delta_deg;
   //Real  _.delta_deg = 1;
     Polyn rand.omega(Real unused)
@@ -220,7 +220,7 @@ NameBlock GetTimeInterval(Date fst, Date lst)
     Matrix _.param.delta  = PolMat(F*(1-_.delta), _.delta_deg, 1);
     Matrix _.param.denIni = Tra(SerMat(_.denIni))
   ]]};
-  //GeneraciÃ³n de las series del modelo 
+  //Generación de las series del modelo 
   NameBlock real.data = 
   [[
     Set transFun = 
@@ -257,37 +257,37 @@ NameBlock GetTimeInterval(Date fst, Date lst)
     }))
   ]];
   
-  //#Contiene todas las series input y output con nombres Ãºnicos dentro
+  //#Contiene todas las series input y output con nombres únicos dentro
   //de cada nodo.
   Set _.series = [[real.data::output ]] << real.data::input;
   //#Se comprueba la unicidad de nombres y se indexa para acelerar 
-  //bÃºsquedas
+  //búsquedas
   Real _check_unique = SetIndexByName(_.series);
 
-  //##Devuelve una serie del nodo dado un identificador Ãºnico
+  //##Devuelve una serie del nodo dado un identificador único
   Serie GetSerie(Text id_serie)
   {
     _.series[id_serie]
   };
 
-  //##InformaciÃ³n adicional del modelo sobre el output
+  //##Información adicional del modelo sobre el output
   NameBlock _.output = 
   {[[
     //##Nombre con el que reconoce la serie en la base de datos
     Text _.name = "output";
     //##Serie output
     Serie _.serie = _.series::output;
-    //##NÃºmero de sigmas para la distribuciÃ³n a priori de los omitidos
-    //se multiplicarÃ¡ por la desviaciÃ³n tÃ­pica muestral de la serie.
-    //La media a priori serÃ¡ la de la propia serie.
+    //##Número de sigmas para la distribución a priori de los omitidos
+    //se multiplicará por la desviación típica muestral de la serie.
+    //La media a priori será la de la propia serie.
     Real _.mis_pri_sig_fac = 3;
-    //##Valor mÃ­nimo a priori para los omitidos
+    //##Valor mínimo a priori para los omitidos
     Real _.mis_pri_min     = -1/0;
-    //##Valor mÃ¡ximo a priori para los omitidos
+    //##Valor máximo a priori para los omitidos
     Real _.mis_pri_max     = +1/0;
-    //##Fecha inicial de estimaciÃ³n del nodo
+    //##Fecha inicial de estimación del nodo
     Date _.firstDate = time.interval::_.firstDate;
-    //##Fecha final de estimaciÃ³n del nodo
+    //##Fecha final de estimación del nodo
     Date _.lastDate = time.interval::_.lastDate;
     //##Parte ARIMA asociada
     Set _.arima = Copy(Empty)
@@ -302,73 +302,73 @@ NameBlock GetTimeInterval(Date fst, Date lst)
   };
 
   Real _.useRealDataAsInitValue = False;
-  //##InformaciÃ³n adicional del modelo sobre los inputs
-  //Cada elemento es un NameBlock cuyo nombre serÃ¡ el identificador en
+  //##Información adicional del modelo sobre los inputs
+  //Cada elemento es un NameBlock cuyo nombre será el identificador en
   //la base de datos de BsrHlm y es obligatorio que se llame igual que
   //la correspondiente serie input
   Set _.input = { SetOfNameBlock( 
   NameBlock constante = [[
     //##Serie input
-    //Los dÃ­as de fiesta la gente suele salir de casa mÃ¡s y ver menos tele
+    //Los días de fiesta la gente suele salir de casa más y ver menos tele
     Serie _.serie = _.series::constante;
-    //##Si es falso no se usarÃ¡ este input
+    //##Si es falso no se usará este input
     Real _.enabled = notNullDiff(_.serie);
-    //##NÃºmero de sigmas para la distribuciÃ³n a priori de los omitidos
+    //##Número de sigmas para la distribución a priori de los omitidos
     Real _.mis_pri_sig_fac =  5;
-    //##Valor mÃ­nimo a priori para los omitidos
+    //##Valor mínimo a priori para los omitidos
     Real _.mis_pri_min     =  -1/0;
-    //##Valor mÃ¡ximo a priori para los omitidos
+    //##Valor máximo a priori para los omitidos
     Real _.mis_pri_max     =  +1/0;
-    //##Valor inicial del parÃ¡metro
+    //##Valor inicial del parámetro
     Real _.initValue       =  If(!_.useRealDataAsInitValue,0,
                                  real.data::transFun::constante::_.coef);
-    //##Valor mÃ­nimo a priori del parÃ¡metro
+    //##Valor mínimo a priori del parámetro
     Real _.minimum         = -1/0;
-    //##Valor mÃ¡ximo a priori del parÃ¡metro
+    //##Valor máximo a priori del parámetro
     Real _.maximum         = +1/0
   ]], 
   NameBlock lunes = [[
     //##Serie input
-    //Los dÃ­as de fiesta la gente suele salir de casa mÃ¡s y ver menos tele
+    //Los días de fiesta la gente suele salir de casa más y ver menos tele
     Serie _.serie = _.series::lunes;
-    //##Si es falso no se usarÃ¡ este input
+    //##Si es falso no se usará este input
     Real _.enabled =notNullDiff(_.serie);
-    //##NÃºmero de sigmas para la distribuciÃ³n a priori de los omitidos
+    //##Número de sigmas para la distribución a priori de los omitidos
     Real _.mis_pri_sig_fac =  5;
-    //##Valor mÃ­nimo a priori para los omitidos
+    //##Valor mínimo a priori para los omitidos
     Real _.mis_pri_min     =  -1/0;
-    //##Valor mÃ¡ximo a priori para los omitidos
+    //##Valor máximo a priori para los omitidos
     Real _.mis_pri_max     =  +1/0;
-    //##Valor inicial del parÃ¡metro
+    //##Valor inicial del parámetro
     Real _.initValue       =  If(!_.useRealDataAsInitValue,0,
                                  real.data::transFun::lunes::_.coef);
-    //##Valor mÃ­nimo a priori del parÃ¡metro
+    //##Valor mínimo a priori del parámetro
     Real _.minimum         = -1/0;
-    //##Valor mÃ¡ximo a priori del parÃ¡metro
+    //##Valor máximo a priori del parámetro
     Real _.maximum         = +1/0
   ]], 
   NameBlock priMes = [[
     //##Serie input
-    //Los dÃ­as de fiesta la gente suele salir de casa mÃ¡s y ver menos tele
+    //Los días de fiesta la gente suele salir de casa más y ver menos tele
     Serie _.serie = _.series::priMes;
-    //##Si es falso no se usarÃ¡ este input
+    //##Si es falso no se usará este input
     Real _.enabled = notNullDiff(_.serie);
-    //#FunciÃ³n de transferencia.
+    //#Función de transferencia.
     Ratio _.transferFunction = If(!_.useRealDataAsInitValue,
       real.data::transFun::priMes::rand.transFun(0), 
       real.data::transFun::priMes::_.transFun);
-    //##NÃºmero de sigmas para la distribuciÃ³n a priori de los omitidos
+    //##Número de sigmas para la distribución a priori de los omitidos
     Real _.mis_pri_sig_fac =  5;
-    //##Valor mÃ­nimo a priori para los omitidos
+    //##Valor mínimo a priori para los omitidos
     Real _.mis_pri_min     =  -1/0;
-    //##Valor mÃ¡ximo a priori para los omitidos
+    //##Valor máximo a priori para los omitidos
     Real _.mis_pri_max     =  +1/0;
-    //##Valor inicial del parÃ¡metro
+    //##Valor inicial del parámetro
     Real _.initValue       =  If(!_.useRealDataAsInitValue,0,
       Coef(real.data::transFun::priMes::_.omega,0));
-    //##Valor mÃ­nimo a priori del parÃ¡metro
+    //##Valor mínimo a priori del parámetro
     Real _.minimum         = -1/0;
-    //##Valor mÃ¡ximo a priori del parÃ¡metro
+    //##Valor máximo a priori del parámetro
     Real _.maximum         = +1/0
   ]] )};
 
@@ -399,7 +399,7 @@ Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
 
 NameBlock config = BysMcmc::BuildFullConfig([[
 //MCMC dimensions
-  Real mcmc.burnin        =  500; 
+  Real mcmc.burnin        =  600; 
   Real mcmc.sampleLength  =  2000;
   Real mcmc.cacheLength   =  100;
 //MLS step configuration
@@ -444,7 +444,7 @@ NameBlock gibbs = If(!Card(nonLinFilter),
 
 /* */
 //////////////////////////////////////////////////////////////////////////////
-//EstimaciÃ³n del modelo con el sistema Bsr::DynHlm
+//Estimación del modelo con el sistema Bsr::DynHlm
 //////////////////////////////////////////////////////////////////////////////
 Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
 (
@@ -466,7 +466,7 @@ For(1,Card(series.handler::_.obs.node),Set(Real nu_node)
   NameBlock known = node::real.data;
   Set estim = (bsr.estim::eval.average)[nu_node];
   Set aux = [[
-    //Compara los valores de los parÃ¡metros reales y estimados
+    //Compara los valores de los parámetros reales y estimados
     Matrix param.cmp = known::param | Tra(bsr.estim::param.average);
     //Filtro real
     Serie Filter = known::filter, 
@@ -478,9 +478,9 @@ For(1,Card(series.handler::_.obs.node),Set(Real nu_node)
     Serie Noise.Estim = estim::serNoise;
     //Output real
     Serie Output = known::output, 
-    //PrevisiÃ³n
+    //Previsión
     Serie Forecast = estim::serForecast;
-    //Error en tÃ©rminos absolutos
+    //Error en términos absolutos
     Serie Error = Output-Forecast;
     //Error relativo medio
     Real Mape = AvrS(Abs((Output - Forecast)/Output))
