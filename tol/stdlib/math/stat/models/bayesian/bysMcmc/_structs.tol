@@ -44,6 +44,22 @@ Struct BysInf.Coda.Summary.Stats
 };  
 
 /////////////////////////////////////////////////////////////////////////////
+//Returned test of significance of parameters
+/////////////////////////////////////////////////////////////////////////////
+Struct BysInf.Param.Signif
+{
+  //Parameter identifier
+  Text varName_,   
+  //p-value for two-tailed test (null hypothesis - median is equal to 0)
+  Real pValue.isZero_, 
+  //p-value for left-tailed test (null hypothesis - median is positive)
+  Real pValue.isPos_, 
+  //p-value for right-tailed test (null hypothesis - median is negative)
+  Real pValue.isNeg_
+};  
+
+
+/////////////////////////////////////////////////////////////////////////////
 //Bayesian Diagnostics with method RCODA::raftery.diag
 /////////////////////////////////////////////////////////////////////////////
 Struct BysInf.Coda.Diag.Raftery
