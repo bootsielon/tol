@@ -1,0 +1,92 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : store_history.tol
+// PURPOSE : Almacena el instalador NSIS de TOLBase NSIS en el directorio
+//           history
+//////////////////////////////////////////////////////////////////////////////
+
+//Busca el instalador cuyo nombre es de la forma "tolbase-*-setup.exe"
+Set installerName = 
+{
+  Set aux1 = GetDir(".")[1];
+  Set aux2 = EvalSet(aux1,ToLower);
+  Set aux3 = Select(aux2, Real(Text fileName)
+  {
+    TextBeginWith(fileName, "tolbase-") &
+    TextEndAt    (fileName, "-setup.exe")
+  })
+};
+
+//Si se devuelve 0 es que todo ha ido bien. En caso contario el error es un 
+//número negativo que codifica el error ocurrido.
+Real errorNumber = Case
+(
+  //Si no se encuentra ningún instalador se devuelve error
+  Card(installerName)==0,
+  {
+    WriteLn("No se encuentra el instalador de TOLBase","E");
+    -1
+  },
+  //Si hay más de un instalador también se devuelve error
+  Card(installerName)>1,
+  {
+    WriteLn("Hay más de un instalador de TOLBase:\n"<<installerName,"E");
+    -2
+  },
+  //Si se encuentra un solo instalador se intenta procesar
+  Card(installerName)==1,
+  {
+    Text hist = "history";
+  //Se intenta crear el directorio de almacenamiento histórico
+    Real OSDirMake(hist);
+    Real ok1 = OSDirExist(hist);
+  //Si por algún motivo no es posible construirlo se da un error
+    If(!ok1, 
+    {
+      WriteLn("No se puede crear el directorio de almacenamiento historico "
+              "de instaladores '"+hist+"'","E");
+      -3
+    },
+    {
+      Text historicName = hist+"\\tolbase-"+ToName(Version)+"-setup.exe";
+      WriteLn("Se va a almacenar el instalador de TOLBase \n  "+
+              installerName[1]+"\ncomo\n  "+historicName+"\n");
+    //Se borra un eventual fichero almacenado previamente con el mismo nombre
+      Real OSFilRemove(historicName);
+    //Se intenta copiar el fichero en el directorio histórico
+      Real ok2 = OSFilCopy(installerName[1], historicName);
+      If(!ok2, 
+      {
+        WriteLn("No se puede copiar el instalador de TOLBase \n  "+
+              installerName[1]+"\ncomo\n  "+historicName+"\n","E");
+        -4
+      },
+      {
+      //Se intenta borrar el instalador original para limpiar el directorio
+      //NSIS en ulteriores sesiones
+        Real ok3 = OSFilRemove(installerName[1]);
+        If(ok3, 
+        {
+          Text order = "plink tdt@cvs.tol-project.org \"cp "
+            "/home/bayes/pub/bin/win/"+installerName[1]+" "+
+            "/home/bayes/pub/bin/win/"+Replace(historicName,"\\","/")+"\"";
+          WriteLn("almacenamiento del histórico en la web tol-project:\n"+order);
+          Real ok4 = OSCmdWait(order);
+          If(ok4, 0,
+          {
+            WriteLn("No se puede almacenar el histórico en la web tol-project","E");
+            -5
+          })
+        },
+        {
+          WriteLn("No se puede borrar el instalador de TOLBase "+
+                  installerName[1],"E");
+          -6
+        })
+      })
+    })
+  }
+);
+
+//Real Exit(errorNumber);
+
+/* */

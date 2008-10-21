@@ -1,0 +1,132 @@
+================================ UPTOL - HELP ================================
+
+ Version: development
+ Numero:  1.1.7
+ Rama:    trunk
+
+ La herramienta UPTOL tiene por objeto la generacion automatica de versiones 
+ binarias estandarizadas de TOLBase para windows para su publicacion en la 
+ web de tol-project. Tambien puede ser usada como mecanismo normal de trabajo
+ para la compilacion en lugar del IDE de Visual C++.
+
+ UPTOL es un proceso de actualizacion y compilacion automatica de TOL que
+ permite conectarse al repositorio CVS del codigo fuente TOL y descargar y
+ compilar el codigo fuente de TOL, TOLTCL y TOLBASE.
+
+ Como resultado final la distribucion de TOLBASE que esta en ActiveTOL es
+ actualizada con la compilacion mas reciente asi como con las actualizaciones
+ mas recientes de los scripts .tol del initLibrary y los scripts .tcl de
+ tolbase\lib.
+
+ Este programa solo funciona desde la consola de desarrollo STARTENV que se
+ distribuye conjuntamente con UPTOL en el directorio 
+ 
+   cvs.tol-project.org:/home/cvsroot/tolp/tdtdoc/win-uptol
+
+Antes de empezar a usar UPTOL Es necesario actualizarse a la rama de la versión 
+de TOL que se desea usar, y si se desea mantener diferentes versiones se deben 
+colocar varios win-uptol bajo directorios distintos.
+
+¡OJO! El directorio raiz donde se ubica win-uptol no puede contener la cadena 
+      CVS ni Makefile, sin distinguir mayusculas de minusculas, ni ninguna de 
+      las cadenas que aparezcan en el archivo exclude.lst, pues dejarían de
+      funcionar algunas ordenes de copia dando luga r a instalaciones 
+      incompletas.
+         
+ La primera vez que se ejecuta UPTOL se autoinstala descargando los paquetes
+ ActiveTol y win-tol-contrib correspondientes a la version correspondiente a 
+ la rama en el CVS del directorio tdtdoc/win-uptol que se este usando 
+ localemente, y es necesario abandonar la consola STARTENV y volver a cargarla 
+ antes de poder utilizar uptol de forma normal. En este proceso de instalacion 
+ se exportan las variables de entorno necesarias para poder compilar con el IDE 
+ de Visual C++ la rama concreta. Si se quiere usar el IDE para compilar otra 
+ rama se debe correr el correspondiente win-tol-contrib-*/setup.bat para 
+ exportar las variables que correspondan a la misma. Esto no afectara a las 
+ posteriores ejecuciones de uptol que cargara en el entorno local sus propias 
+ variables sin crear problemas al IDE.
+ 
+ Requiere la instalación previa y la inclusión en el path de windows de los
+ siguientes programas
+ 
+   WGET:  retrieve files from the WWW
+          http://gnuwin32.sourceforge.net/packages/wget.htm
+          
+   PuTTY: A Free Telnet/SSH Client (plink, pscp)
+          http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
+          
+   NSIS:  Nullsoft Scriptable Install System 
+          http://nsis.sourceforge.net/Download
+
+ Sintaxis:
+ =========
+
+ uptol [opciones] [usuario]
+  
+ usuario - debe ser un usuario del repositorio del cvs. anonymous es valido.
+           sino se especifica usuario se asume anonymous. Si usuario es 
+           CVSROOT Se usa el acceso al CVS definido en la variable del 
+           entorno CVSROOT que debe estar definida.
+           Basta con especificarlo la primera vez que se ejecuta UPTOL pues
+           para las siguientes queda alamcenado en el fichero .cvsopts.bat
+           y no es copnveniente cambiarlo posteriormente.
+           
+ opciones -
+ 
+   /?          muestra esta ayuda
+   
+   /jup        solo actualiza desde el CVS
+   
+   /cleandir   elimina todos los directorios que haya podido crear UPTOL en 
+               sesiones anteriores para forzar una reinstalación completa 
+    
+   /rebuild    compila las dll's y ejecutables limpiando el estado previo.
+   
+   /smartbuild compila solo los cambios añadidos desde la ultima compilacion.
+               Es la opcion por defecto si no se especifica /rebuild
+               
+   /tests      Ejecuta las baterias de test del modulo tol_tests
+
+   /no_tests   Fuerza que no se hagan los tests incluso con /dist
+   
+   /pnsis      empaqueta la distribucion del tolbase usando NSIS
+               (opcion en desarrollo)
+               
+   /dist       copia el instalador de Tolbase creado con NSIS hacia 
+               www.tol-project.org/downloads, si no existía lo crea, actualiza
+               el fichero de versión correspondiente en dicha web, crea o 
+               mueve el tag asociado en el CVS y almacena el instalador en el 
+               directorio history. Si no se ha especificado /no_tests se 
+               ejecutan los tests incluso aunque no se haya especificado /tests
+ 
+  
+ Ejemplos:
+ =========
+
+ 1) Instalar uptol para el usuario especificado en la variable CVSROOT
+
+      >uptol CVSROOT
+
+ 2) Instalar uptol para el usuario josp
+
+      >uptol josp    
+          
+ 3) Actualizar solo el codigo fuente desde el CVS
+
+      >uptol /jup
+        
+ 4) Bajar y compilar la version actual con el acceso especificado en la 
+    instalación
+
+      >uptol
+               
+ 5) Bajar y compilar la version actual con el acceso especificado en la 
+    instalación y probar que ejecuta correctamente los tests estándar
+
+      >uptol /tests
+               
+ 5) Proceso de actualización completa del instalador de TOLBase para windows 
+    en la web de tol-project
+
+      >uptol /rebuild /tests /pnsis /dist
+   
+================================ UPTOL - HELP ================================

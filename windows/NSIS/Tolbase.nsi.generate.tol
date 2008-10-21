@@ -1,0 +1,87 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE: Tolbase.nsi.generate.tol
+// Genera el archivo de creación del instalador de tolbase 
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Text tolbase.nsi.create(Text name, Real isFile)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text nameWin = Replace(name,"/","\\");
+  Text txt = If(isFile, 
+  {
+    "  File \""+nameWin+"\"\n"
+  },
+  {
+    Text aux = "  SetOutPath \""+nameWin+"\"\n";
+    Replace(aux,"..\\ActiveTOL","$INSTDIR")
+  });
+  txt
+};
+  
+//////////////////////////////////////////////////////////////////////////////
+  Text tolbase.nsi.delete(Text name, Real isFile)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text nameWin = Replace(name,"/","\\");
+  Text aux = If(isFile, 
+  {
+    "  Delete \""+nameWin+"\"\n"
+  },
+  {
+    "  RmDir  \""+nameWin+"\"\n"
+  });
+  Replace(aux,"..\\ActiveTOL","$INSTDIR")
+};
+  
+
+Real OSFilRemove("../ActiveTOL/bin/stdlib/last_tol_release_check.tol");
+
+Text CreateDirAndFiles = SetSum(RecDir.DoWithTree
+(
+  tolbase.nsi.create, 
+  "../ActiveTOL",  
+  "*", //Se procesan todos los ficheros
+  false,  
+  2, //Los ficheros se procesan en segundo lugar
+  1, //Los directorios se procesan en primer lugar
+  3, //Primero entra recursivamente en los directorios
+  0  //No muestra trazas
+));
+
+Text DeleteDirAndFiles = SetSum(RecDir.DoWithTree
+(
+  tolbase.nsi.delete, 
+  "../ActiveTOL",  
+  "*", false,  //Se procesan todos los ficheros
+  3, //Los ficheros se procesan en tercer lugar
+  2, //Los directorios se procesan en segundo lugar
+  1, //Primero entra recursivamente en los directorios
+  0  //No muestra trazas
+));
+
+Text Tolbase.nsi.template = ReadFile("Tolbase.nsi.template");
+
+Text release =
+{
+  Set aux = Tokenizer(Version," ");
+  aux[1]+" "+aux[2]
+};
+
+Text version =
+{
+  Set aux = Tokenizer(Version," ");
+  aux[1]
+};
+
+Text Tolbase.nsi = ReplaceTable(Tolbase.nsi.template,
+[[
+  [["##APP_VERSION##",version]],
+  [["##APP_RELEASE##",release]],
+  [["##CreateDirAndFiles##",CreateDirAndFiles]],
+  [["##DeleteDirAndFiles##",DeleteDirAndFiles]]
+]]);
+
+Text WriteFile("Tolbase.nsi", Tolbase.nsi);
+
+/* */
