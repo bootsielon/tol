@@ -300,16 +300,19 @@ Real Write.Constraints(NameBlock segmentOrFullModel, Real fileHandler)
   Set For(1, handler::Get.GenericConstraint.Size(0), Real(Real r) 
   {
     Set gc = handler::Get.GenericConstraint(r);
-    Real lb = GT(gc->LowerBound,-1/0);
-    Real ub = LT(gc->UpperBound,+1/0);
-    Text exp =  If(!Card(gc->LinearComb),"", SetSum(
+    Real lb = And(!IsUnknown(gc->LowerBound),GT(gc->LowerBound,-1/0));
+    //WriteLn("TRACE gc->LowerBound ="<<gc->LowerBound);
+    Real ub = And(!IsUnknown(gc->UpperBound),LT(gc->UpperBound,+1/0));
+    //WriteLn("TRACE gc->UpperBound ="<<gc->UpperBound);
+    //WriteLn("TRACE lb ="<<lb+" ub="<<ub);
+    Text expr =  If(!Card(gc->LinearComb),"", SetSum(
       EvalSet(gc->LinearComb, Text(Bsr.LinearCombTerm term)
       {
         If(term->Coefficient==0,"",
-          "" <<term->Coefficient+"*"<<term->Parameter)
+          RealTextS(term->Coefficient)+"*"<<term->Parameter)
       })));
     If(lb, FPutText(f, RealTextS(gc->LowerBound)+"<="+expr+";\n"));
-    If(ub, FPutText(f, RealTextS(gc->LowerBound)+">="+expr+";\n"));
+    If(ub, FPutText(f, RealTextS(gc->UpperBound)+">="+expr+";\n"));
     Real 0
   });
   WriteLn(_MID+"Escribiendo restricciones lineales explicitas ");
