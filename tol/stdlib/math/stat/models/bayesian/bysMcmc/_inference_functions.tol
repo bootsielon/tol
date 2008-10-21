@@ -120,13 +120,38 @@ Set get.coda.summary(Text                   name,
   Eval(name+".Coda.Summary=summary")
 };
 
-
+/////////////////////////////////////////////////////////////////////////////
+Set get.param.signif(Text                 name, 
+                     Set                  colNames,
+                     BysInf.Report.Config repCfg, 
+                     Set                  sample)
+//Builds the signification test of parameters
+/////////////////////////////////////////////////////////////////////////////
+{
+  If(repCfg->acf.lag_==0, Copy(Empty), {
+  Real CMsg::Phase::show(2,"1.5 BysMcmc::Inference::get.param.signif of "+name_);
+  Real n = Card(sample);
+  Real m = Rows(sample[1]);
+//If(n!=Card(colNames),error
+  Set test = For(1,n, Set(Real j)
+  {
+    Set test = AlgLib.OneSampleSignTest(sample[j], 0);
+    BysInf.Param.Signif
+    {
+      colNames[j],
+      Real isZero_ = test::bothtails,
+      Real isPos_  = test::lefttail,
+      Real isNeg_  = test::righttail
+    }
+  });
+  Eval(name+".Param.Signif=test")
+})};
 
 /////////////////////////////////////////////////////////////////////////////
-Set get.acf(Text                   name, 
-            Set                    colNames,
+Set get.acf(Text                 name, 
+            Set                  colNames,
             BysInf.Report.Config repCfg, 
-            Set                    sample)
+            Set                  sample)
 //Builds the sample autocorrelation function (ACF) of each parameter
 /////////////////////////////////////////////////////////////////////////////
 {
@@ -138,6 +163,7 @@ Set get.acf(Text                   name,
   Set aux = For(1,n, Matrix(Real j)
   {
     Matrix mc  = sample[j];
+    //Transforming to Serie in order to use AutoCor
     Serie  s   = MatSerSet(Tra(mc),C,Today)[1];
     Matrix acf = AutoCor(s,repCfg->acf.lag_);
     Eval(ToName(colNames[j])+".ACF = acf")
@@ -227,8 +253,9 @@ Set report(Text                 name_,
   Real n = Columns(mcmc);
   Real m = Rows   (mcmc);
   Set coda.raftery.diag = get.coda.raftery.diag(name, colNames, repCfg, mcmc);
-  Set coda.summary = get.coda.summary(name, colNames, repCfg, mcmc);
   Set sample = get.sample(name, colNames, repCfg, mcmc);
+  Set coda.summary = get.coda.summary(name, colNames, repCfg, mcmc);
+  Set param.signif = get.param.signif(name, colNames, repCfg, sample);
   Set acf = get.acf(name, colNames, repCfg, sample);
   Set histogram = get.histogram(name, colNames, repCfg, sample);
   Set kerDens = get.kerDens(name, colNames, repCfg, sample);
@@ -238,9 +265,10 @@ Set report(Text                 name_,
     colNames, 
     repCfg, 
     mcmc, 
-    sample,
     coda.raftery.diag, 
+    sample,
     coda.summary,
+    param.signif,
     acf, 
     histogram, 
     kerDens
@@ -262,6 +290,9 @@ Set report(Text                 name_,
     aux::coda.raftery.diag);
   Do PutDescription("The CODA summary information about each individual "
     "variable",
+    aux::coda.summary);
+  Do PutDescription("Test of parameter signification gives p-value of be zero, "
+    "positive or negative for each parameter",
     aux::coda.summary);
   Do PutDescription("Observed AutoCorrelation Function for each individual "
     "sample",aux::acf);

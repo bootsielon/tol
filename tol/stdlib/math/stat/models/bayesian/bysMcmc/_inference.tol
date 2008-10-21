@@ -22,8 +22,9 @@ NameBlock Inference =
 
   //public API
   Code get.coda.raftery.diag;
-  Code get.coda.summary;
   Code get.sample;
+  Code get.coda.summary;
+  Code get.param.signif;
   Code get.acf;
   Code get.histogram;
   Code get.kerDens;
