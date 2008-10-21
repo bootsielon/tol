@@ -14,6 +14,8 @@ NameBlock BuildNode =
   //Methods related to Observational nodes
   Set _build.node.obs = Include("_build.node.obs.tol");
   Code Obs.Serie.Info;
+  Code Obs.Vector.Info;
+  Code Obs.Data.Info;
   Code Obs.Input;
   Code Obs.TransFun;
   Code Obs.Output;
