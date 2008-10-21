@@ -81,85 +81,119 @@ Set GetLinearBlkEffects(Set colNames_,
 
   Set LinearBlk.Effects = EvalSet(series.handler::_.obs.node, Set(NameBlock nsh)
   {
+    Real outIsATimeSerie = ObjectExist("Serie",  "nsh::_.output::_.serie");
+    Real outIsAVector    = ObjectExist("Matrix", "nsr::_.output::_.vector");
+    Text grammar = If(outIsATimeSerie,"Serie","Matrix");
     WriteLn("[GetLinearBlkEffects] Building node "+nsh::_.id_node);
-    Set effect = EvalSet(nsh::_.input, Serie(NameBlock inp)
+    Set effect = EvalSet(nsh::_.input, Anything(NameBlock inp)
     {
       Text inpName = Name(inp);
-      WriteLn("[GetLinearBlkEffects] Building input "+inpName);
-      Ratio tf = If(!ObjectExist("Ratio","inp::_.transferFunction"),1/1,
-        inp::_.transferFunction);
-      Polyn omega = Numerator  (tf);
-      Polyn delta = Denominator(tf);
-      Real p = Degree(omega);
-      Real q = Degree(delta);
-      Real h = Max(p,q);
-      Real noTransFunFlag = h==0;
-     
-      Serie eff = Case(
-      Not(inp::_.enabled), 
+      Case(
+      outIsATimeSerie,
       {
-        inp::_.serie*0
-      },
-      noTransFunFlag,
-      {
-        Real coef = 
+        WriteLn("[GetLinearBlkEffects] Building time series input "+inpName);
+        Ratio tf = If(!ObjectExist("Ratio","inp::_.transferFunction"),1/1,
+          inp::_.transferFunction);
+        Polyn omega = Numerator  (tf);
+        Polyn delta = Denominator(tf);
+        Real p = Degree(omega);
+        Real q = Degree(delta);
+        Real h = Max(p,q);
+        Real noTransFunFlag = h==0;
+       
+        Serie eff = Case(
+        Not(inp::_.enabled), 
         {
-          Text varName = "LinearBlk::"+nsh::_.id_node+"::"+inpName+"::Coef";
-          Text varNameTol = ToName(varName);
-          Real k = FindIndexByName(colNames, varNameTol);
-          If(!k, WriteLn("Cannot find lineal parameter called "+
-            varNameTol+" in set \n"<<colNames,"E"));
-          MatDat(param,1,k)
-        };
-        inp::_.serie * coef
-      },
-      1==1,
-      {
-        Polyn omega.estim = SetSum(EvalSet(Monomes(omega),Polyn(Polyn mon)
-        {
-          Text varName = "OmegaBlk::"+nsh::_.id_node+"::"+
-                         inpName+"::NumDeg."+IntText(Degree(mon));
-          Text varNameTol = ToName(varName);
-          Real k = FindIndexByName(colNames, varNameTol);
-          If(!k, WriteLn("Cannot find omega parameter called "+
-            varNameTol+" in set \n"<<colNames,"E"));
-          MatDat(param,1,k)
-        }));
-        Polyn delta.estim = SetSum(EvalSet(Monomes(1-delta),Polyn(Polyn mon)
-        {
-          Text varName = "DeltaBlk::"+nsh::_.id_node+"::"+
-                         inpName+"::DenDeg."+IntText(Degree(mon));
-          Text varNameTol = ToName(varName);
-          Real k = FindIndexByName(colNames, varNameTol);
-          If(!k, WriteLn("Cannot find delta parameter called "+
-            varNameTol+" in set \n"<<colNames,"E"));
-          MatDat(param,1,k)
-        }));
-        Set denIni.estim = For(1,h,Real denIni.param(Real lag)
-        {
-          Text varName = "DeltaBlk::"+nsh::_.id_node+"::"+
-                         inpName+"::DenIni."+IntText(h-lag);
-          Text varNameTol = ToName(varName);
-          Real k = FindIndexByName(colNames, varNameTol);
-          If(!k, WriteLn("Cannot find delta init value parameter called "+
-            varNameTol+" in set \n"<<colNames,"E"));
-          MatDat(param,1,k)
-        });
-        If(!h, 
-        {
-          DifEq(tf, inp::_.serie)
+          inp::_.serie*0
         },
+        noTransFunFlag,
         {
-          Date fst.ser = First(inp::_.serie);
-          Date fst.p   = Succ(fst.ser, Dating(inp::_.serie), p);
-          Date fst.q   = Succ(fst.p,   Dating(inp::_.serie),-q);
-          Serie denIni.ser = MatSerSet(SetRow(denIni.estim), Dating(inp::_.serie), fst.q)[1];
-          DifEq(omega.estim/delta.estim, inp::_.serie, denIni.ser)
-        })
-      });
-      Eval(inpName+".Effect = eff")
+          Real coef = 
+          {
+            Text varName = "LinearBlk::"+nsh::_.id_node+"::"+inpName+"::Coef";
+            Text varNameTol = ToName(varName);
+            Real k = FindIndexByName(colNames, varNameTol);
+            If(!k, WriteLn("Cannot find lineal parameter called "+
+              varNameTol+" in set \n"<<colNames,"E"));
+            MatDat(param,1,k)
+          };
+          inp::_.serie * coef
+        },
+        1==1,
+        {
+          Polyn omega.estim = SetSum(EvalSet(Monomes(omega),Polyn(Polyn mon)
+          {
+            Text varName = "OmegaBlk::"+nsh::_.id_node+"::"+
+                           inpName+"::NumDeg."+IntText(Degree(mon));
+            Text varNameTol = ToName(varName);
+            Real k = FindIndexByName(colNames, varNameTol);
+            If(!k, WriteLn("Cannot find omega parameter called "+
+              varNameTol+" in set \n"<<colNames,"E"));
+            MatDat(param,1,k)
+          }));
+          Polyn delta.estim = SetSum(EvalSet(Monomes(1-delta),Polyn(Polyn mon)
+          {
+            Text varName = "DeltaBlk::"+nsh::_.id_node+"::"+
+                           inpName+"::DenDeg."+IntText(Degree(mon));
+            Text varNameTol = ToName(varName);
+            Real k = FindIndexByName(colNames, varNameTol);
+            If(!k, WriteLn("Cannot find delta parameter called "+
+              varNameTol+" in set \n"<<colNames,"E"));
+            MatDat(param,1,k)
+          }));
+          Set denIni.estim = For(1,h,Real denIni.param(Real lag)
+          {
+            Text varName = "DeltaBlk::"+nsh::_.id_node+"::"+
+                           inpName+"::DenIni."+IntText(h-lag);
+            Text varNameTol = ToName(varName);
+            Real k = FindIndexByName(colNames, varNameTol);
+            If(!k, WriteLn("Cannot find delta init value parameter called "+
+              varNameTol+" in set \n"<<colNames,"E"));
+            MatDat(param,1,k)
+          });
+          If(!h, 
+          {
+            DifEq(tf, inp::_.serie)
+          },
+          {
+            Date fst.ser = First(inp::_.serie);
+            Date fst.p   = Succ(fst.ser, Dating(inp::_.serie), p);
+            Date fst.q   = Succ(fst.p,   Dating(inp::_.serie),-q);
+            Serie denIni.ser = MatSerSet(SetRow(denIni.estim), Dating(inp::_.serie), fst.q)[1];
+            DifEq(omega.estim/delta.estim, inp::_.serie, denIni.ser)
+          })
+        });
+        Eval("Serie "+inpName+".Effect = eff")
+      },
+      outIsAVector,
+      {
+        WriteLn("[GetLinearBlkEffects] Building vector input "+inpName);
+        Matrix eff = Case(
+        Not(inp::_.enabled), 
+        {
+          inp::_.vector*0
+        },
+        noTransFunFlag,
+        {
+          Real coef = 
+          {
+            Text varName = "LinearBlk::"+nsh::_.id_node+"::"+inpName+"::Coef";
+            Text varNameTol = ToName(varName);
+            Real k = FindIndexByName(colNames, varNameTol);
+            If(!k, WriteLn("Cannot find lineal parameter called "+
+              varNameTol+" in set \n"<<colNames,"E"));
+            MatDat(param,1,k)
+          };
+          inp::_.vector * coef
+        });
+        Eval("Matrix "+inpName+".Effect = eff")
+      },
+      {
+        WriteLn("[GetLinearBlkEffects] Invalid input "+inpName, "E");
+        Real Stop
+      })
     });
-    Set Eval(nsh::_.id_node+".Effect=effect")
+    Set Eval("Set "+nsh::_.id_node+".Effect=effect")
   })
 };
 
