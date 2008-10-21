@@ -88,7 +88,8 @@ NameBlock BuildCycler(NameBlock modelSampler,
       "\n MaxTime               : "<<_mcmc.maxTime+" seconds",""));
   //Ensures path is all right 
     Real OSDirMake(GetFilePath(_.path));
-
+    Real numDec = 1+Ceil(Log(sampleLength)/Log(10));
+    Text numIterFmt = "% "+IntText(numDec)+".0lf";
   //Resume or clean old simulations
     Real savedSimulations = If(!resume_, 
     {
@@ -96,7 +97,12 @@ NameBlock BuildCycler(NameBlock modelSampler,
       0
     },
     {
-      If(!FileExist(_.path),0,
+      Real WriteLn(_MID+"Trying to resume MCMC from "<<_.path);
+      If(!FileExist(_.path),
+      {
+        Real WriteLn(_MID+"Cannot find MCMC at "<<_.path+" to resume","W");
+        0
+      },
       {
         Matrix old.mcmc = MatReadFile(_.path);
         Real m = Rows(old.mcmc);
@@ -104,20 +110,21 @@ NameBlock BuildCycler(NameBlock modelSampler,
         Case(
         Not(m),
         {
+          Real WriteLn(_MID+"Empty MCMC at "<<_.path+" to resume","W");
           Real OSFilRemove(_.path);
           0
         },
         n==_.n, 
         {
-          Real WriteLn(_MID+" resuming "<<m+" old simulations");
+          Real WriteLn(_MID+"resuming "<<m+" old simulations");
           Matrix lastRow = Sub(old.mcmc,m,1,1,_.n);
-        //WriteLn("TRACE "+_MID+" lastRow="<<lastRow);
+        //WriteLn("TRACE "+_MID+"lastRow="<<lastRow);
           Real _.sampler::setStore(lastRow);
           m
         },
         1==1,
         {
-          Real WriteLn(_MID+" Cannot resume due to old MCMC saved on "+
+          Real WriteLn(_MID+"Cannot resume due to old MCMC saved on "+
             _.path+" has "+IntText(n)+" columns instead "
             "of current nummber of parameters "+IntText(_.n)+".\n"
             "Old MCMC will be removed","W");
@@ -135,8 +142,8 @@ NameBlock BuildCycler(NameBlock modelSampler,
     Real _.notifier::simulating(0, 0);
     Real numErr0 = Copy(NError);
     Real numSim = savedSimulations+1;
-  //WriteLn("TRACE "+_MID+" savedSimulations="<<savedSimulations);
-  //WriteLn("TRACE "+_MID+" numSim="<<numSim);
+  //WriteLn("TRACE "+_MID+"savedSimulations="<<savedSimulations);
+  //WriteLn("TRACE "+_MID+"numSim="<<numSim);
     Real okMls = Case(Or(numSim>1, 
        config::mls.method==BysMcmc::Options::Mls.Method::None),
     { 
@@ -161,34 +168,39 @@ NameBlock BuildCycler(NameBlock modelSampler,
     Real end = !okMls;
     While(!end,
     {
-    //WriteLn("TRACE "+_MID+" 2");
+    //WriteLn("TRACE "+_MID+"2");
       Real doCache = Or(cacheLength_==1,numSim%cacheLength_==1);
-    //WriteLn("TRACE "+_MID+" 3");
+    //WriteLn("TRACE "+_MID+"3");
       Real If(doCache,
       {
         If(cacheLength_>1,
         {
-          Write(_MID+"Simulating iterations "+
-            IntText(numSim)+"-"+IntText(numSim+cacheLength_-1))
+          Write(" Simulating iterations "+
+            FormatReal(numSim,numIterFmt)+"-"+
+            FormatReal(numSim+cacheLength_-1,numIterFmt))
         },
         {
           Write(_MID+"Simulating iteration "+ IntText(numSim))
         });
-        If(!Rows(cache), WriteLn(" ... "),
+        If(And(cacheLength_>1,!Rows(cache)), WriteLn(" ... "),
         {
+          Real donePercent = 100*numSim / sampleLength;
           Real t2 = Copy(Time);
           Real _.time := (t2-t1)/cacheLength_;
-          WriteLn(" [time by simulation:"<<_.time+"]");
+          Real remain = _.time * (sampleLength-numSim);
+          WriteLn(" [done "+FormatReal(donePercent,"% 6.2lf")+"%]"+
+                  " [time/sim:"+FormatReal(_.time,"% 9.6lf")+" s]"+
+                  " [remaining "+FormatReal(remain,"% 6.0lf")+" s]");
           Real _.notifier::simulating(numSim-1, _.time);
           Real t1 := t2
         });
         1
       });
-    //WriteLn("TRACE "+_MID+" 4");
+    //WriteLn("TRACE "+_MID+"4");
       VMatrix draw_ = _.sampler::draw(numSim);
-    //WriteLn("TRACE "+_MID+" 5");
+    //WriteLn("TRACE "+_MID+"5");
       Matrix  draw  = VMat2Mat(draw_);
-    //WriteLn("TRACE "+_MID+" 6");
+    //WriteLn("TRACE "+_MID+"6");
       Matrix cache := cache << Tra(draw);
     //WriteLn("TRACE "+_MID+"7");
       Real If(doCache,
@@ -219,15 +231,15 @@ NameBlock BuildCycler(NameBlock modelSampler,
         ]]);
         Real end := True
       });
-    //WriteLn("TRACE "+_MID+" 8");
+    //WriteLn("TRACE "+_MID+"8");
       Real numSim := numSim+1
     });
     Matrix Do MatAppendFile(_.path, cache);
-    Real savedSimulations := sampleLength;
-    Real _.time := (Time - t0)/sampleLength;
+    Real savedSimulations := numSim;
+    Real _.time := (Time - t0)/numSim;
     WriteLn(" [time by simulation:"<<_.time+"]");
-    Real _.notifier::simulating(sampleLength, _.time);
-    //WriteLn("TRACE "+_MID+" 1");
+    Real _.notifier::simulating(numSim, _.time);
+    //WriteLn("TRACE "+_MID+"1");
     1
   };
 
