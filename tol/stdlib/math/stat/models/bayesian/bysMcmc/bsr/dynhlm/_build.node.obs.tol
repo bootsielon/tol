@@ -34,7 +34,13 @@ NameBlock Obs.Serie.Info(
   Text _.id_node = id_node;
   Text _.name = name;
   Serie _.serie = serie;
-  Real _.avg = AvrS(_.serie);
+  Real _.avg = 
+  {
+    Real aux = AvrS(_.serie);
+    If(IsUnknown(aux), WriteLn("Serie "+_.name+" is fully unknown","W"));
+    aux
+  };
+  Real _.stds = StDsS(_.serie);
   Real _.missing.sigmaFactor = missing.sigmaFactor; 
   Real _.missing.lowerBound  = missing.lowerBound; 
   Real _.missing.upperBound  = missing.upperBound;
@@ -60,6 +66,15 @@ NameBlock Obs.Serie.Info(
   TimeSet _.missing.dating = SerTms(_.missing.serie);
   //Sorted list of dates of missing values
   Set _.missing.dates = Dates(_.missing.dating, _.firstIniVal, _.lastDate);
+//Real _trace.1 = { WriteLn("TRACE [Obs.Serie.Info] 1 _.name = "<<_.name); 0};
+//Real _trace.2 = { WriteLn("TRACE [Obs.Serie.Info] 2 _.avg = "<<_.avg); 0};
+//Real _trace.3 = { WriteLn("TRACE [Obs.Serie.Info] 3 _.stds = "<<_.stds); 0};
+//Real _trace.4 = { WriteLn("TRACE [Obs.Serie.Info] 4 _.missing.sigmaFactor = "<<_.missing.sigmaFactor); 0};
+//Real _trace.5 = { WriteLn("TRACE [Obs.Serie.Info] 5 _.missing.lowerBound = "<<_.missing.lowerBound); 0};
+//Real _trace.6 = { WriteLn("TRACE [Obs.Serie.Info] 6 _.missing.upperBound = "<<_.missing.upperBound); 0};
+//Real _trace.7 = { WriteLn("TRACE [Obs.Serie.Info] 7 _.firstDate = "<<_.firstDate); 0};
+//Real _trace.8 = { WriteLn("TRACE [Obs.Serie.Info] 8 _.lastDate = "<<_.lastDate); 0};
+//Real _trace.9 = { WriteLn("TRACE [Obs.Serie.Info] 9 _.missing.dates = "<<_.missing.dates); 0};
   //Returns a unique identifier for a missing value
   Text missing.name(Date dte)
   {
@@ -70,30 +85,156 @@ NameBlock Obs.Serie.Info(
   //a known real datum or the identifier of a missing value
   Text get.coef(Real t)
   {
-  //WriteLn("TRACE get.coef t="<<t);
+  //WriteLn("TRACE [Obs.Serie.Info get.coef] 1 t="<<t);
     Date dte = _.dates[t+_.numIniVal];
+  //WriteLn("TRACE [Obs.Serie.Info get.coef] 2 dte="<<dte);
     Real x = SerDat(_.serie, dte);
+  //WriteLn("TRACE [Obs.Serie.Info get.coef] 3 x="<<x);
     If(IsUnknown(x),
        "+"+missing.name(dte),
        BysMcmc::Bsr::Import::RealTextS(x))
   };
   Text get.knownCoefOrAvg(Real t)
   {
-  //WriteLn("TRACE get.knownCoefOrAvg t="<<t);
+  //WriteLn("TRACE [Obs.Serie.Info get.knownCoefOrAvg] 1 t="<<t);
     Date dte = _.dates[t+_.numIniVal];
+  //WriteLn("TRACE [Obs.Serie.Info get.knownCoefOrAvg] 2 dte="<<dte);
     Real x = SerDat(_.serie, dte);
+  //WriteLn("TRACE [Obs.Serie.Info get.knownCoefOrAvg] 3 x="<<x);
     BysMcmc::Bsr::Import::RealTextS(If(IsUnknown(x),_.avg, x))
   };
   //Sorted list of variables related to missing values
-  Set _.missing = EvalSet(_.missing.dates,Set(Date dte)
+  Set _.missing = EvalSet(_.missing.dates,Set get.missing(Date dte)
   {
+  //WriteLn("TRACE [Obs.Serie.Info get.missing] 1 dte="<<dte);
     Bsr.Missing.Info(Text Name = missing.name(dte), 
-                     Real Average = AvrS(_.serie), 
-                     Real Sigma = StDsS(_.serie)*_.missing.sigmaFactor, 
+                     Real Average = _.avg, 
+                     Real Sigma = _.stds*_.missing.sigmaFactor, 
                      Real LowerBound = _.missing.lowerBound, 
                      Real UpperBound = _.missing.upperBound)
   })
 ]]};
+
+//////////////////////////////////////////////////////////////////////////////
+//Returns common information about a vector that will be used as output
+//or input of a dynamic observational node
+NameBlock Obs.Vector.Info(
+  //Node identifier                           
+  Text id_node,                           
+  //Time serie identifier must be unique along whole hierarchy
+  Text name,
+  //Time serie data
+  Matrix serie, 
+  //If there are missing values it will be added prior information about it
+  //multiplying the standard deviation of the serie by this factor. 
+  //If you don't have prior information about this set it to +1/0
+  Real missing.sigmaFactor, 
+  //Minimum feasible value for missing values. 
+  //If you don't have prior information about this set it to -1/0
+  Real missing.lowerBound, 
+  //Maximum feasible value for missing values. 
+  //If you don't have prior information about this set it to +1/0
+  Real missing.upperBound)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Text _.id_node = id_node;
+  Text _.name = name;
+  Matrix _.serie = serie;
+  Real _.avg = 
+  {
+    Real aux = MatAvr(_.serie);
+    If(IsUnknown(aux), WriteLn("Vector "+_.name+" is fully unknown","W"));
+    aux
+  };
+  Real _.stds = MatStDs(_.serie);
+  Real _.missing.sigmaFactor = missing.sigmaFactor; 
+  Real _.missing.lowerBound  = missing.lowerBound; 
+  Real _.missing.upperBound  = missing.upperBound;
+
+  //Number of needed initial values
+  Real _.numIniVal = numIniVal;
+  //Returns a unique identifier for a missing value
+  Text missing.name(Real num)
+  {
+    Text txt = IntText(num);
+    "MissingBlk::"+_.id_node+"::"+_.name+"::"+txt
+  };
+  //Returns the expression of the t-th regression coefficient that could be a
+  //a known real datum or the identifier of a missing value
+  Text get.coef(Real t)
+  {
+  //WriteLn("TRACE get.coef t="<<t);
+    Real x = MatDat(_.serie, t);
+    If(IsUnknown(x),
+       "+"+missing.name(num),
+       BysMcmc::Bsr::Import::RealTextS(x))
+  };
+  Text get.knownCoefOrAvg(Real t)
+  {
+  //WriteLn("TRACE get.knownCoefOrAvg t="<<t);
+    Real x = MatDat(_.serie, t);
+    BysMcmc::Bsr::Import::RealTextS(If(IsUnknown(x),_.avg, x))
+  };
+  //Sorted list of variables related to missing values
+  Set _.missing = EvalSet(Range(1,Rows(_.serie),1),Set(Real num)
+  {
+    Bsr.Missing.Info(Text Name = missing.name(num), 
+                     Real Average = _.avg, 
+                     Real Sigma = _.stds*_.missing.sigmaFactor, 
+                     Real LowerBound = _.missing.lowerBound, 
+                     Real UpperBound = _.missing.upperBound)
+  })
+]]};
+
+//////////////////////////////////////////////////////////////////////////////
+//Returns common information about a time serie that will be used as output
+//or input of a dynamic observational node
+NameBlock Obs.Data.Info(
+  //Node identifier                           
+  Text id_node,                           
+  //Time serie identifier must be unique along whole hierarchy
+  Text name,
+  //Time serie or vector data
+  Anything serie, 
+  //Number of needed initial values
+  Real numIniVal,
+  //The first date to be analyzed or UnknownDate if it's a vector
+  Date first, 
+  //The last date to be analyzed or UnknownDate if it's a vector
+  Date last, 
+  //If there are missing values it will be added prior information about it
+  //multiplying the standard deviation of the serie by this factor. 
+  //If you don't have prior information about this set it to +1/0
+  Real missing.sigmaFactor, 
+  //Minimum feasible value for missing values. 
+  //If you don't have prior information about this set it to -1/0
+  Real missing.lowerBound, 
+  //Maximum feasible value for missing values. 
+  //If you don't have prior information about this set it to +1/0
+  Real missing.upperBound)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text g = Grammar(serie);
+  Case(
+  g=="Serie", 
+  {
+  //WriteLn("TRACE [Obs.Data.Info] 1");
+    Obs.Serie.Info(
+      id_node, name, serie, numIniVal, first, last, 
+      missing.sigmaFactor, missing.lowerBound, missing.upperBound)
+  },
+  g=="Matrix",
+  {
+  //WriteLn("TRACE [Obs.Data.Info] 2");
+    Obs.Vector.Info(
+      id_node, name, serie, 
+      missing.sigmaFactor, missing.lowerBound, missing.upperBound)
+  },
+  {
+    WriteLn("[Obs.Data.Info] Invalid type "+g+" should be Serie or Matrix");
+    Real Stop
+  })
+};
 
 //////////////////////////////////////////////////////////////////////////////
 //Returns full information about a time serie that will be used as input of 
