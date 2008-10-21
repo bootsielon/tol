@@ -160,10 +160,8 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
     node::_.description
   );
   //WriteLn("TRACE ModSes.Obs.Create ok.1="<<ok.1);
-  Real outIsATimeSerie = ObjectExist("Serie","out::_.serie");
-  Real outIsNonLinearFilter = 
-      If(!ObjectExist("Real","out::_.nonLinFlt::_.isNonLinearFilter"), False,
-      out::_.nonLinFlt::_.isNonLinearFilter);
+  Real outIsATimeSerie = ObjectExist("Serie",  "out::_.serie");
+  Real outIsAVector    = ObjectExist("Matrix", "out::_.vector");
 
   Real ok.2 = Case(
   outIsATimeSerie,
@@ -180,36 +178,19 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       out::_.lastDate
     )
   },
-  outIsNonLinearFilter,
+  outIsAVector,
   {
-    WriteLn("  Non linear filter output "+out::_.name);
-    NameBlock nlf = out::_.nonLinFlt;
-    Text nlfDesc = "Block for user defined non linear filter of output "+out::_.name;
-    Text id_gibbs_lin_blk = "NonLinearFilterBlk"; 
-    Text clean.nlf.param.name(Text param)
-    {
-      Text aux = Replace(param,id_gibbs_lin_blk+"::"+id_node+"::","");
-      WriteLn("Replace('"+aux+"','"+id_gibbs_lin_blk+"::"+id_node+"::','')="+
-       aux);
-      aux
-    };
-    Set colNames = EvalSet(nlf::get.colNames(0),clean.nlf.param.name);
-    Matrix u = nlf::get.parameter(0);
-    Real ok.4.2 = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-      "INSERT INTO "+_table::NonLinFlt+"\n"
-      "VALUES('"+id_model+"','"+id_session+"','"+
-                 id_node+"','"+out::_.name+"',"+
-                 IntText(0)+","+
-                 IntText(Card(colNames))+")\n");
-    Real ok.4.3 = SetSum(For(1,Card(colNames),Real nlf.param(Real k)
-    {
-      BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.Param.Create(
-        dbName, model, session, id_node, 
-        colNames[k], 
-        id_gibbs_lin_blk,
-        MatDat(u,k,1),-1/0,1/0)
-    }));
-    And(ok.4.2, ok.4.3) 
+    WriteLn("  Vector output "+out::_.name);
+    BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.Output.Create
+    (
+      dbName, id_model, id_session, id_node, 
+      out::_.name, 
+      out::_.mis_pri_sig_fac,
+      out::_.mis_pri_min,
+      out::_.mis_pri_max,
+      UnknownDate,
+      UnknownDate
+    )
   },
   1==1,
   {
@@ -229,12 +210,49 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
     Real isNonLinearFilter = 
       If(!ObjectExist("Real","inp::_.isNonLinearFilter"), False,
       inp::_.isNonLinearFilter);
+    Real isNonLinearFilterInput = If(!isNonLinearFilter,False,
+    {
+      Card(inp::get.linBlkNames(0)) > 0
+    });
+    Real isNonLinearFilterOutput = And(isNonLinearFilter,!isNonLinearFilterInput);
     Real ok.4.j = Case(Not(inp::_.enabled), 
     {
       WriteLn("  Disabled input "+inpName);
       1
     }, 
-    isNonLinearFilter,
+    isNonLinearFilterOutput,
+    {
+      WriteLn("  Non linear filter output "+inpName);
+      NameBlock nlf = inp;
+      Text nlfDesc = "Block for user defined non linear filter of output "+inpName;
+      Text id_gibbs_lin_blk = "NonLinearFilterBlk"; 
+      Text clean.nlf.param.name(Text param)
+      {
+        Text aux = Replace(param,id_gibbs_lin_blk+"::"+id_node+"::","");
+        WriteLn("Replace('"+aux+"','"+id_gibbs_lin_blk+"::"+id_node+"::','')="+
+         aux);
+        aux
+      };
+      Set colNames = EvalSet(nlf::get.colNames(0),clean.nlf.param.name);
+      Matrix u = nlf::get.parameter(0);
+      Real ok.4.2 = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+        "INSERT INTO "+_table::NonLinFlt+"\n"
+        "VALUES('"+id_model+"','"+id_session+"','"+
+                   id_node+"','"+inpName+"',"+
+                   IntText(0)+","+
+                   IntText(Card(colNames))+")\n");
+      Real ok.4.3 = SetSum(For(1,Card(colNames),Real nlf.param(Real k)
+      {
+        WriteLn(" Insert param "+colNames[k]+" <-"<<MatDat(u,k,1));
+        BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.Param.Create(
+          dbName, model, session, id_node, 
+          colNames[k], 
+          id_gibbs_lin_blk,
+          MatDat(u,k,1),-1/0,1/0)
+      }));
+      And(ok.4.2, ok.4.3) 
+    },
+    isNonLinearFilterInput,
     {
       WriteLn("  Non linear filter input "+inpName);
       NameBlock nlf = inp;
@@ -384,6 +402,31 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
         //WriteLn("TRACE ModSes.Obs.Create ok.4.2="<<ok.4.2);
         And(ok.4.1,ok.4.2,ok.4.3,ok.4.4)
       })
+    },
+    ObjectExist("Matrix","inp::_.vector"),
+    {
+      WriteLn("  Vector input "+inpName);
+      Real ok.4.1 = BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.Param.Create
+      (
+        dbName, id_model, id_session, id_node, 
+        inpName+"::Coef",
+        "LinearBlk",
+        inp::_.initValue,
+        inp::_.minimum,
+        inp::_.maximum
+      );
+      //WriteLn("TRACE ModSes.Obs.Create ok.4.1="<<ok.4.1);
+      Real ok.4.2 = BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.Input.Create
+      (
+        dbName, id_model, id_session, id_node, 
+        inpName+"::Coef", 
+        inpName,
+        inp::_.mis_pri_sig_fac,
+        inp::_.mis_pri_min,
+        inp::_.mis_pri_max
+      );
+      //WriteLn("TRACE ModSes.Obs.Create ok.4.2="<<ok.4.2);
+      And(ok.4.1,ok.4.2)
     },
     1==1,
     {
