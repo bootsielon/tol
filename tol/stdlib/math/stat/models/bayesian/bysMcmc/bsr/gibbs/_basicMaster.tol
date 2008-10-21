@@ -22,6 +22,11 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
 
   //Internal reference to model definition
   Set _.modelDef = modelDef;
+  //External filter of output
+  Set _.externalFilter = Copy(Empty);
+  //Output after external filters
+  VMatrix _.Y = _.modelDef->Y;
+
   Text _.name = _.modelDef->DocInfo->Model.Name;  
   //Setting NameBlock description
   Text _.autodoc.description="Gibbs sampler for model "+_.name;
@@ -97,6 +102,20 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   VMatrix _.beta   = Rand(0,0,0,0);
 
   ////////////////////////////////////////////////////////////////////////////
+  Real DoExternalFilter(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.Y := _.modelDef->Y;
+    If(!Card(_.externalFilter), 1,
+    {
+      SetMin(EvalSet(_.externalFilter,VMatrix(NameBlock extflt)
+      {
+        extFlt::do.filter(_.Y)
+      }))
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   VMatrix findMatchingBeta(VMatrix givenInitVal)
   //Assigning initial values to linear block variables
   ////////////////////////////////////////////////////////////////////////////
@@ -159,11 +178,12 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     Real ok = _.lin.blk::initialize(beta0, _.modelDef->A, _.modelDef->a);
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 4");
     VMatrix _.beta   := _.lin.blk::_.blockDef::_.store;
-    VMatrix sig_0 = _.sig.blk::draw(0, _.modelDef::Y - _.modelDef::X*_.beta);
+    Real DoExternalFilter(0);
+    VMatrix sig_0 = _.sig.blk::draw(0, _.Y - _.modelDef->X*_.beta);
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 5");
-    VMatrix _.YplusV := _.outMis.blk::filter(_.modelDef::Y);
+    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 6");
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 7");
     VMatrix _.noise := _.YplusV-_.XplusU*_.beta;
     VMatrix arm = _.arm.blk::draw(0, _.noise,_.sig.blk::_.blockDef::_.store);
@@ -182,19 +202,20 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" draw.sig.lin 1.1");
+    Real DoExternalFilter(0);
     VMatrix om = If(Not(_.outMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
     {
       _.outMis.blk::draw(numSim,_.arm.blk,_.sig.blk::_.sigmaInv,
-                         _.modelDef::Y-_.XplusU*_.beta)
+                         _.Y-_.XplusU*_.beta)
     });
-    VMatrix _.YplusV := _.outMis.blk::filter(_.modelDef::Y);
+    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
   //WriteLn("TRACE"+_MID+" draw.sig.lin 1.3");
     VMatrix im = If(Not(_.inpMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
     {
       _.inpMis.blk::draw(numSim,_.arm.blk,_.sig.blk::_.sigmaInv, 
-                         _.beta, _.YplusV-_.modelDef::X*_.beta)
+                         _.beta, _.YplusV-_.modelDef->X*_.beta)
     });
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" draw.sig.lin 1.5");
     VMatrix _.noise := _.YplusV - _.XplusU*_.beta;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 2");
@@ -224,19 +245,20 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   VMatrix maxLikelihood(Real numIter)
   ////////////////////////////////////////////////////////////////////////////
   {
+    Real DoExternalFilter(0);
     VMatrix om = If(Not(_.outMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
     {
       _.outMis.blk::maxLikelihood(numSim,_.arm.blk,_.sig.blk::_.sigmaInv,
-                                  _.modelDef::Y-_.XplusU*_.beta)
+                                  _.Y-_.XplusU*_.beta)
     });
-    VMatrix _.YplusV := _.outMis.blk::filter(_.modelDef::Y);
+    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
   //WriteLn("TRACE"+_MID+" draw.sig.lin 1.3");
     VMatrix im = If(Not(_.inpMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
     {
       _.inpMis.blk::maxLikelihood(numSim,_.arm.blk,_.sig.blk::_.sigmaInv, 
-                                  _.beta, _.YplusV-_.modelDef::X*_.beta)
+                                  _.beta, _.YplusV-_.modelDef->X*_.beta)
     });
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" draw.sig.lin 1.5");
     VMatrix _.noise := _.YplusV - _.XplusU*_.beta;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 2");
@@ -296,6 +318,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_MID+"::setStore 1 values("<<Rows(values)+"x"<<Columns(values)+")");
     Set EvalSet(_.blocks, Real(NameBlock block)
     {
       If(Or(!(block::_.blockDef::enabled),
@@ -322,18 +345,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   {
     Set equIdx = (_.modelDef->NoiseDistrib)[segmentNum]->EquIdx;
     //VBR: Se asume que las ecuaciones de un segmento son consecutivas!
-    PutVMatBlock(_.modelDef::X, equIdx[1], column, Xj)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setSegmentOutput =
-  "";
-  Real setSegmentOutput(Matrix Yj, Real segmentNum)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Set equIdx = (_.modelDef->NoiseDistrib)[segmentNum]->EquIdx;
-    //VBR: Se asume que las ecuaciones de un segmento son consecutivas!
-    PutVMatBlock(_.modelDef::Y, equIdx[1], 1, Yj)
+    PutVMatBlock(_.modelDef->X, equIdx[1], column, Xj)
   };
 
 
@@ -345,14 +357,15 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   {
   //WriteLn("TRACE"+_MID+" eval 1");
     Real setStore(values);
+    Real DoExternalFilter(0);
   //WriteLn("TRACE"+_MID+" eval 2");
-    VMatrix _.YplusV := _.outMis.blk::filter(_.modelDef::Y);
-    VMatrix fullOutput.mis = _.outMis.blk::filter(_.modelDef::Y*0);
+    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
+    VMatrix fullOutput.mis = _.outMis.blk::filter(_.Y*0);
   //WriteLn("TRACE"+_MID+" eval 3");
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" eval 4");
     VMatrix _.beta := _.lin.blk::_.blockDef::_.store;
-    VMatrix fullFilter = _.modelDef::X*_.beta;
+    VMatrix fullFilter = _.modelDef->X*_.beta;
     VMatrix fullFilter.full = _.XplusU*_.beta;
     VMatrix fullFilter.mis = fullFilter.full - fullFilter;
     VMatrix fullNoise  = _.YplusV - fullFilter.full;
@@ -372,8 +385,9 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2");
       Text name = Replace(segment->Name,"::Noise","");
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.1");
-      Matrix output_ = VMat2Mat(SubRow(_.modelDef::Y,segment->EquIdx));
+      Matrix output_ = VMat2Mat(SubRow(_.modelDef->Y,segment->EquIdx));
       Matrix output.mis_ = VMat2Mat(SubRow(fullOutput.mis,segment->EquIdx));
+      Matrix output.extFil = VMat2Mat(SubRow(_.modelDef->Y-_.Y,segment->EquIdx));
       Matrix output.full = output_+output.mis_;
       Matrix output = IfMat(output.mis_,RProd(output_,?),output_);
       Matrix output.mis  = IfMat(output.mis_,output.mis_,RProd(output.mis_,?));
@@ -420,13 +434,14 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
       //WriteLn("TRACE"+_MID+" eval 7["<<k+"].4");
         Date first = ti->FirstDate;
         Date difFirst = Succ(first, ti->Dating, difDeg);
-        Serie serOutput      = MatSerSet(Tra(output),     ti->Dating, first)[1];
-        Serie serOutput.mis  = MatSerSet(Tra(output.mis), ti->Dating, first)[1];
-        Serie serOutput.full = MatSerSet(Tra(output.full),ti->Dating, first)[1];
-        Serie serFilter      = MatSerSet(Tra(filter),     ti->Dating, first)[1];
-        Serie serFilter.mis  = MatSerSet(Tra(filter.mis), ti->Dating, first)[1];
-        Serie serFilter.full = MatSerSet(Tra(filter.full),ti->Dating, first)[1];
-        Serie serNoise       = MatSerSet(Tra(noise),      ti->Dating, first)[1];
+        Serie serOutput        = MatSerSet(Tra(output),        ti->Dating, first)[1];
+        Serie serOutput.extFil = MatSerSet(Tra(output.extFil), ti->Dating, first)[1];
+        Serie serOutput.mis    = MatSerSet(Tra(output.mis),    ti->Dating, first)[1];
+        Serie serOutput.full   = MatSerSet(Tra(output.full),   ti->Dating, first)[1];
+        Serie serFilter        = MatSerSet(Tra(filter),        ti->Dating, first)[1];
+        Serie serFilter.mis    = MatSerSet(Tra(filter.mis),    ti->Dating, first)[1];
+        Serie serFilter.full   = MatSerSet(Tra(filter.full),   ti->Dating, first)[1];
+        Serie serNoise         = MatSerSet(Tra(noise),         ti->Dating, first)[1];
         If(hasArima,
         { 
           Serie serDifNoise  = MatSerSet(Tra(difNoise), ti->Dating, difFirst)[1];
@@ -438,19 +453,19 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
         },
         {
           Serie serForecast = MatSerSet(Tra(forecast), ti->Dating, first)[1];
-          [[sigma, stdErr, avr, serOutput, serOutput.mis, serOutput.full,
+          [[sigma, stdErr, avr, serOutput, serOutput.mis, serOutput.extFil, serOutput.full,
             serFilter, serFilter.mis, serFilter.full, serNoise, serForecast]]
         })
       },
       {
         If(hasArima,
         { 
-          [[sigma, stdErr, avr, output, output.mis, output.full, 
+          [[sigma, stdErr, avr, output, output.extFil, output.mis, output.full, 
             filter, filter.mis, filter.full, noise, forecast,
             difNoise, residuals, arima]]
         },
         {
-          [[sigma, stdErr, avr, output, output.mis, output.full, 
+          [[sigma, stdErr, avr, output, output.extFil, output.mis, output.full, 
             filter, filter.mis, filter.full, noise, forecast]]
         })
       });
@@ -465,6 +480,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Set eval(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
+    Real setStore(values);
     _eval(values, True, False)
   };
 /*
@@ -609,7 +625,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Matrix getInput(Anything resBlock, Set beta.index)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix X_U = _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix X_U = _.inpMis.blk::filter(_.modelDef->X);
     VMatrix X = SubCol(X_U,beta.index);
     VMat2Mat(subRegEquBlockV(resBlock, X))
   };
@@ -622,7 +638,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Matrix getOutput(Anything resBlock)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix Y = _.outMis.blk::filter(_.modelDef::Y);
+    VMatrix Y = _.outMis.blk::filter(_.modelDef->Y);
     VMat2Mat(subRegEquBlockV(resBlock, Y))
   };
 
@@ -648,7 +664,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Matrix getDifInputFull(Anything resBlock)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix X_U = _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix X_U = _.inpMis.blk::filter(_.modelDef->X);
     VMat2Mat(subDifRegEquBlockV(resBlock, X_U))
   };
 
@@ -660,7 +676,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Matrix getDifInput(Anything resBlock, Set beta.index)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix X_U = _.inpMis.blk::filter(_.modelDef::X);
+    VMatrix X_U = _.inpMis.blk::filter(_.modelDef->X);
     VMatrix X = SubCol(X_U,beta.index);
     VMat2Mat(subDifRegEquBlockV(resBlock, X))
   };
@@ -673,7 +689,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Matrix getDifOutput(Anything resBlock)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix Y_V = _.outMis.blk::filter(_.modelDef::Y);
+    VMatrix Y_V = _.outMis.blk::filter(_.modelDef->Y);
     VMat2Mat(subDifRegEquBlockV(resBlock, Y_V))
   };
 
