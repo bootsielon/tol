@@ -94,3 +94,93 @@ Real ModSes.Pri.Homog_1.Create(Text dbName,
   Eval("ModSes.Pri.Homog_1.Create."+id_node+".ok=ok")
 };
 
+//////////////////////////////////////////////////////////////////////////////
+/*
+Implements an a priori node for combinatorial output:
+
+/Sum_j Y^{ij}*beta_j ~ N (mu_i, sigma_i).  j = 1, ....., m-parameters
+                                           i = 1, .... , n-node equations
+
+Relevant arguments are:
+
+Set PriorInfo: Set of Sets, specifies the averages and sigma's of each node 
+               equation 
+               Set PriorInfo = [[    
+                             [[  mu_1, sigma_1  ]],
+                             [[  mu_2, sigma_2  ]],
+                                  ...........
+                             [[  mu_n, sigma_n  ]]
+                     
+                           ]]
+
+Set node_childs: Set Of NameBlocks, specifies the node and parameter's name of
+                 each beta_j
+
+ Set  node_childs = [[
+
+       NameBlock  beta1 = [[  Text _.id_node =   , Text _.id_parameter=   ]],
+       NameBlock  beta2 = [[  Text _.id_node =   , Text _.id_parameter=   ]],
+       ................
+       NameBlock  betaj = [[  Text _.id_node =   , Text _.id_parameter=   ]]
+     
+                    ]]   
+
+*/
+Real ModSes.Pri.Out.Comb.Create(Text dbName, 
+                               Text model, 
+                               Text session,
+                               Text id_node,
+                               Text description,
+                               Real number,  
+                               Set  PriorInfo, // [[ [[ mu_1,sigma_1 ]],
+                                               //    [[ mu_2,sigma_2 ]],
+                                               //       ...........  
+                                               // ]]
+                               Set  node_childs, //Set de NameBlocks 
+                               Matrix Y)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real ok = If(Card(node_childs)<1,
+  {
+    Text aux = If(Card(node_childs)," but one "," "); 
+    WriteLn("Cannot create prior node "+id_node+" due to related input"
+    " is disabled along all"+aux+"child nodes","W");
+    0
+  },
+  {
+    WriteLn("Creating latent node "+id_node+" for "<<Rows(Y)+
+            " observational nodes");
+    Real ok.1 = ModSes.Node.Create
+    (
+      dbName, id_model, id_session, id_node, 
+      "PRI",
+      888888888,
+      number,
+      description
+    );
+
+    Real ok.2 = SetMin ( For (1, Rows(Y), Real (Real i){//ciclo ecuaciones nodo
+          Real ModSes.Pri.Equ.Create (dbName, model, session, id_node,
+                      i,
+                      PriorInfo[i][1],
+                      PriorInfo[i][2]);
+                      
+             Set For (1, Card(node_childs), Real (Real j){
+                  NameBlock child = node_childs[j];
+                  Real If (MatDat(Y,i,j)==0,0,    
+                    Real ModSes.Pri.Output.Create(dbName, model, session,
+                     id_node,
+                     i,
+                     child::_.id_node, 
+                     child::_.id_parameter,
+                     MatDat(Y,i,j)) )
+
+              }); 
+           1
+        })); // Fin por ecuaciones nodo
+        And(ok.1,ok.2) 
+   });  //Fin If ok
+     Eval("ModSes.Pri.Out.Comb.Create."+id_node+".ok=ok")
+}; // Fin de la funcion ModSes.Pri.Out.Comb.Create
+Code PutDescription ("fulano",Code ModSes.Pri.Out.Comb.Create);
+
