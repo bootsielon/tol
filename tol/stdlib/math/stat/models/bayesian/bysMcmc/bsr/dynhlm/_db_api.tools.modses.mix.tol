@@ -157,3 +157,101 @@ Real ModSes.Mix.OrderRelation.Create(Text dbName,
   "'"+nodeUpper+"','"+parameterUpper+"')");
   Eval("ModSes.Mix.OrderRelation.Create.ok=ok")
 };
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.ModSes.Mix.Constraint.Create =
+"Inserts a new arbitrary constraint
+
+  leftBound <= linComb[1] + ··· + linComb[k] <= rightBound
+
+where 
+  leftBound could be -1/0 or ? if there are no lower limit
+  rightBound could be +1/0 or ? if there are no upper limit
+  Each element of linComb is a NameBlock like this
+  [[
+    Text _.id_node; 
+    Text _.id_parameter; 
+    Real _.coef
+  ]]
+
+Example: In order to insert this inequation
+
+  3.5*nodo1::beta2 -2.1*nodo2::beta5 <= 7.1*nodo1::beta3
+
+Syntax could be 
+
+  Real { ModSes.Mix.Constraint.Create(
+    my_dbName, my_model,my_session,
+    Real leftBound = -1/0,
+    Set  linComb = SetOfNameBlock
+    ([[
+      Text _.id_node = \"nodo1\"; 
+      Text _.id_parameter = \"beta2\"; 
+      Real _.coef = 3.5
+    ]],[[
+      Text _.id_node = \"nodo2\"; 
+      Text _.id_parameter = \"beta5\"; 
+      Real _.coef = -2.1
+    ]],[[
+      Text _.id_node = \"nodo1\"; 
+      Text _.id_parameter = \"beta3\"; 
+      Real _.coef = -7.1
+    ]]),
+    Real rightBound = 0)};
+";
+Real ModSes.Mix.Constraint.Create(Text dbName,
+                                  Text model,
+                                  Text session,
+                                  Real leftBound,
+                                  Set  linComb,
+                                  Real rightBound)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real numInequation = 
+  {
+    Real aux = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT max(nu_inequation) FROM "+dbName+"."+_table::ConstrBorder+"\n"
+    "WHERE id_model='"+model+"' AND\n"
+    "      id_session='"+session+"';","")[1][1];
+    If(IsUnknown(aux),1,aux+1)
+  };
+  Set nodes = Classify(linComb,Real(NameBlock a, NameBlock b)
+  {
+    Compare(a::_.id_node, b::_.id_node)
+  });
+  Text id_node = If(Card(nodes)==1, (linComb[1])::_.id_node,
+  {
+    Real If(Not(BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    "SELECT count(*) FROM "+dbName+"."+_table::Node+"\n"
+    "WHERE id_model='"+model+"' AND\n"
+    "      id_session='"+session+"' AND\n"
+    "      id_node='MIXTURE';","")[1][1]),
+    {
+      Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+        "INSERT INTO "+_table::Node+"\n"
+        "VALUES('"+model+"','"+session+"','MIXTURE','MIX',999999999,-1,'')\n")
+    });
+    "MIXTURE"
+  });
+  Real ok.1 = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::ConstrBorder+"\n"+
+  "VALUES('"+model+"','"+session+"',"+
+  IntText(numInequation)+","+
+  "'"+id_node+"',"+
+  BysMcmc::Bsr::DynHlm::DBApi::SqlFormatReal(leftBound)+","+
+  BysMcmc::Bsr::DynHlm::DBApi::SqlFormatReal(rightBound)+");");
+  Real ok.2 = SetMin(EvalSet(linComb, Real(NameBlock a)
+  {
+    BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+    "INSERT INTO "+dbName+"."+_table::ConstrLinComb+"\n"+
+    "VALUES('"+model+"','"+session+"',"+
+    IntText(numInequation)+","+
+    "'"+a::_.id_node+"',"+
+    "'"+a::_.id_parameter+"',"+
+    BysMcmc::Bsr::DynHlm::DBApi::SqlFormatReal(a::_.coef)+");")
+  }));
+  Eval("ModSes.Mix.Constraint.Create.ok=ok.1 & ok.2")
+};
+PutDescription(_.autodoc.member.ModSes.Mix.Constraint.Create,
+               ModSes.Mix.Constraint.Create);
