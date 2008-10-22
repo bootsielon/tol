@@ -16,6 +16,7 @@
 //Controlled case with bounds [-1,1] for debug
 NameBlock check.data.01 = 
 [[
+  Text _.name = "check.data.01";
   Real n = 1;
   Real r = 2;
   Real j = 1;
@@ -27,6 +28,7 @@ NameBlock check.data.01 =
 //Controlled case with bounds [-Inf,-1] for debug
 NameBlock check.data.02 = 
 [[
+  Text _.name = "check.data.02";
   Real n = 1;
   Real r = 2;
   Real j = 2;
@@ -38,6 +40,13 @@ NameBlock check.data.02 =
 //Random case
 NameBlock rand.check.data(Real unused)
 {[[
+  Real seed = 
+  {
+    Real aux = IntRand(1, 999999999);
+    Real PutRandomSeed(aux);
+    GetRandomSeed(0)
+  };
+  Text _.name = "rand.check.data."+IntText(seed);
   Real n = IntRand(1,3);
   Real r = IntRand(1,5);
   Real j = IntRand(1,n);
@@ -49,16 +58,22 @@ NameBlock rand.check.data(Real unused)
 /* */
 
 NameBlock Checker(NameBlock data)
-{[[
+{
+  NameBlock aux = [[
   NameBlock _.data = data;
-  Real ok.1 = LE(VMatMax(_.data::D*_.data::z-_.data::d),0);
+  Real ok.0 = LE(VMatMax(_.data::D*_.data::z-_.data::d),0);
   Set bounds = GetBoundsInPolytope(_.data::D,_.data::d,_.data::z,_.data::j);
-  Real tol = data::r * data::n;
+  Real tol = 100*(data::r * data::n);
 //Real trc.1={WriteLn("bounds=["<<bounds::Lower+","<<bounds::Upper+"]"),0};
-  Real checkBounds(Real zj)
-  {
-    VMatrix z_ = Copy(data::z);
-    Real PutVMatDat(z_,_.data::j,1,zj);
+  NameBlock checkBounds(Real zj_)
+  {[[
+    Real zj = zj_;
+    VMatrix z_ = 
+    {
+      VMatrix aux = Copy(data::z);
+      Real PutVMatDat(aux,_.data::j,1,zj);
+      aux
+    };
     VMatrix g = _.data::D*z_-_.data::d;
     Real g.max = (VMatMax(g)+tol)-tol;
     Real ok = LE(g.max,0);
@@ -69,35 +84,45 @@ NameBlock Checker(NameBlock data)
     WriteLn("  g.max ="<<g.max);
 /* */
     ok
-  };
+  ]]};
   
   Real lower = Max(bounds::Lower,-100000);
   Real upper = Min(bounds::Upper,+100000);
 
-  Real ok.2 = checkBounds(lower);
-  Real ok.3 = checkBounds(upper);
+  NameBlock cb.1 = checkBounds(lower);
+  Real ok.1 = cb.1::ok;
+  NameBlock cb.2 = checkBounds(upper);
+  Real ok.2 = cb.2::ok;
+  NameBlock cb.3 = checkBounds((lower+upper)/2);
+  Real ok.3 = cb.3::ok;
+  NameBlock cb.4 = checkBounds(lower-0.00001);
+  Real ok.4 = If(bounds::Lower>-1/0, Not(cb.4::ok), cb.4::ok);
+  NameBlock cb.5 = checkBounds(upper+0.00001);
+  Real ok.5 = If(bounds::Upper<+1/0, Not(cb.5::ok), cb.5::ok);
 
-  Real ok.4 = 
-  {
-    Real aux = checkBounds(lower-0.00001);
-    If(bounds::Lower>-1/0, !aux, aux)
-  };
-  Real ok.5 = 
-  {
-    Real aux = checkBounds(upper+0.00001);
-    If(bounds::Upper<+1/0, !aux, aux)
-  };
-  Real ok = And(ok.1,ok.2,ok.3,ok.4,ok.5)
-
-]]};
+  Real ok = And(ok.0,ok.1,ok.2,ok.3,ok.4,ok.5) ]];
+  Eval(data::_.name+"=aux")
+};
 
 Set check.all = 
 [[
   NameBlock check.01 = Checker(check.data.01);
   NameBlock check.02 = Checker(check.data.02)
 ]] <<
-For(1,1000,NameBlock(Real iter) { Checker(rand.check.data(0)) });
+For(1,10000,NameBlock(Real iter) 
+{ 
+  NameBlock aux = Checker(rand.check.data(0));
+  Real If(Not(aux::ok), 
+  {
+    Text path = "fail/"+aux::_.data::_.name;
+    WriteLn("Case "+path+" has failed and will be stored.","E");
+    Real Ois.Store([[aux]],path);
+    0
+  });
+  Eval(aux::_.data::_.name+"=aux")
+});
 
+Set failed = Select(check.all,  Real(NameBlock chk) { Not(chk::ok)} );
 Set ok.all = EvalSet(check.all, Real(NameBlock chk) { chk::ok} );
 Real ok = SetMin(ok.all);
 
