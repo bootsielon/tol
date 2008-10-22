@@ -1503,6 +1503,11 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   //Std(BText("EvMember Branch 2 \n")+BParser::Unparse(Branch(tre,2)," ", " ")+"\n"+BParser::treWrite((List*)Branch(tre,2),"  "));
     BToken*        arg2       = BParser::treToken(branch2);
     const BText&   memberName = arg2->Name();
+  //if(memberName=="filter")
+  //{
+  //  Std(BText("EvMember Branch 1 \n")+BParser::Unparse(Branch(tre,1)," ", " ")+"\n"+BParser::treWrite((List*)Branch(tre,1),"  "));
+  //  uns = GraNameBlock()->LeftEvaluateTree(Branch(tre,1));
+  //}
     if(!uns || uns->Grammar()!=GraNameBlock())
     {
       oldEnabled = BOut::Disable();
