@@ -212,7 +212,8 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       inp::_.isNonLinearFilter);
     Real isNonLinearFilterInput = If(!isNonLinearFilter,False,
     {
-      Card(inp::get.linBlkNames(0)) > 0
+      If(!FunctionExist("Set","inp::get.linBlkNames"), False,
+      Card(inp::get.linBlkNames(0)) > 0)
     });
     Real isNonLinearFilterOutput = And(isNonLinearFilter,!isNonLinearFilterInput);
     Real ok.4.j = Case(Not(inp::_.enabled), 
