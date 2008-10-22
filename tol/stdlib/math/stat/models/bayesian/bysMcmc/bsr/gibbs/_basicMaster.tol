@@ -105,12 +105,18 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Real DoExternalFilter(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+"DoExternalFilter 1");
     VMatrix _.Y := _.modelDef->Y;
+  //WriteLn("TRACE"+_MID+"DoExternalFilter 2");
     If(!Card(_.externalFilter), 1,
     {
-      SetMin(EvalSet(_.externalFilter,VMatrix(NameBlock extflt)
+    //WriteLn("TRACE"+_MID+"DoExternalFilter 3");
+      SetMin(EvalSet(_.externalFilter,Real(NameBlock extFlt)
       {
-        extFlt::do.filter(_.Y)
+      //WriteLn("TRACE"+_MID+"DoExternalFilter 4 "+extFlt::_.blockDef::_.name);
+        Real ok = extFlt::filter(_.Y);
+      //WriteLn("TRACE"+_MID+"DoExternalFilter 5");
+        ok
       }))
     })
   };

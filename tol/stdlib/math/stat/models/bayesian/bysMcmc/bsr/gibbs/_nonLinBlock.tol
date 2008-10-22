@@ -290,11 +290,17 @@ Text _.autodoc.member.NonLinBlock =
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real do.filter(VMatrix Y)
+  Real filter(VMatrix Y)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+"do.filter 1");
     Matrix Y_ = VMat2Mat(SubRow(Y,_.segment->EquIdx));
-    PutVMatBlock(Y, (_.segment->EquIdx)[1], 1, Y_-_.Fi)
+  //WriteLn("TRACE"+_MID+"do.filter 2");
+    Matrix Yflt = Y_-_.Fi;
+  //WriteLn("TRACE"+_MID+"do.filter 3");
+    Real ok = PutVMatBlock(Y, (_.segment->EquIdx)[1], 1, Yflt);
+  //WriteLn("TRACE"+_MID+"do.filter 4");
+    ok
   };
 
   ////////////////////////////////////////////////////////////////////////////
