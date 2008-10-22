@@ -191,6 +191,11 @@ NameBlock ARMAProcess =
   ]]};
 
   //////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.Eval.Almagro =
+  "Given an ARMA process ar(B)*z[t] = ma(B)*a[t] builds these methods:\n"
+  " Draw.U_cond_Z: generate random initial values conditioned to noise\n";
+  " LogLH.Z_cond_U: conditional likelihood of noise conditioned to given "
+                    "initial values\n.";
   NameBlock Eval.Almagro(Polyn ar, Polyn ma, VMatrix z_, Real sigma)
   //////////////////////////////////////////////////////////////////////////////
   {
@@ -334,20 +339,7 @@ NameBlock ARMAProcess =
 
     VMatrix _R0100 = Rand(0,  1,0,0);
     VMatrix _Rq100 = Rand(_.q,1,0,0);
-/*    
-    ////////////////////////////////////////////////////////////////////////////
-    Real LogLH.Z_cond_U(Polyn ar, Polyn ma, VMatrix u)
-    ////////////////////////////////////////////////////////////////////////////
-    {
-      VMatrix H1 = Pol2VMat(F^_.p*(1-ar), _.m, _.p);
-      VMatrix H2 = Pol2VMat(F^_.q*(ma-1), _.m, _.q);
-      VMatrix H = H1 | H2;
-      VMatrix Hu = H*u;
-      VMatrix Gu = DifEq(1/ma,Hu,_R0100,_Rq100,0.8,1.E-17);
-      VMatrix piz = DifEq(ar/ma,_.z);
-      _0.5_m_log2_PI_s2 - 0.5*_.m*VMatMoment(piz-Gu,2)/_.s2
-    }
-*/
+
     ////////////////////////////////////////////////////////////////////////////
     Real LogLH.Z_cond_U(Polyn ar, Polyn ma, VMatrix z0, VMatrix a0)
     ////////////////////////////////////////////////////////////////////////////
