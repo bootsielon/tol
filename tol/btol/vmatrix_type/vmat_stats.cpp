@@ -430,12 +430,118 @@ double BVMat::Quantile() const
 
 #define USE_BTruncatedNormalDist
 
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::GetBoundsInPolytope(const BVMat&  D, 
+                                 const BVMat&  d_, 
+                                       BVMat&  z_,
+                                       int     j,
+                                       double& lower,
+                                       double& upper)
+// Calculates minimum and maximum values of z[j] matching
+//   D*z <= d  
+////////////////////////////////////////////////////////////////////////////////
+{
+  static char* fName = "GetBoundsInPolytope";
+  if(!D .CheckDefined(fName)) { return(-1); }
+  if(!d_.CheckDefined(fName)) { return(-1); }
+  if(!z_.CheckDefined(fName)) { return(-1); }
+  int Dr = D.Rows();
+  int Dc = D.Columns();
+  int dr = d_.Rows();
+  int dc = d_.Columns();
+  int zr = z_.Rows();
+  int zc = z_.Columns();
+  if((Dr!=dr)||(dc!=1)||
+     (Dc!=zr)||(zc!=1)|| 
+     !Dc||!Dr||!dc||!dr||!zc||!zr)
+  {
+    err_invalid_dimensions(fName,D,d_,z_);
+    return(-1);
+  }
+  BVMat d(d_,ESC_blasRdense);
+  BVMat z(z_,ESC_blasRdense);
+  BVMat  b = d-D*z;
+  int i, k, h;
+  double  aux;
+  bool    sp = D.code_ == ESC_chlmRsparse;
+  int     n  = z.s_.blasRdense_->nrow;
+  int     r  = d.s_.blasRdense_->nrow;
+  int     k0 = 0;
+  int     k1 = r;
+  double* zx = (double*)z.s_.blasRdense_->x; 
+  double* dx = (double*)d.s_.blasRdense_->x;
+  double* bx = (double*)b.s_.blasRdense_->x;
+  double* Dx = (double*)(sp?D.s_.chlmRsparse_->x:D.s_.blasRdense_->x);
+  int*    Di = (int*   )(sp?D.s_.chlmRsparse_->i:NULL);
+  int*    Dp = (int*   )(sp?D.s_.chlmRsparse_->p:NULL);
+  double  negInf = BDat::NegInf();
+  double  posInf = BDat::PosInf();
+  int     nnz    = D.NonNullCells();
+  double  drop   = nnz*DEpsilon();
+  
+  double& zj = zx[j];
+//Std(BText("\nj=")<<j);
+  lower=negInf; 
+  upper=posInf;
+  if(sp)
+  {
+    k0 = Dp[j];
+    k1 = Dp[j+1];
+  }
+  else
+  {
+    h = j*Dr;
+  }
+  for(k=k0; k<k1; k++)
+  {
+    i = sp?Di[k]:k;
+    const double& Dij = sp?Dx[k]:Dx[h++];
+    int Dij_sign = gsl_fcmp(Dij+1.0,1.0,DBL_EPSILON);
+    if(Dij_sign!=0)
+    {
+      bx[i] += Dij*zj;
+    //Std(BText("\nD[")+i+","+j+"]="+Dij+"\tz["+j+"]="+zj+"\tb["+i+"]="+bx[i]+"\td["+i+"]="+dx[i]);
+      if(Dij_sign<0) 
+      {
+        aux = bx[i]/Dij;
+        if(lower<aux) { lower = aux; }
+      //Std(BText("\naux=")+aux+"\tlower="<<lower);
+      }
+      else //if(Dij_sign>0) 
+      {
+        aux = bx[i]/Dij;
+        if(upper>aux) { upper = aux; }
+      //Std(BText("\naux=")+aux+"\tupper="<<upper);
+      }
+    }
+  }
+//Std(BText("\nlower=")<<lower<<"\tupper="<<upper);
+  double length = lower-upper;
+  int length_sign = gsl_fcmp(length+1.0,1.0,DBL_EPSILON);
+  if(length_sign>=0)
+  {
+    if(length_sign==0)
+    {
+      lower = upper;
+    }
+    else
+    {
+      err_cannot_apply("GetBoundsInPolytope",
+        I2("(empty interval",
+           "(intervalo vacio")+" ["+lower+","+upper+"])",z);
+      return(-1);
+    }
+  }
+  return(0);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
   int BVMat::trunc_std_gaussian(const BVMat& D, 
                                 const BVMat& d, 
                                       BVMat& b, 
                                       BVMat& z)
-// Generates a set of standarized multibormal z constrained to
+// Generates a set of standarized multinormal z constrained to
 //   D*z <= d  
 // Value od d-D*z is stored in b and must be initialized by the caller function
 ////////////////////////////////////////////////////////////////////////////////
@@ -562,10 +668,10 @@ double BVMat::Quantile() const
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
-  if(!D .CheckDefined("TruncStdGaussian")) { return; }
-  if(!d_.CheckDefined("TruncStdGaussian")) { return; }
-  if(!z0.CheckDefined("TruncStdGaussian")) { return; }
   static char* fName = "TruncStdGaussian";
+  if(!D .CheckDefined(fName)) { return; }
+  if(!d_.CheckDefined(fName)) { return; }
+  if(!z0.CheckDefined(fName)) { return; }
   int Dr = D.Rows();
   int Dc = D.Columns();
   int dr = d_.Rows();

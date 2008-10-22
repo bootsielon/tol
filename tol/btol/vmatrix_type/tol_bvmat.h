@@ -497,6 +497,12 @@ public:
             double min, double max, 
             ECode c=ESC_blasRdense, int nzmax=-1);
   void Gaussian(int nrow, int ncol, double nu, double sigma);
+  static int GetBoundsInPolytope(const BVMat&  D, 
+                                 const BVMat&  d, 
+                                       BVMat&  z,
+                                       int     j,
+                                       double& lower,
+                                       double& upper);
   void TruncStdGaussian(const BVMat& D, const BVMat& d_, 
                         const BVMat& z0_, int ncol, int burnin);
 private:

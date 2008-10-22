@@ -2033,6 +2033,39 @@ void BVMatTruncStdGaussian::CalcContens()
   contens_.TruncStdGaussian(D,d,z0,ncol,burn);
   assert(contens_.Check());
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetGetBoundsInPolytope);
+DefExtOpr(1, BSetGetBoundsInPolytope, "GetBoundsInPolytope", 4, 4, 
+  "VMatrix VMatrix VMatrix Real",
+  "(VMatrix D, VMatrix d, VMatrix z, Real j)",
+  I2("Calculates minimum and maximum values of j-th component of "
+     "vector z inside the polytope D*z <= d",
+     "Calcula los valores mínimo y máximo de la j-ésima componente "
+     "del vector z dentro del politopo D*z <= d"),
+BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BSetGetBoundsInPolytope::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& D = VMat(Arg(1));
+  BVMat& d = VMat(Arg(2));
+  BVMat& z = VMat(Arg(3));
+  int j =  (int)Real(Arg(4))-1;
+  double lower;
+  double upper;
+  int ok = BVMat::GetBoundsInPolytope(D, d, z, j, lower, upper)==0;
+  if(ok)
+  {
+    contens_.PrepareStore(2);
+    BGrammar::IncLevel();
+    contens_.AddElement(BContensDat ::New("Lower",lower,""));
+    contens_.AddElement(BContensDat ::New("Upper",upper,""));
+    contens_.SetIndexByName();
+    BGrammar::DecLevel();
+  }
+}
+
 /*
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatFindFeasiblePoint);
