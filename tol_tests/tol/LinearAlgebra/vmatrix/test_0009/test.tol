@@ -1,0 +1,124 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix GetBoundsInPolytope function
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "GetBoundsInPolytope function" ;
+  Real PutRandomSeed(1323431179);
+  Real rndSeed = GetRandomSeed(0);
+  WriteLn("rndSeed="<<rndSeed);
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+/* */
+//Controlled case with bounds [-1,1] for debug
+NameBlock check.data.01 = 
+[[
+  Real n = 1;
+  Real r = 2;
+  Real j = 1;
+  VMatrix z = Mat2VMat(Col(0,-1), FALSE, 0);
+  VMatrix D = Mat2VMat(Matrix ((-1,1),(1,1)), FALSE, 1);
+  VMatrix d = Mat2VMat(Col(0, 0), FALSE, 0)
+]];
+/* */
+//Controlled case with bounds [-Inf,-1] for debug
+NameBlock check.data.02 = 
+[[
+  Real n = 1;
+  Real r = 2;
+  Real j = 2;
+  VMatrix z = Mat2VMat(Col(-1,-10), FALSE, 0);
+  VMatrix D = Mat2VMat(Matrix ((-1,1),(1,1)), FALSE, 1);
+  VMatrix d = Mat2VMat(Col(0, 0), FALSE, 0)
+]];
+/* */
+//Random case
+NameBlock rand.check.data(Real unused)
+{[[
+  Real n = IntRand(1,3);
+  Real r = IntRand(1,5);
+  Real j = IntRand(1,n);
+  Text subType = If(IntRand(0,1), "Blas.R.Dense", "Cholmod.R.Sparse");
+  VMatrix z = Rand(n,1,-1,1);
+  VMatrix D = Rand(r,n,-1,1,subType);
+  VMatrix d = Rand(r,1,0,1) + D*z
+]]};
+/* */
+
+NameBlock Checker(NameBlock data)
+{[[
+  NameBlock _.data = data;
+  Real ok.1 = LE(VMatMax(_.data::D*_.data::z-_.data::d),0);
+  Set bounds = GetBoundsInPolytope(_.data::D,_.data::d,_.data::z,_.data::j);
+  Real tol = data::r * data::n;
+//Real trc.1={WriteLn("bounds=["<<bounds::Lower+","<<bounds::Upper+"]"),0};
+  Real checkBounds(Real zj)
+  {
+    VMatrix z_ = Copy(data::z);
+    Real PutVMatDat(z_,_.data::j,1,zj);
+    VMatrix g = _.data::D*z_-_.data::d;
+    Real g.max = (VMatMax(g)+tol)-tol;
+    Real ok = LE(g.max,0);
+/* * /
+    WriteLn("checkMatch("<<zj+")="<<ok);
+    WriteLn("  z_="<<Matrix Tra(VMat2Mat(z_)));
+    WriteLn("  g ="<<Matrix Tra(VMat2Mat(g)));
+    WriteLn("  g.max ="<<g.max);
+/* */
+    ok
+  };
+  
+  Real lower = Max(bounds::Lower,-100000);
+  Real upper = Min(bounds::Upper,+100000);
+
+  Real ok.2 = checkBounds(lower);
+  Real ok.3 = checkBounds(upper);
+
+  Real ok.4 = 
+  {
+    Real aux = checkBounds(lower-0.00001);
+    If(bounds::Lower>-1/0, !aux, aux)
+  };
+  Real ok.5 = 
+  {
+    Real aux = checkBounds(upper+0.00001);
+    If(bounds::Upper<+1/0, !aux, aux)
+  };
+  Real ok = And(ok.1,ok.2,ok.3,ok.4,ok.5)
+
+]]};
+
+Set check.all = 
+[[
+  NameBlock check.01 = Checker(check.data.01);
+  NameBlock check.02 = Checker(check.data.02)
+]] <<
+For(1,1000,NameBlock(Real iter) { Checker(rand.check.data(0)) });
+
+Set ok.all = EvalSet(check.all, Real(NameBlock chk) { chk::ok} );
+Real ok = SetMin(ok.all);
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1,
+    ok
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == numErr1,ok);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */
