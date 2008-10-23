@@ -13,14 +13,11 @@ Set Include("load.tol");
 Set estim = { BysMcmc::Bsr::Gibbs::Estim(mod::bsr.parsed, 
   NameBlock Config =
   [[
-    Real mcmc.sampleLength = 2500;
+    Real mcmc.sampleLength = 4000;
     Real mcmc.cacheLength = 100;
     Real mcmc.burnin = 100;
-  //MLS step configuration
-    Text mls.method  = BysMcmc::Options::Mls.Method::FunnelGibbs;
-    Real mls.maxIter = 10;
-    Real mls.tolerance = 0.01;
-    Real mls.FunnelGibbs.sigmaFactor = 0.01;
+  //Code bsr.scalarSampler.armaBlock = BysMcmc::Options::Scalar.Sampler::Arms;
+  //Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Arms;
     Real do.resume = False
   ]])};
 
