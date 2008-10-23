@@ -98,7 +98,7 @@ Descripción
 Sea el modelo de regresión con partes no lineales
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-\triangle\cdot\left(F_{0}-X\cdot\beta-{\displaystyle \sum_{r=1}^{R}F_{r}\cdot\alpha_{r}}\right)+a\\
+\triangle\cdot\left(Y-F_{0}-X\cdot\beta-{\displaystyle \sum_{r=1}^{R}F_{r}\cdot\alpha_{r}}\right)+a\\
 a\sim N\left(0,\Sigma\right)\\
 Y,a\in\mathbb{R}^{m}\\
 \beta\in\mathbb{R}^{n}\wedge X\in\mathbb{R}^{m\times n}\\
@@ -220,20 +220,7 @@ reference "sub:ArmaBlock_Antecedentes"
 \begin_inset Formula $F_{0}$
 \end_inset
 
- es el vector de output generado por el filtro no lineal.
- Si no hay parámetros 
-\begin_inset Formula $\tau_{0}$
-\end_inset
-
- , es decir si 
-\begin_inset Formula $R_{0}=0$
-\end_inset
-
-, entonces será una matriz constante 
-\begin_inset Formula $F_{0}=Y$
-\end_inset
-
- como en una regresión usual.
+ es el vector de filtro de output generado por el filtro no lineal.
 \end_layout
 
 \begin_layout Itemize
@@ -266,7 +253,7 @@ En el caso de covarianzas diagonales o ARMA, este modelo es una extensión
 
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
-\triangle\cdot F_{0}{\displaystyle =Z}=\triangle\cdot\left(\begin{array}{cccc}
+\triangle\cdot Y{\displaystyle =Z}=\triangle\cdot F_{0}+\triangle\cdot\left(\begin{array}{cccc}
 X & F_{1} & \cdots & F_{R}\end{array}\right)\left(\begin{array}{c}
 \beta\\
 \alpha_{1}\\
@@ -321,12 +308,12 @@ El filtro no lineal del output viene dado por una función real arbitraria
 \begin_inset Formula $f_{0}$
 \end_inset
 
- que devuelve un vector de output filtrado para un vector de parámetros
- dados dentro de un dominio convexo y cerrado 
+ que devuelve un vector para un vector de parámetros dados dentro de un
+ dominio convexo y cerrado 
 \begin_inset Formula $\Omega_{0}^{f}$
 \end_inset
 
- y un vector de output original 
+ que se restará al output original 
 \begin_inset Formula $Y$
 \end_inset
 
@@ -410,7 +397,7 @@ Si se conocen todos los vectores de parámetros no lineales salvo un
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
 \varepsilon=L^{-1}\cdot\triangle\cdot\left(Z_{k}-f_{k}\left(\tau_{k}\right)\cdot\alpha_{k}\right)\\
-Z_{k}=F_{0}-X\cdot\beta-{\displaystyle \sum_{\begin{array}{c}
+Z_{k}=-F_{0}-X\cdot\beta-{\displaystyle \sum_{\begin{array}{c}
 r=1\\
 r\neq k\end{array}}^{R}F_{r}\cdot\alpha_{r}}\\
 \varepsilon=-L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\label{eq:non-lin-filter-intput}\end{equation}
@@ -697,16 +684,38 @@ Ocurre a veces que la mayor parte de los efectos que inciden sobre una serie
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-Log\left(Y+X^{\alpha}\cdot\alpha\right)=X^{\beta}\cdot\beta+a\\
+Log\left(Y-X^{\alpha}\cdot\alpha\right)=X^{\beta}\cdot\beta+a\\
 a\sim N\left(0,\Sigma\right)\end{array}\end{equation}
 
 \end_inset
 
-lo cual se puede escribir dentro de la clase expuesta mediante un filtro
- no lineal de output
+
+\end_layout
+
+\begin_layout Standard
+Despejando la serie transformada
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-f_{0}\left(\alpha\right)=Log\left(Y+X^{\alpha}\cdot\alpha\right)\end{array}\end{equation}
+Log\left(Y\right)-Log\left(Y\right)+Log\left(Y-X^{\alpha}\cdot\alpha\right)=X^{\beta}\cdot\beta+a\\
+Log\left(Y\right)=Log\left(Y\right)-Log\left(Y-X^{\alpha}\cdot\alpha\right)+X^{\beta}\cdot\beta+a\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+lo cual se puede escribir dentro de la clase expuesta mediante un filtro
+ no lineal de output
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+f_{0}\left(\alpha\right)=Log\left(Y\right)-Log\left(Y+X^{\alpha}\cdot\alpha\right)\end{array}\end{equation}
 
 \end_inset
 
@@ -742,8 +751,8 @@ o al bloque lineal
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
 f_{0,t}\leftarrow\left\{ \begin{array}{cc}
-TN\left(X\cdot\beta,1,f_{0,t}\leq X\cdot\beta\right) & \forall Y_{t}=0\\
-TN\left(X\cdot\beta,1,X\cdot\beta\leq f_{0,t}\right) & \forall Y_{t}=1\end{array}\right.\end{equation}
+Y_{t}-TN\left(X\cdot\beta,1,f_{0,t}\leq X\cdot\beta\right) & \forall Y_{t}=0\\
+Y_{t}-TN\left(X\cdot\beta,1,X\cdot\beta\leq f_{0,t}\right) & \forall Y_{t}=1\end{array}\right.\end{equation}
 
 \end_inset
 
@@ -758,7 +767,7 @@ Una vez generado este filtro de output se tiene de nuevo un modelo de regresión
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-f_{0}=X\cdot\beta+\epsilon\\
+Y=f_{0}+X\cdot\beta+\epsilon\\
 \epsilon\sim N\left(0,I\right)\end{array}\end{equation}
 
 \end_inset
