@@ -70,22 +70,22 @@ Text _.autodoc.member.NonLinBlock =
   //Number of non linear parameters
   Set _.colNames = _.filterEval::get.colNames(0);
   //For input filters is +1, for output ones -1
-  Real _.signNoise = If(!FunctionExist("Set","_.filterEval::get.linBlkNames"),
+  Real _.isInputFilter = If(FunctionExist("Set","_.filterEval::get.linBlkNames"),
   {
-    -1
+    If(Card(_.filterEval::get.linBlkNames(0)),1,0)
   },
   {
-    If(Card(_.filterEval::get.linBlkNames(0)),1,-1)
+    0
   });
   //Names of affected parameters in linear block 
   //(just for input filters)
-  Set _.linBlkNames = If(Eq(_.signNoise,-1), Copy(Empty),
+  Set _.linBlkNames = If(!_.isInputFilter, Copy(Empty),
   {
     _.filterEval::get.linBlkNames(0)
   });
   //Positions of columns of affected parameters in linear block 
   //(just for input filters)
-  Set _.filterColIdx = If(Eq(_.signNoise,-1), Copy(Empty),
+  Set _.filterColIdx = If(!_.isInputFilter, Copy(Empty),
   {
     _.bsr::_.lin.blk::_.blockDef::getStoreColIndexes(_.linBlkNames)
   });
@@ -129,15 +129,15 @@ Text _.autodoc.member.NonLinBlock =
     NameBlock arimaBlk  = _.bsr::_.arm.blk;
     NameBlock sigBlk    = _.bsr::_.sig.blk;
     Matrix u = VMat2Mat(_.blockDef::_.store);
-  //WriteLn("TRACE"+_MID+"draw.scalar 1.1 _.signNoise = "<<_.signNoise);
-    Matrix omega= If(Eq(_.signNoise,-1), Col(1),
+  //WriteLn("TRACE"+_MID+"draw.scalar 1.1 _.isInputFilter = "<<_.isInputFilter);
+    Matrix omega= If(!_.isInputFilter, Col(1),
       SubRow(VMat2Mat(_.bsr::_.lin.blk::_.blockDef::_.store), 
                          _.filterColIdx));
   //WriteLn("TRACE"+_MID+"draw.scalar 1.2 omega("<<Rows(omega)+"x"<<Columns(omega));
   //WriteLn("TRACE"+_MID+"draw.scalar 1.3 _.Fi("<<Rows(_.Fi)+"x"<<Columns(_.Fi));
     Matrix _.W := VMat2Mat(SubRow(fullNoise,_.segment->EquIdx));
   //WriteLn("TRACE"+_MID+"draw.scalar 1.4 _.W("<<Rows(_.W)+"x"<<Columns(_.W));
-    Matrix _.Z := _.W *_.signNoise + _.Fi * omega;
+    Matrix _.Z := _.W + _.Fi * omega;
   //WriteLn("TRACE"+_MID+"draw.scalar 1.5 _.Z("<<Rows(_.Z)+"x"<<Columns(_.Z));
     Set aux = _.segment->ArimaAuxInfo;
     Set arima = _.segment->Arima;
@@ -317,7 +317,7 @@ Text _.autodoc.member.NonLinBlock =
     //WriteLn("TRACE "+_MID+"::setStore 3");
       Matrix _.Fi := _.filterEval::eval(VMat2Mat(_.blockDef::_.store));
     //WriteLn("TRACE "+_MID+"::setStore 4");
-      If( _.signNoise == -1, 0,
+      If(!_.isInputFilter, 0,
       {
         SetMin(For(1,_.filterColNum,Real(Real column)
         {
