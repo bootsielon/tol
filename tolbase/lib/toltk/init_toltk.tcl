@@ -10,7 +10,7 @@ exec wish "$0" -- ${1+"$@"}
 
 package require Tk
 
-set trace 1
+set trace 0
 #/////////////////////////////////////////////////////////////////////////////
   proc Tolcon_Trace { msg {tags ""} {args ""} } {
 #
