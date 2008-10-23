@@ -62,7 +62,7 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
   {
     Set _.bsrMst::_.externalFilter := Select(_.nonLinBlk, Real(NameBlock nlb)
     {
-      EQ(nlb::_.signNoise,-1)
+      !(nlb::_.isInputFilter)
     });
     Real ok.1 = _.bsrMst::initialize(0);
     Real ok.2 = SetMin(EvalSet(_.nonLinBlk, Real(NameBlock nlb)
