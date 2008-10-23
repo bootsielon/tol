@@ -32,11 +32,11 @@ Text session.description =
 Text model.data.path = TolAppDataPath+"StdLib/tests/";
 
 //Number of variables of each observational node
-Real n  = IntRand(3,3);
+Real n  = IntRand(10,10);
 //Data length of each observational node
-Real m  = IntRand(20,20);
+Real m  = IntRand(200,200);
 //Number of observational nodes
-Real K1 = IntRand(2,2);
+Real K1 = IntRand(3,3);
 //
 Real enableARMA = true;
 //Regular AR Degree
