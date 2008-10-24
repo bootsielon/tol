@@ -179,31 +179,38 @@ BText sysErrCleanVervose_ = I2(
      "de error devuelve 0."
      "El código de acceso especifica el modo de apertura:\n "
      "  r Abre un fichero de texto para lectura\n "
-     "  w Trunca, a longitud cero o crea un fichero de texto para escribir\n "
-     "  a Añade; abre o crea un fichero de texto para escribir al final del fichero (EOF)\n "
+     "  w Trunca a longitud cero o crea un fichero de texto para escribir\n "
+     "  a Añade abre o crea un fichero de texto para escribir al final del fichero (EOF)\n "
      "  rb Abre un fichero en modo binario para lectura\n "
-     "  wb Trunca, a longitud cero o crea un fichero en modo binario para escribir\n "
-     "  ab Añade; abre o crea un fichero en modo binario para escribir al final del fichero (EOF)\n "
+     "  wb Trunca a longitud cero o crea un fichero en modo binario para escribir\n "
+     "  ab Añade o crea un fichero en modo binario para escribir al final del fichero (EOF)\n "
      "  r+ Abre un fichero de texto para actualización (lectura y escritura)\n "
-     "  w+ Trunca, a longitud cero o crea un fichero de texto para actualización\n "
-     "  a+ Añade; abre o crea un fichero de texto para actualización, escribiendo al final del fichero (EOF)\n "
+     "  w+ Trunca a longitud cero o crea un fichero de texto para actualización\n "
+     "  a+ Añade o crea un fichero de texto para actualización, escribiendo al final del fichero (EOF)\n "
      "  r+b ó rb+ Abre un fichero en modo binario para actualización (lectura y escritura)\n "
-     "  w+b ó wb+ Trunca, a longitud cero o crea un fichero en modo binario para actualización\n "
-     "  a+b ó ab+ Añade; abre o crea un fichero en modo binario para actualización, escribiendo al final del fichero (EOF)\n"
+     "  w+b ó wb+ Trunca a longitud cero o crea un fichero en modo binario para actualización\n "
+     "  a+b ó ab+ Añade o crea un fichero en modo binario para actualización, escribiendo al final del fichero (EOF)\n"
   )+sysErrCleanVervose_,
   BOperClassify::BayesDataBase_);
   void BDatFOpen::CalcContens()
 /////////////////////////////////////////////////////////////////////////////
 {
+  static BText allowedAccess_ = " r w a rb wb ab r+ w+ a+ r+b w+b a+b ";
   BText& path   = Text(Arg(1));
   BText& access = Text(Arg(2));
   bool clean   = true;
   bool verbose = false;
   if(Arg(3)) { clean   = int(Real(Arg(3)))!=0; }
   if(Arg(4)) { verbose = int(Real(Arg(4)))!=0; }
-
+  if(allowedAccess_.Find(BText(" ")+access+" ")<0)
+  {
+    Error(BText("[FOpen] Access mode ")+access+
+    " is not one of allowed modes:(" +allowedAccess_+")");
+    contens_ = 0;
+    return;
+  }
   int    handle = 0; 
-  FILE*  file   = fopen(path.String(),access.String());
+  FILE*  file = fopen(path.String(),access.String());
   if(file)
   {
     handle = fileno(file);
