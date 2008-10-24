@@ -616,7 +616,8 @@ double BVMat::Quantile() const
       {
         err_cannot_apply("TruncStdGaussian",
           I2("(empty interval",
-             "(intervalo vacio")+" ["+lower+","+upper+"])",z);
+          "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+
+                                   BDat(upper).Format("%.16lg")+"])",z);
       //return(-1);
       }
     }
