@@ -84,17 +84,18 @@ Text _comment =  "///////////////////////////////////////////////////////"
 Real Write.Header(NameBlock model, Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
 {
-  Real f = fileHandler; 
   Text model.name = model::Get.Doc.Model.Name(0);
   Text model.desc = model::Get.Doc.Model.Description(0);
   Text session.name = model::Get.Doc.Session.Name(0);
   Text session.desc = model::Get.Doc.Session.Description(0);
   Text session.authors = model::Get.Doc.Session.Authors(0);
   WriteLn(_MID+"Writing header ...");
-  Real FPutText(f,
+  Real FPutText(fileHandler,
     _comment+
     "// Bayesian Sparse Regression \n"+
     _comment+
+    "\n"+
+    "$BEGIN\n"
     "\n"+
     "Model.Name = \""+model.name+"\";\n"
     "Model.Description = \""+Replace(model.desc,"\n","\\n\"\n\"")+"\";\n"
@@ -106,194 +107,137 @@ Real Write.Header(NameBlock model, Real fileHandler)
 };
 
 ///////////////////////////////////////////////////////////////////////////
-Real Write.MainLinearBlock(NameBlock model, Real fileHandler)
+Real Write.Data.MainLinearBlock(NameBlock segment,
+                                Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
 {
-  Real f = fileHandler; 
-  //Escribo valores iniciales de los parametros. Se asume que cada
-  //segmento es "owner" de los parametros que solo aparecen en el y que
-  //cada parametro aparece en algun segmento que lo posee.
-  WriteLn(_MID+"Writing definition of main linear block parameters");
-  Real FPutText(f,
-    "\n\n"+_comment+
-    "// Defining Regression Variables\n"+
-    _comment+
-    "\n");
-
-  Real iB = 1;
-  Real numSegment = model::Get.LinReg.Size(0);
-  Real While(iB<=numSegment, Real 
+  WriteLn(_MID+" segment "+segment::Get.Name(0));
+  Set For(1,segment::Get.Param.Size(0), Real(Real k) 
   {
-    NameBlock segment = model::Get.LinReg.Segment(iB);
-    Set For(1,segment::Get.Param.Size(0), Real(Real k) 
-    {
-      Set P = segment::Get.Param(k);
-      Real iv = If(IsUnknown(P->InitValue),
-        Rand(P->LowerBound, P->UpperBound),
-        P->InitValue);
-      FPutText(f, P->Name+" <- "+ RealTextS(iv)+";\n");
-      Real 0
-    });
-    Real iB := iB+1
+    Set P = segment::Get.Param(k);
+    Real iv = If(IsUnknown(P->InitValue),
+      Rand(P->LowerBound, P->UpperBound),
+      P->InitValue);
+    FPutText(fileHandler, P->Name+" <- "+ RealTextS(iv)+";\n");
+    Real 0
   });
   0
 };
 
 ///////////////////////////////////////////////////////////////////////////
-Real Write.MissingBlock(NameBlock model, Real fileHandler)
+Real Write.Data.MissingBlock(NameBlock segment,
+                             Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
 {
-  Real f = fileHandler; 
-  WriteLn(_MID+"Writing definition of missing block parameters");
-  Real FPutText(f,
-    "\n\n"+_comment+
-    "// Defining Regression Missing Values\n"+
-    _comment+
-    "\n");
-  Real numSegment = model::Get.LinReg.Size(0);
-  Real iB = 1;
-  Real While(iB<=numSegment, Real 
+  Set For(1,segment::Get.Missing.Size(0), Real(Real k) 
   {
-    NameBlock segment = model::Get.LinReg.Segment(iB);
-    Set For(1,segment::Get.Missing.Size(0), Real(Real k) 
+    Set P = segment::Get.Missing(k);
+    Real nr = LT(P->Prior.Sigma,+1/0);
+    Real lb = GT(P->Prior.LowerBound,-1/0);
+    Real ub = LT(P->Prior.UpperBound,+1/0);
+    Case(!nr & !lb & !ub,
     {
-      Set P = segment::Get.Missing(k);
-      Real nr = LT(P->Prior.Sigma,+1/0);
-      Real lb = GT(P->Prior.LowerBound,-1/0);
-      Real ub = LT(P->Prior.UpperBound,+1/0);
-      Case(!nr & !lb & !ub,
-      {
-        FPutText(f, P->Name+" ? <- "+RealTextS(P->Prior.Average)+";\n")
-      },
-      !lb & !ub,
-      {
-        FPutText(f, P->Name+" ? ~ Normal("+ 
-          RealTextS(P->Prior.Average)+","+
-          RealTextS(P->Prior.Sigma)+");\n")
-      },
-      1==1,
-      {
-        FPutText(f, P->Name+" ? ~ TruncatedNormal("+ 
-          RealTextS(P->Prior.Average)+","+
-          RealTextS(P->Prior.Sigma)+","+
-          RealTextS(P->Prior.LowerBound)+","+
-          RealTextS(P->Prior.UpperBound)+");\n")
-      });
-      Real 0
+      FPutText(fileHandler, 
+        P->Name+" ? <- "+RealTextS(P->Prior.Average)+";\n")
+    },
+    !lb & !ub,
+    {
+      FPutText(fileHandler, P->Name+" ? ~ Normal("+ 
+        RealTextS(P->Prior.Average)+","+
+        RealTextS(P->Prior.Sigma)+");\n")
+    },
+    1==1,
+    {
+      FPutText(fileHandler, P->Name+" ? ~ TruncatedNormal("+ 
+        RealTextS(P->Prior.Average)+","+
+        RealTextS(P->Prior.Sigma)+","+
+        RealTextS(P->Prior.LowerBound)+","+
+        RealTextS(P->Prior.UpperBound)+");\n")
     });
-    Real iB := iB+1
+    Real 0
   });
   0
 };
 
 ///////////////////////////////////////////////////////////////////////////
-Real Write.NoiseDistribution(NameBlock model, Real fileHandler)
+Real Write.Data.NoiseDistribution(NameBlock segment,
+                                  Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
 {
-  Real f = fileHandler; 
-  WriteLn(_MID+"Writing noise distribution");
-  Real FPutText(f,
-    "\n\n"+_comment+
-    "// Defining noise distribution\n"+
-    _comment+
-    "\n"
-    );
-  Real numSegment = model::Get.LinReg.Size(0);
-  Real iB = 1;
-  Real While(iB<=numSegment, Real 
+  Set timeInfo = segment::Get.TimeInfo(0);
+  Text timeExpr = If(!Card(timeInfo),"",
   {
-    NameBlock segment = model::Get.LinReg.Segment(iB);
-    Set timeInfo = segment::Get.TimeInfo(0);
-    Text timeExpr = If(!Card(timeInfo),"",
+    " dating "+Identify(timeInfo->Dating) +
+    " from "+FormatDate(timeInfo->FirstDate,"%cy%Ym%md%dh%hi%is%s") +
+    " until "+FormatDate(timeInfo->LastDate,"%cy%Ym%md%dh%hi%is%s") 
+  });
+  FPutText(fileHandler, segment::Get.Name(0)+"::Noise"
+    "["+IntText(segment::Get.Equation.Size(0))+timeExpr+"]"+
+    " ~ Normal(0,"<<segment::Get.Sigma2(0));
+  Real arima.size = segment::Get.ARIMA.Size(0);
+  Real If(arima.size, 
+  {
+    FPutText(fileHandler, "*ARIMA.COV([[");
+    Set For(1, arima.size, Real(Real af)
     {
-      " dating "+Identify(timeInfo->Dating) +
-      " from "+FormatDate(timeInfo->FirstDate,"%cy%Ym%md%dh%hi%is%s") +
-      " until "+FormatDate(timeInfo->LastDate,"%cy%Ym%md%dh%hi%is%s") 
+      Set fac = segment::Get.ARIMA.Factor(af);
+      FPutText(fileHandler, If(af>1,",","")+"\n  ARIMAStruct("<<
+        fac->Periodicity+","<<
+        fac->AR+","<<
+        fac->MA+","<<
+        fac->DIF+")")
     });
-    FPutText(f, segment::Get.Name(0)+"::Noise"
-      "["+IntText(segment::Get.Equation.Size(0))+timeExpr+"]"+
-      " ~ Normal(0,"<<segment::Get.Sigma2(0));
-    Real arima.size = segment::Get.ARIMA.Size(0);
-    Real If(arima.size, 
-    {
-      FPutText(f, "*ARIMA.COV([[");
-      Set For(1, arima.size, Real(Real af)
+    FPutText(fileHandler, "]])")
+  });
+  FPutText(fileHandler, ");\n");
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Data.RegressionEquations(NameBlock segment,
+                                    Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  Text ResName = segment::Get.Name(0)+"::Noise";
+  Real nEqu = segment::Get.Equation.Size(0);
+  WriteLn(_MID+"Escribiendo ecuaciones para el segmento "<<
+          ResName<<"["<<nEqu<<"]");
+  Real iE = 1;
+  Real fefz = FunctionExist("Real", "segment::Get.Param.ForceZero");
+  Real While(iE<=nEqu, Real 
+  {
+    Real inpSiz = segment::Get.Equation.Input.Size(iE);
+    Text txt = "" << 
+      segment::Get.Equation.Output(iE) + 
+      " == " + 
+      ResName+"["+IntText(iE)+"]" +
+      If(!inpSiz,"", SetSum(For(1, inpSiz, Text(Real term)
       {
-        Set fac = segment::Get.ARIMA.Factor(af);
-        FPutText(f, If(af>1,",","")+"\n  ARIMAStruct("<<
-          fac->Periodicity+","<<
-          fac->AR+","<<
-          fac->MA+","<<
-          fac->DIF+")")
-      });
-      FPutText(f, "]])")
-    });
-    FPutText(f, ");\n");
-    Real iB := iB + 1
+        Anything x = segment::Get.Equation.Input.Coef(iE,term);
+        Text g = Grammar(x);
+        Real forceZero = If(!fefz,0, segment::Get.Param.ForceZero(term));
+        Text v = If(g=="Real", If(And(!forceZero,!x), Text "", RealTextS(x)), 
+                 If(And(!forceZero,Or(x=="+0",x=="0",x=="-0")),"",x));
+        Text txt = If(v=="","", v+"*"+segment::Get.Equation.Input.Param(iE,term));
+        txt
+      })))+";\n";
+    FPutText(fileHandler,txt);
+    Real iE := iE + 1
   });
   0
 };
 
 ///////////////////////////////////////////////////////////////////////////
-Real Write.RegressionEquations(NameBlock model, Real fileHandler)
+Real Write.Data.Constraints(NameBlock segmentOrFullModel, 
+                            Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
 {
-  Real f = fileHandler; 
-  //Escribo las ecuaciones que aporta cada segmento.
-  WriteLn(_MID+"Writing regression equations");
-  Real FPutText(f,
-                "\n\n"+_comment+
-                "// Defining regression equations\n"+
-                _comment+
-                "\n"
-                );
-  Real iB = 1;
-  Real numSegment = model::Get.LinReg.Size(0);
-  Real While(iB<=numSegment, Real 
-  {
-    NameBlock segment = model::Get.LinReg.Segment(iB);
-    Text ResName = segment::Get.Name(0)+"::Noise";
-    Real nEqu = segment::Get.Equation.Size(0);
-    WriteLn(_MID+"Escribiendo ecuaciones para el segmento "<<
-            ResName<<"["<<nEqu<<"]");
-    Real iE = 1;
-    Real fefz = FunctionExist("Real", "segment::Get.Param.ForceZero");
-    Real While(iE<=nEqu, Real 
-    {
-      Real inpSiz = segment::Get.Equation.Input.Size(iE);
-      Text txt = "" << 
-        segment::Get.Equation.Output(iE) + 
-        " == " + 
-        ResName+"["+IntText(iE)+"]" +
-        If(!inpSiz,"", SetSum(For(1, inpSiz, Text(Real term)
-        {
-          Anything x = segment::Get.Equation.Input.Coef(iE,term);
-          Text g = Grammar(x);
-          Real forceZero = If(!fefz,0, segment::Get.Param.ForceZero(term));
-          Text v = If(g=="Real", If(And(!forceZero,!x), Text "", RealTextS(x)), 
-                   If(And(!forceZero,Or(x=="+0",x=="0",x=="-0")),"",x));
-          Text txt = If(v=="","", v+"*"+segment::Get.Equation.Input.Param(iE,term));
-          txt
-        })))+";\n";
-      FPutText(f,txt);
-      Real iE := iE + 1
-    });
-    Real iB := iB+1
-  });
-  0
-};
-
-///////////////////////////////////////////////////////////////////////////
-Real Write.Constraints(NameBlock segmentOrFullModel, Real fileHandler)
-///////////////////////////////////////////////////////////////////////////
-{
-  Real f = fileHandler; 
   NameBlock handler = segmentOrFullModel::Get.Constraints.Handler(0);
   WriteLn(_MID+"Escribiendo restricciones de orden ");
   Set For(1, handler::Get.OrderRelation.Size(0), Real(Real r) 
   {
     Set or = handler::Get.OrderRelation(r);
-    Real FPutText(f, "0>=+1.0*"+or->Lower+"-1.0*"+or->Upper+";\n");
+    Real FPutText(fileHandler, "0>=+1.0*"+or->Lower+"-1.0*"+or->Upper+";\n");
     Real 0
   });
   WriteLn(_MID+"Escribiendo restricciones lineales generales ");
@@ -311,22 +255,82 @@ Real Write.Constraints(NameBlock segmentOrFullModel, Real fileHandler)
         If(term->Coefficient==0,"",
           RealTextS(term->Coefficient)+"*"<<term->Parameter)
       })));
-    If(lb, FPutText(f, RealTextS(gc->LowerBound)+"<="+expr+";\n"));
-    If(ub, FPutText(f, RealTextS(gc->UpperBound)+">="+expr+";\n"));
+    If(lb, FPutText(fileHandler, 
+      RealTextS(gc->LowerBound)+"<="+expr+";\n"));
+    If(ub, FPutText(fileHandler, 
+      RealTextS(gc->UpperBound)+">="+expr+";\n"));
     Real 0
   });
   WriteLn(_MID+"Escribiendo restricciones lineales explicitas ");
   Set For(1, handler::Get.ExplicitConstraint.Size(0), Real(Real r) 
   {
     Text inequ = handler::Get.ExplicitConstraint(r);
-    FPutText(f, inequ + ";\n");
+    FPutText(fileHandler, inequ + ";\n");
     Real 0
   });
   0
 };
 
 ///////////////////////////////////////////////////////////////////////////
-Real Write.AllConstraints(NameBlock model, Real fileHandler)
+Real Write.Header.MainLinearBlock(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  //Escribo valores iniciales de los parametros. Se asume que cada
+  //segmento es "owner" de los parametros que solo aparecen en el y que
+  //cada parametro aparece en algun segmento que lo posee.
+  WriteLn(_MID+"Writing definition of main linear block parameters");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining header of Regression Variables\n"+
+    _comment+
+    "\n");
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Header.MissingBlock(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  WriteLn(_MID+"Writing definition of missing block parameters");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining header of Regression Missing Values\n"+
+    _comment+
+    "\n");
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Header.NoiseDistribution(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  WriteLn(_MID+"Writing noise distribution");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining header of noise distribution\n"+
+    _comment+
+    "\n"
+    );
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Header.RegressionEquations(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  //Escribo las ecuaciones que aporta cada segmento.
+  WriteLn(_MID+"Writing header of regression equations");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining regression equations\n"+
+    _comment+
+    "\n"
+    );
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Header.Constraints(NameBlock model, Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
 {
   //Escribo las restricciones que involucran los parametros de cada
@@ -340,44 +344,14 @@ Real Write.AllConstraints(NameBlock model, Real fileHandler)
   // 
   //a1*b1 + a2*b2 + ... + ak*bk <= c
   
-  WriteLn(_MID+"Escribiendo las restricciones de los parametros");
-  Real FPutText(f,
-                "\n\n"+_comment+
-                "// Defining Parameter Constraints\n"+
-                _comment+
-                "\n"
-                );
-  Real iB = 1;
-  Real numSegment = model::Get.LinReg.Size(0);
-  Real While(iB<=numSegment, Real 
-  {
-    NameBlock segment = model::Get.LinReg.Segment(iB);
-    WriteLn(_MID+"Escribiendo restricciones de intervalo para los parametros "
-      "del bloque "<<segment::Get.Name(0));
-    //Uso los parametros del bloque para escribir los intervalos.
-    Set For(1,segment::Get.Param.Size(0), Real(Real k) 
-    {
-      Set P = segment::Get.Param(k);
-      
-      Real lb = GT(P->Prior.LowerBound,Real -1/0);
-      Real ub = LT(P->Prior.UpperBound,Real +1/0);
-      If(lb, FPutText(f, RealTextS(P->Prior.LowerBound)+"<=+"+P->Name+";\n"));
-      If(ub, FPutText(f, RealTextS(P->Prior.UpperBound)+">=+"+P->Name+";\n"));
-      Real 0
-    });
-    Real Write.Constraints(segment, f);
-    Real iB := iB+1
-  });
-  
-  //Escribo las restricciones globales que involucran a parametros de
-  //diferentes bloques. Las restricciones pueden ser:
-  // 
-  //- restricciones de orden, solo parametros del mismo bloque: b_i <= b_k
-  // 
-  //- restricciones arbitrarias, solo para parametros del mismo bloque:
-  // 
-  //a1*b1 + a2*b2 + ... + ak*bk <= c  
-  Real Write.Constraints(model, f)
+  WriteLn(_MID+"Writing header of constrains");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining Parameter Constraints\n"+
+    _comment+
+    "\n"
+    );
+  0
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -394,201 +368,64 @@ Text _.autodoc.member.Write =
   Real Do OSDirMake(path);
 
   Text file.bsr = path+model.name+"."+session.name+".bsr";
-
-  Real f = FOpen(file.bsr,"w");
-  Real If(!f, Real{
+  Real f.bsr = FOpen(file.bsr,"w");
+  Real If(!f.bsr, Real{
       WriteLn(_MID+"Cannot open "+file.bsr+" for writing.","E");
       Real Stop
     });
   WriteLn(_MID+"File "+file.bsr+" was open successfully.");
+  Real FClose(f.bsr);
+  Real f.head = FOpen(file.bsr+".head","w");
+  Real f.lin  = FOpen(file.bsr+".lin", "w");
+  Real f.mis  = FOpen(file.bsr+".mis", "w");
+  Real f.dis  = FOpen(file.bsr+".dis", "w");
+  Real f.reg  = FOpen(file.bsr+".reg", "w");
+  Real f.con  = FOpen(file.bsr+".con", "w");
 
-  Real Write.Header(model, f);
-  Real Write.MainLinearBlock(model, f);
-  Real Write.MissingBlock(model, f);
-  Real Write.NoiseDistribution(model, f);
-  Real Write.RegressionEquations(model, f);
-  Real Write.AllConstraints(model, f);
+  Real Write.Header                    (model, f.head);
+  Real Write.Header.MainLinearBlock    (model, f.lin);
+  Real Write.Header.MissingBlock       (model, f.mis);
+  Real Write.Header.NoiseDistribution  (model, f.dis);
+  Real Write.Header.RegressionEquations(model, f.reg);
+  Real Write.Header.Constraints        (model, f.con);
 
-  Real FClose(f);
+  Real iB = 1;
+  Real numSegment = model::Get.LinReg.Size(0);
+  Real While(iB<=numSegment, Real 
+  {
+    NameBlock segment = model::Get.LinReg.Segment(iB);
+    WriteLn(_MID+" Writing segment "+segment::Get.Name(0));
+    Real Write.Data.MainLinearBlock    (segment, f.lin);
+    Real Write.Data.MissingBlock       (segment, f.mis);
+    Real Write.Data.NoiseDistribution  (segment, f.dis);
+    Real Write.Data.RegressionEquations(segment, f.reg);
+    Real Write.Data.Constraints        (segment, f.con);
+    Real iB := iB+1
+  });
+  Real Write.Data.Constraints(model, f.con);
+  Real FPutText(f.con,"\n$END\n");
+  Real FClose(f.head);
+  Real FClose(f.lin);
+  Real FClose(f.mis);
+  Real FClose(f.dis);
+  Real FClose(f.reg);
+  Real FClose(f.con);
+  Real OSFilCat([[
+    file.bsr+".head",
+    file.bsr+".lin",
+    file.bsr+".mis",
+    file.bsr+".dis",
+    file.bsr+".reg",
+    file.bsr+".con"]],
+    file.bsr);
+  Real OSFilRemove(file.bsr+".head");
+  Real OSFilRemove(file.bsr+".lin");
+  Real OSFilRemove(file.bsr+".mis");
+  Real OSFilRemove(file.bsr+".dis");
+  Real OSFilRemove(file.bsr+".reg");
+  Real OSFilRemove(file.bsr+".con");
   file.bsr
 }
 
 ]];
 
-
-
-/* * /
-
-/////////////////////////////////////////////////////////////////////////////
-// Template of BSR model definition used as argument of 
-// BysMcmc::Bsr::Import
-/////////////////////////////////////////////////////////////////////////////
-NameBlock MyBsrModelDef =
-[[
-  //Optional ad-hoc API.
-  //Puts here all you will need use after in order to define mandatory 
-  //methods
-  ...
-
-  //Mandatory methods that will be used by BysMcmc::Bsr::Import
-  //Order of methods definition is not mandatory but recommended
-
-
-  ///////////////////////////////////////////////////////////////////////////
-  // Documental Section
-
-  //Returns model identifier to help in analysis organization
-  Text Get.Doc.ModelName(Real unused) { ... };
-  //e-mail or any identifier of authors separated by \n
-  Text Get.Doc.Authors(Real unused) { ... };
-  //Brief explanation of model
-  Text Get.Doc.Description(Real unused) { ... };
-  //The path where the BSR-ASCII formated file will be stored
-  Text Get.Doc.Path(Real unused) { ... };
-  ///////////////////////////////////////////////////////////////////////////
-
-
-  ///////////////////////////////////////////////////////////////////////////
-  // Linear Regression Section
-  //
-  // When statistical structure of noise is not homogeneous for all 
-  // regression equations, these must be organized in a set of segments.
-  // Noise of each segment will be assumed independent of other ones.
-  //
-  // Nature of each segment can be also different for each one but the same
-  // into each one. For example you cannot mix time series with other type
-  // of data into a regression segment.
-
-  //Returns the number of regressions segments that must be an integer
-  //great or equal than 1
-  Real Get.LinReg.Size(Real unused) { ... };
-
-  //Returns the handler of each regression segment as a NameBlock 
-  NameBlock Get.LinReg.Segment(Real segmentNumber) 
-  {[[
-    //Optional ad-hoc API.
-    ...
-    //Mandatory methods that will be used by BysMcmc::Bsr::Import
-
-    //Returns the unique identifier of the regression segment
-    Text Get.Name(Real unused) { ... };
-
-    /////////////////////////////////////////////////////////////////////////
-    // SIGMA BLOCK
-    //Returns a Real fixed known sigma value as prior information or a 
-    //Text variable name to be simulated in the Sigma Gibbs block of BSR
-    {Real|Text} Sigma(Real unused) { ... };
-    /////////////////////////////////////////////////////////////////////////
-
-    /////////////////////////////////////////////////////////////////////////
-    // ARIMA BLOCK
-    //Returns the number of ARIMA factors for a regression segment about
-    //a discrete time process. If there is not a time process or is a 
-    //white noise process then returns 0
-    Real Get.ARIMA.Size(Real unused) { ... };
-
-    //Returns the f-th ARIMA factor with structure ARIMAStruct
-    //In current version all AR or MA factors must have degrees 0, 1 or 2
-    //In order to define higher degrees you will need to add more 
-    //ARIMAStruct items
-    Set Get.ARIMA.Factor(Real f) 
-    { 
-      ...
-      Struct ARIMAStruct
-      (
-        Real  Periodicity,
-        Polyn AR,
-        Polyn MA,
-        Polyn DIF
-      )
-    };
-    /////////////////////////////////////////////////////////////////////////
-
-    /////////////////////////////////////////////////////////////////////////
-    // MAIN LINEAR BLOCK
-    Real Get.Param.Size(Real unused) { ... };
-    Set Get.Param(Real numParam)
-    {
-      ...
-      Bsr.Param.Info(Text Name, 
-                     Real InitialValue, 
-                     Real LowerBound, 
-                     Real UpperBound)
-    };
-
-    /////////////////////////////////////////////////////////////////////////
-    // MISSING VALUES BLOCK
-    Real Get.Missing.Size(Real unused) { ... };
-    Set Get.Missing(Real numParam)
-    {
-      ...
-      Bsr.Missing.Info(Text Name, 
-                       Real Average, 
-                       Real Sigma, 
-                       Real LowerBound, 
-                       Real UpperBound)
-    };
-    /////////////////////////////////////////////////////////////////////////
-
-    Real Get.Equation.Size(Real unused) { ... };
-    //Returns Real known output or Text missing name
-    {Real|Text} Get.Equation.Output(Real numEqu)
-    {
-      ...
-    };
-    Real Get.Equation.Input.Size(Real numEq) { ... };
-    //Returns Real known output or Text missing name of an input term
-    {Real|Text} Get.Equation.Input.Coef(Real numEqu, Real term)
-    {
-      ...
-    };
-    //Returns the param name of an input term
-    Text Get.Equation.Input.Param(Real numEqu, Real term)
-    {
-      ...
-    }
-  ]]};  
-  ///////////////////////////////////////////////////////////////////////////
-
-
-  ///////////////////////////////////////////////////////////////////////////
-  // Linear Constraints Section
-  //
-  // You can define a set of generic linear inequalities constraining 
-  // any subset of regression parameters with this generig shape
-  //
-  //  lowerBound <= coef_1*param_1+...+coef_n*param_n <= upperBound
-  //
-  // A special type of constrain is the order relation
-  //
-  //   lowerParam <= upperParam
-  //
-  // that will have an special API to define it in a easier way.
-  //
-  // Restrictions involving just one regression parameter should be defined
-  // in the parameter definition with Bsr.Param.Info structure returned at 
-  //
-  //   Get.LinReg.Segment(s)::Get.Param
-  //  
-
-  //Returns the total number of generic constraints upon on structure
-  //Bsr.GenericConstraint.Info
-  Real Get.Constraint.Size(Real unused) { ... };
-  //Returns the r-th  constraint as a Bsr.GenericConstraint.Info
-  Set Get.Constraint(Real r) { ... };
-
-  //Returns the total number of order relations upon on structure
-  //Bsr.OrderRelation.Info
-  Real Get.OrderRelation.Size(Real unused) { ... };
-  //Returns the r-th order relation as a Bsr.OrderRelation.Info 
-  Set Get.OrderRelation(Real r)
-  {
-    ...
-    Bsr.OrderRelation.Info(Text Lower, Text Upper)  
-  }
-  ///////////////////////////////////////////////////////////////////////////
-
-]];
-
-
-/* */
