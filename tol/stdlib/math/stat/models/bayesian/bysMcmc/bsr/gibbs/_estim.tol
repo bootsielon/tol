@@ -188,6 +188,7 @@ PutDescription(_.autodoc.member.EstimAndNotify,EstimAndNotify);
 NameBlock NoNotifier(Real 0)
 //////////////////////////////////////////////////////////////////////////////
 {[[
+  Real parsing(Real unused) { Real 0 };
   Real initializing(Real numVar,Text path) { Real 0 };
   Real simulating(Real numSim, Real timeAvg) { Real 0 };
   Real reporting(Real unused) { Real 0 };
