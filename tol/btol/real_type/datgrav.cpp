@@ -953,6 +953,40 @@ void BDatPutCSerDat::CalcContens()
 #endif
 }
 
+  //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatFileCat);
+  DefExtOpr(1, BDatFileCat, "FileCat", 2, 2, "Set Text",
+  "(Set origin, Text target)",
+  I2("Cats a set of files into target. On error returns FALSE, else returns TRUE.",
+     "Copia un conjunto de ficheros en otro. En caso de error devuelve FALSO y si no "
+     "CIERTO."),
+     BOperClassify::System_);
+  void BDatFileCat::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BSet& origin = Set(Arg(1));
+  const BText& target = Text(Arg(2));
+  BArray<BText> in(origin.Card());
+  int i;
+  BSyntaxObject* obj;
+  for(i=0; i<in.Size(); i++)
+  {
+    obj = origin[i+1];
+    if(obj && (obj->Grammar()==GraText()))
+    {
+      in[i] = Text(obj);
+    }
+    else
+    {
+      Error(BText("[FileCat] ")+
+        I2("Argument 'origin' must have just Text elements",
+           "El argumento 'origin' debe tener sólo elementos "
+           "de tipo Text"));
+    }
+  }
+  contens_ = BSys::Cat(in, target);
+}
+
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatMkDir);
