@@ -94,8 +94,10 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
 
   //Output filtered by missing values
   VMatrix _.YplusV = Rand(0,0,0,0);
-  //Input filtered by missing values
+  //Linear input filtered by missing values
   VMatrix _.XplusU = Rand(0,0,0,0);
+  //Linear input filter
+  VMatrix _.filter = Rand(0,0,0,0);
   //ARIMA noise
   VMatrix _.noise  = Rand(0,0,0,0);
   //Linear block values
@@ -222,8 +224,9 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
                          _.beta, _.YplusV-_.modelDef->X*_.beta)
     });
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
+    VMatrix _.filter := _.XplusU*_.beta;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 1.5");
-    VMatrix _.noise := _.YplusV - _.XplusU*_.beta;
+    VMatrix _.noise := _.YplusV - _.filter;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 2");
     VMatrix arm = If(Not(_.arm.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
     _.arm.blk::draw(numSim, _.noise, _.sig.blk::_.blockDef::_.store));
