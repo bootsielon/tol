@@ -20,14 +20,14 @@ Real ModSes.Obs.Output.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::ObsOutput+"\n"+
-  "VALUES('"+model+"','"+session+"','"+node+"','"+serie+"',"+
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::ObsOutput,
+  "'"+model+"','"+session+"','"+node+"','"+serie+"',"+
   SqlFormatReal(mis_pri_sig_fac)+","+
   SqlFormatReal(mis_pri_min)+","+
   SqlFormatReal(mis_pri_max)+","+
   SqlFormatDate(start)+","+
-  SqlFormatDate(end)+")");
+  SqlFormatDate(end));
   Eval("ModSes.Obs.Output.Create.ok=ok")
 };
 
@@ -45,12 +45,12 @@ Real ModSes.Obs.Input.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::ObsInput+"\n"+
-  "VALUES('"+model+"','"+session+"','"+node+"','"+serie+"','"+parameter+"',"+
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::ObsInput,
+  "'"+model+"','"+session+"','"+node+"','"+serie+"','"+parameter+"',"+
   SqlFormatReal(mis_pri_sig_fac)+","+
   SqlFormatReal(mis_pri_min)+","+
-  SqlFormatReal(mis_pri_max)+")");
+  SqlFormatReal(mis_pri_max));
   Eval("ModSes.Obs.Input.Create.ok=ok")
 };
 
@@ -70,16 +70,16 @@ Real ModSes.Obs.TransFun.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::ObsTransFun+"\n"+
-  "VALUES('"+model+"','"+session+"','"+node+"',"+
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::ObsTransFun,
+  "'"+model+"','"+session+"','"+node+"',"+
   "'"+transferFun+"',"+
   "'"<<omega+"',"+
   "'"<<delta+"',"+
   "'"+serie+"',"+
   SqlFormatReal(mis_pri_sig_fac)+","+
   SqlFormatReal(mis_pri_min)+","+
-  SqlFormatReal(mis_pri_max)+")");
+  SqlFormatReal(mis_pri_max));
   Eval("ModSes.Obs.Input.Create.ok=ok")
 };
 
@@ -96,14 +96,14 @@ Real ModSes.Obs.SetArima(Text dbName,
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
   Real ok = SetMin(For(1,Card(arima),Real insert.arima(Real f)
   {
-    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-    "INSERT INTO "+dbName+"."+_table::ObsArimaBlk+"\n"+
-    "VALUES('"+model+"','"+session+"','"+node+"',"+
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+    dbName+"."+_table::ObsArimaBlk,
+    "'"+model+"','"+session+"','"+node+"',"+
     IntText(f)+","+
     IntText(arima[f]->Periodicity)+","+
     "'"<<arima[f]->AR+"',"+
     "'"<<arima[f]->MA+"',"+
-    "'"<<arima[f]->DIF+"')")
+    "'"<<arima[f]->DIF+"'")
   }));
   Eval("ModSes.Obs.SetArima.ok=ok")
 };
@@ -166,7 +166,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
   Real ok.2 = Case(
   outIsATimeSerie,
   {
-    WriteLn("  Time series output "+out::_.name);
+  //WriteLn("TRACE Time series output "+out::_.name);
     BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.Output.Create
     (
       dbName, id_model, id_session, id_node, 
@@ -180,7 +180,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
   },
   outIsAVector,
   {
-    WriteLn("  Vector output "+out::_.name);
+  //WriteLn("TRACE Vector output "+out::_.name);
     BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.Output.Create
     (
       dbName, id_model, id_session, id_node, 
@@ -194,7 +194,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
   },
   1==1,
   {
-    WriteLn("  Invalid output "+out::_.name,"E");
+    WriteLn("[ModSes.Obs.Create] Invalid output "+out::_.name,"E");
     0
   });
   //WriteLn("TRACE ModSes.Obs.Create ok.2="<<ok.2);
@@ -218,12 +218,12 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
     Real isNonLinearFilterOutput = And(isNonLinearFilter,!isNonLinearFilterInput);
     Real ok.4.j = Case(Not(inp::_.enabled), 
     {
-      WriteLn("  Disabled input "+inpName);
+    //WriteLn("TRACE Disabled input "+inpName);
       1
     }, 
     isNonLinearFilterOutput,
     {
-      WriteLn("  Non linear filter output "+inpName);
+    //WriteLn("TRACE Non linear filter output "+inpName);
       NameBlock nlf = inp;
       Text nlfDesc = "Block for user defined non linear filter of output "+inpName;
       Text id_gibbs_lin_blk = "NonLinearFilterBlk"; 
@@ -236,15 +236,15 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       };
       Set colNames = EvalSet(nlf::get.colNames(0),clean.nlf.param.name);
       Matrix u = nlf::get.parameter(0);
-      Real ok.4.2 = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-        "INSERT INTO "+_table::NonLinFlt+"\n"
-        "VALUES('"+id_model+"','"+id_session+"','"+
+      Real ok.4.2 = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+        _table::NonLinFlt,
+        "'"+id_model+"','"+id_session+"','"+
                    id_node+"','"+inpName+"',"+
                    IntText(0)+","+
-                   IntText(Card(colNames))+")\n");
+                   IntText(Card(colNames)));
       Real ok.4.3 = SetSum(For(1,Card(colNames),Real nlf.param(Real k)
       {
-        WriteLn(" Insert param "+colNames[k]+" <-"<<MatDat(u,k,1));
+      //WriteLn("TRACE Inserting param "+colNames[k]+" <-"<<MatDat(u,k,1));
         BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.Param.Create(
           dbName, model, session, id_node, 
           colNames[k], 
@@ -255,7 +255,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
     },
     isNonLinearFilterInput,
     {
-      WriteLn("  Non linear filter input "+inpName);
+    //WriteLn("TRACE Non linear filter input "+inpName);
       NameBlock nlf = inp;
       Text nlfDesc = "Block for user defined non linear filter of input "+inpName;
       Text id_gibbs_lin_blk = "NonLinearFilterBlk"; 
@@ -279,12 +279,12 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
         FunctionExist("Set","nlf::get.linBlkNames"),
         EvalSet(nlf::get.linBlkNames(0),clean.lin.param.name),
         Copy(Empty));
-      Real ok.4.2 = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-        "INSERT INTO "+_table::NonLinFlt+"\n"
-        "VALUES('"+id_model+"','"+id_session+"','"+
+      Real ok.4.2 = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+        _table::NonLinFlt,
+        "'"+id_model+"','"+id_session+"','"+
                    id_node+"','"+inpName+"',"+
                    IntText(Card(linBlkNames))+","+
-                   IntText(Card(colNames))+")\n");
+                   IntText(Card(colNames)));
       Real ok.4.3 = SetSum(For(1,Card(colNames),Real nlf.param(Real k)
       {
         BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.Param.Create(
@@ -326,7 +326,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       Real h = Max(p,q);
       Case(h==0, 
       {
-        WriteLn("  Time series input "+inpName);
+      //WriteLn("TRACE Time series input "+inpName);
         Real ok.4.1 = BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.Param.Create
         (
           dbName, id_model, id_session, id_node, 
@@ -351,7 +351,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       },
       1==1, 
       {
-        WriteLn("  Time series input with transfer function "+inpName);
+      //WriteLn("TRACE Time series input with transfer function "+inpName);
         Real ok.4.1 = SetMin(EvalSet(Monomes(omega),Real tf.numDeg(Polyn mon)
         {
           BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.Param.Create
@@ -406,7 +406,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
     },
     ObjectExist("Matrix","inp::_.vector"),
     {
-      WriteLn("  Vector input "+inpName);
+    //WriteLn("TRACE Vector input "+inpName);
       Real ok.4.1 = BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.Param.Create
       (
         dbName, id_model, id_session, id_node, 
@@ -431,7 +431,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
     },
     1==1,
     {
-      WriteLn("  Invalid input "+inpName,"E");
+      WriteLn("[ModSes.Obs.Create] Invalid input "+inpName,"E");
       0
     })
   })));
@@ -445,18 +445,21 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
 Real ModSes.Obs.CreateAll(Text dbName, Text model, Text session,Set nodes)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real ok = SetMin(For(1, Card(nodes), Real create.obs(Real k)
+  Real ok.1 = SqlStartCachedInsert(0);
+  Real ok.2 = SetMin(For(1, Card(nodes), Real create.obs(Real k)
   {
     NameBlock node = nodes[k];
     Text id_node = node::_.id_node;
     WriteLn("Creating observational node "+id_node);
-    Real ok.k =BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.Create
+    Real ok.2.k =BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.Create
     (
       DBConnection::BsrHlm::_.defaultDB, id_model, id_session, node
     );
-    Eval("ModSes.Obs.CreateAll.ok."<<+k+"=ok.k");
-    ok.k
+    Eval("ModSes.Obs.CreateAll.ok."<<+k+"=ok.2.k");
+    ok.2.k
   }));
+  Real ok.3 = SqlStopCachedInsert(0);
+  Real ok = And(ok.1,ok.2,ok.3);
   //WriteLn("TRACE ModSes.Obs.CreateAll ok="<<ok);
   Eval("ModSes.Obs.CreateAll.ok=ok")
 };

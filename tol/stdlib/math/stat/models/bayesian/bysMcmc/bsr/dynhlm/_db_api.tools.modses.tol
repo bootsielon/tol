@@ -97,8 +97,8 @@ Real ModSes.SetLevels(Text dbName,
   Real ok = SetMin(For(1,maxLatLevel, Real insert.level(Real level)
   {
     Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-    "INSERT INTO "+_table::Level+"\n"
-    "VALUES('"+model+"','"+session+"','LAT',"+IntText(level)+")\n")
+      "INSERT INTO "+_table::Level+"\n"+
+    "VALUES('"+model+"','"+session+"','LAT',"+IntText(level)+")")
   }));
   Eval("ModSes.SetLevels.ok=ok")
 };
@@ -116,12 +116,12 @@ Real ModSes.Node.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::Node+"\n"+
-  "VALUES('"+model+"','"+session+"','"+node+"','"+nodeType+"',"+
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::Node,
+  "'"+model+"','"+session+"','"+node+"','"+nodeType+"',"+
   IntText(level)+","+
   IntText(number)+","+
-  "'"+description+"')");
+  "'"+description+"'");
   Eval("ModSes.Node.Create.ok=ok")
 };
 

@@ -16,13 +16,13 @@ Real ModSes.Pri.Equ.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::PriEqu+"\n"+
-  "VALUES('"+model+"','"+session+"',"
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::PriEqu,
+  "'"+model+"','"+session+"',"
   "'"+node_father+"',"+
   IntText(numEqu)+","+
   SqlFormatReal(average)+","+
-  SqlFormatReal(sigma)+")");
+  SqlFormatReal(sigma));
   Eval("ModSes.Pri.Equ.Create.ok=ok")
 };
 
@@ -39,13 +39,13 @@ Real ModSes.Pri.Output.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::PriOutput+"\n"+
-  "VALUES('"+model+"','"+session+"',"
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::PriOutput,
+  "'"+model+"','"+session+"',"
   "'"+node_father+"',"+
   IntText(numEqu)+","+
   "'"+node_child+"','"+parameter_child+"',"+
-  SqlFormatReal(coef)+")");
+  SqlFormatReal(coef));
   Eval("ModSes.Pri.Output.Create.ok=ok")
 };
 

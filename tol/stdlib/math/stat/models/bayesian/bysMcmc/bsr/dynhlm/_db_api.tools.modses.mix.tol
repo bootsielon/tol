@@ -20,13 +20,13 @@ Real ModSes.Mix.Param.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::Parameter+"\n"+
-  "VALUES('"+model+"','"+session+"','"+node+"','"+
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::Parameter,
+  "'"+model+"','"+session+"','"+node+"','"+
   parameter+"','"+gibbs_blk+"',"+
   SqlFormatReal(initValue)+","+
   SqlFormatReal(minimum)+","+
-  SqlFormatReal(maximum)+")");
+  SqlFormatReal(maximum));
   Eval("ModSes.Mix.Param.Create.ok=ok")
 };
 
@@ -150,11 +150,11 @@ Real ModSes.Mix.OrderRelation.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::OrderRel+"\n"+
-  "VALUES('"+model+"','"+session+"',"
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::OrderRel,
+  "'"+model+"','"+session+"',"
   "'"+nodeLower+"','"+parameterLower+"',"+
-  "'"+nodeUpper+"','"+parameterUpper+"')");
+  "'"+nodeUpper+"','"+parameterUpper);
   Eval("ModSes.Mix.OrderRelation.Create.ok=ok")
 };
 
@@ -228,28 +228,28 @@ Real ModSes.Mix.Constraint.Create(Text dbName,
     "      id_session='"+session+"' AND\n"
     "      id_node='MIXTURE';","")[1][1]),
     {
-      Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-        "INSERT INTO "+_table::Node+"\n"
-        "VALUES('"+model+"','"+session+"','MIXTURE','MIX',999999999,-1,'')\n")
+      Real BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+        _table::Node,
+        "'"+model+"','"+session+"','MIXTURE','MIX',999999999,-1,''")
     });
     "MIXTURE"
   });
-  Real ok.1 = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::ConstrBorder+"\n"+
-  "VALUES('"+model+"','"+session+"',"+
+  Real ok.1 = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::ConstrBorder,
+  "'"+model+"','"+session+"',"+
   IntText(numInequation)+","+
   "'"+id_node+"',"+
   BysMcmc::Bsr::DynHlm::DBApi::SqlFormatReal(leftBound)+","+
-  BysMcmc::Bsr::DynHlm::DBApi::SqlFormatReal(rightBound)+");");
+  BysMcmc::Bsr::DynHlm::DBApi::SqlFormatReal(rightBound));
   Real ok.2 = SetMin(EvalSet(linComb, Real(NameBlock a)
   {
-    BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-    "INSERT INTO "+dbName+"."+_table::ConstrLinComb+"\n"+
-    "VALUES('"+model+"','"+session+"',"+
+    BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+    dbName+"."+_table::ConstrLinComb,
+    "'"+model+"','"+session+"',"+
     IntText(numInequation)+","+
     "'"+a::_.id_node+"',"+
     "'"+a::_.id_parameter+"',"+
-    BysMcmc::Bsr::DynHlm::DBApi::SqlFormatReal(a::_.coef)+");")
+    BysMcmc::Bsr::DynHlm::DBApi::SqlFormatReal(a::_.coef))
   }));
   Eval("ModSes.Mix.Constraint.Create.ok=ok.1 & ok.2")
 };
