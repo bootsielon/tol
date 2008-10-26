@@ -573,11 +573,25 @@ NameBlock LoadModelDef(Text dbName,
 
   Set input.missing.labels = Copy(Empty);
 
-  Set _.nodes = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  Set _.nodes.obs = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
   "  id_model='"+_.id_model+"' AND \n"+
-  "  id_session='"+_.id_session+"'"
-  "order by id_node_type, nu_node","Bsr.DynHlm.DBNode");
+  "  id_session='"+_.id_session+"' AND "
+  "  id_node_type='OBS'"
+  "order by nu_node","Bsr.DynHlm.DBNode");
+  Set _.nodes.lat = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
+  "  id_model='"+_.id_model+"' AND \n"+
+  "  id_session='"+_.id_session+"' AND "
+  "  id_node_type='LAT'"
+  "order by nu_node","Bsr.DynHlm.DBNode");
+  Set _.nodes.pri = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
+  "  id_model='"+_.id_model+"' AND \n"+
+  "  id_session='"+_.id_session+"' AND "
+  "  id_node_type='PRI'"
+  "order by nu_node","Bsr.DynHlm.DBNode");
+  Set _.nodes = _.nodes.obs<<_.nodes.lat<<_.nodes.pri;
 
 //Mandatory methods that will be used by BysMcmc::Bsr::Import
 
