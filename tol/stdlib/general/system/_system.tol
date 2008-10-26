@@ -15,6 +15,7 @@
 // OSFilRemove: Deletes a file.
 // OSFilCopy:   Copies a file to other directory or with a different name.
 // OSFilMove:   Moves a file to other directory or with a different name.
+// OSFilCat:    Cats a set of files into a new one.
 // OSDirExist:  Cheks if a folder exists
 // OSDirMake:   Creates a directory and all its non existent parents
 // OSDirRemove: Removes a directory and all its files and folders recursively
@@ -363,7 +364,6 @@ Real OSFilCopy(Text oldFil, Text newFil)
     If(OSUnix, "cp ", "copy /Y ")+
     OSPathQt(oldFil)+" "+OSPathQt(newFil));
   OSShowErr(ok,call)
-
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(I2(
@@ -395,6 +395,36 @@ Returns TRUE if success or FALSE if an error happens",
 El directorio de destino debe existir previamente.
 En caso de error devuelve FALSO y si no CIERTO"),
 OSFilMove);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real OSFilCat(Set oldFiles, Text newFil)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text call = "OSFilCat("<<oldFiles+","+newFil+")";
+  Text OSTrace(3,call);
+  Real ok = OSCmdWait(If(OSUnix,
+  {
+    "cat"+SetSum(For(1,Card(oldFiles),Text(Real k)
+    {
+      " "+OSPathQt(oldFiles[k])
+    }))+" > "+OSPathQt(newFil)
+  }, 
+  {
+    "copy "+SetSum(For(1,Card(oldFiles),Text(Real k)
+    {
+      If(k==1,"","+")+OSPathQt(oldFiles[k])
+    }))+" "+OSPathQt(newFil)
+  }));
+  OSShowErr(ok,call)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Copies a set of files to a new one.
+Returns TRUE if success or FALSE if an error happens",
+"Copia un conjunto ficheros en uno nuevo.
+En caso de error devuelve FALSO y si no CIERTO"),
+OSFilCat);
 //////////////////////////////////////////////////////////////////////////////
 
 
