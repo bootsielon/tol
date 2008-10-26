@@ -40,16 +40,22 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
     Real firstCol = Card(_.bsrMst::get.colNames(0))+1;
     Set aux = For(1,Card(nonLinFilter), NameBlock(Real numBlk)
     {
-      NameBlock nb = BysMcmc::Bsr::Gibbs::NonLinBlock
+      NameBlock nlf = nonLinFilter[numBlk];
+      NameBlock nlb = BysMcmc::Bsr::Gibbs::NonLinBlock
       (
-        nonLinFilter[numBlk], 
+        nlf, 
         _.bsrMst,
         numBlk+1, 
         firstCol,
         config
       );
-      Real firstCol := nb::_.blockDef::_.lastCol+1;
-      Eval(ToName(nb::_.name)+"=nb")
+      Real If(ObjectExist("Set","nlf::_.externalInfo"),
+      {
+        Set nlf::_.externalInfo := [[ _.bsrMst, nlb ]];
+        1
+      });
+      Real firstCol := nlb::_.blockDef::_.lastCol+1;
+      Eval(ToName(nlb::_.name)+"=nlb")
     });
     aux
   };
@@ -82,7 +88,6 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
     VMatrix nonLinDraw = Group("ConcatRows",
     EvalSet(_.nonLinBlk, VMatrix(NameBlock nlb)
     {
-      
       nlb::draw(numSim)
     }));
     bsrDraw << nonLinDraw
