@@ -150,6 +150,20 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+  void BVMat::warn_cannot_apply(const char* fName, const char* cond, 
+                                const BVMat& a)
+//Message handler
+////////////////////////////////////////////////////////////////////////////////
+{
+  Warning(I2("Cannot apply",
+           "No es posible aplicar")+" "+fName+" "+
+        I2("to a",
+           "a una matriz virtual")+" "+cond+" "+
+        I2("virtual matrix","")+" "+CodeName(a.code_)+
+           "("+a.Rows()+"x"+a.Columns()+")"+" ");
+}
+
+////////////////////////////////////////////////////////////////////////////////
   void BVMat::err_wrong_defined(const char* fName, const BVMat& a)
 //Message handler
 ////////////////////////////////////////////////////////////////////////////////
