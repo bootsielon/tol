@@ -233,6 +233,11 @@ Struct Bsr.GenericConstraint.Info
   Real UpperBound  //Right border value or +1/0
 };  
 
+Struct Bsr.DynHlm.DBNode
+{
+  Text NodeType,
+  Text Node
+};
 
 Struct Bsr.DynHlm.DBStrConstrBorder
 {
