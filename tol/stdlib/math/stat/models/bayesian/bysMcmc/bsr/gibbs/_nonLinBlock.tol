@@ -67,8 +67,10 @@ Text _.autodoc.member.NonLinBlock =
   {
     ((_.bsr::_.modelDef)->NoiseDistrib)[_.segmentNum]
   });
-  //Number of non linear parameters
+  //Non linear parameters
   Set _.colNames = _.filterEval::get.colNames(0);
+  //Number of non linear parameters
+  Real _.numVar = Card(_.colNames); 
   //For input filters is +1, for output ones -1
   Real _.isInputFilter = If(FunctionExist("Set","_.filterEval::get.linBlkNames"),
   {
@@ -271,7 +273,14 @@ Text _.autodoc.member.NonLinBlock =
     If(_.blockDef::enabled,
     {
     //WriteLn("TRACE"+_MID+"draw 2");
-      draw.scalar(numSim, False)
+      If(_.blockDef::_.numCol==0,
+      {
+        Real setStore(_.blockDef::_.store);
+        _.blockDef::_.store
+      },
+      {
+        draw.scalar(numSim, False)
+      })
     },
     {
     //WriteLn("TRACE"+_MID+"draw 3");
@@ -310,23 +319,21 @@ Text _.autodoc.member.NonLinBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+"::setStore 1 values("<<Rows(values)+"x"<<Columns(values)+")");
-    If(_.blockDef::_.numCol<=0,0,
+    Real If(_.blockDef::_.numCol==0,0,
     {
     //WriteLn("TRACE "+_MID+"::setStore 2");
-      Real _.blockDef::setStore(values);
+      Real _.blockDef::setStore(values)
+    });
     //WriteLn("TRACE "+_MID+"::setStore 3");
-      Matrix _.Fi := _.filterEval::eval(VMat2Mat(_.blockDef::_.store));
+    Matrix _.Fi := _.filterEval::eval(VMat2Mat(_.blockDef::_.store));
     //WriteLn("TRACE "+_MID+"::setStore 4");
-      If(!_.isInputFilter, 0,
+    If(!_.isInputFilter, 0,
+    {
+      SetMin(For(1,_.filterColNum,Real(Real column)
       {
-        SetMin(For(1,_.filterColNum,Real(Real column)
-        {
-          _.bsr::setSegmentInputCol(
-            SubCol(_.Fi,[[column]]),
-            _.segmentNum, 
-            _.filterColIdx[column])
-        }))
-      })
+        _.bsr::setSegmentInputCol(
+          SubCol(_.Fi,[[column]]), _.segmentNum, _.filterColIdx[column])
+      }))
     })
   };
 
