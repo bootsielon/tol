@@ -536,6 +536,141 @@ double BVMat::Quantile() const
   return(0);
 }
 
+/*
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::trunc_std_kick(const BVMat& D, 
+                            const BVMat& d, 
+                                  BVMat& b, 
+                                  BVMat& z)
+// Given a vector z matching
+//   D*z <= d  
+// moves it to another point constrained these inequations.
+// For each component builds bounds conditioning to rest of components 
+//   a[j] <= z[j] <= b[j]
+// If a[j]>-Inf and b[j]<+Inf then z[j] is generated as a uniform 
+// If a[j]=-Inf and b[j]=+Inf then z[j] is generated as a  N(0,1)
+// If a[j]=-Inf and b[j]<+Inf then z[j] is generated as a TN(b[j],1,-Inf,b[j])
+// If a[j]>-Inf and b[j]=+Inf then z[j] is generated as a TN(a[j],1,a[j],+Inf)
+// Value od d-D*z is stored in b and must be initialized by the caller function
+////////////////////////////////////////////////////////////////////////////////
+{
+  int i, j, k, h, hj;
+  double  aux;
+  bool    sp = D.code_ == ESC_chlmRsparse;
+  int     n  = z.s_.blasRdense_->nrow;
+  int     r  = d.s_.blasRdense_->nrow;
+  int     k0 = 0;
+  int     k1 = r;
+  double* zx = (double*)z.s_.blasRdense_->x; 
+  double* dx = (double*)d.s_.blasRdense_->x;
+  double* bx = (double*)b.s_.blasRdense_->x;
+  double* Dx = (double*)(sp?D.s_.chlmRsparse_->x:D.s_.blasRdense_->x);
+  int*    Di = (int*   )(sp?D.s_.chlmRsparse_->i:NULL);
+  int*    Dp = (int*   )(sp?D.s_.chlmRsparse_->p:NULL);
+  double  negInf = BDat::NegInf();
+  double  posInf = BDat::PosInf();
+  double  lower  = BDat::NegInf();
+  double  upper  = BDat::PosInf();
+  int     nnz    = D.NonNullCells();
+  double  drop   = nnz*DEpsilon();
+  for(h=hj=j=0; j<n; j++)
+  {
+    double& zj = zx[j];
+  //Std(BText("\ntrunc_std_gaussian column j=")<<j);
+    lower=negInf; 
+    upper=posInf;
+    if(sp)
+    {
+      k0 = Dp[j];
+      k1 = Dp[j+1];
+    }
+    else
+    {
+      hj = h;
+    }
+    for(k=k0; k<k1; k++)
+    {
+      i = sp?Di[k]:k;
+      const double& Dij = sp?Dx[k]:Dx[h++];
+      int Dij_sign = gsl_fcmp(Dij+1.0,1.0,DBL_EPSILON);
+      if(Dij_sign!=0)
+      {
+        bx[i] += Dij*zj;
+      //Std(BText("\n  D[")+i+","+j+"]="+BDat(Dij)+"\tz["+j+"]="+BDat(zj)+"\tb["+i+"]="+BDat(bx[i])+"\td["+i+"]="+BDat(dx[i]));
+        if(Dij_sign<0) 
+        {
+          aux = bx[i]/Dij;
+          if(lower<aux) { lower = aux; }
+        //Std(BText("\n  aux=")+BDat(aux)+"\tlower="<<BDat(lower));
+        }
+        else //if(Dij_sign>0) 
+        {
+          aux = bx[i]/Dij;
+          if(upper>aux) { upper = aux; }
+        //Std(BText("\n  aux=")+BDat(aux)+"\tupper="<<BDat(upper));
+        }
+      }
+    }
+  //Std(BText("\nlower=")<<BDat(lower)<<"\tupper="<<BDat(upper));
+    double length = lower-upper;
+    int length_sign = gsl_fcmp(length+1.0,1.0,DBL_EPSILON);
+    if(length_sign>=0)
+    {
+      if(length_sign==0)
+      {
+        lower = upper;
+      }
+      else
+      {
+        warn_cannot_apply("TruncStdGaussian",
+          I2("(empty interval",
+          "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+
+                                   BDat(upper).Format("%.16lg")+"])",z);
+        return(-1);
+      }
+    }
+# ifdef USE_BTruncatedNormalDist
+    if(lower>=upper)
+    {
+      zj = lower;
+    }
+    else if((lower>negInf)||(upper<posInf))
+    {
+      BTruncatedNormalDist tn(lower,upper);
+      zj = tn.Random().Value();
+      assert((lower<=zj) && (zj<=upper));
+    //Std(BText("\nBTruncatedNormalDist z[")+j+"]="+zj);
+    }
+    else
+    {
+      zx[j] = BNormalDist::Random01().Value();
+    //Std(BText("\nBNormalDist z[")+j+"]="+zj);
+    }
+# else
+    zj = gsl_rtabnorm_combo(BProbDist::rng(), 0.0, 1.0,
+                     lower, upper, 10);
+    assert((lower<=zj) && (zj<=upper));
+    if(!BDat(zj).IsFinite())
+    {
+      err_cannot_apply("TruncStdGaussian",
+        I2("(empty interval",
+           "(intervalo vacio")+" ["+lower+","+upper+"])",z);
+      return(-2);
+    }
+# endif
+    if(!sp) { h=hj; }
+    for(k=k0; k<k1; k++)
+    {
+      i = sp?Di[k]:k;
+      const double& Dij = sp?Dx[k]:Dx[h++];
+      bx[i] -= Dij*zj;
+    //Std(BText("\nD[")+i+","+j+"]="+Dij+"\tz["+j+"]="+zj+"\tb["+i+"]="+bx[i]);
+    }
+  }
+  return(0);
+};
+*/
+
 ////////////////////////////////////////////////////////////////////////////////
   int BVMat::trunc_std_gaussian(const BVMat& D, 
                                 const BVMat& d, 
@@ -568,7 +703,7 @@ double BVMat::Quantile() const
   for(h=hj=j=0; j<n; j++)
   {
     double& zj = zx[j];
-  //Std(BText("\nj=")<<j);
+  //Std(BText("\ntrunc_std_gaussian column j=")<<j);
     lower=negInf; 
     upper=posInf;
     if(sp)
@@ -588,22 +723,22 @@ double BVMat::Quantile() const
       if(Dij_sign!=0)
       {
         bx[i] += Dij*zj;
-      //Std(BText("\nD[")+i+","+j+"]="+Dij+"\tz["+j+"]="+zj+"\tb["+i+"]="+bx[i]+"\td["+i+"]="+dx[i]);
+      //Std(BText("\n  D[")+i+","+j+"]="+BDat(Dij)+"\tz["+j+"]="+BDat(zj)+"\tb["+i+"]="+BDat(bx[i])+"\td["+i+"]="+BDat(dx[i]));
         if(Dij_sign<0) 
         {
           aux = bx[i]/Dij;
           if(lower<aux) { lower = aux; }
-        //Std(BText("\naux=")+aux+"\tlower="<<lower);
+        //Std(BText("\n  aux=")+BDat(aux)+"\tlower="<<BDat(lower));
         }
         else //if(Dij_sign>0) 
         {
           aux = bx[i]/Dij;
           if(upper>aux) { upper = aux; }
-        //Std(BText("\naux=")+aux+"\tupper="<<upper);
+        //Std(BText("\n  aux=")+BDat(aux)+"\tupper="<<BDat(upper));
         }
       }
     }
-  //Std(BText("\nlower=")<<lower<<"\tupper="<<upper);
+  //Std(BText("\nlower=")<<BDat(lower)<<"\tupper="<<BDat(upper));
     double length = lower-upper;
     int length_sign = gsl_fcmp(length+1.0,1.0,DBL_EPSILON);
     if(length_sign>=0)
@@ -614,11 +749,11 @@ double BVMat::Quantile() const
       }
       else
       {
-        err_cannot_apply("TruncStdGaussian",
+        warn_cannot_apply("TruncStdGaussian",
           I2("(empty interval",
           "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+
                                    BDat(upper).Format("%.16lg")+"])",z);
-      //return(-1);
+        return(-1);
       }
     }
 # ifdef USE_BTruncatedNormalDist
@@ -700,7 +835,7 @@ double BVMat::Quantile() const
     err_cannot_apply(fName,
       I2("(non feasible initial point)",
          "(valor inicial no factible)"),z0);
-  //return;
+    return;
   }
   if(burnin<=0 ) { burnin = 1; }
   BVMat burn;
