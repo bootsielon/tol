@@ -19,6 +19,8 @@ NameBlock Obs.Serie.Info(
   Date first, 
   //The last date to be analyzed
   Date last, 
+  //Missing label is used as prefix of missing parameters
+  Text missing.label,
   //If there are missing values it will be added prior information about it
   //multiplying the standard deviation of the serie by this factor. 
   //If you don't have prior information about this set it to +1/0
@@ -37,10 +39,13 @@ NameBlock Obs.Serie.Info(
   Real _.avg = 
   {
     Real aux = AvrS(_.serie);
-    If(IsUnknown(aux), WriteLn("Serie "+_.name+" is fully unknown","W"));
+    If(IsUnknown(aux), WriteLn("Serie "+_.id_node+"::"+_.name+
+      " is fully unknown","W"));
     aux
   };
   Real _.stds = StDsS(_.serie);
+  Text _.missing.label       = missing.label;
+  Text _.missing.name        = _.missing.label+"_"+_.name;
   Real _.missing.sigmaFactor = missing.sigmaFactor; 
   Real _.missing.lowerBound  = missing.lowerBound; 
   Real _.missing.upperBound  = missing.upperBound;
@@ -79,7 +84,7 @@ NameBlock Obs.Serie.Info(
   Text missing.name(Date dte)
   {
     Text txt = FormatDate(dte,"%cy%Ym%md%dh%hi%is%s");
-    "MissingBlk::"+_.id_node+"::"+_.name+"::"+txt
+    "MissingBlk::"+_.missing.label+"::"+_.name+"::"+txt
   };
   //Returns the expression of the t-th regression coefficient that could be a
   //a known real datum or the identifier of a missing value
@@ -125,6 +130,8 @@ NameBlock Obs.Vector.Info(
   Text name,
   //Time serie data
   Matrix serie, 
+  //Missing label is used as prefix of missing parameters
+  Text missing.label,
   //If there are missing values it will be added prior information about it
   //multiplying the standard deviation of the serie by this factor. 
   //If you don't have prior information about this set it to +1/0
@@ -147,6 +154,8 @@ NameBlock Obs.Vector.Info(
     aux
   };
   Real _.stds = MatStDs(_.serie);
+  Text _.missing.label = missing.label;
+  Text _.missing.name  = _.missing.label+"_"+_.name;
   Real _.missing.sigmaFactor = missing.sigmaFactor; 
   Real _.missing.lowerBound  = missing.lowerBound; 
   Real _.missing.upperBound  = missing.upperBound;
@@ -157,7 +166,7 @@ NameBlock Obs.Vector.Info(
   Text missing.name(Real num)
   {
     Text txt = IntText(num);
-    "MissingBlk::"+_.id_node+"::"+_.name+"::"+txt
+    "MissingBlk::"+_.missing.label+"::"+_.name+"::"+txt
   };
   //Returns the expression of the t-th regression coefficient that could be a
   //a known real datum or the identifier of a missing value
@@ -202,6 +211,8 @@ NameBlock Obs.Data.Info(
   Date first, 
   //The last date to be analyzed or UnknownDate if it's a vector
   Date last, 
+  //Missing label is used as prefix of missing parameters
+  Text missing.label,
   //If there are missing values it will be added prior information about it
   //multiplying the standard deviation of the serie by this factor. 
   //If you don't have prior information about this set it to +1/0
@@ -220,14 +231,14 @@ NameBlock Obs.Data.Info(
   {
   //WriteLn("TRACE [Obs.Data.Info] 1");
     Obs.Serie.Info(
-      id_node, name, serie, numIniVal, first, last, 
+      id_node, name, serie, numIniVal, first, last, missing.label,
       missing.sigmaFactor, missing.lowerBound, missing.upperBound)
   },
   g=="Matrix",
   {
   //WriteLn("TRACE [Obs.Data.Info] 2");
     Obs.Vector.Info(
-      id_node, name, serie, 
+      id_node, name, serie, missing.label,
       missing.sigmaFactor, missing.lowerBound, missing.upperBound)
   },
   {
@@ -334,10 +345,10 @@ NameBlock Obs.TransFun(
     BysMcmc::Bsr::Gibbs::DeltaTransfer
     (
       id_node+"::Noise",
-      _.transferFunction,
+      Copy(_.transferFunction),
       EvalSet(_.omegaParam, Text(Bsr.Param.Info pi) { pi->Name}),
-      _.omega, 
-      _.delta,
+      Copy(_.omega), 
+      Copy(_.delta),
       If(!_.p,Rand(0,1,0,0), Tra(SerSetMat([[ser]], fst0, lst0))),
       Tra(SerSetMat([[ser]], fst,lst))
     )
@@ -369,6 +380,8 @@ NameBlock Obs(
   Set input,
   //A set where each item is the result of calling Obs.TransFun
   Set transFun,
+  //Acumulate input.missing.labels to avoid repetitions
+  Set input.missing.labels,
   //The result of calling BysMcmc::Bsr::Import::Constraints
   NameBlock constraints,
   Real forceZeroInputCoef)
@@ -415,7 +428,16 @@ NameBlock Obs(
   Set _.missing = _.output::_.serie.info::_.missing << 
     BinGroup("<<", EvalSet(_.input, Set(NameBlock inp)
     {
-      inp::_.serie.info::_.missing
+      Set label = [[inp::_.serie.info::_.missing.name]];
+      Text PutName(label[1],label[1]);
+      Real idx = FindIndexByName(input.missing.labels,label[1]);
+    //WriteLn("TRACE Obs Missing Label Name : "+label[1]+" -> "<<idx);
+      If(idx, Copy(Empty),
+      {
+        Set Append(input.missing.labels, label);
+        Real SetIndexByName(input.missing.labels);
+        inp::_.serie.info::_.missing
+      })
     }));
 
   //Mandatory methods that will be used by BysMcmc::Bsr::Import
