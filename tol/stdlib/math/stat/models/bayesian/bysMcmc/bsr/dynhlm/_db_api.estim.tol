@@ -19,6 +19,7 @@ Real SaveParamStats(Text dbName, Text model, Text session, Set estim)
   Set summary  = estim::report::coda.summary;
   Set raftery_ = estim::report::coda.raftery.diag;
   Set raftery  = If(Card(raftery_)==Card(summary)+1, raftery_, Copy(Empty));
+  Real SqlStartCachedInsert(0);  
   Set For(1,Card(estim::report::coda.summary),Real save.param(Real k)
   {
     Set cs = summary[k];
@@ -31,9 +32,9 @@ Real SaveParamStats(Text dbName, Text model, Text session, Set estim)
     Text id_parameter = token[3]+If(Card(token)==3,"",
       SetSum(For(4,Card(token),Text build.member(Real tk) 
       {"::"+token[tk]} )));
-    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-    "INSERT INTO "+dbName+"."+_table::ParamStats+"\n"
-    "VALUES('"+
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+    dbName+"."+_table::ParamStats,
+    "'"+
      model+"','"+
      session+"','"+
      id_node+"','"+
@@ -56,8 +57,9 @@ Real SaveParamStats(Text dbName, Text model, Text session, Set estim)
      SqlFormatReal(cr->size_)+","<<
      SqlFormatReal(cr->size.min_)+","<<
      SqlFormatReal(cr->dep.factor_)+","<<
-     SqlFormatReal(cr->remain_)+")" )
+     SqlFormatReal(cr->remain_))
   });
+  Real SqlStopCachedInsert(0);
   1
 };
 
