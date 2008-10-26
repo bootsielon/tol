@@ -200,8 +200,6 @@ Real Write.Data.RegressionEquations(NameBlock segment,
 {
   Text ResName = segment::Get.Name(0)+"::Noise";
   Real nEqu = segment::Get.Equation.Size(0);
-  WriteLn(_MID+"Escribiendo ecuaciones para el segmento "<<
-          ResName<<"["<<nEqu<<"]");
   Real iE = 1;
   Real fefz = FunctionExist("Real", "segment::Get.Param.ForceZero");
   Real While(iE<=nEqu, Real 
@@ -233,14 +231,12 @@ Real Write.Data.Constraints(NameBlock segmentOrFullModel,
 ///////////////////////////////////////////////////////////////////////////
 {
   NameBlock handler = segmentOrFullModel::Get.Constraints.Handler(0);
-  WriteLn(_MID+"Escribiendo restricciones de orden ");
   Set For(1, handler::Get.OrderRelation.Size(0), Real(Real r) 
   {
     Set or = handler::Get.OrderRelation(r);
     Real FPutText(fileHandler, "0>=+1.0*"+or->Lower+"-1.0*"+or->Upper+";\n");
     Real 0
   });
-  WriteLn(_MID+"Escribiendo restricciones lineales generales ");
   Set For(1, handler::Get.GenericConstraint.Size(0), Real(Real r) 
   {
     Set gc = handler::Get.GenericConstraint(r);
@@ -261,7 +257,6 @@ Real Write.Data.Constraints(NameBlock segmentOrFullModel,
       RealTextS(gc->UpperBound)+">="+expr+";\n"));
     Real 0
   });
-  WriteLn(_MID+"Escribiendo restricciones lineales explicitas ");
   Set For(1, handler::Get.ExplicitConstraint.Size(0), Real(Real r) 
   {
     Text inequ = handler::Get.ExplicitConstraint(r);
@@ -275,9 +270,6 @@ Real Write.Data.Constraints(NameBlock segmentOrFullModel,
 Real Write.Header.MainLinearBlock(NameBlock model, Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
 {
-  //Escribo valores iniciales de los parametros. Se asume que cada
-  //segmento es "owner" de los parametros que solo aparecen en el y que
-  //cada parametro aparece en algun segmento que lo posee.
   WriteLn(_MID+"Writing definition of main linear block parameters");
   Real FPutText(fileHandler,
     "\n\n"+_comment+
