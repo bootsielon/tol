@@ -4,6 +4,7 @@
 //           BysMcmc::Bsr::DynHlm::DBApi
 //////////////////////////////////////////////////////////////////////////////
 
+
 //////////////////////////////////////////////////////////////////////////////
 //Set current data base engine to MySQL
   Real SetEngineToMySQL(Real unused)
@@ -11,6 +12,18 @@
 {
   Text _.engine := SqlEngine::GesMys;
   0
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Trace and execute a non SELECT query returning nothing but success or not
+Real SqlExecTrace(Text query)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(doQueryTrace,
+    WriteLn("[Bsr::DynHlm::DBApi::SqlExecTrace] "+
+    If(_autoCache,"CACHED","")+" "+
+    "Query=\n"+query)); 
+  DBExecQuery(query)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -23,17 +36,6 @@ Set SqlTableTrace(Text query, Text structure)
   If(structure=="",
     DBTable(query),
     DBTable(query, structure))
-};
-
-//////////////////////////////////////////////////////////////////////////////
-//Trace and execute a non SELECT query returning nothing but success or not
-Real SqlExecTrace(Text query)
-//////////////////////////////////////////////////////////////////////////////
-{
-  If(doQueryTrace,
-    WriteLn("[Bsr::DynHlm::DBApi::SqlExecTrace] Query=\n"+query)); 
-  Real DBExecQuery(query);
-  1
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -51,6 +53,92 @@ Text SqlFormatReal(Real x)
   If(IsFinite(x),BysMcmc::Bsr::Import::RealTextS(x),"NULL")
 };
 
+//////////////////////////////////////////////////////////////////////////////
+//
+Set SqlCachedTableFile(Text table)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text id_table = ToName(table);
+  Real idx = FindIndexByName(_cachedTables,id_table);
+  If(idx, _cachedTables[idx],
+  {
+    Text path = _cacheQueryRootPath+id_table+".sql";
+    Real file = FOpen(path,"w");
+    Real FPutText(file,"INSERT INTO "+table+" VALUES");
+    Set aux = CachedTableReg(table,path,file,0);
+    Set entry = SetOfSet(Eval(id_table+"=aux"));
+    Set Append(_cachedTables, entry);
+    Real SetIndexByName(_cachedTables);
+    entry[1]
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//
+Real SqlCachedInsert(Text table, Text values)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!_autoCache,
+  {
+    SqlExecTrace(
+    "INSERT INTO "+table+"\n"+
+    "VALUES("+values+")")
+  },
+  {
+    Set tabReg = SqlCachedTableFile(table);    
+    Real FPutText(tabReg->file_, If(tabReg->numReg_,",","")+"\n"+
+      "("+values+")");
+    Real tabReg->numReg_ := tabReg->numReg_+1;
+    1
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Enables automatic cached queries
+Real SqlStartCachedInsert(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!allowAutoCache,1,
+  {
+    Real _autoCache := True;
+    Set _cachedTables := Copy(Empty);
+  //WriteLn("TRACE [SqlStartCachedInsert] 1");
+    Text _cacheQueryRootPath := 
+       Replace(TolAppDataPath,"\\","/")+"SqlScript/"+
+       "tmp."+IntText(Rand(1,999999999))+"/";
+  //WriteLn("TRACE [SqlStartCachedInsert] 2");
+    WriteLn("[SqlStartCachedInsert] Storing SQL cache into "+
+      _cacheQueryRootPath);
+    Real OSDirMake(_cacheQueryRootPath);
+  //WriteLn("TRACE [SqlStartCachedInsert] 3");
+    1
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Disables automatic cached queries
+Real SqlStopCachedInsert(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real ok = If(!allowAutoCache,1,
+  {
+    Real _autoCache := False;
+    Real ok.1 = SetMin(EvalSet(_cachedTables, Real(CachedTableReg tabReg)
+    {
+      Real FClose(tabReg->file_);
+      Text query = ReadFile(tabReg->path_);
+      Real ok.1.1 = SqlExecTrace(query);
+    //Real ok.1 = SqlExecScript(ReplaceSlash(tabReg->path_));
+      Real ok.1.2 = OSFilRemove(tabReg->path_);
+      And(ok.1.1,ok.1.2)
+    }));
+    Real ok.2 = OSDirRemove(_cacheQueryRootPath);
+    Text _cacheQueryRootPath := "";
+    Set _cachedTables := Copy(Empty);
+    And(ok.1,ok.2)
+  });
+  ok
+};
 
 //////////////////////////////////////////////////////////////////////////////
 //Creates in database skeleton with all bsrhlm_ prefixed tables needed to 

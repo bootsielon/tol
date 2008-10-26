@@ -19,7 +19,31 @@ NameBlock DBApi =
 
   //Enables or disables SQL tracing
   Real doQueryTrace = False;
-  
+  //Enables or disables automatic SQL cache
+  Real allowAutoCache = False;
+
+  Struct CachedTableReg
+  {
+    Text table_;
+    Text path_;
+    Real file_;
+    Real numReg_
+  };
+
+  Real _autoCache = False;
+  Text _cacheQueryRootPath = "";
+  Set  _cachedTables = Copy(Empty);
+
+  Real SqlExecScript.NotImplemented(Text filePath)
+  {
+    WriteLn("[SqlExecScript.NotImplemented] Sorry assign "
+      "BysMcmc::Bsr::DynHlm::DBApi::SqlExecScript or disable "+
+      "BysMcmc::Bsr::DynHlm::DBApi::allowAutoCache","E");
+    Real Stop
+  };
+
+  Code SqlExecScript = SqlExecScript.NotImplemented;
+
   //Set of TOL alias for database tables
   Set _.tableName = 
   [[
@@ -57,6 +81,10 @@ NameBlock DBApi =
   Code SetEngineToMySQL;
   Code SqlTableTrace;
   Code SqlExecTrace;
+  Code SqlCachedTableFile;
+  Code SqlCachedInsert;
+  Code SqlStartCachedInsert;
+  Code SqlStopCachedInsert;
   Code SqlFormatReal;
   Code SqlFormatDate;
   Code CreateSkeleton;
