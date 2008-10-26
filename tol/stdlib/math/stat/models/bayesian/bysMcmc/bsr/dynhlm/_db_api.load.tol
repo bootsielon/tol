@@ -101,12 +101,12 @@
   "  "+dbName+"."+_table::Parameter+" as B, \n"
   "  "+dbName+"."+_table::Parameter+" as C \n"
   "WHERE \n"+
-  "  A.id_model='"+_.model.name+"' AND \n"+
-  "  A.id_session='"+_.session.name+"' AND\n"+
-  "  B.id_model='"+_.model.name+"' AND \n"+
-  "  B.id_session='"+_.session.name+"' AND\n"+
-  "  C.id_model='"+_.model.name+"' AND \n"+
-  "  C.id_session='"+_.session.name+"' AND\n"+
+  "  A.id_model='"+model+"' AND \n"+
+  "  A.id_session='"+session+"' AND\n"+
+  "  B.id_model='"+model+"' AND \n"+
+  "  B.id_session='"+session+"' AND\n"+
+  "  C.id_model='"+model+"' AND \n"+
+  "  C.id_session='"+session+"' AND\n"+
   "  A.id_node_lower=B.id_node AND \n"+
   "  A.id_parameter_lower=B.id_parameter AND\n"+
   "  A.id_node_upper=C.id_node AND \n"+
@@ -118,8 +118,8 @@
   "SELECT \n"+
   "  vl_left_border, nu_inequation, vl_right_border \n"+
   "FROM "+dbName+"."+_table::ConstrBorder+" WHERE \n"+
-  "  id_model='"+_.model.name+"' AND \n"+
-  "  id_session='"+_.session.name+"' AND\n"+
+  "  id_model='"+model+"' AND \n"+
+  "  id_session='"+session+"' AND\n"+
   "  id_node='"+id_node+"'"
   "ORDER BY nu_inequation", 
   "Bsr.DynHlm.DBStrConstrBorder");
@@ -134,11 +134,11 @@
     "  "+dbName+"."+_table::ConstrLinComb+" as A, \n"+
     "  "+dbName+"."+_table::Parameter+" as B \n"+
     "WHERE \n"+
-    "  A.id_model='"+_.model.name+"' AND \n"+
-    "  A.id_session='"+_.session.name+"' AND\n"+
+    "  A.id_model='"+model+"' AND \n"+
+    "  A.id_session='"+session+"' AND\n"+
     "  A.nu_inequation="+IntText(b->NumInequation)+" AND \n"+
-    "  B.id_model='"+_.model.name+"' AND \n"+
-    "  B.id_session='"+_.session.name+"' AND\n"+
+    "  B.id_model='"+model+"' AND \n"+
+    "  B.id_session='"+session+"' AND\n"+
     "  A.id_node=B.id_node AND \n"+
     "  A.id_parameter=B.id_parameter\n", 
     "Bsr.LinearCombTerm");
@@ -167,7 +167,8 @@ NameBlock LoadObsNode(Text dbName,
                       Text model, 
                       Text session,
                       Text id_node, 
-                      NameBlock modelHandler)
+                      NameBlock modelHandler,
+                      Set input.missing.labels)
 ////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE LoadObsNode 1");
@@ -186,6 +187,7 @@ NameBlock LoadObsNode(Text dbName,
   "  id_session='"+session+"' AND \n"+
   "  id_node='"+id_node+"' ",
   "Bsr.DynHlm.DBStrObsOutput")[1];
+
   Set db_arima = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT \n"+
   "  nu_period, \n"+
@@ -193,8 +195,8 @@ NameBlock LoadObsNode(Text dbName,
   "  te_ma, \n"+
   "  te_dif \n"+
   "FROM "+dbName+"."+_table::ObsArimaBlk+" WHERE \n"+
-  "  id_model='"+_.model.name+"' AND \n"+
-  "  id_session='"+_.session.name+"' AND \n"+
+  "  id_model='"+model+"' AND \n"+
+  "  id_session='"+session+"' AND \n"+
   "  id_node='"+id_node+"' \n"+
   "ORDER BY nu_factor ASC", 
   "Bsr.DynHlm.DBStrARIMA");
@@ -217,6 +219,7 @@ NameBlock LoadObsNode(Text dbName,
       0,
       db_output->firstDate, 
       db_output->lastDate, 
+      id_node,
       db_output->missingPriorSigmaFactor, 
       db_output->missingPriorLowerBound, 
       db_output->missingPriorUpperBound), 
@@ -236,11 +239,11 @@ NameBlock LoadObsNode(Text dbName,
   "  "+dbName+"."+_table::ObsInput+" as A, \n"+
   "  "+dbName+"."+_table::Parameter+" as B \n"+
   "WHERE \n"+
-  "  A.id_model='"+_.model.name+"' AND \n"+
-  "  A.id_session='"+_.session.name+"' AND \n"+
+  "  A.id_model='"+model+"' AND \n"+
+  "  A.id_session='"+session+"' AND \n"+
   "  A.id_node='"+id_node+"' AND\n"+
-  "  B.id_model='"+_.model.name+"' AND \n"+
-  "  B.id_session='"+_.session.name+"' AND \n"+
+  "  B.id_model='"+model+"' AND \n"+
+  "  B.id_session='"+session+"' AND \n"+
   "  B.id_node='"+id_node+"' AND \n"+
   "  B.id_parameter=A.id_parameter", 
   "Bsr.DynHlm.DBStrObsInput");
@@ -256,6 +259,7 @@ NameBlock LoadObsNode(Text dbName,
         0,
         db_output->firstDate, 
         db_output->lastDate, 
+        id_node   ,
         db_inp->missingPriorSigmaFactor, 
         db_inp->missingPriorLowerBound, 
         db_inp->missingPriorUpperBound),
@@ -278,8 +282,8 @@ NameBlock LoadObsNode(Text dbName,
   "FROM \n"+
   "  "+dbName+"."+_table::ObsTransFun+" as A\n"+
   "WHERE \n"+
-  "  A.id_model='"+_.model.name+"' AND \n"+
-  "  A.id_session='"+_.session.name+"' AND \n"+
+  "  A.id_model='"+model+"' AND \n"+
+  "  A.id_session='"+session+"' AND \n"+
   "  A.id_node='"+id_node+"' \n", 
   "Bsr.DynHlm.DBStrObsTransFun");
   Set transFun = { EvalSet(db_transFun, 
@@ -297,6 +301,7 @@ NameBlock LoadObsNode(Text dbName,
         p,
         db_output->firstDate, 
         db_output->lastDate,
+        id_node,
         db_tf->missingPriorSigmaFactor, 
         db_tf->missingPriorLowerBound, 
         db_tf->missingPriorUpperBound),
@@ -310,8 +315,9 @@ NameBlock LoadObsNode(Text dbName,
   Real forceZeroInputCoef = 
     If(!FunctionExist("Real", "modelHandler::ForceZeroInputCoef"),0,
       modelHandler::ForceZeroInputCoef(0));
-  BysMcmc::Bsr::DynHlm::BuildNode::Obs
-    (output, input, transFun, _.constr, forceZeroInputCoef)
+  BysMcmc::Bsr::DynHlm::BuildNode::Obs(
+    output, input, transFun, input.missing.labels, 
+    _.constr, forceZeroInputCoef)
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -329,8 +335,8 @@ NameBlock LoadLatNode(Text dbName,
     "SELECT \n"+
     "  vl_sigma \n"+
     "FROM "+dbName+"."+_table::LatSigBlk+" WHERE \n"+
-    "  id_model='"+_.model.name+"' AND \n"+
-    "  id_session='"+_.session.name+"' AND \n"+
+    "  id_model='"+model+"' AND \n"+
+    "  id_session='"+session+"' AND \n"+
     "  id_node='"+id_node+"' ", 
     "")[1][1];
 
@@ -339,8 +345,8 @@ NameBlock LoadLatNode(Text dbName,
     "  nu_equation, \n"+
     "  vl_sigma_factor \n"+
     "FROM "+dbName+"."+_table::LatEqu+" WHERE \n"+
-    "  id_model='"+_.model.name+"' AND \n"+
-    "  id_session='"+_.session.name+"' AND \n"+
+    "  id_model='"+model+"' AND \n"+
+    "  id_session='"+session+"' AND \n"+
     "  id_node_father='"+id_node+"' \n"
     "ORDER BY nu_equation", 
     "Bsr.DynHlm.DBStrLatEqu");      
@@ -356,12 +362,12 @@ NameBlock LoadLatNode(Text dbName,
       "  "+dbName+"."+_table::LatOutput+" as A, \n"
       "  "+dbName+"."+_table::Parameter+" as B  \n"
       "WHERE \n"+
-      "  A.id_model='"+_.model.name+"' AND \n"+
-      "  A.id_session='"+_.session.name+"' AND \n"+
+      "  A.id_model='"+model+"' AND \n"+
+      "  A.id_session='"+session+"' AND \n"+
       "  A.id_node_father='"+id_node+"' AND \n"+
       "  A.nu_equation="+IntText(equ->nu_equation)+" AND \n"+
-      "  B.id_model='"+_.model.name+"' AND \n"+
-      "  B.id_session='"+_.session.name+"' AND \n"+
+      "  B.id_model='"+model+"' AND \n"+
+      "  B.id_session='"+session+"' AND \n"+
       "  A.id_node_child=B.id_node AND \n"+
       "  A.id_parameter_child=B.id_parameter \n",
       "Bsr.DynHlm.DBStrLatOutput")
@@ -381,8 +387,8 @@ NameBlock LoadLatNode(Text dbName,
       "  A.id_session='"+session+"' AND \n"+
       "  A.id_node_father='"+id_node+"' AND \n"+
       "  A.nu_equation="+IntText(equ->nu_equation)+" AND \n"+
-      "  B.id_model='"+_.model.name+"' AND \n"+
-      "  B.id_session='"+_.session.name+"' AND \n"+
+      "  B.id_model='"+model+"' AND \n"+
+      "  B.id_session='"+session+"' AND \n"+
       "  A.id_node_father=B.id_node AND \n"+
       "  A.id_parameter_father=B.id_parameter \n",
       "Bsr.DynHlm.DBStrLatInput")
@@ -461,8 +467,8 @@ NameBlock LoadPriNode(Text dbName,
     "  vl_average, \n"+
     "  vl_sigma \n"+
     "FROM "+dbName+"."+_table::PriEqu+" WHERE \n"+
-    "  id_model='"+_.model.name+"' AND \n"+
-    "  id_session='"+_.session.name+"' AND \n"+
+    "  id_model='"+model+"' AND \n"+
+    "  id_session='"+session+"' AND \n"+
     "  id_node_father='"+id_node+"' \n"
     "ORDER BY nu_equation", 
     "Bsr.DynHlm.DBStrPriEqu");
@@ -537,16 +543,17 @@ NameBlock LoadModelDef(Text dbName,
 {[[
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
   Text _.dbName = dbName; 
-  Text _.model.name = model;
-  Text _.session.name = session;
+  Text _.id_model = model;
+  Text _.id_session = session;
   Text _.resultRootPath = resultRootPath;
   NameBlock _.modelHandler = modelHandler;
-  
+  Set _.deltaNonLinBlk = Copy(Empty);
+
   Real _.modSesCheck = 
   {
     Real count = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
     "SELECT count(*) FROM "+dbName+"."+_table::ModSes+" WHERE "+
-    "  id_model='"+_.model.name+"' AND id_session='"+_.session.name+"'","")[1][1];
+    "  id_model='"+_.id_model+"' AND id_session='"+_.id_session+"'","")[1][1];
     If(count==1, 1,
     {
       Error("Cannot find model-session ('"+model+"'-'"+session+"')");
@@ -556,65 +563,32 @@ NameBlock LoadModelDef(Text dbName,
   };
   Text _.model.description = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT ds_model FROM "+dbName+"."+_table::Model+" WHERE "+
-  "  id_model='"+_.model.name+"'","")[1][1];
+  "  id_model='"+_.id_model+"'","")[1][1];
   Text _.session.description = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT ds_session FROM "+dbName+"."+_table::Session+" WHERE "+
-  "  id_session='"+_.session.name+"'","")[1][1];
+  "  id_session='"+_.id_session+"'","")[1][1];
   Text _.session.te_authors = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT te_authors FROM "+dbName+"."+_table::Session+" WHERE "+
-  "  id_session='"+_.session.name+"'","")[1][1];
+  "  id_session='"+_.id_session+"'","")[1][1];
 
-  Set _.db_nodes.obs = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
-  "SELECT id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
-  "  id_model='"+_.model.name+"' AND \n"+
-  "  id_session='"+_.session.name+"' AND \n"+
-  "  id_node_type='OBS' \n"+
-  "ORDER BY nu_node ASC","");
-  Set _.nodes.obs = EvalSet(_.db_nodes.obs, NameBlock(Set db_node)
-  {
-    Text id_node = db_node[1];
-    BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode
-      (dbName, model, session, id_node, _.modelHandler)
-  });
+  Set input.missing.labels = Copy(Empty);
 
-  Set _.db_nodes.lat = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
-  "SELECT id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
-  "  id_model='"+_.model.name+"' AND \n"+
-  "  id_session='"+_.session.name+"' AND \n"+
-  "  id_node_type='LAT' \n"+
-  "ORDER BY nu_node ASC","");
-  Set _.nodes.lat = EvalSet(_.db_nodes.lat, NameBlock(Set db_node)
-  {
-    Text id_node = db_node[1];
-    BysMcmc::Bsr::DynHlm::DBApi::LoadLatNode
-      (dbName, model, session, id_node)
-  });
-
-  Set _.db_nodes.pri = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
-  "SELECT id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
-  "  id_model='"+_.model.name+"' AND \n"+
-  "  id_session='"+_.session.name+"' AND \n"+
-  "  id_node_type='PRI' \n"+
-  "ORDER BY nu_node ASC","");
-  Set _.nodes.pri = EvalSet(_.db_nodes.pri, NameBlock(Set db_node)
-  {
-    Text id_node = db_node[1];
-    BysMcmc::Bsr::DynHlm::DBApi::LoadPriNode
-      (dbName, model, session, id_node)
-  });
-
-  Set _.nodes = _.nodes.obs << _.nodes.lat << _.nodes.pri;
+  Set _.nodes = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
+  "  id_model='"+_.id_model+"' AND \n"+
+  "  id_session='"+_.id_session+"'"
+  "order by id_node_type, nu_node","Bsr.DynHlm.DBNode");
 
 //Mandatory methods that will be used by BysMcmc::Bsr::Import
 
   ///////////////////////////////////////////////////////////////////////////
   // Documental Section
   //Returns model identifier to help in analysis organization
-  Text Get.Doc.Model.Name(Real unused) { _.model.name };
+  Text Get.Doc.Model.Name(Real unused) { _.id_model };
   //Brief explanation of model
   Text Get.Doc.Model.Description(Real unused)  { _.model.description };
   //Returns model identifier to help in analysis organization
-  Text Get.Doc.Session.Name(Real unused)  { _.session.name };
+  Text Get.Doc.Session.Name(Real unused)  { _.id_session };
   //Brief explanation of model
   Text Get.Doc.Session.Description(Real unused) { _.session.description };
   //e-mail or any identifier of te_authors separated by \n
@@ -625,8 +599,36 @@ NameBlock LoadModelDef(Text dbName,
 
   ///////////////////////////////////////////////////////////////////////////
   // Linear Regression Section
-  Real Get.LinReg.Size(Real unused) { Card(_.nodes) };
-  NameBlock Get.LinReg.Segment(Real segmentNumber) { _.nodes[segmentNumber] };
+  Real Get.LinReg.Size(Real unused) 
+  { 
+    Card(_.nodes)
+  };
+
+  NameBlock Get.LinReg.Segment(Real segmentNumber) 
+  { 
+    Set node = _.nodes[segmentNumber];
+    Text id_node = node->Node;
+    Case(
+      node->NodeType=="OBS", 
+      {
+        NameBlock obs = BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
+          _.dbName, _.id_model, _.id_session, id_node, 
+          _.modelHandler, input.missing.labels);
+        Set Append(_.deltaNonLinBlk, obs::_.deltaNonLinBlk);
+        obs
+      },   
+      node->NodeType=="LAT", 
+      {
+        BysMcmc::Bsr::DynHlm::DBApi::LoadLatNode(
+          _.dbName, _.id_model, _.id_session, id_node)
+      },
+      node->NodeType=="PRI", 
+      {
+        BysMcmc::Bsr::DynHlm::DBApi::LoadPriNode(
+          _.dbName, _.id_model, _.id_session, id_node)
+      }
+    )
+  };
   ///////////////////////////////////////////////////////////////////////////
 
   ///////////////////////////////////////////////////////////////////////////
@@ -635,20 +637,13 @@ NameBlock LoadModelDef(Text dbName,
   ///////////////////////////////////////////////////////////////////////////
   {
     NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-    Set deltaNonLinBlk = If(!Card(_.nodes.obs), 
-      Empty,
-      BinGroup("<<",EvalSet(_.nodes.obs,Set(NameBlock obs)
-      {
-        obs::_.deltaNonLinBlk
-      })));
-//  Set db_genericNonLinBlk = Copy(Empty);
     Set db_genericNonLinBlk = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
     "SELECT \n"+
     "  id_node, \n"+
     "  id_series \n"+
     "FROM "+_.dbName+"."+_table::NonLinFlt+" WHERE \n"+
-    "  id_model='"+_.model.name+"' AND \n"+
-    "  id_session='"+_.session.name+"'\n",
+    "  id_model='"+_.id_model+"' AND \n"+
+    "  id_session='"+_.id_session+"'\n",
     "Bsr.DynHlm.DBStrNonLinFlt");
 
     Set genericNonLinBlk = If(!Card(db_genericNonLinBlk), 
@@ -658,7 +653,7 @@ NameBlock LoadModelDef(Text dbName,
         _.modelHandler::GetNonLinFlt(nlf->node, nlf->nameBlock)
       }));
   //WriteLn("TRACE Get.NonLinFilter Card(deltaNonLinBlk)="<<Card(deltaNonLinBlk));
-    deltaNonLinBlk << genericNonLinBlk
+    _.deltaNonLinBlk << genericNonLinBlk
   };
 
   ///////////////////////////////////////////////////////////////////////////
