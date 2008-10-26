@@ -346,6 +346,8 @@ private:
   static void warn_convert2bRd      (const char* fName, const BVMat& a);
   static void warn_convert2cRt      (const char* fName, const BVMat& a);
   static void warn_convert2cRs      (const char* fName, const BVMat& a);
+  static void warn_cannot_apply     (const char* fName, const char* cond, 
+                                     const BVMat& a);
   static void err_wrong_defined     (const char* fName, const BVMat& a);
   static void err_cannot_create     (const char* fName, ECode code);
   static void err_cannot_create     (const char* fName, const char* cond);
