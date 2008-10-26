@@ -863,9 +863,9 @@ struct assign_noise_to_term
 };
 
 vector<noise_info>*  assign_noise_to_term::noise_vec_   = NULL;
-symbols<int>*          assign_noise_to_term::noise_table_ = NULL;
-lin_reg_equation*      assign_noise_to_term::equ_       = NULL;
-vector<sigma_info>*    assign_noise_to_term::sig_vec_   = NULL;
+symbols<int>*        assign_noise_to_term::noise_table_ = NULL;
+lin_reg_equation*    assign_noise_to_term::equ_         = NULL;
+vector<sigma_info>*  assign_noise_to_term::sig_vec_     = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
 struct add_term_to_equ
@@ -1105,11 +1105,13 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
   int Anzmax_;
   int numEqu_;
 
+  bool endFound_;
 
   bys_sparse_reg()
   : Xnzmax_  (0),
     Anzmax_  (0),
-    numEqu_  (0)
+    numEqu_  (0),
+    endFound_ (false)
   {
     var.count = 0;
     mis.count = 0;
@@ -1149,7 +1151,7 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
       variable, missing, arima, noise, equation, inequation,
       model_nameDef, model_descriptionDef, 
       session_nameDef, session_descriptionDef, session_authorDef, 
-      problem;
+      explicit_begin, explicit_end, problem;
 
     definition(const bys_sparse_reg& s_)
     : s ((bys_sparse_reg&)s_)
@@ -1699,8 +1701,10 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
         |
         error_SessionAuthorDefExpected
         ;
-
+      explicit_begin = str_p("$BEGIN"); 
+      explicit_end   = str_p("$END")[assign_a(s.endFound_,true)]; 
       problem = 
+        (explicit_begin | eps_p) >>
         //header
         (
           model_nameDef >>
@@ -1717,7 +1721,7 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
            equation | 
            inequation ) >>
         //end
-        (end_p | error_declarationExpected )
+        (explicit_end | end_p | error_declarationExpected )
         ;
       //BOOST_SPIRIT_DEBUG_NODE(argumentSeparator );
       //BOOST_SPIRIT_DEBUG_NODE(endOfSentence );
@@ -2099,7 +2103,7 @@ int Parse(const string &          fileName,
   iterator_t end;  
   Std(BSR()+"Parsing BSR file "+fName+" with "+(int)bsr.fileSize+" bytes\n");
   parse_info<iterator_t> result = parse(begin, end, bsr, skip);
-  if(!result.full)
+  if(!result.full && !bsr.endFound_)
   {
     BText msg = BSR() + BText(fName) + " Fails Parsing\n"+url_parse_bsr();
     for (int i = 0; i < 1000; i++)
