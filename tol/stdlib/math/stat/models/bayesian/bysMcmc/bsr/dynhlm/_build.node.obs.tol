@@ -428,15 +428,21 @@ NameBlock Obs(
   Set _.missing = _.output::_.serie.info::_.missing << 
     BinGroup("<<", EvalSet(_.input, Set(NameBlock inp)
     {
-      Set label = [[inp::_.serie.info::_.missing.name]];
-      Text PutName(label[1],label[1]);
-      Real idx = FindIndexByName(input.missing.labels,label[1]);
-    //WriteLn("TRACE Obs Missing Label Name : "+label[1]+" -> "<<idx);
-      If(idx, Copy(Empty),
+      If(inp::_.serie.info::_.id_node==inp::_.serie.info::_.missing.label,
       {
-        Set Append(input.missing.labels, label);
-        Real SetIndexByName(input.missing.labels);
         inp::_.serie.info::_.missing
+      },
+      {
+        Set label = [[inp::_.serie.info::_.missing.name]];
+        Text PutName(label[1],label[1]);
+        Real idx = FindIndexByName(input.missing.labels,label[1]);
+      //WriteLn("TRACE Obs Missing Label Name : "+label[1]+" -> "<<idx);
+        If(idx, Copy(Empty),
+        {
+          Set Append(input.missing.labels, label);
+          Real SetIndexByName(input.missing.labels);
+          inp::_.serie.info::_.missing
+        })
       })
     }));
 
