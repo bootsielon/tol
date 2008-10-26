@@ -590,6 +590,51 @@ BBool BSys::Copy(const BText& origin, const BText& target)
   return(BSys::System(command));
 }
 
+//--------------------------------------------------------------------
+BBool BSys::Cat(const BArray<BText>& origin, const BText& target)
+
+/*! Cats a set of files into target. 
+ * \return Returns true on success, or false if an error occurred
+ */
+//--------------------------------------------------------------------
+{
+  static const int bufferSize_ = 1024*1024;
+  static char buffer_[bufferSize_];
+  FILE* in;
+  FILE* out = fopen(target.String(),"wb");
+  if(!out)
+  {
+    Error(I2("Cannot open for write file ",
+             "No se pudo abrir para escritura el fichero ")+
+          target);
+    return(false);
+  }
+  int i, numBytes, size, pos;
+  for(i=0; i<origin.Size(); i++)
+  {
+    size = GetFileSize(origin[i]);
+    in = fopen(origin[i].String(),"rb");
+    if(!in)
+    {
+      Error(I2("Cannot open for read file ",
+               "No se pudo abrir para lectura el fichero ")+
+            origin[i]);
+      return(false);
+    }
+    pos = 0;
+    while(pos<size)
+    {
+      numBytes = bufferSize_;
+      if(numBytes>size-pos) { numBytes = size-pos; }
+      fread (&buffer_,1,numBytes,in);
+      fwrite(&buffer_,1,numBytes,out);
+      pos += numBytes;
+    }
+    fclose(in);
+  }
+  fclose(out);
+  return(true);
+}
 
 //--------------------------------------------------------------------
 BBool BSys::PrintUnlink(const BText& fileName)

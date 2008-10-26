@@ -116,13 +116,15 @@ public:
 				                    BInt	showMode, 
                             bool  wait=BFALSE);
 #endif
-  static BBool	ChildProcess(const BText& command);
+  static BBool ChildProcess(const BText& command);
   //! Prints a file in the default printer.
-  static BBool	Print	   (const BText& fileName);
+  static BBool Print(const BText& fileName);
   //! Removes a file
-  static BBool	Remove	   (const BText& fileName);
+  static BBool Remove(const BText& fileName);
   //! Copies \a origin file(s) to \a target
-  static BBool	Copy	   (const BText& origin, const BText& target);
+  static BBool Copy(const BText& origin, const BText& target);
+  static BBool Cat(const BArray<BText>& origin, const BText& target);
+
   //! Prints a file in the default printer and removes this file from disk.
   static BBool	PrintUnlink(const BText& fileName);
   //! Removes a file from disk
