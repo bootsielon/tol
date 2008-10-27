@@ -111,10 +111,11 @@ Text _.autodoc.member.StdLinearBlock =
   Real factorize(VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
+    WriteLn("TRACE"+_MID+" factorize X("<<VRows(X)+"x"+VColumns(X)+")");
     If(And(design.is.constant,VRows(_.L)), 0,
     {
       Real sparse = VNonNullCells(X)/(VRows(X)*VColumns(X));
-
+      Real numErr = Copy(NError);
       VMatrix _.L := If(sparse<.20, 
       {
         CholeskiFactor(X,"XtX")
@@ -124,6 +125,12 @@ Text _.autodoc.member.StdLinearBlock =
         VMatrix XtX_ = MtMSqr(X_);
         VMatrix XtX  = Convert(XtX_,"Cholmod.R.Sparse");
         CholeskiFactor(XtX,"X")
+      });
+      Real If(Copy(NError)>numErr,
+      {
+        Text path = TolAppDataPath+"tmp/"+ToName(_MID)+".oza";
+        WriteLn("Failed factorization matrix will be stored into "+path);
+        Ois.Store([[X]],path)
       });
       VMatrix If(_.R, _.Ls := Convert(_.L, "Cholmod.R.Sparse"));
       1
