@@ -226,6 +226,26 @@ Real Write.Data.RegressionEquations(NameBlock segment,
 };
 
 ///////////////////////////////////////////////////////////////////////////
+Real Write.Domain.Constraints(NameBlock segment, Real f)
+///////////////////////////////////////////////////////////////////////////
+{
+  WriteLn(_MID+"Escribiendo restricciones de intervalo para los parametros "
+          "del bloque "<<segment::Get.Name(0));
+  //Uso los parametros del bloque para escribir los intervalos.
+  Set For(1,segment::Get.Param.Size(0), Real(Real k) 
+    {
+      Set P = segment::Get.Param(k);
+      
+      Real lb = GT(P->Prior.LowerBound,Real -1/0);
+      Real ub = LT(P->Prior.UpperBound,Real +1/0);
+      If(lb, FPutText(f, RealTextS(P->Prior.LowerBound)+"<=+"+P->Name+";\n"));
+      If(ub, FPutText(f, RealTextS(P->Prior.UpperBound)+">=+"+P->Name+";\n"));
+      Real 0
+    });
+  Real 0
+};
+
+///////////////////////////////////////////////////////////////////////////
 Real Write.Data.Constraints(NameBlock segmentOrFullModel, 
                             Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
@@ -237,6 +257,7 @@ Real Write.Data.Constraints(NameBlock segmentOrFullModel,
     Real FPutText(fileHandler, "0>=+1.0*"+or->Lower+"-1.0*"+or->Upper+";\n");
     Real 0
   });
+  
   Set For(1, handler::Get.GenericConstraint.Size(0), Real(Real r) 
   {
     Set gc = handler::Get.GenericConstraint(r);
@@ -391,6 +412,7 @@ Text _.autodoc.member.Write =
     Real Write.Data.MissingBlock       (segment, f.mis);
     Real Write.Data.NoiseDistribution  (segment, f.dis);
     Real Write.Data.RegressionEquations(segment, f.reg);
+    Real Write.Domain.Constraints      (segment, f.con);
     Real Write.Data.Constraints        (segment, f.con);
     Real iB := iB+1
   });
@@ -410,6 +432,7 @@ Text _.autodoc.member.Write =
     file.bsr+".reg",
     file.bsr+".con"]],
     file.bsr);
+
   Real OSFilRemove(file.bsr+".head");
   Real OSFilRemove(file.bsr+".lin");
   Real OSFilRemove(file.bsr+".mis");
