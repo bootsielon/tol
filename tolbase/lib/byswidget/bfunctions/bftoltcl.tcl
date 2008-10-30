@@ -96,11 +96,11 @@ proc TclInfoVar {gra obj} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   # eval
-  if {![catch {set lst [::tol::info variable $gra $obj]}]} {
+  if {![catch {set lst [::tol::info variable [list $gra $obj]]}]} {
     set lstNam [list CONTENT PATH DESC INDEXES ISFILE\
                      HASSUBSET SUBTYPE STRUCT]
     for {set i 0} {$i < [llength $lstNam]} {incr i} {
-      set inf([lindex $lstNam $i]) [lindex $lst $i]
+      set inf([lindex $lstNam $i]) [lindex $lst [expr $i+2]]
     }
     #parray inf
     return [array get inf]
@@ -123,13 +123,13 @@ proc TclInfoRef {obj args} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   # eval
-  set cmd "::tol::info variable {$obj [eval list $args]}"
+  set cmd "::tol::info variable {Set $obj $args}"
   #puts "cmd: $cmd"
   if {![catch {set lst [eval $cmd]}]} {
     set lstNam [list GRAMMAR NAME CONTENT PATH DESC ISFILE\
                      HASSUBSET SUBTYPE STRUCT]
     for {set i 0} {$i < [llength $lstNam]} {incr i} {
-      set inf([lindex $lstNam $i]) [lindex $lst $i]
+      set inf([lindex $lstNam $i]) [lindex $lst [expr $i+2]]
     }
     #parray inf
     return [array get inf]
