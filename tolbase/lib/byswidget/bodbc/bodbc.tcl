@@ -463,7 +463,7 @@ Tolcon_Trace "_Connect: module: $module  alias: $alias  user: $user  pwd: $pwd"
     tol::console eval [string map "%A $alias %U $user %P $pass" {
       Real __dbopen_status__ = DBOpen("%A","%U","%P");
     }]
-    set status [lindex [tol::info variable Real __dbopen_status__] 0]
+    set status [lindex [tol::info variable [list Real __dbopen_status__]] 0]
     tol::console stack release __dbopen_status__
     expr {$status>0.0}
   }
@@ -472,7 +472,7 @@ Tolcon_Trace "_Connect: module: $module  alias: $alias  user: $user  pwd: $pwd"
     tol::console eval [string map "%A $alias" {
       Real __dbact_status__ = DBActivate("%A");
     }]
-    set status [lindex [tol::info variable Real __dbact_status__] 0]
+    set status [lindex [tol::info variable [list Real __dbact_status__]] 0]
     tol::console stack release __dbact_status__
     expr {$status>0.0}
   }
@@ -481,7 +481,7 @@ Tolcon_Trace "_Connect: module: $module  alias: $alias  user: $user  pwd: $pwd"
     tol::console eval [string map "%A $alias" {
       Real __dbclose_status__ = DBClose("%A");
     }]
-    set status [lindex [tol::info variable Real __dbclose_status__] 0]
+    set status [lindex [tol::info variable [list Real __dbclose_status__]] 0]
     tol::console stack release __dbclose_status__
     expr {$status>0.0}
   }
