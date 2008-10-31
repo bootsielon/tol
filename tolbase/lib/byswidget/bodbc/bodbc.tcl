@@ -924,7 +924,7 @@ Tolcon_Trace "_CreateDialog = $result"
     set lenAry [lindex $aryInfo(CONTENT) 0]
     set inx 1
     while {!($result) && ([expr $inx <= $lenAry])} {
-      array set infoReg [TclInfoRef $op $inx 1]
+      array set infoReg [TclInfoRef [list Set $op $inx 1]]
       set aliasConn [lindex $infoReg(CONTENT) 0]
       if {[string equal $alias $aliasConn]} {
         set result 1
