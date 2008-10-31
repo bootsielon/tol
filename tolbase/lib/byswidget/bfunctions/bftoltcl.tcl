@@ -123,8 +123,8 @@ proc TclInfoRef {obj args} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   # eval
-  set cmd "::tol::info variable {Set $obj $args}"
-  #puts "cmd: $cmd"
+  set cmd "::tol::info variable {$obj $args}"
+  puts "cmd: $cmd"
   if {![catch {set lst [eval $cmd]}]} {
     set lstNam [list GRAMMAR NAME CONTENT PATH DESC ISFILE\
                      HASSUBSET SUBTYPE STRUCT]
