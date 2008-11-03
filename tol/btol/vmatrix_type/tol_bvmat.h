@@ -323,6 +323,7 @@ private:
 public:
   void   Print(FILE* file, const char* name, int level) const;
   void   Scan (FILE* file);
+  void   WriteMatrixMarket(FILE* file);
   size_t Bytes() const;
   bool   Write(BOisCreator& ois, BStream* name) const;
   bool   Read (BOisLoader& ois, BStream* stream);

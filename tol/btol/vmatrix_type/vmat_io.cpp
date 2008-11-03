@@ -27,7 +27,10 @@
 #include <tol/tol_oisloader.h>
 #include <stdarg.h>
 
-     
+//#define _USE_MM_IO_
+#ifdef _USE_MM_IO_
+#include "mmio.h"
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // BVMat members
@@ -189,6 +192,9 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
            "a una matriz virtual")+" "+cond+" "+
         I2("virtual matrix","")+" "+CodeName(a.code_)+
            "("+a.Rows()+"x"+a.Columns()+")"+" ");
+  FILE *f = fopen("/tmp/fail_chol.mtx", "w");
+  ((BVMat&)a).WriteMatrixMarket(f);
+  fclose(f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -299,7 +305,56 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
   code_ = ESC_chlmRtriplet;
   s_.chlmRtriplet_ = cholmod_read_triplet(file,common_);
 };
+
+#ifdef _USE_MM_IO_
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::WriteMatrixMarket(FILE* file)
+//Exporting method
+////////////////////////////////////////////////////////////////////////////////
+{
+  cholmod_triplet *ptr_triplet = NULL;
+  bool should_free = false;
+  MM_typecode matcode;
   
+  if (code_==ESC_chlmRsparse) {
+    ptr_triplet = cholmod_sparse_to_triplet(s_.chlmRsparse_, common_);
+    should_free = true;
+  } else if (code_==ESC_chlmRtriplet) {
+    ptr_triplet = s_.chlmRtriplet_;
+  }
+  if (ptr_triplet) {
+    mm_initialize_typecode(&matcode);
+    mm_set_matrix(&matcode);
+    mm_set_coordinate(&matcode);
+    mm_set_real(&matcode);
+
+    mm_write_banner(file, matcode); 
+    mm_write_mtx_crd_size(file,
+                          ptr_triplet->nrow,
+                          ptr_triplet->ncol,
+                          ptr_triplet->nnz);
+
+    /* NOTE: matrix market files use 1-based indices, i.e. first element
+       of a vector has index 1, not 0.  */
+
+    int *Ti = (int*)ptr_triplet->i;
+    int *Tj = (int*)ptr_triplet->j;
+    double *Val = (double*)ptr_triplet->x;
+    for (int i=0; i<ptr_triplet->nnz; i++)
+        fprintf(file,
+                "%d %d %10.7g\n", Ti[i]+1, Tj[i]+1, Val[i]);
+    
+    if (should_free) {
+      cholmod_free_triplet(&ptr_triplet, common_);
+    }
+  }
+};
+#else
+void BVMat::WriteMatrixMarket(FILE* file)
+{
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
   size_t BVMat::bytes_blasRdense() const
 //Exporting method
