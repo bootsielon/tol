@@ -771,7 +771,7 @@ package require byscommon
  
   # $tablename es el nombre de la tabla padre.
   set tolCmd  \
-    "Text $setTableNames = TolSet2TclLst (SqlInfoDependent(\"$tablename\", Copy(Empty), GesAct));"
+    "Text $setTableNames = TolSet2TclLst (StdLib::SqlEngine::SqlInfoDependent(\"$tablename\", Copy(Empty), GesAct));"
   TclTolEval $tolCmd
   
   eval set lstTables [TclGetVar Text $setTableNames]
@@ -2513,7 +2513,8 @@ package require byscommon
     # Obtenemos informacion de los campos
     set infoColumns [GetGlobalUniqueName __infoColumns[clock second]]
     set cmdIC infoColums[clock clicks]
-    set cmdTIC "Set $infoColumns = SqlInfoColumns(\"$table\", $tolGes);"
+    #set cmdTIC "Set $infoColumns = SqlInfoColumns(\"$table\", $tolGes);"
+    set cmdTIC "Set $infoColumns = StdLib::SqlEngine::SqlInfoColumns(\"$table\", $tolGes);"
     ::tol::console eval $cmdTIC
     # check exists variable
     if {![TclInfoExists Set $infoColumns]} {
@@ -2526,7 +2527,7 @@ package require byscommon
     # Obtenemos informacion de las foregn keys
     set infoForeignKeys [GetGlobalUniqueName __infoForeignKeys[clock second]]
     set cmdIF infoForeignKeys[clock clicks]
-    set cmdTIF "Set $infoForeignKeys = SqlInfoForeign(\"$table\", $tolGes);"
+    set cmdTIF "Set $infoForeignKeys = StdLib::SqlEngine::SqlInfoForeign(\"$table\", $tolGes);"
     ::tol::console eval $cmdTIF
     # check exists variable
     if {![TclInfoExists Set $infoForeignKeys]} {
@@ -2750,7 +2751,8 @@ package require byscommon
       # informacion de la tabla ajena
       set infoColumns [GetGlobalUniqueName __infoColumns$step[clock second]]
       set cmdIC infoColums$step[clock clicks]
-      set cmdTIC "Set $infoColumns = SqlInfoColumns(\"$tableFk\", $tolGes);"
+      #set cmdTIC "Set $infoColumns = SqlInfoColumns(\"$tableFk\", $tolGes);"
+      set cmdTIC "Set $infoColumns = StdLib::SqlEngine::SqlInfoColumns(\"$tableFk\", $tolGes);"
       ::tol::console eval $cmdTIC
       # check exists variable
       if {![TclInfoExists Set $infoColumns]} {
