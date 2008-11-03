@@ -10,7 +10,7 @@ proc Sql2Tol { typ } {
 #
 #///////////////////////////////////////////////////////////////////////////
   set typ [string tolower $typ]
-  
+    
   switch $typ {
     "char" -
     "varchar" -
@@ -122,6 +122,7 @@ proc SqlGetGestor {driver} {
     Oracle*      { set gestor Ora }
     MySql -       
     MySQL        { set gestor Mys }
+    Postgre*     { set gestor Pos }
     TDS          { set gestor Mic } 
   }
   return $gestor
@@ -140,6 +141,7 @@ proc SqlGetTolGestor {gestor} {
     Ora {set tolGestor 1}
     Mys {set tolGestor 2}
     Acc {set tolGestor 3}
+    Pos {set tolGestor 4}
   }
   return $tolGestor
 }
