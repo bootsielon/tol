@@ -939,7 +939,7 @@ package require byscommon
   #
   #///////////////////////////////////////////////////////////////////////////
     # grid of objects
-    for {set x 1} {$x<=$maxFields} {incr x} {
+    for {set x 1} {$x<=$maxFields} {incr x} {    
       switch [lindex $fieldInfo($x,field,type) 0] {
           "bit" {
             grid $fieldInfo($x,field,ptr)  -sticky nw -row $x -column 1 -pady 2
@@ -2097,11 +2097,14 @@ package require byscommon
   #///////////////////////////////////////////////////////////////////////////
     set table $tablename
     set tolGes [SqlGetTolGestor $gestor]
-
+    
     # Obtenemos informacion de los campos
     set infoColumns [GetGlobalUniqueName __infoColumns[clock second]]
     set cmdIC infoColums[clock clicks]
-    set cmdTIC "Set $infoColumns = SqlInfoColumns(\"$table\", $tolGes);"
+    
+    #set cmdTIC "Set $infoColumns = SqlInfoColumns(\"$table\", $tolGes);"
+    set cmdTIC "Set $infoColumns = StdLib::SqlEngine::SqlInfoColumns(\"$table\", $tolGes);"
+
     ::tol::console eval $cmdTIC
     # check exists variable
     if {![TclInfoExists Set $infoColumns]} {
@@ -2114,7 +2117,9 @@ package require byscommon
     # Obtenemos informacion de las foregn keys
     set infoForeignKeys [GetGlobalUniqueName __infoForeignKeys[clock second]]
     set cmdIF infoForeignKeys[clock clicks]
-    set cmdTIF "Set $infoForeignKeys = SqlInfoForeign(\"$table\", $tolGes);"
+    #set cmdTIF "Set $infoForeignKeys = SqlInfoForeign(\"$table\", $tolGes);"
+    set cmdTIF "Set $infoForeignKeys = StdLib::SqlEngine::SqlInfoForeign(\"$table\", $tolGes);"
+    
     ::tol::console eval $cmdTIF
     # check exists variable
     if {![TclInfoExists Set $infoForeignKeys]} {
@@ -2338,7 +2343,9 @@ package require byscommon
       # informacion de la tabla ajena
       set infoColumns [GetGlobalUniqueName __infoColumns$step[clock second]]
       set cmdIC infoColums$step[clock clicks]
-      set cmdTIC "Set $infoColumns = SqlInfoColumns(\"$tableFk\", $tolGes);"
+      #set cmdTIC "Set $infoColumns = SqlInfoColumns(\"$tableFk\", $tolGes);"+
+      set cmdTIC "Set $infoColumns = StdLib::SqlEngine::SqlInfoColumns(\"$tableFk\", $tolGes);"
+   
       ::tol::console eval $cmdTIC
       # check exists variable
       if {![TclInfoExists Set $infoColumns]} {
