@@ -362,11 +362,13 @@ NameBlock Obs.TransFun(
 NameBlock Obs.Output(
   //The result of calling Build.Serie.info for an input serie
   NameBlock serie.info,
+  Real sigma,
   //A possibly empty set of ARIMA factors with structure ARIMAStruct
   Set arima)
 //////////////////////////////////////////////////////////////////////////////
 {[[
   NameBlock _.serie.info=serie.info;
+  Real _.sigma = sigma;
   Set _.arima.factors = arima
 ]]};
 
@@ -473,10 +475,14 @@ NameBlock Obs(
   // SIGMA BLOCK
   //Returns a Real fixed known sigma value as prior information or a 
   //Text variable name to be simulated in the Sigma Gibbs block of BSR
-  Text Get.Sigma2(Real unused) 
+
+  Anything Get.Sigma2(Real unused) 
   { 
-    "SigmaBlk::"+_.id_node+"::Variance" 
+    If(IsUnknown(_.output::_.sigma),
+      "SigBlk::"+_.id_node+"::Variance",
+      (_.output::_.sigma)^2)
   };
+
   /////////////////////////////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////////////////////////
