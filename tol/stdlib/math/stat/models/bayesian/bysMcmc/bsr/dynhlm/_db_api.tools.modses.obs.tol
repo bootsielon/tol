@@ -95,10 +95,10 @@ Real ModSes.Obs.SigBlk.Create(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::ObsSigBlk+"\n"+
-  "VALUES('"+model+"','"+session+"','"+node+"',"+
-  If(IsUnknown(sigma),"NULL",BysMcmc::Bsr::Import::RealTextS(sigma))+")");
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+  dbName+"."+_table::ObsSigBlk+"\n",
+  "'"+model+"','"+session+"','"+node+"',"+
+  If(IsUnknown(sigma),"NULL",BysMcmc::Bsr::Import::RealTextS(sigma)));
   Eval("ModSes.Lat.SigBlk.Create.ok=ok")
 };
 
