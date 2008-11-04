@@ -16,7 +16,8 @@ Real ModSes.Obs.Output.Create(Text dbName,
                               Real mis_pri_min,
                               Real mis_pri_max,
                               Date start,
-                              Date end)
+                              Date end,
+                              Real sigma)
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
@@ -27,7 +28,8 @@ Real ModSes.Obs.Output.Create(Text dbName,
   SqlFormatReal(mis_pri_min)+","+
   SqlFormatReal(mis_pri_max)+","+
   SqlFormatDate(start)+","+
-  SqlFormatDate(end));
+  SqlFormatDate(end)+","+
+  SqlFormatReal(sigma)+")");
   Eval("ModSes.Obs.Output.Create.ok=ok")
 };
 
@@ -81,6 +83,23 @@ Real ModSes.Obs.TransFun.Create(Text dbName,
   SqlFormatReal(mis_pri_min)+","+
   SqlFormatReal(mis_pri_max));
   Eval("ModSes.Obs.Input.Create.ok=ok")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new latent sigma block register
+Real ModSes.Obs.SigBlk.Create(Text dbName, 
+                              Text model, 
+                              Text session,
+                              Text node, 
+                              Real sigma)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::ObsSigBlk+"\n"+
+  "VALUES('"+model+"','"+session+"','"+node+"',"+
+  If(IsUnknown(sigma),"NULL",BysMcmc::Bsr::Import::RealTextS(sigma))+")");
+  Eval("ModSes.Lat.SigBlk.Create.ok=ok")
 };
 
 
@@ -175,7 +194,8 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       out::_.mis_pri_min,
       out::_.mis_pri_max,
       out::_.firstDate,
-      out::_.lastDate
+      out::_.lastDate,
+      out::_.sigma
     )
   },
   outIsAVector,

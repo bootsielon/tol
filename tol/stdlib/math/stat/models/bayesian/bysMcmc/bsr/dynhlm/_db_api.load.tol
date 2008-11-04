@@ -222,7 +222,8 @@ NameBlock LoadObsNode(Text dbName,
       id_node,
       db_output->missingPriorSigmaFactor, 
       db_output->missingPriorLowerBound, 
-      db_output->missingPriorUpperBound), 
+      db_output->missingPriorUpperBound),
+    db_sigma,
     arima)};
 //WriteLn("TRACE LoadObsNode 6");
   Set db_inputs = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
