@@ -29,7 +29,7 @@ Real ModSes.Obs.Output.Create(Text dbName,
   SqlFormatReal(mis_pri_max)+","+
   SqlFormatDate(start)+","+
   SqlFormatDate(end)+","+
-  SqlFormatReal(sigma)+")");
+  SqlFormatReal(sigma));
   Eval("ModSes.Obs.Output.Create.ok=ok")
 };
 
@@ -181,7 +181,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
   //WriteLn("TRACE ModSes.Obs.Create ok.1="<<ok.1);
   Real outIsATimeSerie = ObjectExist("Serie",  "out::_.serie");
   Real outIsAVector    = ObjectExist("Matrix", "out::_.vector");
-
+  Real sigma = If(ObjectExist("Real","out::_.sigma"),out::_.sigma,?);
   Real ok.2 = Case(
   outIsATimeSerie,
   {
@@ -195,7 +195,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       out::_.mis_pri_max,
       out::_.firstDate,
       out::_.lastDate,
-      out::_.sigma
+      sigma
     )
   },
   outIsAVector,
@@ -209,7 +209,8 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       out::_.mis_pri_min,
       out::_.mis_pri_max,
       UnknownDate,
-      UnknownDate
+      UnknownDate,
+      sigma
     )
   },
   1==1,
