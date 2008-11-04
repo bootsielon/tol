@@ -111,7 +111,7 @@ Text _.autodoc.member.StdLinearBlock =
   Real factorize(VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
-    WriteLn("TRACE"+_MID+" factorize X("<<VRows(X)+"x"+VColumns(X)+")");
+  //WriteLn("TRACE"+_MID+" factorize X("<<VRows(X)+"x"<<VColumns(X)+")");
     If(And(design.is.constant,VRows(_.L)), 0,
     {
       Real sparse = VNonNullCells(X)/(VRows(X)*VColumns(X));
