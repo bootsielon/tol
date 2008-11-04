@@ -13,7 +13,7 @@ DB BSR Dyn HLM:
   level, that could be or not stored in the same or another data base in the 
   same or another data base server or even in other type of data storement 
   system (BDT, OIS, ...).
-  
+
 ///////////////////////////////////////////////////////////////////////////// */
 
 
@@ -42,6 +42,7 @@ ALTER TABLE `bsrhlm_v_obs_input`                DROP         KEY `UK_bsrhlm_v_ob
 ALTER TABLE `bsrhlm_v_obs_input`                DROP FOREIGN KEY `FK_bsrhlm_v_obs_input_model_session_node_parameter`;
 ALTER TABLE `bsrhlm_v_obs_transferFunction`     DROP FOREIGN KEY `FK_bsrhlm_v_obs_transferFunction_model_session_node`;
 ALTER TABLE `bsrhlm_v_obs_input`                DROP FOREIGN KEY `FK_bsrhlm_v_obs_input_model_session_node`;
+ALTER TABLE `bsrhlm_v_obs_sigma_block`          DROP FOREIGN KEY `FK_bsrhlm_v_obs_sigma_block_model_session_node`;
 ALTER TABLE `bsrhlm_v_obs_arima_block`          DROP FOREIGN KEY `FK_bsrhlm_v_arima_block_model_session_node`;
 ALTER TABLE `bsrhlm_v_obs_output`               DROP         KEY `UK_bsrhlm_v_obs_output_model_session_node_series`;
 ALTER TABLE `bsrhlm_v_obs_output`               DROP FOREIGN KEY `FK_bsrhlm_v_obs_output_model_session_node`;
@@ -72,6 +73,7 @@ DROP TABLE IF EXISTS `bsrhlm_v_lat_equ`;
 DROP TABLE IF EXISTS `bsrhlm_v_lat_sigma_block`;
 DROP TABLE IF EXISTS `bsrhlm_v_obs_transferFunction`;
 DROP TABLE IF EXISTS `bsrhlm_v_obs_input`;
+DROP TABLE IF EXISTS `bsrhlm_v_obs_sigma_block`;
 DROP TABLE IF EXISTS `bsrhlm_v_obs_arima_block`;
 DROP TABLE IF EXISTS `bsrhlm_v_obs_output`;
 DROP TABLE IF EXISTS `bsrhlm_v_mix_cnstrnt_lin_cmb`;
@@ -215,7 +217,7 @@ CREATE TABLE  `bsrhlm_d_model_session` (
 COMMENT='Stores all allowed pairs of model-sessions';
 
 /* /////////////////////////////////////////////////////////////////////////////
-The user must insert a register for each distinct application of a session tag 
+The user must insert a register for each distinct application of a session tag
 over a model
 ///////////////////////////////////////////////////////////////////////////// */
 CREATE TABLE `bsrhlm_d_level` (
@@ -257,7 +259,7 @@ COMMENT='Stores hierarchical nodes for each model-session';
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to mixed nodes.
 The user must insert a register for each variable of all gibbs blocks of all
-nodes of each model-session. 
+nodes of each model-session.
 ///////////////////////////////////////////////////////////////////////////// */
 CREATE TABLE  `bsrhlm_v_mix_parameter` (
   `id_model` varchar(64) NOT NULL,
@@ -282,7 +284,7 @@ COMMENT='Stores all parameters of regression for each model-session';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to mixed nodes.
-The user must insert a register for each non linear filter. 
+The user must insert a register for each non linear filter.
 ///////////////////////////////////////////////////////////////////////////// */
 CREATE TABLE  `bsrhlm_v_mix_non_lin_filter` (
   `id_model` varchar(64) NOT NULL,
@@ -356,10 +358,10 @@ COMMENT='Stores borders of constraining inequations.';
 This table is related to mixed nodes.
 In this table id_node is never the MIXTURE but just one OBS or LAT node where
 the parameter comes from.
-The user must insert a register for each parameter affected by each 
-constraining inequation. Remeber that if 
-   constraint_border.id_node<>'MIXTURE' then 
-   constraint_border.id_node=constraint_lin_cmb.id_node for all 
+The user must insert a register for each parameter affected by each
+constraining inequation. Remeber that if
+   constraint_border.id_node<>'MIXTURE' then
+   constraint_border.id_node=constraint_lin_cmb.id_node for all
    constraint_border.nu_inequation=constraint_lin_cmb.nu_inequation
 ///////////////////////////////////////////////////////////////////////////// */
 CREATE TABLE  `bsrhlm_v_mix_cnstrnt_lin_cmb` (
@@ -400,6 +402,7 @@ CREATE TABLE  `bsrhlm_v_obs_output` (
   `vl_mis_pri_max` double  NULL,
   `dh_start` datetime NULL,
   `dh_end`  datetime NULL,
+  `vl_sigma` double  NULL,
   PRIMARY KEY (`id_model`,`id_session`,`id_node`),
   CONSTRAINT `UK_bsrhlm_v_obs_output_model_session_node_series`
     UNIQUE KEY  (`id_model`, `id_session`, `id_node`, `id_series`),
@@ -410,10 +413,26 @@ CREATE TABLE  `bsrhlm_v_obs_output` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 COMMENT='Stores observational output related information for each model-session';
 
+/* /////////////////////////////////////////////////////////////////////////////
+This table is related to observational nodes.
+The user must insert a register for each latent node of each model-session.
+///////////////////////////////////////////////////////////////////////////// */
+CREATE TABLE  `bsrhlm_v_obs_sigma_block` (
+  `id_model` varchar(64) NOT NULL,
+  `id_session` varchar(64) NOT NULL,
+  `id_node` varchar(64) NOT NULL,
+  `vl_sigma` double NULL,
+  PRIMARY KEY (`id_model`,`id_session`,`id_node`),
+  CONSTRAINT `FK_bsrhlm_v_obs_sigma_block_model_session_node`
+    FOREIGN KEY                (`id_model`, `id_session`, `id_node`)
+    REFERENCES `bsrhlm_d_node` (`id_model`, `id_session`, `id_node`)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+COMMENT='Stores sigma block information about observational nodes for each model-session. If sigma is null then it will be simulated by Gibbs method';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to observational nodes.
-The user must insert a register for each ARIMA factor attached to an output 
+The user must insert a register for each ARIMA factor attached to an output
 serie at observation level of each model-session
 AR and MA polinomial are given as text with maximum degree 2 in the standard way
   '1'
@@ -442,7 +461,7 @@ COMMENT='Stores ARIMA structures for observational outputs for each model-sessio
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to observational nodes.
-The user must insert a register for each input serie of each observation node of 
+The user must insert a register for each input serie of each observation node of
 each model-session.
 Pair (id_node, id_series) will be used by a NameBlock series.handler to return
 the corresponding TOL time serie variable, but data source is not handled by
@@ -469,7 +488,7 @@ COMMENT='Stores observational input related information for each model-session';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to observational nodes.
-The user must insert a register for each transfer function 
+The user must insert a register for each transfer function
   omega(B)*y = delta(B)*x
 of each observation node of each model-session.
 Pair (id_node, id_series) will be used by a NameBlock series.handler to return
@@ -482,7 +501,7 @@ CREATE TABLE  `bsrhlm_v_obs_transferFunction` (
   `id_node` varchar(64) NOT NULL,
   `id_transferFunction` varchar(64) NOT NULL,
   `te_omega` varchar(1020) NOT NULL,
-  `te_delta` varchar(1020) NOT NULL,  
+  `te_delta` varchar(1020) NOT NULL,
   `id_series` varchar(64) NOT NULL,
   `vl_mis_pri_sig_fac` double  NULL,
   `vl_mis_pri_min` double  NULL,
@@ -515,9 +534,9 @@ COMMENT='Stores sigma block information about latent nodes for each model-sessio
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to latent nodes.
 The user must insert a register for each regression equation of each latent node
-of each model-session. Each equation is attached to a linear combination of 
-child parameters at left side of equal sign, wich will be defined in 
-bsrhlm_v_lat_output; and other linear combination of father parameters at right 
+of each model-session. Each equation is attached to a linear combination of
+child parameters at left side of equal sign, wich will be defined in
+bsrhlm_v_lat_output; and other linear combination of father parameters at right
 side of equal sign, wich will be defined in bsrhlm_v_lat_input.
 ///////////////////////////////////////////////////////////////////////////// */
 CREATE TABLE `bsrhlm_v_lat_equ` (
