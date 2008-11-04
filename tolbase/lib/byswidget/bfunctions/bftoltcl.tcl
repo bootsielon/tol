@@ -124,12 +124,12 @@ proc TclInfoRef {obj args} {
 #/////////////////////////////////////////////////////////////////////////////
   # eval
   set cmd "::tol::info variable {$obj $args}"
-  puts "cmd: $cmd"
+  #puts "cmd: $cmd"
   if {![catch {set lst [eval $cmd]}]} {
     set lstNam [list GRAMMAR NAME CONTENT PATH DESC ISFILE\
                      HASSUBSET SUBTYPE STRUCT]
     for {set i 0} {$i < [llength $lstNam]} {incr i} {
-      set inf([lindex $lstNam $i]) [lindex $lst [expr $i+2]]
+      set inf([lindex $lstNam $i]) [lindex $lst [expr $i]]
     }
     #parray inf
     return [array get inf]
