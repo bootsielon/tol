@@ -348,7 +348,7 @@ Set Estim(Text dbName,
     id_model,
     id_session,
     resultRootPath,
-    series.handler
+    seriesHandler
   );
   Set bsr.estim_ = BysMcmc::Bsr::Gibbs::EstimAndNotify
   ( model.def, config, dbNotifier);
