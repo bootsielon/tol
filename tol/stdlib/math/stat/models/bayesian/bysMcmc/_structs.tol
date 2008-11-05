@@ -253,7 +253,8 @@ Struct Bsr.DynHlm.DBStrObsOutput
   Real missingPriorLowerBound, 
   Real missingPriorUpperBound, 
   Date firstDate, 
-  Date lastDate
+  Date lastDate,
+  Real sigma
 };
 
 Struct Bsr.DynHlm.DBStrObsInput
