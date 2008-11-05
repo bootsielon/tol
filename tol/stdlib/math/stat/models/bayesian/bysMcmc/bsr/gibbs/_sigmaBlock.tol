@@ -49,7 +49,7 @@ Text _.autodoc.member.SigmaBlock =
     BinGroup("+", EvalSet(_.sigmaBlockCte, VMatrix (BSR.NoiseDistrib d) 
     { d->Li })));
   //Sigma block current store
-  VMatrix _.sigmaInv = Rand(0,0,0,0);
+  VMatrix _.sigmaInv = _.sigmaInvCte;
 
 
   ////////////////////////////////////////////////////////////////////////////
