@@ -412,7 +412,7 @@ NameBlock LoadLatNode(Text dbName,
     Anything Get.Sigma2(Real unused) 
     { 
       If(IsUnknown(db_sigma),
-        "SigBlk::"+_.id_node+"::Variance",
+        "SigmaBlk::"+_.id_node+"::Variance",
         db_sigma^2)
     };
     Real Get.ARIMA.Size(Real unused) { 0 };

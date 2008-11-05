@@ -479,7 +479,7 @@ NameBlock Obs(
   Anything Get.Sigma2(Real unused) 
   { 
     If(IsUnknown(_.output::_.sigma),
-      "SigBlk::"+_.id_node+"::Variance",
+      "SigmaBlk::"+_.id_node+"::Variance",
       (_.output::_.sigma)^2)
   };
 
