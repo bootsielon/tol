@@ -61,18 +61,17 @@ NameBlock DBApi =
     /*12*/ Text ConstrBorder   = "bsrhlm_v_mix_cnstrnt_border";
     /*13*/ Text ConstrLinComb  = "bsrhlm_v_mix_cnstrnt_lin_cmb";
     /*14*/ Text ObsOutput      = "bsrhlm_v_obs_output";
-    /*15*/ Text ObsSigBlk      = "bsrhlm_v_obs_sigma_block";
-    /*16*/ Text ObsArimaBlk    = "bsrhlm_v_obs_arima_block";
-    /*17*/ Text ObsInput       = "bsrhlm_v_obs_input";
-    /*18*/ Text ObsTransFun    = "bsrhlm_v_obs_transferFunction";
-    /*19*/ Text LatSigBlk      = "bsrhlm_v_lat_sigma_block";
-    /*20*/ Text LatEqu         = "bsrhlm_v_lat_equ";
-    /*21*/ Text LatOutput      = "bsrhlm_v_lat_output";
-    /*22*/ Text LatInput       = "bsrhlm_v_lat_input";
-    /*23*/ Text PriEqu         = "bsrhlm_v_pri_equ";
-    /*24*/ Text PriOutput      = "bsrhlm_v_pri_output";
-    /*25*/ Text EstimStatus    = "bsrhlm_v_est_status";
-    /*26*/ Text ParamStats     = "bsrhlm_v_est_param_stats"
+    /*15*/ Text ObsArimaBlk    = "bsrhlm_v_obs_arima_block";
+    /*16*/ Text ObsInput       = "bsrhlm_v_obs_input";
+    /*17*/ Text ObsTransFun    = "bsrhlm_v_obs_transferFunction";
+    /*18*/ Text LatSigBlk      = "bsrhlm_v_lat_sigma_block";
+    /*19*/ Text LatEqu         = "bsrhlm_v_lat_equ";
+    /*20*/ Text LatOutput      = "bsrhlm_v_lat_output";
+    /*21*/ Text LatInput       = "bsrhlm_v_lat_input";
+    /*22*/ Text PriEqu         = "bsrhlm_v_pri_equ";
+    /*23*/ Text PriOutput      = "bsrhlm_v_pri_output";
+    /*24*/ Text EstimStatus    = "bsrhlm_v_est_status";
+    /*25*/ Text ParamStats     = "bsrhlm_v_est_param_stats"
   ]];
   //The same list of database alias as a NameBlock
   NameBlock _.table = SetToNameBlock(_.tableName);
@@ -118,7 +117,6 @@ NameBlock DBApi =
   Code ModSes.Obs.Output.Create;
   Code ModSes.Obs.Input.Create;
   Code ModSes.Obs.TransFun.Create;
-  Code ModSes.Obs.SigBlk.Create;
   Code ModSes.Obs.SetArima;
   Code ModSes.Obs.Create;
   Code ModSes.Obs.CreateAll;
