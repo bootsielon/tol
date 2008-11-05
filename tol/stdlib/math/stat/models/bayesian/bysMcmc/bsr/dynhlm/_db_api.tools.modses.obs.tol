@@ -86,24 +86,6 @@ Real ModSes.Obs.TransFun.Create(Text dbName,
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Inserts a new latent sigma block register
-Real ModSes.Obs.SigBlk.Create(Text dbName, 
-                              Text model, 
-                              Text session,
-                              Text node, 
-                              Real sigma)
-//////////////////////////////////////////////////////////////////////////////
-{
-  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
-  dbName+"."+_table::ObsSigBlk+"\n",
-  "'"+model+"','"+session+"','"+node+"',"+
-  If(IsUnknown(sigma),"NULL",BysMcmc::Bsr::Import::RealTextS(sigma)));
-  Eval("ModSes.Lat.SigBlk.Create.ok=ok")
-};
-
-
-//////////////////////////////////////////////////////////////////////////////
 //Inserts ARIMA structure for a observational node
 Real ModSes.Obs.SetArima(Text dbName, 
                           Text model, 
