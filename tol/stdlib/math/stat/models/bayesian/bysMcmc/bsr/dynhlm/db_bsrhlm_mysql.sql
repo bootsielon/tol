@@ -42,7 +42,6 @@ ALTER TABLE `bsrhlm_v_obs_input`                DROP         KEY `UK_bsrhlm_v_ob
 ALTER TABLE `bsrhlm_v_obs_input`                DROP FOREIGN KEY `FK_bsrhlm_v_obs_input_model_session_node_parameter`;
 ALTER TABLE `bsrhlm_v_obs_transferFunction`     DROP FOREIGN KEY `FK_bsrhlm_v_obs_transferFunction_model_session_node`;
 ALTER TABLE `bsrhlm_v_obs_input`                DROP FOREIGN KEY `FK_bsrhlm_v_obs_input_model_session_node`;
-ALTER TABLE `bsrhlm_v_obs_sigma_block`          DROP FOREIGN KEY `FK_bsrhlm_v_obs_sigma_block_model_session_node`;
 ALTER TABLE `bsrhlm_v_obs_arima_block`          DROP FOREIGN KEY `FK_bsrhlm_v_arima_block_model_session_node`;
 ALTER TABLE `bsrhlm_v_obs_output`               DROP         KEY `UK_bsrhlm_v_obs_output_model_session_node_series`;
 ALTER TABLE `bsrhlm_v_obs_output`               DROP FOREIGN KEY `FK_bsrhlm_v_obs_output_model_session_node`;
@@ -73,7 +72,6 @@ DROP TABLE IF EXISTS `bsrhlm_v_lat_equ`;
 DROP TABLE IF EXISTS `bsrhlm_v_lat_sigma_block`;
 DROP TABLE IF EXISTS `bsrhlm_v_obs_transferFunction`;
 DROP TABLE IF EXISTS `bsrhlm_v_obs_input`;
-DROP TABLE IF EXISTS `bsrhlm_v_obs_sigma_block`;
 DROP TABLE IF EXISTS `bsrhlm_v_obs_arima_block`;
 DROP TABLE IF EXISTS `bsrhlm_v_obs_output`;
 DROP TABLE IF EXISTS `bsrhlm_v_mix_cnstrnt_lin_cmb`;
@@ -413,22 +411,6 @@ CREATE TABLE  `bsrhlm_v_obs_output` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 COMMENT='Stores observational output related information for each model-session';
 
-/* /////////////////////////////////////////////////////////////////////////////
-This table is related to observational nodes.
-The user must insert a register for each latent node of each model-session.
-///////////////////////////////////////////////////////////////////////////// */
-CREATE TABLE  `bsrhlm_v_obs_sigma_block` (
-  `id_model` varchar(64) NOT NULL,
-  `id_session` varchar(64) NOT NULL,
-  `id_node` varchar(64) NOT NULL,
-  `vl_sigma` double NULL,
-  PRIMARY KEY (`id_model`,`id_session`,`id_node`),
-  CONSTRAINT `FK_bsrhlm_v_obs_sigma_block_model_session_node`
-    FOREIGN KEY                (`id_model`, `id_session`, `id_node`)
-    REFERENCES `bsrhlm_d_node` (`id_model`, `id_session`, `id_node`)
-    ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores sigma block information about observational nodes for each model-session. If sigma is null then it will be simulated by Gibbs method';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to observational nodes.
