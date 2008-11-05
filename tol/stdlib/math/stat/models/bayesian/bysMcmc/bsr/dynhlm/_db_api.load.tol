@@ -181,21 +181,13 @@ NameBlock LoadObsNode(Text dbName,
   "  vl_mis_pri_min, \n"+
   "  vl_mis_pri_max, \n"+
   "  dh_start, \n"+
-  "  dh_end \n"+
+  "  dh_end , \n"+
+  "  vl_sigma \n"+
   "FROM "+dbName+"."+_table::ObsOutput+" WHERE \n"+
   "  id_model='"+model+"' AND \n"+
   "  id_session='"+session+"' AND \n"+
   "  id_node='"+id_node+"' ",
   "Bsr.DynHlm.DBStrObsOutput")[1];
-
-  Set db_sigma = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
-  "SELECT \n"+
-  "  vl_sigma \n"+
-  "FROM "+dbName+"."+_table::ObsSigBlk+" WHERE \n"+
-  "  id_model='"+model+"' AND \n"+
-  "  id_session='"+session+"' AND \n"+
-  "  id_node='"+id_node+"' ",
-  "");
 
   Set db_arima = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT \n"+
@@ -232,8 +224,8 @@ NameBlock LoadObsNode(Text dbName,
       db_output->missingPriorSigmaFactor, 
       db_output->missingPriorLowerBound, 
       db_output->missingPriorUpperBound),
-    If(Card(db_sigma),db_sigma[1][1],?),
-    arima)};
+      db_output->sigma,
+      arima)};
 //WriteLn("TRACE LoadObsNode 6");
   Set db_inputs = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT \n"+
