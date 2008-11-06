@@ -34,6 +34,7 @@ package require byscommon
   # bicosel      -> si se muestra el icono del checkbutton
   # bonselcmd    -> comando a ejecutar cuando se selecciona un nodo
   # bhelptext    -> columna que se muestra como helptext
+  # btogglehier  -> cambiar jerárquicamente si un item está o no seleccionado
 #/////////////////////////////////////////////////////////////////////////////
   variable items_selected
   variable imgs 
@@ -44,6 +45,7 @@ package require byscommon
   option -bonselcmd    ""
   option -bhelptext 
   option -bmenu
+  option -btogglehier true
   #///////////////////////////////////////////////////////////////////////////
   constructor {args} {
   #
@@ -65,7 +67,7 @@ package require byscommon
     # Apply default arguments
     $self configure -hideroot yes -linewidth 0 -activeicons "" \
       -selectbackground gray90 -selectforeground black \
-      -highlightthickness 1 -borderwidth 0 -selectborderwidth 0 \
+      -highlightthickness 1 -borderwidth 1 -selectborderwidth 1 \
       -font $toltk_options(fonts,Label) -icons {}
 
     # Apply all arguments given:
@@ -294,25 +296,31 @@ package require byscommon
   #///////////////////////////////////////////////////////////////////////////
     array set aryData [$self entry cget $index -data]
     set state $aryData(state)
+	
+	set ctogglehier [$self cget -btogglehier]
 
     if { [string equal $state NSE] } return
     set parent_idx $aryData(parent)
     
     if { [string equal $state ON] } {
       $self _SetNodeState $index OFF
-      $self ToggleUp $parent_idx OFF ON
-      $self entry configure $index -data [list childsON 0 childsMED 0]
-      foreach it [$self entry children $index] {
-        $self ToggleDown $it OFF
-      }
+	  if $ctogglehier {
+        $self ToggleUp $parent_idx OFF ON
+        $self entry configure $index -data [list childsON 0 childsMED 0]
+        foreach it [$self entry children $index] {
+          $self ToggleDown $it OFF
+        }
+	  }
     } else {
       $self _SetNodeState $index ON
-      $self ToggleUp $parent_idx ON $state
-      $self entry configure $index\
-           -data [list childsON [$self entry size $index] childsMED 0]
-      foreach it [$self entry children $index] {
-        $self ToggleDown $it ON
-      }
+	  if $ctogglehier {
+        $self ToggleUp $parent_idx ON $state
+        $self entry configure $index\
+             -data [list childsON [$self entry size $index] childsMED 0]
+        foreach it [$self entry children $index] {
+          $self ToggleDown $it ON
+        }
+	  }
     }
   }
 
@@ -499,7 +507,8 @@ proc test_btreeview {} {
     #.top.tf1.f.btv bColumnInsert end Type Permissions Owner Group Size
     .top.tf1.f.btv bColumnInsert end Type
     #RellenaBTreeView root [file join [info dir script] testdir]
-    RellenaBTreeView root "./byswidget/btreeview/testdir"
+    #RellenaBTreeView root "./byswidget/btreeview/testdir" [jym: se cambia para que no falle]
+    RellenaBTreeView root "c:/UnxUtils"
     grid .top.tf1.f.btv -row 0 -column 0 -sticky new
     grid columnconfigure .top.tf1.f 0 -weight 1
     grid rowconfigure .top.tf1.f 0 -weight 1
