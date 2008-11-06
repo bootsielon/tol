@@ -49,6 +49,7 @@ package require byscommon
     # alg(sDi,$mag,$dim,-req,$sDi)      - Si la subdimension es requerida o no
     # alg(sDi,$mag,$dim,-typ,$sDi)      - Tipo de la subdimension
     # alg(sDi,$mag,$dim,-dex,$sDi)      - Lista dependencias existenciales
+    # alg(sDi,$mag,$dim,-hie,$sDi)      - Lista de valores jerárquicos
     # alg(sDi,$mag,$dim,-dva,$sDi)      - Lista dependencias de valor
     # alg(sDi,$mag,$dim,TCL,<key>,$sDi) - Valor de clave TCL $-key 
 
@@ -83,7 +84,7 @@ package require byscommon
     $self configurelist $args
     set data(project)  [$self cget -project]
     set data(iniEntry) [$self cget -inientry]
-	set data(alreadytriggering) 0
+    set data(alreadytriggering) 0
     $self _readini
   }
 
@@ -365,20 +366,20 @@ package require byscommon
     foreach it [$self _getDim $mag] {
         set max $max+1
     }
-	set localtrig 0
-	if { !$data(alreadytriggering) } {
-		set data(alreadytriggering) 1
-		set localtrig 1
-		Tolcon_Trace "cargando --> $mag" 
-		. configure -cursor watch
-		::progressbar::Show [mc "loading"] 60 2
-		::progressbar::SetText [mc "Getting Values"]
-	}
+    set localtrig 0
+    if { !$data(alreadytriggering) } {
+        set data(alreadytriggering) 1
+        set localtrig 1
+        Tolcon_Trace "cargando --> $mag" 
+        . configure -cursor watch
+        ::progressbar::Show [mc "loading"] 60 2
+        ::progressbar::SetText [mc "Getting Values"]
+    }
     set iterador 0
 
     variable alreadyTriggered
     foreach dim [$self _getDim $mag] {
-	  #::TolInspector::Busy
+      #::TolInspector::Busy
       set lstSubDim [$self _getSubDim $mag $dim]
       foreach sDi $lstSubDim {
         if {![info exist alreadyTriggered($dim,$sDi)]} {
@@ -399,10 +400,10 @@ package require byscommon
     }
     array unset alreadyTriggered
     if { $localtrig } {
-		Tolcon_Trace "terminando --> $mag"
-	  set data(alreadytriggering) 0
-	  ::progressbar::Destroy
-	  . configure -cursor ""
+        Tolcon_Trace "terminando --> $mag"
+      set data(alreadytriggering) 0
+      ::progressbar::Destroy
+      . configure -cursor ""
     }
   
 
@@ -550,13 +551,130 @@ package require byscommon
        "uni.ind" { $self _fillSubDimUniInd $mag $dim $sDi }
        "mul.dir" { $self _fillSubDimMulDir $mag $dim $sDi }
        "mul.lib" { $self _fillSubDimMulInd $mag $dim $sDi 0}
-	   "mul.ind" { $self _fillSubDimMulInd $mag $dim $sDi }
-	   "uni.dat" { $self _fillSubDimDat $mag $dim $sDi 1}
-	   "mul.dat" { $self _fillSubDimDat $mag $dim $sDi 0}
+       "mul.ind" { $self _fillSubDimMulInd $mag $dim $sDi }
+       "uni.dat" { $self _fillSubDimDat $mag $dim $sDi 1}
+       "mul.dat" { $self _fillSubDimDat $mag $dim $sDi 0}
+       "uni.hie" { $self _fillSubDimHie $mag $dim $sDi 1}
+       "mul.hie" { $self _fillSubDimHie $mag $dim $sDi 0}
     }
     #Tolcon_Trace "subDim: $mag $dim $sDi es de tipo $type"
   }
-	
+
+ 
+#/////////////////////////////////////////////////////////////////////////////
+method _findcode {idcoltab cod} {
+#
+# PURPOSE: Find a value in the column col of tview and returns its index
+# PARAMETERS:
+#   idcoltab -> list of pairs id, cod
+#   val      -> value to find
+#/////////////////////////////////////////////////////////////////////////////
+  foreach pair $idcoltab {
+    if {[lindex $pair 1] eq $cod} {
+      return [lindex $pair 0]
+    }
+  }
+  return -1
+}
+#/////////////////////////////////////////////////////////////////////////////
+method _fillSubDimHie {mag dim sDi trigger} {
+#
+# PURPOSE: Fills subdimension frame for a subdimension marked as hierarchical
+# PARAMETERS:
+#   mag -> magnitud identifier
+#   dim -> dimension identifier
+#   sDi -> subdimension identifier
+#   trigger -> 0/1 trigger event for dependants?
+#   multisel -> 0/1 allows multiselection 
+#/////////////////////////////////////////////////////////////////////////////
+
+  set w $algwid($mag,$dim,$sDi)
+  set lstReg [$self _getSubDimValues $mag $dim $sDi]
+  set defval [$self _getSubDimDefValue $mag $dim $sDi]
+
+  set valCont 0
+  #if $multisel { set icosel 0 } else { set icosel 1 }
+# -bonselcmd [list $self _trigger $mag $dim $sDi] \
+# Si no existe crearlo
+  if {![info exist ${selfns}::tmp($mag,$dim,$sDi)]} {
+    ScrolledWindow $w.sw${sDi}
+    if {$trigger} {
+      set tmp($mag,$dim,$sDi) [ btreeview $w.sw${sDi}.tv \
+        -bonselcmd [list $self _trigger $mag $dim $sDi] \
+		-btogglehier false \
+        -height 150 -linewidth 2 -borderwidth 1 \
+        -bmultiselect false -bicosel false ] 
+    } else {
+      set tmp($mag,$dim,$sDi) [ btreeview $w.sw${sDi}.tv \
+        -btogglehier false \
+        -height 150 -linewidth 2 -borderwidth 1 \
+        -bmultiselect true -bicosel true ]
+    }
+    
+    $tmp($mag,$dim,$sDi) bColumnInsert end cod -hide true
+    
+    
+    $w.sw${sDi} setwidget $w.sw${sDi}.tv
+    grid $w.sw${sDi} -sticky news
+    #grid $w.sw${sDi}.tv  -row 0 -column 0 -sticky new
+ 
+    grid columnconfigure $w 0 -weight 1
+    grid rowconfigure    $w 0 -weight 1
+  }
+  # Insertar los valores
+  # Crear elementos nuevos
+    #set idx 0
+    $tmp($mag,$dim,$sDi) delete root
+    set alg(sDi,$mag,$dim,-hie,$sDi) ""
+    set plotted 0
+    set iteration -1
+    set regidx 0
+    set plottedreg ""
+    set numels [expr [llength $lstReg]-1 ]
+    
+    while { ($plotted < $numels) && ($iteration < $numels) } {
+       set iteration [expr $iteration + 1]
+
+       foreach reg $lstReg {
+          set ide [lindex $reg 0]
+          set abr [lindex $reg 1]
+          set nom [lindex $reg 2]
+          set des [lindex $reg 3]
+          set par [lindex $reg 4]
+          set lev [lindex $reg 5]
+          if {$iteration eq 0} { lappend plottedreg 0 }
+          if { $abr eq $defval } {
+            set mark ON
+          } else {
+            set mark OFF
+          }
+          set isplotted [lindex $plottedreg $regidx]
+
+#          set cmd "Text WriteLn(\"Processing iteration $iteration regidx $regidx plotted $plotted plottedreg -> $plottedreg \");"
+#          ::tol::console eval $cmd
+
+          if { $isplotted eq 0 } {
+              set infCols [ list cod $abr ]
+              if {$par ne ""} {
+                 set paridx [$self _findcode $alg(sDi,$mag,$dim,-hie,$sDi) $par]
+                 if { $paridx >= 0 } {
+                   set plottedreg [ lreplace $plottedreg $regidx $regidx 1 ]
+                   set plotted [expr $plotted+1]
+                   set idx [ $tmp($mag,$dim,$sDi) insertNode $paridx 0 $mark $abr $nom $infCols ]
+                 }
+              } else {
+                 set plottedreg [ lreplace $plottedreg $regidx $regidx 1 ]
+                 set plotted [expr $plotted+1]
+                 set idx [ $tmp($mag,$dim,$sDi) insertNode root 0 $mark $abr $nom $infCols ]
+              }
+              lappend alg(sDi,$mag,$dim,-hie,$sDi) [list $idx $abr]
+          }
+          set regidx [expr $regidx+1]
+       }
+       set regidx 0
+    }
+}
+  
 #/////////////////////////////////////////////////////////////////////////////
 method _fillSubDimDat {mag dim sDi trigger} {
 #
@@ -575,41 +693,41 @@ method _fillSubDimDat {mag dim sDi trigger} {
   set valCont 0
 
   if {[llength $lstReg]} {
-	foreach reg $lstReg {
-	  lappend lstRegMod [linsert [lrange $reg 1 end] end [lindex $reg 0]]
-	  set valCont [expr $valCont+1]
-	  if {$defval eq [lindex $reg 1]} {
-		   set defFound $valCont
-	  }
-	}
+    foreach reg $lstReg {
+      lappend lstRegMod [linsert [lrange $reg 1 end] end [lindex $reg 0]]
+      set valCont [expr $valCont+1]
+      if {$defval eq [lindex $reg 1]} {
+           set defFound $valCont
+      }
+    }
   } else {
-	set lstRegMod ""
+    set lstRegMod ""
   }
   # Si no existe crearlo
   if {![info exist ${selfns}::tmp($mag,$dim,$sDi)]} {
-	label $w.l${sDi} -text [mc $sDi]
-	  if {$trigger} {
-		  set tmp($mag,$dim,$sDi) [ bentrydate $w.bsf${sDi} \
-		     -postcommand [list $self _trigger $mag $dim $sDi] ]
-	  } else {
-		  set tmp($mag,$dim,$sDi) [bentrydate $w.bsf${sDi} ]
-	  }
+    label $w.l${sDi} -text [mc $sDi]
+      if {$trigger} {
+          set tmp($mag,$dim,$sDi) [ bentrydate $w.bsf${sDi} \
+             -postcommand [list $self _trigger $mag $dim $sDi] ]
+      } else {
+          set tmp($mag,$dim,$sDi) [bentrydate $w.bsf${sDi} ]
+      }
 
-	
-	grid $w.l${sDi}    -row 0 -column 0 -sticky ne
-	grid $w.bsf${sDi}  -row 0 -column 1 -sticky new
+    
+    grid $w.l${sDi}    -row 0 -column 0 -sticky ne
+    grid $w.bsf${sDi}  -row 0 -column 1 -sticky new
  
-	grid columnconfigure $w 1 -weight 1
-	grid rowconfigure    $w 0 -weight 1
+    grid columnconfigure $w 1 -weight 1
+    grid rowconfigure    $w 0 -weight 1
   }
   puts $defval
   # Insertar los valores
   $tmp($mag,$dim,$sDi) configure -bdate $defval
 
 #  if {$defval ne ""} {
-#	 if {$defFound eq 1} {
-#		$tmp($mag,$dim,$sDi) selectIndex $defFound
-#	 }
+#     if {$defFound eq 1} {
+#        $tmp($mag,$dim,$sDi) selectIndex $defFound
+#     }
 #  }
 
 }
@@ -645,13 +763,14 @@ method _fillSubDimDat {mag dim sDi trigger} {
 
     # Crear elementos nuevos
     set idx 0
+    set defval [$self _getSubDimDefValue $mag $dim $sDi]
+
     foreach reg $lstReg {
       set ide [lindex $reg 0]
       set abr [lindex $reg 1]
       set nom [lindex $reg 2]
       set des [lindex $reg 3]
       set wid rb$abr
-      set defval [$self _getSubDimDefValue $mag $dim $sDi]
       radiobutton $w.$wid -text $nom -value $abr \
          -variable ${selfns}::tmp($mag,$dim,$sDi)
       if {$abr eq $defval} {
@@ -848,12 +967,12 @@ method _fillSubDimDat {mag dim sDi trigger} {
   #/////////////////////////////////////////////////////////////////////////////
     set localtrig 0
     if { !$data(alreadytriggering) } {
-   	  set data(alreadytriggering) 1
-	  set localtrig 1
-	  . configure -cursor watch
+         set data(alreadytriggering) 1
+      set localtrig 1
+      . configure -cursor watch
     }
-	#Tolcon_Trace "********** Launching _trigger $mag $dim $sDi"
-	  
+    #Tolcon_Trace "********** Launching _trigger $mag $dim $sDi"
+      
     set def [$self cget -def]
 
     foreach reg $alg(sDi,$mag,$dim,-dva,$sDi) {
@@ -862,10 +981,10 @@ method _fillSubDimDat {mag dim sDi trigger} {
       $self _fillSubDim $mag $dimDep $sDiDep
     }
     if { $localtrig } {
-		set data(alreadytriggering) 0
-		. configure -cursor ""
-	  }
-	  
+        set data(alreadytriggering) 0
+        . configure -cursor ""
+      }
+      
   }
 
   #/////////////////////////////////////////////////////////////////////////////
@@ -941,7 +1060,7 @@ method _fillSubDimDat {mag dim sDi trigger} {
     }
     if [info exist ${selfns}::alg(sDi,$mag,$dim,TCL,-type,$sDi)] {
       set met [string tolower $alg(sDi,$mag,$dim,TCL,-type,$sDi)]
-      if { ($met ne "dir") && ($met ne "dat") && ($met ne "lib")} {
+      if { ($met ne "hie") && ($met ne "dir") && ($met ne "dat") && ($met ne "lib")} {
         set met "ind"
       }
     } else {
@@ -983,9 +1102,9 @@ method _fillSubDimDat {mag dim sDi trigger} {
     foreach dim [$self _getDim $mag] {
       foreach sDi [$self _getSubDim $mag $dim] {
         set sDiLst  [$self _getSelSubDim $mag $dim $sDi]
-		set type [$self _getSubDimType $mag $dim $sDi]
+        set type [$self _getSubDimType $mag $dim $sDi]
         if {$res && ($alg(sDi,$mag,$dim,-req,$sDi) eq 1) && \
-			( $type ne "uni.dat" && $type ne "mul.dat" ) && ([llength $sDiLst] eq 0)} {
+            ( $type ne "uni.dat" && $type ne "mul.dat" ) && ([llength $sDiLst] eq 0)} {
           set msg [mc "Must fill subdimension %1\$s of dimension %2\$s" \
              $alg(sDi,$mag,$dim,-nam,$sDi) $alg(Dim,$mag,-nam,$dim)]
           tk_messageBox -message $msg -title [mc "Required fields"]
@@ -1057,7 +1176,7 @@ method _fillSubDimDat {mag dim sDi trigger} {
     if {$dim eq [lindex $lstDim end]} {
       set txt \
 "${spa}foreach $dim [list [$self _getSelDim $mag $dim]] {
-${spa}  lappend $var ${mag}_[ListToStr $lstDim $alg(TCL,-dimSep) {[lindex $}	{ 0]}]
+${spa}  lappend $var ${mag}_[ListToStr $lstDim $alg(TCL,-dimSep) {[lindex $}    { 0]}]
 ${spa}}"
     } else {
       set txt \
@@ -1103,7 +1222,7 @@ ${spa}}"
     if {$sDi eq [lindex $lstSDi end]} {
       set txt \
 "${spa}foreach $sDi [list [$self _getSelSubDim $mag $dim $sDi]] {
-${spa}  lappend $var ${dimTxt}[ListToStr $lstSDi $alg(TCL,-sDiSep) {[lindex $}	{ 2]}]
+${spa}  lappend $var ${dimTxt}[ListToStr $lstSDi $alg(TCL,-sDiSep) {[lindex $}    { 2]}]
 ${spa}}"
     } else {
       set txt \
@@ -1128,38 +1247,60 @@ ${spa}}"
 #Tolcon_Trace "Obteniendo subdimension: $mag $dim $sDi"
     set lst ""
     set type [$self _getSubDimType $mag $dim $sDi]
-	#TODO: Validate here
-	switch -- $type {
-	   "uni.dat" {
-		 if {[info exist ${selfns}::tmp($mag,$dim,$sDi)] } {
-		   if {$tmp($mag,$dim,$sDi) ne ""} {
-			   if {[ $tmp($mag,$dim,$sDi) cget -btext ] ne ""} {
-			 	   set lst [ join [  $tmp($mag,$dim,$sDi) cget -btext ] ]
-			   } else {
-				   set lst "00000000"
-			   }
-		   }
-		 }
-	   }
-	  "mul.dat" {
-		  if {[info exist ${selfns}::tmp($mag,$dim,$sDi)] } {
-			if {$tmp($mag,$dim,$sDi) ne ""} {
-				if {[ $tmp($mag,$dim,$sDi) cget -btext ] ne ""} {
-					 set lst [ join [  $tmp($mag,$dim,$sDi) cget -btext ] ]
-				} else {
-					set lst "00000000"
-				}
-			}
-		  }
-	  }
-	   "uni.dir" {
-		 if {[info exist ${selfns}::tmp($mag,$dim,$sDi)] } {
-		   if {$tmp($mag,$dim,$sDi) ne ""} {
-			 set lst [list $tmp($mag,$dim,$sDi)]
-		   }
-		 }
-	   }
-       "uni.ind" {     
+    #TODO: Validate here
+    switch -- $type {
+       "uni.hie" {
+         if {[info exist ${selfns}::tmp($mag,$dim,$sDi)] } {
+           if {$tmp($mag,$dim,$sDi) ne ""} {
+               if {[ $tmp($mag,$dim,$sDi) getSelected ] ne ""} {
+                    set lst [ join [  $tmp($mag,$dim,$sDi) getSelected cod ] ]
+               } else {
+                   set lst ""
+               }
+           }
+         }
+       }
+       "mul.hie" {
+         if {[info exist ${selfns}::tmp($mag,$dim,$sDi)] } {
+           if {$tmp($mag,$dim,$sDi) ne ""} {
+               if {[ $tmp($mag,$dim,$sDi) getSelected ] ne ""} {
+                    set lst [ join [  $tmp($mag,$dim,$sDi) getSelected cod ] ]
+               } else {
+                   set lst ""
+               }
+           }
+         }
+       }
+       "uni.dat" {
+         if {[info exist ${selfns}::tmp($mag,$dim,$sDi)] } {
+           if {$tmp($mag,$dim,$sDi) ne ""} {
+               if {[ $tmp($mag,$dim,$sDi) cget -btext ] ne ""} {
+                    set lst [ join [  $tmp($mag,$dim,$sDi) cget -btext ] ]
+               } else {
+                   set lst "00000000"
+               }
+           }
+         }
+       }
+      "mul.dat" {
+          if {[info exist ${selfns}::tmp($mag,$dim,$sDi)] } {
+            if {$tmp($mag,$dim,$sDi) ne ""} {
+                if {[ $tmp($mag,$dim,$sDi) cget -btext ] ne ""} {
+                     set lst [ join [  $tmp($mag,$dim,$sDi) cget -btext ] ]
+                } else {
+                    set lst "00000000"
+                }
+            }
+          }
+      }
+       "uni.dir" {
+         if {[info exist ${selfns}::tmp($mag,$dim,$sDi)] } {
+           if {$tmp($mag,$dim,$sDi) ne ""} {
+             set lst [list $tmp($mag,$dim,$sDi)]
+           }
+         }
+       }
+       "uni.ind" {
          if {[info exist ${selfns}::tmp($mag,$dim,$sDi)]} {
            set val [lindex [$tmp($mag,$dim,$sDi) key get] 0]
            if {$val ne ""} {
