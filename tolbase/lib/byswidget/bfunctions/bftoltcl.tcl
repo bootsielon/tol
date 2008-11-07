@@ -558,12 +558,12 @@ proc TolValidateData {P typFie} {
     "date" {
       set delimeter {' '}
       set gestor [string trim [TclGetVar Text DBA] {"}]
-      puts "gestor de bd --> $gestor"
+
       switch $gestor {
         "SqlServer" {
           set delimeter {{convert(datetime,'} {',121)}}        
         }
-        "Oracle" {
+        "Oracle" - "Pos" {
           set delimeter {{to_date('} {','yyyy/mm/dd')}}        
         }
       }

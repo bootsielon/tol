@@ -15,6 +15,7 @@ proc Sql2Tol { typ } {
     "char" -
     "varchar" -
     "varchar2" -
+    "bpchar" -
     "long" {
       return "Text"
     }
@@ -264,7 +265,8 @@ proc SqlValidateData {P typFie} {
     # Cadenas de caracteres
     "char"     -
     "varchar"  -
-    "varchar2" -    
+    "varchar2" -
+    "bpchar"   -
     "text" {
       if {[string length $lonField]} {
         set ok [expr ([string len $P]<=$lonField)]
@@ -313,11 +315,14 @@ proc SqlValidateData {P typFie} {
     set valFor $value
   } else {
     set typeField [string tolower [lindex $type 0]]
+    Tolcon_Trace "typeField --> $typeField"
+    Tolcon_Trace "type --> $type"
     switch $typeField {
       "bigint"     -
       "int"        -
       "smallint"   -
       "tinyint"    -
+      "int4"   -
       "bit"        -
       "number"     -
       "decimal"    -
@@ -332,13 +337,14 @@ proc SqlValidateData {P typFie} {
       "smalldatetime" {
         switch $gestor {
           "Mic" { set valFor "convert(datetime,'${value}',121)"            }
-          "Ora" { set valFor "to_date('${value}','YYYY-MM-DD HH24:MI:SS')" }
+          "Ora" - "Pos"{ set valFor "to_date('${value}','YYYY-MM-DD HH24:MI:SS')" }
           "Mys" { set valFor "str_to_date('${value}','%Y%m%d %H:%i:%s')" }
           default { error "Gestor no implementado $gestor"  }
         }
       }
       "char"       -
       "varchar"    -
+      "bpchar"     -
       "varchar2"   -
       "text"       -
       "nchar"      -
@@ -371,6 +377,7 @@ proc SqlValidateData {P typFie} {
     "bigint"   -
     "int"      -
     "smallint" -
+    "int4" -
     "tinyint" {
       # no necesita ningun delimitador
     } 
@@ -404,7 +411,7 @@ proc SqlValidateData {P typFie} {
         "SqlServer" {
           set delimeter {{convert(datetime,'} {',121)}}        
         }
-        "Oracle" {
+        "Oracle" - "Pos" {
           set delimeter {{to_date('} {','YYYY-MM-DD HH24:MI:SS')}}        
         }
         default { error "Variable DBA (Gestor) not defined"  }
@@ -413,7 +420,9 @@ proc SqlValidateData {P typFie} {
     # Cadenas de caracteres
     "char"     -
     "varchar"  -
-    "varchar2"  -
+    "bpchar"   -
+    "varchar2" -
+    "bpchar"   -
     "text" {
       set delimeter {' '}
     }
