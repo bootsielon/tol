@@ -243,6 +243,18 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 }
   
 ////////////////////////////////////////////////////////////////////////////////
+  void BVMat::err_invalid_dimensions(const char* fName, int nrow, int ncol)
+//Message handler
+////////////////////////////////////////////////////////////////////////////////
+{
+  Error(I2("Cannot apply",
+           "No es posible aplicar")+" "+fName+" "+
+        I2("to create a virtual matrix of dimensions",
+           "para crear una matriz virtual de dimensiones")+" "+
+          "("+nrow+"x"+ncol+")");
+}
+  
+////////////////////////////////////////////////////////////////////////////////
   void BVMat::err_invalid_dimensions(const char* fName, 
                                      const BVMat& a, const BVMat& b)
 //Message handler
