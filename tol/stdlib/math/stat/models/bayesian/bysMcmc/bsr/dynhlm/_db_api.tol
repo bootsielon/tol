@@ -17,6 +17,10 @@ NameBlock DBApi =
   //release
   Real _.engine = SqlEngine::GesMys;
 
+  //Database must be open before to use this API but some methods could use
+  //connection parameters. Then this field must be defined previously.
+  NameBlock dbConnect = UNKNOWN;
+
   //Enables or disables SQL tracing
   Real doQueryTrace = False;
   //Enables or disables automatic SQL cache
@@ -41,8 +45,6 @@ NameBlock DBApi =
       "BysMcmc::Bsr::DynHlm::DBApi::allowAutoCache","E");
     Real Stop
   };
-
-  Code SqlExecScript = SqlExecScript.NotImplemented;
 
   //Set of TOL alias for database tables
   Set _.tableName = 
@@ -81,6 +83,7 @@ NameBlock DBApi =
   Code SetEngineToMySQL;
   Code SqlTableTrace;
   Code SqlExecTrace;
+  Code SqlExecScript;
   Code SqlCachedTableFile;
   Code SqlCachedInsert;
   Code SqlStartCachedInsert;

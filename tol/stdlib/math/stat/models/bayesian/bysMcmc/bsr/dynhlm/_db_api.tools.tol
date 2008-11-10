@@ -39,6 +39,31 @@ Set SqlTableTrace(Text query, Text structure)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Real SqlExecScript(Text filePath)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Case(
+  _.engine==SqlEngine::GesMys,
+  {
+    Text command = 
+    "mysql "
+    "-h"+dbConnect::_.server+" "+
+    "-D"+dbConnect::_.defaultDB+" "+ 
+    "-u"+dbConnect::_.user+" "+
+    "-p"+dbConnect::_.password+" "+ 
+    "--disable-auto-rehash "
+    "--compress "
+    "< \""+filePath+"\"";
+    WriteLn("[SqlExecScript] "+command);
+    OSConWait(command,1)
+  },
+  {
+    WriteLn("[SqlExecScript] Not implemented for engine "+_.engine,"E");
+    0
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text SqlFormatDate(Date dte)
 //////////////////////////////////////////////////////////////////////////////
 {
