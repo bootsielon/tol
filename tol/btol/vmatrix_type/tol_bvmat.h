@@ -356,6 +356,7 @@ private:
                                      const BVMat& a);
   static void err_invalid_subtypes  (const char* fName, 
                                      const BVMat& a, const BVMat& b);
+  static void err_invalid_dimensions(const char* fName, int nrow, int ncol);
   static void err_invalid_dimensions(const char* fName, 
                                      const BVMat& a, const BVMat& b);
   static void err_invalid_dimensions(const char* fName, 
