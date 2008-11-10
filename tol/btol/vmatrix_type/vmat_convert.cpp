@@ -727,6 +727,11 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   Delete();
+  if((nrow<0)||(ncol<0))
+  {
+    err_invalid_dimensions("Eye",nrow,ncol);
+    return;
+  }
   bool isCol = v.Columns()==1;
   bool isRow = v.Rows   ()==1;
   if(!isCol && !isRow)
@@ -769,6 +774,11 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   Delete();
+  if((nrow<0)||(ncol<0))
+  {
+    err_invalid_dimensions("Eye",nrow,ncol);
+    return;
+  }
   bool lower = diag<=0;
   int k, n = Maximum(nrow, ncol);
   if(lower)
@@ -804,6 +814,11 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   Delete();
+  if((nrow<0)||(ncol<0))
+  {
+    err_invalid_dimensions("Eye",nrow,ncol);
+    return;
+  }
   switch(c) {
   case(ESC_blasRdense  ) :
     code_  = ESC_blasRdense;
@@ -823,6 +838,11 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   Delete();
+  if((nrow<0)||(ncol<0))
+  {
+    err_invalid_dimensions("Zeros",nrow,ncol);
+    return;
+  }
   switch(c) {
   case(ESC_blasRdense  ) :
     code_  = ESC_blasRdense;         
@@ -1047,6 +1067,11 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   int i, j;
+  if((rows<0)||(cols<0))
+  {
+    err_invalid_dimensions("Sub",rows,cols);
+    return(-1);
+  }
   BArray<int> r(rows);
   BArray<int> c(cols);
   for(i=0; i<rows; i++) { r[i]=i0+i; }
@@ -1060,6 +1085,11 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   BVMat aux;
+  if((rows<0)||(cols<0))
+  {
+    err_invalid_dimensions("Sub",rows,cols);
+    return(aux);
+  }
   Sub(i0,j0,rows,cols,aux);
   return(aux);
 };
