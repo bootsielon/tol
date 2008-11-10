@@ -1015,6 +1015,25 @@ vector<lin_noise_inequation>* add_ine::ine_vec_ = NULL;
 lin_noise_inequation*         add_ine::ine_     = NULL;
 
 
+///////////////////////////////////////////////////////////////////////////////
+struct assign_explicit_end
+///////////////////////////////////////////////////////////////////////////////
+{
+  static bool* endFound_; 
+  
+  static void action() 
+  { 
+    (*endFound_) = true;
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    action();
+  }
+
+};
+
+bool* assign_explicit_end::endFound_ = NULL; 
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Here's our comment rule
@@ -1255,6 +1274,9 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
       add_ine::ine_     = &s.ine_info;
       add_ine add_ine_;
        
+      assign_explicit_end::endFound_ = &s.endFound_;
+      assign_explicit_end assign_explicit_end_;
+
       error_report_p error_badNumber = error_report_parser(
         "Expecting a number, but found something else" );
       error_report_p error_badNumberOrUnk = error_report_parser(
@@ -1702,7 +1724,7 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
         error_SessionAuthorDefExpected
         ;
       explicit_begin = str_p("$BEGIN"); 
-      explicit_end   = str_p("$END")[assign_a(s.endFound_,true)]; 
+      explicit_end   = str_p("$END")[assign_explicit_end_]; 
       problem = 
         (explicit_begin | eps_p) >>
         //header
@@ -1924,9 +1946,9 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
         return(-6);
       }
     }
-    BVMat X_, Y_, A_;
+    BVMat X_, A_;
     Std(BSR()+" Allocating dense output with "+m+" cells\n");
-    Y_.BlasRDense(m,1);
+    Y.BlasRDense(m,1);
     Std(BSR()+" Allocating triplet sparse input with "+Xnzmax_+" non null cells\n");
     X_.ChlmRTriplet(m,n,Xnzmax_);
     Std(BSR()+" Allocating dense inequation border with "+r+" cells\n");
@@ -1935,7 +1957,7 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
     A_.ChlmRTriplet(r,n,Anzmax_);
     size_t& Xn = X_.s_.chlmRtriplet_->nnz;
     size_t& An = A_.s_.chlmRtriplet_->nnz;
-    double* Yx = (double*)Y_.s_.blasRdense_->x;
+    double* Yx = (double*)Y.s_.blasRdense_->x;
     double* Xx = (double*)X_.s_.chlmRtriplet_->x;
     double* ax = (double*)a_.s_.blasRdense_->x;
     double* Ax = (double*)A_.s_.chlmRtriplet_->x;
@@ -1967,8 +1989,6 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
     Std("\n");
     Std(BSR()+"Converting regression equations from triplet to sparse\n");
     X.Convert(X_,BVMat::ESC_chlmRsparse);
-    Std(BSR()+"Converting regression equations from triplet to sparse\n");
-    Y.Convert(Y_,BVMat::ESC_chlmRsparse);
     Std(BSR()+"Setting input and output missing block\n");
     int inputMisSize = 0;
     int outputMisSize = 0;
@@ -2106,12 +2126,14 @@ int Parse(const string &          fileName,
   if(!result.full && !bsr.endFound_)
   {
     BText msg = BSR() + BText(fName) + " Fails Parsing\n"+url_parse_bsr();
+    BText desc;
     for (int i = 0; i < 1000; i++)
     {
       if (result.stop == end) break;
-      msg += *result.stop++;
+      desc += *result.stop++;
     }
-    Error(msg);
+    if(!desc.HasName()) { desc = "Unexpectend end of file"; }
+    Error(msg+"\nProblem description:'"+desc+"'");
     return(-2);
   }
   if(!errCode)
