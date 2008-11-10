@@ -60,16 +60,22 @@ NameBlock ARMAProcess =
   ////////////////////////////////////////////////////////////////////////////
   {
     Real n = VRows(S);
-    Polyn pol = 
-    {
-      Polyn aux = MatPol(Reverse(VMat2Mat(SubRow(S,[[n]]))));
-      aux+ChangeBF(aux)-VMatDat(S,n,n)
-    };
-    VMatrix aux = (
-      ((S - Pol2VMat(pol, n, n)) | Zeros(n, m-n)) <<
-      Zeros(m-n,m)
-    )+Pol2VMat(pol, m, m);
-    AvoidSymRoundErr(aux)
+    AvoidSymRoundErr(Case(
+      m==n, S,
+      m<n,  Sub(S,1,1,m,m),
+      m>n,
+      {
+        Polyn pol = 
+        {
+          Polyn aux = MatPol(Reverse(VMat2Mat(SubRow(S,[[n]]))));
+          aux+ChangeBF(aux)-VMatDat(S,n,n)
+        };
+        VMatrix aux = (
+          ((S - Pol2VMat(pol, n, n)) | Zeros(n, m-n)) <<
+          Zeros(m-n,m)
+        )+Pol2VMat(pol, m, m);
+        aux
+      }))
   }; 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -77,12 +83,18 @@ NameBlock ARMAProcess =
   ////////////////////////////////////////////////////////////////////////////
   {
     Real n = VRows(L);
-    Polyn pol = MatPol(Reverse(VMat2Mat(SubRow(L,[[n]]))));
-    VMatrix aux = (
-      ((L - Pol2VMat(pol, n, n)) | Zeros(n, m-n)) <<
-      Zeros(m-n,m)
-    )+Pol2VMat(pol, m, m);
-    aux
+    Case(
+      m==n, L,
+      m<n,  Sub(L,1,1,m,m),
+      m>n,
+      {
+        Polyn pol = MatPol(Reverse(VMat2Mat(SubRow(L,[[n]]))));
+        VMatrix aux = (
+          ((L - Pol2VMat(pol, n, n)) | Zeros(n, m-n)) <<
+          Zeros(m-n,m)
+        )+Pol2VMat(pol, m, m);
+        aux
+      })
   }; 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -123,13 +135,19 @@ NameBlock ARMAProcess =
     "Serie E3 = myFastChol::filter(Z3);\n";
     //Stores arguments as members
     Polyn _.ar = ar_;
+  //Real _trc.1 = { WriteLn("TRACE _.ar=" << _.ar); 0 };
     Polyn _.ma = ma_;
+  //Real _trc.2 = { WriteLn("TRACE _.ma=" << _.ma); 0 };
     Real _.m  = m_;
+  //Real _trc.3 = { WriteLn("TRACE _.m=" << _.m); 0 };
     //Stores degrees of AR and MA polynomials
     Real _.p = Degree(_.ar);
+  //Real _trc.4 = { WriteLn("TRACE _.p=" << _.p); 0 };
     Real _.q = Degree(_.ma);
+  //Real _trc.5 = { WriteLn("TRACE _.q=" << _.q); 0 };
     //Calculates de minimum length of non Toeplitz main minor of factors
     Real _.n = Max(_.p,_.q)+_.p+1;
+  //Real _trc.6 = { WriteLn("TRACE _.n=" << _.n); 0 };
     //Calculates de main minor of length _.n of joint ARMA covariance
     VMatrix _.cov_arma_n = 
       Pol2VMat(ARMATACov(_.ar,_.ma,_.n), _.n, _.n);
@@ -137,19 +155,25 @@ NameBlock ARMAProcess =
     VMatrix _.cov_ar_n = 
       Pol2VMat(ARMATACov(_.ar,1,_.n), _.n, _.n);
     //Does Choleski factorization of pure AR
+  //Real _trc.7 = { WriteLn("TRACE _.cov_ar_n=" << (Matrix VMat2Mat(_.cov_ar_n))); 0 };
     VMatrix _.L_ar_n = CholeskiFactor(_.cov_ar_n,"X");
+  //Real _trc.8 = { WriteLn("TRACE _.L_ar_n=" << (Matrix VMat2Mat(_.L_ar_n))); 0 };
     //Calculates the inverse of Choleski factorization of pure AR
     VMatrix _.Li_ar_n = CholeskiSolve(_.L_ar_n,Eye(_.n),"L");
+  //Real _trc.9 = { WriteLn("TRACE _.Li_ar_n=" << (Matrix VMat2Mat(_.Li_ar_n))); 0 };
     //Extends main minor of length _.n to full data length _.m as Toplitz from  
     //last row. Terms _.n^2 is added and substracted to clean rounding error.
     VMatrix _.Li_ar=
       (ARMAProcess::ExtendBandedLowTriangToeplitz(_.Li_ar_n,_.m)+_.n^2)-_.n^2;
+  //Real _trc.10 = { WriteLn("TRACE _.Li_ar=" << (Matrix VMat2Mat(_.Li_ar))); 0 };
     //Filters full ARMA covariance of AR factor 
     VMatrix _.cov_ma_n = (_.Li_ar_n*_.cov_arma_n*Tra(_.Li_ar_n)+_.n^2)-_.n^2;
     //Extends main minor of length _.n to full data length _.m as Toplitz from 
     //last row and column getting a symmetric and sparse banded matrix
+  //Real _trc.11 = { WriteLn("TRACE _.cov_ma_n=" << (Matrix VMat2Mat(_.cov_ma_n))); 0 };
     VMatrix _.cov_ma_m=
       (ARMAProcess::ExtendBandedSymToeplitz(_.cov_ma_n,_.m)+_.n^2)-_.n^2;
+  //Real _trc.12 = { WriteLn("TRACE _.cov_ma_m=" << (Matrix VMat2Mat(_.cov_ma_m))); 0 };
     //Does Choleski factorization of pseudo MA factor
     VMatrix _.L_ma = CholeskiFactor(_.cov_ma_m,"X");
     //Converts to Cholmod.R.Sparse
