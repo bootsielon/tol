@@ -62,8 +62,9 @@ BTraceInit("setgra.cpp");
   void BGraContensBase<BSet>::Do() 
 //--------------------------------------------------------------------
 { 
-  if(!this->flags_.calculated_)
+  if(!this->flags_.calculated_ && !this->flags_.calculating_)
   {
+    this->flags_.calculating_ = true;
     BSet& c = Contens(); 
     int i, n = c.Card();
     for(i=1; i<n; i++)
@@ -73,6 +74,7 @@ BTraceInit("setgra.cpp");
         c[i]->Do();
       }
     }
+    this->flags_.calculating_ = false;
   }
 }
 

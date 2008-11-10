@@ -474,8 +474,9 @@ DefineContensCommonOperators(BNameBlock, "NameBlock");
   void BGraContensBase<BNameBlock>::Do() 
 //--------------------------------------------------------------------
 { 
-  if(!this->flags_.calculated_)
+  if(!this->flags_.calculated_ && !this->flags_.calculating_)
   {
+    this->flags_.calculating_ = true;
     BSet& c = Contens().Set(); 
     int i, n = c.Card();
     for(i=1; i<n; i++)
@@ -485,6 +486,7 @@ DefineContensCommonOperators(BNameBlock, "NameBlock");
         c[i]->Do();
       }
     }
+    this->flags_.calculating_ = false;
   }
 }
 
