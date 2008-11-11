@@ -1,4 +1,4 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+#LyX 1.5.6 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -1102,18 +1102,226 @@ status open
 \begin_layout Itemize
 
 \series bold
-Real ModSes.Lat.Create(...)
+Real ModSes.Lat.Create(Text dbName, Text id_model, Text id_session, Text id_node,
+ Text description, Real level, Real number, Set father_parameters, Set node_chil
+ds, Real sigma, Matrix X
 \series default
-: Crea todos los registros necesarios para definir un nodo latente genérico.
+): Crea todos los registros necesarios para definir un nodo latente genérico
+ de la forma: 
+\begin_inset Formula $\beta_{i}=\sum_{j}X^{ij}\lambda_{j}+e_{i}.$
+\end_inset
+
+
+\newline
+
+\newline
+El 
+\series bold
+Set father_parameters
+\series default
+ es un conjunto de NameBlocks con información relativa a cada uno de los
+ hiperparámetros 
+\begin_inset Formula $\lambda_{j}$
+\end_inset
+
+, este conjunto tendrá tantos Nameblocks como hiperparámetros 
+\begin_inset Formula $\lambda_{j}$
+\end_inset
+
+haya:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Set father_parameters = [[ 
+\end_layout
+
+\begin_layout Standard
+
+   NameBlock Lam1  = 
+\end_layout
+
+\begin_layout Standard
+
+    ModSes.Lat.Father.Param.Def(Text id_parameter, 
+\end_layout
+
+\begin_layout Standard
+
+       Real init_value, Real min, Real max), 
+\end_layout
+
+\begin_layout Standard
+
+   .......
+\end_layout
+
+\begin_layout Standard
+
+]];                                                                    
+    
+\end_layout
+
+\end_inset
+
+En el ejemplo citado vemos la construcción explícita de un NameBlock que
+ corresponde al hiperparámetro 
+\begin_inset Formula $\lambda_{1}$
+\end_inset
+
+  y que se realiza a través de la función 
+\series bold
+ModSes.Lat.Father.Param.Def
+\series default
+ (Text id_parameter, Real init_value, Real min, Real max).
+ Los argumentos de esta función son los siguientes:
+\newline
+Text id_parameter: texto
+ identificativo del hiperparámetro.
+\newline
+Real init_value: valor inicial para la
+ simulación.
+\newline
+Real min: valor mínimo del dominio de muestreo para 
+\begin_inset Formula $\lambda_{1}$
+\end_inset
+
+.
+\newline
+Real max: valor máximo del dominio de muestreo para 
+\begin_inset Formula $\lambda_{1.}$
+\end_inset
+
+
+\newline
+
+\newline
+El 
+\series bold
+Set node_childs
+\series default
+ es un conjunto de NameBlocks con información relativa a los parámetros
+ 
+\begin_inset Formula $\beta_{i}$
+\end_inset
+
+, este conjunto tedrá tantos NameBlocks como parámetros 
+\begin_inset Formula $\beta_{i}$
+\end_inset
+
+haya:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Set node_childs  = [[ 
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock Param1 = 
+\end_layout
+
+\begin_layout Standard
+
+     ModSes.Lat.Child.Param.Def  (Text id_node, 
+\end_layout
+
+\begin_layout Standard
+
+      Text id_paramater, Real sigma_factor), 
+\end_layout
+
+\begin_layout Standard
+
+     .....
+\end_layout
+
+\begin_layout Standard
+
+  ]]; 
+\end_layout
+
+\end_inset
+
+En el ejemplo vemos la construcción explícita de un NameBlock que corresponde
+ al parámetro 
+\begin_inset Formula $\beta_{1}$
+\end_inset
+
+, y se realiza a través de la función 
+\series bold
+ModSes.Lat.Child.Param.Def
+\series default
+ (Text id_node, Text id_parameter, Real sigma_factor).
+ Los argumentos de esta función son los siguientes:
+\newline
+Text id_node: Texto identific
+ativo del segmento o nodo donde se encuentra el parámetro 
+\begin_inset Formula $\beta_{i}$
+\end_inset
+
+.
+\newline
+Text id_parameter: Texto identificativo del parámetro 
+\begin_inset Formula $\beta_{i}$
+\end_inset
+
+.
+\newline
+Real sigma_factor: Valor real para el parámetro sigma factor, común a todo
+ el nodo de regresión.
+ 
+\newline
+
+\newline
+La matrix X es la matrix 
+\begin_inset Formula $X^{ij}$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Itemize
 
 \series bold
-Real ModSes.Lat.OutComb.Create(...)
+Real ModSes.Lat.OutComb.Create(Text dbName, Text id_model, Text id_session,
+ Text id_node, Text description, Real level, Real number, Set father_parameters,
+ Set node_childs, Real sigma, Matrix X, Matrix Y, Set SigmaBlock)
 \series default
 : Crea todos los registros necesarios para definir un nodo latente genérico
- con output combinado.
+ con output combinado, es decir de la forma: 
+\begin_inset Formula $\sum_{j}Y^{ij}\beta_{j}=$
+\end_inset
+
+
+\begin_inset Formula $\sum_{l}X^{il}\lambda_{l}+e_{i}(i=1,....,n)$
+\end_inset
+
+ .
+\newline
+El Set father_parameters y el Set node_childs tienen el mismo significado
+ y se construyen de la misma forma que en la función anterior Real
+\series bold
+ ModSes.Lat.Create.
+ 
+\newline
+
+\series default
+El Set SigmaBlock es un conjunto de valores reales que fijan el valor de
+ 
+\begin_inset Formula $\sigma_{i}(i=1,....,n)$
+\end_inset
+
+para cada una de las ecuaciones del nodo latente.
 \end_layout
 
 \end_deeper
@@ -1228,14 +1436,69 @@ status open
 \begin_layout Itemize
 
 \series bold
-Real ModSes.Pri.OutComb.Create(...)
+Real ModSes.Pri.OutComb.Create(Text dbName, Text model, Text session, Text
+ id_node, Text description, Real number, Set PriorInfo, Set node_childs,
+ Matrix Y)
 \series default
 : Crea todos los registros necesarios para definir un nodo a priori genérico
- con output combinado.
+ con output combinado: 
+\begin_inset Formula $\sum_{j}Y^{ij}\beta_{j}\sim N(\mu_{i},\sigma_{i})$
+\end_inset
+
+.
+\newline
+El Set PriorInfo es un conjunto de conjuntos que especifica los valores
+ 
+\begin_inset Formula $\mu_{i},\sigma_{i}$
+\end_inset
+
+ para cada una de las ecuaciones del nodo a priori.
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Set PriorInfo = [[
 \end_layout
 
-\end_deeper
-\begin_layout Itemize
+\begin_layout Standard
+
+    [[ Real mu_1, Real sigma_1  ]],
+\end_layout
+
+\begin_layout Standard
+
+    [[ Real mu_2, Real sigma_2  ]],
+\end_layout
+
+\begin_layout Standard
+
+    .....
+\end_layout
+
+\begin_layout Standard
+
+]]
+\end_layout
+
+\end_inset
+
+En el ejemplo anterior se construye explícitamente el conjunto PriorInfo,
+ donde aparecen dos conjuntos con los valores de 
+\begin_inset Formula $\mu_{1,}\sigma_{1}$
+\end_inset
+
+y 
+\begin_inset Formula $\mu_{2},\sigma_{2}$
+\end_inset
+
+ para dos ecuaciones de nodo apriori.
+ 
+\newline
+
 \begin_inset LatexCommand htmlurl
 target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.mix.tol"
 
@@ -1244,7 +1507,6 @@ target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/m
 : Contiene las utilidades de manejo de las tablas de tipo ModSes Mixtas
 \end_layout
 
-\begin_deeper
 \begin_layout Itemize
 
 \series bold
