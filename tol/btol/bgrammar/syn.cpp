@@ -91,6 +91,7 @@ BInt   BSyntaxObject::nSyntaxObject_ = 0;
 static BText tmp_ = "$tmp$";
 
 
+
 //--------------------------------------------------------------------
   BText DumpSyntaxObject(BSyntaxObject* obj)
 //--------------------------------------------------------------------
@@ -375,6 +376,21 @@ const BText& BSyntaxObject::Description() const
   }
 #endif
   return(CBTextNullRef());
+}
+
+//--------------------------------------------------------------------
+  void BSyntaxObject::PutNameBlock(const BNameBlock* nameBlock)
+//--------------------------------------------------------------------
+{ 
+  assert(nameBlock);
+  if(!optInfo_) 
+  { 
+    optInfo_ = new BSynObjOptInfo; 
+  }
+  if(!optInfo_->nameBlock_)
+  { 
+    optInfo_->nameBlock_ = nameBlock;
+  }
 }
 
 //--------------------------------------------------------------------
