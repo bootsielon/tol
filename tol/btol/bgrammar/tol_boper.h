@@ -400,7 +400,8 @@ class BUserFunction: public BExternalOperator
     static BUserFunction* ActiveFunction();
     static void AddActiveFunction(BUserFunction* uFunction);
     static void RemoveActiveFunction();
-	
+	  static void ShowCallStack();
+
     BInt Mode() const { return BUSERFUNMODE; };
 
           BText  Dump()       const;
