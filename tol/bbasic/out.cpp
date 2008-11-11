@@ -29,7 +29,7 @@
 #include <tol/tol_bdir.h>
 #include <tol/tol_bsys.h>
 #include <tol/tol_bdat.h>
-
+#include <tol/tol_boper.h>
 
 //--------------------------------------------------------------------
 void HCIWriteString(const char* msg)
@@ -384,6 +384,7 @@ void Error(const BText& txt)
     BOut::errorOpenTag_ + TOLErrorNumber().Format("[%.0lf] ") + txt + 
     BOut::errorCloseTag_;
   BOut::Write(info, BOut::errorHci_, BOut::errorTerm_);
+  BUserFunction::ShowCallStack();
 }
 
 
