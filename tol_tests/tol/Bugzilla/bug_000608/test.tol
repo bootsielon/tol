@@ -1,0 +1,67 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  608;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "TimeSet Succ bug...";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  
+  TimeSet CtSem445 =
+  D(1)*M(1)+WD(6)-(D(2)+D(3))*M(1)-(D(31)+D(30)+D(29)+D(28)+D(27))*M(12);
+  
+  Set Sem445 = Dates(CtSem445,y2007,y2009);
+
+  TimeSet tmsucc1 = Succ(M(1)*D(1),1, CtSem445 );
+ //Works Ok,  tmsucc1 *Y (2008) = y2008m01d05
+  Set Sem445.1 = Dates(tmsucc1,y2007,y2009);
+  Real ok.1.1 = Belong(y2008m01d05,tmsucc1);
+  Real ok.1.2 = y2008m01d05 <: Sem445.1;
+  Real ok.1.3 = Dates(tmsucc1 *Y (2008), y2008,y2008m2) == [[y2008m01d05]];
+
+  TimeSet tmsucc2 = Succ(M(1)*D(1),2, CtSem445 ); 
+  Set Sem445.2 = Dates(tmsucc2,y2007,y2009);
+  Real ok.2.1 = Belong(y2008m01d12,tmsucc2);
+  Real ok.2.2 = y2008m01d12 <: Sem445.2;
+ //Error, no date for 2008. It should contain y2008m01d12
+  Real ok.2.3 = Dates(tmsucc2 *Y (2008), y2008,y2008m2) == [[y2008m01d12]];
+  
+  TimeSet tmsucc3 = Succ(M(1)*D(1),3, CtSem445 );
+ //Works Ok,  tmsucc1 *Y (2008) = y2008m01d19
+  Set Sem445.3 = Dates(tmsucc3,y2007,y2009);
+  Real ok.3.1 = Belong(y2008m01d19,tmsucc3);
+  Real ok.3.2 = y2008m01d19 <: Sem445.3;
+  Real ok.3.3 = Dates(tmsucc3 *Y (2008), y2008,y2008m2) == [[y2008m01d19]];
+ //Works Ok
+  
+  Set ok = [[
+    ok.1.1,ok.1.2,ok.1.3,
+    ok.2.1,ok.2.2,ok.2.3,
+    ok.3.1,ok.3.2,ok.3.3
+  ]];
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1
+  ]] << ok;
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0,BinGroup("And",ok));
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
