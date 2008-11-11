@@ -875,9 +875,9 @@ BUserFunction::BUserFunction(const BText& name, BGrammar* gra,
  */
 BUserFunction* BUserFunction::ActiveFunction() 
 {
-    if(activeFunctions_.size()>0)
-	 return activeFunctions_.back();
-    else return NIL;
+  if(activeFunctions_.size()>0)
+	  return activeFunctions_.back();
+  else return NIL;
 }
 
 //- static member ----------------------------------------------------
@@ -888,7 +888,33 @@ BUserFunction* BUserFunction::ActiveFunction()
  */
 void BUserFunction::AddActiveFunction(BUserFunction* uFunction) 
 {
-    activeFunctions_.push_back(uFunction);
+  if(uFunction->Name()=="generate")
+    printf("");  
+  activeFunctions_.push_back(uFunction);
+}
+
+
+//- static member ----------------------------------------------------
+/* Shows 
+ */
+//--------------------------------------------------------------------
+void BUserFunction::ShowCallStack()
+{
+  if(activeFunctions_.size())
+  {
+    int i;
+    Std("\n[Call stack]\n");
+    for(i=activeFunctions_.size()-1; i>=0; i--)
+    {
+      BUserFunction* usf = activeFunctions_[i];
+      if(usf->Name()=="generate")
+        printf("");  
+      Std(BText("  [")+(i+1)+"] "+
+        usf->Grammar()->Name()+" "+
+        usf->FullName()+" "+
+        usf->Arguments()+"\n");
+    }
+  }
 }
 
 //- static member ----------------------------------------------------
@@ -909,3 +935,4 @@ void BUserFunction::SetInFile(const BText& inFile)
 {
     inFile_ = inFile;
 }
+
