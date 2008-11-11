@@ -19,7 +19,7 @@ NameBlock DBApi =
 
   //Database must be open before to use this API but some methods could use
   //connection parameters. Then this field must be defined previously.
-  NameBlock dbConnect = UNKNOWN;
+  NameBlock dbConnect = [[ Text _.alias="NoConnection" ]];
 
   //Enables or disables SQL tracing
   Real doQueryTrace = False;
