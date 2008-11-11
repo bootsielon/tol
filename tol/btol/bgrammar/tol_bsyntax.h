@@ -307,17 +307,9 @@ public:
       #endif
     }
   }
-  virtual void PutNameBlock(const BNameBlock* nameBlock)
-  { 
-    if(nameBlock && !optInfo_) 
-    { 
-      optInfo_ = new BSynObjOptInfo; 
-    }
-    if(optInfo_) 
-    { 
-      optInfo_->nameBlock_ = nameBlock;
-    }
-  }
+
+  virtual void PutNameBlock(const BNameBlock* nameBlock);
+
   #ifdef TRACE_OPTINFO
   static int    OptInfoCount            () { return(BSynObjOptInfo::count_); }
   static int    OptInfoCountName        () { return(BSynObjOptInfo::countName_); }
