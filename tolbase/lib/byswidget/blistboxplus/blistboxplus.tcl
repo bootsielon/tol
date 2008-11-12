@@ -540,7 +540,8 @@ proc debug_msg { msg } {
       set options(-initialdir) [file dirname $filNam]
       # open file to read
       if { ![ catch { set fd [open $filNam r] } msgerr] } {
-         while { [gets $fd line ] >= 0} { 
+         while { [gets $fd line ] >= 0} {
+		   Tolcon_Trace "adding $line"
            $self add $line
          } 
          close $fd      
@@ -550,7 +551,6 @@ proc debug_msg { msg } {
     }
   }
 
-  
   #///////////////////////////////////////////////////////////////////////////
   method _SortByColumn { col } {
   #
@@ -559,78 +559,31 @@ proc debug_msg { msg } {
   #  col -> the column which the sort is performed
   #
   #///////////////////////////////////////////////////////////////////////////
-    $self _QuickSort $col 0 [expr [$self size]-1]
-  }
 
+	set numofel [$self size]
+	set lst [list]
+	set fulllst [$self get]
 
-  #///////////////////////////////////////////////////////////////////////////
-  method _QuickSort { col left right } {
-  #
-  # PURPOSE:
-  #  function quicksort(a, left, right)
-  #      if right > left
-  #          select a pivot value a[pivotIndex]
-  #          pivotNewIndex := partition(a, left, right, pivotIndex)
-  #          quicksort(a, left, pivotNewIndex-1)
-  #          quicksort(a, pivotNewIndex+1, right)
-  #
-  #///////////////////////////////////////////////////////////////////////////
-    if {$right > $left} {
-      set pivotIndex [expr (($left + $right) / 2)]
-      set pivotNewIndex [$self _Partition $col $left $right $pivotIndex]
-      $self _QuickSort $col $left [expr $pivotNewIndex-1]
-      $self _QuickSort $col [expr $pivotNewIndex+1] $right
+	foreach i $fulllst {
+	   lappend lst [$self get $i ]
     }
-  }
-
-
-  #///////////////////////////////////////////////////////////////////////////
-  method _Partition { col left right pivotIndex } {
-  #
-  # PURPOSE:
-  #  function partition(a, left, right, pivotIndex)
-  #      pivotValue := a[pivotIndex]
-  #      swap(a[pivotIndex], a[right]) // Move pivot to end
-  #      storeIndex := left
-  #      for i from left to right
-  #          if a[i] <= pivotValue
-  #              swap(a[storeIndex], a[i])
-  #              storeIndex := storeIndex + 1
-  #      swap(a[right], a[storeIndex]) // Move pivot to its final place
-  #      return storeIndex
-  #
-  #///////////////////////////////////////////////////////////////////////////
-    set pivotValue [$self get [lindex [$self get] $pivotIndex] $col]
-    $self _Swap $pivotIndex $right
-    set storeIndex $left
-    for { set i $left } { $i < $right } { incr i } {
-      if { [$self get [lindex [$self get] $i] $col] <= $pivotValue } {
-	$self _Swap $storeIndex $i
-	incr storeIndex
-      }
+# lst:    contains a list of values
+	set coln 0
+	set cols [$self cget -cols]
+	set hidcols [$self cget -hiddencols]
+	for { set j 0 } { $j < [llength $cols] } { incr j } {
+		if {[lindex $cols $j] eq $col} {
+			set coln $j
+		}
+	}
+# coln:   contains the index of the column to be ordered
+	set lst [lsort -index $coln $lst]
+	$self clear
+    for { set i 0 } { $i < $numofel } { incr i } {
+    	set el [lindex $lst $i ]
+	   	$self insert end $el
     }
-    $self _Swap $right $storeIndex
-    return $storeIndex
-  }
 
-
-  #///////////////////////////////////////////////////////////////////////////
-  method _Swap { index1 index2 } {
-  #
-  # PURPOSE:
-  #
-  #///////////////////////////////////////////////////////////////////////////
-    if { $index1 < $index2 } {
-      set lst [$self get]
-      $self move [lindex $lst $index1] after [lindex $lst $index2]
-      set lst [$self get]
-      $self move [lindex $lst [expr $index2-1]] before [lindex $lst $index1]
-    } elseif { $index1 > $index2 } {
-      set lst [$self get]
-      $self move [lindex $lst $index1] before [lindex $lst $index2]
-      set lst [$self get]
-      $self move [lindex $lst [expr $index2+1]] after [lindex $lst $index1]
-    }
   }
 
 
@@ -921,15 +874,16 @@ proc debug_msg { msg } {
     if { $ids eq "" } { return [lrange [$self find] 1 end] }
   
     set result {}
-    
+	  
+	if { "$cols" eq "" } {
+	  set cols [$self column names]
+	} 
+
     foreach id $ids {
     
       set elem {}
     
       set data [$_listbox entry cget $id -data]    
-      if { "$cols" eq "" } {
-        set cols [$self column names]
-      }
     
       foreach col $cols {
         set inx [lsearch $data $col]
@@ -1278,7 +1232,7 @@ proc debug_msg { msg } {
     $_listbox entry configure $id \
       -icons [list [Bitmap::get $icon] [Bitmap::get $icon]]
   }
-
+	
   # delegacion de metodos y opciones
   delegate method * to _listbox
   delegate option * to _listbox
@@ -1377,3 +1331,4 @@ proc test_blistboxplus {} {
     }
   }
 }
+
