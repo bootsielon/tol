@@ -337,7 +337,8 @@ proc SqlValidateData {P typFie} {
       "smalldatetime" {
         switch $gestor {
           "Mic" { set valFor "convert(datetime,'${value}',121)"            }
-          "Ora" - "Pos"{ set valFor "to_date('${value}','YYYY-MM-DD HH24:MI:SS')" }
+          "Ora" { set valFor "to_date('${value}','YYYY-MM-DD HH24:MI:SS')" }
+          "Pos" { set valFor "to_date('${value}','YYYY-MM-DD HH24:MI:SS')" }
           "Mys" { set valFor "str_to_date('${value}','%Y%m%d %H:%i:%s')" }
           default { error "Gestor no implementado $gestor"  }
         }
@@ -356,6 +357,8 @@ proc SqlValidateData {P typFie} {
       default      { error "SqlFormatField:\n\ERROR: Tipo no reconocido $type"} 
     }
   }
+  
+  Tolcon_Trace "valFor --> $valFor"  
   return $valFor
 }
 
@@ -411,7 +414,10 @@ proc SqlValidateData {P typFie} {
         "SqlServer" {
           set delimeter {{convert(datetime,'} {',121)}}        
         }
-        "Oracle" - "Pos" {
+        "Oracle" {
+          set delimeter {{to_date('} {','YYYY-MM-DD HH24:MI:SS')}}        
+        }
+        "Pos" {
           set delimeter {{to_date('} {','YYYY-MM-DD HH24:MI:SS')}}        
         }
         default { error "Variable DBA (Gestor) not defined"  }
