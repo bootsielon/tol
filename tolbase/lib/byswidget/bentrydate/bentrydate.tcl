@@ -698,3 +698,74 @@ proc ::date::lcycle {_list} {
 }
 
 package provide bentrydate 1.0
+
+#/////////////////////////////////////////////////////////////////////////////
+proc test_bentrydate {} {
+#
+# PURPOSE: Funcion de test de un bentrydate
+#
+#/////////////////////////////////////////////////////////////////////////////  
+   # defining the widgets
+  variable data
+  set data(-selected) 1  
+  set formatos {{sql} {fecha tol}}
+  
+  destroy .top
+  toplevel .top -width 200 -height 200  
+  
+  TitleFrame .top.f1 -text "Bentrydate test"
+  set f1 [ .top.f1 getframe ]
+  bentrydate $f1.bed -btextvariable data(txtbed) -btext "20081010" -bdate "20081010"
+  button $f1.bObtener -text "Obtener" -command {takeDate}
+  
+  TitleFrame .top.f2 -text "Configuración"
+  set f2 [ .top.f2 getframe ]
+  blistbox $f2.bcbox -listvariable blblist
+
+  button $f2.bOk -text "Aplicar" -command {aplicar}
+  button $f2.bCancel -text "Salir" -command {salir}
+  LabelEntry $f2.leresultado    -label "Fecha  " -textvariable LEres -editable 0 -text ""
+  LabelEntry $f2.leformatoFecha -label "Formato" -textvariable LEforFec -editable 0 -text "" -width 40
+    
+  grid .top.f1 -sticky news
+  grid $f1.bed - $f1.bObtener -sticky news
+  grid .top.f2 -sticky news -sticky news
+  grid $f2.bcbox -rowspan 2 -sticky news
+  grid $f2.leresultado -row 0 -column 1 -sticky ew
+  grid $f2.leformatoFecha -row 1 -column 1 -sticky ew
+  grid $f2.bOk $f2.bCancel -sticky news
+
+  .top.f2.f.bcbox delete 0 end
+  .top.f2.f.bcbox insert end {"Formato tol"}
+  .top.f2.f.bcbox insert end {"Formato sql"}
+  
+  puts "bentrydate --> .top.f2.f.bcbox"
+  
+  proc takeDate {} {
+    .top.f2.f.leresultado configure -text [ .top.f1.f.bed cget -btext ]
+  }
+  
+  proc salir {} {
+    .top.f2.f.bcbox delete 1
+    .top.f2.f.bcbox delete 0
+
+    .top.f2.f.leresultado configure -text ""
+    .top.f2.f.leformatoFecha configure -text ""
+    
+    destroy .top
+  }
+  
+  proc aplicar {} {
+    set txtLista [.top.f2.f.bcbox curselection]
+    if {$txtLista == 0} {
+      set txtFecha [.top.f1.f.bed cget -bdate]
+      .top.f2.f.leformatoFecha configure -text [ DateTol $txtFecha ]
+    } elseif {$txtLista == 1} {
+      set txtFecha [.top.f1.f.bed cget -btext]
+      .top.f2.f.leformatoFecha configure -text [SqlFormatField $txtFecha "date" Mys "%Y%m%d"]
+      set LEforFec $txtLista
+    } else {
+      set LEforFec "Error, selecciona una fecha"
+    }    
+  }
+}
