@@ -138,8 +138,13 @@ NameBlock DeltaTransfer
   //transference
   Real _x.avg  = (MatMax(_.x)+MatMin(_.x))/2;
   Real _x.sig  = (MatMax(_.x)-MatMin(_.x));
-  Real _.x.min  = _x.avg - 100*_x.sig;
-  Real _.x.max  = _x.avg + 100*_x.sig;
+  
+  Real _.x.min = If (_x.sig==0, _x.avg -100*_x.avg, _x.avg - 100*_x.sig);
+  Real _.x.max = If (_x.sig==0, _x.avg +100*_x.avg, _x.avg + 100*_x.sig);
+
+  //Real _.x.min  = _x.avg - 100*_x.sig;
+  //Real _.x.max  = _x.avg + 100*_x.sig;
+
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -162,12 +167,14 @@ NameBlock DeltaTransfer
   { 
   //WriteLn("TRACE DeltaTransfer()::get.bounds");
     Real set.parameter(paramValues);
+  
     If(i<=_.r-1,
     {
       ARMAProcess::StationarityBounds.2(
         _.delta, _.periodicity, i*_.periodicity)
     },
     {
+      //WriteLn("TRACE bounds"+FormatReal(_.x.min)+" "+FormatReal(_.x.max));
       SetOfReal(_.x.min, _.x.max)
     })
   };
