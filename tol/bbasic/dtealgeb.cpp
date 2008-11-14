@@ -918,7 +918,8 @@ BDate DteEasterSunday(BInt year)
       }
     }
     easter.IncDay();
-    while (easter.WeekDay() != SUNDAY) { easter.IncDay(); }
+    while (!easter.IsTheEnd() && (easter.WeekDay() != SUNDAY)) 
+    { easter.IncDay(); }
     return(easter);
   }
 }
