@@ -216,6 +216,7 @@ BDate BTmsAllDays::Successor(const BDate& dte) const
   BDate d = dte;
   d.PutFraction(0);
   d.IncDay(1);
+  assert(d>=dte);
   return(d);
 }
 
@@ -225,6 +226,7 @@ BDate BTmsAllDays::Predecessor(const BDate& dte) const
   BDate d = dte;
   d.PutFraction(0);
   if(!dte.Fraction()) { d.IncDay(-1); }
+  assert(d<=dte);
   return(d);
 }
 
@@ -291,8 +293,11 @@ BDate BTmsEaster::Successor(const BDate& dte) const
 {
   EnsureLimitsSuccessor(dte);
   BDate easterDay = DteEasterSunday(dte.Year());
-  if (dte < easterDay)     { return(easterDay); }
-  else	                   { return(DteEasterSunday(dte.Year()+1)); }
+  BDate d;
+  if (dte < easterDay) { d=easterDay; }
+  else	               { d=DteEasterSunday(dte.Year()+1); }
+  assert(d>=dte);
+  return(d);
 }
 
 //--------------------------------------------------------------------
@@ -301,8 +306,11 @@ BDate BTmsEaster::Predecessor(const BDate& dte) const
 {
   EnsureLimitsPredecessor(dte);
   BDate easterDay = DteEasterSunday(dte.Year());
-  if (dte > easterDay)     { return(easterDay); }
-  else		                 { return(DteEasterSunday(dte.Year()-1)); }
+  BDate d;
+  if (dte > easterDay)     { d=easterDay; }
+  else		                 { d=DteEasterSunday(dte.Year()-1); }
+  assert(d<=dte);
+  return(d);
 }
 
 //--------------------------------------------------------------------
@@ -318,6 +326,7 @@ BDate BTmsEaster::Next(const BDate& dte, int nth) const
     int y = d.Year()+nth-1;
     d = DteEasterSunday(y);
   }
+  assert(d>=dte);
   return(d);
 }
 
@@ -336,6 +345,7 @@ BDate BTmsEaster::Prev(const BDate& dte, int nth) const
     if(y < Inf().Year())   { return(BDate::Begin()); }
     d = DteEasterSunday(y);
   }
+  assert(d<=dte);
   return(d);
 }
 
@@ -385,6 +395,7 @@ BDate BTmsWeekDay::Successor(const BDate& dte) const
   int w = d.WeekDay();
   d+=(7+weekDay_-w)%7 + 7*(weekDay_==w);
 //Std(BText("\nBTmsWeekDay::Successor(")+dte+")="+d);
+  assert(d>=dte);
   return(d);
 }
 
@@ -399,6 +410,7 @@ BDate BTmsWeekDay::Predecessor(const BDate& dte) const
   int w = d.WeekDay();
   d-= (7+w-weekDay_)%7 + 7*((w==weekDay_));
 //Std(BText("\nBTmsWeekDay::Predecessor(")+dte+")="+d);
+  assert(d<=dte);
   return(d);
 }
 
@@ -412,6 +424,7 @@ BDate BTmsWeekDay::Next(const BDate& dte, int nth) const
   BDate d = Successor(dte); 
   if(nth>1) { d+= 7*(nth-1); }
 //Std(BText("\nBTmsWeekDay::Next(")+dte+","+nth+")="+d);
+  assert(d>=dte);
   return(d);
 }
 
@@ -428,6 +441,7 @@ BDate BTmsWeekDay::Prev(const BDate& dte, int nth) const
   if(d < Inf()) { return(BDate::Begin()); }
 
 //Std(BText("\nBTmsWeekDay::Prev(")+dte+","+nth+")="+d);
+  assert(d<=dte);
   return(d);
 }
 
@@ -478,6 +492,7 @@ BDate BTmsMonthDay::Successor(const BDate& dte) const
   while (DteDaysInMonth(suc.Month(), suc.Year()) < monthDay_)
   { suc.IncMonth(1); }
   suc.PutDay(monthDay_);
+  assert(suc>=dte);
   return(suc);
 }
 
@@ -493,6 +508,7 @@ BDate BTmsMonthDay::Predecessor(const BDate& dte) const
   while (DteDaysInMonth(pre.Month(), pre.Year()) < monthDay_)
   { pre.IncMonth(-1); }
   pre.PutDay(monthDay_);
+  assert(pre<=dte);
   return(pre);
 }
 
@@ -534,6 +550,7 @@ BDate BTmsMonth::Successor(const BDate& dte) const
 	  if (suc.Month() != month_) { suc.PutDate(dte.Year()+1, month_, 1); }
   }
   else { suc.PutDate(dte.Year()+1, month_, 1); }
+  assert(suc>=dte);
   return(suc);
 }
 
@@ -554,6 +571,7 @@ BDate BTmsMonth::Predecessor(const BDate& dte) const
   }
   else // (pre.Month() > month)
   { pre.PutDate(dte.Year(),month_,DteDaysInMonth(month_,dte.Year())); }
+  assert(pre<=dte);
   return(pre);
 }
 
@@ -584,6 +602,7 @@ BDate BTmsHour::Successor   (const BDate& dte) const
     d.PutSecond(0);
     if(d.Hour()>=hour_) { d.IncDay(1); }
     d.PutHour(hour_);
+  assert(d>=dte);
     return(d);
 }
 
@@ -597,6 +616,7 @@ BDate BTmsHour::Predecessor (const BDate& dte) const
     d.PutSecond(0);
     if(d.Hour()<=hour_) { d.IncDay(-1); }
     d.PutHour(hour_);
+  assert(d<=dte);
     return(d);
 }
 
@@ -610,6 +630,7 @@ BDate BTmsHour::Next(const BDate& dte, BInt nth) const
   if(nth<0) { return(Prev(dte,-nth)); }
   BDate d = Successor(dte);
   d.IncDay(nth-1);
+  assert(d>=dte);
   return(d);
 }
 
@@ -623,6 +644,7 @@ BDate BTmsHour::Prev(const BDate& dte, BInt nth) const
   if(nth<0) { return(Next(dte,-nth)); }
   BDate d = Predecessor(dte);
   d.IncDay(1-nth);
+  assert(d<=dte);
   return(d);
 }
 
@@ -661,6 +683,7 @@ BDate BTmsMinute::Successor	(const BDate& dte) const
     d.PutSecond(0);
     if(d.Minute()>=minute_) { d.IncHour(1); }
     d.PutMinute(minute_);
+  assert(d>=dte);
     return(d);
 }
 
@@ -673,6 +696,7 @@ BDate BTmsMinute::Predecessor (const BDate& dte) const
     d.PutSecond(0);
     if(d.Minute()<=minute_) { d.IncHour(-1); }
     d.PutMinute(minute_);
+  assert(d<=dte);
     return(d);
 }
 
@@ -686,6 +710,7 @@ BDate BTmsMinute::Next(const BDate& dte, BInt nth) const
   if(nth<0) { return(Prev(dte,-nth)); }
   BDate d = Successor(dte);
   d.IncHour(nth-1);
+  assert(d>=dte);
   return(d);
 }
 
@@ -699,6 +724,7 @@ BDate BTmsMinute::Prev(const BDate& dte, BInt nth) const
   if(nth<0) { return(Next(dte,-nth)); }
   BDate d = Predecessor(dte);
   d.IncHour(1-nth);
+  assert(d<=dte);
   return(d);
 }
 
@@ -737,6 +763,7 @@ BDate BTmsSecond::Successor	(const BDate& dte) const
     d.PutSecond(BInt(d.Second()));
     if(d.Second()>=second_) { d.IncMinute(1); }
     d.PutSecond(second_);
+  assert(d>=dte);
     return(d);
 }
 
@@ -749,6 +776,7 @@ BDate BTmsSecond::Predecessor (const BDate& dte) const
     d.PutSecond(BInt(d.Second()));
     if(d.Second()<=second_) { d.IncMinute(-1); }
     d.PutSecond(second_);
+  assert(d<=dte);
     return(d);
 }
 
@@ -762,6 +790,7 @@ BDate BTmsSecond::Next(const BDate& dte, BInt nth) const
   if(nth<0) { return(Prev(dte,-nth)); }
   BDate d = Successor(dte);
   d.IncMinute(nth-1);
+  assert(d>=dte);
   return(d);
 }
 
@@ -775,6 +804,7 @@ BDate BTmsSecond::Prev(const BDate& dte, BInt nth) const
   if(nth<0) { return(Next(dte,-nth)); }
   BDate d = Predecessor(dte);
   d.IncMinute(1-nth);
+  assert(d<=dte);
   return(d);
 }
 
