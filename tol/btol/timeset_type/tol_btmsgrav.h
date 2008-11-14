@@ -54,6 +54,40 @@ public:
   void  PutBuildingCache   (bool b)           { cacheInfo_.buildingCache_=b; }
   bool  ForcingCache       () const           { return(cacheInfo_.forzingCache_); }
   void  PutForcingCache    (bool f)           { cacheInfo_.forzingCache_ = f; }
+  virtual BDate	SafeSuccessor  (const BDate& dte_) const = 0;
+  virtual BDate	SafePredecessor(const BDate& dte_) const = 0;
+  virtual BDate	SafeNext	     (const BDate& dte, BInt nth) const 
+  {
+    return(BTmsTemporary::Next(dte,nth)); 
+  };
+  virtual BDate	SafePrev	     (const BDate& dte, BInt nth) const
+  {
+    return(BTmsTemporary::Prev(dte,nth)); 
+  };
+  BDate	Successor(const BDate& dte) const
+  {
+    BDate d = SafeSuccessor(dte);
+    assert(d>=dte);
+    return(d);
+  }
+  BDate	Predecessor(const BDate& dte) const
+  {
+    BDate d = SafePredecessor(dte);
+    assert(d<=dte);
+    return(d);
+  }
+  BDate	Next(const BDate& dte, BInt nth) const
+  {
+    BDate d = SafeNext(dte,nth);
+    assert((nth>0&&d>=dte)||(nth<0&&d<=dte)||(nth==0));
+    return(d);
+  }
+  BDate	Prev(const BDate& dte, BInt nth) const
+  {
+    BDate d = SafePrev(dte,nth);
+    assert((nth<0&&d>=dte)||(nth>0&&d<=dte)||(nth==0));
+    return(d);
+  }
 };
 
 //--------------------------------------------------------------------
@@ -75,8 +109,8 @@ public:
     BTmsCached::FreeCache();
     units_->FreeCache();
   }
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
 protected:
   BBool Includes    (const BDate& dte) const;
   BDate CalcInf() const { return(first_); }
@@ -102,8 +136,8 @@ public:
   : BTmsCached(NIL), date_(d) {}
  ~BTmsOneDay() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
 protected:
   BBool Includes    (const BDate& dte) const;
   BDate CalcInf() const { return(date_); }
@@ -140,8 +174,8 @@ public:
   }
  ~BTmsYear() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
 protected:
   BBool Includes    (const BDate& dte) const;
   BDate CalcInf() const { return(first_); }
@@ -216,8 +250,8 @@ public:
   BTmsAllUnion(BList* arg) : BTmsCached(arg) {}
  ~BTmsAllUnion() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
   void  FreeCache() 
   { 
     BTmsCached::FreeCache();
@@ -248,8 +282,8 @@ class BTmsAllIntersection: public BTmsAbortable
 public:
   BTmsAllIntersection(BList* arg) : BTmsAbortable(arg) {}
  ~BTmsAllIntersection() {}
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
   void  FreeCache() 
   { 
     BTmsCached::FreeCache();
@@ -319,8 +353,8 @@ public:
   BTmsUnion(BUserTimeSet* a, BUserTimeSet* b) : BTmsBinary<BTmsCached>(a,b) {}
  ~BTmsUnion() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
 protected:
   BBool Includes    (const BDate& dte) const;
   BDate CalcInf() const;
@@ -349,8 +383,8 @@ public:
   {}
  ~BTmsIntersection() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
 protected:
   BBool Includes    (const BDate& dte) const;
   BDate CalcInf() const;
@@ -379,8 +413,8 @@ public:
   {}
  ~BTmsDifference() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
 protected:
   BBool Includes    (const BDate& dte) const;
   BDate CalcInf() const;
@@ -414,8 +448,8 @@ public:
   : BTmsCached(), center_(c), period_(p), units_(tms) {}
  ~BTmsPeriodical() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
 //BInt	Difference  (const BDate& dte1, const BDate& dte2) const
 //{ return((dte2.Index()-dte1.Index())/period_); }
   void FreeCache() 
@@ -456,10 +490,10 @@ public:
     if(icu_) { delete icu_; } 
   }
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
-  BDate Next	      (const BDate& dte, BInt nth) const;
-  BDate Prev	      (const BDate& dte, BInt nth) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
+  BDate SafeNext	      (const BDate& dte, BInt nth) const;
+  BDate SafePrev	      (const BDate& dte, BInt nth) const;
   void FreeCache() 
   { 
     BTmsCached::FreeCache();
@@ -500,10 +534,10 @@ public:
     if(icu_) { delete icu_; } 
   }
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
-  BDate Next	      (const BDate& dte, BInt nth) const;
-  BDate Prev	      (const BDate& dte, BInt nth) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
+  BDate SafeNext	      (const BDate& dte, BInt nth) const;
+  BDate SafePrev	      (const BDate& dte, BInt nth) const;
   void FreeCache() 
   { 
     BTmsCached::FreeCache();
@@ -544,8 +578,8 @@ public:
   BTmsOfSerie(BList* arg) : BTmsAbortable(arg){}
  ~BTmsOfSerie() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
   void GetHashBetween (BHash& hash,
                         BDate first = BDate::Unknown(),
 			                  BDate last  = BDate::Unknown()) const;
@@ -571,8 +605,8 @@ public:
   BTmsDatesOfSet(BHash& h);
  ~BTmsDatesOfSet() {}
 
-  BDate Successor   (const BDate& dte) const;
-  BDate Predecessor (const BDate& dte) const;
+  BDate SafeSuccessor   (const BDate& dte) const;
+  BDate SafePredecessor (const BDate& dte) const;
   void  GetHashBetween (BHash& hash,
                         BDate first = BDate::DefaultFirst(),
 			                  BDate last  = BDate::DefaultLast ()) const;
