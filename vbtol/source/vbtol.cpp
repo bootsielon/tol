@@ -27,10 +27,6 @@
 
 #include "VButils.h"
 
-class BList;
-
-static BList VB_stack;
-
 /*
  *  Decompile all Tol objects
  *
@@ -84,16 +80,6 @@ short __declspec(dllexport) CALLBACK TolDecompile(BSTR name)
   return found;
 }
 
-static void VB_concat(BList* head, BList* tail)
-{
-  if (head->Cdr()) {
-    VB_concat(head->Cdr(), tail);
-  }
-  else {
-    head->PutCdr(tail);
-  }
-}
-
 int VBTol_EvalExpr(char * expr, short* nerror, short* nwarning)
 {
   BList * tol_result;
@@ -142,9 +128,10 @@ void VBTol_InstallHciWriter()
  *
  * addr - the address of a Visual Basic function that will catch all the Tol output
  * vmode - VerboseMode
+ * initlib - if it's non zero the InitLibrary will be loaded
  */
 //---------------------------------------------------------------------------
-void __declspec(dllexport) CALLBACK TolInit(long addr, BSTR vmode)
+void __declspec(dllexport) CALLBACK TolInit(long addr, BSTR vmode, short initlib)
 //---------------------------------------------------------------------------
 {
   VB_Writer = (FN_PTR)addr;
@@ -157,7 +144,8 @@ void __declspec(dllexport) CALLBACK TolInit(long addr, BSTR vmode)
   str_vmode = (LPSTR)vmode;
   InitTolKernel(0, str_vmode);
 
-  LoadInitLibrary(NULL);
+  if (initlib)
+    LoadInitLibrary(NULL);
 }
 
 // VC++ DLL entry point routine. Called during certain system events.
