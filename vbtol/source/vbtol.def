@@ -1,8 +1,21 @@
 LIBRARY "VBTol"
 
 EXPORTS
-    TolInit				@1
-    TolEval				@2
-    TolDecompile		@3
-    TolDecompileAll		@4
-    
+  TolInit           @1
+  TolEval           @2
+  TolDecompile      @3
+  TolDecompileAll   @4
+  TolGetText        @5
+  TolCreateText     @6
+  TolGetReal        @7
+  TolCreateReal     @8
+  TolGetMatrix      @9
+  TolCreateMatrix   @10
+  TolGetRange       @11
+  TolGetRow         @12
+  TolGetColumn      @13
+  TolGetCell        @14
+  TolPutRange       @15
+  TolPutRow         @16
+  TolPutColumn      @17
+  TolPutCell        @18
