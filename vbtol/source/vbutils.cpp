@@ -39,6 +39,26 @@ BSTR ChartoBSTR(char* str)
   return((BSTR)FinalStr);
 }
 
+/*
+  
+*/
+
+BList VB_stack;
+
+void VB_concat(BList* head, BList* tail)
+{
+  if (head->Cdr()) {
+    VB_concat(head->Cdr(), tail);
+  }
+  else {
+    head->PutCdr(tail);
+  }
+}
+
+/*
+  
+*/
+
 FN_PTR VB_Writer = NULL;
 
 void VBTol_gsl_error_handler(const char * reason, const char * file, int line,
