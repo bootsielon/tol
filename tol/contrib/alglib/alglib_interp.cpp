@@ -447,19 +447,30 @@ BTraceInit("alglib_interp.cpp");
   }
 };
 
+static BText AlgLibMoreAbout = 
+  I2("Valid interpolation types for argument <interpType> are:\n",
+     "Los tipos de interpolación admisibles para el argumento <interpType> son:\n")+
+  "  \"BarycentricRational\"\n"+
+  "  \"LinearSpline\"\n"+
+  "  \"CubicSpline\"\n"+
+  "  \"AkimaSpline\"\n"+
+  "  \"SplineLeastSquares\"\n"+
+  "  \"ChebyshevLeastSquares\"\n"+
+  "  \"PolynomialLeastSquares\"\n"+
+  I2("More details in","Más detalles en")+
+  " http://www.alglib.net/interpolation";
+
 static BText AlgLibEvalDescOptions_ = I2
 (
   "If <mode> is  0 evaluates the interpolation function in <a>.\n"
   "If <mode> is  1 evaluates the derivative of the interpolation function in <a>.\n"
   "If <mode> is -1 evaluates the integral of the interpolation function between <a> and <b>.\n"
-  "NOTE: At this moment just first option has been implemented.\n"
-  "More details in",
+  "NOTE: At this moment just first option has been implemented.\n",
   "Si <modo> es  0 evalúa la función de interpolación en <a>\n"
   "Si <modo> es  1 evalúa la derivada de la función de interpolación en <a>\n"
   "Si <modo> es -1 evalúa la integral de la función de interpolación entra <a> f <b>\n"
   "NOTA: Por el momento sólo se ha implementado la primera opción.\n"
-  "Más detalles en"
-)+ " http://www.alglib.net/interpolation";
+)+AlgLibMoreAbout;
 
 //--------------------------------------------------------------------
 class AlgLib_Interpolation_Tol_Eval: public BExternalOperator
@@ -554,7 +565,7 @@ static BText alglib_vector_interp_order_copy_description_ = I2
 
   "Si el argumento opcional <copy> es cierto entonces se usará internamente "
      "una copia de las matrices <x> e <f> pero en caso contrario se usarán "
-     "directamente f será responsabilidad del usaurio asegurar que dichas "
+     "directamente y será responsabilidad del usaurio asegurar que dichas "
      "matrices permanecen vivas mientras se usa el manejador. Esta "
      "característica puede ser útil para ahorrar memoria cuando se manejan "
      "matrices muy grandes pero debe emplearse con sumo cuidado.\n"
@@ -567,7 +578,8 @@ DefExtOpr(1, BCodeAlgLibInterp, "AlgLib.Interp.Scalar", 3, 5, "Text Matrix Matri
 	  I2("Creates a AlgLib interpolation function handler.\n",
 	   "Crea un manejador de funciones de interpolación de AlgLib.\n")+
     alglib_vector_interp_order_copy_description_+
-    warning_non_ois_storable_function,
+    warning_non_ois_storable_function+
+    AlgLibMoreAbout,
 	  BOperClassify::NumericalAnalysis_);
 //--------------------------------------------------------------------
 void BCodeAlgLibInterp::CalcContens()
@@ -576,7 +588,7 @@ void BCodeAlgLibInterp::CalcContens()
   BText& typeName = Text(Arg(1));
   DMat&  x_   = (DMat&)Mat(Arg(2));
   DMat&  f_   = (DMat&)Mat(Arg(3));
-  int pointsNumber = f_.Columns(); //Number of points to evaluate
+  int pointsNumber = f_.Data().Size(); //Number of points to evaluate
   int order        = pointsNumber;
   if(Arg(4)) 
   { 
@@ -796,8 +808,8 @@ static BText warning_ois_storement = I2
   "and apply to AlgLib.Interp.Vector.LoadWorkSpace"
   ,
   "Para poder almacenar toda la información necesaria use "
-  "AlgLib.Interp.Vector.CreateWorkSpace f entonces podrá restaurarla "
-  "posteriormente f aplicarla a AlgLib.Interp.Vector.LoadWorkSpace"
+  "AlgLib.Interp.Vector.CreateWorkSpace y entonces podrá restaurarla "
+  "posteriormente y aplicarla a AlgLib.Interp.Vector.LoadWorkSpace"
 );
 
 //--------------------------------------------------------------------
@@ -813,7 +825,8 @@ DefExtOpr(1, BCodeAlgLibVectorInterp, "AlgLib.Interp.Vector", 3, 6,
      "Si se pasa una función de interpolación vectorial en el argumento opcional "
      "<interp>, entonces se modificará éste, en lugar de crear uno nuevo")+".\n"+
   warning_non_ois_storable_function+"\n"+
-  warning_ois_storement,
+  warning_ois_storement+
+  AlgLibMoreAbout,
 	BOperClassify::NumericalAnalysis_);
 //--------------------------------------------------------------------
 void BCodeAlgLibVectorInterp::CalcContens()
@@ -864,7 +877,8 @@ DefExtOpr(1, BSetAlgLibVectorInterpCreateWorkSpace,
      "interpolation vectorial function handler.\n",
      "Crea el espacio de trabajo necesario para evaluar un manejador "
      "de funciones vectoriales de interpolación de AlgLib.\n")+
-  alglib_vector_interp_description_,
+  alglib_vector_interp_description_+
+  AlgLibMoreAbout,
 	BOperClassify::NumericalAnalysis_);
 //--------------------------------------------------------------------
 void BSetAlgLibVectorInterpCreateWorkSpace::CalcContens()
