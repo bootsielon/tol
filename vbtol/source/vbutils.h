@@ -28,6 +28,14 @@
 #include <tol_init.h>
 #include <tol_bmatgra.h>
 
+
+class BList;
+
+extern BList VB_stack;
+
+void VB_concat(BList* head, BList* tail);
+
+
 typedef void (__stdcall *FN_PTR)(BSTR str);
 
 extern FN_PTR VB_Writer;
@@ -36,5 +44,6 @@ void VBTol_gsl_error_handler(const char * reason, const char * file, int line,
 	 						 int gsl_errno);
 
 void VBTol_HciWriter(const BText & str);
+
 
 #endif
