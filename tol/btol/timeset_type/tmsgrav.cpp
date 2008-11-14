@@ -238,7 +238,6 @@ static BDate& NCDate(const BDate& dte)
   void BTmsCached::FreeCache() 
 //--------------------------------------------------------------------
 { 
-//Std(BText("\n")+GetIdentify()+"->FreeCache["+Cache().Size()+"] ("<<beginCache_<<","<<endCache_<<")\n");
   hashUsedKBytes_ -= double(Cache().MaxSize()*sizeof(BReal))/1024.0;
   cacheInfo_.cache_.DeleteBuffer(); 
   cacheInfo_.beginCache_ = BDate::Unknown();
@@ -406,7 +405,7 @@ BBool BTmsOneDay::Includes(const BDate& dte) const
 
 
 //--------------------------------------------------------------------
-BDate BTmsOneDay::Successor(const BDate& dte) const
+BDate BTmsOneDay::SafeSuccessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
        if(dte.IsUnknown()) { return(dte); }
@@ -415,7 +414,7 @@ BDate BTmsOneDay::Successor(const BDate& dte) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsOneDay::Predecessor(const BDate& dte) const
+BDate BTmsOneDay::SafePredecessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
        if(dte.IsUnknown()) { return(dte); }
@@ -435,7 +434,7 @@ BBool BTmsYear::Includes(const BDate& dte) const
 { return(dte.Year() == year_); }
 
 //--------------------------------------------------------------------
-BDate BTmsYear::Successor(const BDate& dte) const
+BDate BTmsYear::SafeSuccessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
        if(dte.IsUnknown()) { return(dte); }
@@ -444,11 +443,12 @@ BDate BTmsYear::Successor(const BDate& dte) const
   BDate suc=dte; 
   suc.PutFraction(0);
   suc.IncDay(1); 
+  assert(suc>=dte);
   return(suc); 
 }
 
 //--------------------------------------------------------------------
-BDate BTmsYear::Predecessor(const BDate& dte) const
+BDate BTmsYear::SafePredecessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
        if(dte.IsUnknown()) { return(dte); }
@@ -457,6 +457,7 @@ BDate BTmsYear::Predecessor(const BDate& dte) const
   BDate pre=dte; 
   pre.PutFraction(0);
   if(!dte.Fraction()) { pre.IncDay(-1); }
+  assert(pre<=dte);
   return(pre);
 }
 
@@ -488,7 +489,7 @@ BBool BTmsInterval::Includes(const BDate& dte) const
 //--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
-BDate BTmsInterval::Successor(const BDate& dte) const
+BDate BTmsInterval::SafeSuccessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
        if(dte.IsUnknown()) { return(dte); }
@@ -498,7 +499,7 @@ BDate BTmsInterval::Successor(const BDate& dte) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsInterval::Predecessor(const BDate& dte) const
+BDate BTmsInterval::SafePredecessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
        if(dte.IsUnknown()) { return(dte); }
@@ -576,36 +577,46 @@ BBool BTmsUnion::Includes(const BDate& dte) const
 
 
 //--------------------------------------------------------------------
-BDate BTmsUnion::Successor(const BDate& dte_) const
+BDate BTmsUnion::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
   EnsureLimitsSuccessor(dte);
   CACHED_SUCCESSOR(dte);
   BDate d=BDate::End();
-  BDate aSuc = a_->Successor(dte); if(aSuc.IsUnknown()) { return(aSuc); }
-  BDate bSuc = b_->Successor(dte); if(bSuc.IsUnknown()) { return(bSuc); }
+  BDate aSuc = a_->Successor(dte); 
+  assert(aSuc>=dte_); 
+  if(aSuc.IsUnknown()) { return(aSuc); }
+  BDate bSuc = b_->Successor(dte); 
+  assert(bSuc>=dte_); 
+  if(bSuc.IsUnknown()) { return(bSuc); }
        if (aSuc.IsTheEnd()) { d = bSuc; }
   else if (bSuc.IsTheEnd()) { d = aSuc; }
   else if(aSuc <  bSuc)     { d = aSuc; }
   else		                  { d = bSuc; }
+  assert(d>=dte);
   return (d);
 }
 
 //--------------------------------------------------------------------
-BDate	 BTmsUnion::Predecessor(const BDate& dte_) const
+BDate	 BTmsUnion::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
   EnsureLimitsPredecessor(dte);
   CACHED_PREDECESSOR(dte);
   BDate d=BDate::Begin();
-  BDate aPre = a_->Predecessor(dte); if(aPre.IsUnknown()) { return(aPre); }
-  BDate bPre = b_->Predecessor(dte); if(bPre.IsUnknown()) { return(bPre); }
+  BDate aPre = a_->Predecessor(dte); 
+  assert(aPre<=dte_); 
+  if(aPre.IsUnknown()) { return(aPre); }
+  BDate bPre = b_->Predecessor(dte); 
+  assert(aPre<=dte_); 
+  if(bPre.IsUnknown()) { return(bPre); }
        if(aPre.IsTheBegin()) { d = bPre; }
   else if(bPre.IsTheBegin()) { d = aPre; }
   else if(aPre > bPre)       { d = aPre; }
   else		                   { d = bPre; }
+  assert(d<=dte);
   return (d);
 }
 
@@ -676,9 +687,8 @@ BBool BTmsIntersection::Includes(const BDate& dte) const
 //if(b_->NRefs()==1) { b_->FreeCache(); }
 }
 
-
 //--------------------------------------------------------------------
-BDate	BTmsIntersection::Successor(const BDate& dte_) const
+BDate	BTmsIntersection::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = EnsureNotAbortedSuccessor(dte_);
@@ -725,11 +735,10 @@ BDate	BTmsIntersection::Successor(const BDate& dte_) const
     else                   { dte =  Maximum(aSuc,bSuc);  }
   }
   AbortMessageMaxIter("BTmsIntersection::Successor",dte_,dte,1);
-  return(BDate::End());
-}
+  return(BDate::End());}
 
 //--------------------------------------------------------------------
-BDate BTmsIntersection::Predecessor(const BDate& dte_) const
+BDate BTmsIntersection::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = EnsureNotAbortedPredecessor(dte_);
@@ -826,7 +835,7 @@ BBool BTmsDifference::Includes(const BDate& dte) const
 }
 
 //--------------------------------------------------------------------
-BDate	 BTmsDifference::Successor(const BDate& dte_) const
+BDate	 BTmsDifference::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = EnsureNotAbortedSuccessor(dte_);
@@ -878,7 +887,7 @@ BDate	 BTmsDifference::Successor(const BDate& dte_) const
 
 
 //--------------------------------------------------------------------
-BDate BTmsDifference::Predecessor(const BDate& dte_) const
+BDate BTmsDifference::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = EnsureNotAbortedPredecessor(dte_);
@@ -927,7 +936,6 @@ BDate BTmsDifference::Predecessor(const BDate& dte_) const
   AbortMessageMaxIter("BTmsDifference::Predecessor",dte_,dte,-1);
   return(BDate::Begin());
 }
-
 
 //--------------------------------------------------------------------
 DefIntOpr(1, BTmsAllUnion, "Union", 2, 0,
@@ -1018,7 +1026,7 @@ void BTmsAllUnion::CalcHashBetween(BHash& hash, BDate first, BDate last)
 
 
 //--------------------------------------------------------------------
-BDate BTmsAllUnion::Successor(const BDate& dte_) const
+BDate BTmsAllUnion::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
@@ -1039,7 +1047,7 @@ BDate BTmsAllUnion::Successor(const BDate& dte_) const
 
 
 //--------------------------------------------------------------------
-BDate BTmsAllUnion::Predecessor(const BDate& dte_) const
+BDate BTmsAllUnion::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
@@ -1166,7 +1174,7 @@ void BTmsAllIntersection::CalcHashBetween(BHash& hash, BDate first, BDate last)
 
 
 //--------------------------------------------------------------------
-BDate BTmsAllIntersection::Successor(const BDate& dte_) const
+BDate BTmsAllIntersection::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = EnsureNotAbortedSuccessor(dte_);
@@ -1229,7 +1237,7 @@ BDate BTmsAllIntersection::Successor(const BDate& dte_) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsAllIntersection::Predecessor(const BDate& dte_) const
+BDate BTmsAllIntersection::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = EnsureNotAbortedPredecessor(dte_);
@@ -1289,7 +1297,6 @@ BDate BTmsAllIntersection::Predecessor(const BDate& dte_) const
   }
   AbortMessageMaxIter("BTmsAllIntersection::Predecessor",dte_,dte,-1);
   return(BDate::Begin());}
-
 
 //--------------------------------------------------------------------
 // TimeSet traslation functions
@@ -1405,7 +1412,7 @@ BBool BTmsPeriodical::Includes(const BDate& dte) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsPeriodical::Successor(const BDate& dte_) const
+BDate BTmsPeriodical::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
@@ -1447,7 +1454,7 @@ BDate BTmsPeriodical::Successor(const BDate& dte_) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsPeriodical::Predecessor(const BDate& dte_) const
+BDate BTmsPeriodical::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
@@ -1498,6 +1505,7 @@ BDate BTmsPeriodical::Predecessor(const BDate& dte_) const
   inline BBool SuccSetStatus(BUserTimeSet* center_, 
                              BInt          n,
                              BUserTimeSet* units_, 
+                             BUserTimeSet* icu_,
                              const BDate&  u,
                                    BDate&  u0,
                                    BDate&  u1,
@@ -1519,24 +1527,13 @@ BDate BTmsPeriodical::Predecessor(const BDate& dte_) const
     u0 = units_ ->Successor  (u1);
     c  = center_->Successor  (u1);
     inc = c.HasValue() && (c<=u0);
-  }  
-/* * /
-  if(n>0)
-  { 
-    printf("\n  \t%ld\tn\t%ld\tx\t%.0lf\tu0\t%.0lf\t<=\tc\t%.0lf\t<\tu1\t%.0lf\t",(int)inc, n,u.Hash(),u0.Hash(),c.Hash(),u1.Hash());
-  } 
-  else if(n<0)
-  { 
-    printf("\n  \t%ld\tn\t%ld\tx\t%.0lf\tu0\t%.0lf\t>=\tc\t%.0lf\t>\tu1\t%.0lf\t",(int)inc, n,u.Hash(),u0.Hash(),c.Hash(),u1.Hash());
   } 
   else
-  { 
-    printf("\n  \t%ld\tn\t%ld\tx\t%.0lf\tc\t%.0lf ",(int)inc, n,u.Hash(),c.Hash());
-  } 
-/* */
+  {
+    inc = icu_->Contain(u);
+  }
   return(inc);
 }
-
 
 //--------------------------------------------------------------------
   inline BBool SuccIncludes(BUserTimeSet* center_, 
@@ -1547,69 +1544,187 @@ BDate BTmsPeriodical::Predecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate u0, u1, c;
-  BBool inc = (n==0)?icu_->Contain(x):SuccSetStatus(center_, n, units_, x, u0, u1, c);
-
+  BBool inc = SuccSetStatus(center_, n, units_, icu_, x, u0, u1, c);
   return(inc);
 }
 
 /*
+Std(BText("\nDateIsNotValid(")+date.Name()+","+sign+")"); \
+*/
+#define EnsureDate(date) \
+  if(date.IsUnknown()) { return(date); } 
+
+
 //--------------------------------------------------------------------
   inline BDate SuccSuccessor(BUserTimeSet* center_, 
                              BInt          n,
                              BUserTimeSet* units_, 
                              BUserTimeSet* icu_, 
-                             const BDate&  x,
-                                   BDate&  u,
-                                   BDate&  u0,
-                                   BDate&  u1,
-                                   BDate&  c)
+                             const BDate&  x)
 //--------------------------------------------------------------------
 {
-  if(x.IsUnknown() || x.IsTheEnd ()) { return(x); }
+  if(x.IsUnknown() || x.IsTheEnd ()) 
+  { return(x); }
   if(n==0)  { return(icu_->Successor(x)); }
-//Std(BText("\nSuccSuccessor(")+center_->Identify()+","+n+","+units_->Identify()+","+dte+")");
-  u = x;
-  for(int k=0; k<BTmsAbortable::GetOutOfRange(); k++)
-  {
-    BDate old = u;
-    u = units_->Successor(u);  
-    if(u.IsUnknown() || u.IsTheEnd ()) { return(u); }
-    assert(old<u);
-    if(SuccSetStatus(center_, n, units_, u, u0, u1, c)) { return(u); }
+//Std(BText("\nSuccSuccessor(")+center_->Identify()+","+n+","+units_->Identify()+","+x+")");
+  BDate a, b, c, ua, ub, uc, u;
+  int r = 1, ka, kb, kc; 
+  u  = units_ ->Next(x,-n); EnsureDate(u); 
+  a  = center_->Next(u,-r); EnsureDate(a);
+  b  = center_->Next(u, r); EnsureDate(b);
+  ua = units_ ->Next(a, n); EnsureDate(ua);
+  ub = units_ ->Next(b, n); EnsureDate(ub);
+//Std(BText("\n u=")+u+" a="+a+" b="+b+" ua="+ua+" ub="+ub);
+  if(ua>ub) 
+  { 
+    return(BDate::End()); 
   }
-  return(BDate::End());
+  while(!((ua<=x)&&(x<ub)))
+  {
+    r *= 2;
+    if(ua>x)
+    {
+      b  = a;
+      ub = ua;
+      a  = center_->Next(a,-r); EnsureDate(a);
+      ua = units_ ->Next(a, n); EnsureDate(ua);
+    }
+    if(ub<=x)
+    {
+      if(ub!=x)
+      {
+        a  = b;
+        ua = ub;
+      }
+      b  = center_->Next(b,+r); EnsureDate(b); 
+      ub = units_ ->Next(b,+n); EnsureDate(ub);
+    }
+  //Std(BText("\n r=")+r+" a="+a+" b="+b+" ua="+ua+" ub="+ub);
+  }
+  if(!((ua<=x)&&(x<ub))) 
+  { 
+    return(BDate::End()); 
+  }
+  BHash ch, uh;
+  center_->ForceCache(a, b);
+  center_->GetHashBetween(ch, a,  b);
+  if(!ch.Size()) 
+  { return(BDate::End()); }
+  units_ ->ForceCache(ua, ub);
+  units_ ->GetHashBetween(uh, ua,ub);
+  ka = 0;
+  kb = ch.Size()-1;
+  while(kb>ka+1)
+  {
+    kc = (kb+ka)/2;
+    c.PutHash(ch[kc]);
+    uc = units_->Next(c,n); EnsureDate(uc);
+    if(uc>x) 
+    { 
+      kb=kc;
+      ub=uc;
+    }
+    else
+    { 
+      ka=kc;
+      ua=uc;
+    }
+  //Std(BText("\n kc=")+kc+" ua="+ua+" x="+x+" ub="+ub);
+  }
+//Std(BText("\n ua=")+ua+" x="+x+" ub="+ub);
+  if(!((ua<=x)&&(x<ub))) 
+  { 
+    return(BDate::End()); 
+  }
+  return(ub);
 }
-
 
 //--------------------------------------------------------------------
   inline BDate SuccPredecessor(BUserTimeSet* center_, 
-                               BInt          n,
-                               BUserTimeSet* units_, 
-                               BUserTimeSet* icu_, 
-                               const BDate&  x,
-                                     BDate&  u,
-                                     BDate&  u0,
-                                     BDate&  u1,
-                                     BDate&  c)
+                             BInt          n,
+                             BUserTimeSet* units_, 
+                             BUserTimeSet* icu_, 
+                             const BDate&  x)
 //--------------------------------------------------------------------
 {
-  if(x.IsUnknown () || x.IsTheBegin()) { return(x); }
+  if(x.IsUnknown() || x.IsTheBegin ()) 
+  { return(x); }
   if(n==0)  { return(icu_->Predecessor(x)); }
-//Std(BText("\nSuccPredecessor(")+center_->Identify()+","+n+","+units_->Identify()+","+dte+")");
-  u = x;
-  for(int k=0; k<BTmsAbortable::GetOutOfRange(); k++)
-  {
-    BDate old = u;
-    u = units_->Predecessor(u);  
-    if(u.IsUnknown() || u.IsTheBegin ()) { return(u); }
-    assert(old>u);
-    if(SuccSetStatus(center_, n, units_, u, u0, u1, c)) { return(u); }
+//Std(BText("\nSuccPredecessor(")+center_->Identify()+","+n+","+units_->Identify()+","+x+")");
+  BDate a, b, c, ua, ub, uc, u;
+  int r = 1, ka, kb, kc; 
+  u  = units_ ->Next(x,-n); EnsureDate(u);
+  a  = center_->Next(u,-r); EnsureDate(a);
+  b  = center_->Next(u,+r); EnsureDate(b);
+  ua = units_ ->Next(a,+n); EnsureDate(ua);
+  ub = units_ ->Next(b,+n); EnsureDate(ub);
+//Std(BText("\n u=")+u+" a="+a+" b="+b+" ua="+ua+" ub="+ub);
+  if(ua>ub) 
+  { 
+    return(BDate::Begin()); 
   }
-  return(BDate::Begin());
+  while(!((ua<x)&&(x<=ub)))
+  {
+    r *= 2;
+    if(ua>=x)
+    {
+      if(ua!=x)
+      {
+        b  = a;
+        ub = ua;
+      }
+      a  = center_->Next(a,-r); EnsureDate(a);
+      ua = units_ ->Next(a,+n); EnsureDate(ua);
+    }
+    if(ub<x)
+    {
+      a  = b;
+      ua = ub;
+      b  = center_->Next(b,+r); EnsureDate(b); 
+      ub = units_ ->Next(b,+n); EnsureDate(ub);
+    }
+  //Std(BText("\n r=")+r+" a="+a+" b="+b+" ua="+ua+" ub="+ub);
+  }
+  if(!((ua<x)&&(x<=ub))) 
+  { 
+    return(BDate::Begin()); 
+  }
+  BHash ch, uh;
+  center_->ForceCache(a, b);
+  center_->GetHashBetween(ch, a,  b);
+  if(!ch.Size()) 
+  { return(BDate::Begin()); }
+  units_ ->ForceCache(ua, ub);
+  units_ ->GetHashBetween(uh, ua,ub);
+  ka = 0;
+  kb = ch.Size()-1;
+  while(kb>ka+1)
+  {
+    kc = (kb+ka)/2;
+    c.PutHash(ch[kc]);
+    uc = units_->Next(c,n); EnsureDate(uc);
+    if(uc>=x) 
+    { 
+      kb=kc;
+      ub=uc;
+    }
+    else
+    { 
+      ka=kc;
+      ua=uc;
+    }
+  }
+//Std(BText("\n ua=")+ua+" x="+x+" ub="+ub);
+  if(!((ua<x)&&(x<=ub))) 
+  { 
+    return(BDate::Begin()); 
+  }
+  return(ua);
 }
-*/
 
-/* */
+
+/* FAST BUT ERRONEOUS IMPLEMENTATION fails bug 608 * /
+
 //--------------------------------------------------------------------
   inline BDate SuccSuccessor(BUserTimeSet* center_, 
                              BInt          n,
@@ -1631,7 +1746,7 @@ BDate BTmsPeriodical::Predecessor(const BDate& dte_) const
   if(u.IsUnknown() || u.IsTheEnd ()) 
   { return(u); }
   
-  if(!SuccSetStatus(center_, n, units_, u, u0, u1, c))
+  if(!SuccSetStatus(center_, n, units_, icu_, u, u0, u1, c))
   {
     BDate u01 = (n>0)?u1:u0;
     c = center_->Successor(u01);
@@ -1675,7 +1790,7 @@ BDate BTmsPeriodical::Predecessor(const BDate& dte_) const
   u = units_->Predecessor(x);  
   if(u.IsUnknown () || u.IsTheBegin()) 
   { return(u); }
-  if(!SuccSetStatus(center_, n, units_, u, u0, u1, c))
+  if(!SuccSetStatus(center_, n, units_, icu_, u, u0, u1, c))
   {
     BDate u01 = (n>0)?u1:u0;
     c = center_->Predecessor(u01);
@@ -1695,6 +1810,63 @@ BDate BTmsPeriodical::Predecessor(const BDate& dte_) const
   }
 //Std(BText("\nSuccSuccessor(")+center_->Identify()+","+n+","+units_->Identify()+","+dte+")="+u);
   return(u); 
+}
+
+/* ROBUST BUT SLOW IMPLEMENTATION fails bug 167 * /
+
+//--------------------------------------------------------------------
+  inline BDate SuccSuccessor(BUserTimeSet* center_, 
+                             BInt          n,
+                             BUserTimeSet* units_, 
+                             BUserTimeSet* icu_, 
+                             const BDate&  x,
+                                   BDate&  u,
+                                   BDate&  u0,
+                                   BDate&  u1,
+                                   BDate&  c)
+//--------------------------------------------------------------------
+{
+  if(x.IsUnknown() || x.IsTheEnd ()) { return(x); }
+  if(n==0)  { return(icu_->Successor(x)); }
+//Std(BText("\nSuccSuccessor(")+center_->Identify()+","+n+","+units_->Identify()+","+dte+")");
+  u = x;
+  for(int k=0; k<BTmsAbortable::GetOutOfRange(); k++)
+  {
+    BDate old = u;
+    u = units_->Successor(u);  
+    if(u.IsUnknown() || u.IsTheEnd ()) { return(u); }
+    assert(old<u);
+    if(SuccSetStatus(center_, n, units_, icu_, u, u0, u1, c)) { return(u); }
+  }
+  return(BDate::End());
+}
+
+
+//--------------------------------------------------------------------
+  inline BDate SuccPredecessor(BUserTimeSet* center_, 
+                               BInt          n,
+                               BUserTimeSet* units_, 
+                               BUserTimeSet* icu_, 
+                               const BDate&  x,
+                                     BDate&  u,
+                                     BDate&  u0,
+                                     BDate&  u1,
+                                     BDate&  c)
+//--------------------------------------------------------------------
+{
+  if(x.IsUnknown () || x.IsTheBegin()) { return(x); }
+  if(n==0)  { return(icu_->Predecessor(x)); }
+//Std(BText("\nSuccPredecessor(")+center_->Identify()+","+n+","+units_->Identify()+","+dte+")");
+  u = x;
+  for(int k=0; k<BTmsAbortable::GetOutOfRange(); k++)
+  {
+    BDate old = u;
+    u = units_->Predecessor(u);  
+    if(u.IsUnknown() || u.IsTheBegin ()) { return(u); }
+    assert(old>u);
+    if(SuccSetStatus(center_, n, units_, icu_, u, u0, u1, c)) { return(u); }
+  }
+  return(BDate::Begin());
 }
 /* */
 
@@ -1798,20 +1970,19 @@ BBool BTmsSuccessor::Includes(const BDate& dte) const
 
 
 //--------------------------------------------------------------------
-BDate BTmsSuccessor::Successor(const BDate& dte_) const
+BDate BTmsSuccessor::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
   EnsureLimitsSuccessor(dte);
   PREPARE_CACHE(dte);
   CACHED_SUCCESSOR(dte);
-  BDate u, u0, u1, c;
-  return(SuccSuccessor(center_, displacement_, units_, icu_, dte, u, u0, u1, c));
+  return(SuccSuccessor(center_, displacement_, units_, icu_, dte));
 
 }
 
 //--------------------------------------------------------------------
-BDate BTmsSuccessor::Predecessor(const BDate& dte_) const
+BDate BTmsSuccessor::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
@@ -1819,12 +1990,12 @@ BDate BTmsSuccessor::Predecessor(const BDate& dte_) const
   PREPARE_CACHE(dte);
   CACHED_PREDECESSOR(dte);
   BDate u, u0, u1, c;
-  return(SuccPredecessor(center_, displacement_, units_, icu_, dte, u, u0, u1, c));
+  return(SuccPredecessor(center_, displacement_, units_, icu_, dte));
 }
 
 
 //--------------------------------------------------------------------
-BDate BTmsSuccessor::Next(const BDate& dte, BInt nth) const
+BDate BTmsSuccessor::SafeNext(const BDate& dte, BInt nth) const
 //--------------------------------------------------------------------
 {
   if(icu_) { return(icu_->Next(dte,nth));	 }
@@ -1832,13 +2003,12 @@ BDate BTmsSuccessor::Next(const BDate& dte, BInt nth) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsSuccessor::Prev(const BDate& dte, BInt nth) const
+BDate BTmsSuccessor::SafePrev(const BDate& dte, BInt nth) const
 //--------------------------------------------------------------------
 {
   if(icu_) { return(icu_->Prev(dte,nth));	 }
   return(BTmsTemporary::Prev(dte,nth));
 }
-
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTmsRangeSuc, "Range", 3, 4, "TimeSet Real Real TimeSet",
@@ -1929,7 +2099,6 @@ BBool BTmsRangeSuc::Includes(const BDate& dte) const
   //Std(BText("\n  k=")+k+" inf="+inf);
   }
   inf = Maximum(inf, units_->Inf());
-//Std(BText("\n  ")+k+" inf="+inf);
   return(inf);
 }
 
@@ -1949,7 +2118,6 @@ BBool BTmsRangeSuc::Includes(const BDate& dte) const
   //Std(BText("\n  k=")+k+" sup="+sup);
   }
   sup = Minimum(sup, uSup);
-//Std(BText("\n  ")+k+" sup="+sup);
   return(sup);
 }
 
@@ -2037,7 +2205,7 @@ void NullClk()
 */
 
 //--------------------------------------------------------------------
-BDate BTmsRangeSuc::Successor(const BDate& dte_) const
+BDate BTmsRangeSuc::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
@@ -2050,11 +2218,10 @@ BDate BTmsRangeSuc::Successor(const BDate& dte_) const
 
   BDate d, dn;
   BInt	 n;
-  BDate u, u0, u1, c;
   for(n=from_; n<=until_; n++)
   {
   //double clk0 = clock();
-    dn = SuccSuccessor(center_, n, units_, icu_, dte, u, u0, u1, c);
+    dn = SuccSuccessor(center_, n, units_, icu_, dte);
   //double clk1 = clock();
   //clk_[n-from_] += clk1-clk0;
     if(dn.IsUnknown()) { return(dn); }
@@ -2065,7 +2232,7 @@ BDate BTmsRangeSuc::Successor(const BDate& dte_) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsRangeSuc::Predecessor(const BDate& dte_) const
+BDate BTmsRangeSuc::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = dte_;
@@ -2077,11 +2244,10 @@ BDate BTmsRangeSuc::Predecessor(const BDate& dte_) const
   if(!from_ && !until_) { return(icu_->Predecessor(dte));  }
   BDate d, dn;
   BInt	 n; 
-  BDate u, u0, u1, c;
   for(n=from_; n<=until_; n++)
   {
   //double clk0 = clock();
-    dn = SuccPredecessor(center_, n, units_, icu_, dte, u, u0, u1, c);
+    dn = SuccPredecessor(center_, n, units_, icu_, dte);
   //double clk1 = clock();
   //clk_[n-from_] += clk1-clk0;
     if(dn.IsUnknown()) { return(dn); }
@@ -2091,9 +2257,8 @@ BDate BTmsRangeSuc::Predecessor(const BDate& dte_) const
   return(d);
 }
 
-
 //--------------------------------------------------------------------
-BDate BTmsRangeSuc::Next(const BDate& dte, BInt nth) const
+BDate BTmsRangeSuc::SafeNext(const BDate& dte, BInt nth) const
 //--------------------------------------------------------------------
 {
   if(from_>until_) { return(BDate::End()); }
@@ -2102,7 +2267,7 @@ BDate BTmsRangeSuc::Next(const BDate& dte, BInt nth) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsRangeSuc::Prev(const BDate& dte, BInt nth) const
+BDate BTmsRangeSuc::SafePrev(const BDate& dte, BInt nth) const
 //--------------------------------------------------------------------
 {
   if(from_>until_) { return(BDate::Begin()); }
@@ -2219,7 +2384,7 @@ BBool BTmsDatesOfSet::Includes(const BDate& dte) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsDatesOfSet::Successor(const BDate& dte) const
+BDate BTmsDatesOfSet::SafeSuccessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
   if(dte.IsUnknown()) { return(dte); }
@@ -2235,7 +2400,7 @@ BDate BTmsDatesOfSet::Successor(const BDate& dte) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsDatesOfSet::Predecessor(const BDate& dte) const
+BDate BTmsDatesOfSet::SafePredecessor(const BDate& dte) const
 //--------------------------------------------------------------------
 {
   if(dte.IsUnknown()) { return(dte); }
@@ -2316,7 +2481,7 @@ BBool BTmsOfSerie::Includes(const BDate& dte) const
 
 
 //--------------------------------------------------------------------
-BDate BTmsOfSerie::Successor(const BDate& dte_) const
+BDate BTmsOfSerie::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = EnsureNotAbortedSuccessor(dte_);
@@ -2355,7 +2520,7 @@ BDate BTmsOfSerie::Successor(const BDate& dte_) const
 }
 
 //--------------------------------------------------------------------
-BDate BTmsOfSerie::Predecessor(const BDate& dte_) const
+BDate BTmsOfSerie::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
   BDate dte = EnsureNotAbortedPredecessor(dte_);
@@ -2390,8 +2555,6 @@ BDate BTmsOfSerie::Predecessor(const BDate& dte_) const
   AbortMessageMaxIter("BTmsOfSerie::Predecessor",dte_,dte,-1);
   return(BDate::Begin());
 }
-
-
 
 //--------------------------------------------------------------------
 // Miscallanea funcions
