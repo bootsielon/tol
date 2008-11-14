@@ -492,6 +492,7 @@ BDate BTimeSet::HashSuccessor(BReal h, BBool& okHash, BInt& pos) const
     pos = HashSucc(cache, h);
     d.PutHash(cache[pos]);
   }
+  assert(d.IsUnknown() || (d.Hash()>=h));
   return(d);
 }
 
@@ -510,6 +511,7 @@ BDate BTimeSet::HashPredecessor(BReal h, BBool& okHash, BInt& pos) const
     pos = HashPred(cache, h);
     d.PutHash(cache[pos]);
   }
+  assert(d.IsUnknown() || (d.Hash()<=h));
   return(d);
 }
 
