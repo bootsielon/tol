@@ -84,13 +84,13 @@ const char* BDateFormat::shortWeekDay_[7][2]=
 };
 const char* BDateFormat::longWeekDay_[7][2] =
 {
-  {"Monday",	"Lunes"},
-  {"Tuesday",	"Martes"},
+  {"Monday",	  "Lunes"},
+  {"Tuesday",	  "Martes"},
   {"Wednesday", "Miercoles"},
   {"Thursday",	"Jueves"},
-  {"Friday",	"Viernes"},
+  {"Friday",	  "Viernes"},
   {"Saturday",	"Sabado"},
-  {"Sunday",	"Domingo"}
+  {"Sunday",	  "Domingo"}
 };
 
 DefIsAlreadyInitilialized(BDate);
@@ -104,11 +104,7 @@ DefIsAlreadyInitilialized(BDateFormat);
   {
     BText::InitializeClass();
     BDate::begin_ = BDate(1582, DECEMBER, 31);
-#ifdef SHORT_BDATE_MODE_
-    BDate::end_ = BDate(32767, JANUARY, 1);
-#else
-    BDate::end_ = BDate((int) 10e6, JANUARY, 1);
-#endif
+    BDate::end_ = BDate(2500, JANUARY, 1);
     BDate::defaultFirst_ = BDate(DteToday().Year(), JANUARY,   1);
     BDate::defaultLast_  = BDate(DteToday().Year(), DECEMBER, 31);
     BDateFormat::InitializeClass();
