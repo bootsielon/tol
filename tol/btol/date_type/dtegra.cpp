@@ -133,7 +133,11 @@ BSyntaxObject* BGraContensBase<BDate>::FindConstant (const BText& name)
     {
 	dte =  dateFormat_[0].TextToDate(name);
     }
-    if(dte.HasValue()) { uDte = new BContensDate(dte); }
+  if(dte.IsTheEnd()) 
+  { uDte = new BContensDate(BDate::End()); }
+  else if(dte.IsTheBegin()) 
+  { uDte = new BContensDate(BDate::Begin()); }
+  else if(dte.HasValue()) { uDte = new BContensDate(dte); }
   //else { Error(name+" "+I2("is not a valid constant date","no es una fecha constante válida")); }
     return((BSyntaxObject*)uDte);
 }
