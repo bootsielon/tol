@@ -138,8 +138,9 @@ static bool BNameBlock_IsInitialized()
              "El NamSpace en curso es ")+BNameBlock::current_->Name()));
     return(NULL);
   }
+  
   const BNameBlock* oldNameBlock = BNameBlock::current_;
-  BUserNameBlock* ns_result = new BContensNameBlock;
+  BUserNameBlock* ns_result = new BGraContensP<BNameBlock>(new BNameBlock);
   BNameBlock& newNameBlock  = ns_result->Contens();
   newNameBlock.PutName(fullName);
   BNameBlock::current_ = &newNameBlock;
