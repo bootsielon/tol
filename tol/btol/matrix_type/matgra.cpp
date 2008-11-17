@@ -6327,6 +6327,24 @@ void BMatSliceSampler1D::CalcContens()
   }
 }
 
+//--------------------------------------------------------------------
+  DeclareContensClass(BMat, BMatTemporary, BMatQuantile);
+  DefExtOpr(1, BMatQuantile, "Quantile", 2, 2, "Matrix Matrix",
+  "(Matrix mat, Matrix p)",
+  I2("Returns the quantile of probabilty p of all elements of a matrix.",
+     "Devuelve el cuantil de probabilidad p de todos los elementos de una matriz."),
+     BOperClassify::Statistic_);
+  void BMatQuantile::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& m = Mat(Arg(1));
+  BMat& p = Mat(Arg(2));
+  const BArray<BDat>& m_ = m.Data();
+  const BArray<BDat>& p_ = p.Data();
+  contens_.Alloc(p.Rows(),p.Columns());
+  Quantile(m_, p_, contens_.GetData());
+}
+
 #ifdef __USE_DEPRECATED_LINALG_METHOD__
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BMatJordanIterative);
