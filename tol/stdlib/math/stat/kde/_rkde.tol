@@ -63,11 +63,22 @@ NameBlock Rkde =
     
     // Extract extra arguments
     Real n       = getOptArg(optArgs, "n",       512);
+    Real adjust  = getOptArg(optArgs, "adjust",  1);
+    Real from    = getOptArg(optArgs, "from",    -1/0);
+    Real to      = getOptArg(optArgs, "to",      +1/0);
+    Real cut     = getOptArg(optArgs, "cut",     3);
     Real verbose = getOptArg(optArgs, "verbose", FALSE);
-
+    Real leftBounded  = !IsUnknown(from) & (from>-1/0);
+    Real rightBounded = !IsUnknown(to)   & (to  <+1/0);
     Set args.info =
       [[
         [[n, "n", "int"]],
+        [[adjust, "adjust", "real"]],
+        [[leftBounded, "leftBounded", "bool"]],
+        [[from, "from", "real"]],
+        [[rightBounded, "rightBounded", "bool"]],
+        [[to, "to", "real"]],
+        [[cut, "cut", "real"]],
         [[verbose, "verbose", "bool"]],
         [[_sample.bbm, "sample.bbm"]],
         [[_X.bbm, "X.bbm"]],

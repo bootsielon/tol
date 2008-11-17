@@ -26,11 +26,47 @@ function(sample.bbm, args.R)
   source(args.R, local=TRUE)
 
   # Extract optional arguments
-  verbose    <- get.tol.arg(Rkde_args$verbose, FALSE)
-  n          <- get.tol.arg(Rkde_args$n,       512)
+  verbose      <- get.tol.arg(Rkde_args$verbose,      FALSE)
+  n_           <- get.tol.arg(Rkde_args$n,            512)
+  adjust_      <- get.tol.arg(Rkde_args$ajust,        1)
+  leftBounded  <- get.tol.arg(Rkde_args$leftBounded,  FALSE)
+  from_        <- get.tol.arg(Rkde_args$from,         -1/0)
+  rightBounded <- get.tol.arg(Rkde_args$rightBounded, FALSE)
+  to_          <- get.tol.arg(Rkde_args$to,           +1/0)
+  cut_         <- get.tol.arg(Rkde_args$cut,          3)
   if(verbose)  { print(Rkde_args) }
-  
-  dens <- density(sample)
+  if(leftBounded & rightBounded)
+  {
+    dens <- density(sample,bw = "nrd0", adjust = adjust_,
+        kernel = c("gaussian", "epanechnikov", "rectangular",
+                   "triangular", "biweight", "cosine", "optcosine"),
+        window = kernel, 
+        give.Rkern = FALSE,n=n_,from=from_,to=to_,cut=cut_)
+  } 
+  else if(!leftBounded & rightBounded)
+  {
+    dens <- density(sample,bw = "nrd0", adjust = adjust_,
+        kernel = c("gaussian", "epanechnikov", "rectangular",
+                   "triangular", "biweight", "cosine", "optcosine"),
+        window = kernel, 
+        give.Rkern = FALSE,n=n_,from=from_,to=to_,cut=cut_)
+  }
+  else if(leftBounded & !rightBounded)
+  {
+    dens <- density(sample,bw = "nrd0", adjust = adjust_,
+        kernel = c("gaussian", "epanechnikov", "rectangular",
+                   "triangular", "biweight", "cosine", "optcosine"),
+        window = kernel, 
+        give.Rkern = FALSE,n=n_,from=from_,cut=cut_)  
+  }
+  else if(!leftBounded & !rightBounded)
+  {
+    dens <- density(sample,bw = "nrd0", adjust = adjust_,
+        kernel = c("gaussian", "epanechnikov", "rectangular",
+                   "triangular", "biweight", "cosine", "optcosine"),
+        window = kernel, 
+        give.Rkern = FALSE,n=n_,cut=cut_)
+  }
   kdeX <- dens$x
   kdeY <- dens$y
   if(verbose)  
