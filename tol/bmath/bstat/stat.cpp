@@ -384,6 +384,54 @@ BDat Quantile(const BArray<BDat>& vec, BDat q)
     return(result);
 }
 
+//--------------------------------------------------------------------
+void Quantile(const BArray<BDat>& vec, 
+              const BArray<BDat>& r, 
+                    BArray<BDat>& Qu)
+
+/*! Returns a set of q-Quantile statistics of a vector of real numbers
+ */
+//--------------------------------------------------------------------
+{
+  Qu.AllocBuffer(0);
+  if(!vec.Size()) { return; }
+  BArray<BDat> sorted(vec.Size());
+  int i, j;
+  for(i=j=0; i<vec.Size(); i++)
+  {
+    if(vec(i).IsKnown())
+    {
+      sorted(j++) = vec(i);
+    }
+  }
+  sorted.ReallocBuffer(j);
+  sorted.Sort(DatCmp);
+  Qu.AllocBuffer(r.Size());
+  int k;
+  for(k=0; k<r.Size(); k++)
+  {
+    BDat q = r[k];
+    if(q>1)  { q = 1; }
+    if(q<0)  { q = 0; }
+    BDat p = 1-q;
+    BDat Q = (1.0/q).Value();
+    BDat n = BDat(sorted.Size()-1)/BDat(Q);
+    BDat result;
+    if(n.IsInteger())
+    {
+      Qu[k] = sorted(int(n.Value()));
+    }
+    else
+    {
+      BInt nq = (BInt)Ceil (n).Value();
+      BInt np = (BInt)Floor(n).Value();
+      BDat sq = sorted(nq);
+      BDat sp = sorted(np);
+      Qu[k] = (q*sq)+(p*sp);
+    }
+  }
+}
+
 
 //--------------------------------------------------------------------
 BDat Median(const BArray<BDat>& vec)

@@ -32,59 +32,63 @@ typedef BDat (*BSimpleStatisticFunction) (const BArray<BDat>& vec);
 TOL_API BDat SubSampleAverage(BSimpleStatisticFunction stat,
 		      const BArray<BDat>& vec);
 
-TOL_API BDat Sum	         (const BArray<BDat>& vec);
-TOL_API BDat Product	         (const BArray<BDat>& vec);
-TOL_API BDat Average	         (const BArray<BDat>& vec);
-TOL_API BDat HarmonicAverage     (const BArray<BDat>& vec);
-TOL_API BDat GeometricAverage    (const BArray<BDat>& vec);
-TOL_API BDat Moment	         (const BArray<BDat>& vec, BInt m);
-TOL_API BDat CenterMoment        (const BArray<BDat>& vec, BInt m);
-TOL_API BDat Varianze	         (const BArray<BDat>& vec);
-TOL_API BDat StandardDeviation   (const BArray<BDat>& vec);
+TOL_API BDat Sum	                (const BArray<BDat>& vec);
+TOL_API BDat Product	            (const BArray<BDat>& vec);
+TOL_API BDat Average	            (const BArray<BDat>& vec);
+TOL_API BDat HarmonicAverage      (const BArray<BDat>& vec);
+TOL_API BDat GeometricAverage     (const BArray<BDat>& vec);
+TOL_API BDat Moment	              (const BArray<BDat>& vec, BInt m);
+TOL_API BDat CenterMoment         (const BArray<BDat>& vec, BInt m);
+TOL_API BDat Varianze	            (const BArray<BDat>& vec);
+TOL_API BDat StandardDeviation    (const BArray<BDat>& vec);
 TOL_API BDat AsymmetryCoefficient (const BArray<BDat>& vec);
-TOL_API BDat Kurtosis	         (const BArray<BDat>& vec);
-TOL_API BDat Maximum	         (const BArray<BDat>& vec);
-TOL_API BDat Minimum	         (const BArray<BDat>& vec);
-TOL_API BDat Quantile	         (const BArray<BDat>& vec, BDat q);
-TOL_API BDat Median	         (const BArray<BDat>& vec);
-
-TOL_API BDat Covarianze (const BArray<BDat>& v1,
-		                 const BArray<BDat>& v2);
-TOL_API BDat Correlation (const BArray<BDat>& v1,
-		                  const BArray<BDat>& v2);
-
-TOL_API void Covarianze (const BMatrix<BDat>&    data,
-		                 BSymMatrix<BDat>& cor);
-TOL_API void Correlation (const BMatrix<BDat>&    data,
-		                  BSymMatrix<BDat>& cor);
-TOL_API void PartialCorrelation (const BMatrix<BDat>&    data,
-		                     	 BSymMatrix<BDat>& pcor);
-TOL_API void CorrelationF (const BSymMatrix<BDat>& cov,
-	                       BSymMatrix<BDat>& cor);
-TOL_API void PartialCorrelationF (const BSymMatrix<BDat>& cor,
-			                      BSymMatrix<BDat>& pcor);
-TOL_API void RegressionCoef (const BSymMatrix<BDat>& cov,
-		                     const BSymMatrix<BDat>& pcor,
-		                     BMatrix<BDat>&    regr);
-
-TOL_API BDat PearsonCoefficient (const BArray<BDat>& v1,
-		 	                    const BArray<BDat>& v2);
-
-TOL_API BDat R2Coefficient (const BArray<BDat>& v1, const BArray<BDat>& v2);
-
-TOL_API void AutoCov (const BArray<BDat>& vec, BArray<BDat>& cov, BInt order, 
-		      BInt demean=0);
-
-TOL_API void AutoCor (const BArray<BDat>& vec, BArray<BDat>& cor, BInt order, 
-		      BInt demean=0);
-
-TOL_API void DurbinAutoReg (const BArray<BDat>&  r, BMatrix<BDat>& FI);
-
-TOL_API void PartAutoCor   (const BArray<BDat>& cor, BArray<BDat>& p);
-TOL_API void InverseAutoCor(const BArray<BDat>& cor, BArray<BDat>& p);
-TOL_API void InvPartAutoCor(const BArray<BDat>& cor, BArray<BDat>& p);
-TOL_API BDat BoxPierceLjung(const BArray<BDat>& vec,
-		       	            BInt m, BInt p, BInt q);
+TOL_API BDat Kurtosis	            (const BArray<BDat>& vec);
+TOL_API BDat Maximum	            (const BArray<BDat>& vec);
+TOL_API BDat Minimum	            (const BArray<BDat>& vec);
+TOL_API BDat Quantile	            (const BArray<BDat>& vec, BDat q);
+TOL_API void Quantile             (const BArray<BDat>& vec, 
+                                   const BArray<BDat>& r, 
+                                         BArray<BDat>& Qu);
+TOL_API BDat Median	              (const BArray<BDat>& vec);
+TOL_API BDat Covarianze           (const BArray<BDat>& v1,
+		                               const BArray<BDat>& v2);
+TOL_API BDat Correlation          (const BArray<BDat>& v1,
+		                               const BArray<BDat>& v2);
+TOL_API void Covarianze           (const BMatrix<BDat>&    data,
+		                                     BSymMatrix<BDat>& cor);
+TOL_API void Correlation          (const BMatrix<BDat>&    data,
+		                                     BSymMatrix<BDat>& cor);
+TOL_API void PartialCorrelation   (const BMatrix<BDat>&    data,
+		                     	               BSymMatrix<BDat>& pcor);
+TOL_API void CorrelationF         (const BSymMatrix<BDat>& cov,
+	                                       BSymMatrix<BDat>& cor);
+TOL_API void PartialCorrelationF  (const BSymMatrix<BDat>& cor,
+			                                   BSymMatrix<BDat>& pcor);
+TOL_API void RegressionCoef       (const BSymMatrix<BDat>& cov,
+		                               const BSymMatrix<BDat>& pcor,
+		                                     BMatrix<BDat>&    regr);
+TOL_API BDat PearsonCoefficient   (const BArray<BDat>& v1,
+		 	                             const BArray<BDat>& v2);
+TOL_API BDat R2Coefficient        (const BArray<BDat>& v1, 
+                                   const BArray<BDat>& v2);
+TOL_API void AutoCov              (const BArray<BDat>& vec, 
+                                         BArray<BDat>& cov, 
+                                         BInt order, 
+		                                     BInt demean=0);
+TOL_API void AutoCor              (const BArray<BDat>& vec, 
+                                         BArray<BDat>& cor, 
+                                         BInt order, 
+		                                     BInt demean=0);
+TOL_API void DurbinAutoReg        (const BArray<BDat>&  r, 
+                                         BMatrix<BDat>& FI);
+TOL_API void PartAutoCor          (const BArray<BDat>& cor, 
+                                         BArray<BDat>& p);
+TOL_API void InverseAutoCor       (const BArray<BDat>& cor, 
+                                         BArray<BDat>& p);
+TOL_API void InvPartAutoCor       (const BArray<BDat>& cor, 
+                                         BArray<BDat>& p);
+TOL_API BDat BoxPierceLjung       (const BArray<BDat>& vec,
+		       	                             BInt m, BInt p, BInt q);
 
 //! To obtine the exponent of the best Box-Cox exponential transformation of a 
 //! vector and the number needed add to the series to be positive 
