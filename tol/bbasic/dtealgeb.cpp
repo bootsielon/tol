@@ -53,9 +53,11 @@ BDate ConstantDate(const BText& name)
        if(name(0)=='y') { dte =	 dateFormat_[0].TextToDate(name); }
   else if(name(0)=='a') { dte =	 dateFormat_[1].TextToDate(name); }
   else			{ dte =	 dateFormat_[2].TextToDate(name); }
+  if(dte.IsTheEnd()) { dte = BDate::End(); }
+  if(dte.IsTheBegin()) { dte = BDate::Begin(); }
   if(!dte.HasValue())
   {
-    Error(name+I2(" is not a valid date"," no es una fecha v?lida"));
+    Error(name+I2(" is not a valid date"," no es una fecha válida"));
   }
   return(dte);
 }
