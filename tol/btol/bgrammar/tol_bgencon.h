@@ -235,6 +235,99 @@ public:
 };
 
 //--------------------------------------------------------------------
+/*! This class provides contens storement
+ */
+template <class Any>
+class TOL_API BGraContensP: public BGraContensBase<Any>
+//--------------------------------------------------------------------
+{
+protected:
+  Any* contens_;
+public:
+  BGraContensP() : BGraContensBase<Any>(), contens_(NULL) 
+  { 
+    TRACE_MEMORY_SHOW(this,"BGraContensP::BGraContensP");
+  }
+  BGraContensP(Any* any) 
+  : BGraContensBase<Any>(), contens_(any)	 
+  {
+    TRACE_MEMORY_SHOW(this,"BGraContensP::BGraContensP");
+  }
+  BGraContensP(const BText& name, Any* any)
+  : BGraContensBase<Any>(name), contens_(any)	 
+  {
+    TRACE_MEMORY_SHOW(this,"BGraContensP::BGraContensP");
+  }
+  BGraContensP(const BText& name, Any* any, const BText& desc)
+  : BGraContensBase<Any>(name,desc), contens_(any)
+  {
+    TRACE_MEMORY_SHOW(this,"BGraContensP::BGraContensP");
+  }
+ ~BGraContensP() 
+  {
+    DESTROY(contens_);	  
+    TRACE_MEMORY_SHOW(this,"BGraContensP::~BGraContensP");
+  }
+
+ void PutContens(const Any& con)
+     { 
+	   this->flags_.calculated_=BTRUE; 
+       *contens_ = con; 
+     }
+
+  Any& Contens()
+	{
+	    if(!this->flags_.calculated_) { 
+		this->CalcContens(); 
+		this->flags_.calculated_=BTRUE; 
+	    }
+	    return(*contens_);
+	}
+  BSyntaxObject* CopyContens()
+  {
+    BGraContensP<Any>* copy_ = new BGraContensP<Any>;
+    copy_->PutContens(Contens());
+    return(copy_);
+  }
+  static BSyntaxObject* New(FILE* fil);
+
+  static BGraContensP<Any>* New(const BText& name,	const Any& aux, const BText& desc)
+  {
+    if(name.HasName())
+    {
+      BGraContensP<Any>* obj = new BGraContensP<Any>("", aux);
+      obj->PutName(name);
+      BGrammar::AddObject(obj);
+      return(obj);
+    }
+    else
+    {
+      return(new BGraContensP<Any>(aux));
+    }
+  }
+  static BGraContensP<Any>* New(const BText& name,	const Any& aux)
+  {
+    if(name.HasName())
+    {
+      BGraContensP<Any>* obj = new BGraContensP<Any>("", aux);
+      obj->PutName(name);
+      BGrammar::AddObject(obj);
+      return(obj);
+    }
+    else
+    {
+      return(new BGraContensP<Any>(aux));
+    }
+  }
+  static BGraContensP<Any>* New(const Any& aux)
+  {
+    return(new BGraContensP<Any>(aux));
+  }
+  DeclareClassNewDelete(BGraContensP<Any>);
+};
+
+
+//--------------------------------------------------------------------
 /*! This class provides contens storement and Fixed Name and
  *  Description (FND). This is usefull to returned objects by
  *  built-in functions saving a lot of memory
