@@ -1,5 +1,5 @@
-#LyX 1.5.6 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
@@ -27,6 +27,10 @@
 
 \hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
 \end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+\end_modules
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -37,9 +41,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -64,7 +70,8 @@
 \begin_body
 
 \begin_layout Chapter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "cha:BysMcmc::Bsr::DynHlm"
 
 \end_inset
@@ -94,7 +101,8 @@ e al máximo las tareas de definición, diagnosis, inferencia y todas las
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:El-script-de-La-base-de-datos-Bsr-Hlm"
 
 \end_inset
@@ -108,8 +116,14 @@ De todo ellos se ocupan los miembros y métodos de este
 NameBlock BysMcmc::Bsr::DynHlm
 \series default
  implementado en 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_dynhlm.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_dynhlm.tol
+\end_layout
 
 \end_inset
 
@@ -118,8 +132,14 @@ target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/m
 
 \begin_layout Standard
 El script SQL 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/db_bsrhlm_mysql.sql"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/db_bsrhlm_mysql.sql
+\end_layout
 
 \end_inset
 
@@ -133,7 +153,8 @@ BysMcmc::Bsr::DynHlm
 
 \begin_layout Standard
 En el capítulo 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "cha:La-base-de-datos-del-sistema-Bsr-Hlm"
 
 \end_inset
@@ -204,8 +225,14 @@ NameBlock BysMcmc::Bsr::DynHlm::DbApi
 
 \begin_layout Standard
 En el fichero 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.tol
+\end_layout
 
 \end_inset
 
@@ -229,8 +256,14 @@ Se han clasificado dichos métodos en distintos ficheros según el tipo de
 \end_layout
 
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.tools.tol
+\end_layout
 
 \end_inset
 
@@ -335,7 +368,8 @@ para que sea tratado como tal por la base de datos.
 Real CreateSkeleton(Real unused)
 \series default
 : Ejecuta el script de la base de datos del sistema (ver 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec:El-script-de-La-base-de-datos-Bsr-Hlm"
 
 \end_inset
@@ -419,8 +453,14 @@ Real Ses.SetBlocked(Text dbName, Text model, Real blocked)
 
 \end_deeper
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.tol
+\end_layout
 
 \end_inset
 
@@ -555,8 +595,14 @@ Real ModSes.Node.Delete(Text dbName, Text model, Text session, Text from_node)
 
 \end_deeper
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.obs.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.obs.tol
+\end_layout
 
 \end_inset
 
@@ -606,7 +652,8 @@ arima
 \begin_layout Itemize
 
 \series bold
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "ite:Real-ModSes.Obs.Create"
 
 \end_inset
@@ -620,327 +667,327 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock node =
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //##Nombre del nodo 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text _.id_node;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //##Descripción del nodo 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text _.description;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //##Devuelve una serie del nodo dado un identificador único   
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Serie GetSerie(Text id_serie);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //##Información adicional del modelo sobre el output
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   NameBlock _.output =
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //##Nombre con el que reconoce la serie en la base de datos 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text  _.name;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //##Serie output
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Serie _.serie;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //##Número de sigmas para la distribución a priori de los 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //omitidos se multiplicará por la desviación típica muestral 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //de la serie.
  La media a priori será la de la propia serie.
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real  _.mis_pri_sig_fac;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //##Valor mínimo a priori para los omitidos
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real  _.mis_pri_min;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //##Valor máximo a priori para los omitidos
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real  _.mis_pri_max;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //##Fecha inicial de estimación del nodo.
  Si la serie empieza 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //más tarde se rellenará con omitidos
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Date  _.firstDate;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //##Fecha final de estimación del nodo.
  Si la serie acaba antes 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //se rellenará con omitidos, lo cual es un método de previsión 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //muy simple
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Date  _.lastDate;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //##Parte ARIMA asociada
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Set   _.arima;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   ]];
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //##Información adicional del modelo sobre los inputs 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //Cada elemento es un NameBlock cuyo nombre será el identificador
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //en la base de datos de BsrHlm y es obligatorio que se llame    
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //igual que la correspondiente serie input
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set _.input = SetOfNameBlock(
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //## input.1.name es el nombre con el que reconoce la serie en 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //la base de datos 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock input.1.name =                                            
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //##Serie input 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Serie _.serie;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //##Si es falso no se usará este input 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real  _.enabled;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //#Función de transferencia.
  Es opcional con valor por defecto 1/1       
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Ratio _.transferFunction;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //##Número de sigmas para la distribución a priori de los omitidos
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real  _.mis_pri_sig_fac,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //##Valor mínimo a priori para los omitidos  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real  _.mis_pri_min;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //##Valor máximo a priori para los omitidos 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real  _.mis_pri_max;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //##Valor inicial del parámetro
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real _.initValue;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //##Valor mínimo a priori del parámetro
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real _.minimum;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       //##Valor máximo a priori del parámetro
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real _.maximum
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ]],
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ...
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   )
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ]];
 \end_layout
@@ -979,8 +1026,14 @@ Real ModSes.Obs.Input.Serie.Rename(Text dbName, Text model, Text session, Text
 
 \end_deeper
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.lat.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.lat.tol
+\end_layout
 
 \end_inset
 
@@ -1024,7 +1077,8 @@ Real ModSes.Lat.Input.Create(...)
 \begin_layout Itemize
 
 \series bold
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "ite:Real-ModSes.Lat.Homog_1.Create"
 
 \end_inset
@@ -1040,56 +1094,56 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set node_childs = SetOfNameBlock(
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock child.1 = 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.id_node;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.id_parameter;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real _.sigma_factor
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ]],
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ...
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   )
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ]];
 \end_layout
@@ -1112,9 +1166,13 @@ ds, Real sigma, Matrix X
 \end_inset
 
 
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 El 
 \series bold
 Set father_parameters
@@ -1129,38 +1187,40 @@ Set father_parameters
 \end_inset
 
 haya:
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \begin_inset listings
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set father_parameters = [[ 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
    NameBlock Lam1  = 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ModSes.Lat.Father.Param.Def(Text id_parameter, 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
        Real init_value, Real min, Real max), 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
    .......
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ]];                                                                    
     
@@ -1179,27 +1239,37 @@ ModSes.Lat.Father.Param.Def
 \series default
  (Text id_parameter, Real init_value, Real min, Real max).
  Los argumentos de esta función son los siguientes:
-\newline
-Text id_parameter: texto
- identificativo del hiperparámetro.
-\newline
-Real init_value: valor inicial para la
- simulación.
-\newline
+\begin_inset Newline newline
+\end_inset
+
+Text id_parameter: texto identificativo del hiperparámetro.
+\begin_inset Newline newline
+\end_inset
+
+Real init_value: valor inicial para la simulación.
+\begin_inset Newline newline
+\end_inset
+
 Real min: valor mínimo del dominio de muestreo para 
 \begin_inset Formula $\lambda_{1}$
 \end_inset
 
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Real max: valor máximo del dominio de muestreo para 
 \begin_inset Formula $\lambda_{1.}$
 \end_inset
 
 
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 El 
 \series bold
 Set node_childs
@@ -1214,38 +1284,40 @@ Set node_childs
 \end_inset
 
 haya:
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \begin_inset listings
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set node_childs  = [[ 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   NameBlock Param1 = 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
      ModSes.Lat.Child.Param.Def  (Text id_node, 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text id_paramater, Real sigma_factor), 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
      .....
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   ]]; 
 \end_layout
@@ -1263,26 +1335,36 @@ ModSes.Lat.Child.Param.Def
 \series default
  (Text id_node, Text id_parameter, Real sigma_factor).
  Los argumentos de esta función son los siguientes:
-\newline
-Text id_node: Texto identific
-ativo del segmento o nodo donde se encuentra el parámetro 
+\begin_inset Newline newline
+\end_inset
+
+Text id_node: Texto identificativo del segmento o nodo donde se encuentra
+ el parámetro 
 \begin_inset Formula $\beta_{i}$
 \end_inset
 
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Text id_parameter: Texto identificativo del parámetro 
 \begin_inset Formula $\beta_{i}$
 \end_inset
 
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 Real sigma_factor: Valor real para el parámetro sigma factor, común a todo
  el nodo de regresión.
  
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\newline
+
+\begin_inset Newline newline
+\end_inset
+
 La matrix X es la matrix 
 \begin_inset Formula $X^{ij}$
 \end_inset
@@ -1307,13 +1389,17 @@ Real ModSes.Lat.OutComb.Create(Text dbName, Text id_model, Text id_session,
 \end_inset
 
  .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 El Set father_parameters y el Set node_childs tienen el mismo significado
  y se construyen de la misma forma que en la función anterior Real
 \series bold
  ModSes.Lat.Create.
  
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \series default
 El Set SigmaBlock es un conjunto de valores reales que fijan el valor de
@@ -1326,8 +1412,14 @@ para cada una de las ecuaciones del nodo latente.
 
 \end_deeper
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.pri.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.pri.tol
+\end_layout
 
 \end_inset
 
@@ -1354,7 +1446,8 @@ Real ModSes.Pri.Output.Create(...)
 \begin_layout Itemize
 
 \series bold
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "ite:Real-ModSes.Pri.Homog_1.Create"
 
 \end_inset
@@ -1369,61 +1462,61 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set node_childs = SetOfNameBlock(
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock child.1 = 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.id_node;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.id_parameter;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real _.average;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real _.sigma
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ]],
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ...
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   )
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ]];
 \end_layout
@@ -1446,40 +1539,44 @@ Real ModSes.Pri.OutComb.Create(Text dbName, Text model, Text session, Text
 \end_inset
 
 .
-\newline
+\begin_inset Newline newline
+\end_inset
+
 El Set PriorInfo es un conjunto de conjuntos que especifica los valores
  
 \begin_inset Formula $\mu_{i},\sigma_{i}$
 \end_inset
 
  para cada una de las ecuaciones del nodo a priori.
-\newline
+\begin_inset Newline newline
+\end_inset
+
 
 \begin_inset listings
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set PriorInfo = [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     [[ Real mu_1, Real sigma_1  ]],
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     [[ Real mu_2, Real sigma_2  ]],
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     .....
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ]]
 \end_layout
@@ -1497,10 +1594,18 @@ y
 
  para dos ecuaciones de nodo apriori.
  
-\newline
+\begin_inset Newline newline
+\end_inset
 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.mix.tol"
+
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.tools.modses.mix.tol
+\end_layout
 
 \end_inset
 
@@ -1533,10 +1638,29 @@ Real ModSes.Mix.OrderRelation.Create(...)
  lineal.
 \end_layout
 
+\begin_layout Itemize
+
+\series bold
+Real modSes.Mix.Constraint.Create(...): 
+\series default
+Crea el registro de una relación de orden compuesta por una combinación
+ lineal de parámetros
+\begin_inset Newline newline
+\end_inset
+
+de bloques lineales.
+\end_layout
+
 \end_deeper
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.load.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.load.tol
+\end_layout
 
 \end_inset
 
@@ -1556,7 +1680,8 @@ NameBlock CreateSeriesHandler(Set obs.node.handlers)
 ModSes.Obs.Create
 \series default
  (ver 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "ite:Real-ModSes.Obs.Create"
 
 \end_inset
@@ -1616,8 +1741,14 @@ NameBlock LoadModelDef(...)
 
 \end_deeper
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.estim.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.estim.tol
+\end_layout
 
 \end_inset
 
@@ -1666,8 +1797,14 @@ NameBlock BysMcmc::Bsr::DynHlm::BuildNode
 
 \begin_layout Standard
 En el fichero 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_build.node.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_build.node.tol
+\end_layout
 
 \end_inset
 
@@ -1678,7 +1815,8 @@ NameBlock BysMcmc::Bsr::DynHlm::BuildNode
  que incluye los métodos específicos para la importación de nodos jerárquicos
  al formato BSR-ASCII, es decir los NameBlock de gestión de segmentos explicados
  en 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec:API-segmento-BSR"
 
 \end_inset
@@ -1692,8 +1830,14 @@ Se han clasificado dichos métodos en distintos ficheros según el tipo de
 \end_layout
 
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_build.node.obs.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_build.node.obs.tol
+\end_layout
 
 \end_inset
 
@@ -1770,8 +1914,14 @@ NameBlock Obs(...)
 
 \end_deeper
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_build.node.lat.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_build.node.lat.tol
+\end_layout
 
 \end_inset
 
@@ -1789,8 +1939,14 @@ NameBlock Lat.Homog(...)
 
 \end_deeper
 \begin_layout Itemize
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_build.node.pri.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_build.node.pri.tol
+\end_layout
 
 \end_inset
 
@@ -1806,5 +1962,6 @@ NameBlock Lat.Homog(...)
 : Crea el importador de un nodo a priori homogéneo simple.
 \end_layout
 
+\end_deeper
 \end_body
 \end_document
