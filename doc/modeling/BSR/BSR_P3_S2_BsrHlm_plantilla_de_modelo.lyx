@@ -1,4 +1,4 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+#LyX 1.5.6 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -79,6 +79,2185 @@ Se describe la plantilla del modelo Bsr-Hlm para usar el sistema sin interfaz
 
 \begin_layout Section
 Descripción
+\end_layout
+
+\begin_layout Standard
+A continuación exponemos las partes necesarias de código en las que consiste
+ una plantilla ejemplo para el uso de BSr-Hlm:
+\newline
+
+\newline
+Este NameBlock especifica
+ los datos necesarios para la conexión con la base da datos BsrHlm
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock DBConnection = [[   
+\end_layout
+
+\begin_layout Standard
+
+  NameBlock BsrHlm = DBConnect::Create("BsrHlm","bysfor","bys!98.",
+\end_layout
+
+\begin_layout Standard
+
+     "mysql","bysNPIDSO","d-mysql01","Almacenamiento de 
+\end_layout
+
+\begin_layout Standard
+
+      modelos BSR-DynHLM");  
+\end_layout
+
+\begin_layout Standard
+
+  Real check = Real DBConnect::CheckAll(0) 
+\end_layout
+
+\begin_layout Standard
+
+                         ]]; 
+\end_layout
+
+\end_inset
+
+Activamos la base de datos BsrHlm:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real DBConnection::BsrHlm::Activate(0);
+\end_layout
+
+\end_inset
+
+Identificamos el nombre del modelo:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Text id_model =  "BSR_Lat.Reg.Test_III";
+\end_layout
+
+\end_inset
+
+Descripción del objetivo del modelo:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Text ds_model = "Pruebas para nodos latentes regresivos";
+\end_layout
+
+\end_inset
+
+Identificamos la sesión:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Text id_session = "SES_LAT.REG_TEST.20081006_22";
+\end_layout
+
+\end_inset
+
+Descripción de la sesión:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Text ds_session = "Pruebas nodos regresivos latentes";
+\end_layout
+
+\end_inset
+
+Listado de autores:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Text ds_authors = "mafernandez@bayesinf.com;";
+\end_layout
+
+\end_inset
+
+Inserción del modelo en la base de datos:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real BysMcmc::Bsr::DynHlm::DBApi::Mod.Create(
+\end_layout
+
+\begin_layout Standard
+
+     DBConnection::BsrHlm::_.defaultDB, id_model, ds_model);
+\end_layout
+
+\end_inset
+
+Inserción de la sesión en la base de datos:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real BysMcmc::Bsr::DynHlm::DBApi::Ses.Create(
+\end_layout
+
+\begin_layout Standard
+
+     DBConnection::BsrHlm::_.defaultDB, id_session, ds_session, 
+\end_layout
+
+\begin_layout Standard
+
+     ds_authors);
+\end_layout
+
+\end_inset
+
+Inserción del modelo-sesión en la base de datos:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Create(
+\end_layout
+
+\begin_layout Standard
+
+      DBConnection::BsrHlm::_.defaultDB, id_model, id_session);
+\end_layout
+
+\end_inset
+
+Se crean en la base da datos los niveles de jerarquía .
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.SetLevels(
+\end_layout
+
+\begin_layout Standard
+
+     DBConnection::BsrHlm::_.defaultDB,id_model,id_session,
+\end_layout
+
+\begin_layout Standard
+
+     Real maxLatLevel = 1,
+\end_layout
+
+\begin_layout Standard
+
+     Real hasPrior    = True,
+\end_layout
+
+\begin_layout Standard
+
+     Real hasMixture  = False)};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Es el momento de crear el NameBlock node.series.handler, responsable de manejar
+ las series asociada a un nodo observacional.
+ Describimos a continuación los elementos necesarios que aparecen en este
+ NameBlock, los comentarios realizados con ## indican variables que son
+ obligatorias: 
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+/////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+NameBlock node.series.handler (Real node) 
+\end_layout
+
+\begin_layout Standard
+
+/////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+{ [[ 
+\end_layout
+
+\begin_layout Standard
+
+    // Se forma la etiqueta del nodo.
+\end_layout
+
+\begin_layout Standard
+
+    Text _node = FormatReal(node,"%1.0f");
+\end_layout
+
+\begin_layout Standard
+
+    //## Nombre del nodo
+\end_layout
+
+\begin_layout Standard
+
+    Text _.description = "Nodo observacional referido al output "+_node;
+\end_layout
+
+\begin_layout Standard
+
+    //# Contiene todas las series output e input con nombres únicos dentro
+\end_layout
+
+\begin_layout Standard
+
+    //de cada nodo
+\end_layout
+
+\begin_layout Standard
+
+     Set _.series = { SetOfSerie (
+\end_layout
+
+\begin_layout Standard
+
+        Output = .....
+\end_layout
+
+\begin_layout Standard
+
+        Input1 = .....
+\end_layout
+
+\begin_layout Standard
+
+        Input2 = .....
+\end_layout
+
+\begin_layout Standard
+
+        ....
+\end_layout
+
+\begin_layout Standard
+
+               ) 
+\end_layout
+
+\begin_layout Standard
+
+                    };
+\end_layout
+
+\begin_layout Standard
+
+    //# Se indexa para acelerar búsquedas
+\end_layout
+
+\begin_layout Standard
+
+      Real _check_unique = SetIndexByName(_.series);
+\end_layout
+
+\begin_layout Standard
+
+    //## Devuelve serie del nodo dado un identificaador único 
+\end_layout
+
+\begin_layout Standard
+
+      GetSerie (Text id_serie)
+\end_layout
+
+\begin_layout Standard
+
+      {
+\end_layout
+
+\begin_layout Standard
+
+       _.series[id_serie]
+\end_layout
+
+\begin_layout Standard
+
+      }
+\end_layout
+
+\begin_layout Standard
+
+    //##Información adicional del modelo sobre el output
+\end_layout
+
+\begin_layout Standard
+
+     NameBlock _.output =    
+\end_layout
+
+\begin_layout Standard
+
+      {[[
+\end_layout
+
+\begin_layout Standard
+
+      //##Nombre con el que reconoce la serie en la base de datos
+\end_layout
+
+\begin_layout Standard
+
+      Text _.name = "Output";
+\end_layout
+
+\begin_layout Standard
+
+      //##Serie output
+\end_layout
+
+\begin_layout Standard
+
+      Serie _.serie = _.series::Output; 
+\end_layout
+
+\begin_layout Standard
+
+      //##Número de sigmas para la distribución a priori de los omitidos
+\end_layout
+
+\begin_layout Standard
+
+      Real _.mis_pri_sig_fac = 5;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor mínimo a priori para los omitidos
+\end_layout
+
+\begin_layout Standard
+
+      Real _.mis_pri_min     = 0;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor máximo a priori para los omitidos
+\end_layout
+
+\begin_layout Standard
+
+      Real _.mis_pri_max     = 2;
+\end_layout
+
+\begin_layout Standard
+
+      //##Fecha inicial de estimación del nodo
+\end_layout
+
+\begin_layout Standard
+
+      Date _.firstDate =  y2001m01;
+\end_layout
+
+\begin_layout Standard
+
+      //##Fecha final de estimación del nodo
+\end_layout
+
+\begin_layout Standard
+
+      Date _.lastDate  =  y2013m01;
+\end_layout
+
+\begin_layout Standard
+
+      //Desviación típica de los residuos.
+ Si es ? se estimará
+\end_layout
+
+\begin_layout Standard
+
+      Real _.sigma = ?;
+\end_layout
+
+\begin_layout Standard
+
+      //##Parte ARIMA asociada
+\end_layout
+
+\begin_layout Standard
+
+      Set _.arima = SetOfSet (
+\end_layout
+
+\begin_layout Standard
+
+         ARIMAStruct (1,1,1,1) 
+\end_layout
+
+\begin_layout Standard
+
+      )
+\end_layout
+
+\begin_layout Standard
+
+      ]]};
+\end_layout
+
+\begin_layout Standard
+
+      //##Información adicional del modelo sobre los inputs
+\end_layout
+
+\begin_layout Standard
+
+      //Cada elemento es un NameBlock cuyo nombre será el identificador
+ en
+\end_layout
+
+\begin_layout Standard
+
+      //la base de datos de BsrHlm y es obligatorio que se llame igual que
+\end_layout
+
+\begin_layout Standard
+
+      //la corespondiente serie input
+\end_layout
+
+\begin_layout Standard
+
+      Set _.input = {
+\end_layout
+
+\begin_layout Standard
+
+      SetOfNameBlock(
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock Input1= [[ 
+\end_layout
+
+\begin_layout Standard
+
+      //##Serie input
+\end_layout
+
+\begin_layout Standard
+
+      Serie _.serie = _.series::Input1;
+\end_layout
+
+\begin_layout Standard
+
+      //##Si es falso no se usará este input
+\end_layout
+
+\begin_layout Standard
+
+      Real _.enabled = 1;
+\end_layout
+
+\begin_layout Standard
+
+      //##Número de sigmas para la distribución a priori de los omitidos
+\end_layout
+
+\begin_layout Standard
+
+      Real _.mis_pri_sig_fac =  5;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor mínimo a priori para los omitidos
+\end_layout
+
+\begin_layout Standard
+
+      Real _.mis_pri_min     =  0;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor máximo a priori para los omitidos
+\end_layout
+
+\begin_layout Standard
+
+      Real _.mis_pri_max     =  2;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor inicial del parámetro
+\end_layout
+
+\begin_layout Standard
+
+      Real _.initValue       = 0.1;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor mínimo a priori del parámetro
+\end_layout
+
+\begin_layout Standard
+
+      Real _.minimum         = -1;
+\end_layout
+
+\begin_layout Standard
+
+      //##Valor máximo a priori del parámetro
+\end_layout
+
+\begin_layout Standard
+
+      Real _.maximum         =  1
+\end_layout
+
+\begin_layout Standard
+
+      ]],
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock Input2 = [[
+\end_layout
+
+\begin_layout Standard
+
+       .....
+\end_layout
+
+\begin_layout Standard
+
+       .....
+\end_layout
+
+\begin_layout Standard
+
+      ]],
+\end_layout
+
+\begin_layout Standard
+
+      .....
+\end_layout
+
+\begin_layout Standard
+
+    // Se indexa para acelerar busquedas
+\end_layout
+
+\begin_layout Standard
+
+    Real _checkUniqueInput = SetIndexByName(_.input) 
+\end_layout
+
+\begin_layout Standard
+
+ ]]
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ahora se llama al manejador de series del modelo, notar que el bucle For
+ debe correr a todos los nodos observacionales que se quieran calcular:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+///////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+NameBlock series.handler = 
+\end_layout
+
+\begin_layout Standard
+
+  BysMcmc::Bsr::DynHlm::DBApi::CreateSeriesHandler(
+\end_layout
+
+\begin_layout Standard
+
+  For (1,num_nodos, NameBlock (Real node)
+\end_layout
+
+\begin_layout Standard
+
+  {
+\end_layout
+
+\begin_layout Standard
+
+   WriteLn("[series.handler] creando de series del nodo "+ IntText(node));
+\end_layout
+
+\begin_layout Standard
+
+   NameBlock aux = node.series.handler(node);   
+\end_layout
+
+\begin_layout Standard
+
+   Eval(aux::_.id_node+"=aux")
+\end_layout
+
+\begin_layout Standard
+
+}));
+\end_layout
+
+\end_inset
+
+ Ahora se crea en la base de datos los nodos observacionales :
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
+\end_layout
+
+\begin_layout Standard
+
+     DBConnection::BsrHlm::_.defaultDB, id_model, id_session,
+\end_layout
+
+\begin_layout Standard
+
+     series.handler::_.obs.node);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ahora viene la parte del código dónde se usarán las funciones necesarias
+ para implementar en el modelo los nodos latentes, nodos a priori etc...
+ Incluimos algunos ejemplos del uso de estas funciones
+\newline
+
+\newline
+
+\series bold
+Nodos latentes homogéneos.
+
+\series default
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real {
+\end_layout
+
+\begin_layout Standard
+
+ BysMcmc::Bsr::DynHlm::DBApi::ModSes.Lat.Homog_1.Create
+\end_layout
+
+\begin_layout Standard
+
+ (DBConnection::BsrHlm::_.defaultDB,
+\end_layout
+
+\begin_layout Standard
+
+  id_model,
+\end_layout
+
+\begin_layout Standard
+
+  id_session,
+\end_layout
+
+\begin_layout Standard
+
+  // identificación del nodo latente
+\end_layout
+
+\begin_layout Standard
+
+  id_node = "Lat."+child_input,
+\end_layout
+
+\begin_layout Standard
+
+  // descripción del node latente
+\end_layout
+
+\begin_layout Standard
+
+  description = "Fuerza la homogeneidad de la variable ...", 
+\end_layout
+
+\begin_layout Standard
+
+  // Nivel de latencia en la jerarquía 
+\end_layout
+
+\begin_layout Standard
+
+  Real level = 1,
+\end_layout
+
+\begin_layout Standard
+
+  //Orden de aparición dentro del nivel
+\end_layout
+
+\begin_layout Standard
+
+  Copy(level.1_number := level.1_number+1),
+\end_layout
+
+\begin_layout Standard
+
+  //Nombre del hiperparámetro
+\end_layout
+
+\begin_layout Standard
+
+  Text id_parameter = "hiper",
+\end_layout
+
+\begin_layout Standard
+
+  //Valor inicial del hiperparámetro
+\end_layout
+
+\begin_layout Standard
+
+  Real initValue = -0.1,
+\end_layout
+
+\begin_layout Standard
+
+  //Desviación típica de los residuos.
+ Si es ? se estimará
+\end_layout
+
+\begin_layout Standard
+
+  Real sigma = 0.05,
+\end_layout
+
+\begin_layout Standard
+
+  //Valor mínimo del hiperparámetro
+\end_layout
+
+\begin_layout Standard
+
+  Real minimum = -1,
+\end_layout
+
+\begin_layout Standard
+
+  //Valor máximo del hiperparámetro
+\end_layout
+
+\begin_layout Standard
+
+  Real maximum = 10,
+\end_layout
+
+\begin_layout Standard
+
+  //Selección de los parámetros y nodos hijos con el input habilitado
+\end_layout
+
+\begin_layout Standard
+
+  //Es un Set formado por tantos NameBlocks como parémetroas hijos 
+\end_layout
+
+\begin_layout Standard
+
+  //(betas) formen el nodo latente homogéneo
+\end_layout
+
+\begin_layout Standard
+
+  [[
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock beta1 = [[ 
+\end_layout
+
+\begin_layout Standard
+
+       Text _.id_parameter = "Nombre del nodo donde está beta1" 
+\end_layout
+
+\begin_layout Standard
+
+       Text _.id_node      = "Nodo donde está situado el beta1" 
+\end_layout
+
+\begin_layout Standard
+
+       Real _.sigma_factor = 1
+\end_layout
+
+\begin_layout Standard
+
+                      ]],
+\end_layout
+
+\begin_layout Standard
+
+    NameBlock beta2 = [[ ...
+\end_layout
+
+\begin_layout Standard
+
+                         ...]],
+\end_layout
+
+\begin_layout Standard
+
+    ...
+\end_layout
+
+\begin_layout Standard
+
+    ...
+\end_layout
+
+\begin_layout Standard
+
+  ]]
+\end_layout
+
+\begin_layout Standard
+
+ )};
+\end_layout
+
+\end_inset
+
+
+\series bold
+Nodos latentes generalizados.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real {
+\end_layout
+
+\begin_layout Standard
+
+  // Set de hiperparámetros.
+ Es un set con tantos NameBlocks como
+\end_layout
+
+\begin_layout Standard
+
+  // hiperparámetros tiene el nodo lantente.
+\end_layout
+
+\begin_layout Standard
+
+  Set father_parameters = [[ 
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock Lam1 =  ModSes.Lat.Father.Param.Def (
+\end_layout
+
+\begin_layout Standard
+
+                        Text id_parameter = "hiper1",
+\end_layout
+
+\begin_layout Standard
+
+                        Real init_value   = 0.1,
+\end_layout
+
+\begin_layout Standard
+
+                        Real min          = 0,
+\end_layout
+
+\begin_layout Standard
+
+                        Real max          = 1 
+\end_layout
+
+\begin_layout Standard
+
+                        ),
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock Lam2 = ModSes.Lat.Father.Param.Def (
+\end_layout
+
+\begin_layout Standard
+
+                        ......
+\end_layout
+
+\begin_layout Standard
+
+                        ......
+\end_layout
+
+\begin_layout Standard
+
+                        ),
+\end_layout
+
+\begin_layout Standard
+
+      ........
+\end_layout
+
+\begin_layout Standard
+
+      ........
+\end_layout
+
+\begin_layout Standard
+
+                          ]];  
+\end_layout
+
+\begin_layout Standard
+
+   // Set de parámetros hijo.
+ Es un set con tantos NameBlocks como
+\end_layout
+
+\begin_layout Standard
+
+   // paramétros hijo tenga el nodo latente regresivo.
+\end_layout
+
+\begin_layout Standard
+
+   Set node_childs = [[ 
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock beta1 = ModSes.Lat.Child.Param.Def (
+\end_layout
+
+\begin_layout Standard
+
+                        Text id_node = "node1",
+\end_layout
+
+\begin_layout Standard
+
+                        Text id_parameter = "beta1",
+\end_layout
+
+\begin_layout Standard
+
+                        Real sigma_factor = 1
+\end_layout
+
+\begin_layout Standard
+
+                        ),
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock beta2 = ModSes.Lat.Child.Param.Def (
+\end_layout
+
+\begin_layout Standard
+
+                        .....
+\end_layout
+
+\begin_layout Standard
+
+                        .....
+\end_layout
+
+\begin_layout Standard
+
+                        ),
+\end_layout
+
+\begin_layout Standard
+
+      ......
+\end_layout
+
+\begin_layout Standard
+
+      ......
+\end_layout
+
+\begin_layout Standard
+
+                     ]];  
+\end_layout
+
+\begin_layout Standard
+
+Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Lat.Create (
+\end_layout
+
+\begin_layout Standard
+
+     DBConnection::BsrHlm::_.defaultDB,
+\end_layout
+
+\begin_layout Standard
+
+     id_model,
+\end_layout
+
+\begin_layout Standard
+
+     id_session,
+\end_layout
+
+\begin_layout Standard
+
+     // Nombre del nodo latente
+\end_layout
+
+\begin_layout Standard
+
+     id_node = "Lat.Reg",
+\end_layout
+
+\begin_layout Standard
+
+     // Descripcion del nodo latente
+\end_layout
+
+\begin_layout Standard
+
+     description = "Establece un nodo regresivo latente...",
+\end_layout
+
+\begin_layout Standard
+
+     //Nivel de latencia en la jerarquía
+\end_layout
+
+\begin_layout Standard
+
+     Real level = 1,
+\end_layout
+
+\begin_layout Standard
+
+     // Orden de aparición dentro del nivel
+\end_layout
+
+\begin_layout Standard
+
+     Copy(level.1_number := level.1_number+1),
+\end_layout
+
+\begin_layout Standard
+
+     father_parameters,
+\end_layout
+
+\begin_layout Standard
+
+     node_childs,
+\end_layout
+
+\begin_layout Standard
+
+     // Valor de la sigma del bloque latente conjunto
+\end_layout
+
+\begin_layout Standard
+
+     Real sigma = 0.1,
+\end_layout
+
+\begin_layout Standard
+
+     // Matrix X del nodo latente
+\end_layout
+
+\begin_layout Standard
+
+     Matrix X
+\end_layout
+
+\begin_layout Standard
+
+     )
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\series bold
+Nodos latentes con combinacion de output.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real {
+\end_layout
+
+\begin_layout Standard
+
+   Set father_parameters = [[ 
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock Lam1 =  ModSes.Lat.Father.Param.Def (
+\end_layout
+
+\begin_layout Standard
+
+                        Text id_parameter = "hiper1",
+\end_layout
+
+\begin_layout Standard
+
+                        Real init_value   = 0.1,
+\end_layout
+
+\begin_layout Standard
+
+                        Real min          = 0,
+\end_layout
+
+\begin_layout Standard
+
+                        Real max          = 1 
+\end_layout
+
+\begin_layout Standard
+
+                        ),
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock Lam2 = ModSes.Lat.Father.Param.Def (
+\end_layout
+
+\begin_layout Standard
+
+                        ......
+\end_layout
+
+\begin_layout Standard
+
+                        ......
+\end_layout
+
+\begin_layout Standard
+
+                        ),
+\end_layout
+
+\begin_layout Standard
+
+      ........
+\end_layout
+
+\begin_layout Standard
+
+      ........
+\end_layout
+
+\begin_layout Standard
+
+                          ]];  
+\end_layout
+
+\begin_layout Standard
+
+   // Set de parámetros hijo.
+ Es un set con tantos NameBlocks como
+\end_layout
+
+\begin_layout Standard
+
+   // paramétros hijo tenga el nodo latente regresivo.
+\end_layout
+
+\begin_layout Standard
+
+   Set node_childs = [[ 
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock beta1 = ModSes.Lat.Child.Param.Def (
+\end_layout
+
+\begin_layout Standard
+
+                        Text id_node = "node1",
+\end_layout
+
+\begin_layout Standard
+
+                        Text id_parameter = "beta1",
+\end_layout
+
+\begin_layout Standard
+
+                        Real sigma_factor = 1
+\end_layout
+
+\begin_layout Standard
+
+                        ),
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock beta2 = ModSes.Lat.Child.Param.Def (
+\end_layout
+
+\begin_layout Standard
+
+                        .....
+\end_layout
+
+\begin_layout Standard
+
+                        .....
+\end_layout
+
+\begin_layout Standard
+
+                        ),
+\end_layout
+
+\begin_layout Standard
+
+      ......
+\end_layout
+
+\begin_layout Standard
+
+      ......
+\end_layout
+
+\begin_layout Standard
+
+                     ]];   
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+      Real ModSes.Lat.OutComb.Create (
+\end_layout
+
+\begin_layout Standard
+
+      DBConnection::BsrHlm::_.defaultDB,
+\end_layout
+
+\begin_layout Standard
+
+      id_model,
+\end_layout
+
+\begin_layout Standard
+
+      id_session,
+\end_layout
+
+\begin_layout Standard
+
+      // Nombre del nodo latente
+\end_layout
+
+\begin_layout Standard
+
+      id_node = "Lat.Reg",
+\end_layout
+
+\begin_layout Standard
+
+      // Descripción del nodo latente
+\end_layout
+
+\begin_layout Standard
+
+      description = "Establece un nodo regresivo latente...",
+\end_layout
+
+\begin_layout Standard
+
+      // Nivel de latencia en la jerarquía
+\end_layout
+
+\begin_layout Standard
+
+      Real level = 1,
+\end_layout
+
+\begin_layout Standard
+
+      // Orden de aparición dentro del nivel
+\end_layout
+
+\begin_layout Standard
+
+      Copy(level.1_number := level.1_number+1),
+\end_layout
+
+\begin_layout Standard
+
+      father_parameters,
+\end_layout
+
+\begin_layout Standard
+
+      node_childs,
+\end_layout
+
+\begin_layout Standard
+
+      // Valor de Sigma para todo el nodo latente
+\end_layout
+
+\begin_layout Standard
+
+      Real sigma = 0.1,
+\end_layout
+
+\begin_layout Standard
+
+      // Matriz X del nodo latente
+\end_layout
+
+\begin_layout Standard
+
+      Matrix X,
+\end_layout
+
+\begin_layout Standard
+
+      // Matriz Y del nodo latente
+\end_layout
+
+\begin_layout Standard
+
+      Matrix Y,
+\end_layout
+
+\begin_layout Standard
+
+      // Un Set de Reales.
+ Cada valor real especifica el i-ésimo valor
+\end_layout
+
+\begin_layout Standard
+
+      // de sigma de la i-ésima ecuación del nodo latente   
+\end_layout
+
+\begin_layout Standard
+
+      Set SigmaLat = [[
+\end_layout
+
+\begin_layout Standard
+
+      Real sigma1 = 0.1
+\end_layout
+
+\begin_layout Standard
+
+      Real sigma2 = 0.2
+\end_layout
+
+\begin_layout Standard
+
+      ....
+\end_layout
+
+\begin_layout Standard
+
+      ....
+\end_layout
+
+\begin_layout Standard
+
+      ]])
+\end_layout
+
+\begin_layout Standard
+
+};      
+\end_layout
+
+\end_inset
+
+
+\series bold
+Nodo a priori
+\series default
+.
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real{
+\end_layout
+
+\begin_layout Standard
+
+  BysMcmc::Bsr::DynHlm::DPApi::ModSes.Pri.Homog_1.Create(
+\end_layout
+
+\begin_layout Standard
+
+    DBConnection::BsrHlm::_.defaultDB,
+\end_layout
+
+\begin_layout Standard
+
+    id_model,
+\end_layout
+
+\begin_layout Standard
+
+    id_session,
+\end_layout
+
+\begin_layout Standard
+
+    // identificación del nodo
+\end_layout
+
+\begin_layout Standard
+
+    id_node = "Pri",
+\end_layout
+
+\begin_layout Standard
+
+    // descripción del nodo
+\end_layout
+
+\begin_layout Standard
+
+    description = "Prior para..."
+\end_layout
+
+\begin_layout Standard
+
+    // Conjunto de NameBlock.
+ Cada NameBlock especifica que
+\end_layout
+
+\begin_layout Standard
+
+    // parámetro o hiperparámetro es el que tiene el a priori.
+\end_layout
+
+\begin_layout Standard
+
+    [[
+\end_layout
+
+\begin_layout Standard
+
+       NameBlock hiper1 = [[
+\end_layout
+
+\begin_layout Standard
+
+                            // Nombre del nodo donde está hiper1
+\end_layout
+
+\begin_layout Standard
+
+                            Text _.id_node = "node_hiper1", 
+\end_layout
+
+\begin_layout Standard
+
+                            // Nombre del parámetro que tiene el prior
+\end_layout
+
+\begin_layout Standard
+
+                            Text _.id_parameter = "Lam1",
+\end_layout
+
+\begin_layout Standard
+
+                            // Valor medio de la Normal prior
+\end_layout
+
+\begin_layout Standard
+
+                            Real _.average = 0.1,
+\end_layout
+
+\begin_layout Standard
+
+                            // Valor de sigma de la Normla prior
+\end_layout
+
+\begin_layout Standard
+
+                            Real _.sigma = 0.01
+\end_layout
+
+\begin_layout Standard
+
+                          ]]
+\end_layout
+
+\begin_layout Standard
+
+       NameBlock hiper2 = [[
+\end_layout
+
+\begin_layout Standard
+
+                             ....
+\end_layout
+
+\begin_layout Standard
+
+                             ....
+ 
+\end_layout
+
+\begin_layout Standard
+
+                          ]]
+\end_layout
+
+\begin_layout Standard
+
+       ....
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+    ]]
+\end_layout
+
+\begin_layout Standard
+
+    )
+\end_layout
+
+\begin_layout Standard
+
+};
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Nodo a priori combinación del output
+\series default
+.
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real {
+\end_layout
+
+\begin_layout Standard
+
+  BysMcmc::Bsr::DynHlm::DPApi::ModSes.Pri.Out.Comb.Create(
+\end_layout
+
+\begin_layout Standard
+
+    DBConnection::BsrHlm::_.defaultDB,
+\end_layout
+
+\begin_layout Standard
+
+    id_model,
+\end_layout
+
+\begin_layout Standard
+
+    id_session,
+\end_layout
+
+\begin_layout Standard
+
+    // identificación del nodo
+\end_layout
+
+\begin_layout Standard
+
+    id_node = "Pri.OutComb",
+\end_layout
+
+\begin_layout Standard
+
+    // descripción del nodo
+\end_layout
+
+\begin_layout Standard
+
+    description = "Prior para...",
+\end_layout
+
+\begin_layout Standard
+
+    Copy(level.2_number := level.2_number+1),
+\end_layout
+
+\begin_layout Standard
+
+    // Set de sets, cada set contiene dos reales que especifican
+\end_layout
+
+\begin_layout Standard
+
+    // el valor de la media y sigma para cada ecuacion del nodo a priori
+\end_layout
+
+\begin_layout Standard
+
+    [[
+\end_layout
+
+\begin_layout Standard
+
+      [[ mu_1, sigma_1 ]],
+\end_layout
+
+\begin_layout Standard
+
+      [[ mu_2, sigma_2 ]],
+\end_layout
+
+\begin_layout Standard
+
+         ............
+\end_layout
+
+\begin_layout Standard
+
+    ]],
+\end_layout
+
+\begin_layout Standard
+
+    // Set de NameBlocks, tantos NameBlocks como parámetros entran
+\end_layout
+
+\begin_layout Standard
+
+    // en la combinación lineal del output
+\end_layout
+
+\begin_layout Standard
+
+    [[
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock param1 = [[
+\end_layout
+
+\begin_layout Standard
+
+                          // Nombre de ese parámetro 
+\end_layout
+
+\begin_layout Standard
+
+                          Text _.id_node = "param1",
+\end_layout
+
+\begin_layout Standard
+
+                          // Localización de ese parámetro
+\end_layout
+
+\begin_layout Standard
+
+                          Text _.id_parameter = "node.param1"
+\end_layout
+
+\begin_layout Standard
+
+                         ]],
+\end_layout
+
+\begin_layout Standard
+
+      NameBlock param2 = [[
+\end_layout
+
+\begin_layout Standard
+
+                          .....
+   
+\end_layout
+
+\begin_layout Standard
+
+                         ]]
+\end_layout
+
+\begin_layout Standard
+
+    ]],
+\end_layout
+
+\begin_layout Standard
+
+    // Matriz Y responsable de la combinación lineal del output
+\end_layout
+
+\begin_layout Standard
+
+    Matrix Y
+\end_layout
+
+\begin_layout Standard
+
+    )
+\end_layout
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Nodo restricción de orden.
+\series default
+
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+Real {
+\end_layout
+
+\begin_layout Standard
+
+  BysMcmc::Bsr::DynHlm::DBApi::ModSes.Mix.OrderRelation.Create(
+\end_layout
+
+\begin_layout Standard
+
+    DBConnection::BsrHlm::_.defaultDB,
+\end_layout
+
+\begin_layout Standard
+
+    id_model,
+\end_layout
+
+\begin_layout Standard
+
+    id_session,
+\end_layout
+
+\begin_layout Standard
+
+    id_node_param1, "param1",
+\end_layout
+
+\begin_layout Standard
+
+    /* <= */ // param1 <= param2
+\end_layout
+
+\begin_layout Standard
+
+    id_node_param2, "param2")
+\end_layout
+
+\begin_layout Standard
+
+     };
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finalmente la llamada al estimador BSR se realiza por el siguiente código:
+\newline
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Standard
+
+NameBlock bsr.config =
+\end_layout
+
+\begin_layout Standard
+
+[[
+\end_layout
+
+\begin_layout Standard
+
+  //MCMC dimensions
+\end_layout
+
+\begin_layout Standard
+
+  Real mcmc.burnin   =  100;
+\end_layout
+
+\begin_layout Standard
+
+  Real mcmc.sampleLength = 2000;
+\end_layout
+
+\begin_layout Standard
+
+  Real mcmc.cacheLength  =  100;
+\end_layout
+
+\begin_layout Standard
+
+  //Basic master configuration
+\end_layout
+
+\begin_layout Standard
+
+  Real basic.cholesky.epsilon = 1.E-10;
+\end_layout
+
+\begin_layout Standard
+
+  Real basic.cholesky.warningFreq = 100;
+\end_layout
+
+\begin_layout Standard
+
+  Real basic.truncMNormal.gibbsNumIter = 5;
+\end_layout
+
+\begin_layout Standard
+
+  //Report configuration
+\end_layout
+
+\begin_layout Standard
+
+  Real report.raftery.diag.q   = 0.025;
+\end_layout
+
+\begin_layout Standard
+
+  Real report.raftery.diag.r   = 0.007;
+\end_layout
+
+\begin_layout Standard
+
+  Real report.raftery.diag.s   = 0.950;
+\end_layout
+
+\begin_layout Standard
+
+  Real report.raftery.diag.eps = 0.001;
+\end_layout
+
+\begin_layout Standard
+
+  Real report.acf.lag          = 20,
+\end_layout
+
+\begin_layout Standard
+
+  Real report.histogram.parts  = 100;
+\end_layout
+
+\begin_layout Standard
+
+  Real report.kerDens.points   = 0;
+\end_layout
+
+\begin_layout Standard
+
+  Real report.kerDens.numIter  = 2;
+\end_layout
+
+\begin_layout Standard
+
+  Real report.kerDens.epsilon  = 0.001;
+\end_layout
+
+\begin_layout Standard
+
+  //Generic flags
+\end_layout
+
+\begin_layout Standard
+
+  Real do.resume          =  False;
+\end_layout
+
+\begin_layout Standard
+
+  Real do.report          =  True;
+\end_layout
+
+\begin_layout Standard
+
+  Real do.eval            =  True;
+\end_layout
+
+\begin_layout Standard
+
+  Real do.linear.effects  =  True
+\end_layout
+
+\begin_layout Standard
+
+]];
+\end_layout
+
+\begin_layout Standard
+
+///////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+///////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+// Estimación del modelo con el sistema Bsr::DynHlm
+\end_layout
+
+\begin_layout Standard
+
+///////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Standard
+
+Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim(
+\end_layout
+
+\begin_layout Standard
+
+  DBConnection::BsrHlm::_.defaultDB,
+\end_layout
+
+\begin_layout Standard
+
+  id_model,
+\end_layout
+
+\begin_layout Standard
+
+  id_session,
+\end_layout
+
+\begin_layout Standard
+
+  Path::_.data.out,
+\end_layout
+
+\begin_layout Standard
+
+  series.handler,
+\end_layout
+
+\begin_layout Standard
+
+  bsr.config
+\end_layout
+
+\begin_layout Standard
+
+)};
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+// Desconectamos de la base de datos 
+\end_layout
+
+\begin_layout Standard
+
+  Real DBConnection::BsrHlm::Close(0);
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_body
