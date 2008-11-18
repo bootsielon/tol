@@ -434,7 +434,7 @@ proc ::funcSearch::Search {} {
         set iU [string toupper $inf]
         set tU [string toupper $tmpOpt(var,desc)]
         if { [ContentCodeGrammar [array names result] [lindex $inf 2] ] } {
-          if {[regexp "(.*)${tU}(.*)" [lindex $iU 5]]} {
+          if {[regexp "(.*)${tU}(.*)" [lindex $iU 4]]} {
             lappend funcs \
               [list $f [lindex $inf 2] [lindex $inf 3] [lindex $inf 4]]
           }
@@ -560,15 +560,15 @@ proc ::funcSearch::CheckPar {f} {
   variable widget    
     
   set lst [::tol::info grammars]
-#  puts "lst: $lst"
+  #puts "lst: $lst"
   set num $tmpOpt(var,numPars)
-#  puts "num: $num"
+  #puts "num: $num"
   # NO funciona correctamente
   #  for {set i 1} {$i <= [expr $num+1]} {incr i} {
   #    destroy $f.f$i $f.lt$i $f.lb$i $f.lc$i $f.e$i
   #  }
   # destruimos los elementos hasta el maximo de elementos que pueda contener
-#  puts " rango: [lindex [$widget(spinbox) cget -range] 1]"
+  #puts " rango: [lindex [$widget(spinbox) cget -range] 1]"
   for {set i 1} {$i <= [lindex [$widget(spinbox) cget -range] 1]} {incr i} {
       destroy $f.f$i $f.lt$i $f.lb$i $f.lc$i $f.e$i
   }
