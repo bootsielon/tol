@@ -296,12 +296,7 @@ status open
 
 \begin_layout Standard
 
-  //Configuration default values over all BysMcmc related components
-\end_layout
-
-\begin_layout Standard
-
-  NameBlock Config =
+  Set _config =
 \end_layout
 
 \begin_layout Standard
@@ -387,6 +382,31 @@ status open
 
 \begin_layout Standard
 
+  //MLS step configuration
+\end_layout
+
+\begin_layout Standard
+
+    Text mls.method  = Options::Mls.Method::None;
+\end_layout
+
+\begin_layout Standard
+
+    Real mls.maxIter = 100;
+\end_layout
+
+\begin_layout Standard
+
+    Real mls.tolerance = 0.01;
+\end_layout
+
+\begin_layout Standard
+
+    Real mls.FunnelGibbs.sigmaFactor = 0.01;
+\end_layout
+
+\begin_layout Standard
+
   //Basic master configuration
 \end_layout
 
@@ -438,7 +458,7 @@ status open
 
 \begin_layout Standard
 
-    Code bsr.scalarSampler.armaBlock = Options::Scalar.Sampler::Arms;
+    Code bsr.scalarSampler.armaBlock = Options::Scalar.Sampler::Slice;
 \end_layout
 
 \begin_layout Standard
@@ -454,7 +474,7 @@ status open
 
 \begin_layout Standard
 
-    Code bsr.scalarSampler.nonLinBlock = Options::Scalar.Sampler::Arms;
+    Code bsr.scalarSampler.nonLinBlock = Options::Scalar.Sampler::Slice;
 \end_layout
 
 \begin_layout Standard
@@ -556,7 +576,34 @@ status open
 
 \begin_layout Standard
 
-    //Number of existent realizations to be recovered from disk
+    //If positive then is the number of existent realizations to be recovered
+ 
+\end_layout
+
+\begin_layout Standard
+
+    //from disk
+\end_layout
+
+\begin_layout Standard
+
+    //If negative then is the number of last existent realization to be
+\end_layout
+
+\begin_layout Standard
+
+    //skyped
+\end_layout
+
+\begin_layout Standard
+
+    //If zero then no resuming will be made and a new Markov chain will
+ be
+\end_layout
+
+\begin_layout Standard
+
+    //generated
 \end_layout
 
 \begin_layout Standard
@@ -982,14 +1029,20 @@ mcmc.maxTime
 \end_layout
 
 \begin_layout Standard
-Mediante el campo 
+Mediante el miembro 
 \series bold
-Real resume_
+Real resume_=config::do.resume
 \series default
 , que por defecto está deshabilitado, es posible especificar que se reutilicen
- las realizaciones de una cadena de Markov previamente simulada y almacenada
- en disco, en un archivo con el mismo camino actual, para no perder el trabajo
- realizado tras cualquier circunstancia que aborte la simulación.
+ total o parcialmente las realizaciones de una cadena de Markov previamente
+ simulada y almacenada en disco, en un archivo con el mismo camino actual,
+ para no perder el trabajo realizado tras cualquier circunstancia que aborte
+ la simulación.
+ Si es positivo se utilizarán las especificadas o bien las exietntes si
+ hay menos.
+ Si es negativo se eliminarán las últimas almacenadas utilizando sólo las
+ restantes.
+ Si es cero no se reutiliza nada y se comienza una nueva cadena de Markov.
 \end_layout
 
 \begin_layout Standard
