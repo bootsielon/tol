@@ -83,7 +83,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
       "\n Number of variables   : "<<_.n+
       "\n Number of simulations : "<<sampleLength+
       "\n Cache length          : "<<cacheLength_+
-      "\n Resume                : "<<If(resume_,"True","False")+
+      "\n Resume                : "<<resume_+
       If(_mcmc.maxTime<1/0,
       "\n MaxTime               : "<<_mcmc.maxTime+" seconds",""));
   //Ensures path is all right 
@@ -91,7 +91,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
     Real numDec = 1+Ceil(Log(sampleLength)/Log(10));
     Text numIterFmt = "% "+IntText(numDec)+".0lf";
   //Resume or clean old simulations
-    Real savedSimulations = If(!resume_, 
+    Real savedSimulations = If(resume_==0, 
     {
       Real OSFilRemove(_.path);
       0
@@ -116,11 +116,29 @@ NameBlock BuildCycler(NameBlock modelSampler,
         },
         n==_.n, 
         {
-          Real WriteLn(_MID+"resuming "<<m+" old simulations");
-          Matrix lastRow = Sub(old.mcmc,m,1,1,_.n);
-        //WriteLn("TRACE "+_MID+"lastRow="<<lastRow);
-          Real _.sampler::setStore(lastRow);
-          m
+          Real m_ = Case(
+            resume_>0, Min(m,resume_),
+            resume_<0,  Max(0,m+resume_) );
+          If(m_==0,
+          {
+            WriteLn(_MID+"There are not enougth old simulations to resume");
+            Real OSFilRemove(_.path);
+            0
+          },
+          {
+            Real WriteLn(_MID+"resuming "<<m_+" old simulations");
+            Real If(m_==m,0,
+            {
+              Real WriteLn(_MID+"Removing last "<<Real(m-m_)+" old simulations");
+              Matrix resumed = Sub(old.mcmc,1,1,m_,_.n);
+              Matrix MatWriteFile(_.path, resumed);
+              1
+            });
+            Matrix lastRow = Sub(old.mcmc,m_,1,1,_.n);
+          //WriteLn("TRACE "+_MID+"lastRow="<<lastRow);
+            Real _.sampler::setStore(lastRow);
+            m_
+          })
         },
         1==1,
         {
