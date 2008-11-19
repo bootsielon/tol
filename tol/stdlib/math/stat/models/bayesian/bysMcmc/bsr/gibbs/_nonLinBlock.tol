@@ -278,8 +278,8 @@ Text _.autodoc.member.NonLinBlock =
     //WriteLn("TRACE"+_MID+"draw 2");
       If(_.blockDef::_.numCol==0,
       {
-        Real setStore(_.blockDef::_.store);
-        _.blockDef::_.store
+        Real setStore(VMat2Mat(_.blockDef::_.store));
+        Rand(0,1,0,0)
       },
       {
         draw.scalar(numSim, False)
@@ -327,17 +327,20 @@ Text _.autodoc.member.NonLinBlock =
     //WriteLn("TRACE "+_MID+"::setStore 2");
       Real _.blockDef::setStore(values)
     });
-    //WriteLn("TRACE "+_MID+"::setStore 3");
+  //WriteLn("TRACE "+_MID+"::setStore 3");
     Matrix _.Fi := _.filterEval::eval(VMat2Mat(_.blockDef::_.store));
-    //WriteLn("TRACE "+_MID+"::setStore 4");
-    If(!_.isInputFilter, 0,
+  //WriteLn("TRACE "+_MID+"::setStore 4");
+    Real ok = If(!_.isInputFilter, 0,
     {
+    //WriteLn("TRACE "+_MID+"::setStore 5");
       SetMin(For(1,_.filterColNum,Real(Real column)
       {
         _.bsr::setSegmentInputCol(
           SubCol(_.Fi,[[column]]), _.segmentNum, _.filterColIdx[column])
       }))
-    })
+    });
+  //WriteLn("TRACE "+_MID+"::setStore 6");
+    ok
   };
 
   ////////////////////////////////////////////////////////////////////////////
