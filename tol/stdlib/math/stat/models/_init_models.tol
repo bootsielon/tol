@@ -4,4 +4,4 @@
 //////////////////////////////////////////////////////////////////////////////
 
 Set Include("mle/_init_mle.tol");
-//Set Include("bayesian/_init_bayesian.tol");
+Set Include("bayesian/_init_bayesian.tol");
