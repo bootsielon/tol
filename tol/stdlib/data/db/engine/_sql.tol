@@ -348,6 +348,16 @@ Parámetros:
 SqlGetDatePart);
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+Text SqlFormatDating(
+  Text field,  // Nombre del campo de tipo fecha en la BBDD
+  Text fecOri, // Granularidad de las fechas del campo
+  Text fecDes, // Granularidad de las fechas de la expresión resultante
+  Real gestor) // Gestor en el que va la expresión
+//////////////////////////////////////////////////////////////////////////////
+{
+ ""
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text SqlDifDates(Text fecha1, Text fecha2, Text unidad, Real gestor)
@@ -430,7 +440,7 @@ Text SqlConvertText(Text txt, Real gestor)
     EQ(gestor, GesMic), "rtrim(convert(char(255), "+ txt +"))",
     EQ(gestor, GesOra), "to_char("+ txt +")",
     EQ(gestor, GesMys), "cast("+ txt +" as char)",
-    EQ(gestor, GesPos), "to_char("+ txt +")",
+    EQ(gestor, GesPos), "cast("+ txt +" as char varying)",
     EQ(gestor, GesTer), "rtrim(cast("+ txt +" as char(255)))",    
     EQ(gestor, GesAcc), "SqlConvertText. Access. Opción por implementar."
   );
@@ -468,7 +478,7 @@ Text SqlStDs(Text Field, Real Gestor)
      Gestor==GesOra, "STDDEV("+Field+")",
      Gestor==GesMic, "STDEV("+Field+")",
      Gestor==GesMys, "STD("+Field+")",
-	 Gestor==GesPos, "STDDEV("+Field+")",
+     Gestor==GesPos, "STDDEV("+Field+")",
      1,              "To Implement"
    )
 };
@@ -486,6 +496,7 @@ Text SqlRestOfDivision(Text Divider, Text Divisor, Real Gestor)
      Gestor==GesOra, "MOD("+Divider+", "+Divisor+")",
      Gestor==GesPos, "MOD("+Divider+", "+Divisor+")",
      Or(Gestor==GesMic, Gestor==GesMys), Divider+" % "+Divisor,
+     Gestor==GesTer, "MOD("+Divider+", "+Divisor+")",
      1,              "To Implement"
    )
 };
@@ -1704,3 +1715,43 @@ un número o una combinación de columnas hacia un número entero.
 ", SqlCastExprAsInteger);
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+Text SqlSelectDual(Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text Case
+  (
+    EQ(gestor, GesMic), "", // não implementado
+    EQ(gestor, GesOra), " FROM DUAL",
+    EQ(gestor, GesMys), "",
+    EQ(gestor, GesPos), "", // não implementado
+    EQ(gestor, GesTer), "", // não implementado
+    EQ(gestor, GesAcc), "" // não implementado
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna a senteça de tabela default.
+", SqlSelectDual);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text SqlCastExprAsReal(Text expr, Real gestor)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text Case
+  (
+    EQ(gestor, GesMic), "SqlCastExprAsReal. MSSql. Opción por implementar.",
+    EQ(gestor, GesOra), "to_number("+expr+") ",
+    EQ(gestor, GesMys), "POWER("+expr+",1.0) ",
+    EQ(gestor, GesPos), "SqlCastExprAsReal. PostGres. Opción por implementar.",
+    EQ(gestor, GesTer), "SqlCastExprAsReal. Teradata. Opción por implementar.",
+    EQ(gestor, GesAcc), "SqlCastExprAsReal. Access. Opción por implementar."
+  )
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Retorna la sentencia que hace una conversión de una expresión (puede ser 
+un número o una combinación de columnas hacia un número.
+", SqlCastExprAsReal);
+//////////////////////////////////////////////////////////////////////////////
