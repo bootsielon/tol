@@ -44,7 +44,7 @@ NameBlock DefineBlock(Text name,
   //Stores current values of parameters
   VMatrix _.store = Rand(_.numCol,1,0,0);
   //Flag that enables/disables the block
-  Real enabled  = _.numCol>0;
+  Real enabled  = True;
 
   ////////////////////////////////////////////////////////////////////////////
   //Puts name to each parameter and indexes the set _.colNames
