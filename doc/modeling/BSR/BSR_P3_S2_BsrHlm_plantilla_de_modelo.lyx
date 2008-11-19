@@ -564,8 +564,13 @@ NameBlock node.series.handler (Real node)
 
 \begin_layout Plain Layout
 
-      //Desviación típica de los residuos.
- Si es ? se estimará
+      // Desviación típica de los residuos para el nodo observacional.
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+      // Si es ? se estimará
 \end_layout
 
 \begin_layout Plain Layout
