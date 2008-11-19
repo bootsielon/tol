@@ -122,8 +122,13 @@ NameBlock BysMcmc =
     //Number of divisions in kernel density aproximations
     Real report.kerDens.points = 0;
   //Generic flags
-    //Number of existent realizations to be recovered from disk
-    Real do.resume = False;
+    //If positive then is the number of existent realizations to be recovered 
+    //from disk
+    //If negative then is the number of last existent realization to be
+    //skyped
+    //If zero then no resuming will be made and a new Markov chain will be
+    //generated
+    Real do.resume = 0;
     //Enables or disables CODA and other diagnostic reports
     Real do.report = True;
     //Enables or disables in-sample evaluation of forecasting, filter, noise, 
