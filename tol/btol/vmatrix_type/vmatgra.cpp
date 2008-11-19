@@ -837,6 +837,10 @@ void BVMatConcatCol::CalcContens()
   { 
     BVMat::BinGroup(&BVMat::CatCol,arr.GetBuffer(),arr.Size(),contens_); 
   }
+  else
+  {
+    contens_.Zeros(numRow,0);
+  }
   assert(contens_.Check());
 }
 
@@ -903,6 +907,10 @@ void BVMatConcatRow::CalcContens()
   if(numRow && numCol && arr.Size()) 
   { 
     BVMat::BinGroup(&BVMat::CatRow,arr.GetBuffer(),arr.Size(),contens_); 
+  }
+  else
+  {
+    contens_.Zeros(0,numCol);
   }
   assert(contens_.Check());
 }
