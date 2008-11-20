@@ -70,8 +70,10 @@ int dgemm(const enum CBLAS_TRANSPOSE TransA,
   int M,N,K;
   int Ar = A.Rows();
   int Br = B.Rows();
+  int Cr = C.Rows();
   int Ac = A.Columns();
   int Bc = B.Columns();
+  int Cc = C.Columns();
   if (TransA==CblasNoTrans) {
     M = Ar;
     K = Ac;
@@ -80,8 +82,11 @@ int dgemm(const enum CBLAS_TRANSPOSE TransA,
     K = Ar;
   }
   N = TransB==CblasNoTrans ? Bc : Br;
-  C.Alloc(M,N);
-  C.SetAllValuesTo(0);
+  if((beta==0.0)&&(!Cr|!Cc))
+  {
+    C.Alloc(M,N);
+    C.SetAllValuesTo(0);
+  }
   const double* A_ = A.Data().Buffer();
   const double* B_ = B.Data().Buffer();
   double* C_ = C.GetData().GetBuffer();
@@ -131,23 +136,30 @@ int dsyrk(const enum CBLAS_UPLO Uplo,
 /////////////////////////////////////////////////////////////////////////////
 {
   int N,K;
+  int Ar = A.Rows();
+  int Cr = C.Rows();
+  int Ac = A.Columns();
+  int Cc = C.Columns();
   if (Trans==CblasNoTrans) {
-    N = A.Rows();
-    K = A.Columns();
+    N = Ar;
+    K = Ac;
   } else {
-    N = A.Columns();
-    K = A.Rows();
+    N = Ac;
+    K = Ar;
   }
-  C.Alloc(N,N);
-  C.SetAllValuesTo(0);
+  if((beta==0.0)&&(!Cr|!Cc))
+  {
+    C.Alloc(N,N);
+    C.SetAllValuesTo(0);
+  }
   cblas_dsyrk
   (
     CblasRowMajor, Uplo, Trans,
     N, K,
     alpha,
-    A.Data().Buffer(), A.Columns(),
+    A.Data().Buffer(), Ac,
     beta,
-    C.GetData().GetBuffer(), C.Columns()
+    C.GetData().GetBuffer(), Cc
   );
 //VBR: Comprobar si hay error
   return(0);
