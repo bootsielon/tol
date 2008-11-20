@@ -325,7 +325,7 @@ proc ::tolsh::run { cmdline } {
   }
 
   set appdata [string trim \
-               [lindex [::tol::info var Text TolAppDataPath] 0] \"]
+               [lindex [::tol::info var [list Text TolAppDataPath]] 2] \"]
 
   set tolcomm_dir [file join $appdata tolcomm] 
   file mkdir $tolcomm_dir
