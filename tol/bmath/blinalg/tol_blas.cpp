@@ -22,12 +22,29 @@
 #include <win_tolinc.h>
 #endif
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #include <tol/tol_blas.h> 
+#include <tol/tol_bout.h> 
 
 BTraceInit("tol_blas.cpp");
 
 #define b2dMat(M) ((BMatrix<double>&)(M))
 #define cb2dMat(M) ((const BMatrix<double>&)(M))
+
+void cblas_xerbla(int p, char *rout, char *form, ...)
+{
+char buffer[1024];
+va_list argptr;
+
+va_start(argptr, form);
+sprintf(buffer, "Parameter %d to routine %s was incorrect\n", p, rout);
+Error(buffer);
+vsnprintf(buffer, 1023, form, argptr);
+Error(buffer);
+va_end(argptr);
+}
 
 /////////////////////////////////////////////////////////////////////////////
 namespace TolBlas {
@@ -51,24 +68,32 @@ int dgemm(const enum CBLAS_TRANSPOSE TransA,
 /////////////////////////////////////////////////////////////////////////////
 {
   int M,N,K;
+  int Ar = A.Rows();
+  int Br = B.Rows();
+  int Ac = A.Columns();
+  int Bc = B.Columns();
   if (TransA==CblasNoTrans) {
-    M = A.Rows();
-    K = A.Columns();
+    M = Ar;
+    K = Ac;
   } else {
-    M = A.Columns();
-    K = A.Rows();
+    M = Ac;
+    K = Ar;
   }
-  N = TransB==CblasNoTrans ? B.Columns() : B.Rows();
+  N = TransB==CblasNoTrans ? Bc : Br;
   C.Alloc(M,N);
+  C.SetAllValuesTo(0);
+  const double* A_ = A.Data().Buffer();
+  const double* B_ = B.Data().Buffer();
+  double* C_ = C.GetData().GetBuffer();
   cblas_dgemm
   (
     CblasRowMajor, TransA, TransB,
     M, N, K,
     alpha,
-    A.Data().Buffer(), A.Columns(),
-    B.Data().Buffer(), B.Columns(),
+    A_, Ac,
+    B_, Bc,
     beta,
-    C.GetData().GetBuffer(), C.Columns()
+    C_, N
   );
 //VBR: Comprobar si hay error
   return(0);
@@ -114,6 +139,7 @@ int dsyrk(const enum CBLAS_UPLO Uplo,
     K = A.Rows();
   }
   C.Alloc(N,N);
+  C.SetAllValuesTo(0);
   cblas_dsyrk
   (
     CblasRowMajor, Uplo, Trans,
