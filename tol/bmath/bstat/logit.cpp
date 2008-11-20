@@ -73,11 +73,22 @@ BBool Logit(const BMatrix    <BDat>& y,
   B.SetAllValuesTo(0);
   clock_t tm_1, tm_0 = BTimer::Clocks();
   BReal tm_dif;
+
   for(iter=0; iter<BDat::MaxIter(); iter++)
   {
     H_.SetAllValuesTo(0);
     G.SetAllValuesTo(0);
-    p = X*B;
+    if(iter==0)
+    {
+      p.SetAllValuesTo(0);
+    }
+    else
+    {
+    //Std(BText("\nTRACE Logit B=\n")+B.Name());
+    //Std(BText("\nTRACE Logit X=\n")+X.Name());
+      p = X*B;
+    //Std(BText("\nTRACE Logit p=\n")+p.Name());
+    }
     oldLlh = lnLikelyhood;
     lnLikelyhood=0;
     for(i=0; i<N; i++)
