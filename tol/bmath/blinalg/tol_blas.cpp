@@ -149,6 +149,7 @@ int dsyrk(const enum CBLAS_UPLO Uplo,
   }
   if(beta==0.0)
   {
+    Cc = N;
     C.Alloc(N,N);
     C.SetAllValuesTo(0);
   }
