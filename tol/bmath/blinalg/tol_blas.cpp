@@ -82,7 +82,7 @@ int dgemm(const enum CBLAS_TRANSPOSE TransA,
     K = Ar;
   }
   N = TransB==CblasNoTrans ? Bc : Br;
-  if((beta==0.0)&&(!Cr|!Cc))
+  if(beta==0.0)
   {
     C.Alloc(M,N);
     C.SetAllValuesTo(0);
@@ -147,7 +147,7 @@ int dsyrk(const enum CBLAS_UPLO Uplo,
     N = Ac;
     K = Ar;
   }
-  if((beta==0.0)&&(!Cr|!Cc))
+  if(beta==0.0)
   {
     C.Alloc(N,N);
     C.SetAllValuesTo(0);
