@@ -6345,6 +6345,113 @@ void BMatSliceSampler1D::CalcContens()
   Quantile(m_, p_, contens_.GetData());
 }
 
+//--------------------------------------------------------------------
+class BMatOrder
+//--------------------------------------------------------------------
+{
+ private:
+  static const BMatrix<BDat>* mat_;
+  static const BArray<int>*   criterium_;
+ public:
+  static int Compare(const void* v1, const void* v2)
+  {
+    int i1 = *(int*)v1;
+    int i2 = *(int*)v2;
+    int k,j,h;
+    for(k=0; k<criterium_->Size(); k++)
+    {
+      h = (*criterium_)[k];
+      if(h>0)
+      {
+        j=h-1;
+        const BDat& m1 = (*mat_)(i1,j);
+        const BDat& m2 = (*mat_)(i2,j);
+        if(m1<m2) { return(-1); }
+        if(m1>m2) { return(+1); }
+      }
+      else 
+      {
+        j=-h-1;
+        const BDat& m1 = (*mat_)(i1,j);
+        const BDat& m2 = (*mat_)(i2,j);
+        if(m1<m2) { return(+1); }
+        if(m1>m2) { return(-1); }
+      }
+    }
+    return(0);
+  }
+  static void Sort(const BMatrix<BDat>& mat, 
+            const BArray<int>& criterium,
+            BArray<int>& perm) 
+  {
+    mat_ = &mat;
+    criterium_ = &criterium;
+    int i;
+    perm.AllocBuffer(mat.Rows());
+    for(i=0;i<perm.Size();i++)
+    {
+      perm[i]=i;
+    }
+    perm.Sort(Compare);
+  }
+};
+
+const BMatrix<BDat>* BMatOrder::mat_ = NULL;
+const BArray<int>*   BMatOrder::criterium_ = NULL;
+  
+  //--------------------------------------------------------------------
+  DeclareContensClass(BMat, BMatTemporary, BMatSort);
+  DefExtOpr(1, BMatSort, "Sort", 2, 2, "Matrix Set",
+  "(Matrix mat, Set criterium)",
+  I2("Sorts rows of a matrix given a mixed criterium of ascent or "
+     "descent columns. For example, criterium=[[-2,3]] sorts by 2-nd "
+     "column descent and 3-th one ascent in case of tie."
+     "Returns the permutation matrix p such that PivotByRows(mat,p) "
+     "is the sorted matrix.",
+     "Ordena las filas de una matriz dado un criterio mezclado de "
+     "columnas ascendentes y descendentes. Por ejemplo, criterium="
+     "[[-2,3]] ordena por la segunda columna descendente y por la "
+     "tercera ascendente en caso de empate."
+     "Devuelve la matriz de permutación tal que PivotByRows(mat,p) "
+     "es la matriz ordenada."),
+     BOperClassify::Statistic_);
+  void BMatSort::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& m = Mat(Arg(1));
+  BSet& c = Set(Arg(2));
+  BArray<int> c_(c.Card());
+  BArray<int> p(m.Rows());
+  contens_.Alloc(m.Rows(),1);
+  int j,k;
+  bool ok=true;
+  double x;
+  for(k=0; k<c.Card(); k++)
+  {
+    ok=false;
+    if(c[k+1]->Grammar()==GraReal())
+    {
+      x = Real(c[k+1]);
+      c_[k]=(int)x;
+      j=abs(c_[k]);
+      if((x==c_[k])&&(1<=j)&&(j<=m.Columns()))
+      {
+        ok=true;
+      }
+      if(!ok)
+      {
+        Error(BText("[Matrix Sort] Wrong criterium order field number ")+
+          (k+1)+": "+c[k+1]->Identify());
+      }
+    }
+  }
+  BMatOrder::Sort(m,c_,p);
+  for(k=0;k<m.Rows();k++)
+  {
+    contens_(k,0)=p[k]+1;
+  }
+}
+
 #ifdef __USE_DEPRECATED_LINALG_METHOD__
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BMatJordanIterative);
