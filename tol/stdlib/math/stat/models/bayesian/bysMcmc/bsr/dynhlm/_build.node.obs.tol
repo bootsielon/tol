@@ -35,6 +35,7 @@ NameBlock Obs.Serie.Info(
 {[[
   Text _.id_node = id_node;
   Text _.name = name;
+  Real _.isTimeSerie = True;
   Serie _.serie = serie;
   Real _.avg = 
   {
@@ -62,6 +63,10 @@ NameBlock Obs.Serie.Info(
   Date _.lastDate  = last;
   //Sorted list of analyzed dates
   Set _.dates = Dates(Dating(_.serie), _.firstIniVal, _.lastDate);
+  Real Get.Equation.Size(Real unused) 
+  { 
+    Card(_.dates) 
+  };
   Serie _.unk.left = SubSer(CalInd(Dating(_.serie),Dating(_.serie)), 
                        _.firstIniVal, Succ(First(_.serie),Dating(_.serie),-1));
   Serie _.unk.right = SubSer(CalInd(Dating(_.serie),Dating(_.serie)), 
@@ -146,6 +151,7 @@ NameBlock Obs.Vector.Info(
 {[[
   Text _.id_node = id_node;
   Text _.name = name;
+  Real _.isTimeSerie = False;
   Matrix _.serie = serie;
   Real _.avg = 
   {
@@ -166,14 +172,18 @@ NameBlock Obs.Vector.Info(
   Text missing.name(Real num)
   {
     Text txt = IntText(num);
-    "MissingBlk::"+_.missing.label+"::"+_.name+"::"+txt
+    "MissingBlk::"+_.missing.label+"::"+_.name+"::N"+txt
+  };
+  Real Get.Equation.Size(Real unused) 
+  { 
+    Rows(_.serie) 
   };
   //Returns the expression of the t-th regression coefficient that could be a
   //a known real datum or the identifier of a missing value
   Text get.coef(Real t)
   {
   //WriteLn("TRACE get.coef t="<<t);
-    Real x = MatDat(_.serie, t);
+    Real x = MatDat(_.serie, t, 1);
     If(IsUnknown(x),
        "+"+missing.name(num),
        BysMcmc::Bsr::Import::RealTextS(x))
@@ -181,18 +191,24 @@ NameBlock Obs.Vector.Info(
   Text get.knownCoefOrAvg(Real t)
   {
   //WriteLn("TRACE get.knownCoefOrAvg t="<<t);
-    Real x = MatDat(_.serie, t);
+    Real x = MatDat(_.serie, t,1);
     BysMcmc::Bsr::Import::RealTextS(If(IsUnknown(x),_.avg, x))
   };
   //Sorted list of variables related to missing values
-  Set _.missing = EvalSet(Range(1,Rows(_.serie),1),Set(Real num)
+  Set _.missing = 
   {
-    Bsr.Missing.Info(Text Name = missing.name(num), 
-                     Real Average = _.avg, 
-                     Real Sigma = _.stds*_.missing.sigmaFactor, 
-                     Real LowerBound = _.missing.lowerBound, 
-                     Real UpperBound = _.missing.upperBound)
-  })
+    Set aux = EvalSet(Range(1,Rows(_.serie),1),Set(Real num)
+    {
+      Real x = MatDat(_.serie,num,1);
+      If(!IsUnknown(x),Copy(Empty),
+      Bsr.Missing.Info(Text Name = missing.name(num), 
+                       Real Average = _.avg, 
+                       Real Sigma = _.stds*_.missing.sigmaFactor, 
+                       Real LowerBound = _.missing.lowerBound, 
+                       Real UpperBound = _.missing.upperBound))
+    });
+    Select(aux,Card)
+  }
 ]]};
 
 //////////////////////////////////////////////////////////////////////////////
@@ -502,16 +518,17 @@ NameBlock Obs(
   // REGRESSION EQUATIONS
   Set Get.TimeInfo(Real unused)
   {
+    If(Not(_.output::_.serie.info::_.isTimeSerie),Copy(Empty),
     BSR.NoiseTimeInfo
     (
       Dating(_.output::_.serie.info::_.serie),
       _.output::_.serie.info::_.firstDate,
       _.output::_.serie.info::_.lastDate
-    )
+    ))
   };
   Real Get.Equation.Size(Real unused) 
   { 
-    Card(_.output::_.serie.info::_.dates) 
+    _.output::_.serie.info::Get.Equation.Size(0)
   };
   //Returns Real known output or Text missing name
   Text Get.Equation.Output(Real t)
