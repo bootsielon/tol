@@ -346,9 +346,15 @@ DLLEXPORT(int) mysql_GetAsText(mysqld *dbd, int n_field, char **txt_val)
   if (dbd->result) 
   {
     if(dbd->result->current_row[n_field])
+    {
       *txt_val = (char*)dbd->result->current_row[n_field];
-
-    return 1;
+      return 1;
+    }
+    else
+    {
+      *txt_val=NULL;
+      return 2;
+    }
   } 
 
   return 0;
@@ -369,7 +375,7 @@ DLLEXPORT(int) mysql_GetAsDate(mysqld *dbd, int nfield, struct dateStruct **date
     type = dbd->result->fields[nfield].type;
 
     if (dbd->result->current_row[nfield]==NULL) {
-      return 0;
+    return 2;
     }
 
     switch (type)
