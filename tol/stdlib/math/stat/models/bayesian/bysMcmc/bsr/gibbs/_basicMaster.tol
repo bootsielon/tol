@@ -193,7 +193,8 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 6");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 7");
-    VMatrix _.noise := _.YplusV-_.XplusU*_.beta;
+    VMatrix _.filter := _.XplusU*_.beta;
+    VMatrix _.noise := _.YplusV-_.filter;
     VMatrix arm = _.arm.blk::draw(0, _.noise,_.sig.blk::_.blockDef::_.store);
   //WriteLn("TRACE"+_MID+" draw.sig.lin 3");
     VMatrix e = _.arm.blk::filter(_.noise);
