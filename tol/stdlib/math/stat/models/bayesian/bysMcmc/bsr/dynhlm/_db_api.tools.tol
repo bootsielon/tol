@@ -67,7 +67,7 @@ Real SqlExecScript(Text filePath)
 Text SqlFormatDate(Date dte)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SqlEngine::SqlFormatDate(dte, _.engine)
+  If(""<<dte=="Unknown","NULL", SqlEngine::SqlFormatDate(dte, _.engine))
  //FormatDate(dte,"'%c%Y-%m-%d %h:%i:%s'")
 };
 
