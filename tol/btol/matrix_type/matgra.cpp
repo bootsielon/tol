@@ -354,12 +354,14 @@ void BBM_BinRead(const BText& fileName, BMat& M)
 }
 
 //--------------------------------------------------------------------
-void BBM_BinReadRows(const BText& fileName, BMat& M, int i, int r)
+void BBM_BinReadRows(const BText& fileName, BMat& M, 
+                     int i, int r, int t=1)
 //--------------------------------------------------------------------
 {
 #ifdef BBM_CHECK_SIZE
   BInt fs = GetFileSize(fileName);
 #endif
+  int k, tr = t*r;
 //Std(BText("\nBBM_BinRead ")+fileName+" bytes "+fs);
   FILE* fil = fopen(fileName.String(),"rb");
   if(!fil)
@@ -380,10 +382,10 @@ void BBM_BinReadRows(const BText& fileName, BMat& M, int i, int r)
   }
   if(i==-1)
   {
-    i = m-r;
+    i = m-tr;
   }
-  if((0> i)||(i    >=m)||
-     (0>=r)||(i+r-1>=m) ) 
+  if((0>  i)||(i     >=m)||
+     (0>=tr)||(i+tr-1>=m) ) 
   { 
     fclose(fil);
     return; 
@@ -398,7 +400,24 @@ void BBM_BinReadRows(const BText& fileName, BMat& M, int i, int r)
     if(M.Rows()!=r) { return; }
     int pos = 2*sizeof(BInt)+(i*n)*sizeof(BDat);
     fseek(fil,pos,SEEK_SET);
-    fread(M.GetData().GetBuffer(), sizeof(BDat), M.Data().Size(), fil);
+    BDat* ptr = M.GetData().GetBuffer();
+    if(t==1)
+    {
+      fread(ptr, sizeof(BDat), M.Data().Size(), fil);
+    }
+    else
+    {
+      for(k=0; k<r; k++)
+      {
+        if(k>0)
+        {
+          pos = 2*sizeof(BInt)+((i+k*t)*n)*sizeof(BDat);
+          fseek(fil,pos,SEEK_SET);
+        }
+        fread(ptr, sizeof(BDat), n, fil);
+        ptr += n;
+      }
+    }
   }
   if(fclose(fil))
   {
@@ -440,6 +459,25 @@ void BBM_BinReadCell(const BText& fileName, BDat& cell, int i, int j)
           fileName);
   };
   BBM_CheckSize("BBM_BinReadCell",fileName,m,n);
+}
+
+//--------------------------------------------------------------------
+void BBM_BinReadDimensions(const BText& fileName, 
+                           int& rows, int& columns)
+//--------------------------------------------------------------------
+{
+  BInt fs = GetFileSize(fileName);
+//Std(BText("\nBBM_BinRead ")+fileName+" bytes "+fs);
+  FILE* fil = fopen(fileName.String(),"rb");
+  if(!fil)
+  {
+    Error(I2("Cannot open for read BBM file ",
+             "No se pudo abrir para lectura el fichero BBM ")+
+          fileName);
+    return; 
+  }
+  fread(&rows,   sizeof(BInt),1,fil);
+  fread(&columns,sizeof(BInt),1,fil);
 }
 
 //--------------------------------------------------------------------
@@ -489,10 +527,33 @@ void BMatReadFile::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BMatReadDimensions);
+DefExtOpr(1, BMatReadDimensions, "MatReadDimensions", 1, 1, "Text",
+  "(Text filename)",
+  I2("Returns rows and columns of the matrix stored in a file with "
+     "binary format",
+     "Devuelve el número de filas y columnas de la matriz almacenada "
+     "en un fichero con formato binario"),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatReadDimensions::CalcContens()
+//--------------------------------------------------------------------
+{
+  BText& f = Text(Arg(1));
+  int rows, cols;
+  BBM_BinReadDimensions(f,rows, cols);
+  BUserDat* r_ = BContensDat::New("",rows,"Number of stored rows");
+  BUserDat* c_ = BContensDat::New("",cols,"Number of stored columns.");
+  r_->PutName("Rows");
+  c_->PutName("Columns");
+  contens_.PrepareStore(2);
+  contens_.AddElement(r_);
+  contens_.AddElement(c_);
+}
+//--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatReadRows);
-DefExtOpr(1, BMatReadRows, "MatReadRows", 3, 3, "Text Real Real",
-  I2("(Text filename, Real firstRow, Real numRows)",
-     "(Text nombreFichero, Real primeraFila, Real numFilas)"),
+DefExtOpr(1, BMatReadRows, "MatReadRows", 3, 4, "Text Real Real Real",
+  "(Text filename, Real firstRow, Real numRows [, Real thinning=1])",
   I2("Reads a range of rows of a matrix from a file in binary format",
      "Lee un rango de filas de una matriz de un fichero en formato binario"),
     BOperClassify::MatrixAlgebra_);
@@ -503,7 +564,9 @@ void BMatReadRows::CalcContens()
   BText& f =      Text(Arg(1));
   int    i = (int)Real(Arg(2))-1;
   int    r = (int)Real(Arg(3));
-  BBM_BinReadRows(f,contens_,i,r);
+  int    t = 1;
+  if(Arg(4)) { t = (int)Real(Arg(4)); }
+  BBM_BinReadRows(f,contens_,i,r,t);
 }
 //--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BMatReadCell);
