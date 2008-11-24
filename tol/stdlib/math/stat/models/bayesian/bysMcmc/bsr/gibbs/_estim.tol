@@ -45,8 +45,8 @@ Set EstimParsed(BSR.ModelDef parsed,
     Text _.mcmc.path = cycler::_.path;
     Real stored.simulations(Real unused)
     {
-      Matrix mcmc.full = MatReadFile(path);
-      Rows(mcmc.full)
+      Set mcmc.dim = MatReadDimensions(path);
+      mcmc.dim::Rows
     };
     Set report(Real burnin, Real length, Real thinning)
     {
