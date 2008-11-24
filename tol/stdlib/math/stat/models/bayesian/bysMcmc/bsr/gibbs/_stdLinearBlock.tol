@@ -37,6 +37,8 @@ Text _.autodoc.member.StdLinearBlock =
   VMatrix _.At = Rand(0,0,0,0);
   //Matrix of border of constraining inequations
   VMatrix _.a  = Rand(0,0,0,0);
+  //Transformed restrictions
+  VMatrix _.D = Rand(0,0,0,0);
   //Cholesky decomposition of current information matrix that is not
   //explicitely stored
   VMatrix _.L  = Rand(0,0,0,0);
@@ -47,6 +49,9 @@ Text _.autodoc.member.StdLinearBlock =
   //should to set this member as TRUE to avoid unneeded Cholesky 
   //factorizations
   Real design.is.constant = False;
+  //Matrix of linear system in last iteration
+  VMatrix _old.X  = Rand(0,0,0,0); 
+  Real _changed.X = True;
 
   //Maximum accepted rounding error for Choleski operations
   Real _.eps  = _.blockDef::_.config::bsr.cholesky.epsilon*_.N*(_.N+1);
@@ -114,26 +119,36 @@ Text _.autodoc.member.StdLinearBlock =
   //WriteLn("TRACE"+_MID+" factorize X("<<VRows(X)+"x"<<VColumns(X)+")");
     If(And(design.is.constant,VRows(_.L)), 0,
     {
-      Real sparse = VNonNullCells(X)/(VRows(X)*VColumns(X));
-      Real numErr = Copy(NError);
-      VMatrix _.L := If(sparse<.20, 
+      Real _changed.X := If(Or(VColumns(X)!=VColumns(_old.X),
+                               VRows   (X)!=VRows   (_old.X)), -1,
       {
-        CholeskiFactor(X,"XtX")
-      },
-      {
-        VMatrix X_   = Convert(X,"Blas.R.Dense");
-        VMatrix XtX_ = MtMSqr(X_);
-        VMatrix XtX  = Convert(XtX_,"Cholmod.R.Sparse");
-        CholeskiFactor(XtX,"X")
+        1+VMatMax(Abs(X-_old.X))-1
       });
-      Real If(Copy(NError)>numErr,
+      If(!_changed.X ,0,
       {
-        Text path = TolAppDataPath+"tmp/"+ToName(_MID)+".oza";
-        WriteLn("Failed factorization matrix will be stored into "+path);
-        Ois.Store([[X]],path)
-      });
-      VMatrix If(_.R, _.Ls := Convert(_.L, "Cholmod.R.Sparse"));
-      1
+        WriteLn("TRACE"+_MID+" factorize changed="<<_changed.X );
+        Real sparse = VNonNullCells(X)/(VRows(X)*VColumns(X));
+        Real numErr = Copy(NError);
+        VMatrix _.L := If(sparse<.20, 
+        {
+          CholeskiFactor(X,"XtX")
+        },
+        {
+          VMatrix X_   = Convert(X,"Blas.R.Dense");
+          VMatrix XtX_ = MtMSqr(X_);
+          VMatrix XtX  = Convert(XtX_,"Cholmod.R.Sparse");
+          CholeskiFactor(XtX,"X")
+        });
+        Real If(Copy(NError)>numErr,
+        {
+          Text path = TolAppDataPath+"tmp/"+ToName(_MID)+".oza";
+          WriteLn("Failed factorization matrix will be stored into "+path);
+          Ois.Store([[X]],path)
+        });
+        VMatrix If(_.R, _.Ls := Convert(_.L, "Cholmod.R.Sparse"));
+        VMatrix _old.X := X;
+        1
+      })
     }) 
   };
   
@@ -198,13 +213,13 @@ Text _.autodoc.member.StdLinearBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" draw.constrained 1.1 Max(A*b0-a)="<<VMatMax(_.A*_.blockDef::_.store - a));
-    VMatrix   d   = _.a - _.A*sr::nu;
-    VMatrix   D   = Tra(CholeskiSolve(_.L,_.At,"PtL"));
-    VMatrix   z0  = Tra(Tra(_.blockDef::_.store-sr::nu)*_.Ls);
-  //WriteLn("TRACE "+_MID+" draw.constrained 1.2 Max(D*z0-d)="<<VMatMax(D*z0 - d));
-    VMatrix   z   = TruncStdGaussian(D,d,z0,1,
-                     _.blockDef::_.config::bsr.truncMNormal.gibbsNumIter);
-    Real distBorder = VMatMax(D*z-d);
+    VMatrix d   = _.a - _.A*sr::nu;
+    VMatrix If(_changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
+    VMatrix z0  = Tra(Tra(_.blockDef::_.store-sr::nu)*_.Ls);
+  //WriteLn("TRACE "+_MID+" draw.constrained 1.2 Max(D*z0-d)="<<VMatMax(_.D*z0 - d));
+    VMatrix z = TruncStdGaussian(_.D,d,z0,1,
+                 _.blockDef::_.config::bsr.truncMNormal.gibbsNumIter);
+    Real distBorder = VMatMax(_.D*z-d);
     Real If(distBorder<=0,
     {
       VMatrix _.beta0 := _.blockDef::_.store;
@@ -212,11 +227,11 @@ Text _.autodoc.member.StdLinearBlock =
     },
     {
       WriteLn(_MID+" Found a point that doesn't match constrains Max(D*z-d)="<<
-        VMatMax(D*z-d)+"\n Trying again");
+        VMatMax(_.D*z-d)+"\n Trying again");
       If(!VRows(_.beta0),0,
       {
         VMatrix z0 := Tra(Tra(_.beta0-sr::nu)*_.Ls);
-        VMatrix z  := TruncStdGaussian(D,d,z0,1,
+        VMatrix z  := TruncStdGaussian(_.D,d,z0,1,
                      _.blockDef::_.config::bsr.truncMNormal.gibbsNumIter);
         1
       });
