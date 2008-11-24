@@ -52,6 +52,10 @@ NameBlock Gibbs =
   Set _deltaTransfer = Include("_deltaTransfer.tol");
   Code DeltaTransfer;
 
+  //The filter evaluator for probit models
+  Set _probitFilter = Include("_probitFilter.tol");
+  Code ProbitFilter;
+
   //Estimation methods
   Set _estim = Include("_estim.tol");
   Code EstimParsed;
