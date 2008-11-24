@@ -474,8 +474,7 @@ Text _.autodoc.member.loadMcmc =
 Matrix loadMcmc(Text path, Real burnin, Real length, Real thinning)
 ////////////////////////////////////////////////////////////////////////////
 {
-  Matrix aux = MatReadRows(path, burnin, length*thinning);
-  SubRow(aux,Range(1,length*thinning,thinning))
+  MatReadRows(path, burnin, length, thinning)
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -483,8 +482,8 @@ Matrix loadMcmc(Text path, Real burnin, Real length, Real thinning)
                     Text name, Set colNames_, Set repCfg)
 /////////////////////////////////////////////////////////////////////////////
 {
-  Matrix mcmc.full = MatReadFile(path);
-  Real max = (Rows(mcmc.full)-burnin)/thinning;
+  Set mcmc.dim = MatReadDimensions(path);
+  Real max = (mcmc.dim::Rows-burnin)/thinning;
   Real length = Min(max,length_);
   Matrix mcmc_ = BysMcmc::Inference::loadMcmc(path, burnin, length, thinning);
   Set idx_ = Range(1,Columns(mcmc_),1);
