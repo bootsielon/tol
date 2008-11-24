@@ -104,9 +104,9 @@ NameBlock BuildCycler(NameBlock modelSampler,
         0
       },
       {
-        Matrix old.mcmc = MatReadFile(_.path);
-        Real m = Rows(old.mcmc);
-        Real n = Columns(old.mcmc);
+        Set old.mcmc.dim = MatReadDimensions(_.path);
+        Real m = old.mcmc.dim::Rows;
+        Real n = old.mcmc.dim::Columns;
         Case(
         Not(m),
         {
