@@ -657,17 +657,24 @@ method _fillSubDimHie {mag dim sDi trigger} {
               set infCols [ list cod $abr ]
               if {$par ne ""} {
                  set paridx [$self _findcode $alg(sDi,$mag,$dim,-hie,$sDi) $par]
+#				 set cmd "Text WriteLn(\"already inserted pairs $mag $dim $sDi : $alg(sDi,$mag,$dim,-hie,$sDi) \");"
+#                 ::tol::console eval $cmd
                  if { $paridx >= 0 } {
                    set plottedreg [ lreplace $plottedreg $regidx $regidx 1 ]
                    set plotted [expr $plotted+1]
                    set idx [ $tmp($mag,$dim,$sDi) insertNode $paridx 0 $mark $abr $nom $infCols ]
+				   lappend alg(sDi,$mag,$dim,-hie,$sDi) [list $idx $abr]
+#				   set cmd "Text WriteLn(\"Inserting it $iteration $abr $nom ($idx) parent $par ($paridx) \");"
+#                   ::tol::console eval $cmd
                  }
               } else {
                  set plottedreg [ lreplace $plottedreg $regidx $regidx 1 ]
                  set plotted [expr $plotted+1]
                  set idx [ $tmp($mag,$dim,$sDi) insertNode root 0 $mark $abr $nom $infCols ]
+				 lappend alg(sDi,$mag,$dim,-hie,$sDi) [list $idx $abr]
+#				   set cmd "Text WriteLn(\"Inserting it $iteration $abr $nom ($idx) \");"
+#                   ::tol::console eval $cmd
               }
-              lappend alg(sDi,$mag,$dim,-hie,$sDi) [list $idx $abr]
           }
           set regidx [expr $regidx+1]
        }
