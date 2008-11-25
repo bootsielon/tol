@@ -51,6 +51,7 @@ public:
 
   BText Dump       () const { return(Identify()); };
   BText GetIdentify() const { return(Identify()); };
+  BSyntaxObject* CopyContens ();
 
   bool IsBounded () const 
   {

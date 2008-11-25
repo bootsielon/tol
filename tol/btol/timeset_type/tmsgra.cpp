@@ -78,7 +78,7 @@ BArray<BCacheInfo> BTmsStaticCached<BTmsTemporary, BI_SECOND>::cacheInfo_(60);
 
 //--------------------------------------------------------------------
 template<>
-BDat BGraObject<BTimeSet>::Compare(const BSyntaxObject* obj1,
+BDat BUserTimeSet::Compare(const BSyntaxObject* obj1,
 			   const BSyntaxObject* obj2)
 //--------------------------------------------------------------------
 {
@@ -105,7 +105,7 @@ static BBool forzeLinkers_ = //ForzeLinkerTmsGraContinuous() &&
 //--------------------------------------------------------------------
 BTraceInit("tmsgra.cpp");
 template<>
-BGrammar* BGraObject<BTimeSet>::ownGrammar_ = NIL;
+BGrammar* BUserTimeSet::ownGrammar_ = NIL;
 
 static bool initAllCache_ = InitAllCache();
 
@@ -164,7 +164,7 @@ BInt SelectAxisDates(BUserTimeSet* axisTms,
  *  InitGrammar is called.
  */
 template<>
-void BGraObject<BTimeSet>::InitInstances()
+void BUserTimeSet::InitInstances()
 {
     BTraceInit("BUserTimeSet::InitInstances");
     BTmsVoid*	 void_	        = new BTmsVoid;
@@ -181,7 +181,7 @@ void BGraObject<BTimeSet>::InitInstances()
 /*! Returns a valid constant time set for name.
  */
 template<>
-BSyntaxObject* BGraObject<BTimeSet>::FindConstant (const BText&)
+BSyntaxObject* BUserTimeSet::FindConstant (const BText&)
 { return(NIL); }
 
 
@@ -189,12 +189,19 @@ BSyntaxObject* BGraObject<BTimeSet>::FindConstant (const BText&)
 /*! Returns a valid time set for obj.
  */
 template<>
-BSyntaxObject* BGraObject<BTimeSet>::Casting(BSyntaxObject* obj)
+BSyntaxObject* BUserTimeSet::Casting(BSyntaxObject* obj)
 {
     if(!obj)			       { return(NIL); }
     if(obj->Grammar()==OwnGrammar())   { return(obj); }
     if(obj->Grammar()->Name()=="Date") { return(new BTmsOneDay(NCons(obj))); }
     return(NIL);
+}
+
+//--------------------------------------------------------------------
+BSyntaxObject* BUserTimeSet::CopyContens()
+//--------------------------------------------------------------------
+{
+  return(OwnGrammar()->New("",this));
 }
 
 //--------------------------------------------------------------------
