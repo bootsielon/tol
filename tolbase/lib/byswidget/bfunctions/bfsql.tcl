@@ -338,7 +338,7 @@ proc SqlValidateData {P typFie} {
         switch $gestor {
           "Mic" { set valFor "convert(datetime,'${value}',121)"            }
           "Ora" { set valFor "to_date('${value}','YYYY-MM-DD HH24:MI:SS')" }
-          "Pos" { set valFor "to_date('${value}','YYYY-MM-DD HH24:MI:SS')" }
+          "Pos" { set valFor "to_date('${value}','YYYYMMDD HH24:MI:SS')" }
           "Mys" { set valFor "str_to_date('${value}','%Y%m%d %H:%i:%s')" }
           default { error "Gestor no implementado $gestor"  }
         }
@@ -418,7 +418,7 @@ proc SqlValidateData {P typFie} {
           set delimeter {{to_date('} {','YYYY-MM-DD HH24:MI:SS')}}        
         }
         "Pos" {
-          set delimeter {{to_date('} {','YYYY-MM-DD HH24:MI:SS')}}        
+          set delimeter {{to_date('} {','YYYYMMDD HH24:MI:SS')}}        
         }
         default { error "Variable DBA (Gestor) not defined"  }
       }
