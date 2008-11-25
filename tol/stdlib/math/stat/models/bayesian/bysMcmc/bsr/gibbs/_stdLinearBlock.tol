@@ -126,7 +126,7 @@ Text _.autodoc.member.StdLinearBlock =
       });
       If(!_changed.X ,0,
       {
-        WriteLn("TRACE"+_MID+" factorize changed="<<_changed.X );
+      //WriteLn("TRACE"+_MID+" factorize changed="<<_changed.X );
         Real sparse = VNonNullCells(X)/(VRows(X)*VColumns(X));
         Real numErr = Copy(NError);
         VMatrix _.L := If(sparse<.20, 
