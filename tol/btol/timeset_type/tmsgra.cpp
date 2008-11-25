@@ -78,8 +78,8 @@ BArray<BCacheInfo> BTmsStaticCached<BTmsTemporary, BI_SECOND>::cacheInfo_(60);
 
 //--------------------------------------------------------------------
 template<>
-BDat BUserTimeSet::Compare(const BSyntaxObject* obj1,
-			   const BSyntaxObject* obj2)
+BDat BGraObject<BTimeSet>::Compare(const BSyntaxObject* obj1,
+                                   const BSyntaxObject* obj2)
 //--------------------------------------------------------------------
 {
     BText name1 = obj1->Name();
@@ -105,7 +105,7 @@ static BBool forzeLinkers_ = //ForzeLinkerTmsGraContinuous() &&
 //--------------------------------------------------------------------
 BTraceInit("tmsgra.cpp");
 template<>
-BGrammar* BUserTimeSet::ownGrammar_ = NIL;
+BGrammar* BGraObject<BTimeSet>::ownGrammar_ = NIL;
 
 static bool initAllCache_ = InitAllCache();
 
@@ -164,7 +164,7 @@ BInt SelectAxisDates(BUserTimeSet* axisTms,
  *  InitGrammar is called.
  */
 template<>
-void BUserTimeSet::InitInstances()
+void BGraObject<BTimeSet>::InitInstances()
 {
     BTraceInit("BUserTimeSet::InitInstances");
     BTmsVoid*	 void_	        = new BTmsVoid;
@@ -181,7 +181,7 @@ void BUserTimeSet::InitInstances()
 /*! Returns a valid constant time set for name.
  */
 template<>
-BSyntaxObject* BUserTimeSet::FindConstant (const BText&)
+BSyntaxObject* BGraObject<BTimeSet>::FindConstant (const BText&)
 { return(NIL); }
 
 
@@ -189,7 +189,7 @@ BSyntaxObject* BUserTimeSet::FindConstant (const BText&)
 /*! Returns a valid time set for obj.
  */
 template<>
-BSyntaxObject* BUserTimeSet::Casting(BSyntaxObject* obj)
+BSyntaxObject* BGraObject<BTimeSet>::Casting(BSyntaxObject* obj)
 {
     if(!obj)			       { return(NIL); }
     if(obj->Grammar()==OwnGrammar())   { return(obj); }
