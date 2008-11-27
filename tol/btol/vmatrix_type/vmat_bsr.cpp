@@ -1873,10 +1873,10 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
       {
         xL [k] = sqrt(xCov[k]);
         xLi[k] = 1.0/xL[k];
-        if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-        if(err = expand2AllEqu(resInfo, L,   resInfo.L  )) { return(err); }
-        if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
       }
+      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
+      if(err = expand2AllEqu(resInfo, L,   resInfo.L  )) { return(err); }
+      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
     }
     else
     {
