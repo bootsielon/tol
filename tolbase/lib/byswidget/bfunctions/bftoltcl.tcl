@@ -124,7 +124,7 @@ proc TclInfoRef {obj args} {
 #/////////////////////////////////////////////////////////////////////////////
   # eval
   set cmd "::tol::info variable {$obj $args}"
-  #puts "cmd: $cmd"
+  #puts "TclInfoRef: cmd=$cmd"
   if {![catch {set lst [eval $cmd]}]} {
     set lstNam [list GRAMMAR NAME CONTENT PATH DESC ISFILE\
                      HASSUBSET SUBTYPE STRUCT]
@@ -201,29 +201,30 @@ proc TclRefToNameTol { ref } {
 # RETURN: name in format: namaVariable (variable without father)
 #                         namVarFat[x][y][z] (variable with father)
 #/////////////////////////////////////////////////////////////////////////////
-  Tolcon_Trace "TclRefToNameTol: ref-> $ref"
   set ref [lindex $ref 0]
+  #puts "TclRefToNameTol: ref=$ref"
   # the object belongs to a set?
   if {[expr [llength $ref] == 1]} {
     set namTol $ref
   } else  {
-    array set infRef [TclInfoRef [lrange $ref 0 1]]
+    #array set infRef [TclInfoRef [lrange $ref 0 1]]
+    array set infRef [TclInfoRef $ref]
     set namTol $infRef(NAME)
-    #Tolcon_Trace "TclRefToNameTol: namTol -> $namTol"
+    #puts "TclRefToNameTol: namTol=$namTol"
     # name ?
-    if {[string length $namTol]} {
+  #if {[string length $namTol]} {
       # ckeck parameters
-      if {[expr [llength $ref] > 2]} {
-        set lstInx [lrange $ref 2 end]
-        foreach ind $lstInx {
-          set namTol $namTol\[$ind\]
-        }
-      }
-    } else  {
-      set namTol {}
-    }
-  }
-  Tolcon_Trace "TclRefToNameTol: Nombre de la variable a usar -> $namTol"
+      #if {[expr [llength $ref] > 2]} {
+        #set lstInx [lrange $ref 2 end]
+        #foreach ind $lstInx {
+          #set namTol $namTol\[$ind\]
+        #}
+      #}
+    #} else  {
+      #set namTol {}
+    #}
+  #}
+  #puts "TclRefToNameTol: namTol=$namTol"
   return $namTol
 }
 
