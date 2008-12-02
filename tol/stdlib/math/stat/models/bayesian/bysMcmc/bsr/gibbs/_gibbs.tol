@@ -62,7 +62,13 @@ NameBlock Gibbs =
   Code EstimAscii;
   Code EstimAndNotify;
   Code NoNotifier;
-  Code Estim
+  Code Estim;
+
+  //Estimation methods for one node models
+  Set _estimOneNode = Include("_estimOneNode.tol");
+  Code EstimOneNode;
+  Code EstimOneNodeProbit
+
 ]];
  
 
