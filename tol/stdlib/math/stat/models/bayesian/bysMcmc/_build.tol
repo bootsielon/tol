@@ -118,7 +118,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
         {
           Real m_ = Case(
             resume_>0, Min(m,resume_),
-            resume_<0,  Max(0,m+resume_) );
+            resume_<0, Max(0,m+resume_) );
           If(m_==0,
           {
             WriteLn(_MID+"There are not enougth old simulations to resume");
@@ -127,14 +127,17 @@ NameBlock BuildCycler(NameBlock modelSampler,
           },
           {
             Real WriteLn(_MID+"resuming "<<m_+" old simulations");
-            Real If(m_==m,0,
+            Matrix resumed = If(m_==m,
+            {
+              MatReadFile(_.path)
+            },
             {
               Real WriteLn(_MID+"Removing last "<<Real(m-m_)+" old simulations");
-              Matrix resumed = Sub(old.mcmc,1,1,m_,_.n);
-              Matrix MatWriteFile(_.path, resumed);
-              1
+              Matrix aux = MatReadRows(_.path,1,m_,1);
+              Matrix MatWriteFile(_.path, aux);
+              aux
             });
-            Matrix lastRow = Sub(old.mcmc,m_,1,1,_.n);
+            Matrix lastRow = Sub(resumed,m_,1,1,_.n);
           //WriteLn("TRACE "+_MID+"lastRow="<<lastRow);
             Real _.sampler::setStore(lastRow);
             m_
