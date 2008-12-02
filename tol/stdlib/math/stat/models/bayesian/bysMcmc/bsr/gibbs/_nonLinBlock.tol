@@ -82,7 +82,7 @@ Text _.autodoc.member.NonLinBlock =
   });
   Code _.get.priorLogDens = If(FunctionExist("Real","_.filterEval::get.priorLogDens"),
     _.filterEval::get.priorLogDens,
-    Matrix (Real paramIdx) {Rand(0,1,0,0) } );
+    Real (Real paramIdx) { 0 } );
   //Names of affected parameters in linear block 
   //(just for input filters)
   Set _.linBlkNames = If(!_.isInputFilter, Copy(Empty),
