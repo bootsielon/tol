@@ -1,0 +1,142 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _estimOneNode.tol
+// PURPOSE: Declares estimation methods for simplified models with just one 
+//          node
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.EstimOneNode = 
+"Estimates a model with just one node, usually observational and dense."
+"Model is defined as a BSR basic and an optional set of non linear filters."
+"BSR will be built from simplified data argument matching this API"
+"NameBlock data = \n"
+"[[\n"
+"  Set  _.docInfo         //BSR.DocInfo \n"
+"  Text _.segmentName;    //Node name\n"
+"  Set _.linearParamInfo; //Set of Bsr.Param.Info\n"
+"  Matrix _.Y;            //Input data\n"
+"  Matrix _.X             //Output data\n"
+"]];\n";
+Set EstimOneNode(NameBlock data_, Set nonLinFil, NameBlock config_)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock data = data_;
+  Real m = Rows(data::_.Y);
+  Set linearBlock = EvalSet(data::_.linearParamInfo, Set(Bsr.Param.Info pi)
+  {
+    Set aux = [[BSR.LinearBlock(pi->Name, pi->InitValue)]];
+    Set PutName(pi->Name,aux[1]); 
+    aux[1]
+  });
+  Real SetIndexByName(linearBlock);
+  Set inputMissingBlock = Copy(Empty);
+  Set outputMissingBlock = Copy(Empty);
+  Set noiseDistrib_ = [[
+    BSR.NoiseDistrib(
+      Text Name = data::_.segmentName+"::Noise";
+      Real Nu = 0;
+      Text SigmaName = "";
+      Real SigmaIndex = -1;
+      Set Arima = Copy(Empty);
+      Set ArimaAuxInfo = Copy(Empty);
+      VMatrix Cov = Eye(m);
+      VMatrix L = Eye(m);
+      VMatrix Li = Eye(m);
+      Set EquIdx = Range(1,m,1);
+      Set TimeInfo = Copy(Empty)
+    )
+  ]];
+  Set noiseDistrib = For(1,Card(noiseDistrib_), Set(Real k)
+  {
+    Set PutName(noiseDistrib_[k]->Name,noiseDistrib_[k]);
+    noiseDistrib_[k]
+  });
+  Real SetIndexByName(noiseDistrib);
+  VMatrix Y = Mat2VMat(data::_.Y,FALSE,1,0);
+  VMatrix X = Mat2VMat(data::_.X,FALSE,1,0);
+  Set domain.aux = For(1,Card(data::_.linearParamInfo), NameBlock(Real j)
+  {[[
+    Set pi = data::_.linearParamInfo[j];
+    Real lb = GT(pi->Prior.LowerBound,Real -1/0);
+    Real ub = LT(pi->Prior.UpperBound,Real +1/0);
+    Matrix A.triplet = 
+      If(!lb, Rand(0,3,0,0), Row(j,j,-1)) <<
+      If(!ub, Rand(0,3,0,0), Row(j,j,+1));
+    Matrix a = 
+      If(!lb, Rand(0,1,0,0), Row(-pi->Prior.LowerBound)) <<
+      If(!ub, Rand(0,1,0,0), Row(+pi->Prior.UpperBound))
+  ]]});
+  Matrix domain.A.triplet = Group("ConcatRows",
+  EvalSet(domain.aux,Matrix(NameBlock da) { da::A.triplet }));
+  VMatrix domain.A = Triplet
+    (domain.A.triplet,Rows(domain.A.triplet),Card(data::_.linearParamInfo));
+  VMatrix domain.a = Mat2VMat(Group("ConcatRows",
+  EvalSet(domain.aux,Matrix(NameBlock da) { da::a })));
+  Set modelDef = BSR.ModelDef (
+    docInfo = data::_.docInfo,
+    linearBlock,
+    inputMissingBlock,
+    outputMissingBlock,
+    noiseDistrib,
+    Y,
+    X,
+    a=domain.a,
+    A=domain.A
+  );
+  Set aux = BysMcmc::Bsr::Gibbs::EstimParsed
+  (
+    modelDef,
+    nonLinearFilters, 
+    config_,
+    BysMcmc::Bsr::Gibbs::NoNotifier(0)
+  );
+  Set bsr.estim = [[data]]<<aux;
+  Real SetIndexByName(bsr.estim);
+  bsr.estim
+};
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.EstimOneNode,EstimOneNode);
+/////////////////////////////////////////////////////////////////////////////
+  
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.EstimOneNodeProbit = 
+"Estimates a model with just one node, usually observational and dense."
+"Model is defined as a BSR basic and an non linear ProbitFilter."
+"BSR will be built from simplified data argument matching this API"
+"NameBlock data = \n"
+"[[\n"
+"  Set  _.docInfo         //BSR.DocInfo \n"
+"  Text _.segmentName;    //Node name\n"
+"  Set _.linearParamInfo; //Set of Bsr.Param.Info\n"
+"  Matrix _.Y;            //Input data\n"
+"  Matrix _.X             //Output data\n"
+"]];\n";
+  NameBlock EstimOneNodeProbit(NameBlock data, NameBlock config_)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set nonLinearFilters = {[[
+  //Filtro no lineal del output para el modelo probit
+  NameBlock probitFilter = BysMcmc::Bsr::Gibbs::ProbitFilter(
+    Real enabled = True,
+    data::_.segmentName,
+    data::_.Y,
+    UnknownDate,
+    UnknownDate)
+  ]]};
+  [[
+    Set _.estim = BysMcmc::Bsr::Gibbs::EstimOneNode
+      (data, nonLinearFilters, config_);
+    Matrix _.param = Tra(_.estim::param.average);
+    Matrix GetProb(Matrix X)
+    { 
+      F01(X*_.param)
+    };
+    Matrix _.outputProb = GetProb(data::_.X)
+  ]]
+};
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.EstimOneNodeProbit,EstimOneNodeProbit);
+/////////////////////////////////////////////////////////////////////////////
+  
