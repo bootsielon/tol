@@ -119,6 +119,8 @@ INSERT INTO `bsrhlm_d_gibbs_block` (`id_gibbs_blk`,`ds_gibbs_blk`)
 VALUES ('OmegaBlk','Numerator coefficients of a transfer function');
 INSERT INTO `bsrhlm_d_gibbs_block` (`id_gibbs_blk`,`ds_gibbs_blk`)
 VALUES ('DeltaBlk','Denominator coefficients of a transfer function and related initial and unknown values');
+INSERT INTO `bsrhlm_d_gibbs_block` (`id_gibbs_blk`,`ds_gibbs_blk`)
+VALUES ('NonLinearFilterBlk','Non linear filters');
 
 /* /////////////////////////////////////////////////////////////////////////////
 The user should not touch this system table taht have all needed registers
