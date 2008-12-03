@@ -35,7 +35,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
   //Stores the sampler name
   Text _.name = _.sampler::get.name(0)+"."+_.sampler::get.session(0);
   //Puts the Markov Chain path relative to sampler path
-  Text _.path = _.sampler::get.path(0)+_.name+".mcmc.bbm";
+  Text _.path = Replace(_.sampler::get.path(0)+_.name+".mcmc.bbm","\\","/");
   //The number of variables of Markov Chain
   Real _.n = Card(_.sampler::get.colNames(0));
   //Timer member that can be externally consulted 
