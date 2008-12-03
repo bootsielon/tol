@@ -624,13 +624,16 @@ NameBlock LoadModelDef(Text dbName,
   { 
     Set node = _.nodes[segmentNumber];
     Text id_node = node->Node;
+  //WriteLn("TRACE [Get.LinReg.Segment] id_node="+id_node+" node->NodeType="<<node->NodeType);
     Case(
       node->NodeType=="OBS", 
       {
         NameBlock obs = BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
           _.dbName, _.id_model, _.id_session, id_node, 
           _.modelHandler, input.missing.labels);
+      //WriteLn("TRACE [Get.LinReg.Segment] Card(obs::_.deltaNonLinBlk)="<<Card(obs::_.deltaNonLinBlk));
         Set Append(_.deltaNonLinBlk, obs::_.deltaNonLinBlk);
+      //WriteLn("TRACE [Get.LinReg.Segment] Card(_.deltaNonLinBlk)="<<Card(_.deltaNonLinBlk));
         obs
       },   
       node->NodeType=="LAT", 
@@ -668,7 +671,8 @@ NameBlock LoadModelDef(Text dbName,
       {
         _.modelHandler::GetNonLinFlt(nlf->node, nlf->nameBlock)
       }));
-  //WriteLn("TRACE Get.NonLinFilter Card(deltaNonLinBlk)="<<Card(deltaNonLinBlk));
+  //WriteLn("TRACE [Get.NonLinFilter] Card(deltaNonLinBlk)="<<Card(deltaNonLinBlk));
+  //WriteLn("TRACE [Get.NonLinFilter] Card(genericNonLinBlk)="<<Card(genericNonLinBlk));
     _.deltaNonLinBlk << genericNonLinBlk
   };
 
