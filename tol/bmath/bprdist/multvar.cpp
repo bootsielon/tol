@@ -29,10 +29,14 @@
 #include <tol/tol_bfibonac.h>
 #include <tol/tol_blinalg.h>
 #include <tol/tol_bmfstpro.h>
+#include "gsl_ext.h"
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_math.h>
 #include <tol/tol_lapack.h> 
 
 BTraceInit("multvar.cpp");
+
+#define USE_BTruncatedNormalDist
 
 //--------------------------------------------------------------------
 // Static variable for BMultivarDist.
@@ -274,8 +278,13 @@ bool RandTruncatedMultNormal(         BMatrix<BDat>& tn,
   {
     for(i=0; i<n; i++)
     {
+# ifdef USE_BTruncatedNormalDist
       BTruncatedNormalDist tni(a(i,0), b(i,0), 0, 1);
       y(i,0) = tni.Random();
+# else
+      y(i,0) = gsl_rtabnorm_combo(BProbDist::rng(), 0.0, 1.0,
+                                  a(i,0).Value(), b(i,0).Value(), 10);
+# endif
     }
     x = (y*s)+nu;
     for(i=0; i<n; i++)
