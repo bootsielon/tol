@@ -2182,6 +2182,7 @@ void BSetParseResLinReg::CalcContens()
     aux.PutStruct(BysSparseReg::MissingBlockStr());
     MI.AddElement(BContensSet::New(name,aux,""));
   }
+  if(MI.Card()) { MI.SetIndexByName(); }
   MO.PrepareStore(outputMissingInfo.size());
   for(k=0; k<outputMissingInfo.size(); k++)
   {
