@@ -322,6 +322,8 @@ NameBlock Obs.TransFun(
   Real _.q = Degree(_.delta);
   Real _.h = Max(_.p, _.q);
   Real _.hasDelta = _.q>0;
+//Real _trz.1 = { WriteLn("TRACE [Obs.TransFun] 1 "+id_node+"::"+_.transferFunction), 0 };
+//Real _trz.2 = { WriteLn("TRACE [Obs.TransFun] 2 p="<<_.p+" q="<<_.q+" h="<<_.h+" hasDelta="<<_.hasDelta), 0};
   Set _.omegaParam = EvalSet(Monomes(_.omega), Set omegaBlk(Polyn mon)
   {
     Bsr.Param.Info(
