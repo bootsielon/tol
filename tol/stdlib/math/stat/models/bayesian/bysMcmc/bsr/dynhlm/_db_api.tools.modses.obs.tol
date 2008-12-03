@@ -95,7 +95,8 @@ Real ModSes.Obs.SetArima(Text dbName,
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  Real ok = SetMin(For(1,Card(arima),Real insert.arima(Real f)
+  Real k = Card(arima);
+  Real ok = If(!k,1,SetMin(For(1,k,Real insert.arima(Real f)
   {
     Real BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
     dbName+"."+_table::ObsArimaBlk,
@@ -105,7 +106,7 @@ Real ModSes.Obs.SetArima(Text dbName,
     "'"<<arima[f]->AR+"',"+
     "'"<<arima[f]->MA+"',"+
     "'"<<arima[f]->DIF+"'")
-  }));
+  })));
   Eval("ModSes.Obs.SetArima.ok=ok")
 };
 
