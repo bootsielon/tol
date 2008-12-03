@@ -812,6 +812,7 @@ void BDatPutCSerDat::CalcContens()
       result = gra->LeftEvaluateExpr(name); 
       if(oldEnabled) { BOut::Enable(); }
     }
+    if(result && (result->Grammar()!=gra)) { result=NULL; }
   }
   contens_ = result!=NULL;  
 }
