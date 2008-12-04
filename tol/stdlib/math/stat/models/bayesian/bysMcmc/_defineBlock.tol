@@ -28,7 +28,7 @@ NameBlock DefineBlock(Text name,
   //Identifies the block.
   Text _.name = name;
   //Identifiers of block parameters that must be all unique
-  Set _.colNames = colNames;
+  Set _.colNames = Copy(Empty);
   //The position of this block in full MCMC
   Real _.numBlock = numBlock;
   //Number of parameters in the block
@@ -51,11 +51,12 @@ NameBlock DefineBlock(Text name,
   Real _.initialize = 
   ////////////////////////////////////////////////////////////////////////////
   { 
-    Set Do For(1, _.numCol, Real(Real k)
+  //WriteLn("TRACE [DefineBlock] _.numCol = "<<_.numCol);
+    Set _.colNames := For(1, _.numCol, Text(Real k)
     {
-      Text PutName(_.colNames[k],_.colNames[k]);
-      k
+      Eval(colNames[k]+"=\""+colNames[k]+"\"")
     });
+  //WriteLn("TRACE [DefineBlock] _.colNames = "<<_.colNames);
     If(_.numCol, SetIndexByName(_.colNames), 0)
   };
 
