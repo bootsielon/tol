@@ -21,3 +21,5 @@ EXTRA_DIST		= Jamfile
 noinst_LTLIBRARIES	= libbprdist.la
 pkginclude_HEADERS	= tol_bprdist.h tol_bmultvar.h
 libbprdist_la_SOURCES	= prd.cpp multvar.cpp slice_sampler.cpp
+
+libbprdist_la_CPPFLAGS	= -I$(top_srcdir)/bmath/gsl_ext
