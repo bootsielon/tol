@@ -1,0 +1,79 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _binaryModel.tol
+// PURPOSE: Diagnostics over statistical binary models.
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock BinaryModel =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //read only autodoc
+  Text _.autodoc.description =
+  "Diagnostics over statistical binary models.";
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.SuccessTable =
+  "Evaluates quality of a binary model for a set of cutting values."
+  "For each one is estimated a vector of decisions giving True when model "
+  "probablity is great than or equal to cutting value."
+  "This function is usefull when no cost function is avalaible for decision "
+  "making. Decisor can use it to select its preferred environments from a "
+  "set of various options directly. When you have a large list of "
+  "hand-made selections you can fit parameters of a reasonible cost "
+  "function family.";
+  ////////////////////////////////////////////////////////////////////////////
+  Set SuccessTable(Set cutRange, Matrix Y, Matrix Yp)
+  {
+    Real Length = Rows(Y); 
+    Matrix  Zero = Y*0;
+    Matrix  One  = Zero+1;
+    Real RealOnes = MatSum(Y);
+    Real RealZeroes = Length-RealOnes;
+    Real RealOnesRatio = RealOnes/Length;
+    EvalSet(cutRange,Set(Real cutValue)
+    {
+      Real CutValue = cutValue;
+      Matrix Y_ = GE(Yp,Zero+CutValue);
+      Matrix A1 = And(EQ(Y,One ), Y_ );
+      Matrix A0 = And(EQ(Y,Zero),Not(Y_));
+      [[
+        Real CutValue,
+        Real RealOnesRatio,
+        Real RealOnes;
+        Real EstOnes = MatSum(Y_);
+        Real RealZeroes;
+        Real EstZeroes = Length-EstOnes;
+        Real SuccessEstOnes = MatSum(A1);
+        Real SuccessEstZeroes = MatSum(A0);
+        Real CapturedOnesRatio = SuccessEstOnes / RealOnes;
+        Real EfficienceOfEstOnes = SuccessEstOnes / EstOnes;
+        Real CapturedZeroesRatio = SuccessEstZeroes / RealZeroes;
+        Real EfficienceOfEstZeroes = SuccessEstZeroes / EstZeroes
+      ]]
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.CutValRng =
+  "Calculates a reasonable range of cutting values for a given probability "
+  "vector Yp to be passed to method Diagnostics::BinaryModel::SuccessTable"
+  "Parameter iniTol gives initial tolerance of quantiles of Yp."
+  "Afterwords, just different quantiles will be taken as cutting values in "
+  "order to get a set of evaluations along a complete and balanced cutting "
+  "values.";
+  ////////////////////////////////////////////////////////////////////////////
+  Set CutValRng(Matrix Yp, Real iniTol) 
+  {
+    Set rng = Range(iniTol, 1-iniTol, iniTol);
+    Set qntl = MatSet(Tra(Quantile(Yp, SetCol(rng) )))[1];
+    Set class = Classify(qntl, Real(Real a, Real b){ Compare(a,b) });
+    EvalSet(class,Real(Set cl) { cl[1] })
+  }
+
+]];
+  
+
+
+
+
