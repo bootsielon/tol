@@ -33,14 +33,17 @@
 //--------------------------------------------------------------------
 
 #ifndef NDEBUG
-#define ENSURE_DIM 1
+#  define ENSURE_DIM 1
+#else
+//#  define ENSURE_DIM 1
+#  undef  ENSURE_DIM
 #endif
 
 #ifdef ENSURE_DIM
 #  define BARR_ENSURE_DIM(i) EnsureDimensions(i);
 #else
 #  define BARR_ENSURE_DIM(i)
-#endif
+#endif#endif
 
 
 
