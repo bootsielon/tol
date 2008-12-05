@@ -147,6 +147,25 @@ Set get.param.signif(Text                 name,
   Eval(name+".Param.Signif=test")
 })};
 
+/* * /
+//////////////////////////////////////////////////////////////////////////////
+//VBR: anotación y recordatorio para futura implementación de
+//Análisis de componentes principales
+//////////////////////////////////////////////////////////////////////////////
+Matrix mcmc = bsr.oneNode.probit::_.estim::report::mcmc;
+Matrix param.average = bsr.oneNode.probit::_.estim::param.average;
+Matrix mcmc.nu = Group("ConcatColumns",For(1,Columns(param.average),Matrix(Real j)
+{
+  Real nu = MatDat(param.average,1,j);
+  Rand(Rows(mcmc),1,nu,nu)
+}));
+Matrix mcmc.dif = mcmc - mcmc.nu;
+Matrix mcmc.cov = MtMSqr(mcmc.dif);
+Matrix mcmc.cor = NormDiag(mcmc.cov);
+Set svd = SVD(mcmc.cov);
+Matrix principalComponents = mcmc.dif*svd[3];
+/* */
+
 /////////////////////////////////////////////////////////////////////////////
 Set get.acf(Text                 name, 
             Set                  colNames,
