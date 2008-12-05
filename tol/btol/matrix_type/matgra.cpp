@@ -478,6 +478,12 @@ void BBM_BinReadDimensions(const BText& fileName,
   }
   fread(&rows,   sizeof(BInt),1,fil);
   fread(&columns,sizeof(BInt),1,fil);
+  if(fclose(fil))
+  {
+    Error(I2("Cannot close after reading BBM file ",
+             "No se pudo cerrar despues de leer el fichero BBM ")+
+          fileName);
+  };
 }
 
 //--------------------------------------------------------------------
