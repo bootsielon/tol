@@ -93,7 +93,12 @@ NameBlock BuildCycler(NameBlock modelSampler,
   //Resume or clean old simulations
     Real savedSimulations = If(resume_==0, 
     {
-      Real OSFilRemove(_.path);
+      Real ok.remove = OSFilRemove(_.path);
+      Real If(!ok.remove, 
+      {
+        WriteLn("Please, change session identifier or clean old file and retray it", "E");
+        Stop
+      });
       0
     },
     {
@@ -149,7 +154,12 @@ NameBlock BuildCycler(NameBlock modelSampler,
             _.path+" has "+IntText(n)+" columns instead "
             "of current nummber of parameters "+IntText(_.n)+".\n"
             "Old MCMC will be removed","W");
-          Real OSFilRemove(_.path);
+          Real ok.remove = OSFilRemove(_.path);
+          Real If(!ok.remove, 
+          {
+            WriteLn("Please, change session identifier or clean old file and retray it", "E");
+            Stop
+          });
           0
         }) 
       })
