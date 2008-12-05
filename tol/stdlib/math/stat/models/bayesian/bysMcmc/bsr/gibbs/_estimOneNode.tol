@@ -21,14 +21,14 @@ Text _.autodoc.member.EstimOneNode =
 "  Anything _.X;          //Input data (Matrix or VMatrix)\n"
 "  Real _.sigma;          //Sigma value or ? to simulate it\n"
 "//Optional members \n"
+"  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
 "  Set _.arima;           //Set of ARIMAStruct\n"
 "  Set _.timeInfo;        //Set of BSR.NoiseTimeInfo\n"
-"  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
 "]];\n";
 Set EstimOneNode(NameBlock data_, Set nonLinFil, NameBlock config_)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text _MID = _MID+"";
+  Text _MID = "[EstimOneNode]";
   //Data source for model defining
   NameBlock data = data_;
 //WriteLn(_MID+" TRACE 1");
@@ -126,6 +126,8 @@ Set EstimOneNode(NameBlock data_, Set nonLinFil, NameBlock config_)
     Triplet(triplet,order.num,n)
   });
 
+  Real m.full = m+prior.num;
+
 //WriteLn(_MID+" TRACE 6");
   //Observational information
   Real sigmaIsUnknown = IsUnknown(data::_.sigma);
@@ -138,9 +140,9 @@ Set EstimOneNode(NameBlock data_, Set nonLinFil, NameBlock config_)
       Set arima = If(ObjectExist("Set","data::_.arima"),
         data::_.arima, Copy(Empty));
       Set ArimaAuxInfo = Copy(Empty);
-      VMatrix Cov = Eye(m);
-      VMatrix L = Eye(m);
-      VMatrix Li = Eye(m);
+      VMatrix Cov = Eye(m.full,m.full,0,Rand(m,1,1,1)<<Rand(prior.num,1,0,0));
+      VMatrix L = Cov;
+      VMatrix Li = Cov;
       Set EquIdx = Range(1,m,1);
       Set TimeInfo = If(ObjectExist("Set","data::_.timeInfo"),
         data::_.timeInfo, Copy(Empty))
@@ -150,7 +152,8 @@ Set EstimOneNode(NameBlock data_, Set nonLinFil, NameBlock config_)
   //Prior information
   VMatrix prior.X = Triplet(prior.X.triplet,prior.num,n);
   Set noisePrior = If(!prior.num,Copy(Empty),
-  {[[
+  {
+    [[
     BSR.NoiseDistrib(
       Text Name = data::_.segmentName+".Prior::Noise";
       Real Nu = 0;
@@ -158,9 +161,9 @@ Set EstimOneNode(NameBlock data_, Set nonLinFil, NameBlock config_)
       Real SigmaIndex = -1;
       Set arima = Copy(Empty);
       Set ArimaAuxInfo = Copy(Empty);
-      VMatrix Cov = Eye(m);
-      VMatrix L = Eye(m);
-      VMatrix Li = Eye(m);
+      VMatrix Cov = Eye(m.full,m.full,0,Rand(m,1,0,0)<<Rand(prior.num,1,1,1));
+      VMatrix L = Cov;
+      VMatrix Li = Cov;
       Set EquIdx = Range(m+1,m+prior.num,1);
       Set TimeInfo = Copy(Empty)
     )
@@ -191,22 +194,25 @@ Set EstimOneNode(NameBlock data_, Set nonLinFil, NameBlock config_)
     VMatrix a = domain.a << order.a,
     VMatrix A = domain.A << order.A
   );
-//WriteLn(_MID+" TRACE 10");
-  //Calling BSR simulator
-  Set aux = BysMcmc::Bsr::Gibbs::EstimParsed
-  (
-    modelDef,
-    nonLinearFilters, 
-    config_,
-    BysMcmc::Bsr::Gibbs::NoNotifier(0)
-  );
-//WriteLn(_MID+" TRACE 11");
-  //Adding data source information
-  Set bsr.estim = [[data]]<<aux;
+  Set result = If(Not(config_::mcmc.sampleLength), [[data, modelDef]],
+  {
+  //WriteLn(_MID+" TRACE 10");
+    //Calling BSR simulator
+    Set aux = BysMcmc::Bsr::Gibbs::EstimParsed
+    (
+      modelDef,
+      nonLinearFilters, 
+      config_,
+      BysMcmc::Bsr::Gibbs::NoNotifier(0)
+    );
+    //WriteLn(_MID+" TRACE 11");
+    //Adding data source information
+    [[data]]<<aux
+  });
   //Checks unique name and prepares for hashed searching by name
-  Real SetIndexByName(bsr.estim);
+  Real SetIndexByName(result);
 //WriteLn(_MID+" TRACE 12");
-  bsr.estim
+  result
 };
 /////////////////////////////////////////////////////////////////////////////
 PutDescription(_.autodoc.member.EstimOneNode,EstimOneNode);
@@ -214,21 +220,30 @@ PutDescription(_.autodoc.member.EstimOneNode,EstimOneNode);
   
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.EstimOneNodeProbit = 
-"Estimates a model with just one node, usually observational and dense."
+"Estimates a probit model with just one node, usually observational and "
+"dense."
 "Model is defined as a BSR basic and an non linear ProbitFilter."
-"BSR will be built from simplified data argument matching this API"
+"BSR will be built from simplified data argument matching the same API "
+"used by BysMcmc::Bsr::Gibbs::EstimOneNode, fixing _.sigma to 1"
 "NameBlock data = \n"
 "[[\n"
+"//Mandatory members \n"
 "  Set  _.docInfo         //BSR.DocInfo \n"
 "  Text _.segmentName;    //Node name\n"
-"  Set _.linearParamInfo; //Set of Bsr.Param.Info\n"
-"  Matrix _.Y;            //Input data\n"
-"  Matrix _.X;            //Output data\n"
-"  Real _.sigma=1;        //Sigma value must be fixed as 1\n"
+"  Set _.linearParamInfo; //Set of Bsr.OneNode.LinearParamInfo\n"
+"  Anything _.Y;          //Output data (Matrix or VMatrix)\n"
+"  Anything _.X;          //Input data (Matrix or VMatrix)\n"
+"  Real _.sigma = 1;      //Sigma value or ? to simulate it\n"
+"//Optional members \n"
+"  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
+"  Set _.arima;           //Set of ARIMAStruct\n"
+"  Set _.timeInfo;        //Set of BSR.NoiseTimeInfo\n"
 "]];\n";
   NameBlock EstimOneNodeProbit(NameBlock data, NameBlock config_)
 //////////////////////////////////////////////////////////////////////////////
 {
+  //All methods are performed for being _.sigma=1
+  Real data::_.sigma:=1;
   Set nonLinearFilters = {[[
   //Filtro no lineal del output para el modelo probit
   NameBlock probitFilter = BysMcmc::Bsr::Gibbs::ProbitFilter(
@@ -241,12 +256,44 @@ Text _.autodoc.member.EstimOneNodeProbit =
   [[
     Set _.estim = BysMcmc::Bsr::Gibbs::EstimOneNode
       (data, nonLinearFilters, config_);
-    Matrix _.param = Tra(_.estim::param.average);
-    Matrix GetProb(Matrix X)
+    Matrix _.param = If(Not(config_::mcmc.sampleLength), Rand(0,0,0,0),
+                        Tra(_.estim::param.average));
+    
+    //////////////////////////////////////////////////////////////////////////
+    Text _.autodoc.member.GetProbPoint =
+    "Returns output probabilities for given input matrix and parameters "
+    "vector"; 
+    Matrix GetProbPoint(Matrix X, Matrix beta)
+    //////////////////////////////////////////////////////////////////////////
     { 
-      F01(X*_.param)
+      F01(X*beta)
     };
-    Matrix _.outputProb = GetProb(data::_.X)
+    //////////////////////////////////////////////////////////////////////////
+    Text _.autodoc.member.GetProbAvg =
+    "Returns output probabilities for given input matrix and average vector "
+    "of simulated parameters"; 
+    Matrix GetProbAvg(Matrix X)
+    //////////////////////////////////////////////////////////////////////////
+    { 
+      GetProbPoint(X,_.param)
+    };
+    //////////////////////////////////////////////////////////////////////////
+    Text _.autodoc.member.GetProb =
+    "Returns output probabilities for given input matrix integrated "
+    "over all simulated vectors of parameters"; 
+    Matrix GetProb(Matrix X)
+    //////////////////////////////////////////////////////////////////////////
+    { 
+      Real numSim = Rows(_.estim::report::mcmc);
+      Matrix prob = Rand(Rows(X),1,0,0);
+      Set For(1,numSim,Real (Real sim)
+      {
+        Matrix pr=GetProbPoint(X,Tra(SubRow(_.estim::report::mcmc,[[sim]])));
+        Matrix prob := prob + pr;
+        0
+      });
+      prob*(1/numSim)
+    }
   ]]
 };
 /////////////////////////////////////////////////////////////////////////////
