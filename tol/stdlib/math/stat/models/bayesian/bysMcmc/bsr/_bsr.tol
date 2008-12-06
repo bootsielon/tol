@@ -11,15 +11,23 @@ NameBlock Bsr =
   Text _.autodoc.description =
   "Bayesian Sparse Regression methods.";
 
-  //private implementation
-  Set _import = Include("_import.tol");
-  Set _dynHlm = Include("dynhlm/_dynhlm.tol");
+  //BSR Gibbs simulation engines
   Set _gibbs = Include("gibbs/_gibbs.tol");
-
-  //Exporting public methods and members
   NameBlock Gibbs;
+
+  //Generic API to define arbitrary BSR basic models from virtual methods
+  Set _import = Include("_import.tol");
   NameBlock Import;
-  NameBlock DynHlm
+
+  //Robust API to define and store massive BSR basic models in a standard 
+  //data base
+  Set _dynHlm = Include("dynhlm/_dynhlm.tol");
+  NameBlock DynHlm;
+
+  //Simplified API to handle with models with just one observational node
+  Set _oneNode = Include("_oneNode.tol");
+  NameBlock OneNode
+
 ]];
   
 

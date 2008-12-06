@@ -1,0 +1,302 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _oneNode.tol
+// PURPOSE: Estimation methods for simplified models with just one node
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+NameBlock OneNode =
+/////////////////////////////////////////////////////////////////////////////
+[[
+  //read only autodoc
+  Text _.autodoc.description =
+  "Estimation methods for simplified BSR models with just one node.";
+
+  Text _.autodoc.member.Estim = 
+  "Estimates a model with just one node, usually observational and dense."
+  "Model is defined as a BSR basic and an optional set of non linear filters."
+  "BSR will be built from simplified data argument matching this API"
+  "NameBlock data = \n"
+  "[[\n"
+  "//Mandatory members \n"
+  "  Set  _.docInfo         //BSR.DocInfo \n"
+  "  Text _.segmentName;    //Node name\n"
+  "  Set _.linearParamInfo; //Set of Bsr.OneNode.LinearParamInfo\n"
+  "  Anything _.Y;          //Output data (Matrix or VMatrix)\n"
+  "  Anything _.X;          //Input data (Matrix or VMatrix)\n"
+  "  Real _.sigma;          //Sigma value or ? to simulate it\n"
+  "//Optional members \n"
+  "  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
+  "  Set _.arima;           //Set of ARIMAStruct\n"
+  "  Set _.timeInfo;        //Set of BSR.NoiseTimeInfo\n"
+  "]];\n";
+  Set Estim(NameBlock data_, Set nonLinFil, NameBlock config_)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[EstimOneNode]";
+    //Data source for model defining
+    NameBlock data = data_;
+  //WriteLn(_MID+" TRACE 1");
+    //Output matrix
+    VMatrix Y = If(ObjectExist("VMatrix","data::_.Y"),
+      data::_.Y, Mat2VMat(data::_.Y,FALSE,1,0));
+  //WriteLn(_MID+" TRACE 2");
+    //Input matrix
+    VMatrix X = If(ObjectExist("VMatrix","data::_.X"),
+      data::_.X, Mat2VMat(data::_.X,FALSE,1,0));
+
+  //WriteLn(_MID+" TRACE 3");
+    //Observational data length
+    Real m = VRows(Y);
+    //Number of variables at linear block
+    Real n = VColumns(X);
+
+    //Used to collect prior information if exists
+    Real prior.num = 0;
+    VMatrix prior.Y = Rand(0,1,0,0);
+    Matrix prior.X.triplet = Rand(0,3,0,0);
+
+    //Used to collect domain information if exists
+    Real domain.num = 0;
+    VMatrix domain.a = Rand(0,1,0,0);
+    Matrix  domain.A.triplet = Rand(0,3,0,0);
+    
+  //WriteLn(_MID+" TRACE 4");
+    //Builds linear block and collects prior and domain information
+    Set linearBlock = For(1,n, Set(Real j)
+    {
+      Set pi = (data::_.linearParamInfo)[j];
+      Set aux = [[BSR.LinearBlock(pi->Name, pi->InitValue)]];
+    //WriteLn(_MID+" TRACE 4.["<<j+"].1");
+      Real prior.Average = If(ObjectExist("Real","pi->Prior.Average"),
+                              pi->Prior.Average, ?);
+      Real If(!IsUnknown(prior.Average),
+      {
+        //Collecting prior information
+        Real prior.num := prior.num+1;
+        VMatrix prior.Y := prior.Y << 
+          Mat2VMat(Row(pi->Prior.Average/pi->Prior.Sigma));
+        Matrix prior.X.triplet := 
+          prior.X.triplet << Row(prior.num,j,1/pi->Prior.Sigma);
+        0
+      });
+    //WriteLn(_MID+" TRACE 4.["<<j+"].2");
+      Real prior.LowerBound = If(ObjectExist("Real","pi->Prior.LowerBound"),
+                              pi->Prior.LowerBound, -1/0);
+      Real If(!IsUnknown(prior.LowerBound) & GT(prior.LowerBound,Real -1/0),
+      {
+        //Collecting domain lower limits
+        Real domain.num := domain.num+1;
+        VMatrix domain.a := domain.a << Mat2VMat(Row(-pi->Prior.LowerBound));
+        Matrix domain.A.triplet := domain.A.triplet << Row(domain.num,j,-1);
+        0
+      });
+    //WriteLn(_MID+" TRACE 4.["<<j+"].3");
+      Real prior.UpperBound = If(ObjectExist("Real","pi->Prior.UpperBound"),
+                              pi->Prior.UpperBound, +1/0);
+      Real If(!IsUnknown(prior.UpperBound) & LT(prior.UpperBound,Real +1/0),
+      {
+        //Collecting domain upper limits
+        Real domain.num := domain.num+1;
+        VMatrix domain.a := domain.a << Mat2VMat(Row(+pi->Prior.UpperBound));
+        Matrix domain.A.triplet := domain.A.triplet << Row(domain.num,j,+1);
+        0
+      });
+    //Setting name of variables to allow hashed searching
+      Set PutName(pi->Name,aux[1]); 
+      aux[1]
+    });
+    //Checks unique name and prepares for hashed searching by name
+    Real SetIndexByName(linearBlock);
+
+  //WriteLn(_MID+" TRACE 5");
+    //Domain constraints
+    VMatrix domain.A = Triplet(domain.A.triplet,domain.num,n);
+
+    //Building order relations if exist
+    Set orderRelation = If(ObjectExist("Set","data::_.orderRelation"),
+                           data::_.orderRelation, Copy(Empty)); 
+    Real order.num = Card(orderRelation);
+    VMatrix order.a = Rand(order.num,1,0,0);
+    VMatrix order.A = If(!order.num,Rand(0,n,0,0),
+    {
+      Matrix triplet = Group("ConcatRows",For(1,order.num,Matrix(Real k)
+      {
+        Set rel = orderRelation[k];
+        Real lower = FindIndexByName(linearBlock, rel->Lower);
+        Real upper = FindIndexByName(linearBlock, rel->Upper);
+        Row(k,lower,+1) << 
+        Row(k,upper,-1) 
+      }));
+      Triplet(triplet,order.num,n)
+    });
+
+    Real m.full = m+prior.num;
+
+  //WriteLn(_MID+" TRACE 6");
+    //Observational information
+    Real sigmaIsUnknown = IsUnknown(data::_.sigma);
+    Set noiseObs = [[
+      BSR.NoiseDistrib(
+        Text Name = data::_.segmentName+"::Noise";
+        Real Nu = 0;
+        Text SigmaName = If(sigmaIsUnknown,data::_.segmentName+"::Sigma","");
+        Real SigmaIndex = If(sigmaIsUnknown,1,-1);
+        Set arima = If(ObjectExist("Set","data::_.arima"),
+          data::_.arima, Copy(Empty));
+        Set ArimaAuxInfo = Copy(Empty);
+        VMatrix Cov = Eye(m.full,m.full,0,Rand(m,1,1,1)<<Rand(prior.num,1,0,0));
+        VMatrix L = Cov;
+        VMatrix Li = Cov;
+        Set EquIdx = Range(1,m,1);
+        Set TimeInfo = If(ObjectExist("Set","data::_.timeInfo"),
+          data::_.timeInfo, Copy(Empty))
+      )
+    ]];
+  //WriteLn(_MID+" TRACE 7");
+    //Prior information
+    VMatrix prior.X = Triplet(prior.X.triplet,prior.num,n);
+    Set noisePrior = If(!prior.num,Copy(Empty),
+    {
+      [[
+      BSR.NoiseDistrib(
+        Text Name = data::_.segmentName+".Prior::Noise";
+        Real Nu = 0;
+        Text SigmaName = "";
+        Real SigmaIndex = -1;
+        Set arima = Copy(Empty);
+        Set ArimaAuxInfo = Copy(Empty);
+        VMatrix Cov = Eye(m.full,m.full,0,Rand(m,1,0,0)<<Rand(prior.num,1,1,1));
+        VMatrix L = Cov;
+        VMatrix Li = Cov;
+        Set EquIdx = Range(m+1,m+prior.num,1);
+        Set TimeInfo = Copy(Empty)
+      )
+    ]]});
+  //WriteLn(_MID+" TRACE 8");
+    //All allowed segments in this simplified API are obs and prior (optionally)
+    Set noiseDistrib_ = noiseObs << noisePrior;
+    //Setting name of segments to allow hashed searching
+    Set noiseDistrib = For(1,Card(noiseDistrib_), Set(Real k)
+    {
+      Set PutName(noiseDistrib_[k]->Name,noiseDistrib_[k]);
+      noiseDistrib_[k]
+    });
+    //Checks unique name and prepares for hashed searching by name
+    Real SetIndexByName(noiseDistrib);
+  //WriteLn(_MID+" TRACE 9");
+    //Building generic model definition
+    Set modelDef = BSR.ModelDef (
+      docInfo = data::_.docInfo,
+      linearBlock,
+      Set inputMissing  = If(ObjectExist("Set","data::_.inputMissing"),
+                             data::_.inputMissing, Copy(Empty));
+      Set outputMissing = If(ObjectExist("Set","data::_.outputMissing"),
+                             data::_.outputMissing, Copy(Empty));
+      noiseDistrib,
+      VMatrix Y.full = Y << prior.Y,
+      VMatrix X.full = X << prior.X,
+      VMatrix a = domain.a << order.a,
+      VMatrix A = domain.A << order.A
+    );
+    Set result = If(Not(config_::mcmc.sampleLength), [[data, modelDef]],
+    {
+    //WriteLn(_MID+" TRACE 10");
+      //Calling BSR simulator
+      Set aux = BysMcmc::Bsr::Gibbs::EstimParsed
+      (
+        modelDef,
+        nonLinearFilters, 
+        config_,
+        BysMcmc::Bsr::Gibbs::NoNotifier(0)
+      );
+      //WriteLn(_MID+" TRACE 11");
+      //Adding data source information
+      [[data]]<<aux
+    });
+    //Checks unique name and prepares for hashed searching by name
+    Real SetIndexByName(result);
+  //WriteLn(_MID+" TRACE 12");
+    result
+  };
+    
+  ///////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.EstimProbit = 
+  "Estimates a probit model with just one node, usually observational and "
+  "dense."
+  "Model is defined as a BSR basic and an non linear ProbitFilter."
+  "BSR will be built from simplified data argument matching the same API "
+  "used by BysMcmc::Bsr::Gibbs::EstimOneNode, fixing _.sigma to 1"
+  "NameBlock data = \n"
+  "[[\n"
+  "//Mandatory members \n"
+  "  Set  _.docInfo         //BSR.DocInfo \n"
+  "  Text _.segmentName;    //Node name\n"
+  "  Set _.linearParamInfo; //Set of Bsr.OneNode.LinearParamInfo\n"
+  "  Anything _.Y;          //Output data (Matrix or VMatrix)\n"
+  "  Anything _.X;          //Input data (Matrix or VMatrix)\n"
+  "  Real _.sigma = 1;      //Sigma value or ? to simulate it\n"
+  "//Optional members \n"
+  "  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
+  "  Set _.arima;           //Set of ARIMAStruct\n"
+  "  Set _.timeInfo;        //Set of BSR.NoiseTimeInfo\n"
+  "]];\n";
+    NameBlock EstimProbit(NameBlock data, NameBlock config_)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    //All methods are performed for being _.sigma=1
+    Real data::_.sigma:=1;
+    Set nonLinearFilters = {[[
+    //Filtro no lineal del output para el modelo probit
+    NameBlock probitFilter = BysMcmc::Bsr::Gibbs::ProbitFilter(
+      Real enabled = True,
+      data::_.segmentName,
+      data::_.Y,
+      UnknownDate,
+      UnknownDate)
+    ]]};
+    [[
+      Set _.estim = BysMcmc::Bsr::OneNode::Estim
+        (data, nonLinearFilters, config_);
+      Matrix _.param = If(Not(config_::mcmc.sampleLength), Rand(0,0,0,0),
+                          Tra(_.estim::param.average));
+      
+      //////////////////////////////////////////////////////////////////////////
+      Text _.autodoc.member.GetProbPoint =
+      "Returns output probabilities for given input matrix and parameters "
+      "vector"; 
+      Matrix GetProbPoint(Matrix X, Matrix beta)
+      //////////////////////////////////////////////////////////////////////////
+      { 
+        F01(X*beta)
+      };
+      //////////////////////////////////////////////////////////////////////////
+      Text _.autodoc.member.GetProbAvg =
+      "Returns output probabilities for given input matrix and average vector "
+      "of simulated parameters"; 
+      Matrix GetProbAvg(Matrix X)
+      //////////////////////////////////////////////////////////////////////////
+      { 
+        GetProbPoint(X,_.param)
+      };
+      //////////////////////////////////////////////////////////////////////////
+      Text _.autodoc.member.GetProb =
+      "Returns output probabilities for given input matrix integrated "
+      "over all simulated vectors of parameters"; 
+      Matrix GetProb(Matrix X)
+      ////////////////////////////////////////////////////////////////////////
+      { 
+        Real numSim = Rows(_.estim::report::mcmc);
+        Matrix prob = Rand(Rows(X),1,0,0);
+        Set For(1,numSim,Real (Real sim)
+        {
+          Matrix pr=GetProbPoint(X,Tra(SubRow(_.estim::report::mcmc,[[sim]])));
+          Matrix prob := prob + pr;
+          0
+        });
+        prob*(1/numSim)
+      }
+    ]]
+  }
+]];
