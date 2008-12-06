@@ -207,7 +207,7 @@ NameBlock OneNode =
       Set aux = BysMcmc::Bsr::Gibbs::EstimParsed
       (
         modelDef,
-        nonLinearFilters, 
+        nonLinFil, 
         config_,
         BysMcmc::Bsr::Gibbs::NoNotifier(0)
       );
@@ -247,7 +247,7 @@ NameBlock OneNode =
   {
     //All methods are performed for being _.sigma=1
     Real data::_.sigma:=1;
-    Set nonLinearFilters = {[[
+    Set nonLinFil = {[[
     //Filtro no lineal del output para el modelo probit
     NameBlock probitFilter = BysMcmc::Bsr::Gibbs::ProbitFilter(
       Real enabled = True,
@@ -258,7 +258,7 @@ NameBlock OneNode =
     ]]};
     [[
       Set _.estim = BysMcmc::Bsr::OneNode::Estim
-        (data, nonLinearFilters, config_);
+        (data, nonLinFil, config_);
       Matrix _.param = If(Not(config_::mcmc.sampleLength), Rand(0,0,0,0),
                           Tra(_.estim::param.average));
       
