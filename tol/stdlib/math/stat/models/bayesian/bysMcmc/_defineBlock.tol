@@ -54,7 +54,7 @@ NameBlock DefineBlock(Text name,
   //WriteLn("TRACE [DefineBlock] _.numCol = "<<_.numCol);
     Set _.colNames := For(1, _.numCol, Text(Real k)
     {
-      Eval(colNames[k]+"=\""+colNames[k]+"\"")
+      Eval(ToName(colNames[k])+"=\""+colNames[k]+"\"")
     });
   //WriteLn("TRACE [DefineBlock] _.colNames = "<<_.colNames);
     If(_.numCol, SetIndexByName(_.colNames), 0)
@@ -66,7 +66,7 @@ NameBlock DefineBlock(Text name,
   Real getStoreColIndex(Text colName) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real idx = FindIndexByName(_.colNames, colName);
+    Real idx = FindIndexByName(_.colNames, ToName(colName));
     Real If(idx>0, idx,
     {
       Real CMsg::Coded::show(BysMcmc::_.cmsg::_.notFoundName,
@@ -90,7 +90,7 @@ NameBlock DefineBlock(Text name,
   Real getMcmcColIndex(Text colName) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real idx = FindIndexByName(_.colNames, colName);
+    Real idx = FindIndexByName(_.colNames, ToName(colName));
     Real If(idx>0, _.colIdx[idx],
     {
       Real CMsg::Coded::show(BysMcmc::_.cmsg::_.notFoundName,
