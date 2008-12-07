@@ -1522,7 +1522,7 @@ name "sub:BysMcmc::Bsr"
 
 \end_inset
 
-Método BysMcmc::Bsr
+Miembro BysMcmc::Bsr
 \end_layout
 
 \begin_layout Standard
@@ -1651,6 +1651,9 @@ NameBlock BysMcmc::Bsr::OneNode
  de un modelo BSR con un solo nodo observacional.
  En estos casos no se necesita crear un archivo BSR ASCII ni mucho menos
  almacenar información alguna en la base de datos.
+ Contiene el método Estim para modelos BSR básicos con filtros no lineales
+ opcionales y el método EstimProbit especializado para el caso del modelo
+ binario Probit.
 \end_layout
 
 \begin_layout Standard
