@@ -1,5 +1,5 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
@@ -27,6 +27,10 @@
 
 \hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
 \end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+\end_modules
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -37,9 +41,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -64,7 +70,8 @@
 \begin_body
 
 \begin_layout Chapter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "cha:BysMcmc"
 
 \end_inset
@@ -84,8 +91,14 @@ Descripción
 
 \begin_layout Standard
 El fichero principal de este apartado es 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_bysMcmc.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_bysMcmc.tol
+\end_layout
 
 \end_inset
 
@@ -119,7 +132,8 @@ s, que por el momento son las únicas con soporte en BysMcmc, aunque en el
 \begin_layout Section
 
 \family typewriter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:Opciones-del-sistema"
 
 \end_inset
@@ -142,118 +156,118 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Configuration default values over all BysMcmc related components
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //Options used over all BysMcmc related components
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   NameBlock Options =
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Scalar samplers draws a univariant distribution given the logarithm
  of
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //density function and a domain interval
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The API of a scalar sampler  is given by a function like this
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //  Real (Code logDens, Real x0, Real x1)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock Scalar.Sampler = 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Arms(Code logDens, Real x0, Real x1)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         ARMS(logDens, x0, x1)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Slice(Code logDens, Real x0, Real x1)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         MatDat(SliceSampler1D(logDens, x0, x1),1,1)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       }
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ]]
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   ]];
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
@@ -279,380 +293,380 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Configuration default values over all BysMcmc related components
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set _config =
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //MCMC dimensions
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The final number realizations that will remain after burnin
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real mcmc.sampleLength = 2000;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The frequency of simulation notifying and chain cache updating
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real mcmc.cacheLength = 100;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The number of first realizations that will be skiped at inference
  and 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //diagnostic time
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real mcmc.burnin = 100;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Only one of each this number of simulations will be selected for 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //inference and diagnostic
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real mcmc.thinning = 1; //thinningg
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Maximum of time in seconds dedicated to simulation
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Process will be stoped after mcmc.sampleLength + mcmc.burnin 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //simulations or mcmc.maxTime seconds will be elapsed
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real mcmc.maxTime = 1/0;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //MLS step configuration
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text mls.method  = Options::Mls.Method::None;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real mls.maxIter = 100;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real mls.tolerance = 0.01;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real mls.FunnelGibbs.sigmaFactor = 0.01;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //Basic master configuration
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //If solution error is great than this value a warning will be shown
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real bsr.cholesky.epsilon = 1.E-13;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The notifying frequency of Cholesky warning
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real bsr.cholesky.warningFreq = 100;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The number of burnin realizations in Gibbs drawing of truncated 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //multinormal
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real bsr.truncMNormal.gibbsNumIter = 0;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Scalar sampler used in ARMA block of basic BSR can be a member of
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //BysMcmc::Options::Scalar.Sampler or an API equivalent function
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Code bsr.scalarSampler.armaBlock = Options::Scalar.Sampler::Slice;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Scalar sampler used in ARMA block of basic BSR can be a member of
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //BysMcmc::Options::Scalar.Sampler or an API equivalent function
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Code bsr.scalarSampler.nonLinBlock = Options::Scalar.Sampler::Slice;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Arima filter method
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text bsr.arimaFilter = Options::Arima.Filter::FastChol;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //CODA and other diagnostic report configuration
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The quantile to be estimated in Raftery test
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real report.raftery.diag.q = 0.025;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The desired margin of error of the estimate in Raftery test
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real report.raftery.diag.r = 0.007;  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //The probability of obtaining an estimate in the interval (q-r,q+r)
  in 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Raftery test
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real report.raftery.diag.s = 0.950;  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Precision required for estimate of time to convergence in Raftery
  test
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real report.raftery.diag.eps = 0.001;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Lag of AutoCorrelation Function 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real report.acf.lag= 20;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Number of divisions in histograms
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real report.histogram.parts = 100;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Number of divisions in kernel density aproximations
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real report.kerDens.points = 0;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   //Generic flags
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //If positive then is the number of existent realizations to be recovered
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //from disk
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //If negative then is the number of last existent realization to be
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //skyped
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //If zero then no resuming will be made and a new Markov chain will
  be
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //generated
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real do.resume = 0;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Enables or disables CODA and other diagnostic reports
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real do.report = True;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Enables or disables in-sample evaluation of forecasting, filter, noise,
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //residuals, ...
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real do.eval = True;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     //Enables or disables in-sample evaluation of individual linear effects
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real do.linear.effects = True
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   ]];
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
@@ -677,48 +691,48 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Searches a parameter in the user defined configuration NameBlock and,
  if
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //not exists returns default value of BsyMcmc::Config
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Anything GetCfgVal(NameBlock config, Text member)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   StdLib::GetConfigValue(config,member,Eval("BysMcmc::Config::"+member))
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
@@ -731,7 +745,8 @@ Anything GetCfgVal(NameBlock config, Text member)
 \begin_layout Section
 
 \family typewriter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:Nameblock-BysMcmc::BuildCycler()"
 
 \end_inset
@@ -741,8 +756,14 @@ Método NameBlock BysMcmc::BuildCycler()
 
 \begin_layout Standard
 En 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_build.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_build.tol
+\end_layout
 
 \end_inset
 
@@ -763,89 +784,89 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Identificador del modelo
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text get.name (Real unused)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Identificador de la sesión de trabajo
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text get.session (Real unused)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Camino donde se almacena la cadena de Markov en formato binario BBM
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text get.path (Real unused)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Nombres de los parámetros de la cadena de Markov
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set get.colNames (Real unused)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Simula una realización de la cadena de Markov
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Matrix draw (Real numSim)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Evalúa los componentes (filtro, ruido, residuos, previsión, ...) de cada
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //segmento de la regresión para un vector concreto de parámetros.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Este método no es necesario para la simulación pero sí es recomendable
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //para su posterior diagnosis e inferencia.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set eval(Matrix values) 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
@@ -871,37 +892,37 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock my_config =
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real mcmc.burnin        =  500;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real mcmc.sampleLength  = 5000
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ]];
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
@@ -926,8 +947,14 @@ NameBlock dbNotifier
 BysMcmc::Bsr::DynHlm::DBApi::Estim
 \series default
  de 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_db_api.estim.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_db_api.estim.tol
+\end_layout
 
 \end_inset
 
@@ -941,42 +968,42 @@ lstparams "basicstyle={\small\ttfamily},extendedchars=true"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Notifica la inicialización de la cadena de Markov, 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //informando del número de variables y el path de almacenamiento
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real initializing(Real numVar, Text path)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //Notifica que se está simulando la realización 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //numSim de la cadena de Markov
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real simulating(Real numSim)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ///////////////////////////////////////////////////////////////////////////////
 \end_layout
@@ -1074,7 +1101,8 @@ El método
 Set report(Real burnin, Real length, Real thinin)
 \series default
  devuelve un informe de diagnosis e inferencia básica (ver 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sub:BysMcmc::Inference"
 
 \end_inset
@@ -1090,13 +1118,20 @@ bysInf_
 BysInf.Report.Config
 \series default
  que se puede ver en 
-\begin_inset LatexCommand url
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_structs.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_structs.tol
+\end_layout
 
 \end_inset
 
  y que se comentarán más adelante en
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sub:BysMcmc::Inference"
 
 \end_inset
@@ -1129,7 +1164,8 @@ report
 \begin_layout Section
 
 \family typewriter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:Nameblock-BysMcmc::DefineBlock()"
 
 \end_inset
@@ -1139,8 +1175,14 @@ Método NameBlock BysMcmc::DefineBlock()
 
 \begin_layout Standard
 En 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_defineBlock.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_defineBlock.tol
+\end_layout
 
 \end_inset
 
@@ -1166,7 +1208,8 @@ El programador de un nuevo simulador debería fijarse en cómo se usa en el
 \begin_layout Section
 
 \family typewriter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:BysMcmc::_.cmsg"
 
 \end_inset
@@ -1176,8 +1219,14 @@ Miembro BysMcmc::_.cmsg
 
 \begin_layout Standard
 En el fichero 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_cmsgs.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_cmsgs.tol
+\end_layout
 
 \end_inset
 
@@ -1190,8 +1239,14 @@ target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/m
 CMsg::Coded
 \series default
  implementado en 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/general/system/cmsg/_coded.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/general/system/cmsg/_c
+oded.tol
+\end_layout
 
 \end_inset
 
@@ -1222,7 +1277,8 @@ Real Stop
 \begin_layout Section
 
 \family typewriter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:BysMcmc::Inference"
 
 \end_inset
@@ -1232,16 +1288,28 @@ Método BysMcmc::Inference
 
 \begin_layout Standard
 En 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_inference.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_inference.tol
+\end_layout
 
 \end_inset
 
  se define este miembro que incluye los métodos para la diagnosis e inferencia
  bayesianas a partir de cadenas de Markov previamente simuladas definidos
  en el fichero 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_inference_functions.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_inference_functions.tol
+\end_layout
 
 \end_inset
 
@@ -1312,7 +1380,8 @@ Set sample
 Set coda.raftery.diag
 \series default
 : Una tabla con una fila para el resultado del test de Raftery de CODA 
-\begin_inset LatexCommand cite
+\begin_inset CommandInset citation
+LatexCommand cite
 key "CODA-Convergence-diagnosis-output-analysis"
 
 \end_inset
@@ -1322,8 +1391,14 @@ key "CODA-Convergence-diagnosis-output-analysis"
 BysInf.Coda.Diag.Raftery
 \series default
  que se puede ver en 
-\begin_inset LatexCommand url
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_structs.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_structs.tol
+\end_layout
 
 \end_inset
 
@@ -1346,7 +1421,8 @@ raftery.diag.
 Set coda.summary
 \series default
 : Una tabla con una fila para el resultado del sumario CODA 
-\begin_inset LatexCommand cite
+\begin_inset CommandInset citation
+LatexCommand cite
 key "CODA-Convergence-diagnosis-output-analysis"
 
 \end_inset
@@ -1356,8 +1432,14 @@ key "CODA-Convergence-diagnosis-output-analysis"
 BysInf.Coda.Summary.Stats
 \series default
  que se puede ver en 
-\begin_inset LatexCommand url
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/_structs.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/_structs.tol
+\end_layout
 
 \end_inset
 
@@ -1434,7 +1516,8 @@ report
 \begin_layout Section
 
 \family typewriter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:BysMcmc::Bsr"
 
 \end_inset
@@ -1444,8 +1527,14 @@ Método BysMcmc::Bsr
 
 \begin_layout Standard
 En 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/_bsr.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/_bsr.tol
+\end_layout
 
 \end_inset
 
@@ -1456,8 +1545,14 @@ target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/m
 
 \begin_layout Itemize
 En 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/gibbs/_gibbs.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/gibbs/_gibbs.tol
+\end_layout
 
 \end_inset
 
@@ -1467,7 +1562,8 @@ NameBlock BysMcmc::Bsr::Gibbs
 \series default
  que incluye el simulador de Gibbs de BSR propiamente dicho que se explica
  en detalle en 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "cha:BysMcmc::Bsr::Gibbs"
 
 \end_inset
@@ -1477,8 +1573,14 @@ reference "cha:BysMcmc::Bsr::Gibbs"
 
 \begin_layout Itemize
 En 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/_import.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/_import.tol
+\end_layout
 
 \end_inset
 
@@ -1488,7 +1590,8 @@ NameBlock BysMcmc::Bsr::Import
 \series default
  que contiene la API genérica de definición de modelos de BSR cuya descripción
  se encuentra en 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "cha:BysMcmc::Bsr::Import"
 
 \end_inset
@@ -1498,8 +1601,14 @@ reference "cha:BysMcmc::Bsr::Import"
 
 \begin_layout Itemize
 En 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc/bsr/dynhlm/_dynhlm.tol"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/dynhlm/_dynhlm.tol
+\end_layout
 
 \end_inset
 
@@ -1511,7 +1620,8 @@ NameBlock BysMcmc::Bsr::DynHlm
  caso jerárquico lineal HLM dinámico, en el sentido de que las observaciones
  ocurren en el tiempo.
  Para un estudio en profundidad de este tema ver 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "cha:BysMcmc::Bsr::DynHlm"
 
 \end_inset
@@ -1519,11 +1629,36 @@ reference "cha:BysMcmc::Bsr::DynHlm"
 
 \end_layout
 
+\begin_layout Itemize
+En 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayes
+ian/bysMcmc/bsr/_oneNode.tol
+\end_layout
+
+\end_inset
+
+ se define el miembro 
+\series bold
+NameBlock BysMcmc::Bsr::OneNode
+\series default
+ que contiene una API simplificada que construye directamente un BSR.ModelDef
+ a partir de un NameBlock con una estructura bastante sencilla para el caso
+ de un modelo BSR con un solo nodo observacional.
+ En estos casos no se necesita crear un archivo BSR ASCII ni mucho menos
+ almacenar información alguna en la base de datos.
+\end_layout
+
 \begin_layout Standard
 Otro componente fundamental de BSR es la API de definición de modelos en
  ficheros de datos ASCII con formato .bsr, el cual está implementado en la
  función built-in C++ de TOL Bsr.Parse que se describe en 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "cha:El-formato-ASCII-BSR"
 
 \end_inset
