@@ -1,5 +1,5 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
@@ -27,6 +27,11 @@
 
 \hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
 \end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+theorems-ams-extended
+\end_modules
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -37,9 +42,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -156,10 +163,15 @@ En este documento se presenta la versión inicial 1.0, aún en desarrollo,
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 ver 
-\begin_inset LatexCommand htmlurl
-target "www.tol-project.org"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+www.tol-project.org
+\end_layout
 
 \end_inset
 
@@ -195,7 +207,8 @@ Documento en construcción!
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand tableofcontents
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
 
 \end_inset
 
@@ -529,8 +542,10 @@ Mantenimiento y producción
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P1_S1_Clase_de_modelos.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P1_S1_Clase_de_modelos.lyx"
 
 \end_inset
 
@@ -538,8 +553,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P1_S2_Bloque_lineal.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P1_S2_Bloque_lineal.lyx"
 
 \end_inset
 
@@ -547,8 +564,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P1_S3_Bloque_de_varianzas.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P1_S3_Bloque_de_varianzas.lyx"
 
 \end_inset
 
@@ -556,8 +575,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P1_S4_Bloque_ARIMA.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P1_S4_Bloque_ARIMA.lyx"
 
 \end_inset
 
@@ -565,8 +586,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P1_S5_Bloque_de_omitidos.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P1_S5_Bloque_de_omitidos.lyx"
 
 \end_inset
 
@@ -574,8 +597,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P1_S6_Bloque_no_lineal.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P1_S6_Bloque_no_lineal.lyx"
 
 \end_inset
 
@@ -583,8 +608,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P1_S7_Diagnosis.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P1_S7_Diagnosis.lyx"
 
 \end_inset
 
@@ -592,8 +619,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P1_S8_Mantenimiento_y_produccion.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P1_S8_Mantenimiento_y_produccion.lyx"
 
 \end_inset
 
@@ -644,8 +673,13 @@ Ciertos conocimientos mínimos sobre las nuevas características de la nueva
 \begin_deeper
 \begin_layout Itemize
 NameBlock: 
-\begin_inset LatexCommand htmlurl
-target "http://www.tol-project.org/es/node/40"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.tol-project.org/es/node/40
+\end_layout
 
 \end_inset
 
@@ -654,8 +688,13 @@ target "http://www.tol-project.org/es/node/40"
 
 \begin_layout Itemize
 VMatrix: 
-\begin_inset LatexCommand htmlurl
-target "http://www.tol-project.org/es/node/90"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.tol-project.org/es/node/90
+\end_layout
 
 \end_inset
 
@@ -691,16 +730,10 @@ NameBlock BysMcmc::Bsr::Gibbs
 \end_layout
 
 \begin_layout Standard
-
-\size larger
-\color red
-...
- pendiente!
-\end_layout
-
-\begin_layout Standard
-\begin_inset Include \input{BSR_P2_S1_BysMcmc.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P2_S1_BysMcmc.lyx"
 
 \end_inset
 
@@ -708,8 +741,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P2_S2_Gibbs.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P2_S2_Gibbs.lyx"
 
 \end_inset
 
@@ -717,8 +752,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P2_S3_Formato_ASCII_BSR.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P2_S3_Formato_ASCII_BSR.lyx"
 
 \end_inset
 
@@ -726,8 +763,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P2_S4_Import.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P2_S4_Import.lyx"
 
 \end_inset
 
@@ -735,8 +774,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P2_S5_DynHlm.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P2_S5_DynHlm.lyx"
 
 \end_inset
 
@@ -778,8 +819,10 @@ Estos son los resúmenes de cada capítulo:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P3_S1_BsrHlm_base_de_datos.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P3_S1_BsrHlm_base_de_datos.lyx"
 
 \end_inset
 
@@ -787,8 +830,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P3_S2_BsrHlm_plantilla_de_modelo.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P3_S2_BsrHlm_plantilla_de_modelo.lyx"
 
 \end_inset
 
@@ -796,8 +841,10 @@ preview true
 \end_layout
 
 \begin_layout Standard
-\begin_inset Include \input{BSR_P3_S3_BsrHlm_casuistica.lyx}
+\begin_inset CommandInset include
+LatexCommand input
 preview true
+filename "BSR_P3_S3_BsrHlm_casuistica.lyx"
 
 \end_inset
 
@@ -805,8 +852,9 @@ preview true
 \end_layout
 
 \begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
 
-\newpage
 
 \end_layout
 
@@ -815,7 +863,8 @@ Referencias
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "Bayesian Data Analysis"
 key "Bayesian-Data-Analysis"
 
@@ -828,7 +877,8 @@ Bayesian Data Analysis, by Andrew Gelman, John B.
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "Box-Jenkins"
 key "Box-Jenkins"
 
@@ -839,7 +889,8 @@ George Box, Gwilym M.
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "ARMS"
 key "ARMS-Gilks-Best-Tan"
 
@@ -856,7 +907,8 @@ Gilks, W.
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "Sampling Truncated Multinormal"
 key "Efficient_Gibbs_Sampling_Truncated_Multivariate_Normal"
 
@@ -868,8 +920,13 @@ Efficient Gibbs Sampling of Truncated Multivariate Normal with Application
  Davis, and Louis L.
  Scharf.
  
-\begin_inset LatexCommand htmlurl
-target "http://www.stat.colostate.edu/~rdavis/papers/CLR.pdf"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.stat.colostate.edu/~rdavis/papers/CLR.pdf
+\end_layout
 
 \end_inset
 
@@ -877,7 +934,8 @@ target "http://www.stat.colostate.edu/~rdavis/papers/CLR.pdf"
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "One Sample Wilcoxon Test"
 key "Small-Sample-Power-of-the-One-Sample-Wilcoxon-Test-for-Non-Normal-Shift-Alternatives"
 
@@ -892,8 +950,14 @@ Small Sample Power of the One Sample Wilcoxon Test for Non-Normal Shift
  Statist.
  Volume 36, Number 6 (1965), 1767-1778.
  
-\begin_inset LatexCommand htmlurl
-target "http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.aoms/1177699805"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handle=euclid.ao
+ms/1177699805
+\end_layout
 
 \end_inset
 
@@ -901,7 +965,8 @@ target "http://projecteuclid.org/DPubS?service=UI&version=1.0&verb=Display&handl
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "ARCH in UK"
 key "ARCH-UK"
 
@@ -913,7 +978,8 @@ Robert F.
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "GARCH"
 key "GARCH"
 
@@ -924,7 +990,8 @@ Tim Bollerslev, Generalized Autoregressive Conditional Heteroskedasticity,
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "User Guide for CHOLMOD"
 key "Cholmod_User_Guide"
 
@@ -937,8 +1004,13 @@ User Guide for CHOLMOD: a sparse Cholesky factorization and modification
  of Computer and Information Science and Engineering Univ.
  of Florida, Gainesville, FL.
  
-\begin_inset LatexCommand htmlurl
-target "http://www.cise.ufl.edu/research/sparse/cholmod/CHOLMOD/Doc/UserGuide.pdf"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://www.cise.ufl.edu/research/sparse/cholmod/CHOLMOD/Doc/UserGuide.pdf
+\end_layout
 
 \end_inset
 
@@ -946,7 +1018,8 @@ target "http://www.cise.ufl.edu/research/sparse/cholmod/CHOLMOD/Doc/UserGuide.pd
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "The quadprog R Package"
 key "QuadProg-R-Package"
 
@@ -957,8 +1030,13 @@ The quadprog Package: Functions to solve Quadratic Programming Problems.S
  Turlach <berwin.turlach@anu.edu.au> R port by Andreas Weingessel <Andreas.Weingesse
 l@ci.tuwien.ac.at>.
  
-\begin_inset LatexCommand htmlurl
-target "http://cran.r-project.org/web/packages/quadprog/quadprog.pdf"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cran.r-project.org/web/packages/quadprog/quadprog.pdf
+\end_layout
 
 \end_inset
 
@@ -966,7 +1044,8 @@ target "http://cran.r-project.org/web/packages/quadprog/quadprog.pdf"
 \end_layout
 
 \begin_layout Bibliography
-\begin_inset LatexCommand bibitem
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
 label "CODA"
 key "CODA-Convergence-diagnosis-output-analysis"
 
@@ -975,8 +1054,13 @@ key "CODA-Convergence-diagnosis-output-analysis"
 CODA: Convergence diagnosis and output analysis software for Gibbs sampling
  output, Version 0.30 (1995) by Nicky Best, Mary Kathryn Cowles, Karen Vines
  
-\begin_inset LatexCommand htmlurl
-target "http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.48.6445&rep=rep1&type=pdf"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.48.6445&rep=rep1&type=pdf
+\end_layout
 
 \end_inset
 
