@@ -48,7 +48,7 @@ proc Tol_SerieChartMethod { sergrp fileDest } {
 #   fileDest -> destination file
 #/////////////////////////////////////////////////////////////////////////////
   # cargamos la variable GCFFile de TOL
-  set fileGCF [TclGetVar Text GCFFile]
+  set fileGCF [::tol::info variable [list Text GCFFile] ]
   if {![file exists $fileGCF]} {
     set fileGCF {}
   }  
@@ -93,7 +93,7 @@ proc Tol_SerieChartMethod { sergrp fileDest } {
 #/////////////////////////////////////////////////////////////////////////////
   # GCF
   if {![string length $gcfFile]} {
-    set gcfFile [TclGetVar Text GCFFile]
+    set gcfFile [::tol::info variable [list Text GCFFile]]
     if {[string length $gcfFile]} {
       eval set gcfFile $gcfFile
     }
@@ -109,19 +109,25 @@ puts "GCF FILE: $gcfFile"
   }
 
   # Create Group Series
-  set nsource [lindex [TclGetVar Set $source] 0]
+  # ::tol::info variable returns a list [Grammar VariableName [numofelements "Elementos"] ... ]
+  # so get the index 0 of the index 2
+  set nsource [lindex [lindex [::tol::info variable [list Set $source]] 2] 0]
   set lstSerie {}
-  for {set i 1} {$i <= $nsource} {incr i} {
+  set i 1
+  while {$i <= $nsource && $i <= 32 } {
     lappend lstSerie "$source $i"
+	set i [expr $i+1]
   }
   set sergrp tableserie[clock clicks]
+
   set tl ""
   if {[llength $lstSerie]} {
       # MDI
+
     set tl [::project::CreateForm \
       -title $wTitle -type Graphs -iniconfig SeriesGraph -geometry $geometry]
     $tl setgeometry $geometry
-    set top [$tl getframe]
+    set top [$tl getframe] 
     eval ::tol::seriegrp create $sergrp $lstSerie
     # Create
     set isphoto [expr {$filetosave ne ""}]
@@ -158,7 +164,7 @@ proc Tol_SerieTabulate { source {title ""} {geometry {}} } {
   # chek type TOL of source
   set gramVar [GetGlobalUniqueName __tabser__]
   ::tol::console eval "Text $gramVar = Grammar($source);"
-  set namGra [string trim [TclGetVar Text $gramVar] {"}];#{"}    
+  set namGra [string trim [::tol::info variable [list Text $gramVar] ] {"}];#{"}    
   # destroy
   ::tol::console stack release $gramVar    
   # list of series tabulate
@@ -166,7 +172,7 @@ proc Tol_SerieTabulate { source {title ""} {geometry {}} } {
   switch $namGra {
     Serie   { set lstSerie $source }
     Set     {
-      set nsource [lindex [TclGetVar Set $source] 0]
+      set nsource [lindex [::tol::info variable [list Set $source] ] 0]
       for {set i 1} {$i <= $nsource} {incr i} {
         lappend lstSerie "$source $i"
       }
@@ -267,7 +273,7 @@ proc Tol_SetChartMethod { title source gcfFile geometry filetosave lstNames type
 #/////////////////////////////////////////////////////////////////////////////
   # GCF
   if {![string length $gcfFile]} {
-    set gcfFile [TclGetVar Text GCFFile]
+    set gcfFile [::tol::info variable [list Text GCFFile] ]
   }
   if {![file exists $gcfFile]} {
     set gcfFile {}
