@@ -131,45 +131,65 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     If(!VRows(_.modelDef->a), givenInitVal,
     {
     //WriteLn("TRACESearching valid initial values");
-      Real givenMatch = VMatMax(_.modelDef->A*givenInitVal-_.modelDef->a)<=0;
-      If(givenMatch, 
+      Set try = SetOfNameBlock
+      (
+        [[Text name="givenByUser", Real order=config_::bsr.iniVal.try.givenByUser]],
+        [[Text name="zero",        Real order=config_::bsr.iniVal.try.zero]],
+        [[Text name="cnstrMinNorm",Real order=config_::bsr.iniVal.try.cnstrMinNorm]],
+        [[Text name="cnstrMLE",    Real order=config_::bsr.iniVal.try.cnstrMLE]]
+      );
+      Set try.sel = Select(try,Real(NameBlock method) 
+      { method::order });
+      Set try.sort = Sort(try.sel,Real(NameBlock a, NameBlock b) 
+      { Compare(a::order,b::order) });
+      Real method.num = 1;
+      Real method.ok = False;
+      VMatrix beta = Rand(_.N,1,?,?);
+      While(And(!method.ok,method.num<=Card(try.sort)),
       {
-        WriteLn(_MID+"Given init values matches constrain inequations.");
-        givenInitVal
-      },
-      {
-        WriteLn(_MID+"Given init values doesn't match constrain inequations."
-                "Trying zero solution ...", "W");
-        Real zeroMatch = VMatMax(-_.modelDef->a)<=0;
-        If(zeroMatch, 
+        Text method.name = (try.sort[method.num])::name;
+        Do WriteLn(_MID+"Trying feasible initial values for MCM by method "+
+          method.name+" ...", "");
+        VMatrix beta := Case(
+        method.name=="givenByUser", 
         {
-          WriteLn(_MID+"Zero solution matches constrain inequations.");
+          givenInitVal
+        },
+        method.name=="zero", 
+        {
           Rand(_.N,1,0,0)
         },
+        method.name=="givenByUser", 
         {
-          WriteLn(_MID+"Zero init values doesn't match constrain inequations.\n"
-                    "Trying constrained minimum norm solution ...", "W");
+          beta := givenInitVal
+        },
+        method.name=="cnstrMinNorm", 
+        {
           Matrix  Dt    = VMat2Mat(Tra(_.modelDef->A));
           Matrix  d     = VMat2Mat(_.modelDef->a);
-          Matrix  I     = Diag(_.N,1);
-          Matrix  Z     = Rand(_.N,1,0,0);
-          Matrix  cnstr = Rquadprog::solveQP(I, Z, -Dt, -d,
+          Matrix  XtX   = Diag(_.N,1);
+          Matrix  XtY   = Rand(_.N,1,0,0);
+          Matrix  cnstr = Rquadprog::solveQP(XtX, XtY, -Dt, -d,
                                             {[[Real verbose=TRUE]]})[1];
-          VMatrix cnstr_ = Mat2VMat(cnstr);
-          Real cnstrMatch=VMatMax(_.modelDef->A*cnstr_-_.modelDef->a)<=0;
-          If(cnstrMatch, 
-          {
-            WriteLn(_MID+"Constrained minimum norm solution "
-                         "matches constrain inequations.");
-            cnstr_
-          },
-          {
-            WriteLn(_MID+"Constrained minimum norm solution doesn't match "
-                         "constrain inequations.", "E");
-            givenInitVal
-          }) 
-        })
-      })
+          Mat2VMat(cnstr)
+        },
+        method.name=="cnstrMLE", 
+        {
+          Matrix  Dt    = VMat2Mat(Tra(_.modelDef->A));
+          Matrix  d     = VMat2Mat(_.modelDef->a);
+          Matrix  XtX   = VMat2Mat(MtMSqr(_.XplusU));
+          Matrix  XtY   = VMat2Mat(Tra(Tra(_.YplusV)*_.XplusU));
+          Matrix  cnstr = Rquadprog::solveQP(XtX, XtY, -Dt, -d,
+                                            {[[Real verbose=TRUE]]})[1];
+          Mat2VMat(cnstr)
+        });
+        Real method.ok :=  VMatMax(_.modelDef->A*beta-_.modelDef->a)<=0;
+        If(method.ok,
+          WriteLn(_MID+"Method "+method.name+" matches constraints."),
+          WriteLn(_MID+"Method "+method.name+" DOESN'T match constraints."));
+        Real method.num := method.num+1
+      });
+      beta
     })
   };
 
@@ -180,6 +200,9 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 1");
     Matrix aux=SetCol(EvalSet(_.modelDef->LinearBlock,Real(BSR.LinearBlock b)
     { b->InitialValue }));
+    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
+  //WriteLn("TRACE"+_MID+" _.lin.blk.init 6");
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 2");
     VMatrix beta0 = findMatchingBeta(Mat2VMat(aux));
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 3");
@@ -188,10 +211,6 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     VMatrix _.beta   := _.lin.blk::_.blockDef::_.store;
     Real DoExternalFilter(0);
     VMatrix sig_0 = _.sig.blk::draw(0, _.Y - _.modelDef->X*_.beta);
-  //WriteLn("TRACE"+_MID+" _.lin.blk.init 5");
-    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
-  //WriteLn("TRACE"+_MID+" _.lin.blk.init 6");
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" _.lin.blk.init 7");
     VMatrix _.filter := _.XplusU*_.beta;
     VMatrix _.noise := _.YplusV-_.filter;
