@@ -90,6 +90,14 @@ NameBlock BysMcmc =
     Real mls.tolerance = 0.01;
     Real mls.FunnelGibbs.sigmaFactor = 0.01;
   //Basic master configuration
+    //Try order for given by user solution to start MCMC
+    Real bsr.iniVal.try.givenByUser = 1;
+    //Try order for zero solution to start MCMC
+    Real bsr.iniVal.try.zero = 2;
+    //Try order for constrained minimum norm solution to start MCMC
+    Real bsr.iniVal.try.cnstrMinNorm = 3;
+    //Try order for constrained max likelihood solution to start MCMC
+    Real bsr.iniVal.try.cnstrMLE = 4;
     //If solution error is great than this value a warning will be shown
     Real bsr.cholesky.epsilon = 1.E-13;
     //The notifying frequency of Cholesky warning
