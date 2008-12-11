@@ -112,8 +112,9 @@
   
   if {[info exists data(all)]} { ;# General calendar
     set data(allTms) [::tol::info variable TimeSet]
+    #puts "::CalendarTms::Create data(allTms) = $data(allTms)"
     foreach item $data(allTms) {
-      ::tol::timeset create $item $item
+      ::tol::timeset create $item [list TimeSet $item]
     }
     label $path.lTms -text [mc TimeSet]:
     # Combobox with the timesets
@@ -312,8 +313,8 @@ proc ::CalendarTms::GetDay {instance day month year tags} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   upvar \#0 ${instance}::data data    
-###    puts "##################"
-###  puts [ListHours $instance $day $month $year]
+#puts "##################"
+#puts [ListHours $instance $day $month $year]
   set data(date) $day/$month/$year
   $data(statusbar,cursor) configure\
        -text "y${year}m[format "%02d" $month]d[format "%02d" $day]"    
@@ -323,11 +324,11 @@ proc ::CalendarTms::GetDay {instance day month year tags} {
 proc ::CalendarTms::ShowHours {instance day month year tags} {
 #/////////////////////////////////////////////////////////////////////////////    
   if { [lsearch $tags type2] != -1 } {
-#    puts "day: $day"
-#    puts "month: $month"
-#    puts "year: $year"
-#    puts "tags: $tags"
-#    puts [concat "textSalida: " [ListHours $instance $day $month $year] ]
+#puts "day: $day"
+#puts "month: $month"
+#puts "year: $year"
+#puts "tags: $tags"
+#puts [concat "textSalida: " [ListHours $instance $day $month $year] ]
             
     Tolcon_Trace [ListHours $instance $day $month $year]
   }
@@ -500,7 +501,8 @@ proc ::CalendarTms::CheckDate {instance day month year} {
   set date "$year $month $day"
   # The calendar has a Timeset
   if { [string length $data(tms)] } {
-    # The date belongs to the Timeset  
+    # The date belongs to the Timeset 
+    #puts "::CalendarTms::CheckDate data(tms) = $data(tms)"    
     set result [$data(tms) contain $date]
    #foreach {y0 m0 d0 h0 mi0 s0} [$data(tms) start [list $year $month $day]] break
    # if { $y0 == $year && $m0 == $month && $d0 == $day } {
