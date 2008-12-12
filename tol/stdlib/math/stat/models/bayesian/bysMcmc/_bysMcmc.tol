@@ -144,7 +144,7 @@ NameBlock BysMcmc =
     Real do.eval = True;
     //Enables or disables in-sample evaluation of individual linear effects
     Real do.linear.effects = True;
-    //Enables or disables 
+    //Enables or disables saving full results of DBApi::Estim
     Real do.save.DBApi.Estim.Oza = True
   ]];
 
