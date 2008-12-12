@@ -367,7 +367,7 @@ Set Estim(Text dbName,
     Real dbNotifier::saving(0);
     Real Ois.Store(bsr.estim, bsr.estim::ascii+".estim.oza");
     1
-  }
+  });
   Real If(config::do.report,BysMcmc::Bsr::DynHlm::DBApi::SaveParamStats
   (
     dbName,
