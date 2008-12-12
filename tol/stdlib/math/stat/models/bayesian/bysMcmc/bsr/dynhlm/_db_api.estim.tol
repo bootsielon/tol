@@ -362,8 +362,12 @@ Set Estim(Text dbName,
     bsr.estim_ << [[linear.effects]]
   });
   Real SetIndexByName(bsr.estim);
-  Real dbNotifier::saving(0);
-  Real Ois.Store(bsr.estim, bsr.estim::ascii+".estim.oza");
+  if(config::do.save.DBApi.Estim,
+  {
+    Real dbNotifier::saving(0);
+    Real Ois.Store(bsr.estim, bsr.estim::ascii+".estim.oza");
+    1
+  }
   Real If(config::do.report,BysMcmc::Bsr::DynHlm::DBApi::SaveParamStats
   (
     dbName,
