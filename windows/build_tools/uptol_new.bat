@@ -32,6 +32,6 @@ If Not Exist ..\tol-contrib\nul (
   Goto END
 )
 
-CALL _uptol.bat %*
+CALL _uptol_new.bat %*
 
 :END
