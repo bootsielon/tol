@@ -12,12 +12,7 @@
 //Also you can set 0 times to skype a battery
 Set Results = ReportAllBatteries(SetOfSet
 (
-  strBatteryConfig("random_generation",       "",                       1),
   strBatteryConfig("TimeSetCoherence",        "",                       3),
-  strBatteryConfig("LinearAlgebra",           "",                       3),
   strBatteryConfig("ARIMA/FunAIA/simulation", "",                       1),
-  strBatteryConfig("ARIMA/FunAIA/estimation", "",                       1),
-  strBatteryConfig("ARIMA/FunEstimate",       "TestVolumeShort.tol",   10),
-  strBatteryConfig("ARIMA/FunEstimate",       "TestVolumeMedium.tol",   3),
-  strBatteryConfig("ARIMA/FunEstimate",       "TestVolumeHigh.tol",     0)
+  strBatteryConfig("ARIMA/FunAIA/estimation", "",                       1)
 ));
