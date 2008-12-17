@@ -9,8 +9,8 @@
   Real PutRandomSeed(23421);
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
-  Real c = IntRand(7,700);
-  Real r = IntRand(2000,2000);
+  Real c = IntRand(7,70);
+  Real r = IntRand(200,200);
   Real nz = c*r; //Min(Round(r*c)*Rand(0.001,0.05),3000);  
   Real min = -10;
   Real max = +10;
