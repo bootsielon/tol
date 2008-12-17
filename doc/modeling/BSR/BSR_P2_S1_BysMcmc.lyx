@@ -1572,6 +1572,19 @@ reference "cha:BysMcmc::Bsr::Gibbs"
 \end_layout
 
 \begin_layout Itemize
+Otro componente fundamental de BSR es la API de definición de modelos en
+ ficheros de datos ASCII con formato .bsr, el cual está implementado en la
+ función built-in C++ de TOL Bsr.Parse que se describe en 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:El-formato-ASCII-BSR"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
 En 
 \begin_inset Flex URL
 status collapsed
@@ -1654,19 +1667,6 @@ NameBlock BysMcmc::Bsr::OneNode
  Contiene el método Estim para modelos BSR básicos con filtros no lineales
  opcionales y el método EstimProbit especializado para el caso del modelo
  binario Probit.
-\end_layout
-
-\begin_layout Standard
-Otro componente fundamental de BSR es la API de definición de modelos en
- ficheros de datos ASCII con formato .bsr, el cual está implementado en la
- función built-in C++ de TOL Bsr.Parse que se describe en 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "cha:El-formato-ASCII-BSR"
-
-\end_inset
-
-
 \end_layout
 
 \end_body
