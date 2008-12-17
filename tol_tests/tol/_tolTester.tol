@@ -20,9 +20,6 @@ Set Results = ReportAllBatteries(SetOfSet
   strBatteryConfig("OIS",               "",  1),
   strBatteryConfig("performance",       "",  1),
   strBatteryConfig("random_generation", "",  1),
-  strBatteryConfig("LinearAlgebra",     "",  3),
-  strBatteryConfig("ARIMA/FunEstimate", "TestVolumeShort.tol",   10),
-  strBatteryConfig("ARIMA/FunEstimate", "TestVolumeMedium.tol",   3),
-  strBatteryConfig("ARIMA/FunEstimate", "TestVolumeHigh.tol",     0)
+  strBatteryConfig("LinearAlgebra",     "",  3)
 
 ));
