@@ -9,8 +9,8 @@
 
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
-  Real m       = IntRand(2000, 2000);
-  Real n       = IntRand( 700,  700);
+  Real m       = IntRand(200, 200);
+  Real n       = IntRand( 70,  70);
   
   Matrix X = Rand(m,n,-10,10);
   Matrix XtX = MtMSqr(X);
