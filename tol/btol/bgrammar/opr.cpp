@@ -888,8 +888,6 @@ BUserFunction* BUserFunction::ActiveFunction()
  */
 void BUserFunction::AddActiveFunction(BUserFunction* uFunction) 
 {
-  if(uFunction->Name()=="generate")
-    printf("");  
   activeFunctions_.push_back(uFunction);
 }
 
@@ -907,8 +905,6 @@ void BUserFunction::ShowCallStack()
     for(i=activeFunctions_.size()-1; i>=0; i--)
     {
       BUserFunction* usf = activeFunctions_[i];
-      if(usf->Name()=="generate")
-        printf("");  
       Std(BText("  [")+(i+1)+"] "+
         usf->Grammar()->Name()+" "+
         usf->FullName()+" "+
