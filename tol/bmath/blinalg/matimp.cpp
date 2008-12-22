@@ -34,14 +34,14 @@ void MatrixInitialize()
     DMat::Initialize();
     BMat::Initialize();
 }
-template class BMatrix	    <BDat>;
+//template class BMatrix	    <BDat>;
 template class BSymMatrix   <BDat>;
 template class BLowTrMatrix <BDat>;
 template class BUpTrMatrix  <BDat>;
 template class BDiagMatrix  <BDat>;
 template class BArray<BArray<BDat> >;
 
-template class BMatrix	    <double>;
+//template class BMatrix	    <double>;
 template class BSymMatrix   <double>;
 template class BLowTrMatrix <double>;
 template class BUpTrMatrix  <double>;
