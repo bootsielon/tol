@@ -285,6 +285,7 @@ proc Tol_SetChartMethod { title source gcfFile geometry filetosave lstNames type
   $tl setgeometry $geometry  
   set top [$tl getframe]
   # if source is a list is interpreted as a set name and indexes accesing a element
+  if {0} {
   if { [llength $source] > 1 } {
     set setname [GetUniqueName Set]
     set sourcename [lindex $source 0]
@@ -296,8 +297,9 @@ proc Tol_SetChartMethod { title source gcfFile geometry filetosave lstNames type
     ::tol::console eval $strtoeval
     set source $setname
   }
+  }
   set cmd tableset[clock clicks]
-  ::tol::tableset create $cmd $source
+  ::tol::tableset create $cmd [linsert $source 0 Set]
   set Instance [::SetGraphDialog::DrawSet $top.g $cmd $source $type $lstPairs \
     $lstNames $gcfFile [list $title]]
   bind $top.g <Destroy> +[list ::tol::tableset destroy $cmd]
