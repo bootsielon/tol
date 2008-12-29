@@ -33,13 +33,13 @@ BTraceInit("tol_blas.cpp");
 #define b2dMat(M) ((BMatrix<double>&)(M))
 #define cb2dMat(M) ((const BMatrix<double>&)(M))
 
-void cblas_xerbla(int p, char *rout, char *form, ...)
+void cblas_xerbla(int p, const char *rout, const char *form, ...)
 {
 char buffer[1024];
 va_list argptr;
 
 va_start(argptr, form);
-sprintf(buffer, "Parameter %d to routine %s was incorrect\n", p, rout);
+sprintf(buffer, "[XERBLA] Parameter %d to routine %s was incorrect\n", p, rout);
 Error(buffer);
 vsnprintf(buffer, 1023, form, argptr);
 Error(buffer);
