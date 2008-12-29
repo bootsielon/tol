@@ -31,7 +31,9 @@ END_DECLS
 #include <tol/tol_bdat.h>
 #include <tol/tol_matrix.h>
 
-
+extern "C" {
+  void TOL_API cblas_xerbla(int p, char *rout, char *form, ...);
+}
 
 /////////////////////////////////////////////////////////////////////////////
 namespace TolBlas {
