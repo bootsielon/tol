@@ -87,19 +87,22 @@ int dgemm(const enum CBLAS_TRANSPOSE TransA,
     C.Alloc(M,N);
     C.SetAllValuesTo(0);
   }
-  const double* A_ = A.Data().Buffer();
-  const double* B_ = B.Data().Buffer();
-  double* C_ = C.GetData().GetBuffer();
-  cblas_dgemm
-  (
-    CblasRowMajor, TransA, TransB,
-    M, N, K,
-    alpha,
-    A_, Ac,
-    B_, Bc,
-    beta,
-    C_, N
-  );
+  if(N&&K&&M)
+  {
+    const double* A_ = A.Data().Buffer();
+    const double* B_ = B.Data().Buffer();
+    double* C_ = C.GetData().GetBuffer();
+    cblas_dgemm
+    (
+      CblasRowMajor, TransA, TransB,
+      M, N, K,
+      alpha,
+      A_, Ac,
+      B_, Bc,
+      beta,
+      C_, N
+    );
+  }
 //VBR: Comprobar si hay error
   return(0);
 };
@@ -153,15 +156,18 @@ int dsyrk(const enum CBLAS_UPLO Uplo,
     C.Alloc(N,N);
     C.SetAllValuesTo(0);
   }
-  cblas_dsyrk
-  (
-    CblasRowMajor, Uplo, Trans,
-    N, K,
-    alpha,
-    A.Data().Buffer(), Ac,
-    beta,
-    C.GetData().GetBuffer(), Cc
-  );
+  if(N&&K)
+  {
+    cblas_dsyrk
+    (
+      CblasRowMajor, Uplo, Trans,
+      N, K,
+      alpha,
+      A.Data().Buffer(), Ac,
+      beta,
+      C.GetData().GetBuffer(), Cc
+    );
+  }
 //VBR: Comprobar si hay error
   return(0);
 };
@@ -204,9 +210,12 @@ int dtrmm(const enum CBLAS_SIDE Side,
   int N   = X.Columns();
   int lda = (Side==CblasLeft)?M:N;
   int ldb = N;
-  cblas_dtrmm(CblasRowMajor,Side,Uplo,TransA,Diag,M,N,alpha, 
-              A.Data   ().Buffer   (),lda,
-              X.GetData().GetBuffer(),ldb);
+  if(N&&M)
+  {
+    cblas_dtrmm(CblasRowMajor,Side,Uplo,TransA,Diag,M,N,alpha, 
+                A.Data   ().Buffer   (),lda,
+                X.GetData().GetBuffer(),ldb);
+  }
 //VBR: Comprobar si hay error
   return(0);
 };
@@ -254,9 +263,12 @@ int dtrsm(const enum CBLAS_SIDE Side,
   int N   = X.Columns();
   int lda = (Side==CblasLeft)?M:N;
   int ldb = N;
-  cblas_dtrsm(CblasRowMajor,Side,Uplo,TransA,Diag,M,N,alpha, 
-              A.Data   ().Buffer   (),lda,
-              X.GetData().GetBuffer(),ldb);
+  if(N&&M)
+  {
+    cblas_dtrsm(CblasRowMajor,Side,Uplo,TransA,Diag,M,N,alpha, 
+                A.Data   ().Buffer   (),lda,
+                X.GetData().GetBuffer(),ldb);
+  }
 //VBR: Comprobar si hay error
   return(0);
 };
