@@ -9,7 +9,7 @@ tol::console eval {
 
 tol::console stack release
 
-if {[catch {tol::info var Serie b}]} {
+if {[catch {tol::info var [list Serie b] }]} {
   set quality 1.0
   set partial "Serie b does not exist, as it should be"
 } else {
