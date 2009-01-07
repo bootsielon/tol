@@ -1,5 +1,5 @@
 proc GetTolValue {N {G Real}} {
-  lindex [tol::info variable $G $N] 0
+  lindex [tol::info variable [ list $G $N ] ] 2
 }
 
 proc HowM {N C} {
