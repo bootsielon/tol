@@ -23,7 +23,7 @@ tol::console eval {
   TimeSet tms1 = D(1);
   TimeSet tms2 = D(2);
 }
-tol::timeset create iter_tms1 tms1
+tol::timeset create iter_tms1 {TimeSet tms1}
 tol::console stack release stack
 if {![on_stack "tms1"]} {
   set quality 0.0
