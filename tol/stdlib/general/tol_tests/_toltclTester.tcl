@@ -20,7 +20,7 @@ proc WriteTestBst {bst quality desc {E 0} {W 0}} {
   set desc [regsub -all "\"" $desc "\\\""]
   puts $fd "tt_result;$E;$W;$quality;\"$desc\";"
   close $fd
-  puts "toltcl test ended with: [HowE $E], [HowW $W] and quality [expr {$quality*100}] %"
+  #puts "toltcl test ended with: [HowE $E], [HowW $W] and quality [expr {$quality*100}] %"
 }
 
 if {$argc != 2} {
@@ -43,7 +43,7 @@ if {![file exists $test_file]} {
 
 set version "1.1.7"
 
-puts "Loading Toltcl $version ... "
+#puts "Loading Toltcl $version ... "
 if {[catch {
   package require -exact Toltcl $version
   tol::initkernel
@@ -57,12 +57,12 @@ if {[catch {
   WriteTestBst $result_bst 0 "could not initialize toltcl $version : $msg"
   return
 }
-puts "Toltcl $version loaded"
+#puts "Toltcl $version loaded"
 
 set tol_E0 [GetTolValue NError]
 set tol_W0 [GetTolValue NWarning]
 namespace eval _toltcl_test {
-  puts "Running Toltcl test $test_file ...."
+  #puts "Running Toltcl test $test_file ...."
   if {[catch {source $test_file} msg]} {
     WriteTestBst $result_bst 0 "fail while sourcing $test_file : $msg"
     return
