@@ -100,7 +100,7 @@ BStruct* DocInfoStr()
     "Text:Session.Name,"
     "Text:Session.Description,"
     "Text:Session.Authors,"
-    "Text:Session.Creation,"
+    "Date:Session.Creation,"
     "Text:Path");
   }
   return(aux);
@@ -136,7 +136,7 @@ BStruct* MissingBlockStr()
     "Real:Index,"
     "Real:Row,"
     "Real:Col,"
-    "Real:Prior,"
+    "Text:Prior,"
     "Real:Nu,"
     "Real:Sigma2,"
     "Real:MinBound,"
@@ -402,6 +402,93 @@ template<> symbol_handler<variable_info>*  add_symbol<variable_info>  ::sh_   = 
 template<> symbol_handler<missing_info>*   add_symbol<missing_info>   ::sh_   = NULL;
 template<> symbol_handler<sigma_info>*     add_symbol<sigma_info>     ::sh_   = NULL;
 template<> symbol_handler<noise_info>* add_symbol<noise_info> ::sh_   = NULL;
+
+
+///////////////////////////////////////////////////////////////////////////////
+struct assign_missing_min
+///////////////////////////////////////////////////////////////////////////////
+{
+  static symbol_handler<missing_info>*  mis_;
+  
+  static void action(const double d)
+  {
+    mis_->info.minBound  = d;
+  }
+  static void action(const std::string& str)
+  {
+    if(str=="?")
+    {
+      action(BDat::NegInf());
+    }
+    else
+    {
+      action(atof(str.c_str()));
+    }
+  }
+  void operator()(const double d) const
+  {
+    action(d);
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+  void operator()(const char* str) const
+  {
+    action(str);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+symbol_handler<missing_info>* assign_missing_min::mis_  = NULL; 
+
+///////////////////////////////////////////////////////////////////////////////
+struct assign_missing_max
+///////////////////////////////////////////////////////////////////////////////
+{
+  static symbol_handler<missing_info>*  mis_;
+  
+  static void action(const double d)
+  {
+    mis_->info.maxBound  = d;
+  }
+  static void action(const std::string& str)
+  {
+    if(str=="?")
+    {
+      action(BDat::PosInf());
+    }
+    else
+    {
+      action(atof(str.c_str()));
+    }
+  }
+  void operator()(const double d) const
+  {
+    action(d);
+  }
+  void operator()(const char* str) const
+  {
+    action(str);
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+symbol_handler<missing_info>* assign_missing_max::mis_  = NULL; 
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1187,6 +1274,11 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
       add_symbol<noise_info>::sh_ = &s.noise;
       add_symbol<noise_info> add_res;
 
+      assign_missing_min::mis_  = &s.mis; 
+      assign_missing_min assign_missing_min_; 
+      assign_missing_max::mis_  = &s.mis; 
+      assign_missing_max assign_missing_max_; 
+
       assign_noise_size::noise_info_  = &s.noise.info; 
       assign_noise_size::numEqu_    = &s.numEqu_;
       assign_noise_size::var_count_ = &s.var.count;
@@ -1604,9 +1696,9 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
                 argumentSeparator >>
                 (real_p[assign_a(s.mis.info.sigma2)] | error_badNumber)>>
                 argumentSeparator >>
-                (real_p[assign_a(s.mis.info.minBound)] | error_badNumber)>>
+                ((str_p("?")|real_p)[assign_missing_min_] | error_badNumber) >>
                 argumentSeparator >>
-                (real_p[assign_a(s.mis.info.maxBound)] | error_badNumber) >>
+                ((str_p("?")|real_p)[assign_missing_max_] | error_badNumber) >>
                 closeParenthesys
               )
             ) 
