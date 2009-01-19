@@ -132,9 +132,10 @@ Real Write.Data.MissingBlock(NameBlock segment,
   Set For(1,segment::Get.Missing.Size(0), Real(Real k) 
   {
     Set P = segment::Get.Missing(k);
-    Real nr = LT(P->Prior.Sigma,+1/0);
-    Real lb = GT(P->Prior.LowerBound,-1/0);
-    Real ub = LT(P->Prior.UpperBound,+1/0);
+    Real nr = !IsUnknown(P->Prior.Sigma)      & LT(P->Prior.Sigma,+1/0);
+    Real lb = !IsUnknown(P->Prior.LowerBound) & GT(P->Prior.LowerBound,-1/0);
+    Real ub = !IsUnknown(P->Prior.UpperBound) & LT(P->Prior.UpperBound,+1/0);
+  //WriteLn("TRACE [Write.Data.MissingBlock] P->Prior.Sigma="<<P->Prior.Sigma+" nr="<<nr);
     Case(!nr & !lb & !ub,
     {
       FPutText(fileHandler, 
