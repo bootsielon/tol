@@ -77,8 +77,9 @@ TimeSet Trimestral    = D(1)*(M(1)+M(4)+M(7)+M(10));
 TimeSet Cuatrimestral = D(1)*(M(1)+M(5)+M(9));
 TimeSet Semestral     = D(1)*(M(1)+M(7));
 TimeSet Anual         = D(1)*M(1);
-TimeSet Bianual       = Periodic(y1900,2,Anual);
-TimeSet Bianual1      = Periodic(y1901,2,Anual);
+TimeSet Bianual       = Periodic(y1900,2, Anual);
+TimeSet Bianual1      = Periodic(y1901,2, Anual);
+TimeSet Decanual      = Periodic(y1901,10,Anual);
 
 TimeSet Hourly        = Mi(0);
 TimeSet Weekly        = WD(1);
@@ -94,6 +95,7 @@ TimeSet HalfYearly    = D(1)*(M(1)+M(7));
 TimeSet Yearly        = D(1)*M(1);
 TimeSet Biyearly      = Periodic(y1900,2,Anual);
 TimeSet Biyearly1     = Periodic(y1901,2,Anual);
+TimeSet Tenyearly     = Periodic(y1901,10,Anual);
 
 TimeSet PseudoMensual = Range(D(1),0,6)*WD(1);
 TimeSet PseudoAnual   = Range(M(1)*D(1),0,6)*WD(1);
