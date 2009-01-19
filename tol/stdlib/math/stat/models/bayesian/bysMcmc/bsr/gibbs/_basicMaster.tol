@@ -14,7 +14,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //--------------------------------------------------------------------------
   // Configuration members
   //--------------------------------------------------------------------------
-  NameBlock config_ = BysMcmc::BuildFullConfig(config);
+  NameBlock _.config = BysMcmc::BuildFullConfig(config);
 
   //--------------------------------------------------------------------------
   // Read only members
@@ -37,7 +37,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     EvalSet(_.modelDef->LinearBlock, Text(BSR.LinearBlock b){ b->Name }),
     1,
     1,
-    config_
+    _.config
   );
 
   NameBlock _.sig.blk = BysMcmc::Bsr::Gibbs::SigmaBlock
@@ -46,7 +46,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     _.modelDef->NoiseDistrib,
     2,
     _.lin.blk::_.blockDef::_.lastCol+1,
-    config_
+    _.config
   );
 
   NameBlock _.arm.blk = BysMcmc::Bsr::Gibbs::ArimaBlock
@@ -55,7 +55,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     _.modelDef->NoiseDistrib,
     3, 
     _.sig.blk::_.blockDef::_.lastCol+1,
-    config_
+    _.config
   );
 
   NameBlock _.inpMis.blk = BysMcmc::Bsr::Gibbs::InputMissingBlock
@@ -64,7 +64,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     _.modelDef->InputMissingBlock,
     4,
     _.arm.blk::_.blockDef::_.lastCol+1,
-    config_
+    _.config
   );
 
   NameBlock _.outMis.blk = BysMcmc::Bsr::Gibbs::OutputMissingBlock
@@ -73,7 +73,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     _.modelDef->OutputMissingBlock,
     5,
     _.inpMis.blk::_.blockDef::_.lastCol+1,
-    config_
+    _.config
   );
 
   Set _.blocks =
@@ -133,10 +133,10 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     //WriteLn("TRACESearching valid initial values");
       Set try = SetOfNameBlock
       (
-        [[Text name="givenByUser", Real order=config_::bsr.iniVal.try.givenByUser]],
-        [[Text name="zero",        Real order=config_::bsr.iniVal.try.zero]],
-        [[Text name="cnstrMinNorm",Real order=config_::bsr.iniVal.try.cnstrMinNorm]],
-        [[Text name="cnstrMLE",    Real order=config_::bsr.iniVal.try.cnstrMLE]]
+        [[Text name="givenByUser", Real order=_.config::bsr.iniVal.try.givenByUser]],
+        [[Text name="zero",        Real order=_.config::bsr.iniVal.try.zero]],
+        [[Text name="cnstrMinNorm",Real order=_.config::bsr.iniVal.try.cnstrMinNorm]],
+        [[Text name="cnstrMLE",    Real order=_.config::bsr.iniVal.try.cnstrMLE]]
       );
       Set try.sel = Select(try,Real(NameBlock method) 
       { method::order });
@@ -297,7 +297,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     VMatrix e = _.arm.blk::filter(_.noise);
   //WriteLn("TRACE"+_MID+" draw.sig.lin 4");
     VMatrix sig = If(Not(_.sig.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
-      _.sig.blk::maxLikelihood(numSim, e))/*config_::mls.FunnelGibbs.sigmaFactor*/;
+      _.sig.blk::maxLikelihood(numSim, e))/*_.config::mls.FunnelGibbs.sigmaFactor*/;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 5");
     VMatrix si = _.sig.blk::_.sigmaInv;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 7");
