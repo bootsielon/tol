@@ -176,6 +176,7 @@ BStruct* NoiseDistribStr()
     "Real:Nu,"
     "Text:SigmaName,"
     "Real:SigmaIndex,"
+    "Set:SigmaPrior,"
     "Set:Arima,"
     "Set:ArimaAuxInfo,"
     "VMatrix:Cov,"
@@ -537,7 +538,7 @@ struct assign_sigma_to_res
 {
   static symbols<int>*       sig_table_;
   static vector<sigma_info>* sig_vec_;
-  static noise_info*     noise_info_; 
+  static noise_info*         noise_info_; 
   static int*                numEqu_; 
 
   assign_sigma_to_res() {}

@@ -381,12 +381,14 @@ NameBlock Obs.Output(
   //The result of calling Build.Serie.info for an input serie
   NameBlock serie.info,
   Real sigma,
+  Real sigmaPriorWeight,
   //A possibly empty set of ARIMA factors with structure ARIMAStruct
   Set arima)
 //////////////////////////////////////////////////////////////////////////////
 {[[
   NameBlock _.serie.info=serie.info;
   Real _.sigma = sigma;
+  Real _.sigmaPriorWeight = sigmaPriorWeight;
   Set _.arima.factors = arima
 ]]};
 
@@ -494,11 +496,19 @@ NameBlock Obs(
   //Returns a Real fixed known sigma value as prior information or a 
   //Text variable name to be simulated in the Sigma Gibbs block of BSR
 
+  Real hasPrior = If(IsUnknown(_.output::_.sigmaPriorWeight),False,
+                     LT(0,_.output::_.sigmaPriorWeight,1));
   Anything Get.Sigma2(Real unused) 
   { 
-    If(IsUnknown(_.output::_.sigma),
+    If(IsUnknown(_.output::_.sigma) | hasPrior,
       "SigmaBlk::"+_.id_node+"::Variance",
-      (_.output::_.sigma)^2)
+      _.output::_.sigma^2)
+  };
+  Text Get.SigmaPrior(Real unused) 
+  { 
+    If(!hasPrior,"",
+       "Bsr.Sigma.Prior.InverseGamma("<<
+       _.output::_.sigma+","<<_.output::_.sigmaPriorWeight+")")
   };
 
   /////////////////////////////////////////////////////////////////////////

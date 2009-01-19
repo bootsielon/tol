@@ -403,6 +403,7 @@ CREATE TABLE  `bsrhlm_v_obs_output` (
   `dh_start` datetime NULL,
   `dh_end`  datetime NULL,
   `vl_sigma` double  NULL,
+  `vl_sigma_prior_weight` double  NULL,
   PRIMARY KEY (`id_model`,`id_session`,`id_node`),
   CONSTRAINT `UK_bsrhlm_v_obs_output_model_session_node_series`
     UNIQUE KEY  (`id_model`, `id_session`, `id_node`, `id_series`),
@@ -507,6 +508,7 @@ CREATE TABLE  `bsrhlm_v_lat_sigma_block` (
   `id_session` varchar(64) NOT NULL,
   `id_node` varchar(64) NOT NULL,
   `vl_sigma` double NULL,
+  `vl_sigma_prior_weight` double NULL, 
   PRIMARY KEY (`id_model`,`id_session`,`id_node`),
   CONSTRAINT `FK_bsrhlm_v_lat_sigma_block_model_session_node`
     FOREIGN KEY                (`id_model`, `id_session`, `id_node`)
@@ -600,6 +602,7 @@ CREATE TABLE  `bsrhlm_v_pri_equ` (
   `nu_equation` integer NOT NULL,
   `vl_average` double  NOT NULL,
   `vl_sigma` double  NOT NULL,
+  `vl_sigma_prior_weight` double NULL, 
   PRIMARY KEY (`id_model`,`id_session`,`id_node_father`,`nu_equation`),
   CONSTRAINT `FK_bsrhlm_v_pri_equ_model_session_node_father`
     FOREIGN KEY                (`id_model`, `id_session`, `id_node_father`)

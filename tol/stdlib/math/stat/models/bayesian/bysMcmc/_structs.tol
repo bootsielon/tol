@@ -202,10 +202,23 @@ Struct Bsr.OneNode.LinearParamInfo
   Real Prior.UpperBound,  // Prior minimum feasible value or +1/0
   Real Prior.Average,
   Real Prior.Sigma,
+  Real Prior.SigmaWeight,
   Real Prior.Missing.SigmaFactor, 
   Real Prior.Missing.LowerBound, 
   Real Prior.Missing.UpperBound
 };
+
+/////////////////////////////////////////////////////////////////////////////
+//Sigma Inverse-Gamma prior information in a BSR model 
+//Described in Bayesian Data Analisys (Gelman-Carlin-Stern-Rubin) Second 
+//Edition, section 14.8, subsection "Prior information about variance 
+//parameters"  page 384
+/////////////////////////////////////////////////////////////////////////////
+Struct Bsr.Sigma.Prior.InverseGamma
+{
+  Real Sigma,  // Residuals square average: sigma0
+  Real Weight  // Relative weight of prior versus data : n0/(n0+n)  
+};  
 
 /////////////////////////////////////////////////////////////////////////////
 //Missing value with optional normal prior information in a BSR model 
@@ -271,7 +284,8 @@ Struct Bsr.DynHlm.DBStrObsOutput
   Real missingPriorUpperBound, 
   Date firstDate, 
   Date lastDate,
-  Real sigma
+  Real sigma,
+  Real sigmaPriorWeight
 };
 
 Struct Bsr.DynHlm.DBStrObsInput
@@ -326,7 +340,8 @@ Struct Bsr.DynHlm.DBStrPriEqu
 {
   Real nu_equation, 
   Real average, 
-  Real sigma 
+  Real sigma , 
+  Real sigmaPriorWeight
 };
 Struct Bsr.DynHlm.DBStrPriOutput
 {

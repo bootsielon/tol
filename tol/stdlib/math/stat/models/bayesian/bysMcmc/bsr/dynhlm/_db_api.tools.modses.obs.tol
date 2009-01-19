@@ -17,7 +17,8 @@ Real ModSes.Obs.Output.Create(Text dbName,
                               Real mis_pri_max,
                               Date start,
                               Date end,
-                              Real sigma)
+                              Real sigma,
+                              Real sigmaPriorWeight)
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
@@ -29,7 +30,8 @@ Real ModSes.Obs.Output.Create(Text dbName,
   SqlFormatReal(mis_pri_max)+","+
   SqlFormatDate(start)+","+
   SqlFormatDate(end)+","+
-  SqlFormatReal(sigma));
+  SqlFormatReal(sigma)+","+
+  SqlFormatReal(sigmaPriorWeight));
   Eval("ModSes.Obs.Output.Create.ok=ok")
 };
 
@@ -165,6 +167,7 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
   Real outIsATimeSerie = ObjectExist("Serie",  "out::_.serie");
   Real outIsAVector    = ObjectExist("Matrix", "out::_.vector");
   Real sigma = If(ObjectExist("Real","out::_.sigma"),out::_.sigma,?);
+  Real sigmaPriorWeight = If(ObjectExist("Real","out::_.sigmaPriorWeight"),out::_.sigma,?);
   Real ok.2 = Case(
   outIsATimeSerie,
   {
@@ -178,7 +181,8 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       out::_.mis_pri_max,
       out::_.firstDate,
       out::_.lastDate,
-      sigma
+      sigma,
+      sigmaPriorWeight
     )
   },
   outIsAVector,
@@ -193,7 +197,8 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
       out::_.mis_pri_max,
       UnknownDate,
       UnknownDate,
-      sigma
+      sigma,
+      sigmaPriorWeight
     )
   },
   1==1,

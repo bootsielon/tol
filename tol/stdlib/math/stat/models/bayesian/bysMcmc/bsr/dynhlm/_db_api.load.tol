@@ -182,7 +182,8 @@ NameBlock LoadObsNode(Text dbName,
   "  vl_mis_pri_max, \n"+
   "  dh_start, \n"+
   "  dh_end , \n"+
-  "  vl_sigma \n"+
+  "  vl_sigma , \n"+
+  "  vl_sigma_prior_weight \n"+
   "FROM "+dbName+"."+_table::ObsOutput+" WHERE \n"+
   "  id_model='"+model+"' AND \n"+
   "  id_session='"+session+"' AND \n"+
@@ -225,6 +226,7 @@ NameBlock LoadObsNode(Text dbName,
       db_output->missingPriorLowerBound, 
       db_output->missingPriorUpperBound),
       db_output->sigma,
+      db_output->sigmaPriorWeight,
       arima)};
 //WriteLn("TRACE LoadObsNode 6");
   Set db_inputs = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
@@ -333,15 +335,16 @@ NameBlock LoadLatNode(Text dbName,
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
   [[
     Text _.id_node = id_node;
-    Real db_sigma = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+    Set db_sigma_info = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
     "SELECT \n"+
-    "  vl_sigma \n"+
+    "  vl_sigma, vl_sigma_prior_weight \n"+
     "FROM "+dbName+"."+_table::LatSigBlk+" WHERE \n"+
     "  id_model='"+model+"' AND \n"+
     "  id_session='"+session+"' AND \n"+
     "  id_node='"+id_node+"' ", 
-    "")[1][1];
-
+    "")[1];
+    Real db_sigma = db_sigma_info[1];
+    Real db_sigmaPriorWeight = db_sigma_info[2];
     Set db_equ = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
     "SELECT \n"+
     "  nu_equation, \n"+
@@ -409,11 +412,19 @@ NameBlock LoadLatNode(Text dbName,
     "Bsr.Param.Info"); 
 
     Text Get.Name(Real unused) { _.id_node };
+    Real hasPrior = If(IsUnknown(db_sigmaPriorWeight),False,
+                       LT(0,db_sigmaPriorWeight,1));
     Anything Get.Sigma2(Real unused) 
     { 
-      If(IsUnknown(db_sigma),
+      If(IsUnknown(db_sigma) | hasPrior,
         "SigmaBlk::"+_.id_node+"::Variance",
         db_sigma^2)
+    };
+    Text Get.SigmaPrior(Real unused) 
+    { 
+      If(!hasPrior,"",
+         "Bsr.Sigma.Prior.InverseGamma("<<
+         db_sigma+","<<db_sigmaPriorWeight+")")
     };
     Real Get.ARIMA.Size(Real unused) { 0 };
     Real Get.Param.Size(Real unused) { Card(db_param) };
@@ -467,7 +478,8 @@ NameBlock LoadPriNode(Text dbName,
     "SELECT \n"+
     "  nu_equation, \n"+
     "  vl_average, \n"+
-    "  vl_sigma \n"+
+    "  vl_sigma, \n"+
+    "  vl_sigma_prior_weight \n"+
     "FROM "+dbName+"."+_table::PriEqu+" WHERE \n"+
     "  id_model='"+model+"' AND \n"+
     "  id_session='"+session+"' AND \n"+
@@ -498,7 +510,22 @@ NameBlock LoadPriNode(Text dbName,
     });
 
     Text Get.Name(Real unused) { _.id_node };
-    Real Get.Sigma2(Real unused) { db_equ[1]->sigma^2 };
+
+    Real hasPrior = If(IsUnknown(db_equ[1]->sigmaPriorWeight),False,
+                       LT(0,db_equ[1]->sigmaPriorWeight,1));
+    Anything Get.Sigma2(Real unused) 
+    { 
+      If(IsUnknown(db_equ[1]->sigma) | hasPrior,
+        "SigmaBlk::"+_.id_node+"::Variance",
+        db_equ[1]->sigma^2)
+    };
+    Text Get.SigmaPrior(Real unused) 
+    { 
+      If(!hasPrior,"",
+         "Bsr.Sigma.Prior.InverseGamma("<<
+         db_equ[1]->sigma+","<<db_equ[1]->sigmaPriorWeight+")")
+    };
+
     Real Get.ARIMA.Size(Real unused) { 0 };
     Real Get.Param.Size(Real unused) { 0 };
     Set Get.Param(Real numParam) { Copy(Empty) };

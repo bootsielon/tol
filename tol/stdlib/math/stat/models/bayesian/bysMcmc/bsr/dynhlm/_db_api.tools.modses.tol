@@ -294,7 +294,8 @@ Real ModSes.Replicate(Text from_dbName,
   "INSERT INTO "+to_dbName+"."+_table::ObsOutput+"\n"+
   "SELECT '"+to_model+"', '"+to_session+"', id_node, "
   "id_series, vl_mis_pri_sig_fac, "
-  "vl_mis_pri_min, vl_mis_pri_max, dh_start, dh_end \n"+
+  "vl_mis_pri_min, vl_mis_pri_max, dh_start, dh_end"
+  "vl_sigma, vl_sigma_prior_weight \n"+
   "FROM "+from_dbName+"."+_table::ObsOutput+"\n"+
   "WHERE id_model='"+from_model+"' AND id_session='"+from_session+"';");
 
@@ -324,7 +325,8 @@ Real ModSes.Replicate(Text from_dbName,
 
   Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
   "INSERT INTO "+to_dbName+"."+_table::LatSigBlk+"\n"+
-  "SELECT '"+to_model+"', '"+to_session+"', id_node, vl_sigma \n"+
+  "SELECT '"+to_model+"', '"+to_session+"', id_node, "
+  "vl_sigma, vl_sigma_prior_weight \n"+
   "FROM "+from_dbName+"."+_table::LatSigBlk+"\n"+
   "WHERE id_model='"+from_model+"' AND id_session='"+from_session+"';");
 
@@ -352,7 +354,8 @@ Real ModSes.Replicate(Text from_dbName,
   Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
   "INSERT INTO "+to_dbName+"."+_table::PriEqu+"\n"+
   "SELECT '"+to_model+"', '"+to_session+"', "
-  "id_node_father,nu_equation,vl_average,vl_sigma \n"+
+  "id_node_father, nu_equation, vl_average, "
+  "vl_sigma, vl_sigma_prior_weight \n"+
   "FROM "+from_dbName+"."+_table::PriEqu+"\n"+
   "WHERE id_model='"+from_model+"' AND id_session='"+from_session+"';");
 

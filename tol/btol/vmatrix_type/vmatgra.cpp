@@ -2236,12 +2236,31 @@ void BSetParseResLinReg::CalcContens()
     ));
     aux.AddElement(BContensDat::New
     (
-      "SigmaBlockIndex",
+      "SigmaIndex",
       noiseInfo[k].sigmaIdx,
       ""
     ));
+    BSyntaxObject* sigPri = NULL;
+    BText expr = noiseInfo[k].sigmaPriorExpr.c_str();
+    if(expr=="")
+    {
+      sigPri = GraSet()->EvaluateExpr("Copy(Empty)");
+    }
+    else
+    {
+      sigPri = GraSet()->EvaluateExpr(expr);
+      if(!sigPri) 
+      { 
+        Error(I2("[BSR] Cannot evaluate SigmaPrior expression for ",
+                 "[BSR] No se puede evaluar la expresión del SigmaPrior para ")+
+              noiseInfo[k].name.c_str()+"=\n"+expr+"\n");
+        sigPri = GraSet()->EvaluateExpr("Copy(Empty)"); 
+      }
+    }
+    sigPri->PutName("SigmaPrior");
+    aux.AddElement(sigPri);
     BSyntaxObject* arima = NULL;
-    BText expr = noiseInfo[k].arimaExpr.c_str();
+    expr = noiseInfo[k].arimaExpr.c_str();
     if(!expr.HasName())
     {
       arima = GraSet()->EvaluateExpr("Copy(Empty)"); 

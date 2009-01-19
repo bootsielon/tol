@@ -29,6 +29,7 @@ NameBlock OneNode =
   "//Optional members \n"
   "  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
   "  Set _.arima;           //Set of ARIMAStruct\n"
+  "  Set _.sigmaPrior;      //Bsr.Sigma.Prior.InverseGamma\n"
   "  Set _.timeInfo;        //Set of BSR.NoiseTimeInfo\n"
   "]];\n";
   Set Estim(NameBlock data_, Set nonLinFil, NameBlock config_)
@@ -143,6 +144,7 @@ NameBlock OneNode =
         Real Nu = 0;
         Text SigmaName = If(sigmaIsUnknown,data::_.segmentName+"::Sigma","");
         Real SigmaIndex = If(sigmaIsUnknown,1,-1);
+        Set SigmaPrior = Copy(Empty);
         Set arima = If(ObjectExist("Set","data::_.arima"),
           data::_.arima, Copy(Empty));
         Set ArimaAuxInfo = Copy(Empty);

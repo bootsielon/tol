@@ -235,6 +235,7 @@ struct noise_info
   std::string      sigmaName;
   int              sigmaIdx;
   double           sigmaCte;
+  std::string      sigmaPriorExpr;
   std::string      arimaExpr;
   std::string      covExpr; 
   bool             covIsDiag;
