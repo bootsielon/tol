@@ -15,7 +15,7 @@ NameBlock Rquadprog =
   Text _Rquadprog_citation(Real void) {
   "S original by Berwin A. Turlach R port by Andreas Weingessel. Rquadprog:"
   "Functions to solve Quadratic Programming Problems\n"
-  "URL http://cran.r-project.org/src/contrib/Descriptions/quadprog.html"};
+  "URL http://cran.r-project.org/web/packages/quadprog/index.html"};
 
   //read only autodoc
   Text _.autodoc.description =
@@ -44,12 +44,12 @@ NameBlock Rquadprog =
   "Rquadprog::solveQP is a function to interface with the R function "
   "Rquadprog_solve_LP \n"
   "\n"
-  "URL http://cran.r-project.org/doc/packages/quadprog.pdf"
+  "URL http://cran.r-project.org/web/packages/quadprog/quadprog.pdf"
   "\n"
   "Description\n"
   "This routine implements the dual method of Goldfarb and Idnani (1982, 1983) "
-  "for solving quadratic programming problems of the form min(?d'b + 1/2b'Db) "
-  "with the constraints AT b >= b0 \n"
+  "for solving quadratic programming problems of the form "
+  "min(- d' b + 1/2 b' D b) with the constraints A' b >= b0 \n"
   "\n"
   "Arguments\n"
   "  D: matrix appearing in the quadratic function to be minimized.\n"
