@@ -94,12 +94,13 @@ Text _.autodoc.member.SigmaBlock =
       Case(
       StructName(segment->SigmaPrior)=="Bsr.Sigma.Prior.InverseGamma",
       {
-        Real w = segment->SigmaPrior->Weight;
-        Real s = segment->SigmaPrior->Sigma;
+        Real s2 = segment->SigmaPrior->Sigma2;
+        Real w  = segment->SigmaPrior->Weight;
+      //WriteLn("TRACE ["+_MID+"] Bsr.Sigma.Prior.InverseGamma("<<s2+","<<w+")");
         Case(
         w==1,  
         {
-          s^2
+          s2
         },
         w==0,
         {
@@ -108,8 +109,20 @@ Text _.autodoc.member.SigmaBlock =
         LT(0,w,1),
         {
           //w = m0/(m0+m); m0*(w-1)=-m*w; m0 = m*w/(1-w)
-          Real m0 = Round(sumSqr::m*w/(1-w));
-          (sumSqr::rss + m0 * s^2)/RandChisq(sumSqr::m + m0)
+          Real m0 = Max(1,Round(sumSqr::m*w/(1-w)));
+          Real rss = sumSqr::rss + m0 * s2;
+          Real m = sumSqr::m + m0;
+          Real S2 = rss/RandChisq(m); 
+          /*
+          WriteLn("TRACE "+_MID+" draw.invRandChisq ("+segment->Name+") "+
+            " s2="<<s2+
+            " w="<<w+
+            " m0="<<m0+
+            " sumSqr::m="<<sumSqr::m+
+            " sumSqr::rss="<<sumSqr::rss+
+            " m="<<m+
+            " S2="<<S2); */
+          S2          
         },
         1==1,
         {
@@ -122,12 +135,10 @@ Text _.autodoc.member.SigmaBlock =
       1==1,
       {
         sumSqr::rss/RandChisq(sumSqr::m)
-      });
-
-      sumSqr::rss/RandChisq(sumSqr::m)
+      })
     });
     Real Do setStore(SetCol(v));
-  //WriteLn("TRACE "+_MID+" draw.invRandChisq");
+  //WriteLn("TRACE "+_MID+" draw.invRandChisq v="<<v);
     Real _.blockDef::checkNonFiniteValues(numSim);
     Copy(_.blockDef::_.store)
   };
