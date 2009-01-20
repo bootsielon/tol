@@ -235,7 +235,7 @@ struct noise_info
   std::string      sigmaName;
   int              sigmaIdx;
   double           sigmaCte;
-  std::string      sigmaPriorExpr;
+  std::string      sigPriExpr;
   std::string      arimaExpr;
   std::string      covExpr; 
   bool             covIsDiag;
@@ -256,6 +256,7 @@ struct noise_info
     sigmaName (""),
     sigmaIdx  (-1),
     sigmaCte  (BDat::Nan()),
+    sigPriExpr(""),
     arimaExpr (""),
     covExpr   (""),
     covIsDiag (true),
@@ -276,6 +277,7 @@ struct noise_info
     sigmaName (""),
     sigmaIdx  (-1),
     sigmaCte  (BDat::Nan()),
+    sigPriExpr(""),
     arimaExpr (""),
     covExpr   (""),
     covIsDiag (true),
@@ -304,6 +306,7 @@ struct noise_info
     sigmaName  = aux.sigmaName;
     sigmaIdx   = aux.sigmaIdx;
     sigmaCte   = aux.sigmaCte;
+    sigPriExpr = aux.sigPriExpr;
     arimaExpr  = aux.arimaExpr;
     covExpr    = aux.covExpr;
     covIsDiag  = aux.covIsDiag;
@@ -327,6 +330,7 @@ struct noise_info
       "\n  sigmaName="+sigmaName.c_str()+", "+
       "\n  sigmaIdx="+sigmaIdx+", "+
       "\n  sigmaCte="+sigmaCte+", "+
+      "\n  sigPriExpr="+sigPriExpr.c_str()+", "+
       "\n  arimaExpr="+arimaExpr.c_str()+", "+
       "\n  covExpr="+covExpr.c_str()+", "+
       "\n  used="+(int)used+", "+
