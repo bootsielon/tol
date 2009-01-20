@@ -216,7 +216,7 @@ Struct Bsr.OneNode.LinearParamInfo
 /////////////////////////////////////////////////////////////////////////////
 Struct Bsr.Sigma.Prior.InverseGamma
 {
-  Real Sigma,  // Residuals square average: sigma0
+  Real Sigma2, // Residuals square average: sigma0^2
   Real Weight  // Relative weight of prior versus data : n0/(n0+n)  
 };  
 
