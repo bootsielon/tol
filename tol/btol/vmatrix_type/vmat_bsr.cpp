@@ -399,10 +399,10 @@ template<typename T> struct add_symbol
   void  operator()(IteratorT first, IteratorT last) const { action(); }
 };
 
-template<> symbol_handler<variable_info>*  add_symbol<variable_info>  ::sh_   = NULL;
-template<> symbol_handler<missing_info>*   add_symbol<missing_info>   ::sh_   = NULL;
-template<> symbol_handler<sigma_info>*     add_symbol<sigma_info>     ::sh_   = NULL;
-template<> symbol_handler<noise_info>* add_symbol<noise_info> ::sh_   = NULL;
+template<> symbol_handler<variable_info>*  add_symbol<variable_info> ::sh_   = NULL;
+template<> symbol_handler<missing_info>*   add_symbol<missing_info>  ::sh_   = NULL;
+template<> symbol_handler<sigma_info>*     add_symbol<sigma_info>    ::sh_   = NULL;
+template<> symbol_handler<noise_info>*     add_symbol<noise_info>    ::sh_   = NULL;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -533,7 +533,7 @@ int*            assign_noise_size::var_count_ = NULL;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-struct assign_sigma_to_res
+struct assign_sigma_to_noise
 ///////////////////////////////////////////////////////////////////////////////
 {
   static symbols<int>*       sig_table_;
@@ -541,11 +541,11 @@ struct assign_sigma_to_res
   static noise_info*         noise_info_; 
   static int*                numEqu_; 
 
-  assign_sigma_to_res() {}
+  assign_sigma_to_noise() {}
 
   static void action(sigma_info& sigInf)
   {
-  //Std(BText("\nassign_sigma_to_res(")+str.c_str()+")");
+  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
   //Std(BText("sigmaIdx=")+sigInf->index);
     noise_info_->sigmaName  = sigInf.name;
     noise_info_->sigmaIdx   = sigInf.index;
@@ -562,7 +562,7 @@ struct assign_sigma_to_res
 
   static void action(const std::string& str)
   {
-  //Std(BText("\nassign_sigma_to_res(")+str.c_str()+")");
+  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
     int* pos = find(*sig_table_,str.c_str());
     assert(pos);
     if(pos)
@@ -586,10 +586,39 @@ struct assign_sigma_to_res
 
 };
 
-symbols<int>*       assign_sigma_to_res::sig_table_ = NULL;
-vector<sigma_info>* assign_sigma_to_res::sig_vec_   = NULL;
-noise_info*     assign_sigma_to_res::noise_info_  = NULL; 
-int*                assign_sigma_to_res::numEqu_    = NULL; 
+symbols<int>*       assign_sigma_to_noise::sig_table_   = NULL;
+vector<sigma_info>* assign_sigma_to_noise::sig_vec_     = NULL;
+noise_info*         assign_sigma_to_noise::noise_info_  = NULL; 
+int*                assign_sigma_to_noise::numEqu_      = NULL; 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+struct assign_sig_pri
+///////////////////////////////////////////////////////////////////////////////
+{
+  assign_sig_pri() {}
+  static void action(const std::string& str)
+  {
+  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
+  //Std(BText("sigmaIdx=")+sigInf->index);
+    assign_sigma_to_noise::noise_info_->sigPriExpr  = str;
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 struct assign_const_sigma_to_res
@@ -627,8 +656,8 @@ struct assign_const_sigma_to_res
   }
 };
 
-noise_info* assign_const_sigma_to_res::noise_info_  = NULL; 
-int*            assign_const_sigma_to_res::numEqu_    = NULL; 
+noise_info* assign_const_sigma_to_res::noise_info_ = NULL; 
+int*        assign_const_sigma_to_res::numEqu_     = NULL; 
 
 ///////////////////////////////////////////////////////////////////////////////
 struct assign_covariance_to_res
@@ -671,8 +700,8 @@ struct assign_covariance_to_res
   }
 };
 
-noise_info* assign_covariance_to_res::noise_info_  = NULL; 
-int*            assign_covariance_to_res::numEqu_    = NULL; 
+noise_info* assign_covariance_to_res::noise_info_ = NULL; 
+int*        assign_covariance_to_res::numEqu_     = NULL; 
 
 ///////////////////////////////////////////////////////////////////////////////
 struct assign_pos_sign_to_equ_term
@@ -746,6 +775,7 @@ struct assign_IsLE_to_ine
   void operator()(IteratorT first, IteratorT last) const { action(); }
 };
 lin_noise_inequation* assign_IsLE_to_ine::ine_ = NULL;
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1103,6 +1133,7 @@ vector<lin_noise_inequation>* add_ine::ine_vec_ = NULL;
 lin_noise_inequation*         add_ine::ine_     = NULL;
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 struct assign_explicit_end
 ///////////////////////////////////////////////////////////////////////////////
@@ -1198,11 +1229,11 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
   symbol_handler<variable_info>  var;
   symbol_handler<missing_info>   mis;
   symbol_handler<sigma_info>     sig;
-  symbol_handler<noise_info> noise;
+  symbol_handler<noise_info>     noise;
 
-  vector<lin_reg_equation>   equ_vec;
+  vector<lin_reg_equation>     equ_vec;
   vector<lin_noise_inequation> ine_vec;
-  lin_reg_equation           equ_info;
+  lin_reg_equation             equ_info;
   lin_noise_inequation         ine_info;
 
   var_term equ_var_term_info;
@@ -1280,16 +1311,18 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
       assign_missing_max::mis_  = &s.mis; 
       assign_missing_max assign_missing_max_; 
 
-      assign_noise_size::noise_info_  = &s.noise.info; 
-      assign_noise_size::numEqu_    = &s.numEqu_;
-      assign_noise_size::var_count_ = &s.var.count;
+      assign_noise_size::noise_info_ = &s.noise.info; 
+      assign_noise_size::numEqu_     = &s.numEqu_;
+      assign_noise_size::var_count_  = &s.var.count;
       assign_noise_size assign_noise_size_;
 
-      assign_sigma_to_res::sig_vec_   = &s.sig.vec;
-      assign_sigma_to_res::sig_table_ = &s.sig.table;
-      assign_sigma_to_res::noise_info_  = &s.noise.info; 
-      assign_sigma_to_res::numEqu_    = &s.numEqu_;
-      assign_sigma_to_res assign_sigma_to_noise_;
+      assign_sigma_to_noise::sig_vec_   = &s.sig.vec;
+      assign_sigma_to_noise::sig_table_ = &s.sig.table;
+      assign_sigma_to_noise::noise_info_  = &s.noise.info; 
+      assign_sigma_to_noise::numEqu_    = &s.numEqu_;
+      assign_sigma_to_noise assign_sigma_to_noise_;
+
+      assign_sig_pri assign_sig_pri_;
 
       assign_const_sigma_to_res::noise_info_ = &s.noise.info;
       assign_const_sigma_to_res::numEqu_   = &s.numEqu_;
@@ -1551,7 +1584,16 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
         ;
       variantSigma = 
         (newIdentifier[increment_a(s.sig.info.index)]
-          [assign_a(s.sig.info.name)])[add_sig][assign_sigma_to_noise_]
+          [assign_a(s.sig.info.name)])[add_sig][assign_sigma_to_noise_] >>
+        (
+          ch_p('~') >>  
+          (
+            str_p("Bsr.Sigma.Prior.InverseGamma") >> confix_p("(", (*(anychar_p)), ")")
+            //| error_expectedSigmaPriorInverseGamma
+          )[assign_sig_pri_] 
+          | 
+          eps_p
+        )
         ;
       constantSigma = 
         ureal_p[assign_const_sigma_to_noise_]

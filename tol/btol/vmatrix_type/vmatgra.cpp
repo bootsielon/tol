@@ -2241,7 +2241,7 @@ void BSetParseResLinReg::CalcContens()
       ""
     ));
     BSyntaxObject* sigPri = NULL;
-    BText expr = noiseInfo[k].sigmaPriorExpr.c_str();
+    BText expr = noiseInfo[k].sigPriExpr.c_str();
     if(expr=="")
     {
       sigPri = GraSet()->EvaluateExpr("Copy(Empty)");
