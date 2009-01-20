@@ -173,11 +173,18 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
     " until "+FormatDate(timeInfo->LastDate,"%cy%Ym%md%dh%hi%is%s") 
   });
   Anything s2 = segment::Get.Sigma2(0);
+  Real s2HasPrior = And(Grammar(s2)=="Text", 
+                        ObjectExist("Text","segment::Get.SigmaPrior(0)"));
+  Text s2Prior = If(!s2HasPrior, "",
+  {
+    Text sp = segment::Get.SigmaPrior(0);
+    If(sp=="",0, FPutText(fileHandler, " ~ "+sp+" "))
+  });
   FPutText(fileHandler, segment::Get.Name(0)+"::Noise"
     "["+IntText(segment::Get.Equation.Size(0))+timeExpr+"]"+
-    " ~ Normal(0,"<<s2);
+    " ~ Normal(0,"<<s2+s2Prior);
   Real arima.size = segment::Get.ARIMA.Size(0);
-  Real If(arima.size, 
+  If(arima.size, 
   {
     FPutText(fileHandler, "*ARIMA.COV([[");
     Set For(1, arima.size, Real(Real af)
@@ -192,14 +199,6 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
     FPutText(fileHandler, "]])")
   });
   FPutText(fileHandler, ");\n");
-/*
-  Real If(Grammar(s2)=="Text" & 
-          ObjectExist("Text","segment::Get.SigmaPrior(0)"),
-  {
-    Text sp = segment::Get.SigmaPrior(0);
-    If(sp=="",0, FPutText(fileHandler, s2+" -> "+sp+"\n"))
-  });
-*/
   0
 };
 
