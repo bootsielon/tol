@@ -108,14 +108,15 @@ static bool BNameBlock_IsInitialized()
 {
   const BText& name = BEqualOperator::CreatingName();
 //Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
+  BBool hasName = name.HasName();
   BText fullName = name;
-  if(BNameBlock::current_) 
+  if(BNameBlock::current_ && hasName) 
   {
     fullName = BNameBlock::current_->Name()+"::"+name; 
   }
   BSyntaxObject* result = NULL;
   int level = BGrammar::Level();
-  if(level>0) 
+  if((level>0) && hasName)
   {
     result = BGrammar::FindLocal(name);
   }
@@ -135,20 +136,19 @@ static bool BNameBlock_IsInitialized()
           I2(" is already in use\n",
              " ya está siendo usado\n")+ ((!BNameBlock::current_)?"":
           I2("Current NameBlock is ",
-             "El NamSpace en curso es ")+BNameBlock::current_->Name()));
+             "El NameBlock en curso es ")+BNameBlock::current_->Name()));
     return(NULL);
   }
-  
-  const BNameBlock* oldNameBlock = BNameBlock::current_;
+//const BNameBlock* oldNameBlock = BNameBlock::current_;
   BUserNameBlock* ns_result = new BGraContensP<BNameBlock>(new BNameBlock);
   BNameBlock& newNameBlock  = ns_result->Contens();
   newNameBlock.PutName(fullName);
-  BNameBlock::current_ = &newNameBlock;
+//BNameBlock::current_ = &newNameBlock;
   int oldErr = (int)TOLErrorNumber().Value();
   BGrammar::IncLevel();
   int stackPos = BGrammar::StackSize();
   BSyntaxObject* set_result = GraSet()->EvaluateTree(tre);
-  BGrammar::DestroyStackUntil(stackPos, 0);
+  BGrammar::DestroyStackUntil(stackPos, set_result);
   BGrammar::DecLevel();
   int numErr = (int)TOLErrorNumber().Value()-oldErr;
   if(!set_result || (set_result->Grammar()!=GraSet()))
@@ -165,7 +165,7 @@ static bool BNameBlock_IsInitialized()
       DESTROY(ns_result);
     }
   }
-  BNameBlock::current_ = oldNameBlock;
+//BNameBlock::current_ = oldNameBlock;
   if(!set_result)
   {
     Error(I2("Cannot build NameBlock ",
