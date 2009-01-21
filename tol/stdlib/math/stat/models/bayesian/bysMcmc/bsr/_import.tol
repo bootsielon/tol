@@ -174,12 +174,16 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
   });
   Anything s2 = segment::Get.Sigma2(0);
   Real s2HasPrior = And(Grammar(s2)=="Text", 
-                        ObjectExist("Text","segment::Get.SigmaPrior(0)"));
+                        FunctionExist("Text","segment::Get.SigmaPrior"));
+//WriteLn("TRACE "+_MID+" Grammar(s2)="<<Grammar(s2));
+//WriteLn("TRACE "+_MID+" FunctionExist(Text,segment::Get.SigmaPrior)="<<FunctionExist("Text","segment::Get.SigmaPrior"));
+//WriteLn("TRACE "+_MID+" s2HasPrior="<<s2HasPrior);
   Text s2Prior = If(!s2HasPrior, "",
   {
     Text sp = segment::Get.SigmaPrior(0);
-    If(sp=="",0, FPutText(fileHandler, " ~ "+sp+" "))
+    If(sp=="",""," ~ "+sp+" ")
   });
+//WriteLn("TRACE "+_MID+" s2Prior="<<s2Prior);
   FPutText(fileHandler, segment::Get.Name(0)+"::Noise"
     "["+IntText(segment::Get.Equation.Size(0))+timeExpr+"]"+
     " ~ Normal(0,"<<s2+s2Prior);
