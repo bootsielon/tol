@@ -101,6 +101,7 @@ Real ModSes.Lat.Homog_1.Create(Text dbName,
                                Text id_parameter, 
                                Real initValue,
                                Real sigma,
+                               Real sigmaPriorWeight,
                                Real minimum,
                                Real maximum,
                                Set  node_childs)
@@ -133,7 +134,8 @@ Real ModSes.Lat.Homog_1.Create(Text dbName,
       minimum,
       maximum
     );
-    Real ok.3 = ModSes.Lat.SigBlk.Create(dbName, model, session, id_node, sigma);
+    Real ok.3 = ModSes.Lat.SigBlk.Create(
+      dbName, model, session, id_node, sigma, sigmaPriorWeight);
     Real ok.4 = SetMin(For(1,Card(node_childs), Real lat.equ(Real k)
     {
       NameBlock child = node_childs[k];
@@ -193,6 +195,7 @@ Real ModSes.Lat.Create  (Text dbName,
        Set father_parameters, //Set de NameBlocks retornados por New.Param.Def
        Set node_childs, //Set de NameBlocks retornados por New.Param.Ref
        Real sigma, // Valor de sigma-block para todo el nodo latente regresivo.
+       Real sigmaPriorWeight, //Peso del valor a priori de la sigma.
        Matrix X) // Matriz de regresion del nodo latente, tiene filas = Card(node_childs) 
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -224,7 +227,7 @@ Real ModSes.Lat.Create  (Text dbName,
         });
         Real ok.2 = If (Real SetMin (tmp)==1,1,0);
         Real ok.3 = ModSes.Lat.SigBlk.Create(dbName, id_model, id_session, 
-                                                              id_node, sigma);
+                                             id_node, sigma, sigmaPriorWeight);
         Real ok.4 = SetMin(For (1, Card(node_childs), Real (Real i){ //ciclo por ecuaciones nodo
             Real ModSes.Lat.Equ.Create(dbName, id_model, id_session, id_node, i,
                                        (node_childs[i])::_.sigma_factor);
@@ -263,6 +266,7 @@ Real ModSes.Lat.OutComb.Create (Text dbName,
        Set father_parameters, //Set de NameBlocks retornados por New.Param.Def
        Set node_childs, //Set de NameBlocks retornados por New.Param.Ref
        Real sigma, // Valor de sigma-block para todo el nodo latente regresivo.
+       Real sigmaPriorWeight, //Peso del valor a priori de la sigma.
        Matrix X,  // Matriz de regresion X del nodo latente, tiene filas = Card(node_childs) 
        Matrix Y,  // Matriz de regresion Y del nodo latente, tiene filas = Card(node_childs) 
        Set SigmaBlock) // [[ sigma_1, sigma_2, ...., sigma_n ]], n --> numero de ecuaciones del nodo
@@ -296,7 +300,7 @@ Real ModSes.Lat.OutComb.Create (Text dbName,
         });
         Real ok.2 = If (Real SetMin (tmp)==1,1,0);
         Real ok.3 = ModSes.Lat.SigBlk.Create(dbName, id_model, id_session, 
-                                                              id_node, sigma);
+                                             id_node, sigma, sigmaPriorWeight);
 
         Real ok.4 = SetMin(For (1, Rows(Y), Real (Real k){ //ciclo en las ecuaciones del nodo
                            

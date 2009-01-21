@@ -12,7 +12,8 @@ Real ModSes.Pri.Equ.Create(Text dbName,
                            Text node_father,
                            Real numEqu,
                            Real average,
-                           Real sigma)
+                           Real sigma,
+                           Real sigmaPriorWeight)
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
@@ -22,7 +23,8 @@ Real ModSes.Pri.Equ.Create(Text dbName,
   "'"+node_father+"',"+
   IntText(numEqu)+","+
   SqlFormatReal(average)+","+
-  SqlFormatReal(sigma));
+  SqlFormatReal(sigma)+","+
+  SqlFormatReal(sigmaPriorWeight));
   Eval("ModSes.Pri.Equ.Create.ok=ok")
 };
 
@@ -79,10 +81,13 @@ Real ModSes.Pri.Homog_1.Create(Text dbName,
     Real ok.2 = SetMin(For(1,Card(node_childs), Real pri.equ(Real k)
     {
       NameBlock child = node_childs[k];
+      Real sigmaPriorWeight = If(ObjectExist("Real","child::_.sigmaPriorWeight"),
+        child::_.sigmaPriorWeight, ?);
       Real ModSes.Pri.Equ.Create(
         dbName, model, session,id_node,k,
         child::_.average,
-        child::_.sigma);
+        child::_.sigma,
+        sigmaPriorWeight);
       Real ModSes.Pri.Output.Create(
         dbName, model, session,id_node,k,
         child::_.id_node,
@@ -160,10 +165,12 @@ Real ModSes.Pri.Out.Comb.Create(Text dbName,
     );
 
     Real ok.2 = SetMin ( For (1, Rows(Y), Real (Real i){//ciclo ecuaciones nodo
+      Real sigmaPriorWeight = If(Card(PriorInfo[i])==3,PriorInfo[i][3],?);
           Real ModSes.Pri.Equ.Create (dbName, model, session, id_node,
                       i,
                       PriorInfo[i][1],
-                      PriorInfo[i][2]);
+                      PriorInfo[i][2],
+                      sigmaPriorWeight);
                       
              Set For (1, Card(node_childs), Real (Real j){
                   NameBlock child = node_childs[j];
