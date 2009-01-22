@@ -13,6 +13,29 @@ NameBlock OneNode =
   Text _.autodoc.description =
   "Estimation methods for simplified BSR models with just one node.";
 
+  //Tool function to reduce registers length in _.linearParamInfo
+  Set LPI(
+    Text Name,              // Unique identidier of the parameter
+    Real InitValue,         // Given by user initial value or ?
+    Real Prior.LowerBound,  // Minimum feasible value or -1/0
+    Real Prior.UpperBound,  // Maximum feasible value or +1/0
+    Real Prior.Average,     // Normal prior average
+    Real Prior.Sigma,       // Normal prior standard deviation 
+    Real Prior.SigmaWeight)       // Normal prior weight
+  {
+    Bsr.OneNode.LinearParamInfo(
+      Text Name,              
+      Real InitValue,         
+      Real Prior.LowerBound,  
+      Real Prior.UpperBound,  
+      Real Prior.Average,
+      Real Prior.Sigma,
+      Real Prior.SigmaWeight,
+      Real Prior.Missing.SigmaFactor=?, //Already not implemented
+      Real Prior.Missing.LowerBound=?,  //Already not implemented
+      Real Prior.Missing.UpperBound=?)  //Already not implemented
+  };
+
   Text _.autodoc.member.Estim = 
   "Estimates a model with just one node, usually observational and dense."
   "Model is defined as a BSR basic and an optional set of non linear filters."
@@ -25,11 +48,11 @@ NameBlock OneNode =
   "  Set _.linearParamInfo; //Set of Bsr.OneNode.LinearParamInfo\n"
   "  Anything _.Y;          //Output data (Matrix or VMatrix)\n"
   "  Anything _.X;          //Input data (Matrix or VMatrix)\n"
-  "  Real _.sigma;          //Sigma value or ? to simulate it\n"
+  "  Real _.sigma;          //Sigma prior value, or ? to freely simulate it\n"
   "//Optional members \n"
   "  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
   "  Set _.arima;           //Set of ARIMAStruct\n"
-  "  Set _.sigmaPrior;      //Bsr.Sigma.Prior.InverseGamma\n"
+  "  Real _.sigmaPriorWeight;  //Weight for Bsr.Sigma.Prior.InverseGamma\n"
   "  Set _.timeInfo;        //Set of BSR.NoiseTimeInfo\n"
   "]];\n";
   Set Estim(NameBlock data_, Set nonLinFil, NameBlock config_)
@@ -57,7 +80,7 @@ NameBlock OneNode =
     Real prior.num = 0;
     VMatrix prior.Y = Rand(0,1,0,0);
     Matrix prior.X.triplet = Rand(0,3,0,0);
-
+    Set prior.index = Copy(Empty);
     //Used to collect domain information if exists
     Real domain.num = 0;
     VMatrix domain.a = Rand(0,1,0,0);
@@ -72,14 +95,18 @@ NameBlock OneNode =
     //WriteLn(_MID+" TRACE 4.["<<j+"].1");
       Real prior.Average = If(ObjectExist("Real","pi->Prior.Average"),
                               pi->Prior.Average, ?);
+      Real estimSigma = IsUnknown(pi->Prior.Sigma) | 
+                       !IsUnknown(pi->Prior.SigmaWeight);
       Real If(!IsUnknown(prior.Average),
       {
+        Set Append(prior.index,[[j]]);
         //Collecting prior information
         Real prior.num := prior.num+1;
+        Real factor = If(estimSigma,1,1/pi->Prior.Sigma);
         VMatrix prior.Y := prior.Y << 
-          Mat2VMat(Row(pi->Prior.Average/pi->Prior.Sigma));
+          Mat2VMat(Row(pi->Prior.Average*factor));
         Matrix prior.X.triplet := 
-          prior.X.triplet << Row(prior.num,j,1/pi->Prior.Sigma);
+          prior.X.triplet << Row(prior.num,j,factor);
         0
       });
     //WriteLn(_MID+" TRACE 4.["<<j+"].2");
@@ -110,11 +137,9 @@ NameBlock OneNode =
     });
     //Checks unique name and prepares for hashed searching by name
     Real SetIndexByName(linearBlock);
-
   //WriteLn(_MID+" TRACE 5");
     //Domain constraints
     VMatrix domain.A = Triplet(domain.A.triplet,domain.num,n);
-
     //Building order relations if exist
     Set orderRelation = If(ObjectExist("Set","data::_.orderRelation"),
                            data::_.orderRelation, Copy(Empty)); 
@@ -126,7 +151,11 @@ NameBlock OneNode =
       {
         Set rel = orderRelation[k];
         Real lower = FindIndexByName(linearBlock, rel->Lower);
+        If(!lower,WriteLn("Cannot create order relation. "
+                          "Variable "+rel->Lower+" was not found","E"));
         Real upper = FindIndexByName(linearBlock, rel->Upper);
+        If(!upper,WriteLn("Cannot create order relation. "
+                          "Variable "+rel->Upper+" was not found","E"));
         Row(k,lower,+1) << 
         Row(k,upper,-1) 
       }));
@@ -138,7 +167,7 @@ NameBlock OneNode =
   //WriteLn(_MID+" TRACE 6");
     //Observational information
     Real sigmaIsUnknown = IsUnknown(data::_.sigma);
-    Set noiseObs = [[
+    Set noiseObs = {[[
       BSR.NoiseDistrib(
         Text Name = data::_.segmentName+"::Noise";
         Real Nu = 0;
@@ -155,27 +184,45 @@ NameBlock OneNode =
         Set TimeInfo = If(ObjectExist("Set","data::_.timeInfo"),
           data::_.timeInfo, Copy(Empty))
       )
-    ]];
+    ]]};
+
   //WriteLn(_MID+" TRACE 7");
     //Prior information
     VMatrix prior.X = Triplet(prior.X.triplet,prior.num,n);
-    Set noisePrior = If(!prior.num,Copy(Empty),
+    Real sigmaIndex = If(sigmaIsUnknown,1,0);
+    Set noisePrior = For(1,Card(prior.index),Set(Real j)
     {
-      [[
-      BSR.NoiseDistrib(
+      Set pi = (data::_.linearParamInfo)[prior.index[j] ];
+      Real estimSigma = IsUnknown(pi->Prior.Sigma) | 
+                       !IsUnknown(pi->Prior.SigmaWeight);
+      Real sigmaIndex := sigmaIndex + estimSigma;
+
+      Set SigmaPrior = If(IsUnknown(pi->Prior.SigmaWeight),Copy(Empty),
+        Bsr.Sigma.Prior.InverseGamma(pi->Prior.Sigma,pi->Prior.SigmaWeight));
+      Real cov.value = If(estimSigma, 1, pi->Prior.Sigma);
+      Real L.value   = If(estimSigma, 1, Sqrt(pi->Prior.Sigma));
+      Real Li.value  = If(estimSigma, 1, 1/Sqrt(pi->Prior.Sigma));
+      VMatrix z1 = Rand(m+j-1,1,0,0);
+      VMatrix z2 = Rand(m.full-(j+m),1,0,0);
+      VMatrix cov.diag = Tra(z1<<Mat2VMat(Col(cov.value))<<z2);
+      VMatrix L.diag   = Tra(z1<<Mat2VMat(Col(L.value  ))<<z2);
+      VMatrix Li.diag  = Tra(z1<<Mat2VMat(Col(Li.value ))<<z2);
+      Set BSR.NoiseDistrib(
         Text Name = data::_.segmentName+".Prior::Noise";
         Real Nu = 0;
-        Text SigmaName = "";
-        Real SigmaIndex = -1;
+        Text SigmaName = If(!estimSigma,"","Pri."+pi->Name+"::Sigma");
+        Real SigmaIndex = Copy(sigmaIndex);
+        Set SigmaPrior,
         Set arima = Copy(Empty);
         Set ArimaAuxInfo = Copy(Empty);
-        VMatrix Cov = Eye(m.full,m.full,0,Rand(m,1,0,0)<<Rand(prior.num,1,1,1));
-        VMatrix L = Cov;
-        VMatrix Li = Cov;
-        Set EquIdx = Range(m+1,m+prior.num,1);
+        VMatrix Cov = Eye(m.full,m.full,0,cov.diag);
+        VMatrix L   = Eye(m.full,m.full,0,L.diag);
+        VMatrix Li  = Eye(m.full,m.full,0,Li.diag);
+        Set EquIdx = SetOfReal(m+j);
         Set TimeInfo = Copy(Empty)
       )
-    ]]});
+   });
+
   //WriteLn(_MID+" TRACE 8");
     //All allowed segments in this simplified API are obs and prior (optionally)
     Set noiseDistrib_ = noiseObs << noisePrior;
