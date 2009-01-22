@@ -740,7 +740,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
     return;
   }
   bool lower = diag<=0;
-  int k, n = isCol?v.Rows():v.Columns();
+  int i, k, n = isCol?v.Rows():v.Columns();
   if(lower)
   {
     if(n>nrow+diag) { n=nrow+diag; }
@@ -756,12 +756,13 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   int*    r_ = (int*)   triplet->i;
   int*    c_ = (int*)   triplet->j;
   double* x_ = (double*)triplet->x;
-  for(k=0; k<n; k++)
+
+  for(i=k=0; k<n; k++)
   {
-    r_[k] = lower?k-diag:k;
-    c_[k] = lower?k:k+diag;
-    x_[k] = isCol?v.GetCell(k,0):v.GetCell(0,k);
-    if(x_[k]!=0.0) { triplet->nnz++; }
+    r_[i] = lower?k-diag:k;
+    c_[i] = lower?k:k+diag;
+    x_[i] = isCol?v.GetCell(k,0):v.GetCell(0,k);
+    if(x_[i]!=0.0) { triplet->nnz++; i++; }
   }
   code_  = ESC_chlmRsparse;
   s_.chlmRsparse_ = cholmod_triplet_to_sparse(triplet, triplet->nnz, common_);
@@ -793,15 +794,18 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   }
   cholmod_triplet* triplet = cholmod_allocate_triplet
     (nrow,ncol,n,0,CHOLMOD_REAL,common_);
-  int*    r_ = (int*)   triplet->i;
-  int*    c_ = (int*)   triplet->j;
-  double* x_ = (double*)triplet->x;
-  for(k=0; k<n; k++)
+  if(x!=0.0)
   {
-    r_[k] = lower?k-diag:k;
-    c_[k] = lower?k:k+diag;
-    x_[k] = x;
-    triplet->nnz += (x!=0.0);
+    int*    r_ = (int*)   triplet->i;
+    int*    c_ = (int*)   triplet->j;
+    double* x_ = (double*)triplet->x;
+    for(k=0; k<n; k++)
+    {
+      r_[k] = lower?k-diag:k;
+      c_[k] = lower?k:k+diag;
+      x_[k] = x;
+    }
+    triplet->nnz = n;
   }
   code_  = ESC_chlmRsparse;
   s_.chlmRsparse_ = cholmod_triplet_to_sparse(triplet, triplet->nnz, common_);
