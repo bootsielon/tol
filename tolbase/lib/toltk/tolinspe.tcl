@@ -657,6 +657,7 @@ proc ::TolInspector::TrimContent { grammar content } {
   variable blt_vartree
   variable ht_funcs
   variable blt_functree
+  variable gra_parent
 
   #puts "InsertChild: args=$args [info level 1]"
   set grammar [lindex $args 0]
@@ -664,6 +665,12 @@ proc ::TolInspector::TrimContent { grammar content } {
   set content [lindex $args 2]
   set path    [lindex $args 3]
   set desc    [lindex [lindex $args 4] 0]
+
+  if { ( $gra_parent eq "NameBlock" ) && 
+       [ regexp {(.+::)?_[^.](.*)} $name => p1 p2 ] } {
+    return
+  }
+
   if {[llength [lindex $args end]] >= 2} {
     #set ref [list [lindex [lindex $args end] 0] [lrange [lindex $args end] 1 end]]
     set ref [concat [lindex [lindex $args end] 0] [lrange [lindex $args end] 1 end]]
@@ -842,7 +849,6 @@ proc ::TolInspector::OpenObject { index } {
         set leaf_info [split $leaf "-"]
         set node_prefix [lindex $leaf_info 0]
         set _tolset $tolset
-		puts "OpenObject: node_prefix = $node_prefix"
         if { [string equal $parent1 "root-pool"] } {
           #Tolcon_Trace "OpenObject. tolset=$tolset"
           set tolset $data(pool,reference,[lindex $leaf_info 0])
@@ -886,7 +892,7 @@ proc ::TolInspector::OpenObject { index } {
         set at_set $index
         #set set_ref [eval list [list $tolset] $tolindex]
         set set_ref [eval list $tolset $tolindex]
-        #puts "OpenObject: set_ref = $set_ref"
+        variable gra_parent [ GetParentGrammar $set_ref ]
         ::tol::forallchild $set_ref ::TolInspector::InsertSubset
         set tolset $_tolset
         NotBusy
@@ -1058,7 +1064,12 @@ proc ::TolInspector::InsertSubset { args } {
   variable node_prefix
   variable has_button 0
   variable blt_tree
+  variable gra_parent
 
+  if { ( $gra_parent eq "NameBlock" ) && 
+       [ regexp {(.+::)?_[^.](.*)} [lindex $args 1] => p1 p2 ] } {
+    return
+  }
   #puts "InsertSubset, args=$args"
   set grammar [lindex $args 0]
   if {$grammar eq "Set" || $grammar eq "NameBlock"} {
@@ -1521,9 +1532,19 @@ proc ::TolInspector::SelectSet { } {
   
   #puts "SelectSet: tolset=$tolset tolindex=$tolindex"
   set set_ref [eval list $tolset $tolindex]
-  #puts "SelectSet: set_ref = $set_ref"
+  variable gra_parent [ GetParentGrammar $set_ref ]
   ::tol::forallchild $set_ref ::TolInspector::_InsertChild
   #  set selecting_set 0
+}
+
+proc ::TolInspector::GetParentGrammar { set_ref } {
+  set parent [ lrange $set_ref 0 end-1 ]
+  if { ( [ llength $parent ] <= 2 ) && ( [ lindex $parent 0 ] eq "File" ) } {
+    set gra_parent File
+  } else {
+    set gra_parent [ lindex [ tol::info var $parent ] 0 ]
+  }
+  set gra_parent
 }
 
 #/////////////////////////////////////////////////////////////////////////////
