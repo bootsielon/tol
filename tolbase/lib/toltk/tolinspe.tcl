@@ -662,15 +662,11 @@ proc ::TolInspector::TrimContent { grammar content } {
 
   #puts "InsertChild: args=$args [info level 1]"
   set grammar [lindex $args 0]
-  set name    [lindex $args 1]
+  set name [ lindex $args 1 ]
   set content [lindex $args 2]
   set path    [lindex $args 3]
   set desc    [lindex [lindex $args 4] 0]
 
-  if { ( $gra_parent eq "NameBlock" ) && 
-       [ regexp {(.+::)?_[^.](.*)} $name => p1 p2 ] } {
-    return
-  }
 
   if {[llength [lindex $args end]] >= 2} {
     #set ref [list [lindex [lindex $args end] 0] [lrange [lindex $args end] 1 end]]
@@ -716,7 +712,20 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
   variable node_prefix
   variable item_data
   variable item_id
+  variable gra_parent
+
   #upvar \#0 ::TolTk::Images Images
+
+  if { $gra_parent eq "NameBlock" } {
+    array set info_member [ FilterNameBlockMember $name ]
+    if { !$info_member(-show) } {
+      return
+    }
+    set name $info_member(-name)
+    set fcolor $info_member(-fcolor)
+  } else {
+    set fcolor "black"
+  }
 
   set brief_cont [TrimContent $grammar $content]
   set brief_desc [TrimContent DONTCARE $desc]
@@ -778,7 +787,8 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
     }
   }
   $ht entry configure $idnew -label $label \
-      -icons [list $icon_grammar $icon_grammar] -data $data
+      -icons [list $icon_grammar $icon_grammar] -data $data \
+       -foreground $fcolor
   set item_data($item_id) [list $content $desc $grammar]
   incr item_id
 }
@@ -1041,6 +1051,23 @@ proc ::TolInspector::InsertPoolObj { } {
   }
 }
 
+proc ::TolInspector::FilterNameBlockMember { name } {
+  set st_reg [ regexp {(.+::)?(_)?(\.)?(.*)} $name => p1 p2 p3 p4 ]
+  if { !$st_reg } {
+    list -show 1 -fcolor "black" -name $name
+  } elseif { $p2 eq "_" } {
+    if { $p3 eq "." } {
+      # es un miembro de solo lectura
+      list -show 1 -fcolor "gray75" -name "_.$p4"
+    } else {
+      # es un miembro oculto
+      list -show 0
+    }
+  } else {
+    list -show 1 -fcolor "black" -name $p4
+  }
+}
+
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::InsertSubset { args } {
 #
@@ -1067,16 +1094,21 @@ proc ::TolInspector::InsertSubset { args } {
   variable blt_tree
   variable gra_parent
 
-  if { ( $gra_parent eq "NameBlock" ) && 
-       [ regexp {(.+::)?_[^.](.*)} [lindex $args 1] => p1 p2 ] } {
-    return
-  }
   #puts "InsertSubset, args=$args"
   set grammar [lindex $args 0]
   if {$grammar eq "Set" || $grammar eq "NameBlock"} {
-    if {![ regexp {(.+::)?(.+)} [ lindex $args 1 ] ==> p1 name ] } {
+    
+    if { $gra_parent eq "NameBlock" } {
+      array set info_member [ FilterNameBlockMember [ lindex $args 1 ] ]
+      if { !$info_member(-show) } {
+        return
+      }
+      set name $info_member(-name)
+      set fcolor $info_member(-fcolor)
+    } else {
       set name [ lindex $args 1 ]
-    }
+      set fcolor "black"
+    } 
     set content [lindex $args 2]
     set idx     [lindex $args 5]
     set isfile  [lindex $args 6]
@@ -1091,7 +1123,8 @@ proc ::TolInspector::InsertSubset { args } {
     # Tail por si es un fichero. Podría hacerse configurable por el usuario
     set label [file tail $name]
     #puts [list InsertSubset, idx {lindex $args 5} = $idx]
-    set idnew [$blt_tree insert $at_set -label [GetItemName $node_prefix $idx]]
+    set idnew [ $blt_tree insert $at_set \
+                   -label [ GetItemName $node_prefix $idx ] ]
 
     #puts "InsertSubset, node_prefix = $node_prefix"
     #puts "InsertSubset, idnew = $idnew"
@@ -1103,7 +1136,7 @@ proc ::TolInspector::InsertSubset { args } {
       }
     }
     $ht_tree entry configure $idnew -label $label -button $has_button \
-      -icons [list $icon $icon]
+      -icons [list $icon $icon] -foreground $fcolor 
   }
 }
 
