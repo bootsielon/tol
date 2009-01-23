@@ -81,6 +81,65 @@ static bool BNameBlock_IsInitialized()
 }
 
 //--------------------------------------------------------------------
+BNameBlock::BNameBlock() 
+//--------------------------------------------------------------------
+: BObject(),
+  public_(),
+  private_(), 
+  evLevel_(BGrammar::Level()),
+  level_(-999999999),
+  father_(current_)
+{
+  SetEmptyKey(public_ ,NULL);
+  SetEmptyKey(private_,NULL);
+}
+
+//--------------------------------------------------------------------
+BNameBlock::BNameBlock(const BText& fullName) 
+//--------------------------------------------------------------------
+: BObject (fullName), 
+  public_ (),
+  private_(),
+  set_    (),
+  father_ (current_)
+{
+  SetEmptyKey(public_ ,NULL);
+  SetEmptyKey(private_,NULL);
+}
+//--------------------------------------------------------------------
+BNameBlock::~BNameBlock() 
+//--------------------------------------------------------------------
+{
+}
+
+//--------------------------------------------------------------------
+BNameBlock::BNameBlock(const BNameBlock& ns) 
+//--------------------------------------------------------------------
+: BObject (ns.Name    ()), 
+  public_ (ns.Public  ()),
+  private_(ns.Private ()),
+  set_    (ns.Set     ()),
+  father_ (ns.Father  ())
+{
+  //VBR: La copia de NameBlock tiene un problema si los miembros
+  //referenciados en ambos son los mismos, ¿cuál es su padre?
+}
+
+//--------------------------------------------------------------------
+BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
+//--------------------------------------------------------------------
+{
+  PutName(ns.Name());
+  set_      = ns.Set();
+  father_   = ns.Father();
+  public_   = ns.Public();
+  private_  = ns.Private();
+  //VBR: La copia de NameBlock tiene un problema si los miembros
+  //referenciados en ambos son los mismos, ¿cuál es su padre?
+  return(*this);
+}
+
+//--------------------------------------------------------------------
   int BNameBlock::Level() const 
 //--------------------------------------------------------------------
 { 

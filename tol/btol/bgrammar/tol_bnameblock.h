@@ -72,48 +72,13 @@ public:
   static BSyntaxObject* UsingMember(const BObjClassify&  oc, const BText& memberName);
   static BList* Select(BList* lst, const BObjClassify&  oc);
 
-  BNameBlock() 
-  : BObject(),
-    public_(),
-    private_(), 
-    evLevel_(BGrammar::Level()),
-    level_(-999999999),
-    father_(current_)
-  {
-    SetEmptyKey(public_ ,NULL);
-    SetEmptyKey(private_,NULL);
-  }
-  BNameBlock(const BText& fullName) 
-  : BObject (fullName), 
-    public_ (),
-    private_(),
-    set_    (),
-    father_ (current_)
-  {
-    SetEmptyKey(public_ ,NULL);
-    SetEmptyKey(private_,NULL);
-  }
- ~BNameBlock() 
-  {}
-  BNameBlock(const BNameBlock& ns) 
-  : BObject (ns.Name    ()), 
-    public_ (ns.Public  ()),
-    private_(ns.Private ()),
-    set_    (ns.Set     ()),
-    father_ (ns.Father  ())
-  {}
-  BNameBlock& operator= (const BNameBlock& ns)
-  {
-    PutName(ns.Name());
-    set_      = ns.Set();
-    father_   = ns.Father();
-    public_   = ns.Public();
-    private_  = ns.Private();
-    return(*this);
-  }
- 
-  int Level() const;
+  BNameBlock();
+  BNameBlock(const BText& fullName);
+ ~BNameBlock();
+  BNameBlock(const BNameBlock& ns);
+  BNameBlock& operator= (const BNameBlock& ns);
 
+  int Level() const;
   const BObjByNameHash& Public () const { return(public_ ); }
         BObjByNameHash& Public ()       { return(public_ ); }
   const BObjByNameHash& Private() const { return(private_); }
