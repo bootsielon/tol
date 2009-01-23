@@ -66,15 +66,15 @@ char * skipWhite(char * pch)
 }
 
 static
-const BText& GetObjectName(const BSyntaxObject * so)
+BText GetObjectName(const BSyntaxObject * so)
 {
-  return so->HasName() ? so->Name() : so->LocalName();
+  return so->HasName() ? so->FullName() : so->LocalName();
 }
 
 static
 void GetName( const BSyntaxObject * so, BText & res )
 {
-  res = so->Name();
+  res = so->FullName();
 }
 
 static
@@ -303,7 +303,7 @@ int Tol_ListStack(Tcl_Interp * interp,int objc,Tcl_Obj *CONST objv[],
     
     /* OBJECT NAME */
 //  btxt = so->Identify();
-    btxt = GetObjectName(so);
+    GetName( so, btxt );
     Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
     robjv[1] = Tcl_NewStringObj(Tcl_DStringValue(&dstr),-1);
     Tcl_DStringFree(&dstr);
@@ -919,7 +919,7 @@ int Tol_IterChildren(Tcl_Interp * interp,
     /* read the name */
     
     //btxt = syn_i->Identify();
-    btxt = GetObjectName(syn_i);
+    GetName( syn_i, btxt );
     Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
     if (Tcl_IsShared(datav[ARG_NAME])) {
       Tcl_DecrRefCount(datav[ARG_NAME]);
@@ -1101,7 +1101,9 @@ int Tol_GetMatrixContent(Tcl_Interp * interp,
   //BMatrix<BDat> & mat = (BMatrix<BDat>&)(((BUserMat*)tol_obj)->Contens());
   
   //items[IT_NAME] = Tcl_NewStringObj(tol_obj->Identify(),-1);
-  items[IT_NAME] = Tcl_NewStringObj(GetObjectName(tol_obj),-1);
+  BText tmp;
+  GetName( tol_obj, tmp );
+  items[IT_NAME] = Tcl_NewStringObj(tmp.Buffer(),-1);
   Rows = theMat.Rows();
   Cols = theMat.Columns();
   items[IT_ROWS] = Tcl_NewIntObj(Rows);
@@ -1206,7 +1208,7 @@ int Tol_GetSerieContent(Tcl_Interp * interp,
   obj_array = (Tcl_Obj**)ckalloc(length*sizeof(Tcl_Obj*));
 
   //tmp = tms->Identify();
-  tmp = GetObjectName(tms);
+  GetName(tms, tmp);
   obj_array[0] = Tcl_NewStringObj(tmp,-1);
   for ( int i = 1; i < length; i++ ) {
     tmp = I0.GetText();
@@ -1557,7 +1559,7 @@ int Tol_FillFunctionInfo(BOperator * opr, Tcl_Obj * obj_result)
       Tcl_DStringAppend(&dstr_info, " ", -1);
       // function name
       Tcl_DStringInit(&dstr);
-      Tcl_ExternalToUtfDString(NULL, opr->Name(), -1, &dstr); 
+      Tcl_ExternalToUtfDString(NULL, opr->FullName(), -1, &dstr); 
       Tcl_DStringAppend(&dstr_info, Tcl_DStringValue(&dstr), -1);
       Tcl_DStringFree(&dstr);
   }
@@ -1727,7 +1729,9 @@ int SynObj2TclObj( const BSyntaxObject * var, Tcl_Obj * info[] )
   info[0] = Tcl_NewStringObj(var->Grammar()->Name().String(), -1);
     
   /* NAME */
-  BText synname(GetObjectName(var));
+  BText synname;
+  
+  GetName(var, synname);
   Tcl_ExternalToUtfDString(NULL,synname,-1,&dstr);
   info[1] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
   Tcl_DStringFree(&dstr);
