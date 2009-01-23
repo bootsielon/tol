@@ -714,10 +714,34 @@ BList* BGrammar::GetOperators() const
  */
 //--------------------------------------------------------------------
 {
-
-  return(Operators());
+//Std(BText("\n")+Name()+"::GetOperators()");
+  BObjClassify oc(this, BUSERFUNMODE);
+  BList* lst_opr = symbolTable_->Select(NIL, oc);
+  BObjClassify nboc(GraNameBlock(), BOBJECTMODE);
+  BList* lst_unb = symbolTable_->Select(NIL,nboc);
+  BUserNameBlock* unb = NULL;
+  BList* aux = lst_unb;
+//Std(BText("\n")+Name()+"::GetOperators() global "+LstLength(lst_opr));
+  while(lst_unb)
+  {
+    unb = (BUserNameBlock*)lst_unb->Car();
+  //Std(BText("\n")+Name()+"::GetOperators() Exploring NameBlock "+unb->FullName());
+    lst_opr = unb->Contens().SelectMembersDeep(lst_opr, oc);
+    lst_unb = lst_unb->Cdr();
+  }
+  DESTROY(aux);
+/* * /
+  Std(BText("\n")+Name()+"::GetOperators() all "+LstLength(lst_opr));
+  aux = lst_opr;
+  while(aux)
+  {
+    BSyntaxObject* obj = (BSyntaxObject*)aux->Car();
+    Std(BText("\n  ")+obj->Grammar()->Name()+" "+obj->FullName());
+    aux = aux->Cdr();
+  }
+/* */
+  return(lst_opr);
 }
-
 
 //--------------------------------------------------------------------
 BList*  BGrammar::GetVariables() const
