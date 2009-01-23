@@ -119,6 +119,7 @@ namespace eval ::TolInspector {
   variable at_set
   variable node_prefix
 
+  variable gra_parent ""
   # tree widget containing the TOL objects.
   variable ht_tree   ;# is a ::blt::treeview
   variable blt_tree  ;# is a ::blt::tree
@@ -1073,7 +1074,9 @@ proc ::TolInspector::InsertSubset { args } {
   #puts "InsertSubset, args=$args"
   set grammar [lindex $args 0]
   if {$grammar eq "Set" || $grammar eq "NameBlock"} {
-    set name    [lindex $args 1]
+    if {![ regexp {(.+::)?(.+)} [ lindex $args 1 ] ==> p1 name ] } {
+      set name [ lindex $args 1 ]
+    }
     set content [lindex $args 2]
     set idx     [lindex $args 5]
     set isfile  [lindex $args 6]
