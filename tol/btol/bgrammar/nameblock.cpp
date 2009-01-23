@@ -106,14 +106,21 @@ static bool BNameBlock_IsInitialized()
   BSyntaxObject* BNameBlock::EvaluateTree(const List* tre)
 //--------------------------------------------------------------------
 {
+  static BText currentFullName = "";
   const BText& name = BEqualOperator::CreatingName();
 //Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
   BBool hasName = name.HasName();
   BText fullName = name;
-  if(BNameBlock::current_ && hasName) 
+  BText oldFullName = currentFullName;
+  if(hasName) 
   {
-    fullName = BNameBlock::current_->Name()+"::"+name; 
+    if(currentFullName.HasName())
+    {
+      fullName = currentFullName+"::"+name; 
+    }
+    currentFullName = fullName;
   }
+  BUserNameBlock* ns_result = NULL;
   BSyntaxObject* result = NULL;
   int level = BGrammar::Level();
   if((level>0) && hasName)
@@ -137,53 +144,56 @@ static bool BNameBlock_IsInitialized()
              " ya está siendo usado\n")+ ((!BNameBlock::current_)?"":
           I2("Current NameBlock is ",
              "El NameBlock en curso es ")+BNameBlock::current_->Name()));
-    return(NULL);
   }
-//const BNameBlock* oldNameBlock = BNameBlock::current_;
-  BUserNameBlock* ns_result = new BGraContensP<BNameBlock>(new BNameBlock);
-  BNameBlock& newNameBlock  = ns_result->Contens();
-  newNameBlock.PutName(fullName);
-//BNameBlock::current_ = &newNameBlock;
-  int oldErr = (int)TOLErrorNumber().Value();
-  BGrammar::IncLevel();
-  int stackPos = BGrammar::StackSize();
-  BSyntaxObject* set_result = GraSet()->EvaluateTree(tre);
-  BGrammar::DestroyStackUntil(stackPos, set_result);
-  BGrammar::DecLevel();
-  int numErr = (int)TOLErrorNumber().Value()-oldErr;
-  if(!set_result || (set_result->Grammar()!=GraSet()))
+  else
   {
-    DESTROY(set_result);
-    DESTROY(ns_result);
-  }
-  if(set_result)
-  {
-    BUserSet* uSet = USet(set_result);
-    if(!newNameBlock.Fill(uSet->Contens()))
+  //const BNameBlock* oldNameBlock = BNameBlock::current_;
+    ns_result = new BGraContensP<BNameBlock>(new BNameBlock);
+    BNameBlock& newNameBlock  = ns_result->Contens();
+    newNameBlock.PutName(fullName);
+  //BNameBlock::current_ = &newNameBlock;
+    int oldErr = (int)TOLErrorNumber().Value();
+    BGrammar::IncLevel();
+    int stackPos = BGrammar::StackSize();
+    BSyntaxObject* set_result = GraSet()->EvaluateTree(tre);
+    BGrammar::DestroyStackUntil(stackPos, set_result);
+    BGrammar::DecLevel();
+    int numErr = (int)TOLErrorNumber().Value()-oldErr;
+    if(!set_result || (set_result->Grammar()!=GraSet()))
     {
       DESTROY(set_result);
       DESTROY(ns_result);
     }
-  }
-//BNameBlock::current_ = oldNameBlock;
-  if(!set_result)
-  {
-    Error(I2("Cannot build NameBlock ",
-             "No se puede contruir el NameBlock  ")+name);
-    bool assigned = (ns_result && (ns_result->IsAssigned()==1));
-    if(assigned) { DESTROY(ns_result); }
-  }
-  else 
-  {
-    if(numErr)
+    if(set_result)
     {
-      Warning(BText("NameBlock ")+name+" "+
-              I2("has been built with",
-                 "se ha construido con") + " "+numErr+" "+
-              I2("errors.","errores."));
+      BUserSet* uSet = USet(set_result);
+      if(!newNameBlock.Fill(uSet->Contens()))
+      {
+        DESTROY(set_result);
+        DESTROY(ns_result);
+      }
     }
-    DESTROY(set_result);
+  //BNameBlock::current_ = oldNameBlock;
+    if(!set_result)
+    {
+      Error(I2("Cannot build NameBlock ",
+               "No se puede contruir el NameBlock  ")+name);
+      bool assigned = (ns_result && (ns_result->IsAssigned()==1));
+      if(assigned) { DESTROY(ns_result); }
+    }
+    else 
+    {
+      if(numErr)
+      {
+        Warning(BText("NameBlock ")+name+" "+
+                I2("has been built with",
+                   "se ha construido con") + " "+numErr+" "+
+                I2("errors.","errores."));
+      }
+      DESTROY(set_result);
+    }
   }
+  currentFullName = oldFullName;
   return(ns_result);
 }
 
@@ -443,6 +453,55 @@ static bool BNameBlock_IsInitialized()
     return(found->second);
   }
 }
+
+//--------------------------------------------------------------------
+  BList* BNameBlock::SelectMembers(BList* lst, const BObjClassify&  oc)
+//--------------------------------------------------------------------
+{
+//Std(BText("\n")+"BNameBlock::SelectMembers Exploring NameBlock "+Name());
+  BSyntaxObject* obj;
+  BObjByNameHash::const_iterator iter;
+//Std(BText("\n")+" Seaching for "+GetModeName(oc.mode_)+" "+oc.grammar_->Name());
+  for(iter=public_.begin(); iter!=public_.end(); iter++)
+  {
+    obj = iter->second;
+    if((oc.mode_==BUSERFUNMODE) && 
+       (obj->Mode()==BOBJECTMODE) && 
+       (obj->Grammar()==GraCode()))
+    {
+      BUserCode* uc = (BUserCode*)obj;
+      obj = uc->Contens().Operator();
+    }
+    bool match = (obj->Grammar()==oc.grammar_) && (obj->Mode()==oc.mode_);
+    if(match)
+    {
+    //Std(BText("\n")+"  "+GetModeName(obj->Mode())+" "+obj->Grammar()->Name()+" "+obj->Name()+" matches? "+int(match));
+      lst = Cons(obj,lst);
+    }
+  }
+  return(lst);
+}
+
+//--------------------------------------------------------------------
+  BList* BNameBlock::SelectMembersDeep(BList* lst, const BObjClassify&  oc)
+//--------------------------------------------------------------------
+{
+//Std(BText("\n")+"BNameBlock::SelectMembersDeep Exploring NameBlock "+Name());
+  lst = SelectMembers(lst, oc);
+  BSyntaxObject* obj;
+  BObjByNameHash::const_iterator iter;
+  for(iter=public_.begin(); iter!=public_.end(); iter++)
+  {
+    obj = iter->second;
+    if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
+    {
+      BUserNameBlock* unb = (BUserNameBlock*)obj;
+      lst = unb->Contens().SelectMembersDeep(lst, oc);
+    }
+  }
+  return(lst);
+}
+
 
 //--------------------------------------------------------------------
   BList* BNameBlock::Select(BList* lst, const BObjClassify&  oc)

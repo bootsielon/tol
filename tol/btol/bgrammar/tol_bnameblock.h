@@ -130,6 +130,8 @@ public:
   BSyntaxObject* Member       (const BText& memberName) const;
   BSyntaxObject* PublicMember (const BText& memberName) const;
   BSyntaxObject* PrivateMember(const BText& memberName) const;
+  BList* SelectMembers(BList* lst, const BObjClassify&  oc);
+  BList* SelectMembersDeep(BList* lst, const BObjClassify&  oc);
 
   DeclareClassNewDelete(BNameBlock);
 };
