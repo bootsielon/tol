@@ -963,6 +963,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             } 
             str = (BStruct*)r;
           }
+          x.Set().PutStruct (str); 
           BSyntaxObject* r=NULL;
           for(n=1; n<=s; n++)
           {
