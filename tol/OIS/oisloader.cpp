@@ -940,7 +940,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           ERead(offset, object_);
           set_->SetPos(offset);
           ERead(s, set_);  
-          BUserNameBlock* unb = new BContensNameBlock();
+          BUserNameBlock* unb = new BGraContensP<BNameBlock>(new BNameBlock);
           BNameBlock& x = unb->Contens(); 
           x.Set().PrepareStore(s);
           char sbt; ERead(sbt, set_);
@@ -951,7 +951,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           assert(isNameBlock);
           ERead(fullName,set_);
           x.PutName(fullName);
-          x.Set().PutNameBlock(&x);
           ERead(offset, set_);
           BStruct* str = NULL;
           if(offset) 
@@ -964,7 +963,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             } 
             str = (BStruct*)r;
           }
-          x.Set().PutStruct (str); 
           BSyntaxObject* r=NULL;
           for(n=1; n<=s; n++)
           {
@@ -981,6 +979,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               r->PutNameBlock(&x);
             }
           } 
+          x.Set().PutNameBlock(&x);
           x.Build();
           result = unb;
           result->PutDescription(description);
