@@ -721,7 +721,6 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
     if { !$info_member(-show) } {
       return
     }
-    set name $info_member(-name)
     set fcolor $info_member(-fcolor)
   } else {
     set fcolor "black"
@@ -1058,7 +1057,7 @@ proc ::TolInspector::FilterNameBlockMember { name } {
   } elseif { $p2 eq "_" } {
     if { $p3 eq "." } {
       # es un miembro de solo lectura
-      list -show 1 -fcolor "gray75" -name "_.$p4"
+      list -show 1 -fcolor "gray50" -name "_.$p4"
     } else {
       # es un miembro oculto
       list -show 0
