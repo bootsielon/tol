@@ -1574,8 +1574,10 @@ proc ::TolInspector::SelectSet { } {
 
 proc ::TolInspector::GetParentGrammar { set_ref } {
   set parent [ lrange $set_ref 0 end-1 ]
-  if { ( [ llength $parent ] <= 2 ) && ( [ lindex $parent 0 ] eq "File" ) } {
-    set gra_parent File
+  set root [ lindex $parent 0 ]
+  if { ( [ llength $parent ] <= 2 ) &&
+       ( $root eq "File" || $root eq "Console" ) } {
+    set gra_parent $root
   } else {
     set gra_parent [ lindex [ tol::info var $parent ] 0 ]
   }
