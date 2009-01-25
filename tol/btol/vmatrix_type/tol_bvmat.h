@@ -493,6 +493,9 @@ public:
   double CenterMoment(int order) const;
   double Var() const;
   double StDs() const;
+  double SquaresdSum() const;
+  double EuclideanNorm() const;
+  double FrobeniusNorm() const;
   double Asymmetry() const;
   double Kurtosis() const;
   double Max() const;
@@ -735,6 +738,21 @@ private:
   static int cRs_cRs_cholSolL     (const BVMat& L, const BVMat& b, BVMat& x);
   static int cRs_cRs_cholSolPt    (const BVMat& L, const BVMat& b, BVMat& x);
   static int cRs_cRs_cholSolP     (const BVMat& L, const BVMat& b, BVMat& x);
+
+/*------------------------------------------------------------------------------
+  vmat_iterative.cpp: Iterative methods for solving linear problems
+------------------------------------------------------------------------------*/
+public:
+  //Linear systems of equations  
+  static BVMat MinimumResidualsSolve(const BVMat& A,
+                                     const BVMat& b0,
+                                     double chop);
+
+  static BVMat MinimumResidualsSolve(const BVMat& A,
+                                     const BVMat& b0,
+                                     const BVMat& x0,
+                                     double chop);
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -773,5 +791,6 @@ class BVMatColMajIter
   bool   cRs_SetCell();
 
 };
+
 
 #endif // TOL_BVMAT_H
