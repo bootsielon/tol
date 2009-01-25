@@ -23,7 +23,7 @@ pkginclude_HEADERS	= tol_bvmat.h tol_bvmat_impl.h tol_bvmatgra.h
 libvmatrix_la_SOURCES	= vmat.cpp     vmat_convert.cpp vmat_stats.cpp \
 			vmat_arith.cpp vmat_chol.cpp    vmat_subtypes.cpp \
 			vmat_io.cpp    vmatgra.cpp 	vmat_logic.cpp \
-			vmat_iterator.cpp vmat_bsr.cpp
+			vmat_iterative.cpp vmat_iterator.cpp vmat_bsr.cpp
 
 if HAVE_cholmod_CPPFLAGS
   libvmatrix_la_CPPFLAGS = $(cholmod_CPPFLAGS)
