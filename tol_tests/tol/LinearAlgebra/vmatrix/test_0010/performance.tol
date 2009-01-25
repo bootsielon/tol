@@ -1,0 +1,14 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : performance.tol
+// PURPOSE: performance for VMatrix MinimumResidualsSolve function
+//////////////////////////////////////////////////////////////////////////////
+
+Set Include("functions.tol");
+Real WriteHeader(0);
+Real iter_ = 1;
+While(iter_<=1000,
+{
+  NameBlock sim = SimulateSparseMRS(iter_);
+  Real iter_ := iter_ +  1
+);
+

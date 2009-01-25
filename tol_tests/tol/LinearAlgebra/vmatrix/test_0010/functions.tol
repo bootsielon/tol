@@ -1,0 +1,58 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : functions.tol
+// PURPOSE: tools about test for VMatrix MinimumResidualsSolve function
+//////////////////////////////////////////////////////////////////////////////
+
+Real WriteHeader(Real unused)
+{
+  WriteLn("iter\trndSeed\tm\tn\tr\tnnz\ttime\tmaxErr\tquality");
+  0
+};
+
+NameBlock SimulateSparseMRS(Real iter_)
+{[[
+  Real rndSeed = 
+  {
+    Real PutRandomSeed(0);
+    GetRandomSeed(0)
+  };
+  Real iter = iter_;
+  Real m = IntRand(2,(100000)^(1/3))^3;
+  Real n = Min(5000,IntRand(1, m));
+  Real r = Max(1,IntRand(n*0.8, n));
+  Real s = Rand(1,10)*(n+m)/(n*m);
+  Real _t0 = Copy(Time);
+  
+  Real _timer(Real unused)
+  { 
+    Real t1 = Copy(Time);
+    Real tm = t1 - _t0; 
+    Real _t0 := t1; 
+    tm
+  };
+  VMatrix Xr  = Rand(m,r,-10,10, "Cholmod.R.Sparse", s*m*r);
+  Real t.Xr = _timer(0);
+  VMatrix Cmb = Rand(r,n-r,-1,1, "Cholmod.R.Sparse", s^2*r*(n-r));
+  Real t.Cmb = _timer(0);
+  VMatrix XrCmb = Xr*Cmb;
+  Real t.XrCmb = _timer(0);
+  VMatrix X   = Xr | XrCmb;
+  Real t.X = _timer(0);
+  VMatrix b = Rand(n,1,-14,14);
+  Real t.b = _timer(0);
+  VMatrix y = X*b;
+  Real t.y = _timer(0);
+  VMatrix b_ = MinimumResidualsSolve(X,y,tolerance^2);
+  Real t.b_ = _timer(0);
+  VMatrix y_ = X*b_;
+  Real t.y_ = _timer(0);
+  Real diff.b = VMatMax(Abs(b-b_));
+  Real diff.y = VMatMax(Abs(y - y_));
+  Real quality = 
+  {
+    Real q = 1- diff.y/ n;
+    WriteLn(""<<iter+"\t"<<rndSeed+"\t"<<m+"\t"<<n+"\t"<<r+"\t"<<
+            VNonNullCells(X)+"\t"<<t.b_+"\t"<<diff.y+"\t"<<q);
+    q
+  }
+]]};
