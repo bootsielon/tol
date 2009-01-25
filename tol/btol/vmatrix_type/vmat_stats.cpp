@@ -391,7 +391,7 @@ double BVMat::Quantile() const
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
-  BHashPairs hashPairs;
+//BHashPairs hashPairs;
   BUniformDist iu(-0.49999999,nrow-0.49999999);
   BUniformDist ju(-0.49999999,ncol-0.49999999);
   BIntPair p;
@@ -401,12 +401,12 @@ double BVMat::Quantile() const
   int* i = (int*)triplet->i;
   int* j = (int*)triplet->j;
   double* x = (double*)triplet->x;
-  for(k=0; k<nzmax; )
+  for(k=0; k<nzmax; k++)
   {
     p.r_ = (int)::Round(iu.Random()).Value();
     p.c_ = (int)::Round(ju.Random()).Value();
-    BHashPairs::const_iterator fc = hashPairs.find(p);
-    if(fc==hashPairs.end())
+  //BHashPairs::const_iterator fc = hashPairs.find(p);
+  //if(fc==hashPairs.end())
     {
       i[k] = p.r_; 
       j[k] = p.c_; 
@@ -414,8 +414,7 @@ double BVMat::Quantile() const
       if(x[k]!=0.0)
       { 
         triplet->nnz++; 
-        hashPairs[p] = x[k];
-        k++;
+      //hashPairs[p] = x[k];
       }
     }
   }
