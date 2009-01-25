@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="tollib"
 	ProjectGUID="{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}"
 	RootNamespace="tollib"
@@ -4148,6 +4148,17 @@
 					<File
 						RelativePath="..\btol\vmatrix_type\vmat_io.cpp"
 						>
+					</File>
+					<File
+						RelativePath="..\btol\vmatrix_type\vmat_iterative.cpp"
+						>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\btol\vmatrix_type\vmat_iterator.cpp"
