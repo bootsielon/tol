@@ -1809,6 +1809,43 @@ void BVMatCholeskiInv::CalcContens()
 }
 
 /*------------------------------------------------------------------------------
+  vmat_iterative.cpp: Iterative methods for solving linear problems
+------------------------------------------------------------------------------*/
+
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatMinimumResidualsSolve);
+DefExtOpr(1, BVMatMinimumResidualsSolve, "MinimumResidualsSolve", 
+  2, 4, "VMatrix VMatrix Real VMatrix", 
+  BText("(VMatrix M, VMatrix B "
+  "[, Real chop=")+Sqrt(DEpsilon())+", VMatrix X0=Tra(M)*B])",
+  I2("Applies the Minimum Residuals method to solve the linear "
+     "system M*X=B begining at initial value <X0> until error were "
+     "great than <chop>.",
+     "Aplica el metodo de los Minimos Residuos para resolver el "
+     "sistema lineal M*X=B comenzando por el valor inicial <X0> y "
+     "continuando hasta que el error sea mayor que <chop>."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatMinimumResidualsSolve::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& M = VMat(Arg(1));
+  BVMat& B = VMat(Arg(2));
+  double chop = -1;
+  if(Arg(3)) { chop = Real(Arg(3)); }
+  if(Arg(4)) 
+  { 
+    BVMat& X0 = VMat(Arg(4));
+    contens_ = BVMat::MinimumResidualsSolve(M, B, X0, chop);
+  }
+  else
+  { 
+    contens_ = BVMat::MinimumResidualsSolve(M, B, chop);
+  }
+}
+
+
+/*------------------------------------------------------------------------------
   vmat_stats.cpp: Statistics methods
 ------------------------------------------------------------------------------*/
 
