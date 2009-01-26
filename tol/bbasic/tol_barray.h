@@ -43,7 +43,8 @@
 #  define BARR_ENSURE_DIM(i) EnsureDimensions(i);
 #else
 #  define BARR_ENSURE_DIM(i)
-#endif#endif
+#endif
+
 
 
 
