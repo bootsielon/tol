@@ -12,7 +12,7 @@ package require bfont
 
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc ::bayesGraph::ReadIni {this} {
+proc ::bayesGraph::ReadIni {this {holdon 0}} {
 # PURPOSE: Reads general graph options from .ini file. The ini file is the
 #          active graphic configuration file.
 #
@@ -27,242 +27,245 @@ package require bfont
   variable optLinesAll
   
   #set rini ::iniFile::Read
-  set rini ::iniFile::ReadGCF
-  set key $data(namespace)
+  if {!$holdon} {
+    set rini ::iniFile::ReadGCF
+    set key $data(namespace)
 
-  set opt(PhotoLastDir)    [$rini $key PhotoLastDir {}]
-  set opt(grid) [$rini $key grid 1]
+    set opt(PhotoLastDir)    [$rini $key PhotoLastDir {}]
+    set opt(grid) [$rini $key grid 1]
+  }
   for  {set gr 0} {$gr<$data(gr,numGraph)} {incr gr} {
     set g $widgets(gr,$gr)
 
-    set opt(gr,$gr,yFormatNumber)   [$rini $key yFormatNumber  ""]
-    set opt(gr,$gr,y2FormatNumber)  [$rini $key y2FormatNumber ""]
-    set opt(gr,$gr,yFormatPercent)  [$rini $key yFormatPercent  0]
-    set opt(gr,$gr,y2FormatPercent) [$rini $key y2FormatPercent 0]
-    set opt(gr,$gr,xFormatNumber)   [$rini $key xFormatNumber  ""]
-    set opt(gr,$gr,x2FormatNumber)  [$rini $key x2FormatNumber ""]
-    set opt(gr,$gr,xFormatPercent)  [$rini $key xFormatPercent  0]
-    set opt(gr,$gr,x2FormatPercent) [$rini $key x2FormatPercent 0]
+    if {!$holdon} {
+      set opt(gr,$gr,yFormatNumber)   [$rini $key yFormatNumber  ""]
+      set opt(gr,$gr,y2FormatNumber)  [$rini $key y2FormatNumber ""]
+      set opt(gr,$gr,yFormatPercent)  [$rini $key yFormatPercent  0]
+      set opt(gr,$gr,y2FormatPercent) [$rini $key y2FormatPercent 0]
+      set opt(gr,$gr,xFormatNumber)   [$rini $key xFormatNumber  ""]
+      set opt(gr,$gr,x2FormatNumber)  [$rini $key x2FormatNumber ""]
+      set opt(gr,$gr,xFormatPercent)  [$rini $key xFormatPercent  0]
+      set opt(gr,$gr,x2FormatPercent) [$rini $key x2FormatPercent 0]
+      
+      set opt(gr,$gr,yAxisAll)      [$rini $key yAxisAll  1]
+      set opt(gr,$gr,xAxisAll)      [$rini $key xAxisAll  1]
+      set opt(gr,$gr,x2AxisAll)     [$rini $key x2AxisAll 1]
+      set opt(gr,$gr,y2AxisAll)     [$rini $key y2AxisAll 1]
+      
+      set opt(gr,$gr,xTicksWidth)   [$rini $key xTicksWidth 1]
+      set opt(gr,$gr,yTicksWidth)   [$rini $key yTicksWidth 1]
+      set opt(gr,$gr,xTicksShow)    [$rini $key xTicksShow  1] 
+      set opt(gr,$gr,yTicksShow)    [$rini $key yTicksShow  1]
+      set opt(gr,$gr,xTicksType)    [$rini $key xTicksType  auto]
+      set opt(gr,$gr,yTicksType)    [$rini $key yTicksType  total]
+      set opt(gr,$gr,x2TicksType)   [$rini $key x2TicksType auto]
+      set opt(gr,$gr,y2TicksType)   [$rini $key y2TicksType total]
+      
+      set opt(gr,$gr,xTicksTotal)   [$rini $key xTicksTotal 10]
+      set opt(gr,$gr,yTicksTotal)   [$rini $key yTicksTotal 10]
+      set opt(gr,$gr,x2TicksTotal)  [$rini $key x2TicksTotal 10]
+      set opt(gr,$gr,y2TicksTotal)  [$rini $key y2TicksTotal 10]
+      
+      set opt(gr,$gr,xTicksStep)    [$rini $key xTicksStep  0]
+      set opt(gr,$gr,yTicksStep)    [$rini $key yTicksStep  0]
+      set opt(gr,$gr,xTicksFont)    [$rini $key xTicksFont   {{Lucida Console} 8}]
+      set opt(gr,$gr,yTicksFont)    [$rini $key yTicksFont   {{Lucida Console} 8}]
+      set opt(gr,$gr,xTicksRotate)  [$rini $key xTicksRotate 90]
+      set opt(gr,$gr,yTicksRotate)  [$rini $key yTicksRotate [$g axis cget y -rotate]]
+      set opt(gr,$gr,xTicksColor)   [$rini $key xTicksColor  [$g axis cget x -color]]
+      set opt(gr,$gr,yTicksColor)   [$rini $key yTicksColor  [$g axis cget y -color]]
+      set opt(gr,$gr,xTicksShadow)  [$rini $key xTicksShadow [lindex [$g axis cget x -tickshadow] 0]]
+      set opt(gr,$gr,yTicksShadow)  [$rini $key yTicksShadow [lindex [$g axis cget y -tickshadow] 0]]
+      set opt(gr,$gr,xTicksLength)  [$rini $key xTicksLength 4]
+      set opt(gr,$gr,yTicksLength)  [$rini $key yTicksLength 4]
+      set opt(gr,$gr,xTicksSubdivisions) [$rini $key xTicksSubdivisions 1]
+      set opt(gr,$gr,yTicksSubdivisions) [$rini $key yTicksSubdivisions 1]
+      
+      set opt(gr,$gr,xAxisShow)     [$rini $key xAxisShow  1]
+      set opt(gr,$gr,yAxisShow)     [$rini $key yAxisShow  1]
+      set opt(gr,$gr,x2AxisShow)    [$rini $key x2AxisShow 0]
+      set opt(gr,$gr,y2AxisShow)    [$rini $key y2AxisShow 0]
+      
+      set opt(gr,$gr,xAxisMin)      [$rini $key xAxisMin   0]
+      set opt(gr,$gr,x2AxisMin)     [$rini $key x2AxisMin  0]
+      set opt(gr,$gr,yAxisMin)      [$rini $key yAxisMin   0]
+      set opt(gr,$gr,y2AxisMin)     [$rini $key y2AxisMin  0]
+      
+      set opt(gr,$gr,xAxisMax)      [$rini $key xAxisMax   100]
+      set opt(gr,$gr,yAxisMax)      [$rini $key yAxisMax   100]
+      set opt(gr,$gr,x2AxisMax)     [$rini $key x2AxisMax  100]
+      set opt(gr,$gr,y2AxisMax)     [$rini $key y2AxisMax  100]
+      
+      set opt(gr,$gr,x2TicksWidth)  [$rini $key x2TicksWidth 1]
+      set opt(gr,$gr,y2TicksWidth)  [$rini $key y2TicksWidth 1]
+      set opt(gr,$gr,x2TicksShow)   [$rini $key x2TicksShow 1] 
+      set opt(gr,$gr,y2TicksShow)   [$rini $key y2TicksShow 1]
+      set opt(gr,$gr,x2TicksStep)   [$rini $key x2TicksStep  10]
+      set opt(gr,$gr,y2TicksStep)   [$rini $key y2TicksStep  10]
+      set opt(gr,$gr,x2TicksFont)   [$rini $key x2TicksFont   {{Lucida Console} 8}]
+      set opt(gr,$gr,y2TicksFont)   [$rini $key y2TicksFont   {{Lucida Console} 8}]
+      set opt(gr,$gr,x2TicksRotate) [$rini $key x2TicksRotate [$g axis cget x2 -rotate]]
+      set opt(gr,$gr,y2TicksRotate) [$rini $key y2TicksRotate [$g axis cget y2 -rotate]]
+      set opt(gr,$gr,x2TicksColor)  [$rini $key x2TicksColor  [$g axis cget x2 -color]]
+      set opt(gr,$gr,y2TicksColor)  [$rini $key y2TicksColor  [$g axis cget y2 -color]]
+      set opt(gr,$gr,x2TicksShadow) [$rini $key x2TicksShadow [lindex [$g axis cget x2 -tickshadow] 0]]
+      set opt(gr,$gr,y2TicksShadow) [$rini $key y2TicksShadow [lindex [$g axis cget y2 -tickshadow] 0]]
+      set opt(gr,$gr,x2TicksLength) [$rini $key x2TicksLength 4]
+      set opt(gr,$gr,y2TicksLength) [$rini $key y2TicksLength 4]
+      set opt(gr,$gr,x2TicksSubdivisions) [$rini $key x2TicksSubdivisions 1]
+      set opt(gr,$gr,y2TicksSubdivisions) [$rini $key y2TicksSubdivisions 1]
+      
+      set opt(gr,$gr,xAxisTitle)   [$rini $key xAxisTitle        ""]
+      set opt(gr,$gr,xAxisColor)   [$rini $key xAxisTitleColor   [$g axis cget x -titlecolor]]
+      set opt(gr,$gr,xAxisFont)    [$rini $key xAxisTitleFont    [$g axis cget x -titlefont]]
+      set opt(gr,$gr,xAxisShadow)  [$rini $key xAxisTitleShadow  [lindex [$g axis cget x -titleshadow] 0]]
+      set opt(gr,$gr,yAxisTitle)   [$rini $key yAxisTitle        ""]
+      set opt(gr,$gr,yAxisColor)   [$rini $key yAxisTitleColor   [$g axis cget y -titlecolor]]
+      set opt(gr,$gr,yAxisFont)    [$rini $key yAxisTitleFont    [$g axis cget y -titlefont]]
+      set opt(gr,$gr,yAxisShadow)  [$rini $key yAxisTitleShadow  [lindex [$g axis cget y -titleshadow] 0]]
+      set opt(gr,$gr,x2AxisTitle)  [$rini $key x2AxisTitle       ""]
+      set opt(gr,$gr,x2AxisColor)  [$rini $key x2AxisTitleColor  [$g axis cget x2 -titlecolor]]
+      set opt(gr,$gr,x2AxisFont)   [$rini $key x2AxisTitleFont   [$g axis cget x2 -titlefont]]
+      set opt(gr,$gr,x2AxisShadow) [$rini $key x2AxisTitleShadow [lindex [$g axis cget x2 -titleshadow] 0]]
+      set opt(gr,$gr,y2AxisTitle)  [$rini $key y2AxisTitle       ""]
+      set opt(gr,$gr,y2AxisColor)  [$rini $key y2AxisTitleColor  [$g axis cget y2 -titlecolor]]
+      set opt(gr,$gr,y2AxisFont)   [$rini $key y2AxisTitleFont   [$g axis cget y2 -titlefont]]
+      set opt(gr,$gr,y2AxisShadow) [$rini $key y2AxisTitleShadow [lindex [$g axis cget y2 -titleshadow] 0]]
+      
+      set opt(gr,$gr,font)         [$rini $key font [$g cget -font]]
+      set opt(gr,$gr,foreground)   [$rini $key foreground [$g cget -foreground]]
+      set opt(gr,$gr,shadow)       [$rini $key shadow [lindex [$g cget -shadow] 0]]
+      
+      # options line
+      set opt(gr,$gr,barmode)       [$rini $key barmode aligned]    
+      
+      set opt(gr,$gr,linehides)     [$rini $key linehides false]
+      set opt(gr,$gr,linetypes)     [$rini $key linetypes LineElement]    
+      set opt(gr,$gr,barwidth)      [$rini $key barwidth 0.6]
+      set opt(gr,$gr,linewidth)     [$rini $key linewidth 2]
+      set opt(gr,$gr,dashes)        [$rini $key dashes {}]
+      set opt(gr,$gr,smooth)        [$rini $key smooth linear]
+      set opt(gr,$gr,barrelief)     [$rini $key barrelief raised]    
+      set opt(gr,$gr,borderwidth)   [$rini $key borderwidth 0]
+      set opt(gr,$gr,colors)        [$rini $key colors {#00c600 blue red yellow orange #d14949 grey purple pink navyblue #356a6a #804000 #05eefa #009148 #ffffbb #29fb04}]
+      
+      set opt(gr,$gr,xyMappedAxis)     [$rini $key xyMappedAxis {{x y}}]
+      set opt(gr,$gr,areaTypes)        [$rini $key areaTypes none]
+      set opt(gr,$gr,areaTypesBar)     [$rini $key areaTypesBar none]    
+      set opt(gr,$gr,areaTiles)        [$rini $key areaTiles {}]
+      set opt(gr,$gr,areaForegrounds)  [$rini $key areaForegrounds defcolor]
+      set opt(gr,$gr,areaBackgrounds)  [$rini $key areaBackgrounds white]
+      set opt(gr,$gr,stippleimages)    [$rini $key stippleimages {}]
+      set opt(gr,$gr,stippledegradeds) [$rini $key stippledegradeds 50]
+      
+      set opt(gr,$gr,showvalues)      [$rini $key showvalues   none]
+      set opt(gr,$gr,valuefont)       [$rini $key valuefont   {Arial 8}]
+      set opt(gr,$gr,valuerotate)     [$rini $key valuerotate 0]
+      set opt(gr,$gr,valuecolor)      [$rini $key valuecolor  black]
+      set opt(gr,$gr,valueformatdec)  [$rini $key valueformatdec 2]
+      set opt(gr,$gr,valueshadow)     [$rini $key valueshadow    {}]
+      set opt(gr,$gr,valueanchor)     [$rini $key valueanchor  center]
+      set opt(gr,$gr,showsymbols)     [$rini $key showsymbols  0]
+      set opt(gr,$gr,symbol)          [$rini $key symbol  triangle]
+      set opt(gr,$gr,pixels)          [$rini $key pixels 4]
+      set opt(gr,$gr,scalesymbols)    [$rini $key scalesymbols false]
+      set opt(gr,$gr,fill)            [$rini $key fill  defcolor]
+      set opt(gr,$gr,outline)         [$rini $key outline   defcolor]
+      set opt(gr,$gr,outlinewidth)    [$rini $key outlinewidth 1]
+      
+      set opt(gr,$gr,selffit)         [$rini $key selffit 0]
+      
+      set opt(gr,$gr,xMarkers)        [$rini $key xMarkers {}]
+      set opt(gr,$gr,yMarkers)        [$rini $key yMarkers {}]
+      set opt(gr,$gr,xMarkersIn)      [$rini $key xMarkersIn {}]
+      set opt(gr,$gr,yMarkersIn)      [$rini $key yMarkersIn {}]
+      
+      set opt(gr,$gr,x2Markers)       [$rini $key x2Markers {}]
+      set opt(gr,$gr,y2Markers)       [$rini $key y2Markers {}]
+      set opt(gr,$gr,x2MarkersIn)     [$rini $key x2MarkersIn {}]
+      set opt(gr,$gr,y2MarkersIn)     [$rini $key y2MarkersIn {}]
+      
+      set opt(gr,$gr,xMarkersColorsInEach)   [$rini $key xMarkersColorsInEach  \
+                                                  {#356a6a #804000 #05eefa #009148 #ffffbb}]
+      set opt(gr,$gr,x2MarkersColorsInEach)  [$rini $key x2MarkersColorsInEach \
+                                                  {#356a6a #804000 #05eefa #009148 #ffffbb}]
+      set opt(gr,$gr,yMarkersColorsInEach)   [$rini $key yMarkersColorsInEach  \
+                                                  {#356a6a #804000 #05eefa #009148 #ffffbb}]
+      set opt(gr,$gr,y2MarkersColorsInEach)  [$rini $key y2MarkersColorsInEach \
+                                                  {#356a6a #804000 #05eefa #009148 #ffffbb}]
 
-    set opt(gr,$gr,yAxisAll)      [$rini $key yAxisAll  1]
-    set opt(gr,$gr,xAxisAll)      [$rini $key xAxisAll  1]
-    set opt(gr,$gr,x2AxisAll)     [$rini $key x2AxisAll 1]
-    set opt(gr,$gr,y2AxisAll)     [$rini $key y2AxisAll 1]
-
-    set opt(gr,$gr,xTicksWidth)   [$rini $key xTicksWidth 1]
-    set opt(gr,$gr,yTicksWidth)   [$rini $key yTicksWidth 1]
-    set opt(gr,$gr,xTicksShow)    [$rini $key xTicksShow  1] 
-    set opt(gr,$gr,yTicksShow)    [$rini $key yTicksShow  1]
-    set opt(gr,$gr,xTicksType)    [$rini $key xTicksType  auto]
-    set opt(gr,$gr,yTicksType)    [$rini $key yTicksType  total]
-    set opt(gr,$gr,x2TicksType)   [$rini $key x2TicksType auto]
-    set opt(gr,$gr,y2TicksType)   [$rini $key y2TicksType total]
-
-    set opt(gr,$gr,xTicksTotal)   [$rini $key xTicksTotal 10]
-    set opt(gr,$gr,yTicksTotal)   [$rini $key yTicksTotal 10]
-    set opt(gr,$gr,x2TicksTotal)  [$rini $key x2TicksTotal 10]
-    set opt(gr,$gr,y2TicksTotal)  [$rini $key y2TicksTotal 10]
-
-    set opt(gr,$gr,xTicksStep)    [$rini $key xTicksStep  0]
-    set opt(gr,$gr,yTicksStep)    [$rini $key yTicksStep  0]
-    set opt(gr,$gr,xTicksFont)    [$rini $key xTicksFont   {{Lucida Console} 8}]
-    set opt(gr,$gr,yTicksFont)    [$rini $key yTicksFont   {{Lucida Console} 8}]
-    set opt(gr,$gr,xTicksRotate)  [$rini $key xTicksRotate 90]
-    set opt(gr,$gr,yTicksRotate)  [$rini $key yTicksRotate [$g axis cget y -rotate]]
-    set opt(gr,$gr,xTicksColor)   [$rini $key xTicksColor  [$g axis cget x -color]]
-    set opt(gr,$gr,yTicksColor)   [$rini $key yTicksColor  [$g axis cget y -color]]
-    set opt(gr,$gr,xTicksShadow)  [$rini $key xTicksShadow [lindex [$g axis cget x -tickshadow] 0]]
-    set opt(gr,$gr,yTicksShadow)  [$rini $key yTicksShadow [lindex [$g axis cget y -tickshadow] 0]]
-    set opt(gr,$gr,xTicksLength)  [$rini $key xTicksLength 4]
-    set opt(gr,$gr,yTicksLength)  [$rini $key yTicksLength 4]
-    set opt(gr,$gr,xTicksSubdivisions) [$rini $key xTicksSubdivisions 1]
-    set opt(gr,$gr,yTicksSubdivisions) [$rini $key yTicksSubdivisions 1]
-
-    set opt(gr,$gr,xAxisShow)     [$rini $key xAxisShow  1]
-    set opt(gr,$gr,yAxisShow)     [$rini $key yAxisShow  1]
-    set opt(gr,$gr,x2AxisShow)    [$rini $key x2AxisShow 0]
-    set opt(gr,$gr,y2AxisShow)    [$rini $key y2AxisShow 0]
-
-    set opt(gr,$gr,xAxisMin)      [$rini $key xAxisMin   0]
-    set opt(gr,$gr,x2AxisMin)     [$rini $key x2AxisMin  0]
-    set opt(gr,$gr,yAxisMin)      [$rini $key yAxisMin   0]
-    set opt(gr,$gr,y2AxisMin)     [$rini $key y2AxisMin  0]
-
-    set opt(gr,$gr,xAxisMax)      [$rini $key xAxisMax   100]
-    set opt(gr,$gr,yAxisMax)      [$rini $key yAxisMax   100]
-    set opt(gr,$gr,x2AxisMax)     [$rini $key x2AxisMax  100]
-    set opt(gr,$gr,y2AxisMax)     [$rini $key y2AxisMax  100]
-
-    set opt(gr,$gr,x2TicksWidth)  [$rini $key x2TicksWidth 1]
-    set opt(gr,$gr,y2TicksWidth)  [$rini $key y2TicksWidth 1]
-    set opt(gr,$gr,x2TicksShow)   [$rini $key x2TicksShow 1] 
-    set opt(gr,$gr,y2TicksShow)   [$rini $key y2TicksShow 1]
-    set opt(gr,$gr,x2TicksStep)   [$rini $key x2TicksStep  10]
-    set opt(gr,$gr,y2TicksStep)   [$rini $key y2TicksStep  10]
-    set opt(gr,$gr,x2TicksFont)   [$rini $key x2TicksFont   {{Lucida Console} 8}]
-    set opt(gr,$gr,y2TicksFont)   [$rini $key y2TicksFont   {{Lucida Console} 8}]
-    set opt(gr,$gr,x2TicksRotate) [$rini $key x2TicksRotate [$g axis cget x2 -rotate]]
-    set opt(gr,$gr,y2TicksRotate) [$rini $key y2TicksRotate [$g axis cget y2 -rotate]]
-    set opt(gr,$gr,x2TicksColor)  [$rini $key x2TicksColor  [$g axis cget x2 -color]]
-    set opt(gr,$gr,y2TicksColor)  [$rini $key y2TicksColor  [$g axis cget y2 -color]]
-    set opt(gr,$gr,x2TicksShadow) [$rini $key x2TicksShadow [lindex [$g axis cget x2 -tickshadow] 0]]
-    set opt(gr,$gr,y2TicksShadow) [$rini $key y2TicksShadow [lindex [$g axis cget y2 -tickshadow] 0]]
-    set opt(gr,$gr,x2TicksLength) [$rini $key x2TicksLength 4]
-    set opt(gr,$gr,y2TicksLength) [$rini $key y2TicksLength 4]
-    set opt(gr,$gr,x2TicksSubdivisions) [$rini $key x2TicksSubdivisions 1]
-    set opt(gr,$gr,y2TicksSubdivisions) [$rini $key y2TicksSubdivisions 1]
-
-    set opt(gr,$gr,xAxisTitle)   [$rini $key xAxisTitle        ""]
-    set opt(gr,$gr,xAxisColor)   [$rini $key xAxisTitleColor   [$g axis cget x -titlecolor]]
-    set opt(gr,$gr,xAxisFont)    [$rini $key xAxisTitleFont    [$g axis cget x -titlefont]]
-    set opt(gr,$gr,xAxisShadow)  [$rini $key xAxisTitleShadow  [lindex [$g axis cget x -titleshadow] 0]]
-    set opt(gr,$gr,yAxisTitle)   [$rini $key yAxisTitle        ""]
-    set opt(gr,$gr,yAxisColor)   [$rini $key yAxisTitleColor   [$g axis cget y -titlecolor]]
-    set opt(gr,$gr,yAxisFont)    [$rini $key yAxisTitleFont    [$g axis cget y -titlefont]]
-    set opt(gr,$gr,yAxisShadow)  [$rini $key yAxisTitleShadow  [lindex [$g axis cget y -titleshadow] 0]]
-    set opt(gr,$gr,x2AxisTitle)  [$rini $key x2AxisTitle       ""]
-    set opt(gr,$gr,x2AxisColor)  [$rini $key x2AxisTitleColor  [$g axis cget x2 -titlecolor]]
-    set opt(gr,$gr,x2AxisFont)   [$rini $key x2AxisTitleFont   [$g axis cget x2 -titlefont]]
-    set opt(gr,$gr,x2AxisShadow) [$rini $key x2AxisTitleShadow [lindex [$g axis cget x2 -titleshadow] 0]]
-    set opt(gr,$gr,y2AxisTitle)  [$rini $key y2AxisTitle       ""]
-    set opt(gr,$gr,y2AxisColor)  [$rini $key y2AxisTitleColor  [$g axis cget y2 -titlecolor]]
-    set opt(gr,$gr,y2AxisFont)   [$rini $key y2AxisTitleFont   [$g axis cget y2 -titlefont]]
-    set opt(gr,$gr,y2AxisShadow) [$rini $key y2AxisTitleShadow [lindex [$g axis cget y2 -titleshadow] 0]]
-
-    set opt(gr,$gr,font)         [$rini $key font [$g cget -font]]
-    set opt(gr,$gr,foreground)   [$rini $key foreground [$g cget -foreground]]
-    set opt(gr,$gr,shadow)       [$rini $key shadow [lindex [$g cget -shadow] 0]]
-
-    # options line
-    set opt(gr,$gr,barmode)       [$rini $key barmode aligned]    
-
-    set opt(gr,$gr,linehides)     [$rini $key linehides false]
-    set opt(gr,$gr,linetypes)     [$rini $key linetypes LineElement]    
-    set opt(gr,$gr,barwidth)      [$rini $key barwidth 0.6]
-    set opt(gr,$gr,linewidth)     [$rini $key linewidth 2]
-    set opt(gr,$gr,dashes)        [$rini $key dashes {}]
-    set opt(gr,$gr,smooth)        [$rini $key smooth linear]
-    set opt(gr,$gr,barrelief)     [$rini $key barrelief raised]    
-    set opt(gr,$gr,borderwidth)   [$rini $key borderwidth 0]
-    set opt(gr,$gr,colors)        [$rini $key colors {#00c600 blue red yellow orange #d14949 grey purple pink navyblue #356a6a #804000 #05eefa #009148 #ffffbb #29fb04}]
-
-    set opt(gr,$gr,xyMappedAxis)     [$rini $key xyMappedAxis {{x y}}]
-    set opt(gr,$gr,areaTypes)        [$rini $key areaTypes none]
-    set opt(gr,$gr,areaTypesBar)     [$rini $key areaTypesBar none]    
-    set opt(gr,$gr,areaTiles)        [$rini $key areaTiles {}]
-    set opt(gr,$gr,areaForegrounds)  [$rini $key areaForegrounds defcolor]
-    set opt(gr,$gr,areaBackgrounds)  [$rini $key areaBackgrounds white]
-    set opt(gr,$gr,stippleimages)    [$rini $key stippleimages {}]
-    set opt(gr,$gr,stippledegradeds) [$rini $key stippledegradeds 50]
-
-    set opt(gr,$gr,showvalues)      [$rini $key showvalues   none]
-    set opt(gr,$gr,valuefont)       [$rini $key valuefont   {Arial 8}]
-    set opt(gr,$gr,valuerotate)     [$rini $key valuerotate 0]
-    set opt(gr,$gr,valuecolor)      [$rini $key valuecolor  black]
-    set opt(gr,$gr,valueformatdec)  [$rini $key valueformatdec 2]
-    set opt(gr,$gr,valueshadow)     [$rini $key valueshadow    {}]
-    set opt(gr,$gr,valueanchor)     [$rini $key valueanchor  center]
-    set opt(gr,$gr,showsymbols)     [$rini $key showsymbols  0]
-    set opt(gr,$gr,symbol)          [$rini $key symbol  triangle]
-    set opt(gr,$gr,pixels)          [$rini $key pixels 4]
-    set opt(gr,$gr,scalesymbols)    [$rini $key scalesymbols false]
-    set opt(gr,$gr,fill)            [$rini $key fill  defcolor]
-    set opt(gr,$gr,outline)         [$rini $key outline   defcolor]
-    set opt(gr,$gr,outlinewidth)    [$rini $key outlinewidth 1]
-    
-    set opt(gr,$gr,selffit)         [$rini $key selffit 0]
-
-    set opt(gr,$gr,xMarkers)        [$rini $key xMarkers {}]
-    set opt(gr,$gr,yMarkers)        [$rini $key yMarkers {}]
-    set opt(gr,$gr,xMarkersIn)      [$rini $key xMarkersIn {}]
-    set opt(gr,$gr,yMarkersIn)      [$rini $key yMarkersIn {}]
-
-    set opt(gr,$gr,x2Markers)       [$rini $key x2Markers {}]
-    set opt(gr,$gr,y2Markers)       [$rini $key y2Markers {}]
-    set opt(gr,$gr,x2MarkersIn)     [$rini $key x2MarkersIn {}]
-    set opt(gr,$gr,y2MarkersIn)     [$rini $key y2MarkersIn {}]
-
-    set opt(gr,$gr,xMarkersColorsInEach)   [$rini $key xMarkersColorsInEach  \
-      {#356a6a #804000 #05eefa #009148 #ffffbb}]
-    set opt(gr,$gr,x2MarkersColorsInEach)  [$rini $key x2MarkersColorsInEach \
-      {#356a6a #804000 #05eefa #009148 #ffffbb}]
-    set opt(gr,$gr,yMarkersColorsInEach)   [$rini $key yMarkersColorsInEach  \
-      {#356a6a #804000 #05eefa #009148 #ffffbb}]
-    set opt(gr,$gr,y2MarkersColorsInEach)  [$rini $key y2MarkersColorsInEach \
-      {#356a6a #804000 #05eefa #009148 #ffffbb}]
-
-    set opt(gr,$gr,xMarkersDashesInEach)  [$rini $key xMarkersDashesInEach  \
-      {{1 1} {2 2} {3 3} {4 4} {5 5}}]
-    set opt(gr,$gr,x2MarkersDashesInEach) [$rini $key x2MarkersDashesInEach \
-      {{1 1} {2 2} {3 3} {4 4} {5 5}}]
-    set opt(gr,$gr,yMarkersDashesInEach)  [$rini $key yMarkersDashesInEach  \
-      {{1 1} {2 2} {3 3} {4 4} {5 5}}]
-    set opt(gr,$gr,y2MarkersDashesInEach) [$rini $key y2MarkersDashesInEach \
-      {{1 1} {2 2} {3 3} {4 4} {5 5}}]
-
-    set opt(gr,$gr,xMarkersWidthsInEach)   [$rini $key xMarkersWidthsInEach  \
-      {1 1 1 1 1}]
-    set opt(gr,$gr,x2MarkersWidthsInEach)  [$rini $key x2MarkersWidthsInEach \
-      {1 1 1 1 1}]
-    set opt(gr,$gr,yMarkersWidthsInEach)   [$rini $key yMarkersWidthsInEach  \
-      {1 1 1 1 1}]
-    set opt(gr,$gr,y2MarkersWidthsInEach)  [$rini $key y2MarkersWidthsInEach \
-      {1 1 1 1 1}]
-
-    set opt(gr,$gr,xMarkersUndersInEach)   [$rini $key xMarkersUndersInEach  \
-      {0 0 0 0 0}]
-    set opt(gr,$gr,x2MarkersUndersInEach)  [$rini $key x2MarkersUndersInEach \
-      {0 0 0 0 0}]
-    set opt(gr,$gr,yMarkersUndersInEach)   [$rini $key yMarkersUndersInEach  \
-      {0 0 0 0 0}]
-    set opt(gr,$gr,y2MarkersUndersInEach)  [$rini $key y2MarkersUndersInEach \
-      {0 0 0 0 0}]
-
-    set opt(gr,$gr,legend,Hide)     [$rini $key legendHide      [$g legend cget -hide]]
-    set opt(gr,$gr,legend,Bg)       [$rini $key legendBg        ""]
-    set opt(gr,$gr,legend,Bd)       [$rini $key legendBd        [$g legend cget -bd]]
-    set opt(gr,$gr,legend,Fg)       [$rini $key legendFg        [$g legend cget -fg]]
-    set opt(gr,$gr,legend,Font)     [$rini $key legendFont      [$g legend cget -font]]
-    set opt(gr,$gr,legend,Shadow)   [$rini $key legendShadow    [$g legend cget -shadow]]
-    set opt(gr,$gr,legend,Position) [$rini $key legendPosition  "bottom"]
-    set opt(gr,$gr,legend,Anchor)   [$rini $key legendAnchor    [$g legend cget -anchor]]
-    set opt(gr,$gr,legend,Relief)   [$rini $key legendRelief    [$g legend cget -relief]]
-    set opt(gr,$gr,legend,Raised)   [$rini $key legendRaised    [$g legend cget -raised]]
-    set opt(gr,$gr,legend,IPadXl)   [$rini $key legendIPadXl    [lindex [$g legend cget -ipadx] 0]]
-    set opt(gr,$gr,legend,IPadXr)   [$rini $key legendIPadXr    [lindex [$g legend cget -ipadx] 1]]
-    set opt(gr,$gr,legend,IPadYt)   [$rini $key legendIPadYt    [lindex [$g legend cget -ipady] 0]]
-    set opt(gr,$gr,legend,IPadYb)   [$rini $key legendIPadYb    [lindex [$g legend cget -ipady] 1]]
-    set opt(gr,$gr,legend,PadXl)    [$rini $key legendPadXl     [lindex [$g legend cget -padx] 0]]
-    set opt(gr,$gr,legend,PadXr)    [$rini $key legendPadXr     [lindex [$g legend cget -padx] 1]]
-    set opt(gr,$gr,legend,PadYt)    [$rini $key legendPadYt     [lindex [$g legend cget -pady] 0]]
-    set opt(gr,$gr,legend,PadYb)    [$rini $key legendPadYb     [lindex [$g legend cget -pady] 1]]
-    set opt(gr,$gr,legend,Rows)     [$rini $key legendRows      [$g legend cget -rows]]
-    set opt(gr,$gr,legend,Columns)  [$rini $key legendColumns   [$g legend cget -columns]]
-
-    set opt(gr,$gr,grid,Color)     [$rini $key gridColor     #e8e8e8]
-    set opt(gr,$gr,grid,Dashes)    [$rini $key gridDashes    {3 1}]
-    set opt(gr,$gr,grid,LineWidth) [$rini $key gridLineWidth [$g grid cget -linewidth]]
-    set opt(gr,$gr,grid,Minor)     [$rini $key gridMinor     0]
-    set opt(gr,$gr,grid,MapX)      [$rini $key gridMapX      x]
-    set opt(gr,$gr,grid,MapY)      [$rini $key gridMapY      y]
-
-    set opt(gr,$gr,background)      [$rini $key background  #ffffff]
-    set opt(gr,$gr,relief)          [$rini $key relief      flat]
-    set opt(gr,$gr,areaborderwidth) [$rini $key areaborderwidth 0]
-    
-    set opt(gr,$gr,lm)             [$rini $key lm          [$g cget -lm]]
-    set opt(gr,$gr,rm)             [$rini $key rm          [$g cget -rm]]
-    set opt(gr,$gr,tm)             [$rini $key tm          [$g cget -tm]]
-    set opt(gr,$gr,bm)             [$rini $key bm          [$g cget -bm]]
-    set opt(gr,$gr,plotbackground)  [$rini $key plotbackground  white]
-    set opt(gr,$gr,plotrelief)      [$rini $key plotrelief      flat]
-    set opt(gr,$gr,plotborderwidth) [$rini $key plotborderwidth 0]
-    set opt(gr,$gr,plotpadxl)  [$rini $key plotpadxl 0]
-    set opt(gr,$gr,plotpadxr)  [$rini $key plotpadxr 0]
-    set opt(gr,$gr,plotpadyt)  [$rini $key plotpadyt 0]
-    set opt(gr,$gr,plotpadyb)  [$rini $key plotpadyb 0]
-    set opt(gr,$gr,invertxy)   [$rini $key invertxy 0]
-    
+      set opt(gr,$gr,xMarkersDashesInEach)  [$rini $key xMarkersDashesInEach  \
+                                                 {{1 1} {2 2} {3 3} {4 4} {5 5}}]
+      set opt(gr,$gr,x2MarkersDashesInEach) [$rini $key x2MarkersDashesInEach \
+                                                 {{1 1} {2 2} {3 3} {4 4} {5 5}}]
+      set opt(gr,$gr,yMarkersDashesInEach)  [$rini $key yMarkersDashesInEach  \
+                                                 {{1 1} {2 2} {3 3} {4 4} {5 5}}]
+      set opt(gr,$gr,y2MarkersDashesInEach) [$rini $key y2MarkersDashesInEach \
+                                                 {{1 1} {2 2} {3 3} {4 4} {5 5}}]
+      
+      set opt(gr,$gr,xMarkersWidthsInEach)   [$rini $key xMarkersWidthsInEach  \
+                                                  {1 1 1 1 1}]
+      set opt(gr,$gr,x2MarkersWidthsInEach)  [$rini $key x2MarkersWidthsInEach \
+                                                  {1 1 1 1 1}]
+      set opt(gr,$gr,yMarkersWidthsInEach)   [$rini $key yMarkersWidthsInEach  \
+                                                  {1 1 1 1 1}]
+      set opt(gr,$gr,y2MarkersWidthsInEach)  [$rini $key y2MarkersWidthsInEach \
+                                                  {1 1 1 1 1}]
+      
+      set opt(gr,$gr,xMarkersUndersInEach)   [$rini $key xMarkersUndersInEach  \
+                                                  {0 0 0 0 0}]
+      set opt(gr,$gr,x2MarkersUndersInEach)  [$rini $key x2MarkersUndersInEach \
+                                                  {0 0 0 0 0}]
+      set opt(gr,$gr,yMarkersUndersInEach)   [$rini $key yMarkersUndersInEach  \
+                                                  {0 0 0 0 0}]
+      set opt(gr,$gr,y2MarkersUndersInEach)  [$rini $key y2MarkersUndersInEach \
+                                                  {0 0 0 0 0}]
+      
+      set opt(gr,$gr,legend,Hide)     [$rini $key legendHide      [$g legend cget -hide]]
+      set opt(gr,$gr,legend,Bg)       [$rini $key legendBg        ""]
+      set opt(gr,$gr,legend,Bd)       [$rini $key legendBd        [$g legend cget -bd]]
+      set opt(gr,$gr,legend,Fg)       [$rini $key legendFg        [$g legend cget -fg]]
+      set opt(gr,$gr,legend,Font)     [$rini $key legendFont      [$g legend cget -font]]
+      set opt(gr,$gr,legend,Shadow)   [$rini $key legendShadow    [$g legend cget -shadow]]
+      set opt(gr,$gr,legend,Position) [$rini $key legendPosition  "bottom"]
+      set opt(gr,$gr,legend,Anchor)   [$rini $key legendAnchor    [$g legend cget -anchor]]
+      set opt(gr,$gr,legend,Relief)   [$rini $key legendRelief    [$g legend cget -relief]]
+      set opt(gr,$gr,legend,Raised)   [$rini $key legendRaised    [$g legend cget -raised]]
+      set opt(gr,$gr,legend,IPadXl)   [$rini $key legendIPadXl    [lindex [$g legend cget -ipadx] 0]]
+      set opt(gr,$gr,legend,IPadXr)   [$rini $key legendIPadXr    [lindex [$g legend cget -ipadx] 1]]
+      set opt(gr,$gr,legend,IPadYt)   [$rini $key legendIPadYt    [lindex [$g legend cget -ipady] 0]]
+      set opt(gr,$gr,legend,IPadYb)   [$rini $key legendIPadYb    [lindex [$g legend cget -ipady] 1]]
+      set opt(gr,$gr,legend,PadXl)    [$rini $key legendPadXl     [lindex [$g legend cget -padx] 0]]
+      set opt(gr,$gr,legend,PadXr)    [$rini $key legendPadXr     [lindex [$g legend cget -padx] 1]]
+      set opt(gr,$gr,legend,PadYt)    [$rini $key legendPadYt     [lindex [$g legend cget -pady] 0]]
+      set opt(gr,$gr,legend,PadYb)    [$rini $key legendPadYb     [lindex [$g legend cget -pady] 1]]
+      set opt(gr,$gr,legend,Rows)     [$rini $key legendRows      [$g legend cget -rows]]
+      set opt(gr,$gr,legend,Columns)  [$rini $key legendColumns   [$g legend cget -columns]]
+      
+      set opt(gr,$gr,grid,Color)     [$rini $key gridColor     "#e8e8e8"]
+      set opt(gr,$gr,grid,Dashes)    [$rini $key gridDashes    {3 1}]
+      set opt(gr,$gr,grid,LineWidth) [$rini $key gridLineWidth [$g grid cget -linewidth]]
+      set opt(gr,$gr,grid,Minor)     [$rini $key gridMinor     0]
+      set opt(gr,$gr,grid,MapX)      [$rini $key gridMapX      x]
+      set opt(gr,$gr,grid,MapY)      [$rini $key gridMapY      y]
+      
+      set opt(gr,$gr,background)      [$rini $key background  #ffffff]
+      set opt(gr,$gr,relief)          [$rini $key relief      flat]
+      set opt(gr,$gr,areaborderwidth) [$rini $key areaborderwidth 0]
+      
+      set opt(gr,$gr,lm)             [$rini $key lm          [$g cget -lm]]
+      set opt(gr,$gr,rm)             [$rini $key rm          [$g cget -rm]]
+      set opt(gr,$gr,tm)             [$rini $key tm          [$g cget -tm]]
+      set opt(gr,$gr,bm)             [$rini $key bm          [$g cget -bm]]
+      set opt(gr,$gr,plotbackground)  [$rini $key plotbackground  white]
+      set opt(gr,$gr,plotrelief)      [$rini $key plotrelief      flat]
+      set opt(gr,$gr,plotborderwidth) [$rini $key plotborderwidth 0]
+      set opt(gr,$gr,plotpadxl)  [$rini $key plotpadxl 0]
+      set opt(gr,$gr,plotpadxr)  [$rini $key plotpadxr 0]
+      set opt(gr,$gr,plotpadyt)  [$rini $key plotpadyt 0]
+      set opt(gr,$gr,plotpadyb)  [$rini $key plotpadyb 0]
+      set opt(gr,$gr,invertxy)   [$rini $key invertxy 0]
+    }
     # Para el orden de las series, opt puede cambiar, pero no cambiamos data
     # lstnames {id name caption label}
     set opt(gr,$gr,lstnames) {}
@@ -287,7 +290,6 @@ package require bfont
     }
   }
 }
-
 
 #/////////////////////////////////////////////////////////////////////////////
   proc ::bayesGraph::WriteIni {this { gcf 0 } } {
@@ -479,8 +481,6 @@ proc ::bayesGraph::FixYAxisStep {this step} {
       if {![catch {expr int(pow(10,$num)) ? floor($step/int(pow(10,$num)))*pow(10,$num) : 0} res]} {
         set step $res
       } else {
-        #puts "BayesGraph.FixYAxisStep. $res"
-        Tolcon_Trace "BayesGraph.FixYAxisStep. $res"
         set step 0
       }
       #set step [expr int(pow(10,$num)) ? floor($step/int(pow(10,$num)))*pow(10,$num) : 0]
@@ -3280,7 +3280,6 @@ proc ::bayesGraph::GrapOptApplyShowSymbols {this var pre} {
           }
           set i 0
           set j 0
-          #Tolcon_Trace "lstXMarkers: $lstXMarkers"
           foreach it $lstMarkers {
             if {$j==5} { set j 0 }
             set color $tmpOpt(var,${axis}MarkerColorInEach$j)
