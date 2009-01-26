@@ -903,6 +903,7 @@ proc ::TolInspector::OpenObject { index } {
         #set set_ref [eval list [list $tolset] $tolindex]
         set set_ref [eval list $tolset $tolindex]
         variable gra_parent [ GetParentGrammar $set_ref ]
+        puts "gra_parent $set_ref = $gra_parent"
         ::tol::forallchild $set_ref ::TolInspector::InsertSubset
         set tolset $_tolset
         NotBusy
@@ -1573,15 +1574,13 @@ proc ::TolInspector::SelectSet { } {
 }
 
 proc ::TolInspector::GetParentGrammar { set_ref } {
-  set parent [ lrange $set_ref 0 end-1 ]
-  set root [ lindex $parent 0 ]
-  if { ( [ llength $parent ] <= 2 ) &&
-       ( $root eq "File" || $root eq "Console" ) } {
-    set gra_parent $root
+  set root [ lindex $set_ref 0 ]
+  set L [ llength $set_ref ]
+  if { ( $root eq "File" && $L <= 2 ) } {
+    set root
   } else {
-    set gra_parent [ lindex [ tol::info var $parent ] 0 ]
+    lindex [ tol::info var $set_ref ] 0
   }
-  set gra_parent
 }
 
 #/////////////////////////////////////////////////////////////////////////////
