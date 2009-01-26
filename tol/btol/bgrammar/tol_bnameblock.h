@@ -54,7 +54,8 @@ private:
   static BObjByNameHash using_;
   static BObjByNameHash usingSymbols_;
   static BObjByClassNameHash usingSymbolsByClass_;
-
+  BText localName_;
+  bool createdWithNew_;
 public:
   static bool Initialize();
   static BNameBlock&  Unknown() { return(*unknown_); }
@@ -73,12 +74,14 @@ public:
   static BList* Select(BList* lst, const BObjClassify&  oc);
 
   BNameBlock();
-  BNameBlock(const BText& fullName);
+  BNameBlock(const BText& fullName, const BText& localName);
  ~BNameBlock();
   BNameBlock(const BNameBlock& ns);
   BNameBlock& operator= (const BNameBlock& ns);
 
   int Level() const;
+  const BText& LocalName() const { return(localName_); };
+  void PutLocalName(const BText& localName) { localName_ = localName; };
   const BObjByNameHash& Public () const { return(public_ ); }
         BObjByNameHash& Public ()       { return(public_ ); }
   const BObjByNameHash& Private() const { return(private_); }
@@ -97,8 +100,13 @@ public:
   BSyntaxObject* PrivateMember(const BText& memberName) const;
   BList* SelectMembers(BList* lst, const BObjClassify&  oc);
   BList* SelectMembersDeep(BList* lst, const BObjClassify&  oc);
+  void RebuildFullNameDeep(BText parentFullName);
+
+  short EnsureIsAssigned() const;
 
   DeclareClassNewDelete(BNameBlock);
+
+
 };
 
 //--------------------------------------------------------------------
