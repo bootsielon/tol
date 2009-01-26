@@ -1661,18 +1661,18 @@ BOperator* TT_FindOperator( const BGrammar *G, const char *expr )
   if( oldEnabled ) { BOut::Enable( ); }
   if(obj)
   {
-    if(obj->Mode()==BUSERFUNMODE)
+    if( obj->Mode( ) == BUSERFUNMODE )
     {
-      opr = dynamic_cast<BOperator*>(obj);
+      opr = dynamic_cast<BOperator*>( obj );
     }    
-    if(obj->Mode()==BOBJECTMODE)
+    if( obj->Mode( ) == BOBJECTMODE )
     {
       BUserCode *uc = dynamic_cast<BUserCode*>( obj );
-      opr = uc->Contens().Operator( );
-      if(opr && (opr->Grammar( ) != G)) { opr = NULL; }
+      opr = uc ? uc->Contens().Operator( ) : NULL;
+      if( opr && ( opr->Grammar( ) != G ) ) { opr = NULL; }
     }
   }
-  return(opr);
+  return( opr );
 }
 
 /*
