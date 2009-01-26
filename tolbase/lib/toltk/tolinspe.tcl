@@ -903,7 +903,6 @@ proc ::TolInspector::OpenObject { index } {
         #set set_ref [eval list [list $tolset] $tolindex]
         set set_ref [eval list $tolset $tolindex]
         variable gra_parent [ GetParentGrammar $set_ref ]
-        puts "gra_parent $set_ref = $gra_parent"
         ::tol::forallchild $set_ref ::TolInspector::InsertSubset
         set tolset $_tolset
         NotBusy
