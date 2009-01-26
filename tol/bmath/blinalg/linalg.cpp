@@ -285,21 +285,20 @@ DMat MinimumResidualsSolve(const DMat& A_,
 	  BDat(xNormAdvance).Format("%lg"   )+" ,"+
 	  BDat(100*relAdv  ).Format("%8.4lf")+"%)");
 #endif
-      if(maxpa.IsUnknown()    ) { break; }
-      if(advance      >	 0    ) { break; }
-      if(maxpa	      <= chop ) { break; }
-      if(Abs(advance) <= chop ) { break; }
-      if(Abs(relAdv)  <= chop ) { break; }
-      if(Abs(R)	      <= chop ) { break; }
-      if
-      (
-	(oldMaxpa	   <= BDat::Tolerance () ) &&
-	(maxpa		   <= BDat::Tolerance () ) &&
-	(Abs(advance)	   <= BDat::Tolerance () ) &&
-	(Abs(xNormAdvance) <= BDat::Tolerance () )
-      )
-      { break; }
-
+      if(S.IsUnknown()               ) { break; }
+      if(maxpa.IsUnknown()           ) { break; }
+      if(advance             >   0   ) { break; }
+      if(S                   <= chop ) { break; }
+/*
+      if(maxpa               <= chop ) { break; }
+      if(fabs(advance)       <= chop ) { break; }
+      if(fabs(relAdv)        <= chop ) { break; }
+      if(fabs(R)             <= chop ) { break; }
+      if(oldMaxpa            <= tol  ) { break; }
+      if(maxpa               <= tol  ) { break; }
+      if(fabs(advance)       <= tol  ) { break; }
+      if(xNormAdvance.Abs()  <= tol  ) { break; }
+*/
     }
     r -= q*a;
     s  = At*r;
