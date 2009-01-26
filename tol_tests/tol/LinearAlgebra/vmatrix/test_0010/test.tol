@@ -9,8 +9,6 @@ Text summary_ = "MinimumResidualsSolve" ;
 //Write here the initial test TOL code if needed
 Real numErr0 = Copy(NError);
 
-Real tolerance = 1.E-14;
-
 Set Include("functions.tol");
 Real WriteHeader(0);
 NameBlock sim = SimulateSparseMRS(1);

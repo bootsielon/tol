@@ -3,6 +3,8 @@
 // PURPOSE: tools about test for VMatrix MinimumResidualsSolve function
 //////////////////////////////////////////////////////////////////////////////
 
+Real tolerance = 1.E-14;
+
 Real WriteHeader(Real unused)
 {
   WriteLn("iter\trndSeed\tm\tn\tr\tnnz\ttime\tmaxErr\tquality");
