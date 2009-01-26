@@ -35,6 +35,7 @@
 #include <tol/tol_bvmatgra.h>
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bspfun.h>
+#include <tol/tol_bcodgra.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btsrgra.h>
 #include <tol/tol_btxtgra.h>
@@ -1648,6 +1649,22 @@ int Tol_SetFunctionsObj (Tcl_Interp * interp, Tcl_Obj * gra_name,
   return TCL_ERROR;
 }
 
+static
+BOperator* TT_FindOperator( const BGrammar *G, const char *expr )
+{
+  BOperator* opr = G->FindOperator( expr );
+  if ( opr ) {
+    return opr;
+  }
+  bool oldEnabled = BOut::Disable();
+  BSyntaxObject* obj = GraCode( )->BGrammar::LeftEvaluateExpr( expr );
+  if( oldEnabled ) { BOut::Enable( ); }
+  BUserCode *uc = dynamic_cast<BUserCode*>( obj );
+  
+  return
+    ( uc && ( uc->Contens().Grammar( ) == G ) ) ? uc->Contens().Operator( ) : NULL;
+}
+
 /*
  * Fill in obj_result the function's prototype and description
  * for a given function in a given grammar.
@@ -1695,8 +1712,8 @@ int Tol_SetFunctionInfoObj (Tcl_Obj * gra_name,
   
     if (gra) {
       Tcl_DStringInit(&dstr);
-      Tcl_UtfToExternalDString(NULL,Tcl_GetString(fun_name),-1,&dstr);
-      BOperator* opr = gra->FindOperator(Tcl_DStringValue(&dstr));
+      Tcl_UtfToExternalDString( NULL, Tcl_GetString( fun_name ), -1, &dstr );
+      BOperator* opr = TT_FindOperator( gra, Tcl_DStringValue( &dstr ) );
       Tcl_DStringFree(&dstr);
       if (opr) {
 	return Tol_FillFunctionInfo(opr, obj_result);
