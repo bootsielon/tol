@@ -83,29 +83,53 @@ static bool BNameBlock_IsInitialized()
 //--------------------------------------------------------------------
 BNameBlock::BNameBlock() 
 //--------------------------------------------------------------------
-: BObject(),
-  public_(),
-  private_(), 
-  evLevel_(BGrammar::Level()),
-  level_(-999999999),
-  father_(current_)
+: BObject   (),
+  public_   (),
+  private_  (), 
+  set_      (),
+  evLevel_  (BGrammar::Level()),
+  level_    (-999999999),
+  father_   (current_),
+  localName_()
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
 }
 
 //--------------------------------------------------------------------
-BNameBlock::BNameBlock(const BText& fullName) 
+BNameBlock::BNameBlock(const BText& fullName, const BText& localName) 
 //--------------------------------------------------------------------
-: BObject (fullName), 
-  public_ (),
-  private_(),
-  set_    (),
-  father_ (current_)
+: BObject   (fullName), 
+  public_   (),
+  private_  (),
+  set_      (),
+  evLevel_  (BGrammar::Level()),
+  level_    (-999999999),
+  father_   (current_),
+  localName_(localName)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
+  short isAssigned = BObject::IsAssigned();
+  createdWithNew_ = isAssigned!=-1;
 }
+
+//--------------------------------------------------------------------
+BNameBlock::BNameBlock(const BNameBlock& ns) 
+//--------------------------------------------------------------------
+: BObject   (ns.Name    ()), 
+  public_   (ns.Public  ()),
+  private_  (ns.Private ()),
+  set_      (ns.Set     ()),
+  father_   (ns.Father  ()),
+  localName_(ns.LocalName())
+{
+  short isAssigned = BObject::IsAssigned();
+  createdWithNew_ = isAssigned!=-1;
+  //VBR: La copia de NameBlock tiene un problema si los miembros
+  //referenciados en ambos son los mismos, ¿cuál es su padre?
+}
+
 //--------------------------------------------------------------------
 BNameBlock::~BNameBlock() 
 //--------------------------------------------------------------------
@@ -113,30 +137,26 @@ BNameBlock::~BNameBlock()
 }
 
 //--------------------------------------------------------------------
-BNameBlock::BNameBlock(const BNameBlock& ns) 
-//--------------------------------------------------------------------
-: BObject (ns.Name    ()), 
-  public_ (ns.Public  ()),
-  private_(ns.Private ()),
-  set_    (ns.Set     ()),
-  father_ (ns.Father  ())
-{
-  //VBR: La copia de NameBlock tiene un problema si los miembros
-  //referenciados en ambos son los mismos, ¿cuál es su padre?
-}
-
-//--------------------------------------------------------------------
 BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
 //--------------------------------------------------------------------
 {
   PutName(ns.Name());
-  set_      = ns.Set();
-  father_   = ns.Father();
-  public_   = ns.Public();
-  private_  = ns.Private();
+  set_       = ns.Set();
+  father_    = ns.Father();
+  public_    = ns.Public();
+  private_   = ns.Private();
+  localName_ = ns.LocalName();
   //VBR: La copia de NameBlock tiene un problema si los miembros
   //referenciados en ambos son los mismos, ¿cuál es su padre?
   return(*this);
+}
+
+//--------------------------------------------------------------------
+  short BNameBlock::EnsureIsAssigned() const
+//--------------------------------------------------------------------
+{
+  if(createdWithNew_) { return(BObject::IsAssigned()); }
+  else                { return(true); }
 }
 
 //--------------------------------------------------------------------
@@ -210,6 +230,7 @@ BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
     ns_result = new BGraContensP<BNameBlock>(new BNameBlock);
     BNameBlock& newNameBlock  = ns_result->Contens();
     newNameBlock.PutName(fullName);
+    newNameBlock.PutLocalName(name);
   //BNameBlock::current_ = &newNameBlock;
     int oldErr = (int)TOLErrorNumber().Value();
     BGrammar::IncLevel();
@@ -311,7 +332,10 @@ BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
         {
           BUserCode* uCode = UCode(obj);
           BOperator* opr   = GetOperator(uCode);
-          opr->PutNameBlock(this);
+          if(!opr->System() && !opr->NameBlock())
+          {
+            opr->PutNameBlock(this);
+          }
         }
       }
     }
@@ -563,6 +587,35 @@ BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
 
 
 //--------------------------------------------------------------------
+  void BNameBlock::RebuildFullNameDeep(BText parentFullName)
+//--------------------------------------------------------------------
+{
+//Std(BText("\n")+"BNameBlock::SelectMembersDeep Exploring NameBlock "+Name());
+  BSyntaxObject* obj;
+  BUserNameBlock* unb;
+  BObjByNameHash::const_iterator iter;
+  if(parentFullName.HasName()) 
+  { 
+    parentFullName = parentFullName+"::"+LocalName(); 
+  }
+  else
+  {
+    parentFullName = LocalName(); 
+  }
+  PutName(parentFullName);
+  for(iter=public_.begin(); iter!=public_.end(); iter++)
+  {
+    obj = iter->second;
+    if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
+    {
+      unb = (BUserNameBlock*)obj;
+      unb->Contens().RebuildFullNameDeep(parentFullName);
+    }
+  }
+}
+
+
+//--------------------------------------------------------------------
   BList* BNameBlock::Select(BList* lst, const BObjClassify&  oc)
 //--------------------------------------------------------------------
 {
@@ -673,8 +726,22 @@ void BSetToNameBlock::CalcContens()
   if(set.Card())
   {
     const BText& name = BEqualOperator::CreatingName();
-    contens_.PutName(name);
+    BText fullName = name;
+    BText currentFullName = "";
+    if(BNameBlock::Current())
+    {
+      currentFullName = BNameBlock::Current()->Name();
+      fullName = currentFullName+"::"+name;
+    }
+    else
+    {
+      currentFullName = "";
+      fullName = name;
+    }
+    contens_.PutName(fullName);
+    contens_.PutLocalName(name);
     contens_.Fill(set);
+    contens_.RebuildFullNameDeep(currentFullName);
   }
 }
 
