@@ -362,7 +362,7 @@ const BText& BSyntaxObject::Description() const
   else 
   {
     const BNameBlock* nb = NameBlock();
-    if(nb && nb->IsAssigned())
+    if(nb && nb->EnsureIsAssigned())
     {
       BSyntaxObject* autodoc = nb->Member(BText("_.autodoc.member.")+Name());
       if(autodoc && autodoc->Grammar()==GraText())
@@ -401,7 +401,7 @@ const BText& BSyntaxObject::Description() const
 //--------------------------------------------------------------------
 {
   const BNameBlock* nb = NameBlock();
-  if(nb && nb->IsAssigned())
+  if(nb && nb->EnsureIsAssigned())
   {
     return(nb->Name()+"::"+Name());
   }
