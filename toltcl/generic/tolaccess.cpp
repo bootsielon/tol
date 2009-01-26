@@ -1659,10 +1659,20 @@ BOperator* TT_FindOperator( const BGrammar *G, const char *expr )
   bool oldEnabled = BOut::Disable();
   BSyntaxObject* obj = GraCode( )->BGrammar::LeftEvaluateExpr( expr );
   if( oldEnabled ) { BOut::Enable( ); }
-  BUserCode *uc = dynamic_cast<BUserCode*>( obj );
-  
-  return
-    ( uc && ( uc->Contens().Grammar( ) == G ) ) ? uc->Contens().Operator( ) : NULL;
+  if(obj)
+  {
+    if(obj->Mode()==BUSERFUNMODE)
+    {
+      opr = dynamic_cast<BOperator*>(obj);
+    }    
+    if(obj->Mode()==BOBJECTMODE)
+    {
+      BUserCode *uc = dynamic_cast<BUserCode*>( obj );
+      opr = uc->Contens().Operator( );
+      if(opr && (opr->Grammar( ) != G)) { opr = NULL; }
+    }
+  }
+  return(opr);
 }
 
 /*
