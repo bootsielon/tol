@@ -24,7 +24,7 @@
 #define VERSION_MAJOR   1
 #define VERSION_MINOR   1
 #define VERSION_RELEASE 7
-#define VERSION_BUILD   "0.14.alpha"
+#define VERSION_BUILD   "0.15.alpha"
 
 #if defined(_MSC_VER)
 #include <tol_build_date.h>
