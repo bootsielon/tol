@@ -937,6 +937,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         {
           BINT64 offset;
           BText fullName;
+          BText localName;
           ERead(offset, object_);
           set_->SetPos(offset);
           ERead(s, set_);  
@@ -951,6 +952,11 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           assert(isNameBlock);
           ERead(fullName,set_);
           x.PutName(fullName);
+          if(control_.oisEngine_.oisVersion_>="02.07")
+          {
+            ERead(localName,set_);
+            x.PutLocalName(localName);
+          }
           ERead(offset, set_);
           BStruct* str = NULL;
           if(offset) 

@@ -654,7 +654,8 @@ if(!BDir::CheckIsDir(dir))                                \
   EWrite(isNameBlock,set_);
   if(isNameBlock)
   {
-    EWrite(x.GetNameBlock()->Name(),set_);
+    EWrite(x.GetNameBlock()->Name(),     set_);
+    EWrite(x.GetNameBlock()->LocalName(),set_);
   } 
   else if(doc_.category_.BeginWith("Code.") && 
          (x.SubType()>=BSet::MODFile)&&(x.SubType()<=BSet::BMIFile))
