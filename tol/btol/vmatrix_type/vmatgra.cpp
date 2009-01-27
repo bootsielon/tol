@@ -1018,7 +1018,7 @@ void BVMatSubBand::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatSubDiag);
 DefExtOpr(1, BVMatSubDiag, "SubDiag", 1, 2,
-  "VMatrix Real ",
+  "VMatrix Real",
   "(VMatrix m [, Real diagNumber=0])",
   I2("Extracts the selected diagonal as a row matrix. Main diagonal is "
      "referenced as 0, lower ones are negative numbers and upper ones "
