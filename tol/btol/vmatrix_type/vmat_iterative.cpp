@@ -50,6 +50,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
   }
 
   if(chop<0) { chop = sqrt(DEpsilon()/cols); }
+  double tolerance = chop*chop;
   if((rows<cols)||(rows!=b0.Rows())) { return(x0); }
   x.Convert(x0,ESC_blasRdense);
   BVMat At = A.T();
@@ -75,8 +76,16 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
   BDat S = s.SquaresdSum();
   BDat tol = BDat::Tolerance();
 
-  for(k=0; k<5*cols;  k++)
+  for(k=0; k<20*cols;  k++)
   {
+    if(k && !(k%cols))
+    {
+      Std(BText("\nBVMat::MinimumResidualsSolve ")+
+        " iter="+k+
+        " maxpa="+maxpa+
+        " S="+S+
+        " advance="+advance);
+    }
     q = A*p;
     q2 = q.SquaresdSum();
     a = S.Value()/q2;
@@ -103,10 +112,11 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
     relAdv = advance/oldR;
     if(k)
     {
-      if(S.IsUnknown()               ) { break; }
-      if(maxpa.IsUnknown()           ) { break; }
-      if(advance             >   0   ) { break; }
-      if(S                   <= chop ) { break; }
+      if(S.IsUnknown()                    ) { break; }
+      if(maxpa.IsUnknown()                ) { break; }
+      if(advance             >   0        ) { break; }
+      if(S                   <= tolerance ) { break; }
+      if(1+maxpa-1           == 0         ) { break; }
 /*
       if(maxpa               <= chop ) { break; }
       if(fabs(advance)       <= chop ) { break; }
@@ -141,3 +151,6 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
 {
   return(BVMat::MinimumResidualsSolve(A,b0,A.T()*b0,chop));
 }
+
+
+
