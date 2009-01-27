@@ -749,12 +749,14 @@ public:
   //Linear systems of equations  
   static BVMat MinimumResidualsSolve(const BVMat& A,
                                      const BVMat& b0,
-                                     double chop);
+                                     double chop,
+                                     int maxIter);
 
   static BVMat MinimumResidualsSolve(const BVMat& A,
                                      const BVMat& b0,
                                      const BVMat& x0,
-                                     double chop);
+                                     double chop,
+                                     int maxIter);
 
 };
 

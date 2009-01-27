@@ -1841,15 +1841,18 @@ void BVMatCholeskiInv::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatMinimumResidualsSolve);
 DefExtOpr(1, BVMatMinimumResidualsSolve, "MinimumResidualsSolve", 
-  2, 4, "VMatrix VMatrix Real VMatrix", 
-  BText("(VMatrix M, VMatrix B "
-  "[, Real chop=")+Sqrt(DEpsilon())+", VMatrix X0=Tra(M)*B])",
+  2, 5, "Matrix Matrix Real Matrix Real", 
+  BText("(Matrix M, Matrix B "
+  "[, Real chop=")+Sqrt(DEpsilon())+", "+
+     "Matrix X0=Tra(M)*B,"+
+     "Real maxIter=20*Columns(M)])",
   I2("Applies the Minimum Residuals method to solve the linear "
      "system M*X=B begining at initial value <X0> until error were "
-     "great than <chop>.",
+     "less than <chop> or maximum iteration is reached.",
      "Aplica el metodo de los Minimos Residuos para resolver el "
      "sistema lineal M*X=B comenzando por el valor inicial <X0> y "
-     "continuando hasta que el error sea mayor que <chop>."),
+     "continuando hasta  que el error sea menor que <chop> o se "
+     "supere el número de iteraciones indicadas."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BVMatMinimumResidualsSolve::CalcContens()
@@ -1858,15 +1861,17 @@ void BVMatMinimumResidualsSolve::CalcContens()
   BVMat& M = VMat(Arg(1));
   BVMat& B = VMat(Arg(2));
   double chop = -1;
+  int maxIter = 20*M.Columns();
   if(Arg(3)) { chop = Real(Arg(3)); }
+  if(Arg(5)) { maxIter = (int)Real(Arg(5)); }
   if(Arg(4)) 
   { 
     BVMat& X0 = VMat(Arg(4));
-    contens_ = BVMat::MinimumResidualsSolve(M, B, X0, chop);
+    contens_ = BVMat::MinimumResidualsSolve(M, B, X0, chop, maxIter);
   }
   else
   { 
-    contens_ = BVMat::MinimumResidualsSolve(M, B, chop);
+    contens_ = BVMat::MinimumResidualsSolve(M, B, chop, maxIter);
   }
 }
 

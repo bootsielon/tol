@@ -49,14 +49,16 @@ BMat MinimumResidualsSolve
   const BMat& A,
   const BMat& b,
   const BMat& x,
-  double chop = -1
+  double chop = -1,
+  int maxIter = -1
 );
 
 BMat MinimumResidualsSolve
 (
   const BMat& A,
   const BMat& b,
-  double chop = -1
+  double chop = -1,
+  int maxIter = -1
 );
 
 BDat LinearLeastSquareSolve

@@ -207,7 +207,8 @@ BMatrix<BDat> gsl_MinimumResidualsSolve(const BMatrix<BDat>& A_,
 DMat MinimumResidualsSolve(const DMat& A_,
 			   const DMat& b0,
 			   const DMat& x0,
-         double chop)
+         double chop,
+         int maxIter)
 
 /*! Solves Ax=b using the Lanczos method from a intial
  *  aproximation in a given maximum of iterations and obtaining an
@@ -224,6 +225,7 @@ DMat MinimumResidualsSolve(const DMat& A_,
   }
 
   if(chop<0) { chop = Sqrt(DEpsilon()/cols); }
+  if(maxIter<0) { maxIter = cols*20; }
 #ifdef TRZ_MinimumResidualsSolve
   BText pr=BText("MinimumResidualsSolve(")+rows+"x"+cols+","+BDat(chop).Format("%lg")+")";
   BTimer tm(pr);
@@ -246,7 +248,7 @@ DMat MinimumResidualsSolve(const DMat& A_,
   BDat xNorm=x.FrobeniusNorm(),
        oldxNorm, xNormAdvance,maxpa, oldMaxpa, oldS, S = MtMSqr(s)(0,0);
 
-  for(k=0; (k<5*cols)&&S.IsKnown();  k++)
+  for(k=0; k<maxIter;  k++)
   {
     q = A*p;
     q2 = MtMSqr(q)(0,0);
@@ -323,7 +325,8 @@ DMat MinimumResidualsSolve(const DMat& A_,
 
 //--------------------------------------------------------------------
 BMat MinimumResidualsSolve(const BMat& A, const BMat& b, const BMat& x,
-                           double chop)
+                           double chop,
+                           int maxIter)
 
 /*! Solves Ax=b using the Lanczos method from a intial
  *  aproximation in a given maximum of iterations and obtaining an
@@ -336,14 +339,15 @@ BMat MinimumResidualsSolve(const BMat& A, const BMat& b, const BMat& x,
     (const DMat&)A,
     (const DMat&)b,
     (      DMat&)x,
-    chop
+    chop, maxIter
   );
   return(*(BMat*)&y);
 }
 
 //--------------------------------------------------------------------
 DMat MinimumResidualsSolve(const DMat& A, const DMat& b0,
-                           double chop)
+                           double chop,
+                           int maxIter)
 
 /*! Solves Ax=b using the Lanczos method without a intial
  *  aproximation in a given maximum of iterations and obtaining an
@@ -357,12 +361,13 @@ DMat MinimumResidualsSolve(const DMat& A, const DMat& b0,
   { 
     return(DMat(0,0)); 
   }
-  return(MinimumResidualsSolve(A, b0, A.T()*b0,chop));
+  return(MinimumResidualsSolve(A, b0, A.T()*b0,chop,maxIter));
 }
 
 //--------------------------------------------------------------------
 BMat MinimumResidualsSolve(const BMat& A, const BMat& b0,
-                           double chop)
+                           double chop,
+                           int maxIter)
 
 /*! Solves Ax=b using the Lanczos method without a intial
  *  aproximation in a given maximum of iterations and obtaining an
@@ -377,167 +382,9 @@ BMat MinimumResidualsSolve(const BMat& A, const BMat& b0,
   { 
     return(BMat(0,0)); 
   }
-  return(MinimumResidualsSolve(A, b0, A.T()*b0, chop));
+  return(MinimumResidualsSolve(A, b0, A.T()*b0, chop, maxIter));
 }
 
-//--------------------------------------------------------------------
-DMat LinRestrMinimumResidualsSolve(const DMat& A_,
-			                             const DMat& b0,
-			                             const DMat& x0,
-                                   const DMat& C_,
-                                   const DMat& c,
-                                   double chop)
-
-/*! Solves Ax=b with linear restrictions Cx<=c using the Lanczos 
- *  method from a intial feasible point x0 in a given maximum of 
- *  iterations and obtaining an standard error less than a given 
- *  tolerance. 
- */
-//--------------------------------------------------------------------
-{
-  BInt k, rows=A_.Rows(), cols=A_.Columns(), restr = C_.Rows();
-  /* PRECONDITIONS: ENSURING DIMENSIONS */
-  if(!restr) { return(MinimumResidualsSolve(A_, b0, x0, chop)); }
-
-  if(!rows||!cols||!b0.Columns()||!x0.Columns()||
-     (rows<cols)||(rows!=b0.Rows())||(cols!=x0.Rows())||
-     (C_.Columns()!=cols)||
-     (c.Rows()!=restr)||
-     (c.Columns()!=x0.Columns())) 
-  { 
-    return(DMat(0,0)); 
-  }
-
-  if(chop<0) { chop = Sqrt(DEpsilon()/cols); }
-#ifdef TRZ_MinimumResidualsSolve
-  BText pr=BText("LinRestrMinimumResidualsSolve(")+rows+"x"+cols+","+BDat(chop).Format("%lg")+")";
-  BTimer tm(pr);
-  pr = BText("\ncols  ")+pr;
-#endif
-  if((rows<cols)||(rows!=b0.Rows())) { return(x0); }
-  BSpaMatrix<double> A, At, C;
-  A  = A_;
-  C  = C_;
-#ifdef TRZ_MinimumResidualsSolve
-  Std(BText("\ncols Not null rows ")+A.NotNullRows().Size());
-#endif
-  At = A_.T();
-  DMat x  = x0;
-  DMat g  = C*x-c;
-  bool gOk = g.Max()<=0.0;
-  if(!gOk)
-  {
-    return(DMat(0,0));
-  }
-  DMat r = b0 - A*x;
-  DMat s = At*r;
-  DMat p = s;
-  DMat q, pa, rpa;
-  double a, b, q2, advance, relAdv;
-  double oldR, R=r.FrobeniusNorm();
-  BDat xNorm=x.FrobeniusNorm(),
-       oldxNorm, xNormAdvance,maxpa, oldMaxpa, oldS, S = MtMSqr(s)(0,0);
-
-  for(k=0; (k<5*cols)&&S.IsKnown();  k++)
-  {
-    q = A*p;
-    q2 = MtMSqr(q)(0,0);
-    a = S.Value()/q2;
-    pa = p*a;
-    oldMaxpa = maxpa;
-    oldR = R;
-    R = r.FrobeniusNorm();
-    oldxNorm = xNorm;
-    double scale = 1.0;
-
-    g  = C*(x+pa*scale)-c;
-    double gMax = g.Max();
-    gOk = gMax<=0.0;
-    if(!gOk)
-    {
-      double a0 = 0.0;
-      double a1 = 1.0;
-      for(int borderIter = 0; borderIter<100; borderIter++)
-      {
-        scale = (a0+a1)/2.0;
-        g  = C*(x+pa*scale)-c;
-        gMax = g.Max();
-        if(fabs(gMax)<DEpsilon()) { break; }
-        if(gMax<0) { a0 = scale; }
-        else       { a1 = scale; }
-        if(fabs(a0-a1)<DEpsilon()) { break; }
-      }
-    }
-/*
-    pa*= scale;
-    a *= scale;
-    x += pa;
-*/
-    x += pa*scale;
-    xNorm = x.FrobeniusNorm();
-    xNormAdvance = xNorm-oldxNorm;
-    maxpa = 0;
-    for(BInt i=0; i<cols; i++)
-    {
-      if(x(i,0)!=0)
-      {
-	double rpa = Abs(pa(i,0)/x(i,0));
-	if(rpa>maxpa) { maxpa = rpa; }
-      }
-    }
-
-    advance = R-oldR;
-    relAdv = advance/oldR;
-#ifdef TRZ_MinimumResidualsSolve
-    Std(pr+" Iteration "+k+
-	      "\tAbsMaxNorm : "+maxpa.Format("%lg")+
-	      "\tResNorm : "+BDat(R).Format("%lg"));
-#endif
-    if(k)
-    {
-#ifdef TRZ_MinimumResidualsSolve
-      Std(BText(" - ")+
-	  BDat(oldR	   ).Format("%lg"   )+" = "+
-	  BDat(advance	   ).Format("%lg"   )+" ("+
-	  BDat(xNormAdvance).Format("%lg"   )+" ,"+
-	  BDat(100*relAdv  ).Format("%8.4lf")+"%)");
-#endif
-    //if(!gOk                 ) { break; }
-      if(maxpa.IsUnknown()    ) { break; }
-      if(advance      >	 0    ) { break; }
-      if(maxpa	      <= chop ) { break; }
-      if(Abs(advance) <= chop ) { break; }
-      if(Abs(relAdv)  <= chop ) { break; }
-      if(Abs(R)	      <= chop ) { break; }
-      if
-      (
-	(oldMaxpa	   <= BDat::Tolerance () ) &&
-	(maxpa		   <= BDat::Tolerance () ) &&
-	(Abs(advance)	   <= BDat::Tolerance () ) &&
-	(Abs(xNormAdvance) <= BDat::Tolerance () )
-      )
-      { break; }
-
-    }
-    r -= q*a;
-    s  = At*r;
-    oldS = S;
-    S  = MtMSqr(s)(0,0);
-    b  = S.Value()/oldS.Value();
-    p*=b; p+=s;
-
-//  Std(BText("\cols")+k+"\t"+S);
-  }
-/*
-  Std(pr+" Iteration "+k+
-	    "\tAbsMaxNorm : "+maxpa.Format("%lg")+
-	    "\tResNorm : "+BDat(R).Format("%lg"));
-  Std(BText(" - ")+oldR+" = "+
-      BDat(   advance).Format("%lg"   )+" ("+
-      BDat(100*relAdv).Format("%6.3lf")+"%)");
-*/
-  return(x);
-}
 
 //--------------------------------------------------------------------
 BMat Kernel(const BMat& A)

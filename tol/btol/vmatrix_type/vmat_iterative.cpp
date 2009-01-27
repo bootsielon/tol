@@ -29,7 +29,8 @@
 BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
                                    const BVMat& b0,
                                    const BVMat& x0,
-                                   double chop)
+                                   double chop,
+                                   int maxIter)
 
 /*! Solves Ax=b using the Lanczos method from a intial
  *  aproximation in a given maximum of iterations and obtaining an
@@ -76,7 +77,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
   BDat S = s.SquaresdSum();
   BDat tol = BDat::Tolerance();
 
-  for(k=0; k<20*cols;  k++)
+  for(k=0; k<maxIter;  k++)
   {
     if(k && !(k%cols))
     {
@@ -141,7 +142,8 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
 //--------------------------------------------------------------------
 BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
                                    const BVMat& b0,
-                                   double chop)
+                                   double chop,
+                                   int maxIter)
 
 /*! Solves Ax=b using the Lanczos method from a intial
  *  aproximation in a given maximum of iterations and obtaining an
@@ -149,7 +151,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
  */
 //--------------------------------------------------------------------
 {
-  return(BVMat::MinimumResidualsSolve(A,b0,A.T()*b0,chop));
+  return(BVMat::MinimumResidualsSolve(A,b0,A.T()*b0,chop,maxIter));
 }
 
 
