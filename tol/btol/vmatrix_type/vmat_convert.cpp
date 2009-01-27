@@ -1233,7 +1233,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
     );
     break;
   default:
-    err_cannot_apply("SubBand",I2("(Not implemenmted)",
+    err_cannot_apply("SubBand",I2("(Not implemented)",
                    "(Metodo no implementado)"),*this);
     return(-2); }
 
@@ -1250,3 +1250,55 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   return(aux);
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::SubDiag(int numDiag, BVMat& aux) const
+//Matrix algebra operator
+//Extracts cell (i,j) matching i-j=numDiag
+////////////////////////////////////////////////////////////////////////////////
+{
+  int fail = 0;
+  int rows = Rows();
+  int cols = Columns();
+  int dMin = -rows+1;
+  int dMax =  cols-1;
+  bool outOfRange = (numDiag<dMin)||(numDiag>dMax);
+  if(!outOfRange)
+  {
+    BVMat band;
+    fail = SubBand(numDiag, numDiag, band);
+    if(!fail)
+    {
+      int i0 = (numDiag>=0)?0:-numDiag;
+      int j0 = (numDiag<=0)?0:+numDiag;
+      int len = Minimum(rows-i0,cols-j0);
+      assert(len>0);
+      int k;
+      aux.BlasRDense(1,len);
+      double* x = (double*)(aux.s_.blasRdense_->x);
+      for(k=0; k<len; k++)
+      {
+        x[k] = band.GetCell(k+numDiag,k);
+      }
+    }
+  }
+  else
+  {
+    err_cannot_apply("SubDiag",I2("(Diagonal number out of range)",
+                     "(Número de diagonal fuera de rango)")+
+                     "["+dMin+","+dMax+"]",*this);
+    fail = -3;
+  }
+  return(fail);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  BVMat BVMat::SubDiag(int numDiag) const
+//Matrix algebra operator
+//Extracts cell (i,j) matching i-j=numDiag
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  SubDiag(numDiag, aux);
+  return(aux);
+}

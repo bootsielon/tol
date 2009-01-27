@@ -995,10 +995,11 @@ DefExtOpr(1, BVMatSubBand, "SubBand", 1, 3,
   "(VMatrix m [, Real fisrtBand=0, Real lastBand=firstBand])",
   I2("Extracts the selected consecutive diagonals. Main diagonal is "
      "referenced as 0, lower ones are negative numbers and upper ones "
-     "positive.",
+     "positive. Returned matrix has same dimensions than incoming one.",
      "Extrae las diagonales consecutivas seleccionadas. La diagonal "
      "principal se referencia como 0, las inferiores como números "
-     "negativos y las superiores como positivos."),
+     "negativos y las superiores como positivos. La matriz devuelta "
+     "tiene las mismas dimensiones que la entrante."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BVMatSubBand::CalcContens()
@@ -1012,6 +1013,31 @@ void BVMatSubBand::CalcContens()
   M.SubBand(firstBand,lastBand,contens_);
   assert(contens_.Check());
 }
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatSubDiag);
+DefExtOpr(1, BVMatSubDiag, "SubDiag", 1, 1,
+  "VMatrix Real ",
+  "(VMatrix m [, Real diagNumber=0])",
+  I2("Extracts the selected diagonal as a row matrix. Main diagonal is "
+     "referenced as 0, lower ones are negative numbers and upper ones "
+     "positive.",
+     "Extrae la diagonales seleccionada como una matriz fila. La diagonal "
+     "principal se referencia como 0, las inferiores como números "
+     "negativos y las superiores como positivos."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatSubDiag::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& M = VMat(Arg(1));
+  int diagNum = 0;
+  if(Arg(2)) { diagNum = (int)Real(Arg(2)); }
+  M.SubDiag(diagNum,contens_);
+  assert(contens_.Check());
+}
+
 
 /*------------------------------------------------------------------------------
   vmat_arith.cpp: Arithmetic methods 

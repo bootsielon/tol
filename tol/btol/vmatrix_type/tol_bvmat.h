@@ -453,11 +453,14 @@ public:
   int SubRows (const BArray<int>& rows, BVMat& aux) const;
   int SubCols (const BArray<int>& rows, BVMat& aux) const;
   int SubBand (int from, int until, BVMat& aux) const;
+  int SubDiag(int numDiag, BVMat& aux) const;
+
   BVMat  Sub     (int i, int j, int r, int c  ) const;
   BVMat  SubCells(const BArray<int>& rows, const BArray<int>& cols) const;
   BVMat  SubRows (const BArray<int>& rows ) const;
   BVMat  SubCols (const BArray<int>& cols ) const;
   BVMat  SubBand (int from, int until) const;
+  BVMat  SubDiag (int numDiag) const;
   
   static void cRs_ensure_packed(cholmod_sparse_struct* sp);
 
