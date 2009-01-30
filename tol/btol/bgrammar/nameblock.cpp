@@ -94,6 +94,8 @@ BNameBlock::BNameBlock()
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
+  short isAssigned = BObject::IsAssigned();
+  createdWithNew_ = isAssigned!=-1;
 }
 
 //--------------------------------------------------------------------
