@@ -812,7 +812,7 @@ void BDatPutCSerDat::CalcContens()
       result = gra->LeftEvaluateExpr(name); 
       if(oldEnabled) { BOut::Enable(); }
     }
-    if(result && (result->Grammar()!=gra)) { result=NULL; }
+    if(result && (gra!=GraAnything()) && (result->Grammar()!=gra)) { result=NULL; }
   }
   contens_ = result!=NULL;  
 }
@@ -857,7 +857,7 @@ void BDatPutCSerDat::CalcContens()
       {
         BUserCode* uCode = (BUserCode*)result;
         BOperator* opr = GetOperator(uCode);
-        if(!opr || (gra!=opr->Grammar()))
+        if(!opr || ((gra!=GraAnything()) && (gra!=opr->Grammar())))
         {
           result = NULL;
         }
