@@ -418,7 +418,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
       ok = false;
       break;
     }
-    if(x_[k]!=0.0) { s_.chlmRtriplet_->nnz++; }
+    s_.chlmRtriplet_->nnz++; 
   }
   if(!ok) { Delete(); }
 };
