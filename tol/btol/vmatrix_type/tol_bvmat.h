@@ -35,6 +35,7 @@
 //Forward declaring of tol types
 class BText;
 class BSet;
+class BStandardOperator;
 class BProbDist;
 class BStream;
 class BOisCreator;
@@ -749,12 +750,20 @@ public:
   //Linear systems of equations  
   static BVMat MinimumResidualsSolve(const BVMat& A,
                                      const BVMat& b0,
+                                     const BVMat& x0,
                                      double chop,
                                      int maxIter);
-
   static BVMat MinimumResidualsSolve(const BVMat& A,
                                      const BVMat& b0,
+                                     double chop,
+                                     int maxIter);
+  static BVMat MinimumResidualsSolve(BStandardOperator* A,
+                                     const BVMat& b0,
                                      const BVMat& x0,
+                                     double chop,
+                                     int maxIter);
+  static BVMat MinimumResidualsSolve(BStandardOperator* A,
+                                     const BVMat& b0,
                                      double chop,
                                      int maxIter);
 
