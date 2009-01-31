@@ -35,6 +35,7 @@
 #include <tol/tol_bratgra.h>
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_btmsgra.h>
+#include <tol/tol_bcodgra.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bvmat_bsr.h>
 #include <tol/tol_bdir.h>
@@ -1841,11 +1842,11 @@ void BVMatCholeskiInv::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatMinimumResidualsSolve);
 DefExtOpr(1, BVMatMinimumResidualsSolve, "MinimumResidualsSolve", 
-  2, 5, "Matrix Matrix Real Matrix Real", 
-  BText("(Matrix M, Matrix B "
+  2, 5, "{VMatrix|Code} VMatrix Real VMatrix Real", 
+  BText("({VMatrix|Code} M, VMatrix B "
   "[, Real chop=")+Sqrt(DEpsilon())+", "+
-     "Matrix X0=Tra(M)*B,"+
-     "Real maxIter=20*Columns(M)])",
+     "VMatrix X0=Tra(M)*B,"+
+     "Real maxIter=20*VColumns(M)])",
   I2("Applies the Minimum Residuals method to solve the linear "
      "system M*X=B begining at initial value <X0> until error were "
      "less than <chop> or maximum iteration is reached.",
@@ -1858,20 +1859,39 @@ DefExtOpr(1, BVMatMinimumResidualsSolve, "MinimumResidualsSolve",
 void BVMatMinimumResidualsSolve::CalcContens()
 //--------------------------------------------------------------------
 {
-  BVMat& M = VMat(Arg(1));
   BVMat& B = VMat(Arg(2));
   double chop = -1;
-  int maxIter = 20*M.Columns();
+  int maxIter = 20*B.Rows();
   if(Arg(3)) { chop = Real(Arg(3)); }
   if(Arg(5)) { maxIter = (int)Real(Arg(5)); }
-  if(Arg(4)) 
-  { 
-    BVMat& X0 = VMat(Arg(4));
-    contens_ = BVMat::MinimumResidualsSolve(M, B, X0, chop, maxIter);
+  BGrammar* g = Arg(1)->Grammar();
+  if(g==GraVMatrix())
+  {
+    BVMat& M = VMat(Arg(1));
+    if(Arg(4)) 
+    { 
+      BVMat& X0 = VMat(Arg(4));
+      contens_ = BVMat::MinimumResidualsSolve(M, B, X0, chop, maxIter);
+    }
+    else
+    { 
+      contens_ = BVMat::MinimumResidualsSolve(M, B, chop, maxIter);
+    }
   }
-  else
-  { 
-    contens_ = BVMat::MinimumResidualsSolve(M, B, chop, maxIter);
+  if(g==GraCode())
+  {
+    BUserCode* uc = UCode(Arg(1));
+    BCode& code = uc->Contens();
+    BStandardOperator* opr  = (BStandardOperator*)code.Operator();
+    if(Arg(4)) 
+    { 
+      BVMat& X0 = VMat(Arg(4));
+      contens_ = BVMat::MinimumResidualsSolve(opr, B, X0, chop, maxIter);
+    }
+    else
+    { 
+      contens_ = BVMat::MinimumResidualsSolve(opr, B, chop, maxIter);
+    }
   }
 }
 
