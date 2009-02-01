@@ -10,7 +10,7 @@
   Text nameWin = Replace(name,"/","\\");
   Text txt = If(isFile, 
   {
-    If(TextEndAt(nameWin, "_d.dll"), "", "  File \""+nameWin+"\"\n")
+    "  File \""+nameWin+"\"\n"
   },
   {
     Text aux = "  SetOutPath \""+nameWin+"\"\n";
@@ -26,7 +26,7 @@
   Text nameWin = Replace(name,"/","\\");
   Text aux = If(isFile, 
   {
-    If(TextEndAt(nameWin, "_d.dll"), "", "  Delete \""+nameWin+"\"\n")
+    "  Delete \""+nameWin+"\"\n"
   },
   {
     "  RmDir  \""+nameWin+"\"\n"
