@@ -159,7 +159,7 @@ NameBlock ARMAProcess =
     VMatrix _.L_ar_n = CholeskiFactor(_.cov_ar_n,"X");
   //Real _trc.8 = { WriteLn("TRACE _.L_ar_n=" << (Matrix VMat2Mat(_.L_ar_n))); 0 };
     //Calculates the inverse of Choleski factorization of pure AR
-    VMatrix _.Li_ar_n = CholeskiSolve(_.L_ar_n,Eye(_.n),"L");
+    VMatrix _.Li_ar_n = CholeskiSolve(_.L_ar_n,Eye(_.n),"PtL");
   //Real _trc.9 = { WriteLn("TRACE _.Li_ar_n=" << (Matrix VMat2Mat(_.Li_ar_n))); 0 };
     //Extends main minor of length _.n to full data length _.m as Toplitz from  
     //last row. Terms _.n^2 is added and substracted to clean rounding error.
@@ -273,13 +273,13 @@ NameBlock ARMAProcess =
     VMatrix solve.L(VMatrix L, VMatrix b)
     ////////////////////////////////////////////////////////////////////////////
     {
-      CholeskiSolve(L,b,"L")
+      CholeskiSolve(L,b,"PtL")
     };
     ////////////////////////////////////////////////////////////////////////////
     VMatrix solve.Lt(VMatrix L, VMatrix b)
     ////////////////////////////////////////////////////////////////////////////
     {
-      CholeskiSolve(L,b,"Lt")
+      CholeskiSolve(L,b,"LtP")
     };
 
     VMatrix _.cov_u = Case(
