@@ -145,7 +145,10 @@ Text _.autodoc.member.StdLinearBlock =
           WriteLn("Failed factorization matrix will be stored into "+path);
           Ois.Store([[X]],path)
         });
-        VMatrix If(_.R, _.Ls := Convert(_.L, "Cholmod.R.Sparse"));
+        VMatrix If(_.R, 
+        {
+          _.Ls := CholeskiSolve(_.L,Convert(_.L, "Cholmod.R.Sparse"),"P")
+        });
         VMatrix _old.X := X;
         1
       })
