@@ -117,10 +117,7 @@ void BVMat::restore_cholmod_common()
   common_->print_function = cholmod_print_function;
   common_->error_handler  = cholmod_error_handler;
   common_->try_catch      = NULL;
-/*
-  common_->final_ll       = TRUE;
-  common_->final_pack     = TRUE;
-*/
+/* * /
 //MatLab lchol options
   common_->supernodal                 = CHOLMOD_SIMPLICIAL;
   common_->final_asis                 = false ;
@@ -130,9 +127,11 @@ void BVMat::restore_cholmod_common()
   common_->final_monotonic            = true ;
   common_->final_resymbol             = false ;
   common_->quick_return_if_not_posdef = true;
-	common_->nmethods                   = 1 ;
-	common_->method[0].ordering         = CHOLMOD_NATURAL ;
-	common_->postorder                  = false ;
+  common_->nmethods                   = 1 ;
+  common_->method[0].ordering         = CHOLMOD_NATURAL ;
+  common_->postorder                  = false ;
+
+/* */
 }  
 
 
