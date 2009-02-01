@@ -316,7 +316,7 @@ Text _.autodoc.member.ArimaBlock =
       Case(
         _.blockDef::_.config::bsr.arimaFilter==
         BysMcmc::Options::Arima.Filter::FastChol,
-          CholeskiSolve(aux::L_ma,aux::Li_ar*X,"L"),
+          CholeskiSolve(aux::L_ma,aux::Li_ar*X,"PtL"),
         _.blockDef::_.config::bsr.arimaFilter==
         BysMcmc::Options::Arima.Filter::DifEq,
           DifEq(aux::ma/aux::ar,X) )
