@@ -1,0 +1,154 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _solve_precond_sym.tol
+// PURPOSE : Soves a symmetric linear systems by diagonal additive 
+//           preconditioning of previously normalized system
+//////////////////////////////////////////////////////////////////////////////
+
+Text _.autodoc.member.SolvePrecondSym = 
+"Soves a symmetric linear system, that could be large, sparse and ill-"
+"conditioned, in a robust and fast way by applying diagonal additive "
+"preconditioner of previously normalized system foilowing these steps:\n"
+"1. Original symmetric system M*z = y is previously normalized by non null "
+"elements of root squares of diagonal elements of M taht will called D:\n"
+"  S*u = v where S=Di*M*Di; Di=D^-1; u=D*x; v=Di*y\n"
+"Then\n" 
+"  Di*M*Di*D*x = Di*y <=> M*x=y \n"
+"2. A digonal preconditioner (S+c*I)^-1 will be built to be (S+c*I)^-1*S "
+"close to identity and number c is found to be the lesser than S+c*I "
+"admits Choleski decomposition S+c*I = L*L'. \n"
+"3. Preconditioned system is solved by Lanczos iterative method with "
+"partial reorthogonalization MinimumResidualsSolve. Preconditioner is "
+"stored as a Code operator using just sparse matrix L to avoid store "
+"((S+c*I)^-1)*S that is not neccessary so sparse as S nor L.\n"
+"4. Solution is denormalized to solve original problem.\n"
+"Using instructions to solve M*x=y :\n"
+"  //Builds preconditioning handler\n"
+"  NameBlock SPDP = SymPosDefPrecond(H); \n"
+"  //Finds optimal preconditioner\n"
+"  Real SPDP::ScaleOptimize(1.E-7); \n"
+"  //Solves the system\n"
+"  NameBlock solution = SPDP::Solve(y,1.E-10); \n" 
+"  //Takes the solution matrix\n"
+"  VMatrix x = solution::_.x;\n"
+"\n";
+
+NameBlock SolvePrecondSym(VMatrix M)
+{[[
+  //Original symmetric system to be solved M*x = y
+  VMatrix _.M = M;
+
+  //Returns a diagonal normalizer VMatrix for a symmetric VMatrix
+  VMatrix Normalizer(VMatrix S)
+  {
+    Real r = VRows(S);
+    VMatrix d2 = Tra(SubDiag(S,0));
+    VMatrix d  = d2^(+1/2);
+    VMatrix di = 
+    {
+      Matrix d_ = VMat2Mat(d);
+      Mat2VMat(IfMat(Eq(d_,d_*0),d_*0+1,d_^(-1)))
+    };
+    Eye(r,r,0,di)
+  };
+
+  VMatrix _.Di = Normalizer(M);
+
+  //Equivalent normalized symmetric system 
+  //
+  //  S*u = v where S=Di*M*Di; u=D*x; v=Di*y
+  //
+  //  Di*M*Di*D*x = Di*y <=> M*x=y
+  //
+  VMatrix _.S = 
+  { 
+    VMatrix S = _.Di*_.M*_.Di;
+    //Para evitar posibles errores de redondeo y asegurar la simetría
+    (S+Tra(S))*0.5
+  };
+
+  //Scale parameter of diagonal preconditioner
+  Real    _.c   = 0;
+  //Tolerance of c parameter
+  Real    _.tol.scale = 1.E-7;
+  Real    _.m   = VRows(_.S);
+  VMatrix _.Sc  = Rand(0,0,0,0);
+  VMatrix _.Lc  = Rand(0,0,0,0);
+  //Intenta factorizar S+c*I y si lo consigue devuelve 1 y si no 0
+  Real ScaleEval(Real c)
+  {
+    VMatrix _.Sc := _.S + VMatrix Eye(_.m,_.m,0,c);
+    Real old = Show(0,"ALL");
+    VMatrix _.Lc := CholeskiFactor(_.Sc,"X");
+    Real Show(old,"ALL");
+    Real ok = VRows(_.Lc)==_.m;
+    WriteLn("SymPosDefPrecond(...)::eval("<<c+") = "<<ok);
+    ok
+  };
+  //Aplica el método recursivo de la bisectriz en un intervalo buscando el
+  //menor valor de c para el que S+c*I es definida positiva
+  Real ScaleBisect(Real a, Real b)
+  {
+    If(b-a<=_.tol.scale, b,
+    {
+      Real c = (a+b)/2;
+      Real cOk = ScaleEval(c);
+      If(cOk, ScaleBisect(a,c), ScaleBisect(c,b))
+    })
+  };
+  //Busca un intervalo inicial [a,b] tal que S+a*I no sea definida positiva y
+  //S+b*I sí lo sea y luego aplica el método de la bisectriz para encontrar la
+  //frontera 
+  Real ScaleOptimize(Real tolerance) 
+  {
+    Real _.tol.scale := tolerance;
+    Real a = 0;
+    Real aOk = ScaleEval(a);
+    Real _.c := If(aOk, a,
+    {
+      Real b = _.tol.scale;
+      Real bOk = ScaleEval(b);
+      While(!bOk,
+      {
+        a := b;
+        b :=2*b;
+        bOk := ScaleEval(b)
+      });
+      ScaleBisect(a,b)
+    });
+    _.c
+  };
+  //Linear operator of preconditioned system
+  VMatrix PreCndLinOpr(VMatrix u, Real traspose)
+  {
+    //As operator is symmetric parameter traspose is noy used in this case
+    CholeskiSolve(SPDP::_.Lc,_.S*u,"PtLLtP")
+  };
+  NameBlock Solve(VMatrix y, Real tolerance)
+  {[[
+    Text _MID = "[SolvePrecondSym()::Solve()] ";
+    VMatrix _.y = y;
+    Real    _.tol.solver = tolerance;
+    Real    _.tol.mrs    = (tolerance^2)/_.m;
+    VMatrix _.v = _.Di*_.y;
+    VMatrix _.u0 = CholeskiSolve(SPDP::_.Lc,_.v,"PtLLtP");
+    VMatrix _.u  = MinimumResidualsSolve(PreCndLinOpr, _.u0,_.tol.mrs,_.u0);
+    VMatrix _.x = _.Di*_.u;
+    VMatrix _.residuals = _.M*_.x-_.y;
+    Real    _.stdErr = Sqrt(VMatDat(MtMSqr(_.residuals),1,1)/_.m);
+    Real    _.maxErr = VMatMax(Abs(_.residuals));
+    Real    _.isOk = 
+    {
+      Real ok.1 = VRows(_.x)==_.m;
+      Real ok.2 = _.maxErr <= _.tol.solver;
+      If(!ok.1,WriteLn(_MID+"Wrong dimensions" ,"W"));
+      If(!ok.2,WriteLn(_MID+"Solution has maximum absolute error "<<_.maxErr+
+        " great than specified tolerance "<<_.tol.solver,"W"));
+      And(ok.1,ok.2)
+    }
+  ]]}
+]]};
+
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.SolvePrecondSym,SolvePrecondSym);
+/////////////////////////////////////////////////////////////////////////////
+  
