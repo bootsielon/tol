@@ -1,0 +1,68 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for SolvePrecondSym function
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = "SolvePrecondSym" ;
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+
+//////////////////////////////////////////////////////////////////////////////
+//Carga de datos
+//////////////////////////////////////////////////////////////////////////////
+Set data = { Ois.Load("matrices_b.oza")[1] };
+VMatrix T = data::vT;
+VMatrix A = data::vA;
+VMatrix B = data::vB;
+VMatrix C = data::vC;
+
+//////////////////////////////////////////////////////////////////////////////
+//Sistema lineal simétrico asociado al problema: M*x=y
+//////////////////////////////////////////////////////////////////////////////
+VMatrix M  = B*T*Tra(B);
+VMatrix y  = C-B*A;
+
+//Builds preconditioning handler
+NameBlock SPDP = SolvePrecondSym(M);
+//Finds optimal preconditioner
+Real SPDP::ScaleOptimize(1.E-7);
+//Solves the system
+NameBlock solution = SPDP::Solve(y,1.E-11);
+//Takes the solution matrix
+VMatrix x = solution::_.x;
+
+Real quality.x = 1-solution::_.maxErr;
+
+//Solución del problema original
+VMatrix Z = A + T * Tra(B) * x;
+//Se comprueba el error de las restricciones reducidas
+VMatrix vErrZ = B*Z-C;
+Real vErrZMaxAbs = VMatMax(Abs(vErrZ));
+
+Real quality.Z = 1-vErrZMaxAbs;
+
+
+Real numErr1 = Copy(NError);
+
+/* */
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1,
+  quality.x, quality.Z
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1)*Min(quality.x, quality.Z);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */
