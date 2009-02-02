@@ -25,11 +25,11 @@ VMatrix M  = B*T*Tra(B);
 VMatrix y  = C-B*A;
 
 //Builds preconditioning handler
-NameBlock SPDP = SolvePrecondSym(M);
+NameBlock SPDP = SolvePrecondSym(M, True);
 //Finds optimal preconditioner
 Real SPDP::ScaleOptimize(1.E-7);
 //Solves the system
-NameBlock solution = SPDP::Solve(y,1.E-11);
+NameBlock solution = SPDP::Solve(y,1.E-11, True);
 //Takes the solution matrix
 VMatrix x = solution::_.x;
 
@@ -55,7 +55,7 @@ Set partialResults_ =
 ]];
 
 //This is a messure of the success of the test 
-Real quality_ = And(numErr0 == numErr1)*Min(quality.x, quality.Z);
+Real quality_ = Min(quality.x, quality.Z);
 
 //Return the results 
 Set resultStr_ = strTestStatus(summary_, link_, quality_,

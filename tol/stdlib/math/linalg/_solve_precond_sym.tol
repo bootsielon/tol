@@ -9,7 +9,7 @@ Text _.autodoc.member.SolvePrecondSym =
 "conditioned, in a robust and fast way by applying diagonal additive "
 "preconditioner of previously normalized system foilowing these steps:\n"
 "1. Original symmetric system M*z = y is previously normalized by non null "
-"elements of root squares of diagonal elements of M taht will called D:\n"
+"elements of root squares of diagonal elements of M that will called D:\n"
 "  S*u = v where S=Di*M*Di; Di=D^-1; u=D*x; v=Di*y\n"
 "Then\n" 
 "  Di*M*Di*D*x = Di*y <=> M*x=y \n"
@@ -21,35 +21,42 @@ Text _.autodoc.member.SolvePrecondSym =
 "stored as a Code operator using just sparse matrix L to avoid store "
 "((S+c*I)^-1)*S that is not neccessary so sparse as S nor L.\n"
 "4. Solution is denormalized to solve original problem.\n"
+"Normalization is an optional task that is specified by argument "
+"do.normalize\n"
+"If M is numerically definite positive (c=0) then CholeskiSolve will "
+"be used directly if argument forze.lanczos of Solve method is true.\n"
 "Using instructions to solve M*x=y :\n"
-"  //Builds preconditioning handler\n"
-"  NameBlock SPDP = SymPosDefPrecond(H); \n"
+"  //Builds preconditioning handler with normalization\n"
+"  NameBlock SPDP = SymPosDefPrecond(H, True); \n"
 "  //Finds optimal preconditioner\n"
 "  Real SPDP::ScaleOptimize(1.E-7); \n"
 "  //Solves the system\n"
-"  NameBlock solution = SPDP::Solve(y,1.E-10); \n" 
+"  NameBlock solution = SPDP::Solve(y,1.E-10,True); \n" 
 "  //Takes the solution matrix\n"
 "  VMatrix x = solution::_.x;\n"
 "\n";
 
-NameBlock SolvePrecondSym(VMatrix M)
+NameBlock SolvePrecondSym(VMatrix M, Real do.normalize)
 {[[
   //Original symmetric system to be solved M*x = y
   VMatrix _.M = M;
+  Real _.do.normalize = do.normalize;
+  Real _.m = VRows(_.M);
 
   //Returns a diagonal normalizer VMatrix for a symmetric VMatrix
-  VMatrix Normalizer(VMatrix S)
+  VMatrix Normalizer(VMatrix M)
   {
-    Real r = VRows(S);
-    VMatrix d2 = Tra(SubDiag(S,0));
+    If(!_.do.normalize, Eye(_.m), {
+    Real r = VRows(M);
+    VMatrix d2 = Tra(SubDiag(M,0));
     VMatrix d  = d2^(+1/2);
     VMatrix di = 
     {
       Matrix d_ = VMat2Mat(d);
       Mat2VMat(IfMat(Eq(d_,d_*0),d_*0+1,d_^(-1)))
     };
-    Eye(r,r,0,di)
-  };
+    Eye(r,r,0,di) 
+  })};
 
   VMatrix _.Di = Normalizer(M);
 
@@ -59,33 +66,33 @@ NameBlock SolvePrecondSym(VMatrix M)
   //
   //  Di*M*Di*D*x = Di*y <=> M*x=y
   //
-  VMatrix _.S = 
+  VMatrix _.S = If(!_.do.normalize, _.M, 
   { 
     VMatrix S = _.Di*_.M*_.Di;
     //Para evitar posibles errores de redondeo y asegurar la simetría
     (S+Tra(S))*0.5
-  };
+  });
 
   //Scale parameter of diagonal preconditioner
   Real    _.c   = 0;
   //Tolerance of c parameter
   Real    _.tol.scale = 1.E-7;
-  Real    _.m   = VRows(_.S);
   VMatrix _.Sc  = Rand(0,0,0,0);
   VMatrix _.Lc  = Rand(0,0,0,0);
-  //Intenta factorizar S+c*I y si lo consigue devuelve 1 y si no 0
+  //Tries to factorize S+c*I and returns true if success
   Real ScaleEval(Real c)
   {
+    Text _MID = "[SolvePrecondSym()::ScaleEval()] ";
     VMatrix _.Sc := _.S + VMatrix Eye(_.m,_.m,0,c);
     Real old = Show(0,"ALL");
     VMatrix _.Lc := CholeskiFactor(_.Sc,"X");
     Real Show(old,"ALL");
     Real ok = VRows(_.Lc)==_.m;
-    WriteLn("SymPosDefPrecond(...)::eval("<<c+") = "<<ok);
+    WriteLn(_MID+"("<<c+") = "<<ok);
     ok
   };
-  //Aplica el método recursivo de la bisectriz en un intervalo buscando el
-  //menor valor de c para el que S+c*I es definida positiva
+  //Applies bisection method to find the lesser scale value c matching
+  //S+c*I is not positive definite
   Real ScaleBisect(Real a, Real b)
   {
     If(b-a<=_.tol.scale, b,
@@ -95,9 +102,8 @@ NameBlock SolvePrecondSym(VMatrix M)
       If(cOk, ScaleBisect(a,c), ScaleBisect(c,b))
     })
   };
-  //Busca un intervalo inicial [a,b] tal que S+a*I no sea definida positiva y
-  //S+b*I sí lo sea y luego aplica el método de la bisectriz para encontrar la
-  //frontera 
+  //Searches for an initial interval [a,b] matching S+a*I is not positive 
+  //definite and S+b*I is it, and then call ScaleBisect
   Real ScaleOptimize(Real tolerance) 
   {
     Real _.tol.scale := tolerance;
@@ -123,16 +129,20 @@ NameBlock SolvePrecondSym(VMatrix M)
     //As operator is symmetric parameter traspose is noy used in this case
     CholeskiSolve(SPDP::_.Lc,_.S*u,"PtLLtP")
   };
-  NameBlock Solve(VMatrix y, Real tolerance)
+  //Solves linear system M*xy
+  NameBlock Solve(VMatrix y, Real tolerance, Real forze.lanczos)
   {[[
     Text _MID = "[SolvePrecondSym()::Solve()] ";
     VMatrix _.y = y;
     Real    _.tol.solver = tolerance;
     Real    _.tol.mrs    = (tolerance^2)/_.m;
-    VMatrix _.v = _.Di*_.y;
+    VMatrix _.v = If(!_.do.normalize,_.y, _.Di*_.y);
     VMatrix _.u0 = CholeskiSolve(SPDP::_.Lc,_.v,"PtLLtP");
-    VMatrix _.u  = MinimumResidualsSolve(PreCndLinOpr, _.u0,_.tol.mrs,_.u0);
-    VMatrix _.x = _.Di*_.u;
+    VMatrix _.u  = If(And(!forze.lanczos, !_.c), _.u0,
+    {
+      MinimumResidualsSolve(PreCndLinOpr, _.u0,_.tol.mrs,_.u0)
+    });
+    VMatrix _.x = If(!_.do.normalize,_.u,_.Di*_.u);
     VMatrix _.residuals = _.M*_.x-_.y;
     Real    _.stdErr = Sqrt(VMatDat(MtMSqr(_.residuals),1,1)/_.m);
     Real    _.maxErr = VMatMax(Abs(_.residuals));
