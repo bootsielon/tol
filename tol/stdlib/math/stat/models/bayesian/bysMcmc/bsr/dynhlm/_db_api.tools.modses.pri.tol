@@ -98,7 +98,6 @@ Real ModSes.Pri.Homog_1.Create(Text dbName,
   });
   Eval("ModSes.Pri.Homog_1.Create."+id_node+".ok=ok")
 };
-
 //////////////////////////////////////////////////////////////////////////////
 /*
 Implements an a priori node for combinatorial output:
@@ -108,15 +107,15 @@ Implements an a priori node for combinatorial output:
 
 Relevant arguments are:
 
-Set PriorInfo: Set of Sets, specifies the averages and sigma's of each node 
+Set PriorInfo: Set of NameBlocks, specifies the averages and sigma's of each node 
                equation 
-               Set PriorInfo = [[    
-                             [[  mu_1, sigma_1  ]],
-                             [[  mu_2, sigma_2  ]],
-                                  ...........
-                             [[  mu_n, sigma_n  ]]
-                     
-                           ]]
+               Set PriorInfo = Set de NameBlocks 
+                             [[
+
+              NameBlock equ1 = [[ _.average, _.sigma, _.sigmaPriorWeight ]]
+              NameBlock equ2 = [[ _.average, _.sigma, _.sigmaPriorWeight ]]
+              ...
+                              ]]
 
 Set node_childs: Set Of NameBlocks, specifies the node and parameter's name of
                  each beta_j
@@ -137,10 +136,7 @@ Real ModSes.Pri.Out.Comb.Create(Text dbName,
                                Text id_node,
                                Text description,
                                Real number,  
-                               Set  PriorInfo, // [[ [[ mu_1,sigma_1 ]],
-                                               //    [[ mu_2,sigma_2 ]],
-                                               //       ...........  
-                                               // ]]
+                               Set  PriorInfo, 
                                Set  node_childs, //Set de NameBlocks 
                                Matrix Y)
 //////////////////////////////////////////////////////////////////////////////
@@ -164,12 +160,14 @@ Real ModSes.Pri.Out.Comb.Create(Text dbName,
       description
     );
 
-    Real ok.2 = SetMin ( For (1, Rows(Y), Real (Real i){//ciclo ecuaciones nodo
-      Real sigmaPriorWeight = If(Card(PriorInfo[i])==3,PriorInfo[i][3],?);
-          Real ModSes.Pri.Equ.Create (dbName, model, session, id_node,
+    Real ok.2 = SetMin ( For (1, Card(PriorInfo), Real (Real i){//ciclo ecuaciones nodo
+            NameBlock PInfo = PriorInfo[i];   
+            Real sigmaPriorWeight = If(ObjectExist("Real","PInfo::_.sigmaPriorWeight"),
+                                                PInfo::_.sigmaPriorWeight, ?);
+            Real ModSes.Pri.Equ.Create (dbName, model, session, id_node,
                       i,
-                      PriorInfo[i][1],
-                      PriorInfo[i][2],
+                      PInfo::_.average,
+                      PInfo::_.sigma,
                       sigmaPriorWeight);
                       
              Set For (1, Card(node_childs), Real (Real j){
@@ -189,5 +187,32 @@ Real ModSes.Pri.Out.Comb.Create(Text dbName,
    });  //Fin If ok
      Eval("ModSes.Pri.Out.Comb.Create."+id_node+".ok=ok")
 }; // Fin de la funcion ModSes.Pri.Out.Comb.Create
-Code PutDescription ("fulano",Code ModSes.Pri.Out.Comb.Create);
+Code PutDescription ("
+Implements an a priori node for combinatorial output:
 
+/Sum_j Y^{ij}*beta_j ~ N (mu_i, sigma_i).  j = 1, ....., m-parameters
+                                           i = 1, .... , n-node equations
+
+Relevant arguments are:
+
+Set PriorInfo: Set of NameBlocks, specifies the averages and sigma's of each node 
+               equation 
+               Set PriorInfo = Set de NameBlocks 
+                             [[
+
+              NameBlock equ1 = [[ _.average, _.sigma, _.sigmaPriorWeight ]]
+              NameBlock equ2 = [[ _.average, _.sigma, _.sigmaPriorWeight ]]
+              ...
+                              ]]
+
+Set node_childs: Set Of NameBlocks, specifies the node and parameter's name of
+                 each beta_j
+
+ Set  node_childs = [[
+
+       NameBlock  beta1 = [[  Text _.id_node =   , Text _.id_parameter=   ]],
+       NameBlock  beta2 = [[  Text _.id_node =   , Text _.id_parameter=   ]],
+       ................
+       NameBlock  betaj = [[  Text _.id_node =   , Text _.id_parameter=   ]]
+     
+                    ]]",Code ModSes.Pri.Out.Comb.Create);
