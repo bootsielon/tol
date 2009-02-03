@@ -71,6 +71,31 @@ int BVMat::InitializeClass()
   }
   return(done);
 }  
+
+////////////////////////////////////////////////////////////////////////////////
+bool BVMat::force_natural_order(bool force)
+////////////////////////////////////////////////////////////////////////////////
+{
+  static bool force_ = false;
+  bool old = force_;
+  force_ = force;
+  if(force)
+  {
+    common_->nmethods            = 1 ;
+    common_->method[0].ordering  = CHOLMOD_NATURAL ;
+    common_->postorder           = false;
+  }
+  else
+  {
+    common_->nmethods           = 3 ;
+    common_->method[0].ordering = CHOLMOD_GIVEN ;
+    common_->method[1].ordering = CHOLMOD_AMD ;
+    common_->method[2].ordering = CHOLMOD_METIS ;
+    common_->postorder          = true;
+  }
+  return(old);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void BVMat::restore_cholmod_common()
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +142,24 @@ void BVMat::restore_cholmod_common()
   common_->print_function = cholmod_print_function;
   common_->error_handler  = cholmod_error_handler;
   common_->try_catch      = NULL;
+
+  //Stop when non positive definite is found
+  common_->quick_return_if_not_posdef = true;
+
+  //Store allways as L*L', never as L*D*L'
+  common_->final_ll = true ;
+
+  //Needed to allow fast factor to sparse convertion
+  common_->final_pack      = true ;
+  common_->final_super     = false ;
+  common_->final_monotonic = true;
+
+  //We need specific final storement
+  common_->final_asis = false ;
+
+  //Natural order is not forced by default
+  force_natural_order(false);
+
 /* * /
 //MatLab lchol options
   common_->supernodal                 = CHOLMOD_SIMPLICIAL;
