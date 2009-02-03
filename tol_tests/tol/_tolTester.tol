@@ -19,7 +19,7 @@ Set Results = ReportAllBatteries(SetOfSet
   strBatteryConfig("ImportExport",      "",  1),
   strBatteryConfig("OIS",               "",  1),
   strBatteryConfig("performance",       "",  1),
-  strBatteryConfig("random_generation", "",  1),
+  strBatteryConfig("random_generation", "", 10),
   strBatteryConfig("LinearAlgebra",     "",  3)
 
 ));
