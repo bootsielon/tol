@@ -4152,13 +4152,6 @@
 					<File
 						RelativePath="..\btol\vmatrix_type\vmat_iterative.cpp"
 						>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-							/>
-						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\btol\vmatrix_type\vmat_iterator.cpp"
