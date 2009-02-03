@@ -84,6 +84,7 @@ BOperClassify::NumericalAnalysis_);
 void BMatUniKerDnsEstOptBnw::CalcContens()
 //--------------------------------------------------------------------
 {
+//Std(BText("\nTRACE BMatUniKerDnsEstOptBnw 1"));
   DMat& sample = dMat(Arg(1));
   DMat& target = dMat(Arg(2));
   int order = 0;
@@ -121,9 +122,11 @@ void BMatUniKerDnsEstOptBnw::CalcContens()
       T[i] = (target.GetData()[i]-shift_bottom)*scale;
     }
     contens_.Alloc(M,1);
+//Std(BText("\nTRACE BMatUniKerDnsEstOptBnw 2"));
     FastUnivariateDensityDerivative::
     EvaluateWithOptimalBandwith(N, M, X, T, order, numIter, epsilon,
 			                          b2dMat(contens_).GetData().GetBuffer());
+//Std(BText("\nTRACE BMatUniKerDnsEstOptBnw 4"));
     contens_*=scale;
   }
 }

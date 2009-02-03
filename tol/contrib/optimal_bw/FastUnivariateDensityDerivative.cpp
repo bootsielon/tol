@@ -583,11 +583,13 @@ void FastUnivariateDensityDerivative::EvaluateWithOptimalBandwith
 //-------------------------------------------------------------------
 : N(N_), X(X_), epsil(epsil_)
 {
+//Std(BText("\nTRACE FastUnivariateBandwidthEstimate 1"));
   int i = 0; 
 // Reserve RAM for arrays
   D4.Alloc(N);
   D6.Alloc(N);
 
+//Std(BText("\nTRACE FastUnivariateBandwidthEstimate 2"));
   double nu1=0, nu2=0;
   for(i=0; i<N; i++) 
   { 
@@ -602,6 +604,7 @@ void FastUnivariateDensityDerivative::EvaluateWithOptimalBandwith
   // Estimate the density functionals ${\Phi}_6$ and ${\Phi}_8$ using the normal scale rule.
   phi6=(-15.0/(16.0*sqrtpi))*pow(sigma,-7.0);
   phi8=(105.0/(32.0*sqrtpi))*pow(sigma,-9.0);
+//Std(BText("\nTRACE FastUnivariateBandwidthEstimate 3"));
 
   // Estimate the density functionals ${\Phi}_4$ and ${\Phi}_6$ using the kernel density
   // estimators with the optimal bandwidth based on the asymptotic MSE.
@@ -613,6 +616,7 @@ void FastUnivariateDensityDerivative::EvaluateWithOptimalBandwith
   for(i=0; i<N; i++) { phi4 += D4[i]; }
   phi4 /= N-1;
 
+//Std(BText("\nTRACE FastUnivariateBandwidthEstimate 4"));
   FastUnivariateDensityDerivative::Evaluate(N,N,X,X,g2,6,epsil,D6.buffer_);
   phi6=0.0;
   for(i=0; i<N; i++) { phi6 += D6[i]; }
@@ -621,12 +625,14 @@ void FastUnivariateDensityDerivative::EvaluateWithOptimalBandwith
   constant1=pow(1.0/(2*sqrtpi*N),    1.0/5.0);
   constant2=pow(-6.0*sqrt2*phi4/phi6,1.0/7.0);
 
+//Std(BText("\nTRACE FastUnivariateBandwidthEstimate 5"));
   D4_.Alloc(N);
   fudd = new FastUnivariateDensityDerivative(N,N,X,X,4,epsil,D4_.buffer_);
 
   BDat h_initial = constant1*pow(phi4,-1/5);
   BDat f_initial = AMISE_equation(h_initial.Value());
   h = h_initial.Value();
+//Std(BText("\nTRACE FastUnivariateBandwidthEstimate 6"));
   
   //-------------------------------------------------------------------
     class BEval_AMISE_equation : public BRRFunction
