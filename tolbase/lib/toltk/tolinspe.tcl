@@ -719,6 +719,7 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
   if { $gra_parent eq "NameBlock" } {
     array set info_member [ FilterNameBlockMember $name ]
     if { !$info_member(-show) } {
+      incr item_id
       return
     }
     set fcolor $info_member(-fcolor)
