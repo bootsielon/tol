@@ -81,7 +81,7 @@
     Real okA_1   = VNonNullCells(A)==nz;
     Real okA_2   = VRows(A)==r, VColumns(A)==c;
     Real okB_1   = MatMax(Abs(_B-_B_))==0;
-    Real okB_2   = VNonNullCells(B)==nz+c; 
+    Real okB_2   = VNonNullCells(B)<=nz+c; 
     Real okB_3   = VRows(B)==r+c, VColumns(B)==c;
     Real okZs_1  = MatMax(VMat2Mat(Zs))==0;
     Real okZs_2  = VNonNullCells(Zs)==0;
