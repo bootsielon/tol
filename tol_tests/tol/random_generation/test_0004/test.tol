@@ -8,12 +8,13 @@
   Text summary_ = 
    "Test of UniKerDnsEstOptBnw" ;
 
-  Real numErr0 = Copy(NError);
-
-  Real PutRandomSeed(3245324);
+  Real PutRandomSeed(0);
   Real rnd_seed=GetRandomSeed(0);
   WriteLn("rnd_seed "+IntText(rnd_seed));
 
+  Real numErr0 = Copy(NError);
+
+  WriteLn("TRACE 1");
   Real   modes = IntRand(10,10);
   Matrix nu    = Rand(modes,1,-100, +100);
   Matrix sigma = Rand(modes,1,   1,  +10);
@@ -26,6 +27,7 @@
     Tra(aux) * (1/MatSum(aux))
   };
   Matrix Nmode = Tra(RandMultinomial(1, N, Tra(weight)));
+//WriteLn("TRACE 2");
 
   Real Dens(Real x)
   {
@@ -41,13 +43,16 @@
   }));
   Set BMTFile([[X]],   "X.bmt");
 
+//WriteLn("TRACE 3");
   Matrix F     = Frequency(X,100);
   Real   parts = 1000;
   Real   step  = (MatDat(F,100,1)-MatDat(F,1,1))/parts;
   Set    r     = Range(MatDat(F,1,1), MatDat(F,100,1), step);
   Matrix T     = Tra(SetMat([[r]]));
   Real   t0    = Copy(Time);
+//WriteLn("TRACE 3.1");
   Matrix KD    = UniKerDnsEstOptBnw(X,T,0,2,1.E-3);
+//WriteLn("TRACE 3.2");
   Real   tm    = Copy(Time)-t0;
   WriteLn("Time for UniKerDnsEstOptBnw "<<tm+" / "+IntText(N)+"="<<(tm/N));
   Matrix D     = SetMat(For(1,Rows(T),Set(Real n)
@@ -55,6 +60,7 @@
     Real f=Dens(MatDat(T,n,1));
     [[f]]
   }));
+//WriteLn("TRACE 4");
   Matrix CmpKde = T | KD | D;
   Set BMTFile([[CmpKde]],"CmpKde.bmt");
 
@@ -64,18 +70,21 @@
   
   Real MatAvr(KD);
   Real MatAvr(D);
+//WriteLn("TRACE 5");
 
   Real numErr1 = Copy(NError);
 
 //Extented information about test behaviour
   Set partialResults_ = 
   [[
-    Real ok    = numErr1 == numErr0;
+    numErr0,
+    numErr1,
     Real okStd = difStdErr < Sqrt(1/Rows(X))
   ]];
 //This is a messure of the success of the test 
-  Real quality_ = And(ok,okStd);
+  Real quality_ = And(numErr1 == numErr0,okStd);
 
+//WriteLn("TRACE 6");
 //Return the results 
   Set resultStr_ = strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,

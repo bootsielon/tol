@@ -8,6 +8,12 @@
   Text summary_ = 
    "Test of coherence and completeness of truncated bi-normal" ;
 
+  Real PutRandomSeed(0);
+  Real rnd_seed=GetRandomSeed(0);
+  WriteLn("rnd_seed "+IntText(rnd_seed));
+
+  Real numErr0 = Copy(NError);
+
 //We go to divide the real plane in 4 quadrants and draw a bidimensional
 //truncated normal sample of the same size in each one.
 //Joining of 4 samples must fill the full plane area of a bidimensional
@@ -103,13 +109,17 @@
   Real H   = 1/(1-p1);
   Real ph  = p1^h;
 
+  Real numErr1 = Copy(NError);
+
 //Extented information about test behaviour
   Set partialResults_ = 
   [[
+    numErr0,
+    numErr1,
     r00,r01,r10,r11
   ]];
 //This is a messure of the success of the test 
-  Real quality_ = And(r00,r01,r10,r11)*(1-ph);
+  Real quality_ = And(numErr1 == numErr0,r00,r01,r10,r11)*(1-ph);
 
 //Return the results 
   Set resultStr_ = strTestStatus(summary_, link_, quality_,
