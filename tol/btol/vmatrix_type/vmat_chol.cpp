@@ -108,74 +108,89 @@
  
 ////////////////////////////////////////////////////////////////////////////////
   int BVMat::CholeskiFactor(const BVMat& X_, BVMat& L_, 
-                            ECholFacOri ori,  bool checkSymmetric)
+                            ECholFacOri ori,  
+                            bool checkSymmetric,
+                            bool forceNaturalOrder)
 ////////////////////////////////////////////////////////////////////////////////
 {
   if(!X_.CheckDefined("CholeskiFactor")) { return(-1); }
-
+  bool old_force = force_natural_order(forceNaturalOrder);
   BVMat* X__, *L__;
-  convertIfNeeded_cRt2cRs(X_,L_,X__,L__,"CholeskiSolve");
+  convertIfNeeded_cRt2cRs(X_,L_,X__,L__,"CholeskiFactor");
   BVMat &X = *X__,  &L = *L__;
   int r = X.Rows();
   int c = X.Columns();
+  int result = 0;
   if((ori==ECFO_X)&&(r!=c))
   {
     err_cannot_apply("CholeskiFactor",I2("non square","no cuadrada"),X);
-    return(-1);
+    result = -1;
   }
   else if((ori==ECFO_XtX)&&(r<c))
   {
     err_cannot_apply("CholeskiFactor",
       I2("row deficient to build",
          "no tiene bastantes filas para construir")+ " S = X' X",X);
-    return(-2);
+    result =-2;
   }
   else if((ori==ECFO_XXt)&&(r>c))
   {
     err_cannot_apply("CholeskiFactor",
       I2("column deficient to build",
          "no tiene bastantes columnas para construir")+" S = X X'",X);
-    return(-3);
-  }
-  if(ori!=ECFO_X) { checkSymmetric=false; }
-  bool isNotSymm = (checkSymmetric)?!X.IsSymmetric():false;
-  bool isOk = true;
-  bool isNotPosDef=false;
-  if(isNotSymm)
-  {
-    err_cannot_apply("CholeskiFactor",
-      I2("non symmetric","no simetrica"),X);
-    return(-4);
-  }
-  if(checkSymmetric && !isNotSymm) { ((BVMat&)X).CompactSymmetric(false); }
-  const StrCholFac* cholFac = FindCholFac(X.code_, ori);
-  if(cholFac)
-  {
-    (*cholFac->fun)(X, L, isOk, isNotPosDef);
+    result =-3;
   }
   else
   {
-    err_invalid_subtype("CholeskiFactor",X); 
-    isOk = false;
-  }
-  if(!isOk)
-  {
-    if(isNotPosDef)
+    if(ori!=ECFO_X) { checkSymmetric=false; }
+    bool isNotSymm = (checkSymmetric)?!X.IsSymmetric():false;
+    bool isOk = true;
+    bool isNotPosDef=false;
+    if(isNotSymm)
     {
       err_cannot_apply("CholeskiFactor",
-                       I2("non positive definite",
-                          "no definida positiva"),X);
-      L.Delete();
-      return(-5);
+        I2("non symmetric","no simetrica"),X);
+      result = -4;
     }
-    return(-6);
-  }    
+    else
+    {
+      if(checkSymmetric && !isNotSymm) { ((BVMat&)X).CompactSymmetric(false); }
+      const StrCholFac* cholFac = FindCholFac(X.code_, ori);
+      if(cholFac)
+      {
+        (*cholFac->fun)(X, L, isOk, isNotPosDef);
+      }
+      else
+      {
+        err_invalid_subtype("CholeskiFactor",X); 
+        isOk = false;
+      }
+      if(!isOk)
+      {
+        if(isNotPosDef)
+        {
+          err_cannot_apply("CholeskiFactor",
+                           I2("non positive definite",
+                              "no definida positiva"),X);
+          L.Delete();
+          result = -5;
+        }
+        else
+        {
+          result = -6;
+        }
+      } 
+    }
+  }
+  force_natural_order(old_force);
   return(0);
 }
   
 ////////////////////////////////////////////////////////////////////////////////
   int BVMat::CholeskiFactor(const BVMat& X, BVMat& L,
-                            const BText& oriName, bool checkSymmetric)
+                            const BText& oriName, 
+                            bool checkSymmetric,
+                            bool forceNaturalOrder)
 ////////////////////////////////////////////////////////////////////////////////
 {
   ECholFacOri ori = FindCFacName(oriName);
@@ -189,26 +204,30 @@
     L);
     return(-3);
   }
-  return(CholeskiFactor(X,L,ori,checkSymmetric));
+  return(CholeskiFactor(X,L,ori,checkSymmetric,forceNaturalOrder));
 }
   
 ////////////////////////////////////////////////////////////////////////////////
-  BVMat BVMat::CholeskiFactor(ECholFacOri ori, bool checkSymmetric)
+  BVMat BVMat::CholeskiFactor(ECholFacOri ori, 
+                              bool checkSymmetric,
+                              bool forceNaturalOrder)
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
   BVMat aux;
-  CholeskiFactor(*this, aux, ori, checkSymmetric);
+  CholeskiFactor(*this, aux, ori, checkSymmetric, forceNaturalOrder);
   return(aux);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-  BVMat BVMat::CholeskiFactor(const BText& oriName, bool checkSymmetric)
+  BVMat BVMat::CholeskiFactor(const BText& oriName, 
+                              bool checkSymmetric,
+                              bool forceNaturalOrder)
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
   BVMat aux;
-  CholeskiFactor(*this, aux, oriName, checkSymmetric);
+  CholeskiFactor(*this, aux, oriName, checkSymmetric,forceNaturalOrder);
   return(aux);
 }
   
@@ -356,7 +375,7 @@
   x.code_ = ESC_blasRdense;
   x.s_.blasRdense_ = cholmod_solve
   (
-    CHOLMOD_P,
+    CHOLMOD_Pt,
     L.s_.chlmRfactor_,
     b.s_.blasRdense_,
     common_
@@ -371,7 +390,7 @@
   x.code_ = ESC_blasRdense;
   x.s_.blasRdense_ = cholmod_solve
   (
-    CHOLMOD_Pt,
+    CHOLMOD_P,
     L.s_.chlmRfactor_,
     b.s_.blasRdense_,
     common_
@@ -439,11 +458,15 @@
   }
   cholmod_sparse* aux = cholmod_spsolve
   (
-    CHOLMOD_Pt,
+    CHOLMOD_P,
     factor.s_.chlmRfactor_,
     b_,
     common_
   );
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
   x.s_.chlmRsparse_= cholmod_spsolve
   (
     CHOLMOD_L,
@@ -452,10 +475,6 @@
     common_
   );
   cholmod_free_sparse(&aux, common_); 
-  if(b_ != b.s_.chlmRsparse_)
-  {
-    cholmod_free_sparse(&b_, common_); 
-  }
   return(0);    
 };
 
@@ -476,18 +495,18 @@
     b_,
     common_
   );
+  if(b_ != b.s_.chlmRsparse_)
+  {
+    cholmod_free_sparse(&b_, common_); 
+  }
   x.s_.chlmRsparse_= cholmod_spsolve
   (
-    CHOLMOD_P,
+    CHOLMOD_Pt,
     factor.s_.chlmRfactor_,
     aux,
     common_
   );
   cholmod_free_sparse(&aux, common_); 
-  if(b_ != b.s_.chlmRsparse_)
-  {
-    cholmod_free_sparse(&b_, common_); 
-  }
   return(0);    
 };
   
@@ -551,7 +570,7 @@
   }
   x.s_.chlmRsparse_ = cholmod_spsolve
   (
-    CHOLMOD_P,
+    CHOLMOD_Pt,
     L.s_.chlmRfactor_,
     b_,
     common_
@@ -575,7 +594,7 @@
   }
   x.s_.chlmRsparse_ = cholmod_spsolve
   (
-    CHOLMOD_Pt,
+    CHOLMOD_P,
     L.s_.chlmRfactor_,
     b_,
     common_
