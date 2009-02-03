@@ -39,7 +39,7 @@ VMatrix COV = Eye(m,m,0,gamma0)+Eye(m,m,-1,gamma1)+Eye(m,m,1,gamma1);
 WriteLn("TRACE 2");
 Matrix  COV_ = VMat2Mat(COV);
 WriteLn("TRACE 3");
-VMatrix factor  = CholeskiFactor(COV,"X");
+VMatrix factor  = CholeskiFactor(COV,"X",False);
 
 VMatrix B = Mat2VMat(DifEq(1/(1-B),Rand(m,1,1,1),Rand(0,0,0,0),Col(0)));
 Matrix B_ = VMat2Mat(B);
@@ -64,7 +64,7 @@ Matrix VMat2Mat(LiB);
 VMatrix LLiB = Ls*LiB; 
 Matrix VMat2Mat(LLiB);
 
-VMatrix PtL = CholeskiSolve(factor, Ls, "Pt");
+VMatrix PtL = CholeskiSolve(factor, Ls, "P");
 VMatrix PtLLtP.1 = MMtSqr(PtL);
 Matrix VMat2Mat(PtLLtP.1);
 Real quality.2 = 1-VMatMax(Abs(PtLLtP.1-COV));
@@ -74,26 +74,20 @@ VMatrix LtB = CholeskiSolve(factor,B,"Lt");
 Matrix LtB_ = VMat2Mat(LtB);
 
 
-
 Matrix  L_ = Choleski(COV_);
 Matrix  Li = LTInverse(L_);
 WriteLn("TRACE 5");
 Real quality.3 = 1-MatMax(Abs(COV_-L_*Tra(L_)));
 WriteLn("TRACE 6 quality.3="<<quality.3);
 
-VMatrix LLtP = CholeskiSolve(factor, COV, "Pt");
-Matrix VMat2Mat(LLtP);
-VMatrix LtP  = CholeskiSolve(factor, LLtP, "L");
-Matrix VMat2Mat(LtP);
-VMatrix LtP_  = (CholeskiSolve(factor, COV, "PtL")+m)-m;
-Matrix VMat2Mat(LtP_);
+
+VMatrix LtP      = CholeskiSolve(factor, COV, "PtL");
 VMatrix PtLLtP.2 = MtMSqr(LtP);
 Matrix VMat2Mat(PtLLtP.2);
 Real quality.4 = 1-VMatMax(Abs(PtLLtP.2-COV));
 WriteLn("TRACE 7 quality.4="<<quality.4);
 
-//VMatrix E  = CholeskiSolve(factor,Z,"PtL");
-VMatrix E  = CholeskiSolve(factor,CholeskiSolve(factor,Z,"Pt"),"L");
+VMatrix E  = CholeskiSolve(factor,Z,"PtL");
 Matrix VMat2Mat(Z-PtL*E);
 Real quality.5 = 1-VMatMax(Abs(Z-PtL*E));
 WriteLn("TRACE 8 quality.5="<<quality.5);

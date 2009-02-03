@@ -62,10 +62,10 @@
   Real b2.quality   = 1-MatMax(Abs(_b-_b2));
 
   WriteLn("TRACE 10 "+Time);
-  VMatrix b3.1 = CholeskiSolve(L2,Xty,  "P");
+  VMatrix b3.1 = CholeskiSolve(L2,Xty,  "Pt");
   VMatrix b3.2 = CholeskiSolve(L2,b3.1, "L");
   VMatrix b3.3 = CholeskiSolve(L2,b3.2, "Lt");
-  VMatrix b3   = CholeskiSolve(L2,b3.3, "Pt");
+  VMatrix b3   = CholeskiSolve(L2,b3.3, "P");
   Matrix _b3   = VMat2Mat(b3);
   Real b3.quality   = 1-MatMax(Abs(_b-_b3));
 
@@ -77,7 +77,7 @@
   Real LtL_.quality = 1-VMatMax(Abs(LtL_-XtX));
 
   WriteLn("TRACE 12 "+Time);
-  VMatrix PXtX  = CholeskiSolve(L2, XtX, "P");
+  VMatrix PXtX  = CholeskiSolve(L2, XtX,  "Pt");
   VMatrix L_2t  = CholeskiSolve(L2, PXtX, "L");
   VMatrix L_2   = Tra(L_2t);
   VMatrix LtL_2 = MMtSqr(L_2);

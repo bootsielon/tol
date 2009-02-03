@@ -28,17 +28,17 @@
   VMatrix B = Mat2VMat(DifEq(1/(1-B),Rand(c,1,1,1),Rand(0,0,0,0),Col(0)));
   Matrix B_ = VMat2Mat(B);
   
-  VMatrix PB = CholeskiSolve(L.factor,B,"P");
+  VMatrix PB = CholeskiSolve(L.factor,B,"Pt");
   Matrix PB_ = VMat2Mat(PB);
 
-  VMatrix PtPB = CholeskiSolve(L.factor,PB,"Pt");
+  VMatrix PtPB = CholeskiSolve(L.factor,PB,"P");
   Matrix PtPB_ = VMat2Mat(PtPB);
   
   Real quality.1 = 1-VMatMax(Abs(B-PtPB));
 
   VMatrix L       = Convert(L.factor,"Cholmod.R.Sparse"); 
   Matrix  L_      = VMat2Mat(L);
-  VMatrix PtL     = CholeskiSolve(L.factor,L,"Pt");
+  VMatrix PtL     = CholeskiSolve(L.factor,L,"P");
   Matrix  PtL_    = VMat2Mat(PtL);
   VMatrix PtLLtP  = MMtSqr(PtL);
   Matrix  PtLLtP_ = VMat2Mat(PtLLtP);

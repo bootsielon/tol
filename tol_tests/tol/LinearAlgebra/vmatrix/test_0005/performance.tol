@@ -93,8 +93,8 @@ Set performance = For(1,numIter, Set(Real iter)
   VMatrix b_ = 
   {
     Set For(2,repeatSolv,Real(Real k) 
-    { VMatrix CholeskiSolve(L,Xty,"LLt"); 1 });
-    Drop(CholeskiSolve(L,Xty,"LLt"),1.E-15)
+    { VMatrix CholeskiSolve(L,Xty,"PtLLtP"); 1 });
+    Drop(CholeskiSolve(L,Xty,"PtLLtP"),1.E-15)
   };
   Real tSolv = (Copy(Time)-t0)/repeatSolv;
   Real t3 = Copy(Time);

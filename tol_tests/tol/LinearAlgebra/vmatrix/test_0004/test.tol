@@ -62,14 +62,14 @@ WriteLn("rndSeed="<<rndSeed);
 }; 
 
 
-  Real   m      = IntRand(150, 150);
+  Real   m      = IntRand(10, 10);
   
   Real   p1     = IntRand(1,3);
   Polyn  ar1    = RandStationary(p1);
   Real   q1     = IntRand(1,3);
   Polyn  ma1    = RandStationary(q1);
   
-  Real   p7     = 1*IntRand(1,1);
+  Real   p7     = 0*IntRand(1,1);
   Polyn  ar7    = RandStationary(p7,7);
   Real   q7     = 0*IntRand(1,3);
   Polyn  ma7    = RandStationary(q7,7);
@@ -121,17 +121,16 @@ WriteLn("rndSeed="<<rndSeed);
   Real quality.L_theta_m_ = 1-MatMax(Abs(L_theta_m_-L_theta_m.1_));
   WriteLn("quality.L_theta_m_ = "<<quality.L_theta_m_);
 
-  
 //Sparse Choleski of large length m
   VMatrix cov_arma_m = Pol2VMat(ARMAGamma(ar,ma,m), m, m);
   Real quality.cov_arma_m = 1-MatMax(Abs(VMat2Mat(cov_arma_m)-cov_arma_m_));
   WriteLn("quality.cov_arma_m = "<<quality.cov_arma_m);
 
-  VMatrix L_arma_m.1   = CholeskiFactor(cov_arma_m,"X");
+  VMatrix L_arma_m.1   = CholeskiFactor(cov_arma_m,"X",False);
   Real quality.L_arma_m.1 = 1-MatMax(Abs(VMat2Mat(L_arma_m.1)-L_arma_m_));
   WriteLn("quality.L_arma_m.1 = "<<quality.L_arma_m.1);
 
-  VMatrix Li_arma_m.1  = CholeskiSolve(L_arma_m.1,Eye(m),"L");
+  VMatrix Li_arma_m.1  = CholeskiSolve(L_arma_m.1,Eye(m),"PtL");
   VMatrix Lis_arma_m.1 = Convert(Li_arma_m.1,"Cholmod.R.Sparse");
   Real quality.Li_arma_m.1 = 1-MatMax(Abs(VMat2Mat(Li_arma_m.1)-Li_arma_m_));
   WriteLn("quality.Li_arma_m.1 = "<<quality.Li_arma_m.1);
@@ -140,11 +139,11 @@ WriteLn("rndSeed="<<rndSeed);
   Real quality.cov_ar_m = 1-MatMax(Abs(VMat2Mat(cov_ar_m)-cov_ar_m_));
   WriteLn("quality.cov_ar_m = "<<quality.cov_ar_m);
 
-  VMatrix L_ar_m   = CholeskiFactor(cov_ar_m,"X");
+  VMatrix L_ar_m   = CholeskiFactor(cov_ar_m,"X",False);
   Real quality.L_ar_m = 1-MatMax(Abs(VMat2Mat(L_ar_m)-L_ar_m_));
   WriteLn("quality.L_ar_m = "<<quality.L_ar_m);
 
-  VMatrix Li_ar_m.1  = CholeskiSolve(L_ar_m,Eye(m),"L");
+  VMatrix Li_ar_m.1  = CholeskiSolve(L_ar_m,Eye(m),"PtL");
   Matrix VMat2Mat(Li_ar_m.1);
   Real quality.Li_ar_m.1 = 1-MatMax(Abs(VMat2Mat(Li_ar_m.1)-Li_ar_m_));
   WriteLn("quality.Li_ar_m.1 = "<<quality.Li_ar_m.1);
@@ -155,7 +154,7 @@ WriteLn("rndSeed="<<rndSeed);
   Real quality.cov_theta_m.1 = 1-MatMax(Abs(VMat2Mat(cov_theta_m.1)-cov_theta_m.1_));
   WriteLn("quality.cov_theta_m.1 = "<<quality.cov_theta_m.1);
 
-  VMatrix L_theta_m.1 = CholeskiFactor(cov_theta_m.1,"X");
+  VMatrix L_theta_m.1 = CholeskiFactor(cov_theta_m.1,"X",False);
 
 //Sparse Choleski of short length n
   VMatrix cov_arma_n = Pol2VMat(ARMAGamma(ar,ma,n), n, n);
@@ -166,11 +165,11 @@ WriteLn("rndSeed="<<rndSeed);
   Real quality.cov_ar_n = 1-MatMax(Abs(VMat2Mat(cov_ar_n)-cov_ar_n_));
   WriteLn("quality.cov_ar_n = "<<quality.cov_ar_n);
 
-  VMatrix L_ar_n   = CholeskiFactor(cov_ar_n,"X");
+  VMatrix L_ar_n   = CholeskiFactor(cov_ar_n,"X",False);
   Real quality.L_ar_n = 1-MatMax(Abs(VMat2Mat(L_ar_n)-L_ar_n_));
   WriteLn("quality.L_ar_n = "<<quality.L_ar_n);
 
-  VMatrix Li_ar_n  = CholeskiSolve(L_ar_n,Eye(n),"L");
+  VMatrix Li_ar_n  = CholeskiSolve(L_ar_n,Eye(n),"PtL");
   Real quality.Li_ar_n = 1-MatMax(Abs(VMat2Mat(Li_ar_n)-Li_ar_n_));
   WriteLn("quality.Li_ar_n = "<<quality.Li_ar_n);
 
@@ -185,13 +184,13 @@ WriteLn("rndSeed="<<rndSeed);
   Real quality.Li_ar_m = 1-VMatMax(Abs(Li_ar_m-Li_ar_m.1));
   WriteLn("quality.Li_ar_m = "<<quality.Li_ar_m);
 
-  VMatrix L_theta_m = CholeskiFactor(cov_theta_m,"X");
+  VMatrix L_theta_m = CholeskiFactor(cov_theta_m,"X",True);
   VMatrix Ls_theta_m = Convert(L_theta_m,"Cholmod.R.Sparse");
   Matrix VMat2Mat(Ls_theta_m);
   Real quality.Ls_theta_m = 1-MatMax(Abs(VMat2Mat(Ls_theta_m)-L_theta_m_));
   WriteLn("quality.Ls_theta_m = "<<quality.Ls_theta_m);
 
-  VMatrix Li_arma_m  = CholeskiSolve(L_theta_m,Li_ar_m,"L");
+  VMatrix Li_arma_m  = CholeskiSolve(L_theta_m,Li_ar_m,"PtL");
   Matrix VMat2Mat(Li_arma_m);
   Real quality.L_arma_m = 1-VMatMax(Abs(Li_arma_m-Lis_arma_m.1));
   WriteLn("quality.L_arma_m = "<<quality.L_arma_m);
