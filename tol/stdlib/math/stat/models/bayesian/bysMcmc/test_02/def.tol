@@ -639,44 +639,7 @@ Real ok.X = (VMatMax(Abs(bsr.parsed::X-X))+10)==10;
 Real ok.a = (VMatMax(Abs(bsr.parsed::a-domain.d))+10)==10;
 Real ok.A = (VMatMax(Abs(bsr.parsed::A-domain.D))+10)==10;
 
-//VMatrix S = SetSum(bsr.parsed::VS)+bsr.parsed.CS;
-//Real ok.S = VMatMax(Abs(bsr.parsed::Y-Y));
-
-
-/*
-
-
-VMatrix X    = bsr.parsed::X;
-VMatrix XtX  = MtMSqr(X);
-VMatrix L    = CholeskiFactor(X,"XtX"); 
-VMatrix D    = Tra(CholeskiSolve(L,Tra(bsr.parsed::A),"L"));
-
-Matrix
-{
-  (Matrix y = VMat2Mat(mod::bsr.parsed::Y)) | 
-  (Matrix y_ = VMat2Mat(mod::Y)) |
-  (y-y_)
-};
-Matrix
-{
-  (Matrix x = VMat2Mat(mod::bsr.parsed::X)) | 
-  (Matrix x_ = VMat2Mat(mod::X)) |
-  (x-x_)
-};
-Matrix
-{
-  (Matrix a = VMat2Mat(mod::bsr.parsed::a)) | 
-  (Matrix a_ = VMat2Mat(mod::domain.d)) |
-  (a-a_)
-};
-Matrix
-{
-  (Matrix A = VMat2Mat(mod::bsr.parsed::A)) | 
-  (Matrix A_ = VMat2Mat(mod::domain.D)) |
-  (A-A_)
-};
-
-*/
+/* */
 
 
 
