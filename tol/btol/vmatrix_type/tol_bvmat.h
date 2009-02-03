@@ -308,6 +308,7 @@ public:
                          const BVMat& A, double b, BVMat& C);
   static void BinGroup(BBinFun f, BVMat** arr, int num, BVMat& C);
 private:
+  static bool force_natural_order(bool force);
   static void restore_cholmod_common();
   double* bRd_checkCell(int i, int j, int& accessCode) const;
   double* cRs_checkCell(int i, int j, int& accessCode) const;
@@ -690,16 +691,20 @@ public:
 ------------------------------------------------------------------------------*/
 public:
 //Linear systems of equations  
-  BVMat CholeskiFactor(ECholFacOri ori, bool checkSymmetric);
-  BVMat CholeskiFactor(const BText& ori, bool checkSymmetric);
+  BVMat CholeskiFactor(ECholFacOri ori, bool checkSymmetric,
+                            bool forceNaturalOrder);
+  BVMat CholeskiFactor(const BText& ori, bool checkSymmetric,
+                            bool forceNaturalOrder);
   BVMat CholeskiSolve(const BVMat& B, ECholSolSys sys)const;
   BVMat CholeskiSolve(const BVMat& B, const BText& sys)const;
   BVMat CholeskiInv  ()const;
 
   static int CholeskiFactor(const BVMat& X, BVMat& L, 
-                            ECholFacOri ori, bool checkSym);
+                            ECholFacOri ori, bool checkSym,
+                            bool forceNaturalOrder);
   static int CholeskiFactor(const BVMat& X, BVMat& L, 
-                            const BText& ori, bool checkSym);
+                            const BText& ori, bool checkSym,
+                            bool forceNaturalOrder);
   static int CholeskiSolve (const BVMat& L,const BVMat& B, 
                             BVMat& X, ECholSolSys sys);
   static int CholeskiSolve (const BVMat& L,const BVMat& B,
