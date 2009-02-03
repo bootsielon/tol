@@ -1714,8 +1714,8 @@ void BVMatMax::CalcContens()
 ------------------------------------------------------------------------------*/
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatCholeskiFactor);
-DefExtOpr(1, BVMatCholeskiFactor, "CholeskiFactor", 1, 2, "VMatrix Text",
-  "(VMatrix X [, Text S=\"X\"])",
+DefExtOpr(1, BVMatCholeskiFactor, "CholeskiFactor", 1, 3, "VMatrix Text Real",
+  "(VMatrix X [, Text S=\"X\", Real force_natural_order=false])",
   I2("Returns the Choleski decomposition of a symmetric positive definite "
      "virtual matrix S, that will be built as: \n"
      "  S = X     if S = \"X\" \n "
@@ -1729,8 +1729,7 @@ DefExtOpr(1, BVMatCholeskiFactor, "CholeskiFactor", 1, 2, "VMatrix Text",
      "  S = P'*L*L'*P\n"
      "In this case you only can handle with L and P using CholeskiSolve method.\n"
      "Otherwise no operation is performed and unknown virtual matrix is returned."
-     "NOTE: At current version P is allways the identity but next versions could be "
-     "able to handle with generic permutation mtrices.\n",
+     "If force_natural_order is true then P is the identity.\n",
      "Devuelve la descomposicion de Choleski de una matriz simetrica S definida "
      "positiva, la cual se construye de esta forma: \n"
      "  S = X     si S = \"X\" \n "
@@ -1746,16 +1745,18 @@ DefExtOpr(1, BVMatCholeskiFactor, "CholeskiFactor", 1, 2, "VMatrix Text",
      "CholeskiSolve.\n"
      "En otro caso no se realiza ninguna operacion y se devuelve la matriz "
      "virtual desconocida.\n"
-     "NOTA: En la presente versión P es siempre la identidad pero en próximas "
-     "versiones será posible utilizar permutaciones genéricas.\n"),
+     "Si force_natural_order es falso entonces P es la identidad.\n"),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BVMatCholeskiFactor::CalcContens()
 //--------------------------------------------------------------------
 {
   BText S="X";
+  bool force = false;
   if(Arg(2)) { S=Text(Arg(2)); }
-  BVMat::CholeskiFactor(VMat(Arg(1)),contens_,S,true);
+  if(Arg(3)) { force=Real(Arg(3))!=0.0; }
+
+  BVMat::CholeskiFactor(VMat(Arg(1)),contens_,S,true,force);
   assert(contens_.Check());
 }
 
@@ -1769,11 +1770,11 @@ DefExtOpr(1, BVMatCholeskiSolve, "CholeskiSolve", 3, 3,
      "  sys=\"PtLLtP\" => F= P'*L*L'*P*x = b\n"
      "  sys=\"LLt\"    => F=    L*L'  *x = b\n"
      "  sys=\"PtL\"    => F= P'*L     *x = b\n"
-     "  sys=\"LtP\"    => F=     L'*P *x = b\n"
-     "  sys=\"Lt\"     => F=      L'  *x = b\n"
+     "  sys=\"LtP\"    => F=     *L'*P*x = b\n"
+     "  sys=\"Lt\"     => F=     *L'  *x = b\n"
      "  sys=\"L\"      => F=    L     *x = b\n"
      "  sys=\"Pt\"     => F= P'       *x = b\n"
-     "  sys=\"P\"      => F=        P *x = b\n"
+     "  sys=\"P\"      => F=         P*x = b\n"
      "At current version P is allways the identity but next versions could be "
      "able to handle with generic permutation mtrices.\n"
      "The factor can be a lower triangular matrix Blas.R.Dense "
@@ -1789,11 +1790,11 @@ DefExtOpr(1, BVMatCholeskiSolve, "CholeskiSolve", 3, 3,
      "  sys=\"PtLLtP\" => F= P'*L*L'*P*x = b\n"
      "  sys=\"LLt\"    => F=    L*L'  *x = b\n"
      "  sys=\"PtL\"    => F= P'*L     *x = b\n"
-     "  sys=\"LtP\"    => F=     L'*P *x = b\n"
-     "  sys=\"Lt\"     => F=      L'  *x = b\n"
+     "  sys=\"LtP\"    => F=     *L'*P*x = b\n"
+     "  sys=\"Lt\"     => F=     *L'  *x = b\n"
      "  sys=\"L\"      => F=    L     *x = b\n"
      "  sys=\"Pt\"     => F= P'       *x = b\n"
-     "  sys=\"P\"      => F=        P *x = b\n"
+     "  sys=\"P\"      => F=         P*x = b\n"
      "La matriz L es triangular"
      "El factor puede ser una matriz Blas.R.Dense triangular inferior, en "
      "cuyo caso b debe ser Blas.R.Dense y P es siempre la identidad; "
