@@ -156,7 +156,7 @@ NameBlock ARMAProcess =
       Pol2VMat(ARMATACov(_.ar,1,_.n), _.n, _.n);
     //Does Choleski factorization of pure AR
   //Real _trc.7 = { WriteLn("TRACE _.cov_ar_n=" << (Matrix VMat2Mat(_.cov_ar_n))); 0 };
-    VMatrix _.L_ar_n = CholeskiFactor(_.cov_ar_n,"X");
+    VMatrix _.L_ar_n = CholeskiFactor(_.cov_ar_n,"X", True);
   //Real _trc.8 = { WriteLn("TRACE _.L_ar_n=" << (Matrix VMat2Mat(_.L_ar_n))); 0 };
     //Calculates the inverse of Choleski factorization of pure AR
     VMatrix _.Li_ar_n = CholeskiSolve(_.L_ar_n,Eye(_.n),"PtL");
@@ -175,7 +175,7 @@ NameBlock ARMAProcess =
       (ARMAProcess::ExtendBandedSymToeplitz(_.cov_ma_n,_.m)+_.n^2)-_.n^2;
   //Real _trc.12 = { WriteLn("TRACE _.cov_ma_m=" << (Matrix VMat2Mat(_.cov_ma_m))); 0 };
     //Does Choleski factorization of pseudo MA factor
-    VMatrix _.L_ma = CholeskiFactor(_.cov_ma_m,"X");
+    VMatrix _.L_ma = CholeskiFactor(_.cov_ma_m,"X",True);
     //Converts to Cholmod.R.Sparse
     VMatrix _.L_ma_sp = Convert(_.L_ma,"Cholmod.R.Sparse");
     //Calculates de logarithm of determinant of _.m ARMA covarianze 
@@ -261,7 +261,7 @@ NameBlock ARMAProcess =
     VMatrix factor(VMatrix cov)
     ////////////////////////////////////////////////////////////////////////////
     {
-      CholeskiFactor(cov,"X")
+      CholeskiFactor(cov,"X",True)
     };
     ////////////////////////////////////////////////////////////////////////////
     VMatrix solve.LLt(VMatrix L, VMatrix b)
