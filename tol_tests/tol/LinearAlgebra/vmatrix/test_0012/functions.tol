@@ -1,0 +1,82 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : functions.tol
+// PURPOSE: tools about test for VMatrix SolvePrecondUnsym function
+//////////////////////////////////////////////////////////////////////////////
+
+Real tolerance = 1.E-8;
+
+Real WriteHeader(Real unused)
+{
+  WriteLn("iter\trndSeed\tm\tn\tr\tnnz\ttime\tmaxErr\tquality");
+  0
+};
+
+NameBlock SimulateSparseMRS(Real iter_)
+{[[
+  Real rndSeed = 
+  {
+    Real PutRandomSeed(0);
+    GetRandomSeed(0)
+  };
+  Real iter = iter_;
+  Real _t0 = Copy(Time);
+  
+  Real _timer(Real unused)
+  { 
+    Real t1 = Copy(Time);
+    Real tm = t1 - _t0; 
+    Real _t0 := t1; 
+    tm
+  };
+
+  Real m  = IntRand(4,(100000)^(1/3))^3;
+  Real n  = Min(5000,IntRand(1, 0.7*m));
+  Real s0 = 0*IntRand(1, n*0.2);
+  Real s1 = IntRand(1, (n-s0)*0.2);
+  Real r  = n-s0-s1; 
+  Real dens  = (Rand(1,10^(1/3))^3)*(r+m)/(r*m);
+
+  //Simulating an strongly ill-conditioned and unscaled matrix
+  VMatrix M = 
+  {
+    //Well conditioned seed matrix
+    VMatrix xr    = Rand(m,r,-1,1,   "Cholmod.R.Sparse", dens*m*r);
+    //Extrem scaling factors
+    VMatrix scale = Exp(Tra(Rand(1,r,-10,15)));
+    //Scaling diagonal matrix
+    VMatrix dr    = Eye(r,r,0,scale);
+    //Unscaled matrix
+    VMatrix Xr = xr*dr;
+    //Linear combination of columns
+    VMatrix Cmb1 = Rand(r,s1,-1,1, "Cholmod.R.Sparse", dens^2*s1*r);
+    VMatrix XrCmb1 = Xr*Cmb1;
+    //Directly null columns
+    VMatrix XrCmb0 = Zeros(m,s0);
+    //Singular ill-conditioned and unscaled matrix
+    VMatrix X01 = Xr | XrCmb0 | XrCmb1;
+    //Permutation of columns to avoid order dependent effects
+    VMatrix P =
+    {
+      Matrix perm = Tra(RandPermutation(1,n));
+      Triplet(SetCol(Range(1,n,1)) | perm | Rand(n,1,1,1),n,n)
+    };
+    X01*P
+  };
+  Real t.M = _timer(0);
+  VMatrix x = Rand(n,1,-14,14);
+  Real t.x = _timer(0);
+  VMatrix y = M*x;
+  Real t.y = _timer(0);
+  NameBlock SPU = SolvePrecondUnsym(M,True);
+  Real SPU::ScaleOptimize(1.E-5);
+  NameBlock solution = SPU::Solve(y,tolerance, True);  
+  Real t.b_ = _timer(0);
+  Real diff.y = solution::_.maxErr;
+  Real quality = 
+  {
+    Real q = 1- diff.y/ n;
+    WriteLn(""<<iter+"\t"<<rndSeed+"\t"<<m+"\t"<<n+"\t"<<r+"\t"<<
+            VNonNullCells(M)+"\t"<<t.b_+"\t"<<diff.y+"\t"<<q);
+    q
+  }
+]]};
