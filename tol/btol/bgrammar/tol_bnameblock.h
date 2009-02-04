@@ -36,7 +36,7 @@
 //--------------------------------------------------------------------
 // forward references
 //--------------------------------------------------------------------
-class BUserNameBlock;
+template<class Any> class BGraContensBase;
 
 //--------------------------------------------------------------------
 class TOL_API BNameBlock: public BObject
@@ -56,6 +56,7 @@ private:
   static BObjByClassNameHash usingSymbolsByClass_;
   BText localName_;
   bool createdWithNew_;
+  BGraContensBase<BNameBlock>* owner_;
 public:
   static bool Initialize();
   static BNameBlock&  Unknown() { return(*unknown_); }
@@ -80,7 +81,10 @@ public:
   BNameBlock& operator= (const BNameBlock& ns);
 
   int Level() const;
-  const BText& LocalName() const { return(localName_); };
+  BGraContensBase<BNameBlock>* Owner() const;
+  void PutOwner(BGraContensBase<BNameBlock>* owner);
+  const BText& Name() const;
+  const BText& LocalName() const;
   void PutLocalName(const BText& localName) { localName_ = localName; };
   const BObjByNameHash& Public () const { return(public_ ); }
         BObjByNameHash& Public ()       { return(public_ ); }

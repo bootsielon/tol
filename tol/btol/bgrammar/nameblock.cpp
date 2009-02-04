@@ -30,7 +30,6 @@
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_btxtgra.h>
 
-
 #include <tol/tol_list.h>
 #include <tol/tol_tree.h>
 #include <tol/tol_btoken.h>
@@ -90,7 +89,8 @@ BNameBlock::BNameBlock()
   evLevel_  (BGrammar::Level()),
   level_    (-999999999),
   father_   (current_),
-  localName_()
+  localName_(),
+  owner_    (NULL)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -108,7 +108,8 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   evLevel_  (BGrammar::Level()),
   level_    (-999999999),
   father_   (current_),
-  localName_(localName)
+  localName_(localName),
+  owner_    (NULL)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -124,7 +125,8 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   private_  (ns.Private ()),
   set_      (ns.Set     ()),
   father_   (ns.Father  ()),
-  localName_(ns.LocalName())
+  localName_(ns.LocalName()),
+  owner_    (NULL)
 {
   short isAssigned = BObject::IsAssigned();
   createdWithNew_ = isAssigned!=-1;
@@ -143,6 +145,7 @@ BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
 //--------------------------------------------------------------------
 {
   PutName(ns.Name());
+  owner_     = NULL;
   set_       = ns.Set();
   father_    = ns.Father();
   public_    = ns.Public();
@@ -152,6 +155,34 @@ BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
   //referenciados en ambos son los mismos, ¿cuál es su padre?
   return(*this);
 }
+
+//--------------------------------------------------------------------
+BUserNameBlock* BNameBlock::Owner() const 
+//--------------------------------------------------------------------
+{ 
+  return(owner_); 
+}
+
+//--------------------------------------------------------------------
+void BNameBlock::PutOwner(BUserNameBlock* owner) 
+//--------------------------------------------------------------------
+{ 
+  owner_ = owner; 
+}
+
+//--------------------------------------------------------------------
+const BText& BNameBlock::Name() const
+//--------------------------------------------------------------------
+{
+  return(BObject::Name());
+}
+
+//--------------------------------------------------------------------
+const BText& BNameBlock::LocalName() const 
+//--------------------------------------------------------------------
+{ 
+  return(localName_); 
+};
 
 //--------------------------------------------------------------------
   short BNameBlock::EnsureIsAssigned() const
@@ -564,6 +595,24 @@ BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
       lst = Cons(obj,lst);
     }
   }
+  for(iter=private_.begin(); iter!=private_.end(); iter++)
+  {
+    obj = iter->second;
+    if((obj->Name()[2]=='.')&&
+       (oc.mode_==BUSERFUNMODE) && 
+       (obj->Mode()==BOBJECTMODE) && 
+       (obj->Grammar()==GraCode()))
+    {
+      BUserCode* uc = (BUserCode*)obj;
+      obj = uc->Contens().Operator();
+    }
+    bool match = (obj->Grammar()==oc.grammar_) && (obj->Mode()==oc.mode_);
+    if(match)
+    {
+    //Std(BText("\n")+"  "+GetModeName(obj->Mode())+" "+obj->Grammar()->Name()+" "+obj->Name()+" matches? "+int(match));
+      lst = Cons(obj,lst);
+    }
+  }
   return(lst);
 }
 
@@ -579,6 +628,16 @@ BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
   {
     obj = iter->second;
     if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
+    {
+      BUserNameBlock* unb = (BUserNameBlock*)obj;
+      lst = unb->Contens().SelectMembersDeep(lst, oc);
+    }
+  }
+  for(iter=private_.begin(); iter!=private_.end(); iter++)
+  {
+    obj = iter->second;
+    if((obj->Name()[2]=='.')&&
+       (obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
     {
       BUserNameBlock* unb = (BUserNameBlock*)obj;
       lst = unb->Contens().SelectMembersDeep(lst, oc);
@@ -606,6 +665,15 @@ BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
   }
   PutName(parentFullName);
   for(iter=public_.begin(); iter!=public_.end(); iter++)
+  {
+    obj = iter->second;
+    if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
+    {
+      unb = (BUserNameBlock*)obj;
+      unb->Contens().RebuildFullNameDeep(parentFullName);
+    }
+  }
+  for(iter=private_.begin(); iter!=private_.end(); iter++)
   {
     obj = iter->second;
     if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
