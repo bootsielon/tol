@@ -377,10 +377,13 @@ double BVMat::Quantile() const
   cholmod_dense* dense = cholmod_allocate_dense
   ( nrow, ncol, nrow, CHOLMOD_REAL, common_);
   int k;
-  double* x = (double*)dense->x;
-  for(k=0; k<dense->nzmax; k++)
+  if(dense)
   {
-    x[k] = xu.Random().Value(); 
+    double* x = (double*)dense->x;
+    for(k=0; k<dense->nzmax; k++)
+    {
+      x[k] = xu.Random().Value(); 
+    }
   }
   return(dense);
 };
@@ -397,24 +400,27 @@ double BVMat::Quantile() const
   BIntPair p;
   cholmod_triplet* triplet = cholmod_allocate_triplet
   ( nrow, ncol, nzmax, 0, CHOLMOD_REAL, common_);
-  int k;
-  int* i = (int*)triplet->i;
-  int* j = (int*)triplet->j;
-  double* x = (double*)triplet->x;
-  for(k=0; k<nzmax; k++)
+  if(triplet)
   {
-    p.r_ = (int)::Round(iu.Random()).Value();
-    p.c_ = (int)::Round(ju.Random()).Value();
-  //BHashPairs::const_iterator fc = hashPairs.find(p);
-  //if(fc==hashPairs.end())
+    int k;
+    int* i = (int*)triplet->i;
+    int* j = (int*)triplet->j;
+    double* x = (double*)triplet->x;
+    for(k=0; k<nzmax; k++)
     {
-      i[k] = p.r_; 
-      j[k] = p.c_; 
-      x[k] = dist.Random().Value(); 
-      if(x[k]!=0.0)
-      { 
-        triplet->nnz++; 
-      //hashPairs[p] = x[k];
+      p.r_ = (int)::Round(iu.Random()).Value();
+      p.c_ = (int)::Round(ju.Random()).Value();
+    //BHashPairs::const_iterator fc = hashPairs.find(p);
+    //if(fc==hashPairs.end())
+      {
+        i[k] = p.r_; 
+        j[k] = p.c_; 
+        x[k] = dist.Random().Value(); 
+        if(x[k]!=0.0)
+        { 
+          triplet->nnz++; 
+        //hashPairs[p] = x[k];
+        }
       }
     }
   }
