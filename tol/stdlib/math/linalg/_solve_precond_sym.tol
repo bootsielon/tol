@@ -127,17 +127,18 @@ NameBlock SolvePrecondSym(VMatrix M, Real do.normalize)
   VMatrix PreCndLinOpr(VMatrix u, Real traspose)
   {
     //As operator is symmetric parameter traspose is noy used in this case
-    CholeskiSolve(SPDP::_.Lc,_.S*u,"PtLLtP")
+    CholeskiSolve(_.Lc,_.S*u,"PtLLtP")
   };
+  //Solves linear system M*xy
   //Solves linear system M*xy
   NameBlock Solve(VMatrix y, Real tolerance, Real forze.lanczos)
   {[[
     Text _MID = "[SolvePrecondSym()::Solve()] ";
     VMatrix _.y = y;
     Real    _.tol.solver = tolerance;
-    Real    _.tol.mrs    = (tolerance^2)/_.m;
-    VMatrix _.v = If(!_.do.normalize,_.y, _.Di*_.y);
-    VMatrix _.u0 = CholeskiSolve(SPDP::_.Lc,_.v,"PtLLtP");
+    Real    _.tol.mrs    = (tolerance)^2/_.m;
+    VMatrix _.v = If(!_.do.normalize,y, _.Di*y);
+    VMatrix _.u0 = CholeskiSolve(_.Lc,_.v,"PtLLtP");
     VMatrix _.u  = If(And(!forze.lanczos, !_.c), _.u0,
     {
       MinimumResidualsSolve(PreCndLinOpr, _.u0,_.tol.mrs,_.u0)
