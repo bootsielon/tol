@@ -36,7 +36,7 @@
 
 BTraceInit("multvar.cpp");
 
-#define USE_BTruncatedNormalDist
+//#define USE_BTruncatedNormalDist
 
 //--------------------------------------------------------------------
 // Static variable for BMultivarDist.
