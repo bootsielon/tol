@@ -737,6 +737,29 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
 
 //TRACE_SHOW_LOW(fun,BText("End with result type: ")<<BText((result!=NULL)?result->Grammar()->Name():BText("NULL")));
   TRACE_SHOW_LOW(fun,"END");
+  if(result && (result->Grammar()==GraNameBlock()))
+  {
+    BUserNameBlock* unb = (BUserNameBlock*)result;
+    BUserNameBlock* own = unb->Contens().Owner();
+    if(unb->HasName() && (own!=unb))
+    {
+      if(unb->Name()=="root")
+        printf("");
+      BNameBlock& nb = unb->Contens();
+      if(!own || (own->Level()>unb->Level()))
+      {
+        nb.PutOwner(unb);
+        BText fatherName = "";
+        const BNameBlock* father = nb.Father();
+        if(father && father->EnsureIsAssigned())
+        {
+          fatherName = nb.Father()->Name();
+        }
+        nb.PutLocalName(unb->Name());
+        nb.RebuildFullNameDeep(fatherName);
+      }
+    }
+  }
   return(result);
 }
 
