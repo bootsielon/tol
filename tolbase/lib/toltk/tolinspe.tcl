@@ -3000,7 +3000,8 @@ proc ::TolInspector::ViewDefinition {name path grammar} {
           [string equal $grammar "Anything"]} {
         append txtFind " " $name "( )*\\("
       } else {
-        append txtFind $grammar "( )+" $name
+        #append txtFind $grammar "( )+" $name
+        append txtFind $name
       }
       #Me situo al principio del texto
       set editor [::Editor::GetText $Instance]
