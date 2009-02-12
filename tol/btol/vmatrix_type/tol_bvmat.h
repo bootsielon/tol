@@ -245,6 +245,7 @@ private:
 
   static cholmod_common_struct  *common_;
   static FILE* cholmod_print_file_;
+  static BDat autoConvert_;
 public:
   UStore s_;
   ECode  code_;
@@ -307,6 +308,7 @@ public:
   static int ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
                          const BVMat& A, double b, BVMat& C);
   static void BinGroup(BBinFun f, BVMat** arr, int num, BVMat& C);
+  static BDat& AutoConvert();
 private:
   static bool force_natural_order(bool force);
   static void restore_cholmod_common();
