@@ -43,15 +43,22 @@ BVMat::StrConvert  BVMat::convert_        [BVMat::convert_numOpt];;
 BVMat::StrProduct  BVMat::product_        [BVMat::product_numOpt];;
 BVMat::StrCholSol  BVMat::cholSol_        [BVMat::cholSol_numOpt];;
 BVMat::StrCholFac  BVMat::cholFac_        [BVMat::cholFac_numOpt];;
-cholmod_common    *BVMat::common_  = NULL;
-FILE              *BVMat::cholmod_print_file_=NULL;
-
+cholmod_common    *BVMat::common_             = NULL;
+FILE              *BVMat::cholmod_print_file_ = NULL;
+BDat               BVMat::autoConvert_        = true;
 
 ////////////////////////////////////////////////////////////////////////////////
 // BVMat members
 ////////////////////////////////////////////////////////////////////////////////
 
 static cholmod_common BVMat_cholmod_common;
+
+////////////////////////////////////////////////////////////////////////////////
+BDat& BVMat::AutoConvert()
+////////////////////////////////////////////////////////////////////////////////
+{
+  return(autoConvert_);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 int BVMat::InitializeClass()
@@ -554,9 +561,84 @@ static int intCmp_(const void* v1, const void* v2)
   int c=Columns();
   double* y;
   double* x;
-  int jx, k0y, k1y, ky, jy;
+  int i, k, jx, k0y, k1y, ky, jy;
   int *i0y, *iy;
   cRs_ensure_packed(  s_.chlmRsparse_);
+  int nfk = 0;
+  BArray<int>    nfi(rx*cx);
+  BArray<int>    nfj(rx*cx);
+  BArray<double> nfx(rx*cx);
+  for(jx=0; (jx<cx); jx++)
+  {
+    jy = j0+jx;
+    x = ((double*)x_.s_.blasRdense_->x) + (rx*jx);
+    k0y = ((int*)s_.chlmRsparse_->p)[jy];
+    k1y = ((int*)s_.chlmRsparse_->p)[jy+1];
+    i0y = ((int*)s_.chlmRsparse_->i)+k0y;
+    iy = (int*) bsearch(&i0,i0y, k1y-k0y, sizeof(int), intCmp_);
+    ky = k0y+(iy-i0y);
+    y = ((double*)s_.chlmRsparse_->x)+ky;
+    for(k=0; k<rx; k++, ky++, y++)
+    {
+      if(!iy || ( (i = *iy-i0) !=k))
+      {
+        nfi[nfk]=i0+k;
+        nfj[nfk]=jy;
+        nfx[nfk]=x[k];
+        nfk++;
+      }
+      else
+      {
+        *y = x[k];
+      }
+      if(iy) 
+      { 
+        assert((ky<k1y)&&(*iy<i0+rx));
+        iy++; 
+      }
+    }
+  }
+  if(nfk)
+  {
+    warn_cannot_apply("PutVMatBlock",
+      I2("(There are "+nfk+" non stored cells of sparse "
+         "matrix that will be be modified)",
+         "(Existen "+nfk+" celdas no almacenadas de "
+         "la matriz sparse que serán modificadas)"),
+      *this); 
+    cholmod_R_triplet* tr_old = 
+      cholmod_sparse_to_triplet(s_.chlmRsparse_, common_);
+    cholmod_R_triplet* tr_new = 
+      cholmod_allocate_triplet(r, c, tr_old->nzmax+nfk, 0, CHOLMOD_REAL, common_);
+    tr_new->nnz = tr_new->nzmax;
+    int*    i_old = (int*)   tr_old->i;
+    int*    j_old = (int*)   tr_old->j;
+    double* x_old = (double*)tr_old->x;
+    int*    i_new = (int*)   tr_new->i;
+    int*    j_new = (int*)   tr_new->j;
+    double* x_new = (double*)tr_new->x;
+    int c=0;
+    for(k=0; k<tr_old->nzmax; k++)
+    {
+      i_new[c] = i_old[k];
+      j_new[c] = j_old[k];
+      x_new[c] = x_old[k];
+      c++;
+    }
+    for(k=0; k<nfk; k++)
+    {
+      i_new[c] = nfi[k];
+      j_new[c] = nfj[k];
+      x_new[c] = nfx[k];
+      c++;
+    }
+    cholmod_free_sparse (&s_.chlmRsparse_, common_);
+    s_.chlmRsparse_ = cholmod_triplet_to_sparse
+    (tr_new, tr_new->nnz, common_);
+    cholmod_free_triplet (&tr_old, common_);
+    cholmod_free_triplet (&tr_new, common_);
+  }
+/*
   for(jx=0; jx<cx; jx++)
   {
     jy = j0+jx;
@@ -565,18 +647,6 @@ static int intCmp_(const void* v1, const void* v2)
     k1y = ((int*)s_.chlmRsparse_->p)[jy+1];
     i0y = ((int*)s_.chlmRsparse_->i)+k0y;
     iy = (int*) bsearch(&i0,i0y, k1y-k0y, sizeof(int), intCmp_);
-    if(!iy)
-    {
-      accessCode = -3;
-      err_cannot_apply("PutVMatBlock",
-        I2("(position ["+i0+","+jy+"] has not a non zero cell of sparse "
-           "matrix to be modified)",
-           "(la posición ["+i0+","+jy+"] no contiene una celda no nula de "
-           "la matriz sparse a modificar)"),
-        *this); 
-
-      return(accessCode);
-    }
     ky = k0y+(iy-i0y);
     y = ((double*)s_.chlmRsparse_->x)+ky;
     for(; (ky<k1y)&&(*iy<i0+rx); ky++, y++, iy++)
@@ -584,6 +654,7 @@ static int intCmp_(const void* v1, const void* v2)
       *y = x[*iy-i0];
     }
   }
+*/
   return(accessCode);
 };
 
