@@ -145,9 +145,10 @@ Text _.autodoc.member.NonLinBlock =
   //WriteLn("TRACE"+_MID+"draw.scalar 1.4 _.W("<<Rows(_.W)+"x"<<Columns(_.W));
     Matrix _.Z := _.W + _.Fi * omega;
   //WriteLn("TRACE"+_MID+"draw.scalar 1.5 _.Z("<<Rows(_.Z)+"x"<<Columns(_.Z));
-    Set aux = _.segment->ArimaAuxInfo;
-    Set arima = _.segment->Arima;
-    Polyn dif = ARIMAGetDIF(arima);
+    Set segment = _.segment;
+    Set aux     = _.segment->ArimaAuxInfo;
+    Set arima   = _.segment->Arima;
+    Polyn dif   = ARIMAGetDIF(arima);
     //
     VMatrix si = SubRow(SubCol(sigBlk::_.sigmaInv,_.segment->EquIdx),_.segment->EquIdx);
     Real d = aux::difDegree;
@@ -195,7 +196,7 @@ Text _.autodoc.member.NonLinBlock =
       {
         Matrix Zi = EvalFilteredNoise(x);
         VMatrix Zi_ = Mat2VMat(Zi);
-        VMatrix ei_ = arimaBlk::filterJustBlock(_.segment, Zi_);
+        VMatrix ei_ = arimaBlk::filterJustBlock(segment, Zi_);
         Matrix  ei  = VMat2Mat(ei_);
         Real ld = -0.5*MatDat(MtMSqr(ei),1,1);
       //WriteLn("TRACE LogDens.ARMA("+_.colNames[i]+","<<x+")="<<ld);
@@ -209,7 +210,7 @@ Text _.autodoc.member.NonLinBlock =
         Matrix Wi = Rand(d,1,0,0) << Sub(DifEq(dif/1,Zi),d+1,1,n,1);
       //WriteLn("TRACE Wi("<<Rows(Wi)+","<<Columns(Wi)+")");
         VMatrix Wi_ = Mat2VMat(Wi);
-        VMatrix ei_ = arimaBlk::filterJustBlock(_.segment, Wi_);
+        VMatrix ei_ = arimaBlk::filterJustBlock(segment, Wi_);
       //WriteLn("TRACE ei_("<<VRows(ei_)+","<<VColumns(ei_)+")");
         Matrix  ei  = VMat2Mat(Sub(ei_,d+1,1,n,1));
       //WriteLn("TRACE ei("<<Rows(ei)+","<<Columns(ei)+")");
