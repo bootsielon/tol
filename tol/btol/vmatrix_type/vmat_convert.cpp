@@ -138,6 +138,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
+  if(!autoConvert_) { return(-1); }
   A_ = (BVMat*)&A;
   B_ = (BVMat*)&B;
   if(forze || !((A.code_==ESC_blasRdense)&&(B.code_==ESC_blasRdense)))
@@ -163,6 +164,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
+  if(!autoConvert_) { return(-1); }
   A_ = (BVMat*)&A;
   B_ = (BVMat*)&B;
   if(A.code_==ESC_chlmRtriplet) 
@@ -185,6 +187,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
+  if(!autoConvert_) { return(-1); }
   A_ = (BVMat*)&A;
   B_ = (BVMat*)&B;
   if((A.code_==ESC_blasRdense) && (B.code_!=ESC_blasRdense))
@@ -211,6 +214,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
+  if(!autoConvert_) { return(-1); }
   A_ = (BVMat*)&A;
   if(A.code_!=ESC_blasRdense)
   { 
