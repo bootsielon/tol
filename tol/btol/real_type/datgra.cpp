@@ -36,6 +36,7 @@
 #include <tol/tol_btsrgrp.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bmatfun.h>
+#include <tol/tol_bvmat.h>
 
 
 //--------------------------------------------------------------------
@@ -481,6 +482,17 @@ void BGraContensBase<BDat>::InitInstances()
        " this variable is TRUE.",
        "Los espacios a la derecha de todos los campos de texto leidos"
        " de bases de datos serán eliminados si esta variable es TRUE")
+  );
+
+  BParamDat* VMatAutoConvert_	 = new BParamDat
+  (
+    "VMatAutoConvert",
+    BVMat::AutoConvert(),
+    I2("If true VMatrix will try to convert between operands subtypes "
+       "in order to perform not allowed operations with current subtypes",
+       "Si es cierto, los operadores de VMatrix intentarán convertir "
+       "los subtipos de lso operandos para poder ejecutar operaciones "
+       "que no sean posibles con los actuales subipos.")
   );
 
   OwnGrammar()->PutDefect(unknown_);
