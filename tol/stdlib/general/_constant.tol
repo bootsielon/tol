@@ -61,6 +61,7 @@ Date ASunday    = y2001m1d7;
 //////////////////////////////////////////////////////////////////////////////
 TimeSet Horario       = Mi(0);
 TimeSet FinDeSemana   = WD(6)+WD(7);
+TimeSet DiarioLunVie  = Diario-FinDeSemana;
 TimeSet Semanal       = WD(1);
 TimeSet Decenal       = D(1)+D(11)+D(21);
 TimeSet Quincenal     = D(1)+D(16);
@@ -84,6 +85,7 @@ TimeSet Decanual      = Periodic(y1901,10,Anual);
 TimeSet Hourly        = Mi(0);
 TimeSet Weekly        = WD(1);
 TimeSet WeekEnd       = WD(6)+WD(7);
+TimeSet DailyMonFry   = Daily-WeekEnd;
 TimeSet Decenial      = D(1)+D(11)+D(21);
 TimeSet Fornigthly    = D(1)+D(16);
 TimeSet Semimonthly   = D(1) + ( D(15)*M(2) + D(16)*(C-M(2)) );
