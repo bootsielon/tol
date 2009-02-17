@@ -1200,7 +1200,7 @@ proc ::SeriesGraph::OptionsApplyXMarkers {this lstXMarkers lstColors lstDashes l
     set i 0
     catch {eval $sergrp ticks add $lstXMarkers}
     foreach tms $lstXMarkers {
-      if {![catch {::tol::info var TimeSet $tms}]} {
+      if {![catch {::tol::info var [list TimeSet $tms]}]} {
         $g marker bind $tms <Enter> [list ::bayesGraph::WriteInfo $this "[mc Marker]X: $tms"]
         $g marker bind $tms <Leave> [list ::bayesGraph::WriteInfo $this ""]
         set color  [lindex $coltbl $i]
