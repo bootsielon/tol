@@ -154,7 +154,7 @@ Real ModSes.Mix.OrderRelation.Create(Text dbName,
   dbName+"."+_table::OrderRel,
   "'"+model+"','"+session+"',"
   "'"+nodeLower+"','"+parameterLower+"',"+
-  "'"+nodeUpper+"','"+parameterUpper);
+  "'"+nodeUpper+"','"+parameterUpper+"'");
   Eval("ModSes.Mix.OrderRelation.Create.ok=ok")
 };
 
