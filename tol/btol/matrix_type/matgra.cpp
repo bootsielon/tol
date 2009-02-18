@@ -3253,7 +3253,7 @@ void BMatPostProdDiag::CalcContens()
   DMat& c = b2dMat(contens_);
   c = dMat(Arg(1));
   DMat& d = dMat(Arg(2));
-  register int m = c.Columns();
+  register int m = c.Rows();
   register int n = c.Columns();
   register int i, j;
   register double* cij = c.GetData().GetBuffer();
@@ -3291,7 +3291,7 @@ void BMatPreProdDiag::CalcContens()
   DMat& c = b2dMat(contens_);
   DMat& d = dMat(Arg(1));
   c = dMat(Arg(2));
-  register int m = c.Columns();
+  register int m = c.Rows();
   register int n = c.Columns();
   register int i, j;
   register double* dii = d.GetData().GetBuffer();
