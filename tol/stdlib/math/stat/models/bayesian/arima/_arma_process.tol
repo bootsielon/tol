@@ -333,7 +333,7 @@ NameBlock ARMAProcess =
     VMatrix Get.Z0(VMatrix u)
     ////////////////////////////////////////////////////////////////////////////
     {
-      Sub(u, 1,     1, _.p, 1)
+      Sub(u, 1, 1, _.p, 1)
     };
     ////////////////////////////////////////////////////////////////////////////
     VMatrix Get.A0(VMatrix u)
@@ -347,10 +347,12 @@ NameBlock ARMAProcess =
     VMatrix _.v = solve.L(_.L_u, _.u); 
     VMatrix _.a   = DifEq(_.ar/_.ma, _.z, _.z0, _.a0);
     Real _0.5_m_log2_PI_s2 = -0.5*_.m*Log(2*PI*_.s2);
-    Real _.logLH = _0.5_m_log2_PI_s2 - 0.5*_.m*
-    (  
-      _.det_cov_z/_.m + 
-      (VMatMoment(_.a,2) + VMatMoment(_.u,2))/_.s2  
+
+    Real aa = MatDat(VMat2Mat( Tra(_.a)*_.a), 1,1);     
+    Real uu = MatDat(VMat2Mat( Tra(_.u)*_.covi_u*_.u),1,1);
+    Real _.logLH = _0.5_m_log2_PI_s2 - 0.5*
+    (
+      _.det_cov_z+(aa+uu)/_.s2
     );
 
     ////////////////////////////////////////////////////////////////////////////
