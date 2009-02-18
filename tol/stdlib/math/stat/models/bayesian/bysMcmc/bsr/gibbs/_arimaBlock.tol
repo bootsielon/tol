@@ -401,7 +401,8 @@ Text _.autodoc.member.ArimaBlock =
     //WriteLn("TRACE"+_MID+" draw.scalar 2 pd="<<pd);
       Set segment     = _.NoiseDistrib[pd->resBlockNum];
       Set arima  = segment->Arima;
-      Real sigma = 1.0; //Sqrt(VMatDat(sigma.full,segment->SigmaIndex,1));
+      Real sigma = If(segment->SigmaIndex==0,1,
+         Sqrt(VMatDat(sigma.full,segment->SigmaIndex,1)));
       Polyn dif  = ARIMAGetDIF(arima);
       Set factor = arima[pd->factorNum];
       Set equIdx = segment->EquIdx;
