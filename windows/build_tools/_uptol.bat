@@ -317,7 +317,9 @@ If "%_dotests%"=="1" (
     Set _tst_cd=!CD!\test_status
     PushD ..\ActiveTOL\bin
     Echo Ejecutando Tol standard tests ...
-    tol.exe -v -c"Text DupTestIndicatorPath=\"%CD%\\test_status\"" "..\\..\\tol_tests\\tol\\_tolTester.tol">!_tst_cd!\init.log
+	echo %CD%\\test_status\
+	dir ..\..\..\
+    tol.exe -v -c"Text DupTestIndicatorPath=\"%CD%\\test_status\"" "..\\..\\..\\tol_tests\\tol\\_tolTester.tol">!_tst_cd!\init.log
     PopD
     If Exist test_status\FAIL.txt (
       Set test_status=FAIL
