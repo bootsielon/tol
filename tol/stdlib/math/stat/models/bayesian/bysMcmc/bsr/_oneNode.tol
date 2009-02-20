@@ -36,8 +36,9 @@ NameBlock OneNode =
       Real Prior.Missing.UpperBound=?)  //Already not implemented
   };
 
-  Text _.autodoc.member.Estim = 
-  "Estimates a model with just one node, usually observational and dense."
+  Text _.autodoc.member.BuildModelDef = 
+  "Creates a BSR model definition with structure of BSR.ModelDef\n" 
+  "Model must have just one node, usually observational and dense."
   "Model is defined as a BSR basic and an optional set of non linear filters."
   "BSR will be built from simplified data argument matching this API"
   "NameBlock data = \n"
@@ -53,14 +54,12 @@ NameBlock OneNode =
   "  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
   "  Set _.arima;           //Set of ARIMAStruct\n"
   "  Real _.sigmaPriorWeight;  //Weight for Bsr.Sigma.Prior.InverseGamma\n"
-  "  Set _.timeInfo;        //Set of BSR.NoiseTimeInfo\n"
+  "  Set _.timeInfo;        //BSR.NoiseTimeInfo\n"
   "]];\n";
-  Set Estim(NameBlock data_, Set nonLinFil, NameBlock config_)
+  Set BuildModelDef(NameBlock data, NameBlock config_)
   ///////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[EstimOneNode]";
-    //Data source for model defining
-    NameBlock data = data_;
   //WriteLn(_MID+" TRACE 1");
     //Output matrix
     VMatrix Y = If(ObjectExist("VMatrix","data::_.Y"),
@@ -73,7 +72,7 @@ NameBlock OneNode =
   //WriteLn(_MID+" TRACE 3");
     //Observational data length
     Real m = VRows(Y);
-    //Number of variables at linear block
+    //Number of variables at linear block 
     Real n = VColumns(X);
 
     //Used to collect prior information if exists
@@ -236,7 +235,7 @@ NameBlock OneNode =
     Real SetIndexByName(noiseDistrib);
   //WriteLn(_MID+" TRACE 9");
     //Building generic model definition
-    Set modelDef = BSR.ModelDef (
+    BSR.ModelDef (
       docInfo = data::_.docInfo,
       linearBlock,
       Set inputMissing  = If(ObjectExist("Set","data::_.inputMissing"),
@@ -248,7 +247,34 @@ NameBlock OneNode =
       VMatrix X.full = X << prior.X,
       VMatrix a = domain.a << order.a,
       VMatrix A = domain.A << order.A
-    );
+    )
+  };
+
+  Text _.autodoc.member.Estim = 
+  "Estimates a model with just one node, usually observational and dense."
+  "Model is defined as a BSR basic and an optional set of non linear filters."
+  "BSR will be built from simplified data argument matching this API"
+  "NameBlock data = \n"
+  "[[\n"
+  "//Mandatory members \n"
+  "  Set  _.docInfo         //BSR.DocInfo \n"
+  "  Text _.segmentName;    //Node name\n"
+  "  Set _.linearParamInfo; //Set of Bsr.OneNode.LinearParamInfo\n"
+  "  Anything _.Y;          //Output data (Matrix or VMatrix)\n"
+  "  Anything _.X;          //Input data  (Matrix or VMatrix)\n"
+  "  Real _.sigma;          //Sigma prior value, or ? to freely simulate it\n"
+  "//Optional members \n"
+  "  Set _.orderRelation;   //Set of Bsr.OrderRelation.Info\n"
+  "  Set _.arima;           //Set of ARIMAStruct\n"
+  "  Real _.sigmaPriorWeight;  //Weight for Bsr.Sigma.Prior.InverseGamma\n"
+  "  Set _.timeInfo;        //BSR.NoiseTimeInfo\n"
+  "]];\n";
+  Set Estim(NameBlock data, Set nonLinFil, NameBlock config_)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[EstimOneNode]";
+    //Data source for model defining
+    Set modelDef = BuildModelDef(data, config_);
     Set result = If(Not(config_::mcmc.sampleLength), [[data, modelDef]],
     {
     //WriteLn(_MID+" TRACE 10");
