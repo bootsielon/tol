@@ -192,15 +192,13 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
            "a una matriz virtual")+" "+cond+" "+
         I2("virtual matrix","")+" "+CodeName(a.code_)+
            "("+a.Rows()+"x"+a.Columns()+")"+" ");
-#if defined( WIN32 )
-  FILE *f = fopen("c:\\fail_chol.mtx", "w");
-#else
-  FILE *f = fopen("/tmp/fail_chol.mtx", "w");
-#endif
+#ifndef NDEBUG
+  FILE *f = fopen(BSys::TolAppData()+"tmp/vmatrix_err_cannot_apply.mtx", "w");
   if ( f ) {
     ((BVMat&)a).WriteMatrixMarket(f);
     fclose(f);
   }
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
