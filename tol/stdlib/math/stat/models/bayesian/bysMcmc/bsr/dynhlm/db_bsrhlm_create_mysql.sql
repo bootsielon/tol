@@ -520,7 +520,7 @@ CREATE TABLE  `bsrhlm_v_pri_output` (
   `id_node_child` varchar(64) NOT NULL,
   `id_parameter_child` varchar(64) NOT NULL,
   `vl_coef` double  NOT NULL,
-  PRIMARY KEY (`id_model`,`id_session`,`id_node_father`,`id_node_child`,`id_parameter_child`),
+  PRIMARY KEY (`id_model`,`id_session`,`id_node_father`,`nu_equation`,`id_node_child`,`id_parameter_child`),
   CONSTRAINT `FK_bsrhlm_v_pri_output_model_session_node_father_nu_equation`
     FOREIGN KEY                           (`id_model`, `id_session`, `id_node_father`, `nu_equation`)
     REFERENCES `bsrhlm_v_pri_equ`         (`id_model`, `id_session`, `id_node_father`, `nu_equation`)
