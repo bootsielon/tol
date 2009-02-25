@@ -1,0 +1,59 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : example.1.tol
+// PURPOSE: Using Class in TOL
+//////////////////////////////////////////////////////////////////////////////
+
+Class WithName
+{ 
+  Text _.name
+};
+
+Class Doc: WithName
+{ 
+  Text _.description
+};
+
+Class ColumnVector
+{ 
+  Matrix  get.column  (Anything unused)
+};
+
+Class Vector: ColumnVector
+{ 
+  Real    has.timeInfo(Anything unused);
+  TimeSet dating      (Anything unused);
+  Date    firstDate   (Anything unused);
+  Date    lastDate    (Anything unused)
+};
+
+Class VectorDoc: Vector, Doc;
+
+Class VectorInfo: Vector, Doc
+{
+  Text Info(Anything unused)
+  {
+    "VectorInfo "+_.name+" : "+_.description
+  }
+};
+
+Class VectorDoc.Ser: VectorDoc
+{
+  Serie  _ser;
+  Matrix  get.data    (Anything unused) { Tra(SerMat(_ser)) };
+  Real    has.timeInfo(Anything unused) { True };
+  TimeSet dating      (Anything unused) { Dating(_ser) };
+  Date    firstDate   (Anything unused) { First(_ser) };
+  Date    lastDate    (Anything unused) { Last(_ser) }
+};
+
+Class VectorDoc.Mat: VectorDoc
+{
+  Matrix _mat;
+  Matrix  get.data    (Anything unused) { _mat };
+  Real    has.timeInfo(Anything unused) { False };
+  TimeSet dating      (Anything unused) { W };
+  Date    firstDate   (Anything unused) { UnknownDate };
+  Date    lastDate    (Anything unused) { UnknownDate }
+};
+
+

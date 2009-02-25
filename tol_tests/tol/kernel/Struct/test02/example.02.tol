@@ -1,0 +1,31 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : example.02.tol
+// PURPOSE: Checking use of reserved words as Struct fields
+//////////////////////////////////////////////////////////////////////////////
+
+Struct MyStr1
+{ 
+  Text Class;
+  Text Struct
+};
+
+Class Doc
+{ 
+  Text _.name;
+  Text _.description
+};
+
+Struct MyStr2
+{ 
+  Text MyStr1;
+  Text Doc
+};
+
+MyStr1 x.1 = MyStr1("class_a","struct_a");
+MyStr2 x.2 = MyStr2("myStr1_b","doc_b");
+
+Text x.1->Struct;
+Text x.1->Class;
+Text x.2->MyStr1;
+Text x.2->Doc;
+

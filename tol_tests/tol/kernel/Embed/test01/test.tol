@@ -1,0 +1,53 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for #Embed macro
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = "test for #Embed macro" ;
+
+
+//Write here the initial test TOL code if needed
+
+Real numErr0 = Copy(NError);
+
+#Embed "file.1.tol";
+#Embed "file.2.tol";
+
+
+Set x = MyStruct("Juan",23);
+
+Real MyStruct.Age(MyStruct str)
+{
+  str->age
+}; 
+
+Real age = MyStruct.Age(x);
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  Real a.1;
+  Text b.1;
+  Real a.2;
+  Text b.2;
+  Real age
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1, age==23);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+/* */
+
+
+

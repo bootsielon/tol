@@ -1,0 +1,11 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : example.04.tol
+// PURPOSE: Storing Class definitions and instances in OIS
+//////////////////////////////////////////////////////////////////////////////
+
+Real Ois.Store( { Include("../test01/example.01.tol") }, "example.01.oza");
+Set Ois.Load("example.01.oza");
+Real Ois.Store( { Include("../test03/example.03.tol") }, "example.03.oza");
+Set Ois.Load("example.03.oza");
+
+

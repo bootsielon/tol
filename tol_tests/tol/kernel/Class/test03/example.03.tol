@@ -1,0 +1,40 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : example.03.tol
+// PURPOSE: Creating instances of classes
+//////////////////////////////////////////////////////////////////////////////
+
+
+//Instances a Class with just one non defined member
+WithName a = 
+[[
+  Text _.name  = "MiDocumento"
+]];
+
+//Instances a Class with two non defined member
+Doc b = 
+[[
+  Text _.name        = "MiDocumento";
+  Text _.description = "MiDescripción"
+]];
+
+//Not an instance of any Class
+NameBlock c = 
+[[
+  Text _.name        = "MiDocumento";
+  Text _.description = "MiDescripción"
+]];
+
+//Returns _.name of an instance of WithName
+Text GetName(WithName obj)
+{
+  obj::_.name
+};
+
+//Returns _.name and _.description of an instance of Doc
+Text Dump(Doc obj)
+{
+  obj::_.name+":"+obj::_.description
+};
+
+
+/* */

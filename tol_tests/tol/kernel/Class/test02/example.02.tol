@@ -1,0 +1,100 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : example.02.tol
+// PURPOSE: Examples of syntax errors in Class declarations
+//////////////////////////////////////////////////////////////////////////////
+
+//This is a correct declaration
+Real numErr.Doc.0 = Copy(NError);
+Class Doc
+{ 
+  Text _.name;
+  Text _.description
+};
+//Number of errors must be zero
+Real numErr.Doc = Copy(NError)-numErr.Doc.0;
+
+//This is a correct declaration
+Real numErr.ColumnVector.0 = Copy(NError);
+Class ColumnVector
+{ 
+  Matrix  get.column  (Anything unused)
+};
+//Number of errors must be zero
+Real numErr.ColumnVector = Copy(NError)-numErr.ColumnVector.0;
+
+//This is a correct declaration
+Real numErr.Vector.0 = Copy(NError);
+Class Vector: ColumnVector
+{ 
+  Real    has.timeInfo(Anything unused);
+  TimeSet dating      (Anything unused);
+  Date    firstDate   (Anything unused);
+  Date    lastDate    (Anything unused)
+};
+//Number of errors must be zero
+Real numErr.Vector = Copy(NError)-numErr.Vector.0;
+
+//This is a repeated declaration
+Real numErr.Vector.b.0 = Copy(NError);
+Class Vector
+{ 
+  Real    has.timeInfo(Anything unused);
+  TimeSet dating      (Anything unused);
+  Date    firstDate   (Anything unused);
+  Date    lastDate    (Anything unused)
+};
+//Number of errors must be great than zero
+Real numErr.Vector.b = Copy(NError)-numErr.Vector.b.0;
+
+//This is a correct declaration
+Real numErr.VectorDoc.0 = Copy(NError);
+Class VectorDoc: Vector, Doc;
+//Number of errors must be zero
+Real numErr.VectorDoc = Copy(NError)-numErr.VectorDoc.0;
+
+//This is a wrong declaration
+Real numErr.VectorInfo.0 = Copy(NError);
+Class VectorInfo: Vector, Doc
+{
+  Text Info(Anything unused)
+  {
+    "VectorInfo "+_.name+" : "+_.description
+  };
+  //This identifier has been declared as a method
+  Text Info
+};
+//Number of errors must be great than zero
+Real numErr.VectorInfo = Copy(NError)-numErr.VectorInfo.0;
+
+//This is a wrong declaration
+Real numErr.VectorDoc.Ser.0 = Copy(NError);
+Class VectorDoc.Ser: VectorDoc
+{
+  Serie  _ser;
+  //This declaration is incompatible with inherited from ColumnVector
+  Matrix  get.column  (Real unused) { Tra(SerMat(_ser)) };
+  Real    has.timeInfo(Anything unused) { True };
+  TimeSet dating      (Anything unused) { Dating(_ser) };
+  Date    firstDate   (Anything unused) { First(_ser) };
+  Date    lastDate    (Anything unused) { Last(_ser) }
+};
+//Number of errors must be great than zero
+Real numErr.VectorDoc.Ser = Copy(NError)-numErr.VectorDoc.Ser.0;
+
+//This is a wrong declaration
+Real numErr.VectorDoc.Mat.0 = Copy(NError);
+Class VectorDoc.Mat: VectorDoc
+{
+  Matrix _mat;
+  Matrix  get.column  (Anything unused) { _mat };
+  Real    has.timeInfo(Anything unused) { False };
+  TimeSet dating      (Anything unused) { W };
+  Date    firstDate   (Anything unused) { UnknownDate };
+  //This identifier is already declared
+  Real    has.timeInfo(Anything unused) { False };
+  Date    lastDate    (Anything unused) { UnknownDate }
+};
+//Number of errors must be great than zero
+Real numErr.VectorDoc.Mat = Copy(NError)-numErr.VectorDoc.Mat.0;
+
+/* */
