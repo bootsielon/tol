@@ -1,3 +1,45 @@
+* (30-Jan-2009) What is new in Tol v1.1.7:
+
+  Fixes the following bugs:
+  ========================
+    608
+
+  Kernel
+    Calling ShowCallStack when errors are displayed
+    
+  Time Algebra
+    New robust and fast (log-lineal) implementation of SuccSuccessor and SuccPredecessor 
+    Adding TimeSet Decanual and TenYearly
+    
+  Matrix algebra
+    Allowing dense-sparse operations with CholeskiSolve
+    New built-in function Sort
+    New thinnig parameter for BinReadRows
+    New built-in function MatReadDimensions
+    
+  Statistics  
+    New Quantile API to get a set of quantiles saving time
+    
+  BSR
+    Handling with vectorial or time series data in a transparent way  
+    Non linear filers of output and input
+    Handling with normal prior information about parameters of non linear filters. Prior information is given as a log density additive function
+    Avoiding to store all nodes to save memory
+    Enhanced SQL scripting
+    Storing failed factorization matrix
+    Allowing fixed sigma in observational nodes
+    User can specify the number of simulations to be resumed (do.resume>0) or las simulations to be skiped (do.resume<0)
+    Adding SLICE scalar sampler
+    New API OneNode to define simple BSR models with just one observational node and optional prior information and order relations
+    New non linear filter for probit models
+    Ensuring input matrix has changed. Else it will reuse old factorization
+    Allowing Inverse-Gamma prior over sigma^2 of BSR segments
+        
+  System tools
+    New function OSFilCat that concats a set of files in a new one
+    New built-in function FileCat
+    
+    
 * (06-Aug-2008) What is new in Tol v1.1.7 b.0.10.alpha:
 
   Fixes the following bugs:
@@ -29,7 +71,6 @@
     New methods BysMcmc::Bsr::Gibbs::Estim and Bsr::Gibbs::Instance(...)::eval
     Adding optional time info assigned to each segment of noise
     Adding and grouping documental information 
-
 
 
 * (10-Jul-2008) What is new in Tol v1.1.7 b.0.9.alpha:
