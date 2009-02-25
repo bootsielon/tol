@@ -10,6 +10,9 @@
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
 
+  Real PutRandomSeed(0);
+  Real rndSeed = GetRandomSeed(0);
+  WriteLn("rndSeed = "<<rndSeed);
   
   //Matrices dimension
   Real n = 100;
@@ -49,24 +52,24 @@
   //Implicit solving of linear system using finite differences 
   Matrix aux.4.3 = DifEq(1/pol,x,Rand(0,0,0,0),Rand(deg,1,0,0));
 
-  Set ok.detail = 
+  Set quality.detail = 
   [[
-    Real ok.1   = MatEQ(TInv.1, TInv.2);
-    Real ok.2   = MatEQ(aux.2.1,aux.2.2);
-    Real ok.3   = MatEQ(aux.3.1,aux.3.2);
-    Real ok.4.2 = MatEQ(aux.4.1,aux.4.2);
-    Real ok.4.3 = MatEQ(aux.4.1,aux.4.3)
+    Real q.1   = 1-MatMax(Abs(TInv.1-TInv.2));
+    Real q.2   = 1-MatMax(Abs(aux.2.1-aux.2.2));
+    Real q.3   = 1-MatMax(Abs(aux.3.1-aux.3.2));
+    Real q.4.2 = 1-MatMax(Abs(aux.4.1-aux.4.2));
+    Real q.4.3 = 1-MatMax(Abs(aux.4.1-aux.4.3))
   ]];
-  Real ok.all = Group("And",ok.detail);
+  Real quality.min = SetMin(quality.detail);
 
 //Extented information about test behaviour
-  Set partialResults_ = ok.detail <<
+  Set partialResults_ = quality.detail <<
   [[
     numErr0, n, pol, deg
   ]];
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr0 == NError, ok.all);
+  Real quality_ = And(numErr0 == NError) * quality.min;
 
 //Return the results 
   Set resultStr_ = strTestStatus(summary_, link_, quality_,
