@@ -63,9 +63,10 @@ BInt BSymbolTable::Add(BSyntaxObject* obj)
   BObjClassify oc(gra,mode);
   const char* name = obj->String();
 #ifndef NDEBUG
+  /*
   assert(BParser::DefaultParser()->Filter()->IsIdentifier(name) || 
          (mode==BBUILTINFUNMODE) || 
-         (mode==BSOURCEPATHMODE));
+         (mode==BSOURCEPATHMODE));*/
   BSyntaxObject* old = Search(oc,name);
   if(old)
   {
