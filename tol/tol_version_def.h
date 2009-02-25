@@ -21,10 +21,10 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // DEFINES
 ////////////////////////////////////////////////////////////////////////////////////
-#define VERSION_MAJOR   1
-#define VERSION_MINOR   1
-#define VERSION_RELEASE 7
-#define VERSION_BUILD   "0.16.alpha"
+#define VERSION_MAJOR   2
+#define VERSION_MINOR   0
+#define VERSION_RELEASE 1
+#define VERSION_BUILD   "0.1.alpha"
 
 #if defined(_MSC_VER)
 #include <tol_build_date.h>
