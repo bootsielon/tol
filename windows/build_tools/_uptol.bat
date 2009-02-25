@@ -24,7 +24,7 @@ If Not Exist test_status\nul (
 
 Rem !!!!!!!!!!!!!!!!!!!!!!!
 
-Set _url_bin_=http://www.tol-project.org/pub/bin/win
+Set _url_bin_=https://www.tol-project.org/win32
 
 Set tdt_subject="UPTOL works fine"
 Set tdt_body=%_fbody%
@@ -318,7 +318,7 @@ If "%_dotests%"=="1" (
     PushD ..\ActiveTOL\bin
     Echo Ejecutando Tol standard tests ...
 	echo %CD%\\test_status\
-	dir ..\..\..\
+	
     tol.exe -v -c"Text DupTestIndicatorPath=\"%CD%\\test_status\"" "..\\..\\..\\tol_tests\\tol\\_tolTester.tol">!_tst_cd!\init.log
     PopD
     If Exist test_status\FAIL.txt (
@@ -401,23 +401,24 @@ If "%_dodist%"=="1" (
       Echo encontrado %%~nxf
       Set _fbin=%%~nxf
     )
-    echo Creando el tag automatico correspondiente al empaquetado
-    cd NSIS
-    ..\ActiveTOL\bin\tol -v create_tag_build.tol
-    call create_tag_build.bat
-    Echo copiando last_development_tol_release_win.txt hacia www.tol-project.org
-    ..\ActiveTOL\bin\tol -v -c"Text WriteFile(\"last_development_tol_release_win.txt\",Version);"
-    pscp last_development_tol_release_win.txt toldevel@tolp.localbayes.es:.
-    Echo copiando Tolbase hacia http://www.tol-project.org
-    pscp Tolbase*.exe toldevel@tolp.localbayes.es:.
+    REM echo Creando el tag automatico correspondiente al empaquetado
+    cd ..\NSIS
+    REM ..\ActiveTOL\bin\tol -v create_tag_build.tol
+    REM call create_tag_build.bat
+    REM Echo copiando last_development_tol_release_win.txt hacia www.tol-project.org
+    REM ..\ActiveTOL\bin\tol -v -c"Text WriteFile(\"last_development_tol_release_win.txt\",Version);"
+    REM pscp last_development_tol_release_win.txt toldevel@tolp.localbayes.es:.
+    Echo copiando Tolbase hacia www.tol-project.org
+    pscp Tolbase*.exe toldevel@tolp.localbayes.es:/var/www/packages/win32/.
     If "%_branchid%"=="REMtrunkREM" (
       Echo copiando tolbase-%_versionNumber%-setup.exe como tolbase-cvstrunk-setup.exe en www.tol-project.org 
       plink tdt@cvs.tol-project.org "cp /home/bayes/pub/bin/win/tolbase-%_versionNumber%-setup.exe /home/bayes/pub/bin/win/tolbase-cvstrunk-setup.exe"
     )
-    Echo Moviendo el empaquetado a la carpeta de almacenamiento historico
-    ..\ActiveTOL\bin\tol -v store_history.tol
+    REM Echo Moviendo el empaquetado a la carpeta de almacenamiento historico
+    REM ..\ActiveTOL\bin\tol -v store_history.tol
     cd..
-    Echo Nueva version %_branchid% disponible en %_url_bin_%/!_fbin!>test_status\BODY.txt
+	GOTO END
+    REM Echo Nueva version %_branchid% disponible en %_url_bin_%/!_fbin!>test_status\BODY.txt
     Echo.>>%_fbody%
     Echo El resultado de tol_tests esta disponible en el archivo adjunto.>>%_fbody%
     Echo.>>%_fbody%
