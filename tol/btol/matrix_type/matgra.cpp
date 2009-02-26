@@ -2409,11 +2409,12 @@ void BMatMarquardt::CalcContens()
   M = MtMSqr(J)*2;
   BMatrix<BDat> X(1,n,x.Buffer());
   BMatrix<BDat> Y(1,m,y.Buffer());
-
+  BGrammar::IncLevel();
   BUserMat* UX = BContensMat::New("X",X,"Parameters");
   BUserMat* UY = BContensMat::New("Y",Y,"Residuals");
   BUserMat* UM = BContensMat::New("M",M,"Information matrix 2*J'J");
   BUserMat* UJ = BContensMat::New("J",J,"Jacobian matrix J");
+  BGrammar::DecLevel();
   contens_.PrepareStore(4);
   contens_.AddElement(UX);
   contens_.AddElement(UY);
