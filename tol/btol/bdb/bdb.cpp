@@ -474,7 +474,14 @@ void BSetBDBOpen::CalcContens()
   if(Arg(2)) { fixed = (BBool)Real(Arg(2)); }
   if(Arg(3)) { sep   = Text(Arg(3)).Get(0); }
   if(Arg(4)) { def   = Text(Arg(4)); }
-  if(Arg(5)) { str   = FindStruct(Text(Arg(5))); }
+  if(Arg(5)) 
+  { 
+    BText& strName = Text(Arg(5));
+    if(strName.HasName())
+    {
+      str = FindStruct(strName); 
+    }
+  }
 
   BDataBase* bdb = new BDataBase(alias, path, fixed, sep, def, str);
   
