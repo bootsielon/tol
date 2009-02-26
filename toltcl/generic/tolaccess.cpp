@@ -30,7 +30,6 @@
 #include <tol/tol_init.h>
 #include <tol/tol_version_def.h>
 #include <tol/tol_bcommon.h>
-#include <tol/tol_bstruct.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bvmatgra.h>
@@ -1658,7 +1657,14 @@ BOperator* TT_FindOperator( const BGrammar *G, const char *expr )
     return opr;
   }
   bool oldEnabled = BOut::Disable();
+  bool stopFlag = BGrammar::StopFlag();
+  BGrammar::Turn_StopFlag_Off();
   BSyntaxObject* obj = GraCode( )->BGrammar::LeftEvaluateExpr( expr );
+  if ( stopFlag ) {
+    BGrammar::Turn_StopFlag_On();
+  } else {
+    BGrammar::Turn_StopFlag_Off();
+  }
   if( oldEnabled ) { BOut::Enable( ); }
   if(obj)
   {
