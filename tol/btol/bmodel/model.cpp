@@ -33,6 +33,7 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_btxtgra.h>
+#include <tol/tol_bstruct.h>
 
 
 //--------------------------------------------------------------------

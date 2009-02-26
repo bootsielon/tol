@@ -27,6 +27,7 @@
 
 #include <tol/tol_barray.h>
 #include <tol/tol_btoken.h>
+#include <tol/tol_hash_map.h>
 
 //--------------------------------------------------------------------
 // forward references
@@ -47,12 +48,17 @@ class BScanner
  */
 //--------------------------------------------------------------------
 {
+public:
+  typedef hash_map_by_name<BToken*>::dense_ BTokenByNameHash;
 private:
-    static BArray<BToken*> symbolTable_;  //!< Tokens Symbol Table
+    static BTokenByNameHash symbolTable_;  //!< Symbol Table
+    static BTokenByNameHash aliasTable_;   //!< Alias Table
+    static BTokenByNameHash usrDefSymbol_; //!< User defined symbols Class, Struct, ...
     const BChar*  expression_;      //!< Expression that will be scanned
     const BChar*  position_;        //!< Actual position of scanning
           BInt    length_;          //!< Length of \a expression_
-
+    bool       structDefininig_;
+    BToken*    lastSymbol_;         //!< Pointer to next read token
     BToken*    nextSymbol_;         //!< Pointer to next read token
     //! Word read from scanner when a Token isn't in \a symbolTable_
     /*! Word read will be stored as BText in \a nextArgument_ if it isnt't
@@ -73,7 +79,9 @@ public:
   //! Initialize Scanner attributes in order to begin scan proccess
   void         Initialize     (const BText& expression);
   //! Find a symbol in \a symbolTable_ which name is \a str and returns it
-  BToken*      FindSymbol     (const BChar* str);
+  static BToken*      FindSymbol     (const BText& name);
+  //! Find a symbol in \a symbolTable_ which name is \a str and returns it
+  static BToken*      FindSymbol     (const BChar* str);
   //! Reads the next word in parsing code
   BTokenType   ReadNextSymbol ();
 
@@ -87,11 +95,13 @@ public:
   //! Returns the text scanned at this moment.
   BText        Scanned        ();
   //! Return size of \a symbolTable_ attribute.
-  BInt         CountSymbols   ();
+  static BInt CountSymbols   ();
   //! Store in \a symbolTable_ BToken \a sym parameter.
-  BInt         AddSymbol      (BToken* sym);
+  static BInt AddSymbol      (BToken* sym);
   //! Remove BToken named \a str from symbolTable_ BArray structure
-  BInt         DelSymbol      (const BChar* str);
+  static BInt DelSymbol      (const BText& name);
+  //! Remove BToken named \a str from symbolTable_ BArray structure
+  static BInt DelSymbol      (const BChar* str);
 
 private:
   //! Moves position_ to the next no blank character.

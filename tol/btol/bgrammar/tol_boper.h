@@ -37,9 +37,12 @@
 #ifndef TOL_BOPER_H
 #define TOL_BOPER_H 1
 
-#include <tol/tol_bstruct.h>
 #include <tol/tol_delay_init.h>
 #include <tol/tol_bexc.h>
+#include <tol/tol_blist.h>
+#include <tol/tol_list.h>
+#include <tol/tol_bobject.h>
+#include <tol/tol_bsyntax.h>
 
 // From C++ STL
 #include <vector>
@@ -53,6 +56,8 @@ typedef BSyntaxObject* (*BEvaluate) (const List* args);
 template class TOL_API BArray<BAtom*>;
 
 class BUserFunCode;
+class BStruct;
+class BClass;
 
 //--------------------------------------------------------------------
 class  TOL_API BOperClassify: public BObject
@@ -67,7 +72,7 @@ protected:
   BText	 description_;
   //! Classes
   static BList* instances_; 
-  static BArray<BAtom*> sortedClasses_;
+  static BArray<BAtom*> sortedTheme_;
 public:
   static BOperClassify* Various_;
   static BOperClassify* General_;
@@ -131,7 +136,7 @@ protected:
   //! Grammar of the result of evaluation
   BGrammar*	grammar_;   
   //! Classify of operators
-  BOperClassify* class_; 
+  BOperClassify* theme_; 
   //! Arguments
   BTextCell	argTable_;
   //profiler store 
@@ -154,12 +159,12 @@ public:
   //! Gets operator's grammar
   BGrammar*	 Grammar	  () const { return(grammar_); }
   //! Gets operator's classify
-  BOperClassify*	 Class	  () const { return(class_); }
+  BOperClassify*	 Theme	  () const { return(theme_); }
   //! Returns a text with all important information about the operator
   BText		 Dump	   () const;
   //! Returns the name of the operator's classify
-  BText		 ClassName () const;
-  void		 PutClass(BOperClassify* cl);
+  BText		 ThemeName () const;
+  void		 PutTheme(BOperClassify* cl);
 
   // Implementation : oprimp.cpp
   //! Method to evaluate the operator
@@ -191,7 +196,8 @@ class TOL_API BEqualOperator: public BOperator
 //--------------------------------------------------------------------
 {
 private:
-  static BText creatingName_;
+  static BText   creatingName_;
+  static const BClass* creatingClass_;
 public:
   // Constructors and destructors: opr.cpp
   //! BEqualOperator constructor
@@ -203,7 +209,10 @@ public:
   friend BGrammar* GetLeft(BGrammar*, const BList*, BText&);
   //! Evaluate BEqualOperator operator. Creates a new object.
   BSyntaxObject* Evaluate (const List*) ;
-  static const BText& CreatingName() { return(creatingName_); }
+  static const BText&  CreatingName () { return(creatingName_); }
+  static const BClass* CreatingClass() { return(creatingClass_); }
+  static void CleanCreating() { creatingName_=""; creatingClass_=NULL; }
+
 };
 
 
@@ -260,6 +269,7 @@ protected:
   BText	     arguments_;
   BEvaluator evaluator_;
   BArray<BStruct*>  structs_;	//!< Structures.
+  BArray<BClass*>   classes_;	//!< Classes.
 public:
   // Constructors and destructors: opr.cpp
   BStandardOperator(const BText& name, BGrammar* gra,

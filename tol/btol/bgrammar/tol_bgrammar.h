@@ -270,7 +270,7 @@ public:
   }
 
     virtual BInt  Mode() const
-  { return(BNOMODE); }
+  { return(BGRAMMARMODE); }
 
     static  BDat& DoUnparseNodes()
   { return(unparseNodes_); }

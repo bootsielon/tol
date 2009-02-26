@@ -30,10 +30,11 @@
 #include <tol/tol_bsys.h>
 #include <tol/tol_bdir.h>
 #include <tol/tol_btoken.h>
-#include <tol/tol_bparser.h>
 #include <tol/tol_bfilter.h>
+#include <tol/tol_bparser.h>
 #include <tol/tol_bspfun.h>
 #include <tol/tol_bstruct.h>
+#include <tol/tol_bclass.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_btxtgra.h>
@@ -49,7 +50,8 @@
 
 BTraceInit("oprimp.cpp");
 
-BText BEqualOperator::creatingName_;
+      BText   BEqualOperator::creatingName_;
+const BClass* BEqualOperator::creatingClass_ = NULL;
 
 #define Do_TolOprProfiler
 #ifdef Do_TolOprProfiler
@@ -482,25 +484,25 @@ BText BOperator::Dump() const
 }
 
 //--------------------------------------------------------------------
-BText BOperator::ClassName () const
+BText BOperator::ThemeName () const
 /*! Returns the name of the operator's classify
  */
 //--------------------------------------------------------------------
 {
-    if(class_) { return(class_->Name());      }
+    if(theme_) { return(theme_->Name());      }
     else       { return(I2("None","Niguna")); }
 }
 
 //--------------------------------------------------------------------
-void BOperator::PutClass(BOperClassify* cl)
+void BOperator::PutTheme(BOperClassify* cl)
 
 /*! Sets classify of operator to \a cl
  * \param cl Classify of operator
  */
 //--------------------------------------------------------------------
 {
-    class_ = cl;
-    class_->Add(this);
+    theme_ = cl;
+    theme_->Add(this);
 }
 
 //--------------------------------------------------------------------
@@ -514,8 +516,9 @@ BBool Compare(BOperator** ope1, BOperator** ope2)
 BGrammar* GetLeft(BGrammar* grammar,
 		  List* left,
 		  BText& name,
-		  List** rest,
-		  BStruct** str)
+		  List*& rest,
+		  BStruct*& str,
+		  BClass*& cls)
     
 /*! Analizes declarations of functions and variables and returns
  *  the grammar of declarated object.
@@ -527,43 +530,70 @@ BGrammar* GetLeft(BGrammar* grammar,
  */
 //--------------------------------------------------------------------
 {
-    if(!left) { return(NIL); }
-    BGrammar* gra=NULL;
-    
-    BToken* tok = BParser::treToken(left);
-    if((tok->TokenType() == TYPE))
-	{
-	    BText tokName = Compact(BParser::treToken(left)->Name());
-	    gra = BGrammar::FindByName(tokName,false);
-	    if(!gra) {
-		BText pre = tokName.SubString(0,5);
-		if(pre=="Struct") {
-		    tokName = tokName.SubString(6,tokName.Length());
-	    	}
-	    	BStruct* structure = FindStruct(tokName);
-	    	if(str && structure) {
-		    *str = structure;
-		    gra  = GraSet();
-	    	}
-	    }
-//	left = (BTree*)(Car(Cdr(left)));
-	    left = Tree::treLeft(left);
-	} else if(BParser::treToken(left)->TokenType()!=FUNCTION) {
-	    gra = grammar;
-	}
-    
-    BToken* leftTok = BParser::treToken(left);
-    
-    if(leftTok &&
-       ((leftTok->TokenType()==ARGUMENT)||(leftTok->TokenType()==FUNCTION)))
-    { name = leftTok->Name(); }
-    
-    if (rest && left) {
-//	*rest = TreLeft(left);
-	*rest = Tree::treLeft(left);
+  if(!left) { return(NIL); }
+  BToken* tok = BParser::treToken(left);
+  BGrammar* gra=NULL;
+  str=NULL;
+  cls = NULL;
+  if((tok->TokenType() == TYPE))
+  {
+    BTypeToken* tt = (BTypeToken*)tok;
+    const BText& tokName = tok->Name();
+    if(tt->type_==BTypeToken::BSYSTEM)
+    {
+      gra = BGrammar::FindByName(tokName,false);
     }
-    
-    return(gra);
+    else if(tt->type_==BTypeToken::BSTRUCT)
+    {
+      str = FindStruct(tokName);
+    }
+    else if(tt->type_==BTypeToken::BCLASS)
+    {
+      cls = FindClass(tokName);
+    }
+    else 
+    {
+    //Backward compatibility with old OIS stored functions
+      gra = BGrammar::FindByName(tokName,false);
+      if(!gra) { str = FindStruct(tokName); }
+      if(!str) { cls = FindClass(tokName); }
+    }
+         if(str) { gra = GraSet(); }
+    else if(cls) { gra = GraNameBlock(); }
+    left = Tree::treLeft(left);
+  } 
+  else if((tok->TokenType()==BINARY)&&(tok->Name()=="::"))
+  {
+    List* nbLst = Tree::treLeft(left);
+    BToken* nbTok = BParser::treToken(nbLst);
+    const BText& nbName = nbTok->Name();
+    BUserNameBlock* unb = (BUserNameBlock*)GraNameBlock()->FindOperand(nbName,false);
+    if(unb)
+    {
+      const BNameBlock* oldNameBlock = BNameBlock::Current();
+      BNameBlock::SetCurrent(&unb->Contens());
+      left = Tree::treRight(left);
+      grammar=GetLeft(grammar,left,name,rest,str, cls);
+      BNameBlock::SetCurrent(oldNameBlock);
+      return(grammar);
+    }
+  }
+  else if(tok->TokenType()!=FUNCTION) 
+  {
+    gra = grammar;
+  }
+  BToken* leftTok = BParser::treToken(left);
+  if(leftTok &&
+     ((leftTok->TokenType()==ARGUMENT)||
+      (leftTok->TokenType()==FUNCTION)))
+  { 
+    name = leftTok->Name(); 
+  }
+  if (left) 
+  {
+    rest = Tree::treLeft(left);
+  }
+  return(gra);
 }
 
 
@@ -751,18 +781,6 @@ static BSyntaxObject* CreateObject(      List*	   tre,
       {
         result->PutOisTree(tre); 
       }
-/*
-      if(gra==GraTimeSet()) 
-      { 
-        BUserTimeSet* tms = (BUserTimeSet*)result;
-        tms->PutTree(tre->duplicate_); 
-      }
-      if(gra==GraTimeSerie()) 
-      { 
-        BUserTimeSerie* tsr = (BUserTimeSerie*)result;
-        tsr->PutTree(tre->duplicate_); 
-      }
-*/
     }
   }
   TRACE_SHOW_LOW(fun," END");
@@ -786,24 +804,45 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
 {
   BSyntaxObject* result = NIL;
   BText name;
-  List** rest = new List*; *rest = NIL;
+  List* rest = NULL;
+  BStruct* str = NULL;
+  BClass*  cls = NULL;
   BGrammar* gra = GetLeft(Grammar(),
                           Tree::treNode((List*) argList),
-                          name,
-                          rest,
-                          NIL);
-  if(gra==GraNameBlock()) { creatingName_ = name; }
-  if(!(*rest) && gra) 
+                          name, rest, str, cls);
+  creatingClass_ = NULL;
+  if(gra==GraNameBlock()) 
+  { 
+    creatingName_  = name; 
+    creatingClass_ = cls;
+  }
+  if(!rest && gra) 
   {
 	  result = CreateObject(Tree::treLeft((List*)argList), gra, name);
+    if(str && result)
+    {
+      BSet& set = Set(result);
+      if((result->Grammar()==GraSet())&&(set.Struct()!=str))
+      {
+        set.PutStruct(str);
+      }
+      if((result->Grammar()!=GraSet())||(Set(result).Struct()!=str))
+      {
+        Error(I2("A set with structure ",
+                 "Se esperaba un conjunto con estructura ")+str->Name()+
+              I2(" was expected instead of ",
+                 " en lugar de ")+
+              result->Grammar()->Name()+ " "+
+              result->Identify());
+        DESTROY(result);
+      }
+    }
   } 
   else 
   {
 	  Error(I2("Bad use for \"=\" in\n", "Uso indebido de \"=\" en\n") +
 	        BParser::Unparse(argList));
   }
-  *rest = NIL;
-  delete rest;
   return(result);
 }
 
@@ -819,16 +858,14 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
 {
   BSyntaxObject* result = NIL;
   BText name;
-  List** rest = new List*;
-  *rest = NIL;
-//BGrammar* gra = GetLeft(NIL, (BTree*)Car(argList), name, rest, NIL);
+  List* rest = NULL;
+  BStruct* str = NULL;
+  BClass* cls = NULL;
   BGrammar* gra = GetLeft(NIL, 
 	                        Tree::treNode((List*) argList),
-	                        name, 
-	                        rest, 
-	                        NIL);
+                          name, rest, str, cls);
 //Std(Out()+"\nCreating operator <"+ name + ">\n"+Unparse(argList));
-  if((*rest) && gra)
+  if(rest && gra)
   {
     result = gra->FindOperator(name); 
     if(result && result->NameBlock())
@@ -875,7 +912,7 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
             I2("is not a valid type of data.",
                "no es un tipo de datos válido."); 
     }
-    else if(!*rest)
+    else if(!rest)
     {
       msg = I2("There are no arguments list.",
                "No hay lista de argumentos."); 
@@ -884,8 +921,6 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
 	  Error(I2("Wrong function declaration\n","Declaración errónea de función\n")+
           args+msg);
   }
-  *rest = NIL;
-  delete rest;
   return(result);
 }
 
@@ -993,71 +1028,66 @@ BSyntaxObject* BStructCreator::Evaluate(const List* argList)
  */
 //--------------------------------------------------------------------
 {
-    //BSyntaxObject* result     = NIL;  // unused
-    BStruct*	   structure  = NIL;
-    //BNewStruct*	   fun	      = NIL; // unsued
-    const BText&   name	      = BParser::treToken(argList)->Name();
-    List*	   rest	      = NIL;
-    BGrammar*	   setGrammar = GraSet();
-    BStruct*       str        = FindStruct(name);
-
-    if(str && str->NameBlock())
-    {
-      Warning(I2("Global structure ","La estructura global")+
-              " Struct "+name+" "+
-              I2("hides published NameBlock member",
-                 "oculta el miembro de NameBlock publicado")+
-              " "+str->FullName());
-      str = NULL;
-    }
-
-    if(str)
-    {
-      if(!argList->cdr()) { return(str); }
-	BText path = str->SourcePath();
+  BStruct*     structure  = NIL;
+  const BText& name       = BParser::treToken(argList)->Name();
+  BGrammar*    setGrammar = GraSet();
+  BStruct*     str        = FindStruct(name);
+  if(str && str->NameBlock())
+  {
+    Warning(I2("Global structure ","La estructura global")+
+            " Struct "+name+" "+
+            I2("hides published NameBlock member",
+               "oculta el miembro de NameBlock publicado")+
+            " "+str->FullName());
+    str = NULL;
+  }
+  if(str)
+  {
+    if(!argList->cdr()) { return(str); }
+    BText path = str->SourcePath();
 #ifndef UNIX
-	path += BText("\n")+SysPath(path);
+    path += BText("\n")+SysPath(path);
 #endif
-	Error(BText("Struct '")+name+
-	      I2("' is already defined in ",
-		 "' ya ha sido definido en ") + " :\n"+path);
-    }
-    else
+    Error(BText("Struct '")+name+
+          I2("' is already defined in ",
+             "' ya ha sido definido en ") + " :\n"+path);
+  }
+  else
+  {
+    BGrammar* graArg  = setGrammar;
+    List*     args    = (Tree::treNode((List*)argList))->cdr();
+    BInt      numArgs = 0;
+    if (args) numArgs = args->length();
+    BText     nameArg;
+    structure = new BStruct(name);
+    BArray<BField> field(numArgs);
+    for(BInt n=0; (n<numArgs) && graArg; n++)
     {
-	BGrammar* graArg  = setGrammar;
-//	BTree*    args    = Cdr((BTree*) Car(argList));
-	List*     args    = (Tree::treNode((List*)argList))->cdr();
-	BInt      numArgs = 0;
-	if (args) numArgs = args->length();
-	BText     nameArg;
-	
-	structure = new BStruct(name);
-	BArray<BField> field(numArgs);
-	for(BInt n=0; (n<numArgs) && graArg; n++)
-	{
-	    BStruct*	str = NIL;
-	    if((graArg = GetLeft(setGrammar,
-				Tree::treNode(args),
-				nameArg,
-				&rest,
-                                 &str)))
-	    {
-		field[n].PutName    (nameArg);
-		field[n].PutGrammar (graArg);
-    field[n].PutStruct  (str);
-//	Trace(Out()+"\nAdding field :"+graArg->Name()+" "+
-//	      field[n].GetType()+" "+nameArg);
-		args = args->cdr();
-	    }
-	    else { DESTROY(structure); }
-	}
-
-	if(structure) {
-	    structure->PutField(field);
-	    structure->PutFunction(new BNewStruct(*structure));
-	}
+      List*    rest_ = NIL;
+      BStruct* str_  = NIL;
+      BClass*  cls_  = NIL;
+      if((graArg = GetLeft(setGrammar,
+        Tree::treNode(args),
+        nameArg, rest_, str_, cls_)))
+      {
+        field[n].PutName    (nameArg);
+        field[n].PutGrammar (graArg);
+        field[n].PutStruct  (str_);
+        field[n].PutClass   (cls_);
+        args = args->cdr();
+      }
+      else 
+      { 
+        DESTROY(structure); 
+      }
     }
-    return(structure);
+    if(structure) 
+    {
+      structure->PutField(field);
+      structure->PutFunction(new BNewStruct(*structure));
+    }
+  }
+  return(structure);
 }
 
 
@@ -1105,17 +1135,30 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
 	      if((var = gra->EvaluateTree(b))) 
         {
 		      BStruct* str = (n<=structs_.Size())?structs_(n-1):NIL;
+		      BClass*  cls = (n<=classes_.Size())?classes_(n-1):NIL;
 		      if(str && (gra==GraSet())) 
           {
             BSet& set = Set(var);
 		        if(set.Struct()!=str) 
             {
 			        BText bText = BParser::Unparse(b);
-			        Error(bText + I2(" is not a set with structure ",
-					                     " no es un conjunto con estructura ") +
+			        Error(bText + I2(" is not a Set with structure ",
+					                     " no es un Set con estructura ") +
 			              str->Name());
 			        DESTROY(var);
 		        }
+		      }
+          else if(cls && (gra==GraNameBlock())) 
+          {
+            BNameBlock& nb = ((BUserNameBlock*)var)->Contens();
+		        if(!nb.IsInstanceOf(cls)) 
+            {
+			        BText bText = BParser::Unparse(b);
+			        Error(bText + I2(" is not a NameBlock instance of ",
+					                     " no es un NameBlock instancia de ") +
+			              cls->Name());
+			        DESTROY(var);
+		        } 
 		      }
 	      }
       }
@@ -1290,7 +1333,6 @@ BBool BUserFunction::Compile()
   BBool  allRight = BTRUE;
   List*  dec      = declaration_;
   BInt   n        = 0;
-  List*  rest     = NIL;
   BText* errMsg   = NIL;
   arguments_ = "";
   if(BParser::treToken(dec)->TokenType()==TYPE)
@@ -1306,27 +1348,6 @@ BBool BUserFunction::Compile()
     }
   }
   BTokenType type = BParser::treToken(dec)->TokenType();
-/*
-//VBR: I'll expected a more detailed error message for invalid declarations
-//
-//  Real Text(Real a, Real b) 
-//
-  if(type==TYPE)
-  {
-    List* args = Tree::treNode(dec);
-    assert(args);
-    BToken* tok = BParser::treToken(args);
-    BTokenType type2 = tok->TokenType();
-    if((type2==TYPE) || (type2==SEPARATOR)) 
-    {
-      if(!errMsg) { errMsg = new BText; }
-      *errMsg += I2("Unexpected type identifier",
-                    "Identificador de tipo inesperado")+" "+
-                 tok->Name();
-      allRight = false;
-    }
-  }
-*/
   if(allRight)
   {
     if((type==FUNCTION) || (type==SEPARATOR)) 
@@ -1338,18 +1359,17 @@ BBool BUserFunction::Compile()
     names_      .ReallocBuffer(maxArg_);
     grammars_   .ReallocBuffer(maxArg_);
     structs_    .ReallocBuffer(maxArg_);
+    classes_    .ReallocBuffer(maxArg_);
   }
   while(dec && allRight)
   {
-    rest = NIL;
-    BStruct* str = NIL;
+    List*     rest = NIL;
+    BStruct*  str  = NIL;
+    BClass*   cls  = NIL;
     BGrammar* gra  = GetLeft
     (
-      NIL, 
-      Tree::treNode(dec),
-      names_[n], 
-      &rest, 
-      &str
+      NIL, Tree::treNode(dec),
+      names_[n], rest, str, cls
     );
     if(!rest && gra) 
     {
@@ -1358,7 +1378,7 @@ BBool BUserFunction::Compile()
       grammars_[n].AllocBuffer(1);
       grammars_[n][0] = gra;
       structs_ [n] = str;
-//    if(str) {Std(BText("\nStruct[")+n+"]="+structs_[n]->Name());}
+      classes_ [n] = cls;
       dec = dec->cdr();
     } 
     else 
@@ -1420,12 +1440,6 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
   const BList*   arg;
   BGrammar*       gra;
   BSyntaxObject* syn;
-  const BNameBlock* oldNameBlock = BNameBlock::Current();
-  const BNameBlock* funNameBlock = NameBlock();
-  if(funNameBlock || !Level())
-  {
-    BNameBlock::SetCurrent(funNameBlock);
-  }
   int save_level = BGrammar::Level();
   BGrammar::IncLevel();
     
@@ -1470,9 +1484,30 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
   //desc += ")";
   /* next block "{" will IncLevel */
   BGrammar::CleanTreeCache(definition_, true);
-  if(arglistOK && (result = Grammar()->EvaluateTree(definition_, 1)))
+  if(arglistOK)
   {
-     result->IncNRefs();
+    const BNameBlock* oldNameBlock = BNameBlock::Current();
+    const BNameBlock* funNameBlock = NameBlock();
+    bool change = (funNameBlock || !Level() ) && (funNameBlock != oldNameBlock);
+    if(change)
+    {
+    /*Std(BText("\nBUserFunction::Evaluator ")+FullName()+
+        " changing new current NameBlock to "+
+        (funNameBlock?funNameBlock->Name():"NULL")+"\n");*/
+      BNameBlock::SetCurrent(funNameBlock);
+    }
+    result = Grammar()->EvaluateTree(definition_, 1);
+    if(change)
+    {
+    /*Std(BText("\nBUserFunction::Evaluator ")+FullName()+
+        " recovering old current NameBlock to "+
+        (oldNameBlock?oldNameBlock->Name():"NULL")+"\n");*/
+      BNameBlock::SetCurrent(oldNameBlock);
+    }
+  }
+  if(result)
+  {
+    result->IncNRefs();
     BGrammar::DestroyStackUntil(stackPos, result);
     DESTROY(argInstances);
     result->DecNRefs();
@@ -1506,7 +1541,6 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
 #endif
 
   BGrammar::PutLevel(save_level);
-  BNameBlock::SetCurrent(oldNameBlock);
   return(result);
 }
 

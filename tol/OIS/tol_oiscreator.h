@@ -30,6 +30,7 @@
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bratgra.h>
 #include <tol/tol_btsrgra.h>
+#include <tol/tol_bclass.h>
 #include <tol/tol_bnameblock.h>
 
 class BVMat;
@@ -53,6 +54,7 @@ public:
   BArray<BSyntaxObject*> saved_;
 
   bool Write(const void* v, size_t size, size_t count, BStream* stream);
+//bool Write(const          bool&    x, BStream* stream) { return(stream->Write((const void*)&x,1,1)==1); }
   bool Write(const          char&    x, BStream* stream) { return(stream->Write((const void*)&x,1,1)==1); }
   bool Write(const unsigned char&    x, BStream* stream) { return(stream->Write((const void*)&x,1,1)==1); }
   bool Write(const          short&   x, BStream* stream) { return(stream->Write((const void*)&x,2,1)==1); }
@@ -69,6 +71,10 @@ public:
   bool Write(const BDate& v, BStream* stream);
   bool Write(const BDat*  buf, int s, BStream* stream);
   bool Write(const BPol&   x, BStream* stream);
+  bool Write(const BMemberOwner& owner, 
+             const BMemberOwner::BClassByNameHash& x, 
+             BStream* stream);
+  bool Write(const BClass& cls, BStream* stream);
   bool Write(const BSet& x);
 
   bool WriteToken(const BToken& x, 

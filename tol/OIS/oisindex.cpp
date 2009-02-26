@@ -44,6 +44,7 @@ BTraceInit("oisindex.cpp");
   int needed = 
     pos+ 
     sizeof(BGrammarId)+
+    sizeof(x.mode_)+
     sizeof(BINT64)+
     ((isSet)?sizeof(int):0);
   if(streamBuf.MaxSize()<=needed+10)
@@ -52,6 +53,8 @@ BTraceInit("oisindex.cpp");
   }
   memcpy(streamBuf.GetBuffer()+pos,&x.gid_,          sizeof(BGrammarId));
   pos+=sizeof(BGrammarId);
+  memcpy(streamBuf.GetBuffer()+pos,&x.mode_,         sizeof(x.mode_));
+  pos+=sizeof(x.mode_);
   memcpy(streamBuf.GetBuffer()+pos,&x.objectOffset_, sizeof(BINT64));
   pos+=sizeof(BINT64);
   if(isSet) {
@@ -191,6 +194,12 @@ BTraceInit("oisindex.cpp");
   if(control_.machine_.isLittleEndian_!=isLittleEndian_)
   {
     SwapEndian(&x.gid_,sizeof(BGrammarId));
+  }
+  memcpy(&x.mode_,streamBuf.Buffer()+pos,sizeof(x.mode_));
+  pos+=sizeof(x.mode_);
+  if(control_.machine_.isLittleEndian_!=isLittleEndian_)
+  {
+    SwapEndian(&x.mode_,sizeof(x.mode_));
   }
 
   memcpy(&x.objectOffset_,streamBuf.Buffer()+pos,sizeof(BINT64));
@@ -473,6 +482,7 @@ BTraceInit("oisindex.cpp");
   for(k=0; k<idx.Size(); k++)
   {
     dtl[k].gid_          = idx[k].gid_;
+    dtl[k].mode_         = idx[k].mode_;
     dtl[k].objectOffset_ = idx[k].objectOffset_;
     dtl[k].hrchyEntry_   = idx[k].hrchyEntry_;
     dtl[k].name_         = "";

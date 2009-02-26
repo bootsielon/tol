@@ -33,7 +33,9 @@
 #include <tol/tol_bparser.h>
 #include <tol/tol_bgrammar.h>
 #include <tol/tol_bsymboltable.h>
+#include <tol/tol_bsetgra.h>
 #include <tol/tol_bnameblock.h>
+#include <tol/tol_bclass.h>
 
 
 //--------------------------------------------------------------------
@@ -47,20 +49,23 @@ BArray<BStructStatus> *BStruct::statusTable_ = NULL;
 //--------------------------------------------------------------------
 BField::BField()
 //--------------------------------------------------------------------
-    : BObject(), grammar_(NIL), struct_(NIL)
+: BObject(), grammar_(NIL), struct_(NIL), class_(NIL)
 {
 }
 
 //--------------------------------------------------------------------
-BField::BField(const BText& name, BGrammar* gra, BStruct* str)
+BField::BField(const BText& name, BGrammar* gra, 
+               BStruct* str, BClass* cls)
 //--------------------------------------------------------------------
-    : BObject(name), grammar_(gra), struct_(str)
+: BObject(name), grammar_(gra), struct_(str), class_(cls)
 {}
 
 //--------------------------------------------------------------------
-BField::BField(const BText& name, const BText& gra, const BText& str)
+BField::BField(const BText& name, const BText& gra, 
+               const BText& str, const BText& cls)
 //--------------------------------------------------------------------
-    : BObject(name), grammar_(Gram(gra)), struct_(FindStruct(str))
+: BObject(name), grammar_(Gram(gra)), 
+  struct_(FindStruct(str)), class_(FindClass(cls))
 {}
 
 //--------------------------------------------------------------------
@@ -219,7 +224,7 @@ BStruct::BStruct(const BText& name, bool addToSymbolTable)
   }
   if(!BParser::DefaultParser()->Scanner()->FindSymbol(name.String()))
   {
-    BTypeToken* tok = new BTypeToken(name);
+    BTypeToken* tok = new BTypeToken(name,BTypeToken::BSTRUCT);
     BParser::DefaultParser()->Scanner()->AddSymbol(tok);
   }
 }
@@ -496,4 +501,72 @@ BSyntaxObject* BStruct::Create(BList* lst, const BText& desc)
     if(result) { result->PutDescription(desc); }
   }
   return(result);
+}
+
+//--------------------------------------------------------------------
+  bool BStruct::Match(const BSet& set)
+//--------------------------------------------------------------------
+{
+  bool ok = true;
+  BSyntaxObject* obj;
+  BField* fld;
+  int n;
+  if(set.Card()==field_->Size())
+  {
+    for(n=0; ok && (n<field_->Size()); n++)
+    {
+      obj = set[n+1];
+      fld = &(*field_)[n];
+      ok = obj && (fld->Grammar()==obj->Grammar());
+      if(ok)
+      {
+        if(fld->Struct() && (fld->Struct()!=Set(obj).Struct()))
+        {
+          Error(I2("Struct field with structure ","Se esperaba campo de estructura ")+
+              fld->Struct()->Name()+" "+Name()+"->"+fld->Name()+" "+
+              I2("was expected when was found object of type",
+                 " cuando se encontro el objeto de tipo")+" "+
+              obj->Grammar()->Name()+" "+
+              I2("without structure or with onother one",
+                 "sin estructura o con otra distinta")+" "+
+              I2("at element number ", "en el el elemento número ")+(n+1));
+          ok = false;
+        }
+        if(fld->Class())
+        {
+          BUserNameBlock* unb = (BUserNameBlock*)obj;
+          if((fld->Class()!=unb->Contens().Class()))
+          {
+            Error(I2("Struct field instance of class","Se esperaba campo instancia de clase ")+
+                fld->Class()->Name()+" "+Name()+"->"+fld->Name()+" "+
+                I2("was expected when was found object of type",
+                   " cuando se encontro el objeto de tipo")+" "+
+                obj->Grammar()->Name()+" "+
+                I2("instancing other class or no one",
+                   "instancia de otra clase distinta o de ninguna")+" "+
+                I2("at element number ", "en el el elemento número ")+(n+1));
+            ok = false;
+          }
+        }
+      }
+      else
+      {
+        Error(I2("Struct field ","Se esperaba campo de estructura ")+
+              fld->Grammar()->Name()+" "+Name()+"->"+fld->Name()+" "+
+              I2("was expected when was found object of type",
+                 " cuando se encontro el objeto de tipo")+" "+
+              obj->Grammar()->Name()+" "+
+              I2("at element number ", "en el el elemento número ")+(n+1));
+      }
+    }
+  }
+  else
+  {
+    Error(I2("Cannot apply structure", "No se puede aplicar la estructura ")+
+          Name()+ I2(" having ", " que tiene ")+field_->Size()+
+          I2(" fields to a set with ", " campos a un conjunto con ")+
+          set.Card()+" "+I2("elements","elementos"));
+    ok = false;
+  }
+  return(ok);
 }

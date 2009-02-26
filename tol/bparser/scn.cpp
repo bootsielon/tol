@@ -32,7 +32,9 @@ BTraceInit("scn.cpp");
  *  constructor.
  *  \sa PutSymbolTable
  */
-BArray<BToken*> BScanner::symbolTable_;
+BScanner::BTokenByNameHash BScanner::symbolTable_;
+BScanner::BTokenByNameHash BScanner::aliasTable_;
+BScanner::BTokenByNameHash BScanner::usrDefSymbol_; //!< User defined symbols Class, Struct, ...
 
 
 //--------------------------------------------------------------------
@@ -45,10 +47,12 @@ BScanner::BScanner()
 //--------------------------------------------------------------------
 {
 //Std(BText("\nCreating BScanner ")+(BInt)this);
-    PutSymbolTable();
-    position_	= NIL;
-    nextSymbol_	= NIL;
-    nextArgument_ = "";
+  PutSymbolTable();
+  position_   = NIL;
+  nextSymbol_ = NIL;
+  lastSymbol_ = NIL;
+  nextArgument_ = "";
+  structDefininig_ = false;
 }
 
 //--------------------------------------------------------------------
@@ -71,12 +75,12 @@ BInt BTokenOrderCriterium(const BAny vBToken1, const BAny vBToken2)
   BInt cmp = StrCmp(sym1.String(), sym2.String());
   return(cmp);
 */
-    BToken* sym1 = *(BToken**)vBToken1;
-    BToken* sym2 = *(BToken**)vBToken2;
-    if     (!sym1 && !sym2) { return( 0); }
-    else if(!sym1 &&  sym2) { return( 1); }
-    else if( sym1 && !sym2) { return(-1); }
-    else       		    { return(StrCmp(sym1->String(), sym2->String())); }
+  BToken* sym1 = *(BToken**)vBToken1;
+  BToken* sym2 = *(BToken**)vBToken2;
+  if     (!sym1 && !sym2) { return( 0); }
+  else if(!sym1 &&  sym2) { return( 1); }
+  else if( sym1 && !sym2) { return(-1); }
+  else { return(StrCmp(sym1->String(), sym2->String())); }
 }
 
 
@@ -88,12 +92,40 @@ BInt Str2SymCmp(const BAny vBChar, const BAny vBToken)
  */
 //--------------------------------------------------------------------
 {
-    BChar*  str =	  (BChar*)   vBChar;
-    BToken& sym = **(BToken**) vBToken;
-    
-    return(strcmp(str, sym.String()));
+  BChar*  str =    (BChar*)   vBChar;
+  BToken& sym = **(BToken**) vBToken;
+  return(strcmp(str, sym.String()));
 }
 
+
+//--------------------------------------------------------------------
+BToken* BScanner::FindSymbol(const BText& name)
+
+/*! Find a symbol in \a symbolTable_ which name is \a str and
+ *  returns it if exists, else return NIL.
+ * \param str Name of BToken symbol that will be searched
+ * \return BToken found in \a symbolTable_
+ * \sa BArray::FindSorted
+ */
+//--------------------------------------------------------------------
+{
+  BToken* tok = NULL;
+  BTokenByNameHash::const_iterator found;
+  found = symbolTable_.find(name);
+  if(found==symbolTable_.end()) 
+  { 
+    found = aliasTable_.find(name);
+    if(found!=aliasTable_.end()) 
+    { 
+      tok = found->second; 
+    }
+  }
+  else 
+  { 
+    tok = found->second; 
+  }           
+  return(tok);
+}
 
 //--------------------------------------------------------------------
 BToken* BScanner::FindSymbol(const BChar* str)
@@ -106,23 +138,8 @@ BToken* BScanner::FindSymbol(const BChar* str)
  */
 //--------------------------------------------------------------------
 {
-    // danirus 2003/10/23; to support deprecated type Ration to be Ratio
-    if (strcmp(str, "Ration") == 0) {
-		BChar* new_str = (BChar*) str;
-		new_str[5] = '\0';
-    }
-    // danirus 2003/10/23 - end;
-    BToken  tok(str);
-    BToken* found = NIL;
-    BInt	  index = symbolTable_.FindSorted(&tok, BTokenOrderCriterium);
-    if(index>=0) { found = symbolTable_[index]; }
-/*
-  Std(BText("\nFinding <") + str + ">" + " in " + symbolTable_.Size() +
-	    "\nAddress " + (BInt)(this) + "\nTable Address " +
-	    (BInt)(&symbolTable_));
-  Std(BText(" = ") + index);
-*/
-  return(found);
+  BText name = str;
+  return(FindSymbol(name));
 }
 
 //--------------------------------------------------------------------
@@ -132,7 +149,7 @@ BInt BScanner::CountSymbols()
  */
 //--------------------------------------------------------------------
 {
-    return(symbolTable_.Size());
+  return(symbolTable_.size());
 }
 
 //--------------------------------------------------------------------
@@ -145,14 +162,32 @@ BInt BScanner::AddSymbol(BToken* sym)
  */
 //--------------------------------------------------------------------
 {
+  const BText& name = sym->Name();
+  if(!FindSymbol(name))
+  {
 //Std(BText("\nAdding Symbol <") + sym->Name()+">");
-  symbolTable_.AddSorted(sym, BTokenOrderCriterium);
+    symbolTable_[name] = sym;
+    if(sym->TokenType()==TYPE)
+    {
+      usrDefSymbol_[name]=sym;
+    }
+  }
+  return(symbolTable_.size());
+}
 
-/*
-  BInt index = symbolTable_.FindSorted(sym, BTokenOrderCriterium);
-  Std(BText(" = ") + index +  " of " + symbolTable_.Size());
-*/
-    return(symbolTable_.Size());
+//--------------------------------------------------------------------
+BInt BScanner::DelSymbol(const BText& name)
+
+/*! Remove BToken with \a name_ attribute equal to \a str parameter
+ *  from symbolTable_.
+ * \param str Char* value of \a name_ of BToken that will be removed
+ * \return symbolTable_ size.
+ * \sa BArray::FindSorted, BArray::ReallocBuffer
+ */
+//--------------------------------------------------------------------
+{
+  symbolTable_.erase(name);
+  return(symbolTable_.size());
 }
 
 //--------------------------------------------------------------------
@@ -166,42 +201,29 @@ BInt BScanner::DelSymbol(const BChar* str)
  */
 //--------------------------------------------------------------------
 {
-  BToken tok(str);
-//Std(BText("\nDeleting Symbol<") + str+">");
-  BInt index = symbolTable_.FindSorted(&tok, BTokenOrderCriterium);
-  if(index>=0)
-  {
-    DESTROY(symbolTable_[index]);
-    int size = symbolTable_.Size();
-    for(BInt i=index; i<size-1; i++)
-    {
-	    symbolTable_[i] = symbolTable_[i+1];
-    }
-    symbolTable_.ReallocBuffer(size-1);
-  }
-  return(symbolTable_.Size());
+  BText name = str;
+  return(DelSymbol(name));
 }
-
 
 //--------------------------------------------------------------------
 // Tables of tokens by type
 //--------------------------------------------------------------------
 static BOpenToken defOpe_[] =
 {
-    BOpenToken("("),
-    BOpenToken("["),
-    BOpenToken("{"),
-    BOpenToken("#{#"),
-    BOpenToken("#(#")
+  BOpenToken("("),
+  BOpenToken("["),
+  BOpenToken("{"),
+  BOpenToken("#{#"),
+  BOpenToken("#(#")
 };
 
 static BCloseToken defClo_[] =
 {
-    BCloseToken(")",   &(defOpe_[0])),
-    BCloseToken("]",   &(defOpe_[1])),
-    BCloseToken("}",   &(defOpe_[2])),
-    BCloseToken("#}#", &(defOpe_[3])),
-    BCloseToken("#)#", &(defOpe_[4]))
+  BCloseToken(")",   &(defOpe_[0])),
+  BCloseToken("]",   &(defOpe_[1])),
+  BCloseToken("}",   &(defOpe_[2])),
+  BCloseToken("#}#", &(defOpe_[3])),
+  BCloseToken("#)#", &(defOpe_[4]))
 };
 
 //--------------------------------------------------------------------
@@ -226,76 +248,92 @@ static BCloseToken defClo_[] =
 
 static BSeparatorToken defSep_[] =
 {
-    BSeparatorToken(";", 1),
-    BSeparatorToken(",", 2)
+  BSeparatorToken(";", 1),
+  BSeparatorToken(",", 2)
 };
 
 static BToken defBin_[] =
 {
-    BBinaryToken("=",        3),   // 0
-    BBinaryToken(":=",       3),   // 1
-    BBinaryToken("#F#",      4),   // 2
-    BBinaryToken("|",        5),   // 3
-    BBinaryToken("&",        6),   // 4
-    BBinaryToken("Of",       7),   // 5
-    BBinaryToken("@",        7),   // 6
-    BBinaryToken(">",        8),   // 7
-    BBinaryToken("<",        8),   // 8
-    BBinaryToken(">",        8),   // 9
-    BBinaryToken("==",       8),   // 10
-    BBinaryToken(">=",       8),   // 11
-    BBinaryToken("<=",       8),   // 12
-    BBinaryToken(":>",       8),   // 13
-    BBinaryToken("<:",       8),   // 14
-    BBinaryToken("!=",       8),   // 15
-    BBinaryToken("#+#",      9),   // 16
-    BBinaryToken("#-#",      9),   // 17
-    BBinaryToken("*",       10),   // 18
-    BBinaryToken("$*",      10),   // 19
-    BBinaryToken("/",       11),   // 20
-    BBinaryToken("$/",      11),   // 21
-    BBinaryToken("%",       11),   // 22
-    BBinaryToken("^",       12),   // 23
-    BBinaryToken("**",      12),   // 24
-    BBinaryToken("&&",      13),   // 25
-    BBinaryToken("||",      13),   // 26
-    BBinaryToken(":",       14),   // 27
-    BBinaryToken("<<",      15),   // 28
-    BBinaryToken(">>",      15),   // 29
-    BBinaryToken("->",      16),   // 30
-    BBinaryToken("#E#",     17),   // 30
-    BBinaryToken("::",      18)    // 32
+  BBinaryToken("=",        3),   // 0
+  BBinaryToken(":=",       3),   // 1
+  BBinaryToken("#F#",      4),   // 2
+  BBinaryToken("|",        5),   // 3
+  BBinaryToken("&",        6),   // 4
+  BBinaryToken("Of",       7),   // 5
+  BBinaryToken("@",        7),   // 6
+  BBinaryToken(">",        8),   // 7
+  BBinaryToken("<",        8),   // 8
+  BBinaryToken(">",        8),   // 9
+  BBinaryToken("==",       8),   // 10
+  BBinaryToken(">=",       8),   // 11
+  BBinaryToken("<=",       8),   // 12
+  BBinaryToken(":>",       8),   // 13
+  BBinaryToken("<:",       8),   // 14
+  BBinaryToken("!=",       8),   // 15
+  BBinaryToken("#+#",      9),   // 16
+  BBinaryToken("#-#",      9),   // 17
+  BBinaryToken("*",       10),   // 18
+  BBinaryToken("$*",      10),   // 19
+  BBinaryToken("/",       11),   // 20
+  BBinaryToken("$/",      11),   // 21
+  BBinaryToken("%",       11),   // 22
+  BBinaryToken("^",       12),   // 23
+  BBinaryToken("**",      12),   // 24
+  BBinaryToken("&&",      13),   // 25
+  BBinaryToken("||",      13),   // 26
+  BBinaryToken(":",       14),   // 27
+  BBinaryToken("<<",      15),   // 28
+  BBinaryToken(">>",      15),   // 29
+  BBinaryToken("->",      16),   // 30
+  BBinaryToken("#E#",     17),   // 30
+  BBinaryToken("::",      18)    // 32
 };
 
 static BMonaryToken defMon_[] =
 {
-    BMonaryToken("+", &(defBin_[16])),
-    BMonaryToken("-", &(defBin_[17])),
-    BMonaryToken("~"),
-    BMonaryToken("!"),
-    BMonaryToken("Do"),
-    BMonaryToken("Struct")
+  BMonaryToken("+", &(defBin_[16])),
+  BMonaryToken("-", &(defBin_[17])),
+  BMonaryToken("~"),
+  BMonaryToken("!"),
+  BMonaryToken("Do"),
+  BMonaryToken("Struct"),
+  BMonaryToken("Class")
 };
 
 static BTypeToken defTyp_[] =
 {
-    BTypeToken("Anything"),
-    BTypeToken("Set"),
-    BTypeToken("Date"),
-    BTypeToken("CTime"),
-    BTypeToken("Real"),
-    BTypeToken("Complex"),
-    BTypeToken("Matrix"),
-    BTypeToken("VMatrix"),
-    BTypeToken("Polyn"),
-    BTypeToken("Ratio"),
-    BTypeToken("Text"),
-    BTypeToken("TimeSet"),
-    BTypeToken("CTimeSet"),
-    BTypeToken("Serie"),
-    BTypeToken("CSeries"),
-    BTypeToken("Code"),
-    BTypeToken("NameBlock")
+  BTypeToken("Anything",  BTypeToken::BSYSTEM),
+  BTypeToken("Set",       BTypeToken::BSYSTEM),
+  BTypeToken("Date",      BTypeToken::BSYSTEM),
+  BTypeToken("CTime",     BTypeToken::BSYSTEM),
+  BTypeToken("Real",      BTypeToken::BSYSTEM),
+  BTypeToken("Complex",   BTypeToken::BSYSTEM),
+  BTypeToken("Matrix",    BTypeToken::BSYSTEM),
+  BTypeToken("VMatrix",   BTypeToken::BSYSTEM),
+  BTypeToken("Polyn",     BTypeToken::BSYSTEM),
+  BTypeToken("Ratio",     BTypeToken::BSYSTEM),
+  BTypeToken("Text",      BTypeToken::BSYSTEM),
+  BTypeToken("TimeSet",   BTypeToken::BSYSTEM),
+  BTypeToken("CTimeSet",  BTypeToken::BSYSTEM),
+  BTypeToken("Serie",     BTypeToken::BSYSTEM),
+  BTypeToken("CSeries",   BTypeToken::BSYSTEM),
+  BTypeToken("Code",      BTypeToken::BSYSTEM),
+  BTypeToken("NameBlock", BTypeToken::BSYSTEM)
+};
+
+static BMacroToken defMac_[] =
+{
+  BMacroToken("#Embed")
+};
+
+static const char* alias_[][2] =
+{
+  { "Ration", "Ratio" }
+};
+
+static const char* usrDef_[] =
+{
+  "Struct", "Class" 
 };
 
 static BInt defOpeNum_ = sizeof(defOpe_)/sizeof(BOpenToken);
@@ -304,14 +342,18 @@ static BInt defSepNum_ = sizeof(defSep_)/sizeof(BSeparatorToken);
 static BInt defBinNum_ = sizeof(defBin_)/sizeof(BBinaryToken);
 static BInt defMonNum_ = sizeof(defMon_)/sizeof(BMonaryToken);
 static BInt defTypNum_ = sizeof(defTyp_)/sizeof(BTypeToken);
+static BInt defMacNum_ = sizeof(defMac_)/sizeof(BMacroToken);
+static BInt aliasNum_  = sizeof(alias_ )/sizeof(alias_ [1]);
+static BInt usrDefNum_ = sizeof(usrDef_)/sizeof(usrDef_[1]);
 
 static BInt defTokNum_ =
-                   defOpeNum_ +
-                   defCloNum_ +
-                   defSepNum_ +
-                   defBinNum_ +
-                   defMonNum_ +
-                   defTypNum_ ;
+            defOpeNum_ +
+            defCloNum_ +
+            defSepNum_ +
+            defBinNum_ +
+            defMonNum_ +
+            defTypNum_ +
+            defMacNum_ ;
 
 
 //--------------------------------------------------------------------
@@ -331,32 +373,50 @@ void BScanner::PutSymbolTable()
  */
 //--------------------------------------------------------------------
 {
-    static bool symbolTableFilled_ = BFALSE;
-    if (!symbolTableFilled_)
-    {
-	symbolTableFilled_ = BTRUE;
-	symbolTable_.ReallocBuffer(defTokNum_);
-	BInt n=0, m=0;
-	for(n=0; n<defOpeNum_; n++)
-	{ symbolTable_[n+m]=&(defOpe_[n]); }
-	m+=n;
-	for(n=0;n<defCloNum_; n++)
-	{ symbolTable_[n+m]=&(defClo_[n]); }
-	m+=n;
-	for(n=0; n<defSepNum_; n++)
-	{ symbolTable_[n+m]=&(defSep_[n]); }
-	m+=n;
-	for(n=0; n<defBinNum_; n++)
-	{ symbolTable_[n+m]=&(defBin_[n]); }
-	m+=n;
-	for(n=0; n<defMonNum_; n++)
-	{ symbolTable_[n+m]=&(defMon_[n]); }
-	m+=n;
-	for(n=0; n<defTypNum_; n++)
-	{ symbolTable_[n+m]=&(defTyp_[n]); }
+  static bool symbolTableFilled_ = BFALSE;
+  if (!symbolTableFilled_)
+  {
+    SetEmptyKey(symbolTable_, NULL);
+    SetDeletedKey(symbolTable_, name_del_key());
 
-	symbolTable_.Sort(BTokenOrderCriterium);
+    symbolTableFilled_ = BTRUE;
+    BInt n=0, m=0;
+    for(n=0; n<defOpeNum_; n++)
+    { symbolTable_[defOpe_[n].Name()]=&(defOpe_[n]); }
+    m+=n;
+    for(n=0;n<defCloNum_; n++)
+    { symbolTable_[defClo_[n].Name()]=&(defClo_[n]); }
+    m+=n;
+    for(n=0; n<defSepNum_; n++)
+    { symbolTable_[defSep_[n].Name()]=&(defSep_[n]); }
+    m+=n;
+    for(n=0; n<defBinNum_; n++)
+    { symbolTable_[defBin_[n].Name()]=&(defBin_[n]); }
+    m+=n;
+    for(n=0; n<defMonNum_; n++)
+    { symbolTable_[defMon_[n].Name()]=&(defMon_[n]); }
+    m+=n;
+    for(n=0; n<defTypNum_; n++)
+    { symbolTable_[defTyp_[n].Name()]=&(defTyp_[n]); }
+    m+=n;
+    for(n=0; n<defMacNum_; n++)
+    { symbolTable_[defMac_[n].Name()]=&(defMac_[n]); }
+
+    SetEmptyKey(aliasTable_, NULL);
+    for(n=0; n<aliasNum_; n++)
+    {
+      BToken* tok = FindSymbol(alias_[n][1]);
+      assert(tok);
+      aliasTable_[alias_[n][0]] = tok;
     }
+    SetEmptyKey(usrDefSymbol_, NULL);
+    for(n=0; n<usrDefNum_; n++)
+    {
+      BToken* tok = FindSymbol(usrDef_[n]);
+      assert(tok);
+      usrDefSymbol_[usrDef_[n]] = tok;
+    }
+  }
 }
 
 //--------------------------------------------------------------------
@@ -367,11 +427,13 @@ void BScanner::Initialize(const BText& expression)
  */
 //--------------------------------------------------------------------
 {
-    length_     = expression.Length();
-    expression_ = expression.String();
-    position_   = expression_;
-    nextSymbol_ = NIL;
-    nextArgument_ = "";
+  length_     = expression.Length();
+  expression_ = expression.String();
+  position_   = expression_;
+  nextSymbol_ = NIL;
+  lastSymbol_ = NIL;
+  nextArgument_ = "";
+  structDefininig_ = false;
 }
 
 
@@ -383,10 +445,10 @@ BBool BScanner::NextChar()
  */
 //--------------------------------------------------------------------
 {
-    while((position_[0]==' ' ) ||
-	  (position_[0]=='\n') ||
-	  (position_[0]=='\t')) { position_++; }
-    return(position_[0]);
+  while((position_[0]==' ' ) ||
+  (position_[0]=='\n') ||
+  (position_[0]=='\t')) { position_++; }
+  return(position_[0]);
 }
 
 //--------------------------------------------------------------------
@@ -420,33 +482,85 @@ BBool BScanner::NextChar()
  *      </ol>
  *  </ol>
  */
-BTokenType BScanner::NextWordType() {
-    BChar nextWord[256];
-    BTokenType type = ARGUMENT;
-    
-    nextSymbol_ = NIL;
-    if(NextChar()) {
-	if(position_[0]=='\"') {
-	    BInt n=0;
-	    do { n++; }
-	    while(position_[n] && (position_[n]!='\"'));
-	    nextArgument_.Copy(position_, n);
-	    nextArgument_.Replace("\\'","\"");
-	    position_+=n+1;
-	} else {
-	    BInt nChar;
-	    if(sscanf(position_, "%s%n", nextWord, &nChar))	{
-		BInt rest = expression_+length_-position_;
-		if(rest>nChar) { position_+=nChar; }
-		else { position_=expression_+length_; }
-		if(nChar>255) nextWord[255]='\0';
-		if((nextSymbol_ = FindSymbol(nextWord)))
-		{ type = nextSymbol_->TokenType(); }
-		else { nextArgument_.Copy(nextWord,nChar); }
-	    }
-	}
-    } else { type = NONE; }
-    return(type);
+BTokenType BScanner::NextWordType() 
+{
+  BChar nextWord[256];
+  BTokenByNameHash::const_iterator found;
+  static BToken* structToken_ = NULL;
+  static BToken* fieldToken_ = NULL;
+  if(!structToken_)
+  {
+    structToken_ = FindSymbol("Struct");
+    fieldToken_  = FindSymbol("->");
+  }
+  BTokenType type = ARGUMENT;
+  if(nextSymbol_) { lastSymbol_ = nextSymbol_; }
+  nextSymbol_  = NIL;
+  if(NextChar()) 
+  {
+    if(position_[0]=='\"') 
+    {
+      BInt n=0;
+      do { n++; }
+      while(position_[n] && (position_[n]!='\"'));
+      nextArgument_.Copy(position_, n);
+      nextArgument_.Replace("\\'","\"");
+      position_+=n+1;
+    } 
+    else 
+    {
+      BInt nChar;
+      if(sscanf(position_, "%s%n", nextWord, &nChar))  
+      {
+        BInt rest = expression_+length_-position_;
+        if(rest>nChar) { position_+=nChar; }
+        else { position_=expression_+length_; }
+        if(nChar>255) nextWord[255]='\0';
+
+        nextSymbol_ = FindSymbol(nextWord);
+        if(nextSymbol_ && lastSymbol_)
+        {
+          if((lastSymbol_==structToken_) && (nextSymbol_->TokenType()==OPEN))
+          {
+            structDefininig_ = true;
+          }
+          else if(structDefininig_ && (nextSymbol_->TokenType()==CLOSE))
+          {
+            structDefininig_ = false;
+          }
+          else if(structDefininig_ && (lastSymbol_->TokenType()==TYPE))
+          {
+            found = usrDefSymbol_.find(nextSymbol_->Name());
+            if(found != usrDefSymbol_.end())
+            {
+              nextSymbol_ = NULL;
+            }
+          }
+          else
+          {
+          //if((nextSymbol_->Name()=="Class")&&(lastSymbol_->Name()=="->"))
+            if(lastSymbol_== fieldToken_)
+            {
+              found = usrDefSymbol_.find(nextSymbol_->Name());
+              if(found != usrDefSymbol_.end())
+              {
+                nextSymbol_ = NULL;
+              }
+            }
+          }
+        }
+        if(nextSymbol_)
+        { type = nextSymbol_->TokenType(); }
+        else 
+        { nextArgument_.Copy(nextWord,nChar); }
+      }
+    }
+  } 
+  else 
+  { 
+    type = NONE; 
+  }
+  return(type);
 }
 
 
@@ -457,21 +571,14 @@ BTokenType BScanner::NextWordType() {
  * \return Type of next word to be scanned
  * \sa BScanner::NextWordType
  */
-BTokenType BScanner::ReadNextSymbol() {
-    nextSymbol_	= NIL;
-    nextArgument_ = "";
-
-    BTokenType type = NextWordType();
-    if(type==ARGUMENT) { type = NextWordType(); }
-/*
-    if(nextSymbol_)
-    {
-      Std(BText("\nReadNextSymbol SYM'")+nextSymbol_->Name()+"' ARG'"+nextArgument_+"')");
-    }
-    else
-      Std(BText("\nReadNextSymbol SYM'' ARG'")+nextArgument_+"')");
-*/
-    return (type);
+BTokenType BScanner::ReadNextSymbol() 
+{
+  if(nextSymbol_) { lastSymbol_ = nextSymbol_; }
+  nextSymbol_  = NIL;
+  nextArgument_ = "";
+  BTokenType type = NextWordType();
+  if(type==ARGUMENT) { type = NextWordType(); }
+  return (type);
 }
 
 
@@ -483,5 +590,5 @@ BText BScanner::Scanned()
  */
 //--------------------------------------------------------------------
 {
-    return(BText(expression_,0,(position_-expression_)-1));
+  return(BText(expression_,0,(position_-expression_)-1));
 }

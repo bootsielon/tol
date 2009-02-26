@@ -28,6 +28,7 @@
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bnameblock.h>
+#include <tol/tol_bstruct.h>
 
 //--------------------------------------------------------------------
 // Static variables.
@@ -208,7 +209,6 @@ void BSet::RobStruct (BList* arg, BStruct* str,	BSubType sub)
 {
   if(arg && str)
   {
-    PutStruct (str);
     BList* argLst = arg;
     BList* lst	  = NIL;
     BList* aux	  = NIL;
@@ -250,6 +250,7 @@ void BSet::RobStruct (BList* arg, BStruct* str,	BSubType sub)
     }
     DESTROY(arg);
     RobElement(lst);
+    PutStruct (str);
     PutSubType(sub);
   }
   else
@@ -263,12 +264,19 @@ void BSet::RobStruct (BList* arg, BStruct* str,	BSubType sub)
 void BSet::PutStruct(BStruct* str)
 //--------------------------------------------------------------------
 {
-  struct_=BStruct::Alive(str,false);
-  if(struct_)
+  BStruct* str_=BStruct::Alive(str,false);
+  if(str_ && str_->Match(*this))
   {
+    struct_ = str_;
     PutSubType(BSet::Structured);
   }
+  else if(str_)
+  {
+    Error(I2("Cannot apply structure ",
+             "No se puede aplicar la estructura ")+str_->Name());
+  }
 }
+
 
 //--------------------------------------------------------------------
 void BSet::ChangeElement(BInt n, BSyntaxObject* obj)
@@ -981,3 +989,11 @@ void BSet::PutNameBlock (const BNameBlock* nameBlock)
   }
 }
 
+//--------------------------------------------------------------------
+  BStruct* BSet::Struct(bool showError) const 
+//--------------------------------------------------------------------
+{ 
+  BSet* T = (BSet*)this;
+  T->struct_ = BStruct::Alive(struct_, showError);
+  return(struct_); 
+}

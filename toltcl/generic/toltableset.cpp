@@ -34,6 +34,7 @@
 #endif
 
 #include <tol/tol_bcommon.h>
+#include <tol/tol_bstruct.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bvmatgra.h>

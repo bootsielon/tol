@@ -135,14 +135,12 @@ BBool List::IsListClass() const {
 
 //------------------------------------------------------------
 BCore* List::car () const { 
-    if (car_) return car_;
-    else return NIL;
+  return car_;
 }
 
 //------------------------------------------------------------
 List* List::cdr() const {
-    if (cdr_) return cdr_;
-    else return NIL;
+  return cdr_;
 }
 
 //------------------------------------------------------------

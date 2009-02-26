@@ -43,12 +43,12 @@ Real theta1  = 0.95;
 Matrix VMat2Mat(COV);
 Matrix ARMAACov(1,1-theta1*B,m);
 
-  VMatrix L = CholeskiFactor(COV,"X");
+  VMatrix L = CholeskiFactor(COV,"X",True);
 Matrix VMat2Mat(L);
   VMatrix L_ = Convert(L,"Cholmod.R.Sparse");
 Matrix VMat2Mat(L_);
   Real logDetL = VMatSum(Log(SubBand(L_)));
-  VMatrix e = CholeskiSolve(L,Z,"L");
+  VMatrix e = CholeskiSolve(L,Z,"PtL");
 Matrix VMat2Mat(e);
 Real logDens = -logDetL-0.5*VMatMoment(e,2);
 
@@ -76,7 +76,7 @@ Real K0 = -m/2*Log(Sqrt(2*PI));
   VMatrix L = CholeskiFactor(COV,"X");
   VMatrix L_ = Convert(L,"Cholmod.R.Sparse");
   Real logDetL = VMatSum(Log(SubBand(L_)));
-  VMatrix e = CholeskiSolve(L,Z,"L");
+  VMatrix e = CholeskiSolve(L,Z,"PtL");
   -K0-logDetL-0.5*m*VMatMoment(e,2)
 };
 

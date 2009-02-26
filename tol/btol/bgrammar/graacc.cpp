@@ -35,6 +35,7 @@
 #include <tol/tol_bspfun.h>
 #include <tol/tol_bsymboltable.h>
 #include <tol/tol_bnameblock.h>
+#include <tol/tol_bstruct.h>
 
 //--------------------------------------------------------------------
 // INICIALIZATION

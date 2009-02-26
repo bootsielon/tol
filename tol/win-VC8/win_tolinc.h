@@ -108,6 +108,7 @@
 #pragma include_alias(<tol/tol_bspfun.h>, <tol_bspfun.h>)
 #pragma include_alias(<tol/tol_bnameblock.h>, <tol_bnameblock.h>)
 #pragma include_alias(<tol/tol_bstruct.h>, <tol_bstruct.h>)
+#pragma include_alias(<tol/tol_bclass.h>, <tol_bclass.h>)
 #pragma include_alias(<tol/tol_bsyntax.h>, <tol_bsyntax.h>)
 #pragma include_alias(<tol/tol_bsymboltable.h>, <tol_bsymboltable.h>)
 #pragma include_alias(<tol/tol_gsl.h>, <tol_gsl.h>)

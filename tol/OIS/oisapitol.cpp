@@ -30,6 +30,7 @@
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_bdir.h>
+#include <tol/tol_bstruct.h>
 
 BTraceInit("oisapitol.cpp");
 

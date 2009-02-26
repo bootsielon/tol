@@ -24,6 +24,7 @@
 #include <tol/tol_bsyntax.h>
 
 class BStruct;
+class BClass;
 
 //--------------------------------------------------------------------
    class TOL_API BStackManager
@@ -181,6 +182,8 @@ public:
   static BSyntaxObject* Find      (const BText& name);
   //! Returns the last created struct with specified name if exists or null else
   static BStruct*       FindStruct(const BText& name);
+  //! Returns the last created user class with specified name if exists or null else
+  static BClass*        FindClass(const BText& name);
   //! Returns the current stack size
   static int CurrentEntries() { return(currentEntries_); }
 

@@ -37,7 +37,7 @@
 BTraceInit("opr.cpp");
 
 BList* BOperClassify::instances_ = NIL;
-BArray<BAtom*> BOperClassify::sortedClasses_;
+BArray<BAtom*> BOperClassify::sortedTheme_;
 BOperClassify* BOperClassify::Various_;
 BOperClassify* BOperClassify::General_;
 BOperClassify* BOperClassify::System_;
@@ -81,7 +81,7 @@ BOperClassify::BOperClassify(const BText& name, const BText& desc)
 {
 //Std(BText("\nCreating classify operator ")+Name());
     instances_ = Cons(this, instances_);
-    sortedClasses_.AddSorted(this,AtmCmp);
+    sortedTheme_.AddSorted(this,AtmCmp);
     IncNRefs();
     IncNRefs();
     IncNRefs();
@@ -97,8 +97,8 @@ BOperClassify* BOperClassify::Find(const BText& className)
 {
   BOperClassify* found = NULL;
   BObjectCRef aux(className);
-  int f = sortedClasses_.FindSorted(&aux,AtmCmp);
-  if(f>=0) { found = (BOperClassify*)sortedClasses_[f]; }
+  int f = sortedTheme_.FindSorted(&aux,AtmCmp);
+  if(f>=0) { found = (BOperClassify*)sortedTheme_[f]; }
   return(found);
 }
 
@@ -457,14 +457,14 @@ BOperator::BOperator(const BText& name, BGrammar* gra,
  * \param cl   Classify of operator
  */
 //--------------------------------------------------------------------
-: BSyntaxObject(name, desc), grammar_(gra), class_(cl), uCode_(NULL), 
+: BSyntaxObject(name, desc), grammar_(gra), theme_(cl), uCode_(NULL), 
   profiler_(NULL)
 {
 #ifdef CHK_NULL_GRAMMAR
     if (!gra )
 	Error( BText("Null grammar in ") + name + ":" + desc);
 #endif
-  if(class_) { class_->Add(this); }
+  if(theme_) { theme_->Add(this); }
 }
 
 //--------------------------------------------------------------------
@@ -838,7 +838,7 @@ BUserFunction::BUserFunction(const BText& name, BGrammar* gra)
   define_("")
 {
   PutName(name);
-  PutClass(BOperClassify::Various_);
+  PutTheme(BOperClassify::Various_);
   uCode_ = new BUserFunCode(name, this, Description());
 }
 

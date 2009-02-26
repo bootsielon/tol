@@ -41,22 +41,24 @@
   //char* spanishCodePage = "es_ES.UTF-8";        //FAIL 
   //char* spanishCodePage = "es_ES.latin1";       //FAIL 
   //char* spanishCodePage = "es_ES.iso-8859-1";   //FAIL 
-    const char* spanishCodePage = "es_ES.utf-8";        //FAIL 
+  //  const char* spanishCodePage = "es_ES.utf-8";        //FAIL 
+  //  setlocale(LC_CTYPE, spanishCodePage);
     #else
     const char* spanishCodePage = "Spanish_Spain.1252"; //OK!
-    #endif
     setlocale(LC_CTYPE, spanishCodePage);
+    #endif
   //printf("setlocale LC_CTYPE = \"%s\" -> \"%s\"", spanishCodePage, codepage.String());
   }
   else
   {
     #ifdef UNIX
-    const char* englishCodePage = "en_US.ISO-8859-1";           //FAIL 
+    //  const char* englishCodePage = "en_US.ISO-8859-1";           //FAIL
+    // setlocale(LC_CTYPE, englishCodePage);
     #else
     const char* englishCodePage = "English_United States.1252"; //OK!
-    #endif
     setlocale(LC_CTYPE, englishCodePage);
-  //printf("setlocale LC_CTYPE = \"%s\" -> \"%s\"", spanishCodePage, codepage.String());
+    #endif
+   //printf("setlocale LC_CTYPE = \"%s\" -> \"%s\"", spanishCodePage, codepage.String());
   }
 }
 
@@ -664,14 +666,14 @@ BText BText::Info () const
 /*! PURPOSE: Returns the string of BText object */
 const BChar* BText::String () const 
 {
-  assert(HasAssignedItems());
+  assert(!buffer_ || HasAssignedItems());
   return(buffer_);  
 }
 
 /*! PURPOSE: Returns the text's buffer */
 BChar* BText::Buffer ()
 {
-  assert(HasAssignedItems());
+  assert(!buffer_ || HasAssignedItems());
   return(buffer_); 
 }
 

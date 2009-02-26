@@ -26,6 +26,14 @@
 #  include <tol/config.h>
 #endif
 
+#ifndef OPENFLAG 
+#  if (defined(UNIX) || (defined(_MSC_VER) && (_MSC_VER>=1300)))
+#    define OPENFLAG ios::in
+#  else
+#    define OPENFLAG ios::nocreate
+#  endif
+#endif
+
 #ifdef __cplusplus
 #  if ((defined(__GNUC__) && (__GNUC__>2)) || (defined(_MSC_VER) && (_MSC_VER>=1300)))
 #  include <string>

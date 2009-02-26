@@ -34,6 +34,7 @@
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_bcmpgra.h>
 #include <tol/tol_bvmatgra.h>
+#include <tol/tol_bstruct.h>
 
         
 BTraceInit("oiscreator.cpp");
@@ -239,6 +240,7 @@ if(!BDir::CheckIsDir(dir))                                \
     EnsureFileOpenW(hrchyDetail_, "hrchyDetail", ".hrchyDetail" );
     EnsureFileOpenW(hrchyOffset_, "hrchyOffset", ".hrchyOffset" );
     EnsureFileOpenW(hrchyOrder_,  "hrchyOrder",  ".hrchyOrder"  );
+    EnsureFileOpenW(export_,      "export",      "export.csv"   );
 
     BText address = SubPath();
     EWrite(address+"/.tolref>\n",      tolref_);
@@ -254,6 +256,7 @@ if(!BDir::CheckIsDir(dir))                                \
     EWrite(address+"/.hrchyDetail>\n", hrchyDetail_);
     EWrite(address+"/.hrchyOffset>\n", hrchyOffset_);
     EWrite(address+"/.hrchyOrder>\n",  hrchyOrder_);
+    export_->Print("ModeId;GrammarId;Name;Mode;Grammar;\n");
     enable_BSE_ = true;
   }
   else
@@ -311,8 +314,11 @@ if(!BDir::CheckIsDir(dir))                                \
   stat_.fileStat_[0].bytes_   = -1;
   for(int n=1; n<allFiles_.Size(); n++) 
   { 
-    stat_.fileStat_[n].entries_ = allFiles_[n]->Entries(); 
-    stat_.fileStat_[n].bytes_   = allFiles_[n]->Bytes(); 
+    if(allFiles_[n])
+    {
+      stat_.fileStat_[n].entries_ = allFiles_[n]->Entries(); 
+      stat_.fileStat_[n].bytes_   = allFiles_[n]->Bytes(); 
+    }
   }
   return(true);
 }
@@ -377,6 +383,51 @@ if(!BDir::CheckIsDir(dir))                                \
   delete [] buf;
   return(true);
 };
+
+
+//--------------------------------------------------------------------
+  bool BOisCreator::Write(const BMemberOwner& owner, 
+                          const BMemberOwner::BClassByNameHash& x, 
+                          BStream* stream)
+//--------------------------------------------------------------------
+{
+  BMemberOwner::BClassByNameHash::const_iterator iterC;
+  int n = 0;
+  int s = x.size();
+  EWrite(s,stream);
+  for(iterC=x.begin(); iterC!=x.end(); iterC++, n++)
+  {
+    EWrite(iterC->second->Name(),stream);
+  }
+  return(true);
+}
+
+//--------------------------------------------------------------------
+  bool BOisCreator::Write(const BClass& cls, BStream* stream)
+//--------------------------------------------------------------------
+{
+  Ensure(Write(cls, *(cls.parentHash_), object_));
+  Ensure(Write(cls, *(cls.ascentHash_), object_));
+  int n = 0;
+  int s = cls.member_.Size();
+  EWrite(s,stream);
+  for(n=0; n<cls.member_.Size(); n++)
+  {
+    const BMember& mbr = *(cls.member_[n]->member_);
+    EWrite(mbr.parent_->getName(), stream);
+    EWrite(mbr.name_             , stream);
+    if(mbr.parent_==&cls)
+    {
+      char isMethod = mbr.isMethod_;
+      Ensure(WriteTree(mbr.branch_, stream));
+      EWrite(mbr.declaration_     , stream);
+      EWrite(mbr.definition_      , stream);
+      EWrite(isMethod             , stream);
+    }
+  }
+  return(true);
+}
+
 
 //--------------------------------------------------------------------
   bool BOisCreator::WriteToken(const BToken& token, 
@@ -492,6 +543,7 @@ if(!BDir::CheckIsDir(dir))                                \
   char         mode   = v->Mode();
   if(mode == BBUILTINFUNMODE) { return(true); }
   if( (mode != BSTRUCTMODE)  &&
+      (mode != BCLASSMODE)  &&
       (mode != BOBJECTMODE) )
   {
     Warning(I2("Cannot add special objects",
@@ -559,7 +611,7 @@ if(!BDir::CheckIsDir(dir))                                \
       for(n=0; n<s; n++)
       {
         char gid = str[n].Grammar()->Gid();
-        EWrite(str[n].Name(),          object_);
+        EWrite(str[n].Name(), object_);
         EWrite(gid, object_);
         if(str[n].Grammar()==GraSet())
         {
@@ -573,6 +625,11 @@ if(!BDir::CheckIsDir(dir))                                \
           }
         }  
       } 
+    }
+    else if(mode==BCLASSMODE)
+    {
+      BClass& cls = *((BClass*) v);
+      Ensure(Write(cls, object_));
     }
     else
     {
@@ -593,6 +650,14 @@ if(!BDir::CheckIsDir(dir))                                \
         Ensure(WriteData(v, tol_type));
       }
     }
+  }
+  if(is_referenceable)
+  {
+    int gid = gra->Gid();
+    int m   = mode;
+    BText modeTxt = GetModeName(m);
+    export_->Print("%ld;%ld;%s;%s;%s;\n",
+                   m,gid,name.String(),gra->Name().String(),modeTxt.String());
   }
   return(true);
 }
@@ -689,6 +754,7 @@ if(!BDir::CheckIsDir(dir))                                \
     }
     if((x[n]->Mode() == BUSERFUNMODE   ) ||
        (x[n]->Mode() == BSTRUCTMODE    ) ||
+       (x[n]->Mode() == BCLASSMODE     ) ||
        (x[n]->Mode() == BOBJECTMODE    ) ||
        (x[n]->Mode() == BBUILTINFUNMODE)   )
     {
@@ -697,6 +763,7 @@ if(!BDir::CheckIsDir(dir))                                \
       if(options_.oisConfig_.buildHierarchy_)
       {
         idx[h].gid_          = x[n]->Grammar()->Gid();
+        idx[h].mode_         = x[n]->Grammar()->Mode();
         idx[h].objectOffset_ = offset;
         idx[h].hrchyEntry_   = curHrchyEntry_;
 #       ifdef TRACE_OIS_HIERARCHY
@@ -774,7 +841,15 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::WriteData(BUserNameBlock* v)
 //--------------------------------------------------------------------
 {
-  return(Write(v->Contens().Set()));
+  BNameBlock& nb = v->Contens();
+  Ensure(Write(nb.Set()));
+  char hasClass = nb.Class()!=NULL;
+  Ensure(Write(hasClass, object_));
+  if(hasClass)
+  {
+    Ensure(Write(nb.Class()->Name(), object_));
+  }
+  return(true);
 };
 
 //--------------------------------------------------------------------
@@ -964,7 +1039,10 @@ if(!BDir::CheckIsDir(dir))                                \
   int n;
   for(n=1; n<allFiles_.Size(); n++) 
   { 
-    allFiles_[n]->Flush(); 
+    if(allFiles_[n])
+    {
+      allFiles_[n]->Flush(); 
+    }
   }
   return(true);
 }

@@ -106,6 +106,7 @@ project tol
                  <define>__HASH_MAP_GOOGLE__=2
                  <define>__HASH_MAP_GCC__=3
                  <define>__HASH_MAP_ICC__=4
+                 <define>_USE_MM_IO_
   ;
 
 rule tag-lib ( name : type ? : property-set )

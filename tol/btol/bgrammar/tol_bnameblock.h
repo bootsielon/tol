@@ -25,6 +25,7 @@
 
 
 #include <tol/tol_bset.h>
+#include <tol/tol_bclass.h>
 #include <tol/tol_bgencon.h>
 
 //these warning disabling macros don't work from included headers
@@ -39,7 +40,7 @@
 template<class Any> class BGraContensBase;
 
 //--------------------------------------------------------------------
-class TOL_API BNameBlock: public BObject
+class TOL_API BNameBlock: public BObject, public BMemberOwner
 //--------------------------------------------------------------------
 {
 private:
@@ -49,6 +50,7 @@ private:
   int evLevel_;
   int level_;
   const BNameBlock* father_;
+  BClass* class_;
   static const BNameBlock* current_;
   static BNameBlock* unknown_;
   static BObjByNameHash using_;
@@ -79,20 +81,34 @@ public:
  ~BNameBlock();
   BNameBlock(const BNameBlock& ns);
   BNameBlock& operator= (const BNameBlock& ns);
+ 
+  // Access & Manipulation: inline
+  BOwnerType OwnerType() const { return(BNAMEBLOCK); }
+  const BText& getName() const { return(Name()); }
+  BText		     getDump() const { return(Dump()); }
 
-  int Level() const;
+  BText Dump() const;
+  int   Level() const;
+
   BGraContensBase<BNameBlock>* Owner() const;
   void PutOwner(BGraContensBase<BNameBlock>* owner);
   const BText& Name() const;
   const BText& LocalName() const;
+
   void PutLocalName(const BText& localName) { localName_ = localName; };
   const BObjByNameHash& Public () const { return(public_ ); }
         BObjByNameHash& Public ()       { return(public_ ); }
   const BObjByNameHash& Private() const { return(private_); }
         BObjByNameHash& Private()       { return(private_); }
-  const BNameBlock*             Father  () const { return(father_); }
-  const BSet&                   Set     () const { return(set_); }
-        BSet&                   Set     ()       { return(set_); }
+  const BSet&       Set     () const { return(set_); }
+        BSet&       Set     ()       { return(set_); }
+  const BNameBlock* Father  () const { return(father_); }
+  const BClass*     Class   () const;
+  void  PutClass (BClass* cls) { class_ = cls; }
+
+  bool IsInstanceOf(BClass* cls) const;
+  bool IsInstanceOf(const BText& name) const;
+
   BText Info() const { return(set_.Info()); }
   int BinWrite(FILE*) const { return 0; }
   int BinRead (FILE*)       { return 0; }
@@ -109,8 +125,6 @@ public:
   short EnsureIsAssigned() const;
 
   DeclareClassNewDelete(BNameBlock);
-
-
 };
 
 //--------------------------------------------------------------------

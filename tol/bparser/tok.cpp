@@ -201,12 +201,12 @@ BSeparatorToken::~BSeparatorToken()
 
 
 //--------------------------------------------------------------------
-BTypeToken::BTypeToken(const BText& name)
+BTypeToken::BTypeToken(const BText& name, BType type)
 
 /*! Constructor
  */
 //--------------------------------------------------------------------
-    : BToken (name,TYPE)
+    : BToken (name,TYPE), type_(type)
 { }
 
 
@@ -216,7 +216,7 @@ BTypeToken::BTypeToken(const BTypeToken* tok)
 /*! Copy Constructor
  */
 //--------------------------------------------------------------------
-    : BToken((BToken*)tok)
+    : BToken((BToken*)tok), type_(tok->type_)
 { }
 
 
@@ -290,6 +290,35 @@ BMonaryToken::BMonaryToken(const BMonaryToken* tok)
 
 //--------------------------------------------------------------------
 BMonaryToken::~BMonaryToken()
+
+/*! Destructor empty method
+ */
+//--------------------------------------------------------------------
+{ }
+
+
+//--------------------------------------------------------------------
+BMacroToken::BMacroToken(const BText& name)
+
+/*! Constructor
+ */
+//--------------------------------------------------------------------
+: BToken (name, MACRO)
+{ }
+
+
+//--------------------------------------------------------------------
+BMacroToken::BMacroToken(const BMacroToken* tok)
+
+/*! Copy Constructor
+ */
+//--------------------------------------------------------------------
+: BToken((BToken*)tok)
+{ }
+
+
+//--------------------------------------------------------------------
+BMacroToken::~BMacroToken()
 
 /*! Destructor empty method
  */

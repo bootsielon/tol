@@ -39,6 +39,7 @@
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_bnameblock.h>
+#include <tol/tol_bstruct.h>
 
 BTraceInit("oisloader.cpp");
 
@@ -173,29 +174,17 @@ if(! ( fn = streamHandler_->Open(T,SubPath()+N) ) ) \
             foundEnd+"'");
       Ensure(false); 
     }
-    TRACE_SHOW_LOW(fun,"2.3");
     header_->SetPos(0);
-    TRACE_SHOW_LOW(fun,"2.4");
     EnsureFileOpenR(tolref_,  "tolref",  ".tolref"   );
-    TRACE_SHOW_LOW(fun,"2.5");
     EnsureFileOpenR(oisref_,  "oisref",  ".oisref"   );
-    TRACE_SHOW_LOW(fun,"2.6");
     EnsureFileOpenR(object_,  "object",  ".object"   );
-    TRACE_SHOW_LOW(fun,"2.7");
     EnsureFileOpenR(set_,     "set",     ".set"      );
-    TRACE_SHOW_LOW(fun,"2.8");
     EnsureFileOpenR(serie_,   "serie",   ".serie"    );
-    TRACE_SHOW_LOW(fun,"2.9");
     EnsureFileOpenR(timeset_, "timeset", ".timeset"  );
-    TRACE_SHOW_LOW(fun,"2.10");
     EnsureFileOpenR(matrix_,  "matrix",  ".matrix"   );
-    TRACE_SHOW_LOW(fun,"2.11");
     EnsureFileOpenR(polyn_,   "polyn",   ".polyn"    );
-    TRACE_SHOW_LOW(fun,"2.12");
     EnsureFileOpenR(ratio_,   "ratio",   ".ratio"    );
-    TRACE_SHOW_LOW(fun,"2.13");
     EnsureFileOpenR(code_,    "code",    ".code"     );
-    TRACE_SHOW_LOW(fun,"2.14");
     if(streamHandler_->HasFile(SubPath()+".hrchyDetail"))  
     {
       EnsureFileOpenR(hrchyDetail_, "hrchyDetail", ".hrchyDetail"    );
@@ -204,6 +193,10 @@ if(! ( fn = streamHandler_->Open(T,SubPath()+N) ) ) \
       TRACE_SHOW_LOW(fun,"2.16");
       EnsureFileOpenR(hrchyOrder_,  "hrchyOrder",  ".hrchyOrder"     );
       TRACE_SHOW_LOW(fun,"2.17");
+    }
+    if(streamHandler_->HasFile(SubPath()+"export.csv"))
+    {
+      export_ = streamHandler_->Open("export",SubPath()+"export.csv");
     }
   }
   TRACE_SHOW_LOW(fun,"3");
@@ -242,18 +235,21 @@ if(! ( fn = streamHandler_->Open(T,SubPath()+N) ) ) \
   enable_BSE_=(control_.oisEngine_.oisVersion_>="01.08")!=0;
   for(n=1; n<numFiles; n++)
   {
-    BINT64 size = allFiles_[n]->Bytes();
-    if(stat_.fileStat_[n].bytes_!=size)
+    if(allFiles_[n])
     {
-      Error(I2("OIS: File size integrity check failed",
-               "OIS: Fallo en el test de integridad de tamaño de ficheros")+
-               ".\n  "+allFiles_[n]->Name()+
-            I2(" seems to be corrupted due to has ",
-               " parece estar corrupto pues ocupa ")+
-            size + " Kb "+ 
-            I2(" instead of "," en lugar de ")+
-            stat_.fileStat_[n].bytes_);
-      ok = false; 
+      BINT64 size = allFiles_[n]->Bytes();
+      if(stat_.fileStat_[n].bytes_!=size)
+      {
+        Error(I2("OIS: File size integrity check failed",
+                 "OIS: Fallo en el test de integridad de tamaño de ficheros")+
+                 ".\n  "+allFiles_[n]->Name()+
+              I2(" seems to be corrupted due to has ",
+                 " parece estar corrupto pues ocupa ")+
+              size + " Kb "+ 
+              I2(" instead of "," en lugar de ")+
+              stat_.fileStat_[n].bytes_);
+        ok = false; 
+      }
     }
   }
   Ensure(ok);
@@ -410,6 +406,94 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   }
   Ensure(ok);
   return(ok);
+}
+
+
+//--------------------------------------------------------------------
+  bool BOisLoader::Read(BMemberOwner& owner,
+                        BMemberOwner::BClassByNameHash& x, 
+                        BStream* stream)
+//--------------------------------------------------------------------
+{
+  BMemberOwner::BClassByNameHash::const_iterator iterC;
+  int n = 0;
+  int s;
+  ERead(s,stream);
+  for(n=0; n<s; n++)
+  {
+    BText parentName;
+    ERead(parentName,stream);
+    BClass* parent = FindClass(parentName);
+    if(!parent)
+    {
+      return(NullError(
+        I2("Cannot load from OIS Class ","No se puede cargar del OIS Class ")+ 
+        owner.getName()+
+        I2("due to ascent Class ","Debido a que su ascendiente Class ")+
+        parentName+I2(" doesn't exist"," no existe")));
+    }
+    x[parent->Name()] = parent;
+  }
+  return(true);
+}
+
+//--------------------------------------------------------------------
+  bool BOisLoader::Read(BClass& cls, BStream* stream)
+//--------------------------------------------------------------------
+{
+  BMemberOwner::BClassByNameHash& parents = *cls.parentHash_;
+  Ensure(Read(cls,parents,stream));
+  BMemberOwner::BClassByNameHash::const_iterator iterC;
+  int n = 0;
+  for(iterC=parents.begin(); iterC!=parents.end(); iterC++, n++)
+  {
+    iterC->second->IncNRefs();
+  }
+  Ensure(Read(cls,*cls.ascentHash_,stream));
+  int s;
+  ERead(s,stream);
+  cls.member_.AllocBuffer(s);
+  for(n=0; n<s; n++)
+  {
+    BText parentName;
+    BText name;
+    ERead(parentName, stream);
+    ERead(name      , stream);
+    BMember* mbr = NULL;
+    if(parentName==cls.getName())
+    {
+      char isMethod;
+      mbr = new BMember;
+      mbr->parent_ = &cls;
+      mbr->name_  = name;
+      mbr->branch_ = ReadTree(stream);
+      ERead(mbr->declaration_ , stream);
+      ERead(mbr->definition_  , stream);
+      ERead(isMethod          , stream);
+      mbr->isMethod_ = isMethod!=0;
+      mbr->isGood_ = true;
+    }
+    else
+    {
+      BClass* parent = FindClass(parentName);
+      mbr = parent->FindMember(name);
+      assert(mbr);
+    }
+    BMbrNum* mbrNum = new BMbrNum;
+    mbrNum->member_ = mbr;
+    mbrNum->position_ = n;
+    cls.member_[n] = mbrNum;
+    (*cls.memberHash_)[mbr->name_] = mbrNum;
+    if(mbr->definition_.HasName())
+    {
+      (*cls.mbrDefHash_)[mbr->declaration_] = mbr;
+    }
+    else
+    {
+      (*cls.mbrDecHash_)[mbr->declaration_] = mbr;
+    }
+  }
+  return(true);
 }
 
 
@@ -643,6 +727,10 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     { 
       return(FindStruct(name)); 
     }
+    else if(mode==BCLASSMODE) 
+    { 
+      return(FindClass(name)); 
+    }
     else 
     { 
       return(NullError("FATAL in BOisLoader::ReadNextObject()"));
@@ -696,7 +784,16 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       }
       return(readed_[found].PutObject(str));
     }
-    else 
+    else if(mode==BCLASSMODE) 
+    { 
+      BClass* cls = new BClass;
+      cls->PutName(name);
+      BScanner::AddSymbol(new BTypeToken(name,BTypeToken::BCLASS));
+      Ensure(Read(*cls,object_));
+      BGrammar::AddObject(cls); 
+      return(readed_[found].PutObject(cls));
+    }
+    else
     {
       ERead(description, object_);
       ERead(format,      object_);
@@ -904,7 +1001,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             } 
             str = (BStruct*)r;
           }
-          x.PutStruct (str); 
           BSyntaxObject* r=NULL;
           for(n=1; n<=s; n++)
           {
@@ -920,6 +1016,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               x.AddElement(r); 
             }
           }  
+          x.PutStruct (str); 
           if(sff) 
           { 
             sff->PutContens(x); 
@@ -988,6 +1085,27 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           } 
           x.Set().PutNameBlock(&x);
           x.Build();
+          if(control_.oisEngine_.oisVersion_>="02.07")
+          {
+            char hasClass;
+            Ensure(Read(hasClass, object_));
+            if(hasClass)
+            {
+              BText className;
+              Ensure(Read(className, object_));
+              BClass* cls = FindClass(className);
+              if(!cls)
+              {
+                return(NullError(
+                  I2("Cannot load from OIS NameBlock ","No se puede cargar del OIS NameBlock ")+ 
+                  name+
+                  I2("due to ascent Class ","Debido a que su ascendiente Class ")+
+                  className+I2(" doesn't exist"," no existe")));
+              }
+              cls->IncNRefs();
+              x.PutClass(cls);
+            }
+          }
           result = unb;
           result->PutDescription(description);
           result=PutVariableName(result,name,is_referenceable);

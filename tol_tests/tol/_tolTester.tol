@@ -12,6 +12,7 @@
 Set Results = ReportAllBatteries(SetOfSet
 (
   strBatteryConfig("Bugzilla",          "",  1),
+  strBatteryConfig("kernel",            "",  1),
   strBatteryConfig("CreationAndCopy",   "",  1),
   strBatteryConfig("SetAlgebra",        "",  1),
   strBatteryConfig("BooleanAlgebra",    "",  1),

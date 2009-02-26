@@ -49,7 +49,8 @@ enum BTokenType
   BINARY    =  4,      //!< for binary operator symbols
   ARGUMENT  =  5,      //!< for variable and constant symbols
   FUNCTION  =  6,      //!< for function symbols
-  TYPE	    =  7       //!< for type symbols
+  TYPE	    =  7,      //!< for function symbols
+  MACRO	    =  8       //!< for parsing macroes
 };
 
 
@@ -237,9 +238,17 @@ class BTypeToken : public BToken
 //--------------------------------------------------------------------
 {
 public:
-    BTypeToken(const BText& name); //!< Default Constructor Method
-    BTypeToken(const BTypeToken* tok); //!< Copy Constructor Method
-    ~BTypeToken(); //!< Destructor. Empty Method
+  enum BType 
+  {
+    BSYSTEM,
+    BSTRUCT,
+    BCLASS
+  };
+  BType type_;
+
+  BTypeToken(const BText& name, BType); //!< Default Constructor Method
+  BTypeToken(const BTypeToken* tok); //!< Copy Constructor Method
+ ~BTypeToken(); //!< Destructor. Empty Method
 
     //! Method with the same functionality like Copy Constructor
     BToken* Duplicate() { return(new BTypeToken(this)); }
@@ -247,6 +256,9 @@ public:
   RedeclareClassNewDelete(BTypeToken);
 };
 
+/*! \brief Declarations of BTypeToken Class attributes and methods.<br>
+ *         Functionality has been implemented in bbasic/bparser/tok.cpp
+ */
 
 /*! \brief Declarations of BBinaryToken Class attributes and methods.<br>
  *         Functionality has been implemented in bbasic/bparser/tok.cpp
@@ -304,6 +316,28 @@ public:
     BToken* Duplicate() { return(new BMonaryToken(this)); }
 
   RedeclareClassNewDelete(BMonaryToken);
+};
+
+
+/*! \brief Declarations of BMacroToken Class attributes and methods.<br>
+ *         Functionality has been implemented in bbasic/bparser/tok.cpp
+ */
+//--------------------------------------------------------------------
+class BMacroToken : public BToken
+
+/*! Parsing macro symbols representation.<br>
+ */
+//--------------------------------------------------------------------
+{
+public:
+    BMacroToken(const BText& name); //!< Default Constructor
+    BMacroToken(const BMacroToken* tok); //!< Copy Constructor
+   ~BMacroToken(); //!< Destructor. Empty Method
+
+    //! Method with the same functionality like Copy Constructor
+    BToken* Duplicate() { return(new BMacroToken(this)); }
+
+  RedeclareClassNewDelete(BMacroToken);
 };
 
 

@@ -26,6 +26,8 @@
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_bdir.h>
+#include <tol/tol_bstruct.h>
+#include <tol/tol_bclass.h>
 #include <tol/tol_bcmpgra.h>
 #include <tol/tol_bpolgra.h>
 #include <tol/tol_bratgra.h>
@@ -35,6 +37,7 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdtegra.h>
+#include <tol/tol_bnameblock.h>
 #ifdef __USE_TC__
 #  include <tol/tol_bctmigra.h>
 #  include <tol/tol_bctmsgra.h>
@@ -731,17 +734,45 @@ void BDatPutCSerDat::CalcContens()
 }
 
 
+static char* structFinder_ = "Struct";
+static char* classFinder_  = "Class";
+static BSyntaxObject* structGra_ = (BSyntaxObject*)structFinder_;
+static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
+
+
 //--------------------------------------------------------------------
-  bool GetGrammarOptions(BSyntaxObject* g, BArray<BGrammar*>& graOpt)
+  static BSyntaxObject* FindGrammar(const BText& name)
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* found = Gram(name);
+  if(!found)
+  {
+         if(name=="Struct") { found = structGra_; }
+    else if(name=="Class" ) { found = classGra_; }
+    else
+    {
+      found = FindStruct(name);
+      if(!found)
+      {
+        found = FindClass(name);
+      }
+    }
+  }
+  return(found);
+}
+
+//--------------------------------------------------------------------
+  bool GetGrammarOptions(BSyntaxObject* g, 
+                         BArray<BSyntaxObject*>& graOpt)
 //--------------------------------------------------------------------
 {
   int i;
   BSyntaxObject* graObj = NULL;
-  BGrammar* gra = NULL;
+  BSyntaxObject* gra = NULL;
   if(g->Grammar()==GraText())
   {
     graOpt.AllocBuffer(1);
-    graOpt[0] = Gram(Text(g));
+    graOpt[0] = FindGrammar(Text(g));
   }
   else if(g->Grammar()==GraSet())
   {
@@ -760,7 +791,7 @@ void BDatPutCSerDat::CalcContens()
       }
       else
       {
-        graOpt[i] = Gram(Text(graObj));
+        graOpt[i] = FindGrammar(Text(graObj));
         if(!graOpt[i])
         {
           Error(I2("Element number ", "El elemento número ")+(i+1)+
@@ -783,6 +814,21 @@ void BDatPutCSerDat::CalcContens()
 }
 
 //--------------------------------------------------------------------
+  static BSyntaxObject* FindObject(BGrammar* gra, const BText& name)
+//--------------------------------------------------------------------
+{
+  BSyntaxObject*  result = gra->FindOperand(name, false);
+  if(!result) 
+  { 
+    bool oldEnabled = BOut::Disable();
+    result = gra->LeftEvaluateExpr(name); 
+    if(oldEnabled) { BOut::Enable(); }
+  }
+  if(result && (result->Grammar()!=gra)) { result=NULL; }
+  return(result);
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatObjectExist);
   DefExtOpr(1, BDatObjectExist, "ObjectExist", 2, 2, "Text Text",
   I2("(Text grammar, Text name)","(Text gramatica, Text nombre)"),
@@ -795,28 +841,72 @@ void BDatPutCSerDat::CalcContens()
 {
   BSyntaxObject* g = Arg(1);
   const BText&  name = Text(Arg(2));
-  BArray<BGrammar*> graOpt;
+  BArray<BSyntaxObject*> graOpt;
   int i;
   BSyntaxObject* result = NULL;
   BSyntaxObject* graObj = NULL;
-  BGrammar* gra = NULL;
+  BSyntaxObject* found = NULL;
   contens_ = false;
   if(!GetGrammarOptions(g, graOpt)) { return; }
   for(i=0; !result && (i<graOpt.Size()); i++)
   {
-    gra = graOpt[i];
-    result = gra->FindOperand(name, false);
-    if(!result) 
-    { 
-      bool oldEnabled = BOut::Disable();
-      result = gra->LeftEvaluateExpr(name); 
-      if(oldEnabled) { BOut::Enable(); }
+    found = graOpt[i];
+    if(!found) { continue; }
+    if(found==structGra_)
+    {
+      result = FindStruct(name);
     }
-    if(result && (gra!=GraAnything()) && (result->Grammar()!=gra)) { result=NULL; }
+    else if(found==classGra_)
+    {
+      result = FindClass(name);
+    }
+    else if(found->Mode()==BGRAMMARMODE)
+    {
+      result = FindObject((BGrammar*)found, name);
+    }
+    else if(found->Mode()==BSTRUCTMODE)
+    {
+      result = FindObject(GraSet(), name);
+      if(result && Set(result).Struct()!=found)
+      {
+        result = NULL;
+      }
+    }
+    else if(found->Mode()==BCLASSMODE)
+    {
+      result = FindObject(GraNameBlock(), name);
+      BUserNameBlock* unb = (BUserNameBlock*)result;
+      if(result && unb->Contens().Class()!=found)
+      {
+        result = NULL;
+      }
+    }
   }
   contens_ = result!=NULL;  
 }
 
+//--------------------------------------------------------------------
+  static BSyntaxObject* FindFunction(BGrammar* gra, const BText& name)
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result = gra->FindOperator(name);
+  if(!result) 
+  { 
+    bool oldEnabled = BOut::Disable();
+    result = GraCode()->LeftEvaluateExpr(name); 
+    if(oldEnabled) { BOut::Enable(); }
+    if(result)
+    {
+      BUserCode* uCode = (BUserCode*)result;
+      BOperator* opr = GetOperator(uCode);
+      if(!opr || (gra!=opr->Grammar()))
+      {
+        result = NULL;
+      }
+    }
+  }  
+  return(result);
+}
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatFunctionExist);
@@ -837,31 +927,21 @@ void BDatPutCSerDat::CalcContens()
 {
   BSyntaxObject* g = Arg(1);
   const BText&  name = Text(Arg(2));
-  BArray<BGrammar*> graOpt;
+  BArray<BSyntaxObject*> graOpt;
   int i;
   BSyntaxObject* result = NULL;
   BSyntaxObject* graObj = NULL;
-  BGrammar* gra = NULL;
+  BSyntaxObject* found = NULL;
   contens_ = false;
   if(!GetGrammarOptions(g, graOpt)) { return; }
   for(i=0; !result && (i<graOpt.Size()); i++)
   {
-    gra = graOpt[i];
-    result = gra->FindOperator(name);
-    if(!result) 
-    { 
-      bool oldEnabled = BOut::Disable();
-      result = GraCode()->LeftEvaluateExpr(name); 
-      if(oldEnabled) { BOut::Enable(); }
-      if(result)
-      {
-        BUserCode* uCode = (BUserCode*)result;
-        BOperator* opr = GetOperator(uCode);
-        if(!opr || ((gra!=GraAnything()) && (gra!=opr->Grammar())))
-        {
-          result = NULL;
-        }
-      }
+    found = graOpt[i];
+    if(!found) { continue; }
+    if(found->Mode()==BGRAMMARMODE)
+    {
+      BGrammar* gra = (BGrammar*) found;
+      result = FindFunction(gra, name);
     }
   }
   contens_ = result!=NULL;

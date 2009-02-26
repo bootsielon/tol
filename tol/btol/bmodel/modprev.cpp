@@ -29,6 +29,7 @@
 #include <tol/tol_bratgra.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bdtegra.h>
+#include <tol/tol_bstruct.h>
 
 BTraceInit("modprev.cpp");
 

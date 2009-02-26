@@ -24,6 +24,7 @@
 
 #include <tol/tol_bgrammar.h>
 #include <tol/tol_bgrastk.h>
+#include <tol/tol_bclass.h>
 
 BTraceInit("grastl.cpp");
 
@@ -208,6 +209,31 @@ static BText objName_ = "";
       lst = lst->next_;
     }
     return(bstr);
+  }
+}
+
+//--------------------------------------------------------------------
+  BClass* BStackManager::FindClass(const BText& name)
+//! Returns the last created struct with specified name if exists or null else
+//--------------------------------------------------------------------
+{
+  if(!name.HasName())
+  { SendError("Cannot push unnamed classes."); }
+  BDictionaryNode* dNode = root_->Find(name,0);
+  if(!dNode || !dNode->entry_.heap_)
+  {
+    return(NULL);
+  }
+  else
+  {
+    BClass* bcls=NULL;
+    BDictionaryEntryNode* lst = dNode->entry_.heap_;
+    while(lst && !bcls)
+    {
+      if(lst->obj_->Mode()==BCLASSMODE) { bcls=(BClass*)lst->obj_; }
+      lst = lst->next_;
+    }
+    return(bcls);
   }
 }
 

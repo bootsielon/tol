@@ -39,6 +39,7 @@
 #include <tol/tol_bfilter.h>
 #include <tol/tol_bsymboltable.h>
 #include <tol/tol_ois.h>
+#include <tol/tol_bstruct.h>
 
 #if defined(__USE_TC__)
 #  include <tol/tol_bctmsgra.h>

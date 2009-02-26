@@ -127,4 +127,3 @@ Serie   SaturdayInMonth  = CalVar(WD(6), Monthly);
 Serie   SundayInMonth    = CalVar(WD(7), Monthly);
 
 
-

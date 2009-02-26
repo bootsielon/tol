@@ -1,4 +1,4 @@
-/* estim.cpp: Functions of BEstim.
+/* sparselinreg.cpp: Sparse linear regression
               GNU/TOL Language.
 
    Copyright (C) 2003 - Bayes Decision, SL (Spain [EU])

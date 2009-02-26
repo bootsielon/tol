@@ -41,6 +41,7 @@
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_btsrgra.h>
 #include <tol/tol_btsrgrp.h>
+#include <tol/tol_bstruct.h>
 
 #if defined(__USE_TC__)
 #  include <tol/tol_bctmsgra.h>
@@ -455,18 +456,17 @@ DefExtOpr(1, BSetPutStruct, "PutStructure", 2, 2, "Text Set",
 void BSetPutStruct::CalcContens()
 //--------------------------------------------------------------------
 {
-    BText	   name = Text(Arg(1));
-    BStruct* str	= FindStruct(name);
-    if(!str)
-    {
-	Error(name+I2(" is not any sructure ", " no es una estructura"));
-    }
-    else if(NumArgs()>1)
-    {
-	contens_ = Set(Arg(2));
-	contens_.PutSubType(BSet::Structured);
-	contens_.PutStruct(str);
-    }
+  BText    name = Text(Arg(1));
+  BStruct* str  = FindStruct(name);
+  if(!str)
+  {
+    Error(name+I2(" is not any sructure ", " no es una estructura"));
+  }
+  else if(NumArgs()>1)
+  {
+    contens_ = Set(Arg(2));
+    contens_.PutStruct(str);
+  }
 }
 
 
@@ -487,6 +487,7 @@ void BSetGrammars::CalcContens()
     BList* lst = NIL;
     BList* aux = NIL;
     while(instances)
+
     {
 	BGrammar*  gra  = (BGrammar*)(Car(instances));
 	BText      name = gra->Name();

@@ -217,11 +217,14 @@ BTraceInit("oisxml.cpp");
   header_->Print("<filestats>\n");
   for(n=1; n<allFiles_.Size(); n++)
   {
-    header_->Print("<%s><size>%"_LLD64_"</size><entries>%ld</entries></%s>\n",
-                  allFiles_[n]->Title().String(), 
-                  stat_.fileStat_[n].bytes_, 
-                  stat_.fileStat_[n].entries_, 
-                  allFiles_[n]->Title().String());
+    if(allFiles_[n])
+    {
+      header_->Print("<%s><size>%"_LLD64_"</size><entries>%ld</entries></%s>\n",
+                    allFiles_[n]->Title().String(), 
+                    stat_.fileStat_[n].bytes_, 
+                    stat_.fileStat_[n].entries_, 
+                    allFiles_[n]->Title().String());
+    }
   }
   header_->Print("</filestats>\n");
   header_->Print("</statistics>\n");
@@ -527,9 +530,14 @@ BTraceInit("oisxml.cpp");
   XMLEnsure(XMLGetNextTagTitle(tag_, "statistics"));
   XMLEnsure(XMLGetNextTagValue(tag_, value_, "buildingSeconds")); sscanf(value_,"%lf",&stat_.buildingTime_);
   XMLEnsure(XMLGetNextTagTitle(tag_, "filestats"));
-  BArray<int> allFilesOrder(allFiles_.Size());
-  for(n=0; n<allFiles_.Size(); n++) { allFilesOrder[n] = n; }
-  for(m=1; m<allFiles_.Size(); m++)
+  int numFiles = allFiles_.Size();
+  if(control_.oisEngine_.oisVersion_<"02.07.b")
+  {
+    numFiles=14;
+  }
+  BArray<int> allFilesOrder(numFiles);
+  for(n=0; n<numFiles; n++) { if(allFiles_[n]) { allFilesOrder[n] = n; } }
+  for(m=1; m<numFiles; m++)
   {
     n = allFilesOrder[m];
     if(n<0) { continue; }

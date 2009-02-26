@@ -25,14 +25,16 @@
 #include <tol/tol_bobject.h>
 #include <tol/tol_bsyntax.h>
 
-class BList;
 
 //--------------------------------------------------------------------
 // forward references
 //--------------------------------------------------------------------
+class TOL_API BList;
+class TOL_API BSet;
 class TOL_API BNewStruct;
 class TOL_API BStruct;
 class TOL_API BField;
+class TOL_API BClass;
 //template class TOL_API BArray<BField>;
 
 //--------------------------------------------------------------------
@@ -42,21 +44,26 @@ class TOL_API BField : public BObject
  protected:
     BGrammar* grammar_;
     BStruct*  struct_;
+    BClass*   class_;
     
  public:
     // Constructors and destructors: bgrammar\syn.cpp
     BField();
-    BField(const BText& name, BGrammar* gra, BStruct* str=NIL);
-    BField(const BText& name, const BText& gra, const BText& str="");
+    BField(const BText& name, BGrammar* gra, 
+           BStruct* str=NIL, BClass* cls=NIL);
+    BField(const BText& name, const BText& gra, 
+           const BText& str="",const BText& cls="");
    ~BField();
     
     // Access & Manipulation: inline
     BGrammar* Grammar() const { return(grammar_); }
     BStruct* Struct() const { return(struct_); }
+    BClass* Class() const { return(class_); }
     BText GetType() const;
     void PutType(const BText& type);
     void PutGrammar(BGrammar* gra) { grammar_ = gra; }
     void PutStruct (BStruct*  str) { struct_  = str; }
+    void PutClass (BClass*  cls) { class_  = cls; }
     BText Dump() const;
     DeclareClassNewDelete(BField);
 };
@@ -104,6 +111,8 @@ public:
   BField&   operator[] (BInt n)		   const { return((*field_)[n]); }
   BInt	    Size       ()		   const { return((*field_).Size()); }
   BText	    FieldName  (BInt n)		   const { return((*field_)[n].Name()); }
+
+  bool Match(const BSet& set);
 
   BNewStruct* Function() { return(function_); }
   void	PutFunction (BNewStruct* fun);

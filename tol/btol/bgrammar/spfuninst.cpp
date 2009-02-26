@@ -26,6 +26,8 @@
 #include <tol/tol_bspfun.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_btoken.h>
+#include <tol/tol_bstruct.h>
+#include <tol/tol_bclass.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdatgra.h>
@@ -1492,82 +1494,101 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   static BText _name_ = "::";
   BSyntaxObject* result = NIL;
   BInt nb = NumBranches(tre);
-//Std(BText("EvMember Tree ")+BParser::Unparse(tre," ", " ")+"\n"+BParser::treWrite((List*)tre,"  "));
   if(TestNumArg(_name_, 2, nb, 2))
   {
     bool oldEnabled = BOut::Disable();
-  //Std(BText("EvMember Branch 1 \n")+BParser::Unparse(Branch(tre,1)," ", " ")+"\n"+BParser::treWrite((List*)Branch(tre,1),"  "));
-    BSyntaxObject* uns = GraNameBlock()->LeftEvaluateTree(Branch(tre,1));
+    List* branch1 = Branch(tre,1);
+    List* branch2 = Branch(tre,2);
+    BSyntaxObject* uns = GraNameBlock()->LeftEvaluateTree(branch1);
+    if(!uns) { uns = GraSet()->LeftEvaluateTree(branch1); }
     if(oldEnabled) { BOut::Enable(); }
-    List*          branch2    = Branch(tre,2);
-  //Std(BText("EvMember Branch 2 \n")+BParser::Unparse(Branch(tre,2)," ", " ")+"\n"+BParser::treWrite((List*)Branch(tre,2),"  "));
-    BToken*        arg2       = BParser::treToken(branch2);
-    const BText&   memberName = arg2->Name();
-  //if(memberName=="filter")
-  //{
-  //  Std(BText("EvMember Branch 1 \n")+BParser::Unparse(Branch(tre,1)," ", " ")+"\n"+BParser::treWrite((List*)Branch(tre,1),"  "));
-  //  uns = GraNameBlock()->LeftEvaluateTree(Branch(tre,1));
-  //}
-    if(!uns || uns->Grammar()!=GraNameBlock())
+    if(uns)
     {
-      oldEnabled = BOut::Disable();
-      BUserSet* uSet = (BUserSet*)GraSet()->LeftEvaluateTree(Branch(tre,1));
-      if(oldEnabled) { BOut::Enable(); }
-      if(uSet)
+      BToken*      arg2       = BParser::treToken(branch2);
+      const BText& memberName = arg2->Name();
+      /* * /
+      if(memberName=="load.INE")
       {
+        Std(BText("EvMember Tree ")+
+            BParser::Unparse(tre," ", " ")+"\n"+
+            BParser::treWrite((List*)tre,"  "));
+        Std(BText("EvMember Branch 1 \n")+
+            BParser::Unparse(Branch(tre,2)," ", " ")+"\n"+
+            BParser::treWrite((List*)branch1,"  "));
+        Std(BText("EvMember Branch 2 \n")+
+            BParser::Unparse(Branch(tre,2)," ", " ")+"\n"+
+            BParser::treWrite((List*)branch2,"  "));
+      }
+      /* */
+      if(uns->Grammar()==GraSet())
+      {
+        BUserSet* uSet = (BUserSet*)uns;
         result = uSet->Contens().GetElement(memberName);
       }
-    }
-    else
-    {
-      BText errMsg;
-      BNameBlock& ns = NameBlock(uns);
-      if((memberName[0]=='_')&&(memberName[1]=='.'))
+      else if(uns->Grammar()==GraNameBlock())
       {
-        result = ns.Set().Member(memberName, errMsg);
-      //if(result) { result = result->CopyContens(); }
-      }
-      else
-      {
-        result = ns.Set().PublicMember(memberName, errMsg);
-      }
-      BTokenType tt = arg2->TokenType();
-      if(result && branch2->cdr())
-      {
-        if(tt==FUNCTION)
+        BText errMsg;
+        BNameBlock& ns = NameBlock(uns);
+        if((memberName[0]=='_')&&(memberName[1]=='.'))
         {
-          if(result->Grammar()!=GraCode())
+          result = ns.Set().Member(memberName, errMsg);
+        //if(result) { result = result->CopyContens(); }
+        }
+        else
+        {
+          result = ns.Set().PublicMember(memberName, errMsg);
+        }
+        BTokenType tt = arg2->TokenType();
+        if(result && branch2->cdr())
+        {
+          if(tt==FUNCTION)
           {
-            BText fullName = ns.Name()+_name_+memberName;
-            BText graName  = "UNKNOWN";
-            if(result->Grammar()) { graName = result->Grammar()->Name(); }
-            errMsg = fullName+
-                     I2(" is not a function but an object of type ", 
-                        " no es una función sino un objeto de tipo ")+
-                     graName;
-            result = NULL;
+            if(result->Grammar()!=GraCode())
+            {
+              BText fullName = ns.Name()+_name_+memberName;
+              BText graName  = "UNKNOWN";
+              if(result->Grammar()) { graName = result->Grammar()->Name(); }
+              errMsg = fullName+
+                       I2(" is not a function but an object of type ", 
+                          " no es una función sino un objeto de tipo ")+
+                       graName;
+              result = NULL;
+            }
+            else
+            {
+              BUserCode* uCode = UCode(result);
+              BOperator* opr   = GetOperator(uCode);
+              result = opr->Evaluate(branch2->cdr());
+            }
           }
-          else
+          if((tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
           {
-            BUserCode* uCode = UCode(result);
-            BOperator* opr   = GetOperator(uCode);
-            result = opr->Evaluate(branch2->cdr());
+            BStruct* bstr = (BStruct*)result;
+            result = bstr->Function()->Evaluate(branch2->cdr());
           }
         }
-        if((tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
+        if(errMsg.HasName())
         {
-          BStruct* bstr = (BStruct*)result;
-          result = bstr->Function()->Evaluate(branch2->cdr());
+          assert(!result);
+          Error(errMsg);
         }
-      }
-      if(errMsg.HasName())
-      {
-        assert(!result);
-        Error(errMsg);
       }
     }
   }
   result=TestResult(_name_,result,tre,NIL,BTRUE);
+  return(result);
+}
+
+//--------------------------------------------------------------------
+static BSyntaxObject* EvClass(BGrammar* gra, const List* tre, BBool left)
+
+/*! Evaluate Case expressions
+ */
+//--------------------------------------------------------------------
+{
+  static BText _name_ = "Class";
+  BSyntaxObject* result = BClass::Evaluate(tre);
+  result=TestResult(_name_,result,tre,NIL,BFALSE);
   return(result);
 }
 
@@ -2000,6 +2021,12 @@ bool BSpecialFunction::Initialize()
      "Esta línea devuelve un error porque los miembros que comienzan por _ son privados:"
      "Real b = MySN::_aux;\n"),
      EvMember);
+
+  AddLeftInstance("Class",
+     " Class name [: parentClass1, ...] { members }",
+  I2("Creates a user defined class as an specific API of NameBlock",
+     "Crea una clase definida por el usuario como una API específica de NameBlock"),
+     EvClass);
 
   return(true);
 }

@@ -161,7 +161,7 @@ rule lib ( pkg : features * )
                 }
                 case "include" :
                 {
-                    .libs.$(pkg).include = $(matched[2]) ;
+                    .libs.$(pkg).include += $(matched[2]) ;
                 }
                 case "search" :
                 {

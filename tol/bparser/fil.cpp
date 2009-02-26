@@ -105,7 +105,6 @@ BBool BFilter::IsIdentifier(BChar ch) const
   );
 }
 
-
 //--------------------------------------------------------------------
 //! Return true if the expression is an identifier.
 /*! Return true if the expression is an identifier.<br>
@@ -118,6 +117,7 @@ BBool BFilter::IsIdentifier(const BText& expression) const
 {
   if(!expression.HasName()) { return(BFALSE); }
   if((expression[0]=='?')&&(expression[1]=='\0')) { return(BTRUE); }
+  if(expression=="#Embed") { return(BTRUE); }
   int n;
   char ch = expression.Get(0);
   if(!IsFirstIdentifier(ch)) { return(BFALSE); }
@@ -197,8 +197,8 @@ void BFilter::AddNewChar(BText& cl, BInt& n, BChar ch) const
 {
     static int length = 0;
     BBool isSym  = IsSymbol(ch);
-    BBool isId   = IsIdentifier(ch);
-    BBool isIdCl = IsIdentifier(cl.Get(n));
+    BBool isId   = IsIdentifier(ch) || ch=='#';
+    BBool isIdCl = IsIdentifier(cl.Get(n)) || cl.Get(n)=='#';
     if (isSym && !isIdCl && Inseparable(cl.Get(n), ch)) { 
 	cl.PutChar(++n,ch); 
     } else if(ch=='\r'){

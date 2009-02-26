@@ -30,6 +30,7 @@
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_btxtgra.h>
 
+
 #include <tol/tol_list.h>
 #include <tol/tol_tree.h>
 #include <tol/tol_btoken.h>
@@ -37,6 +38,9 @@
 #include <tol/tol_bparser.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bcodgra.h>
+#include <tol/tol_bstruct.h>
+#include <tol/tol_bclass.h>
+
 
 //--------------------------------------------------------------------
 // Initialization
@@ -80,15 +84,17 @@ static bool BNameBlock_IsInitialized()
 }
 
 //--------------------------------------------------------------------
-BNameBlock::BNameBlock() 
+  BNameBlock::BNameBlock() 
 //--------------------------------------------------------------------
-: BObject   (),
-  public_   (),
-  private_  (), 
-  set_      (),
-  evLevel_  (BGrammar::Level()),
-  level_    (-999999999),
-  father_   (current_),
+: BMemberOwner(),
+  BObject  (),
+  public_  (),
+  private_ (), 
+  evLevel_ (BGrammar::Level()),
+  level_   (-999999999),
+  set_     (),
+  father_  (current_),
+  class_   (NULL),
   localName_(),
   owner_    (NULL)
 {
@@ -101,13 +107,15 @@ BNameBlock::BNameBlock()
 //--------------------------------------------------------------------
 BNameBlock::BNameBlock(const BText& fullName, const BText& localName) 
 //--------------------------------------------------------------------
-: BObject   (fullName), 
-  public_   (),
-  private_  (),
-  set_      (),
-  evLevel_  (BGrammar::Level()),
-  level_    (-999999999),
-  father_   (current_),
+: BMemberOwner(),
+  BObject  (fullName), 
+  public_  (),
+  private_ (),
+  evLevel_ (BGrammar::Level()),
+  level_   (-999999999),
+  set_     (),
+  father_  (current_),
+  class_   (NULL),
   localName_(localName),
   owner_    (NULL)
 {
@@ -120,30 +128,38 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
 //--------------------------------------------------------------------
 BNameBlock::BNameBlock(const BNameBlock& ns) 
 //--------------------------------------------------------------------
-: BObject   (ns.Name    ()), 
-  public_   (ns.Public  ()),
-  private_  (ns.Private ()),
-  set_      (ns.Set     ()),
-  father_   (ns.Father  ()),
+: BMemberOwner(ns),
+  BObject  (ns.Name    ()), 
+  public_  (ns.Public  ()),
+  private_ (ns.Private ()),
+  evLevel_ (BGrammar::Level()),
+  level_   (ns.Level   ()),
+  set_     (ns.Set     ()),
+  father_  (ns.Father  ()),
+  class_   ((BClass*)ns.Class   ()),
   localName_(ns.LocalName()),
   owner_    (NULL)
 {
   short isAssigned = BObject::IsAssigned();
   createdWithNew_ = isAssigned!=-1;
-  //VBR: La copia de NameBlock tiene un problema si los miembros
-  //referenciados en ambos son los mismos, ¿cuál es su padre?
-}
+}  
 
 //--------------------------------------------------------------------
 BNameBlock::~BNameBlock() 
 //--------------------------------------------------------------------
 {
+  if(class_)
+  {
+    class_->DecNRefs();
+    DESTROY(class_);
+  }
 }
 
 //--------------------------------------------------------------------
-BNameBlock& BNameBlock:: operator= (const BNameBlock& ns)
+BNameBlock& BNameBlock::operator= (const BNameBlock& ns)
 //--------------------------------------------------------------------
 {
+  Copy(ns);
   PutName(ns.Name());
   owner_     = NULL;
   set_       = ns.Set();
@@ -193,6 +209,24 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
+  bool BNameBlock::IsInstanceOf(BClass* cls) const
+//--------------------------------------------------------------------
+{
+  if(!class_) { return(false); }
+  if(cls == class_)  { return(true); }
+  return(class_->InheritesFrom(cls));
+}
+
+//--------------------------------------------------------------------
+  bool BNameBlock::IsInstanceOf(const BText& name) const
+//--------------------------------------------------------------------
+{
+  if(!class_) { return(false); }
+  if(name == class_->Name())  { return(true); }
+  return(class_->InheritesFrom(name));
+}
+
+//--------------------------------------------------------------------
   int BNameBlock::Level() const 
 //--------------------------------------------------------------------
 { 
@@ -215,13 +249,16 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
-  BSyntaxObject* BNameBlock::EvaluateTree(const List* tre)
+  BSyntaxObject* BNameBlock::EvaluateTree(const List* _tre)
 //--------------------------------------------------------------------
 {
-  static BText currentFullName = "";
-  const BText& name = BEqualOperator::CreatingName();
-//Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
+  static BText currentFullName  ="";
+  int n;
+  BText name  = BEqualOperator::CreatingName();
+  const BClass* cls = BEqualOperator::CreatingClass();
+  BEqualOperator::CleanCreating();
   BBool hasName = name.HasName();
+//Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
   BText fullName = name;
   BText oldFullName = currentFullName;
   if(hasName) 
@@ -264,13 +301,85 @@ const BText& BNameBlock::LocalName() const
     BNameBlock& newNameBlock  = ns_result->Contens();
     newNameBlock.PutName(fullName);
     newNameBlock.PutLocalName(name);
-  //BNameBlock::current_ = &newNameBlock;
+  /*
+    Std(BText("\nBNameBlock::EvaluateTree ")+fullName+
+        " changing new current NameBlock to "+
+        newNameBlock.Name()+"\n");
+    BNameBlock::SetCurrent(&newNameBlock);
+  */
     int oldErr = (int)TOLErrorNumber().Value();
-    BGrammar::IncLevel();
-    int stackPos = BGrammar::StackSize();
-    BSyntaxObject* set_result = GraSet()->EvaluateTree(tre);
-    BGrammar::DestroyStackUntil(stackPos, set_result);
-    BGrammar::DecLevel();
+    BSyntaxObject* set_result = NULL;
+    if(!cls)
+    {
+      BGrammar::IncLevel();
+      int stackPos = BGrammar::StackSize();
+      set_result = GraSet()->EvaluateTree(_tre);
+      BGrammar::DestroyStackUntil(stackPos, set_result);
+      BGrammar::DecLevel();
+    }
+    else
+    {
+      List* tre = _tre->duplicate();
+      newNameBlock.PutTree(tre);
+      newNameBlock.AddParent((BClass*)cls);
+      newNameBlock.AddMemberList(tre->cdr());
+      newNameBlock.SortMembers();
+      int stackPos = BGrammar::StackSize();
+
+
+      if(newNameBlock.isGood_ && newNameBlock.mbrDecHash_->size())
+      {
+        assert(cls);
+        BText undefMem = "";
+        BMemberByNameHash::const_iterator iterM;
+        BMemberByNameHash& mbr = *newNameBlock.mbrDecHash_;
+        n=0;
+        for(iterM=mbr.begin(); iterM!=mbr.end(); iterM++, n++)
+        {
+          BMember* mbr = iterM->second;
+          undefMem += BText("\n  ")+mbr->FullExpression();
+        }
+        Error(I2("Cannot create instance ",
+                 "No se pudo crear la instancia ")+fullName+
+              I2(" of class "," de la clase ")+cls->Name()+
+              I2(" due to there are not implemented methods ",
+              " debido a que hay miembros no implementados ")+
+              ":"+undefMem+"\n");
+        newNameBlock.isGood_ = false;
+      }
+      if(newNameBlock.isGood_)
+      {
+        BGrammar::IncLevel();
+        int stackPos = BGrammar::StackSize();
+        BSet set;
+        set.PrepareStore(newNameBlock.member_.Size());
+        for(n=0; n<newNameBlock.member_.Size(); n++)
+        {
+          BMember* mbr = newNameBlock.member_[n]->member_;
+          BSyntaxObject* obj = GraAnything()->EvaluateTree(mbr->branch_);
+          if(!obj) 
+          { 
+            newNameBlock.isGood_=false; 
+          }
+          else
+          {
+            set.AddElement(obj);
+          }
+        }
+        if(newNameBlock.isGood_)
+        {
+          set_result = new BContensSet("",set,"");   
+        }
+        newNameBlock.PutClass((BClass*)cls);
+        BGrammar::DestroyStackUntil(stackPos, set_result);
+        BGrammar::DecLevel();
+      } 
+    }
+    newNameBlock.DestroyMemberStore();
+    delete newNameBlock.ascentHash_;
+    newNameBlock.ascentHash_ = NULL;
+    delete newNameBlock.parentHash_;
+    newNameBlock.parentHash_ = NULL;
     int numErr = (int)TOLErrorNumber().Value()-oldErr;
     if(!set_result || (set_result->Grammar()!=GraSet()))
     {
@@ -286,7 +395,12 @@ const BText& BNameBlock::LocalName() const
         DESTROY(ns_result);
       }
     }
-  //BNameBlock::current_ = oldNameBlock;
+    /*
+    Std(BText("\BNameBlock::EvaluateTree ")+fullName+
+        " recovering new current NameBlock to "+
+        (oldNameBlock?oldNameBlock->Name():"NULL")+"\n");
+    BNameBlock::SetCurrent(oldNameBlock);
+    */
     if(!set_result)
     {
       Error(I2("Cannot build NameBlock ",
@@ -319,6 +433,36 @@ const BText& BNameBlock::LocalName() const
   return(Build());
 }
 
+//--------------------------------------------------------------------
+  const BClass* BNameBlock::Class() const
+//--------------------------------------------------------------------
+{
+  return(class_);
+}
+//--------------------------------------------------------------------
+	BText BNameBlock::Dump() const
+//--------------------------------------------------------------------
+{
+//return(BParser::Unparse(tree_,"","\n"));
+  BText txt = "[[\n  ";
+  BText end = "\n]]";
+  BText separator = ";\n  ";
+  BInt n;
+  for(n=1; n<=set_.Card(); n++)
+	{
+    txt += 
+      set_[n]->Grammar()->Name()+" "+
+      set_[n]->Name()+" = "+
+      set_[n]->Dump(); 
+	  if(n!=set_.Card())
+	  {
+		  txt += separator;
+	  }
+  }
+  txt += end;
+  return(txt);
+}
+  
 //--------------------------------------------------------------------
   bool BNameBlock::Build()
 //--------------------------------------------------------------------
@@ -813,6 +957,20 @@ void BSetToNameBlock::CalcContens()
     contens_.Fill(set);
     contens_.RebuildFullNameDeep(currentFullName);
   }
+}
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BNameBlockToSet);
+DefExtOpr(1, BNameBlockToSet, "NameBlockToSet", 1, 1, "NameBlock",
+ "(NameBlock nameBlock)",
+ I2("Converts a Set in a NameBlock",
+    "Convierte un Set en un NameBlock"),
+ BOperClassify::System_);
+//--------------------------------------------------------------------
+void BNameBlockToSet::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BNameBlock& nb = ((BUserNameBlock*)(Arg(1)))->Contens();
+  contens_ = nb.Set();
 }
 
 //--------------------------------------------------------------------

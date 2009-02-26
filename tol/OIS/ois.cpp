@@ -206,6 +206,7 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
   hrchyDetail_   = NULL;
   hrchyOffset_   = NULL;
   hrchyOrder_    = NULL;
+  export_        = NULL;
   allFiles_.AllocBuffer(BFI_maxnum);
   for(int n=0; n<allFiles_.Size(); n++) 
   { 
@@ -373,6 +374,7 @@ BOis::BArchiveEngine BOis::ArchiveEngine      (const BText& txt)
   allFiles_[BFI_hrchyDetail] = hrchyDetail_;
   allFiles_[BFI_hrchyOffset] = hrchyOffset_;
   allFiles_[BFI_hrchyOrder ] = hrchyOrder_;
+  allFiles_[BFI_export     ] = export_;
 }
 
 //--------------------------------------------------------------------
@@ -439,6 +441,7 @@ BOis::BArchiveEngine BOis::ArchiveEngine      (const BText& txt)
   all[n++]=sp+".hrchyDetail";
   all[n++]=sp+".hrchyOffset";
   all[n++]=sp+".hrchyOrder";
+  all[n++]=sp+"export.csv";
   streamHandler_->RemoveFiles(all);
   return(true);
 }

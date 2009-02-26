@@ -126,12 +126,7 @@ public:
 //BAtom** GetBuffer(BInt n=1) { return(array_.GetBuffer()+(n-1)); }
   BInt Card() const { return(array_.Size()); }
 
-  BStruct* Struct(bool showError=false) const 
-  { 
-    BSet* T = (BSet*)this;
-    T->struct_ = BStruct::Alive(struct_, showError);
-    return(struct_); 
-  }
+  BStruct* Struct(bool showError=false) const;
   const BSourcePath* SourcePath() const { return(sourcePath_); }
 
   BList* ToList () const;

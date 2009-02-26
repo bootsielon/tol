@@ -27,6 +27,7 @@
 #include <tol/tol_bspfun.h>
 #include <tol/tol_bsys.h>
 #include <tol/tol_bmoninfo.h>
+#include <tol/tol_bstruct.h>
 #include <tol/tol_btsrgrp.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>

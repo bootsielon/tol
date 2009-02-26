@@ -32,6 +32,7 @@
 #include <tol/tol_bunitroot.h>
 #include <tol/tol_blogit.h>
 #include <tol/tol_bprdist.h>
+#include <tol/tol_bstruct.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btxtgra.h>

@@ -34,15 +34,6 @@
 
 BTraceInit("txtalgeb.cpp");
 
-#ifndef OPENFLAG 
-#  if (defined(UNIX) || (defined(_MSC_VER) && (_MSC_VER>=1300)))
-#    define OPENFLAG ios::in
-#  else
-#    define OPENFLAG ios::nocreate
-#  endif
-#endif
-
-
 #define BMEDIUM_SIZE_STRING 1024
 #define BLONG_SIZE_STRING 65536
 

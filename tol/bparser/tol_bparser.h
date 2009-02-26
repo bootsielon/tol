@@ -26,10 +26,9 @@
 #define TOL_PARSER_H 1
 
 #include <tol/tol_tree.h>
+#include <tol/tol_btoken.h>
 
 class BText;
-class BToken;
-class BCloseToken;
 class BFilter;
 class BScanner;
 
@@ -47,15 +46,17 @@ class BParser {
  private:
     BText     expression_;          //!< Expression to analize
     BFilter*  filter_;	            //!< Pointer to the BFilter object
-    BScanner* scan_;	            //!< Pointer to the BScanner object
+    BScanner* scan_;	              //!< Pointer to the BScanner object
     BInt      openNumber_;          //!< Number of non closed open symbols
-    BBool     complete_;	    //!< Tree completation indicator
+    BBool     complete_;	          //!< Tree completation indicator
+    BBool     classInheritage_;     //!< Class inheritage indicator
     BToken*   nextSymbol_ ;         //!< Symbol   found after last scanning
     BToken*   nextArgument_;        //!< Argument found after last scanning
     BText     messageError_;        //!< Store message error from parser
     List*     newSymbol_;           //!< Store name of Struct Data Type created
+    BToken*   lastSymbol_;          //!< Context symbol of first level
+    BToken*   lastSymbol_2_;        //!< Context symbol of second level
     static BParser* defaultParser_; //!< only one parser
-    static BToken* lastSymbol_;     //!< Este attr quizás no sirva para nada
     
  public:
     BParser();
@@ -82,6 +83,7 @@ class BParser {
     BScanner* Scanner() const;
     
  private:
+    BBool ReadNextSymbol(BTokenType& symbolType); 
     BToken* NextSymbol() const;
     BToken* NextArgument() const;
     void PutNextSymbol(BToken*);
@@ -99,6 +101,8 @@ class BParser {
     Tree* ParseMonary(Tree*);
     Tree* ParseBinary(Tree*);
     Tree* ParseSeparator(Tree*);
+    Tree* ParseMacroEmbed (Tree* tre);
+    Tree* ParseMacro (Tree* tre);
     Tree* ParseSymbol(Tree*, BCloseToken*);
     
     BText ErrorPosition (BInt& row, BInt& col);

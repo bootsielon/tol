@@ -26,6 +26,8 @@
 #include "gsl_ext.h"
 #include <gsl/gsl_math.h>
 
+const double vmat_trunc_eps = 1.0e-12;
+
 ////////////////////////////////////////////////////////////////////////////////
 //Matrix algebra operators
 ////////////////////////////////////////////////////////////////////////////////
@@ -523,7 +525,7 @@ double BVMat::Quantile() const
   double  negInf = BDat::NegInf();
   double  posInf = BDat::PosInf();
   int     nnz    = D.NonNullCells();
-  double  drop   = nnz*DEpsilon();
+  double  drop   = nnz*vmat_trunc_eps;
   
   double& zj = zx[j];
 //Std(BText("\nj=")<<j);
@@ -542,7 +544,7 @@ double BVMat::Quantile() const
   {
     i = sp?Di[k]:k;
     const double& Dij = sp?Dx[k]:Dx[h++];
-    int Dij_sign = gsl_fcmp(Dij+1.0,1.0,DBL_EPSILON);
+    int Dij_sign = gsl_fcmp(Dij+1.0,1.0,vmat_trunc_eps);
     if(Dij_sign!=0)
     {
       bx[i] += Dij*zj;
@@ -563,7 +565,7 @@ double BVMat::Quantile() const
   }
 //Std(BText("\nlower=")<<lower<<"\tupper="<<upper);
   double length = lower-upper;
-  int length_sign = gsl_fcmp(length+1.0,1.0,DBL_EPSILON);
+  int length_sign = gsl_fcmp(length+1.0,1.0,vmat_trunc_eps);
   if(length_sign>=0)
   {
     if(length_sign==0)
@@ -744,7 +746,8 @@ double BVMat::Quantile() const
   double  lower  = BDat::NegInf();
   double  upper  = BDat::PosInf();
   int     nnz    = D.NonNullCells();
-  double  drop   = nnz*DEpsilon();
+  double  drop   = nnz*vmat_trunc_eps;
+
   for(h=hj=j=0; j<n; j++)
   {
     double& zj = zx[j];
@@ -764,7 +767,7 @@ double BVMat::Quantile() const
     {
       i = sp?Di[k]:k;
       const double& Dij = sp?Dx[k]:Dx[h++];
-      int Dij_sign = gsl_fcmp(Dij+1.0,1.0,DBL_EPSILON);
+      int Dij_sign = gsl_fcmp(Dij+1.0,1.0,vmat_trunc_eps);
       if(Dij_sign!=0)
       {
         bx[i] += Dij*zj;
@@ -785,7 +788,7 @@ double BVMat::Quantile() const
     }
   //Std(BText("\nlower=")<<BDat(lower)<<"\tupper="<<BDat(upper));
     double length = lower-upper;
-    int length_sign = gsl_fcmp(length+1.0,1.0,DBL_EPSILON);
+    int length_sign = gsl_fcmp(length+1.0,1.0, vmat_trunc_eps);
     if(length_sign>=0)
     {
       if(length_sign==0)
@@ -794,7 +797,7 @@ double BVMat::Quantile() const
       }
       else
       {
-        warn_cannot_apply("TruncStdGaussian",
+        warn_cannot_apply("(I) TruncStdGaussian",
           I2("(empty interval",
           "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+
                                    BDat(upper).Format("%.16lg")+"])",z);
@@ -824,7 +827,7 @@ double BVMat::Quantile() const
     assert((lower<=zj) && (zj<=upper));
     if(!BDat(zj).IsFinite())
     {
-      err_cannot_apply("TruncStdGaussian",
+      err_cannot_apply("(II) TruncStdGaussian",
         I2("(empty interval",
            "(intervalo vacio")+" ["+lower+","+upper+"])",z);
       return(-2);
@@ -874,7 +877,7 @@ double BVMat::Quantile() const
   BVMat b  = d-Dz;
   double bMin = b.Min();
   int    nnz  = D.NonNullCells();
-  double drop = nnz*DEpsilon();
+  double drop = nnz*vmat_trunc_eps;
   if(bMin<-drop)
   {
     err_cannot_apply(fName,
@@ -939,7 +942,7 @@ double BVMat::Quantile() const
   double  lower  = BDat::NegInf();
   double  upper  = BDat::PosInf();
   int     nnz    = D.NonNullCells();
-  double  drop   = nnz*DEpsilon();
+  double  drop   = nnz*vmat_trunc_eps;
   for(h=hj=j=0; j<n; j++)
   {
     double& zj = zx[j];
@@ -959,7 +962,7 @@ double BVMat::Quantile() const
     {
       i = sp?Di[k]:k;
       const double& Dij = sp?Dx[k]:Dx[h++];
-      int Dij_sign = gsl_fcmp(Dij+1.0,1.0,DBL_EPSILON);
+      int Dij_sign = gsl_fcmp(Dij+1.0,1.0,vmat_trunc_eps);
       if(Dij_sign!=0)
       {
         bx[i] += Dij*zj;
@@ -980,7 +983,7 @@ double BVMat::Quantile() const
     }
   //Std(BText("\nlower=")<<lower<<"\tupper="<<upper);
     double length = lower-upper;
-    int length_sign = gsl_fcmp(length+1.0,1.0,DBL_EPSILON);
+    int length_sign = gsl_fcmp(length+1.0,1.0,vmat_trunc_eps);
     if(length_sign>=0)
     {
       if(length_sign==0)
@@ -1110,7 +1113,7 @@ double BVMat::Quantile() const
   BVMat b  = d-Dz;
   double bMin = b.Min();
   int    nnz  = D.NonNullCells();
-  double drop = nnz*DEpsilon();
+  double drop = nnz*vmat_trunc_eps;
   if(bMin<-drop)
   {
     err_cannot_apply(fName,

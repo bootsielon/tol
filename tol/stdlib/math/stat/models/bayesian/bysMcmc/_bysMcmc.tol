@@ -67,7 +67,7 @@ NameBlock BysMcmc =
   ]];
 
   //Configuration default values over all BysMcmc related components
-  Set _config =
+  Set ConfigSet =
   [[
   //MCMC dimensions
     //The final number realizations that will remain after burnin
@@ -150,8 +150,8 @@ NameBlock BysMcmc =
 
   NameBlock Config = 
   {
-    Real SetIndexByName(_config);
-    SetToNameBlock(_config)
+    Real SetIndexByName(ConfigSet);
+    SetToNameBlock(ConfigSet)
   };
 
   //Searches a parameter in the user defined configuration NameBlock and, if
@@ -164,8 +164,10 @@ NameBlock BysMcmc =
   //non specified members with default values
   NameBlock BuildFullConfig(NameBlock config)
   {
-    Set _cfg = EvalSet(_config, Anything(Anything member)
+  //WriteLn("BuildFullConfig ");
+    Set _cfg = EvalSet(BysMcmc::ConfigSet, Anything(Anything member)
     {
+    //WriteLn(" GetCfgVal "+Name(member));
       GetCfgVal(config, Name(member))
     });
     Real SetIndexByName(_cfg);
@@ -174,6 +176,7 @@ NameBlock BysMcmc =
 
 ]];
   
+
 
 
 

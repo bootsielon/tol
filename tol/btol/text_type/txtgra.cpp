@@ -40,6 +40,7 @@
 #include <tol/tol_bprdist.h>
 #include <tol/tol_bfilter.h>
 #include <tol/tol_bparser.h>
+#include <tol/tol_bstruct.h>
 #include <tol/tol_bspfun.h>
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_bdatgra.h>
@@ -822,7 +823,10 @@ void BFirstTxtToUpper::CalcContens()
 {
   contens_=Text(Arg(1));
   if(Arg(2) && Real(Arg(2))) { contens_.ToLower(); }
-  contens_.PutChar(0,(BChar)toupper(contens_.Get(0)));
+  if(contens_.Length())
+  {
+    contens_.PutChar(0,(BChar)toupper(contens_.Get(0)));
+  }
 }
 
 

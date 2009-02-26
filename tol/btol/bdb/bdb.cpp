@@ -34,6 +34,7 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btsrgra.h>
 #include <tol/tol_bsymboltable.h>
+#include <tol/tol_bstruct.h>
 
 //--------------------------------------------------------------------
 // static variables

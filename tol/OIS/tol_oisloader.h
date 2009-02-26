@@ -26,6 +26,7 @@
 #include <tol/tol_btoken.h>
 #include <tol/tol_bcmpgra.h>
 #include <tol/tol_bpolgra.h>
+#include <tol/tol_bclass.h>
 
 //--------------------------------------------------------------------
 // macros
@@ -88,6 +89,7 @@ public:
   bool oisHasPriorityOnConflict_;
 
   bool Read(void* v, size_t size, size_t count, BStream* stream);
+//bool Read(         bool&    x, BStream* stream) { return(stream->Read((void*)&x,1,1)==1); }
   bool Read(         char&    x, BStream* stream) { return(stream->Read((void*)&x,1,1)==1); }
   bool Read(unsigned char&    x, BStream* stream) { return(stream->Read((void*)&x,1,1)==1); }
   bool Read(         short&   x, BStream* stream) { return(stream->Read((void*)&x,2,1)==1); }
@@ -104,6 +106,8 @@ public:
   bool Read(BDate& v, BStream* stream);
   bool Read(BPol&  x, BStream* stream);
   bool Read(BDat*  buf, int s, BStream* stream);
+  bool Read(BMemberOwner& cls, BMemberOwner::BClassByNameHash& x, BStream* stream);
+  bool Read(BClass& cls, BStream* stream);
 
   BToken* ReadTokenFromFile(BStream* stream);
   List*   ReadTreeFromFile (BStream* stream);

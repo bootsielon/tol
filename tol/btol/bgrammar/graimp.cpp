@@ -31,6 +31,7 @@
 #include <tol/tol_btoken.h>
 #include <tol/tol_bparser.h>
 #include <tol/tol_bspfun.h>
+#include <tol/tol_bstruct.h>
 #include <tol/tol_bmatrix.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bmatgra.h>
@@ -499,6 +500,42 @@ static int iter_ = 0;
 typedef hash_map_by_size_t<BSyntaxObject*>::dense_ BLocalItems;
 
 //--------------------------------------------------------------------
+  BSyntaxObject* Evaluate_Type(const List* branch, BToken* line, 
+                               BGrammar*& newGrammar)
+//--------------------------------------------------------------------
+{
+  BTypeToken* tt = (BTypeToken*)line;
+  BSyntaxObject* result = NULL;
+  if(tt->type_==BTypeToken::BSYSTEM)
+  {
+    newGrammar=TknFindGrammar(line);
+    result = newGrammar->EvaluateTree(branch);
+  }
+  else if(tt->type_==BTypeToken::BSTRUCT)
+  {
+    newGrammar=GraSet();
+    result = GraSet()->EvaluateTree(branch);
+    BStruct* str = NULL;
+    if(result && (result->Grammar()==GraSet()))
+    {
+      BUserSet* uset = (BUserSet*)result;
+      str = uset->Contens().Struct();
+    }
+    if(result && (!str || (str->Name()!=tt->Name())))
+    {
+      Error(I2("A set with structure ",
+               "Se esperaba un conjunto con estructura ")+tt->Name()+
+            I2(" was expected instead of ",
+               " en lugar de ")+
+            result->Grammar()->Name()+ " "+
+            result->Identify());
+      result = NULL;
+    }
+  }
+  return(result);
+}
+
+//--------------------------------------------------------------------
 BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
 //--------------------------------------------------------------------
 {
@@ -666,7 +703,7 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
   }
   TRACE_SHOW_MEDIUM(fun,"3");
 
-  if(result && (result->Mode()!=BSTRUCTMODE))
+  if(result && (result->Mode()!=BSTRUCTMODE)&& (result->Mode()!=BCLASSMODE))
   {
     TRACE_SHOW_MEDIUM(fun,"3.1");
     BBool ok = BFALSE;
@@ -862,6 +899,22 @@ BList* MultyEvaluate(const BText& expr)
     if(type == TYPE) 
     {
       BGrammar* newGrammar = BGrammar::FindByName(tok->Name(),false);
+/*      
+      BGrammar* newGrammar = NULL;
+      BTypeToken* tt = (BTypeToken*)tok;
+      if(tt->type_==BTypeToken::BSYSTEM)
+      {
+        newGrammar=TknFindGrammar(tok);
+      }
+      else if(tt->type_==BTypeToken::BSTRUCT)
+      {
+        newGrammar=GraSet();
+      }
+      else if(tt->type_==BTypeToken::BCLASS)
+      {
+        newGrammar=GraNameBlock();
+      }
+*/      
       if(newGrammar) { gra = newGrammar; }
     }
 #   ifdef DO_PUT_EMS

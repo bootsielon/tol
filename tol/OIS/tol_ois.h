@@ -38,7 +38,7 @@
 //When the first part changes new software version is not able to
 //read old OIS files. This will be called a hard change. Then a
 //traslation utility will be available.
-#define OIS_VERSION "02.07"
+#define OIS_VERSION "02.08"
 
 #define OIS_Load_Mode_Header          0 
 #define OIS_Load_Mode_Data            1
@@ -422,7 +422,8 @@ public:
     BFI_hrchyDetail = 11,
     BFI_hrchyOffset = 12,
     BFI_hrchyOrder  = 13,
-    BFI_maxnum      = 14
+    BFI_export      = 14,
+    BFI_maxnum      = 15
   };
 
   //------------------------------------------------------------------
@@ -465,13 +466,15 @@ public:
   //------------------------------------------------------------------
   {
    public:
-    BGrammarId gid_;
-    BINT64     objectOffset_;
-    int        hrchyEntry_;
+    BGrammarId    gid_;
+    unsigned char mode_;
+    BINT64        objectOffset_;
+    int           hrchyEntry_;
     BIndexElement() 
-    : gid_(BGI_NotFound), 
+    : gid_         (BGI_NotFound), 
+      mode_        (0), 
       objectOffset_(0),
-      hrchyEntry_(0)
+      hrchyEntry_  (0)
     {}
    ~BIndexElement() {}
   };
@@ -494,14 +497,16 @@ public:
   //------------------------------------------------------------------
   {
    public:
-    BGrammarId gid_;
-    BINT64     objectOffset_;
-    int        hrchyEntry_;
-    BText      name_;
+    BGrammarId    gid_;
+    unsigned char mode_;
+    BINT64        objectOffset_;
+    int           hrchyEntry_;
+    BText         name_;
     BHierarchyDetail() 
-    : gid_(BGI_NotFound), 
+    : gid_         (BGI_NotFound), 
+      mode_        (0),
       objectOffset_(0),
-      hrchyEntry_(0),
+      hrchyEntry_  (0),
       name_()
     {}
    ~BHierarchyDetail() {}
@@ -582,6 +587,7 @@ protected:
   BStream* hrchyDetail_;
   BStream* hrchyOffset_;
   BStream* hrchyOrder_;
+  BStream* export_;
 
   BArray<BStream*>        source_;
   BArray<BStream*>        allFiles_;

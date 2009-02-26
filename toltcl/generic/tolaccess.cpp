@@ -30,6 +30,7 @@
 #include <tol/tol_init.h>
 #include <tol/tol_version_def.h>
 #include <tol/tol_bcommon.h>
+#include <tol/tol_bstruct.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bvmatgra.h>
