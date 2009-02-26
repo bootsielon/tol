@@ -525,12 +525,12 @@ DefExtOpr(1, BTsrSubSerie, "SubSer", 3, 3, "Serie Date Date",
   "(Serie S, Date D1, Date D2)",
   I2("Returns a series S with the values of a given series, between the "
      "dates D1 and D2. If the initial date of S is subsequent to D1, "
-     "or well, its final date is prior to D2, is returned the value done not "
-     "know (?) for each lost date.",
+     "or well, its final date is prior to D2, the series will be "
+     "truncated to konw dates.",
      "Devuelve una serie S con los valores de una serie dada, entre las "
      "fechas D1 y D2. Si la fecha inicial de S es posterior a D1, o bien, "
-     "su fecha final es anterior a D2, se devuelve el valor desconocido (?) "
-     "para cada fecha perdida."),
+     "su fecha final es anterior a D2, la serie se truncará entre las "
+     "fechas conocidas."),
     BOperClassify::TimeSeriesAlgebra_);
 //--------------------------------------------------------------------
 
