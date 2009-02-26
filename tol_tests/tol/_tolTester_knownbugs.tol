@@ -13,7 +13,7 @@
 Set Results = ReportAllBatteries(SetOfSet
 (
   strBatteryConfig("known_bugs/TimeSetCoherence",        "",                       3),
-  strBatteryConfig("known_bugs/LinealAlgebra",           "",                       3),
+  strBatteryConfig("known_bugs/LinearAlgebra",           "",                       3),
   strBatteryConfig("known_bugs/ARIMA/FunAIA/simulation", "",                       1),
   strBatteryConfig("known_bugs/ARIMA/FunAIA/estimation", "",                       1),
   strBatteryConfig("known_bugs/ARIMA/FunEstimate",       "TestVolumeShort.tol",   10),
