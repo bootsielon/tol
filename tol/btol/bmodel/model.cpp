@@ -96,6 +96,7 @@ FNDParam(MA, "Moving-Average polynomials");
 FNDParam(MaxLHSigma, "Maximum Likelihood estimation of standard error of residuals");
 FNDParam(NonLinInput, "User defined non linear inputs");
 FNDParam(normMaxLH, "Modified norm of residuals that is minimized to maximize model likelihood");
+FNDParam(MarquardtIterNumber, "Number of Marquardt iterations which have been run");
 FNDParam(Omega, "Omega-transfer function");
 FNDParam(PACOR, "Residuous partial autocorrelation");
 FNDParam(ParInf, "Parameters Information");
@@ -770,6 +771,7 @@ void BModel::CopyInfToSet(BSet& set)
   }
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,MaxLHSigma,sigma));
   LstFastAppend(lsta,auxa,tmp=NewFND(BDat,normMaxLH,normMaxLH));
+  LstFastAppend(lsta,auxa,tmp=NewFND(BDat,MarquardtIterNumber,iterationNumber_));
 
   inf.RobElement(lsta);
 //LstFastAppend(lst,aux,tmp=BContensSet::New("Information",inf,""));
