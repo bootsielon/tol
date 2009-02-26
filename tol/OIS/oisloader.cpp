@@ -1085,7 +1085,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           } 
           x.Set().PutNameBlock(&x);
           x.Build();
-          if(control_.oisEngine_.oisVersion_>="02.07")
+          if(control_.oisEngine_.oisVersion_>="02.08")
           {
             char hasClass;
             Ensure(Read(hasClass, object_));
