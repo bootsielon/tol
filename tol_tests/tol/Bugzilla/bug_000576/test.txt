@@ -1,0 +1,6 @@
+Campo 1;Campo 1;Campo 1;Campo 1
+2;4;;t
+2;e;r;
+3;;f;e
+
+Campo3;Campo3;Campo3;
