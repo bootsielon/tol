@@ -544,6 +544,7 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
   bool error = false;
   BGrammar* newGrammar = NIL;
   BBool enableCasting=BTRUE;
+  bool isCreatingNameBlock = BEqualOperator::IsCreatingNameBlock();
   BToken* tok  = BParser::treToken(tre);
   if(!tok || BGrammar::StopFlag()) { return(NIL); } 
   if((tok->ObjectClass()=='A') && tok->Object()) 
@@ -780,19 +781,16 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
     BUserNameBlock* own = unb->Contens().Owner();
     if(unb->HasName() && (own!=unb))
     {
-      if(unb->Name()=="root")
-        printf("");
       BNameBlock& nb = unb->Contens();
       if(!own || (own->Level()>unb->Level()))
       {
         nb.PutOwner(unb);
-        BText fatherName = "";
-        const BNameBlock* father = nb.Father();
-        if(father && father->EnsureIsAssigned())
-        {
-          fatherName = nb.Father()->Name();
-        }
         nb.PutLocalName(unb->Name());
+        BText fatherName = "";
+        if(isCreatingNameBlock)
+        {
+          fatherName = BEqualOperator::CurrentFatherName();
+        }
         nb.RebuildFullNameDeep(fatherName);
       }
     }
