@@ -24,6 +24,7 @@
 #endif
 
 #include <tol/tol_boper.h>
+#include <tol/tol_init.h>
 #include <tol/tol_bstruct.h>
 #include <tol/tol_butil.h>
 #include <tol/tol_bout.h>
@@ -458,13 +459,23 @@ BOperator::BOperator(const BText& name, BGrammar* gra,
  */
 //--------------------------------------------------------------------
 : BSyntaxObject(name, desc), grammar_(gra), theme_(cl), uCode_(NULL), 
-  profiler_(NULL)
+  profiler_(NULL), cppFile_("")
 {
 #ifdef CHK_NULL_GRAMMAR
     if (!gra )
 	Error( BText("Null grammar in ") + name + ":" + desc);
 #endif
   if(theme_) { theme_->Add(this); }
+}
+
+
+//--------------------------------------------------------------------
+BOperator::~BOperator()
+
+/*! BOperator destructor
+ */
+//--------------------------------------------------------------------
+{
 }
 
 //--------------------------------------------------------------------
@@ -479,14 +490,18 @@ void BOperator::AddSystemOperator()
 }
 
 //--------------------------------------------------------------------
-BOperator::~BOperator()
-
-/*! BOperator destructor
- */
+const BText& BOperator::CppFile() const 
 //--------------------------------------------------------------------
-{
+{ 
+  return(cppFile_); 
 }
 
+//--------------------------------------------------------------------
+void BOperator::PutCppFile(const BText& cppFile) 
+//--------------------------------------------------------------------
+{ 
+  cppFile_ = Replace(Replace(cppFile,'\\','/'), TOLCppRoot(), "");
+}
 
 //--------------------------------------------------------------------
 BEqualOperator::BEqualOperator(BGrammar* gra)
