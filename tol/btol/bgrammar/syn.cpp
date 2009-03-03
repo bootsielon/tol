@@ -281,8 +281,24 @@ BSyntaxObject::BSyntaxObject(const BText& name, const BText& desc, bool isDeadOb
 //--------------------------------------------------------------------
 {
   TRACE_MEMORY_SHOW(this,"BSyntaxObject::SourcePath");
-  if(!BSourcePath::IsAlive(sourcePath_)) { return(BSyntaxObject::CBTextNullRef()); }
-  else                                   { return(sourcePath_->Name()); }
+  if(sourcePath_ && BSourcePath::IsAlive(sourcePath_))
+  {
+    return(sourcePath_->Name()); 
+  }
+  else if(System() && Mode()==BBUILTINFUNMODE)
+  {
+    BOperator* opr = (BOperator*)this;
+    return(opr->CppFile());
+  }
+  else if(System() && (Mode()==BOBJECTMODE) && (Grammar()==GraCode()))
+  {
+    BUserCode* uCode = (BUserCode*)this;
+    return(uCode->Contens().Operator()->CppFile());
+  }
+  else
+  {
+    return(BSyntaxObject::CBTextNullRef());
+  }
 }
 
 //--------------------------------------------------------------------
