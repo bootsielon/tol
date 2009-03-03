@@ -49,6 +49,7 @@ TOL_API const char* TOLSessionPath ();
 TOL_API const char* TOLCredits();
 TOL_API const char* TOLContribAcknowledgements();
 TOL_API char* TolFindExecutable(const char* argv0);
+TOL_API const char* TOLCppRoot();
 
 TOL_API int  TOLHasBeenInitialized();
 TOL_API int  TOLHasBeenEnded();

@@ -120,6 +120,22 @@ static BSystemText*   tolSessionPath_             = NULL;
 
 
 //--------------------------------------------------------------------
+  TOL_API const char* TOLCppRoot() 
+//Returns absolute root path of TOL C++ project
+//--------------------------------------------------------------------
+{
+  static BText path_ = "";
+  if(path_=="")
+  {
+    path_ = GetFilePath(__FILE__)+"../";
+    path_ = GetAbsolutePath(path_);
+    path_ = Replace(path_,'\\','/');
+  };
+  return(path_.String());
+}
+
+
+//--------------------------------------------------------------------
   TOL_API int TOLHasBeenInitialized() 
 //--------------------------------------------------------------------
 {
