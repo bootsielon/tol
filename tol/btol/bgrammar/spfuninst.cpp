@@ -954,7 +954,21 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
   {
     BSyntaxObject* desObj = GraText    ()->EvaluateTree(Branch(tre,1));
     BGrammar::PutLast(gra);
-    BSyntaxObject* obj    = GraAnything()->LeftEvaluateTree(Branch(tre,2));
+    BText tokenName = BParser::treToken(Branch(tre,2))->Name();
+    BSyntaxObject* obj = NULL;
+    if(tokenName[0]=='\"')
+    {
+      tokenName = tokenName.SubString(1,tokenName.Length());
+      obj = FindStruct(tokenName);
+      if(!obj)
+      {
+        obj = FindClass(tokenName);
+      }
+    }
+    if(!obj)
+    {
+      obj = GraAnything()->LeftEvaluateTree(Branch(tre,2));
+    };
     BGrammar::PutLast(gra);
     if(desObj && obj)
     {
@@ -1622,8 +1636,12 @@ bool BSpecialFunction::Initialize()
   AddInstance("PutDescription",
   I2("(Text newDescription, Anything object)",
      "(Text nuevaDescripción, Anything objeto)"),
-  I2("Puts a new description to an object",
-     "Pone una nueva descripción a un objeto."),
+  I2("Puts a new description to an object. "
+     "You also can modify description of a Struct or a Class by "
+     "passing its name between quotes.",
+     "Pone una nueva descripción a un objeto. Es posible modificar "
+     "la descripción de un Struct o un Class pasándo el nombre de "
+     "la misma entre comillas dobles"),
   EvPutDescription);
 
   AddInstance("PutValue",
