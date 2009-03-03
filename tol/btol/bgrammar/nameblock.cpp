@@ -93,7 +93,7 @@ static bool BNameBlock_IsInitialized()
   evLevel_ (BGrammar::Level()),
   level_   (-999999999),
   set_     (),
-  father_  (current_),
+  father_  (NULL),
   class_   (NULL),
   localName_(),
   owner_    (NULL)
@@ -114,7 +114,7 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   evLevel_ (BGrammar::Level()),
   level_   (-999999999),
   set_     (),
-  father_  (current_),
+  father_  (NULL),
   class_   (NULL),
   localName_(localName),
   owner_    (NULL)
@@ -252,23 +252,12 @@ const BText& BNameBlock::LocalName() const
   BSyntaxObject* BNameBlock::EvaluateTree(const List* _tre)
 //--------------------------------------------------------------------
 {
-  static BText currentFullName  ="";
   int n;
   BText name  = BEqualOperator::CreatingName();
+  BText fullName = BEqualOperator::CurrentFullName();
   const BClass* cls = BEqualOperator::CreatingClass();
-  BEqualOperator::CleanCreating();
   BBool hasName = name.HasName();
 //Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
-  BText fullName = name;
-  BText oldFullName = currentFullName;
-  if(hasName) 
-  {
-    if(currentFullName.HasName())
-    {
-      fullName = currentFullName+"::"+name; 
-    }
-    currentFullName = fullName;
-  }
   BUserNameBlock* ns_result = NULL;
   BSyntaxObject* result = NULL;
   int level = BGrammar::Level();
@@ -420,7 +409,6 @@ const BText& BNameBlock::LocalName() const
       DESTROY(set_result);
     }
   }
-  currentFullName = oldFullName;
   return(ns_result);
 }
 
