@@ -143,6 +143,8 @@ protected:
   void* profiler_;
 
   BUserFunCode* uCode_;
+  BText cppFile_;
+
   void AddSystemOperator();
 
 public:
@@ -155,6 +157,9 @@ public:
   BInt Mode() const { return BBUILTINFUNMODE; };
   void* GetProfiler()          { return(profiler_); }
   void  PutProfiler(void* prf) { profiler_=prf; }
+
+  const BText& CppFile() const;
+  void PutCppFile(const BText& cppFile);
 
   //! Gets operator's grammar
   BGrammar*	 Grammar	  () const { return(grammar_); }
@@ -196,7 +201,10 @@ class TOL_API BEqualOperator: public BOperator
 //--------------------------------------------------------------------
 {
 private:
-  static BText   creatingName_;
+  static BText creatingName_;
+  static BText currentFatherName_;
+  static bool  isCreatingNameBlock_;
+  static BText currentFullName_;
   static const BClass* creatingClass_;
 public:
   // Constructors and destructors: opr.cpp
@@ -210,6 +218,9 @@ public:
   //! Evaluate BEqualOperator operator. Creates a new object.
   BSyntaxObject* Evaluate (const List*) ;
   static const BText&  CreatingName () { return(creatingName_); }
+  static const BText&  CurrentFatherName () { return(currentFatherName_); }
+  static const bool IsCreatingNameBlock () { return(isCreatingNameBlock_); }
+  static const BText&  CurrentFullName () { return(currentFullName_); }
   static const BClass* CreatingClass() { return(creatingClass_); }
   static void CleanCreating() { creatingName_=""; creatingClass_=NULL; }
 
@@ -527,8 +538,10 @@ class BUserFunction: public BExternalOperator
 
 #define DefIntOpr(ORD, CLASS, NAME , MINARG, MAXARG, LISTARGS, DESC, CL)   \
   static void * clone##CLASS##Int##ORD () {                                \
-    return new BInternalOperator	                                   \
-	   IntOprConstructor(CLASS,NAME,MINARG,MAXARG,LISTARGS,DESC,CL);   \
+     BInternalOperator* opr = new BInternalOperator	                       \
+	   IntOprConstructor(CLASS,NAME,MINARG,MAXARG,LISTARGS,DESC,CL);         \
+     opr->PutCppFile(__FILE__);                                            \
+     return opr;                                                           \
   }                                                                        \
   static BInternalOperator* CLASS##Int##ORD  =                             \
 	 (BInternalOperator*)(__delay_init((void**)(&CLASS##Int##ORD),     \
@@ -578,8 +591,10 @@ class BUserFunction: public BExternalOperator
 #else
 #  define DefExtOpr(ORD,CLASS,NAME,MINARG,MAXARG,LISTGRA,LISTARGS,DES,CL)  \
     static void * clone##CLASS##Ext##ORD () {                              \
-      return new BExternalOperator	                                   \
+      BExternalOperator* opr = new BExternalOperator	                     \
       ExtOprConstructor(CLASS,NAME,MINARG,MAXARG,LISTGRA,LISTARGS,DES,CL); \
+      opr->PutCppFile(__FILE__);                                           \
+      return opr;                                                          \
     }                                                                      \
     static BExternalOperator* CLASS##Ext##ORD  =                           \
 	 (BExternalOperator*)(__delay_init((void**)(&CLASS##Ext##ORD),     \
