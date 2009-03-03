@@ -2165,6 +2165,50 @@ void BSetDeepCopy::CalcContens()
     DeepCopy(S,contens_,p,pos);
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetGetGlobalFunctions);
+DefExtOpr(1, BSetGetGlobalFunctions, "GetGlobalFunctions", 1, 1, "Text",
+"(Text grammar)",
+I2("Returns all global functions returning specified grammar",
+	 "Devuelve todas las funciones globales que devuelven el tipo "
+   "especificado"),
+BOperClassify::System_);
+//--------------------------------------------------------------------
+void BSetGetGlobalFunctions::CalcContens()
+//--------------------------------------------------------------------
+{
+  BText& graName = Text(Arg(1));
+  BGrammar* gra = BGrammar::FindByName(graName, true);
+  if(!gra) { return; }
+  BList* oprLst = gra->GetOperators();
+  BList* codeLst = NULL;
+  BList* aux = oprLst;
+  while(oprLst)
+  {
+    BSyntaxObject* obj = (BSyntaxObject*)Car(oprLst);
+    if(obj)
+    {
+      if(obj->Mode()==BOBJECTMODE)
+      {
+        codeLst = Cons(obj, codeLst);
+      }
+      else
+      {
+        BOperator* opr = (BOperator*)obj;
+        BUserFunCode* funCode = opr->GetCode();
+        if(funCode)
+        {
+          codeLst = Cons(funCode, codeLst);
+        }
+      }
+    }
+    oprLst = Cdr(oprLst);
+  };
+  DESTROY(aux);
+  contens_.RobElement(codeLst);
+}
+
+
 #if !defined(USE_DELAY_INIT)
 
 //--------------------------------------------------------------------
@@ -2598,5 +2642,6 @@ void BSetLLKR::CalcContens()
   gsl_vector_free(gsl_pAR);
   gsl_vector_free(gsl_pMA);
 }
+
 
 
