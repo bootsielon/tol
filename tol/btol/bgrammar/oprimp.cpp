@@ -50,7 +50,10 @@
 
 BTraceInit("oprimp.cpp");
 
-      BText   BEqualOperator::creatingName_;
+BText BEqualOperator::creatingName_;
+BText BEqualOperator::currentFatherName_;
+bool   BEqualOperator::isCreatingNameBlock_= false;
+BText BEqualOperator::currentFullName_;
 const BClass* BEqualOperator::creatingClass_ = NULL;
 
 #define Do_TolOprProfiler
@@ -811,9 +814,27 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
                           Tree::treNode((List*) argList),
                           name, rest, str, cls);
   creatingClass_ = NULL;
-  if(gra==GraNameBlock()) 
+  bool oldIsCreatingNameBlock = isCreatingNameBlock_;
+  bool isNameBlock = gra==GraNameBlock();
+  isCreatingNameBlock_ = isNameBlock;
+
+  BText oldName, oldFullName;
+  const BClass* oldClass;
+  if(isNameBlock) 
   { 
+    oldFullName = currentFullName_;
+    currentFatherName_ = oldFullName;
+    oldName = creatingName_;
+    oldClass = creatingClass_;
     creatingName_  = name; 
+    if(currentFullName_.HasName())
+    {
+      currentFullName_ = currentFullName_ + "::" +name;
+    }
+    else
+    {
+      currentFullName_ = name;
+    }
     creatingClass_ = cls;
   }
   if(!rest && gra) 
@@ -842,6 +863,13 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
   {
 	  Error(I2("Bad use for \"=\" in\n", "Uso indebido de \"=\" en\n") +
 	        BParser::Unparse(argList));
+  }
+  if(isNameBlock) 
+  { 
+    currentFullName_ = currentFatherName_;
+    creatingName_    = oldName; 
+    creatingClass_   = oldClass;
+    isCreatingNameBlock_ = oldIsCreatingNameBlock;
   }
   return(result);
 }
