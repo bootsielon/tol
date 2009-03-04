@@ -84,8 +84,7 @@ Set GetLinearBlkEffects(Set colNames_,
   Set LinearBlk.Effects = EvalSet(series.handler::_.obs.node, Set(NameBlock nsh)
   {
     Real outIsATimeSerie = ObjectExist("Serie",  "nsh::_.output::_.serie");
-    Real outIsAVector    = ObjectExist("Matrix", "nsr::_.output::_.vector");
-    Text grammar = If(outIsATimeSerie,"Serie","Matrix");
+    Real outIsAVector    = ObjectExist("Matrix", "nsh::_.output::_.vector");
     WriteLn("[GetLinearBlkEffects] Building node "+nsh::_.id_node);
     Set effect = EvalSet(nsh::_.input, Anything(NameBlock inp)
     {
@@ -170,6 +169,15 @@ Set GetLinearBlkEffects(Set colNames_,
       outIsAVector,
       {
         WriteLn("[GetLinearBlkEffects] Building vector input "+inpName);
+         Ratio tf = If(!ObjectExist("Ratio","inp::_.transferFunction"),1/1,
+          inp::_.transferFunction);
+        Polyn omega = Numerator  (tf);
+        Polyn delta = Denominator(tf);
+        Real p = Degree(omega);
+        Real q = Degree(delta);
+        Real h = Max(p,q);
+        Real noTransFunFlag = h==0;
+
         Matrix eff = Case(
         Not(inp::_.enabled), 
         {
