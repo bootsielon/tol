@@ -293,7 +293,15 @@ BSyntaxObject::BSyntaxObject(const BText& name, const BText& desc, bool isDeadOb
   else if(System() && (Mode()==BOBJECTMODE) && (Grammar()==GraCode()))
   {
     BUserCode* uCode = (BUserCode*)this;
-    return(uCode->Contens().Operator()->CppFile());
+    BOperator* opr = uCode->Contens().Operator();
+    if(opr)
+    {
+      return(opr->CppFile());
+    }
+    else
+    {
+      return(BSyntaxObject::CBTextNullRef());
+    }
   }
   else
   {
