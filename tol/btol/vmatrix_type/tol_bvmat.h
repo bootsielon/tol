@@ -266,6 +266,7 @@ public:
 //Copy operator
   const BVMat& operator = (const BVMat& v);  
   int  Check       () const;
+  void Pack        ();
   void Copy        (const BVMat& v);
   void BlasRDense  (int nrow, int ncol);
   void ChlmRSparse (int nrow, int ncol, int nzmax);
@@ -534,6 +535,7 @@ private:
 ------------------------------------------------------------------------------*/
 public:
 //Matrix algebra operators
+  int Drop    (double drop);
   BVMat Abs   () const;
   BVMat Round () const;
   BVMat Floor () const;
@@ -558,7 +560,6 @@ public:
   BVMat T     () const;
   BVMat MtMSqr() const;
   BVMat MMtSqr() const;
-  BVMat Drop      (double b) const;
   BVMat Sum  (double b) const;
   BVMat Rest (double b) const;
   BVMat Prod (double b) const;
@@ -575,6 +576,7 @@ public:
   BVMat WeightProd(const BVMat&   B) const;
   BVMat WeightQuot(const BVMat&   B) const;
 
+  static BVMat Drop  (const BVMat& A, double drop);
   static int Abs   (const BVMat& A, BVMat& B);
   static int Round (const BVMat& A, BVMat& B);
   static int Floor (const BVMat& A, BVMat& B);
@@ -599,7 +601,6 @@ public:
   static int T     (const BVMat& A, BVMat& B);
   static int MtMSqr(const BVMat& A, BVMat& B);
   static int MMtSqr(const BVMat& A, BVMat& B);
-  static int Drop(const BVMat& A, double b, BVMat& C);
   static int Sum (const BVMat& A, double b, BVMat& C);
   static int Rest(const BVMat& A, double b, BVMat& C);
   static int Prod(const BVMat& A, double b, BVMat& C);
