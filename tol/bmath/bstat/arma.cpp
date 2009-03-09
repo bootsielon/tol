@@ -24,6 +24,7 @@
 #endif
 
 #include <tol/tol_matrix.h>
+#include <tol/tol_bvmat.h>
 #include <tol/tol_barma.h>
 #include <tol/tol_bstat.h>
 #include <tol/tol_btimer.h>
@@ -578,10 +579,19 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
     }
     BMat gp, test;
     BDat err;
+    
+    BVMat ms, As, Ls, gps;
+    As.DMat2sparse((const BMatrix<double>&)A);
+    ms.DMat2sparse((const BMatrix<double>&)m);
+    BVMat::CholeskiFactor(As,Ls,"XtX",true,false);
+    BVMat::CholeskiSolve(Ls,(ms.T()*As).T(),gps,"PtLLtP");
+    gps.GetDMat((BMatrix<double>&)gp);
+    test = A*gp-m;
+    err  = test.FrobeniusNorm();
 
 //*
   //TRZ(psi); TRZ(m); TRZ(A);
-
+/*
     if(p>100)
     {
       gp   = MinimumResidualsSolve(A,m); 
@@ -601,8 +611,11 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
         err  = test.FrobeniusNorm();
       }
     }
+*/
+    bool closeToNonStationary = false;
     if(err.IsUnknown()  || (err>Sqrt((1+p)*DEpsilon()))) 
     {
+      closeToNonStationary = true;
       BText method = BText("Golub_Reinsch_Mod");
       BMat U, V;
       BDiagMatrix<BDat> D, Dp; 
@@ -621,8 +634,8 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
                "La estructura ARMA no es estacionaria."));
       return(false);
     }
-    else if(err>Sqrt((1+p)*DEpsilon()))
-    {  
+    else if(closeToNonStationary)
+    { 
       Warning(I2("ARMA structure is not numerically stationary. "
                  "Lost precision for autocovarianze matrix: ",
                  "La estructura ARMA no es numéricamente estacionaria."
