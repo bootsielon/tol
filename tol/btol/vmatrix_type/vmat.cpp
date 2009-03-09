@@ -167,6 +167,9 @@ void BVMat::restore_cholmod_common()
   //Natural order is not forced by default
   force_natural_order(false);
 
+  //No growing allowed
+  common_->grow2 = 0;
+
 /* * /
 //MatLab lchol options
   common_->supernodal                 = CHOLMOD_SIMPLICIAL;
@@ -278,6 +281,46 @@ void BVMat::restore_cholmod_common()
     Warning("Cannot Check undefined virtual matrix"); }
   return(result);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::Pack()
+//Importing method
+////////////////////////////////////////////////////////////////////////////////
+{
+  switch(code_) {
+  case(ESC_blasRdense  ) : 
+  {
+    break;
+  }
+  case(ESC_chlmRsparse ) : 
+  {
+    int nnz = NonNullCells(0);
+    if(s_.chlmRsparse_->nzmax > nnz)
+    {
+      cholmod_drop(0,s_.chlmRsparse_, common_);
+    }
+    cholmod_sort(s_.chlmRsparse_, common_);
+    break;
+  }
+  case(ESC_chlmRfactor ) : 
+  {
+    cholmod_pack_factor(s_.chlmRfactor_,common_);
+    break;
+  }
+  case(ESC_chlmRtriplet) : 
+  {
+    int nnz = NonNullCells(0);
+    if(s_.chlmRtriplet_->nzmax > nnz)
+    {
+      Drop(0);
+    }
+    break; 
+  }
+  default: 
+    Error(I2("FATAL ERROR in",
+             "ERROR FATAL en")+" BVMat::Pack(const BVMat& v)"); 
+    assert(1); }
+};
 
 ////////////////////////////////////////////////////////////////////////////////
   void BVMat::Copy(const BVMat& v)
@@ -1027,7 +1070,7 @@ bool BVMat::IsSymmetric() const
   if(code_==ESC_chlmRfactor) { return(false); }
   if(Rows()!=Columns()) { return(false); }
   BVMat t = this->T();
-  BVMat z = ((*this)-t).Drop(DEpsilon());
+  BVMat z = Drop(((*this)-t),DEpsilon());
   bool isSymm = z.NonNullCells()==0;
   return(isSymm);
 };  
