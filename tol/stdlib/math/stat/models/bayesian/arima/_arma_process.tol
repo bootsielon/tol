@@ -10,6 +10,8 @@ NameBlock ARMAProcess =
 [[
   Text _.autodoc.description = "Methods related with ARMA process";
 
+  Real drop = 1.E-6;
+
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.StationarityBounds.2.1 =
   "Returns stationary bounds for fi1 in a polynomial 1 - fi1*B - fi2*B^2";
@@ -49,6 +51,28 @@ NameBlock ARMAProcess =
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  VMatrix DoDrop(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Drop(X,drop)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix CholeskiFactorCov(VMatrix cov)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE CholeskiFactorCov("+FullName(cov)+") Rows(cov)="<<VRows(cov)+" Sparsity(cov)="<<Real(VNonNullCells(cov)/VRows(cov)^2));
+    VMatrix c = ARMAProcess::DoDrop(cov);
+  //WriteLn("TRACE CholeskiFactorCov Sparsity(c)="<<Real(VNonNullCells(c)/VRows(c)^2));
+  //Real t0 = Copy(Time);
+  //VMatrix L = CholeskiFactor(c,"X",True);
+  //Real tm = Time-t0;
+  //WriteLn("TRACE CholeskiFactorCov time="<<tm);
+  //L 
+    Pack(CholeskiFactor(c,"X",True))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
     VMatrix AvoidSymRoundErr(VMatrix S)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -60,7 +84,7 @@ NameBlock ARMAProcess =
   ////////////////////////////////////////////////////////////////////////////
   {
     Real n = VRows(S);
-    AvoidSymRoundErr(Case(
+    ARMAProcess::DoDrop(ARMAProcess::AvoidSymRoundErr(Case(
       m==n, S,
       m<n,  Sub(S,1,1,m,m),
       m>n,
@@ -75,7 +99,7 @@ NameBlock ARMAProcess =
           Zeros(m-n,m)
         )+Pol2VMat(pol, m, m);
         aux
-      }))
+      })))
   }; 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -83,7 +107,7 @@ NameBlock ARMAProcess =
   ////////////////////////////////////////////////////////////////////////////
   {
     Real n = VRows(L);
-    Case(
+    ARMAProcess::DoDrop(Case(
       m==n, L,
       m<n,  Sub(L,1,1,m,m),
       m>n,
@@ -94,13 +118,15 @@ NameBlock ARMAProcess =
           Zeros(m-n,m)
         )+Pol2VMat(pol, m, m);
         aux
-      })
+      }))
   }; 
 
   ////////////////////////////////////////////////////////////////////////////
   NameBlock FastCholeskiCovFactor(Polyn ar_, Polyn ma_, Real m_)
   ////////////////////////////////////////////////////////////////////////////
-  {[[
+  {
+  //WriteLn("TRACE FastCholeskiCovFactor Begin "+Time); 
+    [[
     Text _.autodoc.description = 
     "Computes a Fast Choleski decomposition of the covariance S=L*L' of an "
     "ARMA process as a product of two virtual sparse banded matrices Li_ar "
@@ -135,49 +161,49 @@ NameBlock ARMAProcess =
     "Serie E3 = myFastChol::filter(Z3);\n";
     //Stores arguments as members
     Polyn _.ar = ar_;
-  //Real _trc.1 = { WriteLn("TRACE _.ar=" << _.ar); 0 };
+  //Real _trc.1 = { WriteLn("TRACE FastCholeskiCovFactor _.ar=" << _.ar); 0 };
     Polyn _.ma = ma_;
-  //Real _trc.2 = { WriteLn("TRACE _.ma=" << _.ma); 0 };
+  //Real _trc.2 = { WriteLn("TRACE FastCholeskiCovFactor _.ma=" << _.ma); 0 };
     Real _.m  = m_;
-  //Real _trc.3 = { WriteLn("TRACE _.m=" << _.m); 0 };
+  //Real _trc.3 = { WriteLn("TRACE FastCholeskiCovFactor _.m=" << _.m); 0 };
     //Stores degrees of AR and MA polynomials
     Real _.p = Degree(_.ar);
-  //Real _trc.4 = { WriteLn("TRACE _.p=" << _.p); 0 };
+  //Real _trc.4 = { WriteLn("TRACE FastCholeskiCovFactor _.p=" << _.p); 0 };
     Real _.q = Degree(_.ma);
-  //Real _trc.5 = { WriteLn("TRACE _.q=" << _.q); 0 };
+  //Real _trc.5 = { WriteLn("TRACE FastCholeskiCovFactor _.q=" << _.q); 0 };
     //Calculates de minimum length of non Toeplitz main minor of factors
     Real _.n = Max(_.p,_.q)+_.p+1;
-  //Real _trc.6 = { WriteLn("TRACE _.n=" << _.n); 0 };
+  //Real _trc.6 = { WriteLn("TRACE FastCholeskiCovFactor _.n=" << _.n); 0 };
     //Calculates de main minor of length _.n of joint ARMA covariance
     VMatrix _.cov_arma_n = 
-      Pol2VMat(ARMATACov(_.ar,_.ma,_.n), _.n, _.n);
+      ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,_.ma,_.n), _.n, _.n));
     //Calculates de main minor of length _.n of just pure AR covariance
     VMatrix _.cov_ar_n = 
-      Pol2VMat(ARMATACov(_.ar,1,_.n), _.n, _.n);
+      ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,1,_.n), _.n, _.n));
     //Does Choleski factorization of pure AR
-  //Real _trc.7 = { WriteLn("TRACE _.cov_ar_n=" << (Matrix VMat2Mat(_.cov_ar_n))); 0 };
-    VMatrix _.L_ar_n = CholeskiFactor(_.cov_ar_n,"X", True);
-  //Real _trc.8 = { WriteLn("TRACE _.L_ar_n=" << (Matrix VMat2Mat(_.L_ar_n))); 0 };
+  //Real _trc.7 = { WriteLn("TRACE FastCholeskiCovFactor _.cov_ar_n=" << (Matrix VMat2Mat(_.cov_ar_n))); 0 };
+    VMatrix _.L_ar_n = ARMAProcess::CholeskiFactorCov(_.cov_ar_n);
+  //Real _trc.8 = { WriteLn("TRACE FastCholeskiCovFactor _.L_ar_n=" << (Matrix VMat2Mat(_.L_ar_n))); 0 };
     //Calculates the inverse of Choleski factorization of pure AR
-    VMatrix _.Li_ar_n = CholeskiSolve(_.L_ar_n,Eye(_.n),"PtL");
-  //Real _trc.9 = { WriteLn("TRACE _.Li_ar_n=" << (Matrix VMat2Mat(_.Li_ar_n))); 0 };
+    VMatrix _.Li_ar_n = ARMAProcess::DoDrop(CholeskiSolve(_.L_ar_n,Eye(_.n),"PtL"));
+  //Real _trc.9 = { WriteLn("TRACE FastCholeskiCovFactor _.Li_ar_n=" << (Matrix VMat2Mat(_.Li_ar_n))); 0 };
     //Extends main minor of length _.n to full data length _.m as Toplitz from  
     //last row. Terms _.n^2 is added and substracted to clean rounding error.
     VMatrix _.Li_ar=
       (ARMAProcess::ExtendBandedLowTriangToeplitz(_.Li_ar_n,_.m)+_.n^2)-_.n^2;
-  //Real _trc.10 = { WriteLn("TRACE _.Li_ar=" << (Matrix VMat2Mat(_.Li_ar))); 0 };
+  //Real _trc.10 = { WriteLn("TRACE FastCholeskiCovFactor _.Li_ar=" << (Matrix VMat2Mat(_.Li_ar))); 0 };
     //Filters full ARMA covariance of AR factor 
     VMatrix _.cov_ma_n = (_.Li_ar_n*_.cov_arma_n*Tra(_.Li_ar_n)+_.n^2)-_.n^2;
     //Extends main minor of length _.n to full data length _.m as Toplitz from 
     //last row and column getting a symmetric and sparse banded matrix
-  //Real _trc.11 = { WriteLn("TRACE _.cov_ma_n=" << (Matrix VMat2Mat(_.cov_ma_n))); 0 };
+  //Real _trc.11 = { WriteLn("TRACE FastCholeskiCovFactor _.cov_ma_n=" << (Matrix VMat2Mat(_.cov_ma_n))); 0 };
     VMatrix _.cov_ma_m=
       (ARMAProcess::ExtendBandedSymToeplitz(_.cov_ma_n,_.m)+_.n^2)-_.n^2;
-  //Real _trc.12 = { WriteLn("TRACE _.cov_ma_m=" << (Matrix VMat2Mat(_.cov_ma_m))); 0 };
+  //Real _trc.12 = { WriteLn("TRACE FastCholeskiCovFactor _.cov_ma_m=" << (Matrix VMat2Mat(_.cov_ma_m))); 0 };
     //Does Choleski factorization of pseudo MA factor
-    VMatrix _.L_ma = CholeskiFactor(_.cov_ma_m,"X",True);
+    VMatrix _.L_ma = ARMAProcess::CholeskiFactorCov(_.cov_ma_m);
     //Converts to Cholmod.R.Sparse
-    VMatrix _.L_ma_sp = Convert(_.L_ma,"Cholmod.R.Sparse");
+    VMatrix _.L_ma_sp = ARMAProcess::DoDrop(Convert(_.L_ma,"Cholmod.R.Sparse"));
     //Calculates de logarithm of determinant of _.m ARMA covarianze 
     Real _.logDetCov = 2*(-VMatSum(Log(SubBand(_.Li_ar,0)))+
                            VMatSum(Log(SubBand(_.L_ma_sp, 0))));
@@ -226,6 +252,8 @@ NameBlock ARMAProcess =
     Real    m     = VRows(z_);
     Real    p     = Degree(ar);
     Real    q     = Degree(ma);
+  //WriteLn("TRACE Eval.Almagro Begin "+Time); 
+  //WriteLn("TRACE Eval.Almagro(p"<<p+",q="<<q+",m="<<m);
     If(!p & !q, [[
     Polyn   _.ar    = ar;
     Polyn   _.ma    = ma; 
@@ -258,12 +286,6 @@ NameBlock ARMAProcess =
     Real    _.mxpq  = Max(_.p,_.q);
 
     ////////////////////////////////////////////////////////////////////////////
-    VMatrix factor(VMatrix cov)
-    ////////////////////////////////////////////////////////////////////////////
-    {
-      CholeskiFactor(cov,"X",True)
-    };
-    ////////////////////////////////////////////////////////////////////////////
     VMatrix solve.LLt(VMatrix L, VMatrix b)
     ////////////////////////////////////////////////////////////////////////////
     {
@@ -282,13 +304,14 @@ NameBlock ARMAProcess =
       CholeskiSolve(L,b,"LtP")
     };
 
+  //Real _trc.1 = { WriteLn("TRACE Eval.Almagro Creating _.cov_u "+Time); 0 };
     VMatrix _.cov_u = Case(
     _.p & _.q,
     {
-      VMatrix _.cov_zz = Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p);
+      VMatrix _.cov_zz = ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p));
     //WriteLn("_.cov_zz = "<<_.cov_zz);
       VMatrix _.cov_aa = Eye(_.q);
-      VMatrix _.cov_za = Pol2VMat(Expand(_.ma/_.ar,_.mxpq), _.p, _.q);
+      VMatrix _.cov_za = ARMAProcess::DoDrop(Pol2VMat(Expand(_.ma/_.ar,_.mxpq), _.p, _.q));
   //WriteLn("_.cov_za = "<<_.cov_za);
 
       (_.cov_zz      | _.cov_za) <<
@@ -296,7 +319,7 @@ NameBlock ARMAProcess =
     },
     _.p & !_.q,
     {
-      Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p)
+      ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p))
     //WriteLn("_.cov_zz = "<<_.cov_zz);
     },
     !_.p & _.q,
@@ -305,28 +328,35 @@ NameBlock ARMAProcess =
       Eye(_.q)
     });
 
+  //Real _trc.2 = { WriteLn("TRACE Eval.Almagro Creating _.L_u "+Time); 0 };
   //WriteLn("_.cov_u = "<<_.cov_u);
-    VMatrix _.L_u  = factor(_.cov_u);
+    VMatrix _.L_u  = ARMAProcess::CholeskiFactorCov(_.cov_u);
+  //Real _trc.3 = { WriteLn("TRACE Eval.Almagro Creating _.covi_u "+Time); 0 };
     VMatrix _.covi_u = 
     {
       aux = solve.LLt(_.L_u,Eye(_.q_p));
-      ARMAProcess::AvoidSymRoundErr(aux)
+      ARMAProcess::DoDrop(ARMAProcess::AvoidSymRoundErr(aux))
     };
-    VMatrix _.L_u_sp = Convert(_.L_u,"Cholmod.R.Sparse");
+  //Real _trc.4 = { WriteLn("TRACE Eval.Almagro Creating _.L_u_sp "+Time); 0 };
+    VMatrix _.L_u_sp = ARMAProcess::DoDrop(Convert(_.L_u,"Cholmod.R.Sparse"));
+  //Real _trc.5 = { WriteLn("TRACE Eval.Almagro Creating cov_G "+Time); 0 };
     Real _.det_cov_u = 2*VMatSum(Log(SubBand(_.L_u_sp,0)));
-    VMatrix _.H1 = Pol2VMat(F^_.p*(1-_.ar), _.m, _.p);
-    VMatrix _.H2 = Pol2VMat(F^_.q*(_.ma-1), _.m, _.q);
+    VMatrix _.H1 = ARMAProcess::DoDrop(Pol2VMat(F^_.p*(1-_.ar), _.m, _.p));
+    VMatrix _.H2 = ARMAProcess::DoDrop(Pol2VMat(F^_.q*(_.ma-1), _.m, _.q));
     VMatrix _.H = _.H1 | _.H2;
-    VMatrix _.G = 
-      DifEq(1/_.ma, _.H, Rand(0,_.q_p,0,0), Rand(_.q,_.q_p,0,0), 0.8, 1.E-17);
-    VMatrix _.GtG = MtMSqr(_.G);
+    VMatrix _.G = ARMAProcess::DoDrop(
+      DifEq(1/_.ma, _.H, Rand(0,_.q_p,0,0), Rand(_.q,_.q_p,0,0), 0.8, 1.E-17));
+    VMatrix _.GtG = ARMAProcess::DoDrop(MtMSqr(_.G));
     VMatrix _.cov_G = _.covi_u + _.GtG;
-    VMatrix _.L_G   = factor(_.cov_G);
-    VMatrix _.L_G_sp = Convert(_.L_G,"Cholmod.R.Sparse");
+  //Real _trc.6 = { WriteLn("TRACE Eval.Almagro Creating _.L_G "+Time); 0 };
+    VMatrix _.L_G   = ARMAProcess::CholeskiFactorCov(_.cov_G);
+  //Real _trc.7 = { WriteLn("TRACE Eval.Almagro Creating _.L_G_sp "+Time); 0 };
+    VMatrix _.L_G_sp = ARMAProcess::DoDrop(Convert(_.L_G,"Cholmod.R.Sparse"));
     Real _.det_cov_G = 2*VMatSum(Log(SubBand(_.L_G_sp,0)));
     Real _.det_cov_z = _.det_cov_u + _.det_cov_G;
     VMatrix _.pi_z = DifEq(_.ar/_.ma,_.z);
     VMatrix _.G_pi_z = Tra(Tra(_.pi_z)*_.G);
+  //Real _trc.8 = { WriteLn("TRACE Eval.Almagro Creating various "+Time); 0 };
     VMatrix _.u = solve.LLt(_.L_G, _.G_pi_z);
 
     ////////////////////////////////////////////////////////////////////////////
@@ -354,6 +384,7 @@ NameBlock ARMAProcess =
     (
       _.det_cov_z+(aa+uu)/_.s2
     );
+  //Real _trc.9 = { WriteLn("TRACE Eval.Almagro End "+Time); 0 };
 
     ////////////////////////////////////////////////////////////////////////////
     VMatrix Draw.U_cond_Z(Real unused)
