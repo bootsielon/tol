@@ -66,7 +66,6 @@ DefineMonary (TanH,       fRR_tanh,  true,  "TanH");
 DefineMonary (ASinH,      fRR_asinh, true,  "ASinH");
 DefineMonary (ACosH,      fRR_acosh, false, "ACosH");
 DefineMonary (ATanH,      fRR_atanh, true,  "ATanH");
-DefineBinaryR(Drop,       fR2R_drop, true,  "Drop");
 DefineBinaryR(Sum,        fR2R_sum,  true,  "+ Real");
 DefineBinaryR(Rest,       fR2R_rest, true,  "- Real");
 DefineBinaryR(Prod,       fR2R_prod, true,  "* Real");
@@ -136,6 +135,56 @@ DefineBinary (WeightQuot, fR2R_quot, false, "$/");
   return(aux);
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::Drop(double drop)
+//Importing method
+////////////////////////////////////////////////////////////////////////////////
+{
+  int r, c, k, result=0;
+  double* x;
+  switch(code_) {
+  case(ESC_blasRdense  ) : 
+  {
+    r = s_.blasRdense_->nrow;
+    c = s_.blasRdense_->ncol;
+    x = (double*)(s_.blasRdense_->x);
+    for (k=0; k<r*c; k++) 
+    {
+      if(fabs(*x)<=drop) { *x = 0.0; }
+    }    
+    break;
+  }
+  case(ESC_chlmRsparse ) : 
+  {
+    cholmod_drop(drop,s_.chlmRsparse_, common_);
+    cholmod_sort(s_.chlmRsparse_,   common_);
+    break;
+  }
+  case(ESC_chlmRtriplet) : 
+  {
+    BVMat sprs;
+    cRt2cRs(*this,sprs);
+    cholmod_drop(drop,sprs.s_.chlmRsparse_, common_);
+    cholmod_sort(sprs.s_.chlmRsparse_,   common_);
+    cRs2cRt(sprs,*this);
+    break; 
+  }
+  default: 
+    err_invalid_subtype("Drop",*this); 
+    result = -1; }
+  return(result);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  BVMat BVMat::Drop(const BVMat& A, double drop)
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat v;
+  v.Copy(A);
+  v.Drop(drop);
+  return(v);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
   BVMat BVMat::operator+ (double b) const
