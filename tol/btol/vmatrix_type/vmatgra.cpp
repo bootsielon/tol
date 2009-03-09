@@ -204,6 +204,24 @@ void BDatNonNullCells::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatStoredCells);
+DefExtOpr(1, BDatStoredCells, "VStoredCells", 1, 1,
+  "VMatrix",
+  "(VMatrix V)",
+  I2("Returns the number of stored cells of a virtual matrix.",
+     "Devuelve el numero de celdas almacenadas de una matriz virtual."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BDatStoredCells::CalcContens()
+//--------------------------------------------------------------------
+{
+  const double *x;
+  int nzmax;
+  VMat(Arg(1)).StoredData(x,nzmax);
+  contens_=nzmax;
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatVMatDat);
   DefExtOpr(1, BDatVMatDat, "VMatDat", 3, 3, "VMatrix Real Real",
   I2("(VMatrix mat, Real row, Real column)",
@@ -446,6 +464,26 @@ void BVMatConvert::CalcContens()
   contens_.Convert(VMat(Arg(1)), Text(Arg(2)));
   assert(contens_.Check());
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatPack);
+DefExtOpr(1, BVMatPack, "Pack", 1, 1, 
+  "VMatrix",
+  "(VMatrix data)",
+  I2("Packs an sparse matrix to be stored in the minimum posible size."
+     "It has no effect over non sparse matrices.",
+     "Empaqueta una matriz sparse para que ocupe el mínimo espacio posible."
+     "No tiene ningún efecto sobre matrices no sparse."),
+BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatPack::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_.Copy(VMat(Arg(1)));
+  contens_.Pack();
+  assert(contens_.Check());
+}
+
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatTriplet);
@@ -1116,10 +1154,12 @@ DefExtOpr(1, BVMatDrop, "Drop", 2, 2, "VMatrix Real",
 void BVMatDrop::CalcContens()
 //--------------------------------------------------------------------
 {
-  BVMat::Drop(VMat(Arg(1)),Real(Arg(2)),contens_);
+  contens_.Copy(VMat(Arg(1)));
+  double drop = 0;
+  if(Arg(2)) { drop = Real(Arg(2)); }
+  contens_.Drop(drop);
   assert(contens_.Check());
 }
-
 
 #define DecMonaryF00(FUN,ENGLISH,SPANISH)                                      \
 DeclareContensClass(BVMat, BVMatTemporary, BVMat##FUN);                        \
