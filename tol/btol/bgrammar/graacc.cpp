@@ -446,7 +446,7 @@ BSyntaxObject* BGrammar::FindUserFunc(const BText& name) const
     else if((m==BOBJECTMODE)&&(g==GraCode()))
     {
       found = Code(obj).Operator();
-      g = found->Grammar();
+      if(found) { g = found->Grammar(); }
     }
     if(found && 
        (g!=gra) && 
