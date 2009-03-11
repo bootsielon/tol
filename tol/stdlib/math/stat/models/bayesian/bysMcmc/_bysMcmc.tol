@@ -61,8 +61,9 @@ NameBlock BysMcmc =
     ]];
     NameBlock Arima.Filter =
     [[
-      Text FastChol = "FastChol",
-      Text DifEq    = "DifEq"
+      Text FastChol    = "FastChol",
+      Text FastCholSea = "FastCholSea",
+      Text DifEq       = "DifEq"
     ]]
   ]];
 
@@ -113,6 +114,8 @@ NameBlock BysMcmc =
     Code bsr.scalarSampler.nonLinBlock = Options::Scalar.Sampler::Slice;
     //Arima filter method
     Text bsr.arimaFilter = Options::Arima.Filter::FastChol;
+    //ARIMA block will be updated each this number of iterations
+    Real bsr.arimaSkipIter = 1;
   //CODA and other diagnostic report configuration
     //The quantile to be estimated in Raftery test
     Real report.raftery.diag.q = 0.025;
