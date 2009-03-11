@@ -32,6 +32,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
   //Internal reference to sampler definition
   NameBlock _.sampler  = modelSampler;
   NameBlock _.notifier = notifier;
+  NameBlock _.config   = config;
   //Stores the sampler name
   Text _.name = _.sampler::get.name(0)+"."+_.sampler::get.session(0);
   //Puts the Markov Chain path relative to sampler path
@@ -40,7 +41,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
   Real _.n = Card(_.sampler::get.colNames(0));
   //Timer member that can be externally consulted 
   Real _.time = 0;
-  Real _mcmc.maxTime = config::mcmc.maxTime;
+  Real _mcmc.maxTime = _.config::mcmc.maxTime;
   //Setting NameBlock description
   Text _.autodoc.description="MCMC cycling builder for model "+_.name;
 
@@ -48,20 +49,20 @@ NameBlock BuildCycler(NameBlock modelSampler,
   // Configuration members
   //--------------------------------------------------------------------------
   //The number of simulations cached in RAM before to disc writing
-  Real cacheLength_ = config::mcmc.cacheLength;
+  Real cacheLength_ = _.config::mcmc.cacheLength;
   //If resume is true and there was old simulations in _.path, new ones will 
   //be added at the end. In other case old simulations will be lost.
-  Real resume_ = config::do.resume;
+  Real resume_ = _.config::do.resume;
   //Bayesian inference configuration
   Set bysInf_ = {BysInf.Report.Config
   (
-    Real raftery.diag.q   = config::report.raftery.diag.q,
-    Real raftery.diag.r   = config::report.raftery.diag.r,
-    Real raftery.diag.s   = config::report.raftery.diag.s,
-    Real raftery.diag.eps = config::report.raftery.diag.eps,
-    Real acf.lag          = config::report.acf.lag,
-    Real histogram.parts  = config::report.histogram.parts,
-    Real kerDens.points   = config::report.kerDens.points
+    Real raftery.diag.q   = _.config::report.raftery.diag.q,
+    Real raftery.diag.r   = _.config::report.raftery.diag.r,
+    Real raftery.diag.s   = _.config::report.raftery.diag.s,
+    Real raftery.diag.eps = _.config::report.raftery.diag.eps,
+    Real acf.lag          = _.config::report.acf.lag,
+    Real histogram.parts  = _.config::report.histogram.parts,
+    Real kerDens.points   = _.config::report.kerDens.points
   )};
 
   //--------------------------------------------------------------------------
@@ -176,14 +177,14 @@ NameBlock BuildCycler(NameBlock modelSampler,
   //WriteLn("TRACE "+_MID+"savedSimulations="<<savedSimulations);
   //WriteLn("TRACE "+_MID+"numSim="<<numSim);
     Real okMls = Case(Or(numSim>1, 
-       config::mls.method==BysMcmc::Options::Mls.Method::None),
+       _.config::mls.method==BysMcmc::Options::Mls.Method::None),
     { 
       1 
     },
-    config::mls.method==BysMcmc::Options::Mls.Method::FunnelGibbs,
+    _.config::mls.method==BysMcmc::Options::Mls.Method::FunnelGibbs,
     {
       Real numIter = 1;
-      While(numIter<=config::mls.maxIter,
+      While(numIter<=_.config::mls.maxIter,
       {
         VMatrix param = _.sampler::maxLikelihood(numIter);
         Real numIter := numIter+1 
@@ -193,7 +194,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
     1==1,
     {
       WriteLn(_MID+"Unknown Maximum Likelihood Step method "+
-              config::mls.method, "E");
+              _.config::mls.method, "E");
       0
     });
     Real end = !okMls;
