@@ -497,7 +497,7 @@ const BText& BNameBlock::LocalName() const
         {
           BUserCode* uCode = UCode(obj);
           BOperator* opr   = GetOperator(uCode);
-          if(!opr->System() && !opr->NameBlock())
+          if(opr && !opr->System() && !opr->NameBlock())
           {
             opr->PutNameBlock(this);
           }
