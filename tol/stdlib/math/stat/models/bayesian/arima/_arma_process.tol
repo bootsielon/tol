@@ -174,9 +174,7 @@ NameBlock ARMAProcess =
     //Calculates de minimum length of non Toeplitz main minor of factors
     Real _.n = Max(_.p,_.q)+_.p+1;
   //Real _trc.6 = { WriteLn("TRACE FastCholeskiCovFactor _.n=" << _.n); 0 };
-    //Calculates de main minor of length _.n of joint ARMA covariance
-    VMatrix _.cov_arma_n = 
-      ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,_.ma,_.n), _.n, _.n));
+
     //Calculates de main minor of length _.n of just pure AR covariance
     VMatrix _.cov_ar_n = 
       ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,1,_.n), _.n, _.n));
@@ -192,6 +190,10 @@ NameBlock ARMAProcess =
     VMatrix _.Li_ar=
       (ARMAProcess::ExtendBandedLowTriangToeplitz(_.Li_ar_n,_.m)+_.n^2)-_.n^2;
   //Real _trc.10 = { WriteLn("TRACE FastCholeskiCovFactor _.Li_ar=" << (Matrix VMat2Mat(_.Li_ar))); 0 };
+
+    //Calculates de main minor of length _.n of joint ARMA covariance
+    VMatrix _.cov_arma_n = 
+      ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,_.ma,_.n), _.n, _.n));
     //Filters full ARMA covariance of AR factor 
     VMatrix _.cov_ma_n = (_.Li_ar_n*_.cov_arma_n*Tra(_.Li_ar_n)+_.n^2)-_.n^2;
     //Extends main minor of length _.n to full data length _.m as Toplitz from 
