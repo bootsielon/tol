@@ -884,7 +884,7 @@ static int intCmp_(const void* v1, const void* v2)
   BArray<BVMat*> a (N); 
   BArray<BVMat*> a_(N); 
   BArray< BArray<int> > rowIndex(N);
-  int ncol;
+  int ncol=0;
   for(n=0; n<N; n++)
   {
     a[n] = a_[n] = NULL;
@@ -913,13 +913,21 @@ static int intCmp_(const void* v1, const void* v2)
       result = -3;
       continue;
     }
-    a_[n] = a[n];
+    if(a[n]->code_ == ESC_chlmRtriplet) 
+    {
+      a_[n] = a[n];
+    }
+    else
+    { 
+      a_[n] = new BVMat;
+      a_[n]->Convert(*a[n], ESC_chlmRtriplet);
+    }
     if(!n) { ncol = a_[n]->s_.chlmRtriplet_->ncol; }
     else if (ncol != a_[n]->s_.chlmRtriplet_->ncol)
     {
       err_cannot_create(fName, 
         BText("Number of columns is not equal to previous for item number ")+(n+1));
-      result = -4;
+      result = -5;
       continue;
     }
 
@@ -929,14 +937,8 @@ static int intCmp_(const void* v1, const void* v2)
     {
       err_cannot_create(fName, 
         BText("Number of rows is not equal to card of row indexes at item number ")+(n+1));
-      result = -5;
+      result = -6;
       continue;
-    }
-    if(a[n]->code_ != ESC_chlmRtriplet) 
-    { 
-      BVMat* a__ = new BVMat;
-      a__->Convert(*a[n], ESC_chlmRtriplet);
-      a_[n] = a__;
     }
     if(a_[n]->s_.chlmRtriplet_->nnz)
     {
@@ -968,8 +970,9 @@ static int intCmp_(const void* v1, const void* v2)
       { delete a_[n]; }
     }
   }
-  else
+  else if(N)
   {
+    assert(ncol);
     ChlmRTriplet(nrow, ncol, nzmax);
     s_.chlmRtriplet_->nnz = nnz;
     i = (int*)s_.chlmRtriplet_->i;
