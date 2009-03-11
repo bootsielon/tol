@@ -395,7 +395,58 @@ Text _.autodoc.member.ArimaBlock =
     Real aux::enabled := !_.cannotDrawArma;
     aux
   };
-  Real _.createFilters = covDecompAll(0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::_.numCol<=0,0,{
+    Real _.blockDef::setStore(values);
+    Real k = 1;
+  //WriteLn("TRACE"+_MID+" setStore 1 _.blockDef::_.store="<<Matrix VMat2Mat(_.blockDef::_.store));
+    Set Do EvalSet(_.paramDesc, Real setValue(ArmaParamDescStruct pd)
+    {
+    //WriteLn("TRACE"+_MID+" setStore 2.0 pd="<<pd);
+    //WriteLn("TRACE"+_MID+" setStore 2.1 k="<<k);
+      Real deg = pd->degree;
+    //WriteLn("TRACE"+_MID+" setStore 2.2 deg="<<deg);
+      Real x = -VMatDat(_.blockDef::_.store, k, 1);
+    //WriteLn("TRACE"+_MID+" setStore 2.3 x="<<x);
+    //WriteLn("TRACE"+_MID+" setStore 2.4 arima["<<pd->factorNum+"]="<<(_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]);
+      Real If(pd->arma=="AR", 
+        PutCoef((_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]->AR,deg,x),
+        PutCoef((_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]->MA,deg,x));
+    //WriteLn("TRACE"+_MID+" setStore 2.5 arima["<<pd->factorNum+"]="<<(_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]);
+      Real (k := k+1);
+      1
+    });
+    Set Do EvalSet(_.armaParamBlock, Real set.arma(BSR.NoiseDistrib segment)
+    {
+      Set   aux      = segment->ArimaAuxInfo;
+      Polyn aux::ar := ARIMAGetAR (segment->Arima);
+      Polyn aux::ma := ARIMAGetMA (segment->Arima);
+    //WriteLn("TRACE"+_MID+" setStore("+segment->Name+") aux::ar="<<aux::ar);
+    //WriteLn("TRACE"+_MID+" setStore("+segment->Name+") aux::ma="<<aux::ma);
+      1
+    });
+    1})
+  };
+
+  Real _.updateAll = 
+  {
+  //WriteLn("TRACE "+_MID+" initial _.paramDesc = "<<_.paramDesc);
+    Matrix values = SetCol(EvalSet(_.paramDesc, Real (ArmaParamDescStruct pd)
+    {
+      pd->coef
+    }));
+  //WriteLn("TRACE "+_MID+" initial values = "<<values);
+    Real Do setStore(values);
+  //WriteLn("TRACE "+_MID+" _.paramDesc = "<<_.paramDesc);
+    covDecompAll(0)
+  };
+
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.show.arma =
@@ -470,16 +521,18 @@ Text _.autodoc.member.ArimaBlock =
                       Real calcMaxLikelihood)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" draw.scalar 1 noise="<<noise);
+  //WriteLn("TRACE"+_MID+" draw.scalar [iter "<<numSim+"] 1 noise="<<noise);
     Matrix noise_ = VMat2Mat(noise);
     Set arma.draw.all = 
     EvalSet(_.paramDesc, Real arma.arms.draw(ArmaParamDescStruct pd)
     {
     //WriteLn("TRACE"+_MID+" draw.scalar 2 pd="<<pd);
-      Set segment     = _.NoiseDistrib[pd->resBlockNum];
+      Set segment = _.NoiseDistrib[pd->resBlockNum];
       Set arima  = segment->Arima;
-      Real sigma = If(segment->SigmaIndex==0,1,
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.1 segment->SigmaIndex="<<segment->SigmaIndex);
+      Real sigma = If(segment->SigmaIndex<=0,1,
          Sqrt(VMatDat(sigma.full,segment->SigmaIndex,1)));
+    //WriteLn("TRACE"+_MID+" draw.scalar 2.2");
       Polyn dif  = ARIMAGetDIF(arima);
       Set factor = arima[pd->factorNum];
       Set equIdx = segment->EquIdx;
@@ -583,7 +636,7 @@ Text _.autodoc.member.ArimaBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
     If(And(_.blockDef::enabled, 
-           numSim%(_.blockDef::_.config::bsr.arimaSkipIter)==1),
+       numSim%(_.blockDef::_.config::bsr.arimaSkipIter)==0),
     {
       draw.scalar(numSim, noise, sigBlk, False)
     },
@@ -599,44 +652,6 @@ Text _.autodoc.member.ArimaBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
     draw.scalar(numSim, noise, sigBlk, True)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setStore =
-  "Sets _.store to the specified row vector of values";
-  Real setStore(Matrix values) 
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    If(_.blockDef::_.numCol<=0,0,{
-    Real _.blockDef::setStore(values);
-    Real k = 1;
-  //WriteLn("TRACE"+_MID+" setStore 1 _.blockDef::_.store="<<_.blockDef::_.store);
-    Set Do EvalSet(_.paramDesc, Real setValue(ArmaParamDescStruct pd)
-    {
-    //WriteLn("TRACE"+_MID+" setStore 2.0 pd="<<pd);
-    //WriteLn("TRACE"+_MID+" setStore 2.1 k="<<k);
-      Real deg = pd->degree;
-    //WriteLn("TRACE"+_MID+" setStore 2.2 deg="<<deg);
-      Real x = -VMatDat(_.blockDef::_.store, k, 1);
-    //WriteLn("TRACE"+_MID+" setStore 2.3 x="<<x);
-    //WriteLn("TRACE"+_MID+" setStore 2.4 arima["<<pd->factorNum+"]="<<(_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]);
-      Real If(pd->arma=="AR", 
-        PutCoef((_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]->AR,deg,x),
-        PutCoef((_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]->MA,deg,x));
-    //WriteLn("TRACE"+_MID+" setStore 2.5 arima["<<pd->factorNum+"]="<<(_.NoiseDistrib[pd->resBlockNum]->Arima)[pd->factorNum]);
-      Real (k := k+1);
-      1
-    });
-    Set Do EvalSet(_.armaParamBlock, Real set.arma(BSR.NoiseDistrib segment)
-    {
-      Set   aux      = segment->ArimaAuxInfo;
-      Polyn aux::ar := ARIMAGetAR (segment->Arima);
-      Polyn aux::ma := ARIMAGetMA (segment->Arima);
-    //WriteLn("TRACE"+_MID+" setStore("+segment->Name+") aux::ar="<<aux::ar);
-    //WriteLn("TRACE"+_MID+" setStore("+segment->Name+") aux::ma="<<aux::ma);
-      1
-    });
-    1})
   };
 
   ////////////////////////////////////////////////////////////////////////////
