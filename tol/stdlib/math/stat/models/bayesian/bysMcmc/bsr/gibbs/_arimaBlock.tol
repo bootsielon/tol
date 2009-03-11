@@ -183,53 +183,160 @@ Text _.autodoc.member.ArimaBlock =
       _.noArmaId := _.deterministicFilter + enlargeSymVMatrix(Eye(m),equIdxVec));
     VMatrix Li_ar = Rand(0,0,0,0);
     VMatrix L_ma  = Rand(0,0,0,0);
+    Set Li_ar_factors = Copy(Empty);
+    Set L_ma_factors = Copy(Empty);
   //WriteLn("TRACE"+_MID+" initialize block["<<resBlockNum_+"] 2.2.7 "+Time);
     Set segment->ArimaAuxInfo := 
     [[
        numPar, m, difDegree, p, q, numDifData, 
-       dif, ar, ma, Li_ar, L_ma,
+       dif, ar, ma, Li_ar, L_ma ,Li_ar_factors, L_ma_factors,
        D, equIdxVec
     ]];
     Real SetIndexByName(segment->ArimaAuxInfo);
     1
   };
 
+
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.calcArimaBlockLi =
+  Text _.autodoc.member.covDecomp.FastChol =
   "Calculates the Choleski decomposition and its inverse for a block with "
-  "ARIMA struct";
-  Real calcArimaBlockLi(BSR.NoiseDistrib segment)
+  "ARIMA struct using ARMAProcess::FastCholeskiCovFactor over full ARMA "
+  "structure";
+  Real covDecomp.FastChol(BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(_.blockDef::_.config::bsr.arimaFilter!=
-      BysMcmc::Options::Arima.Filter::FastChol, 0, {
-  //WriteLn("TRACE"+_MID+" calcArimaBlockLi ["+segment->Name+"] 1 ");
     Set     aux         = segment->ArimaAuxInfo;
     Real    m           = aux::m;
     NameBlock fastChol  = ARMAProcess::FastCholeskiCovFactor(aux::ar, aux::ma, m);
     Real If(VRows(fastChol::_.Li_ar)<=0, CMsg::Coded::show
-      (BysMcmc::_.cmsg::_.invCholFac,[[_MID+ " MA factor of equations block "+segment->Name]]));
+      (BysMcmc::_.cmsg::_.invCholFac,[[_MID+ " AR factor of equations block "+segment->Name]]));
     Real If(VRows(fastChol::_.L_ma)<=0, CMsg::Coded::show
       (BysMcmc::_.cmsg::_.invCholFac,[[_MID+ " MA factor of equations block "+segment->Name]]));
     VMatrix aux::Li_ar := fastChol::_.Li_ar;
     VMatrix aux::L_ma  := fastChol::_.L_ma;
     1
-  })};
+  };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.calcAllArimaBlockLi =
-  "Calculates the inverse of Choleski decomposition of ARIMA blocks all "
-  "together";
-  Real calcAllArimaBlockLi(Real numSim)
+  Text _.autodoc.member.filterJustBlock.FastChol =
+  "Filters matrix by Choleski decomposition of ARIMA covarianze of a "
+  "noise block that was decomposed using covDecomp.FastChol method";
+  VMatrix filterJustBlock.FastChol(BSR.NoiseDistrib segment, VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set If(And(Or(numSim<=1,_.blockDef::enabled),
-               _.blockDef::_.config::bsr.arimaFilter==
-               BysMcmc::Options::Arima.Filter::FastChol),
+  //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
+    Set aux = segment->ArimaAuxInfo;
+    CholeskiSolve(aux::L_ma,aux::Li_ar*X,"PtL")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.covDecomp.FastCholSea =
+  "Calculates the Choleski decomposition and its inverse for a block with "
+  "ARIMA struct using ARMAProcess::FastCholeskiCovFactor over each seasonal "
+  "component of ARMA structure in an independent way";
+  Real covDecomp.FastCholSea(BSR.NoiseDistrib segment)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set     aux         = segment->ArimaAuxInfo;
+    Real    m           = aux::m;
+    Set aux::Li_ar_factors := Copy(Empty);
+    Set aux::L_ma_factors  := Copy(Empty);
+    Set EvalSet(segment->Arima, Real(ARIMAStruct factor)
     {
-    //WriteLn("TRACE"+_MID+" calcAllArimaBlockLi ("<<numSim+") ");
-      EvalSet(_.armaParamBlock, calcArimaBlockLi)
+      NameBlock fastChol  = ARMAProcess::FastCholeskiCovFactor(factor->AR, factor->MA, m);
+      Real If(VRows(fastChol::_.Li_ar)<=0, CMsg::Coded::show
+        (BysMcmc::_.cmsg::_.invCholFac,[[_MID+ " AR factor of equations block "+segment->Name]]));
+      Real If(VRows(fastChol::_.L_ma)<=0, CMsg::Coded::show
+        (BysMcmc::_.cmsg::_.invCholFac,[[_MID+ " MA factor of equations block "+segment->Name]]));
+      Set Append(aux::Li_ar_factors, [[ fastChol::_.Li_ar ]]);
+      Set Append(aux::L_ma_factors,  [[ fastChol::_.L_ma  ]]);
+      1
     });
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.filterJustBlock.FastCholSea =
+  "Filters matrix by Choleski decomposition of ARIMA covarianze of a "
+  "noise block that was decomposed using covDecomp.FastCholSea method";
+  VMatrix filterJustBlock.FastCholSea(BSR.NoiseDistrib segment, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
+    Set aux = segment->ArimaAuxInfo;
+    VMatrix F = X; 
+    Set For(1,Card(segment->Arima), Real(Real k)
+    {
+      VMatrix F := CholeskiSolve(aux::L_ma_factors[k],aux::Li_ar_factors[k]*F,"PtL");
+      1
+    });
+    F
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.covDecomp.DifEq =
+  "Does bothing due to DifEq requires no previous action to filter";
+  Real covDecomp.DifEq(BSR.NoiseDistrib segment)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.filterJustBlock.DifEq =
+  "Filters matrix by Choleski decomposition of ARIMA covarianze of a "
+  "noise block solving ARMA difference equations with zero as initial values";
+  VMatrix filterJustBlock.DifEq(BSR.NoiseDistrib segment, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
+    Set aux = segment->ArimaAuxInfo;
+    DifEq(aux::ma/aux::ar,X)
+  };
+/* */
+  ////////////////////////////////////////////////////////////////////////////
+  Real covDecomp(BSR.NoiseDistrib segment)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Eval("covDecomp."+ _.blockDef::_.config::bsr.arimaFilter+"(segment)")
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix filterJustBlock(BSR.NoiseDistrib segment, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Eval("filterJustBlock."+ _.blockDef::_.config::bsr.arimaFilter+"(segment,X)")
+  };
+/* * /
+  Code covDecomp = If(FunctionExist("Real", "covDecomp."+config::bsr.arimaFilter),
+  {
+    FindCode("Real", "covDecomp."+ config::bsr.arimaFilter)
+  },
+  {
+    WriteLn(MID_+"Cannot find ARMA covariance decomposition method "+
+            "covDecomp."+config::bsr.arimaFilter+
+            "\nUsing default one "+covDecomp.FastChol);
+    covDecomp.FastChol
+  });
+  Code filterJustBlock = If(FunctionExist("VMatrix", "filterJustBlock."+config::bsr.arimaFilter),
+  {
+    FindCode("Real", "filterJustBlock."+ config::bsr.arimaFilter)
+  },
+  {
+    WriteLn(MID_+"Cannot find ARMA filtering method "+
+            "filterJustBlock."+config::bsr.arimaFilter+
+            "\nUsing default one "+filterJustBlock.FastChol);
+    filterJustBlock.FastChol
+  });
+/* */
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.covDecompAll =
+  "Calculates the inverse of Choleski decomposition of ARIMA blocks all "
+  "together";
+  Real covDecompAll(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set EvalSet(_.armaParamBlock, covDecomp);
     1
   };
 
@@ -271,6 +378,7 @@ Text _.autodoc.member.ArimaBlock =
     WriteLn("  "+_MID+" ARMA parameters = "<< _.numParam);
     1
   };
+
   Real _.cannotDrawArma = False;
   Real _.initialized = initialize(0);
   //Defining the block in the Markov Chain
@@ -287,7 +395,7 @@ Text _.autodoc.member.ArimaBlock =
     Real aux::enabled := !_.cannotDrawArma;
     aux
   };
-  Real _.createFilters = calcAllArimaBlockLi(0);
+  Real _.createFilters = covDecompAll(0);
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.show.arma =
@@ -301,29 +409,6 @@ Text _.autodoc.member.ArimaBlock =
       1
     });
     1
-  };
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.filterJustBlock =
-  "Filters matrix by Choleski decomposition of ARIMA covarianze of a "
-  "noise block";
-  VMatrix filterJustBlock(BSR.NoiseDistrib segment, VMatrix X)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-  //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
-    Set aux = segment->ArimaAuxInfo;
-    If(Or(aux::p,aux::q),
-    {
-      Case(
-        _.blockDef::_.config::bsr.arimaFilter==
-        BysMcmc::Options::Arima.Filter::FastChol,
-          CholeskiSolve(aux::L_ma,aux::Li_ar*X,"PtL"),
-        _.blockDef::_.config::bsr.arimaFilter==
-        BysMcmc::Options::Arima.Filter::DifEq,
-          DifEq(aux::ma/aux::ar,X) )
-    },
-    {
-      X  
-    })
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -341,14 +426,6 @@ Text _.autodoc.member.ArimaBlock =
   VMatrix filter.arma(VMatrix DX)
   ////////////////////////////////////////////////////////////////////////////
   {
-/*
-    Set s = EvalSet(_.armaParamBlock, VMatrix set.filterArima(BSR.NoiseDistrib segment)
-    {
-      VMatrix aux1 = filterJustBlock(segment,SubRow(DX, segment->EquIdx));
-      enlargeRowsVMatrix(aux1, (segment->ArimaAuxInfo)::equIdxVec)
-    });
-    SetSum(s)
-*/
     Set s = EvalSet(_.armaParamBlock, Set set.filterArima(BSR.NoiseDistrib segment)
     {
       VMatrix aux1 = filterJustBlock(segment,SubRow(DX, segment->EquIdx));
@@ -493,7 +570,7 @@ Text _.autodoc.member.ArimaBlock =
   //WriteLn("TRACE"+_MID+" draw 3 "<<Matrix Tra(values));
     Real Do setStore(values);
   //WriteLn("TRACE"+_MID+" draw.scalar blockDef="<<Matrix VMat2Mat(Tra(_.blockDef::_.store)));
-    Real Do calcAllArimaBlockLi(numSim);
+    Real Do covDecompAll(numSim);
   //WriteLn("TRACE"+_MID+" draw 5 ");
     Real _.blockDef::checkNonFiniteValues(numSim);
     Copy(_.blockDef::_.store)
@@ -505,7 +582,8 @@ Text _.autodoc.member.ArimaBlock =
   VMatrix draw(Real numSim, VMatrix noise, VMatrix sigBlk)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(_.blockDef::enabled,
+    If(And(_.blockDef::enabled, 
+           numSim%(_.blockDef::_.config::bsr.arimaSkipIter)==1),
     {
       draw.scalar(numSim, noise, sigBlk, False)
     },
