@@ -1695,7 +1695,7 @@ void BSetEvalSet::CalcContens()
   BList*	     result = NIL;
   BInt		     n	    = 1;
    
-  if(code.Operator()->NumArg()!=1)
+  if(!code.Operator() || (code.Operator()->NumArg()!=1))
   {
 	  Error(I2("Wrong argument function in EvalSet function calling."
 		         "It must have just one argument.",
