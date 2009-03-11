@@ -271,7 +271,18 @@ Set report(Text                 name_,
   Matrix mcmc = mcmc_;
   Real n = Columns(mcmc);
   Real m = Rows   (mcmc);
-  Set coda.raftery.diag = get.coda.raftery.diag(name, colNames, repCfg, mcmc);
+
+  Set idx_ = Range(1,n,1);
+  Set idx = Select(idx_,Real(Real col)
+  {
+    Matrix c = SubCol(mcmc,[[col]]);
+    MatMax(c)>MatMin(c)
+  });
+  Matrix mcmcV = SubCol(mcmc_, idx);
+//WriteLn("TRACE mcmcV("<<Rows(mcmcV)+"x"<<Columns(mcmcV));
+  Set colNamesV = ExtractByIndex(colNames_,idx);
+//WriteLn("TRACE colNamesV="<<colNamesV);
+  Set coda.raftery.diag = get.coda.raftery.diag(name, colNamesV, repCfg, mcmcV);
   Set sample = get.sample(name, colNames, repCfg, mcmc);
   Set coda.summary = get.coda.summary(name, colNames, repCfg, mcmc);
   Set param.signif = get.param.signif(name, colNames, repCfg, sample);
@@ -498,13 +509,14 @@ Matrix loadMcmc(Text path, Real burnin, Real length, Real thinning)
 
 /////////////////////////////////////////////////////////////////////////////
   Set loadAndReport(Text path, Real burnin, Real length_, Real thinning, 
-                    Text name, Set colNames_, Set repCfg)
+                    Text name, Set colNames, Set repCfg)
 /////////////////////////////////////////////////////////////////////////////
 {
   Set mcmc.dim = MatReadDimensions(path);
   Real max = (mcmc.dim::Rows-burnin)/thinning;
   Real length = Min(max,length_);
-  Matrix mcmc_ = BysMcmc::Inference::loadMcmc(path, burnin, length, thinning);
+  Matrix mcmc = BysMcmc::Inference::loadMcmc(path, burnin, length, thinning);
+/*
   Set idx_ = Range(1,Columns(mcmc_),1);
   Set idx = Select(idx_,Real(Real col)
   {
@@ -512,6 +524,7 @@ Matrix loadMcmc(Text path, Real burnin, Real length, Real thinning)
   });
   Matrix mcmc = SubCol(mcmc_, idx);
   Set colNames = ExtractByIndex(colNames_,idx);
+*/
   BysMcmc::Inference::report
   (
     name,
