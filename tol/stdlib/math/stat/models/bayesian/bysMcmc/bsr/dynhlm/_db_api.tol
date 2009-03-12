@@ -38,6 +38,12 @@ NameBlock DBApi =
   Text _cacheQueryRootPath = "";
   Set  _cachedTables = Copy(Empty);
 
+  //If it's true the automatic generated input missing variables will use 
+  //id_node as prefix of identifier. Else it will use MIXTURE node and all
+  //inputs with the same name will are referred to the same input missing
+  //variables. 
+  Real useNodeInMissingIdentifier = True;
+
   Real SqlExecScript.NotImplemented(Text filePath)
   {
     WriteLn("[SqlExecScript.NotImplemented] Sorry assign "
@@ -147,6 +153,7 @@ NameBlock DBApi =
 
   //Database tools related to mixed nodes of a model-session
   Set _tools.modses.mix = Include("_db_api.tools.modses.mix.tol");
+  Code ModSes.Mix.Node.Create;
   Code ModSes.Mix.Param.Create;
   Code ModSes.Mix.OrderRelation.Create;
   Code ModSes.Mix.Constraint.Create;
