@@ -222,6 +222,8 @@ Set Estim(Text dbName,
 ////////////////////////////////////////////////////////////////////////////
 {
   NameBlock config = BysMcmc::BuildFullConfig(config_);
+  Real BysMcmc::Bsr::DynHlm::DBApi::useNodeInMissingIdentifier := 
+    config::DBApi.useNodeInMissingIdentifier;
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
   //Resets model-session register at EstimStatus table
   Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
