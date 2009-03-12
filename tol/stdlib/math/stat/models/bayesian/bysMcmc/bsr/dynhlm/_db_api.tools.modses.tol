@@ -91,9 +91,13 @@ Real ModSes.SetLevels(Text dbName,
   If(hasPrior, Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
     "INSERT INTO "+_table::Level+"\n"
     "VALUES('"+model+"','"+session+"','PRI',888888888)\n"));
-  If(hasMixture, Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  If(hasMixture, 
+  {
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
     "INSERT INTO "+_table::Level+"\n"
-    "VALUES('"+model+"','"+session+"','MIX',999999999)\n"));
+    "VALUES('"+model+"','"+session+"','MIX',999999999)\n");
+    Real ModSes.Mix.Node.Create(dbName, model, session)
+  });
   Real ok = SetMin(For(1,maxLatLevel, Real insert.level(Real level)
   {
     Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
