@@ -84,15 +84,6 @@ Struct StSqlFilter
               // (al formar la query se les unirá por and)
 };
 
-//////////////////////////////////////////////////////////////////////////////
-// CONSTANTS
-//////////////////////////////////////////////////////////////////////////////
-Real GesMic = 0;
-Real GesOra = 1;
-Real GesMys = 2;
-Real GesAcc = 3;
-Real GesPos = 4;
-Real GesTer = 5;
 
 //////////////////////////////////////////////////////////////////////////////
 // FUNCTIONS
@@ -180,6 +171,7 @@ Text SQLDBMSStringConcatenation(Set strAConcatenar, Real gestor)
     EQ(gestor, GesMic), [[ "", "+"  ]],
     EQ(gestor, GesOra), [[ "", "||" ]],
     EQ(gestor, GesMys), [[ "concat", "," ]],
+    EQ(gestor, GesRed), [[ "concat", "," ]],
     EQ(gestor, GesPos), [[ "", "||" ]], 
     EQ(gestor, GesAcc), [[ "", "&" ]]
   );
@@ -199,6 +191,7 @@ Text SqlIsNull(Real gestor)
     EQ(gestor, GesMic), "IsNull",
     EQ(gestor, GesOra), "nvl",
     EQ(gestor, GesMys), "IfNull", 
+    EQ(gestor, GesRed), "IfNull", 
     EQ(gestor, GesPos), "coalesce",
     EQ(gestor, GesTer), "coalesce",
     EQ(gestor, GesAcc), "SqlIsNull. Access. Opción por implementar."
@@ -442,6 +435,7 @@ Text SqlConvertText(Text txt, Real gestor)
     EQ(gestor, GesMys), "cast("+ txt +" as char)",
     EQ(gestor, GesPos), "cast("+ txt +" as char varying)",
     EQ(gestor, GesTer), "rtrim(cast("+ txt +" as char(255)))",    
+    EQ(gestor, GesRed), "trim(string("+ txt +"))",    
     EQ(gestor, GesAcc), "SqlConvertText. Access. Opción por implementar."
   );
   convTxt
@@ -577,6 +571,7 @@ Text SqlFormat(Anything var, Real gestor, Text format)
     EQ(gestor, GesMys), "Mys",
     EQ(gestor, GesPos), "Pos",
     EQ(gestor, GesTer), "Ter",
+    EQ(gestor, GesRed), "Red",
     True, ""
   );
   Text gcodeText = "Sql"+gestorTxt +"Format"+format;
