@@ -45,11 +45,12 @@ NameBlock Obs.Serie.Info(
     aux
   };
   Real _.stds = StDsS(_.serie);
-  Text _.missing.label       = missing.label;
-  Text _.missing.name        = _.missing.label+"_"+_.name;
   Real _.missing.sigmaFactor = missing.sigmaFactor; 
   Real _.missing.lowerBound  = missing.lowerBound; 
   Real _.missing.upperBound  = missing.upperBound;
+  Text _.missing.label       = missing.label;
+  Text _.missing.name        = missing.label+"_"+_.name;
+  Text _.missing.id          = missing.label+"::"+_.name;
 
   //Number of needed initial values
   Real _.numIniVal = numIniVal;
@@ -89,7 +90,7 @@ NameBlock Obs.Serie.Info(
   Text missing.name(Date dte)
   {
     Text txt = FormatDate(dte,"%cy%Ym%md%dh%hi%is%s");
-    "MissingBlk::"+_.missing.label+"::"+_.name+"::"+txt
+    "MissingBlk::"+_.missing.id+"::"+txt
   };
   //Returns the expression of the t-th regression coefficient that could be a
   //a known real datum or the identifier of a missing value
@@ -114,15 +115,23 @@ NameBlock Obs.Serie.Info(
     BysMcmc::Bsr::Import::RealTextS(If(IsUnknown(x),_.avg, x))
   };
   //Sorted list of variables related to missing values
-  Set _.missing = EvalSet(_.missing.dates,Set get.missing(Date dte)
+  Set _.missing = 
   {
   //WriteLn("TRACE [Obs.Serie.Info get.missing] 1 dte="<<dte);
-    Bsr.Missing.Info(Text Name = missing.name(dte), 
-                     Real Average = _.avg, 
-                     Real Sigma = _.stds*_.missing.sigmaFactor, 
-                     Real LowerBound = _.missing.lowerBound, 
-                     Real UpperBound = _.missing.upperBound)
-  })
+    Set aux = EvalSet(_.missing.dates,Set get.missing(Date dte)
+    {
+      Real x = SerDat(_.serie,dte);
+      If(!IsUnknown(x),Copy(Empty),
+      Set mis = Bsr.Missing.Info(
+        Text Name = missing.name(dte), 
+        Real Average = _.avg, 
+        Real Sigma = _.stds*_.missing.sigmaFactor, 
+        Real LowerBound = _.missing.lowerBound, 
+        Real UpperBound = _.missing.upperBound));
+      Eval(ToName(mis->Name)+"=mis")
+    });
+    Select(aux,Card)
+  }
 ]]};
 
 //////////////////////////////////////////////////////////////////////////////
@@ -160,11 +169,12 @@ NameBlock Obs.Vector.Info(
     aux
   };
   Real _.stds = MatStDs(_.serie);
-  Text _.missing.label = missing.label;
-  Text _.missing.name  = _.missing.label+"_"+_.name;
   Real _.missing.sigmaFactor = missing.sigmaFactor; 
   Real _.missing.lowerBound  = missing.lowerBound; 
   Real _.missing.upperBound  = missing.upperBound;
+  Text _.missing.label       = missing.label;
+  Text _.missing.name        = missing.label+"_"+_.name;
+  Text _.missing.id          = missing.label+"::"+_.name;
 
   //Number of needed initial values
   Real _.numIniVal = numIniVal;
@@ -172,7 +182,7 @@ NameBlock Obs.Vector.Info(
   Text missing.name(Real num)
   {
     Text txt = IntText(num);
-    "MissingBlk::"+_.missing.label+"::"+_.name+"::N"+txt
+    "MissingBlk::"+_.missing.id+"::N"+txt
   };
   Real Get.Equation.Size(Real unused) 
   { 
@@ -201,11 +211,13 @@ NameBlock Obs.Vector.Info(
     {
       Real x = MatDat(_.serie,num,1);
       If(!IsUnknown(x),Copy(Empty),
-      Bsr.Missing.Info(Text Name = missing.name(num), 
-                       Real Average = _.avg, 
-                       Real Sigma = _.stds*_.missing.sigmaFactor, 
-                       Real LowerBound = _.missing.lowerBound, 
-                       Real UpperBound = _.missing.upperBound))
+      Set mis = Bsr.Missing.Info(
+        Text Name = missing.name(num), 
+        Real Average = _.avg, 
+        Real Sigma = _.stds*_.missing.sigmaFactor, 
+        Real LowerBound = _.missing.lowerBound, 
+        Real UpperBound = _.missing.upperBound));
+      Eval(ToName(mis->Name)+"=mis")
     });
     Select(aux,Card)
   }
@@ -450,22 +462,31 @@ NameBlock Obs(
   Set _.missing = _.output::_.serie.info::_.missing << 
     BinGroup("<<", EvalSet(_.input, Set(NameBlock inp)
     {
-      If(inp::_.serie.info::_.id_node==inp::_.serie.info::_.missing.label,
+    //WriteLn("TRACE 1 inp::_.serie.info::_.missing = "<<inp::_.serie.info::_.missing);
+    //WriteLn("TRACE 2 input.missing.labels = "<<input.missing.labels);
+      Set aux = If(inp::_.serie.info::_.id_node==inp::_.serie.info::_.missing.label,
       {
         inp::_.serie.info::_.missing
       },
       {
-        Set label = [[inp::_.serie.info::_.missing.name]];
-        Text PutName(label[1],label[1]);
-        Real idx = FindIndexByName(input.missing.labels,label[1]);
-      //WriteLn("TRACE Obs Missing Label Name : "+label[1]+" -> "<<idx);
-        If(idx, Copy(Empty),
+        Select(inp::_.serie.info::_.missing, Real(Bsr.Missing.Info mis)
         {
-          Set Append(input.missing.labels, label);
-          Real SetIndexByName(input.missing.labels);
-          inp::_.serie.info::_.missing
+          Text name = Name(mis);
+          Real idx = FindIndexByName(input.missing.labels,name);
+        //WriteLn("TRACE 3 name = "<<name+" idx = "<<idx);
+        //WriteLn("TRACE Obs Missing Label Name : "+label[1]+" -> "<<idx);
+          !idx
         })
-      })
+      });
+    //WriteLn("TRACE 4 aux = "<<aux);
+      Real If(!Card(aux), 0,
+      {
+        Set Append(input.missing.labels, aux);
+      //WriteLn("TRACE 5 input.missing.labels = "<<input.missing.labels);
+        Real SetIndexByName(input.missing.labels);
+        0
+      });
+      aux
     }));
 
   //Mandatory methods that will be used by BysMcmc::Bsr::Import
