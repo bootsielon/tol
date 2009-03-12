@@ -148,7 +148,12 @@ NameBlock BysMcmc =
     //Enables or disables in-sample evaluation of individual linear effects
     Real do.linear.effects = True;
     //Enables or disables saving full results of DBApi::Estim
-    Real do.save.DBApi.Estim.Oza = True
+    Real do.save.DBApi.Estim.Oza = True;
+    //If it's true the automatic generated input missing variables will use 
+    //id_node as prefix of identifier. Else it will use MIXTURE node and all
+    //inputs with the same name will are referred to the same input missing
+    //variables. 
+    Real DBApi.useNodeInMissingIdentifier = True
   ]];
 
   NameBlock Config = 
