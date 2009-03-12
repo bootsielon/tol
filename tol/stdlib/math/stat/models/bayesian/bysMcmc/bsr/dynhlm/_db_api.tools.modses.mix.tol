@@ -4,6 +4,27 @@
 //           BysMcmc::Bsr::DynHlm::DBApi
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+//Inserts a new parameter register
+Real ModSes.Mix.Node.Create(Text dbName, 
+                            Text model, 
+                            Text session)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real If(BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT count(*) FROM "+dbName+"."+_table::Node+"\n"
+  "WHERE id_model='"+model+"' AND\n"
+  "      id_session='"+session+"' AND\n"
+  "      id_node='MIXTURE';","")[1][1],
+  {
+    0
+  },
+  {
+    Real BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
+      _table::Node,
+      "'"+model+"','"+session+"','MIXTURE','MIX',999999999,-1,''")
+  })
+};
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -222,16 +243,7 @@ Real ModSes.Mix.Constraint.Create(Text dbName,
   });
   Text id_node = If(Card(nodes)==1, (linComb[1])::_.id_node,
   {
-    Real If(Not(BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
-    "SELECT count(*) FROM "+dbName+"."+_table::Node+"\n"
-    "WHERE id_model='"+model+"' AND\n"
-    "      id_session='"+session+"' AND\n"
-    "      id_node='MIXTURE';","")[1][1]),
-    {
-      Real BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
-        _table::Node,
-        "'"+model+"','"+session+"','MIXTURE','MIX',999999999,-1,''")
-    });
+    Real ModSes.Mix.Node.Create(dbName, model, session);
     "MIXTURE"
   });
   Real ok.1 = BysMcmc::Bsr::DynHlm::DBApi::SqlCachedInsert(
