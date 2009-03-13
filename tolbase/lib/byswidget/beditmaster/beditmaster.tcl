@@ -2111,8 +2111,9 @@ package require byscommon
       # ERROR
       puts "Error al ejecutar: $cmdTIC"
       return {}   
-    }    
-    ::tol::tableset create $cmdIC $infoColumns
+    }
+    ::tol::tableset create $cmdIC [ list Set $infoColumns ]
+    Tolcon_Trace "::tol::tableset create $cmdIC [ list Set $infoColumns ]"
   
     # Obtenemos informacion de las foregn keys
     set infoForeignKeys [GetGlobalUniqueName __infoForeignKeys[clock second]]
@@ -2128,9 +2129,9 @@ package require byscommon
       return {}    
     }    
     # comprobamos que tenemos valores
-    set nRegFk [lindex [TclGetFromSet Set $infoForeignKeys] 0]
+    set nRegFk [lindex [TclGetVar Set $infoForeignKeys] 0]
     if {[expr $nRegFk > 0]} {
-      ::tol::tableset create $cmdIF $infoForeignKeys
+      ::tol::tableset create $cmdIF [ list Set $infoForeignKeys ]
     }  
 #Tolcon_Trace "EditMasterUtils::InitTable. nRegFk: $nRegFk"
 
