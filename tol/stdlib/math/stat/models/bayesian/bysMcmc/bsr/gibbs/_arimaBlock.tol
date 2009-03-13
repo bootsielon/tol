@@ -291,7 +291,7 @@ Text _.autodoc.member.ArimaBlock =
   {
   //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
     Set aux = segment->ArimaAuxInfo;
-    DifEq(aux::ma/aux::ar,X)
+    DifEq(aux::ar/aux::ma,X)
   };
 /* */
   ////////////////////////////////////////////////////////////////////////////
