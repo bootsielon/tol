@@ -301,7 +301,7 @@ proc TclGetFromSet { type set args } {
   }
 
   ::tol::console eval $str
-  set result [lindex [::tol::info var $type $name] 0]
+  set result [lindex [::tol::info var [ list $type $name ] ] 2]
   ::tol::console stack release $name
   return $result
 }
@@ -417,11 +417,7 @@ proc TclInfoExists {gra obj} {
 #
 #/////////////////////////////////////////////////////////////////////////////
   # eval
-  if {![catch {set lst [::tol::info variable $gra]}]} {
-    return [expr [lsearch $lst $obj] >= 0 ? 1 : 0]
-  }
-  # error
-  return 0
+  expr { ! [ catch { tol::info var [ list $gra $obj ] } ] }
 }
 
 
