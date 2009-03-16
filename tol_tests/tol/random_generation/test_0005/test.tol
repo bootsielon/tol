@@ -1,0 +1,135 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Test for random generation of parameters of an ARIMA regression
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+   "Test for random generation of parameters of an ARIMA regression" ;
+
+  Real PutRandomSeed(1032679103);
+  Real rnd_seed=GetRandomSeed(0);
+  WriteLn("rnd_seed "+IntText(rnd_seed));
+
+  Real numErr0 = Copy(NError);
+
+  //Number of linear parameters
+  Real n = IntRand(1,10);
+  //Data length
+  Real m = IntRand(n*3, 10*n);
+  //Density of input matrix
+  Real d = Rand(0.01,0.10);
+  //Input matrix
+  VMatrix X  = Rand(m-n,n,-10,10,"Cholmod.R.Sparse",d*m*n)<<Eye(n);
+  //Linear regression parameters
+  VMatrix b = Rand(n,1,-2,2);
+  //Regular AutoRegressive degree
+  Real p = IntRand(0,2);
+  //Regular AutoRegressive polynomial
+  Polyn ar = RandStationary(p);
+  //Regular Moving Average degree
+  Real q = IntRand(0,2);
+  //Regular Moving Average polynomial
+  Polyn ma = RandStationary(q);
+  //Standard deviation 
+  Real s = Rand(0.5,2);
+  //White noise residuals 
+  VMatrix e = Gaussian(m,1,0,s);
+  //ARMA noise 
+  VMatrix z = 
+  {
+    Real   m0 = 100*m;
+    VMatrix e_ = Gaussian(m0,1,0,s) << e;
+    VMatrix z_ = DifEq(ma/ar,e_);
+    Sub(z_,m0+1,1,m,1)
+  };
+  //Output matrix
+  VMatrix Y = X*b + z;
+
+  //Virtual Cholesky decomposition of ARMA covariance matrix
+  NameBlock fastChol = ARMAProcess::FastCholeskiCovFactor(ar, ma, m); 
+  //ARMA filered inupt
+  VMatrix X_ = fastChol::filter(X)*(1/s);
+  //ARMA filered outupt
+  VMatrix Y_ = fastChol::filter(Y)*(1/s);
+  //Choleski decomposition of ARMA filtered input
+  VMatrix L_   = CholeskiFactor(X_,"XtX");
+  //Average of linear regression parameters b
+  VMatrix nu_  = CholeskiSolve(L_,Tra(Tra(Y_)*X_),"PtLLtP");
+
+  //Simulates a set of linear regression parameters and calculates logarithm 
+  //of density of linear regression parameters and also of corresponding
+  //ARMA noise 
+  Matrix logDens = SetMat(For(1,100,Set(Real iter)
+  {
+    //Simulates n independent normal variables
+    VMatrix b01 = Gaussian(n,1,0,1);
+    //Applys the regular linear change of variables to draw the paraneters
+    VMatrix b_ = nu+CholeskiSolve(L_,b01,"LtP");
+    
+    //logarithm of density of linear regression parameters is not affected by
+    //a regular linear variable change
+    Real lgDns_b = MatSum(Log(f01(VMat2Mat(b1))));
+  
+    VMatrix z_ = (Y-X*b_)*(1/s);
+    //Calculates logarithm of density of ARMA noise by Almagro method
+    NameBlock ev.almagro = ARMAProcess::Eval.Almagro(ar, ma, z_, 1);
+    Real lgDns_z = ev.almagro::_.logLH;
+    //Calculates logarithm of density of ARMA noise by Levinson method
+    Set ev.levinson =  ARIMALevinsonEval([[ARIMAStruct(1,ar,ma,1)]],VMat2Mat(z_));
+    Real lgDns_z.lev = ev.levinson::logLH;
+
+    [[lgDns_b, lgDns_z, lgDns_z.lev]]
+  }));
+  //logarithm of density of linear regression parameters
+  Matrix lgDns_b  = SubCol(logDens,[[1]]);
+  //logarithm of density of ARMA noise by Almagro method
+  Matrix lgDns_z.almagro  = SubCol(logDens,[[2]]);
+  //logarithm of density of ARMA noise by Levinson method
+  Matrix lgDns_z.levinson  = SubCol(logDens,[[3]]);
+  //Adding a constant to logarithm of density of ARMA noise 
+  Matrix lgDns_z.almagro_ = lgDns_z.almagro + MatAvr(lgDns_b-lgDns_z.almagro);
+  //Adding a constant to logarithm of density of ARMA noise 
+  Matrix lgDns_z.levinson_ = lgDns_z.levinson + MatAvr(lgDns_b-lgDns_z.levinson);
+  //By Bayes theorem, this error must be close to zero
+  Real err.almagro = MatMax(Abs(lgDns_b - lgDns_z.almagro_));
+  //By Bayes theorem, this error must be close to zero
+  Real err.levinson = MatMax(Abs(lgDns_b - lgDns_z.levinson_));
+  //This is a [0,1] metric of quality
+  Real quality.almagro = Max(0,1-err.almagro);
+  //This is a [0,1] metric of quality
+  Real quality.levinson = Max(0,1-err.levinson);
+
+  //Visualize a chart of this matrix to observe de adjustment
+  Matrix lgDns_cmp = lgDns_b | lgDns_z.almagro_ | lgDns_z.levinson_;
+
+  Matrix lgDns_dif.almagro = lgDns_b-lgDns_z.almagro;
+  Matrix lgDns_dif.levinson = lgDns_b-lgDns_z.levinson;
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0,
+    numErr1,
+    err.almagro,
+    quality.almagro,
+    err.levinson,
+    quality.levinson
+  ]];
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0)*
+                  Min(quality.almagro, quality.levinson);
+
+//WriteLn("TRACE 6");
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */
