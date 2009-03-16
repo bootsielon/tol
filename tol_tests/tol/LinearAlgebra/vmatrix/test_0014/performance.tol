@@ -1,0 +1,89 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: performance.tol
+//AUTHOR: vdebuen@tol-project.org
+//PURPOSE: Analyzing Choleski performance for semi-sparse matrices
+//////////////////////////////////////////////////////////////////////////////
+
+Set opt.n   = [[100, 250, 500, 750]];
+Set opt.m_n = [[2,4,6,8]];
+
+Set param = CartProd(opt.n,opt.m_n);
+Real t0 = 0;
+
+Set param.sel = Select(param, Real(Set prm)
+{
+  Real n   = prm[1];
+  Real m   = prm[2]*n;
+  Real mn2 = m*n^2;
+  mn2>1.E+7
+});
+
+Set performance = BinGroup("<<", EvalSet(param.sel, Set(Set prm)
+{
+  Real n   = prm[1];
+  Real m   = prm[2]*n;
+
+  For(1,100,Set(Real iter) {
+  Real d_ = Rand(0,0.3);
+  VMatrix X.cholmod = 
+    Eye(n) <<
+    Rand(m-n, n, -10, 10, "Cholmod.R.Sparse", d_*m*n);
+
+  VMatrix XtX.cholmod = MtMSqr(X.cholmod);
+  
+  Real d.X   = VNonNullCells(X.cholmod)/
+              (VRows(X.cholmod)*VColumns(X.cholmod));
+  Real d.XtX = VNonNullCells(XtX.cholmod)/
+              (VRows(XtX.cholmod)*VColumns(XtX.cholmod));
+
+  Real t0 := Copy(CpuClock);
+  Set test.01 = {[[
+  VMatrix X.blas = Convert(X.cholmod,"Blas.R.Dense");
+  VMatrix XtX.blas = MtMSqr(X.blas);
+  VMatrix L.blas = CholeskiFactor(XtX.blas,"X") 
+  ]]};
+  Real t1 = Copy(CpuClock)-t0;
+  //WriteLn("time.01="<<test.01::time);
+  
+  Real t0 := Copy(CpuClock);
+  Set test.02 = {[[
+  VMatrix X.blas = Convert(X.cholmod,"Blas.R.Dense");
+  VMatrix XtX.blas = MtMSqr(X.blas);
+  VMatrix XtX.cholmod = Convert(XtX.blas,"Cholmod.R.Sparse");
+  VMatrix L.cholmod = CholeskiFactor(XtX.cholmod,"X")
+  ]]};
+  Real t2 = Copy(CpuClock)-t0;
+  
+  //WriteLn("time.02="<<test.02::time);
+  
+  Real t0 := Copy(CpuClock);
+  Set test.03 = {[[
+  VMatrix XtX.cholmod = MtMSqr(X.cholmod);
+  VMatrix L.cholmod = CholeskiFactor(XtX.cholmod,"X")
+  ]]};
+  Real t3 = Copy(CpuClock)-t0;
+  
+  //WriteLn("time.03="<<test.03::time);
+  
+  Real t0 := Copy(CpuClock);
+  Set test.04 = {[[
+  VMatrix L.cholmod = CholeskiFactor(X.cholmod,"XtX")
+  ]]};
+  Real t4 = Copy(CpuClock)-t0;
+  
+  //WriteLn("time.04="<<test.04::time);
+  Real mn2d.X  = d.X  *n^2*m;
+  Real n3d.XtX = d.XtX*n^3;
+
+  Real t.min = Min(t1,t2,t3,t4);
+  Real winner = Case(
+    t.min==t1,1,
+    t.min==t2,2,
+    t.min==t3,3,
+    t.min==t4,4);
+  Set result = [[m,n,d.X,mn2d.X,d.XtX,n3d.XtX,t1,t2,t3,t4,t.min,winner]];
+  WriteLn(""<<result);
+  result
+})}));
+
+/* */
