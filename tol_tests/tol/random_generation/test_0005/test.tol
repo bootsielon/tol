@@ -1,12 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : test.tol
-// PURPOSE: Test for random generation of parameters of an ARIMA regression
+// PURPOSE: Test for random generation of parameters of a linear regression
+//          with ARMA noise
 //////////////////////////////////////////////////////////////////////////////
 
   Text email_ = "vdebuen@tol-project.org"; 
   Text link_ = "";
   Text summary_ = 
-   "Test for random generation of parameters of an ARIMA regression" ;
+   "Test for random generation of parameters of a linear regression with "
+   "ARMA noise" ;
 
   Real PutRandomSeed(1032679103);
   Real rnd_seed=GetRandomSeed(0);
@@ -32,6 +34,9 @@
   Real q = IntRand(0,2);
   //Regular Moving Average polynomial
   Polyn ma = RandStationary(q);
+  //Full ARIMA struct
+  Set arima = [[ARIMAStruct(1,ar,ma,1)]];
+
   //Standard deviation 
   Real s = Rand(0.5,2);
   //White noise residuals 
@@ -63,24 +68,30 @@
   //ARMA noise 
   Matrix logDens = SetMat(For(1,100,Set(Real iter)
   {
+
     //Simulates n independent normal variables
     VMatrix b01 = Gaussian(n,1,0,1);
     //Applys the regular linear change of variables to draw the paraneters
-    VMatrix b_ = nu+CholeskiSolve(L_,b01,"LtP");
+    VMatrix b_ = nu_+CholeskiSolve(L_,b01,"LtP");
     
     //logarithm of density of linear regression parameters is not affected by
     //a regular linear variable change
-    Real lgDns_b = MatSum(Log(f01(VMat2Mat(b1))));
+    Real lgDns_b = MatSum(Log(f01(VMat2Mat(b01))));
   
     VMatrix z_ = (Y-X*b_)*(1/s);
-    //Calculates logarithm of density of ARMA noise by Almagro method
-    NameBlock ev.almagro = ARMAProcess::Eval.Almagro(ar, ma, z_, 1);
-    Real lgDns_z = ev.almagro::_.logLH;
     //Calculates logarithm of density of ARMA noise by Levinson method
-    Set ev.levinson =  ARIMALevinsonEval([[ARIMAStruct(1,ar,ma,1)]],VMat2Mat(z_));
-    Real lgDns_z.lev = ev.levinson::logLH;
+    Set ev.levinson =  ARIMALevinsonEval(arima,VMat2Mat(z_));
+    Real lgDns_z.levinson = ev.levinson::logLH;
 
-    [[lgDns_b, lgDns_z, lgDns_z.lev]]
+    //Calculates logarithm of density of ARMA noise by Almagro method
+    Set ev.almagro = ARIMAAlmagroEval(arima, VMat2Mat(z_));
+    Real lgDns_z.almagro = ev.almagro::logLH;
+/*
+    //Alternative expression for Almagro method
+    NameBlock ev.almagro_ = ARMAProcess::Eval.Almagro(ar, ma, z_, 1);
+    Real lgDns_z.almagro_ = ev.almagro_::_.logLH;
+*/
+    [[lgDns_b, lgDns_z.almagro, lgDns_z.levinson]]
   }));
   //logarithm of density of linear regression parameters
   Matrix lgDns_b  = SubCol(logDens,[[1]]);
