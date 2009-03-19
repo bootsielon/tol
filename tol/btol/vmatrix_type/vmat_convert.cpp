@@ -612,27 +612,31 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   code_  = ESC_chlmRsparse;
   register int n = Minimum(nrow,ncol);
   register int nnz = 0;
-  register int i, j, k, h, d, jMin, jMax;
+  register int i, j, k, h, d;
   register double c;
   register BPolyn<BDat> pol = pol_;
   pol.Aggregate();
   register int s=pol.Size();
   register const BMonome<BDat>* mon = pol.Buffer();
+
   for(k=0; k<s; k++)
   {
     d = mon->Degree();
-    jMin = Maximum(0,-d);
-    jMax = Minimum(nrow-d-1,ncol-1);
-    if(jMax<jMin)
+    if(d>=0)
     {
-      s=k;
-      break;
+      for(i=d; (i<nrow)&&(i-d<ncol); i++)
+      {
+        nnz++;
+      }
     }
     else
     {
-      nnz += Maximum(0,jMax-jMin+1);
-      mon++;
+      for(j=-d; (j<ncol)&&(j+d<nrow); j++)
+      {
+        nnz++;
+      }
     }
+    mon++;
   }
   mon = pol.Buffer();
   cholmod_triplet* triplet = cholmod_allocate_triplet
@@ -645,21 +649,27 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   {
     d = mon->Degree();
     c = mon->Coef().Value();
-    jMin = Maximum(0,-d);
-    jMax = Minimum(nrow-d-1,ncol-1);
-    assert(jMax>=jMin);
-    for(j=jMin; j<=jMax; j++, h++)
+    if(d>=0)
     {
-      i=j+d;
-      assert((i>=0)&&(i<nrow));
-      assert((j>=0)&&(j<ncol));
-      assert(h<nnz);
-      r_[h] = i;
-      c_[h] = j;
-      x_[h] = c;
+      for(i=d; (i<nrow)&&(i-d<ncol); i++, h++)
+      {
+        r_[h] = i;
+        c_[h] = i-d;
+        x_[h] = c;
+      }
+    }
+    else
+    {
+      for(j=-d; (j<ncol)&&(j+d<nrow); j++, h++)
+      {
+        r_[h] = j+d;
+        c_[h] = j;
+        x_[h] = c;
+      }
     }
     mon++;
   }
+
   s_.chlmRsparse_ = cholmod_triplet_to_sparse(triplet, nnz, common_);
   cholmod_free_triplet(&triplet,common_);
 }
