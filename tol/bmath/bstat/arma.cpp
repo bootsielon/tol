@@ -1461,14 +1461,25 @@ void BARIMA::OutputDataUpdated()
 //--------------------------------------------------------------------
 {
   int mxpq = Maximum(p_,q_); 
+  int m = w_.Rows(); 
+  BDat s2 = sigma^2;
+  if(mxpq==0)
+  {
+    a_ = w_;
+    a0_.Alloc(0,0);
+    w0_.Alloc(0,0);
+    ata_ = MtMSqr(a_)(0,0);
+    wtCoviw_ = ata_ ;
+    aCovDetN_ = 0;
+    logLikelihood_ = -0.5*( m*Log(2*BDat::Pi()*s2)+wtCoviw_/s2);
+    return(true);
+  }
   if(!CheckStationary()) { return(false); }
   if(!CalcAutoCovarianze(mxpq)) { return(false); }
 
   BPolyn<BDat>& ar = prod_.ar_;
   BPolyn<BDat>& ma = prod_.ma_;
   BVMat z; z.DMat2VMat((BMatrix<double>&)w_);
-  BDat s2 = sigma^2;
-  int m = w_.Rows(); 
   int q_p = q_+p_;
 
   BRational<BDat> ma_ar = ma/ar;
@@ -1479,12 +1490,39 @@ void BARIMA::OutputDataUpdated()
   BPolyn<BDat> ar0 = (BPolyn<BDat>::F()^p_)*(BPolyn<BDat>::One()-ar);
   BPolyn<BDat> ma0 = (BPolyn<BDat>::F()^q_)*(ma-BPolyn<BDat>::One());
 
-  BVMat cov_zz; cov_zz.BPol2sparse(gamma, p_, p_);
-  BVMat cov_aa; cov_aa.Eye(q_);
-  BVMat cov_za; cov_za.BPol2sparse(psi, p_, q_);
-  BVMat cov_az; BVMat::T(cov_za, cov_az);
-  BVMat cov_u =  (cov_zz | cov_za) <<
-                 (cov_az | cov_aa);
+  BVMat cov_u;
+
+  if(p_ && q_)
+  {
+    BVMat cov_zz; cov_zz.BPol2sparse(gamma, p_, p_);
+    BVMat cov_aa; cov_aa.Eye(q_);
+    BPolyn<BDat> psi_;
+    psi.ChangeBF(psi_);
+    psi_ = psi_ * (BPolyn<BDat>::B()^Maximum(0,q_-p_));
+    BVMat cov_za; 
+    if(q_>=p_)
+    {
+      cov_za.BPol2sparse(psi_, q_, p_);
+    }
+    else
+    {
+      BVMat zeros;
+      zeros.Zeros(q_,p_-q_,BVMat::ESC_chlmRsparse);
+      cov_za.BPol2sparse(psi_, q_, q_);
+      cov_za = zeros | cov_za;
+    }
+    BVMat cov_az; BVMat::T(cov_za, cov_az);
+    cov_u =  (cov_zz | cov_za) <<
+             (cov_az | cov_aa);
+  }
+  else if(!p_ && q_)
+  {
+    cov_u.Eye(q_);
+  } 
+  if(p_ && !q_)
+  {
+    cov_u.BPol2sparse(gamma, p_, p_);
+  }
 
   BVMat eye_qp; eye_qp.Eye(q_p);
   BVMat L_u; BVMat::CholeskiFactor(cov_u,L_u,BVMat::ECFO_X,true,true);
@@ -1508,13 +1546,13 @@ void BARIMA::OutputDataUpdated()
   BVMat G_pi_z = (piz.T()*G).T();
   BVMat u; BVMat::CholeskiSolve(L_G,G_pi_z,u,BVMat::ECSS_LLt);
   
-  BVMat z0; u.Sub(0,  0, p_, 1, z0);
+  BVMat w0; u.Sub(0,  0, p_, 1, w0);
   BVMat a0; u.Sub(p_, 0, q_, 1, a0);
   a0.GetDMat((BMatrix<double>&)a0_);
-  z0.GetDMat((BMatrix<double>&)w0_);
+  w0.GetDMat((BMatrix<double>&)w0_);
 
   BVMat v; BVMat::CholeskiSolve(L_u,u,v,BVMat::ECSS_L);
-  BVMat a; BVMat::DifEq(ar_ma,z0,z,a0,a,0.8,1.E-17);
+  BVMat a; BVMat::DifEq(ar_ma,w0,z,a0,a,0.8,1.E-17);
   a.GetDMat((BMatrix<double>&)a_);
 
   ata_ = a.Moment(2)*m;
