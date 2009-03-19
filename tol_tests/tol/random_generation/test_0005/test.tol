@@ -10,7 +10,7 @@
    "Test for random generation of parameters of a linear regression with "
    "ARMA noise" ;
 
-  Real PutRandomSeed(1032679103);
+  Real PutRandomSeed(1938259105);
   Real rnd_seed=GetRandomSeed(0);
   WriteLn("rnd_seed "+IntText(rnd_seed));
 
@@ -27,11 +27,11 @@
   //Linear regression parameters
   VMatrix b = Rand(n,1,-2,2);
   //Regular AutoRegressive degree
-  Real p = IntRand(0,2);
+  Real p = IntRand(0,3);
   //Regular AutoRegressive polynomial
   Polyn ar = RandStationary(p);
   //Regular Moving Average degree
-  Real q = IntRand(0,2);
+  Real q = IntRand(0,3);
   //Regular Moving Average polynomial
   Polyn ma = RandStationary(q);
   //Full ARIMA struct
@@ -66,56 +66,65 @@
   //Simulates a set of linear regression parameters and calculates logarithm 
   //of density of linear regression parameters and also of corresponding
   //ARMA noise 
-  Matrix logDens = SetMat(For(1,100,Set(Real iter)
-  {
-
-    //Simulates n independent normal variables
+//Matrix logDens = SetMat(For(1,100,Set(Real iter)
+//{
+    WriteLn("TRACE Iteration "<<iter);
+    WriteLn("TRACE Simulates n independent normal variables");
     VMatrix b01 = Gaussian(n,1,0,1);
-    //Applys the regular linear change of variables to draw the paraneters
+    WriteLn("TRACE Applys the regular linear change of variables to draw the paraneters");
     VMatrix b_ = nu_+CholeskiSolve(L_,b01,"LtP");
     
-    //logarithm of density of linear regression parameters is not affected by
-    //a regular linear variable change
+    WriteLn("TRACE logarithm of density of linear regression parameters is not affected by a regular linear variable change");
     Real lgDns_b = MatSum(Log(f01(VMat2Mat(b01))));
   
     VMatrix z_ = (Y-X*b_)*(1/s);
-    //Calculates logarithm of density of ARMA noise by Levinson method
+    WriteLn("TRACE Calculates logarithm of density of ARMA noise by Levinson method");
     Set ev.levinson =  ARIMALevinsonEval(arima,VMat2Mat(z_));
     Real lgDns_z.levinson = ev.levinson::logLH;
 
-    //Calculates logarithm of density of ARMA noise by Almagro method
-    Set ev.almagro = ARIMAAlmagroEval(arima, VMat2Mat(z_));
-    Real lgDns_z.almagro = ev.almagro::logLH;
+    WriteLn("TRACE Calculates logarithm of density of ARMA noise by Almagro method");
+    Set ev.almagro.1 = ARIMAAlmagroEval(arima, VMat2Mat(z_));
+    Real lgDns_z.almagro.1 = ev.almagro.1::logLH;
+
+    WriteLn("TRACE Alternative expression for Almagro method");
+    NameBlock ev.almagro.2 = ARMAProcess::Eval.Almagro(ar, ma, z_, 1);
+    Real lgDns_z.almagro.2 = ev.almagro.2::_.logLH;
 /*
-    //Alternative expression for Almagro method
-    NameBlock ev.almagro_ = ARMAProcess::Eval.Almagro(ar, ma, z_, 1);
-    Real lgDns_z.almagro_ = ev.almagro_::_.logLH;
-*/
-    [[lgDns_b, lgDns_z.almagro, lgDns_z.levinson]]
+    [[lgDns_b, lgDns_z.almagro.2, lgDns_z.almagro.2, lgDns_z.levinson]]
   }));
   //logarithm of density of linear regression parameters
   Matrix lgDns_b  = SubCol(logDens,[[1]]);
   //logarithm of density of ARMA noise by Almagro method
-  Matrix lgDns_z.almagro  = SubCol(logDens,[[2]]);
+  Matrix lgDns_z.almagro.1  = SubCol(logDens,[[2]]);
+  //logarithm of density of ARMA noise by Almagro method
+  Matrix lgDns_z.almagro.2  = SubCol(logDens,[[3]]);
   //logarithm of density of ARMA noise by Levinson method
-  Matrix lgDns_z.levinson  = SubCol(logDens,[[3]]);
+  Matrix lgDns_z.levinson  = SubCol(logDens,[[4]]);
   //Adding a constant to logarithm of density of ARMA noise 
-  Matrix lgDns_z.almagro_ = lgDns_z.almagro + MatAvr(lgDns_b-lgDns_z.almagro);
+  Matrix lgDns_z.almagro.1_ = lgDns_z.almagro.1 + MatAvr(lgDns_b-lgDns_z.almagro.1);
+  //Adding a constant to logarithm of density of ARMA noise 
+  Matrix lgDns_z.almagro.2_ = lgDns_z.almagro.2 + MatAvr(lgDns_b-lgDns_z.almagro.2);
   //Adding a constant to logarithm of density of ARMA noise 
   Matrix lgDns_z.levinson_ = lgDns_z.levinson + MatAvr(lgDns_b-lgDns_z.levinson);
   //By Bayes theorem, this error must be close to zero
-  Real err.almagro = MatMax(Abs(lgDns_b - lgDns_z.almagro_));
+  Real err.almagro.1 = MatMax(Abs(lgDns_b - lgDns_z.almagro.1_));
+  //By Bayes theorem, this error must be close to zero
+  Real err.almagro.2 = MatMax(Abs(lgDns_b - lgDns_z.almagro.2_));
   //By Bayes theorem, this error must be close to zero
   Real err.levinson = MatMax(Abs(lgDns_b - lgDns_z.levinson_));
   //This is a [0,1] metric of quality
-  Real quality.almagro = Max(0,1-err.almagro);
+  Real quality.almagro.1 = Max(0,1-err.almagro.1);
+  //This is a [0,1] metric of quality
+  Real quality.almagro.2 = Max(0,1-err.almagro.2);
   //This is a [0,1] metric of quality
   Real quality.levinson = Max(0,1-err.levinson);
 
   //Visualize a chart of this matrix to observe de adjustment
-  Matrix lgDns_cmp = lgDns_b | lgDns_z.almagro_ | lgDns_z.levinson_;
+  Matrix lgDns_cmp = lgDns_b | lgDns_z.almagro.1_ | 
+                     lgDns_z.almagro.2_ | lgDns_z.levinson_;
 
-  Matrix lgDns_dif.almagro = lgDns_b-lgDns_z.almagro;
+  Matrix lgDns_dif.almagro.1 = lgDns_b-lgDns_z.almagro.1;
+  Matrix lgDns_dif.almagro.2 = lgDns_b-lgDns_z.almagro.2;
   Matrix lgDns_dif.levinson = lgDns_b-lgDns_z.levinson;
 
   Real numErr1 = Copy(NError);
@@ -125,16 +134,18 @@
   [[
     numErr0,
     numErr1,
-    err.almagro,
-    quality.almagro,
+    err.almagro.1,
+    quality.almagro.1,
+    err.almagro.2,
+    quality.almagro.2,
     err.levinson,
     quality.levinson
   ]];
 //This is a messure of the success of the test 
   Real quality_ = And(numErr1 == numErr0)*
-                  Min(quality.almagro, quality.levinson);
+                  Min(quality.almagro.1, quality.almagro.2, quality.levinson);
 
-//WriteLn("TRACE 6");
+  WriteLn("TRACE 6");
 //Return the results 
   Set resultStr_ = strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
@@ -144,3 +155,4 @@
   resultStr_
 
 /* */
+
