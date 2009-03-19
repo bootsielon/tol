@@ -1,0 +1,88 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix Pol2VMat function
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = "Checking Pol2VMat" ;
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+
+
+Polyn p.1 = RandStationary(IntRand(1,10), IntRand(1,2));
+Polyn p.2 = ChangeBF(p.1);
+Polyn p.3 = RandStationary(IntRand(1,10), IntRand(1,2)) + 
+            ChangeBF(RandStationary(IntRand(1,10), IntRand(1,2)));
+Polyn p.4 = ChangeBF(p.3);
+
+Real m = IntRand(1, 20);
+Real n = IntRand(1, 20);
+
+Matrix m.1 = PolMat(p.1, m, n);
+Matrix m.2 = PolMat(p.2, n, m);
+Matrix m.3 = PolMat(p.3, m, n);
+Matrix m.4 = PolMat(p.4, n, m);
+
+Matrix m.2.t = Tra(m.2);
+Matrix m.4.t = Tra(m.4);
+
+VMatrix v.1 = Pol2VMat(p.1, m, n);
+VMatrix v.2 = Pol2VMat(p.2, n, m);
+VMatrix v.3 = Pol2VMat(p.3, m, n);
+VMatrix v.4 = Pol2VMat(p.4, n, m);
+
+VMatrix v.2.t = Tra(v.2);
+VMatrix v.4.t = Tra(v.4);
+
+
+
+//Regular AutoRegressive degree
+Real p = IntRand(2,2);
+//Regular AutoRegressive polynomial
+Polyn ar = RandStationary(p);
+//Regular Moving Average degree
+Real q = IntRand(3,3);
+//Regular Moving Average polynomial
+Polyn ma = RandStationary(q);
+
+Polyn psiF = ChangeBF(Expand(ma/ar,Max(p,q)));
+
+Matrix  cov_za_t_ = PolMat  (psiF, p, q);
+VMatrix cov_za_t  = Pol2VMat(psiF, p, q);
+
+WriteLn("cov_za_t_ = "<<cov_za_t_);
+WriteLn("cov_za_t  = "<<Matrix VMat2Mat(cov_za_t));
+
+
+Set ok.All = SetOfReal
+(
+  Real ok.1 = Max(0,1-MatMax(Abs(m.2.t-m.1)));
+  Real ok.2 = Max(0,1-MatMax(Abs(m.4.t-m.3)));
+  Real ok.3 = Max(0,1-VMatMax(Abs(v.2.t-v.1)));
+  Real ok.4 = Max(0,1-VMatMax(Abs(v.4.t-v.3)));
+  Real ok.5 = Max(0,1-VMatMax(Abs(cov_za_t-Mat2VMat(cov_za_t_))))
+);
+
+Real numErr1 = Copy(NError);
+
+/* */
+
+//Extented information about test behaviour
+Set partialResults_ = ok.All <<
+[[
+  numErr0, numErr1
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0==numErr1, SetMin(ok.All));
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */
