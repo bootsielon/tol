@@ -10,7 +10,7 @@ NameBlock ARMAProcess =
 [[
   Text _.autodoc.description = "Methods related with ARMA process";
 
-  Real drop = 1.E-6;
+  Real drop = 1.E-8;
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.StationarityBounds.2.1 =
@@ -310,14 +310,22 @@ NameBlock ARMAProcess =
     VMatrix _.cov_u = Case(
     _.p & _.q,
     {
-      VMatrix _.cov_zz = ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p));
+      VMatrix cov_zz = ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p));
     //WriteLn("_.cov_zz = "<<_.cov_zz);
-      VMatrix _.cov_aa = Eye(_.q);
-      VMatrix _.cov_za = ARMAProcess::DoDrop(Pol2VMat(Expand(_.ma/_.ar,_.mxpq), _.p, _.q));
+      VMatrix cov_aa = Eye(_.q);
+/*
+      VMatrix cov_za_r = ARMAProcess::DoDrop(Pol2VMat(Expand(_.ma/_.ar,_.mxpq), _.q, _.p));
+      VMatrix cov_za   = Mat2VMat(Reverse(VMat2Mat(cov_za_r)));
+      VMatrix cov_za_t = Tra(cov_za);
+*/
+      Polyn psi = ChangeBF(Expand(_.ma/_.ar,Max(_.p,_.q)))*B^Max(0,_.q-_.p);
+      VMatrix cov_za = If(_.q>=_.p, Pol2VMat(psi, _.q, _.p), 
+                            Zeros(_.q, _.p-_.q) | Pol2VMat(psi, _.q, _.q));
+      VMatrix cov_za_t = Tra(cov_za);
   //WriteLn("_.cov_za = "<<_.cov_za);
 
-      (_.cov_zz      | _.cov_za) <<
-      (Tra(_.cov_za) | _.cov_aa)
+      (cov_zz | cov_za_t) <<
+      (cov_za | cov_aa  )
     },
     _.p & !_.q,
     {
@@ -347,8 +355,8 @@ NameBlock ARMAProcess =
     VMatrix _.H2 = ARMAProcess::DoDrop(Pol2VMat(F^_.q*(_.ma-1), _.m, _.q));
     VMatrix _.H = _.H1 | _.H2;
     VMatrix _.G = ARMAProcess::DoDrop(
-      DifEq(1/_.ma, _.H, Rand(0,_.q_p,0,0), Rand(_.q,_.q_p,0,0), 0.8, 1.E-17));
-    VMatrix _.GtG = ARMAProcess::DoDrop(MtMSqr(_.G));
+      DifEq(1/_.ma, _.H, Rand(0,_.q_p,0,0), Rand(_.q,_.q_p,0,0) ));
+    VMatrix _.GtG = MtMSqr(_.G);
     VMatrix _.cov_G = _.covi_u + _.GtG;
   //Real _trc.6 = { WriteLn("TRACE Eval.Almagro Creating _.L_G "+Time); 0 };
     VMatrix _.L_G   = ARMAProcess::CholeskiFactorCov(_.cov_G);
@@ -377,7 +385,7 @@ NameBlock ARMAProcess =
     VMatrix _.z0 = Get.Z0(_.u);
     VMatrix _.a0 = Get.A0(_.u);
     VMatrix _.v = solve.L(_.L_u, _.u); 
-    VMatrix _.a   = DifEq(_.ar/_.ma, _.z, _.z0, _.a0);
+    VMatrix _.a = DifEq(_.ar/_.ma, _.z, _.z0, _.a0);
     Real _0.5_m_log2_PI_s2 = -0.5*_.m*Log(2*PI*_.s2);
 
     Real aa = MatDat(VMat2Mat( Tra(_.a)*_.a), 1,1);     
