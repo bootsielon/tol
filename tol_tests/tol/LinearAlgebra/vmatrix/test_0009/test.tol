@@ -86,8 +86,8 @@ NameBlock Checker(NameBlock data)
     ok
   ]]};
   
-  Real lower = Max(bounds::Lower,-100000);
-  Real upper = Min(bounds::Upper,+100000);
+  Real lower = Max(bounds::Lower,-1000);
+  Real upper = Min(bounds::Upper,+1000);
 
   NameBlock cb.1 = checkBounds(lower);
   Real ok.1 = cb.1::ok;
@@ -109,7 +109,7 @@ Set check.all =
   NameBlock check.01 = Checker(check.data.01);
   NameBlock check.02 = Checker(check.data.02)
 ]] <<
-For(1,10000,NameBlock(Real iter) 
+For(1,1000,NameBlock(Real iter) 
 { 
   NameBlock aux = Checker(rand.check.data(0));
   Real If(Not(aux::ok), 
