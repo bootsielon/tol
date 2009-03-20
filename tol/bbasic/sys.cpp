@@ -44,7 +44,7 @@
 //   Global variables (static in BSys)
 //--------------------------------------------------------------------
 BTraceInit("sys.cpp");
-#ifdef	 UNIX
+#ifdef   UNIX
   BBool BSys::unix_=BTRUE;
   BText BSys::editor_("emacs ");
 #else // WINDOWS
@@ -79,6 +79,7 @@ static BText Buil_TolAppData_()
     BSys::MkDir(tolAppData_+"syslog",       true);
     BSys::MkDir(tolAppData_+"OIS",          true);
     BSys::MkDir(tolAppData_+"tests_results",true);
+    tolAppData_ = GetStandardAbsolutePath(tolAppData_);
   }
   return(tolAppData_);
 }
@@ -225,9 +226,9 @@ void BSys::DeleteTmpFiles(BDir& dir, BReal lag, BText prefix)
       BText fName = dir.FileName(n);
       if(!prefix.HasName() || fName.BeginWith(prefix))
       {
-	path = dir.Name()+"/"+fName;
-  //	Std(BText("\n") + n + ") " + dir.FileName(n) + msg);
-	remove(path.String());
+  path = dir.Name()+"/"+fName;
+  //  Std(BText("\n") + n + ") " + dir.FileName(n) + msg);
+  remove(path.String());
       }
     }
   }
@@ -237,9 +238,9 @@ void BSys::DeleteTmpFiles(BDir& dir, BReal lag, BText prefix)
 
 //--------------------------------------------------------------------
 BText BSys::TempNam(const BText& outputDir,
-		    const BText& prefix,
-		    const BText& ext,
-		          BInt   len)
+        const BText& prefix,
+        const BText& ext,
+              BInt   len)
 
 /*! Creates a unique temporal file name in specific directory.
  *  tempnam() returns new memory. If paht is empty or the program
@@ -259,48 +260,38 @@ BText BSys::TempNam(const BText& outputDir,
 //--------------------------------------------------------------------
 {
 //InitTotalTime("BSys::TempNam");
-    static BInt fileNumber_ = -1;
-    BText fileName;
-    BText dir = outputDir;
+  static BInt fileNumber_ = -1;
+  BText fileName;
+  BText dir = outputDir;
+//Std(BText("\nBSys::TempNam 1 dir = ")+dir);
+  if(!dir.HasName()) { dir= TolAppData()+"tmp/"; }
+//Std(BText("\nBSys::TempNam 2 dir = ")+dir);
+
 //Std("\nBSys::TempNam("); Std(outputDir+", "+prefix+", "+ext+", "+len+")");
-    if(!(BDir::CheckIsDir(dir)) || (!dir.HasName()) )
-    {
-#     ifdef UNIX
-/* tempnam function was deprecated:
- *	dir = GetFilePath(tempnam("","")); */
-	dir = "/tmp";
-#     else
-	BText tmp = getenv("TMP");
-	if(!tmp.HasName()) { tmp = getenv("TEMP"); }
-	dir = tmp;
-	BText dirTOL = dir+"/TOL";
-	if(!BDir::CheckIsDir(dirTOL))
-	{
-      system(BText("mkdir \"")+dirTOL+"\"");
-	//MkDir(dirTOL,true);
-	}
-	dir = dirTOL;
-#     endif
-    }
-    BInt attempts = 0;
-    BText pathFile;
-    do
-    {
-	attempts ++;
-	if(len<4) { len=4; }
-	
-	BInt base = (BInt)pow(10.0,(double)len); //(BInt)(BDat(10)^BDat(len)).Value();
-	BInt r = LongRandom(base-1);
-	BText number = BText("")+r;
-	if(len<number.Length()) { number = number.SubString(0,len-1); }
-	fileName = prefix+number+"."+ext;
-	pathFile = dir+"/"+fileName;
+  if(!BDir::CheckIsDir(dir))
+  {
+  //Std(BText("\nBSys::TempNam 4 dir = ")+dir);
+    mkdir(dir);
+  }
+//Std(BText("\nBSys::TempNam 5 dir = ")+dir);
+  BInt attempts = 0;
+  BText pathFile;
+  do
+  {
+    attempts ++;
+    if(len<4) { len=4; }
+    BInt base = (BInt)pow(10.0,(double)len); //(BInt)(BDat(10)^BDat(len)).Value();
+    BInt r = LongRandom(base-1);
+    BText number = BText("")+r;
+    if(len<number.Length()) { number = number.SubString(0,len-1); }
+    fileName = prefix+number+"."+ext;
+    pathFile = dir+fileName;
 //  Std(pathFile + " is File " + CheckIsFile(pathFile));
-    }
-    while(CheckIsFile(pathFile));
+  }
+  while(CheckIsFile(pathFile));
 //Std(BText("\nTempNam = ") + fileName + " after " + attempts+ " attempts.");
 //SumPartialTime;
-    return(pathFile);
+  return(pathFile);
 }
 
 
@@ -315,7 +306,7 @@ BText BSys::GetEnv(const BText& envVar)
 //--------------------------------------------------------------------
 {
   BChar* aux=getenv(envVar.String());
-  BText	 tmpName=aux;
+  BText   tmpName=aux;
   return(tmpName);
 }
 
@@ -335,8 +326,8 @@ BBool BSys::System(const BText& command)
   if(err)
   {
     Error(BText("\n[")+errno+"]=" + strerror(errno) + "\n" +
-	  I2("Cannot execute the command: ",
-	     "No se pudo ejecutar el mandato: ") + "\n" + command);
+    I2("Cannot execute the command: ",
+       "No se pudo ejecutar el mandato: ") + "\n" + command);
   }
   return(!err);
 }
@@ -414,8 +405,8 @@ static bool ShowLastError(const BText& action, bool force)
   int result = 0;
 
   if (!CreateProcess(NULL, cmd, NULL, NULL,
- 	    FALSE, 0, NULL, NULL, &startupInfo,
- 	    &piProcInfo)) 
+       FALSE, 0, NULL, NULL, &startupInfo,
+       &piProcInfo)) 
   {
     ShowLastError(I2("Creating process \n", 
                      "Creando el proceso \n") +
@@ -528,22 +519,22 @@ BBool BSys::Print(const BText& fileName)
 
 /*! Prints a file in the default printer. Operating systems:<ul>
  *      <li>UNIX: print the file with lp command, options:<ul>
- *	<li>-onb: option no banner (don't work).
- *	<li>-s: suppress messages from lp such as: request ID is...
- *	<li>-c: Make copies of the files to be printed immediately when
- *  	        lp is invoked (and then can be deleted).</ul>
+ *  <li>-onb: option no banner (don't work).
+ *  <li>-s: suppress messages from lp such as: request ID is...
+ *  <li>-c: Make copies of the files to be printed immediately when
+ *            lp is invoked (and then can be deleted).</ul>
  *      <li>WINDOWS: .</ul>
  * \param fileName Name of file to be printed
  * \return Returns true on success, or false if an error occurred
  */
 //--------------------------------------------------------------------
 {
-#ifdef	 UNIX
+#ifdef   UNIX
   BText command("lp -c ");
   return(BSys::System(command+fileName));
 #else // WINDOWS
   ShellExecute(
-    0,	               // handle to parent window
+    0,                 // handle to parent window
     "print",           // string that specifies operation to perform
     fileName.String(), // filename string
     Editor().String(), // string that specifies executable-file parameters
@@ -581,7 +572,7 @@ BBool BSys::Copy(const BText& origin, const BText& target)
  */
 //--------------------------------------------------------------------
 {
-#ifdef	 UNIX
+#ifdef   UNIX
   BText copyCom("cp ");
 #else // WINDOWS
   BText copyCom("copy ");
@@ -678,7 +669,7 @@ BBool BSys::Edit(const BText& fileName, BInt typeIndex)
 //--------------------------------------------------------------------
 {
   if(!BSys::Editor().HasName()) { return(BFALSE); }
-#ifdef	 UNIX
+#ifdef   UNIX
   return(BSys::System(BSys::Editor()+" "+fileName+" &"));
 #else // WINDOWS
   if (fileEditor_)
@@ -714,7 +705,7 @@ BBool BSys::EditTable(const BText& fileName, BInt typeIndex)
 //--------------------------------------------------------------------
 {
   if(!BSys::Editor().HasName()) { return(BFALSE); }
-#ifdef	 UNIX
+#ifdef   UNIX
   return(Edit(fileName,0));
 #else // WINDOWS
   if (tableEditor_)
@@ -739,7 +730,7 @@ BBool BSys::EditChart(const BText& fileName, BInt typeIndex)
 //--------------------------------------------------------------------
 {
   if(!BSys::Editor().HasName()) { return(BFALSE); }
-#ifdef	 UNIX
+#ifdef   UNIX
   return(Edit(fileName,0));
 #else // WINDOWS
   if (chartEditor_)
@@ -779,7 +770,7 @@ BBool BSys::EditB(const BText& fileName)
  */
 //--------------------------------------------------------------------
 {
-#ifdef	 UNIX
+#ifdef   UNIX
   return(BSys::System(BSys::Editor()+fileName));
 #else // WINDOWS
   ShellExecute(
@@ -888,7 +879,7 @@ unsigned long _stdcall threadMain(void *arg)
   GetExitCodeThread
   (
     GetCurrentThread(), // handle to the thread
-    &lpExitCode		      // address to receive termination status
+    &lpExitCode          // address to receive termination status
   );
   ExitThread(lpExitCode);
   return(lpExitCode);
@@ -900,24 +891,24 @@ unsigned long _stdcall threadMain(void *arg)
 BBool BSys::ChildProcess(const BText& command)
 //--------------------------------------------------------------------
 {
-#ifndef	  UNIX
+#ifndef    UNIX
 
 //Std(BText("\nClient Question : \n")+command+"\n");
 
-  SECURITY_ATTRIBUTES	  sa =
+  SECURITY_ATTRIBUTES    sa =
   {
     sizeof(SECURITY_ATTRIBUTES),   // structure size
-    0,	                           // No security descriptor
+    0,                             // No security descriptor
     TRUE,                          // Thread handle is inheritable
   };
   char* arg = new char[command.Length()+1];
   strncpy(arg, command.String(), command.Length()+1);
-  DWORD	  threadId;
+  DWORD    threadId;
   HANDLE hThread = (HANDLE)CreateThread
   (
     &sa,                    // Thread security
     4096,                   // Thread stack size
-    threadMain,	            // Thread starting address
+    threadMain,              // Thread starting address
     (void *)arg,            // Thread start argument
     CREATE_SUSPENDED,       // Create in suspended state
     &threadId               // Thread ID.
@@ -926,7 +917,7 @@ BBool BSys::ChildProcess(const BText& command)
   if(hThread == INVALID_HANDLE_VALUE)
   {
     //MessageBox(0, "Thread Creation Failed", "Error", MB_OK);
-	Error("Thread Creation Failed");
+  Error("Thread Creation Failed");
     return(BFALSE);
   }
   ResumeThread(hThread);
