@@ -52,6 +52,10 @@ COMMENT='Stores valid types of hierarchical nodes';
 
 
 /* /////////////////////////////////////////////////////////////////////////////
+Stores all feasible hierarchical levels by node type. Observational nu_level
+is set to 0, first latent level is 1 and maximum latent level is 9 by default,
+but is possible to insert higher levels until 888888887, due to 888888888 is
+reserved for prior level and 999999999 for mixed level.
 The user could add registers for higher latent levels in very complex
 hierarchical trees
 ///////////////////////////////////////////////////////////////////////////// */
@@ -66,10 +70,25 @@ CREATE TABLE `bsrhlm_d_level_node_type` (
     REFERENCES `bsrhlm_d_node_type` (`id_node_type`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores all feasible hierarchical levels by node type. Observational nu_level is set to 0, first latent level is 1 and maximum latent level is 9 by default, but is possible to insert higher levels until 888888887, due to 888888888 is reserved for prior level and 999999999 for mixed level.';
+COMMENT='Stores all feasible hierarchical levels by node type.';
+
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('OBS',0);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',1);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',2);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',3);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',4);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',5);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',6);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',7);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',8);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',9);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('PRI', 888888888);
+INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('MIX', 999999999);
 
 
 /* /////////////////////////////////////////////////////////////////////////////
+Stores model name and a description of its objective. A model could have a lot
+of implementations that will be referenced as sessions
 The user must insert a register for each modelation target, not for each
 implementation or session
 ///////////////////////////////////////////////////////////////////////////// */
@@ -78,9 +97,11 @@ CREATE TABLE  `bsrhlm_d_model` (
   `ds_model` varchar(256) NOT NULL,
   PRIMARY KEY (`id_model`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores model name and a description of its objective. A model could have a lot of implementations that will be referenced as sessions';
+COMMENT='Stores model name and a description of its objective.';
 
 /* /////////////////////////////////////////////////////////////////////////////
+Stores information about estimation sessions that are labels to distinguish
+between different versions or implementation of one or more models
 The user must insert a register for each session tag, that could apply over just
 one specific model, a set of them or all together
 ///////////////////////////////////////////////////////////////////////////// */
@@ -91,7 +112,7 @@ CREATE TABLE  `bsrhlm_d_session` (
   `dh_creation` datetime NOT NULL,
   PRIMARY KEY (`id_session`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores information about estimation sessions that are labels to distinguish between different versions or implementation of one or more models';
+COMMENT='Stores information about estimation sessions';
 
 /* /////////////////////////////////////////////////////////////////////////////
 The user must insert a register for each distinct application of a session tag
@@ -131,7 +152,7 @@ CREATE TABLE `bsrhlm_d_level` (
     REFERENCES `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores hierarchical selected levels by node type for each model-session';
+COMMENT='Stores hierarchical selected levels by node type';
 
 /* /////////////////////////////////////////////////////////////////////////////
 The user must insert a register for each node of the model-session
@@ -150,7 +171,7 @@ CREATE TABLE  `bsrhlm_d_node` (
     REFERENCES `bsrhlm_d_level` (`id_model`,`id_session`,`id_node_type`,`nu_level`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores hierarchical nodes for each model-session';
+COMMENT='Stores hierarchical nodes';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to mixed nodes.
@@ -176,7 +197,7 @@ CREATE TABLE  `bsrhlm_v_mix_parameter` (
     REFERENCES `bsrhlm_d_gibbs_block` (`id_gibbs_blk`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores all parameters of regression for each model-session';
+COMMENT='Stores all parameters of regression';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to mixed nodes.
@@ -195,7 +216,7 @@ CREATE TABLE  `bsrhlm_v_mix_non_lin_filter` (
     REFERENCES `bsrhlm_d_node` (`id_model`, `id_session`, `id_node`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores all non linear filters for each model-session';
+COMMENT='Stores all non linear filters';
 
 
 /* /////////////////////////////////////////////////////////////////////////////
@@ -224,7 +245,7 @@ CREATE TABLE  `bsrhlm_v_mix_order_relation` (
     REFERENCES `bsrhlm_v_mix_parameter` (`id_model`, `id_session`, `id_node`,       `id_parameter`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores order relations between two main linear block parameters for each model-session';
+COMMENT='Stores order relations between linear block parameters';
 
 
 /* /////////////////////////////////////////////////////////////////////////////
@@ -277,7 +298,7 @@ CREATE TABLE  `bsrhlm_v_mix_cnstrnt_lin_cmb` (
     REFERENCES `bsrhlm_v_mix_parameter` (`id_model`, `id_session`, `id_node`, `id_parameter`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores linear combinations terms of constraining inequations.';
+COMMENT='Stores linear combinations terms of constraints.';
 
 
 /* /////////////////////////////////////////////////////////////////////////////
@@ -308,7 +329,7 @@ CREATE TABLE  `bsrhlm_v_obs_output` (
     REFERENCES `bsrhlm_d_node` (`id_model`, `id_session`, `id_node`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores observational output related information for each model-session';
+COMMENT='Stores observational output related information';
 
 
 /* /////////////////////////////////////////////////////////////////////////////
@@ -316,9 +337,9 @@ This table is related to observational nodes.
 The user must insert a register for each ARIMA factor attached to an output
 serie at observation level of each model-session
 AR and MA polinomial are given as text with maximum degree 2 in the standard way
-  '1'
-  '1 - fi_1*B'
-  '1 - fi_1*B - fi_2*B2'
+'1'
+'1 - fi_1*B'
+'1 - fi_1*B - fi_2*B2'
 If a high level n>2 is demanded then user can decompose it as n=2*f+1 is n is
 even or n=2*f if is odd, and create f or f+1 factors respectively. If user wants
 to force real roots its possible to create n factors of degree 1.
@@ -338,7 +359,7 @@ CREATE TABLE  `bsrhlm_v_obs_arima_block` (
     REFERENCES `bsrhlm_v_obs_output` (`id_model`, `id_session`, `id_node`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores ARIMA structures for observational outputs for each model-session';
+COMMENT='Stores ARIMA structures for observational outputs';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to observational nodes.
@@ -365,7 +386,7 @@ CREATE TABLE  `bsrhlm_v_obs_input` (
     REFERENCES `bsrhlm_v_mix_parameter` (`id_model`, `id_session`, `id_node`, `id_parameter`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores observational input related information for each model-session';
+COMMENT='Stores observational input related information';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to observational nodes.
@@ -393,9 +414,11 @@ CREATE TABLE  `bsrhlm_v_obs_transferFunction` (
     REFERENCES `bsrhlm_v_obs_output` (`id_model`, `id_session`, `id_node`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores observational tramsfer functions related information for each model-session';
+COMMENT='Stores observational tramsfer functions related information';
 
 /* /////////////////////////////////////////////////////////////////////////////
+Stores sigma block information about latent nodes  .
+If sigma is null then it will be simulated by Gubbs method
 This table is related to latent nodes.
 The user must insert a register for each latent node of each model-session.
 ///////////////////////////////////////////////////////////////////////////// */
@@ -411,9 +434,11 @@ CREATE TABLE  `bsrhlm_v_lat_sigma_block` (
     REFERENCES `bsrhlm_d_node` (`id_model`, `id_session`, `id_node`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores sigma block information about latent nodes for each model-session. If sigma is null then it will be simulated by Gubbs method';
+COMMENT='Stores sigma block information about latent nodes';
 
 /* /////////////////////////////////////////////////////////////////////////////
+Stores output information about equations numbering latent nodes for each
+model-session. Sigma_factor allows to define non constant covariance diagonal
 This table is related to latent nodes.
 The user must insert a register for each regression equation of each latent node
 of each model-session. Each equation is attached to a linear combination of
@@ -433,7 +458,7 @@ CREATE TABLE `bsrhlm_v_lat_equ` (
     REFERENCES `bsrhlm_v_lat_sigma_block` (`id_model`, `id_session`, `id_node`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores output information about equations numbering latent nodes for each model-session. Sigma_factor allows to define non constant covariance diagonal';
+COMMENT='Stores information about equations numbering latent nodes';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to latent nodes.
@@ -458,7 +483,7 @@ CREATE TABLE  `bsrhlm_v_lat_output` (
     REFERENCES `bsrhlm_v_mix_parameter` (`id_model`, `id_session`, `id_node`,       `id_parameter`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores output information about latent nodes for each model-session.';
+COMMENT='Stores output information about latent nodes';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to latent nodes.
@@ -482,7 +507,7 @@ CREATE TABLE  `bsrhlm_v_lat_input` (
     REFERENCES `bsrhlm_v_mix_parameter` (`id_model`, `id_session`, `id_node`,        `id_parameter`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores input information about latent nodes for each model-session';
+COMMENT='Stores input information about latent nodes';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to prior nodes.
@@ -505,7 +530,7 @@ CREATE TABLE  `bsrhlm_v_pri_equ` (
     REFERENCES `bsrhlm_d_node` (`id_model`, `id_session`, `id_node`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores output information about prior nodes for each model-session';
+COMMENT='Stores output information about prior nodes';
 
 /* /////////////////////////////////////////////////////////////////////////////
 This table is related to prior nodes.
@@ -530,7 +555,7 @@ CREATE TABLE  `bsrhlm_v_pri_output` (
     REFERENCES `bsrhlm_v_mix_parameter` (`id_model`, `id_session`, `id_node`,       `id_parameter`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores output information about prior nodes for each model-session';
+COMMENT='Stores output information about prior nodes';
 
 
 /* /////////////////////////////////////////////////////////////////////////////
