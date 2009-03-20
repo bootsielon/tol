@@ -24,11 +24,11 @@ NameBlock Rapi =
 
   Text _R.cmd = "R CMD BATCH --vanilla";
   Text _tmpdir = Replace(TmpDir, "\\", "/");
-  Text _cwd = GetAbsolutePath(".");
-  Text _TOLutils.R = _cwd+"/"+ "TOLutils.R";
-  Text _tmp.in.R = _tmpdir+"/"+"in%S.R";
-  Text _tmp.R.out = _tmpdir+"/"+"Rout%S.log";
-  Text _tmp.args.R = _tmpdir+"/"+"args%S.R";
+  Text _cwd = GetAbsolutePath("./");
+  Text _TOLutils.R = _cwd+ "TOLutils.R";
+  Text _tmp.in.R = _tmpdir+"in%S.R";
+  Text _tmp.R.out = _tmpdir+"Rout%S.log";
+  Text _tmp.args.R = _tmpdir+"args%S.R";
 
   //////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.GetTmpArgs =
@@ -175,6 +175,7 @@ NameBlock Rapi =
                  Real verbose)
   //////////////////////////////////////////////////////////////////////////////
   {
+    Text _MID = "[Rapi::RunRScript] ";
     Text rndID = _randID(0);
     
     // Write temporary BBM's
@@ -193,7 +194,7 @@ NameBlock Rapi =
         Text _args.R
       });
       
-   Text _script  = "source('"+_TOLutils.R+"'); "+
+    Text _script  = "source('"+_TOLutils.R+"'); "+
      ReplaceTable(script,  [[ [["%S", rndID]], [["%A", args.R]] ]]);
 
     // Write temporary R scripts
@@ -202,12 +203,12 @@ NameBlock Rapi =
 
     Text R.out = Replace(_tmp.R.out, "%S", rndID);
 
-    Text oscmd = _R.cmd+" "+in.R+" "+R.out;
+    Text oscmd = _R.cmd+" \""+in.R+"\" \""+R.out+"\"";
     If (verbose,
-        WriteLn("[Rapi::RunRScript] Executing :\n<"+oscmd));
+        WriteLn(_MID+"Executing :\n<"+oscmd));
     Real OSCmdWait(oscmd);
     If (verbose,
-        WriteLn("[Rapi:RunRScript] R output was :\n<"+ReadFile(R.out)));
+        WriteLn(_MID+"R output was :\n<"+ReadFile(R.out)));
 
     // Remove remporaly results
     
