@@ -10,9 +10,10 @@
 ##  Vienna, Austria. ISBN 3-900051-07-0, \n"
 ##  URL http://www.R-project.org.\n"};
 ##
-## S original by Berwin A. Turlach R port by Andreas Weingessel. Rquadprog:
-## Functions to solve Quadratic Programming Problems
-## URL http://cran.r-project.org/src/contrib/Descriptions/quadprog.html
+## The (S3) generic function density computes kernel density estimates. Its 
+## default method does so with the given kernel and bandwidth for univariate 
+## observations. 
+## URL http://stat.ethz.ch/R-manual/R-patched/library/stats/html/density.html
 ##
 ################################################################################
 require(stats)
