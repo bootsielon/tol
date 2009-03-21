@@ -440,6 +440,11 @@ public:
   void GetTriplet(BMatrix<double>& ijx) const;
   void GetDMatT  (BMatrix<double>& d)   const;
   void GetDMat   (BMatrix<double>& d)   const;
+
+  BMatrix<double> GetTriplet() const;
+  BMatrix<double> GetDMatT  () const;
+  BMatrix<double> GetDMat   () const;
+  
 //Matrix instances
   void Eye  (int nrow, int ncol, int diag, const BVMat& v);
   void Eye  (int nrow, int ncol, int diag, double x=1.0);
