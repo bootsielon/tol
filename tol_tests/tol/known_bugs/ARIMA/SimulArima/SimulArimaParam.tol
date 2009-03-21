@@ -1,0 +1,17 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : SimulArimaParam.tol
+// PURPOSE : Parámetros del simulador de modelos ARIMA por generación 
+//           aleatoria.
+//////////////////////////////////////////////////////////////////////////////
+
+
+Text If(ObjectExist("Text","TestVolume"),TestVolume,TestVolume=
+{
+  Set options = [["Short","Medium","High"]];
+  options[IntRand(1,3)]
+});
+
+Set Include("SimulArimaParam_"+TestVolume+"Gen.tol");
+
+
+

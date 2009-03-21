@@ -1,0 +1,261 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : SimulArimaTFEstim.tol
+// PURPOSE : Estimación con la función Estimate de los modelos simulados en
+//           SimulArimaTF.tol
+//           Tests de calidad de los modelos estimados.
+//           Si la probabilidad de rechazo que da al final es 
+//           significativamente mayor que 0 el estimador ha fracasado, lo cual
+//           puede deberse a un error de TOL o bien a que el modelo simulado
+//           tenga ciertas patologías como por ejemplo
+//           ·Raíces muy cercanas al círculo unidad que puedan llevar a 
+//            situaciones numéricamente irresolubles sin una redefinición del 
+//            modelo.
+//           ·Un elevado número de interrupciones que imposibilite los 
+//            cálculos.
+//           etc.
+//////////////////////////////////////////////////////////////////////////////
+
+//Set If(ObjectExist("Serie","Output"),Empty, Include("SimulArimaTF.tol"));
+
+WriteLn("\n\n"
+"////////////////////////////////////////////////////////////////////////////"
+"\n"
+"//                              Estimación                                  "
+"\n"
+"////////////////////////////////////////////////////////////////////////////"
+);
+
+//Parámetros de la estimación
+Set 
+[[
+  Real (NullInitResiduals:=0);
+  Real (MaxIter:=100);
+  Real (CGMaxIter:=3);
+  Real (DiffDist :=1.E-4);
+  Real (Tolerance:=1.E-4);
+  Real (RelativeTolerance:=1.E-4);
+  Real (DoStatistics:=1);
+//Text (JacobianMethod:="Numerical")
+  Text (JacobianMethod:="Analytical")
+]];
+
+Real t0 = Copy(Time);
+
+//Extensión de la serie con posibles datos perdidos por las interrupciones
+Serie zeroIF = SubSer(CalInd(W,Dating(Output)),ini,fin);
+Serie Output0 = zeroIF << IfSer(IsUnknown(Output),zeroIF,Output) >> zeroIF; 
+
+//Generación de valores iniciales aleatorios ARMA para la estimación
+Set View( 
+[[
+  Polyn ar1_0 = RandStat(p1,s1), 
+  Polyn ma1_0 = RandStat(q1,s1), 
+  Polyn ar2_0 = RandStat(p2,s2),
+  Polyn ma2_0 = RandStat(q2,s2) 
+]], "");
+
+//Generación de valores iniciales aleatorios de los inputs para la estimación
+Set Input_ = If(NumInputs==0,Empty,For(1,NumInputs,Set(Real k) 
+{ 
+  Real omega = Rand(-.1,.1);
+  InputDef(omega,V[k]) 
+}));
+
+//Creación de inputs de tipo pulso correspondientes a las interrupciones
+Set dteInt = Dates(SerTms(IsUnknown(Output)),ini,fin);
+Set inpInt = If(!Card(dteInt),Copy(Empty),
+IncludeText(SetSum(EvalSet(dteInt,Text(Date dte)
+{
+  "InputDef(1,InterruptionPulse_"<<dte<<"="
+  "Pulse("<<dte<<","<<DatingName(Output)<<"));\n"
+})))); 
+
+WriteLn("\n\n"
+"////////////////////////////////////////////////////////////////////////////"
+"\n"
+"// Paso 1) Modelo inicial sin interrupciones \n"
+"////////////////////////////////////////////////////////////////////////////"
+);
+Set ModDef0 = ModelDef
+(
+  Output0, 1, 0, period, 0, Dif,
+  SetOfPolyn(ar1_0,ar2_0),
+  SetOfPolyn(ma1_0,ma2_0),
+  Input_ << inpInt,
+  If(ObjectExist("Set","AllLinnear"),AllLinnear,AllLinear)
+);
+Set  ModEst0 = Estimate(ModDef0, ini, fin);
+
+//Reutilización de los valores estimados de los inputs y las interrupciones
+//que se pasan como la serie InterruptionsInitialValues_
+Set Input0 = Select(ModEst0[2]->Input, Real(Set inp)
+{
+  !TextBeginWith(Name(inp->X),"InterruptionPulse_")
+}) << If(!SumS(IsUnknown(Output)),Copy(Empty),
+{
+  Serie InterruptionsInitialValues_ = -GroupInputs
+  (
+    Select(ModEst0[2]->Input, Real(Set inp)
+    {
+      TextBeginWith(Name(inp->X),"InterruptionPulse_")
+    })
+  ); 
+  SetOfSet(InputDef(1,InterruptionsInitialValues_))
+});
+
+WriteLn("\n\n"
+"////////////////////////////////////////////////////////////////////////////"
+"\n"
+"// Paso 2) Modelo de reajuste ARIMA sobre el ruido del modelo inicial \n"
+"////////////////////////////////////////////////////////////////////////////"
+);
+Set ModDef1 = ModelDef(Noise0=ModEst0[3][3], 1, 0, period, 0, Dif,
+             ModEst0[2]->AR,
+             ModEst0[2]->MA,
+             Copy(Empty),
+             If(ObjectExist("Set","AllLinnear"),AllLinnear,AllLinear));
+Set  ModEst1     = Estimate(ModDef1, ini, fin);
+
+WriteLn("\n\n"
+"////////////////////////////////////////////////////////////////////////////"
+"\n"
+"// Paso 3) Modelo final ARIMA TF conjunto con interrupciones \n"
+"////////////////////////////////////////////////////////////////////////////"
+);
+Set ModDef = ModelDef
+(
+  Output, 1, 0, period, 0, Dif,
+  ModEst1[2]->AR,
+  ModEst1[2]->MA,
+  Input0,
+  If(ObjectExist("Set","AllLinnear"),AllLinnear,AllLinear)
+);
+Real (DoStatistics:=1);
+Set  ModEst     = Estimate(ModDef, ini, fin);
+
+Real ModEstTime = Copy(Time)-t0;
+
+WriteLn("Fin de la estimación ARIMA : "+Time);
+
+WriteLn("Tests de la estimación ARIMA : "+Time);
+
+WriteLn("\n\n"
+"////////////////////////////////////////////////////////////////////////////"
+"\n"
+"//                      Test de optimalidad                                 "
+"\n"
+"////////////////////////////////////////////////////////////////////////////"
+);
+WriteLn("En el mínimo de la suma de cuadrados el gradiente se debe "
+        "anular.\nDe lo contrario no se ha alcanzado el mínimo.\n");
+WriteLn("Si A es la matriz de residuos estimados y J el jacobiano entonces:");
+Set testOpt = [[
+Matrix J = ModEst[5][1];
+Matrix A = 
+{
+  Matrix a_ = Tra(SerMat(ModEst[3][1]));
+  Sub(a_,Rows(a_)-Rows(J)+1,1,Rows(J),1)
+};
+Matrix JtA = Tra(J)*A;
+Real   MxaJtA = MatMax(Abs(JtA));
+Real   StdJtA = Sqrt(MatDat(Tra(JtA)*JtA,1,1)/Rows(JtA))
+]];
+WriteLn("d(A'A)/dx = 2J'A;\nJ'A = (\n"<<JtA+")");
+WriteLn(Trace(MxaJtA));
+WriteLn(Trace(StdJtA));
+
+
+WriteLn("\n\n"
+"////////////////////////////////////////////////////////////////////////////"
+"\n"
+"//                  Test de los residuos                                    "
+"\n"
+"////////////////////////////////////////////////////////////////////////////"
+);
+Set testRes =[[
+Serie SimRes     = Residuals_ + 0*ModEst[3][1];
+Serie EstRes     = ModEst[3][1];
+Serie DifRes     = (SimRes-EstRes);
+Serie res_norm01 = EstRes/StDsS(EstRes);
+Real res_chi = SumS(res_norm01^2);
+Real res_chi_deg = N-I-NumInputs;
+Real res_chi_refuse = 1-DistChi(res_chi, res_chi_deg);
+Real corSimEstRes = GetSerCorrelation(SimRes,EstRes)
+]];
+
+Set testParam = [[
+Matrix x_inp = Tra(GetNumeric(Extract(Input,1)));
+Matrix x_ar  = 
+{
+  Tra(GetNumeric(SetOfPolyn(1-AR1,1-AR2)))
+};
+Matrix x_ma  = 
+{
+  Tra(GetNumeric(SetOfPolyn(1-MA1,1-MA2)))
+};
+Matrix x = x_inp << x_ar << x_ma;
+Matrix x_inp_est  = Tra(GetNumeric(Extract(ModEst["Definition"]["Input"],1)));
+Matrix x_ar_est = 
+{
+  Set ar = ModEst["Definition"]["AR"];
+  Tra(GetNumeric(SetOfPolyn(1-ar[1],1-ar[2])))
+};
+Matrix x_ma_est = 
+{
+  Set ma = ModEst["Definition"]["MA"];
+  Tra(GetNumeric(SetOfPolyn(1-ma[1],1-ma[2])))
+};
+Matrix x_est = x_inp_est << x_ar_est << x_ma_est;
+Matrix x_dif = x - x_est;
+
+Matrix Vj = ModEst["Correlations"]["V"];
+Matrix Dj = ModEst["Correlations"]["D"];
+Matrix x_norm01 = Dj*Tra(Vj)*RProd(x_dif,1/StDsS(EstRes));
+Matrix x_freq01 = Frequency(x_norm01,20);
+Real x_chi = MatDat(MtMSqr(x_norm01),1,1);
+Real x_chi_deg = NumInputs;
+Real x_chi_refuse = DistChi(x_chi, x_chi_deg)
+]];
+
+Set stat = View([[
+Real  Sigma;
+Real  SigmaEst     = ModEst[1][16];
+Real  stdErr       = Sqrt(AvrS(EstRes^2));
+Real  SigmaEstC    = ModEst[1][16]*Sqrt(Nd/(Nd-I));
+Real  stdErrC      = Sqrt(AvrS(EstRes^2))*Sqrt(Nd/(Nd-I));
+Real  lhNorm;
+Real  lhNormEst    = ModEst[1][17];
+Real  lhNormEstC   = ModEst[1][17]*Sqrt(Nd/(Nd-I));
+Real  stdErrDif    = Sqrt(AvrS(DifRes^2));
+Real  maxAbsErrDif = MaxS(Abs(DifRes))
+]],"");
+
+WriteLn("\n\nRechazo del test sobre la verosimilitud ARIMA : "<<
+          FormatReal(100*Min(1,Max(0,lhNormEstC-lhNorm)/lhNorm),"%6.2lf%%"));
+
+WriteLn("\n\nFin de la evaluación de la estimación ARIMA : "+Time);
+
+
+Set arimaEst = For(1,Card(ARIMA), Set(Real k)
+{
+  ARIMAStruct
+  (
+    ARIMA[k]->Periodicity,
+    (ModEst[2]->AR)[k],
+    (ModEst[2]->MA)[k],
+    ARIMA[k]->DIF
+  )
+});
+
+Set ev_est = ARIMALevinsonEval(arimaEst, Tra(SerMat(Noise)));
+
+Real ok_est = GE(ev_est["logLH"],ev["logLH"]);
+
+Real ARMANumParam = Card(Monomes((ModEst[2]->AR)[1]))+
+                    Card(Monomes((ModEst[2]->AR)[2]))+
+                    Card(Monomes((ModEst[2]->MA)[1]))+
+                    Card(Monomes((ModEst[2]->MA)[2]))-4;
+
+//Matrix LBQ = LjungBoxQ(ModEst[3][1],ModEst[1][3]/4,ARMANumParam);
+
+/* */
