@@ -347,14 +347,14 @@ void ARMABackastingHist(const BRational <BDat>& R,
       maxDif = 0;
       for(i=0; i<A0A.Rows(); i++)
       {
-        //	Std(BText("\n") + dif[i]);
+         //Std(BText("\n") + dif[i]);
 	       BDat absDif = Abs(dif(i,0));
 	       if(maxDif<absDif) { maxDif = absDif; }
       }
 
-//    Std(BText("\noldStDs = ")+Sqrt(Moment(oldA0A.T().Data()[0],2)));
-//    Std(BText("\nStDs	   = ")+Sqrt(Moment(   A0A.T().Data()[0],2)));
-//    Std(BText("\nmaxDif = ") + maxDif);
+    //Std(BText("\noldStDs = ")+Sqrt(Moment(oldA0A.T().Data()[0],2)));
+    //Std(BText("\nStDs	   = ")+Sqrt(Moment(   A0A.T().Data()[0],2)));
+    //Std(BText("\nmaxDif = ") + maxDif);
 
     }
   }
@@ -518,6 +518,9 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
   BInt n = n0;
 //BTimer tm(BText("ARMAAutoCovarianze(p=")+p+",n="+n);
 //TRZ(ar);TRZ(ma); 
+  if(n<=p) { n=p+1; }
+  if(n<=q) { n=q+1; }
+  gn.Replicate(0,n);
 
   if(!p)
   {
@@ -528,7 +531,7 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
   //TRZ(psiB); TRZ(psiF); TRZ(psiBF);
     s = psiBF.Size();
     k = (s+1)/2;
-    if(n<psiBF(s-1).Degree()) { n=psiBF(s-1).Degree(); }
+  //if(n<psiBF(s-1).Degree()) { n=psiBF(s-1).Degree(); }
     gn.Replicate(0,n);
     for(i=0; i<k; i++) 
     { 
@@ -539,9 +542,6 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
   }
   else
   {
-    if(n<=p) { n=p+1; }
-    if(n<=q) { n=q+1; }
-    gn.Replicate(0,n);
     BPolyn<BDat> psi;
     { //BTimer tm(BText("Expand((")<<ma.Name()<<")/("<<ar.Name()<<"),"<<n<<","<<BFALSE<<")");
       psi = (ma/ar).Expand(n,BFALSE); }
@@ -1205,16 +1205,16 @@ void BARIMA::PutFactors(const BArray<BARIMAFactor>& factor)
     if(factor_(i).s_==grFact_(j).s_)
     {
       grFact_(j) *= factor_(i);
-//    Std(BText("\nfactor_(")+i+")="+factor_(i).Name());
-//    Std(BText("\ngrFact_(")+j+")="+grFact_(j).Name());
+    //Std(BText("\nfactor_(")+i+")="+factor_(i).Name());
+    //Std(BText("\ngrFact_(")+j+")="+grFact_(j).Name());
     }
     else
     {
       acumFact_(j) = prod_;
       j++;
       grFact_(j) = factor_(i);
-//    Std(BText("\nfactor_(")+i+")="+factor_(i).Name());
-//    Std(BText("\nacumFact_(")+j+")="+acumFact_(j).Name());
+    //Std(BText("\nfactor_(")+i+")="+factor_(i).Name());
+    //Std(BText("\nacumFact_(")+j+")="+acumFact_(j).Name());
     }
     prod_ *= factor_(i);
 //  Std(BText("\nprod_=")+prod_.Name());
@@ -1490,15 +1490,27 @@ void BARIMA::OutputDataUpdated()
   BPolyn<BDat> ar0 = (BPolyn<BDat>::F()^p_)*(BPolyn<BDat>::One()-ar);
   BPolyn<BDat> ma0 = (BPolyn<BDat>::F()^q_)*(ma-BPolyn<BDat>::One());
 
+//Std(BText("\nTRACE BARIMA::CalcLikelihood_Almagropsi=\n")<<psi.Name());
   BVMat cov_u;
 
   if(p_ && q_)
   {
     BVMat cov_zz; cov_zz.BPol2sparse(gamma, p_, p_);
+  //Std(BText("\nTRACE BARIMA::CalcLikelihood_Almagrocov_zz=\n")<<cov_zz.GetDMat().Name());
     BVMat cov_aa; cov_aa.Eye(q_);
+
+/* TOL Expression
+    Polyn psi = ChangeBF(Expand(_.ma/_.ar,Max(_.p,_.q)))*B^Max(0,_.q-_.p);
+    VMatrix cov_za = If(_.q>=_.p, 
+      Pol2VMat(psi, _.q, _.p), 
+      Zeros(_.q, _.p-_.q) | Pol2VMat(psi, _.q, _.q));
+    VMatrix cov_az = Tra(cov_za);
+*/
+
     BPolyn<BDat> psi_;
-    psi.ChangeBF(psi_);
+    psi_.ChangeBF(psi);
     psi_ = psi_ * (BPolyn<BDat>::B()^Maximum(0,q_-p_));
+  //Std(BText("\nTRACE BARIMA::CalcLikelihood_Almagropsi_=\n")<<psi_.Name());
     BVMat cov_za; 
     if(q_>=p_)
     {
@@ -1512,8 +1524,10 @@ void BARIMA::OutputDataUpdated()
       cov_za = zeros | cov_za;
     }
     BVMat cov_az; BVMat::T(cov_za, cov_az);
-    cov_u =  (cov_zz | cov_za) <<
-             (cov_az | cov_aa);
+  //Std(BText("\nTRACE BARIMA::CalcLikelihood_Almagrocov_za=\n")<<cov_za.GetDMat().Name());
+    cov_u =  (cov_zz | cov_az) <<
+             (cov_za | cov_aa);
+  //Std(BText("\nTRACE BARIMA::CalcLikelihood_Almagrocov_u=\n")<<cov_u.GetDMat().Name()+"\n");
   }
   else if(!p_ && q_)
   {
