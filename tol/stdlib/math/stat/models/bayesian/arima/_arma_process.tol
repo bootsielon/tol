@@ -313,19 +313,14 @@ NameBlock ARMAProcess =
       VMatrix cov_zz = ARMAProcess::DoDrop(Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p));
     //WriteLn("_.cov_zz = "<<_.cov_zz);
       VMatrix cov_aa = Eye(_.q);
-/*
-      VMatrix cov_za_r = ARMAProcess::DoDrop(Pol2VMat(Expand(_.ma/_.ar,_.mxpq), _.q, _.p));
-      VMatrix cov_za   = Mat2VMat(Reverse(VMat2Mat(cov_za_r)));
-      VMatrix cov_za_t = Tra(cov_za);
-*/
       Polyn psi = ChangeBF(Expand(_.ma/_.ar,Max(_.p,_.q)))*B^Max(0,_.q-_.p);
       VMatrix cov_za = If(_.q>=_.p, Pol2VMat(psi, _.q, _.p), 
                             Zeros(_.q, _.p-_.q) | Pol2VMat(psi, _.q, _.q));
-      VMatrix cov_za_t = Tra(cov_za);
+      VMatrix cov_az = Tra(cov_za);
   //WriteLn("_.cov_za = "<<_.cov_za);
 
-      (cov_zz | cov_za_t) <<
-      (cov_za | cov_aa  )
+      (cov_zz | cov_az ) <<
+      (cov_za | cov_aa )
     },
     _.p & !_.q,
     {
