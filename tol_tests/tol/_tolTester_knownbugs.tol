@@ -18,5 +18,5 @@ Set Results = ReportAllBatteries(SetOfSet
   strBatteryConfig("known_bugs/ARIMA/FunAIA/estimation", "",                       1),
   strBatteryConfig("known_bugs/ARIMA/FunEstimate",       "TestVolumeShort.tol",   10),
   strBatteryConfig("known_bugs/ARIMA/FunEstimate",       "TestVolumeMedium.tol",   3),
-  strBatteryConfig("known_bugs/ARIMA/FunEstimate",       "TestVolumeHigh.tol",     0)
+  strBatteryConfig("known_bugs/ARIMA/FunEstimate",       "TestVolumeHigh.tol",     1)
 ));
