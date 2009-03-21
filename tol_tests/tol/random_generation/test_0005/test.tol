@@ -10,7 +10,7 @@
    "Test for random generation of parameters of a linear regression with "
    "ARMA noise" ;
 
-  Real PutRandomSeed(1938259105);
+  Real PutRandomSeed(0);
   Real rnd_seed=GetRandomSeed(0);
   WriteLn("rnd_seed "+IntText(rnd_seed));
 
@@ -66,32 +66,32 @@
   //Simulates a set of linear regression parameters and calculates logarithm 
   //of density of linear regression parameters and also of corresponding
   //ARMA noise 
-//Matrix logDens = SetMat(For(1,100,Set(Real iter)
-//{
-    WriteLn("TRACE Iteration "<<iter);
-    WriteLn("TRACE Simulates n independent normal variables");
+  Matrix logDens = SetMat(For(1,1000,Set(Real iter)
+  {
+  //WriteLn("TRACE Iteration "<<iter);
+  //WriteLn("TRACE Simulates n independent normal variables");
     VMatrix b01 = Gaussian(n,1,0,1);
-    WriteLn("TRACE Applys the regular linear change of variables to draw the paraneters");
+  //WriteLn("TRACE Applys the regular linear change of variables to draw the paraneters");
     VMatrix b_ = nu_+CholeskiSolve(L_,b01,"LtP");
     
-    WriteLn("TRACE logarithm of density of linear regression parameters is not affected by a regular linear variable change");
+  //WriteLn("TRACE logarithm of density of linear regression parameters is not affected by a regular linear variable change");
     Real lgDns_b = MatSum(Log(f01(VMat2Mat(b01))));
   
     VMatrix z_ = (Y-X*b_)*(1/s);
-    WriteLn("TRACE Calculates logarithm of density of ARMA noise by Levinson method");
+  //WriteLn("TRACE Calculates logarithm of density of ARMA noise by Levinson method");
     Set ev.levinson =  ARIMALevinsonEval(arima,VMat2Mat(z_));
     Real lgDns_z.levinson = ev.levinson::logLH;
-
-    WriteLn("TRACE Calculates logarithm of density of ARMA noise by Almagro method");
+/* */
+  //WriteLn("TRACE Calculates logarithm of density of ARMA noise by Almagro method");
     Set ev.almagro.1 = ARIMAAlmagroEval(arima, VMat2Mat(z_));
     Real lgDns_z.almagro.1 = ev.almagro.1::logLH;
-
-    WriteLn("TRACE Alternative expression for Almagro method");
+/* */
+  //WriteLn("TRACE Alternative expression for Almagro method");
     NameBlock ev.almagro.2 = ARMAProcess::Eval.Almagro(ar, ma, z_, 1);
     Real lgDns_z.almagro.2 = ev.almagro.2::_.logLH;
-/*
     [[lgDns_b, lgDns_z.almagro.2, lgDns_z.almagro.2, lgDns_z.levinson]]
   }));
+
   //logarithm of density of linear regression parameters
   Matrix lgDns_b  = SubCol(logDens,[[1]]);
   //logarithm of density of ARMA noise by Almagro method
@@ -145,7 +145,6 @@
   Real quality_ = And(numErr1 == numErr0)*
                   Min(quality.almagro.1, quality.almagro.2, quality.levinson);
 
-  WriteLn("TRACE 6");
 //Return the results 
   Set resultStr_ = strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
