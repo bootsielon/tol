@@ -25,6 +25,7 @@ Text _.autodoc.member.StdLinearBlock =
     firstCol,
     config
   );
+  Real _drop_val = config::bsr.linBlk.X.drop;
   //Messages IDentifier
   Text    _MID = "["+_.blockDef::_.name+"] ";
   //Number of columns or variables
@@ -43,6 +44,9 @@ Text _.autodoc.member.StdLinearBlock =
   //explicitely stored
   VMatrix _.L  = Rand(0,0,0,0);
   VMatrix _.Ls = Rand(0,0,0,0);
+  //Preconditioning
+  VMatrix _.H  = Rand(0,0,0,0);
+  VMatrix _.Hs = Rand(0,0,0,0);
   //Last known valid initial point for constrained simulation
   VMatrix _.beta0 = Rand(0,0,0,0);
   //If you know that design matrix will be the same for all simulations you
@@ -111,6 +115,13 @@ Text _.autodoc.member.StdLinearBlock =
   };
 
   ////////////////////////////////////////////////////////////////////////////
+    VMatrix _drop(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    Drop(X, _drop_val)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   //Update Cholesky factorization matrix _.L 
   //If design matrix is assumed as constant does it just the first time
   Real factorize(VMatrix X)
@@ -126,35 +137,55 @@ Text _.autodoc.member.StdLinearBlock =
       });
       If(!_changed.X ,0,
       {
-      //WriteLn("TRACE"+_MID+" factorize changed="<<_changed.X );
-        Real sparse = VNonNullCells(X)/(VRows(X)*VColumns(X));
-        Real numErr = Copy(NError);
-        VMatrix _.L := If(sparse<.20, 
+        Real density = VNonNullCells(X)/(VRows(X)*VColumns(X));
+      //WriteLn("TRACE "+_MID+" factorize density = "<<density);
+        If(And(_.blockDef::_.config::bsr.linBlk.usePreconditioning,VRows(_.L)),
         {
-          CholeskiFactor(X,"XtX")
-        },
+          VMatrix Hs = _.Ls;
+          VMatrix H  = _.L;
+          VMatrix G  = Tra(CholeskiSolve(H,Tra(X),"PtL"));
+          Real density.G = VNonNullCells(G)/(VRows(G)*VColumns(G));
+        //WriteLn("TRACE "+_MID+" factorize density G = "<<density.G);
+          VMatrix S  = CholeskiFactor(G,"XtX");
+          VMatrix Ss = CholeskiSolve(S,Convert(S, "Cholmod.R.Sparse"),"P");
+          VMatrix _.Ls := Hs*Ss;
+          VMatrix _.L  := _.Ls;
+          1 
+        },        
         {
-          VMatrix X_   = Convert(X,"Blas.R.Dense");
-          VMatrix XtX_ = MtMSqr(X_);
-          VMatrix XtX  = Convert(XtX_,"Cholmod.R.Sparse");
-          CholeskiFactor(XtX,"X")
-        });
-        Real If(Copy(NError)>numErr,
-        {
-          Text path = TolAppDataPath+"tmp/"+ToName(_MID)+".oza";
-          WriteLn("Failed factorization matrix will be stored into "+path);
-          Ois.Store([[X]],path)
-        });
-        VMatrix If(_.R, 
-        {
-          _.Ls := CholeskiSolve(_.L,Convert(_.L, "Cholmod.R.Sparse"),"P")
-        });
-        VMatrix _old.X := X;
-        1
+        //WriteLn("TRACE"+_MID+" factorize changed="<<_changed.X );
+          Real numErr = Copy(NError);
+          VMatrix _.L := If(density<.13, 
+          {
+            CholeskiFactor(X,"XtX")
+          },
+          {/*
+            Text path = TolAppDataPath+"tmp/"+ToName(_MID)+"_dense_factorize.oza";
+            WriteLn(_MID+"Dense factorization matrix will be stored into "+path);
+            Real Ois.Store([[X]],path); */
+            VMatrix X_   = Convert(X,"Blas.R.Dense");
+            VMatrix XtX_ = MtMSqr(X_);
+            VMatrix XtX = Convert(XtX_,"Cholmod.R.Sparse");
+            CholeskiFactor(XtX,"X")
+          });
+          Real If(Copy(NError)>numErr,
+          {
+            Text path = TolAppDataPath+"tmp/"+ToName(_MID)+"_error_factorize.oza";
+            WriteLn(_MID+"Failed factorization matrix will be stored into "+path);
+            Ois.Store([[X]],path)
+          });
+          VMatrix If(_.R, 
+          {
+            _.Ls := CholeskiSolve(_.L,Convert(_.L, "Cholmod.R.Sparse"),"P")
+          });
+          VMatrix _old.X := X;
+          1
+        })
       })
     }) 
   };
   
+
   ////////////////////////////////////////////////////////////////////////////
   //Solves the linear system corresponding to the standarized linear regression
   NameBlock solve(Real numSim, VMatrix Y, VMatrix X)
