@@ -155,9 +155,9 @@ Text TestResultRoot(Real void)
   Real OSFilRemove(resRoot+"FAIL.txt");
   Real OSFilRemove(resRoot+"WARNING.txt");
   Real If(ObjectExist("Real",  "MinQualityForError"),
-          MinQualityForError,   MinQualityForError  =0.10);
+          MinQualityForError,   MinQualityForError  =0.01);
   Real If(ObjectExist("Real",  "AvgQualityForWarning"),
-          AvgQualityForWarning, AvgQualityForWarning=0.90);
+          AvgQualityForWarning, AvgQualityForWarning=0.50);
   Date If(ObjectExist("Date",  "TestBeginTag"),
           TestBeginTag,         TestBeginTag =Copy(Now));
   Text WriteLn("Version de TOL    : " + Version);
