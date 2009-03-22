@@ -997,8 +997,8 @@ proc ::check_url_error { url data } {
 }
 
 proc ::get_win_release { {branch {official}} } {
-  set name last_${branch}_tol_release_win.txt
-  set url \"http://www.tol-project.org/pub/bin/win/${name}\"
+  set name ${branch}_tol_release_win.txt
+  set url \"http://packages.tol-project.org/win32/${name}\"
   
   set data [http::data [http::geturl $url]]
   check_url_error $url $data
@@ -1027,28 +1027,28 @@ proc ::get_win_release { {branch {official}} } {
 {
   If(Or(OSUnix,ToLower(GetFilePrefix(TOLSessionPath))!="tolbase"),1,
   {
-    Date last_tol_release_check = If(FileExist("last_tol_release_check.tol"),
+    Date tol_release_check = If(FileExist("tol_release_check.tol"),
     {
-      Include("last_tol_release_check.tol")[1]
+      Include("tol_release_check.tol")[1]
     },
     {
       y1583
     });
-    Real delay = DateToIndex(Now)-DateToIndex(last_tol_release_check);
+    Real delay = DateToIndex(Now)-DateToIndex(tol_release_check);
     Real If(delay < maxDaysOfDelay, 
     {
       WriteLn(I2("Last TOL updating check TOL was made at ",
                  "La última comprobación de la actualización de TOL se hizo en ")
-              <<last_tol_release_check);
+              <<tol_release_check);
       -1
     },
     {
       WriteLn(I2("Checking if TOL is updated.",
                  "Comprobando si TOL está actualizado."));
-      Text WriteFile("last_tol_release_check.tol", 
-                     "Date last_tol_release_check = "+
+      Text WriteFile("tol_release_check.tol", 
+                     "Date tol_release_check = "+
                      FormatDate(Now,"%cy%Ym%md%dh%hi%is%s")+";\n");
-      Text tol_site = "http://www.tol-project.org";
+      Text tol_site = "https://www.tol-project.org/wiki/DownloadTol";
       Text lastOldStableWin = GetVersionFromTolProject("oldstable");
       Text lastOfficialWin  = GetVersionFromTolProject("official");
       Text lastDevelopmWin  = GetVersionFromTolProject("development");
