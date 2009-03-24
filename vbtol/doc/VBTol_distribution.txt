@@ -1,0 +1,75 @@
+Pasos a seguir para la creacio'n de instaladores de aplicaciones basadas en la
+ VBTol.dll
+
+= Copiar para la carpeta que contiene los ficheros de la aplicacio'n lo siguiente:
+
+ - VBTol.nsi   (archivo que contiene la definicio'n de todos los aspectos
+                que conformara'n el instalador)
+ - makensis.bat (archivo que ejecutara' los comandos necesarios para la creacio'n
+                 del instalador)
+ - MIN.EXE (ejecutable necesario para la aplicacio'n final del cliente)                 
+ 
+ En particular en esta carpeta debe haber un fichero que es el que inicia la
+ aplicacio'n del cliente, generalmente un .XLS
+ 
+= Instalar NSIS desde: http://nsis.sourceforge.net/Download
+
+ Adicionar al path el camino del ejecutable makensis.exe
+ 
+= Modificar las siguientes li'neas del fichero VBTol.nsi segu'n sea necesario
+
+ !define XLS_NAME "test1_eval.xls"
+ !define BAT_NAME "aplication.bat"
+ !define TOLBASE_DIR "C:\users\lramirez\TOL\tolp\trunk\windows\ActiveTOL\bin"
+ !define APP_NAME "VBTol"
+ !define APP_VERSION "v1.1.7"
+ !define APP_RELEASE "v1.1.7 b.0.16.alpha"
+ !define APP_PUBLISHER "Tol-Project"
+ 
+ Los nombres de las variables son bastante descriptivas, no obstante aclaro algunas
+ 
+ - XLS_NAME es el nombre del fichero que mencione' arriba que inicia
+            la aplicacio'n actualmente
+ 
+ - BAT_NAME es el nombre del .bat que iniciara' la aplicacio'n del cliente
+            una vez instalada
+            
+ - TOLBASE_DIR camino de los ficheros de Tol necesarios como VBTol.dll
+               Ejemplo: C:\users\lramirez\TOL\tolp\trunk\windows\ActiveTOL\bin
+               
+ Adema's si la aplicacio'n del cliente se compone de ma's de un fichero, por cada
+ uno de ellos se debera'n anadir dos li'neas en VBTol.nsi
+
+ - A continuacio'n del comentario:
+;;  Other files to add
+   poner
+  File "<nombre del fichero>"
+
+ - A continuacio'n del comentario:
+;;  Other files to delete
+   poner
+  Delete "$INSTDIR\bin\<nombre del fichero>"
+
+= Ejecutar el fichero makensis.bat
+
+  Esto crear'a el instalador
+  
+= Instalar la aplicacio'n ejecutando el instalador previamente creado
+
+ Esto instalara' la aplicacio'n en la carpeta seleccionada por el cliente
+ durante el proceso de instalacio'n, entre los ficheros creados se encuentra
+ un .bat que:
+
+ - iniciara' la aplicacio'n
+ 
+ - el mismo se ejecutara' de forma minimizada
+ 
+ - se encargara' de crear las condiciones necesarias para el correcto
+   fucionamiento de la alicacio'n, en concreto las descritas en:
+    dll_installation.txt
+   referidas a los requerimientos necesarios para el uso de VBTol.dll.
+
+ El instalador tambie'n creara' un acceso directo a este .bat en el escritorio,
+ otro en el menu' de programas, donde tambie'n habra' un acceso directo al
+ desinstalador de la aplicacio'n.
+ 
