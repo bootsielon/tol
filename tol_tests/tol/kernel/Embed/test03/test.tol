@@ -1,0 +1,45 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for #Embed macro
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = "test for #Embed inside a NameBlock" ;
+
+
+//Write here the initial test TOL code if needed
+
+Real numErr0 = Copy(NError);
+
+NameBlock embeded = [[
+  Text _.autodoc.description = "test for #Embed inside a NameBlock";
+  #Embed "file.1.tol";
+  #Embed "file.2.tol" 
+]];
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  Real embeded::a.1;
+  Text embeded::b.1;
+  Real embeded::age
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+
+WriteLn(""<<resultStr_);
+Set resultStr_
+/* */
+
+
+
