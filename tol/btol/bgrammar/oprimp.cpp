@@ -1146,6 +1146,11 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
   do 
   {
     List* b = Tree::treNode((List*)branch);
+    if(!b) 
+    { 
+      branch = NULL;
+      break; 
+    }
 	  n++;
 	  if(!(gra = GrammarForArg(n))) 
     {
@@ -1224,7 +1229,8 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
 	    } 
       else
       { 
-        if(BParser::treToken((List*)branch)->Name()=="PutDescription")
+        BToken* tokBr = BParser::treToken((List*)branch);
+        if(tokBr && tokBr->Name()=="PutDescription")
         {
   		    branch = branch->cdr();
           n--;

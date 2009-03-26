@@ -30,7 +30,11 @@
 
 BTraceInit("par.cpp");
 
-BText tokenType_ [] = {
+
+
+const BText& TokenTypeName(BTokenType tt)
+{
+  static BText tokenType_ [] = {
     "NONE",
     "OPEN",
     "CLOSE",
@@ -39,7 +43,9 @@ BText tokenType_ [] = {
     "BINARY",
     "ARGUMENT",
     "FUNCTION",
-    "TYPE"
+    "TYPE",
+    "MACRO" };
+  return(tokenType_[tt+1]);
 };
 
 //! initialize static member of class parser
@@ -523,7 +529,7 @@ void BParser::PutNextArgument (const BText& name)
 BText tokWrite (const BToken* tok, const BText &indent) 
 {
   BText txt;
-  txt << indent << INDENT << "[" << tokenType_[1+tok->TokenType()] << "]"
+  txt << indent << INDENT << "[" << TokenTypeName(tok->TokenType()) << "]"
       << BParser::tokOpen(tok) << tok->String()
       << BParser::tokClose(tok) << "\n";
   return (txt);
@@ -570,16 +576,9 @@ Tree* BParser::ParseNone(Tree* tre, BCloseToken* close)
       "Fin de la expresión inesperado. "
       "Se esperaba símbolo de cierre " + close->Name()+". ");
   }
-  if(NextArgument()) 
+  if(NextArgument() && (!lastSymbol_ || (lastSymbol_->Name()!="#Embed")))
   {
-    tre->putMostRight(Tree::create(NextArgument(), NIL));
-  }
-  else if(!complete_ && lastSymbol_ && 
-          (lastSymbol_->TokenType()!=MACRO)&& 
-          (lastSymbol_->Name()!="#Embed"))
-  {
-    messageError_+= I2("Unexpected end of expression",
-                       "Fin de la expresión inesperado")+". ";
+    tre->putMostRight(Tree::create(NextArgument(), NIL)); 
   }
   else if(!complete_ && !tre->isEmpty())
   {
@@ -590,6 +589,11 @@ Tree* BParser::ParseNone(Tree* tre, BCloseToken* close)
     aux2->setCdr(NIL);
     DESTROY(aux1); 
     tre->setMRFree(NULL);
+  }
+  else if(!complete_)
+  {
+    messageError_+= I2("Unexpected end of expression",
+                       "Fin de la expresión inesperado")+". ";
   }
   return(tre);
 }
@@ -670,10 +674,11 @@ Tree* BParser::ParseOpen (Tree* tre)
  */
 Tree* BParser::ParseClose (Tree* tre, BCloseToken* close) 
 {
+  bool lastWasEmbed = lastSymbol_ && (lastSymbol_->Name()=="#Embed");
   openNumber_--;
   if(!close ||
      (NextSymbol()->Name() != close->Name()) ||
-     (!NextArgument() && !complete_) ) 
+     (!NextArgument() && !lastWasEmbed && !complete_) ) 
   {
     BText closeStr = NextSymbol()->Name();
     filter_->UnReplace(closeStr);
@@ -681,7 +686,7 @@ Tree* BParser::ParseClose (Tree* tre, BCloseToken* close)
       I2("Unexpected close symbol "+closeStr,
          "Símbolo de cierre "+closeStr+" fuera de lugar")+". ";
   }
-  if(NextArgument()) 
+  if(NextArgument() && !lastWasEmbed)
   {
     tre->putMostRight(Tree::create(NextArgument(), NIL));
   }
@@ -879,7 +884,8 @@ Tree* BParser::ParseBinary (Tree* tre)
  */
 Tree* BParser::ParseSeparator (Tree* tre) 
 {
-  if(!NextArgument() && !complete_) 
+  bool lastWasEmbed = lastSymbol_ && (lastSymbol_->Name()=="#Embed");
+  if(!NextArgument() && !complete_ && !lastWasEmbed) 
   {
     messageError_+=
       I2("Unexpected separator symbol "+ NextSymbol()->Name(),
@@ -905,7 +911,7 @@ Tree* BParser::ParseSeparator (Tree* tre)
     } 
     else 
     {
-      if(NextArgument()) 
+      if(NextArgument() && !lastWasEmbed)
       {
         tre->putMostRight(Tree::create(NextArgument(),NIL));
       }
@@ -938,8 +944,6 @@ Tree* BParser::ParseSeparator (Tree* tre)
 Tree* BParser::ParseMacroEmbed (Tree* tre) 
 //--------------------------------------------------------------------
 {
-  BTokenType symbolType;
-  BBool ok = ReadNextSymbol(symbolType);
   BText& pathArg = scan_->NextArgument();
   Tree* embedded = NULL;
   if(pathArg.HasName() && (pathArg[0]=='\"'))
@@ -1058,28 +1062,84 @@ Tree* BParser::ParseMacro (Tree* tre)
  */
 Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close) 
 {
+  bool needsRead = true;
   BBool ok;
-  BTokenType symbolType;
+  BTokenType symbolType, newSymbolType;
+  const BText* name = NULL;
   do 
   {
-    ok = ReadNextSymbol(symbolType);
+    if(needsRead)
     {
-      switch (symbolType) 
-      {
-        case NONE      : tre=ParseNone     (tre, close); break;
-        case OPEN      : tre=ParseOpen     (tre);        break;
-        case CLOSE     : tre=ParseClose    (tre, close); break;
-        case SEPARATOR : tre=ParseSeparator(tre);        break;
-        case TYPE      : tre=ParseType     (tre);        break;
-        case MONARY    : tre=ParseMonary   (tre);        break;
-        case BINARY    : tre=ParseBinary   (tre);        break;
-        case MACRO     : tre=ParseMacro    (tre);        break;
-        default        : 
+      ok = ReadNextSymbol(symbolType); 
+    }
+      else
+    { 
+      symbolType = newSymbolType;
+    }
+    if(NextSymbol())
+    {
+      name = &NextSymbol()->Name(); 
+    }
+    needsRead = true;
+    switch (symbolType) 
+    {
+      case NONE      : tre=ParseNone     (tre, close); break;
+      case OPEN      : tre=ParseOpen     (tre);        break;
+      case CLOSE     : tre=ParseClose    (tre, close); break;
+      case SEPARATOR : tre=ParseSeparator(tre);        break;
+      case TYPE      : tre=ParseType     (tre);        break;
+      case MONARY    : tre=ParseMonary   (tre);        break;
+      case BINARY    : tre=ParseBinary   (tre);        break;
+      case MACRO     : 
+        if(*name=="#Embed") 
+        { 
+          ok = ReadNextSymbol(newSymbolType);
+          tre=ParseMacroEmbed(tre); 
+          if(newSymbolType == SEPARATOR) 
+          { 
+          //PutNextArgument(NULL);
+            needsRead = true;
+          } 
+          else if(newSymbolType == CLOSE)
+          { 
+            needsRead = false; /*
+            needsRead = true;
+            if(tre && tre->getTree()) 
+            {
+              BParser::treToken(tre->getTree())->PutClose(close);
+            }
+            close     = NULL;
+            openNumber_--;
+            complete_ = true; */
+          }
+          else if(newSymbolType == NONE)
+          { 
+            needsRead = true;
+          //complete_ = true;
+          }
+          else
+          {
+            messageError_+=
+              I2("Unexpected symbol ",
+                 "Símbolo fuera de lugar")+NextSymbol()->Name()+"\n"+
+              I2("A separator, close symbol or end of file was expected "
+                 "after macro #Embed ",
+                 "Se esperaba un separador, un símbolo de cierre o el final "
+                 "del archivo tras la macro #Embed");
+          } 
+        } 
+        else 
         {
-          messageError_+= I2("Unexpected symbol ",
-                             "Símbolo fuera de lugar")+". ";
+          messageError_+=
+            I2("Unknown parsing macro ",
+             "Macro de parseo desconocida ")+ *name+" . ";
+        } 
+      break;
+      default        : 
+      {
+        messageError_+= I2("Unexpected symbol ",
+                           "Símbolo fuera de lugar")+". ";
 
-        }
       }
     }
   } while(!messageError_.HasName() &&
@@ -1117,6 +1177,8 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
 /* */
   symbolType = scan_->ReadNextSymbol();
 /* * /
+
+  Std(BText("\n  Parser[")+(int)this+"] symbolType <- '"+TokenTypeName(symbolType));
   if(scan_->NextSymbol())
   {
     Std(BText("\n  Parser[")+(int)this+"] symbol <- '"+
