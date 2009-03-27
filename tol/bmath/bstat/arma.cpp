@@ -530,13 +530,15 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
     psiBF = psiB * psiF;
   //TRZ(psiB); TRZ(psiF); TRZ(psiBF);
     s = psiBF.Size();
-    k = (s+1)/2;
   //if(n<psiBF(s-1).Degree()) { n=psiBF(s-1).Degree(); }
     gn.Replicate(0,n);
-    for(i=0; i<k; i++) 
+    for(i=0; i<s; i++) 
     { 
-      j = psiBF(k+i-1).Degree();
-      gn(j) = psiBF(k+i-1).Coef();
+      j = psiBF(i).Degree();
+      if((j>=0) && (j<n))
+      {
+        gn(j) = psiBF(k+i-1).Coef();
+      }
     //Std(BText("\nk=")+k+"\ti="+i+"\tj="+j+"\tgn(j)="+gn(j));
     }
   }
