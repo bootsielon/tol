@@ -1,0 +1,112 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _mainLinearBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::MainLinearBlock
+/////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.MainLinearBlock =
+"Builds a NameBlock that can draw a Gibbs sample of the Main Linear block "
+"of a Bayesian Sparse Regression model";
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock MainLinearBlock(Text name, Set varNames, 
+                              Real numBlock, Real firstCol,
+                              NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(varNames), [[
+  NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock(
+    name, 
+    varNames, 
+    numBlock, 
+    firstCol, 
+    config);
+  NameBlock _.blockDef = _.lin.blk::_.blockDef;
+  Real initialize(Real unused){ 0 };
+  VMatrix filter(VMatrix X) { X };
+  VMatrix draw(Real numSim,NameBlock arima,VMatrix si,VMatrix beta,VMatrix Z) 
+  { _.blockDef::_.store };
+  Code maxLogLikelihood = draw
+  ]], [[
+  //Defining the block in the Markov Chain
+  NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock(
+    name, 
+    varNames, 
+    numBlock, 
+    firstCol, 
+    config);
+  NameBlock _.blockDef = _.lin.blk::_.blockDef;
+  //Message identificator
+  Text _MID = "["+_.blockDef::_.name+"] ";
+  //Number of input missing variables (dimension of input missing block)
+  Real _.N = Card(varNames);
+
+  ///////////////////////////////////////////////////////////////////////////
+  Real initialize(VMatrix beta0, VMatrix A, VMatrix a)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    _.lin.blk::initialize(beta0, A, a)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix getStore(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.lin.blk::_.blockDef::_.store
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Method of generation of mian linear block";
+  VMatrix draw(Real numSim, VMatrix Y, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.lin.blk::solve(numSim, Y, X);
+    _.lin.blk::draw(numSim)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.maxLikelihood =
+  "Method of contitioned maximum likelihood";
+  VMatrix maxLikelihood(Real      numSim, 
+                        NameBlock arima, //ArimaBlock filter
+                        VMatrix   si,    //SigmaBlock filter
+                        VMatrix   beta,  //Non filtered LinearBlock parameters 
+                        VMatrix   Z      //
+               )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(Not(_.blockDef::enabled), _.blockDef::_.store,
+    {
+      NameBlock ls = buildLinearSystem(arima,si,beta,Z);
+      VMatrix _.blockDef::_.store:=
+        _.lin.blk::maxLikelihood(numSim, ls::Y01, ls::X01);
+      _.blockDef::_.store
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setStore =
+  "Sets _.store to the specified row vector of values";
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.blockDef::_.numCol<=0,0,{
+      _.blockDef::setStore(values) 
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.setMcmcRow =
+  "Sets _.store to the columns related to this block of a given row of a "
+  "Markov Chain";
+  Real setMcmcRow(Matrix mcmc, Real row) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
+  }
+
+]])};

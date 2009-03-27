@@ -210,7 +210,7 @@ Text _.autodoc.member.InputMissingBlock =
     {
       NameBlock ls = buildLinearSystem(arima,si,beta,Z);
       Real _.lin.blk::solve(numSim, ls::Y01, ls::X01);
-      VMatrix _.blockDef::_.store := _.lin.blk::draw(numSim, ls::Y01, ls::X01);
+      VMatrix _.blockDef::_.store := _.lin.blk::draw(numSim);
       _.blockDef::_.store
     })
   };

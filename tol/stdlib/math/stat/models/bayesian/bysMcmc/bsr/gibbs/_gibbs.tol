@@ -15,6 +15,10 @@ NameBlock Gibbs =
   Set _linBlk = Include("_stdLinearBlock.tol");
   Code StdLinearBlock;
 
+  //Linear blocks related methods
+  Set _mnlBlk = Include("_mainLinearBlock.tol");
+  Code MainLinearBlock;
+
   //Sigma block related methods
   Set _sigBlk = Include("_sigmaBlock.tol");
   Code SigmaBlock;

@@ -31,7 +31,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //Setting NameBlock description
   Text _.autodoc.description="Gibbs sampler for model "+_.name;
   Text _MID = "[BSR."+_.name+"] ";
-  NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock
+  NameBlock _.mln.blk = BysMcmc::Bsr::Gibbs::MainLinearBlock
   (
     "BSR.MainLinBlock."+_.name,
     EvalSet(_.modelDef->LinearBlock, Text(BSR.LinearBlock b){ b->Name }),
@@ -45,7 +45,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     "BSR.SigmaBlock."+_.name,
     _.modelDef->NoiseDistrib,
     2,
-    _.lin.blk::_.blockDef::_.lastCol+1,
+    _.mln.blk::_.blockDef::_.lastCol+1,
     _config
   );
 
@@ -78,7 +78,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
 
   Set _.blocks =
   [[
-    _.lin.blk,
+    _.mln.blk,
     _.sig.blk,
     _.arm.blk,
     _.inpMis.blk,
@@ -198,21 +198,21 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" _.lin.blk.init 1");
+  //WriteLn("TRACE"+_MID+" init 1");
     Matrix aux=SetCol(EvalSet(_.modelDef->LinearBlock,Real(BSR.LinearBlock b)
     { b->InitialValue }));
     VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
-  //WriteLn("TRACE"+_MID+" _.lin.blk.init 6");
+  //WriteLn("TRACE"+_MID+" init 6");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
-  //WriteLn("TRACE"+_MID+" _.lin.blk.init 2");
+  //WriteLn("TRACE"+_MID+" init 2");
     VMatrix beta0 = findMatchingBeta(Mat2VMat(aux));
-  //WriteLn("TRACE"+_MID+" _.lin.blk.init 3");
-    Real ok = _.lin.blk::initialize(beta0, _.modelDef->A, _.modelDef->a);
-  //WriteLn("TRACE"+_MID+" _.lin.blk.init 4");
-    VMatrix _.beta   := _.lin.blk::_.blockDef::_.store;
+  //WriteLn("TRACE"+_MID+" init 3");
+    Real ok = _.mln.blk::initialize(beta0, _.modelDef->A, _.modelDef->a);
+  //WriteLn("TRACE"+_MID+" init 4");
+    VMatrix _.beta   := _.mln.blk::getStore(0);
     Real DoExternalFilter(0);
     VMatrix sig_0 = _.sig.blk::draw(0, _.Y - _.modelDef->X*_.beta);
-  //WriteLn("TRACE"+_MID+" _.lin.blk.init 7");
+  //WriteLn("TRACE"+_MID+" init 7");
     VMatrix _.filter := _.XplusU*_.beta;
     VMatrix _.noise := _.YplusV-_.filter;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 3");
@@ -262,11 +262,8 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //WriteLn("TRACE"+_MID+" draw.sig.lin 6");
     VMatrix X01 = _.arm.blk::filter(si*_.XplusU); 
   //WriteLn("TRACE"+_MID+" draw.sig.lin 8");
-    VMatrix _.beta := If(Not(_.lin.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
-    {
-      Real _.lin.blk::solve(numSim, Y01, X01);
-      _.lin.blk::draw(numSim, Y01, X01)
-    });
+    VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
+      _.mln.blk::draw(numSim, Y01, X01));
   //WriteLn("TRACE"+_MID+" draw.sig.lin 9");
     _.beta << sig << arm << im << om
   };
@@ -308,8 +305,8 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //WriteLn("TRACE"+_MID+" draw.sig.lin 6");
     VMatrix X01 = _.arm.blk::filter(si*_.XplusU); 
   //WriteLn("TRACE"+_MID+" draw.sig.lin 8");
-    VMatrix _.beta := If(Not(_.lin.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
-      _.lin.blk::maxLikelihood(numSim, Y01, X01));
+    VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
+      _.mln.blk::maxLikelihood(numSim, Y01, X01));
   //WriteLn("TRACE"+_MID+" draw.sig.lin 9");
     _.beta << sig << arm << im << om
   };
@@ -396,7 +393,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //WriteLn("TRACE"+_MID+" eval 3");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" eval 4");
-    VMatrix _.beta := _.lin.blk::_.blockDef::_.store;
+    VMatrix _.beta := _.mln.blk::getStore(0);
     VMatrix fullFilter = _.modelDef->X*_.beta;
     VMatrix fullFilter.full = _.XplusU*_.beta;
     VMatrix fullFilter.mis = fullFilter.full - fullFilter;
@@ -766,7 +763,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
                            Matrix   inputForecast)
   ////////////////////////////////////////////////////////////////////////////
   {
-    NameBlock lin = _.lin.blk::_.blockDef;
+    NameBlock lin = _.mln.blk::_.lin.blk::_.blockDef;
     NameBlock sig = _.sig.blk::_.blockDef;
 
     Real blk = getRegEquBlock(resBlock);

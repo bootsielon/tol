@@ -287,12 +287,11 @@ Text _.autodoc.member.StdLinearBlock =
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =
   "Draws a simulation of a linear block in current case, constrained or not";
-  VMatrix draw(Real numSim, VMatrix Y, VMatrix X)
+  VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
     If(_.blockDef::enabled,
     {
-    //Real solve(numSim,Y,X);
       VMatrix aux = _drawer(numSim);
     //WriteLn("TRACE "+_MID+" draw");
       Real _.blockDef::checkNonFiniteValues(numSim);
