@@ -263,7 +263,10 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     VMatrix X01 = _.arm.blk::filter(si*_.XplusU); 
   //WriteLn("TRACE"+_MID+" draw.sig.lin 8");
     VMatrix _.beta := If(Not(_.lin.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
-      _.lin.blk::draw(numSim, Y01, X01));
+    {
+      Real _.lin.blk::solve(numSim, Y01, X01);
+      _.lin.blk::draw(numSim, Y01, X01)
+    });
   //WriteLn("TRACE"+_MID+" draw.sig.lin 9");
     _.beta << sig << arm << im << om
   };

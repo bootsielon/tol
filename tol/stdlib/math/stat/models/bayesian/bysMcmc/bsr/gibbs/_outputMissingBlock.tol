@@ -190,6 +190,7 @@ Text _.autodoc.member.OutputMissingBlock =
     If(Not(_.blockDef::enabled), _.blockDef::_.store,
     {
       NameBlock ls = buildLinearSystem(arima,si,Z);
+      Real _.lin.blk::solve(numSim, ls::Y01, ls::X01);
       VMatrix _.blockDef::_.store := _.lin.blk::draw(numSim, ls::Y01, ls::X01);
       _.blockDef::_.store
     })
