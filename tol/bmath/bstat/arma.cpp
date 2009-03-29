@@ -537,7 +537,7 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
       j = psiBF(i).Degree();
       if((j>=0) && (j<n))
       {
-        gn(j) = psiBF(k+i-1).Coef();
+        gn(j) = psiBF(i).Coef();
       }
     //Std(BText("\nk=")+k+"\ti="+i+"\tj="+j+"\tgn(j)="+gn(j));
     }
