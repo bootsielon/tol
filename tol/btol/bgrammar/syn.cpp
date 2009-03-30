@@ -425,7 +425,7 @@ const BText& BSyntaxObject::Description() const
 //--------------------------------------------------------------------
 {
   const BNameBlock* nb = NameBlock();
-  if(nb && nb->EnsureIsAssigned())
+  if(nb && nb->EnsureIsAssigned() && nb->HasName())
   {
     return(nb->Name()+"::"+Name());
   }
