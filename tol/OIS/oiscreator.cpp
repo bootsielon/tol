@@ -566,8 +566,8 @@ if(!BDir::CheckIsDir(dir))                                \
     BUserCode* code = UCode(v);
     BCode&     cod  = code->Contens();
     BOperator* opr  = cod.Operator();
-    if(!opr) { return(Error("FATAL BOisCreator::Write NULL Code operator")); }
-    if(opr->Mode()==BUSERFUNMODE)
+//  if(!opr) { return(Error("FATAL BOisCreator::Write NULL Code operator")); }
+    if(opr && (opr->Mode()==BUSERFUNMODE))
     {
       mode   = opr->Mode   ();
       gra    = opr->Grammar();
