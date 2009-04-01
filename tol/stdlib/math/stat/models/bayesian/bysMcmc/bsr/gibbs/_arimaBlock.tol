@@ -517,8 +517,7 @@ Text _.autodoc.member.ArimaBlock =
   Text _.autodoc.member.draw.scalar =
   "Method of generation of a ARMA block by using current scalar method,"
   " given by _scalarSampler, for each parameter";
-  VMatrix draw.scalar(Real numSim, VMatrix noise, VMatrix sigma.full, 
-                      Real calcMaxLikelihood)
+  VMatrix draw.scalar(Real numSim, VMatrix noise, VMatrix sigma.full)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" draw.scalar [iter "<<numSim+"] 1 noise="<<noise);
@@ -578,10 +577,6 @@ Text _.autodoc.member.ArimaBlock =
     //WriteLn("TRACE"+_MID+" draw.scalar u0="<<u0);
     //WriteLn("TRACE"+_MID+" draw.scalar z0="<<z0);
     //WriteLn("TRACE"+_MID+" draw.scalar a0="<<a0);
-/*
-      Real maxLogLikelihood = -1/0;
-      Real maxLogLikelihood.x = 0;
-*/
 
       Real LogDens.Almagro.Z_cond_U(Real x)
       {
@@ -589,31 +584,11 @@ Text _.autodoc.member.ArimaBlock =
         Polyn  ar = ARIMAGetAR(arima);
         Polyn  ma = ARIMAGetMA(arima);
         Real llh = Copy(almagro::LogLH.Z_cond_U(ar,ma,z0,a0));
-/*
-        Real If(calcMaxLikelihood,
-          If(llh>maxLogLikelihood,
-          {
-            Real maxLogLikelihood   :=llh;
-            Real maxLogLikelihood.x := x
-          }));
-*/
         llh 
       };
       Code LogDens = LogDens.Almagro.Z_cond_U;
       Real If(Or(pd->coef<x0,pd->coef>x1), { pd->coef := Rand(x0,x1) }, 0);
-      /*
-      Real pd->coef := _scalarSampler(LogDens.Almagro.Z_cond_U,x0,x1);
-      Real If(calcMaxLikelihood, pd->coef := maxLogLikelihood.x);
-      */
-      Real pd->coef:= If(!calcMaxLikelihood, 
-      {
-        _scalarSampler(LogDens,x0,x1,pd->coef)
-      },
-      {
-        Real MinusLogDens(Real x_) { -LogDens(x_) };
-        Real y=0;
-        FibonacciMin(MinusLogDens, y, x0, x1, 1.E-5*n)
-      });
+      Real pd->coef:= _scalarSampler(LogDens,x0,x1,pd->coef);
 
     //WriteLn("TRACE"+_MID+" draw.scalar pd->coef="<<pd->coef);
       pd->coef
@@ -638,20 +613,11 @@ Text _.autodoc.member.ArimaBlock =
     If(And(_.blockDef::enabled, 
        numSim%(_.blockDef::_.config::bsr.arimaSkipIter)==0),
     {
-      draw.scalar(numSim, noise, sigBlk, False)
+      draw.scalar(numSim, noise, sigBlk)
     },
     {
       Copy(_.blockDef::_.store)
     })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.maxLikelihood =
-  "Method of contitioned maximum likelihood";
-  VMatrix maxLikelihood(Real numSim, VMatrix noise, VMatrix sigBlk)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    draw.scalar(numSim, noise, sigBlk, True)
   };
 
   ////////////////////////////////////////////////////////////////////////////
