@@ -58,7 +58,7 @@ Text _.autodoc.member.StdLinearBlock =
   //
   Set _.solution = Copy(Empty);
 
-  Real _changed.X = True;
+  Real changed.X = True;
 
   //Maximum accepted rounding error for Choleski operations
   Real _.eps  = _.blockDef::_.config::bsr.cholesky.epsilon*_.N*(_.N+1);
@@ -66,9 +66,10 @@ Text _.autodoc.member.StdLinearBlock =
   Real _.cholSolRoundErrNumWarn = 0;
   //Current maximum of rounding error in solution
   Real _.cholSolMaxRoundErr     = 0;
-
+  //Logarithm of density of last generated vector
+  Real _.betaLogDens = -1/0;
   //Stores the associated drawing method
-  Code _drawer = UnknownCode;
+  Code drawer = UnknownCode;
 
   ////////////////////////////////////////////////////////////////////////////
   //Initializes the block and checks that constrains are matched
@@ -88,7 +89,7 @@ Text _.autodoc.member.StdLinearBlock =
   //WriteLn("TRACE "+_MID+" initialize 5 _.At="<<_.At);
     VMatrix _.a    := a;
   //WriteLn("TRACE "+_MID+" initialize 6 _.a="<<_.a);
-    Code    _drawer   := If(_.R, draw.constrained, draw.unconstrained);
+    Code    drawer   := If(_.R, draw.constrained, draw.unconstrained);
   //WriteLn("TRACE "+_MID+" initialize 7");
     VMatrix (_.blockDef::_.store) := If(!_.R, beta0,
     {
@@ -136,12 +137,12 @@ Text _.autodoc.member.StdLinearBlock =
   //WriteLn("TRACE"+_MID+" factorize X("<<VRows(X)+"x"<<VColumns(X)+")");
     If(And(design.is.constant,VRows(_.L)), 0,
     {
-      Real _changed.X := If(Or(VColumns(X)!=VColumns(_old.X),
+      Real changed.X := If(Or(VColumns(X)!=VColumns(_old.X),
                                VRows   (X)!=VRows   (_old.X)), -1,
       {
         1+VMatMax(Abs(X-_old.X))-1
       });
-      If(!_changed.X ,0,
+      If(!changed.X ,0,
       {
         Real density = VNonNullCells(X)/(VRows(X)*VColumns(X));
       //WriteLn("TRACE "+_MID+" factorize density = "<<density);
@@ -159,7 +160,7 @@ Text _.autodoc.member.StdLinearBlock =
           1 
         },        
         {
-        //WriteLn("TRACE"+_MID+" factorize changed="<<_changed.X );
+        //WriteLn("TRACE"+_MID+" factorize changed="<<changed.X );
           Real numErr = Copy(NError);
           VMatrix _.L := If(density<.13, 
           {
@@ -194,10 +195,13 @@ Text _.autodoc.member.StdLinearBlock =
 
   ////////////////////////////////////////////////////////////////////////////
   //Solves the linear system corresponding to the standarized linear regression
-  Real solve(Real numSim, VMatrix Y, VMatrix X)
+  Real solve(Real numSim_, VMatrix Y_, VMatrix X_)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_MID+" solve 1 X="<< VMat2Mat(X));
+    Real numSim = numSim_;
+    VMatrix Y = Y_;
+    VMatrix X = X_;
+  //WriteLn("TRACE "+_MID+" solve 1 ");
     Real Do factorize(X);
     Real If(VRows(_.L)<=0, CMsg::Coded::show
       (BysMcmc::_.cmsg::_.invCholFac,[[_MID,""]]));
@@ -234,30 +238,24 @@ Text _.autodoc.member.StdLinearBlock =
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw.unconstrained =
   "Method of generation of a linear block in unconstrained case";
-  VMatrix draw.unconstrained(Real numSim)
+  VMatrix draw.unconstrained(Real numSim, VMatrix nu)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_MID+" draw.unconstrained 2");
-    VMatrix   b1 = Gaussian(_.N,1,0,1);
-  //WriteLn("TRACE "+_MID+" draw.unconstrained 3 b1="<<Matrix(VMat2Mat(Tra(b1))));
-    VMatrix   b2 = CholeskiSolve(_.L,b1,"LtP");
-  //WriteLn("TRACE "+_MID+" draw.unconstrained 4 _.L="<<Matrix(VMat2Mat(_.L)));
-  //WriteLn("TRACE "+_MID+" draw.unconstrained 4 b2="<<Matrix(VMat2Mat(Tra(b2))));
-    VMatrix  (_.blockDef::_.store) := _.solution::nu+b2;
-  //WriteLn("TRACE "+_MID+" draw.unconstrained 5");
+    VMatrix z = Gaussian(_.N,1,0,1);
+    Real _.betaLogDens := -0.5*VMatDat(MtMSqr(z),1,1);
+    VMatrix  (_.blockDef::_.store):=nu+CholeskiSolve(_.L,z,"LtP");
     Copy(_.blockDef::_.store)
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw.constrained =
   "Method of generation of a linear block in constrained case";
-  VMatrix draw.constrained(Real numSim)
+  VMatrix draw.constrained(Real numSim, VMatrix nu)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix nu = _.solution::nu;
   //WriteLn("TRACE "+_MID+" draw.constrained 1.1 Max(A*b0-a)="<<VMatMax(_.A*_.blockDef::_.store - a));
     VMatrix d   = _.a - _.A*nu;
-    VMatrix If(_changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
+    VMatrix If(changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
     VMatrix z0  = Tra(Tra(_.blockDef::_.store-nu)*_.Ls);
   //WriteLn("TRACE "+_MID+" draw.constrained 1.2 Max(D*z0-d)="<<VMatMax(_.D*z0 - d));
     VMatrix z = TruncStdGaussian(_.D,d,z0,1,
@@ -280,6 +278,7 @@ Text _.autodoc.member.StdLinearBlock =
       });
       1
     });
+    Real _.betaLogDens := -0.5*VMatDat(MtMSqr(z),1,1);
     VMatrix  (_.blockDef::_.store) := nu + CholeskiSolve(_.L,z,"LtP");
     Copy(_.blockDef::_.store)
   };
@@ -292,7 +291,7 @@ Text _.autodoc.member.StdLinearBlock =
   {
     If(_.blockDef::enabled,
     {
-      VMatrix aux = _drawer(numSim);
+      VMatrix aux = drawer(numSim, _.solution::nu);
     //WriteLn("TRACE "+_MID+" draw");
       Real _.blockDef::checkNonFiniteValues(numSim);
       aux
@@ -301,33 +300,6 @@ Text _.autodoc.member.StdLinearBlock =
       Copy(_.blockDef::_.store)
     })
   };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.maxLikelihood =
-  "Method of contitioned maximum likelihood";
-  VMatrix maxLikelihood(Real numSim, VMatrix Y, VMatrix X)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real solve(numSim,Y,X);
-    VMatrix aux = If(!_.R, 
-    {
-      _.solution::nu
-    },
-    {
-      VMatrix d = _.a - _.A*_.solution::nu;
-      If(VMatMax(d)>=0, _.solution::nu, 
-      {
-        WriteLn("Cannot do maxLikelihood for constrained linear block "+
-          _.blockDef::_.name,"W");
-        draw.constrained(numSim)
-      })
-    });
-    VMatrix  (_.blockDef::_.store) := aux;
-  //WriteLn("TRACE "+_MID+" maxLikelihood aux="<<Matrix(Tra(VMat2Mat(aux))));
-    Real _.blockDef::checkNonFiniteValues(numSim);
-    Copy(_.blockDef::_.store)
-  };
-
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.setStore =
