@@ -225,7 +225,7 @@ Text _.autodoc.member.OutputMissingBlock =
             " _.MH.consecutive="<<_.MH.consecutive);
 /* */
     Real _.MH.consecutive := _.MH.consecutive + 1;
-    Real m = VRows(Y);
+    Real m = VRows(ls::Y01);
     VMatrix b = getStore(0);
     VMatrix ep = ls::Y01-ls::X01*b;
     Real p0 = -0.5*VMatDat(MtMSqr(ep),1,1);
