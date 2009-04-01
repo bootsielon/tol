@@ -28,7 +28,7 @@
 
 const double vmat_trunc_eps = 1.0e-12;
 
-//#define USE_BTruncatedNormalDist
+#define USE_BTruncatedNormalDist
 
 
 ////////////////////////////////////////////////////////////////////////////////
