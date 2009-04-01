@@ -176,28 +176,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
     Real numSim = savedSimulations+1;
   //WriteLn("TRACE "+_MID+"savedSimulations="<<savedSimulations);
   //WriteLn("TRACE "+_MID+"numSim="<<numSim);
-    Real okMls = Case(Or(numSim>1, 
-       _.config::mls.method==BysMcmc::Options::Mls.Method::None),
-    { 
-      1 
-    },
-    _.config::mls.method==BysMcmc::Options::Mls.Method::FunnelGibbs,
-    {
-      Real numIter = 1;
-      While(numIter<=_.config::mls.maxIter,
-      {
-        VMatrix param = _.sampler::maxLikelihood(numIter);
-        Real numIter := numIter+1 
-      });
-      1
-    },
-    1==1,
-    {
-      WriteLn(_MID+"Unknown Maximum Likelihood Step method "+
-              _.config::mls.method, "E");
-      0
-    });
-    Real end = !okMls;
+    Real end = GE(numSim,sampleLength);
     While(!end,
     {
     //WriteLn("TRACE "+_MID+"2");
