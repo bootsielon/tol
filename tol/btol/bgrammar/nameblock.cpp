@@ -205,7 +205,7 @@ const BText& BNameBlock::LocalName() const
 //--------------------------------------------------------------------
 {
   if(createdWithNew_) { return(BObject::IsAssigned()); }
-  else                { return(true); }
+  else                { return(false); }
 }
 
 //--------------------------------------------------------------------

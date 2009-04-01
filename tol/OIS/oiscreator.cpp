@@ -566,7 +566,7 @@ if(!BDir::CheckIsDir(dir))                                \
     BUserCode* code = UCode(v);
     BCode&     cod  = code->Contens();
     BOperator* opr  = cod.Operator();
-//  if(!opr) { return(Error("FATAL BOisCreator::Write NULL Code operator")); }
+    if(!opr) { return(Error("FATAL BOisCreator::Write NULL Code operator")); }
     if(opr && (opr->Mode()==BUSERFUNMODE))
     {
       mode   = opr->Mode   ();
@@ -690,7 +690,7 @@ if(!BDir::CheckIsDir(dir))                                \
 {
   BCode& code = v->Contens();
   BOperator* opr = code.Operator();
-  assert(opr);
+  if(!opr) { return(Error("FATAL BOisCreator::Write NULL Code operator")); }
   char oprType = opr->Grammar()->Gid();
   EWrite(oprType, object_);
   EWrite(opr->Name(), object_);

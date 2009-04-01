@@ -561,7 +561,7 @@ BBool InitGrammars()
       "  suma = x1+x2;\n"
       "  suma/2\n"
       "}\n\n"),
-           BCopyContens<BCode>::New,
+           BRenContens<BCode>::New,
            BFunArgContens<BCode>::NewLocal);
 
 #ifdef __USE_TC__
