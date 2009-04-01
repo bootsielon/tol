@@ -27,8 +27,7 @@ Text _.autodoc.member.InputMissingBlock =
   Real initialize(Real unused){ 0 };
   VMatrix filter(VMatrix X) { X };
   VMatrix draw(Real numSim,NameBlock arima,VMatrix si,VMatrix beta,VMatrix Z) 
-  { _.blockDef::_.store };
-  Code maxLogLikelihood = draw
+  { _.blockDef::_.store }
   ]], [[
   //Defining the block in the Markov Chain
   NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock(
@@ -42,6 +41,18 @@ Text _.autodoc.member.InputMissingBlock =
   Text _MID = "["+_.blockDef::_.name+"] ";
   //Number of input missing variables (dimension of input missing block)
   Real _.N = Card(_.modelDef->InputMissingBlock);
+  //Logarithm of density of last generated vector
+  Real _.betaLogDens = -1/0;
+
+  Real _.MH.useAfterIter = Max(1,config::bsr.linBlk.MH.useAfterIter);
+  Real _.MH.maxRejected  = config::bsr.linBlk.MH.maxRejected;
+  Real _.MH.maxConsecutive  = config::bsr.linBlk.MH.maxConsecutive;
+  Real _.MH.tried = 0;
+  Real _.MH.rejected = 0;
+  Real _.MH.success = 0;
+  Real _.MH.consecutive = 0;
+  Real _.calculatedSimulation = 0;
+
   //Input missing pairs (equation,variable)
   Matrix _.tj = {
   //WriteLn("TRACE "+_MID+" 1");
@@ -94,6 +105,14 @@ Text _.autodoc.member.InputMissingBlock =
   //WriteLn("TRACE "+_MID+" _.prior.X 4");
     pX
   });
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix getStore(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.lin.blk::_.blockDef::_.store
+  };
+
   ///////////////////////////////////////////////////////////////////////////
   Real initialize(Real unused)
   ///////////////////////////////////////////////////////////////////////////
@@ -196,42 +215,106 @@ Text _.autodoc.member.InputMissingBlock =
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.gibbs =
+  "Method of Gibss simulation of input missing block";
+  VMatrix draw.gibbs(Real numSim, NameBlock ls)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.MH.consecutive := 0;
+    Real _.lin.blk::solve(numSim, ls::Y01, ls::X01);
+    VMatrix _.blockDef::_.store := _.lin.blk::draw(numSim);
+    VMatrix e = ls::Y01-ls::X01*_.blockDef::_.store;
+    Real _.betaLogDens := MatSum(Log(f01(VMat2Mat(e))));
+    _.blockDef::_.store
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.metropolis_hastings =
+  "Method of Metroplois-Hastings simulation of input missing block";
+  VMatrix draw.metropolis_hastings(Real numSim, NameBlock ls)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+" draw.metropolis_hastings 1");
+/* * /
+    WriteLn(" numSim="<<numSim+
+            " _.MH.success="<<_.MH.success+
+            " _.MH.tried="<<_.MH.tried+
+            " _.MH.rejected="<<_.MH.rejected+
+            " _.MH.consecutive="<<_.MH.consecutive);
+/* */
+    Real _.MH.consecutive := _.MH.consecutive + 1;
+    Real m = VRows(Y);
+    VMatrix b = getStore(0);
+    VMatrix ep = ls::Y01-ls::X01*b;
+    Real p0 = -0.5*VMatDat(MtMSqr(ep),1,1);
+    Real q0 = _.lin.blk::_.betaLogDens;
+    Real s0 = Sqrt(-2*p0/m);
+  //WriteLn(" s0="<<s0+" p0="<<p0+" q0="<<q0);
+    Real p1 = ?;
+    Real q1 = ?;
+    Real accept = False;
+    Real i = 1;
+    While(Not(accept) & (i<=_.MH.maxRejected),
+    {
+      Real t0 = Copy(Time);
+      Real _.lin.blk::changed.X := False;
+      VMatrix b := _.lin.blk::draw(numSim);
+      VMatrix ep := ls::Y01-ls::X01*b;
+      Real p1 := -0.5*VMatDat(MtMSqr(ep),1,1);
+      Real s1 = Sqrt(-2*p1/m);
+      Real q1 := _.lin.blk::_.betaLogDens;
+      Real a = Rand(0,1);
+      Real c = Exp((p1+q0)-(p0+q1));
+      Real s = Sqrt(gsl_ran_chisq(m)/m);
+      Real accept := Case(
+        s1 <= 1, True,
+        s1 <= s, True,
+        1  == 1, a<c);
+      Real tm = Copy(Time) - t0;
+/* * /
+      WriteLn(" i="<<i+
+              " s1="<<s1+
+              " p1="<<p1+
+              " q1="<<q1+
+              " c="<<c+
+              " a="<<a+
+              " s="<<s+
+              " accept="<<accept+
+              " time="<<tm);
+/* */
+      Real _.MH.tried := _.MH.tried +1 ;
+      Real _.MH.rejected = _.MH.rejected + Not(accept);
+      Real i := i+1
+    });
+    If(accept, 
+    {
+      Real _.MH.success := _.MH.success + 1;
+      Real _.betaLogDens := p1;
+      b
+    }, 
+    {
+      draw.gibbs(numSim, ls)
+    })  
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =
   "Method of generation of input missing block";
   VMatrix draw(Real      numSim, 
                NameBlock arima, //ArimaBlock filter
                VMatrix   si,    //SigmaBlock filter
-               VMatrix   beta,  //Non filtered LinearBlock parameters 
-               VMatrix   Z      // 
-               )
+               VMatrix   beta,  //Non filtered Main Linear Block parameters 
+               VMatrix   Z)     //Non filtered noise 
   ////////////////////////////////////////////////////////////////////////////
   {
     If(Not(_.blockDef::enabled), _.blockDef::_.store,
     {
       NameBlock ls = buildLinearSystem(arima,si,beta,Z);
-      Real _.lin.blk::solve(numSim, ls::Y01, ls::X01);
-      VMatrix _.blockDef::_.store := _.lin.blk::draw(numSim);
-      _.blockDef::_.store
-    })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.maxLikelihood =
-  "Method of contitioned maximum likelihood";
-  VMatrix maxLikelihood(Real      numSim, 
-                        NameBlock arima, //ArimaBlock filter
-                        VMatrix   si,    //SigmaBlock filter
-                        VMatrix   beta,  //Non filtered LinearBlock parameters 
-                        VMatrix   Z      //
-               )
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    If(Not(_.blockDef::enabled), _.blockDef::_.store,
-    {
-      NameBlock ls = buildLinearSystem(arima,si,beta,Z);
-      VMatrix _.blockDef::_.store:=
-        _.lin.blk::maxLikelihood(numSim, ls::Y01, ls::X01);
-      _.blockDef::_.store
+      Real _.calculatedSimulation := _.calculatedSimulation+1;
+      If(And(_.calculatedSimulation >_.MH.useAfterIter,
+             _.MH.consecutive <= _.MH.maxConsecutive),
+        draw.metropolis_hastings(numSim, ls),
+        draw.gibbs              (numSim, ls))
     })
   };
 
