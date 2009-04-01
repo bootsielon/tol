@@ -33,17 +33,6 @@ NameBlock BysMcmc =
   //Options used over all BysMcmc related components
   NameBlock Options =
   [[
-    //When model has high non linear behaviour a preliminar Maximum Likelihood Step
-    //(MLS) is needed to start Gibbs sampler in a feasible point with non null
-    //density
-    NameBlock Mls.Method =
-    [[
-      //Does no MLS step
-      Text None = "None",
-      //Does funnel-Gibbs method: Gibbs steps with reduced variance to increase
-      //convergence
-      Text FunnelGibbs = "FunnelGibbs"
-    ]];
     //Scalar samplers draws a univariant distribution given the logarithm of
     //density function and a domain interval
     //The API of a scalar sampler  is given by a function like this
@@ -91,11 +80,6 @@ NameBlock BysMcmc =
     //Process will be stoped after mcmc.sampleLength + mcmc.burnin 
     //simulations or mcmc.maxTime seconds will be elapsed
     Real mcmc.maxTime = 1/0;
-  //MLS step configuration
-    Text mls.method  = Options::Mls.Method::None;
-    Real mls.maxIter = 100;
-    Real mls.tolerance = 0.01;
-    Real mls.FunnelGibbs.sigmaFactor = 0.01;
   //Basic master configuration
     //Try order for given by user solution to start MCMC
     Real bsr.iniVal.try.givenByUser = 1;
@@ -116,6 +100,13 @@ NameBlock BysMcmc =
     Real bsr.linBlk.X.drop = 1.E-16;
     //Enables/disbales precondidioning for linear blocks of BSR
     Real bsr.linBlk.usePreconditioning = False;
+    //Use Metropolis-Hastings instead og Gibbs for linear blocks after
+    //this number of iterations
+    Real bsr.linBlk.MH.useAfterIter = 10;
+    //Use Gibbs method after these rejections of Metropolis-Hastings 
+    Real bsr.linBlk.MH.maxRejected  = 2;
+    //Use Gibbs method after these consecutive iterations of Metropolis-Hastings 
+    Real bsr.linBlk.MH.maxConsecutive = 10;
     //Scalar sampler used in ARMA block of basic BSR can be a member of 
     //BysMcmc::Options::Scalar.Sampler or an API equivalent function
     Code bsr.scalarSampler.armaBlock = Options::Scalar.Sampler::Slice;
