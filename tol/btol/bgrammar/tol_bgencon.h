@@ -583,14 +583,7 @@ public:
   }
   static BSyntaxObject* New(const BText& name, BSyntaxObject* d) 
   { 
-    if(d && d->System())
-    {
-      return((BSyntaxObject*)new BCopyContens<Any>(name, d)); 
-    }
-    else
-    {
 	  return((BSyntaxObject*)new BRenContens<Any>(name, d)); 
-    }
   }
   DeclareClassNewDelete(BRenContens<Any>);
 };
