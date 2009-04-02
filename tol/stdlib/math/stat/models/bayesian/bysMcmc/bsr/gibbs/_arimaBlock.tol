@@ -40,6 +40,8 @@ Text _.autodoc.member.ArimaBlock =
   VMatrix _.noArmaId   = Rand(0,0,0,0);
   Set     _.paramDesc  = Copy(Empty); 
 
+  Real _skipIter = Max(1,config::bsr.arimaSkipIter);
+
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.enlargeSymVMatrix =
   "Puts a block symmetric matrix into a joint blocks with zeros out of the "
@@ -98,7 +100,6 @@ Text _.autodoc.member.ArimaBlock =
       _.noArmaId + enlargeSymVMatrix(Eye(m),equIdxVec);
     1
   };
-
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.initializeArimaBlock =
@@ -520,7 +521,7 @@ Text _.autodoc.member.ArimaBlock =
   VMatrix draw.scalar(Real numSim, VMatrix noise, VMatrix sigma.full)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" draw.scalar [iter "<<numSim+"] 1 noise="<<noise);
+  //WriteLn("TRACE"+_MID+" draw.scalar [iter "<<numSim+"] 1 ");
     Matrix noise_ = VMat2Mat(noise);
     Set arma.draw.all = 
     EvalSet(_.paramDesc, Real arma.arms.draw(ArmaParamDescStruct pd)
@@ -610,9 +611,10 @@ Text _.autodoc.member.ArimaBlock =
   VMatrix draw(Real numSim, VMatrix noise, VMatrix sigBlk)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(And(_.blockDef::enabled, 
-       numSim%(_.blockDef::_.config::bsr.arimaSkipIter)==0),
+  //WriteLn("TRACE"+_MID+" draw 1 ");
+    If(And(_.blockDef::enabled, numSim%_skipIter==0),
     {
+    //WriteLn("TRACE"+_MID+" draw 2 ");
       draw.scalar(numSim, noise, sigBlk)
     },
     {
