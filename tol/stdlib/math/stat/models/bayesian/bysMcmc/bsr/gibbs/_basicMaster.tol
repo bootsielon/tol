@@ -231,6 +231,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   {
   //WriteLn("TRACE"+_MID+" draw.sig.lin 1.1");
     Real DoExternalFilter(0);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.2");
     VMatrix om = If(Not(_.outMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
     {
       _.outMis.blk::draw(numSim,_.arm.blk,_.sig.blk::_.sigmaInv,
@@ -243,6 +244,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
       _.inpMis.blk::draw(numSim,_.arm.blk,_.sig.blk::_.sigmaInv, 
                          _.beta, _.YplusV-_.modelDef->X*_.beta)
     });
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.4");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
     VMatrix _.filter := _.XplusU*_.beta;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 1.5");
@@ -258,17 +260,10 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //WriteLn("TRACE"+_MID+" draw.sig.lin 5");
     VMatrix si = _.sig.blk::_.sigmaInv;
   //WriteLn("TRACE"+_MID+" draw.sig.lin 7");
-/*
-    VMatrix Y01 = _.arm.blk::filter(si*_.YplusV); 
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 6");
-    VMatrix X01 = _.arm.blk::filter(si*_.XplusU); 
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 8");
-    VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
-      _.mln.blk::draw(numSim, Y01, X01));
-*/
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 9");
     VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
       _.mln.blk::draw(numSim, si*_.YplusV, si*_.XplusU, _.arm.blk));
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 9");
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 10");
     _.beta << sig << arm << im << om
   };
 

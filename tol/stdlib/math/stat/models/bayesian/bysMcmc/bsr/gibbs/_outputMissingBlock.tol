@@ -203,10 +203,15 @@ Text _.autodoc.member.OutputMissingBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
     Real _.MH.consecutive := 0;
+  //WriteLn("TRACE "+_MID+" draw.gibbs 1");
     Real _.lin.blk::solve(numSim, ls::Y01, ls::X01);
+  //WriteLn("TRACE "+_MID+" draw.gibbs 2");
     VMatrix _.blockDef::_.store := _.lin.blk::draw(numSim);
+  //WriteLn("TRACE "+_MID+" draw.gibbs 3");
     VMatrix e = ls::Y01-ls::X01*_.blockDef::_.store;
+  //WriteLn("TRACE "+_MID+" draw.gibbs 4");
     Real _.betaLogDens := MatSum(Log(f01(VMat2Mat(e))));
+  //WriteLn("TRACE "+_MID+" draw.gibbs 5");
     _.blockDef::_.store
   };
 
@@ -289,10 +294,14 @@ Text _.autodoc.member.OutputMissingBlock =
                )
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_MID+" draw 1");
     If(Not(_.blockDef::enabled), _.blockDef::_.store,
     {
+    //WriteLn("TRACE "+_MID+" draw 2");
       NameBlock ls = buildLinearSystem(arima,si,Z);
+    //WriteLn("TRACE "+_MID+" draw 3");
       Real _.calculatedSimulation := _.calculatedSimulation+1;
+    //WriteLn("TRACE "+_MID+" draw 4");
       If(And(_.calculatedSimulation >_.MH.useAfterIter,
              _.MH.consecutive <= _.MH.maxConsecutive),
         draw.metropolis_hastings(numSim, ls),

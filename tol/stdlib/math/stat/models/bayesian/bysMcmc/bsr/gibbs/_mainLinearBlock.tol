@@ -77,11 +77,17 @@ Text _.autodoc.member.MainLinearBlock =
   {
   //WriteLn("TRACE "+_MID+" draw.gibbs 1");
     Real _.MH.consecutive := 0;
+  //WriteLn("TRACE "+_MID+" draw.gibbs 2");
     VMatrix Y01 = arm.blk::filter(Y); 
+  //WriteLn("TRACE "+_MID+" draw.gibbs 3");
     VMatrix X01 = arm.blk::filter(X); 
+  //WriteLn("TRACE "+_MID+" draw.gibbs 4");
     Real _.lin.blk::solve(numSim, Y01, X01);
+  //WriteLn("TRACE "+_MID+" draw.gibbs 5");
     VMatrix b =_.lin.blk::draw(numSim);
+  //WriteLn("TRACE "+_MID+" draw.gibbs 6");
     VMatrix ep = Y01-X01*b;
+  //WriteLn("TRACE "+_MID+" draw.gibbs 7");
     Real _.betaLogDens := -0.5*VMatDat(MtMSqr(ep),1,1);
     b
   };
@@ -161,9 +167,12 @@ Text _.autodoc.member.MainLinearBlock =
   VMatrix draw(Real numSim, VMatrix Y, VMatrix X, NameBlock arm.blk)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_MID+" draw 1");
     If(Not(_.blockDef::enabled), _.blockDef::_.store,
     {
+    //WriteLn("TRACE "+_MID+" draw 2");
       Real _.calculatedSimulation := _.calculatedSimulation+1;
+    //WriteLn("TRACE "+_MID+" draw 3");
       If(And(_.calculatedSimulation >_.MH.useAfterIter,
              _.MH.consecutive <= _.MH.maxConsecutive),
         draw.metropolis_hastings(numSim, Y, X, arm.blk),
