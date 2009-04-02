@@ -55,6 +55,8 @@ const BNameBlock*         BNameBlock::current_ = NULL;
       BObjByNameHash      BNameBlock::usingSymbols_;
       BObjByClassNameHash BNameBlock::usingSymbolsByClass_;
 
+static BFixedSizeMemoryBase* BFSMEM_Hndlr = 
+ BFSMSingleton<sizeof(BNameBlock)>::Handler();
 
 //--------------------------------------------------------------------
 //BNameBlock members
@@ -100,7 +102,7 @@ static bool BNameBlock_IsInitialized()
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
-  short isAssigned = BObject::IsAssigned();
+  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
   createdWithNew_ = isAssigned!=-1;
 }
 
@@ -121,7 +123,7 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
-  short isAssigned = BObject::IsAssigned();
+  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
   createdWithNew_ = isAssigned!=-1;
 }
 
@@ -140,7 +142,7 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   localName_(ns.LocalName()),
   owner_    (NULL)
 {
-  short isAssigned = BObject::IsAssigned();
+  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
   createdWithNew_ = isAssigned!=-1;
 }  
 
@@ -204,8 +206,15 @@ const BText& BNameBlock::LocalName() const
   short BNameBlock::EnsureIsAssigned() const
 //--------------------------------------------------------------------
 {
-  if(createdWithNew_) { return(BObject::IsAssigned()); }
-  else                { return(false); }
+  if(createdWithNew_) 
+  { 
+    short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
+    return(isAssigned); 
+  }
+  else                
+  { 
+    return(false); 
+  }
 }
 
 //--------------------------------------------------------------------
