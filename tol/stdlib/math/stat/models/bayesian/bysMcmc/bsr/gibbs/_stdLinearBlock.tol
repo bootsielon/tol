@@ -69,7 +69,8 @@ Text _.autodoc.member.StdLinearBlock =
   //Logarithm of density of last generated vector
   Real _.betaLogDens = -1/0;
   //Stores the associated drawing method
-  Code drawer = UnknownCode;
+  Real noDraw(Real unused) { ? };
+  Code drawer = noDraw;
 
   ////////////////////////////////////////////////////////////////////////////
   //Initializes the block and checks that constrains are matched
@@ -241,6 +242,7 @@ Text _.autodoc.member.StdLinearBlock =
   VMatrix draw.unconstrained(Real numSim, VMatrix nu)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 1");
     VMatrix z = Gaussian(_.N,1,0,1);
     Real _.betaLogDens := -0.5*VMatDat(MtMSqr(z),1,1);
     VMatrix  (_.blockDef::_.store):=nu+CholeskiSolve(_.L,z,"LtP");
@@ -253,16 +255,21 @@ Text _.autodoc.member.StdLinearBlock =
   VMatrix draw.constrained(Real numSim, VMatrix nu)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_MID+" draw.constrained 1.1 Max(A*b0-a)="<<VMatMax(_.A*_.blockDef::_.store - a));
+  //WriteLn("TRACE "+_MID+" draw.constrained 1");
     VMatrix d   = _.a - _.A*nu;
+  //WriteLn("TRACE "+_MID+" draw.constrained 2");
     VMatrix If(changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
+  //WriteLn("TRACE "+_MID+" draw.constrained 3");
     VMatrix z0  = Tra(Tra(_.blockDef::_.store-nu)*_.Ls);
-  //WriteLn("TRACE "+_MID+" draw.constrained 1.2 Max(D*z0-d)="<<VMatMax(_.D*z0 - d));
+  //WriteLn("TRACE "+_MID+" draw.constrained 4");
     VMatrix z = TruncStdGaussian(_.D,d,z0,1,
                  _.blockDef::_.config::bsr.truncMNormal.gibbsNumIter);
+  //WriteLn("TRACE "+_MID+" draw.constrained 5");
     Real distBorder = VMatMax(_.D*z-d);
+  //WriteLn("TRACE "+_MID+" draw.constrained 6");
     Real If(distBorder<=0,
     {
+    //WriteLn("TRACE "+_MID+" draw.constrained 7");
       VMatrix _.beta0 := _.blockDef::_.store;
       1
     },
@@ -271,15 +278,20 @@ Text _.autodoc.member.StdLinearBlock =
         VMatMax(_.D*z-d)+"\n Trying again");
       If(!VRows(_.beta0),0,
       {
+      //WriteLn("TRACE "+_MID+" draw.constrained 8");
         VMatrix z0 := Tra(Tra(_.beta0-nu)*_.Ls);
+      //WriteLn("TRACE "+_MID+" draw.constrained 9");
         VMatrix z  := TruncStdGaussian(_.D,d,z0,1,
                      _.blockDef::_.config::bsr.truncMNormal.gibbsNumIter);
         1
       });
       1
     });
+  //WriteLn("TRACE "+_MID+" draw.constrained 10");
     Real _.betaLogDens := -0.5*VMatDat(MtMSqr(z),1,1);
+  //WriteLn("TRACE "+_MID+" draw.constrained 11");
     VMatrix  (_.blockDef::_.store) := nu + CholeskiSolve(_.L,z,"LtP");
+  //WriteLn("TRACE "+_MID+" draw.constrained 12");
     Copy(_.blockDef::_.store)
   };
 
@@ -289,10 +301,12 @@ Text _.autodoc.member.StdLinearBlock =
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_MID+" draw 1");
     If(_.blockDef::enabled,
     {
+    //WriteLn("TRACE "+_MID+" draw 2");
       VMatrix aux = drawer(numSim, _.solution::nu);
-    //WriteLn("TRACE "+_MID+" draw");
+    //WriteLn("TRACE "+_MID+" draw 3");
       Real _.blockDef::checkNonFiniteValues(numSim);
       aux
     },
