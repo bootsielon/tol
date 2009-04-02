@@ -43,10 +43,10 @@
   Real   k0  = -5*sigma*sk;
   Real   k1  = 0;
   Real   k2  = +5*sigma*sk;
-  Matrix a00 = Col(k0,k0); b00 = L*Col(k1,k1);
-  Matrix a01 = Col(k1,k0); b01 = L*Col(k2,k1);
-  Matrix a10 = Col(k0,k1); b10 = L*Col(k1,k2);
-  Matrix a11 = Col(k1,k1); b11 = L*Col(k2,k2);
+  Matrix a00 = Col(k0,k0); b00 = Col(k1,k1);
+  Matrix a01 = Col(k1,k0); b01 = Col(k2,k1);
+  Matrix a10 = Col(k0,k1); b10 = Col(k1,k2);
+  Matrix a11 = Col(k1,k1); b11 = Col(k2,k2);
   Matrix bounds = Tra(a00|b00|a01|b01|a10|b10|a11|b11);
 //Sampling non truncated bidimensional normal to get area for each 
 //quadrant
@@ -75,26 +75,26 @@
   Matrix c11 = RandTruncatedMultNormal(nu,L,a11,b11,sigma,s*4*s11);
 
 //Testing coherence of restrictions
-  Real r00 = SetProd(For(1,Columns(c00),Real(Real j) 
+  Real r00 = If(!Columns(c00),0,SetProd(For(1,Columns(c00),Real(Real j) 
   { 
     Matrix cj = SubCol(c00,[[j]]);
     Real And( MatSum(LE(a00,cj))==n, MatSum(LE(cj,b00))==n)
-  }));
-  Real r01 = SetProd(For(1,Columns(c01),Real(Real j) 
+  })));
+  Real r01 = If(!Columns(c01),0,SetProd(For(1,Columns(c01),Real(Real j) 
   { 
     Matrix cj = SubCol(c01,[[j]]);
     Real And( MatSum(LE(a01,cj))==n, MatSum(LE(cj,b01))==n)
-  }));
-  Real r10 = SetProd(For(1,Columns(c10),Real(Real j) 
+  })));
+  Real r10 = If(!Columns(c10),0,SetProd(For(1,Columns(c10),Real(Real j) 
   { 
     Matrix cj = SubCol(c10,[[j]]);
     Real And( MatSum(LE(a10,cj))==n, MatSum(LE(cj,b10))==n)
-  }));
-  Real r11 = SetProd(For(1,Columns(c11),Real(Real j) 
+  })));
+  Real r11 = If(!Columns(c11),0,SetProd(For(1,Columns(c11),Real(Real j) 
   { 
     Matrix cj = SubCol(c11,[[j]]);
     Real And( MatSum(LE(a11,cj))==n, MatSum(LE(cj,b11))==n)
-  }));
+  })));
 //Joining 4 samples
   Matrix c   = c00|c01|c10|c11;
   Matrix ct  = Tra(c);
