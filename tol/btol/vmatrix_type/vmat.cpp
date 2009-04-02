@@ -913,6 +913,13 @@ static int intCmp_(const void* v1, const void* v2)
       result = -3;
       continue;
     }
+    if(a[n]->code_ == ESC_undefined) 
+    {
+      err_cannot_create(fName, 
+        BText("Item number ")+(n+1)+" has undefined subtype");
+      result = -7;
+      continue;
+    }
     if(a[n]->code_ == ESC_chlmRtriplet) 
     {
       a_[n] = a[n];
