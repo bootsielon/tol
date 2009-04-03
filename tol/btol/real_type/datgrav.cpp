@@ -422,10 +422,10 @@ void BDatOfCSeries::CalcContens()
   DefExtOpr(1, BDatPutSerDat, "PutSerDat", 3, 3, "Serie Date Real",
   I2("(Serie ser, Date d, Real newValue)",
      "(Serie ser, Date d, Real nuevoValor)"),
-  I2("Changes the value of an element of a time series and returns the old "
-      "value.",
-     "Cambia el valor de un elemento de una serie temporal y devuelve el "
-     "valor que tenía anteriormente."),
+  I2("Changes the value of an element of a finite time series and returns  "
+     "the oldvalue.",
+     "Cambia el valor de un elemento de una serie temporal finita y "
+     "devuelve el valor que tenía anteriormente."),
      BOperClassify::Conversion_);
   void BDatPutSerDat::CalcContens()
 //--------------------------------------------------------------------
@@ -434,7 +434,16 @@ void BDatOfCSeries::CalcContens()
   BDate		  dte = Date(Arg(2));
   BDat		  x   = Dat(Arg(3));
   contens_ = ser[dte];
-  ser.PutDat(dte,x);
+  if(ser.IsStochastic())
+  {
+    ser.PutDat(dte,x); 
+  }
+  else
+  {
+    Warning(BText("[PutSerDat]")+
+            I2("Cannot modify a non finite time series.",
+               "No se puede modificar una serie infinita."));
+  }
 }
 
 #ifdef __USE_TC__
