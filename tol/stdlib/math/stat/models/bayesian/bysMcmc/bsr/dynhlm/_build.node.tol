@@ -12,22 +12,11 @@ NameBlock BuildNode =
   "Building nodes related methods to handle with Bsr::DynHlm models";
 
   //Methods related to Observational nodes
-  Set _build.node.obs = Include("_build.node.obs.tol");
-  Code Obs.Serie.Info;
-  Code Obs.Vector.Info;
-  Code Obs.Data.Info;
-  Code Obs.Input;
-  Code Obs.TransFun;
-  Code Obs.Output;
-  Code Obs;
-
+  #Embed "_build.node.obs.tol";
   //Methods related to Latent nodes
-  Set _build.node.lat = Include("_build.node.lat.tol");
-  Code Lat.Homog;
-
+  #Embed "_build.node.lat.tol";
   //Methods related to Prior nodes
-  Set _build.node.pri = Include("_build.node.pri.tol");
-  Code Pri.Homog
+  #Embed "_build.node.pri.tol"
 
 ]];
 

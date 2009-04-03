@@ -12,61 +12,32 @@ NameBlock Gibbs =
   "Gibbs related methods for BSR and extensions.";
 
   //Linear blocks related methods
-  Set _linBlk = Include("_stdLinearBlock.tol");
-  Code StdLinearBlock;
-
+  #Embed "_stdLinearBlock.tol";
   //Linear blocks related methods
-  Set _mnlBlk = Include("_mainLinearBlock.tol");
-  Code MainLinearBlock;
-
+  #Embed "_mainLinearBlock.tol";
   //Sigma block related methods
-  Set _sigBlk = Include("_sigmaBlock.tol");
-  Code SigmaBlock;
-
+  #Embed "_sigmaBlock.tol";
   //ARIMA block related methods
-  Set _armBlk = Include("_arimaBlock.tol");
-  Code ArimaBlock;
-
+  #Embed "_arimaBlock.tol";
   //Missing input block related methods
-  Set _imBlk = Include("_inputMissingBlock.tol");
-  Code InputMissingBlock;
-
+  #Embed "_inputMissingBlock.tol";
   //Missing output block related methods
-  Set _omBlk = Include("_outputMissingBlock.tol");
-  Code OutputMissingBlock;
-
+  #Embed "_outputMissingBlock.tol";
   //Basic BSR master (Lineal+Sigma+ARIMA+Missing I/O)
-  Set _basicMst = Include("_basicMaster.tol");
-  Code BasicMaster;
-
+  #Embed "_basicMaster.tol";
   //Basic BSR as a block that can be used by other masters
-  Set _bsrAsBlk = Include("_bsrAsBlock.tol");
-  Code BsrAsBlock;
-
+  #Embed "_bsrAsBlock.tol";
   //Generic I/O non linear filter block
-  Set _nonLinBlk = Include("_nonLinBlock.tol");
-  Code NonLinBlock;
-
+  #Embed "_nonLinBlock.tol";
   //Master that handles with basic BSR as a block and a set of non linear
   //filter blocks
-  Set _nonLinBsrMst = Include("_nonLinMaster.tol");
-  Code NonLinMaster;
-
+  #Embed "_nonLinMaster.tol";
   //The filter evaluator for transfer functions omega(B)/delta(B)
-  Set _deltaTransfer = Include("_deltaTransfer.tol");
-  Code DeltaTransfer;
-
+  #Embed "_deltaTransfer.tol";
   //The filter evaluator for probit models
-  Set _probitFilter = Include("_probitFilter.tol");
-  Code ProbitFilter;
-
+  #Embed "_probitFilter.tol";
   //Estimation methods
-  Set _estim = Include("_estim.tol");
-  Code EstimParsed;
-  Code EstimAscii;
-  Code EstimAndNotify;
-  Code NoNotifier;
-  Code Estim
+  #Embed "_estim.tol"
 ]];
  
 

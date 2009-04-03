@@ -4,7 +4,6 @@
 // PURPOSE: Declares method BysMcmc::BuildCycler
 /////////////////////////////////////////////////////////////////////////////
 
-
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.BuildCycler =
 "Builds a NameBlock that is able to generate a Markov Chain of a model "
@@ -16,10 +15,10 @@ Text _.autodoc.member.BuildCycler =
 " Text get.session  (Real unused); //Session tag name\n"
 " Text get.path     (Real unused); //Path to store Markov Chain as BBM\n"
 " Set  get.colNames (Real unused); //Names of Markov Chain variables\n"
-" Matrix draw       (Real numSim); //Draws a simulation of Markov Chain\n";
+" Matrix draw       (Real numSim); //Draws a simulation of Markov Chain\n"
 "NameBlock notifier is an event tracing handler and must has at least these "
 "public methods: \n"
-" Real initializing(Real numVar,Text path);//Notifies sampler initialization";
+" Real initializing(Real numVar,Text path);//Notifies sampler initialization"
 " Real simulating(Real numSim); //Notifies current simulation\n";
 NameBlock BuildCycler(NameBlock modelSampler, 
                       NameBlock config, 
@@ -285,8 +284,9 @@ NameBlock BuildCycler(NameBlock modelSampler,
   }
 
 ]]};
+
 /////////////////////////////////////////////////////////////////////////////
-PutDescription(_.autodoc.member.BuildCycler,BuildCycler);
+//PutDescription(_.autodoc.member.BuildCycler,BuildCycler);
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
@@ -308,3 +308,5 @@ Set RecoveAndReport(Text rootPath, Text id_model, Text id_session,
     rootPath, id_model, id_session);
   Set report = recover::report(burnin,length,thinning)
 }
+
+/* */

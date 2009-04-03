@@ -13,11 +13,8 @@ NameBlock DynHlm =
   "output and input data with optional ARIMA structure.";
 
   //DataBase schema and methods to handle with Bsr::DynHlm models
-  Set _db_api    = Include("_db_api.tol");
-  NameBlock DBApi;
-
+  #Embed "_db_api.tol";
   //Building nodes related methods to handle with Bsr::DynHlm models
-  Set _buildNode = Include("_build.node.tol");
-  NameBlock BuildNode
+  #Embed "_build.node.tol"
 ]];
   

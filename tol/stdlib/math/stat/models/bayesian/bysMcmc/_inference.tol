@@ -13,25 +13,13 @@ NameBlock Inference =
   Text _.autodoc.description =
   "Bayesian Inference over MonteCarlo Markov Chains.";
 
-  //private implementation
-  Set _functions = Include("_inference_functions.tol");
 
   Real _.raftery.diag.burnin = ?;
   Real _.raftery.diag.size   = ?;
   Real _.raftery.diag.remain = ?;
 
-  //public API
-  Code get.coda.raftery.diag;
-  Code get.sample;
-  Code get.coda.summary;
-  Code get.param.signif;
-  Code get.acf;
-  Code get.histogram;
-  Code get.kerDens;
-  Code report;
-  Code compare.reports;
-  Code loadMcmc;
-  Code loadAndReport
+  //private implementation
+  #Embed "_inference_functions.tol"
 ]];
   
 
