@@ -866,18 +866,22 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
 		else if(type==GraSerie()) {
 		    BUserTimeSerieDo* s1 = (BUserTimeSerieDo*)result;
 		    BUserTimeSerieDo* s2 = (BUserTimeSerieDo*)val;
-		    s1->PutContens(s2);
-#ifdef __USE_TC__
-		} else if(type==GraCSeries()) {
-		    BUserCTimeSeriesDo* s1 = (BUserCTimeSeriesDo*)result;
-		    BUserCTimeSeriesDo* s2 = (BUserCTimeSeriesDo*)val;
-		    s1->PutContens(s2);
-#endif /* __USE_TC__ */
-    } else if(type==GraNameBlock())  {
+		    s1->PutContens(s2); }
+    else if(type==GraNameBlock())  {
+/*
       Error(I2("Cannot apply PutValue (nor :=) to NameBlock variables",
         "No se puede aplicar la función PutValue (ni :=) a variables NameBlock"));
       result = NULL;
-		} else {
+*/
+		    ((BUserNameBlock*)(result))->PutContens(((BUserNameBlock*)(val))->Contens());
+    }
+#ifdef __USE_TC__
+		else if(type==GraCSeries()) {
+		    BUserCTimeSeriesDo* s1 = (BUserCTimeSeriesDo*)result;
+		    BUserCTimeSeriesDo* s2 = (BUserCTimeSeriesDo*)val;
+		    s1->PutContens(s2); }
+#endif /* __USE_TC__ */
+		else {
 		    TestResult(_name_,NIL,tre,NIL,BTRUE,
 			       I2("Incompatible types: ",
 				        "Tipos incompatibles: ") + 

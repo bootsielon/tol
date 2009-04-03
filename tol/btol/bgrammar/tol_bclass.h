@@ -112,7 +112,11 @@ public:
   BMemberOwner(const BMemberOwner& mbrOwn);
  ~BMemberOwner();
 
+  void CreateMemberHashes();
+  void CreateParentHashes();
   void DestroyMemberStore();
+  void DestroyParentHashes();
+  void DestroyAll();
   const BMemberOwner& operator = (const BMemberOwner& mbrOwn) 
   { 
     Copy(mbrOwn); 

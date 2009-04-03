@@ -195,7 +195,7 @@ BMember::~BMember()
 //! True if member has default value
 //--------------------------------------------------------------------
 { 
-  return(definition_.HasName()); 
+  return(definition_.HasName()!=0); 
 }
 
 //--------------------------------------------------------------------
@@ -214,22 +214,13 @@ BMemberOwner::BMemberOwner()
 //--------------------------------------------------------------------
 : isGood_      (true),
   tree_        (NULL),   
-  parentHash_  (new BClassByNameHash),
-  ascentHash_  (new BClassByNameHash),
-  mbrDecHash_  (new BMemberByNameHash),
-  mbrDefHash_  (new BMemberByNameHash),
-  memberHash_  (new BMbrNumByNameHash),
+  parentHash_  (NULL),
+  ascentHash_  (NULL),
+  mbrDecHash_  (NULL),
+  mbrDefHash_  (NULL),
+  memberHash_  (NULL),
   lastPosition_(0)
 {
-  //Reset hash_map's
-  SetEmptyKey  ((*parentHash_), NULL);
-  SetEmptyKey  ((*ascentHash_), NULL);
-  SetEmptyKey  ((*mbrDecHash_), NULL);
-  SetEmptyKey  ((*mbrDefHash_), NULL);
-  SetEmptyKey  ((*memberHash_), NULL);
-  SetDeletedKey((*mbrDecHash_), name_del_key());
-  SetDeletedKey((*mbrDefHash_), name_del_key());
-  SetDeletedKey((*memberHash_), name_del_key());
 }
 
 //--------------------------------------------------------------------
@@ -251,26 +242,80 @@ BMemberOwner::BMemberOwner(const BMemberOwner& mbrOwn)
 BMemberOwner::~BMemberOwner()
 //--------------------------------------------------------------------
 {
-  int n=0;
+  DestroyAll();
+}
+
+//--------------------------------------------------------------------
+void BMemberOwner::DestroyAll()
+//--------------------------------------------------------------------
+{
   DestroyMemberStore();
-//Std(BText("\n")+Name()+"::~BClass()");
-  //Frees parent classes
-  BClassByNameHash::const_iterator iterC;
-  if(parentHash_)
+  DestroyParentHashes();
+  DESTROY(tree_);
+}
+
+//--------------------------------------------------------------------
+void BMemberOwner::CreateMemberHashes()
+//--------------------------------------------------------------------
+{
+  //Reset hash_map's
+  mbrDecHash_  = new BMemberByNameHash;
+  mbrDefHash_  = new BMemberByNameHash;
+  memberHash_  = new BMbrNumByNameHash;
+  SetEmptyKey  ((*mbrDecHash_), NULL);
+  SetEmptyKey  ((*mbrDefHash_), NULL);
+  SetEmptyKey  ((*memberHash_), NULL);
+  SetDeletedKey((*mbrDecHash_), name_del_key());
+  SetDeletedKey((*mbrDefHash_), name_del_key());
+  SetDeletedKey((*memberHash_), name_del_key());
+}
+
+//--------------------------------------------------------------------
+void BMemberOwner::CreateParentHashes()
+//--------------------------------------------------------------------
+{
+  //Reset hash_map's
+  parentHash_  = new BClassByNameHash;
+  ascentHash_  = new BClassByNameHash;
+  SetEmptyKey  ((*parentHash_), NULL);
+  SetEmptyKey  ((*ascentHash_), NULL);
+}
+
+//--------------------------------------------------------------------
+  void BMemberOwner::Copy(const BMemberOwner& mbrOwn)
+//--------------------------------------------------------------------
+{
+  int n=0;
+  if(!mbrOwn.isGood_) 
   {
-    BClassByNameHash& par = *parentHash_;
+    Error(I2("FATAL: Cannot copy corrupted BMemberOwner  ",
+             "FATAL: No se puede copiar un BMemberOwner corrupto"));
+    return; 
+  }
+  DestroyAll();
+
+  tree_ = (mbrOwn.tree_)?mbrOwn.tree_->duplicate():NULL;
+
+  if(mbrOwn.parentHash_)
+  {
+    CreateParentHashes();
+    BClassByNameHash::const_iterator iterC;
+    BClassByNameHash& par = *(mbrOwn.parentHash_);
     for(iterC=par.begin(); iterC!=par.end(); iterC++, n++)
     {
-      BClass* parent = iterC->second;
-      parent->DecNRefs();
-      DESTROY(parent);
-    };
-    delete parentHash_; 
+      AddParent(iterC->second);
+    }
   }
-  if(ascentHash_) { delete ascentHash_; }
-
-  //Destroy parsed tree
-  DESTROY(tree_);
+  if(mbrOwn.memberHash_)
+  {
+    BMbrNumByNameHash::const_iterator iterM;
+    BMbrNumByNameHash& mbr = *(mbrOwn.memberHash_);
+    for(iterM=mbr.begin(); iterM!=mbr.end(); iterM++, n++)
+    {
+      AddMember(iterM->second->member_);
+    }
+  }
+  lastPosition_ = mbrOwn.lastPosition_;
 }
 
 //--------------------------------------------------------------------
@@ -308,6 +353,33 @@ BMemberOwner::~BMemberOwner()
 }
 
 //--------------------------------------------------------------------
+  void BMemberOwner::DestroyParentHashes()
+//--------------------------------------------------------------------
+{
+  if(parentHash_)
+  {
+    int n=0;
+    BClassByNameHash::const_iterator iterC;
+    BClassByNameHash& par = *parentHash_;
+    for(iterC=par.begin(); iterC!=par.end(); iterC++, n++)
+    {
+      BClass* parent = iterC->second;
+      parent->DecNRefs();
+      DESTROY(parent);
+    };
+    delete parentHash_; 
+  }
+  if(ascentHash_) { delete ascentHash_; }
+}
+
+//--------------------------------------------------------------------
+  void BMemberOwner::PutTree(List* tree)
+//--------------------------------------------------------------------
+{
+  tree_ = tree;
+}
+
+//--------------------------------------------------------------------
 int MbrNumCmp(const void* v1, const void* v2)
 //--------------------------------------------------------------------
 {
@@ -334,32 +406,11 @@ int MbrNumCmp(const void* v1, const void* v2)
 }
 
 //--------------------------------------------------------------------
-  void BMemberOwner::Copy(const BMemberOwner& mbrOwn)
-//--------------------------------------------------------------------
-{
-  isGood_      = mbrOwn.isGood_;
-  tree_        = (mbrOwn.tree_)?mbrOwn.tree_->duplicate():NULL;
-  parentHash_  = new BClassByNameHash (*mbrOwn.parentHash_);
-  ascentHash_  = new BClassByNameHash (*mbrOwn.ascentHash_);
-  mbrDecHash_  = new BMemberByNameHash(*mbrOwn.mbrDecHash_);
-  mbrDefHash_  = new BMemberByNameHash(*mbrOwn.mbrDefHash_);
-  memberHash_  = new BMbrNumByNameHash(*mbrOwn.memberHash_);
-  lastPosition_ = mbrOwn. lastPosition_;
-}
-
-//--------------------------------------------------------------------
-  void BMemberOwner::PutTree(List* tree)
-//--------------------------------------------------------------------
-{
-  tree_ = tree;
-}
-
-//--------------------------------------------------------------------
   bool BMemberOwner::InheritesFrom(const BText& name) const
 //! True if inherites from a Class called as given name
 //--------------------------------------------------------------------
 {
-  if(!isGood_) { return(false); }
+  if(!isGood_ || !ascentHash_) { return(false); }
   BClassByNameHash::const_iterator found = ascentHash_->find(name);
   return(found!=ascentHash_->end());
 }
@@ -376,7 +427,7 @@ int MbrNumCmp(const void* v1, const void* v2)
   BMbrNum* BMemberOwner::FindMbrNum(const BText& name) const
 //--------------------------------------------------------------------
 {
-  if(!isGood_) { return(NULL); }
+  if(!isGood_ || !memberHash_) { return(NULL); }
   BMbrNumByNameHash::const_iterator found;
   found = memberHash_->find(name);
   if(found==memberHash_->end()) { return(NULL); }
@@ -397,7 +448,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 //! Searchs a member with given declaration and default value
 //--------------------------------------------------------------------
 {
-  if(!isGood_) { return(NULL); }
+  if(!isGood_ || !memberHash_) { return(NULL); }
   BMemberByNameHash::const_iterator found;
   found = mbrDefHash_->find(declaration);
   if(found==mbrDefHash_->end()) { return(NULL); }
@@ -409,7 +460,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 //! Searchs a member with given declaration without default value
 //--------------------------------------------------------------------
 {
-  if(!isGood_) { return(NULL); }
+  if(!isGood_ || !memberHash_) { return(NULL); }
   BMemberByNameHash::const_iterator found;
   found = mbrDecHash_->find(declaration);
   if(found==mbrDecHash_->end()) { return(NULL); }
@@ -422,6 +473,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 //--------------------------------------------------------------------
 {
   if(!isGood_) { return(false); }
+  if(!memberHash_) { CreateMemberHashes(); }
   BMbrNum* newMbrNum = new BMbrNum;
   newMbrNum->member_ = newMember;
   newMbrNum->position_ = lastPosition_++;
@@ -520,6 +572,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 {
   if(!isGood_) { return(false); }
   if(!parent) { return(true); }
+  if(!parentHash_) { CreateParentHashes(); }
 //Std(BText("\n")+Name()+"::AddParent("+parent->Name()+")");
   bool ok = true;
   int n;
@@ -567,6 +620,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 //--------------------------------------------------------------------
 {
   if(!isGood_) { return(false); }
+  if(!parentHash_) { CreateParentHashes(); }
   int n;
   bool ok = true;
   for(n=0; ok && (n<parent.Size()); n++)
@@ -582,7 +636,8 @@ int MbrNumCmp(const void* v1, const void* v2)
 //! Adds the list of parsed members
 //--------------------------------------------------------------------
 {
-  if(!isGood_) { return(false); }
+  if(!isGood_ ) { return(false); }
+  if(!memberHash_) { CreateMemberHashes(); }
   bool ok = true;
   BMember* mbr = NULL;
   List* lst = NULL;
@@ -594,7 +649,7 @@ int MbrNumCmp(const void* v1, const void* v2)
       lst = memberLst;
       while(ok && lst)
       {
-        if(ok = lst->car()->IsListClass())
+        if(ok = lst->car()->IsListClass()!=0)
         {
           mbr = new BMember(this, (List*)lst->car());
         }
@@ -618,7 +673,7 @@ int MbrNumCmp(const void* v1, const void* v2)
         lst = memberLst->cdr();
         while(ok && lst)
         {
-          if(ok = lst->car()->IsListClass())
+          if(ok = lst->car()->IsListClass()!=0)
           {
             mbr = new BMember(this, (List*)lst->car());
           }
@@ -657,6 +712,8 @@ BClass::BClass()
 : BSyntaxObject(),
   BMemberOwner()
 {
+  CreateMemberHashes();
+  CreateParentHashes();
 }
 
 //--------------------------------------------------------------------
@@ -667,6 +724,8 @@ BClass::BClass(const BText& name,
   BMemberOwner()
 {
   PutTree(tree_);
+  CreateMemberHashes();
+  CreateParentHashes();
   //Adds object to language searchers
   BGrammar::AddObject(this);
 }

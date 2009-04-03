@@ -161,18 +161,16 @@ BNameBlock::~BNameBlock()
 BNameBlock& BNameBlock::operator= (const BNameBlock& ns)
 //--------------------------------------------------------------------
 {
-  Copy(ns);
+  BMemberOwner::Copy(ns);
   PutName(ns.Name());
-  owner_     = NULL;
-  set_       = ns.Set();
-  father_    = ns.Father();
-  public_    = ns.Public();
-  private_   = ns.Private();
   localName_ = ns.LocalName();
-  //VBR: La copia de NameBlock tiene un problema si los miembros
-  //referenciados en ambos son los mismos, ¿cuál es su padre?
+  owner_     = NULL;
+  father_    = ns.Father();
+  Fill(ns.Set());
+  Build();
   return(*this);
 }
+
 
 //--------------------------------------------------------------------
 BUserNameBlock* BNameBlock::Owner() const 
