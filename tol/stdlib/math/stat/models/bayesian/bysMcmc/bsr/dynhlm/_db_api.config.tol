@@ -1,0 +1,75 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : _config.tol
+// PURPOSE : Configuration of BysMcmc::Bsr::DynHlm
+//////////////////////////////////////////////////////////////////////////////
+
+//Database engine by default is MySql, that is the only one allowed at this 
+//release
+Real _.engine = SqlEngine::GesMys;
+
+//Database must be open before to use this API but some methods could use
+//connection parameters. Then this field must be defined previously.
+NameBlock dbConnect = [[ Text _.alias="NoConnection" ]];
+
+//Enables or disables SQL tracing
+Real doQueryTrace = False;
+//Enables or disables automatic SQL cache
+Real allowAutoCache = False;
+
+Struct CachedTableReg
+{
+  Text table_;
+  Text path_;
+  Real file_;
+  Real numReg_
+};
+
+Real _autoCache = False;
+Text _cacheQueryRootPath = "";
+Set  _cachedTables = Copy(Empty);
+
+//If it's true the automatic generated input missing variables will use 
+//id_node as prefix of identifier. Else it will use MIXTURE node and all
+//inputs with the same name will are referred to the same input missing
+//variables. 
+Real useNodeInMissingIdentifier = True;
+
+Real SqlExecScript.NotImplemented(Text filePath)
+{
+  WriteLn("[SqlExecScript.NotImplemented] Sorry assign "
+    "BysMcmc::Bsr::DynHlm::DBApi::SqlExecScript or disable "+
+    "BysMcmc::Bsr::DynHlm::DBApi::allowAutoCache","E");
+  Real Stop
+};
+
+//Set of TOL alias for database tables
+Set _.tableName = 
+[[
+  /*01*/ Text GibbsBlk       = "bsrhlm_d_gibbs_block";
+  /*02*/ Text Nodetype       = "bsrhlm_d_node_type";
+  /*03*/ Text LevelNodTyp    = "bsrhlm_d_level_node_type";
+  /*04*/ Text Model          = "bsrhlm_d_model";
+  /*05*/ Text Session        = "bsrhlm_d_session";
+  /*06*/ Text ModSes         = "bsrhlm_d_model_session";
+  /*07*/ Text Level          = "bsrhlm_d_level";
+  /*08*/ Text Node           = "bsrhlm_d_node";
+  /*09*/ Text Parameter      = "bsrhlm_v_mix_parameter";
+  /*10*/ Text NonLinFlt      = "bsrhlm_v_mix_non_lin_filter";
+  /*11*/ Text OrderRel       = "bsrhlm_v_mix_order_relation";
+  /*12*/ Text ConstrBorder   = "bsrhlm_v_mix_cnstrnt_border";
+  /*13*/ Text ConstrLinComb  = "bsrhlm_v_mix_cnstrnt_lin_cmb";
+  /*14*/ Text ObsOutput      = "bsrhlm_v_obs_output";
+  /*15*/ Text ObsArimaBlk    = "bsrhlm_v_obs_arima_block";
+  /*16*/ Text ObsInput       = "bsrhlm_v_obs_input";
+  /*17*/ Text ObsTransFun    = "bsrhlm_v_obs_transferFunction";
+  /*18*/ Text LatSigBlk      = "bsrhlm_v_lat_sigma_block";
+  /*19*/ Text LatEqu         = "bsrhlm_v_lat_equ";
+  /*20*/ Text LatOutput      = "bsrhlm_v_lat_output";
+  /*21*/ Text LatInput       = "bsrhlm_v_lat_input";
+  /*22*/ Text PriEqu         = "bsrhlm_v_pri_equ";
+  /*23*/ Text PriOutput      = "bsrhlm_v_pri_output";
+  /*24*/ Text EstimStatus    = "bsrhlm_v_est_status";
+  /*25*/ Text ParamStats     = "bsrhlm_v_est_param_stats"
+]];
+//The same list of database alias as a NameBlock
+NameBlock _.table = SetToNameBlock(_.tableName);
