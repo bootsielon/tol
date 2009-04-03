@@ -21,8 +21,8 @@ Text _.autodoc.member.BuildCycler =
 " Real initializing(Real numVar,Text path);//Notifies sampler initialization"
 " Real simulating(Real numSim); //Notifies current simulation\n";
 NameBlock BuildCycler(NameBlock modelSampler, 
-                      NameBlock config, 
-                      NameBlock notifier)
+                      Config config, 
+                      Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {[[
   //--------------------------------------------------------------------------
@@ -30,8 +30,8 @@ NameBlock BuildCycler(NameBlock modelSampler,
   //--------------------------------------------------------------------------
   //Internal reference to sampler definition
   NameBlock _.sampler  = modelSampler;
-  NameBlock _.notifier = notifier;
-  NameBlock _.config   = config;
+  BysMcmc::Notifier _.notifier = notifier;
+  BysMcmc::Config   _.config   = config;
   //Stores the sampler name
   Text _.name = _.sampler::get.name(0)+"."+_.sampler::get.session(0);
   //Puts the Markov Chain path relative to sampler path

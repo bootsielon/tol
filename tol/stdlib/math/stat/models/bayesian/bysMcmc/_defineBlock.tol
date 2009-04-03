@@ -18,7 +18,7 @@ NameBlock DefineBlock(Text name,
                       Set colNames, 
                       Real numBlock, 
                       Real firstCol,
-                      NameBlock config)
+                      Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real numCol = Card(colNames);
@@ -40,7 +40,7 @@ NameBlock DefineBlock(Text name,
   //Indexes of columns of this block in full MCMC
   Set _.colIdx = Range(_.firstCol, _.lastCol, 1);
   //User configuration parameters
-  NameBlock _.config   = config;
+  BysMcmc::Config _.config   = config;
   //Stores current values of parameters
   VMatrix _.store = Rand(_.numCol,1,0,0);
   //Flag that enables/disables the block

@@ -15,6 +15,7 @@ NameBlock BysMcmc =
   "Generic MonteCarlo Markov Chain methods and some applications.";
   //private implementation
   #Embed "_config.tol";
+  #Embed "_notifier.tol";
   #Embed "_build.tol";
   #Embed "_cmsgs.tol"; 
   #Embed "_defineBlock.tol";

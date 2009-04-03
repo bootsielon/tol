@@ -269,7 +269,7 @@ NameBlock OneNode =
   "  Real _.sigmaPriorWeight;  //Weight for Bsr.Sigma.Prior.InverseGamma\n"
   "  Set _.timeInfo;        //BSR.NoiseTimeInfo\n"
   "]];\n";
-  Set Estim(NameBlock data, Set nonLinFil, NameBlock config_)
+  Set Estim(NameBlock data, Set nonLinFil, Config config_)
   ///////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[EstimOneNode]";
@@ -284,7 +284,7 @@ NameBlock OneNode =
         modelDef,
         nonLinFil, 
         config_,
-        BysMcmc::Bsr::Gibbs::NoNotifier(0)
+        BysMcmc::NoNotifier(0)
       );
       //WriteLn(_MID+" TRACE 11");
       //Adding data source information

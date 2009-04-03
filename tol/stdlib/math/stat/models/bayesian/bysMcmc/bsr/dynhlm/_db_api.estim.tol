@@ -218,10 +218,9 @@ Set Estim(Text dbName,
           Text session, 
           Text resultRootPath,
           NameBlock seriesHandler, 
-          NameBlock config_)
+          NameBlock config)
 ////////////////////////////////////////////////////////////////////////////
 {
-  NameBlock config = BysMcmc::BuildFullConfig(config_);
   Real BysMcmc::Bsr::DynHlm::DBApi::useNodeInMissingIdentifier := 
     config::DBApi.useNodeInMissingIdentifier;
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
@@ -254,7 +253,7 @@ Set Estim(Text dbName,
     "NULL)");  //dh_ending
 
   //Creates the data base notifier of current status
-  NameBlock dbNotifier =
+  BysMcmc::Notifier dbNotifier =
   [[
     Text _.dbName = dbName;
     Text _.model  = model;

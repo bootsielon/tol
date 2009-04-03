@@ -10,21 +10,14 @@
 Text _.autodoc.member.EstimParsed =
 "Estimates a BSR model by Gibbs method\n"+
 "Argument `parsed` must be defined as the result of calling function "
-"BSR.Parse\n"+
-"Argument `notifier` is an event tracing handler and must has at least "
-"these public methods: \n"+
-" Real initializing(Real numVar,Text path) { ... };\n"+
-" Real simulating(Real numSim, Real timeAvg) { ... };\n"+
-" Real reporting(Real unused) { ... };\n"+
-" Real evaluating(Real unused) { ... };\n";
+"BSR.Parse\n";
 
 Set EstimParsed(BSR.ModelDef parsed, 
                 Set nonLinFilter,
-                NameBlock config_,
-                NameBlock notifier)
+                Config config,
+                Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
-  NameBlock config = BysMcmc::BuildFullConfig(config_);
 //WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
   NameBlock gibbs = If(!Card(nonLinFilter),
   {
@@ -108,18 +101,11 @@ PutDescription(_.autodoc.member.EstimParsed,EstimParsed);
 Text _.autodoc.member.EstimAscii =
 "Estimates a BSR model by Gibbs method\n"+
 "Argument `ascii` must be an ASCII file path prepared to be parsed by "
-"function BSR.Parse\n"+
-"Argument `notifier` is an event tracing handler and must has at least "
-"these public methods: \n"+
-" Real parsing(Real numVar,Text path);\n"+
-" Real initializing(Real numVar,Text path);\n"+
-" Real simulating(Real numSim); \n"+
-" Real reporting(Real numVar,Text path);\n"+
-" Real evaluating(Real numVar,Text path);\n";
+"function BSR.Parse\n";
 Set EstimAscii(Text ascii_, 
                Set nonLinFilter,
-               NameBlock config,
-               NameBlock notifier)
+               Config config,
+               Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimAscii Card(nonLinFilter) = "<<Card(nonLinFilter));
@@ -142,17 +128,10 @@ Text _.autodoc.member.EstimAndNotify =
 " function BSR.Parse\n"+
 " - A Set containing the result of calling function BSR.Parse\n"+
 " - A NameBlock with the minimum API accepted by standard importing method "
-"BysMcmc::Bsr::Import::Write\n"+
-"Argument `notifier` is an event tracing handler and must has at least "
-"these public methods: \n"+
-" Real parsing(Real numVar,Text path);\n"+
-" Real initializing(Real numVar,Text path);\n"+
-" Real simulating(Real numSim); \n"+
-" Real reporting(Real numVar,Text path);\n"+
-" Real evaluating(Real numVar,Text path);\n";
+"BysMcmc::Bsr::Import::Write\n";
 Set EstimAndNotify(Anything modelDef, 
-                   NameBlock config,
-                   NameBlock notifier)
+                   Config config,
+                   Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text g = Grammar(modelDef);
@@ -184,16 +163,6 @@ Set EstimAndNotify(Anything modelDef,
 PutDescription(_.autodoc.member.EstimAndNotify,EstimAndNotify);
 /////////////////////////////////////////////////////////////////////////////
   
-//////////////////////////////////////////////////////////////////////////////
-NameBlock NoNotifier(Real 0)
-//////////////////////////////////////////////////////////////////////////////
-{[[
-  Real parsing(Real unused) { Real 0 };
-  Real initializing(Real numVar,Text path) { Real 0 };
-  Real simulating(Real numSim, Real timeAvg) { Real 0 };
-  Real reporting(Real unused) { Real 0 };
-  Real evaluating(Real unused) { Real 0 }
-]]};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Estim =
@@ -208,7 +177,7 @@ Set Estim(Anything modelDef,
           NameBlock config)
 //////////////////////////////////////////////////////////////////////////////
 {
-  EstimAndNotify(modelDef, config, BysMcmc::Bsr::Gibbs::NoNotifier(0))
+  EstimAndNotify(modelDef, config, BysMcmc::NoNotifier(0))
 };
 /////////////////////////////////////////////////////////////////////////////
 PutDescription(_.autodoc.member.Estim,Estim);

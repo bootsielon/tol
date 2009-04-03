@@ -36,8 +36,8 @@ NameBlock Options =
 ]];
 
 //Configuration default values over all BysMcmc related components
-Set _config =
-[[
+Class Config
+{
 //MCMC dimensions
   //The final number realizations that will remain after burnin
   Real mcmc.sampleLength = 2000;
@@ -82,12 +82,12 @@ Set _config =
   Real bsr.linBlk.MH.maxConsecutive = 10;
   //Scalar sampler used in ARMA block of basic BSR can be a member of 
   //BysMcmc::Options::Scalar.Sampler or an API equivalent function
-  Code bsr.scalarSampler.armaBlock = Options::Scalar.Sampler::Slice;
+  Code bsr.scalarSampler.armaBlock = BysMcmc::Options::Scalar.Sampler::Slice;
   //Scalar sampler used in ARMA block of basic BSR can be a member of 
   //BysMcmc::Options::Scalar.Sampler or an API equivalent function
-  Code bsr.scalarSampler.nonLinBlock = Options::Scalar.Sampler::Slice;
+  Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Slice;
   //Arima filter method
-  Text bsr.arimaFilter = Options::Arima.Filter::FastChol;
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
   //ARIMA block will be updated each this number of iterations
   Real bsr.arimaSkipIter = 1;
 //CODA and other diagnostic report configuration
@@ -128,29 +128,13 @@ Set _config =
   //inputs with the same name will are referred to the same input missing
   //variables. 
   Real DBApi.useNodeInMissingIdentifier = True
-]];
-
-NameBlock Config = 
-{
-  Real SetIndexByName(_config);
-  SetToNameBlock(_config)
 };
 
-//Searches a parameter in the user defined configuration NameBlock and, if
-//not exists returns default value of BsyMcmc::Config
-Anything GetCfgVal(NameBlock config, Text member)
+//////////////////////////////////////////////////////////////////////////////
+Config Config.Default(Real unused)
+//////////////////////////////////////////////////////////////////////////////
 {
-  StdLib::GetConfigValue(config,member,Eval("BysMcmc::Config::"+member))
+  Config default;
+  default
 };
-//Takes a NameBlock with some config pararameter configurations and adds
-//non specified members with default values
-NameBlock BuildFullConfig(NameBlock config)
-{
-  Set _cfg = EvalSet(_config, Anything(Anything member)
-  {
-    GetCfgVal(config, Name(member))
-  });
-  Real SetIndexByName(_cfg);
-  SetToNameBlock(_cfg)
-}
 

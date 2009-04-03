@@ -14,7 +14,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //--------------------------------------------------------------------------
   // Configuration members
   //--------------------------------------------------------------------------
-  NameBlock _config = BysMcmc::BuildFullConfig(config);
+  BysMcmc::Config _config = config;
 
   //--------------------------------------------------------------------------
   // Read only members
