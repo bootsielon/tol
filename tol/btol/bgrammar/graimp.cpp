@@ -539,10 +539,13 @@ typedef hash_map_by_size_t<BSyntaxObject*>::dense_ BLocalItems;
 BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
 //--------------------------------------------------------------------
 {
+  static BEqualOperator* BNameBlock_BEqualOperator = 
+    (BEqualOperator*)GraNameBlock()->FindOperator("=");
   static BText none;
   eval_depth_t eval_depth_helper;
   bool error = false;
   BGrammar* newGrammar = NIL;
+  BClass* newClass = NIL;
   BBool enableCasting=BTRUE;
   bool isCreatingNameBlock = BEqualOperator::IsCreatingNameBlock();
   BToken* tok  = BParser::treToken(tre);
@@ -573,7 +576,8 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
   // BList* local = NIL; // unused
   int stackPos = -1;
 
-  if((this==GraNameBlock()) && (name=="SetOfAnything"))
+  if((this==GraNameBlock()) && 
+    ((name=="SetOfAnything")||(name=="#DefaultInstance")))
   {
     return(BNameBlock::EvaluateTree(tre));
   } 
@@ -667,6 +671,10 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
       const BText& newName = result->Name();
       result = newGrammar->New(newName, result);
     } 
+  }
+  else if((type == TYPE) && (newClass=FindClass(name)))
+  {
+    result = BNameBlock_BEqualOperator->Evaluate(tre);
   }
   else if (type == BINARY && this == GraAnything() && 
            name != "=" && name != "#F#" && 

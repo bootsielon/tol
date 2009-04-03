@@ -810,9 +810,22 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
   List* rest = NULL;
   BStruct* str = NULL;
   BClass*  cls = NULL;
-  BGrammar* gra = GetLeft(Grammar(),
-                          Tree::treNode((List*) argList),
-                          name, rest, str, cls);
+
+  bool carIsList = argList->car()->IsListClass();
+  List* dec = carIsList?Tree::treNode((List*) argList):(List*)argList;
+  BGrammar* gra = GetLeft(Grammar(), dec, name, rest, str, cls);
+  List* left = NULL;
+  bool defInst = false;
+  if(!carIsList && cls && !rest)
+  {
+    defInst = true; 
+    BToken* tok = new BToken("#DefaultInstance",ARGUMENT);
+    left = new List(tok, NIL);
+  }
+  else
+  {
+    left = Tree::treLeft((List*)argList);
+  } 
   creatingClass_ = NULL;
   bool oldIsCreatingNameBlock = isCreatingNameBlock_;
   bool isNameBlock = gra==GraNameBlock();
@@ -839,7 +852,14 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
   }
   if(!rest && gra) 
   {
-	  result = CreateObject(Tree::treLeft((List*)argList), gra, name);
+    if(defInst)
+    {
+	    result = CreateObject(left, gra, name);
+    }
+    else
+    {
+	    result = CreateObject(left, gra, name);
+    }
     if(str && result)
     {
       BSet& set = Set(result);
@@ -870,6 +890,10 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
     creatingName_    = oldName; 
     creatingClass_   = oldClass;
     isCreatingNameBlock_ = oldIsCreatingNameBlock;
+  }
+  if(defInst)
+  {
+    DESTROY(left);
   }
   return(result);
 }

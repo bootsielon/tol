@@ -260,6 +260,8 @@ const BText& BNameBlock::LocalName() const
 //--------------------------------------------------------------------
 {
   int n;
+  BToken* tok = (BToken*)_tre->car();
+  bool isDefaultInstance = tok->Name()=="#DefaultInstance";
   BText name  = BEqualOperator::CreatingName();
   BText fullName = BEqualOperator::CurrentFullName();
   const BClass* cls = BEqualOperator::CreatingClass();
@@ -315,13 +317,18 @@ const BText& BNameBlock::LocalName() const
     }
     else
     {
-      List* tre = _tre->duplicate();
+      List* tre = NULL;
+      if(!isDefaultInstance) { tre = _tre->duplicate(); }
       newNameBlock.PutTree(tre);
+      newNameBlock.CreateParentHashes();
+      newNameBlock.CreateMemberHashes();
       newNameBlock.AddParent((BClass*)cls);
-      newNameBlock.AddMemberList(tre->cdr());
+      if(!isDefaultInstance) { 
+      //Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
+        newNameBlock.AddMemberList(tre->cdr());
+      }
       newNameBlock.SortMembers();
       int stackPos = BGrammar::StackSize();
-
 
       if(newNameBlock.isGood_ && newNameBlock.mbrDecHash_->size())
       {

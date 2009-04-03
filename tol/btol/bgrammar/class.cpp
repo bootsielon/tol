@@ -79,7 +79,7 @@ BMember::BMember(BMemberOwner* parent, List* branch)
     BText expression = BParser::Unparse(branch,"","");
     if(expression[0]=='[')
     {
-      expression = expression.SubString(2,expression.Length()-4);
+      expression = expression.SubString(2,expression.Length()-3);
     }
     else if(expression[0]=='{')
     {

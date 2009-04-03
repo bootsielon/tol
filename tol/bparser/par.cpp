@@ -893,7 +893,6 @@ Tree* BParser::ParseSeparator (Tree* tre)
   } 
   else 
   {
-
     if(NextSymbol()->Name()==";")
     { 
       classInheritage_=false; 
