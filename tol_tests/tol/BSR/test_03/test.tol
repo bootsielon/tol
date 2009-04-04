@@ -24,7 +24,7 @@ WriteLn("Current Random Seed = "<<rndSeed);
 //Creates a random model and writes it in "parse.bsr"
 Set Include("load.tol");
 
-Real TolOprProfiler.Enabled := True;
+//Real TolOprProfiler.Enabled := True;
 
 BysMcmc::Config bsr.config = [[
   Real mcmc.sampleLength = 2000;
@@ -38,7 +38,7 @@ BysMcmc::Config bsr.config = [[
 
 Set estim = { BysMcmc::Bsr::Gibbs::Estim(mod::bsr.parsed, bsr.config) };
 
-Real TolOprProfiler.Dump("model.03");
+//Real TolOprProfiler.Dump("model.03");
 
 Struct CompareStruct 
 {
