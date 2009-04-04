@@ -1,0 +1,236 @@
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LogAditiveEffect =
+"Builds a NameBlock that can be used as non linear filter by method "
+"NonLinBlock in order to simulate alpha coefficents of additive effects X1 "
+"in a logarithmic model as this one\n"
+"\n"
+" Log(Y-X1*alpha) = X2*beta + e; e ~ N(0,s^2) \n"
+"\n"
+"that can be written so\n"
+"\n"
+" Log(Y) = F + X2*beta + e; e ~ N(0,s^2) \n"
+"\n"
+"where the non linear filter of output is defined as\n"
+"\n"
+" F = Log(Y)-Log(Y-X1*alpha)\n"
+"\n"
+"Linear parameter omega will be simulated by BSR linear block.\n"
+"Arguments are:\n"
+"  Real     enabled       : enables/disables non linear filter \n"
+"  Text     segmentName   : identifier of affected output segment \n"
+"  Anything origOutput    : Series or vector output in original metric\n"
+"  Set      aditiveInputs : Set of NameBlock defining X1 and alpha\n" 
+"";
+//////////////////////////////////////////////////////////////////////////////
+NameBlock LogAditiveEffect
+(
+  Real     enabled,
+  Text     segmentName,
+  Anything origOutput,
+  Date     firstDate,
+  Date     lastDate,
+  Set      aditiveInputs
+)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Real _.isNonLinearFilter = True;
+
+  Real     _.enabled = enabled;
+  Text     _.cleanSegmentName = segmentName;
+  Anything _.origOutput = origOutput;
+  Date     _.firstDate = firstDate;
+  Date     _.lastDate = lastDate;
+  Set      _.aditiveInputs = aditiveInputs;
+
+  Text _.segmentName = segmentName+"::Noise";
+  //Identifier of original input
+  Text _.inputName = "LogAditiveEffect";
+  //Identifier prefix for non linear parameters
+  Text _.name = "NonLinearFilterBlk::"+_.cleanSegmentName+"::LogAdEff";
+  Text _MID = "["+_.name+"]";
+
+  //Names of non linear parameters
+  Set _.colNames = EvalSet(_.aditiveInputs, Text(NameBlock inp)
+  {
+    _.name+"::"+Name(inp)
+  });
+
+  Real _.hasVectorData = Grammar(_.origOutput)=="Matrix";
+  Matrix _.Y = If(_.hasVectorData, _.origOutput,
+  {
+    Tra(SerSetMat([[_.origOutput]],_.firstDate,_.lastDate))
+  });
+  Matrix _.LogY = Log(_.Y);
+
+  Matrix _.X = If(_.hasVectorData,
+  {
+    Group("ConcatColumns", EvalSet(_.aditiveInputs, Matrix(NameBlock inp)
+    {
+      inp::_.vector
+    }))
+  },
+  {
+    Set aux = EvalSet(_.aditiveInputs, Serie(NameBlock inp)
+    {
+      inp::_.serie
+    });
+    Tra(SerSetMat(aux,_.firstDate,_.lastDate))
+  });
+  Real _.n = Columns(_.X);
+
+  ///////////////////////////////////////////////////////////////////////////
+  //In order to apply logarihtm it must be matched _.Y-_.X*alpha
+  Real checkAlpha(Matrix alpha)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Matrix aux.2 = _.Y -_.X*alpha;
+    Real aux.3 = MatMin(aux.2);
+    If(aux.3<=0,
+    {
+      WriteLn(_MID+"Values of 'alpha' don't match "
+      "Y-X*alpha > 0"+"\n"+
+      "alpha="+Replace(""<<Matrix Tra(alpha),"\n"," "),"E");
+      False
+    },
+    {
+    //WriteLn("TRACE "+_MID+"Initial values 'alpha' of output filter match Y-X*alpha > 0");
+      True
+    })
+  };
+
+  Matrix _.alpha = SetCol(EvalSet(_.aditiveInputs, Real(NameBlock inp)
+  {
+    inp::_.initValue
+  }));
+
+  ///////////////////////////////////////////////////////////////////////////
+  //Called by BysMcmc::Bsr::Gibbs::NonLinBlock at initialization time
+  Real initialize(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Real ok = checkAlpha(_.alpha);
+    If(ok,
+      WriteLn(_MID+"Initial values 'alpha' match Y-X*alpha > 0"));
+    ok
+  };
+
+/////////////////////////////////////////////////////////////////////////////
+//Mandatory methods for all non linear filters
+/////////////////////////////////////////////////////////////////////////////
+
+  //Identifies the filter
+  Text get.name(Real unused) { _.name };
+  //Identifies the segment
+  Text get.segmentName(Real unused) { _.segmentName };
+  //Parameters of non linear block
+  Set  get.colNames(Real unused) { _.colNames };
+
+  VMatrix _Y = Mat2VMat(_.Y);
+  VMatrix _X = Mat2VMat(_.X);
+
+  ///////////////////////////////////////////////////////////////////////////
+  Set get.bounds(Real paramIdx, Matrix paramValues) 
+  //Returns left and right bounds for paramIdx-th parameter for current 
+  //values of the rest of them
+  ///////////////////////////////////////////////////////////////////////////
+  { 
+  //WriteLn("TRACE "+_MID+"::get.bounds("<<paramIdx+","+Replace(""<<Matrix Tra(paramValues),"\n"," ")+")");
+    NameBlock userBounds = _.aditiveInputs[paramIdx];
+  //WriteLn("TRACE "+_MID+"::get.bounds userBounds::_.minimum"<<userBounds::_.minimum);
+  //WriteLn("TRACE "+_MID+"::get.bounds userBounds::_.maximum"<<userBounds::_.maximum);
+    Set localBounds = GetBoundsInPolytope(_X, _Y, Mat2VMat(paramValues), paramIdx);
+    If(!Card(localBounds),
+    {
+      WriteLn(_MID+"Current values 'alpha' of output filter don't match "
+      "Y-X*alpha > 0"+"\n"+
+      "alpha="+Replace(""<<Matrix Tra(paramValues),"\n"," "),"E");
+      Real Stop  
+    },
+    {
+    //WriteLn("TRACE "+_MID+"::get.bounds localBounds = "<<localBounds);
+    //WriteLn("TRACE "+_MID+"::get.bounds localBounds::lower"<<localBounds::Lower);
+    //WriteLn("TRACE "+_MID+"::get.bounds localBounds::upper"<<localBounds::Upper);
+      Real lower = Max(userBounds::_.minimum, localBounds::Lower);
+      Real upper = Min(userBounds::_.maximum, localBounds::Upper);
+    //WriteLn("TRACE "+_MID+"::get.bounds lower"<<lower);
+    //WriteLn("TRACE "+_MID+"::get.bounds upper"<<upper);
+      [[lower, upper]]
+    })
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Real set.parameter(Matrix paramValues)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+"::set.parameter 1 ("<<Replace(""<<Matrix Tra(paramValues),"\n"," ")+")");
+    If(!checkAlpha(paramValues),0,
+    {
+      Matrix _.alpha  := paramValues;
+      1
+    })
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Matrix get.parameter(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    _.alpha
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Matrix eval(Matrix paramValues)
+  //Returns the filter matrix
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Real set.parameter(paramValues);
+    _.LogY - Log(_.Y - _.X * _.alpha)
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Anything build.series(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Matrix z = eval(get.parameter(0));
+    If(_.hasVectorData, z,
+    MatSerSet(Tra(z), Dating(_.origOutput), _.firstDate)[1])
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Anything build.series.for.param(Matrix alpha)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    set.parameter(alpha);
+    build.series(0)
+  }
+
+]]};
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock LogAditiveEffect.Serie
+(
+  Real   enabled,
+  Text   segmentName,
+  Serie  origOutput,
+  Date   firstDate,
+  Date   lastDate,
+  Set    aditiveInputs
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  LogAditiveEffect(enabled,segmentName,origOutput,
+                   firstDate, lastDate, aditiveInputs)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock LogAditiveEffect.Vector
+(
+  Real   enabled,
+  Text   segmentName,
+  Matrix origOutput,
+  Set    aditiveInputs
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  LogAditiveEffect(enabled,segmentName,origOutput,
+                   UnknownDate, UnknownDate, aditiveInputs)
+};

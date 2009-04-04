@@ -1,0 +1,98 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-09-23
+//PURPOSE: Metropolis-Hastings simulation of BSR linear block
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "https://www.tol-project.org/ticket/664";
+Text summary_ = "Metropolis-Hastings simulation of BSR linear block";
+
+Real numErr0 = Copy(NError);
+
+Real If(!FileExist("model.bsr"),
+{
+  OSCmdWait("model.exe -y")
+});
+
+Set bsr.parsed = BSR.Parse("model.bsr");
+
+BysMcmc::Config bsr.config = 
+[[
+//MCMC dimensions
+  Real mcmc.burnin = 100; 
+  Real mcmc.sampleLength = 2000;
+  Real mcmc.cacheLength = 1;
+//Basic master configuration
+  Real basic.cholesky.epsilon = 1.E-13;
+  Real basic.cholesky.warningFreq = 100;
+  Real basic.truncMNormal.gibbsNumIter = 5;
+  Real bsr.iniVal.try.givenByUser = 1;
+  Real bsr.iniVal.try.zero = 2;
+  Real bsr.iniVal.try.cnstrMinNorm = 3;
+  Real bsr.iniVal.try.cnstrMLE = 4;
+
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
+  Real bsr.arimaSkipIter = 1;
+
+  Real bsr.linBlk.MH.useAfterIter   = 10;
+  Real bsr.linBlk.MH.maxRejected    = 3;
+  Real bsr.linBlk.MH.maxConsecutive = 100;
+
+  Real bsr.linBlk.X.drop = 1.E-15;
+  Real bsr.linBlk.usePreconditioning = 0;
+
+//Report configuration
+  Real report.raftery.diag.q   = 0.025;
+  Real report.raftery.diag.r   = 0.007;   
+  Real report.raftery.diag.s   = 0.950;   
+  Real report.raftery.diag.eps = 0.001; 
+  Real report.acf.lag          = 20,
+  Real report.histogram.parts  = 100;
+  Real report.kerDens.points   = 0;
+//Generic flags
+  Real do.resume          =  0;
+  Real do.report          =  True;
+  Real do.eval            =  True;
+  Real do.linear.effects  =  False
+]];
+
+/* * /
+NameBlock gibbs = 
+    BysMcmc::Bsr::Gibbs::BasicMaster(bsr.parsed, bsr.config);
+
+  NameBlock cycler = BysMcmc::BuildCycler(gibbs, bsr.config, 
+    BysMcmc::NoNotifier(0));
+
+  Real gibbs::initialize(0);
+/* * /
+Real TolOprProfiler.Enabled := True;
+  Real cycler::generate(bsr.config::mcmc.burnin+bsr.config::mcmc.sampleLength);
+Real TolOprProfiler.Dump("model.08");
+
+/* */
+
+Set estim = { BysMcmc::Bsr::Gibbs::Estim(bsr.parsed, bsr.config) };
+
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1
+]];
+
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+/* */

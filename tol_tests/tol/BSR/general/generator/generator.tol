@@ -1,0 +1,28 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: generator.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-10-14
+//PURPOSE: Genera diferentes componentes para introducir en el chequeador de 
+// modelos de BSR
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock Generator  =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Set _input = Include("input.tol");
+  Code Input;
+
+  Set _transfun = Include("transfun.tol");
+  Code TransFun;
+
+  Set _nonLinFltInp = Include("nonLinFltInp.tol");
+  Code NonLinFltInp; 
+
+  Set _nonLinFltOut = Include("nonLinFltOut.tol");
+  Code NonLinFltOut; 
+
+  Set _obsNode = Include("obsNode.tol");
+  Code ObsNode
+]];

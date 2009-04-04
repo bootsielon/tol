@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: timeInterval.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-10-14
+//PURPOSE: Gestor de intervalo de fechas para la formación de series input y
+// output entre un par de fechas congruente
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock GetTimeInterval(Date fst, Date lst)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  //Estas fechas se pueden usar para ocultar datos de output y poder hacer 
+  //previsiones extramuestrales
+  Date _.firstDate = fst;
+  Date _.lastDate  = lst;
+
+  Serie sub.fill(Serie ser, Real defaultValue, Date fst, Date lst) 
+  { 
+    Serie def = SubSer(CalInd(Dating(ser),Dating(ser))*defaultValue,fst,lst);
+    Serie ser_ = SubSer(ser,fst,lst);
+    Real AvrS(ser_);
+    def << ser_ >> def
+  };
+  Serie sub(Serie ser, Real defaultValue) 
+  { 
+    sub.fill(ser,defaultValue,_.firstDate,_.lastDate)
+  };
+  Serie sub.move(Serie ser, Real defaultValue, Real fstLag, Real lstLag)
+  {
+    Date fst.lagged = Succ(_.firstDate,Dating(ser),fstLag);
+    Date lst.lagged = Succ(_.lastDate, Dating(ser),lstLag);
+    sub.fill(ser,defaultValue,fst.lagged,lst.lagged)
+  }
+]]};

@@ -1,0 +1,77 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: obsNode.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-10-14
+//PURPOSE: Genera outputs congruentes con un conjunto de inputs
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Generación outputs congruentes con un conjunto de inputs
+//////////////////////////////////////////////////////////////////////////////
+NameBlock ObsNode(NameBlock time.interval, 
+                  Real sigma, 
+                  Set arima, 
+                  Set linInput,  
+                  Set transFunDelta, 
+                  Set nonLinFilInp, 
+                  Set nonLinFilOut)
+{[[
+  NameBlock _.time.interval = time.interval;
+  Real _.sigma = sigma;
+  Set _.arima = arima;
+  Set _.linInput = linInput;
+  Set _.transFunDelta = transFunDelta;
+  Set _.nonLinFilInp = nonLinFilInp;
+  Set _.nonLinFilOut = nonLinFilOut;
+  Serie _zero = _.time.interval::sub(CalInd(W,C),0);
+  Set _.effects = _.linInput << _.transFunDelta << _.nonLinFilInp;
+
+  Set _.input = EvalSet(_.effects,Serie(NameBlock tf)
+  {
+    Eval(Name(tf)+"=tf::_.input")
+  });
+
+  Serie _.filterInp = If(!Card(_.effects),_zero,
+  SetSum(EvalSet(_.effects,Serie(NameBlock tf)
+  {
+    tf::_.effect
+  })));
+  Serie _.filterOut = If(!Card(_.nonLinFilOut),_zero,
+  SetSum(EvalSet(_.nonLinFilOut,Serie(NameBlock tf)
+  {
+    tf::_.effect
+  })));
+
+  Serie _.resFull   = _.time.interval::sub.move(Gaussian(0,_.sigma,C),0,-10000,0);
+  Serie _.noiseFull = DifEq(ARIMAGetMA(_.arima)/ARIMAGetARI(_.arima), _.resFull);
+
+  Serie _.residuals = _.time.interval::sub(_.resFull,   0);
+  Serie _.noise     = _.time.interval::sub(_.noiseFull, 0);
+
+  Serie _.output = _.noise + _.filterInp + _.filterOut;
+  Matrix _.param = 
+  If(!Card(_.effects), Rand(0,1,0,0),
+  BinGroup("<<", EvalSet(_.effects,Matrix(NameBlock tf)
+  {
+    tf::_.param.omega
+  }))) <<
+  Col(_.sigma^2) << 
+  If(!Card(_.transFunDelta), Rand(0,1,0,0),
+  BinGroup("<<", EvalSet(_.transFunDelta,Matrix(NameBlock tf)
+  {
+    tf::_.param.delta << 
+    tf::_.param.denIni
+  }))) << 
+  If(!Card(_.nonLinFilInp), Rand(0,1,0,0),
+  BinGroup("<<", EvalSet(_.nonLinFilInp,Matrix(NameBlock tf)
+  {
+    tf::_.param.nonLin
+  }))) <<
+  If(!Card(_.nonLinFilOut), Rand(0,1,0,0),
+  BinGroup("<<", EvalSet(_.nonLinFilOut,Matrix(NameBlock tf)
+  {
+    tf::_.param.nonLin
+  })))
+]]};
+

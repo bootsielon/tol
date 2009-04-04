@@ -1,0 +1,237 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "irobles@bayesforecast.com"; 
+Text link_ = "https://www.tol-project.org/ticket/670";
+Text summary_ = "Testing fail saving model in DataBase" ;
+
+Real numErr0 = Copy(NError);
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<< rndSeed);
+
+Set Include("../general/general.tol");
+
+Real If(!FileExist("data.oza"),
+{
+  OSCmdWait("data.exe -y")
+});
+Set data = Include ("data.oza");
+
+
+//Se activa la base de datos de modelos BsrHlm
+Real DBConnection::BsrHlm::Activate(0);
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("Creando en la base de datos el área documental");
+//////////////////////////////////////////////////////////////////////////////
+Text id_model   =  "Test.12";
+Text ds_model   =  summary_;
+Text id_session =  id_model+"_"+IntText(rndSeed);
+Text ds_session =  summary_;
+Text ds_authors  = "irobles@bayesforecast.com";
+
+Real BysMcmc::Bsr::DynHlm::DBApi::Mod.Create(
+  DBConnection::BsrHlm::_.defaultDB, id_model,   ds_model);
+Real BysMcmc::Bsr::DynHlm::DBApi::Ses.Create(
+  DBConnection::BsrHlm::_.defaultDB, id_session, ds_session, ds_authors);
+Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Create(
+  DBConnection::BsrHlm::_.defaultDB, id_model, id_session);
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("Creando en la base de datos los niveles de la jerarquía");
+//////////////////////////////////////////////////////////////////////////////
+Real {BysMcmc::Bsr::DynHlm::DBApi::ModSes.SetLevels(
+  DBConnection::BsrHlm::_.defaultDB, id_model, id_session,
+  Real maxLatLevel = 0,       //Máximo nivel de latencia
+  Real hasPrior    = False,   //Indica si hay nodo a priori
+  Real hasMixture  = False)}; //Indica si hay restricciones que afectan a
+                              //variables de distintos nodos
+
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("Creando en la base de datos los nodos observacionales");
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Crea el manejador de series de un nodo observacional concreto
+//En este caso sólo hay un nodo observacional 
+  NameBlock node.series.handler (Real nu_node)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+//Real nu_node = 1;
+  
+  Text te_node = FormatReal(nu_node,"%1.0f");
+  //##Nombre del nodo
+  Text _.id_node = "Obs.Node_"+te_node;
+  //##Descripción del nodo
+  Text _.description = "Nodo observacional número "+te_node;
+  //#Contiene todas las series input y output con nombres únicos dentro
+  //de cada nodo.
+  Set _.series = [[ 
+        Serie Output = OutputInput["output"],
+        Serie Input  = OutputInput["input"+te_node]
+            ]];
+  //#Se comprueba la unicidad de nombres y se indexa para acelerar 
+  //búsquedas
+  Real _check_unique = SetIndexByName(_.series);
+
+  //##Devuelve una serie del nodo dado un identificador único
+  Serie GetSerie(Text id_serie)
+  {
+    _.series[id_serie]
+  };
+
+  //##Información adicional del modelo sobre el output
+  NameBlock _.output = 
+  {[[
+    //##Nombre con el que reconoce la serie en la base de datos
+    Text _.name = "Output";
+    //##Serie output
+    Serie _.serie = _.series[_.name];
+    //##Número de sigmas para la distribución a priori de los omitidos
+    //se multiplicará por la desviación típica muestral de la serie.
+    //La media a priori será la de la propia serie.
+    Real _.mis_pri_sig_fac = 5;
+    //##Valor mínimo a priori para los omitidos
+    Real _.mis_pri_min     = -10;
+    //##Valor máximo a priori para los omitidos
+    Real _.mis_pri_max     = 10;
+    //##Fecha inicial de estimación del nodo
+    Date _.firstDate = First(_.serie);
+    //##Fecha final de estimación del nodo
+    Date _.lastDate = Last(_.serie);
+    //##Parte ARIMA asociada
+    Set _.arima = SetOfSet{
+        ARIMAStruct(5, 1+0.1*B^5, 1, 1),
+        ARIMAStruct(261, 1+0.1*B^261, 1, 1)
+    }
+  ]]};
+ 
+
+  //##Información adicional del modelo sobre los inputs
+  //Cada elemento es un NameBlock cuyo nombre será el identificador en
+  //la base de datos de BsrHlm y es obligatorio que se llame igual que
+  //la correspondiente serie input
+  Set _.input = { SetOfNameBlock( 
+  NameBlock Input = [[
+    //##Serie input
+    //Los días de fiesta la gente suele salir de casa más y ver menos tele
+    Serie _.serie = _.series["Input"];
+    //##Si es falso no se usará este input
+    Real _.enabled = 1;
+    //##Número de sigmas para la distribución a priori de los omitidos
+    Real _.mis_pri_sig_fac =  5;
+    //##Valor mínimo a priori para los omitidos
+    Real _.mis_pri_min     =  -1/0;
+    //##Valor máximo a priori para los omitidos
+    Real _.mis_pri_max     =  +1/0;
+    //##Valor inicial del parámetro
+    Real _.initValue       =  0;
+    //##Valor mínimo a priori del parámetro
+    Real _.minimum         = -1/0;
+    //##Valor máximo a priori del parámetro
+    Real _.maximum         = +1/0
+   ]] )};
+
+  //Se comprueba de nuevo la unicidad de los manejadores de los input
+  Real _checkUniqueInput = SetIndexByName(_.input)
+
+]]};
+
+//////////////////////////////////////////////////////////////////////////////
+//Manejador de series del modelo
+  NameBlock series.handler=BysMcmc::Bsr::DynHlm::DBApi::CreateSeriesHandler( 
+//////////////////////////////////////////////////////////////////////////////
+For(1,1, NameBlock (Real ch)
+{ 
+  WriteLn("[series.handler] Creando manejador de series del nodo "+
+          IntText(ch));
+  NameBlock aux = node.series.handler(ch);
+  Eval(aux::_.id_node+"=aux")
+})); 
+
+//////////////////////////////////////////////////////////////////////////////
+WriteLn("Creando en la base de datos los nodos observacionales");
+//////////////////////////////////////////////////////////////////////////////
+Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
+  DBConnection::BsrHlm::_.defaultDB, id_model, id_session,
+  series.handler::_.obs.node );
+
+
+
+BysMcmc::Config bsr.config = [[
+  //MCMC dimensions
+    Real mcmc.burnin        =  1; 
+    Real mcmc.sampleLength  =  25;
+    Real mcmc.cacheLength   =  1;
+  //Basic master configuration
+    Real bsr.cholesky.epsilon          = 1.E-13;
+    Real bsr.cholesky.warningFreq      = 100;
+    Real bsr.truncMNormal.gibbsNumIter = 5;
+    Code bsr.scalarSampler.armaBlock = 
+      BysMcmc::Options::Scalar.Sampler::Slice;
+    Code bsr.scalarSampler.nonLinBlock =
+      BysMcmc::Options::Scalar.Sampler::Slice;
+  //Report configuration
+    Real report.raftery.diag.q   = 0.25;
+    Real report.raftery.diag.r   = 0.10;   
+    Real report.raftery.diag.s   = 0.75;   
+    Real report.raftery.diag.eps = 0.10; 
+    Real report.acf.lag          = 20,
+    Real report.histogram.parts  = 100;
+    Real report.kerDens.points   = 0;
+  //Generic flags
+    Real do.resume          =  False;
+    Real do.report          =  True;
+    Real do.eval            =  True;
+    Real do.linear.effects  =  True;
+    //Metodo de aproximacion del arima
+    Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastCholSea//;
+  //Real bsr.arimaSkipIter = 100
+  ]];
+
+//Real TolOprProfiler.Enabled := True;
+
+//////////////////////////////////////////////////////////////////////////////
+//Estimación del modelo con el sistema Bsr::DynHlm
+//////////////////////////////////////////////////////////////////////////////
+Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
+(
+  DBConnection::BsrHlm::_.defaultDB,
+  id_model,
+  id_session,
+  Ois.DefRoot+"HlmBsrTest/",
+  series.handler,
+  bsr.config
+)};
+
+//Real TolOprProfiler.Dump("model.01");
+
+Real DBConnection::BsrHlm::Close(0);
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1
+]];
+
+/* */
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+/* */
+
+

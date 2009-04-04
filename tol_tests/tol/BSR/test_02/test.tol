@@ -1,0 +1,143 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-05-08
+//PURPOSE: Testing full linear block aproach by using NameBlock 
+//StdLib::BysMcmc to simulating a Hierarchycal Linear Model with restrictions 
+//of inequality, missing values at input and white noise in residuals.
+//////////////////////////////////////////////////////////////////////////////
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = 
+"Testing full linear block aproach by using NameBlock "
+"StdLib::BysMcmc to simulating a Hierarchycal Linear Model with restrictions "
+"of inequality, missing values at input and white noise in residuals." ;
+
+Real numErr0 = Copy(NError);
+
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+
+//Creates a random model and writes it in "parse.bsr"
+Set Include("load.tol");
+
+BysMcmc::Config bsr.config =
+[[
+//MCMC dimensions
+  Real mcmc.burnin        =  100; 
+  Real mcmc.sampleLength  =  2500;
+  Real mcmc.cacheLength   =  100;
+//Basic master configuration
+  Real basic.cholesky.epsilon          = 1.E-13;
+  Real basic.cholesky.warningFreq      = 100;
+  Real basic.truncMNormal.gibbsNumIter = 5;
+//Report configuration
+  Real report.raftery.diag.q   = 0.025;
+  Real report.raftery.diag.r   = 0.007;   
+  Real report.raftery.diag.s   = 0.950;   
+  Real report.raftery.diag.eps = 0.001; 
+  Real report.acf.lag          = 20,
+  Real report.histogram.parts  = 100;
+  Real report.kerDens.points   = 0;
+//Generic flags
+  Real do.resume          =  0;
+  Real do.report          =  True;
+  Real do.eval            =  True;
+  Real do.linear.effects  =  False
+]];
+
+/* * /
+
+  NameBlock gibbs = 
+    BysMcmc::Bsr::Gibbs::BasicMaster(mod::bsr.parsed, bsr.config);	
+
+  NameBlock cycler = BysMcmc::BuildCycler(gibbs, bsr.config, 
+    BysMcmc::Bsr::Gibbs::NoNotifier(0));
+
+  Real gibbs::initialize(0);
+  Real cycler::generate(2);
+
+/* */
+
+Set estim = { BysMcmc::Bsr::Gibbs::Estim(mod::bsr.parsed, bsr.config )};
+
+/* */
+Struct CompareStruct 
+{
+  Real Index,
+  Text Name,
+  Real RealValue,
+  Real Estimated,
+  Real Difference,
+  Real Sigma,
+  Real K_SigDif
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Table this set to view real and estimated parameters
+//////////////////////////////////////////////////////////////////////////////
+Set CompareTable = 
+{  
+  Matrix var.real = 
+    mod::_beta << 
+    mod::_variance <<
+    mod::_inpMis <<
+    mod::_outMis;
+  For(1,Card(estim::report::colNames), Set(Real k)
+  {
+    Real x.r = MatDat(var.real,k,1);
+    Real x.e = (estim::report::coda.summary)[k]->mean_;
+    Real x.d = x.r-x.e;
+    Real x.s = Sqrt((estim::report::coda.summary)[k]->sd_);
+    Real x.k = x.d/x.s;
+    CompareStruct
+    (
+      k, 
+      estim::report::colNames[k], 
+      x.r, 
+      x.e, 
+      x.d,
+      x.s,
+      x.k 
+    )
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Chart this set to view real and estimated parameters
+//////////////////////////////////////////////////////////////////////////////
+Set CompareChart = Extract(CompareTable,3,4);
+
+Set DifChart  = Extract(CompareTable,5);
+Set KDifChart = Extract(CompareTable,7);
+
+/* */
+
+Set quality.obs = For(1,mod::K1,Real(Real k)
+{
+  MatStDs(((mod::obsNodes      )[k])::e) /
+  MatStDs(((estim::eval.average)[k])::noise)
+});
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1)*SetMin([[1]]<<quality.obs);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */

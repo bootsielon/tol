@@ -1,0 +1,199 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-12-06
+//PURPOSE: Chequea Bsr::OneNode::Estim
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = "Chequea Bsr::OneNode::Estim lineal puro" ;
+
+Real numErr0 = Copy(NError);
+
+//Random seed setting
+Real PutRandomSeed(2423);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+//////////////////////////////////////////////////////////////////////////////
+//Randomly generated linear model to allow contrast with model estimations
+//These information is unknown in real world problems
+//////////////////////////////////////////////////////////////////////////////
+//Original supplied data 
+Matrix X1 = Rand(20, 5, -1, 1);
+//Deived inputs
+Matrix X2 = SubCol(X1,[[1]]) $* SubCol(X1,[[2]]);
+//Constant input
+Matrix X3 = Rand(Rows(X1),1,1,1);
+//Full input matrix
+Matrix X  = X1|X2|X3;
+//Real parameters of linear block
+Matrix b  = {Col(
+  Param_1=Rand(-2,0),
+  Param_2=Rand(-2,0),
+  Param_3=Rand(-2,0),
+  Param_4=Rand( 0,1),
+  Param_5=Rand(Param_4,2),
+  Param_6=Rand(Param_5,3),
+  Param_7=Rand(-2,2))};
+//Real filter matrix
+Matrix F = X*b;
+//Real standard normal independent residuals
+Real sigma = Rand(0.2,0.4);
+Matrix e  = Gaussian(Rows(X),1,0,sigma);
+//Real output 
+Matrix Y  = F+e;
+
+//////////////////////////////////////////////////////////////////////////////
+//These is the only information that will be known in real world problems
+//////////////////////////////////////////////////////////////////////////////
+//Data matrix containing full output and input
+Matrix data.mat = Y|X1;
+//Set of names of columns in data.mat
+Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
+{ "Input_"+IntText(j)} );
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Model definition for BSR one node API
+  NameBlock bsr.oneNode.data =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //##Documentation about the model
+  Set  _.docInfo = BSR.DocInfo (
+    Text Model.Name = 
+      "OneNodeLinear",
+    Text Model.Description = 
+      "Randomly generated linear model";
+    Text Session.Name = "SES_"+Model.Name+"_"<<rndSeed;
+    Text Session.Description = 
+      "Random seed "<<rndSeed;
+    Text Session.Authors = 
+      "vdebuen@tol-project.org;";
+    Date Session.Creation = Copy(Now);
+    Text Path = Ois.DefRoot+"BSR/" );
+  //##Observational node name
+  Text _.segmentName = "Obs";
+
+  //Tool function to reduce registers length in _.linearParamInfo
+  Code LPI = BysMcmc::Bsr::OneNode::LPI;
+  //#Original data storer by columns with names 
+  Set _.data.orig = For(1, Card(data.name), Matrix(Real j)
+  {
+    Matrix aux = SubCol(data.mat,[[j]]);
+    Eval(data.name[j]+"=aux")
+  });
+
+  //Checks unique names and indexes them
+  Real _check_data.orig = SetIndexByName(_.data.orig);
+
+  Set _.data.handler = _.data.orig <<
+  {[[
+    Matrix Input_Pr_1_2 = _.data.orig::Input_1 $* _.data.orig::Input_2;
+    Matrix Constant = Rand(Rows(_.data.orig[1]),1,1,1)
+  ]]};
+
+  Real _check_data.handler = SetIndexByName(_.data.handler);
+
+  //Output vector
+  Matrix _.Y = _.data.handler::Output;
+  //output average should be a good average prior for constant parameter 
+  Real _.cteAvg = MatAvr(_.Y);
+
+  //Linear block definition with domain and prior restrictions
+  Set _.linearParamInfo = [[
+    //   Variable      initVal   min    max     priAvg   priSig  priSigWeight
+    LPI("Input_1",           0, -1/0,     0,         ?,       ?,          ?),
+    LPI("Input_2",           0, -1/0,     0,         ?,       ?,          ?),
+    LPI("Input_3",           0, -1/0,     0,         ?,       ?,          ?),
+    LPI("Input_4",           0,    0,  +1/0,         ?,       ?,          ?),
+    LPI("Input_5",           0,    0,  +1/0,         ?,       ?,          ?),
+    LPI("Input_Pr_1_2",      0,    0,  +1/0,         ?,       ?,          ?),
+    LPI("Constant" ,  _.cteAvg, -1/0,  +1/0,  _.cteAvg,    0.25,       0.90) 
+  ]];
+  //Input matrix
+  Matrix _.X = Group("ConcatColumns",
+  EvalSet(_.linearParamInfo, Matrix(Bsr.OneNode.LinearParamInfo lpi)
+  {
+    _.data.handler[lpi->Name]
+  }));
+  //Sigma is inknown and needs to be simulated
+  Real _.sigma = ?;
+  //Non mandatory members
+  //Order relations between linear parameters. This member can be Empty or 
+  //simply not exist if there are no known order relation
+  Set _.orderRelation = [[
+    //                      lower        <=  upper  
+    Bsr.OrderRelation.Info("Input_4",       "Input_5"),
+    Bsr.OrderRelation.Info("Input_5",       "Input_Pr_1_2")
+  ]];
+
+  // This is usefull to check range of values of each input column
+  Set _.frequencyAnalysis = For(1,Card(_.linearParamInfo),Matrix(Real k)
+  {
+    Matrix x = SubCol(_.X,[[k]]);
+    Real min = MatMin(x);
+    Real max = MatMax(x);
+    Set distinct = Classify(MatSet(Tra(x))[1],Real(Real a, Real b)
+    {
+      Compare(a,b)
+    });
+    Real parts = Min(Card(distinct),100); 
+    Matrix frq = Frequency(x,parts,min-2/parts,max);
+    Eval("Frq."+_.linearParamInfo[k]->Name+"=frq")
+  })
+]];
+  
+/* */
+//////////////////////////////////////////////////////////////////////////////
+//BSR generic configuration parameters
+BysMcmc::Config bsr.config = [[
+//////////////////////////////////////////////////////////////////////////////
+//MCMC dimensions
+  Real mcmc.burnin        =  100; 
+  Real mcmc.sampleLength  = 2000;
+  Real mcmc.thinning      =    1;
+  Real mcmc.cacheLength   =  100;
+  Code bsr.scalarSampler.nonLinBlock=BysMcmc::Options::Scalar.Sampler::Slice;
+
+//Generic flags
+  Real do.resume          =  0;
+  Real do.report          =  True;
+  Real do.eval            =  True;
+  Real do.linear.effects  =  True 
+]];
+
+
+//Estimates the BSR one-node model
+Set bsr.oneNode = BysMcmc::Bsr::OneNode::Estim
+(bsr.oneNode.data, Copy(Empty), bsr.config);
+
+/* */
+Matrix b_ = Sub(Tra(bsr.oneNode::param.average),1,1,Columns(X),1);
+Matrix CompareBeta = b | b_;
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1)*  
+{
+  Matrix res_ = Y - X*b_; 
+  Min(1,MatStDs(e)/MatStDs(res_))
+};
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */  

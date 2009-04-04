@@ -1,0 +1,188 @@
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.PubAdStock_ExpBetaDelta =
+"Builds a NameBlock that can be used as non linear filter by method "
+"NonLinBlock in order to simulate AdStock effects of Publicity in next way:\n"
+"\n"
+" omega*(1-Exp(beta * ((1-delta)/(1-delta*B))*X[t] ))\n"
+"\n"
+"Linear parameter omega will be simulated by BSR linear block.\n"
+"Arguments are:\n"
+"  Real           enabled     : enables/disables non linear filter\n"
+"  Text           segmentName : identifier of affected output segment\n"
+"  Text           inputName   : identifier of affected input group\n"
+"  Serie          oriInp      : original input data\n"
+"  Set            omega.info  : linear parameter or Empty if it's for output\n" 
+"  Bsr.Param.Info beta.info   : coefficient of exponent\n" 
+"  Bsr.Param.Info delta.info  : transfer denominator coefficient\n" 
+"  Bsr.Param.Info iniVal.info : initial value of difference equation\n"
+"";
+//////////////////////////////////////////////////////////////////////////////
+NameBlock PubAdStock_ExpBetaDelta
+(
+  Real           enabled,
+  Text           segmentName,
+  Text           inputName,    
+  Serie          oriInp,
+  Set            omega.info,
+  Bsr.Param.Info beta.info,    
+  Bsr.Param.Info delta.info,    
+  Bsr.Param.Info iniVal.info,
+  Real simulate.iniVal
+)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Real _.isNonLinearFilter = True;
+
+  Real _.enabled = enabled;
+  //Identifier of segment
+  Text _.cleanSegmentName = segmentName;
+  Text _.segmentName = segmentName+"::Noise";
+  //Identifier of original input
+  Text _.inputName = inputName;
+  Set _.omega.info  = omega.info;
+  Set _.beta.info   = beta.info;
+  Set _.delta.info  = delta.info;
+  Set _.iniVal.info = iniVal.info;
+
+  Text _.name = "NonLinearFilterBlk::"+_.cleanSegmentName+"::"+_.inputName;
+  Text _MID = "["+_.name+"]";
+  //Name of BSR linear block parameters affected by this filter (omega)
+  Set _.linBlkNames = If(!Card(_.omega.info),Copy(Empty),
+  [[ "LinearBlk::"+_.cleanSegmentName+"::"+_.inputName+"::"+_.omega.info->Name]]);
+
+  //Numerator polynomial is needed just for structural questions but 
+  //coefficients are irrelevant
+  Real _.beta = _.beta.info->InitValue;
+  //Denominator polynomial is the main tarjet of this filter 
+  Real _.delta = _.delta.info->InitValue;
+  //Initial value
+  Real _.iniVal = _.iniVal.info->InitValue;
+  //Original input
+  Serie _.oriInp = oriInp;
+  //Input in matrix format
+  Matrix _.x = Tra(SerMat(_.oriInp));
+  //Numerator degree is zero, so no initial values are needed for _.x
+  Matrix _.x0 = Rand(0,0,0,0);
+  //Input data length
+  Real   _.m = Rows(_.x);
+  //Transfer function store
+  Matrix _.y  = Rand(_.m,1,0,0);
+  //Enables or disables simulation for parameter _.iniVal
+  Real _.simulate.iniVal = simulate.iniVal;
+  //Names of non linear parameters
+  Set _.colNames = [[ 
+    _.name+"::"+_.beta.info->Name, 
+    _.name+"::"+_.delta.info->Name ]] <<  If(_.simulate.iniVal,[[  
+    _.name+"::"+_.iniVal.info->Name ]], Empty);
+
+  ///////////////////////////////////////////////////////////////////////////
+  //Called by BysMcmc::Bsr::Gibbs::NonLinBlock at initialization time
+  Real initialize(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    True
+  };
+
+/////////////////////////////////////////////////////////////////////////////
+//Mandatory methods for all non linear filters
+/////////////////////////////////////////////////////////////////////////////
+
+  //Identifies the filter
+  Text get.name(Real unused) { _.name };
+  //Identifies the segment
+  Text get.segmentName(Real unused) { _.segmentName };
+  //Parameters of non linear block
+  Set  get.colNames(Real unused) { _.colNames };
+  //Parameters of linear block. This method must exist just for input filters
+  Set  get.linBlkNames(Real unused) { _.linBlkNames };
+  //Return initial value for the only one linear parameter (Omega)
+  Real get.linBlkIniValue(Real numBlkVar) { _.omega.info->InitValue };
+  //Return left bound for the only one linear parameter (Omega)
+  Real get.linBlkMinValue(Real numBlkVar) { _.omega.info->Prior.LowerBound };
+  //Return right bound for the only one linear parameter (Omega)
+  Real get.linBlkMaxValue(Real numBlkVar) { _.omega.info->Prior.UpperBound };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Set get.bounds(Real paramIdx, Matrix paramValues) 
+  //Returns left and right bounds for paramIdx-th parameter for current 
+  //values of the rest of them
+  ///////////////////////////////////////////////////////////////////////////
+  { 
+  //WriteLn("TRACE "+_MID+"::get.bounds paramIdx="<<paramIdx);
+    Real set.parameter(paramValues);
+    Set aux = Case(
+    //For _.beta too close to zero it has high ocrrelation with omega due to
+    // w*(1-Exp(-b*x)) = w*b - (1/2)*w*b**2x**2 + (1/6)*w*b**3x**3 + ...
+    paramIdx==1, 
+    {
+    //WriteLn("TRACE "+_MID+"::get.bounds paramIdx==1");
+      [[_.beta.info->Prior.LowerBound, _.beta.info->Prior.UpperBound]]
+    },
+    //For _.delta too close to zero polynomial miss the monomial of degree 1
+    //For _.delta too close to one it´s not stationary
+    paramIdx==2, 
+    {
+    //WriteLn("TRACE "+_MID+"::get.bounds paramIdx==2");
+      [[_.delta.info->Prior.LowerBound, _.delta.info->Prior.UpperBound]]
+    },
+    //Initial values are no bounded but ARMS requieres min and max
+    paramIdx==3, 
+    {
+    //WriteLn("TRACE "+_MID+"::get.bounds paramIdx==3");
+      [[_.iniVal.info->Prior.LowerBound, _.iniVal.info->Prior.UpperBound]]
+    });
+  //WriteLn("TRACE "+_MID+"::get.bounds aux="<<aux);
+    aux
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Real set.parameter(Matrix paramValues)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+"::set.parameter 1 ("<<Rows(paramValues)+","<<Columns(paramValues)+")");
+    Real _.beta   := MatDat(paramValues, 1, 1);
+    Real _.delta  := MatDat(paramValues, 2, 1);
+    If(_.simulate.iniVal,
+    Real _.iniVal := MatDat(paramValues, 3, 1));
+    1
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Matrix get.parameter(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    If(_.simulate.iniVal,
+      Col(_.beta, _.delta, _.iniVal),
+      Col(_.beta, _.delta) )
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Matrix eval(Matrix paramValues)
+  //Returns the filter matrix
+  ///////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+"::eval("<<_.beta+","<<_.delta+","<<_.iniVal+","+")");
+    Real set.parameter(paramValues);
+  //WriteLn("TRACE "+_MID+"::eval _.delta="<<_.delta);
+    Matrix _.y := DifEq((1-_.delta)/(1-_.delta*B), _.x,_.x0,Col(_.iniVal));
+  //WriteLn("TRACE "+_MID+"::eval _.y=("<<Replace(""<<Matrix Tra(_.y),"\n","")+")");
+    -Exp(-_.y*_.beta)+1
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Serie build.series(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Matrix z = eval(get.parameter(0));
+    MatSerSet(Tra(z), Dating(_.oriInp), First(_.oriInp))[1]
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Serie build.series.for.param(Real beta, Real delta)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    set.parameter(Col(beta, delta));
+    build.series(0)
+  }
+
+]]};

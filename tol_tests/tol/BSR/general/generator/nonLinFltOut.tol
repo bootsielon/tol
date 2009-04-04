@@ -1,0 +1,33 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: nonLinFltOut.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-10-14
+//PURPOSE: Genera funciones de filtro de output no lineales
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Generación de funciones de filtro de input no lineales 
+NameBlock NonLinFltOut(NameBlock time.interval, NameBlock nonLinflt)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  NameBlock _.nonLinflt = nonLinflt;
+
+  Matrix RandNonLinParam(Real unused)
+  {
+    Matrix param = _.nonLinflt::get.parameter(0);
+  //WriteLn("TRACE RandNonLinParam 1 param = "<<Matrix Tra(param));
+    SetCol(For(1,Card(_.nonLinflt::get.colNames(0)),Real(Real paramIdx)
+    {
+    //WriteLn("TRACE RandNonLinParam 2 paramIdx = "<<paramIdx);
+      Set b = _.nonLinflt::get.bounds(paramIdx, param);
+    //WriteLn("TRACE RandNonLinParam 3 = b="<<b);
+      Rand(b[1],b[2])
+    }))
+  };
+  Serie _.input = time.interval::sub(_.nonLinflt::build.series(0),0);
+  Serie  _.effect = _.input;
+  Matrix _.param.omega  = Rand(0,1,0,0);
+  Matrix _.param.nonLin = _.nonLinflt::get.parameter(0)
+]]};
+

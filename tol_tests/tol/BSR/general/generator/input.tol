@@ -1,0 +1,30 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: input.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-10-14
+//PURPOSE: Genera inputs lineales simples
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Generación de inputs
+//////////////////////////////////////////////////////////////////////////////
+NameBlock Input(NameBlock time.interval, 
+                Real minCoef, Real maxCoef, Serie shape)
+{[[
+  Real _.minCoef = minCoef;
+  Real _.maxCoef = maxCoef;
+  Real _.average = (_.minCoef+_.maxCoef)/2;
+  Real _.sigma   = (_.maxCoef-_.minCoef)/2;
+  Real RandLinParam(Real unused)
+  {
+    DrawTruncatedNormal(_.average, _.sigma, _.minCoef, _.maxCoef)
+  };
+  Serie  _.input  = time.interval::sub(shape,0);
+  Real   _.coef   = RandLinParam(0);
+  Serie  _.effect = _.coef * _.input;
+  Matrix _.param.omega  = Col(_.coef);
+  Matrix _.param.delta  = Rand(0,1,0,0);
+  Matrix _.param.denIni = Rand(0,1,0,0)
+]]};
+

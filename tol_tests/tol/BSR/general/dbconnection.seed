@@ -1,0 +1,21 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: dbconnection.seed
+//AUTHOR: vdebuen@tol-project.org
+//PURPOSE: Connection configuration to a Bsr-Hlm dababase host
+//         You must copy this file as dbconnection.tol and change your 
+//         parameters. 
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//It must be defined a NameBlock DBConnection with at least a connection
+//member called BsrHlm
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock DBConnection =
+[[
+  NameBlock BsrHlm = DBConnect::Create(
+    "BsrHlm","user","password", 
+    "mysql", "bsrdynhlm", "localhost", 
+    "Model store for BSR-DynHLM");
+  Real check = Real DBConnect::CheckAll(0)
+]];

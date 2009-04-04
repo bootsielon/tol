@@ -1,0 +1,41 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: nonLinFltInp.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-10-14
+//PURPOSE: Genera funciones de filtro de input no lineales
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Generación de funciones de filtro de input no lineales 
+NameBlock NonLinFltInp(NameBlock time.interval, 
+                       Real minCoef, Real maxCoef, NameBlock nonLinflt)
+//////////////////////////////////////////////////////////////////////////////
+{[[
+  Real _.minCoef = minCoef;
+  Real _.maxCoef = maxCoef;
+  NameBlock _.nonLinflt = nonLinflt;
+
+  Real RandLinParam(Real unused)
+  {
+    Rand(_.minCoef, _.maxCoef)
+  };
+  Matrix RandNonLinParam(Real unused)
+  {
+    Matrix param = _.nonLinflt::get.parameter(0);
+  //WriteLn("TRACE RandNonLinParam 1 param = "<<Matrix Tra(param));
+    SetCol(For(1,Card(_.nonLinflt::get.colNames(0)),Real(Real paramIdx)
+    {
+    //WriteLn("TRACE RandNonLinParam 2 paramIdx = "<<paramIdx);
+      Set b = _.nonLinflt::get.bounds(paramIdx, param);
+    //WriteLn("TRACE RandNonLinParam 3 = b="<<b);
+      Rand(b[1],b[2])
+    }))
+  };
+  Serie _.input = time.interval::sub(_.nonLinflt::build.series(0),0);
+  Real   _.coef   = RandLinParam(0);
+  Serie  _.effect = _.coef * _.input;
+  Matrix _.param.omega  = Col(_.coef);
+  Matrix _.param.nonLin = _.nonLinflt::get.parameter(0)
+]]};
+
