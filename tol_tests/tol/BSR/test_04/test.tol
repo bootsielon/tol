@@ -366,8 +366,8 @@ BysMcmc::Bsr::DynHlm::DBApi::ModSes.Pri.Homog_1.Create
 /* */
 BysMcmc::Config bsr.config = [[
 //MCMC dimensions
-  Real mcmc.burnin        =  1000; 
-  Real mcmc.sampleLength  =  5000;
+  Real mcmc.burnin        =   500; 
+  Real mcmc.sampleLength  =  2000;
   Real mcmc.cacheLength   =   100;
 
   Code bsr.scalarSampler.nonLinBlock=BysMcmc::Options::Scalar.Sampler::Slice;
@@ -417,7 +417,8 @@ Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
 
 /* */
 
-Real TolOprProfiler.Enabled := True;
+//Real TolOprProfiler.Enabled := True;
+
 //////////////////////////////////////////////////////////////////////////////
 //Estimación del modelo con el sistema Bsr::DynHlm
 //////////////////////////////////////////////////////////////////////////////
@@ -431,7 +432,7 @@ Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
   bsr.config
 )};
 
-Real TolOprProfiler.Dump("ses.03");
+//Real TolOprProfiler.Dump("ses.03");
 
 /* */
 
