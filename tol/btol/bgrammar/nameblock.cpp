@@ -813,6 +813,15 @@ const BText& BNameBlock::LocalName() const
   for(iter=public_.begin(); iter!=public_.end(); iter++)
   {
     obj = iter->second;
+    if(!obj->Description().HasName())
+    {
+      BSyntaxObject* autodoc = Member(BText("_.autodoc.member.")+Name());
+      if(autodoc && autodoc->Grammar()==GraText())
+      {
+        BText& desc = Text(autodoc);
+        obj->PutDescription(desc);
+      }
+    }
     if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
     {
       unb = (BUserNameBlock*)obj;

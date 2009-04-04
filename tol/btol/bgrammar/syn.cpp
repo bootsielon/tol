@@ -383,21 +383,6 @@ const BText& BSyntaxObject::Description() const
       return(optInfo_->description_);
     }
   }
-  else 
-  {
-    const BNameBlock* nb = NameBlock();
-    if(nb && nb->EnsureIsAssigned())
-    {
-      BSyntaxObject* autodoc = nb->Member(BText("_.autodoc.member.")+Name());
-      if(autodoc && autodoc->Grammar()==GraText())
-      {
-        BText& desc = Text(autodoc);
-        BSyntaxObject* T = (BSyntaxObject*)this;
-        T->PutDescription(desc);
-        return(optInfo_->description_);
-      }
-    }
-  }
 #endif
   return(CBTextNullRef());
 }
