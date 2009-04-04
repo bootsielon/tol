@@ -192,8 +192,8 @@ Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
 
 BysMcmc::Config bsr.config = [[
 //MCMC dimensions
-  Real mcmc.burnin        =  100; 
-  Real mcmc.sampleLength  =  2000;
+  Real mcmc.burnin        =  10; 
+  Real mcmc.sampleLength  =  200;
   Real mcmc.cacheLength   =  100;
 //Basic master configuration
   Real bsr.cholesky.epsilon          = 1.E-13;
@@ -204,14 +204,14 @@ BysMcmc::Config bsr.config = [[
   Code bsr.scalarSampler.nonLinBlock =
     BysMcmc::Options::Scalar.Sampler::Arms;
 
-  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastCholSea;
   Real bsr.arimaSkipIter = 0;
 
   //Report configuration
-  Real report.raftery.diag.q   = 0.025;
-  Real report.raftery.diag.r   = 0.007;   
-  Real report.raftery.diag.s   = 0.950;   
-  Real report.raftery.diag.eps = 0.001; 
+  Real report.raftery.diag.q   = 0.25;
+  Real report.raftery.diag.r   = 0.07;   
+  Real report.raftery.diag.s   = 0.90;   
+  Real report.raftery.diag.eps = 0.01; 
   Real report.acf.lag          = 20,
   Real report.histogram.parts  = 100;
   Real report.kerDens.points   = 0;
