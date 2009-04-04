@@ -11,18 +11,13 @@ Text summary_ = "Metropolis-Hastings simulation of BSR linear block";
 
 Real numErr0 = Copy(NError);
 
-Real If(!FileExist("model.bsr"),
-{
-  OSCmdWait("model.exe -y")
-});
-
 Set bsr.parsed = BSR.Parse("model.bsr");
 
 BysMcmc::Config bsr.config = 
 [[
 //MCMC dimensions
-  Real mcmc.burnin = 100; 
-  Real mcmc.sampleLength = 2000;
+  Real mcmc.burnin = 20; 
+  Real mcmc.sampleLength = 120;
   Real mcmc.cacheLength = 1;
 //Basic master configuration
   Real basic.cholesky.epsilon = 1.E-13;
@@ -44,10 +39,10 @@ BysMcmc::Config bsr.config =
   Real bsr.linBlk.usePreconditioning = 0;
 
 //Report configuration
-  Real report.raftery.diag.q   = 0.025;
-  Real report.raftery.diag.r   = 0.007;   
-  Real report.raftery.diag.s   = 0.950;   
-  Real report.raftery.diag.eps = 0.001; 
+  Real report.raftery.diag.q   = 0.25;
+  Real report.raftery.diag.r   = 0.07;   
+  Real report.raftery.diag.s   = 0.90;   
+  Real report.raftery.diag.eps = 0.01; 
   Real report.acf.lag          = 20,
   Real report.histogram.parts  = 100;
   Real report.kerDens.points   = 0;
