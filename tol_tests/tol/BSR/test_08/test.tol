@@ -13,7 +13,7 @@ Real numErr0 = Copy(NError);
 
 //Random seed setting
 Real PutRandomSeed(0);
-Real rndSeed = GetRandomSeed(2423);
+Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
 //////////////////////////////////////////////////////////////////////////////
@@ -21,7 +21,7 @@ WriteLn("Current Random Seed = "<<rndSeed);
 //These information is unknown in real world problems
 //////////////////////////////////////////////////////////////////////////////
 //Original supplied data 
-Matrix X1 = Rand(1000, 5, -1, 1);
+Matrix X1 = Rand(1000, 5, -.3, .3);
 //Deived inputs
 Matrix X2 = SubCol(X1,[[1]]) $* SubCol(X1,[[2]]);
 //Constant input
@@ -171,7 +171,7 @@ BysMcmc::Config bsr.config = [[
     //Try order for constrained max likelihood solution to start MCMC
     Real bsr.iniVal.try.cnstrMLE = 1;
 //Generic flags
-  Real do.resume          =  1/0;
+  Real do.resume          =  0;
   Real do.report          =  True;
   Real do.eval            =  False; //Has no sense for probit models
   Real do.linear.effects  =  False  //Has no sense for probit models
