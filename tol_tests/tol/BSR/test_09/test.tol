@@ -21,10 +21,6 @@ Real PutRandomSeed(1150125676);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-Real If(!FileExist("data.oza"),
-{
-  OSCmdWait("data.exe -y")
-});
 Set data = Include ("data.oza");
 
 //Se activa la base de datos de modelos BsrHlm

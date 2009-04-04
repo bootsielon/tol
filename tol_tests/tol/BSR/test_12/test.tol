@@ -15,10 +15,6 @@ WriteLn("Current Random Seed = "<< rndSeed);
 
 Set Include("../general/general.tol");
 
-Real If(!FileExist("data.oza"),
-{
-  OSCmdWait("data.exe -y")
-});
 Set data = Include ("data.oza");
 
 
