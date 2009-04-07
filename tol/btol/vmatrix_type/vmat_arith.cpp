@@ -533,6 +533,11 @@ int BVMat::Prod(const BVMat& A_, const BVMat& B_, BVMat& C)
   int i, j;
   int r = A.Rows();
   int c = A.Columns();  
+  if(!r || !c) 
+  {
+    B=A;
+    return(0);
+  }
   double * x;
   BVMat sp, tr;
   int *fset;
@@ -585,6 +590,11 @@ int BVMat::Prod(const BVMat& A_, const BVMat& B_, BVMat& C)
   int i, j;
   int r = A.Rows();
   int c = A.Columns();  
+  if(!r || !c) 
+  {
+    B=A;
+    return(0);
+  }
   double * x;
   BVMat sp, tr;
   int *fset;
