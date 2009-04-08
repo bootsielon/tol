@@ -359,7 +359,9 @@ const BText& BNameBlock::LocalName() const
         set.PrepareStore(newNameBlock.member_.Size());
         for(n=0; n<newNameBlock.member_.Size(); n++)
         {
-          BMember* mbr = newNameBlock.member_[n]->member_;
+          BMember* mbr = newNameBlock.member_[n]->member_; 
+        //Std(BText("\nTRACE BNameBlock::EvaluateTree member ")+
+        //  fullName+"::"+newNameBlock.member_[n]->member_->name_);
           BSyntaxObject* obj = GraAnything()->EvaluateTree(mbr->branch_);
           if(!obj) 
           { 
@@ -682,7 +684,8 @@ const BText& BNameBlock::LocalName() const
     }
     if(!result)
     {
-      cns = cns->Father();
+    //cns = cns->Father();
+      cns = NULL;
     }
   }
   return(result);
