@@ -10,28 +10,31 @@ Text _.autodoc.member.SigmaBlock =
 "Builds a NameBlock that can draw a Gibbs sample of a variance block of a "
 "general regression model.";
 //////////////////////////////////////////////////////////////////////////////
-  NameBlock SigmaBlock(Text name, Set NoiseDistrib, 
-                       Real numBlock, Real firstCol,
-                       NameBlock  config)
+  BlockSampler SigmaBlock(Text name, Set NoiseDistrib, 
+                          Real numBlock, Real firstCol,
+                          NameBlock  config)
 //////////////////////////////////////////////////////////////////////////////
-{[[
+{
+  BysMcmc::BlockSampler sigBlk = [[
+
   Real _.m = VRows(NoiseDistrib[1]->Li);
-  //Selects noise with constant sigma
+  //Selects residuals with constant sigma
   Set _.sigmaBlockCte = 
   {
-  //WriteLn("TRACESelecting noise with known wariance");
+  //WriteLn("TRACESelecting residuals with known wariance");
     Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
     { d->SigmaIndex<=0 })
   };
-  //Selects noise with variant sigma
+  //Selects residuals with variant sigma
   Set _.sigmaBlockVar = 
   {
-  //WriteLn("TRACESelecting noise with unknown wariance");
+  //WriteLn("TRACESelecting residuals with unknown wariance");
     Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
     { d->SigmaIndex>0 })
   };
+
   //Defining the block in the Markov Chain
-  NameBlock _.blockDef = BysMcmc::DefineBlock
+  Real _defined = define
   (
     name,
     EvalSet(_.sigmaBlockVar, Text(BSR.NoiseDistrib d) { d->SigmaName });
@@ -39,8 +42,7 @@ Text _.autodoc.member.SigmaBlock =
     firstCol,
     config
   );
-  //Message identificator
-  Text _MID = "["+_.blockDef::_.name+"] ";
+
   //Number of variant variances (dimension of sigma block)
   Real _.S = Card(_.sigmaBlockVar);
   //A diagonal matrix with sum of all constant sigmas that will be used in 
@@ -52,69 +54,81 @@ Text _.autodoc.member.SigmaBlock =
   VMatrix _.sigmaInv = _.sigmaInvCte;
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.draw.sumOfSquares =
+  Text _.autodoc.member.sumOfSquares =
   "Method of generation of sigma block containing draws of all variant "
   "variances as inverses of a squared-chi";
-  NameBlock sumOfSquares(Real numSim, VMatrix noise, BSR.NoiseDistrib segment)
+  NameBlock sumOfSquares(Real numSim, VMatrix residuals, BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" draw.sigmaBlock 2 "+d->Name);
+  //WriteLn("TRACE "+_MID+" sumOfSquares 1 "+segment->Name);
     Real    m    = (segment->ArimaAuxInfo)::numDifData;
-    VMatrix ek   = SubRow(noise, segment->EquIdx);
-  //WriteLn("TRACE"+_MID+" draw.sigmaBlock 3 StDs(ek)="<< VMatStDs(ek));
-  //WriteLn("TRACE"+_MID+" draw.sigmaBlock 4 ek="<< VMat2Mat(Tra(ek)));
+  //WriteLn("TRACE "+_MID+" sumOfSquares 2 ");
+    VMatrix ek   = SubRow(residuals, segment->EquIdx);
+  //WriteLn("TRACE "+_MID+" sumOfSquares 3 ek=("<<Matrix Tra(VMat2Mat(ek))+")");
     Real    rss_ = VMatDat(MtMSqr(ek),1,1);
+  //WriteLn("TRACE "+_MID+" sumOfSquares 4 ");
     Real rss  = If(rss_==0, 
     {
-      If(numSim>1, WriteLn(_MID+" Sampling sum of squares of noise "
+      If(numSim>1, WriteLn(_MID+" Sampling sum of squares of residuals "
         "is just zero for segment "+segment->Name,"W"));
       0.0001*m
     },
     {
       rss_
     });
+  //WriteLn("TRACE "+_MID+" sumOfSquares 5 ");
     [[
       Real m,
       Real rss
     ]]
   };
 
-
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw.invRandChisq =
   "Method of generation of sigma block containing draws of all variant "
   "variances as inverses of a squared-chi";
-  VMatrix draw.invRandChisq(Real numSim, VMatrix noise)
+  VMatrix draw.invRandChisq(Real numSim, VMatrix residuals)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" draw.sigmaBlock 1 noise="<<Matrix(VMat2Mat(Tra(noise))));
+  //WriteLn("TRACE "+_MID+" draw.invRandChisq 1 ");
     Set v = EvalSet(_.sigmaBlockVar,Real(BSR.NoiseDistrib segment)
     {
-      NameBlock sumSqr = sumOfSquares(numSim, noise, segment);
+    //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.1 "+segment->Name);
+      NameBlock sumSqr = sumOfSquares(numSim, residuals, segment);
+    //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2 ");
       Case(
       StructName(segment->SigmaPrior)=="Bsr.Sigma.Prior.InverseGamma",
       {
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.1 ");
         Real s2 = segment->SigmaPrior->Sigma2;
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.2 ");
         Real w  = segment->SigmaPrior->Weight;
-      //WriteLn("TRACE ["+_MID+"] Bsr.Sigma.Prior.InverseGamma("<<s2+","<<w+")");
+      //WriteLn("TRACE ["+_MID+"] draw.invRandChisq("<<s2+","<<w+")");
         Case(
         w==1,  
         {
+        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.1 ");
           s2
         },
         w==0,
         {
+        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.2 ");
           sumSqr::rss/RandChisq(sumSqr::m)
         },
         LT(0,w,1),
         {
+        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.3 ");
           //w = m0/(m0+m); m0*(w-1)=-m*w; m0 = m*w/(1-w)
           Real m0 = Max(1,Round(sumSqr::m*w/(1-w)));
+        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.4 ");
           Real rss = sumSqr::rss + m0 * s2;
+        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.5 ");
           Real m = sumSqr::m + m0;
+        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.6 ");
           Real S2 = rss/RandChisq(m); 
+        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.7 ");
           /*
-          WriteLn("TRACE "+_MID+" draw.invRandChisq ("+segment->Name+") "+
+        //WriteLn("TRACE "+_MID+" draw.invRandChisq ("+segment->Name+") "+
             " s2="<<s2+
             " w="<<w+
             " m0="<<m0+
@@ -134,59 +148,43 @@ Text _.autodoc.member.SigmaBlock =
       },
       1==1,
       {
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.3 ");
         sumSqr::rss/RandChisq(sumSqr::m)
       })
     });
+  //WriteLn("TRACE "+_MID+" draw.invRandChisq 3 ");
     Real Do setStore(SetCol(v));
-  //WriteLn("TRACE "+_MID+" draw.invRandChisq v="<<v);
-    Real _.blockDef::checkNonFiniteValues(numSim);
-    Copy(_.blockDef::_.store)
+  //WriteLn("TRACE "+_MID+" draw.invRandChisq 4 ");
+    Copy(_.store)
   };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(VMatrix residuals_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    NameBlock _.ws := 
+    [[
+      VMatrix  residuals = residuals_
+    ]];
+    True
+  };
+  Code _.buildWorkSpace = _buildWorkSpace;
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =
   "Method of simulation of sigma block";
-  VMatrix draw(Real numSim, VMatrix noise)
+  VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(_.blockDef::enabled,
+    If(enabled,
     {
-      draw.invRandChisq(numSim, noise)
+      draw.invRandChisq(numSim, _.ws::residuals)
     },
     {
-      Copy(_.blockDef::_.store)
+      Copy(_.store)
     })
   };
 
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.maxLikelihood =
-  "Method of contitioned maximum likelihood";
-  VMatrix maxLikelihood(Real numSim, VMatrix noise)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Set ss = EvalSet(_.sigmaBlockVar,NameBlock(BSR.NoiseDistrib segment)
-    {
-      sumOfSquares(numSim, noise, segment)
-    });
-    Set v = EvalSet(ss,Real(NameBlock sumSqr)
-    {
-      sumSqr::rss/sumSqr::m
-    });
-    Real totSumSqr = SetSum(EvalSet(ss,Real(NameBlock sumSqr)
-    {
-      sumSqr::rss
-    }));
-    Real totNumData = SetSum(EvalSet(ss,Real(NameBlock sumSqr)
-    {
-      sumSqr::m
-    }));
-    Real stdErr = Sqrt(totSumSqr/totNumData);
-    WriteLn("MaxLikelihood step "+IntText(numSim)+" Standard error="<<stdErr);
-    Real Do setStore(SetCol(v));
-  //WriteLn("TRACE "+_MID+" maxLikelihood");
-    Real _.blockDef::checkNonFiniteValues(numSim);
-    Copy(_.blockDef::_.store)
-  };
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.setStore =
@@ -195,27 +193,17 @@ Text _.autodoc.member.SigmaBlock =
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(_.blockDef::_.numCol<=0,0,{
-    Real _.blockDef::setStore(values);
+    If(_.N<=0,0,{
+    Real putStore(values);
     VMatrix sigmaInvVar = BinGroup("+", 
     For(1,Card(_.sigmaBlockVar), VMatrix (Real k)
     {
-      Real si = 1/Sqrt(VMatDat(_.blockDef::_.store,k,1));
+      Real si = 1/Sqrt(VMatDat(_.store,k,1));
       _.sigmaBlockVar[k]->Li*si
     }));
-  //WriteLn("TRACE"+_MID+" solve.stdReg 2");
+  //WriteLn("TRACE "+_MID+" solve.stdReg 2");
     VMatrix _.sigmaInv := sigmaInvVar + _.sigmaInvCte;
     1 })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setMcmcRow =
-  "Sets _.store to the columns related to this block of a given row of a "
-  "Markov Chain";
-  Real setMcmcRow(Matrix mcmc, Real row) 
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
   }
 
 ]]};

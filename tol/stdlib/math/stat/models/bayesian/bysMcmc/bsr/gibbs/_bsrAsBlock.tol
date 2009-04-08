@@ -10,24 +10,22 @@ Text _.autodoc.member.BsrAsBlock =
 "Builds a NameBlock that can draw a Gibbs sample of a full BSR used as block "
 "of any other simulator.";
 //////////////////////////////////////////////////////////////////////////////
-  NameBlock BsrAsBlock(NameBlock bsrInstance, 
+  BlockSampler BsrAsBlock(NameBlock bsrInstance, 
                        Real numBlock, 
                        Real firstCol,
                        NameBlock  config)
 //////////////////////////////////////////////////////////////////////////////
-{[[
+{
+  BysMcmc::BlockSampler blk = [[
   NameBlock _.bsr = bsrInstance;
   //Defining the block in the Markov Chain
-  NameBlock _.blockDef = BysMcmc::DefineBlock
-  (
+  Real _define = define(
     _.bsr::get.name(0),
     _.bsr::get.colNames(0);
     numBlock,
     firstCol,
     config
   );
-  //Message identificator
-  Text _MID = "["+_.blockDef::_.name+" as block] ";
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =
@@ -38,31 +36,14 @@ Text _.autodoc.member.BsrAsBlock =
     _.bsr::draw(numSim)
   };
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.maxLikelihood =
-  "Method of contitioned maximum likelihood";
-  VMatrix maxLikelihood(Real numSim)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    _.bsr::maxLikelihood(numSim)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.setStore =
   "Sets _.store to the specified row vector of values";
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
+    putStore(values);
     _.bsr::setStore(values)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setMcmcRow =
-  "Sets _.store to the columns related to this block of a given row of a "
-  "Markov Chain";
-  Real setMcmcRow(Matrix mcmc, Real row) 
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
   }
+
 
 ]]};

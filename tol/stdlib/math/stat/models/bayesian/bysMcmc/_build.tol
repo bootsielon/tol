@@ -167,6 +167,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
     //Cache matrix to store up to cacheLength rows before to append it to the
     //BBM file
     Matrix cache = Rand(0,_.n,0,0);
+  //WriteLn("TRACE "+_MID+"1.1 cache("<<Rows(cache)+"x"<<Columns(cache)+")");
     //Initializes the timer
     Real t0 = Copy(Time);
     Real t1 = Copy(Time);
@@ -208,9 +209,9 @@ NameBlock BuildCycler(NameBlock modelSampler,
       });
     //WriteLn("TRACE "+_MID+"4");
       VMatrix draw_ = _.sampler::draw(numSim);
-    //WriteLn("TRACE "+_MID+"5");
       Matrix  draw  = VMat2Mat(draw_);
-    //WriteLn("TRACE "+_MID+"6");
+    //WriteLn("TRACE "+_MID+"5 draw("<<Rows(draw)+"x"<<Columns(draw)+")");
+    //WriteLn("TRACE "+_MID+"6 cache("<<Rows(cache)+"x"<<Columns(cache)+")");
       Matrix cache := cache << Tra(draw);
     //WriteLn("TRACE "+_MID+"7");
       Real If(doCache,

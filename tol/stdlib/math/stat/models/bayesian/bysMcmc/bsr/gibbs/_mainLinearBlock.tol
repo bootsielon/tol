@@ -5,200 +5,52 @@
 // PURPOSE: Declares method BysMcmc::Bsr::Gibbs::MainLinearBlock
 /////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////
+//Method _.buildWorkSpace must create _.ws as an instance of this class
+Class WorkSpace.ArimaReg : WorkSpace.LinReg
+////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _.arm.blk
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.MainLinearBlock =
 "Builds a NameBlock that can draw a Gibbs sample of the Main Linear block "
 "of a Bayesian Sparse Regression model";
 //////////////////////////////////////////////////////////////////////////////
-  NameBlock MainLinearBlock(Text name, Set varNames, 
-                              Real numBlock, Real firstCol,
-                              NameBlock config)
+  StdLinearBlock MainLinearBlock(
+    Text name, 
+    Set varNames, 
+    Real numBlock, 
+    Real firstCol,
+    NameBlock config)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(!Card(varNames), [[
-  NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock(
-    name, 
-    varNames, 
-    numBlock, 
-    firstCol, 
-    config);
-  NameBlock _.blockDef = _.lin.blk::_.blockDef;
-  Real initialize(Real unused){ 0 };
-  VMatrix filter(VMatrix X) { X };
-  VMatrix draw(Real numSim, VMatrix Y, VMatrix X, NameBlock arm.blk) 
-  { _.blockDef::_.store }
-  ]], [[
+  If(!Card(varNames), NoBlockSampler(name, varNames, numBlock, firstCol, config),
+  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
   //Defining the block in the Markov Chain
-  NameBlock _.lin.blk = BysMcmc::Bsr::Gibbs::StdLinearBlock(
-    name, 
-    varNames, 
-    numBlock, 
-    firstCol, 
-    config);
-  NameBlock _.blockDef = _.lin.blk::_.blockDef;
-  //Message identificator
-  Text _MID = "["+_.blockDef::_.name+"] ";
-  //Number of input missing variables (dimension of input missing block)
-  Real _.N = Card(varNames);
-  //Logarithm of density of last generated vector
-  Real _.betaLogDens = -1/0;
-
-  Real _.MH.useAfterIter = Max(1,config::bsr.linBlk.MH.useAfterIter);
-  Real _.MH.maxRejected  = config::bsr.linBlk.MH.maxRejected;
-  Real _.MH.maxConsecutive  = config::bsr.linBlk.MH.maxConsecutive;
-  Real _.MH.tried = 0;
-  Real _.MH.rejected = 0;
-  Real _.MH.success = 0;
-  Real _.MH.consecutive = 0;
-  Real _.calculatedSimulation = 0;
+  Real _define = define(name, varNames, numBlock, firstCol, config);
 
   ////////////////////////////////////////////////////////////////////////////
-  Real initialize(VMatrix beta0, VMatrix A, VMatrix a)
+  Real _buildWorkSpace(VMatrix   Y,    //Non filtered output
+                       VMatrix   X,    //Non filtered input
+                       BysMcmc::BlockSampler arm.blk) //ArimaBlock filter
   ////////////////////////////////////////////////////////////////////////////
   {
-    
-    _.lin.blk::initialize(beta0, A, a)
+    BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg wsar = 
+    [[
+      VMatrix _.Y = Y;
+      VMatrix _.X = X;
+      NameBlock _.arm.blk = arm.blk
+    ]];
+    NameBlock _.ws := wsar;
+    True
   };
+  Code _.buildWorkSpace = _buildWorkSpace;
 
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix getStore(Real unused)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    _.lin.blk::_.blockDef::_.store
-  };
-
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.draw.gibbs =
-  "Method of Gibbs simulation of main linear block";
-  VMatrix draw.gibbs(Real numSim, VMatrix Y, VMatrix X, NameBlock arm.blk)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-  //WriteLn("TRACE "+_MID+" draw.gibbs 1");
-    Real _.MH.consecutive := 0;
-  //WriteLn("TRACE "+_MID+" draw.gibbs 2");
-    VMatrix Y01 = arm.blk::filter(Y); 
-  //WriteLn("TRACE "+_MID+" draw.gibbs 3");
-    VMatrix X01 = arm.blk::filter(X); 
-  //WriteLn("TRACE "+_MID+" draw.gibbs 4");
-    Real _.lin.blk::solve(numSim, Y01, X01);
-  //WriteLn("TRACE "+_MID+" draw.gibbs 5");
-    VMatrix b =_.lin.blk::draw(numSim);
-  //WriteLn("TRACE "+_MID+" draw.gibbs 6");
-    VMatrix ep = Y01-X01*b;
-  //WriteLn("TRACE "+_MID+" draw.gibbs 7");
-    Real _.betaLogDens := -0.5*VMatDat(MtMSqr(ep),1,1);
-    b
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.draw.metropolis_hastings =
-  "Method of Metroplois-Hastings simulation of main linear block";
-  VMatrix draw.metropolis_hastings(Real numSim, VMatrix Y, VMatrix X, NameBlock arm.blk)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-  //WriteLn("TRACE "+_MID+" draw.metropolis_hastings 1");
-/* * /
-    WriteLn(" numSim="<<numSim+
-            " _.MH.success="<<_.MH.success+
-            " _.MH.tried="<<_.MH.tried+
-            " _.MH.rejected="<<_.MH.rejected+
-            " _.MH.consecutive="<<_.MH.consecutive);
-/* */
-    Real _.MH.consecutive := _.MH.consecutive + 1;
-    Real m = VRows(Y);
-    VMatrix b = getStore(0);
-    VMatrix ep = arm.blk::filter(Y-X*b);
-    Real p0 = -0.5*VMatDat(MtMSqr(ep),1,1);
-    Real q0 = _.lin.blk::_.betaLogDens;
-    Real s0 = Sqrt(-2*p0/m);
-  //WriteLn(" s0="<<s0+" p0="<<p0+" q0="<<q0);
-    Real p1 = ?;
-    Real q1 = ?;
-    Real accept = False;
-    Real i = 1;
-    While(Not(accept) & (i<=_.MH.maxRejected),
-    {
-      Real t0 = Copy(Time);
-      Real _.lin.blk::changed.X := False;
-      VMatrix b := _.lin.blk::draw(numSim);
-      VMatrix ep := arm.blk::filter(Y-X*b);
-      Real p1 := -0.5*VMatDat(MtMSqr(ep),1,1);
-      Real s1 = Sqrt(-2*p1/m);
-      Real q1 := _.lin.blk::_.betaLogDens;
-      Real a = Rand(0,1);
-      Real c = Exp((p1+q0)-(p0+q1));
-      Real s = Sqrt(gsl_ran_chisq(m)/m);
-      Real accept := Case(
-        s1 <= 1, True,
-        s1 <= s, True,
-        1  == 1, a<c);
-      Real tm = Copy(Time) - t0;
-/* * /
-      WriteLn(" i="<<i+
-              " s1="<<s1+
-              " p1="<<p1+
-              " q1="<<q1+
-              " c="<<c+
-              " a="<<a+
-              " s="<<s+
-              " accept="<<accept+
-              " time="<<tm);
-/* */
-      Real _.MH.tried := _.MH.tried +1 ;
-      Real _.MH.rejected = _.MH.rejected + Not(accept);
-      Real i := i+1
-    });
-    If(accept, 
-    {
-      Real _.MH.success := _.MH.success + 1;
-      Real _.betaLogDens := p1;
-      b
-    }, 
-    {
-      draw.gibbs(numSim, Y, X, arm.blk)
-    })  
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.draw =
-  "Method of generation of mian linear block";
-  VMatrix draw(Real numSim, VMatrix Y, VMatrix X, NameBlock arm.blk)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-  //WriteLn("TRACE "+_MID+" draw 1");
-    If(Not(_.blockDef::enabled), _.blockDef::_.store,
-    {
-    //WriteLn("TRACE "+_MID+" draw 2");
-      Real _.calculatedSimulation := _.calculatedSimulation+1;
-    //WriteLn("TRACE "+_MID+" draw 3");
-      If(And(_.calculatedSimulation >_.MH.useAfterIter,
-             _.MH.consecutive <= _.MH.maxConsecutive),
-        draw.metropolis_hastings(numSim, Y, X, arm.blk),
-        draw.gibbs              (numSim, Y, X, arm.blk))
-   })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setStore =
-  "Sets _.store to the specified row vector of values";
-  Real setStore(Matrix values) 
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    If(_.blockDef::_.numCol<=0,0,{
-      _.blockDef::setStore(values) 
-    })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setMcmcRow =
-  "Sets _.store to the columns related to this block of a given row of a "
-  "Markov Chain";
-  Real setMcmcRow(Matrix mcmc, Real row) 
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real setStore(_.blockDef::getMcmcRow(mcmc, row))
+  VMatrix standarize(VMatrix _Z) 
+  { 
+    _.ws::_.arm.blk::filter(_Z)
   }
 
 ]])};

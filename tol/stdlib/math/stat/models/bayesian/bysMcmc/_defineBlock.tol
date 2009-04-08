@@ -1,63 +1,95 @@
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : _defineBlock.tol
-// PURPOSE: Declares method BysMcmc::DefineBlock
+// PURPOSE: Declares class BysMcmc::BlockSampler
 // PURPOSE: Generic handler for blocks of variables in MonteCarlo Markov 
 //          Chain methods
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.DefineBlock =
-"Creates common information handler about each MCMC block"
-"Arguments are:\n"
-"  Text name: Identifies the block.\n"
-"  Set colNames: Identifiers of block parameters that must be all unique.\n"
-"  Real numBlock: The position of this block in full MCMC.\n"
-"  Real firstCol: First column of this block in full MCMC\n"
-"  NameBlock config: User configuration parameters\n";
-NameBlock DefineBlock(Text name, 
-                      Set colNames, 
-                      Real numBlock, 
-                      Real firstCol,
-                      Config config)
+Class BlockSampler
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real numCol = Card(colNames);
-  WriteLn("[BysMcmc::DefineBlock] Block "
-          "("+IntText(numBlock)+") "+name+" of size "+IntText(numCol));
-  NameBlock blockDef = [[
   //Identifies the block.
-  Text _.name = name;
+  Text _.name = "";
+  //Message identificator
+  Text _MID = "[BlockSampler unnamed] ";
   //Identifiers of block parameters that must be all unique
   Set _.colNames = Copy(Empty);
   //The position of this block in full MCMC
-  Real _.numBlock = numBlock;
+  Real _.numBlock = ?;
   //Number of parameters in the block
-  Real _.numCol = numCol;
+  Real _.N = ?;
   //First column of this block in full MCMC
-  Real _.firstCol = firstCol;
+  Real _.firstCol = ?;
   //Last column of this block in full MCMC
-  Real _.lastCol = firstCol+_.numCol-1;
+  Real _.lastCol = ?;
   //Indexes of columns of this block in full MCMC
-  Set _.colIdx = Range(_.firstCol, _.lastCol, 1);
+  Set _.colIdx = Copy(Empty);
   //User configuration parameters
-  BysMcmc::Config _.config   = config;
+  Config _.config = Config.Default(0);
   //Stores current values of parameters
-  VMatrix _.store = Rand(_.numCol,1,0,0);
+  VMatrix _.store = Rand(0,0,0,0);
   //Flag that enables/disables the block
-  Real enabled  = True;
+  Real enabled = True;
+  //Work space stores all data needed to draw samples that are variant for
+  //each simulation
+  NameBlock _.ws = [[ Real unused = ? ]];
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //_buildWorkSpace will be the internal method used to build work space of 
+  //specialized blocks and can take any number of arguments of any type
+  //This member will store a reference of _buildWorkSpace if needed
+  //Default behaviour does nothing 
+  ////////////////////////////////////////////////////////////////////////////
+  Real _noWorkSpace(Real unused) { 0 };
+  Code _.buildWorkSpace = _noWorkSpace;
+
+  //Method of sample generation 
+  VMatrix draw(Real numSim);
+
+  //This method will be called for MCMC initialzation
+  //Default behaviour does nothing
+  Real initialize(Real unused) { 0 };
+
+  //Almost all blocks must filter matrices from other blocks
+  //Default behaviour does nothing
+  VMatrix filter(VMatrix Z) { Z };
+
 
   ////////////////////////////////////////////////////////////////////////////
-  //Puts name to each parameter and indexes the set _.colNames
-  Real _.initialize = 
+  Text _.autodoc.member.define =
+  "Creates common information handler about each MCMC block"
+  "Arguments are:\n"
+  "  Text name: Identifies the block.\n"
+  "  Set colNames: Identifiers of block parameters that must be all unique.\n"
+  "  Real numBlock: The position of this block in full MCMC.\n"
+  "  Real firstCol: First column of this block in full MCMC\n"
+  "  NameBlock config: User configuration parameters\n";
+  Real define(Text name, 
+              Set colNames, 
+              Real numBlock, 
+              Real firstCol,
+              Config config)
   ////////////////////////////////////////////////////////////////////////////
   { 
-  //WriteLn("TRACE [DefineBlock] _.numCol = "<<_.numCol);
-    Set _.colNames := For(1, _.numCol, Text(Real k)
+    Text _.name := name;
+    Text _MID := "[BlockSampler "+name+"] ";
+    Real _.N := Card(colNames);
+    Set _.colNames := For(1, _.N, Text(Real k)
     {
+    //WriteLn("TRACE [BlockSampler "+name+"::"+colNames[k]+"] ");
       Eval(ToName(colNames[k])+"=\""+colNames[k]+"\"")
     });
-  //WriteLn("TRACE [DefineBlock] _.colNames = "<<_.colNames);
-    If(_.numCol, SetIndexByName(_.colNames), 0)
+    Real If(_.N, SetIndexByName(_.colNames), 0);
+    Real _.numBlock := numBlock;
+    Real _.firstCol := firstCol;
+    Real _.lastCol := firstCol+_.N-1;
+    Set _.colIdx := Range(_.firstCol, _.lastCol, 1);
+    Config _.config := config;
+    VMatrix If(Or(!_.N, VRows(_.store)!=_.N), _.store := Rand(_.N,1,0,0), _.store);
+    WriteLn(_MID+" created with "<<
+       _.N+" parameters from "<<_.firstCol+" to "<<_.lastCol+"");
+    1
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -114,7 +146,7 @@ NameBlock DefineBlock(Text name,
   Matrix getMcmc(Matrix mcmc) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(_.numCol<=0, Rand(Rows(mcmc),0,0,0),
+    If(_.N<=0, Rand(Rows(mcmc),0,0,0),
       SubCol(mcmc, _.colIdx))
   };
 
@@ -124,8 +156,54 @@ NameBlock DefineBlock(Text name,
   Matrix getMcmcRow(Matrix mcmc, Real row) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(_.numCol<=0, Rand(1,0,0,0),
+    If(_.N<=0, Rand(1,0,0,0),
       SubCol(SubRow(mcmc,[[row]]), _.colIdx))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix vMat2Col(VMatrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(VRows(values)==1,Tra(values),values)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix mat2Col(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    vMat2Col(Mat2VMat(values))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.checkNonFiniteValues =
+  "Checks that the current stored vector of parameters has just finite real "
+  "values, and not unknown (NAN) of infinte ones.";
+  Real checkNonFiniteValues(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real ok = MatMin(IsFinite(VMat2Mat(_.store)));
+    Real If(!ok, CMsg::Coded::show
+      (BysMcmc::_.cmsg::_.unkInfBlock,[[_.name,_.store]]));
+    ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real putStoreV(VMatrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_.name+"::setStore("<<Rows(values)+"x"<<Columns(values));
+    If(_.N<=0, 0,
+    {
+      VMatrix _.store := vMat2Col(values);
+    //WriteLn("TRACE "+_.name+"::_.store("<<VRows(_.store)+"x"<<VColumns(_.store));
+      checkNonFiniteValues(0)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real putStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    putStoreV(Mat2VMat(values))
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -134,13 +212,7 @@ NameBlock DefineBlock(Text name,
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_.name+"::setStore("<<Rows(values)+"x"<<Columns(values));
-    If(_.numCol<=0, 0,
-    {
-      VMatrix _.store := Mat2VMat(If(Rows(values)==1,Tra(values),values));
-    //WriteLn("TRACE "+_.name+"::_.store("<<VRows(_.store)+"x"<<VColumns(_.store));
-      1
-    })
+    putStore(values) 
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -163,18 +235,20 @@ NameBlock DefineBlock(Text name,
     Real r = Rows(subMcmc);
     Matrix avr = Rand(1, r, 1/r, 1/r);
     Tra(avr*subMcmc)
-  };
+  }
 
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.checkNonFiniteValues =
-  "Checks that the current stored vector of parameters has just finite real "
-  "values, and not unknown (NAN) of infinte ones.";
-  Real checkNonFiniteValues(Real numSim)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real ok = VMatMin(IsFinite(_.store));
-    Real If(!ok, CMsg::Coded::show
-      (BysMcmc::_.cmsg::_.unkInfBlock,[[_.name,numSim,_.store]]));
-    ok
-  }]]
+};
+
+BlockSampler NoBlockSampler(Text name, 
+                            Set colNames, 
+                            Real numBlock, 
+                            Real firstCol,
+                            Config config)
+{
+  BlockSampler noBlockSampler =
+  [[
+    Real _define = define(name, colNames, numBlock, firstCol, config);
+    VMatrix draw(Real numSim) { ? };
+    Code _.buildWorkSpace = draw
+  ]]
 };

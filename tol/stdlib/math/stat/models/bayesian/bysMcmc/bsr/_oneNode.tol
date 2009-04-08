@@ -56,7 +56,7 @@ NameBlock OneNode =
   "  Real _.sigmaPriorWeight;  //Weight for Bsr.Sigma.Prior.InverseGamma\n"
   "  Set _.timeInfo;        //BSR.NoiseTimeInfo\n"
   "]];\n";
-  Set BuildModelDef(NameBlock data, NameBlock config_)
+  Set BuildModelDef(NameBlock data, Config config_)
   ///////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[EstimOneNode]";
@@ -317,7 +317,7 @@ NameBlock OneNode =
   "  Set _.arima;           //Set of ARIMAStruct\n"
   "  Set _.timeInfo;        //Set of BSR.NoiseTimeInfo\n"
   "]];\n";
-    NameBlock EstimProbit(NameBlock data, NameBlock config_)
+    NameBlock EstimProbit(NameBlock data, Config config_)
   //////////////////////////////////////////////////////////////////////////////
   {
     //All methods are performed for being _.sigma=1

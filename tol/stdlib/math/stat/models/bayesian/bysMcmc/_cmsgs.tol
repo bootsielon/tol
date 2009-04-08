@@ -34,10 +34,8 @@ NameBlock _.cmsg =
   Set _.unkInfBlock = CMsg.Coded.info(_ag,4, "error", Text(Set args)
   {
     Text    name   = args[1];
-    Real    numSim = args[2];
-    VMatrix store  = args[3];
-    "Block "+name+" has unknown or infinite values at "
-    "simulation "<<numSim+ ":"<<Matrix VMat2Mat(store,true)
+    VMatrix store  = args[2];
+    "Block "+name+" has unknown or infinite values :"<<Matrix VMat2Mat(store,true)
   });
   Set _.invCholFac = CMsg.Coded.info(_ag,5, "stop", Text(Set args)
   {

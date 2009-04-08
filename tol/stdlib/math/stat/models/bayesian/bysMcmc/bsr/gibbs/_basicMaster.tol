@@ -8,13 +8,13 @@
 Text _.autodoc.member.BasicMaster =
 "Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
 "Regression model by passing it to method BysMcmc::BuildCycler";
-NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
+NameBlock BasicMaster(BSR.ModelDef modelDef, Config config)
 //////////////////////////////////////////////////////////////////////////////
 {[[
   //--------------------------------------------------------------------------
   // Configuration members
   //--------------------------------------------------------------------------
-  BysMcmc::Config _config = config;
+  BysMcmc::Config _.config = config;
 
   //--------------------------------------------------------------------------
   // Read only members
@@ -31,49 +31,49 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //Setting NameBlock description
   Text _.autodoc.description="Gibbs sampler for model "+_.name;
   Text _MID = "[BSR."+_.name+"] ";
-  NameBlock _.mln.blk = BysMcmc::Bsr::Gibbs::MainLinearBlock
+  BysMcmc::Bsr::Gibbs::StdLinearBlock _.mln.blk = BysMcmc::Bsr::Gibbs::MainLinearBlock
   (
     "BSR.MainLinBlock."+_.name,
     EvalSet(_.modelDef->LinearBlock, Text(BSR.LinearBlock b){ b->Name }),
     1,
     1,
-    _config
+    _.config
   );
 
-  NameBlock _.sig.blk = BysMcmc::Bsr::Gibbs::SigmaBlock
+  BysMcmc::BlockSampler _.sig.blk = BysMcmc::Bsr::Gibbs::SigmaBlock
   (
     "BSR.SigmaBlock."+_.name,
     _.modelDef->NoiseDistrib,
     2,
-    _.mln.blk::_.blockDef::_.lastCol+1,
-    _config
+    _.mln.blk::_.lastCol+1,
+    _.config
   );
 
-  NameBlock _.arm.blk = BysMcmc::Bsr::Gibbs::ArimaBlock
+  BysMcmc::BlockSampler _.arm.blk = BysMcmc::Bsr::Gibbs::ArimaBlock
   (
     "BSR.ArimaBlock."+_.name,
     _.modelDef->NoiseDistrib,
     3, 
-    _.sig.blk::_.blockDef::_.lastCol+1,
-    _config
+    _.sig.blk::_.lastCol+1,
+    _.config
   );
 
-  NameBlock _.inpMis.blk = BysMcmc::Bsr::Gibbs::InputMissingBlock
+  BysMcmc::Bsr::Gibbs::StdLinearBlock _.inpMis.blk = BysMcmc::Bsr::Gibbs::InputMissingBlock
   (
     "BSR.InputMissingBlock."+_.name,
     _.modelDef->InputMissingBlock,
     4,
-    _.arm.blk::_.blockDef::_.lastCol+1,
-    _config
+    _.arm.blk::_.lastCol+1,
+    _.config
   );
 
-  NameBlock _.outMis.blk = BysMcmc::Bsr::Gibbs::OutputMissingBlock
+  BysMcmc::Bsr::Gibbs::StdLinearBlock _.outMis.blk = BysMcmc::Bsr::Gibbs::OutputMissingBlock
   (
     "BSR.OutputMissingBlock."+_.name,
     _.modelDef->OutputMissingBlock,
     5,
-    _.inpMis.blk::_.blockDef::_.lastCol+1,
-    _config
+    _.inpMis.blk::_.lastCol+1,
+    _.config
   );
 
   Set _.blocks =
@@ -100,6 +100,8 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   VMatrix _.filter = Rand(0,0,0,0);
   //ARIMA noise
   VMatrix _.noise  = Rand(0,0,0,0);
+  //residuals
+  VMatrix _.residuals  = Rand(0,0,0,0);
   //Linear block values
   VMatrix _.beta   = Rand(0,0,0,0);
 
@@ -113,13 +115,11 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     If(!Card(_.externalFilter), 1,
     {
     //WriteLn("TRACE"+_MID+"DoExternalFilter 3");
-      SetMin(EvalSet(_.externalFilter,Real(NameBlock extFlt)
+      Real filter.blk(BysMcmc::BlockSampler extFlt)
       {
-      //WriteLn("TRACE"+_MID+"DoExternalFilter 4 "+extFlt::_.blockDef::_.name);
-        Real ok = extFlt::filter(_.Y);
-      //WriteLn("TRACE"+_MID+"DoExternalFilter 5");
-        ok
-      }))
+        extFlt::do.filter(_.Y)
+      };
+      SetMin(EvalSet(_.externalFilter,filter.blk))
     })
   };
 
@@ -128,7 +128,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //Assigning initial values to linear block variables
   ////////////////////////////////////////////////////////////////////////////
   {
-    NameBlock cfg = _config;
+    BysMcmc::Config cfg = _.config;
     If(!VRows(_.modelDef->a), givenInitVal,
     {
     //WriteLn("TRACESearching valid initial values");
@@ -198,27 +198,42 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" init 1");
+  //WriteLn("TRACE"+_MID+" initialize 1");
     Matrix aux=SetCol(EvalSet(_.modelDef->LinearBlock,Real(BSR.LinearBlock b)
     { b->InitialValue }));
+    Real init.blk (BysMcmc::BlockSampler block)
+    {
+      block::initialize(0)
+    };
+    Real SetMin(EvalSet(_.blocks, init.blk));
+  //WriteLn("TRACE"+_MID+" init 1.1");
     VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
-  //WriteLn("TRACE"+_MID+" init 6");
+  //WriteLn("TRACE"+_MID+" init 1.2");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" init 2");
     VMatrix beta0 = findMatchingBeta(Mat2VMat(aux));
   //WriteLn("TRACE"+_MID+" init 3");
-    Real ok = _.mln.blk::initialize(beta0, _.modelDef->A, _.modelDef->a);
+    Real ok = _.mln.blk::matchConstrains(beta0, _.modelDef->A, _.modelDef->a);
   //WriteLn("TRACE"+_MID+" init 4");
-    VMatrix _.beta   := _.mln.blk::getStore(0);
+    VMatrix _.beta   := _.mln.blk::_.store;
     Real DoExternalFilter(0);
-    VMatrix sig_0 = _.sig.blk::draw(0, _.Y - _.modelDef->X*_.beta);
+    Real _.sig.blk::_.buildWorkSpace(_.Y - _.modelDef->X*_.beta);
+    VMatrix sig_0 = _.sig.blk::draw(0);
   //WriteLn("TRACE"+_MID+" init 7");
+  //WriteLn("TRACE"+_MID+" _.XplusU "<<_.XplusU);
+  //WriteLn("TRACE"+_MID+" _.beta "<<_.beta);
     VMatrix _.filter := _.XplusU*_.beta;
+  //WriteLn("TRACE"+_MID+" _.filter "<<_.filter);
     VMatrix _.noise := _.YplusV-_.filter;
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 3");
-    VMatrix e = _.arm.blk::filter(_.noise);
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 4");
-    VMatrix sig_1 = _.sig.blk::draw(0, e);
+  //WriteLn("TRACE"+_MID+" _.noise "<<_.noise);
+  //WriteLn("TRACE"+_MID+" init 8");
+    VMatrix _.residuals := _.arm.blk::filter(_.noise);
+  //WriteLn("TRACE"+_MID+" _.residuals "<<_.residuals);
+  //WriteLn("TRACE"+_MID+" init 9");
+    Real _.sig.blk::_.buildWorkSpace(_.residuals);
+  //WriteLn("TRACE"+_MID+" init 10");
+    VMatrix sig_1 = _.sig.blk::draw(0);
+  //WriteLn("TRACE"+_MID+" init 11");
     ok
   };
 
@@ -229,41 +244,69 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.1");
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 1");
     Real DoExternalFilter(0);
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.2");
-    VMatrix om = If(Not(_.outMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+    VMatrix om = If(Not(_.outMis.blk::_.N),
     {
-      _.outMis.blk::draw(numSim,_.arm.blk,_.sig.blk::_.sigmaInv,
-                         _.Y-_.XplusU*_.beta)
-    });
-    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.3");
-    VMatrix im = If(Not(_.inpMis.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
+      VMatrix _.YplusV := _.Y;
+      Rand(0,1,0,0)
+    },
     {
-      _.inpMis.blk::draw(numSim,_.arm.blk,_.sig.blk::_.sigmaInv, 
-                         _.beta, _.YplusV-_.modelDef->X*_.beta)
+      Real _.outMis.blk::_.buildWorkSpace(
+        _.arm.blk,_.sig.blk::_.sigmaInv,_.Y-_.XplusU*_.beta);
+      VMatrix aux = _.outMis.blk::draw(numSim);
+      VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
+      aux
     });
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.4");
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
-    VMatrix _.filter := _.XplusU*_.beta;
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 1.5");
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 2 om="<<om);
+    VMatrix im = If(Not(_.inpMis.blk::_.N),
+    {
+      VMatrix _.XplusU := _.modelDef->X;
+      Rand(0,1,0,0)
+    },
+    {
+      Real _.inpMis.blk::_.buildWorkSpace(
+        _.arm.blk,_.sig.blk::_.sigmaInv,_.YplusV-_.modelDef->X*_.beta,_.beta);
+      VMatrix aux = _.inpMis.blk::draw(numSim);
+      VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
+      aux
+    });
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 3 im="<<im);
+    VMatrix _.filter := If(Not(_.mln.blk::_.N),
+      _.YplusV*0,
+      _.XplusU*_.beta);
     VMatrix _.noise := _.YplusV - _.filter;
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 2");
-    VMatrix arm = If(Not(_.arm.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
-    _.arm.blk::draw(numSim, _.noise, _.sig.blk::_.blockDef::_.store));
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 3");
-    VMatrix e = _.arm.blk::filter(_.noise);
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 4");
-    VMatrix sig = If(Not(_.sig.blk::_.blockDef::_.numCol),Rand(0,1,0,0),
-      _.sig.blk::draw(numSim, e));
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 5");
+    VMatrix arm = If(Not(_.arm.blk::_.N),
+    {
+      VMatrix _.residuals := _.noise;
+      Rand(0,1,0,0)
+    },
+    {
+      Real _.arm.blk::_.buildWorkSpace(_.noise, _.sig.blk::_.store );
+      _.arm.blk::draw(numSim)
+    });
+    VMatrix _.residuals := _.arm.blk::filter(_.noise);
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 4 arm="<<arm);
+    VMatrix _Y = _.YplusV;
+    VMatrix _X = _.XplusU;
+    VMatrix sig = If(Not(_.sig.blk::_.N),
+    { 
+       Rand(0,1,0,0)
+    },
+    {
+      Real _.sig.blk::_.buildWorkSpace(_.residuals);
+      _.sig.blk::draw(numSim)
+    });
     VMatrix si = _.sig.blk::_.sigmaInv;
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 7");
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 9");
+    VMatrix _Y := si*_Y;
+    VMatrix _X := si*_X;
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 5 sig="<<sig);
     VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
-      _.mln.blk::draw(numSim, si*_.YplusV, si*_.XplusU, _.arm.blk));
-  //WriteLn("TRACE"+_MID+" draw.sig.lin 10");
+    {
+      Real _.mln.blk::_.buildWorkSpace(_Y, _X, _.arm.blk);
+      _.mln.blk::draw(numSim)
+   });
+  //WriteLn("TRACE"+_MID+" draw.sig.lin 6 _.beta="<<_.beta);
     _.beta << sig << arm << im << om
   };
 
@@ -285,10 +328,11 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   }; 
   Set get.colNames(Real unused) 
   { 
-    BinGroup("<<",EvalSet(_.blocks, Set(NameBlock block)
+    Set gcn (BysMcmc::BlockSampler block)
     {
-      block::_.blockDef::_.colNames
-    }))
+      block::_.colNames
+    };
+    BinGroup("<<",EvalSet(_.blocks, gcn))
   };
 
   //--------------------------------------------------------------------------
@@ -302,12 +346,11 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+"::setStore 1 values("<<Rows(values)+"x"<<Columns(values)+")");
-    Set EvalSet(_.blocks, Real(NameBlock block)
+    Real setStore.blk(BysMcmc::BlockSampler block)
     {
-      If(Or(!(block::_.blockDef::enabled),
-              block::_.blockDef::_.numCol<=0),0,
-         block::setStore(block::_.blockDef::getMcmc(values)))
-    });
+      block::setStore(block::getMcmc(values))
+    };
+    Set EvalSet(_.blocks, setStore.blk);
     1
   };
 
@@ -347,7 +390,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
   //WriteLn("TRACE"+_MID+" eval 3");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" eval 4");
-    VMatrix _.beta := _.mln.blk::getStore(0);
+    VMatrix _.beta := _.mln.blk::_.store;
     VMatrix fullFilter = _.modelDef->X*_.beta;
     VMatrix fullFilter.full = _.XplusU*_.beta;
     VMatrix fullFilter.mis = fullFilter.full - fullFilter;
@@ -383,7 +426,7 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.2 segment->SigmaIndex="<<segment->SigmaIndex);
       Real sigma  = If(segment->SigmaIndex<=0, 
         VMatDat(segment->L,(segment->EquIdx)[1],(segment->EquIdx)[1]),
-        Sqrt(VMatDat(_.sig.blk::_.blockDef::_.store,segment->SigmaIndex,1)));
+        Sqrt(VMatDat(_.sig.blk::_.store,segment->SigmaIndex,1)));
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.3");
       Set ti = If(useTimeInfo, segment->TimeInfo, Copy(Empty));
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].3");
@@ -717,8 +760,8 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, NameBlock config)
                            Matrix   inputForecast)
   ////////////////////////////////////////////////////////////////////////////
   {
-    NameBlock lin = _.mln.blk::_.lin.blk::_.blockDef;
-    NameBlock sig = _.sig.blk::_.blockDef;
+    BlockSampler lin = _.mln.blk;
+    BlockSampler sig = _.sig.blk;
 
     Real blk = getRegEquBlock(resBlock);
     Real T = Rows(inputForecast);

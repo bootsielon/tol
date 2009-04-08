@@ -27,7 +27,7 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
   //Identifier prefix for messages
   Text _MID = "[BSR."+_.name+"] ";
   //The basic BSR master used as a block
-  NameBlock _.bsrBlk = BysMcmc::Bsr::Gibbs::BsrAsBlock
+  BlockSampler _.bsrBlk = BysMcmc::Bsr::Gibbs::BsrAsBlock
   (
     _.bsrMst,
     1,
@@ -37,11 +37,14 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
   //The non linear blocks created from given filters
   Set _.nonLinBlk = 
   {
+  //WriteLn("TRACE "+_MID+"::_.nonLinBlk 1 Card(nonLinFilter)="<<Card(nonLinFilter));
     Real firstCol = Card(_.bsrMst::get.colNames(0))+1;
+  //WriteLn("TRACE "+_MID+"::_.nonLinBlk 2 firstCol="<<firstCol);
     Set aux = For(1,Card(nonLinFilter), NameBlock(Real numBlk)
     {
+    //WriteLn("TRACE "+_MID+"::_.nonLinBlk 3.1 numBlk="<<numBlk);
       NameBlock nlf = nonLinFilter[numBlk];
-      NameBlock nlb = BysMcmc::Bsr::Gibbs::NonLinBlock
+      BysMcmc::BlockSampler nlb = BysMcmc::Bsr::Gibbs::NonLinBlock
       (
         nlf, 
         _.bsrMst,
@@ -54,7 +57,7 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
         Set nlf::_.externalInfo := [[ _.bsrMst, nlb ]];
         1
       });
-      Real firstCol := nlb::_.blockDef::_.lastCol+1;
+      Real firstCol := nlb::_.lastCol+1;
       Eval(ToName(nlb::_.name)+"=nlb")
     });
     aux
@@ -66,15 +69,17 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
   Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set _.bsrMst::_.externalFilter := Select(_.nonLinBlk, Real(NameBlock nlb)
+    Real sel.extFlt(BysMcmc::BlockSampler nlb)
     {
       !(nlb::_.isInputFilter)
-    });
+    };
+    Set _.bsrMst::_.externalFilter := Select(_.nonLinBlk, sel.extFlt);
     Real ok.1 = _.bsrMst::initialize(0);
-    Real ok.2 = SetMin(EvalSet(_.nonLinBlk, Real(NameBlock nlb)
+    Real init.blk(BysMcmc::BlockSampler nlb)
     {
       nlb::initialize(0)
-    }));
+    };
+    Real ok.2 = SetMin(EvalSet(_.nonLinBlk, init.blk));
     And(ok.1, ok.2)
   };
 
@@ -91,22 +96,6 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
       nlb::draw(numSim)
     }));
     bsrDraw << nonLinDraw
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.maxLikelihood =
-  "Method of contitioned maximum likelihood";
-  VMatrix maxLikelihood(Real numSim)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix bsrMLE = _.bsrBlk::maxLikelihood(numSim);
-    VMatrix nonLinMLE= Group("ConcatRows",
-    EvalSet(_.nonLinBlk, VMatrix(NameBlock nlb)
-    {
-      
-      nlb::maxLikelihood(numSim)
-    }));
-    bsrMLE << nonLinMLE
   };
 
   //--------------------------------------------------------------------------
@@ -127,10 +116,11 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
   }; 
   Set get.colNames(Real unused) 
   { 
-    BinGroup("<<",EvalSet(_.blocks, Set(NameBlock block)
+    Set gcn (BysMcmc::BlockSampler block)
     {
-      block::_.blockDef::_.colNames
-    }))
+      block::_.colNames
+    };
+    BinGroup("<<",EvalSet(_.blocks, gcn))
   };
 
   //--------------------------------------------------------------------------
@@ -146,23 +136,15 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
   //WriteLn("TRACE "+_MID+"::setStore 1 values("<<Rows(values)+"x"<<Columns(values)+")");
     Real _.bsrMst::setStore(values);
   //WriteLn("TRACE "+_MID+"::setStore 2");
-    Set EvalSet(_.blocks, Real(NameBlock block)
+    Real store.blk(BysMcmc::BlockSampler block)
     {
-    //WriteLn("TRACE "+_MID+"::setStore 3 "+block::_.blockDef::_.name);
-      If(Or(!(block::_.blockDef::enabled),
-              block::_.blockDef::_.numCol<=0),0,
-         block::setStore(block::_.blockDef::getMcmc(values)))
-    });
+    //WriteLn("TRACE "+_MID+"::setStore 3 "+block::_.name);
+      If(Or(!(block::enabled),
+              block::_.N<=0),0,
+         block::setStore(block::getMcmc(values)))
+    };
+    Set EvalSet(_.blocks, store.blk);
     1
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setMcmcRow =
-  "Set values of all blocks from a given row of a Markov Chain";
-  Real setMcmcRow(Matrix mcmc, Real row) 
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    setStore(SubRow(mcmc, [[row]]))
   };
 
   ////////////////////////////////////////////////////////////////////////////
