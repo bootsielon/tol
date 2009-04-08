@@ -816,11 +816,12 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
   BGrammar *type = gra;
   BInt nb = NumBranches(tre);
   //BSyntaxObjectDisplayInfo() = true;
-  if(BParser::Unparse(tre,"","") == "Real first:=0")
-    printf("");
+  //BText unparsed = BParser::Unparse(tre,"","");
   if(TestNumArg(_name_, 2, nb, 2)) 
   {
-    result = gra->LeftEvaluateTree(Branch(tre,1));
+    List* left  = Branch(tre,1);
+    List* right = Branch(tre,2);
+    result = gra->LeftEvaluateTree(left);
     if(result)
     {
       if(gra!=result->Grammar()) { type = result->Grammar(); }
@@ -832,7 +833,7 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
                    + type->Name());
         return(NIL);
       }
-      BSyntaxObject* val = type->EvaluateTree(Branch(tre,2));
+      BSyntaxObject* val = type->EvaluateTree(right);
       if(result && val && (val!=result)) 
       {
         if(type==GraReal()) {
@@ -1562,14 +1563,31 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
           }
           if((tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
           {
-            BStruct* bstr = (BStruct*)result;
-            result = bstr->Function()->Evaluate(branch2->cdr());
+            BStruct* str = (BStruct*)result;
+            result = str->Function()->Evaluate(branch2->cdr());
+          }
+          if((tt==TYPE)&&(result->Mode()==BCLASSMODE))
+          {
+            BClass* cls = (BClass*)result;
+            result = GraNameBlock()->EvaluateTree(branch2->cdr());
+            BUserNameBlock* unb = NULL;
+            if(result && (result->Grammar()==GraNameBlock()))
+            {
+              unb = (BUserNameBlock*)result;
+            }
+            if(!unb || (unb->Contens().Class()!=cls))
+            {
+              errMsg = I2("It was expected an instance of Class ",
+                       "Se esperaba una instancia de Class ") +cls->Name();
+              result=NULL;
+            }
           }
         }
         if(errMsg.HasName())
         {
           assert(!result);
-          Error(errMsg);
+          Error(I2("Evaluating expression ",
+                   "Evaluando la expresión ")+BParser::Unparse(tre)+"\n"+errMsg);
         }
       }
     }
