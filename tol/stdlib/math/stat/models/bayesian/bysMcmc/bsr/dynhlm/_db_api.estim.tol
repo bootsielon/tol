@@ -69,7 +69,7 @@ Real SaveParamStats(Text dbName, Text model, Text session, Set estim)
 //the specified series.handler
 Set GetLinearBlkEffects(Set colNames_, 
                         Matrix param, 
-                        NameBlock gibbs, 
+                        MasterSampler sampler, 
                         NameBlock series.handler)
 /////////////////////////////////////////////////////////////////////////////
 {
@@ -366,7 +366,7 @@ Set Estim(Text dbName,
     Set linear.effects = GetLinearBlkEffects(
       bsr.estim_::report::colNames, 
       bsr.estim_::param.average, 
-      bsr.estim_::gibbs,
+      bsr.estim_::sampler,
       series.handler);
     bsr.estim_ << [[linear.effects]]
   });

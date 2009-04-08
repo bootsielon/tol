@@ -19,7 +19,7 @@ Set EstimParsed(BSR.ModelDef parsed,
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
-  NameBlock gibbs = If(!Card(nonLinFilter),
+  BysMcmc::MasterSampler sampler = If(!Card(nonLinFilter),
   {
     WriteLn("[BSR] Using Basic Master");
     BysMcmc::Bsr::Gibbs::BasicMaster(parsed, config)
@@ -28,7 +28,8 @@ Set EstimParsed(BSR.ModelDef parsed,
     WriteLn("[BSR] Using Non Linear Filter Extended Master");
     BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, config)
   });	
-  NameBlock cycler = BysMcmc::BuildCycler(gibbs, config, notifier);
+  BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
+  Real cycler::define(sampler, notifier, config);
   Text recover.path = cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
   NameBlock recover = 
   [[
@@ -50,6 +51,7 @@ Set EstimParsed(BSR.ModelDef parsed,
   ]];
   Real Ois.Store([[recover]],recover.path);
 
+  Real cycler::initialize(0);
   Real cycler::generate(config::mcmc.burnin+config::mcmc.sampleLength); 
 
   Real notifier::reporting(0);
@@ -57,7 +59,7 @@ Set EstimParsed(BSR.ModelDef parsed,
   {
     [[
       parsed,
-      gibbs, 
+      sampler,  
       cycler
     ]]
   },
@@ -71,7 +73,7 @@ Set EstimParsed(BSR.ModelDef parsed,
     {
       [[
         parsed,
-        gibbs, 
+        sampler, 
         cycler,
         report,
         param.average
@@ -79,10 +81,10 @@ Set EstimParsed(BSR.ModelDef parsed,
     },
     {
       Real notifier::evaluating(0);
-      Set eval.average = gibbs::eval(param.average);
+      Set eval.average = sampler::eval(param.average);
       [[
         parsed,
-        gibbs, 
+        sampler, 
         cycler,
         report,
         param.average, 
@@ -174,7 +176,7 @@ Text _.autodoc.member.Estim =
 " - A NameBlock with the minimum API accepted by standard importing method "
 "BysMcmc::Bsr::Import::Write\n";
 Set Estim(Anything modelDef, 
-          NameBlock config)
+          Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
   EstimAndNotify(modelDef, config, BysMcmc::NoNotifier(0))

@@ -1,97 +1,113 @@
 /////////////////////////////////////////////////////////////////////////////
 // LIBRARY: StdtLib (Standard Library of TOL)
 // FILE: _build.tol
-// PURPOSE: Declares method BysMcmc::BuildCycler
+// PURPOSE: Declares Class BysMcmc::Cycler method BysMcmc::BuildCycler
 /////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.BuildCycler =
-"Builds a NameBlock that is able to generate a Markov Chain of a model "
-"by cycling calls of a given individual drawer and gives a set of tools to " 
-"make Bayesian Inference about it. \n"
-"NameBlock modelSampler is a handler of the model to be simulated and must have "
-"at least these public methods: \n"
-" Text get.name     (Real unused); //Model name\n"
-" Text get.session  (Real unused); //Session tag name\n"
-" Text get.path     (Real unused); //Path to store Markov Chain as BBM\n"
-" Set  get.colNames (Real unused); //Names of Markov Chain variables\n"
-" Matrix draw       (Real numSim); //Draws a simulation of Markov Chain\n"
-"NameBlock notifier is an event tracing handler and must has at least these "
-"public methods: \n"
-" Real initializing(Real numVar,Text path);//Notifies sampler initialization"
-" Real simulating(Real numSim); //Notifies current simulation\n";
-NameBlock BuildCycler(NameBlock modelSampler, 
-                      Config config, 
-                      Notifier notifier)
+Text _.autodoc.member.Cycler =
+"This class is able to generate a Markov Chain of a model "
+"by cycling calls of a given model sampler and gives a set of tools to " 
+"make Bayesian Inference about it.\n "
+"Arguments:\n"
+"  MasterSampler modelSampler is a handler of the model to be simulated\n"
+"  Config config has user configuration parameters\n"
+"  Notifier notifier is an event tracing handler\n";
+Class Cycler
 //////////////////////////////////////////////////////////////////////////////
-{[[
-  //--------------------------------------------------------------------------
-  // Read only members
-  //--------------------------------------------------------------------------
-  //Internal reference to sampler definition
-  NameBlock _.sampler  = modelSampler;
-  BysMcmc::Notifier _.notifier = notifier;
-  BysMcmc::Config   _.config   = config;
+{
+  BysMcmc::MasterSampler _.sampler  = BysMcmc::NoMasterSample(0);
+  BysMcmc::Notifier      _.notifier = BysMcmc::NoNotifier(0);
+  BysMcmc::Config        _.config   = BysMcmc::Config.Default(0);
+
   //Stores the sampler name
-  Text _.name = _.sampler::get.name(0)+"."+_.sampler::get.session(0);
+  Text _.name = "";
   //Puts the Markov Chain path relative to sampler path
-  Text _.path = Replace(_.sampler::get.path(0)+_.name+".mcmc.bbm","\\","/");
+  Text _.path = "";
   //The number of variables of Markov Chain
-  Real _.n = Card(_.sampler::get.colNames(0));
+  Real _.n = ?;
   //Timer member that can be externally consulted 
-  Real _.time = 0;
-  Real _mcmc.maxTime = _.config::mcmc.maxTime;
+  Real _.time = ?;
+  Real _mcmc.maxTime = ?;
   //Setting NameBlock description
-  Text _.autodoc.description="MCMC cycling builder for model "+_.name;
+  Text _.autodoc.description = "";
 
   //--------------------------------------------------------------------------
   // Configuration members
   //--------------------------------------------------------------------------
   //The number of simulations cached in RAM before to disc writing
-  Real cacheLength_ = _.config::mcmc.cacheLength;
+  Real cacheLength_ = ?;
   //If resume is true and there was old simulations in _.path, new ones will 
   //be added at the end. In other case old simulations will be lost.
-  Real resume_ = _.config::do.resume;
+  Real resume_ = ?;
   //Bayesian inference configuration
-  Set bysInf_ = {BysInf.Report.Config
-  (
-    Real raftery.diag.q   = _.config::report.raftery.diag.q,
-    Real raftery.diag.r   = _.config::report.raftery.diag.r,
-    Real raftery.diag.s   = _.config::report.raftery.diag.s,
-    Real raftery.diag.eps = _.config::report.raftery.diag.eps,
-    Real acf.lag          = _.config::report.acf.lag,
-    Real histogram.parts  = _.config::report.histogram.parts,
-    Real kerDens.points   = _.config::report.kerDens.points
-  )};
+  Set bysInf_ = Copy(Empty);
 
   //--------------------------------------------------------------------------
   // Public methods
   //--------------------------------------------------------------------------
 
+  Real define(BysMcmc::MasterSampler sampler,
+              BysMcmc::Notifier      notifier,
+              BysMcmc::Config        config)
+  {
+    BysMcmc::MasterSampler _.sampler  := sampler;
+    BysMcmc::Notifier      _.notifier := notifier;
+    BysMcmc::Config        _.config   := config;
+
+    //Stores the sampler name
+    Text _.name := _.sampler::get.name(0)+"."+_.sampler::get.session(0);
+    //Puts the Markov Chain path relative to sampler path
+    Text _.path := Replace(_.sampler::get.path(0)+_.name+".mcmc.bbm","\\","/");
+    //The number of variables of Markov Chain
+    Real _.n := Card(_.sampler::get.colNames(0));
+    //Timer member that can be externally consulted 
+    Real _.time := 0;
+    Real _mcmc.maxTime := _.config::mcmc.maxTime;
+    //Setting NameBlock description
+    Text _.autodoc.description :="MCMC cycling builder for model "+_.name;
+
+    //--------------------------------------------------------------------------
+    // Configuration members
+    //--------------------------------------------------------------------------
+    //The number of simulations cached in RAM before to disc writing
+    Real cacheLength_ := _.config::mcmc.cacheLength;
+    //If resume is true and there was old simulations in _.path, new ones will 
+    //be added at the end. In other case old simulations will be lost.
+    Real resume_ := _.config::do.resume;
+    //Bayesian inference configuration
+    Set bysInf_ := {BysInf.Report.Config
+    (
+      Real raftery.diag.q   = _.config::report.raftery.diag.q,
+      Real raftery.diag.r   = _.config::report.raftery.diag.r,
+      Real raftery.diag.s   = _.config::report.raftery.diag.s,
+      Real raftery.diag.eps = _.config::report.raftery.diag.eps,
+      Real acf.lag          = _.config::report.acf.lag,
+      Real histogram.parts  = _.config::report.histogram.parts,
+      Real kerDens.points   = _.config::report.kerDens.points
+    )};
+    1
+  };
+
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.generate =
-  "Generates and stores a Markov Chain with sampleLength simulations and "
-  "return the number of successfully saved ones";
-  Real generate(Real sampleLength)
+  Text _.autodoc.member.initialize =
+  "Initializes the Markov Chain";
+  Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[BuildCycler()::generate] ";
     Real _.notifier::initializing(_.n, _.path);
     Real _.sampler::initialize(0);
-    Real WriteLn(_MID+_.name+
-      "\n Storing MCMC in file  : "<<_.path+
-      "\n Number of variables   : "<<_.n+
-      "\n Number of simulations : "<<sampleLength+
-      "\n Cache length          : "<<cacheLength_+
-      "\n Resume                : "<<resume_+
-      If(_mcmc.maxTime<1/0,
-      "\n MaxTime               : "<<_mcmc.maxTime+" seconds",""));
-  //Ensures path is all right 
-    Real OSDirMake(GetFilePath(_.path));
-    Real numDec = 1+Ceil(Log(sampleLength)/Log(10));
-    Text numIterFmt = "% "+IntText(numDec)+".0lf";
-  //Resume or clean old simulations
-    Real savedSimulations = If(resume_==0, 
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.resume =
+  "Reloads n=resume_ saved simulations if possible";
+  Real resume(Real sampleLength)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[Cycler::resume] ";
+    If(resume_==0, 
     {
       Real ok.remove = OSFilRemove(_.path);
       Real If(!ok.remove, 
@@ -163,7 +179,31 @@ NameBlock BuildCycler(NameBlock modelSampler,
           0
         }) 
       })
-    });
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.generate =
+  "Generates and stores a Markov Chain with sampleLength simulations and "
+  "return the number of successfully saved ones";
+  Real generate(Real sampleLength)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[Cycler::generate] ";
+    Real WriteLn(_MID+_.name+
+      "\n Storing MCMC in file  : "<<_.path+
+      "\n Number of variables   : "<<_.n+
+      "\n Number of simulations : "<<sampleLength+
+      "\n Cache length          : "<<cacheLength_+
+      "\n Resume                : "<<resume_+
+      If(_mcmc.maxTime<1/0,
+      "\n MaxTime               : "<<_mcmc.maxTime+" seconds",""));
+  //Ensures path is all right 
+    Real OSDirMake(GetFilePath(_.path));
+    Real numDec = 1+Ceil(Log(sampleLength)/Log(10));
+    Text numIterFmt = "% "+IntText(numDec)+".0lf";
+  //Resume or clean old simulations
+    Real savedSimulations = resume(sampleLength);
     //Cache matrix to store up to cacheLength rows before to append it to the
     //BBM file
     Matrix cache = Rand(0,_.n,0,0);
@@ -173,13 +213,16 @@ NameBlock BuildCycler(NameBlock modelSampler,
     Real t1 = Copy(Time);
     Real _.notifier::simulating(0, 0);
     Real numErr0 = Copy(NError);
-    Real numSim = savedSimulations+1;
+    Real numSim = savedSimulations;
+  //WriteLn("TRACE "+_MID+"sampleLength="<<sampleLength);
   //WriteLn("TRACE "+_MID+"savedSimulations="<<savedSimulations);
   //WriteLn("TRACE "+_MID+"numSim="<<numSim);
     Real end = GE(numSim,sampleLength);
+  //WriteLn("TRACE "+_MID+"end="<<end);
     While(!end,
     {
-    //WriteLn("TRACE "+_MID+"2");
+      Real numSim := numSim+1;
+    //WriteLn("TRACE "+_MID+"2 numSim="<<numSim);
       Real doCache = Or(cacheLength_==1,numSim%cacheLength_==1);
     //WriteLn("TRACE "+_MID+"3");
       Real If(doCache,
@@ -216,6 +259,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
     //WriteLn("TRACE "+_MID+"7");
       Real If(doCache,
       {
+      //WriteLn("TRACE "+_MID+"9");
         Matrix Do MatAppendFile(_.path, cache);
         Real savedSimulations := numSim;
         Matrix cache := Rand(0,_.n,0,0);
@@ -235,6 +279,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
       },
       GT(NError,numErr0), 
       {
+      //WriteLn("TRACE "+_MID+"10");
         Real CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotContinueSimulation,
         [[
           _MID,
@@ -242,10 +287,12 @@ NameBlock BuildCycler(NameBlock modelSampler,
         ]]);
         Real end := True
       });
+      1
     //WriteLn("TRACE "+_MID+"8");
-      Real numSim := numSim+1
     });
+  //WriteLn("TRACE "+_MID+"11");
     Matrix Do MatAppendFile(_.path, cache);
+  //WriteLn("TRACE "+_MID+"12");
     Real savedSimulations := numSim;
     Real _.time := (Time - t0)/numSim;
     WriteLn(" [time by simulation:"<<_.time+"]");
@@ -284,11 +331,7 @@ NameBlock BuildCycler(NameBlock modelSampler,
       _.name, _.sampler::get.colNames(0), bysInf_)
   }
 
-]]};
-
-/////////////////////////////////////////////////////////////////////////////
-//PutDescription(_.autodoc.member.BuildCycler,BuildCycler);
-/////////////////////////////////////////////////////////////////////////////
+};
 
 /////////////////////////////////////////////////////////////////////////////
 NameBlock Get.Recover(Text rootPath, Text id_model, Text id_session)

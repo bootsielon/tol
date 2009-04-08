@@ -23,10 +23,11 @@ Text _.autodoc.member.MainLinearBlock =
     Set varNames, 
     Real numBlock, 
     Real firstCol,
-    NameBlock config)
+    Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(!Card(varNames), NoBlockSampler(name, varNames, numBlock, firstCol, config),
+  If(!Card(varNames), 
+  BysMcmc::NoBlockSampler(name, varNames, numBlock, firstCol, config),
   BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
   //Defining the block in the Markov Chain
   Real _define = define(name, varNames, numBlock, firstCol, config);

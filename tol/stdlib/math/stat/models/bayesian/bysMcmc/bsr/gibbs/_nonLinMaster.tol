@@ -7,27 +7,43 @@
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.NonLinMaster =
 "Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
-"Regression model with non linear blocks by passing it to method "
-"BysMcmc::BuildCycler";
-NameBlock NonLinMaster(BSR.ModelDef modelDef, 
-                       Set nonLinFilter,
-                       NameBlock config)
+"Regression model with non linear blocks";
+MasterSampler NonLinMaster(BSR.ModelDef modelDef, 
+                           Set nonLinFilter,
+                           Config config)
 //////////////////////////////////////////////////////////////////////////////
-{[[
+{
+  BysMcmc::MasterSampler bsrMst = BysMcmc::Bsr::Gibbs::BasicMaster(modelDef, config);
+  BysMcmc::MasterSampler master = [[
 
+  BysMcmc::Config _.config = config;
   //--------------------------------------------------------------------------
   // Read only members
   //--------------------------------------------------------------------------
   //The basic BSR master
-  NameBlock _.bsrMst = BysMcmc::Bsr::Gibbs::BasicMaster(modelDef, config);
+  BysMcmc::MasterSampler _.bsrMst = bsrMst;
   //Model identifier is inherited from basic BSR
   Text _.name = modelDef->DocInfo->Model.Name;  
+
+  Text get.name(Real unused) 
+  { 
+    _.name
+  }; 
+  Text get.session(Real unused) 
+  { 
+    _.bsrMst::_.modelDef->DocInfo->Session.Name
+  }; 
+  Text get.path(Real unused) 
+  { 
+    _.bsrMst::_.modelDef->DocInfo->Path 
+  }; 
+
   //Setting NameBlock description
   Text _.autodoc.description="Gibbs sampler for model "+_.name;
   //Identifier prefix for messages
-  Text _MID = "[BSR."+_.name+"] ";
+  Text _MID = "[NLBSR."+_.name+"] ";
   //The basic BSR master used as a block
-  BlockSampler _.bsrBlk = BysMcmc::Bsr::Gibbs::BsrAsBlock
+  BysMcmc::BlockSampler _.bsrBlk = BysMcmc::Bsr::Gibbs::BsrAsBlock
   (
     _.bsrMst,
     1,
@@ -74,77 +90,21 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
       !(nlb::_.isInputFilter)
     };
     Set _.bsrMst::_.externalFilter := Select(_.nonLinBlk, sel.extFlt);
-    Real ok.1 = _.bsrMst::initialize(0);
-    Real init.blk(BysMcmc::BlockSampler nlb)
-    {
-      nlb::initialize(0)
-    };
-    Real ok.2 = SetMin(EvalSet(_.nonLinBlk, init.blk));
-    And(ok.1, ok.2)
+    initialize.blocks(unused)
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.draw =
-  "Applies draw method of each block";
-  VMatrix draw(Real numSim)
+  VMatrix draw(Real numSim) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix bsrDraw = _.bsrBlk::draw(numSim);
-    VMatrix nonLinDraw = Group("ConcatRows",
-    EvalSet(_.nonLinBlk, VMatrix(NameBlock nlb)
-    {
-      nlb::draw(numSim)
-    }));
-    bsrDraw << nonLinDraw
+    draw.blocks(numSim) 
   };
-
-  //--------------------------------------------------------------------------
-  // Public methods used by NameBlock BuildCycler 
-  //--------------------------------------------------------------------------
- 
-  Text get.name(Real unused) 
-  { 
-    _.name
-  }; 
-  Text get.session(Real unused) 
-  { 
-    _.bsrMst::_.modelDef->DocInfo->Session.Name
-  }; 
-  Text get.path(Real unused) 
-  { 
-    _.bsrMst::_.modelDef->DocInfo->Path 
-  }; 
-  Set get.colNames(Real unused) 
-  { 
-    Set gcn (BysMcmc::BlockSampler block)
-    {
-      block::_.colNames
-    };
-    BinGroup("<<",EvalSet(_.blocks, gcn))
-  };
-
-  //--------------------------------------------------------------------------
-  // Public methods for end user access and tools
-  //--------------------------------------------------------------------------
-
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setStore =
-  "Set values of all blocks from a given row vector of values";
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_MID+"::setStore 1 values("<<Rows(values)+"x"<<Columns(values)+")");
     Real _.bsrMst::setStore(values);
-  //WriteLn("TRACE "+_MID+"::setStore 2");
-    Real store.blk(BysMcmc::BlockSampler block)
-    {
-    //WriteLn("TRACE "+_MID+"::setStore 3 "+block::_.name);
-      If(Or(!(block::enabled),
-              block::_.N<=0),0,
-         block::setStore(block::getMcmc(values)))
-    };
-    Set EvalSet(_.blocks, store.blk);
-    1
+    setStore.blocks(values) 
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -158,7 +118,3 @@ NameBlock NonLinMaster(BSR.ModelDef modelDef,
   }
 
 ]]};      
-/////////////////////////////////////////////////////////////////////////////
-PutDescription(_.autodoc.member.NonLinMaster,NonLinMaster);
-/////////////////////////////////////////////////////////////////////////////
-

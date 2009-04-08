@@ -7,10 +7,12 @@
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.BasicMaster =
 "Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
-"Regression model by passing it to method BysMcmc::BuildCycler";
-NameBlock BasicMaster(BSR.ModelDef modelDef, Config config)
+"Regression model";
+MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
 //////////////////////////////////////////////////////////////////////////////
-{[[
+{
+  BysMcmc::MasterSampler master = [[
+
   //--------------------------------------------------------------------------
   // Configuration members
   //--------------------------------------------------------------------------
@@ -28,9 +30,24 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, Config config)
   VMatrix _.Y = _.modelDef->Y;
 
   Text _.name = _.modelDef->DocInfo->Model.Name;  
+
+  Text get.name(Real unused) 
+  { 
+    _.name
+  }; 
+  Text get.session(Real unused) 
+  { 
+    _.modelDef->DocInfo->Session.Name
+  }; 
+  Text get.path(Real unused) 
+  { 
+    _.modelDef->DocInfo->Path 
+  }; 
+
   //Setting NameBlock description
   Text _.autodoc.description="Gibbs sampler for model "+_.name;
   Text _MID = "[BSR."+_.name+"] ";
+
   BysMcmc::Bsr::Gibbs::StdLinearBlock _.mln.blk = BysMcmc::Bsr::Gibbs::MainLinearBlock
   (
     "BSR.MainLinBlock."+_.name,
@@ -199,19 +216,16 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, Config config)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" initialize 1");
-    Matrix aux=SetCol(EvalSet(_.modelDef->LinearBlock,Real(BSR.LinearBlock b)
-    { b->InitialValue }));
-    Real init.blk (BysMcmc::BlockSampler block)
-    {
-      block::initialize(0)
-    };
-    Real SetMin(EvalSet(_.blocks, init.blk));
+    Real initialize.blocks(unused);
   //WriteLn("TRACE"+_MID+" init 1.1");
     VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
   //WriteLn("TRACE"+_MID+" init 1.2");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" init 2");
-    VMatrix beta0 = findMatchingBeta(Mat2VMat(aux));
+    Matrix givenBeta=
+    SetCol(EvalSet(_.modelDef->LinearBlock,Real(BSR.LinearBlock b)
+    { b->InitialValue }));
+    VMatrix beta0 = findMatchingBeta(Mat2VMat(givenBeta));
   //WriteLn("TRACE"+_MID+" init 3");
     Real ok = _.mln.blk::matchConstrains(beta0, _.modelDef->A, _.modelDef->a);
   //WriteLn("TRACE"+_MID+" init 4");
@@ -235,6 +249,13 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, Config config)
     VMatrix sig_1 = _.sig.blk::draw(0);
   //WriteLn("TRACE"+_MID+" init 11");
     ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    setStore.blocks(values) 
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -310,49 +331,6 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, Config config)
     _.beta << sig << arm << im << om
   };
 
-  //--------------------------------------------------------------------------
-  // Public methods used by NameBlock BuildCycler 
-  //--------------------------------------------------------------------------
- 
-  Text get.name(Real unused) 
-  { 
-    _.name
-  }; 
-  Text get.session(Real unused) 
-  { 
-    _.modelDef->DocInfo->Session.Name
-  }; 
-  Text get.path(Real unused) 
-  { 
-    _.modelDef->DocInfo->Path 
-  }; 
-  Set get.colNames(Real unused) 
-  { 
-    Set gcn (BysMcmc::BlockSampler block)
-    {
-      block::_.colNames
-    };
-    BinGroup("<<",EvalSet(_.blocks, gcn))
-  };
-
-  //--------------------------------------------------------------------------
-  // Public methods for end user access and tools
-  //--------------------------------------------------------------------------
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.setStore =
-  "Set values of all blocks from a given row vector of values";
-  Real setStore(Matrix values) 
-  ////////////////////////////////////////////////////////////////////////////
-  {
-  //WriteLn("TRACE "+_MID+"::setStore 1 values("<<Rows(values)+"x"<<Columns(values)+")");
-    Real setStore.blk(BysMcmc::BlockSampler block)
-    {
-      block::setStore(block::getMcmc(values))
-    };
-    Set EvalSet(_.blocks, setStore.blk);
-    1
-  };
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.setMcmcRow =
@@ -801,7 +779,3 @@ NameBlock BasicMaster(BSR.ModelDef modelDef, Config config)
     X_b.mcmc + noise_.mcmc
   }
 ]]};      
-/////////////////////////////////////////////////////////////////////////////
-//PutDescription(_.autodoc.member.BasicMaster,BasicMaster);
-/////////////////////////////////////////////////////////////////////////////
-  

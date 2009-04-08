@@ -14,11 +14,12 @@ NameBlock BysMcmc =
   Text _.autodoc.description =
   "Generic MonteCarlo Markov Chain methods and some applications.";
   //private implementation
+  #Embed "_cmsgs.tol"; 
   #Embed "_config.tol";
   #Embed "_notifier.tol";
+  #Embed "_blockSampler.tol";
+  #Embed "_masterSampler.tol";
   #Embed "_build.tol";
-  #Embed "_cmsgs.tol"; 
-  #Embed "_defineBlock.tol";
   #Embed "bsr/_bsr.tol";
   #Embed "_inference.tol" 
 ]];
