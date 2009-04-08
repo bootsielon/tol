@@ -948,6 +948,10 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
               " "+result->FullName());
       result = NULL;
     }
+    if(result && (result->Level()<BGrammar::Level()))
+    {
+      result = NULL;
+    }
     if(result)
     {
       BText path = result->SourcePath();
@@ -956,7 +960,8 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
 #endif
       Error(I2("Operator ", "El operador '") + name +
             I2("' is already defined in ",
-               "' ya ha sido definido en ") + " :\n"+path);
+               "' ya ha sido definido en ") + " :\n"+path+
+            I2("as "," como ")+result->Dump());
       result = NIL;
     }
     else
@@ -1328,7 +1333,7 @@ BText BStandardOperator::Dump() const
  */
 //--------------------------------------------------------------------
 {
-    return(Grammar()->Name() + " " + Name() + Arguments().String());
+  return(Grammar()->Name() + " " + FullName() + Arguments().String());
 }
 
 
