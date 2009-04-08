@@ -168,9 +168,9 @@ NameBlock RCODA =
       <<FormatReal(s,"%.15lg")+","
       <<FormatReal(eps,"%.15lg")
       <<")";
-    Matrix raftery.diag = Rapi::RunRScript(script, args.bbm, "",
-                                           result.names,
-                                           verbose)[1]
+    Rapi::RunRScript(script, args.bbm, "",
+                     result.names,
+                     verbose)[1]
   };
   
   
