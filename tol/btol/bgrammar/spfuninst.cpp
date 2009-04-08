@@ -587,6 +587,7 @@ static BSyntaxObject* EvBinGroup(BGrammar* gra, const List* tre, BBool left)
       GraText(),
       GraSet()
     };
+  //Std(BText("\nEvBinGroup ")+BParser::Unparse(tre));
     BSet args; GetArg(args, tre, graParam, 2);
     if(args.Card()==2) 
     {
@@ -810,96 +811,76 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 {
   static BText _name_ = "PutValue";
-    // bool error = false; // unused
-    BSyntaxObject* result = NIL;
-    BGrammar *type = gra;
-    BInt nb = NumBranches(tre);
+  // bool error = false; // unused
+  BSyntaxObject* result = NIL;
+  BGrammar *type = gra;
+  BInt nb = NumBranches(tre);
   //BSyntaxObjectDisplayInfo() = true;
- /*Std(BText("PutValue(")+gra->Name()+","+
-      BParser::Unparse(tre,"","")+","+(int)left+")\n\n"+
-      BParser::treWrite((List*)tre,"  ",false)); */
-    if(TestNumArg(_name_, 2, nb, 2)) {
-        if((result = gra->LeftEvaluateTree(Branch(tre,1))))
-	{
-	    if(gra!=result->Grammar()) 
-		type = result->Grammar();
-
-	    if(type == GraTimeSet() 
-#ifdef __USE_TC__
-	       || type == GraCTimeSet()
-#endif /* __USE_TC__ */
-		) {
-		TestResult(_name_,NIL,tre,NIL,BTRUE,
-			   I2("Cannot change a value of type ",
-			      "No se puede cambiar un valor de tipo ") 
-			   + type->Name());
-		return(NIL);
-	    }
-	    
-	    BSyntaxObject* val = type->EvaluateTree(Branch(tre,2));
-	    
-	    if(result && val && (val!=result)) {
-		if(type==GraReal()) 
-		    UDat(result)->PutContens(Dat(val)); 
-		else if(type==GraComplex()) 
-		    UCmp(result)->PutContens(Cmp(val)); 
-		else if(type==GraDate())
-		    UDate(result)->PutContens(Date(val)); 
-#ifdef __USE_TC__
-		else if(type==GraCTime())
-		    UCTime(result)->PutContens(CTime(val)); 
-#endif /* __USE_TC__ */
-		else if(type==GraText())
-		    UText(result)->PutContens(Text(val)); 
-		else if(type==GraPolyn())
-		    UPol(result)->PutContens(Pol(val)); 
-		else if(type==GraRatio())
-		    URat(result)->PutContens(Rat(val));
-		else if(type==GraMatrix())
-		    UMat(result)->PutContens(Mat(val));
-		else if(type==GraVMatrix())
-		    ((BUserVMat*)(result))->PutContens(VMat(val));
-		else if(type==GraSet())
-		    USet(result)->PutContens(Set(val));
-		else if(type==GraCode())
-		    UCode(result)->PutContens(Code(val));
-		else if(type==GraSerie()) {
-		    BUserTimeSerieDo* s1 = (BUserTimeSerieDo*)result;
-		    BUserTimeSerieDo* s2 = (BUserTimeSerieDo*)val;
-		    s1->PutContens(s2); }
-    else if(type==GraNameBlock())  {
-/*
-      Error(I2("Cannot apply PutValue (nor :=) to NameBlock variables",
-        "No se puede aplicar la función PutValue (ni :=) a variables NameBlock"));
-      result = NULL;
-*/
-		    ((BUserNameBlock*)(result))->PutContens(((BUserNameBlock*)(val))->Contens());
+  if(BParser::Unparse(tre,"","") == "Real first:=0")
+    printf("");
+  if(TestNumArg(_name_, 2, nb, 2)) 
+  {
+    result = gra->LeftEvaluateTree(Branch(tre,1));
+    if(result)
+    {
+      if(gra!=result->Grammar()) { type = result->Grammar(); }
+      if(type == GraTimeSet()) 
+      {
+        TestResult(_name_,NIL,tre,NIL,BTRUE,
+                   I2("Cannot change a value of type ",
+                      "No se puede cambiar un valor de tipo ") 
+                   + type->Name());
+        return(NIL);
+      }
+      BSyntaxObject* val = type->EvaluateTree(Branch(tre,2));
+      if(result && val && (val!=result)) 
+      {
+        if(type==GraReal()) {
+          UDat(result)->PutContens(Dat(val)); }
+        else if(type==GraComplex()) {
+          UCmp(result)->PutContens(Cmp(val)); }
+        else if(type==GraDate()) {
+          UDate(result)->PutContens(Date(val)); }
+        else if(type==GraText()) {
+          UText(result)->PutContens(Text(val)); }
+        else if(type==GraPolyn()) {
+          UPol(result)->PutContens(Pol(val)); }
+        else if(type==GraRatio()) {
+          URat(result)->PutContens(Rat(val)); }
+        else if(type==GraMatrix()) {
+          UMat(result)->PutContens(Mat(val)); }
+        else if(type==GraVMatrix()) {
+          ((BUserVMat*)(result))->PutContens(VMat(val)); }
+        else if(type==GraSet()) {
+          USet(result)->PutContens(Set(val)); }
+        else if(type==GraCode()) {
+          UCode(result)->PutContens(Code(val)); }
+        else if(type==GraSerie()) {
+          BUserTimeSerieDo* s1 = (BUserTimeSerieDo*)result;
+          BUserTimeSerieDo* s2 = (BUserTimeSerieDo*)val;
+          s1->PutContens(s2); }
+        else if(type==GraNameBlock())  {
+          BUserNameBlock* unb1 = (BUserNameBlock*)(result);
+          BUserNameBlock* unb2 = (BUserNameBlock*)(val);
+            unb1->PutContens(unb2->Contens()); }
+        else {
+          TestResult(_name_,NIL,tre,NIL,BTRUE,
+               I2("Incompatible types: ",
+                  "Tipos incompatibles: ") + 
+               result->Name() + I2(" is a ", " es de tipo ") +
+               result->Grammar()->Name() + I2(" but not a ",
+                 ", pero no de tipo ") + type->Name() + ".");
+          return(NIL);
+        }
+        SAFE_DESTROY(val,result);
+      }
     }
-#ifdef __USE_TC__
-		else if(type==GraCSeries()) {
-		    BUserCTimeSeriesDo* s1 = (BUserCTimeSeriesDo*)result;
-		    BUserCTimeSeriesDo* s2 = (BUserCTimeSeriesDo*)val;
-		    s1->PutContens(s2); }
-#endif /* __USE_TC__ */
-		else {
-		    TestResult(_name_,NIL,tre,NIL,BTRUE,
-			       I2("Incompatible types: ",
-				        "Tipos incompatibles: ") + 
-			       result->Name() + I2(" is a ", " es de tipo ") +
-			       result->Grammar()->Name() + I2(" but not a ",
-  			       ", pero no de tipo ") + type->Name() + ".");
-		    return(NIL);
-		}
-		
-		SAFE_DESTROY(val,result);
-	    }
-	}
-    }
-    result = TestResult(_name_,result,tre,NIL,BTRUE);
-  //BSyntaxObjectDisplayInfo() = false;
-
-    return(result);
+  }
+  result = TestResult(_name_,result,tre,NIL,BTRUE);
+//BSyntaxObjectDisplayInfo() = false;
+  return(result);
 }
+
 
 
 //--------------------------------------------------------------------
