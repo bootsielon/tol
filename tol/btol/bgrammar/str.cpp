@@ -406,7 +406,8 @@ BStruct* FindStruct(const BText& name)
       }
       if(!result)
       {
-        cns = cns->Father(); 
+      //cns = cns->Father(); 
+        cns = NULL;
       }
     }
   }
