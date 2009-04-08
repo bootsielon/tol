@@ -411,7 +411,7 @@ Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
   });	
 
   NameBlock cycler = BysMcmc::BuildCycler(gibbs, bsr.config, 
-    BysMcmc::Bsr::Gibbs::NoNotifier(0));
+    BysMcmc::NoNotifier(0));
 
   Real gibbs::initialize(0);
 
@@ -474,10 +474,6 @@ For(1,Card(series.handler::_.obs.node),Set(Real nu_node)
 });
 
 
-/* */ 
-Real DBConnection::BsrHlm::Close(0);
-/* */
-
 Set quality.all = For(1,Card(compare_forecast),Real(Real k)
 {
   Serie res_=(compare_forecast[k])::Error; 
@@ -485,6 +481,9 @@ Set quality.all = For(1,Card(compare_forecast),Real(Real k)
   Min(1,StDsS(res)/StDsS(res_))
 });
 
+/* */ 
+Real DBConnection::BsrHlm::Close(0);
+/* */
 Real numErr1 = Copy(NError);
 
 //Extented information about test behaviour
@@ -504,4 +503,4 @@ Set resultStr_ = strTestStatus(summary_, link_, quality_,
                   email_);
 WriteLn(""<<resultStr_);
 resultStr_
-/* */
+

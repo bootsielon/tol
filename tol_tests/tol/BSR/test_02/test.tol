@@ -54,9 +54,10 @@ BysMcmc::Config bsr.config =
     BysMcmc::Bsr::Gibbs::BasicMaster(mod::bsr.parsed, bsr.config);	
 
   NameBlock cycler = BysMcmc::BuildCycler(gibbs, bsr.config, 
-    BysMcmc::Bsr::Gibbs::NoNotifier(0));
+    BysMcmc::NoNotifier(0));
 
   Real gibbs::initialize(0);
+
   Real cycler::generate(2);
 
 /* */
