@@ -538,6 +538,7 @@ BGrammar* GetLeft(BGrammar* grammar,
   BGrammar* gra=NULL;
   str=NULL;
   cls = NULL;
+  rest = NULL;
   if((tok->TokenType() == TYPE))
   {
     BTypeToken* tt = (BTypeToken*)tok;
@@ -567,10 +568,11 @@ BGrammar* GetLeft(BGrammar* grammar,
   } 
   else if((tok->TokenType()==BINARY)&&(tok->Name()=="::"))
   {
+  //BText expr = BParser::Unparse(left);
+  //Std(BText("Unparse(left)=\n")<<BParser::Unparse(left)+"\n");
     List* nbLst = Tree::treLeft(left);
-    BToken* nbTok = BParser::treToken(nbLst);
-    const BText& nbName = nbTok->Name();
-    BUserNameBlock* unb = (BUserNameBlock*)GraNameBlock()->FindOperand(nbName,false);
+  //Std(BText("Unparse(nbLst)=\n")<<BParser::Unparse(nbLst)+"\n");
+    BUserNameBlock* unb = (BUserNameBlock*)GraNameBlock()->LeftEvaluateTree(nbLst);
     if(unb)
     {
       const BNameBlock* oldNameBlock = BNameBlock::Current();
@@ -671,26 +673,47 @@ static BSyntaxObject* CreateObject(      List*	   tre,
     if(level>0) 
     {
       TRACE_SHOW_MEDIUM(fun," 6");
-      result = BGrammar::FindLocal(name);
-      TRACE_SHOW_MEDIUM(fun," 7");
-      if(result && (result->Level()!=level)) { result = NIL; }
+
+      if(!BEqualOperator::CreatingName().HasName())
+      {
+        result = BNameBlock::LocalMember(name); 
+        if(result && result->NameBlock())
+        {
+          Warning(I2("Local variable","La variable local")+
+                  " "+gra->Name()+" "+name+" "+
+                  I2("hides published NameBlock member",
+                     "oculta el miembro de NameBlock publicado")+
+                  " "+result->FullName());
+          BUserFunction::ShowCallStack();
+          result = NULL; 
+        }
+      }
+      if(!result) 
+      { 
+        result = BGrammar::FindLocal(name); 
+        TRACE_SHOW_MEDIUM(fun," 7");
+        if(result && (result->Level()!=level)) { result = NIL; }
+      }
     } 
-    else result = gra->FindVariable(name);
-    if(result && result->NameBlock())
+    else 
     {
-      Warning(I2("Global variable","La variable global")+
-              " "+gra->Name()+" "+name+" "+
-              I2("hides published NameBlock member",
-                 "oculta el miembro de NameBlock publicado")+
-              " "+result->FullName());
-      result = NULL;
+      result = gra->FindVariable(name);
+      if(result && result->NameBlock())
+      {
+        Warning(I2("Global variable","La variable global")+
+                " "+gra->Name()+" "+name+" "+
+                I2("hides published NameBlock member",
+                   "oculta el miembro de NameBlock publicado")+
+                " "+result->FullName());
+        result = NULL;
+      }
     }
     if(result) // send an error messages
     {
       TRACE_SHOW_MEDIUM(fun," 8");
       BText functionName = "";
       BText functionPath = "";
-      BText sentence = result->Description();
+      BText sentence = result->FullName() + " " +result->Description();
 #     ifdef WINDOWS
       path += BText("\n")+SysPath(path);
 #     endif
@@ -710,7 +733,7 @@ static BSyntaxObject* CreateObject(      List*	   tre,
           Error(BText("Variable '") + name +
                 I2("' already defined as ",
                    "' ya definida como \"") + sentence + "\"\n");
-        } 
+          } 
         else 
         {
           TRACE_SHOW_MEDIUM(fun," 13");
@@ -843,23 +866,18 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
     if(currentFullName_.HasName())
     {
       currentFullName_ = currentFullName_ + "::" +name;
+    //Std(BText("\nTRACE currentFullName_ <- ")<<currentFullName_+"\n");
     }
     else
     {
       currentFullName_ = name;
+    //Std(BText("\nTRACE currentFullName_ <- ")<<currentFullName_+"\n");
     }
     creatingClass_ = cls;
   }
   if(!rest && gra) 
   {
-    if(defInst)
-    {
-	    result = CreateObject(left, gra, name);
-    }
-    else
-    {
-	    result = CreateObject(left, gra, name);
-    }
+    result = CreateObject(left, gra, name);
     if(str && result)
     {
       BSet& set = Set(result);
@@ -886,7 +904,8 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
   }
   if(isNameBlock) 
   { 
-    currentFullName_ = currentFatherName_;
+    currentFullName_ = oldFullName;
+  //Std(BText("\nTRACE currentFullName_ <- ")<<currentFullName_+"\n");
     creatingName_    = oldName; 
     creatingClass_   = oldClass;
     isCreatingNameBlock_ = oldIsCreatingNameBlock;
@@ -1424,9 +1443,11 @@ BBool BUserFunction::Compile()
     List*     rest = NIL;
     BStruct*  str  = NIL;
     BClass*   cls  = NIL;
+    bool carIsList = dec->car()->IsListClass();
+    List* decLst = carIsList?Tree::treNode((List*) dec):(List*)dec;
     BGrammar* gra  = GetLeft
     (
-      NIL, Tree::treNode(dec),
+      NIL, decLst,
       names_[n], rest, str, cls
     );
     if(!rest && gra) 
