@@ -333,6 +333,88 @@ void BGrammar::CleanTreeCache(const List* tre, bool forze)
 #endif
 }
 
+//--------------------------------------------------------------------
+  BSyntaxObject* EvaluateType(const List* tre, BToken* token, 
+                              BGrammar*& newGrammar, bool left)
+//--------------------------------------------------------------------
+{
+  const BText& name = token->Name();
+  BTypeToken* tt = (BTypeToken*)token;
+  BSyntaxObject* result = NULL;
+  BClass* cls = NULL;
+  BStruct* str = NULL;
+  newGrammar = NULL;
+/*  Std(BText("LeftEvaluateTree(")+Name()+","+
+    BParser::Unparse(tre,"","")+")\n\n"+
+    BParser::treWrite((List*)tre,"  ",false)); */
+  List* branch = Tree::treLeft((List*)tre);
+  if(tt->type_==BTypeToken::BSYSTEM)
+  {
+    newGrammar = TknFindGrammar(token);
+    if(!newGrammar)
+    {
+      Error(I2("It was expected a name of type instead of ",
+               "Se esperaba un nombre de type en lugar de ") +name);
+    }
+  }
+  else if(tt->type_==BTypeToken::BCLASS)
+  {
+    cls = FindClass(name);
+    if(!cls)
+    {
+      Error(I2("It was expected a name of Class instead of ",
+               "Se esperaba un nombre de Class en lugar de ") +name);
+    }
+  }
+  else if(tt->type_==BTypeToken::BSTRUCT)
+  {
+    str = FindStruct(name);
+    if(!str)
+    {
+      Error(I2("It was expected a name of Struct instead of ",
+               "Se esperaba un nombre de Struct en lugar de ") +name);
+    }
+  }
+  else
+  {
+    if(!(newGrammar = TknFindGrammar(token)) &&
+       !(cls = FindClass(name)) &&
+       !(str = FindStruct(name)))
+    {
+      Error(I2("It was expected a name of type, Class or Struct instead of ",
+               "Se esperaba un nombre de tipo, Class o Struct en lugar de ") +name);
+    }
+  }
+  if(cls) { newGrammar = GraNameBlock(); }
+  if(str) { newGrammar = GraSet(); }
+
+  if(newGrammar)
+  {
+    result = left?newGrammar->LeftEvaluateTree(branch):
+                  newGrammar->EvaluateTree    (branch);
+  }
+  if(cls)
+  {
+    BUserNameBlock* unb = (BUserNameBlock*)result;
+    if(!unb || (unb->Contens().Class()!=cls))
+    {
+      Error(I2("It was expected an instance of Class ",
+               "Se esperaba una instancia de Class ") +name);
+      result=NULL;
+    }
+  }
+  if(str)
+  {
+    BUserSet* ust = (BUserSet*)result;
+    if(!ust || (ust->Contens().Struct()!=str))
+    {
+      Error(I2("It was expected an instance of Struct ",
+               "Se esperaba una instancia de Struct ") +name);
+      result=NULL;
+    }
+  }
+  return(result);
+}
 
 //--------------------------------------------------------------------
 BSyntaxObject* BGrammar::LeftEvaluateTree(const List* tre)
@@ -356,13 +438,9 @@ BSyntaxObject* BGrammar::LeftEvaluateTree(const List* tre)
   const BText&   name  = tok->Name();
   if(type == TYPE) 
   {
-/*  Std(BText("LeftEvaluateTree(")+Name()+","+
-      BParser::Unparse(tre,"","")+")\n\n"+
-      BParser::treWrite((List*)tre,"  ",false)); */
-    gra1 = TknFindGrammar(tok);
-    return(gra1->LeftEvaluateTree(Tree::treLeft((List*)tre)));
-  };
-  if(type == ARGUMENT)
+    result = EvaluateType(tre,tok,gra1,true);
+  }
+  else if(type == ARGUMENT)
   {
     result = TknFindOperand(this,tok,false,error);
     if(result && gra1) // gra1!=NIL -> TYPE specified previously
@@ -499,41 +577,6 @@ static int iter_ = 0;
 
 typedef hash_map_by_size_t<BSyntaxObject*>::dense_ BLocalItems;
 
-//--------------------------------------------------------------------
-  BSyntaxObject* Evaluate_Type(const List* branch, BToken* line, 
-                               BGrammar*& newGrammar)
-//--------------------------------------------------------------------
-{
-  BTypeToken* tt = (BTypeToken*)line;
-  BSyntaxObject* result = NULL;
-  if(tt->type_==BTypeToken::BSYSTEM)
-  {
-    newGrammar=TknFindGrammar(line);
-    result = newGrammar->EvaluateTree(branch);
-  }
-  else if(tt->type_==BTypeToken::BSTRUCT)
-  {
-    newGrammar=GraSet();
-    result = GraSet()->EvaluateTree(branch);
-    BStruct* str = NULL;
-    if(result && (result->Grammar()==GraSet()))
-    {
-      BUserSet* uset = (BUserSet*)result;
-      str = uset->Contens().Struct();
-    }
-    if(result && (!str || (str->Name()!=tt->Name())))
-    {
-      Error(I2("A set with structure ",
-               "Se esperaba un conjunto con estructura ")+tt->Name()+
-            I2(" was expected instead of ",
-               " en lugar de ")+
-            result->Grammar()->Name()+ " "+
-            result->Identify());
-      result = NULL;
-    }
-  }
-  return(result);
-}
 
 //--------------------------------------------------------------------
 BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
