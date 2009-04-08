@@ -137,6 +137,24 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   //If main token is FUNCTION then member is a method
     isMethod_ = tok->TokenType()==FUNCTION;
   }
+  else if((tok->TokenType()==BINARY)&&(tok->Name()=="::"))
+  {
+    declaration_ = BParser::Unparse(branch,"","");
+    BText simpleDec = declaration_;
+    isMethod_ = simpleDec.Find('(')>=0;
+    simpleDec.Replace("("," ");
+    simpleDec.Compact();
+    int p0 = simpleDec.Find(' ');
+    if(p0>0)
+    {
+      int p1 = simpleDec.Find(' ', p0+1);
+      if(p1<0) { p1 = simpleDec.Length()+1; }
+      if(p0+1<p1-1)
+      {
+        name_ = simpleDec.SubString(p0+1,p1-1);
+      }
+    }
+  } 
   //Cleaning open and close parenthesis
   if(declaration_[0]=='{')
   {
@@ -529,6 +547,7 @@ int MbrNumCmp(const void* v1, const void* v2)
     if(mbrDef)
     {
       //If it had default value then is replaced by new one
+    //newMbrNum->position_ = mbrNum->position_;
       memberHash_->erase(name);
       assert(!FindMember(name));
       mbrDefHash_->erase(dec);
@@ -539,6 +558,7 @@ int MbrNumCmp(const void* v1, const void* v2)
     else if(mbrDec)
     {
       //If it had no default value then is added the new one
+    //newMbrNum->position_ = mbrNum->position_;
       memberHash_->erase(name);
       assert(!FindMember(name));
       mbrDecHash_->erase(dec);
@@ -905,7 +925,8 @@ BClass* FindClass(const BText& name)
       }
       if(!result)
       {
-        cns = cns->Father(); 
+      //cns = cns->Father(); 
+        cns = NULL;
       }
     }
   }
