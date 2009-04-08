@@ -382,6 +382,7 @@ const BText& BSyntaxObject::Description() const
       uns->PutDescription(desc);
       return(optInfo_->description_);
     }
+    return(CBTextNullRef());
   }
 #endif
   return(CBTextNullRef());
