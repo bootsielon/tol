@@ -896,12 +896,16 @@ BClass* FindClass(const BText& name)
   if(!bcls)
   {
     const BNameBlock* cns = BNameBlock::Current();
-    if(cns)
+    while(cns && !result)
     {
       result = cns->Member(name);
       if(result && (result->Mode()==BCLASSMODE))
       {
         bcls = (BClass*)result;
+      }
+      if(!result)
+      {
+        cns = cns->Father(); 
       }
     }
   }

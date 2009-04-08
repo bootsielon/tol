@@ -137,7 +137,7 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   evLevel_ (BGrammar::Level()),
   level_   (ns.Level   ()),
   set_     (ns.Set     ()),
-  father_  (ns.Father  ()),
+  father_  (NULL),
   class_   ((BClass*)ns.Class   ()),
   localName_(ns.LocalName()),
   owner_    (NULL)
@@ -165,7 +165,8 @@ BNameBlock& BNameBlock::operator= (const BNameBlock& ns)
   PutName(ns.Name());
   localName_ = ns.LocalName();
   owner_     = NULL;
-  father_    = ns.Father();
+  public_.clear();
+  private_.clear();
   Fill(ns.Set());
   Build();
   return(*this);
@@ -671,13 +672,17 @@ const BText& BNameBlock::LocalName() const
 {
   BSyntaxObject* result = NULL;
   const BNameBlock* cns = BNameBlock::Current();
-  if(cns)
+  while(!result && cns)
   {
     result = cns->Member(memberName);
     if(result && (result->Mode()==BSTRUCTMODE))
     {
       BStruct* bstr = (BStruct*)result;
       result = bstr->Function();
+    }
+    if(!result)
+    {
+      cns = cns->Father();
     }
   }
   return(result);
@@ -813,7 +818,8 @@ const BText& BNameBlock::LocalName() const
   for(iter=public_.begin(); iter!=public_.end(); iter++)
   {
     obj = iter->second;
-    if(!obj->Description().HasName())
+    const BText& dsc = obj->Description();
+    if(!dsc.HasName())
     {
       BSyntaxObject* autodoc = Member(BText("_.autodoc.member.")+Name());
       if(autodoc && autodoc->Grammar()==GraText())
@@ -825,6 +831,7 @@ const BText& BNameBlock::LocalName() const
     if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
     {
       unb = (BUserNameBlock*)obj;
+      unb->Contens().father_ = this;
       unb->Contens().RebuildFullNameDeep(parentFullName);
     }
   }
@@ -834,6 +841,7 @@ const BText& BNameBlock::LocalName() const
     if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
     {
       unb = (BUserNameBlock*)obj;
+      unb->Contens().father_ = this;
       unb->Contens().RebuildFullNameDeep(parentFullName);
     }
   }

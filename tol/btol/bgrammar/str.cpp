@@ -397,12 +397,16 @@ BStruct* FindStruct(const BText& name)
   if(!bstr)
   {
     const BNameBlock* cns = BNameBlock::Current();
-    if(cns)
+    while(cns && !result)
     {
       result = cns->Member(name);
       if(result && (result->Mode()==BSTRUCTMODE))
       {
         bstr = (BStruct*)result;
+      }
+      if(!result)
+      {
+        cns = cns->Father(); 
       }
     }
   }
