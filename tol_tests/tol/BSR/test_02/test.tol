@@ -49,16 +49,17 @@ BysMcmc::Config bsr.config =
 ]];
 
 /* * /
+BysMcmc::MasterSampler sampler = 
+    BysMcmc::Bsr::Gibbs::BasicMaster(mod::bsr.parsed, bsr.config);
 
-  NameBlock gibbs = 
-    BysMcmc::Bsr::Gibbs::BasicMaster(mod::bsr.parsed, bsr.config);	
 
-  NameBlock cycler = BysMcmc::BuildCycler(gibbs, bsr.config, 
-    BysMcmc::NoNotifier(0));
+BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
+Real cycler::define(sampler, BysMcmc::NoNotifier(0), bsr.config);
+ 
+Real sampler::initialize(0);
 
-  Real gibbs::initialize(0);
+Real cycler::generate(2);
 
-  Real cycler::generate(2);
 
 /* */
 

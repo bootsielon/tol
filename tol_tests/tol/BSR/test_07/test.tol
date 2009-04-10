@@ -12,7 +12,7 @@ Text summary_ = "Chequea Bsr::OneNode::Estim lineal puro" ;
 Real numErr0 = Copy(NError);
 
 //Random seed setting
-Real PutRandomSeed(2423);
+Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 

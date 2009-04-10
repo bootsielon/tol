@@ -19,7 +19,7 @@ Real numErr0 = Copy(NError);
 Set Include("../general/general.tol");
 
 //Random seed setting
-Real PutRandomSeed(2345234);
+Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -424,7 +424,7 @@ Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
 
   Set parsed = BSR.Parse(ascii);
 
-  NameBlock gibbs = If(!Card(nonLinFilter),
+  NameBlock sampler = If(!Card(nonLinFilter),
   {
     WriteLn("[BSR] Using Basic Master");
     BysMcmc::Bsr::Gibbs::BasicMaster(parsed, config)
@@ -434,10 +434,10 @@ Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
     BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, config)
   });	
 
-  NameBlock cycler = BysMcmc::BuildCycler(gibbs, config, 
-    BysMcmc::Bsr::Gibbs::NoNotifier(0));
-
-  Real gibbs::initialize(0);
+  BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
+  Real cycler::define(sampler, BysMcmc::NoNotifier(0), bsr.config);
+  Real sampler::initialize(0);
+  Real cycler::generate(2);
 
 /* */
 

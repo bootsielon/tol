@@ -17,7 +17,7 @@ Real numErr0 = Copy(NError);
 Set Include("../general/general.tol");
 
 //Random seed setting
-Real PutRandomSeed(1150125676);
+Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -400,7 +400,7 @@ Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
 
   Set parsed = BSR.Parse(ascii);
 
-  NameBlock gibbs = If(!Card(nonLinFilter),
+  NameBlock sampler = If(!Card(nonLinFilter),
   {
     WriteLn("[BSR] Using Basic Master");
     BysMcmc::Bsr::Gibbs::BasicMaster(parsed, bsr.config)
@@ -409,11 +409,13 @@ Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
     WriteLn("[BSR] Using Non Linear Filter Extended Master");
     BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, bsr.config)
   });	
+  BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
+  Real cycler::define(sampler, BysMcmc::NoNotifier(0), bsr.config);
+  Real sampler::initialize(0);
 
-  NameBlock cycler = BysMcmc::BuildCycler(gibbs, bsr.config, 
-    BysMcmc::NoNotifier(0));
-
-  Real gibbs::initialize(0);
+  Real sampler::setStore(Rand(17,1,0,0));
+/*
+  Real cycler::generate(1);
 
 /* */
 
@@ -503,4 +505,4 @@ Set resultStr_ = strTestStatus(summary_, link_, quality_,
                   email_);
 WriteLn(""<<resultStr_);
 resultStr_
-
+/* */

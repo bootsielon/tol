@@ -19,7 +19,7 @@ Set Include("../general/general.tol");
 Set Include("../general/NonLinearFilter/_PubAdStock_ExpBetaDelta.tol");
 
 //Random seed setting
-Real PutRandomSeed(1949377045);
+Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 

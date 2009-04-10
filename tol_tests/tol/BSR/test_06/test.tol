@@ -397,7 +397,7 @@ Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
 
   Set parsed = BSR.Parse(ascii);
 
-  NameBlock gibbs = If(!Card(nonLinFilter),
+  NameBlock sampler = If(!Card(nonLinFilter),
   {
     WriteLn("[BSR] Using Basic Master");
     BysMcmc::Bsr::Gibbs::BasicMaster(parsed, bsr.config)
@@ -407,10 +407,10 @@ Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
     BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, bsr.config)
   });	
 
-  NameBlock cycler = BysMcmc::BuildCycler(gibbs, bsr.config, 
-    BysMcmc::Bsr::Gibbs::NoNotifier(0));
-
-  Real gibbs::initialize(0);
+  BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
+  Real cycler::define(sampler, BysMcmc::NoNotifier(0), bsr.config);
+  Real sampler::initialize(0);
+  Real cycler::generate(2);
 
 /* */  
 //////////////////////////////////////////////////////////////////////////////
