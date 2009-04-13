@@ -7,7 +7,7 @@
 
 ////////////////////////////////////////////////////////////////////////////
 //Stores in database CODA report information of a given estimation
-Real SaveParamStats(Text dbName, Text model, Text session, Set estim)
+Real SaveParamStats(Text dbName, Text model, Text session, Estimation estim)
 ////////////////////////////////////////////////////////////////////////////
 {
   WriteLn("[SaveParamStats] Storing in data base diagnostics about "
@@ -207,51 +207,12 @@ Set GetLinearBlkEffects(Set colNames_,
   })
 };
 
-
 ////////////////////////////////////////////////////////////////////////////
-//Estimates a BSR-HLM model and stores in data base status information 
-//during process and CODA diagnostics over parameters at the end
-//Returns the MCMC, the CODA report and the evaluation time series and 
-//effects using parameter average.
-Set Estim(Text dbName, 
-          Text model, 
-          Text session, 
-          Text resultRootPath,
-          NameBlock seriesHandler, 
-          NameBlock config)
+Notifier DBNotifier(Text dbName, 
+                    Text model, 
+                    Text session)
 ////////////////////////////////////////////////////////////////////////////
 {
-  Real BysMcmc::Bsr::DynHlm::DBApi::useNodeInMissingIdentifier := 
-    config::DBApi.useNodeInMissingIdentifier;
-  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-  //Resets model-session register at EstimStatus table
-  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "DELETE FROM "+dbName+"."+_table::EstimStatus+"\n"
-  "WHERE id_model='"+model+"' AND id_session='"+session+"';\n");
-  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
-  "INSERT INTO "+dbName+"."+_table::EstimStatus+"\n"
-  "VALUES('"+
-    model+"','"+
-    session+"',"+
-    "1,"+
-    "NULL,"+   //te_path_data_out
-    "NULL,"+   //nu_mcmc_var
-    IntText(config::mcmc.burnin)+","+
-    IntText(config::mcmc.sampleLength)+","+
-    IntText(config::mcmc.cacheLength)+","+
-    "0,"+      //nu_mcmc_currentLength
-    "NULL,"+   //vl_mcmc_time_avg
-    "0,"+      //nu_error
-    "0,"+      //nu_warning
-    "NULL,"+   //dh_loading
-    "NULL,"+   //dh_parsing
-    "NULL,"+   //dh_initializing
-    "NULL,"+   //dh_simulating
-    "NULL,"+   //dh_reporting
-    "NULL,"+   //dh_evaluating
-    "NULL,"+   //dh_saving
-    "NULL)");  //dh_ending
-
   //Creates the data base notifier of current status
   BysMcmc::Notifier dbNotifier =
   [[
@@ -260,6 +221,7 @@ Set Estim(Text dbName,
     Text _.session  = session;
     Real _.nErr = Copy(NError);
     Real _.nWar = Copy(NWarning);
+    NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
 
     //Generic events notifier
     Real notify_messages(Real unused)
@@ -348,8 +310,55 @@ Set Estim(Text dbName,
         _.dbName, _.model, _.session, false);
       1
     }
-  ]];
+  ]]
+};
 
+
+////////////////////////////////////////////////////////////////////////////
+//Estimates a BSR-HLM model and stores in data base status information 
+//during process and CODA diagnostics over parameters at the end
+//Returns the MCMC, the CODA report and the evaluation time series and 
+//effects using parameter average.
+Cycler GetCycler(Text dbName, 
+                 Text model, 
+                 Text session, 
+                 Text resultRootPath,
+                 NameBlock seriesHandler, 
+                 NameBlock config)
+////////////////////////////////////////////////////////////////////////////
+{
+  Real BysMcmc::Bsr::DynHlm::DBApi::useNodeInMissingIdentifier := 
+    config::DBApi.useNodeInMissingIdentifier;
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  //Resets model-session register at EstimStatus table
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "DELETE FROM "+dbName+"."+_table::EstimStatus+"\n"
+  "WHERE id_model='"+model+"' AND id_session='"+session+"';\n");
+  Real BysMcmc::Bsr::DynHlm::DBApi::SqlExecTrace(
+  "INSERT INTO "+dbName+"."+_table::EstimStatus+"\n"
+  "VALUES('"+
+    model+"','"+
+    session+"',"+
+    "1,"+
+    "NULL,"+   //te_path_data_out
+    "NULL,"+   //nu_mcmc_var
+    IntText(config::mcmc.burnin)+","+
+    IntText(config::mcmc.sampleLength)+","+
+    IntText(config::mcmc.cacheLength)+","+
+    "0,"+      //nu_mcmc_currentLength
+    "NULL,"+   //vl_mcmc_time_avg
+    "0,"+      //nu_error
+    "0,"+      //nu_warning
+    "NULL,"+   //dh_loading
+    "NULL,"+   //dh_parsing
+    "NULL,"+   //dh_initializing
+    "NULL,"+   //dh_simulating
+    "NULL,"+   //dh_reporting
+    "NULL,"+   //dh_evaluating
+    "NULL,"+   //dh_saving
+    "NULL)");  //dh_ending
+
+  BysMcmc::Notifier dbNotifier = DBNotifier(dbName,model,session);
   Real dbNotifier::loading(0);
   NameBlock model.def = BysMcmc::Bsr::DynHlm::DBApi::LoadModelDef
   (
@@ -359,32 +368,40 @@ Set Estim(Text dbName,
     resultRootPath,
     seriesHandler
   );
-  Set bsr.estim_ = BysMcmc::Bsr::Gibbs::EstimAndNotify
-  ( model.def, config, dbNotifier);
-  Set bsr.estim = If(Not(config::do.linear.effects),bsr.estim_,
+  BysMcmc::Cycler cycler = 
+    BysMcmc::Bsr::Gibbs::GetCycler(model.def, config, dbNotifier);
+  Set Append(cycler::auxInfo, [[series.handler]]);
+  cycler
+};
+
+////////////////////////////////////////////////////////////////////////////
+Real CloseModel(Estimation estim)
+////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::Config config = estim::cycler::_.config;
+  Real If(config::do.linear.effects,
   {
-    Set linear.effects = GetLinearBlkEffects(
-      bsr.estim_::report::colNames, 
-      bsr.estim_::param.average, 
-      bsr.estim_::sampler,
-      series.handler);
-    bsr.estim_ << [[linear.effects]]
+    Set estim::linear.effects := GetLinearBlkEffects(
+      estim::report::colNames, 
+      estim::param.average, 
+      estim::cycler::_.sampler,
+      estim::cycler::auxInfo::series.handler);
+    1
   });
-  Real SetIndexByName(bsr.estim);
   Real If(config::do.save.DBApi.Estim.Oza,
   {
-    Real dbNotifier::saving(0);
-    Real Ois.Store(bsr.estim, bsr.estim::ascii+".estim.oza");
+    Real estim::cycler::_.notifier::saving(0);
+    Real Ois.Store([[estim]], estim::cycler::auxInfo::ascii+".estim.oza");
     1
   });
   Real If(config::do.report,BysMcmc::Bsr::DynHlm::DBApi::SaveParamStats
   (
-    dbName,
-    id_model,
-    id_session,
-    bsr.estim
+    estim::cycler::_.notifier::_.dbName,
+    estim::cycler::_.notifier::_.model,
+    estim::cycler::_.notifier::_.session,
+    estim
   ));
-  Real dbNotifier::ending(0);
-  bsr.estim
+  Real estim::cycler::_.notifier::ending(0);
+  1
 };
 
