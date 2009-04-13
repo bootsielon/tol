@@ -41,8 +41,6 @@ Text _.autodoc.member.ArimaBlock =
   Set     _.paramDesc  = Copy(Empty); 
   VMatrix _.difFilter  = Rand(0,0,0,0);
 
-  Real _skipIter = Max(1,config::bsr.arimaSkipIter);
-
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.enlargeSymVMatrix =
   "Puts a block symmetric matrix into a joint blocks with zeros out of the "
