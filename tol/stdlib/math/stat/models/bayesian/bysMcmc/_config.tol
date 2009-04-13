@@ -38,7 +38,9 @@ NameBlock Options =
 //Configuration default values over all BysMcmc related components
 Class Config
 {
+//===========================================================================
 //MCMC dimensions
+//===========================================================================
   //The final number realizations that will remain after burnin
   Real mcmc.sampleLength = 2000;
   //The frequency of simulation notifying and chain cache updating
@@ -53,7 +55,9 @@ Class Config
   //Process will be stoped after mcmc.sampleLength + mcmc.burnin 
   //simulations or mcmc.maxTime seconds will be elapsed
   Real mcmc.maxTime = 1/0;
-//Basic master configuration
+//===========================================================================
+//BSR configuration
+//===========================================================================
   //Try order for given by user solution to start MCMC
   Real bsr.iniVal.try.givenByUser = 1;
   //Try order for zero solution to start MCMC
@@ -88,9 +92,9 @@ Class Config
   Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Slice;
   //Arima filter method
   Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
-  //ARIMA block will be updated each this number of iterations
-  Real bsr.arimaSkipIter = 1;
+//===========================================================================
 //CODA and other diagnostic report configuration
+//===========================================================================
   //The quantile to be estimated in Raftery test
   Real report.raftery.diag.q = 0.025;
   //The desired margin of error of the estimate in Raftery test
@@ -106,7 +110,9 @@ Class Config
   Real report.histogram.parts = 100;
   //Number of divisions in kernel density aproximations
   Real report.kerDens.points = 0;
+//===========================================================================
 //Generic flags
+//===========================================================================
   //If positive then is the number of existent realizations to be recovered 
   //from disk
   //If negative then is the number of last existent realization to be
