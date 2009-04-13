@@ -70,6 +70,7 @@ Text _.autodoc.member.OutputMissingBlock =
   Real initialize(Real unused)
   ///////////////////////////////////////////////////////////////////////////
   {
+    Real initialize.subBlocks(unused);
   //WriteLn("TRACE "+_MID+" initialize 1");
     VMatrix u = _.store;
     //Selecting output missing variables with left truncated prior information

@@ -2,7 +2,7 @@
 // LIBRARY: StdLib (Standard Library of TOL)
 // MODULE: Stat (Statistics)
 // FILE: _stdLinearBlock.tol
-// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::StdLinearBlock
+// PURPOSE: Declares class hierarchy BysMcmc::Bsr::Gibbs::StdLinearBlock
 /////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////
@@ -33,23 +33,15 @@ Struct Solution.LinReg
 
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.StdLinearBlock =
+Text _.autodoc.member.StdLinearSubBlock =
 "Builds a NameBlock that can draw a Gibbs sample of an standarized linear "
 "block of a general regression model with variant input and ouput regression "
 "matrices and optional but fixed constraining inequations.";
 //////////////////////////////////////////////////////////////////////////////
-   Class StdLinearBlock: BlockSampler
+Class StdLinearSubBlock
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real _drop_val = ?;
-  //Number of restrictions
-  Real    _.R  = 0;
-  //Matrix of coefficients of constraining inequations
-  VMatrix _.A  = Rand(0,0,0,0); 
-  //The transpose of _.A
-  VMatrix _.At = Rand(0,0,0,0);
-  //Matrix of border of constraining inequations
-  VMatrix _.a  = Rand(0,0,0,0);
+  Text _MID;
   //Transformed restrictions
   VMatrix _.D = Rand(0,0,0,0);
   //Cholesky decomposition of current information matrix that is not
@@ -59,8 +51,6 @@ Text _.autodoc.member.StdLinearBlock =
   //Preconditioning
   VMatrix _.H  = Rand(0,0,0,0);
   VMatrix _.Hs = Rand(0,0,0,0);
-  //Last known valid initial point for constrained simulation
-  VMatrix _.beta0 = Rand(0,0,0,0);
   //If you know that design matrix will be the same for all simulations you
   //should to set this member as TRUE to avoid unneeded Cholesky 
   //factorizations
@@ -72,6 +62,9 @@ Text _.autodoc.member.StdLinearBlock =
 
   Real changed.X = True;
 
+  Real usePreconditioning = ?;
+  Real cholesky.warningFreq = ?;
+  Real truncMNormal.gibbsNumIter = ?;
   //Maximum accepted rounding error for Choleski operations
   Real _.eps  = ?;
   //Current number of simulations with high rounding error in solution
@@ -93,6 +86,35 @@ Text _.autodoc.member.StdLinearBlock =
   Real _.MH.consecutive = 0;
   Real _.calculatedSimulation = 0;
 
+  Real drop_val = ?;
+
+  //Freedom degree
+  Real    _.N = ?;
+  //Number of restrictions
+  Real    _.R  = 0;
+  //Matrix of coefficients of constraining inequations
+  VMatrix _.A  = Rand(0,0,0,0); 
+  //The transpose of _.A
+  VMatrix _.At = Rand(0,0,0,0);
+  //Matrix of border of constraining inequations
+  VMatrix _.a  = Rand(0,0,0,0);
+  //Last known valid initial point for constrained simulation
+  VMatrix _.beta0 = Rand(0,0,0,0);
+  VMatrix _.beta = Rand(0,0,0,0);
+
+  Real putMID(Text mid)
+  {
+    Text _MID := mid;
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+    VMatrix _drop(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    Drop(X, drop_val)
+  };
+
   ////////////////////////////////////////////////////////////////////////////
   //Returns true if given solution matches constrains and store them
   Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a)
@@ -101,14 +123,8 @@ Text _.autodoc.member.StdLinearBlock =
     
   //WriteLn("TRACE "+_MID+" matchConstrains 1 beta0="<<beta0);
     Real ok = TRUE;
-  //Maximum accepted rounding error for Choleski operations
-    Real _drop_val := _.config::bsr.linBlk.X.drop;
-    Real _.eps := _.config::bsr.cholesky.epsilon*_.N*(_.N+1);
-    Real _.MH.useAfterIter := Max(1,_.config::bsr.linBlk.MH.useAfterIter);
-    Real _.MH.maxRejected := _.config::bsr.linBlk.MH.maxRejected;
-    Real _.MH.maxConsecutive := _.config::bsr.linBlk.MH.maxConsecutive;
 
-    VMatrix  _.store := beta0;
+    VMatrix  _.beta := beta0;
     Real    _.N    := VRows(beta0);
   //WriteLn("TRACE "+_MID+" matchConstrains 2 _.N="<<_.N);
     Real    _.R    := VRows(A);
@@ -118,10 +134,9 @@ Text _.autodoc.member.StdLinearBlock =
     VMatrix _.At   := Tra(A);
   //WriteLn("TRACE "+_MID+" matchConstrains 5 _.At="<<_.At);
     VMatrix _.a    := a;
-  //WriteLn("TRACE "+_MID+" matchConstrains 6 _.a="<<_.a);
+  //WriteLn("TRACE "+_MID+" matchConstrains 7");
     Code    gibbs.drawer := If(_.R, draw.gibbs.constrained, 
                                     draw.gibbs.unconstrained);
-  //WriteLn("TRACE "+_MID+" matchConstrains 7");
     VMatrix _.beta0 := If(!_.R, beta0,
     {
     //WriteLn("TRACE "+_MID+" matchConstrains 8.1");
@@ -148,16 +163,8 @@ Text _.autodoc.member.StdLinearBlock =
         })
       })
     });
-    Real putStoreV(_.beta0);
   //WriteLn("TRACE "+_MID+" matchConstrains 9");
     ok
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-    VMatrix _drop(VMatrix X)
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    Drop(X, _drop_val)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -178,7 +185,7 @@ Text _.autodoc.member.StdLinearBlock =
       {
         Real density = VNonNullCells(X)/(VRows(X)*VColumns(X));
       //WriteLn("TRACE "+_MID+" factorize density = "<<density);
-        If(And(_.config::bsr.linBlk.usePreconditioning,VRows(_.L)),
+        If(And(usePreconditioning,VRows(_.L)),
         {
           VMatrix Hs = _.Ls;
           VMatrix H  = _.L;
@@ -249,7 +256,7 @@ Text _.autodoc.member.StdLinearBlock =
       Real _.cholSolMaxRoundErr := Max(_.cholSolMaxRoundErr,err);
       0
     });
-    Real If(numSim & !(numSim%_.config::bsr.cholesky.warningFreq),
+    Real If(numSim & !(numSim%cholesky.warningFreq),
     {
       If(_.cholSolRoundErrNumWarn,
         WriteLn(_MID+"Cholesky solving had rounding error in interval ["<<
@@ -272,8 +279,8 @@ Text _.autodoc.member.StdLinearBlock =
   //WriteLn("TRACE "+_MID+" draw.unconstrained 1");
     VMatrix z = Gaussian(_.N,1,0,1);
     Real _.logDens.Q := -0.5*VMatDat(MtMSqr(z),1,1);
-    VMatrix _.store:=nu+CholeskiSolve(_.L,z,"LtP");
-    Copy(_.store)
+    VMatrix _.beta:=nu+CholeskiSolve(_.L,z,"LtP");
+    Copy(_.beta)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -287,17 +294,16 @@ Text _.autodoc.member.StdLinearBlock =
   //WriteLn("TRACE "+_MID+" draw.constrained 2");
     VMatrix If(changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
   //WriteLn("TRACE "+_MID+" draw.constrained 3");
-    VMatrix z0  = Tra(Tra(_.store-nu)*_.Ls);
+    VMatrix z0  = Tra(Tra(_.beta-nu)*_.Ls);
   //WriteLn("TRACE "+_MID+" draw.constrained 4");
-    VMatrix z = TruncStdGaussian(_.D,d,z0,1,
-                 _.config::bsr.truncMNormal.gibbsNumIter);
+    VMatrix z = TruncStdGaussian(_.D,d,z0,1,truncMNormal.gibbsNumIter);
   //WriteLn("TRACE "+_MID+" draw.constrained 5");
     Real distBorder = VMatMax(_.D*z-d);
   //WriteLn("TRACE "+_MID+" draw.constrained 6");
     Real If(distBorder<=0,
     {
     //WriteLn("TRACE "+_MID+" draw.constrained 7");
-      VMatrix _.beta0 := _.store;
+      VMatrix _.beta0 := _.beta;
       1
     },
     {
@@ -308,8 +314,7 @@ Text _.autodoc.member.StdLinearBlock =
       //WriteLn("TRACE "+_MID+" draw.constrained 8");
         VMatrix z0 := Tra(Tra(_.beta0-nu)*_.Ls);
       //WriteLn("TRACE "+_MID+" draw.constrained 9");
-        VMatrix z  := TruncStdGaussian(_.D,d,z0,1,
-                     _.config::bsr.truncMNormal.gibbsNumIter);
+        VMatrix z  := TruncStdGaussian(_.D,d,z0,1,truncMNormal.gibbsNumIter);
         1
       });
       1
@@ -317,18 +322,30 @@ Text _.autodoc.member.StdLinearBlock =
   //WriteLn("TRACE "+_MID+" draw.constrained 10");
     Real _.logDens.Q := -0.5*VMatDat(MtMSqr(z),1,1);
   //WriteLn("TRACE "+_MID+" draw.constrained 11");
-    VMatrix  _.store := nu + CholeskiSolve(_.L,z,"LtP");
+    VMatrix  _.beta := nu + CholeskiSolve(_.L,z,"LtP");
   //WriteLn("TRACE "+_MID+" draw.constrained 12");
-    Copy(_.store)
+    Copy(_.beta)
   };
 
   ////////////////////////////////////////////////////////////////////////////
   //Default behaviour assumes standarized linear regression
-  VMatrix standarize(VMatrix _Z) 
+  VMatrix do.nothing(VMatrix _Z) 
   ////////////////////////////////////////////////////////////////////////////
   { 
     _Z 
   };
+
+  Code standarize = do.nothing;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Default behaviour assumes standarized linear regression
+  NameBlock noWorkSpace(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    NameBlock none = [[ Real _unused = unused ]]
+  };
+
+  Code getWorkSpace = noWorkSpace;
 
   ////////////////////////////////////////////////////////////////////////////
   //Return standarized residuals of linear reggression for a given vector of
@@ -336,7 +353,8 @@ Text _.autodoc.member.StdLinearBlock =
   VMatrix getStdResiduals(VMatrix b)
   ////////////////////////////////////////////////////////////////////////////
   {
-    standarize(_.ws::_.Y-_.ws::_.X*b)    
+    NameBlock ws = getWorkSpace(0);
+    standarize(ws::_.Y-ws::_.X*b)    
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -345,12 +363,13 @@ Text _.autodoc.member.StdLinearBlock =
   VMatrix draw.gibbs(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
+    NameBlock ws = getWorkSpace(0);
     Real _.MH.consecutive := 0;
-  //WriteLn("TRACE "+_MID+" draw.gibbs 1 _.ws::_.Y=" << _.ws::_.Y);
-    VMatrix Y01 = standarize(_.ws::_.Y);
+  //WriteLn("TRACE "+_MID+" draw.gibbs 1 ws::_.Y=" << ws::_.Y);
+    VMatrix Y01 = standarize(ws::_.Y);
   //WriteLn("TRACE "+_MID+" draw.gibbs 2 Y01=" << Y01);
-  //WriteLn("TRACE "+_MID+" draw.gibbs 3 _.ws::_.X=" << _.ws::_.X);
-    VMatrix X01 = standarize(_.ws::_.X);
+  //WriteLn("TRACE "+_MID+" draw.gibbs 3 ws::_.X=" << ws::_.X);
+    VMatrix X01 = standarize(ws::_.X);
   //WriteLn("TRACE "+_MID+" draw.gibbs 4 X01=" << X01);
     Real solve(numSim, Y01, X01);
   //WriteLn("TRACE "+_MID+" draw.gibbs 2");
@@ -364,6 +383,7 @@ Text _.autodoc.member.StdLinearBlock =
   VMatrix draw.mh(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
+    NameBlock ws = getWorkSpace(0);
   //WriteLn("TRACE "+_MID+" draw.mh 1");
 /* * /
     WriteLn(" numSim="<<numSim+
@@ -372,9 +392,9 @@ Text _.autodoc.member.StdLinearBlock =
             " _.MH.rejected="<<_.MH.rejected+
             " _.MH.consecutive="<<_.MH.consecutive);
 /* */
-    Real m = VRows(_.ws::_.Y);
+    Real m = VRows(ws::_.Y);
     Real _.MH.consecutive := _.MH.consecutive + 1;
-    VMatrix b = _.store;
+    VMatrix b = _.beta;
     VMatrix ep = getStdResiduals(b);
     Real p0 = -0.5*VMatDat(MtMSqr(ep),1,1);
     Real q0 = _.logDens.Q;
@@ -429,7 +449,7 @@ Text _.autodoc.member.StdLinearBlock =
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =
   "Method of generation of output missing block";
-  VMatrix draw(Real numSim)   
+  VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" draw 1");
@@ -442,3 +462,105 @@ Text _.autodoc.member.StdLinearBlock =
   }
 
 };
+
+
+//////////////////////////////////////////////////////////////////////////////
+StdLinearSubBlock StdLinearSubBlock.Build(Text mid)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::Bsr::Gibbs::StdLinearSubBlock subBlock = 
+  [[ Text _MID = mid ]];
+  subBlock
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.StdLinearBlock =
+"Builds a NameBlock that can draw a Gibbs sample of an standarized linear "
+"block of a general regression model with variant input and ouput regression "
+"matrices and optional but fixed constraining inequations.";
+//////////////////////////////////////////////////////////////////////////////
+Class StdLinearBlock: BlockSampler
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::Bsr::Gibbs::StdLinearSubBlock _.subBlock = 
+    BysMcmc::Bsr::Gibbs::StdLinearSubBlock.Build(_MID+"[_.subBlock] ");
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Default behaviour assumes standarized linear regression
+  VMatrix standarize(VMatrix _Z) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    _Z 
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  NameBlock getWorkSpace(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    _.ws
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize.subBlocks(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    Real _.subBlock::putMID(_MID+"[_.subBlock] ");
+    Code _.subBlock::standarize := standarize;
+    Code _.subBlock::getWorkSpace := getWorkSpace;
+    Real _.subBlock::usePreconditioning := 
+      _.config::bsr.linBlk.usePreconditioning;
+    Real _.subBlock::cholesky.warningFreq := 
+      _.config::bsr.cholesky.warningFreq;
+    Real _.subBlock::truncMNormal.gibbsNumIter := 
+      _.config::bsr.truncMNormal.gibbsNumIter;
+    Real _.subBlock::drop_val := 
+      _.config::bsr.linBlk.X.drop;
+    Real _.subBlock::_.eps := 
+      _.config::bsr.cholesky.epsilon*_.N*(_.N+1);
+    Real _.subBlock::_.MH.useAfterIter := 
+      Max(1,_.config::bsr.linBlk.MH.useAfterIter);
+    Real _.subBlock::_.MH.maxRejected := 
+      _.config::bsr.linBlk.MH.maxRejected;
+    Real _.subBlock::_.MH.maxConsecutive := 
+      _.config::bsr.linBlk.MH.maxConsecutive;
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    initialize.subBlocks(unused)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.subBlock::matchConstrains(beta0,A,a);
+    Real putStoreV(_.subBlock::_.beta0);
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix draw(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.subBlock::draw(numSim)
+  }
+
+};
+
+/*
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.StdLinearPartialBlock =
+"Builds a NameBlock that can draw a Gibbs sample of an standarized linear "
+"block of a general regression model that is partially fixed or reloaded.";
+//////////////////////////////////////////////////////////////////////////////
+   Class StdLinearPartialBlock: BlockSampler
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::StdLinearSubBlock _.subBlock = StdLinearSubBlock.Build(0);
+  B
+};
+*/

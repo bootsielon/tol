@@ -48,7 +48,8 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   Text _.autodoc.description="Gibbs sampler for model "+_.name;
   Text _MID = "[BSR."+_.name+"] ";
 
-  BysMcmc::Bsr::Gibbs::StdLinearBlock _.mln.blk = BysMcmc::Bsr::Gibbs::MainLinearBlock
+  BysMcmc::Bsr::Gibbs::StdLinearBlock _.mln.blk = 
+  BysMcmc::Bsr::Gibbs::MainLinearBlock
   (
     "BSR.MainLinBlock."+_.name,
     EvalSet(_.modelDef->LinearBlock, Text(BSR.LinearBlock b){ b->Name }),
@@ -57,7 +58,8 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     _.config
   );
 
-  BysMcmc::BlockSampler _.sig.blk = BysMcmc::Bsr::Gibbs::SigmaBlock
+  BysMcmc::BlockSampler _.sig.blk = 
+  BysMcmc::Bsr::Gibbs::SigmaBlock
   (
     "BSR.SigmaBlock."+_.name,
     _.modelDef->NoiseDistrib,
@@ -66,7 +68,8 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     _.config
   );
 
-  BysMcmc::BlockSampler _.arm.blk = BysMcmc::Bsr::Gibbs::ArimaBlock
+  BysMcmc::BlockSampler _.arm.blk = 
+  BysMcmc::Bsr::Gibbs::ArimaBlock
   (
     "BSR.ArimaBlock."+_.name,
     _.modelDef->NoiseDistrib,
@@ -75,7 +78,8 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     _.config
   );
 
-  BysMcmc::Bsr::Gibbs::StdLinearBlock _.inpMis.blk = BysMcmc::Bsr::Gibbs::InputMissingBlock
+  BysMcmc::Bsr::Gibbs::StdLinearBlock _.inpMis.blk = 
+  BysMcmc::Bsr::Gibbs::InputMissingBlock
   (
     "BSR.InputMissingBlock."+_.name,
     _.modelDef->InputMissingBlock,
@@ -84,7 +88,8 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     _.config
   );
 
-  BysMcmc::Bsr::Gibbs::StdLinearBlock _.outMis.blk = BysMcmc::Bsr::Gibbs::OutputMissingBlock
+  BysMcmc::Bsr::Gibbs::StdLinearBlock _.outMis.blk = 
+  BysMcmc::Bsr::Gibbs::OutputMissingBlock
   (
     "BSR.OutputMissingBlock."+_.name,
     _.modelDef->OutputMissingBlock,
@@ -739,8 +744,8 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
                            Matrix   inputForecast)
   ////////////////////////////////////////////////////////////////////////////
   {
-    BlockSampler lin = _.mln.blk;
-    BlockSampler sig = _.sig.blk;
+    BysMcmc::BlockSampler lin = _.mln.blk;
+    BysMcmc::BlockSampler sig = _.sig.blk;
 
     Real blk = getRegEquBlock(resBlock);
     Real T = Rows(inputForecast);

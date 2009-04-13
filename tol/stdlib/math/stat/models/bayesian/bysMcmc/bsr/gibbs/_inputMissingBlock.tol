@@ -86,6 +86,7 @@ Text _.autodoc.member.InputMissingBlock =
   Real initialize(Real unused)
   ///////////////////////////////////////////////////////////////////////////
   {
+    Real initialize.subBlocks(unused);
   //WriteLn("TRACE "+_MID+" initialize 1");
   //WriteLn("TRACE "+_MID+" 7");
     VMatrix u = _.store;
@@ -161,9 +162,9 @@ Text _.autodoc.member.InputMissingBlock =
 
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace(BysMcmc::BlockSampler arm.blk, //ArimaBlock filter
-                       VMatrix   si,    //Non filtered LinearBlock parameters 
-                       VMatrix   Z,     //Noise of main linear block
-                       VMatrix   beta   //SigmaBlock filter
+                       VMatrix si,    //Non filtered LinearBlock parameters 
+                       VMatrix Z,     //Noise of main linear block
+                       VMatrix beta   //SigmaBlock filter
   )
   ////////////////////////////////////////////////////////////////////////////
   {
