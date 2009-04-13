@@ -103,7 +103,7 @@ static bool BNameBlock_IsInitialized()
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
-  createdWithNew_ = isAssigned!=-1;
+  createdWithNew_ = isAssigned==1;
 }
 
 //--------------------------------------------------------------------
@@ -124,26 +124,27 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
-  createdWithNew_ = isAssigned!=-1;
+  createdWithNew_ = isAssigned==1;
 }
 
 //--------------------------------------------------------------------
 BNameBlock::BNameBlock(const BNameBlock& ns) 
 //--------------------------------------------------------------------
-: BMemberOwner(ns),
-  BObject  (ns.Name    ()), 
-  public_  (ns.Public  ()),
-  private_ (ns.Private ()),
+: BMemberOwner(),
+  BObject  (), 
+  public_  (),
+  private_ (),
   evLevel_ (BGrammar::Level()),
-  level_   (ns.Level   ()),
-  set_     (ns.Set     ()),
+  level_   (-999999999),
+  set_     (),
   father_  (NULL),
-  class_   ((BClass*)ns.Class   ()),
-  localName_(ns.LocalName()),
+  class_   (NULL),
+  localName_(),
   owner_    (NULL)
 {
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
   createdWithNew_ = isAssigned!=-1;
+  *this = ns;
 }  
 
 //--------------------------------------------------------------------
@@ -164,11 +165,10 @@ BNameBlock& BNameBlock::operator= (const BNameBlock& ns)
   BMemberOwner::Copy(ns);
   PutName(ns.Name());
   localName_ = ns.LocalName();
-  owner_     = NULL;
+  owner_ = NULL;
   public_.clear();
   private_.clear();
   Fill(ns.Set());
-  Build();
   return(*this);
 }
 
@@ -212,7 +212,7 @@ const BText& BNameBlock::LocalName() const
   }
   else                
   { 
-    return(false); 
+    return(true); 
   }
 }
 
@@ -245,6 +245,20 @@ const BText& BNameBlock::LocalName() const
     else        { T->level_ = evLevel_; }
   }
   return(level_); 
+}
+
+//--------------------------------------------------------------------
+  const BNameBlock* BNameBlock::Current() 
+//--------------------------------------------------------------------
+{ 
+  if(current_ && 
+     current_->createdWithNew_ &&
+     !(BFSMEM_Hndlr->IsAssigned(current_,current_->_bfsm_PageNum__)))
+  {
+    BFSMEM_Hndlr->IsAssigned(current_,current_->_bfsm_PageNum__);
+    current_ = NULL;
+  }
+  return(current_); 
 }
 
 //--------------------------------------------------------------------
@@ -909,12 +923,12 @@ void BGraContensBase<BNameBlock>::InitInstances()
 {
   BNameBlock::Initialize();
   BTraceInit("BGraContens<BNameBlock>::InitInstances");
-  BSystemNameBlock* unknown_ = new BSystemNameBlock
-  (
-    "UNKNOWN", 
-    BNameBlock::Unknown(), 
-    I2("Unknown NameBlock", "NameBlock desconocido.")
-  );
+  BSystemNameBlock* unknown_ = new BSystemNameBlock;
+  unknown_->PutName("UNKNOWN");
+  unknown_->PutDescription(I2("Unknown NameBlock", 
+                    "NameBlock desconocido."));
+  GraNameBlock()->AddObject(unknown_);
+
 }
 
 //--------------------------------------------------------------------
