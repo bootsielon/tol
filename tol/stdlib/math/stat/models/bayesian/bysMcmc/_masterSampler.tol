@@ -19,9 +19,6 @@ Class MasterSampler
   Text get.name(Real unused);
   Text get.session(Real unused);
   Text get.path(Real unused);
-  Real initialize(Real unused);
-  VMatrix draw(Real numSim);
-  Real setStore(Matrix values);
 
   ////////////////////////////////////////////////////////////////////////////
   Set get.colNames(Real unused) 
@@ -64,9 +61,11 @@ Class MasterSampler
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.setStore.blocks =
   "Set values of all blocks from a given row vector of values";
-  Real setStore.blocks(Matrix values) 
+  Real setStore.blocks(Matrix values_) 
   ////////////////////////////////////////////////////////////////////////////
   {
+    Matrix values = If(Columns(values_)==1,Tra(values_),values_);
+  //WriteLn("TRACE "+_.name+"::setStore.blocks("<<Rows(values)+"x"<<Columns(values)+")");   
     Real store.blk(BysMcmc::BlockSampler blk)
     {
       If(Or(!(blk::enabled), blk::_.N<=0),0,
@@ -74,6 +73,28 @@ Class MasterSampler
     };
     Set EvalSet(_.blocks, store.blk);
     1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    initialize.blocks(unused)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix draw(Real numSim) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    draw.blocks(numSim) 
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real setStore(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_.name+"::setStore("<<Rows(values)+"x"<<Columns(values)+")");   
+    setStore.blocks(values) 
   }
 
 };
