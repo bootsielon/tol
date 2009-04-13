@@ -151,10 +151,10 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     //WriteLn("TRACESearching valid initial values");
       Set try = SetOfNameBlock
       (
-        [[Text name="givenByUser", Real order=cfg::bsr.iniVal.try.givenByUser]],
-        [[Text name="zero",        Real order=cfg::bsr.iniVal.try.zero]],
-        [[Text name="cnstrMinNorm",Real order=cfg::bsr.iniVal.try.cnstrMinNorm]],
-        [[Text name="cnstrMLE",    Real order=cfg::bsr.iniVal.try.cnstrMLE]]
+        {[[Text name="givenByUser", Real order=cfg::bsr.iniVal.try.givenByUser]]},
+        {[[Text name="zero",        Real order=cfg::bsr.iniVal.try.zero]]},
+        {[[Text name="cnstrMinNorm",Real order=cfg::bsr.iniVal.try.cnstrMinNorm]]},
+        {[[Text name="cnstrMLE",    Real order=cfg::bsr.iniVal.try.cnstrMLE]]}
       );
       Set try.sel = Select(try,Real(NameBlock method) 
       { method::order });
@@ -215,9 +215,9 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" initialize 1");
+    WriteLn("TRACE"+_MID+" initialize 1");
     Real initialize.blocks(unused);
-  //WriteLn("TRACE"+_MID+" init 1.1");
+    WriteLn("TRACE"+_MID+" init 1.1");
     VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
   //WriteLn("TRACE"+_MID+" init 1.2");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
@@ -232,7 +232,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     VMatrix _.beta   := _.mln.blk::_.store;
     Real DoExternalFilter(0);
     Real _.sig.blk::_.buildWorkSpace(_.Y - _.modelDef->X*_.beta);
-    VMatrix sig_0 = _.sig.blk::draw(0);
+    VMatrix sig_0 = _.sig.blk::get.draw(0, True);
   //WriteLn("TRACE"+_MID+" init 7");
   //WriteLn("TRACE"+_MID+" _.XplusU "<<_.XplusU);
   //WriteLn("TRACE"+_MID+" _.beta "<<_.beta);
@@ -246,7 +246,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   //WriteLn("TRACE"+_MID+" init 9");
     Real _.sig.blk::_.buildWorkSpace(_.residuals);
   //WriteLn("TRACE"+_MID+" init 10");
-    VMatrix sig_1 = _.sig.blk::draw(0);
+    VMatrix sig_1 = _.sig.blk::get.draw(0, True);
   //WriteLn("TRACE"+_MID+" init 11");
     ok
   };
@@ -275,7 +275,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     {
       Real _.outMis.blk::_.buildWorkSpace(
         _.arm.blk,_.sig.blk::_.sigmaInv,_.Y-_.XplusU*_.beta);
-      VMatrix aux = _.outMis.blk::draw(numSim);
+      VMatrix aux = _.outMis.blk::get.draw(numSim, False);
       VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
       aux
     });
@@ -288,7 +288,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     {
       Real _.inpMis.blk::_.buildWorkSpace(
         _.arm.blk,_.sig.blk::_.sigmaInv,_.YplusV-_.modelDef->X*_.beta,_.beta);
-      VMatrix aux = _.inpMis.blk::draw(numSim);
+      VMatrix aux = _.inpMis.blk::get.draw(numSim, False);
       VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
       aux
     });
@@ -304,7 +304,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     },
     {
       Real _.arm.blk::_.buildWorkSpace(_.noise, _.sig.blk::_.store );
-      _.arm.blk::draw(numSim)
+      _.arm.blk::get.draw(numSim, False)
     });
     VMatrix _.residuals := _.arm.blk::filter(_.noise);
   //WriteLn("TRACE"+_MID+" draw.sig.lin 4 arm="<<arm);
@@ -316,7 +316,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     },
     {
       Real _.sig.blk::_.buildWorkSpace(_.residuals);
-      _.sig.blk::draw(numSim)
+      _.sig.blk::get.draw(numSim, False)
     });
     VMatrix si = _.sig.blk::_.sigmaInv;
     VMatrix _Y := si*_Y;
@@ -325,7 +325,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
     VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
     {
       Real _.mln.blk::_.buildWorkSpace(_Y, _X, _.arm.blk);
-      _.mln.blk::draw(numSim)
+      _.mln.blk::get.draw(numSim, False)
    });
   //WriteLn("TRACE"+_MID+" draw.sig.lin 6 _.beta="<<_.beta);
     _.beta << sig << arm << im << om
