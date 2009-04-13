@@ -16,9 +16,9 @@ Text _.autodoc.member.Cycler =
 Class Cycler
 //////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::MasterSampler _.sampler  = BysMcmc::NoMasterSample(0);
-  BysMcmc::Notifier      _.notifier = BysMcmc::NoNotifier(0);
-  BysMcmc::Config        _.config   = BysMcmc::Config.Default(0);
+  BysMcmc::MasterSampler _.sampler;
+  BysMcmc::Notifier      _.notifier;
+  BysMcmc::Config        _.config;
 
   //Stores the sampler name
   Text _.name = "";
@@ -31,6 +31,8 @@ Class Cycler
   Real _mcmc.maxTime = ?;
   //Setting NameBlock description
   Text _.autodoc.description = "";
+
+  Set auxInfo = Copy(Empty);
 
   //--------------------------------------------------------------------------
   // Configuration members
@@ -47,14 +49,8 @@ Class Cycler
   // Public methods
   //--------------------------------------------------------------------------
 
-  Real define(BysMcmc::MasterSampler sampler,
-              BysMcmc::Notifier      notifier,
-              BysMcmc::Config        config)
+  Real define(Real unused)
   {
-    BysMcmc::MasterSampler _.sampler  := sampler;
-    BysMcmc::Notifier      _.notifier := notifier;
-    BysMcmc::Config        _.config   := config;
-
     //Stores the sampler name
     Text _.name := _.sampler::get.name(0)+"."+_.sampler::get.session(0);
     //Puts the Markov Chain path relative to sampler path
@@ -333,24 +329,79 @@ Class Cycler
 
 };
 
-/////////////////////////////////////////////////////////////////////////////
-NameBlock Get.Recover(Text rootPath, Text id_model, Text id_session)
-/////////////////////////////////////////////////////////////////////////////
-{
-  Text path = rootPath+id_model+"."+id_session+".recover.oza";
-  WriteLn("Recovering path "+path);
-  Set Include(path);
-  recover 
-};
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.EstimParsed =
+"Estimates a BSR model by Gibbs method\n"+
+"Argument `parsed` must be defined as the result of calling function "
+"BSR.Parse\n";
 
-/////////////////////////////////////////////////////////////////////////////
-Set RecoveAndReport(Text rootPath, Text id_model, Text id_session,
-                    Real burnin, Real length, Real thinning)
-/////////////////////////////////////////////////////////////////////////////
+Set EstimParsed(BSR.ModelDef parsed, 
+                Set nonLinFilter,
+                Config config,
+                Notifier notifier)
+//////////////////////////////////////////////////////////////////////////////
 {
-  NameBlock recover = BysMcmc::Get.Recover(
-    rootPath, id_model, id_session);
-  Set report = recover::report(burnin,length,thinning)
-}
+//WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
+  BysMcmc::MasterSampler sampler = If(!Card(nonLinFilter),
+  {
+    WriteLn("[BSR] Using Basic Master");
+    BysMcmc::Bsr::Gibbs::BasicMaster(parsed, config)
+  },
+  {
+    WriteLn("[BSR] Using Non Linear Filter Extended Master");
+    BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, config)
+  });	
+  BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
+  Real cycler::define(sampler, notifier, config);
+  Real StoreRecover(cycler);
+
+  Real cycler::initialize(0);
+  Real cycler::generate(config::mcmc.burnin+config::mcmc.sampleLength); 
+
+  Real notifier::reporting(0);
+  Set estim = If(Not(config::do.report),
+  {
+    [[
+      parsed,
+      sampler,  
+      cycler
+    ]]
+  },
+  {
+    Set report = cycler::report(config::mcmc.burnin, config::mcmc.sampleLength,config::mcmc.thinning);
+    Matrix param.average = 
+    {
+      Tra(SetMat(Extract(report::coda.summary, 2)))
+    };
+    If(!(config::do.eval),
+    {
+      [[
+        parsed,
+        sampler, 
+        cycler,
+        report,
+        param.average
+      ]]
+    },
+    {
+      Real notifier::evaluating(0);
+      Set eval.average = sampler::eval(param.average);
+      [[
+        parsed,
+        sampler, 
+        cycler,
+        report,
+        param.average, 
+        eval.average  
+      ]]
+    })
+  });
+  Real SetIndexByName(estim);
+  estim
+};
+/////////////////////////////////////////////////////////////////////////////
+PutDescription(_.autodoc.member.EstimParsed,EstimParsed);
+/////////////////////////////////////////////////////////////////////////////
+
 
 /* */
