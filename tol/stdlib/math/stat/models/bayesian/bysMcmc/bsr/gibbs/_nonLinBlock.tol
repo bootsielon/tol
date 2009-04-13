@@ -229,8 +229,7 @@ Text _.autodoc.member.NonLinBlock =
     });
   //WriteLn("TRACE"+_MID+"draw.scalar 3");
   //Real show.arma(0);
-    Real Do setStore(SetCol(draw.all));
-    Copy(_.store)
+    Mat2VMat(SetCol(draw.all))
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -248,13 +247,7 @@ Text _.autodoc.member.NonLinBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+"draw 1");
-    If(enabled,
-    {
-      draw.scalar(numSim)
-    },
-    {
-      Copy(_.store) 
-    })
+    draw.scalar(numSim)
   };
 
   ////////////////////////////////////////////////////////////////////////////

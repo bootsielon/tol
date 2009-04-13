@@ -578,8 +578,7 @@ Text _.autodoc.member.ArimaBlock =
   //Real show.arma(0);
     Matrix values = SetCol(arma.draw.all);
   //WriteLn("TRACE"+_MID+" draw 3 "<<Matrix Tra(values));
-    Real Do setStore(values);
-    Copy(_.store)
+    Mat2VMat(values)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -601,15 +600,7 @@ Text _.autodoc.member.ArimaBlock =
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" draw 1 ");
-    If(And(enabled, numSim%_skipIter==0),
-    {
-    //WriteLn("TRACE"+_MID+" draw 2 ");
-      draw.scalar(numSim, _.ws::noise, _.ws::sigma.full)
-    },
-    {
-      Copy(_.store)
-    })
+    draw.scalar(numSim, _.ws::noise, _.ws::sigma.full)
   };
 
   ////////////////////////////////////////////////////////////////////////////

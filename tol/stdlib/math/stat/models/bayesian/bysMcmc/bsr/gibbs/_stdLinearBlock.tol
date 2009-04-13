@@ -433,18 +433,12 @@ Text _.autodoc.member.StdLinearBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" draw 1");
-    VMatrix b = If(Not(enabled), _.store,
-    {
-    //WriteLn("TRACE "+_MID+" draw 3");
-      Real _.calculatedSimulation := _.calculatedSimulation+1;
-    //WriteLn("TRACE "+_MID+" draw 4");
-      If(And(_.calculatedSimulation >_.MH.useAfterIter,
-             _.MH.consecutive <= _.MH.maxConsecutive),
-        draw.mh   (numSim),
-        draw.gibbs(numSim))
-    });
-    Real putStoreV(b);
-    _.store
+    Real _.calculatedSimulation := _.calculatedSimulation+1;
+  //WriteLn("TRACE "+_MID+" draw 4");
+    If(And(_.calculatedSimulation >_.MH.useAfterIter,
+           _.MH.consecutive <= _.MH.maxConsecutive),
+       draw.mh   (numSim),
+       draw.gibbs(numSim))
   }
 
 };

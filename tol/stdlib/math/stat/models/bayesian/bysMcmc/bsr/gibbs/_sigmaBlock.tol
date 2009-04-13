@@ -152,10 +152,7 @@ Text _.autodoc.member.SigmaBlock =
         sumSqr::rss/RandChisq(sumSqr::m)
       })
     });
-  //WriteLn("TRACE "+_MID+" draw.invRandChisq 3 ");
-    Real Do setStore(SetCol(v));
-  //WriteLn("TRACE "+_MID+" draw.invRandChisq 4 ");
-    Copy(_.store)
+    Mat2VMat(SetCol(v))
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -176,13 +173,7 @@ Text _.autodoc.member.SigmaBlock =
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(enabled,
-    {
-      draw.invRandChisq(numSim, _.ws::residuals)
-    },
-    {
-      Copy(_.store)
-    })
+    draw.invRandChisq(numSim, _.ws::residuals)
   };
 
 
