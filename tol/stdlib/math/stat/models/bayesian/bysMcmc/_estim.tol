@@ -1,0 +1,51 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: _estim.tol
+// PURPOSE: 
+/////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Estim =
+"Estimates a bayesian model\n";
+Set Estim(Cycler cycler)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real StoreRecover(cycler);
+  BysMcmc::Config config = cycler::_.config;
+  BysMcmc::Notifier notifier = cycler::_.notifier;
+  Real cycler::initialize(0);
+  Real sampleLength = config::mcmc.burnin+config::mcmc.sampleLength;
+  Real cycler::generate(sampleLength); 
+
+  Real notifier::reporting(0);
+  Set estim = If(Not(config::do.report),[[cycler]],
+  {
+    Set report = cycler::report(config::mcmc.burnin,
+                                config::mcmc.sampleLength,
+                                config::mcmc.thinning);
+    Matrix param.average = 
+    {
+      Tra(SetMat(Extract(report::coda.summary, 2)))
+    };
+    If(!(config::do.eval),
+    {
+      [[
+        cycler,
+        report,
+        param.average
+      ]]
+    },
+    {
+      Real notifier::evaluating(0);
+      Set eval.average = cycler::_.sampler::eval(param.average);
+      [[
+        cycler,
+        report,
+        param.average, 
+        eval.average  
+      ]]
+    })
+  });
+  Real SetIndexByName(estim);
+  estim
+};
