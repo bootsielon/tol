@@ -53,26 +53,10 @@ BysMcmc::Config bsr.config =
   Real do.linear.effects  =  False
 ]];
 
-/* * /
-BysMcmc::MasterSampler sampler = 
-    BysMcmc::Bsr::Gibbs::BasicMaster(mod::bsr.parsed, bsr.config);
+BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+  bsr.parsed, bsr.config, BysMcmc::NoNotifier(0));
 
-
-BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
-Real cycler::define(sampler, BysMcmc::NoNotifier(0), bsr.config);
- 
-Real sampler::initialize(0);
-
-Real cycler::generate(2);
-/* * /
-Real TolOprProfiler.Enabled := True;
-  Real cycler::generate(bsr.config::mcmc.burnin+bsr.config::mcmc.sampleLength);
-Real TolOprProfiler.Dump("model.08");
-
-/* */
-
-Set estim = { BysMcmc::Bsr::Gibbs::Estim(bsr.parsed, bsr.config) };
-
+BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
 
 Real numErr1 = Copy(NError);
 

@@ -48,22 +48,10 @@ BysMcmc::Config bsr.config =
   Real do.linear.effects  =  False
 ]];
 
-/* * /
-BysMcmc::MasterSampler sampler = 
-    BysMcmc::Bsr::Gibbs::BasicMaster(mod::bsr.parsed, bsr.config);
+BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+  mod::bsr.parsed, bsr.config, BysMcmc::NoNotifier(0));
 
-
-BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
-Real cycler::define(sampler, BysMcmc::NoNotifier(0), bsr.config);
- 
-Real sampler::initialize(0);
-
-Real cycler::generate(2);
-
-
-/* */
-
-Set estim = { BysMcmc::Bsr::Gibbs::Estim(mod::bsr.parsed, bsr.config )};
+Set estim = BysMcmc::Estim(cycler);
 
 /* */
 Struct CompareStruct 

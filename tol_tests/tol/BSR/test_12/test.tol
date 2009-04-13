@@ -159,43 +159,43 @@ Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
 
 
 
-BysMcmc::Config bsr.config = [[
-  //MCMC dimensions
-    Real mcmc.burnin        =  1; 
-    Real mcmc.sampleLength  =  25;
-    Real mcmc.cacheLength   =  1;
-  //Basic master configuration
-    Real bsr.cholesky.epsilon          = 1.E-13;
-    Real bsr.cholesky.warningFreq      = 100;
-    Real bsr.truncMNormal.gibbsNumIter = 5;
-    Code bsr.scalarSampler.armaBlock = 
-      BysMcmc::Options::Scalar.Sampler::Slice;
-    Code bsr.scalarSampler.nonLinBlock =
-      BysMcmc::Options::Scalar.Sampler::Slice;
-  //Report configuration
-    Real report.raftery.diag.q   = 0.25;
-    Real report.raftery.diag.r   = 0.10;   
-    Real report.raftery.diag.s   = 0.75;   
-    Real report.raftery.diag.eps = 0.10; 
-    Real report.acf.lag          = 20,
-    Real report.histogram.parts  = 100;
-    Real report.kerDens.points   = 0;
-  //Generic flags
-    Real do.resume          =  False;
-    Real do.report          =  True;
-    Real do.eval            =  True;
-    Real do.linear.effects  =  True;
-    //Metodo de aproximacion del arima
-    Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastCholSea//;
-  //Real bsr.arimaSkipIter = 100
-  ]];
 
-//Real TolOprProfiler.Enabled := True;
-
-//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //Estimación del modelo con el sistema Bsr::DynHlm
 //////////////////////////////////////////////////////////////////////////////
-Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
+BysMcmc::Config bsr.config = [[
+//MCMC dimensions
+  Real mcmc.burnin        =  1; 
+  Real mcmc.sampleLength  =  25;
+  Real mcmc.cacheLength   =  1;
+//Basic master configuration
+  Real bsr.cholesky.epsilon          = 1.E-13;
+  Real bsr.cholesky.warningFreq      = 100;
+  Real bsr.truncMNormal.gibbsNumIter = 5;
+  Code bsr.scalarSampler.armaBlock = 
+    BysMcmc::Options::Scalar.Sampler::Slice;
+  Code bsr.scalarSampler.nonLinBlock =
+    BysMcmc::Options::Scalar.Sampler::Slice;
+//Report configuration
+  Real report.raftery.diag.q   = 0.25;
+  Real report.raftery.diag.r   = 0.10;   
+  Real report.raftery.diag.s   = 0.75;   
+  Real report.raftery.diag.eps = 0.10; 
+  Real report.acf.lag          = 20,
+  Real report.histogram.parts  = 100;
+  Real report.kerDens.points   = 0;
+//Generic flags
+  Real do.resume          =  False;
+  Real do.report          =  True;
+  Real do.eval            =  True;
+  Real do.linear.effects  =  True;
+  //Metodo de aproximacion del arima
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastCholSea//;
+//Real bsr.arimaSkipIter = 100
+]];
+
+
+BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
   DBConnection::BsrHlm::_.defaultDB,
   id_model,
@@ -203,9 +203,13 @@ Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
   Ois.DefRoot+"HlmBsrTest/",
   series.handler,
   bsr.config
-)};
+);
 
-//Real TolOprProfiler.Dump("model.01");
+//Real TolOprProfiler.Enabled := True;
+BysMcmc::Estimation bsr.estim = BysMcmc::Estim(cycler);
+//Real TolOprProfiler.Dump("ses.01");
+
+Real BysMcmc::Bsr::DynHlm::DBApi::CloseModel(bsr.estim);
 
 Real DBConnection::BsrHlm::Close(0);
 

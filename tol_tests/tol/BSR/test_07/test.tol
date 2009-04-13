@@ -57,7 +57,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
 
 //////////////////////////////////////////////////////////////////////////////
 //Model definition for BSR one node API
-  NameBlock bsr.oneNode.data =
+  BysMcmc::Bsr::OneNode::ModelData bsr.oneNode.data =
 //////////////////////////////////////////////////////////////////////////////
 [[
   //##Documentation about the model
@@ -97,9 +97,9 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   Real _check_data.handler = SetIndexByName(_.data.handler);
 
   //Output vector
-  Matrix _.Y = _.data.handler::Output;
+  VMatrix _.Y = Mat2VMat(_.data.handler::Output, False, 1, 0);
   //output average should be a good average prior for constant parameter 
-  Real _.cteAvg = MatAvr(_.Y);
+  Real _.cteAvg = VMatAvr(_.Y);
 
   //Linear block definition with domain and prior restrictions
   Set _.linearParamInfo = [[
@@ -113,10 +113,10 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
     LPI("Constant" ,  _.cteAvg, -1/0,  +1/0,  _.cteAvg,    0.25,       0.90) 
   ]];
   //Input matrix
-  Matrix _.X = Group("ConcatColumns",
-  EvalSet(_.linearParamInfo, Matrix(Bsr.OneNode.LinearParamInfo lpi)
+  VMatrix _.X = Group("ConcatColumns",
+  EvalSet(_.linearParamInfo, VMatrix(Bsr.OneNode.LinearParamInfo lpi)
   {
-    _.data.handler[lpi->Name]
+    Mat2VMat(_.data.handler[lpi->Name])
   }));
   //Sigma is inknown and needs to be simulated
   Real _.sigma = ?;
@@ -127,22 +127,8 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
     //                      lower        <=  upper  
     Bsr.OrderRelation.Info("Input_4",       "Input_5"),
     Bsr.OrderRelation.Info("Input_5",       "Input_Pr_1_2")
-  ]];
+  ]]
 
-  // This is usefull to check range of values of each input column
-  Set _.frequencyAnalysis = For(1,Card(_.linearParamInfo),Matrix(Real k)
-  {
-    Matrix x = SubCol(_.X,[[k]]);
-    Real min = MatMin(x);
-    Real max = MatMax(x);
-    Set distinct = Classify(MatSet(Tra(x))[1],Real(Real a, Real b)
-    {
-      Compare(a,b)
-    });
-    Real parts = Min(Card(distinct),100); 
-    Matrix frq = Frequency(x,parts,min-2/parts,max);
-    Eval("Frq."+_.linearParamInfo[k]->Name+"=frq")
-  })
 ]];
   
 /* */
@@ -164,10 +150,11 @@ BysMcmc::Config bsr.config = [[
   Real do.linear.effects  =  True 
 ]];
 
+BysMcmc::Cycler cycler = BysMcmc::Bsr::OneNode::GetCycler(
+  bsr.oneNode.data, Copy(Empty), bsr.config);
 
-//Estimates the BSR one-node model
-Set bsr.oneNode = BysMcmc::Bsr::OneNode::Estim
-(bsr.oneNode.data, Copy(Empty), bsr.config);
+BysMcmc::Estimation bsr.oneNode = BysMcmc::Estim(cycler);
+
 
 /* */
 Matrix b_ = Sub(Tra(bsr.oneNode::param.average),1,1,Columns(X),1);

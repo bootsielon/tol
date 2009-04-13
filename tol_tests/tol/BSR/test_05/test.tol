@@ -302,6 +302,10 @@ Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
   series.handler::_.obs.node);
 
 /* */
+
+//////////////////////////////////////////////////////////////////////////////
+//Estimación del modelo con el sistema Bsr::DynHlm
+//////////////////////////////////////////////////////////////////////////////
 BysMcmc::Config bsr.config = [[
 //MCMC dimensions
   Real mcmc.burnin        =    500; 
@@ -317,11 +321,7 @@ BysMcmc::Config bsr.config = [[
   Real do.linear.effects  =  False
 ]];
 
-/* */
-//////////////////////////////////////////////////////////////////////////////
-//Estimación del modelo con el sistema Bsr::DynHlm
-//////////////////////////////////////////////////////////////////////////////
-Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
+BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
   DBConnection::BsrHlm::_.defaultDB,
   id_model,
@@ -329,8 +329,13 @@ Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
   Ois.DefRoot+"HlmBsrTest/",
   series.handler,
   bsr.config
-)};
+);
 
+//Real TolOprProfiler.Enabled := True;
+BysMcmc::Estimation bsr.estim = BysMcmc::Estim(cycler);
+//Real TolOprProfiler.Dump("ses.01");
+
+Real BysMcmc::Bsr::DynHlm::DBApi::CloseModel(bsr.estim);
 
 //////////////////////////////////////////////////////////////////////////////
 Set compare_forecast = 

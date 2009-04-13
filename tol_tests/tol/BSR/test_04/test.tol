@@ -364,6 +364,9 @@ BysMcmc::Bsr::DynHlm::DBApi::ModSes.Pri.Homog_1.Create
 )};
 
 /* */
+//////////////////////////////////////////////////////////////////////////////
+//Estimación del modelo con el sistema Bsr::DynHlm
+//////////////////////////////////////////////////////////////////////////////
 BysMcmc::Config bsr.config = [[
 //MCMC dimensions
   Real mcmc.burnin        =   500; 
@@ -373,58 +376,13 @@ BysMcmc::Config bsr.config = [[
   Code bsr.scalarSampler.nonLinBlock=BysMcmc::Options::Scalar.Sampler::Slice;
 
 //Generic flags
-  Real do.resume          =  0;
+  Real do.resume          =  1/0;
   Real do.report          =  True;
   Real do.eval            =  True;
   Real do.linear.effects  =  True
 ]];
 
-/* * /
-Text dbName = DBConnection::BsrHlm::_.defaultDB;
-Text resultRootPath = Ois.DefRoot+"HlmBsrTest/";
-
-  NameBlock modelDef = BysMcmc::Bsr::DynHlm::DBApi::LoadModelDef
-  (
-    dbName,
-    id_model,
-    id_session,
-    resultRootPath,
-    series.handler
-  );
-
-  Text ascii = BysMcmc::Bsr::Import::Write(modelDef);
-//WriteLn("TRACE EstimAndNotify FunctionExist('Set','modelDef::Get.NonLinFilter') = "<<FunctionExist("Set","modelDef::Get.NonLinFilter"));
-  Set nonLinFilter = 
-    If(!FunctionExist("Set","modelDef::Get.NonLinFilter"), Empty, 
-      modelDef::Get.NonLinFilter(0));
-
-  Set parsed = BSR.Parse(ascii);
-
-  NameBlock sampler = If(!Card(nonLinFilter),
-  {
-    WriteLn("[BSR] Using Basic Master");
-    BysMcmc::Bsr::Gibbs::BasicMaster(parsed, bsr.config)
-  },
-  {
-    WriteLn("[BSR] Using Non Linear Filter Extended Master");
-    BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, bsr.config)
-  });	
-  BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
-  Real cycler::define(sampler, BysMcmc::NoNotifier(0), bsr.config);
-  Real sampler::initialize(0);
-
-  Real sampler::setStore(Rand(17,1,0,0));
-/*
-  Real cycler::generate(1);
-
-/* */
-
-//Real TolOprProfiler.Enabled := True;
-
-//////////////////////////////////////////////////////////////////////////////
-//Estimación del modelo con el sistema Bsr::DynHlm
-//////////////////////////////////////////////////////////////////////////////
-Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
+BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
   DBConnection::BsrHlm::_.defaultDB,
   id_model,
@@ -432,9 +390,14 @@ Set bsr.estim = {BysMcmc::Bsr::DynHlm::DBApi::Estim
   Ois.DefRoot+"HlmBsrTest/",
   series.handler,
   bsr.config
-)};
+);
 
+//Real TolOprProfiler.Enabled := True;
+BysMcmc::Estimation bsr.estim = BysMcmc::Estim(cycler);
 //Real TolOprProfiler.Dump("ses.03");
+
+Real BysMcmc::Bsr::DynHlm::DBApi::CloseModel(bsr.estim);
+
 
 /* */
 

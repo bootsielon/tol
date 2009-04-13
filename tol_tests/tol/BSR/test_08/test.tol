@@ -61,7 +61,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
 
 //////////////////////////////////////////////////////////////////////////////
 //Model definition for BSR one node API
-  NameBlock bsr.oneNode.data =
+    BysMcmc::Bsr::OneNode::ModelData bsr.oneNode.data =
 //////////////////////////////////////////////////////////////////////////////
 [[
   //##Documentation about the model
@@ -101,10 +101,10 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   Real _check_data.handler = SetIndexByName(_.data.handler);
 
   //Output vector
-  Matrix _.Y = _.data.handler::Output;
+  VMatrix _.Y = Mat2VMat(_.data.handler::Output, False, 1, 0);
   //Normal standarized transformation of frequency of ones in output should be
   //a good average prior for constant parameter 
-  Real _.cteAvg = DistNormalInv(MatAvr(_.Y));
+  Real _.cteAvg = DistNormalInv(VMatAvr(_.Y));
 
   //Linear block definition with domain and prior restrictions
   Set _.linearParamInfo = [[
@@ -118,10 +118,10 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
     LPI("Constant" ,  _.cteAvg, -1/0,  +1/0,  _.cteAvg,    0.25,       0.90) 
   ]];
   //Input matrix
-  Matrix _.X = Group("ConcatColumns",
-  EvalSet(_.linearParamInfo, Matrix(Bsr.OneNode.LinearParamInfo lpi)
+  VMatrix _.X = Group("ConcatColumns",
+  EvalSet(_.linearParamInfo, VMatrix(Bsr.OneNode.LinearParamInfo lpi)
   {
-    _.data.handler[lpi->Name]
+    Mat2VMat(_.data.handler[lpi->Name])
   }));
   //A BSR probit model must have sigma=1
   Real _.sigma = 1;
@@ -132,22 +132,8 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
     //                      lower        <=  upper  
     Bsr.OrderRelation.Info("Input_4",       "Input_5"),
     Bsr.OrderRelation.Info("Input_5",       "Input_Prod_1_2")
-  ]];
+  ]]
 
-  // This is usefull to check range of values of each input column
-  Set _.frequencyAnalysis = For(1,Card(_.linearParamInfo),Matrix(Real k)
-  {
-    Matrix x = SubCol(_.X,[[k]]);
-    Real min = MatMin(x);
-    Real max = MatMax(x);
-    Set distinct = Classify(MatSet(Tra(x))[1],Real(Real a, Real b)
-    {
-      Compare(a,b)
-    });
-    Real parts = Min(Card(distinct),100); 
-    Matrix frq = Frequency(x,parts,min-2/parts,max);
-    Eval("Frq."+_.linearParamInfo[k]->Name+"=frq")
-  })
 ]];
   
 /* */
@@ -177,15 +163,21 @@ BysMcmc::Config bsr.config = [[
   Real do.linear.effects  =  False  //Has no sense for probit models
 ]];
 
-//Estimates the BSR one-node probit model
-NameBlock bsr.oneNode.probit = BysMcmc::Bsr::OneNode::EstimProbit
-(bsr.oneNode.data, bsr.config);
+
+BysMcmc::Cycler bsr.oneNode.cycler = 
+  BysMcmc::Bsr::OneNode::GetCyclerProbit(bsr.oneNode.data, bsr.config);
+
+BysMcmc::Estimation bsr.oneNode.estim = BysMcmc::Estim(bsr.oneNode.cycler);
+BysMcmc::Bsr::OneNode::Probit bsr.oneNode.probit = 
+  BysMcmc::Bsr::OneNode::GetProbit(bsr.oneNode.estim);
+
+/* */
 
 Matrix b_full = bsr.oneNode.probit::_.param;
 Matrix b_ = Sub(b_full,1,1,Rows(b),1);
-Matrix X_ = bsr.oneNode.data::_.X | 
-            Rand(Rows(bsr.oneNode.data::_.X),
-                 Rows(b_full)-Columns(bsr.oneNode.data::_.X),0,0);
+Matrix X_ = VMat2Mat(bsr.oneNode.data::_.X) | 
+            Rand(VRows(bsr.oneNode.data::_.X),
+                 Rows(b_full)-VColumns(bsr.oneNode.data::_.X),0,0);
 
 //Output probabilities for given input matrix integrated over all simulated 
 //vectors of parameters (Bayesian inference by exact method)
@@ -202,12 +194,12 @@ Matrix CompareResiduals = residuals | e;
 //Success table for Bayesian inference by exact method
 Set STExcBys = Diagnostics::BinaryModel::SuccessTable(
   Diagnostics::BinaryModel::CutValRng(outProbExcBys,.01),
-  bsr.oneNode.data::_.Y,
+  VMat2Mat(bsr.oneNode.data::_.Y),
   outProbExcBys);
 //Success table for Bayesian inference by aproximation method
 Set STAprBys = Diagnostics::BinaryModel::SuccessTable(
   Diagnostics::BinaryModel::CutValRng(outProbAprBys,.01),
-  bsr.oneNode.data::_.Y,
+  VMat2Mat(bsr.oneNode.data::_.Y),
   outProbAprBys);
 
 Real numErr1 = Copy(NError);
