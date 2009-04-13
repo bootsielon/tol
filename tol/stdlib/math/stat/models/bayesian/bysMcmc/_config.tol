@@ -133,7 +133,10 @@ Class Config
   //id_node as prefix of identifier. Else it will use MIXTURE node and all
   //inputs with the same name will are referred to the same input missing
   //variables. 
-  Real DBApi.useNodeInMissingIdentifier = True
+  Real DBApi.useNodeInMissingIdentifier = True;
+  //If true an internal TOL profiling will be executed
+  Real do.mcmc.profiler = False
+
 };
 
 //////////////////////////////////////////////////////////////////////////////
