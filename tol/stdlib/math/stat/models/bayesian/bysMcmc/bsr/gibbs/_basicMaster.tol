@@ -215,9 +215,9 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-    WriteLn("TRACE"+_MID+" initialize 1");
+  //WriteLn("TRACE"+_MID+" initialize 1");
     Real initialize.blocks(unused);
-    WriteLn("TRACE"+_MID+" init 1.1");
+  //WriteLn("TRACE"+_MID+" init 1.1");
     VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
   //WriteLn("TRACE"+_MID+" init 1.2");
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
@@ -255,6 +255,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_.name+"::setStore("<<Rows(values)+"x"<<Columns(values)+")");   
     setStore.blocks(values) 
   };
 
