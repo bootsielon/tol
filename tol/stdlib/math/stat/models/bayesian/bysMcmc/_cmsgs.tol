@@ -31,7 +31,7 @@ NameBlock _.cmsg =
     Real    max    = args[4];
     mid+": Item "<<index+" out of range ["<<min+","<<max+"]"
   });
-  Set _.unkInfBlock = CMsg.Coded.info(_ag,4, "error", Text(Set args)
+  Set _.unkInfBlock = CMsg.Coded.info(_ag,4, "stop", Text(Set args)
   {
     Text    name   = args[1];
     VMatrix store  = args[2];
