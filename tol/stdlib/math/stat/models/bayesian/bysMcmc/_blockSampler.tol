@@ -31,6 +31,7 @@ Class BlockSampler
   VMatrix _.store = Rand(0,0,0,0);
   //Flag that enables/disables the block
   Real enabled = True;
+  Real refreshFrequency = 1;
   //Work space stores all data needed to draw samples that are variant for
   //each simulation
   NameBlock _.ws = [[ Real unused = ? ]];
@@ -47,6 +48,21 @@ Class BlockSampler
   //Method of sample generation 
   VMatrix draw(Real numSim);
 
+  //Method of sample generation 
+  VMatrix get.draw(Real numSim, Real force)
+  {
+    Real refresh = Case(
+      force, 1,
+      !enabled, 0, 
+      1==1, Rand(0,1)<=refreshFrequency);
+    If(!refresh, Copy(_.store),
+    { 
+      VMatrix b = draw(numSim);
+      Real setStore(VMat2Mat(b));
+      b
+    })
+  };
+
   //This method will be called for MCMC initialzation
   //Default behaviour does nothing
   Real initialize(Real unused) { 0 };
@@ -54,7 +70,6 @@ Class BlockSampler
   //Almost all blocks must filter matrices from other blocks
   //Default behaviour does nothing
   VMatrix filter(VMatrix Z) { Z };
-
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.define =
