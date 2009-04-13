@@ -36,7 +36,7 @@ Class MasterSampler
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.initialize.blocks =
-  "Applies initialize method of each block";
+  "Applies initialize method for each block";
   Real initialize.blocks(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -49,14 +49,14 @@ Class MasterSampler
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw.blocks =
-  "Applies draw method of each block. This is the sampling method for self-"
+  "Applies draw method for each block. This is the sampling method for self-"
   "updated blocks.";
   VMatrix draw.blocks(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix draw.blk(BysMcmc::BlockSampler blk)
     {
-      blk::draw(numSim)
+      blk::get.draw(numSim, False)
     };
     Group("ConcatRows", EvalSet(_.blocks, draw.blk))
   };
