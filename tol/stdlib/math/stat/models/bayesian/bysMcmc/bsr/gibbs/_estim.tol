@@ -7,15 +7,15 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.EstimParsed =
-"Estimates a BSR model by Gibbs method\n"+
+Text _.autodoc.member.GetCyclerFromParsed =
+"Builds the Cycler of a BSR model by Gibbs method\n"+
 "Argument `parsed` must be defined as the result of calling function "
 "BSR.Parse\n";
 
-Set EstimParsed(BSR.ModelDef parsed, 
-                Set nonLinFilter,
-                Config config,
-                Notifier notifier)
+Cycler GetCyclerFromParsed(BSR.ModelDef parsed, 
+                           Set nonLinFilter,
+                           Config config,
+                           Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
@@ -28,160 +28,72 @@ Set EstimParsed(BSR.ModelDef parsed,
     WriteLn("[BSR] Using Non Linear Filter Extended Master");
     BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, config)
   });	
-  BysMcmc::Cycler cycler = [[ Real _unused = 0 ]];
-  Real cycler::define(sampler, notifier, config);
-  Text recover.path = cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
-  NameBlock recover = 
-  [[
-    Text _.name      = cycler::_.name;
-    Set  _.colNames  = cycler::_.sampler::get.colNames(0);
-    Set  _.repCfg    = cycler::bysInf_;
-    Text _.mcmc.path = cycler::_.path;
-    Real stored.simulations(Real unused)
-    {
-      Set mcmc.dim = MatReadDimensions(path);
-      mcmc.dim::Rows
-    };
-    Set report(Real burnin, Real length, Real thinning)
-    {
-      BysMcmc::Inference::loadAndReport(
-        _.mcmc.path, burnin, length, thinning, 
-        _.name, _.colNames, _.repCfg)
-    }
+  BysMcmc::Cycler cycler = [[
+    BysMcmc::MasterSampler _.sampler  = sampler;
+    BysMcmc::Notifier      _.notifier = notifier;
+    BysMcmc::Config        _.config   = config
   ]];
-  Real Ois.Store([[recover]],recover.path);
-
-  Real cycler::initialize(0);
-  Real cycler::generate(config::mcmc.burnin+config::mcmc.sampleLength); 
-
-  Real notifier::reporting(0);
-  Set estim = If(Not(config::do.report),
-  {
-    [[
-      parsed,
-      sampler,  
-      cycler
-    ]]
-  },
-  {
-    Set report = cycler::report(config::mcmc.burnin, config::mcmc.sampleLength,config::mcmc.thinning);
-    Matrix param.average = 
-    {
-      Tra(SetMat(Extract(report::coda.summary, 2)))
-    };
-    If(!(config::do.eval),
-    {
-      [[
-        parsed,
-        sampler, 
-        cycler,
-        report,
-        param.average
-      ]]
-    },
-    {
-      Real notifier::evaluating(0);
-      Set eval.average = sampler::eval(param.average);
-      [[
-        parsed,
-        sampler, 
-        cycler,
-        report,
-        param.average, 
-        eval.average  
-      ]]
-    })
-  });
-  Real SetIndexByName(estim);
-  estim
+  Real cycler::define(0);
+  Set Append(cycler::auxInfo, [[parsed]]);
+//Set Append(cycler::auxInfo, [[sampler]]);
+  cycler
 };
-/////////////////////////////////////////////////////////////////////////////
-PutDescription(_.autodoc.member.EstimParsed,EstimParsed);
-/////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.EstimAscii =
-"Estimates a BSR model by Gibbs method\n"+
+Text _.autodoc.member.GetCyclerFromAscii =
+"Builds the Cycler of a BSR model by Gibbs method\n"+
 "Argument `ascii` must be an ASCII file path prepared to be parsed by "
 "function BSR.Parse\n";
-Set EstimAscii(Text ascii_, 
-               Set nonLinFilter,
-               Config config,
-               Notifier notifier)
+Cycler GetCyclerFromAscii(Text ascii_, 
+                          Set nonLinFilter,
+                          Config config,
+                          Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimAscii Card(nonLinFilter) = "<<Card(nonLinFilter));
   Text ascii = ascii_;
   Real notifier::parsing(0);
   Set parsed = BSR.Parse(ascii);
-  Set estim = [[ascii]] << EstimParsed(parsed,nonLinFilter,config,notifier);
-  Real SetIndexByName(estim);
-  estim
+  BysMcmc::Cycler cycler = 
+    GetCyclerFromParsed(parsed,nonLinFilter,config,notifier);
+  Set Append(cycler::auxInfo, [[ascii]]);
+  cycler
 };
-/////////////////////////////////////////////////////////////////////////////
-PutDescription(_.autodoc.member.EstimAscii,EstimAscii);
-/////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.EstimAndNotify =
-"Estimates a BSR model by Gibbs method\n"+
+Text _.autodoc.member.GetCycler =
+"Builds the Cycler of a BSR model by Gibbs method\n"+
 "Argument `modelDef` must be one of these things: \n "
 " - A Text containing an ASCII file path prepared to be parsed by "
 " function BSR.Parse\n"+
 " - A Set containing the result of calling function BSR.Parse\n"+
 " - A NameBlock with the minimum API accepted by standard importing method "
 "BysMcmc::Bsr::Import::Write\n";
-Set EstimAndNotify(Anything modelDef, 
-                   Config config,
-                   Notifier notifier)
+Cycler GetCycler(Anything modelDef, 
+                 Config config,
+                 Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text g = Grammar(modelDef);
-  Set estim = Case
+  Case
   (
-    g=="Set",  EstimParsed(modelDef, Empty, config, notifier),
-    g=="Text", EstimAscii (modelDef, Empty, config, notifier),
+    g=="Set",  GetCyclerFromParsed(modelDef, Empty, config, notifier),
+    g=="Text", GetCyclerFromAscii (modelDef, Empty, config, notifier),
     g=="NameBlock", 
     {
       Text ascii = BysMcmc::Bsr::Import::Write(modelDef);
     //WriteLn("TRACE EstimAndNotify FunctionExist('Set','modelDef::Get.NonLinFilter') = "<<FunctionExist("Set","modelDef::Get.NonLinFilter"));
       Set nonLinFilter = 
-        If(!FunctionExist("Set","modelDef::Get.NonLinFilter"), Empty, 
+        If(!FunctionExist("Set","modelDef::Get.NonLinFilter"), Copy(Empty), 
           modelDef::Get.NonLinFilter(0));
     //WriteLn("TRACE EstimAndNotify Card(nonLinFilter) = "<<Card(nonLinFilter));
-      [[modelDef]] << EstimAscii(ascii, nonLinFilter, config, notifier)
+      GetCyclerFromAscii(ascii, nonLinFilter, config, notifier)
     },
     1==1, 
     {
       Error("Not allowd type "+g+" for argument modelDef of "
             "Bsr::Gibbs::Estim");
-      ""
+      Real Stop
     }
-  );
-  Real SetIndexByName(estim);
-  estim
+  )
 };
-/////////////////////////////////////////////////////////////////////////////
-PutDescription(_.autodoc.member.EstimAndNotify,EstimAndNotify);
-/////////////////////////////////////////////////////////////////////////////
-  
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Estim =
-"Estimates a BSR model by Gibbs method\n"+
-"Argument `modelDef` must be one of these things: \n "
-" - A Text containing an ASCII file path prepared to be parsed by "
-" function BSR.Parse\n"+
-" - A Set containing the result of calling function BSR.Parse\n"+
-" - A NameBlock with the minimum API accepted by standard importing method "
-"BysMcmc::Bsr::Import::Write\n";
-Set Estim(Anything modelDef, 
-          Config config)
-//////////////////////////////////////////////////////////////////////////////
-{
-  EstimAndNotify(modelDef, config, BysMcmc::NoNotifier(0))
-};
-/////////////////////////////////////////////////////////////////////////////
-PutDescription(_.autodoc.member.Estim,Estim);
-/////////////////////////////////////////////////////////////////////////////
-  
