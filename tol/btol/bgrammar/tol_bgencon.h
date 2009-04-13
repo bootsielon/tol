@@ -395,6 +395,12 @@ class TOL_API BGraConstant: public BGraContens<Any>
 //--------------------------------------------------------------------
 {
 public:
+    BGraConstant() : BGraContens<Any>()
+	{
+    TRACE_MEMORY_SHOW(this,"BGraConstant::BGraConstant");
+	  BGraContens<Any>::flags_.calculated_ = BTRUE;
+	  BGraContens<Any>::flags_.isConst_    = BTRUE;
+	}
     BGraConstant(const BText& name,
 		             const Any&   any,
 		             const BText& desc)
