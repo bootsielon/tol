@@ -48,21 +48,6 @@ Class BlockSampler
   //Method of sample generation 
   VMatrix draw(Real numSim);
 
-  //Method of sample generation 
-  VMatrix get.draw(Real numSim, Real force)
-  {
-    Real refresh = Case(
-      force, 1,
-      !enabled, 0, 
-      1==1, Rand(0,1)<=refreshFrequency);
-    If(!refresh, Copy(_.store),
-    { 
-      VMatrix b = draw(numSim);
-      Real setStore(VMat2Mat(b));
-      b
-    })
-  };
-
   //This method will be called for MCMC initialzation
   //Default behaviour does nothing
   Real initialize(Real unused) { 0 };
@@ -106,6 +91,25 @@ Class BlockSampler
        _.N+" parameters from "<<_.firstCol+" to "<<_.lastCol+"");
     1
   };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Method of sample generation 
+  VMatrix get.draw(Real numSim, Real force)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real refresh = Case(
+      force, 1,
+      !enabled, 0, 
+      1==1, Rand(0,1)<=refreshFrequency);
+    If(!refresh, Copy(_.store),
+    { 
+      VMatrix b = draw(numSim);
+      Real setStore(VMat2Mat(b));
+      b
+    })
+  };
+
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.getStoreColIndex =
@@ -205,7 +209,7 @@ Class BlockSampler
   Real putStoreV(VMatrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_.name+"::setStore("<<Rows(values)+"x"<<Columns(values));
+  //WriteLn("TRACE "+_.name+"::putStoreV("<<VRows(values)+"x"<<VColumns(values)+")");
     If(_.N<=0, 0,
     {
       VMatrix _.store := vMat2Col(values);
