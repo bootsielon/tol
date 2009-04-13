@@ -66,7 +66,7 @@ public:
   {
     return(BSet::Compare(&ns1->Set(),&ns2->Set()));
   }
-  static const BNameBlock* Current() { return(current_); }
+  static const BNameBlock* Current();
   static const BNameBlock* SetCurrent(const BNameBlock* ns);
   static BSyntaxObject* EvaluateTree(const List* tre);
   static bool Using  (const BSyntaxObject* uns);
