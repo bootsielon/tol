@@ -17,8 +17,8 @@ Text _.autodoc.member.InputMissingBlock =
 //////////////////////////////////////////////////////////////////////////////
 {
   If(!Card(inputMissingBlock), 
-  BysMcmc::NoBlockSampler(name, Empty, numBlock, firstCol, config),
-  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
+  BysMcmc::Bsr::Gibbs::NoStdLinearBlock(name, Empty, numBlock, firstCol, config),
+  BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
   //Given initial values of block variables
   VMatrix _.store_ = Mat2VMat(SetMat(Extract(inputMissingBlock, 6)));
   //Defining the block in the Markov Chain

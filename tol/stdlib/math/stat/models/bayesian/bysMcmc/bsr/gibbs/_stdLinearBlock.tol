@@ -482,6 +482,59 @@ Text _.autodoc.member.StdLinearBlock =
 Class StdLinearBlock: BlockSampler
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real initialize.subBlocks(Real unused);
+  Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    initialize.subBlocks(unused)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Default behaviour assumes standarized linear regression
+  VMatrix standarize(VMatrix _Z) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    _Z 
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  NameBlock getWorkSpace(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    _.ws
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////////
+StdLinearBlock NoStdLinearBlock(Text name, Set colNames, 
+                                Real numBlock, Real firstCol, 
+                                Config config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::Bsr::Gibbs::StdLinearBlock noBlock = 
+  [[
+    Real _define = define(name, colNames, numBlock, firstCol, config);
+    VMatrix draw(Real numSim) { ? };
+    Code _.buildWorkSpace = draw;
+    Real initialize.subBlocks(Real unused) { ? };
+    Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a) { ? }
+  ]];
+  noBlock
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.StdLinearFullBlock =
+"Builds a NameBlock that can draw a Gibbs sample of an standarized linear "
+"block of a general regression model with variant input and ouput regression "
+"matrices and optional but fixed constraining inequations.";
+//////////////////////////////////////////////////////////////////////////////
+Class StdLinearFullBlock: StdLinearBlock
+//////////////////////////////////////////////////////////////////////////////
+{
   BysMcmc::Bsr::Gibbs::StdLinearSubBlock _.subBlock = 
     BysMcmc::Bsr::Gibbs::StdLinearSubBlock.Build(_MID+"[_.subBlock] ");
 
@@ -550,7 +603,6 @@ Class StdLinearBlock: BlockSampler
   }
 
 };
-
 /*
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.StdLinearPartialBlock =

@@ -16,8 +16,8 @@ Text _.autodoc.member.OutputMissingBlock =
 //////////////////////////////////////////////////////////////////////////////
 {
   If(!Card(outputMissingBlock), 
-  BysMcmc::NoBlockSampler(name, Empty, numBlock, firstCol, config),
-  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
+  BysMcmc::Bsr::Gibbs::NoStdLinearBlock(name, Empty, numBlock, firstCol, config),
+  BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
   //Given initial values of block variables
   VMatrix _.store = Mat2VMat(SetMat(Extract(outputMissingBlock, 6)));
 

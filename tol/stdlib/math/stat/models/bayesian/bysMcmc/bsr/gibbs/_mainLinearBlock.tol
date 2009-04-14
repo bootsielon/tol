@@ -27,8 +27,8 @@ Text _.autodoc.member.MainLinearBlock =
 //////////////////////////////////////////////////////////////////////////////
 {
   If(!Card(varNames), 
-  BysMcmc::NoBlockSampler(name, varNames, numBlock, firstCol, config),
-  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
+  BysMcmc::Bsr::Gibbs::NoStdLinearBlock(name, Empty, numBlock, firstCol, config),
+  BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
   //Defining the block in the Markov Chain
   Real _define = define(name, varNames, numBlock, firstCol, config);
 
