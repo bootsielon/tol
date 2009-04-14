@@ -685,7 +685,7 @@ SerAnadir);
       Date ls = SetMaxDate(EvalSet(series,Last ));
       SetSum(Set EvalSet(series,Serie(Serie ser) 
       { 
-        Real SerBuildTime(ser,true);
+        Real SerBuildTime(ser,false);
         SubSerAnadirCeros(ser,fs,ls) 
       }))
     })
