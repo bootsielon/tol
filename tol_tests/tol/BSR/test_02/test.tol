@@ -51,7 +51,7 @@ BysMcmc::Config bsr.config =
 BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   mod::bsr.parsed, bsr.config, BysMcmc::NoNotifier(0));
 
-Set estim = BysMcmc::Estim(cycler);
+BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
 
 /* */
 Struct CompareStruct 

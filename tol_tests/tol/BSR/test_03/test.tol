@@ -17,31 +17,34 @@ Text summary_ =
 Real numErr0 = Copy(NError);
 
 //Random seed setting
-Real PutRandomSeed(0);
+Real PutRandomSeed(923877512);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
 //Creates a random model and writes it in "parse.bsr"
 Set Include("load.tol");
 
-//Real TolOprProfiler.Enabled := True;
 
 BysMcmc::Config bsr.config = [[
   Real mcmc.sampleLength = 2000;
   Real mcmc.cacheLength = 100;
   Real mcmc.burnin = 100;
+  Real bsr.linBlk.MH.useAfterIter = 1/0;
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::DifEq;
 //Code bsr.scalarSampler.armaBlock = BysMcmc::Options::Scalar.Sampler::Arms;
 //Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Arms;
-  Text bsr.arimaFilter   = BysMcmc::Options::Arima.Filter::FastChol;
-  Real do.resume = 0
+  Real do.resume = 0;
+  Real do.mcmc.profiler   = True
 ]];
 
 BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   mod::bsr.parsed, bsr.config, BysMcmc::NoNotifier(0));
 
-Set estim = BysMcmc::Estim(cycler);
+Real cycler::_.sampler::_.arm.blk::refreshFrequency    := 0.10;
+Real cycler::_.sampler::_.inpMis.blk::refreshFrequency := 0.25;
+Real cycler::_.sampler::_.outMis.blk::refreshFrequency := 0.25;
 
-//Real TolOprProfiler.Dump("model.03");
+BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
 
 Struct CompareStruct 
 {
