@@ -3237,29 +3237,38 @@ void BMatNormDiag::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatPostProdDiag);
 DefExtOpr(1, BMatPostProdDiag,   "PostProdDiag", 2, 2, "Matrix Matrix",
-  I2("(Matrix m, Matrix d)",
-     "(Matrix m, Matrix d)"),
-  I2("It virtually post-multiplies a matrix <m> by the diagonal matrix "
+  I2("(Matrix M, Matrix D)",
+     "(Matrix M, Matrix D)"),
+  I2("It virtually post-multiplies a matrix <M> by the diagonal matrix "
      "whose elements in the main diagonal are those of the row matrix "
-     "<d>",
-     "Multiplica por la derecha una matriz <m> por la matriz diagonal "
+     "<D>",
+     "Multiplica por la derecha una matriz <M> por la matriz diagonal "
      "cuyos elementos en la diagonal principal son los de la matriz "
-     "fila <d>")+
-     "\n  PostProdDiag(m,d) == m*SetDiag(MatSet(d)[1])",
+     "fila <D>")+
+     "\n  PostProdDiag(M,D) == M*SetDiag(MatSet(D)[1])",
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BMatPostProdDiag::CalcContens()
 //--------------------------------------------------------------------
 {
-  DMat& c = b2dMat(contens_);
-  c = dMat(Arg(1));
+  DMat& M = dMat(Arg(1));
   DMat& d = dMat(Arg(2));
-  register int m = c.Rows();
-  register int n = c.Columns();
-  register int i, j;
+  register int s = d.GetData().Size();
+  register int m = M.Rows();
+  register int n = M.Columns();
+
+  if(s!=n)
+  {
+    Error(I2("Wrong dimensions for ",
+               "Dimensiones erróneas para ")+
+            "PostProdDiag({"+m+"x"+n+"},{"+s+"x"+s+"})");
+    return;
+  }
+  DMat& c = M;
   register double* cij = c.GetData().GetBuffer();
   register double* d0  = c.GetData().GetBuffer();
   register double* djj;
+  register int i, j;
   for(i=0; i<m; i++)
   {
     djj = d0;
@@ -3275,29 +3284,38 @@ void BMatPostProdDiag::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatPreProdDiag);
 DefExtOpr(1, BMatPreProdDiag,   "PreProdDiag", 2, 2, "Matrix Matrix",
-  I2("(Matrix d, Matrix m)",
-     "(Matrix d, Matrix m)"),
-  I2("It virtually pre-multiplies a matrix <m> by the diagonal matrix "
+  I2("(Matrix D, Matrix M)",
+     "(Matrix D, Matrix M)"),
+  I2("It virtually pre-multiplies a matrix <M> by the diagonal matrix "
      "whose elements in the main diagonal are those of the row matrix "
-     "<d> ",
-     "Multiplica por la derecha una matriz <m> por la matriz diagonal "
+     "<D> ",
+     "Multiplica por la derecha una matriz <M> por la matriz diagonal "
      "cuyos elementos en la diagonal principal son los de la matriz "
-     "fila <d> ")+
-     "\n  PreProdDiag(d,m) == SetDiag(MatSet(d)[1])*m",
+     "fila <D> ")+
+     "\n  PreProdDiag(D,M) == SetDiag(MatSet(D)[1])*M",
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BMatPreProdDiag::CalcContens()
 //--------------------------------------------------------------------
 {
-  DMat& c = b2dMat(contens_);
   DMat& d = dMat(Arg(1));
-  c = dMat(Arg(2));
-  register int m = c.Rows();
-  register int n = c.Columns();
-  register int i, j;
+  DMat& M = dMat(Arg(2));
+  register int s = d.GetData().Size();
+  register int m = M.Rows();
+  register int n = M.Columns();
+  if(s!=m)
+  {
+    Error(I2("Wrong dimensions for ",
+               "Dimensiones erróneas para ")+
+            "PreProdDiag({"+s+"x"+s+"},{"+m+"x"+n+"})");
+    return;
+  }
+  DMat& c = b2dMat(contens_);
+  c = M;
   register double* dii = d.GetData().GetBuffer();
   register double* cij = c.GetData().GetBuffer();
   register double dii_;
+  register int i, j;
   for(i=0; i<m; i++)
   {
     dii_ = (*dii);
