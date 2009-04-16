@@ -376,7 +376,7 @@ BysMcmc::Config bsr.config = [[
   Code bsr.scalarSampler.nonLinBlock=BysMcmc::Options::Scalar.Sampler::Slice;
 
 //Generic flags
-  Real do.resume          =  1/0;
+  Real do.resume          =  0;
   Real do.report          =  True;
   Real do.eval            =  True;
   Real do.linear.effects  =  True

@@ -1006,8 +1006,8 @@ MissingBlk::Obs.Diario.Test11::Input_810::y2002m12d13h00i00s00.00 ? ~ TruncatedN
 /////////////////////////////////////////////////////////////////////////////
 
 Obs.Diario.Test11::Noise[2271 dating Diario from y2002m12d13h00i00s00.00 until y2009m03d01h00i00s00.00] ~ Normal(0,SigmaBlk::Obs.Diario.Test11::Variance*ARIMA.COV([[
-  ARIMAStruct(1,1-0.1*B,1-0.1*B,1-B),
-  ARIMAStruct(7,1,1-0.1*B^7,1-B^7)]]));
+  ARIMAStruct(1,1-0.201447074003966*B,1-0.85746622894771*B,1-B),
+  ARIMAStruct(7,1,1-0.952038949109623*B^7,1-B^7)]]));
 PriorGenerico::Noise[268] ~ Normal(0,0.0004);
 
 
