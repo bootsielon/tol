@@ -1,0 +1,73 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Test for DeterministicPseudoRandomInteger
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+   "Test for DeterministicPseudoRandomInteger" ;
+
+  Real PutRandomSeed(0);
+  Real rnd_seed=GetRandomSeed(0);
+  WriteLn("rnd_seed "+IntText(rnd_seed));
+
+  Real numErr0 = Copy(NError);
+
+  //Number of linear parameters
+  Real n = IntRand(1,10);Set dpri = For(1,10000, Set(Real n)
+  {[[
+    n,
+    Real DeterministicPseudoRandomInteger(n)
+  ]]});
+  
+  Set dpri_ = For(1,10000, Set(Real n)
+  {[[
+    n,
+    Real DeterministicPseudoRandomInteger(n)
+  ]]});
+  
+  //Check if it is deterministic, it's to say, if it returns allways the same 
+  //values
+  Matrix U  = SubCol(SetMat(dpri ),[[2]]);
+  Matrix U_ = SubCol(SetMat(dpri_),[[2]]);
+  Real ok.1 = MatMax(Abs(U-U_))==0;
+
+  //Check if it seems uniform distributed
+  Matrix V = (U-1)*Real(1/(2147483647-1));
+  Matrix W = InvF01(V);
+  Matrix U.freq = Frequency(U,100,1,2147483647);
+  Matrix V.freq = Frequency(V,100,0,1);
+  Matrix W.freq = Frequency(W,100,-5,+5);
+
+  Real ok.2 = AlgLib.JarqueBeraTest(W) < 0.10;
+
+  //Check if it seems uncorrelated
+  Serie S = MatSerSet(Tra(W),C,Today)[1];
+  Matrix Acor = AutoCor(S, 100);
+
+  Real ok.3 = AlgLib.JarqueBeraTest(SubCol(Acor,[[2]]))<.10;
+  Real ok.4 = MatDat(Acor,1,2)<1/Sqrt(Rows(W));
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0,
+    numErr1,
+    ok.1, ok.2, ok.3, ok.4
+  ]];
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0,ok.1, ok.2, ok.3, ok.4);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */
+
