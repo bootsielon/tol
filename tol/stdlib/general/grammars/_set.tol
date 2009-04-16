@@ -1251,3 +1251,98 @@ CheckBDT);
 CheckBMT); 
 //////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////
+Set SelectIndexByName(Set a, Set b)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real a.card = Card(a); 
+  Real b.card = Card(b); 
+  Case(Or(!a.card,!b.card), 
+  {
+    Copy(Empty)
+  },
+  Or(!HasIndexByName(b)),
+  {
+    WriteLn(I2(
+    "Cannot apply SelectIndexByName to a non indexed by name set 'b'.",
+    "No se puede aplicar SelectIndexByName a un conjunto 'b' no "
+    "indexados por nombre."),
+    "E");
+    Copy(Empty)
+  },
+  1==1,
+  {
+    Real GT0 (Real idx) { idx>0 };
+    Set idx = EvalSet(a, Real(Anything obj)
+    {
+      FindIndexByName(b, Name(obj))
+    });
+    Select(idx,  GT0)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+"Returns the set of indexes of elements of 'a' which there is in indexed by "
+"name set 'b' an element with the same name.",
+"Devuelve el conjunto de índices de los elementos 'a' tales que en el "
+"conjunto indexado por nombre 'b' existe un elemento del mismo nombre.\n"),
+SelectIndexByName); 
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set IntersectIndexByName(Set a, Set b)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real a.card = Card(a); 
+  Real b.card = Card(b); 
+  Case(
+  Or(!HasIndexByName(a), !HasIndexByName(b)),
+  {
+    WriteLn(I2(
+    "Cannot apply IntersectIndexByName to non indexed by name sets.",
+    "No se puede aplicar IntersectIndexByName a conjuntos no "
+    "indexados por nombre."),
+    "E");
+    Copy(Empty)
+  },
+  a.card > b.card, 
+  {
+    Set selIdx = SelectIndexByName(b, a);
+    ExtractByIndex(a, selIdx)
+  },
+  1==1,
+  {
+    Set selIdx = SelectIndexByName(a, b);
+    ExtractByIndex(b, selIdx)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+"Returns intersection of two sets that are indexed by name",
+"Devuelve la intersección de dos conjuntos indexados por nombre"),
+IntersectIndexByName); 
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set SetTolNameAndIndex(Set names)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real n = Card(names);
+  Set aux = For(1, n, Text(Real k)
+  {
+    Eval(ToName(names[k])+"=\""+names[k]+"\"")
+  });    
+  Real If(n, SetIndexByName(aux));
+  aux
+};
+//////////////////////////////////////////////////////////////////////////////
+  PutDescription(I2(
+"Put valid TOL names to a set of texts and indexes it",
+"Pone nombres válidos a un conjunto de textos y lo indexa"),
+SetTolNameAndIndex); 
+//////////////////////////////////////////////////////////////////////////////
+
+
