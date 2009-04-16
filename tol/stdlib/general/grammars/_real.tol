@@ -1126,4 +1126,29 @@ PutDescription("Comprueba si hay disponible una versión de TOL actualizada.",
 //////////////////////////////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////
+Real DeterministicPseudoRandomInteger(Real seed)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real x = Copy(seed);
+  Set For(1,5,Real(Real k)
+  {
+    x:=1+((x+k)*16807)%2147483647
+  });
+  Real deep = x%23+1;
+  Set For(1,deep,Real(Real k)
+  {
+    x:=1+((x+k)*16807)%2147483647
+  });
+  x
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Returns a deterministic pseudo-random integer number in the range "
+"[1,2147483647] from an positive integer seed.",
+"Devuelve un número entero pseudo-aleatorio determinista en el rango "
+"[1,2147483647] a partir de un número entero positivo."),
+DeterministicPseudoRandomInteger);
+//////////////////////////////////////////////////////////////////////////////
+
 /* */
