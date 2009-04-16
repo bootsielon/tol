@@ -53,6 +53,7 @@ Text _.autodoc.member.NonLinBlock =
   (
     _.filterEval::get.name(0),
     _.filterEval::get.colNames(0),
+    bsr::_.mcmcPartialHandler,
     numBlock,
     firstCol,
     config

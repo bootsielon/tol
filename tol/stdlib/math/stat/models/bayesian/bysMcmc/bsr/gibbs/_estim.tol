@@ -13,21 +13,26 @@ Text _.autodoc.member.GetCyclerFromParsed =
 "BSR.Parse\n";
 
 Cycler GetCyclerFromParsed(BSR.ModelDef parsed, 
+                           McmcPartialHandler mcmcPartialHandler,
                            Set nonLinFilter,
                            Config config,
                            Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
+
   BysMcmc::MasterSampler sampler = If(!Card(nonLinFilter),
   {
     WriteLn("[BSR] Using Basic Master");
-    BysMcmc::Bsr::Gibbs::BasicMaster(parsed, config)
+    BysMcmc::Bsr::Gibbs::BasicMaster(
+      parsed, mcmcPartialHandler, config)
   },
   {
     WriteLn("[BSR] Using Non Linear Filter Extended Master");
-    BysMcmc::Bsr::Gibbs::NonLinMaster(parsed, nonLinFilter, config)
+    BysMcmc::Bsr::Gibbs::NonLinMaster(
+      parsed, mcmcPartialHandler, nonLinFilter, config)
   });	
+
   BysMcmc::Cycler cycler = [[
     BysMcmc::MasterSampler _.sampler  = sampler;
     BysMcmc::Notifier      _.notifier = notifier;
@@ -45,6 +50,7 @@ Text _.autodoc.member.GetCyclerFromAscii =
 "Argument `ascii` must be an ASCII file path prepared to be parsed by "
 "function BSR.Parse\n";
 Cycler GetCyclerFromAscii(Text ascii_, 
+                          McmcPartialHandler mcmcPartialHandler,
                           Set nonLinFilter,
                           Config config,
                           Notifier notifier)
@@ -54,8 +60,8 @@ Cycler GetCyclerFromAscii(Text ascii_,
   Text ascii = ascii_;
   Real notifier::parsing(0);
   Set parsed = BSR.Parse(ascii);
-  BysMcmc::Cycler cycler = 
-    GetCyclerFromParsed(parsed,nonLinFilter,config,notifier);
+  BysMcmc::Cycler cycler = GetCyclerFromParsed(
+    parsed, mcmcPartialHandler, nonLinFilter, config, notifier);
   Set Append(cycler::auxInfo, [[ascii]]);
   cycler
 };
@@ -70,6 +76,7 @@ Text _.autodoc.member.GetCycler =
 " - A NameBlock with the minimum API accepted by standard importing method "
 "BysMcmc::Bsr::Import::Write\n";
 Cycler GetCycler(Anything modelDef, 
+                 McmcPartialHandler mcmcPartialHandler,
                  Config config,
                  Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
@@ -77,8 +84,10 @@ Cycler GetCycler(Anything modelDef,
   Text g = Grammar(modelDef);
   Case
   (
-    g=="Set",  GetCyclerFromParsed(modelDef, Empty, config, notifier),
-    g=="Text", GetCyclerFromAscii (modelDef, Empty, config, notifier),
+    g=="Set",  GetCyclerFromParsed(
+      modelDef, mcmcPartialHandler, Empty, config, notifier),
+    g=="Text", GetCyclerFromAscii(
+      modelDef, mcmcPartialHandler, Empty, config, notifier),
     g=="NameBlock", 
     {
       Text ascii = BysMcmc::Bsr::Import::Write(modelDef);
@@ -87,7 +96,8 @@ Cycler GetCycler(Anything modelDef,
         If(!FunctionExist("Set","modelDef::Get.NonLinFilter"), Copy(Empty), 
           modelDef::Get.NonLinFilter(0));
     //WriteLn("TRACE EstimAndNotify Card(nonLinFilter) = "<<Card(nonLinFilter));
-      GetCyclerFromAscii(ascii, nonLinFilter, config, notifier)
+      GetCyclerFromAscii(
+        ascii, mcmcPartialHandler, nonLinFilter, config, notifier)
     },
     1==1, 
     {

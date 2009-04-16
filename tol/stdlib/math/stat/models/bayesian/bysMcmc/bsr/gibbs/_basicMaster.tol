@@ -8,10 +8,15 @@
 Text _.autodoc.member.BasicMaster =
 "Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
 "Regression model";
-MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
+MasterSampler BasicMaster(BSR.ModelDef modelDef, 
+                          McmcPartialHandler mcmcPartialHandler,
+                          Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
   BysMcmc::MasterSampler master = [[
+
+  //Full MCMC partial sampling handler
+  BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;
 
   //--------------------------------------------------------------------------
   // Configuration members
@@ -53,6 +58,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   (
     "BSR.MainLinBlock."+_.name,
     EvalSet(_.modelDef->LinearBlock, Text(BSR.LinearBlock b){ b->Name }),
+    _.mcmcPartialHandler,
     1,
     1,
     _.config
@@ -63,6 +69,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   (
     "BSR.SigmaBlock."+_.name,
     _.modelDef->NoiseDistrib,
+    _.mcmcPartialHandler,
     2,
     _.mln.blk::_.lastCol+1,
     _.config
@@ -73,6 +80,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   (
     "BSR.ArimaBlock."+_.name,
     _.modelDef->NoiseDistrib,
+    _.mcmcPartialHandler,
     3, 
     _.sig.blk::_.lastCol+1,
     _.config
@@ -83,6 +91,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   (
     "BSR.InputMissingBlock."+_.name,
     _.modelDef->InputMissingBlock,
+    _.mcmcPartialHandler,
     4,
     _.arm.blk::_.lastCol+1,
     _.config
@@ -93,6 +102,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef, Config config)
   (
     "BSR.OutputMissingBlock."+_.name,
     _.modelDef->OutputMissingBlock,
+    _.mcmcPartialHandler,
     5,
     _.inpMis.blk::_.lastCol+1,
     _.config

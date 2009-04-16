@@ -9,19 +9,23 @@ Text _.autodoc.member.NonLinMaster =
 "Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
 "Regression model with non linear blocks";
 MasterSampler NonLinMaster(BSR.ModelDef modelDef, 
+                           McmcPartialHandler mcmcPartialHandler,
                            Set nonLinFilter,
                            Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::MasterSampler bsrMst = BysMcmc::Bsr::Gibbs::BasicMaster(modelDef, config);
   BysMcmc::MasterSampler master = [[
+
+  //Full MCMC partial sampling handler
+  BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;    
 
   BysMcmc::Config _.config = config;
   //--------------------------------------------------------------------------
   // Read only members
   //--------------------------------------------------------------------------
   //The basic BSR master
-  BysMcmc::MasterSampler _.bsrMst = bsrMst;
+  BysMcmc::MasterSampler _.bsrMst = BysMcmc::Bsr::Gibbs::BasicMaster(
+    modelDef, mcmcPartialHandler, config);
   //Model identifier is inherited from basic BSR
   Text _.name = modelDef->DocInfo->Model.Name;  
 

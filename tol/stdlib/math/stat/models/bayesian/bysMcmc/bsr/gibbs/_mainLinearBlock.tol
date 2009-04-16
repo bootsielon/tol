@@ -20,17 +20,24 @@ Text _.autodoc.member.MainLinearBlock =
 //////////////////////////////////////////////////////////////////////////////
   StdLinearBlock MainLinearBlock(
     Text name, 
-    Set varNames, 
+    Set  varNames, 
+    McmcPartialHandler mcmcPartialHandler,
     Real numBlock, 
     Real firstCol,
     Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
   If(!Card(varNames), 
-  BysMcmc::Bsr::Gibbs::NoStdLinearBlock(name, Empty, numBlock, firstCol, config),
+  BysMcmc::Bsr::Gibbs::StdLinearBlock.Default(name,numBlock,firstCol,config),
   BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
   //Defining the block in the Markov Chain
-  Real _define = define(name, varNames, numBlock, firstCol, config);
+  Real _define = define(
+    name, 
+    varNames, 
+    mcmcPartialHandler,
+    numBlock, 
+    firstCol, 
+    config);
 
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace(VMatrix   Y,    //Non filtered output

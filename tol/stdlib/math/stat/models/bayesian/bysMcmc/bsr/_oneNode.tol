@@ -254,6 +254,7 @@ NameBlock OneNode =
     BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCyclerFromParsed
    (
       modelDef,
+      BysMcmc::McmcPartialHandler.Default(0),
       nonLinFil, 
       config_,
       BysMcmc::NoNotifier(0)

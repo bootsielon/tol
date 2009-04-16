@@ -1,0 +1,177 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _partialSampler.tol
+// PURPOSE: Declares class BysMcmc::PartialSampler and related ones
+// PURPOSE: Generic handler for partial simulation of MCMC
+// Partial simulation allows to fix some parameters of a MCMC or reload some 
+// others from a previously stored MCMC in order to draw faster
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Base Class to inherite MCMC reloading engines
+Class McmcReloader
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set selectIndexes(Set selectedNames);
+  VMatrix reloadSimulation(Real numSim, Set indexes)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Default McmcReloader does nothing
+McmcReloader McmcReloader.Default(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::McmcReloader aux =
+  [[
+    Set selectIndexes(Set selectedNames)
+    {
+      Copy(Empty)
+    };
+    VMatrix reloadSimulation(Real numSim, Set indexes)
+    { 
+      Rand(0,1,0,0) 
+    }
+  ]];
+  aux
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Stores all fixed and reloaded parameters for full MCMC and the method of
+//reloading old simulations
+Class McmcPartialHandler
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Names of all fixed parameters in the MCMC
+  Set _.fixedParam = Copy(Empty);
+  //Stores values of fixed parameters in natural order
+  VMatrix _.fixedValues = Rand(0,1,0,0);
+
+  //Names of all reloaded parameters in the MCMC
+  Set _.reloadParam  = Copy(Empty);
+  //Reloader of old simulations
+  BysMcmc::McmcReloader _.reloader
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Builds a generic instance of McmcPartialHandler
+McmcPartialHandler McmcPartialHandler.Build(
+  Set fixedParam,
+  VMatrix fixedValues,
+  Set reloadParam,
+  McmcReloader reloader
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::McmcPartialHandler aux = [[
+    Set _.fixedParam  = SetTolNameAndIndex(fixedParam);    
+    VMatrix _.fixedValues = fixedValues;
+    Set _.reloadParam = SetTolNameAndIndex(reloadParam);    
+    BysMcmc::McmcReloader _.reloader = reloader ]];
+  aux
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Default McmcPartialHandler does nothing
+McmcPartialHandler McmcPartialHandler.Default(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::McmcPartialHandler aux = [[
+    BysMcmc::McmcReloader _.reloader = BysMcmc::McmcReloader.Default(0) ]];
+  aux
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Stores information about partial simulation related to a specific block 
+//where this object will be a member
+Class BlockPartialSampler
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Full MCMC partial sampling handler
+  BysMcmc::McmcPartialHandler _.mcmcPartialHandler = 
+    BysMcmc::McmcPartialHandler.Default(0);
+
+  //Total number of parameters in the block
+  Real _.N = ?; 
+  //Names of fixed parameters of the block
+  Set _.fixedParam = Copy(Empty);
+  //Indexes of fixed parameters inside the block
+  Set _.fixedParamIdx  = Copy(Empty);
+
+  //Names of reloaded parameters of te block
+  Set _.reloadParam  = Copy(Empty);
+  //Indexes of reloaded parameters inside the block
+  Set _.reloadParamIdx  = Copy(Empty);
+  //Indexes of reloaded parameters inside the original MCMC to reload
+  Set _.reloadParamIdxOrig  = Copy(Empty);
+
+  //Names of all block parameters but fixed and reloaded
+  Set _.freeParam = Copy(Empty);
+  //Indexes of all block parameters but fixed and reloaded
+  Set _.freeParamIdx = Copy(Empty);
+
+  //Stores values of fixed parameters in natural order
+  VMatrix _.fixedValues = Rand(0,1,0,0);
+  //Stores values of reloaded parameters in natural order
+  VMatrix _.reloadedValues = Rand(0,1,0,0);
+  //Stores values of both fixed and reloaded parameters in the block order
+  VMatrix _.values = Rand(0,1,0,0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Selects fixed and reloaded parameters related to a block
+  Real define(Set blockParam, 
+              BysMcmc::McmcPartialHandler mcmcPartialHandler)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.N := Card(blockParam);
+    BysMcmc::McmcPartialHandler _.mcmcPartialHandler := mcmcPartialHandler;
+
+    Set   fixedParamAll  = _.mcmcPartialHandler::_.fixedParam;
+    Set   fixedParamAux  = SelectIndexByName(blockParam, fixedParamAll);
+    Set _.fixedParam    := ExtractByIndex(fixedParamAll, fixedParamAux);
+    Set _.fixedParamIdx := SelectIndexByName(_.fixedParam, blockParam);
+
+    Set   reloadParamAll  = _.mcmcPartialHandler::_.reloadParam;
+    Set   reloadParamAux  = SelectIndexByName(blockParam, reloadParamAll);
+    Set _.reloadParam    := ExtractByIndex(reloadParamAll, reloadParamAux);
+    Set _.reloadParamIdx := SelectIndexByName(_.reloadParam, blockParam);
+
+    Set _.reloadParamIdxOrig := 
+     _.mcmcPartialHandler::_.reloader::selectIndexes(_.reloadParam);
+
+    Set _.freeParamIdx := Range(1,_.N,1)-(_.fixedParamIdx << _.reloadParamIdx);
+    Set _.freeParam := ExtractByIndex(blockParam, _.freeParamIdx);
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix getMergedFixedAndReloadedSample(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.reloadedValues := 
+      reloader::reloadSimulation(numSim, _.reloadParamIdxOrig);
+    VMatrix _.values := MergeRows(_.N,
+      [[_.fixedValues,    _.fixedParamIdx ]],
+      [[_.reloadedValues, _.reloadParamIdx]])
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix mergeWithFreeSample(VMatrix freeValues)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    MergeRows(_.N,
+      [[_.fixedValues,    _.fixedParamIdx ]],
+      [[_.reloadedValues, _.reloadParamIdx]],
+      [[_.freeValues,     _.freeParamIdx  ]])
+  }
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+BlockPartialSampler BlockPartialSampler.Default(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::BlockPartialSampler aux = [[ Real _.N = 0 ]];
+  aux
+};

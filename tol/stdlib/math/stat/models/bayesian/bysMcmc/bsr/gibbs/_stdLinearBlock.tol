@@ -510,20 +510,23 @@ Class StdLinearBlock: BlockSampler
 };
 
 //////////////////////////////////////////////////////////////////////////////
-StdLinearBlock NoStdLinearBlock(Text name, Set colNames, 
-                                Real numBlock, Real firstCol, 
-                                Config config)
+StdLinearBlock StdLinearBlock.Default(Text name, 
+                                      Real numBlock, 
+                                      Real firstCol, 
+                                      Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::Bsr::Gibbs::StdLinearBlock noBlock = 
+  BysMcmc::Bsr::Gibbs::StdLinearBlock aux = 
   [[
-    Real _define = define(name, colNames, numBlock, firstCol, config);
-    VMatrix draw(Real numSim) { ? };
-    Code _.buildWorkSpace = draw;
-    Real initialize.subBlocks(Real unused) { ? };
-    Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a) { ? }
+    Real _define = define(name, Empty, BysMcmc::McmcPartialHandler.Default(0),
+                          numBlock, firstCol, config);
+    VMatrix draw(Real numSim) { Rand(0,1,0,0) };
+    Real buildWorkSpace(Real unused) { True };
+    Code _.buildWorkSpace = buildWorkSpace;
+    Real initialize.subBlocks(Real unused) { True };
+    Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a) { True }
   ]];
-  noBlock
+  aux
 };
 
 //////////////////////////////////////////////////////////////////////////////

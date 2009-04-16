@@ -12,9 +12,12 @@ Text _.autodoc.member.ArimaBlock =
 "general regression model. Just ARIMA filtering is currently running but "
 "ARMA simulation is still not implemented";
 //////////////////////////////////////////////////////////////////////////////
-  BlockSampler ArimaBlock(Text name, Set NoiseDistrib, 
-                       Real numBlock, Real firstCol,
-                       NameBlock config)
+  BlockSampler ArimaBlock(Text name, 
+                          Set NoiseDistrib, 
+                          McmcPartialHandler mcmcPartialHandler,
+                          Real numBlock, 
+                          Real firstCol,
+                          NameBlock config)
 //////////////////////////////////////////////////////////////////////////////
 {
   BysMcmc::BlockSampler blk = [[
@@ -205,11 +208,11 @@ Text _.autodoc.member.ArimaBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
     WriteLn(_MID+" Initializing block");
-    Real    _.N              := 0;
-    Real    _.numDifData          := 0;
-    VMatrix _.difFilter := Zeros(_.m,_.m);
-    VMatrix _.noArmaId            := Zeros(_.m,_.m);
-    Set     _.paramDesc           := Copy(Empty);
+    Real    _.N           := 0;
+    Real    _.numDifData  := 0;
+    VMatrix _.difFilter   := Zeros(_.m,_.m);
+    VMatrix _.noArmaId    := Zeros(_.m,_.m);
+    Set     _.paramDesc   := Copy(Empty);
   //WriteLn("TRACE"+_MID+"Initializing ARIMA filters");
   //WriteLn("TRACE "+_MID+" Initializing block 1");
     Set initAll = For(1,Card(_.NoiseDistrib), Real(Real resBlockNum_)
@@ -217,7 +220,9 @@ Text _.autodoc.member.ArimaBlock =
       Set segment = _.NoiseDistrib[resBlockNum_];//BSR.NoiseDistrib;
       Set aux = segment->ArimaAuxInfo;
     //WriteLn("TRACE"+_MID+" initialize block["<<resBlockNum_+"] 1 "+Time);
-      If(!Card(segment->Arima), initializeNoArimaBlock(segment), initializeArimaBlock(segment));
+      If(!Card(segment->Arima), 
+         initializeNoArimaBlock(segment), 
+         initializeArimaBlock(segment));
       Real _.N   := _.N  +aux::numPar; 
       Real _.numDifData := _.numDifData+aux::numDifData; 
       aux::numPar
@@ -243,6 +248,7 @@ Text _.autodoc.member.ArimaBlock =
     (
       name,
       EvalSet(_.paramDesc, Text set.colName(ArmaParamDescStruct pd) { pd->name }),
+      mcmcPartialHandler,
       numBlock,
       firstCol,
       config

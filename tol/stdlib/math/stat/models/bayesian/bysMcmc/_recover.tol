@@ -4,35 +4,57 @@
 // PURPOSE: 
 /////////////////////////////////////////////////////////////////////////////
 
+
+/////////////////////////////////////////////////////////////////////////////
+Class McmcRecover: McmcReloader
+/////////////////////////////////////////////////////////////////////////////
+{
+  Text _.name;
+  Set  _.colNames;
+  Set  _.repCfg;
+  Text _.mcmc.path;
+  Real stored.simulations(Real unused)
+  {
+    Set mcmc.dim = MatReadDimensions(_.mcmc.path);
+    mcmc.dim::Rows
+  };
+  Set report(Real burnin, Real length, Real thinning)
+  {
+    BysMcmc::Inference::loadAndReport(
+      _.mcmc.path, burnin, length, thinning, 
+      _.name, _.colNames, _.repCfg)
+  };
+  Set selectIndexes(Set selectedNames)
+  {
+    SelectIndexByName(selectedNames, _.colNames)
+  };
+  VMatrix reloadSimulation(Real numSim, Set indexes)
+  {
+    Matrix row = MatReadRows(_.mcmc.path, numSim, 1);
+    Mat2VMat(SubCol(aux, indexes), TRUE)
+  }                        
+
+};
+
 /////////////////////////////////////////////////////////////////////////////
 Real StoreRecover(Cycler cycler)
 /////////////////////////////////////////////////////////////////////////////
 {
-  Text recover.path = cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
-  NameBlock recover = 
+  Text recover.path = 
+    cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
+  BysMcmc::McmcRecover recover = 
   [[
     Text _.name      = cycler::_.name;
-    Set  _.colNames  = cycler::_.sampler::get.colNames(0);
+    Set  _.colNames  = SetTolNameAndIndex(cycler::_.sampler::get.colNames(0));
     Set  _.repCfg    = cycler::bysInf_;
-    Text _.mcmc.path = cycler::_.path;
-    Real stored.simulations(Real unused)
-    {
-      Set mcmc.dim = MatReadDimensions(path);
-      mcmc.dim::Rows
-    };
-    Set report(Real burnin, Real length, Real thinning)
-    {
-      BysMcmc::Inference::loadAndReport(
-        _.mcmc.path, burnin, length, thinning, 
-        _.name, _.colNames, _.repCfg)
-    }
+    Text _.mcmc.path = cycler::_.path
   ]];
   Real Ois.Store([[recover]],recover.path);
   1
 };
 
 /////////////////////////////////////////////////////////////////////////////
-NameBlock Get.Recover(Text rootPath, Text id_model, Text id_session)
+McmcRecover Get.Recover(Text rootPath, Text id_model, Text id_session)
 /////////////////////////////////////////////////////////////////////////////
 {
   Text path = rootPath+id_model+"."+id_session+".recover.oza";
@@ -46,7 +68,7 @@ Set RecoveAndReport(Text rootPath, Text id_model, Text id_session,
                     Real burnin, Real length, Real thinning)
 /////////////////////////////////////////////////////////////////////////////
 {
-  NameBlock recover = BysMcmc::Get.Recover(
+  McmcRecover recover = BysMcmc::Get.Recover(
     rootPath, id_model, id_session);
   Set report = recover::report(burnin,length,thinning)
 };

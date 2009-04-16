@@ -15,6 +15,9 @@ Class MasterSampler
   //Messages identifier
   Text _MID;
 
+  //Full MCMC partial sampling handler
+  BysMcmc::McmcPartialHandler _.mcmcPartialHandler;
+
   Set  eval(Matrix values);
   Text get.name(Real unused);
   Text get.session(Real unused);

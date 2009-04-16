@@ -368,8 +368,8 @@ Cycler GetCycler(Text dbName,
     resultRootPath,
     seriesHandler
   );
-  BysMcmc::Cycler cycler = 
-    BysMcmc::Bsr::Gibbs::GetCycler(model.def, config, dbNotifier);
+  BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+    model.def, BysMcmc::McmcPartialHandler.Default(0), config, dbNotifier);
   Set Append(cycler::auxInfo, [[series.handler]]);
   cycler
 };

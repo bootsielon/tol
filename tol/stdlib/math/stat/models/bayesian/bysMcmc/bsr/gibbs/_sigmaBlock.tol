@@ -10,8 +10,11 @@ Text _.autodoc.member.SigmaBlock =
 "Builds a NameBlock that can draw a Gibbs sample of a variance block of a "
 "general regression model.";
 //////////////////////////////////////////////////////////////////////////////
-  BlockSampler SigmaBlock(Text name, Set NoiseDistrib, 
-                          Real numBlock, Real firstCol,
+  BlockSampler SigmaBlock(Text name, 
+                          Set NoiseDistrib, 
+                          McmcPartialHandler mcmcPartialHandler,
+                          Real numBlock, 
+                          Real firstCol,
                           NameBlock  config)
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -38,6 +41,7 @@ Text _.autodoc.member.SigmaBlock =
   (
     name,
     EvalSet(_.sigmaBlockVar, Text(BSR.NoiseDistrib d) { d->SigmaName });
+    mcmcPartialHandler,
     numBlock,
     firstCol,
     config

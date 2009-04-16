@@ -11,9 +11,9 @@ Text _.autodoc.member.BsrAsBlock =
 "of any other simulator.";
 //////////////////////////////////////////////////////////////////////////////
   BlockSampler BsrAsBlock(NameBlock bsrInstance, 
-                       Real numBlock, 
-                       Real firstCol,
-                       NameBlock  config)
+                          Real numBlock, 
+                          Real firstCol,
+                          NameBlock  config)
 //////////////////////////////////////////////////////////////////////////////
 {
   BysMcmc::BlockSampler blk = [[
@@ -22,6 +22,7 @@ Text _.autodoc.member.BsrAsBlock =
   Real _define = define(
     _.bsr::get.name(0),
     _.bsr::get.colNames(0);
+    _.bsr::_.mcmcPartialHandler,
     numBlock,
     firstCol,
     config

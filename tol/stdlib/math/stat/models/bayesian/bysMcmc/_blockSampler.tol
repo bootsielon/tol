@@ -5,6 +5,8 @@
 //          Chain methods
 //////////////////////////////////////////////////////////////////////////////
 
+
+
 //////////////////////////////////////////////////////////////////////////////
 Class BlockSampler
 //////////////////////////////////////////////////////////////////////////////
@@ -36,6 +38,10 @@ Class BlockSampler
   //each simulation
   NameBlock _.ws = [[ Real unused = ? ]];
   
+  //Used for partial sampling
+  BysMcmc::BlockPartialSampler _.partialSampler = 
+    BysMcmc::BlockPartialSampler.Default(0);
+
   ////////////////////////////////////////////////////////////////////////////
   //_buildWorkSpace will be the internal method used to build work space of 
   //specialized blocks and can take any number of arguments of any type
@@ -62,11 +68,13 @@ Class BlockSampler
   "Arguments are:\n"
   "  Text name: Identifies the block.\n"
   "  Set colNames: Identifiers of block parameters that must be all unique.\n"
+  "  McmcPartialHandler mcmcPartialHandler: partial simulation info.\n"
   "  Real numBlock: The position of this block in full MCMC.\n"
   "  Real firstCol: First column of this block in full MCMC\n"
   "  NameBlock config: User configuration parameters\n";
   Real define(Text name, 
               Set colNames, 
+              BysMcmc::McmcPartialHandler mcmcPartialHandler,
               Real numBlock, 
               Real firstCol,
               BysMcmc::Config config)
@@ -75,15 +83,15 @@ Class BlockSampler
     Text _.name := name;
     Text _MID := "[BlockSampler "+name+"] ";
     Real _.N := Card(colNames);
-    Set _.colNames := For(1, _.N, Text(Real k)
-    {
-    //WriteLn("TRACE [BlockSampler "+name+"::"+colNames[k]+"] ");
-      Eval(ToName(colNames[k])+"=\""+colNames[k]+"\"")
+    Real If(_.N, {
+      Real GT0 (Real idx) { idx>0 };
+      Set _.colNames := SetTolNameAndIndex(colNames);
+      Real _.partialSampler::define(_.colNames, mcmcPartialHandler);
+      1
     });
-    Real If(_.N, SetIndexByName(_.colNames), 0);
     Real _.numBlock := numBlock;
     Real _.firstCol := firstCol;
-    Real _.lastCol := firstCol+_.N-1;
+    Real _.lastCol  := firstCol+_.N-1;
     Set _.colIdx := Range(_.firstCol, _.lastCol, 1);
     BysMcmc::Config _.config := config;
     VMatrix If(Or(!_.N, VRows(_.store)!=_.N), _.store := Rand(_.N,1,0,0), _.store);
@@ -259,17 +267,19 @@ Class BlockSampler
 };
 
 //////////////////////////////////////////////////////////////////////////////
-BlockSampler NoBlockSampler(Text name, 
-                            Set colNames, 
-                            Real numBlock, 
-                            Real firstCol,
-                            Config config)
+BlockSampler BlockSampler.Default(Text name, 
+                                  Real numBlock, 
+                                  Real firstCol,
+                                  Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
-  BlockSampler noBlockSampler =
+  BlockSampler aux =
   [[
-    Real _define = define(name, colNames, numBlock, firstCol, config);
-    VMatrix draw(Real numSim) { ? };
-    Code _.buildWorkSpace = draw
-  ]]
+    Real _define = define(name, Empty, BysMcmc::McmcPartialHandler.Default(0),
+                          numBlock, firstCol, config);
+    VMatrix draw(Real numSim) { Rand(0,1,0,0) };
+    Real buildWorkSpace(Real unused) { True };
+    Code _.buildWorkSpace = buildWorkSpace
+  ]];
+  aux
 };

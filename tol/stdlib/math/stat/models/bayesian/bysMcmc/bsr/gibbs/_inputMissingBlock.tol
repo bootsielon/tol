@@ -11,13 +11,16 @@ Text _.autodoc.member.InputMissingBlock =
 "Builds a NameBlock that can draw a Gibbs sample of a Input Missing block "
 "of a Bayesian Sparse Regression model";
 //////////////////////////////////////////////////////////////////////////////
-  StdLinearBlock InputMissingBlock(Text name, Set inputMissingBlock, 
-                                   Real numBlock, Real firstCol,
+  StdLinearBlock InputMissingBlock(Text name, 
+                                   Set  inputMissingBlock, 
+                                   McmcPartialHandler mcmcPartialHandler,
+                                   Real numBlock, 
+                                   Real firstCol,
                                    NameBlock config)
 //////////////////////////////////////////////////////////////////////////////
 {
   If(!Card(inputMissingBlock), 
-  BysMcmc::Bsr::Gibbs::NoStdLinearBlock(name, Empty, numBlock, firstCol, config),
+  BysMcmc::Bsr::Gibbs::StdLinearBlock.Default(name, numBlock, firstCol, config),
   BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
   //Given initial values of block variables
   VMatrix _.store_ = Mat2VMat(SetMat(Extract(inputMissingBlock, 6)));
@@ -25,6 +28,7 @@ Text _.autodoc.member.InputMissingBlock =
   Real _define = define(
     name, 
     EvalSet(inputMissingBlock, Text(BSR.MissingBlock b){ b->Name }), 
+    mcmcPartialHandler,
     numBlock, 
     firstCol, 
     config);

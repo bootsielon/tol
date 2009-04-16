@@ -17,6 +17,7 @@ NameBlock BysMcmc =
   #Embed "_cmsgs.tol"; 
   #Embed "_config.tol";
   #Embed "_notifier.tol";
+  #Embed "_partialSampler.tol";
   #Embed "_blockSampler.tol";
   #Embed "_masterSampler.tol";
   #Embed "_build.tol";
