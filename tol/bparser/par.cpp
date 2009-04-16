@@ -967,6 +967,12 @@ Tree* BParser::ParseMacroEmbed (Tree* tre)
       BDir::ChangeCurrent(currentDir);
       BParser* childParser = new BParser;
       embedded = childParser->Parse(fileContens);
+      if(embedded)
+      { 
+        Std(I2("Embedded file ",
+               "Ha sido incrustado el archivo ")+
+            GetAbsolutePath(path)+"\n"); 
+      }
       delete childParser;
       BDir::ChangeCurrent(oldDir);
     }
