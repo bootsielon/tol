@@ -24,6 +24,27 @@ Text _.autodoc.member.OutputMissingBlock =
   //Given initial values of block variables
   VMatrix _.store = Mat2VMat(SetMat(Extract(outputMissingBlock, 6)));
 
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(BysMcmc::BlockSampler arm.blk, //Arima Block handler
+                       VMatrix   si,    //SigmaBlock filter
+                       VMatrix   Z)     //Noise with missing as zero
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix If(VRows(_.F)==0,
+    {
+      _.F := SubCol(Eye(VRows(Z)),_.t)
+    });
+    VMatrix F = arm.blk::filter(_.F);
+    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
+    [[
+      VMatrix _.Y = arm.blk::filter(si*Z) << _.prior.Y;
+      VMatrix _.X = (-si*F) << _.prior.X
+    ]];
+    NameBlock _.ws := wslr;
+    True
+  };
+  Code _.buildWorkSpace = _buildWorkSpace;
+
   //Defining the block in the Markov Chain
   Real _define = define(
     name, 
@@ -140,27 +161,6 @@ Text _.autodoc.member.OutputMissingBlock =
     })
   };
 
-  VMatrix _.F = Rand(0,0,0,0);
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(BysMcmc::BlockSampler arm.blk, //Arima Block handler
-                       VMatrix   si,    //SigmaBlock filter
-                       VMatrix   Z)     //Noise with missing as zero
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix If(VRows(_.F)==0,
-    {
-      _.F := SubCol(Eye(VRows(Z)),_.t)
-    });
-    VMatrix F = arm.blk::filter(_.F);
-    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
-    [[
-      VMatrix _.Y = arm.blk::filter(si*Z) << _.prior.Y;
-      VMatrix _.X = (-si*F) << _.prior.X
-    ]];
-    NameBlock _.ws := wslr;
-    True
-  };
-  Code _.buildWorkSpace = _buildWorkSpace
+  VMatrix _.F = Rand(0,0,0,0)
 
 ]])};

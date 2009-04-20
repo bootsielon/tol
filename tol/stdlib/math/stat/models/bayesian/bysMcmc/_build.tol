@@ -51,6 +51,7 @@ Class Cycler
 
   Real define(Real unused)
   {
+    Real _.sampler::define(0);
     //Stores the sampler name
     Text _.name := _.sampler::get.name(0)+"."+_.sampler::get.session(0);
     //Puts the Markov Chain path relative to sampler path
@@ -187,11 +188,14 @@ Class Cycler
   {
     Text _MID = "[Cycler::generate] ";
     Real WriteLn(_MID+_.name+
-      "\n Storing MCMC in file  : "<<_.path+
-      "\n Number of variables   : "<<_.n+
-      "\n Number of simulations : "<<sampleLength+
-      "\n Cache length          : "<<cacheLength_+
-      "\n Resume                : "<<resume_+
+      "\n Storing MCMC in file ....... : "<<_.path+
+      "\n Number of fixed variables .. : "<<_.sampler::_.fixedParamNum+
+      "\n Number of reloaded variables : "<<_.sampler::_.reloadParamNum+
+      "\n Number of sampled variables  : "<<_.sampler::_.freeParamNum+
+      "\n Number of total variables .. : "<<_.n+
+      "\n Number of simulations ...... : "<<sampleLength+
+      "\n Cache length ............... : "<<cacheLength_+
+      "\n Resume ..................... : "<<resume_+
       If(_mcmc.maxTime<1/0,
       "\n MaxTime               : "<<_mcmc.maxTime+" seconds",""));
   //Ensures path is all right 

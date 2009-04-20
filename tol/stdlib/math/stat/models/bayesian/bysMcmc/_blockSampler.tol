@@ -86,7 +86,13 @@ Class BlockSampler
     Real If(_.N, {
       Real GT0 (Real idx) { idx>0 };
       Set _.colNames := SetTolNameAndIndex(colNames);
-      Real _.partialSampler::define(_.colNames, mcmcPartialHandler);
+      Real SetIndexByName(_.colNames);
+      1
+    });
+    Real _.partialSampler::define(_.colNames, mcmcPartialHandler);
+    Real If(Not(_.partialSampler::_.freeParamNum), 
+    {
+      Code _.buildWorkSpace := _noWorkSpace;
       1
     });
     Real _.numBlock := numBlock;
@@ -112,7 +118,9 @@ Class BlockSampler
       1==1, Rand(0,1)<=refreshFrequency);
     If(!refresh, Copy(_.store),
     { 
-      VMatrix b = draw(numSim);
+      VMatrix b = If(Not(_.partialSampler::_.freeParamNum), 
+        _.partialSampler::getMergedFixedAndReloadedSample(numSim),
+        draw(numSim));
       Real setStore(VMat2Mat(b));
       b
     })

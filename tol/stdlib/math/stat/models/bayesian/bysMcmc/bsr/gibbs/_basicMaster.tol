@@ -117,13 +117,6 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
     _.outMis.blk
   ]];
 
-  //Number of variables of linear regression (dimension of linear block)
-  Real _.N = VColumns(_.modelDef->X);
-  //Number of equations of linear regression
-  Real _.M = VRows   (_.modelDef->X);
-  //Number of equations of differenced linear regression
-  Real _.DM = _.arm.blk::_.numDifData;
-
   //Output filtered by missing values
   VMatrix _.YplusV = Rand(0,0,0,0);
   //Linear input filtered by missing values
@@ -177,7 +170,8 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
       { Compare(a::order,b::order) });
       Real method.num = 1;
       Real method.ok = False;
-      VMatrix beta = Rand(_.N,1,?,?);
+      Real n = VColumns(_.modelDef->X);
+      VMatrix beta = Rand(n,1,?,?);
       While(And(!method.ok,method.num<=Card(try.sort)),
       {
         Text method.name = (try.sort[method.num])::name;
@@ -190,7 +184,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
         },
         method.name=="zero", 
         {
-          Rand(_.N,1,0,0)
+          Rand(n,1,0,0)
         },
         method.name=="givenByUser", 
         {
@@ -200,8 +194,8 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
         {
           Matrix  Dt    = VMat2Mat(Tra(_.modelDef->A));
           Matrix  d     = VMat2Mat(_.modelDef->a);
-          Matrix  XtX   = Diag(_.N,1);
-          Matrix  XtY   = Rand(_.N,1,0,0);
+          Matrix  XtX   = Diag(n,1);
+          Matrix  XtY   = Rand(n,1,0,0);
           Matrix  cnstr = Rquadprog::solveQP(XtX, XtY, -Dt, -d,
                                             {[[Real verbose=TRUE]]})[1];
           Mat2VMat(cnstr)
@@ -246,7 +240,10 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
   //WriteLn("TRACE"+_MID+" init 4");
     VMatrix _.beta   := _.mln.blk::_.store;
     Real DoExternalFilter(0);
-    Real _.sig.blk::_.buildWorkSpace(_.Y - _.modelDef->X*_.beta);
+    Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+    {
+      _.sig.blk::_.buildWorkSpace(_.Y - _.modelDef->X*_.beta)
+    });
     VMatrix sig_0 = _.sig.blk::get.draw(0, True);
   //WriteLn("TRACE"+_MID+" init 7");
   //WriteLn("TRACE"+_MID+" _.XplusU "<<_.XplusU);
@@ -259,7 +256,10 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
     VMatrix _.residuals := _.arm.blk::filter(_.noise);
   //WriteLn("TRACE"+_MID+" _.residuals "<<_.residuals);
   //WriteLn("TRACE"+_MID+" init 9");
-    Real _.sig.blk::_.buildWorkSpace(_.residuals);
+    Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+    {
+      Real _.sig.blk::_.buildWorkSpace(_.residuals)
+    });
   //WriteLn("TRACE"+_MID+" init 10");
     VMatrix sig_1 = _.sig.blk::get.draw(0, True);
   //WriteLn("TRACE"+_MID+" init 11");
@@ -289,8 +289,11 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
       Rand(0,1,0,0)
     },
     {
-      Real _.outMis.blk::_.buildWorkSpace(
-        _.arm.blk,_.sig.blk::_.sigmaInv,_.Y-_.XplusU*_.beta);
+      Real If(_.outMis.blk::_.partialSampler::_.freeParamNum,
+      {
+        Real _.outMis.blk::_.buildWorkSpace(
+          _.arm.blk,_.sig.blk::_.sigmaInv,_.Y-_.XplusU*_.beta)
+      });
       VMatrix aux = _.outMis.blk::get.draw(numSim, False);
       VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
       aux
@@ -302,8 +305,11 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
       Rand(0,1,0,0)
     },
     {
-      Real _.inpMis.blk::_.buildWorkSpace(
-        _.arm.blk,_.sig.blk::_.sigmaInv,_.YplusV-_.modelDef->X*_.beta,_.beta);
+      Real If(_.inpMis.blk::_.partialSampler::_.freeParamNum,
+      {
+        Real _.inpMis.blk::_.buildWorkSpace(
+          _.arm.blk,_.sig.blk::_.sigmaInv,_.YplusV-_.modelDef->X*_.beta,_.beta)
+      });
       VMatrix aux = _.inpMis.blk::get.draw(numSim, False);
       VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
       aux
@@ -319,7 +325,10 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
       Rand(0,1,0,0)
     },
     {
-      Real _.arm.blk::_.buildWorkSpace(_.noise, _.sig.blk::_.store );
+      Real If(_.arm.blk::_.partialSampler::_.freeParamNum,
+      {
+        Real _.arm.blk::_.buildWorkSpace(_.noise, _.sig.blk::_.store )
+      });
       _.arm.blk::get.draw(numSim, False)
     });
     VMatrix _.residuals := _.arm.blk::filter(_.noise);
@@ -331,7 +340,10 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
        Rand(0,1,0,0)
     },
     {
-      Real _.sig.blk::_.buildWorkSpace(_.residuals);
+      Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+      {
+        Real _.sig.blk::_.buildWorkSpace(_.residuals)
+      });
       _.sig.blk::get.draw(numSim, False)
     });
     VMatrix si = _.sig.blk::_.sigmaInv;
@@ -340,8 +352,11 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
   //WriteLn("TRACE"+_MID+" draw.sig.lin 5 sig="<<sig);
     VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
     {
-      Real _.mln.blk::_.buildWorkSpace(_Y, _X, _.arm.blk);
-      _.mln.blk::get.draw(numSim, False)
+      Real If(_.mln.blk::_.partialSampler::_.freeParamNum,
+      {
+        Real _.mln.blk::_.buildWorkSpace(_Y, _X, _.arm.blk)
+     });
+     _.mln.blk::get.draw(numSim, False)
    });
   //WriteLn("TRACE"+_MID+" draw.sig.lin 6 _.beta="<<_.beta);
     _.beta << sig << arm << im << om

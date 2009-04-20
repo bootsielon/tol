@@ -36,6 +36,18 @@ Text _.autodoc.member.SigmaBlock =
     { d->SigmaIndex>0 })
   };
 
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(VMatrix residuals_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    NameBlock _.ws := 
+    [[
+      VMatrix  residuals = residuals_
+    ]];
+    True
+  };
+  Code _.buildWorkSpace = _buildWorkSpace;
+
   //Defining the block in the Markov Chain
   Real _defined = define
   (
@@ -158,18 +170,6 @@ Text _.autodoc.member.SigmaBlock =
     });
     Mat2VMat(SetCol(v))
   };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(VMatrix residuals_)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    NameBlock _.ws := 
-    [[
-      VMatrix  residuals = residuals_
-    ]];
-    True
-  };
-  Code _.buildWorkSpace = _buildWorkSpace;
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =

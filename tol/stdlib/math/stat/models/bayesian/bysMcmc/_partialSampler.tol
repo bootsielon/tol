@@ -12,8 +12,33 @@
 Class McmcReloader
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real _.sequential;
+  Real _.burnin = ?;
+  Real _.sampleLength = ?;
+  Real _sequenceKey = ?;
+  
   Set selectIndexes(Set selectedNames);
-  VMatrix reloadSimulation(Real numSim, Set indexes)
+  VMatrix reloadSimulation(Real numSim, Set indexes);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize.sequence(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _sequenceKey := If(_.sequential, 0, IntRand(1,99999999));
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real getRowSequence(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.sequential, numSim,
+    {
+      Real sequence = DeterministicPseudoRandomInteger(numSim+_sequenceKey);
+      _.burnin+1+sequence%_.sampleLength
+    })
+  }
+
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -23,6 +48,7 @@ McmcReloader McmcReloader.Default(Real unused)
 {
   BysMcmc::McmcReloader aux =
   [[
+    Real _.sequential = True;
     Set selectIndexes(Set selectedNames)
     {
       Copy(Empty)
@@ -97,19 +123,23 @@ Class BlockPartialSampler
   //Names of fixed parameters of the block
   Set _.fixedParam = Copy(Empty);
   //Indexes of fixed parameters inside the block
-  Set _.fixedParamIdx  = Copy(Empty);
+  Matrix _.fixedParamIdx  = Rand(0,1,0,0);
+  Real _.fixedParamNum = ?;
 
   //Names of reloaded parameters of te block
   Set _.reloadParam  = Copy(Empty);
   //Indexes of reloaded parameters inside the block
-  Set _.reloadParamIdx  = Copy(Empty);
+  Matrix _.reloadParamIdx  = Rand(0,1,0,0);
+  Real _.reloadParamNum = ?;
+
   //Indexes of reloaded parameters inside the original MCMC to reload
   Set _.reloadParamIdxOrig  = Copy(Empty);
 
   //Names of all block parameters but fixed and reloaded
   Set _.freeParam = Copy(Empty);
   //Indexes of all block parameters but fixed and reloaded
-  Set _.freeParamIdx = Copy(Empty);
+  Matrix _.freeParamIdx = Rand(0,1,0,0);
+  Real _.freeParamNum = ?;
 
   //Stores values of fixed parameters in natural order
   VMatrix _.fixedValues = Rand(0,1,0,0);
@@ -126,22 +156,40 @@ Class BlockPartialSampler
   {
     Real _.N := Card(blockParam);
     BysMcmc::McmcPartialHandler _.mcmcPartialHandler := mcmcPartialHandler;
-
-    Set   fixedParamAll  = _.mcmcPartialHandler::_.fixedParam;
-    Set   fixedParamAux  = SelectIndexByName(blockParam, fixedParamAll);
-    Set _.fixedParam    := ExtractByIndex(fixedParamAll, fixedParamAux);
-    Set _.fixedParamIdx := SelectIndexByName(_.fixedParam, blockParam);
-
-    Set   reloadParamAll  = _.mcmcPartialHandler::_.reloadParam;
-    Set   reloadParamAux  = SelectIndexByName(blockParam, reloadParamAll);
-    Set _.reloadParam    := ExtractByIndex(reloadParamAll, reloadParamAux);
-    Set _.reloadParamIdx := SelectIndexByName(_.reloadParam, blockParam);
-
-    Set _.reloadParamIdxOrig := 
-     _.mcmcPartialHandler::_.reloader::selectIndexes(_.reloadParam);
-
-    Set _.freeParamIdx := Range(1,_.N,1)-(_.fixedParamIdx << _.reloadParamIdx);
-    Set _.freeParam := ExtractByIndex(blockParam, _.freeParamIdx);
+    Set fixedParamIdx = Copy(Empty);
+    Set reloadParamIdx = Copy(Empty);
+    If(_.N,
+    {
+      Real If(Card(_.mcmcPartialHandler::_.fixedParam), 
+      {
+        Set   fixedParamAll  = _.mcmcPartialHandler::_.fixedParam;
+        Set   fixedParamAux  = SelectIndexByName(blockParam, fixedParamAll);
+        Set _.fixedParam    := ExtractByIndex(fixedParamAll, fixedParamAux);
+        Real SetIndexByName(_.fixedParam);
+        Set fixedParamIdx := SelectIndexByName(_.fixedParam, blockParam);
+        Matrix _.fixedParamIdx := SetCol(fixedParamIdx);
+        1 
+      });
+      Real If(Card(_.mcmcPartialHandler::_.reloadParam), 
+      {
+        Set   reloadParamAll  = _.mcmcPartialHandler::_.reloadParam;
+        Set   reloadParamAux  = SelectIndexByName(blockParam, reloadParamAll);
+        Set _.reloadParam    := ExtractByIndex(reloadParamAll, reloadParamAux);
+        Real SetIndexByName(_.reloadParam);
+        Set reloadParamIdx := SelectIndexByName(_.reloadParam, blockParam);
+        Matrix _.reloadParamIdx := SetCol(reloadParamIdx);
+        Set _.reloadParamIdxOrig := 
+         _.mcmcPartialHandler::_.reloader::selectIndexes(_.reloadParam);
+        1 
+      });
+      1
+    });
+    Set freeParamIdx = Range(1,_.N,1)-(fixedParamIdx << reloadParamIdx);
+    Matrix _.freeParamIdx := SetCol(freeParamIdx);
+    Set _.freeParam := ExtractByIndex(blockParam, freeParamIdx);
+    Real _.fixedParamNum  := Rows(_.fixedParamIdx);
+    Real _.reloadParamNum := Rows(_.reloadParamIdx);
+    Real _.freeParamNum   := Rows(_.freeParamIdx);
     1
   };
 
@@ -149,21 +197,23 @@ Class BlockPartialSampler
   VMatrix getMergedFixedAndReloadedSample(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix _.reloadedValues := 
-      reloader::reloadSimulation(numSim, _.reloadParamIdxOrig);
-    VMatrix _.values := MergeRows(_.N,
+    VMatrix _.reloadedValues := _.mcmcPartialHandler::_.reloader::
+     reloadSimulation(numSim, _.reloadParamIdxOrig);
+    VMatrix values = MergeRows(_.N, [[
       [[_.fixedValues,    _.fixedParamIdx ]],
-      [[_.reloadedValues, _.reloadParamIdx]])
+      [[_.reloadedValues, _.reloadParamIdx]] ]]);
+    VMatrix _.values := Convert(values,"Blas.R.Dense")
   };
 
   ////////////////////////////////////////////////////////////////////////////
   VMatrix mergeWithFreeSample(VMatrix freeValues)
   ////////////////////////////////////////////////////////////////////////////
   {
-    MergeRows(_.N,
+    VMatrix values = MergeRows(_.N, [[
       [[_.fixedValues,    _.fixedParamIdx ]],
       [[_.reloadedValues, _.reloadParamIdx]],
-      [[_.freeValues,     _.freeParamIdx  ]])
+      [[_.freeValues,     _.freeParamIdx  ]] ]]);
+    VMatrix _.values := Convert(values,"Blas.R.Dense")
   }
 };
 

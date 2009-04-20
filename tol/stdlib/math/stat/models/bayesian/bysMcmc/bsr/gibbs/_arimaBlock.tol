@@ -241,6 +241,19 @@ Text _.autodoc.member.ArimaBlock =
     1
   };
 
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(VMatrix noise_, VMatrix sigma.full_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    NameBlock _.ws := 
+    [[
+      VMatrix noise = noise_;
+      VMatrix sigma.full = sigma.full_
+    ]];
+    True
+  };
+  Code _.buildWorkSpace = _buildWorkSpace;
+
   //Defining the block in the Markov Chain
   Real _defined = {
     Real prepare(0);
@@ -585,18 +598,6 @@ Text _.autodoc.member.ArimaBlock =
     Mat2VMat(values)
   };
 
-  ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(VMatrix noise_, VMatrix sigma.full_)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    NameBlock _.ws := 
-    [[
-      VMatrix noise = noise_;
-      VMatrix sigma.full = sigma.full_
-    ]];
-    True
-  };
-  Code _.buildWorkSpace = _buildWorkSpace;
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =

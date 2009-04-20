@@ -55,6 +55,12 @@ Class Config
   //Process will be stoped after mcmc.sampleLength + mcmc.burnin 
   //simulations or mcmc.maxTime seconds will be elapsed
   Real mcmc.maxTime = 1/0;
+
+//===========================================================================
+//Partial sampling configuration
+//===========================================================================
+  Real partialSampling.Sequential = True;
+
 //===========================================================================
 //BSR configuration
 //===========================================================================

@@ -24,10 +24,10 @@ Estimation Estim(Cycler cycler_)
   BysMcmc::Estimation estim = 
   [[
     BysMcmc::Cycler cycler = cycler_
-  ]];
-  Real StoreRecover(cycler_);
+  ]];                                
   BysMcmc::Config config = cycler_::_.config;
   BysMcmc::Notifier notifier = cycler_::_.notifier;
+  Real StoreRecover(cycler_, config::partialSampling.Sequential);
   Real cycler_::initialize(0);
   Real sampleLength = config::mcmc.burnin+config::mcmc.sampleLength;
 

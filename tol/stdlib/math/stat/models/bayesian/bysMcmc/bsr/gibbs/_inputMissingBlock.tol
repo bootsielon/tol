@@ -24,6 +24,32 @@ Text _.autodoc.member.InputMissingBlock =
   BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
   //Given initial values of block variables
   VMatrix _.store_ = Mat2VMat(SetMat(Extract(inputMissingBlock, 6)));
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(BysMcmc::BlockSampler arm.blk, //ArimaBlock filter
+                       VMatrix si,    //Non filtered LinearBlock parameters 
+                       VMatrix Z,     //Noise of main linear block
+                       VMatrix beta   //SigmaBlock filter
+  )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real    M = VRows(Z);
+    VMatrix b_= SubRow(beta, _.j);
+    Matrix  b = VMat2Mat(b_);
+  //WriteLn("TRACE "+_MID+" draw 2 b="<<b);
+    VMatrix B = (Convert(Triplet(_.tk | b, M, _.N),"Cholmod.R.Sparse"));
+  //WriteLn("TRACE "+_MID+" draw 3 B="<<B);
+    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
+    [[
+      VMatrix _.Y = arm.blk::filter(si*Z) << _.prior.Y;
+  //WriteLn("TRACE "+_MID+" draw 4 Y01="<<Y01);
+      VMatrix _.X = arm.blk::filter(si*B) << _.prior.X
+    ]];
+    NameBlock _.ws := wslr;
+    True
+  };
+  Code _.buildWorkSpace = _buildWorkSpace;
+
   //Defining the block in the Markov Chain
   Real _define = define(
     name, 
@@ -162,31 +188,6 @@ Text _.autodoc.member.InputMissingBlock =
       VMatrix U =Triplet(tr,VRows(Z),VColumns(Z));
       Z+Convert(U,"Cholmod.R.Sparse")
     })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(BysMcmc::BlockSampler arm.blk, //ArimaBlock filter
-                       VMatrix si,    //Non filtered LinearBlock parameters 
-                       VMatrix Z,     //Noise of main linear block
-                       VMatrix beta   //SigmaBlock filter
-  )
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real    M = VRows(Z);
-    VMatrix b_= SubRow(beta, _.j);
-    Matrix  b = VMat2Mat(b_);
-  //WriteLn("TRACE "+_MID+" draw 2 b="<<b);
-    VMatrix B = (Convert(Triplet(_.tk | b, M, _.N),"Cholmod.R.Sparse"));
-  //WriteLn("TRACE "+_MID+" draw 3 B="<<B);
-    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
-    [[
-      VMatrix _.Y = arm.blk::filter(si*Z) << _.prior.Y;
-  //WriteLn("TRACE "+_MID+" draw 4 Y01="<<Y01);
-      VMatrix _.X = arm.blk::filter(si*B) << _.prior.X
-    ]];
-    NameBlock _.ws := wslr;
-    True
-  };
-  Code _.buildWorkSpace = _buildWorkSpace
+  }
 
 ]])};

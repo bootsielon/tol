@@ -30,14 +30,6 @@ Text _.autodoc.member.MainLinearBlock =
   If(!Card(varNames), 
   BysMcmc::Bsr::Gibbs::StdLinearBlock.Default(name,numBlock,firstCol,config),
   BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
-  //Defining the block in the Markov Chain
-  Real _define = define(
-    name, 
-    varNames, 
-    mcmcPartialHandler,
-    numBlock, 
-    firstCol, 
-    config);
 
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace(VMatrix   Y,    //Non filtered output
@@ -55,6 +47,16 @@ Text _.autodoc.member.MainLinearBlock =
     True
   };
   Code _.buildWorkSpace = _buildWorkSpace;
+
+  //Defining the block in the Markov Chain
+  Real _define = define(
+    name, 
+    varNames, 
+    mcmcPartialHandler,
+    numBlock, 
+    firstCol, 
+    config);
+
 
   ////////////////////////////////////////////////////////////////////////////
   VMatrix standarize(VMatrix _Z) 

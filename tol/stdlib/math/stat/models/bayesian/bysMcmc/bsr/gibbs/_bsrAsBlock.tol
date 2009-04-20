@@ -19,14 +19,17 @@ Text _.autodoc.member.BsrAsBlock =
   BysMcmc::BlockSampler blk = [[
   NameBlock _.bsr = bsrInstance;
   //Defining the block in the Markov Chain
-  Real _define = define(
+  Real _define = 
+  {
+    Real _.bsr::define(0);
+    define(
     _.bsr::get.name(0),
     _.bsr::get.colNames(0);
     _.bsr::_.mcmcPartialHandler,
     numBlock,
     firstCol,
-    config
-  );
+    config)
+  };
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.initialize =
