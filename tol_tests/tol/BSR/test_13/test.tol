@@ -1,0 +1,213 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-09-23
+//PURPOSE: Forecasting by means of partial reestimation
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "https://www.tol-project.org/ticket/664";
+Text summary_ = "Forecasting by means of partial reestimation";
+
+Real numErr0 = Copy(NError);
+
+Set parsed = BSR.Parse("model.bsr");
+
+Real new.obs.length = 365;
+
+Set old.obs = ((parsed->NoiseDistrib)[1]);
+Real old.obs.length = Card(old.obs->EquIdx);
+Set tmInfo = old.obs->TimeInfo;
+Date new.firstDate = Succ(tmInfo->LastDate, tmInfo->Dating, 1-new.obs.length);
+Set new.tmInfo = BSR.NoiseTimeInfo(tmInfo->Dating, new.firstDate, tmInfo->LastDate);
+Set new.obs.eqIdx = ExtractByIndex(old.obs->EquIdx, Range(Card(old.obs->EquIdx)-new.obs.length+1,Card(old.obs->EquIdx),1));
+
+Set old.pri = ((parsed->NoiseDistrib)[2]);
+Set  new.eqIdx = new.obs.eqIdx << old.pri->EquIdx;
+
+VMatrix new.obs.Cov = SubCol(SubRow(old.obs->Cov, new.eqIdx), new.eqIdx);
+VMatrix new.obs.L = SubCol(SubRow(old.obs->L, new.eqIdx), new.eqIdx);
+VMatrix new.obs.Li = SubCol(SubRow(old.obs->Li, new.eqIdx), new.eqIdx);
+
+Set new.obs = BSR.NoiseDistrib(
+  old.obs->Name,
+  old.obs->Nu,
+  old.obs->SigmaName,
+  old.obs->SigmaIndex,
+  old.obs->SigmaPrior,
+  old.obs->Arima,
+  old.obs->ArimaAuxInfo,
+  new.obs.Cov,
+  new.obs.L,
+  new.obs.Li,
+  Range(1,Card(new.obs.eqIdx),1),
+  new.tmInfo);
+
+
+VMatrix new.pri.Cov = SubCol(SubRow(old.pri->Cov, new.eqIdx), new.eqIdx);
+VMatrix new.pri.L = SubCol(SubRow(old.pri->L, new.eqIdx), new.eqIdx);
+VMatrix new.pri.Li = SubCol(SubRow(old.pri->Li, new.eqIdx), new.eqIdx);
+
+VMatrix new.Y = SubRow(parsed->Y, new.eqIdx);
+VMatrix new.X = SubRow(parsed->X, new.eqIdx);
+
+Set new.pri = BSR.NoiseDistrib(
+  old.pri->Name,
+  old.pri->Nu,
+  old.pri->SigmaName,
+  old.pri->SigmaIndex,
+  old.pri->SigmaPrior,
+  old.pri->Arima,
+  old.pri->ArimaAuxInfo,
+  new.pri.Cov,
+  new.pri.L,
+  new.pri.Li,
+  Range(Card(new.obs.eqIdx)+1,Card(new.eqIdx),1),
+  old.pri->TimeInfo);
+
+Set new.NoiseDistrib = 
+[[
+  Set new.obs,
+  Set new.pri
+]];
+
+Real {
+  Set PutName(new.NoiseDistrib[1]->Name, new.NoiseDistrib[1]);
+  Set PutName(new.NoiseDistrib[2]->Name, new.NoiseDistrib[2]);
+  1
+};
+
+Set SelectNewMissing(Set missingBlock)
+{
+  Set aux.1 = Select(missingBlock,Real(BSR.MissingBlock m)
+  {
+   m->Row+new.obs.length-old.obs.length>0
+  });
+  For(1,Card(aux.1), Set(Real k)
+  {
+    BSR.MissingBlock m = aux.1[k];
+    BSR.MissingBlock(
+      m->Name,
+      k,
+      m->Row+new.obs.length-old.obs.length,
+      m->Col,
+      m->Prior,
+      m->Nu,
+      m->Sigma2,
+      m->MinBound,
+      m->MaxBound)
+  })
+};
+  
+Set new.InputMissingBlock = SelectNewMissing(parsed->InputMissingBlock);
+
+Set new.OutputMissingBlock = SelectNewMissing(parsed->OutputMissingBlock);
+
+Set bsr.parsed = BSR.ModelDef(
+  parsed->DocInfo,
+  parsed->LinearBlock,
+  new.InputMissingBlock,
+  new.OutputMissingBlock,
+  new.NoiseDistrib,
+  new.Y,
+  new.X,
+  parsed->a,
+  parsed->A
+);
+
+
+BysMcmc::Config bsr.config = 
+[[
+//MCMC dimensions
+  Real mcmc.burnin = 100; 
+  Real mcmc.sampleLength = 2000;
+  Real mcmc.cacheLength = 100;
+
+//Partial sampling
+  Real partialSampling.Sequential = False;
+
+//Basic master configuration
+  Real basic.cholesky.epsilon = 1.E-13;
+  Real basic.cholesky.warningFreq = 100;
+  Real basic.truncMNormal.gibbsNumIter = 5;
+  Real bsr.iniVal.try.givenByUser = 1;
+  Real bsr.iniVal.try.zero = 2;
+  Real bsr.iniVal.try.cnstrMinNorm = 3;
+  Real bsr.iniVal.try.cnstrMLE = 4;
+
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
+  Real bsr.arimaSkipIter = 1;
+
+  Real bsr.linBlk.MH.useAfterIter   = 10;
+  Real bsr.linBlk.MH.maxRejected    = 3;
+  Real bsr.linBlk.MH.maxConsecutive = 100;
+
+  Real bsr.linBlk.X.drop = 1.E-15;
+  Real bsr.linBlk.usePreconditioning = 0;
+
+//Report configuration
+  Real report.raftery.diag.q   = 0.25;
+  Real report.raftery.diag.r   = 0.07;   
+  Real report.raftery.diag.s   = 0.90;   
+  Real report.raftery.diag.eps = 0.01; 
+  Real report.acf.lag          = 20,
+  Real report.histogram.parts  = 100;
+  Real report.kerDens.points   = 0;
+//Generic flags
+  Real do.resume          = 0;
+  Real do.report          = True;
+  Real do.eval            = True;
+  Real do.linear.effects  = False;
+  Real do.mcmc.profiler   = True
+]];
+
+
+BysMcmc::McmcRecover recover = BysMcmc::Get.Recover(
+  "../test_11/", "Test11", "Test11.01", 
+  bsr.config);
+
+Set fixedParam = Copy(Empty);
+VMatrix fixedValues = Rand(0,1,0,0);
+Set reloadParam = recover::_.colNames;
+
+BysMcmc::McmcPartialHandler partialHandler = 
+BysMcmc::McmcPartialHandler.Build(
+  fixedParam,
+  fixedValues,
+  reloadParam,
+  recover
+);
+ 
+
+BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+  bsr.parsed, 
+  partialHandler, 
+  bsr.config, 
+  BysMcmc::NoNotifier(0));
+
+Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
+
+//Real cycler::initialize(0);
+
+BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1
+]];
+
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+/* */
