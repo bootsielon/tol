@@ -639,6 +639,17 @@ void BVMat::WriteMatrixMarket(FILE* file)
   Ensure(ois.Read(a.ColCount, n, sizeof(int), stream));
   if (a.xtype != CHOLMOD_PATTERN && !(a.is_super))
   {
+  //Set to zero non used fields
+    a.nsuper   = 0;
+    a.xsize    = 0;
+    a.ssize    = 0;
+    a.maxcsize = 0;
+    a.maxesize = 0;
+    a.super = NULL;
+    a.pi    = NULL;
+    a.px    = NULL;
+    a.s     = NULL;
+  //allocate simplicial vectors
     a.p     = cholmod_malloc(  1+n, sizeof(int),    common_);
     a.prev  = cholmod_malloc(  2+n, sizeof(int),    common_);
     a.next  = cholmod_malloc(  2+n, sizeof(int),    common_);
@@ -655,6 +666,12 @@ void BVMat::WriteMatrixMarket(FILE* file)
   }
   else if (a.is_super)
   {
+  //Set to zero non used fields
+    a.p     = NULL;
+    a.prev  = NULL;
+    a.next  = NULL;
+    a.nz    = NULL;
+    a.i     = NULL;
 	//reads supernodal dimensions
     Ensure(ois.Read(a.nsuper,   stream));
     Ensure(ois.Read(a.xsize,    stream));
