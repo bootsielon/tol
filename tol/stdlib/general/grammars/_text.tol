@@ -1157,3 +1157,33 @@ Quita los acentos de la palabra
 {
   Identify(x) + " =\t" << x
 };
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("Downloading from \""+url+"\" ...");
+  Text tcl_helper = "
+package require http
+
+proc ::get_url_contens { {url} } {
+  
+  set data [http::data [http::geturl $url]]
+  set data
+}";
+  
+  Set result0 = Tcl_Eval(tcl_helper);
+  Text If(result0["status"], Text {
+      
+      Set result = Tcl_Eval("::get_url_contens " + url);
+      Text If(result["status"], Text result["result"],
+        {
+          WriteLn(result["result"], "W");
+          Text ""
+        })
+    },
+    {
+      WriteLn(result0["result"], "W");
+      Text ""
+    })
+};
