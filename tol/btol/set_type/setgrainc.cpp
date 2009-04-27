@@ -1468,8 +1468,8 @@ void BSetIncludeBST::CalcContens()
     return;
   }
   if(Arg(2)) { enableWarning = (BBool)Real(Arg(2)); }
-    
   GetLine(File(), txt, MaxLineLength, ';');
+  txt.Replace("\"","");
   txt.Compact();
   if(!(str = FindStruct(txt)))
   {
@@ -1477,16 +1477,12 @@ void BSetIncludeBST::CalcContens()
     return;
   }
   GetLine(File(), txt, MaxLineLength, '\n');
+  txt.Replace('\"',' ');
   txt.Replace('\r',' ');
   txt.Replace('\t',' ');
+  txt.Compact();
   while(txt.Last()==' ') { txt.PutLength(txt.Length()-1); }
   ReadAllTokens(txt, line, ';', '\"','\\');
-  if(line.Size()!=1+str->Size())
-  {
-    Error(errMsg+", "+I2(" there's a wrong number of fields",
-                         " no hay el número adecuado de campos"));
-    return;
-  }
   for(n = 0; (n<line.Size())&&(n<str->Size()); n++)
   {
     if(line[n].Compact()!=(*str)[n].Name())
@@ -1495,6 +1491,18 @@ void BSetIncludeBST::CalcContens()
                                    " rompe el orden de la estructura."));
       error = BTRUE;
     }
+  }
+  if(n<str->Size()-1)
+  {
+    Error(errMsg+", "+I2(" there are not enoutgh columns with field names",
+                         " no hay suficientes columnas con nombres de campos"));
+    return;
+  }
+  if((n>str->Size()+1)||((n==str->Size()+1)&&line[n].Compact().HasName()))
+  {
+    Error(errMsg+", "+I2(" there are too columns with field names",
+                         " hay demasiadas columnas con nombres de campos"));
+    return;
   }
   while(!File().eof() && !error)
   {
@@ -1529,8 +1537,9 @@ void BSetIncludeBST::CalcContens()
         //ftxt.Compact();
           if(!ftxt.HasName())
           {
+            BField&   field = (*str)[n];
             Error(errMsg+I2(", line ", ", línea ")+ numLine+" "+
-                         I2(" empty field.", " campo vacío."));
+                         I2(" empty field ", " campo vacío ")+field.Name());
             error = BTRUE;
           }
           else
