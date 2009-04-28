@@ -167,9 +167,11 @@ Text _.autodoc.member.NonLinBlock =
     Real n = m - d;
   //WriteLn("TRACE"+_MID+"draw.scalar 1.6 d="<<d+" p="<<p+" q="<<q+" m="<<m+" n="<<n);
   //WriteLn("TRACE"+_MID+"draw.scalar 2");
-    Set drawIndex = _.selectDrawIndex(0);
-    Set draw.all = EvalSet(drawIndex, Real scalar.draw.one(Real i)
+    Matrix mrgDraw = _.marginalDraw(0);
+    Set draw.all = For(1, Rows(mrgDraw), Real(Real i)
     {
+      Real mrg = MatDat(mrgDraw,i,1);
+      If(Not(IsUnknown(mrg)), mrg, {
     //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].1");
       Set bounds = _.filterEval::get.bounds(i,u);
       Code fltEv = _.filterEval::eval;
@@ -243,7 +245,7 @@ Text _.autodoc.member.NonLinBlock =
       Real PutMatDat(u,i,1,x);
     //WriteLn("TRACE"+_MID+"draw.scalar.one x="<<x);
       x
-    });
+    })});
   //WriteLn("TRACE"+_MID+"draw.scalar 3");
   //Real show.arma(0);
     Mat2VMat(SetCol(draw.all))
