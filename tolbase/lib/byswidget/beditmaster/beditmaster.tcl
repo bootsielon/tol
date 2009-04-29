@@ -2097,7 +2097,7 @@ package require byscommon
   #///////////////////////////////////////////////////////////////////////////
     set table $tablename
     set tolGes [SqlGetTolGestor $gestor]
-    
+	
     # Obtenemos informacion de los campos
     set infoColumns [GetGlobalUniqueName __infoColumns[clock second]]
     set cmdIC infoColums[clock clicks]
@@ -2111,9 +2111,8 @@ package require byscommon
       # ERROR
       puts "Error al ejecutar: $cmdTIC"
       return {}   
-    }
-    ::tol::tableset create $cmdIC [ list Set $infoColumns ]
-    Tolcon_Trace "::tol::tableset create $cmdIC [ list Set $infoColumns ]"
+    }    
+    ::tol::tableset create $cmdIC $infoColumns
   
     # Obtenemos informacion de las foregn keys
     set infoForeignKeys [GetGlobalUniqueName __infoForeignKeys[clock second]]
@@ -2129,9 +2128,9 @@ package require byscommon
       return {}    
     }    
     # comprobamos que tenemos valores
-    set nRegFk [lindex [TclGetVar Set $infoForeignKeys] 0]
+    set nRegFk [lindex [TclGetFromSet Set $infoForeignKeys] 0]
     if {[expr $nRegFk > 0]} {
-      ::tol::tableset create $cmdIF [ list Set $infoForeignKeys ]
+      ::tol::tableset create $cmdIF $infoForeignKeys
     }  
 #Tolcon_Trace "EditMasterUtils::InitTable. nRegFk: $nRegFk"
 
@@ -2454,9 +2453,12 @@ package require byscommon
     set tolGes [SqlGetTolGestor $gestor]
     # name of Text TOL
     set namTabFie [GetGlobalUniqueName __nameTabFie__]
-    set cmd "Text $namTabFie = TxtListTcl(SqlGetTableParent(\"${table}\", \"${field}\", $tolGes));"
+    #set cmd "Text $namTabFie = TxtListTcl(SqlGetTableParent(\"${table}\", \"${field}\", $tolGes));"
+	set cmd "Text $namTabFie = TxtListTcl(StdLib::SqlEngine::SqlGetTableParent(\"${table}\", \"${field}\", $tolGes));"
+
     # run
     ::tol::console eval $cmd
+
     set lst [string trim [TclGetVar Text $namTabFie] {"}];#"
     if {[string length $lst]} { eval set lst $lst }
     # destroy

@@ -2860,7 +2860,8 @@ package require byscommon
     set tolGes [SqlGetTolGestor $gestor]
     # name of Text TOL
     set namTabFie [GetGlobalUniqueName __nameTabFie__]
-    set cmd "Text $namTabFie = TxtListTcl(SqlGetTableParent(\"${table}\", \"${field}\", $tolGes));"
+    #set cmd "Text $namTabFie = TxtListTcl(SqlGetTableParent(\"${table}\", \"${field}\", $tolGes));"
+	set cmd "Text $namTabFie = TxtListTcl(StdLib::SqlEngine::SqlGetTableParent(\"${table}\", \"${field}\", $tolGes));"
     # run
     ::tol::console eval $cmd
     set lst [string trim [TclGetVar Text $namTabFie] {"}];#"
