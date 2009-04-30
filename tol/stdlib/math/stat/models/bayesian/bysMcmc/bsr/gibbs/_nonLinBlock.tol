@@ -84,19 +84,21 @@ Text _.autodoc.member.NonLinBlock =
   {
     0
   });
+  //Default value for marginal draw
+  Matrix _defaultMarginalDraw = Rand(Card(_.colNames), 1, ?, ?);
   //Optional filter method to be called before to call draw.scalar
   //This method will be called just before to call draw method of corresponding 
   //internal non linear block in order to select which parameters will be drawn. 
-  //Rest of parameters must be set inside of method selectDrawIndex.
-  //Set selectDrawIndex(Real unused)
-  Code _.selectDrawIndex = If(FunctionExist("Real","_.filterEval::selectDrawIndex"),
+  //It will return a matrix with marginal sampling in selected indexes and ? in
+  //other ones that will be sampled by non linear block in the standard way
+  Code _.marginalDraw = If(FunctionExist("Real","_.filterEval::marginalDraw"),
   {
-    WriteLn(_MID+"Using specified selectDrawIndex method");
-    _.filterEval::selectDrawIndex
+    WriteLn(_MID+"Using specified marginalDraw method");
+    _.filterEval::marginalDraw
   },
   {
-    WriteLn(_MID+"Using default selectDrawIndex method");
-    Set (Real unused) { Range(1,Card(_.colNames),1) } 
+    WriteLn(_MID+"Using default marginalDraw method");
+    Matrix (Real unused) { _defaultMarginalDraw } 
   });
   //Optional filter method that returns log of prior density for one parameter
   //Real get.priorLogDens(Real paramIdx)
