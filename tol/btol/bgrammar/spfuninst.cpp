@@ -26,6 +26,7 @@
 #include <tol/tol_bspfun.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_btoken.h>
+#include <tol/tol_bfilter.h>
 #include <tol/tol_bstruct.h>
 #include <tol/tol_bclass.h>
 #include <tol/tol_bsetgra.h>
@@ -911,7 +912,10 @@ static BSyntaxObject* EvPutName(BGrammar* gra, const List* tre, BBool left)
 	    } else {
 		gra->DelObject(obj);
 		obj->PutName(newName);
-		gra->AddObject(obj);
+        if(BParser::DefaultParser()->Filter()->IsIdentifier(newName))
+        {
+		  gra->AddObject(obj);
+        }
 		result = obj;
 	    }
 	}
