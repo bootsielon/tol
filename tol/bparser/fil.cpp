@@ -96,14 +96,11 @@ BBool BFilter::IsFirstIdentifier(BChar ch) const
  */
 BBool BFilter::IsIdentifier(BChar ch) const 
 {
-  return 
-  (
-    IsFirstIdentifier(ch) ||
-    isdigit(ch)           ||
-    (ch=='.')             || 
-    (ch=='\'')
-  );
+  if(IsFirstIdentifier(ch)) { return(true); }
+  if((ch<=0)||(ch>127)) { return(false); }
+  return(isdigit(ch)||(ch=='.')||(ch=='\''));
 }
+
 
 //--------------------------------------------------------------------
 //! Return true if the expression is an identifier.
