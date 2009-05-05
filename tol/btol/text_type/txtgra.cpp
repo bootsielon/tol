@@ -823,11 +823,13 @@ void BFirstTxtToUpper::CalcContens()
 {
   contens_=Text(Arg(1));
   if(Arg(2) && Real(Arg(2))) { contens_.ToLower(); }
-  if(contens_.Length())
+  char ch = contens_.Get(0);
+  if(ch)
   {
-    contens_.PutChar(0,(BChar)toupper(contens_.Get(0)));
+    contens_.PutChar(0,(BChar)toupper(ch));
   }
 }
+
 
 
 
