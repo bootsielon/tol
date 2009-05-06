@@ -632,8 +632,8 @@ BInt BSetFromFile::BinRead()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetFromFile, BSetIncludeBMT);
-DefExtOpr(1, BSetIncludeBMT, "IncludeBMT", 1, 1, "Text",
-	  I2("(Text fileName)", "(Text nombreFichero)"),
+DefExtOpr(1, BSetIncludeBMT, "IncludeBMT", 1, 4, "Text Text Text Text",
+	  "(Text fileName [, Text cellDelim=\";\", Text rowDelim=\"\\n\", Text skip=\"\"])", 
 	  I2("Returns a set with the real matrix from a Bayes Matrix "
 	     "Time Table (BMT) file.\n"
 	     "Include a matrix with a row on each line and the data "
@@ -667,43 +667,147 @@ DefExtOpr(1, BSetIncludeBMT, "IncludeBMT", 1, 1, "Text",
 void BSetIncludeBMT::CalcContens()
 //--------------------------------------------------------------------
 {
-
-    BText fileName=Text(Arg(1));
-    ifstream fd(fileName.String(), OPENFLAG);
-    if (fd.fail())
-    {
-	Error(I2(BText("Could not open file ")+fileName,
-		 BText("No se pudo abrir el fichero ")+fileName));
-	return;
-    }
-    char *buffer;
-    char *aux;
-    int i,j,k;
-    int cols=0;
-    unsigned int rows=0;
+  BText fileName=Text(Arg(1));
+  size_t fileSize = GetFileSize(fileName);
+  BText cellDelim=";";
+  BText rowDelim="\n";
+  BText skip="";
+  if(Arg(2)) { cellDelim = Text(Arg(2)); }
+  if(Arg(3)) { rowDelim  = Text(Arg(3)); }
+  if(Arg(4)) { skip      = Text(Arg(4)); }
+  ifstream fd(fileName.String(), OPENFLAG);
+  if (fd.fail())
+  {
+    Error(I2(BText("Could not open file ")+fileName,
+             BText("No se pudo abrir el fichero ")+fileName));
+    return;
+  }
+  size_t k=0;  
+  int i=0,j=0;
+  int cols=0;
+  unsigned int rows=0;
     
+  char read;
+  char *buffer = new char[MaxLineLength];
+  BUserMat* uMat = NULL;
+  if(Arg(2)) 
+  { 
+    int pos = 0;
+    size_t size = 0;
+    BArray<BDat> x(1024);
+    while(!fd.eof())
+    {
+      k++;
+      if(pos==MaxLineLength-1)
+      {
+        Error(I2("Cell maximum length ","Tamaño máximo de celda ")+MaxLineLength+
+              I2(" exceeded  at column "," excedido en la columna ")+j+
+              I2(" iof row "," de la fila ")+i+
+              I2(" of file "," del fichero ")+fileName.String());
+        rows = cols = 0; break; 
+      };
+      fd.get(read);
+      bool isRowDelim  = strchr(rowDelim .String(), read)!=NULL;
+      bool isCellDelim = strchr(cellDelim.String(), read)!=NULL;
+      bool skipedLastCellDelim = isRowDelim&&pos;
+      if(isCellDelim||skipedLastCellDelim)
+      {
+        buffer[pos++] = 0;
+        if(size>x.MaxSize()-1) 
+        { 
+          int expected_size = Minimum(100*size, Maximum(2*size, ((fileSize*(size+1))/k)));
+          x.ReallocBuffer(expected_size); 
+        }
+        x.ReallocBuffer(size+1); 
+        x[size].PutValue(buffer);
+        size++;
+        pos = 0;
+        buffer[0] = 0;
+        j++;
+        if(!skipedLastCellDelim) { continue; }
+      } 
+      if(isRowDelim)
+      {
+        if(i==0) { cols = j; }
+        else if(j&&(cols!=j))
+        {
+          Error(I2("The row number", "La fila número")+" "+(i+1)+" "+
+                I2("has","tiene")+" "+j+" columns "+
+                I2("but it was expected","pero se esperaban")+" "+cols+" "+
+                I2(" on file "," en el fichero ")+fileName.String());
+          rows = cols = 0; break;
+        }
+        if(j) 
+        {  
+          j=0;
+          i++;
+        }
+        continue;
+      } 
+      if(!strchr(skip.String(), read))
+      {
+        buffer[pos++] = read;
+      }
+    }
+    if(pos)
+    {
+      buffer[pos++] = 0;
+      if(size>x.MaxSize()-1) 
+      { 
+        int expected_size = Minimum(100*size, Maximum(2*size, ((fileSize*(size+1))/k)));
+        x.ReallocBuffer(expected_size); 
+      }
+      x.ReallocBuffer(size+1); 
+      x[size].PutValue(buffer);
+      size++;
+      pos = 0;
+      buffer[0] = 0;
+      j++;
+      if(i==0) { cols = j; }
+      else if(j&&(cols!=j))
+      {
+        Error(I2("The row number", "La fila número")+" "+(i+1)+" "+
+              I2("has","tiene")+" "+j+" columns "+
+              I2("but it was expected","pero se esperaban")+" "+cols+" "+
+              I2(" on file "," en el fichero ")+fileName.String());
+        rows = cols = 0; 
+      }
+      if(j) 
+      {  
+        j=0;
+        i++;
+      }
+    } 
+    if(!i && size) { cols = j; rows = 1; }
+    else           { rows = i; }
+    BMatrix<BDat> m(rows,cols,x.GetBuffer());
+    uMat = new BContensMat("", m, GetFilePrefix(TolPath()));
+  }
+  else
+  {
+    //VBR: This code is maintained in order to ensure backward compatibility
+    //but it should be eliminated in next versions
+
     //As long as modifying matrix row number is not possible,
     //we have no choice but counting row number first and
     //then parse the file. Horrible!
-    
+    char *aux;
     //First, count columns and buffer size:
-    char read;
-    while(fd.get(read) && (read!='\n'))
+    while(fd.get(read) && (read!=rowDelim[0]))
     {
-	if (read == ';') cols++;
+      if (read == cellDelim[0]) cols++;
     }
-    buffer=new char[MaxLineLength];
     
     //Count rows:
-    while(fd.ignore(MaxLineLength,'\n')) rows++;
+    while(fd.ignore(MaxLineLength,rowDelim[0])) rows++;
 
-    /* This MACRO is necessary for VC++ compilers. If you use a .NET 
-     * compiler, comment out the next three lines.
-     * See: http://support.microsoft.com/default.aspx?scid=kb;EN-US;q240015 
-     * for info on this issue. */
-# if defined(_MSC_VER) && (_MSC_VER<1400)
+    // This MACRO is necessary for VC++ compilers. If you use a .NET 
+    // compiler, comment out the next three lines.
+    // See: http://support.microsoft.com/default.aspx?scid=kb;EN-US;q240015 
+    // for info on this issue. 
+    # if defined(_MSC_VER) && (_MSC_VER<1400)
     rows++;
-# endif
+    # endif
     BMatrix<BDat> m(rows,cols);
     
     fd.clear(ios::goodbit);
@@ -712,40 +816,42 @@ void BSetIncludeBMT::CalcContens()
     //Parse again the file:
     for(i=0;i<rows;i++)
     {
-	fd.getline(buffer,MaxLineLength);
-	//Parse line:
-	aux=&(buffer[0]);
-	for(j=k=0;j<cols;j++)
-	{
-    char* ptr = (char*)aux;
-    for(; k<MaxLineLength-1; k++)
-    {
-      if(aux[0] && (aux[0]!=';') && !isspace((unsigned char)aux[0])) 
-      { 
-        ++aux; 
-      }
-      else
+      fd.getline(buffer,MaxLineLength, rowDelim[0]);
+      //Parse line:
+      aux=&(buffer[0]);
+      for(j=k=0;j<cols;j++)
       {
-        break;
+        char* ptr = (char*)aux;
+        for(; k<MaxLineLength-1; k++)
+        {
+          if(aux[0] && (aux[0]!=cellDelim[0]) && !isspace((unsigned char)aux[0])) 
+          { 
+            ++aux; 
+          }
+          else
+          {
+            break;
+          }
+        }
+        if(k==MaxLineLength-1)
+        {
+          Error(I2("Line maximum length ","Tamaño máximo de línea ")+MaxLineLength+
+                I2(" exceeded  at column "," excedido en la columna ")+j+
+                I2(" iof row "," de la fila ")+i+ 
+                I2(" of file "," del fichero ")+fileName.String());
+        };
+        aux[0]='\0';
+        aux++;
+        m(i,j).PutValue(ptr);
       }
     }
-    if(k==MaxLineLength-1)
-    {
-      Error(I2("Line maximum length ","Tamaño máximo de línea ")+MaxLineLength+
-            I2(" exceeded  at column "," excedido en la columna ")+j+
-            I2(" iof row "," de la fila ")+i+
-            I2(" of file "," del fichero ")+fileName.String());
-    };
-    aux[0]='\0';
-    aux++;
-    m(i,j).PutValue(ptr);
-	}
-    }
-    delete(buffer);
-    fd.close();
-    BUserMat* uMat = new BContensMat("", m, GetFilePrefix(TolPath()));
-    contens_.RobStruct(NCons(uMat),NIL,BSet::BMTFile);
+    uMat = new BContensMat("", m, GetFilePrefix(TolPath()));
+  }
+  contens_.RobStruct(NCons(uMat),NIL,BSet::BMTFile);
+  delete(buffer);
+  fd.close();
 }
+
 
 
 
