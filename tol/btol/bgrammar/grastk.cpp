@@ -22,19 +22,25 @@
 #include <win_tolinc.h>
 #endif
 
+#include <tol/tol_bfilter.h>
+#include <tol/tol_bparser.h>
 #include <tol/tol_bgrammar.h>
 #include <tol/tol_bgrastk.h>
-#include <tol/tol_bclass.h>
 
 BTraceInit("grastl.cpp");
+
 
 //--------------------------------------------------------------------
 // INICIALIZATION
 //   Global variables (static in the class BStackManager and internal 
 //   classes).
 //--------------------------------------------------------------------
-BArray<BStackManager::BDictionaryNode*> BStackManager::BDictionaryNode::branchPool_;
-int BStackManager::BDictionaryNode::currentBranch_ = 0;
+short BStackManager::numAllowedChar_ =     0;
+int   BStackManager::branchPoolSize_ = 65536;
+short BStackManager::branchPoolLen_  =   978;
+BArray<BStackManager::BDictionaryNode*> 
+       BStackManager::BDictionaryNode::branchPool_;
+int    BStackManager::BDictionaryNode::currentBranch_ = 0;
 
 //#define _DEBUG_STACK_
 
@@ -49,6 +55,18 @@ static BText objName_ = "";
 {
   short i=0;
   short c;
+  for(c=0; c<256; c++) 
+  { 
+    if(BParser::DefaultParser()->Filter()->IsIdentifier((char)c))
+    {
+      allowed_[charPos_[c] = i++]=(char)c; 
+    }
+    else
+    {
+      charPos_[c] = -1; 
+    }
+  }
+/*
   for(c=0; c<256; c++) { charPos_[c] = -1; }
   for(c='a'; c<='z'; c++) { allowed_[charPos_[c] = i++] = (char)c; }
   for(c='A'; c<='Z'; c++) { allowed_[charPos_[c] = i++] = (char)c; }
@@ -56,11 +74,8 @@ static BText objName_ = "";
   allowed_[(int)(charPos_[(int)'_' ] = i++)] = '_';
   allowed_[(int)(charPos_[(int)'.' ] = i++)] = '.';
   allowed_[(int)(charPos_[(int)'\''] = i++)] = '\'';
-  if(i!=numAllowedChar_)
-  {
-    SendError(BText("Wrong number of allowed symbols for identifiers.")
-              <<i<<"!="<<numAllowedChar_);
-  }
+*/
+  numAllowedChar_ = i;
   branchPool_.AllocBuffer(32);
   branchPool_.AllocBuffer(0);
   currentBranch_=branchPoolLen_;
@@ -106,8 +121,9 @@ static BText objName_ = "";
   }
   else
   {
-    char  c = name[n];
-    short i = charPos_[(int)c];
+    short  c = name[n];
+    if(c<0) { c+=256; }
+    short i = charPos_[c];
     if(i<0)
     { return(NULL); }
     if(!branch_) { CreateBranches(); }

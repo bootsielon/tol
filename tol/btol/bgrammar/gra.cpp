@@ -52,7 +52,7 @@ BDat           BGrammar::unparseNodes_  = 0;
 #endif
 
 short BStackManager::BDictionaryNode::charPos_ [256];
-char  BStackManager::BDictionaryNode::allowed_ [numAllowedChar_];
+char  BStackManager::BDictionaryNode::allowed_ [256];
 int   BStackManager::currentEntries_ = 0;
 
 BStackManager::BStackNode*      BStackManager::stack_ = NULL;

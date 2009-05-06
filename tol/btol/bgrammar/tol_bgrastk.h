@@ -24,7 +24,6 @@
 #include <tol/tol_bsyntax.h>
 
 class BStruct;
-class BClass;
 
 //--------------------------------------------------------------------
    class TOL_API BStackManager
@@ -44,9 +43,9 @@ public:
   }
 
   // Internal definitions
-  #define numAllowedChar_ 65
-  #define branchPoolSize_ 65536
-  #define branchPoolLen_  978
+  static short numAllowedChar_;
+  static int   branchPoolSize_;
+  static short branchPoolLen_;
 
 public:
   // Internal classes
@@ -108,7 +107,7 @@ public:
     //!<Stores the branch position correspondent to each valid character
     static short charPos_ [256];
     //!<Stores all valid chacracters in branch order
-    static char  allowed_ [numAllowedChar_];
+    static char  allowed_ [256];
     //!<Cache for fast memory assignation
     static BArray<BDictionaryNode*> branchPool_;
     //!<Current position in assignation pool
