@@ -89,7 +89,7 @@ BDat BRRFunction::FirstDerivative(BDat point, BDat funcValue)
 
 
 //--------------------------------------------------------------------
-BDat BRRFunction::NewtonSolve(BDat x0, BDat y0, BDat tol, BInt maxIter)
+BDat BRRFunction::NewtonSolve(BDat x0, BDat y, BDat tol, BInt maxIter)
 
 /*! Returns the value x that f(x) = y with the Newton method begining
  *  at x0
@@ -100,8 +100,8 @@ BDat BRRFunction::NewtonSolve(BDat x0, BDat y0, BDat tol, BInt maxIter)
   BDat yd0;
   BInt n = 0;
   BDat x = x0;
-  BDat y = y0;
-  Std(BText("\nNewtonSolve [")+n+"] x0="+x0+" y0="+y0+"\n");
+  BDat y0 = (*this)[x];
+//Std(BText("\nNewtonSolve [")+n+"] x0="+x0+" y0="+y0+"\n");
   bool ok;
   do
   {
@@ -111,12 +111,12 @@ BDat BRRFunction::NewtonSolve(BDat x0, BDat y0, BDat tol, BInt maxIter)
 	  dist = Abs(x-x0);
 	  x0   = x;
     ok = x0.IsKnown() &&  y0.IsKnown() && 
-        (Abs(y0)>0.0) &   (dist>tol) && (n<maxIter);
+        (Abs(y-y0)>0.0) & (dist>tol) && (n<maxIter);
     if(ok)
     {
       y0 = (*this)[x0];
     }
-    Std(BText("\nNewtonSolve [")+n+"] x0="+x0+" y0="+y0+"\n");
+  //Std(BText("\nNewtonSolve [")+n+"] x0="+x0+" y0="+y0+"\n");
   }
   while(ok);
   return(x);
