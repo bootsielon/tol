@@ -1116,9 +1116,9 @@ Set GetArimaFromLabel(Text label)
       Text maTxt     = polMASet[conta];
    
       Real period  = Eval("Real "+periodTxt+";");
-      Polyn dif    = GetPolynFromLabel("DIF", difTxt, 1, period);
-      Polyn ar     = GetPolynFromLabel("AR", arTxt, 0.1, period);
-      Polyn ma     = GetPolynFromLabel("MA", maTxt, 0.1, period);
+      Polyn dif    = GetPolynFromLabel("DIF", difTxt,   1, period);
+      Polyn ar     = GetPolynFromLabel("AR",  arTxt, 0.11, period);
+      Polyn ma     = GetPolynFromLabel("MA",  maTxt, 0.12, period);
       ARIMAStruct(period, ar, ma, dif)   
     })
   });
