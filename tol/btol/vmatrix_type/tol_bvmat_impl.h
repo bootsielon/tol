@@ -41,20 +41,20 @@ END_DECLS
         
 #define DefineMonary(FUN,fun,f00,NAME)                                         \
 int BVMat::FUN(const BVMat& A, BVMat& B)                                       \
-{ return(ApplyFunRR(fun,  true,  NAME, A,B)); }                                \
+{ return(ApplyFunRR(fun,  f00,  NAME, A,B)); }                                \
 BVMat BVMat::FUN() const                                                       \
 { return(ApplyFunRR(fun,  f00,   NAME)); }                                     \
 
 
 #define DefineBinaryR(FUN,fun,f00,NAME)                                        \
 int BVMat::FUN(const BVMat& A, double b, BVMat& C)                             \
-{ return(ApplyFunR2R(fun,  true,  NAME, A,b,C)); }                             \
+{ return(ApplyFunR2R(fun,  f00,  NAME, A,b,C)); }                             \
 BVMat BVMat::FUN(double b) const                                               \
 { return(ApplyFunR2R(fun,  f00,   NAME, b)); }                                 \
  
 #define DefineBinary(FUN,fun,f00,NAME)                                         \
 int BVMat::FUN(const BVMat& A, const BVMat& B, BVMat& C)                       \
-{ return(ApplyFunR2R(fun,  true,  NAME, A,B,C)); }                             \
+{ return(ApplyFunR2R(fun,  f00,  NAME, A,B,C)); }                             \
 BVMat BVMat::FUN(const BVMat& B) const                                         \
 { return(ApplyFunR2R(fun,  f00,   NAME, B)); }                                 \
 

@@ -53,7 +53,7 @@ double fR2R_min(double a, double b)
 DefineMonary(Not, fRR_not,       true,  "Not");
 DefineMonary(Yes, fRR_yes,       false, "Yes");
 DefineMonary(IsUnknown, fRR_isUnknown, true,  "IsUnknown");
-DefineMonary(IsFinite, fRR_isFinite,  true,  "IsFinite");
+DefineMonary(IsFinite, fRR_isFinite,  false,  "IsFinite");
 DefineBinary(And, fR2R_and,      true,  "And");
 DefineBinary(Or,  fR2R_or,       true,  "Or");
 DefineBinary(EQ,  fR2R_eq,       true,  "EQ");
