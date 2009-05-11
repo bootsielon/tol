@@ -207,8 +207,8 @@ NameBlock ARMAProcess =
     //Converts to Cholmod.R.Sparse
     VMatrix _.L_ma_sp = ARMAProcess::DoDrop(Convert(_.L_ma,"Cholmod.R.Sparse"));
     //Calculates de logarithm of determinant of _.m ARMA covarianze 
-    Real _.logDetCov = 2*(-VMatSum(Log(SubBand(_.Li_ar,0)))+
-                           VMatSum(Log(SubBand(_.L_ma_sp, 0))));
+    Real _.logDetCov = 2*(-VMatSum(Log(SubDiag(_.Li_ar,0)))+
+                           VMatSum(Log(SubDiag(_.L_ma_sp, 0))));
     //Filters a Matrix, VMatrix or Serie from inverse of Choleski factor of
     //_.m ARMA covarianze 
     Anything filter(Anything X)
@@ -345,7 +345,7 @@ NameBlock ARMAProcess =
   //Real _trc.4 = { WriteLn("TRACE Eval.Almagro Creating _.L_u_sp "+Time); 0 };
     VMatrix _.L_u_sp = ARMAProcess::DoDrop(Convert(_.L_u,"Cholmod.R.Sparse"));
   //Real _trc.5 = { WriteLn("TRACE Eval.Almagro Creating cov_G "+Time); 0 };
-    Real _.det_cov_u = 2*VMatSum(Log(SubBand(_.L_u_sp,0)));
+    Real _.det_cov_u = 2*VMatSum(Log(SubDiag(_.L_u_sp,0)));
     VMatrix _.H1 = ARMAProcess::DoDrop(Pol2VMat(F^_.p*(1-_.ar), _.m, _.p));
     VMatrix _.H2 = ARMAProcess::DoDrop(Pol2VMat(F^_.q*(_.ma-1), _.m, _.q));
     VMatrix _.H = _.H1 | _.H2;
@@ -357,7 +357,7 @@ NameBlock ARMAProcess =
     VMatrix _.L_G   = ARMAProcess::CholeskiFactorCov(_.cov_G);
   //Real _trc.7 = { WriteLn("TRACE Eval.Almagro Creating _.L_G_sp "+Time); 0 };
     VMatrix _.L_G_sp = ARMAProcess::DoDrop(Convert(_.L_G,"Cholmod.R.Sparse"));
-    Real _.det_cov_G = 2*VMatSum(Log(SubBand(_.L_G_sp,0)));
+    Real _.det_cov_G = 2*VMatSum(Log(SubDiag(_.L_G_sp,0)));
     Real _.det_cov_z = _.det_cov_u + _.det_cov_G;
     VMatrix _.pi_z = DifEq(_.ar/_.ma,_.z);
     VMatrix _.G_pi_z = Tra(Tra(_.pi_z)*_.G);
