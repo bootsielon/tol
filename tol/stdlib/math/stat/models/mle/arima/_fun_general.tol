@@ -1079,7 +1079,7 @@ Set GetArimaFromLabel(Text label)
         If(polTxt == "0", 1, 
         {
           Real grade = Eval("Real "+polTxt+";");
-          1+0.1*B^grade
+          1+defCoef*B^grade
         }),
         {
           Set grades = Tokenizer(polTxt, ".");
