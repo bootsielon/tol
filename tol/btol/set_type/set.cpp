@@ -978,7 +978,15 @@ void BSet::PutNameBlock (const BNameBlock* nameBlock)
                                           BText& errMsg) const
 //--------------------------------------------------------------------
 {
-  if(memberName[0]=='_')
+  if(!nameBlock_ || !nameBlock_->EnsureIsAssigned())
+  {
+    errMsg = I2("Cannot access to member ",
+                "No se puede acceder al miembro ")+memberName +
+             I2(" of a non NameBlock set ",
+                " de un conjunto que no es un NameBlock ");
+    return NIL;
+  }
+  else if(memberName[0]=='_')
   {
     errMsg = I2("Cannot access to private member ",
                 "No se puede acceder al miembro privado ")+memberName +
@@ -988,7 +996,7 @@ void BSet::PutNameBlock (const BNameBlock* nameBlock)
   }
   else 
   { 
-    return(Member(memberName, errMsg)); 
+    return(nameBlock_->Member(memberName)); 
   }
 }
 
