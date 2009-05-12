@@ -352,7 +352,7 @@ BSyntaxObject* BSet::GetElement(BInt n)  const
  */
 //--------------------------------------------------------------------
 {
-  if(nameBlock_)
+  if(nameBlock_ && nameBlock_->EnsureIsAssigned())
   {
     Error(I2("Cannot access to NameBlock members with operator ",
              "No se puede acceder a los miembros de un NameBlock con el operador ")+
@@ -482,7 +482,7 @@ BSyntaxObject* BSet::GetElement(const char * name) const
  */
 //--------------------------------------------------------------------
 {
-  if(nameBlock_)
+  if(nameBlock_ && nameBlock_->EnsureIsAssigned())
   {
     Error(I2("Cannot access to NameBlock members with operator ",
              "No se puede acceder a los miembros de un NameBlock con el operador ")+
@@ -522,7 +522,7 @@ BSyntaxObject* BSet::Field(const BText& fieldName) const
 	    result = array_[numField];
 	  }
   }
-  else if(nameBlock_)
+  else if(nameBlock_ && nameBlock_->EnsureIsAssigned())
   {
     Error(I2("Cannot access to NameBlock members with ",
              "No se puede acceder a los miembros de un NameBlock con ")+"->"+fieldName);
@@ -555,7 +555,10 @@ BText BSet::ToText(const BText& separator) const
 {
   BText txt;
   BText end;
-  if(nameBlock_) { txt = "NameBlock [["; end = "]]"; } else 
+  if(nameBlock_&& nameBlock_->EnsureIsAssigned()) 
+  { 
+    txt = "NameBlock [["; end = "]]"; 
+  } else 
   if(Struct()) { txt = struct_->Name() + "("; end = ")"; }  
   else { txt = "[[ "; end = "]]"; }
   txt += separator;
@@ -957,7 +960,7 @@ void BSet::PutNameBlock (const BNameBlock* nameBlock)
                                     BText& errMsg) const
 //--------------------------------------------------------------------
 {
-  if(!nameBlock_)
+  if(!nameBlock_ || !nameBlock_->EnsureIsAssigned())
   {
     errMsg = I2("Cannot access to member ",
                 "No se puede acceder al miembro ")+memberName +
