@@ -24,6 +24,7 @@
 #include <tol/tol_bsyntax.h>
 
 class BStruct;
+class BClass;
 
 //--------------------------------------------------------------------
    class TOL_API BStackManager
