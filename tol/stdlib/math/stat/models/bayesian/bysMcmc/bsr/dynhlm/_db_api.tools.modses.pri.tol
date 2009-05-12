@@ -68,7 +68,7 @@ Real ModSes.Pri.Homog_1.Create(Text dbName,
     0
   },
   {
-    WriteLn("Creating latent node "+id_node+" for "<<Card(node_childs)+
+    WriteLn("Creating prior node "+id_node+" for "<<Card(node_childs)+
             " observational nodes");
     Real ok.1 = ModSes.Node.Create
     (
