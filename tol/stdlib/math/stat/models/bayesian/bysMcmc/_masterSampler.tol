@@ -4,40 +4,17 @@
 // PURPOSE: Generic handler for masters in MonteCarlo Markov Chain methods
 //////////////////////////////////////////////////////////////////////////////
 
+
 //////////////////////////////////////////////////////////////////////////////
-Class MasterSampler
+Class SubMasterBlockSampler: BlockSampler
 //////////////////////////////////////////////////////////////////////////////
 {
   //Stores all blocks in expected order
   Set _.blocks;
-  //User configuration parameters
-  BysMcmc::Config _.config;
-  //Messages identifier
-  Text _MID;
 
-  Real _.N = ?;
   Real _.fixedParamNum = ?;
   Real _.reloadParamNum = ?;
   Real _.freeParamNum = ?;
-
-  //Full MCMC partial sampling handler
-  BysMcmc::McmcPartialHandler _.mcmcPartialHandler;
-
-  Set  eval(Matrix values);
-  Text get.name(Real unused);
-  Text get.session(Real unused);
-  Text get.path(Real unused);
-
-  ////////////////////////////////////////////////////////////////////////////
-  Set get.colNames(Real unused) 
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    Set gcn(BysMcmc::BlockSampler blk)
-    {
-      blk::_.colNames
-    };
-    BinGroup("<<",EvalSet(_.blocks, gcn))
-  };
 
   ////////////////////////////////////////////////////////////////////////////
   Set get.fixedParam(Real unused) 
@@ -61,30 +38,6 @@ Class MasterSampler
     BinGroup("<<",EvalSet(_.blocks, grp))
   };
 
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.define =
-  "";
-  Real define(Real unused)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real _.N := 0; 
-    Real _.fixedParamNum := 0;
-    Real _.reloadParamNum := 0;
-    Real count.blk(BysMcmc::BlockSampler blk)
-    {
-      Real _.N := _.N + blk::_.N; 
-      Real _.fixedParamNum := _.fixedParamNum + 
-                              Card(blk::_.partialSampler::_.fixedParam); 
-      Real _.reloadParamNum := _.reloadParamNum + 
-                              Card(blk::_.partialSampler::_.reloadParam);
-      1
-    };
-    Set EvalSet(_.blocks, count.blk);
-    Real _.freeParamNum := _.N - (_.fixedParamNum + _.reloadParamNum);
-    1
-  };
-
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.initialize.blocks =
   "Applies initialize method for each block";
@@ -105,7 +58,9 @@ Class MasterSampler
       blk::initialize(0)
     };
     
-    SetMin(EvalSet(_.blocks, init.blk))
+    Set EvalSet(_.blocks, init.blk);
+    Real _.freeParamNum := _.N - (_.fixedParamNum + _.reloadParamNum);
+    1
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -161,6 +116,33 @@ Class MasterSampler
     setStore.blocks(values) 
   }
 
+
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Class MasterSampler: SubMasterBlockSampler
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Stores all blocks in expected order
+  Set _.blocks;
+
+  Set  eval(Matrix values);
+  Text get.name(Real unused);
+  Text get.session(Real unused);
+  Text get.path(Real unused);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Set get.colNames(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    Set gcn(BysMcmc::BlockSampler blk)
+    {
+      blk::_.colNames
+    };
+    BinGroup("<<",EvalSet(_.blocks, gcn))
+  }
+
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -183,3 +165,5 @@ MasterSampler NoMasterSample(Real unused)
   VMatrix draw(Real numSim) { ? };
   Real setStore(Matrix values) { ? } ]]
 };
+
+/* */
