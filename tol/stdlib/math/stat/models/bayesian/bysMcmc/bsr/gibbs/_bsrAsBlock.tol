@@ -55,7 +55,6 @@ Text _.autodoc.member.BsrAsBlock =
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE BsrAsBlock::setStore("<<Rows(values)+"x"<<Columns(values)+")");   
     putStore(values);
     _.bsr::setStore(values)
   }
