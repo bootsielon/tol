@@ -21,10 +21,10 @@ Text _.autodoc.member.NonLinBlock =
 "    Set get.bounds(i,u): Returns left and right bounds for i-th \n"
 "      parameter for current values of the rest of them.\n"
 "    Matrix eval(Matrix param): Returns the filter matrix\n"
-"  NameBlock bsr: Result of calling BsrAsBlock\n"
+"  MasterSampler bsr: Result of calling BasicMaster\n"
 "  Real numBlock: The order of this block in full MCMC.\n"
 "  Real firstCol: First column of this block in full MCMC\n"
-"  NameBlock config: User configuration parameters\n";
+"  Config config: User configuration parameters\n";
 //////////////////////////////////////////////////////////////////////////////
   BlockSampler NonLinBlock(
     //Filter evaluator
