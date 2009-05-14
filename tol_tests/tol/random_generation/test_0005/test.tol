@@ -89,7 +89,7 @@
   //WriteLn("TRACE Alternative expression for Almagro method");
     NameBlock ev.almagro.2 = ARMAProcess::Eval.Almagro(ar, ma, z_, 1);
     Real lgDns_z.almagro.2 = ev.almagro.2::_.logLH;
-    [[lgDns_b, lgDns_z.almagro.2, lgDns_z.almagro.2, lgDns_z.levinson]]
+    [[lgDns_b, lgDns_z.almagro.1, lgDns_z.almagro.2, lgDns_z.levinson]]
   }));
 
   //logarithm of density of linear regression parameters
