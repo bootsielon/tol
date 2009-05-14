@@ -967,10 +967,16 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         }
         else if(tol_type == BGI_Set)
         {
+          BContensSet* uSet = new BContensSet;
+          uSet->PutDescription(description);
+          uSet->PutName(name);
+          readed_[found].PutObject(uSet);
           BINT64 offset;
           ERead(offset, object_);
           set_->SetPos(offset);
-          ERead(s, set_);  BSet x; x.PrepareStore(s);
+          ERead(s, set_);  
+          BSet& x = uSet->Contens(); 
+          x.PrepareStore(s);
           char sbt; ERead(sbt, set_);
           x.PutSubType(BSet::BSubType(sbt));
           BSetFromFile* sff = NULL;
@@ -997,6 +1003,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             BSyntaxObject* r = ReadNextObject(); 
             if(!r || (r->Mode()!=BSTRUCTMODE)) 
             { 
+              delete uSet;
               return(NullError("FATAL BOisLoader::ReadNextObject: cannot build structure of set")); 
             } 
             str = (BStruct*)r;
@@ -1009,6 +1016,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             r = ReadNextObject();
             if(!r) 
             { 
+              delete uSet;
               return(NullError("BOisLoader::ReadNextObject: NULL element of set ")); 
             } 
             if(r) 
@@ -1023,10 +1031,11 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             BSourcePath::SetCurrent(oldSource);
             result = GraSet()->New("", sff);
             result->PutDescription(description);
+            delete uSet; 
           }
           else
           {
-            result = new BContensSet("", x, description);
+            result = uSet;
           }
           result=PutVariableName(result,name,is_referenceable);
         }  
@@ -1039,6 +1048,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           set_->SetPos(offset);
           ERead(s, set_);  
           BUserNameBlock* unb = new BGraContensP<BNameBlock>(new BNameBlock);
+          unb->PutName(name);
+          readed_[found].PutObject(unb);
           BNameBlock& x = unb->Contens(); 
           x.Set().PrepareStore(s);
           char sbt; ERead(sbt, set_);
