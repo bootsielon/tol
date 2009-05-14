@@ -10,18 +10,17 @@ Text _.autodoc.member.BsrAsBlock =
 "Builds a NameBlock that can draw a Gibbs sample of a full BSR used as block "
 "of any other simulator.";
 //////////////////////////////////////////////////////////////////////////////
-  BlockSampler BsrAsBlock(NameBlock bsrInstance, 
+  BlockSampler BsrAsBlock(MasterSampler bsrInstance, 
                           Real numBlock, 
                           Real firstCol,
                           NameBlock  config)
 //////////////////////////////////////////////////////////////////////////////
 {
   BysMcmc::BlockSampler blk = [[
-  NameBlock _.bsr = bsrInstance;
+  BysMcmc::MasterSampler _.bsr = bsrInstance;
   //Defining the block in the Markov Chain
   Real _define = 
   {
-    Real _.bsr::define(0);
     define(
     _.bsr::get.name(0),
     _.bsr::get.colNames(0);

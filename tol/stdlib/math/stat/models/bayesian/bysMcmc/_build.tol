@@ -51,7 +51,6 @@ Class Cycler
 
   Real define(Real unused)
   {
-    Real _.sampler::define(0);
     //Stores the sampler name
     Text _.name := _.sampler::get.name(0)+"."+_.sampler::get.session(0);
     //Puts the Markov Chain path relative to sampler path
