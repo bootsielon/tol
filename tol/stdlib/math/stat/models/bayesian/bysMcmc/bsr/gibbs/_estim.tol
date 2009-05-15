@@ -25,12 +25,12 @@ Cycler GetCyclerFromParsed(BSR.ModelDef parsed,
   {
     WriteLn("[BSR] Using Basic Master");
     BysMcmc::Bsr::Gibbs::BasicMaster(
-      parsed, mcmcPartialHandler, config)
+      parsed, mcmcPartialHandler, 1, 1, config)
   },
   {
     WriteLn("[BSR] Using Non Linear Filter Extended Master");
     BysMcmc::Bsr::Gibbs::NonLinMaster(
-      parsed, mcmcPartialHandler, nonLinFilter, config)
+      parsed, mcmcPartialHandler, nonLinFilter, 1, 1, config)
   });	
 
   BysMcmc::Cycler cycler = [[
