@@ -39,6 +39,44 @@ Class SubMasterBlockSampler: BlockSampler
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.define =
+  "Creates common information handler about each MCMC block"
+  "Arguments are:\n"
+  "  Text name: Identifies the block.\n"
+  "  Set colNames: Identifiers of block parameters that must be all unique.\n"
+  "  McmcPartialHandler mcmcPartialHandler: partial simulation info.\n"
+  "  Real numBlock: The position of this block in full MCMC.\n"
+  "  Real firstCol: First column of this block in full MCMC\n"
+  "  NameBlock config: User configuration parameters\n";
+  Real define(Text name, 
+              Set colNames, 
+              BysMcmc::McmcPartialHandler mcmcPartialHandler,
+              Real numBlock, 
+              Real firstCol,
+              BysMcmc::Config config)
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    Text _.name := name;
+    Text _MID := "[MasterSampler "+name+"] ";
+    Real _.N := Card(colNames);
+    Real If(_.N, {
+      Real GT0 (Real idx) { idx>0 };
+      Set _.colNames := SetTolNameAndIndex(colNames);
+      Real SetIndexByName(_.colNames);
+      1
+    });
+    Real _.numBlock := numBlock;
+    Real _.firstCol := firstCol;
+    Real _.lastCol  := firstCol+_.N-1;
+    Set _.colIdx := Range(_.firstCol, _.lastCol, 1);
+    BysMcmc::Config _.config := config;
+    VMatrix If(Or(!_.N, VRows(_.store)!=_.N), _.store := Rand(_.N,1,0,0), _.store);
+    WriteLn(_MID+" created with "<<
+       _.N+" parameters from "<<_.firstCol+" to "<<_.lastCol+"");
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.initialize.blocks =
   "Applies initialize method for each block";
   Real initialize.blocks(Real unused)
@@ -54,7 +92,6 @@ Class SubMasterBlockSampler: BlockSampler
                               Card(blk::_.partialSampler::_.fixedParam); 
       Real _.reloadParamNum := _.reloadParamNum + 
                               Card(blk::_.partialSampler::_.reloadParam); 
-      Real _.N := _.N + blk::_.N; 
       blk::initialize(0)
     };
     
@@ -106,6 +143,13 @@ Class SubMasterBlockSampler: BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   {
     draw.blocks(numSim) 
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix get.draw(Real numSim, Real force)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    draw(numSim) 
   };
 
   ////////////////////////////////////////////////////////////////////////////
