@@ -10,18 +10,13 @@ Text _.autodoc.member.BasicMaster =
 "Regression model";
 MasterSampler BasicMaster(BSR.ModelDef modelDef, 
                           McmcPartialHandler mcmcPartialHandler,
+                          Real numBlock, 
+                          Real firstCol,
                           Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Text name = modelDef->DocInfo->Model.Name; 
   BysMcmc::MasterSampler master = [[
-
-  //Full MCMC partial sampling handler
-  BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;
-
-  //--------------------------------------------------------------------------
-  // Configuration members
-  //--------------------------------------------------------------------------
-  BysMcmc::Config _.config = config;
 
   //--------------------------------------------------------------------------
   // Read only members
@@ -34,7 +29,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
   //Output after external filters
   VMatrix _.Y = _.modelDef->Y;
 
-  Text _.name = _.modelDef->DocInfo->Model.Name;  
+  BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;
 
   Text get.name(Real unused) 
   { 
@@ -50,62 +45,61 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
   }; 
 
   //Setting NameBlock description
-  Text _.autodoc.description="Gibbs sampler for model "+_.name;
-  Text _MID = "[BSR."+_.name+"] ";
+  Text _.autodoc.description="Gibbs sampler for model "+name;
 
   BysMcmc::Bsr::Gibbs::StdLinearBlock _.mln.blk = 
   BysMcmc::Bsr::Gibbs::MainLinearBlock
   (
-    "BSR.MainLinBlock."+_.name,
+    "BSR.MainLinBlock."+name,
     EvalSet(_.modelDef->LinearBlock, Text(BSR.LinearBlock b){ b->Name }),
-    _.mcmcPartialHandler,
+    mcmcPartialHandler,
     1,
-    1,
-    _.config
+    firstCol,
+    config
   );
 
   BysMcmc::BlockSampler _.sig.blk = 
   BysMcmc::Bsr::Gibbs::SigmaBlock
   (
-    "BSR.SigmaBlock."+_.name,
+    "BSR.SigmaBlock."+name,
     _.modelDef->NoiseDistrib,
-    _.mcmcPartialHandler,
+    mcmcPartialHandler,
     2,
     _.mln.blk::_.lastCol+1,
-    _.config
+    config
   );
 
   BysMcmc::BlockSampler _.arm.blk = 
   BysMcmc::Bsr::Gibbs::ArimaBlock
   (
-    "BSR.ArimaBlock."+_.name,
+    "BSR.ArimaBlock."+name,
     _.modelDef->NoiseDistrib,
-    _.mcmcPartialHandler,
+    mcmcPartialHandler,
     3, 
     _.sig.blk::_.lastCol+1,
-    _.config
+    config
   );
 
   BysMcmc::Bsr::Gibbs::StdLinearBlock _.inpMis.blk = 
   BysMcmc::Bsr::Gibbs::InputMissingBlock
   (
-    "BSR.InputMissingBlock."+_.name,
+    "BSR.InputMissingBlock."+name,
     _.modelDef->InputMissingBlock,
-    _.mcmcPartialHandler,
+    mcmcPartialHandler,
     4,
     _.arm.blk::_.lastCol+1,
-    _.config
+    config
   );
 
   BysMcmc::Bsr::Gibbs::StdLinearBlock _.outMis.blk = 
   BysMcmc::Bsr::Gibbs::OutputMissingBlock
   (
-    "BSR.OutputMissingBlock."+_.name,
+    "BSR.OutputMissingBlock."+name,
     _.modelDef->OutputMissingBlock,
-    _.mcmcPartialHandler,
+    mcmcPartialHandler,
     5,
     _.inpMis.blk::_.lastCol+1,
-    _.config
+    config
   );
 
   Set _.blocks =
@@ -116,6 +110,14 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
     _.inpMis.blk,
     _.outMis.blk
   ]];
+
+  Real _defined = define(
+    name,
+    get.colNames(0),
+    _.mcmcPartialHandler,
+    numBlock,
+    firstCol,
+    config);
 
   //Output filtered by missing values
   VMatrix _.YplusV = Rand(0,0,0,0);
@@ -271,6 +273,7 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_.name+"::setStore("<<Rows(values)+"x"<<Columns(values)+")");   
+    putStore(values);
     setStore.blocks(values) 
   };
 
@@ -355,11 +358,13 @@ MasterSampler BasicMaster(BSR.ModelDef modelDef,
       Real If(_.mln.blk::_.partialSampler::_.freeParamNum,
       {
         Real _.mln.blk::_.buildWorkSpace(_Y, _X, _.arm.blk)
-     });
-     _.mln.blk::get.draw(numSim, False)
-   });
+      });
+      _.mln.blk::get.draw(numSim, False)
+    });
   //WriteLn("TRACE"+_MID+" draw.sig.lin 6 _.beta="<<_.beta);
-    _.beta << sig << arm << im << om
+    VMatrix param = _.beta << sig << arm << im << om;
+    Real putStoreV(param);
+    param
   };
 
 

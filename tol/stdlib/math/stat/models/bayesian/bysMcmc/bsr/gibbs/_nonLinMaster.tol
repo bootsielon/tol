@@ -11,23 +11,23 @@ Text _.autodoc.member.NonLinMaster =
 MasterSampler NonLinMaster(BSR.ModelDef modelDef, 
                            McmcPartialHandler mcmcPartialHandler,
                            Set nonLinFilter,
+                           Real numBlock, 
+                           Real firstCol,
                            Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Text name = modelDef->DocInfo->Model.Name;
   BysMcmc::MasterSampler master = [[
 
   //Full MCMC partial sampling handler
   BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;    
 
-  BysMcmc::Config _.config = config;
   //--------------------------------------------------------------------------
   // Read only members
   //--------------------------------------------------------------------------
   //The basic BSR master
   BysMcmc::MasterSampler _.bsrMst = BysMcmc::Bsr::Gibbs::BasicMaster(
-    modelDef, mcmcPartialHandler, config);
-  //Model identifier is inherited from basic BSR
-  Text _.name = modelDef->DocInfo->Model.Name;  
+    modelDef, mcmcPartialHandler, numBlock, firstCol, config);
 
   Text get.name(Real unused) 
   { 
@@ -43,33 +43,20 @@ MasterSampler NonLinMaster(BSR.ModelDef modelDef,
   }; 
 
   //Setting NameBlock description
-  Text _.autodoc.description="Gibbs sampler for model "+_.name;
-  //Identifier prefix for messages
-  Text _MID = "[NLBSR."+_.name+"] ";
-  //The basic BSR master used as a block
-  BysMcmc::BlockSampler _.bsrBlk = BysMcmc::Bsr::Gibbs::BsrAsBlock
-  (
-    _.bsrMst,
-    1,
-    1,
-    config
-  );
+  Text _.autodoc.description="Gibbs sampler for model "+name;
   //The non linear blocks created from given filters
   Set _.nonLinBlk = 
   {
-  //WriteLn("TRACE "+_MID+"::_.nonLinBlk 1 Card(nonLinFilter)="<<Card(nonLinFilter));
-    Real firstCol = Card(_.bsrMst::get.colNames(0))+1;
-  //WriteLn("TRACE "+_MID+"::_.nonLinBlk 2 firstCol="<<firstCol);
+    Real nextCol = _.bsrMst::_.N+firstCol;
     Set aux = For(1,Card(nonLinFilter), NameBlock(Real numBlk)
     {
-    //WriteLn("TRACE "+_MID+"::_.nonLinBlk 3.1 numBlk="<<numBlk);
       NameBlock nlf = nonLinFilter[numBlk];
       BysMcmc::BlockSampler nlb = BysMcmc::Bsr::Gibbs::NonLinBlock
       (
         nlf, 
         _.bsrMst,
-        numBlk+1, 
-        firstCol,
+        numBlk+numBlock, 
+        nextCol,
         config
       );
       Real If(ObjectExist("Set","nlf::_.externalInfo"),
@@ -77,13 +64,21 @@ MasterSampler NonLinMaster(BSR.ModelDef modelDef,
         Set nlf::_.externalInfo := [[ _.bsrMst, nlb ]];
         1
       });
-      Real firstCol := nlb::_.lastCol+1;
+      Real nextCol := nlb::_.lastCol+1;
       Eval(ToName(nlb::_.name)+"=nlb")
     });
     aux
   };
   //All blocks in expected order
-  Set _.blocks = [[ _.bsrBlk ]] << _.nonLinBlk;
+  Set _.blocks = [[ _.bsrMst ]] << _.nonLinBlk;
+
+  Real _defined = define(
+    name,
+    get.colNames(0);
+    _.mcmcPartialHandler,
+    numBlock,
+    firstCol,
+    config);
 
   ////////////////////////////////////////////////////////////////////////////
   Real initialize(Real unused)
