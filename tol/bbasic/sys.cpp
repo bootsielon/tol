@@ -80,6 +80,10 @@ static BText Buil_TolAppData_()
     BSys::MkDir(tolAppData_+"OIS",          true);
     BSys::MkDir(tolAppData_+"tests_results",true);
     tolAppData_ = GetStandardAbsolutePath(tolAppData_);
+    int ll = tolAppData_.Length();
+    if ( ll && tolAppData_.String()[ ll - 1 ] != '/' ) {
+      tolAppData_ += '/';
+    }
   }
   return(tolAppData_);
 }
@@ -271,7 +275,11 @@ BText BSys::TempNam(const BText& outputDir,
   if(!BDir::CheckIsDir(dir))
   {
   //Std(BText("\nBSys::TempNam 4 dir = ")+dir);
+#ifdef UNIX
+    mkdir(dir, 01777);
+#else
     mkdir(dir);
+#endif
   }
 //Std(BText("\nBSys::TempNam 5 dir = ")+dir);
   BInt attempts = 0;
