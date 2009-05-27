@@ -1520,6 +1520,8 @@ istream& operator>> (istream& is, BText& txt)
   return(is);
 }
 
+#define READ_CRLF_AS_LF 
+
 
 //--------------------------------------------------------------------
 void BText::GetLine(istream& is, BInt maxChars, BChar until)
@@ -1542,9 +1544,17 @@ void BText::GetLine(istream& is, BInt maxChars, BChar until)
   }
   length_ = 0;
   BChar ch  = ' ';
+  bool untilIsLF = until=='\n';
   for(;(length_<=maxChars)&&(ch!=until)&&(ch!='\0')&&(!is.eof()); length_++)
   {
     is.get(ch);
+#   ifdef READ_CRLF_AS_LF
+    if(untilIsLF && (ch == '\r')&&(!is.eof()))
+    {
+      is.get(ch);
+      if(ch!='\n') { is.unget(); ch = '\r'; }
+    }
+#   endif
     buffer_[length_] = ch;
   }
   if(ch==until) { length_--; }
@@ -1573,16 +1583,23 @@ void BText::GetLine(FILE* file, BInt maxChars, BChar until)
     AllocItems(maxChars+1);
   }
   length_ = 0;
-  BChar ch  = ' ';
+  BChar ch  = ' ', c;
+  bool untilIsLF = until=='\n';
   for(;(length_<=maxChars)&&(ch!=until)&&(ch!='\0')&&(!feof(file)); length_++)
   {
     ch = fgetc(file);
+#   ifdef READ_CRLF_AS_LF
+    if(untilIsLF && (ch == '\r')&&(!feof(file)))
+    {
+      ch = fgetc(file);
+      if(ch!='\n') { ungetc(c, file); ch = '\r'; }
+    }
+#   endif
     buffer_[length_] = ch;
   }
   if(ch==until) { length_--; }
   if(ch=='\0')  { length_--; }
   buffer_[length_] = '\0';
-
 }
 
 //--------------------------------------------------------------------
@@ -1662,6 +1679,7 @@ BInt Read(istream& is, BText& txt, BInt size, BChar end)
   txt.PutLength(0);
   txt.ReallocateBuffer(size);
   BInt n=-1;
+  char ch;
   do
   {
     n++;
@@ -1671,7 +1689,15 @@ BInt Read(istream& is, BText& txt, BInt size, BChar end)
       txt.PutLength(n);
       txt.ReallocateBuffer(size);
     }
-    txt.PutChar(n,(BChar)is.get());
+    ch = (BChar)is.get();
+#   ifdef READ_CRLF_AS_LF
+    if((ch == '\r')&&(!is.eof()))
+    {
+      ch = is.get();
+      if(ch!='\n') { is.unget(); ch = '\r'; }
+    }
+#   endif
+    txt.PutChar(n,ch);
   }
   while(!(is.eof()) && (txt.String()[n]!=end));
   txt.PutLength(n++);
