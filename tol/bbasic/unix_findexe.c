@@ -159,6 +159,7 @@ TolFindExecutable(const char *argv0)
       p++;
     }
     buffer = &_buffer[0];
+    *buffer = '\0';
     if (p != name) {
       strncat(buffer, name, p - name);
       //Tcl_DStringAppend(&buffer, name, p - name);
