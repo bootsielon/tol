@@ -970,7 +970,7 @@ static bool ReadHeaderToken(BText&	tok, const BText& header,
 //--------------------------------------------------------------------
 {
   if(endHeader) { return(true); }
-  int numChar;
+  int numChar=0;
   BChar buf[1024*8];
   buf[0]='\0';
   sscanf(header.String()+pos, "%s%n", buf, &numChar);
