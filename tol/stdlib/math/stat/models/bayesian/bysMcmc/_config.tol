@@ -73,7 +73,7 @@ Class Config
   //Try order for constrained max likelihood solution to start MCMC
   Real bsr.iniVal.try.cnstrMLE = 4;
   //If solution error is great than this value a warning will be shown
-  Real bsr.cholesky.epsilon = 1.E-13;
+  Real bsr.cholesky.epsilon = 1.E-16;
   //The notifying frequency of Cholesky warning
   Real bsr.cholesky.warningFreq = 100;
   //The number of burnin realizations in Gibbs drawing of truncated 
