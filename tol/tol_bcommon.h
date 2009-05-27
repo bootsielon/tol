@@ -26,6 +26,18 @@
 #  include <tol/config.h>
 #endif
 
+/* Test for GCC > 4.3.0
+   
+   #if GCC_VERSION > 40300
+*/
+#ifdef __GNUC__
+#define GCC_VERSION (__GNUC__ * 10000 \
+                               + __GNUC_MINOR__ * 100 \
+                               + __GNUC_PATCHLEVEL__)
+#else
+#define GCC_VERSION 0
+#endif
+
 #ifndef OPENFLAG 
 #  if (defined(UNIX) || (defined(_MSC_VER) && (_MSC_VER>=1300)))
 #    define OPENFLAG ios::in

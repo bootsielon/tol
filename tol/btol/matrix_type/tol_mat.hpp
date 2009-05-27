@@ -24,6 +24,10 @@
 # include <values.h>
 #endif
 
+#if GCC_VERSION >= 40300
+#include <limits>
+#endif
+
 //--------------------------------------------------------------------
 template <class Any>
 Any& BMatrix<Any>::NullValue ()

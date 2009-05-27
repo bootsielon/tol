@@ -32,7 +32,7 @@ END_DECLS
 #include <tol/tol_matrix.h>
 
 extern "C" {
-  void cblas_xerbla(int p, char *rout, char *form, ...);
+  void cblas_xerbla(int p, const char *rout, const char *form, ...);
 }
 
 /////////////////////////////////////////////////////////////////////////////
