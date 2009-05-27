@@ -23,22 +23,20 @@
   Real While(!end,
   {
     Text line = FGetText(input,100,"\n");
-    Real end = FEof(input);
-    If(!end,
+    Real end := FEof(input);
+    If(!end, {
+    Real p = TextFind(line,":");
+  //WriteLn("TRACE line='"+line+"' eof = "<<FEof(input));
+    Real If(p, 
     {
-      Real p = TextFind(line,":");
-    //WriteLn("TRACE line='"+line+"' eof = "<<FEof(input));
-      Real If(p, 
-      {
-        Text first_field := Sub(line,1,p-1);
-      //WriteLn("TRACE Processing first_field "+first_field);
-        0
-      },
-      {
-        FPutText(output, first_field+","+line+",\n")
-      })
-    })
-  });
+      Text first_field := Sub(line,1,p-1);
+    //WriteLn("TRACE Processing first_field "+first_field);
+      0
+    },
+    {
+      FPutText(output, first_field+","+line+",\n")
+    }) })
+});
 
   Real FClose(output);
   Real FClose(input);
@@ -46,8 +44,7 @@
   Text txt1 = ReadFile(outputCheckPath);
   Text txt2 = ReadFile(outputPath);
   Real okOutput = txt1 == txt2;
-
-  Real OSFilRemove(outputPath);
+//Real OSFilRemove(outputPath);
 
 //Extented information about test behaviour
   Set partialResults_ = 
