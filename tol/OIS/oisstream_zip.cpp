@@ -30,6 +30,7 @@
 #include <tol/tol_bdir.h>
 #include <tol/tol_btimer.h>
 #include <tol/tol_oisstream_zip.h>
+#include <zlib/zlib.h>
 
 #if defined(UNIX)
 #include <unistd.h>
@@ -161,7 +162,6 @@ public:
     ShowCatchedException(ex, sh_.Connection()+"/"+name_, sh_.zip_);
     isOk_ = false;
   }
-# ifndef NDEBUG
   if(!isOk_)
   {
     Warning(I2("Cannot open file ","No se puede abrir ")+name_+
@@ -169,7 +169,6 @@ public:
             I2(" from current ZIP ", " desde el ZIP en curso ")+
             sh_.Connection());
   }
-# endif
   index_ = index;
   zaEndTimer();
   return(isOk_);
@@ -188,7 +187,7 @@ public:
   {
     CZipFileHeader* header = zip->CentralDir()[index_];
     header->SetTime(time);
-    sh_.zip_.Flush();
+    sh_.zip_.FlushBuffers();
   }
   catch(CZipException ex)
   {
@@ -234,7 +233,7 @@ public:
 			//luego todo parece funcionar bien.
       //assert(index_>=0);
     }
-		sh_.zip_.Flush();
+		sh_.zip_.FlushBuffers();
 	}
   catch(CZipException ex)
   {
@@ -449,16 +448,14 @@ const BINT64& BZipStream::GetPos()
       {
         zip_.Open(connection_.String(), CZipArchive::zipCreate);
       }
-      zip_.Flush();
+      zip_.FlushBuffers();
       connected_ = CheckIsFile(connection_)!=0;
     }
     if(!connected_)
     { 
-  #   ifndef NDEBUG
       BText msg = I2("Cannot ","No se puede ")+action+" ZIP "+connection_;
       if(errorWarning) { Error(msg); }
       else             { Warning(msg); }
-  #   endif
     }
     else
     {
@@ -483,7 +480,7 @@ const BINT64& BZipStream::GetPos()
 //Std(BText("\nClosing ZIP ")+connection_);
   try
   {
-    zip_.Flush();
+    zip_.FlushBuffers();
     zip_.Close(CZipArchive::afNoException, openMode_==BSHOM_WRITE);
   }
   catch(CZipException ex)
@@ -549,7 +546,7 @@ const BINT64& BZipStream::GetPos()
   }
   try
   {
-    zip_.DeleteFiles(files_);
+    zip_.RemoveFiles(files_);
   }
   catch(CZipException ex)
   {
