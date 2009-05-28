@@ -11,7 +11,7 @@ Text _.autodoc.member.NonLinBlock =
 "defined by a non linear filter over the output or a set of inputs of a "
 "given BSR model.\n"
 "Arguments are:\n"
-"  NameBlock filterEval: Evaluates the non linear filter of inputs or "
+"  NameBlock usrFilter: Evaluates the non linear filter of inputs or "
    "output. Must have next mandatory methods:\n"
 "    Text get.name(Real unused): Identifies the filter\n"
 "    Text get.segmentName(Real unused): Identifies the segment\n"
@@ -28,7 +28,7 @@ Text _.autodoc.member.NonLinBlock =
 //////////////////////////////////////////////////////////////////////////////
   BlockSampler NonLinBlock(
     //Filter evaluator
-    NameBlock filterEval, 
+    NameBlock usrFilter, 
     //Basic BSR that will be modified by filter
     NameBlock bsr,
     //Number of block in non linear master
@@ -46,20 +46,20 @@ Text _.autodoc.member.NonLinBlock =
   //Basic BSR that will be modified by filter
   NameBlock _.bsr = bsr;
   //Filter evaluator
-  NameBlock _.filterEval = filterEval;
+  NameBlock _.filter = usrFilter;
   
   //Defining the block in the Markov Chain
   Real _defined = define
   (
-    _.filterEval::get.name(0),
-    _.filterEval::get.colNames(0),
+    _.filter::get.name(0),
+    _.filter::get.colNames(0),
     bsr::_.mcmcPartialHandler,
     numBlock,
     firstCol,
     config
   );
   //Name of affected segment in BSR
-  Text _.segmentName = _.filterEval::get.segmentName(0);
+  Text _.segmentName = _.filter::get.segmentName(0);
   //Number of affected segment in BSR
   Real _.segmentNum = FindIndexByName((_.bsr::_.modelDef)->NoiseDistrib,
                                       _.segmentName);
@@ -77,39 +77,40 @@ Text _.autodoc.member.NonLinBlock =
     ((_.bsr::_.modelDef)->NoiseDistrib)[_.segmentNum]
   });
   //For input filters is +1, for output ones -1
-  Real _.isInputFilter = If(FunctionExist("Set","_.filterEval::get.linBlkNames"),
+  Real _.isInputFilter = If(FunctionExist("Set","_.filter::get.linBlkNames"),
   {
-    If(Card(_.filterEval::get.linBlkNames(0)),1,0)
+    If(Card(_.filter::get.linBlkNames(0)),1,0)
   },
   {
     0
   });
-  //Default value for marginal draw
-  Matrix _defaultMarginalDraw = Rand(Card(_.colNames), 1, ?, ?);
+  //Default value for custom partial draw
+  Matrix _default.custom.partial.draw = Rand(Card(_.colNames), 1, ?, ?);
   //Optional filter method to be called before to call draw.scalar
   //This method will be called just before to call draw method of corresponding 
   //internal non linear block in order to select which parameters will be drawn. 
-  //It will return a matrix with marginal sampling in selected indexes and ? in
+  //It will return a matrix with custom partial sampling in selected indexes and ? in
   //other ones that will be sampled by non linear block in the standard way
-  Code _.marginalDraw = If(FunctionExist("Matrix","_.filterEval::marginalDraw"),
+  Code _.custom.partial.draw = If(
+  FunctionExist("Matrix","_.filter::custom.partial.draw"),
   {
-    WriteLn(_MID+"Using specified marginalDraw method");
-    _.filterEval::marginalDraw
+    WriteLn(_MID+"Using specified custom.partial.draw method");
+    _.filter::custom.partial.draw
   },
   {
-    WriteLn(_MID+"Using default marginalDraw method");
-    Matrix marginalDraw(Real unused) { _defaultMarginalDraw } 
+    WriteLn(_MID+"Using default custom.partial.draw method");
+    Matrix custom.partial.draw(Real unused) { _default.custom.partial.draw } 
   });
   //Optional filter method that returns log of prior density for one parameter
   //Real get.priorLogDens(Real paramIdx)
-  Code _.get.priorLogDens = If(FunctionExist("Real","_.filterEval::get.priorLogDens"),
-    _.filterEval::get.priorLogDens,
+  Code _.get.priorLogDens = If(FunctionExist("Real","_.filter::get.priorLogDens"),
+    _.filter::get.priorLogDens,
     Real (Real paramIdx) { 0 } );
   //Names of affected parameters in linear block 
   //(just for input filters)
   Set _.linBlkNames = If(!_.isInputFilter, Copy(Empty),
   {
-    _.filterEval::get.linBlkNames(0)
+    _.filter::get.linBlkNames(0)
   });
   //Positions of columns of affected parameters in linear block 
   //(just for input filters)
@@ -130,11 +131,106 @@ Text _.autodoc.member.NonLinBlock =
   Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real ok = _.filterEval::initialize(0);
-    Real setStore(_.filterEval::get.parameter(0));
+    Real ok = _.filter::initialize(0);
+    Real setStore(_.filter::get.parameter(0));
     ok
   };
   
+  ///////////////////////////////////////////////////////////////////////////
+    NameBlock get.evaluator(Real  unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Set segment = _.segment;
+    Set aux     = _.segment->ArimaAuxInfo;
+    Set arima   = _.segment->Arima;
+    NameBlock sigBlk    = _.bsr::_.sig.blk;
+    VMatrix si = SubRow(SubCol(sigBlk::_.sigmaInv,
+                _.segment->EquIdx), _.segment->EquIdx);
+
+    NameBlock bsr = _.bsr;
+    NameBlock filter = _.filter;
+    Matrix u = VMat2Mat(_.store);
+    Matrix omega= If(!_.isInputFilter, Col(1),
+      SubRow(VMat2Mat(_.bsr::_.mln.blk::_.store), _.filterColIdx));
+
+    Matrix _.W := VMat2Mat(SubRow(bsr::_.noise,_.segment->EquIdx));
+    Matrix _.Z := _.W + _.Fi * omega;
+    Matrix Z = _.Z;
+
+    Code _getPriorLogDens = _.get.priorLogDens;
+
+    NameBlock [[
+    Set       _.segment   = segment;
+    VMatrix   _.fullNoise = bsr::_.noise;
+    NameBlock _.arimaBlk  = bsr::_.arm.blk;
+    NameBlock _.sigBlk    = bsr::_.sig.blk;
+    Code _filterEval     = filter::eval;
+    Code _get.priorLogDens = _getPriorLogDens;
+    Matrix _.u = u;
+    Matrix _.omega= omega;
+    Matrix _.Z = Z;
+
+    VMatrix _.si = si;
+    Polyn _.dif   = ARIMAGetDIF(arima);
+    Real _.d = aux::difDegree;
+    Real _.p = aux::p;
+    Real _.q = aux::q;
+    Real _.m = aux::m;
+    Real _.n = _.m - _.d;
+
+    //Parameter index
+    Real _.i = 1;
+    
+    Matrix EvalFilteredNoise(Real x)
+    {
+      Real old = MatDat(_.u,_.i,1);
+      Real Do PutMatDat(_.u,_.i,1,x);
+      Matrix Fi = _filterEval(_.u);
+      Real Do PutMatDat(_.u,_.i,1,old);
+      Matrix fn = VMat2Mat(_.si*Mat2VMat(_.Z-Fi*_.omega));
+      fn
+    };
+    Real LogDens.WhiteNoise(Real x)
+    {
+      Matrix ei = EvalFilteredNoise(x);
+      Real ld = -0.5*MatDat(MtMSqr(ei),1,1);
+    //WriteLn("TRACE LogDens.WhiteNoise("+_.colNames[_.i]+","<<x+")="<<ld);
+      ld+_get.priorLogDens(_.i)
+    };
+    Real LogDens.ARMA(Real x)
+    {
+      Matrix Zi = EvalFilteredNoise(x);
+      VMatrix Zi_ = Mat2VMat(Zi);
+      VMatrix ei_ = _.arimaBlk::filterJustBlock(_.segment, Zi_);
+      Matrix  ei  = VMat2Mat(ei_);
+      Real ld = -0.5*MatDat(MtMSqr(ei),1,1);
+    //WriteLn("TRACE LogDens.ARMA("+_.colNames[_.i]+","<<x+")="<<ld);
+      ld+_get.priorLogDens(_.i)
+    };
+    Real LogDens.ARIMA(Real x)
+    {
+      Matrix Zi = EvalFilteredNoise(x);
+    //WriteLn("TRACE Zi("<<Rows(Zi)+","<<Columns(Zi)+")");
+      Matrix Wi = Rand(_.d,1,0,0) << Sub(DifEq(_.dif/1,Zi),_.d+1,1,_.n,1);
+    //WriteLn("TRACE Wi("<<Rows(Wi)+","<<Columns(Wi)+")");
+      VMatrix Wi_ = Mat2VMat(Wi);
+      VMatrix ei_ = _.arimaBlk::filterJustBlock(_.segment, Wi_);
+    //WriteLn("TRACE ei_("<<VRows(ei_)+","<<VColumns(ei_)+")");
+      Matrix  ei  = VMat2Mat(Sub(ei_,_.d+1,1,_.n,1));
+    //WriteLn("TRACE ei("<<Rows(ei)+","<<Columns(ei)+")");
+      Real ld = -0.5*MatDat(MtMSqr(ei),1,1);
+    //WriteLn("TRACE LogDens.ARIMA("+_.colNames[_.i]+","<<x+")="<<ld);
+      ld+_get.priorLogDens(_.i)
+    };
+    Code LogDens = Case(
+      Or(Not(_.arimaBlk::enabled),And(Not(_.p),Not(_.q))), 
+        LogDens.WhiteNoise,
+      _.d==0,                     
+        LogDens.ARMA,
+      1==1,                     
+        LogDens.ARIMA )
+  ]]};
+
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw.scalar =
   "Method of generation of a non linear block by using current scalar method,"
@@ -143,108 +239,29 @@ Text _.autodoc.member.NonLinBlock =
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+"draw.scalar 1 ");
-    VMatrix   fullNoise = _.bsr::_.noise;
-    NameBlock arimaBlk  = _.bsr::_.arm.blk;
-    NameBlock sigBlk    = _.bsr::_.sig.blk;
-    Matrix u = VMat2Mat(_.store);
-  //WriteLn("TRACE"+_MID+"draw.scalar 1.1 _.isInputFilter = "<<_.isInputFilter);
-    Matrix omega= If(!_.isInputFilter, Col(1),
-      SubRow(VMat2Mat(_.bsr::_.mln.blk::_.store), _.filterColIdx));
-  //WriteLn("TRACE"+_MID+"draw.scalar 1.2 omega("<<Rows(omega)+"x"<<Columns(omega));
-  //WriteLn("TRACE"+_MID+"draw.scalar 1.3 _.Fi("<<Rows(_.Fi)+"x"<<Columns(_.Fi));
-    Matrix _.W := VMat2Mat(SubRow(fullNoise,_.segment->EquIdx));
-  //WriteLn("TRACE"+_MID+"draw.scalar 1.4 _.W("<<Rows(_.W)+"x"<<Columns(_.W));
-    Matrix _.Z := _.W + _.Fi * omega;
-  //WriteLn("TRACE"+_MID+"draw.scalar 1.5 _.Z("<<Rows(_.Z)+"x"<<Columns(_.Z));
-    Set segment = _.segment;
-    Set aux     = _.segment->ArimaAuxInfo;
-    Set arima   = _.segment->Arima;
-    Polyn dif   = ARIMAGetDIF(arima);
-    //
-    VMatrix si = SubRow(SubCol(sigBlk::_.sigmaInv,_.segment->EquIdx),_.segment->EquIdx);
-    Real d = aux::difDegree;
-    Real p = aux::p;
-    Real q = aux::q;
-    Real m = aux::m;
-    Real n = m - d;
+
   //WriteLn("TRACE"+_MID+"draw.scalar 1.6 d="<<d+" p="<<p+" q="<<q+" m="<<m+" n="<<n);
   //WriteLn("TRACE"+_MID+"draw.scalar 2");
-    Matrix mrgDraw = _.marginalDraw(0);
+    
+    NameBlock ev = get.evaluator(0);
+    Matrix mrgDraw = _.custom.partial.draw(0);
     Set draw.all = For(1, Rows(mrgDraw), Real(Real i)
     {
       Real mrg = MatDat(mrgDraw,i,1);
       If(Not(IsUnknown(mrg)), mrg, {
-    //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].1");
-      Set bounds = _.filterEval::get.bounds(i,u);
-      Code fltEv = _.filterEval::eval;
-      Code get.priorLogDens = _.get.priorLogDens;
-      Matrix Z = _.Z;
+      Real ev::_.i := i;
+    //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].3");
+      Real x = MatDat(ev::_.u,i,1);
+    //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].4");
+      Set bounds = _.filter::get.bounds(i,ev::_.u);
       Real x0 = bounds[1];
       Real x1 = bounds[2];
-    //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].2");
-    //WriteLn("TRACE"+_MID+"draw.scalar.one arimaBlk::enabled=["<<arimaBlk::enabled+"]");
-    //WriteLn("TRACE"+_MID+"draw.scalar.one d=["<<d+"]");
-    //WriteLn("TRACE"+_MID+"draw.scalar.one p=["<<p+"]");
-    //WriteLn("TRACE"+_MID+"draw.scalar.one q=["<<q+"]");
-    //WriteLn("TRACE"+_MID+"draw.scalar.one bounds=["<<x0+","<<x1+"]");
-    //WriteLn("TRACE"+_MID+"draw.scalar.one omega="<<omega);
-      Matrix EvalFilteredNoise(Real x)
-      {
-        Real old = MatDat(u,i,1);
-        Real Do PutMatDat(u,i,1,x);
-        Matrix Fi = fltEv(u);
-        Real Do PutMatDat(u,i,1,old);
-        Matrix fn = VMat2Mat(si*Mat2VMat(Z-Fi*omega));
-        fn
-      };
-      Real LogDens.WhiteNoise(Real x)
-      {
-        Matrix ei = EvalFilteredNoise(x);
-        Real ld = -0.5*MatDat(MtMSqr(ei),1,1);
-      //WriteLn("TRACE LogDens.WhiteNoise("+_.colNames[i]+","<<x+")="<<ld);
-        ld+get.priorLogDens(i)
-      };
-      Real LogDens.ARMA(Real x)
-      {
-        Matrix Zi = EvalFilteredNoise(x);
-        VMatrix Zi_ = Mat2VMat(Zi);
-        VMatrix ei_ = arimaBlk::filterJustBlock(segment, Zi_);
-        Matrix  ei  = VMat2Mat(ei_);
-        Real ld = -0.5*MatDat(MtMSqr(ei),1,1);
-      //WriteLn("TRACE LogDens.ARMA("+_.colNames[i]+","<<x+")="<<ld);
-        ld+get.priorLogDens(i)
-      };
-      Real LogDens.ARIMA(Real x)
-      {
-        Matrix Zi = EvalFilteredNoise(x);
-      //WriteLn("TRACE Zi("<<Rows(Zi)+","<<Columns(Zi)+")");
-        Matrix Wi = Rand(d,1,0,0) << Sub(DifEq(dif/1,Zi),d+1,1,n,1);
-      //WriteLn("TRACE Wi("<<Rows(Wi)+","<<Columns(Wi)+")");
-        VMatrix Wi_ = Mat2VMat(Wi);
-        VMatrix ei_ = arimaBlk::filterJustBlock(segment, Wi_);
-      //WriteLn("TRACE ei_("<<VRows(ei_)+","<<VColumns(ei_)+")");
-        Matrix  ei  = VMat2Mat(Sub(ei_,d+1,1,n,1));
-      //WriteLn("TRACE ei("<<Rows(ei)+","<<Columns(ei)+")");
-        Real ld = -0.5*MatDat(MtMSqr(ei),1,1);
-      //WriteLn("TRACE LogDens.ARIMA("+_.colNames[i]+","<<x+")="<<ld);
-        ld+get.priorLogDens(i)
-      };
-      Code LogDens = Case(
-        Or(Not(arimaBlk::enabled),And(Not(p),Not(q))), 
-          LogDens.WhiteNoise,
-        d==0,                     
-          LogDens.ARMA,
-        1==1,                     
-          LogDens.ARIMA );
-    //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].3");
-      Real x = MatDat(u,i,1);
-    //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].4");
       Real If(Or(x<x0,x>x1), x := Rand(x0,x1) );
     //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].5");
-      Real x:= _scalarSampler(LogDens,x0,x1,x);
+      Real x:= _scalarSampler(ev::LogDens,x0,x1,x);
     //WriteLn("TRACE draw.scalar x= "<<x);
     //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].6");
-      Real PutMatDat(u,i,1,x);
+      Real PutMatDat(ev::_.u,i,1,x);
     //WriteLn("TRACE"+_MID+"draw.scalar.one x="<<x);
       x
     })});
@@ -296,7 +313,7 @@ Text _.autodoc.member.NonLinBlock =
     Real If(_.N==0, True,
     {
     //WriteLn("TRACE "+_MID+"::setStore 3");
-      Matrix _.Fi := _.filterEval::eval(VMat2Mat(_.store));
+      Matrix _.Fi := _.filter::eval(VMat2Mat(_.store));
     //WriteLn("TRACE "+_MID+"::setStore 4");
       Real ok = If(!_.isInputFilter, 0,
       {
