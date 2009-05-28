@@ -30,7 +30,7 @@ WriteLn("Creando en la base de datos el área documental");
 //////////////////////////////////////////////////////////////////////////////
 Text id_model   =  "ARIMA_Sea_5_261";
 Text ds_model   =  "Modelo ARIMA con periodicidades 5 y 261";
-Text id_session =  "Test.Cobega.FastCholSea";
+Text id_session =  "Test.FastCholSea";
 Text ds_session =  "Testeo ARIMA con descomposición independiente de "
                    "factores ARMA";
 Text ds_authors  = "irobles@bayesforecast.com";
