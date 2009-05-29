@@ -41,24 +41,28 @@
 //Power to real
   Matrix T91 = Abs(A_)^x;
   Matrix T92 = Tra(Tra(Abs(A_))^x);
-  
+
+  Set difAll = [[
+    Real diff1 = MatMax(Abs(T11-T12)),
+    Real diff2 = MatMax(Abs(T21-T22)),
+    Real diff3 = MatMax(Abs(T31-T32)),
+    Real diff4 = MatMax(Abs(T41-T42)),
+    Real diff5 = MatMax(Abs(T51-T52)),
+    Real diff6 = MatMax(Abs(T61-T62)),
+    Real diff7 = MatMax(Abs(T71-T72)),
+    Real diff8 = MatMax(Abs(T81-T82)),
+    Real diff9 = MatMax(Abs(T91-T92))
+  ]];
+  Real difMax = SetMax(difAll);
+  Real q = 1-difMax;
 //Extented information about test behaviour
-  Set partialResults_ = 
+  Set partialResults_ = difAll <<
   [[
-    Real ok1 = MatSet(T11)==MatSet(T12),
-    Real ok2 = MatSet(T21)==MatSet(T22),
-    Real ok3 = MatSet(T31)==MatSet(T32),
-    Real ok4 = MatSet(T41)==MatSet(T42),
-    Real ok5 = MatSet(T51)==MatSet(T52),
-    Real ok6 = MatSet(T61)==MatSet(T62),
-    Real ok7 = MatSet(T71)==MatSet(T72),
-    Real ok8 = MatSet(T81)==MatSet(T82),
-    Real ok9 = MatSet(T91)==MatSet(T92),
-    Real ok  = And(ok1,ok2,ok3,ok4,ok5,ok6,ok7,ok8,ok9)
+    difMax, q
   ]];
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr0 == NError, ok);
+  Real quality_ = And(numErr0 == NError)*q;
 
 //Return the results 
   Set resultStr_ = strTestStatus(summary_, link_, quality_,
