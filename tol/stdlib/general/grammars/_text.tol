@@ -1187,3 +1187,11 @@ proc ::get_url_contens { {url} } {
       Text ""
     })
 };
+
+//////////////////////////////////////////////////////////////////////////////
+Text ReplaceInFile(Text filePath, Text old, Text new)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text contens = ReadFile(filePath);
+  WriteFile(filePath, Replace(contens, old, new))
+};
