@@ -5,6 +5,9 @@
 
   Text email_ = "vdebuen@tol-project.org"; 
   Text link_ = "";
+
+Real PutRandomSeed(1459174848);
+Real GetRandomSeed(0);
   Text summary_ = "VMatrix creation and access methods" ;
 
 //Write here the initial test TOL code if needed
@@ -78,7 +81,7 @@
   Set ok = 
   [[
     Real okC     = MatMax(Abs(_C-_C_))==0;
-    Real okA_1   = VNonNullCells(A)==nz;
+    Real okA_1   = VNonNullCells(A)<=nz;
     Real okA_2   = VRows(A)==r, VColumns(A)==c;
     Real okB_1   = MatMax(Abs(_B-_B_))==0;
     Real okB_2   = VNonNullCells(B)<=nz+c; 
