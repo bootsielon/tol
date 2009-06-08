@@ -108,7 +108,7 @@ BText& BText::Copy(const BText& txt)
   if(!buffer_) { AllocateBuffer(0); } 
   else if(length_) { buffer_[length_=0]='\0'; }
   BInt len = txt.Length();
-  if(len)
+  if(len>0)
   {
     ReallocateBuffer(len+1);
     memcpy(buffer_, txt.String(), len); 
@@ -136,7 +136,7 @@ BText& BText::Copy(const BChar* str)
   if(str && str[0])
   {
     BInt len = strlen(str);
-    assert(len);
+    assert(len>0);
     ReallocateBuffer(len+1);
     memcpy(buffer_, str, len);
     buffer_[length_=len]='\0';
@@ -1543,9 +1543,9 @@ void BText::GetLine(istream& is, BInt maxChars, BChar until)
     AllocItems(maxChars+1);
   }
   length_ = 0;
-  BChar ch  = ' ';
+  BChar ch  = '\0';
   bool untilIsLF = until=='\n';
-  for(;(length_<=maxChars)&&(ch!=until)&&(ch!='\0')&&(!is.eof()); length_++)
+  for(;(length_<=maxChars)&&(ch!=until)&&(!is.eof()); length_++)
   {
     is.get(ch);
 #   ifdef READ_CRLF_AS_LF
@@ -1583,9 +1583,9 @@ void BText::GetLine(FILE* file, BInt maxChars, BChar until)
     AllocItems(maxChars+1);
   }
   length_ = 0;
-  BChar ch  = ' ', c;
+  BChar ch  = '\0', c;
   bool untilIsLF = until=='\n';
-  for(;(length_<=maxChars)&&(ch!=until)&&(ch!='\0')&&(!feof(file)); length_++)
+  for(;(length_<=maxChars)&&(ch!=until)&&(!feof(file)); length_++)
   {
     ch = fgetc(file);
 #   ifdef READ_CRLF_AS_LF
