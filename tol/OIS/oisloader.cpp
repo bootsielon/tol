@@ -1142,7 +1142,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             { 
               return(NullError("FATAL cannot built dating of serie")); 
             }
-            BUserTimeSet* dating = (BUserTimeSet*)r;
+            BUserTimeSet* dating = (BUserTimeSet*)GraTimeSet()->FindOperand(r->Name(), false);
+            if(!dating) { dating = (BUserTimeSet*)r; }
             BDate first, last, beginCache, endCache;
             ERead(first, serie_);
             ERead(last,  serie_);
