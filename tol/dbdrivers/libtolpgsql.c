@@ -280,7 +280,7 @@ DLLEXPORT(int) postgres_GetAsReal(pgsqld *dbd, int nfield, long double *realval)
   if(dbd->result)
   {
     val = PQgetvalue(dbd->result, dbd->current_tuple, nfield);
-    if(!strcmp(val, "")) 
+    if(!val || !strcmp(val, "")) 
     {
       *realval = 0.0;
       return 2;
