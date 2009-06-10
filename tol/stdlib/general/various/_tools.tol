@@ -48,15 +48,27 @@ PlainNamedObjects);
 
 
 ////////////////////////////////////////////////////////////////////////////////
-  Anything getOptArg(Set optArgs, Text name, Anything defValue)
+  Anything getOptArg(Anything optArgs, Text name, Anything defValue)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  If(!Card(optArgs), defValue,
-  {
-    Real Do If(Card(optArgs),!HasIndexByName(optArgs),SetIndexByName(optArgs));
-    Real idx = FindIndexByName(optArgs,name);
-    If(!idx, defValue, optArgs[idx])
-  })
+  Text g = Grammar(optArgs);
+  Case(
+    g=="Set",
+    If(!Card(optArgs), defValue,
+    {
+      Real Do If(Card(optArgs),!HasIndexByName(optArgs),SetIndexByName(optArgs));
+      Real idx = FindIndexByName(optArgs,name);
+      If(!idx, defValue, optArgs[idx])
+    }),
+    g=="NameBlock",
+    If(!ObjectExist("Anything","optArgs::"+name), defValue,
+       Eval("optArgs::"+name)),
+    1==1,
+    {
+      WriteLn("Non allowed type "+g+" for argument optArgs of function getOptArg",
+              "E")
+    }
+  )
 };
 ////////////////////////////////////////////////////////////////////////////////
   PutDescription(I2(
