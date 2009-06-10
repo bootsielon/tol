@@ -122,13 +122,15 @@ NameBlock Obs.Serie.Info(
     {
       Real x = SerDat(_.serie,dte);
       If(!IsUnknown(x),Copy(Empty),
-      Set mis = Bsr.Missing.Info(
-        Text Name = missing.name(dte), 
-        Real Average = _.avg, 
-        Real Sigma = _.stds*_.missing.sigmaFactor, 
-        Real LowerBound = _.missing.lowerBound, 
-        Real UpperBound = _.missing.upperBound));
-      Eval(ToName(mis->Name)+"=mis")
+      {
+        Set mis = Bsr.Missing.Info(
+          Text Name = missing.name(dte), 
+          Real Average = _.avg, 
+          Real Sigma = _.stds*_.missing.sigmaFactor, 
+          Real LowerBound = _.missing.lowerBound, 
+          Real UpperBound = _.missing.upperBound);
+        Eval(ToName(mis->Name)+"=mis")
+      })
     });
     Select(aux,Card)
   }
@@ -211,13 +213,15 @@ NameBlock Obs.Vector.Info(
     {
       Real x = MatDat(_.serie,num,1);
       If(!IsUnknown(x),Copy(Empty),
-      Set mis = Bsr.Missing.Info(
-        Text Name = missing.name(num), 
-        Real Average = _.avg, 
-        Real Sigma = _.stds*_.missing.sigmaFactor, 
-        Real LowerBound = _.missing.lowerBound, 
-        Real UpperBound = _.missing.upperBound));
-      Eval(ToName(mis->Name)+"=mis")
+      {
+        Bsr.Missing.Info(
+          Text Name = missing.name(num), 
+          Real Average = _.avg, 
+          Real Sigma = _.stds*_.missing.sigmaFactor, 
+          Real LowerBound = _.missing.lowerBound, 
+          Real UpperBound = _.missing.upperBound);
+        Eval(ToName(mis->Name)+"=mis")
+      })
     });
     Select(aux,Card)
   }
