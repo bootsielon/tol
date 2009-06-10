@@ -29,8 +29,8 @@ NameBlock DBConnect =
     Text _.alias;
     Text _.user;
     Text _.password;
-    Text _.driver;
     Text _.server;
+    Text _.driver;
     Text _.defaultDB;
     Real _.isOpen;
 
@@ -38,8 +38,14 @@ NameBlock DBConnect =
     { 
       If(_.isOpen, 1,
       {
-        Real ok = DBOpen(_.alias, _.user, _.password, 
-                         [[_.driver, _.defaultDB, _.server]]);
+      //VBR: Esto es un parche para salvar el ticket #697 pero lo adecuado 
+      //sería poder usar los argumentos adicionales con el driver ODBC sin 
+      //necesidad de crear el alias en la configuración de herramientas del
+      //sistema
+        Real ok = If(_.driver=="odbc",
+          DBOpen(_.alias, _.user, _.password),
+          DBOpen(_.alias, _.user, _.password, 
+                 [[_.driver, _.defaultDB, _.server]]));
         Real _.isOpen := ok;
         WriteLn("[DBConnect::"+_.alias+"::Open] "+
          I2("Connection is ", "La conexión ")+
@@ -89,9 +95,28 @@ NameBlock DBConnect =
       Text _.alias     = alias;
       Text _.user      = user;
       Text _.password  = password;
-      Text _.driver    = driver;
       Text _.server    = server;
+      Text _.driver    = 
+      {
+        Text dr = ToLower(driver);
+        Case(
+          dr=="postgresql","postgres",
+          dr=="pgsql",     "postgres",
+          dr=="postgres",  "postgres",
+          dr=="mysql",     "mysql",
+          dr=="odbc",      "odbc",
+          1==1,            
+          {
+            WriteLn("Unknown driver "+driver+". Using default odbc","W");
+            "odbc"
+          }
+        )
+      };
+      //VBR: Curiosamente el driver ODBC funciona con los arguemntos 
+      //adicionales si se sustituye defaultDataBase por alias
+      //Text _.defaultDB = If(_.driver=="odbc", alias, defaultDataBase);
       Text _.defaultDB = defaultDataBase;
+ 
       Real _.isOpen    = false
     ]];
     Set Append(_.allConnections, [[ Eval("NameBlock "+alias+"=dbc") ]]);
