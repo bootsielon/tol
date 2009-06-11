@@ -206,8 +206,16 @@ DLLEXPORT(int) postgres_GetNext(pgsqld *dbd)
  */
 DLLEXPORT(int) postgres_GetFirst(pgsqld *dbd)
 {
-  dbd->current_tuple = 0;
-  return 1;
+  if(dbd->n_tuples<=0) 
+  {
+    dbd->current_tuple = -1;
+    return 0;
+  }
+  else
+  {
+    dbd->current_tuple = 0;
+    return 1;
+  }
 }
 
 //--------------------------------------------------------------------
