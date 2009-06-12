@@ -119,8 +119,12 @@ NameBlock DBConnect =
  
       Real _.isOpen    = false
     ]];
-    Set Append(_.allConnections, [[ Eval("NameBlock "+alias+"=dbc") ]]);
-    _.allConnections[Card(_.allConnections)]
+    Real If(!ObjectExist("NameBlock","_.allConnections::"+alias),
+    { 
+      Set Append(_.allConnections, [[ Eval("NameBlock "+alias+"=dbc") ]]);
+      Real SetIndexByName(_.allConnections)
+    });
+    Eval("_.allConnections::"+alias)
   };
 
   Real OpenAll(Real unused)
