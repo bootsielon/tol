@@ -715,7 +715,7 @@ const char * GetCompilationDate()
   static bool init_ = false;
   if(!init_)
   {
-    sprintf(aux_,"%s",__DATE__);
+    snprintf(aux_, 64, "%s",__DATE__);
     init_ = true;
   }
   return aux_;
@@ -729,7 +729,7 @@ const char * GetCompilationTime()
   static bool init_ = false;
   if(!init_)
   {
-    sprintf(aux_,"%s",__TIME__);
+    snprintf(aux_, 64, "%s",__TIME__);
     init_ = true;
   }
   return aux_;
@@ -743,7 +743,7 @@ const char * GetCompilationDateTime()
   static bool init_ = false;
   if(!init_)
   {
-    sprintf(aux_,"%s %s",__DATE__,__TIME__);
+    snprintf(aux_, 64, "%s %s",__DATE__,__TIME__);
     init_ = true;
   }
   return aux_;
@@ -753,7 +753,7 @@ const char * GetCompilationDateTime()
 const char * TOLVersionBuild()
 //--------------------------------------------------------------------
 {
-  static char aux_  [64];
+  static char aux_  [128];
   static bool init_ = false;
   if(!init_)
   {
@@ -777,7 +777,7 @@ const char * TOLVersionBuild()
     if((m=="oct")            ) { month=10; } else
     if((m=="nov")            ) { month=11; } else
     if((m=="dic")||(m=="dec")) { month=12; }
-    sprintf(tolBuildDate,"%04d-%02d-%02d",
+    snprintf(tolBuildDate, 64, "%04d-%02d-%02d",
             year,
             month,
             day);
@@ -785,7 +785,7 @@ const char * TOLVersionBuild()
    #ifdef __TOL_BUILD_TIME__
     const char* tolBuildTime = __TOL_BUILD_TIME__;
    #else
-    char* tolBuildTime = __TIME__;
+    const char* tolBuildTime = __TIME__;
    #endif
    #ifdef __TOL_BUILD_PLATFORM__
     const char* tolBuildPlatform = __TOL_BUILD_PLATFORM__;
@@ -794,7 +794,7 @@ const char * TOLVersionBuild()
    #elif defined UNIX
     const char* tolBuildPlatform = "i686-linux-gnu";
    #endif
-    sprintf(aux_,"b.%s %s %s %s",
+    snprintf(aux_, sizeof(aux_), "b.%s %s %s %s",
             VERSION_BUILD,
             tolBuildDate,
             tolBuildTime,
@@ -812,9 +812,9 @@ const char * TOLVersion()
   static bool init_ = false;
   if(!init_)
   {
-    sprintf
+    snprintf
     (
-      aux_, 
+     aux_, 64,
       "v%d.%d.%d %s"
 # ifndef NDEBUG
       " {DEBUG}"
@@ -1392,7 +1392,7 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
       )+"\n\n"+
       TOLContribAcknowledgements()+"\n\n"+
       TOLCredits()+"\n\n";
-    printf(helpText.String());
+    printf("%s", helpText.String());
   }
   if(dialogMode)
   {
