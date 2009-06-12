@@ -1149,6 +1149,35 @@ static BSyntaxObject* EvTOLPath(BGrammar* gra, const List* tre, BBool left)
     return(result);
 }
 
+//--------------------------------------------------------------------
+static BSyntaxObject* EvGetObjectFromAddress(
+  BGrammar* gra, const List* tre, BBool left)
+
+/*! Evaluate TOLPath expressions
+ */
+//--------------------------------------------------------------------
+{
+  static BText _name_ = "GetObjectFromAddress";
+  BSyntaxObject* result = NIL;
+  BInt nb = NumBranches(tre);
+  BUserText* uTxt=NULL;
+  if(TestNumArg(_name_, 1, nb, 1))
+  {
+    uTxt = (BUserText*)GraText()->EvaluateTree(Branch(tre,1));
+    BGrammar::PutLast(gra);
+    if(uTxt)
+    {
+      BText& address = Text(uTxt);
+      if(address.HasName())
+      {
+        result = BSyntaxObject::GetObjectFromAddress(address);
+      }
+    }
+  }
+  SAFE_DESTROY(uTxt,result);
+  result=TestResult(_name_,result,tre,NIL,BTRUE);
+  return(result);
+}
 
 //--------------------------------------------------------------------
 static BSyntaxObject* EvDating(BGrammar* gra, const List* tre, BBool left)
@@ -1964,6 +1993,14 @@ bool BSpecialFunction::Initialize()
      "cuarto elemento creado en el fichero 'c:/prueba1.tol'."),
   EvTOLPath);
 
+  AddLeftInstance("GetObjectFromAddress",
+  I2("(Text path)",
+     "(Text camino)"),
+  I2("Returns the TOL object specified by its internal address obtained by "
+     "mean of calling GetAddressFromObject.",
+     "Devuelve el objeto TOL especificado por su dirección interna que se "
+     "obtiene llamando a la función GetAddressFromObject."),
+  EvGetObjectFromAddress);
 
   AddLeftInstance("Dating",
   I2("(Serie ser)",

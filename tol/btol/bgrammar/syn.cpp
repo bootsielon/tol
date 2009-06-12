@@ -452,3 +452,77 @@ const BText& BSyntaxObject::Description() const
     return(BText(ModeName())+" "+FullName());
   }
 }
+
+//--------------------------------------------------------------------
+union BIntPointerMask
+//--------------------------------------------------------------------
+{
+  BIntPair                    pair_;
+  const BSyntaxObject*        obj_;
+  const BGrammar*             gra_;
+  const BFixedSizeMemoryBase* mhn_;
+};
+
+
+//--------------------------------------------------------------------
+  BSyntaxObject* BSyntaxObject::GetObjectFromAddress(const BText& address)
+//--------------------------------------------------------------------
+{
+  const BSyntaxObject* obj = NULL;
+  BIntPointerMask objMask, graMask, mhnMask;
+  int mode;
+  int size;
+  int pageNum;
+  sscanf(address.String(), "%X:%X:%X:%X:%X:%X:%X:%X:%X",
+    &objMask.pair_.r_,
+    &objMask.pair_.c_,
+    &graMask.pair_.r_,
+    &graMask.pair_.c_,
+    &mhnMask.pair_.r_,
+    &mhnMask.pair_.c_,
+    &mode,
+    &size,
+    &pageNum);
+  if( objMask.obj_ &&
+     (objMask.obj_->Grammar() == graMask.gra_) &&
+     (objMask.obj_->Mode() == mode) &&
+     (sizeof(objMask.obj_) == size) &&
+     (objMask.obj_->GetPageNum() == pageNum)&&
+     (objMask.obj_->GetMemHandler() == mhnMask.mhn_)&&
+     (objMask.obj_->IsAssigned()!=0))
+  {
+    obj = objMask.obj_;
+  }
+  return((BSyntaxObject*)obj);
+}
+
+//--------------------------------------------------------------------
+  BText BSyntaxObject::GetAddressFromObject() const
+//--------------------------------------------------------------------
+{
+  static char address[7*32];
+  BIntPointerMask objMask, graMask, mhnMask;
+  objMask.pair_.r_ = 0;
+  objMask.pair_.c_ = 0;
+  graMask.pair_.r_ = 0;
+  graMask.pair_.c_ = 0;
+  mhnMask.pair_.r_ = 0;
+  mhnMask.pair_.c_ = 0;
+  objMask.obj_ = this;
+  graMask.gra_ = Grammar();
+  mhnMask.mhn_ = GetMemHandler();
+  int mode = Mode();
+  int size = sizeof(this);
+  int pageNum = GetPageNum();
+  sprintf(address, "%X:%X:%X:%X:%X:%X:%X:%X:%X",
+    objMask.pair_.r_,
+    objMask.pair_.c_,
+    graMask.pair_.r_,
+    graMask.pair_.c_,
+    mhnMask.pair_.r_,
+    mhnMask.pair_.c_,
+    mode,
+    size,
+    pageNum);
+  return(BText(address));
+}

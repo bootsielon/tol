@@ -318,6 +318,8 @@ public:
   static double OptInfoKBytes           () { return(BSynObjOptInfo::kBytes_); }
   #endif
 
+  static BSyntaxObject* GetObjectFromAddress(const BText& address);
+  BText GetAddressFromObject() const;
 
 #ifndef FOR_BTOLLNK
     virtual BBool IsFile() const

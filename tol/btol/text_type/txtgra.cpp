@@ -1037,6 +1037,25 @@ void BTxtGetTOLPath::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtGetAddressFromObject);
+DefExtOpr(1, BTxtGetAddressFromObject, "GetAddressFromObject",   1, 1, "Anything",
+	  "(Anything var)",
+	  I2("Returns a unique string address for a TOL variable that can "
+       "be used after to recover the object with GetObjectFromAddress "
+       "if it is still alive.",
+	     "Devuelve una cadena de dirección única para una variable TOL "
+       "que puede ser utilizada posterormente para recuperar el objeto "
+       "con GetObjectFromAddress si aún existe."),
+	  BOperClassify::General_);
+
+//--------------------------------------------------------------------
+void BTxtGetAddressFromObject::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_ = Arg(1)->GetAddressFromObject();
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtGetSourcePath);
 DefExtOpr(1, BTxtGetSourcePath, "GetSourcePath",   1, 1, "Anything",
 	  "(Anything var)",
