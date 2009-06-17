@@ -591,26 +591,27 @@ BDate   BTsrSubSerie::LastDate()  const
 BDat BTsrSubSerie::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-    if(!Dating()) { return(BDat::Unknown()); }
-    BDat dat;
-
-    if((dte>=FirstDate()) && (dte<=LastDate()))
-    {
-  if(Data().HasValue()) 
-  { 
-      bool wasTheBegin = false;
-
-      if(FirstDate()==BDate::Begin()) {
-    wasTheBegin = true;
-    firstDate_ = BDate::DefaultFirst();
-      }
-
-      dat = data_[GetIndex(dte)]; 
-
-      if(wasTheBegin) firstDate_ = BDate::Begin();
-  }
-  else
+  if(!Dating()) { return(BDat::Unknown()); }
+  BDat dat;
+  if((dte>=FirstDate()) && (dte<=LastDate()))
   {
+    if(!IsStochastic())
+    {
+      dat =  Ser()->GetDat(dte);
+    }
+    else if(Data().HasValue()) 
+    { 
+      bool wasTheBegin = false;
+      if(FirstDate()==BDate::Begin()) 
+      {
+        wasTheBegin = true;
+        firstDate_ = BDate::DefaultFirst();
+      }
+      dat = data_[GetIndex(dte)]; 
+      if(wasTheBegin) firstDate_ = BDate::Begin();
+    }
+    else
+    {
       GetLength();
       Ser()->GetData(data_,FirstDate(),LastDate(),Length());
       
@@ -622,16 +623,15 @@ BDat BTsrSubSerie::GetDat(const BDate& dte)
       
       for(; n<hash.Size(); n++) 
       {
-    hash[n] = d.Hash();
-    if(hash[n]==h) { dat = data_[n]; }
-    d+=Dating();
+        hash[n] = d.Hash();
+        if(hash[n]==h) { dat = data_[n]; }
+        d+=Dating();
       }
       length_ = hash.Size();
       CompactData();
-  }
     }
-
-    return(dat);
+  }
+  return(dat);
 }
 
 
