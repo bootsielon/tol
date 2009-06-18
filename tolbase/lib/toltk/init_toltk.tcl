@@ -70,7 +70,7 @@ set trace 0
     puts "requested to load Toltcl from $::env(USE_TOLTCL)"
     load $::env(USE_TOLTCL)
   } else {
-    package require -exact Toltcl 1.1.7
+    package require Toltcl 2.0.1
   }
   package require rmtps_client
   package require byswidget
