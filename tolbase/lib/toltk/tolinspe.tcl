@@ -1304,7 +1304,7 @@ proc ::TolInspector::SelectObject { } {
     default {
       set node_prefix $node_type
 	  #puts "SelectObject: node_prefix = $node_prefix"
-	  if {[regexp -- "pool" $node_type]} {
+      if {[regexp -- "pool" $node_type]} {
         set tolset $data(pool,reference,[lindex $node_type 0])
         #puts "SelectObject: Spool: tolset=$tolset, info_node=$info_node"
         if { [llength $info_node] == 1 } {
@@ -3187,26 +3187,19 @@ proc ::TolInspector::CallUserFunction {grammar idx} {
   upvar \#0 ::TolInspector::options_selected($grammar) items_selected
   #puts "CallUserFunction. grammar=$grammar, idx=$idx, items_selected=$items_selected"
   
-  set itemsName ""
+  set all_objs [ list ]
   foreach it $items_selected {
-    set namTol [TclRefToNameTol $it]
-    if  {[string length $namTol]} {
-      lappend itemsName [TclRefToNameTol $it]
-      #lappend itemsName [lindex $it 1]
-    } else {
-      tk_messageBox -type ok -icon info \
-                    -message [mc "VarWithoutNameNotFunc"] \
-                    -title [mc "Warning"]
-      return 0
-    }
+    set tcl_ref [ lindex $it 0 ]
+    set obj_addr [ ::tol::info address $tcl_ref ]
+    lappend all_objs "GetObjectFromAddress(\"$obj_addr\")"
   }
 
-  if { [llength $itemsName] } {
+  if { [ llength $all_objs ] } {
     incr group_id
     array set regFun $regFunLst
     set gui [bguifunction .t$group_id \
-       -title $regFun($idx,nameGui) \
-       -regpars $regFun($idx,parameters)]
+                 -title $regFun($idx,nameGui) \
+                 -regpars $regFun($idx,parameters)]
     set txtPars [join [$gui get values] ,]
     if {$txtPars ne ""} {
       set txtPars ",$txtPars"
@@ -3215,16 +3208,16 @@ proc ::TolInspector::CallUserFunction {grammar idx} {
     set typeGui [split $regFun($idx,typeGui) .]
     switch [lindex $typeGui 0] {
       Ite {
-        foreach item $itemsName {
-          set cmd "$regFun($idx,typeOut) $regFun($idx,nameFun) ($item $txtPars)"
+        foreach obj $all_objs {
+          set cmd "$regFun($idx,typeOut) $regFun($idx,nameFun) ($obj $txtPars)"
           #Tolcon_Trace "Ite.cmd=$cmd"
           ::tol::console eval $cmd
           ::TolConsole::SaveEval $cmd
         }
       }
       Set {
-        set item [join $itemsName ,]
-        set setCmd "SetOf[lindex $typeGui 1] ($item)"
+        set obj_args [join $all_objs ,]
+        set setCmd "SetOf[lindex $typeGui 1] ($obj_args)"
         set cmd "$regFun($idx,typeOut) $regFun($idx,nameFun) ($setCmd $txtPars)"
         #Tolcon_Trace "Set.cmd=$cmd"
         ::tol::console eval $cmd
