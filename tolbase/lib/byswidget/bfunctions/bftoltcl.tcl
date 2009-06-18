@@ -113,11 +113,11 @@ proc TclInfoVar {gra obj} {
 #/////////////////////////////////////////////////////////////////////////////
 proc TclInfoRef {obj args} {
 #
-# PURPOSE: Get the value os Set TOL
+# PURPOSE: Get the value for Set TOL
 # 
 # PARAMETERS:
 #   obj:  reference of TCL
-#   args: indix of set
+#   args: index of set
 # 
 # RETURN: output [::tol::info var ref] information in "array get"
 #
@@ -187,6 +187,79 @@ proc TclInfoInc {fil} {
     return [array get inf]
   }
   return {}
+}
+
+proc TclFindObjectRoot { ref } {
+  set type [ lindex $ref 0 ]
+  if { $type eq "File" } {
+    set ref_root [ lrange $ref 0 2 ]
+  } else {
+    set ref_root [ lrange $ref 0 1 ]
+  }
+  # verifico si ref_root es un objeto con nombre
+  set info_root [ ::tol::info var $root ]
+  set name_root [ lindex $info_root 1 ]
+  if { $name_root eq "" } {
+    # el objeto raiz no tiene nombre, solo nos salvamos si la raiz es
+    # un File y bajando por el camino encontramos algun global con
+    # nombre
+    if { $type eq "File" } {
+      ...
+    }
+  } else {
+    # bingo! la raiz de ref tiene nombre
+    return $name_root
+  }
+}
+
+proc TclRefToNameTol_ { ref } {
+  set type [ lindex $ref 0 ]
+  switch $type {
+    Console {
+      set root [ lrange $ref 0 1 ]
+      set info_root [ ::tol::info var $root ]
+      # verifico si tiene nombre
+      set name_root [ lindex $info_root 1 ]
+      if { $name_root eq "" } {
+        # el objeto raiz no tiene nombre, solo nos salvamos si el
+        # objeto referenciado es global y tiene nombre
+        set info_all [ ::tol::info var $ref ]
+        set grammar_ref [ lindex $info_all 0 ]
+        set name_ref [ lindex $info_all 1 ]
+        if {  $name_ref eq "" } {
+          # no podemos hacer nada, no existe expresion de tol que
+          # pueda recuperar el valor de la referencia ref
+          return ""
+        } else {
+          # chequeamo si es un objeto global con nombre $name.
+          if { [ catch { ::tol::info var [ list $grammar_ref $name_ref ] } ] } {
+            # no se ha podido encontrar $name_ref como variable global en
+            # $grammar_ref
+            return ""
+          } else {
+            # hemos encontrado un objeto en $grammar_ref con nombre
+            # $name_ref. Dado el uso interno de PutName, eso no
+            # asegura que el objeto referenciado en $ref sea el
+            # mismo. Ya seria mala pata!!!!!
+            return $name_ref
+          }
+        }
+      } else {
+        # el objeto raiz tiene nombre, ya vamos mejorando ...
+        set name $name_root
+        foreach i [ lrange $ref 2 end ] {
+          append name "\[$i\]"
+        }
+        return $name
+      }
+    }
+    File {
+    }
+    Set {
+    }
+    NameBlock {
+    }
+  }
 }
 
 #/////////////////////////////////////////////////////////////////////////////
