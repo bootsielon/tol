@@ -742,6 +742,29 @@ BDate DteNow()
   }
 }
 
+//--------------------------------------------------------------------
+BDate DteNowGmt()
+
+/*! Returns todays date and now time.
+ */
+//--------------------------------------------------------------------
+{
+  time_t sec = time(NIL);
+  struct tm* gmTime = gmtime(&sec);
+  if (gmTime)
+  {
+    BMonth month = (BMonth)(gmTime->tm_mon+1); //localtime()returns0-11months
+    BInt year = gmTime->tm_year;   // localtime() returns 99 year
+	 year = (year < 1900) ? 1900+year : year;
+    return(BDate(year, month, gmTime->tm_mday,
+		 gmTime->tm_hour, gmTime->tm_min, gmTime->tm_sec));
+  }
+  else
+  {
+    return(BDate(0, JANUARY, 0));
+  }
+}
+
 
 //--------------------------------------------------------------------
 BDate DteEasterSunday(BInt year)

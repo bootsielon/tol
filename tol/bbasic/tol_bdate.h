@@ -469,8 +469,10 @@ BDate  HashToDte    (BReal h);
 //TOL_API BInt Compare(const BDate* dte1, const BDate* dte2);
 //! Returns today date
 TOL_API BDate DteToday();
-//! Returns todays date and now time
+//! Returns todays date and now local time
 TOL_API BDate DteNow();
+//! Returns todays date and now GMT time
+TOL_API BDate DteNowGmt();
 //! Returns the date of the Easter's Sunday in the year given as parameter
 TOL_API BDate DteEasterSunday(BInt year);
 //! Returns the number of days in the month \a m of the year \a y
