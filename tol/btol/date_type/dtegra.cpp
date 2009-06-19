@@ -107,8 +107,9 @@ void BGraContensBase<BDate>::InitInstances()
 	       "La fecha final por defecto")
 	);
     
-    BDteToday*  today_ = new BDteToday;
-    BDteNow*    now_   = new BDteNow;
+    BDteToday*  today_   = new BDteToday;
+    BDteNow*    now_     = new BDteNow;
+    BDteNowGmt* nowGmt_  = new BDteNowGmt;
     OwnGrammar()->PutDefect(unknown_);
 }
 

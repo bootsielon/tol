@@ -71,11 +71,27 @@ public:
   (
     "Now",
     BDate::Unknown(),
-    I2("Today date and time",
-       "La fecha y la hora de hoy")
+    I2("Today local date and time",
+       "La fecha y la hora locales")
   ) { }
  ~BDteNow() {}
   BDate& Contens() { return(contens_ = DteNow()); }
+};
+
+//--------------------------------------------------------------------
+class BDteNowGmt: public BSystemDate
+//--------------------------------------------------------------------
+{
+public:
+  BDteNowGmt() : BSystemDate
+  (
+    "NowGmt",
+    BDate::Unknown(),
+    I2("Today GMT date and time",
+       "La fecha y la hora de hoy en horario GMT")
+  ) { }
+ ~BDteNowGmt() {}
+  BDate& Contens() { return(contens_ = DteNowGmt()); }
 };
 
 
