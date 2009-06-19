@@ -62,7 +62,9 @@ NameBlock DBConnect =
       If(!_.isOpen, 0, 
       {
         Real _.isOpen := false;
-        DBClose(_.alias)
+        DBClose(_.alias);
+        Text DBConnect::currentAlias := "";
+        Real True
       })
     };
     Real Check(Real unused)
