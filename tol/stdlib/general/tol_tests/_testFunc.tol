@@ -19,7 +19,7 @@
   {
     //No funciona GetEnv en Linux
     //GetEnv("HOSTNAME")
-    OSCmdWait("echo $HOSTNAME > HOSTNAME.txt");
+    Real OSCmdWait("echo $HOSTNAME > HOSTNAME.txt");
     ReadFile("HOSTNAME.txt")
   },
   {
