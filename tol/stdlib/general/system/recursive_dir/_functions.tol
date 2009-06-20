@@ -381,4 +381,75 @@ RecDir.Count.Char);
 //////////////////////////////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////
+  Set RecDir.Delete.OlderThan(Date date,
+                              Text root, 
+                              Text match,
+                              Real caseSens, 
+                              Real recursive,
+                              Real verbose)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real totalChecked = 0;
+  Real totalTried = 0;
+  Real totalDeleted = 0;
+  If(verbose>0,
+  {
+    WriteLn("RecDir.Delete.OlderThan("
+    "date="<<date+", "
+    "root="<<root+", "+
+    "match="<<match+", "+
+    "caseSens="<<caseSens+", "+
+    "recursive="<<recursive+", "+
+    "verbose="<<verbose+")")
+  });
+  ////////////////////////////////////////////////////////////////////////////
+    Real RecDir.Delete.OlderThan.item(Text fileName, Real isFile)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Date ft = FileTime(fileName);
+    Real totalChecked := totalChecked + 1;
+    If(ft<date, 
+    {
+      If(verbose>1,
+      {
+        WriteLn("El fichero "+fileName+" será borrado")
+      });
+      Real ok = FileRemove(fileName);
+      Real totalTried := totalTried + 1;
+      Real totalDeleted := totalDeleted + ok;
+      True
+    }, 
+    {
+      False
+    })
+  };
+  Set report = RecDir.DoWithTree
+  (
+    RecDir.Delete.OlderThan.item, 
+    root, 
+    match, 
+    caseSens, 
+    1,
+    0,
+    2,
+    verbose
+  );
+  If(verbose>0,
+  {
+    WriteLn("Checked files : "<<totalChecked);
+    WriteLn("Tried files   : "<<totalTried);
+    WriteLn("Deleted files : "<<totalDeleted)
+  });
+  [[report, totalChecked, totalTried, totalDeleted]]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Borrar recursivamente los archivos de fecha anterior a una "
+"dada, especificados por el argumento <match> bajo un directorio raíz.\n"
+"Ver RecDir.DoWithTree para saber qué son el resto de parámetros.\n"
+"Devuelve dos tablas, una con el resultado de RecDir.DoWithTree y otra con "
+"estructura RecDir.TextFound.Reg con los ficheros que han dado positivo.",
+RecDir.Delete.OlderThan);
+//////////////////////////////////////////////////////////////////////////////
+
 
