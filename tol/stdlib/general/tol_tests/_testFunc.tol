@@ -15,7 +15,16 @@
   Text GetComputerName(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text If(OSName=="UNIX",GetEnv("HOSTNAME"),GetEnv("COMPUTERNAME"))
+  Text If(OSName=="UNIX",
+  {
+    //No funciona GetEnv en Linux
+    //GetEnv("HOSTNAME")
+    OSCmdWait("echo $HOSTNAME > HOSTNAME.txt");
+    ReadFile("HOSTNAME.txt")
+  },
+  {
+    GetEnv("COMPUTERNAME")
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
