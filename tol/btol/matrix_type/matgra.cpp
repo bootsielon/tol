@@ -519,18 +519,52 @@ void BMatAppendFile::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatReadFile);
-DefExtOpr(1, BMatReadFile, "MatReadFile", 1, 1, "Text",
-  I2("(Text filename)",
-     "(Text nombreFichero)"),
-  I2("Reads a matrix from a file in binary format",
-     "Lee una matriz de un fichero en formato binario"),
+DefExtOpr(1, BMatReadFile, "MatReadFile", 1, 2, "Text Text",
+  "(Text filename [, Text format=\"BINARY\"])",
+  I2("Reads a matrix from a file in the specified format",
+     "Lee una matriz de un fichero en el formato especificado")+":\n"+
+     "BINARY: "+
+     I2("Standard TOL binary format",
+        "Formato estándar binario de TOL")+
+     "WGRIB2TXT: "+
+     I2("Result of command", "Resultado del comando")+
+     " wgrib2 ... -text file\n"+
+     " rows cols\n"+
+     " datum[1,1]\n" +
+     " datum[1,2]\n" +
+     " ...\n" +
+     " datum[rows,cols]\n"+
+     I2("View more on ", "Ver más en ")+
+     "http://www.cpc.noaa.gov/products/wesley/wgrib2/",
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BMatReadFile::CalcContens()
 //--------------------------------------------------------------------
 {
-  BBM_BinRead(Text(Arg(1)),contens_);
+  BText fileName = Text(Arg(1));
+  BText format = "BINARY";
+  if(Arg(2)) { format = Text(Arg(2)); }
+  if(format=="BINARY")
+  {
+    BBM_BinRead(fileName,contens_);
+  }
+  else if(format=="WGRIB2TXT")
+  {
+    FILE* file = fopen(fileName.String(),"r");
+    int i, j, rows, cols;
+    fscanf(file, "%ld %ld", &rows, &cols);
+    contens_.Alloc(rows, cols);
+    double* x = (double*)contens_.GetData().GetBuffer();
+    for(i=0; !feof(file) && (i<rows); i++)
+    {
+      for(j=0; j<cols; j++, x++)
+      {
+        fscanf(file, "%lf",x);
+      }
+    }
+  }
 }
+
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BMatReadDimensions);
