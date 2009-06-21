@@ -529,7 +529,7 @@ DefExtOpr(1, BMatReadFile, "MatReadFile", 1, 2, "Text Text",
      "WGRIB2TXT: "+
      I2("Result of command", "Resultado del comando")+
      " wgrib2 ... -text file\n"+
-     " rows cols\n"+
+     " cols rows\n"+
      " datum[1,1]\n" +
      " datum[1,2]\n" +
      " ...\n" +
@@ -552,7 +552,7 @@ void BMatReadFile::CalcContens()
   {
     FILE* file = fopen(fileName.String(),"r");
     int i, j, rows, cols;
-    fscanf(file, "%ld %ld", &rows, &cols);
+    fscanf(file, "%ld %ld", &cols, &rows);
     contens_.Alloc(rows, cols);
     double* x = (double*)contens_.GetData().GetBuffer();
     for(i=0; !feof(file) && (i<rows); i++)
