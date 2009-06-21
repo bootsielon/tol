@@ -1664,34 +1664,44 @@ void BTxtFromCTime::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtFormatMatrix);
-DefExtOpr(1, BTxtFormatMatrix, "FormatMatrix",    1, 3,
-	  "Matrix Text Text",
-	  I2("(Matrix M [, Text colSep=\";\", Text rowSep=NL])",
-	     "(Matrix M [, Text colSep=\";\", Text rowSep=NL])"),
-	  I2("Converts a matrix in text with a given format. If no format is"
-	     " given, default format is used.",
-	     "Convierte una matriz a texto con un formato dado. Si no se da"
-	     " se utiliza el formato por defecto."),
+DefExtOpr(1, BTxtFormatMatrix, "FormatMatrix", 1, 6, 
+    "Matrix Text Text Text Text Text", BText("")+ 
+	  "(Matrix mat [, Text cellSep=\";\", Text rowSep=\"\\n\", "
+    "Text leftBracket=\"(\", Text rightBracket=\")\", "
+    "Text realFormat=\""+BDat::RealFormat()+"\"])",
+	  I2("Converts a matrix in text with a given format. ",
+	     "Convierte una matriz en texto con un formato dado"),
 	  BOperClassify::Conversion_);
+//--------------------------------------------------------------------
 void BTxtFormatMatrix::CalcContens()
 //--------------------------------------------------------------------
 {
-    BMat	mat = Mat(Arg(1));
-    BText format = BDat::RealFormat();
-    BText colSep = ";";
-    BText rowSep = "\n";
-    if(Arg(2)) { colSep = Text(Arg(2)); }
-    if(Arg(3)) { rowSep = Text(Arg(3)); }
-    contens_ = "";
-    for(BInt i=0; i<mat.Rows(); i++)
+  BMat& mat = Mat(Arg(1));
+  BText cellSep = ",";
+  BText rowSep = "\n";
+  BText leftBracket = "(";
+  BText rightBracket = ")";
+  BText format = BDat::RealFormat();
+  if(Arg(2)) { cellSep = Text(Arg(2)); }
+  if(Arg(3)) { rowSep = Text(Arg(3)); }
+  if(Arg(4)) { leftBracket = Text(Arg(4)); }
+  if(Arg(5)) { rightBracket = Text(Arg(5)); }
+  if(Arg(6)) { format = Text(Arg(6)); }
+  
+  contens_ = leftBracket;
+  int i, j;
+  for(i=0; i<mat.Rows(); i++)
+  {
+    if(i>0) { contens_ += rowSep; }
+    contens_ += leftBracket;
+    for(j=0; j<mat.Columns(); j++)
     {
-	if(i>0) { contens_ += rowSep; }
-	for(BInt j=0; j<mat.Columns(); j++)
-	{
-	    if(j>0) { contens_ += colSep; }
-	    contens_ += mat(i,j);
-	}
+      if(j>0) { contens_ += cellSep; }
+      contens_ += mat(i,j).Format(format);      
     }
+    contens_ += rightBracket;
+  }
+  contens_ += rightBracket;
 }
 
 
