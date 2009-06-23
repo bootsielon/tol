@@ -72,19 +72,6 @@ CREATE TABLE `bsrhlm_d_level_node_type` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 COMMENT='Stores all feasible hierarchical levels by node type.';
 
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('OBS',0);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',1);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',2);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',3);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',4);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',5);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',6);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',7);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',8);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('LAT',9);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('PRI', 888888888);
-INSERT INTO `bsrhlm_d_level_node_type` (`id_node_type`,`nu_level`) VALUES ('MIX', 999999999);
-
 
 /* /////////////////////////////////////////////////////////////////////////////
 Stores model name and a description of its objective. A model could have a lot
@@ -634,4 +621,4 @@ CREATE TABLE  `bsrhlm_v_est_param_stats` (
     REFERENCES `bsrhlm_d_gibbs_block` (`id_gibbs_blk`)
     ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-COMMENT='Stores statistics about simulated parameters for diagnostic purposes';
+COMMENT='Stores statistics about simulated parameters';
