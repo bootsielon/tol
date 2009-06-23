@@ -1,0 +1,133 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : algMetSqlDep.tol
+// PURPOSE: Metodo SQL.01 de obtención de series a partir de la definición del
+//          álgebra. Se basa en extracción de datos desde una BBDD con
+//          DBSeries mediante la construcción de una query de la forma:
+// 
+//               select <exp_date> as idDateValue,
+//                      <exp_value> as value
+//               from <exp_from>
+//               [where] { <exp_where> }
+//               group by <exp_date> (depending on -doGrBy)
+//               order by idDateValue
+// 
+//           Cada una de las expresiones <exp_*> son generadas en función de
+//          los valores que toman ciertas dimensiones y subdimensiones, que 
+//          se especifican en un conjunto *Dep y también se especifica la 
+//          función que forma la expresión *Fun.
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// STRUCTURES and Pseudo-structures
+//////////////////////////////////////////////////////////////////////////////
+Set AlgMetSqlDepSt(
+  Code DatFun, // Función que construye exp_date
+  Code ValFun, // Función que construye exp_value
+  Code FroFun, // Función que construye exp_from
+  Code WheFun, // Función que construye exp_where
+  Code FecFun)
+{
+  AlgMetSqlDepExtSt(DatFun, ValFun, FroFun, WheFun, FecFun, FunEmpty)
+};
+
+Struct AlgMetSqlDepExtSt
+{
+  Code DatFun, // Función que construye exp_date
+  Code ValFun, // Función que construye exp_value
+  Code FroFun, // Función que construye exp_from
+  Code WheFun, // Función que construye exp_where
+  Code FecFun,  // Función que devuelve el fechado de la serie
+  Code SetParFun // Función que devuelve un conjunto de parametros con
+                 // estructura TclArgSt, para por ejemplo:
+                 // -defVal: determinar el valor por defecto de DBSeries
+                 // -traQry: Para trazar o no la query
+                 // -traTms: Para trazar el tiempo que tarda la query
+                 // -doGrBy: Para realizar el group by en la query 
+};
+
+Struct AlgMetSqlFroSt
+{
+  Text Table,
+  Text Alias
+};
+
+Set defParamsForMetSqlDep = SetOfSet(
+    TclArgSt("-defVal", "0"),
+    TclArgSt("-traQry", "1"),
+    TclArgSt("-traTms", "1"),
+    TclArgSt("-doGrBy", "1")
+);
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+Text MetSqlDepGetQuery (
+  Set  algSetNode,  // 
+  Set  metSqlDep,    // Conjunto con estructura AlgMetSqlDepExtSt
+  Text serName)
+//////////////////////////////////////////////////////////////////////////////
+{
+
+  Code datFun = metSqlDep->DatFun;
+  Text datExp = datFun(algSetNode);
+  Code valFun = metSqlDep->ValFun;
+  Text valExp = valFun(algSetNode);
+  Code froFun = metSqlDep->FroFun;
+  Text froExp = froFun(algSetNode);
+  Code wheFun = metSqlDep->WheFun;
+  Text wheExp = wheFun(algSetNode);
+  Code parFun = metSqlDep->SetParFun;
+  Set  parVal = parFun(algSetNode);
+
+  Set params = TclMixArg(defParamsForMetSqlDep, parVal);
+  Real doGrBy = Eval(TclGAV("-doGrBy", params));
+
+  Text query =
+    "select "+datExp+" as idDateValue,"   +NL+
+    "       "+valExp+" as val"          +NL+
+    "from "+ froExp                       +NL+
+    If(wheExp!="","where "+wheExp+NL,wheExp)+
+    If(doGrBy, "group by "+datExp+NL, "")+
+    "order by idDateValue";
+  query
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Serie MetSqlDepGetSerie (
+  Set  algSetNode,  // 
+  Set  metSqlDep,    // Conjunto con estructura AlgMetSqlDepExtSt
+  Text serName)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Code fecFun = metSqlDep->FecFun;
+  Text fechado = fecFun(algSetNode);
+  Code parFun = metSqlDep->SetParFun;
+  Set  parVal = parFun(algSetNode);
+
+  Set params = TclMixArg(defParamsForMetSqlDep, parVal);
+  Real defVal = Eval(TclGAV("-defVal", params));
+  Real traQry = Eval(TclGAV("-traQry", params));
+  Real traTms = Eval(TclGAV("-traTms", params));
+
+  Text query = MetSqlDepGetQuery(algSetNode,metSqlDep,serName);
+  Text If(traQry, WriteLn(TextIndent(query,6)), "");
+
+  Set res = DBSeries(
+        query,
+        Eval("TimeSet "+fechado+";"),
+        SetOfText(serName+"_"),
+        SetOfText(serName+"_"),
+        defVal);
+
+  Serie If(IsEmpty(res), 
+  {
+    Real Msg("MetSqlDepGetSerie", "No hay serie");
+    Serie CalInd(W, Eval("TimeSet "+fechado+";") ) 
+  },
+  res[1]
+  )
+};
+

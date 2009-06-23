@@ -1,0 +1,10 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    :  _inialgebra.tol
+// PURPOSE : Inclusion de funciones del directorio algebra
+//////////////////////////////////////////////////////////////////////////////
+Real _inialgebraIncluded = 1;
+Set Include("algebra.tol");
+Set Include("algebragui.tol");
+Set Include("algMetSqlDep.tol");
+Set Include("algMetSqlDepSet.tol");
+Set Include("algMetSqlDepDBT.tol");

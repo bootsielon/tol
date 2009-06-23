@@ -1,0 +1,861 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : algebra.tol
+// PURPOSE: Funciones de gestion del algebra
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// STRUCTURES
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// TCL Definition
+//////////////////////////////////////////////////////////////////////////////
+/*
+//  Entre los modulos de los que depende el modulo 'ModAlgebra' está el
+// módulo de TCL (ya que usa la estructura TclArgSt.
+Set TclMagDefSet = SetOfSet
+(
+  TclArgSt("-cols", "2")    // Numero de columnas en que se muestra la 
+                            // magnitud, por defecto es 2
+);
+
+Set TclDimDefSet = SetOfSet
+(
+  TclArgSt("-cols", "1")    // Numero de columnas en que se muestran las 
+                            // subdimensiones, por defecto es tantas como 
+                            // Subdimensiones tenga.
+);
+
+Set TclSubDimDefSet = SetOfSet
+(
+  TclArgSt("-type", "Dir"), // Indica el tipo de selector
+                            // "Dir" Seleccion directa:
+                            // radiobuttons o checkbuttons
+                            // "Ind" Seleccion indirecta: 
+                            // bselectfields o beditselector
+  TclArgSt("-cols", "2")    // Numero de columnas en que se muestran los 
+                            // valores solamente se utiliza para tipo "Dir".
+);
+*/
+//////////////////////////////////////////////////////////////////////////////
+// 1. Metadata
+//////////////////////////////////////////////////////////////////////////////
+Struct AlgDefSt
+{
+  Real NumCarDim,      // Numero de letras por codigo de dimensión
+  Text FunAlgGetData,  // Función de acceso a datos a través del álgebra
+  Text DimSep,         // Separador de dimensión
+  Text SubDimSep,      // Separador de subdimensión
+  Set  SetNode,        // Conjunto de magnitudes con estructura AlgDefMagSt 
+  Set  TclSet          // Información TCL en forma TclArgSt
+};
+
+Struct AlgDefMagSt
+{
+  Text CodMag,         // Código corto de magnitud
+  Text Nam,            // Nombre de la magnitud
+  Text Des,            // Descripción de la magnitud
+  Set  SetNode,        // Conjunto de dimensiones y subdimensiones que definen
+                       // la magnitud con estructura AlgDefNodeSt
+  Set  TclSet,         // Información Tcl en forma TclArgSt
+  Set  SerCre          // Información de creación de los objetos TOL asociados
+                       // a cada nombre. Cjto. con estructura AlgSerCreMetSt
+};
+
+Struct AlgSerCreMetSt
+{
+  Code CodMet, 
+  Set  ParMet
+};
+
+
+Struct AlgDefNodeSt
+{
+  Text CodDim,         // Codigo corto de dimension 
+  Text CodSubDim,      // Codigo corto de subdimension
+  Text Nam,            // Nombre del objeto
+  Text Des,            // Descripcion del objeto
+  Real Req,            // Indica si la dim o subDim es obligatoria
+  Text Typ,            // Tipo de la subdim y vacio para dim 
+  Set  DepSet,         // Dependencias (Puede ser vacio o no)
+  Code DepFun,         // Funcion que recibe un argumento por cada
+                       // subdimension de la que depende dentro de un set 
+                       // (Empty si no depende de ninguna). 
+                       // - Para dim devuelve 1 si la dimension existe en 
+                       // funcion de las dependencias 0 en caso contrario. 
+                       // - Para subdim devuelve una lista de valores 
+                       // con estructura ListValue en funcion de las 
+                       // dependencias.
+  Code DefVal,         // Funcion que recibe un argumento por cada
+                       // subdimension de la que depende dentro de un set 
+                       // (Empty si no depende de ninguna).
+                       // - Para dim no está definida. 
+                       // - Para subdim retorna un Text con el código que 
+                       // debe ser seleccionado para la subdimensión como
+                       // DefValue
+  Set  TclSet          // Informacion Tcl en forma TclArgSt
+};
+
+Struct AlgDependSt
+{
+  Text CodDim,         // Codigo corto de Dimension
+  Text CodSubDim       // Codigo corto de Subdimension
+};
+
+Struct AlgListValueSt
+{
+  Text Ide,            // Identificador de objeto
+  Text Cod,            // Codigo corto de objeto
+  Text Nam,            // Nombre del objeto
+  Text Des             // Descripcion
+};
+
+Struct AlgListValueHieSt
+{
+  Text Ide,            // Identificador de objeto
+  Text Cod,            // Codigo corto de objeto
+  Text Nam,            // Nombre del objeto
+  Text Des,            // Descripcion
+  Text Parent,         // Código del elemento padre del objeto
+  Text Level           // Código del nivel del elemento jerárquico (opcional)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// 2. Instances
+//////////////////////////////////////////////////////////////////////////////
+Struct AlgSt
+{
+  Text CodMag,         // Codigo corto de magnitud
+  Set  SetNode         // Conjunto de nodos con estructura AlgNodeSt cada uno
+};
+
+Struct AlgNodeSt
+{
+  Text CodDim,         // Codigo corto de dimension
+  Text CodSubDim,      // Codigo corto de subdimension 
+  Text Val             // Valor
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// CONSTANTS
+//////////////////////////////////////////////////////////////////////////////
+Set EmptyAlgDefMagSt  = 
+ AlgDefMagSt("", "", "", Copy(Empty), Copy(Empty), Copy(Empty));
+Set EmptyAlgNodeSt = 
+ AlgNodeSt("", "", "");
+
+//////////////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+//-- Algebra Definition Management Functions
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgDefGetReg(Text codMag, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(algDef),
+  {
+    Real Msg("AlgDefGetReg", "La estructura de definicion esta vacia");
+    Empty
+  },
+  {
+    Set selNode = Select(algDef->SetNode, Real(Set reg)
+    { reg->CodMag == codMag });
+    If(IsEmpty(selNode), EmptyAlgDefMagSt, selNode[1])
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el registro de informacion de la magnitud codMag.",
+AlgDefGetReg);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real AlgRestDimSubDim
+(
+  Text codDimAux, 
+  Text codSubDimAux, 
+  Text codDimVal, 
+  Text codSubDimVal
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text NegTxt(Real negCond, Text txt)
+  {  If(negCond, "Not("+txt+")", txt) };
+
+  Real codDimNot    = TextFind(codDimAux, "Not_");
+  Real codSubDimNot = TextFind(codSubDimAux, "Not_");
+
+  Text codDim    = Replace(codDimAux, "Not_", ""); 
+  Text codSubDim = Replace(codSubDimAux, "Not_", "");
+
+  Text txtDim    = BQt(codDim);
+  Text txtSubDim = BQt(codSubDim);
+
+  Text txtDimVal    = BQt(codDimVal);
+  Text txtSubDimVal = BQt(codSubDimVal); 
+
+  Text rest = Case 
+  (
+    And(codDim == "*", codSubDim == "*"), 
+     NegTxt(codDimNot,"True")+","+
+     NegTxt(codSubDimNot, "True"),
+    And(codDim == "*", codSubDim != "*"), 
+     NegTxt(codDimNot,"True")+","+
+     NegTxt(codSubDimNot, txtSubDimVal+" == "+txtSubDim),
+    And(codDim != "*", codSubDim == "*"), 
+     NegTxt(codDimNot,txtDimVal+" == "+txtDim)+","+
+     NegTxt(codSubDimNot, "True"),
+    True, 
+     NegTxt(codDimNot,txtDimVal+" == "+txtDim)+","+
+     NegTxt(codSubDimNot, txtSubDimVal+" == "+txtSubDim)
+  );
+  Text sentence = "And("+rest+")";
+//Text WriteLn("["+sentence+"]");
+  Eval(sentence)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Construye una restriccion de busqueda a partir de la 
+dimension y subdimension que admite valores de negacion y comodines comparando
+con los valores de entrada.",
+AlgRestDimSubDim);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgDefGetNode(Text codDim, Text codSubDim, Set algDefSetNode)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(algDefSetNode),
+  {
+    Real Msg("AlgDefGetNode", "La estructura nodal esta vacia");
+    Empty
+  },
+  {
+    Set selNode = Select(algDefSetNode, Real(Set reg)
+    { AlgRestDimSubDim(codDim, codSubDim, reg->CodDim, reg->CodSubDim) });
+    If(IsEmpty(selNode), Empty, selNode)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el nodo determinado por el vector (codDim, codSubDim).
+Admite los valores comodin * indicando que son todas las codDim o codSubDim 
+sin restricciones respectivamente.",
+AlgDefGetNode);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real AlgDefChkDep(Text codDim, Text codSubDim, Set depSet)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(depSet), 0,
+  {
+    Set chkDep = EvalSet(depSet, Real(Set dep)
+    {
+      Text ckDim    = dep->CodDim;
+      Text ckSubDim = dep->CodSubDim; 
+      And(ckDim == codDim, ckSubDim == codSubDim)
+    });
+    SetMax(chkDep)  
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Chequea si hay dependencia o no de una dimension y 
+subdimension a partir de un conjunto de dependencias.",
+AlgDefChkDep);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgDefGetNodeByValDep
+(
+  Text codDim,
+  Text codSubDim,
+  Set algDefSetNode      
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(algDefSetNode), Empty,
+  {
+    Set dimSel = Select(algDefSetNode, Real(Set node)
+    {
+      Set depSet = node->DepSet;
+      If(IsEmpty(depSet), 0, AlgDefChkDep(codDim, codSubDim, depSet))
+    });
+    dimSel
+  }) 
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna los nodos que son dependientes del vector 
+(codDim, codSubDim).",
+AlgDefGetNodeByValDep); 
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgDefGetNodeByExiDep
+(
+  Text codDim,
+  Text codSubDim,
+  Text value, 
+  Set algDefSetNode,
+  Real strenght
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(algDefSetNode), Empty,
+  {
+    Set dimSel = Select(algDefSetNode, Real(Set node)
+    {
+      Text codSubDimCh = node->CodSubDim;
+      If(codSubDimCh != "", 0,
+      {
+        Set depSet  = node->DepSet;
+        Real chkDep = AlgDefChkDep(codDim, codSubDim, depSet);
+        If(Not(chkDep), 0,
+        {
+          If(Not(strenght), 1,
+          { 
+            Code depFun = node->DepFun;
+            Set alg     = AlgSt(codDim, codSubDim, value);
+            depFun(SetOfSet(alg))
+          })
+        })
+      })
+    });
+    dimSel
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna los nodos que son dependientes de la existencia
+del vector (codDim, codSubDim).",
+AlgDefGetNodeByExiDep); 
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgDefEvalValDep
+(
+  Text codDim, 
+  Text codSubDim, 
+  Set algSetNode, 
+  Set algDefSetNode
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Or(codSubDim == "", IsEmpty(algDefSetNode)), Empty,
+  {
+    Set node = AlgDefGetNode(codDim, codSubDim, algDefSetNode);
+    If(IsEmpty(node), Empty,
+    {
+      Set depSet  = node[1]->DepSet;
+      Code depFun = node[1]->DepFun;
+//Text WriteLn("For Dim:"+codDim+", subDim: "+codSubDim+", depSet->["<<depSet+"]");
+      If(IsEmpty(depSet), depFun(Empty),
+      { 
+        Set algSetFull = EvalSet(depSet, Set(Set depReg)
+        {
+          Text codDepDim    = depReg->CodDim; 
+          Text codDepSubDim = depReg->CodSubDim; 
+          Set selReg = 
+           AlgGetRegFromAlgSetNode(codDepDim, codDepSubDim, algSetNode);
+          If(IsEmpty(selReg), AlgSt(codDepDim, codDepSubDim, ""), selReg[1])  
+        });    
+//Text WriteLn("algSetFull->["<<algSetFull+"]");
+//Text WriteLn("name->["<<Name(node->DepFun+"]"));
+        depFun(algSetFull)
+      })
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Dado un vector (codDim, codSubDim) retorna los posibles
+valores que toma en funcion de las dependencias especificadas en algDef 
+para los valores de un algSet retornando los valores en formato 
+AlgListValueSt.", 
+AlgDefEvalValDep);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text AlgDefEvalDefVal
+(
+  Text codDim, 
+  Text codSubDim, 
+  Set algSetNode, 
+  Set algDefSetNode
+)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Or(codSubDim == "", IsEmpty(algDefSetNode)), Empty,
+  {
+    Set node = AlgDefGetNode(codDim, codSubDim, algDefSetNode);
+    If(IsEmpty(node), Empty,
+    {
+//Text WriteLn("Inside: Dim=" + codDim + ";sDim=" + codSubDim);
+      Set depSet  = node[1]->DepSet;
+      Code defValFun = node[1]->DefVal;
+//Text WriteLn("depSet->["<<depSet+"]");
+      Text If(IsEmpty(depSet), defValFun(Empty),
+      { 
+        Set algSetFull = EvalSet(depSet, Set(Set depReg)
+        {
+          Text codDepDim    = depReg->CodDim; 
+          Text codDepSubDim = depReg->CodSubDim; 
+          Set selReg = 
+           AlgGetRegFromAlgSetNode(codDepDim, codDepSubDim, algSetNode);
+          If(IsEmpty(selReg), AlgSt(codDepDim, codDepSubDim, ""), selReg[1])  
+        });    
+//Text WriteLn("algSetFull->["<<algSetFull+"]");
+//Text WriteLn("name->["<<Name(node->DepFun+"]"));
+        defValFun(algSetFull)
+      })
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Dado un vector (codDim, codSubDim) retorna el valor por
+defecto que toma en funcion de las dependencias especificadas en algDef 
+para los valores de un algSet retornando los valores en formato 
+AlgListValueSt.", 
+AlgDefEvalDefVal);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//-- Algebra Value Management Functions
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgGetRegFromAlgSetNode(Text codDim, Text codSubDim, Set algSetNode)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(algSetNode), SetOfSet(EmptyAlgNodeSt),
+  {
+    Set selReg = Select(algSetNode, Real(Set reg)
+    { AlgRestDimSubDim(codDim, codSubDim, reg->CodDim, reg->CodSubDim) });
+    If(IsEmpty(selReg), SetOfSet(EmptyAlgNodeSt), selReg)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el registro de un conjunto tabular con estructura 
+AlgSt correspondiente a un vector (codDim, codSubDim). Si no lo encuentra
+ retorna el conjunto vacio.",
+AlgGetRegFromAlgSetNode);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//-- Name Management Functions
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgGetDim(Text txtDim, Set algDefSetNode, Real numCarDim, Text subDimSep)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text codDim = Sub(txtDim, 1, numCarDim);  
+  Set algDefDimSetNode = AlgDefGetNode(codDim, "Not_", algDefSetNode);
+
+  If(IsEmpty(algDefDimSetNode),
+  {
+    Real Msg("AlgGetDim", "La dimension "+codDim+" no existe");
+    SetOfSet(AlgNodeSt(codDim, "", ""))
+  },
+  {
+    Text txtSubDim = Sub(txtDim, numCarDim+1, TextLength(txtDim)); 
+    Set subDimSet = Tokenizer(txtSubDim, subDimSep); 
+
+    Real cDimSet  = Card(algDefDimSetNode);
+    Set algSubDim = For(1, cDimSet, Set(Real k)
+    {
+      Set node   = algDefDimSetNode[k];
+      Text value = If(GT(k, Card(subDimSet)), "", subDimSet[k]);
+      AlgNodeSt(codDim, node->CodSubDim, value)
+    });
+    algSubDim
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna la estructura de una dimension.",
+AlgGetDim);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgChaVal(Text dim, Text subDim, Text value, Set algSet)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real cAlgSet = Card(algSet);
+  
+  If(EQ(cAlgSet, 0), Copy(Empty),
+  {
+    Real k     = 1;
+    Real found = 0;
+    Set algSetCopy = Copy(algSet);
+
+    Real While(And(LE(k, cAlgSet), Not(found)),
+    {
+      Set node = algSetCopy[k];
+      Text codDimNod    = node->CodDim;
+      Text codSubDimNod = node->CodSubDim;
+      
+      If(Not(And(codDimNod == dim, codSubDimNod == subDim)), Real (k:=k+1),
+      {
+        Text (node->Val := value);
+        Real (found := 1)
+      })
+    });
+    algSetCopy
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna un conjunto con estructura AlgNodeSt resultado de 
+cambiar el valor en una (dim, subDim)."
+,AlgChaVal);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgGet(Text name, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real numCarDim = algDef->NumCarDim;
+  Text dimSep    = algDef->DimSep;
+  Text subDimSep = algDef->SubDimSep;
+
+  Set tokSet   = Tokenizer(name, dimSep);
+  Real cTokSet = Card(tokSet);
+  Set If(LE(cTokSet, 1), 
+  {
+    Real Msg("AlgGet", "Estructura nominal invalida para "+name);
+    Empty
+  }, 
+  {
+    Text codMag       = tokSet[1];
+    Set algDefSetNode = AlgDefGetReg(codMag, algDef)->SetNode;
+
+    Set extTokSet     = ExtractByIndex(tokSet, Range(2, cTokSet, 1));
+
+    Set dimSet = EvalSet(extTokSet, Set(Text txtDim)
+    { AlgGetDim(txtDim, algDefSetNode, numCarDim, subDimSep) });
+
+    Set alg = If(EQ(cTokSet,2), AlgSt(codMag, dimSet[1]), 
+    AlgSt(codMag, BinGroup("<<", dimSet)));
+
+    Real chkAlg=1;//= AlgCheck(alg, algDef);
+
+    Set Case(
+       chkAlg==1, alg,
+       1, Copy(Empty)
+    )
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna un conjunto de vectores de textos en los que cada 
+uno de ellos es una dimension de la estructura algebraica del nombre entrada.
+",AlgGet);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real AlgCheckReq(Set algSet, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Or(IsEmpty(algSet), IsEmpty(algDef)), 0,
+  {
+    Text codMag       = algSet->CodMag; 
+    Set algSetNode    = algSet->SetNode;
+    Set algDefSetNode = AlgDefGetReg(codMag, algDef)->SetNode;
+
+    If(Or(IsEmpty(algDefSetNode), IsEmpty(algSetNode)), 0,
+    {
+//Text WriteLn("AlgCheckReq no son Empty");
+      Set algDim     = Unique(ExtractField(algSetNode, "CodDim"));
+
+      Set algDefSetNodeAllDim  = AlgDefGetNode("*","",algDefSetNode);
+      Set algDefSetNodeDimReq  = Select(algDefSetNodeAllDim, Real(Set node)
+      { node->Req });
+      Set algDefDimReq = 
+       Unique(ExtractField(algDefSetNodeDimReq, "CodDim"));
+
+//Text WriteLn("AlgCheckReq algDefDimReq : ["<<algDefDimReq+"]");         
+//Text WriteLn("AlgCheckReq algDim : ["<<algDim+"]");         
+      If(Not(Inclusion(algDefDimReq, algDim)), 0,
+      {
+//Text WriteLn("AlgCheckReq Inclusion ok");
+        Real k      = 1;
+        Real chkReq = Copy(True);
+        Real While(And(chkReq, LE(k, Card(algDim))),
+        {
+          Text codDim = algDim[k];
+          Set algDefSetNodeSubDimAll =  
+           AlgDefGetNode(codDim,"Not_",algDefSetNode);
+          Set algDefSetNodeSubDimReq = 
+           Select(algDefSetNodeSubDimAll, Real(Set node)
+          { node->Req });
+         
+          Set subDimAlgDefReq =  
+           ExtractField(algDefSetNodeSubDimReq, "CodSubDim");
+
+          Set algSetNodeSubDim =  
+           AlgGetRegFromAlgSetNode(codDim, "*", algSetNode);
+          Set algSetNodeSubDimOk = Select(algSetNodeSubDim, Real(Set node)
+          { node->Val != "" });
+          Set subDimAlg        =  
+           ExtractField(algSetNodeSubDimOk, "CodSubDim");
+           
+          If(Inclusion(subDimAlgDefReq, subDimAlg), 
+           Real(k:=k+1), Real(chkReq:=Copy(False))) 
+        });
+        chkReq
+      })
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna True si las dimensiones y subdimensiones obligadas
+de la definicion del algebra estan en la estructura de alg de un nombre",
+AlgCheckReq);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Real AlgCheck(Set algSet, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Not(AlgCheckReq(algSet, algDef)), 0,
+  {
+    Text codMag = algSet->CodMag;
+    Set magSet  = ExtractField(algDef->SetNode, "CodMag");
+    If(Not(codMag<:magSet), False,
+    {
+      Set algDefSetNode = AlgDefGetReg(codMag, algDef)->SetNode;
+      Set algSetNode    = algSet->SetNode;
+      If(Or(IsEmpty(algSetNode), IsEmpty(algDefSetNode)), 0,
+      {
+        Real cAlgSet = Card(algSetNode);
+        Real k       = 1;
+        Real chkAlg  = Copy(1);
+        Real While(And(chkAlg!=0, LE(k, cAlgSet)),
+        {
+          Set alg        = algSetNode[k];
+          Text codDim    = alg->CodDim;
+          Text codSubDim = alg->CodSubDim;
+          Text value     = alg->Val;
+    
+          Set node       = AlgDefGetNode(codDim, codSubDim, algDefSetNode);
+          If( IsEmpty(node),
+          {
+            Real Msg("AlgCheck", "There is an Empty node for "+codDim+" dim and "+
+            codSubDim+" subDim");
+            Real (k:= k+1);
+            Real (chkAlg := Copy(2))
+          },
+          {
+            Set depSet = node[1]->DepSet;
+            Text typ   = node[1]->Typ;
+
+            If(typ!="Date", 
+            {
+                If(IsEmpty(depSet),
+                {
+                  Set listValue = 
+                   AlgDefEvalValDep(codDim, codSubDim, algSetNode, algDefSetNode);
+                  Real isValue = (value <: ExtractField(listValue, "Cod"));
+                  If(isValue, Real (k:= k+1), 
+                  {
+                    Real Msg("AlgCheck", "The value ("+codDim+", "+codSubDim+", "+
+                    value+") is not valid");
+                    Real (chkAlg := Copy(0))
+                  })
+                },
+                {
+                  Set chkDep = EvalSet(depSet, Real(Set regDep)
+                  {
+                    Text codDimDep    = regDep->CodDim;
+                    Text codSubDimDep = regDep->CodSubDim;
+                    Set algReg        = 
+                     AlgGetRegFromAlgSetNode(codDimDep, codSubDimDep, algSetNode);
+                    Not(IsEmpty(algReg))
+                  });
+                
+                  If(Not(SetMin(chkDep)),
+                  {
+                    Real Msg("AlgCheck", "There is a Dependence that there is "
+                    +"not exist for "+codDim+" and "+codSubDimDep);
+                    Real (chkAlg := Copy(0))
+                  }, 
+                  {
+                    Set listValue = AlgDefEvalValDep
+                     (codDim, codSubDim, algSetNode, algDefSetNode);
+                    Real isValue = (value <: ExtractField(listValue, "Cod"));
+                    If(isValue, Real (k:=k+1), 
+                    {
+                      Real Msg("AlgCheck", "The value ("+codDim+", "+codSubDim+
+                       ", "+value+") is not valid");
+                      Real (chkAlg := Copy(0))
+                    })
+                  })   
+                }) 
+            })
+          })
+        });
+        chkAlg
+      })
+    })
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Determina si un nombre es valido o no. Retorna:
+0 -> Estructura inválida
+1 -> Estructura válida
+2 -> Estructura incompleta",
+AlgCheck);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text AlgGetCanon(Set algSet, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text codMag       = algSet->CodMag;
+  Set algSetNode    = algSet->SetNode;
+  Set algDefSetNode = AlgDefGetReg(codMag, algDef)->SetNode;
+
+  Set codDimSet = Unique(ExtractField(algDefSetNode, "CodDim"));
+
+  Set info = EvalSet(codDimSet, Set(Text codDim)
+  {
+    Set setSubDim  = AlgDefGetNode(codDim, "Not_", algDefSetNode);
+    Set infoSubDim = EvalSet(setSubDim, Set(Set subNode)
+    {
+      Text codDimTxt    = subNode->CodDim;
+      Text codSubDimTxt = subNode->CodSubDim;
+      AlgGetRegFromAlgSetNode(codDimTxt, codSubDimTxt, algSetNode)[1]
+    });
+    infoSubDim 
+  });
+//Text WriteLn("info->"<<info);
+  Set selInfo = Select(info, Real(Set reg)
+  { Not(CompareSet(reg[1], EmptyAlgNodeSt)) });
+
+  Set dimTxt = EvalSet(selInfo, Text(Set subDimSet)
+  {
+    Text dim = subDimSet[1]->CodDim;
+//Text WriteLn("subDimSet[1]->"<<subDimSet[1]);
+//Text WriteLn("subDimSet->"<<subDimSet);
+    dim+TxtListItem(ExtractField(subDimSet, "Val"), ".")
+  });
+  codMag+"_"+TxtListItem(dimTxt, "_")
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Construye un nombre canonico a partir de la definicion de 
+un algebra y un conjunto AlgSt",
+AlgGetCanon);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// -- Serie Get Data
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Anything AlgGetData(Text name, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(ObjectExist("Serie", name), Eval("Serie "+name+";"),
+  {
+    Set misDims = AlgGetMisDim(name, algDef);
+    Text name_mod = If( IsEmpty(misDims), name, 
+        {
+          Text tmpNew = AlgCorrectName(name, misDims, algDef);
+          Real PutWarning("El nombre de la serie fue cambiado porque la 
+            definición del álgebra cambió. El nuevo nombre es: "+tmpNew,1);
+          tmpNew
+        });
+    
+    Set algSet  = AlgGet(name_mod, algDef);
+    Text codMag = algSet->CodMag;
+    Set algSetNode = algSet->SetNode;
+    Set magInfo = AlgDefGetReg(codMag, algDef);
+    Code method = magInfo->SerCre->CodMet;
+    Set  argSet = magInfo->SerCre->ParMet;
+
+    Text WriteLn("\nAlgGetData: "+name);
+    Anything ser = method(algSetNode, argSet, name);
+
+    Anything MakeAnyGlobal(ser,name)
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Funcion de acceso a la informacion a traves del algebra",
+AlgGetData);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Serie AlgGetDataFromSet(Set s, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(IsEmpty(s), Copy(Empty),
+    SetSumC(EvalSet(s, Serie(Text name){AlgGetData(name, algDef)})))
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna la serie suma de las dadas a partir de un conjunto de
+nombres algebraicos",
+AlgGetDataFromSet);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Set AlgGetMisDim(Text name, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real numCarDim = algDef->NumCarDim;
+  Text dimSep    = algDef->DimSep;
+  Text subDimSep = algDef->SubDimSep;
+
+  Set tokSet   = Tokenizer(name, dimSep);
+  Real cTokSet = Card(tokSet);
+  Set If(LE(cTokSet, 1), Copy(Empty),
+  {
+    Text codMag       = tokSet[1];
+    Set algDefSetNode = AlgDefGetReg(codMag, algDef)->SetNode;
+    Set extTokSet     = ExtractByIndex(tokSet, Range(2, cTokSet, 1));
+    Set dimCodSet = EvalSet(extTokSet, Text(Text txtDim)
+    {
+       Text codDim = Sub(txtDim,1,numCarDim)
+    });
+    Set algMagDef = AlgDefGetReg(codMag, algDef)->SetNode;
+    Set dimCodes = EvalSet( AlgDefGetNode("*", "", algMagDef), 
+                            Text ExtCod(Set def){def[1]} );
+    Set misDim = dimCodes - dimCodSet
+  })  
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna las dimensiones faltantes en un nombre dada la 
+definición del algebra",
+AlgGetMisDim);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text AlgCorrectName(Text oriName, Set misDims, Set algDef)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text dimSep    = algDef->DimSep;
+  Text subDimSep = algDef->SubDimSep;
+  Set tokSet     = Tokenizer(name, dimSep);
+  Text codMag    = tokSet[1];
+
+  Set algMagDef = AlgDefGetReg(codMag, algDef)->SetNode;
+  Set dimEsp = EvalSet(misDims, Text GetDefValMisDim(Text misDim)
+  {
+    Set algDimDef   = AlgDefGetNode(misDim, "*", algMagDef);
+    Real numSubDims = Card(algDimDef)-1;
+    Set algSubDims  = ExtractByIndex(algDimDef, Range(2, numSubDims+1, 1));
+    Set subDimEsp = EvalSet( algSubDims, Text GetDefVal(Set subDim)
+    {
+      Text subDimCod = subDim->CodSubDim;
+      Text defVal = GuiAlgGetSubDimDefVal(
+                       codMag, misDim, subDimCod, Copy(Empty), algDef)
+    });
+    Text misDim+TxtListItem(subDimEsp, subDimSep)
+  });
+  Text oriName+dimSep+TxtListItem(dimEsp, dimSep)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna un nombre completando las dimensiones faltantes con 
+valores por defecto cuando es posible. En caso de no ser posible retorna la
+serie original.",
+AlgCorrectName);
+//////////////////////////////////////////////////////////////////////////////
+
