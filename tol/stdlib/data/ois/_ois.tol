@@ -102,3 +102,172 @@ PutDescription(I2(
 "una raíz dada."), 
 Ois.GetAddress);
 //////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+  Set Ois.SerSetCumCache(NameBlock serSetGen, 
+                         Date askFrom, 
+                         Date askUntil, 
+                         Real caducityInMinutes)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text key = serSetGen::getKey(0);
+  Text _MID = "[Ois.SerSetCumCache "+key+"]:\n";
+  Text cacheFile = Ois.DefRoot+"Ois.SerSetCumCache/"+key+".oza";
+
+  WriteLn("TRACE "+_MID+" Caducidad de la caché en minutos: "<<caducityInMinutes);
+  Real If(caducityInMinutes<=0, 
+  {
+    WriteLn("TRACE "+_MID+"Se borra la caché porque la caducidad es nula "
+            "o negativa");
+    OSFilRemove(cacheFile)
+  });
+  Real cacheExist = FileExist(cacheFile);
+  Date cacheDate = If(cacheExist, FileTime(cacheFile), TheBegin);
+  Real cacheAge = If(cacheExist, DateDif(S(0), cacheDate, Now), 1/0);
+  WriteLn("TRACE "+_MID+" Fecha de la caché: "<<cacheDate);
+  WriteLn("TRACE "+_MID+" Antigüedad de la caché en minutos: "<<cacheAge);
+  Real cacheValid = If(cacheAge>=caducityInMinutes, False, True);
+  Set cacheData = If(cacheValid, Include(cacheFile), Copy(Empty));
+  Date cacheFrom = SetMinDate([[TheEnd]] <<EvalSet(cacheData, First));
+  Date cacheUntil = SetMaxDate([[TheBegin]]<<EvalSet(cacheData, Last ));
+  NameBlock avail = serSetGen::getAvail(0);
+  Date askAvaiFrom = Max(askFrom, avail::first);
+  Date askAvailUntil = Min(askUntil, avail::last);
+
+  WriteLn("TRACE "+_MID+" Intervalo solicitado: ["<<askFrom+","<<askUntil+"]");
+  WriteLn("TRACE "+_MID+" Intervalo disponible en origen: ["<<avail::first+","<<avail::last+"]");
+  WriteLn("TRACE "+_MID+" Intervalo intersección: ["<<askAvaiFrom+","<<askAvailUntil+"]");
+  WriteLn("TRACE "+_MID+" Intervalo almacenado en la caché: ["<<cacheFrom+","<<cacheUntil+"]");
+  
+  //Método local usado cuando no es posible usar la cache actual
+  Set getAllData(Real unused)
+  {
+    Set ask = serGen::getData(askAvaiFrom, askAvailUntil);
+    Real OSFilRemove(cacheFile);
+    Real Ois.Store(ask, cacheFile);
+    ask
+  };
+
+  Set series = Case(
+  (askAvaiFrom > askAvailUntil),
+  {
+    WriteLn(_MID+"No hay datos disponibles entre las fechas solicitadas ["<<
+            askFrom+","<<askUntil+"]","W");
+    Copy(Empty)
+  },
+  And(askAvaiFrom>=cacheFrom, askAvailUntil<=cacheUntil),
+  {
+    WriteLn("TRACE "+_MID+"Todos los valores solicitados estaban ya en la cache");
+    EvalSet(cacheData, Serie(Serie ser)
+    {
+      Serie sub = SubSer(ser, askAvaiFrom, askAvailUntil);
+      Eval(Name(ser)+"=sub")
+    })
+  },
+  And(askAvaiFrom>=cacheFrom, askAvailUntil>cacheUntil),
+  {
+    WriteLn("TRACE "+_MID+"Intentando actualización acumulativa de la cache "
+    "en el intervalo de nuevos datos ["<<cacheUntil+","<<askAvailUntil+"]");
+    Set newData = serGen::getData(cacheUntil,askAvailUntil);
+    If(Card(newData)>Card(cacheData),
+    {
+      WriteLn(_MID+"La actualización acumulativa de la cache no se puede "
+        "ejecutar porque los nuevos datos contienen mayor número de series ("<<
+        Card(newData)+") que los de la cache ("<<Card(cacheData)+")","W");
+      getAllData(0)
+    },
+    {
+      Real numErr0 = Copy(NError);
+      Set cache = For(1,Card(cacheData), Serie(Real k)
+      {
+        Text name = Name(cacheData[k]);
+        If(!ObjectExist("Serie","newData[\""+name+"\"]"), 
+        {
+          cacheData[k]
+        },
+        {
+          Serie sub = cacheData[k]<<newData[name];
+          Eval(name+"=sub")
+        })
+      });
+      Real numErr1 = Copy(NError);
+      If(numErr1>numErr0,
+      {
+        WriteLn(_MID+"La actualización acumulativa de la cache no se puede "
+          "ejecutar porque los nuevos datos no contienen algunas series de "
+          "las de la cache: "+notFound,"W");
+        getAllData(0)
+      },
+      {
+        WriteLn("TRACE "+_MID+"La actualización parcial de la cache se "
+          "ejecutó con éxito.");
+        Real OSFilRemove(cacheFile);
+        Real Ois.Store(cache, cacheFile);
+        Set ask = For(1,Card(cache), Serie(Real k)
+        {
+          Serie sub = SubSer(cache[k], askAvaiFrom, askAvailUntil);
+          Eval(Name(cache[k])+"=sub")
+        });
+        ask
+      })
+    })
+  },
+  1==1,
+  {
+    WriteLn("TRACE "+_MID+" La cache ha tenido que ser reconstruida por completo");
+    getAllData(0)
+  })    
+
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Añade una caché acumulativa a un mecanismo genérico de "
+"obtención de series temporales que van creciendo con el tiempo, que viene "
+"definido por un NameBlock serSetGen con una serie de métodos obligatorios.\n"
+"En último término las series temporales provendrán de una base de datos, un "
+"data warehouse o algún otro mecanismo de almacenamiento masivo.\n"
+"La utilidad de este algoritmo es minimizar el número y el volumen de las "
+"consultas realizadas sobre los orígenes de los datos.\n"
+"El método "
+"  NameBlock serSetGen::getAvail(Real unused) \n"
+"retorna el intervalo temporal  para el que existen datos disponibles. "
+"  NameBlock avail = [[ Date first, Date Last ]]\n"
+"La primera vez que se le llama almacenan los datos devueltos por el "
+"método \n "
+"  Set serSetGen::getData(avail::first, avail::last) \n"
+"en un OIS ubicado por un texto clave propiedad característica del método \n"
+"  Text getKey(Real unused) \n"
+"Luego se devolverán esas series pero recortadas al intervalo de "
+"intersección entre el disponible y el solicitado [askFrom, askUntil].\n"
+"Si se desea obtener todos los datos disponibles basta con pasar\n"
+"Date askFrom= TheBegin, Date askUntil=TheEnd\n"
+"El método devolverá un conjunto, preferiblemente indexado, de series con "
+"nombres localmente únicos, para poder reconocer los distintos elementos, "
+"ya que según el intervalo solicitado es posible que se devuelvan más o "
+"menos series.\n"
+"Las veces subsiguientes la función rescatará los datos almacenados en la "
+"cache y solicitará únicamente los datos más recientes que hayan aparecido "
+"desde que se efectuó la cache, si es que los hay, en cuyo caso serán "
+"concatenados a los datos antiguos para las series que hayan crecido, y se "
+"reactualizará el fichero OIS de la cache, razón por la cual esta técnica "
+"recibe el nombre de caché acumulativa. Si no hubiera datos nuevos "
+"simplemente se devolverán los datos de la cache almacenada en el intervalo "
+"colicitado.\n"
+"Si se detecta cualquier discrepancia o incompatibilidad entre la cache y "
+"los nuevos datos o entre el intervalo de disponibilidad actual y el "
+"almacenado entonces se destruirá la caché y se empezará desde cero.\n"
+"Si el archivo de la caché tiene una vida mayor que la caducidad "
+"especificada por caducityInMinutes entonces se borrará la caché y se "
+"empezará de nuevo. Con este parámetro puesto a 0 se obligaría a limpiar la "
+"cache cuando por cualqueir circunstancia se sepa o sospeche que puede haber "
+"discrepancias entre los datos de la cache y los originales, a parte de los "
+"datos nuevos, bien por cualquier fallo durante el proceso de la cache, bien "
+"porque se hayan actualizado las propias fuentes de los datos históricos.\n"
+"Por el contrario, poniendo caducityInMinutes=1/0 es posible trabajar con "
+"una copia local congelada de los datos, bien para protegerse de algún "
+"problema detectado en la alimentación de los datos originales, bien porque "
+"eventualmnete no se dispone de conexión a los recursos de almacenamiento "
+"de los mismos.", 
+Ois.SerSetCumCache);
+//////////////////////////////////////////////////////////////////////////////
+
