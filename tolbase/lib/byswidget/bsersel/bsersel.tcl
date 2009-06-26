@@ -219,7 +219,7 @@ package require byscommon
       }
       incr idxMag
     }
-    parray alg    
+    #parray alg    
   }
 
   #///////////////////////////////////////////////////////////////////////////
@@ -544,7 +544,7 @@ package require byscommon
   #   dim -> dimension identifier
   #   sDi -> subdimension identifier
   #/////////////////////////////////////////////////////////////////////////////
-  #Tolcon_Trace "_fillSubDim mag=$mag, dim=$dim, sDi=$sDi"
+    #Tolcon_Trace "_fillSubDim mag=$mag, dim=$dim, sDi=$sDi"
     set type [$self _getSubDimType $mag $dim $sDi]
     switch -- $type {
        "uni.dir" { $self _fillSubDimUniDir $mag $dim $sDi }
@@ -576,6 +576,7 @@ method _findcode {idcoltab cod} {
   }
   return -1
 }
+
 #/////////////////////////////////////////////////////////////////////////////
 method _fillSubDimHie {mag dim sDi trigger} {
 #
@@ -692,7 +693,7 @@ method _fillSubDimDat {mag dim sDi trigger} {
 #   dim -> dimension identifier
 #   sDi -> subdimension identifier
 #/////////////////////////////////////////////////////////////////////////////
-#Tolcon_Trace "_fillSubDimUniInd mag=$mag dim=$dim, sDi=$sDi"
+#Tolcon_Trace "_fillSubDimDat mag=$mag dim=$dim, sDi=$sDi"
   set w $algwid($mag,$dim,$sDi)
   set lstReg [$self _getSubDimValues $mag $dim $sDi]
   set defval [$self _getSubDimDefValue $mag $dim $sDi]
@@ -817,7 +818,7 @@ method _fillSubDimDat {mag dim sDi trigger} {
         lappend lstRegMod [linsert [lrange $reg 1 end] end [lindex $reg 0]]
         set valCont [expr $valCont+1]
         if {$defval eq [lindex $reg 1]} {
-             set defFound $valCont
+          set defFound $valCont
         }
       }
     } else {
@@ -847,7 +848,7 @@ method _fillSubDimDat {mag dim sDi trigger} {
     }
 
     if {$defval ne ""} {
-       if {$defFound eq 1} {
+       if {$defFound ne 0} {
           $tmp($mag,$dim,$sDi) selectIndex $defFound
        }
     }
