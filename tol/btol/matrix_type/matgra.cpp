@@ -525,7 +525,7 @@ DefExtOpr(1, BMatReadFile, "MatReadFile", 1, 2, "Text Text",
      "Lee una matriz de un fichero en el formato especificado")+":\n"+
      "BINARY: "+
      I2("Standard TOL binary format",
-        "Formato estándar binario de TOL")+
+        "Formato estándar binario de TOL")+"\n"+
      "WGRIB2TXT: "+
      I2("Result of command", "Resultado del comando")+
      " wgrib2 ... -text file\n"+
