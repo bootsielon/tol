@@ -407,21 +407,21 @@ RecDir.Count.Char);
     Real RecDir.Delete.OlderThan.item(Text fileName, Real isFile)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Date ft = FileTime(fileName);
-    Real totalChecked := totalChecked + 1;
-    If(ft<date, 
+    If(!isFile, False,
     {
-      If(verbose>1,
+      Date ft = FileTime(fileName);
+      Real totalChecked := totalChecked + 1;
+      If(ft>=date, False,
       {
-        WriteLn("El fichero "+fileName+" será borrado")
-      });
-      Real ok = FileRemove(fileName);
-      Real totalTried := totalTried + 1;
-      Real totalDeleted := totalDeleted + ok;
-      True
-    }, 
-    {
-      False
+        If(verbose>1,
+        {
+          WriteLn("El fichero "+fileName+" será borrado")
+        });
+        Real ok = OSFilRemove(fileName);
+        Real totalTried := totalTried + 1;
+        Real totalDeleted := totalDeleted + ok;
+        True
+      })
     })
   };
   Set report = RecDir.DoWithTree
