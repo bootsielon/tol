@@ -69,3 +69,20 @@ PutDescription("Si existe config::<member> del mismo tipo que defaultValue "
 GetConfigValue);
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+Anything GetConsoleObject( Real idx )
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set cmd_info = [[ "tol::info",
+                    "address",
+                    [[ "Console", IntText(idx) ]] ]];
+
+  Set result = Tcl_EvalEx( cmd_info );
+  Anything If( result[ "status" ],
+               GetObjectFromAddress( result[ "result" ] ),
+               Error( "GetConsoleObject: " +
+                      result[ "result" ]   +
+                      "\nevaluating tol::info address'" ) )
+};//////////////////////////////////////////////////////////////////////////////
+PutDescription("Retorna el objeto de consola con indice idx",
+                GetConsoleObject);
