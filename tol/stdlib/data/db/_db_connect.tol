@@ -3,7 +3,6 @@
 // PURPOSE: Data base connections
 //////////////////////////////////////////////////////////////////////////////
 
-
 //////////////////////////////////////////////////////////////////////////////
 NameBlock DBConnect =
 //////////////////////////////////////////////////////////////////////////////
@@ -12,8 +11,8 @@ NameBlock DBConnect =
   "Allows a simpler way of DataBase connection handling.\n"
   "User just needs to cretae all connections  at the begin of a project:\n"
   "\n"
-  "  DBHandler MyDbc_1 = DBConnect::Create(...);\n"
-  "  DBHandler MyDbc_2 = DBConnect::Create(...);\n"
+  "  NameBlock MyDbc_1 = DBConnect::Create(...);\n"
+  "  NameBlock MyDbc_2 = DBConnect::Create(...);\n"
   "\n"
   "Afterwords user can call MyDbc_n::Open(0) or better MyDbc_n::Activate(0) "
   "indistinctly due to the handler remember if it's open or not and call the "
@@ -21,64 +20,10 @@ NameBlock DBConnect =
   "Method MyDbc_n::Close(0) is not mandatory although it should be "
   "recommended to avoid server overhead.";
 
-  //////////////////////////////////////////////////////////////////////////////
-  Class DBHandler  
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    Text _.autodoc.description;
-    Text _.alias;
-    Text _.user;
-    Text _.password;
-    Text _.server;
-    Text _.driver;
-    Text _.defaultDB;
-    Real _.isOpen;
-
-    Real Open(Real unused) 
-    { 
-      If(_.isOpen, 1,
-      {
-      //VBR: Esto es un parche para salvar el ticket #697 pero lo adecuado 
-      //sería poder usar los argumentos adicionales con el driver ODBC sin 
-      //necesidad de crear el alias en la configuración de herramientas del
-      //sistema
-        Real ok = If(_.driver=="odbc",
-          DBOpen(_.alias, _.user, _.password),
-          DBOpen(_.alias, _.user, _.password, 
-                 [[_.driver, _.defaultDB, _.server]]));
-        Real _.isOpen := ok;
-        WriteLn("[DBConnect::"+_.alias+"::Open] "+
-         I2("Connection is ", "La conexión ")+
-         If(ok,I2("is OK","tuvo exito"),I2("has failed","ha fallado")));
-        ok
-      })
-    };
-    Real Activate(Real unused) 
-    { 
-      If(!_.isOpen, Open(0), DBActivate(_.alias) )
-    };
-    Real Close(Real unused) 
-    { 
-      If(!_.isOpen, 0, 
-      {
-        Real _.isOpen := false;
-        DBClose(_.alias);
-        Text DBConnect::currentAlias := "";
-        Real True
-      })
-    };
-    Real Check(Real unused)
-    {
-      WriteLn("[DBConnect::Create] "+
-        I2("Checking connection to ",
-           "Chequeando la conexión a ")+_.alias);
-      Real ok.open = Open(0);
-      If(!ok.open, false, Close(0))
-    }
-  };
-
   //Stores all available connections
   Set _.allConnections = Copy(Empty);
+
+  Text currentAlias = "";
 
   ////////////////////////////////////////////////////////////////////////////
   //Ctreates a generic database connection handler
@@ -87,7 +32,7 @@ NameBlock DBConnect =
                    Text purpose)
   ////////////////////////////////////////////////////////////////////////////
   { 
-    DBHandler dbc = 
+    NameBlock dbc = 
     [[
       Text _.autodoc.description = 
         I2("Data base conexion ",
@@ -98,6 +43,7 @@ NameBlock DBConnect =
       Text _.user      = user;
       Text _.password  = password;
       Text _.server    = server;
+      Real _.isOpen    = false;
       Text _.driver    = 
       {
         Text dr = ToLower(driver);
@@ -118,8 +64,81 @@ NameBlock DBConnect =
       //adicionales si se sustituye defaultDataBase por alias
       //Text _.defaultDB = If(_.driver=="odbc", alias, defaultDataBase);
       Text _.defaultDB = defaultDataBase;
- 
-      Real _.isOpen    = false
+
+      Real Open(Real unused) 
+      { 
+        If(_.isOpen, 1,
+        {
+        //VBR: Esto es un parche para salvar el ticket #697 pero lo adecuado 
+        //sería poder usar los argumentos adicionales con el driver ODBC sin 
+        //necesidad de crear el alias en la configuración de herramientas del
+        //sistema
+          Real ok = If(_.driver=="odbc",
+            DBOpen(_.alias, _.user, _.password),
+            DBOpen(_.alias, _.user, _.password, 
+                   [[_.driver, _.defaultDB, _.server]]));
+          Real _.isOpen := ok;
+          If(ok,
+          {
+            Text DBConnect::currentAlias := _.alias;
+            WriteLn("[DBConnect::"+_.alias+"::Open] "+
+             I2("Connection is ", "La conexión ")+
+             I2("is OK","tuvo exito"))
+          },
+          {
+            WriteLn("[DBConnect::"+_.alias+"::Open] "+
+             I2("Connection is ", "La conexión ")+
+             I2("has failed","ha fallado"))
+          });
+          ok
+        })
+      };
+      Real _IsActive(Real unused)
+      {
+         Set setAll = DBGetOpened("");
+         Set setAct = Select(setAll, Real (Set reg) {
+           Eq(reg["status"],1) 
+         });
+         Text active = If(IsEmpty(setAct), "", setAct[1]["alias"]);
+         Real (active==_.alias)
+      };
+      Real Activate(Real unused) 
+      { 
+        If(_IsActive(unused), True,
+        {
+          If(!_.isOpen, Open(0) );
+          Real ok = DBActivate(_.alias);
+          If(ok,
+          {
+            Text DBConnect::currentAlias := _.alias;
+            WriteLn("[DBConnect::"+_.alias+"::Open] "+
+             I2("Connection is ", "La conexión ")+
+             I2("is now active","está ahora activa"))
+          },
+          {
+            WriteLn("[DBConnect::"+_.alias+"::Open] "+
+             I2("Connection is ", "La conexión ")+
+             I2("cannot be activated","no se pudo activar"))
+          });
+          ok
+        })
+      };
+      Real Close(Real unused) 
+      { 
+        If(!_.isOpen, 0, 
+        {
+          Real _.isOpen := false;
+          DBClose(_.alias)
+        })
+      };
+      Real Check(Real unused)
+      {
+        WriteLn("[DBConnect::Create] "+
+          I2("Checking connection to ",
+             "Chequeando la conexión a ")+_.alias);
+        Real ok.open = Open(0);
+        If(!ok.open, false, Close(0))
+      }
     ]];
     Real If(!ObjectExist("NameBlock","_.allConnections::"+alias),
     { 
@@ -131,15 +150,15 @@ NameBlock DBConnect =
 
   Real OpenAll(Real unused)
   {
-    SetMin(EvalSet(_.allConnections, Real(DBHandler dbc) { dbc::Open(0) }))
+    SetMin(EvalSet(_.allConnections, Real(NameBlock dbc) { dbc::Open(0) }))
   };
   Real CheckAll(Real unused)
   {
-    SetMin(EvalSet(_.allConnections, Real(DBHandler dbc) { dbc::Check(0) }))
+    SetMin(EvalSet(_.allConnections, Real(NameBlock dbc) { dbc::Check(0) }))
   };
   Real CloseAll(Real unused)
   {
-    SetMin(EvalSet(_.allConnections, Real(DBHandler dbc) { dbc::Close(0) }))
+    SetMin(EvalSet(_.allConnections, Real(NameBlock dbc) { dbc::Close(0) }))
   }
 ]];
 
