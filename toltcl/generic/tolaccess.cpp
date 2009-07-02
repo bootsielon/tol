@@ -1946,7 +1946,7 @@ int Tol_SetVariableInfoObj (Tcl_Obj * gra_name,
  * Fill in obj_result the string representation of the
  * address of the object referenced in obj_ref.
  */
-int Tol_GetAddresFromObject( Tcl_Interp * interp,
+int Tol_GetAddressFromObject( Tcl_Interp * interp,
                              Tcl_Obj * obj_ref,
                              Tcl_Obj * obj_result)
 {

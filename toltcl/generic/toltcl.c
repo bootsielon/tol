@@ -891,6 +891,18 @@ Tol_InfoCmd(clientData, interp, objc, objv)
         tcl_result = TCL_ERROR;	
       } else
 	tcl_result = Tol_GetReference(interp, objc-2, objv+2, obj_result);
+    } else if (!strncasecmp("address", arg, length)) {
+      if (objc != 3) {
+        Tcl_AppendStringsToObj(obj_result,
+                               "wrong # args: should be '",
+                               Tcl_GetString(objv[0]),
+                               " address {grammar|container objname ?indexes?}'",
+                               NULL);
+        tcl_result = TCL_ERROR;	
+      } else {
+	tcl_result = Tol_GetAddresFromObject( interp,
+                                              objv[2], obj_result );
+      }
     } else if (!strncasecmp("included", arg, length)) {
       if (objc == 2)
         tcl_result = Tol_InfoIncluded(interp, obj_result);

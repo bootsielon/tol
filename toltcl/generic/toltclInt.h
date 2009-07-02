@@ -116,6 +116,13 @@ extern int Tol_GetStructure _ANSI_ARGS_(( Tcl_Interp * interp,
 int Tol_GetReference(Tcl_Interp *interp, int objc, 
 		     Tcl_Obj *CONST objv[], Tcl_Obj * obj_result);
 
+/*
+ * Fill in obj_result the result the string representation of the
+ * address of the object referenced in obj_ref.
+ */
+extern int Tol_GetAddressFromObject _ANSI_ARGS_( (Tcl_Interp * interp,
+                                                 Tcl_Obj * obj_ref,
+                                                 Tcl_Obj * obj_result));
 /*! Return the path of a set if it is a file, trigger an error in other case
  */
 extern int Tol_GetSetPath _ANSI_ARGS_(( Tcl_Interp * interp,
