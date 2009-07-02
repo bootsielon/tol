@@ -12,7 +12,7 @@ proc LoadToltcl { version dir } {
   load [file join $dir $name] Toltcl
 }
 
-set version "1.1.7"
+set version "2.0.1"
 
 package ifneeded Toltcl $version [list LoadToltcl $version $dir]
 
