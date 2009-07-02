@@ -51,7 +51,7 @@
  * define:
  */
 
-/* #define ISFILE_IMPLEMENTED */
+#define ISFILE_IMPLEMENTED
 
 typedef void (* getmethod)( const BSyntaxObject *, BText & );
 typedef int  (* checkmethod)( const BSyntaxObject * );
@@ -802,6 +802,8 @@ int Tol_GetReference(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
  * empty or container[i1][i2]...[ik] for the given indexes
  * {i1,i2,...,ik}
  *
+ * Used by tol::forallchil
+ *
  */
 
 int Tol_IterChildren(Tcl_Interp * interp,
@@ -809,19 +811,6 @@ int Tol_IterChildren(Tcl_Interp * interp,
                      Tcl_Obj *CONST objv[],
                      Tcl_Obj * obj_result)
 {
-#define ARG_SCRIPT    0
-#define ARG_GRAMMAR   ARG_SCRIPT+1
-#define ARG_NAME      ARG_GRAMMAR+1
-#define ARG_CONTENT   ARG_NAME+1
-#define ARG_PATH      ARG_CONTENT+1
-#define ARG_DESC      ARG_PATH+1
-#define ARG_INDEXES   ARG_DESC+1
-#define ARG_ISFILE    ARG_INDEXES+1
-#define ARG_HASSUBSET ARG_ISFILE+1
-#define ARG_SUBTYPE   ARG_HASSUBSET+1
-#define ARG_STRUCT    ARG_SUBTYPE+1
-#define NUM_ARGS      ARG_STRUCT+1
-
   const BSyntaxObject* container;
   Tcl_DString dstr;
   Tcl_Obj * ArgIndexes;
@@ -829,6 +818,7 @@ int Tol_IterChildren(Tcl_Interp * interp,
   int i, card ;
   int n, index_length;
   Tcl_Obj ** items;
+  Tcl_Obj ** script_header;
 
   int length = 0;
   
@@ -836,19 +826,46 @@ int Tol_IterChildren(Tcl_Interp * interp,
     Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
     return TCL_ERROR;
   }
-  if (length<2) {
-    Tcl_AppendStringsToObj(obj_result,
-                           "invalid object reference '",
-                           Tcl_GetString(objv[0]),
-                           "must be {TYPE ?name? i1 i2 ... ik}",
-                           NULL);
+  if ( length < 2 ) {
+    Tcl_AppendStringsToObj( obj_result,
+                            "invalid object reference '",
+                            Tcl_GetString(objv[0]),
+                            "must be {TYPE ?name? i1 i2 ... ik}",
+                            NULL );
     return TCL_ERROR;
   }
 
-  if (!(container=Tol_ResolveObject(interp, objv[0], obj_result))) {
+  /* expand header of script */
+  tcl_code = Tcl_ListObjGetElements( interp, objv[ 1 ],
+                                     &length, &script_header );
+  if ( tcl_code != TCL_OK ) {
+    Tcl_AppendObjToObj( obj_result, Tcl_GetObjResult( interp ) );
     return TCL_ERROR;
   }
-  BSet *set = ContainerGetSet(container);
+
+  if ( !length ) {
+    Tcl_AppendStringsToObj( obj_result,
+                            "invalid script argument of length 0",
+                            NULL );
+    return TCL_ERROR;
+  }
+  int ARG_SCRIPT    = length - 1;
+  int ARG_GRAMMAR   = ARG_SCRIPT + 1;
+  int ARG_NAME      = ARG_GRAMMAR + 1;
+  int ARG_CONTENT   = ARG_NAME + 1;
+  int ARG_PATH      = ARG_CONTENT + 1;
+  int ARG_DESC      = ARG_PATH + 1;
+  int ARG_INDEXES   =  ARG_DESC + 1;
+  int ARG_ISFILE    = ARG_INDEXES + 1;
+  int ARG_HASSUBSET = ARG_ISFILE + 1;
+  int ARG_SUBTYPE   = ARG_HASSUBSET + 1;
+  int ARG_STRUCT    = ARG_SUBTYPE + 1;
+  int NUM_ARGS      = ARG_STRUCT + 1;
+  
+  if ( !( container=Tol_ResolveObject( interp, objv[0], obj_result ) ) ) {
+    return TCL_ERROR;
+  }
+  BSet *set = ContainerGetSet( container );
   if (!set) {
     Tcl_AppendStringsToObj(obj_result,
                            "object '",
@@ -861,9 +878,10 @@ int Tol_IterChildren(Tcl_Interp * interp,
   card = set->Card();
   
   int datac;
-  Tcl_Obj * datav[NUM_ARGS];
+  Tcl_Obj ** datav = new ( Tcl_Obj* [ NUM_ARGS ] );
+
   // is ok to ask for a list
-  Tcl_ListObjGetElements(interp,objv[0],&n,&items);
+  Tcl_ListObjGetElements( interp, objv[ 0 ], &n, &items );
   
   if (strcmp(Tcl_GetString(items[0]),"Console")) {
     if (n>2)
@@ -877,7 +895,9 @@ int Tol_IterChildren(Tcl_Interp * interp,
       ArgIndexes = Tcl_NewListObj(0,NULL);
   }
 
-  datav[ARG_SCRIPT] = objv[1];
+  for( i = 0; i < ARG_GRAMMAR; ++i ) {
+    datav[ i ] = script_header[ i ];
+  }
   
   datav[ARG_GRAMMAR] = Tcl_NewObj();
   datav[ARG_NAME]    = Tcl_NewObj();
@@ -892,8 +912,9 @@ int Tol_IterChildren(Tcl_Interp * interp,
   datav[ARG_HASSUBSET] = Tcl_NewObj();
   datav[ARG_SUBTYPE] = Tcl_NewObj();
   datav[ARG_STRUCT] = Tcl_NewObj();
-  for (i=ARG_GRAMMAR; i<NUM_ARGS; ++i)
-    Tcl_IncrRefCount(datav[i]);
+  for ( i = 0; i < NUM_ARGS; ++i ) {
+    Tcl_IncrRefCount( datav[i] );
+  }
   
   BSyntaxObject *syn_i;
   BSet          *set_i; /* just in case syn_i be a container */
@@ -901,13 +922,11 @@ int Tol_IterChildren(Tcl_Interp * interp,
   
   Tcl_DStringInit(&dstr);
   BText btxt;
-  
  
-  for (i=1; i<=card; ++i) {
+  for ( i = 1; i <= card; ++i ) {
     syn_i = (*set)[i];
     
     /* read the grammar */
-    
     btxt = syn_i->Grammar()->Name();
     Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
     if (Tcl_IsShared(datav[ARG_GRAMMAR])) {
@@ -919,7 +938,6 @@ int Tol_IterChildren(Tcl_Interp * interp,
     Tcl_DStringFree(&dstr);
     
     /* read the name */
-    
     //btxt = syn_i->Identify();
     GetName( syn_i, btxt );
     Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
@@ -932,7 +950,6 @@ int Tol_IterChildren(Tcl_Interp * interp,
     Tcl_DStringFree(&dstr);
     
     /* read the content */
-    
     btxt = syn_i->Info();
     Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
     if (Tcl_IsShared(datav[ARG_CONTENT])) {
@@ -944,7 +961,6 @@ int Tol_IterChildren(Tcl_Interp * interp,
     Tcl_DStringFree(&dstr);
     
     /* read the path */
-    
     btxt = syn_i->SourcePath();
     Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
     if (Tcl_IsShared(datav[ARG_PATH])) {
@@ -955,8 +971,7 @@ int Tol_IterChildren(Tcl_Interp * interp,
       Tcl_SetStringObj(datav[ARG_PATH],Tcl_DStringValue(&dstr),-1);
     Tcl_DStringFree(&dstr);
     
-    /* read the description */
-    
+    /* read the description */   
     btxt = syn_i->Description();
     Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
     if (Tcl_IsShared(datav[ARG_DESC])) {
@@ -974,89 +989,78 @@ int Tol_IterChildren(Tcl_Interp * interp,
         Tcl_ListObjReplace(NULL, datav[ARG_INDEXES], index_length-1,
                            1, 1, &last_index);
       }
-      /*
-      if (Tcl_IsShared(datav[ARG_INDEXES])) {
-        Tcl_DecrRefCount(datav[ARG_INDEXES]);
-        datav[ARG_INDEXES] = Tcl_DuplicateObj(datav[ARG_INDEXES]);
-        Tcl_IncrRefCount(datav[ARG_INDEXES]);
-        Tcl_ListObjLength(NULL,datav[ARG_INDEXES],&n);
-        Tcl_ListObjIndex(NULL,datav[ARG_INDEXES],n-1,&last_index);
-      }
-      */
       /* set the last value index */
-      Tcl_SetIntObj(last_index,i);
+      Tcl_SetIntObj( last_index, i );
       /* to refresh the string */
-      Tcl_InvalidateStringRep(datav[ARG_INDEXES]);
-      if (Tcl_IsShared(datav[ARG_ISFILE])) {
-        Tcl_DecrRefCount(datav[ARG_ISFILE]);
+      Tcl_InvalidateStringRep( datav[ ARG_INDEXES ] );
+      if ( Tcl_IsShared( datav[ ARG_ISFILE ] ) ) {
+        Tcl_DecrRefCount( datav[ ARG_ISFILE ] );
 #ifdef ISFILE_IMPLEMENTED
-        datav[ARG_ISFILE] = Tcl_NewIntObj(syn_i->IsFile());
+        datav[ ARG_ISFILE ] = Tcl_NewIntObj( syn_i->IsFile( ) );
 #else
-        datav[ARG_ISFILE] = Tcl_NewIntObj(0);
+        datav[ARG_ISFILE] = Tcl_NewIntObj( 0 );
 #endif
-        Tcl_IncrRefCount(datav[ARG_ISFILE]);
+        Tcl_IncrRefCount( datav[ ARG_ISFILE ] );
       } else
 #ifdef ISFILE_IMPLEMENTED
-        Tcl_SetIntObj(datav[ARG_ISFILE],syn_i->IsFile());
+        Tcl_SetIntObj( datav[ ARG_ISFILE ], syn_i->IsFile( ) );
 #else
-      Tcl_SetIntObj(datav[ARG_ISFILE],0);
+      Tcl_SetIntObj( datav[ ARG_ISFILE ], 0 );
 #endif
       /* verify if has subset */
-      int tmpCard = set_i->Card();
+      int tmpCard = set_i->Card( );
       int j;
       for (j=1; j<=tmpCard; ++j )
-        if (ContainerGetSet((*set_i)[j]))
+        if ( ContainerGetSet( ( *set_i )[ j ] ) )
           break;
-      if (Tcl_IsShared(datav[ARG_HASSUBSET])) {
-        Tcl_DecrRefCount(datav[ARG_HASSUBSET]);
-        datav[ARG_HASSUBSET] = Tcl_NewIntObj(j<=tmpCard);
-        Tcl_IncrRefCount(datav[ARG_HASSUBSET]);
+      if ( Tcl_IsShared( datav[ ARG_HASSUBSET ] ) ) {
+        Tcl_DecrRefCount( datav[ ARG_HASSUBSET ] );
+        datav[ ARG_HASSUBSET ] = Tcl_NewIntObj( j <= tmpCard );
+        Tcl_IncrRefCount( datav[ ARG_HASSUBSET ] );
       } else
-        Tcl_SetIntObj(datav[ARG_HASSUBSET],j<=tmpCard);
+        Tcl_SetIntObj( datav[ ARG_HASSUBSET ], j <= tmpCard );
         
       /* subtype info */
-        
-      if (Tcl_IsShared(datav[ARG_SUBTYPE])) {
-        Tcl_DecrRefCount(datav[ARG_SUBTYPE]);
-        datav[ARG_SUBTYPE] = Tcl_NewIntObj(set_i->SubType());
-        Tcl_IncrRefCount(datav[ARG_SUBTYPE]);
+      if ( Tcl_IsShared( datav[ ARG_SUBTYPE ] ) ) {
+        Tcl_DecrRefCount( datav[ ARG_SUBTYPE ] );
+        datav[ ARG_SUBTYPE ] = Tcl_NewIntObj( set_i->SubType( ) );
+        Tcl_IncrRefCount( datav[ ARG_SUBTYPE ] );
       } else
-        Tcl_SetIntObj(datav[ARG_SUBTYPE],set_i->SubType());
+        Tcl_SetIntObj( datav[ ARG_SUBTYPE ],set_i->SubType( ) );
         
       /* STRUCT INFO */
-      if ( set_i->Struct() ) {
-        btxt = set_i->Struct()->Name();
-        Tcl_ExternalToUtfDString(NULL,btxt,-1,&dstr);
+      if ( set_i->Struct( ) ) {
+        btxt = set_i->Struct( )->Name( );
+        Tcl_ExternalToUtfDString( NULL, btxt, -1, &dstr );
       }
-      if (Tcl_IsShared(datav[ARG_STRUCT])) {
-        Tcl_DecrRefCount(datav[ARG_STRUCT]);
-        datav[ARG_STRUCT] = Tcl_NewStringObj(Tcl_DStringValue(&dstr),-1);
-        Tcl_IncrRefCount(datav[ARG_STRUCT]);
+      if ( Tcl_IsShared( datav[ ARG_STRUCT ] ) ) {
+        Tcl_DecrRefCount( datav[ ARG_STRUCT ] );
+        datav[ ARG_STRUCT ] = Tcl_NewStringObj( Tcl_DStringValue( &dstr ),-1 );
+        Tcl_IncrRefCount( datav[ ARG_STRUCT ] );
       } else 
-        Tcl_SetStringObj(datav[ARG_STRUCT],Tcl_DStringValue(&dstr),-1);
-      Tcl_DStringFree(&dstr);
+        Tcl_SetStringObj( datav[ ARG_STRUCT ], Tcl_DStringValue( &dstr ),-1 );
+      Tcl_DStringFree( &dstr );
       datac = NUM_ARGS;
     } else
       datac = ARG_INDEXES;
-    tcl_code = Tcl_EvalObjv(interp,datac,datav,TCL_EVAL_GLOBAL);
-    if (tcl_code != TCL_OK) {
-      /* liberar los objetos tcl */
-      for (i=ARG_GRAMMAR; i<NUM_ARGS; ++i)
-        Tcl_DecrRefCount(datav[i]);
-      Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
-      return tcl_code;
-    }
-    /* check if break loop */
-    cont_loop = 1;
-    tcl_code = Tcl_GetIntFromObj(interp,Tcl_GetObjResult(interp),&cont_loop);
-    if (tcl_code == TCL_OK && !cont_loop)
+    tcl_code = Tcl_EvalObjv( interp, datac, datav, TCL_EVAL_GLOBAL );
+    if ( tcl_code == TCL_BREAK ) {
+      tcl_code = TCL_OK;
       break;
+    }
+    if ( tcl_code == TCL_ERROR ) {
+      Tcl_AppendObjToObj( obj_result, Tcl_GetObjResult( interp ) );
+      break;
+    }
   }
   
   /* liberar los objetos tcl */
-  for (i=ARG_GRAMMAR; i<NUM_ARGS; ++i)
-    Tcl_DecrRefCount(datav[i]);
-  return TCL_OK;
+  /* OJO aqui tenia ARG_GRAMMAR en lugar de 0 */
+  for ( i = 0; i < NUM_ARGS; ++i ) {
+    Tcl_DecrRefCount( datav[ i ] );
+  }
+  delete []datav;
+  return tcl_code;
 }
 
 /*
@@ -1407,7 +1411,7 @@ int Tol_InfoFile(Tcl_Interp * interp, Tcl_Obj * file,
 
   char * pch = soInfo;
   if (pch) pch = skipWhite(pch);
-  else pch = "";
+  else pch = (char*)"";
 
   Tcl_ExternalToUtfDString(NULL,pch,-1,&dstr);
   info[0] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
@@ -1761,7 +1765,12 @@ int SynObj2TclObj( const BSyntaxObject * var, Tcl_Obj * info[] )
   Tcl_DStringInit(&dstr);
 
   /* GRAMMAR */
-  info[0] = Tcl_NewStringObj(var->Grammar()->Name().String(), -1);
+#ifdef ISFILE_IMPLEMENTED
+  info[ 0 ] = Tcl_NewStringObj(var->IsFile( ) ? "File" :
+                               var->Grammar( )->Name( ).String( ), -1 );
+#else
+  info[ 0 ] = Tcl_NewStringObj( var->Grammar( )->Name( ).String( ), -1 );
+#endif
     
   /* NAME */
   BText synname;
@@ -1779,8 +1788,9 @@ int SynObj2TclObj( const BSyntaxObject * var, Tcl_Obj * info[] )
   
   /* OBJECT CONTENT */
   char * pch = varInfo;
+  
   if (pch) pch = skipWhite(pch);
-  else pch = "";
+  else pch = (char*)"";
   
   Tcl_ExternalToUtfDString(NULL,pch,-1,&dstr);
   info[2] = Tcl_NewStringObj(Tcl_DStringValue(&dstr), -1);
@@ -1933,6 +1943,32 @@ int Tol_SetVariableInfoObj (Tcl_Obj * gra_name,
 }
 
 /*
+ * Fill in obj_result the string representation of the
+ * address of the object referenced in obj_ref.
+ */
+int Tol_GetAddresFromObject( Tcl_Interp * interp,
+                             Tcl_Obj * obj_ref,
+                             Tcl_Obj * obj_result)
+{
+  const BSyntaxObject *syn ;
+
+#ifndef _NDEBUG
+#define _PRINT_ADDR_OBJREF_
+#endif
+
+#ifdef _PRINT_ADDR_OBJREF_
+  printf( "obj_ref = %s\n", Tcl_GetString( obj_ref ) );
+#endif
+
+  if ( !( syn = Tol_ResolveObject( interp, obj_ref, obj_result ) ) ) {
+    return TCL_ERROR;
+  }
+  BText addr = syn->GetAddressFromObject( );
+  Tcl_AppendStringsToObj( obj_result, addr.Buffer( ), NULL );
+  return TCL_OK;
+}
+                            
+/*
  * We must be sure that the strings use 7 bit ASCII chararters.
  * Otherwise we must take care of the Utf representation.
  *
@@ -2063,39 +2099,51 @@ int Tol_Tcl_Eval(char * script, const char ** result)
   return status==TCL_OK;
 }
 
-Tcl_Obj *TolObj2TclObj(BSyntaxObject *tolObj)
+Tcl_Obj *TolObj2TclObj( BSyntaxObject *tolObj )
 {
-  const char *grammar = tolObj->Grammar()->Name().String();
+  const char *grammar = tolObj->Grammar( )->Name( ).String( );
 
-  if (!strcmp(grammar, "Text")) {
-    const BText &value = Text(tolObj);
-    return Tcl_NewStringObj(value.String(),-1);
-  } else if (!strcmp(grammar, "Real")) {
-    const BDat &value = Dat(tolObj);
-    return Tcl_NewDoubleObj(value.Value());
+  if ( !strcmp( grammar, "Text" ) ) {
+    const BText &value = Text( tolObj );
+    return Tcl_NewStringObj( value.String( ),-1 );
+  } else if ( !strcmp( grammar, "Real" ) ) {
+    const BDat &value = Dat( tolObj );
+    return Tcl_NewDoubleObj( value.Value( ) );
+  } else if ( !strcmp( grammar, "Set" ) ) {
+    // a Tol Set maps to a Tcl list 
+    const BSet &setObj = ( ( BUserSet* )tolObj )->Contens( );
+    int card = setObj.Card( );
+    Tcl_Obj **objv = ( Tcl_Obj** )Tcl_Alloc( sizeof( Tcl_Obj* ) * card );
+    for( int i = 1; i <= card; i++ ) {
+      objv[ i - 1 ] = TolObj2TclObj( setObj[ i ] );
+    }
+    Tcl_Obj *listObj = Tcl_NewListObj( card, objv );
+    Tcl_Free( ( char* )objv );
+    return listObj;
   } else {
-    return Tcl_NewStringObj(tolObj->Dump().String(),-1);    
+    // other types are not treated
+    return Tcl_NewStringObj( tolObj->Dump( ).String( ),-1 );    
   }
 }
 
-int Tol_Tcl_EvalEx(const BSet &Args, const char ** result)
+int Tol_Tcl_EvalEx( const BSet &Args, const char ** result )
 {
   int status;
   Tcl_Obj **objv;
-  int card = Args.Card();
+  int card = Args.Card( );
   
-  if (!Args.Card()) {
+  if ( !Args.Card( ) ) {
     *result = "";
     status = TCL_OK;
   } else {
-    objv = (Tcl_Obj**)Tcl_Alloc(sizeof(Tcl_Obj*)*card);
-    for(int i=1; i<=card; i++) {
-      objv[i-1] = TolObj2TclObj(Args[i]);
-      Tcl_IncrRefCount(objv[i-1]);
+    objv = ( Tcl_Obj** )Tcl_Alloc( sizeof( Tcl_Obj* ) * card );
+    for( int i=1; i<=card; i++ ) {
+      objv[ i-1 ] = TolObj2TclObj( Args[i] );
+      Tcl_IncrRefCount( objv[ i - 1 ] );
     }
-    status = Tcl_EvalObjv(TT_interp, card, objv, TCL_EVAL_GLOBAL);
-    *result = Tcl_GetStringResult(TT_interp);
-    for(int i=0; i<card; i++) {
+    status = Tcl_EvalObjv( TT_interp, card, objv, TCL_EVAL_GLOBAL );
+    *result = Tcl_GetStringResult( TT_interp );
+    for( int i = 0; i < card; i++ ) {
       Tcl_DecrRefCount(objv[i]);
     }
   }
