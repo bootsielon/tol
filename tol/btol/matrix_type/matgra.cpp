@@ -525,7 +525,7 @@ DefExtOpr(1, BMatReadFile, "MatReadFile", 1, 2, "Text Text",
      "Lee una matriz de un fichero en el formato especificado")+":\n"+
      "BINARY: "+
      I2("Standard TOL binary format",
-        "Formato estándar binario de TOL")+"\n"+
+        "Formato estándar binario de TOL")+
      "WGRIB2TXT: "+
      I2("Result of command", "Resultado del comando")+
      " wgrib2 ... -text file\n"+
@@ -551,6 +551,11 @@ void BMatReadFile::CalcContens()
   else if(format=="WGRIB2TXT")
   {
     FILE* file = fopen(fileName.String(),"r");
+    if(!file) 
+    {
+      Error(BText("[MatReadFile] Cannot open file ")+fileName);  
+      return; 
+    }
     int i, j, rows, cols;
     fscanf(file, "%ld %ld", &cols, &rows);
     contens_.Alloc(rows, cols);
@@ -559,13 +564,16 @@ void BMatReadFile::CalcContens()
     {
       for(j=0; j<cols; j++, x++)
       {
-        fscanf(file, "%lf",x);
+        if(!fscanf(file, "%lf", x))
+        {
+          Error(BText("[MatReadFile] Cannot read cell")+
+            " of file "+fileName);  
+          contens_.Alloc(0,0);
+        }
       }
     }
   }
 }
-
-
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BMatReadDimensions);
 DefExtOpr(1, BMatReadDimensions, "MatReadDimensions", 1, 1, "Text",
@@ -6579,93 +6587,68 @@ const BArray<int>*   BMatOrder::criterium_ = NULL;
   }
 }
 
-#ifdef __USE_DEPRECATED_LINALG_METHOD__
 //--------------------------------------------------------------------
-DeclareContensClass(BSet, BSetTemporary, BMatJordanIterative);
-DefExtOpr(1, BMatJordanIterative, "JordanIterative", 1, 1, "Matrix",
-  "(Matrix M)",
-  I2("Makes the Jordan decomposition of a symmetric matrix by iterative "
-     "method.\n",
-     "Hace la descomposicion de Jordan de una matriz simetrica por el metodo "
-     "iterativo.\n"
-     "Devuelve un conjunto con dos matrices en el que la primera es la "
-     "matriz de vectores propios y la segunda es la matriz diagonal de "
-     "autovalores.\n"
-     "Para que el metodo sea valido es necesario que no hayan valores "
-     "propios multiples."),
-    BOperClassify::MatrixAlgebra_);
+DeclareContensClass(BMat, BMatTemporary, BMatForMat);
+DefExtOpr(1, BMatForMat, "ForMat", 3, 3, "Real Real Code",
+  "(Real rows, Real columns, Code fun)",
+  I2("Returns a matrix with the given dimensions and the values generated "
+  "by the indicator function, which takes two real arguments corresponding "
+  "to the coordinates (i, j) and returns the element (i, j) of the matrix.\n"
+  "Example : \n"
+  ,
+  "Devuelve una matriz con las dimensiones dadas y los valores generados "
+  "por la funcion indicada, la cual toma dos argumentos reales "
+  "correspondientes a las coordenadas (i,j) y devuelve el elemento (i,j) "
+  "de la matriz.\n"
+  "Ejemplo : \n")+
+  "Matrix ForMat(2, 3, Real (Real n, Real m){n*m});",
+  BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
-void BMatJordanIterative::CalcContens()
-//--------------------------------------------------------------------
-{
-    BMatrix<BDat>& M = Mat(Arg(1));
-    BMatrix<BDat>   S=M;
-    BMatrix<BDat> B;
-    BDiagMatrix<BDat> L;
-    JordanIterative(S,B,L);
-    BUserMat* UB = BContensMat::New("U",B,"Eigen vectors");
-    BUserMat* UL = BContensMat::New("D",L,"Eigen values");
-    contens_.RobElement(Cons(UB,NCons(UL)));
-}
-
-
-//--------------------------------------------------------------------
-DeclareContensClass(BMat, BMatTemporary, BMatGaussSeidelSolve);
-DefIntOpr(1, BMatGaussSeidelSolve, "GaussSeidelSolve", 2, 2,
-  "(Matrix M, Matrix B)",
-  I2("Applies the reduction method of Gauss-Seidel to solve the linear system M*X=B "
-     "where M is symmetric positive definite.",
-     "Aplica el metodo de relajacion de Gauss-Seidel para resolver el sistema "
-     "lineal M*X=B donde M es simetrica y definida positiva."),
-    BOperClassify::MatrixAlgebra_);
-//--------------------------------------------------------------------
-void BMatGaussSeidelSolve::CalcContens()
+void BMatForMat::CalcContens()
 //--------------------------------------------------------------------
 {
-    BMat& M = Mat(Arg(1));
-    BMat& B = Mat(Arg(2));
-    BDat err;
-    contens_ = GaussSeidelSolve(M, B, B);
+  int i,j;
+  int rows = (int)Real(Arg(1));
+  int cols = (int)Real(Arg(2));
+  BCode&  code = Code(Arg(3));
+  BStandardOperator* opr = (BStandardOperator*)code.Operator();
+  if(!opr) 
+  {
+    Error(I2("<fun> argument of function ForMat has no operator",
+             "El argumento <fun> de la función ForMat no tiene operador"));
+    return;
+  }
+  if((opr->Grammar()!= GraReal()) ||
+     (opr->NumArg()!=2)||
+     (opr->GrammarForArg(1)!=GraReal())||
+     (opr->GrammarForArg(2)!=GraReal())) 
+  {
+    Error(I2("<fun> argument of function ForMat ",
+             "El argumento <fun> de la función ForMat ")+"\n"+
+          opr->Grammar()->Name()+" "+code.Name()+opr->Arguments()+"\n"+
+          I2("should be declared as ",
+             "debería estar declarada como ")+"\n"+
+          "Real "+code.Name()+"(Real i, Real j) \n");
+    return;
+  }
+
+  contens_.Alloc(rows, cols);
+  BSyntaxObject* ev;
+  for(i=0; i<rows; i++)
+  {
+    for(j=0; j<cols; j++)
+    {
+      BContensDat* r = new BContensDat("",i+1);
+      BContensDat* c = new BContensDat("",j+1);
+      BList* args = Cons(r, NCons(c));
+      ev = opr->Evaluator(args);
+      if(ev)
+      {
+        contens_(i,j) = Dat(ev);
+        DESTROY(ev);
+      }
+    }
+  }
+   
 }
 
-
-
-//--------------------------------------------------------------------
-DeclareContensClass(BMat, BMatTemporary, BMatConjugateGradientSolve);
-DefIntOpr(1, BMatConjugateGradientSolve, "ConjugateGradientSolve", 2, 2,
-  "(Matrix M, Matrix B)",
-  I2("Applies the Conjugate Gradient method to solve the linear system M*X=B "
-     "where M is symmetric positive definite.",
-     "Aplica el metodo del Gradiente Conjugado para resolver el sistema "
-     "lineal M*X=B donde M es simetrica y definida positiva."),
-    BOperClassify::MatrixAlgebra_);
-//--------------------------------------------------------------------
-void BMatConjugateGradientSolve::CalcContens()
-//--------------------------------------------------------------------
-{
-    BMat& M = Mat(Arg(1));
-    BMat& B = Mat(Arg(2));
-    BDat err;
-    contens_ = ConjugateGradientSolve(M, B, B);
-}
-
-//--------------------------------------------------------------------
-DeclareContensClass(BMat, BMatTemporary, BMatBiconjugateGradientSolve);
-DefIntOpr(1, BMatBiconjugateGradientSolve, "BiconjugateGradientSolve", 2, 2,
-  "(Matrix M, Matrix B)",
-  I2("Applies the Biconjugate Gradient method to solve the linear system M*X=B "
-     "where M is square regular matrix.",
-     "Aplica el metodo del Gradiente Biconjugado para resolver el sistema "
-     "lineal M*X=B donde M es una matriz cuadrada regular."),
-    BOperClassify::MatrixAlgebra_);
-//--------------------------------------------------------------------
-void BMatBiconjugateGradientSolve::CalcContens()
-//--------------------------------------------------------------------
-{
-    BMat& M = Mat(Arg(1));
-    BMat& B = Mat(Arg(2));
-    BDat err;
-    contens_ = BiconjugateGradientSolve(M, B, B);
-}
-
-#endif //__USE_DEPRECATED_LINALG_METHOD__	
