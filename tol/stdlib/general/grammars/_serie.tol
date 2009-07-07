@@ -1000,14 +1000,7 @@ PutDescription("Serie SetSerDat (Set datos, Date ini, TimeSet fechado):\n"
 // PURPOSE: Interpola la serie ser en el fechado armonico dtn linealmente
 //////////////////////////////////////////////////////////////////////////////
 {
-  Serie dser   = ((F-1):ser)>>CalInd(W,Dating(ser));
-  Serie iper   = SubSer(CalVar(dtn,Dating(ser)),First(ser),Last(ser));
-  Serie inc    = dser/iper;
-  Serie dNser  = (B):InvChEx(inc,dtn); 
-  Date  ini    = Succ(First(dNser),dtn,-1);
-  Serie sIniP  = FirstS(ser)*CalInd(C,dtn);
-  Serie sIni   = SubSer(sIniP,ini,ini);
-  SubSer(DifEq(1/(1-B),dNser,sIni),ini,Last(ser))
+  Interpolate::Scalar::invCh(ser,dtn,"LinearSpline",1)
 };
 
 

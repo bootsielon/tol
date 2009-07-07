@@ -20,6 +20,7 @@ PutDescription(I2("Alias of function ","Alias de la función ")+" Real IntegrateQ
                NIntegrate);
 
 Set Include("linalg/_init_linalg.tol");
+Set Include("interpolate/_interpolate.tol");
 Set Include("optim/_init_optim.tol");
 Set Include("stat/_init_stat.tol");
 Set Include("R/_init_Rapi.tol");

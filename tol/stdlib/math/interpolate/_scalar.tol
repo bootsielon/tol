@@ -1,0 +1,128 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE: _scalar.tol
+// PURPOSE: Scalar interpolation functions
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock buildHandler(Matrix x, Matrix y, Text method_, Real order)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text method = If(method_=="","AkimaSpline",method_);
+  NameBlock handler = If(method==ToLower(method),
+  {[[
+   //GSL interpolation
+    Code _interpolation = gsl_interp(method,x,y);
+    Real eval(Real r) { _interpolation(0,x_) };
+    Matrix evalMat(Matrix X) 
+    { 
+      ForMat(Rows(X), Columns(X), Real(Real i, Real j) 
+      { 
+        eval(MatDat(X,i,j)) 
+      })
+    }
+  ]]},
+  {[[
+    //AlgLib interpolation
+    Code eval = AlgLib.Interp.Scalar(method,x,y);
+    Matrix evalMat(Matrix X) 
+    { 
+      ForMat(Rows(X), Columns(X), Real(Real i, Real j) 
+      { 
+        eval(MatDat(X,i,j)) 
+      })
+    }
+  ]]})
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Builds an interpolation handler matring y=f(x) "
+"The used interpolation engine will be gsl_interp if method is one of "
+"these:\n"
+"  linear, polynomial, cspline, cspline_periodic, akima,akima_periodic.\n"
+"The used interpolation engine will be AlgLib.Interp.Scalar if method is "
+"one of these:\n"
+"  BarycentricRational, LinearSpline, CubicSpline, AkimaSpline, "
+"SplineLeastSquares, ChebyshevLeastSquares, PolynomialLeastSquares\n"
+"Default method is AkimaSpline",
+buildHandler);
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix fillMissAllMat(Matrix X, Matrix Y, Text method, Real order)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set idx = Range(1,Rows(Y),1);
+  Set idxKnown = Select(idx, Real(Real r)
+  {
+    !IsUnknown(MatDat(Y,r,1))
+  });
+  Matrix y = SubRow(Y,idxKnown);
+  Matrix x = SubRow(X,idxKnown);
+  NameBlock hnd = buildHandler(x, y, method, order);
+  hnd::evalMat(X)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Fill all missing values of Y by interpolation of function "
+"Y(X). The used interpolation engine will be gsl_interp if method is one of "
+"these:\n"
+"  linear, polynomial, cspline, cspline_periodic, akima,akima_periodic.\n"
+"The used interpolation engine will be AlgLib.Interp.Scalar if method is "
+"one of these:\n"
+"  BarycentricRational, LinearSpline, CubicSpline, AkimaSpline, "
+"SplineLeastSquares, ChebyshevLeastSquares, PolynomialLeastSquares\n"
+"Default method is AkimaSpline",
+fillMissAllMat);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie fillMissAllSer(Serie y, Text method, Real order)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix Y = Tra(SerMat(y));
+  Matrix X = SetCol(Range(1,Rows(Y),1));
+  Matrix Y_ = fillMissAllMat(X, Y, method, order);
+  MatSerSet(Tra(Y_),Dating(y),First(y))[1]
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Fill all missing values of a serie by interpolation of "
+"function y(t) of natural index in discrete time. \n"
+"Interpolation method is the same used in FillMissingInterpMat",
+fillMissAllSer);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie fillMissIsoSer(Serie y, Text method, Real order)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Serie y1 = !IsUnknown(y);
+  Serie yo = Or(1,y1) << (Expand((1-B^order)/(1-B),order):y1);
+  TimeSet CtYo = SerTms(yo);
+  Serie yok = DatCh(y, CtYo, FirstS);
+  Matrix Y = Tra(SerMat(yok));
+  Matrix X = SetCol(Range(1,Rows(Y),1));
+  Matrix Y_ = fillMissAllMat(X, Y, method, order);
+  Serie yok_ = MatSerSet(Tra(Y_),CtYo,First(yok))[1];
+  InvCh(yok_, y)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Fill isolated missing values of a serie by interpolation of "
+"function y(t) of natural index in discrete time. Missing intervals with "
+"length greater than order will not be filled.\n"
+"Interpolation method is the same used in FillMissingInterpMat",
+fillMissIsoSer);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+  Serie invCh(Serie S1, TimeSet dating, Text method, Real order)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Serie serExt = InvCh(S1, CalInd(W,dating)*?);
+  fillMissAllSer(serExt, method, order)
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription("Extends time series to a more fine dating by interpolation.\n"
+"Interpolation method is AlgLib.Interp.Scalar. Default method is AkimaSpline",
+invCh);
+//////////////////////////////////////////////////////////////////////////////
+
+
