@@ -384,45 +384,6 @@ Matrix FunArMat(Polyn ar, Matrix z, Real n)
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("Aplica un Polyn ar a una Matrix z", FunArMat);
 //////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-  Matrix ForMat(Real rows, Real columns, Code fun)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real n = 0;
-  Matrix M = Rand(rows,columns,0,0);
-  Real While
-  (
-    n<rows,
-    {
-      n:=n+1;
-      Real m = 0;
-      While
-      (
-        m<columns,
-        {
-          m:=m+1;
-          Real x = fun(n,m);
-          PutMatDat(M,n,m,x); 
-          m
-        }   
-      ),
-      n
-    } 
-  );
-  M
-};
-//////////////////////////////////////////////////////////////////////////////
-  PutDescription(I2(
-  "",
-  "Devuelve una matriz con las dimensiones dadas y los valores generados "+
-  "por la funcion indicada, la cual toma dos argumentos reales "+
-  "correspondientes a las coordenadas (i,j) y devuelve el elemento (i,j) "+
-  "de la matriz.") + NL +
-  I2("Example : ", "Ejemplo : ") + NL +
-  "Matrix ForMat(2, 3, Real (Real n, Real m){n*m});",
-  ForMat);
-//////////////////////////////////////////////////////////////////////////////
-
 
 
 //////////////////////////////////////////////////////////////////////////////
