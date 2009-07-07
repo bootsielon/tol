@@ -900,7 +900,7 @@ Tol_InfoCmd(clientData, interp, objc, objv)
                                NULL);
         tcl_result = TCL_ERROR;	
       } else {
-	tcl_result = Tol_GetAddresFromObject( interp,
+	tcl_result = Tol_GetAddressFromObject( interp,
                                               objv[2], obj_result );
       }
     } else if (!strncasecmp("included", arg, length)) {
