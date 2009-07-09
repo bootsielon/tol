@@ -51,6 +51,19 @@ Struct AlgListValueAmp4St
   Text Filtro4
 };
 
+Struct AlgListValueAmp5St
+{
+  Text Ide,
+  Text Cod,
+  Text Nam,
+  Text Des,
+  Text Filtro1,
+  Text Filtro2,
+  Text Filtro3,
+  Text Filtro4,
+  Text Filtro5
+};
+
 
 //////////////////////////////////////////////////////////////////////////////
 Set GetSubSelFromExt 
