@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo BOOST_BUILD_PATH=`echo $BOOST_BUILD_PATH` ./bjam-gcc-release install
