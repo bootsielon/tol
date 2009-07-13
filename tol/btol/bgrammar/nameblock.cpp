@@ -497,6 +497,14 @@ const BText& BNameBlock::LocalName() const
     if(name.HasName() && 
        BParser::DefaultParser()->Filter()->IsIdentifier(name))
     {
+      if(name=="_this")
+      {
+        Error(I2("Reserved member name ",
+                 "Nombre de miembro reservado  ")+ name+"\n"+
+                I2("Cannot build NameBlock ",
+                   "No se puede construir el NameBlock ")+Name());
+        continue;
+      }
       obj->PutNameBlock(this);
       BSyntaxObject* mem = Member(name);
       if(mem && (mem!=obj))
@@ -574,7 +582,14 @@ const BText& BNameBlock::LocalName() const
   BObjByNameHash::const_iterator found = private_.find(memberName);
   if(found==private_.end())
   {
-    return(NULL);
+    if(memberName=="_this")
+    {
+      return(owner_);
+    }
+    else
+    {
+      return(NULL);
+    }
   }
   else
   {
