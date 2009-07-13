@@ -717,7 +717,19 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
   }
   else if((type == TYPE) && (newClass=FindClass(name)))
   {
-    result = GraNameBlock()->EvaluateTree(Tree::treLeft((List*)tre));
+    List* left = Tree::treLeft((List*)tre);
+    if(left)
+    {
+      BToken* leftTok  = BParser::treToken(left);
+      if(leftTok && (leftTok->TokenType()!=ARGUMENT))
+      { 
+        result = GraNameBlock()->EvaluateTree(Tree::treLeft((List*)tre));
+      }
+    }
+    if(!result)
+    {
+      result = BNameBlock_BEqualOperator->Evaluate(tre); 
+    }
   }
   else if (type == BINARY && this == GraAnything() && 
            name != "=" && name != "#F#" && 
