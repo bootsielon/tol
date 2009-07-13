@@ -717,7 +717,7 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
   }
   else if((type == TYPE) && (newClass=FindClass(name)))
   {
-    result = BNameBlock_BEqualOperator->Evaluate(tre);
+    result = GraNameBlock()->EvaluateTree(Tree::treLeft((List*)tre));
   }
   else if (type == BINARY && this == GraAnything() && 
            name != "=" && name != "#F#" && 
