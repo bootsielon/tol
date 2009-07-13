@@ -833,7 +833,11 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
     result = gra->LeftEvaluateExpr(name); 
     if(oldEnabled) { BOut::Enable(); }
   }
-  if(result && (result->Grammar()!=gra)) { result=NULL; }
+  if(result && (gra!=GraAnything()) && 
+    (result->Grammar()!=gra)) 
+  { 
+    result=NULL; 
+  }
   return(result);
 }
 
