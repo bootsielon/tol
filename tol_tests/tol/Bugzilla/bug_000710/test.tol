@@ -1,0 +1,50 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  710;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "implicit member this in NameBlock";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  
+
+  //Example of using implicit private member _this
+  NameBlock a = 
+  [[
+     Text _.name = "a";
+     Text getName(Real unused) { _this::_.name }
+  ]];
+
+  //User cannot overwrite _this due to it's a reserved word
+  NameBlock b = 
+  [[
+     Text _.name = "b";
+     NameBlock _this = a;
+     Text getName(Real unused) { _this::_.name }
+  ]];
+
+  Text aName = a::getName(0);
+
+  Real numErr1 = Copy(NError);
+
+  Set partialResults_ = [[numErr0, numErr1, aName]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0+1, aName=="a");
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
