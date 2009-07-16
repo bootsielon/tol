@@ -1,0 +1,84 @@
+En este directorio se documentan las herramientas de modelacion de
+modelos BVARX basados en BSR.
+
+El modelo VAR es:
+
+ (1-A1*B-A2*B^2-...-Ap*B^p):Y_t = V_t, V_t ~ N(0,S)
+
+donde:
+
+ tra(Y_t) = ( y_1t, y_2t, ..., y_nt ) es un vector de series
+ temporales.
+
+ Ai es una matriz nxn de coeficientes.
+
+ S es una matriz de covarianzas contemporaneas.
+
+Queremos simular los parametros del modelo anterior haciendo uso de la
+maquinaria de BSR pero para eso debemos reescribirlo en una forma en
+que los errores sean independientes entre si.
+
+Sabemos que S = L * D * tra(L), donde:
+
+ L es una matriz tringular inferior unitaria
+
+ D es una matriz diagonal positiva
+
+si premultiplicamos por iL = inv(L) la ecuación (?) obtenemos:
+
+(iL - C1*B-C2*B^2-...-Cp*B^p):Yt = E_t, E_t ~ N(0,D)
+
+donde:
+
+  iL = inv( I + L0 ), L0 es una matriz triangular inferior con
+  diagonal nula
+
+  I es la matriz identidad nxn
+
+  L0 es una matriz triangular inferior con diagonal nula
+
+  Ci = iL*Ai
+
+iL es tambien una matriz triangular inferior unitaria, luego
+
+iL = I + T, donde T es triangular inferior nula
+
+de esta forma podemos reescribir la ecuacion (?) como
+
+  (I+T)*Y_t = C1*Y(t-1) + C2*Y(t-2) + ... + Cp*Y(t-p) + E_t
+
+de donde
+
+  Y_t = T0*Y_t + C1*Y(t-1) + C2*Y(t-2) + ... + Cp*Y(t-p) + E_t
+
+dado que T0=-T es triangular nula tenemos que cada serie temporal y_it
+depende, en el instante t, del conjunto de series {y_1t,...,y_(i-1)t}
+de forma tal que tenemos una expresión para cada output que depende
+linealmente de algunos output's contemporáneos distintos de el mismo y
+de todos los output's retardados desde el orden 1 hasta p con errores
+independientes y sigma desconocida.
+
+En estas condiciones el sistema de outputs es expresable en BSR. El
+resultado de la simulacion es una muestra de las matrices
+
+  T0, C1, ..., Cp y D.
+
+La simulacion de la distribucion predictiva de Y_t requiere de un
+metodo ad-hoc que itere en orden la distribucion predictiva de los
+outputs y_it segun la estructura de la matriz T.
+
+Por otra parte los coeficientes matriciales originales y la matriz de
+covarianza contemporanea pueden recuperarse de la siguiente forma:
+
+ Ai = inv( I - T0 ) * Ci
+ S = inv( I - T0 )* D * tra( inv( I - T0 ) )
+
+siendo D la matriz de varianzas simuladas.
+
+Nos queda por revisar la forma de los priors adecuados. Mientras tanto
+la especificación de los prior debemos hacerla coeficiente a
+coeficiente en las matrices Ci, T0 y D.
+
+La inclusion de variables explicativas es inmediato.
+
+ 
