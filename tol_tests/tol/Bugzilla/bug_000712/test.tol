@@ -1,0 +1,54 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  712;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "Copy y DeepCopy para NameBlock y objetos (Clases)";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+    
+  NameBlock a = [[
+   Text _.valor = "Inicial";
+   Text GetValor (Real void) {
+     _.valor
+   };
+   Text SetValor (Text valor) {
+     Text _.valor := valor
+   }
+  ]];
+  
+  NameBlock b = Copy(a);
+  
+  Text b::SetValor("cambiado");
+  
+  Text aVal = a::GetValor(0);
+  Text bVal = b::GetValor(0);
+
+  Text WriteLn("El valor de a es "+aVal);
+  Text WriteLn("El valor de b es "+bVal);
+    
+  Real numErr1 = Copy(NError);
+
+  Set partialResults_ = [[numErr0, numErr1, aVal, bVal]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+    aVal == "Inicial", 
+    bVal == "cambiado");
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
