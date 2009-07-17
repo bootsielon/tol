@@ -5,10 +5,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
-  Real bugNum_ =  710;
+  Real bugNum_ =  711;
   Text email_ = "vdebuen@tol-project.org"; 
   Text summary_ = 
-  "implicit member this in NameBlock";
+  "Creación de Objetos (sin nombre) de una Clase";
   Text link_ = GetTolBugzillaLink(bugNum_);
 
   //Write here the initial test TOL code if needed
