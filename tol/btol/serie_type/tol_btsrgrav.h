@@ -402,8 +402,6 @@ public:
   }
   BUserTimeSerie* LeftSer () const { return(Tsr(Arg(1))); }
   BUserTimeSerie* RightSer() const { return(Tsr(Arg(2))); }
-  BDate	 FirstDate() const;
-  BDate	 LastDate()  const;
 private:
   void  CalcDating  ();
   DeclareClassNewDelete(BTsrConcat);
@@ -418,6 +416,8 @@ public:
   BTsrCenterConcat(BList* arg) : BTsrConcat(arg) { Do(); }
   BDat GetDat(const BDate& dte);
   BDate Center() const { return(Date(Arg(3))); }
+  BDate	 FirstDate() const;
+  BDate	 LastDate()  const;
   DeclareClassNewDelete(BTsrCenterConcat);
 };
 DeclareEvaluator(BTsrCenterConcat);
@@ -430,6 +430,8 @@ class BTsrLeftConcat : public BTsrConcat
 public:
   BTsrLeftConcat(BList* arg) : BTsrConcat(arg) { Do(); }
   BDat GetDat(const BDate& dte);
+  BDate	 FirstDate() const;
+  BDate	 LastDate()  const;
   DeclareClassNewDelete(BTsrLeftConcat);
 };
 DeclareEvaluator(BTsrLeftConcat);
@@ -442,6 +444,8 @@ class BTsrRightConcat : public BTsrConcat
 public:
   BTsrRightConcat(BList* arg): BTsrConcat(arg) { Do(); }
   BDat GetDat(const BDate& dte);
+  BDate	 FirstDate() const;
+  BDate	 LastDate()  const;
   DeclareClassNewDelete(BTsrRightConcat);
 };
 DeclareEvaluator(BTsrRightConcat);

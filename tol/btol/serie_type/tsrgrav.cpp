@@ -538,7 +538,7 @@ DefExtOpr(1, BTsrSubSerie, "SubSer", 3, 3, "Serie Date Date",
 //--------------------------------------------------------------------
 BTsrSubSerie::BTsrSubSerie(BList* arg)
 //--------------------------------------------------------------------
-    : BTsrTemporary(arg)
+: BTsrTemporary(arg)
 {
   BUserTimeSerie* utmser = Tsr(Arg(1));
   BDate first = Date(Arg(2));
@@ -881,7 +881,7 @@ void BTsrConcat::CalcDating  ()
 
 
 //--------------------------------------------------------------------
-BDate BTsrConcat::FirstDate() const
+BDate BTsrCenterConcat::FirstDate() const
 //--------------------------------------------------------------------
 {
   if(firstDate_.HasValue()) { return(firstDate_); }
@@ -890,7 +890,7 @@ BDate BTsrConcat::FirstDate() const
 }
 
 //--------------------------------------------------------------------
-BDate BTsrConcat::LastDate()  const
+BDate BTsrCenterConcat::LastDate()  const
 //--------------------------------------------------------------------
 {
   if(lastDate_.HasValue()) { return(lastDate_); }
@@ -919,6 +919,29 @@ BDat BTsrCenterConcat::GetDat(const BDate& dte)
 
 
 //--------------------------------------------------------------------
+BDate BTsrLeftConcat::FirstDate() const
+//--------------------------------------------------------------------
+{
+  if(firstDate_.HasValue()) { return(firstDate_); }
+  if(Dating()) 
+  { 
+    BDate r = RightSer()->FirstDate();
+    BDate l = LeftSer ()->FirstDate();
+    NCDate(firstDate_)= Minimum(r,l); 
+  }
+  return(firstDate_);
+}
+
+//--------------------------------------------------------------------
+BDate BTsrLeftConcat::LastDate()  const
+//--------------------------------------------------------------------
+{
+  if(lastDate_.HasValue()) { return(lastDate_); }
+  if(Dating()) { NCDate(lastDate_)=RightSer()->LastDate(); }
+  return(lastDate_);
+}
+
+//--------------------------------------------------------------------
 DefExtOpr(1, BTsrLeftConcat, "<<", 2, 2, "Serie Serie",
   I2("leftSerie << rightSerie  {Serie leftSerie, Serie rightSerie}",
      "(Serie serieIzquierda, Serie serieDerecha)"),
@@ -937,6 +960,29 @@ BDat BTsrLeftConcat::GetDat(const BDate& dte)
   else           { return((*LeftSer ())[dte]); }
 }
 
+
+//--------------------------------------------------------------------
+BDate BTsrRightConcat::FirstDate() const
+//--------------------------------------------------------------------
+{
+  if(firstDate_.HasValue()) { return(firstDate_); }
+  if(Dating()) { NCDate(firstDate_)=LeftSer()->FirstDate(); }
+  return(firstDate_);
+}
+
+//--------------------------------------------------------------------
+BDate BTsrRightConcat::LastDate()  const
+//--------------------------------------------------------------------
+{
+  if(lastDate_.HasValue()) { return(lastDate_); }
+  if(Dating()) 
+  { 
+    BDate r = RightSer()->LastDate();
+    BDate l = LeftSer ()->LastDate();
+    NCDate(lastDate_)= Maximum(r,l); 
+  }
+  return(lastDate_);
+}
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrRightConcat, ">>", 2, 2, "Serie Serie",
