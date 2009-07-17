@@ -725,6 +725,22 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
       { 
         result = GraNameBlock()->EvaluateTree(Tree::treLeft((List*)tre));
       }
+      if(result)
+      {
+        BUserNameBlock* unb = (BUserNameBlock*)result;
+        BNameBlock& nb = unb->Contens();
+        if(!nb.IsInstanceOf(newClass))
+        {
+          Error(I2("Expression doesn't return an instance of Class ",
+                   "La expresión no devuelve una instancia de Class ")+name+":\n"+
+                BParser::Unparse(tre)+"\n"+
+                I2("Remeber that instances declarations must follows this syntax:",
+                   "Recuerde que las declaraciones de instancias deben seguir la sintaxis:")+
+                "\n  Class <instance_name> = [[ ... ]];");
+          DESTROY(result);
+          result = NULL; 
+        }
+      }
     }
     if(!result)
     {
