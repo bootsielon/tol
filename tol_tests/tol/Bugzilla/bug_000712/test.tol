@@ -25,23 +25,27 @@
   ]];
   
   NameBlock b = Copy(a);
+  NameBlock c = b;
   
   Text b::SetValor("cambiado");
   
   Text aVal = a::GetValor(0);
   Text bVal = b::GetValor(0);
+  Text cVal = c::GetValor(0);
 
   Text WriteLn("El valor de a es "+aVal);
   Text WriteLn("El valor de b es "+bVal);
+  Text WriteLn("El valor de c es "+cVal);
     
   Real numErr1 = Copy(NError);
 
-  Set partialResults_ = [[numErr0, numErr1, aVal, bVal]];
+  Set partialResults_ = [[numErr0, numErr1, aVal, bVal, cVal]];
 
 //This is a messure of the success of the test 
   Real quality_ = And(numErr1 == numErr0, 
     aVal == "Inicial", 
-    bVal == "cambiado");
+    bVal == "cambiado", 
+    cVal == "cambiado");
 
 //Return the results 
   Set resultStr_ = strTestStatus(summary_, link_, quality_,
