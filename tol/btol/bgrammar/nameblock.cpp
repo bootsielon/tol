@@ -158,6 +158,8 @@ BNameBlock::~BNameBlock()
   }
 }
 
+void DeepCopy(const BSet& sample,BSet& copy,const BArray<BDat>& p,BInt& pos);
+
 //--------------------------------------------------------------------
 BNameBlock& BNameBlock::operator= (const BNameBlock& ns)
 //--------------------------------------------------------------------
@@ -168,7 +170,15 @@ BNameBlock& BNameBlock::operator= (const BNameBlock& ns)
   owner_ = NULL;
   public_.clear();
   private_.clear();
-  Fill(ns.Set());
+
+//Fill(ns.Set());
+
+  BArray<BDat> p;
+  BInt pos = -1;
+  BSet copy;
+  DeepCopy(ns.Set(),copy, p, pos);
+  Fill(copy);
+
   return(*this);
 }
 
