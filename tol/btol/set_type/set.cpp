@@ -135,15 +135,28 @@ void	BSet::Copy(const BSet& set)
   int n;
   Delete(); 
   array_.ReallocBuffer(set.Card());
+  bool hasIdx = set.HasIndexByName();
   for(n=0; n<array_.Size(); n++)
   {
 	  array_[n] = set[n+1];
+    if(array_[n])
+    {
+      if(hasIdx && !array_[n]->HasName())
+      {
+        array_[n]->PutName(set[n+1]->Name());
+      }
+    }
     array_[n]->IncNRefs();
   };
   PutStruct(set.Struct());
   PutSubType(set.SubType());
   sourcePath_ = set.SourcePath();
   nameBlock_  = set.GetNameBlock();
+  if(hasIdx)
+  {
+    SetIndexByName();
+  }
+  
 }
 
 //--------------------------------------------------------------------
@@ -415,7 +428,7 @@ BSyntaxObject* BSet::GetElement(BInt n)  const
 }
 
 //--------------------------------------------------------------------
-  int BSet::FindIndexByName(const BText& name)
+  int BSet::FindIndexByName(const BText& name) const
 //--------------------------------------------------------------------
 {
   int indexPos = 0;
@@ -439,7 +452,7 @@ BSyntaxObject* BSet::GetElement(BInt n)  const
 }  
 
 //--------------------------------------------------------------------
-  BBool BSet::HasIndexByName()
+  BBool BSet::HasIndexByName() const
 //--------------------------------------------------------------------
 {
   return(indexByName_!=NULL);
