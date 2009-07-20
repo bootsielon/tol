@@ -182,8 +182,8 @@ public:
   BBool  Sort        (const BCode& order);
   BInt  FindSorted    (BSyntaxObject* searched);
   BBool SetIndexByName();
-  BBool HasIndexByName();
-  int   FindIndexByName(const BText& name);
+  BBool HasIndexByName() const;
+  int   FindIndexByName(const BText& name)  const;
 
 };
 
