@@ -1696,3 +1696,18 @@ void BUserFunction::Clean()
     declare_     = "";
     define_      = "";
 }
+
+
+//--------------------------------------------------------------------
+BUserFunction* BUserFunction::Copy() const
+    
+/*! DestCreates an exact copy of user function
+ */
+//--------------------------------------------------------------------
+{
+  BUserFunction* usf = new BUserFunction("",Grammar());
+  usf->PutName(Name());
+  usf->PutDescription(Description());
+  usf->SetExpression(declaration_, definition_); 
+  return(usf);
+}
