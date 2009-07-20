@@ -104,18 +104,20 @@ BText& BText::Copy(const BText& txt)
 //--------------------------------------------------------------------
 {
 //InitTotalTime("BText::Copy BChar*");
-  assert(this!=&txt);
-  if(!buffer_) { AllocateBuffer(0); } 
-  else if(length_) { buffer_[length_=0]='\0'; }
-  BInt len = txt.Length();
-  if(len>0)
+  if(this!=&txt)
   {
-    ReallocateBuffer(len+1);
-    memcpy(buffer_, txt.String(), len); 
-    buffer_[length_=len]='\0';
+    if(!buffer_) { AllocateBuffer(0); } 
+    else if(length_) { buffer_[length_=0]='\0'; }
+    BInt len = txt.Length();
+    if(len>0)
+    {
+      ReallocateBuffer(len+1);
+      memcpy(buffer_, txt.String(), len); 
+      buffer_[length_=len]='\0';
+    }
   }
-//SumPartialTime;
   assert(IsAllOk());
+  //SumPartialTime;
   return(*this);
 }
 
@@ -130,19 +132,21 @@ BText& BText::Copy(const BChar* str)
 {
 //InitTotalTime("BText::Copy BChar*");
   assert(IsAllOk());
-  assert(buffer_!=str);
-  if(!buffer_) { AllocateBuffer(0); } 
-  else if(length_) { buffer_[length_=0]='\0'; }
-  if(str && str[0])
+  if(buffer_!=str)
   {
-    BInt len = strlen(str);
-    assert(len>0);
-    ReallocateBuffer(len+1);
-    memcpy(buffer_, str, len);
-    buffer_[length_=len]='\0';
+    if(!buffer_) { AllocateBuffer(0); } 
+    else if(length_) { buffer_[length_=0]='\0'; }
+    if(str && str[0])
+    {
+      BInt len = strlen(str);
+      assert(len>0);
+      ReallocateBuffer(len+1);
+      memcpy(buffer_, str, len);
+      buffer_[length_=len]='\0';
+    }
   }
-//SumPartialTime;
   assert(IsAllOk());
+//SumPartialTime;
   return(*this);
 }
 
@@ -159,15 +163,17 @@ BText& BText::Copy(const BChar* str, BInt length)
 {
 //InitTotalTime("BText::Copy BChar* BInt");
   assert(IsAllOk());
-  assert(buffer_!=str);
-  if(!buffer_) { AllocateBuffer(0); } 
-  else if(length_) { buffer_[length_=0]='\0'; }
-  if(str && str[0])
+  if(buffer_!=str)
   {
-    ReallocateBuffer(length+1);
-    memcpy(buffer_,str,length);
-    buffer_[length_=length]='\0';;
-  }
+    if(!buffer_) { AllocateBuffer(0); } 
+    else if(length_) { buffer_[length_=0]='\0'; }
+    if(str && str[0])
+    {
+      ReallocateBuffer(length+1);
+      memcpy(buffer_,str,length);
+      buffer_[length_=length]='\0';;
+    }
+}
 //SumPartialTime;
   assert(IsAllOk());
   return(*this);
@@ -187,21 +193,23 @@ BText& BText::Copy(const BChar* str, BInt from, BInt until)
 {
 //InitTotalTime("BText::Copy BChar* BInt BInt");
   assert(IsAllOk());
-  assert(buffer_!=str);
-  if(!buffer_) { AllocateBuffer(0); } 
-  else if(length_) { buffer_[length_=0]='\0'; }
-  if(str && str[from])
+  if(buffer_!=str)
   {
-    BInt len = strlen(str);
-    if((from<len)&&(from<=until))
+    if(!buffer_) { AllocateBuffer(0); } 
+    else if(length_) { buffer_[length_=0]='\0'; }
+    if(str && str[from])
     {
-      if(from <0)    { from  = 0; }
-      if(until<0)    { until = 0; }
-      if(until>=len) { until = len-1; }
-      len = until - from + 1;
-      ReallocateBuffer(len+1);
-      memcpy(buffer_, str+from, len);
-      buffer_[length_=len]='\0';
+      BInt len = strlen(str);
+      if((from<len)&&(from<=until))
+      {
+        if(from <0)    { from  = 0; }
+        if(until<0)    { until = 0; }
+        if(until>=len) { until = len-1; }
+        len = until - from + 1;
+        ReallocateBuffer(len+1);
+        memcpy(buffer_, str+from, len);
+        buffer_[length_=len]='\0';
+      }
     }
   }
 //SumPartialTime;
@@ -222,19 +230,21 @@ BText& BText::Copy(const BText& txt, BInt from, BInt until)
 //--------------------------------------------------------------------
 {
   assert(IsAllOk());
-  assert(this!=&txt);
-  if(!buffer_) { AllocateBuffer(0); } 
-  else if(length_) { buffer_[length_=0]='\0'; }
-  BInt len = txt.Length();
-  if((from<len)&&(from<=until))
+  if(this!=&txt)
   {
-    if(from <0)    { from  = 0;      }
-    if(until<0)    { until = 0;      }
-    if(until>=len) { until = len-1;  }
-    len = until - from + 1;
-    ReallocateBuffer(len+1);
-    memcpy(buffer_, txt.String()+from, len);
-    buffer_[length_=len]='\0';
+    if(!buffer_) { AllocateBuffer(0); } 
+    else if(length_) { buffer_[length_=0]='\0'; }
+    BInt len = txt.Length();
+    if((from<len)&&(from<=until))
+    {
+      if(from <0)    { from  = 0;      }
+      if(until<0)    { until = 0;      }
+      if(until>=len) { until = len-1;  }
+      len = until - from + 1;
+      ReallocateBuffer(len+1);
+      memcpy(buffer_, txt.String()+from, len);
+      buffer_[length_=len]='\0';
+    }
   }
   assert(IsAllOk());
   return(*this);
@@ -415,17 +425,19 @@ BText& BText::Concat(const BChar* str)
 //--------------------------------------------------------------------
 {
 //InitTotalTime("BText::Concat BChar*");
-  assert(buffer_!=str);
-  if(str && str[0])
+  if(buffer_!=str)
   {
-    if(!length_) { Copy(str); }
-    else
+    if(str && str[0])
     {
-      BInt strLen = strlen(str);
-      BInt newLen = length_+strLen;
-      ReallocateBuffer(newLen+1);
-      memcpy(buffer_+length_, str, strLen);
-      buffer_[length_=newLen]='\0';
+      if(!length_) { Copy(str); }
+      else
+      {
+        BInt strLen = strlen(str);
+        BInt newLen = length_+strLen;
+        ReallocateBuffer(newLen+1);
+        memcpy(buffer_+length_, str, strLen);
+        buffer_[length_=newLen]='\0';
+      }
     }
   }
 //SumPartialTime;
@@ -444,21 +456,23 @@ BText& BText::Concat(const BText& txt)
 //--------------------------------------------------------------------
 {
 //InitTotalTime("BText::Concat BText");
-  assert(this!=&txt);
-  if(txt.HasName())
+  if(this!=&txt)
   {
-    if(!length_) { Copy(txt); }
-    else
+    if(txt.HasName())
     {
-      BInt strLen = txt.Length();
-      BInt newLen = length_+strLen;
-      ReallocateBuffer(newLen+1);
-      memcpy(buffer_+length_, txt.String(), strLen);
-      buffer_[length_=newLen]='\0';
+      if(!length_) { Copy(txt); }
+      else
+      {
+        BInt strLen = txt.Length();
+        BInt newLen = length_+strLen;
+        ReallocateBuffer(newLen+1);
+        memcpy(buffer_+length_, txt.String(), strLen);
+        buffer_[length_=newLen]='\0';
+      }
     }
+  //SumPartialTime;
+    assert(IsAllOk());
   }
-//SumPartialTime;
-  assert(IsAllOk());
   return(*this);
 }
 
