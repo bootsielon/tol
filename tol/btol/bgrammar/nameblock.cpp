@@ -291,7 +291,7 @@ const BText& BNameBlock::LocalName() const
   BText fullName = BEqualOperator::CurrentFullName();
   const BClass* cls = BEqualOperator::CreatingClass();
   BBool hasName = name.HasName();
-//Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
+//Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)_tre,"  "));
   BUserNameBlock* ns_result = NULL;
   BSyntaxObject* result = NULL;
   int level = BGrammar::Level();
@@ -319,17 +319,10 @@ const BText& BNameBlock::LocalName() const
   }
   else
   {
-  //const BNameBlock* oldNameBlock = BNameBlock::current_;
     ns_result = new BGraContensP<BNameBlock>(new BNameBlock);
     BNameBlock& newNameBlock  = ns_result->Contens();
     newNameBlock.PutName(fullName);
     newNameBlock.PutLocalName(name);
-  /*
-    Std(BText("\nBNameBlock::EvaluateTree ")+fullName+
-        " changing new current NameBlock to "+
-        newNameBlock.Name()+"\n");
-    BNameBlock::SetCurrent(&newNameBlock);
-  */
     int oldErr = (int)TOLErrorNumber().Value();
     BSyntaxObject* set_result = NULL;
     if(!cls)
@@ -385,7 +378,7 @@ const BText& BNameBlock::LocalName() const
         {
           BMember* mbr = newNameBlock.member_[n]->member_; 
         //Std(BText("\nTRACE BNameBlock::EvaluateTree member ")+
-        //  fullName+"::"+newNameBlock.member_[n]->member_->name_);
+        // fullName+"::"+newNameBlock.member_[n]->member_->name_);
           BSyntaxObject* obj = GraAnything()->EvaluateTree(mbr->branch_);
           if(!obj) 
           { 
@@ -425,12 +418,6 @@ const BText& BNameBlock::LocalName() const
         DESTROY(ns_result);
       }
     }
-    /*
-    Std(BText("\BNameBlock::EvaluateTree ")+fullName+
-        " recovering new current NameBlock to "+
-        (oldNameBlock?oldNameBlock->Name():"NULL")+"\n");
-    BNameBlock::SetCurrent(oldNameBlock);
-    */
     if(!set_result)
     {
       Error(I2("Cannot build NameBlock ",
