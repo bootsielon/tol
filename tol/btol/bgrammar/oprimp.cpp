@@ -1699,7 +1699,7 @@ void BUserFunction::Clean()
 
 
 //--------------------------------------------------------------------
-BUserFunction* BUserFunction::Copy() const
+BUserFunction* BUserFunction::Replicate() const
     
 /*! DestCreates an exact copy of user function
  */

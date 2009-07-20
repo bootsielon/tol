@@ -448,7 +448,7 @@ class BUserFunction: public BExternalOperator
     BSyntaxObject* LastCalling(BInt n) { return(lastCalling_[n]); }
     const BText&    ArgName(BInt n)    { return(names_[n]); }
 
-    BUserFunction* Copy() const;
+    BUserFunction* Replicate() const;
     RedeclareClassNewDelete(BUserFunction);
 };
 
