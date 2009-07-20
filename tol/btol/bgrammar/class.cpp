@@ -582,6 +582,12 @@ int MbrNumCmp(const void* v1, const void* v2)
   //If new member nor old one with same name and declaration has no default 
   //value then does nothing: no error showing and no member adding
   if(!ok) { delete newMbrNum; }
+/*
+  Std(BText("\nBMemberOwner::AddMember ")+
+  " \n  class:"+Name()+
+  " \n  member name:"+name+
+  " \n  member declaration:"+dec+"\n");
+*/
   return(ok);
 }
 
@@ -810,6 +816,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
         car = ((List*)(cdr->car()))->car();
         tok = (BToken*)car;
         if((tok->TokenType()==TYPE) && 
+           (!tok->Close()) && 
            (((BTypeToken*)tok)->type_==BTypeToken::BCLASS))
         {
           parentArr.ReallocBuffer(nParent+1);
