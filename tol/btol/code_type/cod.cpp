@@ -71,6 +71,30 @@ void BCode::DelOperator()
   }
 }
 
+//--------------------------------------------------------------------
+  const BCode& BCode::operator = (const BCode& code)
+//--------------------------------------------------------------------
+{
+  PutOperator(code.Operator());
+  return(*this);
+}
+
+//--------------------------------------------------------------------
+  const BCode& BCode::Replicate (const BCode& code)
+//--------------------------------------------------------------------
+{
+  BStandardOperator* opr = code.Operator();
+  if(opr->Mode()==BUSERFUNMODE)
+  {
+    BUserFunction* fun = (BUserFunction*) opr;
+    PutOperator(fun->Replicate());
+  }
+  else 
+  {
+    PutOperator(opr);
+  }
+  return(*this);
+}
 
 //--------------------------------------------------------------------
 void BCode::PutSpecialFunction(const BSpecialFunction* spf)

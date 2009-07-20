@@ -82,11 +82,8 @@ class TOL_API BCode
 	 else		{ return(NIL); }
   }
 
-  const BCode&	   operator =  (const BCode& code)
-  {
-	 PutOperator(code.Operator());
-	 return(*this);
-  }
+  const BCode&	operator =  (const BCode& code);
+  const BCode&	Replicate   (const BCode& code);
 
   static BCode&	 Unknown() { return(unknown_); }
   static BBool Compare(BCode* cod1, BCode* cod2) { return(0); }
