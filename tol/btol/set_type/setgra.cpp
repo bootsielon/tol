@@ -2096,31 +2096,68 @@ BSyntaxObject* CopyMatrix(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 };
 
 //--------------------------------------------------------------------
+BSyntaxObject* CopyCode(BSyntaxObject* obj)
+{
+  BCode cod;
+  cod.Replicate(Code(obj));
+  return(new BContensCode("",cod,""));
+};
+/*
+//--------------------------------------------------------------------
+BSyntaxObject* CopyNameBlock(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
+{
+  BUseerNameBlock* unb = (BUseerNameBlock*)obj
+  BNameBlock mat = unb->Contens();
+  if(p.Size())
+  {
+	  for(BInt i=0; i<mat.Rows(); i++)
+	  {
+	    for(BInt j=0; j<mat.Columns(); j++)
+	    {
+		mat(i,j) = p[pos++];
+	    }
+	}
+    }
+    return(new BContensMat("",mat,""));
+};
+*/
+
+//--------------------------------------------------------------------
 BSyntaxObject* CopySet(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos);
 
 //--------------------------------------------------------------------
 void DeepCopy(const BSet& sample,BSet& copy,const BArray<BDat>& p,BInt& pos)
 {
-    BList* lst = NIL;
-    BList* aux = NIL;
-    BInt i;
-    for(i=1; i<=sample.Card(); i++)
+  BList* lst = NIL;
+  BList* aux = NIL;
+  BInt i;
+  for(i=1; i<=sample.Card(); i++)
+  {
+    if(sample[i])
     {
-	if(sample[i])
-	{
-	    BSyntaxObject* obj = NIL;
-	    BGrammar*	     gra = sample[i]->Grammar();
-	    if(gra==GraReal   ())      { obj = CopyReal   (sample[i],p,pos); }
-	    else if(gra==GraPolyn  ()) { obj = CopyPolyn  (sample[i],p,pos); }
-	    else if(gra==GraRatio ()) { obj = CopyRatio (sample[i],p,pos); }
-	    else if(gra==GraMatrix ()) { obj = CopyMatrix (sample[i],p,pos); }
-	    else if(gra==GraSet    ()) { obj = CopySet    (sample[i],p,pos); }
-	    else		       { obj = sample[i]->CopyContens ();    }
-	    LstFastAppend(lst,aux,obj);
-	}
+      BSyntaxObject* obj = NIL;
+      BGrammar*	     gra = sample[i]->Grammar();
+           if(gra==GraReal   ()) { obj = CopyReal   (sample[i],p,pos); }
+      else if(gra==GraPolyn  ()) { obj = CopyPolyn  (sample[i],p,pos); }
+      else if(gra==GraRatio  ()) { obj = CopyRatio  (sample[i],p,pos); }
+      else if(gra==GraMatrix ()) { obj = CopyMatrix (sample[i],p,pos); }
+      else if(gra==GraSet    ()) { obj = CopySet    (sample[i],p,pos); }
+      else if(gra==GraCode   ()) { obj = CopyCode   (sample[i]);       }
+      else		                   { obj = sample[i]->CopyContens ();    }
+      if(obj && !obj->HasName())
+      {
+        obj->PutName(sample[i]->Name());
+      }
+      LstFastAppend(lst,aux,obj);
     }
-    copy.RobStruct(lst,sample.Struct(),sample.SubType());
+  }
+  copy.RobStruct(lst,sample.Struct(),sample.SubType());
+  if(sample.HasIndexByName())
+  {
+    copy.SetIndexByName();
+  }
 };
+
 
 //--------------------------------------------------------------------
 BSyntaxObject* CopySet(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
