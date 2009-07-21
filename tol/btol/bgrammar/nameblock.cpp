@@ -278,7 +278,7 @@ const BText& BNameBlock::LocalName() const
 { 
   const BNameBlock* old = current_; 
   current_ = ns; 
-  return(ns); 
+  return(old); 
 }
 
 //--------------------------------------------------------------------
@@ -301,10 +301,8 @@ const BText& BNameBlock::LocalName() const
 { 
   const BNameBlock* old = building_; 
   building_ = ns; 
-  return(ns); 
+  return(old); 
 }
-
-
 
 
 //--------------------------------------------------------------------
