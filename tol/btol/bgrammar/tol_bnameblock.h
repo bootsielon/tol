@@ -123,7 +123,7 @@ public:
   BSyntaxObject* PrivateMember(const BText& memberName) const;
   BList* SelectMembers(BList* lst, const BObjClassify&  oc);
   BList* SelectMembersDeep(BList* lst, const BObjClassify&  oc);
-  void RebuildFullNameDeep(BText parentFullName);
+  void RebuildFullNameDeep(BText parentFullName, BText memberName);
 
   short EnsureIsAssigned() const;
 

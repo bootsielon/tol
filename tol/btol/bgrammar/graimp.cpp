@@ -870,7 +870,7 @@ BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
         {
           fatherName = BEqualOperator::CurrentFatherName();
         }
-        nb.RebuildFullNameDeep(fatherName);
+        nb.RebuildFullNameDeep(fatherName,"");
       }
     }
   }

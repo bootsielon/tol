@@ -855,20 +855,24 @@ const BText& BNameBlock::LocalName() const
 
 
 //--------------------------------------------------------------------
-  void BNameBlock::RebuildFullNameDeep(BText parentFullName)
+  void BNameBlock::RebuildFullNameDeep(BText parentFullName, BText memberName)
 //--------------------------------------------------------------------
 {
 //Std(BText("\n")+"BNameBlock::SelectMembersDeep Exploring NameBlock "+Name());
   BSyntaxObject* obj;
   BUserNameBlock* unb;
   BObjByNameHash::const_iterator iter;
+  if(!memberName.HasName()) 
+  {
+    memberName = LocalName();
+  } 
   if(parentFullName.HasName()) 
   { 
-    parentFullName = parentFullName+"::"+LocalName(); 
+    parentFullName = parentFullName+"::"+memberName; 
   }
   else
   {
-    parentFullName = LocalName(); 
+    parentFullName = memberName; 
   }
   PutName(parentFullName);
   for(iter=public_.begin(); iter!=public_.end(); iter++)
@@ -888,7 +892,7 @@ const BText& BNameBlock::LocalName() const
     {
       unb = (BUserNameBlock*)obj;
       unb->Contens().father_ = this;
-      unb->Contens().RebuildFullNameDeep(parentFullName);
+      unb->Contens().RebuildFullNameDeep(parentFullName, obj->Name());
     }
   }
   for(iter=private_.begin(); iter!=private_.end(); iter++)
@@ -898,7 +902,7 @@ const BText& BNameBlock::LocalName() const
     {
       unb = (BUserNameBlock*)obj;
       unb->Contens().father_ = this;
-      unb->Contens().RebuildFullNameDeep(parentFullName);
+      unb->Contens().RebuildFullNameDeep(parentFullName, obj->Name());
     }
   }
 }
@@ -1030,7 +1034,7 @@ void BSetToNameBlock::CalcContens()
     contens_.PutName(fullName);
     contens_.PutLocalName(name);
     contens_.Fill(set);
-    contens_.RebuildFullNameDeep(currentFullName);
+    contens_.RebuildFullNameDeep(currentFullName,"");
   }
 }
 //--------------------------------------------------------------------
