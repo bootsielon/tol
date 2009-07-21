@@ -8,7 +8,7 @@
   Real bugNum_ =  715;
   Text email_ = "vdebuen@tol-project.org"; 
   Text summary_ = 
-  "Falso warning de ocultación de métodos";
+  "Falso mensaje de advertencia de ocultación de métodos";
   Text link_ = GetTolBugzillaLink(bugNum_);
 
   //Write here the initial test TOL code if needed
