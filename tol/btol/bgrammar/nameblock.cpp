@@ -405,8 +405,8 @@ const BText& BNameBlock::LocalName() const
         for(n=0; n<newNameBlock.member_.Size(); n++)
         {
           BMember* mbr = newNameBlock.member_[n]->member_; 
-          Std(BText("\nTRACE BNameBlock::EvaluateTree member ")+
-            fullName+"::"+newNameBlock.member_[n]->member_->name_);
+        //Std(BText("\nTRACE BNameBlock::EvaluateTree member ")+
+        //  fullName+"::"+newNameBlock.member_[n]->member_->name_);
           BSyntaxObject* obj = GraAnything()->EvaluateTree(mbr->branch_);
           if(!obj) 
           { 
