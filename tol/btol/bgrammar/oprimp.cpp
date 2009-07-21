@@ -575,8 +575,7 @@ BGrammar* GetLeft(BGrammar* grammar,
     BUserNameBlock* unb = (BUserNameBlock*)GraNameBlock()->LeftEvaluateTree(nbLst);
     if(unb)
     {
-      const BNameBlock* oldNameBlock = BNameBlock::Current();
-      BNameBlock::SetCurrent(&unb->Contens());
+      const BNameBlock* oldNameBlock = BNameBlock::SetCurrent(&unb->Contens());
       left = Tree::treRight(left);
       grammar=GetLeft(grammar,left,name,rest,str, cls);
       BNameBlock::SetCurrent(oldNameBlock);
@@ -705,6 +704,7 @@ static BSyntaxObject* CreateObject(      List*	   tre,
                 I2("hides published NameBlock member",
                    "oculta el miembro de NameBlock publicado")+
                 " "+result->FullName());
+        BUserFunction::ShowCallStack();
         result = NULL;
       }
     }
@@ -939,13 +939,18 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
   if(rest && gra)
   {
     result = gra->FindOperator(name); 
-    if(result && result->NameBlock())
+    if(result && result->NameBlock() && !BNameBlock::Building())
     {
-      Warning(I2("Global function","La función global")+
+      Warning(I2("Function ","La función ")+
               " "+gra->Name()+" "+name+" "+
               I2("hides published NameBlock member",
                  "oculta el miembro de NameBlock publicado")+
               " "+result->FullName());
+      BUserFunction::ShowCallStack();
+      result = NULL;
+    }
+    if(result && BNameBlock::Building())
+    {
       result = NULL;
     }
     if(result && (result->Level()<BGrammar::Level()))
