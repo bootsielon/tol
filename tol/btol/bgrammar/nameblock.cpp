@@ -48,8 +48,9 @@
 //--------------------------------------------------------------------
 BTraceInit("nameblock.cpp");
 
-const BNameBlock*         BNameBlock::current_ = NULL;
-      BNameBlock*         BNameBlock::unknown_ = NULL;
+const BNameBlock*         BNameBlock::current_  = NULL;
+const BNameBlock*         BNameBlock::building_ = NULL;
+      BNameBlock*         BNameBlock::unknown_  = NULL;
       BObjClassify        BObjClassify::null_;
       BObjByNameHash      BNameBlock::using_;
       BObjByNameHash      BNameBlock::usingSymbols_;
@@ -277,8 +278,34 @@ const BText& BNameBlock::LocalName() const
 { 
   const BNameBlock* old = current_; 
   current_ = ns; 
-  return(current_); 
+  return(ns); 
 }
+
+//--------------------------------------------------------------------
+  const BNameBlock* BNameBlock::Building() 
+//--------------------------------------------------------------------
+{ 
+  if(building_ && 
+     building_->createdWithNew_ &&
+     !(BFSMEM_Hndlr->IsAssigned(building_,building_->_bfsm_PageNum__)))
+  {
+    BFSMEM_Hndlr->IsAssigned(building_,building_->_bfsm_PageNum__);
+    building_ = NULL;
+  }
+  return(building_); 
+}
+
+//--------------------------------------------------------------------
+  const BNameBlock* BNameBlock::SetBuilding(const BNameBlock* ns) 
+//--------------------------------------------------------------------
+{ 
+  const BNameBlock* old = building_; 
+  building_ = ns; 
+  return(ns); 
+}
+
+
+
 
 //--------------------------------------------------------------------
   BSyntaxObject* BNameBlock::EvaluateTree(const List* _tre)
@@ -323,6 +350,7 @@ const BText& BNameBlock::LocalName() const
     BNameBlock& newNameBlock  = ns_result->Contens();
     newNameBlock.PutName(fullName);
     newNameBlock.PutLocalName(name);
+    const BNameBlock* oldBuilding = BNameBlock::SetBuilding(&newNameBlock);
     int oldErr = (int)TOLErrorNumber().Value();
     BSyntaxObject* set_result = NULL;
     if(!cls)
@@ -377,8 +405,8 @@ const BText& BNameBlock::LocalName() const
         for(n=0; n<newNameBlock.member_.Size(); n++)
         {
           BMember* mbr = newNameBlock.member_[n]->member_; 
-        //Std(BText("\nTRACE BNameBlock::EvaluateTree member ")+
-        // fullName+"::"+newNameBlock.member_[n]->member_->name_);
+          Std(BText("\nTRACE BNameBlock::EvaluateTree member ")+
+            fullName+"::"+newNameBlock.member_[n]->member_->name_);
           BSyntaxObject* obj = GraAnything()->EvaluateTree(mbr->branch_);
           if(!obj) 
           { 
@@ -436,6 +464,7 @@ const BText& BNameBlock::LocalName() const
       }
       DESTROY(set_result);
     }
+    BNameBlock::SetBuilding(oldBuilding);
   }
   return(ns_result);
 }

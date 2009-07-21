@@ -52,6 +52,7 @@ private:
   const BNameBlock* father_;
   BClass* class_;
   static const BNameBlock* current_;
+  static const BNameBlock* building_;
   static BNameBlock* unknown_;
   static BObjByNameHash using_;
   static BObjByNameHash usingSymbols_;
@@ -68,6 +69,8 @@ public:
   }
   static const BNameBlock* Current();
   static const BNameBlock* SetCurrent(const BNameBlock* ns);
+  static const BNameBlock* Building();
+  static const BNameBlock* SetBuilding(const BNameBlock* ns);
   static BSyntaxObject* EvaluateTree(const List* tre);
   static bool Using  (const BSyntaxObject* uns);
   static void Unusing(const BSyntaxObject* uns);
