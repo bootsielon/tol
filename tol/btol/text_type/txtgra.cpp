@@ -32,6 +32,7 @@
 
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bout.h>
+#include <tol/tol_bnameblock.h>
 #include <tol/tol_bsys.h>
 #include <tol/tol_bdir.h>
 #include <tol/tol_list.h>
@@ -2245,7 +2246,25 @@ void BTxtGetAbsolutePath::CalcContens()
     contens_ = GetAbsolutePath(Text(Arg(1)));
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtClassOf);
+DefExtOpr(1, BTxtClassOf, "ClassOf", 1, 1,
+	  "NameBlock",
+	  "(NameBlock instance )",
+	  I2("Returns the class name for a give NameBlock. If the nameBlock does not have Class associated returns empty \"\"",
+	     "Retorna el nombre de la clase asociada con un NameBlock. Si el NameBlock no tiene clase asociada retorna cadena vacia \"\""),
+	  BOperClassify::General_);
 
+//--------------------------------------------------------------------
+void BTxtClassOf::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BNameBlock& nb = ((BUserNameBlock*)(Arg(1)))->Contens();
+  const BClass* cls = nb.Class( );
+  if ( cls ) {
+    contens_ = cls->getName( );
+  }
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtFormatSerSet);
@@ -2381,5 +2400,4 @@ void BTextGranularity::CalcContens()
     std::string base = BCTime::editedGranul(uTmi.getGranul());
     contens_ = BText(base.c_str());
 }
-
 #endif /* __USE_TC__ */
