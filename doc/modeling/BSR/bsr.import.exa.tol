@@ -149,6 +149,7 @@ NameBlock Build.Example.BSR(Text path.out, Text session.id,
   ]]
 };
 
+// Este seria el objeto config para la 1.1.7
 /*
 NameBlock bsr.config = [[
 //MCMC dimensions
@@ -173,7 +174,10 @@ NameBlock bsr.config = [[
   Real do.eval            =  True;
   Real do.linear.effects  =  True
 ]];
+*/
 
+// El objeto config para la 2.0.1 es de tipo Config
+BysMcmc::Config bsr.config = BysMcmc::Config.Default( 0 );
 
 Serie WN = SubSer(Gaussian(0,1),y2000,y2008);
 Polyn AR = (1-0.7*B)*(1-0.3*B);
@@ -194,15 +198,41 @@ Set X = For(1,K,Serie(Real _k)
 Serie Y = SetSum(For(1,K,Serie(Real _k)
   {Serie BETA[_k]*X[_k]})) + SubSer(Z,y2007,y2008);
 
+// Construye el NameBlock que implementa el interfaz Import
 NameBlock bsr.import = Build.Example.BSR("/tmp/", Text "session01", Serie Y, Set X);
 
+// Si quiero escribir el archivo
 Text file.bsr = BysMcmc::Bsr::Import::Write(bsr.import);
 
+// si quiero parserarlo
 Set bsr.parsed = BSR.Parse(file.bsr);
 
+//  Esta seria la forma de estimar en la version 1.1.7
+/*
 Set bsr.estim = { BysMcmc::Bsr::Gibbs::Estim
                     (
                      Set modelDef = bsr.parsed,
                      NameBlock bsr.config
                     )};
 */
+
+// Esta seria la forma de invocar Estim en la version 2.0.1
+
+// Creo un Cycler
+
+// El partial handler es el objeto que implementara el
+// condicionamiento, para este ejemplo usamos uno vacio.
+BysMcmc::McmcPartialHandler hdPartial = BysMcmc::McmcPartialHandler.Default( 0 );
+
+// El notifiar permite emitir notificaciones personalizadas de las
+// etapas del gibbs.
+BysMcmc::Notifier notifier = BysMcmc::NoNotifier( 0 );
+
+// El cycler se puede construir de 3 maneras
+
+BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler( bsr.import, hdPartial, bsr.config, notifier );
+//Cycler cycler = GetCycler( file.bsr, hdPartial, bsr.config, notifier );
+//Cycler cycler = GetCycler( bsr.parsed, hdPartial, bsr.config, notifier );
+
+// ahora la estimacion
+BysMcmc::Estimation EE = BysMcmc::Estim( cycler );
