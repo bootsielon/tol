@@ -58,6 +58,10 @@ static int Tol_ForAllChildCmd _ANSI_ARGS_((ClientData clientData,
                                            Tcl_Interp *interp,
                                            int objc, Tcl_Obj *CONST objv[]));
 
+static int Tol_ForEachCmd _ANSI_ARGS_((ClientData clientData,
+                                       Tcl_Interp *interp,
+                                       int objc, Tcl_Obj *CONST objv[]));
+
 static int Tol_TableSetCmd _ANSI_ARGS_((ClientData clientData,
                                       Tcl_Interp *interp,
                                       int objc, Tcl_Obj *CONST objv[]));
@@ -243,6 +247,9 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
                         (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL );
 
   Tcl_CreateObjCommand( interp, "::tol::forallchild", Tol_ForAllChildCmd,
+                        (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL );
+
+  Tcl_CreateObjCommand( interp, "::tol::foreach", Tol_ForEachCmd,
                         (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL );
 
   Tcl_CreateObjCommand( interp, "::tol::tableset", Tol_TableSetCmd,
@@ -535,7 +542,47 @@ Tol_ForAllChildCmd(clientData, interp, objc, objv)
     tcl_result = TCL_ERROR;
   } else
     tcl_result = Tol_IterChildren(interp,objc-1,objv+1,obj_result);
-  Tcl_SetObjResult(interp,obj_result);
+  Tcl_SetObjResult( interp, obj_result );
+  return tcl_result;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Tol_ForEachCmd --
+ *
+ *        Implements the new Tcl "::tol::foreach" command.
+ *
+ *  ::tol::foreach varname <Set or NameBlock reference> script
+ *
+ * Results:
+ *       A standard Tcl result
+ *
+ * Side effects:
+ *       None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+Tol_ForEachCmd(clientData, interp, objc, objv)
+     ClientData clientData;  /* Not used. */
+     Tcl_Interp *interp;             /* Current interpreter */
+     int objc;                                 /* Number of arguments */
+     Tcl_Obj *CONST objv[];  /* Argument objects */
+{
+  Tcl_Obj * obj_result= Tcl_NewObj();
+  int tcl_result;
+  
+  if (objc != 4) {
+    Tcl_AppendStringsToObj(obj_result, "wrong # args: should be '",
+                           Tcl_GetString(objv[0]),
+                           " varName setref script'", NULL);
+    tcl_result = TCL_ERROR;
+  } else
+    tcl_result = Tol_ForEach( interp, objc - 1, objv + 1, obj_result );
+  Tcl_SetObjResult( interp, obj_result );
   return tcl_result;
 }
 

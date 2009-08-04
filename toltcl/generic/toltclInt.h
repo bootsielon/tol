@@ -137,6 +137,16 @@ extern int Tol_IterChildren _ANSI_ARGS_((Tcl_Interp * interp,
                                          Tcl_Obj *CONST objv[],
                                          Tcl_Obj * obj_result));
 
+/*! Implement a foreach proc similar to the one provided in Tcl except
+ *  that instead of iterating over the list's items it iterates over
+ *  the Set's items. The set could be tolset if the indexes is empty
+ *  or tolset[i1][i2]...[ik] for the given indexes {i1,i2,...,ik}
+ */
+extern int Tol_ForEach _ANSI_ARGS_((Tcl_Interp * interp,
+                                    int objc,
+                                    Tcl_Obj *CONST objv[],
+                                    Tcl_Obj * obj_result));
+
 /*! Fill in obj_result the content of the matrix variable.
  */
 extern int Tol_GetMatrixContent _ANSI_ARGS_((Tcl_Interp * interp,
