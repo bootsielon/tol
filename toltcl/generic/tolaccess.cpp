@@ -843,27 +843,27 @@ int Tol_ForEach (Tcl_Interp * interp,
     return TCL_ERROR;
   }
 
-  int OBJ_GRAMMAR    = 0;
-  int OBJ_GRAMMARV   = OBJ_GRAMMAR + 1;
-  int OBJ_NAME       = OBJ_GRAMMARV + 1;
-  int OBJ_NAMEV      = OBJ_NAME + 1;
-  int OBJ_CONTENT    = OBJ_NAMEV + 1;
-  int OBJ_CONTENTV   = OBJ_CONTENT + 1;
-  int OBJ_PATH       = OBJ_CONTENTV + 1;
-  int OBJ_PATHV      = OBJ_PATH + 1;
-  int OBJ_DESC       = OBJ_PATHV + 1;
-  int OBJ_DESCV      = OBJ_DESC + 1;
-  int OBJ_INDEXES    =  OBJ_DESCV + 1;
-  int OBJ_INDEXESV   =  OBJ_INDEXES + 1;
-  int OBJ_ISFILE     = OBJ_INDEXESV + 1;
-  int OBJ_ISFILEV    = OBJ_ISFILE + 1;
-  int OBJ_HASSUBSET  = OBJ_ISFILEV + 1;
-  int OBJ_HASSUBSETV = OBJ_HASSUBSET + 1;
-  int OBJ_SUBTYPE    = OBJ_HASSUBSETV + 1;
-  int OBJ_SUBTYPEV   = OBJ_SUBTYPE + 1;
-  int OBJ_STRUCT     = OBJ_SUBTYPEV + 1;
-  int OBJ_STRUCTV    = OBJ_STRUCT + 1;
-  int NUM_OBJS      = OBJ_STRUCTV + 1;
+  const int OBJ_GRAMMAR    = 0;
+  const int OBJ_GRAMMARV   = OBJ_GRAMMAR + 1;
+  const int OBJ_NAME       = OBJ_GRAMMARV + 1;
+  const int OBJ_NAMEV      = OBJ_NAME + 1;
+  const int OBJ_CONTENT    = OBJ_NAMEV + 1;
+  const int OBJ_CONTENTV   = OBJ_CONTENT + 1;
+  const int OBJ_PATH       = OBJ_CONTENTV + 1;
+  const int OBJ_PATHV      = OBJ_PATH + 1;
+  const int OBJ_DESC       = OBJ_PATHV + 1;
+  const int OBJ_DESCV      = OBJ_DESC + 1;
+  const int OBJ_INDEXES    =  OBJ_DESCV + 1;
+  const int OBJ_INDEXESV   =  OBJ_INDEXES + 1;
+  const int OBJ_ISFILE     = OBJ_INDEXESV + 1;
+  const int OBJ_ISFILEV    = OBJ_ISFILE + 1;
+  const int OBJ_HASSUBSET  = OBJ_ISFILEV + 1;
+  const int OBJ_HASSUBSETV = OBJ_HASSUBSET + 1;
+  const int OBJ_SUBTYPE    = OBJ_HASSUBSETV + 1;
+  const int OBJ_SUBTYPEV   = OBJ_SUBTYPE + 1;
+  const int OBJ_STRUCT     = OBJ_SUBTYPEV + 1;
+  const int OBJ_STRUCTV    = OBJ_STRUCT + 1;
+  const int NUM_OBJS      = OBJ_STRUCTV + 1;
 
   int datac;
   Tcl_Obj *datav[ NUM_OBJS ];
