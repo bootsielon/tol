@@ -560,20 +560,23 @@ void BMatReadFile::CalcContens()
     fscanf(file, "%ld %ld", &cols, &rows);
     contens_.Alloc(rows, cols);
     double* x = (double*)contens_.GetData().GetBuffer();
-    for(i=0; !feof(file) && (i<rows); i++)
+    bool errCannotReadCell = false;
+    for(i=0; !errCannotReadCell && !feof(file) && (i<rows); i++)
     {
-      for(j=0; j<cols; j++, x++)
+      for(j=0; !errCannotReadCell && (j<cols); j++, x++)
       {
         if(!fscanf(file, "%lf", x))
         {
           Error(BText("[MatReadFile] Cannot read cell")+
             " of file "+fileName);  
           contens_.Alloc(0,0);
+          errCannotReadCell = true;
         }
       }
     }
   }
 }
+
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BMatReadDimensions);
 DefExtOpr(1, BMatReadDimensions, "MatReadDimensions", 1, 1, "Text",
