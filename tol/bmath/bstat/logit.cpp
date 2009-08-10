@@ -62,7 +62,7 @@ BBool Logit(const BMatrix    <BDat>& y,
   BInt i, j, k, iter, n=X.Columns(), N=X.Rows();
   BTimer tm(BText("Logit model (")+N+"x"+n+")");
 
-  BMatrix<BDat> dif, f(N,1), H_(n,n);
+  BMatrix<BDat> dif, f(N,1), H_(n,n), Xb(N,1);
   e.Alloc(N,1);
   p.Alloc(N,1);
   lnL.Alloc(N,1);
@@ -73,6 +73,7 @@ BBool Logit(const BMatrix    <BDat>& y,
   B.SetAllValuesTo(0);
   clock_t tm_1, tm_0 = BTimer::Clocks();
   BReal tm_dif;
+  BDat Lp, L1p;
 
   for(iter=0; iter<BDat::MaxIter(); iter++)
   {
@@ -80,21 +81,28 @@ BBool Logit(const BMatrix    <BDat>& y,
     G.SetAllValuesTo(0);
     if(iter==0)
     {
-      p.SetAllValuesTo(0);
+      Xb.SetAllValuesTo(0);
     }
     else
     {
     //Std(BText("\nTRACE Logit B=\n")+B.Name());
     //Std(BText("\nTRACE Logit X=\n")+X.Name());
-      p = X*B;
-    //Std(BText("\nTRACE Logit p=\n")+p.Name());
+      Xb = X*B;
+    //Std(BText("\nTRACE Logit Xb=\n")+Xb.Name());
     }
     oldLlh = lnLikelyhood;
     lnLikelyhood=0;
     for(i=0; i<N; i++)
     {
-      p(i,0) = 1.0/(1+Exp(-p(i,0)));
-      f(i,0) = p(i,0)*(1-p(i,0));
+      if(Xb(i,0)>=0)
+      {
+        p(i,0) = 1.0/(Exp(-Xb(i,0))+1.0);
+      }
+      else
+      {
+        p(i,0) = Exp(Xb(i,0))/(Exp(Xb(i,0))+1.0);
+      }
+      f(i,0) = p(i,0)*(1.0-p(i,0));
       e(i,0) = y(i,0)-p(i,0);
       for(j=0; j<n; j++)
       {
@@ -104,21 +112,25 @@ BBool Logit(const BMatrix    <BDat>& y,
 	        H_(j,k) -= f(i,0)*X(i,j)*X(i,k);
         }
       }
-	    if(Abs(e(i,0))<=BDat::Tolerance()) { lnL(i,0) = 0.0;	     }
-      else if(Abs(e(i,0))==1	) 
+	    if(Abs(e(i,0))<=BDat::Tolerance()) { lnL(i,0) = 0.0; }
+      else 
       {
-        #if defined(_MSC_VER) || defined(UNIX)
-        //lnL(i,0) = -INFINITY;
-        lnL(i,0) = BDat::NegInf();
-        #else
-         lnL(i,0) = -1.0/0.0;
-        #endif
+        if(Xb(i,0)>=0)
+        {
+	        Lp  = Log(p(i,0));
+          L1p = -Xb(i,0)-Log(1+Exp(-Xb(i,0)));
+        }
+        else 
+        {
+	        Lp  =  Xb(i,0)-Log(1+Exp( Xb(i,0)));
+          L1p = Log(1-p(i,0));
+        }
+        lnL(i,0) = y(i,0)*Lp + (1-y(i,0))*L1p;
       }
-      else
+      if(!lnL(i,0).IsFinite())
       {
-	      lnL(i,0) = y(i,0)*Log(p(i,0))+(1-y(i,0))*Log(1-p(i,0));
+        Std(BText("\n  Non finite log-likelihood i=")+i+"\ty="+y(i,0)+"\tXb="+Xb(i,0)+"\tp="+p(i,0)+"\tlog(p)="+Lp+"\tlog(1-p)="+L1p+"\tlnL="+lnL(i,0));
       }
-      // Std(BText("\ny=")+y(i,0)+"\tp="+p(i,0)+"\te="+e(i,0)+"\tlnL="+lnL(i,0));
       lnLikelyhood += lnL(i,0);
     }
     H = H_;
@@ -140,11 +152,12 @@ BBool Logit(const BMatrix    <BDat>& y,
 	  I2("\tTime : "," Tiempo : ") + tm_dif+I2(" seconds"," segundos"));
 
     if(advance.IsUnknown()) { break; }
-    B -= dif;
     if(norm	 < DEpsilon()	    ) { break; }
     if(maxAbsDif < BDat::Tolerance()) { break; }
     if(advance	 < DEpsilon()	    ) { break; }
     if(Abs(oldLlh-lnLikelyhood) < DEpsilon()) { break; }
+    if(iter==BDat::MaxIter()-1) { break; }
+    B -= dif;
   }
   return BTRUE;
 }
@@ -193,6 +206,7 @@ BBool Probit(const BMatrix    <BDat>& y,
   clock_t tm_1, tm_0 = BTimer::Clocks();
   BReal tm_dif;
   lnLikelyhood = BDat::NegInf();
+  BDat _p, _1p;
   for(iter=0; iter<BDat::MaxIter(); iter++)
   {
     H_.SetAllValuesTo(0);
@@ -202,10 +216,12 @@ BBool Probit(const BMatrix    <BDat>& y,
     lnLikelyhood=0;
     for(i=0; i<N; i++)
     {
-      p(i,0) = BNormalDist::Dist01(XB(i,0));
+      _1p = BNormalDist::Dist01(-XB(i,0));
+       _p = BNormalDist::Dist01( XB(i,0));
+      p(i,0) = _p;
       f(i,0) = Exp(-0.5*(XB(i,0)*XB(i,0)))/Sqrt(2.0*BDat::Pi());//BNormalDist::Dens01(XB(i,0));
-      l(i,0) = (y(i,0)==0)?-f(i,0)/(1-p(i,0)):f(i,0)/p(i,0);
-      e(i,0) = y(i,0)-p(i,0);
+      l(i,0) = (y(i,0)==0)?-f(i,0)/(_1p):f(i,0)/_p;
+      e(i,0) = y(i,0)-_p;
       for(j=0; j<n; j++)
       {
 	      G(j,0) += X(i,j)*l(i,0);
@@ -215,16 +231,12 @@ BBool Probit(const BMatrix    <BDat>& y,
 	      }
       }
 	    if(Abs(e(i,0))<=BDat::Tolerance()) { lnL(i,0) = 0.0;	     }
-      else if(Abs(e(i,0))==1		    ) 
-      {
-        lnL(i,0) = BDat::NegInf();
-      }
       else
       {
-	      lnL(i,0) = y(i,0)*Log(p(i,0))+(1-y(i,0))*Log(1-p(i,0));
+	      lnL(i,0) = y(i,0)*Log(_p)+(1-y(i,0))*Log(_1p);
       }
 //    Std(BText("\ny=")+y(i,0)+"\tXB="+XB(i,0)+
-//		"\tp="+p(i,0)+"\tf="+f(i,0)+"\tl="+l(i,0)+
+//		"\tp="+_p+"\tf="+f(i,0)+"\tl="+l(i,0)+
 //		"\te="+e(i,0)+"\tlnL="+lnL(i,0));
       lnLikelyhood += lnL(i,0);
     }
@@ -246,11 +258,12 @@ BBool Probit(const BMatrix    <BDat>& y,
 	     I2("\tTime : "," Tiempo : ") + tm_dif+I2(" seconds"," segundos"));
 
     if(advance.IsUnknown()) { break; }
-    B -= dif;
     if(norm	     < chop 	          ) { break; }
     if(maxAbsDif < BDat::Tolerance()) { break; }
     if(advance	 < chop     	      ) { break; }
     if(Abs(oldLlh-lnLikelyhood) < DEpsilon()) { break; }   
+    if(iter==BDat::MaxIter()-1) { break; }
+    B -= dif;
   }
   return BTRUE;
 }
