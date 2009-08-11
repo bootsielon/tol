@@ -1546,7 +1546,7 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
     syn = (BSyntaxObject*)Car(arg);
     int m = syn->Mode();
     BGrammar* g = (m==BUSERFUNMODE || m==BBUILTINFUNMODE)?GraCode():syn->Grammar();
-    if (!gra || (gra!=GraAnything()) && (gra!=g)) 
+    if (!gra || ((gra!=GraAnything()) && (gra!=g)))
     {
       char sp[1024];
       char en[1024];
