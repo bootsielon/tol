@@ -1560,14 +1560,14 @@ void BSetIncludeBST::CalcContens()
   BList* result = NIL;
   BList* aux = NIL;
   BBool error = BFALSE;
-  BText txt;
   BArray<BText> line;
   BStruct* str;
   BInt n;
   BInt numLine=0;
   BBool lastComma = BFALSE;
   BText errMsg=BST+I2("\nIn file ", "\nEn el fichero ")+TolPath();
-   
+  BText txt(MaxLineLength,' ');
+
   if(!Open())
   {
     Error(BST+TolPath()+I2(" can't open"," no se pudo abrir"));
