@@ -114,15 +114,22 @@ BBool Tree::putMostRight (Tree* aTree)
  */
 //--------------------------------------------------------------------
 {
-    List* right = NIL;
-    if(isEmpty()) {
-	tree_ = aTree->getTree();
-	setMRFree(aTree->getMRFree());
-    } else {
-	mrFree_->setCar(aTree->getTree());
-	mrFree_ = aTree->getMRFree();
-    }
-    return (BTRUE);
+  List* right = NIL;
+  if(isEmpty()) 
+  {
+	  tree_ = aTree->getTree();
+	  setMRFree(aTree->getMRFree());
+  } 
+  else if(!mrFree_) 
+  {
+	  setMRFree(aTree->getMRFree());
+  }
+  else
+  {
+	  mrFree_->setCar(aTree->getTree());
+	  mrFree_ = aTree->getMRFree();
+  }
+  return (BTRUE);
 }
 
 
