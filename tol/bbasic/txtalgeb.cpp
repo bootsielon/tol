@@ -1557,9 +1557,9 @@ void BText::GetLine(istream& is, BInt maxChars, BChar until)
     AllocItems(maxChars+1);
   }
   length_ = 0;
-  BChar ch  = '\0';
+  BChar ch  = 1;
   bool untilIsLF = until=='\n';
-  for(;(length_<=maxChars)&&(ch!=until)&&(!is.eof()); length_++)
+  for(;(length_<=maxChars)&&ch&&(ch!=until)&&(!is.eof()); length_++)
   {
     is.get(ch);
 #   ifdef READ_CRLF_AS_LF
@@ -1571,8 +1571,7 @@ void BText::GetLine(istream& is, BInt maxChars, BChar until)
 #   endif
     buffer_[length_] = ch;
   }
-  if(ch==until) { length_--; }
-  if(ch=='\0')  { length_--; }
+  if((ch==until)&&length_) { length_--; }
   buffer_[length_] = '\0';
 
 }
@@ -1597,9 +1596,9 @@ void BText::GetLine(FILE* file, BInt maxChars, BChar until)
     AllocItems(maxChars+1);
   }
   length_ = 0;
-  BChar ch  = '\0', c;
+  BChar ch  = 1, c;
   bool untilIsLF = until=='\n';
-  for(;(length_<=maxChars)&&(ch!=until)&&(!feof(file)); length_++)
+  for(;(length_<=maxChars)&&ch&&(ch!=until)&&(!feof(file)); length_++)
   {
     ch = fgetc(file);
 #   ifdef READ_CRLF_AS_LF
@@ -1611,8 +1610,7 @@ void BText::GetLine(FILE* file, BInt maxChars, BChar until)
 #   endif
     buffer_[length_] = ch;
   }
-  if(ch==until) { length_--; }
-  if(ch=='\0')  { length_--; }
+  if((ch==until)&&length_) { length_--; }
   buffer_[length_] = '\0';
 }
 
