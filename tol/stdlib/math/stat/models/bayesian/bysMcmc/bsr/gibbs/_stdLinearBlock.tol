@@ -102,7 +102,9 @@ Class StdLinearSubBlock
   VMatrix _.beta0 = Rand(0,0,0,0);
   VMatrix _.beta = Rand(0,0,0,0);
 
+  ////////////////////////////////////////////////////////////////////////////
   Real putMID(Text mid)
+  ////////////////////////////////////////////////////////////////////////////
   {
     Text _MID := mid;
     1
@@ -119,8 +121,7 @@ Class StdLinearSubBlock
   //Returns true if given solution matches constrains and store them
   Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a)
   ////////////////////////////////////////////////////////////////////////////
-  {
-    
+  {   
   //WriteLn("TRACE "+_MID+" matchConstrains 1 beta0="<<beta0);
     Real ok = TRUE;
 
@@ -468,9 +469,9 @@ Class StdLinearSubBlock
 StdLinearSubBlock StdLinearSubBlock.Build(Text mid)
 //////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::Bsr::Gibbs::StdLinearSubBlock subBlock = 
+  BysMcmc::Bsr::Gibbs::StdLinearSubBlock freeBlock = 
   [[ Text _MID = mid ]];
-  subBlock
+  freeBlock
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -482,15 +483,6 @@ Text _.autodoc.member.StdLinearBlock =
 Class StdLinearBlock: BlockSampler
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real initialize.subBlocks(Real unused);
-  Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a);
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real initialize(Real unused) 
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    initialize.subBlocks(unused)
-  };
 
   ////////////////////////////////////////////////////////////////////////////
   //Default behaviour assumes standarized linear regression
@@ -505,9 +497,105 @@ Class StdLinearBlock: BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   { 
     _.ws
+  };
+
+  BysMcmc::Bsr::Gibbs::StdLinearSubBlock _.fullBlock = 
+    BysMcmc::Bsr::Gibbs::StdLinearSubBlock.Build(_MID+"[_.fullBlock] ");
+  BysMcmc::Bsr::Gibbs::StdLinearSubBlock _.freeBlock = 
+    BysMcmc::Bsr::Gibbs::StdLinearSubBlock.Build(_MID+"[_.freeBlock] ");
+
+  Set _.i1 = Copy(Empty); //_.partialSampler::getNonFreeIndex(0);
+  Set _.i2 = Copy(Empty); //_.partialSampler::getFreeIndex(0);
+  Real _.N1 = ?;
+  Real _.N2 = ?;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize.subBlocks(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    Set _.i1 := _.partialSampler::getNonFreeIndex(0);
+    Set _.i2 := _.partialSampler::getFreeIndex(0);
+    Real _.N1 := Card(_.i1);
+    Real _.N2 := Card(_.i2);
+    Code _.freeBlock::standarize := standarize;
+    Code _.freeBlock::getWorkSpace := getWorkSpace;
+    Real _.freeBlock::usePreconditioning := 
+      _.config::bsr.linBlk.usePreconditioning;
+    Real _.freeBlock::cholesky.warningFreq := 
+      _.config::bsr.cholesky.warningFreq;
+    Real _.freeBlock::truncMNormal.gibbsNumIter := 
+      _.config::bsr.truncMNormal.gibbsNumIter;
+    Real _.freeBlock::drop_val := 
+      _.config::bsr.linBlk.X.drop;
+    Real _.freeBlock::_.eps := 
+      _.config::bsr.cholesky.epsilon*_.N2*(_.N2+1);
+    Real _.freeBlock::_.MH.useAfterIter := 
+      Max(1,_.config::bsr.linBlk.MH.useAfterIter);
+    Real _.freeBlock::_.MH.maxRejected := 
+      _.config::bsr.linBlk.MH.maxRejected;
+    Real _.freeBlock::_.MH.maxConsecutive := 
+      _.config::bsr.linBlk.MH.maxConsecutive;
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    initialize.subBlocks(0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!_.N1,  
+    {
+      Real ok = _.freeBlock::matchConstrains(beta0,A,a);
+      Real putStoreV(_.freeBlock::_.beta0);
+      ok
+    },
+    {
+      Real ok1 = _.fullBlock::matchConstrains(beta0,A,a);
+      Real ok2 = If(!ok1, False,
+      {
+        VMatrix b1 = _.partialSampler::_.fixedValues;
+        VMatrix b2 = SubRow(_.fullBlock::_.beta0, _.i2);
+        VMatrix A1 = SubCol(A, _.i1);
+        VMatrix A2 = SubCol(A, _.i2);
+        VMatrix a2 = a - A1*b1;
+        Real _.freeBlock::matchConstrains(b2,A2,a2)
+      });
+      VMatrix b_ = _.partialSampler::mergeWithFreeSample(_.freeBlock::_.beta0); 
+      Real putStoreV(b_);
+      ok2
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix draw(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" StdLinearBlock::draw 0");
+    If(!_.N1,  
+    {
+    //WriteLn("TRACE"+_MID+" StdLinearBlock::draw 1.1");
+    _.freeBlock::draw(numSim)
+    },
+    {
+    //WriteLn("TRACE"+_MID+" StdLinearBlock::draw 2.1");
+      VMatrix b1 = _.partialSampler::_.fixedValues;
+    //WriteLn("TRACE"+_MID+" StdLinearBlock::draw 2.2");
+      VMatrix A1 = SubCol(_.fullBlock::_.A, _.i1);
+    //WriteLn("TRACE"+_MID+" StdLinearBlock::draw 2.3");
+      VMatrix _.freeBlock::_.a := _.fullBlock::_.a - A1*b1;
+    //WriteLn("TRACE"+_MID+" StdLinearBlock::draw 2.4");
+      _.freeBlock::draw(numSim)
+    })
   }
 
 };
+
 
 //////////////////////////////////////////////////////////////////////////////
 StdLinearBlock StdLinearBlock.Default(Text name, 
@@ -528,94 +616,3 @@ StdLinearBlock StdLinearBlock.Default(Text name,
   ]];
   aux
 };
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.StdLinearFullBlock =
-"Builds a NameBlock that can draw a Gibbs sample of an standarized linear "
-"block of a general regression model with variant input and ouput regression "
-"matrices and optional but fixed constraining inequations.";
-//////////////////////////////////////////////////////////////////////////////
-Class StdLinearFullBlock: StdLinearBlock
-//////////////////////////////////////////////////////////////////////////////
-{
-  BysMcmc::Bsr::Gibbs::StdLinearSubBlock _.subBlock = 
-    BysMcmc::Bsr::Gibbs::StdLinearSubBlock.Build(_MID+"[_.subBlock] ");
-
-  ////////////////////////////////////////////////////////////////////////////
-  //Default behaviour assumes standarized linear regression
-  VMatrix standarize(VMatrix _Z) 
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    _Z 
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  NameBlock getWorkSpace(Real unused) 
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    _.ws
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real initialize.subBlocks(Real unused) 
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    Real _.subBlock::putMID(_MID+"[_.subBlock] ");
-    Code _.subBlock::standarize := standarize;
-    Code _.subBlock::getWorkSpace := getWorkSpace;
-    Real _.subBlock::usePreconditioning := 
-      _.config::bsr.linBlk.usePreconditioning;
-    Real _.subBlock::cholesky.warningFreq := 
-      _.config::bsr.cholesky.warningFreq;
-    Real _.subBlock::truncMNormal.gibbsNumIter := 
-      _.config::bsr.truncMNormal.gibbsNumIter;
-    Real _.subBlock::drop_val := 
-      _.config::bsr.linBlk.X.drop;
-    Real _.subBlock::_.eps := 
-      _.config::bsr.cholesky.epsilon*_.N*(_.N+1);
-    Real _.subBlock::_.MH.useAfterIter := 
-      Max(1,_.config::bsr.linBlk.MH.useAfterIter);
-    Real _.subBlock::_.MH.maxRejected := 
-      _.config::bsr.linBlk.MH.maxRejected;
-    Real _.subBlock::_.MH.maxConsecutive := 
-      _.config::bsr.linBlk.MH.maxConsecutive;
-    1
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real initialize(Real unused) 
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    initialize.subBlocks(unused)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real _.subBlock::matchConstrains(beta0,A,a);
-    Real putStoreV(_.subBlock::_.beta0);
-    1
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix draw(Real numSim)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    _.subBlock::draw(numSim)
-  }
-
-};
-/*
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.StdLinearPartialBlock =
-"Builds a NameBlock that can draw a Gibbs sample of an standarized linear "
-"block of a general regression model that is partially fixed or reloaded.";
-//////////////////////////////////////////////////////////////////////////////
-   Class StdLinearPartialBlock: BlockSampler
-//////////////////////////////////////////////////////////////////////////////
-{
-  BysMcmc::StdLinearSubBlock _.subBlock = StdLinearSubBlock.Build(0);
-  B
-};
-*/

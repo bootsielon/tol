@@ -29,22 +29,47 @@ Text _.autodoc.member.MainLinearBlock =
 {
   If(!Card(varNames), 
   BysMcmc::Bsr::Gibbs::StdLinearBlock.Default(name,numBlock,firstCol,config),
-  BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
+  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
 
   ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(VMatrix   Y,    //Non filtered output
-                       VMatrix   X,    //Non filtered input
-                       BysMcmc::BlockSampler arm.blk) //ArimaBlock filter
+  Real _do_buildWorkSpace(VMatrix Y,    //Non filtered output
+                          VMatrix X,    //Non filtered input
+                          BysMcmc::BlockSampler arm.blk) //ArimaBlock filter
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+" MainLinearBlock::_do_buildWorkSpace 0");
     BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg wsar = 
     [[
       VMatrix _.Y = Y;
       VMatrix _.X = X;
       NameBlock _.arm.blk = arm.blk
     ]];
+  //WriteLn("TRACE"+_MID+" MainLinearBlock::_do_buildWorkSpace 1");
     NameBlock _.ws := wsar;
+  //WriteLn("TRACE"+_MID+" MainLinearBlock::_do_buildWorkSpace 2");
     True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(VMatrix Y,    //Non filtered output
+                       VMatrix X,    //Non filtered input
+                       BysMcmc::BlockSampler arm.blk) //ArimaBlock filter
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 0");
+    If(!_.N1,
+    {
+    //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 1");
+      _do_buildWorkSpace(Y,X,arm.blk)
+    },
+    {
+    //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 2");
+      VMatrix b1 = _.partialSampler::_.fixedValues;
+      VMatrix X1 = SubCol(X, _.i1);
+      VMatrix X2 = SubCol(X, _.i2);
+      VMatrix Y2 = Y - X1*b1;
+      _do_buildWorkSpace(Y2,X2,arm.blk)
+    })
   };
   Code _.buildWorkSpace = _buildWorkSpace;
 

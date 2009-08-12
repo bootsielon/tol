@@ -21,7 +21,7 @@ Text _.autodoc.member.InputMissingBlock =
 {
   If(!Card(inputMissingBlock), 
   BysMcmc::Bsr::Gibbs::StdLinearBlock.Default(name, numBlock, firstCol, config),
-  BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
+  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
   //Given initial values of block variables
   VMatrix _.store_ = Mat2VMat(SetMat(Extract(inputMissingBlock, 6)));
 

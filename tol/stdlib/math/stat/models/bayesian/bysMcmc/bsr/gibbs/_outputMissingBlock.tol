@@ -20,7 +20,7 @@ Text _.autodoc.member.OutputMissingBlock =
 {
   If(!Card(outputMissingBlock), 
   BysMcmc::Bsr::Gibbs::StdLinearBlock.Default(name, numBlock, firstCol, config),
-  BysMcmc::Bsr::Gibbs::StdLinearFullBlock blk = [[
+  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
   //Given initial values of block variables
   VMatrix _.store = Mat2VMat(SetMat(Extract(outputMissingBlock, 6)));
 
