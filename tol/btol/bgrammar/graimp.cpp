@@ -551,23 +551,23 @@ BSyntaxObject* EvaluateMatrix(const List* tre)
 BSyntaxObject* EvaluateSet(const List* tre)
 //--------------------------------------------------------------------
 {
-    BSyntaxObject* result = NIL;
-    List* b = (List*) tre;
-    BList* lst = NIL;
-    BList* aux = NIL;
-    while((b = b->cdr()))
+  BSyntaxObject* result = NIL;
+  List* b = (List*) tre;
+  BList* lst = NIL;
+  BList* aux = NIL;
+  while((b = b->cdr()))
+  {
+    List* bTre = Tree::treNode(b);
+    BSyntaxObject* obj = GraAnything()->EvaluateTree(bTre);
+    if(obj)
     {
-	List* bTre = Tree::treNode(b);
-	BSyntaxObject* obj = GraAnything()->EvaluateTree(bTre);
-	if(obj)
-	{
-	    LstFastAppend(lst,aux,obj);
-	}
+      LstFastAppend(lst,aux,obj);
     }
-    BSet set;
-    set.RobElement(lst);
-    result = new BContensSet(set);
-    return(result);
+  }
+  BSet set;
+  set.RobElement(lst);
+  result = new BContensSet(set);
+  return(result);
 }
 
 
@@ -579,7 +579,9 @@ typedef hash_map_by_size_t<BSyntaxObject*>::dense_ BLocalItems;
 
 
 //--------------------------------------------------------------------
-BSyntaxObject* BGrammar::EvaluateTree(const List* tre, BInt from_UF)
+BSyntaxObject* BGrammar::EvaluateTree(
+  const List* tre, 
+  BInt from_UF)
 //--------------------------------------------------------------------
 {
   static BEqualOperator* BNameBlock_BEqualOperator = 

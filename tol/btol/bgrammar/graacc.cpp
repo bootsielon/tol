@@ -486,11 +486,31 @@ BSyntaxObject* BGrammar::FindOperand(const BText& name,
   BObjByClassHash* obch;
   BObjByClassHash::const_iterator f;
   const BText& graName=Name();
+  BOperator* opr = NULL;
   if(mayBeConst) 
   { 
     found = FindConstant(name); 
     found = getOperand(this, found);
   }
+/* */
+  const BClass* cls = BClass::currentClassBuildingInstance_;
+  if(!found && cls && (this==GraCode()))
+  {
+    BSyntaxObject* met = cls->FindMethod(name);
+    if(met)
+    { 
+      if(met->Mode()==BUSERFUNMODE)
+      { 
+        opr = (BOperator*)met; 
+        found = opr->GetCode();
+      }
+      else if(met->Mode()==BOBJECTMODE)
+      {
+        found = met;
+      }
+    } 
+  }
+/* */
   if(!found) 
   { 
     found = BNameBlock::LocalMember(name); 
@@ -523,7 +543,7 @@ BSyntaxObject* BGrammar::FindOperand(const BText& name,
     else if((obch = symbolTable_->Search(name)) && obch->size())
     {
       BArray<BOperator*> options;
-      BOperator* opr=NULL;
+      opr=NULL;
       for(f=obch->begin(); f!=obch->end(); f++)
       {
         const BGrammar* g = f->first.grammar_;
@@ -599,6 +619,25 @@ BOperator* BGrammar::FindOperator(const BText& name)const
 //Std(BText("\nFinding Operator ") + name +" in "+Name());
 //Std(Out()+"\nWith Stack = \n"+LstText(stack_,"{","}","\n"));
   BOperator* found = NULL;
+/* */
+  const BClass* cls = BClass::currentClassBuildingInstance_;
+  if(cls)
+  {
+    BSyntaxObject* met = cls->FindMethod(name);
+    if(met)
+    { 
+      if(met->Mode()==BUSERFUNMODE)
+      { 
+        found = (BOperator*)met;
+      }
+      else if(met->Mode()==BOBJECTMODE)
+      {
+        BUserCode* uCode = UCode(met);
+        found = uCode->Contens().Operator();
+      }
+    } 
+  }
+/* */
   if(!found) 
   { 
     found = getOperator(this, BNameBlock::LocalMember(name));

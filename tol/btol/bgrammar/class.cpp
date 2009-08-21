@@ -40,6 +40,7 @@
 //   Global variables (static in the class BClass) 
 //--------------------------------------------------------------------
 BTraceInit("class.cpp");
+const BClass* BClass::currentClassBuildingInstance_ = NULL;
 
 //--------------------------------------------------------------------
 BMember::BMember()
@@ -50,6 +51,7 @@ BMember::BMember()
   declaration_ (""),
   definition_  (""),
   isMethod_    (false),
+  method_      (NULL),
   parent_      (NULL),
   deleteBranch_(false)
 {
@@ -64,6 +66,7 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   declaration_ (""),
   definition_  (""),
   isMethod_    (false),
+  method_      (NULL),
   parent_      (NULL),
   deleteBranch_(false)
 {
@@ -170,6 +173,10 @@ BMember::BMember(BMemberOwner* parent, List* branch)
           BParser::Unparse(branch,"","\n")+
           I2(" of Class ", "de Class ")+parent->getName());
   }
+  if(parent->OwnerType()==BMemberOwner::BCLASS)
+  {
+    BuildMethod();
+  }
 }
 
 //--------------------------------------------------------------------
@@ -181,6 +188,7 @@ BMember::BMember(const BMember& mbr)
   declaration_ (""),
   definition_  (""),
   isMethod_    (false),
+  method_      (NULL),
   parent_      (NULL),
   deleteBranch_(false)  
 { 
@@ -192,6 +200,11 @@ BMember::~BMember()
 //--------------------------------------------------------------------
 {
   if(deleteBranch_) { delete branch_; }
+  if(method_)
+  {
+    method_->DecNRefs(); 
+    DESTROY(method_); 
+  }
 }
 
 //--------------------------------------------------------------------
@@ -204,8 +217,47 @@ BMember::~BMember()
   declaration_  = mbr.declaration_; 
   definition_   = mbr.definition_;  
   isMethod_     = mbr.isMethod_;    
-  parent_       = mbr.parent_;      
+  parent_       = mbr.parent_; 
+  method_       = mbr.method_; 
+  if(method_)
+  {
+    method_->IncNRefs(); 
+  }
   deleteBranch_ = true;
+}
+
+//--------------------------------------------------------------------
+  int BMember::BuildMethod()
+//! Builds a well defined method
+//--------------------------------------------------------------------
+{
+  if(!method_ && isMethod_ && definition_.HasName())
+  {
+    BGrammar::IncLevel();
+    int stackPos = BGrammar::StackSize();
+    BSyntaxObject* obj = GraAnything()->EvaluateTree(branch_);
+    BGrammar::DestroyStackUntil(stackPos, obj);    
+    BGrammar::DecLevel();
+    if(obj)
+    {
+      method_ = obj;
+      method_->IncNRefs(); 
+      return(1);
+    }
+    else
+    {
+      isGood_ = false;
+      Error(I2("Wrong syntax in method declaration ",
+               "Sintaxis incorrecta en declaración de método ")+
+            BParser::Unparse(branch_,"","\n")+
+            I2(" of Class ", "de Class ")+parent_->getName());
+      return(0);
+    }
+  }
+  else
+  {
+    return(-1);
+  }
 }
 
 //--------------------------------------------------------------------
@@ -237,7 +289,8 @@ BMemberOwner::BMemberOwner()
   mbrDecHash_  (NULL),
   mbrDefHash_  (NULL),
   memberHash_  (NULL),
-  lastPosition_(0)
+  lastPosition_(0),
+  notImplementedMethods_(0)
 {
 }
 
@@ -251,7 +304,8 @@ BMemberOwner::BMemberOwner(const BMemberOwner& mbrOwn)
   mbrDecHash_  (NULL),
   mbrDefHash_  (NULL),
   memberHash_  (NULL),
-  lastPosition_(0)
+  lastPosition_(0),
+  notImplementedMethods_(0)
 { 
   Copy(mbrOwn); 
 }
@@ -507,6 +561,7 @@ int MbrNumCmp(const void* v1, const void* v2)
   BMember* mbrDec = FindDecMember(dec);
   //Searches for existant member with same declaration and with default value
   BMember* mbrDef = FindDefMember(dec);
+  bool isMethod = newMember->isMethod_;
   if(!member)
   {
     //If there isn't a member with same name there is no problem on adding it
@@ -515,16 +570,16 @@ int MbrNumCmp(const void* v1, const void* v2)
     //It's also added to correspondent map hashed by declaration
     if(hasDefVal) { (*mbrDefHash_)[dec] = newMember; }
     else          { (*mbrDecHash_)[dec] = newMember; }
+    if(isMethod && !hasDefVal) { notImplementedMethods_++; }
   }
   else if(member->parent_==this)
   {
     //If exists a previous non inherited member with same name it's an error
     ok= false;
-    Error(I2("Member ","El miembro ")+name+" "+
+    Error(I2("Member ","El miembro ")+newMember->FullExpression()+" "+
           I2("is already defined","ya está definido")+
-          "\n"+member->FullExpression()+"\n"+
-          I2(" by declaration ", " por la declaración ")+
-          "\n"+newMember->FullExpression()+"\n");
+          I2(" by previous declaration ", " por la declaración previa ")+
+          "\n"+member->FullExpression()+"\n");
   }
   else if(!mbrDef && !mbrDec)
   {
@@ -565,6 +620,11 @@ int MbrNumCmp(const void* v1, const void* v2)
       assert(!FindDecMember(dec));
       (*memberHash_)[name]= newMbrNum;
       (*mbrDefHash_)[dec] = newMember;
+      if(isMethod) 
+      { 
+        assert(notImplementedMethods_>0);
+        notImplementedMethods_--; 
+      }
     }
   }
   else if(mbrDef)
@@ -730,6 +790,36 @@ int MbrNumCmp(const void* v1, const void* v2)
   }
   isGood_ = ok;
   return(ok);
+}
+
+
+//--------------------------------------------------------------------
+  BNameBlockMemberOwner::BNameBlockMemberOwner(BNameBlock* nb)
+//--------------------------------------------------------------------
+: BMemberOwner(),
+  nb_(nb)
+{
+};
+
+//--------------------------------------------------------------------
+  BMemberOwner::BOwnerType BNameBlockMemberOwner::OwnerType() const 
+//--------------------------------------------------------------------
+{ 
+  return(BMemberOwner::BNAMEBLOCK); 
+}
+
+//--------------------------------------------------------------------
+  const BText& BNameBlockMemberOwner::getName() const 
+//--------------------------------------------------------------------
+{ 
+  return(nb_->Name()); 
+}
+
+//--------------------------------------------------------------------
+  BText BNameBlockMemberOwner::getDump() const 
+//--------------------------------------------------------------------
+{ 
+  return(nb_->Dump()); 
 }
 
 //--------------------------------------------------------------------
@@ -952,4 +1042,18 @@ BClass* FindClass(const BText& name)
   }
   return(bcls);
 }
+
+//--------------------------------------------------------------------
+BSyntaxObject* BClass::FindMethod(const BText& memberName) const
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result = NULL;
+  BMember* mbr = FindMember(memberName);
+  if(mbr && mbr->method_)
+  { 
+    result = mbr->method_;
+  } 
+  return(result);
+}
+
 
