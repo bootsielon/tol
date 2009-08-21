@@ -888,10 +888,14 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
     else if(found->Mode()==BCLASSMODE)
     {
       result = FindObject(GraNameBlock(), name);
-      BUserNameBlock* unb = (BUserNameBlock*)result;
-      if(result && unb->Contens().Class()!=found)
+      if(result)
       {
-        result = NULL;
+        BUserNameBlock* unb = (BUserNameBlock*)result;
+        BNameBlock& nb = unb->Contens();  
+        if(!nb.IsInstanceOf((BClass*)found))
+        {  
+          result = NULL;
+        }  
       }
     }
   }
