@@ -247,7 +247,7 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
-  bool BNameBlock::IsInstanceOf(BClass* cls) const
+  bool BNameBlock::IsInstanceOf(const BClass* cls) const
 //--------------------------------------------------------------------
 {
   if(!class_) { return(false); }

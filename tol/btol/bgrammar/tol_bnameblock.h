@@ -113,7 +113,7 @@ public:
   const BClass*     Class   () const;
   void  PutClass (BClass* cls);
 
-  bool IsInstanceOf(BClass* cls) const;
+  bool IsInstanceOf(const BClass* cls) const;
   bool IsInstanceOf(const BText& name) const;
 
   BText Info() const { return(set_.Info()); }
