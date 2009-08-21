@@ -34,13 +34,20 @@
 #pragma warning(disable : 4251)
 #endif
 
+
+#define BUserNameBlock       BGraContensBase  < BNameBlock >
+#define BContensNameBlock    BGraContens      < BNameBlock >
+#define BSystemNameBlock     BGraConstant     < BNameBlock >
+#define BNameBlockTemporary  BTmpContens      < BNameBlock >
+
 //--------------------------------------------------------------------
 // forward references
 //--------------------------------------------------------------------
 template<class Any> class BGraContensBase;
 
+
 //--------------------------------------------------------------------
-class TOL_API BNameBlock: public BObject, public BMemberOwner
+class TOL_API BNameBlock: public BObject
 //--------------------------------------------------------------------
 {
 private:
@@ -52,7 +59,7 @@ private:
   const BNameBlock* father_;
   BClass* class_;
   static const BNameBlock* current_;
-  static const BNameBlock* building_;
+  static BUserNameBlock* building_;
   static BNameBlock* unknown_;
   static BObjByNameHash using_;
   static BObjByNameHash usingSymbols_;
@@ -60,6 +67,7 @@ private:
   BText localName_;
   bool createdWithNew_;
   BGraContensBase<BNameBlock>* owner_;
+  int nonPrivateMembers_;
 public:
   static bool Initialize();
   static BNameBlock&  Unknown() { return(*unknown_); }
@@ -69,8 +77,8 @@ public:
   }
   static const BNameBlock* Current();
   static const BNameBlock* SetCurrent(const BNameBlock* ns);
-  static const BNameBlock* Building();
-  static const BNameBlock* SetBuilding(const BNameBlock* ns);
+  static BUserNameBlock* Building();
+  static BUserNameBlock* SetBuilding(BUserNameBlock* ns);
   static BSyntaxObject* EvaluateTree(const List* tre);
   static bool Using  (const BSyntaxObject* uns);
   static void Unusing(const BSyntaxObject* uns);
@@ -85,11 +93,7 @@ public:
   BNameBlock(const BNameBlock& ns);
   BNameBlock& operator= (const BNameBlock& ns);
  
-  // Access & Manipulation: inline
-  BOwnerType OwnerType() const { return(BNAMEBLOCK); }
-  const BText& getName() const { return(Name()); }
-  BText		     getDump() const { return(Dump()); }
-
+  void Clean();
   BText Dump() const;
   int   Level() const;
 
@@ -107,7 +111,7 @@ public:
         BSet&       Set     ()       { return(set_); }
   const BNameBlock* Father  () const { return(father_); }
   const BClass*     Class   () const;
-  void  PutClass (BClass* cls) { class_ = cls; }
+  void  PutClass (BClass* cls);
 
   bool IsInstanceOf(BClass* cls) const;
   bool IsInstanceOf(const BText& name) const;
@@ -116,8 +120,11 @@ public:
   int BinWrite(FILE*) const { return 0; }
   int BinRead (FILE*)       { return 0; }
 
-  bool Fill(const BSet& set);
+  bool AddElement(BSyntaxObject* obj, bool addToSet);
+  bool CheckMembers();
   bool Build();
+  bool Fill(const BSet& set);
+
   BSyntaxObject* Member       (const BText& memberName) const;
   BSyntaxObject* PublicMember (const BText& memberName) const;
   BSyntaxObject* PrivateMember(const BText& memberName) const;
@@ -133,11 +140,6 @@ public:
 //--------------------------------------------------------------------
 //Gramatical items
 //--------------------------------------------------------------------
-
-#define BUserNameBlock       BGraContensBase  < BNameBlock >
-#define BContensNameBlock    BGraContens      < BNameBlock >
-#define BSystemNameBlock     BGraConstant     < BNameBlock >
-#define BNameBlockTemporary  BTmpContens      < BNameBlock >
 
 template class TOL_API BGraContensBase < BNameBlock >;
 template class TOL_API BGraContens     < BNameBlock >;

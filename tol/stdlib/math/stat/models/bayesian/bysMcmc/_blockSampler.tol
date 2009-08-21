@@ -34,13 +34,13 @@ Class BlockSampler
   //Flag that enables/disables the block
   Real enabled = True;
   Real refreshFrequency = 1;
-  //Work space stores all data needed to draw samples that are variant for
-  //each simulation
-  NameBlock _.ws = [[ Real unused = ? ]];
   
   //Used for partial sampling
   BysMcmc::BlockPartialSampler _.partialSampler = 
     BysMcmc::BlockPartialSampler.Default(0);
+
+  //Result of call to define method
+  Real _defined;
 
   ////////////////////////////////////////////////////////////////////////////
   //_buildWorkSpace will be the internal method used to build work space of 
@@ -48,7 +48,11 @@ Class BlockSampler
   //This member will store a reference of _buildWorkSpace if needed
   //Default behaviour does nothing 
   ////////////////////////////////////////////////////////////////////////////
-  Real _noWorkSpace(Real unused) { 0 };
+  Real _noWorkSpace(Real unused) 
+  {
+  //WriteLn("TRACE"+_MID+" BlockSampler::_noWorkSpace 0");
+    0 
+  };
   Code _.buildWorkSpace = _noWorkSpace;
 
   //Method of sample generation 
@@ -80,6 +84,7 @@ Class BlockSampler
               BysMcmc::Config config)
   ////////////////////////////////////////////////////////////////////////////
   { 
+  //WriteLn("TRACE "+_MID+"::define"+"\n  name="<<name+"\n  numBlock="<<numBlock+"\n  firstCol="<<firstCol);
     Text _.name := name;
     Text _MID := "[BlockSampler "+name+"] ";
     Real _.N := Card(colNames);
@@ -89,7 +94,7 @@ Class BlockSampler
       Real SetIndexByName(_.colNames);
       1
     });
-    Real _.partialSampler::define(_.colNames, mcmcPartialHandler);
+    Real _.partialSampler::build(_.colNames, mcmcPartialHandler);
     Real If(Not(_.partialSampler::_.freeParamNum), 
     {
       Code _.buildWorkSpace := _noWorkSpace;
@@ -112,15 +117,25 @@ Class BlockSampler
   VMatrix get.draw(Real numSim, Real force)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_MID+" get.draw 0");
     Real refresh = Case(
       force, 1,
       !enabled, 0, 
       1==1, Rand(0,1)<=refreshFrequency);
+  //WriteLn("TRACE "+_MID+" get.draw 1");
     If(!refresh, Copy(_.store),
     { 
+    //WriteLn("TRACE "+_MID+" get.draw 2 _.partialSampler::_.freeParamNum = "<<_.partialSampler::_.freeParamNum);
       VMatrix b = If(Not(_.partialSampler::_.freeParamNum), 
-        _.partialSampler::getMergedFixedAndReloadedSample(numSim),
-        draw(numSim));
+      {
+       //WriteLn("TRACE "+_MID+" get.draw 3");
+         _.partialSampler::getMergedFixedAndReloadedSample(numSim)
+      },
+      {
+      //WriteLn("TRACE "+_MID+" get.draw 4");
+        draw(numSim)
+      });
+    //WriteLn("TRACE "+_MID+" get.draw 5");
       Real setStore(VMat2Mat(b));
       b
     })
@@ -275,19 +290,25 @@ Class BlockSampler
 };
 
 //////////////////////////////////////////////////////////////////////////////
-BlockSampler BlockSampler.Default(Text name, 
-                                  Real numBlock, 
-                                  Real firstCol,
-                                  Config config)
+Class BlockSamplerDefault : BlockSampler
 //////////////////////////////////////////////////////////////////////////////
 {
-  BlockSampler aux =
+  VMatrix draw(Real numSim) { Rand(0,1,0,0) };
+  Real buildWorkSpace(Real unused) { True };
+  Code _.buildWorkSpace = buildWorkSpace
+};
+
+//////////////////////////////////////////////////////////////////////////////
+BlockSamplerDefault BlockSampler.Default(Text name, 
+                                         Real numBlock, 
+                                         Real firstCol,
+                                         BysMcmc::Config config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::BlockSamplerDefault aux =
   [[
-    Real _define = define(name, Empty, BysMcmc::McmcPartialHandler.Default(0),
-                          numBlock, firstCol, config);
-    VMatrix draw(Real numSim) { Rand(0,1,0,0) };
-    Real buildWorkSpace(Real unused) { True };
-    Code _.buildWorkSpace = buildWorkSpace
+    Real _defined = define(name, Empty, BysMcmc::McmcPartialHandler.Default(0),
+                          numBlock, firstCol, config)
   ]];
   aux
 };

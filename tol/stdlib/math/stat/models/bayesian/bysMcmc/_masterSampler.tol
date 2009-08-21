@@ -56,6 +56,7 @@ Class SubMasterBlockSampler: BlockSampler
               BysMcmc::Config config)
   ////////////////////////////////////////////////////////////////////////////
   { 
+  //WriteLn("TRACE "+_MID+"::define"+"\n  name="<<name+"\n  numBlock="<<numBlock+"\n  firstCol="<<firstCol);
     Text _.name := name;
     Text _MID := "[MasterSampler "+name+"] ";
     Real _.N := Card(colNames);
@@ -172,7 +173,7 @@ Class MasterSampler: SubMasterBlockSampler
   Set _.blocks;
 
   Set  eval(Matrix values);
-  Text get.name(Real unused);
+  Text get.name(Real unused) { _.name }; 
   Text get.session(Real unused);
   Text get.path(Real unused);
 
@@ -202,7 +203,6 @@ MasterSampler NoMasterSample(Real unused)
   Text _MID = "";
 
   Set  eval(Matrix values) { ? };
-  Text get.name(Real unused) { ? };
   Text get.session(Real unused) { ? };
   Text get.path(Real unused) { ? };
   Real initialize(Real unused) { ? };

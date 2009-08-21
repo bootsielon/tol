@@ -392,12 +392,11 @@ const BText& BSyntaxObject::Description() const
   void BSyntaxObject::PutNameBlock(const BNameBlock* nameBlock)
 //--------------------------------------------------------------------
 { 
-  assert(nameBlock);
   if(!optInfo_) 
   { 
     optInfo_ = new BSynObjOptInfo; 
   }
-  if(!optInfo_->nameBlock_)
+//if(!optInfo_->nameBlock_)
   { 
     optInfo_->nameBlock_ = nameBlock;
   }

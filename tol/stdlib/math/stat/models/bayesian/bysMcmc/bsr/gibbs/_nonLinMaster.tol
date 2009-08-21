@@ -4,20 +4,72 @@
 // PURPOSE: Declares method BysMcmc::Bsr::Gibbs::BasicMaster
 /////////////////////////////////////////////////////////////////////////////
 
+
+/////////////////////////////////////////////////////////////////////////////
+  Class MasterSamplerNonLin : MasterSampler 
+/////////////////////////////////////////////////////////////////////////////
+{
+  //--------------------------------------------------------------------------
+  // Mandatory members
+  //--------------------------------------------------------------------------
+  BysMcmc::MasterSampler _.bsrMst;
+  Set _.nonLinBlk;
+
+  //--------------------------------------------------------------------------
+  //Methods
+  //--------------------------------------------------------------------------
+  ////////////////////////////////////////////////////////////////////////////
+  Text get.session(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    _.bsrMst::_.modelDef->DocInfo->Session.Name
+  }; 
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text get.path(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    _.bsrMst::_.modelDef->DocInfo->Path 
+  }; 
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real sel.extFlt(BysMcmc::BlockSampler nlb)
+    {
+      !(nlb::_.isInputFilter)
+    };
+    Set _.bsrMst::_.externalFilter := Select(_.nonLinBlk, sel.extFlt);
+    initialize.blocks(unused)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.eval =
+  "Set values of all blocks from a given row vector of values";
+  Set eval(Matrix values) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real Do setStore(values);
+    _.bsrMst::eval(values)
+  }
+
+};      
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.NonLinMaster =
 "Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
 "Regression model with non linear blocks";
 MasterSampler NonLinMaster(BSR.ModelDef modelDef, 
-                           McmcPartialHandler mcmcPartialHandler,
+                           BysMcmc::McmcPartialHandler mcmcPartialHandler,
                            Set nonLinFilter,
                            Real numBlock, 
                            Real firstCol,
-                           Config config)
+                           BysMcmc::Config config)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text name = modelDef->DocInfo->Model.Name;
-  BysMcmc::MasterSampler master = [[
+  BysMcmc::Bsr::Gibbs::MasterSamplerNonLin master = [[
 
   //Full MCMC partial sampling handler
   BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;    
@@ -28,19 +80,6 @@ MasterSampler NonLinMaster(BSR.ModelDef modelDef,
   //The basic BSR master
   BysMcmc::MasterSampler _.bsrMst = BysMcmc::Bsr::Gibbs::BasicMaster(
     modelDef, mcmcPartialHandler, numBlock, firstCol, config);
-
-  Text get.name(Real unused) 
-  { 
-    _.name
-  }; 
-  Text get.session(Real unused) 
-  { 
-    _.bsrMst::_.modelDef->DocInfo->Session.Name
-  }; 
-  Text get.path(Real unused) 
-  { 
-    _.bsrMst::_.modelDef->DocInfo->Path 
-  }; 
 
   //Setting NameBlock description
   Text _.autodoc.description="Gibbs sampler for model "+name;
@@ -78,28 +117,6 @@ MasterSampler NonLinMaster(BSR.ModelDef modelDef,
     _.mcmcPartialHandler,
     numBlock,
     firstCol,
-    config);
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real initialize(Real unused)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real sel.extFlt(BysMcmc::BlockSampler nlb)
-    {
-      !(nlb::_.isInputFilter)
-    };
-    Set _.bsrMst::_.externalFilter := Select(_.nonLinBlk, sel.extFlt);
-    initialize.blocks(unused)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.eval =
-  "Set values of all blocks from a given row vector of values";
-  Set eval(Matrix values) 
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real Do setStore(values);
-    _.bsrMst::eval(values)
-  }
+    config)
 
 ]]};      

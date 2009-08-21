@@ -691,13 +691,13 @@ static BSyntaxObject* CreateObject(      List*	   tre,
       { 
         result = BGrammar::FindLocal(name); 
         TRACE_SHOW_MEDIUM(fun," 7");
-        if(result && (result->Level()!=level)) { result = NIL; }
+        if(result && (result != rightResult) && (result->Level()!=level)) { result = NIL; }
       }
     } 
     else 
     {
       result = gra->FindVariable(name);
-      if(result && result->NameBlock())
+      if(result && (result != rightResult) && result->NameBlock())
       {
         Warning(I2("Global variable","La variable global")+
                 " "+gra->Name()+" "+name+" "+
@@ -708,7 +708,7 @@ static BSyntaxObject* CreateObject(      List*	   tre,
         result = NULL;
       }
     }
-    if(result) // send an error messages
+    if(result && (result != rightResult)) // send an error messages
     {
       TRACE_SHOW_MEDIUM(fun," 8");
       BText functionName = "";
@@ -801,7 +801,10 @@ static BSyntaxObject* CreateObject(      List*	   tre,
     else
     {
       TRACE_SHOW_MEDIUM(fun," 23");
-      result=gra->New(name,rightResult);
+      if(result != rightResult)
+      {
+        result=gra->New(name,rightResult);
+      }
       TRACE_SHOW_MEDIUM(fun," 24");
       if(result)
       {
@@ -833,9 +836,19 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
   List* rest = NULL;
   BStruct* str = NULL;
   BClass*  cls = NULL;
-
+  static int trace_counter = 0;
   bool carIsList = argList->car()->IsListClass();
   List* dec = carIsList?Tree::treNode((List*) argList):(List*)argList;
+/*
+  BText unparsed = BParser::Unparse(dec,"");
+  if(unparsed=="BysMcmc::McmcReloaderDefault aux")
+  {
+    trace_counter++;
+    if(trace_counter==5)
+      printf("");
+    Std(BText("\nTRACE count(BysMcmc::McmcReloaderDefault aux)=")+trace_counter);
+  }
+*/
   BGrammar* gra = GetLeft(Grammar(), dec, name, rest, str, cls);
   List* left = NULL;
   bool defInst = false;

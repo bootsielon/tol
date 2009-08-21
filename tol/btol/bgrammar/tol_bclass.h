@@ -51,14 +51,15 @@ class TOL_API BMember
 //--------------------------------------------------------------------
 {
  public:
-  List*         branch_;       //!< Parser branch of the member
-  bool          isGood_;       //!< False when there are some error
-  BMemberOwner* parent_;       //!< Member owner (Class or NameBlock)
-  BText         name_;         //!< Member name
-  BText         declaration_;  //!< Declaration canonical expression
-  BText         definition_;   //!< Definition canonical expression
-  bool          isMethod_;     //!< True if is a function
-  bool          deleteBranch_; //!< If true branch_ must be deleted at destructor
+  List*          branch_;       //!< Parser branch of the member
+  bool           isGood_;       //!< False when there are some error
+  BMemberOwner*  parent_;       //!< Member owner (Class or NameBlock)
+  BText          name_;         //!< Member name
+  BText          declaration_;  //!< Declaration canonical expression
+  BText          definition_;   //!< Definition canonical expression
+  bool           isMethod_;     //!< True if is a function
+  bool           deleteBranch_; //!< If true branch_ must be deleted at destructor
+  BSyntaxObject* method_;
  public:
   // Constructors and destructors: bgrammar\class.cpp
   BMember();
@@ -76,6 +77,7 @@ class TOL_API BMember
   bool HasDefVal() const;
   //! Text expression
   BText FullExpression() const;
+  int BMember::BuildMethod();
 
   DeclareClassNewDelete(BMember);
 };
@@ -105,7 +107,7 @@ public:
   BMemberByNameHash* mbrDefHash_; //!< Members with default value
   BMbrNumByNameHash* memberHash_; //!< All members hashed by name
   BArray<BMbrNum*>   member_;
-
+  int notImplementedMethods_;
 public:
   // Constructors and destructors: bgrammar\class.cpp
   BMemberOwner();
@@ -155,11 +157,26 @@ public:
 
 
 //--------------------------------------------------------------------
+class TOL_API BNameBlockMemberOwner: public BMemberOwner
+//! User defined Class
+//--------------------------------------------------------------------
+{
+ public:
+  BNameBlock* nb_;
+  BNameBlockMemberOwner(BNameBlock* nb);
+  BOwnerType OwnerType() const;
+  const BText& getName() const;
+  BText		     getDump() const;
+};
+
+//--------------------------------------------------------------------
 class TOL_API BClass: public BSyntaxObject, public BMemberOwner
 //! User defined Class
 //--------------------------------------------------------------------
 {
 public:
+  static const BClass* currentClassBuildingInstance_;
+
   // Constructors and destructors: bgrammar\class.cpp
   BClass();
   BClass(const BText& name, List*  tree);
@@ -177,6 +194,7 @@ public:
 
   //! Evaluates a parsed tree with a Class declaration
   static BSyntaxObject* Evaluate(const List* tree);
+  BSyntaxObject* FindMethod(const BText& memberName) const;
   DeclareClassNewDelete(BClass);
 };
 

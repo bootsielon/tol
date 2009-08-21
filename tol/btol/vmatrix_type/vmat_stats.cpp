@@ -999,7 +999,7 @@ double BVMat::Quantile() const
       //return(-1);
       }
     }
-  //if((j>=2)&&(lower<0)&&(upper>0))      printf("");
+  //if((j>=2)&&(lower<0)&&(upper>0)) { printf(""); }
     dist[j]->SetBounds(lower, upper);
     zj = dist[j]->Random().Value();
     Std(BText("\nTRACE constrained_multivariate ")+lower+"<=z["+j+"]="+zj+"<="+upper);

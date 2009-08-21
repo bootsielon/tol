@@ -43,22 +43,28 @@ Class McmcReloader
 
 //////////////////////////////////////////////////////////////////////////////
 //Default McmcReloader does nothing
-McmcReloader McmcReloader.Default(Real unused)
+Class McmcReloaderDefault : McmcReloader
 //////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::McmcReloader aux =
+  Set selectIndexes(Set selectedNames)
+  {
+    Copy(Empty)
+  };
+  VMatrix reloadSimulation(Real numSim, Set indexes)
+  { 
+    Rand(0,1,0,0) 
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Default McmcReloader does nothing
+McmcReloaderDefault McmcReloader.Default(Real unused)
+//////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::McmcReloaderDefault aux =
   [[
-    Real _.sequential = True;
-    Set selectIndexes(Set selectedNames)
-    {
-      Copy(Empty)
-    };
-    VMatrix reloadSimulation(Real numSim, Set indexes)
-    { 
-      Rand(0,1,0,0) 
-    }
-  ]];
-  aux
+    Real _.sequential = True
+  ]]
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -150,8 +156,8 @@ Class BlockPartialSampler
 
   ////////////////////////////////////////////////////////////////////////////
   //Selects fixed and reloaded parameters related to a block
-  Real define(Set blockParam, 
-              BysMcmc::McmcPartialHandler mcmcPartialHandler)
+  Real build(Set blockParam, 
+             McmcPartialHandler mcmcPartialHandler)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real _.N := Card(blockParam);

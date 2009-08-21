@@ -1539,20 +1539,6 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
     {
       BToken*      arg2       = BParser::treToken(branch2);
       const BText& memberName = arg2->Name();
-      /* * /
-      if(memberName=="load.INE")
-      {
-        Std(BText("EvMember Tree ")+
-            BParser::Unparse(tre," ", " ")+"\n"+
-            BParser::treWrite((List*)tre,"  "));
-        Std(BText("EvMember Branch 1 \n")+
-            BParser::Unparse(Branch(tre,2)," ", " ")+"\n"+
-            BParser::treWrite((List*)branch1,"  "));
-        Std(BText("EvMember Branch 2 \n")+
-            BParser::Unparse(Branch(tre,2)," ", " ")+"\n"+
-            BParser::treWrite((List*)branch2,"  "));
-      }
-      /* */
       if(uns->Grammar()==GraSet())
       {
         BUserSet* uSet = (BUserSet*)uns;
@@ -1564,12 +1550,19 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
         BNameBlock& ns = NameBlock(uns);
         if((memberName[0]=='_')&&(memberName[1]=='.'))
         {
-          result = ns.Set().Member(memberName, errMsg);
+          result = ns.PrivateMember(memberName);
         //if(result) { result = result->CopyContens(); }
+        }
+        else if((memberName[0]=='_'))
+        {
+          errMsg = I2("Cannot access to private member ",
+                      "No se puede acceder al miembro privado ")+memberName +
+                   I2(" of NameBlock ",
+                      " del NameBlock ")+ns.Name();
         }
         else
         {
-          result = ns.Set().PublicMember(memberName, errMsg);
+          result = ns.PublicMember(memberName);
         }
         BTokenType tt = arg2->TokenType();
         if(result && branch2->cdr())

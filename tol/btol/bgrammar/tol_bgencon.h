@@ -50,19 +50,19 @@ public:
     ownGrammar_->AddObject(this);
   }
   BGraContensBase(const BText& name)
-	: BSyntaxObject(name)
-	{
+  : BSyntaxObject(name)
+  {
     TRACE_MEMORY_SHOW(this,"BGraContensBase::BGraContensBase");
     ownGrammar_->AddObject(this);
-	}
+  }
   BGraContensBase(const BText& name, const BText& desc)
-	: BSyntaxObject(name, desc)
-	{
+  : BSyntaxObject(name, desc)
+  {
     TRACE_MEMORY_SHOW(this,"BGraContensBase::BGraContensBase");
     ownGrammar_->AddObject(this);
-	}
+  }
  ~BGraContensBase()
-	{
+  {
     TRACE_MEMORY_SHOW(this,"BGraContensBase::~BGraContensBase");
     ownGrammar_->DelObject(this);
   }
@@ -72,70 +72,70 @@ public:
   BGrammar* Grammar      () const 
   {
 #     if defined(INIT_NULL_GRAMMAR)
-	return OwnGrammar();
+  return OwnGrammar();
 #     else
-	return ownGrammar_;
+  return ownGrammar_;
 #     endif
     }
-    static  BGrammar*	 OwnGrammar   () {
+    static  BGrammar*   OwnGrammar   () {
 #     if defined(INIT_NULL_GRAMMAR)
-	if ( !ownGrammar_ )
-	    InitGrammars();
+  if ( !ownGrammar_ )
+      InitGrammars();
 #     endif
-	return ownGrammar_;
+  return ownGrammar_;
   }
 
   BText Dump() const
-	{
+  {
     BGraContensBase<Any>* nc = (BGraContensBase<Any>*)this;
     nc->Do();
     return(nc->Contens().Dump());
   }
     
   BText Info() const
-	{
-   BGraContensBase<Any>* nc = (BGraContensBase<Any>*)this;
-   nc->Do();
-   return(nc->Contens().Info());
+  {
+    BGraContensBase<Any>* nc = (BGraContensBase<Any>*)this;
+    nc->Do();
+    return(nc->Contens().Info());
   }
   
   void ReCalc() { flags_.calculated_ = BFALSE; CalcContens(); }
   void Do();
     
   static  BDat   Compare  (const BSyntaxObject* obj1,
-                			     const BSyntaxObject* obj2)
-	{
-	  Any any1 = ((BGraContensBase<Any>*)obj1)->Contens();
-	  Any any2 = ((BGraContensBase<Any>*)obj2)->Contens();
-	  return (Any::Compare(&any1, &any2));
-	}
+                           const BSyntaxObject* obj2)
+  {
+    Any any1 = ((BGraContensBase<Any>*)obj1)->Contens();
+    Any any2 = ((BGraContensBase<Any>*)obj2)->Contens();
+    return (Any::Compare(&any1, &any2));
+  }
     
   static BSyntaxObject* Casting(BSyntaxObject*);
   static BSyntaxObject* FindConstant(const BText& name);
   static BSyntaxObject* New(FILE* fil);
   static void  InitInstances();
   static BBool InitGrammar(int precedence, const BText& nam, const BText& des,
-	                		     BCreator newRenamed,
-	                		     BCreator newFunArg)
-	{
+                           BCreator newRenamed,
+                           BCreator newFunArg)
+  {
     if(!ownGrammar_)
-	  {
-		  ownGrammar_=new BGrammar
+    {
+      ownGrammar_=new BGrammar
       (
         precedence,
         nam,
-				des,
+        des,
         true,
-				Casting,
-				FindConstant,
-				newRenamed,
+        Casting,
+        FindConstant,
+        newRenamed,
         newFunArg, 
-				Compare
+        Compare
       );
-		  InitInstances();
-	  }
-	  return(BTRUE);
-	}
+      InitInstances();
+    }
+    return(BTRUE);
+  }
   virtual void PutContens(const Any& con) = 0;
   virtual void CalcContens() {}
   virtual Any& Contens() = 0;
@@ -161,12 +161,12 @@ public:
     TRACE_MEMORY_SHOW(this,"BGraContens::BGraContens");
   }
   BGraContens(const Any& any) 
-  : BGraContensBase<Any>(), contens_(any)	 
+  : BGraContensBase<Any>(), contens_(any)   
   {
     TRACE_MEMORY_SHOW(this,"BGraContens::BGraContens");
   }
   BGraContens(const BText& name, const Any& any)
-  : BGraContensBase<Any>(name), contens_(any)	 
+  : BGraContensBase<Any>(name), contens_(any)   
   {
     TRACE_MEMORY_SHOW(this,"BGraContens::BGraContens");
   }
@@ -184,13 +184,13 @@ public:
      { this->flags_.calculated_=BTRUE; contens_ = con; }
 
   Any& Contens()
-	{
-	    if(!this->flags_.calculated_) { 
-		this->CalcContens(); 
-		this->flags_.calculated_=BTRUE; 
-	    }
-	    return(contens_);
-	}
+  {
+      if(!this->flags_.calculated_) { 
+    this->CalcContens(); 
+    this->flags_.calculated_=BTRUE; 
+      }
+      return(contens_);
+  }
   BSyntaxObject* CopyContens()
   {
     BGraContens<Any>* copy_ = new BGraContens<Any>;
@@ -199,7 +199,7 @@ public:
   }
   static BSyntaxObject* New(FILE* fil);
 
-  static BGraContens<Any>* New(const BText& name,	const Any& aux, const BText& desc)
+  static BGraContens<Any>* New(const BText& name,  const Any& aux, const BText& desc)
   {
     if(name.HasName())
     {
@@ -213,7 +213,7 @@ public:
       return(new BGraContens<Any>(aux));
     }
   }
-  static BGraContens<Any>* New(const BText& name,	const Any& aux)
+  static BGraContens<Any>* New(const BText& name,  const Any& aux)
   {
     if(name.HasName())
     {
@@ -249,12 +249,12 @@ public:
     TRACE_MEMORY_SHOW(this,"BGraContensP::BGraContensP");
   }
   BGraContensP(Any* any) 
-  : BGraContensBase<Any>(), contens_(any)	 
+  : BGraContensBase<Any>(), contens_(any)   
   {
     TRACE_MEMORY_SHOW(this,"BGraContensP::BGraContensP");
   }
   BGraContensP(const BText& name, Any* any)
-  : BGraContensBase<Any>(name), contens_(any)	 
+  : BGraContensBase<Any>(name), contens_(any)   
   {
     TRACE_MEMORY_SHOW(this,"BGraContensP::BGraContensP");
   }
@@ -265,24 +265,26 @@ public:
   }
  ~BGraContensP() 
   {
-    DESTROY(contens_);	  
+    DESTROY(contens_);    
     TRACE_MEMORY_SHOW(this,"BGraContensP::~BGraContensP");
   }
 
- void PutContens(const Any& con)
-     { 
-	   this->flags_.calculated_=BTRUE; 
-       *contens_ = con; 
-     }
+  void PutContens(const Any& con)
+  { 
+    this->flags_.calculated_=BTRUE; 
+    if(!contens_) { contens_ = new Any; }
+    *contens_ = con; 
+  }
 
   Any& Contens()
-	{
-	    if(!this->flags_.calculated_) { 
-		this->CalcContens(); 
-		this->flags_.calculated_=BTRUE; 
-	    }
-	    return(*contens_);
-	}
+  {
+    if(!this->flags_.calculated_) 
+    { 
+      this->CalcContens(); 
+      this->flags_.calculated_=BTRUE; 
+    }
+    return(*contens_);
+  }
   BSyntaxObject* CopyContens()
   {
     BGraContensP<Any>* copy_ = new BGraContensP<Any>;
@@ -291,7 +293,7 @@ public:
   }
   static BSyntaxObject* New(FILE* fil);
 
-  static BGraContensP<Any>* New(const BText& name,	const Any& aux, const BText& desc)
+  static BGraContensP<Any>* New(const BText& name,  const Any& aux, const BText& desc)
   {
     if(name.HasName())
     {
@@ -305,7 +307,7 @@ public:
       return(new BGraContensP<Any>(aux));
     }
   }
-  static BGraContensP<Any>* New(const BText& name,	const Any& aux)
+  static BGraContensP<Any>* New(const BText& name,  const Any& aux)
   {
     if(name.HasName())
     {
@@ -396,20 +398,20 @@ class TOL_API BGraConstant: public BGraContens<Any>
 {
 public:
     BGraConstant() : BGraContens<Any>()
-	{
+  {
     TRACE_MEMORY_SHOW(this,"BGraConstant::BGraConstant");
-	  BGraContens<Any>::flags_.calculated_ = BTRUE;
-	  BGraContens<Any>::flags_.isConst_    = BTRUE;
-	}
+    BGraContens<Any>::flags_.calculated_ = BTRUE;
+    BGraContens<Any>::flags_.isConst_    = BTRUE;
+  }
     BGraConstant(const BText& name,
-		             const Any&   any,
-		             const BText& desc)
-	: BGraContens<Any>(name, any, desc)
-	{
+                 const Any&   any,
+                 const BText& desc)
+  : BGraContens<Any>(name, any, desc)
+  {
     TRACE_MEMORY_SHOW(this,"BGraConstant::BGraConstant");
-	  BGraContens<Any>::flags_.calculated_ = BTRUE;
-	  BGraContens<Any>::flags_.isConst_    = BTRUE;
-	}
+    BGraContens<Any>::flags_.calculated_ = BTRUE;
+    BGraContens<Any>::flags_.isConst_    = BTRUE;
+  }
  ~BGraConstant() 
   { 
     TRACE_MEMORY_SHOW(this,"BGraConstant::~BGraConstant");
@@ -418,7 +420,7 @@ public:
 
 private:
   void ErrCannotModify(const BText& member) 
-	{ 
+  { 
     Error(I2("Cannot modify <","No se puede modificar <") + member +
           I2("> of constant object ","> del objeto constante ") + BSyntaxObject::Identify()); 
   }
@@ -459,16 +461,16 @@ class TOL_API BGraParameter: public BGraContensBase<Any>
  public:
     // Constructors and destructors: inline
   BGraParameter(const BText& name,
-           		  Any  & value,
-		            const BText& desc)
-	: BGraContensBase<Any>(name, desc), value_(&value)
-	{
+                 Any  & value,
+                const BText& desc)
+  : BGraContensBase<Any>(name, desc), value_(&value)
+  {
     TRACE_MEMORY_SHOW(this,"BGraParameter::BGraParameter");
-	}
+  }
  ~BGraParameter()
-	{
+  {
     TRACE_MEMORY_SHOW(this,"BGraParameter::~BGraParameter");
-	}
+  }
     
     void CalcContens() {}
     Any& Contens() { return(*value_); }
@@ -496,9 +498,9 @@ private:
 public:
   // Constructors and destructors: inline
   BCopyContens(const BText& name, BSyntaxObject* r)
-	: BGraContens<Any> (name, ((BGraContensBase<Any>*)r)->Contens()),
+  : BGraContens<Any> (name, ((BGraContensBase<Any>*)r)->Contens()),
     result_(NULL)
-	{
+  {
     TRACE_MEMORY_SHOW(this,"BCopyContens::BCopyContens");
     //Try to destroy unusefull object
     if(r->NRefs())
@@ -526,7 +528,7 @@ public:
   void ReCalc() { }
   static BSyntaxObject* New(const BText& name, BSyntaxObject* d) 
   { 
-	  return((BSyntaxObject*)new BCopyContens<Any>(name, d)); 
+    return((BSyntaxObject*)new BCopyContens<Any>(name, d)); 
   }
   DeclareClassNewDelete(BCopyContens<Any>);
 };
@@ -595,7 +597,7 @@ public:
     }
     else
     {
-	  return((BSyntaxObject*)new BRenContens<Any>(name, d)); 
+    return((BSyntaxObject*)new BRenContens<Any>(name, d)); 
     }
   }
   DeclareClassNewDelete(BRenContens<Any>);
@@ -654,7 +656,7 @@ class TOL_API BTmpContens: public BTmpObject< BGraContens<Any> >
       this->CalcContens(); 
       this->flags_.calculated_=BTRUE; /*args_=NIL;*/ 
     }
-	  return(this->contens_);
+    return(this->contens_);
   }
   UndeclareClassNewDelete;
 };
@@ -662,78 +664,78 @@ class TOL_API BTmpContens: public BTmpObject< BGraContens<Any> >
 
 //------------------------------------------------------------------
 #define DeclareContensClass( ANY , BTMPCLASS, BCONTENSCLASS)       \
-class BCONTENSCLASS: public BTMPCLASS				   \
-{								   \
-public:								   \
-  BCONTENSCLASS(BList* arg) : BTMPCLASS(arg) {}			   \
- ~BCONTENSCLASS()  {}						   \
-  void CalcContens();						   \
+class BCONTENSCLASS: public BTMPCLASS           \
+{                   \
+public:                   \
+  BCONTENSCLASS(BList* arg) : BTMPCLASS(arg) {}         \
+ ~BCONTENSCLASS()  {}               \
+  void CalcContens();               \
   RedeclareClassNewDelete(BCONTENSCLASS); \
-};								   \
+};                   \
 DeclareEvaluator(BCONTENSCLASS);
 
 //------------------------------------------------------------------
-#define DeclareNoLazzyClass( ANY , BTMPCLASS, BCONTENSCLASS)	   \
-class BCONTENSCLASS: public BTMPCLASS				   \
-{								   \
-public:								   \
-  BCONTENSCLASS(BList* arg) : BTMPCLASS(arg) {}			   \
- ~BCONTENSCLASS()  {}						   \
-  void CalcContens();						   \
-};								   \
+#define DeclareNoLazzyClass( ANY , BTMPCLASS, BCONTENSCLASS)     \
+class BCONTENSCLASS: public BTMPCLASS           \
+{                   \
+public:                   \
+  BCONTENSCLASS(BList* arg) : BTMPCLASS(arg) {}         \
+ ~BCONTENSCLASS()  {}               \
+  void CalcContens();               \
+};                   \
 DeclareNoLazzyEvaluator(BCONTENSCLASS);
 
 //------------------------------------------------------------------
-#define DefineContensCommonOperators(ANY, NAME)			   \
-ANY& ANY##UnKnown()						   \
-{								   \
-  static ANY ANY##unKnown_;					   \
-  return(ANY##unKnown_);					   \
+#define DefineContensCommonOperators(ANY, NAME)         \
+ANY& ANY##UnKnown()               \
+{                   \
+  static ANY ANY##unKnown_;             \
+  return(ANY##unKnown_);             \
 }
 
 //------------------------------------------------------------------
-#define CastingsDeclaration(ANY)				   \
-								   \
-inline BUser##ANY* U##ANY(BSyntaxObject* arg)			   \
-{								   \
-  BUser##ANY* u##ANY = NIL;					   \
-  if(arg && (arg->Grammar()==BUser##ANY::OwnGrammar()))		   \
-  { u##ANY = BCast<BUser##ANY,BSyntaxObject>::c(arg); }				   \
-  return(u##ANY);						   \
-}								   \
-								   \
-inline BUser##ANY* U##ANY(BCore* arg)				   \
-{								   \
-  return(U##ANY(BCast<BSyntaxObject,BCore>::c(arg)));				   \
-}								   \
-								   \
-inline BUser##ANY* U##ANY(const BText& expression)		   \
-{								   \
+#define CastingsDeclaration(ANY)           \
+                   \
+inline BUser##ANY* U##ANY(BSyntaxObject* arg)         \
+{                   \
+  BUser##ANY* u##ANY = NIL;             \
+  if(arg && (arg->Grammar()==BUser##ANY::OwnGrammar()))       \
+  { u##ANY = BCast<BUser##ANY,BSyntaxObject>::c(arg); }           \
+  return(u##ANY);               \
+}                   \
+                   \
+inline BUser##ANY* U##ANY(BCore* arg)           \
+{                   \
+  return(U##ANY(BCast<BSyntaxObject,BCore>::c(arg)));           \
+}                   \
+                   \
+inline BUser##ANY* U##ANY(const BText& expression)       \
+{                   \
   return(U##ANY(BUser##ANY::OwnGrammar()->EvaluateExpr(expression)));  \
-}								   \
-								   \
-TOL_API B##ANY& B##ANY##UnKnown();				   \
-inline B##ANY& ANY (BSyntaxObject* arg)				   \
-{								   \
-  if(arg && (arg->Grammar()==BUser##ANY::OwnGrammar()))		   \
-  {								   \
-    BUser##ANY*	 u##ANY = U##ANY(arg);				   \
-    return(u##ANY->Contens());					   \
-  }								   \
-  else								   \
-  {								   \
-      return(B##ANY##UnKnown());				   \
-  }								   \
-}								   \
-								   \
-inline B##ANY& ANY (BCore* arg)					   \
-{								   \
-  return(ANY(U##ANY(arg)));					   \
-}								   \
-								   \
-inline B##ANY& ANY (const BText& expr)				   \
-{								   \
-  return(ANY(U##ANY(expr)));					   \
+}                   \
+                   \
+TOL_API B##ANY& B##ANY##UnKnown();           \
+inline B##ANY& ANY (BSyntaxObject* arg)           \
+{                   \
+  if(arg && (arg->Grammar()==BUser##ANY::OwnGrammar()))       \
+  {                   \
+    BUser##ANY*   u##ANY = U##ANY(arg);           \
+    return(u##ANY->Contens());             \
+  }                   \
+  else                   \
+  {                   \
+      return(B##ANY##UnKnown());           \
+  }                   \
+}                   \
+                   \
+inline B##ANY& ANY (BCore* arg)             \
+{                   \
+  return(ANY(U##ANY(arg)));             \
+}                   \
+                   \
+inline B##ANY& ANY (const BText& expr)           \
+{                   \
+  return(ANY(U##ANY(expr)));             \
 }
 
 #endif // TOL_BGENCON_H

@@ -472,6 +472,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       ERead(isMethod          , stream);
       mbr->isMethod_ = isMethod!=0;
       mbr->isGood_ = true;
+      mbr->BuildMethod();
     }
     else
     {
@@ -1041,24 +1042,37 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         }  
         else if(tol_type == BGI_NameBlock)
         {
+          int level = BGrammar::Level();
           BINT64 offset;
           BText fullName;
           BText localName;
           ERead(offset, object_);
           set_->SetPos(offset);
           ERead(s, set_);  
-          BUserNameBlock* unb = new BGraContensP<BNameBlock>(new BNameBlock);
-          unb->PutName(name);
-          readed_[found].PutObject(unb);
-          BNameBlock& x = unb->Contens(); 
-          x.Set().PrepareStore(s);
           char sbt; ERead(sbt, set_);
-          x.Set().PutSubType(BSet::BSubType(sbt));
-
           char isNameBlock;
           ERead(isNameBlock,set_);
           assert(isNameBlock);
           ERead(fullName,set_);
+
+          BUserNameBlock* oldBuilding = BNameBlock::Building();
+          BGrammar::IncLevel();
+          BUserNameBlock* unb = new BGraContensP<BNameBlock>(name, new BNameBlock);
+          BNameBlock::SetBuilding(unb);
+          unb->PutDescription(description);
+          assert(GraNameBlock()->FindLocal(name)==unb);
+          readed_[found].PutObject(unb);
+          BNameBlock& x = unb->Contens(); 
+          x.Set().PutNameBlock(&x);
+          if(oldBuilding)
+          {
+            int oldLevel = oldBuilding->Level();
+            if(oldLevel == level-1)
+            { 
+              oldBuilding->Contens().AddElement(unb, true);
+            }
+          } 
+          x.Set().PutSubType(BSet::BSubType(sbt));
           x.PutName(fullName);
           if(control_.oisEngine_.oisVersion_>="02.07")
           {
@@ -1079,6 +1093,9 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           }
           x.Set().PutStruct (str); 
           BSyntaxObject* r=NULL;
+          x.Set().PrepareStore(s);
+          int stackPos = BGrammar::StackSize();
+          BGrammar::IncLevel();
           for(n=1; n<=s; n++)
           {
             ERead(offset, set_);
@@ -1090,12 +1107,13 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             } 
             if(r) 
             {
-              x.Set().AddElement(r); 
-              r->PutNameBlock(&x);
+              x.AddElement(r, true); 
             }
           } 
-          x.Set().PutNameBlock(&x);
-          x.Build();
+          BNameBlock::SetBuilding(oldBuilding);
+          BGrammar::DestroyStackUntil(stackPos, NULL);    
+          BGrammar::DecLevel();
+          x.CheckMembers();
           if(control_.oisEngine_.oisVersion_>="02.08")
           {
             char hasClass;
@@ -1104,6 +1122,18 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             {
               BText className;
               Ensure(Read(className, object_));
+              if(control_.oisEngine_.oisVersion_<"02.09")
+              {
+                return(NullError(
+                  I2("Cannot load an instance of a class ",
+                     "No se puede cargar una instancia de clase ")+ 
+                  className+" "+name+
+                  I2("due to OIS version is incompatible ",
+                     "Debido a que la versión de OIS es incompatible ")+
+                  control_.oisEngine_.oisVersion_+"<02.09\n"+
+                  I2("The OIS container must be rebuilt",
+                     "El contenedor OIS deberá ser reconstruido")));
+              }
               BClass* cls = FindClass(className);
               if(!cls)
               {
@@ -1113,13 +1143,11 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                   I2("due to ascent Class ","Debido a que su ascendiente Class ")+
                   className+I2(" doesn't exist"," no existe")));
               }
-              cls->IncNRefs();
               x.PutClass(cls);
             }
           }
-          result = unb;
-          result->PutDescription(description);
-          result=PutVariableName(result,name,is_referenceable);
+          BGrammar::DecLevel();
+          result=PutVariableName(unb,name,is_referenceable);
         }  
         else if(tol_type == BGI_Serie) 
         {

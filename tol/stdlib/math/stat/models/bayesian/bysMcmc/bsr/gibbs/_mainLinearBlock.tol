@@ -10,50 +10,65 @@
 Class WorkSpace.ArimaReg : WorkSpace.LinReg
 ////////////////////////////////////////////////////////////////////////////
 {
-  NameBlock _.arm.blk
+  BysMcmc::Bsr::Gibbs::BlockSamplerArima _.arm.blk;
+  VMatrix standarize(VMatrix _Z) 
+  { 
+    _.arm.blk::filter(_Z)
+  }
 };
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.MainLinearBlock =
-"Builds a NameBlock that can draw a Gibbs sample of the Main Linear block "
-"of a Bayesian Sparse Regression model";
-//////////////////////////////////////////////////////////////////////////////
-  StdLinearBlock MainLinearBlock(
-    Text name, 
-    Set  varNames, 
-    McmcPartialHandler mcmcPartialHandler,
-    Real numBlock, 
-    Real firstCol,
-    Config config)
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+WorkSpace.ArimaReg WorkSpace.ArimaReg.Default(Real unused)
+////////////////////////////////////////////////////////////////////////////
 {
-  If(!Card(varNames), 
-  BysMcmc::Bsr::Gibbs::StdLinearBlock.Default(name,numBlock,firstCol,config),
-  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
+  BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg aux = 
+  [[
+    VMatrix _.Y = Rand(0,0,0,0);
+    VMatrix _.X = Rand(0,0,0,0);
+    BysMcmc::Bsr::Gibbs::BlockSamplerArima _.arm.blk = 
+      BysMcmc::Bsr::Gibbs::BlockSamplerArima.Default(0)
+  ]]
+};
+
+
+////////////////////////////////////////////////////////////////////////////
+Class BlockSamplerMainLinear : BlockSamplerStdLinear 
+////////////////////////////////////////////////////////////////////////////
+{
+  //--------------------------------------------------------------------------
+  // Auxiliar members
+  //--------------------------------------------------------------------------
+  WorkSpace.ArimaReg _.ws = WorkSpace.ArimaReg.Default(0);
+
+  //--------------------------------------------------------------------------
+  //Methods
+  //--------------------------------------------------------------------------
+
+  ////////////////////////////////////////////////////////////////////////////
+  WorkSpace.LinReg getWorkSpaceLinReg(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { _.ws };
 
   ////////////////////////////////////////////////////////////////////////////
   Real _do_buildWorkSpace(VMatrix Y,    //Non filtered output
                           VMatrix X,    //Non filtered input
-                          BysMcmc::BlockSampler arm.blk) //ArimaBlock filter
+                          BysMcmc::Bsr::Gibbs::BlockSamplerArima arm.blk) 
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" MainLinearBlock::_do_buildWorkSpace 0");
     BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg wsar = 
     [[
       VMatrix _.Y = Y;
       VMatrix _.X = X;
-      NameBlock _.arm.blk = arm.blk
+      BysMcmc::Bsr::Gibbs::BlockSamplerArima _.arm.blk = arm.blk
     ]];
-  //WriteLn("TRACE"+_MID+" MainLinearBlock::_do_buildWorkSpace 1");
-    NameBlock _.ws := wsar;
-  //WriteLn("TRACE"+_MID+" MainLinearBlock::_do_buildWorkSpace 2");
+    BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg _.ws := wsar;
     True
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace(VMatrix Y,    //Non filtered output
                        VMatrix X,    //Non filtered input
-                       BysMcmc::BlockSampler arm.blk) //ArimaBlock filter
+                       BysMcmc::Bsr::Gibbs::BlockSamplerArima arm.blk) 
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 0");
@@ -70,24 +85,37 @@ Text _.autodoc.member.MainLinearBlock =
       VMatrix Y2 = Y - X1*b1;
       _do_buildWorkSpace(Y2,X2,arm.blk)
     })
-  };
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.MainLinearBlock =
+"Builds a NameBlock that can draw a Gibbs sample of the Main Linear block "
+"of a Bayesian Sparse Regression model";
+//////////////////////////////////////////////////////////////////////////////
+  BlockSamplerStdLinear MainLinearBlock(
+    Text name, 
+    Set  varNames, 
+    BysMcmc::McmcPartialHandler mcmcPartialHandler,
+    Real numBlock, 
+    Real firstCol,
+    BysMcmc::Config config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(varNames), 
+  BysMcmc::Bsr::Gibbs::BlockSamplerStdLinear.Default(name,numBlock,firstCol,config),
+  BysMcmc::Bsr::Gibbs::BlockSamplerMainLinear blk = [[
+
   Code _.buildWorkSpace = _buildWorkSpace;
 
   //Defining the block in the Markov Chain
-  Real _define = define(
+  Real _defined = define(
     name, 
     varNames, 
     mcmcPartialHandler,
     numBlock, 
     firstCol, 
-    config);
-
-
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix standarize(VMatrix _Z) 
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    _.ws::_.arm.blk::filter(_Z)
-  }
+    config)
 
 ]])};

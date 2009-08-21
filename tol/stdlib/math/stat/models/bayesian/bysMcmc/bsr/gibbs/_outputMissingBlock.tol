@@ -5,91 +5,63 @@
 // PURPOSE: Declares method BysMcmc::Bsr::Gibbs::OutputMissingBlock
 /////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.OutputMissingBlock =
-"Builds a NameBlock that can draw a Gibbs sample of a Output Missing block "
-"of a Bayesian Sparse Regression model";
-//////////////////////////////////////////////////////////////////////////////
-  StdLinearBlock OutputMissingBlock(Text name, 
-                                    Set  outputMissingBlock, 
-                                    McmcPartialHandler mcmcPartialHandler,
-                                    Real numBlock, 
-                                    Real firstCol,
-                                    NameBlock config)
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+Class BlockSamplerOutputMissing : BlockSamplerStdLinear 
+////////////////////////////////////////////////////////////////////////////
 {
-  If(!Card(outputMissingBlock), 
-  BysMcmc::Bsr::Gibbs::StdLinearBlock.Default(name, numBlock, firstCol, config),
-  BysMcmc::Bsr::Gibbs::StdLinearBlock blk = [[
-  //Given initial values of block variables
-  VMatrix _.store = Mat2VMat(SetMat(Extract(outputMissingBlock, 6)));
+  //--------------------------------------------------------------------------
+  // Mandatory members
+  //--------------------------------------------------------------------------
+  //Output missing pairs i,k
+  Set _.t;
+  //Selecting output missing variables with prior information
+  Matrix _.I;
+  //Number of output missing prior equations
+  Real _.prior.M;
+  //Average vector of output missing priors
+  Matrix _.prior.nu;
+  //Inverse of standard deviation vector of output missing priors
+  Matrix _.prior.si;
+  //Standarized output of output missing priors
+  VMatrix _.prior.Y;
+  //Standarized output of output missing priors
+  VMatrix _.prior.X;
+
+  //--------------------------------------------------------------------------
+  //Auxiliar members
+  //--------------------------------------------------------------------------
+  //Auxiliar variable for filter creating
+  VMatrix _.FEye = Rand(0,0,0,0);
+  WorkSpace.LinReg _.ws = WorkSpace.LinReg.Default(0);
+
+  //--------------------------------------------------------------------------
+  //Methods
+  //--------------------------------------------------------------------------
+  ////////////////////////////////////////////////////////////////////////////
+  WorkSpace.LinReg getWorkSpaceLinReg(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { _.ws };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(BysMcmc::BlockSampler arm.blk, //Arima Block handler
+  Real _buildWorkSpace(BlockSampler arm.blk, //Arima Block handler
                        VMatrix   si,    //SigmaBlock filter
                        VMatrix   Z)     //Noise with missing as zero
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix If(VRows(_.F)==0,
+  //WriteLn("TRACE"+_MID+" BlockSamplerOutputMissing::_buildWorkSpace 0");
+    VMatrix If(VRows(_.FEye)==0,
     {
-      _.F := SubCol(Eye(VRows(Z)),_.t)
+      _.FEye := SubCol(Eye(VRows(Z)),_.t)
     });
-    VMatrix F = arm.blk::filter(_.F);
+    VMatrix F = arm.blk::filter(_.FEye);
     BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
     [[
       VMatrix _.Y = arm.blk::filter(si*Z) << _.prior.Y;
       VMatrix _.X = (-si*F) << _.prior.X
     ]];
-    NameBlock _.ws := wslr;
+    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg _.ws := wslr;
     True
   };
-  Code _.buildWorkSpace = _buildWorkSpace;
-
-  //Defining the block in the Markov Chain
-  Real _define = define(
-    name, 
-    EvalSet(outputMissingBlock, Text(BSR.MissingBlock b){ b->Name }), 
-    mcmcPartialHandler,
-    numBlock, 
-    firstCol, 
-    config);
-
-  //Output missing pairs i,k
-  Set _.t = Traspose(Extract(outputMissingBlock, 3))[1];
-  //Selecting output missing variables with prior information
-  Matrix _.I = SetCol(_.t);
-  Set _.prior.sel = Select(outputMissingBlock, Real(BSR.MissingBlock b)
-  {
-    b->Prior != "None"
-  });
-  //Number of output missing prior equations
-  Real _.prior.M = Card(_.prior.sel);
-  //Average vector of output missing priors
-  Matrix _.prior.nu = If(!_.prior.M, Rand(0,0,0,0), 
-    SetMat(Extract(_.prior.sel, 6)));
-  //Inverse of standard deviation vector of output missing priors
-  Matrix _.prior.si = If(!_.prior.M, Rand(0,0,0,0), 
-  {
-    Matrix s2 = SetMat(Extract(_.prior.sel, 7));
-    RPow(s2,-1/2)
-  });
-  //Standarized output of output missing priors
-  VMatrix _.prior.Y = If(!_.prior.M, Rand(0,1,0,0), 
-    Mat2VMat(_.prior.nu $* _.prior.si));
-  //Standarized output of output missing priors
-  VMatrix _.prior.X = If(!_.prior.M, Rand(0,_.N,0,0), 
-  {
-  //WriteLn("TRACE "+_MID+" _.prior.X 1");
-    Matrix triplet = SetMat(Traspose([[Set Range(1,_.prior.M,1)]])) | 
-                     SetMat(Extract(_.prior.sel, 2)) |
-                     _.prior.si;
-  //WriteLn("TRACE "+_MID+" _.prior.X 2 triplet=\n"<<triplet);
-    VMatrix tr = Triplet(triplet,_.prior.M,_.N);
-  //WriteLn("TRACE "+_MID+" _.prior.X 3");
-    VMatrix pX = Convert(tr,"Cholmod.R.Sparse");
-  //WriteLn("TRACE "+_MID+" _.prior.X 4 prior.X="<<pX);
-    pX
-  });
 
   ///////////////////////////////////////////////////////////////////////////
   Real initialize(Real unused)
@@ -159,8 +131,71 @@ Text _.autodoc.member.OutputMissingBlock =
       VMatrix V = MergeRows(VRows(Z), [[ [[ _.store, _.I]] ]]);
       Z+Convert(V,"Cholmod.R.Sparse")
     })
-  };
+  }
+};
 
-  VMatrix _.F = Rand(0,0,0,0)
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.OutputMissingBlock =
+"Builds a NameBlock that can draw a Gibbs sample of a Output Missing block "
+"of a Bayesian Sparse Regression model";
+//////////////////////////////////////////////////////////////////////////////
+  BlockSamplerStdLinear OutputMissingBlock(Text name, 
+                                    Set  outputMissingBlock, 
+                                    BysMcmc::McmcPartialHandler mcmcPartialHandler,
+                                    Real numBlock, 
+                                    Real firstCol,
+                                    BysMcmc::NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(outputMissingBlock), 
+  BysMcmc::Bsr::Gibbs::BlockSamplerStdLinear.Default(name, numBlock, firstCol, config),
+  BysMcmc::Bsr::Gibbs::BlockSamplerOutputMissing blk = [[
+  Code _.buildWorkSpace = _buildWorkSpace;
+  //Given initial values of block variables
+  VMatrix _.store = Mat2VMat(SetMat(Extract(outputMissingBlock, 6)));
+  //Defining the block in the Markov Chain
+  Real _defined = define(
+    name, 
+    EvalSet(outputMissingBlock, Text(BSR.MissingBlock b){ b->Name }), 
+    mcmcPartialHandler,
+    numBlock, 
+    firstCol, 
+    config);
+  //Output missing pairs i,k
+  Set _.t = Traspose(Extract(outputMissingBlock, 3))[1];
+  //Selecting output missing variables with prior information
+  Matrix _.I = SetCol(_.t);
+  Set _.prior.sel = Select(outputMissingBlock, Real(BSR.MissingBlock b)
+  {
+    b->Prior != "None"
+  });
+  //Number of output missing prior equations
+  Real _.prior.M = Card(_.prior.sel);
+  //Average vector of output missing priors
+  Matrix _.prior.nu = If(!_.prior.M, Rand(0,0,0,0), 
+    SetMat(Extract(_.prior.sel, 6)));
+  //Inverse of standard deviation vector of output missing priors
+  Matrix _.prior.si = If(!_.prior.M, Rand(0,0,0,0), 
+  {
+    Matrix s2 = SetMat(Extract(_.prior.sel, 7));
+    RPow(s2,-1/2)
+  });
+  //Standarized output of output missing priors
+  VMatrix _.prior.Y = If(!_.prior.M, Rand(0,1,0,0), 
+    Mat2VMat(_.prior.nu $* _.prior.si));
+  //Standarized output of output missing priors
+  VMatrix _.prior.X = If(!_.prior.M, Rand(0,_.N,0,0), 
+  {
+  //WriteLn("TRACE "+_MID+" _.prior.X 1");
+    Matrix triplet = SetMat(Traspose([[Set Range(1,_.prior.M,1)]])) | 
+                     SetMat(Extract(_.prior.sel, 2)) |
+                     _.prior.si;
+  //WriteLn("TRACE "+_MID+" _.prior.X 2 triplet=\n"<<triplet);
+    VMatrix tr = Triplet(triplet,_.prior.M,_.N);
+  //WriteLn("TRACE "+_MID+" _.prior.X 3");
+    VMatrix pX = Convert(tr,"Cholmod.R.Sparse");
+  //WriteLn("TRACE "+_MID+" _.prior.X 4 prior.X="<<pX);
+    pX
+  })
 
 ]])};

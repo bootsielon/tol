@@ -49,7 +49,7 @@
 BTraceInit("nameblock.cpp");
 
 const BNameBlock*         BNameBlock::current_  = NULL;
-const BNameBlock*         BNameBlock::building_ = NULL;
+      BUserNameBlock*     BNameBlock::building_ = NULL;
       BNameBlock*         BNameBlock::unknown_  = NULL;
       BObjClassify        BObjClassify::null_;
       BObjByNameHash      BNameBlock::using_;
@@ -89,8 +89,7 @@ static bool BNameBlock_IsInitialized()
 //--------------------------------------------------------------------
   BNameBlock::BNameBlock() 
 //--------------------------------------------------------------------
-: BMemberOwner(),
-  BObject  (),
+: BObject  (),
   public_  (),
   private_ (), 
   evLevel_ (BGrammar::Level()),
@@ -99,7 +98,8 @@ static bool BNameBlock_IsInitialized()
   father_  (NULL),
   class_   (NULL),
   localName_(),
-  owner_    (NULL)
+  owner_    (NULL),
+  nonPrivateMembers_(0)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -110,8 +110,7 @@ static bool BNameBlock_IsInitialized()
 //--------------------------------------------------------------------
 BNameBlock::BNameBlock(const BText& fullName, const BText& localName) 
 //--------------------------------------------------------------------
-: BMemberOwner(),
-  BObject  (fullName), 
+: BObject  (fullName), 
   public_  (),
   private_ (),
   evLevel_ (BGrammar::Level()),
@@ -120,7 +119,8 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   father_  (NULL),
   class_   (NULL),
   localName_(localName),
-  owner_    (NULL)
+  owner_    (NULL),
+  nonPrivateMembers_(0)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -131,8 +131,7 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
 //--------------------------------------------------------------------
 BNameBlock::BNameBlock(const BNameBlock& ns) 
 //--------------------------------------------------------------------
-: BMemberOwner(),
-  BObject  (), 
+: BObject  (), 
   public_  (),
   private_ (),
   evLevel_ (BGrammar::Level()),
@@ -141,7 +140,8 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   father_  (NULL),
   class_   (NULL),
   localName_(),
-  owner_    (NULL)
+  owner_    (NULL),
+  nonPrivateMembers_(0)
 {
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
   createdWithNew_ = isAssigned!=-1;
@@ -152,6 +152,18 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
 BNameBlock::~BNameBlock() 
 //--------------------------------------------------------------------
 {
+  Clean();
+}
+
+//--------------------------------------------------------------------
+void BNameBlock::Clean() 
+//--------------------------------------------------------------------
+{
+  owner_ = NULL;
+  public_.clear();
+  private_.clear();
+  set_.Delete();
+  father_ = NULL;
   if(class_)
   {
     class_->DecNRefs();
@@ -159,30 +171,37 @@ BNameBlock::~BNameBlock()
   }
 }
 
+
 void DeepCopy(const BSet& sample,BSet& copy,const BArray<BDat>& p,BInt& pos);
 
 //--------------------------------------------------------------------
 BNameBlock& BNameBlock::operator= (const BNameBlock& ns)
 //--------------------------------------------------------------------
 {
-  BMemberOwner::Copy(ns);
+  Clean(); 
   PutName(ns.Name());
   localName_ = ns.LocalName();
-  owner_ = NULL;
-  public_.clear();
-  private_.clear();
-
-//Fill(ns.Set());
-
+  PutClass((BClass*)ns.Class());
   BArray<BDat> p;
   BInt pos = -1;
   BSet copy;
   DeepCopy(ns.Set(),copy, p, pos);
   Fill(copy);
-
   return(*this);
 }
 
+
+//--------------------------------------------------------------------
+  void  BNameBlock::PutClass (BClass* cls)
+//--------------------------------------------------------------------
+{ 
+  assert(!class_);
+  class_ = cls; 
+  if(class_)
+  {
+    class_->IncNRefs();
+  }
+}
 
 //--------------------------------------------------------------------
 BUserNameBlock* BNameBlock::Owner() const 
@@ -282,24 +301,26 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
-  const BNameBlock* BNameBlock::Building() 
+  BUserNameBlock* BNameBlock::Building() 
 //--------------------------------------------------------------------
 { 
   if(building_ && 
-     building_->createdWithNew_ &&
-     !(BFSMEM_Hndlr->IsAssigned(building_,building_->_bfsm_PageNum__)))
+     building_->Contens().createdWithNew_ &&
+     !(BFSMEM_Hndlr->IsAssigned(&building_->Contens(),
+                                building_->Contens()._bfsm_PageNum__)))
   {
-    BFSMEM_Hndlr->IsAssigned(building_,building_->_bfsm_PageNum__);
+    BFSMEM_Hndlr->IsAssigned(&building_->Contens(),
+                             building_->Contens()._bfsm_PageNum__);
     building_ = NULL;
   }
   return(building_); 
 }
 
 //--------------------------------------------------------------------
-  const BNameBlock* BNameBlock::SetBuilding(const BNameBlock* ns) 
+  BUserNameBlock* BNameBlock::SetBuilding(BUserNameBlock* ns) 
 //--------------------------------------------------------------------
 { 
-  const BNameBlock* old = building_; 
+  BUserNameBlock* old = building_; 
   building_ = ns; 
   return(old); 
 }
@@ -310,11 +331,36 @@ const BText& BNameBlock::LocalName() const
 //--------------------------------------------------------------------
 {
   int n;
+  BSyntaxObject* obj = NULL;
   BToken* tok = (BToken*)_tre->car();
   bool isDefaultInstance = tok->Name()=="#DefaultInstance";
   BText name  = BEqualOperator::CreatingName();
+
   BText fullName = BEqualOperator::CurrentFullName();
   const BClass* cls = BEqualOperator::CreatingClass();
+  if(cls && cls->notImplementedMethods_>0)
+  {
+    BText undefMet;
+    BMemberOwner::BMemberByNameHash::const_iterator iterM;
+    BMemberOwner::BMemberByNameHash& mbrDec = *(cls->mbrDecHash_);
+    n=0;
+    for(iterM=mbrDec.begin(); iterM!=mbrDec.end(); iterM++, n++)
+    {
+      BMember* mbr = iterM->second;
+      if(mbr->isMethod_)
+      {
+        undefMet += BText("\n  ")+mbr->FullExpression();
+      }
+    }
+    Error(I2("Cannot create NameBlock ", "No se puede crear el NameBlock ")+
+          fullName+ 
+          I2(" an instance of Class ", " como instancia de la clase ")+
+          cls->FullName()+
+          I2(" due to it have "," porque tiene ")+cls->notImplementedMethods_+
+          I2(" not defined methods "," métodos no definidos ")+undefMet);
+    return(NULL);
+  };
+
   BBool hasName = name.HasName();
 //Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)_tre,"  "));
   BUserNameBlock* ns_result = NULL;
@@ -341,139 +387,146 @@ const BText& BNameBlock::LocalName() const
              " ya está siendo usado\n")+ ((!BNameBlock::current_)?"":
           I2("Current NameBlock is ",
              "El NameBlock en curso es ")+BNameBlock::current_->Name()));
+    return(NULL);
+  }
+  BUserNameBlock* oldBuilding = BNameBlock::Building();
+  BGrammar::IncLevel();
+  ns_result = new BGraContensP<BNameBlock>(name, new BNameBlock);
+  BNameBlock::SetBuilding((BUserNameBlock*)ns_result);
+  int oldBuildingLevel = -1;
+  int ns_resultLevel = -1; 
+  if(oldBuilding)
+  {
+    oldBuildingLevel = oldBuilding->Level();
+    ns_resultLevel = ns_result->Level();
+    if(oldBuildingLevel == level-1)
+    { 
+      oldBuilding->Contens().AddElement(ns_result, true);
+    //BSyntaxObject* found = GraNameBlock()->EvaluateExpr(fullName);
+    //assert(found);
+    }
+  } 
+  BNameBlock& newNameBlock  = ns_result->Contens();
+  newNameBlock.PutName(fullName);
+  newNameBlock.PutLocalName(name);
+  int oldErr = (int)TOLErrorNumber().Value();
+  newNameBlock.Set().PutNameBlock(&newNameBlock);
+  int stackPos = BGrammar::StackSize();
+  BGrammar::IncLevel();
+  if(!cls)
+  {
+    List* b = _tre->cdr();
+    n = 0;
+    while(b)
+    {
+      n++;
+      b = b->cdr();
+    };
+    b = _tre->cdr();
+    newNameBlock.Set().PrepareStore(n);
+    while(b)
+    {
+      obj = GraAnything()->EvaluateTree((const List*)b->car());
+      if(obj)
+      {
+        newNameBlock.AddElement(obj,true);
+      }
+      b = b->cdr();
+    };
   }
   else
   {
-    ns_result = new BGraContensP<BNameBlock>(new BNameBlock);
-    BNameBlock& newNameBlock  = ns_result->Contens();
-    newNameBlock.PutName(fullName);
-    newNameBlock.PutLocalName(name);
-    const BNameBlock* oldBuilding = BNameBlock::SetBuilding(&newNameBlock);
-    int oldErr = (int)TOLErrorNumber().Value();
-    BSyntaxObject* set_result = NULL;
-    if(!cls)
-    {
-      BGrammar::IncLevel();
-      int stackPos = BGrammar::StackSize();
-      set_result = GraSet()->EvaluateTree(_tre);
-      BGrammar::DestroyStackUntil(stackPos, set_result);
-      BGrammar::DecLevel();
+    List* tre = NULL;
+    if(!isDefaultInstance) { tre = _tre->duplicate(); }
+    BNameBlockMemberOwner memberOwner(&newNameBlock);
+    memberOwner.PutTree(tre);
+    memberOwner.CreateParentHashes();
+    memberOwner.CreateMemberHashes();
+    memberOwner.AddParent((BClass*)cls); 
+    if(!isDefaultInstance) { 
+    //Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
+      memberOwner.AddMemberList(tre->cdr());
     }
-    else
+    memberOwner.SortMembers();
+    int stackPos = BGrammar::StackSize();
+    if(memberOwner.isGood_ && memberOwner.mbrDecHash_->size())
     {
-      List* tre = NULL;
-      if(!isDefaultInstance) { tre = _tre->duplicate(); }
-      newNameBlock.PutTree(tre);
-      newNameBlock.CreateParentHashes();
-      newNameBlock.CreateMemberHashes();
-      newNameBlock.AddParent((BClass*)cls);
-      if(!isDefaultInstance) { 
-      //Std(BText("BNameBlock::EvaluateTree:\n")+BParser::treWrite((List*)tre,"  "));
-        newNameBlock.AddMemberList(tre->cdr());
+      BText undefMem = "";
+      BMemberOwner::BMemberByNameHash::const_iterator iterM;
+      BMemberOwner::BMemberByNameHash& mbrDec = *memberOwner.mbrDecHash_;
+      n=0;
+      for(iterM=mbrDec.begin(); iterM!=mbrDec.end(); iterM++, n++)
+      {
+        BMember* mbr = iterM->second;
+        undefMem += BText("\n  ")+mbr->FullExpression();
       }
-      newNameBlock.SortMembers();
+      Error(I2("Cannot create instance ",
+               "No se pudo crear la instancia ")+fullName+
+            I2(" of class "," de la clase ")+cls->Name()+
+            I2(" due to there are not implemented methods ",
+            " debido a que hay miembros no implementados ")+
+            ":"+undefMem+"\n");
+      memberOwner.isGood_ = false;
+    }
+    if(memberOwner.isGood_)
+    {
       int stackPos = BGrammar::StackSize();
-
-      if(newNameBlock.isGood_ && newNameBlock.mbrDecHash_->size())
+      BMember* mbr= NULL;
+      obj = NULL;
+      for(n=0; n<memberOwner.member_.Size(); n++)
       {
-        assert(cls);
-        BText undefMem = "";
-        BMemberByNameHash::const_iterator iterM;
-        BMemberByNameHash& mbr = *newNameBlock.mbrDecHash_;
-        n=0;
-        for(iterM=mbr.begin(); iterM!=mbr.end(); iterM++, n++)
-        {
-          BMember* mbr = iterM->second;
-          undefMem += BText("\n  ")+mbr->FullExpression();
-        }
-        Error(I2("Cannot create instance ",
-                 "No se pudo crear la instancia ")+fullName+
-              I2(" of class "," de la clase ")+cls->Name()+
-              I2(" due to there are not implemented methods ",
-              " debido a que hay miembros no implementados ")+
-              ":"+undefMem+"\n");
-        newNameBlock.isGood_ = false;
-      }
-      if(newNameBlock.isGood_)
-      {
-        BGrammar::IncLevel();
-        int stackPos = BGrammar::StackSize();
-        BSet set;
-        set.PrepareStore(newNameBlock.member_.Size());
-        for(n=0; n<newNameBlock.member_.Size(); n++)
-        {
-          BMember* mbr = newNameBlock.member_[n]->member_; 
-        //Std(BText("\nTRACE BNameBlock::EvaluateTree member ")+
-        //  fullName+"::"+newNameBlock.member_[n]->member_->name_);
-          BSyntaxObject* obj = GraAnything()->EvaluateTree(mbr->branch_);
-          if(!obj) 
-          { 
-            newNameBlock.isGood_=false; 
-          }
-          else
+        mbr = memberOwner.member_[n]->member_; 
+        if(mbr->method_) 
+        { 
+          mbr->method_->PutNameBlock(NULL); 
+          if(mbr->method_->Mode()==BOBJECTMODE)
           {
-            set.AddElement(obj);
+            BUserCode* uCode = UCode(mbr->method_);
+            uCode->Contens().Operator()->PutNameBlock(NULL);
           }
         }
-        if(newNameBlock.isGood_)
+      }
+      newNameBlock.Set().PrepareStore(memberOwner.member_.Size());
+      const BClass* oldClass = BClass::currentClassBuildingInstance_;
+      newNameBlock.PutClass((BClass*)cls); 
+      BClass::currentClassBuildingInstance_ = cls; 
+      for(n=0; n<memberOwner.member_.Size(); n++)
+      {
+        mbr = memberOwner.member_[n]->member_; 
+/*
+        if(cls && cls->Name()=="BlockSamplerStdLinear" && name=="aux")
         {
-          set_result = new BContensSet("",set,"");   
+          Std(BText("\nTRACE BNameBlock::EvaluateTree member [")+(n+1)+"]"+
+            fullName+"::"+mbr->name_+
+            "  position_="+(memberOwner.member_[n]->position_+1)+"\n");
+          if(mbr->name_=="_do_buildWorkSpace")
+            printf("");
         }
-        newNameBlock.PutClass((BClass*)cls);
-        BGrammar::DestroyStackUntil(stackPos, set_result);
-        BGrammar::DecLevel();
-      } 
-    }
-    newNameBlock.DestroyMemberStore();
-    delete newNameBlock.ascentHash_;
-    newNameBlock.ascentHash_ = NULL;
-    delete newNameBlock.parentHash_;
-    newNameBlock.parentHash_ = NULL;
-    int numErr = (int)TOLErrorNumber().Value()-oldErr;
-    if(!set_result || (set_result->Grammar()!=GraSet()))
-    {
-      DESTROY(set_result);
-      DESTROY(ns_result);
-    }
-    if(set_result)
-    {
-      BUserSet* uSet = USet(set_result);
-      if(!newNameBlock.Fill(uSet->Contens()))
-      {
-        DESTROY(set_result);
-        DESTROY(ns_result);
+*/
+        if(!mbr->method_)
+        {
+          obj = GraAnything()->EvaluateTree(mbr->branch_);
+          newNameBlock.AddElement(obj, true);
+        }
       }
-    }
-    if(!set_result)
-    {
-      Error(I2("Cannot build NameBlock ",
-               "No se puede contruir el NameBlock  ")+name);
-      bool assigned = (ns_result && (ns_result->IsAssigned()==1));
-      if(assigned) { DESTROY(ns_result); }
-    }
-    else 
-    {
-      if(numErr)
-      {
-        Warning(BText("NameBlock ")+name+" "+
-                I2("has been built with",
-                   "se ha construido con") + " "+numErr+" "+
-                I2("errors.","errores."));
-      }
-      DESTROY(set_result);
-    }
-    BNameBlock::SetBuilding(oldBuilding);
+      BClass::currentClassBuildingInstance_ = oldClass;
+    } 
+    if(!memberOwner.isGood_) { DESTROY(ns_result) }
   }
+  BGrammar::DecLevel();
+  BGrammar::DestroyStackUntil(stackPos, NULL);    
+  newNameBlock.CheckMembers();
+  int numErr = (int)TOLErrorNumber().Value()-oldErr;
+  if(numErr)
+  {
+    Warning(BText("NameBlock ")+name+" "+
+            I2("has been built with",
+               "se ha construido con") + " "+numErr+" "+
+            I2("errors.","errores."));
+  }
+  BNameBlock::SetBuilding(oldBuilding);
+  BGrammar::DecLevel();
   return(ns_result);
-}
-
-//--------------------------------------------------------------------
-  bool BNameBlock::Fill(const BSet& set)
-//--------------------------------------------------------------------
-{
-  set_ = set;
-  set_.PutNameBlock(this);
-  return(Build());
 }
 
 //--------------------------------------------------------------------
@@ -505,89 +558,147 @@ const BText& BNameBlock::LocalName() const
   txt += end;
   return(txt);
 }
+
+//--------------------------------------------------------------------
+  bool BNameBlock::AddElement(BSyntaxObject* obj, bool addToSet)
+//--------------------------------------------------------------------
+{
+  if(!obj) { return(true); }
+  const BText& name = obj->Name();
   
+  if(!name.HasName() || 
+     !BParser::DefaultParser()->Filter()->IsIdentifier(name))
+  {
+    Error(I2("A NameBlock cannot have members without a valid name ",
+             "Un NameBlock no puede tener miembros sin un nombre válido ")
+          +"'"+name+"'");
+    return(false);
+  }
+  if(name=="_this")
+  {
+    Error(I2("Reserved member name ",
+             "Nombre de miembro reservado  ")+ name+"\n"+
+            I2("Cannot build NameBlock ",
+               "No se puede construir el NameBlock ")+Name());
+    return(false);
+  }
+  BSyntaxObject* mem = Member(name);
+  if(mem)
+  {
+    if(mem==obj) 
+    { 
+      return(true); 
+    }
+    BUserNameBlock* obj_uns = NULL;
+    BUserNameBlock* mem_uns = NULL;
+    if(obj->Grammar()==GraNameBlock())
+    {
+      obj_uns = (BUserNameBlock*)obj;
+      mem_uns = (BUserNameBlock*)mem;
+      if(&obj_uns->Contens() == &mem_uns->Contens())
+      { 
+        return(true);  
+      }
+    }
+    Warning(I2("Duplicated member name ",
+               "Nombre de miembro duplicado ")+ name+"\n"+
+            I2("It will be skiped.","Sera ignorado."));
+    return(false);  
+  }
+  obj->PutNameBlock(this);
+  if(name[0]!='_')
+  {
+    nonPrivateMembers_++;
+    public_[name] = obj;
+  //Std(BText("\nTRACE BNameBlock::Build added public member ")+Name()+"::"+name+"\n");
+  }
+  else
+  {
+    if(name[1]=='.') 
+    { 
+      //read only member
+      nonPrivateMembers_++; 
+    //Std(BText("\nTRACE BNameBlock::Build added read only member ")+Name()+"::"+name+"\n");
+    }
+  //else { Std(BText("\nTRACE BNameBlock::Build added private member ")+Name()+"::"+name+"\n"); }
+    private_[name] = obj;
+  }
+  if(obj->Grammar()==GraCode())
+  {
+    int mode = obj->Mode();
+    if(mode==BOBJECTMODE)
+    {
+      BUserCode* uCode = UCode(obj);
+      BOperator* opr   = GetOperator(uCode);
+      if(opr && !opr->System() && !opr->NameBlock())
+      {
+        opr->PutNameBlock(this);
+      }
+    }
+  }
+  if(addToSet) { set_.AddElement(obj); }
+}  
+
+//--------------------------------------------------------------------
+  bool BNameBlock::CheckMembers()
+//--------------------------------------------------------------------
+{
+  if((nonPrivateMembers_==0)&&!class_)
+  {
+    Warning(I2("A NameBlock should have at least a public or read only member.",
+               "Un NameBlock debería tener al menos un miembro público o de sólo lectura."));
+    return(false);
+  }
+  else
+  {
+    return(true);
+  }
+}
+
 //--------------------------------------------------------------------
   bool BNameBlock::Build()
 //--------------------------------------------------------------------
 {
-  int i, j, k;
+  int i, j;
   BSyntaxObject* obj;
-
-  for(i=j=k=0; i<set_.Card(); i++)
+  nonPrivateMembers_ = 0;
+  for(i=j=0; i<set_.Card(); i++)
   {
     obj = set_[i+1];
-    if(!obj) { continue; }
-    const BText& name = obj->Name();
-    if(name.HasName() && 
-       BParser::DefaultParser()->Filter()->IsIdentifier(name))
-    {
-      if(name=="_this")
-      {
-        Error(I2("Reserved member name ",
-                 "Nombre de miembro reservado  ")+ name+"\n"+
-                I2("Cannot build NameBlock ",
-                   "No se puede construir el NameBlock ")+Name());
-        continue;
-      }
-      obj->PutNameBlock(this);
-      BSyntaxObject* mem = Member(name);
-      if(mem && (mem!=obj))
-      {
-        Warning(I2("Duplicated member name ",
-                 "Nombre de miembro duplicado ")+ name+"\n"+
-                I2("It will be skiped.","Sera ignorado."));
-        continue;
-      }
-      if(name[0]!='_')
-      {
-        k++;
-        public_[name] = obj;
-      //Std(BText("\nBNameBlock::Build added public member ")+Name()+"::"+name);
-      }
-      else
-      {
-        if(name[1]=='.') 
-        { 
-          //read only member
-          k++; 
-        }
-        private_[name] = obj;
-      }
-      if(obj->Grammar()==GraCode())
-      {
-        int mode = obj->Mode();
-        if(mode==BOBJECTMODE)
-        {
-          BUserCode* uCode = UCode(obj);
-          BOperator* opr   = GetOperator(uCode);
-          if(opr && !opr->System() && !opr->NameBlock())
-          {
-            opr->PutNameBlock(this);
-          }
-        }
-      }
-    }
-    else
-    {
-      Error(I2("A NameBlock cannot have members without a valid name ",
-               "Un NameBlock no puede tener miembros sin un nombre válido ")
-            +"'"+name+"'");
-      return(false);
-    }
+    AddElement(obj, false);
   }
-  if(k==0)
-  {
-    Error(I2("A NameBlock must have at least a public or read only member.",
-             "Un NameBlock ha de tener al menos un miembro público o de sólo lectura."));
-    return(false);
-  }
-  return(true);
+  return(CheckMembers());
+}
+
+//--------------------------------------------------------------------
+  bool BNameBlock::Fill(const BSet& set)
+//--------------------------------------------------------------------
+{
+  set_ = set;
+  set_.PutNameBlock(this);
+  return(Build());
 }
 
 //--------------------------------------------------------------------
   BSyntaxObject* BNameBlock::PublicMember(const BText& memberName) const
 //--------------------------------------------------------------------
 {
+/* */
+  if(Class())
+  {
+    BSyntaxObject* met = Class()->FindMethod(memberName);
+    if(met) 
+    { 
+      met->PutNameBlock(this);
+      if(met->Mode()==BOBJECTMODE)
+      {
+        BUserCode* uCode = UCode(met);
+        uCode->Contens().Operator()->PutNameBlock(this);
+      }
+      return(met); 
+    } 
+  }
+/* */
   BObjByNameHash::const_iterator found = public_.find(memberName);
   if(found==public_.end())
   {
@@ -603,6 +714,22 @@ const BText& BNameBlock::LocalName() const
   BSyntaxObject* BNameBlock::PrivateMember(const BText& memberName) const
 //--------------------------------------------------------------------
 {
+/* */
+  if(Class())
+  {
+    BSyntaxObject* met = Class()->FindMethod(memberName);
+    if(met) 
+    { 
+      met->PutNameBlock(this);
+      if(met->Mode()==BOBJECTMODE)
+      {
+        BUserCode* uCode = UCode(met);
+        uCode->Contens().Operator()->PutNameBlock(this);
+      }
+      return(met); 
+    } 
+  }
+/* */
   BObjByNameHash::const_iterator found = private_.find(memberName);
   if(found==private_.end())
   {
@@ -729,11 +856,30 @@ const BText& BNameBlock::LocalName() const
   const BNameBlock* cns = BNameBlock::Current();
   while(!result && cns)
   {
-    result = cns->Member(memberName);
-    if(result && (result->Mode()==BSTRUCTMODE))
+/* */
+    if(cns->Class())
     {
-      BStruct* bstr = (BStruct*)result;
-      result = bstr->Function();
+      BSyntaxObject* met = cns->Class()->FindMethod(memberName);
+      if(met) 
+      { 
+        met->PutNameBlock(cns);
+        if(met->Mode()==BOBJECTMODE)
+        {
+          BUserCode* uCode = UCode(met);
+          uCode->Contens().Operator()->PutNameBlock(cns);
+        }
+        result = met; 
+      } 
+    }
+/* */
+    if(!result)
+    {
+      result = cns->Member(memberName);
+      if(result && (result->Mode()==BSTRUCTMODE))
+      {
+        BStruct* bstr = (BStruct*)result;
+        result = bstr->Function();
+      }
     }
     if(!result)
     {
