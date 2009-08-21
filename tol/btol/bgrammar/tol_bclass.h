@@ -77,7 +77,7 @@ class TOL_API BMember
   bool HasDefVal() const;
   //! Text expression
   BText FullExpression() const;
-  int BMember::BuildMethod();
+  int BuildMethod();
 
   DeclareClassNewDelete(BMember);
 };
