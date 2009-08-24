@@ -143,6 +143,11 @@ BysMcmc::Config bsr.config = [[
   Real mcmc.cacheLength   =  100;
   Code bsr.scalarSampler.nonLinBlock=BysMcmc::Options::Scalar.Sampler::Slice;
 
+  Real bsr.iniVal.try.givenByUser = 2;
+  Real bsr.iniVal.try.zero = 3;
+  Real bsr.iniVal.try.cnstrMinNorm = 4;
+  Real bsr.iniVal.try.cnstrMLE = 1;
+
 //Generic flags
   Real do.resume          =  0;
   Real do.report          =  True;
