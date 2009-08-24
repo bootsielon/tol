@@ -55,6 +55,7 @@ BText BEqualOperator::currentFatherName_;
 bool   BEqualOperator::isCreatingNameBlock_= false;
 BText BEqualOperator::currentFullName_;
 const BClass* BEqualOperator::creatingClass_ = NULL;
+bool BStandardOperator::evaluatingFunctionArgument_ = false;
 
 #define Do_TolOprProfiler
 #ifdef Do_TolOprProfiler
@@ -1186,6 +1187,26 @@ BSyntaxObject* BStructCreator::Evaluate(const List* argList)
 
 
 //--------------------------------------------------------------------
+BSyntaxObject* BStandardOperator::EvaluateArgument(BGrammar*gra, const List* branch)
+//--------------------------------------------------------------------
+{
+  evaluatingFunctionArgument_ = true;
+  BText oldCreatingName = BEqualOperator::creatingName_;
+  BText oldCreatingFullName = BEqualOperator::currentFullName_;
+  const BClass* oldCreatinClass = BEqualOperator::creatingClass_;
+  BEqualOperator::creatingName_ = "";
+  BEqualOperator::currentFullName_ =  "";
+  BEqualOperator::creatingClass_ = NULL;
+  BSyntaxObject* var = gra->EvaluateTree(branch);
+  BEqualOperator::creatingName_ = oldCreatingName;
+  BEqualOperator::currentFullName_ =  oldCreatingFullName;
+  BEqualOperator::creatingClass_ = oldCreatinClass;
+  evaluatingFunctionArgument_ = false;
+  return(var);
+}
+
+
+//--------------------------------------------------------------------
 BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
     
 /*! Evaluates an argument-trees for an operator calling ensuring they
@@ -1231,7 +1252,7 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
       int numOpt = NumOptForArg(n);
       if(numOpt==1)
       {
-	      if((var = gra->EvaluateTree(b))) 
+	      if(var = EvaluateArgument(gra,b)) 
         {
 		      BStruct* str = (n<=structs_.Size())?structs_(n-1):NIL;
 		      BClass*  cls = (n<=classes_.Size())?classes_(n-1):NIL;
@@ -1269,7 +1290,8 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
         {
           BGrammar* g = GrammarForArg(n,k);
           BGrammar::PutLast(g);
-          var = g->EvaluateTree(b);
+          evaluatingFunctionArgument_ = true;
+          var = EvaluateArgument(g,b);
           if(!var) { BGrammar::CleanTreeCache(b, true); }
         }
         BOut::Enable();

@@ -200,13 +200,13 @@ class TOL_API BEqualOperator: public BOperator
  */
 //--------------------------------------------------------------------
 {
-private:
+public:
   static BText creatingName_;
   static BText currentFatherName_;
   static bool  isCreatingNameBlock_;
   static BText currentFullName_;
   static const BClass* creatingClass_;
-public:
+
   // Constructors and destructors: opr.cpp
   //! BEqualOperator constructor
   BEqualOperator(BGrammar* gra);
@@ -217,6 +217,7 @@ public:
   friend BGrammar* GetLeft(BGrammar*, const BList*, BText&);
   //! Evaluate BEqualOperator operator. Creates a new object.
   BSyntaxObject* Evaluate (const List*) ;
+
   static const BText&  CreatingName () { return(creatingName_); }
   static const BText&  CurrentFatherName () { return(currentFatherName_); }
   static const bool IsCreatingNameBlock () { return(isCreatingNameBlock_); }
@@ -282,6 +283,7 @@ protected:
   BArray<BStruct*>  structs_;	//!< Structures.
   BArray<BClass*>   classes_;	//!< Classes.
 public:
+  static bool           evaluatingFunctionArgument_;
   // Constructors and destructors: opr.cpp
   BStandardOperator(const BText& name, BGrammar* gra,
 		    BEvaluator evaluator, BInt minArg, BInt maxArg,
@@ -297,6 +299,7 @@ public:
   BText Arguments    () const { return(arguments_); }
   BText Dump	       () const;
   // Implementation : oprimp.cpp
+  BSyntaxObject* EvaluateArgument(BGrammar*gra, const List* branch);
   virtual BSyntaxObject* Evaluator    (BList* arg) const
   { return((*evaluator_)(arg)); }
   //! Evaluate BStandardOperator operator. Evaluates argument-trees
