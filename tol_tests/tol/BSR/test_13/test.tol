@@ -11,6 +11,57 @@ Text summary_ = "Forecasting by means of partial reestimation";
 
 Real numErr0 = Copy(NError);
 
+BysMcmc::Config bsr.config = 
+[[
+//MCMC dimensions
+  Real mcmc.burnin = 100; 
+  Real mcmc.sampleLength = 2000;
+  Real mcmc.cacheLength = 100;
+
+//Partial sampling
+  Real partialSampling.Sequential = False;
+
+//Basic master configuration
+  Real basic.cholesky.epsilon = 1.E-13;
+  Real basic.cholesky.warningFreq = 100;
+  Real basic.truncMNormal.gibbsNumIter = 5;
+  Real bsr.iniVal.try.givenByUser = 1;
+  Real bsr.iniVal.try.zero = 2;
+  Real bsr.iniVal.try.cnstrMinNorm = 3;
+  Real bsr.iniVal.try.cnstrMLE = 4;
+
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
+  Real bsr.arimaSkipIter = 1;
+
+  Real bsr.linBlk.MH.useAfterIter   = 10;
+  Real bsr.linBlk.MH.maxRejected    = 3;
+  Real bsr.linBlk.MH.maxConsecutive = 100;
+
+  Real bsr.linBlk.X.drop = 1.E-15;
+  Real bsr.linBlk.usePreconditioning = 0;
+
+//Report configuration
+  Real report.raftery.diag.q   = 0.25;
+  Real report.raftery.diag.r   = 0.07;   
+  Real report.raftery.diag.s   = 0.90;   
+  Real report.raftery.diag.eps = 0.01; 
+  Real report.acf.lag          = 20,
+  Real report.histogram.parts  = 100;
+  Real report.kerDens.points   = 0;
+//Generic flags
+  Real do.resume          = 0;
+  Real do.report          = True;
+  Real do.eval            = True;
+  Real do.linear.effects  = False;
+  Real do.mcmc.profiler   = True
+]];
+
+
+BysMcmc::McmcRecover recover = BysMcmc::Get.Recover(
+  "../test_11/", "Test11", "Test11.01", 
+  bsr.config);
+
+
 Set parsed = BSR.Parse("model.bsr");
 
 Real new.obs.length = 365;
@@ -116,56 +167,6 @@ Set bsr.parsed = BSR.ModelDef(
 );
 
 
-BysMcmc::Config bsr.config = 
-[[
-//MCMC dimensions
-  Real mcmc.burnin = 100; 
-  Real mcmc.sampleLength = 2000;
-  Real mcmc.cacheLength = 100;
-
-//Partial sampling
-  Real partialSampling.Sequential = False;
-
-//Basic master configuration
-  Real basic.cholesky.epsilon = 1.E-13;
-  Real basic.cholesky.warningFreq = 100;
-  Real basic.truncMNormal.gibbsNumIter = 5;
-  Real bsr.iniVal.try.givenByUser = 1;
-  Real bsr.iniVal.try.zero = 2;
-  Real bsr.iniVal.try.cnstrMinNorm = 3;
-  Real bsr.iniVal.try.cnstrMLE = 4;
-
-  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
-  Real bsr.arimaSkipIter = 1;
-
-  Real bsr.linBlk.MH.useAfterIter   = 10;
-  Real bsr.linBlk.MH.maxRejected    = 3;
-  Real bsr.linBlk.MH.maxConsecutive = 100;
-
-  Real bsr.linBlk.X.drop = 1.E-15;
-  Real bsr.linBlk.usePreconditioning = 0;
-
-//Report configuration
-  Real report.raftery.diag.q   = 0.25;
-  Real report.raftery.diag.r   = 0.07;   
-  Real report.raftery.diag.s   = 0.90;   
-  Real report.raftery.diag.eps = 0.01; 
-  Real report.acf.lag          = 20,
-  Real report.histogram.parts  = 100;
-  Real report.kerDens.points   = 0;
-//Generic flags
-  Real do.resume          = 0;
-  Real do.report          = True;
-  Real do.eval            = True;
-  Real do.linear.effects  = False;
-  Real do.mcmc.profiler   = True
-]];
-
-
-BysMcmc::McmcRecover recover = BysMcmc::Get.Recover(
-  "../test_11/", "Test11", "Test11.01", 
-  bsr.config);
-
 Set fixedParam = Copy(Empty);
 VMatrix fixedValues = Rand(0,1,0,0);
 Set reloadParam = recover::_.colNames;
@@ -187,8 +188,9 @@ BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
 
-//Real cycler::initialize(0);
+Real cycler::initialize(0);
 
+/*
 BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
 
 Real numErr1 = Copy(NError);
