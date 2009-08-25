@@ -207,112 +207,6 @@ Set GetLinearBlkEffects(Set colNames_,
   })
 };
 
-////////////////////////////////////////////////////////////////////////////
-Notifier DBNotifier(Text dbName, 
-                    Text model, 
-                    Text session)
-////////////////////////////////////////////////////////////////////////////
-{
-  //Creates the data base notifier of current status
-  BysMcmc::Notifier dbNotifier =
-  [[
-    Text _.dbName = dbName;
-    Text _.model  = model;
-    Text _.session  = session;
-    Real _.nErr = Copy(NError);
-    Real _.nWar = Copy(NWarning);
-    NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-
-    //Generic events notifier
-    Real notify_messages(Real unused)
-    {
-      Real DBExecQuery(
-      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
-      "SET nu_error = "+IntText(NError-_.nErr)+" \n"+
-      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
-      Real DBExecQuery(
-      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
-      "SET nu_warning = "+IntText(NWarning-_.nWar)+" \n"+
-      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
-      1
-    };
-    //Generic events notifier
-    Real notify_process(Text processField)
-    {
-      WriteLn("[dbNotifier] notify_process("+processField+")");
-      Real notify_messages(0);
-      Real DBExecQuery(
-      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
-      "SET "+processField+" = "+
-      BysMcmc::Bsr::DynHlm::DBApi::SqlFormatDate(Now)+" \n"+
-      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
-      1
-    };
-
-    //Model load event notifier
-    Real loading(Real unused)
-    {
-      Real notify_process("dh_loading")
-    };
-    //Model parser event notifier
-    Real parsing(Real unused)
-    {
-      Real notify_process("dh_parsing")
-    };
-    //Initialization event notifier
-    Real initializing(Real numVar, Text path)
-    {
-      Real notify_process("dh_initializing");
-      Real DBExecQuery(
-      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
-      "SET nu_mcmc_var = "+IntText(numVar)+" \n"+
-      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
-      Real DBExecQuery(
-      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
-      "SET te_path_data_out = '"+path+"' \n"+
-      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
-      1
-    };
-    //Simulation events notifier
-    Real simulating(Real numSim, Real timeAvg)
-    {
-      Real If(!numSim, notify_process("dh_simulating"), notify_messages(0));
-      Real DBExecQuery(
-      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
-      "SET nu_mcmc_currentLength = "+IntText(numSim)+" \n"+
-      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
-      Real DBExecQuery(
-      "UPDATE "+_.dbName+"."+_table::EstimStatus+"\n"+
-      "SET vl_mcmc_time_avg = "<<timeAvg+" \n"+
-      "WHERE id_model='"+_.model+"' AND id_session='"+_.session+"';");
-      1
-    };
-    //Report event notifier
-    Real reporting(Real unused) 
-    { 
-      Real notify_process("dh_reporting") 
-    };
-    //Evaluation event notifier
-    Real evaluating(Real unused) 
-    {
-      Real notify_process("dh_evaluating")
-    };
-    //Evaluation event notifier
-    Real saving(Real unused) 
-    {
-      Real notify_process("dh_saving")
-    };
-    //Process termination event notifier
-    Real ending(Real unused) 
-    {
-      Real notify_process("dh_ending");
-      BysMcmc::Bsr::DynHlm::DBApi::ModSes.SetBlocked(
-        _.dbName, _.model, _.session, false);
-      1
-    }
-  ]]
-};
-
 
 ////////////////////////////////////////////////////////////////////////////
 //Estimates a BSR-HLM model and stores in data base status information 
@@ -358,7 +252,7 @@ Cycler GetCycler(Text dbName,
     "NULL,"+   //dh_saving
     "NULL)");  //dh_ending
 
-  BysMcmc::Notifier dbNotifier = DBNotifier(dbName,model,session);
+  BysMcmc::Notifier dbNotifier = BysMcmc::DBNotifier(dbName,model,session);
   Real dbNotifier::loading(0);
   NameBlock model.def = BysMcmc::Bsr::DynHlm::DBApi::LoadModelDef
   (
