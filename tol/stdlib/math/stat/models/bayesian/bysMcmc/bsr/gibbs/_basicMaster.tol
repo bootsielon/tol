@@ -169,9 +169,13 @@ Class MasterSamplerBasic : MasterSampler
     VMatrix _.beta   := _.mln.blk::_.store;
   //WriteLn("TRACE"+_MID+" initialize 5 _.beta("<<VRows(_.beta)+"x"<<VColumns(_.beta)+")");
     Real DoExternalFilter(0);
+  //WriteLn("TRACE"+_MID+" initialize 6 ");
     Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
     {
-      _.sig.blk::_.buildWorkSpace(_.YplusV - _.XplusU*_.beta)
+    //WriteLn("TRACE"+_MID+" initialize 6.1 ");
+      VMatrix res = _.YplusV - _.XplusU*_.beta;
+    //WriteLn("TRACE"+_MID+" initialize 6.2 ");
+      _.sig.blk::_.buildWorkSpace(res)
     });
     VMatrix sig_0 = _.sig.blk::get.draw(0, True);
   //WriteLn("TRACE"+_MID+" initialize 7");
