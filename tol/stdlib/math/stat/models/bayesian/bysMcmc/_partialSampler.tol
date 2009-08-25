@@ -164,7 +164,19 @@ Class BlockPartialSampler
     BysMcmc::McmcPartialHandler _.mcmcPartialHandler := mcmcPartialHandler;
     Set fixedParamIdx = Copy(Empty);
     Set reloadParamIdx = Copy(Empty);
-    If(_.N,
+    If(!_.N,
+    {
+      Matrix _.fixedParamIdx  := Rand(0,1,0,0);
+      Matrix _.reloadParamIdx := Rand(0,1,0,0);
+      Matrix _.freeParamIdx   := Rand(0,1,0,0);
+      Set    _.fixedParam     := Copy(Empty);
+      Set    _.reloadParam    := Copy(Empty);
+      Set    _.freeParam      := Copy(Empty);
+      Real   _.fixedParamNum  := 0;
+      Real   _.reloadParamNum := 0;
+      Real   _.freeParamNum   := 0;
+      1
+    },
     {
       Real If(Card(_.mcmcPartialHandler::_.fixedParam), 
       {
@@ -188,19 +200,18 @@ Class BlockPartialSampler
          _.mcmcPartialHandler::_.reloader::selectIndexes(_.reloadParam);
         1 
       });
+      Set freeParamIdx = Range(1,_.N,1)-(fixedParamIdx << reloadParamIdx);
+      Matrix _.freeParamIdx := SetCol(freeParamIdx);
+      Set _.freeParam := ExtractByIndex(blockParam, freeParamIdx);
+      Real _.fixedParamNum  := Rows(_.fixedParamIdx);
+      Real _.reloadParamNum := Rows(_.reloadParamIdx);
+      Real _.freeParamNum   := Rows(_.freeParamIdx);
+      VMatrix If(_.fixedParamNum | _.reloadParamNum,
+      {
+        getMergedFixedAndReloadedSample(0)
+      });
       1
-    });
-    Set freeParamIdx = Range(1,_.N,1)-(fixedParamIdx << reloadParamIdx);
-    Matrix _.freeParamIdx := SetCol(freeParamIdx);
-    Set _.freeParam := ExtractByIndex(blockParam, freeParamIdx);
-    Real _.fixedParamNum  := Rows(_.fixedParamIdx);
-    Real _.reloadParamNum := Rows(_.reloadParamIdx);
-    Real _.freeParamNum   := Rows(_.freeParamIdx);
-    VMatrix If(_.fixedParamNum | _.reloadParamNum,
-    {
-      getMergedFixedAndReloadedSample(0)
-    });
-    1
+    })
   };
 
   ////////////////////////////////////////////////////////////////////////////
