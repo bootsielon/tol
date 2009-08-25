@@ -121,8 +121,9 @@ Class SubMasterBlockSampler: BlockSampler
   Real setStore.blocks(Matrix values_) 
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_.name+"::setStore.blocks 1");   
     Matrix values = If(Columns(values_)==1,Tra(values_),values_);
-  //WriteLn("TRACE "+_.name+"::setStore.blocks("<<Rows(values)+"x"<<Columns(values)+")");   
+  //WriteLn("TRACE "+_.name+"::setStore.blocks 2 values("<<Rows(values)+"x"<<Columns(values)+")");   
     Real store.blk(BysMcmc::BlockSampler blk)
     {
       If(Or(!(blk::enabled), blk::_.N<=0),0,

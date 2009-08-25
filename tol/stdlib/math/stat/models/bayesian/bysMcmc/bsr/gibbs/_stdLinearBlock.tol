@@ -27,16 +27,43 @@ WorkSpace.LinReg WorkSpace.LinReg.Default(Real unused)
 };
 
 ////////////////////////////////////////////////////////////////////////////
-Struct Solution.LinReg
+Class Solution.LinReg
 ////////////////////////////////////////////////////////////////////////////
 {
-  Real    numSim;
-  VMatrix Y; //Output matrix
-  VMatrix X; //Input matrix
-  VMatrix nu;
-  Real    err
+  Real    _.numSim;
+  VMatrix _.Y; //Output matrix
+  VMatrix _.X; //Input matrix
+  VMatrix _.nu;
+  Real    _.err
 };
 
+////////////////////////////////////////////////////////////////////////////
+Solution.LinReg Solution.LinReg.Build(
+  Real    numSim,
+  VMatrix Y,
+  VMatrix X,
+  VMatrix nu,
+  Real    err
+)
+////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::Bsr::Gibbs::Solution.LinReg aux = 
+  [[
+    Real    _.numSim = numSim;
+    VMatrix _.Y      = Y;
+    VMatrix _.X      = X;
+    VMatrix _.nu     = nu;
+    Real    _.err    = err
+  ]]
+};
+
+////////////////////////////////////////////////////////////////////////////
+Solution.LinReg Solution.LinReg.Default(Real unused)
+////////////////////////////////////////////////////////////////////////////
+{
+  BysMcmc::Bsr::Gibbs::Solution.LinReg.Build
+    ( ?,Rand(0,0,0,0),Rand(0,0,0,0),Rand(0,0,0,0),? )
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.BlockSamplerStdLinearSub =
@@ -64,7 +91,8 @@ Class BlockSamplerStdLinearSub
   //Matrix of linear system in last iteration
   VMatrix _old.X  = Rand(0,0,0,0); 
   //
-  Set _.solution = Copy(Empty);
+  Solution.LinReg _.solution = 
+    BysMcmc::Bsr::Gibbs::Solution.LinReg.Default(0);
 
   Real changed.X = True;
 
@@ -175,45 +203,61 @@ Class BlockSamplerStdLinearSub
   Real factorize(VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" factorize X("<<VRows(X)+"x"<<VColumns(X)+")");
+  //WriteLn("TRACE"+_MID+" factorize X("<<VRows(X)+"x"<<VColumns(X)+"):"<<X);
     If(And(design.is.constant,VRows(_.L)), 0,
     {
+    //WriteLn("TRACE"+_MID+" factorize 1");
       Real changed.X := If(Or(VColumns(X)!=VColumns(_old.X),
-                               VRows   (X)!=VRows   (_old.X)), -1,
+                              VRows   (X)!=VRows   (_old.X)), -1,
       {
+      //WriteLn("TRACE"+_MID+" factorize 2.1");
         1+VMatMax(Abs(X-_old.X))-1
       });
+    //WriteLn("TRACE"+_MID+" factorize 3");
       If(!changed.X ,0,
       {
+      //WriteLn("TRACE"+_MID+" factorize 4.1");
         Real density = VNonNullCells(X)/(VRows(X)*VColumns(X));
-      //WriteLn("TRACE "+_MID+" factorize density = "<<density);
+      //WriteLn("TRACE "+_MID+" factorize 4.2 density = "<<density);
         If(And(usePreconditioning,VRows(_.L)),
         {
+        //WriteLn("TRACE"+_MID+" factorize 5.1");
           VMatrix Hs = _.Ls;
           VMatrix H  = _.L;
+        //WriteLn("TRACE"+_MID+" factorize 5.2");
           VMatrix G  = Tra(CholeskiSolve(H,Tra(X),"PtL"));
+        //WriteLn("TRACE"+_MID+" factorize 5.3");
           Real density.G = VNonNullCells(G)/(VRows(G)*VColumns(G));
         //WriteLn("TRACE "+_MID+" factorize density G = "<<density.G);
+        //WriteLn("TRACE"+_MID+" factorize 5.4");
           VMatrix S  = CholeskiFactor(G,"XtX");
+        //WriteLn("TRACE"+_MID+" factorize 5.5");
           VMatrix Ss = CholeskiSolve(S,Convert(S, "Cholmod.R.Sparse"),"P");
+        //WriteLn("TRACE"+_MID+" factorize 5.6");
           VMatrix _.Ls := Hs*Ss;
+        //WriteLn("TRACE"+_MID+" factorize 5.7");
           VMatrix _.L  := _.Ls;
           1 
         },        
         {
-        //WriteLn("TRACE"+_MID+" factorize changed="<<changed.X );
+        //WriteLn("TRACE"+_MID+" factorize 6.1");
           Real numErr = Copy(NError);
           VMatrix _.L := If(density<.13, 
           {
+          //WriteLn("TRACE"+_MID+" factorize 6.2.1 X("<<VRows(X)+"x"<<VColumns(X)+"):"<<X);
             CholeskiFactor(X,"XtX")
           },
           {/*
             Text path = TolAppDataPath+"tmp/"+ToName(_MID)+"_dense_factorize.oza";
             WriteLn(_MID+"Dense factorization matrix will be stored into "+path);
             Real Ois.Store([[X]],path); */
+          //WriteLn("TRACE"+_MID+" factorize 6.2.3");
             VMatrix X_   = Convert(X,"Blas.R.Dense");
+          //WriteLn("TRACE"+_MID+" factorize 6.2.4");
             VMatrix XtX_ = MtMSqr(X_);
+          //WriteLn("TRACE"+_MID+" factorize 6.2.5");
             VMatrix XtX = Convert(XtX_,"Cholmod.R.Sparse");
+          //WriteLn("TRACE"+_MID+" factorize 6.2.6");
             CholeskiFactor(XtX,"X")
           });
           Real If(Copy(NError)>numErr,
@@ -224,8 +268,10 @@ Class BlockSamplerStdLinearSub
           });
           VMatrix If(_.R, 
           {
+          //WriteLn("TRACE"+_MID+" factorize 7.1");
             _.Ls := CholeskiSolve(_.L,Convert(_.L, "Cholmod.R.Sparse"),"P")
           });
+        //WriteLn("TRACE"+_MID+" factorize 8.1");
           VMatrix _old.X := X;
           1
         })
@@ -238,11 +284,13 @@ Class BlockSamplerStdLinearSub
   Real solve(Real numSim, VMatrix Y, VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_MID+" solve 1 ");
+  //WriteLn("TRACE "+_MID+" solve 1.1 Y("<<VRows(Y)+"x"<<VColumns(Y)+")");
+  //WriteLn("TRACE "+_MID+" solve 1.2 X("<<VRows(X)+"x"<<VColumns(X)+")");
     Real Do factorize(X);
+  //WriteLn("TRACE "+_MID+" solve 2");
     Real If(VRows(_.L)<=0, CMsg::Coded::show
       (BysMcmc::_.cmsg::_.invCholFac,[[_MID,""]]));
-    //WriteLn("TRACE "+_MID+" solve 3");
+  //WriteLn("TRACE "+_MID+" solve 3");
     Real If(numSim==1, _.cholSolRoundErrNumWarn := 0 );
 
   //WriteLn("TRACE "+_MID+" solve 4");
@@ -267,8 +315,9 @@ Class BlockSamplerStdLinearSub
       0
     });
   //WriteLn("TRACE "+_MID+" solve 8");
-    Set _.solution := 
-      BysMcmc::Bsr::Gibbs::Solution.LinReg(numSim, Y, X, nu, err);
+    BysMcmc::Bsr::Gibbs::Solution.LinReg _.solution := 
+      BysMcmc::Bsr::Gibbs::Solution.LinReg.Build(numSim,Y,X,nu,err);
+  //WriteLn("TRACE "+_MID+" solve 9");
     1
   };
 
@@ -292,8 +341,8 @@ Class BlockSamplerStdLinearSub
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1.1 _.A("<<VRows(_.A)+"x"<<VColumns(_.A)+")");
-  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1.1 _.a("<<VRows(_.a)+"x"<<VColumns(_.a)+")");
-  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1.1 nu ("<<VRows( nu)+"x"<<VColumns( nu)+")");
+  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1.2 _.a("<<VRows(_.a)+"x"<<VColumns(_.a)+")");
+  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1.3 nu ("<<VRows( nu)+"x"<<VColumns( nu)+")");
     VMatrix d   = _.a - _.A*nu;
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 2");
     VMatrix If(changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
@@ -367,7 +416,7 @@ Class BlockSamplerStdLinearSub
   //WriteLn("TRACE "+_MID+" draw.gibbs 4 X01=" << X01);
     Real solve(numSim, Y01, X01);
   //WriteLn("TRACE "+_MID+" draw.gibbs 2");
-    gibbs.drawer(numSim, _.solution->nu)
+    gibbs.drawer(numSim, _.solution::_.nu)
   };
 
   
@@ -412,7 +461,7 @@ Class BlockSamplerStdLinearSub
     {
       Real t0 = Copy(Time);
       Real changed.X := False;
-      VMatrix b := gibbs.drawer(numSim, _.solution->nu);
+      VMatrix b := gibbs.drawer(numSim, _.solution::_.nu);
       VMatrix ep := getStdResiduals(ws,b);
       Real p1 := -0.5*VMatDat(MtMSqr(ep),1,1);
       Real s1 = Sqrt(-2*p1/m);
@@ -560,25 +609,41 @@ Class BlockSamplerStdLinear: BlockSampler
   Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 0");
     If(!_.N1,  
     {
+    //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 1.1");
       Real ok = _.freeBlock::matchConstrains(beta0,A,a);
+    //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 1.2");
       Real putStoreV(_.freeBlock::_.beta0);
+    //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 1.3");
       ok
     },
     {
+    //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.1");
       Real ok1 = _.fullBlock::matchConstrains(beta0,A,a);
+    //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.2");
       Real ok2 = If(!ok1, False,
       {
-        VMatrix b1 = _.partialSampler::_.fixedValues;
+      //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.3");
+        VMatrix b1 = _.partialSampler::_.fixedValues << 
+                     _.partialSampler::_.reloadedValues;
+      //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.4");
         VMatrix b2 = SubRow(_.fullBlock::_.beta0, _.i2);
+      //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.5");
         VMatrix A1 = SubCol(A, _.i1);
+      //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.6");
         VMatrix A2 = SubCol(A, _.i2);
+      //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.7");
         VMatrix a2 = a - A1*b1;
+      //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.8");
         Real _.freeBlock::matchConstrains(b2,A2,a2)
       });
+    //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.9");
       VMatrix b_ = _.partialSampler::mergeWithFreeSample(_.freeBlock::_.beta0); 
+    //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.10");
       Real putStoreV(b_);
+    //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::matchConstrains 2.11");
       ok2
     })
   };
@@ -596,7 +661,8 @@ Class BlockSamplerStdLinear: BlockSampler
     },
     {
     //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::draw 2.1");
-      VMatrix b1 = _.partialSampler::_.fixedValues;
+      VMatrix b1 = _.partialSampler::_.fixedValues << 
+                   _.partialSampler::_.reloadedValues;
     //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::draw 2.2");
       VMatrix A1 = SubCol(_.fullBlock::_.A, _.i1);
     //WriteLn("TRACE"+_MID+" BlockSamplerStdLinear::draw 2.3");

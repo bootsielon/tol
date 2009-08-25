@@ -22,9 +22,9 @@ Class BlockSamplerOutputMissing : BlockSamplerStdLinear
   Matrix _.prior.nu;
   //Inverse of standard deviation vector of output missing priors
   Matrix _.prior.si;
-  //Standarized output of output missing priors
+  //Standarized output of missing priors
   VMatrix _.prior.Y;
-  //Standarized output of output missing priors
+  //Standarized input of missing priors
   VMatrix _.prior.X;
 
   //--------------------------------------------------------------------------
@@ -32,7 +32,10 @@ Class BlockSamplerOutputMissing : BlockSamplerStdLinear
   //--------------------------------------------------------------------------
   //Auxiliar variable for filter creating
   VMatrix _.FEye = Rand(0,0,0,0);
+  //Work space
   WorkSpace.LinReg _.ws = WorkSpace.LinReg.Default(0);
+  //Standarized input of free missing priors
+  VMatrix _.prior.X.free = Rand(0,0,0,0);
 
   //--------------------------------------------------------------------------
   //Methods
@@ -42,25 +45,75 @@ Class BlockSamplerOutputMissing : BlockSamplerStdLinear
   ////////////////////////////////////////////////////////////////////////////
   { _.ws };
 
+
   ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(BlockSampler arm.blk, //Arima Block handler
-                       VMatrix   si,    //SigmaBlock filter
-                       VMatrix   Z)     //Noise with missing as zero
+  Real _buildWorkSpace_full(BysMcmc::Bsr::Gibbs::BlockSamplerArima arm.blk, //Arima Block handler
+                            VMatrix   si,    //SigmaBlock filter
+                            VMatrix   Z)     //Noise with missing as zero
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" BlockSamplerOutputMissing::_buildWorkSpace 0");
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_full 1");
     VMatrix If(VRows(_.FEye)==0,
     {
-      _.FEye := SubCol(Eye(VRows(Z)),_.t)
+      _.FEye := SubCol(Eye(VRows(Z)), _.t)
     });
     VMatrix F = arm.blk::filter(_.FEye);
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_full 2 F("<<VRows(F)+"x"<<VColumns(F)+")");
     BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
     [[
       VMatrix _.Y = arm.blk::filter(si*Z) << _.prior.Y;
       VMatrix _.X = (-si*F) << _.prior.X
     ]];
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_full 3.1 wslr::_.Y("<<VRows(wslr::_.Y)+"x"<<VColumns(wslr::_.Y)+")");
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_full 3.2 wslr::_.X("<<VRows(wslr::_.X)+"x"<<VColumns(wslr::_.X)+")");
     BysMcmc::Bsr::Gibbs::WorkSpace.LinReg _.ws := wslr;
     True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace_partial(
+    BysMcmc::Bsr::Gibbs::BlockSamplerArima arm.blk, //Arima Block handler
+    VMatrix   si,    //SigmaBlock filter
+    VMatrix   Z)     //Noise with missing as zero
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 1");
+    VMatrix If(VRows(_.FEye)==0,
+    {
+      Set idx = ExtractByIndex(_.t, _.i2);
+      _.FEye := SubCol(Eye(VRows(Z)), idx);
+      _.prior.X.free := SubCol(_.prior.X, _.i2)
+    });
+    VMatrix F = arm.blk::filter(_.FEye);
+    VMatrix u1 = _.partialSampler::_.fixedValues << 
+                 _.partialSampler::_.reloadedValues;
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 u1\n="<<Matrix(Tra(VMat2Mat(u1))));
+    VMatrix V1 = MergeRows(VRows(Z), [[ [[ u1, SetCol(_.i1) ]] ]]);
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 V1\n="<<Matrix(Tra(VMat2Mat(V1))));
+    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
+    [[
+      VMatrix _.Y = arm.blk::filter(si*(Z-V1))<< _.prior.Y;
+      VMatrix _.X = (-si*F) << _.prior.X.free
+    ]];
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 3.1 wslr::_.Y("<<VRows(wslr::_.Y)+"x"<<VColumns(wslr::_.Y)+")");
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 3.2 wslr::_.X("<<VRows(wslr::_.X)+"x"<<VColumns(wslr::_.X)+")");
+    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg _.ws := wslr;
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(BysMcmc::Bsr::Gibbs::BlockSamplerArima arm.blk, //Arima Block handler
+                       VMatrix   si,    //SigmaBlock filter
+                       VMatrix   Z)     //Noise with missing as zero
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!_.N1,
+    {
+      _buildWorkSpace_full(arm.blk,si,Z)
+    },
+    {
+      _buildWorkSpace_partial(arm.blk,si,Z)
+    })
   };
 
   ///////////////////////////////////////////////////////////////////////////
@@ -151,7 +204,6 @@ Text _.autodoc.member.OutputMissingBlock =
   BysMcmc::Bsr::Gibbs::BlockSamplerStdLinear.Default(name, numBlock, firstCol, config),
   BysMcmc::Bsr::Gibbs::BlockSamplerOutputMissing blk = [[
   Code _.buildWorkSpace = _buildWorkSpace;
-  //Given initial values of block variables
   VMatrix _.store = Mat2VMat(SetMat(Extract(outputMissingBlock, 6)));
   //Defining the block in the Markov Chain
   Real _defined = define(

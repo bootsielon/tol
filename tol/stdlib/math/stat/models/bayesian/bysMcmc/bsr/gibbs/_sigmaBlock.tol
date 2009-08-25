@@ -164,6 +164,7 @@ Class BlockSamplerSigma : BlockSampler
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+" setStore("<<Rows(values)+"x"<<Columns(values)+")");
     If(_.N<=0,0,{
     Real putStore(values);
     VMatrix sigmaInvVar = BinGroup("+", 

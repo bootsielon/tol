@@ -88,8 +88,11 @@ Class BlockSamplerArima : BlockSampler
       numPar, m, difDegree, p, q, numDifData, dif, ar, ma, D
     ]];
     Real SetIndexByName(segment->ArimaAuxInfo);
-    VMatrix _.difFilter := 
-      _.difFilter + enlargeSymVMatrix(D,equIdxVec);
+  //WriteLn("TRACE"+_MID+" initializeNoArimaBlock before _.difFilter:"<<_.difFilter);
+    VMatrix aux = enlargeSymVMatrix(D,equIdxVec);
+  //WriteLn("TRACE"+_MID+" initializeNoArimaBlock before aux:"<<aux);
+    VMatrix _.difFilter := _.difFilter + aux;
+  //WriteLn("TRACE"+_MID+" initializeNoArimaBlock after _.difFilter:"<<_.difFilter);
     VMatrix _.noArmaId := 
       _.noArmaId + enlargeSymVMatrix(Eye(m),equIdxVec);
     1
@@ -172,15 +175,18 @@ Class BlockSamplerArima : BlockSampler
       Rand(difDegree,m,0,0) <<
       Mat2VMat(SubRow(aux1, Range(difDegree+1,m,1)),0,0.25,1.E-10)
     };
+  //WriteLn("TRACE"+_MID+" initializeArimaBlock before _.difFilter:"<<_.difFilter);
     VMatrix _.difFilter := 
       _.difFilter + enlargeSymVMatrix(D,equIdxVec);
+  //WriteLn("TRACE"+_MID+" initializeArimaBlock after _.difFilter:"<<_.difFilter);
     VMatrix If(!numPar,
       _.noArmaId := _.difFilter + enlargeSymVMatrix(Eye(m),equIdxVec));
+  //WriteLn("TRACE"+_MID+" initializeArimaBlock after 2 _.difFilter:"<<_.difFilter);
     VMatrix Li_ar = Rand(0,0,0,0);
     VMatrix L_ma  = Rand(0,0,0,0);
     Set Li_ar_factors = Copy(Empty);
     Set L_ma_factors = Copy(Empty);
-  //WriteLn("TRACE"+_MID+" initialize block["<<resBlockNum_+"] 2.2.7 "+Time);
+  //WriteLn("TRACE"+_MID+" initializeArimaBlock["<<resBlockNum_+"] 2.2.7 "+Time);
     Set segment->ArimaAuxInfo := 
     [[
        numPar, m, difDegree, p, q, numDifData, 
@@ -202,8 +208,10 @@ Class BlockSamplerArima : BlockSampler
     WriteLn(_MID+" Initializing block");
     Real    _.N           := 0;
     Real    _.numDifData  := 0;
-    VMatrix _.difFilter   := Zeros(_.m,_.m);
-    VMatrix _.noArmaId    := Zeros(_.m,_.m);
+  //WriteLn("TRACE"+_MID+" prepare before _.difFilter:"<<_.difFilter);
+    VMatrix _.difFilter   := Zeros(_.m,_.m, "Cholmod.R.Sparse");
+  //WriteLn("TRACE"+_MID+" prepare after _.difFilter:"<<_.difFilter);
+    VMatrix _.noArmaId    := Zeros(_.m,_.m, "Cholmod.R.Sparse");
     Set     _.paramDesc   := Copy(Empty);
   //WriteLn("TRACE"+_MID+"Initializing ARIMA filters");
   //WriteLn("TRACE "+_MID+" Initializing block 1");
@@ -382,6 +390,7 @@ Class BlockSamplerArima : BlockSampler
   {
     If(_.N<=0,0,
     {
+    //WriteLn("TRACE"+_MID+" setStore("<<Rows(values)+"x"<<Columns(values)+")");
       Real putStore(values);
       Real k = 1;
     //WriteLn("TRACE"+_MID+" setStore 1 _.store="<<Matrix VMat2Mat(_.store));
@@ -434,7 +443,10 @@ Class BlockSamplerArima : BlockSampler
   VMatrix filter.deterministic(VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
-    _.difFilter*Z
+  //WriteLn("TRACE"+_MID+" filter.deterministic before _.difFilter:"<<_.difFilter);
+    VMatrix aux = _.difFilter*Z;
+  //WriteLn("TRACE"+_MID+" filter.deterministic after _.difFilter:"<<_.difFilter);
+    aux
   };
 
   ////////////////////////////////////////////////////////////////////////////

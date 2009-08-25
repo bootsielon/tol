@@ -196,6 +196,10 @@ Class BlockPartialSampler
     Real _.fixedParamNum  := Rows(_.fixedParamIdx);
     Real _.reloadParamNum := Rows(_.reloadParamIdx);
     Real _.freeParamNum   := Rows(_.freeParamIdx);
+    VMatrix If(_.fixedParamNum | _.reloadParamNum,
+    {
+      getMergedFixedAndReloadedSample(0)
+    });
     1
   };
 
@@ -232,7 +236,7 @@ Class BlockPartialSampler
     VMatrix values = MergeRows(_.N, [[
       [[_.fixedValues,    _.fixedParamIdx ]],
       [[_.reloadedValues, _.reloadParamIdx]],
-      [[_.freeValues,     _.freeParamIdx  ]] ]]);
+      [[  freeValues,     _.freeParamIdx  ]] ]]);
     VMatrix _.values := Convert(values,"Blas.R.Dense")
   }
 };

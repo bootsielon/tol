@@ -126,16 +126,25 @@ Class BlockSampler
     If(!refresh, Copy(_.store),
     { 
     //WriteLn("TRACE "+_MID+" get.draw 2 _.partialSampler::_.freeParamNum = "<<_.partialSampler::_.freeParamNum);
-      VMatrix b = If(Not(_.partialSampler::_.freeParamNum), 
+      VMatrix b = Case(
+      Not(_.partialSampler::_.freeParamNum), 
       {
-       //WriteLn("TRACE "+_MID+" get.draw 3");
-         _.partialSampler::getMergedFixedAndReloadedSample(numSim)
+      //WriteLn("TRACE "+_MID+" get.draw 3.1");
+        _.partialSampler::getMergedFixedAndReloadedSample(numSim)
       },
+      _.partialSampler::_.freeParamNum!=_.N, 
       {
-      //WriteLn("TRACE "+_MID+" get.draw 4");
+      //WriteLn("TRACE "+_MID+" get.draw 3.2");
+        _.partialSampler::getMergedFixedAndReloadedSample(numSim);
+        VMatrix b2 = draw(numSim);
+        _.partialSampler::mergeWithFreeSample(b2)
+      },
+      1==1,
+      {
+      //WriteLn("TRACE "+_MID+" get.draw 3.3");
         draw(numSim)
       });
-    //WriteLn("TRACE "+_MID+" get.draw 5");
+    //WriteLn("TRACE "+_MID+" get.draw 4");
       Real setStore(VMat2Mat(b));
       b
     })
@@ -253,6 +262,7 @@ Class BlockSampler
   Real putStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_.name+"::putStore("<<Rows(values)+"x"<<Columns(values)+")");
     putStoreV(Mat2VMat(values))
   };
 
@@ -262,6 +272,7 @@ Class BlockSampler
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_.name+"::setStore("<<Rows(values)+"x"<<Columns(values)+")");
     putStore(values) 
   };
 

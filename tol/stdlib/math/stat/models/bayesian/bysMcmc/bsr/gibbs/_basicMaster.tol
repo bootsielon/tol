@@ -291,6 +291,7 @@ Class MasterSamplerBasic : MasterSampler
     });
   //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 6 _.beta="<<_.beta);
     VMatrix param = _.beta << sig << arm << im << om;
+  //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 7 param="<<VRows(param)+"x"<<VColumns(param)+")");
     Real putStoreV(param);
     param
   };

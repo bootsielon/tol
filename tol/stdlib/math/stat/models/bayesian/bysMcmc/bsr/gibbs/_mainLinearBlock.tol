@@ -79,7 +79,8 @@ Class BlockSamplerMainLinear : BlockSamplerStdLinear
     },
     {
     //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 2");
-      VMatrix b1 = _.partialSampler::_.fixedValues;
+      VMatrix b1 = _.partialSampler::_.fixedValues << 
+                   _.partialSampler::_.reloadedValues;
       VMatrix X1 = SubCol(X, _.i1);
       VMatrix X2 = SubCol(X, _.i2);
       VMatrix Y2 = Y - X1*b1;
