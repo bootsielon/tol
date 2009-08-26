@@ -1,0 +1,85 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  732;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "Some basic function of VMatrix do not work properly with Cholmod.R.Sparse type";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+    
+  Matrix  a_        = SetCol([[1,2,3,0,0]]);
+  Matrix zero_      = Rand(Rows(a_),1,0,0);
+  Matrix proof_1_   = a_-1;
+  Matrix proofNot_  = Not(zero_);
+  Matrix proofGT_   = GT(proof_1_, zero_);
+  Matrix proofLE_   = LE(a_, zero_);
+
+  VMatrix a         = Mat2VMat(a_);
+  VMatrix zero      = Convert(Zeros(VRows(a), 1),"Blas.R.Dense");
+  VMatrix proof_1   = a-1;
+  VMatrix proofNot  = Not(zero);
+  VMatrix proofGT   = GT(proof_1, zero);
+  VMatrix proofLE   = LE(a, zero);
+
+  VMatrix va        = Convert(a, "Cholmod.R.Sparse");
+  VMatrix vzero     = Zeros(VRows(va), 1);
+  VMatrix vproof_1  = va-1;
+  VMatrix vproofNot = Not(vzero);
+  VMatrix vproofGT  = GT(vproof_1, vzero);
+  VMatrix vproofLE  = LE(va, vzero);
+  
+  Matrix test.1 = proof_1_  | VMat2Mat(proof_1)  | VMat2Mat(vproof_1);
+  Matrix test.2 = proofNot_ | VMat2Mat(proofNot) | VMat2Mat(vproofNot);
+  Matrix test.3 = proofGT_  | VMat2Mat(proofGT)  | VMat2Mat(vproofGT);
+  Matrix test.4 = proofLE_  | VMat2Mat(proofLE)  | VMat2Mat(proofLE);
+
+  Real err.1 = MatMax(Abs(VMat2Mat(proof_1)  - proof_1_  ));
+  Real err.2 = MatMax(Abs(VMat2Mat(proofNot) - proofNot_ ));
+  Real err.3 = MatMax(Abs(VMat2Mat(proofGT)  - proofGT_  ));
+  Real err.4 = MatMax(Abs(VMat2Mat(proofLE)  - proofLE_  ));
+
+  Real err.v.1 = MatMax(Abs(VMat2Mat(vproof_1)  - proof_1_  ));
+  Real err.v.2 = MatMax(Abs(VMat2Mat(vproofNot) - proofNot_ ));
+  Real err.v.3 = MatMax(Abs(VMat2Mat(vproofGT)  - proofGT_  ));
+  Real err.v.4 = MatMax(Abs(VMat2Mat(vproofLE)  - proofLE_  ));
+
+  Real q.1 = 1-err.1;
+  Real q.2 = 1-err.2;
+  Real q.3 = 1-err.3;
+  Real q.4 = 1-err.4;
+
+  Real q.v.1 = 1-err.v.1;
+  Real q.v.2 = 1-err.v.2;
+  Real q.v.3 = 1-err.v.3;
+  Real q.v.4 = 1-err.v.4;
+
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[numErr0, numErr1, 
+                          err.1, err.2, err.3, err.4, 
+                          err.v.1, err.v.2, err.v.3, err.v.4]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0)*
+                      q.1*q.2*q.3*q.4*
+                      q.v.1*q.v.2*q.v.3*q.v.4;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
