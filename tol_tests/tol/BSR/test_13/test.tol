@@ -188,9 +188,9 @@ BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
 
-Real cycler::initialize(0);
+//Real cycler::initialize(0);
 
-/*
+
 BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
 
 Real numErr1 = Copy(NError);
