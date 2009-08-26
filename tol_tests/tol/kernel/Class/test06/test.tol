@@ -1,0 +1,79 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Storing Class definitions and instances in OIS
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "https://www.tol-project.org/ticket/674";
+Text summary_ = "test for ClassOf function and Copy of Class instances" ;
+
+//Write here the initial test TOL code if needed
+
+Real numErr0 = Copy(NError);
+
+Class ClsA
+{
+  Text _.name;
+  Text PutName( Text name ) { Text _.name := name }
+};
+
+ClsA ClsA.New( Text name )
+{
+  ClsA aux = [[ Text _.name = name ]]
+};
+
+
+Class ClsB
+{
+  Real v = 0;
+  ClsA A;
+  Set cont = Copy( Empty )
+};
+
+ClsB ClsB.New( Real x, Text name )
+{
+  ClsB aux = [[ Real v = x, ClsA A = ClsA.New( name ) ]]
+};
+
+ClsB aB = ClsB.New( 1, "kk" );
+
+Set Append( aB::cont, [[ ClsA.New( "aa" ) ]] );
+
+ClsB aB1 = Copy( aB );
+Text aB1::A::PutName( "jj" );
+Text ((aB1::cont)[1])::PutName( "aa copia" );
+
+WriteLn( "aB es de clase " << ClassOf( aB ) );
+WriteLn( "aB1 es copia de aB, debe ser de clase ClsB y es:" << ClassOf( aB1 ) );
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0,
+  numErr1,
+  ClassOf( aB ),
+  ClassOf( aB1 ),
+  aB::A::_.name,
+  aB1::A::_.name 
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0==numErr1,
+  ClassOf( aB )==ClassOf( aB1 ),
+  aB::A::_.name!=aB1::A::_.name);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+WriteLn("NObject="<<NObject);
+WriteLn("NCore="<<NCore);
+resultStr_
+/* */
+
+
+
