@@ -16,7 +16,7 @@ VMatrix A1 = Eye(n);
 VMatrix A2 = Rand(n,n,-10,10,"Cholmod.R.Sparse",0.5*n^2);
 VMatrix A3 = A1+A2;
 VMatrix A4 = A3-A2*0.9999999999999999;
-VMatrix A5 = (A4+1000)-1000;
+VMatrix A5 = Convert((A4+1000)-1000,"Cholmod.R.Sparse");
 VMatrix A6 = Pack(A5);
 VMatrix A7 = Drop(A4,1.E-14)
 ]];
