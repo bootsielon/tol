@@ -1,0 +1,87 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  730;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "Derived Class Instances as Main Class Instances";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+    
+  Class CPrincipal {
+    Real _.a;
+    Real GetA(Real void){ _.a }
+  };
+  
+  Class CDerivada : CPrincipal {
+    Real _.b;
+    Real GetB(Real void){ _.b }
+  };
+  
+  CPrincipal ej1 = [[Real _.a = 1]];
+
+  Real ok.1.1 =  ObjectExist("CPrincipal","ej1");
+  Real ok.1.2 = !ObjectExist("CDerivada", "ej1");
+  
+  CDerivada ej2 = [[Real _.a = 1; Real _.b = 2]];
+
+  Real ok.2.1 = ObjectExist("CPrincipal","ej2");
+  Real ok.2.2 = ObjectExist("CDerivada", "ej2");
+   
+  CDerivada CDerivada.New(Real a, Real b) {
+    CDerivada new = 
+    [[
+      Real _.a = a;
+      Real _.b = b
+    ]]
+  };
+  
+  CDerivada ej3 = { CDerivada.New(Real a = 1; Real b = 2) };
+  
+  Real ok.3.1 = ObjectExist("CPrincipal","ej3");
+  Real ok.3.2 = ObjectExist("CDerivada", "ej3");
+  
+  // Si asignamos una referencia a un objeto de CPrincipal con una
+  // instancia de una clase derivada (CDerivada) perdemos
+  // los métodos (o atributos tipo Code) de la clase derivada.
+  
+  CPrincipal ej4 = { CDerivada.New(Real a = 1; Real b = 2) };
+  // ej4 no posee los métodos propios de CDerivada
+  
+  Real ok.4.1 = ObjectExist("CPrincipal","ej4");
+  Real ok.4.2 = ObjectExist("CDerivada","ej4");
+  
+  
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[numErr0, numErr1, 
+                          ok.1.1, ok.1.2, 
+                          ok.2.1, ok.2.2, 
+                          ok.3.1, ok.3.2, 
+                          ok.4.1, ok.4.2]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0, 
+                      ok.1.1, ok.1.2, 
+                      ok.2.1, ok.2.2, 
+                      ok.3.1, ok.3.2, 
+                      ok.4.1, ok.4.2);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
