@@ -31,10 +31,18 @@ Class BlockSamplerInputMissing : BlockSamplerStdLinear
   //Standarized input of input missing priors
   VMatrix _.prior.X;
 
+
   //--------------------------------------------------------------------------
   // Auxiliar members
   //--------------------------------------------------------------------------
   WorkSpace.LinReg _.ws = WorkSpace.LinReg.Default(0);
+  //Standarized input of free missing priors
+  VMatrix _.prior.X.free = Rand(0,0,0,0);
+
+  Set _.j1  = Copy(Empty);
+  Set _.j2  = Copy(Empty);
+  Set _.tk1 = Copy(Empty);
+  Set _.tk2 = Copy(Empty);
 
   //--------------------------------------------------------------------------
   //Methods
@@ -44,12 +52,19 @@ Class BlockSamplerInputMissing : BlockSamplerStdLinear
   ////////////////////////////////////////////////////////////////////////////
   { _.ws };
 
+
   ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(BlockSampler arm.blk, //ArimaBlock filter
-                       VMatrix si,    //Non filtered LinearBlock parameters 
-                       VMatrix Z,     //Noise of main linear block
-                       VMatrix beta   //SigmaBlock filter
-  )
+  WorkSpace.LinReg getWorkSpaceLinReg(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { _.ws };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace_full(
+    BysMcmc::Bsr::Gibbs::BlockSamplerArima arm.blk, //ArimaBlock filter
+    VMatrix si,    //SigmaBlock filter
+    VMatrix Z,     //Noise of main linear block
+    VMatrix beta)  //Main Linear Block parameters 
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" BlockSamplerInputMissing::_buildWorkSpace 0");
@@ -67,6 +82,68 @@ Class BlockSamplerInputMissing : BlockSamplerStdLinear
     ]];
     BysMcmc::Bsr::Gibbs::WorkSpace.LinReg _.ws := wslr;
     True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace_partial(
+    BysMcmc::Bsr::Gibbs::BlockSamplerArima arm.blk, //ArimaBlock filter
+    VMatrix si,    //SigmaBlock filter
+    VMatrix Z,     //Noise of main linear block
+    VMatrix beta)  //Main Linear Block parameters 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix If(VRows(_.prior.X.free)==0,
+    {
+       Set _.j1  := ExtractByIndex(_.j,  _.i1);
+       Set _.j2  := ExtractByIndex(_.j,  _.i2);
+       Set _.tk1 := ExtractByIndex(_.tk, _.i1);
+       Set _.tk2 := ExtractByIndex(_.tk, _.i2);
+      _.prior.X.free := SubCol(_.prior.X, _.i2)
+    });
+
+    Real M = VRows(Z);
+
+    VMatrix b1_= SubRow(beta, _.j1);
+    VMatrix b2_= SubRow(beta, _.j2);
+    Matrix  b1 = VMat2Mat(b1_);
+    Matrix  b2 = VMat2Mat(b2_);
+  //WriteLn("TRACE "+_MID+" draw 2 b="<<b);
+    VMatrix B1 = (Convert(Triplet(_.tk1 | b1, M, _.N1),"Cholmod.R.Sparse"));
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 B1\n="<<B1);
+    VMatrix B2 = (Convert(Triplet(_.tk2 | b2, M, _.N2),"Cholmod.R.Sparse"));
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 B2\n="<<B2);
+    VMatrix u1 = _.partialSampler::_.fixedValues << 
+                 _.partialSampler::_.reloadedValues;
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 u1\n="<<u1);
+    VMatrix U1 = B1 * u1;
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 u1\n="<<U1);
+
+    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
+    [[
+      VMatrix _.Y = arm.blk::filter(si*Z+U1) << _.prior.Y;
+      VMatrix _.X = arm.blk::filter(si*B2  ) << _.prior.X.free
+    ]];
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 3.1 wslr::_.Y("<<VRows(wslr::_.Y)+"x"<<VColumns(wslr::_.Y)+")");
+  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 3.2 wslr::_.X("<<VRows(wslr::_.X)+"x"<<VColumns(wslr::_.X)+")");
+    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg _.ws := wslr;
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(
+    BysMcmc::Bsr::Gibbs::BlockSamplerArima arm.blk, //ArimaBlock filter
+    VMatrix si,    //SigmaBlock filter
+    VMatrix Z,     //Noise of main linear block
+    VMatrix beta)  //Main Linear Block parameters 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!_.N1,
+    {
+      _buildWorkSpace_full(arm.blk,si,Z,beta)
+    },
+    {
+      _buildWorkSpace_partial(arm.blk,si,Z,beta)
+    })
   };
 
   ///////////////////////////////////////////////////////////////////////////
