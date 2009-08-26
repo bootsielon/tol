@@ -78,17 +78,17 @@ Class BlockSamplerOutputMissing : BlockSamplerStdLinear
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 1");
-    VMatrix If(VRows(_.FEye)==0,
+    VMatrix If(VRows(_.prior.X.free)==0,
     {
       Set idx = ExtractByIndex(_.t, _.i2);
       _.FEye := SubCol(Eye(VRows(Z)), idx);
       _.prior.X.free := SubCol(_.prior.X, _.i2)
     });
     VMatrix F = arm.blk::filter(_.FEye);
-    VMatrix u1 = _.partialSampler::_.fixedValues << 
+    VMatrix v1 = _.partialSampler::_.fixedValues << 
                  _.partialSampler::_.reloadedValues;
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 u1\n="<<Matrix(Tra(VMat2Mat(u1))));
-    VMatrix V1 = MergeRows(VRows(Z), [[ [[ u1, SetCol(_.i1) ]] ]]);
+    VMatrix V1 = MergeRows(VRows(Z), [[ [[ v1, SetCol(_.i1) ]] ]]);
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 V1\n="<<Matrix(Tra(VMat2Mat(V1))));
     BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
     [[
