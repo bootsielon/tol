@@ -297,17 +297,15 @@ public:
   int Enlarge(int nrow, int ncol, int row0, int col0);
   int MergeRows(int nrow, BSet& items);
 
-  BVMat ApplyFunRR (BFunRR f,  bool f00, const char* fName) const;
-  BVMat ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
-                    const BVMat& B) const;
-  BVMat ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
-                   double b) const;
-  static int ApplyFunRR (BFunRR f, bool f00, const char* fName,
-                         const BVMat& A,  BVMat& B);
-  static int ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
-                         const BVMat& A, const BVMat& B, BVMat& C);
-  static int ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
-                         const BVMat& A, double b, BVMat& C);
+  static int ApplyFunRR (BFunRR f, bool f00, const char* fName, const BVMat& A,  BVMat& B);
+  BVMat      ApplyFunRR (BFunRR f, bool f00, const char* fName) const;
+
+  static int ApplyFunR2R(BFunR2R f, bool f00, bool f0x, const char* fName, const BVMat& A, const BVMat& B, BVMat& C);
+  BVMat      ApplyFunR2R(BFunR2R f, bool f00, bool f0x, const char* fName,                 const BVMat& B) const;
+
+  static int ApplyFunR2r(BFunR2R f, bool f00, bool f0x, const char* fName, const BVMat& A, double b, BVMat& C);
+  BVMat      ApplyFunR2r(BFunR2R f, bool f00, bool f0x, const char* fName,                 double b) const;
+
   static void BinGroup(BBinFun f, BVMat** arr, int num, BVMat& C);
   static BDat& AutoConvert();
 private:
@@ -483,17 +481,21 @@ private:
   static int cRs2cRt(BVMat& left, const BVMat& right);
   static int cRs2bRd(BVMat& left, const BVMat& right);
   static int cRt2bRd(BVMat& left, const BVMat& right);
-  static int convertIfNeeded2cRs(const BVMat&  A,  const BVMat&  B, 
-                                       BVMat*& A_,       BVMat*& B_,
-                                 const char* fName, bool forze=false);
-  static int convertIfNeeded2bRd(const BVMat&  A,  const BVMat&  B, 
-                                       BVMat*& A_,       BVMat*& B_,
-                                 const char* fName, bool forze=false);
-  static int convertIfNeeded2bRd(const BVMat&  A,  BVMat*& A_, 
-                                 const char* fName);
   static int convertIfNeeded_cRt2cRs(const BVMat&  A,  const BVMat&  B, 
                                            BVMat*& A_,       BVMat*& B_,
-                                     const char* fName, bool forze=false);
+                                     const char* fName, bool forze);
+  static int convertIfNeeded_cRt2cRs(const BVMat&  A,  BVMat*& A_, 
+                                     const char* fName);
+  static int convertIfNeeded_all2cRs(const BVMat&  A,  const BVMat&  B, 
+                                           BVMat*& A_,       BVMat*& B_,
+                                     const char* fName, bool forze);
+  static int convertIfNeeded_all2cRs(const BVMat&  A,  BVMat*& A_, 
+                                     const char* fName);
+  static int convertIfNeeded_all2bRd(const BVMat&  A,  const BVMat&  B, 
+                                           BVMat*& A_,       BVMat*& B_,
+                                     const char* fName, bool forze);
+  static int convertIfNeeded_all2bRd(const BVMat&  A,  BVMat*& A_, 
+                                     const char* fName);
 /*------------------------------------------------------------------------------
   vmat_stats.cpp: Statistics methods
 ------------------------------------------------------------------------------*/
@@ -693,7 +695,7 @@ public:
   static int GT (const BVMat& A, const BVMat& B, BVMat& C);
   static int Min(const BVMat& A, const BVMat& B, BVMat& C);
   static int Max(const BVMat& A, const BVMat& B, BVMat& C);
-  
+  static int If (const BVMat& A, const BVMat& B, const BVMat& C, BVMat& D);
 /*------------------------------------------------------------------------------
   vmat_chol.cpp: Choleski methods 
 ------------------------------------------------------------------------------*/
