@@ -1,0 +1,155 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix Pol2VMat function
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = "Checking logic VMatrix funtions" ;
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+Real iter = 1;
+
+Real q.vmat.bd = 1;
+Real q.vmat.cs = 1;
+
+
+While(And(iter<=100, 
+          numErr0 == Copy(NError),  
+          q.vmat.bd == 1 ,  
+          q.vmat.cs == 1),
+{
+  Real K = IntRand(2,5);
+  Real r = IntRand(1,100);
+  Real c = IntRand(1,2);
+  Real s = Rand(0.01,0.99);
+
+  Set vmat.cs = For(1,K,VMatrix(Real k)
+  {
+    Rand(r,c,-10,10,"Cholmod.R.Sparse",Round((1-s)*r*c))
+  });
+
+  Set vmat.bd = EvalSet(vmat.cs, VMatrix(VMatrix v)
+  {
+    Convert(v,"Blas.R.Dense")
+  });
+
+  Set mat = EvalSet(vmat.bd, Matrix(VMatrix v)
+  {
+    VMat2Mat(v)
+  });
+
+  Text getExpression(Text function, Set set, Text type)
+  {
+    Text name = Name(set);   
+    Real ok = FunctionExist(type,function);
+    If(!ok,
+    {
+      WriteLn("No se encuentra la función "+type+" "+function);
+      ""
+    },
+    {
+      Real n = NumArg(FindCode(type,function));
+      type+" Test_"+function+"_"+name+"="+
+      Case(
+      n==0,
+      {
+        function+"("+SetSum(For(1,Card(set),Text(Real k)
+        {
+          If(k>1,", ","")+name+"["+IntText(k)+"]"
+        }))+")"
+      },
+      n==1,
+      {
+        function+"("+name+"["+IntText(1)+"])"
+      },
+      n==2,
+      {
+        function+"("+name+"["+IntText(1)+"],"+
+                     name+"["+IntText(2)+"])"
+      },
+      n==3,
+      {
+        Real j = If(Card(set)>=3,3,1);
+        function+"("+name+"["+IntText(1)+"],"+
+                     name+"["+IntText(2)+"],"+
+                     name+"["+IntText(j)+"])"
+      })
+    })
+  };
+    
+
+  Set fun = 
+  [[
+    "Not",
+    "IfVMat",
+    "And","Or","Eq","NE","LE","GE","LT","GT","Min","Max"
+  ]];
+
+
+  Text getAllExpression(Set set, Text type)
+  {
+    Text name = Name(set);   
+    SetSum(EvalSet(fun,Text(Text function_)
+    {
+      Text function = 
+        If(And(type=="Matrix",function_=="IfVMat"),"IfMat",function_);
+      Text expr = getExpression(function, set, type);
+      If(expr=="","",expr+";\n")
+    }))
+  };
+
+  Set test.mat     = IncludeText(getAllExpression(mat,     "Matrix" ));
+  Set test.vmat.bd = IncludeText(getAllExpression(vmat.bd, "VMatrix"));
+  Set test.vmat.cs = IncludeText(getAllExpression(vmat.cs, "VMatrix"));
+
+  Set test.all = For(1,Card(fun),Matrix(Real f)
+  {
+    Matrix test = test.mat[f] | 
+                  VMat2Mat(test.vmat.bd[f]) | 
+                  VMat2Mat(test.vmat.cs[f]);
+    Eval("test.all."+fun[f]+"=test")
+  });
+
+  Set err.vmat.bd = For(1,Card(fun),Real(Real f)
+  {
+    Real err = MatMax(Abs(VMat2Mat(test.vmat.bd[f])-test.mat[f]));
+    Eval("err.vmat.bd."+fun[f]+"=err")
+  });
+  Set err.vmat.cs = For(1,Card(fun),Real(Real f)
+  {
+    Real err = MatMax(Abs(VMat2Mat(test.vmat.cs[f])-test.mat[f]));
+    Eval("err.vmat.cs."+fun[f]+"=err")
+  });
+
+  Real q.vmat.bd := Max(0,1-SetMax(err.vmat.bd));
+  Real q.vmat.cs := Max(0,1-SetMax(err.vmat.cs));
+  Real iter := iter+1
+});
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1, q.vmat.bd, q.vmat.cs, iter
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0==numErr1) * q.vmat.bd * q.vmat.cs;
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */
