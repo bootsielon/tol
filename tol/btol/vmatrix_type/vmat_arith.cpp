@@ -66,12 +66,12 @@ DefineMonary (TanH,       fRR_tanh,  true,  "TanH");
 DefineMonary (ASinH,      fRR_asinh, true,  "ASinH");
 DefineMonary (ACosH,      fRR_acosh, false, "ACosH");
 DefineMonary (ATanH,      fRR_atanh, true,  "ATanH");
-DefineBinaryR(Sum,        fR2R_sum,  true,  "+ Real");
-DefineBinaryR(Rest,       fR2R_rest, true,  "- Real");
-DefineBinaryR(Prod,       fR2R_prod, true,  "* Real");
-DefineBinaryR(Quot,       fR2R_quot, false, "/ Real");
-DefineBinary (WeightProd, fR2R_prod, true,  "$*");
-DefineBinary (WeightQuot, fR2R_quot, false, "$/");
+DefineBinaryR(Sum,        fR2R_sum,  true,  false, "+ Real");
+DefineBinaryR(Rest,       fR2R_rest, true,  false, "- Real");
+DefineBinaryR(Prod,       fR2R_prod, true,  true,  "* Real");
+DefineBinaryR(Quot,       fR2R_quot, false, false, "/ Real");
+DefineBinary (WeightProd, fR2R_prod, true,  true,  "$*");
+DefineBinary (WeightQuot, fR2R_quot, false, false, "$/");
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -310,7 +310,11 @@ DefineBinary (WeightQuot, fR2R_quot, false, "$/");
   }
   C.Delete();
   BVMat* A__, *B__;
-  convertIfNeeded2bRd(A_,B_,A__,B__,fName);
+  if(convertIfNeeded_all2bRd(A_,B_,A__,B__,fName,false)==0) 
+  { 
+    convertIfNeeded_all2cRs(A_,B_,A__,B__,fName,false);
+  }
+
   BVMat &A = *A__,  &B = *B__;
   int result = 0;
   if(A.code_!=B.code_)
@@ -486,7 +490,7 @@ int BVMat::Prod(const BVMat& A_, const BVMat& B_, BVMat& C)
   if(!A_.CheckDefined("*")) { return(-1); }
   if(!B_.CheckDefined("*")) { return(-1); }
   BVMat* A__, *B__;
-  convertIfNeeded_cRt2cRs(A_,B_,A__,B__,"*");
+  convertIfNeeded_cRt2cRs(A_,B_,A__,B__,"*",true);
   BVMat &A = *A__,  &B = *B__;
   const StrProduct* product = FindProduct(A.code_, B.code_);
   int result = 0;
