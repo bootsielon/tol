@@ -75,7 +75,12 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
   return rc;
 }
 
-//#define DO_WARN_INEF_USE
+#define DO_WARN_INEF_USE
+#ifdef DO_WARN_INEF_USE
+  #define DO_WARN_INEF_USE_all2bRd
+//#define DO_WARN_INEF_USEall_all2cRs
+//#define DO_WARN_INEF_USE_2cRt
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +98,7 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 //Message handler
 ////////////////////////////////////////////////////////////////////////////////
 {
-#ifdef DO_WARN_INEF_USE
+#ifdef DO_WARN_INEF_USE_2cRt
   static double minStoredCells_ = 1000.0;
   double storedCells = a.StoredCells();
   if(storedCells>=minStoredCells_)
@@ -112,13 +117,13 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 //Message handler
 ////////////////////////////////////////////////////////////////////////////////
 {
-#ifdef DO_WARN_INEF_USE
+#ifdef DO_WARN_INEF_USEall_all2cRs
   static double minStoredCells_ = 1000.0;
   double storedCells = a.StoredCells();
   if(storedCells>=minStoredCells_)
   {
     warn_inefUse(I2("Converting to","Convirtiendo matriz a")+
-            " Blas.R.Sparse "+CodeName(a.code_)+" "+
+            " Cholmod.R.Sparse "+CodeName(a.code_)+" "+
             I2("to apply","para aplicar")+" "+fName+" "+
             I2("to a virtual matrix","a una matriz virtual")+
             " "+CodeName(a.code_)+"("+a.Rows()+"x"+a.Columns()+")"+" ");
@@ -131,19 +136,21 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 //Message handler
 ////////////////////////////////////////////////////////////////////////////////
 {
-#ifdef DO_WARN_INEF_USE
+#ifdef DO_WARN_INEF_USE_all2bRd
   static double minLostCells_ = 1000.0;
+  int    r = a.Rows();
+  int    c = a.Columns();
   double storedCells = a.StoredCells();
-  double denseCells  = a.Rows()*a.Columns();
+  double denseCells  = r*c;
   double lostCells   = denseCells-storedCells;
-  if(lostCells>=minLostCells_)
+  if( ((r>1)&&(c>1)) && (lostCells>=minLostCells_) )
   {
     double memKbLost = (lostCells*sizeof(double))/1024.0;
     warn_inefUse(I2("Converting from ","Convirtiendo de ")+CodeName(a.code_)+
       I2(" to"," a")+" Blas.R.Dense "+
       I2("to apply","para aplicar")+" "+fName+" "+
       I2("to a virtual matrix","a una matriz virtual")+
-      " "+CodeName(a.code_)+"("+a.Rows()+"x"+a.Columns()+")"+" "+
+      " "+CodeName(a.code_)+"("+r+"x"+c+")"+" "+
       I2("with","con")+" "+storedCells+
       I2("stored cells","celdas almacendas")+".\n"+
       I2("It will be lost a total of ",
