@@ -18,8 +18,10 @@ Real numErr0 = Copy(NError);
 
 //Random seed setting
 Real PutRandomSeed(0);
-//VBR: Con esta semilla se cae sólo en la batería de tests pero no en tolbase
+//VBR: Con estas semillas se cae sólo en la batería de tests pero no en tolbase
 //Real PutRandomSeed(208774589);
+//Real PutRandomSeed(1115981481);
+
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
