@@ -132,32 +132,6 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-  int BVMat::convertIfNeeded2cRs(const BVMat&  A,  const BVMat&  B, 
-                                       BVMat*& A_,       BVMat*& B_,
-                                 const char* fName, bool forze)
-//Matrix instances
-////////////////////////////////////////////////////////////////////////////////
-{
-  if(!autoConvert_) { return(-1); }
-  A_ = (BVMat*)&A;
-  B_ = (BVMat*)&B;
-  if(forze || !((A.code_==ESC_blasRdense)&&(B.code_==ESC_blasRdense)))
-  {
-    if(A.code_!=ESC_chlmRsparse) 
-    { 
-      warn_convert2cRs(fName,A);
-      A_ = new BVMat(A,ESC_chlmRsparse); 
-    }
-    if(B.code_!=ESC_chlmRsparse) 
-    { 
-      warn_convert2cRs(fName,B);
-      B_ = new BVMat(B,ESC_chlmRsparse); 
-    }
-  }
-  return(0);
-}
-  
-////////////////////////////////////////////////////////////////////////////////
   int BVMat::convertIfNeeded_cRt2cRs(const BVMat&  A,  const BVMat&  B, 
                                            BVMat*& A_,       BVMat*& B_,
                                      const char* fName, bool forze)
@@ -167,50 +141,149 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   if(!autoConvert_) { return(-1); }
   A_ = (BVMat*)&A;
   B_ = (BVMat*)&B;
-  if(A.code_==ESC_chlmRtriplet) 
-  { 
-    warn_convert2cRs(fName,A);
-    A_ = new BVMat(A,ESC_chlmRsparse); 
-  }
-  if(B.code_==ESC_chlmRtriplet) 
+  int result = 0;
+  if((A.code_==ESC_chlmRsparse) && (B.code_==ESC_chlmRtriplet)) 
   { 
     warn_convert2cRs(fName,B);
     B_ = new BVMat(B,ESC_chlmRsparse); 
+    result = 1;
+  }
+  else if((B.code_==ESC_chlmRsparse) && (A.code_==ESC_chlmRtriplet)) 
+  { 
+    warn_convert2cRs(fName,A);
+    A_ = new BVMat(A,ESC_chlmRsparse); 
+    result = 1;
+  }
+  else
+  {
+    if(forze && (A.code_!=ESC_chlmRsparse)) 
+    { 
+      A_=new BVMat(A,ESC_chlmRsparse); 
+      result = 1;
+    }
+    if(forze && (B.code_!=ESC_chlmRsparse)) 
+    { 
+      B_=new BVMat(B,ESC_chlmRsparse); 
+      result = 1;
+    }
+  }
+  return(result);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::convertIfNeeded_cRt2cRs(const BVMat&  A,  BVMat*& A_, 
+                                     const char* fName)
+//Matrix instances
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!autoConvert_) { return(-1); }
+  A_ = (BVMat*)&A;
+  if(A.code_==ESC_chlmRtriplet)
+  { 
+    warn_convert2cRs(fName,A);
+    A_ = new BVMat(A, ESC_chlmRsparse); 
   }
   return(0);
 }
   
 ////////////////////////////////////////////////////////////////////////////////
-  int BVMat::convertIfNeeded2bRd(const BVMat&  A,  const BVMat&  B, 
-                                       BVMat*& A_,       BVMat*& B_,
-                                 const char* fName, bool forze)
+  int BVMat::convertIfNeeded_all2cRs(const BVMat&  A,  const BVMat&  B, 
+                                           BVMat*& A_,       BVMat*& B_,
+                                     const char* fName, bool forze)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
   if(!autoConvert_) { return(-1); }
   A_ = (BVMat*)&A;
   B_ = (BVMat*)&B;
+  int result = 0;
+  if((A.code_==ESC_chlmRsparse) && (B.code_!=ESC_chlmRsparse))
+  { 
+    warn_convert2cRs(fName,B);
+    B_ = new BVMat(B, ESC_chlmRsparse); 
+    result = 1;
+  }
+  else if((B.code_==ESC_chlmRsparse) && (A.code_!=ESC_chlmRsparse))
+  { 
+    warn_convert2cRs(fName,B);
+    A_ = new BVMat(A, ESC_chlmRsparse); 
+    result = 1;
+  }
+  else
+  {
+    if(forze && (A.code_!=ESC_chlmRsparse)) 
+    { 
+      A_=new BVMat(A,ESC_chlmRsparse); 
+      result = 1;
+    }
+    if(forze && (B.code_!=ESC_chlmRsparse)) 
+    { 
+      B_=new BVMat(B,ESC_chlmRsparse); 
+      result = 1;
+    }
+  }
+  return(result);
+}
+  
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::convertIfNeeded_all2cRs(const BVMat&  A,  BVMat*& A_, 
+                                     const char* fName)
+//Matrix instances
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!autoConvert_) { return(-1); }
+  A_ = (BVMat*)&A;
+  if(A.code_!=ESC_chlmRsparse)
+  { 
+    warn_convert2cRs(fName,A);
+    A_ = new BVMat(A, ESC_chlmRsparse); 
+  }
+  return(0);
+}
+  
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::convertIfNeeded_all2bRd(const BVMat&  A,  const BVMat&  B, 
+                                           BVMat*& A_,       BVMat*& B_,
+                                     const char* fName, bool forze)
+//Matrix instances
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(!autoConvert_) { return(-1); }
+  A_ = (BVMat*)&A;
+  B_ = (BVMat*)&B;
+  int result = 0;
   if((A.code_==ESC_blasRdense) && (B.code_!=ESC_blasRdense))
   { 
     warn_convert2bRd(fName,B);
     B_ = new BVMat(B, ESC_blasRdense); 
+    result = 1;
   }
   else if((B.code_==ESC_blasRdense) && (A.code_!=ESC_blasRdense))
   { 
     warn_convert2bRd(fName,A);
     A_ = new BVMat(A, ESC_blasRdense); 
+    result = 1;
   }
   else
   {
-    if(forze||(A.code_==ESC_chlmRtriplet)) { A_=new BVMat(A,ESC_chlmRsparse); }
-    if(forze||(B.code_==ESC_chlmRtriplet)) { B_=new BVMat(B,ESC_chlmRsparse); }
+    if(forze && (A.code_!=ESC_blasRdense)) 
+    { 
+      A_=new BVMat(A,ESC_blasRdense); 
+      result = 1;
+    }
+    if(forze && (B.code_!=ESC_blasRdense)) 
+    { 
+      B_=new BVMat(B,ESC_blasRdense); 
+      result = 1;
+    }
   }
-  return(0);
+  return(result);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-  int BVMat::convertIfNeeded2bRd(const BVMat&  A,  BVMat*& A_, 
-                                 const char* fName)
+  int BVMat::convertIfNeeded_all2bRd(const BVMat&  A,  BVMat*& A_, 
+                                     const char* fName)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
@@ -934,7 +1007,15 @@ BMatrix<double> BVMat::GetDMat () const
     return(-1);
   }
   BVMat* A__, *B__;
-  convertIfNeeded2cRs(A_,B_,A__,B__,"|");
+  if((A_.code_!=ESC_blasRdense)||(B_.code_!=ESC_blasRdense))
+  {
+    convertIfNeeded_all2cRs(A_,B_,A__,B__,"|",true);
+  }
+  else
+  {
+    A__=(BVMat*)&A_;
+    B__=(BVMat*)&B_;
+  }
   BVMat &A = *A__,  &B = *B__;
   int cC = cA+cB;
   int nA = r*cA;
@@ -988,7 +1069,15 @@ BMatrix<double> BVMat::GetDMat () const
     return(-2);
   }
   BVMat* A__, *B__;
-  convertIfNeeded2cRs(A_,B_,A__,B__,"<<");
+  if((A_.code_!=ESC_blasRdense)||(B_.code_!=ESC_blasRdense))
+  {
+    convertIfNeeded_all2cRs(A_,B_,A__,B__,"<<",true);
+  }
+  else
+  {
+    A__=(BVMat*)&A_;
+    B__=(BVMat*)&B_;
+  }
   BVMat &A = *A__,  &B = *B__;
   int j;
   int rC = rA+rB;
