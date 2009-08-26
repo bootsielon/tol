@@ -107,35 +107,36 @@
 }
  
 ////////////////////////////////////////////////////////////////////////////////
-  int BVMat::CholeskiFactor(const BVMat& X_, BVMat& L_, 
+  int BVMat::CholeskiFactor(const BVMat& X_, BVMat& L, 
                             ECholFacOri ori,  
                             bool checkSymmetric,
                             bool forceNaturalOrder)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  if(!X_.CheckDefined("CholeskiFactor")) { return(-1); }
+  const char* fName = "CholeskiFactor";
+  if(!X_.CheckDefined(fName)) { return(-1); }
   bool old_force = force_natural_order(forceNaturalOrder);
-  BVMat* X__, *L__;
-  convertIfNeeded_cRt2cRs(X_,L_,X__,L__,"CholeskiFactor");
-  BVMat &X = *X__,  &L = *L__;
+  BVMat* X__;
+  convertIfNeeded_cRt2cRs(X_,X__,fName);
+  BVMat &X = *X__;
   int r = X.Rows();
   int c = X.Columns();
   int result = 0;
   if((ori==ECFO_X)&&(r!=c))
   {
-    err_cannot_apply("CholeskiFactor",I2("non square","no cuadrada"),X);
+    err_cannot_apply(fName,I2("non square","no cuadrada"),X);
     result = -1;
   }
   else if((ori==ECFO_XtX)&&(r<c))
   {
-    err_cannot_apply("CholeskiFactor",
+    err_cannot_apply(fName,
       I2("row deficient to build",
          "no tiene bastantes filas para construir")+ " S = X' X",X);
     result =-2;
   }
   else if((ori==ECFO_XXt)&&(r>c))
   {
-    err_cannot_apply("CholeskiFactor",
+    err_cannot_apply(fName,
       I2("column deficient to build",
          "no tiene bastantes columnas para construir")+" S = X X'",X);
     result =-3;
@@ -148,8 +149,7 @@
     bool isNotPosDef=false;
     if(isNotSymm)
     {
-      err_cannot_apply("CholeskiFactor",
-        I2("non symmetric","no simetrica"),X);
+      err_cannot_apply(fName, I2("non symmetric","no simetrica"),X);
       result = -4;
     }
     else
@@ -162,16 +162,15 @@
       }
       else
       {
-        err_invalid_subtype("CholeskiFactor",X); 
+        err_invalid_subtype(fName,X); 
         isOk = false;
       }
       if(!isOk)
       {
         if(isNotPosDef)
         {
-          err_cannot_apply("CholeskiFactor",
-                           I2("non positive definite",
-                              "no definida positiva"),X);
+          err_cannot_apply(fName,  
+           I2("non positive definite", "no definida positiva"),X);
           L.Delete();
           result = -5;
         }
@@ -193,10 +192,11 @@
                             bool forceNaturalOrder)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  const char* fName = "CholeskiFactor";
   ECholFacOri ori = FindCFacName(oriName);
   if(ori==ECFO_none)
   {
-    err_cannot_apply("CholeskiFactor",
+    err_cannot_apply(fName,
     I2("Invalid origen identifier",
        "Identificador de origen inválido")+" "+oriName+" "+
     I2("should be one of these",
@@ -608,23 +608,29 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-  int BVMat::CholeskiSolve (const BVMat& L_, const BVMat& B_, 
+  int BVMat::CholeskiSolve (const BVMat& L, const BVMat& B_, 
                             BVMat& X, ECholSolSys sys)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  if(!L_.CheckDefined("CholeskiSolve")) { return(-1); }
+  if(!L .CheckDefined("CholeskiSolve")) { return(-1); }
   if(!B_.CheckDefined("CholeskiSolve")) { return(-1); }
-  BVMat* L__, *B__;
-  if(L_.code_==ESC_blasRdense)
+  int result = 0;
+  BVMat *B__=NULL;
+  if(L.code_==ESC_blasRdense)
   {
-    convertIfNeeded2bRd(L_,B_,L__,B__,"CholeskiSolve");
+    convertIfNeeded_all2bRd(B_,B__,"CholeskiSolve");
+  }
+  else if(L.code_==ESC_chlmRfactor)
+  {
+    convertIfNeeded_all2cRs(B_,B__,"CholeskiSolve");
   }
   else
   {
-    convertIfNeeded_cRt2cRs(L_,B_,L__,B__,"CholeskiSolve");
+    err_invalid_subtype("CholeskiSolve",L);
+    result = -2;
+    return(result);
   }
-  BVMat &L = *L__,  &B = *B__;
-  int result = 0;
+  BVMat &B = *B__;
   const StrCholSol* cholSol = FindCholSol(L.code_, B.code_, sys);
   if(cholSol)
   {
@@ -644,7 +650,6 @@
     err_invalid_subtypes("CholeskiSolve",L,B);
     result = -2;
   }
-  if(L__!=&L_) { delete L__; }
   if(B__!=&B_) { delete B__; }
   return(result);
 }
