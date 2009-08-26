@@ -167,11 +167,14 @@ BysMcmc::Config bsr.config = [[
 BysMcmc::Cycler bsr.oneNode.cycler = 
   BysMcmc::Bsr::OneNode::GetCyclerProbit(bsr.oneNode.data, bsr.config);
 
+//Real bsr.oneNode.cycler::initialize(0);
+
+/* */
+
 BysMcmc::Estimation bsr.oneNode.estim = BysMcmc::Estim(bsr.oneNode.cycler);
 BysMcmc::Bsr::OneNode::Probit bsr.oneNode.probit = 
   BysMcmc::Bsr::OneNode::GetProbit(bsr.oneNode.estim);
 
-/* */
 
 Matrix b_full = bsr.oneNode.probit::_.param;
 Matrix b_ = Sub(b_full,1,1,Rows(b),1);
