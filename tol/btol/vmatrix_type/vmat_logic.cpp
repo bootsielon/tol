@@ -50,19 +50,106 @@ double fR2R_min(double a, double b)
   return(Minimum(BDat(a),BDat(b)).Value()); 
 }
 
-DefineMonary(Not, fRR_not,       true,  "Not");
-DefineMonary(Yes, fRR_yes,       false, "Yes");
+DefineMonary(Not,       fRR_not,       false, "Not");
+DefineMonary(Yes,       fRR_yes,       true,  "Yes");
 DefineMonary(IsUnknown, fRR_isUnknown, true,  "IsUnknown");
-DefineMonary(IsFinite, fRR_isFinite,  false,  "IsFinite");
-DefineBinary(And, fR2R_and,      true,  "And");
-DefineBinary(Or,  fR2R_or,       true,  "Or");
-DefineBinary(EQ,  fR2R_eq,       true,  "EQ");
-DefineBinary(NE,  fR2R_ne,       false, "NE");
-DefineBinary(LE,  fR2R_le,       true,  "LE");
-DefineBinary(LT,  fR2R_lt,       false, "LT");
-DefineBinary(GE,  fR2R_ge,       true,  "GE");
-DefineBinary(GT,  fR2R_gt,       false, "GT");
-DefineBinary(Min, fR2R_min,      true,  "Min");
-DefineBinary(Max, fR2R_max,      true,  "Max");
+DefineMonary(IsFinite,  fRR_isFinite,  false, "IsFinite");
+
+DefineBinary(And, fR2R_and,  true,  true,  "And");
+DefineBinary(Or,  fR2R_or,   true,  false, "Or");
+DefineBinary(EQ,  fR2R_eq,   false, false, "EQ");
+DefineBinary(NE,  fR2R_ne,   true,  false, "NE");
+DefineBinary(LE,  fR2R_le,   false, false, "LE");
+DefineBinary(LT,  fR2R_lt,   true,  false, "LT");
+DefineBinary(GE,  fR2R_ge,   false, false, "GE");
+DefineBinary(GT,  fR2R_gt,   true,  false, "GT");
+DefineBinary(Min, fR2R_min,  false, false, "Min");
+DefineBinary(Max, fR2R_max,  false, false, "Max");
 
 
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::If(const BVMat& A_, const BVMat& B_, const BVMat& C_, BVMat& D)
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  const char* fName = "IfVMat";
+  if(!A_.CheckDefined(fName)) { return(-1); }
+  if(!B_.CheckDefined(fName)) { return(-1); }
+  if(!C_.CheckDefined(fName)) { return(-1); }
+  int r  = A_.Rows();
+  int c  = A_.Columns();
+  int rB = B_.Rows();
+  int cB = B_.Columns();
+  int rC = C_.Rows();
+  int cC = C_.Columns();
+  if((r!=rB)||(c!=cB))
+  {
+    err_invalid_dimensions(fName,A_,B_);
+    return(-1);
+  }
+  if((r!=rC)||(c!=cC))
+  {
+    err_invalid_dimensions(fName,A_,C_);
+    return(-1);
+  }
+  D.Delete();
+  BVMat* A__, *B__, *C__;
+  convertIfNeeded_all2bRd(A_,A__,fName);
+  convertIfNeeded_all2bRd(B_,B__,fName);
+  convertIfNeeded_all2bRd(C_,C__,fName);
+  BVMat &A = *A__,  &B = *B__,  &C = *C__;
+  int result = 0;
+  if(A.code_!=B.code_)
+  {
+    err_invalid_subtypes(fName,A,B);
+    result = -2;
+  }
+  if(A.code_!=C.code_)
+  {
+    err_invalid_subtypes(fName,A,C);
+    result = -2;
+  }
+  int k, n;
+  const BDat* Ax;
+  const BDat* Bx;
+  const BDat* Cx;
+        BDat* Dx;
+  switch(A.code_) {
+  case(ESC_blasRdense  ) :
+    D.Copy(A);
+    n = A.s_.blasRdense_->nzmax;
+    Ax = (const BDat*)A.s_.blasRdense_->x;
+    Bx = (const BDat*)B.s_.blasRdense_->x;
+    Cx = (const BDat*)C.s_.blasRdense_->x;
+    Dx = (      BDat*)D.s_.blasRdense_->x;
+    for(k=0; k<n; k++)
+    {
+      if(Ax->IsKnown())
+      {
+        if((*Ax)!=0)
+        {
+          *Dx = *Bx;
+        }
+        else
+        {
+          *Dx = *Cx;
+        }
+      }
+      else
+      {
+        *Dx = BDat::Unknown();
+      }
+      Ax++;
+      Bx++;
+      Cx++;
+      Dx++;
+    };
+    break;
+  default:
+    err_invalid_subtype(fName,A); 
+    result=-3; }
+  if(A__!=&A_) { delete A__; }
+  if(B__!=&B_) { delete B__; }
+  if(C__!=&C_) { delete C__; }
+  return(result);
+};
