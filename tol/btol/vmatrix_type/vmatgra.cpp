@@ -657,9 +657,9 @@ void BPol2VMat::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatZero);
-DefExtOpr(1, BVMatZero, "Zeros", 1, 2, 
-  "Real Real",
-  "(Real nrow [, Real ncol=nrow])",
+DefExtOpr(1, BVMatZero, "Zeros", 1, 3, 
+  "Real Real Text",
+  "(Real nrow [, Real ncol=nrow, Text subType=\"Cholmod.R.Sparse\"])",
   I2("Creates a matrix with all elements equal to zero.\n"
      "Allowed subtypes are :\n",
      "Devuelve una matriz cuyas celdas son todas cero.\n"
@@ -672,8 +672,10 @@ void BVMatZero::CalcContens()
 {
   int nrow = (int)Real(Arg(1));
   int ncol = nrow;
-  if(Arg(2)) { ncol=(int)Real(Arg(2)); }
-  contens_.Zeros(nrow,ncol,BVMat::ESC_chlmRsparse);
+  BVMat::ECode code = BVMat::ESC_chlmRsparse; 
+  if(Arg(2)) { ncol = (int)Real(Arg(2)); }
+  if(Arg(3)) { code = BVMat::FindCodeName(Text(Arg(3))); }
+  contens_.Zeros(nrow,ncol,code);
   assert(contens_.Check());
 }
 
@@ -1592,8 +1594,8 @@ void BVMatIsFinite::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatAnd);
-DefIntOpr(1, BVMatAnd, "And", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatAnd, "And", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns the logical AND of arguments.",
      "Devuelve el AND (Y) lógico de los argumentos"),                              
   BOperClassify::MatrixAlgebra_);
@@ -1602,13 +1604,20 @@ void BVMatAnd::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::And(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux = contens_;
+    BVMat::And(aux,VMat(Arg(n)),contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatOr);
-DefIntOpr(1, BVMatOr, "Or", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatOr, "Or", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns the logical OR of arguments.",
      "Devuelve el OR (O) lógico de los argumentos"),                              
   BOperClassify::MatrixAlgebra_);
@@ -1617,13 +1626,20 @@ void BVMatOr::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::Or(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux = contens_;
+    BVMat::Or(aux,VMat(Arg(n)),contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatEq);
-DefIntOpr(1, BVMatEq, "Eq", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatEq, "Eq", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns TRUE just in each cell where ",
      "Devuelve CIERTO sólo para las celdas para las que ")+
      "A[i,j]==B[i,j]",   
@@ -1633,13 +1649,22 @@ void BVMatEq::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::EQ(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux1 = contens_;
+    BVMat::EQ(VMat(Arg(n-1)),VMat(Arg(n)),contens_);
+    BVMat aux2 = contens_;
+    BVMat::And(aux1,aux2,contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatNE);
-DefIntOpr(1, BVMatNE, "NE", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatNE, "NE", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns TRUE just in each cell where ",
      "Devuelve CIERTO sólo para las celdas para las que ")+
      "A[i,j]!=B[i,j]"+warn_auto_dense(),
@@ -1649,13 +1674,22 @@ void BVMatNE::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::NE(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux1 = contens_;
+    BVMat::NE(VMat(Arg(n-1)),VMat(Arg(n)),contens_);
+    BVMat aux2 = contens_;
+    BVMat::And(aux1,aux2,contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatLE);
-DefIntOpr(1, BVMatLE, "LE", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatLE, "LE", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns TRUE just in each cell where ",
      "Devuelve CIERTO sólo para las celdas para las que ")+
      "A[i,j]<=B[i,j]",   
@@ -1665,13 +1699,22 @@ void BVMatLE::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::LE(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux1 = contens_;
+    BVMat::LE(VMat(Arg(n-1)),VMat(Arg(n)),contens_);
+    BVMat aux2 = contens_;
+    BVMat::And(aux1,aux2,contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatLT);
-DefIntOpr(1, BVMatLT, "LT", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatLT, "LT", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns TRUE just in each cell where ",
      "Devuelve CIERTO sólo para las celdas para las que ")+
      "A[i,j]<B[i,j]"+warn_auto_dense(),
@@ -1681,13 +1724,22 @@ void BVMatLT::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::LT(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux1 = contens_;
+    BVMat::LT(VMat(Arg(n-1)),VMat(Arg(n)),contens_);
+    BVMat aux2 = contens_;
+    BVMat::And(aux1,aux2,contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatGE);
-DefIntOpr(1, BVMatGE, "GE", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatGE, "GE", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns TRUE just in each cell where ",
      "Devuelve CIERTO sólo para las celdas para las que ")+
      "A[i,j]>=B[i,j]",   
@@ -1697,13 +1749,22 @@ void BVMatGE::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::GE(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux1 = contens_;
+    BVMat::GE(VMat(Arg(n-1)),VMat(Arg(n)),contens_);
+    BVMat aux2 = contens_;
+    BVMat::And(aux1,aux2,contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatGT);
-DefIntOpr(1, BVMatGT, "GT", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatGT, "GT", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns TRUE just in each cell where ",
      "Devuelve CIERTO sólo para las celdas para las que ")+
      "A[i,j]>B[i,j]"+warn_auto_dense(),
@@ -1713,13 +1774,22 @@ void BVMatGT::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::GT(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux1 = contens_;
+    BVMat::GT(VMat(Arg(n-1)),VMat(Arg(n)),contens_);
+    BVMat aux2 = contens_;
+    BVMat::And(aux1,aux2,contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatMin);
-DefIntOpr(1, BVMatMin, "Min", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatMin, "Min", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns in each cell the minimum value of arguments ",
      "Devuelve en cada celda el mínimo de los argumentos ")+
      "Min(A[i,j],B[i,j])",                              
@@ -1729,13 +1799,20 @@ void BVMatMin::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::Min(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux = contens_;
+    BVMat::Min(aux,VMat(Arg(n)),contens_);
+    n++;
+  }
   assert(contens_.Check());
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatMax);
-DefIntOpr(1, BVMatMax, "Max", 2, 2,
-  "(VMatrix A, VMatrix B)",
+DefIntOpr(1, BVMatMax, "Max", 2, 0,
+  "(VMatrix A, VMatrix B [, VMatrix C, ...])",
   I2("Returns in each cell the maximum value of arguments ",
      "Devuelve en cada celda el máximo de los argumentos ")+
      "Max(A[i,j],B[i,j])",                              
@@ -1745,7 +1822,31 @@ void BVMatMax::CalcContens()
 //--------------------------------------------------------------------
 {
   BVMat::Max(VMat(Arg(1)),VMat(Arg(2)),contens_);
+  int n = 3;
+  while(Arg(n))
+  {
+    BVMat aux = contens_;
+    BVMat::Max(aux,VMat(Arg(n)),contens_);
+    n++;
+  }
   assert(contens_.Check());
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatIfVMatReal);
+DefExtOpr(1, BVMatIfVMatReal, "IfVMat", 3, 3, "VMatrix VMatrix VMatrix",
+  "(VMatrix condition, VMatrix A, VMatrix B)",
+  I2("For each cell (i,j) if condition(i,j) is true returns the value of A(i,j), else B(i,j).",
+     "Para cada celda (i,j) si condition(i,j) es cierto devuelve A(i,j) y si no B(i,j)."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatIfVMatReal::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& C = VMat(Arg(1));
+  BVMat& A = VMat(Arg(2));
+  BVMat& B = VMat(Arg(3));
+  BVMat::If(C,A,B,contens_);
 }
 
 
@@ -1795,8 +1896,10 @@ void BVMatCholeskiFactor::CalcContens()
   bool force = false;
   if(Arg(2)) { S=Text(Arg(2)); }
   if(Arg(3)) { force=Real(Arg(3))!=0.0; }
-
-  BVMat::CholeskiFactor(VMat(Arg(1)),contens_,S,true,force);
+  if(Arg(1)->LocalName()=="X")
+    printf("");
+  BVMat& X = VMat(Arg(1)); 
+  BVMat::CholeskiFactor(X,contens_,S,true,force);
   assert(contens_.Check());
 }
 
