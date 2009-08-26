@@ -1178,7 +1178,18 @@ void BVMat::CompactSymmetric(bool check)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-  int BVMat::ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
+  BVMat BVMat::ApplyFunRR(BFunRR f, bool f00, const char* fName) const
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  ApplyFunRR(f,f00,fName,*this,aux);
+  return(aux);
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::ApplyFunR2r(BFunR2R f, bool f00, bool f0x, const char* fName,
                          const BVMat& A, double b, BVMat& C)
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
@@ -1186,7 +1197,7 @@ void BVMat::CompactSymmetric(bool check)
   if(!A.CheckDefined(fName)) { return(-1); }
   int i, nzmax = 0;
   double* x = NULL;
-  if((A.code_==ESC_blasRdense)||f00) 
+  if((A.code_==ESC_blasRdense)||(f00&&(f0x||(b==0)))) 
   {
     C.Copy(A); 
   }
@@ -1202,15 +1213,51 @@ void BVMat::CompactSymmetric(bool check)
   return(0);
 };
 
+////////////////////////////////////////////////////////////////////////////////
+  BVMat BVMat::ApplyFunR2r(BFunR2R f, bool f00, bool f0x, const char* fName,
+                          double b) const
+//Matrix algebra operator
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat aux;
+  ApplyFunR2r(f,f00,f0x,fName,*this,b,aux);
+  return(aux);
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////
-  int BVMat::ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
+static void add_triplet
+(
+  int r, int c, int n,
+  int i, int j, double x, 
+  int*Ti,int*Tj,double*Tx,
+  int&k
+)
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(x!=0.0)
+  {  
+    assert(k<n);
+    assert((0<=i)&&(i<r));
+    assert((0<=j)&&(j<c));
+    Ti[k] = i;
+    Tj[k] = j;
+    Tx[k] = x;
+    k++;
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::ApplyFunR2R(BFunR2R f, bool f00, bool f0x, const char* fName,
                          const BVMat& A_, const BVMat& B_, BVMat& C)
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
   if(!A_.CheckDefined(fName)) { return(-1); }
   if(!B_.CheckDefined(fName)) { return(-1); }
+  BVMat::ECode Acode = A_.code_;
+  BVMat::ECode Bcode = B_.code_;
   int r  = A_.Rows();
   int c  = A_.Columns();
   int rB = B_.Rows();
@@ -1222,7 +1269,7 @@ void BVMat::CompactSymmetric(bool check)
   }
   C.Delete();
   BVMat* A__ = (BVMat*)&A_, *B__ = (BVMat*)&B_;
-  convertIfNeeded2bRd(A_,B_,A__,B__,fName, !f00); 
+  convertIfNeeded_all2bRd(A_,B_,A__,B__,fName, !f00); 
   BVMat &A = *A__,  &B = *B__;
   int result = 0;
   if(A.code_!=B.code_)
@@ -1230,10 +1277,13 @@ void BVMat::CompactSymmetric(bool check)
     err_invalid_subtypes(fName,A,B);
     result = -2;
   }
-  int j, k, n, Ak, Bk, Ak1, Bk1;
+  int i, j, k, n, Ak, Bk, Ak1, Bk1;
   cholmod_triplet* tr;
   int *Ti, *Tj, *Ai, *Ap, *Bi, *Bp;
   double *Tx, *Ax, *Bx, *Cx;
+  int nnz = 0;
+  double x;  
+
   switch(A.code_) {
   case(ESC_blasRdense  ) :
     C.BlasRDense(r,c);
@@ -1243,14 +1293,30 @@ void BVMat::CompactSymmetric(bool check)
     Cx = (double*)C.s_.blasRdense_->x;
     for(k=0; k<n; k++)
     {
-      Cx[k] = f(Ax[k], Bx[k]);
+      x = f(Ax[k], Bx[k]);
+      if(x!=0.0) { nnz++; }
+      Cx[k] = x;
     };
+    if((Acode==ESC_chlmRsparse) || (Bcode==ESC_chlmRsparse) && (nnz<0.50*r*c))
+    {
+      BVMat C_;
+      BVMat::bRd2cRs(C_,C);
+      C = C_;
+    }
     break;
   case(ESC_chlmRsparse) :
+    assert(f00);
     C.code_ = ESC_chlmRsparse;
     cRs_ensure_packed(A.s_.chlmRsparse_);
     cRs_ensure_packed(B.s_.chlmRsparse_);
-    n = A.s_.chlmRsparse_->nzmax + B.s_.chlmRsparse_->nzmax;
+    if(f0x)
+    {
+      n = Minimum(A.s_.chlmRsparse_->nzmax,B.s_.chlmRsparse_->nzmax);
+    }
+    else
+    {
+      n = A.s_.chlmRsparse_->nzmax + B.s_.chlmRsparse_->nzmax;
+    }
     tr=cholmod_allocate_triplet(r,c,n,0,CHOLMOD_REAL,common_);
     Ti = (int*   )tr->i;
     Tj = (int*   )tr->j;
@@ -1261,36 +1327,44 @@ void BVMat::CompactSymmetric(bool check)
     Bp = (int*   )B.s_.chlmRsparse_->p;
     Bi = (int*   )B.s_.chlmRsparse_->i;
     Bx = (double*)B.s_.chlmRsparse_->x;
+    k = 0;
     for(j=0; j<c; j++)
     {
       Ak  = Ap[j];
       Ak1 = Ap[j+1];
       Bk  = Bp[j];
       Bk1 = Bp[j+1];
-      tr->nnz = 0;
-      for(tr->nnz=0; (Ak<Ak1)&&(Bk<Bk1); tr->nnz++)
+      for(; (Ak<Ak1)||(Bk<Bk1); )
       {
-        Tj[tr->nnz]=j;
-        if(Ai[Ak]<Bi[Bk])
+        if(Ak==Ak1)
         {
-          Ti[tr->nnz]=Ai[Ak];
-          Tx[tr->nnz]=f(Ax[Ak],0.0);
+          if(!f0x) { add_triplet(r,c,n,i=Bi[Bk],j,x=f(0.0,Bx[Bk]),Ti,Tj,Tx,k); }
+          Bk++;
+        }
+        else if(Bk==Bk1)
+        {
+          if(!f0x) { add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],0.0),Ti,Tj,Tx,k); }
           Ak++;
+        }
+        else if(Ai[Ak]==Bi[Bk])
+        {
+          add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],Bx[Bk]),Ti,Tj,Tx,k);
+          Ak++; 
+          Bk++;
         }
         else if(Ai[Ak]>Bi[Bk])
         {
-          Ti[tr->nnz]=Bi[Bk];
-          Tx[tr->nnz]=f(0.0,Bx[Bk]);
+          if(!f0x) { add_triplet(r,c,n,i=Bi[Bk],j,x=f(0.0,Bx[Bk]),Ti,Tj,Tx,k); }
           Bk++;
         }
+        else //if(Ai[Ak]<Bi[Bk])
         {
-          Ti[tr->nnz]=Ai[Bk];
-          Tx[tr->nnz]=f(Bx[Bk],Ax[Ak]);
-          Bk++;
+          if(!f0x) { add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],0.0),Ti,Tj,Tx,k); }
           Ak++;
         }
       }
-    }    
+    }  
+    tr->nnz = k;
     C.s_.chlmRsparse_ = cholmod_triplet_to_sparse(tr, tr->nnz, common_);
     cholmod_free_triplet(&tr, common_);
     break;
@@ -1303,34 +1377,13 @@ void BVMat::CompactSymmetric(bool check)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-  BVMat BVMat::ApplyFunRR(BFunRR f, bool f00, const char* fName) const
-//Matrix algebra operator
-////////////////////////////////////////////////////////////////////////////////
-{
-  BVMat aux;
-  ApplyFunRR(f,f00,fName,*this,aux);
-  return(aux);
-};
-
-////////////////////////////////////////////////////////////////////////////////
-  BVMat BVMat::ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
-                          double b) const
-//Matrix algebra operator
-////////////////////////////////////////////////////////////////////////////////
-{
-  BVMat aux;
-  ApplyFunR2R(f,f00,fName,*this,b,aux);
-  return(aux);
-};
-
-////////////////////////////////////////////////////////////////////////////////
-  BVMat BVMat::ApplyFunR2R(BFunR2R f, bool f00, const char* fName,
+  BVMat BVMat::ApplyFunR2R(BFunR2R f, bool f00, bool f0x, const char* fName,
                            const BVMat& B) const
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
   BVMat aux;
-  ApplyFunR2R(f,f00,fName,*this,B,aux);
+  ApplyFunR2R(f,f00,f0x,fName,*this,B,aux);
   return(aux);
 };
 
