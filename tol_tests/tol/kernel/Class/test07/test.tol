@@ -5,7 +5,7 @@
 
 Text email_ = "vdebuen@tol-project.org"; 
 Text link_ = "https://www.tol-project.org/ticket/674";
-Text summary_ = "test for Class using itsel" ;
+Text summary_ = "test for Classes forward declaration" ;
 
 //Write here the initial test TOL code if needed
 
