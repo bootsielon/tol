@@ -763,7 +763,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
       found = FindStruct(name);
       if(!found)
       {
-        found = FindClass(name);
+        found = FindClass(name,-1);
       }
     }
   }
@@ -871,7 +871,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
     }
     else if(found==classGra_)
     {
-      result = FindClass(name);
+      result = FindClass(name,1);
     }
     else if(found->Mode()==BGRAMMARMODE)
     {

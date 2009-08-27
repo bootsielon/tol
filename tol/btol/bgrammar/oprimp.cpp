@@ -554,14 +554,14 @@ BGrammar* GetLeft(BGrammar* grammar,
     }
     else if(tt->type_==BTypeToken::BCLASS)
     {
-      cls = FindClass(tokName);
+      cls = FindClass(tokName,-1);
     }
     else 
     {
     //Backward compatibility with old OIS stored functions
       gra = BGrammar::FindByName(tokName,false);
       if(!gra) { str = FindStruct(tokName); }
-      if(!str) { cls = FindClass(tokName); }
+      if(!str) { cls = FindClass(tokName,-1); }
     }
          if(str) { gra = GraSet(); }
     else if(cls) { gra = GraNameBlock(); }

@@ -391,6 +391,7 @@ const BText& BNameBlock::LocalName() const
   }
   BUserNameBlock* oldBuilding = BNameBlock::Building();
   BGrammar::IncLevel();
+  int stackPos = BGrammar::StackSize();
   ns_result = new BGraContensP<BNameBlock>(name, new BNameBlock);
   BNameBlock::SetBuilding((BUserNameBlock*)ns_result);
   int oldBuildingLevel = -1;
@@ -411,7 +412,6 @@ const BText& BNameBlock::LocalName() const
   newNameBlock.PutLocalName(name);
   int oldErr = (int)TOLErrorNumber().Value();
   newNameBlock.Set().PutNameBlock(&newNameBlock);
-  int stackPos = BGrammar::StackSize();
   BGrammar::IncLevel();
   if(!cls)
   {
@@ -485,6 +485,15 @@ const BText& BNameBlock::LocalName() const
             uCode->Contens().Operator()->PutNameBlock(NULL);
           }
         }
+        if(mbr->static_) 
+        { 
+          mbr->static_->PutNameBlock(NULL); 
+          if(mbr->static_->Mode()==BOBJECTMODE)
+          {
+            BUserCode* uCode = UCode(mbr->static_);
+            uCode->Contens().Operator()->PutNameBlock(NULL);
+          }
+        }
       }
       newNameBlock.Set().PrepareStore(memberOwner.member_.Size());
       const BClass* oldClass = BClass::currentClassBuildingInstance_;
@@ -503,7 +512,7 @@ const BText& BNameBlock::LocalName() const
             printf("");
         }
 */
-        if(!mbr->method_)
+        if(!mbr->method_ && !mbr->static_)
         {
           obj = GraAnything()->EvaluateTree(mbr->branch_);
           newNameBlock.AddElement(obj, true);
@@ -514,7 +523,7 @@ const BText& BNameBlock::LocalName() const
     if(!memberOwner.isGood_) { DESTROY(ns_result) }
   }
   BGrammar::DecLevel();
-  BGrammar::DestroyStackUntil(stackPos, NULL);    
+  BGrammar::DestroyStackUntil(stackPos, ns_result);    
   newNameBlock.CheckMembers();
   int numErr = (int)TOLErrorNumber().Value()-oldErr;
   if(numErr)

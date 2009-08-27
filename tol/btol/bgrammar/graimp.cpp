@@ -359,7 +359,7 @@ void BGrammar::CleanTreeCache(const List* tre, bool forze)
   }
   else if(tt->type_==BTypeToken::BCLASS)
   {
-    cls = FindClass(name);
+    cls = FindClass(name,-1);
     if(!cls)
     {
       Error(I2("It was expected a name of Class instead of ",
@@ -378,7 +378,7 @@ void BGrammar::CleanTreeCache(const List* tre, bool forze)
   else
   {
     if(!(newGrammar = TknFindGrammar(token)) &&
-       !(cls = FindClass(name)) &&
+       !(cls = FindClass(name,-1)) &&
        !(str = FindStruct(name)))
     {
       Error(I2("It was expected a name of type, Class or Struct instead of ",
@@ -717,7 +717,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
       result = newGrammar->New(newName, result);
     } 
   }
-  else if((type == TYPE) && (newClass=FindClass(name)))
+  else if((type == TYPE) && (newClass=FindClass(name,1)))
   {
     List* left = Tree::treLeft((List*)tre);
     if(left)

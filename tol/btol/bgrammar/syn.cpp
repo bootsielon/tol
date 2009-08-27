@@ -222,6 +222,8 @@ BSyntaxObject::BSyntaxObject(const BText& name, const BText& desc, bool isDeadOb
 //--------------------------------------------------------------------
 {
   TRACE_MEMORY_SHOW(this,"BSyntaxObject::IncNRefs");
+//if((Name()=="ClassA")||(Name()=="inst_a")||(Name()=="inst_a_")||(Name()=="inst_b"))
+//  Std(BText("\nBSyntaxObject::IncNRefs() ")+Name()+" -> "+(NRefs()+1)+"\n");
   return(BAtom::IncNRefs()); 
 }
 
@@ -243,6 +245,8 @@ BSyntaxObject::BSyntaxObject(const BText& name, const BText& desc, bool isDeadOb
   }
   else               
   { 
+  //if((Name()=="ClassA")||(Name()=="inst_a")||(Name()=="inst_a_")||(Name()=="inst_b"))
+  //  Std(BText("\nBSyntaxObject::DecNRefs() ")+Name()+" -> "+(NRefs()-1)+"\n");
     return(BAtom::DecNRefs()); 
   }
 }

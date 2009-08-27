@@ -59,7 +59,9 @@ class TOL_API BMember
   BText          definition_;   //!< Definition canonical expression
   bool           isMethod_;     //!< True if is a function
   bool           deleteBranch_; //!< If true branch_ must be deleted at destructor
-  BSyntaxObject* method_;
+  bool           isStatic_;     //!< Flag for static Class members and methods
+  BSyntaxObject* method_;       //!< Store for Class member
+  BSyntaxObject* static_;       //!< Store for Class static member or method
  public:
   // Constructors and destructors: bgrammar\class.cpp
   BMember();
@@ -78,7 +80,7 @@ class TOL_API BMember
   //! Text expression
   BText FullExpression() const;
   int BuildMethod();
-
+  int BuildStatic();
   DeclareClassNewDelete(BMember);
 };
 
@@ -175,8 +177,8 @@ class TOL_API BClass: public BSyntaxObject, public BMemberOwner
 //--------------------------------------------------------------------
 {
 public:
+  bool isDefined_;
   static const BClass* currentClassBuildingInstance_;
-
   // Constructors and destructors: bgrammar\class.cpp
   BClass();
   BClass(const BText& name, List*  tree);
@@ -195,10 +197,12 @@ public:
   //! Evaluates a parsed tree with a Class declaration
   static BSyntaxObject* Evaluate(const List* tree);
   BSyntaxObject* FindMethod(const BText& memberName) const;
+  BSyntaxObject* FindStaticMethod(const BText& memberName) const;
+  BSyntaxObject* FindStaticMemeber(const BText& memberName) const;
   DeclareClassNewDelete(BClass);
 };
 
 //! Searches a user class wich name is name and returns it.
-TOL_API BClass* FindClass(const BText& name);
+TOL_API BClass* FindClass(const BText& name, int defined);
 
 #endif // TOL_BCLASS_H

@@ -65,7 +65,7 @@ BField::BField(const BText& name, const BText& gra,
                const BText& str, const BText& cls)
 //--------------------------------------------------------------------
 : BObject(name), grammar_(Gram(gra)), 
-  struct_(FindStruct(str)), class_(FindClass(cls))
+  struct_(FindStruct(str)), class_(FindClass(cls,-1))
 {}
 
 //--------------------------------------------------------------------

@@ -53,10 +53,29 @@ BMember::BMember()
   isMethod_    (false),
   method_      (NULL),
   parent_      (NULL),
-  deleteBranch_(false)
+  deleteBranch_(false),
+  isStatic_    (false),
+  static_      (NULL) 
 {
 }
 
+//--------------------------------------------------------------------
+BMember::BMember(const BMember& mbr) 
+//--------------------------------------------------------------------
+: branch_      (NULL),
+  isGood_      (false),
+  name_        (""),
+  declaration_ (""),
+  definition_  (""),
+  isMethod_    (false),
+  method_      (NULL),
+  parent_      (NULL),
+  deleteBranch_(false),
+  isStatic_    (false),
+  static_      (NULL)  
+{ 
+  Copy(mbr); 
+}
 //--------------------------------------------------------------------
 BMember::BMember(BMemberOwner* parent, List* branch)
 //--------------------------------------------------------------------
@@ -68,13 +87,20 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   isMethod_    (false),
   method_      (NULL),
   parent_      (NULL),
-  deleteBranch_(false)
+  deleteBranch_(false),
+  isStatic_    (false),
+  static_      (NULL) 
 {
   List* cdr;
   BCore* car;
   parent_ = parent;
   BToken* tok = (BToken*)branch->car();
   isGood_ = true;
+  if((tok->TokenType()==MONARY)&&(tok->Name()=="static"))
+  {
+    isStatic_ = true;
+    branch_ = branch = branch->cdr();
+  }
   if((tok->TokenType()==BINARY)&&(tok->Name()=="="))
   {
   //If is a '=' expression then is not a method and has default value
@@ -176,24 +202,10 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   if(parent->OwnerType()==BMemberOwner::BCLASS)
   {
     BuildMethod();
+    BuildStatic();
   }
 }
 
-//--------------------------------------------------------------------
-BMember::BMember(const BMember& mbr) 
-//--------------------------------------------------------------------
-: branch_      (NULL),
-  isGood_      (false),
-  name_        (""),
-  declaration_ (""),
-  definition_  (""),
-  isMethod_    (false),
-  method_      (NULL),
-  parent_      (NULL),
-  deleteBranch_(false)  
-{ 
-  Copy(mbr); 
-}
 
 //--------------------------------------------------------------------
 BMember::~BMember()
@@ -204,6 +216,11 @@ BMember::~BMember()
   {
     method_->DecNRefs(); 
     DESTROY(method_); 
+  }
+  if(static_)
+  {
+    static_->DecNRefs(); 
+    DESTROY(static_); 
   }
 }
 
@@ -219,10 +236,10 @@ BMember::~BMember()
   isMethod_     = mbr.isMethod_;    
   parent_       = mbr.parent_; 
   method_       = mbr.method_; 
-  if(method_)
-  {
-    method_->IncNRefs(); 
-  }
+  isStatic_     = mbr.isStatic_; 
+  static_       = mbr.static_; 
+  if(method_) { method_->IncNRefs(); }
+  if(static_) { static_->IncNRefs(); }
   deleteBranch_ = true;
 }
 
@@ -260,6 +277,39 @@ BMember::~BMember()
   }
 }
 
+//--------------------------------------------------------------------
+  int BMember::BuildStatic()
+//! Builds a well static member or method
+//--------------------------------------------------------------------
+{
+  if(!static_ && isStatic_ && definition_.HasName())
+  {
+    BGrammar::IncLevel();
+    int stackPos = BGrammar::StackSize();
+    BSyntaxObject* obj = GraAnything()->EvaluateTree(branch_);
+    BGrammar::DestroyStackUntil(stackPos, obj);    
+    BGrammar::DecLevel();
+    if(obj)
+    {
+      static_ = obj;
+      static_->IncNRefs(); 
+      return(1);
+    }
+    else
+    {
+      isGood_ = false;
+      Error(I2("Wrong syntax in static declaration ",
+               "Sintaxis incorrecta en declaración estática ")+
+            "static "+BParser::Unparse(branch_,"","\n")+
+            I2(" of Class ", "de Class ")+parent_->getName());
+      return(0);
+    }
+  }
+  else
+  {
+    return(-1);
+  }
+}
 //--------------------------------------------------------------------
   bool BMember::HasDefVal() const 
 //! True if member has default value
@@ -729,6 +779,7 @@ int MbrNumCmp(const void* v1, const void* v2)
   List* lst = NULL;
   if(memberLst)
   {
+  //Std(BText("\nBMemberOwner::AddMemberList(")+BParser::treWrite(memberLst,"  ")+"\n"); 
     if(memberLst->car()->IsListClass())
     {
       //If branch is a list adds all items
@@ -826,7 +877,8 @@ int MbrNumCmp(const void* v1, const void* v2)
 BClass::BClass()
 //--------------------------------------------------------------------
 : BSyntaxObject(),
-  BMemberOwner()
+  BMemberOwner(),
+  isDefined_(false)
 {
   CreateMemberHashes();
   CreateParentHashes();
@@ -837,7 +889,8 @@ BClass::BClass(const BText& name,
                List*  tree)
 //--------------------------------------------------------------------
 : BSyntaxObject(name),
-  BMemberOwner()
+  BMemberOwner(),
+  isDefined_(false)
 {
   PutTree(tree_);
   CreateMemberHashes();
@@ -871,35 +924,77 @@ BClass::~BClass()
 }
 
 //--------------------------------------------------------------------
+static BClass* predeclareClass(const BText&name,BClass*&old,bool&ok)
+//--------------------------------------------------------------------
+{
+  old = NULL;
+  BClass* class_ = NULL;
+  if(name.HasName())
+  {
+    old = FindClass(name,-1);
+    //Checking existent class with the same name
+    if(old && old->isDefined_)
+    {
+      ok = false;
+      Error(BText("Class '") + name +
+        I2("' is already defined as ",
+           "' ya fue definida como \"") + old->Dump() + "\"\n");
+    }
+    else if(old) 
+    {
+      class_ = old;
+    }
+    else
+    {
+      class_ = new BClass();
+      class_->PutName(name);
+      BGrammar::AddObject(class_);
+      assert(!class_ || FindClass(name,-1));
+    }
+  }
+  return(class_);
+};
+
+//--------------------------------------------------------------------
 //! Evaluates a parsed tree with a Class declaration
 BSyntaxObject* BClass::Evaluate(const List* _tree)
 //--------------------------------------------------------------------
 {
+  BToken* tok = NULL;
+  BClass* old = NULL;
   BClass* class_ = NULL;
   bool ok = false;
   //Duplicates parsed tree to be stored in class
   List* tree = _tree->duplicate();
+//Std(BText("\nBClass::Evaluate(")+BParser::treWrite(tree,"  ")+"\n"); 
   //Skypes Class token
   List* cdr = tree->cdr();
   BCore* car = (cdr)?cdr->car():NULL;
-  BText name;
+  BText name = "";
   List* memberLst = NULL;
   BArray<BClass*> parentArr(2);
   parentArr.ReallocBuffer(0);
   if(car && car->IsListClass())
   {
+    int nParent = 0;
     cdr = ((List*)car)->cdr();
     car = ((List*)car)->car();
-    BToken* tok = (BToken*)car;
-    int nParent = 0;
-    if((tok->TokenType()==BINARY)&&
-            (tok->Name()==":"))
+    tok = (BToken*)car;
+    if(!cdr)
+    {
+      name = tok->Name();
+      class_ = predeclareClass(name, old, ok);
+      ok = (class_!=NULL);
+      memberLst=NULL;
+    }
+    else if((tok->TokenType()==BINARY)&&(tok->Name()==":"))
     {
       //Class with inheriting clause
       tok = (BToken*)((List*)(cdr->car()))->car();
       name = tok->Name();
+      class_ = predeclareClass(name, old, ok);
+      ok = (class_!=NULL);
       cdr = cdr->cdr();
-      ok = true;
       while(ok && !memberLst && cdr && 
             cdr->car() && cdr->car()->IsListClass())
       {
@@ -910,7 +1005,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
            (((BTypeToken*)tok)->type_==BTypeToken::BCLASS))
         {
           parentArr.ReallocBuffer(nParent+1);
-          parentArr[nParent] = FindClass(tok->Name());
+          parentArr[nParent] = FindClass(tok->Name(),-1);
           if(parentArr[nParent])
           {
             nParent++;
@@ -941,54 +1036,42 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
     {
       //Class without inheriting clause
       name = tok->Name();
-      memberLst = cdr;
-      ok = true;
-    }
-  }
-  BClass* old = NULL;
-  if(name.HasName())
-  {
-    if(ok)
-    {
-      //Checking existent class with the same name
-      old = FindClass(name);
-      if(old)
-      {
-        ok = false;
-        Error(BText("Class '") + name +
-          I2("' is already defined as ",
-             "' ya fue definida como \"") + old->Dump() + "\"\n");
+      class_ = predeclareClass(name, old, ok);
+      ok = (class_!=NULL);
+      if(tok->TokenType()==FUNCTION)
+      { 
+        memberLst = cdr;
       }
       else
-      {
-        class_ = new BClass("", tree);
-        class_->SetParentArray(parentArr);
-        class_->AddMemberList(memberLst);
-        if(!class_->isGood_)
-        {
-          //If Class declaration failed shows an error and destroy all
-          Error(I2("Cannot create ","No se pudo crear ") + 
-            BParser::Unparse(tree,"","\n"));
-          DESTROY(class_);
-          class_ = NULL;
-          tree = NULL;
-        }
-        else
-        {
-          class_->SortMembers();
-          class_->PutName(name);
-          BGrammar::AddObject(class_);
-        }
-        assert(!class_ || FindClass(name));
+      { 
+        memberLst = ((List*)(cdr->car()))->cdr();
       }
-    }
+    }    
   }
-  if(!class_)
+  if(class_&& ok)
   {
-    //If no class was created shows an error
-    Error(I2("Se esperaba una declaración de Class instead of ",
-             "Se esperaba una declaración de Class en lugar de ") +"\n"+ 
-          BParser::Unparse(_tree,"","\n"));
+    class_->PutTree(tree);
+    class_->SetParentArray(parentArr);
+    class_->AddMemberList(memberLst);
+    if(!class_->isGood_)
+    {
+      ok=false;
+    }
+    else
+    {
+      class_->SortMembers();
+      class_->isDefined_ = class_->member_.Size()>0; 
+    }
+    assert(!class_ || FindClass(name,-1));
+  }
+  if(!ok || !class_)
+  {
+    //If Class declaration failed shows an error and destroy all
+    Error(I2("Cannot create ","No se pudo crear ") + 
+      BParser::Unparse(tree,"","\n"));
+    DESTROY(class_);
+    class_ = NULL;
+    tree = NULL;
     if(tree) { delete tree; }
     if(name.HasName() && !old)
     {
@@ -1001,7 +1084,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
 
 
 //--------------------------------------------------------------------
-BClass* FindClass(const BText& name)
+BClass* FindClass(const BText& name, int defined)
 
 /*! Searches a user class wich name is name and returns it.
  *  If itsn't exists returns NIL.
@@ -1040,6 +1123,10 @@ BClass* FindClass(const BText& name)
       bcls = (BClass*)result;
     }
   }
+  if(bcls && (defined>=0) && (bcls->isDefined_!=defined))
+  {
+    bcls = NULL;
+  }
   return(bcls);
 }
 
@@ -1056,4 +1143,29 @@ BSyntaxObject* BClass::FindMethod(const BText& memberName) const
   return(result);
 }
 
+//--------------------------------------------------------------------
+BSyntaxObject* BClass::FindStaticMethod(const BText& methodName) const
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result = NULL;
+  BMember* mbr = FindMember(methodName);
+  if(mbr && mbr->isStatic_ && mbr->isMethod_)
+  { 
+    result = mbr->method_;
+  } 
+  return(result);
+}
+
+//--------------------------------------------------------------------
+BSyntaxObject* BClass::FindStaticMemeber(const BText& memberName) const
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result = NULL;
+  BMember* mbr = FindMember(memberName);
+  if(mbr && mbr->static_ && !mbr->isMethod_)
+  { 
+    result = mbr->static_;
+  } 
+  return(result);
+}
 

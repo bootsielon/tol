@@ -952,7 +952,7 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
       obj = FindStruct(tokenName);
       if(!obj)
       {
-        obj = FindClass(tokenName);
+        obj = FindClass(tokenName,-1);
       }
     }
     if(!obj)

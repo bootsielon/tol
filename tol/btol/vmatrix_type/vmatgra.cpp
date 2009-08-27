@@ -1896,8 +1896,6 @@ void BVMatCholeskiFactor::CalcContens()
   bool force = false;
   if(Arg(2)) { S=Text(Arg(2)); }
   if(Arg(3)) { force=Real(Arg(3))!=0.0; }
-  if(Arg(1)->LocalName()=="X")
-    printf("");
   BVMat& X = VMat(Arg(1)); 
   BVMat::CholeskiFactor(X,contens_,S,true,force);
   assert(contens_.Check());
