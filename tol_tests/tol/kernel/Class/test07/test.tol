@@ -1,0 +1,69 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Storing Class definitions and instances in OIS
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "https://www.tol-project.org/ticket/674";
+Text summary_ = "test for Class using itsel" ;
+
+//Write here the initial test TOL code if needed
+
+Real numErr0 = Copy(NError);
+
+Class ClHeight;
+
+Class ClAge
+{
+  Text _.name;
+  Real _.age;
+  Real equalName(ClHeight arg)
+  {
+    _.name==arg::_.name
+  }
+};
+
+Class ClHeight
+{
+  Text _.name;
+  Real _.height;
+  Real equalName(ClAge arg)
+  {
+    _.name==arg::_.name
+  }
+};
+
+ClAge    a = [[ Text _.name="x"; Real _.age    =  10 ]];
+ClHeight b = [[ Text _.name="y"; Real _.height = 120 ]];
+ClHeight c = [[ Text _.name="x"; Real _.height = 150 ]];
+
+Real ok.1 = a::equalName(c);
+Real ok.2 = Not(b::equalName(a));
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0,
+  numErr1,
+  ok.1,
+  ok.2
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0==numErr1,ok.1,ok.2);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+WriteLn("NObject="<<NObject);
+WriteLn("NCore="<<NCore);
+resultStr_
+/* */
+
+
+
