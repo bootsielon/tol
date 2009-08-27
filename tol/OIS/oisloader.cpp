@@ -423,7 +423,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   {
     BText parentName;
     ERead(parentName,stream);
-    BClass* parent = FindClass(parentName);
+    BClass* parent = FindClass(parentName,1);
     if(!parent)
     {
       return(NullError(
@@ -453,6 +453,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   int s;
   ERead(s,stream);
   cls.member_.AllocBuffer(s);
+  cls.isDefined_=s>0;
   for(n=0; n<s; n++)
   {
     BText parentName;
@@ -476,7 +477,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     }
     else
     {
-      BClass* parent = FindClass(parentName);
+      BClass* parent = FindClass(parentName,1);
       mbr = parent->FindMember(name);
       assert(mbr);
     }
@@ -730,7 +731,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     }
     else if(mode==BCLASSMODE) 
     { 
-      return(FindClass(name)); 
+      return(FindClass(name,-1)); 
     }
     else 
     { 
@@ -1057,6 +1058,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 
           BUserNameBlock* oldBuilding = BNameBlock::Building();
           BGrammar::IncLevel();
+          int stackPos = BGrammar::StackSize();
           BUserNameBlock* unb = new BGraContensP<BNameBlock>(name, new BNameBlock);
           BNameBlock::SetBuilding(unb);
           unb->PutDescription(description);
@@ -1094,7 +1096,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           x.Set().PutStruct (str); 
           BSyntaxObject* r=NULL;
           x.Set().PrepareStore(s);
-          int stackPos = BGrammar::StackSize();
           BGrammar::IncLevel();
           for(n=1; n<=s; n++)
           {
@@ -1111,7 +1112,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             }
           } 
           BNameBlock::SetBuilding(oldBuilding);
-          BGrammar::DestroyStackUntil(stackPos, NULL);    
+          BGrammar::DestroyStackUntil(stackPos, unb);    
           BGrammar::DecLevel();
           x.CheckMembers();
           if(control_.oisEngine_.oisVersion_>="02.08")
@@ -1134,7 +1135,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                   I2("The OIS container must be rebuilt",
                      "El contenedor OIS deberá ser reconstruido")));
               }
-              BClass* cls = FindClass(className);
+              BClass* cls = FindClass(className,1);
               if(!cls)
               {
                 return(NullError(
