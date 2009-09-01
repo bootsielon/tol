@@ -419,10 +419,12 @@ if(!BDir::CheckIsDir(dir))                                \
     if(mbr.parent_==&cls)
     {
       char isMethod = mbr.isMethod_;
+      char isStatic = mbr.isStatic_;
       Ensure(WriteTree(mbr.branch_, stream));
       EWrite(mbr.declaration_     , stream);
       EWrite(mbr.definition_      , stream);
       EWrite(isMethod             , stream);
+      EWrite(isStatic             , stream);      
     }
   }
   return(true);
@@ -847,7 +849,7 @@ if(!BDir::CheckIsDir(dir))                                \
   Ensure(Write(hasClass, object_));
   if(hasClass)
   {
-    Ensure(Write(nb.Class()->Name(), object_));
+    Ensure(Write(nb.Class()->FullName(), object_));
   }
   return(true);
 };

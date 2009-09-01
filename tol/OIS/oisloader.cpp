@@ -464,6 +464,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     if(parentName==cls.getName())
     {
       char isMethod;
+      char isStatic=0;
       mbr = new BMember;
       mbr->parent_ = &cls;
       mbr->name_  = name;
@@ -471,9 +472,15 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       ERead(mbr->declaration_ , stream);
       ERead(mbr->definition_  , stream);
       ERead(isMethod          , stream);
+      if(control_.oisEngine_.oisVersion_>="02.10") 
+      {
+        ERead(isStatic        , stream);
+      }
       mbr->isMethod_ = isMethod!=0;
+      mbr->isStatic_ = isStatic!=0;
       mbr->isGood_ = true;
       mbr->BuildMethod();
+      mbr->BuildStatic();
     }
     else
     {
@@ -791,8 +798,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       BClass* cls = new BClass;
       cls->PutName(name);
       BScanner::AddSymbol(new BTypeToken(name,BTypeToken::BCLASS));
-      Ensure(Read(*cls,object_));
       BGrammar::AddObject(cls); 
+      Ensure(Read(*cls,object_));
       return(readed_[found].PutObject(cls));
     }
     else
@@ -1065,16 +1072,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           assert(GraNameBlock()->FindLocal(name)==unb);
           readed_[found].PutObject(unb);
           BNameBlock& x = unb->Contens(); 
-          x.Set().PutNameBlock(&x);
-          if(oldBuilding)
-          {
-            int oldLevel = oldBuilding->Level();
-            if(oldLevel == level-1)
-            { 
-              oldBuilding->Contens().AddElement(unb, true);
-            }
-          } 
           x.Set().PutSubType(BSet::BSubType(sbt));
+          x.Set().PutNameBlock(&x);
           x.PutName(fullName);
           if(control_.oisEngine_.oisVersion_>="02.07")
           {
@@ -1094,6 +1093,21 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             str = (BStruct*)r;
           }
           x.Set().PutStruct (str); 
+/* */
+          BSyntaxObject* mem=NULL; 
+          if(oldBuilding)
+          {
+            int oldLevel = oldBuilding->Level();
+            if(oldLevel == level-1)
+            { 
+              mem = oldBuilding->Contens().Member(unb->Name());
+              if(!mem)
+              {
+                oldBuilding->Contens().AddElement(unb, true);
+              }
+            }
+          } 
+/* */
           BSyntaxObject* r=NULL;
           x.Set().PrepareStore(s);
           BGrammar::IncLevel();
@@ -1105,10 +1119,14 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             if(!r) 
             { 
               return(NullError("BOisLoader::ReadNextObject: NULL element of set ")); 
-            } 
-            if(r) 
+            }
+            else 
             {
-              x.AddElement(r, true); 
+              mem = x.Member(r->Name());
+              if(!mem)
+              {
+                x.AddElement(r, true); 
+              }
             }
           } 
           BNameBlock::SetBuilding(oldBuilding);
