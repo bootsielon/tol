@@ -56,6 +56,7 @@ class BParser {
     List*     newSymbol_;           //!< Store name of Struct Data Type created
     BToken*   lastSymbol_;          //!< Context symbol of first level
     BToken*   lastSymbol_2_;        //!< Context symbol of second level
+    BToken*   delayedSymbol_ ;      //!< Symbol delayed to be parsed after knowing the next one
     static BParser* defaultParser_; //!< only one parser
     
  public:
@@ -103,6 +104,7 @@ class BParser {
     Tree* ParseSeparator(Tree*);
     Tree* ParseMacroEmbed (Tree* tre);
     Tree* ParseMacro (Tree* tre);
+    Tree* ParseDelayed (Tree* tre);
     Tree* ParseSymbol(Tree*, BCloseToken*);
     
     BText ErrorPosition (BInt& row, BInt& col);
