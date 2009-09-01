@@ -21,16 +21,10 @@
   [["vdebuen@tol-project.org"]];
 
 //private API
-  Set _trace = Include("_trace.tol");
-  Set _phase = Include("_phase.tol");
-  Set _coded = Include("_coded.tol");
-  Set _log   = Include("_log.tol");
-
-//public API
-  NameBlock Trace;
-  NameBlock Phase;
-  NameBlock Coded;
-  NameBlock Log
+  #Embed "_trace.tol";
+  #Embed "_phase.tol";
+  #Embed "_coded.tol";
+  #Embed "_log.tol"
 
 ]];  
   
