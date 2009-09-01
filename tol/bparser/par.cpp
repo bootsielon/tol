@@ -75,7 +75,8 @@ BParser::BParser()
   messageError_   (""),
   newSymbol_      (NULL),
   lastSymbol_     (NULL),
-  lastSymbol_2_   (NULL)
+  lastSymbol_2_   (NULL),
+  delayedSymbol_  (NULL)
 {
   filter_  = new BFilter;
   scan_    = new BScanner;
@@ -569,6 +570,7 @@ const BChar* BParser::tokClose(const BToken* tok)
  */
 Tree* BParser::ParseNone(Tree* tre, BCloseToken* close) 
 {
+  tre  = ParseDelayed (tre);
   if(close) 
   {
     messageError_+= I2("Unexpected end of expression. "
@@ -610,6 +612,7 @@ Tree* BParser::ParseNone(Tree* tre, BCloseToken* close)
  */
 Tree* BParser::ParseOpen (Tree* tre) 
 {
+  tre  = ParseDelayed (tre);
   Tree*        branch = new Tree();
   BToken*      arg    = NextArgument();
   BCloseToken* cl     = NextSymbol()->Close();
@@ -674,6 +677,7 @@ Tree* BParser::ParseOpen (Tree* tre)
  */
 Tree* BParser::ParseClose (Tree* tre, BCloseToken* close) 
 {
+  tre  = ParseDelayed (tre);
   bool lastWasEmbed = lastSymbol_ && (lastSymbol_->Name()=="#Embed");
   openNumber_--;
   if(!close ||
@@ -708,6 +712,7 @@ Tree* BParser::ParseClose (Tree* tre, BCloseToken* close)
  */
 Tree* BParser::ParseType (Tree* tre) 
 {
+  tre = ParseDelayed (tre);
   if(NextArgument() || complete_) 
   {
     messageError_+= I2("Unexpected type symbol "+ NextSymbol()->Name(),
@@ -716,16 +721,11 @@ Tree* BParser::ParseType (Tree* tre)
   } 
   else 
   {
-    NextSymbol()->PutPrecedence(9);
-    Tree* branch = Tree::createMonary(NextSymbol(),NIL);
-    tre->putMostRight(branch);
-    if(classInheritage_)
-    {
-      complete_=true;
-    }
+    delayedSymbol_ = NextSymbol();
   }
   return(tre);
 }
+
 
 //--------------------------------------------------------------------
 //! Parse BMonaryToken and add it to Syntactical Tree
@@ -741,6 +741,7 @@ Tree* BParser::ParseType (Tree* tre)
  */
 Tree* BParser::ParseMonary (Tree* tre) 
 {
+  tre  = ParseDelayed (tre);
   if(NextSymbol()->Name() == "!") { NextSymbol()->PutName("Not"); }
   const BBinaryToken* bin;
   bin = ((BMonaryToken*)(scan_->NextSymbol()))->Binary();
@@ -772,6 +773,10 @@ Tree* BParser::ParseMonary (Tree* tre)
     {
       NextSymbol()->PutPrecedence(1);
     }
+    else if (NextSymbol()->Name() == "Static") 
+    {
+      NextSymbol()->PutPrecedence(1);
+    }
     else
     {
       NextSymbol()->PutPrecedence(20);
@@ -793,7 +798,22 @@ Tree* BParser::ParseBinary (Tree* tre)
 {
   bool lastIsClass = false;
   bool isInherite = false;
-  if(NextSymbol()->Name() == "**") { NextSymbol()->PutName("^"); }
+  bool isStatic = false;
+  if((NextSymbol()->Name() == "::")&&
+      delayedSymbol_&&(delayedSymbol_->TokenType()==TYPE))
+  {
+    BTypeToken* tt = (BTypeToken*)delayedSymbol_;
+    if(tt->type_==BTypeToken::BCLASS)
+    {
+      isStatic = true;
+      nextArgument_ = delayedSymbol_;
+      delayedSymbol_ = NULL;
+    } 
+  }
+  else if(NextSymbol()->Name() == "**") 
+  { 
+    NextSymbol()->PutName("^"); 
+  }
   else 
   {
     lastIsClass = (
@@ -811,6 +831,10 @@ Tree* BParser::ParseBinary (Tree* tre)
       classInheritage_ = true;
       NextSymbol()->PutPrecedence(3);
     }
+  }
+  if(!isStatic)
+  {
+    tre  = ParseDelayed (tre);
   }
   if(!NextArgument() && !complete_ && !isInherite) 
   {
@@ -884,6 +908,7 @@ Tree* BParser::ParseBinary (Tree* tre)
  */
 Tree* BParser::ParseSeparator (Tree* tre) 
 {
+  tre  = ParseDelayed (tre);
   bool lastWasEmbed = lastSymbol_ && (lastSymbol_->Name()=="#Embed");
   if(!NextArgument() && !complete_ && !lastWasEmbed) 
   {
@@ -1043,6 +1068,7 @@ Tree* BParser::ParseMacroEmbed (Tree* tre)
 Tree* BParser::ParseMacro (Tree* tre) 
 //--------------------------------------------------------------------
 {
+  tre  = ParseDelayed (tre);
   const BText& name = NextSymbol()->Name();
   if(name=="#Embed") 
   { 
@@ -1055,6 +1081,26 @@ Tree* BParser::ParseMacro (Tree* tre)
        "Macro de parseo desconocida ")+ name+" . ";
   } 
 }
+
+//--------------------------------------------------------------------
+Tree* BParser::ParseDelayed (Tree* tre) 
+//--------------------------------------------------------------------
+{
+  if(!delayedSymbol_) { return(tre); }
+  if(delayedSymbol_->TokenType()==TYPE)
+  {
+    delayedSymbol_->PutPrecedence(9);
+    Tree* branch = Tree::createMonary(delayedSymbol_,NIL);
+    tre->putMostRight(branch);
+    if(classInheritage_)
+    {
+      complete_=true;
+    }
+  }
+  delayedSymbol_ = NULL;
+  return(tre);
+}
+
 //--------------------------------------------------------------------
 //! Takes next symbol from scanner & invokes parser method related with it
 /*! Takes the next symbol and argument from scanner and calls the
