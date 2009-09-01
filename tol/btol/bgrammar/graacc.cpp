@@ -494,21 +494,26 @@ BSyntaxObject* BGrammar::FindOperand(const BText& name,
   }
 /* */
   const BClass* cls = BClass::currentClassBuildingInstance_;
-  if(!found && cls && (this==GraCode()))
+  BSyntaxObject* met = NULL;
+  if(cls && (this==GraCode()))  
+  { 
+    met = cls->FindMethod(name,true); 
+  }
+  else if(cls = BClass::currentStatic_)
   {
-    BSyntaxObject* met = cls->FindMethod(name);
-    if(met)
+    met = cls->FindStatic(name,true);
+  }
+  if(!found && met)
+  {
+    if((met->Mode()==BUSERFUNMODE)&&(this==GraCode()))
     { 
-      if(met->Mode()==BUSERFUNMODE)
-      { 
-        opr = (BOperator*)met; 
-        found = opr->GetCode();
-      }
-      else if(met->Mode()==BOBJECTMODE)
-      {
-        found = met;
-      }
-    } 
+      opr = (BOperator*)met; 
+      found = opr->GetCode();
+    }
+    else if(met->Mode()==BOBJECTMODE)
+    {
+      found = met;
+    }
   }
 /* */
   if(!found) 
@@ -621,22 +626,27 @@ BOperator* BGrammar::FindOperator(const BText& name)const
   BOperator* found = NULL;
 /* */
   const BClass* cls = BClass::currentClassBuildingInstance_;
-  if(cls)
-  {
-    BSyntaxObject* met = cls->FindMethod(name);
-    if(met)
-    { 
-      if(met->Mode()==BUSERFUNMODE)
-      { 
-        found = (BOperator*)met;
-      }
-      else if(met->Mode()==BOBJECTMODE)
-      {
-        BUserCode* uCode = UCode(met);
-        found = uCode->Contens().Operator();
-      }
-    } 
+  BSyntaxObject* met = NULL;
+  if(cls)  
+  { 
+    met = cls->FindMethod(name,true); 
   }
+  else if(cls = BClass::currentStatic_)
+  {
+    met = cls->FindStatic(name,true);
+  }
+  if(met)
+  { 
+    if(met->Mode()==BUSERFUNMODE)
+    { 
+      found = (BOperator*)met;
+    }
+    else if(met->Mode()==BOBJECTMODE)
+    {
+      BUserCode* uCode = UCode(met);
+      found = uCode->Contens().Operator();
+    }
+  } 
 /* */
   if(!found) 
   { 
