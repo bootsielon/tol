@@ -177,7 +177,7 @@ NameBlock bsr.config = [[
 */
 
 // El objeto config para la 2.0.1 es de tipo Config
-BysMcmc::Config bsr.config = BysMcmc::Config.Default( 0 );
+BysMcmc::Config bsr.config = BysMcmc::Config::Default( 0 );
 
 Serie WN = SubSer(Gaussian(0,1),y2000,y2008);
 Polyn AR = (1-0.7*B)*(1-0.3*B);
@@ -222,17 +222,22 @@ Set bsr.estim = { BysMcmc::Bsr::Gibbs::Estim
 
 // El partial handler es el objeto que implementara el
 // condicionamiento, para este ejemplo usamos uno vacio.
-BysMcmc::McmcPartialHandler hdPartial = BysMcmc::McmcPartialHandler.Default( 0 );
+BysMcmc::McmcPartialHandler hdPartial = BysMcmc::McmcPartialHandler::Null( 0 );
 
 // El notifiar permite emitir notificaciones personalizadas de las
 // etapas del gibbs.
-BysMcmc::Notifier notifier = BysMcmc::NoNotifier( 0 );
+BysMcmc::Notifier notifier = BysMcmc::Notifier::Null( 0 );
 
 // El cycler se puede construir de 3 maneras
 
-BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler( bsr.import, hdPartial, bsr.config, notifier );
+BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler( bsr.import,
+                                                         hdPartial,
+                                                         bsr.config,
+                                                         notifier );
 //Cycler cycler = GetCycler( file.bsr, hdPartial, bsr.config, notifier );
 //Cycler cycler = GetCycler( bsr.parsed, hdPartial, bsr.config, notifier );
 
 // ahora la estimacion
-BysMcmc::Estimation EE = BysMcmc::Estim( cycler );
+BysMcmc::Estimation EE = BysMcmc::Estimation::New( cycler );
+
+Real EE::Run( 0 );
