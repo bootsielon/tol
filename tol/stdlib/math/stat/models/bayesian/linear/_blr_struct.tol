@@ -34,7 +34,7 @@ Struct BLRLimInfo
 
 Struct BLRPriorInfo
 {
-  Text Class,
+  Text ClassName,
   Set Parameters
 };
 
@@ -50,7 +50,7 @@ Struct BLRPriorInfo.Fixed
 };
 
 /* Parameters for PriorInfo
-Values of Class: 
+Values of ClassName: 
  - Normal: Especifica una distribucion normal para el parametro el conjunto
    Parameters tiene estructura BLRPriorInfo_Normal
  - Fixed: Especifica que el valor es fijo y su valor esta dado por el valor 

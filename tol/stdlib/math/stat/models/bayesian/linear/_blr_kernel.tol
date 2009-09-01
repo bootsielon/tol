@@ -187,7 +187,7 @@ Matrix BLR(Set model, Real calls, Real burning, Text fileSample)
       Set priorInfo   = reg->PriorInfo;
       Real priorValue = If(IsEmpty(priorInfo), ?, 
       {
-        Text class = ToUpper(priorInfo->Class);
+        Text class = ToUpper(priorInfo->ClassName);
         Case
         (
           class == "FIXED", priorInfo->Parameters->Value,

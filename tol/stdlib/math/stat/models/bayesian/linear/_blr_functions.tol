@@ -135,7 +135,7 @@ Set MHResult(Matrix param, Set names, Set inputDef)
       Real limSup = If(isLimInfo, TheMaxAbsValue, limInfo->LimSup);
       Real priorNu = If(isPriorInfo, ?, 
       {
-        Text class = ToUpper(priorInfo->Class);
+        Text class = ToUpper(priorInfo->ClassName);
         Case
         (
           class == "FIXED", priorInfo->Parameters->Value,
@@ -145,7 +145,7 @@ Set MHResult(Matrix param, Set names, Set inputDef)
       });  
       Real priorSigma = If(isPriorInfo, ?, 
       {
-        Text class = ToUpper(priorInfo->Class);
+        Text class = ToUpper(priorInfo->ClassName);
         Case
         (
           isPriorInfo, ?,

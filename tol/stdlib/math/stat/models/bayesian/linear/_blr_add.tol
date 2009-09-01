@@ -40,7 +40,7 @@ Set BLR_AddPrior(Set model)
      
     If(IsEmpty(priorInfo), False,
     {
-      Text class = ToUpper(priorInfo->Class);
+      Text class = ToUpper(priorInfo->ClassName);
       Case
       (
         class == "NORMAL", 
