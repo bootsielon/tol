@@ -1516,6 +1516,67 @@ void BSpecialFunction::AddLeftInstance(const BText&            name,
 }
 
 
+//--------------------------------------------------------------------
+static BSyntaxObject* EvMemberArg
+//--------------------------------------------------------------------
+(
+  const BText& _name_,
+  BGrammar* gra, 
+  List* branch2, 
+  BToken* arg2,
+  const BText& memberName,
+  const BText& ownerName,
+  BText& errMsg,
+  BSyntaxObject* result
+)
+{
+  BTokenType tt = arg2->TokenType();
+  if(result && branch2->cdr())
+  {
+    if(tt==FUNCTION)
+    {
+      if(result->Grammar()!=GraCode())
+      {
+        BText fullName = ownerName+_name_+memberName;
+        BText graName  = "UNKNOWN";
+        if(result->Grammar()) { graName = result->Grammar()->Name(); }
+        errMsg = fullName+
+                 I2(" is not a function but an object of type ", 
+                    " no es una función sino un objeto de tipo ")+
+                 graName;
+        result = NULL;
+      }
+      else
+      {
+        BUserCode* uCode = UCode(result);
+        BOperator* opr   = GetOperator(uCode);
+        result = opr->Evaluate(branch2->cdr());
+      }
+    }
+    if((tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
+    {
+      BStruct* str = (BStruct*)result;
+      result = str->Function()->Evaluate(branch2->cdr());
+    }
+    if((tt==TYPE)&&(result->Mode()==BCLASSMODE))
+    {
+      BClass* cls = (BClass*)result;
+      result = GraNameBlock()->EvaluateTree(branch2->cdr());
+      BUserNameBlock* unb = NULL;
+      if(result && (result->Grammar()==GraNameBlock()))
+      {
+        unb = (BUserNameBlock*)result;
+      }
+      if(!unb || (unb->Contens().Class()!=cls))
+      {
+        errMsg = I2("It was expected an instance of Class ",
+                 "Se esperaba una instancia de Class ") +cls->Name();
+        result=NULL;
+      }
+    }
+  }
+  return(result);
+}
 
 //--------------------------------------------------------------------
 static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
@@ -1527,26 +1588,62 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   static BText _name_ = "::";
   BSyntaxObject* result = NIL;
   BInt nb = NumBranches(tre);
+  BText errMsg;
   if(TestNumArg(_name_, 2, nb, 2))
   {
-    bool oldEnabled = BOut::Disable();
     List* branch1 = Branch(tre,1);
     List* branch2 = Branch(tre,2);
+/* * /
+    BText ups = BParser::Unparse(tre, "  ");
+  //Std(BText("\nEvMember branch1='")+BParser::Unparse(branch1,"  ")+"'\n"); 
+  //Std(BText("\nEvMember branch2='")+BParser::Unparse(branch2,"  ")+"'\n"); 
+    if(ups=="BysMcmc::Notifier ::Null(0)")
+      printf("");
+    Std(BText("\nEvMember tre='")+ups+"'\n"); 
+/* */
+    bool oldEnabled = BOut::Disable();
     BSyntaxObject* uns = GraNameBlock()->LeftEvaluateTree(branch1);
     if(!uns) { uns = GraSet()->LeftEvaluateTree(branch1); }
+    if(!uns) 
+    { 
+/* * /
+      BOut::Enable();
+      Std(BText("\nEvMember branch1=")+BParser::treWrite(branch1,"  ")+"'\n"); 
+      Std(BText("\nEvMember branch2=")+BParser::treWrite(branch2,"  ")+"'\n"); 
+      BOut::Disable();
+/* */
+      if(!branch1->cdr())
+      {
+        BToken* arg1 = BParser::treToken(branch1);
+        if(arg1->TokenType()==TYPE)
+        {
+          BTypeToken* tt = (BTypeToken*)arg1;
+          if(tt->type_==BTypeToken::BCLASS)
+          { 
+            uns = FindClass(tt->Name(),1); 
+          }
+        }
+      }
+    }
     if(oldEnabled) { BOut::Enable(); }
-    if(uns)
+    BToken* arg2 = BParser::treToken(branch2);
+    if(uns && arg2)
     {
-      BToken*      arg2       = BParser::treToken(branch2);
       const BText& memberName = arg2->Name();
-      if(uns->Grammar()==GraSet())
+      if(uns->Mode()==BCLASSMODE)
+      {
+        BClass* cls = (BClass*)uns;
+        result = cls->FindStatic(memberName,false);
+        result = EvMemberArg
+         (_name_, gra, branch2, arg2, memberName,cls->Name(), errMsg, result);
+      }
+      else if(uns->Grammar()==GraSet())
       {
         BUserSet* uSet = (BUserSet*)uns;
         result = uSet->Contens().GetElement(memberName);
       }
       else if(uns->Grammar()==GraNameBlock())
       {
-        BText errMsg;
         BNameBlock& ns = NameBlock(uns);
         if((memberName[0]=='_')&&(memberName[1]=='.'))
         {
@@ -1564,59 +1661,16 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
         {
           result = ns.PublicMember(memberName);
         }
-        BTokenType tt = arg2->TokenType();
-        if(result && branch2->cdr())
-        {
-          if(tt==FUNCTION)
-          {
-            if(result->Grammar()!=GraCode())
-            {
-              BText fullName = ns.Name()+_name_+memberName;
-              BText graName  = "UNKNOWN";
-              if(result->Grammar()) { graName = result->Grammar()->Name(); }
-              errMsg = fullName+
-                       I2(" is not a function but an object of type ", 
-                          " no es una función sino un objeto de tipo ")+
-                       graName;
-              result = NULL;
-            }
-            else
-            {
-              BUserCode* uCode = UCode(result);
-              BOperator* opr   = GetOperator(uCode);
-              result = opr->Evaluate(branch2->cdr());
-            }
-          }
-          if((tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
-          {
-            BStruct* str = (BStruct*)result;
-            result = str->Function()->Evaluate(branch2->cdr());
-          }
-          if((tt==TYPE)&&(result->Mode()==BCLASSMODE))
-          {
-            BClass* cls = (BClass*)result;
-            result = GraNameBlock()->EvaluateTree(branch2->cdr());
-            BUserNameBlock* unb = NULL;
-            if(result && (result->Grammar()==GraNameBlock()))
-            {
-              unb = (BUserNameBlock*)result;
-            }
-            if(!unb || (unb->Contens().Class()!=cls))
-            {
-              errMsg = I2("It was expected an instance of Class ",
-                       "Se esperaba una instancia de Class ") +cls->Name();
-              result=NULL;
-            }
-          }
-        }
-        if(errMsg.HasName())
-        {
-          assert(!result);
-          Error(I2("Evaluating expression ",
-                   "Evaluando la expresión ")+BParser::Unparse(tre)+"\n"+errMsg);
-        }
+        result = EvMemberArg
+          (_name_, gra, branch2, arg2, memberName, ns.Name(), errMsg, result);
       }
     }
+  }
+  if(errMsg.HasName())
+  {
+    assert(!result);
+    Error(I2("Evaluating expression ",
+             "Evaluando la expresión ")+BParser::Unparse(tre)+"\n"+errMsg);
   }
   result=TestResult(_name_,result,tre,NIL,BTRUE);
   return(result);
