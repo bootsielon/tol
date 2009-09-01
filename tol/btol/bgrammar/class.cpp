@@ -34,6 +34,8 @@
 #include <tol/tol_bgrammar.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bnameblock.h>
+#include <tol/tol_bcodgra.h>
+
 
 //--------------------------------------------------------------------
 // Initialization
@@ -41,6 +43,7 @@
 //--------------------------------------------------------------------
 BTraceInit("class.cpp");
 const BClass* BClass::currentClassBuildingInstance_ = NULL;
+const BClass* BClass::currentStatic_ = NULL;
 
 //--------------------------------------------------------------------
 BMember::BMember()
@@ -94,109 +97,139 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   List* cdr;
   BCore* car;
   parent_ = parent;
-  BToken* tok = (BToken*)branch->car();
   isGood_ = true;
-  if((tok->TokenType()==MONARY)&&(tok->Name()=="static"))
+  BToken* tok = NULL;
+  if(parent && branch && branch->car())
+  {
+    tok = (BToken*)branch->car();
+  }
+  else
+  {
+    isGood_ = false;
+  }
+  if(isGood_ && (tok->TokenType()==MONARY) && (tok->Name()=="Static"))
   {
     isStatic_ = true;
-    branch_ = branch = branch->cdr();
-  }
-  if((tok->TokenType()==BINARY)&&(tok->Name()=="="))
-  {
-  //If is a '=' expression then is not a method and has default value
-    isMethod_ = false;
-    BText expression = BParser::Unparse(branch,"","");
-    if(expression[0]=='[')
+    if(!(branch = branch->cdr()))
     {
-      expression = expression.SubString(2,expression.Length()-3);
+      isGood_ = false;
     }
-    else if(expression[0]=='{')
+    else 
     {
-      expression = expression.SubString(1,expression.Length()-2);
-    }
-    int posEq = expression.Find("=");
-    int posSp = expression.Find(" ");
-    name_ = expression.SubString(posSp+1,posEq-1);
-    declaration_ = expression.SubString(0,posEq-1);
-    definition_ = expression.SubString(posEq+1,expression.Length());
-  }
-  else if((tok->TokenType()==BINARY)&&(tok->Name()=="#F#"))
-  {
-  //If is a '#F#' expression then is a method and has default value
-    isMethod_ = true;
-    cdr = branch->cdr();
-    if(cdr)
-    {
-      car = cdr->car();
-      if(car && car->IsListClass())
+      if(branch->car()->IsListClass())
       {
-        declaration_ = BParser::Unparse((List*)car,"","");
-        if(((List*)car)->cdr() && 
-           ((List*)car)->cdr()->car() &&
-           ((List*)car)->cdr()->car()->IsListClass())
+        branch = ((List*)branch->car());
+      }
+      else
+      { 
+        isGood_ = false;
+      }
+    }
+    if(isGood_)
+    {
+      tok = (BToken*)branch->car();
+    }
+    branch_ = branch;
+  }
+  if(isGood_)
+  {
+    if((tok->TokenType()==BINARY)&&(tok->Name()=="="))
+    {
+    //If is a '=' expression then is not a method and has default value
+      isMethod_ = false;
+      BText expression = BParser::Unparse(branch,"","");
+      if(expression[0]=='[')
+      {
+        expression = expression.SubString(2,expression.Length()-3);
+      }
+      else if(expression[0]=='{')
+      {
+        expression = expression.SubString(1,expression.Length()-2);
+      }
+      int posEq = expression.Find("=");
+      int posSp = expression.Find(" ");
+      name_ = expression.SubString(posSp+1,posEq-1);
+      declaration_ = expression.SubString(0,posEq-1);
+      definition_ = expression.SubString(posEq+1,expression.Length());
+    }
+    else if((tok->TokenType()==BINARY)&&(tok->Name()=="#F#"))
+    {
+    //If is a '#F#' expression then is a method and has default value
+      isMethod_ = true;
+      cdr = branch->cdr();
+      if(cdr)
+      {
+        car = cdr->car();
+        if(car && car->IsListClass())
         {
-          car = ((List*)((List*)car)->cdr()->car())->car();
-          tok = (BToken*)car;
-          name_ = tok->Name();
-          cdr = cdr->cdr();
-          if(cdr)
+          declaration_ = BParser::Unparse((List*)car,"","");
+          if(((List*)car)->cdr() && 
+             ((List*)car)->cdr()->car() &&
+             ((List*)car)->cdr()->car()->IsListClass())
           {
-            car = cdr->car();
-            if(car && car->IsListClass())
+            car = ((List*)((List*)car)->cdr()->car())->car();
+            tok = (BToken*)car;
+            name_ = tok->Name();
+            cdr = cdr->cdr();
+            if(cdr)
             {
-              definition_  = BParser::Unparse((List*)car,"","");
-            }
-            else
-            {
-              isGood_ = false;
+              car = cdr->car();
+              if(car && car->IsListClass())
+              {
+                definition_  = BParser::Unparse((List*)car,"","");
+              }
+              else
+              {
+                isGood_ = false;
+              }
             }
           }
         }
       }
     }
-  }
-  else if(tok->TokenType()==TYPE)
-  {
-  //If is a 'Type name ...' expression then hasn't default value
-    declaration_ = BParser::Unparse(branch,"","");
-    car = branch->cdr()->car();
-    car = (car->IsListClass())?((List*)car)->car():car;
-    tok = (BToken*)car;
-    name_ = tok->Name();
-  //If main token is FUNCTION then member is a method
-    isMethod_ = tok->TokenType()==FUNCTION;
-  }
-  else if((tok->TokenType()==BINARY)&&(tok->Name()=="::"))
-  {
-    declaration_ = BParser::Unparse(branch,"","");
-    BText simpleDec = declaration_;
-    isMethod_ = simpleDec.Find('(')>=0;
-    simpleDec.Replace("("," ");
-    simpleDec.Compact();
-    int p0 = simpleDec.Find(' ');
-    if(p0>0)
+    else if(tok->TokenType()==TYPE)
     {
-      int p1 = simpleDec.Find(' ', p0+1);
-      if(p1<0) { p1 = simpleDec.Length()+1; }
-      if(p0+1<p1-1)
-      {
-        name_ = simpleDec.SubString(p0+1,p1-1);
-      }
+    //If is a 'Type name ...' expression then hasn't default value
+      declaration_ = BParser::Unparse(branch,"","");
+      car = branch->cdr()->car();
+      car = (car->IsListClass())?((List*)car)->car():car;
+      tok = (BToken*)car;
+      name_ = tok->Name();
+    //If main token is FUNCTION then member is a method
+      isMethod_ = tok->TokenType()==FUNCTION;
     }
-  } 
-  //Cleaning open and close parenthesis
-  if(declaration_[0]=='{')
-  {
-    declaration_=declaration_.SubString(1,declaration_.Length()-2);
+    else if((tok->TokenType()==BINARY)&&(tok->Name()=="::"))
+    {
+      declaration_ = BParser::Unparse(branch,"","");
+      BText simpleDec = declaration_;
+      isMethod_ = simpleDec.Find('(')>=0;
+      simpleDec.Replace("("," ");
+      simpleDec.Compact();
+      int p0 = simpleDec.Find(' ');
+      if(p0>0)
+      {
+        int p1 = simpleDec.Find(' ', p0+1);
+        if(p1<0) { p1 = simpleDec.Length()+1; }
+        if(p0+1<p1-1)
+        {
+          name_ = simpleDec.SubString(p0+1,p1-1);
+        }
+      }
+    } 
+    //Cleaning open and close parenthesis
+    if(declaration_[0]=='{')
+    {
+      declaration_=declaration_.SubString(1,declaration_.Length()-2);
+    }
   }
   //Checking mandatory information: name and declaration. 
   //Definition is optional
-  if(!name_.HasName() || !declaration_.HasName())
+  if(!isGood_ || !name_.HasName() || !declaration_.HasName())
   {
     isGood_ = false;
     Error(I2("Wrong syntax in member declaration ",
              "Sintaxis incorrecta en declaración de miembro ")+
-          BParser::Unparse(branch,"","\n")+
+          BParser::Unparse(branch_,"","\n")+
           I2(" of Class ", "de Class ")+parent->getName());
   }
   if(parent->OwnerType()==BMemberOwner::BCLASS)
@@ -248,7 +281,7 @@ BMember::~BMember()
 //! Builds a well defined method
 //--------------------------------------------------------------------
 {
-  if(!method_ && isMethod_ && definition_.HasName())
+  if(!isStatic_ && !method_ && isMethod_ && definition_.HasName())
   {
     BGrammar::IncLevel();
     int stackPos = BGrammar::StackSize();
@@ -292,6 +325,14 @@ BMember::~BMember()
     if(obj)
     {
       static_ = obj;
+      if(isMethod_)
+      {
+        if(obj->Mode()==BOBJECTMODE)
+        {
+          obj = UCode(obj)->Contens().Operator();
+        }
+        ((BUserFunction*)obj)->staticOwner_=(const BClass*)parent_;
+      }
       static_->IncNRefs(); 
       return(1);
     }
@@ -949,7 +990,6 @@ static BClass* predeclareClass(const BText&name,BClass*&old,bool&ok)
       class_ = new BClass();
       class_->PutName(name);
       BGrammar::AddObject(class_);
-      assert(!class_ || FindClass(name,-1));
     }
   }
   return(class_);
@@ -1082,6 +1122,58 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
   return(class_);
 }
 
+//--------------------------------------------------------------------
+static BClass* FindClassInNameBlock(
+  const BText& name,
+  BUserNameBlock*& unb )
+//--------------------------------------------------------------------
+{
+  BClass* cls = NULL;
+  BSyntaxObject* obj;
+  int pos = name.Find("::",0);
+  if(pos>=0)
+  {
+    BText prefix;
+    BText sufix;
+    prefix = name.SubString(0,pos-1);
+    sufix  = name.SubString(pos+2,name.Length());
+    if(!unb)
+    {
+      obj = GraNameBlock()->FindVariable(prefix);
+      if(obj && obj->Grammar()==GraNameBlock())
+      {
+        unb = (BUserNameBlock*)obj;
+      }
+    }
+    else
+    {
+      BNameBlock& nb = unb->Contens();
+      obj = nb.Member(prefix);
+      if(obj && obj->Grammar()==GraNameBlock())
+      {
+        unb = (BUserNameBlock*)obj;
+      }
+      else
+      {
+        unb = NULL;
+      }
+    }
+    if(unb) 
+    {
+      cls = FindClassInNameBlock(sufix, unb);         
+    }
+  }
+  else if(unb)
+  {
+    BNameBlock& nb = unb->Contens();
+    obj = nb.Member(name);
+    if(obj && obj->Mode()==BCLASSMODE)
+    {
+      cls = (BClass*)obj;
+    }
+  }
+  return(cls); 
+}
 
 //--------------------------------------------------------------------
 BClass* FindClass(const BText& name, int defined)
@@ -1092,8 +1184,13 @@ BClass* FindClass(const BText& name, int defined)
 //--------------------------------------------------------------------
 {
   BSyntaxObject* result = NULL;
-  BClass* bcls = BStackManager::FindClass(name);
-  if(!bcls)
+  BUserNameBlock* unb = NULL;
+  BClass* cls = FindClassInNameBlock(name, unb);
+  if(!cls)
+  {
+    cls = BStackManager::FindClass(name);
+  }
+  if(!cls)
   {
     const BNameBlock* cns = BNameBlock::Current();
     while(cns && !result)
@@ -1101,7 +1198,7 @@ BClass* FindClass(const BText& name, int defined)
       result = cns->Member(name);
       if(result && (result->Mode()==BCLASSMODE))
       {
-        bcls = (BClass*)result;
+        cls = (BClass*)result;
       }
       if(!result)
       {
@@ -1110,33 +1207,53 @@ BClass* FindClass(const BText& name, int defined)
       }
     }
   }
-  if(!bcls) 
+  if(!cls) 
   {
     BObjClassify oc(GraAnything(),BCLASSMODE);
-    bcls= (BClass*)BGrammar::SymbolTable().Search(oc, name);
+    cls= (BClass*)BGrammar::SymbolTable().Search(oc, name);
   }
-  if(!bcls) 
+  if(!cls) 
   {
     result = BNameBlock::UsingMember(name);
     if(result && (result->Mode()==BCLASSMODE))
     {
-      bcls = (BClass*)result;
+      cls = (BClass*)result;
     }
   }
-  if(bcls && (defined>=0) && (bcls->isDefined_!=defined))
+  if(cls && (defined>=0) && (cls->isDefined_!=defined))
   {
-    bcls = NULL;
+    cls = NULL;
   }
-  return(bcls);
+  return(cls);
 }
 
 //--------------------------------------------------------------------
-BSyntaxObject* BClass::FindMethod(const BText& memberName) const
+static bool checkNonPrivate(
+  const BClass* cls, 
+  const BText& memberName,
+  bool fullAccess) 
+//--------------------------------------------------------------------
+{
+  if(!fullAccess && (memberName[0]=='_')&&(memberName[1]!='.'))
+  {
+    Error(I2("Cannot access to private member ",
+             "No se puede acceder al miembro privado ")+memberName +
+          I2(" of Class ",
+             " de Class ")+cls->Name());
+    return(false);
+  }
+  else
+  {
+    return(true);
+  }
+}
+//--------------------------------------------------------------------
+BSyntaxObject* BClass::FindMethod(const BText& memberName, bool fullAccess) const
 //--------------------------------------------------------------------
 {
   BSyntaxObject* result = NULL;
   BMember* mbr = FindMember(memberName);
-  if(mbr && mbr->method_)
+  if(mbr && mbr->method_ && checkNonPrivate(this, memberName, fullAccess))
   { 
     result = mbr->method_;
   } 
@@ -1144,27 +1261,45 @@ BSyntaxObject* BClass::FindMethod(const BText& memberName) const
 }
 
 //--------------------------------------------------------------------
-BSyntaxObject* BClass::FindStaticMethod(const BText& methodName) const
+BSyntaxObject* BClass::FindStaticMethod(const BText& methodName, bool fullAccess) const
 //--------------------------------------------------------------------
 {
   BSyntaxObject* result = NULL;
   BMember* mbr = FindMember(methodName);
-  if(mbr && mbr->isStatic_ && mbr->isMethod_)
+  if(mbr && mbr->isStatic_ && mbr->isMethod_  && 
+     checkNonPrivate(this, methodName, fullAccess))
   { 
-    result = mbr->method_;
+    result = mbr->static_;
+    result->PutNameBlock(NULL);
   } 
   return(result);
 }
 
 //--------------------------------------------------------------------
-BSyntaxObject* BClass::FindStaticMemeber(const BText& memberName) const
+BSyntaxObject* BClass::FindStaticMemeber(const BText& memberName, bool fullAccess) const
 //--------------------------------------------------------------------
 {
   BSyntaxObject* result = NULL;
   BMember* mbr = FindMember(memberName);
-  if(mbr && mbr->static_ && !mbr->isMethod_)
+  if(mbr && mbr->static_ && !mbr->isMethod_  && 
+     checkNonPrivate(this, memberName, fullAccess))
   { 
     result = mbr->static_;
+    result->PutNameBlock(NULL);
+  } 
+  return(result);
+}
+
+//--------------------------------------------------------------------
+BSyntaxObject* BClass::FindStatic(const BText& methodName, bool fullAccess) const
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result = NULL;
+  BMember* mbr = FindMember(methodName);
+  if(mbr && mbr->isStatic_  && checkNonPrivate(this, methodName, fullAccess))
+  { 
+    result = mbr->static_;
+    result->PutNameBlock(NULL);
   } 
   return(result);
 }
