@@ -612,10 +612,19 @@ Tree* BParser::ParseNone(Tree* tre, BCloseToken* close)
  */
 Tree* BParser::ParseOpen (Tree* tre) 
 {
-  tre  = ParseDelayed (tre);
-  Tree*        branch = new Tree();
-  BToken*      arg    = NextArgument();
-  BCloseToken* cl     = NextSymbol()->Close();
+  BToken* arg  = NULL;
+  if(!arg && delayedSymbol_ && lastSymbol_2_ && lastSymbol_2_->Name()=="Struct")
+  {
+    arg = delayedSymbol_;
+    delayedSymbol_ = NULL;
+  }
+  else
+  {
+    arg = NextArgument();
+    tre = ParseDelayed (tre);
+  }
+  Tree* branch = new Tree();
+  BCloseToken* cl = NextSymbol()->Close();
   openNumber_++;
   if(!classInheritage_ && 
     (complete_ || (arg && !filter_->IsFirstIdentifier(arg->String()[0])))) 
