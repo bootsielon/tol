@@ -488,7 +488,7 @@ const BText& BNameBlock::LocalName() const
         if(mbr->static_) 
         { 
           mbr->static_->PutNameBlock(NULL); 
-          if(mbr->static_->Mode()==BOBJECTMODE)
+          if(mbr->isMethod_ && mbr->static_->Mode()==BOBJECTMODE)
           {
             BUserCode* uCode = UCode(mbr->static_);
             uCode->Contens().Operator()->PutNameBlock(NULL);
@@ -695,7 +695,7 @@ const BText& BNameBlock::LocalName() const
 /* */
   if(Class())
   {
-    BSyntaxObject* met = Class()->FindMethod(memberName);
+    BSyntaxObject* met = Class()->FindMethod(memberName,false);
     if(met) 
     { 
       met->PutNameBlock(this);
@@ -726,7 +726,7 @@ const BText& BNameBlock::LocalName() const
 /* */
   if(Class())
   {
-    BSyntaxObject* met = Class()->FindMethod(memberName);
+    BSyntaxObject* met = Class()->FindMethod(memberName,true);
     if(met) 
     { 
       met->PutNameBlock(this);
@@ -868,7 +868,7 @@ const BText& BNameBlock::LocalName() const
 /* */
     if(cns->Class())
     {
-      BSyntaxObject* met = cns->Class()->FindMethod(memberName);
+      BSyntaxObject* met = cns->Class()->FindMethod(memberName,true);
       if(met) 
       { 
         met->PutNameBlock(cns);
