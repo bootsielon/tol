@@ -179,6 +179,7 @@ class TOL_API BClass: public BSyntaxObject, public BMemberOwner
 public:
   bool isDefined_;
   static const BClass* currentClassBuildingInstance_;
+  static const BClass* currentStatic_;
   // Constructors and destructors: bgrammar\class.cpp
   BClass();
   BClass(const BText& name, List*  tree);
@@ -196,9 +197,10 @@ public:
 
   //! Evaluates a parsed tree with a Class declaration
   static BSyntaxObject* Evaluate(const List* tree);
-  BSyntaxObject* FindMethod(const BText& memberName) const;
-  BSyntaxObject* FindStaticMethod(const BText& memberName) const;
-  BSyntaxObject* FindStaticMemeber(const BText& memberName) const;
+  BSyntaxObject* FindMethod(const BText& memberName, bool fullAccess) const;
+  BSyntaxObject* FindStatic(const BText& memberName, bool fullAccess) const;
+  BSyntaxObject* FindStaticMethod(const BText& memberName, bool fullAccess) const;
+  BSyntaxObject* FindStaticMemeber(const BText& memberName, bool fullAccess) const;
   DeclareClassNewDelete(BClass);
 };
 
