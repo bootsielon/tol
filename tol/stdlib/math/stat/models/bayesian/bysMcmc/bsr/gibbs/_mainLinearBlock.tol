@@ -16,7 +16,7 @@ Class WorkSpace.ArimaReg : WorkSpace.LinReg
     _.arm.blk::filter(_Z)
   };
   //////////////////////////////////////////////////////////////////////////
-  Static WorkSpace.LinReg Null(Real unused)
+  Static WorkSpace.ArimaReg Null(Real unused)
   //////////////////////////////////////////////////////////////////////////
   {
     BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg aux = 
