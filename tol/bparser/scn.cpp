@@ -297,7 +297,8 @@ static BMonaryToken defMon_[] =
   BMonaryToken("!"),
   BMonaryToken("Do"),
   BMonaryToken("Struct"),
-  BMonaryToken("Class")
+  BMonaryToken("Class"),
+  BMonaryToken("Static")
 };
 
 static BTypeToken defTyp_[] =
