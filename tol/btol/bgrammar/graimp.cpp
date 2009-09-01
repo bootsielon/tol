@@ -288,7 +288,9 @@ void BGrammar::CleanTreeCache(const List* tre, bool forze)
 //VBR: Se podría añadir un flag a BToken indicando si es necesario
 //     limpiar de aquí para abajo para ahorrar tiempo en el recorrido
 //     del árbol en bucles
+  if(!tre) { return; }
   BToken* tok  = BParser::treToken(tre);
+  if(!tok) { return; }
 #ifdef TRACE_LEVEL
   BText fun = BText("CleanTreeCache(")+tok->Name()+")";
 #endif
