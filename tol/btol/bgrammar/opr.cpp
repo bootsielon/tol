@@ -850,7 +850,8 @@ BUserFunction::BUserFunction(const BText& name, BGrammar* gra)
   declaration_(NIL),
   definition_ (NIL),
   declare_(""),
-  define_("")
+  define_(""),
+  staticOwner_(NULL)
 {
   PutName(name);
   PutTheme(BOperClassify::Various_);
@@ -873,12 +874,12 @@ BUserFunction::BUserFunction(const BText& name, BGrammar* gra,
   declaration_(NIL),
   definition_ (NIL),
   declare_(""),
-  define_("")
+  define_(""),
+  staticOwner_(NULL)
 {
   PutName(name);
   PutDescription(name);
   SetExpression(dec, def);
-
 }
 
 

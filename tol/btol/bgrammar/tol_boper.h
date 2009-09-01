@@ -413,8 +413,10 @@ class BUserFunction: public BExternalOperator
     
     BArray<BSyntaxObject*> lastCalling_;
     BArray<BText> names_;
-    
+
  public:
+    const BClass* staticOwner_;
+
     // Constructors and destructors: opr.cpp
     BUserFunction(const BText& name, BGrammar* gra);
     BUserFunction(const BText& name, BGrammar* gra,
@@ -428,7 +430,8 @@ class BUserFunction: public BExternalOperator
 
     BInt Mode() const { return BUSERFUNMODE; };
 
-          BText  Dump()       const;
+    BText  FullName() const;
+    BText  Dump    () const;
     
     const List*  Declaration() const { return(declaration_); }
     const List*  Definition () const { return(definition_ ); }

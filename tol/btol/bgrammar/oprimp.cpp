@@ -673,7 +673,7 @@ static BSyntaxObject* CreateObject(      List*	   tre,
     if(level>0) 
     {
       TRACE_SHOW_MEDIUM(fun," 6");
-
+/*
       if(!BEqualOperator::CreatingName().HasName())
       {
         result = BNameBlock::LocalMember(name); 
@@ -688,6 +688,7 @@ static BSyntaxObject* CreateObject(      List*	   tre,
           result = NULL; 
         }
       }
+*/
       if(!result) 
       { 
         result = BGrammar::FindLocal(name); 
@@ -1433,6 +1434,18 @@ BGrammar* BExternalOperator::GrammarForArg(BInt n) const
 
 
 //--------------------------------------------------------------------
+BText BUserFunction::FullName() const
+    
+/*! Returns a text with all important information about this operator
+ */
+//--------------------------------------------------------------------
+{
+  if(staticOwner_) { return(staticOwner_->FullName()+"::"+Name()); }
+  else             { return(BSyntaxObject::FullName()); }
+}
+
+
+//--------------------------------------------------------------------
 BText BUserFunction::Dump() const
     
 /*! Returns a text with all important information about this operator
@@ -1612,22 +1625,19 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
   {
     const BNameBlock* oldNameBlock = BNameBlock::Current();
     const BNameBlock* funNameBlock = NameBlock();
-    bool change = (funNameBlock || !Level() ) && (funNameBlock != oldNameBlock);
-    if(change)
+    const BClass* oldStaticOwner = BClass::currentStatic_;
+    if(funNameBlock)
     {
-    /*Std(BText("\nBUserFunction::Evaluator ")+FullName()+
-        " changing new current NameBlock to "+
-        (funNameBlock?funNameBlock->Name():"NULL")+"\n");*/
       BNameBlock::SetCurrent(funNameBlock);
+      BClass::currentStatic_ = funNameBlock->Class();
+    }
+    else
+    {
+      BClass::currentStatic_ = staticOwner_;
     }
     result = Grammar()->EvaluateTree(definition_, 1);
-    if(change)
-    {
-    /*Std(BText("\nBUserFunction::Evaluator ")+FullName()+
-        " recovering old current NameBlock to "+
-        (oldNameBlock?oldNameBlock->Name():"NULL")+"\n");*/
-      BNameBlock::SetCurrent(oldNameBlock);
-    }
+    BClass::currentStatic_ = oldStaticOwner;
+    BNameBlock::SetCurrent(oldNameBlock);
   }
   if(result)
   {
