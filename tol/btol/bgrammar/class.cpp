@@ -630,19 +630,27 @@ int MbrNumCmp(const void* v1, const void* v2)
   else                          { return(found->second); }
 }
 
+//#define USE_STATIC_INHERITAGE
+
 //--------------------------------------------------------------------
   bool BMemberOwner::AddMember(BMember* newMember)
 //! Adds a new member if it's compatible with existant ones
 //--------------------------------------------------------------------
 {
   if(!isGood_) { return(false); }
+  const BText& dec  = newMember->declaration_;
+  const BText& name = newMember->name_;
+  assert(name.HasName()&& dec.HasName());
+#ifndef USE_STATIC_INHERITAGE
+  if(newMember->isStatic_ && (newMember->parent_!=this)) 
+  {
+    return(true);
+  }
+#endif
   if(!memberHash_) { CreateMemberHashes(); }
   BMbrNum* newMbrNum = new BMbrNum;
   newMbrNum->member_ = newMember;
   newMbrNum->position_ = lastPosition_++;
-  const BText& dec  = newMember->declaration_;
-  const BText& name = newMember->name_;
-  assert(name.HasName()&& dec.HasName());
   bool ok = true;
   bool  hasDefVal = newMember->HasDefVal();
   //Searches for existant member with same name
