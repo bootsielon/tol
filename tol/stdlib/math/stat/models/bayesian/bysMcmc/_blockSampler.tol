@@ -28,7 +28,7 @@ Class BlockSampler
   //Indexes of columns of this block in full MCMC
   Set _.colIdx = Copy(Empty);
   //User configuration parameters
-  BysMcmc::Config _.config = BysMcmc::Config.Default(0);
+  BysMcmc::Config _.config = BysMcmc::Config::Default(0);
   //Stores current values of parameters
   VMatrix _.store = Rand(0,0,0,0);
   //Flag that enables/disables the block
@@ -37,7 +37,7 @@ Class BlockSampler
   
   //Used for partial sampling
   BysMcmc::BlockPartialSampler _.partialSampler = 
-    BysMcmc::BlockPartialSampler.Default(0);
+    BysMcmc::BlockPartialSampler::Null(0);
 
   //Result of call to define method
   Real _defined;
@@ -300,26 +300,3 @@ Class BlockSampler
 
 };
 
-//////////////////////////////////////////////////////////////////////////////
-Class BlockSamplerDefault : BlockSampler
-//////////////////////////////////////////////////////////////////////////////
-{
-  VMatrix draw(Real numSim) { Rand(0,1,0,0) };
-  Real buildWorkSpace(Real unused) { True };
-  Code _.buildWorkSpace = buildWorkSpace
-};
-
-//////////////////////////////////////////////////////////////////////////////
-BlockSamplerDefault BlockSampler.Default(Text name, 
-                                         Real numBlock, 
-                                         Real firstCol,
-                                         BysMcmc::Config config)
-//////////////////////////////////////////////////////////////////////////////
-{
-  BysMcmc::BlockSamplerDefault aux =
-  [[
-    Real _defined = define(name, Empty, BysMcmc::McmcPartialHandler.Default(0),
-                          numBlock, firstCol, config)
-  ]];
-  aux
-};

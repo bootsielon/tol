@@ -6,7 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
-Class BlockSamplerArima : BlockSampler
+Class BlockArima : BlockSampler
 /////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
@@ -245,7 +245,7 @@ Class BlockSamplerArima : BlockSampler
   Real _buildWorkSpace(VMatrix noise_, VMatrix sigma.full_)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" BlockSamplerArima::_buildWorkSpace 0");
+  //WriteLn("TRACE"+_MID+" BlockArima::_buildWorkSpace 0");
     NameBlock _.ws := 
     [[
       VMatrix noise = noise_;
@@ -726,78 +726,78 @@ Class BlockSamplerArima : BlockSampler
     {
       Z
     })
-  }
-};
-
-
-//////////////////////////////////////////////////////////////////////////////
-  BlockSamplerArima BlockSamplerArima.Default(Real unused)
-//////////////////////////////////////////////////////////////////////////////
-{
-  BysMcmc::Bsr::Gibbs::BlockSamplerArima blk = [[
-  Code _scalarSampler = BysMcmc::Options::Scalar.Sampler::Slice;
-  Set _.NoiseDistrib = Copy(Empty);
-  Set _.arimaStructBlock = Copy(Empty);
-  Text _MID = "";
-  Real    _.C          = ?;
-  Real    _.m          = ?;
-  Real _defined = ?;
-  Real _.updateAll = ?
-]]};
-
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.ArimaBlock =
-"Builds a NameBlock that can draw a Gibbs sample of a ARIMA block of a "
-"general regression model. Just ARIMA filtering is currently running but "
-"ARMA simulation is still not implemented";
-//////////////////////////////////////////////////////////////////////////////
-  BlockSamplerArima ArimaBlock(Text name, 
-                          Set NoiseDistrib, 
-                          BysMcmc::McmcPartialHandler mcmcPartialHandler,
-                          Real numBlock, 
-                          Real firstCol,
-                          BysMcmc::Config config)
-//////////////////////////////////////////////////////////////////////////////
-{
-  BysMcmc::Bsr::Gibbs::BlockSamplerArima blk = [[
-  Code _scalarSampler = config::bsr.scalarSampler.armaBlock;
-  //Selects noise with constant sigma
-  Set _.NoiseDistrib = NoiseDistrib;
-  Set _.arimaStructBlock = 
-  {
-  //WriteLn("TRACESelecting noise with known wariance");
-    Select(NoiseDistrib, Real(BSR.NoiseDistrib segment)
-    { Card(segment->Arima)>0 })
   };
 
-  //Message identificator
-  Text _MID = "["+name+"] ";
-  //Number of variant variances (dimension of sigma block)
-  Real    _.C          = Card(_.arimaStructBlock);
-  Real    _.m          = VRows(_.NoiseDistrib[1]->Li);
-  Code _.buildWorkSpace = _buildWorkSpace;
-  //Defining the block in the Markov Chain
-  Real _defined = {
-    Real prepare(0);
-    define
-    (
-      name,
-      EvalSet(_.paramDesc, Text set.colName(ArmaParamDescStruct pd) { pd->name }),
-      mcmcPartialHandler,
-      numBlock,
-      firstCol,
-      config
-    )};
-  Real _.updateAll = 
+  //////////////////////////////////////////////////////////////////////////////
+  Static BlockArima Null(Real unused)
+  //////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_MID+" initial _.paramDesc = "<<_.paramDesc);
-    Matrix values = SetCol(EvalSet(_.paramDesc, Real (ArmaParamDescStruct pd)
-    {
-      pd->coef
-    }));
-  //WriteLn("TRACE "+_MID+" initial values = "<<values);
-    setStore(values)
-  }
+    BysMcmc::Bsr::Gibbs::BlockArima blk = [[
+    Code _scalarSampler = BysMcmc::Options::Scalar.Sampler::Slice;
+    Set _.NoiseDistrib = Copy(Empty);
+    Set _.arimaStructBlock = Copy(Empty);
+    Text _MID = "";
+    Real    _.C          = ?;
+    Real    _.m          = ?;
+    Real _defined = ?;
+    Real _.updateAll = ?
+  ]]};
 
-]]};
+  //////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.ArimaBlock =
+  "Builds a NameBlock that can draw a Gibbs sample of a ARIMA block of a "
+  "general regression model. Just ARIMA filtering is currently running but "
+  "ARMA simulation is still not implemented";
+  //////////////////////////////////////////////////////////////////////////////
+  Static BlockArima New(
+    Text name, 
+    Set NoiseDistrib, 
+    BysMcmc::McmcPartialHandler mcmcPartialHandler,
+    Real numBlock, 
+    Real firstCol,
+    BysMcmc::Config config)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Bsr::Gibbs::BlockArima blk = [[
+    Code _scalarSampler = config::bsr.scalarSampler.armaBlock;
+    //Selects noise with constant sigma
+    Set _.NoiseDistrib = NoiseDistrib;
+    Set _.arimaStructBlock = 
+    {
+    //WriteLn("TRACESelecting noise with known wariance");
+      Select(NoiseDistrib, Real(BSR.NoiseDistrib segment)
+      { Card(segment->Arima)>0 })
+    };
+
+    //Message identificator
+    Text _MID = "["+name+"] ";
+    //Number of variant variances (dimension of sigma block)
+    Real    _.C          = Card(_.arimaStructBlock);
+    Real    _.m          = VRows(_.NoiseDistrib[1]->Li);
+    Code _.buildWorkSpace = _buildWorkSpace;
+    //Defining the block in the Markov Chain
+    Real _defined = {
+      Real prepare(0);
+      define
+      (
+        name,
+        EvalSet(_.paramDesc, Text set.colName(ArmaParamDescStruct pd) { pd->name }),
+        mcmcPartialHandler,
+        numBlock,
+        firstCol,
+        config
+      )};
+    Real _.updateAll = 
+    {
+    //WriteLn("TRACE "+_MID+" initial _.paramDesc = "<<_.paramDesc);
+      Matrix values = SetCol(EvalSet(_.paramDesc, Real (ArmaParamDescStruct pd)
+      {
+        pd->coef
+      }));
+    //WriteLn("TRACE "+_MID+" initial values = "<<values);
+      setStore(values)
+    }
+
+  ]]}
+
+};

@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
 // LIBRARY: StdtLib (Standard Library of TOL)
 // FILE: _nonLinBlock.tol
-// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::NonLinBlock
+// PURPOSE: Defines Class BysMcmc::Bsr::Gibbs::BlockNonLin
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
-Class BlockSamplerNonLin : BlockSampler
+Class BlockNonLin : BlockSampler
 /////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
@@ -55,7 +55,6 @@ Class BlockSamplerNonLin : BlockSampler
   //--------------------------------------------------------------------------
 
   ////////////////////////////////////////////////////////////////////////////
-  //Called by BysMcmc::Bsr::Gibbs::NonLinMaster at initialization time
   Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -254,32 +253,30 @@ Class BlockSamplerNonLin : BlockSampler
     //WriteLn("TRACE "+_MID+"::setStore 6");
       ok
     })
-  }
-};
+  };
 
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.NonLinBlock =
-"Builds a NameBlock that can draw a MCMC sample of a generic Gibbs block "
-"defined by a non linear filter over the output or a set of inputs of a "
-"given BSR model.\n"
-"Arguments are:\n"
-"  NameBlock usrFilter: Evaluates the non linear filter of inputs or "
-   "output. Must have next mandatory methods:\n"
-"    Text get.name(Real unused): Identifies the filter\n"
-"    Text get.segmentName(Real unused): Identifies the segment\n"
-"    Text get.colNames(Real unused): Parameters of non linear block\n"
-"    Set get.linBlkNames(Real unused): Parameters of linear block \n"
-"      This method must exist just for input filters.\n"
-"    Set get.bounds(i,u): Returns left and right bounds for i-th \n"
-"      parameter for current values of the rest of them.\n"
-"    Matrix eval(Matrix param): Returns the filter matrix\n"
-"  MasterSampler bsr: Result of calling BasicMaster\n"
-"  Real numBlock: The order of this block in full MCMC.\n"
-"  Real firstCol: First column of this block in full MCMC\n"
-"  Config config: User configuration parameters\n";
-//////////////////////////////////////////////////////////////////////////////
-  BlockSampler NonLinBlock(
+  //////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New =
+  "Builds a NameBlock that can draw a MCMC sample of a generic Gibbs block "
+  "defined by a non linear filter over the output or a set of inputs of a "
+  "given BSR model.\n"
+  "Arguments are:\n"
+  "  NameBlock usrFilter: Evaluates the non linear filter of inputs or "
+     "output. Must have next mandatory methods:\n"
+  "    Text get.name(Real unused): Identifies the filter\n"
+  "    Text get.segmentName(Real unused): Identifies the segment\n"
+  "    Text get.colNames(Real unused): Parameters of non linear block\n"
+  "    Set get.linBlkNames(Real unused): Parameters of linear block \n"
+  "      This method must exist just for input filters.\n"
+  "    Set get.bounds(i,u): Returns left and right bounds for i-th \n"
+  "      parameter for current values of the rest of them.\n"
+  "    Matrix eval(Matrix param): Returns the filter matrix\n"
+  "  MasterSampler bsr: Result of calling MasterSamplerNonLin::New\n"
+  "  Real numBlock: The order of this block in full MCMC.\n"
+  "  Real firstCol: First column of this block in full MCMC\n"
+  "  Config config: User configuration parameters\n";
+  //////////////////////////////////////////////////////////////////////////////
+  Static BlockNonLin New(
     //Filter evaluator
     NameBlock usrFilter, 
     //Basic BSR that will be modified by filter
@@ -290,95 +287,97 @@ Text _.autodoc.member.NonLinBlock =
     Real firstCol,
     //Configuration parameters
     BysMcmc::Config config)
-//////////////////////////////////////////////////////////////////////////////
-{
-//WriteLn("TRACE NonLinBlock 0 ");
-  BysMcmc::Bsr::Gibbs::BlockSamplerNonLin blk = [[
-  Code _.buildWorkSpace = _buildWorkSpace;
-  //Scalar sampler
-  Code _scalarSampler = config::bsr.scalarSampler.nonLinBlock;
-  //Basic BSR that will be modified by filter
-  NameBlock _.bsr = bsr;
-  //Filter evaluator
-  NameBlock _.filter = usrFilter;
-  
-  //Defining the block in the Markov Chain
-  Real _defined = define
-  (
-    _.filter::get.name(0),
-    _.filter::get.colNames(0),
-    bsr::_.mcmcPartialHandler,
-    numBlock,
-    firstCol,
-    config
-  );
-  //Name of affected segment in BSR
-  Text _.segmentName = _.filter::get.segmentName(0);
-  //Number of affected segment in BSR
-  Real _.segmentNum = FindIndexByName((_.bsr::_.modelDef)->NoiseDistrib,
-                                      _.segmentName);
-  //Affected segment in BSR
-  Set _.segment = If(!_.segmentNum,
+  //////////////////////////////////////////////////////////////////////////////
   {
-    Real CMsg::Coded::show(BysMcmc::_.cmsg::_.notFoundSegment,
-    [[
-      _MID,
-      _.segmentName
-    ]]);
-    Copy(Empty)
-  },
-  {
-    ((_.bsr::_.modelDef)->NoiseDistrib)[_.segmentNum]
-  });
-  //For input filters is +1, for output ones -1
-  Real _.isInputFilter = If(FunctionExist("Set","_.filter::get.linBlkNames"),
-  {
-    If(Card(_.filter::get.linBlkNames(0)),1,0)
-  },
-  {
-    0
-  });
-  //Default value for custom partial draw
-  Matrix _default.custom.partial.draw = Rand(Card(_.colNames), 1, ?, ?);
-  //Optional filter method to be called before to call draw.scalar
-  //This method will be called just before to call draw method of corresponding 
-  //internal non linear block in order to select which parameters will be drawn. 
-  //It will return a matrix with custom partial sampling in selected indexes and ? in
-  //other ones that will be sampled by non linear block in the standard way
-  Code _.custom.partial.draw = If(
-  FunctionExist("Matrix","_.filter::custom.partial.draw"),
-  {
-    WriteLn(_MID+"Using specified custom.partial.draw method");
-    _.filter::custom.partial.draw
-  },
-  {
-    WriteLn(_MID+"Using default custom.partial.draw method");
-    Matrix custom.partial.draw(Real unused) { _default.custom.partial.draw } 
-  });
-  //Optional filter method that returns log of prior density for one parameter
-  //Real get.priorLogDens(Real paramIdx)
-  Code _.get.priorLogDens = If(FunctionExist("Real","_.filter::get.priorLogDens"),
-    _.filter::get.priorLogDens,
-    Real (Real paramIdx) { 0 } );
-  //Names of affected parameters in linear block 
-  //(just for input filters)
-  Set _.linBlkNames = If(!_.isInputFilter, Copy(Empty),
-  {
-    _.filter::get.linBlkNames(0)
-  });
-  //Positions of columns of affected parameters in linear block 
-  //(just for input filters)
-  Set _.filterColIdx = If(!_.isInputFilter, Copy(Empty),
-  {
-    _.bsr::_.mln.blk::getStoreColIndexes(_.linBlkNames)
-  });
-  //Total number of affected parameters in linear block 
-  //It's 0 for output filters
-  Real _.filterColNum = Card(_.filterColIdx);
-  Real _.m = Card(_.segment->EquIdx);
-  Matrix _.W   = Rand(_.m,1,0,0);
-  Matrix _.Z   = Rand(_.m,1,0,0);
-  Matrix _.Fi  = Rand(_.m,1,0,0)
-]]};
+  //WriteLn("TRACE NonLinBlock 0 ");
+    BysMcmc::Bsr::Gibbs::BlockNonLin blk = [[
+    Code _.buildWorkSpace = _buildWorkSpace;
+    //Scalar sampler
+    Code _scalarSampler = config::bsr.scalarSampler.nonLinBlock;
+    //Basic BSR that will be modified by filter
+    NameBlock _.bsr = bsr;
+    //Filter evaluator
+    NameBlock _.filter = usrFilter;
+    
+    //Defining the block in the Markov Chain
+    Real _defined = define
+    (
+      _.filter::get.name(0),
+      _.filter::get.colNames(0),
+      bsr::_.mcmcPartialHandler,
+      numBlock,
+      firstCol,
+      config
+    );
+    //Name of affected segment in BSR
+    Text _.segmentName = _.filter::get.segmentName(0);
+    //Number of affected segment in BSR
+    Real _.segmentNum = FindIndexByName((_.bsr::_.modelDef)->NoiseDistrib,
+                                        _.segmentName);
+    //Affected segment in BSR
+    Set _.segment = If(!_.segmentNum,
+    {
+      Real CMsg::Coded::show(BysMcmc::_.cmsg::_.notFoundSegment,
+      [[
+        _MID,
+        _.segmentName
+      ]]);
+      Copy(Empty)
+    },
+    {
+      ((_.bsr::_.modelDef)->NoiseDistrib)[_.segmentNum]
+    });
+    //For input filters is +1, for output ones -1
+    Real _.isInputFilter = If(FunctionExist("Set","_.filter::get.linBlkNames"),
+    {
+      If(Card(_.filter::get.linBlkNames(0)),1,0)
+    },
+    {
+      0
+    });
+    //Default value for custom partial draw
+    Matrix _default.custom.partial.draw = Rand(Card(_.colNames), 1, ?, ?);
+    //Optional filter method to be called before to call draw.scalar
+    //This method will be called just before to call draw method of corresponding 
+    //internal non linear block in order to select which parameters will be drawn. 
+    //It will return a matrix with custom partial sampling in selected indexes and ? in
+    //other ones that will be sampled by non linear block in the standard way
+    Code _.custom.partial.draw = If(
+    FunctionExist("Matrix","_.filter::custom.partial.draw"),
+    {
+      WriteLn(_MID+"Using specified custom.partial.draw method");
+      _.filter::custom.partial.draw
+    },
+    {
+      WriteLn(_MID+"Using default custom.partial.draw method");
+      Matrix custom.partial.draw(Real unused) { _default.custom.partial.draw } 
+    });
+    //Optional filter method that returns log of prior density for one parameter
+    //Real get.priorLogDens(Real paramIdx)
+    Code _.get.priorLogDens = If(FunctionExist("Real","_.filter::get.priorLogDens"),
+      _.filter::get.priorLogDens,
+      Real (Real paramIdx) { 0 } );
+    //Names of affected parameters in linear block 
+    //(just for input filters)
+    Set _.linBlkNames = If(!_.isInputFilter, Copy(Empty),
+    {
+      _.filter::get.linBlkNames(0)
+    });
+    //Positions of columns of affected parameters in linear block 
+    //(just for input filters)
+    Set _.filterColIdx = If(!_.isInputFilter, Copy(Empty),
+    {
+      _.bsr::_.mln.blk::getStoreColIndexes(_.linBlkNames)
+    });
+    //Total number of affected parameters in linear block 
+    //It's 0 for output filters
+    Real _.filterColNum = Card(_.filterColIdx);
+    Real _.m = Card(_.segment->EquIdx);
+    Matrix _.W   = Rand(_.m,1,0,0);
+    Matrix _.Z   = Rand(_.m,1,0,0);
+    Matrix _.Fi  = Rand(_.m,1,0,0)
+  ]]}
+
+};
 
 

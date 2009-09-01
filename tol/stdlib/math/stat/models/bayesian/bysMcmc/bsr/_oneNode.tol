@@ -254,10 +254,10 @@ NameBlock OneNode =
     BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCyclerFromParsed
    (
       modelDef,
-      BysMcmc::McmcPartialHandler.Default(0),
+      BysMcmc::McmcPartialHandler::Null(0),
       nonLinFil, 
       config_,
-      BysMcmc::NoNotifier(0)
+      BysMcmc::Notifier::Null(0)
     );
     Set Append(cycler::auxInfo,[[data]]);
   //WriteLn(_MID+" TRACE 12");

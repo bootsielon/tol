@@ -6,7 +6,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-Class SubMasterBlockSampler: BlockSampler
+Class SubMasterBlock: BlockSampler
 //////////////////////////////////////////////////////////////////////////////
 {
   //Stores all blocks in expected order
@@ -167,7 +167,7 @@ Class SubMasterBlockSampler: BlockSampler
 
 
 //////////////////////////////////////////////////////////////////////////////
-Class MasterSampler: SubMasterBlockSampler
+Class MasterSampler: SubMasterBlock
 //////////////////////////////////////////////////////////////////////////////
 {
   //Stores all blocks in expected order
@@ -188,27 +188,7 @@ Class MasterSampler: SubMasterBlockSampler
     };
     BinGroup("<<",EvalSet(_.blocks, gcn))
   }
-
 };
 
-//////////////////////////////////////////////////////////////////////////////
-MasterSampler NoMasterSample(Real unused)
-//////////////////////////////////////////////////////////////////////////////
-{
-  BysMcmc::MasterSampler noMasterSampler = [[
-  //Stores all blocks in expected order
-  Set _.blocks = Copy(Empty);
-  //User configuration parameters
-  BysMcmc::Config _.config = BysMcmc::Config.Default(0);
-  //Messages identifier
-  Text _MID = "";
-
-  Set  eval(Matrix values) { ? };
-  Text get.session(Real unused) { ? };
-  Text get.path(Real unused) { ? };
-  Real initialize(Real unused) { ? };
-  VMatrix draw(Real numSim) { ? };
-  Real setStore(Matrix values) { ? } ]]
-};
 
 /* */

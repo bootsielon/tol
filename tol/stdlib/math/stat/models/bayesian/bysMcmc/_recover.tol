@@ -67,52 +67,52 @@ Class McmcRecover: McmcReloader
     Real numRow = getRowSequence(numSim);
     Matrix row = MatReadRows(_.mcmc.path, numRow, 1);
     Mat2VMat(SubCol(row, indexes), TRUE)
-  }                        
+  };
 
-};
+  ///////////////////////////////////////////////////////////////////////////
+  Static Real Store(Cycler cycler, Real sequential)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Text recover.path = 
+      cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
+    BysMcmc::McmcRecover recover = 
+    [[
+      Text _.name      = cycler::_.name;
+      Set  _.colNames  = SetTolNameAndIndex(cycler::_.sampler::get.colNames(0));
+      Set  _.repCfg    = cycler::bysInf_;
+      Text _.mcmc.path = cycler::_.path;
+      Real _.sequential = sequential
+    ]];
+    Real SetIndexByName(recover::_.colNames);
+    Real Ois.Store([[recover]],recover.path);
+    1
+  };
 
-/////////////////////////////////////////////////////////////////////////////
-Real StoreRecover(Cycler cycler, Real sequential)
-/////////////////////////////////////////////////////////////////////////////
-{
-  Text recover.path = 
-    cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
-  BysMcmc::McmcRecover recover = 
-  [[
-    Text _.name      = cycler::_.name;
-    Set  _.colNames  = SetTolNameAndIndex(cycler::_.sampler::get.colNames(0));
-    Set  _.repCfg    = cycler::bysInf_;
-    Text _.mcmc.path = cycler::_.path;
-    Real _.sequential = sequential
-  ]];
-  Real SetIndexByName(recover::_.colNames);
-  Real Ois.Store([[recover]],recover.path);
-  1
-};
+  ///////////////////////////////////////////////////////////////////////////
+  Static McmcRecover Load(Text rootPath, Text id_model, Text id_session,
+                          Config config)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Text path      = rootPath+id_model+"."+id_session+".recover.oza";
+    Text mcmc.path = rootPath+id_model+"."+id_session+".mcmc.bbm";
+    WriteLn("Reloading MCMCRecover from path "+path);
+    Set Ois.Load(path);
+    Real recover::initialize(
+      GetAbsolutePath(mcmc.path),
+      config::partialSampling.Sequential,
+      config::mcmc.burnin);
+    recover 
+  };
 
-/////////////////////////////////////////////////////////////////////////////
-McmcRecover Get.Recover(Text rootPath, Text id_model, Text id_session,
-                        Config config)
-/////////////////////////////////////////////////////////////////////////////
-{
-  Text path      = rootPath+id_model+"."+id_session+".recover.oza";
-  Text mcmc.path = rootPath+id_model+"."+id_session+".mcmc.bbm";
-  WriteLn("Reloading MCMCRecover from path "+path);
-  Set Ois.Load(path);
-  Real recover::initialize(
-    GetAbsolutePath(mcmc.path),
-    config::partialSampling.Sequential,
-    config::mcmc.burnin);
-  recover 
-};
+  ///////////////////////////////////////////////////////////////////////////
+  Static Set LoadAndReport(Text rootPath, Text id_model, Text id_session,
+                           Real burnin, Real length, Real thinning)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    McmcRecover recover = BysMcmc::Load(
+      rootPath, id_model, id_session);
+    Set report = recover::report(burnin,length,thinning)
+  }
 
-/////////////////////////////////////////////////////////////////////////////
-Set RecoveAndReport(Text rootPath, Text id_model, Text id_session,
-                    Real burnin, Real length, Real thinning)
-/////////////////////////////////////////////////////////////////////////////
-{
-  McmcRecover recover = BysMcmc::Get.Recover(
-    rootPath, id_model, id_session);
-  Set report = recover::report(burnin,length,thinning)
 };
 

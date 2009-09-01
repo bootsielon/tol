@@ -12,15 +12,22 @@ Class Notifier
   Real initializing(Real numVar,Text path) { Real 0 };
   Real simulating(Real numSim, Real timeAvg) { Real 0 };
   Real reporting(Real unused) { Real 0 };
-  Real evaluating(Real unused) { Real 0 }
+  Real evaluating(Real unused) { Real 0 };
+  Real saving(Real unused) { Real 0 };
+  Real ending(Real unused) { Real 0 };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Static Notifier Null(Real unused)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Notifier aux =
+    [[
+      Real _void = ?
+    ]]
+  }
+
 };
   
-//////////////////////////////////////////////////////////////////////////////
-Notifier NoNotifier(Real unused)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Notifier default
-};
 
 ////////////////////////////////////////////////////////////////////////////
 Class Notifier.DB : Notifier 
@@ -126,21 +133,21 @@ Class Notifier.DB : Notifier
     BysMcmc::Bsr::DynHlm::DBApi::ModSes.SetBlocked(
       _.dbName, _.model, _.session, false);
     1
-  }
-};
+  };
 
-////////////////////////////////////////////////////////////////////////////
-Notifier DBNotifier(Text dbName, 
-                    Text model, 
-                    Text session)
-////////////////////////////////////////////////////////////////////////////
-{
-  //Creates the data base notifier of current status
-  BysMcmc::Notifier.DB dbNotifier =
-  [[
-    Text _.dbName = dbName;
-    Text _.model  = model;
-    Text _.session  = session
-  ]]
+  //////////////////////////////////////////////////////////////////////////
+  Static Notifier New(Text dbName, Text model, Text session)
+  //////////////////////////////////////////////////////////////////////////
+  {
+    //Creates the data base notifier of current status
+    BysMcmc::Notifier.DB dbNotifier =
+    [[
+      Text _.dbName = dbName;
+      Text _.model  = model;
+      Text _.session  = session
+    ]]
+  }
+
+
 };
 

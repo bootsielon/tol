@@ -12,49 +12,54 @@ Class Estimation
   Set report = Copy(Empty);
   Matrix param.average = Rand(0,0,0,0);
   Set eval.average = Copy(Empty);
-  Set linear.effects = Copy(Empty)
-};
+  Set linear.effects = Copy(Empty);
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Estim =
-"Estimates a bayesian model\n";
-Estimation Estim(Cycler cycler_)
-//////////////////////////////////////////////////////////////////////////////
-{
-  BysMcmc::Estimation estim = 
-  [[
-    BysMcmc::Cycler cycler = cycler_
-  ]];                                
-  BysMcmc::Config config = cycler_::_.config;
-  BysMcmc::Notifier notifier = cycler_::_.notifier;
-  Real StoreRecover(cycler_, config::partialSampling.Sequential);
-  Real cycler_::initialize(0);
-  Real sampleLength = config::mcmc.burnin+config::mcmc.sampleLength;
-
-  
-  Real If(config::do.mcmc.profiler, 
-    TolOprProfiler.Enabled := True);
-  Real cycler_::generate(sampleLength); 
-  Real If(config::do.mcmc.profiler, 
-    TolOprProfiler.Dump(cycler::_.path+cycler::_.name));
-
-  Real notifier::reporting(0);
-  Real If(config::do.report,
+  ////////////////////////////////////////////////////////////////////////////
+  Real Run(Real void)
+  ////////////////////////////////////////////////////////////////////////////
   {
-    Set estim::report := cycler_::report(config::mcmc.burnin,
-                                         config::mcmc.sampleLength,
-                                         config::mcmc.thinning);
-    Matrix estim::param.average := 
+    BysMcmc::Config config = cycler::_.config;
+    BysMcmc::Notifier notifier = cycler::_.notifier;
+    Real BysMcmc::McmcRecover::Store(cycler, config::partialSampling.Sequential);
+    Real cycler::initialize(0);
+    Real sampleLength = config::mcmc.burnin+config::mcmc.sampleLength;
+    
+    Real If(config::do.mcmc.profiler, 
+      TolOprProfiler.Enabled := True);
+    Real cycler::generate(sampleLength); 
+    Real If(config::do.mcmc.profiler, 
+      TolOprProfiler.Dump(cycler::_.path+cycler::_.name));
+
+    Real notifier::reporting(0);
+    Real If(config::do.report,
     {
-      Tra(SetMat(Extract(estim::report::coda.summary, 2)))
-    };
-    Real If(config::do.eval,
-    {
-      Real notifier::evaluating(0);
-      Set estim::eval.average := cycler_::_.sampler::eval(estim::param.average);
-      1
+      Set report := cycler::report(config::mcmc.burnin,
+                                    config::mcmc.sampleLength,
+                                    config::mcmc.thinning);
+      Matrix param.average := 
+      {
+        Tra(SetMat(Extract(report::coda.summary, 2)))
+      };
+      Real If(config::do.eval,
+      {
+        Real notifier::evaluating(0);
+        Set eval.average := cycler::_.sampler::eval(param.average);
+        1
+      });
+      1 
     });
-    1 
-  });
-  estim
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Estimation New(Cycler cycler_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Estimation estim = 
+    [[
+      BysMcmc::Cycler cycler = cycler_
+    ]]
+  }
+
 };
+

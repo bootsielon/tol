@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // LIBRARY: StdtLib (Standard Library of TOL)
 // FILE: _nonLinMaster.tol
-// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::BasicMaster
+// PURPOSE: Declares Class BysMcmc::Bsr::Gibbs::MasterSamplerNonLin
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -52,71 +52,76 @@
   {
     Real Do setStore(values);
     _.bsrMst::eval(values)
-  }
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New =
+  "Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
+  "Regression model with non linear blocks";
+  Static MasterSamplerNonLin New(
+    BSR.ModelDef modelDef, 
+    BysMcmc::McmcPartialHandler mcmcPartialHandler,
+    Set nonLinFilter,
+    Real numBlock, 
+    Real firstCol,
+    BysMcmc::Config config)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text name = modelDef->DocInfo->Model.Name;
+    BysMcmc::Bsr::Gibbs::MasterSamplerNonLin master = [[
+
+    //Full MCMC partial sampling handler
+    BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;    
+
+    //--------------------------------------------------------------------------
+    // Read only members
+    //--------------------------------------------------------------------------
+    //The basic BSR master
+    BysMcmc::MasterSampler _.bsrMst = 
+      BysMcmc::Bsr::Gibbs::MasterSamplerBasic::New(
+      modelDef, mcmcPartialHandler, numBlock, firstCol, config);
+
+    //Setting NameBlock description
+    Text _.autodoc.description="Gibbs sampler for model "+name;
+    //The non linear blocks created from given filters
+    Set _.nonLinBlk = 
+    {
+      Real nextCol = _.bsrMst::_.N+firstCol;
+      Set aux = For(1,Card(nonLinFilter), NameBlock(Real numBlk)
+      {
+        NameBlock nlf = nonLinFilter[numBlk];
+        BysMcmc::Bsr::Gibbs::BlockNonLin nlb = 
+        BysMcmc::Bsr::Gibbs::BlockNonLin::New
+        (
+          nlf, 
+          _.bsrMst,
+          numBlk+numBlock, 
+          nextCol,
+          config
+        );
+        Real If(ObjectExist("Set","nlf::_.externalInfo"),
+        {
+          Set nlf::_.externalInfo := [[ _.bsrMst, nlb ]];
+          1
+        });
+        Real nextCol := nlb::_.lastCol+1;
+        Eval(ToName(nlb::_.name)+"=nlb")
+      });
+      aux
+    };
+    //All blocks in expected order
+    Set _.blocks = [[ _.bsrMst ]] << _.nonLinBlk;
+
+    Real _defined = define(
+      name,
+      get.colNames(0);
+      _.mcmcPartialHandler,
+      numBlock,
+      firstCol,
+      config)
+
+  ]]}
+
 
 };      
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.NonLinMaster =
-"Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
-"Regression model with non linear blocks";
-MasterSampler NonLinMaster(BSR.ModelDef modelDef, 
-                           BysMcmc::McmcPartialHandler mcmcPartialHandler,
-                           Set nonLinFilter,
-                           Real numBlock, 
-                           Real firstCol,
-                           BysMcmc::Config config)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Text name = modelDef->DocInfo->Model.Name;
-  BysMcmc::Bsr::Gibbs::MasterSamplerNonLin master = [[
-
-  //Full MCMC partial sampling handler
-  BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;    
-
-  //--------------------------------------------------------------------------
-  // Read only members
-  //--------------------------------------------------------------------------
-  //The basic BSR master
-  BysMcmc::MasterSampler _.bsrMst = BysMcmc::Bsr::Gibbs::BasicMaster(
-    modelDef, mcmcPartialHandler, numBlock, firstCol, config);
-
-  //Setting NameBlock description
-  Text _.autodoc.description="Gibbs sampler for model "+name;
-  //The non linear blocks created from given filters
-  Set _.nonLinBlk = 
-  {
-    Real nextCol = _.bsrMst::_.N+firstCol;
-    Set aux = For(1,Card(nonLinFilter), NameBlock(Real numBlk)
-    {
-      NameBlock nlf = nonLinFilter[numBlk];
-      BysMcmc::BlockSampler nlb = BysMcmc::Bsr::Gibbs::NonLinBlock
-      (
-        nlf, 
-        _.bsrMst,
-        numBlk+numBlock, 
-        nextCol,
-        config
-      );
-      Real If(ObjectExist("Set","nlf::_.externalInfo"),
-      {
-        Set nlf::_.externalInfo := [[ _.bsrMst, nlb ]];
-        1
-      });
-      Real nextCol := nlb::_.lastCol+1;
-      Eval(ToName(nlb::_.name)+"=nlb")
-    });
-    aux
-  };
-  //All blocks in expected order
-  Set _.blocks = [[ _.bsrMst ]] << _.nonLinBlk;
-
-  Real _defined = define(
-    name,
-    get.colNames(0);
-    _.mcmcPartialHandler,
-    numBlock,
-    firstCol,
-    config)
-
-]]};      

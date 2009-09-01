@@ -6,7 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
-Class BlockSamplerSigma : BlockSampler
+Class BlockSigma : BlockSampler
 /////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
@@ -38,7 +38,7 @@ Class BlockSamplerSigma : BlockSampler
   Real _buildWorkSpace(VMatrix residuals_)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" BlockSamplerSigma::_buildWorkSpace 0");
+  //WriteLn("TRACE"+_MID+" BlockSigma::_buildWorkSpace 0");
     NameBlock _.ws := 
     [[
       VMatrix  residuals = residuals_
@@ -176,59 +176,62 @@ Class BlockSamplerSigma : BlockSampler
   //WriteLn("TRACE "+_MID+" solve.stdReg 2");
     VMatrix _.sigmaInv := sigmaInvVar + _.sigmaInvCte;
     1 })
-  }
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New =
+  "Builds a NameBlock that can draw a Gibbs sample of a variance block of a "
+  "general regression model.";
+  //////////////////////////////////////////////////////////////////////////////
+  Static BlockSigma New(
+   Text name, 
+   Set NoiseDistrib, 
+   BysMcmc::McmcPartialHandler mcmcPartialHandler,
+   Real numBlock, 
+   Real firstCol,
+   BysMcmc::Config  config)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Bsr::Gibbs::BlockSigma sigBlk = [[
+
+    Code _.buildWorkSpace = _buildWorkSpace;
+
+    Real _.m = VRows(NoiseDistrib[1]->Li);
+    //Selects residuals with constant sigma
+    Set _.sigmaBlockCte = 
+    {
+    //WriteLn("TRACESelecting residuals with known wariance");
+      Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
+      { d->SigmaIndex<=0 })
+    };
+    //Selects residuals with variant sigma
+    Set _.sigmaBlockVar = 
+    {
+    //WriteLn("TRACESelecting residuals with unknown wariance");
+      Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
+      { d->SigmaIndex>0 })
+    };
+    //Defining the block in the Markov Chain
+    Real _defined = define
+    (
+      name,
+      EvalSet(_.sigmaBlockVar, Text(BSR.NoiseDistrib d) { d->SigmaName });
+      mcmcPartialHandler,
+      numBlock,
+      firstCol,
+      config
+    );
+    //Number of variant variances (dimension of sigma block)
+    Real _.S = Card(_.sigmaBlockVar);
+    //A diagonal matrix with sum of all constant sigmas that will be used in 
+    //regression standarizing
+    VMatrix _.sigmaInvCte = If(!Card(_.sigmaBlockCte), Zeros(_.m),
+      BinGroup("+", EvalSet(_.sigmaBlockCte, VMatrix (BSR.NoiseDistrib d) 
+      { d->Li })));
+    //Sigma block current store
+    VMatrix _.sigmaInv = _.sigmaInvCte
+
+  ]]}
+
 };
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.SigmaBlock =
-"Builds a NameBlock that can draw a Gibbs sample of a variance block of a "
-"general regression model.";
-//////////////////////////////////////////////////////////////////////////////
-  BlockSamplerSigma SigmaBlock(Text name, 
-                               Set NoiseDistrib, 
-                               BysMcmc::McmcPartialHandler mcmcPartialHandler,
-                               Real numBlock, 
-                               Real firstCol,
-                               BysMcmc::Config  config)
-//////////////////////////////////////////////////////////////////////////////
-{
-  BysMcmc::Bsr::Gibbs::BlockSamplerSigma sigBlk = [[
-
-  Code _.buildWorkSpace = _buildWorkSpace;
-
-  Real _.m = VRows(NoiseDistrib[1]->Li);
-  //Selects residuals with constant sigma
-  Set _.sigmaBlockCte = 
-  {
-  //WriteLn("TRACESelecting residuals with known wariance");
-    Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
-    { d->SigmaIndex<=0 })
-  };
-  //Selects residuals with variant sigma
-  Set _.sigmaBlockVar = 
-  {
-  //WriteLn("TRACESelecting residuals with unknown wariance");
-    Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
-    { d->SigmaIndex>0 })
-  };
-  //Defining the block in the Markov Chain
-  Real _defined = define
-  (
-    name,
-    EvalSet(_.sigmaBlockVar, Text(BSR.NoiseDistrib d) { d->SigmaName });
-    mcmcPartialHandler,
-    numBlock,
-    firstCol,
-    config
-  );
-  //Number of variant variances (dimension of sigma block)
-  Real _.S = Card(_.sigmaBlockVar);
-  //A diagonal matrix with sum of all constant sigmas that will be used in 
-  //regression standarizing
-  VMatrix _.sigmaInvCte = If(!Card(_.sigmaBlockCte), Zeros(_.m),
-    BinGroup("+", EvalSet(_.sigmaBlockCte, VMatrix (BSR.NoiseDistrib d) 
-    { d->Li })));
-  //Sigma block current store
-  VMatrix _.sigmaInv = _.sigmaInvCte
-
-]]};

@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.ProbitFilter =
-"Builds a NameBlock that can be used as non linear filter by method "
-"NonLinBlock in order to simulate cut coefficent of probit model "
+"Builds a NameBlock that can be used as non linear filter by Class "
+"BlockNonLin in order to simulate cut coefficent of probit model "
 "\n"
 "  Y = F(c) + X*beta + e; e ~ N(0,s^2)        \n"
 "\n"
@@ -70,7 +70,6 @@ NameBlock ProbitFilter
   Matrix _emptyMatrix = Rand(0,0,0,0);
 
   ///////////////////////////////////////////////////////////////////////////
-  //Called by BysMcmc::Bsr::Gibbs::NonLinBlock at initialization time
   Real initialize(Real unused)
   ///////////////////////////////////////////////////////////////////////////
   {

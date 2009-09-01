@@ -24,12 +24,12 @@ Cycler GetCyclerFromParsed(BSR.ModelDef parsed,
   BysMcmc::MasterSampler sampler = If(!Card(nonLinFilter),
   {
     WriteLn("[BSR] Using Basic Master");
-    BysMcmc::Bsr::Gibbs::BasicMaster(
+    BysMcmc::Bsr::Gibbs::MasterSamplerBasic::New(
       parsed, mcmcPartialHandler, 1, 1, config)
   },
   {
     WriteLn("[BSR] Using Non Linear Filter Extended Master");
-    BysMcmc::Bsr::Gibbs::NonLinMaster(
+    BysMcmc::Bsr::Gibbs::MasterSamplerNonLin::New(
       parsed, mcmcPartialHandler, nonLinFilter, 1, 1, config)
   });	
 
