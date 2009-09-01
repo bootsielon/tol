@@ -9,6 +9,11 @@ Text email_ = "vdebuen@tol-project.org";
 Text link_ = "https://www.tol-project.org/ticket/664";
 Text summary_ = "Metropolis-Hastings simulation of BSR linear block";
 
+//////////////////////////////////////////////////////////////////////////////
+//Loads general tools for BSR tests
+//////////////////////////////////////////////////////////////////////////////
+Set Include("../general/general.tol");
+
 Real numErr0 = Copy(NError);
 
 Set bsr.parsed = BSR.Parse("model.bsr");
@@ -56,15 +61,19 @@ BysMcmc::Config bsr.config =
 
 BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   bsr.parsed, 
-  BysMcmc::McmcPartialHandler.Default(0), 
+  BysMcmc::McmcPartialHandler::Null(0), 
   bsr.config, 
-  BysMcmc::NoNotifier(0));
+  BysMcmc::Notifier::Null(0));
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
 Real cycler::_.sampler::_.inpMis.blk::refreshFrequency := 0.25;
 Real cycler::_.sampler::_.outMis.blk::refreshFrequency := 0.25;
 
-BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
+//Real cycler::initialize(0);
+
+BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
+
+Real estim::Run(0);
 
 Real numErr1 = Copy(NError);
 

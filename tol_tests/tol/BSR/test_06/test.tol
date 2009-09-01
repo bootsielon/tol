@@ -376,6 +376,7 @@ BysMcmc::Config bsr.config = [[
   Real do.linear.effects  =  False
 ]];
 
+
 BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
   DBConnection::BsrHlm::_.defaultDB,
@@ -385,11 +386,11 @@ BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
   series.handler,
   bsr.config
 );
-
+//Real cycler::initialize(0);
+BysMcmc::Estimation bsr.estim = BysMcmc::Estimation::New(cycler);
 //Real TolOprProfiler.Enabled := True;
-BysMcmc::Estimation bsr.estim = BysMcmc::Estim(cycler);
+Real bsr.estim::Run(0);
 //Real TolOprProfiler.Dump("ses.01");
-
 Real BysMcmc::Bsr::DynHlm::DBApi::CloseModel(bsr.estim);
 
 

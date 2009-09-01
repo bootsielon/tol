@@ -7,6 +7,7 @@
 //         StdLib::BysMcmc.
 //////////////////////////////////////////////////////////////////////////////
 
+
 Text email_ = "vdebuen@tol-project.org"; 
 Text link_ = "";
 Text summary_ = 
@@ -55,14 +56,15 @@ BysMcmc::Config bsr.config = [[
 
 BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   mod::bsr.parsed, 
-  BysMcmc::McmcPartialHandler.Default(0), 
+  BysMcmc::McmcPartialHandler::Null(0), 
   bsr.config, 
-  BysMcmc::NoNotifier(0));
+  BysMcmc::Notifier::Null(0));
 
 //Real cycler::initialize(0);
 
-BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
+BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
 
+Real estim::Run(0);
 
 Struct CompareStruct 
 {

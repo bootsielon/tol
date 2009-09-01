@@ -57,7 +57,7 @@ BysMcmc::Config bsr.config =
 ]];
 
 
-BysMcmc::McmcRecover recover = BysMcmc::Get.Recover(
+BysMcmc::McmcRecover recover = BysMcmc::McmcRecover::Load(
   "../test_11/", "Test11", "Test11.01", 
   bsr.config);
 
@@ -172,7 +172,7 @@ VMatrix fixedValues = Rand(0,1,0,0);
 Set reloadParam = recover::_.colNames;
 
 BysMcmc::McmcPartialHandler partialHandler = 
-BysMcmc::McmcPartialHandler.Build(
+BysMcmc::McmcPartialHandler::New(
   fixedParam,
   fixedValues,
   reloadParam,
@@ -184,14 +184,14 @@ BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   bsr.parsed, 
   partialHandler, 
   bsr.config, 
-  BysMcmc::NoNotifier(0));
+  BysMcmc::Notifier::Null(0));
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
 
 //Real cycler::initialize(0);
 
-
-BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
+BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
+Real estim::Run(0);
 
 Real numErr1 = Copy(NError);
 

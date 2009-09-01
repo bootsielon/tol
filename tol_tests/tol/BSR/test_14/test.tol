@@ -56,15 +56,16 @@ BysMcmc::Config bsr.config =
 
 BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   bsr.parsed, 
-  BysMcmc::McmcPartialHandler.Default(0), 
+  BysMcmc::McmcPartialHandler::Null(0), 
   bsr.config, 
-  BysMcmc::NoNotifier(0));
+  BysMcmc::Notifier::Null(0));
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
 Real cycler::_.sampler::_.inpMis.blk::refreshFrequency := 0.25;
 Real cycler::_.sampler::_.outMis.blk::refreshFrequency := 0.25;
 
-BysMcmc::Estimation estim = BysMcmc::Estim(cycler);
+BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
+Real estim::Run(0);
 
 Real numErr1 = Copy(NError);
 
