@@ -81,15 +81,15 @@ END_DECLS
 // BSyntaxObject
 //--------------------------------------------------------------------
 
-#define BNOMODE	         0 /* no longer used */
-#define BIMAGEMODE       1 /* no longer used */
+#define BNOMODE	         0 
+#define BIMAGEMODE       1 
 #define BOBJECTMODE      2
 #define BBUILTINFUNMODE  3
-#define BGRAMMARMODE     4 /* no longer used */
-#define BFIELDMODE       5 /* no longer used */
+#define BGRAMMARMODE     4 
+#define BFIELDMODE       5 
 #define BSTRUCTMODE      6
-#define BMETHODMODE      7 /* no longer used */
-#define BCLASSMODE       8 /* no longer used */
+#define BMETHODMODE      7 
+#define BCLASSMODE       8 
 #define BDATABASEMODE    9
 #define BUSERFUNMODE    10
 #define BSOURCEPATHMODE 11
@@ -222,7 +222,7 @@ public:
   virtual const BText&         Description() const;
   virtual const BText&         Expression () const { return(GetOpt(expression_)); }
   virtual const BNameBlock*    NameBlock  () const { return((optInfo_)?optInfo_->nameBlock_:NULL); }
-  BText                        FullName   () const;
+  virtual BText                FullName   () const;
   virtual BText		             Dump	      () const { return(Identify()); }
   virtual BText		             Info	      () const { return(Dump()); }
           BText                LexInfo    () const;
