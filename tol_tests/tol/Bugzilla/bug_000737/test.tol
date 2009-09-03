@@ -1,0 +1,54 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  737;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "New bugs related to classes in new version b.0.12.alpha";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+    
+
+  Class ClaseA {
+    Real a
+  };
+
+  Class ClaseB {
+    ClaseA objA;
+    ClaseA Damelo(Real void){ objA }
+  };
+
+  ClaseB ejB = [[ ClaseA objA = [[Real a = 2]] ]];
+
+  // Da error:
+  ClaseA ejB::Damelo(?);
+
+  // No da error:
+  NameBlock ejB::Damelo(?);
+
+
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[numErr0, numErr1, numWar0, numWar1]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0);
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
