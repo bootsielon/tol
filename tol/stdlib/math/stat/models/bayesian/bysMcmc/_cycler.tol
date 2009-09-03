@@ -86,17 +86,6 @@ Class Cycler
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.initialize =
-  "Initializes the Markov Chain";
-  Real initialize(Real unused)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real _.notifier::initializing(_.n, _.path);
-    Real _.sampler::initialize(0);
-    1
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.resume =
   "Reloads n=resume_ saved simulations if possible";
   Real resume(Real sampleLength)
@@ -155,7 +144,7 @@ Class Cycler
               aux
             });
             Matrix lastRow = Sub(resumed,m_,1,1,_.n);
-          //WriteLn("TRACE "+_MID+"lastRow="<<lastRow);
+            WriteLn(_MID+"Setting last resumed row as initial point");
             Real _.sampler::setStore(lastRow);
             m_
           })
@@ -186,17 +175,6 @@ Class Cycler
   ////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[Cycler::generate] ";
-    Real WriteLn(_MID+_.name+
-      "\n Storing MCMC in file ....... : "<<_.path+
-      "\n Number of fixed variables .. : "<<_.sampler::_.fixedParamNum+
-      "\n Number of reloaded variables : "<<_.sampler::_.reloadParamNum+
-      "\n Number of sampled variables  : "<<_.sampler::_.freeParamNum+
-      "\n Number of total variables .. : "<<_.n+
-      "\n Number of simulations ...... : "<<sampleLength+
-      "\n Cache length ............... : "<<cacheLength_+
-      "\n Resume ..................... : "<<resume_+
-      If(_mcmc.maxTime<1/0,
-      "\n MaxTime               : "<<_mcmc.maxTime+" seconds",""));
   //Ensures path is all right 
     Real OSDirMake(GetFilePath(_.path));
     Real numDec = 1+Ceil(Log(sampleLength)/Log(10));
@@ -218,8 +196,36 @@ Class Cycler
   //WriteLn("TRACE "+_MID+"numSim="<<numSim);
     Real end = GE(numSim,sampleLength);
   //WriteLn("TRACE "+_MID+"end="<<end);
+    Real runSim = 0;
+    Real _.notifier::initializing(_.n, _.path);
+    Real If(!savedSimulations,
+    {
+       _.sampler::initialize(0)
+    },
+    {
+       _.sampler::resume(0)
+    });
+    Real WriteLn(_MID+_.name+
+      "\n Storing MCMC in file ....... : "<<_.path+
+      "\n Number of fixed variables .. : "<<_.sampler::_.fixedParamNum+
+      "\n Number of reloaded variables : "<<_.sampler::_.reloadParamNum+
+      "\n Number of sampled variables  : "<<_.sampler::_.freeParamNum+
+      "\n Number of total variables .. : "<<_.n+
+      "\n Number of simulations ...... : "<<sampleLength+
+      "\n Cache length ............... : "<<cacheLength_+
+      "\n Resume ..................... : "<<resume_+
+      If(_mcmc.maxTime<1/0,
+      "\n MaxTime ...................  : "<<_mcmc.maxTime+" seconds",""));
+    If(numErr0<NError,
+    {
+      CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotContinueSimulation,
+      [[_MID, Real (NError-numErr0) ]])
+    });
+    Real If(_.config::do.mcmc.profiler, 
+      TolOprProfiler.Enabled := True);
     While(!end,
     {
+      Real runSim := runSim+1;
       Real numSim := numSim+1;
     //WriteLn("TRACE "+_MID+"2 numSim="<<numSim);
       Real doCache = Or(cacheLength_==1,numSim%cacheLength_==1);
@@ -280,20 +286,19 @@ Class Cycler
       {
       //WriteLn("TRACE "+_MID+"10");
         Real CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotContinueSimulation,
-        [[
-          _MID,
-          Real (NError-numErr0)
-        ]]);
+        [[_MID,Real (NError-numErr0)]]);
         Real end := True
       });
       1
     //WriteLn("TRACE "+_MID+"8");
     });
+    Real If(config::do.mcmc.profiler, 
+      TolOprProfiler.Dump(cycler::_.path+cycler::_.name));
   //WriteLn("TRACE "+_MID+"11");
     Matrix Do MatAppendFile(_.path, cache);
   //WriteLn("TRACE "+_MID+"12");
     Real savedSimulations := numSim;
-    Real _.time := (Time - t0)/numSim;
+    Real _.time := (Time - t0)/runSim;
     WriteLn(" [time by simulation:"<<_.time+"]");
     Real _.notifier::simulating(numSim, _.time);
     //WriteLn("TRACE "+_MID+"1");
