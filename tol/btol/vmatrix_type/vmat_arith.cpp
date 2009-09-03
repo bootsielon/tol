@@ -295,6 +295,8 @@ DefineBinary (WeightQuot, fR2R_quot, false, false, "$/");
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
+  int result = 0;
+  C.Delete();
   if(!A_.CheckDefined(fName)) { return(-1); }
   if(!B_.CheckDefined(fName)) { return(-1); }
   double a_[2] = { 1.0, 1.0 };
@@ -306,47 +308,51 @@ DefineBinary (WeightQuot, fR2R_quot, false, false, "$/");
   if((r!=rB)||(c!=cB))
   {
     err_invalid_dimensions(fName,A_,B_);
-    return(-1);
+    result = -1;
   }
-  C.Delete();
-  BVMat* A__, *B__;
-  if(convertIfNeeded_all2bRd(A_,B_,A__,B__,fName,false)==0) 
-  { 
-    convertIfNeeded_all2cRs(A_,B_,A__,B__,fName,false);
-  }
-
+  BVMat* A__=(BVMat*)&A_, *B__=(BVMat*)&B_;
   BVMat &A = *A__,  &B = *B__;
-  int result = 0;
-  if(A.code_!=B.code_)
+  if(result==0)
   {
-    err_invalid_subtypes(fName,A,B);
-    result = -2;
-  }
-  int k, n;
-  const double* Bx;
-        double* Cx;
-  switch(A.code_) {
-  case(ESC_blasRdense  ) :
-    C.Copy(A);
-    n = A.s_.blasRdense_->nzmax;
-    Bx = (const double*)B.s_.blasRdense_->x;
-    Cx = (      double*)C.s_.blasRdense_->x;
-    for(k=0; k<n; k++)
+    if(convertIfNeeded_all2bRd(A_,B_,A__,B__,fName,false)==0) 
+    { 
+      convertIfNeeded_all2cRs(A_,B_,A__,B__,fName,true);
+    }
+    A = *A__; B = *B__;
+    if(A.code_!=B.code_)
     {
-      Cx[k] += b*Bx[k];
-    };
-    break;
-  case(ESC_chlmRsparse) :
-    C.code_ = ESC_chlmRsparse;
-    C.s_.chlmRsparse_= cholmod_add
-    (
-      A.s_.chlmRsparse_, B.s_.chlmRsparse_,
-      a_, b_, 1, 1, common_
-    );
-    break;
-  default:
-    err_invalid_subtype(fName,A); 
-    result=-3; }
+      err_invalid_subtypes(fName,A,B);
+      result = -2;
+    }
+  }
+  if(result==0)
+  {
+    int k, n;
+    const double* Bx;
+          double* Cx;
+    switch(A.code_) {
+    case(ESC_blasRdense  ) :
+      C.Copy(A);
+      n = A.s_.blasRdense_->nzmax;
+      Bx = (const double*)B.s_.blasRdense_->x;
+      Cx = (      double*)C.s_.blasRdense_->x;
+      for(k=0; k<n; k++)
+      {
+        Cx[k] += b*Bx[k];
+      };
+      break;
+    case(ESC_chlmRsparse) :
+      C.code_ = ESC_chlmRsparse;
+      C.s_.chlmRsparse_= cholmod_add
+      (
+        A.s_.chlmRsparse_, B.s_.chlmRsparse_,
+        a_, b_, 1, 1, common_
+      );
+      break;
+    default:
+      err_invalid_subtype(fName,A); 
+      result=-3; }
+  }
   if(A__!=&A_) { delete A__; }
   if(B__!=&B_) { delete B__; }
   return(result);
