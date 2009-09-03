@@ -808,8 +808,9 @@ Tree* BParser::ParseBinary (Tree* tre)
   bool lastIsClass = false;
   bool isInherite = false;
   bool isStatic = false;
-  if((NextSymbol()->Name() == "::")&&
-      delayedSymbol_&&(delayedSymbol_->TokenType()==TYPE))
+  if(!NextArgument() && delayedSymbol_ &&
+      (delayedSymbol_->TokenType()==TYPE) && 
+      (NextSymbol()->Name() == "::"))
   {
     BTypeToken* tt = (BTypeToken*)delayedSymbol_;
     if(tt->type_==BTypeToken::BCLASS)
