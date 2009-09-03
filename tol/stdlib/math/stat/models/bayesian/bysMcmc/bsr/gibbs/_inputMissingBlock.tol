@@ -41,8 +41,8 @@ Class BlockInputMissing : BlockStdLin
 
   Set _.j1  = Copy(Empty);
   Set _.j2  = Copy(Empty);
-  Set _.tk1 = Copy(Empty);
-  Set _.tk2 = Copy(Empty);
+  Matrix _.tk1 = Rand(0,0,0,0);
+  Matrix _.tk2 = Rand(0,0,0,0);
 
   //--------------------------------------------------------------------------
   //Methods
@@ -90,21 +90,14 @@ Class BlockInputMissing : BlockStdLin
     {
        Set _.j1  := ExtractByIndex(_.j,  _.i1);
        Set _.j2  := ExtractByIndex(_.j,  _.i2);
-       Set _.tk1 := ExtractByIndex(_.tk, _.i1);
-       Set _.tk2 := ExtractByIndex(_.tk, _.i2);
       _.prior.X.free := SubCol(_.prior.X, _.i2)
     });
 
     Real M = VRows(Z);
 
-    VMatrix b1_= SubRow(beta, _.j1);
-    VMatrix b2_= SubRow(beta, _.j2);
-    Matrix  b1 = VMat2Mat(b1_);
-    Matrix  b2 = VMat2Mat(b2_);
-  //WriteLn("TRACE "+_MID+" draw 2 b="<<b);
-    VMatrix B1 = (Convert(Triplet(_.tk1 | b1, M, _.N1),"Cholmod.R.Sparse"));
-  //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 B1\n="<<B1);
-    VMatrix B2 = (Convert(Triplet(_.tk2 | b2, M, _.N2),"Cholmod.R.Sparse"));
+    VMatrix B = (Convert(Triplet(_.tk | VMat2Mat(beta), M, _.N),"Cholmod.R.Sparse"));
+    VMatrix B1 = SubCol(B,_.i1);
+    VMatrix B2 = SubCol(B,_.i2);
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 B2\n="<<B2);
     VMatrix u1 = _.partialSampler::_.fixedValues << 
                  _.partialSampler::_.reloadedValues;
