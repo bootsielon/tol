@@ -470,9 +470,9 @@ Class BlockStdLinSub
       Real q1 := _.logDens.Q;
       Real a = Rand(0,1);
       Real c = Exp((p1+q0)-(p0+q1));
-      Real s = Sqrt(gsl_ran_chisq(m)/m);
+      Real s = s0*Sqrt(gsl_ran_chisq(m)/m);
       Real accept := Case(
-        s1 <= 1, True,
+      //s1 <= 1, True,
         s1 <= s, True,
         1  == 1, a<c);
       Real tm = Copy(Time) - t0;
