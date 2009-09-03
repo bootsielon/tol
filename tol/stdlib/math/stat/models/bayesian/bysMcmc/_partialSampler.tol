@@ -43,7 +43,10 @@ Class McmcReloader
   Real getRowSequence(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(_.sequential, numSim,
+    If(_.sequential, 
+    {
+      _.burnin+1+numSim%_.sampleLength
+    },
     {
       Real sequence = DeterministicPseudoRandomInteger(numSim+_sequenceKey);
       _.burnin+1+sequence%_.sampleLength
@@ -90,10 +93,10 @@ Class McmcPartialHandler
 
   //Builds a generic instance of McmcPartialHandler
   Static McmcPartialHandler New(
-    Set fixedParam,
-    VMatrix fixedValues,
-    Set reloadParam,
-    McmcReloader reloader
+    Set fixedParam,        //Names of fixed parameters       
+    VMatrix fixedValues,   //Values of fixed parameters
+    Set reloadParam,       //Names of reloaded parameters       
+    McmcReloader reloader  //Reloading handler
   )
   {
     BysMcmc::McmcPartialHandler aux = [[
