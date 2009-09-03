@@ -21,7 +21,7 @@ Set bsr.parsed = BSR.Parse("model.bsr");
 BysMcmc::Config bsr.config = 
 [[
 //MCMC dimensions
-  Real mcmc.burnin = 100; 
+  Real mcmc.burnin = 200; 
   Real mcmc.sampleLength = 2000;
   Real mcmc.cacheLength = 1;
 //Basic master configuration
@@ -52,7 +52,7 @@ BysMcmc::Config bsr.config =
   Real report.histogram.parts  = 100;
   Real report.kerDens.points   = 0;
 //Generic flags
-  Real do.resume          = 1/0+mcmc.sampleLength-100;
+  Real do.resume          = mcmc.sampleLength-100;
   Real do.report          = True;
   Real do.eval            = True;
   Real do.linear.effects  = False;
@@ -66,8 +66,6 @@ BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   BysMcmc::Notifier::Null(0));
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
-Real cycler::_.sampler::_.inpMis.blk::refreshFrequency := 0.25;
-Real cycler::_.sampler::_.outMis.blk::refreshFrequency := 0.25;
 
 //Real cycler::initialize(0);
 
