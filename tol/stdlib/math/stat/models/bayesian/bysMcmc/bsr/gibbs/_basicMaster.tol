@@ -165,38 +165,68 @@ Class MasterSamplerBasic : MasterSampler
     VMatrix beta0 = findMatchingBeta(Mat2VMat(givenBeta));
   //WriteLn("TRACE"+_MID+" initialize 3 beta0("<<VRows(beta0)+"x"<<VColumns(beta0)+")");
     Real ok = _.mln.blk::matchConstrains(beta0, _.modelDef->A, _.modelDef->a);
-  //WriteLn("TRACE"+_MID+" initialize 4");
-    VMatrix _.beta   := _.mln.blk::_.store;
-  //WriteLn("TRACE"+_MID+" initialize 5 _.beta("<<VRows(_.beta)+"x"<<VColumns(_.beta)+")");
-    Real DoExternalFilter(0);
-  //WriteLn("TRACE"+_MID+" initialize 6 ");
-    Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+    If(ok,
     {
-    //WriteLn("TRACE"+_MID+" initialize 6.1 ");
-      VMatrix res = _.YplusV - _.XplusU*_.beta;
-    //WriteLn("TRACE"+_MID+" initialize 6.2 ");
-      _.sig.blk::_.buildWorkSpace(res)
+    //WriteLn("TRACE"+_MID+" initialize 4");
+      VMatrix _.beta   := _.mln.blk::_.store;
+    //WriteLn("TRACE"+_MID+" initialize 5 _.beta("<<VRows(_.beta)+"x"<<VColumns(_.beta)+")");
+      Real DoExternalFilter(0);
+    //WriteLn("TRACE"+_MID+" initialize 6 ");
+      Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+      {
+      //WriteLn("TRACE"+_MID+" initialize 6.1 ");
+        VMatrix res = _.YplusV - _.XplusU*_.beta;
+      //WriteLn("TRACE"+_MID+" initialize 6.2 ");
+        _.sig.blk::_.buildWorkSpace(res)
+      });
+      VMatrix sig_0 = _.sig.blk::get.draw(0, True);
+    //WriteLn("TRACE"+_MID+" initialize 7");
+    //WriteLn("TRACE"+_MID+" _.XplusU "<<_.XplusU);
+    //WriteLn("TRACE"+_MID+" _.beta "<<_.beta);
+      VMatrix _.filter := _.XplusU*_.beta;
+    //WriteLn("TRACE"+_MID+" _.filter "<<_.filter);
+      VMatrix _.noise := _.YplusV-_.filter;
+    //WriteLn("TRACE"+_MID+" _.noise "<<_.noise);
+    //WriteLn("TRACE"+_MID+" init 8");
+      VMatrix _.residuals := _.arm.blk::filter(_.noise);
+    //WriteLn("TRACE"+_MID+" _.residuals "<<_.residuals);
+    //WriteLn("TRACE"+_MID+" init 9");
+      Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+      {
+        Real _.sig.blk::_.buildWorkSpace(_.residuals)
+      });
+    //WriteLn("TRACE"+_MID+" init 10");
+      VMatrix sig_1 = _.sig.blk::get.draw(0, True);
+    //WriteLn("TRACE"+_MID+" init 11");
+      1  
     });
-    VMatrix sig_0 = _.sig.blk::get.draw(0, True);
-  //WriteLn("TRACE"+_MID+" initialize 7");
-  //WriteLn("TRACE"+_MID+" _.XplusU "<<_.XplusU);
-  //WriteLn("TRACE"+_MID+" _.beta "<<_.beta);
-    VMatrix _.filter := _.XplusU*_.beta;
-  //WriteLn("TRACE"+_MID+" _.filter "<<_.filter);
-    VMatrix _.noise := _.YplusV-_.filter;
-  //WriteLn("TRACE"+_MID+" _.noise "<<_.noise);
-  //WriteLn("TRACE"+_MID+" init 8");
-    VMatrix _.residuals := _.arm.blk::filter(_.noise);
-  //WriteLn("TRACE"+_MID+" _.residuals "<<_.residuals);
-  //WriteLn("TRACE"+_MID+" init 9");
-    Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
-    {
-      Real _.sig.blk::_.buildWorkSpace(_.residuals)
-    });
-  //WriteLn("TRACE"+_MID+" init 10");
-    VMatrix sig_1 = _.sig.blk::get.draw(0, True);
-  //WriteLn("TRACE"+_MID+" init 11");
     ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real resume(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" resume 0");
+    Real initialize.blocks(unused);
+    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
+    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
+    VMatrix _.beta   := _.mln.blk::_.store;
+    Real ok = _.mln.blk::matchConstrains(_.beta, _.modelDef->A, _.modelDef->a);
+    If(ok,
+    {
+      VMatrix _.beta   := _.mln.blk::_.store;
+      Real DoExternalFilter(0);
+      VMatrix _.filter := _.XplusU*_.beta;
+      VMatrix _.noise := _.YplusV-_.filter;
+      VMatrix _.residuals := _.arm.blk::filter(_.noise);
+      Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+      {
+        Real _.sig.blk::_.buildWorkSpace(_.residuals)
+      });
+      VMatrix sig_1 = _.sig.blk::get.draw(0, True);
+      ok
+    })
   };
 
   ////////////////////////////////////////////////////////////////////////////
