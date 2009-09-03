@@ -21,14 +21,9 @@ Class Estimation
     BysMcmc::Config config = cycler::_.config;
     BysMcmc::Notifier notifier = cycler::_.notifier;
     Real BysMcmc::McmcRecover::Store(cycler, config::partialSampling.Sequential);
-    Real cycler::initialize(0);
     Real sampleLength = config::mcmc.burnin+config::mcmc.sampleLength;
     
-    Real If(config::do.mcmc.profiler, 
-      TolOprProfiler.Enabled := True);
     Real cycler::generate(sampleLength); 
-    Real If(config::do.mcmc.profiler, 
-      TolOprProfiler.Dump(cycler::_.path+cycler::_.name));
 
     Real notifier::reporting(0);
     Real If(config::do.report,
