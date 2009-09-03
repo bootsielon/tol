@@ -20,7 +20,7 @@ NameBlock BysMcmc =
   #Embed "_partialSampler.tol";
   #Embed "_blockSampler.tol";
   #Embed "_masterSampler.tol";
-  #Embed "_build.tol";
+  #Embed "_cycler.tol";
   #Embed "_recover.tol";
   #Embed "_estim.tol";
   #Embed "bsr/_bsr.tol";
