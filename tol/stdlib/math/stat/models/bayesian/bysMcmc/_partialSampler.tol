@@ -168,21 +168,23 @@ Class BlockPartialSampler
              McmcPartialHandler mcmcPartialHandler)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE BlockPartialSampler::build 1");
     Real _.N := Card(blockParam);
     BysMcmc::McmcPartialHandler _.mcmcPartialHandler := mcmcPartialHandler;
     Set fixedParamIdx = Copy(Empty);
     Set reloadParamIdx = Copy(Empty);
+    Real   _.fixedParamNum  := 0;
+    Real   _.reloadParamNum := 0;
+    Real   _.freeParamNum   := 0;
+    Matrix _.fixedParamIdx  := Rand(0,1,0,0);
+    Matrix _.reloadParamIdx := Rand(0,1,0,0);
+    Matrix _.freeParamIdx   := Rand(0,1,0,0);
+    Set    _.fixedParam     := Copy(Empty);
+    Set    _.reloadParam    := Copy(Empty);
+    Set    _.freeParam      := Copy(Empty);
+    Set    _.reloadParamIdxOrig := Copy(Empty);
     If(!_.N,
     {
-      Matrix _.fixedParamIdx  := Rand(0,1,0,0);
-      Matrix _.reloadParamIdx := Rand(0,1,0,0);
-      Matrix _.freeParamIdx   := Rand(0,1,0,0);
-      Set    _.fixedParam     := Copy(Empty);
-      Set    _.reloadParam    := Copy(Empty);
-      Set    _.freeParam      := Copy(Empty);
-      Real   _.fixedParamNum  := 0;
-      Real   _.reloadParamNum := 0;
-      Real   _.freeParamNum   := 0;
       1
     },
     {
@@ -190,23 +192,29 @@ Class BlockPartialSampler
       {
         Set   fixedParamAll  = _.mcmcPartialHandler::_.fixedParam;
         Set   fixedParamAux  = SelectIndexByName(blockParam, fixedParamAll);
-        Set _.fixedParam    := ExtractByIndex(fixedParamAll, fixedParamAux);
-        Real SetIndexByName(_.fixedParam);
-        Set fixedParamIdx := SelectIndexByName(_.fixedParam, blockParam);
-        Matrix _.fixedParamIdx := SetCol(fixedParamIdx);
-        1 
+        Real If(!Card(fixedParamAux), 
+        {
+          Set _.fixedParam    := ExtractByIndex(fixedParamAll, fixedParamAux);
+          Real SetIndexByName(_.fixedParam);
+          Set fixedParamIdx := SelectIndexByName(_.fixedParam, blockParam);
+          Matrix _.fixedParamIdx := SetCol(fixedParamIdx);
+          1 
+        })
       });
       Real If(Card(_.mcmcPartialHandler::_.reloadParam), 
       {
         Set   reloadParamAll  = _.mcmcPartialHandler::_.reloadParam;
         Set   reloadParamAux  = SelectIndexByName(blockParam, reloadParamAll);
-        Set _.reloadParam    := ExtractByIndex(reloadParamAll, reloadParamAux);
-        Real SetIndexByName(_.reloadParam);
-        Set reloadParamIdx := SelectIndexByName(_.reloadParam, blockParam);
-        Matrix _.reloadParamIdx := SetCol(reloadParamIdx);
-        Set _.reloadParamIdxOrig := 
-         _.mcmcPartialHandler::_.reloader::selectIndexes(_.reloadParam);
-        1 
+        Real If(Card(reloadParamAux), 
+        {
+          Set _.reloadParam    := ExtractByIndex(reloadParamAll, reloadParamAux);
+          Real SetIndexByName(_.reloadParam);
+          Set reloadParamIdx := SelectIndexByName(_.reloadParam, blockParam);
+          Matrix _.reloadParamIdx := SetCol(reloadParamIdx);
+          Set _.reloadParamIdxOrig := 
+           _.mcmcPartialHandler::_.reloader::selectIndexes(_.reloadParam);
+          1 
+        })
       });
       Set freeParamIdx = Range(1,_.N,1)-(fixedParamIdx << reloadParamIdx);
       Matrix _.freeParamIdx := SetCol(freeParamIdx);
