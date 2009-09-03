@@ -178,11 +178,11 @@ Class BlockOutputMissing : BlockStdLin
   VMatrix filter(VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" filter B");
+  //WriteLn("TRACE"+_MID+" filter Z:"<<Z);
     If(Not(enabled), Z,
     {
       VMatrix V = MergeRows(VRows(Z), [[ [[ _.store, _.I]] ]]);
-      Z+Convert(V,"Cholmod.R.Sparse")
+      Z+Convert(V,"Blas.R.Dense")
     })
   };
 
