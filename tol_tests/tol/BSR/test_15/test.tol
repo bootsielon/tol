@@ -71,10 +71,14 @@ Set MissingBlk = Select(recover::_.colNames, Real(Text param)
    If(!TextBeginWith(param,"MissingBlk::"),0,Rand(0,1)<.98)
 });
 
+Set SigmaBlk = Select(recover::_.colNames, Real(Text param)
+{
+   If(!TextBeginWith(param,"SigmaBlk::"),0,Rand(0,1)<1)
+});
 
 Set fixedParam = Copy(Empty);
 VMatrix fixedValues = Rand(0,1,0,0);
-Set reloadParam = LinearBlk << MissingBlk;
+Set reloadParam = LinearBlk << MissingBlk << SigmaBlk;
 
 BysMcmc::McmcPartialHandler partialHandler = 
 BysMcmc::McmcPartialHandler::New(
@@ -114,6 +118,8 @@ BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
 Real TolOprProfiler.Enabled := True;
 Real estim::Run(0);
 Real TolOprProfiler.Dump("ses.01");
+
+Real FClose(recover::_.mcmc.handler);
 
 Real numErr1 = Copy(NError);
 
