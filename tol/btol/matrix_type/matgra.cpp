@@ -43,6 +43,7 @@
 #include <tol/tol_bsparse.h>
 #include <tol/tol_ois.h>
 #include <tol/tol_bsvdsep.h>
+#include <tol/tol_filehandle.h>
 
 #include <tol/tol_blas.h> 
 #include <tol/tol_lapack.h> 
@@ -354,30 +355,23 @@ void BBM_BinRead(const BText& fileName, BMat& M)
 }
 
 //--------------------------------------------------------------------
-void BBM_BinReadRows(const BText& fileName, BMat& M, 
+void BBM_BinReadRows(FILE* fil, BMat& M, 
+                     int m, int n, 
                      int i, int r, int t=1)
 //--------------------------------------------------------------------
 {
-#ifdef BBM_CHECK_SIZE
-  BInt fs = GetFileSize(fileName);
-#endif
   int k, tr = t*r;
 //Std(BText("\nBBM_BinRead ")+fileName+" bytes "+fs);
-  FILE* fil = fopen(fileName.String(),"rb");
-  if(!fil)
+  BInt mn;
+  if((m<=0)||(n<=0))
   {
-    Error(I2("Cannot open for read BBM file ",
-             "No se pudo abrir para lectura el fichero BBM ")+
-          fileName);
-    return; 
+    fseek(fil,0,SEEK_SET);
+    fread(&m,sizeof(BInt),1,fil);
+    fread(&n,sizeof(BInt),1,fil);
   }
-  BInt m, n, mn;
-  fread(&m,sizeof(BInt),1,fil);
-  fread(&n,sizeof(BInt),1,fil);
   mn= m*n;
   if(!m || !n) 
   { 
-    fclose(fil);
     return; 
   }
   if(i==-1)
@@ -387,14 +381,8 @@ void BBM_BinReadRows(const BText& fileName, BMat& M,
   if((0>  i)||(i     >=m)||
      (0>=tr)||(i+tr-1>=m) ) 
   { 
-    fclose(fil);
     return; 
   }
-#ifdef BBM_CHECK_SIZE
-  int s = fs -2*sizeof(BInt);
-  //In TOL versions after 2007-01-15 structure page size = 4 => sizeof(BDat)=12
-  if(s==mn*(int)sizeof(BDat)) 
-#endif
   {
     M.Alloc(r,n);
     if(M.Rows()!=r) { return; }
@@ -419,30 +407,20 @@ void BBM_BinReadRows(const BText& fileName, BMat& M,
       }
     }
   }
-  if(fclose(fil))
-  {
-    Error(I2("Cannot close after reading BBM file ",
-             "No se pudo cerrar despues de leer el fichero BBM ")+
-          fileName);
-  };
-  BBM_CheckSize("BBM_BinReadRows",fileName,m,n);
 }
 
 //--------------------------------------------------------------------
-void BBM_BinReadCell(const BText& fileName, BDat& cell, int i, int j)
+void BBM_BinReadCell(FILE* fil, BDat& cell, 
+                     int m, int n, 
+                     int i, int j)
 //--------------------------------------------------------------------
 {
-  FILE* fil = fopen(fileName.String(),"rb");
-  if(!fil)
+  if((m<=0)||(n<=0))
   {
-    Error(I2("Cannot open for read BBM file ",
-             "No se pudo abrir para lectura el fichero BBM ")+
-          fileName);
-    return; 
+    fseek(fil,0,SEEK_SET);
+    fread(&m,sizeof(BInt),1,fil);
+    fread(&n,sizeof(BInt),1,fil);
   }
-  BInt m, n;
-  fread(&m,sizeof(BInt),1,fil);
-  fread(&n,sizeof(BInt),1,fil);
   if((0>i)||(i>=m)||
      (0>j)||(j>=n) ) 
   { 
@@ -452,13 +430,6 @@ void BBM_BinReadCell(const BText& fileName, BDat& cell, int i, int j)
   int pos = 2*sizeof(BInt)+(i*n+j)*sizeof(BDat);
   fseek(fil,pos,SEEK_SET);
   fread(&cell, 1, sizeof(BDat), fil);
-  if(fclose(fil))
-  {
-    Error(I2("Cannot close after reading BBM file ",
-             "No se pudo cerrar despues de leer el fichero BBM ")+
-          fileName);
-  };
-  BBM_CheckSize("BBM_BinReadCell",fileName,m,n);
 }
 
 //--------------------------------------------------------------------
@@ -601,47 +572,137 @@ void BMatReadDimensions::CalcContens()
   contens_.AddElement(r_);
   contens_.AddElement(c_);
 }
+
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatReadRows);
-DefExtOpr(1, BMatReadRows, "MatReadRows", 3, 4, "Text Real Real Real",
-  "(Text filename, Real firstRow, Real numRows [, Real thinning=1])",
-  I2("Reads a range of rows of a matrix from a file in binary format",
-     "Lee un rango de filas de una matriz de un fichero en formato binario"),
+DefExtOpr(1, BMatReadRows, "MatReadRows", 3, 6, 
+  "{Text|Real} Real Real Real Real Real",
+  "({Text|Real} file, Real firstRow, Real numRows "
+  "[, Real thinning=1, Real numRows=-1, Real numColumns=-1])",
+  I2("Reads a range of rows of a matrix from a file in binary format\n"
+     "If argument <file> is a Text then the file in these path will be "
+     "open before to read and it will be closed after.\n"
+     "If argument <file> is Real created with FOpen the file is already "
+     "open and the user should close with FClose after. This is a faster "
+     "method for multiple reading over the same file.\n"
+     "Afterwords, if arguments <numRows> and <numColumns> are greater than "
+     "zero, then it will not have to read them from the file, which can "
+     "greatly accelerate the process.",
+     "Lee un rango de filas de una matriz de un fichero en formato binario\n"
+     "Si el argumento <file> es un Text entonces el fichero en ese "
+     "camino será abierto antes de leer y cerrado después.\n"
+     "Si el argumento <file> es un Real creado con FOpen entonces el "
+     "fichero ya está abierto y será el usuario el que lo cierre cuando "
+     "se requiera. Este es el método más rápido cuando hay que hacer "
+     "múltiples lecturas sobre un mismo fichero.\n"
+     "Si además los argumentos <numRows> y <numColumns> son mayores que "
+     "cero entonces no será necesario leerlos del propio fichero lo cual "
+     "puede acelerarse mucho el proceso."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BMatReadRows::CalcContens()
 //--------------------------------------------------------------------
 {
-  BText& f =      Text(Arg(1));
-  int    i = (int)Real(Arg(2))-1;
-  int    r = (int)Real(Arg(3));
-  int    t = 1;
+  FILE* file = NULL;
+  int i = (int)Real(Arg(2))-1;
+  int r = (int)Real(Arg(3));
+  int t = 1;
+  int m = -1;
+  int n = -1;
   if(Arg(4)) { t = (int)Real(Arg(4)); }
-  BBM_BinReadRows(f,contens_,i,r,t);
+  if(Arg(5)) { m = (int)Real(Arg(5)); }
+  if(Arg(6)) { n = (int)Real(Arg(6)); }
+  if(Arg(1)->Grammar()==GraReal())
+  {
+    int handle = (int)Real(Arg(1));
+    FILE* file = BFileDesc::CheckFileHandle(handle,true,
+      I2("Fail in ","Fallo en ")+"BMatReadRows");  
+    if(file)
+    {
+      BBM_BinReadRows(file,contens_,m,n,i,r,t);
+    }
+  }
+  else
+  {
+    BText& path = Text(Arg(1));
+    file = fopen(path.String(),"rb");
+    if(!file)
+    {
+      Error(I2("Cannot open for MatReadRows BBM file ",
+               "No se pudo abrir para MatReadRows el fichero BBM ")+
+            path);
+      return; 
+    }
+    BBM_BinReadRows(file,contens_,m,n,i,r,t);
+    fclose(file);
+  }
 }
 //--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BMatReadCell);
-DefExtOpr(1, BMatReadCell, "MatReadCell", 3, 3, "Text Real Real",
-  I2("(Text filename, Real row, Real column)",
-     "(Text nombreFichero, Real file, Real columna)"),
-  I2("Reads a cell matrix from a file in binary format",
-     "Lee una celda de una matriz de un fichero en formato binario"),
+DefExtOpr(1, BMatReadCell, "MatReadCell", 3, 5, 
+  "{Text|Real} Real Real Real Real",
+  "({Text|Real} file, Real row, Real column)"
+  "[, Real numRows=-1, Real numColumns=-1])",
+  I2("Reads a cell matrix from a file in binary format.\n"
+     "If argument <file> is a Text then the file in these path will be "
+     "open before to read and it will be closed after.\n"
+     "If argument <file> is Real created with FOpen the file is already "
+     "open and the user should close with FClose after. This is a faster "
+     "method for multiple reading over the same file.\n"
+     "Afterwords, if arguments <numRows> and <numColumns> are greater than "
+     "zero, then it will not have to read them from the file, which can "
+     "greatly accelerate the process.",
+     "Lee una celda de una matriz de un fichero en formato binario\n"
+     "Si el argumento <file> es un Text entonces el fichero en ese "
+     "camino será abierto antes de leer y cerrado después.\n"
+     "Si el argumento <file> es un Real creado con FOpen entonces el "
+     "fichero ya está abierto y será el usuario el que lo cierre cuando "
+     "se requiera. Este es el método más rápido cuando hay que hacer "
+     "múltiples lecturas sobre un mismo fichero.\n"
+     "Si además los argumentos <numRows> y <numColumns> son mayores que "
+     "cero entonces no será necesario leerlos del propio fichero lo cual "
+     "puede acelerarse mucho el proceso."),
     BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BMatReadCell::CalcContens()
 //--------------------------------------------------------------------
 {
-  BText& f =      Text(Arg(1));
-  int    i = (int)Real(Arg(2))-1;
-  int    j = (int)Real(Arg(3))-1;
-  BBM_BinReadCell(f,contens_,i,j);
+  FILE* file = NULL;
+  int i = (int)Real(Arg(2))-1;
+  int j = (int)Real(Arg(3))-1;
+  int m = -1;
+  int n = -1;
+  if(Arg(4)) { m = (int)Real(Arg(4)); }
+  if(Arg(5)) { n = (int)Real(Arg(5)); }
+  if(Arg(1)->Grammar()==GraReal())
+  {
+    int handle = (int)Real(Arg(1));
+    FILE* file = BFileDesc::CheckFileHandle(handle,true,
+      I2("Fail in ","Fallo en ")+"MatReadCell");  
+    if(file)
+    {
+      BBM_BinReadCell(file,contens_,m,n,i,j);
+    }
+  }
+  else
+  {
+    BText& path = Text(Arg(1));
+    file = fopen(path.String(),"rb");
+    if(!file)
+    {
+      Error(I2("Cannot open for MatReadCell BBM file ",
+               "No se pudo abrir para MatReadCell el fichero BBM ")+
+            path);
+      return; 
+    }
+    BBM_BinReadCell(file,contens_,m,n,i,j);
+    fclose(file);
+  }
 }
 
 //--------------------------------------------------------------------
 // Algebraic temporary class declarations.
 //--------------------------------------------------------------------
-
-
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatIdentity);
