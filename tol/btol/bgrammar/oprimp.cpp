@@ -313,7 +313,7 @@ struct BTolOprProfiler
   static int DumpProfilerTable()
   {
     if(!(enabled_.Value())) { return(0); }
-    Std(BText("TolOprProfiler saved at ")+profilerPath_);
+    Std(BText("TolOprProfiler saved at ")+profilerPath_+"\n");
     FILE* dump = tryOpen(profilerPath_);
     if(!dump) { return(0); }
     BText title = BText()+
@@ -362,7 +362,7 @@ struct BTolOprProfiler
   {
     if(!(enabled_.Value())) { return(0); }
     BSys::MkDir(GetFilePath(callingPath_),true);
-    Std(BText("TolOprCalling saved at ")+callingPath_);
+    Std(BText("TolOprCalling saved at ")+callingPath_+"\n");
     FILE* dump = tryOpen(callingPath_);
     if(!dump) { return(0); }
     BText title = BText()+
