@@ -2,8 +2,16 @@
 // LIBRARY: StdtLib (Standard Library of TOL)
 // MODULE: Stat (Statistics)
 // FILE: _sigmaBlock.tol
-// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::SigmaBlock
+// PURPOSE: Declares Class BysMcmc::Bsr::Gibbs::BlockSigma
 /////////////////////////////////////////////////////////////////////////////
+
+//--------------------------------------------------------------------------
+Struct BlockSigma.PartialIndex
+//--------------------------------------------------------------------------
+{
+  Real idxFixed;
+  Real idxReload
+};
 
 /////////////////////////////////////////////////////////////////////////////
 Class BlockSigma : BlockSampler
@@ -30,10 +38,45 @@ Class BlockSigma : BlockSampler
   //Auxiliar members
   //--------------------------------------------------------------------------
   NameBlock _.ws = [[ Real unused_=? ]];
+  Set _.segment.partial.index = Copy(Empty);
 
   //--------------------------------------------------------------------------
   //Methods
   //--------------------------------------------------------------------------
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+" initialize 1 ");
+    Real hasFixed   = _.partialSampler::_.fixedParamNum  > 0;
+  //WriteLn("TRACE "+_MID+" initialize hasFixed="<<hasFixed);
+    Real hasReload  = _.partialSampler::_.reloadParamNum > 0;
+  //WriteLn("TRACE "+_MID+" initialize hasReload="<<hasReload);
+    Real hasPartial = hasFixed | hasReload;
+  //WriteLn("TRACE "+_MID+" initialize hasPartial="<<hasPartial);
+    Set If(hasPartial, 
+    {
+      Set _.segment.partial.index := 
+      EvalSet(_.sigmaBlockVar,Set(BSR.NoiseDistrib segment)
+      {
+        Real idxFixed  = 0;
+        Real idxReload = 0;
+        Text name = ToName(segment->SigmaName);
+        Real If(hasFixed,
+        {
+          idxFixed:=FindIndexByName(_.partialSampler::_.fixedParam, name)
+        });
+        Real If(hasReload & !idxFixed,
+        {
+          idxReload:=FindIndexByName(_.partialSampler::_.reloadParam, name)
+        });
+        BysMcmc::Bsr::Gibbs::BlockSigma.PartialIndex(idxFixed, idxReload) 
+      })
+    });
+    1
+  };
+
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace(VMatrix residuals_)
   ////////////////////////////////////////////////////////////////////////////
@@ -77,6 +120,73 @@ Class BlockSigma : BlockSampler
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Real draw.invRandChisq.segment(
+    Real numSim, 
+    VMatrix residuals, 
+    BSR.NoiseDistrib segment)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.1 "+segment->Name);
+    NameBlock sumSqr = sumOfSquares(numSim, residuals, segment);
+  //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2 ");
+    Case(
+    StructName(segment->SigmaPrior)=="Bsr.Sigma.Prior.InverseGamma",
+    {
+    //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.1 ");
+      Real s2 = segment->SigmaPrior->Sigma2;
+    //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.2 ");
+      Real w  = segment->SigmaPrior->Weight;
+    //WriteLn("TRACE ["+_MID+"] draw.invRandChisq("<<s2+","<<w+")");
+      Case(
+      w==1,  
+      {
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.1 ");
+        s2
+      },
+      w==0,
+      {
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.2 ");
+        sumSqr::rss/RandChisq(sumSqr::m)
+      },
+      LT(0,w,1),
+      {
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.3 ");
+        //w = m0/(m0+m); m0*(w-1)=-m*w; m0 = m*w/(1-w)
+        Real m0 = Max(1,Round(sumSqr::m*w/(1-w)));
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.4 ");
+        Real rss = sumSqr::rss + m0 * s2;
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.5 ");
+        Real m = sumSqr::m + m0;
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.6 ");
+        Real S2 = rss/RandChisq(m); 
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.7 ");
+        /*
+      //WriteLn("TRACE "+_MID+" draw.invRandChisq ("+segment->Name+") "+
+          " s2="<<s2+
+          " w="<<w+
+          " m0="<<m0+
+          " sumSqr::m="<<sumSqr::m+
+          " sumSqr::rss="<<sumSqr::rss+
+          " m="<<m+
+          " S2="<<S2); */
+        S2          
+      },
+      1==1,
+      {
+        WriteLn(_MID+" Weigtht of prior sigma is not in [0,1] "
+        "for segment "+segment->Name,"E");
+        ?
+      })
+
+    },
+    1==1,
+    {
+    //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.3 ");
+      sumSqr::rss/RandChisq(sumSqr::m)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw.invRandChisq =
   "Method of generation of sigma block containing draws of all variant "
   "variances as inverses of a squared-chi";
@@ -84,65 +194,28 @@ Class BlockSigma : BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" draw.invRandChisq 1 ");
-    Set v = EvalSet(_.sigmaBlockVar,Real(BSR.NoiseDistrib segment)
+   
+    Set v = If(!Card(_.segment.partial.index),
     {
-    //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.1 "+segment->Name);
-      NameBlock sumSqr = sumOfSquares(numSim, residuals, segment);
-    //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2 ");
-      Case(
-      StructName(segment->SigmaPrior)=="Bsr.Sigma.Prior.InverseGamma",
+      EvalSet(_.sigmaBlockVar,Real(BSR.NoiseDistrib segment)
       {
-      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.1 ");
-        Real s2 = segment->SigmaPrior->Sigma2;
-      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.2 ");
-        Real w  = segment->SigmaPrior->Weight;
-      //WriteLn("TRACE ["+_MID+"] draw.invRandChisq("<<s2+","<<w+")");
-        Case(
-        w==1,  
+        draw.invRandChisq.segment(numSim, residuals, segment)
+      })
+    },
+    {
+      For(1,Card(_.sigmaBlockVar),Real(Real k)
+      {
+        Set partial = _.segment.partial.index[k];
+        Real Case(partial->idxFixed,
         {
-        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.1 ");
-          s2
+          VMatDat(_.partialSampler::_.fixedValues,partial->idxFixed,1)
         },
-        w==0,
         {
-        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.2 ");
-          sumSqr::rss/RandChisq(sumSqr::m)
+          VMatDat(_.partialSampler::_.reloadValues,partial->idxreload,1)
         },
-        LT(0,w,1),
         {
-        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.3 ");
-          //w = m0/(m0+m); m0*(w-1)=-m*w; m0 = m*w/(1-w)
-          Real m0 = Max(1,Round(sumSqr::m*w/(1-w)));
-        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.4 ");
-          Real rss = sumSqr::rss + m0 * s2;
-        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.5 ");
-          Real m = sumSqr::m + m0;
-        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.6 ");
-          Real S2 = rss/RandChisq(m); 
-        //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.7 ");
-          /*
-        //WriteLn("TRACE "+_MID+" draw.invRandChisq ("+segment->Name+") "+
-            " s2="<<s2+
-            " w="<<w+
-            " m0="<<m0+
-            " sumSqr::m="<<sumSqr::m+
-            " sumSqr::rss="<<sumSqr::rss+
-            " m="<<m+
-            " S2="<<S2); */
-          S2          
-        },
-        1==1,
-        {
-          WriteLn(_MID+" Weigtht of prior sigma is not in [0,1] "
-          "for segment "+segment->Name,"E");
-          ?
+          draw.invRandChisq.segment(numSim, residuals, _.sigmaBlockVar[k])
         })
-
-      },
-      1==1,
-      {
-      //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.3 ");
-        sumSqr::rss/RandChisq(sumSqr::m)
       })
     });
     Mat2VMat(SetCol(v))
