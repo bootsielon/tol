@@ -29,6 +29,8 @@ Class Cycler
   //Timer member that can be externally consulted 
   Real _.time = ?;
   Real _mcmc.maxTime = ?;
+  Real _.sampleLength = ?;
+  Real _.savedSimulations = ?;
   //Setting NameBlock description
   Text _.autodoc.description = "";
 
@@ -88,7 +90,7 @@ Class Cycler
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.resume =
   "Reloads n=resume_ saved simulations if possible";
-  Real resume(Real sampleLength)
+  Real resume(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[Cycler::resume] ";
@@ -168,6 +170,23 @@ Class Cycler
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[Cycler::initialize] ";
+    Real _.notifier::initializing(_.n, _.path);
+    Real _.savedSimulations := resume(0);
+    Real ok = If(!_.savedSimulations,
+    {
+       _.sampler::initialize(0)
+    },
+    {
+       _.sampler::resume(0)
+    });
+    ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.generate =
   "Generates and stores a Markov Chain with sampleLength simulations and "
   "return the number of successfully saved ones";
@@ -175,54 +194,37 @@ Class Cycler
   ////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[Cycler::generate] ";
-  //Ensures path is all right 
+    Real _.sampleLength := sampleLength;
     Real OSDirMake(GetFilePath(_.path));
-    Real numDec = 1+Ceil(Log(sampleLength)/Log(10));
+    Real numDec = 1+Ceil(Log(_.sampleLength)/Log(10));
     Text numIterFmt = "% "+IntText(numDec)+".0lf";
-  //Resume or clean old simulations
-    Real savedSimulations = resume(sampleLength);
-    //Cache matrix to store up to cacheLength rows before to append it to the
-    //BBM file
+    Real numErr0 = Copy(NError);
     Matrix cache = Rand(0,_.n,0,0);
-  //WriteLn("TRACE "+_MID+"1.1 cache("<<Rows(cache)+"x"<<Columns(cache)+")");
-    //Initializes the timer
+    Real initialize(0);
     Real t0 = Copy(Time);
     Real t1 = Copy(Time);
-    Real _.notifier::simulating(0, 0);
-    Real numErr0 = Copy(NError);
-    Real numSim = savedSimulations;
-  //WriteLn("TRACE "+_MID+"sampleLength="<<sampleLength);
-  //WriteLn("TRACE "+_MID+"savedSimulations="<<savedSimulations);
-  //WriteLn("TRACE "+_MID+"numSim="<<numSim);
-    Real end = GE(numSim,sampleLength);
-  //WriteLn("TRACE "+_MID+"end="<<end);
-    Real runSim = 0;
-    Real _.notifier::initializing(_.n, _.path);
-    Real If(!savedSimulations,
+    Real numSim = _.savedSimulations;
+    Real end = GE(numSim,_.sampleLength);
+    If(numErr0<NError,
     {
-       _.sampler::initialize(0)
-    },
-    {
-       _.sampler::resume(0)
+      CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotContinueSimulation,
+      [[_MID, Real (NError-numErr0) ]])
     });
+    Real runSim = 0;
+    Real If(_.config::do.mcmc.profiler, 
+      TolOprProfiler.Enabled := True);
+    Real _.notifier::simulating(0, 0);
     Real WriteLn(_MID+_.name+
       "\n Storing MCMC in file ....... : "<<_.path+
       "\n Number of fixed variables .. : "<<_.sampler::_.fixedParamNum+
       "\n Number of reloaded variables : "<<_.sampler::_.reloadParamNum+
       "\n Number of sampled variables  : "<<_.sampler::_.freeParamNum+
       "\n Number of total variables .. : "<<_.n+
-      "\n Number of simulations ...... : "<<sampleLength+
+      "\n Number of simulations ...... : "<<_.sampleLength+
       "\n Cache length ............... : "<<cacheLength_+
       "\n Resume ..................... : "<<resume_+
       If(_mcmc.maxTime<1/0,
       "\n MaxTime ...................  : "<<_mcmc.maxTime+" seconds",""));
-    If(numErr0<NError,
-    {
-      CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotContinueSimulation,
-      [[_MID, Real (NError-numErr0) ]])
-    });
-    Real If(_.config::do.mcmc.profiler, 
-      TolOprProfiler.Enabled := True);
     While(!end,
     {
       Real runSim := runSim+1;
@@ -243,10 +245,10 @@ Class Cycler
         });
         If(And(cacheLength_>1,!Rows(cache)), WriteLn(" ... "),
         {
-          Real donePercent = 100*numSim / sampleLength;
+          Real donePercent = 100*numSim / _.sampleLength;
           Real t2 = Copy(Time);
           Real _.time := (t2-t1)/cacheLength_;
-          Real remain = _.time * (sampleLength-numSim);
+          Real remain = _.time * (_.sampleLength-numSim);
           WriteLn(" [done "+FormatReal(donePercent,"% 6.2lf")+"%]"+
                   " [time/sim:"+FormatReal(_.time,"% 9.6lf")+" s]"+
                   " [remaining "+FormatReal(remain,"% 6.0lf")+" s]");
@@ -266,12 +268,12 @@ Class Cycler
       {
       //WriteLn("TRACE "+_MID+"9");
         Matrix Do MatAppendFile(_.path, cache);
-        Real savedSimulations := numSim;
+        Real _.savedSimulations := numSim;
         Matrix cache := Rand(0,_.n,0,0);
         1
       });
       Real Case(
-      GE(numSim,sampleLength),
+      GE(numSim,_.sampleLength),
       {
         WriteLn("Simulation process has ended succesfully");
         Real end := True
@@ -292,15 +294,15 @@ Class Cycler
       1
     //WriteLn("TRACE "+_MID+"8");
     });
-    Real If(config::do.mcmc.profiler, 
-      TolOprProfiler.Dump(cycler::_.path+cycler::_.name));
   //WriteLn("TRACE "+_MID+"11");
     Matrix Do MatAppendFile(_.path, cache);
+    Real _.notifier::simulating(numSim, _.time);
   //WriteLn("TRACE "+_MID+"12");
-    Real savedSimulations := numSim;
+    Real _.savedSimulations := numSim;
     Real _.time := (Time - t0)/runSim;
     WriteLn(" [time by simulation:"<<_.time+"]");
-    Real _.notifier::simulating(numSim, _.time);
+    Real If(config::do.mcmc.profiler, 
+      TolOprProfiler.Dump(cycler::_.path+cycler::_.name));
     //WriteLn("TRACE "+_MID+"1");
     1
   };
