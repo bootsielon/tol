@@ -110,9 +110,6 @@ Class McmcPartialHandler
 };
 
 
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //Stores information about partial simulation related to a specific block 
 //where this object will be a member
@@ -244,16 +241,29 @@ Class BlockPartialSampler
      MatSet(Tra(_.freeParamIdx))[1]
   };
 
+
   ////////////////////////////////////////////////////////////////////////////
   VMatrix getMergedFixedAndReloadedSample(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix _.reloadedValues := _.mcmcPartialHandler::_.reloader::
      reloadSimulation(numSim, _.reloadParamIdxOrig);
-    VMatrix values = MergeRows(_.N, [[
-      [[_.fixedValues,    _.fixedParamIdx ]],
-      [[_.reloadedValues, _.reloadParamIdx]] ]]);
-    VMatrix _.values := Convert(values,"Blas.R.Dense")
+    VMatrix _.values := Case(
+    _.N==_.fixedParamNum, 
+    {
+      _.fixedValues
+    },
+    _.N==_.reloadParamNum, 
+    {
+      _.reloadedValues
+    },
+    1==1,
+    {
+      VMatrix values = MergeRows(_.N, [[
+        [[_.fixedValues,    _.fixedParamIdx ]],
+        [[_.reloadedValues, _.reloadParamIdx]] ]]);
+      Convert(values,"Blas.R.Dense")
+    })
   };
 
   ////////////////////////////////////////////////////////////////////////////
