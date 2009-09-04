@@ -52,7 +52,7 @@ BysMcmc::Config bsr.config =
   Real report.histogram.parts  = 100;
   Real report.kerDens.points   = 0;
 //Generic flags
-  Real do.resume          = mcmc.sampleLength-100;
+  Real do.resume          = mcmc.sampleLength+mcmc.burnin-1;
   Real do.report          = True;
   Real do.eval            = True;
   Real do.linear.effects  = False;
