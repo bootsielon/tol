@@ -13,22 +13,32 @@ Class McmcRecover: McmcReloader
   Set  _.colNames;
   Set  _.repCfg;
   Text _.mcmc.path;
+  //--------------------------------------------------------------------------
+  //Auxiliar members
+  //--------------------------------------------------------------------------
+  Real _.mcmc.handler = ?;
+  Real _.mcmc.rows = ?;
+  Real _.mcmc.cols = ?;
 
   ////////////////////////////////////////////////////////////////////////////
   Real initialize(Text mcmc.path, Real sequential, Real burnin)
   ////////////////////////////////////////////////////////////////////////////
   {
     Text _.mcmc.path := mcmc.path;
+    Real _.mcmc.handler := FOpen(_.mcmc.path,"rb");
     Real _.sequential := sequential;
     Real _.burnin := burnin;
     Set mcmc.dim = MatReadDimensions(_.mcmc.path);
-    Real Case(mcmc.dim::Columns!=Card(_.colNames),
+    Real _.mcmc.rows := mcmc.dim::Rows;
+    Real _.mcmc.cols := mcmc.dim::Columns;
+
+    Real Case(_.mcmc.cols!=Card(_.colNames),
     {
       WriteLn("[McmcRecover::initialize] Stored MCMC columns differs from "
               "number of parameters","E");
       False 
     },
-    burnin>=mcmc.dim::Rows,
+    burnin>=_.mcmc.rows,
     {
       WriteLn("[McmcRecover::initialize] Stored MCMC rows is less or equal "
       "than specified burnin","E");
@@ -36,7 +46,7 @@ Class McmcRecover: McmcReloader
     },
     1==1,
     {
-      Real _.sampleLength := mcmc.dim::Rows - burnin;
+      Real _.sampleLength := _.mcmc.rows - burnin;
        Real SetIndexByName(_.colNames);
       Real initialize.sequence(0);
       True
@@ -65,7 +75,8 @@ Class McmcRecover: McmcReloader
   ////////////////////////////////////////////////////////////////////////////
   {
     Real numRow = getRowSequence(numSim);
-    Matrix row = MatReadRows(_.mcmc.path, numRow, 1);
+    Matrix row = MatReadRows(
+      _.mcmc.handler, numRow, 1, 1, _.mcmc.rows, _.mcmc.cols);
     Mat2VMat(SubCol(row, indexes), TRUE)
   };
 
