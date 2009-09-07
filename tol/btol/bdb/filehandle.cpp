@@ -24,6 +24,7 @@
 #endif
 
 
+#include <tol/tol_filehandle.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdatgra.h>
@@ -38,25 +39,12 @@ inline char* syserr(int numErr)
 //--------------------------------------------------------------------
 BTraceInit("file.cpp");
 
-/////////////////////////////////////////////////////////////////////////////
-struct BFileDesc
-/////////////////////////////////////////////////////////////////////////////
-{
-  FILE* file_;
-  BText path_;
-  BFileDesc(FILE* file, BText path)
-  : file_(file),
-    path_(path)
-  { }
-};
 
-BFileDesc noFileDesc_(NULL,"");
-
-typedef hash_map_by_int <BFileDesc*>::dense_ BFileHashByHandle;
+BFileDesc BFileDesc::noFileDesc_(NULL,"");
 
 
 /////////////////////////////////////////////////////////////////////////////
-static BFileHashByHandle& FileHandle()
+BFileDesc::BFileHashByHandle& BFileDesc::FileHandle()
 /////////////////////////////////////////////////////////////////////////////
 {
   static BFileHashByHandle* fileHandle_=NULL;
@@ -72,8 +60,8 @@ static BFileHashByHandle& FileHandle()
 
 
 /////////////////////////////////////////////////////////////////////////////
-static FILE* CheckFileHandle(int handle, bool verbose, const BText& msg, 
-                             BFileHashByHandle::const_iterator& found)
+ FILE* BFileDesc::CheckFileHandle(int handle, bool verbose, const BText& msg, 
+                                  BFileHashByHandle::const_iterator& found)
 /////////////////////////////////////////////////////////////////////////////
 {
   FILE* file;
@@ -95,7 +83,7 @@ static FILE* CheckFileHandle(int handle, bool verbose, const BText& msg,
 };
 
 /////////////////////////////////////////////////////////////////////////////
-static FILE* CheckFileHandle(int handle, bool verbose, const BText& msg)
+FILE* BFileDesc::CheckFileHandle(int handle, bool verbose, const BText& msg)
 /////////////////////////////////////////////////////////////////////////////
 {
   BFileHashByHandle::const_iterator found;
@@ -103,7 +91,7 @@ static FILE* CheckFileHandle(int handle, bool verbose, const BText& msg)
 };
 
 /////////////////////////////////////////////////////////////////////////////
-void SysChkErrNo(bool clean, bool verbose, const BText& msg)
+void BFileDesc::SysChkErrNo(bool clean, bool verbose, const BText& msg)
 /////////////////////////////////////////////////////////////////////////////
 {
   if(verbose && errno) 
@@ -144,7 +132,7 @@ BText sysErrCleanVervose_ = I2(
   bool verbose = false;
   if(Arg(2)) { verbose = int(Real(Arg(2)))!=0; }
   contens_ = errno;
-  SysChkErrNo(clean, verbose, "");
+  BFileDesc::SysChkErrNo(clean, verbose, "");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -214,11 +202,11 @@ BText sysErrCleanVervose_ = I2(
   if(file)
   {
     handle = fileno(file);
-    FileHandle()[handle] = new BFileDesc(file, path);
+    BFileDesc::FileHandle()[handle] = new BFileDesc(file, path);
   }
   else
   {
-    SysChkErrNo(clean, verbose, 
+    BFileDesc::SysChkErrNo(clean, verbose, 
       I2("Fail in ","Fallo en ")+
       "FOpen(\""+path+"\",\""+access+"\")");
   }
@@ -244,7 +232,7 @@ BText sysErrCleanVervose_ = I2(
   if(Arg(3)) { until=Text(Arg(3)); }
   contens_ = "";
    
-  FILE* file = CheckFileHandle(handle,true,
+  FILE* file = BFileDesc::CheckFileHandle(handle,true,
                                I2("Fail in ","Fallo en ")+"FGetText");
   if(file)
   {
@@ -265,7 +253,7 @@ BText sysErrCleanVervose_ = I2(
   int    handle = (int)Real(Arg(1));
   BText& txt    = Text(Arg(2));
   contens_ = EOF;
-  FILE* file = CheckFileHandle(handle,true,
+  FILE* file = BFileDesc::CheckFileHandle(handle,true,
                                I2("Fail in ","Fallo en ")+"FPutText");
   if(file)
   {
@@ -287,7 +275,7 @@ BText sysErrCleanVervose_ = I2(
 {
   int handle  = (int)Real(Arg(1));
   contens_ = EOF;
-  FILE* file = CheckFileHandle(handle, true,
+  FILE* file = BFileDesc::CheckFileHandle(handle, true,
                                I2("Fail in ","Fallo en ")+"FEof");
   if(file)
   {
@@ -319,7 +307,7 @@ BText sysErrCleanVervose_ = I2(
   }
   else
   {
-    FILE* file = CheckFileHandle(handle, true,
+    FILE* file = BFileDesc::CheckFileHandle(handle, true,
                                  I2("Fail in ","Fallo en ")+"FFlush");
     if(file)
     {
@@ -349,20 +337,20 @@ BText sysErrCleanVervose_ = I2(
   if(Arg(2)) { clean   = int(Real(Arg(2)))!=0; }
   if(Arg(3)) { verbose = int(Real(Arg(3)))!=0; }
   contens_ = EOF;
-  BFileHashByHandle::const_iterator found;
+  BFileDesc::BFileHashByHandle::const_iterator found;
   BText failMsg = I2("Fail in ","Fallo en ")+"FClose";
-  FILE* file = CheckFileHandle(handle, true, failMsg, found);
+  FILE* file = BFileDesc::CheckFileHandle(handle, true, failMsg, found);
   if(file)
   {
     int fc = fclose(file);
     contens_ = fc;
     if(!fc)
     {
-      FileHandle().erase(found->first);
+      BFileDesc::FileHandle().erase(found->first);
     }
     else
     {
-      SysChkErrNo(clean, verbose, failMsg);
+      BFileDesc::SysChkErrNo(clean, verbose, failMsg);
     }
   }
 }
