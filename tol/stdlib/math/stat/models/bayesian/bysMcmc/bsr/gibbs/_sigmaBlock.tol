@@ -206,13 +206,16 @@ Class BlockSigma : BlockSampler
       For(1,Card(_.sigmaBlockVar),Real(Real k)
       {
         Set partial = _.segment.partial.index[k];
-        Real Case(partial->idxFixed,
+        Real Case(
+        partial->idxFixed,
         {
           VMatDat(_.partialSampler::_.fixedValues,partial->idxFixed,1)
         },
+        partial->idxReload,
         {
           VMatDat(_.partialSampler::_.reloadValues,partial->idxreload,1)
         },
+        1==1,
         {
           draw.invRandChisq.segment(numSim, residuals, _.sigmaBlockVar[k])
         })
