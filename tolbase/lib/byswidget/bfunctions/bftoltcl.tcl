@@ -650,3 +650,20 @@ proc TolValidateData {P typFie} {
   #puts "TolGetDelimeterField: $delimeter"
   return $delimeter
 }
+
+
+
+#///////////////////////////////////////////////////////////////////////////
+proc EvalTolExp {grammar expression {seed _tempName}} {
+# PURPOSE: Evaluates a tol expression $expression from grammar $grammar
+# RETURNS: Content of evaluated expression
+#
+#///////////////////////////////////////////////////////////////////////////
+  set nRes [GetUniqueName $grammar $seed]
+  set cmd "$grammar $nRes = $expression;"
+  ::tol::console eval $cmd
+  array set info [TclInfoVar $grammar $nRes]
+  eval "set lstRes $info(CONTENT)"
+  ::tol::console stack release $nRes
+  return $lstRes
+}
