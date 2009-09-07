@@ -98,6 +98,7 @@
 #pragma include_alias(<tol/tol_delay_init.h>, <tol_delay_init.h>)
 #pragma include_alias(<tol/tol_bdb.h>, <tol_bdb.h>)
 #pragma include_alias(<tol/tol_bdspool.h>, <tol_bdspool.h>)
+#pragma include_alias(<tol/tol_filehandle.h>, <tol_filehandle.h>)
 #pragma include_alias(<tol/tol_bgencon.h>, <tol_bgencon.h>)
 #pragma include_alias(<tol/tol_bgenobj.h>, <tol_bgenobj.h>)
 #pragma include_alias(<tol/tol_bgentmp.h>, <tol_bgentmp.h>)
