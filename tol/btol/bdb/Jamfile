@@ -1,7 +1,7 @@
 # -*- mode: conf -*-
 import config ;
 
-ln-H tol_bdb.h  tol_bdspool.h ;
+ln-H tol_bdb.h  tol_bdspool.h tol_filehandle.h ;
 
 local api_ver = [ config.version dbdriver ] ;
 api_ver = $(api_ver[1]) ;
