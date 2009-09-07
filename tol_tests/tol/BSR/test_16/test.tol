@@ -1,0 +1,119 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-09-23
+//PURPOSE: Metropolis-Hastings partial simulation of BSR linear block
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "https://www.tol-project.org/ticket/664";
+Text summary_ = "Partial reestimation";
+
+Real numErr0 = Copy(NError);
+
+Set Include("../test_03/id.tol");
+
+BysMcmc::Config bsr.config = [[
+  Real mcmc.sampleLength = 2000;
+  Real mcmc.cacheLength = 100;
+  Real mcmc.burnin = 100;
+  Real bsr.linBlk.MH.useAfterIter = 1/0;
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::DifEq;
+//Code bsr.scalarSampler.armaBlock = BysMcmc::Options::Scalar.Sampler::Arms;
+//Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Arms;
+//Generic flags
+  Real do.resume          = 0;
+  Real do.report          = True;
+  Real do.eval            = True;
+  Real do.linear.effects  = False;
+  Real do.mcmc.profiler   = True;
+//Partial sampling
+  Real partialSampling.Sequential = False
+]];
+
+
+
+BysMcmc::McmcRecover recover = BysMcmc::McmcRecover::Load(
+  model.data.path, model.name, session.name, 
+  bsr.config);
+
+Set LinearBlk = Select(recover::_.colNames, Real(Text param)
+{
+   If(!TextBeginWith(param,"Node")|
+       TextEndAt(param,"_Sigma2"),0,Rand(0,1)<.98)
+});
+
+Set MissingBlk = Select(recover::_.colNames, Real(Text param)
+{
+   If(!TextBeginWith(param,"MissInp."),0,Rand(0,1)<.98)
+});
+
+Set SigmaBlk = Select(recover::_.colNames, Real(Text param)
+{
+   If(!TextEndAt(param,"_Sigma2"),0,Rand(0,1)<0.5)
+});
+
+Set fixedParam = Copy(Empty);
+VMatrix fixedValues = Rand(0,1,0,0);
+Set reloadParam = LinearBlk << MissingBlk << SigmaBlk;
+
+BysMcmc::McmcPartialHandler partialHandler = 
+BysMcmc::McmcPartialHandler::New(
+  fixedParam,
+  fixedValues,
+  reloadParam,
+  recover
+);
+ 
+
+Set bsr.parsed = 
+{
+   Text bsr.path = model.data.path+model.name+"_"+session.name+"_parse.bsr";
+   Set aux =  BSR.Parse(bsr.path);
+   Set di = aux->DocInfo;
+   Text di->Model.Name := "Test16";
+   Text di->Model.Description := 
+     "Modelo de con un nodo observacional y 834 inputs";
+   Text di->Session.Name := "Test16.01";
+   Text di->Session.Description := 
+     "Metropolis-Hastings partial simulation of BSR linear block";
+   Date di->Session.Creation := Copy(Now);
+   aux
+};
+
+BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+  bsr.parsed, 
+  partialHandler, 
+  bsr.config, 
+  BysMcmc::Notifier::Null(0));
+
+//Real cycler::initialize(0);
+
+BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
+
+Real TolOprProfiler.Enabled := True;
+Real estim::Run(0);
+Real TolOprProfiler.Dump("ses.01");
+
+Real FClose(recover::_.mcmc.handler);
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1
+]];
+
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+/* */

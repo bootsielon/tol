@@ -7,7 +7,8 @@
 //         Square prior over latent sigma^2 
 //////////////////////////////////////////////////////////////////////////////
 
-Text model.name   = "bysMcmc.test_01";
+Set Include("id.tol");
+
 Text model.description = 
 "Randomly generation of a hierarchycal lineal model with these simple
 structure:
@@ -19,12 +20,9 @@ structure:
      standard deviation
   4: a set of sparse linear inequalities over the observational variables
 ";
-Text session.name   = "RS_"<<rndSeed;
 Text session.authors = "vdebuen@tol-project.org";
 Text session.description = 
 "Random seed="<<rndSeed;
-
-Text model.data.path = TolAppDataPath+"StdLib/tests/";
 
 //Number of variables of each observational node
 Real n  = IntRand(10,10);
@@ -259,7 +257,7 @@ VMatrix X =
 WriteLn("Writing model in BSR format "+Time);
 Text bys.sparse.reg.path = 
 {
-  Text bsr = model.data.path+"parse.bsr";
+  Text bsr = model.data.path+model.name+"_"+session.name+"_parse.bsr";
   WriteLn("  bys.sparse.reg.path="+bsr);
   Real OSDirMake(model.data.path);
   Real f = FOpen(bsr,"w");
