@@ -86,6 +86,7 @@ Class McmcRecover: McmcReloader
   {
     Text recover.path = 
       cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
+    WriteLn("Storing McmcRecover into path "+recover.path);
     BysMcmc::McmcRecover recover = 
     [[
       Text _.name      = cycler::_.name;
