@@ -35,6 +35,7 @@
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bcodgra.h>
+#include <tol/tol_btxtgra.h>
 
 
 //--------------------------------------------------------------------
@@ -290,7 +291,15 @@ BMember::~BMember()
     BGrammar::DecLevel();
     if(obj)
     {
+      BText autodocName = BText("_.autodoc.member.")+name_;
       method_ = obj;
+      BClass* cls = (BClass*)parent_; 
+      BSyntaxObject* autodoc = cls->FindStaticMemeber(autodocName,-1);
+      if(autodoc && autodoc->Grammar()==GraText())
+      {
+        BText& desc = Text(autodoc);
+        obj->PutDescription(desc);
+      }
       method_->IncNRefs(); 
       return(1);
     }
@@ -315,11 +324,18 @@ BMember::~BMember()
 //! Builds a well static member or method
 //--------------------------------------------------------------------
 {
+  if(!isStatic_ && name_.BeginWith("_.autodoc"))
+  {
+    isStatic_ = true;
+  }
   if(!static_ && isStatic_ && definition_.HasName())
   {
     BGrammar::IncLevel();
     int stackPos = BGrammar::StackSize();
+    const BClass* oldStaticOwner = BClass::currentStatic_;
+    BClass::currentStatic_ = (BClass*)parent_;
     BSyntaxObject* obj = GraAnything()->EvaluateTree(branch_);
+    BClass::currentStatic_ = oldStaticOwner;
     BGrammar::DestroyStackUntil(stackPos, obj);    
     BGrammar::DecLevel();
     if(obj)
@@ -923,7 +939,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 }
 
 //--------------------------------------------------------------------
-BClass::BClass()
+BClass::BClass(const BText& name)
 //--------------------------------------------------------------------
 : BSyntaxObject(),
   BMemberOwner(),
@@ -931,20 +947,13 @@ BClass::BClass()
 {
   CreateMemberHashes();
   CreateParentHashes();
-}
-
-//--------------------------------------------------------------------
-BClass::BClass(const BText& name,
-               List*  tree)
-//--------------------------------------------------------------------
-: BSyntaxObject(name),
-  BMemberOwner(),
-  isDefined_(false)
-{
-  PutTree(tree_);
-  CreateMemberHashes();
-  CreateParentHashes();
-  //Adds object to language searchers
+  PutName(name);
+  BToken* tok = BScanner::FindSymbol(name);
+  if(!tok) 
+  {
+    tok = new BTypeToken(name,BTypeToken::BCLASS);
+  }
+  BScanner::AddSymbol(tok);
   BGrammar::AddObject(this);
 }
 
@@ -973,7 +982,10 @@ BClass::~BClass()
 }
 
 //--------------------------------------------------------------------
-static BClass* predeclareClass(const BText&name,BClass*&old,bool&ok)
+  BClass* BClass::PredeclareClass(
+     const BText& name,
+     BClass*& old,
+     bool& ok)
 //--------------------------------------------------------------------
 {
   old = NULL;
@@ -995,12 +1007,19 @@ static BClass* predeclareClass(const BText&name,BClass*&old,bool&ok)
     }
     else
     {
-      class_ = new BClass();
-      class_->PutName(name);
-      BGrammar::AddObject(class_);
+      class_ = new BClass(name);
     }
   }
   return(class_);
+};
+
+//--------------------------------------------------------------------
+  BClass* BClass::PredeclareClass(const BText& name)
+//--------------------------------------------------------------------
+{
+  BClass* old;
+  bool ok;
+  return(PredeclareClass(name, old, ok));
 };
 
 //--------------------------------------------------------------------
@@ -1031,7 +1050,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
     if(!cdr)
     {
       name = tok->Name();
-      class_ = predeclareClass(name, old, ok);
+      class_ = PredeclareClass(name, old, ok);
       ok = (class_!=NULL);
       memberLst=NULL;
     }
@@ -1040,7 +1059,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
       //Class with inheriting clause
       tok = (BToken*)((List*)(cdr->car()))->car();
       name = tok->Name();
-      class_ = predeclareClass(name, old, ok);
+      class_ = PredeclareClass(name, old, ok);
       ok = (class_!=NULL);
       cdr = cdr->cdr();
       while(ok && !memberLst && cdr && 
@@ -1084,7 +1103,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
     {
       //Class without inheriting clause
       name = tok->Name();
-      class_ = predeclareClass(name, old, ok);
+      class_ = PredeclareClass(name, old, ok);
       ok = (class_!=NULL);
       if(tok->TokenType()==FUNCTION)
       { 
@@ -1121,11 +1140,6 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
     class_ = NULL;
     tree = NULL;
     if(tree) { delete tree; }
-    if(name.HasName() && !old)
-    {
-      //If name of class has been detected then removes parser symbol
-      BScanner::DelSymbol(name);
-    }
   }
   return(class_);
 }
@@ -1200,19 +1214,10 @@ BClass* FindClass(const BText& name, int defined)
   }
   if(!cls)
   {
-    const BNameBlock* cns = BNameBlock::Current();
-    while(cns && !result)
+    result = BNameBlock::LocalMember(name);
+    if(result && (result->Mode()==BCLASSMODE))
     {
-      result = cns->Member(name);
-      if(result && (result->Mode()==BCLASSMODE))
-      {
-        cls = (BClass*)result;
-      }
-      if(!result)
-      {
-      //cns = cns->Father(); 
-        cns = NULL;
-      }
+      cls = (BClass*)result;
     }
   }
   if(!cls) 
