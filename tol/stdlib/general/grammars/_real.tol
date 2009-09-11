@@ -1076,10 +1076,9 @@ proc ::get_win_release { {branch {official}} } {
         Text devMsg = I2("The last development version of TOL for windows is ",
                          "La última versión de desarrollo de TOL para windows es ")+
                          lastDevelopmWin;
-        Text unkMsg = I2("You are using a too old, too new or unknown TOL "
-                         "version ",
-                         "Está usando una versión demasiado vieja, "
-                         "demasiado nueva, o desconocida de TOL ")+Version+
+        Text unkMsg = I2("You are using a too old or unknown TOL version ",
+                         "Está usando una versión demasiado vieja "
+                         "o desconocida de TOL ")+Version+
                          "\n"+ostMsg+
                          "\n"+ofcMsg+
                          "\n"+devMsg;
@@ -1094,6 +1093,8 @@ proc ::get_win_release { {branch {official}} } {
                             "de TOL ")+ tol_site+"\n";
         Text updMsg = I2("TOL is updated.",
                          "TOL está actualizado.");
+        Text advMsg = I2("CAUTION: You are using an advanced TOL version ",
+                         "CUIDADO: Está usando una versión avanzada de TOL ")+Version+".";
         Text last = Case
         (
           current==oldStable,  { WriteLn(ostMsg);     lastOldStableWin },
@@ -1104,8 +1105,8 @@ proc ::get_win_release { {branch {official}} } {
         Case
         ( 
           last == Version, { WriteLn(msg:=updMsg    ), 0},
-          last >  Version, { WriteLn(msg:=obsMsg,"W"), 1},
-          last <  Version, { WriteLn(msg:=unkMsg,"W"), 2}
+          last <  Version, { WriteLn(msg:=advMsg,"W"), 0},
+          last >  Version, { WriteLn(msg:=unkMsg,"W"), 2}
         )
       });
       Real ok = If(check==0, 1,
