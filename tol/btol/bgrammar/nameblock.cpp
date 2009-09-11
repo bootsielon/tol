@@ -858,6 +858,57 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
+  BSyntaxObject* BNameBlock::DeepMember(const BText& memberName) const
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result = NULL;
+  result = Member(memberName);
+  if(!result && Class())
+  {
+    BSyntaxObject* met = Class()->FindMethod(memberName,true);
+    if(met) 
+    { 
+      met->PutNameBlock(this);
+      if(met->Mode()==BOBJECTMODE)
+      {
+        BUserCode* uCode = UCode(met);
+        uCode->Contens().Operator()->PutNameBlock(this);
+      }
+      result = met; 
+    }
+    if(!result && Class()->NameBlock())
+    {
+      result = Class()->NameBlock()->DeepMember(memberName);
+    }  
+  }
+/*
+  if(!result && Father())
+  {
+    if(memberName=="g")
+      printf("");
+    result = Father()->DeepMember(memberName);
+  }
+*/
+  if(result && (result->Mode()==BSTRUCTMODE))
+  {
+    BStruct* bstr = (BStruct*)result;
+    result = bstr->Function();
+  }
+  return(result);
+}
+
+//--------------------------------------------------------------------
+  BSyntaxObject* BNameBlock::LocalMember(const BText& memberName)
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result = NULL;
+  const BNameBlock* cns = BNameBlock::Current();
+  if(cns) { result = cns->DeepMember(memberName); }
+  return(result);
+}
+
+/*
+//--------------------------------------------------------------------
   BSyntaxObject* BNameBlock::LocalMember(const BText& memberName)
 //--------------------------------------------------------------------
 {
@@ -865,7 +916,6 @@ const BText& BNameBlock::LocalName() const
   const BNameBlock* cns = BNameBlock::Current();
   while(!result && cns)
   {
-/* */
     if(cns->Class())
     {
       BSyntaxObject* met = cns->Class()->FindMethod(memberName,true);
@@ -880,7 +930,6 @@ const BText& BNameBlock::LocalName() const
         result = met; 
       } 
     }
-/* */
     if(!result)
     {
       result = cns->Member(memberName);
@@ -898,6 +947,7 @@ const BText& BNameBlock::LocalName() const
   }
   return(result);
 }
+/* */
 
 //--------------------------------------------------------------------
   BSyntaxObject* BNameBlock::UsingMember(const BText& memberName)
@@ -1036,7 +1086,16 @@ const BText& BNameBlock::LocalName() const
     const BText& dsc = obj->Description();
     if(!dsc.HasName())
     {
-      BSyntaxObject* autodoc = Member(BText("_.autodoc.member.")+Name());
+      BText autodocName = BText("_.autodoc.member.")+Name();
+      BSyntaxObject* autodoc = NULL;
+      if(class_)
+      {
+        autodoc = class_->FindStaticMemeber(autodocName,-1);
+      }
+      else
+      {
+        autodoc = Member(autodocName);
+      }
       if(autodoc && autodoc->Grammar()==GraText())
       {
         BText& desc = Text(autodoc);
