@@ -146,9 +146,13 @@ Class BlockPartialSampler
   //Stores values of fixed parameters in natural order
   VMatrix _.fixedValues = Rand(0,1,0,0);
   //Stores values of reloaded parameters in natural order
-  VMatrix _.reloadedValues = Rand(0,1,0,0);
+  VMatrix _.reloadValues = Rand(0,1,0,0);
   //Stores values of both fixed and reloaded parameters in the block order
   VMatrix _.values = Rand(0,1,0,0);
+  VMatrix _.nonFreeValues = Rand(0,1,0,0);
+
+  Set _.nonFreeIndex = Copy(Empty);
+  Set _.freeIndex = Copy(Empty);
 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -219,61 +223,78 @@ Class BlockPartialSampler
       Real _.fixedParamNum  := Rows(_.fixedParamIdx);
       Real _.reloadParamNum := Rows(_.reloadParamIdx);
       Real _.freeParamNum   := Rows(_.freeParamIdx);
-      VMatrix If(_.fixedParamNum | _.reloadParamNum,
+      Real If(_.fixedParamNum | _.reloadParamNum,
       {
         getMergedFixedAndReloadedSample(0)
       });
       1
-    })
+    });
+    Set _.nonFreeIndex := MatSet(Tra(_.fixedParamIdx << _.reloadParamIdx))[1];
+    Set _.freeIndex := MatSet(Tra(_.freeParamIdx))[1];
+    1
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Set getNonFreeIndex(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-     MatSet(Tra(_.fixedParamIdx << _.reloadParamIdx))[1]
+    _.nonFreeIndex
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Set getFreeIndex(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-     MatSet(Tra(_.freeParamIdx))[1]
+    _.freeIndex
   };
 
 
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix getMergedFixedAndReloadedSample(Real numSim)
+  Real getMergedFixedAndReloadedSample(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix _.reloadedValues := _.mcmcPartialHandler::_.reloader::
+  //WriteLn("TRACE"+_MID+" BlockPartialSampler::getMergedFixedAndReloadedSample 0");
+    VMatrix _.reloadValues := _.mcmcPartialHandler::_.reloader::
      reloadSimulation(numSim, _.reloadParamIdxOrig);
-    VMatrix _.values := Case(
-    _.N==_.fixedParamNum, 
+  //WriteLn("TRACE"+_MID+" _.fixedValues:"<<_.fixedValues);
+  //WriteLn("TRACE"+_MID+" _.reloadValues:"<<_.reloadValues);
+    VMatrix values = Case(
+    !_.fixedParamNum, 
     {
-      _.fixedValues
+      MergeRows(_.N, [[
+        [[_.reloadValues, _.reloadParamIdx]] ]])
     },
-    _.N==_.reloadParamNum, 
+    !_.reloadParamNum, 
     {
-      _.reloadedValues
+      MergeRows(_.N, [[
+        [[_.fixedValues,  _.fixedParamIdx ]] ]])
     },
     1==1,
     {
-      VMatrix values = MergeRows(_.N, [[
-        [[_.fixedValues,    _.fixedParamIdx ]],
-        [[_.reloadedValues, _.reloadParamIdx]] ]]);
-      Convert(values,"Blas.R.Dense")
-    })
+      MergeRows(_.N, [[
+        [[_.fixedValues,  _.fixedParamIdx ]],
+        [[_.reloadValues, _.reloadParamIdx]] ]])
+    });
+    VMatrix _.values := Convert(values,"Blas.R.Dense");
+    VMatrix _.nonFreeValues := SubRow(_.values, _.nonFreeIndex);
+    0
   };
 
   ////////////////////////////////////////////////////////////////////////////
   VMatrix mergeWithFreeSample(VMatrix freeValues)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+" BlockPartialSampler::getMergedFixedAndReloadedSample 0");
+  //WriteLn("TRACE"+_MID+" _.fixedValues:"<<_.fixedValues);
+  //WriteLn("TRACE"+_MID+" _.fixedParamIdx:"<<_.fixedParamIdx);
+  //WriteLn("TRACE"+_MID+" _.reloadValues:"<<_.reloadValues);
+  //WriteLn("TRACE"+_MID+" _.reloadParamIdx:"<<_.reloadParamIdx);
+  //WriteLn("TRACE"+_MID+" freeValues:"<<freeValues);
+  //WriteLn("TRACE"+_MID+" _.freeParamIdx:"<<_.freeParamIdx);
     VMatrix values = MergeRows(_.N, [[
-      [[_.fixedValues,    _.fixedParamIdx ]],
-      [[_.reloadedValues, _.reloadParamIdx]],
-      [[  freeValues,     _.freeParamIdx  ]] ]]);
+      [[_.fixedValues,  _.fixedParamIdx ]],
+      [[_.reloadValues, _.reloadParamIdx]],
+      [[  freeValues,   _.freeParamIdx  ]] ]]);
     VMatrix _.values := Convert(values,"Blas.R.Dense")
   }
 
