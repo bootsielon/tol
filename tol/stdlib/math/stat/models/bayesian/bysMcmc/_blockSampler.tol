@@ -130,12 +130,13 @@ Class BlockSampler
       Not(_.partialSampler::_.freeParamNum), 
       {
       //WriteLn("TRACE "+_MID+" get.draw 3.1");
-        _.partialSampler::getMergedFixedAndReloadedSample(numSim)
+        Real _.partialSampler::getMergedFixedAndReloadedSample(numSim);
+        _.partialSampler::_.values 
       },
       _.partialSampler::_.freeParamNum!=_.N, 
       {
       //WriteLn("TRACE "+_MID+" get.draw 3.2");
-        _.partialSampler::getMergedFixedAndReloadedSample(numSim);
+        Real _.partialSampler::getMergedFixedAndReloadedSample(numSim);
         VMatrix b2 = draw(numSim);
         _.partialSampler::mergeWithFreeSample(b2)
       },
