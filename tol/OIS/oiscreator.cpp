@@ -746,6 +746,22 @@ if(!BDir::CheckIsDir(dir))                                \
     Ensure(Write(x.Struct()));
   }
   h=0;
+  int classForwardDeclarations = 0;
+  for(n=1; n<=s; n++)
+  {
+    if(x[n] && x[n]->Mode()==BCLASSMODE) 
+    {
+      classForwardDeclarations++;
+    }
+  }
+  EWrite(classForwardDeclarations, set_);
+  for(n=1; n<=s; n++)
+  {
+    if(x[n] && x[n]->Mode()==BCLASSMODE) 
+    {
+      EWrite(x[n]->Name(), set_);
+    }
+  }
   for(n=1; n<=s; n++)
   {
     if(!x[n]) 
