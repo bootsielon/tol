@@ -585,7 +585,7 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
     BVMat ms, As, Ls, gps;
     As.DMat2sparse((const BMatrix<double>&)A);
     ms.DMat2sparse((const BMatrix<double>&)m);
-    BVMat::CholeskiFactor(As,Ls,"XtX",true,false);
+    BVMat::CholeskiFactor(As,Ls,"XtX",true,false,true);
     BVMat::CholeskiSolve(Ls,(ms.T()*As).T(),gps,"PtLLtP");
     gps.GetDMat((BMatrix<double>&)gp);
     test = A*gp-m;
@@ -1541,7 +1541,7 @@ void BARIMA::OutputDataUpdated()
   }
 
   BVMat eye_qp; eye_qp.Eye(q_p);
-  BVMat L_u; BVMat::CholeskiFactor(cov_u,L_u,BVMat::ECFO_X,true,true);
+  BVMat L_u; BVMat::CholeskiFactor(cov_u,L_u,BVMat::ECFO_X,true,true,true);
   BVMat covi_u_; BVMat::CholeskiSolve(L_u,eye_qp,covi_u_,BVMat::ECSS_LLt);
   BVMat covi_u = (covi_u_+covi_u_.T())/2.0;
   BVMat L_u_sp; L_u_sp.Convert(L_u,BVMat::ESC_chlmRsparse);
@@ -1553,7 +1553,7 @@ void BARIMA::OutputDataUpdated()
   BVMat G; BVMat::DifEq(_1_ma,H,G,0.8,1.E-17);
   BVMat GtG; BVMat::MtMSqr(G,GtG);
   BVMat cov_G = covi_u + GtG;
-  BVMat L_G; BVMat::CholeskiFactor(cov_G,L_G,BVMat::ECFO_X,true,true);
+  BVMat L_G; BVMat::CholeskiFactor(cov_G,L_G,BVMat::ECFO_X,true,true,true);
   BVMat L_G_sp; L_G_sp.Convert(L_G,BVMat::ESC_chlmRsparse);
   double log_det_cov_G = 2*L_G_sp.LogTrace();
   double log_det_cov_z = log_det_cov_u + log_det_cov_G;
