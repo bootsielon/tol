@@ -878,6 +878,11 @@ BSyntaxObject* BGrammar::EvaluateTree(
       }
     }
   }
+  if(result && (result->Mode()==BCLASSMODE))
+  {
+    BClass* cls = (BClass*) result;
+    if(!cls->isDefined_) { result = NULL; }
+  }
   return(result);
 }
 
