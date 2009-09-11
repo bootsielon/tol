@@ -66,7 +66,11 @@ Class McmcRecover: McmcReloader
   Set selectIndexes(Set selectedNames)
   ////////////////////////////////////////////////////////////////////////////
   {
-    SelectIndexByName(selectedNames, _.colNames)
+    If(!Card(selectedNames) | !Card(_.colNames) , Copy(Empty),
+    {
+      Real If(!HasIndexByName(selectedNames), SetIndexByName(selectedNames));
+      SelectIndexByName(selectedNames, _.colNames)
+    })
   };
 
 
