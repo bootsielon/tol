@@ -42,7 +42,7 @@ NameBlock SolvePrecondSym(VMatrix M, Real do.normalize)
   VMatrix _.M = M;
   Real _.do.normalize = do.normalize;
   Real _.m = VRows(_.M);
-
+  Real _.verbose = False;
   //Returns a diagonal normalizer VMatrix for a symmetric VMatrix
   VMatrix Normalizer(VMatrix M)
   {
@@ -84,11 +84,9 @@ NameBlock SolvePrecondSym(VMatrix M, Real do.normalize)
   {
     Text _MID = "[SolvePrecondSym()::ScaleEval()] ";
     VMatrix _.Sc := _.S + VMatrix Eye(_.m,_.m,0,c);
-    Real old = Show(0,"ALL");
-    VMatrix _.Lc := CholeskiFactor(_.Sc,"X");
-    Real Show(old,"ALL");
+    VMatrix _.Lc := CholeskiFactor(_.Sc,"X",FALSE,FALSE);
     Real ok = VRows(_.Lc)==_.m;
-    WriteLn(_MID+"("<<c+") = "<<ok);
+    If( _.verbose, WriteLn(_MID+"("<<c+") = "<<ok));
     ok
   };
   //Applies bisection method to find the lesser scale value c matching
@@ -151,9 +149,10 @@ NameBlock SolvePrecondSym(VMatrix M, Real do.normalize)
     {
       Real ok.1 = VRows(_.x)==_.m;
       Real ok.2 = _.maxErr <= _.tol.solver;
-      If(!ok.1,WriteLn(_MID+"Wrong dimensions" ,"W"));
-      If(!ok.2,WriteLn(_MID+"Solution has maximum absolute error "<<_.maxErr+
-        " great than specified tolerance "<<_.tol.solver,"W"));
+      If( _.verbose, If(!ok.1,WriteLn(_MID+"Wrong dimensions" ,"W")));
+      If( _.verbose, If(!ok.2,WriteLn(_MID+"Solution has maximum "
+        "absolute error "<<_.maxErr+
+        " great than specified tolerance "<<_.tol.solver,"W")));
       And(ok.1,ok.2)
     }
   ]]}

@@ -33,6 +33,7 @@ Text _.autodoc.member.SolvePrecondUnsym =
 
 NameBlock SolvePrecondUnsym(VMatrix M, Real do.normalize)
 {[[
+  Real _.verbose = False; 
   //Original s  //Original symmetric system to be solved M*x = y
   VMatrix _.M = M;
   Real _.do.normalize = do.normalize;
@@ -74,9 +75,7 @@ NameBlock SolvePrecondUnsym(VMatrix M, Real do.normalize)
     Text _MID = "[SolvePrecondUnsym()::ScaleEval()] ";
     VMatrix Dc = Eye(_.n,_.n,0,c);
     VMatrix Hc = _.H << Dc;
-    Real old = Show(0,"ALL");
-    VMatrix Lc = CholeskiFactor(Hc,"XtX");
-    Real Show(old,"ALL");
+    VMatrix Lc = CholeskiFactor(Hc,"XtX",FALSE,FALSE);
     Real ok = VRows(Lc)==_.n;
     Real If(ok,
     {
@@ -84,7 +83,7 @@ NameBlock SolvePrecondUnsym(VMatrix M, Real do.normalize)
       VMatrix _.Lc := Lc;
       1
     });
-    WriteLn(_MID+"("<<c+") = "<<ok); 
+    If(_.verbose, WriteLn(_MID+"("<<c+") = "<<ok)); 
     ok
   };
   //Aplica el método recursivo de la bisectriz en un intervalo buscando el
@@ -164,9 +163,10 @@ NameBlock SolvePrecondUnsym(VMatrix M, Real do.normalize)
       {
         Real ok.1 = VRows(_.x)==_.n;
         Real ok.2 = _.maxErr <= _.tol.solver;
-        If(!ok.1,WriteLn(_MID+"Wrong dimensions" ,"W"));
-        If(!ok.2,WriteLn(_MID+"Solution has maximum absolute error "<<_.maxErr+
-          " great than specified tolerance "<<_.tol.solver,"W"));
+        If(_.verbose, If(!ok.1,WriteLn(_MID+"Wrong dimensions" ,"W")));
+        If(_.verbose, If(!ok.2,WriteLn(_MID+"Solution has maximum "
+          "absolute error "<<_.maxErr+
+          " great than specified tolerance "<<_.tol.solver,"W")));
         And(ok.1,ok.2)
       }
     ]]
