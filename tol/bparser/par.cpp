@@ -102,8 +102,11 @@ Tree* BParser::Parse(const BText& expr)
 {
   Tree* tree = new Tree();
   expression_ = expr;
-  newSymbol_ = NIL;
-
+  newSymbol_ = NULL;
+  lastSymbol_ = NULL;
+  lastSymbol_2_ = NULL;
+  nextArgument_ = NULL;
+  delayedSymbol_ = NULL;
   BText expression = filter_->Transform(expr);
   if(filter_->hasError()) 
   { 
@@ -570,6 +573,7 @@ const BChar* BParser::tokClose(const BToken* tok)
  */
 Tree* BParser::ParseNone(Tree* tre, BCloseToken* close) 
 {
+  bool ok = true;
   tre  = ParseDelayed (tre);
   if(close) 
   {
@@ -577,22 +581,47 @@ Tree* BParser::ParseNone(Tree* tre, BCloseToken* close)
       "Close symbol "+ close->Name()+ " was expected",
       "Fin de la expresión inesperado. "
       "Se esperaba símbolo de cierre " + close->Name()+". ");
+    ok = false;
   }
-  if(NextArgument() && (!lastSymbol_ || (lastSymbol_->Name()!="#Embed")))
+  if(ok)
   {
-    tre->putMostRight(Tree::create(NextArgument(), NIL)); 
+    bool lastIsEmbed   = lastSymbol_   && 
+                        (lastSymbol_->TokenType()==MACRO) &&
+                        (lastSymbol_->Name()=="#Embed");
+    bool lastIsEmbed_2 = lastSymbol_2_ && 
+                        (lastSymbol_2_->TokenType()==MACRO) &&
+                        (lastSymbol_2_->Name()=="#Embed");
+    if(NextArgument() && !lastIsEmbed)
+    {
+      tre->putMostRight(Tree::create(NextArgument(), NIL)); 
+    }
+    else if(!complete_ && !tre->isEmpty() && lastIsEmbed_2)
+    {
+      //When macro #Embed is the last line, most right branch must be cleaned
+      List* aux1 = tre->getMRFree();
+      ok = false;
+      if(aux1)
+      {
+        List* aux2 = tre->getBranch();
+        while(aux2 && (aux2->cdr()!=aux1))
+        { 
+          aux2 = aux2->cdr(); 
+        }
+        if(aux2 && (aux2->cdr()==aux1))
+        {
+          aux2->setCdr(NIL);
+          DESTROY(aux1); 
+          tre->setMRFree(NULL);
+          ok = true;
+        }
+      }
+    }
+    else if(!complete_)
+    {
+      ok = false;
+    }
   }
-  else if(!complete_ && !tre->isEmpty())
-  {
-    //When macro #Embed is the last line, most right branch must be cleaned
-    List* aux1 = tre->getMRFree();
-    List* aux2 = tre->getBranch();
-    while(aux2->cdr()!=aux1) { aux2 = aux2->cdr(); }
-    aux2->setCdr(NIL);
-    DESTROY(aux1); 
-    tre->setMRFree(NULL);
-  }
-  else if(!complete_)
+  if(!ok)
   {
     messageError_+= I2("Unexpected end of expression",
                        "Fin de la expresión inesperado")+". ";
@@ -920,6 +949,19 @@ Tree* BParser::ParseSeparator (Tree* tre)
 {
   tre  = ParseDelayed (tre);
   bool lastWasEmbed = lastSymbol_ && (lastSymbol_->Name()=="#Embed");
+  bool lastWasClass = lastSymbol_ && (lastSymbol_->Name()=="Class");
+
+  if(lastWasClass && !NextArgument() && delayedSymbol_ &&
+      (delayedSymbol_->TokenType()==TYPE))
+  {
+    BTypeToken* tt = (BTypeToken*)delayedSymbol_;
+    if(tt->type_==BTypeToken::BCLASS)
+    {
+      nextArgument_ = delayedSymbol_;
+      delayedSymbol_ = NULL;
+    } 
+  }
+
   if(!NextArgument() && !complete_ && !lastWasEmbed) 
   {
     messageError_+=
