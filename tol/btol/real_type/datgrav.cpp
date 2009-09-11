@@ -1542,8 +1542,23 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   BDat	  min  = Dat (Arg(3));
   BDat	  max  = Dat (Arg(4));
   BDat	  tol  = Dat (Arg(5));
-  BRRCode f(code);
-  contens_ = BFibonacci::Solve(&f,y,min,max,tol);
+  if(min>max)
+  {
+    Error(I2("Cannot use empty interval in ",
+             "No se puede usar un intervalo vacío en ")+
+          "FibonacciSolve");
+  }
+  else if(tol<0)
+  {
+    Error(I2("Cannot use negative tolerance in ",
+             "No se puede usar una tolerancia negativa en ")+
+          "FibonacciSolve");
+  }
+  else
+  {
+    BRRCode f(code);
+    contens_ = BFibonacci::Solve(&f,y,min,max,tol);
+  }
 }
 
 //--------------------------------------------------------------------
@@ -1562,8 +1577,23 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   BDat	  min  = Dat (Arg(3));
   BDat	  max  = Dat (Arg(4));
   BDat	  tol  = Dat (Arg(5));
-  BRRCode f(code);
-  contens_ = BFibonacci::Minimum(&f,y,min,max,tol);
+  if(min>max)
+  {
+    Error(I2("Cannot use empty interval in ",
+             "No se puede usar un intervalo vacío en ")+
+          "FibonacciMin");
+  }
+  else if(tol<0)
+  {
+    Error(I2("Cannot use negative tolerance in ",
+             "No se puede usar una tolerancia negativa en ")+
+          "FibonacciMin");
+  }
+  else
+  {
+    BRRCode f(code);
+    contens_ = BFibonacci::Minimum(&f,y,min,max,tol);
+  }
 }
 
 //--------------------------------------------------------------------
