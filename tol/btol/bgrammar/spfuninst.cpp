@@ -1593,10 +1593,10 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   {
     List* branch1 = Branch(tre,1);
     List* branch2 = Branch(tre,2);
-    if(BParser::Unparse(tre, "  ")=="Point ::New(_this, x0)") 
-      printf("");
      
 /* * /
+    if(BParser::Unparse(tre, "  ")=="Point ::New(_this, x0)") 
+      printf("");
     BText ups = BParser::Unparse(tre, "  ");
   //Std(BText("\nEvMember branch1='")+BParser::Unparse(branch1,"  ")+"'\n"); 
   //Std(BText("\nEvMember branch2='")+BParser::Unparse(branch2,"  ")+"'\n"); 
