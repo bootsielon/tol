@@ -5,16 +5,27 @@
 // PURPOSE: Declares method BysMcmc::Bsr::Gibbs::MainLinearBlock
 /////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _mainLinearBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::MainLinearBlock
+/////////////////////////////////////////////////////////////////////////////
+
 ////////////////////////////////////////////////////////////////////////////
 //Method _.buildWorkSpace must create _.ws as an instance of this class
 Class WorkSpace.ArimaReg : WorkSpace.LinReg
 ////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::Bsr::Gibbs::BlockArima _.arm.blk;
+  Set _.armBlkRef;
+  
+  //////////////////////////////////////////////////////////////////////////
   VMatrix standarize(VMatrix _Z) 
+  //////////////////////////////////////////////////////////////////////////
   { 
-    _.arm.blk::filter(_Z)
+    (_.armBlkRef[1])::filter(_Z)
   };
+
   //////////////////////////////////////////////////////////////////////////
   Static WorkSpace.ArimaReg Null(Real unused)
   //////////////////////////////////////////////////////////////////////////
@@ -23,13 +34,10 @@ Class WorkSpace.ArimaReg : WorkSpace.LinReg
     [[
       VMatrix _.Y = Rand(0,0,0,0);
       VMatrix _.X = Rand(0,0,0,0);
-      BysMcmc::Bsr::Gibbs::BlockArima _.arm.blk = 
-        BysMcmc::Bsr::Gibbs::BlockArima::Null(0)
+      Set _.armBlkRef = Copy(Empty)
     ]]
   }
 };
-
-
 
 ////////////////////////////////////////////////////////////////////////////
 Class BlockMainLinear : BlockStdLin 
@@ -55,13 +63,9 @@ Class BlockMainLinear : BlockStdLin
                           BysMcmc::Bsr::Gibbs::BlockArima arm.blk) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg wsar = 
-    [[
-      VMatrix _.Y = Y;
-      VMatrix _.X = X;
-      BysMcmc::Bsr::Gibbs::BlockArima _.arm.blk = arm.blk
-    ]];
-    BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg _.ws := wsar;
+    VMatrix _.ws::_.Y := Y;
+    VMatrix _.ws::_.X := X;
+    Set  _.ws::_.armBlkRef := [[arm.blk]];
     True
   };
 
@@ -79,8 +83,7 @@ Class BlockMainLinear : BlockStdLin
     },
     {
     //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 2");
-      VMatrix b1 = _.partialSampler::_.fixedValues << 
-                   _.partialSampler::_.reloadedValues;
+      VMatrix b1 = SubRow(_.partialSampler::_.values, _.i1);
       VMatrix X1 = SubCol(X, _.i1);
       VMatrix X2 = SubCol(X, _.i2);
       VMatrix Y2 = Y - X1*b1;

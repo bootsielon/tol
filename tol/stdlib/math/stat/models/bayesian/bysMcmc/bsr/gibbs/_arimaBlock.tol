@@ -17,9 +17,9 @@ Class BlockArima : BlockSampler
   Set _.NoiseDistrib;
   Set _.arimaStructBlock;
   //Number of variant variances (dimension of sigma block)
-  Real    _.C;
-  Real    _.m;
-  Real    _.updateAll;
+  Real _.C;
+  Real _.m;
+  Real _.updateAll;
 
   //--------------------------------------------------------------------------
   //Auxiliar members
@@ -32,10 +32,12 @@ Class BlockArima : BlockSampler
   VMatrix   _.noArmaId       = Rand(0,0,0,0);
   Set       _.paramDesc      = Copy(Empty); 
   VMatrix   _.difFilter      = Rand(0,0,0,0);
+  Set       _.segment.free.index = Copy(Empty);
 
   //--------------------------------------------------------------------------
   //Methods
   //--------------------------------------------------------------------------
+
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.enlargeSymVMatrix =
   "Puts a block symmetric matrix into a joint blocks with zeros out of the "
@@ -108,6 +110,8 @@ Class BlockArima : BlockSampler
   //WriteLn("TRACE"+_MID+" initializeArimaBlock ["+segment->Name+"] 1 "+Time);
     Set     equIdx    = segment->EquIdx;
     Matrix  equIdxVec = SetCol(equIdx);
+  //WriteLn("TRACE "+_MID+" initialize 1 ");
+
     Real numPar = 0;
     Set For(1,Card(segment->Arima), Real(Real factorNum_)
     {
@@ -130,7 +134,7 @@ Class BlockArima : BlockSampler
         Real deg = Degree(mon);
         Real c = Coef(mon,deg);
         Text name = "ArmaBlk::"+segment->Name+"::AR.F"+IntText(factorNum_)+".D"+IntText(deg);
-        ArmaParamDescStruct(name, resBlockNum_, factorNum_, "AR", deg, c, 0)
+          ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "AR", deg, c, 0, 0, 0)
       });
       If(Degree(arimaFactor->MA)>2*arimaFactor->Periodicity,
       {
@@ -150,7 +154,7 @@ Class BlockArima : BlockSampler
         Real deg = Degree(mon);
         Real c = Coef(mon,deg);
         Text name = "ArmaBlk::"+segment->Name+"::MA.F"+IntText(factorNum_)+".D"+IntText(deg);
-        ArmaParamDescStruct(name,resBlockNum_, factorNum_, "MA", deg, c, 0)
+          ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "MA", deg, c, 0, 0, 0)
       });
       Set Append(_.paramDesc,arParDsc);
       Set Append(_.paramDesc,maParDsc);
@@ -258,6 +262,33 @@ Class BlockArima : BlockSampler
   Real initialize(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
+    Real hasFixed   = _.partialSampler::_.fixedParamNum  > 0;
+  //WriteLn("TRACE "+_MID+" initialize hasFixed="<<hasFixed);
+    Real hasReload  = _.partialSampler::_.reloadParamNum > 0;
+  //WriteLn("TRACE "+_MID+" initialize hasReload="<<hasReload);
+    Real hasPartial = hasFixed | hasReload;
+    Real paramNum = 0;
+
+    Real SetFixedAndReloadIndexes(ArmaParamDescStruct prm)
+    {
+      Text name = ToName(prm->name);
+      Real paramNum := paramNum + 1;
+      Real prm->paramNum := paramNum;
+      Real If(hasFixed,
+      {
+        prm->idxFixed:=FindIndexByName(_.partialSampler::_.fixedParam, name)
+      });
+      Real If(hasReload & Not(prm->idxFixed),
+      {
+        prm->idxReload:=FindIndexByName(_.partialSampler::_.reloadParam, name)
+      });
+      Set If(Not(prm->idxFixed) & Not(prm->idxReload),
+      {
+        Append(_.segment.free.index, [[Copy(paramNum)]])
+      });
+      1
+    };
+    Set EvalSet(_.paramDesc, SetFixedAndReloadIndexes);
     1
   };
 
@@ -501,8 +532,9 @@ Class BlockArima : BlockSampler
   //WriteLn("TRACE"+_MID+" draw.scalar [iter "<<numSim+"] 1 ");
     Matrix noise_ = VMat2Mat(noise);
     Set arma.draw.all = 
-    EvalSet(_.paramDesc, Real arma.arms.draw(ArmaParamDescStruct pd)
+    EvalSet(_.segment.free.index, Real arma.arms.draw(Real paramNum)
     {
+      ArmaParamDescStruct pd = _.paramDesc[paramNum];
     //WriteLn("TRACE"+_MID+" draw.scalar 2 pd="<<pd);
       Set segment = _.NoiseDistrib[pd->resBlockNum];
       Set arima  = segment->Arima;
@@ -600,7 +632,7 @@ Class BlockArima : BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   //This note applys over all following methods 
   ////////////////////////////////////////////////////////////////////////////
-  Text _explain.param ="\n"+
+  Static Text _explain.param ="\n"+
   "Used parameters are the currently stored, but you can set a previously "
   "simulated vector of parameters calling before to method "
   "setMcmcRow. You also can set an arbitrary row vector of parameters using "

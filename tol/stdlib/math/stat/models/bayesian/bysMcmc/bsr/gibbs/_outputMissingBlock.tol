@@ -85,8 +85,8 @@ Class BlockOutputMissing : BlockStdLin
       _.prior.X.free := SubCol(_.prior.X, _.i2)
     });
     VMatrix F = arm.blk::filter(_.FEye);
-    VMatrix v1 = _.partialSampler::_.fixedValues << 
-                 _.partialSampler::_.reloadedValues;
+    VMatrix v1 = SubRow(_.partialSampler::_.values, _.i1);
+
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 u1\n="<<Matrix(Tra(VMat2Mat(u1))));
     VMatrix V1 = MergeRows(VRows(Z), [[ [[ v1, SetCol(_.i1) ]] ]]);
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 V1\n="<<Matrix(Tra(VMat2Mat(V1))));

@@ -65,8 +65,6 @@ Class Solution.LinReg
   }
 };
 
-
-
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.BlockStdLinSub =
 "Builds a NameBlock that can draw a Gibbs sample of an standarized linear "
@@ -107,6 +105,8 @@ Class BlockStdLinSub
   Real _.cholSolRoundErrNumWarn = 0;
   //Current maximum of rounding error in solution
   Real _.cholSolMaxRoundErr     = 0;
+  //Current number of iterations which initial point is not feasible
+  Real _.nonFeasibleInitialPointNum = 0;
   //Logarithm of density of last generated vector
   Real _.logDens.Q = -1/0;
 
@@ -130,10 +130,10 @@ Class BlockStdLinSub
   //The transpose of _.A
   VMatrix _.At = Rand(0,0,0,0);
   //Matrix of border of constraining inequations
-  VMatrix _.a  = Rand(0,0,0,0);
+  VMatrix _.a  = Rand(0,1,0,0);
   //Last known valid initial point for constrained simulation
-  VMatrix _.beta0 = Rand(0,0,0,0);
-  VMatrix _.beta = Rand(0,0,0,0);
+  VMatrix _.beta0 = Rand(0,1,0,0);
+  VMatrix _.beta = Rand(0,1,0,0);
 
   ////////////////////////////////////////////////////////////////////////////
   Real putMID(Text mid)
@@ -148,6 +148,13 @@ Class BlockStdLinSub
   ////////////////////////////////////////////////////////////////////////////
   { 
     Drop(X, drop_val)
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real isFeasible(VMatrix beta)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatMax(_.A*beta - _.a)<=0
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -172,7 +179,7 @@ Class BlockStdLinSub
     VMatrix _.beta0 := If(!_.R, beta0,
     {
     //WriteLn("TRACE "+_MID+" matchConstrains 8.1");
-      Real givenMatch = VMatMax(_.A*beta0 - _.a)<=0;
+      Real givenMatch = isFeasible(beta0);
     //WriteLn("TRACE "+_MID+" matchConstrains 8.2");
       If(givenMatch, 
       {
@@ -314,6 +321,9 @@ Class BlockStdLinSub
         WriteLn(_MID+"Cholesky solving had rounding error in interval ["<<
           _.eps + ","<<_.cholSolMaxRoundErr+" for "<<_.cholSolRoundErrNumWarn+
           " times of "<<numSim,"W"));
+      If(_.nonFeasibleInitialPointNum,
+        WriteLn(_MID+"Initial point was not feasible for "<<_.nonFeasibleInitialPointNum+
+          " times of "<<numSim,"W"));
       0
     });
   //WriteLn("TRACE "+_MID+" solve 8");
@@ -350,6 +360,11 @@ Class BlockStdLinSub
     VMatrix If(changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3");
     VMatrix z0  = Tra(Tra(_.beta-nu)*_.Ls);
+    VMatrix If(Not(Polytope::IsFeasible(_.D,d,z0)),
+    {
+      Real _.nonFeasibleInitialPointNum := _.nonFeasibleInitialPointNum +1;
+      z0 := Polytope::FindFeasible(_.D, d, z0, 10*_.N, FALSE)
+    });
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 4");
     VMatrix z = TruncStdGaussian(_.D,d,z0,1,truncMNormal.gibbsNumIter);
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 5");
@@ -369,11 +384,11 @@ Class BlockStdLinSub
       //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 8");
         VMatrix z0 := Tra(Tra(_.beta0-nu)*_.Ls);
       //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 9");
-        VMatrix z  := TruncStdGaussian(_.D,d,z0,1,truncMNormal.gibbsNumIter);
+        VMatrix z := TruncStdGaussian(_.D,d,z0,1,truncMNormal.gibbsNumIter);
         1
       });
       1
-    });
+    }) ;
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 10");
     Real _.logDens.Q := -0.5*VMatDat(MtMSqr(z),1,1);
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 11");
@@ -625,21 +640,23 @@ Class BlockStdLin: BlockSampler
     //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.1");
       Real ok1 = _.fullBlock::matchConstrains(beta0,A,a);
     //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.2");
+    //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.3");
+      VMatrix b1 = SubRow(_.fullBlock::_.beta0, _.i1);
       Real ok2 = If(!ok1, False,
       {
-      //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.3");
-        VMatrix b1 = _.partialSampler::_.fixedValues << 
-                     _.partialSampler::_.reloadedValues;
-      //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.4");
-        VMatrix b2 = SubRow(_.fullBlock::_.beta0, _.i2);
-      //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.5");
-        VMatrix A1 = SubCol(A, _.i1);
-      //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.6");
-        VMatrix A2 = SubCol(A, _.i2);
-      //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.7");
-        VMatrix a2 = a - A1*b1;
-      //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.8");
-        Real _.freeBlock::matchConstrains(b2,A2,a2)
+        If(!_.N2, True,
+        {
+        //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.4");
+          VMatrix b2 = SubRow(_.fullBlock::_.beta0, _.i2);
+        //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.5");
+          VMatrix A1 = SubCol(A, _.i1);
+        //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.6");
+          VMatrix A2 = SubCol(A, _.i2);
+        //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.7");
+          VMatrix a2 = a - A1*b1;
+        //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.8");
+          Real _.freeBlock::matchConstrains(b2,A2,a2)
+       })
       });
     //WriteLn("TRACE"+_MID+" BlockStdLin::matchConstrains 2.9");
       VMatrix b_ = _.partialSampler::mergeWithFreeSample(_.freeBlock::_.beta0); 
@@ -662,18 +679,20 @@ Class BlockStdLin: BlockSampler
     _.freeBlock::draw(ws, numSim)
     },
     {
-    //WriteLn("TRACE"+_MID+" BlockStdLin::draw 2.1");
-      VMatrix b1 = _.partialSampler::_.fixedValues << 
-                   _.partialSampler::_.reloadedValues;
-    //WriteLn("TRACE"+_MID+" BlockStdLin::draw 2.2");
-      VMatrix A1 = SubCol(_.fullBlock::_.A, _.i1);
-    //WriteLn("TRACE"+_MID+" BlockStdLin::draw 2.3");
-      VMatrix _.freeBlock::_.a := _.fullBlock::_.a - A1*b1;
-    //WriteLn("TRACE"+_MID+" BlockStdLin::draw 2.4");
+      Real ok = If(!_.N2, True,
+      {
+      //WriteLn("TRACE"+_MID+" BlockStdLin::draw 2.1");
+        VMatrix b1 = SubRow(_.partialSampler::_.values, _.i1);
+      //WriteLn("TRACE"+_MID+" BlockStdLin::draw 2.2");
+        VMatrix A1 = SubCol(_.fullBlock::_.A, _.i1);
+      //WriteLn("TRACE"+_MID+" BlockStdLin::draw 2.3");
+        VMatrix _.freeBlock::_.a := _.fullBlock::_.a - A1*b1;
+      //WriteLn("TRACE"+_MID+" BlockStdLin::draw 2.4");
+        True
+      });
       _.freeBlock::draw(ws, numSim)
     })
   }
-
 };
 
 //////////////////////////////////////////////////////////////////////////////

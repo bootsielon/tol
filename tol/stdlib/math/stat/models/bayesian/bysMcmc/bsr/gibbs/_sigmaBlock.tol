@@ -9,6 +9,7 @@
 Struct BlockSigma.PartialIndex
 //--------------------------------------------------------------------------
 {
+  Real idxSegment;
   Real idxFixed;
   Real idxReload
 };
@@ -38,7 +39,7 @@ Class BlockSigma : BlockSampler
   //Auxiliar members
   //--------------------------------------------------------------------------
   NameBlock _.ws = [[ Real unused_=? ]];
-  Set _.segment.partial.index = Copy(Empty);
+  Set _.segment.free.index = Copy(Empty);
 
   //--------------------------------------------------------------------------
   //Methods
@@ -55,11 +56,14 @@ Class BlockSigma : BlockSampler
   //WriteLn("TRACE "+_MID+" initialize hasReload="<<hasReload);
     Real hasPartial = hasFixed | hasReload;
   //WriteLn("TRACE "+_MID+" initialize hasPartial="<<hasPartial);
-    Set If(hasPartial, 
+    Set If(!hasPartial,
     {
-      Set _.segment.partial.index := 
-      EvalSet(_.sigmaBlockVar,Set(BSR.NoiseDistrib segment)
+      _.segment.free.index := Range(1,Card(_.sigmaBlockVar),1)
+    }, 
+    {
+      For(1,Card(_.sigmaBlockVar),Set(Real idxSegment)
       {
+        BSR.NoiseDistrib segment = _.sigmaBlockVar[idxSegment];
         Real idxFixed  = 0;
         Real idxReload = 0;
         Text name = ToName(segment->SigmaName);
@@ -71,7 +75,12 @@ Class BlockSigma : BlockSampler
         {
           idxReload:=FindIndexByName(_.partialSampler::_.reloadParam, name)
         });
-        BysMcmc::Bsr::Gibbs::BlockSigma.PartialIndex(idxFixed, idxReload) 
+        Set If(!idxFixed & !idxReload,
+        {
+          Append(_.segment.free.index, [[idxSegment]])
+        });
+        BysMcmc::Bsr::Gibbs::BlockSigma.PartialIndex(
+          idxSegment, idxFixed, idxReload) 
       })
     });
     1
@@ -195,31 +204,9 @@ Class BlockSigma : BlockSampler
   {
   //WriteLn("TRACE "+_MID+" draw.invRandChisq 1 ");
    
-    Set v = If(!Card(_.segment.partial.index),
+    Set v = EvalSet(_.segment.free.index,Real(Real k)
     {
-      EvalSet(_.sigmaBlockVar,Real(BSR.NoiseDistrib segment)
-      {
-        draw.invRandChisq.segment(numSim, residuals, segment)
-      })
-    },
-    {
-      For(1,Card(_.sigmaBlockVar),Real(Real k)
-      {
-        Set partial = _.segment.partial.index[k];
-        Real Case(
-        partial->idxFixed,
-        {
-          VMatDat(_.partialSampler::_.fixedValues,partial->idxFixed,1)
-        },
-        partial->idxReload,
-        {
-          VMatDat(_.partialSampler::_.reloadValues,partial->idxreload,1)
-        },
-        1==1,
-        {
-          draw.invRandChisq.segment(numSim, residuals, _.sigmaBlockVar[k])
-        })
-      })
+      draw.invRandChisq.segment(numSim, residuals, _.sigmaBlockVar[k])
     });
     Mat2VMat(SetCol(v))
   };
@@ -230,7 +217,9 @@ Class BlockSigma : BlockSampler
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    draw.invRandChisq(numSim, _.ws::residuals)
+    VMatrix drawn = draw.invRandChisq(numSim, _.ws::residuals);
+  //WriteLn("TRACE"+_MID+" draw drawn("<<VRows(drawn)+"x"<<VColumns(drawn)+")");
+    drawn
   };
 
   ////////////////////////////////////////////////////////////////////////////

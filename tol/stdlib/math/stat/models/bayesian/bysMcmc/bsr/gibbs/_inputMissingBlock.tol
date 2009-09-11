@@ -99,8 +99,7 @@ Class BlockInputMissing : BlockStdLin
     VMatrix B1 = SubCol(B,_.i1);
     VMatrix B2 = SubCol(B,_.i2);
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 B2\n="<<B2);
-    VMatrix u1 = _.partialSampler::_.fixedValues << 
-                 _.partialSampler::_.reloadedValues;
+    VMatrix u1 = SubRow(_.partialSampler::_.values, _.i1);
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 u1\n="<<u1);
     VMatrix U1 = B1 * u1;
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 u1\n="<<U1);

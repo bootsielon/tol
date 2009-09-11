@@ -38,7 +38,7 @@ Class MasterSamplerBasic : MasterSampler
   //residuals
   VMatrix _.residuals  = Rand(0,0,0,0);
   //Linear block values
-  VMatrix _.beta   = Rand(0,0,0,0);
+  VMatrix _.beta   = Rand(0,1,0,0);
 
   //--------------------------------------------------------------------------
   //Methods
@@ -87,10 +87,11 @@ Class MasterSamplerBasic : MasterSampler
     //WriteLn("TRACESearching valid initial values");
       Set try = SetOfNameBlock
       (
-        {[[Text name="givenByUser", Real order=cfg::bsr.iniVal.try.givenByUser]]},
-        {[[Text name="zero",        Real order=cfg::bsr.iniVal.try.zero]]},
-        {[[Text name="cnstrMinNorm",Real order=cfg::bsr.iniVal.try.cnstrMinNorm]]},
-        {[[Text name="cnstrMLE",    Real order=cfg::bsr.iniVal.try.cnstrMLE]]}
+        {[[Text name="givenByUser",  Real order=cfg::bsr.iniVal.try.givenByUser]]},
+        {[[Text name="zero",         Real order=cfg::bsr.iniVal.try.zero]]},
+        {[[Text name="findFeasible", Real order=cfg::bsr.iniVal.try.findFeasible]]},
+        {[[Text name="cnstrMinNorm", Real order=cfg::bsr.iniVal.try.cnstrMinNorm]]},
+        {[[Text name="cnstrMLE",     Real order=cfg::bsr.iniVal.try.cnstrMLE]]}
       );
       Set try.sel = Select(try,Real(NameBlock method) 
       { method::order });
@@ -114,29 +115,20 @@ Class MasterSamplerBasic : MasterSampler
         {
           Rand(n,1,0,0)
         },
-        method.name=="givenByUser", 
+        method.name=="findFeasible", 
         {
-          beta := givenInitVal
+          Polytope::FindFeasible(
+           _.modelDef->A, _.modelDef->a, givenInitVal, n*10, TRUE)
         },
         method.name=="cnstrMinNorm", 
         {
-          Matrix  Dt    = VMat2Mat(Tra(_.modelDef->A));
-          Matrix  d     = VMat2Mat(_.modelDef->a);
-          Matrix  XtX   = Diag(n,1);
-          Matrix  XtY   = Rand(n,1,0,0);
-          Matrix  cnstr = Rquadprog::solveQP(XtX, XtY, -Dt, -d,
-                                            {[[Real verbose=TRUE]]})[1];
-          Mat2VMat(cnstr)
+          Polytope::FindFeasible.QP.MinNorm(
+            _.modelDef->A, _.modelDef->a, TRUE)
         },
         method.name=="cnstrMLE", 
         {
-          Matrix  Dt    = VMat2Mat(Tra(_.modelDef->A));
-          Matrix  d     = VMat2Mat(_.modelDef->a);
-          Matrix  XtX   = VMat2Mat(MtMSqr(_.XplusU));
-          Matrix  XtY   = VMat2Mat(Tra(Tra(_.YplusV)*_.XplusU));
-          Matrix  cnstr = Rquadprog::solveQP(XtX, XtY, -Dt, -d,
-                                            {[[Real verbose=TRUE]]})[1];
-          Mat2VMat(cnstr)
+          Polytope::FindFeasible.QP.MLE(
+            _.modelDef->A,_.modelDef->a, _.XplusU, _.YplusV, TRUE)
         });
         Real method.ok :=  VMatMax(_.modelDef->A*beta-_.modelDef->a)<=0;
         If(method.ok,
