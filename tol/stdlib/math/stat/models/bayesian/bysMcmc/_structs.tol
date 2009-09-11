@@ -171,12 +171,15 @@ Struct StRepCmp.Acf
 Struct ArmaParamDescStruct
 (
   Text name,
+  Real paramNum,
   Real resBlockNum,
   Real factorNum,
   Text arma,
   Real degree,
   Real coef,
-  Real numEvalDens
+  Real numEvalDens,
+  Real idxFixed,
+  Real idxReload
 );
 
 /////////////////////////////////////////////////////////////////////////////
