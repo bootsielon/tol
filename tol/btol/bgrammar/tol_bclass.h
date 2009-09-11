@@ -181,8 +181,7 @@ public:
   static const BClass* currentClassBuildingInstance_;
   static const BClass* currentStatic_;
   // Constructors and destructors: bgrammar\class.cpp
-  BClass();
-  BClass(const BText& name, List*  tree);
+  BClass(const BText& name);
  ~BClass();
 
   // Access & Manipulation: inline
@@ -195,7 +194,10 @@ public:
 	BGrammar* Grammar    () const;
 	BText	    Dump	     () const;
 
+
   //! Evaluates a parsed tree with a Class declaration
+  static BClass* PredeclareClass(const BText&name, BClass*&old, bool &ok);
+  static BClass* PredeclareClass(const BText&name);
   static BSyntaxObject* Evaluate(const List* tree);
   BSyntaxObject* FindMethod(const BText& memberName, bool fullAccess) const;
   BSyntaxObject* FindStatic(const BText& memberName, bool fullAccess) const;
