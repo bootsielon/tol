@@ -163,15 +163,17 @@ BInt BScanner::AddSymbol(BToken* sym)
 //--------------------------------------------------------------------
 {
   const BText& name = sym->Name();
-  if(!FindSymbol(name))
+  BToken* s = FindSymbol(name);
+  if(!s)
   {
 //Std(BText("\nAdding Symbol <") + sym->Name()+">");
-    symbolTable_[name] = sym;
+    s = symbolTable_[name] = sym;
     if(sym->TokenType()==TYPE)
     {
       usrDefSymbol_[name]=sym;
     }
   }
+  s->IncNRefs();
   return(symbolTable_.size());
 }
 
@@ -186,7 +188,15 @@ BInt BScanner::DelSymbol(const BText& name)
  */
 //--------------------------------------------------------------------
 {
-  symbolTable_.erase(name);
+  BToken* s = FindSymbol(name);
+  if(s)
+  {
+    s->DecNRefs();
+    if(!s->NRefs())
+    { 
+      symbolTable_.erase(name);
+    }
+  }
   return(symbolTable_.size());
 }
 
