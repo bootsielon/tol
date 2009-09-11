@@ -2015,7 +2015,7 @@ struct bys_sparse_reg : public grammar<bys_sparse_reg>
     }
     else
     {
-      err = BVMat::CholeskiFactor(cov,L,BVMat::ECFO_XtX,true,true);
+      err = BVMat::CholeskiFactor(cov,L,BVMat::ECFO_XtX,true,true,true);
       if(err) 
       { 
         Error(BSR()+"Non symmetric definite positive covariance matrix for noise "+

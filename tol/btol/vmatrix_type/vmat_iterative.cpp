@@ -91,6 +91,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
 
   for(k=0; k<maxIter;  k++)
   {
+/*
     if(k && !(k%cols))
     {
       Std(BText("\nBVMat::MinimumResidualsSolve ")+
@@ -99,6 +100,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
         " S="+S+
         " advance="+advance);
     }
+*/
     q = A*p;
     q2 = q.SquaresdSum();
     a = S.Value()/q2;

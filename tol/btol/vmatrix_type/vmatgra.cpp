@@ -1855,8 +1855,8 @@ void BVMatIfVMatReal::CalcContens()
 ------------------------------------------------------------------------------*/
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatCholeskiFactor);
-DefExtOpr(1, BVMatCholeskiFactor, "CholeskiFactor", 1, 3, "VMatrix Text Real",
-  "(VMatrix X [, Text S=\"X\", Real force_natural_order=false])",
+DefExtOpr(1, BVMatCholeskiFactor, "CholeskiFactor", 1, 4, "VMatrix Text Real Real",
+  "(VMatrix X [, Text S=\"X\", Real force_natural_order=false, Real showError=True])",
   I2("Returns the Choleski decomposition of a symmetric positive definite "
      "virtual matrix S, that will be built as: \n"
      "  S = X     if S = \"X\" \n "
@@ -1894,10 +1894,12 @@ void BVMatCholeskiFactor::CalcContens()
 {
   BText S="X";
   bool force = false;
+  bool showError = true;
   if(Arg(2)) { S=Text(Arg(2)); }
   if(Arg(3)) { force=Real(Arg(3))!=0.0; }
+  if(Arg(4)) { showError=Real(Arg(4))!=0.0; }
   BVMat& X = VMat(Arg(1)); 
-  BVMat::CholeskiFactor(X,contens_,S,true,force);
+  BVMat::CholeskiFactor(X,contens_,S,true,force,showError);
   assert(contens_.Check());
 }
 

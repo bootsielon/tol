@@ -933,7 +933,8 @@ static int intCmp_(const void* v1, const void* v2)
     else if (ncol != a_[n]->s_.chlmRtriplet_->ncol)
     {
       err_cannot_create(fName, 
-        BText("Number of columns is not equal to previous for item number ")+(n+1));
+        BText("Number of columns (")+ncol+") is not equal to previous one ("+
+        int(a_[n]->s_.chlmRtriplet_->ncol)+") for item number "+(n+1));
       result = -5;
       continue;
     }
@@ -943,7 +944,8 @@ static int intCmp_(const void* v1, const void* v2)
     if(rowIdx.Data().Size()!=r)
     {
       err_cannot_create(fName, 
-        BText("Number of rows is not equal to card of row indexes at item number ")+(n+1));
+        BText("Number of rows (")+rowIdx.Data().Size()+
+         ") is not equal to card of row indexes ("+r+") at item number "+(n+1));
       result = -6;
       continue;
     }

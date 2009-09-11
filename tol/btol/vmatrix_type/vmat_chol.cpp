@@ -110,11 +110,17 @@
   int BVMat::CholeskiFactor(const BVMat& X_, BVMat& L, 
                             ECholFacOri ori,  
                             bool checkSymmetric,
-                            bool forceNaturalOrder)
+                            bool forceNaturalOrder,
+                            bool showError)
 ////////////////////////////////////////////////////////////////////////////////
 {
   const char* fName = "CholeskiFactor";
   if(!X_.CheckDefined(fName)) { return(-1); }
+  if(!showError)
+  {
+    common_->print_function = NULL;
+    common_->error_handler  = NULL;
+  }
   bool old_force = force_natural_order(forceNaturalOrder);
   BVMat* X__;
   convertIfNeeded_cRt2cRs(X_,X__,fName);
@@ -124,11 +130,13 @@
   int result = 0;
   if((ori==ECFO_X)&&(r!=c))
   {
+    if(showError)
     err_cannot_apply(fName,I2("non square","no cuadrada"),X);
     result = -1;
   }
   else if((ori==ECFO_XtX)&&(r<c))
   {
+    if(showError)
     err_cannot_apply(fName,
       I2("row deficient to build",
          "no tiene bastantes filas para construir")+ " S = X' X",X);
@@ -136,6 +144,7 @@
   }
   else if((ori==ECFO_XXt)&&(r>c))
   {
+    if(showError)
     err_cannot_apply(fName,
       I2("column deficient to build",
          "no tiene bastantes columnas para construir")+" S = X X'",X);
@@ -149,6 +158,7 @@
     bool isNotPosDef=false;
     if(isNotSymm)
     {
+      if(showError)
       err_cannot_apply(fName, I2("non symmetric","no simetrica"),X);
       result = -4;
     }
@@ -169,6 +179,7 @@
       {
         if(isNotPosDef)
         {
+          if(showError)
           err_cannot_apply(fName,  
            I2("non positive definite", "no definida positiva"),X);
           L.Delete();
@@ -182,6 +193,11 @@
     }
   }
   force_natural_order(old_force);
+  if(!showError)
+  {
+    common_->print_function = cholmod_print_function;
+    common_->error_handler  = cholmod_error_handler;
+  }
   return(0);
 }
   
@@ -189,7 +205,8 @@
   int BVMat::CholeskiFactor(const BVMat& X, BVMat& L,
                             const BText& oriName, 
                             bool checkSymmetric,
-                            bool forceNaturalOrder)
+                            bool forceNaturalOrder,
+                            bool showError)
 ////////////////////////////////////////////////////////////////////////////////
 {
   const char* fName = "CholeskiFactor";
@@ -204,30 +221,32 @@
     L);
     return(-3);
   }
-  return(CholeskiFactor(X,L,ori,checkSymmetric,forceNaturalOrder));
+  return(CholeskiFactor(X,L,ori,checkSymmetric,forceNaturalOrder,showError));
 }
   
 ////////////////////////////////////////////////////////////////////////////////
   BVMat BVMat::CholeskiFactor(ECholFacOri ori, 
                               bool checkSymmetric,
-                              bool forceNaturalOrder)
+                              bool forceNaturalOrder,
+                              bool showError)
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
   BVMat aux;
-  CholeskiFactor(*this, aux, ori, checkSymmetric, forceNaturalOrder);
+  CholeskiFactor(*this, aux, ori, checkSymmetric, forceNaturalOrder, showError);
   return(aux);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
   BVMat BVMat::CholeskiFactor(const BText& oriName, 
                               bool checkSymmetric,
-                              bool forceNaturalOrder)
+                              bool forceNaturalOrder,
+                              bool showError)
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
   BVMat aux;
-  CholeskiFactor(*this, aux, oriName, checkSymmetric,forceNaturalOrder);
+  CholeskiFactor(*this, aux, oriName, checkSymmetric,forceNaturalOrder,showError);
   return(aux);
 }
   
