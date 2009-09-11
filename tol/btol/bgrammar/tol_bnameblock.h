@@ -125,6 +125,7 @@ public:
   bool Build();
   bool Fill(const BSet& set);
 
+  BSyntaxObject* DeepMember   (const BText& memberName) const;
   BSyntaxObject* Member       (const BText& memberName) const;
   BSyntaxObject* PublicMember (const BText& memberName) const;
   BSyntaxObject* PrivateMember(const BText& memberName) const;
