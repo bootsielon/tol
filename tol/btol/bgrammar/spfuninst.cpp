@@ -1593,6 +1593,9 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   {
     List* branch1 = Branch(tre,1);
     List* branch2 = Branch(tre,2);
+    if(BParser::Unparse(tre, "  ")=="Point ::New(_this, x0)") 
+      printf("");
+     
 /* * /
     BText ups = BParser::Unparse(tre, "  ");
   //Std(BText("\nEvMember branch1='")+BParser::Unparse(branch1,"  ")+"'\n"); 
@@ -1618,10 +1621,7 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
         if(arg1->TokenType()==TYPE)
         {
           BTypeToken* tt = (BTypeToken*)arg1;
-          if(tt->type_==BTypeToken::BCLASS)
-          { 
-            uns = FindClass(tt->Name(),1); 
-          }
+          uns = FindClass(tt->Name(),1); 
         }
       }
     }
@@ -1670,7 +1670,8 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   {
     assert(!result);
     Error(I2("Evaluating expression ",
-             "Evaluando la expresión ")+BParser::Unparse(tre)+"\n"+errMsg);
+             "Evaluando la expresión ")+"'"+
+             BParser::Unparse(tre)+"'\n"+errMsg);
   }
   result=TestResult(_name_,result,tre,NIL,BTRUE);
   return(result);
