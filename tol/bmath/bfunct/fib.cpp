@@ -112,7 +112,6 @@ BInt BFibonacci::Inverse(BDat f)
     else	           { return(n+1); }
 }
 
-
 //--------------------------------------------------------------------
 BDat BFibonacci::Minimum( BRRFunction* function,
 			  BDat& minimumValue,
@@ -135,9 +134,11 @@ BDat BFibonacci::Minimum( BRRFunction* function,
   BDat inf, sup;
   BDat infValue=0, supValue=0;
   BArray<BINT64> fib;
+  if(tol<0) { tol = - tol; }
   if(tol<DEpsilon()) { tol = DEpsilon(); }
   BDat minimum=0;
-  Generate(fib, (fin-ini)/tol);
+  BDat length = (fin-ini)/tol;
+  Generate(fib, length);
   BInt N = fib.Size()-1;
   incerInf = ini;
   incerSup = fin;
