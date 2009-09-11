@@ -474,7 +474,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       ERead(isMethod          , stream);
       if(control_.oisEngine_.oisVersion_>="02.10") 
       {
-        ERead(isStatic        , stream);
+        ERead(isStatic, stream);
       }
       mbr->isMethod_ = isMethod!=0;
       mbr->isStatic_ = isStatic!=0;
@@ -795,10 +795,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     }
     else if(mode==BCLASSMODE) 
     { 
-      BClass* cls = new BClass;
-      cls->PutName(name);
-      BScanner::AddSymbol(new BTypeToken(name,BTypeToken::BCLASS));
-      BGrammar::AddObject(cls); 
+      BClass* cls = BClass::PredeclareClass(name);
       Ensure(Read(*cls,object_));
       return(readed_[found].PutObject(cls));
     }
@@ -1017,6 +1014,17 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             } 
             str = (BStruct*)r;
           }
+          if(control_.oisEngine_.oisVersion_>="02.11")
+          {
+            int classForwardDeclarations = 0;
+            ERead(classForwardDeclarations, set_);
+            for(n=1; n<=classForwardDeclarations; n++)
+            {
+              BText className;
+              ERead(className, set_);
+              BClass::PredeclareClass(className);
+            }
+          }
           BSyntaxObject* r=NULL;
           for(n=1; n<=s; n++)
           {
@@ -1064,10 +1072,12 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           ERead(fullName,set_);
 
           BUserNameBlock* oldBuilding = BNameBlock::Building();
+        //const BNameBlock* oldCurrent = BNameBlock::Current();
           BGrammar::IncLevel();
           int stackPos = BGrammar::StackSize();
           BUserNameBlock* unb = new BGraContensP<BNameBlock>(name, new BNameBlock);
           BNameBlock::SetBuilding(unb);
+        //BNameBlock::SetCurrent(&unb->Contens());
           unb->PutDescription(description);
           assert(GraNameBlock()->FindLocal(name)==unb);
           readed_[found].PutObject(unb);
@@ -1094,6 +1104,17 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           }
           x.Set().PutStruct (str); 
 /* */
+          if(control_.oisEngine_.oisVersion_>="02.11")
+          {
+            int classForwardDeclarations = 0;
+            ERead(classForwardDeclarations, set_);
+            for(n=1; n<=classForwardDeclarations; n++)
+            {
+              BText className;
+              ERead(className, set_);
+              BClass::PredeclareClass(className);
+            }
+          }
           BSyntaxObject* mem=NULL; 
           if(oldBuilding)
           {
@@ -1130,6 +1151,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             }
           } 
           BNameBlock::SetBuilding(oldBuilding);
+        //BNameBlock::SetCurrent(oldCurrent);
           BGrammar::DestroyStackUntil(stackPos, unb);    
           BGrammar::DecLevel();
           x.CheckMembers();
