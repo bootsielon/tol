@@ -702,19 +702,19 @@ public:
 public:
 //Linear systems of equations  
   BVMat CholeskiFactor(ECholFacOri ori, bool checkSymmetric,
-                            bool forceNaturalOrder);
+                            bool forceNaturalOrder, bool showError);
   BVMat CholeskiFactor(const BText& ori, bool checkSymmetric,
-                            bool forceNaturalOrder);
+                            bool forceNaturalOrder, bool showError);
   BVMat CholeskiSolve(const BVMat& B, ECholSolSys sys)const;
   BVMat CholeskiSolve(const BVMat& B, const BText& sys)const;
   BVMat CholeskiInv  ()const;
 
   static int CholeskiFactor(const BVMat& X, BVMat& L, 
                             ECholFacOri ori, bool checkSym,
-                            bool forceNaturalOrder);
+                            bool forceNaturalOrder, bool showError);
   static int CholeskiFactor(const BVMat& X, BVMat& L, 
                             const BText& ori, bool checkSym,
-                            bool forceNaturalOrder);
+                            bool forceNaturalOrder, bool showError);
   static int CholeskiSolve (const BVMat& L,const BVMat& B, 
                             BVMat& X, ECholSolSys sys);
   static int CholeskiSolve (const BVMat& L,const BVMat& B,
