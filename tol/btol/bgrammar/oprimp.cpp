@@ -842,14 +842,8 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
   bool carIsList = argList->car()->IsListClass();
   List* dec = carIsList?Tree::treNode((List*) argList):(List*)argList;
 /*
-  BText unparsed = BParser::Unparse(dec,"");
-  if(unparsed=="BysMcmc::McmcReloaderDefault aux")
-  {
-    trace_counter++;
-    if(trace_counter==5)
-      printf("");
-    Std(BText("\nTRACE count(BysMcmc::McmcReloaderDefault aux)=")+trace_counter);
-  }
+  if(BParser::Unparse(dec,"")=="Point P")
+    printf("");
 */
   BGrammar* gra = GetLeft(Grammar(), dec, name, rest, str, cls);
   List* left = NULL;
@@ -950,7 +944,6 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
   BGrammar* gra = GetLeft(NIL, 
 	                        Tree::treNode((List*) argList),
                           name, rest, str, cls);
-//Std(Out()+"\nCreating operator <"+ name + ">\n"+Unparse(argList));
   if(rest && gra)
   {
     result = gra->FindOperator(name); 
@@ -1634,6 +1627,12 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
     else
     {
       BClass::currentStatic_ = staticOwner_;
+    }
+    if(!funNameBlock && BClass::currentStatic_ &&
+       BClass::currentStatic_->NameBlock())
+    {
+      funNameBlock = BClass::currentStatic_->NameBlock();
+      BNameBlock::SetCurrent(funNameBlock);
     }
     result = Grammar()->EvaluateTree(definition_, 1);
     BClass::currentStatic_ = oldStaticOwner;
