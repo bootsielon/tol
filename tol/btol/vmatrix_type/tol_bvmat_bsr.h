@@ -363,6 +363,9 @@ struct noise_info
     BVMat&                  X,
     BVMat&                  a, 
     BVMat&                  A);
+  int Parse_Module_Joint(
+    const BText& filePath, 
+    BSet& contens_);
 
 };
 

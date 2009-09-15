@@ -28,6 +28,15 @@
 #include <tol/tol_bvmat_bsr.h>
 #include <tol/tol_bvmat_impl.h>
 #include <tol/tol_bvmatgra.h>
+#include <tol/tol_bmatgra.h>
+#include <tol/tol_bdatgra.h>
+#include <tol/tol_btxtgra.h>
+#include <tol/tol_bsetgra.h>
+#include <tol/tol_bpolgra.h>
+#include <tol/tol_bratgra.h>
+#include <tol/tol_bdtegra.h>
+#include <tol/tol_btmsgra.h>
+#include <tol/tol_bcodgra.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bdir.h>
 
