@@ -194,6 +194,7 @@ public:
 	BGrammar* Grammar    () const;
 	BText	    Dump	     () const;
 
+  bool CheckAutoDoc();
 
   //! Evaluates a parsed tree with a Class declaration
   static BClass* PredeclareClass(const BText&name, BClass*&old, bool &ok);

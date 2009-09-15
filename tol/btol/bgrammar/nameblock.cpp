@@ -1086,7 +1086,7 @@ const BText& BNameBlock::LocalName() const
     const BText& dsc = obj->Description();
     if(!dsc.HasName())
     {
-      BText autodocName = BText("_.autodoc.member.")+Name();
+      BText autodocName = BText("_.autodoc.member.")+obj->Name();
       BSyntaxObject* autodoc = NULL;
       if(class_)
       {

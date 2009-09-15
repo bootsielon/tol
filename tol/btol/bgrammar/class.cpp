@@ -289,17 +289,10 @@ BMember::~BMember()
     BSyntaxObject* obj = GraAnything()->EvaluateTree(branch_);
     BGrammar::DestroyStackUntil(stackPos, obj);    
     BGrammar::DecLevel();
+    BClass* cls = (BClass*)parent_; 
     if(obj)
     {
-      BText autodocName = BText("_.autodoc.member.")+name_;
       method_ = obj;
-      BClass* cls = (BClass*)parent_; 
-      BSyntaxObject* autodoc = cls->FindStaticMemeber(autodocName,-1);
-      if(autodoc && autodoc->Grammar()==GraText())
-      {
-        BText& desc = Text(autodoc);
-        obj->PutDescription(desc);
-      }
       method_->IncNRefs(); 
       return(1);
     }
@@ -330,10 +323,11 @@ BMember::~BMember()
   }
   if(!static_ && isStatic_ && definition_.HasName())
   {
+    BClass* cls = (BClass*)parent_; 
     BGrammar::IncLevel();
     int stackPos = BGrammar::StackSize();
     const BClass* oldStaticOwner = BClass::currentStatic_;
-    BClass::currentStatic_ = (BClass*)parent_;
+    BClass::currentStatic_ = cls;
     BSyntaxObject* obj = GraAnything()->EvaluateTree(branch_);
     BClass::currentStatic_ = oldStaticOwner;
     BGrammar::DestroyStackUntil(stackPos, obj);    
@@ -982,6 +976,57 @@ BClass::~BClass()
 }
 
 //--------------------------------------------------------------------
+  bool BClass::CheckAutoDoc()
+//--------------------------------------------------------------------
+{
+  bool ok = true;
+  int n=0;
+  for(n=0; ok && (n<member_.Size()); n++)
+  {
+    BMember& mbr = *(member_[n]->member_);
+    BSyntaxObject* obj = NULL;
+    if(mbr.name_.BeginWith("_.autodoc.member."))
+    {
+      if(!mbr.static_ || (mbr.static_->Grammar()!=GraText()))
+      {
+        Error(I2("Special documentation member ",
+                 "El mimebro especial de documentación ")+
+              mbr.name_+
+              I2(" should be a Text instead of a ",
+                 " debería ser un Text en lugar de un ")+
+              mbr.static_->Grammar()->Name());
+        ok = false;
+      }
+      else
+      {
+        BText& desc = Text(mbr.static_);
+        BText auxName = mbr.name_.SubString(17,mbr.name_.Length());
+        BMember* auxMember = FindMember(auxName);
+        if(!auxMember)
+        {
+          Warning(I2("Special documentation member ",
+                     "El mimebro especial de documentación ")+
+                  mbr.name_+
+                  I2(" is irrelevant due it doesn't exist a member nor method called ",
+                     " es irrelevante porque no existe ningún miembro ni método llamado ")+
+                  auxName);
+        }
+        else
+        {
+          if(auxMember->method_) { obj = auxMember->method_; } 
+          else if(auxMember->static_) { obj = auxMember->static_; } 
+          if(obj)
+          {
+            obj->PutDescription(desc);
+          }  
+        }
+      }
+    }
+  }  
+  return(ok);
+};
+
+//--------------------------------------------------------------------
   BClass* BClass::PredeclareClass(
      const BText& name,
      BClass*& old,
@@ -1127,6 +1172,7 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
     else
     {
       class_->SortMembers();
+      ok = class_->CheckAutoDoc();
       class_->isDefined_ = class_->member_.Size()>0; 
     }
     assert(!class_ || FindClass(name,-1));
