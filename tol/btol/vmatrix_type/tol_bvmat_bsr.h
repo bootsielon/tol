@@ -335,8 +335,11 @@ struct noise_info
   inline const BText& url_parse_bsr()
   {
     static BText aux =
+    I2("Design of modular parser of BSR is explained in ",
+       "El diseño del parser modular de BSR puede verse en ")+
+    "https://www.tol-project.org/ticket/745\n"+
     I2("You can see an example of BSR syntax at ", 
-       "Puede ver un ejemplo de la sintaxis de BSR en ")+
+       "Puede ver un ejemplos de la sintaxis de BSR en ")+
     "http://cvs.tol-project.org/"
     "viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc"
     "/test_01/parse.bsr";
@@ -363,9 +366,22 @@ struct noise_info
     BVMat&                  X,
     BVMat&                  a, 
     BVMat&                  A);
-  int Parse_Module_Joint(
-    const BText& filePath, 
-    BSet& contens_);
+
+  int Parse_Module_Primary(
+    const string &          fileName,
+    doc_info&               docInfo,
+    vector<variable_info>&  linearInfo,
+    vector<missing_info>&   inputMissingInfo,
+    vector<missing_info>&   outputMissingInfo,
+    vector<noise_info>&     noiseInfo,
+    BVMat&                  Y, 
+    BVMat&                  X,
+    BVMat&                  a, 
+    BVMat&                  A);
+
+  int Parse_Module(const BText& filePath, 
+                   const BText& moduleType,
+                   BSet& contens_);
 
 };
 

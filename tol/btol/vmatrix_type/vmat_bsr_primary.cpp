@@ -1,5 +1,5 @@
-/* vmat_bsr_joint.cpp: BVMat Bayesian Sparse Regression 
-                              parsing methods for joint modules
+/* vmat_bsr_primary.cpp: BVMat Bayesian Sparse Regression 
+                              parsing methods for primary modules
                GNU/TOL Language.
 
    Copyright (C) 2003-2005, Bayes Decision, SL (Spain [EU])
@@ -30,33 +30,20 @@
 namespace BysSparseReg {
 
 ///////////////////////////////////////////////////////////////////////////////
-class bys_sparse_reg_joint : public grammar<bys_sparse_reg_joint>,
-                             public bys_sparse_reg
+class bys_sparse_reg_primary : public grammar<bys_sparse_reg_primary>,
+                               public bys_sparse_reg
 ///////////////////////////////////////////////////////////////////////////////
 {
 public:
+  BVMat Y_;
+  BVMat X_;
 
-  vector<lin_reg_equation>     equ_vec;
-  vector<lin_noise_inequation> ine_vec;
-  lin_reg_equation             equ_info;
-  lin_noise_inequation         ine_info;
-
-  var_term equ_var_term_info;
-  var_term ine_var_term_info;
-
-  bool endFound_;
-
-  bys_sparse_reg_joint() 
-  : bys_sparse_reg()
-  {
-    equ_info.index = 0;
-    ine_info.index = 0;
-  }
+  bys_sparse_reg_primary() : bys_sparse_reg() {}
     
   template <typename ScannerT>
   struct definition
   {
-    bys_sparse_reg_joint& s;
+    bys_sparse_reg_primary& s;
     rule<ScannerT>  
       variantSigma, constantSigma, covariance, 
       noiseName, noisePosition,
@@ -74,14 +61,13 @@ public:
       unkOrRealInitValue, 
       knownURealEquTerm, 
       knownURealIneTerm,
-      equVarTerm, ineVarTerm, 
       variable, missing, arima, noise, equation, inequation,
       model_nameDef, model_descriptionDef, 
       session_nameDef, session_descriptionDef, session_authorDef, 
       explicit_begin, explicit_end, problem;
 
-    definition(const bys_sparse_reg_joint& s_)
-    : s ((bys_sparse_reg_joint&)s_)
+    definition(const bys_sparse_reg_primary& s_)
+    : s ((bys_sparse_reg_primary&)s_)
     {
       add_symbol<variable_info> add_var(s.var);
       add_symbol<missing_info>  add_mis(s.mis);
@@ -94,22 +80,7 @@ public:
       assign_sig_pri assign_sig_pri_(s.noise.info);
       assign_const_sigma_to_res assign_const_sigma_to_res_(s.noise.info);
       assign_covariance_to_res  assign_covariance_to_res_ (s.noise.info);
-      assign_pos_sign_to_equ_term assign_pos_sign_to_equ_term_(s.equ_var_term_info);
-      assign_neg_sign_to_equ_term assign_neg_sign_to_equ_term_(s.equ_var_term_info);
-      assign_var_to_equ_term assign_var_to_equ_term_(s.var.vec, s.equ_var_term_info, s.Xnzmax_);
-      assign_mis_to_equ_out assign_mis_to_equ_out_(s.mis.vec, s.equ_info);
-      assign_mis_to_var_term assign_mis_to_var_term_(s.mis.vec, s.equ_var_term_info);
-      assign_mis_to_equ_term assign_mis_to_equ_term_(s.mis.vec,s.var.vec,s.equ_var_term_info,s.equ_info,s.Xnzmax_);
-      assign_pos_sign_to_ine_term assign_pos_sign_to_ine_term_(s.ine_var_term_info);
-      assign_neg_sign_to_ine_term assign_neg_sign_to_ine_term_(s.ine_var_term_info);
-      assign_IsGE_to_ine assign_IsGE_to_ine_(s.ine_info);
-      assign_IsLE_to_ine assign_IsLE_to_ine_(s.ine_info);
-      assign_var_to_ine_term assign_var_to_ine_term_(s.var.vec,s.ine_var_term_info,s.Anzmax_);
-      assign_noise_to_term assign_noise_to_term_(s.noise.vec,s.sig.vec,&s.equ_info);
-      add_term_to_equ add_term_to_equ_(s.equ_info.X, s.equ_var_term_info);
-      add_term_to_ine add_term_to_ine_(s.ine_info.A,s.ine_var_term_info);
-      add_equ add_equ_(s.equ_vec,s.equ_info,s.numEqu_,s.mis.count,s.sig.count,s.noise.count);
-      add_ine add_ine_(s.ine_vec, s.ine_info);
+      assign_noise_to_term assign_noise_to_term_(s.noise.vec,s.sig.vec);
       assign_explicit_end assign_explicit_end_(s.endFound_);
 
       #include "tol_bvmat_bsr_err.h"
@@ -221,22 +192,7 @@ public:
       noiseName=
         (s.noise.table[assign_noise_to_term_]|error_noiseExpected)
         ;
-      noisePosition =
-        openBracket >>
-          (int_p[assign_a(s.equ_info.resPos)] | error_intExpected) >> 
-        closeBracket
-        ;
       errorTerm = noiseName >> noisePosition
-        ;
-      signEquVarTerm = 
-        posSign[assign_pos_sign_to_equ_term_] 
-        | 
-        negSign[assign_neg_sign_to_equ_term_]
-        ;
-      signIneVarTerm = 
-        posSign[assign_pos_sign_to_ine_term_] 
-        | 
-        negSign[assign_neg_sign_to_ine_term_]
         ;
       knownReal =
         real_p[assign_a(s.realValue)]
@@ -246,46 +202,10 @@ public:
         |
         knownReal
         ;
-      knownURealEquTerm =
-        ureal_p[assign_a(s.equ_var_term_info.coef)]
-        ;
-      knownURealIneTerm =
-        ureal_p[assign_a(s.ine_var_term_info.coef)]
-        ;
       unkOrRealInitValue =
         unknown[assign_a(s.var.info.initValue,BDat::Nan())]
         |
         real_p[assign_a(s.var.info.initValue)]
-        ;
-      equVarTerm = 
-        signEquVarTerm >>
-        (
-          s.var.table[assign_var_to_equ_term_]
-          |
-          (
-            knownURealEquTerm >>
-            (product                              | error_prodExpected     ) >> 
-            (s.var.table[assign_var_to_equ_term_] | error_linBlkVarExpected)
-          )
-          |
-          (
-            s.mis.table[assign_mis_to_var_term_] >>
-            (product                              | error_prodExpected     ) >> 
-            (s.var.table[assign_mis_to_equ_term_] | error_linBlkVarExpected)
-          )
-        )
-        ;
-      ineVarTerm = 
-        signIneVarTerm >>
-        (
-          s.var.table[assign_var_to_ine_term_]
-          |
-          (
-            knownURealIneTerm >>
-            (product                              | error_prodExpected     ) >> 
-            (s.var.table[assign_var_to_ine_term_] | error_linBlkVarExpected)
-          )
-        )
         ;
       variable =
         newIdentifier[increment_a(s.var.info.index)]
@@ -371,34 +291,7 @@ public:
         ) | error_noiseDistribDeclareExpected) >>
         endOfSentence[add_res]
         ;
-      equation =
-        (
-          knownReal 
-          |
-          s.mis.table[assign_mis_to_equ_out_]
-          |
-          ( ch_p('+') >> s.mis.table[assign_mis_to_equ_out_] )
-        )
-        >>
-        eq[increment_a(s.equ_info.index)][assign_a(s.equ_info.Y,s.realValue)] >>
-        ((
-          errorTerm >>
-          (*(equVarTerm[add_term_to_equ_]))
-        ) | error_linearRegressionEquationDeclareExpected) >>
-        endOfSentence[add_equ_]
-        ;
-      inequation =
-        real_p[assign_a(s.realValue)] >>
-        (
-          ge[assign_IsGE_to_ine_]
-          |
-          le[assign_IsLE_to_ine_]
-        )[increment_a(s.ine_info.index)][assign_a(s.ine_info.a,s.realValue)] >>
-        ((
-          (*(ineVarTerm[add_term_to_ine_][increment_a(s.Anzmax_)]))
-        )| error_linearConstrainInequationDeclareExpected) >>
-        endOfSentence[add_ine_]
-        ;
+
       model_nameDef =
         (
           str_p("Model.Name") >> ch_p('=') >>
@@ -460,9 +353,7 @@ public:
         *( 
            variable | 
            missing | 
-           noise | 
-           equation | 
-           inequation ) >>
+           noise ) >>
         //end
         (explicit_end | end_p | error_declarationExpected )
         ;
@@ -504,8 +395,6 @@ public:
       //BOOST_SPIRIT_DEBUG_NODE(knownURealEquTerm );
       //BOOST_SPIRIT_DEBUG_NODE(knownURealIneTerm );
       //BOOST_SPIRIT_DEBUG_NODE(unkOrRealInitValue );
-      //BOOST_SPIRIT_DEBUG_NODE(equVarTerm );
-      //BOOST_SPIRIT_DEBUG_NODE(ineVarTerm );
       //BOOST_SPIRIT_DEBUG_NODE(variable );
       //BOOST_SPIRIT_DEBUG_NODE(missing );
       //BOOST_SPIRIT_DEBUG_NODE(noiseSize );
@@ -520,109 +409,6 @@ public:
     rule<ScannerT> const&  start() const { return problem; }
   };
   
-  /////////////////////////////////////////////////////////////////////////////
-  int expand2AllEqu(noise_info& resInfo, 
-                    const BVMat& A, BVMat& A_) 
-  /////////////////////////////////////////////////////////////////////////////
-  {
-    int s = resInfo.equIdx.size();
-    int n = A.Rows();
-    if(s!=n)
-    { 
-      Error(BSR()+"Size of noise "+
-        resInfo.name.c_str()+" has been declared as "+
-      s + " but there are "+n+" equations for it.");
-      return(-1); 
-    }
-    BVMat A1, A2;
-    int k, nnz;
-    A1.Convert(A,BVMat::ESC_chlmRtriplet);
-    nnz = A1.s_.chlmRtriplet_->nnz;
-    A2.ChlmRTriplet(numEqu_,numEqu_,nnz);
-    int*    r1_ = (int*)   A1.s_.chlmRtriplet_->i;
-    int*    c1_ = (int*)   A1.s_.chlmRtriplet_->j;
-    double* x1_ = (double*)A1.s_.chlmRtriplet_->x;
-    int*    r2_ = (int*)   A2.s_.chlmRtriplet_->i;
-    int*    c2_ = (int*)   A2.s_.chlmRtriplet_->j;
-    double* x2_ = (double*)A2.s_.chlmRtriplet_->x;
-    for(k=0; k<nnz; k++)
-    {
-      if(r1_[k]>=s)
-      { 
-        Error(BSR()+"Size of noise "+
-          resInfo.name.c_str()+" should be at least "+
-        (r1_[k]+1) + " but is set to "+s);
-        return(-1); 
-      }
-      if(resInfo.equIdx[r1_[k]]>numEqu_)
-      { 
-        Error(BSR()+"Number of equations "+
-          resInfo.name.c_str()+" should be at least "+
-        (resInfo.equIdx[r1_[k]]) + " but is set to "+numEqu_);
-        return(-2); 
-      }
-      if(x1_[k]!=0.0)
-      {
-        r2_[k]=resInfo.equIdx[r1_[k]]-1;
-        c2_[k]=resInfo.equIdx[c1_[k]]-1;
-        x2_[k]=x1_[k];
-        A2.s_.chlmRtriplet_->nnz++;
-      }
-    }
-    A_.Convert(A2, BVMat::ESC_chlmRsparse);
-    return(0);
-  };
-
-  /////////////////////////////////////////////////////////////////////////////
-  int expand2AllEqu_covAndFactors(noise_info& resInfo) 
-  /////////////////////////////////////////////////////////////////////////////
-  {
-    int k, n, err;
-    BVMat cov, L, Ls, Li, D;
-    cov = resInfo.cov;
-    n = cov.Rows();
-    if(resInfo.covIsDiag)
-    {
-      L = cov;
-      Li = cov;
-      double* xCov, *xL, * xLi;
-      int nzmax;
-      cov.StoredData(xCov, nzmax);
-      L  .StoredData(xL,   nzmax);
-      Li .StoredData(xLi,  nzmax);
-      for(k=0; k<nzmax; k++)
-      {
-        xL [k] = sqrt(xCov[k]);
-        xLi[k] = 1.0/xL[k];
-      }
-      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-      if(err = expand2AllEqu(resInfo, L,   resInfo.L  )) { return(err); }
-      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
-    }
-    else
-    {
-      err = BVMat::CholeskiFactor(cov,L,BVMat::ECFO_XtX,true,true,true);
-      if(err) 
-      { 
-        Error(BSR()+"Non symmetric definite positive covariance matrix for noise "+
-          resInfo.name.c_str());
-        return(err); 
-      }
-      D.Eye(n);
-      err = BVMat::CholeskiSolve(L, D, Li, BVMat::ECSS_L);
-      if(err) 
-      { 
-        Error(BSR()+"Cannot inverse Choleski Factor of covariance matrix for noise "+
-          resInfo.name.c_str());
-        return(err); 
-      }
-      Ls.Convert(L,BVMat::ESC_chlmRsparse);
-      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-      if(err = expand2AllEqu(resInfo, Ls,  resInfo.L  )) { return(err); }
-      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
-    }
-    return(err);
-  };
 
   /////////////////////////////////////////////////////////////////////////////
   int getData(vector<variable_info>&  linearInfo_,
@@ -631,16 +417,14 @@ public:
               vector<noise_info>&     noiseInfo_,
               BVMat&                  Y, 
               BVMat&                  X,
-              BVMat&                  a_, 
+              BVMat&                  a, 
               BVMat&                  A)
   /////////////////////////////////////////////////////////////////////////////
   {
     int i,j,k;
     int n = var.vec.size();
     int b = noise.vec.size();
-    int m = equ_vec.size();
-    int r = ine_vec.size();
-    Std(BSR()+" Parsed "+r+" inequations \n");
+    int m = Y_.Rows();
     Std(BSR()+" Building model definition \n");
     if(!n)
     {
@@ -657,8 +441,8 @@ public:
       Error(BSR()+"At least a linear equation must be defined");
       return(-5);
     }
-    linearInfo_         = var.vec;
-    noiseInfo_      = noise.vec;
+    linearInfo_  = var.vec;
+    noiseInfo_   = noise.vec;
     for(i=0; i<noiseInfo_.size(); i++)
     {
       Std(BSR()+" Building noise "+noiseInfo_[i].name.c_str()+"\n");
@@ -667,49 +451,11 @@ public:
         return(-6);
       }
     }
-    BVMat X_, A_;
-    Std(BSR()+" Allocating dense output with "+m+" cells\n");
-    Y.BlasRDense(m,1);
-    Std(BSR()+" Allocating triplet sparse input with "+Xnzmax_+" non null cells\n");
-    X_.ChlmRTriplet(m,n,Xnzmax_);
-    Std(BSR()+" Allocating dense inequation border with "+r+" cells\n");
-    a_.BlasRDense(r,1);
-    Std(BSR()+" Allocating triplet sparse inequation coefficeints with "+Anzmax_+" cells\n");
-    A_.ChlmRTriplet(r,n,Anzmax_);
-    size_t& Xn = X_.s_.chlmRtriplet_->nnz;
-    size_t& An = A_.s_.chlmRtriplet_->nnz;
-    double* Yx = (double*)Y.s_.blasRdense_->x;
-    double* Xx = (double*)X_.s_.chlmRtriplet_->x;
-    double* ax = (double*)a_.s_.blasRdense_->x;
-    double* Ax = (double*)A_.s_.chlmRtriplet_->x;
-    int*    Xi = (int*)X_.s_.chlmRtriplet_->i;
-    int*    Xj = (int*)X_.s_.chlmRtriplet_->j;
-    int*    Ai = (int*)A_.s_.chlmRtriplet_->i;
-    int*    Aj = (int*)A_.s_.chlmRtriplet_->j;
-    int oldRatio = 0;
-    Std(BSR()+"Building regression equations\n");
-    for(i=0; i<m; i++)
-    {
-      int ratio = i/m;
-      if((ratio!=oldRatio) && !(ratio%5))
-      {
-        oldRatio = ratio;
-        Std(".");
-      }
-      noise_info& noise_inf = noise.vec[equ_vec[i].resIndex-1];
-      Yx[i] = equ_vec[i].Y - noise_inf.nu;
-      for(j=0; j<equ_vec[i].X.size(); j++)
-      {
-        Xi[Xn] = i;
-        Xj[Xn] = equ_vec[i].X[j].varIndex-1;
-        Xx[Xn] = equ_vec[i].X[j].x;
-        assert((Xj[Xn]>=0)&&(Xj[Xn]<n));
-        Xn++;
-      }
-    }
-    Std("\n");
-    Std(BSR()+"Converting regression equations from triplet to sparse\n");
-    X.Convert(X_,BVMat::ESC_chlmRsparse);
+    Y = Y_;
+    X = X_;
+    a.BlasRDense(0,1);
+    A.ChlmRTriplet(0,0,0);
+
     Std(BSR()+"Setting input and output missing block\n");
     int inputMisSize = 0;
     int outputMisSize = 0;
@@ -778,37 +524,13 @@ public:
         }
       }
     }
-    oldRatio = 0;
-    Std(BSR()+"Building constrain inequations\n");
-    for(i=0; i<r; i++)
-    {
-      int ratio = i/r;
-      if((ratio!=oldRatio) && !(ratio%5))
-      {
-        oldRatio = ratio;
-        Std(".");
-      }
-      double sign = (ine_vec[i].isGE)?1.0:-1.0;
-      ax[i] = ine_vec[i].a*sign;
-      for(j=0; j<ine_vec[i].A.size(); j++)
-      {
-        Ai[An] = i;
-        Aj[An] = ine_vec[i].A[j].varIndex-1;
-        Ax[An] = ine_vec[i].A[j].x*sign;
-        assert((Aj[An]>=0)&&(Aj[An]<n));
-        An++;
-      }
-    }
-    Std("\n");
-    Std(BSR()+"Converting constrain inequations from triplet to sparse\n");
-    A.Convert(A_,BVMat::ESC_chlmRsparse);
     Std(BSR()+"Succesfully build\n");
     return(0);
   };
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-int Parse_Module_Joint(
+int Parse_Module_Primary(
   const string &          fileName,
   doc_info&               docInfo,
   vector<variable_info>&  linearInfo,
@@ -821,7 +543,7 @@ int Parse_Module_Joint(
   BVMat&                  A)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  bys_sparse_reg_joint bsr;
+  bys_sparse_reg_primary bsr;
   const char* fName = fileName.c_str();
   
 //BOOST_SPIRIT_DEBUG_NODE(bsr);
@@ -864,7 +586,7 @@ int Parse_Module_Joint(
     docInfo.model_description   =  bsr.docInfo.model_description;
     docInfo.session_name        =  bsr.docInfo.session_name;
     docInfo.session_description =  bsr.docInfo.session_description;
-    docInfo.session_authors      =  bsr.docInfo.session_authors;
+    docInfo.session_authors     =  bsr.docInfo.session_authors;
     errCode = bsr.getData
     (
       linearInfo,
@@ -879,8 +601,6 @@ int Parse_Module_Joint(
   }
   return(errCode);
 };
-
-
 
 };
 

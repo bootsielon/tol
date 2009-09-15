@@ -2308,9 +2308,9 @@ void BSetGetBoundsInPolytope::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetParseResLinReg);
-DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 1, 
-  "Text",
-  "(Text filePath)",
+DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 2, 
+  "Text Text",
+  "(Text filePath [, Text moduleType=\"joint\"])",
   I2("Parses an ASCII file written in BSR language (Restricted Linear "
      "Regression) and returns a Set with structure of "
      "BSR.ModelDef containing all needed information to make "
@@ -2323,6 +2323,7 @@ DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 1,
      "values B0 matching constrain inequations A*B0<=a.\n"
      "Field NoiseDistrib contains information about noise vector "
      "E and must have structure of BSR.NoiseDistrib.\n"
+     "Argument <moduleType> must be one of these:\n"
      ,
      "Analiza un archivo ASCII escrito en lenguaje BSR (Bayesian "
      "Sparse Regression) y devuelve un Set con la estructura de "
@@ -2338,7 +2339,11 @@ DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 1,
      "<= a.\n"
      "El campo NoiseDistrib contiene información sobre el "
      "ruido del vector E y debe tener la estructura de BSR."
-     "NoiseDistrib.")+
+     "NoiseDistrib.\n"
+     "El argumento <moduleType> debe ser uno de los siguientes:\n")+
+     " * \"primary\" \n" 
+     " * \"joint\" \n" 
+     " * \"master\" \n"+
      BysSparseReg::url_parse_bsr(),
 BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
@@ -2346,7 +2351,9 @@ void BSetParseResLinReg::CalcContens()
 //--------------------------------------------------------------------
 {
   BText& filePath = Text(Arg(1));
-  BysSparseReg::Parse_Module_Joint(filePath, contens_);
+  BText moduleType = "joint";
+  if(Arg(2)) { moduleType = Text(Arg(2)); }
+  BysSparseReg::Parse_Module(filePath, moduleType, contens_);
 }
 
 

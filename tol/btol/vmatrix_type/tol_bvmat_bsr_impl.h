@@ -211,6 +211,23 @@ struct lin_noise_inequation
 
 };
 
+/*
+///////////////////////////////////////////////////////////////////////////////
+struct bsr_modeldef
+///////////////////////////////////////////////////////////////////////////////
+{
+  doc_info&               docInfo,
+  vector<variable_info>&  linearInfo,
+  vector<missing_info>&   inputMissingInfo,
+  vector<missing_info>&   outputMissingInfo,
+  vector<noise_info>&     noiseInfo,
+  BVMat&                  Y, 
+  BVMat&                  X,
+  BVMat&                  a, 
+  BVMat&                  A
+};
+*/
+
 ///////////////////////////////////////////////////////////////////////////////
 //Actions
 ///////////////////////////////////////////////////////////////////////////////
@@ -876,19 +893,22 @@ public:
   lin_reg_equation*     equ_; 
   vector<sigma_info>*   sig_vec_;
   assign_noise_to_term(
-    vector<noise_info>& noise_vec,
-    lin_reg_equation&     equ,
-    vector<sigma_info>&   sig_vec) 
+    vector<noise_info>&   noise_vec,
+    vector<sigma_info>&   sig_vec,
+    lin_reg_equation*     equ = NULL) 
   :
     noise_vec_(&noise_vec),
-    equ_(&equ),
-    sig_vec_(&sig_vec)
+    sig_vec_(&sig_vec),
+    equ_(equ)
   {}
   void action(noise_info& resInf) const
   {
     assign_noise_to_term* t = (assign_noise_to_term*)this;
-    t->equ_->resIndex = resInf.index;
-    resInf.equIdx.push_back(t->equ_->index);
+    if(t->equ_)
+    {
+      t->equ_->resIndex = resInf.index;
+      resInf.equIdx.push_back(t->equ_->index);
+    }
     if(resInf.sigmaIdx>=0)
     {
       sigma_info& sig = (*t->sig_vec_)[resInf.sigmaIdx-1];
@@ -1131,10 +1151,8 @@ struct skip_grammar : public grammar<skip_grammar>
   };
 };
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
-void show_parser_error(char const* msg, file_position const& lc, bool end)
+inline void show_parser_error(char const* msg, file_position const& lc, bool end)
 ///////////////////////////////////////////////////////////////////////////////
 {
   BText full_msg = BSR() + BText(msg) + "\n" +
@@ -1167,6 +1185,161 @@ struct error_report_parser
 };
 
 typedef functor_parser<error_report_parser> error_report_p;
+
+
+///////////////////////////////////////////////////////////////////////////////
+class bys_sparse_reg 
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  ifstream* file;
+  string    fileName;
+  size_t    fileSize;
+
+  doc_info docInfo;
+
+  symbol_handler<variable_info>  var;
+  symbol_handler<missing_info>   mis;
+  symbol_handler<sigma_info>     sig;
+  symbol_handler<noise_info>     noise;
+
+  double   realValue;
+  int Xnzmax_;
+  int Anzmax_;
+  int numEqu_;
+
+  bool endFound_;
+
+  bys_sparse_reg()
+  : Xnzmax_  (0),
+    Anzmax_  (0),
+    numEqu_  (0),
+    endFound_ (false)
+  {
+    var.count = 0;
+    mis.count = 0;
+    sig.count = 0;
+    noise.count = 0;
+    var.info.index = 0;
+    mis.info.index = 0;
+    sig.info.index = 0;
+    noise.info.index = 0;
+    noise.info.sigmaIdx=-1;
+  }
+     
+  /////////////////////////////////////////////////////////////////////////////
+  int expand2AllEqu(noise_info& resInfo, 
+                    const BVMat& A, BVMat& A_) 
+  /////////////////////////////////////////////////////////////////////////////
+  {
+    int s = resInfo.equIdx.size();
+    int n = A.Rows();
+    if(s!=n)
+    { 
+      Error(BSR()+"Size of noise "+
+        resInfo.name.c_str()+" has been declared as "+
+      s + " but there are "+n+" equations for it.");
+      return(-1); 
+    }
+    BVMat A1, A2;
+    int k, nnz;
+    A1.Convert(A,BVMat::ESC_chlmRtriplet);
+    nnz = A1.s_.chlmRtriplet_->nnz;
+    A2.ChlmRTriplet(numEqu_,numEqu_,nnz);
+    int*    r1_ = (int*)   A1.s_.chlmRtriplet_->i;
+    int*    c1_ = (int*)   A1.s_.chlmRtriplet_->j;
+    double* x1_ = (double*)A1.s_.chlmRtriplet_->x;
+    int*    r2_ = (int*)   A2.s_.chlmRtriplet_->i;
+    int*    c2_ = (int*)   A2.s_.chlmRtriplet_->j;
+    double* x2_ = (double*)A2.s_.chlmRtriplet_->x;
+    for(k=0; k<nnz; k++)
+    {
+      if(r1_[k]>=s)
+      { 
+        Error(BSR()+"Size of noise "+
+          resInfo.name.c_str()+" should be at least "+
+        (r1_[k]+1) + " but is set to "+s);
+        return(-1); 
+      }
+      if(resInfo.equIdx[r1_[k]]>numEqu_)
+      { 
+        Error(BSR()+"Number of equations "+
+          resInfo.name.c_str()+" should be at least "+
+        (resInfo.equIdx[r1_[k]]) + " but is set to "+numEqu_);
+        return(-2); 
+      }
+      if(x1_[k]!=0.0)
+      {
+        r2_[k]=resInfo.equIdx[r1_[k]]-1;
+        c2_[k]=resInfo.equIdx[c1_[k]]-1;
+        x2_[k]=x1_[k];
+        A2.s_.chlmRtriplet_->nnz++;
+      }
+    }
+    A_.Convert(A2, BVMat::ESC_chlmRsparse);
+    return(0);
+  };
+
+  /////////////////////////////////////////////////////////////////////////////
+  int expand2AllEqu_covAndFactors(noise_info& resInfo) 
+  /////////////////////////////////////////////////////////////////////////////
+  {
+    int k, n, err;
+    BVMat cov, L, Ls, Li, D;
+    cov = resInfo.cov;
+    n = cov.Rows();
+    if(resInfo.covIsDiag)
+    {
+      L = cov;
+      Li = cov;
+      double* xCov, *xL, * xLi;
+      int nzmax;
+      cov.StoredData(xCov, nzmax);
+      L  .StoredData(xL,   nzmax);
+      Li .StoredData(xLi,  nzmax);
+      for(k=0; k<nzmax; k++)
+      {
+        xL [k] = sqrt(xCov[k]);
+        xLi[k] = 1.0/xL[k];
+      }
+      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
+      if(err = expand2AllEqu(resInfo, L,   resInfo.L  )) { return(err); }
+      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
+    }
+    else
+    {
+      err = BVMat::CholeskiFactor(cov,L,BVMat::ECFO_XtX,true,true,true);
+      if(err) 
+      { 
+        Error(BSR()+"Non symmetric definite positive covariance matrix for noise "+
+          resInfo.name.c_str());
+        return(err); 
+      }
+      D.Eye(n);
+      err = BVMat::CholeskiSolve(L, D, Li, BVMat::ECSS_L);
+      if(err) 
+      { 
+        Error(BSR()+"Cannot inverse Choleski Factor of covariance matrix for noise "+
+          resInfo.name.c_str());
+        return(err); 
+      }
+      Ls.Convert(L,BVMat::ESC_chlmRsparse);
+      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
+      if(err = expand2AllEqu(resInfo, Ls,  resInfo.L  )) { return(err); }
+      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
+    }
+    return(err);
+  };
+
+  virtual int getData(vector<variable_info>&  linearInfo_,
+              vector<missing_info>&   inputMissingInfo_,
+              vector<missing_info>&   outputMissingInfo_,
+              vector<noise_info>&     noiseInfo_,
+              BVMat&                  Y, 
+              BVMat&                  X,
+              BVMat&                  A, 
+              BVMat&                  a) = 0;
+};
 
 };
 
