@@ -1,0 +1,82 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  742;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "Description of class members";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+    
+
+Class ClasePrueba {
+
+  Text _.autodoc.member.A = "atributo";
+  Real A = 1;
+
+  Text _.autodoc.member.GetA = "método";
+  Real GetA(Real void) { a };
+
+  // Descripción posterior
+  Real GetA2(Real void) { a };
+  Text _.autodoc.member.GetA2 = "método 2";
+
+  // Descripción sin miembro
+  Text _.autodoc.member.GetB = "otro método";
+
+  Text _.autodoc.member.Default = "constructor";
+  Static ClasePrueba Default(Real a) {[[Real A = a]]}
+};
+
+  // ERROR: La descripción del constructor no ha sido asignada
+  Text ds.1 = Description(ClasePrueba::Default);
+  //> ""
+
+  ClasePrueba p = ClasePrueba::Default(1);
+
+  // ERROR: La descripción del atributo no ha sido asignada
+  Text ds.2 = Description(p::A);
+  //> ""
+
+  // OK
+  Text ds.3 = Description(p::GetA);
+  //> "método"
+
+  // ¿ERROR?: La descripción del método no se asigna 
+  //          si es posterior a su creación
+  Text ds.4 = Description(p::GetA2);
+  //> ""
+
+  // ¿ERROR?: No hay mensaje de error si una descripción 
+  //          no corresponde a ningún miembro
+
+    
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[numErr0, numErr1, ds.1, ds.2, ds.3, ds.4]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0+1,
+                      ds.1!="",
+                      ds.2!="",
+                      ds.3!="",
+                      ds.4!="");
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
