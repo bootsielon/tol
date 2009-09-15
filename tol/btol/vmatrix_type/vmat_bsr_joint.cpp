@@ -1405,6 +1405,7 @@ int Parse_Module_Joint(const BText& filePath, BSet& contens_)
   assert(X.Check());
   assert(a.Check());
   assert(A.Check());
+  return(true);
 }
 
 };
