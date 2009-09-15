@@ -444,6 +444,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   BMemberOwner::BClassByNameHash& parents = *cls.parentHash_;
   Ensure(Read(cls,parents,stream));
   BMemberOwner::BClassByNameHash::const_iterator iterC;
+  bool ok = true;
   int n = 0;
   for(iterC=parents.begin(); iterC!=parents.end(); iterC++, n++)
   {
@@ -502,6 +503,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       (*cls.mbrDecHash_)[mbr->declaration_] = mbr;
     }
   }
+  ok = ok && cls.CheckAutoDoc();
   return(true);
 }
 
