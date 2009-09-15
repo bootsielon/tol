@@ -36,18 +36,6 @@
 
 namespace BysSparseReg {
 
-///////////////////////////////////////////////////////////////////////////////
-inline const BText& url_parse_bsr()
-///////////////////////////////////////////////////////////////////////////////
-{
-  static BText aux =
-  I2("You can see an example of BSR syntax at ", 
-     "Puede ver un ejemplo de la sintaxis de BSR en ")+
-  "http://cvs.tol-project.org/"
-  "viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc"
-  "/test_01/parse.bsr";
-  return(aux);
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 struct doc_info
@@ -341,8 +329,21 @@ struct noise_info
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-//Forward types declaring are defined in tol_bvmat_impl.h
+//Methods
 ////////////////////////////////////////////////////////////////////////////////
+
+  inline const BText& url_parse_bsr()
+  {
+    static BText aux =
+    I2("You can see an example of BSR syntax at ", 
+       "Puede ver un ejemplo de la sintaxis de BSR en ")+
+    "http://cvs.tol-project.org/"
+    "viewcvs.cgi/*checkout*/tol/stdlib/math/stat/models/bayesian/bysMcmc"
+    "/test_01/parse.bsr";
+    return(aux);
+  };
+
+  const BText& BSR();
   int Initialize();
   BStruct* ModelDefStr();
   BStruct* DocInfoStr();
@@ -351,16 +352,17 @@ struct noise_info
   BStruct* NoiseDistribStr();
   BStruct* NoiseTimeInfo();
 
-  int Parse(const string &          fileName,
-            doc_info&               docInfo,
-            vector<variable_info>&  linearInfo,
-            vector<missing_info>&   inputMissingInfo,
-            vector<missing_info>&   outputMissingInfo,
-            vector<noise_info>&     noiseInfo,
-            BVMat&                  Y, 
-            BVMat&                  X,
-            BVMat&                  a, 
-            BVMat&                  A);
+  int Parse_Module_Joint(
+    const string &          fileName,
+    doc_info&               docInfo,
+    vector<variable_info>&  linearInfo,
+    vector<missing_info>&   inputMissingInfo,
+    vector<missing_info>&   outputMissingInfo,
+    vector<noise_info>&     noiseInfo,
+    BVMat&                  Y, 
+    BVMat&                  X,
+    BVMat&                  a, 
+    BVMat&                  A);
 
 };
 

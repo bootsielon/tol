@@ -2306,27 +2306,6 @@ void BSetGetBoundsInPolytope::CalcContens()
   }
 }
 
-/*
-//--------------------------------------------------------------------
-DeclareContensClass(BVMat, BVMatTemporary, BVMatFindFeasiblePoint);
-DefExtOpr(1, BVMatFindFeasiblePoint, "FindFeasiblePoint", 2, 2, 
-  "VMatrix VMatrix",
-  "(VMatrix D, VMatrix d)",
-  I2("Returns a point z matching D*z<=b if exists or the empty matrix if "
-     "not",
-     "Devuelve un punto z que cumple D*z<=d si es que existe o la matriz "
-     "vacía en otro caso"),
-BOperClassify::MatrixAlgebra_);
-//--------------------------------------------------------------------
-void BVMatFindFeasiblePoint::CalcContens()
-//--------------------------------------------------------------------
-{
-  BVMat& D    = VMat(Arg(1));
-  BVMat& d    = VMat(Arg(2));
-  BVMat::FindFeasiblePoint(D,d,contens_);
-  assert(contens_.Check());
-}
-*/
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetParseResLinReg);
 DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 1, 
@@ -2376,7 +2355,7 @@ void BSetParseResLinReg::CalcContens()
   std::vector<BysSparseReg::missing_info>    inputMissingInfo;
   std::vector<BysSparseReg::missing_info>    outputMissingInfo;
   std::vector<BysSparseReg::noise_info>      noiseInfo;
-  BysSparseReg::Parse
+  BysSparseReg::Parse_Module_Joint
   (
     fileName, docInfo, 
     linearInfo,inputMissingInfo,outputMissingInfo,noiseInfo,
