@@ -67,6 +67,7 @@
 #pragma include_alias(<tol/tol_bvmat.h>, <tol_bvmat.h>)
 #pragma include_alias(<tol/tol_bvmat_impl.h>, <tol_bvmat_impl.h>)
 #pragma include_alias(<tol/tol_bvmat_bsr.h>, <tol_bvmat_bsr.h>)
+#pragma include_alias(<tol/tol_bvmat_bsr_impl.h>, <tol_bvmat_bsr_impl.h>)
 #pragma include_alias(<tol/tol_bvmatgra.h>, <tol_bvmatgra.h>)
 #pragma include_alias(<tol/tol_blinalg.h>, <tol_blinalg.h>)
 #pragma include_alias(<tol/tol_bmfstpro.h>, <tol_bmfstpro.h>)
