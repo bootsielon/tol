@@ -718,7 +718,7 @@ Class MasterSamplerBasic : MasterSampler
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.timeForecast =
+  Text _.autodoc.member.timeForecast.mcmc =
   "Returns time forecast for a block of regression equations representing a "
   "time series with unknown sigma and optional ARIMA structure.\n"
   "The block of equations is the specified by resBlock as is described "

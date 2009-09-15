@@ -398,7 +398,7 @@ Class BlockStdLinSub
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.draw.gibbs.drawer =
+  Text _.autodoc.member.gibbs.drawer =
   "Method of generation of a linear block in any case";
   VMatrix gibbs.drawer(Real numSim, VMatrix nu)
   ////////////////////////////////////////////////////////////////////////////

@@ -92,7 +92,7 @@ Class BlockMainLinear : BlockStdLin
   };
 
   //////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.MainLinearBlock =
+  Static Text _.autodoc.member.New =
   "Builds a NameBlock that can draw a Gibbs sample of the Main Linear block "
   "of a Bayesian Sparse Regression model";
   //////////////////////////////////////////////////////////////////////////////

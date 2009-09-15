@@ -776,7 +776,7 @@ Class BlockArima : BlockSampler
   ]]};
 
   //////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.ArimaBlock =
+  Static Text _.autodoc.member.New =
   "Builds a NameBlock that can draw a Gibbs sample of a ARIMA block of a "
   "general regression model. Just ARIMA filtering is currently running but "
   "ARMA simulation is still not implemented";

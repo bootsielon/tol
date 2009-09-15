@@ -211,7 +211,7 @@ Class BlockInputMissing : BlockStdLin
   };
 
   //////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.InputMissingBlock =
+  Static Text _.autodoc.member.New =
   "Builds a NameBlock that can draw a Gibbs sample of a Input Missing block "
   "of a Bayesian Sparse Regression model";
   //////////////////////////////////////////////////////////////////////////////
