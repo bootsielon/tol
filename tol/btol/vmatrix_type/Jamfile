@@ -2,7 +2,8 @@ ln-H [ glob tol_*.h tol_*.hpp ] ;
 
 objects objs 
     : vmat.cpp vmat_convert.cpp vmat_stats.cpp vmat_arith.cpp vmat_logic.cpp
-      vmat_chol.cpp vmat_subtypes.cpp vmat_io.cpp vmat_bsr.cpp 
+      vmat_chol.cpp vmat_subtypes.cpp vmat_io.cpp 
+      vmat_bsr_struct.cpp vmat_bsr_joint.cpp
       vmat_iterative.cpp vmat_iterator.cpp vmatgra.cpp mmio.c
     : <include>$(TOP)/bmath/gsl_ext
 
