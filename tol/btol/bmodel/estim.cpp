@@ -1016,8 +1016,18 @@ void BSetBoxCoxTrans::CalcContens()
 //--------------------------------------------------------------------
 {
   BUserTimeSerie* z	 = Tsr(Arg(1));
-  BSerieTable	zTable; zTable.AddSerie(z);
-
+  if(!z->IsStochastic())
+  {
+    Error(I2
+    (
+     "Cannot apply BoxCoxTrans to an infinite time series.",
+     "No se puede aplicar BoxCoxTrans a una serie infinita"
+    ));
+    return;
+  }
+  BSerieTable	zTable; 
+  zTable.AddSerie(z);
+  zTable.Fill(z->FirstDate(), z->LastDate());
   BInt period = 10;
   if(Arg(3)) { period = (BInt)Real(Arg(3)); }
   BDat exponent;
@@ -1034,7 +1044,15 @@ void BSetBoxCoxTrans::CalcContens()
      "Se asume el valor por defecto 10"
     ));
   }
-
+  if(zTable.NumDates()<=3*period)
+  {
+    Error(I2
+    (
+     "Cannot apply BoxCoxTrans to a time series with length ",
+     "No se puede aplicar BoxCoxTrans a una serie temporal de longitud "
+    )+
+    zTable.NumDates()+" <= 3*intervalLength = "+(3*period));
+  }
   if(Arg(2))
   {
     BSet& opt = Set(Arg(2));
@@ -1051,7 +1069,7 @@ void BSetBoxCoxTrans::CalcContens()
     {
       Warning(I2
       (
-       "Empty options parameter in BoxCoxTransfunction. "
+       "Empty options parameter in BoxCoxTrans function. "
        "It is assumed the defect value :",
        "Parámetro de opciones vacío en función BoxCoxTrans. "
        "Se asume el valor por defecto :"
