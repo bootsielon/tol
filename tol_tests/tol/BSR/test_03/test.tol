@@ -16,7 +16,7 @@ Text summary_ =
 
 Real numErr0 = Copy(NError);
 
-Real PutRandomSeed(1284584502);
+Real PutRandomSeed(208774589);
 
 //Random seed setting
 //VBR: Con estas semillas se cae sólo en la batería de tests pero no en tolbase
