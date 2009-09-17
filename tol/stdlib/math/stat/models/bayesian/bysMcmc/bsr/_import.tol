@@ -81,7 +81,7 @@ Text _comment =  "///////////////////////////////////////////////////////"
                  "//////////////////////\n";
 
 ///////////////////////////////////////////////////////////////////////////
-Real Write.Header(NameBlock model, Real fileHandler)
+Real Write.Header(NameBlock model, Real fileHandler, Text module.type)
 ///////////////////////////////////////////////////////////////////////////
 {
   Text model.name = model::Get.Doc.Model.Name(0);
@@ -97,6 +97,7 @@ Real Write.Header(NameBlock model, Real fileHandler)
     "\n"+
     "$BEGIN\n"
     "\n"+
+    "Module.Type = "+module.type+";\n"
     "Model.Name = \""+model.name+"\";\n"
     "Model.Description = \""+Replace(model.desc,"\n","\\n\"\n\"")+"\";\n"
     "Session.Name = \""+session.name+"\";\n"
@@ -381,11 +382,48 @@ Real Write.Header.Constraints(NameBlock model, Real fileHandler)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Write =
+Text _.autodoc.member.Write.Primary =
 "Imports data from a model defined by a NameBlock having a set of mandatory "
 "methods to get all needed information to write an ASCII file with BSR "
 "format that will can be readed by function BSR.Parse ";
-  Text Write(NameBlock model)
+  Text Write.Primary(NameBlock model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text model.name = model::Get.Doc.Model.Name(0);
+  Text session.name = model::Get.Doc.Session.Name(0);
+  Text path = model::Get.Doc.Path(0);
+  Real Do OSDirMake(path);
+
+  Text file.bsr = path+model.name+"."+session.name+".bsr";
+  Real f.bsr = FOpen(file.bsr,"w");
+  Real If(!f.bsr, Real{
+      WriteLn(_MID+"Cannot open "+file.bsr+" for writing.","E");
+      Real Stop
+    });
+  WriteLn(_MID+"File "+file.bsr+" was open successfully.");
+
+  Real numSegment = model::Get.LinReg.Size(0);
+  NameBlock segment = model::Get.LinReg.Segment(0);
+
+  Real Write.Header                    (model,   f.bsr, "primary");
+  Real Write.Header.MainLinearBlock    (model,   f.bsr);
+  Real Write.Data.MainLinearBlock      (segment, f.bsr);
+  Real Write.Header.NoiseDistribution  (model,   f.bsr);
+  Real Write.Data.NoiseDistribution    (segment, f.bsr);
+  Real Write.Header.RegressionMatrices (model,   f.bsr);
+  Real Write.Data.RegressionMatrices   (segment, f.bsr);
+  Real Write.Header.MissingBlock       (model,   f.bsr);
+  Real Write.Data.MissingBlock         (segment, f.bsr);
+  Real FPutText(f.bsr,"\n$END\n");
+  file.bsr
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Write.Joint =
+"Imports data from a model defined by a NameBlock having a set of mandatory "
+"methods to get all needed information to write an ASCII file with BSR "
+"format that will can be readed by function BSR.Parse ";
+  Text Write.Joint(NameBlock model)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text model.name = model::Get.Doc.Model.Name(0);
@@ -408,7 +446,7 @@ Text _.autodoc.member.Write =
   Real f.reg  = FOpen(file.bsr+".reg", "w");
   Real f.con  = FOpen(file.bsr+".con", "w");
 
-  Real Write.Header                    (model, f.head);
+  Real Write.Header                    (model, f.head, "joint");
   Real Write.Header.MainLinearBlock    (model, f.lin);
   Real Write.Header.MissingBlock       (model, f.mis);
   Real Write.Header.NoiseDistribution  (model, f.dis);
@@ -453,7 +491,36 @@ Text _.autodoc.member.Write =
   Real OSFilRemove(file.bsr+".reg");
   Real OSFilRemove(file.bsr+".con");
   file.bsr
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Write =
+"Imports data from a model defined by a NameBlock having a set of mandatory "
+"methods to get all needed information to write an ASCII file with BSR "
+"format that will can be readed by function BSR.Parse ";
+  Text Write(NameBlock model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text moduleType = ToLower(If(!FunctionExist("Text","model::Get.ModuleType"),
+  {
+    "joint"
+  },
+  {
+    model::Get.ModuleType(0)
+  }));
+  Case
+  (
+    moduleType=="primary", Write.Primary(model),
+    moduleType=="joint",   Write.Joint  (model),
+    moduleType=="master",  Write.Master (model),
+    1==1,
+    {
+      Error("Invalid module type '"+moduleType+"' should be one of these "
+            "'primary', 'joint' or 'master'")
+    }
+  )
 }
+
 
 ]];
 

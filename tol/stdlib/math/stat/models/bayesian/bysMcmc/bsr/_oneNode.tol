@@ -239,6 +239,7 @@ NameBlock OneNode =
   //WriteLn(_MID+" TRACE 9");
     //Building generic model definition
     Set modelDef = BSR.ModelDef (
+      "joint",
       docInfo = data::_.docInfo,
       linearBlock,
       Set inputMissing  = If(ObjectExist("Set","data::_.inputMissing"),
