@@ -1000,15 +1000,14 @@ BDat BoxPierceLjung(const BArray<BDat>& vec, BInt m, BInt p, BInt q)
 
 
 //--------------------------------------------------------------------
-BDat BoxCoxTrans(      BDat          exponent,
-//		    BDat& addition,
-		       BDat          addition,
-		 const BArray<BDat>& vec,
-//		    BInt  period,
-		       BInt          N,
-		       BInt          length)
+BDat BoxCoxTrans(      
+        BDat          exponent,
+        BDat          addition,
+  const BArray<BDat>& vec,
+        BInt          N,
+        BInt          length)
     
-/*! Returns the best Box-Cox transformation (exponent and addition)
+/*! Evaluates the Box-Cox transformation (exponent and addition)
  *  of a vector by homokedastic analysis.
  *  \param exponet: power in the Box-Cox transformation
  *  \param addition: number needed add to the vector to be positive
@@ -1016,133 +1015,139 @@ BDat BoxCoxTrans(      BDat          exponent,
  *  \param period: interval length
  *  \param N: total number of intervals
  *  \param length: period
- *  \return: the correlation coefficient between vector medias and vector
- *  \return  stddeviation of the differents intervals.
- *  \sa Minimun()
+ *  \return  standard deviation of the differents intervals.
  */
 //--------------------------------------------------------------------
 {
-  //BArray<BDat> tz(length);
-    BInt tVec = vec.Size();
-    BArray<BDat> tz(tVec);
-    BArray<BDat> nu(N), sigma(N);
-    BInt i=0;
-    BBool ok=BTRUE;
-    BDat bk,z;
-    BDat k;
-    BInt n;
-  
-    for(n=0; (n<vec.Size()); n++)
+//BArray<BDat> tz(length);
+//Std(BText("\nBoxCoxTrans(")+exponent+","+addition+")\n");
+  BInt tVec = vec.Size();
+  BArray<BDat> tz(tVec);
+  BArray<BDat> nu(N), sigma(N);
+  BInt i=0;
+  BBool ok=BTRUE;
+  BDat bk,z;
+  BDat k;
+  BInt n;
+  for(n=0; (n<vec.Size()); n++)
+  {
+    tz(n) = vec(n) + addition;   
+    if(exponent==0) { tz(n).Log(); }
+    else      { tz(n) = tz(n)^exponent; }
+  }
+  for(n=0; ok && (n<N); n++)
+  {
+    nu(n) = 0;
+    sigma(n) = 0;
+    for(BInt t=0; ok && (t<length); t++, i++)
     {
-	tz(n) = vec(n) + addition;   
-	if(exponent==0) { tz(n).Log(); }
-	else	    { tz(n) = tz(n)^exponent; }
-    }
-    
-    for(n=0; ok && (n<N); n++)
-    {
-	nu(n) = 0;
-	sigma(n) = 0;
-	
-	for(BInt t=0; ok && (t<length); t++, i++)
-	{
-	    z = tz(i);
-	    nu(n) += z;
-	    sigma(n) += z*z;
-	    ok = ok && z.IsKnown() && nu(n).IsKnown() && sigma(n).IsKnown();
-	    k = i/length;
-	}
-	if(ok)
-	{
-	    nu(n) /= BDat(length);
-	    sigma(n) /= BDat(length);
-	    sigma(n) -= nu(n)*nu(n);
-	    sigma(n).Sqrt();
-	    ok = nu(n).IsKnown() && sigma(n).IsKnown();
-	}
+      z = tz(i);
+      nu(n) += z;
+      sigma(n) += z*z;
+      ok = ok && z.IsKnown() && nu(n).IsKnown() && sigma(n).IsKnown();
+      k = i/length;
     }
     if(ok)
     {
-	bk = Abs(Covarianze(nu,sigma)/Varianze(nu));
+      nu(n) /= BDat(length);
+      sigma(n) /= BDat(length);
+      sigma(n) -= nu(n)*nu(n);
+      sigma(n).Sqrt();
+      ok = nu(n).IsKnown() && sigma(n).IsKnown();
     }
-    
-    return(bk);
+  }
+  if(ok)
+  {
+    bk = Abs(Covarianze(nu,sigma))/Varianze(nu);
+  }
+//Std(BText("\nBoxCoxTrans(")+exponent+","+addition+") -> "+bk+"\n");
+  return(bk);
 }
 
 
 //--------------------------------------------------------------------
-void BoxCoxTrans(BDat& exponent,
-		 BDat& addition,
-		 const BArray<BDat>& vec,
-		 BInt period,
-		 const BArray<BDat>& values)
+void BoxCoxTrans(
+  BDat& exponent,
+  BDat& addition,
+  const BArray<BDat>& vec,
+  BInt period,
+  const BArray<BDat>& values)
     
 /*! Returns the best Box-Cox exponential transformation of a vector
  *  by homokedastic analysis.
  */
 //--------------------------------------------------------------------
 {
-    BText fin;
+  BText fin;
+  if(values.Size()==0) 
+  { 
+    BoxCoxTrans(exponent,addition,vec,period); 
+    return; 
+  }
+  BInt length = period;
+  if(length<=1) { length=10; }
     
-    if(values.Size()==0) { BoxCoxTrans(exponent,addition,vec,period); return; }
-    BInt length = period;
-    if(length<=1) { length=10; }
+  BDat mi  = Minimum(vec);
+  addition = fabs(GSL_MIN(0, mi.Value()));
+  if (mi.Value() <= 0) 
+  {
+    BDat lg  = Log(mi.Zero());
+    addition += (mi.Zero() * 1000);  
+  }
     
-    BDat mi  = Minimum(vec);
-    addition = fabs(GSL_MIN(0, mi.Value()));
-    if (mi.Value() <= 0) {
-	BDat lg	= Log(mi.Zero());
-	addition += (mi.Zero() * 1000);  
-    }
-    
-    BInt N = vec.Size()/length;
-    if(N>3)
+  BInt N = vec.Size()/length;
+  if(N>3)
+  {
+    BDat b;
+    BInt index = -1;
+    for(BInt k=0; k<values.Size(); k++)
     {
-	BDat b;
-	BInt index = -1;
-	for(BInt k=0; k<values.Size(); k++)
-	{
-//      BDat bk = BoxCoxTrans(values(k),addition,vec,period,N,length);
-	    BDat bk = BoxCoxTrans(values(k),addition,vec,N,length);
-	    if(bk.IsKnown() && (!b.IsKnown()) || (bk<b))
-	    {
-		b = bk;
-		index = k;
-	    }
-	}
-	if (index != -1){ 
-	    exponent = values(index);
-	} else {
-	    Warning(I2("Elemento negativos despues de calcular el addition", 
-		       "Elemento negativos despues de calcular el addition"));
-	}
+      BDat bk = BoxCoxTrans(values(k),addition,vec,N,length);
+      if(bk.IsKnown() && (!b.IsKnown()) || (bk<b))
+      {
+        b = bk;
+        index = k;
+      }
     }
-    else
+    if (index != -1)
+    { 
+      exponent = values(index);
+    } 
+    else 
     {
-	exponent = 1;
-	addition = 0;
+      Warning(I2("Negative values after calculation of additive cofficient in ", 
+                 "Elementos negativos despues de calcular el coeficiente aditivo en ")+
+              "BoxCoxTrans");
     }
-    
+  }
+  else
+  {
+    Warning(I2("Cannot apply BoxCoxTrans to a time series with length ",
+               "No se puede aplicar BoxCoxTrans a una serie temporal de longitud "));
+    exponent = 1;
+    addition = 0;
+  }
 }
 
 
 //--------------------------------------------------------------------
-void BoxCoxTrans(BDat& exponent,
-		 BDat& addition,
-		 const BArray<BDat>& vec,
-		 BInt period)
+void BoxCoxTrans(
+  BDat& exponent,
+  BDat& addition,
+  const BArray<BDat>& vec,
+  BInt period)
     
 /*! Returns the best Box-Cox exponential transformation of a vector
  *  by homokedastic analysis.
  */
 //--------------------------------------------------------------------
 {
-    static BDat vv[9] =
-	{ -1,-1.0/2.0,-1.0/3.0,-1.0/4.0,0,1.0/4.0,1.0/3.0,1.0/2.0,1 };
-    
-    static BArray<BDat> values(9,vv);
-    BoxCoxTrans(exponent,addition,vec,period,values);
+  static BDat vv[9] =
+  { -1,-1.0/2.0,-1.0/3.0,-1.0/4.0,0,1.0/4.0,1.0/3.0,1.0/2.0,1 };
+  static BArray<BDat> values(9,vv);
+  BoxCoxTrans(exponent,addition,vec,period,values);
 }
+
 
 
 //--------------------------------------------------------------------
