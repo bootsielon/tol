@@ -1131,6 +1131,7 @@ Tree* BParser::ParseMacro (Tree* tre)
     messageError_+=
       I2("Unknown parsing macro ",
        "Macro de parseo desconocida ")+ name+" . ";
+    return(tre);
   } 
 }
 
