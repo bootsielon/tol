@@ -175,9 +175,9 @@ Class BlockArima : BlockSampler
     Real numDifData = m-difDegree;
     VMatrix D = 
     {
-      Matrix aux1 = PolMat(dif,m,m);
-      Rand(difDegree,m,0,0) <<
-      Mat2VMat(SubRow(aux1, Range(difDegree+1,m,1)),0,0.25,1.E-10)
+      VMatrix aux1 = Pol2VMat(dif,m,m);
+      Zeros(difDegree,m) <<
+      SubRow(aux1, Range(difDegree+1,m,1))
     };
   //WriteLn("TRACE"+_MID+" initializeArimaBlock before _.difFilter:"<<_.difFilter);
     VMatrix _.difFilter := 
@@ -486,11 +486,17 @@ Class BlockArima : BlockSampler
   VMatrix filter.arma(VMatrix DX)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+" filter.arma 1 DX="<< DX);
     Set s = EvalSet(_.armaParamBlock, Set set.filterArima(BSR.NoiseDistrib segment)
     {
-      VMatrix aux1 = filterJustBlock(segment,SubRow(DX, segment->EquIdx));
+    //WriteLn("TRACE"+_MID+" filter.arma 2 segment="<< segment->Name);
+      VMatrix DXs = SubRow(DX, segment->EquIdx);
+    //WriteLn("TRACE"+_MID+" filter.arma 3 DXs="<< DXs);
+      VMatrix aux1 = filterJustBlock(segment,DXs);
+    //WriteLn("TRACE"+_MID+" filter.arma 4 aux1="<< aux1);
       [[aux1, (segment->ArimaAuxInfo)::equIdxVec]]
     });
+  //WriteLn("TRACE"+_MID+" filter.arma 5");
     MergeRows(_.m, s)
   };
 
