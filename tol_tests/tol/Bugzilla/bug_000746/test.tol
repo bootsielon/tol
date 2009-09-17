@@ -1,0 +1,59 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  746;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "Función BoxCoxTrans";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  //Set expOpt = SetOfReal(
+  //    -1,-1.0/2.0,-1.0/3.0,-1.0/4.0,0,1.0/4.0,1.0/3.0,1.0/2.0,1);
+  
+  Set expOpt = Range(-1,1,0.10);
+  Real exp = expOpt[IntRand(1,Card(expOpt))];
+  
+  Real nu = Rand(0,500);
+  Real sig = Rand(nu/20,nu/10);
+  Serie x = SubSer(Gaussian(nu,sig,Diario),
+                   y1991m01d01,y2000m01d01);
+  
+  Serie y = BoxCoxInvTransf(x,BoxCoxStruct(exp,0));
+  
+  Set bc = BoxCoxTrans(y,expOpt);
+  
+  Serie x_ = BoxCoxTransf(y,bc);
+
+  Serie xNorm  = (x -AvrS(x ))/StDsS(x );
+  Serie xNorm_ = (x_-AvrS(x_))/StDsS(x_);
+
+  Serie xDiff = (xNorm - xNorm_);
+
+  Real q = Max(0,1-AvrS(Abs(xDiff)));
+
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[numErr0, numErr1, exp, bc[1], bc[2] ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0) * q;
+
+//Return the results 
+  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
