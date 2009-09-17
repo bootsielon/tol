@@ -20,6 +20,12 @@
    USA.
  */
 
+
+error_report_p error_beginExpected = error_report_parser(
+  "Expected $BEGIN" );
+error_report_p error_endExpected = error_report_parser(
+  "Expected $END" );
+
 error_report_p error_badNumber = error_report_parser(
   "Expecting a number, but found something else" );
 error_report_p error_badNumberOrUnk = error_report_parser(
@@ -31,6 +37,12 @@ error_report_p error_alreadyInUse = error_report_parser(
 error_report_p error_intExpected = error_report_parser(
   "Expected integer number" );
 
+error_report_p error_ModuleTypePrimaryDefExpected = error_report_parser(
+  "Expected primary module type definition 'Module.Type = primary' " );
+error_report_p error_ModuleTypeJointDefExpected = error_report_parser(
+  "Expected joint module type definition 'Module.Type = joint' " );
+error_report_p error_ModuleTypeMasterDefExpected = error_report_parser(
+  "Expected master module type definition 'Module.Type = master' " );
 error_report_p error_ModelNameDefExpected = error_report_parser(
   "Expected model name definition 'Model.Name = \"...\"' " );
 error_report_p error_ModelDescriptionDefExpected = error_report_parser(

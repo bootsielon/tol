@@ -49,6 +49,7 @@ BStruct* ModelDefStr()
     aux = NewStructSymbol(
     "BSR.ModelDef"
     ,
+    "Text:ModuleType,"
     "Set:DocInfo,"
     "Set:LinearBlock,"
     "Set:InputMissingBlock,"

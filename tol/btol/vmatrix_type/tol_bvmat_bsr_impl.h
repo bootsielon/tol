@@ -231,7 +231,6 @@ struct bsr_modeldef
 ///////////////////////////////////////////////////////////////////////////////
 //Actions
 ///////////////////////////////////////////////////////////////////////////////
-
 ///////////////////////////////////////////////////////////////////////////////
 template<typename T> struct symbol_handler
 ///////////////////////////////////////////////////////////////////////////////
@@ -254,8 +253,8 @@ public:
   void action() const
   {
     symbol_handler<T>* sh = sh_;
-  //Std(BText("\nadd_symbol(")+info_->name.c_str()+")");
-  //info_->show();
+  //Std(BText("\nadd_symbol(")+sh_->info.name.c_str()+")");
+  //sh_->info.show();
     sh->table.add(sh->info.name.c_str(), sh->vec.size());
     sh->vec.push_back(sh_->info);
     sh->count++;
@@ -358,6 +357,81 @@ public:
     std::string str;
     str.assign(first, last);
     action(str);
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_missing_row
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<missing_info>*  mis_;
+  
+  assign_missing_row(symbol_handler<missing_info>& mis)
+  : mis_(&mis)
+  {}
+  void action(const int d) const
+  {
+    symbol_handler<missing_info>* mis = mis_;
+    mis_->info.row  = d;
+  }
+  void operator()(const int d) const
+  {
+    action(d);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(atoi(str.c_str()));
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_missing_output
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<missing_info>*  mis_;
+  
+  assign_missing_output(symbol_handler<missing_info>& mis)
+  : mis_(&mis)
+  {}
+  void action() const
+  {
+    symbol_handler<missing_info>* mis = mis_;
+    mis_->info.col  = 0;
+  }
+  void  operator()(const char& str) const { action();  }
+  template<typename IteratorT>
+  void  operator()(IteratorT first, IteratorT last) const { action(); }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_missing_input
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<missing_info>*  mis_;
+  vector<variable_info>* var_vec_; 
+  
+  assign_missing_input(
+    symbol_handler<missing_info>& mis,
+    vector<variable_info>& var_vec)
+  : mis_(&mis),
+    var_vec_(&var_vec)
+  {}
+  void action(variable_info& varInfo) const
+  {
+    assign_missing_input* t = (assign_missing_input*)this;
+    t->mis_->info.col  = varInfo.index;
+  }
+  void operator()(const boost::reference_wrapper<int>& pos) const
+  {
+    assign_missing_input* t = (assign_missing_input*)this;
+    int n = pos.get(); 
+    action((*(t->var_vec_))[n]);
   }
 };
 
@@ -506,6 +580,61 @@ public:
 
 };
 
+///////////////////////////////////////////////////////////////////////////////
+class assign_reg_matrix
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  BText& desc_;
+  BText& expr_;
+  BVMat& vmat_; 
+
+  assign_reg_matrix(BText& desc, BText& expr, BVMat& vmat) 
+  : desc_(desc),
+    expr_(expr),
+    vmat_(vmat)
+  {}
+  void action(const std::string& str) const
+  {
+    assign_reg_matrix& t = *((assign_reg_matrix*)this);
+    t.expr_.Copy(str.c_str()+2, str.size()-4);
+  //Std(BSR()+" assign_reg_matrix\n  desc_ = "+desc_+"\n  expr_="+t.expr_);
+    BSyntaxObject* obj = GraAnything()->EvaluateExpr(t.expr_);
+    if(!obj)
+    {
+      Error(BText("Cannot create ")+desc_+" from TOL expression \n"+expr_);
+    }
+    else if(obj->Grammar()==GraVMatrix())
+    {
+      t.vmat_ = VMat(obj);
+    }
+    else if(obj->Grammar()==GraMatrix())
+    {
+      BMat& M = Mat(obj);
+      t.vmat_.DMat2VMat((BMatrix<double>&)M, false, .50, 0.0);
+    } 
+    else
+    {
+      Error(BText("Cannot create ")+desc_+" from TOL expression \n"+expr_+"\n"
+            " This expression is returning a "+obj->Grammar()->Name()+
+            " instead of a Matrix or VMatrix");
+    }
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 class assign_const_sigma_to_res
@@ -558,7 +687,7 @@ public:
   void action(const std::string& str) const
   {
     noise_info* noise_inf = noise_info_; 
-  //Std(BText("\nassign_const_sigma_to_res(")+str.c_str()+")");
+  //Std(BText("\nassign_covariance_to_res(")+str.c_str()+")");
     noise_inf->sigmaName  = "";
     noise_inf->sigmaIdx   = -2;
     noise_inf->sigmaCte   = 1;
@@ -1151,21 +1280,6 @@ struct skip_grammar : public grammar<skip_grammar>
   };
 };
 
-///////////////////////////////////////////////////////////////////////////////
-inline void show_parser_error(char const* msg, file_position const& lc, bool end)
-///////////////////////////////////////////////////////////////////////////////
-{
-  BText full_msg = BSR() + BText(msg) + "\n" +
-      " File:'" + lc.file.c_str()  + "'" +
-      " Line:" + (int)lc.line +
-      " Col:" + (int)lc.column;
-  if(end)
-  {
-    full_msg += BText("Unexpected end of file.");
-  };
-  full_msg += BText("\n")+url_parse_bsr();
-  Error(full_msg);
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 struct error_report_parser 
@@ -1174,8 +1288,11 @@ struct error_report_parser
   std::string msg_;
   error_report_parser(std::string msg) : msg_(msg) {}
   typedef nil_t result_t;
+  static void show_parser_error(
+    char const* msg, 
+    file_position const& lc, 
+    bool end);
   template <typename ScannerT>
-
   int operator()(ScannerT const& scan, result_t& /*result*/) const
   {
     file_position fpos = scan.first.get_position();
@@ -1195,6 +1312,7 @@ public:
   ifstream* file;
   string    fileName;
   size_t    fileSize;
+  string    moduleType;
 
   doc_info docInfo;
 
@@ -1210,126 +1328,19 @@ public:
 
   bool endFound_;
 
-  bys_sparse_reg()
-  : Xnzmax_  (0),
-    Anzmax_  (0),
-    numEqu_  (0),
-    endFound_ (false)
-  {
-    var.count = 0;
-    mis.count = 0;
-    sig.count = 0;
-    noise.count = 0;
-    var.info.index = 0;
-    mis.info.index = 0;
-    sig.info.index = 0;
-    noise.info.index = 0;
-    noise.info.sigmaIdx=-1;
-  }
+  bys_sparse_reg();
      
-  /////////////////////////////////////////////////////////////////////////////
   int expand2AllEqu(noise_info& resInfo, 
-                    const BVMat& A, BVMat& A_) 
-  /////////////////////////////////////////////////////////////////////////////
-  {
-    int s = resInfo.equIdx.size();
-    int n = A.Rows();
-    if(s!=n)
-    { 
-      Error(BSR()+"Size of noise "+
-        resInfo.name.c_str()+" has been declared as "+
-      s + " but there are "+n+" equations for it.");
-      return(-1); 
-    }
-    BVMat A1, A2;
-    int k, nnz;
-    A1.Convert(A,BVMat::ESC_chlmRtriplet);
-    nnz = A1.s_.chlmRtriplet_->nnz;
-    A2.ChlmRTriplet(numEqu_,numEqu_,nnz);
-    int*    r1_ = (int*)   A1.s_.chlmRtriplet_->i;
-    int*    c1_ = (int*)   A1.s_.chlmRtriplet_->j;
-    double* x1_ = (double*)A1.s_.chlmRtriplet_->x;
-    int*    r2_ = (int*)   A2.s_.chlmRtriplet_->i;
-    int*    c2_ = (int*)   A2.s_.chlmRtriplet_->j;
-    double* x2_ = (double*)A2.s_.chlmRtriplet_->x;
-    for(k=0; k<nnz; k++)
-    {
-      if(r1_[k]>=s)
-      { 
-        Error(BSR()+"Size of noise "+
-          resInfo.name.c_str()+" should be at least "+
-        (r1_[k]+1) + " but is set to "+s);
-        return(-1); 
-      }
-      if(resInfo.equIdx[r1_[k]]>numEqu_)
-      { 
-        Error(BSR()+"Number of equations "+
-          resInfo.name.c_str()+" should be at least "+
-        (resInfo.equIdx[r1_[k]]) + " but is set to "+numEqu_);
-        return(-2); 
-      }
-      if(x1_[k]!=0.0)
-      {
-        r2_[k]=resInfo.equIdx[r1_[k]]-1;
-        c2_[k]=resInfo.equIdx[c1_[k]]-1;
-        x2_[k]=x1_[k];
-        A2.s_.chlmRtriplet_->nnz++;
-      }
-    }
-    A_.Convert(A2, BVMat::ESC_chlmRsparse);
-    return(0);
-  };
+                    const BVMat& A, BVMat& A_);
 
-  /////////////////////////////////////////////////////////////////////////////
-  int expand2AllEqu_covAndFactors(noise_info& resInfo) 
-  /////////////////////////////////////////////////////////////////////////////
-  {
-    int k, n, err;
-    BVMat cov, L, Ls, Li, D;
-    cov = resInfo.cov;
-    n = cov.Rows();
-    if(resInfo.covIsDiag)
-    {
-      L = cov;
-      Li = cov;
-      double* xCov, *xL, * xLi;
-      int nzmax;
-      cov.StoredData(xCov, nzmax);
-      L  .StoredData(xL,   nzmax);
-      Li .StoredData(xLi,  nzmax);
-      for(k=0; k<nzmax; k++)
-      {
-        xL [k] = sqrt(xCov[k]);
-        xLi[k] = 1.0/xL[k];
-      }
-      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-      if(err = expand2AllEqu(resInfo, L,   resInfo.L  )) { return(err); }
-      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
-    }
-    else
-    {
-      err = BVMat::CholeskiFactor(cov,L,BVMat::ECFO_XtX,true,true,true);
-      if(err) 
-      { 
-        Error(BSR()+"Non symmetric definite positive covariance matrix for noise "+
-          resInfo.name.c_str());
-        return(err); 
-      }
-      D.Eye(n);
-      err = BVMat::CholeskiSolve(L, D, Li, BVMat::ECSS_L);
-      if(err) 
-      { 
-        Error(BSR()+"Cannot inverse Choleski Factor of covariance matrix for noise "+
-          resInfo.name.c_str());
-        return(err); 
-      }
-      Ls.Convert(L,BVMat::ESC_chlmRsparse);
-      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-      if(err = expand2AllEqu(resInfo, Ls,  resInfo.L  )) { return(err); }
-      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
-    }
-    return(err);
-  };
+  int expand2AllEqu_covAndFactors(noise_info& resInfo);
+
+  int checkDimensions(int m);
+
+  int getMissing(BVMat& Y,
+                 BVMat& X, 
+                 vector<missing_info>&   inputMissingInfo_,
+                 vector<missing_info>&   outputMissingInfo_);
 
   virtual int getData(vector<variable_info>&  linearInfo_,
               vector<missing_info>&   inputMissingInfo_,

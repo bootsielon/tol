@@ -450,6 +450,7 @@ public:
         (explicit_begin | eps_p) >>
         //header
         (
+          ((str_p("Module.Type") >> ch_p('=') >> str_p("joint")[assign_a(s.moduleType)] >> endOfSentence) | eps_p) >>
           model_nameDef >>
           model_descriptionDef >>
           session_nameDef >>
@@ -514,114 +515,9 @@ public:
       //BOOST_SPIRIT_DEBUG_NODE(equation );
       //BOOST_SPIRIT_DEBUG_NODE(inequation );
       //BOOST_SPIRIT_DEBUG_NODE(problem );
-
-    }
+    };
 
     rule<ScannerT> const&  start() const { return problem; }
-  };
-  
-  /////////////////////////////////////////////////////////////////////////////
-  int expand2AllEqu(noise_info& resInfo, 
-                    const BVMat& A, BVMat& A_) 
-  /////////////////////////////////////////////////////////////////////////////
-  {
-    int s = resInfo.equIdx.size();
-    int n = A.Rows();
-    if(s!=n)
-    { 
-      Error(BSR()+"Size of noise "+
-        resInfo.name.c_str()+" has been declared as "+
-      s + " but there are "+n+" equations for it.");
-      return(-1); 
-    }
-    BVMat A1, A2;
-    int k, nnz;
-    A1.Convert(A,BVMat::ESC_chlmRtriplet);
-    nnz = A1.s_.chlmRtriplet_->nnz;
-    A2.ChlmRTriplet(numEqu_,numEqu_,nnz);
-    int*    r1_ = (int*)   A1.s_.chlmRtriplet_->i;
-    int*    c1_ = (int*)   A1.s_.chlmRtriplet_->j;
-    double* x1_ = (double*)A1.s_.chlmRtriplet_->x;
-    int*    r2_ = (int*)   A2.s_.chlmRtriplet_->i;
-    int*    c2_ = (int*)   A2.s_.chlmRtriplet_->j;
-    double* x2_ = (double*)A2.s_.chlmRtriplet_->x;
-    for(k=0; k<nnz; k++)
-    {
-      if(r1_[k]>=s)
-      { 
-        Error(BSR()+"Size of noise "+
-          resInfo.name.c_str()+" should be at least "+
-        (r1_[k]+1) + " but is set to "+s);
-        return(-1); 
-      }
-      if(resInfo.equIdx[r1_[k]]>numEqu_)
-      { 
-        Error(BSR()+"Number of equations "+
-          resInfo.name.c_str()+" should be at least "+
-        (resInfo.equIdx[r1_[k]]) + " but is set to "+numEqu_);
-        return(-2); 
-      }
-      if(x1_[k]!=0.0)
-      {
-        r2_[k]=resInfo.equIdx[r1_[k]]-1;
-        c2_[k]=resInfo.equIdx[c1_[k]]-1;
-        x2_[k]=x1_[k];
-        A2.s_.chlmRtriplet_->nnz++;
-      }
-    }
-    A_.Convert(A2, BVMat::ESC_chlmRsparse);
-    return(0);
-  };
-
-  /////////////////////////////////////////////////////////////////////////////
-  int expand2AllEqu_covAndFactors(noise_info& resInfo) 
-  /////////////////////////////////////////////////////////////////////////////
-  {
-    int k, n, err;
-    BVMat cov, L, Ls, Li, D;
-    cov = resInfo.cov;
-    n = cov.Rows();
-    if(resInfo.covIsDiag)
-    {
-      L = cov;
-      Li = cov;
-      double* xCov, *xL, * xLi;
-      int nzmax;
-      cov.StoredData(xCov, nzmax);
-      L  .StoredData(xL,   nzmax);
-      Li .StoredData(xLi,  nzmax);
-      for(k=0; k<nzmax; k++)
-      {
-        xL [k] = sqrt(xCov[k]);
-        xLi[k] = 1.0/xL[k];
-      }
-      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-      if(err = expand2AllEqu(resInfo, L,   resInfo.L  )) { return(err); }
-      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
-    }
-    else
-    {
-      err = BVMat::CholeskiFactor(cov,L,BVMat::ECFO_XtX,true,true,true);
-      if(err) 
-      { 
-        Error(BSR()+"Non symmetric definite positive covariance matrix for noise "+
-          resInfo.name.c_str());
-        return(err); 
-      }
-      D.Eye(n);
-      err = BVMat::CholeskiSolve(L, D, Li, BVMat::ECSS_L);
-      if(err) 
-      { 
-        Error(BSR()+"Cannot inverse Choleski Factor of covariance matrix for noise "+
-          resInfo.name.c_str());
-        return(err); 
-      }
-      Ls.Convert(L,BVMat::ESC_chlmRsparse);
-      if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-      if(err = expand2AllEqu(resInfo, Ls,  resInfo.L  )) { return(err); }
-      if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
-    }
-    return(err);
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -635,30 +531,17 @@ public:
               BVMat&                  A)
   /////////////////////////////////////////////////////////////////////////////
   {
-    int i,j,k;
+    int i,j;
     int n = var.vec.size();
     int b = noise.vec.size();
     int m = equ_vec.size();
     int r = ine_vec.size();
     Std(BSR()+" Parsed "+r+" inequations \n");
-    Std(BSR()+" Building model definition \n");
-    if(!n)
-    {
-      Error(BSR()+"At least a linear regression variable must be defined");
-      return(-3);
-    }
-    if(!b)
-    {
-      Error(BSR()+"At least a vector of noise with independent normal distribution must be defined");
-      return(-4);
-    }
-    if(!m)
-    {
-      Error(BSR()+"At least a linear equation must be defined");
-      return(-5);
-    }
-    linearInfo_         = var.vec;
-    noiseInfo_      = noise.vec;
+    Std(BSR()+" Building model definition  of joint module\n");
+    int result = checkDimensions(m);
+    if(result) { return(result); }
+    linearInfo_ = var.vec;
+    noiseInfo_  = noise.vec;
     for(i=0; i<noiseInfo_.size(); i++)
     {
       Std(BSR()+" Building noise "+noiseInfo_[i].name.c_str()+"\n");
@@ -710,74 +593,6 @@ public:
     Std("\n");
     Std(BSR()+"Converting regression equations from triplet to sparse\n");
     X.Convert(X_,BVMat::ESC_chlmRsparse);
-    Std(BSR()+"Setting input and output missing block\n");
-    int inputMisSize = 0;
-    int outputMisSize = 0;
-    for(i=0; i<mis.vec.size(); i++)
-    {
-      if(mis.vec[i].col==0) { outputMisSize++; }
-      else                  { inputMisSize ++; }
-    }
-    inputMissingInfo_ .resize(inputMisSize );
-    outputMissingInfo_.resize(outputMisSize);
-    for(i=j=k=0; i<mis.vec.size(); i++)
-    {
-      if(mis.vec[i].col==0) { outputMissingInfo_[j++]=mis.vec[i]; }
-      else                  { inputMissingInfo_ [k++]=mis.vec[i]; }
-    }
-    for(i=0; i<inputMissingInfo_.size(); i++)
-    {
-      int r = inputMissingInfo_[i].row;
-      int c = inputMissingInfo_[i].col;
-      if((r<=0)||(r>X.Rows())||(c<=0)||(c>X.Columns()))
-      {
-        Error(BSR()+"Wrong missing input "+inputMissingInfo_[i].name.c_str());
-        return(-7);
-      }
-      else
-      {
-        X.PutCell(inputMissingInfo_[i].row-1, inputMissingInfo_[i].col-1, 0.0);
-        inputMissingInfo_[i].index = i+1;
-        if(inputMissingInfo_[i].prior == "None")
-        {
-          inputMissingInfo_[i].sigma2   = BDat::Nan();
-          inputMissingInfo_[i].minBound = BDat::Nan();
-          inputMissingInfo_[i].maxBound = BDat::Nan();
-        }
-        else if(inputMissingInfo_[i].prior == "Normal")
-        {
-          inputMissingInfo_[i].minBound = BDat::NegInf();
-          inputMissingInfo_[i].maxBound = BDat::PosInf();
-        }
-      }
-    }
-    for(i=0; i<outputMissingInfo_.size(); i++)
-    {
-      outputMissingInfo_[i].col = 1;
-      int r = outputMissingInfo_[i].row;
-      if((r<=0)||(r>Y.Rows()))
-      {
-        Error(BSR()+"Wrong missing output "+outputMissingInfo_[i].name.c_str());
-        return(-8);
-      }
-      else
-      {
-        Y.PutCell(r-1, 0, 0.0);
-
-        outputMissingInfo_[i].index = i+1;
-        if(outputMissingInfo_[i].prior == "None")
-        {
-          outputMissingInfo_[i].sigma2   = BDat::Nan();
-          outputMissingInfo_[i].minBound = BDat::Nan();
-          outputMissingInfo_[i].maxBound = BDat::Nan();
-        }
-        else if(outputMissingInfo_[i].prior == "Normal")
-        {
-          outputMissingInfo_[i].minBound = BDat::NegInf();
-          outputMissingInfo_[i].maxBound = BDat::PosInf();
-        }
-      }
-    }
     oldRatio = 0;
     Std(BSR()+"Building constrain inequations\n");
     for(i=0; i<r; i++)
@@ -802,8 +617,9 @@ public:
     Std("\n");
     Std(BSR()+"Converting constrain inequations from triplet to sparse\n");
     A.Convert(A_,BVMat::ESC_chlmRsparse);
-    Std(BSR()+"Succesfully build\n");
-    return(0);
+    result = getMissing(Y,X,inputMissingInfo_, outputMissingInfo_);
+    if(!result) { Std(BSR()+"Succesfully build\n"); }
+    return(result);
   };
 };
 
@@ -864,7 +680,7 @@ int Parse_Module_Joint(
     docInfo.model_description   =  bsr.docInfo.model_description;
     docInfo.session_name        =  bsr.docInfo.session_name;
     docInfo.session_description =  bsr.docInfo.session_description;
-    docInfo.session_authors      =  bsr.docInfo.session_authors;
+    docInfo.session_authors     =  bsr.docInfo.session_authors;
     errCode = bsr.getData
     (
       linearInfo,

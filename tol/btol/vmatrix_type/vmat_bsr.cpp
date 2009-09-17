@@ -29,6 +29,263 @@
 
 namespace BysSparseReg {
 
+///////////////////////////////////////////////////////////////////////////////
+void error_report_parser::show_parser_error (
+  char const* msg, 
+  file_position const& lc, 
+  bool end)
+///////////////////////////////////////////////////////////////////////////////
+{
+  BText full_msg = BSR() + BText(msg) + "\n" +
+      " File:'" + lc.file.c_str()  + "'" +
+      " Line:" + (int)lc.line +
+      " Col:" + (int)lc.column;
+  if(end)
+  {
+    full_msg += BText("Unexpected end of file.");
+  };
+  full_msg += BText("\n")+url_parse_bsr();
+  Error(full_msg);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+bys_sparse_reg::bys_sparse_reg()
+/////////////////////////////////////////////////////////////////////////////
+: Xnzmax_  (0),
+  Anzmax_  (0),
+  numEqu_  (0),
+  endFound_ (false),
+  moduleType("joint")
+{
+  var.count = 0;
+  mis.count = 0;
+  sig.count = 0;
+  noise.count = 0;
+  var.info.index = 0;
+  mis.info.index = 0;
+  sig.info.index = 0;
+  noise.info.index = 0;
+  noise.info.sigmaIdx=-1;
+}
+   
+/////////////////////////////////////////////////////////////////////////////
+int bys_sparse_reg::expand2AllEqu(
+  noise_info& resInfo, 
+  const BVMat& A, 
+  BVMat& A_) 
+/////////////////////////////////////////////////////////////////////////////
+{
+//Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu 1"));
+  int s = resInfo.equIdx.size();
+  int n = A.Rows();
+  if(s!=n)
+  { 
+    Error(BSR()+"Size of noise "+
+      resInfo.name.c_str()+" has been declared as "+
+    s + " but there are "+n+" equations for it.");
+    return(-1); 
+  }
+  BVMat A1, A2;
+  int k, nnz;
+  A1.Convert(A,BVMat::ESC_chlmRtriplet);
+  nnz = A1.s_.chlmRtriplet_->nnz;
+  A2.ChlmRTriplet(numEqu_,numEqu_,nnz);
+  int*    r1_ = (int*)   A1.s_.chlmRtriplet_->i;
+  int*    c1_ = (int*)   A1.s_.chlmRtriplet_->j;
+  double* x1_ = (double*)A1.s_.chlmRtriplet_->x;
+  int*    r2_ = (int*)   A2.s_.chlmRtriplet_->i;
+  int*    c2_ = (int*)   A2.s_.chlmRtriplet_->j;
+  double* x2_ = (double*)A2.s_.chlmRtriplet_->x;
+  for(k=0; k<nnz; k++)
+  {
+    if(r1_[k]>=s)
+    { 
+      Error(BSR()+"Size of noise "+
+        resInfo.name.c_str()+" should be at least "+
+      (r1_[k]+1) + " but is set to "+s);
+      return(-1); 
+    }
+    if(resInfo.equIdx[r1_[k]]>numEqu_)
+    { 
+      Error(BSR()+"Number of equations "+
+        resInfo.name.c_str()+" should be at least "+
+      (resInfo.equIdx[r1_[k]]) + " but is set to "+numEqu_);
+      return(-2); 
+    }
+    if(x1_[k]!=0.0)
+    {
+      r2_[k]=resInfo.equIdx[r1_[k]]-1;
+      c2_[k]=resInfo.equIdx[c1_[k]]-1;
+      x2_[k]=x1_[k];
+      A2.s_.chlmRtriplet_->nnz++;
+    }
+  }
+  A_.Convert(A2, BVMat::ESC_chlmRsparse);
+//Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu END"));
+  return(0);
+};
+
+/////////////////////////////////////////////////////////////////////////////
+int bys_sparse_reg::expand2AllEqu_covAndFactors(noise_info& resInfo) 
+/////////////////////////////////////////////////////////////////////////////
+{
+//Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu_covAndFactors 1"));
+  int k, n, err;
+  BVMat cov, L, Ls, Li, D;
+  cov = resInfo.cov;
+  n = cov.Rows();
+  if(resInfo.covIsDiag)
+  {
+  //Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu_covAndFactors 2"));
+    L = cov;
+    Li = cov;
+    double* xCov, *xL, * xLi;
+    int nzmax;
+    cov.StoredData(xCov, nzmax);
+    L  .StoredData(xL,   nzmax);
+    Li .StoredData(xLi,  nzmax);
+    for(k=0; k<nzmax; k++)
+    {
+      xL [k] = sqrt(xCov[k]);
+      xLi[k] = 1.0/xL[k];
+    }
+    if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
+    if(err = expand2AllEqu(resInfo, L,   resInfo.L  )) { return(err); }
+    if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
+  }
+  else
+  {
+  //Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu_covAndFactors 3"));
+    err = BVMat::CholeskiFactor(cov,L,BVMat::ECFO_XtX,true,true,true);
+    if(err) 
+    { 
+      Error(BSR()+"Non symmetric definite positive covariance matrix for noise "+
+        resInfo.name.c_str());
+      return(err); 
+    }
+    D.Eye(n);
+    err = BVMat::CholeskiSolve(L, D, Li, BVMat::ECSS_L);
+    if(err) 
+    { 
+      Error(BSR()+"Cannot inverse Choleski Factor of covariance matrix for noise "+
+        resInfo.name.c_str());
+      return(err); 
+    }
+    Ls.Convert(L,BVMat::ESC_chlmRsparse);
+    if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
+    if(err = expand2AllEqu(resInfo, Ls,  resInfo.L  )) { return(err); }
+    if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
+  }
+//Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu_covAndFactors END"));
+  return(err);
+};
+
+/////////////////////////////////////////////////////////////////////////////
+int bys_sparse_reg::checkDimensions(int m)
+/////////////////////////////////////////////////////////////////////////////
+{
+  int n = var.vec.size();
+  int b = noise.vec.size();
+  if(!n)
+  {
+    Error(BSR()+"At least a linear regression variable must be defined");
+    return(-3);
+  }
+  if(!b)
+  {
+    Error(BSR()+"At least a vector of noise with independent normal distribution must be defined");
+    return(-4);
+  }
+  if(!m)
+  {
+    Error(BSR()+"At least a linear equation must be defined");
+    return(-5);
+  }
+  return(0);
+};
+
+/////////////////////////////////////////////////////////////////////////////
+int bys_sparse_reg::getMissing(
+  BVMat& Y,
+  BVMat& X, 
+  vector<missing_info>&   inputMissingInfo_,
+  vector<missing_info>&   outputMissingInfo_)
+/////////////////////////////////////////////////////////////////////////////
+{
+  int i,j,k;
+  Std(BSR()+"Setting input and output missing block\n");
+  int inputMisSize = 0;
+  int outputMisSize = 0;
+  for(i=0; i<mis.vec.size(); i++)
+  {
+    if(mis.vec[i].col==0) { outputMisSize++; }
+    else                  { inputMisSize ++; }
+  }
+  inputMissingInfo_ .resize(inputMisSize );
+  outputMissingInfo_.resize(outputMisSize);
+  for(i=j=k=0; i<mis.vec.size(); i++)
+  {
+    if(mis.vec[i].col==0) { outputMissingInfo_[j++]=mis.vec[i]; }
+    else                  { inputMissingInfo_ [k++]=mis.vec[i]; }
+  }
+  for(i=0; i<inputMissingInfo_.size(); i++)
+  {
+    int r = inputMissingInfo_[i].row;
+    int c = inputMissingInfo_[i].col;
+    if((r<=0)||(r>X.Rows())||(c<=0)||(c>X.Columns()))
+    {
+      Error(BSR()+"Wrong missing input "+inputMissingInfo_[i].name.c_str());
+      return(-7);
+    }
+    else
+    {
+      X.PutCell(inputMissingInfo_[i].row-1, inputMissingInfo_[i].col-1, 0.0);
+      inputMissingInfo_[i].index = i+1;
+      if(inputMissingInfo_[i].prior == "None")
+      {
+        inputMissingInfo_[i].sigma2   = BDat::Nan();
+        inputMissingInfo_[i].minBound = BDat::Nan();
+        inputMissingInfo_[i].maxBound = BDat::Nan();
+      }
+      else if(inputMissingInfo_[i].prior == "Normal")
+      {
+        inputMissingInfo_[i].minBound = BDat::NegInf();
+        inputMissingInfo_[i].maxBound = BDat::PosInf();
+      }
+    }
+  }
+  for(i=0; i<outputMissingInfo_.size(); i++)
+  {
+    outputMissingInfo_[i].col = 1;
+    int r = outputMissingInfo_[i].row;
+    if((r<=0)||(r>Y.Rows()))
+    {
+      Error(BSR()+"Wrong missing output "+outputMissingInfo_[i].name.c_str());
+      return(-8);
+    }
+    else
+    {
+      Y.PutCell(r-1, 0, 0.0);
+
+      outputMissingInfo_[i].index = i+1;
+      if(outputMissingInfo_[i].prior == "None")
+      {
+        outputMissingInfo_[i].sigma2   = BDat::Nan();
+        outputMissingInfo_[i].minBound = BDat::Nan();
+        outputMissingInfo_[i].maxBound = BDat::Nan();
+      }
+      else if(outputMissingInfo_[i].prior == "Normal")
+      {
+        outputMissingInfo_[i].minBound = BDat::NegInf();
+        outputMissingInfo_[i].maxBound = BDat::PosInf();
+      }
+    }
+  }
+
+  return(0);
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 int Parse_Module(const BText& filePath, 
                  const BText& moduleType,
@@ -355,7 +612,13 @@ int Parse_Module(const BText& filePath,
   ));
   HD.PutStruct(BysSparseReg::DocInfoStr());
 
-  contens_.PrepareStore(9);
+  contens_.PrepareStore(10);
+  contens_.AddElement(BContensText::New
+  (
+    "ModuleType", 
+    moduleType,
+    "Type of BSR-ASCII module: primary, joint or master"
+  ));
   contens_.AddElement(BContensSet::New
   (
     "DocInfo", 
@@ -420,6 +683,7 @@ int Parse_Module(const BText& filePath,
   assert(X.Check());
   assert(a.Check());
   assert(A.Check());
+  return(0);
 };
 
 };
