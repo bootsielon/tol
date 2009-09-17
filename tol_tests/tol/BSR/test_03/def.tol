@@ -28,12 +28,12 @@ Text session.description =
 
 
 //Number of variables of each observational node
-Real n = IntRand(2,2);
+Real n = IntRand(1,5);
 Real S = 7;
 //Data length of each observational node
-Real m  = IntRand(200,200);
+Real m  = IntRand(70,200);
 //Number of observational nodes
-Real K1 = IntRand(3,3);
+Real K1 = IntRand(2,2);
 //
 Real enableARMA = true;
 //Regular AR Degree
