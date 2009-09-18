@@ -35,6 +35,7 @@ BTraceInit("scn.cpp");
 BScanner::BTokenByNameHash BScanner::symbolTable_;
 BScanner::BTokenByNameHash BScanner::aliasTable_;
 BScanner::BTokenByNameHash BScanner::usrDefSymbol_; //!< User defined symbols Class, Struct, ...
+BScanner* BScanner::current_ = NULL;
 
 
 //--------------------------------------------------------------------
@@ -97,6 +98,27 @@ BInt Str2SymCmp(const BAny vBChar, const BAny vBToken)
   return(strcmp(str, sym.String()));
 }
 
+#define _USE_TRACE_CURRENT_NEXTARGUMENT_
+
+//--------------------------------------------------------------------
+static void _trace_current_nextArgument_(
+  const char* function, 
+  int itemNum)
+//--------------------------------------------------------------------
+{
+  if(BScanner::GetCurrent())
+  {
+    Std(BText("\n _TRACE_CURRENT_NEXTARGUMENT_(")+function+","+itemNum+") "
+        " -> '"+BScanner::GetCurrent()->NextArgument()+"'\n");
+  }
+}
+
+#ifdef _USE_TRACE_CURRENT_NEXTARGUMENT_
+#define _TRACE_CURRENT_NEXTARGUMENT_(function,itemNum) \
+        _trace_current_nextArgument_(function,itemNum)
+#else
+#define _TRACE_CURRENT_NEXTARGUMENT_(function,itemNum) 
+#endif
 
 //--------------------------------------------------------------------
 BToken* BScanner::FindSymbol(const BText& name)
@@ -109,21 +131,34 @@ BToken* BScanner::FindSymbol(const BText& name)
  */
 //--------------------------------------------------------------------
 {
+  _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",1);
+  if(!name.HasName()) { return(NULL); }
   BToken* tok = NULL;
+  _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",2);
   BTokenByNameHash::const_iterator found;
+  _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",3);
   found = symbolTable_.find(name);
+  _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",4);
   if(found==symbolTable_.end()) 
   { 
+    _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",5);
     found = aliasTable_.find(name);
+    _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",6);
     if(found!=aliasTable_.end()) 
     { 
+      _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",7);
       tok = found->second; 
+      _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",8);
     }
+    _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",9);
   }
   else 
   { 
+    _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",10);
     tok = found->second; 
+    _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",11);
   }           
+  _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",12);
   return(tok);
 }
 
@@ -446,6 +481,7 @@ void BScanner::Initialize(const BText& expression)
   lastSymbol_ = NIL;
   nextArgument_ = "";
   structDefininig_ = false;
+  current_ = this;
 }
 
 
