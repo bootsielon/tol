@@ -51,6 +51,7 @@ class BScanner
 public:
   typedef hash_map_by_name<BToken*>::dense_ BTokenByNameHash;
 private:
+    static BScanner* current_;
     static BTokenByNameHash symbolTable_;  //!< Symbol Table
     static BTokenByNameHash aliasTable_;   //!< Alias Table
     static BTokenByNameHash usrDefSymbol_; //!< User defined symbols Class, Struct, ...
@@ -78,6 +79,14 @@ public:
 
   //! Initialize Scanner attributes in order to begin scan proccess
   void         Initialize     (const BText& expression);
+  static BScanner* GetCurrent() { return(current_); }
+  static BScanner* SetCurrent(BScanner* newScanner) 
+  { 
+    BScanner* old = current_;
+    current_ = newScanner;
+    return(old); 
+  }
+
   //! Find a symbol in \a symbolTable_ which name is \a str and returns it
   static BToken*      FindSymbol     (const BText& name);
   //! Find a symbol in \a symbolTable_ which name is \a str and returns it

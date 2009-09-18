@@ -100,6 +100,7 @@ BParser::~BParser()
  */
 Tree* BParser::Parse(const BText& expr)
 {
+  BScanner* oldScanner = BScanner::SetCurrent(scan_);
   Tree* tree = new Tree();
   expression_ = expr;
   newSymbol_ = NULL;
@@ -159,6 +160,7 @@ Tree* BParser::Parse(const BText& expr)
   //SumPartialTime;
   //BTimer::PrintProcess();
   }
+  BScanner::SetCurrent(oldScanner);
   return(tree);
 }
 
