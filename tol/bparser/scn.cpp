@@ -163,6 +163,7 @@ BInt BScanner::AddSymbol(BToken* sym)
 //--------------------------------------------------------------------
 {
   const BText& name = sym->Name();
+  assert(name.HasName());
   BToken* s = FindSymbol(name);
   if(!s)
   {
