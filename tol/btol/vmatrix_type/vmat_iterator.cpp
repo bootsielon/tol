@@ -129,7 +129,14 @@ bool BVMatColMajIter::GoToCol(int j)
     k0_   = ((int*)M_.s_.chlmRsparse_->p)[j];
     k1_   = ((int*)M_.s_.chlmRsparse_->p)[j+1];
     k_    = k0_;
-    i_nz_ = ((int*)M_.s_.chlmRsparse_->i)[k_];
+    if(k_<k1_)
+    {
+      i_nz_ = ((int*)M_.s_.chlmRsparse_->i)[k_];
+    }
+    else
+    {
+      i_nz_ = r_;
+    }
     cRs_SetCell();
     break;
   default : return(false); }
