@@ -98,7 +98,7 @@ BInt Str2SymCmp(const BAny vBChar, const BAny vBToken)
   return(strcmp(str, sym.String()));
 }
 
-#define _USE_TRACE_CURRENT_NEXTARGUMENT_
+//#define _USE_TRACE_CURRENT_NEXTARGUMENT_
 
 //--------------------------------------------------------------------
 static void _trace_current_nextArgument_(
@@ -132,7 +132,8 @@ BToken* BScanner::FindSymbol(const BText& name)
 //--------------------------------------------------------------------
 {
   _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",1);
-  if(!name.HasName()) { return(NULL); }
+  if(!name.HasName()) 
+  { return(NULL); }
   BToken* tok = NULL;
   _TRACE_CURRENT_NEXTARGUMENT_("FindSymbol",2);
   BTokenByNameHash::const_iterator found;
