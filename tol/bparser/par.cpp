@@ -1323,7 +1323,7 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
         newSymbol_ = List::cons(arg,newSymbol_);
       }
     }
-    else if(classFound && scan_->NextArgument() && 
+    else if(classFound && NextArgument() && 
             !scan_->FindSymbol(scan_->NextArgument()))
     {
       BObject* arg = new BObject(scan_->NextArgument());
