@@ -1314,23 +1314,26 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
   } 
   else 
   {
+    const BText& nxtArg = scan_->NextArgument();
     PutNextSymbol  (scan_->NextSymbol());
-    PutNextArgument(scan_->NextArgument());
+    PutNextArgument(nxtArg);
     if(structFound) 
     {
-      if(!scan_->FindSymbol(scan_->NextArgument()))
+      if(nxtArg.HasName() && !scan_->FindSymbol(nxtArg))
       {
-        BObject* arg = new BObject(scan_->NextArgument());
-        scan_->AddSymbol(new BTypeToken(arg->Name(),BTypeToken::BSTRUCT));
+        BObject* arg = new BObject(nxtArg);
+        scan_->AddSymbol(new BTypeToken(nxtArg,BTypeToken::BSTRUCT));
         newSymbol_ = List::cons(arg,newSymbol_);
       }
     }
-    else if(classFound && NextArgument() && 
-            !scan_->FindSymbol(scan_->NextArgument()))
+    else if(classFound)
     {
-      BObject* arg = new BObject(scan_->NextArgument());
-      scan_->AddSymbol(new BTypeToken(arg->Name(),BTypeToken::BCLASS));
-      newSymbol_ = List::cons(arg,newSymbol_);
+      if(nxtArg.HasName() && !scan_->FindSymbol(nxtArg))
+      {
+        BObject* arg = new BObject(nxtArg);
+        scan_->AddSymbol(new BTypeToken(nxtArg,BTypeToken::BCLASS));
+        newSymbol_ = List::cons(arg,newSymbol_);
+      }
     }
   }
   return(ok);
