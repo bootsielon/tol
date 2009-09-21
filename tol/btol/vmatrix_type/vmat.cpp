@@ -478,7 +478,14 @@ static int intCmp_(const void* v1, const void* v2)
     k0 = ((int*)s_.chlmRsparse_->p)[j];
     k1 = ((int*)s_.chlmRsparse_->p)[j+1];
     i0 = ((int*)s_.chlmRsparse_->i)+k0;
-    found = (int*) bsearch(&i, i0, k1-k0, sizeof(int), intCmp_);
+    if(k0<k1)
+    {
+      found = (int*) bsearch(&i, i0, k1-k0, sizeof(int), intCmp_);
+    }
+    else
+    {
+      found = NULL;
+    }
     if(!found)
     {
       accessCode=1;
@@ -618,7 +625,10 @@ static int intCmp_(const void* v1, const void* v2)
     k0y = ((int*)s_.chlmRsparse_->p)[jy];
     k1y = ((int*)s_.chlmRsparse_->p)[jy+1];
     i0y = ((int*)s_.chlmRsparse_->i)+k0y;
-    iy = (int*) bsearch(&i0,i0y, k1y-k0y, sizeof(int), intCmp_);
+    if(k0y<k1y)
+    {
+      iy = (int*) bsearch(&i0,i0y, k1y-k0y, sizeof(int), intCmp_);
+    }
     ky = k0y+(iy-i0y);
     y = ((double*)s_.chlmRsparse_->x)+ky;
     for(k=0; k<rx; k++, ky++, y++)
@@ -681,62 +691,8 @@ static int intCmp_(const void* v1, const void* v2)
     cholmod_free_triplet (&tr_old, common_);
     cholmod_free_triplet (&tr_new, common_);
   }
-/*
-  for(jx=0; jx<cx; jx++)
-  {
-    jy = j0+jx;
-    x = ((double*)x_.s_.blasRdense_->x) + (rx*jx);
-    k0y = ((int*)s_.chlmRsparse_->p)[jy];
-    k1y = ((int*)s_.chlmRsparse_->p)[jy+1];
-    i0y = ((int*)s_.chlmRsparse_->i)+k0y;
-    iy = (int*) bsearch(&i0,i0y, k1y-k0y, sizeof(int), intCmp_);
-    ky = k0y+(iy-i0y);
-    y = ((double*)s_.chlmRsparse_->x)+ky;
-    for(; (ky<k1y)&&(*iy<i0+rx); ky++, y++, iy++)
-    {
-      *y = x[*iy-i0];
-    }
-  }
-*/
   return(accessCode);
 };
-
-/*
-////////////////////////////////////////////////////////////////////////////////
-  int BVMat::cRs_cRs_PutBlock(int i0, int j0, const BVMat& x, int& accessCode)
-////////////////////////////////////////////////////////////////////////////////
-{
-  //
-  int rx=x.Rows();
-  int cx=x.Columns();
-  int r=Rows();
-  int c=Columns();
-  double* y;
-  double* x;
-  int ix, jx, kx, k0y, k1y, k0x, k1x;
-  int *i0y, *found_y, *i0x;
-  cRs_ensure_packed(  s_.chlmRsparse_);
-  cRs_ensure_packed(x.s_.chlmRsparse_);
-  for(jx=0; jx<cx; jx++)
-  {
-    jy = j0+jx;
-    k0y = ((int*)s_.chlmRsparse_->p)[jy];
-    k1y = ((int*)s_.chlmRsparse_->p)[jy+1];
-    i0y = ((int*)s_.chlmRsparse_->i)+k0y;
-    found_y = (int*) bsearch(&i0y, i0y, k1y-k0y, sizeof(int), intCmp_);
-    k0x = ((int*)x.s_.chlmRsparse_->p)[jx];
-    k1x = ((int*)x.s_.chlmRsparse_->p)[jx+1];
-    i0x = ((int*)x.s_.chlmRsparse_->i)+k0x;
-    for(kx=k0x; kx<k1x; kx++)
-    {
-      if(found_y[kx]!=i0x[kx]+i0)
-      {
-      }
-    }
-  }
-
-};
-*/
 
 
 ////////////////////////////////////////////////////////////////////////////////
