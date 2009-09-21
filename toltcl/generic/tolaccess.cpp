@@ -876,7 +876,7 @@ int Tol_ForEach (Tcl_Interp * interp,
   if (!set) {
     Tcl_AppendStringsToObj(obj_result,
                            "object '",
-                           Tcl_GetString(objv[0]),
+                           Tcl_GetString( objv[ 1 ] ),
                            "' is not a valid container ",
                            NULL);
       return TCL_ERROR;
