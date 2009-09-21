@@ -841,10 +841,8 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
   static int trace_counter = 0;
   bool carIsList = argList->car()->IsListClass();
   List* dec = carIsList?Tree::treNode((List*) argList):(List*)argList;
-/*
-  if(BParser::Unparse(dec,"")=="Point P")
-    printf("");
-*/
+//if(BParser::Unparse(dec,"")=="Point P")
+  //printf("");
   BGrammar* gra = GetLeft(Grammar(), dec, name, rest, str, cls);
   List* left = NULL;
   bool defInst = false;
@@ -941,9 +939,10 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
   List* rest = NULL;
   BStruct* str = NULL;
   BClass* cls = NULL;
-  BGrammar* gra = GetLeft(NIL, 
-	                        Tree::treNode((List*) argList),
-                          name, rest, str, cls);
+  List* dec = Tree::treNode((List*) argList);
+//if(BParser::Unparse(dec,"")=="Proj::MiClase fun_aux.2.2(Real i)")
+  //printf("");
+  BGrammar* gra = GetLeft(NIL, dec, name, rest, str, cls);
   if(rest && gra)
   {
     result = gra->FindOperator(name); 
@@ -1463,7 +1462,13 @@ BBool BUserFunction::Compile()
   BInt   n        = 0;
   BText* errMsg   = NIL;
   arguments_ = "";
-  if(BParser::treToken(dec)->TokenType()==TYPE)
+  BToken* tok = BParser::treToken(dec);
+  while(tok && (tok->TokenType()==BINARY)&&(tok->Name()=="::"))
+  {
+    dec = Tree::treRight(dec);
+    tok = dec?BParser::treToken(dec):NULL;
+  }
+  if(tok->TokenType()==TYPE)
   {
     dec = dec->cdr();
 //  if(((BToken*)Car((BTree*)Car(dec)))->TokenType()!=TYPE)
