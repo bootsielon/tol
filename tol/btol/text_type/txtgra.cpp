@@ -2262,7 +2262,7 @@ void BTxtClassOf::CalcContens()
   const BNameBlock& nb = ((BUserNameBlock*)(Arg(1)))->Contens();
   const BClass* cls = nb.Class( );
   if ( cls ) {
-    contens_ = cls->getName( );
+    contens_ = cls->FullName( );
   }
 }
 
