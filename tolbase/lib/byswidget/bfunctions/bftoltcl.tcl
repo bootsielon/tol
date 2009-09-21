@@ -627,7 +627,7 @@ proc TolValidateData {P typFie} {
     # datetime y smalldatetime
     "date" {
       set delimeter {' '}
-      set gestor [string trim [TclGetVar Text DBA] {"}]
+      set gestor [string trim [TclGetVar Text DBA] {"}]; #"
 
       switch $gestor {
         "SqlServer" {
@@ -651,8 +651,6 @@ proc TolValidateData {P typFie} {
   return $delimeter
 }
 
-
-
 #///////////////////////////////////////////////////////////////////////////
 proc EvalTolExp {grammar expression {seed _tempName}} {
 # PURPOSE: Evaluates a tol expression $expression from grammar $grammar
@@ -666,4 +664,121 @@ proc EvalTolExp {grammar expression {seed _tempName}} {
   eval "set lstRes $info(CONTENT)"
   ::tol::console stack release $nRes
   return $lstRes
+}
+
+#///////////////////////////////////////////////////////////////////////////
+proc TolObj2TclObj { obj } {
+# PURPUSE: Dado una referencia a un objeto TOL retorna una representacion en
+#          TCL equivalente. Esta funcion debe reemplazar a TolSet2TclLst.
+#
+# RETURN: Un objeto Tcl que representa el contenido del objeto TOL
+#
+#///////////////////////////////////////////////////////////////////////////
+ #puts "obj = $obj"
+  set vinfo [ tol::info variable $obj ]
+  set grammar [ lindex $vinfo 0 ]
+  if { $grammar eq "Set" || $grammar eq "NameBlock" } {
+    set result [ list ]
+    set idx 1
+    tol::foreach it $obj {
+      array set it_info $it
+      #puts "$it_info(grammar) $it_info(name) $it_info(content) "
+      set G $it_info(grammar)
+      if { $G eq "Set" || $G eq "NameBlock" } {
+        set value [ TolObj2TclObj [ eval list $obj $idx ] ]
+      } else {
+        set value $it_info(content)
+      }
+      lappend result $value
+      incr idx
+    }
+    set result
+  } else {
+    lindex $vinfo 2
+  }
+}
+
+#///////////////////////////////////////////////////////////////////////////
+proc TolObj2TclObjNamed { obj } {
+# PURPUSE: Dado una referencia a un objeto TOL retorna una representacion en
+#          TCL equivalente manteniendo los nombres de los objetos TOL.
+#          Si alguno de los objetos no tiene nombre se le asigna el nombre "".
+#          Esta funcion puede reemplazar a TolSet2TclLst.
+#
+# RETURN: Un lista Tcl de pares <nombre,valor> que representa el contenido
+#         con nombredel objeto TOL
+#
+#///////////////////////////////////////////////////////////////////////////
+  #puts "obj = $obj"
+  set vinfo [ tol::info variable $obj ]
+  set grammar [ lindex $vinfo 0 ]
+  if { $grammar eq "Set" || $grammar eq "NameBlock" } {
+    set result [ list ]
+    set idx 1
+    tol::foreach it $obj {
+      array set it_info $it
+      #puts "$it_info(grammar) $it_info(name) $it_info(content) "
+      set G $it_info(grammar)
+      if { $G eq "Set" || $G eq "NameBlock" } {
+        set value [ TolObj2TclObj [ eval list $obj $idx ] ] 
+      } else {
+         set value $it_info(content)
+      }
+      lappend result $it_info(name) $value
+      incr idx
+    }
+    set result
+  } else {
+    lrange $vinfo 1 2
+  }
+}
+
+proc loadtt { } {
+  package require Toltcl
+  tol::initkernel
+  tol::initlibrary
+}
+
+proc test1.1 { } {
+  TolObj2TclObj {Set BdtChartMet}
+}
+
+proc test1.2 { } {
+  TolObj2TclObjNamed {Set BdtChartMet}
+}
+
+proc test2.1 { } {
+  tol::console eval {
+    Set {[[ Set kk = Empty ]]}
+  }
+  set result [ TolObj2TclObj {Console 1} ]
+  tol::console stack release
+  return $result
+}
+
+proc test2.2 { } {
+  tol::console eval {
+    Set {[[ Set kk = Empty ]]}
+  }
+  set result [ TolObj2TclObjNamed {Console 1} ]
+  tol::console stack release
+  return $result
+}
+
+proc test3.1 { } {
+  tol::console eval {
+    Set {[[ 1, 2, Set kk = [[ 3, 4 ]] ]]}
+  }
+  set result [ TolObj2TclObj {Console 1} ]
+  tol::console stack release
+  return $result
+}
+
+proc test3.2 { } {
+  tol::console eval {
+    Set {[[ 1, 2, Set kk = [[ 3, 4 ]] ]]}
+  }
+  set result [ TolObj2TclObjNamed {Console 1} ]
+  tol::console stack release
+  return $result
 }
