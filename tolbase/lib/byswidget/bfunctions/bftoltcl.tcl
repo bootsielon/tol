@@ -720,7 +720,7 @@ proc TolObj2TclObjNamed { obj } {
       #puts "$it_info(grammar) $it_info(name) $it_info(content) "
       set G $it_info(grammar)
       if { $G eq "Set" || $G eq "NameBlock" } {
-        set value [ TolObj2TclObj [ eval list $obj $idx ] ] 
+        set value [ TolObj2TclObjNamed [ eval list $obj $idx ] ] 
       } else {
          set value $it_info(content)
       }
