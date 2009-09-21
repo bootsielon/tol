@@ -890,50 +890,66 @@ BSyntaxObject* BGrammar::EvaluateTree(
 BSyntaxObject* BGrammar::EvaluateExpr(const BText& expr)
 //--------------------------------------------------------------------
 {
-  if(!Compact(expr).HasName()) { return(NIL); }
-  Tree* realTree = BParser::parsing(expr);
-//Trace(BText("Parsed expression :\n")+Unparsing(tre, "	 ", "|"));
-  BSyntaxObject* result = NIL;
-  if(realTree && !BParser::HasError())
+  try 
   {
-    List* tre = realTree->getTree();
-    if((result = EvaluateTree(tre)))
+    if(!Compact(expr).HasName()) { return(NIL); }
+    Tree* realTree = BParser::parsing(expr);
+  //Trace(BText("Parsed expression :\n")+Unparsing(tre, "	 ", "|"));
+    BSyntaxObject* result = NIL;
+    if(realTree && !BParser::HasError())
     {
-      BGrammar::PutLast(this);
+      List* tre = realTree->getTree();
+      if((result = EvaluateTree(tre)))
+      {
+        BGrammar::PutLast(this);
+      }
+      SAFE_DESTROY(tre,result);
+    };
+    PutLast(this);
+    if(UnparseNodes() && result) 
+    {
+      result->PutExpression(expr);
     }
-    SAFE_DESTROY(tre,result);
-  };
-  PutLast(this);
-  if(UnparseNodes() && result) 
-  {
-    result->PutExpression(expr);
+    return(result);
   }
-  return(result);
+  catch(...)
+  {
+    Error("EXCEPTION: Uncontrolled exception in TOL evaluator");
+    return(NULL);
+  }
 }
 
 //--------------------------------------------------------------------
 BSyntaxObject* BGrammar::LeftEvaluateExpr(const BText& expr)
 //--------------------------------------------------------------------
 {
-  if(!Compact(expr).HasName()) { return(NIL); }
-  Tree* realTree = BParser::parsing(expr);
-//Trace(BText("Parsed expression :\n")+Unparsing(tre, "	 ", "|"));
-  BSyntaxObject* result = NIL;
-  if(realTree && !BParser::HasError())
+  try 
   {
-    List* tre = realTree->getTree();
-    if((result = LeftEvaluateTree(tre)))
+    if(!Compact(expr).HasName()) { return(NIL); }
+    Tree* realTree = BParser::parsing(expr);
+  //Trace(BText("Parsed expression :\n")+Unparsing(tre, "	 ", "|"));
+    BSyntaxObject* result = NIL;
+    if(realTree && !BParser::HasError())
     {
-      BGrammar::PutLast(this);
+      List* tre = realTree->getTree();
+      if((result = LeftEvaluateTree(tre)))
+      {
+        BGrammar::PutLast(this);
+      }
+      SAFE_DESTROY(tre,result);
+    };
+    PutLast(this);
+    if(UnparseNodes() && result) 
+    {
+      result->PutExpression(expr);
     }
-    SAFE_DESTROY(tre,result);
-  };
-  PutLast(this);
-  if(UnparseNodes() && result) 
-  {
-    result->PutExpression(expr);
+    return(result);
   }
-  return(result);
+  catch(...)
+  {
+    Error("EXCEPTION: Uncontrolled exception in TOL evaluator");
+    return(NULL);
+  }
 }
 
 
