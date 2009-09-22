@@ -683,13 +683,7 @@ proc TolObj2TclObj { obj } {
     tol::foreach it $obj {
       array set it_info $it
       #puts "$it_info(grammar) $it_info(name) $it_info(content) "
-      set G $it_info(grammar)
-      if { $G eq "Set" || $G eq "NameBlock" } {
-        set value [ TolObj2TclObj [ eval list $obj $idx ] ]
-      } else {
-        set value $it_info(content)
-      }
-      lappend result $value
+      lappend result [ TolObj2TclObj [ eval list $obj $idx ] ]
       incr idx
     }
     set result
@@ -698,39 +692,47 @@ proc TolObj2TclObj { obj } {
   }
 }
 
+
+#///////////////////////////////////////////////////////////////////////////
+proc TolSet2TclListNamed { obj } {
+# PURPUSE: procedimiento de ayuda a TolObj2TclObjNamed para construir el
+#          valor asociado a un conjunto TOL donde sus elementos van con
+#          nombre.
+#
+# RETURNS: retorna una lista con los pares nombre valor de los elementos del
+#          conjunto TOL
+#///////////////////////////////////////////////////////////////////////////
+  set value [ list ]
+  set idx 1
+  tol::foreach it $obj {
+    #puts "$it_info(grammar) $it_info(name) $it_info(content) "
+    set it_pair [ TolObj2TclObjNamed [ eval list $obj $idx ] ]
+    # esto quedaria mejor con un {*}, no usaria el eval pues creo que
+    # "abre" toda la lista.
+    lappend value [ lindex $it_pair 0 ] [ lindex $it_pair 1 ]
+    incr idx
+  }
+  set value
+}
+
 #///////////////////////////////////////////////////////////////////////////
 proc TolObj2TclObjNamed { obj } {
 # PURPUSE: Dado una referencia a un objeto TOL retorna una representacion en
 #          TCL equivalente manteniendo los nombres de los objetos TOL.
-#          Si alguno de los objetos no tiene nombre se le asigna el nombre "".
-#          Esta funcion puede reemplazar a TolSet2TclLst.
+#          Si el objeto no tiene nombre se le asigna un nombre vacio ""
 #
-# RETURN: Un lista Tcl de pares <nombre,valor> que representa el contenido
-#         con nombredel objeto TOL
+# RETURN: Un par nombre,valor
 #
 #///////////////////////////////////////////////////////////////////////////
   #puts "obj = $obj"
   set vinfo [ tol::info variable $obj ]
   set grammar [ lindex $vinfo 0 ]
   if { $grammar eq "Set" || $grammar eq "NameBlock" } {
-    set result [ list ]
-    set idx 1
-    tol::foreach it $obj {
-      array set it_info $it
-      #puts "$it_info(grammar) $it_info(name) $it_info(content) "
-      set G $it_info(grammar)
-      if { $G eq "Set" || $G eq "NameBlock" } {
-        set value [ TolObj2TclObjNamed [ eval list $obj $idx ] ] 
-      } else {
-         set value $it_info(content)
-      }
-      lappend result $it_info(name) $value
-      incr idx
-    }
-    set result
+    set value [ TolSet2TclListNamed $obj ]
   } else {
-    lrange $vinfo 1 2
+    set value [ lindex $vinfo 2 ]
   }
+  list [ lindex $vinfo 1 ] $value
 }
 
 proc loadtt { } {
@@ -767,7 +769,7 @@ proc test2.2 { } {
 
 proc test3.1 { } {
   tol::console eval {
-    Set {[[ 1, 2, Set kk = [[ 3, 4 ]] ]]}
+    Set {[[ 1, 2, Set kk = [[ 3, 4, "texto" ]] ]]}
   }
   set result [ TolObj2TclObj {Console 1} ]
   tol::console stack release
@@ -776,7 +778,7 @@ proc test3.1 { } {
 
 proc test3.2 { } {
   tol::console eval {
-    Set {[[ 1, 2, Set kk = [[ 3, 4 ]] ]]}
+    Set {[[ 1, 2, Set kk = [[ 3, 4, "texto" ]] ]]}
   }
   set result [ TolObj2TclObjNamed {Console 1} ]
   tol::console stack release
