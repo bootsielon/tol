@@ -1,0 +1,15 @@
+
+Class CEjemplo.1;
+
+Class CEjemplo.1 
+{ 
+  Real valor 
+};
+
+
+Class CEjemplo.2;
+Class CEjemplo.2 { 
+  Real valor;
+  Real otro 
+};
+
