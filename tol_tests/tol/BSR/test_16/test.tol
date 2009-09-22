@@ -28,10 +28,8 @@ BysMcmc::Config bsr.config = [[
   Real do.linear.effects  = False;
   Real do.mcmc.profiler   = True;
 //Partial sampling
-  Real partialSampling.Sequential = False
+  Real partialSampling.Sequential = True
 ]];
-
-
 
 BysMcmc::McmcRecover recover = BysMcmc::McmcRecover::Load(
   model.data.path, model.name, session.name, 
@@ -40,22 +38,28 @@ BysMcmc::McmcRecover recover = BysMcmc::McmcRecover::Load(
 Set LinearBlk = Select(recover::_.colNames, Real(Text param)
 {
    If(!TextBeginWith(param,"Node")|
-       TextEndAt(param,"_Sigma2"),0,Rand(0,1)<.98)
+       TextEndAt(param,"_Sigma2"),0,Rand(0,1)<0.98)
 });
 
 Set MissingBlk = Select(recover::_.colNames, Real(Text param)
 {
-   If(!TextBeginWith(param,"MissInp."),0,Rand(0,1)<.98)
+   If(!TextBeginWith(param,"MissInp."),0,Rand(0,1)<0.98)
 });
 
 Set SigmaBlk = Select(recover::_.colNames, Real(Text param)
 {
-   If(!TextEndAt(param,"_Sigma2"),0,Rand(0,1)<0.5)
+   If(!TextEndAt(param,"_Sigma2"),0,Rand(0,1)<0.98)
 });
+
+Set ArimaBlk = Select(recover::_.colNames, Real(Text param)
+{
+   If(!TextBeginWith(param,"ArmaBlk"),0,Rand(0,1)<.98)
+});
+
 
 Set fixedParam = Copy(Empty);
 VMatrix fixedValues = Rand(0,1,0,0);
-Set reloadParam = LinearBlk << MissingBlk << SigmaBlk;
+Set reloadParam = LinearBlk << MissingBlk << SigmaBlk;//	 << ArimaBlk;
 
 BysMcmc::McmcPartialHandler partialHandler = 
 BysMcmc::McmcPartialHandler::New(

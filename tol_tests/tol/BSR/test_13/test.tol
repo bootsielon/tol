@@ -155,6 +155,7 @@ Set new.InputMissingBlock = SelectNewMissing(parsed->InputMissingBlock);
 Set new.OutputMissingBlock = SelectNewMissing(parsed->OutputMissingBlock);
 
 Set bsr.parsed = BSR.ModelDef(
+  "joint",
   parsed->DocInfo,
   parsed->LinearBlock,
   new.InputMissingBlock,

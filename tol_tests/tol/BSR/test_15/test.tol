@@ -32,11 +32,11 @@ BysMcmc::Config bsr.config =
 
   Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
   Real bsr.arimaSkipIter = 1;
-
+/*
   Real bsr.linBlk.MH.useAfterIter   = 10;
   Real bsr.linBlk.MH.maxRejected    = 3;
   Real bsr.linBlk.MH.maxConsecutive = 100;
-
+*/
   Real bsr.linBlk.X.drop = 1.E-15;
   Real bsr.linBlk.usePreconditioning = 0;
 
@@ -63,7 +63,7 @@ BysMcmc::McmcRecover recover = BysMcmc::McmcRecover::Load(
 
 Set LinearBlk = Select(recover::_.colNames, Real(Text param)
 {
-   If(!TextBeginWith(param,"LinearBlk::"),0,Rand(0,1)<.98)
+   If(!TextBeginWith(param,"LinearBlk::"),0,Rand(0,1)<1)
 });
 
 Set MissingBlk = Select(recover::_.colNames, Real(Text param)
@@ -76,9 +76,14 @@ Set SigmaBlk = Select(recover::_.colNames, Real(Text param)
    If(!TextBeginWith(param,"SigmaBlk::"),0,Rand(0,1)<1)
 });
 
+Set ArimaBlk = Select(recover::_.colNames, Real(Text param)
+{
+   If(!TextBeginWith(param,"ArimaBlk::"),0,Rand(0,1)<1)
+});
+
 Set fixedParam = Copy(Empty);
 VMatrix fixedValues = Rand(0,1,0,0);
-Set reloadParam = LinearBlk << MissingBlk << SigmaBlk;
+Set reloadParam = LinearBlk << MissingBlk << SigmaBlk << ArimaBlk;
 
 BysMcmc::McmcPartialHandler partialHandler = 
 BysMcmc::McmcPartialHandler::New(
@@ -110,15 +115,9 @@ BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   BysMcmc::Notifier::Null(0));
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
-
 //Real cycler::initialize(0);
-
 BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
-
-Real TolOprProfiler.Enabled := True;
 Real estim::Run(0);
-Real TolOprProfiler.Dump("ses.01");
-
 Real FClose(recover::_.mcmc.handler);
 
 Real numErr1 = Copy(NError);

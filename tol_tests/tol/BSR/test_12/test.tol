@@ -176,6 +176,8 @@ BysMcmc::Config bsr.config = [[
     BysMcmc::Options::Scalar.Sampler::Slice;
   Code bsr.scalarSampler.nonLinBlock =
     BysMcmc::Options::Scalar.Sampler::Slice;
+//Metodo de aproximacion del arima
+  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastCholSea;
 //Report configuration
   Real report.raftery.diag.q   = 0.25;
   Real report.raftery.diag.r   = 0.10;   
@@ -185,15 +187,12 @@ BysMcmc::Config bsr.config = [[
   Real report.histogram.parts  = 100;
   Real report.kerDens.points   = 0;
 //Generic flags
-  Real do.resume          =  0;
-  Real do.report          =  True;
-  Real do.eval            =  True;
-  Real do.linear.effects  =  True;
-  //Metodo de aproximacion del arima
-  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastCholSea//;
-//Real bsr.arimaSkipIter = 100
+  Real do.resume          = 0;
+  Real do.report          = True;
+  Real do.eval            = True;
+  Real do.linear.effects  = True;
+  Real do.mcmc.profiler   = True
 ]];
-
 
 BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
