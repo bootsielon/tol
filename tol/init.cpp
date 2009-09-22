@@ -408,6 +408,7 @@ BBool InitGrammars()
   signal_assign();
 
   initGrammars_=BTRUE;
+  BStandardOperator::evaluatingFunctionArgument_ = false;
 
   Std(BText("\nInitializing TOL ")+_tolVersion_);
 
