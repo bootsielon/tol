@@ -1463,30 +1463,36 @@ BBool BUserFunction::Compile()
   BText* errMsg   = NIL;
   arguments_ = "";
   BToken* tok = BParser::treToken(dec);
-  while(tok && (tok->TokenType()==BINARY)&&(tok->Name()=="::"))
+  BTokenType type = tok->TokenType();
+  while(tok && (type==BINARY)&&(tok->Name()=="::"))
   {
     dec = Tree::treRight(dec);
     tok = dec?BParser::treToken(dec):NULL;
   }
-  if(tok->TokenType()==TYPE)
-  {
-    dec = dec->cdr();
+  assert(tok->TokenType()==TYPE);
+  dec = dec->cdr();
 //  if(((BToken*)Car((BTree*)Car(dec)))->TokenType()!=TYPE)
-    if(dec &&
-       Tree::treNode(dec) &&
-       (Tree::treNode(dec))->car() &&
-       ((BToken*) (Tree::treNode(dec))->car())->TokenType()!=TYPE) 
+  if(dec)
+  {
+    List* auxTre = Tree::treNode(dec);
+    if(auxTre)
     {
-      dec = Tree::treNode(dec);
+      BCore* auxCar = auxTre->car();
+      if(auxCar && !auxCar->IsListClass()) 
+      {
+        BToken* auxTok = (BToken*) auxCar; 
+        BTokenType auxType = auxTok->TokenType();
+        if((auxType==FUNCTION) || (auxType==SEPARATOR))
+        {
+          dec = auxTre->cdr();
+        }
+      }
     }
   }
-  BTokenType type = BParser::treToken(dec)->TokenType();
+  tok = BParser::treToken(dec);
+  type = tok->TokenType();
   if(allRight)
   {
-    if((type==FUNCTION) || (type==SEPARATOR)) 
-    {
-      dec = dec->cdr();
-    }
     numArg_ = minArg_ = maxArg_ = dec->length();
     lastCalling_.ReallocBuffer(maxArg_);
     names_      .ReallocBuffer(maxArg_);
