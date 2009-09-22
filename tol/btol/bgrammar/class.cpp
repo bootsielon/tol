@@ -231,7 +231,7 @@ BMember::BMember(BMemberOwner* parent, List* branch)
     Error(I2("Wrong syntax in member declaration ",
              "Sintaxis incorrecta en declaración de miembro ")+
           BParser::Unparse(branch_,"","\n")+
-          I2(" of Class ", "de Class ")+parent->getName());
+          I2(" of Class ", " de Class ")+parent->getName());
   }
   if(parent->OwnerType()==BMemberOwner::BCLASS)
   {
@@ -1150,13 +1150,16 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
       name = tok->Name();
       class_ = PredeclareClass(name, old, ok);
       ok = (class_!=NULL);
-      if(tok->TokenType()==FUNCTION)
-      { 
-        memberLst = cdr;
-      }
-      else
-      { 
-        memberLst = ((List*)(cdr->car()))->cdr();
+      memberLst = cdr;
+      if(cdr && cdr->car() && cdr->car()->IsListClass())
+      {
+        cdr = (List*)cdr->car();
+        car = cdr->car();
+        tok = (BToken*)car;
+        if(tok->TokenType()==SEPARATOR)
+        {
+          memberLst = cdr->cdr();
+        }
       }
     }    
   }
