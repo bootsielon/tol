@@ -1,0 +1,48 @@
+
+NameBlock Proj = [[
+  Class MiClase {
+    Real a;
+    Static MiClase New.1(Real valor) {
+      Proj::MiClase new = [[
+        Real a = valor
+      ]]
+    };
+    Static MiClase New.2(Real valor) {
+      MiClase new = [[
+        Real a = valor
+      ]]
+    }
+  }
+]];
+
+
+Proj::MiClase ej.1 = Proj::MiClase::New.1(3);
+
+Proj::MiClase ej.2 = Proj::MiClase::New.2(3);
+
+//////////////////////////////////////////////////////////////////////////////
+// [2] Creación en un bucle:
+
+
+Set aux.2.1 = For(1, 10, NameBlock fun_aux.2.1(Real i){
+  Proj::MiClase::New.1(i)
+});
+
+Set aux.2.2 = For(1, 10, Proj::MiClase fun_aux.2.2(Real i){
+  Proj::MiClase::New.1(i)
+});
+
+
+Set aux.3.1 = EvalSet(aux.2.1, Text fun_aux.3.1(NameBlock c) {
+  ClassOf(c)
+});
+
+Set aux.3.2 = EvalSet(aux.2.1, Text fun_aux.3.2(Proj::MiClase c) {
+  ClassOf(c)
+});
+
+
+// La clase del objeto dice ser "MiClase". ¿Debería decir "Proj::MiClase"?.
+
+//////////////////////////////////////////////////////////////////////////////
+
