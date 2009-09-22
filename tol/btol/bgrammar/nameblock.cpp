@@ -396,8 +396,9 @@ const BText& BNameBlock::LocalName() const
   BNameBlock::SetBuilding((BUserNameBlock*)ns_result);
   int oldBuildingLevel = -1;
   int ns_resultLevel = -1; 
-  if(oldBuilding)
+  if(oldBuilding && !BStandardOperator::evaluatingFunctionArgument_)
   {
+    assert(name.HasName());
     oldBuildingLevel = oldBuilding->Level();
     ns_resultLevel = ns_result->Level();
     if(oldBuildingLevel == level-1)
