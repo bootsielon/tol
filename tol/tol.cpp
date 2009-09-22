@@ -30,14 +30,6 @@
 #include <tol/tol_init.h>
 
 //--------------------------------------------------------------------
-  void bye(void)
-//--------------------------------------------------------------------
-{
-//printf("\nBYE");
-  SetTOLEnd();
-}
-
-//--------------------------------------------------------------------
 int main(int argc, char *argv[], char *env[])
 
 /*! Evaluates the TOL files receives as parameters.
@@ -45,8 +37,12 @@ int main(int argc, char *argv[], char *env[])
 //--------------------------------------------------------------------
 {
 //FPEControl();
-  atexit(bye);
+  atexit(SetTOLEnd);
+  set_terminate(UnexpectedTolEnd);
+  set_unexpected(UnexpectedTolEnd);
   InitializeFromMainArgs(argc, argv, env);
+  set_terminate(SetTOLEnd);
+  set_unexpected(SetTOLEnd);
   return(0);
 }
 

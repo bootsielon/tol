@@ -54,6 +54,7 @@ TOL_API const char* TOLCppRoot();
 TOL_API int  TOLHasBeenInitialized();
 TOL_API int  TOLHasBeenEnded();
 TOL_API void SetTOLEnd();
+TOL_API void UnexpectedTolEnd(void);
 
 END_DECLS
 
