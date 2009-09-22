@@ -1,0 +1,21 @@
+  Set GrammarSet(Text nameStruct)
+  {
+    Set grammarSet = Case 
+    (
+      nameStruct == "ModelOutput",
+      SetOfText
+      ( 
+        "Text", "Text", "Date", "Date", 
+        "Real", "Real", "Set", "Set", "Set"
+      ),
+      nameStruct == "ModelInput",
+      SetOfText
+      ( 
+        "Text", "Text", "Real", "Text", 
+        "Text", "Set"
+      )
+      1, Empty
+    );
+    grammarSet
+  };
+
