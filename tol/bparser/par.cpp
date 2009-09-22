@@ -949,10 +949,14 @@ Tree* BParser::ParseBinary (Tree* tre)
  */
 Tree* BParser::ParseSeparator (Tree* tre) 
 {
-  tre  = ParseDelayed (tre);
   bool lastWasEmbed = lastSymbol_ && (lastSymbol_->Name()=="#Embed");
   bool lastWasClass = lastSymbol_ && (lastSymbol_->Name()=="Class");
-
+  if(!lastWasClass && (lastSymbol_==delayedSymbol_) &&
+      lastSymbol_2_ && (lastSymbol_2_->Name()=="Class"))
+  {
+    lastWasClass = true;
+  }
+  bool neededToParseDelayed = true;
   if(lastWasClass && !NextArgument() && delayedSymbol_ &&
       (delayedSymbol_->TokenType()==TYPE))
   {
@@ -962,6 +966,10 @@ Tree* BParser::ParseSeparator (Tree* tre)
       nextArgument_ = delayedSymbol_;
       delayedSymbol_ = NULL;
     } 
+  }
+  if(neededToParseDelayed)
+  {
+    tre = ParseDelayed(tre);
   }
 
   if(!NextArgument() && !complete_ && !lastWasEmbed) 
@@ -1254,6 +1262,8 @@ Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close)
   return(tre);
 }
 
+//#define ENABLE_SYMBOL_TRACE
+
 //--------------------------------------------------------------------
 BBool BParser::ReadNextSymbol(BTokenType& symbolType) 
 //--------------------------------------------------------------------
@@ -1269,8 +1279,7 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
     structFound = (sym=="Struct");
     classFound  = (sym=="Class");
   }
-//  if(scan_->NextSymbol())
-/* * /
+#ifdef ENABLE_SYMBOL_TRACE
   if(lastSymbol_)
   {
     Std(BText("\n  Parser[")+(int)this+"] lastSymbol_ <- '"+
@@ -1280,10 +1289,14 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
   {
     Std(BText("\n  Parser[")+(int)this+"] lastSymbol_ <- ''");
   }
-/* */
+  if(delayedSymbol_)
+  {
+    Std(BText("\n  Parser[")+(int)this+"] delayedSymbol_ <- '"+
+      delayedSymbol_->Name()+"'");
+  }
+#endif
   symbolType = scan_->ReadNextSymbol();
-/* * /
-
+#ifdef ENABLE_SYMBOL_TRACE
   Std(BText("\n  Parser[")+(int)this+"] symbolType <- '"+TokenTypeName(symbolType));
   if(scan_->NextSymbol())
   {
@@ -1300,7 +1313,7 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
       scan_->NextArgument()+"'"+ 
       " complete = "+(int)complete_);
   }
-/* */
+#endif
   if((symbolType==ARGUMENT) ||
      ((scan_->NextArgument()!="") && complete_)) 
   {
