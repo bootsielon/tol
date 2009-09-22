@@ -275,7 +275,9 @@ static void signal_assign()
 //signal(      18, signal_error_SIGUNK);
 //signal(      19, signal_error_SIGUNK);
 //signal(      20, signal_error_SIGUNK);
+#ifdef WINDOWS
   signal(SIGBREAK, signal_error_SIGBREAK);
+#endif
   signal(SIGABRT,  signal_error_SIGABRT);
 }
 
