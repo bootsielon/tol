@@ -24,20 +24,20 @@ Proj::MiClase ej.2 = Proj::MiClase::New.2(3);
 // [2] Creación en un bucle:
 
 
-Set aux.2.1 = For(1, 10, NameBlock fun_aux.2.1(Real i){
+Set aux.2.1 = For(1, 10, NameBlock (Real i){
   Proj::MiClase::New.1(i)
 });
 
-Set aux.2.2 = For(1, 10, Proj::MiClase fun_aux.2.2(Real i){
+Set aux.2.2 = For(1, 10, Proj::MiClase (Real i){
   Proj::MiClase::New.1(i)
 });
 
 
-Set aux.3.1 = EvalSet(aux.2.1, Text fun_aux.3.1(NameBlock c) {
+Set aux.3.1 = EvalSet(aux.2.1, Text (NameBlock c) {
   ClassOf(c)
 });
 
-Set aux.3.2 = EvalSet(aux.2.1, Text fun_aux.3.2(Proj::MiClase c) {
+Set aux.3.2 = EvalSet(aux.2.1, Text (Proj::MiClase c) {
   ClassOf(c)
 });
 
