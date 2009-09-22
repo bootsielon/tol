@@ -688,10 +688,13 @@ proc TolObj2TclObj { obj } {
     }
     set result
   } else {
-    lindex $vinfo 2
+    if { $grammar eq "Text" } {
+      string trim [ lindex $vinfo 2 ] \"
+    } else {
+      lindex $vinfo 2
+    }
   }
 }
-
 
 #///////////////////////////////////////////////////////////////////////////
 proc TolSet2TclListNamed { obj } {
@@ -730,7 +733,11 @@ proc TolObj2TclObjNamed { obj } {
   if { $grammar eq "Set" || $grammar eq "NameBlock" } {
     set value [ TolSet2TclListNamed $obj ]
   } else {
-    set value [ lindex $vinfo 2 ]
+    if { $grammar eq "Text" } {
+      set value [ string trim [ lindex $vinfo 2 ] \" ]
+    } else {
+      set value [ lindex $vinfo 2 ]
+    }
   }
   list [ lindex $vinfo 1 ] $value
 }
