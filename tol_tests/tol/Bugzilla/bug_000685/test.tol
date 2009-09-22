@@ -7,31 +7,35 @@
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
   Real bugNum_ =  685;
   Text email_ = "vdebuen@tol-project.org"; 
-  Text summary_ = "TOL se cae cargando una VMatrix Cholmod.R.Factor desde OZA";
+  Text summary_ = "TOL se cae cargando una serie desde OZA";
   Text link_ = GetTolBugzillaLink(bugNum_);
 
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
 
-  //////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
   Serie getNoiseSem(Real Void)
-  //////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
   {
       Set a = Ois.Load("test.oza");
-  //  Serie noise = Eval("Serie a::DaiCocaRegPet2000Model20090417.Est::bsr.estim::eval.average::Obs.CtLV.CocaRegPet2000::serNoise");
-      Serie noise = Eval("Serie a::SemAquaLimPet1000Model20090417.Est::bsr.estim::eval.average::Obs.Sem.AquaLimPet1000::serNoise");
+  //  Serie noise = Eval("Serie a::DaiCocaRegPet2000Model20090417.Est::"
+  //  "bsr.estim::eval.average::Obs.CtLV.CocaRegPet2000::serNoise");
+      Serie noise = Eval("Serie a::SemAquaLimPet1000Model20090417.Est::"
+      "bsr.estim::eval.average::Obs.Sem.AquaLimPet1000::serNoise");
       noise
   
   };
-  //////////////////////////////////////////////////////////////////////////////
-  Serie getNoiseSem(0);
-  
+  ////////////////////////////////////////////////////////////////////////////
+  Set aux = SetOfSerie(getNoiseSem(0));
+
+  Real ok = Name(aux[1])=="noise";
+
   Real numErr1 = Copy(NError);
 
   Set partialResults_ = [[numErr0, numErr1]];
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr1 == numErr0);
+  Real quality_ = And(ok);
 
 //Return the results 
   Set resultStr_ = strTestStatus(summary_, link_, quality_,
