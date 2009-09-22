@@ -1183,7 +1183,10 @@ BSyntaxObject* BStructCreator::Evaluate(const List* argList)
 BSyntaxObject* BStandardOperator::EvaluateArgument(BGrammar*gra, const List* branch)
 //--------------------------------------------------------------------
 {
+  bool oldEvFunArg = evaluatingFunctionArgument_; 
   evaluatingFunctionArgument_ = true;
+//Std(BText("\nBStandardOperator::EvaluateArgument ")+Name()+
+//    " starting evaluatingFunctionArgument_="+int(evaluatingFunctionArgument_));
   BText oldCreatingName = BEqualOperator::creatingName_;
   BText oldCreatingFullName = BEqualOperator::currentFullName_;
   const BClass* oldCreatinClass = BEqualOperator::creatingClass_;
@@ -1194,7 +1197,9 @@ BSyntaxObject* BStandardOperator::EvaluateArgument(BGrammar*gra, const List* bra
   BEqualOperator::creatingName_ = oldCreatingName;
   BEqualOperator::currentFullName_ =  oldCreatingFullName;
   BEqualOperator::creatingClass_ = oldCreatinClass;
-  evaluatingFunctionArgument_ = false;
+  evaluatingFunctionArgument_ = oldEvFunArg;
+//Std(BText("\nBStandardOperator::EvaluateArgument ")+Name()+
+//    " ending evaluatingFunctionArgument_="+int(evaluatingFunctionArgument_));
   return(var);
 }
 
@@ -1283,7 +1288,6 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
         {
           BGrammar* g = GrammarForArg(n,k);
           BGrammar::PutLast(g);
-          evaluatingFunctionArgument_ = true;
           var = EvaluateArgument(g,b);
           if(!var) { BGrammar::CleanTreeCache(b, true); }
         }
