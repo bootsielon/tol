@@ -184,7 +184,8 @@ NameBlock OneNode =
         VMatrix Li = Cov;
         Set EquIdx = Range(1,m,1);
         Set TimeInfo = If(ObjectExist("Set","data::_.timeInfo"),
-          data::_.timeInfo, Copy(Empty))
+          data::_.timeInfo, Copy(Empty)),
+        Set NonLinFilters = Copy(Empty)
       )
     ]]};
 
