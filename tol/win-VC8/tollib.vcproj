@@ -4146,6 +4146,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\btol\vmatrix_type\vmat_bsr_master.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\btol\vmatrix_type\vmat_bsr_primary.cpp"
 						>
 					</File>
