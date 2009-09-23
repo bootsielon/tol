@@ -56,7 +56,7 @@ public:
       variantSigma, constantSigma, covariance, 
       noiseName, noisePosition,
       posSign, negSign, unknown, product,
-      initValue, like, power2, member,
+      initValue, like, power2, member, nonLinearFilters,
       noiseSize, normalDist, normalNu, eq, le, ge,
       argumentSeparator, endOfSentence, 
       openParenthesys, closeParenthesys,
@@ -84,16 +84,18 @@ public:
       add_symbol<noise_info>    add_res(s.noise);
       assign_missing_min assign_missing_min_(s.mis); 
       assign_missing_max assign_missing_max_(s.mis); 
-      assign_missing_row assign_missing_row_(s.mis); 
-      assign_missing_output assign_missing_output_(s.mis); 
-      assign_missing_input assign_missing_input_(s.mis,s.var.vec); 
       assign_noise_size assign_noise_size_(s.noise.info, s.var.count, s.numEqu_);
       assign_sigma_to_noise assign_sigma_to_noise_(s.sig.table, s.sig.vec, s.noise.info, s.numEqu_);
       assign_sig_pri assign_sig_pri_(s.noise.info);
       assign_const_sigma_to_res assign_const_sigma_to_res_(s.noise.info);
       assign_covariance_to_res  assign_covariance_to_res_ (s.noise.info);
+      assign_non_lin_flt_to_noise assign_non_lin_flt_to_noise_(s.noise.info);
       assign_reg_matrix assign_output_(s.descY_, s.exprY_, s.Y_);
       assign_reg_matrix assign_input_ (s.descX_, s.exprX_, s.X_);
+      assign_missing_row assign_missing_row_(s.mis); 
+      assign_missing_output assign_missing_output_(s.mis); 
+      assign_missing_input assign_missing_input_(s.mis,s.var.vec); 
+
       assign_explicit_end assign_explicit_end_(s.endFound_);
 
       #include "tol_bvmat_bsr_err.h"
@@ -288,6 +290,11 @@ public:
       normalNu =
         (real_p[assign_a(s.noise.info.nu)] | error_badNumber)
         ;
+
+      nonLinearFilters =
+        str_p("with") >> str_p("non") >> str_p("linear") >> str_p("filters") >>
+        confix_p("{$", (*(anychar_p)), "$}") [assign_non_lin_flt_to_noise_];
+
       noise = 
         (newIdentifier[increment_a(s.noise.info.index)]
                              [assign_a(s.noise.info.name)]
@@ -305,6 +312,7 @@ public:
         //power2 >>
           closeParenthesys
         ) | error_noiseDistribDeclareExpected) >>
+        ( nonLinearFilters | eps_p) >>
         endOfSentence[add_res]
         ;
       output = str_p("Output") >> ch_p('=') >> 

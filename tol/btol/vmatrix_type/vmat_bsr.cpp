@@ -285,11 +285,10 @@ int bys_sparse_reg::getMissing(
   return(0);
 };
 
-
 ////////////////////////////////////////////////////////////////////////////////
-int Parse_Module(const BText& filePath, 
-                 const BText& moduleType,
-                 BSet& contens_)
+int Parse_NoMasterModule(const BText& filePath, 
+                         const BText& moduleType,
+                         BSet& contens_)
 ////////////////////////////////////////////////////////////////////////////////
 {
   string fileName = filePath.String();
@@ -422,7 +421,8 @@ int Parse_Module(const BText& filePath,
       { 
         Error(I2("[BSR] Cannot evaluate SigmaPrior expression for ",
                  "[BSR] No se puede evaluar la expresión del SigmaPrior para ")+
-              noiseInfo[k].name.c_str()+"=\n"+expr+"\n");
+                 I2("regression segment ","el segmento de regresión ")+name+
+                 "\n"+expr+"\n");
         sigPri = GraSet()->EvaluateExpr("Copy(Empty)"); 
       }
     }
@@ -442,7 +442,8 @@ int Parse_Module(const BText& filePath,
       { 
         Error(I2("[BSR] Cannot evaluate ARIMA expression for ",
                  "[BSR] No se puede evaluar la expresión ARIMA para ")+
-              noiseInfo[k].name.c_str()+"=\n"+expr+"\n");
+                 I2("regression segment ","el segmento de regresión ")+name+
+                 "\n"+expr+"\n");
         arima = GraSet()->EvaluateExpr("Copy(Empty)"); 
       }
     }
@@ -487,6 +488,7 @@ int Parse_Module(const BText& filePath,
       {
         Error(I2("[BSR] Cannot evaluate dating expression for ",
                  "[BSR] No se puede evaluar la expresión de fechado para ")+
+              I2("regression segment ","el segmento de regresión ")+name+
               noiseInfo[k].dating.c_str()+"=\n"+expr+"\n");
       }
       else
@@ -497,15 +499,18 @@ int Parse_Module(const BText& filePath,
         {
           Error(I2("[BSR] Cannot evaluate first date expression for ",
                    "[BSR] No se puede evaluar la expresión de fecha inicial para ")+
+                I2("regression segment ","el segmento de regresión ")+name+
                 noiseInfo[k].firstDate.c_str()+"\n");
           DESTROY(dating);
         }
         else if(!dating->Includes(firstDate->Contens()))
         {
           Error(I2("[BSR] First date ", "[BSR] La fecha inicial ")+
-                noiseInfo[k].firstDate.c_str()+
+                noiseInfo[k].firstDate.c_str()+" "+
+                I2("of regression segment ","del segmento de regresión ")+name+
                 I2("doesn't match dating ", " no es del fechado ")+
-                noiseInfo[k].dating.c_str()+"\n");
+                noiseInfo[k].dating.c_str()+"\n"
+             )  ;
           DESTROY(dating);
           DESTROY(firstDate);
         }
@@ -517,6 +522,7 @@ int Parse_Module(const BText& filePath,
           {
             Error(I2("[BSR] Cannot evaluate last date expression for ",
                      "[BSR] No se puede evaluar la expresión de fecha final para ")+
+                  I2("regression segment ","el segmento de regresión ")+name+
                   noiseInfo[k].firstDate.c_str()+"\n");
             DESTROY(dating);
             DESTROY(firstDate);
@@ -534,7 +540,7 @@ int Parse_Module(const BText& filePath,
                     I2(" along dating ", " a lo largo del fechado ")+
                       noiseInfo[k].dating.c_str()+
                     I2(" has length "," tiene longitud ")+length+
-                    I2(" but noise ", " pero el ruido ")+name+
+                    I2(" but regression segment ", " pero el segmento de regresión ")+name+
                     I2(" was declared with length "," fue declarado de longitud ")+
                     (int)equIdx.size()+"\n");
               DESTROY(dating);
@@ -561,6 +567,25 @@ int Parse_Module(const BText& filePath,
     }
     timeInfo->PutName("TimeInfo");
     aux.AddElement(timeInfo);
+    BSyntaxObject* nonLinFilters = NULL;
+    if(noiseInfo[k].nonLinFlt != "")
+    {
+      nonLinFilters = GraSet()->EvaluateExpr(noiseInfo[k].nonLinFlt.c_str());
+      if(!nonLinFilters)
+      {
+        Error(I2("[BSR] Cannot evaluate non linear filter expression for ",
+                 "[BSR] No se puede evaluar la expresión de filtro no lineal para ")+
+                 I2("regression segment ","el segmento de regresión ")+name+"\n"+
+                 noiseInfo[k].nonLinFlt.c_str()+"=\n"+expr+"\n");
+      }
+
+    }
+    if(!nonLinFilters)
+    {
+      nonLinFilters = GraSet()->EvaluateExpr("Copy(Empty)");
+    }
+    nonLinFilters->PutName("NonLinFilters");
+    aux.AddElement(nonLinFilters);
 
     aux.PutStruct(BysSparseReg::NoiseDistribStr());
     DI.AddElement(BContensSet::New(name,aux,""));
@@ -684,6 +709,128 @@ int Parse_Module(const BText& filePath,
   assert(a.Check());
   assert(A.Check());
   return(0);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+int Parse_MasterModule(const BText& filePath, 
+                       BSet& contens_)
+////////////////////////////////////////////////////////////////////////////////
+{
+  std::string fileName = filePath.String();
+  int k;
+  BysSparseReg::doc_info docInfo;    
+  std::string sampler;
+  std::vector<moduleDef> subMod;
+  Parse_Module_Master(fileName, docInfo, sampler, subMod);
+  BSet SM, HD;
+  BGrammar::IncLevel();
+  SM.PrepareStore(subMod.size());
+  for(k=0; k<subMod.size(); k++)
+  {
+    BText moduleType = subMod[k].moduleType.c_str();
+    BText filePath   = subMod[k].filePath.c_str();
+    BSet aux;
+    aux.PrepareStore(2);
+    BGrammar::IncLevel();
+    aux.AddElement(BContensText::New("ModuleType",moduleType, ""));
+    aux.AddElement(BContensText::New("FilePath",  filePath,   ""));
+    aux.PutStruct(BysSparseReg::MasterSubModule());
+    BGrammar::DecLevel();
+    SM.AddElement(BContensSet::New("",aux,""));
+  }
+
+  HD.PrepareStore(6);
+  HD.AddElement(BContensText::New
+  (
+    "Model.Name", 
+    docInfo.model_name.c_str(),
+    "Model identifier"
+  ));
+  HD.AddElement(BContensText::New
+  (
+    "Model.Description",
+    docInfo.model_description.c_str(),
+    "Notes about the model"
+  ));
+  HD.AddElement(BContensText::New
+  (
+    "Session.Name", 
+    docInfo.session_name.c_str(),
+    "Session identifier"
+  ));
+  HD.AddElement(BContensText::New
+  (
+    "Session.Description",
+    docInfo.session_description.c_str(),
+    "Notes about the session"
+  ));
+  HD.AddElement(BContensText::New
+  (
+    "Session.Authors",     
+    docInfo.session_authors.c_str(),
+    "Name, e-mail, url or any identifier of session authors separated by commas"
+  ));
+  HD.AddElement(BContensDate::New
+  (
+    "Session.Creation",     
+    DteNow(),
+    "Session creation date and time"
+  ));
+  HD.AddElement(BContensText::New
+  (
+    "Path",       
+    GetFilePath(filePath),
+    "The root path of directory used to store all information related to this model is the same of BSR ASCII file"
+  ));
+  HD.PutStruct(BysSparseReg::DocInfoStr());
+
+  contens_.PrepareStore(4);
+  contens_.AddElement(BContensText::New
+  (
+    "ModuleType", 
+    "master",
+    "Type of BSR-ASCII module: primary, joint or master"
+  ));
+  contens_.AddElement(BContensSet::New
+  (
+    "DocInfo", 
+    HD,
+    "Header documentary information"
+  ));
+  contens_.AddElement(BContensText::New
+  (
+    "Sampler",
+    sampler.c_str(),  
+    "Sampling strategy is one of these: monophasic, sequential or parallel"
+    "BSR.LinearBlockStr"
+  ));
+  contens_.AddElement(BContensSet ::New
+  (
+    "SubModule",
+    SM,  
+    "Set of sub modules of the master with structure "
+    "BSR.MasterSubModule"
+  ));
+
+  contens_.PutStruct(BysSparseReg::MasterInfo());
+  BGrammar::DecLevel();
+  return(0);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+int Parse_Module(const BText& filePath, 
+                 const BText& moduleType,
+                 BSet& contens_)
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(moduleType=="master")
+  {
+    return(Parse_MasterModule(filePath,contens_));
+  }
+  else
+  {
+    return(Parse_NoMasterModule(filePath,moduleType,contens_));
+  }
 };
 
 };

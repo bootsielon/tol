@@ -61,7 +61,7 @@ public:
       variantSigma, constantSigma, covariance, 
       noiseName, noisePosition,
       posSign, negSign, unknown, product,
-      initValue, like, power2, member,
+      initValue, like, power2, member, nonLinearFilters,
       noiseSize, normalDist, normalNu, eq, le, ge,
       argumentSeparator, endOfSentence, 
       openParenthesys, closeParenthesys,
@@ -94,6 +94,7 @@ public:
       assign_sig_pri assign_sig_pri_(s.noise.info);
       assign_const_sigma_to_res assign_const_sigma_to_res_(s.noise.info);
       assign_covariance_to_res  assign_covariance_to_res_ (s.noise.info);
+      assign_non_lin_flt_to_noise assign_non_lin_flt_to_noise_(s.noise.info);
       assign_pos_sign_to_equ_term assign_pos_sign_to_equ_term_(s.equ_var_term_info);
       assign_neg_sign_to_equ_term assign_neg_sign_to_equ_term_(s.equ_var_term_info);
       assign_var_to_equ_term assign_var_to_equ_term_(s.var.vec, s.equ_var_term_info, s.Xnzmax_);
@@ -352,6 +353,11 @@ public:
       normalNu =
         (real_p[assign_a(s.noise.info.nu)] | error_badNumber)
         ;
+
+      nonLinearFilters =
+        str_p("with") >> str_p("non") >> str_p("linear") >> str_p("filters") >>
+        confix_p("{$", (*(anychar_p)), "$}") [assign_non_lin_flt_to_noise_];
+
       noise = 
         (newIdentifier[increment_a(s.noise.info.index)]
                              [assign_a(s.noise.info.name)]
@@ -369,6 +375,7 @@ public:
         //power2 >>
           closeParenthesys
         ) | error_noiseDistribDeclareExpected) >>
+        ( nonLinearFilters | eps_p) >>
         endOfSentence[add_res]
         ;
       equation =

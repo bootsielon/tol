@@ -171,8 +171,43 @@ BStruct* NoiseDistribStr()
     "VMatrix:L,"
     "VMatrix:Li,"
     "Set:EquIdx,"
-    "Set:TimeInfo"
+    "Set:TimeInfo,"
+    "Set:NonLinFilters"
   );
+  }
+  return(aux);
+};
+
+//--------------------------------------------------------------------
+BStruct* MasterSubModule()
+//--------------------------------------------------------------------
+{
+  static BStruct* aux = NULL;
+  if(!aux)
+  {
+    aux = NewStructSymbol( 
+    "BSR.MasterSubModule"
+    ,
+    "Text:ModuleType,"
+    "Text:FilePath");
+  }
+  return(aux);
+};
+
+//--------------------------------------------------------------------
+BStruct* MasterInfo()
+//--------------------------------------------------------------------
+{
+  static BStruct* aux = NULL;
+  if(!aux)
+  {
+    aux = NewStructSymbol( 
+    "BSR.MasterInfo"
+    ,
+    "Text:ModuleType,"
+    "Set:DocInfo,"
+    "Text:Sampler,"
+    "Set:SubModule");
   }
   return(aux);
 };

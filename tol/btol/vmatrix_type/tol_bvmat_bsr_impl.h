@@ -64,6 +64,7 @@ using namespace boost::spirit;
 ///////////////////////////////////////////////////////////////////////////////
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 struct duplet
 ///////////////////////////////////////////////////////////////////////////////
@@ -675,6 +676,7 @@ public:
   }
 };
 
+
 ///////////////////////////////////////////////////////////////////////////////
 class assign_covariance_to_res
 ///////////////////////////////////////////////////////////////////////////////
@@ -719,6 +721,29 @@ public:
   }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+class assign_non_lin_flt_to_noise
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  noise_info* noise_info_; 
+  assign_non_lin_flt_to_noise( noise_info& noise_inf) 
+  : noise_info_(&noise_inf)
+  {}
+  void action(const std::string& str) const
+  {
+    noise_info* noise_inf = noise_info_;
+  //Std(BText("\nassign_const_sigma_to_res(")+d+")");
+    noise_inf->nonLinFlt  = str;
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 class assign_pos_sign_to_equ_term
@@ -1233,6 +1258,34 @@ public:
   void operator()(IteratorT first, IteratorT last) const { action(); }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+class add_submodule
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  vector<moduleDef>* subMod_;
+  moduleDef* currentSubMod_;
+  add_submodule(
+    vector<moduleDef>& subMod,
+    moduleDef& currentSubMod) 
+  :
+    subMod_(&subMod),
+    currentSubMod_(&currentSubMod)
+  {}
+  void action() const
+  {
+    add_submodule* t = (add_submodule*)this;
+    t->force_action();
+  }
+  void force_action() 
+  {
+    subMod_->push_back(*currentSubMod_);
+  }
+  void  operator()(const char& str) const { action();  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const { action(); }
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 class assign_explicit_end
@@ -1304,15 +1357,16 @@ struct error_report_parser
 typedef functor_parser<error_report_parser> error_report_p;
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 class bys_sparse_reg 
 ///////////////////////////////////////////////////////////////////////////////
 {
 public:
-  ifstream* file;
-  string    fileName;
-  size_t    fileSize;
   string    moduleType;
+  string    fileName;
+  ifstream* file;
+  size_t    fileSize;
 
   doc_info docInfo;
 

@@ -235,6 +235,7 @@ struct noise_info
   std::string      dating;
   std::string      firstDate;
   std::string      lastDate;
+  std::string      nonLinFlt;
 
   noise_info()
   : name      (""),
@@ -255,7 +256,8 @@ struct noise_info
     used      (false),
     dating    (""),
     firstDate (""),
-    lastDate  ("")
+    lastDate  (""),
+    nonLinFlt ("")
   {}
   noise_info(const noise_info& aux)
   : name      (""),
@@ -276,7 +278,8 @@ struct noise_info
     used      (false),
     dating    (""),
     firstDate (""),
-    lastDate  ("")
+    lastDate  (""),
+    nonLinFlt ("")
   {
     copy(aux);
   }
@@ -306,6 +309,7 @@ struct noise_info
     dating     = aux.dating;
     firstDate  = aux.firstDate;
     lastDate   = aux.lastDate;
+    nonLinFlt  = aux.nonLinFlt;
   }
 
   void show() const
@@ -324,9 +328,39 @@ struct noise_info
       "\n  used="+(int)used+", "+
       "\n  dating="+dating.c_str()+", "+
       "\n  firstDate="+firstDate.c_str()+", "+
-      "\n  lastDate="+lastDate.c_str()+")");
+      "\n  lastDate="+lastDate.c_str()+")"+
+      "\n  nonLinFlt="+nonLinFlt.c_str()+")");
   }
 };
+
+///////////////////////////////////////////////////////////////////////////////
+struct moduleDef
+///////////////////////////////////////////////////////////////////////////////
+{
+  std::string moduleType;
+  std::string filePath;
+  moduleDef()
+  : moduleType(""),
+    filePath  ("")
+  {}
+  moduleDef(const moduleDef& aux)
+  : moduleType(""),
+    filePath  ("")
+  {
+    copy(aux);
+  }
+  const moduleDef& operator=(const moduleDef& aux)
+  {
+    copy(aux);
+    return(*this);
+  }
+  void copy(const moduleDef& aux)
+  {
+    moduleType = aux.moduleType;
+    filePath   = aux.filePath;
+  }
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //Methods
@@ -354,6 +388,8 @@ struct noise_info
   BStruct* MissingBlockStr();
   BStruct* NoiseDistribStr();
   BStruct* NoiseTimeInfo();
+  BStruct* MasterSubModule();
+  BStruct* MasterInfo();
 
   int Parse_Module_Joint(
     const string &          fileName,
@@ -378,6 +414,12 @@ struct noise_info
     BVMat&                  X,
     BVMat&                  a, 
     BVMat&                  A);
+
+  int Parse_Module_Master(
+    const std::string &     fileName,
+    doc_info&               docInfo,
+    std::string &           sampler,
+    vector<moduleDef>&      subModules);
 
   int Parse_Module(const BText& filePath, 
                    const BText& moduleType,
