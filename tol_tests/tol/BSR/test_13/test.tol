@@ -92,7 +92,8 @@ Set new.obs = BSR.NoiseDistrib(
   new.obs.L,
   new.obs.Li,
   Range(1,Card(new.obs.eqIdx),1),
-  new.tmInfo);
+  new.tmInfo,
+  old.obs->NonLinFilters);
 
 
 VMatrix new.pri.Cov = SubCol(SubRow(old.pri->Cov, new.eqIdx), new.eqIdx);
