@@ -570,7 +570,9 @@ int Parse_NoMasterModule(const BText& filePath,
     BSyntaxObject* nonLinFilters = NULL;
     if(noiseInfo[k].nonLinFlt != "")
     {
-      nonLinFilters = GraSet()->EvaluateExpr(noiseInfo[k].nonLinFlt.c_str());
+      BText expr;
+      expr.Copy(noiseInfo[k].nonLinFlt.c_str(), 2, noiseInfo[k].nonLinFlt.size()-4);
+      nonLinFilters = GraSet()->EvaluateExpr(expr);
       if(!nonLinFilters)
       {
         Error(I2("[BSR] Cannot evaluate non linear filter expression for ",

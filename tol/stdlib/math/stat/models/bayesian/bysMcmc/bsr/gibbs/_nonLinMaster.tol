@@ -40,7 +40,7 @@
     {
       !(nlb::_.isInputFilter)
     };
-    Set _.bsrMst::_.externalFilter := Select(_.nonLinBlk, sel.extFlt);
+    Set _.bsrMst::_.nonLinOutputFilter := Select(_.nonLinBlk, sel.extFlt);
     initialize.blocks(unused)
   };
 

@@ -168,7 +168,8 @@ NameBlock LoadObsNode(Text dbName,
                       Text session,
                       Text id_node, 
                       NameBlock modelHandler,
-                      Set input.missing.labels)
+                      Set input.missing.labels,
+                      Set genericNonLinearFilters)
 ////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE LoadObsNode 1");
@@ -324,7 +325,7 @@ NameBlock LoadObsNode(Text dbName,
       modelHandler::ForceZeroInputCoef(0));
   BysMcmc::Bsr::DynHlm::BuildNode::Obs(
     output, input, transFun, input.missing.labels, 
-    _.constr, forceZeroInputCoef)
+    _.constr, forceZeroInputCoef, genericNonLinearFilters)
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -332,7 +333,8 @@ NameBlock LoadObsNode(Text dbName,
 NameBlock LoadLatNode(Text dbName, 
                       Text model, 
                       Text session, 
-                      Text id_node)
+                      Text id_node,
+                      Set genericNonLinearFilters)
 ////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
@@ -434,6 +436,13 @@ NameBlock LoadLatNode(Text dbName,
     Set Get.Param(Real numParam) { db_param[numParam] };
     Real Get.Missing.Size(Real unused) {  0 };
     Set Get.TimeInfo(Real unused) { Copy(Empty) };
+
+    Set _.genericNonLinearFilters = genericNonLinearFilters;
+    //Returns a set of NameBlock's with user specified non linear filters
+    Set Get.NonLinearFilters(Real unused)
+    {
+      _.genericNonLinearFilters
+    };
     Real Get.Equation.Size(Real unused) { Card(db_equ) };
     //Returns Real known output or Text missing name
     Text Get.Equation.Output(Real t) { "+0" };
@@ -471,7 +480,8 @@ NameBlock LoadLatNode(Text dbName,
 NameBlock LoadPriNode(Text dbName, 
                       Text model, 
                       Text session, 
-                      Text id_node)
+                      Text id_node,
+                      Set genericNonLinearFilters)
 ////////////////////////////////////////////////////////////////////////////
 {
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
@@ -534,6 +544,13 @@ NameBlock LoadPriNode(Text dbName,
     Set Get.Param(Real numParam) { Copy(Empty) };
     Real Get.Missing.Size(Real unused) {  0 };
     Set Get.TimeInfo(Real unused) { Copy(Empty) };
+
+    Set _.genericNonLinearFilters = genericNonLinearFilters;
+    //Returns a set of NameBlock's with user specified non linear filters
+    Set Get.NonLinearFilters(Real unused)
+    {
+      _.genericNonLinearFilters
+    };
     Real Get.Equation.Size(Real unused) { Card(db_equ) };
     //Returns Real known output or Text missing name
     Text Get.Equation.Output(Real t) 
@@ -650,41 +667,12 @@ NameBlock LoadModelDef(Text dbName,
     Card(_.nodes)
   };
 
-  NameBlock Get.LinReg.Segment(Real segmentNumber) 
-  { 
-    Set node = _.nodes[segmentNumber];
-    Text id_node = node->Node;
-  //WriteLn("TRACE [Get.LinReg.Segment] id_node="+id_node+" node->NodeType="<<node->NodeType);
-    Case(
-      node->NodeType=="OBS", 
-      {
-        NameBlock obs = BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
-          _.dbName, _.id_model, _.id_session, id_node, 
-          _.modelHandler, input.missing.labels);
-      //WriteLn("TRACE [Get.LinReg.Segment] Card(obs::_.deltaNonLinBlk)="<<Card(obs::_.deltaNonLinBlk));
-        Set Append(_.deltaNonLinBlk, obs::_.deltaNonLinBlk);
-      //WriteLn("TRACE [Get.LinReg.Segment] Card(_.deltaNonLinBlk)="<<Card(_.deltaNonLinBlk));
-        obs
-      },   
-      node->NodeType=="LAT", 
-      {
-        BysMcmc::Bsr::DynHlm::DBApi::LoadLatNode(
-          _.dbName, _.id_model, _.id_session, id_node)
-      },
-      node->NodeType=="PRI", 
-      {
-        BysMcmc::Bsr::DynHlm::DBApi::LoadPriNode(
-          _.dbName, _.id_model, _.id_session, id_node)
-      }
-    )
-  };
-  ///////////////////////////////////////////////////////////////////////////
-
   ///////////////////////////////////////////////////////////////////////////
   // Non Linear Filter Section
-  Set Get.NonLinFilter(Real unused)
+  Set Get.GenericNonLinFiltersForNode(Text id_node)
   ///////////////////////////////////////////////////////////////////////////
   {
+    WriteLn("TRACE [Get.GenericNonLinFiltersForNode] 1 id_node="+id_node);
     NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
     Set db_genericNonLinBlk = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
     "SELECT \n"+
@@ -692,7 +680,8 @@ NameBlock LoadModelDef(Text dbName,
     "  id_series \n"+
     "FROM "+_.dbName+"."+_table::NonLinFlt+" WHERE \n"+
     "  id_model='"+_.id_model+"' AND \n"+
-    "  id_session='"+_.id_session+"'\n",
+    "  id_session='"+_.id_session+"'\n AND"+
+    "  id_node='"+id_node+"'\n",
     "Bsr.DynHlm.DBStrNonLinFlt");
 
     Set genericNonLinBlk = If(!Card(db_genericNonLinBlk), 
@@ -701,9 +690,41 @@ NameBlock LoadModelDef(Text dbName,
       {
         _.modelHandler::GetNonLinFlt(nlf->node, nlf->nameBlock)
       }));
-  //WriteLn("TRACE [Get.NonLinFilter] Card(deltaNonLinBlk)="<<Card(deltaNonLinBlk));
-  //WriteLn("TRACE [Get.NonLinFilter] Card(genericNonLinBlk)="<<Card(genericNonLinBlk));
-    _.deltaNonLinBlk << genericNonLinBlk
+    WriteLn("TRACE [Get.GenericNonLinFiltersForNode] 2 Card(genericNonLinBlk)="<<Card(genericNonLinBlk));
+    genericNonLinBlk
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  // Non Linear Filter Section
+  NameBlock Get.LinReg.Segment(Real segmentNumber) 
+  ///////////////////////////////////////////////////////////////////////////
+  { 
+    Set node = _.nodes[segmentNumber];
+    Text id_node = node->Node;
+    Set gnlf = Get.GenericNonLinFiltersForNode(id_node);
+  //WriteLn("TRACE [Get.LinReg.Segment] id_node="+id_node+" node->NodeType="<<node->NodeType);
+    Case(
+      node->NodeType=="OBS", 
+      {
+        NameBlock obs = BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
+          _.dbName, _.id_model, _.id_session, id_node, 
+          _.modelHandler, input.missing.labels, gnlf);
+      //WriteLn("TRACE [Get.LinReg.Segment] Card(obs::_.deltaNonLinBlk)="<<Card(obs::_.deltaNonLinBlk));
+        Set Append(_.deltaNonLinBlk, obs::_.deltaNonLinBlk);
+      //WriteLn("TRACE [Get.LinReg.Segment] Card(_.deltaNonLinBlk)="<<Card(_.deltaNonLinBlk));
+        obs
+      },   
+      node->NodeType=="LAT", 
+      {
+        BysMcmc::Bsr::DynHlm::DBApi::LoadLatNode(
+          _.dbName, _.id_model, _.id_session, id_node, gnlf)
+      },
+      node->NodeType=="PRI", 
+      {
+        BysMcmc::Bsr::DynHlm::DBApi::LoadPriNode(
+          _.dbName, _.id_model, _.id_session, id_node, gnlf)
+      }
+    )
   };
 
   ///////////////////////////////////////////////////////////////////////////

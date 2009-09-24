@@ -23,13 +23,10 @@ NameBlock Gibbs =
   #Embed "_inputMissingBlock.tol";
   //Missing output block related methods
   #Embed "_outputMissingBlock.tol";
-  //Basic BSR master (Lineal+Sigma+ARIMA+Missing I/O)
-  #Embed "_basicMaster.tol";
   //Generic I/O non linear filter block
   #Embed "_nonLinBlock.tol";
-  //Master that handles with basic BSR as a block and a set of non linear
-  //filter blocks
-  #Embed "_nonLinMaster.tol";
+  //Basic BSR master (Lineal+Sigma+ARIMA+Missing I/O)
+  #Embed "_basicMaster.tol";
   //The filter evaluator for transfer functions omega(B)/delta(B)
   #Embed "_deltaTransfer.tol";
   //The filter evaluator for probit models

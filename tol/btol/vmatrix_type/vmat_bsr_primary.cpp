@@ -291,9 +291,12 @@ public:
         (real_p[assign_a(s.noise.info.nu)] | error_badNumber)
         ;
 
-      nonLinearFilters =
+      nonLinearFilters = (
         str_p("with") >> str_p("non") >> str_p("linear") >> str_p("filters") >>
-        confix_p("{$", (*(anychar_p)), "$}") [assign_non_lin_flt_to_noise_];
+        (confix_p("{$", (*(anychar_p)), "$}")[assign_non_lin_flt_to_noise_])
+      ) | (
+         eps_p[assign_non_lin_flt_to_noise_]
+      );
 
       noise = 
         (newIdentifier[increment_a(s.noise.info.index)]
@@ -312,7 +315,7 @@ public:
         //power2 >>
           closeParenthesys
         ) | error_noiseDistribDeclareExpected) >>
-        ( nonLinearFilters | eps_p) >>
+        nonLinearFilters >>
         endOfSentence[add_res]
         ;
       output = str_p("Output") >> ch_p('=') >> 

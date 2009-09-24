@@ -422,7 +422,8 @@ NameBlock Obs(
   Set input.missing.labels,
   //The result of calling BysMcmc::Bsr::Import::Constraints
   NameBlock constraints,
-  Real forceZeroInputCoef)
+  Real forceZeroInputCoef,
+  Set genericNonLinearFilters)
 //////////////////////////////////////////////////////////////////////////////
 {[[
   //Optional ad-hoc API.
@@ -443,7 +444,7 @@ NameBlock Obs(
       Real degree = Degree(mon)
     ]]})
   }));
-
+  Set _.genericNonLinearFilters = genericNonLinearFilters;
   Set _.deltaNonLinBlk = 
   {
     Set sel = Select(_.transFun,Real(NameBlock tf)
@@ -549,6 +550,17 @@ NameBlock Obs(
   //In order to define higher degrees you will need to add more 
   //ARIMAStruct items
   Set Get.ARIMA.Factor(Real f) { _.output::_.arima.factors[f] };
+  /////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////////
+  // NON LINEAR FILTERS BLOCK
+  //Returns a set of NameBlock's with user specified non linear filters
+  Set Get.NonLinearFilters(Real unused)
+  {
+    Set aux = _.deltaNonLinBlk << _.genericNonLinearFilters;
+    WriteLn("TRACE 1 Obs::Get.NonLinearFilters 1 Card(aux) = "<<Card(aux));
+    aux
+  };
   /////////////////////////////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////////////////////////

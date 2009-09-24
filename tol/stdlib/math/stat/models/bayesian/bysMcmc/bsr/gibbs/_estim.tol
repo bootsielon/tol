@@ -14,24 +14,15 @@ Text _.autodoc.member.GetCyclerFromParsed =
 
 Cycler GetCyclerFromParsed(BSR.ModelDef parsed, 
                            McmcPartialHandler mcmcPartialHandler,
-                           Set nonLinFilter,
                            Config config,
                            Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
 
-  BysMcmc::MasterSampler sampler = If(!Card(nonLinFilter),
-  {
-    WriteLn("[BSR] Using Basic Master");
+  BysMcmc::MasterSampler sampler = 
     BysMcmc::Bsr::Gibbs::MasterSamplerBasic::New(
-      parsed, mcmcPartialHandler, 1, 1, config)
-  },
-  {
-    WriteLn("[BSR] Using Non Linear Filter Extended Master");
-    BysMcmc::Bsr::Gibbs::MasterSamplerNonLin::New(
-      parsed, mcmcPartialHandler, nonLinFilter, 1, 1, config)
-  });	
+      parsed, mcmcPartialHandler, 1, 1, config);	
 
   BysMcmc::Cycler cycler = [[
     BysMcmc::MasterSampler _.sampler  = sampler;
@@ -51,7 +42,6 @@ Text _.autodoc.member.GetCyclerFromAscii =
 "function BSR.Parse\n";
 Cycler GetCyclerFromAscii(Text ascii_, 
                           McmcPartialHandler mcmcPartialHandler,
-                          Set nonLinFilter,
                           Config config,
                           Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
@@ -61,7 +51,7 @@ Cycler GetCyclerFromAscii(Text ascii_,
   Real notifier::parsing(0);
   Set parsed = BSR.Parse(ascii);
   BysMcmc::Cycler cycler = GetCyclerFromParsed(
-    parsed, mcmcPartialHandler, nonLinFilter, config, notifier);
+    parsed, mcmcPartialHandler, config, notifier);
   Set Append(cycler::auxInfo, [[ascii]]);
   cycler
 };
@@ -85,19 +75,14 @@ Cycler GetCycler(Anything modelDef,
   Case
   (
     g=="Set",  GetCyclerFromParsed(
-      modelDef, mcmcPartialHandler, Empty, config, notifier),
+      modelDef, mcmcPartialHandler, config, notifier),
     g=="Text", GetCyclerFromAscii(
-      modelDef, mcmcPartialHandler, Empty, config, notifier),
+      modelDef, mcmcPartialHandler, config, notifier),
     g=="NameBlock", 
     {
       Text ascii = BysMcmc::Bsr::Import::Write(modelDef);
-    //WriteLn("TRACE EstimAndNotify FunctionExist('Set','modelDef::Get.NonLinFilter') = "<<FunctionExist("Set","modelDef::Get.NonLinFilter"));
-      Set nonLinFilter = 
-        If(!FunctionExist("Set","modelDef::Get.NonLinFilter"), Copy(Empty), 
-          modelDef::Get.NonLinFilter(0));
-    //WriteLn("TRACE EstimAndNotify Card(nonLinFilter) = "<<Card(nonLinFilter));
       GetCyclerFromAscii(
-        ascii, mcmcPartialHandler, nonLinFilter, config, notifier)
+        ascii, mcmcPartialHandler, config, notifier)
     },
     1==1, 
     {

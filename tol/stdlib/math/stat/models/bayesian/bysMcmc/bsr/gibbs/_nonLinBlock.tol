@@ -4,6 +4,8 @@
 // PURPOSE: Defines Class BysMcmc::Bsr::Gibbs::BlockNonLin
 /////////////////////////////////////////////////////////////////////////////
 
+Class MasterSamplerBasic;
+
 /////////////////////////////////////////////////////////////////////////////
 Class BlockNonLin : BlockSampler
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +16,7 @@ Class BlockNonLin : BlockSampler
   //Scalar sampler
   Code _scalarSampler;
   //Basic BSR that will be modified by filter
-  NameBlock _.bsr;
+  MasterSamplerBasic _.bsr;
   //Filter evaluator
   NameBlock _.filter;
   //Name of affected segment in BSR
@@ -280,7 +282,7 @@ Class BlockNonLin : BlockSampler
     //Filter evaluator
     NameBlock usrFilter, 
     //Basic BSR that will be modified by filter
-    NameBlock bsr,
+    MasterSamplerBasic bsr,
     //Number of block in non linear master
     Real numBlock, 
     //First column in MCMC
@@ -295,7 +297,7 @@ Class BlockNonLin : BlockSampler
     //Scalar sampler
     Code _scalarSampler = config::bsr.scalarSampler.nonLinBlock;
     //Basic BSR that will be modified by filter
-    NameBlock _.bsr = bsr;
+    MasterSamplerBasic _.bsr = bsr;
     //Filter evaluator
     NameBlock _.filter = usrFilter;
     

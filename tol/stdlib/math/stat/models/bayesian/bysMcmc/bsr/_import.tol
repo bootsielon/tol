@@ -163,10 +163,12 @@ Real Write.Data.MissingBlock(NameBlock segment,
 
 ///////////////////////////////////////////////////////////////////////////
 Real Write.Data.NoiseDistribution(NameBlock segment,
-                                  Real fileHandler)
+                                  Real fileHandler,
+                                  Text path.prefix)
 ///////////////////////////////////////////////////////////////////////////
 {
-  Set timeInfo = segment::Get.TimeInfo(0);
+  Text name = segment::Get.Name(0);
+  Set timeInfo = segment::Get.TimeInfo(0); 
   Text timeExpr = If(!Card(timeInfo),"",
   {
     " dating "+Identify(timeInfo->Dating) +
@@ -185,7 +187,7 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
     If(sp=="",""," ~ "+sp+" ")
   });
 //WriteLn("TRACE "+_MID+" s2Prior="<<s2Prior);
-  FPutText(fileHandler, segment::Get.Name(0)+"::Noise"
+  FPutText(fileHandler, name+"::Noise"
     "["+IntText(segment::Get.Equation.Size(0))+timeExpr+"]"+
     " ~ Normal(0,"<<s2+s2Prior);
   Real arima.size = segment::Get.ARIMA.Size(0);
@@ -203,7 +205,27 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
     });
     FPutText(fileHandler, "]])")
   });
-  FPutText(fileHandler, ");\n");
+  FPutText(fileHandler, ")");
+  If(!FunctionExist("Set","segment::Get.NonLinearFilters"),
+  {
+    WriteLn("Not implemented method Get.NonLinearFilters. "
+    "No linear filter is assumed.");
+    False
+  },
+  {
+    Set nlf = segment::Get.NonLinearFilters(0);
+    If(!Card(nlf),False,
+    {
+      Text nlf.path = path.prefix+"."+name+".oza";
+      WriteLn("Get.NonLinearFilters returns "<<Card(nlf)+
+      "linear filters that will be stored in "+nlf.path);
+      Real Ois.Store(nlf,nlf.path);
+      Real FPutText(fileHandler, "\nwith non linear filters \n"
+      "  {$ Set Include(\""+nlf.path+"\") $}");
+      True
+    })
+  });
+  FPutText(fileHandler, ";\n");
   0
 };
 
@@ -431,7 +453,8 @@ Text _.autodoc.member.Write.Joint =
   Text path = model::Get.Doc.Path(0);
   Real Do OSDirMake(path);
 
-  Text file.bsr = path+model.name+"."+session.name+".bsr";
+  Text path.prefix = path+model.name+"."+session.name;
+  Text file.bsr = path.prefix+".bsr";
   Real f.bsr = FOpen(file.bsr,"w");
   Real If(!f.bsr, Real{
       WriteLn(_MID+"Cannot open "+file.bsr+" for writing.","E");
@@ -461,7 +484,7 @@ Text _.autodoc.member.Write.Joint =
     WriteLn(_MID+" Writing segment "+segment::Get.Name(0));
     Real Write.Data.MainLinearBlock    (segment, f.lin);
     Real Write.Data.MissingBlock       (segment, f.mis);
-    Real Write.Data.NoiseDistribution  (segment, f.dis);
+    Real Write.Data.NoiseDistribution  (segment, f.dis, path.prefix);
     Real Write.Data.RegressionEquations(segment, f.reg);
     Real Write.Domain.Constraints      (segment, f.con);
     Real Write.Data.Constraints        (segment, f.con);
@@ -494,6 +517,27 @@ Text _.autodoc.member.Write.Joint =
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Write.Module =
+"Imports data from a model defined by a NameBlock having a set of mandatory "
+"methods to get all needed information to write an ASCII file with BSR "
+"format that will can be readed by function BSR.Parse ";
+  Text Write.Module(NameBlock model, Text moduleType)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Case
+  (
+    moduleType=="primary", Write.Primary(model),
+    moduleType=="joint",   Write.Joint  (model),
+    moduleType=="master",  Write.Master (model),
+    1==1,
+    {
+      Error("Invalid module type '"+moduleType+"' should be one of these "
+            "'primary', 'joint' or 'master'")
+    }
+  )
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Write =
 "Imports data from a model defined by a NameBlock having a set of mandatory "
 "methods to get all needed information to write an ASCII file with BSR "
@@ -508,17 +552,7 @@ Text _.autodoc.member.Write =
   {
     model::Get.ModuleType(0)
   }));
-  Case
-  (
-    moduleType=="primary", Write.Primary(model),
-    moduleType=="joint",   Write.Joint  (model),
-    moduleType=="master",  Write.Master (model),
-    1==1,
-    {
-      Error("Invalid module type '"+moduleType+"' should be one of these "
-            "'primary', 'joint' or 'master'")
-    }
-  )
+  Write.Module(model,moduleType)
 }
 
 
