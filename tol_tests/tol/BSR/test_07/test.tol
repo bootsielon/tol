@@ -66,7 +66,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
       "OneNodeLinear",
     Text Model.Description = 
       "Randomly generated linear model";
-    Text Session.Name = "SES_"+Model.Name+"_"<<rndSeed;
+    Text Session.Name = "SES_"+Model.Name+".01";
     Text Session.Description = 
       "Random seed "<<rndSeed;
     Text Session.Authors = 

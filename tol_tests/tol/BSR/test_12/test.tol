@@ -25,7 +25,7 @@ WriteLn("Creando en la base de datos el área documental");
 //////////////////////////////////////////////////////////////////////////////
 Text id_model   =  "Test.12";
 Text ds_model   =  summary_;
-Text id_session =  id_model+"_"+IntText(rndSeed);
+Text id_session =  id_model+".01";
 Text ds_session =  summary_;
 Text ds_authors  = "irobles@bayesforecast.com";
 

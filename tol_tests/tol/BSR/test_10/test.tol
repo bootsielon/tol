@@ -68,7 +68,7 @@ Text ds_model = "Modelo generado automáticamente por simulación para el "
 //Si una sesión va asociada a un único modelo es prudente que el nombre lo 
 //recoja para evitar confusiones. En este caso se infija con A3Aud7CH como
 //abreviatura del nombre del modelo.
-Text id_session =  "SES_"+id_model+"_"+IntText(rndSeed);
+Text id_session =  "SES_"+id_model+".01";
 
 //Esta orden desbloquea todas las sesiones relativas a este modelo
 Real BysMcmc::Bsr::DynHlm::DBApi::Mod.SetBlocked(
