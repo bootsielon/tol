@@ -222,7 +222,8 @@ NameBlock OneNode =
         VMatrix L   = Eye(m.full,m.full,0,L.diag);
         VMatrix Li  = Eye(m.full,m.full,0,Li.diag);
         Set EquIdx = SetOfReal(m+j);
-        Set TimeInfo = Copy(Empty)
+        Set TimeInfo = Copy(Empty);
+        Set NonLinFilters = Copy(Empty)
       )
    });
 
