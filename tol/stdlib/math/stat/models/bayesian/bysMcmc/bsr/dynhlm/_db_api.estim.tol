@@ -218,7 +218,7 @@ Cycler GetCycler(Text dbName,
                  Text session, 
                  Text resultRootPath,
                  NameBlock seriesHandler, 
-                 NameBlock config)
+                 BysMcmc::Config config)
 ////////////////////////////////////////////////////////////////////////////
 {
   Real BysMcmc::Bsr::DynHlm::DBApi::useNodeInMissingIdentifier := 
@@ -254,15 +254,18 @@ Cycler GetCycler(Text dbName,
 
   BysMcmc::Notifier dbNotifier=BysMcmc::Notifier.DB::New
     (dbName,model,session);
-  Real dbNotifier::loading(0);
-  NameBlock model.def = BysMcmc::Bsr::DynHlm::DBApi::LoadModelDef
+  Real dbNotifier::loading(0);  
+  NameBlock model.def = Eval("NameBlock "+
+  "BysMcmc::Bsr::DynHlm::DBApi::LoadModelDef."+
+    config::DBApi.moduleHandler+"
   (
     dbName,
     id_model,
     id_session,
     resultRootPath,
-    seriesHandler
-  );
+    seriesHandler,
+    config
+  )");
   BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
     model.def, BysMcmc::McmcPartialHandler::Null(0), config, dbNotifier);
   Set Append(cycler::auxInfo, [[series.handler]]);

@@ -189,7 +189,7 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
 //WriteLn("TRACE "+_MID+" s2Prior="<<s2Prior);
   FPutText(fileHandler, name+"::Noise"
     "["+IntText(segment::Get.Equation.Size(0))+timeExpr+"]"+
-    " ~ Normal(0,"<<s2+s2Prior);
+    "\n  ~ Normal(0,"<<s2+s2Prior);
   Real arima.size = segment::Get.ARIMA.Size(0);
   If(arima.size, 
   {
@@ -226,6 +226,24 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
     })
   });
   FPutText(fileHandler, ";\n");
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Data.RegressionMatrices(NameBlock segment,
+                                   Real fileHandler,
+                                   Text path.prefix)
+///////////////////////////////////////////////////////////////////////////
+{
+  Text ResName = segment::Get.Name(0)+"::Noise";
+  VMatrix Y = segment::Get.OutputVMatrix(0);
+  VMatrix X = segment::Get.InputVMatrix(0);
+  Real Ois.Store([[Y]],path.prefix+".Y.oza");
+  Real Ois.Store([[X]],path.prefix+".X.oza");
+  Real FPutText(fileHandler, "\nOutput = "
+  "  {$ Set Include(\""+path.prefix+".Y.oza\") $}");
+  Real FPutText(fileHandler, "\nInput = "
+  "  {$ Set Include(\""+path.prefix+".X.oza\") $}");
   0
 };
 
@@ -432,7 +450,6 @@ Text _.autodoc.member.Write.Primary =
   Real Write.Data.MainLinearBlock      (segment, f.bsr);
   Real Write.Header.NoiseDistribution  (model,   f.bsr);
   Real Write.Data.NoiseDistribution    (segment, f.bsr);
-  Real Write.Header.RegressionMatrices (model,   f.bsr);
   Real Write.Data.RegressionMatrices   (segment, f.bsr);
   Real Write.Header.MissingBlock       (model,   f.bsr);
   Real Write.Data.MissingBlock         (segment, f.bsr);

@@ -64,6 +64,10 @@ NameBlock Obs.Serie.Info(
   Date _.lastDate  = last;
   //Sorted list of analyzed dates
   Set _.dates = Dates(Dating(_.serie), _.firstIniVal, _.lastDate);
+  Matrix Get.Matrix(Real unused)
+  {
+    Tra(SerSetMat(_.serie, _.firstDate, _.lastDate))
+  };
   Real Get.Equation.Size(Real unused) 
   { 
     Card(_.dates) 
@@ -185,6 +189,10 @@ NameBlock Obs.Vector.Info(
   {
     Text txt = IntText(num);
     "MissingBlk::"+_.missing.id+"::N"+txt
+  };
+  Matrix Get.Matrix(Real unused)
+  {
+    _.serie
   };
   Real Get.Equation.Size(Real unused) 
   { 
@@ -575,6 +583,20 @@ NameBlock Obs(
       _.output::_.serie.info::_.lastDate
     ))
   };
+
+  VMatrix Get.OutputVMatrix(Real unused)
+  {
+    Mat2VMat(_.output::_.serie.info::Get.Matrix(0))
+  };
+
+  VMatrix Get.InputVMatrix(Real unused)
+  {
+    Group("ConcatColumns", EvalSet(_.input, VMatrix(NameBlock inp)
+    {
+      Mat2VMat(inp::_.serie.info::Get.Matrix(0))
+    }))
+  };
+
   Real Get.Equation.Size(Real unused) 
   { 
     _.output::_.serie.info::Get.Equation.Size(0)

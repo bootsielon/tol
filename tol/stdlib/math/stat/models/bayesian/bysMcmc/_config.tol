@@ -34,6 +34,25 @@ NameBlock Options =
     //Approximated method valid and faster than FastChol and FastCholSea when
     //the data length is very large
     Text DifEq = "DifEq"
+  ]];
+  NameBlock DBApi.Module =
+  [[
+    //All nodes will be defined in just one module of type 'joint'
+    Text Joint.All = "Joint.All",
+    //A master module will be defined with 
+    // - a primary module for each observational node 
+    // - just one joint module for all latent and prior nodes all together
+    Text Master.ObsAsPrimary = "Master.ObsAsPrimary"
+  ]];
+  NameBlock DBApi.Master.Sampler =
+  [[
+    //All modules will be remixed as just one joint module
+    Text Monophasic = "monopahsic"
+    //STILL NOT AVAILABLE SAMPLING METHODS
+    //Modules will be sampled sequentially in just one computer
+    //Text Sequential = "sequential",
+    //Modules will be sampled in parallel in a battery of computers
+    //Text Parallel = "parallel"
   ]]
 ]];
 
@@ -146,6 +165,12 @@ Class Config
   //inputs with the same name will are referred to the same input missing
   //variables. 
   Real DBApi.useNodeInMissingIdentifier = True;
+  //How DBApi define BSR modules
+  Text DBApi.moduleHandler = 
+    BysMcmc::Options::DBApi.Module::Joint.All;
+  //How DBApi samples BSR modules
+  Text DBApi.masterSampler = 
+    BysMcmc::Options::DBApi.Master.Sampler::Monophasic;
   //If true an internal TOL profiling will be executed
   Real do.mcmc.profiler = False;
 

@@ -159,6 +159,38 @@
   )
 };
 
+///////////////////////////////////////////////////////////////////////////
+// Non Linear Filter Section
+Set LoadNodeNonLinFil(
+  Text dbName, 
+  Text model, 
+  Text session,
+  Text id_node, 
+  NameBlock modelHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("TRACE [LoadNodeNonLinFil] 1 id_node="+id_node);
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Set db_genericNonLinBlk = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT \n"+
+  "  id_node, \n"+
+  "  id_series \n"+
+  "FROM "+dbName+"."+_table::NonLinFlt+" WHERE \n"+
+  "  id_model='"+id_model+"' AND \n"+
+  "  id_session='"+id_session+"'\n AND"+
+  "  id_node='"+id_node+"'\n",
+  "Bsr.DynHlm.DBStrNonLinFlt");
+
+  Set genericNonLinBlk = If(!Card(db_genericNonLinBlk), 
+    Empty,
+    EvalSet(db_genericNonLinBlk,NameBlock get.nlf(Bsr.DynHlm.DBStrNonLinFlt nlf)
+    {
+      modelHandler::GetNonLinFlt(nlf->node, nlf->nameBlock)
+    }));
+  WriteLn("TRACE [LoadNodeNonLinFil] 2 Card(genericNonLinBlk)="<<Card(genericNonLinBlk));
+  genericNonLinBlk
+};
+
 ////////////////////////////////////////////////////////////////////////////
 //Loads from data base an observational node
 //Data series are given by user through a modelHandler having at least a 
@@ -583,11 +615,16 @@ NameBlock LoadPriNode(Text dbName,
 //Auxiliar data and final MCMC and reports will be saved in resultRootPath
 //Data series are given by user through a modelHandler having at least a 
 //method Serie GetSerie(Text id_node, Text id_serie)
-NameBlock LoadModelDef(Text dbName, 
-                       Text model, 
-                       Text session, 
-                       Text resultRootPath,
-                       NameBlock modelHandler)
+NameBlock LoadModelDef.Joint(
+  Text dbName, 
+  Text model, 
+  Text session, 
+  Text resultRootPath,
+  NameBlock modelHandler, 
+  BysMcmc::Config config,
+  Real includeObs,
+  Real includeLat,
+  Real includePri)
 ////////////////////////////////////////////////////////////////////////////
 {[[
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
@@ -596,7 +633,6 @@ NameBlock LoadModelDef(Text dbName,
   Text _.id_session = session;
   Text _.resultRootPath = resultRootPath;
   NameBlock _.modelHandler = modelHandler;
-  Set _.deltaNonLinBlk = Copy(Empty);
 
   Real _.modSesCheck = 
   {
@@ -622,24 +658,27 @@ NameBlock LoadModelDef(Text dbName,
 
   Set input.missing.labels = Copy(Empty);
 
-  Set _.nodes.obs = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  Set _.nodes.obs = If(!includeObs,Copy(Empty),
+  BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
   "  id_model='"+_.id_model+"' AND \n"+
   "  id_session='"+_.id_session+"' AND "
   "  id_node_type='OBS'"
-  "order by nu_node","Bsr.DynHlm.DBNode");
-  Set _.nodes.lat = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "order by nu_node","Bsr.DynHlm.DBNode"));
+  Set _.nodes.lat = If(!includeLat,Copy(Empty), 
+  BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
   "  id_model='"+_.id_model+"' AND \n"+
   "  id_session='"+_.id_session+"' AND "
   "  id_node_type='LAT'"
-  "order by nu_node","Bsr.DynHlm.DBNode");
-  Set _.nodes.pri = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "order by nu_node","Bsr.DynHlm.DBNode"));
+  Set _.nodes.pri =  If(!includePri,Copy(Empty),
+  BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
   "  id_model='"+_.id_model+"' AND \n"+
   "  id_session='"+_.id_session+"' AND "
   "  id_node_type='PRI'"
-  "order by nu_node","Bsr.DynHlm.DBNode");
+  "order by nu_node","Bsr.DynHlm.DBNode"));
   Set _.nodes = _.nodes.obs<<_.nodes.lat<<_.nodes.pri;
 
 //Mandatory methods that will be used by BysMcmc::Bsr::Import
@@ -660,59 +699,29 @@ NameBlock LoadModelDef(Text dbName,
   Text Get.Doc.Path(Real unused) { _.resultRootPath };
   ///////////////////////////////////////////////////////////////////////////
 
-  ///////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
   // Linear Regression Section
   Real Get.LinReg.Size(Real unused) 
   { 
     Card(_.nodes)
   };
 
-  ///////////////////////////////////////////////////////////////////////////
-  // Non Linear Filter Section
-  Set Get.GenericNonLinFiltersForNode(Text id_node)
-  ///////////////////////////////////////////////////////////////////////////
-  {
-    WriteLn("TRACE [Get.GenericNonLinFiltersForNode] 1 id_node="+id_node);
-    NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
-    Set db_genericNonLinBlk = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
-    "SELECT \n"+
-    "  id_node, \n"+
-    "  id_series \n"+
-    "FROM "+_.dbName+"."+_table::NonLinFlt+" WHERE \n"+
-    "  id_model='"+_.id_model+"' AND \n"+
-    "  id_session='"+_.id_session+"'\n AND"+
-    "  id_node='"+id_node+"'\n",
-    "Bsr.DynHlm.DBStrNonLinFlt");
-
-    Set genericNonLinBlk = If(!Card(db_genericNonLinBlk), 
-      Empty,
-      EvalSet(db_genericNonLinBlk,NameBlock get.nlf(Bsr.DynHlm.DBStrNonLinFlt nlf)
-      {
-        _.modelHandler::GetNonLinFlt(nlf->node, nlf->nameBlock)
-      }));
-    WriteLn("TRACE [Get.GenericNonLinFiltersForNode] 2 Card(genericNonLinBlk)="<<Card(genericNonLinBlk));
-    genericNonLinBlk
-  };
-
-  ///////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
   // Non Linear Filter Section
   NameBlock Get.LinReg.Segment(Real segmentNumber) 
-  ///////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
   { 
     Set node = _.nodes[segmentNumber];
     Text id_node = node->Node;
-    Set gnlf = Get.GenericNonLinFiltersForNode(id_node);
+    Set gnlf = BysMcmc::Bsr::DynHlm::DBApi::LoadNodeNonLinFil(
+      _.dbName, _.id_model, _.id_session, id_node, _.modelHandler);
   //WriteLn("TRACE [Get.LinReg.Segment] id_node="+id_node+" node->NodeType="<<node->NodeType);
     Case(
       node->NodeType=="OBS", 
       {
-        NameBlock obs = BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
+        BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
           _.dbName, _.id_model, _.id_session, id_node, 
-          _.modelHandler, input.missing.labels, gnlf);
-      //WriteLn("TRACE [Get.LinReg.Segment] Card(obs::_.deltaNonLinBlk)="<<Card(obs::_.deltaNonLinBlk));
-        Set Append(_.deltaNonLinBlk, obs::_.deltaNonLinBlk);
-      //WriteLn("TRACE [Get.LinReg.Segment] Card(_.deltaNonLinBlk)="<<Card(_.deltaNonLinBlk));
-        obs
+          _.modelHandler, input.missing.labels, gnlf)
       },   
       node->NodeType=="LAT", 
       {
@@ -727,12 +736,149 @@ NameBlock LoadModelDef(Text dbName,
     )
   };
 
-  ///////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
   // NO Linear Constraints Section
   NameBlock _.constr=BysMcmc::Bsr::DynHlm::DBApi::LoadNodeConstraints
     (dbName,model,session,"MIXTURE");
   NameBlock Get.Constraints.Handler(Real unused) { _.constr } 
-  ///////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
 
 ]]};
 
+//////////////////////////////////////////////////////////////////////////////
+//Loads from data base full model definition and creates a NameBlock with
+//Auxiliar data and final MCMC and reports will be saved in resultRootPath
+//Data series are given by user through a modelHandler having at least a 
+//method Serie GetSerie(Text id_node, Text id_serie)
+NameBlock LoadModelDef.Joint.All(
+  Text dbName, 
+  Text model, 
+  Text session, 
+  Text resultRootPath,
+  NameBlock modelHandler, 
+  BysMcmc::Config config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  LoadModelDef.Joint(
+   dbName, model, session, resultRootPath,modelHandler,config, 
+   true,true,true)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Loads from data base full model definition and creates a NameBlock with
+//Auxiliar data and final MCMC and reports will be saved in resultRootPath
+//Data series are given by user through a modelHandler having at least a 
+//method Serie GetSerie(Text id_node, Text id_serie)
+NameBlock LoadModelDef.Master.ObsAsPrimary(
+  Text dbName, 
+  Text model, 
+  Text session, 
+  Text resultRootPath,
+  NameBlock modelHandler, 
+  BysMcmc::Config config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Text model.description = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT ds_model FROM "+dbName+"."+_table::Model+" WHERE "+
+  "  id_model='"+model+"'","")[1][1];
+  Text session.description = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT ds_session FROM "+dbName+"."+_table::Session+" WHERE "+
+  "  id_session='"+session+"'","")[1][1];
+  Text session.te_authors = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT te_authors FROM "+dbName+"."+_table::Session+" WHERE "+
+  "  id_session='"+session+"'","")[1][1];
+
+  NameBlock master.module = [[
+  Text _.dbName = dbName; 
+  Text _.id_model = model;
+  Text _.id_session = session;
+  Text _.resultRootPath = resultRootPath;
+  NameBlock _.modelHandler = modelHandler;
+
+  Text _.model.description = model.description;
+  Text _.session.description =  session.description;
+  Text _.session.te_authors = session.te_authors;
+
+  Set _.nodes.obs = 
+  BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
+  "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
+  "  id_model='"+_.id_model+"' AND \n"+
+  "  id_session='"+_.id_session+"' AND "
+  "  id_node_type='OBS'"
+  "order by nu_node","Bsr.DynHlm.DBNode");
+  
+  Set _.obs = EvalSet(_.nodes.obs, NameBlock(Set node)
+  {[[
+    Text id_node = node->Node;
+    Text _.dbName = dbName; 
+    Text _.id_model = model;
+    Text _.id_session = session;
+    Text _.resultRootPath = resultRootPath+"/Obs/"+id_node;
+    NameBlock _.modelHandler = modelHandler;
+    Text _.model.description = model.description;
+    Text _.session.description =  session.description;
+    Text _.session.te_authors = session.te_authors;
+    //Mandatory methods that will be used by BysMcmc::Bsr::Import
+    //////////////////////////////////////////////////////////////////////////
+    // Documental Section
+    //Returns model identifier to help in analysis organization
+    Text Get.Doc.Model.Name(Real unused) { _.id_model };
+    //Brief explanation of model
+    Text Get.Doc.Model.Description(Real unused)  { _.model.description };
+    //Returns model identifier to help in analysis organization
+    Text Get.Doc.Session.Name(Real unused)  { _.id_session };
+    //Brief explanation of model
+    Text Get.Doc.Session.Description(Real unused) { _.session.description };
+    //e-mail or any identifier of te_authors separated by \n
+    Text Get.Doc.Session.Authors(Real unused)  { _.session.te_authors };
+    //The path where the BSR-ASCII formated file will be stored
+    Text Get.Doc.Path(Real unused) { _.resultRootPath };
+    //////////////////////////////////////////////////////////////////////////
+    // Linear Regression Section
+    Real Get.LinReg.Size(Real unused) 
+    { 
+      Card(_.nodes)
+    };
+    //////////////////////////////////////////////////////////////////////////
+    // Segment Section
+    NameBlock Get.LinReg.Segment(Real segmentNumber) 
+    //////////////////////////////////////////////////////////////////////////
+    { 
+      Set node = _.nodes[segmentNumber];
+      Text id_node = node->Node;
+      Set gnlf = BysMcmc::Bsr::DynHlm::DBApi::LoadNodeNonLinFil(
+        _.dbName, _.id_model, _.id_session, id_node, _.modelHandler);
+      BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
+        _.dbName, _.id_model, _.id_session, id_node, 
+        _.modelHandler, input.missing.labels, gnlf)
+    }
+  ]]});
+  NameBlock _.latPri = LoadModelDef.Joint(
+   dbName, model, session, resultRootPath+"/LatPri", modelHandler,config, 
+   false,true,true);
+  Set _.modules = _.obs << [[_.latPri]];
+
+  //Mandatory methods that will be used by BysMcmc::Bsr::Import
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Documental Section
+  //Returns model identifier to help in analysis organization
+  Text Get.Doc.Model.Name(Real unused) { _.id_model };
+  //Brief explanation of model
+  Text Get.Doc.Model.Description(Real unused)  { _.model.description };
+  //Returns model identifier to help in analysis organization
+  Text Get.Doc.Session.Name(Real unused)  { _.id_session };
+  //Brief explanation of model
+  Text Get.Doc.Session.Description(Real unused) { _.session.description };
+  //e-mail or any identifier of te_authors separated by \n
+  Text Get.Doc.Session.Authors(Real unused)  { _.session.te_authors };
+  //The path where the BSR-ASCII formated file will be stored
+  Text Get.Doc.Path(Real unused) { _.resultRootPath };
+  ////////////////////////////////////////////////////////////////////////////
+
+  Text Get.Moduletype(Real unused) { "master" };
+  Text Get.Sampler(Real unused) { config::DBApi.masterSampler };
+  Set Get.Modules(Real unused) { _.modules }
+
+]]};
