@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define APP_VERSION "v2.0.1"
-!define APP_RELEASE "v2.0.1 b.0.17.alpha"
+!define APP_RELEASE "v2.0.1 b.0.18.alpha"
 !define APP_NAME "tolbase"
 !define APP_NAMEV "tolbase-${APP_VERSION}"
 !define APP_PUBLISHER "Tol-Project"
