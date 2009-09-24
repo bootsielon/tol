@@ -21,7 +21,7 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-Set data = Include ("data.oza");
+Set data = { Include ("data.oza") };
 
 //Se activa la base de datos de modelos BsrHlm
 Real DBConnection::BsrHlm::Activate(0);
@@ -77,9 +77,9 @@ WriteLn("Creando en la base de datos los nodos observacionales");
   //#Contiene todas las series input y output con nombres únicos dentro
   //de cada nodo.
   Set _.series = [[ 
-        Serie Output = OutputInput["output"]/scale,
+        Serie Output = data["output"]/scale,
         Serie Const  = Output*0+1,
-        Serie Input  = OutputInput["input"+te_node]/scale
+        Serie Input  = data["input"+te_node]/scale
             ]];
   //#Se comprueba la unicidad de nombres y se indexa para acelerar 
   //búsquedas
