@@ -24,8 +24,6 @@ Class MasterSamplerBasic : MasterSampler
   BysMcmc::Bsr::Gibbs::BlockStdLin _.outMis.blk;
   //Non linear blocks
   Set _.nonLinBlk;
-  //Non linear filter of output
-  Set _.nonLinOutputFilter;
 
   //--------------------------------------------------------------------------
   //Auxiliar members
@@ -42,6 +40,10 @@ Class MasterSamplerBasic : MasterSampler
   VMatrix _.residuals = Rand(0,0,0,0);
   //Linear block values
   VMatrix _.beta = Rand(0,1,0,0);
+  //Non linear filter of output
+  Set _.nonLinOutputFilter = Copy(Empty);
+  //Non linear filters with parameters to be drawn
+  Set _.nonLinDrawFilter = Copy(Empty);
 
   //--------------------------------------------------------------------------
   //Methods
@@ -205,6 +207,9 @@ Class MasterSamplerBasic : MasterSampler
 
     Real sel.extFlt (BysMcmc::BlockSampler nlb) { !(nlb::_.isInputFilter) };
     Set _.nonLinOutputFilter := Select(_.nonLinBlk, sel.extFlt);
+
+    Real sel.drwFlt (BysMcmc::BlockSampler nlb) { nlb::_.N>0 };
+    Set _.nonLinDrawFilter := Select(_.nonLinBlk, sel.drwFlt);
 
   //WriteLn("TRACE"+_MID+" initialize 1");
     VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
@@ -375,11 +380,14 @@ Class MasterSamplerBasic : MasterSampler
       });
       _.mln.blk::get.draw(numSim, False)
     });
-    Set nlb.aux = EvalSet(_.nonLinBlk, VMatrix(BlockNonLin nlb)
+    VMatrix nlb = If(!Card(_.nonLinBlk),Rand(0,1,0,0),
     {
-      nlb::get.draw(numSim,False)
+      Set nlb.aux = EvalSet(_.nonLinBlk, VMatrix(BlockNonLin nlb)
+      {
+        nlb::get.draw(numSim,False)
+      });
+      Group("ConcatRows", nlb.aux)
     }); 
-    VMatrix nlb = Group("ConcatRows", nlb.aux);
   //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 6 _.beta="<<_.beta);
     VMatrix param = _.beta << sig << arm << im << om << nlb;
   //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 7 param="<<VRows(param)+"x"<<VColumns(param)+")");
@@ -851,8 +859,6 @@ Class MasterSamplerBasic : MasterSampler
     BysMcmc::Bsr::Gibbs::MasterSamplerBasic master = [[
       //Internal reference to model definition
       Set _.modelDef = modelDef;
-      //External filter of output
-      Set _.nonLinOutputFilter = Copy(Empty);
       //Output after external filters
       VMatrix _.Y = _.modelDef->Y;
 
