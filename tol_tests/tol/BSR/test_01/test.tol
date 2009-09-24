@@ -34,10 +34,11 @@ BysMcmc::Config bsr.config = [[
   Real basic.cholesky.epsilon          = 1.E-13;
   Real basic.cholesky.warningFreq      = 100;
   Real basic.truncMNormal.gibbsNumIter = 5;
+  Real bsr.iniVal.try.findFeasible = 1;
   Real bsr.iniVal.try.givenByUser = 2;
   Real bsr.iniVal.try.zero = 3;
-  Real bsr.iniVal.try.cnstrMinNorm = 4;
-  Real bsr.iniVal.try.cnstrMLE = 1;
+  Real bsr.iniVal.try.cnstrMLE = 4;
+  Real bsr.iniVal.try.cnstrMinNorm = 5;
 //Report configuration
   Real report.raftery.diag.q   = 0.025;
   Real report.raftery.diag.r   = 0.007;   
