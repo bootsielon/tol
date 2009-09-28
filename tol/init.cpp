@@ -262,7 +262,6 @@ static void signal_assign()
   signal(SIGTERM,  signal_error_SIGTERM);
   signal(SIGABRT,  signal_error_SIGABRT);
 #else
-werqwerqwer
 //signal(       0, signal_error_SIGUNK);
   signal(       1, signal_error_SIGUNK);
   signal(SIGINT,   signal_error_SIGINT);
