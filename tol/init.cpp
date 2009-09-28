@@ -254,6 +254,15 @@ static void signal_error_SIGUNK(int sig)
 static void signal_assign()
 //--------------------------------------------------------------------
 {
+#ifdef UNIX
+  signal(SIGINT,   signal_error_SIGINT);
+  signal(SIGILL,   signal_error_SIGILL);
+  signal(SIGFPE,   signal_error_SIGFPE);
+  signal(SIGSEGV,  signal_error_SIGSEGV);
+  signal(SIGTERM,  signal_error_SIGTERM);
+  signal(SIGABRT,  signal_error_SIGABRT);
+#else
+werqwerqwer
 //signal(       0, signal_error_SIGUNK);
   signal(       1, signal_error_SIGUNK);
   signal(SIGINT,   signal_error_SIGINT);
@@ -275,10 +284,9 @@ static void signal_assign()
 //signal(      18, signal_error_SIGUNK);
 //signal(      19, signal_error_SIGUNK);
 //signal(      20, signal_error_SIGUNK);
-#ifdef WINDOWS
   signal(SIGBREAK, signal_error_SIGBREAK);
-#endif
   signal(SIGABRT,  signal_error_SIGABRT);
+#endif
 }
 
 //--------------------------------------------------------------------
