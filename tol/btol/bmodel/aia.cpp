@@ -515,7 +515,7 @@ DeclareContensClass(BSet, BSetTemporary, BSetAia);
 DefExtOpr(1, BSetAia, "AIA", 2, 7, 
   "Serie Ratio Set Real Real Real Real",
   "(Serie ser, Ratio rat [, Set outliers,"
-  " Real optMaxOrder=0,"
+  " Real optMaxOrder=2,"
   " Real optMaxCrossNum=100,"
   " Real optMinNonZeroParamProb=0.99,"
   " Real optMaxEigenValueRelativeRange=100])",
