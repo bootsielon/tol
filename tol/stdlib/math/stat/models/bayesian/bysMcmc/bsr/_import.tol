@@ -579,7 +579,7 @@ Text _.autodoc.member.Write.Master =
 
   Set modules = model::Get.Modules(0);
   Real Write.Header(model, f.bsr, "master");
-  Real FPutText(f.bsr,"Modular.Schema = "+model::Get.Modular.Schema(0)+"\n");
+  Real FPutText(f.bsr,"Modular.Schema = "+model::Get.Modular.Schema(0)+";\n");
 
   Set EvalSet(modules, Real(NameBlock module)
   {

@@ -143,7 +143,7 @@ public:
 
       modularSchema = 
         str_p("Modular.Schema") >> ch_p('=') >>
-        modularSchemaOpt[assign_a(s.modularSchema)];
+        modularSchemaOpt[assign_a(s.modularSchema)] >> endOfSentence;
 
       modulePath = 
         confix_p("\"", *(anychar_p - '\"'), "\"")[assign_a(s.currentSubMod.filePath)]
