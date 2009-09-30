@@ -1,5 +1,5 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
@@ -27,6 +27,10 @@
 
 \hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
 \end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+\end_modules
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -37,9 +41,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -64,7 +70,8 @@
 \begin_body
 
 \begin_layout Chapter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "cha:BysMcmc::Bsr::Import"
 
 \end_inset
@@ -102,7 +109,8 @@ BSR
  sin necesidad de conocer el formato en archivo de dichos modelos.
  Semánticamente esta orientado a los conceptos ya definidos en la sección
  
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec:clase_modelos_BSR"
 
 \end_inset
@@ -251,7 +259,8 @@ y_{t} & =\beta_{0}+\sum_{1}^{k}\beta_{i}x_{t,i}+z_{t}\\
 \end_inset
 
 
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "eq:mod_exa_bsr"
 
 \end_inset
@@ -271,22 +280,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Doc.Model.Name(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text "BSRExample"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -307,22 +316,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Doc.Model.Description(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text "Modelo simple ARMA(2,1)"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -354,22 +363,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Doc.Session.Name(Real void) 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text _.session.id
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -391,27 +400,27 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Doc.Session.Description(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text "Session "+_.session.id+" para el modelo: " +
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
        Get.Doc.Model.Name(0) + " " + Get.Doc.Model.Description(0)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -433,22 +442,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Doc.Session.Authors(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text "user@bayesforecast.com"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -471,22 +480,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Doc.Path(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text _.path.out
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -508,27 +517,27 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.LinReg.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   // para el ejemplo actual solo tenemos un segmento de regresión
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real 1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -557,7 +566,8 @@ iS
 NameBlock
 \family default
  lo describimos en la sección 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec:API-segmento-BSR"
 
 \end_inset
@@ -569,37 +579,37 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Get.LinReg.Segment(Real iS)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   // en este caso retornamos el NameBlock para el único segmento
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   // que se modela para mas de un segmento de regresión se suele
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   // usar un Set que es indexado por iS: _bsr.blocks[iS]
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   NameBlock _.bsr.ARMA.2_1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -621,7 +631,8 @@ NameBlock
  que implementa el interfaz necesaria para definir las restricciones entre
  parametros de diferentes segmentos.
  En la sección 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec:Restricciones-en-BSR"
 
 \end_inset
@@ -636,32 +647,32 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Get.Constraints.Handler(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   // retornamos un NameBlock predefinido para el caso
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   // no restringido
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   NameBlock BysMcmc::Bsr::Import::Unconstrained(0)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -682,339 +693,339 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Build.Example.BSR(Text path.out, Text session.id,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
                             Serie Y, Set X)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   NameBlock [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text _.path.out = path.out;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text _.session.id = session.id;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock _.bsr.ARMA.2_1 = [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.dating.name = DatingName(Y);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Date _.first = First(Y);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Date _.last = Last(Y),
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Matrix _.Y = SerMat(Y);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Matrix _.X = SerSetMat(X);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       /* ...
  */
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       /* aquí implementamos el NameBlock para el nodo de observación */
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ]];
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Model.Name(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text "BSRExample"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Model.Description(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text "Modelo simple ARMA(3,1)"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Session.Name(Real void) 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.session.id
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Session.Description(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text "Session "+_.session.id+" para el modelo: " +
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
            Get.Doc.Model.Name(0) + " " + Get.Doc.Model.Description(0)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Session.Authors(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text "user@bayesforecast.com"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Path(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.path.output
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real Get.LinReg.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // para el ejemplo actual solo tenemos un segmento de regresión
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real 1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock Get.LinReg.Segment(Real iS)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // en este caso retornamos el NameBlock para el único segmento
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // que se modela para mas de un segmento de regresión se suele
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // usar un Set que es indexado por iS: _bsr.blocks[iS]
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       NameBlock _.bsr.ARMA.2_1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock Get.Constraints.Handler(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // retornamos un NameBlock predefinido para el caso
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // no restringido
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       NameBlock BysMcmc::Bsr::Import::Unconstrained(0)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     }
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   ]]
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1026,7 +1037,8 @@ NameBlock Build.Example.BSR(Text path.out, Text session.id,
 
 \begin_layout Section
 API del segmento BSR
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:API-segmento-BSR"
 
 \end_inset
@@ -1052,22 +1064,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Name(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text "ObsY"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1120,22 +1132,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Sigma2(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text "sigma2"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1157,22 +1169,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set Get.TimeInfo(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set BSR.NoiseTimeInfo(TimeSet Eval(_.dating.name), _.first, _.last)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1190,32 +1202,32 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Struct BSR.NoiseTimeInfo
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   TimeSet Dating,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Date FirstDate,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Date LastDate
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1249,7 +1261,8 @@ ARIMA
  Un polinomio de grado superior a 2 debe darse descompuesto en factores
  de grado 2 ó 1.
  Para el modelo 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "eq:mod_exa_bsr"
 
 \end_inset
@@ -1261,22 +1274,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.ARIMA.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real 1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 }; 
 \end_layout
@@ -1315,37 +1328,37 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Struct ARIMAStruct
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Periodicity,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Polyn AR,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Polyn MA,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Polyn DIF
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1353,7 +1366,8 @@ Struct ARIMAStruct
 \end_inset
 
 Para el modelo 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "eq:mod_exa_bsr"
 
 \end_inset
@@ -1364,22 +1378,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set Get.ARIMA.Factor(Real f)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set ARIMAStruct(1, 1-0.1*B-0.1*B^2, 1-0.1*B, 1)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1405,22 +1419,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.Param.Size(Real void) 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Rows(_.X)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1463,39 +1477,39 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Struct Bsr.Param.Info
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text Name,              // identificador único del parámetro
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real InitValue,         // valor inicial conocido o ?
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Prior.LowerBound,  // cota inf.
  del intervalo de definición o -1/0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Prior.UpperBound   // cota sup.
  del intervalo de definición o +1/0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };   
 \end_layout
@@ -1520,22 +1534,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set Get.Param(Real iP)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set Bsr.Param.Info("beta_"+IntText(iP), Real Rand(0,1), -1/0, 1/0)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1558,22 +1572,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.Missing.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real 0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1610,44 +1624,44 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Struct Bsr.Missing.Info
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text Name,              // identificador único para el valor missing
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Prior.Average,     // prior media or initial value
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Prior.Sigma,       // sigma del prior or +1/0 si no inf.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Prior.LowerBound,  // límite inf.
  del intervalo o -1/0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Prior.UpperBound   // límite sup.
  del intervalo o +1/0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };   
 \end_layout
@@ -1660,22 +1674,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set Get.Missing(Real iP)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set Empty
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1700,27 +1714,27 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.Equation.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   // _.X e _.Y están dispuestas por filas
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Columns(_.X);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1775,22 +1789,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.Equation.Output(Real iE)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real MatDat(_.Y,1,iE)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1830,22 +1844,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.Equation.Input.Size(Real iE)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Rows(_.X)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1913,22 +1927,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.Equation.Input.Coef(Real iE, Real iT)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real MatDat(_.X, iT,iE)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -1961,22 +1975,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.Equation.Input.Param(Real iE, Real iT)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text "beta_"+IntText(iT)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2002,14 +2016,16 @@ NameBlock
  que implementa el interfaz necesaria para definir las restricciones entre
  parametros de este segmentos.
  En la sección 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec:Restricciones-en-BSR"
 
 \end_inset
 
  se describe el API que debe satisfacerse.
  En el modelo planetado en 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "eq:mod_exa_bsr"
 
 \end_inset
@@ -2024,22 +2040,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Get.Constraints.Handler(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   NameBlock Explicit.Constraints([["0>=-beta_1+beta_2"]])
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2051,7 +2067,8 @@ NameBlock Get.Constraints.Handler(Real void)
 
 \begin_layout Section
 Restricciones en BSR
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:Restricciones-en-BSR"
 
 \end_inset
@@ -2088,42 +2105,42 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Lower <= Upper 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Struct Bsr.OrderRelation.Info
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text Lower, //Left parameter
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text Upper  //Right parameter
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };  
 \end_layout
@@ -2147,7 +2164,7 @@ height "1in"
 height_special "totalheight"
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \family typewriter
 Set Bsr.OrdeRelation.Info(
@@ -2182,42 +2199,42 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ///////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Coefficient * Parameter 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 //////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Struct Bsr.LinearCombTerm
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real Coefficient,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text Parameter
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };   
 \end_layout
@@ -2236,48 +2253,48 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ///////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // LowerBound <= c_1*alfa_1 + ...
  + c_n*alfa_n <= UpperBound
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ///////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Struct Bsr.GenericConstraint.Info
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real LowerBound, // cota inferior de la combinación lineal o -1/0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set  LinearComb, // un conjutno de Bsr.LinearCombTerm
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real UpperBound  // cota superior de la combinación lineal o +1/0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2312,22 +2329,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.OrderRelation.Size (Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real 1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2363,22 +2380,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set  Get.OrderRelation (Real r)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set Bsr.OrdeRelation.Info("beta_2","beta_1")
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2406,22 +2423,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.GenericConstraint.Size (Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real 0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2466,42 +2483,42 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Set  Get.GenericConstraint (Real r)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Set Bsr.GenericConstraint.Info
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   ( 0.0,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     [[Set Bsr.LinearCombTerm(1.0,  "beta_1"),
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Set Bsr.LinearCombTerm(-1.0, "beta_2")]],
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     +1/0 )
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2530,22 +2547,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Real Get.ExplicitConstraint.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real 0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2566,22 +2583,22 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Text Get.ExplicitConstraint(Real r)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Text ""
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
 \end_layout
@@ -2620,7 +2637,7 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Order.Relations([[Bsr.OrdeRelation.Info("beta_2","beta_1")]])
 \end_layout
@@ -2650,52 +2667,52 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Generic.Constraints
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 (
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Bsr.GenericConstraint.Info
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   ( 0.0,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     [[Set Bsr.LinearCombTerm(1.0,  "beta_1"),
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Set Bsr.LinearCombTerm(-1.0, "beta_2")]],
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     +1/0 )
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ]]
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 )
 \end_layout
@@ -2721,7 +2738,7 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Explicit.Constraints([["0<=+beta_1-beta_2"]])
 \end_layout
@@ -2748,7 +2765,7 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Constraints(Empty,Empty,[["0<=+beta_1-beta_2"]])
 \end_layout
@@ -2774,7 +2791,7 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Unconstrained(0)
 \end_layout
@@ -2790,7 +2807,8 @@ Ejemplo de API Import
 
 \begin_layout Standard
 El código completo para el ejemplo dado en las ecuaciones 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "eq:mod_exa_bsr"
 
 \end_inset
@@ -2804,716 +2822,960 @@ lstparams "basicstyle={\small\ttfamily}"
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NameBlock Build.Example.BSR(Text path.out, Text session.id,
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
                             Serie Y, Set X)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real beta1 = Rand(-1,1);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   Real beta2 = Rand(-1,beta1); 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   NameBlock [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text _.path.out = path.out;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text _.session.id = session.id;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock _.bsr.ARMA.2_1 = [[
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.dating.name = DatingName(Y);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       _.first = First(Y);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       _.last = Last(Y),
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Matrix _.Y = SerMat(Y);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Matrix _.X = SerSetMat(X);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Set _.beta.ini = [[beta1, beta2]];
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text Get.Name(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Text "ObsY"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text Get.Sigma2(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Text "sigma2"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Set Get.TimeInfo(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Set BSR.NoiseTimeInfo(TimeSet Eval(_.dating.name), _.first, _.last)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Get.ARIMA.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Real 1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Set Get.ARIMA.Factor(Real f)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Set ARIMAStruct(1, 1-0.1*B-0.1*B^2, 1-0.1*B, 1)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Get.Param.Size(Real void) 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Real Rows(_.X)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Set Get.Param(Real iP)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Real value = If(iP>2,Real Rand(-1,1),_.beta.ini[iP]);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Set Bsr.Param.Info("beta_"+IntText(iP), value, -1/0, 1/0) 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Get.Missing.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Real 0
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Set Get.Missing(Real iP)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Set Empty
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Get.Equation.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         // _.X e _.Y están dispuestas por filas
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Real Columns(_.X)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Get.Equation.Output(Real iE)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Real MatDat(_.Y,1,iE)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Get.Equation.Input.Size(Real iE)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Real Rows(_.X)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real Get.Equation.Input.Coef(Real iE, Real iT)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Real MatDat(_.X, iT,iE)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text Get.Equation.Input.Param(Real iE, Real iT)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         Text "beta_"+IntText(iT)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       NameBlock Get.Constraints.Handler(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
         NameBlock BysMcmc::Bsr::Import::Explicit.Constraints([["0>=-beta1+beta2"]
 ])
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       }
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     ]];
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Model.Name(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text "BSRExample"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Model.Description(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text "Modelo simple ARMA(2,1)"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Session.Name(Real void) 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.session.id
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Session.Description(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text "Session "+_.session.id+" para el modelo: " +
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
            Get.Doc.Model.Name(0) + " " + Get.Doc.Model.Description(0)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Session.Authors(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text "user@bayesforecast.com"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Text Get.Doc.Path(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Text _.path.out
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     Real Get.LinReg.Size(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // para el ejemplo actual solo tenemos un segmento de regresión
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       Real 1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock Get.LinReg.Segment(Real iS)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // en este caso retornamos el NameBlock para el único segmento
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // que se modela para mas de un segmento de regresión se suele
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // usar un Set que es indexado por iS: _bsr.blocks[iS]
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       NameBlock _.bsr.ARMA.2_1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     };
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     NameBlock Get.Constraints.Handler(Real void)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     {
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // retornamos un NameBlock predefinido para el caso
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       // no restringido
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
       NameBlock BysMcmc::Bsr::Import::Unconstrained(0)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
     }
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
   ]]
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 };
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+API modular
+\end_layout
+
+\begin_layout Standard
+Como se ha visto anteriormente 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:API-modular"
+
+\end_inset
+
+, desde la versión 2.0.1 de TOL es posible definir un modelo BSR de forma
+ modular.
+ Para que el Import sea capaz de crear este tipo de expresión de modeos
+ se le han añadido una serie métodos que entrarán en acción si el NameBlock
+ de definición del usuario implementa a su vez los siguientes métodos opcionales
+\end_layout
+
+\begin_layout Description
+Get.ModuleType retorna el tipo de módulo que puede ser 
+\begin_inset Quotes eld
+\end_inset
+
+primary
+\begin_inset Quotes erd
+\end_inset
+
+,
+\begin_inset Quotes erd
+\end_inset
+
+joint
+\begin_inset Quotes erd
+\end_inset
+
+ o 
+\begin_inset Quotes eld
+\end_inset
+
+master
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Si no existe método se sobreentiende 
+\begin_inset Quotes eld
+\end_inset
+
+joint
+\begin_inset Quotes erd
+\end_inset
+
+ para guardar compatibilidad hacia atrás 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Text Get.ModuleType(Real unused)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si se trata de un módulo de tipo 
+\begin_inset Quotes eld
+\end_inset
+
+master
+\begin_inset Quotes erd
+\end_inset
+
+, entonces deberá implementar estos métodos en lugar de los definidos en
+ la sección anterior y que corresponden al actual 
+\begin_inset Quotes eld
+\end_inset
+
+joint
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Modular.Schema retorna el esquema modular o modo en el que se resolverán
+ las simulaciones que puede ser 
+\begin_inset Quotes eld
+\end_inset
+
+monophasic
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+sequential
+\begin_inset Quotes erd
+\end_inset
+
+ ó 
+\begin_inset Quotes eld
+\end_inset
+
+parallel
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Text Get.Modular.Schema(Real unused)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.Modules retorna el conjunto de módulos, cada uno de los cuales es un
+ NameBlock utilizable a su vez por el Import de forma recursiva 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Set Get.Modules(Real unused)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si se trata de un módulo de tipo 
+\begin_inset Quotes eld
+\end_inset
+
+primary
+\begin_inset Quotes erd
+\end_inset
+
+, entonces sólo puede tener un segmento el cual debe tener estos métodos
+ en lugar de los descritos en la sección Get.Equation.Output, Get.Equation.Input.Size
+, Get.Equation.Input.Coef y Get.Equation.Input.Param 
+\end_layout
+
+\begin_layout Description
+Get.OutputVMatrix devuelve la matriz de output del segmento de regresión
+ 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+VMatrix Get.OutputVMatrix(Real unused)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+Get.InputVMatrix devuelve la matriz de input del segmento de regresión 
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+VMatrix Get.InputVMatrix(Real unused)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+El método Get.Equation.Size se mantiene porque el reconocedor sintáctico no
+ va a caragr la matriz y desconoce por tanto sus dimensiones.
+\end_layout
+
+\begin_layout Standard
+Tanto en los módulos 
+\begin_inset Quotes eld
+\end_inset
+
+primary
+\begin_inset Quotes erd
+\end_inset
+
+ como en los 
+\begin_inset Quotes eld
+\end_inset
+
+joint
+\begin_inset Quotes erd
+\end_inset
+
+ los segmentos pueden ahora añadir la información referida a los fitrosno
+ lineales que antes se introducían a BSR de forma externa.
+ Para ello se deberá definir el método
+\end_layout
+
+\begin_layout Description
+Get.NonLinearFilters Devuelve un conjunto de NameBlock's cada uno de los
+ cuales define un filtro no lineal sobre el mismo segmento
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Set Get.NonLinearFilters(Real unused)
 \end_layout
 
 \end_inset

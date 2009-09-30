@@ -1,5 +1,5 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
@@ -27,6 +27,10 @@
 
 \hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
 \end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+\end_modules
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -37,9 +41,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -64,7 +70,8 @@
 \begin_body
 
 \begin_layout Chapter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "cha:El-formato-ASCII-BSR"
 
 \end_inset
@@ -83,7 +90,8 @@ Descripción
 
 \begin_layout Standard
 La estructura de datos que deine un modelo básico BSR explicada en 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sec:Método-BysMcmc::Bsr::Gibbs::BasicMaster()"
 
 \end_inset
@@ -109,8 +117,14 @@ Ejemplo
 
 \begin_layout Standard
 En los directorios test_01, test_02 y test_03 disponibles en 
-\begin_inset LatexCommand htmlurl
-target "http://cvs.tol-project.org/viewcvs.cgi/tol/stdlib/math/stat/models/bayesian/bysMcmc/"
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://cvs.tol-project.org/viewcvs.cgi/tol/stdlib/math/stat/models/bayesian/bysMcmc
+/
+\end_layout
 
 \end_inset
 
@@ -133,712 +147,1616 @@ lstparams "basicstyle={\tiny\ttfamily},breaklines=true,extendedchars=true,number
 inline false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Bayesian Sparsed Regression 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
+
+$BEGIN
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
 
 Model.Name = "bysMcmc.test_03";
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Model.Description = 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "Randomly generation of a hierarchycal lineal model with these simple
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "structure:
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "  1: a set of K1 observational nodes with the same number n of variables
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "     and data length m
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "  2: a set of n latent nodes with one central parameter for each distinct
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "     observational variable with specified standard deviation
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "  3: a central prior equation for each latent variable with specified
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "     standard deviation
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "  4: a set of sparse linear inequalities over the observational variables
 \backslash
 n"
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "";
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Session.Name = "RS_1483339472";
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Session.Description = 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 "Random seed=1483339472";
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 Session.Authors = "vdebuen@tol-project.org";
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Regression Variables Declarations with initial values
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeObs.1_Var.1 <- +0.53803037013858557;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeObs.1_Var.2 <- +0.46934376657009125;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeObs.1_Var.3 <- -0.22560517396777868;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeObs.2_Var.1 <- +0.86625403119251132;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeObs.2_Var.2 <- -0.15567512763664126;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeObs.2_Var.3 <- -0.075121806003153324;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeLat.1_Var.nu <- +0.15836594998836517;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeLat.2_Var.nu <- -0.85943601280450821;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeLat.3_Var.nu <- +0.18600673880428076;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Regression Missing Input Declarations 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 MissInp.NodeObs.3.13 ? ~ Normal(0.896203693933785,0.2007952652551403);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 MissInp.NodeObs.6.30 ? ~ Normal(0.6046165255829692,0.09139028575200531);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 MissInp.NodeObs.3.2 ? ~ TruncatedNormal(0.9820013050921261,0.2410816408006598,0,9.8200
 13050921261);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 MissInp.NodeObs.5.40 ? ~ Normal(-0.7318465355783701,0.1338998379095156);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Regression Missing Output Declarations 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 MissOut.NodeObs.31 ? <- -0.4157893265383703;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 MissOut.NodeObs.40 ? <- -0.3029720514576624;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Regression Residuals Declarations Normal(0,sigma^2)
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeObs.1_Residuals[20 dating Daily from y2008m08d09 until y2008m08d28] ~
  Normal(0,NodeObs.1_Sigma2*ARIMA.COV([[  ARIMAStruct( 1, 1-1.70970212223966*B+0.9668
 93838252872*B^2, 1, 1), ARIMAStruct( 7, 1, 1, 1)]]));
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeObs.2_Residuals[20 dating Daily from y2008m08d09 until y2008m08d28] ~
  Normal(0,NodeObs.2_Sigma2*ARIMA.COV([[  ARIMAStruct( 1, 1-0.0191113898593219*B+0.12
 9901138134301*B^2, 1, 1), ARIMAStruct( 7, 1, 1, 1)]]));
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeLat.1_Residuals[2] ~ Normal(0,0.03276045051869933);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeLat.2_Residuals[2] ~ Normal(0,0.030080604978733022);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodeLat.3_Residuals[2] ~ Normal(0,0.010264774427016805);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 NodePri.1_Residuals[3] ~ Normal(0,0.011844979275860658);
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Regression equations 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +5.2435581658297865 == NodeObs.1_Residuals[1]; //Reg.Equ.1
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +2.1913126132131682 == NodeObs.1_Residuals[2]+MissInp.NodeObs.3.2*NodeObs.1_Var.3
  ; //Reg.Equ.2
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.12304427448649291 == NodeObs.1_Residuals[3]+0.63090779585763812*NodeObs.1_Var.1
  +0.54491685889661312*NodeObs.1_Var.2 +0.94600624032318592*NodeObs.1_Var.3 ; //Reg.Equ.3
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -2.6088045980742529 == NodeObs.1_Residuals[4]-0.66879721963778138*NodeObs.1_Var.2
  ; //Reg.Equ.4
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -6.0452993628906073 == NodeObs.1_Residuals[5]; //Reg.Equ.5
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -6.3822864805891921 == NodeObs.1_Residuals[6]+0.95094704767689109*NodeObs.1_Var.1
  -0.54092238331213593*NodeObs.1_Var.2 ; //Reg.Equ.6
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -6.6295145939371594 == NodeObs.1_Residuals[7]+0.93608348118141294*NodeObs.1_Var.1
  +0.9823420150205493*NodeObs.1_Var.2 ; //Reg.Equ.7
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -5.5561393799341996 == NodeObs.1_Residuals[8]+0.7666153940372169*NodeObs.1_Var.2
  -0.66276752250269055*NodeObs.1_Var.3 ; //Reg.Equ.8
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -3.1295982695386888 == NodeObs.1_Residuals[9]-0.56221867958083749*NodeObs.1_Var.1
  -0.90145999845117331*NodeObs.1_Var.3 ; //Reg.Equ.9
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.76951244117245921 == NodeObs.1_Residuals[10]; //Reg.Equ.10
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +2.9132946114405867 == NodeObs.1_Residuals[11]+0.95396953029558063*NodeObs.1_Var.3
  ; //Reg.Equ.11
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +5.7416648977148181 == NodeObs.1_Residuals[12]-0.95996885281056166*NodeObs.1_Var.3
  ; //Reg.Equ.12
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +6.3831794474164543 == NodeObs.1_Residuals[13]-0.64427804760634899*NodeObs.1_Var.2
  +MissInp.NodeObs.3.13*NodeObs.1_Var.3 ; //Reg.Equ.13
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +4.0282180180201248 == NodeObs.1_Residuals[14]-0.90212121233344078*NodeObs.1_Var.1
  ; //Reg.Equ.14
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +4.3505297967804113 == NodeObs.1_Residuals[15]+0.85422466974705458*NodeObs.1_Var.1
  -0.78263330226764083*NodeObs.1_Var.3 ; //Reg.Equ.15
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -1.8762849597824245 == NodeObs.1_Residuals[16]-0.71285796910524368*NodeObs.1_Var.1
  -0.58573955669999123*NodeObs.1_Var.3 ; //Reg.Equ.16
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -5.6888365292228968 == NodeObs.1_Residuals[17]+0.98112034006044269*NodeObs.1_Var.2
  -0.79486409109085798*NodeObs.1_Var.3 ; //Reg.Equ.17
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -8.3673617279440613 == NodeObs.1_Residuals[18]; //Reg.Equ.18
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -8.0537960538725955 == NodeObs.1_Residuals[19]+0.52584361424669623*NodeObs.1_Var.2
  +0.67250693123787642*NodeObs.1_Var.3 ; //Reg.Equ.19
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -5.9263487197705214 == NodeObs.1_Residuals[20]-0.96396565064787865*NodeObs.1_Var.2
  +0.8175902683287859*NodeObs.1_Var.3 ; //Reg.Equ.20
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.6068887599917272 == NodeObs.2_Residuals[1]+0.56295138271525502*NodeObs.2_Var.2
  ; //Reg.Equ.21
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +2.0939562031264218 == NodeObs.2_Residuals[2]+0.65345998154953122*NodeObs.2_Var.1
  -0.71942238695919514*NodeObs.2_Var.3 ; //Reg.Equ.22
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.60038804953399949 == NodeObs.2_Residuals[3]-0.84704046417027712*NodeObs.2_Var.2
  ; //Reg.Equ.23
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -1.0713915154528588 == NodeObs.2_Residuals[4]-0.93844964541494846*NodeObs.2_Var.1
  ; //Reg.Equ.24
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.32125826101136556 == NodeObs.2_Residuals[5]+0.51997147314250469*NodeObs.2_Var.1
  -0.63292960310354829*NodeObs.2_Var.2 ; //Reg.Equ.25
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.54762880703286565 == NodeObs.2_Residuals[6]-0.50578109361231327*NodeObs.2_Var.1
  ; //Reg.Equ.26
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +2.4653275135908528 == NodeObs.2_Residuals[7]+0.54335346445441246*NodeObs.2_Var.1
  -0.93712931545451283*NodeObs.2_Var.2 -0.72416583448648453*NodeObs.2_Var.3 ; //Reg.Equ.2
 7
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.52714812684114365 == NodeObs.2_Residuals[8]+0.95070930058136582*NodeObs.2_Var.1
  -0.97863368503749371*NodeObs.2_Var.3 ; //Reg.Equ.28
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -1.0270370273766312 == NodeObs.2_Residuals[9]-0.88577614538371563*NodeObs.2_Var.1
  +0.54846574366092682*NodeObs.2_Var.3 ; //Reg.Equ.29
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.25652362241255156 == NodeObs.2_Residuals[10]-0.61568234255537391*NodeObs.2_Var.2
  +MissInp.NodeObs.6.30*NodeObs.2_Var.3 ; //Reg.Equ.30
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +MissOut.NodeObs.31 == NodeObs.2_Residuals[11]-0.73601436568424106*NodeObs.2_Var.3
  ; //Reg.Equ.31
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.38486138593475 == NodeObs.2_Residuals[12]; //Reg.Equ.32
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.1153939096162494 == NodeObs.2_Residuals[13]-0.52979899849742651*NodeObs.2_Var.1
  ; //Reg.Equ.33
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.20153337099189605 == NodeObs.2_Residuals[14]; //Reg.Equ.34
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.60618407368998284 == NodeObs.2_Residuals[15]-0.61933115171268582*NodeObs.2_Var.1
  ; //Reg.Equ.35
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +1.0049067997452399 == NodeObs.2_Residuals[16]+0.86020477814599872*NodeObs.2_Var.2
  -0.98850312503054738*NodeObs.2_Var.3 ; //Reg.Equ.36
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.72396483131240752 == NodeObs.2_Residuals[17]+0.87632823176681995*NodeObs.2_Var.3
  ; //Reg.Equ.37
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.27870237026751166 == NodeObs.2_Residuals[18]; //Reg.Equ.38
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.74122059405715657 == NodeObs.2_Residuals[19]-0.75435957591980696*NodeObs.2_Var.1
  -0.91726320842280984*NodeObs.2_Var.2 ; //Reg.Equ.39
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +MissOut.NodeObs.40 == NodeObs.2_Residuals[20]-0.72136184806004167*NodeObs.2_Var.1
  +MissInp.NodeObs.5.40*NodeObs.2_Var.2 ; //Reg.Equ.40
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 0 == NodeLat.1_Residuals[1]-NodeObs.1_Var.1 +NodeLat.1_Var.nu ; //Reg.Equ.41
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 0 == NodeLat.1_Residuals[2]-NodeObs.2_Var.1 +NodeLat.1_Var.nu ; //Reg.Equ.42
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 0 == NodeLat.2_Residuals[1]-NodeObs.1_Var.2 +NodeLat.2_Var.nu ; //Reg.Equ.43
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 0 == NodeLat.2_Residuals[2]-NodeObs.2_Var.2 +NodeLat.2_Var.nu ; //Reg.Equ.44
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 0 == NodeLat.3_Residuals[1]-NodeObs.1_Var.3 +NodeLat.3_Var.nu ; //Reg.Equ.45
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 0 == NodeLat.3_Residuals[2]-NodeObs.2_Var.3 +NodeLat.3_Var.nu ; //Reg.Equ.46
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.6096816505305469 == NodePri.1_Residuals[1]-NodeLat.1_Var.nu ; //Reg.Equ.47
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.66229855222627521 == NodePri.1_Residuals[2]-NodeLat.2_Var.nu ; //Reg.Equ.48
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.46403526607900858 == NodePri.1_Residuals[3]-NodeLat.3_Var.nu ; //Reg.Equ.49
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 // Restriction inequations 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 ////////////////////////////////////////////////////////////////////////////////
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +1.1888731951872438 >= +NodeObs.1_Var.1 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.50465998947620394 >= +NodeObs.1_Var.2 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.21083058095071464 >= +NodeObs.1_Var.3 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.9361133812088519 >= +NodeObs.2_Var.1 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.13837098166579381 >= +NodeObs.2_Var.2 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.0033603257639333584 >= +NodeObs.2_Var.3 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +1.1404310412146701 >= +NodeObs.1_Var.1 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.52799691481748601 >= +NodeObs.1_Var.2 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.73132390667684377 >= -NodeObs.1_Var.1 +NodeObs.1_Var.3 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +1.3114740782628398 >= -NodeObs.1_Var.2 +NodeObs.2_Var.1 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 +0.13644857598003002 >= -NodeObs.1_Var.3 +NodeObs.2_Var.2 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
 -0.86476675785612311 >= -NodeObs.2_Var.1 +NodeObs.2_Var.3 ;
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 
+\end_layout
+
+\begin_layout Plain Layout
+
+$END
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+API modular
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:API-modular"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Desde la versión 2.0.1 de TOL es posible definir un modelo BSR de forma modular
+ para resolver tres problemas fundamentales:
+\end_layout
+
+\begin_layout Enumerate
+Por una parte, escribir explícitamente las ecuaciones de nodos observacionales
+ densos y grandes es demasiado lento.
+ (Ver ticket #634) 
+\end_layout
+
+\begin_layout Enumerate
+Por otra parte, los modelos masivos con multitud de nodos requieren demasiados
+ recursos si se intentan cargar monolíticamente.
+ (Ver ticket #628) 
+\end_layout
+
+\begin_layout Enumerate
+Además, la sintaxis actual no incorpora los filtros no lineales por loque
+ los medelos están inclompletos y no pueden ser ejecutados en sesiones TOL
+ ulteriores.
+\end_layout
+
+\begin_layout Standard
+Para resolver estos problemas se plantea un nuevo esquema en el que la idea
+ inicial será tener tres tipos de módulos o archivos ASCII-BSR:
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+primary
+\emph default
+: los módulos primarios son capaces de leer un sólo segmento de regresión
+ (nodo en el argot jerárquico) basándose en código TOL para la construcción
+ de la matriz.
+ Normalmente lo usaremos para nodos densos observacionales pero eso a BSR
+ no le importa en absoluto, pues no sabe qué cosa es observacional ni latente
+ ni nada.
+ En esos módulos sólo cabe pues un nodo, con su declaración de variables
+ lineales y missing, estructura de la varianza (sigma-ARIMA), sus filtros
+ no lineales y sus restricciones de desigualdad internas, es decir, todo
+ aquello que no afecta a ningún otro.
+ Un módulo primario puede funcionar de forma autónoma, por ejemplo cuando
+ queremos simular un nodo observacional por sí mismo, sin tener en cuenta
+ estructuras jerárquicas, a priori, ni nada por el estilo, aunque eso no
+ creo que se dé muy a menudo, pues lo normal es que la menos haya información
+ a priori.
+ 
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+joint
+\emph default
+: los módulos de mezcla serían los actualmente permitidos, llamados así
+ por su capacidad de mezclar variables de varios segmentos de regresión.
+ Pueden funcionar autónomamente como hasta ahora, definiendo todas las variables
+ y ecuaciones de forma explícita, o bien integrarse dentro de un módulo
+ máster que se encargue de cargar previamente las variables de las que depende.
+ 
+\end_layout
+
+\begin_layout Enumerate
+
+\emph on
+master
+\emph default
+: los módulos maestros simplemente incluyen a otros módulos de cualquier
+ tipo, incluidos otros maestros, si se desea tener los modelos estructurados
+ en varios niveles, de forma que en cada nivel cada uno de los sub-master
+ podría ser ejecutado autónomamente.
+\end_layout
+
+\begin_layout Subsection
+Estructura del módulo primario
+\end_layout
+
+\begin_layout Standard
+Un módulos primario se definirá del siguiente modo:
+\end_layout
+
+\begin_layout Enumerate
+En primer lugar se incluye una cláusula que indique el tipo de módulo que
+ se va a definir
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Module.Type = primary;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Las variables del bloque lineal se definen con la misma sintaxis que rige
+ actualmente para el módulo joint.
+\end_layout
+
+\begin_layout Enumerate
+El segmento de regresión es único pero se define con la misma sintaxis que
+ en el módulo joint.
+ En ambos casos hay una novedad: la posibilidad de introducir los filtros
+ no lineales si los hay en la propia definición del ruido.
+ La estructura del campo 
+\family typewriter
+NoiseDistrib
+\family default
+ será distinta a la actual 
+\family typewriter
+BSR.NoiseDistrib
+\family default
+ para que pueda incluir un nuevo campo en el que almacenar los filtros no
+ lineales.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Luego se introducirán la matriz de output y la de input.
+ El orden de definición de las variables del bloque lineal debe coincidir
+ con el orden de las columnas en la matriz de inputs.
+\end_layout
+
+\begin_layout Enumerate
+Después se introducirán si las hay, las variables de omitidos con una sintaxis
+ simular a la de los módulos joint pero añadiéndoles la información de su
+ ubicación en las matrices de input u output, las cuales deberían tener
+ un valor omitido en la celda correspondiente, cosa que debe por tanto comprobar
+se.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Por último se añadirán si las hay, las restricciones de desigualdad sobre
+ las variables del bloque lineal.
+\end_layout
+
+\begin_layout Standard
+Obviamente el Import deberá saber que está escribiendo un módulo primario
+ y pedir las matrices en lugar de los coeficientes así como la ubicación
+ de los omitidos.
+\end_layout
+
+\begin_layout Standard
+A continuación se presenta una plantilla de cómo podría quedar el fichero
+ ASCII de un módulo primario.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\tiny\ttfamily},breaklines=true,extendedchars=true,numbers=left,numberstyle={\tiny}"
+inline false
+status open
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+// Bayesian Sparse Regression
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+$BEGIN
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+Module.Type = primary;
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+Model.Name = "..."; 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+Model.Description = "..."; 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+Session.Name = "..."; 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+Session.Description = "..."; 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+Session.Authors = "...";
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+// Defining header of Regression Variables
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+LinearBlk::<node_name>::<variable-name>::Coef <- 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  {+ or -}<initial value or ?>; 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+...
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+LinearBlk::<node_name>::<variable-name>::Coef <- 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  {+ or -}<initial value or ?>;
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+// Defining header of Noise Distribution
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+<node_name>::Noise [length and optional time info]    
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+~ <distribution> 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+// Optional defininition of Non Linear Filters   
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+with non linear flters {'Set of NameBlock's expresion'};  
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+// Defining Regression Equations
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+Output = {'Matrix or VMatrix expresion'};
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+Input = {'Matrix or VMatrix expresion'};
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+// Optional defininition of Ouput Missing Variables
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+MissingBlk::<MIXTURE or node name>::<missing_name> ? 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  at row <row_index> for output 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  ~ <distribution>;
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+...
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+MissingBlk::<MIXTURE or node name>::<missing_name> ? 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  at row <row_index> for output 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  ~ <distribution>;
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+// Defining defininition of Input Missing Variables
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+MissingBlk::<MIXTURE or node name>::<missing_name> ? 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  at row <row_index> for input <column_index> 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  ~ <distribution>; 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+...
+ 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+MissingBlk::<MIXTURE or node name>::<missing_name> ? 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  at row <row_index> for input <column_index> 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  ~ <distribution>;
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+// Defining Parameter Constraints
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+{+|-}<number> {<=|>=} 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  {+|-}<number>*LinearBlk::<node_name>::<variable-name>::Coef 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  ...
+ 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+  {+|-}<number>*LinearBlk::<node_name>::<variable-name>::Coef; 
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+...
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+\end_layout
+
+\begin_layout Plain Layout
+\align left
+
+$END
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Cambios en la estructura del módulo joint
+\end_layout
+
+\begin_layout Standard
+El módulo joint se queda prácticamente como está con estas salvedades:
+\end_layout
+
+\begin_layout Enumerate
+Es posible, aunque no obligatorio por compatibilidad hacia atrás, especificar
+ el tipo de módulo en la cabecera del archivo:
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Module.Type = joint;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+En un módulo joint puede aparecer una referencia a una variable que ha sido
+ definida en otro módulo previo.
+ El reconocedor sintáctico permitirá pues que aparezcan en las ecuaciones
+ e inecuaciones variables no definidas.
+ En la estructura BSR.LinearBlock se añade un campo Real Extern cuyo valor
+ será puesto a TRUE en estos casos para que puedan resolverse más tarde
+ las referencias.
+\end_layout
+
+\begin_layout Subsection
+Mezcla de módulos en el master
+\end_layout
+
+\begin_layout Standard
+El master debe ocuparse de mezclar los modelos o submodelos resultantes
+ de de los módulos en un solo modelo BSR.
+ El modo de hacerlo depende del mecanismo de generación que se vaya a seguir,
+ que puede ser de dos formas
+\end_layout
+
+\begin_layout Subsubsection
+Mecanismo de generación monofase
+\end_layout
+
+\begin_layout Standard
+Es el único mecanismo de generación implementado actualmente, en el que
+ todos los segmentos y variables lineales se aúnan en un solo sistema lineal
+ de ecuaciones sparse.
+\end_layout
+
+\begin_layout Standard
+En este caso los BSR.ModelDef que resultan de cada módulo se deben agregar
+ en un sólo BSR.ModelDef que defina el modelo completo siguiendo los isguientes
+ pasos con sumo cuidado.
+ Se indicará al principio del módulo máster mediante la sintaxis
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Modular.Schema = monophasic;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+La información documental (campo DocInfo) que prevalece es la del módulo
+ master mientras que la de los sub-módulos simplemente se olvida.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Se obtiene la lista conjunta de variables (campo {{{LinearBlock}}}) del
+ bloque lineal de cada uno de los módulos sin repeticiones.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Se reubican las posiciones de las variables en cada uno de los módulos 1.
+ Se modifica el número de columnas y las posiciones de las columnas de la
+ matriz X de inputs para hacerlas coincidir con la posición de las variables
+ en la lista global.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Se modifica el número de columnas y las posiciones de las columnas de la
+ matriz A de las inecuaciones para hacerlas coincidir con la posición de
+ las variables en la lista global.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Se modifica el campo Col de los registros BSR.MissingBlock de definición
+ de omitidos del input en cada módulo 1.
+ Se modifica el número de filas y columnas de las matrices Cov, L y Li de
+ cada registro BSR.NoiseDistrib correspondiente a cada segmento, así como
+ el conjunto de índices EquIdx de las filas a las que correponde.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Se concatenan las filas de las matrices Y[k], X[k], a[k], A[k] de todos
+ los módulos en las correspondientes Y, X, a, A conjuntas.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Se concatenan los conjuntos de omitidos del input (campo InputMissingBlock)
+ y el output (campo OutputMissingBlock) 
+\end_layout
+
+\begin_layout Enumerate
+Se concatenan los conjuntos de segmentos de regresión (campo NoiseDistrib)
+\end_layout
+
+\begin_layout Standard
+Intentar hacer todas estas operaciones mientras se está leyendo un BSR actual
+ es algo extremadamente complicado de implementar, pues algunas cosas aún
+ no existen y otras están a medias, no se conocen algunas dimensiones, etc.
+ Precisamente por esta razón propongo todo este tema de la modularización
+ de la sintaxis de los ficheros ASCII-BSR.
+\end_layout
+
+\begin_layout Subsubsection
+Mecanismo de generación multifase
+\end_layout
+
+\begin_layout Standard
+En este caso cada módulo se generará condicionalmente al resto de módulos,
+ bien secuencialmente, bien en paralelo cuando tal cosa sea posible.
+ Esto no es necesario que se implemente en una primera versión pero se puede
+ ir adelantando algo del diseño.
+ Se indicará al principio del módulo máster mediante la sintaxis
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+  Modular.Schema = sequential;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ó bien
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+  Modular.Schema = parallel;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+según sea el caso.
+\end_layout
+
+\begin_layout Standard
+En ambos casos la mezcla de módulos es distinta al caso de generación monofase,
+ pues en realildad no se hace agregación física de los módulos sino que
+ simplemente se enlazarán las dependencias de variables entre ellos para
+ que luego BSR pueda actualizar sus valores en las sucesivas simulaciones
+ condicionadas, de forma similar a como lo ahcía el antiguo HLM, del cual
+ se podrán tomar bastantes ideas.
+\end_layout
+
+\begin_layout Subsubsection
+Plantilla de un módulo master
+\end_layout
+
+\begin_layout Standard
+Aunque cada módulo internamente especifica con la cláusula Module.Type de
+ que tipo de módulo se trata es conveniente repetir esa información en la
+ sentencia de inclusión del módulo hijo en el módulo master para llamar
+ directamente al parser adecuado, ya que en realidad lo que habrá es 3 parsers
+ distintos, el de módulos primarios, el de los joint, que es básicamente
+ el actual y el de los masters.
+ La cláusula Module.Type puede usarse como mecanismo de control para evitar
+ posibles errores de diseño del modelo.
+ Así podría quedar la sintaxis de los módulos master
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\tiny\ttfamily},breaklines=true,extendedchars=true,numbers=left,numberstyle={\tiny}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+// Bayesian Sparse Regression
+\end_layout
+
+\begin_layout Plain Layout
+
+/////////////////////////////////////////////////////////////////////////////
+\end_layout
+
+\begin_layout Plain Layout
+
+$BEGIN
+\end_layout
+
+\begin_layout Plain Layout
+
+Module.Type = master;
+\end_layout
+
+\begin_layout Plain Layout
+
+Model.Name = "..."; 
+\end_layout
+
+\begin_layout Plain Layout
+
+Model.Description = "..."; 
+\end_layout
+
+\begin_layout Plain Layout
+
+Session.Name = "..."; 
+\end_layout
+
+\begin_layout Plain Layout
+
+Session.Description = "..."; 
+\end_layout
+
+\begin_layout Plain Layout
+
+Session.Authors = "...";
+\end_layout
+
+\begin_layout Plain Layout
+
+Modular.Schema = { monophasic, sequential or parallel } ;
+\end_layout
+
+\begin_layout Plain Layout
+
+Include { primary, joint or master } module "file_relative_path.bsr" ; ...
+ Include { primary, joint or master } module "file_relative_path.bsr" ;
+\end_layout
+
+\begin_layout Plain Layout
+
+$END
 \end_layout
 
 \end_inset
