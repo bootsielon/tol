@@ -36,12 +36,18 @@ Class Point
     Point new = [[
       Region region = region_;
       VMatrix x = x_;
+      Real drop = region::r*region::n*1.E-15;
       Real isFinite = (VMatSum(IsFinite(x))==VRows(x));
       VMatrix g = region::evalBorderDistance(x);
-      Real match = Point::EnsureKnown(1+VMatMax(g)-1<=0, 0);
+      Real match = Point::EnsureKnown(VMatMax(g)<=
+                                      drop, 0);
       VMatrix G = GT(g, region::zero);
       VMatrix h = Max(region::zero,g);
-      Real f = Point::EnsureKnown(VMatSum(RPow(h,2)), 1/0)
+      Real f = 
+      {
+        Real aux = Point::EnsureKnown(VMatSum(RPow(h,2)), 1/0);
+        Max(aux,drop^2) 
+      }
     ]];
     new
   }
