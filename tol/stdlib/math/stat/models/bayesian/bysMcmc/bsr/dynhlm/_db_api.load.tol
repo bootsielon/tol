@@ -169,7 +169,7 @@ Set LoadNodeNonLinFil(
   NameBlock modelHandler)
 ///////////////////////////////////////////////////////////////////////////
 {
-  WriteLn("TRACE [LoadNodeNonLinFil] 1 id_node="+id_node);
+//WriteLn("TRACE [LoadNodeNonLinFil] 1 id_node="+id_node);
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
   Set db_genericNonLinBlk = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT \n"+
@@ -187,7 +187,7 @@ Set LoadNodeNonLinFil(
     {
       modelHandler::GetNonLinFlt(nlf->node, nlf->nameBlock)
     }));
-  WriteLn("TRACE [LoadNodeNonLinFil] 2 Card(genericNonLinBlk)="<<Card(genericNonLinBlk));
+//WriteLn("TRACE [LoadNodeNonLinFil] 2 Card(genericNonLinBlk)="<<Card(genericNonLinBlk));
   genericNonLinBlk
 };
 
@@ -250,6 +250,7 @@ NameBlock LoadObsNode(Text dbName,
   NameBlock output = {BysMcmc::Bsr::DynHlm::BuildNode::Obs.Output(
     BysMcmc::Bsr::DynHlm::BuildNode::Obs.Data.Info(
       id_node,db_output->id_series, 
+      BysMcmc::Options::Data.Owner.Type::Output,
       modelHandler::GetSerie(id_node, db_output->id_series), 
       0,
       db_output->firstDate, 
@@ -293,6 +294,7 @@ NameBlock LoadObsNode(Text dbName,
       db_inp->id_parameter,
       BysMcmc::Bsr::DynHlm::BuildNode::Obs.Data.Info(
         id_node,db_inp->id_series, 
+        BysMcmc::Options::Data.Owner.Type::Input,
         modelHandler::GetSerie(id_node, db_inp->id_series),
         0,
         db_output->firstDate, 
@@ -336,6 +338,7 @@ NameBlock LoadObsNode(Text dbName,
       db_tf->te_delta,
       BysMcmc::Bsr::DynHlm::BuildNode::Obs.Data.Info(
         id_node,db_tf->id_series, 
+        BysMcmc::Options::Data.Owner.Type::TransferFunction,
         modelHandler::GetSerie(id_node, db_tf->id_series),
         p,
         db_output->firstDate, 
@@ -624,14 +627,17 @@ NameBlock LoadModelDef.Joint(
   BysMcmc::Config config,
   Real includeObs,
   Real includeLat,
-  Real includePri)
+  Real includePri,
+  Text sufixPath)
 ////////////////////////////////////////////////////////////////////////////
 {[[
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
+  Text _.moduleType="joint";
   Text _.dbName = dbName; 
   Text _.id_model = model;
   Text _.id_session = session;
   Text _.resultRootPath = resultRootPath;
+  Text _.sufixPath = sufixPath;
   NameBlock _.modelHandler = modelHandler;
 
   Real _.modSesCheck = 
@@ -683,6 +689,8 @@ NameBlock LoadModelDef.Joint(
 
 //Mandatory methods that will be used by BysMcmc::Bsr::Import
 
+  Text Get.ModuleType(Real unused) { _.moduleType };
+
   ///////////////////////////////////////////////////////////////////////////
   // Documental Section
   //Returns model identifier to help in analysis organization
@@ -696,7 +704,12 @@ NameBlock LoadModelDef.Joint(
   //e-mail or any identifier of te_authors separated by \n
   Text Get.Doc.Session.Authors(Real unused)  { _.session.te_authors };
   //The path where the BSR-ASCII formated file will be stored
-  Text Get.Doc.Path(Real unused) { _.resultRootPath };
+  Text Get.Doc.Path(Real unused) 
+  { 
+    _.resultRootPath+_.id_model+"/"+_.id_session+"/"+
+    If(_.sufixPath=="","",_.sufixPath+"/")
+  };
+
   ///////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
@@ -761,7 +774,7 @@ NameBlock LoadModelDef.Joint.All(
 {
   LoadModelDef.Joint(
    dbName, model, session, resultRootPath,modelHandler,config, 
-   true,true,true)
+   true,true,true,"")
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -790,6 +803,7 @@ NameBlock LoadModelDef.Master.ObsAsPrimary(
   "  id_session='"+session+"'","")[1][1];
 
   NameBlock master.module = [[
+  Text _.moduleType="master";
   Text _.dbName = dbName; 
   Text _.id_model = model;
   Text _.id_session = session;
@@ -800,6 +814,9 @@ NameBlock LoadModelDef.Master.ObsAsPrimary(
   Text _.session.description =  session.description;
   Text _.session.te_authors = session.te_authors;
 
+  Set _.input.missing.labels = [[ Copy(Empty) ]];
+  Text _.sampler = config::DBApi.masterSampler;
+
   Set _.nodes.obs = 
   BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
   "SELECT id_node_type, id_node FROM "+dbName+"."+_table::Node+" WHERE \n"+
@@ -809,18 +826,31 @@ NameBlock LoadModelDef.Master.ObsAsPrimary(
   "order by nu_node","Bsr.DynHlm.DBNode");
   
   Set _.obs = EvalSet(_.nodes.obs, NameBlock(Set node)
-  {[[
-    Text id_node = node->Node;
+  {
+    Set input.missing.labels = _.input.missing.labels;
+    NameBlock obs.module = [[
+    Text _.moduleType="primary";
+    Text _.id_node = node->Node;
     Text _.dbName = dbName; 
     Text _.id_model = model;
     Text _.id_session = session;
-    Text _.resultRootPath = resultRootPath+"/Obs/"+id_node;
+    Text _.resultRootPath = resultRootPath;
     NameBlock _.modelHandler = modelHandler;
     Text _.model.description = model.description;
     Text _.session.description =  session.description;
     Text _.session.te_authors = session.te_authors;
+    Set _.input.missing.labels = input.missing.labels;
+
+    Set _.gnlf = BysMcmc::Bsr::DynHlm::DBApi::LoadNodeNonLinFil(
+        _.dbName, _.id_model, _.id_session, _.id_node, _.modelHandler);
+    NameBlock _.segment = BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
+        _.dbName, _.id_model, _.id_session, _.id_node, 
+        _.modelHandler, _.input.missing.labels[1], _.gnlf);
+
+    //////////////////////////////////////////////////////////////////////////
     //Mandatory methods that will be used by BysMcmc::Bsr::Import
     //////////////////////////////////////////////////////////////////////////
+    Text Get.ModuleType(Real unused) { _.moduleType };
     // Documental Section
     //Returns model identifier to help in analysis organization
     Text Get.Doc.Model.Name(Real unused) { _.id_model };
@@ -833,31 +863,28 @@ NameBlock LoadModelDef.Master.ObsAsPrimary(
     //e-mail or any identifier of te_authors separated by \n
     Text Get.Doc.Session.Authors(Real unused)  { _.session.te_authors };
     //The path where the BSR-ASCII formated file will be stored
-    Text Get.Doc.Path(Real unused) { _.resultRootPath };
-    //////////////////////////////////////////////////////////////////////////
-    // Linear Regression Section
-    Real Get.LinReg.Size(Real unused) 
+    Text Get.Doc.Path(Real unused) 
     { 
-      Card(_.nodes)
+      _.resultRootPath+_.id_model+"/"+_.id_session+"/"+_.id_node+"/"
     };
-    //////////////////////////////////////////////////////////////////////////
+    // Linear Regression Section
+    Real Get.LinReg.Size(Real unused) { 1 };
     // Segment Section
-    NameBlock Get.LinReg.Segment(Real segmentNumber) 
-    //////////////////////////////////////////////////////////////////////////
-    { 
-      Set node = _.nodes[segmentNumber];
-      Text id_node = node->Node;
-      Set gnlf = BysMcmc::Bsr::DynHlm::DBApi::LoadNodeNonLinFil(
-        _.dbName, _.id_model, _.id_session, id_node, _.modelHandler);
-      BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
-        _.dbName, _.id_model, _.id_session, id_node, 
-        _.modelHandler, input.missing.labels, gnlf)
-    }
+    NameBlock Get.LinReg.Segment(Real segmentNumber) { _.segment }
+    
   ]]});
   NameBlock _.latPri = LoadModelDef.Joint(
-   dbName, model, session, resultRootPath+"/LatPri", modelHandler,config, 
-   false,true,true);
-  Set _.modules = _.obs << [[_.latPri]];
+   dbName, model, session, resultRootPath, modelHandler,config, 
+   false,true,true,"LatPri");
+  Set _.modules = 
+  {
+    Real numSegment = _.latPri::Get.LinReg.Size(0);
+    NameBlock handler = _.latPri::Get.Constraints.Handler(0);
+    Real numConstr = handler::Get.OrderRelation.Size(0)+
+                     handler::Get.GenericConstraint.Size(0)+
+                     handler::Get.ExplicitConstraint.Size(0);
+    If(!numSegment & !numConstr, _.obs, _.obs << [[_.latPri]])
+  };
 
   //Mandatory methods that will be used by BysMcmc::Bsr::Import
 
@@ -874,11 +901,15 @@ NameBlock LoadModelDef.Master.ObsAsPrimary(
   //e-mail or any identifier of te_authors separated by \n
   Text Get.Doc.Session.Authors(Real unused)  { _.session.te_authors };
   //The path where the BSR-ASCII formated file will be stored
-  Text Get.Doc.Path(Real unused) { _.resultRootPath };
-  ////////////////////////////////////////////////////////////////////////////
+  Text Get.Doc.Path(Real unused) 
+  { 
+    _.resultRootPath+_.id_model+"/"+_.id_session+"/"
+  };
 
-  Text Get.Moduletype(Real unused) { "master" };
-  Text Get.Sampler(Real unused) { config::DBApi.masterSampler };
+  ////////////////////////////////////////////////////////////////////////////
+  
+  Text Get.ModuleType(Real unused) { _.moduleType };
+  Text Get.Sampler(Real unused) { _.sampler };
   Set Get.Modules(Real unused) { _.modules }
 
 ]]};

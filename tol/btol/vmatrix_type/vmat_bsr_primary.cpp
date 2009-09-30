@@ -35,6 +35,9 @@ class bys_sparse_reg_primary : public grammar<bys_sparse_reg_primary>,
 ///////////////////////////////////////////////////////////////////////////////
 {
 public:
+  vector<lin_noise_inequation> ine_vec;
+  lin_noise_inequation         ine_info;
+  var_term ine_var_term_info;
   BText descY_;
   BText descX_;
   BText exprY_;
@@ -44,8 +47,10 @@ public:
 
   bys_sparse_reg_primary() : bys_sparse_reg() 
   {
+    ine_info.index = 0;
     descY_ = "Output regression matrix";
     descX_ = "Input regression matrix";
+    var.info.used = true;
   }
     
   template <typename ScannerT>
@@ -71,6 +76,7 @@ public:
       knownURealIneTerm,
       variable, missing, arima, noise,
       matOrVMatExpr, output, input,
+      ineVarTerm, inequation,
       module_type, model_nameDef, model_descriptionDef, 
       session_nameDef, session_descriptionDef, session_authorDef, 
       explicit_begin, explicit_end, problem;
@@ -82,6 +88,7 @@ public:
       add_symbol<missing_info>  add_mis(s.mis);
       add_symbol<sigma_info>    add_sig(s.sig);
       add_symbol<noise_info>    add_res(s.noise);
+      assign_declared_var_name assign_declared_var_name_(s.var);
       assign_missing_min assign_missing_min_(s.mis); 
       assign_missing_max assign_missing_max_(s.mis); 
       assign_noise_size assign_noise_size_(s.noise.info, s.var.count, s.numEqu_);
@@ -95,6 +102,14 @@ public:
       assign_missing_row assign_missing_row_(s.mis); 
       assign_missing_output assign_missing_output_(s.mis); 
       assign_missing_input assign_missing_input_(s.mis,s.var.vec); 
+
+      assign_pos_sign_to_ine_term assign_pos_sign_to_ine_term_(s.ine_var_term_info);
+      assign_neg_sign_to_ine_term assign_neg_sign_to_ine_term_(s.ine_var_term_info);
+      assign_IsGE_to_ine assign_IsGE_to_ine_(s.ine_info);
+      assign_IsLE_to_ine assign_IsLE_to_ine_(s.ine_info);
+      assign_var_to_ine_term assign_var_to_ine_term_(s.var.vec,s.ine_var_term_info,s.Anzmax_);
+      add_term_to_ine add_term_to_ine_(s.ine_info.A,s.ine_var_term_info);
+      add_ine add_ine_(s.ine_vec, s.ine_info);
 
       assign_explicit_end assign_explicit_end_(s.endFound_);
 
@@ -218,11 +233,10 @@ public:
         real_p[assign_a(s.var.info.initValue)]
         ;
       variable =
-        newIdentifier[increment_a(s.var.info.index)]
-                            [assign_a(s.var.info.name)] >> 
+        newIdentifier[assign_declared_var_name_] >> 
         str_p("<-") >> 
         (
-         unkOrRealInitValue | error_linearVariableDeclareExpected
+          unkOrRealInitValue | error_linearVariableDeclareExpected
         )>>
         endOfSentence[add_var]
         ;
@@ -231,11 +245,14 @@ public:
                             [assign_a(s.mis.info.name)] >> 
         ch_p('?') >> (
         (
-          str_p("at") >> str_p("row") >> int_p[assign_missing_row_] >> 
-          str_p("for") >>  
+          ((str_p("at") >> str_p("row") >> int_p[assign_missing_row_]) | 
+           error_missingAtRowExpected) >> 
+          (str_p("for") | error_missingForExpected) >>  
           (
-            str_p("output")[assign_missing_output_] | (
-            str_p("input" ) >> s.var.table[assign_missing_input_] )
+            (
+              str_p("output")[assign_missing_output_] | (
+              str_p("input" ) >> int_p[assign_missing_input_] )
+            ) 
           ) 
           >>
           ((
@@ -326,11 +343,45 @@ public:
       //str_p("{$") >> (((*(anychar_p)) - str_p("$}"))[assign_input_ ]) >> str_p("$}") 
         confix_p("{$", (*(anychar_p)), "$}") [assign_input_]
         >> endOfSentence;
+
+      posSign = str_p("+")
+        ;
+      negSign = str_p("-")
+        ;
+      signIneVarTerm = 
+        posSign[assign_pos_sign_to_ine_term_] 
+        | 
+        negSign[assign_neg_sign_to_ine_term_]
+        ;
+      ineVarTerm = 
+        signIneVarTerm >>
+        (
+          s.var.table[assign_var_to_ine_term_]
+          |
+          (
+            knownURealIneTerm >>
+            (product                              | error_prodExpected     ) >> 
+            (s.var.table[assign_var_to_ine_term_] | error_linBlkVarExpected)
+          )
+        )
+        ;
+      inequation =
+        real_p[assign_a(s.realValue)] >>
+        (
+          ge[assign_IsGE_to_ine_]
+          |
+          le[assign_IsLE_to_ine_]
+        )[increment_a(s.ine_info.index)][assign_a(s.ine_info.a,s.realValue)] >>
+        ((
+          (*(ineVarTerm[add_term_to_ine_][increment_a(s.Anzmax_)]))
+        )| error_linearConstrainInequationDeclareExpected) >>
+        endOfSentence[add_ine_]
+        ;
       module_type =
       (
         (
           str_p("Module.Type") >> ch_p('=') >> 
-          (str_p("primary")[assign_a(s.moduleType)]) >> 
+          str_p("primary")[assign_a(s.moduleType)] >> 
           endOfSentence
         ) |
         error_ModuleTypePrimaryDefExpected
@@ -385,17 +436,21 @@ public:
       problem = 
         explicit_begin >>
         //header
-        (
-          module_type >>
-          model_nameDef >>
-          model_descriptionDef >>
-          session_nameDef >>
-          session_descriptionDef >>
-          session_authorDef 
-         ) >>
+        module_type >>
+        model_nameDef >>
+        model_descriptionDef >>
+        session_nameDef >>
+        session_descriptionDef >>
+        session_authorDef 
+        >> (
         //body
-        (*(variable) >> noise  >> output >> input >> *(missing))  >>
-        
+          *(variable) >> 
+          noise  >> 
+          output >> 
+          input >> 
+          *(missing)  >>
+          *(inequation)
+        ) >>
         (explicit_end | error_declarationExpected )
         ;
 /*
@@ -464,14 +519,15 @@ public:
               vector<noise_info>&     noiseInfo_,
               BVMat&                  Y, 
               BVMat&                  X,
-              BVMat&                  a, 
+              BVMat&                  a_, 
               BVMat&                  A)
   /////////////////////////////////////////////////////////////////////////////
   {
-    int i;
+    int i,j;
     int n = var.vec.size();
     int b = noise.count;
     int m = numEqu_;
+    int r = ine_vec.size();
     Std(BSR()+" Building model definition of primary module\n");
     int result = checkDimensions(m);
     if(result) { return(result); }
@@ -505,8 +561,41 @@ public:
     {
       Y = Y_;
       X = X_;
-      a.BlasRDense(0,1);
-      A.ChlmRTriplet(0,0,0);
+      BVMat A_;
+      Std(BSR()+" Allocating dense inequation border with "+r+" cells\n");
+      a_.BlasRDense(r,1);
+      Std(BSR()+" Allocating triplet sparse inequation coefficeints with "+Anzmax_+" cells\n");
+      A_.ChlmRTriplet(r,n,Anzmax_);
+      size_t& An = A_.s_.chlmRtriplet_->nnz;
+      double* ax = (double*)a_.s_.blasRdense_->x;
+      double* Ax = (double*)A_.s_.chlmRtriplet_->x;
+      int*    Ai = (int*)A_.s_.chlmRtriplet_->i;
+      int*    Aj = (int*)A_.s_.chlmRtriplet_->j;
+      int oldRatio = 0;
+      An = 0;
+      Std(BSR()+"Building "+r+"constrain inequations with "+n+" variables\n");
+      for(i=0; i<r; i++)
+      {
+        int ratio = i/r;
+        if((ratio!=oldRatio) && !(ratio%5))
+        {
+          oldRatio = ratio;
+          Std(".");
+        }
+        double sign = (ine_vec[i].isGE)?1.0:-1.0;
+        ax[i] = ine_vec[i].a*sign;
+        for(j=0; j<ine_vec[i].A.size(); j++)
+        {
+          Ai[An] = i;
+          Aj[An] = ine_vec[i].A[j].varIndex-1;
+          Ax[An] = ine_vec[i].A[j].x*sign;
+          assert((Aj[An]>=0)&&(Aj[An]<n));
+          An++;
+        }
+      }
+      Std("\n");
+      Std(BSR()+"Converting constrain inequations from triplet to sparse\n");
+      A.Convert(A_,BVMat::ESC_chlmRsparse);
       result = getMissing(Y,X,inputMissingInfo_, outputMissingInfo_);
     }
     if(!result) { Std(BSR()+"Succesfully build\n"); }
@@ -529,42 +618,8 @@ int Parse_Module_Primary(
 ////////////////////////////////////////////////////////////////////////////////
 {
   bys_sparse_reg_primary bsr;
-  const char* fName = fileName.c_str();
-  
-  BOOST_SPIRIT_DEBUG_NODE(bsr);
-  int errCode=0;
-  ifstream in(fName);
-  if(!in)
-  {
-    Error(BSR() + BText("Could not open input file: ") + 
-          fName + "\n");
-    return(-1);
-  }
-  bsr.fileName = fileName;
-  bsr.fileSize = GetFileSize(fName);
-  bsr.file = &in;
-
-  in.unsetf(ios::skipws); //  Turn of white space skipping on the stream
-  skip_grammar skip;
-  typedef position_iterator< file_iterator<char> > iterator_t; 
-  file_iterator<char> fiter(fileName); 
-  iterator_t begin(fiter, fiter.make_end(), fName);
-  iterator_t end;  
-  Std(BSR()+"Parsing BSR file "+fName+" with "+(int)bsr.fileSize+" bytes\n");
-  parse_info<iterator_t> result = parse(begin, end, bsr, skip);
-  if(!result.full && !bsr.endFound_)
-  {
-    BText msg = BSR() + BText(fName) + " Fails Parsing\n"+url_parse_bsr();
-    BText desc;
-    for (int i = 0; i < 1000; i++)
-    {
-      if (result.stop == end) break;
-      desc += *result.stop++;
-    }
-    if(!desc.HasName()) { desc = "Unexpectend end of file"; }
-    Error(msg+"\nProblem description:'"+desc+"'");
-    return(-2);
-  }
+  int errCode = 0;
+  #include "tol_bvmat_bsr_run.h"
   if(!errCode)
   {
     docInfo.model_name          =  bsr.docInfo.model_name;

@@ -93,7 +93,7 @@ NameBlock OneNode =
     Set linearBlock = For(1,n, Set(Real j)
     {
       Set pi = (data::_.linearParamInfo)[j];
-      Set aux = [[BSR.LinearBlock(pi->Name, pi->InitValue)]];
+      Set aux = [[BSR.LinearBlock(pi->Name, pi->InitValue, True, False)]];
     //WriteLn(_MID+" TRACE 4.["<<j+"].1");
       Real prior.Average = If(ObjectExist("Real","pi->Prior.Average"),
                               pi->Prior.Average, ?);

@@ -12,13 +12,32 @@ Text _.autodoc.member.GetCyclerFromParsed =
 "Argument `parsed` must be defined as the result of calling function "
 "BSR.Parse\n";
 
-Cycler GetCyclerFromParsed(BSR.ModelDef parsed, 
+Cycler GetCyclerFromParsed(Set parsed_, 
                            McmcPartialHandler mcmcPartialHandler,
                            Config config,
                            Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
+  Text struct = StructName(parsed_);
+  Set parsed = Case(
+    struct == "BSR.ModelDef",
+    {
+      parsed_
+    },
+    struct == "BSR.MasterInfo",
+    {
+      BysMcmc::Bsr::ModularSchema::Monophasic::MasterToJoint(parsed_)
+    },
+    1==1,
+    {
+      WriteLn("Argument Set parsed_ of GetCyclerFromParsed must have "
+      "structure 'BSR.ModelDef' or 'BSR.MasterInfo' instead of '"+
+      struct+"'","E");
+      Real Stop;
+      Copy(Empty)
+    }
+  );
 
   BysMcmc::MasterSampler sampler = 
     BysMcmc::Bsr::Gibbs::MasterSamplerBasic::New(
@@ -81,8 +100,10 @@ Cycler GetCycler(Anything modelDef,
     g=="NameBlock", 
     {
       Text ascii = BysMcmc::Bsr::Import::Write(modelDef);
-      GetCyclerFromAscii(
-        ascii, mcmcPartialHandler, config, notifier)
+      BysMcmc::Cycler cycler = GetCyclerFromAscii(
+        ascii, mcmcPartialHandler, config, notifier);
+      Real cycler::setImporter(modelDef);
+      cycler
     },
     1==1, 
     {

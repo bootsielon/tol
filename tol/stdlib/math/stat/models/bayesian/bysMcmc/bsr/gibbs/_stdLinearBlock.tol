@@ -360,10 +360,15 @@ Class BlockStdLinSub
     VMatrix If(changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3");
     VMatrix z0  = Tra(Tra(_.beta-nu)*_.Ls);
-    VMatrix If(Not(Polytope::IsFeasible(_.D,d,z0)),
+  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.1");
+    Real If(Not(Polytope::IsFeasible(_.D,d,z0)),
     {
+    //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.2");
       Real _.nonFeasibleInitialPointNum := _.nonFeasibleInitialPointNum +1;
-      z0 := Polytope::FindFeasible(_.D, d, z0, 10*_.N, FALSE)
+    //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.3");
+      VMatrix z0 := Polytope::FindFeasible(_.D, d, z0, 10*_.N, TRUE);
+    //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.4");
+      1
     });
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 4");
     VMatrix z = TruncStdGaussian(_.D,d,z0,1,truncMNormal.gibbsNumIter);

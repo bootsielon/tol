@@ -20,6 +20,11 @@ Class Cycler
   BysMcmc::Notifier      _.notifier;
   BysMcmc::Config        _.config;
 
+  NameBlock _.importer = 
+  [[
+    Real void = ?
+  ]];
+
   //Stores the sampler name
   Text _.name = "";
   //Puts the Markov Chain path relative to sampler path
@@ -50,7 +55,11 @@ Class Cycler
   //--------------------------------------------------------------------------
   // Public methods
   //--------------------------------------------------------------------------
-
+  Real setImporter(NameBlock importer)
+  {
+    NameBlock _.importer := importer;
+    1
+  };
   Real define(Real unused)
   {
     //Stores the sampler name

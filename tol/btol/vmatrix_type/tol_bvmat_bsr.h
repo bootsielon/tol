@@ -56,18 +56,20 @@ struct variable_info
   int         index;
   double      initValue;
   bool        used;
-
+  bool        isExtern;
   variable_info()
   : name     (""),
     index    (0),
     initValue(BDat::Nan()),
-    used     (false)
+    used     (false),
+    isExtern (false)
   {}
   variable_info(const variable_info& aux)
   : name     (""),
     index    (0),
     initValue(BDat::Nan()),
-    used     (false)
+    used     (false),
+    isExtern (false)
   {
     copy(aux);
   }
@@ -82,6 +84,7 @@ struct variable_info
     index     = aux.index;
     initValue = aux.initValue;
     used      = aux.used;
+    isExtern  = aux.isExtern;
   }
 
   void show() const
@@ -90,7 +93,8 @@ struct variable_info
       "\n  name="+name.c_str()+", "+
       "\n  index="+index+", "+
       "\n  initValue="+initValue+", "+
-      "\n  used="+(int)used+")");
+      "\n  used="+(int)used+
+      "\n  isExtern="+(int)isExtern+")");
   }
 };
 
@@ -388,7 +392,6 @@ struct moduleDef
   BStruct* MissingBlockStr();
   BStruct* NoiseDistribStr();
   BStruct* NoiseTimeInfo();
-  BStruct* MasterSubModule();
   BStruct* MasterInfo();
 
   int Parse_Module_Joint(
@@ -422,8 +425,8 @@ struct moduleDef
     vector<moduleDef>&      subModules);
 
   int Parse_Module(const BText& filePath, 
-                   const BText& moduleType,
-                   BSet& contens_);
+                         BText& moduleType,
+                         BSet& contens_);
 
 };
 

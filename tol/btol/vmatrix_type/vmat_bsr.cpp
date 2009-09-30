@@ -285,13 +285,80 @@ int bys_sparse_reg::getMissing(
   return(0);
 };
 
+#define AddAndPutName(_set_,_type_,_name_,_obj_,_desc_)   \
+{                                                                \
+  BText _name_aux_ = _name_;                                     \
+  BSyntaxObject* _aux_ = _type_::New("",_obj_,_desc_);           \
+  if(_name_aux_.HasName()) { _aux_->PutName(_name_aux_); }       \
+  _set_.AddElement(_aux_);                                       \
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+class bys_sparse_reg_moduletype : public grammar<bys_sparse_reg_moduletype>,
+                               public bys_sparse_reg
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  bys_sparse_reg_moduletype() : bys_sparse_reg() 
+  {
+    moduleType = "joint";
+  }
+    
+  template <typename ScannerT>
+  struct definition
+  {
+    bys_sparse_reg_moduletype& s;
+    rule<ScannerT>  
+      endOfSentence,
+      module_type, 
+      problem;
+
+    definition(const bys_sparse_reg_moduletype& s_)
+    : s ((bys_sparse_reg_moduletype&)s_)
+    {
+      #include "tol_bvmat_bsr_err.h"     
+      endOfSentence = (ch_p(';') | error_comma2Expected);
+      module_type =
+      (
+        str_p("Module.Type") >> ch_p('=') >> 
+        (str_p("primary")|str_p("joint")|str_p("master"))[assign_a(s.moduleType)] >> 
+        endOfSentence
+      );
+      problem = 
+        (str_p("$BEGIN") | eps_p) >>
+        (module_type | eps_p) >>
+        confix_p(eps_p, (*(anychar_p - end_p)), end_p)
+        ;
+    }
+
+    rule<ScannerT> const&  start() const { return problem; }
+  };
+};
+
+////////////////////////////////////////////////////////////////////////////////
+static int Parse_ModuleType(const BText& fileName_, 
+                                  BText& moduleType)
+////////////////////////////////////////////////////////////////////////////////
+{
+  string fileName = fileName_.String();
+  bys_sparse_reg_moduletype bsr;
+  int errCode = 0;
+  #include "tol_bvmat_bsr_run.h"
+  if(!errCode)
+  {
+    moduleType.Copy(bsr.moduleType.c_str(),bsr.moduleType.size());
+  }
+  return(errCode);
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 int Parse_NoMasterModule(const BText& filePath, 
                          const BText& moduleType,
                          BSet& contens_)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  string fileName = filePath.String();
   int k,h;
   BVMat Y,X,a,A;
   BArray<BVMat> VSArr;
@@ -300,11 +367,17 @@ int Parse_NoMasterModule(const BText& filePath,
   std::vector<BysSparseReg::missing_info>    inputMissingInfo;
   std::vector<BysSparseReg::missing_info>    outputMissingInfo;
   std::vector<BysSparseReg::noise_info>      noiseInfo;
+  BText oldPath = BDir::GetCurrent();
+  BText dirPath = GetAbsolutePath(GetFilePath(filePath));
+  BText fName = GetFileName(filePath);
+  BText fullPath = dirPath+fName;
+  BDir::ChangeCurrent(dirPath);
+  BGrammar::IncLevel();
   if(moduleType=="primary")
   {
     BysSparseReg::Parse_Module_Primary
     (
-      fileName, docInfo, 
+      (std::string)fName.String(), docInfo, 
       linearInfo,inputMissingInfo,outputMissingInfo,noiseInfo,
       Y, X, a, A
     );
@@ -313,21 +386,24 @@ int Parse_NoMasterModule(const BText& filePath,
   {
     BysSparseReg::Parse_Module_Joint
     (
-      fileName, docInfo, 
+      (std::string)fName.String(), docInfo, 
       linearInfo,inputMissingInfo,outputMissingInfo,noiseInfo,
       Y, X, a, A
     );
   }
   BSet HD, LI, DI, MI, MO;
-  BGrammar::IncLevel();
   LI.PrepareStore(linearInfo.size());
   for(k=0; k<linearInfo.size(); k++)
   {
     BText name = linearInfo[k].name.c_str();
     BSet aux;
-    aux.PrepareStore(2);
-    aux.AddElement(BContensText::New("",name, ""));
-    aux.AddElement(BContensDat ::New("",linearInfo[k].initValue,""));
+    BDat isExtern = linearInfo[k].isExtern?1:0;
+    BDat used = linearInfo[k].used?1:0;
+    aux.PrepareStore(4);
+    AddAndPutName(aux,BContensText,"",name,"");
+    AddAndPutName(aux,BContensDat,"",linearInfo[k].initValue,"");
+    AddAndPutName(aux,BContensDat,"",used,"");
+    AddAndPutName(aux,BContensDat,"",isExtern,"");
     aux.PutStruct(BysSparseReg::LinearBlockStr());
     LI.AddElement(BContensSet::New(name,aux,""));
   }
@@ -338,15 +414,15 @@ int Parse_NoMasterModule(const BText& filePath,
     BText name = inputMissingInfo[k].name.c_str();
     BSet aux;
     aux.PrepareStore(9);
-    aux.AddElement(BContensText::New("",name,                              ""));
-    aux.AddElement(BContensDat ::New("",inputMissingInfo[k].index,         ""));
-    aux.AddElement(BContensDat ::New("",inputMissingInfo[k].row,           ""));
-    aux.AddElement(BContensDat ::New("",inputMissingInfo[k].col,           ""));
-    aux.AddElement(BContensText::New("",inputMissingInfo[k].prior.c_str(), ""));
-    aux.AddElement(BContensDat ::New("",inputMissingInfo[k].nu,            ""));
-    aux.AddElement(BContensDat ::New("",inputMissingInfo[k].sigma2,        ""));
-    aux.AddElement(BContensDat ::New("",inputMissingInfo[k].minBound,      ""));
-    aux.AddElement(BContensDat ::New("",inputMissingInfo[k].maxBound,      ""));
+    AddAndPutName(aux,BContensText,"",name,"");
+    AddAndPutName(aux,BContensDat,"",inputMissingInfo[k].index,"");
+    AddAndPutName(aux,BContensDat,"",inputMissingInfo[k].row,"");
+    AddAndPutName(aux,BContensDat,"",inputMissingInfo[k].col,"");
+    AddAndPutName(aux,BContensText,"",inputMissingInfo[k].prior.c_str(),"");
+    AddAndPutName(aux,BContensDat,"",inputMissingInfo[k].nu,"");
+    AddAndPutName(aux,BContensDat,"",inputMissingInfo[k].sigma2,"");
+    AddAndPutName(aux,BContensDat,"",inputMissingInfo[k].minBound,"");
+    AddAndPutName(aux,BContensDat,"",inputMissingInfo[k].maxBound,"");
     aux.PutStruct(BysSparseReg::MissingBlockStr());
     MI.AddElement(BContensSet::New(name,aux,""));
   }
@@ -357,15 +433,15 @@ int Parse_NoMasterModule(const BText& filePath,
     BText name = outputMissingInfo[k].name.c_str();
     BSet aux;
     aux.PrepareStore(9);
-    aux.AddElement(BContensText::New("",name,                               ""));
-    aux.AddElement(BContensDat ::New("",outputMissingInfo[k].index,         ""));
-    aux.AddElement(BContensDat ::New("",outputMissingInfo[k].row,           ""));
-    aux.AddElement(BContensDat ::New("",outputMissingInfo[k].col,           ""));
-    aux.AddElement(BContensText::New("",outputMissingInfo[k].prior.c_str(), ""));
-    aux.AddElement(BContensDat ::New("",outputMissingInfo[k].nu,            ""));
-    aux.AddElement(BContensDat ::New("",outputMissingInfo[k].sigma2,        ""));
-    aux.AddElement(BContensDat ::New("",outputMissingInfo[k].minBound,      ""));
-    aux.AddElement(BContensDat ::New("",outputMissingInfo[k].maxBound,      ""));
+    AddAndPutName(aux,BContensText,"",name,"");
+    AddAndPutName(aux,BContensDat,"",outputMissingInfo[k].index,"");
+    AddAndPutName(aux,BContensDat,"",outputMissingInfo[k].row,"");
+    AddAndPutName(aux,BContensDat,"",outputMissingInfo[k].col,"");
+    AddAndPutName(aux,BContensText,"",outputMissingInfo[k].prior.c_str(),"");
+    AddAndPutName(aux,BContensDat,"",outputMissingInfo[k].nu,"");
+    AddAndPutName(aux,BContensDat,"",outputMissingInfo[k].sigma2,"");
+    AddAndPutName(aux,BContensDat,"",outputMissingInfo[k].minBound,"");
+    AddAndPutName(aux,BContensDat,"",outputMissingInfo[k].maxBound,"");
     aux.PutStruct(BysSparseReg::MissingBlockStr());
     MO.AddElement(BContensSet::New(name,aux,""));
   }
@@ -384,30 +460,10 @@ int Parse_NoMasterModule(const BText& filePath,
       aux2.AddElement(BContensDat::New("",equIdx[h],""));
     }
     aux.PrepareStore(10);
-    aux.AddElement(BContensText::New
-    (
-      "Name",     
-      name,      
-      ""
-    ));
-    aux.AddElement(BContensDat::New
-    (
-      "Nu",             
-      noiseInfo[k].nu,                
-      ""
-    ));
-    aux.AddElement(BContensText::New
-    (
-      "SigmaName",      
-      noiseInfo[k].sigmaName.c_str(), 
-      ""
-    ));
-    aux.AddElement(BContensDat::New
-    (
-      "SigmaIndex",
-      noiseInfo[k].sigmaIdx,
-      ""
-    ));
+    AddAndPutName(aux,BContensText,"Name",name,"");
+    AddAndPutName(aux,BContensDat,"Nu",noiseInfo[k].nu,"");
+    AddAndPutName(aux,BContensText,"SigmaName",noiseInfo[k].sigmaName.c_str(),"");
+    AddAndPutName(aux,BContensDat,"SigmaIndex",noiseInfo[k].sigmaIdx,"");
     BSyntaxObject* sigPri = NULL;
     BText expr = noiseInfo[k].sigPriExpr.c_str();
     if(expr=="")
@@ -452,33 +508,13 @@ int Parse_NoMasterModule(const BText& filePath,
     BSyntaxObject* arimaAuxInfo = GraSet()->EvaluateExpr("Copy(Empty)");
     arimaAuxInfo->PutName("ArimaAuxInfo");
     aux.AddElement(arimaAuxInfo);
-    aux.AddElement(BContensVMat::New
-    (
-      "COV",
-      noiseInfo[k].cov,
-      ""
-    ));
+    AddAndPutName(aux,BContensVMat,"COV",noiseInfo[k].cov,"");
     assert(noiseInfo[k].cov.Check());
-    aux.AddElement(BContensVMat::New
-    (
-      "L",  
-      noiseInfo[k].L,               
-      "COV=L'L"
-    ));
+    AddAndPutName(aux,BContensVMat,"L",noiseInfo[k].L,"COV=L'L");
     assert(noiseInfo[k].L.Check());
-    aux.AddElement(BContensVMat::New
-    (
-      "Li", 
-      noiseInfo[k].Li, 
-      "L*Li=I"
-    ));
+    AddAndPutName(aux,BContensVMat,"Li",noiseInfo[k].Li,"L*Li=I");
     assert(noiseInfo[k].Li.Check());
-    aux.AddElement(BContensSet::New
-    (
-      "EquationIndexes", 
-      aux2,                               
-      ""
-    ));
+    AddAndPutName(aux,BContensSet,"EquationIndexes",aux2,"");
     BSyntaxObject* timeInfo  = NULL;
     if(noiseInfo[k].dating != "")
     {
@@ -595,117 +631,73 @@ int Parse_NoMasterModule(const BText& filePath,
   }
   if(DI.Card()) { DI.SetIndexByName(); }
   HD.PrepareStore(6);
-  HD.AddElement(BContensText::New
-  (
-    "Model.Name", 
-    docInfo.model_name.c_str(),
-    "Model identifier"
-  ));
-  HD.AddElement(BContensText::New
-  (
-    "Model.Description",
-    docInfo.model_description.c_str(),
-    "Notes about the model"
-  ));
-  HD.AddElement(BContensText::New
-  (
-    "Session.Name", 
-    docInfo.session_name.c_str(),
-    "Session identifier"
-  ));
-  HD.AddElement(BContensText::New
-  (
-    "Session.Description",
-    docInfo.session_description.c_str(),
-    "Notes about the session"
-  ));
-  HD.AddElement(BContensText::New
-  (
-    "Session.Authors",     
-    docInfo.session_authors.c_str(),
-    "Name, e-mail, url or any identifier of session authors separated by commas"
-  ));
-  HD.AddElement(BContensDate::New
-  (
-    "Session.Creation",     
-    DteNow(),
-    "Session creation date and time"
-  ));
-  HD.AddElement(BContensText::New
-  (
-    "Path",       
-    GetFilePath(filePath),
-    "The root path of directory used to store all information related to this model is the same of BSR ASCII file"
-  ));
+  AddAndPutName(HD,BContensText,"Model.Name",docInfo.model_name.c_str(),"Model identifier");
+  AddAndPutName(HD,BContensText,"Model.Description",docInfo.model_description.c_str(),"Notes about the model");
+  AddAndPutName(HD,BContensText,"Session.Name",docInfo.session_name.c_str(),"Session identifier");
+  AddAndPutName(HD,BContensText,"Session.Description",docInfo.session_description.c_str(),"Notes about the session");
+  AddAndPutName(HD,BContensText,"Session.Authors",docInfo.session_authors.c_str(),"Name, e-mail, url or any identifier of session authors separated by commas");
+  AddAndPutName(HD,BContensDate,"Session.Creation",DteNow(),"Session creation date and time");
+  AddAndPutName(HD,BContensText,"Path",fullPath,"The root path of directory used to store all information related to this model is the same of BSR ASCII file");
   HD.PutStruct(BysSparseReg::DocInfoStr());
 
   contens_.PrepareStore(10);
-  contens_.AddElement(BContensText::New
-  (
+  AddAndPutName(contens_,BContensText,
     "ModuleType", 
     moduleType,
     "Type of BSR-ASCII module: primary, joint or master"
-  ));
-  contens_.AddElement(BContensSet::New
-  (
+  );
+  AddAndPutName(contens_,BContensSet,
     "DocInfo", 
     HD,
     "Header documentary information"
-  ));
-  contens_.AddElement(BContensSet ::New
-  (
+  );
+  AddAndPutName(contens_,BContensSet,
     "LinearBlock",
     LI,  
     "Linear block information is a table with structure "
     "BSR.LinearBlockStr"
-  ));
-  contens_.AddElement(BContensSet ::New
-  (
+  );
+  AddAndPutName(contens_,BContensSet,
     "MissingInputBlock",
     MI,  
     "Missing Input block information is a table with structure "
     "BSR.MissingBlockStr"
-  ));
-  contens_.AddElement(BContensSet ::New
-  (
+  );
+  AddAndPutName(contens_,BContensSet,
     "MissingOutputBlock",
     MO,  
     "Missing Output block information is a table with structure "
     "BSR.MissingBlockStr"
-  ));
-  contens_.AddElement(BContensSet ::New
-  (
+  );
+  AddAndPutName(contens_,BContensSet,
     "NoiseDistrib", 
     DI,  
     "Noise distribution information is a table with structure "
     "BSR.SigmaBlockStr"
-  ));
-  contens_.AddElement(BContensVMat::New
-  (
+  );
+  AddAndPutName(contens_,BContensVMat,
     "Y",          
     Y,   
     "Regression output"
-  ));
-  contens_.AddElement(BContensVMat::New
-  (
+  );
+  AddAndPutName(contens_,BContensVMat,
     "X",          
     X,   
     "Regression input"
-  ));
-  contens_.AddElement(BContensVMat::New
-  (
+  );
+  AddAndPutName(contens_,BContensVMat,
     "a",          
     a,   
     "Restrictions border"
-  ));
-  contens_.AddElement(BContensVMat::New
-  (
+  );
+  AddAndPutName(contens_,BContensVMat,
     "A",          
     A,   
     "Restrictions coefficients"
-  ));  
+  );  
   contens_.PutStruct(BysSparseReg::ModelDefStr());
   BGrammar::DecLevel();
+  BDir::ChangeCurrent(oldPath);
   assert(Y.Check());
   assert(X.Check());
   assert(a.Check());
@@ -718,113 +710,107 @@ int Parse_MasterModule(const BText& filePath,
                        BSet& contens_)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  std::string fileName = filePath.String();
   int k;
   BysSparseReg::doc_info docInfo;    
   std::string sampler;
   std::vector<moduleDef> subMod;
-  Parse_Module_Master(fileName, docInfo, sampler, subMod);
   BSet SM, HD;
+  BText oldPath = BDir::GetCurrent();
+  BText dirPath = GetAbsolutePath(GetFilePath(filePath));
+  BText fName = GetFileName(filePath);
+  BText fullPath = dirPath+fName;
+  BDir::ChangeCurrent(dirPath);
   BGrammar::IncLevel();
+  Parse_Module_Master((std::string)fName.String(), docInfo, sampler, subMod);
   SM.PrepareStore(subMod.size());
+  BGrammar::IncLevel();
   for(k=0; k<subMod.size(); k++)
   {
-    BText moduleType = subMod[k].moduleType.c_str();
-    BText filePath   = subMod[k].filePath.c_str();
-    BSet aux;
-    aux.PrepareStore(2);
-    BGrammar::IncLevel();
-    aux.AddElement(BContensText::New("ModuleType",moduleType, ""));
-    aux.AddElement(BContensText::New("FilePath",  filePath,   ""));
-    aux.PutStruct(BysSparseReg::MasterSubModule());
-    BGrammar::DecLevel();
-    SM.AddElement(BContensSet::New("",aux,""));
+    BText moduleType(subMod[k].moduleType.c_str(),subMod[k].moduleType.size());
+    BText modulePath(subMod[k].filePath.c_str(),1,subMod[k].filePath.size()-2);
+    BSet module;
+    Parse_Module(modulePath, moduleType, module);
+    BUserSet* uSet = BContensSet::New("", module, "");
+    uSet->PutName(modulePath);
+    SM.AddElement(uSet);
   }
-
+  BGrammar::DecLevel();
   HD.PrepareStore(6);
-  HD.AddElement(BContensText::New
-  (
+  AddAndPutName(HD,BContensText,
     "Model.Name", 
     docInfo.model_name.c_str(),
     "Model identifier"
-  ));
-  HD.AddElement(BContensText::New
-  (
+  );
+  AddAndPutName(HD,BContensText,
     "Model.Description",
     docInfo.model_description.c_str(),
     "Notes about the model"
-  ));
-  HD.AddElement(BContensText::New
-  (
+  );
+  AddAndPutName(HD,BContensText,
     "Session.Name", 
     docInfo.session_name.c_str(),
     "Session identifier"
-  ));
-  HD.AddElement(BContensText::New
-  (
+  );
+  AddAndPutName(HD,BContensText,
     "Session.Description",
     docInfo.session_description.c_str(),
     "Notes about the session"
-  ));
-  HD.AddElement(BContensText::New
-  (
+  );
+  AddAndPutName(HD,BContensText,
     "Session.Authors",     
     docInfo.session_authors.c_str(),
     "Name, e-mail, url or any identifier of session authors separated by commas"
-  ));
-  HD.AddElement(BContensDate::New
-  (
+  );
+  AddAndPutName(HD,BContensDate,
     "Session.Creation",     
     DteNow(),
     "Session creation date and time"
-  ));
-  HD.AddElement(BContensText::New
-  (
+  );
+  AddAndPutName(HD,BContensText,
     "Path",       
-    GetFilePath(filePath),
+    fullPath,
     "The root path of directory used to store all information related to this model is the same of BSR ASCII file"
-  ));
+  );
   HD.PutStruct(BysSparseReg::DocInfoStr());
 
   contens_.PrepareStore(4);
-  contens_.AddElement(BContensText::New
-  (
+  AddAndPutName(contens_,BContensText,
     "ModuleType", 
     "master",
     "Type of BSR-ASCII module: primary, joint or master"
-  ));
-  contens_.AddElement(BContensSet::New
-  (
+  );
+  AddAndPutName(contens_,BContensSet,
     "DocInfo", 
     HD,
     "Header documentary information"
-  ));
-  contens_.AddElement(BContensText::New
-  (
+  );
+  AddAndPutName(contens_,BContensText,
     "Sampler",
     sampler.c_str(),  
     "Sampling strategy is one of these: monophasic, sequential or parallel"
-    "BSR.LinearBlockStr"
-  ));
-  contens_.AddElement(BContensSet ::New
-  (
+  );
+  AddAndPutName(contens_,BContensSet,
     "SubModule",
     SM,  
     "Set of sub modules of the master with structure "
     "BSR.MasterSubModule"
-  ));
-
+  );
   contens_.PutStruct(BysSparseReg::MasterInfo());
   BGrammar::DecLevel();
+  BDir::ChangeCurrent(oldPath);
   return(0);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 int Parse_Module(const BText& filePath, 
-                 const BText& moduleType,
+                       BText& moduleType,
                  BSet& contens_)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  if(moduleType=="")
+  {
+    Parse_ModuleType(filePath, moduleType);
+  }
   if(moduleType=="master")
   {
     return(Parse_MasterModule(filePath,contens_));
@@ -834,6 +820,6 @@ int Parse_Module(const BText& filePath,
     return(Parse_NoMasterModule(filePath,moduleType,contens_));
   }
 };
-
+/* */
 };
 

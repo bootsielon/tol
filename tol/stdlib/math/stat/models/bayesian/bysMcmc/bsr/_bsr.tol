@@ -19,8 +19,9 @@ NameBlock Bsr =
   //data base
   #Embed "dynhlm/_dynhlm.tol";
   //Simplified API to handle with models with just one observational node
-  #Embed "_oneNode.tol"
-
+  #Embed "_oneNode.tol";
+  //Handling with modular schemas
+  #Embed "modularSchema/_modularSchema.tol"
 ]];
   
 

@@ -8,6 +8,14 @@
 NameBlock Options =
 //////////////////////////////////////////////////////////////////////////////
 [[
+  //How a data owner acts in a model
+  NameBlock Data.Owner.Type =
+  [[
+    Real Output = 0,
+    Real Input  = 1,
+    Real TransferFunction = 2
+  ]];
+   
   //Scalar samplers draws a univariant distribution given the logarithm of
   //density function and a domain interval
   //The API of a scalar sampler  is given by a function like this
@@ -35,7 +43,7 @@ NameBlock Options =
     //the data length is very large
     Text DifEq = "DifEq"
   ]];
-  NameBlock DBApi.Module =
+  NameBlock DBApi.Modular.Schema =
   [[
     //All nodes will be defined in just one module of type 'joint'
     Text Joint.All = "Joint.All",
@@ -43,11 +51,17 @@ NameBlock Options =
     // - a primary module for each observational node 
     // - just one joint module for all latent and prior nodes all together
     Text Master.ObsAsPrimary = "Master.ObsAsPrimary"
+    //STILL NOT AVAILABLE MODULAR SCHEMAS
+    //A master module will be defined with 
+    // - a primary module for each observational node 
+    // - a primary module for each latent node 
+    // - just one joint module for all prior nodes all together
+    //Text Master.ObsAsPrimary = "Master.ObsAndLatAsPrimary"
   ]];
   NameBlock DBApi.Master.Sampler =
   [[
     //All modules will be remixed as just one joint module
-    Text Monophasic = "monopahsic"
+    Text Monophasic = "monophasic"
     //STILL NOT AVAILABLE SAMPLING METHODS
     //Modules will be sampled sequentially in just one computer
     //Text Sequential = "sequential",
@@ -166,8 +180,8 @@ Class Config
   //variables. 
   Real DBApi.useNodeInMissingIdentifier = True;
   //How DBApi define BSR modules
-  Text DBApi.moduleHandler = 
-    BysMcmc::Options::DBApi.Module::Joint.All;
+  Text DBApi.modularSchema = 
+    BysMcmc::Options::DBApi.Modular.Schema::Joint.All;
   //How DBApi samples BSR modules
   Text DBApi.masterSampler = 
     BysMcmc::Options::DBApi.Master.Sampler::Monophasic;

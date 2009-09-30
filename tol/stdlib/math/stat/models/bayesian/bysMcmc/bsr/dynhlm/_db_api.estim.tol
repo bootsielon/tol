@@ -213,12 +213,12 @@ Set GetLinearBlkEffects(Set colNames_,
 //during process and CODA diagnostics over parameters at the end
 //Returns the MCMC, the CODA report and the evaluation time series and 
 //effects using parameter average.
-Cycler GetCycler(Text dbName, 
-                 Text model, 
-                 Text session, 
-                 Text resultRootPath,
-                 NameBlock seriesHandler, 
-                 BysMcmc::Config config)
+NameBlock GetModelDef(Text dbName, 
+                      Text model, 
+                      Text session, 
+                      Text resultRootPath,
+                      NameBlock seriesHandler, 
+                      BysMcmc::Config config)
 ////////////////////////////////////////////////////////////////////////////
 {
   Real BysMcmc::Bsr::DynHlm::DBApi::useNodeInMissingIdentifier := 
@@ -252,25 +252,36 @@ Cycler GetCycler(Text dbName,
     "NULL,"+   //dh_saving
     "NULL)");  //dh_ending
 
+  Eval("NameBlock "+
+  "BysMcmc::Bsr::DynHlm::DBApi::LoadModelDef."+
+    config::DBApi.modularSchema+
+  "(dbName,id_model,id_session,resultRootPath,seriesHandler,config)")
+};
+
+////////////////////////////////////////////////////////////////////////////
+//Estimates a BSR-HLM model and stores in data base status information 
+//during process and CODA diagnostics over parameters at the end
+//Returns the MCMC, the CODA report and the evaluation time series and 
+//effects using parameter average.
+Cycler GetCycler(Text dbName, 
+                 Text model, 
+                 Text session, 
+                 Text resultRootPath,
+                 NameBlock seriesHandler, 
+                 BysMcmc::Config config)
+////////////////////////////////////////////////////////////////////////////
+{
   BysMcmc::Notifier dbNotifier=BysMcmc::Notifier.DB::New
     (dbName,model,session);
   Real dbNotifier::loading(0);  
-  NameBlock model.def = Eval("NameBlock "+
-  "BysMcmc::Bsr::DynHlm::DBApi::LoadModelDef."+
-    config::DBApi.moduleHandler+"
-  (
-    dbName,
-    id_model,
-    id_session,
-    resultRootPath,
-    seriesHandler,
-    config
-  )");
+  NameBlock model.def = GetModelDef(
+    dbName, model, session, resultRootPath, seriesHandler, config);
   BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
     model.def, BysMcmc::McmcPartialHandler::Null(0), config, dbNotifier);
   Set Append(cycler::auxInfo, [[series.handler]]);
   cycler
 };
+
 
 ////////////////////////////////////////////////////////////////////////////
 Real CloseModel(Estimation estim)

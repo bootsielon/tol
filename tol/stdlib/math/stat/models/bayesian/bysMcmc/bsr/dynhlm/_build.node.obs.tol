@@ -11,7 +11,9 @@ NameBlock Obs.Serie.Info(
   Text id_node,                           
   //Time serie identifier must be unique along whole hierarchy
   Text name,
-  //Time serie data
+  //How a data owner acts in a model (See BysMcmc::Options::Data.Owner.Type)
+  Real ownerType,
+  //Time serie data  
   Serie serie, 
   //Number of needed initial values
   Real numIniVal,
@@ -35,6 +37,7 @@ NameBlock Obs.Serie.Info(
 {[[
   Text _.id_node = id_node;
   Text _.name = name;
+  Real _.ownerType = ownerType;
   Real _.isTimeSerie = True;
   Serie _.serie = serie;
   Real _.avg = 
@@ -64,9 +67,10 @@ NameBlock Obs.Serie.Info(
   Date _.lastDate  = last;
   //Sorted list of analyzed dates
   Set _.dates = Dates(Dating(_.serie), _.firstIniVal, _.lastDate);
-  Matrix Get.Matrix(Real unused)
+  Matrix Get.Matrix(Real backwardOrder)
   {
-    Tra(SerSetMat(_.serie, _.firstDate, _.lastDate))
+    Serie s = (B^backwardOrder):_.serie;
+    Tra(SerSetMat([[s]], _.firstDate, _.lastDate))
   };
   Real Get.Equation.Size(Real unused) 
   { 
@@ -122,17 +126,23 @@ NameBlock Obs.Serie.Info(
   Set _.missing = 
   {
   //WriteLn("TRACE [Obs.Serie.Info get.missing] 1 dte="<<dte);
-    Set aux = EvalSet(_.missing.dates,Set get.missing(Date dte)
+    Set aux = For(1,Card(_.missing.dates),Set get.missing(Real num)
     {
+      Date dte = _.missing.dates[num];
       Real x = SerDat(_.serie,dte);
       If(!IsUnknown(x),Copy(Empty),
       {
         Set mis = Bsr.Missing.Info(
-          Text Name = missing.name(dte), 
-          Real Average = _.avg, 
-          Real Sigma = _.stds*_.missing.sigmaFactor, 
-          Real LowerBound = _.missing.lowerBound, 
-          Real UpperBound = _.missing.upperBound);
+          Text Name = missing.name(dte),
+          Real Owner.Type = _.ownerType, 
+          Text Owner.Name = _.id_node+"::"+_.name, 
+          Real Owner.Column = ?,
+          Real Owner.Row = 1+DateDif(Dating(_.serie),_.firstDate,dte),
+          Real Prior.Average = _.avg, 
+          Real Prior.Sigma = _.stds*_.missing.sigmaFactor, 
+          Real Prior.LowerBound = _.missing.lowerBound, 
+          Real Prior.UpperBound = _.missing.upperBound
+        );
         Eval(ToName(mis->Name)+"=mis")
       })
     });
@@ -148,6 +158,8 @@ NameBlock Obs.Vector.Info(
   Text id_node,                           
   //Time serie identifier must be unique along whole hierarchy
   Text name,
+  //How a data owner acts in a model (See BysMcmc::Options::Data.Owner.Type)
+  Real ownerType,
   //Time serie data
   Matrix serie, 
   //Missing label is used as prefix of missing parameters
@@ -166,6 +178,7 @@ NameBlock Obs.Vector.Info(
 {[[
   Text _.id_node = id_node;
   Text _.name = name;
+  Real _.ownerType = ownerType;
   Real _.isTimeSerie = False;
   Matrix _.serie = serie;
   Real _.avg = 
@@ -190,8 +203,13 @@ NameBlock Obs.Vector.Info(
     Text txt = IntText(num);
     "MissingBlk::"+_.missing.id+"::N"+txt
   };
-  Matrix Get.Matrix(Real unused)
+  Matrix Get.Matrix(Real backwardOrder)
   {
+    Real If(backwardOrder>0,
+    {
+      WriteLn("[Obs.Vector.Info] Backward polynomials are not allowed for matrices","E");
+      Real Stop
+    });
     _.serie
   };
   Real Get.Equation.Size(Real unused) 
@@ -224,10 +242,16 @@ NameBlock Obs.Vector.Info(
       {
         Bsr.Missing.Info(
           Text Name = missing.name(num), 
-          Real Average = _.avg, 
-          Real Sigma = _.stds*_.missing.sigmaFactor, 
-          Real LowerBound = _.missing.lowerBound, 
-          Real UpperBound = _.missing.upperBound);
+
+          Real Owner.Type = _.ownerType, 
+          Text Owner.Name = _.id_node+"::"+_.name, 
+          Real Owner.Column = ?,
+          Real Owner.Row = num,
+          Real Prior.Average = _.avg, 
+          Real Prior.Sigma = _.stds*_.missing.sigmaFactor, 
+          Real Prior.LowerBound = _.missing.lowerBound, 
+          Real Prior.UpperBound = _.missing.upperBound),
+        
         Eval(ToName(mis->Name)+"=mis")
       })
     });
@@ -243,6 +267,8 @@ NameBlock Obs.Data.Info(
   Text id_node,                           
   //Time serie identifier must be unique along whole hierarchy
   Text name,
+  //How a data owner acts in a model (See BysMcmc::Options::Data.Owner.Type)
+  Real ownerType,
   //Time serie or vector data
   Anything serie, 
   //Number of needed initial values
@@ -271,18 +297,18 @@ NameBlock Obs.Data.Info(
   {
   //WriteLn("TRACE [Obs.Data.Info] 1");
     Obs.Serie.Info(
-      id_node, name, serie, numIniVal, first, last, missing.label,
+      id_node, name, ownerType, serie, numIniVal, first, last, missing.label,
       missing.sigmaFactor, missing.lowerBound, missing.upperBound)
   },
   g=="Matrix",
   {
   //WriteLn("TRACE [Obs.Data.Info] 2");
     Obs.Vector.Info(
-      id_node, name, serie, missing.label,
+      id_node, name, ownerType, serie, missing.label,
       missing.sigmaFactor, missing.lowerBound, missing.upperBound)
   },
   {
-    WriteLn("[Obs.Data.Info] Invalid type "+g+" should be Serie or Matrix");
+    WriteLn("[Obs.Data.Info] Invalid type "+g+" should be Serie or Matrix","E");
     Real Stop
   })
 };
@@ -472,9 +498,11 @@ NameBlock Obs(
 
   NameBlock _.constraints = constraints;
   Real _.forceZeroInputCoef = forceZeroInputCoef;
+
   Set _.missing = _.output::_.serie.info::_.missing << 
-    BinGroup("<<", EvalSet(_.input, Set(NameBlock inp)
+    BinGroup("<<", For(1,_.nInp, Set(Real j)
     {
+      NameBlock inp = _.input[j];
     //WriteLn("TRACE 1 inp::_.serie.info::_.missing = "<<inp::_.serie.info::_.missing);
     //WriteLn("TRACE 2 input.missing.labels = "<<input.missing.labels);
       Set aux = If(inp::_.serie.info::_.id_node==inp::_.serie.info::_.missing.label,
@@ -498,6 +526,10 @@ NameBlock Obs(
       //WriteLn("TRACE 5 input.missing.labels = "<<input.missing.labels);
         Real SetIndexByName(input.missing.labels);
         0
+      });
+      Set EvalSet(aux, Real(Bsr.Missing.Info mis)
+      {
+        Real mis->Owner.Column := j
       });
       aux
     }));
@@ -566,7 +598,7 @@ NameBlock Obs(
   Set Get.NonLinearFilters(Real unused)
   {
     Set aux = _.deltaNonLinBlk << _.genericNonLinearFilters;
-    WriteLn("TRACE 1 Obs::Get.NonLinearFilters 1 Card(aux) = "<<Card(aux));
+  //WriteLn("TRACE 1 Obs::Get.NonLinearFilters 1 Card(aux) = "<<Card(aux));
     aux
   };
   /////////////////////////////////////////////////////////////////////////
@@ -591,10 +623,15 @@ NameBlock Obs(
 
   VMatrix Get.InputVMatrix(Real unused)
   {
-    Group("ConcatColumns", EvalSet(_.input, VMatrix(NameBlock inp)
+    Set inp = EvalSet(_.input, VMatrix(NameBlock aux)
     {
-      Mat2VMat(inp::_.serie.info::Get.Matrix(0))
-    }))
+      Mat2VMat(aux::_.serie.info::Get.Matrix(0))
+    });
+    Set trf = EvalSet(_.transFun.serie, VMatrix(NameBlock aux)
+    {
+      Mat2VMat(aux::serie::Get.Matrix(aux::degree))
+    });
+    Group("ConcatColumns", inp << trf)
   };
 
   Real Get.Equation.Size(Real unused) 

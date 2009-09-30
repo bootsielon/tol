@@ -67,7 +67,8 @@ public:
       openParenthesys, closeParenthesys,
       openBracket, closeBracket,
       openKey, closeKey,
-      identifier_simple, identifier,  newIdentifier, 
+      identifier_simple, identifier,  
+      newIdentifier, nonExistentIdentifier,
       resSigmaDef, errorTerm, 
       signEquVarTerm, signIneVarTerm, 
       knownReal, unkOrReal, 
@@ -75,7 +76,8 @@ public:
       knownURealEquTerm, 
       knownURealIneTerm,
       equVarTerm, ineVarTerm, 
-      variable, missing, arima, noise, equation, inequation,
+      variable, variableExistentOrExtern, missing, 
+      arima, noise, equation, inequation,
       model_nameDef, model_descriptionDef, 
       session_nameDef, session_descriptionDef, session_authorDef, 
       explicit_begin, explicit_end, problem;
@@ -87,6 +89,8 @@ public:
       add_symbol<missing_info>  add_mis(s.mis);
       add_symbol<sigma_info>    add_sig(s.sig);
       add_symbol<noise_info>    add_res(s.noise);
+      assign_declared_var_name assign_declared_var_name_(s.var);
+      assign_extern_var_name assign_extern_var_name_(s.var);
       assign_missing_min assign_missing_min_(s.mis); 
       assign_missing_max assign_missing_max_(s.mis); 
       assign_noise_size assign_noise_size_(s.noise.info, s.var.count, s.numEqu_);
@@ -97,10 +101,10 @@ public:
       assign_non_lin_flt_to_noise assign_non_lin_flt_to_noise_(s.noise.info);
       assign_pos_sign_to_equ_term assign_pos_sign_to_equ_term_(s.equ_var_term_info);
       assign_neg_sign_to_equ_term assign_neg_sign_to_equ_term_(s.equ_var_term_info);
-      assign_var_to_equ_term assign_var_to_equ_term_(s.var.vec, s.equ_var_term_info, s.Xnzmax_);
+      assign_var_to_equ_term assign_var_to_equ_term_(s.var, s.equ_var_term_info, s.Xnzmax_);
       assign_mis_to_equ_out assign_mis_to_equ_out_(s.mis.vec, s.equ_info);
       assign_mis_to_var_term assign_mis_to_var_term_(s.mis.vec, s.equ_var_term_info);
-      assign_mis_to_equ_term assign_mis_to_equ_term_(s.mis.vec,s.var.vec,s.equ_var_term_info,s.equ_info,s.Xnzmax_);
+      assign_mis_to_equ_term assign_mis_to_equ_term_(s.mis.vec,s.var,s.equ_var_term_info,s.equ_info,s.Xnzmax_);
       assign_pos_sign_to_ine_term assign_pos_sign_to_ine_term_(s.ine_var_term_info);
       assign_neg_sign_to_ine_term assign_neg_sign_to_ine_term_(s.ine_var_term_info);
       assign_IsGE_to_ine assign_IsGE_to_ine_(s.ine_info);
@@ -163,9 +167,11 @@ public:
       identifier =
         (*(identifier_simple >> member)) >> identifier_simple;
         ;
+      nonExistentIdentifier = 
+         (identifier - (s.var.table | s.sig.table | s.mis.table | s.noise.table));
       newIdentifier = 
         (
-          (identifier - (s.var.table | s.sig.table | s.mis.table | s.noise.table)) |
+          nonExistentIdentifier |
           (identifier >> error_alreadyInUse >> nothing_p >> end_p)
         )
         ;
@@ -258,48 +264,23 @@ public:
         |
         real_p[assign_a(s.var.info.initValue)]
         ;
-      equVarTerm = 
-        signEquVarTerm >>
-        (
-          s.var.table[assign_var_to_equ_term_]
-          |
-          (
-            knownURealEquTerm >>
-            (product                              | error_prodExpected     ) >> 
-            (s.var.table[assign_var_to_equ_term_] | error_linBlkVarExpected)
-          )
-          |
-          (
-            s.mis.table[assign_mis_to_var_term_] >>
-            (product                              | error_prodExpected     ) >> 
-            (s.var.table[assign_mis_to_equ_term_] | error_linBlkVarExpected)
-          )
-        )
-        ;
-      ineVarTerm = 
-        signIneVarTerm >>
-        (
-          s.var.table[assign_var_to_ine_term_]
-          |
-          (
-            knownURealIneTerm >>
-            (product                              | error_prodExpected     ) >> 
-            (s.var.table[assign_var_to_ine_term_] | error_linBlkVarExpected)
-          )
-        )
-        ;
       variable =
-        newIdentifier[increment_a(s.var.info.index)]
-                            [assign_a(s.var.info.name)] >> 
+        newIdentifier[assign_declared_var_name_]>> 
         str_p("<-") >> 
         (
          unkOrRealInitValue | error_linearVariableDeclareExpected
         )>>
         endOfSentence[add_var]
         ;
+      variableExistentOrExtern =
+        s.var.table |
+        (
+          nonExistentIdentifier[assign_extern_var_name_]
+                               [add_var]
+        );
       missing =
         newIdentifier[increment_a(s.mis.info.index)]
-                            [assign_a(s.mis.info.name)] >> 
+                     [assign_a(s.mis.info.name)] >> 
         ch_p('?') >> 
         ((
           (
@@ -380,6 +361,36 @@ public:
         ) | error_noiseDistribDeclareExpected) >>
         nonLinearFilters  >>
         endOfSentence[add_res]
+        ;
+      equVarTerm = 
+        signEquVarTerm >>
+        (
+          variableExistentOrExtern[assign_var_to_equ_term_]
+          |
+          (
+            knownURealEquTerm >>
+            (product | error_prodExpected) >> 
+            (variableExistentOrExtern[assign_var_to_equ_term_] | error_linBlkVarExpected)
+          )
+          |
+          (
+            s.mis.table[assign_mis_to_var_term_] >>
+            (product  | error_prodExpected) >> 
+            (variableExistentOrExtern[assign_mis_to_equ_term_] | error_linBlkVarExpected)
+          )
+        )
+        ;
+      ineVarTerm = 
+        signIneVarTerm >>
+        (
+          s.var.table[assign_var_to_ine_term_]
+          |
+          (
+            knownURealIneTerm >>
+            (product                              | error_prodExpected     ) >> 
+            (s.var.table[assign_var_to_ine_term_] | error_linBlkVarExpected)
+          )
+        )
         ;
       equation =
         (
@@ -580,7 +591,8 @@ public:
     int*    Ai = (int*)A_.s_.chlmRtriplet_->i;
     int*    Aj = (int*)A_.s_.chlmRtriplet_->j;
     int oldRatio = 0;
-    Std(BSR()+"Building regression equations\n");
+    Xn = 0;
+    Std(BSR()+"Building regression "+m+" equations with "+n+" variables\n");
     for(i=0; i<m; i++)
     {
       int ratio = i/m;
@@ -589,13 +601,15 @@ public:
         oldRatio = ratio;
         Std(".");
       }
-      noise_info& noise_inf = noise.vec[equ_vec[i].resIndex-1];
-      Yx[i] = equ_vec[i].Y - noise_inf.nu;
-      for(j=0; j<equ_vec[i].X.size(); j++)
+      lin_reg_equation& eq =equ_vec[i]; 
+      noise_info& noise_inf = noise.vec[eq.resIndex-1];
+      Yx[i] = eq.Y - noise_inf.nu;
+      for(j=0; j<eq.X.size(); j++)
       {
+        duplet& eqXj = eq.X[j];
         Xi[Xn] = i;
-        Xj[Xn] = equ_vec[i].X[j].varIndex-1;
-        Xx[Xn] = equ_vec[i].X[j].x;
+        Xj[Xn] = eqXj.varIndex-1;
+        Xx[Xn] = eqXj.x;
         assert((Xj[Xn]>=0)&&(Xj[Xn]<n));
         Xn++;
       }
@@ -604,7 +618,8 @@ public:
     Std(BSR()+"Converting regression equations from triplet to sparse\n");
     X.Convert(X_,BVMat::ESC_chlmRsparse);
     oldRatio = 0;
-    Std(BSR()+"Building constrain inequations\n");
+    An = 0;
+    Std(BSR()+"Building "+r+"constrain inequations with "+n+" variables\n");
     for(i=0; i<r; i++)
     {
       int ratio = i/r;
@@ -648,42 +663,8 @@ int Parse_Module_Joint(
 ////////////////////////////////////////////////////////////////////////////////
 {
   bys_sparse_reg_joint bsr;
-  const char* fName = fileName.c_str();
-  
-//BOOST_SPIRIT_DEBUG_NODE(bsr);
-  int errCode=0;
-  ifstream in(fName);
-  if(!in)
-  {
-    Error(BSR() + BText("Could not open input file: ") + 
-          fName + "\n");
-    return(-1);
-  }
-  bsr.fileName = fileName;
-  bsr.fileSize = GetFileSize(fName);
-  bsr.file = &in;
-
-  in.unsetf(ios::skipws); //  Turn of white space skipping on the stream
-  skip_grammar skip;
-  typedef position_iterator< file_iterator<char> > iterator_t; 
-  file_iterator<char> fiter(fileName); 
-  iterator_t begin(fiter, fiter.make_end(), fName);
-  iterator_t end;  
-  Std(BSR()+"Parsing BSR file "+fName+" with "+(int)bsr.fileSize+" bytes\n");
-  parse_info<iterator_t> result = parse(begin, end, bsr, skip);
-  if(!result.full && !bsr.endFound_)
-  {
-    BText msg = BSR() + BText(fName) + " Fails Parsing\n"+url_parse_bsr();
-    BText desc;
-    for (int i = 0; i < 1000; i++)
-    {
-      if (result.stop == end) break;
-      desc += *result.stop++;
-    }
-    if(!desc.HasName()) { desc = "Unexpectend end of file"; }
-    Error(msg+"\nProblem description:'"+desc+"'");
-    return(-2);
-  }
+  int errCode = 0;
+  #include "tol_bvmat_bsr_run.h"
   if(!errCode)
   {
     docInfo.model_name          =  bsr.docInfo.model_name;

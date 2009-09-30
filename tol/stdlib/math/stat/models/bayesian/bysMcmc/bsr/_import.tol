@@ -108,6 +108,87 @@ Real Write.Header(NameBlock model, Real fileHandler, Text module.type)
 };
 
 ///////////////////////////////////////////////////////////////////////////
+Real Write.Header.MainLinearBlock(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  WriteLn(_MID+"Writing definition of main linear block parameters");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining header of Regression Variables\n"+
+    _comment+
+    "\n");
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Header.MissingBlock(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  WriteLn(_MID+"Writing definition of missing block parameters");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining header of Regression Missing Values\n"+
+    _comment+
+    "\n");
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Header.NoiseDistribution(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  WriteLn(_MID+"Writing noise distribution");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining header of noise distribution\n"+
+    _comment+
+    "\n"
+    );
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Header.RegressionEquations(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  //Escribo las ecuaciones que aporta cada segmento.
+  WriteLn(_MID+"Writing header of regression equations");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining regression equations\n"+
+    _comment+
+    "\n"
+    );
+  0
+};
+
+///////////////////////////////////////////////////////////////////////////
+Real Write.Header.Constraints(NameBlock model, Real fileHandler)
+///////////////////////////////////////////////////////////////////////////
+{
+  //Escribo las restricciones que involucran los parametros de cada
+  //segmento. Estas restricciones pueden ser:
+  // 
+  //- Restricciones de dominio: lo <= p <= hi
+  // 
+  //- restricciones de orden, solo parametros del mismo bloque: b_i <= b_k
+  // 
+  //- restricciones arbitrarias, solo para parametros del mismo bloque:
+  // 
+  //a1*b1 + a2*b2 + ... + ak*bk <= c
+  
+  WriteLn(_MID+"Writing header of constrains");
+  Real FPutText(fileHandler,
+    "\n\n"+_comment+
+    "// Defining Parameter Constraints\n"+
+    _comment+
+    "\n"
+    );
+  0
+};
+
+
+///////////////////////////////////////////////////////////////////////////
 Real Write.Data.MainLinearBlock(NameBlock segment,
                                 Real fileHandler)
 ///////////////////////////////////////////////////////////////////////////
@@ -127,9 +208,12 @@ Real Write.Data.MainLinearBlock(NameBlock segment,
 
 ///////////////////////////////////////////////////////////////////////////
 Real Write.Data.MissingBlock(NameBlock segment,
-                             Real fileHandler)
+                             Real fileHandler,
+                             Real writePosition)
 ///////////////////////////////////////////////////////////////////////////
 {
+//WriteLn("TRACE [Write.Data.MissingBlock] 1 segment="<<segment::Get.Name(0));
+//WriteLn("TRACE [Write.Data.MissingBlock] 2 writePosition="<<writePosition);
   Set For(1,segment::Get.Missing.Size(0), Real(Real k) 
   {
     Set P = segment::Get.Missing(k);
@@ -137,20 +221,40 @@ Real Write.Data.MissingBlock(NameBlock segment,
     Real lb = !IsUnknown(P->Prior.LowerBound) & GT(P->Prior.LowerBound,-1/0);
     Real ub = !IsUnknown(P->Prior.UpperBound) & LT(P->Prior.UpperBound,+1/0);
   //WriteLn("TRACE [Write.Data.MissingBlock] P->Prior.Sigma="<<P->Prior.Sigma+" nr="<<nr);
+    Text position = If(!writePosition,"",
+    "\n at row "+IntText(P->Owner.Row)+" for "+
+    Case(
+      P->Owner.Type==BysMcmc::Options::Data.Owner.Type::Output,
+      {
+        "output"
+      },
+      P->Owner.Type==BysMcmc::Options::Data.Owner.Type::Input,
+      {
+        "input "<<P->Owner.Column
+      },
+      P->Owner.Type==BysMcmc::Options::Data.Owner.Type::TransferFunction,
+      {
+        WriteLn("Cannot define missing values over transfer function "+P->Owner.Name,"E");
+        Real Stop;
+        ""
+      }));
     Case(!nr & !lb & !ub,
     {
       FPutText(fileHandler, 
-        P->Name+" ? <- "+RealTextS(P->Prior.Average)+";\n")
+        P->Name+" ? "+position+
+        "\n <- "+RealTextS(P->Prior.Average)+";\n")
     },
     !lb & !ub,
     {
-      FPutText(fileHandler, P->Name+" ? ~ Normal("+ 
+      FPutText(fileHandler, P->Name+" ? "+position+
+        "\n ~ Normal("+ 
         RealTextS(P->Prior.Average)+","+
         RealTextS(P->Prior.Sigma)+");\n")
     },
     1==1,
     {
-      FPutText(fileHandler, P->Name+" ? ~ TruncatedNormal("+ 
+      FPutText(fileHandler, P->Name+" ? "+position+
+        "\n ~ TruncatedNormal("+ 
         RealTextS(P->Prior.Average)+","+
         RealTextS(P->Prior.Sigma)+","+
         RealTextS(P->Prior.LowerBound)+","+
@@ -216,12 +320,13 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
     Set nlf = segment::Get.NonLinearFilters(0);
     If(!Card(nlf),False,
     {
-      Text nlf.path = path.prefix+"."+name+".oza";
+      Text file = name+".NonLinearFilters.oza";
+      Text nlf.path = path.prefix+file;
       WriteLn("Get.NonLinearFilters returns "<<Card(nlf)+
       "linear filters that will be stored in "+nlf.path);
       Real Ois.Store(nlf,nlf.path);
       Real FPutText(fileHandler, "\nwith non linear filters \n"
-      "  {$ Set Include(\""+nlf.path+"\") $}");
+      "  {$ Set { Include(\""+file+"\") } $}");
       True
     })
   });
@@ -238,12 +343,12 @@ Real Write.Data.RegressionMatrices(NameBlock segment,
   Text ResName = segment::Get.Name(0)+"::Noise";
   VMatrix Y = segment::Get.OutputVMatrix(0);
   VMatrix X = segment::Get.InputVMatrix(0);
-  Real Ois.Store([[Y]],path.prefix+".Y.oza");
-  Real Ois.Store([[X]],path.prefix+".X.oza");
+  Real Ois.Store([[Y]],path.prefix+"Output.oza");
+  Real Ois.Store([[X]],path.prefix+"Input.oza");
   Real FPutText(fileHandler, "\nOutput = "
-  "  {$ Set Include(\""+path.prefix+".Y.oza\") $}");
+  "  {$ VMatrix { Include(\"./Output.oza\")[1] } $};");
   Real FPutText(fileHandler, "\nInput = "
-  "  {$ Set Include(\""+path.prefix+".X.oza\") $}");
+  "  {$ VMatrix { Include(\"./Input.oza\")[1] } $};");
   0
 };
 
@@ -341,86 +446,6 @@ Real Write.Data.Constraints(NameBlock segmentOrFullModel,
   0
 };
 
-///////////////////////////////////////////////////////////////////////////
-Real Write.Header.MainLinearBlock(NameBlock model, Real fileHandler)
-///////////////////////////////////////////////////////////////////////////
-{
-  WriteLn(_MID+"Writing definition of main linear block parameters");
-  Real FPutText(fileHandler,
-    "\n\n"+_comment+
-    "// Defining header of Regression Variables\n"+
-    _comment+
-    "\n");
-  0
-};
-
-///////////////////////////////////////////////////////////////////////////
-Real Write.Header.MissingBlock(NameBlock model, Real fileHandler)
-///////////////////////////////////////////////////////////////////////////
-{
-  WriteLn(_MID+"Writing definition of missing block parameters");
-  Real FPutText(fileHandler,
-    "\n\n"+_comment+
-    "// Defining header of Regression Missing Values\n"+
-    _comment+
-    "\n");
-  0
-};
-
-///////////////////////////////////////////////////////////////////////////
-Real Write.Header.NoiseDistribution(NameBlock model, Real fileHandler)
-///////////////////////////////////////////////////////////////////////////
-{
-  WriteLn(_MID+"Writing noise distribution");
-  Real FPutText(fileHandler,
-    "\n\n"+_comment+
-    "// Defining header of noise distribution\n"+
-    _comment+
-    "\n"
-    );
-  0
-};
-
-///////////////////////////////////////////////////////////////////////////
-Real Write.Header.RegressionEquations(NameBlock model, Real fileHandler)
-///////////////////////////////////////////////////////////////////////////
-{
-  //Escribo las ecuaciones que aporta cada segmento.
-  WriteLn(_MID+"Writing header of regression equations");
-  Real FPutText(fileHandler,
-    "\n\n"+_comment+
-    "// Defining regression equations\n"+
-    _comment+
-    "\n"
-    );
-  0
-};
-
-///////////////////////////////////////////////////////////////////////////
-Real Write.Header.Constraints(NameBlock model, Real fileHandler)
-///////////////////////////////////////////////////////////////////////////
-{
-  //Escribo las restricciones que involucran los parametros de cada
-  //segmento. Estas restricciones pueden ser:
-  // 
-  //- Restricciones de dominio: lo <= p <= hi
-  // 
-  //- restricciones de orden, solo parametros del mismo bloque: b_i <= b_k
-  // 
-  //- restricciones arbitrarias, solo para parametros del mismo bloque:
-  // 
-  //a1*b1 + a2*b2 + ... + ak*bk <= c
-  
-  WriteLn(_MID+"Writing header of constrains");
-  Real FPutText(fileHandler,
-    "\n\n"+_comment+
-    "// Defining Parameter Constraints\n"+
-    _comment+
-    "\n"
-    );
-  0
-};
-
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Write.Primary =
 "Imports data from a model defined by a NameBlock having a set of mandatory "
@@ -429,12 +454,13 @@ Text _.autodoc.member.Write.Primary =
   Text Write.Primary(NameBlock model)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text model.name = model::Get.Doc.Model.Name(0);
-  Text session.name = model::Get.Doc.Session.Name(0);
-  Text path = model::Get.Doc.Path(0);
-  Real Do OSDirMake(path);
-
-  Text file.bsr = path+model.name+"."+session.name+".bsr";
+  Real numSegment = model::Get.LinReg.Size(0);
+  NameBlock segment = model::Get.LinReg.Segment(0);
+  Text segName = segment::Get.Name(0);
+  Text path.prefix = model::Get.Doc.Path(0);
+  Real Do OSDirMake(path.prefix);
+  Text file.bsr = path.prefix+"primary.bsr";
+  WriteLn(_MID+" Writing primary module\n  \""+file.bsr+"\"");
   Real f.bsr = FOpen(file.bsr,"w");
   Real If(!f.bsr, Real{
       WriteLn(_MID+"Cannot open "+file.bsr+" for writing.","E");
@@ -442,18 +468,19 @@ Text _.autodoc.member.Write.Primary =
     });
   WriteLn(_MID+"File "+file.bsr+" was open successfully.");
 
-  Real numSegment = model::Get.LinReg.Size(0);
-  NameBlock segment = model::Get.LinReg.Segment(0);
-
   Real Write.Header                    (model,   f.bsr, "primary");
   Real Write.Header.MainLinearBlock    (model,   f.bsr);
   Real Write.Data.MainLinearBlock      (segment, f.bsr);
   Real Write.Header.NoiseDistribution  (model,   f.bsr);
-  Real Write.Data.NoiseDistribution    (segment, f.bsr);
-  Real Write.Data.RegressionMatrices   (segment, f.bsr);
+  Real Write.Data.NoiseDistribution    (segment, f.bsr, path.prefix);
+  Real Write.Header.RegressionEquations(model,   f.bsr);
+  Real Write.Data.RegressionMatrices   (segment, f.bsr, path.prefix);
   Real Write.Header.MissingBlock       (model,   f.bsr);
-  Real Write.Data.MissingBlock         (segment, f.bsr);
+  Real Write.Data.MissingBlock         (segment, f.bsr, 1);
+  Real Write.Domain.Constraints        (segment, f.bsr);
+  Real Write.Data.Constraints          (segment, f.bsr);
   Real FPutText(f.bsr,"\n$END\n");
+  Real FClose(f.bsr);
   file.bsr
 };
 
@@ -465,13 +492,10 @@ Text _.autodoc.member.Write.Joint =
   Text Write.Joint(NameBlock model)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text model.name = model::Get.Doc.Model.Name(0);
-  Text session.name = model::Get.Doc.Session.Name(0);
-  Text path = model::Get.Doc.Path(0);
-  Real Do OSDirMake(path);
-
-  Text path.prefix = path+model.name+"."+session.name;
-  Text file.bsr = path.prefix+".bsr";
+  Text path.prefix = model::Get.Doc.Path(0);
+  Real Do OSDirMake(path.prefix);
+  Text file.bsr = path.prefix+"joint.bsr";
+  WriteLn(_MID+" Writing joint module\n  \""+file.bsr+"\"");
   Real f.bsr = FOpen(file.bsr,"w");
   Real If(!f.bsr, Real{
       WriteLn(_MID+"Cannot open "+file.bsr+" for writing.","E");
@@ -500,7 +524,7 @@ Text _.autodoc.member.Write.Joint =
     NameBlock segment = model::Get.LinReg.Segment(iB);
     WriteLn(_MID+" Writing segment "+segment::Get.Name(0));
     Real Write.Data.MainLinearBlock    (segment, f.lin);
-    Real Write.Data.MissingBlock       (segment, f.mis);
+    Real Write.Data.MissingBlock       (segment, f.mis, False);
     Real Write.Data.NoiseDistribution  (segment, f.dis, path.prefix);
     Real Write.Data.RegressionEquations(segment, f.reg);
     Real Write.Domain.Constraints      (segment, f.con);
@@ -533,6 +557,47 @@ Text _.autodoc.member.Write.Joint =
   file.bsr
 };
 
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Write.Master =
+"Imports data from a model defined by a NameBlock having a set of mandatory "
+"methods to get all needed information to write an ASCII file with BSR "
+"format that will can be readed by function BSR.Parse ";
+  Text Write.Master(NameBlock model)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text path.prefix = model::Get.Doc.Path(0);
+  Real Do OSDirMake(path.prefix);
+  Text file.bsr = path.prefix+"master.bsr";
+  WriteLn(_MID+" Writing master module\n  \""+file.bsr+"\"");
+  Real f.bsr = FOpen(file.bsr,"w");
+  Real If(!f.bsr, Real{
+      WriteLn(_MID+"Cannot open "+file.bsr+" for writing.","E");
+      Real Stop
+    });
+  WriteLn(_MID+"File "+file.bsr+" was open successfully.");
+
+  Set modules = model::Get.Modules(0);
+  Real Write.Header(model, f.bsr, "master");
+  Real FPutText(f.bsr,"Sampler = "+model::Get.Sampler(0)+"\n");
+
+  Set EvalSet(modules, Real(NameBlock module)
+  {
+    Text moduleType = module::Get.ModuleType(0);
+    Text module.bsr = Replace(
+      module::Get.Doc.Path(0)+moduleType+".bsr",
+      path.prefix,
+      "./");
+    Real FPutText(f.bsr,"Include "+moduleType+
+     " module \""+module.bsr+"\";\n");
+    Text Write.Module(module, moduleType);
+    1
+  });
+  Real FPutText(f.bsr,"\n$END\n");
+  Real FClose(f.bsr);
+  file.bsr
+};
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Write.Module =
 "Imports data from a model defined by a NameBlock having a set of mandatory "
@@ -549,7 +614,8 @@ Text _.autodoc.member.Write.Module =
     1==1,
     {
       Error("Invalid module type '"+moduleType+"' should be one of these "
-            "'primary', 'joint' or 'master'")
+            "'primary', 'joint' or 'master'");
+      ""
     }
   )
 };

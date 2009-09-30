@@ -105,7 +105,9 @@ BStruct* LinearBlockStr()
     "BSR.LinearBlock"
     ,
     "Text:Name,"
-    "Real:InitialValue");
+    "Real:InitialValue,"
+    "Real:Used,"
+    "Real:Extern");
   }
   return(aux);
 };
@@ -174,22 +176,6 @@ BStruct* NoiseDistribStr()
     "Set:TimeInfo,"
     "Set:NonLinFilters"
   );
-  }
-  return(aux);
-};
-
-//--------------------------------------------------------------------
-BStruct* MasterSubModule()
-//--------------------------------------------------------------------
-{
-  static BStruct* aux = NULL;
-  if(!aux)
-  {
-    aux = NewStructSymbol( 
-    "BSR.MasterSubModule"
-    ,
-    "Text:ModuleType,"
-    "Text:FilePath");
   }
   return(aux);
 };

@@ -54,6 +54,17 @@ error_report_p error_SessionDescriptionDefExpected = error_report_parser(
 error_report_p error_SessionAuthorDefExpected = error_report_parser(
   "Expected session authors definition 'Session.Authors = \"...\"' " );
 
+error_report_p error_SamplerOptExpected = error_report_parser(
+  "Expected a valid sampler method:  " 
+  "monophasic, sequential or parallel");
+error_report_p error_ModuleOptExpected = error_report_parser(
+  "Expected a valid modualr schema:  " 
+  "primary, joint or master");
+error_report_p error_ModuleExpected = error_report_parser(
+  "Expected reserved word 'module'");
+error_report_p error_ModulePathExpected = error_report_parser(
+  "Expected module relative path as \"...\"");
+
 error_report_p error_AssignExpected = error_report_parser(
   "Expected symbol '=' " );
 error_report_p error_cmpEquExpected = error_report_parser(
@@ -116,8 +127,15 @@ std::string missingVariableDeclare_syntax =
   "  my_linear_block_name ? <- number; \n"
   "Missing block variable declaration with prior info:\n"
   "  my_linear_block_name ? ~ {Normal(nu,sigma^2)|TruncatedNormal(nu,sigma^2,minBound,maxBound)}; \n";
+
 error_report_p error_missingVariableDeclareExpected = error_report_parser(
   string("Expected syntax was: \n")+missingVariableDeclare_syntax);
+
+error_report_p error_missingAtRowExpected = error_report_parser(
+  string("Expected 'at row <integer>' to declare missing row position"));
+
+error_report_p error_missingForExpected = error_report_parser(
+  string("Expected 'for output' or 'for input <variable>' to declare missing owner"));
 
 std::string noiseDistribDeclare_syntax = 
   "White noise distribution declaration with known homocedastic diagonal covariance:\n"

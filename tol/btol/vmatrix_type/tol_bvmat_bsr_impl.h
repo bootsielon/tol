@@ -267,6 +267,66 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
+class assign_declared_var_name
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<variable_info>*  var_;
+  assign_declared_var_name(symbol_handler<variable_info>& var) 
+  : var_(&var)
+  {}
+  void action(const std::string& str) const
+  {
+    var_->info.index = var_->vec.size()+1;
+    var_->info.name = str;
+    var_->info.isExtern = false;
+    var_->info.initValue = BDat::Nan();
+    var_->info.used = false;
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_extern_var_name
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<variable_info>*  var_;
+  assign_extern_var_name(symbol_handler<variable_info>& var) 
+  : var_(&var)
+  {}
+  void action(const std::string& str) const
+  {
+    var_->info.index = var_->vec.size()+1;
+    var_->info.name = str;
+    var_->info.isExtern = true;
+    var_->info.initValue = BDat::Nan();
+    var_->info.used = true;
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
 class assign_missing_min
 ///////////////////////////////////////////////////////////////////////////////
 {
@@ -423,16 +483,21 @@ public:
   : mis_(&mis),
     var_vec_(&var_vec)
   {}
-  void action(variable_info& varInfo) const
+  void action(const int d) const
   {
     assign_missing_input* t = (assign_missing_input*)this;
-    t->mis_->info.col  = varInfo.index;
+    t->mis_->info.col  = d;
   }
-  void operator()(const boost::reference_wrapper<int>& pos) const
+  void operator()(const int d) const
   {
-    assign_missing_input* t = (assign_missing_input*)this;
-    int n = pos.get(); 
-    action((*(t->var_vec_))[n]);
+    action(d);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(atoi(str.c_str()));
   }
 };
 
@@ -867,15 +932,16 @@ class assign_var_to_equ_term
 ///////////////////////////////////////////////////////////////////////////////
 {
 public:
-  vector<variable_info>* var_vec_; 
+  symbol_handler<variable_info>* var_; 
   var_term*              var_term_info_; 
   int*                   nzmax_;
 
   assign_var_to_equ_term(
-    vector<variable_info>& var_vec,
-    var_term&              var_term_info, 
-    int&                   nzmax) 
-  : var_vec_      (&var_vec), 
+    symbol_handler<variable_info>& var_,
+    var_term& var_term_info, 
+    int& nzmax) 
+  : 
+    var_          (&var_),
     var_term_info_(&var_term_info), 
     nzmax_        (&nzmax)
   {}
@@ -889,10 +955,18 @@ public:
   }
   void operator()(const boost::reference_wrapper<int>& pos) const
   {
-    assign_var_to_equ_term* t = (assign_var_to_equ_term*)this;
     int n = pos.get(); 
-    action((*(t->var_vec_))[n]);
+    action((var_->vec)[n]);
   }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    int* pos = find(var_->table,str.c_str());
+    action((var_->vec)[*pos]);
+  }
+
 };
 
 
@@ -968,20 +1042,20 @@ class assign_mis_to_equ_term
 {
 public:
   vector<missing_info>*  mis_vec_; 
-  vector<variable_info>* var_vec_; 
-  var_term*              var_term_info_; 
-  lin_reg_equation*      equ_info_;
-  int*                   nzmax_;
+  symbol_handler<variable_info>* var_; 
+  var_term* var_term_info_; 
+  lin_reg_equation* equ_info_;
+  int* nzmax_;
 
   assign_mis_to_equ_term(
     vector<missing_info>&  mis_vec, 
-    vector<variable_info>& var_vec,
-    var_term&              var_term_info,
-    lin_reg_equation&      equ_info,
-    int&                   nzmax) 
+    symbol_handler<variable_info>& var_,
+    var_term& var_term_info,
+    lin_reg_equation& equ_info,
+    int& nzmax) 
   :
     mis_vec_       (&mis_vec),
-    var_vec_       (&var_vec),
+    var_           (&var_),
     var_term_info_ (&var_term_info),
     equ_info_      (&equ_info),
     nzmax_         (&nzmax)
@@ -999,7 +1073,15 @@ public:
   {
     assign_mis_to_equ_term* t = (assign_mis_to_equ_term*)this;
     int n = pos.get(); 
-    action((*t->var_vec_)[n]);
+    action((var_->vec)[n]);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    int* pos = find(var_->table,str.c_str());
+    action((var_->vec)[*pos]);
   }
 
 };
@@ -1383,7 +1465,20 @@ public:
   bool endFound_;
 
   bys_sparse_reg();
-     
+
+  virtual int getData(vector<variable_info>&  linearInfo_,
+              vector<missing_info>&   inputMissingInfo_,
+              vector<missing_info>&   outputMissingInfo_,
+              vector<noise_info>&     noiseInfo_,
+              BVMat&                  Y, 
+              BVMat&                  X,
+              BVMat&                  A, 
+              BVMat&                  a)
+  {
+    return(0);
+  };
+  
+protected:     
   int expand2AllEqu(noise_info& resInfo, 
                     const BVMat& A, BVMat& A_);
 
@@ -1396,14 +1491,6 @@ public:
                  vector<missing_info>&   inputMissingInfo_,
                  vector<missing_info>&   outputMissingInfo_);
 
-  virtual int getData(vector<variable_info>&  linearInfo_,
-              vector<missing_info>&   inputMissingInfo_,
-              vector<missing_info>&   outputMissingInfo_,
-              vector<noise_info>&     noiseInfo_,
-              BVMat&                  Y, 
-              BVMat&                  X,
-              BVMat&                  A, 
-              BVMat&                  a) = 0;
 };
 
 };

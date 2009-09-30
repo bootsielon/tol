@@ -56,6 +56,7 @@ public:
       openParenthesys, closeParenthesys, 
       module_type, model_nameDef, model_descriptionDef, 
       session_nameDef, session_descriptionDef, session_authorDef, 
+      samplerOpt,moduleOpt,modulePath,
       sampler, subModule,
       explicit_begin, explicit_end, problem;
 
@@ -132,28 +133,41 @@ public:
       explicit_begin = str_p("$BEGIN") | error_beginExpected; 
       explicit_end   = str_p("$END")[assign_explicit_end_] | error_endExpected; 
 
+      samplerOpt = 
+        (str_p("monophasic") | str_p("sequential") | str_p("parallel")) |
+        error_SamplerOptExpected;
+
+      moduleOpt = 
+        (str_p("primary") | str_p("joint") | str_p("master")) |
+        error_ModuleOptExpected;
+
       sampler = 
         str_p("Sampler") >> ch_p('=') >>
-        (str_p("monophasic") | str_p("sequential") | str_p("parallel"))[assign_a(s.sampler)];
+        samplerOpt[assign_a(s.sampler)];
+
+      modulePath = 
+        confix_p("\"", *(anychar_p - '\"'), "\"")[assign_a(s.currentSubMod.filePath)]
+        |error_ModulePathExpected;
 
       subModule = (
         str_p("Include") >>
-        (str_p("primary") | str_p("joint") | str_p("master"))[assign_a(s.currentSubMod.moduleType)] >>
-        str_p("module") >>
-        confix_p("\"", *(anychar_p - '\"')[assign_a(s.currentSubMod.filePath)], "\"")
-      )[add_submodule_];
+        (
+          moduleOpt[assign_a(s.currentSubMod.moduleType)] >>
+          (str_p("module")|error_ModuleExpected) >>
+          modulePath
+        )
+      )[add_submodule_]
+      >>endOfSentence;
  
       problem = 
         explicit_begin >>
         //header
-        (
-          module_type >>
-          model_nameDef >>
-          model_descriptionDef >>
-          session_nameDef >>
-          session_descriptionDef >>
-          session_authorDef 
-         ) >>
+        module_type >>
+        model_nameDef >>
+        model_descriptionDef >>
+        session_nameDef >>
+        session_descriptionDef >>
+        session_authorDef >>
         //body
         sampler >> 
         (*(subModule))  >>
@@ -242,42 +256,8 @@ int Parse_Module_Master(
 ////////////////////////////////////////////////////////////////////////////////
 {
   bys_sparse_reg_master bsr;
-  const char* fName = fileName.c_str();
-  
-  BOOST_SPIRIT_DEBUG_NODE(bsr);
-  int errCode=0;
-  ifstream in(fName);
-  if(!in)
-  {
-    Error(BSR() + BText("Could not open input file: ") + 
-          fName + "\n");
-    return(-1);
-  }
-  bsr.fileName = fileName;
-  bsr.fileSize = GetFileSize(fName);
-  bsr.file = &in;
-
-  in.unsetf(ios::skipws); //  Turn of white space skipping on the stream
-  skip_grammar skip;
-  typedef position_iterator< file_iterator<char> > iterator_t; 
-  file_iterator<char> fiter(fileName); 
-  iterator_t begin(fiter, fiter.make_end(), fName);
-  iterator_t end;  
-  Std(BSR()+"Parsing BSR file "+fName+" with "+(int)bsr.fileSize+" bytes\n");
-  parse_info<iterator_t> result = parse(begin, end, bsr, skip);
-  if(!result.full && !bsr.endFound_)
-  {
-    BText msg = BSR() + BText(fName) + " Fails Parsing\n"+url_parse_bsr();
-    BText desc;
-    for (int i = 0; i < 1000; i++)
-    {
-      if (result.stop == end) break;
-      desc += *result.stop++;
-    }
-    if(!desc.HasName()) { desc = "Unexpectend end of file"; }
-    Error(msg+"\nProblem description:'"+desc+"'");
-    return(-2);
-  }
+  int errCode = 0;
+  #include "tol_bvmat_bsr_run.h"
   if(!errCode)
   {
     docInfo.model_name          =  bsr.docInfo.model_name;

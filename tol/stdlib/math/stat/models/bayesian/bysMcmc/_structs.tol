@@ -241,6 +241,10 @@ Struct Bsr.Sigma.Prior.InverseGamma
 Struct Bsr.Missing.Info
 {
   Text Name,              // Unique identidier of the missing value
+  Real Owner.Type,         // See BysMcmc::Options::Data.Owner.Type
+  Text Owner.Name,             // The name of the time serie or matrix
+  Real Owner.Column,       // The column in the input regression matrix
+  Real Owner.Row,               // Position in time serie or matrix
   Real Prior.Average,     // Prior average or initial value 
   Real Prior.Sigma,       // Prior standard deviation or +1/0 
   Real Prior.LowerBound,  // Prior minimum feasible value or -1/0
