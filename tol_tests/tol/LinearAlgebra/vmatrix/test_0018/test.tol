@@ -1,0 +1,45 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for VMatrix Pol2VMat function
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = "Checking Polytope related classes and methods" ;
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+
+Real sample.total = 100;
+Real sample.ok = 0;
+Set sample = For(1, sample.total, Set(Real num)
+{
+  WriteLn("================================================================");
+  WriteLn("num="<<num+ " of "<<sample.total);
+  WriteLn("================================================================");
+  Set do.test = IncludeText(ReadFile("FindFeasibleInPolytope.tol"));
+  Real sample.ok := sample.ok + do.test::ok;
+//[[num]] << do.test
+  WriteLn("quality ratio="<<Real ((sample.ok)/num));
+  [[num, Copy(do.test::ok)]]
+});
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1, sample.ok, sample.total
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(sample.ok==sample.total);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */

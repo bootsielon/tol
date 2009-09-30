@@ -1,0 +1,127 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE: FindFeasibleInPolytope.tol
+// PURPOSE: Test for Polytope related classes and methods
+//////////////////////////////////////////////////////////////////////////////
+
+Real PutRandomSeed(0);
+//Real PutRandomSeed(0);
+Real rnd_seed = GetRandomSeed(0);
+WriteLn("rnd_seed="<<rnd_seed);
+
+Real n = IntRand(1,30);
+Real r = IntRand(1,50);
+
+WriteLn("n="<<n);
+WriteLn("r="<<r);
+
+Real scale = 10;
+
+VMatrix A = Rand(r,n, -scale, scale, "Cholmod.R.Sparse", n*r*Rand(0.1,0.2));
+VMatrix x0_ = Rand(n, 1,  -scale, scale, "Blas.R.Dense");
+VMatrix a = A*x0_ + Rand(r, 1, 0, scale, "Blas.R.Dense");
+
+Polytope::Region R = Polytope::Region::New(A, a);
+Polytope::Point P = R::FindFeasible(Rand(n,1,-1,1), 100, True);
+
+Real ok = P::match;
+WriteLn("ok="<<ok);
+
+
+/* * /
+
+      VMatrix At = Tra(A);
+//    Real r = VRows(A);
+//    Real n = VColumns(A);
+      VMatrix zero = Zeros(r,1);
+      Real drop = 1.E-16*(n*r);
+
+Real UsingNameBlock(Polytope);
+
+Region _this = R;
+VMatrix x0 = Rand(n,1,-1,1);
+Real maxIter = 3; 
+Real verbose = True;
+
+Region region = R;
+
+    Point P = Point::New(_this, x0);
+    Point P2 = Point::New(_this, x0*2);
+      VMatrix x = x0*2;
+      Real isFinite = (VMatSum(IsFinite(x))==VRows(x));
+      VMatrix g = region::evalBorderDistance(x);
+      Real match = Point::EnsureKnown(VMatMax(g)<=0, 0);
+      VMatrix G = GT(g, region::zero);
+      VMatrix h = Max(region::zero,g);
+      Real f = Point::EnsureKnown(VMatSum(RPow(h,2)), 1/0)
+
+//Point P_ = Point::New(P::region, P::x + Rand(n,1,-1,1));
+/*
+    Real iter = 1;
+    ScalarMin sm = ScalarMin::New(P);
+    Text If(verbose, sm::lastIterMethod = "initial");
+//    While(And(Not(P::match), (P::f>0), iter<=maxIter), {
+      If(verbose, WriteLn("FindFeasible " 
+      "f["<<iter+"]="<<P::f+" -> "<<P::match+" method:"+sm::lastIterMethod));
+      VMatrix grad = At * P::h * 2;
+      VMatrix hess = At * Eye(r,r,0,P::G) * A * 2;
+      Text If(verbose, sm::lastIterMethod := "Newton-Raphson");
+
+      NameBlock sps = SolvePrecondSym(hess, False);
+      Real sps::ScaleOptimize(drop);
+      NameBlock solution = sps::Solve(grad,drop,true);
+      VMatrix sm::v := -solution::_.x; 
+
+      Real test = VMatMax(Abs(hess*sm::v-grad));
+      VMatrix g = A*(P::x + sm::v*1)-a;
+Point P_ = Point::New(P::region, P::x + sm::v*1);
+//      Real sm::evalSegmentPoint(1);
+
+//      Real sm::minimize(0);
+/*
+      Real ok = If(sm::minimize(0),
+      {
+        Point P := sm::P;
+        True
+      },
+      {
+        Text If(verbose, sm::lastIterMethod := "step descent");
+        VMatrix sm::v := grad;
+        Real If(sm::minimize(0),
+        {
+          Point P := sm::P;
+          True
+        },
+        {
+          Text If(verbose, sm::lastIterMethod := "alternate variable");
+          Real k=1;
+          Real ok = False;
+          While(And(k<=n, !ok),
+          {
+            VMatrix sm::v := Convert(Triplet(SetRow([[k,1,1]]),n,1),
+                               "Cholmod.R.Sparse");
+            Real ok := sm::minimize(0);
+            Real k:= k+1
+          }); 
+          If(ok,
+          {
+            Point P := sm::P;
+            True
+          },
+          {
+            Text If(verbose, sm::lastIterMethod := "random jump");
+            Point P := Point::New(_this, P::x + Rand(n,1,-1,1));
+            False
+          })
+        })
+      }); 
+/*
+      Real iter := iter + 1
+    });
+    If(verbose, WriteLn("FindFeasible "
+       "f["<<iter+"]="<<P::f+" -> "<<P::match+ " method:"+sm::lastIterMethod));
+
+
+Real ok = P::match;
+WriteLn("ok="<<ok);
+
+/* */
