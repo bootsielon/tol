@@ -262,29 +262,34 @@ static void signal_assign()
   signal(SIGTERM,  signal_error_SIGTERM);
   signal(SIGABRT,  signal_error_SIGABRT);
 #else
+  signal(SIGINT,   signal_error_SIGINT);
+  signal(SIGILL,   signal_error_SIGILL);
+  signal(SIGFPE,   signal_error_SIGFPE);
+  signal(SIGSEGV,  signal_error_SIGSEGV);
+  signal(SIGTERM,  signal_error_SIGTERM);
+  signal(SIGBREAK, signal_error_SIGBREAK);
+  signal(SIGABRT,  signal_error_SIGABRT);
+/*
+//VBR: Hay señales con nombre propio y otras desconocidas que si se activan 
+//TOL no arranca y otras que no dan problemas en windows y luego en unix 
+//pueden darlo.
 //signal(       0, signal_error_SIGUNK);
   signal(       1, signal_error_SIGUNK);
-  signal(SIGINT,   signal_error_SIGINT);
   signal(       3, signal_error_SIGUNK);
-  signal(SIGILL,   signal_error_SIGILL);
 //signal(       5, signal_error_SIGUNK);
   signal(       6, signal_error_SIGUNK);
 //signal(       7, signal_error_SIGUNK);
-  signal(SIGFPE,   signal_error_SIGFPE);
 //signal(       9, signal_error_SIGUNK);
 //signal(      10, signal_error_SIGUNK);
-  signal(SIGSEGV,  signal_error_SIGSEGV);
 //signal(      12, signal_error_SIGUNK);
   signal(      13, signal_error_SIGUNK);
 //signal(      14, signal_error_SIGUNK);
-  signal(SIGTERM,  signal_error_SIGTERM);
   signal(      16, signal_error_SIGUNK);
   signal(      17, signal_error_SIGUNK);
 //signal(      18, signal_error_SIGUNK);
 //signal(      19, signal_error_SIGUNK);
 //signal(      20, signal_error_SIGUNK);
-  signal(SIGBREAK, signal_error_SIGBREAK);
-  signal(SIGABRT,  signal_error_SIGABRT);
+/* */
 #endif
 }
 
