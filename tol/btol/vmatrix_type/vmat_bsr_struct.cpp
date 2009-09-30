@@ -212,6 +212,7 @@ BStruct* MasterInfo()
     BStruct* aux4 = MissingBlockStr();
     BStruct* aux5 = NoiseDistribStr();
     BStruct* aux6 = NoiseTimeInfo();
+    BStruct* aux7 = MasterInfo();
     
     return(true);
   }
