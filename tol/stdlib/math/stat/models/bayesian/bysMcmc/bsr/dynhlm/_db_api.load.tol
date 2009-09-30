@@ -815,7 +815,7 @@ NameBlock LoadModelDef.Master.ObsAsPrimary(
   Text _.session.te_authors = session.te_authors;
 
   Set _.input.missing.labels = [[ Copy(Empty) ]];
-  Text _.sampler = config::DBApi.masterSampler;
+  Text _.modular.Schema = config::DBApi.masterSampler;
 
   Set _.nodes.obs = 
   BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
@@ -909,7 +909,7 @@ NameBlock LoadModelDef.Master.ObsAsPrimary(
   ////////////////////////////////////////////////////////////////////////////
   
   Text Get.ModuleType(Real unused) { _.moduleType };
-  Text Get.Sampler(Real unused) { _.sampler };
+  Text Get.Modular.Schema(Real unused) { _.modular.Schema };
   Set Get.Modules(Real unused) { _.modules }
 
 ]]};

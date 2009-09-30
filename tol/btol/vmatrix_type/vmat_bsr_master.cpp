@@ -35,13 +35,13 @@ class bys_sparse_reg_master : public grammar<bys_sparse_reg_master>,
 ///////////////////////////////////////////////////////////////////////////////
 {
 public:
-  string sampler;
+  string modularSchema;
   vector<moduleDef> subMod;
   moduleDef currentSubMod;
 
   bys_sparse_reg_master() 
   : bys_sparse_reg(),
-    sampler(""), 
+    modularSchema(""), 
     subMod(),
     currentSubMod()
   {
@@ -56,8 +56,8 @@ public:
       openParenthesys, closeParenthesys, 
       module_type, model_nameDef, model_descriptionDef, 
       session_nameDef, session_descriptionDef, session_authorDef, 
-      samplerOpt,moduleOpt,modulePath,
-      sampler, subModule,
+      modularSchemaOpt,moduleOpt,modulePath,
+      modularSchema, subModule,
       explicit_begin, explicit_end, problem;
 
     definition(const bys_sparse_reg_master& s_)
@@ -133,7 +133,7 @@ public:
       explicit_begin = str_p("$BEGIN") | error_beginExpected; 
       explicit_end   = str_p("$END")[assign_explicit_end_] | error_endExpected; 
 
-      samplerOpt = 
+      modularSchemaOpt = 
         (str_p("monophasic") | str_p("sequential") | str_p("parallel")) |
         error_SamplerOptExpected;
 
@@ -141,9 +141,9 @@ public:
         (str_p("primary") | str_p("joint") | str_p("master")) |
         error_ModuleOptExpected;
 
-      sampler = 
-        str_p("Sampler") >> ch_p('=') >>
-        samplerOpt[assign_a(s.sampler)];
+      modularSchema = 
+        str_p("Modular.Schema") >> ch_p('=') >>
+        modularSchemaOpt[assign_a(s.modularSchema)];
 
       modulePath = 
         confix_p("\"", *(anychar_p - '\"'), "\"")[assign_a(s.currentSubMod.filePath)]
@@ -169,7 +169,7 @@ public:
         session_descriptionDef >>
         session_authorDef >>
         //body
-        sampler >> 
+        modularSchema >> 
         (*(subModule))  >>
         (explicit_end | error_declarationExpected )
         ;
@@ -251,7 +251,7 @@ public:
 int Parse_Module_Master(
   const std::string &     fileName,
   doc_info&               docInfo,
-  std::string &           sampler,
+  std::string &           modularSchema,
   vector<moduleDef>&      subModules)
 ////////////////////////////////////////////////////////////////////////////////
 {
@@ -265,7 +265,7 @@ int Parse_Module_Master(
     docInfo.session_name        =  bsr.docInfo.session_name;
     docInfo.session_description =  bsr.docInfo.session_description;
     docInfo.session_authors     =  bsr.docInfo.session_authors;
-    sampler                     =  bsr.sampler; 
+    modularSchema               =  bsr.modularSchema; 
     subModules                  =  bsr.subMod;
   }
   return(errCode);

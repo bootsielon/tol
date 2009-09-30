@@ -785,7 +785,7 @@ int Parse_MasterModule(const BText& filePath,
     "Header documentary information"
   );
   AddAndPutName(contens_,BContensText,
-    "Sampler",
+    "Modular.Schema",
     sampler.c_str(),  
     "Sampling strategy is one of these: monophasic, sequential or parallel"
   );
