@@ -217,6 +217,9 @@ BysMcmc::Config bsr.config = [[
   Real report.acf.lag          = 20,
   Real report.histogram.parts  = 100;
   Real report.kerDens.points   = 0;
+  Text DBApi.modularSchema = 
+    BysMcmc::Options::DBApi.Modular.Schema::Master.ObsAsPrimary;
+//  BysMcmc::Options::DBApi.Modular.Schema::Joint.All;
 //Generic flags
   Real do.resume          =  0;
   Real do.report          =  True;
@@ -224,6 +227,26 @@ BysMcmc::Config bsr.config = [[
   Real do.linear.effects  =  True;
   Real do.save.DBApi.Estim.Oza = False
 ]];
+
+/* * /
+NameBlock modelImport = BysMcmc::Bsr::DynHlm::DBApi::GetModelDef
+(
+  DBConnection::BsrHlm::_.defaultDB,
+  id_model,
+  id_session,
+  Ois.DefRoot+"HlmBsrTest/",
+  series.handler,
+  bsr.config
+);
+
+Text ascii = BysMcmc::Bsr::Import::Write(modelImport);
+
+Set parsed_ = BSR.Parse(ascii);
+Text StructName(parsed_);
+Set parsed = BysMcmc::Bsr::ModularSchema::Monophasic::MasterToJoint(parsed_);
+Text StructName(parsed);
+
+/* */
 
 BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
@@ -244,7 +267,7 @@ Real BysMcmc::Bsr::DynHlm::DBApi::CloseModel(bsr.estim);
 
 /* */
 Real DBConnection::BsrHlm::Close(0);
-
+/* */
 
 Real numErr1 = Copy(NError);
 
@@ -254,7 +277,7 @@ Set partialResults_ =
   numErr0, numErr1
 ]];
 
-/* */
+
 //This is a messure of the success of the test 
 Real quality_ = And(numErr0 == numErr1);
 

@@ -43,7 +43,7 @@ Matrix F = X*b;
 Real sigma = Rand(0.2,0.4);
 Matrix e  = Gaussian(Rows(X),1,0,sigma);
 //Real output 
-Matrix Y  = F+e;
+Matrix Y = F+e;
 
 //////////////////////////////////////////////////////////////////////////////
 //These is the only information that will be known in real world problems

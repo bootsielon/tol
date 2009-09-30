@@ -369,6 +369,9 @@ BysMcmc::Config bsr.config = [[
   Real mcmc.sampleLength  =   2200;
   Real mcmc.cacheLength   =    100;
 
+  Text DBApi.modularSchema = 
+    BysMcmc::Options::DBApi.Modular.Schema::Master.ObsAsPrimary;
+//  BysMcmc::Options::DBApi.Modular.Schema::Joint.All;
 //Generic flags
   Real do.resume          =  0;
   Real do.report          =  True;

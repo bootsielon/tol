@@ -17,7 +17,7 @@ Real numErr0 = Copy(NError);
 Set Include("../general/general.tol");
 
 //Random seed setting
-Real PutRandomSeed(0);
+Real PutRandomSeed(1357966504);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -37,7 +37,6 @@ WriteLn("Current Random Seed = "<<rndSeed);
 //////////////////////////////////////////////////////////////////////////////
 
 Real BysMcmc::Bsr::DynHlm::DBApi::doQueryTrace := False;
-
 
 //Se activa la base de datos de modelos BsrHlm
 Real DBConnection::BsrHlm::Activate(0);
@@ -128,6 +127,11 @@ WriteLn("Creando en la base de datos los nodos observacionales");
   //Para recorte de series input y output
   NameBlock tmIn = GetTimeInterval(y2008m01d01, y2008m12d31);
 
+  Serie gen.missing.mask(Serie ser, Real ratio)
+  {
+    IfSer(LT(Rand(0,1,Dating(ser)),ser*0+ratio),?*ser,ser)
+  };
+
   NameBlock real.data = { Generator::ObsNode(
     tmIn, 
     Real sigma = Rand(0.8,1.2), 
@@ -135,7 +139,8 @@ WriteLn("Creando en la base de datos los nodos observacionales");
     Set linInput =
     [[
       NameBlock constante = Generator::Input(tmIn,5,10,CalInd(C,C));
-      NameBlock lunes = Generator::Input(tmIn,10,15,CalInd(WD(1),C))
+      NameBlock lunes = Generator::Input(tmIn,10,15,
+       CalInd(WD(1),C)*Rand(1,2,C))
     ]],
     Set transFunDelta =
     [[
@@ -146,8 +151,12 @@ WriteLn("Creando en la base de datos los nodos observacionales");
   
   //#Contiene todas las series input y output con nombres únicos dentro
   //de cada nodo.
-    Set _.series = 
-    { [[ Serie output = real.data::_.output ]]} << real.data::_.input;
+    Set _.series = {[[ 
+      Serie output = gen.missing.mask(real.data::_.output,0.01),
+      Serie constante = real.data::_.input::constante,
+      Serie lunes = gen.missing.mask(real.data::_.input::lunes,0.01),
+      Serie priMes = real.data::_.input::priMes
+    ]]};
   //#Se comprueba la unicidad de nombres y se indexa para acelerar 
   //búsquedas
   Real _check_unique = SetIndexByName(_.series);
@@ -288,7 +297,6 @@ Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
   DBConnection::BsrHlm::_.defaultDB, id_model, id_session,
   series.handler::_.obs.node);
 
-
 Set real.effects = ((series.handler::_.obs.node)[1])::real.data::_.effects;
 Real level.1_number = 0;
 
@@ -363,7 +371,7 @@ BysMcmc::Bsr::DynHlm::DBApi::ModSes.Pri.Homog_1.Create
   ]])  
 )};
 
-/* */
+
 //////////////////////////////////////////////////////////////////////////////
 //Estimación del modelo con el sistema Bsr::DynHlm
 //////////////////////////////////////////////////////////////////////////////
@@ -375,6 +383,10 @@ BysMcmc::Config bsr.config = [[
 
   Code bsr.scalarSampler.nonLinBlock=BysMcmc::Options::Scalar.Sampler::Slice;
 
+  Text DBApi.modularSchema = 
+    BysMcmc::Options::DBApi.Modular.Schema::Master.ObsAsPrimary;
+//  BysMcmc::Options::DBApi.Modular.Schema::Joint.All;
+
 //Generic flags
   Real do.resume          =  0;
   Real do.report          =  True;
@@ -382,6 +394,23 @@ BysMcmc::Config bsr.config = [[
   Real do.linear.effects  =  True
 ]];
 
+/* * /
+NameBlock modelImport = BysMcmc::Bsr::DynHlm::DBApi::GetModelDef
+(
+  DBConnection::BsrHlm::_.defaultDB,
+  id_model,
+  id_session,
+  Ois.DefRoot+"HlmBsrTest/",
+  series.handler,
+  bsr.config
+);
+
+Text ascii = BysMcmc::Bsr::Import::Write(modelImport);
+/*
+//Set modelDef = BSR.Parse(ascii,"master");
+Set modelDef = BSR.Parse(ascii);
+
+/* */
 
 BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
@@ -402,7 +431,7 @@ Real bsr.estim::Run(0);
 //Real TolOprProfiler.Dump("ses.01");
 Real BysMcmc::Bsr::DynHlm::DBApi::CloseModel(bsr.estim);
 
-/* */
+
 
 //////////////////////////////////////////////////////////////////////////////
 Set compare_forecast = 
@@ -441,6 +470,9 @@ For(1,Card(series.handler::_.obs.node),Set(Real nu_node)
   Eval(node::_.id_node+"=aux")
 });
 
+/* */ 
+Real DBConnection::BsrHlm::Close(0);
+/* */
 
 Set quality.all = For(1,Card(compare_forecast),Real(Real k)
 {
@@ -449,9 +481,6 @@ Set quality.all = For(1,Card(compare_forecast),Real(Real k)
   Min(1,StDsS(res)/StDsS(res_))
 });
 
-/* */ 
-Real DBConnection::BsrHlm::Close(0);
-/* */
 Real numErr1 = Copy(NError);
 
 //Extented information about test behaviour
