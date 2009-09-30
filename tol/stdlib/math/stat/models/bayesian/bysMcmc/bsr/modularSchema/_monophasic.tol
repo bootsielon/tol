@@ -1,0 +1,134 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// FILE: _monophasic.tol
+// PURPOSE: Converts a master modular schema in a simple joint module
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+NameBlock Monophasic =
+/////////////////////////////////////////////////////////////////////////////
+[[
+  //////////////////////////////////////////////////////////////////////////
+  BSR.ModelDef MasterToJoint(Set master)
+  //////////////////////////////////////////////////////////////////////////
+  {
+    If(Card(master->SubModule)==1,(master->SubModule)[1],{
+    Set LinearBlock = 
+    {
+      Set aux.1 = EvalSet(master->SubModule, Set(BSR.ModelDef module)
+      {
+        Set sel = Select(module->LinearBlock, Real(BSR.LinearBlock v)
+        {
+          Not(v->Extern)
+        })
+      });
+      Set aux.2 = BinGroup("<<", aux.1);
+      Real SetIndexByName(aux.2);
+      aux.2 
+    };
+    Real n = Card(LinearBlock);
+
+    Set col.index = EvalSet(master->SubModule, Matrix(BSR.ModelDef module)
+    {
+      Set index = EvalSet(module->LinearBlock,Real(BSR.LinearBlock v)
+      {
+        Text name = Name(v);
+        Real idx = FindIndexByName(LinearBlock, name);
+      //WriteLn("  Index("+name+")="<<idx);
+        idx
+      });
+      SetCol(index)
+    });
+
+    Real m = 0;
+    Set row.index = EvalSet(master->SubModule, Set(BSR.ModelDef module)
+    {
+      Real r0 = m+1;
+      Real m := m+VRows(module->Y);
+      Range(r0,m,1)
+    });
+    Real missingInputBlock.index = 0;
+    Real missingOutputBlock.index = 0;
+
+    Set reDim = Traspose(For(1,Card(master->SubModule), Set(Real k)
+    {
+      BSR.ModelDef module = (master->SubModule)[k];
+      Real mk = Card(row.index[k]);
+      Real m0 = row.index[k][1];
+
+      Set prc.mis.in(BSR.MissingBlock mis)
+      {BSR.MissingBlock(
+        Text Name = mis->Name;
+        Real Index = Copy(missingInputBlock.index := missingInputBlock.index+1);
+        Real Row = row.index[k][mis->Row];
+        Real Col = MatDat(col.index[k],mis->Col,1);
+        Text Prior = mis->Prior;
+        Real Nu = mis->Nu;
+        Real Sigma2 = mis->Sigma2;
+        Real MinBound = mis->MinBound;
+        Real MaxBound = mis->MaxBound
+      )};
+      
+      Set prc.mis.out(BSR.MissingBlock mis)
+      {BSR.MissingBlock(
+        Text Name = mis->Name;
+        Real Index = Copy(missingOutputBlock.index := missingOutputBlock.index+1);
+        Real Row = row.index[k][mis->Row];
+        Real Col = 1;
+        Text Prior = mis->Prior;
+        Real Nu = mis->Nu;
+        Real Sigma2 = mis->Sigma2;
+        Real MinBound = mis->MinBound;
+        Real MaxBound = mis->MaxBound
+      )};
+      
+      Set MissingInputBlock = EvalSet(module->InputMissingBlock,prc.mis.in);
+      Set MissingOutputBlock = EvalSet(module->OutputMissingBlock,prc.mis.out);
+      Set NoiseDistrib = EvalSet(module->NoiseDistrib,Set(BSR.NoiseDistrib seg)
+      {
+        Set aux = [[ BSR.NoiseDistrib(
+          Text seg->Name;
+          Real seg->Nu;
+          Text seg->SigmaName;
+          Real seg->SigmaIndex;
+          Set seg->SigmaPrior;
+          Set seg->Arima;
+          Set seg->ArimaAuxInfo;
+          VMatrix Cov=Convert(Enlarge(seg->Cov,m,m,m0,m0),"Cholmod.R.Sparse");
+          VMatrix L  =Convert(Enlarge(seg->L,  m,m,m0,m0),"Cholmod.R.Sparse");
+          VMatrix Li =Convert(Enlarge(seg->Li, m,m,m0,m0),"Cholmod.R.Sparse");
+          Set EquIdx = row.index[k];
+          Set seg->TimeInfo;
+          Set seg->NonLinFilters
+        ) ]];
+        Set PutName(seg->Name,aux[1]);
+        aux[1]
+      });
+      [[
+        Set MissingInputBlock;
+        Set MissingOutputBlock;
+        Set NoiseDistrib;
+        VMatrix Y = If(!VRows(module->Y),Rand(0,1,0,0),module->Y);
+        VMatrix X = If(!VRows(module->X),Rand(0,n,0,0),
+          Tra(MergeRows(n,[[ [[Tra(module->X), col.index[k] ]] ]])));
+        VMatrix a = If(!VRows(module->a),Rand(0,1,0,0),module->a);
+        VMatrix A = If(!VRows(module->A),Rand(0,n,0,0),
+         Tra(MergeRows(n,[[ [[Tra(module->A), col.index[k] ]] ]])))
+      ]]
+    }));
+
+    BSR.ModelDef(
+      Text ModuleType = "joint";
+      Set master->DocInfo;
+      Set LinearBlock;
+      Set MissingInputBlock = BinGroup("<<",reDim[1]);
+      Set MissingOutputBlock = BinGroup("<<",reDim[2]);
+      Set NoiseDistrib = BinGroup("<<",reDim[3]);
+      VMatrix Y = Convert(Group("ConcatRows",reDim[4]),"Blas.R.Dense");
+      VMatrix X = Convert(Group("ConcatRows",reDim[5]),"Cholmod.R.Sparse");
+      VMatrix a = Convert(Group("ConcatRows",reDim[6]),"Cholmod.R.Sparse");
+      VMatrix A = Convert(Group("ConcatRows",reDim[7]),"Blas.R.Dense")
+    )
+  })}
+]];
