@@ -45,6 +45,7 @@ typedef void (* BOpenProc) (const BText&, BInt);
 // forward references
 //--------------------------------------------------------------------
 class BDir;
+class BDate;
 
 
 //--------------------------------------------------------------------
@@ -71,6 +72,7 @@ private:
   static BOpenProc chartEditor_;
   //! hostname
   static BText hostName_;
+  static BDate* session_initTime_;
 
 public:
   // Access and manipulation: inline
@@ -151,6 +153,8 @@ public:
   static void	Dos2Unix   (const BText& fileName);
   //Return the time elapsed since program started
   static double	SessionTime();
+  static const BDate& SessionInitTime();
+
 };
 
 //! Generate a pseudo-random series of uniformely distributed in [0,1]

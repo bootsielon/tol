@@ -62,6 +62,8 @@ BText BSys::hostName_=BSys::GetEnv("HOSTNAME");
 BText BSys::hostName_=BSys::GetEnv("COMPUTERNAME");
 #endif
 
+BDate* BSys::session_initTime_ = NULL;
+
 //--------------------------------------------------------------------
 static BText Buil_TolAppData_()
 
@@ -127,6 +129,14 @@ static BText Buil_TolAppData_()
 #endif 
 #endif /* __GETTIMEOFDAY_C */
 
+
+//--------------------------------------------------------------------
+  const BDate& BSys::SessionInitTime()
+//--------------------------------------------------------------------
+{
+  return(*session_initTime_);
+};
+
 //--------------------------------------------------------------------
   double BSys::SessionTime()
 //Return the time elapsed since program started
@@ -137,6 +147,7 @@ static BText Buil_TolAppData_()
   static timeval currentTimeEval_;
   if(!initialized)
   {
+    session_initTime_ = new BDate(DteNow());
     gettimeofday(&initTimeEval_, NULL);
     initialized = true;
     return(0.0);
