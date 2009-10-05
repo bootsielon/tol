@@ -689,7 +689,10 @@ proc TolObj2TclObj { obj } {
     set result
   } else {
     if { $grammar eq "Text" } {
-      string trim [ lindex $vinfo 2 ] \"
+      #string trim [ lindex $vinfo 2 ] \"
+      set contents [ lindex $vinfo 2 ]
+      regexp {^"(.*)"$} $contents ==> contents
+      set contents
     } else {
       lindex $vinfo 2
     }
@@ -734,13 +737,16 @@ proc TolObj2TclObjNamed { obj } {
     set value [ TolSet2TclListNamed $obj ]
   } else {
     if { $grammar eq "Text" } {
-      set value [ string trim [ lindex $vinfo 2 ] \" ]
+      set value [ lindex $vinfo 2 ]
+      regexp {^"(.*)"$} $value ==> value
     } else {
       set value [ lindex $vinfo 2 ]
     }
   }
   list [ lindex $vinfo 1 ] $value
 }
+
+# -------------------------------- SOME TESTS --------------------------
 
 proc loadtt { } {
   package require Toltcl
