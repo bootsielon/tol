@@ -125,8 +125,8 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   //simply not exist if there are no known order relation
   Set _.orderRelation = [[
     //                      lower        <=  upper  
-    Bsr.OrderRelation.Info("Input_4",       "Input_5"),
-    Bsr.OrderRelation.Info("Input_5",       "Input_Pr_1_2")
+    @Bsr.OrderRelation.Info("Input_4",       "Input_5"),
+    @Bsr.OrderRelation.Info("Input_5",       "Input_Pr_1_2")
   ]]
 
 ]];
