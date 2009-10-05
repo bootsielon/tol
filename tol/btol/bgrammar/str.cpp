@@ -47,7 +47,7 @@ ofstream& _non_standard_struct_()
   {
     aux = new ofstream(
       BSys::TolAppData()+"syslog/_non_standard_struct_"+
-      DteNow().Name()+".log", ios::app);   
+      BSys::SessionInitTime().Name()+".log", ios::app);   
     (*aux) << "\n"
     "############################################################\n"<<
     "## NON STANDARD STRUCT HANDLING REPORT\n"<<
