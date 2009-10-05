@@ -132,6 +132,8 @@ class TOL_API BOperator: public BSyntaxObject
  */
 //--------------------------------------------------------------------
 {
+private:
+  BUserFunCode* uCode_;
 protected:
   //! Grammar of the result of evaluation
   BGrammar*	grammar_;   
@@ -142,7 +144,6 @@ protected:
   //profiler store 
   void* profiler_;
 
-  BUserFunCode* uCode_;
   BText cppFile_;
 
   void AddSystemOperator();
@@ -183,8 +184,8 @@ public:
   virtual BInt		   MaxArg	       ()       const { return(1); }
   virtual BInt		   NumArg	       ()       const { return(1); }
 
-  BUserFunCode* GetCode() { return(uCode_); }
-  void PutCode(BUserFunCode* uc) { uCode_ = uc; }
+  BUserFunCode* GetCode();
+  void PutCode(BUserFunCode* uc);
 
   const BTextCell& ArgTable	  () const { return(argTable_);}
 
@@ -427,6 +428,7 @@ class BUserFunction: public BExternalOperator
     static void AddActiveFunction(BUserFunction* uFunction);
     static void RemoveActiveFunction();
 	  static void ShowCallStack();
+	  static BText GetCallStack();
 
     BInt Mode() const { return BUSERFUNMODE; };
 

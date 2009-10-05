@@ -476,6 +476,33 @@ BOperator::~BOperator()
  */
 //--------------------------------------------------------------------
 {
+  if(uCode_)
+  {
+    uCode_->DecNRefs();
+  }
+}
+
+//--------------------------------------------------------------------
+  BUserFunCode* BOperator::GetCode()
+//--------------------------------------------------------------------
+{ 
+  if(uCode_ && (uCode_->IsAssigned()==0))
+  {
+    uCode_ = NULL;
+  }
+  return(uCode_); 
+}
+
+//--------------------------------------------------------------------
+  void BOperator::PutCode(BUserFunCode* uc) 
+//--------------------------------------------------------------------
+{ 
+  assert(!uCode_);
+  uCode_ = uc; 
+  if(uCode_)
+  {
+    uCode_->IncNRefs();
+  }
 }
 
 //--------------------------------------------------------------------
@@ -573,9 +600,9 @@ BStandardOperator::BStandardOperator(const BText&         name,
   if((Mode()!=BUSERFUNMODE) && (name.HasName()))
   {
     AddSystemOperator();
-    uCode_ = new BUserFunCode("", this, Description());
-    uCode_->PutName(name);
-    uCode_->IncNRefs();
+    BUserFunCode* uCode = new BUserFunCode("", this, Description());
+    uCode->PutName(name);
+    PutCode(uCode);
   }
 #ifdef CHK_NULL_GRAMMAR
     if (!gra )
@@ -855,7 +882,7 @@ BUserFunction::BUserFunction(const BText& name, BGrammar* gra)
 {
   PutName(name);
   PutTheme(BOperClassify::Various_);
-  uCode_ = new BUserFunCode(name, this, Description());
+  PutCode(new BUserFunCode(name, this, Description()));
 }
 
 
@@ -912,6 +939,25 @@ void BUserFunction::AddActiveFunction(BUserFunction* uFunction)
 /* Shows 
  */
 //--------------------------------------------------------------------
+BText BUserFunction::GetCallStack()
+{
+  BText txt;
+  if(activeFunctions_.size())
+  {
+    int i;
+    txt << "\n[Call stack]\n";
+    for(i=activeFunctions_.size()-1; i>=0; i--)
+    {
+      BUserFunction* usf = activeFunctions_[i];
+      txt << BText("  [")+(i+1)+"] "+
+        usf->Grammar()->Name()+" "+
+        usf->FullName()+" "+
+        usf->Arguments()+"\n";
+    }
+  }
+  return(txt);
+}
+
 void BUserFunction::ShowCallStack()
 {
   if(activeFunctions_.size())
@@ -928,6 +974,7 @@ void BUserFunction::ShowCallStack()
     }
   }
 }
+
 
 //- static member ----------------------------------------------------
 /* Erase the active BUserFunction from the \a activeFunctions_ (STL) vector, 
