@@ -12,7 +12,7 @@
 //read only autodoc
   Text _.autodoc.description = 
   "Handling with codified messages to end user. Codified messages have "
-  "CMsg.Coded.info structure containing this fields:\n"
+  "@CMsg.Coded.info structure containing this fields:\n"
   "  Text agent_:    The subsystem that is sending the message.\n"
   "  Real code_:     The code number.\n"
   "  Text severity_: The severity status identifier.\n"
@@ -27,7 +27,7 @@
   "to standarize TOL codification and to avoiding global variables.\n";
 
 //public API
-  Real show(CMsg.Coded.info msgInfo, Set args)
+  Real show(@CMsg.Coded.info msgInfo, Set args)
   {
     //WriteLn("CMsg::Code->show("+Name(msgInfo)+", "<<args+")");
     Text ag = msgInfo->agent_;
@@ -98,11 +98,11 @@
 //read only API
   Set _.status = { SetOfSet
   (
-    abort   = CMsg.Coded.status(9,"Abort",  "A"),   
-    stop    = CMsg.Coded.status(7,"Stop",   "S"),   
-    error   = CMsg.Coded.status(5,"Error",  "E"),   
-    warning = CMsg.Coded.status(3,"Warning","W"),   
-    info    = CMsg.Coded.status(1,"Info",   "I")
+    abort   = @CMsg.Coded.status(9,"Abort",  "A"),   
+    stop    = @CMsg.Coded.status(7,"Stop",   "S"),   
+    error   = @CMsg.Coded.status(5,"Error",  "E"),   
+    warning = @CMsg.Coded.status(3,"Warning","W"),   
+    info    = @CMsg.Coded.status(1,"Info",   "I")
   )};
   Real _.status.current_ = 0;
 

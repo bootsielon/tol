@@ -13,7 +13,7 @@ Text TclTkMessageBox(Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-tclInterp",  "0")
+    @TclArgSt("-tclInterp",  "0")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -87,7 +87,7 @@ Text TclTkChooseDirectory(Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-tclInterp",  "0")
+    @TclArgSt("-tclInterp",  "0")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -137,7 +137,7 @@ Text TclTkGetOpenFile (Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-tclInterp",  "0")
+    @TclArgSt("-tclInterp",  "0")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -219,7 +219,7 @@ Text TclTkGetSaveFile (Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-tclInterp",  "0")
+    @TclArgSt("-tclInterp",  "0")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 

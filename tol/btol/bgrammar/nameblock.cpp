@@ -575,7 +575,7 @@ const BText& BNameBlock::LocalName() const
 {
   if(!obj) { return(true); }
   const BText& name = obj->Name();
-  
+ 
   if(!name.HasName() || 
      !BParser::DefaultParser()->Filter()->IsIdentifier(name))
   {
@@ -694,6 +694,7 @@ const BText& BNameBlock::LocalName() const
 //--------------------------------------------------------------------
 {
 /* */
+  BSyntaxObject* result = NULL;
   if(Class())
   {
     BSyntaxObject* met = Class()->FindMethod(memberName,false);
@@ -705,26 +706,28 @@ const BText& BNameBlock::LocalName() const
         BUserCode* uCode = UCode(met);
         uCode->Contens().Operator()->PutNameBlock(this);
       }
-      return(met); 
+      result = met; 
     } 
   }
 /* */
-  BObjByNameHash::const_iterator found = public_.find(memberName);
-  if(found==public_.end())
+  if(!result)
   {
-    return(NULL);
+    BObjByNameHash::const_iterator found = public_.find(memberName);
+    if(found!=public_.end())
+    {
+      result = found->second;
+    }
   }
-  else
-  {
-    return(found->second);
-  }
+  return(result);
 }
+
 
 //--------------------------------------------------------------------
   BSyntaxObject* BNameBlock::PrivateMember(const BText& memberName) const
 //--------------------------------------------------------------------
 {
 /* */
+  BSyntaxObject* result = NULL;
   if(Class())
   {
     BSyntaxObject* met = Class()->FindMethod(memberName,true);
@@ -736,26 +739,26 @@ const BText& BNameBlock::LocalName() const
         BUserCode* uCode = UCode(met);
         uCode->Contens().Operator()->PutNameBlock(this);
       }
-      return(met); 
+      result = met; 
     } 
   }
 /* */
-  BObjByNameHash::const_iterator found = private_.find(memberName);
-  if(found==private_.end())
+  if(!result)
   {
-    if(memberName=="_this")
+    BObjByNameHash::const_iterator found = private_.find(memberName);
+    if(found==private_.end())
     {
-      return(owner_);
+      if(memberName=="_this")
+      {
+        result = owner_;
+      }
     }
     else
     {
-      return(NULL);
+      result = found->second;
     }
   }
-  else
-  {
-    return(found->second);
-  }
+  return(result);
 }
 
 //--------------------------------------------------------------------
@@ -778,7 +781,7 @@ const BText& BNameBlock::LocalName() const
 {
   assert(obj && (obj->Grammar()==GraNameBlock()));
   BUserNameBlock* uns = UNameBlock((BSyntaxObject*)obj);
-  BText name = uns->Name();
+  const BText& name = uns->Name();
   if(!name.HasName()) 
   { 
     Error(I2("Cannot use unnamed NameBlock as global",
@@ -804,6 +807,7 @@ const BText& BNameBlock::LocalName() const
     found = usingSymbols_.find(iter->first);
     if(found==usingSymbols_.end())
     {
+    //Std(BText("\nUsing member '")+name+"::"+iter->first+"'\n");
       usingSymbols_[iter->first]=iter->second;
       assert(usingSymbols_.find(iter->first)!=usingSymbols_.end());
       BObjClassify oc(iter->second);
@@ -908,61 +912,17 @@ const BText& BNameBlock::LocalName() const
   return(result);
 }
 
-/*
-//--------------------------------------------------------------------
-  BSyntaxObject* BNameBlock::LocalMember(const BText& memberName)
-//--------------------------------------------------------------------
-{
-  BSyntaxObject* result = NULL;
-  const BNameBlock* cns = BNameBlock::Current();
-  while(!result && cns)
-  {
-    if(cns->Class())
-    {
-      BSyntaxObject* met = cns->Class()->FindMethod(memberName,true);
-      if(met) 
-      { 
-        met->PutNameBlock(cns);
-        if(met->Mode()==BOBJECTMODE)
-        {
-          BUserCode* uCode = UCode(met);
-          uCode->Contens().Operator()->PutNameBlock(cns);
-        }
-        result = met; 
-      } 
-    }
-    if(!result)
-    {
-      result = cns->Member(memberName);
-      if(result && (result->Mode()==BSTRUCTMODE))
-      {
-        BStruct* bstr = (BStruct*)result;
-        result = bstr->Function();
-      }
-    }
-    if(!result)
-    {
-    //cns = cns->Father();
-      cns = NULL;
-    }
-  }
-  return(result);
-}
-/* */
-
 //--------------------------------------------------------------------
   BSyntaxObject* BNameBlock::UsingMember(const BText& memberName)
 //--------------------------------------------------------------------
 {
+  BSyntaxObject* result = NULL;
   BObjByNameHash::const_iterator found = usingSymbols_.find(memberName);
-  if(found==usingSymbols_.end())
+  if(found!=usingSymbols_.end())
   {
-    return(NULL);
+    result = found->second;
   }
-  else
-  {
-    return(found->second);
-  }
+  return(result);
 }
 
 //--------------------------------------------------------------------
@@ -970,17 +930,15 @@ const BText& BNameBlock::LocalName() const
                                          const BText&    memberName)
 //--------------------------------------------------------------------
 {
+  BSyntaxObject* result = NULL;
   BObjByClassNameHash::iterator fc = usingSymbolsByClass_.find(oc);
   if(fc==usingSymbolsByClass_.end()) { return(NULL); }
   BObjByNameHash::const_iterator found = fc->second->find(memberName);
-  if(found==fc->second->end())
+  if(found!=fc->second->end())
   {
-    return(NULL);
+    result = found->second;
   }
-  else
-  {
-    return(found->second);
-  }
+  return(result);
 }
 
 //--------------------------------------------------------------------

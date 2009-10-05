@@ -319,7 +319,7 @@ Text bys.sparse.reg.path =
     Real s2 = ((latNodes[h])::s)^2;
     FPutText(f,""+resName+"["+IntText(Rows((latNodes[h])::e))+"] "
     "~ Normal(0,"+sigmaName+
-      " ~ Bsr.Sigma.Prior.InverseGamma("<<s2+",.50));\n")
+      " ~ @Bsr.Sigma.Prior.InverseGamma("<<s2+",.50));\n")
   });
   Real 
   {

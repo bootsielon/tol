@@ -6,7 +6,7 @@
 
 
 /////////////////////////////////////////////////////////////////////////////
-Class McmcRecover: McmcReloader
+Class @McmcRecover: @McmcReloader
 /////////////////////////////////////////////////////////////////////////////
 {
   Text _.name;
@@ -34,13 +34,13 @@ Class McmcRecover: McmcReloader
 
     Real Case(_.mcmc.cols!=Card(_.colNames),
     {
-      WriteLn("[McmcRecover::initialize] Stored MCMC columns differs from "
+      WriteLn("[@McmcRecover::initialize] Stored MCMC columns differs from "
               "number of parameters","E");
       False 
     },
     burnin>=_.mcmc.rows,
     {
-      WriteLn("[McmcRecover::initialize] Stored MCMC rows is less or equal "
+      WriteLn("[@McmcRecover::initialize] Stored MCMC rows is less or equal "
       "than specified burnin","E");
       False 
     },
@@ -85,13 +85,13 @@ Class McmcRecover: McmcReloader
   };
 
   ///////////////////////////////////////////////////////////////////////////
-  Static Real Store(Cycler cycler, Real sequential)
+  Static Real Store(@Cycler cycler, Real sequential)
   ///////////////////////////////////////////////////////////////////////////
   {
     Text recover.path = 
-      cycler::_.sampler::get.path(0)+cycler::_.name+".recover.oza";
-    WriteLn("Storing McmcRecover into path "+recover.path);
-    BysMcmc::McmcRecover recover = 
+      cycler::_.sampler::get.path(0)+".recover.oza";
+    WriteLn("Storing @McmcRecover into path "+recover.path);
+    BysMcmc::@McmcRecover recover = 
     [[
       Text _.name      = cycler::_.name;
       Set  _.colNames  = SetTolNameAndIndex(cycler::_.sampler::get.colNames(0));
@@ -105,12 +105,11 @@ Class McmcRecover: McmcReloader
   };
 
   ///////////////////////////////////////////////////////////////////////////
-  Static McmcRecover Load(Text rootPath, Text id_model, Text id_session,
-                          Config config)
+  Static @McmcRecover Load(Text bsrPath, @Config config)
   ///////////////////////////////////////////////////////////////////////////
   {
-    Text path      = rootPath+id_model+"."+id_session+".recover.oza";
-    Text mcmc.path = rootPath+id_model+"."+id_session+".mcmc.bbm";
+    Text path      = bsrPath+".recover.oza";
+    Text mcmc.path = bsrPath+".mcmc.bbm";
     WriteLn("Reloading MCMCRecover from path "+path);
     Set Ois.Load(path);
     Real recover::initialize(
@@ -121,12 +120,11 @@ Class McmcRecover: McmcReloader
   };
 
   ///////////////////////////////////////////////////////////////////////////
-  Static Set LoadAndReport(Text rootPath, Text id_model, Text id_session,
+  Static Set LoadAndReport(Text bsrPath,
                            Real burnin, Real length, Real thinning)
   ///////////////////////////////////////////////////////////////////////////
   {
-    McmcRecover recover = BysMcmc::Load(
-      rootPath, id_model, id_session);
+    @McmcRecover recover = BysMcmc::Load(bsrPath);
     Set report = recover::report(burnin,length,thinning)
   }
 

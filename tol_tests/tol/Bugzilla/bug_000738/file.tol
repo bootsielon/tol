@@ -1,53 +1,53 @@
-// ClaseA
+// @ClaseA
 
-Class ClaseA {
+Class @ClaseA {
   Real a = 1
 };
 
-// Constructor de ClaseA
+// Constructor de @ClaseA
 
-ClaseA ClaseA.New(NameBlock args) {
-  ClaseA new = [[ 
+@ClaseA ClaseA.New(NameBlock args) {
+  @ClaseA new = [[ 
     Real a = args::a
   ]]
 };
 
-// ClaseB que contiene un objeto ClaseA
+// @ClaseB que contiene un objeto @ClaseA
 
-Class ClaseB {
+Class @ClaseB {
   Text _.name;
   Text _.description;
-  ClaseA _.variable 
+  @ClaseA _.variable 
 };
 
-// Constructor de ClaseB
+// Constructor de @ClaseB
 
-ClaseB ClaseB.New(NameBlock args) {
-  ClaseB new = [[
+@ClaseB ClaseB.New(NameBlock args) {
+  @ClaseB new = [[
     Text _.name         = args::_.name;
     Text _.description  = getOptArg(args,"_.description",  "");
-    ClaseA _.variable = args::_.variable
+    @ClaseA _.variable = args::_.variable
   ]]
 };
 
 // [1] Creación paso a paso (sin errores)
 
-ClaseA obj1_A = ClaseA.New([[
+@ClaseA obj1_A = ClaseA.New([[
   Real a = 3
 ]]);
 
-ClaseB obj1 = ClaseB.New([[ 
+@ClaseB obj1 = ClaseB.New([[ 
   Text _.name = "hola"; 
   Text _.description = "desc"; 
-  ClaseA _.variable = obj1_A 
+  @ClaseA _.variable = obj1_A 
 ]]);
 
 // [2] Creación de una vez (da errores)
 
-ClaseB obj2 = ClaseB.New([[ 
+@ClaseB obj2 = ClaseB.New([[ 
   Text _.name = "hola"; 
   Text _.description = "desc"; 
-  ClaseA _.variable = ClaseA.New([[
+  @ClaseA _.variable = ClaseA.New([[
     Real a = 3
   ]])
 ]]);
@@ -55,10 +55,10 @@ ClaseB obj2 = ClaseB.New([[
 
 // [3] Creación de una vez (evitar el error)
 
-ClaseB obj3 = ClaseB.New([[ 
+@ClaseB obj3 = ClaseB.New([[ 
   Text _.name = "hola"; 
   Text _.description = "desc"; 
-  ClaseA _.variable = ClaseA.New( NOMBRE = [[
+  @ClaseA _.variable = ClaseA.New( NOMBRE = [[
     Real a = 3
   ]])
 ]]);

@@ -62,7 +62,7 @@ Los parametros de control son los siguiente:
 ",TxtFormListGen);
 //////////////////////////////////////////////////////////////////////////////
 
-Struct FmtSt
+Struct @FmtSt
 {
   Text Typ, // Tipo o gramatica a formatear
   Text Ini, // Delimitador de inicio

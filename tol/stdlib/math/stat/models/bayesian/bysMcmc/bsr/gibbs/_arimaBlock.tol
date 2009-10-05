@@ -6,7 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
-Class BlockArima : BlockSampler
+Class @BlockArima : @BlockSampler
 /////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
@@ -66,7 +66,7 @@ Class BlockArima : BlockSampler
   Text _.autodoc.member.initializeNoArimaBlock =
   "Initiaizes ARIMA invariant information for a noise block without "
   "ARIMA struct";
-  Real initializeNoArimaBlock(BSR.NoiseDistrib segment)
+  Real initializeNoArimaBlock(@BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" initializeNoArimaBlock ["+segment->Name+"] 1 "+Time);
@@ -104,7 +104,7 @@ Class BlockArima : BlockSampler
   Text _.autodoc.member.initializeArimaBlock =
   "Initiaizes ARIMA invariant information for a noise block with ARIMA "
   "struct";
-  Real initializeArimaBlock(BSR.NoiseDistrib segment)
+  Real initializeArimaBlock(@BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" initializeArimaBlock ["+segment->Name+"] 1 "+Time);
@@ -134,7 +134,7 @@ Class BlockArima : BlockSampler
         Real deg = Degree(mon);
         Real c = Coef(mon,deg);
         Text name = "ArmaBlk::"+segment->Name+"::AR.F"+IntText(factorNum_)+".D"+IntText(deg);
-          ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "AR", deg, c, 0, 0, 0)
+          @ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "AR", deg, c, 0, 0, 0)
       });
       If(Degree(arimaFactor->MA)>2*arimaFactor->Periodicity,
       {
@@ -154,7 +154,7 @@ Class BlockArima : BlockSampler
         Real deg = Degree(mon);
         Real c = Coef(mon,deg);
         Text name = "ArmaBlk::"+segment->Name+"::MA.F"+IntText(factorNum_)+".D"+IntText(deg);
-          ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "MA", deg, c, 0, 0, 0)
+          @ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "MA", deg, c, 0, 0, 0)
       });
       Set Append(_.paramDesc,arParDsc);
       Set Append(_.paramDesc,maParDsc);
@@ -221,7 +221,7 @@ Class BlockArima : BlockSampler
   //WriteLn("TRACE "+_MID+" Initializing block 1");
     Set initAll = For(1,Card(_.NoiseDistrib), Real(Real resBlockNum_)
     {
-      Set segment = _.NoiseDistrib[resBlockNum_];//BSR.NoiseDistrib;
+      Set segment = _.NoiseDistrib[resBlockNum_];//@BSR.NoiseDistrib;
       Set aux = segment->ArimaAuxInfo;
     //WriteLn("TRACE"+_MID+" initialize block["<<resBlockNum_+"] 1 "+Time);
       If(!Card(segment->Arima), 
@@ -235,7 +235,7 @@ Class BlockArima : BlockSampler
     Set _.armaParamBlock := 
     {
     //WriteLn("TRACESelecting noise with known wariance");
-      Select(_.arimaStructBlock, Real(BSR.NoiseDistrib segment)
+      Select(_.arimaStructBlock, Real(@BSR.NoiseDistrib segment)
       { (segment->ArimaAuxInfo)::numPar>0 })
     };
   //WriteLn("TRACE "+_MID+" Initializing block 4 ");
@@ -249,7 +249,7 @@ Class BlockArima : BlockSampler
   Real _buildWorkSpace(VMatrix noise_, VMatrix sigma.full_)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" BlockArima::_buildWorkSpace 0");
+  //WriteLn("TRACE"+_MID+" @BlockArima::_buildWorkSpace 0");
     NameBlock _.ws := 
     [[
       VMatrix noise = noise_;
@@ -269,7 +269,7 @@ Class BlockArima : BlockSampler
     Real hasPartial = hasFixed | hasReload;
     Real paramNum = 0;
 
-    Real SetFixedAndReloadIndexes(ArmaParamDescStruct prm)
+    Real SetFixedAndReloadIndexes(@ArmaParamDescStruct prm)
     {
       Text name = ToName(prm->name);
       Real paramNum := paramNum + 1;
@@ -297,7 +297,7 @@ Class BlockArima : BlockSampler
   "Calculates the Choleski decomposition and its inverse for a block with "
   "ARIMA struct using ARMAProcess::FastCholeskiCovFactor over full ARMA "
   "structure";
-  Real covDecomp.FastChol(BSR.NoiseDistrib segment)
+  Real covDecomp.FastChol(@BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
     Set     aux         = segment->ArimaAuxInfo;
@@ -316,7 +316,7 @@ Class BlockArima : BlockSampler
   Text _.autodoc.member.filterJustBlock.FastChol =
   "Filters matrix by Choleski decomposition of ARIMA covarianze of a "
   "noise block that was decomposed using covDecomp.FastChol method";
-  VMatrix filterJustBlock.FastChol(BSR.NoiseDistrib segment, VMatrix Z)
+  VMatrix filterJustBlock.FastChol(@BSR.NoiseDistrib segment, VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
@@ -329,14 +329,14 @@ Class BlockArima : BlockSampler
   "Calculates the Choleski decomposition and its inverse for a block with "
   "ARIMA struct using ARMAProcess::FastCholeskiCovFactor over each seasonal "
   "component of ARMA structure in an independent way";
-  Real covDecomp.FastCholSea(BSR.NoiseDistrib segment)
+  Real covDecomp.FastCholSea(@BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
     Set     aux         = segment->ArimaAuxInfo;
     Real    m           = aux::m;
     Set aux::Li_ar_factors := Copy(Empty);
     Set aux::L_ma_factors  := Copy(Empty);
-    Set EvalSet(segment->Arima, Real(ARIMAStruct factor)
+    Set EvalSet(segment->Arima, Real(@ARIMAStruct factor)
     {
       NameBlock fastChol  = ARMAProcess::FastCholeskiCovFactor(factor->AR, factor->MA, m);
       Real If(VRows(fastChol::_.Li_ar)<=0, CMsg::Coded::show
@@ -354,7 +354,7 @@ Class BlockArima : BlockSampler
   Text _.autodoc.member.filterJustBlock.FastCholSea =
   "Filters matrix by Choleski decomposition of ARIMA covarianze of a "
   "noise block that was decomposed using covDecomp.FastCholSea method";
-  VMatrix filterJustBlock.FastCholSea(BSR.NoiseDistrib segment, VMatrix Z)
+  VMatrix filterJustBlock.FastCholSea(@BSR.NoiseDistrib segment, VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
@@ -371,7 +371,7 @@ Class BlockArima : BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.covDecomp.DifEq =
   "Does bothing due to DifEq requires no previous action to filter";
-  Real covDecomp.DifEq(BSR.NoiseDistrib segment)
+  Real covDecomp.DifEq(@BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
     1
@@ -381,7 +381,7 @@ Class BlockArima : BlockSampler
   Text _.autodoc.member.filterJustBlock.DifEq =
   "Filters matrix by Choleski decomposition of ARIMA covarianze of a "
   "noise block solving ARMA difference equations with zero as initial values";
-  VMatrix filterJustBlock.DifEq(BSR.NoiseDistrib segment, VMatrix Z)
+  VMatrix filterJustBlock.DifEq(@BSR.NoiseDistrib segment, VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
@@ -390,13 +390,13 @@ Class BlockArima : BlockSampler
   };
 /* */
   ////////////////////////////////////////////////////////////////////////////
-  Real covDecomp(BSR.NoiseDistrib segment)
+  Real covDecomp(@BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
     Eval("covDecomp."+ _.config::bsr.arimaFilter+"(segment)")
   };
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix filterJustBlock(BSR.NoiseDistrib segment, VMatrix Z)
+  VMatrix filterJustBlock(@BSR.NoiseDistrib segment, VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
     Eval("filterJustBlock."+ _.config::bsr.arimaFilter+"(segment,Z)")
@@ -425,7 +425,7 @@ Class BlockArima : BlockSampler
       Real putStore(values);
       Real k = 1;
     //WriteLn("TRACE"+_MID+" setStore 1 _.store="<<Matrix VMat2Mat(_.store));
-      Set Do EvalSet(_.paramDesc, Real setValue(ArmaParamDescStruct pd)
+      Set Do EvalSet(_.paramDesc, Real setValue(@ArmaParamDescStruct pd)
       {
       //WriteLn("TRACE"+_MID+" setStore 2.0 pd="<<pd);
       //WriteLn("TRACE"+_MID+" setStore 2.1 k="<<k);
@@ -440,7 +440,7 @@ Class BlockArima : BlockSampler
         Real (k := k+1);
         1
       });
-      Set Do EvalSet(_.armaParamBlock, Real set.arma(BSR.NoiseDistrib segment)
+      Set Do EvalSet(_.armaParamBlock, Real set.arma(@BSR.NoiseDistrib segment)
       {
         Set   aux      = segment->ArimaAuxInfo;
         Polyn aux::ar := ARIMAGetAR (segment->Arima);
@@ -460,7 +460,7 @@ Class BlockArima : BlockSampler
   Real show.arma(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set EvalSet(_.armaParamBlock, Real set.showArima(BSR.NoiseDistrib segment)
+    Set EvalSet(_.armaParamBlock, Real set.showArima(@BSR.NoiseDistrib segment)
     {
       WriteLn("ARIMA("+segment->Name+")=\n"<<segment->Arima);
       1
@@ -487,7 +487,7 @@ Class BlockArima : BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" filter.arma 1 DX="<< DX);
-    Set s = EvalSet(_.armaParamBlock, Set set.filterArima(BSR.NoiseDistrib segment)
+    Set s = EvalSet(_.armaParamBlock, Set set.filterArima(@BSR.NoiseDistrib segment)
     {
     //WriteLn("TRACE"+_MID+" filter.arma 2 segment="<< segment->Name);
       VMatrix DXs = SubRow(DX, segment->EquIdx);
@@ -540,7 +540,7 @@ Class BlockArima : BlockSampler
     Set arma.draw.all = 
     EvalSet(_.segment.free.index, Real arma.arms.draw(Real paramNum)
     {
-      ArmaParamDescStruct pd = _.paramDesc[paramNum];
+      @ArmaParamDescStruct pd = _.paramDesc[paramNum];
     //WriteLn("TRACE"+_MID+" draw.scalar 2 pd="<<pd);
       Set segment = _.NoiseDistrib[pd->resBlockNum];
       Set arima  = segment->Arima;
@@ -648,7 +648,7 @@ Class BlockArima : BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.getARIMA =
   "Returns ARIMA definition of a given block of equations containinig a set "
-  "of ARIMAStruct's, please don´t modified it!."+_explain.param;
+  "of @ARIMAStruct's, please don´t modified it!."+_explain.param;
   Set getARIMA(Real noiseBlockIndex) 
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -767,10 +767,10 @@ Class BlockArima : BlockSampler
   };
 
   //////////////////////////////////////////////////////////////////////////////
-  Static BlockArima Null(Real unused)
+  Static @BlockArima Null(Real unused)
   //////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::Gibbs::BlockArima blk = [[
+    BysMcmc::Bsr::Gibbs::@BlockArima blk = [[
     Code _scalarSampler = BysMcmc::Options::Scalar.Sampler::Slice;
     Set _.NoiseDistrib = Copy(Empty);
     Set _.arimaStructBlock = Copy(Empty);
@@ -787,23 +787,23 @@ Class BlockArima : BlockSampler
   "general regression model. Just ARIMA filtering is currently running but "
   "ARMA simulation is still not implemented";
   //////////////////////////////////////////////////////////////////////////////
-  Static BlockArima New(
+  Static @BlockArima New(
     Text name, 
     Set NoiseDistrib, 
-    BysMcmc::McmcPartialHandler mcmcPartialHandler,
+    BysMcmc::@McmcPartialHandler mcmcPartialHandler,
     Real numBlock, 
     Real firstCol,
-    BysMcmc::Config config)
+    BysMcmc::@Config config)
   //////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::Gibbs::BlockArima blk = [[
+    BysMcmc::Bsr::Gibbs::@BlockArima blk = [[
     Code _scalarSampler = config::bsr.scalarSampler.armaBlock;
     //Selects noise with constant sigma
     Set _.NoiseDistrib = NoiseDistrib;
     Set _.arimaStructBlock = 
     {
     //WriteLn("TRACESelecting noise with known wariance");
-      Select(NoiseDistrib, Real(BSR.NoiseDistrib segment)
+      Select(NoiseDistrib, Real(@BSR.NoiseDistrib segment)
       { Card(segment->Arima)>0 })
     };
 
@@ -819,7 +819,7 @@ Class BlockArima : BlockSampler
       define
       (
         name,
-        EvalSet(_.paramDesc, Text set.colName(ArmaParamDescStruct pd) { pd->name }),
+        EvalSet(_.paramDesc, Text set.colName(@ArmaParamDescStruct pd) { pd->name }),
         mcmcPartialHandler,
         numBlock,
         firstCol,
@@ -828,7 +828,7 @@ Class BlockArima : BlockSampler
     Real _.updateAll = 
     {
     //WriteLn("TRACE "+_MID+" initial _.paramDesc = "<<_.paramDesc);
-      Matrix values = SetCol(EvalSet(_.paramDesc, Real (ArmaParamDescStruct pd)
+      Matrix values = SetCol(EvalSet(_.paramDesc, Real (@ArmaParamDescStruct pd)
       {
         pd->coef
       }));

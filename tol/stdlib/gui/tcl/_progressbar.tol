@@ -13,10 +13,10 @@ Text TclProgressBarCreate(Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-title", ""),
-    TclArgSt("-width", "20"),
-    TclArgSt("-height", "2"),
-    TclArgSt("-breakvar", "")
+    @TclArgSt("-title", ""),
+    @TclArgSt("-width", "20"),
+    @TclArgSt("-height", "2"),
+    @TclArgSt("-breakvar", "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 

@@ -7,7 +7,7 @@
 // STRUCT
 //////////////////////////////////////////////////////////////////////////////
 
-Struct StSqlInfoColums
+Struct @StSqlInfoColums
 {
   Text Table,
   Text Column,
@@ -19,20 +19,20 @@ Struct StSqlInfoColums
   Real IsKey
 };
 
-Struct StSqlInfoKeys
+Struct @StSqlInfoKeys
 {
   Text Table,
   Text Index,
   Text Column
 };
 
-Struct StSqlTableParent
+Struct @StSqlTableParent
 {
   Text Table,
   Text Column
 };
 
-Struct StSqlInfoForeing
+Struct @StSqlInfoForeing
 {
   Text Table,
   Text Index,
@@ -43,14 +43,14 @@ Struct StSqlInfoForeing
 };
 
 
-Struct StSqlInfoForeingRed
+Struct @StSqlInfoForeingRed
 {
   Text Table,
   Set  SetCol
 };
 
 
-Struct StSqlFunDepTab
+Struct @StSqlFunDepTab
 {
   Text Table,     // Tabla sobre la que se aplica la función
   Set  SetCol,    // Columnas que restringen el conjunto de tablas relacionadas
@@ -63,7 +63,7 @@ Struct StSqlFunDepTab
   Real Gestor     // Gestor actual
 };
 
-Struct StSqlFunDepTabRes
+Struct @StSqlFunDepTabRes
 {
   Anything ResFunPre,
   Anything ResFunPos,
@@ -77,7 +77,7 @@ Struct StSqlFunDepTabRes
 // from TxtListItem(From,",")
 // where TxtListItem(Whwere," and ")
 //////////////////////////////////////////////////////////////////////////////
-Struct StSqlFilter
+Struct @StSqlFilter
 {
   Set From,   // Conjunto de tablas que van al from
   Set Where   // Conjunto de restricciones (o joins) que van al where
@@ -1365,7 +1365,7 @@ Set SqlTableGet
     type +" "+ If((Text s->Column)<:ReservedWords, 
                   "F"+ s->Column, s->Column)
   });
-  Set IncludeText("Struct Sql"+ Sub(idTable, TextLength(DBPrefix)+1, 
+  Set IncludeText("Struct @Sql"+ Sub(idTable, TextLength(DBPrefix)+1, 
                                     TextLength(idTable)) +"St("+ 
                    TxtListItem(SSt, ","+NL) +")");
   Set result = If(NE(Card(datWhe), Card(wheCol)), 

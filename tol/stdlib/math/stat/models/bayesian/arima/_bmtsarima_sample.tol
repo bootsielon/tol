@@ -42,7 +42,7 @@ Set input1 = SetOfSet
 Set model1 = PutStructure( "BTSARIMAModelDef", [[
   "Prueba",
   output, 
-  BoxCoxStruct(0,0), // Conjunto con estructura BoxCoxStruct
+  @BoxCoxStruct(0,0), // Conjunto con estructura @BoxCoxStruct
   SetOfPolyn(1-B^12), 
   SetOfPolyn(1-0.5*B), 
   SetOfPolyn(1-0.95*B^12), 
@@ -54,7 +54,7 @@ Set model1 = PutStructure( "BTSARIMAModelDef", [[
 Set model2 = PutStructure( "BTSARIMAModelDef", [[
   "Prueba2",
   output, 
-  BoxCoxStruct(0,0), // Conjunto con estructura BoxCoxStruct
+  @BoxCoxStruct(0,0), // Conjunto con estructura @BoxCoxStruct
   SetOfPolyn(1-B^12), 
   SetOfPolyn(1-0.5*B), 
   SetOfPolyn(1-0.95*B^12), 

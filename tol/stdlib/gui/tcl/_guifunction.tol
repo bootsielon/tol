@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Struct GuiFunctionSt 
+Struct @GuiFunctionSt 
 // 
 // PURPOSE: Estrucutura para la definicion de funciones de usuario que se
 //          integran en el interface gráfico de tolbase.(menu contextual en
@@ -29,7 +29,7 @@ Struct GuiFunctionSt
 };
   
 //////////////////////////////////////////////////////////////////////////////
-Struct GuiParamSt 
+Struct @GuiParamSt 
 // 
 // PURPOSE: Estrucutura para la definicion de argumentos de las funciones de
 //          usuario que se integran en el interface gráfico de tolbase.
@@ -336,20 +336,20 @@ Serie GuiSubSer(Serie ser, Date ini, Date end)
 Set GuiFunction = SetOfSet
 ( 
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiSubSer",                      // Nombre Funcion 
     "Sub Serie",                      // Nombre Interface Grafico
     "Ite.Serie",                      // Tipo de menu
     "Serie",                          // Tipo de salida
     SetOfSet(
-      GuiParamSt(
+      @GuiParamSt(
         "Fecha Inicial",   // Nombre Interface Grafico
         "Date",   // Tipo de parámetro
         2,           // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
         Copy(Empty)  // Lista de valores
       ),
-      GuiParamSt(
+      @GuiParamSt(
         "Fecha Final", // Nombre Interface Grafico
         "Date",        // Tipo de parámetro
         2,             // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
@@ -359,7 +359,7 @@ Set GuiFunction = SetOfSet
   ),
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiDatChMenSum",                 // Nombre Funcion 
     "Cambio Fechado Mensual (SumS)",  // Nombre Interface Grafico
@@ -368,7 +368,7 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                       // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiDatChSemSum",                 // Nombre Funcion 
     "Cambio Fechado Semanal (SumS)",  // Nombre Interface Grafico
@@ -377,7 +377,7 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                       // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiDatChSemAvr",                 // Nombre Funcion 
     "Cambio Fechado Semanal (AvrS)",  // Nombre Interface Grafico
@@ -386,7 +386,7 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                       // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiDatChPSMAvr",                 // Nombre Funcion 
     "Cambio Fechado PseudoMensual (AvrS)",  // Nombre Interface Grafico
@@ -395,20 +395,20 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                       // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     Text "GuiDatCh",       // Nombre Funcion 
     "Cambio Fechado",      // Nombre Interface Grafico
     "Ite.Serie",           // Tipo de menu
     "Serie",               // Tipo de salida
     SetOfSet(
-      GuiParamSt(
+      @GuiParamSt(
         "Fechado",   // Nombre Interface Grafico
         "TimeSet",   // Tipo de parámetro
         0,           // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
         Copy(Empty)  // Lista de valores
       ),
-      GuiParamSt(
+      @GuiParamSt(
         "Estadistico", // Nombre Interface Grafico
         "Code",        // Tipo de parámetro
         1,             // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
@@ -418,7 +418,7 @@ Set GuiFunction = SetOfSet
     )
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiAutoDatingUsu",               // Nombre Funcion 
     "Auto Cambio Fechado",            // Nombre Interface Grafico
@@ -427,14 +427,14 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                       // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiApplyPolyn",      // Nombre Funcion 
     "Aplicar Polinomio",  // Nombre Interface Grafico
     "Ite.Serie",          // Tipo de menu
     "Serie",              // Tipo de salida
     SetOfSet(
-      GuiParamSt(
+      @GuiParamSt(
         "Polinomio", // Nombre Interface Grafico
         "Polyn",     // Tipo de parámetro
         2,           // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
@@ -443,14 +443,14 @@ Set GuiFunction = SetOfSet
     )
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiInc",                     // Nombre Funcion 
     "Tasa Incremento Variable ",  // Nombre Interface Grafico
     "Ite.Serie",                  // Tipo de menu
     "Serie",                      // Tipo de salida
     SetOfSet(
-      GuiParamSt(
+      @GuiParamSt(
         "Retardo",   // Nombre Interface Grafico
         "Real",      // Tipo de parámetro
         1,           // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
@@ -459,14 +459,14 @@ Set GuiFunction = SetOfSet
     )
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiDifAbs",          // Nombre Funcion 
     "Diferencia absoluta",// Nombre Interface Grafico
     "Set.Serie",          // Tipo de menu
     "Serie",              // Tipo de salida
     SetOfSet(
-      GuiParamSt(
+      @GuiParamSt(
         "Signo",     // Nombre Interface Grafico
         "Text",      // Tipo de parámetro
         1,           // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
@@ -475,14 +475,14 @@ Set GuiFunction = SetOfSet
     )
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiDifPer",            // Nombre Funcion 
     "Diferencia porcentual",// Nombre Interface Grafico
     "Set.Serie",            // Tipo de menu
     "Serie",                // Tipo de salida
     SetOfSet(
-      GuiParamSt(
+      @GuiParamSt(
         "Signo",            // Nombre Interface Grafico
         "Text",             // Tipo de parámetro
         1,                  // Tipo seleccion. 0.AllType, 
@@ -492,7 +492,7 @@ Set GuiFunction = SetOfSet
     )
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiIncAnu",                   // Nombre Funcion 
     "Tasa Incremento Interanual",  // Nombre Interface Grafico
@@ -501,7 +501,7 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                    // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt(
+  @GuiFunctionSt(
     "GuiSetSum",                   // Nombre Funcion 
     "Suma Series",                 // Nombre Interface Grafico
     "Set.Serie",                   // Tipo de menu
@@ -509,7 +509,7 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                    // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiLog",                      // Nombre Funcion 
     "Logaritmo",                   // Nombre Interface Grafico
@@ -518,7 +518,7 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                    // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiExp",                      // Nombre Funcion 
     "Exponencial",                 // Nombre Interface Grafico
@@ -527,7 +527,7 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                    // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt(
+  @GuiFunctionSt(
     "GuiSetProd",                  // Nombre Funcion 
     "Producto Series",             // Nombre Interface Grafico
     "Set.Serie",                   // Tipo de menu
@@ -535,7 +535,7 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                    // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiIntegral",                 // Nombre Funcion 
     "Integral",                    // Nombre Interface Grafico
@@ -544,20 +544,20 @@ Set GuiFunction = SetOfSet
     Copy(Empty)                    // Parametros
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "GuiSerToBDT",                      // Nombre Funcion 
     "Guardar series",                   // Nombre Interface Grafico
     "Set.Serie",                        // Tipo de menu
     "Set",                              // Tipo de salida
     SetOfSet(
-      GuiParamSt(
+      @GuiParamSt(
         "Directorio",   // Nombre Interface Grafico
         "Dir",          // Tipo de parámetro
         2,              // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
         Copy(Empty)     // Lista de valores
       ),
-      GuiParamSt(
+      @GuiParamSt(
         "Archivo BDT", // Nombre Interface Grafico
         "Text",        // Tipo de parámetro
         2,             // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
@@ -566,14 +566,14 @@ Set GuiFunction = SetOfSet
     )                      
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "EvalArgMatrix",                                 // Nombre Funcion 
     "EvalArg Matrix", // Nombre Interface Grafico
     "Ite.Matrix",                        // Tipo de menu
     "Anything",                              // Tipo de salida
     SetOfSet(
-      GuiParamSt(
+      @GuiParamSt(
         "Code",   // Nombre Interface Grafico
         "Code",          // Tipo de parámetro
         2,              // Tipo seleccion. 0.AllType, 1.ValueList, 2.UserWrite
@@ -582,7 +582,7 @@ Set GuiFunction = SetOfSet
     )                      
   ),
   ////////////////////////////////////////////////////////////////////////////
-  GuiFunctionSt
+  @GuiFunctionSt
   (
     "Traspose",                // Nombre Funcion 
     "Trasponer conjunto", // Nombre Interface Grafico

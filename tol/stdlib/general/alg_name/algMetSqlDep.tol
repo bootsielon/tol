@@ -31,7 +31,7 @@ Set AlgMetSqlDepSt(
   AlgMetSqlDepExtSt(DatFun, ValFun, FroFun, WheFun, FecFun, FunEmpty)
 };
 
-Struct AlgMetSqlDepExtSt
+Struct @AlgMetSqlDepExtSt
 {
   Code DatFun, // Función que construye exp_date
   Code ValFun, // Función que construye exp_value
@@ -39,24 +39,24 @@ Struct AlgMetSqlDepExtSt
   Code WheFun, // Función que construye exp_where
   Code FecFun,  // Función que devuelve el fechado de la serie
   Code SetParFun // Función que devuelve un conjunto de parametros con
-                 // estructura TclArgSt, para por ejemplo:
+                 // estructura @TclArgSt, para por ejemplo:
                  // -defVal: determinar el valor por defecto de DBSeries
                  // -traQry: Para trazar o no la query
                  // -traTms: Para trazar el tiempo que tarda la query
                  // -doGrBy: Para realizar el group by en la query 
 };
 
-Struct AlgMetSqlFroSt
+Struct @AlgMetSqlFroSt
 {
   Text Table,
   Text Alias
 };
 
 Set defParamsForMetSqlDep = SetOfSet(
-    TclArgSt("-defVal", "0"),
-    TclArgSt("-traQry", "1"),
-    TclArgSt("-traTms", "1"),
-    TclArgSt("-doGrBy", "1")
+    @TclArgSt("-defVal", "0"),
+    @TclArgSt("-traQry", "1"),
+    @TclArgSt("-traTms", "1"),
+    @TclArgSt("-doGrBy", "1")
 );
 
 //////////////////////////////////////////////////////////////////////////////

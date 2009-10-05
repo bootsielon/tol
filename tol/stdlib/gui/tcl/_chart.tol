@@ -14,10 +14,10 @@ Text TclChartSerie(Set source, Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-title",    ""),
-    TclArgSt("-geometry", ""),
-    TclArgSt("-gcfFile",  ""),
-    TclArgSt("-file",     "")
+    @TclArgSt("-title",    ""),
+    @TclArgSt("-geometry", ""),
+    @TclArgSt("-gcfFile",  ""),
+    @TclArgSt("-file",     "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -44,7 +44,7 @@ producirse
 Únicamente funciona desde TolBase.
 Parámetros:
   source   -> SetOfSerie. Conjunto con las series a graficar.
-  valArg:  -> Conjunto con los siguientes argumentos (estructura TclArgSt):
+  valArg:  -> Conjunto con los siguientes argumentos (estructura @TclArgSt):
    -title    -> Título de la ventana del gráfico.
    -geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
               Al especificar la geometría de la ventana hay que tener en
@@ -58,10 +58,10 @@ Ejemplo:
   Serie ser1 = Rand(-10, 10, Diario);
   Serie ser2 = Rand(-15, 15, Diario);
   Text TclChartSerie(SetOfSerie(ser1, ser2), SetOfSet(
-    TclArgSt(\"-title\",    \"Gráfico de Series\"),
-    TclArgSt(\"-geometry\", \"814x692+1+1\"),
-    TclArgSt(\"-gcf\",      \"../barras.gcf\"),
-    TclArgSt(\"-file\",     \"ser.jpg\")));
+    @TclArgSt(\"-title\",    \"Gráfico de Series\"),
+    @TclArgSt(\"-geometry\", \"814x692+1+1\"),
+    @TclArgSt(\"-gcf\",      \"../barras.gcf\"),
+    @TclArgSt(\"-file\",     \"ser.jpg\")));
 ", TclChartSerie);
 //////////////////////////////////////////////////////////////////////////////
 
@@ -85,14 +85,14 @@ Text TclChartMatrix(Matrix source, Set valArg)
 {
   Set defArg =
     SetOfSet(
-             TclArgSt("-title",    ""),
-             TclArgSt("-geometry", ""),
-             TclArgSt("-gcfFile",  ""),
-             TclArgSt("-file",     ""),
-             TclArgSt("-type",    "1"),
-             TclArgSt("-names",   "{}"),
-             TclArgSt("-pairs",   "{}"),
-             TclArgSt("-holdon",   ""));
+             @TclArgSt("-title",    ""),
+             @TclArgSt("-geometry", ""),
+             @TclArgSt("-gcfFile",  ""),
+             @TclArgSt("-file",     ""),
+             @TclArgSt("-type",    "1"),
+             @TclArgSt("-names",   "{}"),
+             @TclArgSt("-pairs",   "{}"),
+             @TclArgSt("-holdon",   ""));
   
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -141,13 +141,13 @@ Ejemplo:
     SetOfReal(5,6)
   );
  Text TclChartMatrix(mat1, SetOfSet(
-   TclArgSt(\"-title\",    \"Gráfico de matriz\"),
-   TclArgSt(\"-geometry\", \"814x692+10+10\"),
-   TclArgSt(\"-gcfFile\",  \"../barras.gcf\"),
-   TclArgSt(\"-file\",     \"ser.jpg\"),
-   TclArgSt(\"-type\",     \"0\"),
-   TclArgSt(\"-names\",    TxtListTcl(names)),
-   TclArgSt(\"-pairs\",    TxtListTcl(pairs))
+   @TclArgSt(\"-title\",    \"Gráfico de matriz\"),
+   @TclArgSt(\"-geometry\", \"814x692+10+10\"),
+   @TclArgSt(\"-gcfFile\",  \"../barras.gcf\"),
+   @TclArgSt(\"-file\",     \"ser.jpg\"),
+   @TclArgSt(\"-type\",     \"0\"),
+   @TclArgSt(\"-names\",    TxtListTcl(names)),
+   @TclArgSt(\"-pairs\",    TxtListTcl(pairs))
  ));", TclChartMatrix);
 //////////////////////////////////////////////////////////////////////////////
 
@@ -170,14 +170,14 @@ Text TclChartSet(Set source, Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-title",    ""),
-    TclArgSt("-geometry", ""),
-    TclArgSt("-gcfFile",  ""),
-    TclArgSt("-file",     ""),
-    TclArgSt("-type",     "1"),
-    TclArgSt("-names",    "{}"),
-    TclArgSt("-pairs",    "{}"),
-    TclArgSt("-holdon",    "")
+    @TclArgSt("-title",    ""),
+    @TclArgSt("-geometry", ""),
+    @TclArgSt("-gcfFile",  ""),
+    @TclArgSt("-file",     ""),
+    @TclArgSt("-type",     "1"),
+    @TclArgSt("-names",    "{}"),
+    @TclArgSt("-pairs",    "{}"),
+    @TclArgSt("-holdon",    "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -247,23 +247,23 @@ Ejemplo:
   Set names    = SetOfText(\"uno\",\"dos\",\"tres\",\"cuatro\");
 
   Text TclChartSet(set1Tra,SetOfSet(
-   TclArgSt(\"-title\",    \"Gráfico de conjuntos 1\"),
-   TclArgSt(\"-geometry\", \"814x692+10+10\"),
-   TclArgSt(\"-gcfFile\",  \"\"),
-   TclArgSt(\"-file\",     \"\"),
-   TclArgSt(\"-type\",     \"0\"),
-   TclArgSt(\"-names\",    TxtListTcl(Copy(Empty))),
-   TclArgSt(\"-pairs\",    TxtListTcl(pairs))
+   @TclArgSt(\"-title\",    \"Gráfico de conjuntos 1\"),
+   @TclArgSt(\"-geometry\", \"814x692+10+10\"),
+   @TclArgSt(\"-gcfFile\",  \"\"),
+   @TclArgSt(\"-file\",     \"\"),
+   @TclArgSt(\"-type\",     \"0\"),
+   @TclArgSt(\"-names\",    TxtListTcl(Copy(Empty))),
+   @TclArgSt(\"-pairs\",    TxtListTcl(pairs))
  ));
 
   Text TclChartSet(set1Tra,SetOfSet(
-   TclArgSt(\"-title\",    \"Gráfico de conjuntos 2\"),
-   TclArgSt(\"-geometry\", \"814x692+10+10\"),
-   TclArgSt(\"-gcfFile\",  \"\"),
-   TclArgSt(\"-file\",     \"\"),
-   TclArgSt(\"-type\",     \"1\"),
-   TclArgSt(\"-names\",    TxtListTcl(names)),
-   TclArgSt(\"-pairs\",    TxtListTcl(Copy(Empty)))
+   @TclArgSt(\"-title\",    \"Gráfico de conjuntos 2\"),
+   @TclArgSt(\"-geometry\", \"814x692+10+10\"),
+   @TclArgSt(\"-gcfFile\",  \"\"),
+   @TclArgSt(\"-file\",     \"\"),
+   @TclArgSt(\"-type\",     \"1\"),
+   @TclArgSt(\"-names\",    TxtListTcl(names)),
+   @TclArgSt(\"-pairs\",    TxtListTcl(Copy(Empty)))
  ));", TclChartSet);
 //////////////////////////////////////////////////////////////////////////////
 
@@ -277,8 +277,8 @@ Text TclChartSerieAutocor(Serie source, Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-title",    ""),
-    TclArgSt("-geometry", "")
+    @TclArgSt("-title",    ""),
+    @TclArgSt("-geometry", "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -303,7 +303,7 @@ caso de producirse
 Únicamente funciona desde TolBase.
 Parámetros:
   source   -> SetOfSerie. Conjunto con las series a graficar.
-  valArg:  -> Conjunto con los siguientes argumentos (estructura TclArgSt):
+  valArg:  -> Conjunto con los siguientes argumentos (estructura @TclArgSt):
    -title    -> Título de la ventana del gráfico.
    -geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
               Al especificar la geometría de la ventana hay que tener en
@@ -313,8 +313,8 @@ Parámetros:
 Ejemplo:
   Serie ser1 = Rand(-10, 10, Diario);
   Text TclChartSerieAutocor(ser1, SetOfSet(
-    TclArgSt(\"-title\",    \"Gráfico de Autocorrelaciones\"),
-    TclArgSt(\"-geometry\", \"814x692+1+1\")));
+    @TclArgSt(\"-title\",    \"Gráfico de Autocorrelaciones\"),
+    @TclArgSt(\"-geometry\", \"814x692+1+1\")));
 ", TclChartSerieAutocor);
 //////////////////////////////////////////////////////////////////////////////
 
@@ -327,8 +327,8 @@ Text TclChartTimeSet(Set source, Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-title", ""),
-    TclArgSt("-geometry", "")
+    @TclArgSt("-title", ""),
+    @TclArgSt("-geometry", "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );  
 
@@ -355,7 +355,7 @@ El valor de retorno es un Text
 Únicamente funciona desde TolBase.
 Parámetros:
   source   -> Set con los datos a graficar.
-  valArg:  -> Conjunto con los siguientes argumentos (estructura TclArgSt):
+  valArg:  -> Conjunto con los siguientes argumentos (estructura @TclArgSt):
    -title    -> Título de la ventana del experto en calendarios.
    -geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
               Al especificar la geometría de la ventana hay que tener en
@@ -363,8 +363,32 @@ Parámetros:
               experto en calendarios.
 Ejemplo:
   Text TclChartTimeSet(SetOfTimeSet(Mensual, Easter), SetOfSet(
-    TclArgSt(\"-title\",\"Visualizando un TimeSet\"),
-    TclArgSt(\"-geometry\", \"100x100+1+1\")
+    @TclArgSt(\"-title\",\"Visualizando un TimeSet\"),
+    @TclArgSt(\"-geometry\", \"100x100+1+1\")
   ));
 ", TclChartTimeSet);
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Anything ARIMADrawACFs(Serie ARIMAGaussian,   // Serie a graficar 
+                       Text title)            // titulo del gráfico
+
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(title=="",
+  {
+    Text TclChartSerieAutocor( Serie ARIMAGaussian, 
+    Set (SetOfSet(@TclArgSt("-title", "Graph of ACFs and PACFs of ARIMA Model"))))
+  },
+  {
+    Text TclChartSerieAutocor( Serie ARIMAGaussian, 
+                               Set (SetOfSet(@TclArgSt("-title", title))))
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(
+"Obtiene el gráfico de ACF y PACF dada una serie resultante de aplicar una
+gaussiana a un modelo ARIMA. Si el titulo no esta definido, se pone el titulo
+en inglés por defecto",
+ARIMADrawACFs);
 //////////////////////////////////////////////////////////////////////////////

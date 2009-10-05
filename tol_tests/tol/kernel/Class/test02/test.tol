@@ -15,20 +15,20 @@ Real numErr0 = Copy(NError);
 #Embed "example.02.tol";
 
 Set ok.all = [[
-  Real ok.1 =  ObjectExist("Class","Doc") 
+  Real ok.1 =  ObjectExist("Class","@Doc") 
                & !numErr.Doc,
-  Real ok.2 =  ObjectExist("Class","ColumnVector") 
+  Real ok.2 =  ObjectExist("Class","@ColumnVector") 
                & !numErr.ColumnVector,
-  Real ok.3 =  ObjectExist("Class","Vector") 
+  Real ok.3 =  ObjectExist("Class","@Vector") 
                & !numErr.Vector,
   Real ok.4 =  numErr.Vector.b>0,
-  Real ok.5 =  ObjectExist("Class","VectorDoc") 
+  Real ok.5 =  ObjectExist("Class","@VectorDoc") 
                & !numErr.VectorDoc,
-  Real ok.6 = !ObjectExist("Class","VectorInfo") 
+  Real ok.6 = !ObjectExist("Class","@VectorInfo") 
                & numErr.VectorInfo,
-  Real ok.7 = !ObjectExist("Class","VectorDoc.Ser") 
+  Real ok.7 = !ObjectExist("Class","@VectorDoc.Ser") 
                & numErr.VectorDoc.Ser,
-  Real ok.8 = !ObjectExist("Class","VectorDoc.Mat") 
+  Real ok.8 = !ObjectExist("Class","@VectorDoc.Mat") 
                & numErr.VectorDoc.Mat
 ]];
 

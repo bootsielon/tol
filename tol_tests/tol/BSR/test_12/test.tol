@@ -105,8 +105,8 @@ WriteLn("Creando en la base de datos los nodos observacionales");
     Date _.lastDate = Last(_.serie);
     //##Parte ARIMA asociada
     Set _.arima = SetOfSet{
-        ARIMAStruct(5, 1+0.1*B^5, 1, 1),
-        ARIMAStruct(261, 1+0.1*B^261, 1, 1)
+        @ARIMAStruct(5, 1+0.1*B^5, 1, 1),
+        @ARIMAStruct(261, 1+0.1*B^261, 1, 1)
     }
   ]]};
  
@@ -166,7 +166,7 @@ Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
 //////////////////////////////////////////////////////////////////////////
 //Estimación del modelo con el sistema Bsr::DynHlm
 //////////////////////////////////////////////////////////////////////////////
-BysMcmc::Config bsr.config = [[
+BysMcmc::@Config bsr.config = [[
 //MCMC dimensions
   Real mcmc.burnin        =  1; 
   Real mcmc.sampleLength  =  25;
@@ -200,7 +200,7 @@ BysMcmc::Config bsr.config = [[
   Real do.mcmc.profiler   = True
 ]];
 
-BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
+BysMcmc::@Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
   DBConnection::BsrHlm::_.defaultDB,
   id_model,
@@ -211,7 +211,7 @@ BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 );
 
 //Real cycler::initialize(0);
-BysMcmc::Estimation bsr.estim = BysMcmc::Estimation::New(cycler);
+BysMcmc::@Estimation bsr.estim = BysMcmc::@Estimation::New(cycler);
 //Real TolOprProfiler.Enabled := True;
 Real bsr.estim::Run(0);
 //Real TolOprProfiler.Dump("ses.01");
@@ -233,7 +233,7 @@ Set partialResults_ =
 Real quality_ = And(numErr0 == numErr1);
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);

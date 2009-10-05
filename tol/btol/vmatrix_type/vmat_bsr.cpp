@@ -655,25 +655,25 @@ int Parse_NoMasterModule(const BText& filePath,
     "LinearBlock",
     LI,  
     "Linear block information is a table with structure "
-    "BSR.LinearBlockStr"
+    "@BSR.LinearBlockStr"
   );
   AddAndPutName(contens_,BContensSet,
     "MissingInputBlock",
     MI,  
     "Missing Input block information is a table with structure "
-    "BSR.MissingBlockStr"
+    "@BSR.MissingBlockStr"
   );
   AddAndPutName(contens_,BContensSet,
     "MissingOutputBlock",
     MO,  
     "Missing Output block information is a table with structure "
-    "BSR.MissingBlockStr"
+    "@BSR.MissingBlockStr"
   );
   AddAndPutName(contens_,BContensSet,
     "NoiseDistrib", 
     DI,  
     "Noise distribution information is a table with structure "
-    "BSR.SigmaBlockStr"
+    "@BSR.SigmaBlockStr"
   );
   AddAndPutName(contens_,BContensVMat,
     "Y",          
@@ -793,7 +793,7 @@ int Parse_MasterModule(const BText& filePath,
     "SubModule",
     SM,  
     "Set of sub modules of the master with structure "
-    "BSR.MasterSubModule"
+    "@BSR.MasterSubModule"
   );
   contens_.PutStruct(BysSparseReg::MasterInfo());
   BGrammar::DecLevel();

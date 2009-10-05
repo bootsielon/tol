@@ -23,7 +23,7 @@
   "phases is sent containing infromation about timing and used RAM in each "
   "one. All this information is also stored internally in a public read "
   "only member called CMsg::Phase::_.history_ that is a table of elements "
-  "with structure CMsg.Phase.history.\n"
+  "with structure @CMsg.Phase.history.\n"
   "You can configure this feature in a TOL session changing this value "
   "before running your code:\n"
   "  Real CMsg::Phase::maxLevel_ := your_preference;\n"
@@ -85,7 +85,7 @@
         //WriteLn("CMsg::Phase 5: Starting new phase");
         Real _lastLevel_ := level;
         Real pos = Card(_.history_)+1;
-        Set _.history_ := _.history_ << [[CMsg.Phase.history
+        Set _.history_ := _.history_ << [[@CMsg.Phase.history
         {
           phase,    
           pos, 

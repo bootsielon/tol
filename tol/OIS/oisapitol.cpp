@@ -88,12 +88,12 @@ BTraceInit("oisapitol.cpp");
 #endif
 
 //Creates TOL structures used with OIS
-  addressStr_ = NewStructSymbol("Ois.AddressStr",
+  addressStr_ = NewStructSymbol("@Ois.AddressStr",
 	                              "Text:Concept,"
 	                              "Text:Version,"
 	                              "Text:Node");
 
-  docStr_ = NewStructSymbol("Ois.DocStr",
+  docStr_ = NewStructSymbol("@Ois.DocStr",
 	                          "Text:Name,"
 	                          "Text:Category,"
 	                          "Text:Subject,"
@@ -130,7 +130,7 @@ BTraceInit("oisapitol.cpp");
        "entorno del sistema operativo con el mismo nombre Ois.DefRoot")
   );
   defDoc_ = (BUserSet*) GraSet()->EvaluateExpr(
-    "Set Ois.DefDoc = Ois.DocStr\n"
+    "Set Ois.DefDoc = @Ois.DocStr\n"
     "(\n"
     "  {Name = \"\"},\n"
     "  {Category=\"\"},\n"
@@ -516,13 +516,13 @@ static const char* aliasSpanishDescription_ =
   DefExtOpr(1, BDatOisCreate, "Ois.Create", 3, 5, "Text Set Set Set Set",
   "(Text root, Set address, Set data [, Set docInfo=Empty, Set options=Empty)",
   I2("Builds an OIS directory containing arbitrary data set.\n"
-     "Argument address must have Ois.AddressStr structure.\n"
+     "Argument address must have @Ois.AddressStr structure.\n"
      "Empty items of address will be skiped and resto of them will be used "
      "to define the directory where OIS will be created following this organization rule:\n"
      "  root+\"/\"+address->Concept+\"/\"+address->Version+\"/\"+address->Node+\"/\"+address->Name"
      "Optional argument docInfo must have Ois.DocInfoStr structure.\n",
      "Construye un directorio OIS que contiene el conjunto arbitrario data.\n"
-     "El argumento address debe tener estructura Ois.AddressStr.\n"
+     "El argumento address debe tener estructura @Ois.AddressStr.\n"
      "Los elementos vacíos serán ignorados y el resto se usarán para definir "
      "eldirectorio donde se ubicará el OIS siguiendo esta regla organizativa:\n"
      "  root+\"/\"+address->Concept+\"/\"+address->Version+\"/\"+address->Node+\"/\"+address->Name"
@@ -726,7 +726,7 @@ static const char* aliasSpanishDescription_ =
     "(Text root [, Set address=Empty, Set options])",
   I2("OIS means Objects Indexed Serialization "
      "Loads information from an OIS directory.\n"
-     "  1) Argument address must have Ois.AddressStr structure or be empty."
+     "  1) Argument address must have @Ois.AddressStr structure or be empty."
      "Empty items of address will be skiped and resto of them will be used "
      "to define the directory where OIS will be created following this rule:\n"
      "  root+\"/\"+address->Concept+\"/\"+address->Version+\"/\"+address->Node\n"
@@ -750,7 +750,7 @@ static const char* aliasSpanishDescription_ =
      "objetos TOL con estructura arbitraria. Los ficheros se organizan en un único directorio plano."
      "Esta función recupera total o parcialemente la información guardada en un almacén OIS "
      "bajo el directorio raíz (root)\n"
-     "  1) El argumento address debe tener estructura Ois.AddressStr o bien ser vacío."
+     "  1) El argumento address debe tener estructura @Ois.AddressStr o bien ser vacío."
      "Los elementos vacíos serán ignorados y el resto se usarán para definir "
      "el directorio donde se ubicará el OIS siguiendo esta regla organizativa:\n"
      "  root+\"/\"+address->Concept+\"/\"+address->Version+\"/\"+address->Node\n"

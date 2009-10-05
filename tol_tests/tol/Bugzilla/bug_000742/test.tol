@@ -16,7 +16,7 @@
   Real numWar0 = Copy(NWarning);
     
 
-Class ClasePrueba {
+Class @ClasePrueba {
 
   Text _.autodoc.member.A = "atributo";
   Real A = 1;
@@ -32,14 +32,14 @@ Class ClasePrueba {
   Text _.autodoc.member.GetB = "otro método";
 
   Text _.autodoc.member.Default = "constructor";
-  Static ClasePrueba Default(Real a) {[[Real A = a]]}
+  Static @ClasePrueba Default(Real a) {[[Real A = a]]}
 };
 
   // ERROR: La descripción del constructor no ha sido asignada
-  Text ds.1 = Description(ClasePrueba::Default);
+  Text ds.1 = Description(@ClasePrueba::Default);
   //> ""
 
-  ClasePrueba p = ClasePrueba::Default(1);
+  @ClasePrueba p = @ClasePrueba::Default(1);
 
   // ERROR: La descripción del atributo no ha sido asignada
   Text ds.2 = Description(p::A);

@@ -2313,7 +2313,7 @@ DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 2,
   "(Text filePath [, Text moduleType=\"\"])",
   I2("Parses an ASCII file written in BSR language (Restricted Linear "
      "Regression) and returns a Set with structure of "
-     "BSR.ModelDef containing all needed information to make "
+     "@BSR.ModelDef containing all needed information to make "
      "bayesian estimation over a linear regression model constrained to "
      "linear inequations using MCMC (MonteCarlo Markov Chain) methods:\n"
      "  Y = X*B + E \n"
@@ -2327,7 +2327,7 @@ DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 2,
      ,
      "Analiza un archivo ASCII escrito en lenguaje BSR (Bayesian "
      "Sparse Regression) y devuelve un Set con la estructura de "
-     "BSR.ModelDef que contiene toda la información necesaria para "
+     "@BSR.ModelDef que contiene toda la información necesaria para "
      "hacer estimación bayesian de un modelo de regresión lineal sujeto "
      "a inecuaciones lineales utilizando métodos MCMC (MonteCarlo Markov "
      "Chain):\n"

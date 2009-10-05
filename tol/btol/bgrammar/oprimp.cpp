@@ -611,7 +611,7 @@ static BBool IsIdentifier(const BText& expression)
 {
     if(! expression.HasName())  { return(BFALSE); }
     if(!BParser::DefaultParser()->Filter()->
-        IsFirstIdentifier(expression.Get(0)) || 
+        StartIdentifier(expression.Get(0)) || 
         (expression=="Stop"))
     {
 	Error(expression + I2(" is not a valid variable identifier.",
@@ -1739,12 +1739,12 @@ BBool BUserFunction::SetExpression(const List* dec, const List* def)
  */
 //--------------------------------------------------------------------
 {
-    Clean();
-    //declaration_ = LstDuplicate(dec);
-    //definition_  = LstDuplicate(def);
-    declaration_ = dec->duplicate();
-    definition_ = def->duplicate();
-    return(Compile());
+  Clean();
+  //declaration_ = LstDuplicate(dec);
+  //definition_  = LstDuplicate(def);
+  declaration_ = dec->duplicate();
+  definition_ = def->duplicate();
+  return(Compile());
 }
 
 
@@ -1755,10 +1755,10 @@ void BUserFunction::Clean()
  */
 //--------------------------------------------------------------------
 {
-    DESTROY(declaration_);
-    DESTROY(definition_);
-    declare_     = "";
-    define_      = "";
+  DESTROY(declaration_);
+  DESTROY(definition_);
+  declare_     = "";
+  define_      = "";
 }
 
 

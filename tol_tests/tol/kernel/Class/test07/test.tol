@@ -11,31 +11,31 @@ Text summary_ = "test for Classes forward declaration" ;
 
 Real numErr0 = Copy(NError);
 
-Class ClHeight;
+Class @ClHeight;
 
-Class ClAge
+Class @ClAge
 {
   Text _.name;
   Real _.age;
-  Real equalName(ClHeight arg)
+  Real equalName(@ClHeight arg)
   {
     _.name==arg::_.name
   }
 };
 
-Class ClHeight
+Class @ClHeight
 {
   Text _.name;
   Real _.height;
-  Real equalName(ClAge arg)
+  Real equalName(@ClAge arg)
   {
     _.name==arg::_.name
   }
 };
 
-ClAge    a = [[ Text _.name="x"; Real _.age    =  10 ]];
-ClHeight b = [[ Text _.name="y"; Real _.height = 120 ]];
-ClHeight c = [[ Text _.name="x"; Real _.height = 150 ]];
+@ClAge    a = [[ Text _.name="x"; Real _.age    =  10 ]];
+@ClHeight b = [[ Text _.name="y"; Real _.height = 120 ]];
+@ClHeight c = [[ Text _.name="x"; Real _.height = 150 ]];
 
 Real ok.1 = a::equalName(c);
 Real ok.2 = Not(b::equalName(a));

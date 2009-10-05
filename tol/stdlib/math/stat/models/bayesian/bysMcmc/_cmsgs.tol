@@ -11,19 +11,19 @@ NameBlock _.cmsg =
   Text _.autodoc.description = 
   "Codified messages for "+_ag;
 
-  Set _.invalidType = CMsg.Coded.info(_ag,1, "stop", Text(Set args)
+  Set _.invalidType = @CMsg.Coded.info(_ag,1, "stop", Text(Set args)
   {
     Text mid  = args[1];
     Text type = args[2];
     mid+": Not allowed type "+type
   });
-  Set _.notFoundName = CMsg.Coded.info(_ag,2, "stop", Text(Set args)
+  Set _.notFoundName = @CMsg.Coded.info(_ag,2, "stop", Text(Set args)
   {
     Text    mid    = args[1];
     Text    name   = args[2];
     mid+": Not found item with name "+name
   });
-  Set _.indexOutOfRange = CMsg.Coded.info(_ag,3, "stop", Text(Set args)
+  Set _.indexOutOfRange = @CMsg.Coded.info(_ag,3, "stop", Text(Set args)
   {
     Text    mid    = args[1];
     Real    index  = args[2];
@@ -31,18 +31,18 @@ NameBlock _.cmsg =
     Real    max    = args[4];
     mid+": Item "<<index+" out of range ["<<min+","<<max+"]"
   });
-  Set _.unkInfBlock = CMsg.Coded.info(_ag,4, "stop", Text(Set args)
+  Set _.unkInfBlock = @CMsg.Coded.info(_ag,4, "stop", Text(Set args)
   {
     Text    name   = args[1];
     VMatrix store  = args[2];
     "Block "+name+" has unknown or infinite values :"<<Matrix VMat2Mat(store,true)
   });
-  Set _.invCholFac = CMsg.Coded.info(_ag,5, "stop", Text(Set args)
+  Set _.invCholFac = @CMsg.Coded.info(_ag,5, "stop", Text(Set args)
   {
     Text mid = args[1];
     mid+"Cannot factorize main linear block."
   });
-  Set _.nonEnoughtDataForARIMADif = CMsg.Coded.info(_ag,6, "stop", Text(Set args)
+  Set _.nonEnoughtDataForARIMADif = @CMsg.Coded.info(_ag,6, "stop", Text(Set args)
   {
     Text  mid  = args[1];
     Text  desc = args[2];
@@ -51,7 +51,7 @@ NameBlock _.cmsg =
     _MID+" Difference degree "<<d+" is greater than length "<<
       m+" of block "+desc
   });
-  Set _.nonStationaryDraw = CMsg.Coded.info(_ag,7, "error", Text(Set args)
+  Set _.nonStationaryDraw = @CMsg.Coded.info(_ag,7, "error", Text(Set args)
   {
     Text  mid  = args[1];
     Text  desc = args[2];
@@ -59,7 +59,7 @@ NameBlock _.cmsg =
     Real  x    = args[4];
     mid+" "+desc+": non stationary "<<pol+" drawing x="<<x
   });
-  Set _.cannotDrawArima = CMsg.Coded.info(_ag,8, "error", Text(Set args)
+  Set _.cannotDrawArima = @CMsg.Coded.info(_ag,8, "error", Text(Set args)
   {
     Text  mid    = args[1];
     Text  block  = args[2];
@@ -70,17 +70,17 @@ NameBlock _.cmsg =
     mid+": Sorry, cannot draw "+arma+" polynomial "<<pol+" at "<<factor+" factor "
     "of equations block "+block+" with degree great than 2*"<<period+"\n"
     "Full ARMA block will be disabled and just initial values will be used for "
-    "ARMA filtering. You can define another factor adding more ARIMAStruct "
+    "ARMA filtering. You can define another factor adding more @ARIMAStruct "
     "elements in your model definition in order to be able of simulate larger "+
     arma+" factorized polynomials."
   });
-  Set _.notFoundSegment = CMsg.Coded.info(_ag,9, "stop", Text(Set args)
+  Set _.notFoundSegment = @CMsg.Coded.info(_ag,9, "stop", Text(Set args)
   {
     Text    mid    = args[1];
     Text    name   = args[2];
     mid+": Not found segment with name "+name
   });
-  Set _.cannotContinueSimulation = CMsg.Coded.info(_ag,10, "error", Text(Set args)
+  Set _.cannotContinueSimulation = @CMsg.Coded.info(_ag,10, "error", Text(Set args)
   {
     Text mid    = args[1];
     Real numErr = args[2];

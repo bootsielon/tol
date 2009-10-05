@@ -86,8 +86,8 @@ WriteLn("Comienzo de la simulacion: "+Time);
   Ration DifFilter = 1/Dif;
   Set ARIMA = 
   [[
-    ARIMAStruct(s1,AR1,MA1,Dif1),
-    ARIMAStruct(s2,AR2,MA2,Dif2)
+    @ARIMAStruct(s1,AR1,MA1,Dif1),
+    @ARIMAStruct(s2,AR2,MA2,Dif2)
   ]];
   Set viewDeg =
   {

@@ -22,8 +22,8 @@ Text TclDialogEntry( Set valArg )
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-comment", "Write a value:"),
-    TclArgSt("-defValue", "")
+    @TclArgSt("-comment", "Write a value:"),
+    @TclArgSt("-defValue", "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
  
@@ -68,7 +68,7 @@ Date TclDialogDate( Set valArg )
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-comment", "Choose a date:")
+    @TclArgSt("-comment", "Choose a date:")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -126,13 +126,13 @@ Text TclDialogCombo( Set valArg )
   {
     Text valTitle = TclGAV("-title",valArg);
     newValArg<< SetOfSet(
-      TclArgSt("-titles", TxtListTcl(SetOfText(valTitle))) )
+      @TclArgSt("-titles", TxtListTcl(SetOfText(valTitle))) )
   },
     newValArg
   );
   Set defValArg = preValArg<<SetOfSet(
-    TclArgSt("-cols",    TxtListTcl(SetOfText("col1")) ),
-    TclArgSt("-returns", TxtListTcl(SetOfText("col1")) )
+    @TclArgSt("-cols",    TxtListTcl(SetOfText("col1")) ),
+    @TclArgSt("-returns", TxtListTcl(SetOfText("col1")) )
   );
   TclDialogComboPlus(defValArg)
 };
@@ -160,7 +160,7 @@ Text TclDialogComboPlus( Set valArg )
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-comment", "Choose a value from list:")
+    @TclArgSt("-comment", "Choose a value from list:")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
@@ -384,7 +384,7 @@ Text TclDialogEditSelector( Set valArg )
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-comment", "Choose some values from list:")
+    @TclArgSt("-comment", "Choose some values from list:")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 

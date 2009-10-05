@@ -8,7 +8,7 @@
 /////////////////////////////////////////////////////////////////////////////
 //Configuration of Bayesian Inference report
 /////////////////////////////////////////////////////////////////////////////
-Struct BysInf.Report.Config
+Struct @BysInf.Report.Config
 {
 //parameters for method RCODA::raftery.diag(...) 
   Real raftery.diag.q_,   //the quantile to be estimated 
@@ -27,7 +27,7 @@ Struct BysInf.Report.Config
 /////////////////////////////////////////////////////////////////////////////
 //Returned Bayesian Inference statistics
 /////////////////////////////////////////////////////////////////////////////
-Struct BysInf.Coda.Summary.Stats
+Struct @BysInf.Coda.Summary.Stats
 {
   Text varName_,  //Parameter identifier
   Real mean_,     //Sample average
@@ -46,7 +46,7 @@ Struct BysInf.Coda.Summary.Stats
 /////////////////////////////////////////////////////////////////////////////
 //Returned test of significance of parameters
 /////////////////////////////////////////////////////////////////////////////
-Struct BysInf.Param.Signif
+Struct @BysInf.Param.Signif
 {
   //Parameter identifier
   Text varName_,   
@@ -62,7 +62,7 @@ Struct BysInf.Param.Signif
 /////////////////////////////////////////////////////////////////////////////
 //Bayesian Diagnostics with method RCODA::raftery.diag
 /////////////////////////////////////////////////////////////////////////////
-Struct BysInf.Coda.Diag.Raftery
+Struct @BysInf.Coda.Diag.Raftery
 {
   Text   varName_,     //Parameter identifier
   Real   length_,      //L The number of calculated simulations 
@@ -78,7 +78,7 @@ Struct BysInf.Coda.Diag.Raftery
 /////////////////////////////////////////////////////////////////////////////
 //Comparing Coda.Diag.Raftery information about two reports
 /////////////////////////////////////////////////////////////////////////////
-Struct StRepCmp.Coda.Diag.Raftery 
+Struct @StRepCmp.Coda.Diag.Raftery 
 { 
   Text varName_, 
   Real rep1.length, 
@@ -98,7 +98,7 @@ Struct StRepCmp.Coda.Diag.Raftery
 /////////////////////////////////////////////////////////////////////////////
 //Comparing Coda.Summary.Stats information about two reports
 /////////////////////////////////////////////////////////////////////////////
-Struct StRepCmp.Coda.Summary.Stats 
+Struct @StRepCmp.Coda.Summary.Stats 
 { 
   Text varName_,                    //Variable name
   Real diff_,                       //difference between averages a1-a2
@@ -135,7 +135,7 @@ Struct StRepCmp.Coda.Summary.Stats
 /////////////////////////////////////////////////////////////////////////////
 //Comparing ACF information about two reports
 /////////////////////////////////////////////////////////////////////////////
-Struct StRepCmp.AcfByVar
+Struct @StRepCmp.AcfByVar
 { 
   Real lag, 
   Real rep1.acf, 
@@ -151,7 +151,7 @@ Struct StRepCmp.AcfByVar
 /////////////////////////////////////////////////////////////////////////////
 //Comparing ACF information about two reports
 /////////////////////////////////////////////////////////////////////////////
-Struct StRepCmp.Acf 
+Struct @StRepCmp.Acf 
 { 
   Text varName_, 
   Real lag, 
@@ -168,7 +168,7 @@ Struct StRepCmp.Acf
 /////////////////////////////////////////////////////////////////////////////
 //Structure for ARMA param handling
 /////////////////////////////////////////////////////////////////////////////
-Struct ArmaParamDescStruct
+Struct @ArmaParamDescStruct
 (
   Text name,
   Real paramNum,
@@ -185,7 +185,7 @@ Struct ArmaParamDescStruct
 /////////////////////////////////////////////////////////////////////////////
 //Parameter information in a BSR model definition
 /////////////////////////////////////////////////////////////////////////////
-Struct Bsr.Param.Info
+Struct @Bsr.Param.Info
 {
   Text Name,              // Unique identidier of the parameter
   Real InitValue,         // Given by user initial value or ?
@@ -196,7 +196,7 @@ Struct Bsr.Param.Info
 /////////////////////////////////////////////////////////////////////////////
 //Truncated normal info
 /////////////////////////////////////////////////////////////////////////////
-Struct Bsr.TruncatedNormal
+Struct @Bsr.TruncatedNormal
 {
   Text Name,              // Unique identidier of the parameter
   Real Nu,
@@ -209,7 +209,7 @@ Struct Bsr.TruncatedNormal
 //Parameter information about linear parameters for simplified API used in
 //BysMcmc::Bsr::Gibbs::EstimOneNode
 /////////////////////////////////////////////////////////////////////////////
-Struct Bsr.OneNode.LinearParamInfo
+Struct @Bsr.OneNode.LinearParamInfo
 {
   Text Name,              // Unique identidier of the parameter
   Real InitValue,         // Given by user initial value or ?
@@ -229,7 +229,7 @@ Struct Bsr.OneNode.LinearParamInfo
 //Edition, section 14.8, subsection "Prior information about variance 
 //parameters"  page 384
 /////////////////////////////////////////////////////////////////////////////
-Struct Bsr.Sigma.Prior.InverseGamma
+Struct @Bsr.Sigma.Prior.InverseGamma
 {
   Real Sigma2, // Residuals square average: sigma0^2
   Real Weight  // Relative weight of prior versus data : n0/(n0+n)  
@@ -238,7 +238,7 @@ Struct Bsr.Sigma.Prior.InverseGamma
 /////////////////////////////////////////////////////////////////////////////
 //Missing value with optional normal prior information in a BSR model 
 /////////////////////////////////////////////////////////////////////////////
-Struct Bsr.Missing.Info
+Struct @Bsr.Missing.Info
 {
   Text Name,              // Unique identidier of the missing value
   Real Owner.Type,         // See BysMcmc::Options::Data.Owner.Type
@@ -255,7 +255,7 @@ Struct Bsr.Missing.Info
 //Order restriction over parameters in a BSR model 
 // Lower <= Upper
 /////////////////////////////////////////////////////////////////////////////
-Struct Bsr.OrderRelation.Info
+Struct @Bsr.OrderRelation.Info
 {
   Text Lower, //Left parameter
   Text Upper  //Right parameter
@@ -265,7 +265,7 @@ Struct Bsr.OrderRelation.Info
 //Linear combination term over a parameter of a BSR model
 // Coefficient * Parameter
 /////////////////////////////////////////////////////////////////////////////
-Struct Bsr.LinearCombTerm
+Struct @Bsr.LinearCombTerm
 {
   Real Coefficient, 
   Text Parameter
@@ -275,27 +275,27 @@ Struct Bsr.LinearCombTerm
 //Generic restriction over parameters in a BSR model 
 // LowerBound <= c_1 * alfa_1 + ... + c_n * alfa_n <= UpperBound
 /////////////////////////////////////////////////////////////////////////////
-Struct Bsr.GenericConstraint.Info
+Struct @Bsr.GenericConstraint.Info
 {
   Real LowerBound, //Left border value or -1/0
   Set  LinearComb, //A set of Bsr.LinearCombTerm
   Real UpperBound  //Right border value or +1/0
 };  
 
-Struct Bsr.DynHlm.DBNode
+Struct @Bsr.DynHlm.DBNode
 {
   Text NodeType,
   Text Node
 };
 
-Struct Bsr.DynHlm.DBStrConstrBorder
+Struct @Bsr.DynHlm.DBStrConstrBorder
 {
   Real LowerBound, //Left border value or -1/0
   Real NumInequation,
   Real UpperBound  //Right border value or +1/0
 };
 
-Struct Bsr.DynHlm.DBStrObsOutput
+Struct @Bsr.DynHlm.DBStrObsOutput
 {
   Text id_series, 
   Real missingPriorSigmaFactor, 
@@ -307,7 +307,7 @@ Struct Bsr.DynHlm.DBStrObsOutput
   Real sigmaPriorWeight
 };
 
-Struct Bsr.DynHlm.DBStrObsInput
+Struct @Bsr.DynHlm.DBStrObsInput
 {
   Text id_parameter, 
   Text id_series, 
@@ -318,7 +318,7 @@ Struct Bsr.DynHlm.DBStrObsInput
   Real paramPriorLowerBound, 
   Real paramPriorUpperBound 
 };
-Struct Bsr.DynHlm.DBStrObsTransFun
+Struct @Bsr.DynHlm.DBStrObsTransFun
 {
   Text id_transferFunction, 
   Text te_omega,
@@ -331,44 +331,44 @@ Struct Bsr.DynHlm.DBStrObsTransFun
   Real paramPriorLowerBound, 
   Real paramPriorUpperBound 
 };
-Struct Bsr.DynHlm.DBStrARIMA
+Struct @Bsr.DynHlm.DBStrARIMA
 {
   Real period,
   Text AR, 
   Text MA, 
   Text DIF 
 } ;   
-Struct Bsr.DynHlm.DBStrLatEqu
+Struct @Bsr.DynHlm.DBStrLatEqu
 {
   Real nu_equation, 
   Real sigma_factor 
 };
-Struct Bsr.DynHlm.DBStrLatOutput
+Struct @Bsr.DynHlm.DBStrLatOutput
 {
   Real nu_equation, 
   Text child, 
   Real coef 
 };
-Struct Bsr.DynHlm.DBStrLatInput
+Struct @Bsr.DynHlm.DBStrLatInput
 {
   Real nu_equation, 
   Text father, 
   Real coef 
 };
-Struct Bsr.DynHlm.DBStrPriEqu
+Struct @Bsr.DynHlm.DBStrPriEqu
 {
   Real nu_equation, 
   Real average, 
   Real sigma , 
   Real sigmaPriorWeight
 };
-Struct Bsr.DynHlm.DBStrPriOutput
+Struct @Bsr.DynHlm.DBStrPriOutput
 {
   Real nu_equation, 
   Text child, 
   Real coef 
 };
-Struct Bsr.DynHlm.DBStrNonLinFlt
+Struct @Bsr.DynHlm.DBStrNonLinFlt
 {
   Text node,
   Text nameBlock

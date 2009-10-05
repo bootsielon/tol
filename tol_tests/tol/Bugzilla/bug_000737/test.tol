@@ -16,19 +16,19 @@
   Real numWar0 = Copy(NWarning);
     
 
-  Class ClaseA {
+  Class @ClaseA {
     Real a
   };
 
-  Class ClaseB {
-    ClaseA objA;
-    ClaseA Damelo(Real void){ objA }
+  Class @ClaseB {
+    @ClaseA objA;
+    @ClaseA Damelo(Real void){ objA }
   };
 
-  ClaseB ejB = [[ ClaseA objA = [[Real a = 2]] ]];
+  @ClaseB ejB = [[ @ClaseA objA = [[Real a = 2]] ]];
 
   // Da error:
-  ClaseA ejB::Damelo(?);
+  @ClaseA ejB::Damelo(?);
 
   // No da error:
   NameBlock ejB::Damelo(?);

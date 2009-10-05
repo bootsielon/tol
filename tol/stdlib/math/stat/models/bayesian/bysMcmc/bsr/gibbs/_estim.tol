@@ -8,45 +8,45 @@
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetCyclerFromParsed =
-"Builds the Cycler of a BSR model by Gibbs method\n"+
+"Builds the @Cycler of a BSR model by Gibbs method\n"+
 "Argument `parsed` must be defined as the result of calling function "
 "BSR.Parse\n";
 
-Cycler GetCyclerFromParsed(Set parsed_, 
-                           McmcPartialHandler mcmcPartialHandler,
-                           Config config,
-                           Notifier notifier)
+@Cycler GetCyclerFromParsed(Set parsed_, 
+                           @McmcPartialHandler mcmcPartialHandler,
+                           @Config config,
+                           @Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimParsed Card(nonLinFilter) = "<<Card(nonLinFilter));
   Text struct = StructName(parsed_);
   Set parsed = Case(
-    struct == "BSR.ModelDef",
+    struct == "@BSR.ModelDef",
     {
       parsed_
     },
-    struct == "BSR.MasterInfo",
+    struct == "@BSR.MasterInfo",
     {
       BysMcmc::Bsr::ModularSchema::Monophasic::MasterToJoint(parsed_)
     },
     1==1,
     {
       WriteLn("Argument Set parsed_ of GetCyclerFromParsed must have "
-      "structure 'BSR.ModelDef' or 'BSR.MasterInfo' instead of '"+
+      "structure '@BSR.ModelDef' or '@BSR.MasterInfo' instead of '"+
       struct+"'","E");
       Real Stop;
       Copy(Empty)
     }
   );
 
-  BysMcmc::MasterSampler sampler = 
-    BysMcmc::Bsr::Gibbs::MasterSamplerBasic::New(
+  BysMcmc::@MasterSampler sampler = 
+    BysMcmc::Bsr::Gibbs::@MasterSamplerBasic::New(
       parsed, mcmcPartialHandler, 1, 1, config);	
 
-  BysMcmc::Cycler cycler = [[
-    BysMcmc::MasterSampler _.sampler  = sampler;
-    BysMcmc::Notifier      _.notifier = notifier;
-    BysMcmc::Config        _.config   = config
+  BysMcmc::@Cycler cycler = [[
+    BysMcmc::@MasterSampler _.sampler  = sampler;
+    BysMcmc::@Notifier      _.notifier = notifier;
+    BysMcmc::@Config        _.config   = config
   ]];
   Real cycler::define(0);
   Set Append(cycler::auxInfo, [[parsed]]);
@@ -56,20 +56,20 @@ Cycler GetCyclerFromParsed(Set parsed_,
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetCyclerFromAscii =
-"Builds the Cycler of a BSR model by Gibbs method\n"+
+"Builds the @Cycler of a BSR model by Gibbs method\n"+
 "Argument `ascii` must be an ASCII file path prepared to be parsed by "
 "function BSR.Parse\n";
-Cycler GetCyclerFromAscii(Text ascii_, 
-                          McmcPartialHandler mcmcPartialHandler,
-                          Config config,
-                          Notifier notifier)
+@Cycler GetCyclerFromAscii(Text ascii_, 
+                          @McmcPartialHandler mcmcPartialHandler,
+                          @Config config,
+                          @Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE EstimAscii Card(nonLinFilter) = "<<Card(nonLinFilter));
   Text ascii = ascii_;
   Real notifier::parsing(0);
   Set parsed = BSR.Parse(ascii);
-  BysMcmc::Cycler cycler = GetCyclerFromParsed(
+  BysMcmc::@Cycler cycler = GetCyclerFromParsed(
     parsed, mcmcPartialHandler, config, notifier);
   Set Append(cycler::auxInfo, [[ascii]]);
   cycler
@@ -77,17 +77,17 @@ Cycler GetCyclerFromAscii(Text ascii_,
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetCycler =
-"Builds the Cycler of a BSR model by Gibbs method\n"+
+"Builds the @Cycler of a BSR model by Gibbs method\n"+
 "Argument `modelDef` must be one of these things: \n "
 " - A Text containing an ASCII file path prepared to be parsed by "
 " function BSR.Parse\n"+
 " - A Set containing the result of calling function BSR.Parse\n"+
 " - A NameBlock with the minimum API accepted by standard importing method "
 "BysMcmc::Bsr::Import::Write\n";
-Cycler GetCycler(Anything modelDef, 
-                 McmcPartialHandler mcmcPartialHandler,
-                 Config config,
-                 Notifier notifier)
+@Cycler GetCycler(Anything modelDef, 
+                 @McmcPartialHandler mcmcPartialHandler,
+                 @Config config,
+                 @Notifier notifier)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text g = Grammar(modelDef);
@@ -100,7 +100,7 @@ Cycler GetCycler(Anything modelDef,
     g=="NameBlock", 
     {
       Text ascii = BysMcmc::Bsr::Import::Write(modelDef);
-      BysMcmc::Cycler cycler = GetCyclerFromAscii(
+      BysMcmc::@Cycler cycler = GetCyclerFromAscii(
         ascii, mcmcPartialHandler, config, notifier);
       Real cycler::setImporter(modelDef);
       cycler

@@ -460,6 +460,43 @@ BSyntaxObject* BGrammar::FindUserFunc(const BText& name) const
   return(found);
 }
 
+
+//--------------------------------------------------------------------
+  static void _get_code_(BSyntaxObject*& found, BSyntaxObject* met)
+//--------------------------------------------------------------------
+{
+  if(!found && met)
+  {
+    if(met->Mode()==BUSERFUNMODE)
+    { 
+      BOperator* opr = (BOperator*)met; 
+      found = opr->GetCode();
+    }
+    else if(met->Mode()==BOBJECTMODE)
+    {
+      found = met;
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+  static void _get_operator_(BOperator*& found, BSyntaxObject* met)
+//--------------------------------------------------------------------
+{
+  if(!found && met)
+  {
+    if(met->Mode()==BUSERFUNMODE)
+    { 
+      found = (BOperator*)met;
+    }
+    else if((met->Mode()==BOBJECTMODE) && (met->Grammar()==GraCode()))
+    {
+      BUserCode* uCode = UCode(met);
+      found = uCode->Contens().Operator();
+    }
+  }
+}
+
 //--------------------------------------------------------------------
 BSyntaxObject* BGrammar::FindOperand(const BText& name, 
                                      bool mayBeConst) const
@@ -482,19 +519,20 @@ BSyntaxObject* BGrammar::FindOperand(const BText& name,
 //InitTotalTime("BGrammar::FindOperand");
   int i;
   if(!name.HasName()) { return(NIL); }
+  BSyntaxObject* met = NULL;
+  BOperator* opr = NULL;
   BSyntaxObject* found =NIL;
   BObjByClassHash* obch;
   BObjByClassHash::const_iterator f;
   const BText& graName=Name();
-  BOperator* opr = NULL;
   if(mayBeConst) 
   { 
     found = FindConstant(name); 
     found = getOperand(this, found);
   }
+  bool isGraCode = (this==GraCode());
 /* */
   const BClass* cls = BClass::currentClassBuildingInstance_;
-  BSyntaxObject* met = NULL;
   if(cls && (this==GraCode()))  
   { 
     met = cls->FindMethod(name,true); 
@@ -607,6 +645,16 @@ BSyntaxObject* BGrammar::FindOperand(const BText& name,
     found = BNameBlock::UsingMember(name); 
     found = getOperand(this, found);
   }
+#ifdef ALLOW_NON_STANDARD_STRUCT
+  if(!found && isGraCode && (name[0]!='@'))
+  {
+    found = FindOperand(BText("@")+name, false);
+#ifdef CATCH_NON_STANDARD_STRUCT
+    if(found) { 
+      _non_standard_struct_calling_without(name); }
+#endif
+  }
+#endif
 //SumPartialTime;
   return(found);
 }
@@ -623,11 +671,12 @@ BOperator* BGrammar::FindOperator(const BText& name)const
 //InitTotalTime("BGrammar::FindOperator");
 //Std(BText("\nFinding Operator ") + name +" in "+Name());
 //Std(Out()+"\nWith Stack = \n"+LstText(stack_,"{","}","\n"));
+  if(!name.HasName()) { return(NIL); }
   BOperator* found = NULL;
+  BSyntaxObject* met = NULL;
 /* */
   const BClass* cls = BClass::currentClassBuildingInstance_;
-  BSyntaxObject* met = NULL;
-  if(cls)  
+  if(!found && cls)  
   { 
     met = cls->FindMethod(name,true); 
   }
@@ -700,6 +749,26 @@ BOperator* BGrammar::FindOperator(const BText& name)const
   { 
     found = getOperator(this, BNameBlock::UsingMember(name)); 
   }
+#ifdef ALLOW_NON_STANDARD_STRUCT
+  if(!found && (name[0]!='@'))
+  {
+    found = FindOperator(BText("@")+name);
+#ifdef CATCH_NON_STANDARD_STRUCT
+    if(found)
+    {
+      _non_standard_struct_() << "CALLING STRUCT '@"<<name.String()<<
+        "' WITHOUT @";
+      if(BSourcePath::Current())
+      {
+        _non_standard_struct_() <<  
+          " IN FILE '"<<BSourcePath::Current()->Name().String()<<"'";
+      }
+      _non_standard_struct_() <<  "\n";
+      _non_standard_struct_().flush();
+    }
+#endif
+  }
+#endif
 //if(found) { Std(Out()+"\nFound Operator : \n"+found->Dump()); }
 //SumPartialTime;
   return(found);
@@ -775,8 +844,11 @@ BList* BGrammar::GetOperators() const
   while(lst_unb)
   {
     unb = (BUserNameBlock*)lst_unb->Car();
-  //Std(BText("\n")+Name()+"::GetOperators() Exploring NameBlock "+unb->FullName());
-    lst_opr = unb->Contens().SelectMembersDeep(lst_opr, oc);
+    if(!unb->Contens().Class()
+    {
+    //Std(BText("\n")+Name()+"::GetOperators() Exploring NameBlock "+unb->FullName());
+      lst_opr = unb->Contens().SelectMembersDeep(lst_opr, oc);
+    }
     lst_unb = lst_unb->Cdr();
   }
   DESTROY(aux);

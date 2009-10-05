@@ -11,16 +11,16 @@
 //Also you can set 0 times to skype a battery
 Set Results = ReportAllBatteries(SetOfSet
 (
-  strBatteryConfig("Bugzilla",          "",  1),
-  strBatteryConfig("kernel",            "",  1),
-  strBatteryConfig("CreationAndCopy",   "",  1),
-  strBatteryConfig("SetAlgebra",        "",  1),
-  strBatteryConfig("BooleanAlgebra",    "",  1),
-  strBatteryConfig("Text",              "", 10),
-  strBatteryConfig("ImportExport",      "",  1),
-  strBatteryConfig("OIS",               "",  1),
-  strBatteryConfig("performance",       "",  1),
-  strBatteryConfig("random_generation", "", 10),
-  strBatteryConfig("LinearAlgebra",     "",  3)
+  @strBatteryConfig("Bugzilla",          "",  1),
+  @strBatteryConfig("kernel",            "",  1),
+  @strBatteryConfig("CreationAndCopy",   "",  1),
+  @strBatteryConfig("SetAlgebra",        "",  1),
+  @strBatteryConfig("BooleanAlgebra",    "",  1),
+  @strBatteryConfig("Text",              "", 10),
+  @strBatteryConfig("ImportExport",      "",  1),
+  @strBatteryConfig("OIS",               "",  1),
+  @strBatteryConfig("performance",       "",  1),
+  @strBatteryConfig("random_generation", "", 10),
+  @strBatteryConfig("LinearAlgebra",     "",  3)
 
 ));

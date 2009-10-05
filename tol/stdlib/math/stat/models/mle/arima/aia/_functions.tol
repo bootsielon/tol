@@ -15,7 +15,7 @@
   {
     Text id = Replace(Replace(Identify(aia[k]),"(",","),")",",");
     Set tok = Tokenizer(id,",");
-    Aia.OutlierInfo
+    @Aia.OutlierInfo
     (
       tok[6],
       tok[5],
@@ -27,12 +27,12 @@
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(
 "Transforma el resultado de la función AIA de un conjunto de estructuras "
-"InputDef a otro codificado en Aia.OutlierInfo",
+"InputDef a otro codificado en @Aia.OutlierInfo",
 Aia.OutlierInfo.BuildFromSetInpDef);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Text Aia.OutlierInfo.GetInpDefExpression(Aia.OutlierInfo inf)
+  Text Aia.OutlierInfo.GetInpDefExpression(@Aia.OutlierInfo inf)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text v = FormatReal(inf->value_,"%.15lg");
@@ -43,7 +43,7 @@ Aia.OutlierInfo.BuildFromSetInpDef);
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(
 "Devuelve en un formato estandarizado la expresión de la estructura InputDef "
-"correspondiente a un input AIA definido con estructura Aia.OutlierInfo",
+"correspondiente a un input AIA definido con estructura @Aia.OutlierInfo",
 Aia.OutlierInfo.GetInpDefExpression);
 //////////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@ Aia.OutlierInfo.BuildFromSetInpDef);
 
 
 //////////////////////////////////////////////////////////////////////////////
-  Text Aia.OutlierInfo.GetSerExpression(Aia.OutlierInfo inf)
+  Text Aia.OutlierInfo.GetSerExpression(@Aia.OutlierInfo inf)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text v = FormatReal(inf->value_,"%.15lg");
@@ -73,12 +73,12 @@ Aia.OutlierInfo.BuildFromSetInpDef);
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(
 "Devuelve la expresión sin nombre de la serie de efecto correspondiente a un "
-"input AIA definido con estructura Aia.OutlierInfo",
+"input AIA definido con estructura @Aia.OutlierInfo",
 Aia.OutlierInfo.GetSerExpression);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Serie Aia.OutlierInfo.GetSerie(Aia.OutlierInfo out)
+  Serie Aia.OutlierInfo.GetSerie(@Aia.OutlierInfo out)
 //////////////////////////////////////////////////////////////////////////////
 {
   Eval(Aia.OutlierInfo.GetSerExpression(out))
@@ -86,7 +86,7 @@ Aia.OutlierInfo.GetSerExpression);
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(
 "Devuelvecomo objeto local la serie de efecto correspondiente a un input AIA "
-"definido con estructura Aia.OutlierInfo",
+"definido con estructura @Aia.OutlierInfo",
 Aia.OutlierInfo.GetSerie);
 //////////////////////////////////////////////////////////////////////////////
 

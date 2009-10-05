@@ -107,7 +107,7 @@
   Text FileEst.7 = GenBlockSep("NOISE ESTIMATION")+
   "
   Serie NoiseEst = ModeloEstimado[3][3];
-  Set ModeloInicial.Noi = ModelDef(
+  Set ModeloInicial.Noi = @ModelDef(
   NoiseEst,
   1,
   0,
@@ -165,7 +165,7 @@ si se desea reportar errores y/o problemas con una estimacion.
 ARGUMENTOS:
   Text PathDirSave : directorio de volcado (terminado en barra) Si no existe
                      se crea el directorio pero debe existir el padre.
-  Set  ModeloIni   : conjunto con estructura ModelDef que se desee estimar
+  Set  ModeloIni   : conjunto con estructura @ModelDef que se desee estimar
   Date IniEst      : fecha inicial de la estimacion
   Date EndEst      : fecha final de la estimacion
 

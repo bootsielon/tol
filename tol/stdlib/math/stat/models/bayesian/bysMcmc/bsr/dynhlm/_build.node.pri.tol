@@ -21,7 +21,7 @@ NameBlock Pri.Homog(
 //Optional ad-hoc API.
   //The node identifier must be unique along the whole hierarchy of nodes
   Text _.name = name;
-  //Set of Bsr.Param.Info related to variables of child nodes that are the
+  //Set of @Bsr.Param.Info related to variables of child nodes that are the
   //input of the regression segment defined by this node
   Set  _.alfa = lowLevelParam;
   //Fixed average for all equations

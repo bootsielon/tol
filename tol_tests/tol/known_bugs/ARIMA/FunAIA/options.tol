@@ -18,8 +18,8 @@ Set Aia.OptionsDef = Aia.OptionsInfo
   Real { preestimIter                   =     10 },        
   Set  { arimaDef = SetOfSet // Modelos ARIMA tentativos
   (
-    SetOfSet(ARIMAStruct(1, 1-0.5*B, 1,       1  )),
-    SetOfSet(ARIMAStruct(1, 1,       1-0.7*B, 1-B)),
-    SetOfSet(ARIMAStruct(1, 1-0.5*B, 1,       1-B))
+    SetOfSet(@ARIMAStruct(1, 1-0.5*B, 1,       1  )),
+    SetOfSet(@ARIMAStruct(1, 1,       1-0.7*B, 1-B)),
+    SetOfSet(@ARIMAStruct(1, 1-0.5*B, 1,       1-B))
   )}
 );

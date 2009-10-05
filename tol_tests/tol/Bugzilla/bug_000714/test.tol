@@ -15,42 +15,42 @@
   Real numErr0 = Copy(NError);
     
   
-  Class Variable
+  Class @Variable
   {
     Text _.name
   };
 
-  Class Input
+  Class @Input
   {
     Text _.name;
-    Variable _.variable
+    @Variable _.variable
   };
 
-  Class ExplicativeTerm
+  Class @ExplicativeTerm
   {
     Text _.name;
     Text _.description  = "Sin descripción";
     Set  _.parameters   = Copy(Empty)
   };
 
-  Class LinearExplicativeTerm: ExplicativeTerm
+  Class @LinearExplicativeTerm: @ExplicativeTerm
   {
-    Input _.input /*;
+    @Input _.input /*;
     Real unused_1_=? */
   };
 
-  Class OmegaExplicativeTerm : LinearExplicativeTerm
+  Class @OmegaExplicativeTerm : @LinearExplicativeTerm
   {
     Real _.member
   };
 
-  OmegaExplicativeTerm D1 = 
+  @OmegaExplicativeTerm D1 = 
   [[ 
     Text _.name = "D1", 
-    Input _.input = 
+    @Input _.input = 
     [[ 
       Text _.name = "input", 
-      Variable _.variable = 
+      @Variable _.variable = 
       [[ 
         Text _.name = "mi variable" 
       ]] 

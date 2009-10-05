@@ -28,12 +28,12 @@ Text session.description =
 
 
 //Number of variables of each observational node
-Real n = IntRand(5,25);
+Real n = IntRand(2,3);
 Real S = 7;
 //Data length of each observational node
-Real m  = IntRand(200,500);
+Real m  = IntRand(20,50);
 //Number of observational nodes
-Real K1 = IntRand(3,5);
+Real K1 = IntRand(2,3);
 //
 Real enableARMA = true;
 //Regular AR Degree
@@ -159,8 +159,8 @@ Set obsNodes = For(1, K1, Set(Real k)
   Matrix If(Degree(maS),  _arma := _arma << pol2col(maS));
   Set arima = SetOfSet
   (
-    ARIMAStruct(1,ar1,ma1,dif1),
-    ARIMAStruct(S,arS,maS,difS)
+    @ARIMAStruct(1,ar1,ma1,dif1),
+    @ARIMAStruct(S,arS,maS,difS)
   );
 
   Text arimaExpr = "ARIMA.COV("<<arima+")";

@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : _blockSampler.tol
-// PURPOSE: Declares class BysMcmc::BlockSampler
+// PURPOSE: Declares class BysMcmc::@BlockSampler
 // PURPOSE: Generic handler for blocks of variables in MonteCarlo Markov 
 //          Chain methods
 //////////////////////////////////////////////////////////////////////////////
@@ -8,13 +8,13 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-Class BlockSampler
+Class @BlockSampler
 //////////////////////////////////////////////////////////////////////////////
 {
   //Identifies the block.
   Text _.name = "";
   //Message identificator
-  Text _MID = "[BlockSampler unnamed] ";
+  Text _MID = "[@BlockSampler unnamed] ";
   //Identifiers of block parameters that must be all unique
   Set _.colNames = Copy(Empty);
   //The position of this block in full MCMC
@@ -28,7 +28,7 @@ Class BlockSampler
   //Indexes of columns of this block in full MCMC
   Set _.colIdx = Copy(Empty);
   //User configuration parameters
-  BysMcmc::Config _.config = BysMcmc::Config::Default(0);
+  BysMcmc::@Config _.config = BysMcmc::@Config::Default(0);
   //Stores current values of parameters
   VMatrix _.store = Rand(0,0,0,0);
   //Flag that enables/disables the block
@@ -36,8 +36,8 @@ Class BlockSampler
   Real refreshFrequency = 1;
   
   //Used for partial sampling
-  BysMcmc::BlockPartialSampler _.partialSampler = 
-    BysMcmc::BlockPartialSampler::Null(0);
+  BysMcmc::@BlockPartialSampler _.partialSampler = 
+    BysMcmc::@BlockPartialSampler::Null(0);
 
   //Result of call to define method
   Real _defined;
@@ -50,7 +50,7 @@ Class BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   Real _noWorkSpace(Real unused) 
   {
-  //WriteLn("TRACE"+_MID+" BlockSampler::_noWorkSpace 0");
+  //WriteLn("TRACE"+_MID+" @BlockSampler::_noWorkSpace 0");
     0 
   };
   Code _.buildWorkSpace = _noWorkSpace;
@@ -72,21 +72,21 @@ Class BlockSampler
   "Arguments are:\n"
   "  Text name: Identifies the block.\n"
   "  Set colNames: Identifiers of block parameters that must be all unique.\n"
-  "  McmcPartialHandler mcmcPartialHandler: partial simulation info.\n"
+  "  @McmcPartialHandler mcmcPartialHandler: partial simulation info.\n"
   "  Real numBlock: The position of this block in full MCMC.\n"
   "  Real firstCol: First column of this block in full MCMC\n"
   "  NameBlock config: User configuration parameters\n";
   Real define(Text name, 
               Set colNames, 
-              BysMcmc::McmcPartialHandler mcmcPartialHandler,
+              BysMcmc::@McmcPartialHandler mcmcPartialHandler,
               Real numBlock, 
               Real firstCol,
-              BysMcmc::Config config)
+              BysMcmc::@Config config)
   ////////////////////////////////////////////////////////////////////////////
   { 
   //WriteLn("TRACE "+_MID+"::define"+"\n  name="<<name+"\n  numBlock="<<numBlock+"\n  firstCol="<<firstCol);
     Text _.name := name;
-    Text _MID := "[BlockSampler "+name+"] ";
+    Text _MID := "[@BlockSampler "+name+"] ";
     Real _.N := Card(colNames);
     Real If(_.N, {
       Real GT0 (Real idx) { idx>0 };
@@ -104,7 +104,7 @@ Class BlockSampler
     Real _.firstCol := firstCol;
     Real _.lastCol  := firstCol+_.N-1;
     Set _.colIdx := Range(_.firstCol, _.lastCol, 1);
-    BysMcmc::Config _.config := config;
+    BysMcmc::@Config _.config := config;
     VMatrix If(Or(!_.N, VRows(_.store)!=_.N), _.store := Rand(_.N,1,0,0), _.store);
     WriteLn(_MID+" created with "<<
        _.N+" parameters from "<<_.firstCol+" to "<<_.lastCol+"");

@@ -960,7 +960,7 @@ void BSetAutoRegInt::CalcContens()
   static BStruct* BoxCoxStruct_ = NewStructSymbol
 //--------------------------------------------------------------------
 (
-  "BoxCoxStruct"
+  "@BoxCoxStruct"
   ,
   "Real:Exponent,"
   "Real:Constant"
@@ -970,7 +970,7 @@ void BSetAutoRegInt::CalcContens()
 
 static void * cloneBoxCoxStruct_()
 {
-  return NewStructSymbol( "BoxCoxStruct"
+  return NewStructSymbol( "@BoxCoxStruct"
 			  ,
 			  "Real:Exponent,"
 			  "Real:Constant" );

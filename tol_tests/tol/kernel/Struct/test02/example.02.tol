@@ -9,7 +9,7 @@ Struct MyStr1
   Text Struct
 };
 
-Class Doc
+Class @Doc
 { 
   Text _.name;
   Text _.description

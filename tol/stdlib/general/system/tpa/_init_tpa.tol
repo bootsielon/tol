@@ -16,14 +16,14 @@
   Text _spth = GetFilePath(GetSourcePath(_.autodoc.description));
 
   //host information structure
-  Struct stHostInfo 
+  Struct @stHostInfo 
   {
     Text host;      //IP or HOST 
     Real cpuNum;    //Number of CPU's
     Real cpuSpeed   //CPU speed tested by testLocalSpeed
   };
   //tolsh server information structure
-  Struct stServerInfo 
+  Struct @stServerInfo 
   {
     Text host;      //IP or HOST 
     Real port;      //port communication adress
@@ -31,7 +31,7 @@
     Real speed      //estimated speed
   };
   //assignation of tasks to servers
-  Struct stTaskForServer
+  Struct @stTaskForServer
   {
     Real srvNum; //position of server in _.serverList
     Set  tasks   //Set of tasks assigned to the srvNum-th server
@@ -64,7 +64,7 @@
   //Server data             //
   //////////////////////////// 
   //Server information
-  Set _.serverInfo = stServerInfo("",0,0,-1);
+  Set _.serverInfo = @stServerInfo("",0,0,-1);
 
   //implementation of server launching methods
   Set _server = Include("_server.tol");

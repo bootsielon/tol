@@ -16,7 +16,7 @@ Real doQueryTrace = False;
 //Enables or disables automatic SQL cache
 Real allowAutoCache = False;
 
-Struct CachedTableReg
+Struct @CachedTableReg
 {
   Text table_;
   Text path_;

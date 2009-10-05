@@ -14,7 +14,7 @@
 
 ////////////////////////////////////////////////////////////////////////////
 //Method _.buildWorkSpace must create _.ws as an instance of this class
-Class WorkSpace.ArimaReg : WorkSpace.LinReg
+Class @WorkSpace.ArimaReg : @WorkSpace.LinReg
 ////////////////////////////////////////////////////////////////////////////
 {
   Set _.armBlkRef;
@@ -27,10 +27,10 @@ Class WorkSpace.ArimaReg : WorkSpace.LinReg
   };
 
   //////////////////////////////////////////////////////////////////////////
-  Static WorkSpace.ArimaReg Null(Real unused)
+  Static @WorkSpace.ArimaReg Null(Real unused)
   //////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg aux = 
+    BysMcmc::Bsr::Gibbs::@WorkSpace.ArimaReg aux = 
     [[
       VMatrix _.Y = Rand(0,0,0,0);
       VMatrix _.X = Rand(0,0,0,0);
@@ -40,27 +40,27 @@ Class WorkSpace.ArimaReg : WorkSpace.LinReg
 };
 
 ////////////////////////////////////////////////////////////////////////////
-Class BlockMainLinear : BlockStdLin 
+Class @BlockMainLinear : @BlockStdLin 
 ////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
   // Auxiliar members
   //--------------------------------------------------------------------------
-  WorkSpace.ArimaReg _.ws = BysMcmc::Bsr::Gibbs::WorkSpace.ArimaReg::Null(0);
+  @WorkSpace.ArimaReg _.ws = BysMcmc::Bsr::Gibbs::@WorkSpace.ArimaReg::Null(0);
 
   //--------------------------------------------------------------------------
   //Methods
   //--------------------------------------------------------------------------
 
   ////////////////////////////////////////////////////////////////////////////
-  WorkSpace.LinReg getWorkSpaceLinReg(Real unused) 
+  @WorkSpace.LinReg getWorkSpaceLinReg(Real unused) 
   ////////////////////////////////////////////////////////////////////////////
   { _.ws };
 
   ////////////////////////////////////////////////////////////////////////////
   Real _do_buildWorkSpace(VMatrix Y,    //Non filtered output
                           VMatrix X,    //Non filtered input
-                          BysMcmc::Bsr::Gibbs::BlockArima arm.blk) 
+                          BysMcmc::Bsr::Gibbs::@BlockArima arm.blk) 
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix _.ws::_.Y := Y;
@@ -72,7 +72,7 @@ Class BlockMainLinear : BlockStdLin
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace(VMatrix Y,    //Non filtered output
                        VMatrix X,    //Non filtered input
-                       BysMcmc::Bsr::Gibbs::BlockArima arm.blk) 
+                       BysMcmc::Bsr::Gibbs::@BlockArima arm.blk) 
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 0");
@@ -96,18 +96,18 @@ Class BlockMainLinear : BlockStdLin
   "Builds a NameBlock that can draw a Gibbs sample of the Main Linear block "
   "of a Bayesian Sparse Regression model";
   //////////////////////////////////////////////////////////////////////////////
-  Static BlockStdLin New(
+  Static @BlockStdLin New(
     Text name, 
     Set  varNames, 
-    BysMcmc::McmcPartialHandler mcmcPartialHandler,
+    BysMcmc::@McmcPartialHandler mcmcPartialHandler,
     Real numBlock, 
     Real firstCol,
-    BysMcmc::Config config)
+    BysMcmc::@Config config)
   //////////////////////////////////////////////////////////////////////////////
   {
     If(!Card(varNames), 
-    BysMcmc::Bsr::Gibbs::BlockStdLinEmpty::New(name,numBlock,firstCol,config),
-    BysMcmc::Bsr::Gibbs::BlockMainLinear blk = [[
+    BysMcmc::Bsr::Gibbs::@BlockStdLinEmpty::New(name,numBlock,firstCol,config),
+    BysMcmc::Bsr::Gibbs::@BlockMainLinear blk = [[
 
     Code _.buildWorkSpace = _buildWorkSpace;
 

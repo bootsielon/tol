@@ -16,8 +16,8 @@ Text TclAddButtonBar(Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-image", "eval"),
-    TclArgSt("-tooltip", "")
+    @TclArgSt("-image", "eval"),
+    @TclArgSt("-tooltip", "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
  
@@ -81,16 +81,16 @@ Text TclAddIncludeTOLCodeButton(Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-image", ""),
-    TclArgSt("-file", "")
+    @TclArgSt("-image", ""),
+    @TclArgSt("-file", "")
   );
 
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
   TclAddButtonBar( SetOfSet(
-    TclArgSt("-image",TclGAV("-image",aplArg)),
-    TclArgSt("-tooltip", "Incluye el archivo"+TclGAV("-file",aplArg)),
-    TclArgSt("-tclCmd","::tol::include "+ Quotes 
+    @TclArgSt("-image",TclGAV("-image",aplArg)),
+    @TclArgSt("-tooltip", "Incluye el archivo"+TclGAV("-file",aplArg)),
+    @TclArgSt("-tclCmd","::tol::include "+ Quotes 
       + Replace(TclGAV("-file",aplArg),Quotes,"\\"+Quotes)+Quotes)
   ))
 };
@@ -110,17 +110,17 @@ Text TclAddEvalTOLCodeButton(Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-image", ""),
-    TclArgSt("-tooltip", ""),
-    TclArgSt("-tolCode", "")
+    @TclArgSt("-image", ""),
+    @TclArgSt("-tooltip", ""),
+    @TclArgSt("-tolCode", "")
   );
 
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
   TclAddButtonBar( SetOfSet(
-    TclArgSt("-image", TclGAV("-image",aplArg)),
-    TclArgSt("-tooltip", TclGAV("-tooltip",aplArg)),
-    TclArgSt("-tclCmd","::tol::console eval "+ Quotes 
+    @TclArgSt("-image", TclGAV("-image",aplArg)),
+    @TclArgSt("-tooltip", TclGAV("-tooltip",aplArg)),
+    @TclArgSt("-tclCmd","::tol::console eval "+ Quotes 
       + Replace(TclGAV("-tolCode",aplArg),Quotes,"\\"+Quotes)
       +Quotes)
   ))

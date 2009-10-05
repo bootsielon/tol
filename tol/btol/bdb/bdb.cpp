@@ -50,7 +50,7 @@ static BInt alias_ = 0;
 static BStruct* BDBClassifyStruct_ = NewStructSymbol
 //--------------------------------------------------------------------
 (
-    "BDBClassifyStruct"
+    "@BDBClassifyStruct"
     ,
     "Set:Fields,"
     "Real:FirstPosition,"
@@ -61,7 +61,7 @@ static BStruct* BDBClassifyStruct_ = NewStructSymbol
 
 static void * cloneBDBClassifyStruct_()
 {
-  return NewStructSymbol ( "BDBClassifyStruct"
+  return NewStructSymbol ( "@BDBClassifyStruct"
 			   ,
 			   "Set:Fields,"
 			   "Real:FirstPosition,"
@@ -79,7 +79,7 @@ static BStruct* BDBClassifyStruct_ = (BStruct*)(__delay_init((void**)(&BDBClassi
 static BStruct* BDBField_ = NewStructSymbol
 //--------------------------------------------------------------------
 (
-    "BDBField"
+    "@BDBField"
     ,
     "Text:Name,"
     "Real:Width,"
@@ -90,7 +90,7 @@ static BStruct* BDBField_ = NewStructSymbol
 
 static void * cloneBDBField_()
 {
-  return NewStructSymbol( "BDBField"
+  return NewStructSymbol( "@BDBField"
 			  ,
 			  "Text:Name,"
 			  "Real:Width,"
@@ -108,7 +108,7 @@ static BStruct* BDBField_ = (BStruct*)(__delay_init((void**)(&BDBField_),
 static BStruct* BDBStructure_ = NewStructSymbol
 //--------------------------------------------------------------------
 (
-  "BDB"
+  "@BDB"
   ,
   "Text:Alias,"
   "Text:Path,"
@@ -127,7 +127,7 @@ static BStruct* BDBStructure_ = NewStructSymbol
 
 static void * cloneBDBStructure_()
 {
-  return NewStructSymbol( "BDB"
+  return NewStructSymbol( "@BDB"
 			  ,
 			  "Text:Alias,"
 			  "Text:Path,"
@@ -537,8 +537,8 @@ void BSetBDBOpen::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatBDBClose);
-DefExtOpr(1, BDatBDBClose, "BDBClose", 1, 1, "BDB",
-  "(BDB bdb)",
+DefExtOpr(1, BDatBDBClose, "BDBClose", 1, 1, "@BDB",
+  "(@BDB bdb)",
   I2("",""),
 	  BOperClassify::BayesDataBase_);
 //--------------------------------------------------------------------
@@ -556,9 +556,9 @@ void BDatBDBClose::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtBDBFieldName);
-DefExtOpr(1, BTxtBDBFieldName, "BDBFieldName", 2, 2, "BDB Real",
-  I2("(BDB bdb, Real pos)",
-     "(BDB bdb, Real pos)"),
+DefExtOpr(1, BTxtBDBFieldName, "BDBFieldName", 2, 2, "@BDB Real",
+  I2("(@BDB bdb, Real pos)",
+     "(@BDB bdb, Real pos)"),
   I2("",
      "Devuelve el nombre del campo del fichero <bdb> que ocupa la "
      "posición dada por <pos>. Si no existe tal campo devuelve la "
@@ -575,9 +575,9 @@ void BTxtBDBFieldName::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatBDBFieldPos);
-DefExtOpr(1, BDatBDBFieldPos, "BDBFieldPos", 2, 2, "BDB Text",
-  I2("(BDB bdb, Text name)",
-     "(BDB bdb, Text nombre)"),
+DefExtOpr(1, BDatBDBFieldPos, "BDBFieldPos", 2, 2, "@BDB Text",
+  I2("(@BDB bdb, Text name)",
+     "(@BDB bdb, Text nombre)"),
   I2("",
      "Devuelve la posición del campo <nombre> en el fichero <bdb>."
      "Si no existe tal campo devuelve cero."),
@@ -595,8 +595,8 @@ void BDatBDBFieldPos::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtBDBReg);
-DefExtOpr(1, BTxtBDBReg, "BDBLine", 2, 2, "BDB Real",
-  "(BDB bdb, Real num)",
+DefExtOpr(1, BTxtBDBReg, "BDBLine", 2, 2, "@BDB Real",
+  "(@BDB bdb, Real num)",
   I2("",
      "Devuelve la línea número <num> del fichero <bdb>."),
 	  BOperClassify::BayesDataBase_);
@@ -611,8 +611,8 @@ void BTxtBDBReg::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetBDBReg);
-DefExtOpr(1, BSetBDBReg, "BDBReg", 2, 2, "BDB Real",
-  "(BDB bdb, Real num)",
+DefExtOpr(1, BSetBDBReg, "BDBReg", 2, 2, "@BDB Real",
+  "(@BDB bdb, Real num)",
   I2("",
      "Devuelve un conjunto con los elementos del registro número <num> del "
      "fichero <bdb>. Si éste tiene estructura el conjunto resultado "
@@ -629,8 +629,8 @@ void BSetBDBReg::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetBDBTable);
-DefExtOpr(1, BSetBDBTable, "BDBTable", 1, 1, "BDB",
-  "(BDB bdb)",
+DefExtOpr(1, BSetBDBTable, "BDBTable", 1, 1, "@BDB",
+  "(@BDB bdb)",
   I2("",
      "Devuelve un conjunto con todos los registros del fichero <bdb> "
      "creados según se explica en la función BDBReg."),
@@ -654,9 +654,9 @@ void BSetBDBTable::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtBDBRead);
-DefExtOpr(1, BTxtBDBRead, "BDBRead", 3, 3, "BDB Real Real",
-  I2("(BDB bdb, Real from, Real length)",
-     "(BDB bdb, Real desde, Real longitud)"),
+DefExtOpr(1, BTxtBDBRead, "BDBRead", 3, 3, "@BDB Real Real",
+  I2("(@BDB bdb, Real from, Real length)",
+     "(@BDB bdb, Real desde, Real longitud)"),
   I2("",
      "Lee del fichero <bdb> el texto de los <longitud> caracteres a partir "
      "de la posición <desde>"),
@@ -675,9 +675,9 @@ void BTxtBDBRead::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtBDBRegField);
-DefExtOpr(1, BTxtBDBRegField, "BDBCell", 3, 3, "BDB Real Real",
-  I2("(BDB bdb, Real regNum, Real fieldNum)",
-     "(BDB bdb, Real numReg, Real numCampo)"),
+DefExtOpr(1, BTxtBDBRegField, "BDBCell", 3, 3, "@BDB Real Real",
+  I2("(@BDB bdb, Real regNum, Real fieldNum)",
+     "(@BDB bdb, Real numReg, Real numCampo)"),
   I2("",
      "Devuelve el texto del campo <numCampo> del registro <numReg> del "
      "fichero <bdb>."),
@@ -696,9 +696,9 @@ void BTxtBDBRegField::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetBDBSort);
-DefExtOpr(1, BSetBDBSort, "BDBSort", 1, 2, "BDB Set",
-  I2("(BDB bdb [, Set selField = Empty])",
-     "(BDB bdb [, Set selCampo = Empty])"),
+DefExtOpr(1, BSetBDBSort, "BDBSort", 1, 2, "@BDB Set",
+  I2("(@BDB bdb [, Set selField = Empty])",
+     "(@BDB bdb [, Set selCampo = Empty])"),
   I2("",
      "Ordena los registros por los campos cuyos indices son los elementos "
      "del parámetro selCampo."
@@ -740,9 +740,9 @@ void BSetBDBSort::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BTxt, BTxtTemporary, BTxtBDBSortAndSave);
-DefExtOpr(1, BTxtBDBSortAndSave, "BDBSortAndSave", 2, 3, "BDB Text Set",
-  I2("(BDB bdb, Text path [, Set selField = Empty])",
-     "(BDB bdb, Text camino [, Set selCampo = Empty])"),
+DefExtOpr(1, BTxtBDBSortAndSave, "BDBSortAndSave", 2, 3, "@BDB Text Set",
+  I2("(@BDB bdb, Text path [, Set selField = Empty])",
+     "(@BDB bdb, Text camino [, Set selCampo = Empty])"),
   I2("",
      "Ordena los registros por los campos seleccionados y guarda el "
      "resulatdo en el fichero indicado."
@@ -789,9 +789,9 @@ void BTxtBDBSortAndSave::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetBDBClassify);
-DefExtOpr(1, BSetBDBClassify, "BDBClassify", 2, 2, "BDB Set",
-  I2("(BDB bdb, Set selField)",
-     "(BDB bdb, Set selCampo)"),
+DefExtOpr(1, BSetBDBClassify, "BDBClassify", 2, 2, "@BDB Set",
+  I2("(@BDB bdb, Set selField)",
+     "(@BDB bdb, Set selCampo)"),
   I2("",
      "Extrae todas las combinaciones sin repetición de los campos "
      "seleccionados que aparecen en el fichero BDB dado. "
@@ -844,10 +844,10 @@ void BSetBDBClassify::CalcContens()
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetBDBSeries);
 DefExtOpr(1, BSetBDBSeries, "BDBSeries", 5, 7,
-	    "BDB Set Set Real TimeSet Set Real",
-  I2("(BDB bdb, Set dimensions, Set magnitudes, Real dateColumn, "
+	    "@BDB Set Set Real TimeSet Set Real",
+  I2("(@BDB bdb, Set dimensions, Set magnitudes, Real dateColumn, "
      "TimeSet dating [, Set classify=EMPTY, Real defaultValue=0])",
-     "(BDB bdb, Set dimensiones, Set magnitudes, Real dateColumn, "
+     "(@BDB bdb, Set dimensiones, Set magnitudes, Real dateColumn, "
      "TimeSet fechado [, Set clasificacion=EMPTY, Real valorPorDefecto=0])"),
   I2("",
      "Crea series temporales a partir de un BDT. "
@@ -940,9 +940,9 @@ void BSetBDBSeries::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BTxt, BTxtTemporary, BTxtBDBSaveAs);
-DefExtOpr(1, BTxtBDBSaveAs, "BDBSaveAs", 4, 5, "BDB Text Set Set Text",
-  I2("(BDB bdb, Text path, Set selReg, Set selField [, Text separator])",
-     "(BDB bdb, Text camino, Set selReg, Set selCam [, Text separador])"),
+DefExtOpr(1, BTxtBDBSaveAs, "BDBSaveAs", 4, 5, "@BDB Text Set Set Text",
+  I2("(@BDB bdb, Text path, Set selReg, Set selField [, Text separator])",
+     "(@BDB bdb, Text camino, Set selReg, Set selCam [, Text separador])"),
   I2("",
      "Guarda un conjunto de registros y campos seleccionados en el fichero "
      "indcado por el parámetro 'camino'. Los argumentos <selReg> y <selCam> "
@@ -1022,9 +1022,9 @@ void BTxtBDBSaveAs::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSext, BSetTemporary, BSetBDBExtract);
-DefExtOpr(1, BSetBDBExtract, "BDBExtract", 3, 3, "BDB Set Set",
-  I2("(BDB bdb, Set selReg, Set selField)",
-     "(BDB bdb, Set selReg, Set selCam)"),
+DefExtOpr(1, BSetBDBExtract, "BDBExtract", 3, 3, "@BDB Set Set",
+  I2("(@BDB bdb, Set selReg, Set selField)",
+     "(@BDB bdb, Set selReg, Set selCam)"),
   I2("",
      "Escribe en un fichero con nombre <camino> los registros y campos de "
      "<bdb> seleccionados. Los argumentos <selReg> y <selCam> son los "

@@ -55,9 +55,11 @@ static BText objName_ = "";
 {
   short i=0;
   short c;
+  BFilter* filter = BParser::DefaultParser()->Filter();
   for(c=0; c<256; c++) 
   { 
-    if(BParser::DefaultParser()->Filter()->IsIdentifier((char)c))
+    if(filter->StartIdentifier((char)c) ||
+       filter->IsIdentifier   ((char)c))
     {
       allowed_[charPos_[c] = i++]=(char)c; 
     }

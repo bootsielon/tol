@@ -10,5 +10,5 @@
 //Also you can set 0 times to skype a battery
 Set Results = ReportAllBatteries(SetOfSet
 (
-  strBatteryConfig("Bugzilla",          "",                       1)
+  @strBatteryConfig("Bugzilla",          "",                       1)
 ));

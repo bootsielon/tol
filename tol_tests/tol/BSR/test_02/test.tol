@@ -23,7 +23,7 @@ WriteLn("Current Random Seed = "<<rndSeed);
 //Creates a random model and writes it in "parse.bsr"
 Set Include("load.tol");
 
-BysMcmc::Config bsr.config =
+BysMcmc::@Config bsr.config =
 [[
 //MCMC dimensions
   Real mcmc.burnin        =  100; 
@@ -48,20 +48,20 @@ BysMcmc::Config bsr.config =
   Real do.linear.effects  =  False
 ]];
 
-BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   mod::bsr.parsed, 
-  BysMcmc::McmcPartialHandler::Null(0), 
+  BysMcmc::@McmcPartialHandler::Null(0), 
   bsr.config, 
-  BysMcmc::Notifier::Null(0));
+  BysMcmc::@Notifier::Null(0));
 
 //Real cycler::initialize(0);
 
-BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
+BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
 
 Real estim::Run(0);
 
 /* */
-Struct CompareStruct 
+Struct @CompareStruct 
 {
   Real Index,
   Text Name,
@@ -89,7 +89,7 @@ Set CompareTable =
     Real x.d = x.r-x.e;
     Real x.s = Sqrt((estim::report::coda.summary)[k]->sd_);
     Real x.k = x.d/x.s;
-    CompareStruct
+    @CompareStruct
     (
       k, 
       estim::report::colNames[k], 
@@ -130,7 +130,7 @@ Set partialResults_ =
 Real quality_ = And(numErr0 == numErr1)*SetMin([[1]]<<quality.obs);
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);

@@ -47,7 +47,7 @@ BStruct* ModelDefStr()
   if(!aux)
   {
     aux = NewStructSymbol(
-    "BSR.ModelDef"
+    "@BSR.ModelDef"
     ,
     "Text:ModuleType,"
     "Set:DocInfo,"
@@ -81,7 +81,7 @@ BStruct* DocInfoStr()
   if(!aux)
   {
     aux = NewStructSymbol(
-    "BSR.DocInfo"
+    "@BSR.DocInfo"
     ,
     "Text:Model.Name,"
     "Text:Model.Description,"
@@ -102,7 +102,7 @@ BStruct* LinearBlockStr()
   if(!aux)
   {
     aux = NewStructSymbol(
-    "BSR.LinearBlock"
+    "@BSR.LinearBlock"
     ,
     "Text:Name,"
     "Real:InitialValue,"
@@ -120,7 +120,7 @@ BStruct* MissingBlockStr()
   if(!aux)
   {
     aux = NewStructSymbol(
-    "BSR.MissingBlock"
+    "@BSR.MissingBlock"
     ,
     "Text:Name,"
     "Real:Index,"
@@ -143,7 +143,7 @@ BStruct* NoiseTimeInfo()
   if(!aux)
   {
     aux = NewStructSymbol( 
-    "BSR.NoiseTimeInfo"
+    "@BSR.NoiseTimeInfo"
     ,
     "TimeSet:Dating,"
     "Date:FirstDate,"
@@ -160,7 +160,7 @@ BStruct* NoiseDistribStr()
   if(!aux)
   {
     aux = NewStructSymbol( 
-    "BSR.NoiseDistrib"
+    "@BSR.NoiseDistrib"
     ,
     "Text:Name,"
     "Real:Nu,"
@@ -188,7 +188,7 @@ BStruct* MasterInfo()
   if(!aux)
   {
     aux = NewStructSymbol( 
-    "BSR.MasterInfo"
+    "@BSR.MasterInfo"
     ,
     "Text:ModuleType,"
     "Set:DocInfo,"

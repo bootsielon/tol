@@ -94,6 +94,7 @@ public:
 
   // Access & Manipulation:
   virtual BBool IsFirstIdentifier(BChar ch) const;
+  virtual BBool StartIdentifier(BChar ch) const;
   virtual BBool IsIdentifier(BChar ch) const;
   virtual BBool IsIdentifier(const BText& expression) const;
   virtual BBool IsSymbol(BChar ch) const;

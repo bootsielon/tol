@@ -90,7 +90,7 @@ Set SqlCachedTableFile(Text table)
     Text path = _cacheQueryRootPath+id_table+".sql";
     Real file = FOpen(path,"w");
     Real FPutText(file,"INSERT INTO "+table+" VALUES");
-    Set aux = CachedTableReg(table,path,file,0);
+    Set aux = @CachedTableReg(table,path,file,0);
     Set entry = SetOfSet(Eval(id_table+"=aux"));
     Set Append(_cachedTables, entry);
     Real SetIndexByName(_cachedTables);
@@ -148,7 +148,7 @@ Real SqlStopCachedInsert(Real unused)
   Real ok = If(!allowAutoCache,1,
   {
     Real _autoCache := False;
-    Real ok.1 = SetMin(EvalSet(_cachedTables, Real(CachedTableReg tabReg)
+    Real ok.1 = SetMin(EvalSet(_cachedTables, Real(@CachedTableReg tabReg)
     {
       Real FClose(tabReg->file_);
       Text query = ReadFile(tabReg->path_);

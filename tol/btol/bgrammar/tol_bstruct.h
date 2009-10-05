@@ -25,6 +25,17 @@
 #include <tol/tol_bobject.h>
 #include <tol/tol_bsyntax.h>
 
+#define ALLOW_NON_STANDARD_STRUCT
+#define CATCH_NON_STANDARD_STRUCT
+
+#ifdef CATCH_NON_STANDARD_STRUCT
+  ofstream& _non_standard_struct_();
+  void _non_standard_struct_creating_without(const BText& name);
+  void _non_standard_struct_calling_without(const BText& name);
+#else
+  #define _non_standard_struct_creating_without(name)
+  #define _non_standard_struct_calling_without(name)
+#endif
 
 //--------------------------------------------------------------------
 // forward references
@@ -122,9 +133,6 @@ public:
   BSyntaxObject* Create(BList* lst, const BText& desc="");
   static BStruct* Alive(BStruct* str, bool showError);
 
-  friend TOL_API BStruct* NewStruct(const BText& name, const BText& def);
-  friend TOL_API BStruct* NewStructSymbol(const BText& name, const BText& def);
-  friend TOL_API BStruct* FindStruct(const BText& name);
   DeclareClassNewDelete(BStruct);
 };
 
@@ -135,7 +143,9 @@ public:
    standard. */
 TOL_API BStruct* NewStruct(const BText& name, const BText& def);
 TOL_API BStruct* NewStructSymbol(const BText& name, const BText& def);
-TOL_API BStruct* FindStruct(const BText& name);
+TOL_API BStruct* FindStruct(const BText& name,
+                            bool addArroba = true,
+                            bool removeArroba = true);
 
 //--------------------------------------------------------------------
 // external functions

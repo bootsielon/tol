@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Text formatServer(stServerInfo srv)
+  Text formatServer(@stServerInfo srv)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text srv->host+
@@ -19,7 +19,7 @@ formatServer);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Text descServer(stServerInfo srv)
+  Text descServer(@stServerInfo srv)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text "TolServer{"+srv->host+
@@ -38,7 +38,7 @@ descServer);
 //////////////////////////////////////////////////////////////////////////////
 {
   Set tok = Tokenizer(hostPort,":");
-  stServerInfo
+  @stServerInfo
   (
     Text host = tok[1];
     Real port = Eval(tok[2]),
@@ -47,9 +47,9 @@ descServer);
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(I2(
-"Returns the Tap::stServerInfo corresponding to a standard string of server "
+"Returns the Tap::@stServerInfo corresponding to a standard string of server "
 "definition host:port",
-"Devuelve la estructura Tap::stServerInfo correspondiente a una cadena "
+"Devuelve la estructura Tap::@stServerInfo correspondiente a una cadena "
 "est?ndard de definici?n de un servidor m?quina:puerto"),
 parseServer);
 //////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ Set launchServer(Text host, Real port, Real speed)
   //WriteLn("TRACE launchServer 1.4 command="<<command);
     Real pid = RemoteExec(host, _.rmtpsdPort, command);
   //WriteLn("TRACE launchServer 1.5 pid="<<pid);
-    Set srv = stServerInfo(host, port, pid, speed);
+    Set srv = @stServerInfo(host, port, pid, speed);
   //WriteLn("TRACE launchServer 1.6 srv="<<srv);
     Text desc = ToName(descServer(srv));
   //WriteLn("TRACE launchServer 1.7 desc="<<desc);
@@ -144,7 +144,7 @@ Set launchServer(Text host, Real port, Real speed)
         //WriteLn("TRACE launchServer 2.3");
           Text autoConfigServer =
             "Text Tpa::_.sharedRoot:=\""+Tpa::_.sharedRoot+"\";"
-            "Set  Tpa::_.serverInfo:=Tpa::stServerInfo(\""+host+"\","+
+            "Set  Tpa::_.serverInfo:=Tpa::@stServerInfo(\""+host+"\","+
                   IntText(port)+","+IntText(pid)+","<<speed+");";
           Text eval = TolServerEval(host, port, autoConfigServer);
           Text wait = TolServerWait("");
@@ -164,7 +164,7 @@ launchServer);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Real killServer(stServerInfo srv)
+Real killServer(@stServerInfo srv)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set _.serverList := _.serverList - [[srv]];
@@ -259,7 +259,7 @@ testLocalSpeed);
 
 
 //////////////////////////////////////////////////////////////////////////////
-Real testRemoteSpeed(Real numIter, stServerInfo srv)
+Real testRemoteSpeed(Real numIter, @stServerInfo srv)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE testRemoteSpeed 1 srv="+formatServer(srv));
@@ -291,7 +291,7 @@ testRemoteSpeed);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Real _hostSpeed(Tpa::stHostInfo hostInf)
+Real _hostSpeed(Tpa::@stHostInfo hostInf)
 //////////////////////////////////////////////////////////////////////////////
 {
   hostInf->cpuNum * hostInf->cpuSpeed
@@ -369,7 +369,7 @@ Set initCluster(Text sharedRoot, Real numServ)
   Set BSTFile(_.hostList,_spth+"_.hostList.bst");
   Real showHostList(0);
 //Sorts the hosts by growning joint speed of all CPU's of each host
-  Set _.hostList := Sort(_.hostList, Real(Tpa::stHostInfo a, Tpa::stHostInfo b)
+  Set _.hostList := Sort(_.hostList, Real(Tpa::@stHostInfo a, Tpa::@stHostInfo b)
   {
     Compare(_hostSpeed(b), _hostSpeed(a))
   });
@@ -382,7 +382,7 @@ Set initCluster(Text sharedRoot, Real numServ)
 //WriteLn("TRACE  servBySpeedUnit="<<servBySpeedUnit);
 //Assigns to each host the rounded number of servers proportionally to the 
 //joint speed of all CPU's of each one
-  Set dist = EvalSet(_.hostList, Real(Tpa::stHostInfo hostInf)
+  Set dist = EvalSet(_.hostList, Real(Tpa::@stHostInfo hostInf)
   {
     Round(_hostSpeed(hostInf) * servBySpeedUnit)
   });

@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
 // LIBRARY: StdtLib (Standard Library of TOL)
 // FILE: _basicMaster.tol
-// PURPOSE: Declares Class BysMcmc::Bsr::Gibbs::MasterSamplerBasic
+// PURPOSE: Declares Class BysMcmc::Bsr::Gibbs::@MasterSamplerBasic
 /////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
-Class MasterSamplerBasic : MasterSampler
+Class @MasterSamplerBasic : @MasterSampler
 /////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
@@ -17,11 +17,11 @@ Class MasterSamplerBasic : MasterSampler
   //Output after external filters
   VMatrix _.Y;
   //BSR basic blocks
-  BysMcmc::Bsr::Gibbs::BlockStdLin _.mln.blk;
-  BysMcmc::Bsr::Gibbs::BlockSigma  _.sig.blk;
-  BysMcmc::Bsr::Gibbs::BlockArima  _.arm.blk;
-  BysMcmc::Bsr::Gibbs::BlockStdLin _.inpMis.blk;
-  BysMcmc::Bsr::Gibbs::BlockStdLin _.outMis.blk;
+  BysMcmc::Bsr::Gibbs::@BlockStdLin _.mln.blk;
+  BysMcmc::Bsr::Gibbs::@BlockSigma  _.sig.blk;
+  BysMcmc::Bsr::Gibbs::@BlockArima  _.arm.blk;
+  BysMcmc::Bsr::Gibbs::@BlockStdLin _.inpMis.blk;
+  BysMcmc::Bsr::Gibbs::@BlockStdLin _.outMis.blk;
   //Non linear blocks
   Set _.nonLinBlk;
 
@@ -73,7 +73,7 @@ Class MasterSamplerBasic : MasterSampler
     If(!Card(_.nonLinOutputFilter), 1,
     {
     //WriteLn("TRACE"+_MID+"DoNonLinOutputFilter 3");
-      Real filter.blk(BysMcmc::BlockSampler extFlt)
+      Real filter.blk(BysMcmc::@BlockSampler extFlt)
       {
         extFlt::do.filter(_.Y)
       };
@@ -86,7 +86,7 @@ Class MasterSamplerBasic : MasterSampler
   //Assigning initial values to linear block variables
   ////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Config cfg = _.config;
+    BysMcmc::@Config cfg = _.config;
     If(!VRows(_.modelDef->a), givenInitVal,
     {
     //WriteLn("TRACESearching valid initial values");
@@ -151,18 +151,18 @@ Class MasterSamplerBasic : MasterSampler
   {
     Set _.nonLinBlk := 
     {
-      Set aux.nlb = EvalSet(_.modelDef->NoiseDistrib,Set(BSR.NoiseDistrib seg)
+      Set aux.nlb = EvalSet(_.modelDef->NoiseDistrib,Set(@BSR.NoiseDistrib seg)
       {
         seg->NonLinFilters
       });
       Set nonLinFilter = BinGroup("<<", aux.nlb);
       Real nextCol = _.outMis.blk::_.lastCol+1;
-      MasterSamplerBasic T = _this;
+      @MasterSamplerBasic T = _this;
       For(1,Card(nonLinFilter), NameBlock(Real numBlk)
       {
         NameBlock nlf = nonLinFilter[numBlk];
-        BysMcmc::Bsr::Gibbs::BlockNonLin nlb = 
-        BysMcmc::Bsr::Gibbs::BlockNonLin::New
+        BysMcmc::Bsr::Gibbs::@BlockNonLin nlb = 
+        BysMcmc::Bsr::Gibbs::@BlockNonLin::New
         (
           nlf, 
           _this,
@@ -205,10 +205,10 @@ Class MasterSamplerBasic : MasterSampler
   //WriteLn("TRACE"+_MID+" initialize 0");
     Real initialize.blocks(unused);
 
-    Real sel.extFlt (BysMcmc::BlockSampler nlb) { !(nlb::_.isInputFilter) };
+    Real sel.extFlt (BysMcmc::@BlockSampler nlb) { !(nlb::_.isInputFilter) };
     Set _.nonLinOutputFilter := Select(_.nonLinBlk, sel.extFlt);
 
-    Real sel.drwFlt (BysMcmc::BlockSampler nlb) { nlb::_.N>0 };
+    Real sel.drwFlt (BysMcmc::@BlockSampler nlb) { nlb::_.N>0 };
     Set _.nonLinDrawFilter := Select(_.nonLinBlk, sel.drwFlt);
 
   //WriteLn("TRACE"+_MID+" initialize 1");
@@ -217,7 +217,7 @@ Class MasterSamplerBasic : MasterSampler
     VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" initialize 1.2 _.XplusU("<<VRows(_.XplusU)+"x"<<VColumns(_.XplusU)+")");
     Matrix givenBeta=
-    SetCol(EvalSet(_.modelDef->LinearBlock,Real(BSR.LinearBlock b)
+    SetCol(EvalSet(_.modelDef->LinearBlock,Real(@BSR.LinearBlock b)
     { b->InitialValue }));
     VMatrix beta0 = findMatchingBeta(Mat2VMat(givenBeta));
   //WriteLn("TRACE"+_MID+" initialize 3 beta0("<<VRows(beta0)+"x"<<VColumns(beta0)+")");
@@ -302,7 +302,7 @@ Class MasterSamplerBasic : MasterSampler
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 1");
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 1");
     Real DoNonLinOutputFilter(0);
     VMatrix om = If(Not(_.outMis.blk::_.N),
     {
@@ -319,7 +319,7 @@ Class MasterSamplerBasic : MasterSampler
       VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
       aux
     });
-  //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 2 om="<<om);
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 2 om="<<om);
     VMatrix im = If(Not(_.inpMis.blk::_.N),
     {
       VMatrix _.XplusU := _.modelDef->X;
@@ -335,7 +335,7 @@ Class MasterSamplerBasic : MasterSampler
       VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
       aux
     });
-  //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 3 im="<<im);
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 3 im="<<im);
     VMatrix _.filter := If(Not(_.mln.blk::_.N),
       _.YplusV*0,
       _.XplusU*_.beta);
@@ -353,7 +353,7 @@ Class MasterSamplerBasic : MasterSampler
       _.arm.blk::get.draw(numSim, False)
     });
     VMatrix _.residuals := _.arm.blk::filter(_.noise);
-  //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 4 arm="<<arm);
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 4 arm="<<arm);
     VMatrix _Y = _.YplusV;
     VMatrix _X = _.XplusU;
     VMatrix sig = If(Not(_.sig.blk::_.N),
@@ -370,10 +370,10 @@ Class MasterSamplerBasic : MasterSampler
     VMatrix si = _.sig.blk::_.sigmaInv;
     VMatrix _Y := si*_Y;
     VMatrix _X := si*_X;
-  //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 5 sig="<<sig);
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 5 sig="<<sig);
     VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
     {
-    //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 5.1 _.mln.blk::_.partialSampler::_.freeParamNum="<<_.mln.blk::_.partialSampler::_.freeParamNum);
+    //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 5.1 _.mln.blk::_.partialSampler::_.freeParamNum="<<_.mln.blk::_.partialSampler::_.freeParamNum);
       Real If(_.mln.blk::_.partialSampler::_.freeParamNum,
       {
         Real _.mln.blk::_.buildWorkSpace(_Y, _X, _.arm.blk)
@@ -382,15 +382,15 @@ Class MasterSamplerBasic : MasterSampler
     });
     VMatrix nlb = If(!Card(_.nonLinBlk),Rand(0,1,0,0),
     {
-      Set nlb.aux = EvalSet(_.nonLinBlk, VMatrix(BlockNonLin nlb)
+      Set nlb.aux = EvalSet(_.nonLinBlk, VMatrix(@BlockNonLin nlb)
       {
         nlb::get.draw(numSim,False)
       });
       Group("ConcatRows", nlb.aux)
     }); 
-  //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 6 _.beta="<<_.beta);
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 6 _.beta="<<_.beta);
     VMatrix param = _.beta << sig << arm << im << om << nlb;
-  //WriteLn("TRACE"+_MID+" MasterSamplerBasic::draw 7 param="<<VRows(param)+"x"<<VColumns(param)+")");
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 7 param="<<VRows(param)+"x"<<VColumns(param)+")");
     Real putStoreV(param);
     param
   };
@@ -802,8 +802,8 @@ Class MasterSamplerBasic : MasterSampler
                            Matrix   inputForecast)
   ////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::BlockSampler lin = _.mln.blk;
-    BysMcmc::BlockSampler sig = _.sig.blk;
+    BysMcmc::@BlockSampler lin = _.mln.blk;
+    BysMcmc::@BlockSampler sig = _.sig.blk;
 
     Real blk = getRegEquBlock(resBlock);
     Real T = Rows(inputForecast);
@@ -847,49 +847,49 @@ Class MasterSamplerBasic : MasterSampler
   Static Text _.autodoc.member.New =
   "Builds a NameBlock that can draw a Gibbs sample of a Bayesian Sparse "
   "Regression model";
-  Static MasterSamplerBasic New(
-    BSR.ModelDef modelDef, 
-    BysMcmc::McmcPartialHandler mcmcPartialHandler,
+  Static @MasterSamplerBasic New(
+    @BSR.ModelDef modelDef, 
+    BysMcmc::@McmcPartialHandler mcmcPartialHandler,
     Real numBlock, 
     Real firstCol,
-    BysMcmc::Config config)
+    BysMcmc::@Config config)
   //////////////////////////////////////////////////////////////////////////////
   {
     Text name = modelDef->DocInfo->Model.Name; 
-    BysMcmc::Bsr::Gibbs::MasterSamplerBasic master = [[
+    BysMcmc::Bsr::Gibbs::@MasterSamplerBasic master = [[
       //Internal reference to model definition
       Set _.modelDef = modelDef;
       //Output after external filters
       VMatrix _.Y = _.modelDef->Y;
 
-      BysMcmc::McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;
+      BysMcmc::@McmcPartialHandler _.mcmcPartialHandler = mcmcPartialHandler;
 
       //Setting NameBlock description
       Text _.autodoc.description="Gibbs sampler for model "+name;
-      BysMcmc::Bsr::Gibbs::BlockStdLin _.mln.blk = 
-      BysMcmc::Bsr::Gibbs::BlockMainLinear::New
+      BysMcmc::Bsr::Gibbs::@BlockStdLin _.mln.blk = 
+      BysMcmc::Bsr::Gibbs::@BlockMainLinear::New
       (
-        "BSR.MainLinBlock."+name,
-        EvalSet(_.modelDef->LinearBlock, Text(BSR.LinearBlock b){ b->Name }),
+        "@BSR.MainLinBlock."+name,
+        EvalSet(_.modelDef->LinearBlock, Text(@BSR.LinearBlock b){ b->Name }),
         mcmcPartialHandler,
         1,
         firstCol,
         config
       );
-      BysMcmc::Bsr::Gibbs::BlockSigma _.sig.blk = 
-      BysMcmc::Bsr::Gibbs::BlockSigma::New
+      BysMcmc::Bsr::Gibbs::@BlockSigma _.sig.blk = 
+      BysMcmc::Bsr::Gibbs::@BlockSigma::New
       (
-        "BSR.SigmaBlock."+name,
+        "@BSR.SigmaBlock."+name,
         _.modelDef->NoiseDistrib,
         mcmcPartialHandler,
         2,
         _.mln.blk::_.lastCol+1,
         config
       );
-      BysMcmc::Bsr::Gibbs::BlockArima _.arm.blk = 
-      BysMcmc::Bsr::Gibbs::BlockArima::New
+      BysMcmc::Bsr::Gibbs::@BlockArima _.arm.blk = 
+      BysMcmc::Bsr::Gibbs::@BlockArima::New
       (
-        "BSR.ArimaBlock."+name,
+        "@BSR.ArimaBlock."+name,
         _.modelDef->NoiseDistrib,
         mcmcPartialHandler,
         3, 
@@ -897,10 +897,10 @@ Class MasterSamplerBasic : MasterSampler
         config
       );
 
-      BysMcmc::Bsr::Gibbs::BlockStdLin _.inpMis.blk = 
-      BysMcmc::Bsr::Gibbs::BlockInputMissing::New
+      BysMcmc::Bsr::Gibbs::@BlockStdLin _.inpMis.blk = 
+      BysMcmc::Bsr::Gibbs::@BlockInputMissing::New
       (
-        "BSR.InputMissingBlock."+name,
+        "@BSR.InputMissingBlock."+name,
         _.modelDef->InputMissingBlock,
         mcmcPartialHandler,
         4,
@@ -908,10 +908,10 @@ Class MasterSamplerBasic : MasterSampler
         config
       );
 
-      BysMcmc::Bsr::Gibbs::BlockStdLin _.outMis.blk = 
-      BysMcmc::Bsr::Gibbs::BlockOutputMissing::New
+      BysMcmc::Bsr::Gibbs::@BlockStdLin _.outMis.blk = 
+      BysMcmc::Bsr::Gibbs::@BlockOutputMissing::New
       (
-        "BSR.OutputMissingBlock."+name,
+        "@BSR.OutputMissingBlock."+name,
         _.modelDef->OutputMissingBlock,
         mcmcPartialHandler,
         5,

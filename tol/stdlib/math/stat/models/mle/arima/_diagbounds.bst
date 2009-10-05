@@ -1,4 +1,4 @@
-TestBounds              ; Accept ; Refuse ;
+@TestBounds             ; Accept ; Refuse ;
 FstRegAutCorBounds      ; 0.40   ; 0.80   ;
 FstSeaAutCorBounds      ; 0.40   ; 0.80   ;
 SndRegAutCorBounds      ; 0.40   ; 0.80   ;

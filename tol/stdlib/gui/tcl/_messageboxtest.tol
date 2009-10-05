@@ -12,31 +12,31 @@
 // Test TclTkMessageBox. general
 //////////////////////////////////////////////////////////////////////////////
 Text doTest = TclTkMessageBox(SetOfSet(
-  TclArgSt("-title",   "Dialogo TclYesNoQuestion"), 
-  TclArgSt("-message", "¿Desea seguir con el test?"),
-  TclArgSt("-type",    "yesno"),
-  TclArgSt("-icon",    "question")
+  @TclArgSt("-title",   "Dialogo TclYesNoQuestion"), 
+  @TclArgSt("-message", "¿Desea seguir con el test?"),
+  @TclArgSt("-type",    "yesno"),
+  @TclArgSt("-icon",    "question")
 ));
 
 
 Text If(doTest=="no",
   {
     TclTkMessageBox( SetOfSet(
-      TclArgSt("-title",   "Dialogo TclWarning"),
-      TclArgSt("-message", "Elegiste acabar"),
-      TclArgSt("-icon",    "warning")
+      @TclArgSt("-title",   "Dialogo TclWarning"),
+      @TclArgSt("-message", "Elegiste acabar"),
+      @TclArgSt("-icon",    "warning")
     ))
   },
   {
     Text a = TclTkMessageBox( SetOfSet(
-      TclArgSt("-title",   "Dialogo TclWarning"),
-      TclArgSt("-message", "Elegiste seguir")
+      @TclArgSt("-title",   "Dialogo TclWarning"),
+      @TclArgSt("-message", "Elegiste seguir")
     ));
     Text doTest2 = TclTkMessageBox(SetOfSet(
-      TclArgSt("-title",   "Dialogo TclYesNoCancelQuestion"), 
-      TclArgSt("-message", "¿Realmente estas seguro de que quieres seguir o prefieres cancelar?"),
-      TclArgSt("-icon",    "question"),
-      TclArgSt("-type",    "yesnocancel")
+      @TclArgSt("-title",   "Dialogo TclYesNoCancelQuestion"), 
+      @TclArgSt("-message", "¿Realmente estas seguro de que quieres seguir o prefieres cancelar?"),
+      @TclArgSt("-icon",    "question"),
+      @TclArgSt("-type",    "yesnocancel")
     ))
   }
 );
@@ -49,23 +49,23 @@ Text msg = "¿Es correcto el valor para la seccion [Dir]?";
 Text title = "Titulo ";
 
   Text resultText = TclTkMessageBox(SetOfSet(
-    TclArgSt("-default", "no"),
-    TclArgSt("-icon"   , "question"),
-    TclArgSt("-message",  msg),
-    TclArgSt("-type"   , "yesno"),
-    TclArgSt("-title"  ,  title)));
+    @TclArgSt("-default", "no"),
+    @TclArgSt("-icon"   , "question"),
+    @TclArgSt("-message",  msg),
+    @TclArgSt("-type"   , "yesno"),
+    @TclArgSt("-title"  ,  title)));
 
 
 Text msg2 = "La hora actual de su computador es [::tol::date now]. Desea cambiarla?";
 Text title2 = "Titulo ";
 
   Text resultText2 = TclTkMessageBox(SetOfSet(
-    TclArgSt("-tclInterp", "1"),
-    TclArgSt("-default", "cancel"),
-    TclArgSt("-icon"   , "question"),
-    TclArgSt("-message",  msg2),
-    TclArgSt("-type"   , "okcancel"),
-    TclArgSt("-title"  ,  title2)));
+    @TclArgSt("-tclInterp", "1"),
+    @TclArgSt("-default", "cancel"),
+    @TclArgSt("-icon"   , "question"),
+    @TclArgSt("-message",  msg2),
+    @TclArgSt("-type"   , "okcancel"),
+    @TclArgSt("-title"  ,  title2)));
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ Text title2 = "Titulo ";
 Text dir1 = TclTkChooseDirectory(Copy(Empty));
 
 Text dir2 = TclTkChooseDirectory(SetOfSet(
-  TclArgSt("-initialdir","C:/Archivos de Programa/")
+  @TclArgSt("-initialdir","C:/Archivos de Programa/")
 ));
 
 
@@ -92,9 +92,9 @@ Text fileTypes = "
 
 // Permite seleccionar varios archivos de los tipos anteriores
 Text file2 = TclTkGetOpenFile(SetOfSet(
-  TclArgSt("-initialdir","C:/Archivos de Programa/"),
-  TclArgSt("-filetypes", fileTypes),
-  TclArgSt("-multiple", "1")
+  @TclArgSt("-initialdir","C:/Archivos de Programa/"),
+  @TclArgSt("-filetypes", fileTypes),
+  @TclArgSt("-multiple", "1")
 ));
 // Para convertir la salida de TclTkGetOpenFile a un conjunto TOL
 Set miSet = TclLst2TolSet( BBr(file2), 1);

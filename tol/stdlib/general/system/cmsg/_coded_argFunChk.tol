@@ -11,7 +11,7 @@ NameBlock ArgFunChk =
   Text _.autodoc.description = 
   "Codified messages for argument checking of generic functions";
 
-  Set _.invType = CMsg.Coded.info(_ag,1, "error", Text(Set args)
+  Set _.invType = @CMsg.Coded.info(_ag,1, "error", Text(Set args)
   {
     Text f = args[1];
     Text a = args[2];
@@ -24,7 +24,7 @@ NameBlock ArgFunChk =
     I2("Expected types were", 
        "Los tipos esperados eran")+" "+e
   });
-  Set _.hasUnknown = CMsg.Coded.info(_ag,1, "error", Text(Set args)
+  Set _.hasUnknown = @CMsg.Coded.info(_ag,1, "error", Text(Set args)
   {
     Text f = args[1];
     Text a = args[2];
@@ -33,7 +33,7 @@ NameBlock ArgFunChk =
     I2("there are some unknown value.", 
        "existe algún valor omitido.")
   });
-  Set _.noPosIntArg = CMsg.Coded.info(_ag,2, "error", Text(Set args)
+  Set _.noPosIntArg = @CMsg.Coded.info(_ag,2, "error", Text(Set args)
   {
     Text f = args[1];
     Text a = args[2];
@@ -45,7 +45,7 @@ NameBlock ArgFunChk =
        FormatReal(x,"%.15lg")
   });
 
-  Set _.noPosRealArg = CMsg.Coded.info(_ag,3, "error", Text(Set args)
+  Set _.noPosRealArg = @CMsg.Coded.info(_ag,3, "error", Text(Set args)
   {
     Text f = args[1];
     Text a = args[2];
@@ -57,7 +57,7 @@ NameBlock ArgFunChk =
        FormatReal(x,"%.15lg")
   });
 
-  Set _.negativeArg = CMsg.Coded.info(_ag,4, "error", Text(Set args)
+  Set _.negativeArg = @CMsg.Coded.info(_ag,4, "error", Text(Set args)
   {
     Text f = args[1];
     Text a = args[2];
@@ -69,7 +69,7 @@ NameBlock ArgFunChk =
        FormatReal(x,"%.15lg")
   });
 
-  Set _.outOfIntRankArg = CMsg.Coded.info(_ag,5, "error", Text(Set args)
+  Set _.outOfIntRankArg = @CMsg.Coded.info(_ag,5, "error", Text(Set args)
   {
     Text f  = args[1];
     Text a  = args[2];
@@ -84,7 +84,7 @@ NameBlock ArgFunChk =
        FormatReal(x,"%.15lg")
   });
 
-  Set _.outOfRealRankArg = CMsg.Coded.info(_ag,6, "error", Text(Set args)
+  Set _.outOfRealRankArg = @CMsg.Coded.info(_ag,6, "error", Text(Set args)
   {
     Text f  = args[1];
     Text a  = args[2];
@@ -101,7 +101,7 @@ NameBlock ArgFunChk =
        FormatReal(x,"%.15lg")
   });
 
-  Set _.outOfDomainArg = CMsg.Coded.info(_ag,7, "error", Text(Set args)
+  Set _.outOfDomainArg = @CMsg.Coded.info(_ag,7, "error", Text(Set args)
   {
     Text f      = args[1];
     Text a      = args[2];
@@ -114,7 +114,7 @@ NameBlock ArgFunChk =
        FormatReal(x,"%.15lg")
   });
 
-  Set _.stlNotImp = CMsg.Coded.info(_ag,8, "stop", Text(Set args)
+  Set _.stlNotImp = @CMsg.Coded.info(_ag,8, "stop", Text(Set args)
   {
     Text description  = args[1];
     I2("Sorry, still not implemented method", 

@@ -1,24 +1,25 @@
 /////////////////////////////////////////////////////////////////////////////
 // LIBRARY: StdtLib (Standard Library of TOL)
 // FILE: _build.tol
-// PURPOSE: Declares Class BysMcmc::Cycler method BysMcmc::BuildCycler
+// PURPOSE: Declares Class BysMcmc::@Cycler method BysMcmc::BuildCycler
 /////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Cycler =
-"This class is able to generate a Markov Chain of a model "
-"by cycling calls of a given model sampler and gives a set of tools to " 
-"make Bayesian Inference about it.\n "
-"Arguments:\n"
-"  MasterSampler modelSampler is a handler of the model to be simulated\n"
-"  Config config has user configuration parameters\n"
-"  Notifier notifier is an event tracing handler\n";
-Class Cycler
+Class @Cycler
 //////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::MasterSampler _.sampler;
-  BysMcmc::Notifier      _.notifier;
-  BysMcmc::Config        _.config;
+  Static Text _.autodoc.class =
+  "This class is able to generate a Markov Chain of a model "
+  "by cycling calls of a given model sampler and gives a set of tools to " 
+  "make Bayesian Inference about it.\n "
+  "Arguments:\n"
+  "  @MasterSampler modelSampler is a handler of the model to be simulated\n"
+  "  Parameter config has user configuration parameters\n"
+  "  Parameter notifier is an event tracing handler\n";
+
+  BysMcmc::@MasterSampler _.sampler;
+  BysMcmc::@Notifier     _.notifier;
+  BysMcmc::@Config       _.config;
 
   NameBlock _.importer = 
   [[
@@ -37,7 +38,7 @@ Class Cycler
   Real _.sampleLength = ?;
   Real _.savedSimulations = ?;
   //Setting NameBlock description
-  Text _.autodoc.description = "";
+  Text _.autodoc.description = _.autodoc.class;
 
   Set auxInfo = Copy(Empty);
 
@@ -83,7 +84,7 @@ Class Cycler
     //be added at the end. In other case old simulations will be lost.
     Real resume_ := _.config::do.resume;
     //Bayesian inference configuration
-    Set bysInf_ := {BysInf.Report.Config
+    Set bysInf_ := {@BysInf.Report.Config
     (
       Real raftery.diag.q   = _.config::report.raftery.diag.q,
       Real raftery.diag.r   = _.config::report.raftery.diag.r,
@@ -102,7 +103,7 @@ Class Cycler
   Real resume(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[Cycler::resume] ";
+    Text _MID = "[@Cycler::resume] ";
     If(resume_==0, 
     {
       Real ok.remove = OSFilRemove(_.path);
@@ -182,7 +183,7 @@ Class Cycler
   Real initialize(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[Cycler::initialize] ";
+    Text _MID = "[@Cycler::initialize] ";
     Real _.notifier::initializing(_.n, _.path);
     Real _.savedSimulations := resume(0);
     Real ok = If(!_.savedSimulations,
@@ -202,7 +203,7 @@ Class Cycler
   Real generate(Real sampleLength)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[Cycler::generate] ";
+    Text _MID = "[@Cycler::generate] ";
     Real _.sampleLength := sampleLength;
     Real OSDirMake(GetFilePath(_.path));
     Real numDec = 1+Ceil(Log(_.sampleLength)/Log(10));
@@ -260,7 +261,8 @@ Class Cycler
           Real remain = _.time * (_.sampleLength-numSim);
           WriteLn(" [done "+FormatReal(donePercent,"% 6.2lf")+"%]"+
                   " [time/sim:"+FormatReal(_.time,"% 9.6lf")+" s]"+
-                  " [remaining "+FormatReal(remain,"% 6.0lf")+" s]");
+                  If(runSim<=3,"",
+                  " [remaining "+FormatReal(remain,"% 6.0lf")+" s]"));
           Real _.notifier::simulating(numSim-1, _.time);
           Real t1 := t2
         });

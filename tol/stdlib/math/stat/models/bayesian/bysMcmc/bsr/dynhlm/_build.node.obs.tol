@@ -132,7 +132,7 @@ NameBlock Obs.Serie.Info(
       Real x = SerDat(_.serie,dte);
       If(!IsUnknown(x),Copy(Empty),
       {
-        Set mis = Bsr.Missing.Info(
+        Set mis = @Bsr.Missing.Info(
           Text Name = missing.name(dte),
           Real Owner.Type = _.ownerType, 
           Text Owner.Name = _.id_node+"::"+_.name, 
@@ -240,7 +240,7 @@ NameBlock Obs.Vector.Info(
       Real x = MatDat(_.serie,num,1);
       If(!IsUnknown(x),Copy(Empty),
       {
-        Bsr.Missing.Info(
+        @Bsr.Missing.Info(
           Text Name = missing.name(num), 
 
           Real Owner.Type = _.ownerType, 
@@ -332,7 +332,7 @@ NameBlock Obs.Input(
 //////////////////////////////////////////////////////////////////////////////
 {[[
   NameBlock _.serie.info=serie.info;
-  Set _.param = Bsr.Param.Info(
+  Set _.param = @Bsr.Param.Info(
     "LinearBlk::"+_.serie.info::_.id_node+"::"+id_parameter, 
     initValue, 
     param.lowerBound, 
@@ -376,7 +376,7 @@ NameBlock Obs.TransFun(
 //Real _trz.2 = { WriteLn("TRACE [Obs.TransFun] 2 p="<<_.p+" q="<<_.q+" h="<<_.h+" hasDelta="<<_.hasDelta), 0};
   Set _.omegaParam = EvalSet(Monomes(_.omega), Set omegaBlk(Polyn mon)
   {
-    Bsr.Param.Info(
+    @Bsr.Param.Info(
       "OmegaBlk::"+_.serie.info::_.id_node+"::"+id_transferFunction+
       "::NumDeg."+IntText(Degree(mon)), 
       initValue, 
@@ -386,7 +386,7 @@ NameBlock Obs.TransFun(
   Set _.deltaParam = EvalSet(Monomes(1-_.delta), Set deltaBlk(Polyn mon)
   {
     Real deg = Degree(mon);
-    Bsr.Param.Info(
+    @Bsr.Param.Info(
       "DeltaBlk::"+_.serie.info::_.id_node+"::"+id_transferFunction+
       "::DenDeg."+IntText(deg), 
       0, 
@@ -395,7 +395,7 @@ NameBlock Obs.TransFun(
   });
   Set _.denIniParam = For(1,_.h, Set denIni(Real lag)
   {
-    Bsr.Param.Info(
+    @Bsr.Param.Info(
       "DeltaBlk::"+_.serie.info::_.id_node+"::"+id_transferFunction+
       "::DenIni."+IntText(_.h-lag), 
       0, 
@@ -414,7 +414,7 @@ NameBlock Obs.TransFun(
     (
       id_node+"::Noise",
       Copy(_.transferFunction),
-      EvalSet(_.omegaParam, Text(Bsr.Param.Info pi) { pi->Name}),
+      EvalSet(_.omegaParam, Text(@Bsr.Param.Info pi) { pi->Name}),
       Copy(_.omega), 
       Copy(_.delta),
       If(!_.p,Rand(0,1,0,0), Tra(SerSetMat([[ser]], fst0, lst0))),
@@ -432,7 +432,7 @@ NameBlock Obs.Output(
   NameBlock serie.info,
   Real sigma,
   Real sigmaPriorWeight,
-  //A possibly empty set of ARIMA factors with structure ARIMAStruct
+  //A possibly empty set of ARIMA factors with structure @ARIMAStruct
   Set arima)
 //////////////////////////////////////////////////////////////////////////////
 {[[
@@ -510,7 +510,7 @@ NameBlock Obs(
         inp::_.serie.info::_.missing
       },
       {
-        Select(inp::_.serie.info::_.missing, Real(Bsr.Missing.Info mis)
+        Select(inp::_.serie.info::_.missing, Real(@Bsr.Missing.Info mis)
         {
           Text name = Name(mis);
           Real idx = FindIndexByName(input.missing.labels,name);
@@ -527,7 +527,7 @@ NameBlock Obs(
         Real SetIndexByName(input.missing.labels);
         0
       });
-      Set EvalSet(aux, Real(Bsr.Missing.Info mis)
+      Set EvalSet(aux, Real(@Bsr.Missing.Info mis)
       {
         Real mis->Owner.Column := j
       });
@@ -573,7 +573,7 @@ NameBlock Obs(
   Text Get.SigmaPrior(Real unused) 
   { 
     If(!hasPrior,"",
-       "Bsr.Sigma.Prior.InverseGamma("<<
+       "@Bsr.Sigma.Prior.InverseGamma("<<
        _.output::_.sigma+","<<_.output::_.sigmaPriorWeight+")")
   };
 
@@ -585,10 +585,10 @@ NameBlock Obs(
   //a discrete time process. If there is not a time process or is a 
   //white noise process then returns 0
   Real Get.ARIMA.Size(Real unused) { Card(_.output::_.arima.factors) };
-  //Returns the f-th ARIMA factor with structure ARIMAStruct
+  //Returns the f-th ARIMA factor with structure @ARIMAStruct
   //In current version all AR or MA factors must have degrees 0, 1 or 2
   //In order to define higher degrees you will need to add more 
-  //ARIMAStruct items
+  //@ARIMAStruct items
   Set Get.ARIMA.Factor(Real f) { _.output::_.arima.factors[f] };
   /////////////////////////////////////////////////////////////////////////
 
@@ -608,7 +608,7 @@ NameBlock Obs(
   Set Get.TimeInfo(Real unused)
   {
     If(Not(_.output::_.serie.info::_.isTimeSerie),Copy(Empty),
-    BSR.NoiseTimeInfo
+    @BSR.NoiseTimeInfo
     (
       Dating(_.output::_.serie.info::_.serie),
       _.output::_.serie.info::_.firstDate,

@@ -23,7 +23,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 
-Struct AlgMetSqlDepDBTExtSt
+Struct @AlgMetSqlDepDBTExtSt
 {
   Code SelFun, // Función que construye exp_select
   Code FroFun, // Función que construye exp_from
@@ -32,7 +32,7 @@ Struct AlgMetSqlDepDBTExtSt
   Code HavFun, // Función que construye exp_having
   Code OrdFun, // Función que construye exp_order
   Code SetParFun // Función que devuelve un conjunto de parametros con
-                 // estructura TclArgSt, para por ejemplo:
+                 // estructura @TclArgSt, para por ejemplo:
                  // -traQry: Para trazar o no la query
                  // -traTms: Para trazar el tiempo que tarda la query
                  // -struct: Para darle un struct al metodo
@@ -40,9 +40,9 @@ Struct AlgMetSqlDepDBTExtSt
 
 
 Set defParamsForMetSqlDBT = SetOfSet(
-    TclArgSt("-traQry", "1"),
-    TclArgSt("-traTms", "1"),
-    TclArgSt("-struct", "")
+    @TclArgSt("-traQry", "1"),
+    @TclArgSt("-traTms", "1"),
+    @TclArgSt("-struct", "")
 );
 
 //////////////////////////////////////////////////////////////////////////////

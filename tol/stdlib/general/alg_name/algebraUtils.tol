@@ -9,7 +9,7 @@
 Real algebraUtilsIncluded = 1;
 
 
-Struct AlgListValueAmpSt
+Struct @AlgListValueAmpSt
 {
   Text Ide,
   Text Cod,
@@ -18,7 +18,7 @@ Struct AlgListValueAmpSt
   Text Filtro1
 };
 
-Struct AlgListValueAmp2St
+Struct @AlgListValueAmp2St
 {
   Text Ide,
   Text Cod,
@@ -28,7 +28,7 @@ Struct AlgListValueAmp2St
   Text Filtro2
 };
 
-Struct AlgListValueAmp3St
+Struct @AlgListValueAmp3St
 {
   Text Ide,
   Text Cod,
@@ -39,7 +39,7 @@ Struct AlgListValueAmp3St
   Text Filtro3
 };
 
-Struct AlgListValueAmp4St
+Struct @AlgListValueAmp4St
 {
   Text Ide,
   Text Cod,
@@ -51,7 +51,7 @@ Struct AlgListValueAmp4St
   Text Filtro4
 };
 
-Struct AlgListValueAmp5St
+Struct @AlgListValueAmp5St
 {
   Text Ide,
   Text Cod,

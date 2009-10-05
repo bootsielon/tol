@@ -24,8 +24,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
   Real TransVDecision(Real nu, Real sigma, 
-                      TransforStruct trans,
-                      VCostStruct cost)
+                      @TransforStruct trans,
+                      @VCostStruct cost)
 //////////////////////////////////////////////////////////////////////////////
 {
   Code T  = trans->T;
@@ -59,8 +59,8 @@
 //////////////////////////////////////////////////////////////////////////////
   Real BoxCoxVDecision(Real         nu, 
                        Real         sigma, 
-                       BoxCoxStruct boxcox,
-                       VCostStruct  cost)
+                       @BoxCoxStruct boxcox,
+                       @VCostStruct  cost)
 //////////////////////////////////////////////////////////////////////////////
 {
   TransVDecision(nu, sigma, GetBoxCoxTrans(boxcox), cost)

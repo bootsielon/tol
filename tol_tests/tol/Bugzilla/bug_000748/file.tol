@@ -1,10 +1,11 @@
 NameBlock Projecto = [[
-  Class Concepto {
+  Class @Concepto {
     Real name;
     Real GetName(Real void) { name }
   }
 ]];
 
 NameBlock Projecto2 = [[
+  Text @OtraCosa = "nada",
   Text Concepto = "Nombre"
 ]];

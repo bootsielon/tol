@@ -22,22 +22,22 @@ Serie mySerT = Rand(-10, 10, Diario);
 WriteLn("Tabulate Set ...");
 
 Text myTable1 = TclTabulateSet(mySetT, SetOfSet(
-    TclArgSt("-title", "Tabulando un Set"),
-    TclArgSt("-geometry", "400x400+1+1")
+    @TclArgSt("-title", "Tabulando un Set"),
+    @TclArgSt("-geometry", "400x400+1+1")
 ));
 
 WriteLn("Tabulate Matrix ...");
 Text myTable2 = TclTabulateMatrix(myMatT, SetOfSet(
-  TclArgSt("-title","Tabulando una Matrix"),
-  TclArgSt("-geometry", "814x692+15+15")
+  @TclArgSt("-title","Tabulando una Matrix"),
+  @TclArgSt("-geometry", "814x692+15+15")
 ));
 
 WriteLn("Tabulate Serie ...");
 Text myTable3 = TclTabulateSerie(mySerT, SetOfSet(
-  TclArgSt("-title","Tabulando una Serie")
+  @TclArgSt("-title","Tabulando una Serie")
 ));
 
 Text myTable4 = TclTabulateSerie(SetOfSerie(mySerT, mySerT), SetOfSet(
-  TclArgSt("-title","Tabulando una Serie")
+  @TclArgSt("-title","Tabulando una Serie")
 ));
 

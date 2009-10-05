@@ -7,7 +7,7 @@
 
 ////////////////////////////////////////////////////////////////////////////
 //Stores in database CODA report information of a given estimation
-Real SaveParamStats(Text dbName, Text model, Text session, Estimation estim)
+Real SaveParamStats(Text dbName, Text model, Text session, @Estimation estim)
 ////////////////////////////////////////////////////////////////////////////
 {
   WriteLn("[SaveParamStats] Storing in data base diagnostics about "
@@ -24,7 +24,7 @@ Real SaveParamStats(Text dbName, Text model, Text session, Estimation estim)
   {
     Set cs = summary[k];
     Set cr = If(Card(raftery), raftery[k], 
-                BysInf.Coda.Diag.Raftery("",?,?,?,?,?,?));
+                @BysInf.Coda.Diag.Raftery("",?,?,?,?,?,?));
     WriteLn("[SaveParamStats] Storing "+cs->varName_);
     Set token = Tokenizer(Replace(cs->varName_,"::",":"),":");
     Text gibbs_blk = token[1];
@@ -69,7 +69,7 @@ Real SaveParamStats(Text dbName, Text model, Text session, Estimation estim)
 //the specified series.handler
 Set GetLinearBlkEffects(Set colNames_, 
                         Matrix param, 
-                        MasterSampler sampler, 
+                        @MasterSampler sampler, 
                         NameBlock series.handler)
 /////////////////////////////////////////////////////////////////////////////
 {
@@ -218,7 +218,7 @@ NameBlock GetModelDef(Text dbName,
                       Text session, 
                       Text resultRootPath,
                       NameBlock seriesHandler, 
-                      BysMcmc::Config config)
+                      BysMcmc::@Config config)
 ////////////////////////////////////////////////////////////////////////////
 {
   Real BysMcmc::Bsr::DynHlm::DBApi::useNodeInMissingIdentifier := 
@@ -263,31 +263,31 @@ NameBlock GetModelDef(Text dbName,
 //during process and CODA diagnostics over parameters at the end
 //Returns the MCMC, the CODA report and the evaluation time series and 
 //effects using parameter average.
-Cycler GetCycler(Text dbName, 
+@Cycler GetCycler(Text dbName, 
                  Text model, 
                  Text session, 
                  Text resultRootPath,
                  NameBlock seriesHandler, 
-                 BysMcmc::Config config)
+                 BysMcmc::@Config config)
 ////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::Notifier dbNotifier=BysMcmc::Notifier.DB::New
+  BysMcmc::@Notifier dbNotifier=BysMcmc::@Notifier.DB::New
     (dbName,model,session);
   Real dbNotifier::loading(0);  
   NameBlock model.def = GetModelDef(
     dbName, model, session, resultRootPath, seriesHandler, config);
-  BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
-    model.def, BysMcmc::McmcPartialHandler::Null(0), config, dbNotifier);
+  BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+    model.def, BysMcmc::@McmcPartialHandler::Null(0), config, dbNotifier);
   Set Append(cycler::auxInfo, [[series.handler]]);
   cycler
 };
 
 
 ////////////////////////////////////////////////////////////////////////////
-Real CloseModel(Estimation estim)
+Real CloseModel(@Estimation estim)
 ////////////////////////////////////////////////////////////////////////////
 {
-  BysMcmc::Config config = estim::cycler::_.config;
+  BysMcmc::@Config config = estim::cycler::_.config;
   Real If(config::do.linear.effects,
   {
     Set estim::linear.effects := GetLinearBlkEffects(

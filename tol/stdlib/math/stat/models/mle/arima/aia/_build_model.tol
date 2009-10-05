@@ -40,7 +40,7 @@
     Polyn DIF   = ARIMAGetDIF(arimaInfo);
     If(!(p+q), preEst0,
     {
-      Set  mDef = ModelDef(output,1,0,per,0,DIF,AR,MA,Empty,Empty);
+      Set  mDef = @ModelDef(output,1,0,per,0,DIF,AR,MA,Empty,Empty);
       Real Show(0,"ALL");
       Set  mEst = Estimate(mDef);
       Real Show(1,"ALL");
@@ -74,7 +74,7 @@ Aia.PreBuildModel);
 //////////////////////////////////////////////////////////////////////////////
   Set Aia.SelectModel(Text name,
                       Serie output, 
-                      Aia.OptionsInfo options)
+                      @Aia.OptionsInfo options)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set eval = For(1,Card(options->arimaDef_), Set(Real arimaIndex)
@@ -148,7 +148,7 @@ Aia.PreBuildModel);
       //WriteLn("TRACE b="<<b);
         Set    aiaInf_b = For(1, n, Set(Real k_)
         {
-          Aia.OutlierInfo
+          @Aia.OutlierInfo
           (
             aiaInf[k_]->shape_,
             aiaInf[k_]->dating_,

@@ -175,7 +175,7 @@ public:
         (
           ch_p('~') >>  
           (
-            str_p("Bsr.Sigma.Prior.InverseGamma") >> confix_p("(", (*(anychar_p)), ")")
+            str_p("@Bsr.Sigma.Prior.InverseGamma") >> confix_p("(", (*(anychar_p)), ")")
             //| error_expectedSigmaPriorInverseGamma
           )[assign_sig_pri_] 
           | 

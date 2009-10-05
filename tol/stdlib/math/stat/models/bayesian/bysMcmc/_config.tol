@@ -72,7 +72,7 @@ NameBlock Options =
 
 //////////////////////////////////////////////////////////////////////////////
 //Configuration default values over all BysMcmc related components
-Class Config
+Class @Config
 //////////////////////////////////////////////////////////////////////////////
 {
 //===========================================================================
@@ -189,10 +189,10 @@ Class Config
   Real do.mcmc.profiler = False;
 
   ////////////////////////////////////////////////////////////////////////////
-  Static Config Default(Real unused)
+  Static @Config Default(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Config aux = 
+    BysMcmc::@Config aux = 
     [[
       Real _void = ?
     ]]

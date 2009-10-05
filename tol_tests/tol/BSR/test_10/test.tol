@@ -349,48 +349,12 @@ BysMcmc::Bsr::DynHlm::DBApi::ModSes.Lat.Homog_1.Create
   series.handler::SelectNodesWithInputEnabled(child_input)
 )};
 
-/*
-Real { Text child_input = "constante";
-NameBlock inp = real.effects[child_input];
-BysMcmc::Bsr::DynHlm::DBApi::ModSes.Pri.Homog_1.Create
-(
-  DBConnection::BsrHlm::_.defaultDB, id_model, id_session, 
-  id_node = "Pri."+child_input, 
-  description = "Fuerza la homogeneidad de la variable "+child_input,
-  Set  node_childs = SetOfNameBlock
-  ([[
-    Text _.id_node = "Lat."+child_input,
-    Text _.id_parameter = "Average",
-    Real _.average = inp::_.average,
-    Real _.sigma = inp::_.sigma,
-    Real _.sigmaPriorWeight = .50
-  ]])  
-)};
-
-Real { Text child_input = "lunes";
-NameBlock inp = real.effects[child_input];
-BysMcmc::Bsr::DynHlm::DBApi::ModSes.Pri.Homog_1.Create
-(
-  DBConnection::BsrHlm::_.defaultDB, id_model, id_session, 
-  id_node = "Pri."+child_input, 
-  description = "Fuerza la homogeneidad de la variable "+child_input,
-  Set  node_childs = SetOfNameBlock
-  ([[
-    Text _.id_node = "Lat."+child_input,
-    Text _.id_parameter = "Average",
-    Real _.average = inp::_.average,
-    Real _.sigma = inp::_.sigma,
-    Real _.sigmaPriorWeight = .50
-  ]])  
-)};
-
-/* */
 
 
 ///////////////////////////////////////////////////////////////////////////////
 //Estimación del modelo con el sistema Bsr::DynHlm
 //////////////////////////////////////////////////////////////////////////////
-BysMcmc::Config bsr.config = [[
+BysMcmc::@Config bsr.config = [[
 //MCMC dimensions
   Real mcmc.burnin        =   500; 
   Real mcmc.sampleLength  =  2200;
@@ -410,7 +374,7 @@ BysMcmc::Config bsr.config = [[
 
 ]];
 
-BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
+BysMcmc::@Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
   DBConnection::BsrHlm::_.defaultDB,
   id_model,
@@ -420,7 +384,7 @@ BysMcmc::Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
   bsr.config
 );
 //Real cycler::initialize(0);
-BysMcmc::Estimation bsr.estim = BysMcmc::Estimation::New(cycler);
+BysMcmc::@Estimation bsr.estim = BysMcmc::@Estimation::New(cycler);
 //Real TolOprProfiler.Enabled := True;
 Real bsr.estim::Run(0);
 //Real TolOprProfiler.Dump("ses.01");
@@ -491,7 +455,7 @@ Set partialResults_ = quality.all <<
 Real quality_ = And(numErr0 == numErr1)*SetMin(quality.all);
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);

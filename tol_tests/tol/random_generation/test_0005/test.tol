@@ -35,7 +35,7 @@
   //Regular Moving Average polynomial
   Polyn ma = RandStationary(q);
   //Full ARIMA struct
-  Set arima = [[ARIMAStruct(1,ar,ma,1)]];
+  Set arima = [[@ARIMAStruct(1,ar,ma,1)]];
 
   //Standard deviation 
   Real s = Rand(0.5,2);

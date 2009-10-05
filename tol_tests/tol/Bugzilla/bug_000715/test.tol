@@ -15,29 +15,29 @@
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
     
-  Class ClaseA
+  Class @ClaseA
   {
     Text _.name;
     Text GetName(Real unused) { _.name }
   };
 
-  Class ClaseB
+  Class @ClaseB
   {
     Text _.name;
     Text GetName(Real unused) { _.name };
-    ClaseA GetClaseA(Text sufix)
+    @ClaseA GetClaseA(Text sufix)
     {
       Text name = GetName(0)+"."+sufix;
-      ClaseA a = [[Text _.name = name]] 
+      @ClaseA a = [[Text _.name = name]] 
     }
   };
 
-  ClaseB b = 
+  @ClaseB b = 
   [[
     Text _.name = "b"     
   ]];
     
-  ClaseA _.a = b::GetClaseA("a");
+  @ClaseA _.a = b::GetClaseA("a");
 
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);

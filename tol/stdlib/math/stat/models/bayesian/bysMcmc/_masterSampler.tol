@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : _masterSampler.tol
-// PURPOSE: Declares class BysMcmc::MasterSampler
+// PURPOSE: Declares class BysMcmc::@MasterSampler
 // PURPOSE: Generic handler for masters in MonteCarlo Markov Chain methods
 //////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////
-Class SubMasterBlock: BlockSampler
+Class @SubMasterBlock: @BlockSampler
 //////////////////////////////////////////////////////////////////////////////
 {
   //Stores all blocks in expected order
@@ -20,7 +20,7 @@ Class SubMasterBlock: BlockSampler
   Set get.fixedParam(Real unused) 
   ////////////////////////////////////////////////////////////////////////////
   { 
-    Set gfp(BysMcmc::BlockSampler blk)
+    Set gfp(BysMcmc::@BlockSampler blk)
     {
       blk::_.partialSampler::_.fixedParam
     };
@@ -31,7 +31,7 @@ Class SubMasterBlock: BlockSampler
   Set get.reloadParam(Real unused) 
   ////////////////////////////////////////////////////////////////////////////
   { 
-    Set grp(BysMcmc::BlockSampler blk)
+    Set grp(BysMcmc::@BlockSampler blk)
     {
       blk::_.partialSampler::_.reloadParam
     };
@@ -44,21 +44,21 @@ Class SubMasterBlock: BlockSampler
   "Arguments are:\n"
   "  Text name: Identifies the block.\n"
   "  Set colNames: Identifiers of block parameters that must be all unique.\n"
-  "  McmcPartialHandler mcmcPartialHandler: partial simulation info.\n"
+  "  @McmcPartialHandler mcmcPartialHandler: partial simulation info.\n"
   "  Real numBlock: The position of this block in full MCMC.\n"
   "  Real firstCol: First column of this block in full MCMC\n"
   "  NameBlock config: User configuration parameters\n";
   Real define(Text name, 
               Set colNames, 
-              BysMcmc::McmcPartialHandler mcmcPartialHandler,
+              BysMcmc::@McmcPartialHandler mcmcPartialHandler,
               Real numBlock, 
               Real firstCol,
-              BysMcmc::Config config)
+              BysMcmc::@Config config)
   ////////////////////////////////////////////////////////////////////////////
   { 
   //WriteLn("TRACE "+_MID+"::define"+"\n  name="<<name+"\n  numBlock="<<numBlock+"\n  firstCol="<<firstCol);
     Text _.name := name;
-    Text _MID := "[MasterSampler "+name+"] ";
+    Text _MID := "[@MasterSampler "+name+"] ";
     Real _.N := Card(colNames);
     Real If(_.N, {
       Real GT0 (Real idx) { idx>0 };
@@ -70,7 +70,7 @@ Class SubMasterBlock: BlockSampler
     Real _.firstCol := firstCol;
     Real _.lastCol  := firstCol+_.N-1;
     Set _.colIdx := Range(_.firstCol, _.lastCol, 1);
-    BysMcmc::Config _.config := config;
+    BysMcmc::@Config _.config := config;
     VMatrix If(Or(!_.N, VRows(_.store)!=_.N), _.store := Rand(_.N,1,0,0), _.store);
     WriteLn(_MID+" created with "<<
        _.N+" parameters from "<<_.firstCol+" to "<<_.lastCol+"");
@@ -86,7 +86,7 @@ Class SubMasterBlock: BlockSampler
     Real _.N := 0; 
     Real _.fixedParamNum := 0;
     Real _.reloadParamNum := 0;
-    Real init.blk(BysMcmc::BlockSampler blk)
+    Real init.blk(BysMcmc::@BlockSampler blk)
     {
       Real _.N := _.N + blk::_.N; 
       Real _.fixedParamNum := _.fixedParamNum + 
@@ -108,7 +108,7 @@ Class SubMasterBlock: BlockSampler
   VMatrix draw.blocks(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix draw.blk(BysMcmc::BlockSampler blk)
+    VMatrix draw.blk(BysMcmc::@BlockSampler blk)
     {
       blk::get.draw(numSim, False)
     };
@@ -124,7 +124,7 @@ Class SubMasterBlock: BlockSampler
   //WriteLn("TRACE "+_.name+"::setStore.blocks 1");   
     Matrix values = If(Columns(values_)==1,Tra(values_),values_);
   //WriteLn("TRACE "+_.name+"::setStore.blocks 2 values("<<Rows(values)+"x"<<Columns(values)+")");   
-    Real store.blk(BysMcmc::BlockSampler blk)
+    Real store.blk(BysMcmc::@BlockSampler blk)
     {
       If(Or(!(blk::enabled), blk::_.N<=0),0,
         blk::setStore(blk::getMcmc(values)))
@@ -174,7 +174,7 @@ Class SubMasterBlock: BlockSampler
 
 
 //////////////////////////////////////////////////////////////////////////////
-Class MasterSampler: SubMasterBlock
+Class @MasterSampler: @SubMasterBlock
 //////////////////////////////////////////////////////////////////////////////
 {
   //Stores all blocks in expected order
@@ -189,7 +189,7 @@ Class MasterSampler: SubMasterBlock
   Set get.colNames(Real unused) 
   ////////////////////////////////////////////////////////////////////////////
   { 
-    Set gcn(BysMcmc::BlockSampler blk)
+    Set gcn(BysMcmc::@BlockSampler blk)
     {
       blk::_.colNames
     };

@@ -238,7 +238,7 @@ WriteLn("\n\nFin de la evaluación de la estimación ARIMA : "+Time);
 
 Set arimaEst = For(1,Card(ARIMA), Set(Real k)
 {
-  ARIMAStruct
+  @ARIMAStruct
   (
     ARIMA[k]->Periodicity,
     (ModEst[2]->AR)[k],

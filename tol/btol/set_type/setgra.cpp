@@ -2252,7 +2252,7 @@ void BSetGetGlobalFunctions::CalcContens()
 static BStruct* IndexStruct_ = NewStructSymbol
 //--------------------------------------------------------------------
 (
-    "IndexStruct"
+    "@IndexStruct"
     ,
     "Text:Type,"
     "Text:Name,"
@@ -2265,7 +2265,7 @@ static BStruct* IndexStruct_ = NewStructSymbol
 
 static void * cloneIndexStruct_()
 {
-    return  NewStructSymbol( "IndexStruct"
+    return  NewStructSymbol( "@IndexStruct"
 			     ,
 			     "Text:Type,"
 			     "Text:Name,"

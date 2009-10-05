@@ -12,15 +12,15 @@ Text TclAddSeparator(Copy(Empty));
 
 // Boton para habilitar / deshabilitar trazas TCL
 Text TclAddButtonBar(SetOfSet (
-  TclArgSt("-image", "pool"),                  // Imagen en directorio images
-  TclArgSt("-tooltip", "Habilita/Deshabilita trazas TCL"), // Ayuda del boton
-  TclArgSt("-tclCmd", "")                             // Codigo TCL a evaluar
+  @TclArgSt("-image", "pool"),                  // Imagen en directorio images
+  @TclArgSt("-tooltip", "Habilita/Deshabilita trazas TCL"), // Ayuda del boton
+  @TclArgSt("-tclCmd", "")                             // Codigo TCL a evaluar
 ));
 
 // Crea un botton que evalua codigo TOL
 Text TclAddIncludeTOLCodeButton(SetOfSet (
-  TclArgSt("-image", "eval"),                  // Imagen en directorio images
-  TclArgSt("-tolCode", "Real pruebaPI = 3.1416;")  // Fichero a incluir
+  @TclArgSt("-image", "eval"),                  // Imagen en directorio images
+  @TclArgSt("-tolCode", "Real pruebaPI = 3.1416;")  // Fichero a incluir
 ));
 
 // Separador
@@ -28,15 +28,15 @@ Text TclAddSeparator(Copy(Empty));
 
 // Boton que llama a la calculadora de windows
 Text TclAddButtonBar(SetOfSet (
-  TclArgSt("-image", "calc"),                  // Imagen en directorio images
-  TclArgSt("-tooltip", "Calculadora"),                     // Ayuda del boton
-  TclArgSt("-tclCmd", "exec \"C:/winnt/system32/calc.exe\" &")  // Codigo TCL
+  @TclArgSt("-image", "calc"),                  // Imagen en directorio images
+  @TclArgSt("-tooltip", "Calculadora"),                     // Ayuda del boton
+  @TclArgSt("-tclCmd", "exec \"C:/winnt/system32/calc.exe\" &")  // Codigo TCL
 ));
 
 // Acceso a Microsoft Excel
 Text TclAddButtonBar(SetOfSet (
-  TclArgSt("-image", "xl-logo"),                 //imagen en directorio images
-  TclArgSt("-tooltip", "Microsoft Excel"),                  // Ayuda del boton
-  TclArgSt("-tclCmd", "{exec \"C:/Archivos de programa/Microsoft Office/Office/excel\" &}") // Codigo TCL
+  @TclArgSt("-image", "xl-logo"),                 //imagen en directorio images
+  @TclArgSt("-tooltip", "Microsoft Excel"),                  // Ayuda del boton
+  @TclArgSt("-tclCmd", "{exec \"C:/Archivos de programa/Microsoft Office/Office/excel\" &}") // Codigo TCL
 ));
 

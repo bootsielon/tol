@@ -2,11 +2,11 @@
 // LIBRARY: StdtLib (Standard Library of TOL)
 // MODULE: Stat (Statistics)
 // FILE: _sigmaBlock.tol
-// PURPOSE: Declares Class BysMcmc::Bsr::Gibbs::BlockSigma
+// PURPOSE: Declares Class BysMcmc::Bsr::Gibbs::@BlockSigma
 /////////////////////////////////////////////////////////////////////////////
 
 //--------------------------------------------------------------------------
-Struct BlockSigma.PartialIndex
+Struct @BlockSigma.PartialIndex
 //--------------------------------------------------------------------------
 {
   Real idxSegment;
@@ -15,7 +15,7 @@ Struct BlockSigma.PartialIndex
 };
 
 /////////////////////////////////////////////////////////////////////////////
-Class BlockSigma : BlockSampler
+Class @BlockSigma : @BlockSampler
 /////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
@@ -63,7 +63,7 @@ Class BlockSigma : BlockSampler
     {
       For(1,Card(_.sigmaBlockVar),Set(Real idxSegment)
       {
-        BSR.NoiseDistrib segment = _.sigmaBlockVar[idxSegment];
+        @BSR.NoiseDistrib segment = _.sigmaBlockVar[idxSegment];
         Real idxFixed  = 0;
         Real idxReload = 0;
         Text name = ToName(segment->SigmaName);
@@ -79,7 +79,7 @@ Class BlockSigma : BlockSampler
         {
           Append(_.segment.free.index, [[idxSegment]])
         });
-        BysMcmc::Bsr::Gibbs::BlockSigma.PartialIndex(
+        BysMcmc::Bsr::Gibbs::@BlockSigma.PartialIndex(
           idxSegment, idxFixed, idxReload) 
       })
     });
@@ -90,7 +90,7 @@ Class BlockSigma : BlockSampler
   Real _buildWorkSpace(VMatrix residuals_)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" BlockSigma::_buildWorkSpace 0");
+  //WriteLn("TRACE"+_MID+" @BlockSigma::_buildWorkSpace 0");
     NameBlock _.ws := 
     [[
       VMatrix  residuals = residuals_
@@ -102,7 +102,7 @@ Class BlockSigma : BlockSampler
   Text _.autodoc.member.sumOfSquares =
   "Method of generation of sigma block containing draws of all variant "
   "variances as inverses of a squared-chi";
-  NameBlock sumOfSquares(Real numSim, VMatrix residuals, BSR.NoiseDistrib segment)
+  NameBlock sumOfSquares(Real numSim, VMatrix residuals, @BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" sumOfSquares 1 "+segment->Name);
@@ -132,14 +132,14 @@ Class BlockSigma : BlockSampler
   Real draw.invRandChisq.segment(
     Real numSim, 
     VMatrix residuals, 
-    BSR.NoiseDistrib segment)
+    @BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.1 "+segment->Name);
     NameBlock sumSqr = sumOfSquares(numSim, residuals, segment);
   //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2 ");
     Case(
-    StructName(segment->SigmaPrior)=="Bsr.Sigma.Prior.InverseGamma",
+    StructName(segment->SigmaPrior)=="@Bsr.Sigma.Prior.InverseGamma",
     {
     //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.1 ");
       Real s2 = segment->SigmaPrior->Sigma2;
@@ -248,16 +248,16 @@ Class BlockSigma : BlockSampler
   "Builds a NameBlock that can draw a Gibbs sample of a variance block of a "
   "general regression model.";
   //////////////////////////////////////////////////////////////////////////////
-  Static BlockSigma New(
+  Static @BlockSigma New(
    Text name, 
    Set NoiseDistrib, 
-   BysMcmc::McmcPartialHandler mcmcPartialHandler,
+   BysMcmc::@McmcPartialHandler mcmcPartialHandler,
    Real numBlock, 
    Real firstCol,
-   BysMcmc::Config  config)
+   BysMcmc::@Config  config)
   //////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::Gibbs::BlockSigma sigBlk = [[
+    BysMcmc::Bsr::Gibbs::@BlockSigma sigBlk = [[
 
     Code _.buildWorkSpace = _buildWorkSpace;
 
@@ -266,21 +266,21 @@ Class BlockSigma : BlockSampler
     Set _.sigmaBlockCte = 
     {
     //WriteLn("TRACESelecting residuals with known wariance");
-      Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
+      Select(NoiseDistrib, Real(@BSR.NoiseDistrib d)
       { d->SigmaIndex<=0 })
     };
     //Selects residuals with variant sigma
     Set _.sigmaBlockVar = 
     {
     //WriteLn("TRACESelecting residuals with unknown wariance");
-      Select(NoiseDistrib, Real(BSR.NoiseDistrib d)
+      Select(NoiseDistrib, Real(@BSR.NoiseDistrib d)
       { d->SigmaIndex>0 })
     };
     //Defining the block in the Markov Chain
     Real _defined = define
     (
       name,
-      EvalSet(_.sigmaBlockVar, Text(BSR.NoiseDistrib d) { d->SigmaName });
+      EvalSet(_.sigmaBlockVar, Text(@BSR.NoiseDistrib d) { d->SigmaName });
       mcmcPartialHandler,
       numBlock,
       firstCol,
@@ -291,7 +291,7 @@ Class BlockSigma : BlockSampler
     //A diagonal matrix with sum of all constant sigmas that will be used in 
     //regression standarizing
     VMatrix _.sigmaInvCte = If(!Card(_.sigmaBlockCte), Zeros(_.m),
-      BinGroup("+", EvalSet(_.sigmaBlockCte, VMatrix (BSR.NoiseDistrib d) 
+      BinGroup("+", EvalSet(_.sigmaBlockCte, VMatrix (@BSR.NoiseDistrib d) 
       { d->Li })));
     //Sigma block current store
     VMatrix _.sigmaInv = _.sigmaInvCte

@@ -260,7 +260,7 @@ Set SetFor = For(1, KModels-1, Serie(Real h)
 });
 
 Serie AddSerie = SetSum(EvalSet(SetNoise,Serie(Serie noise){Exp(noise)}));
-Set defModelAdd = ModelDef
+Set defModelAdd = @ModelDef
 (
   AddSerie,
   0,0,
@@ -474,7 +474,7 @@ Set SetRegFor = Traspose(SetRegAux)[1];
 Serie AddSerie = SetSumC(EvalSet(SetNoise,Serie(Serie noise){Exp(noise)})
 <<(Traspose(SetRegAux)[3]));
 
-Set defModelAdd = ModelDef
+Set defModelAdd = @ModelDef
 (
   AddSerie,
   0,0,

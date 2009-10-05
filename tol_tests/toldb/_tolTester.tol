@@ -79,14 +79,14 @@ Text Dbt.EngComPath = Dbt.EngPath+"common/";
 
 Set Battery_1 = EvalSet(Dbt.Engine.Active,Set(Set ci)
 {
-  strBatteryConfig("by_engine/common", 
+  @strBatteryConfig("by_engine/common", 
                    Dbt.EngComPath+ci->alias_+".tol",  
                    1)
 });
 
 Set Battery_2 = EvalSet(Dbt.Engine.Active,Set(Set ci)
 {
-  strBatteryConfig("by_engine/"+ci->engine_, 
+  @strBatteryConfig("by_engine/"+ci->engine_, 
                    Dbt.EngPath+ci->engine_+"/"+ci->alias_+".tol",  
                    1)
 });

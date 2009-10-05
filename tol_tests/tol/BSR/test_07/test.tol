@@ -57,7 +57,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
 
 //////////////////////////////////////////////////////////////////////////////
 //Model definition for BSR one node API
-  BysMcmc::Bsr::OneNode::ModelData bsr.oneNode.data =
+  BysMcmc::Bsr::OneNode::@ModelData bsr.oneNode.data =
 //////////////////////////////////////////////////////////////////////////////
 [[
   //##Documentation about the model
@@ -134,7 +134,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
 /* */
 //////////////////////////////////////////////////////////////////////////////
 //BSR generic configuration parameters
-BysMcmc::Config bsr.config = [[
+BysMcmc::@Config bsr.config = [[
 //////////////////////////////////////////////////////////////////////////////
 //MCMC dimensions
   Real mcmc.burnin        =  100; 
@@ -155,10 +155,10 @@ BysMcmc::Config bsr.config = [[
   Real do.linear.effects  =  True 
 ]];
 
-BysMcmc::Cycler bsr.oneNode.cycler = BysMcmc::Bsr::OneNode::GetCycler(
+BysMcmc::@Cycler bsr.oneNode.cycler = BysMcmc::Bsr::OneNode::GetCycler(
   bsr.oneNode.data, Copy(Empty), bsr.config);
 
-BysMcmc::Estimation bsr.oneNode = BysMcmc::Estimation::New(bsr.oneNode.cycler);
+BysMcmc::@Estimation bsr.oneNode = BysMcmc::@Estimation::New(bsr.oneNode.cycler);
 Real bsr.oneNode::Run(0);
 
 
@@ -182,7 +182,7 @@ Real quality_ = And(numErr0 == numErr1)*
 };
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);

@@ -6,7 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////
-Class BlockInputMissing : BlockStdLin 
+Class @BlockInputMissing : @BlockStdLin 
 ////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
@@ -35,7 +35,7 @@ Class BlockInputMissing : BlockStdLin
   //--------------------------------------------------------------------------
   // Auxiliar members
   //--------------------------------------------------------------------------
-  WorkSpace.LinReg _.ws = BysMcmc::Bsr::Gibbs::WorkSpace.LinReg::Null(0);
+  @WorkSpace.LinReg _.ws = BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg::Null(0);
   //Standarized input of free missing priors
   VMatrix _.prior.X.free = Rand(0,0,0,0);
 
@@ -48,39 +48,39 @@ Class BlockInputMissing : BlockStdLin
   //Methods
   //--------------------------------------------------------------------------
   ////////////////////////////////////////////////////////////////////////////
-  WorkSpace.LinReg getWorkSpaceLinReg(Real unused) 
+  @WorkSpace.LinReg getWorkSpaceLinReg(Real unused) 
   ////////////////////////////////////////////////////////////////////////////
   { _.ws };
 
 
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace_full(
-    BysMcmc::Bsr::Gibbs::BlockArima arm.blk, //ArimaBlock filter
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
     VMatrix si,    //SigmaBlock filter
     VMatrix Z,     //Noise of main linear block
     VMatrix beta)  //Main Linear Block parameters 
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" BlockInputMissing::_buildWorkSpace 0");
+  //WriteLn("TRACE"+_MID+" @BlockInputMissing::_buildWorkSpace 0");
     Real    M = VRows(Z);
     VMatrix b_= SubRow(beta, _.j);
     Matrix  b = VMat2Mat(b_);
   //WriteLn("TRACE "+_MID+" draw 2 b="<<b);
     VMatrix B = (Convert(Triplet(_.tk | b, M, _.N),"Cholmod.R.Sparse"));
   //WriteLn("TRACE "+_MID+" draw 3 B="<<B);
-    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
+    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg wslr = 
     [[
       VMatrix _.Y = arm.blk::filter(si*Z) << _.prior.Y;
   //WriteLn("TRACE "+_MID+" draw 4 Y01="<<Y01);
       VMatrix _.X = arm.blk::filter(si*B) << _.prior.X
     ]];
-    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg _.ws := wslr;
+    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg _.ws := wslr;
     True
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace_partial(
-    BysMcmc::Bsr::Gibbs::BlockArima arm.blk, //ArimaBlock filter
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
     VMatrix si,    //SigmaBlock filter
     VMatrix Z,     //Noise of main linear block
     VMatrix beta)  //Main Linear Block parameters 
@@ -104,20 +104,20 @@ Class BlockInputMissing : BlockStdLin
     VMatrix U1 = B1 * u1;
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 2 u1\n="<<U1);
 
-    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg wslr = 
+    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg wslr = 
     [[
       VMatrix _.Y = arm.blk::filter(si*Z+U1) << _.prior.Y;
       VMatrix _.X = arm.blk::filter(si*B2  ) << _.prior.X.free
     ]];
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 3.1 wslr::_.Y("<<VRows(wslr::_.Y)+"x"<<VColumns(wslr::_.Y)+")");
   //WriteLn("TRACE "+_MID+" _buildWorkSpace_partial 3.2 wslr::_.X("<<VRows(wslr::_.X)+"x"<<VColumns(wslr::_.X)+")");
-    BysMcmc::Bsr::Gibbs::WorkSpace.LinReg _.ws := wslr;
+    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg _.ws := wslr;
     True
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace(
-    BysMcmc::Bsr::Gibbs::BlockArima arm.blk, //ArimaBlock filter
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
     VMatrix si,    //SigmaBlock filter
     VMatrix Z,     //Noise of main linear block
     VMatrix beta)  //Main Linear Block parameters 
@@ -142,13 +142,13 @@ Class BlockInputMissing : BlockStdLin
     VMatrix u = _.store;
     //Selecting input missing variables with left truncated prior information
     Set leftConstrainedPrior.sel = 
-      Select(_.prior.sel, Real(BSR.MissingBlock b)
+      Select(_.prior.sel, Real(@BSR.MissingBlock b)
       {
         GT(b->MinBound,-1/0)
       });
     //Selecting input missing variables with right truncated prior information
     Set rightConstrainedPrior.sel = 
-      Select(_.prior.sel, Real(BSR.MissingBlock b)
+      Select(_.prior.sel, Real(@BSR.MissingBlock b)
       {
         LT(b->MaxBound,1/0)
       });
@@ -215,25 +215,25 @@ Class BlockInputMissing : BlockStdLin
   "Builds a NameBlock that can draw a Gibbs sample of a Input Missing block "
   "of a Bayesian Sparse Regression model";
   //////////////////////////////////////////////////////////////////////////////
-  Static BlockStdLin New(
+  Static @BlockStdLin New(
     Text name, 
     Set  inputMissingBlock, 
-    BysMcmc::McmcPartialHandler mcmcPartialHandler,
+    BysMcmc::@McmcPartialHandler mcmcPartialHandler,
     Real numBlock, 
     Real firstCol,
     BysMcmc::NameBlock config)
   //////////////////////////////////////////////////////////////////////////////
   {
     If(!Card(inputMissingBlock), 
-    BysMcmc::Bsr::Gibbs::BlockStdLinEmpty::New(name, numBlock, firstCol, config),
-    BysMcmc::Bsr::Gibbs::BlockInputMissing blk = [[
+    BysMcmc::Bsr::Gibbs::@BlockStdLinEmpty::New(name, numBlock, firstCol, config),
+    BysMcmc::Bsr::Gibbs::@BlockInputMissing blk = [[
     Code _.buildWorkSpace = _buildWorkSpace;
     //Given initial values of block variables
     VMatrix _.store = Mat2VMat(SetMat(Extract(inputMissingBlock, 6)));
     //Defining the block in the Markov Chain
     Real _defined = define(
       name, 
-      EvalSet(inputMissingBlock, Text(BSR.MissingBlock b){ b->Name }), 
+      EvalSet(inputMissingBlock, Text(@BSR.MissingBlock b){ b->Name }), 
       mcmcPartialHandler,
       numBlock, 
       firstCol, 
@@ -252,7 +252,7 @@ Class BlockInputMissing : BlockStdLin
     //Input missing index j
     Set _.j = Traspose(Extract(inputMissingBlock, 4))[1];
     //Selecting input missing variables with prior information
-    Set _.prior.sel = Select(inputMissingBlock, Real(BSR.MissingBlock b)
+    Set _.prior.sel = Select(inputMissingBlock, Real(@BSR.MissingBlock b)
     {
       b->Prior != "None"
     });

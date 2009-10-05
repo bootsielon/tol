@@ -10,7 +10,6 @@
 //WriteLn("PlainNamedObjects("<<Name(set)+")");
   Set aux = For(1,Card(set),Set(Real k) 
   { 
-  //WriteLn("  Element "+Grammar(set[k])+" "+Name(set[k]));
     Text name = Name(set[k]);
     Real hasName = And
     (
@@ -18,20 +17,22 @@
       name==ToName(name),
       name!="Empty"
     );
+  //WriteLn("TRACE PlainNamedObjects  Element "+
+  //  Grammar(set[k])+" '"+Name(set[k])+"' ");
     Case
     (
       Grammar(set[k])=="Set", 
       {
-      If(hasName, [[ set[k] ]], Empty) << 
-      PlainNamedObjects(set[k])
+        If(hasName, [[ set[k] ]], Empty) << 
+        PlainNamedObjects(set[k])
       }, 
       !hasName,       
       {
-      Copy(Empty)
+        Copy(Empty)
       },
       1==1,                   
       {
-      [[ set[k] ]]
+        [[ set[k] ]]
       }
     )
   });

@@ -15,8 +15,8 @@ Text TclTabulateSerie(Anything source, Set valArg)
   {
     // utiliza -title, -geometry
     Set defArg = SetOfSet (
-      TclArgSt("-title", ""),
-      TclArgSt("-geometry", "")
+      @TclArgSt("-title", ""),
+      @TclArgSt("-geometry", "")
     );
     Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
     
@@ -48,12 +48,12 @@ Parámetros:
 Ejemplo:
   Serie ser1 = Rand(-10, 10, Diario);
   Text  table01 = TclTabulateSerie(ser1, SetOfSet(
-    TclArgSt(\"-title\",\"Tabulando unas Series\"),
-    TclArgSt(\"-geometry\", \"814x692+15+15\")
+    @TclArgSt(\"-title\",\"Tabulando unas Series\"),
+    @TclArgSt(\"-geometry\", \"814x692+15+15\")
   )); 
   Text  table01 = TclTabulateSerie(SetOfSerie(ser1), SetOfSet(
-    TclArgSt(\"-title\",\"Tabulando unas Series\"),
-    TclArgSt(\"-geometry\", \"814x692+15+15\")
+    @TclArgSt(\"-title\",\"Tabulando unas Series\"),
+    @TclArgSt(\"-geometry\", \"814x692+15+15\")
   )); 
 ", TclTabulateSerie);
 //////////////////////////////////////////////////////////////////////////////
@@ -66,15 +66,15 @@ Text TclTabulateMatrix(Matrix source, Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-title", ""),
-    TclArgSt("-geometry", "")
+    @TclArgSt("-title", ""),
+    @TclArgSt("-geometry", "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );
 
   Set setSource = MatSet(source);
   Text result    = TclTabulateSet(setSource, SetOfSet(
-    TclArgSt("-title",   TclGAV("-title",aplArg)),
-    TclArgSt("-geometry",TclGAV("-geometry",aplArg))
+    @TclArgSt("-title",   TclGAV("-title",aplArg)),
+    @TclArgSt("-geometry",TclGAV("-geometry",aplArg))
   ))
 };
 //////////////////////////////////////////////////////////////////////////////
@@ -90,8 +90,8 @@ Parámetros:
 Ejemplo:
   Matrix mat1    = Rand(100,   10, -10, 10);
   Set   tabla01 = TclTabulateMatrix(mat1, SetOfSet(
-    TclArgSt(\"-title\",\"Tabulando una Matriz\"),
-    TclArgSt(\"-geometry\", \"814x692+15+15\")
+    @TclArgSt(\"-title\",\"Tabulando una Matriz\"),
+    @TclArgSt(\"-geometry\", \"814x692+15+15\")
   ));
 ", TclTabulateMatrix);
 //////////////////////////////////////////////////////////////////////////////
@@ -104,8 +104,8 @@ Text TclTabulateSet(Set source, Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-title", ""),
-    TclArgSt("-geometry", "")
+    @TclArgSt("-title", ""),
+    @TclArgSt("-geometry", "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );  
 
@@ -138,8 +138,8 @@ Ejemplo:
       SetOfReal(  3,  7,  4,  2,  9,  6),
       SetOfReal(  2,  4,  5,  5,  6,  3));
   Set tabla01 = TclTabulateSet(set1, SetOfSet(
-    TclArgSt(\"-title\",\"Tabulando un Set\"),
-    TclArgSt(\"-geometry\", \"814x692+15+15\")
+    @TclArgSt(\"-title\",\"Tabulando un Set\"),
+    @TclArgSt(\"-geometry\", \"814x692+15+15\")
   ));
 ", TclTabulateSet);
 //////////////////////////////////////////////////////////////////////////////
@@ -153,8 +153,8 @@ Text TclTabulateTimeSet(Set source, Date dateIni, Date dateEnd, Set valArg)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set defArg = SetOfSet (
-    TclArgSt("-title", ""),
-    TclArgSt("-geometry", "")
+    @TclArgSt("-title", ""),
+    @TclArgSt("-geometry", "")
   );
   Set aplArg = TclMixArg( TclMixArg(SeedArg,defArg), valArg );  
   // build Set dates
@@ -180,8 +180,8 @@ Text TclTabulateTimeSet(Set source, Date dateIni, Date dateEnd, Set valArg)
   Set setFechas = SetOfSet(header) << setFechasDef;
 
   Text result    = TclTabulateSet(setFechas, SetOfSet(
-    TclArgSt("-title",   TclGAV("-title",aplArg)),
-    TclArgSt("-geometry",TclGAV("-geometry",aplArg))
+    @TclArgSt("-title",   TclGAV("-title",aplArg)),
+    @TclArgSt("-geometry",TclGAV("-geometry",aplArg))
   ))
 };
 //////////////////////////////////////////////////////////////////////////////
@@ -195,7 +195,7 @@ Parámetros:
   source   -> Set con los datos a graficar.
   dateIni  -> Fecha de inicio. Si no se especifica, se toma DefFirst
   dateIni  -> Fecha de fin. Si no se especifica, se toma DefLast
-  valArg:  -> Conjunto con los siguientes argumentos (estructura TclArgSt):
+  valArg:  -> Conjunto con los siguientes argumentos (estructura @TclArgSt):
    -title    -> Título de la ventana del experto en calendarios.
    -geometry -> Geometría de la ventana. widthxheight+x+y . Ej: 814x692+10+10.
               Al especificar la geometría de la ventana hay que tener en
@@ -206,8 +206,8 @@ Ejemplo:
   Date dateIni = y2000m01d01;
   Date dateEnd = y2001m01d01;
   Text TclTabulateTimeSet(source, dateIni, dateEnd, SetOfSet(
-    TclArgSt(\"-title\",\"Tabulando TimeSet\"),
-    TclArgSt(\"-geometry\", \"100x100+1+1\")
+    @TclArgSt(\"-title\",\"Tabulando TimeSet\"),
+    @TclArgSt(\"-geometry\", \"100x100+1+1\")
   ));
 ", TclTabulateTimeSet);
 //////////////////////////////////////////////////////////////////////////////

@@ -11,40 +11,40 @@ Text summary_ = "test for ClassOf function and Copy of Class instances" ;
 
 Real numErr0 = Copy(NError);
 
-Class ClsA
+Class @ClsA
 {
   Text _.name;
   Text PutName( Text name ) { Text _.name := name }
 };
 
-ClsA ClsA.New( Text name )
+@ClsA ClsA.New( Text name )
 {
-  ClsA aux = [[ Text _.name = name ]]
+  @ClsA aux = [[ Text _.name = name ]]
 };
 
 
-Class ClsB
+Class @ClsB
 {
   Real v = 0;
-  ClsA A;
+  @ClsA A;
   Set cont = Copy( Empty )
 };
 
-ClsB ClsB.New( Real x, Text name )
+@ClsB ClsB.New( Real x, Text name )
 {
-  ClsB aux = [[ Real v = x, ClsA A = ClsA.New( name ) ]]
+  @ClsB aux = [[ Real v = x, @ClsA A = ClsA.New( name ) ]]
 };
 
-ClsB aB = ClsB.New( 1, "kk" );
+@ClsB aB = ClsB.New( 1, "kk" );
 
 Set Append( aB::cont, [[ ClsA.New( "aa" ) ]] );
 
-ClsB aB1 = Copy( aB );
+@ClsB aB1 = Copy( aB );
 Text aB1::A::PutName( "jj" );
 Text ((aB1::cont)[1])::PutName( "aa copia" );
 
 WriteLn( "aB es de clase " << ClassOf( aB ) );
-WriteLn( "aB1 es copia de aB, debe ser de clase ClsB y es:" << ClassOf( aB1 ) );
+WriteLn( "aB1 es copia de aB, debe ser de clase @ClsB y es:" << ClassOf( aB1 ) );
 
 Real numErr1 = Copy(NError);
 

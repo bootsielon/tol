@@ -658,7 +658,7 @@ Tree* BParser::ParseOpen (Tree* tre)
   BCloseToken* cl = NextSymbol()->Close();
   openNumber_++;
   if(!classInheritage_ && 
-    (complete_ || (arg && !filter_->IsFirstIdentifier(arg->String()[0])))) 
+    (complete_ || (arg && !filter_->StartIdentifier(arg->String()[0])))) 
   {
     BText sym = NextSymbol()->Name();
     filter_->UnReplace(sym);
@@ -1315,12 +1315,12 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
   }
 #endif
   if((symbolType==ARGUMENT) ||
-     ((scan_->NextArgument()!="") && complete_)) 
+     (scan_->NextArgument().HasName() && complete_)) 
   {
-    BText arg = scan_->NextArgument();
-    filter_->UnReplace(arg);
-    messageError_+= I2("Unexpected argument "+ arg,
-                       "Argumento " + arg + " fuera de lugar")+". ";
+    BText& nxtArg = scan_->NextArgument();
+    filter_->UnReplace(nxtArg);
+    messageError_+= I2("Unexpected argument "+ nxtArg,
+                       "Argumento " + nxtArg + " fuera de lugar")+". ";
     PutNextSymbol  (scan_->NextSymbol());
     PutNextArgument(scan_->NextArgument());
     ok = BFALSE;
@@ -1330,22 +1330,61 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
     const BText& nxtArg = scan_->NextArgument();
     PutNextSymbol  (scan_->NextSymbol());
     PutNextArgument(nxtArg);
-    if(structFound) 
+    if(nxtArg.HasName())
     {
-      if(nxtArg.HasName() && !scan_->FindSymbol(nxtArg))
+      if(structFound) 
       {
-        BObject* arg = new BObject(nxtArg);
-        scan_->AddSymbol(new BTypeToken(nxtArg,BTypeToken::BSTRUCT));
-        newSymbol_ = List::cons(arg,newSymbol_);
+        if(!scan_->FindSymbol(nxtArg))
+        {
+          BObject* arg = new BObject(nxtArg);
+          scan_->AddSymbol(new BTypeToken(nxtArg,BTypeToken::BSTRUCT));
+          newSymbol_ = List::cons(arg,newSymbol_);
+#ifdef ALLOW_NON_STANDARD_STRUCT
+          //VBR: Temporary behaviour until non standard struct will be obsolete
+          if(nxtArg[0]=='@')
+          {
+            BText newName(nxtArg.String()+1,nxtArg.Length()-1);
+            if(!scan_->FindSymbol(newName))
+            {
+              BObject* arg = new BObject(newName);
+              scan_->AddSymbol(new BTypeToken(newName,BTypeToken::BSTRUCT));
+              newSymbol_ = List::cons(arg,newSymbol_);
+            }
+          }
+#endif
+        }
       }
-    }
-    else if(classFound)
-    {
-      if(nxtArg.HasName() && !scan_->FindSymbol(nxtArg))
+      else if(classFound)
       {
-        BObject* arg = new BObject(nxtArg);
-        scan_->AddSymbol(new BTypeToken(nxtArg,BTypeToken::BCLASS));
-        newSymbol_ = List::cons(arg,newSymbol_);
+        if(nxtArg[0]!='@')
+        {
+          messageError_+= 
+           I2("Unexpected symbol "+ nxtArg,
+              "Símbolo " + nxtArg + " fuera de lugar")+". "+
+           I2("Class names must begin with special character @",
+              "Los nombres de clases deben comenzar por el caracter especial @")+". ";
+          ok = BFALSE;
+        }
+        else if(!scan_->FindSymbol(nxtArg))
+        {
+          BObject* arg = new BObject(nxtArg);
+          scan_->AddSymbol(new BTypeToken(nxtArg,BTypeToken::BCLASS));
+          newSymbol_ = List::cons(arg,newSymbol_);
+        }
+      }
+      else if(nxtArg[0]=='@')
+      {
+        //VBR: Temporary condition until non standard struct will be obsolete
+        if(!scan_->FindSymbol(nxtArg))
+        {
+          messageError_+= 
+           I2("Unexpected symbol "+ nxtArg,
+              "Símbolo " + nxtArg + " fuera de lugar")+". "+
+           I2("Only Struct and Class names can begin with special character @",
+              "Sólo los los nombres de Struct y Class pueden comenzar por el "
+              "caracter especial @")+". ";
+          ok = BFALSE;
+        } 
       }
     }
   }

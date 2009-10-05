@@ -7,15 +7,15 @@
 NameBlock Polytope = [[
 
 //Forward declaration of class 
-Class Region;
+Class @Region;
 
 //////////////////////////////////////////////////////////////////////////////
-Class Point 
+Class @Point 
 // Defines a point and its situation repect to a polytope
 //////////////////////////////////////////////////////////////////////////////
 {
-  Region region; //Region A*x <= a
-  VMatrix x;       //Point coordintaes
+  @Region region; //@Region A*x <= a
+  VMatrix x;       //@Point coordintaes
   Real isFinite;   //Check if x is well defined
   VMatrix g;       //Border distance g = A*x - a
   VMatrix G;       //Matching equations indicator: G[i] = g[i] <= 0  
@@ -30,22 +30,22 @@ Class Point
     If(IsUnknown(aux), defValue, aux)
   };
   ////////////////////////////////////////////////////////////////////////////
-  Static Point New(Region region_, VMatrix x_)
+  Static @Point New(@Region region_, VMatrix x_)
   ////////////////////////////////////////////////////////////////////////////
   { 
-    Point new = [[
-      Region region = region_;
+    @Point new = [[
+      @Region region = region_;
       VMatrix x = x_;
       Real drop = region::r*region::n*1.E-15;
       Real isFinite = (VMatSum(IsFinite(x))==VRows(x));
       VMatrix g = region::evalBorderDistance(x);
-      Real match = Point::EnsureKnown(VMatMax(g)<=
+      Real match = @Point::EnsureKnown(VMatMax(g)<=
                                       drop, 0);
       VMatrix G = GT(g, region::zero);
       VMatrix h = Max(region::zero,g);
       Real f = 
       {
-        Real aux = Point::EnsureKnown(VMatSum(RPow(h,2)), 1/0);
+        Real aux = @Point::EnsureKnown(VMatSum(RPow(h,2)), 1/0);
         Max(aux,drop^2) 
       }
     ]];
@@ -54,7 +54,7 @@ Class Point
 };
     
 //////////////////////////////////////////////////////////////////////////////
-Class ScalarMin
+Class @ScalarMin
 // Class used fo minimize total non matching square distance (P::f) in a 
 // segment [a,b] of a given direction v around a central point P0
 // 
@@ -67,8 +67,8 @@ Class ScalarMin
 // 
 //////////////////////////////////////////////////////////////////////////////
 {
-  Point P0;
-  Point P;
+  @Point P0;
+  @Point P;
   VMatrix v = Rand(0,0,0,0);
   Real a = -100;
   Real b = +100;
@@ -79,12 +79,12 @@ Class ScalarMin
   Real evalSegmentPoint(Real t)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Point P_ = Point::New(P0::region, P0::x + v*t);
-//  WriteLn("TRACE ScalarMin::evalSegmentPoint "
+    @Point P_ = @Point::New(P0::region, P0::x + v*t);
+//  WriteLn("TRACE @ScalarMin::evalSegmentPoint "
 //          "lastIterMethod="+lastIterMethod+
 //          " t="<<t+
 //          " P_::f="<<P_::f);
-    Real If(P_::isFinite & (P_::f <= P0::f), { Point  P := P_; True });
+    Real If(P_::isFinite & (P_::f <= P0::f), { @Point  P := P_; True });
     P_::f
   };
 
@@ -96,7 +96,7 @@ Class ScalarMin
     {
       If(P::region::verbose>1,
       {
-        WriteLn("[ScalarMin::minimize] Non valid direction"
+        WriteLn("[@ScalarMin::minimize] Non valid direction"
                 " lastIterMethod="+lastIterMethod)
       });
       False
@@ -104,7 +104,7 @@ Class ScalarMin
     {
       Real min = ?;
       Real tMin = FibonacciMin(evalSegmentPoint, min,  a,  b, tol);
-    //WriteLn("TRACE ScalarMin::minimize lastIterMethod="+lastIterMethod+
+    //WriteLn("TRACE @ScalarMin::minimize lastIterMethod="+lastIterMethod+
     //        " P::f="<<P::f);
       Real ok = And(P::isFinite, (P::f < P0::f));
       ok
@@ -112,19 +112,19 @@ Class ScalarMin
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Static ScalarMin New(Point P0_)
+  Static @ScalarMin New(@Point P0_)
   ////////////////////////////////////////////////////////////////////////////
   {
-    ScalarMin new = [[
-      Point P0 = P0_;
-      Point P = Copy(P0)
+    @ScalarMin new = [[
+      @Point P0 = P0_;
+      @Point P = Copy(P0)
     ]]
   }
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Class Region 
-// Defines a Region by a set of linear inequations
+Class @Region 
+// Defines a @Region by a set of linear inequations
 // 
 //   A*x <= a
 // 
@@ -148,11 +148,11 @@ Class Region
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Static Region New(VMatrix A_, VMatrix a_)
-  //Creates an instance of Region
+  Static @Region New(VMatrix A_, VMatrix a_)
+  //Creates an instance of @Region
   ////////////////////////////////////////////////////////////////////////////
   {
-    Region new =
+    @Region new =
     [[
       VMatrix A = A_;
       VMatrix a = a_;
@@ -165,7 +165,7 @@ Class Region
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Point FindFeasible(VMatrix x0, Real maxIter, Real verbose_) 
+  @Point FindFeasible(VMatrix x0, Real maxIter, Real verbose_) 
   //Finds a feasible point of the polytope by means of a battery of methods:
   // 1) Newton-Raphson
   // 2) Stepest descent
@@ -174,9 +174,9 @@ Class Region
   ////////////////////////////////////////////////////////////////////////////
   {
     Real verbose := verbose_;
-    Point P = Point::New(_this, x0);
+    @Point P = @Point::New(_this, x0);
     Real iter = 1;
-    ScalarMin sm = ScalarMin::New(P);
+    @ScalarMin sm = @ScalarMin::New(P);
     Text If(verbose, sm::lastIterMethod := "initial");
     While(And(Not(P::match), (P::f>=TheMinAbsValue), iter<=maxIter), {
       If(verbose, WriteLn("FindFeasible " 
@@ -194,7 +194,7 @@ Class Region
 /* */
       Real ok = If(sm::minimize(0),
       {
-        Point P := sm::P;
+        @Point P := sm::P;
         True
       },
       {
@@ -202,7 +202,7 @@ Class Region
         VMatrix sm::v := grad;
         Real If(sm::minimize(0),
         {
-          Point P := sm::P;
+          @Point P := sm::P;
           True
         },
         {
@@ -218,12 +218,12 @@ Class Region
           }); 
           If(ok,
           {
-            Point P := sm::P;
+            @Point P := sm::P;
             True
           },
           {
             Text If(verbose, sm::lastIterMethod := "random jump");
-            Point P := Point::New(_this, P::x + Rand(n,1,-1,1));
+            @Point P := @Point::New(_this, P::x + Rand(n,1,-1,1));
             False
           })
         })
@@ -236,7 +236,7 @@ Class Region
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Point FindFeasible.QP.MinNorm(Real verbose_) 
+  @Point FindFeasible.QP.MinNorm(Real verbose_) 
   //Finds the minimum norm feasible point of the polytope using quadprog
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -246,11 +246,11 @@ Class Region
     Matrix  XtY   = Rand(n,1,0,0);
     Matrix  cnstr = Rquadprog::solveQP(XtX, XtY, -Dt, -d,
                                       {[[Real verbose=verbose_]]})[1];
-    Point P = Point::New(_this, Mat2VMat(cnstr))
+    @Point P = @Point::New(_this, Mat2VMat(cnstr))
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Point FindFeasible.QP.MLE(VMatrix X, VMatrix Y, Real verbose_) 
+  @Point FindFeasible.QP.MLE(VMatrix X, VMatrix Y, Real verbose_) 
   //Finds the maximum likelihood feasible point of the polytope using quadprog
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -260,7 +260,7 @@ Class Region
     Matrix  XtY   = VMat2Mat(Tra(Tra(Y)*X));
     Matrix  cnstr = Rquadprog::solveQP(XtX, XtY, -Dt, -d,
                                       {[[Real verbose=verbose_]]})[1];
-    Point P = Point::New(_this, Mat2VMat(cnstr))
+    @Point P = @Point::New(_this, Mat2VMat(cnstr))
   }
 
 };
@@ -271,8 +271,8 @@ Class Region
                        VMatrix x0, Real maxIter, Real verbose)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Region R = Region::New(A, a);
-    Point  P = R::FindFeasible(x0, maxIter, verbose);
+    @Region R = @Region::New(A, a);
+    @Point  P = R::FindFeasible(x0, maxIter, verbose);
     P::x
   };
 
@@ -281,8 +281,8 @@ Class Region
                                   Real verbose)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Region R = Region::New(A, a);
-    Point  P = R::FindFeasible.QP.MinNorm(verbose);
+    @Region R = @Region::New(A, a);
+    @Point  P = R::FindFeasible.QP.MinNorm(verbose);
     P::x
   };
 
@@ -291,8 +291,8 @@ Class Region
                               VMatrix X, VMatrix Y, Real verbose)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Region R = Region::New(A, a);
-    Point  P = R::FindFeasible.QP.MLE(X,Y,verbose);
+    @Region R = @Region::New(A, a);
+    @Point  P = R::FindFeasible.QP.MLE(X,Y,verbose);
     P::x
   };
 

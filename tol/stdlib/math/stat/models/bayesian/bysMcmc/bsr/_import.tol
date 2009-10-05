@@ -13,9 +13,9 @@ Text _MID = "[Bsr::Import] ";
 //Returns the NameBlock needed to build BSR information about constraining 
 //inequations.
 NameBlock Constraints(
-  //A list of sets with structure of Bsr.OrderRelation.Info
+  //A list of sets with structure of @Bsr.OrderRelation.Info
   Set order.relations,
-  //A list of sets with structure of Bsr.GenericConstraint.Info
+  //A list of sets with structure of @Bsr.GenericConstraint.Info
   Set generic.constraints,
   //A list of formated texts in one of this ways
   // "lowerValue <= coef_1*parameter_1 + coef_2*parameter_2 + ... "
@@ -301,7 +301,7 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
     Set For(1, arima.size, Real(Real af)
     {
       Set fac = segment::Get.ARIMA.Factor(af);
-      FPutText(fileHandler, If(af>1,",","")+"\n  ARIMAStruct("<<
+      FPutText(fileHandler, If(af>1,",","")+"\n  @ARIMAStruct("<<
         fac->Periodicity+","<<
         fac->AR+","<<
         fac->MA+","<<
@@ -426,7 +426,7 @@ Real Write.Data.Constraints(NameBlock segmentOrFullModel,
     //WriteLn("TRACE gc->UpperBound ="<<gc->UpperBound);
     //WriteLn("TRACE lb ="<<lb+" ub="<<ub);
     Text expr =  If(!Card(gc->LinearComb),"", SetSum(
-      EvalSet(gc->LinearComb, Text(Bsr.LinearCombTerm term)
+      EvalSet(gc->LinearComb, Text(@Bsr.LinearCombTerm term)
       {
         If(term->Coefficient==0,"",
           RealTextS(term->Coefficient)+"*"<<term->Parameter)

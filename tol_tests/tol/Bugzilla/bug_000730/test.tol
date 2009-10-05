@@ -15,48 +15,48 @@
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
     
-  Class CPrincipal {
+  Class @CPrincipal {
     Real _.a;
     Real GetA(Real void){ _.a }
   };
   
-  Class CDerivada : CPrincipal {
+  Class @CDerivada : @CPrincipal {
     Real _.b;
     Real GetB(Real void){ _.b }
   };
   
-  CPrincipal ej1 = [[Real _.a = 1]];
+  @CPrincipal ej1 = [[Real _.a = 1]];
 
-  Real ok.1.1 =  ObjectExist("CPrincipal","ej1");
-  Real ok.1.2 = !ObjectExist("CDerivada", "ej1");
+  Real ok.1.1 =  ObjectExist("@CPrincipal","ej1");
+  Real ok.1.2 = !ObjectExist("@CDerivada", "ej1");
   
-  CDerivada ej2 = [[Real _.a = 1; Real _.b = 2]];
+  @CDerivada ej2 = [[Real _.a = 1; Real _.b = 2]];
 
-  Real ok.2.1 = ObjectExist("CPrincipal","ej2");
-  Real ok.2.2 = ObjectExist("CDerivada", "ej2");
+  Real ok.2.1 = ObjectExist("@CPrincipal","ej2");
+  Real ok.2.2 = ObjectExist("@CDerivada", "ej2");
    
-  CDerivada CDerivada.New(Real a, Real b) {
-    CDerivada new = 
+  @CDerivada CDerivada.New(Real a, Real b) {
+    @CDerivada new = 
     [[
       Real _.a = a;
       Real _.b = b
     ]]
   };
   
-  CDerivada ej3 = { CDerivada.New(Real a = 1; Real b = 2) };
+  @CDerivada ej3 = { CDerivada.New(Real a = 1; Real b = 2) };
   
-  Real ok.3.1 = ObjectExist("CPrincipal","ej3");
-  Real ok.3.2 = ObjectExist("CDerivada", "ej3");
+  Real ok.3.1 = ObjectExist("@CPrincipal","ej3");
+  Real ok.3.2 = ObjectExist("@CDerivada", "ej3");
   
-  // Si asignamos una referencia a un objeto de CPrincipal con una
-  // instancia de una clase derivada (CDerivada) perdemos
+  // Si asignamos una referencia a un objeto de @CPrincipal con una
+  // instancia de una clase derivada (@CDerivada) perdemos
   // los métodos (o atributos tipo Code) de la clase derivada.
   
-  CPrincipal ej4 = { CDerivada.New(Real a = 1; Real b = 2) };
-  // ej4 no posee los métodos propios de CDerivada
+  @CPrincipal ej4 = { CDerivada.New(Real a = 1; Real b = 2) };
+  // ej4 no posee los métodos propios de @CDerivada
   
-  Real ok.4.1 = ObjectExist("CPrincipal","ej4");
-  Real ok.4.2 = ObjectExist("CDerivada","ej4");
+  Real ok.4.1 = ObjectExist("@CPrincipal","ej4");
+  Real ok.4.2 = ObjectExist("@CDerivada","ej4");
   
   
   Real numErr1 = Copy(NError);

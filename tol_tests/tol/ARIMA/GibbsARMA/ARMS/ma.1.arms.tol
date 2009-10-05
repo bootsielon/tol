@@ -25,7 +25,7 @@ Matrix Z_   = DifEq(ma_,a_,a0_,z0_);
 //Converts MA noise to VMatrix
 VMatrix Z   = Mat2VMat(Z_);
 
-Set ARIMA = [[ARIMAStruct(1,1,RandStationary(q,1),1)]];
+Set ARIMA = [[@ARIMAStruct(1,1,RandStationary(q,1),1)]];
 Real t0=Copy(Time);
 Set testTime = For(1,10, Real (Real k)
 {
@@ -80,7 +80,7 @@ Real K0 = -m/2*Log(Sqrt(2*PI));
   -K0-logDetL-0.5*m*VMatMoment(e,2)
 };
 
-Set ARIMA = [[ARIMAStruct(1,1,RandStationary(q,1),1)]];
+Set ARIMA = [[@ARIMAStruct(1,1,RandStationary(q,1),1)]];
 
 //////////////////////////////////////////////////////////////////////////////  
    Real LogDens.MA.1.Levinson(Real theta1)

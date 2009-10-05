@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.ProbitFilter =
 "Builds a NameBlock that can be used as non linear filter by Class "
-"BlockNonLin in order to simulate cut coefficent of probit model "
+"@BlockNonLin in order to simulate cut coefficent of probit model "
 "\n"
 "  Y = F(c) + X*beta + e; e ~ N(0,s^2)        \n"
 "\n"

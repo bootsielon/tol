@@ -20,8 +20,8 @@ VMatrix A = Rand(r,n, -scale, scale, "Cholmod.R.Sparse", n*r*Rand(0.1,0.2));
 VMatrix x0_ = Rand(n, 1,  -scale, scale, "Blas.R.Dense");
 VMatrix a = A*x0_ + Rand(r, 1, 0, scale, "Blas.R.Dense");
 
-Polytope::Region R = Polytope::Region::New(A, a);
-Polytope::Point P = R::FindFeasible(Rand(n,1,-1,1), 100, True);
+Polytope::@Region R = Polytope::@Region::New(A, a);
+Polytope::@Point P = R::FindFeasible(Rand(n,1,-1,1), 100, True);
 
 Real ok = P::match;
 WriteLn("ok="<<ok);

@@ -23,7 +23,7 @@ NameBlock OneNode =
     Real Prior.Sigma,       // Normal prior standard deviation 
     Real Prior.SigmaWeight)       // Normal prior weight
   {
-    Bsr.OneNode.LinearParamInfo(
+    @Bsr.OneNode.LinearParamInfo(
       Text Name,              
       Real InitValue,         
       Real Prior.LowerBound,  
@@ -37,31 +37,31 @@ NameBlock OneNode =
   };
 
   ///////////////////////////////////////////////////////////////////////////
-  Class ModelData
+  Class @ModelData
   ///////////////////////////////////////////////////////////////////////////
   {
     Code LPI = BysMcmc::Bsr::OneNode::LPI;
   //Mandatory members
-    Set  _.docInfo;        //BSR.DocInfo
-    Set _.linearParamInfo; //Set of Bsr.OneNode.LinearParamInfo
+    Set  _.docInfo;        //@BSR.DocInfo
+    Set _.linearParamInfo; //Set of @Bsr.OneNode.LinearParamInfo
     VMatrix _.Y;           //Output data 
     VMatrix _.X;           //Input data  
     Real _.sigma;          //Sigma prior value, or ? to freely simulate it
   //Optional members 
     Text _.segmentName = "Obs";        //Node name
-    Set _.orderRelation = Copy(Empty); //Set of Bsr.OrderRelation.Info\n"
-    Set _.arima  = Copy(Empty);        //Set of ARIMAStruct\n"
-    Real _.sigmaPriorWeight = 0;       //Weight for Bsr.Sigma.Prior.InverseGamma\n"
-    Set _.timeInfo = Copy(Empty)       //BSR.NoiseTimeInfo\n"
+    Set _.orderRelation = Copy(Empty); //Set of @Bsr.OrderRelation.Info\n"
+    Set _.arima  = Copy(Empty);        //Set of @ARIMAStruct\n"
+    Real _.sigmaPriorWeight = 0;       //Weight for @Bsr.Sigma.Prior.InverseGamma\n"
+    Set _.timeInfo = Copy(Empty)       //@BSR.NoiseTimeInfo\n"
   };
 
   ///////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.GetCycler = 
-  "Creates a BysMcmc:Cycler for a generic OneNode model\n" 
+  "Creates a BysMcmc:@Cycler for a generic OneNode model\n" 
   "Model must have just one node, usually observational and dense."
   "Model is defined as a BSR basic and an optional set of non linear filters."
   "BSR will be built from simplified data argument";
-  Cycler GetCycler(ModelData data, Set nonLinFil, Config config_)
+  @Cycler GetCycler(@ModelData data, Set nonLinFil, @Config config_)
   ///////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[BysMcmc::Bsr::OneNode::GetCycler]";
@@ -93,7 +93,7 @@ NameBlock OneNode =
     Set linearBlock = For(1,n, Set(Real j)
     {
       Set pi = (data::_.linearParamInfo)[j];
-      Set aux = [[BSR.LinearBlock(pi->Name, pi->InitValue, True, False)]];
+      Set aux = [[@BSR.LinearBlock(pi->Name, pi->InitValue, True, False)]];
     //WriteLn(_MID+" TRACE 4.["<<j+"].1");
       Real prior.Average = If(ObjectExist("Real","pi->Prior.Average"),
                               pi->Prior.Average, ?);
@@ -170,7 +170,7 @@ NameBlock OneNode =
     //Observational information
     Real sigmaIsUnknown = IsUnknown(data::_.sigma);
     Set noiseObs = {[[
-      BSR.NoiseDistrib(
+      @BSR.NoiseDistrib(
         Text Name = data::_.segmentName+"::Noise";
         Real Nu = 0;
         Text SigmaName = If(sigmaIsUnknown,data::_.segmentName+"::Sigma","");
@@ -201,7 +201,7 @@ NameBlock OneNode =
       Real sigmaIndex := sigmaIndex + estimSigma;
 
       Set SigmaPrior = If(IsUnknown(pi->Prior.SigmaWeight),Copy(Empty),
-        Bsr.Sigma.Prior.InverseGamma(pi->Prior.Sigma,pi->Prior.SigmaWeight));
+        @Bsr.Sigma.Prior.InverseGamma(pi->Prior.Sigma,pi->Prior.SigmaWeight));
       Real cov.value = If(estimSigma, 1, pi->Prior.Sigma);
       Real L.value   = If(estimSigma, 1, Sqrt(pi->Prior.Sigma));
       Real Li.value  = If(estimSigma, 1, 1/Sqrt(pi->Prior.Sigma));
@@ -210,7 +210,7 @@ NameBlock OneNode =
       VMatrix cov.diag = Tra(z1<<Mat2VMat(Col(cov.value))<<z2);
       VMatrix L.diag   = Tra(z1<<Mat2VMat(Col(L.value  ))<<z2);
       VMatrix Li.diag  = Tra(z1<<Mat2VMat(Col(Li.value ))<<z2);
-      Set BSR.NoiseDistrib(
+      Set @BSR.NoiseDistrib(
         Text Name = data::_.segmentName+".Prior::Noise";
         Real Nu = 0;
         Text SigmaName = If(!estimSigma,"","Pri."+pi->Name+"::Sigma");
@@ -240,7 +240,7 @@ NameBlock OneNode =
     Real SetIndexByName(noiseDistrib);
   //WriteLn(_MID+" TRACE 9");
     //Building generic model definition
-    Set modelDef = BSR.ModelDef (
+    Set modelDef = @BSR.ModelDef (
       "joint",
       docInfo = data::_.docInfo,
       linearBlock,
@@ -254,12 +254,12 @@ NameBlock OneNode =
       VMatrix a = domain.a << order.a,
       VMatrix A = domain.A << order.A
     );
-    BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCyclerFromParsed
+    BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCyclerFromParsed
    (
       modelDef,
-      BysMcmc::McmcPartialHandler::Null(0),
+      BysMcmc::@McmcPartialHandler::Null(0),
       config_,
-      BysMcmc::Notifier::Null(0)
+      BysMcmc::@Notifier::Null(0)
     );
     Set Append(cycler::auxInfo,[[data]]);
   //WriteLn(_MID+" TRACE 12");
@@ -267,10 +267,10 @@ NameBlock OneNode =
   };
 
   ///////////////////////////////////////////////////////////////////////////
-  Class Probit
+  Class @Probit
   ///////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Estimation _.estim;
+    BysMcmc::@Estimation _.estim;
     Matrix _.param;
     
     //////////////////////////////////////////////////////////////////////////
@@ -312,9 +312,9 @@ NameBlock OneNode =
 
   ///////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.GetCyclerProbit = 
-  "Creates a BysMcmc:Cycler for a probit OneNode model\n" 
+  "Creates a BysMcmc:@Cycler for a probit OneNode model\n" 
   "Model is defined as a BSR basic and an non linear ProbitFilter.";
-  Cycler GetCyclerProbit(ModelData data, Config config_)
+  @Cycler GetCyclerProbit(@ModelData data, @Config config_)
   //////////////////////////////////////////////////////////////////////////////
   {
     //All methods are performed for being _.sigma=1
@@ -328,20 +328,20 @@ NameBlock OneNode =
       UnknownDate,
       UnknownDate)
     ]]};
-    BysMcmc::Cycler cycler = BysMcmc::Bsr::OneNode::GetCycler
+    BysMcmc::@Cycler cycler = BysMcmc::Bsr::OneNode::GetCycler
       (data, nonLinFil, config_);
     cycler
   };
 
   ///////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.GetProbit = 
-  "Creates a BysMcmc::Bsr::OneNode::Probit object from an estimated model";
-  Probit GetProbit(Estimation estim)
+  "Creates a BysMcmc::Bsr::OneNode::@Probit object from an estimated model";
+  @Probit GetProbit(@Estimation estim)
   //////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::OneNode::Probit probit = 
+    BysMcmc::Bsr::OneNode::@Probit probit = 
     [[
-      BysMcmc::Estimation _.estim = estim;
+      BysMcmc::@Estimation _.estim = estim;
       Matrix _.param = If(Not(_.estim::cycler::_.config::mcmc.sampleLength), 
                           Rand(0,0,0,0),
                           Tra(_.estim::param.average))

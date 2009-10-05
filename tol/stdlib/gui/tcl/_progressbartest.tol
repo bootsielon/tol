@@ -5,10 +5,10 @@
 Real Ruptura = 0.0;
 
 Text TclProgressBarCreate(SetOfSet(
-  TclArgSt("-title",    "Barra de progreso"),
-  TclArgSt("-width",    "40"),
-  TclArgSt("-height",   "3"),
-  TclArgSt("-breakvar", "Ruptura")
+  @TclArgSt("-title",    "Barra de progreso"),
+  @TclArgSt("-width",    "40"),
+  @TclArgSt("-height",   "3"),
+  @TclArgSt("-breakvar", "Ruptura")
 ));
 
 Text TclProgressBarSetText("Prueba de la\nbarra de progreso");

@@ -555,7 +555,7 @@ periodicidad mayor que 1.
 
 
 //////////////////////////////////////////////////////////////////////////////
-  Struct SeriesMethodStruct
+  Struct @SeriesMethodStruct
 //////////////////////////////////////////////////////////////////////////////
 (
   Text Title,
@@ -568,31 +568,31 @@ periodicidad mayor que 1.
 //////////////////////////////////////////////////////////////////////////////
 
 Set ReportMet = 
-  SeriesMethodStruct("Informe básico" , Copy(HtmlSeriesReport), Empty);
+  @SeriesMethodStruct("Informe básico" , Copy(HtmlSeriesReport), Empty);
 
 Set BdtTableMet = 
-  SeriesMethodStruct("Tabla", Copy(HtmlBdtTable), Empty);
+  @SeriesMethodStruct("Tabla", Copy(HtmlBdtTable), Empty);
 
 Set BdtPerTableMet = 
-  SeriesMethodStruct("Tabla periódica", Copy(HtmlPeriodicTable), Empty);
+  @SeriesMethodStruct("Tabla periódica", Copy(HtmlPeriodicTable), Empty);
 
 Set BdtStatTableMet = 
-  SeriesMethodStruct("Estadísticos", Copy(HtmlStatTable), Empty);
+  @SeriesMethodStruct("Estadísticos", Copy(HtmlStatTable), Empty);
 
 Set BdtChartMet = 
-  SeriesMethodStruct("Gráfico", Copy(HtmlBdtChart), Empty);
+  @SeriesMethodStruct("Gráfico", Copy(HtmlBdtChart), Empty);
 
 Set CorrelMet = 
-  SeriesMethodStruct("Correlación" , Copy(HtmlSeriesCorrel), Empty);
+  @SeriesMethodStruct("Correlación" , Copy(HtmlSeriesCorrel), Empty);
 
 Set CovarMet = 
-  SeriesMethodStruct("Covarianza" , Copy(HtmlSeriesCovar), Empty);
+  @SeriesMethodStruct("Covarianza" , Copy(HtmlSeriesCovar), Empty);
 
 Set ComponentsMet = 
-  SeriesMethodStruct("Componentes" , Copy(HtmlSeriesComponents), Empty);
+  @SeriesMethodStruct("Componentes" , Copy(HtmlSeriesComponents), Empty);
 
 Set LinRegMet = 
-  SeriesMethodStruct("Regresión lineal" , Copy(HtmlLinReg), Empty);
+  @SeriesMethodStruct("Regresión lineal" , Copy(HtmlLinReg), Empty);
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -603,7 +603,7 @@ Set LinRegMet =
   Set TransformMet(Real type)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SeriesMethodStruct
+  @SeriesMethodStruct
   (
     "Gráfico de transformación" , 
     HtmlTransBdtChart, 
@@ -619,7 +619,7 @@ Set LinRegMet =
                  Real analisisDeResiduos)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SeriesMethodStruct
+  @SeriesMethodStruct
   (
     "Autoregresión" , 
     HtmlAutoReg, 
@@ -641,7 +641,7 @@ Set LinRegMet =
                  Real periodicidad)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SeriesMethodStruct
+  @SeriesMethodStruct
   (
     "Autocorrelaciones" , 
     HtmlAutoCorReport, 

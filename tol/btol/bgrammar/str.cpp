@@ -26,6 +26,7 @@
 #include <win_tolinc.h>
 #endif
 
+#include <tol/tol_init.h>
 #include <tol/tol_bstruct.h>
 #include <tol/tol_boper.h>
 #include <tol/tol_blanguag.h>
@@ -36,6 +37,59 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bclass.h>
+
+
+#ifdef CATCH_NON_STANDARD_STRUCT
+ofstream& _non_standard_struct_()
+{
+  static ofstream* aux = NULL;
+  if(!aux)
+  {
+    aux = new ofstream(
+      BSys::TolAppData()+"syslog/_non_standard_struct_"+
+      DteNow().Name()+".log", ios::app);   
+    (*aux) << "\n"
+    "############################################################\n"<<
+    "## NON STANDARD STRUCT HANDLING REPORT\n"<<
+    "## TOL Version:"<<TOLVersion()<<"\n"<<
+    "## Session Time: "<<DteNow().Name()<<"\n"<<
+    "############################################################\n"<<
+    "\n";
+  }
+  return(*aux);
+}
+
+static void _non_standard_struct_trace_()
+{
+  if(BSourcePath::Current())
+  {
+    _non_standard_struct_() <<  
+      " IN FILE '"<<BSourcePath::Current()->Name().String()<<"'";
+  }
+  _non_standard_struct_() <<  "\n";
+  _non_standard_struct_() <<  BUserFunction::GetCallStack();
+  _non_standard_struct_() <<  "\n";
+  _non_standard_struct_() <<  "\n";
+  _non_standard_struct_().flush();
+}
+
+void _non_standard_struct_creating_without(const BText& name)
+{
+  _non_standard_struct_() << "CREATING STRUCT '"<<name.String()<<
+    "' WITHOUT @";
+  _non_standard_struct_trace_();
+}
+
+
+void _non_standard_struct_calling_without(const BText& name)
+{
+  _non_standard_struct_() << "CALLING STRUCT '@"<<name.String()<<
+    "' WITHOUT @";
+  _non_standard_struct_trace_();
+}
+
+
+#endif
 
 
 //--------------------------------------------------------------------
@@ -196,6 +250,22 @@ BStruct::BStruct(const BText& name, bool addToSymbolTable)
   assert(name!="");
   TRACE_Def_StructMember("BStruct",this,name); 
   TRACE_MEMORY_SHOW(this,"BStruct::BStruct");
+  //VBR: Temporary behaviour until non standard struct will be obsolete
+#ifdef ALLOW_NON_STANDARD_STRUCT
+  if(name[0]=='@')
+  {
+    BText newName(name.String()+1,name.Length()-1);
+    if(!BParser::DefaultParser()->Scanner()->FindSymbol(newName))
+    {
+      BTypeToken* tok = new BTypeToken(newName,BTypeToken::BSTRUCT);
+      BParser::DefaultParser()->Scanner()->AddSymbol(tok);
+    }
+  }
+#ifdef CATCH_NON_STANDARD_STRUCT
+  if(name[0]!='@') {
+    _non_standard_struct_creating_without(name); }
+#endif
+#endif
   if (!statusTable_) 
   {
     statusTable_ = new BArray<BStructStatus>();
@@ -385,7 +455,9 @@ BGrammar* BStruct::Grammar() const
 
 
 //--------------------------------------------------------------------
-BStruct* FindStruct(const BText& name)
+BStruct* FindStruct(const BText& name,
+                    bool addArroba,
+                    bool removeArroba)
 
 /*! Searches an struct wich name is name and returns it.
  *  If itsn't exists returns NIL.
@@ -424,6 +496,22 @@ BStruct* FindStruct(const BText& name)
       bstr = (BStruct*)result;
     }
   }
+#ifdef ALLOW_NON_STANDARD_STRUCT
+  if(addArroba && !bstr && (name[0]=='@'))
+  {
+    BText newName(name.String()+1,name.Length()-1);
+    bstr = FindStruct(newName, false, false);
+  }
+  if(removeArroba && !bstr && (name[0]!='@'))
+  {
+    BText newName = BText("@")+name;
+    bstr = FindStruct(newName, false, false);
+#ifdef CATCH_NON_STANDARD_STRUCT
+    if(bstr) {
+      _non_standard_struct_calling_without(name); }
+#endif
+  }
+#endif
   return(bstr);
 }
 

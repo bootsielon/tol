@@ -3,22 +3,22 @@
 // PURPOSE: Using Class in TOL
 //////////////////////////////////////////////////////////////////////////////
 
-Class WithName
+Class @WithName
 { 
   Text _.name
 };
 
-Class Doc: WithName
+Class @Doc: @WithName
 { 
   Text _.description
 };
 
-Class ColumnVector
+Class @ColumnVector
 { 
   Matrix  get.column  (Anything unused)
 };
 
-Class Vector: ColumnVector
+Class @Vector: @ColumnVector
 { 
   Real    has.timeInfo(Anything unused);
   TimeSet dating      (Anything unused);
@@ -26,17 +26,17 @@ Class Vector: ColumnVector
   Date    lastDate    (Anything unused)
 };
 
-Class VectorDoc: Vector, Doc;
+Class @VectorDoc: @Vector, @Doc;
 
-Class VectorInfo: Vector, Doc
+Class @VectorInfo: @Vector, @Doc
 {
   Text Info(Anything unused)
   {
-    "VectorInfo "+_.name+" : "+_.description
+    "@VectorInfo "+_.name+" : "+_.description
   }
 };
 
-Class VectorDoc.Ser: VectorDoc
+Class @VectorDoc.Ser: @VectorDoc
 {
   Serie  _ser;
   Matrix  get.data    (Anything unused) { Tra(SerMat(_ser)) };
@@ -46,7 +46,7 @@ Class VectorDoc.Ser: VectorDoc
   Date    lastDate    (Anything unused) { Last(_ser) }
 };
 
-Class VectorDoc.Mat: VectorDoc
+Class @VectorDoc.Mat: @VectorDoc
 {
   Matrix _mat;
   Matrix  get.data    (Anything unused) { _mat };

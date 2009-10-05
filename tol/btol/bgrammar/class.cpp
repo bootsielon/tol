@@ -987,10 +987,19 @@ BClass::~BClass()
     BSyntaxObject* obj = NULL;
     if(mbr.name_.BeginWith("_.autodoc.member."))
     {
-      if(!mbr.static_ || (mbr.static_->Grammar()!=GraText()))
+      if(!mbr.static_)
       {
         Error(I2("Special documentation member ",
-                 "El mimebro especial de documentación ")+
+                 "El miembro especial de documentación ")+
+              mbr.name_+
+              I2(" is corrupted or it didn't have declared as static.",
+                 " está corrupto o no se declaró como static."));
+        ok = false;
+      }
+      else if(mbr.static_->Grammar()!=GraText())
+      {
+        Error(I2("Special documentation member ",
+                 "El miembro especial de documentación ")+
               mbr.name_+
               I2(" should be a Text instead of a ",
                  " debería ser un Text en lugar de un ")+

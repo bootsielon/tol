@@ -17,10 +17,10 @@ Text GuiAlgGetDef(Set algDef)
   Text subDimSep     = algDef->SubDimSep;
 
   Set tclSetPre = SetOfSet(
-    TclArgSt("-numCarDim",     IntText(numCarDim)),
-    TclArgSt("-funAlgGetData", funAlgGetData),
-    TclArgSt("-dimSep",        dimSep),
-    TclArgSt("-sDiSep",        subDimSep)
+    @TclArgSt("-numCarDim",     IntText(numCarDim)),
+    @TclArgSt("-funAlgGetData", funAlgGetData),
+    @TclArgSt("-dimSep",        dimSep),
+    @TclArgSt("-sDiSep",        subDimSep)
   );
   Set tclSet         = tclSetPre << algDef->TclSet;
   TxtListTcl(BinGroup("+",tclSet))

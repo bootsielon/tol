@@ -87,6 +87,18 @@ BBool BFilter::IsFirstIdentifier(BChar ch) const
 }
 
 //--------------------------------------------------------------------
+BBool BFilter::StartIdentifier(BChar ch) const
+
+/*! Returns true if \a ch can be the first character of an identifier.
+ */
+//--------------------------------------------------------------------
+{
+  return
+  (
+    IsFirstIdentifier(ch) || (ch=='@')
+  );
+}
+//--------------------------------------------------------------------
 //! Returns true if ch can belong to an identifier.
 /*! Returns true if ch can belong an identifier.<br>
  *  Valid identifier characters can be <code>0-9</code>,
@@ -117,7 +129,7 @@ BBool BFilter::IsIdentifier(const BText& expression) const
   if(expression=="#Embed") { return(BTRUE); }
   int n;
   char ch = expression.Get(0);
-  if(!IsFirstIdentifier(ch)) { return(BFALSE); }
+  if(!StartIdentifier(ch)) { return(BFALSE); }
   for(n=1; (ch=expression.Get(n)); n++)
   {
     if(!IsIdentifier(ch)) { return(BFALSE); }
@@ -135,7 +147,7 @@ BBool BFilter::IsIdentifier(const BText& expression) const
  */
 BBool BFilter::IsSymbol(BChar ch) const 
 {
-    return (strchr("'(){}[];,:-!+*/%^!&|<=>@\\\n\r\t?~$", ch)!=NIL);
+    return (strchr("'(){}[];,:-!+*/%^!&|<=>\\\n\r\t?~$", ch)!=NIL);
 }
 
 //--------------------------------------------------------------------
@@ -192,42 +204,60 @@ BInt BFilter::Inseparable(BChar ch1, BChar ch2) const
  */
 void BFilter::AddNewChar(BText& cl, BInt& n, BChar ch) const 
 {
-    static int length = 0;
-    BBool isSym  = IsSymbol(ch);
-    BBool isId   = IsIdentifier(ch) || ch=='#';
-    BBool isIdCl = IsIdentifier(cl.Get(n)) || cl.Get(n)=='#';
-    if (isSym && !isIdCl && Inseparable(cl.Get(n), ch)) { 
-	cl.PutChar(++n,ch); 
-    } else if(ch=='\r'){
-    } else if((cl.Get(n)=='\n')&&((ch=='\n')||(ch=='\t')||(ch==' '))) {
-    } else if(cl.Get(n)==' ') {
-	if(isId || isSym) { 
-	    length = n;
-	    cl.PutChar(++n,ch); 
-	}
-    } else if(isIdCl) {
-	if(isId) {
-	    if((n-length)==255) {
-		error_ = true;
-		errorMsg_ = I2("Parser: Identifier too long",
-			       "Parser: Identificador demasiado largo");
-	    } else {
-		cl.PutChar(++n,ch);
-	    }
-	} else if(isSym) {
-	    cl.PutChar(++n,' ');
-	    length = n;
-	    cl.PutChar(++n,ch);
-	} else {
-	    cl.PutChar(++n,' ');
-	}
-    } else {
-	cl.PutChar(++n,' ');
-	if(isId || isSym) { 
-	    length = n;
-	    cl.PutChar(++n,ch); 
-	}
+  static int length = 0;
+  BBool isSym  = IsSymbol(ch);
+  char& cn = cl.Buffer()[n];
+  BBool isIdCl = IsIdentifier(cn) || cn=='#' || (cn=='@');
+  BBool isId   = IsIdentifier(ch) || ch=='#';
+  if(!isIdCl && (ch=='@')) 
+  { isId=true; }
+
+  if (isSym && !isIdCl && Inseparable(cn, ch)) { cl.PutChar(++n,ch); } 
+  else if(ch=='\r') { } 
+  else if((cn=='\n')&&((ch=='\n')||(ch=='\t')||(ch==' '))) { } 
+  else if(cn==' ') 
+  {
+    if(isId || isSym) 
+    { 
+      length = n;
+      cl.PutChar(++n,ch); 
     }
+  } 
+  else if(isIdCl) 
+  {
+    if(isId) 
+    {
+      if((n-length)==255) 
+      {
+        error_ = true;
+        errorMsg_ = I2("Parser: Identifier too long",
+                       "Parser: Identificador demasiado largo");
+      } 
+      else 
+      {
+        cl.PutChar(++n,ch);
+      }
+    } 
+    else if(isSym) 
+    {
+      cl.PutChar(++n,' ');
+      length = n;
+      cl.PutChar(++n,ch);
+    } 
+    else 
+    {
+      cl.PutChar(++n,' ');
+    }
+  } 
+  else 
+  {
+    cl.PutChar(++n,' ');
+    if(isId || isSym) 
+    { 
+      length = n;
+      cl.PutChar(++n,ch); 
+    }
+  }
 }
 
 //! Return type of block code filtered in \a pos parameter
@@ -709,20 +739,24 @@ void BFilter::UnReplace(BText& txt) const {
  * \return modified BText with "_" character
  * \sa BFilter::IsIdentifier
  */
-BText ToName(BText txt) {
-    static BFilter filter;
-    BText name = txt;
-
-    // first char situation:
-    if((name.Get(0)=='\'') || (name.Get(0)>='0') && (name.Get(0)<='9'))
-	name = BText("_") + name;
-
-    // following chars:
-    for(BInt i=0; i<name.Length(); i++) {
-	BChar ch = name(i);
-	if(!filter.IsIdentifier(ch)) {
-	    name.PutChar(i,'_');
-	}
-    }
-    return(name);
+BText ToName(BText txt) 
+{
+  static BFilter filter;
+  BText name = txt;
+  if(!filter.StartIdentifier(name[0]))
+  {
+    name = BText("_")+name;
+  }
+  int i, len = name.Length();
+  BChar ch = name(0);
+  // following chars:
+  for(i=1; i<len; i++) 
+  {
+	  ch = name(i);
+	  if(!filter.IsIdentifier(ch)) 
+    {
+  	  name.PutChar(i,'_');
+	  }
+  }
+  return(name);
 }

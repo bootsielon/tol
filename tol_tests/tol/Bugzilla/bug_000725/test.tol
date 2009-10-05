@@ -16,29 +16,29 @@
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
     
-  Class ClassA 
+  Class @ClassA 
   {
     Text _.name;
     Real _.length
   };
 
-  ClassA ClassA.New(NameBlock args)
+  @ClassA ClassA.New(NameBlock args)
   {
-    ClassA a = [[
+    @ClassA a = [[
       Text _.name   = args::name,
       Real _.length = TextLength(args::name)
     ]]
   };
 
-  ClassA a = 
+  @ClassA a = 
   {
     NameBlock args = [[Text name="lkshfli"]];
     ClassA.New(args)
   };
 
-  ClassA b = ClassA.New({args=[[Text name="lkshfli"]]});
+  @ClassA b = ClassA.New({args=[[Text name="lkshfli"]]});
 
-  ClassA c = ClassA.New([[Text name="lkshfli"]]);
+  @ClassA c = ClassA.New([[Text name="lkshfli"]]);
 
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);

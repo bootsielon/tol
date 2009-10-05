@@ -12,13 +12,13 @@ Text summary_ = "test for Class instances" ;
 Real numErr0 = Copy(NError);
 
 
-Class MyClass  
+Class @MyClass  
 {
   Real myMethod(Real a) { a }
 };
 
-MyClass instance.1 = [[ Real _unused = 0 ]];
-MyClass instance.2;
+@MyClass instance.1 = [[ Real _unused = 0 ]];
+@MyClass instance.2;
 
 
 Real numErr1 = Copy(NError);

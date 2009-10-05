@@ -307,39 +307,38 @@ static BToken defBin_[] =
   BBinaryToken("|",        5),   // 3
   BBinaryToken("&",        6),   // 4
   BBinaryToken("Of",       7),   // 5
-  BBinaryToken("@",        7),   // 6
-  BBinaryToken(">",        8),   // 7
-  BBinaryToken("<",        8),   // 8
-  BBinaryToken(">",        8),   // 9
-  BBinaryToken("==",       8),   // 10
-  BBinaryToken(">=",       8),   // 11
-  BBinaryToken("<=",       8),   // 12
-  BBinaryToken(":>",       8),   // 13
-  BBinaryToken("<:",       8),   // 14
-  BBinaryToken("!=",       8),   // 15
-  BBinaryToken("#+#",      9),   // 16
-  BBinaryToken("#-#",      9),   // 17
-  BBinaryToken("*",       10),   // 18
-  BBinaryToken("$*",      10),   // 19
-  BBinaryToken("/",       11),   // 20
-  BBinaryToken("$/",      11),   // 21
-  BBinaryToken("%",       11),   // 22
-  BBinaryToken("^",       12),   // 23
-  BBinaryToken("**",      12),   // 24
-  BBinaryToken("&&",      13),   // 25
-  BBinaryToken("||",      13),   // 26
-  BBinaryToken(":",       14),   // 27
-  BBinaryToken("<<",      15),   // 28
-  BBinaryToken(">>",      15),   // 29
-  BBinaryToken("->",      16),   // 30
+  BBinaryToken(">",        8),   // 6
+  BBinaryToken("<",        8),   // 7
+  BBinaryToken(">",        8),   // 8
+  BBinaryToken("==",       8),   // 9
+  BBinaryToken(">=",       8),   // 10
+  BBinaryToken("<=",       8),   // 11
+  BBinaryToken(":>",       8),   // 12
+  BBinaryToken("<:",       8),   // 13
+  BBinaryToken("!=",       8),   // 14
+  BBinaryToken("#+#",      9),   // 15
+  BBinaryToken("#-#",      9),   // 16
+  BBinaryToken("*",       10),   // 17
+  BBinaryToken("$*",      10),   // 18
+  BBinaryToken("/",       11),   // 19
+  BBinaryToken("$/",      11),   // 20
+  BBinaryToken("%",       11),   // 21
+  BBinaryToken("^",       12),   // 22
+  BBinaryToken("**",      12),   // 23
+  BBinaryToken("&&",      13),   // 24
+  BBinaryToken("||",      13),   // 25
+  BBinaryToken(":",       14),   // 26
+  BBinaryToken("<<",      15),   // 27
+  BBinaryToken(">>",      15),   // 28
+  BBinaryToken("->",      16),   // 29
   BBinaryToken("#E#",     17),   // 30
-  BBinaryToken("::",      18)    // 32
+  BBinaryToken("::",      18)    // 31
 };
 
 static BMonaryToken defMon_[] =
 {
-  BMonaryToken("+", &(defBin_[16])),
-  BMonaryToken("-", &(defBin_[17])),
+  BMonaryToken("+", &(defBin_[15])),
+  BMonaryToken("-", &(defBin_[16])),
   BMonaryToken("~"),
   BMonaryToken("!"),
   BMonaryToken("Do"),

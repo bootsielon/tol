@@ -11,7 +11,7 @@ Text summary_ = "Partial reestimation";
 
 Real numErr0 = Copy(NError);
 
-BysMcmc::Config bsr.config = 
+BysMcmc::@Config bsr.config = 
 [[
 //MCMC dimensions
   Real mcmc.burnin = 100; 
@@ -57,9 +57,8 @@ BysMcmc::Config bsr.config =
 ]];
 
 
-BysMcmc::McmcRecover recover = BysMcmc::McmcRecover::Load(
-  "../test_11/", "Test11", "Test11.01", 
-  bsr.config);
+BysMcmc::@McmcRecover recover = BysMcmc::@McmcRecover::Load(
+  "../test_11/model.bsr", bsr.config);
 
 Set LinearBlk = Select(recover::_.colNames, Real(Text param)
 {
@@ -85,8 +84,8 @@ Set fixedParam = Copy(Empty);
 VMatrix fixedValues = Rand(0,1,0,0);
 Set reloadParam = LinearBlk << MissingBlk << SigmaBlk << ArimaBlk;
 
-BysMcmc::McmcPartialHandler partialHandler = 
-BysMcmc::McmcPartialHandler::New(
+BysMcmc::@McmcPartialHandler partialHandler = 
+BysMcmc::@McmcPartialHandler::New(
   fixedParam,
   fixedValues,
   reloadParam,
@@ -108,15 +107,15 @@ Set bsr.parsed =
    aux
 };
 
-BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   bsr.parsed, 
   partialHandler, 
   bsr.config, 
-  BysMcmc::Notifier::Null(0));
+  BysMcmc::@Notifier::Null(0));
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
 //Real cycler::initialize(0);
-BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
+BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
 Real estim::Run(0);
 Real FClose(recover::_.mcmc.handler);
 
@@ -133,7 +132,7 @@ Set partialResults_ =
 Real quality_ = And(numErr0 == numErr1);
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);

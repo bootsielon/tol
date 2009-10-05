@@ -18,7 +18,7 @@ Real numErr0 = Copy(NError);
 
 Set bsr.parsed = BSR.Parse("model.bsr");
 
-BysMcmc::Config bsr.config = 
+BysMcmc::@Config bsr.config = 
 [[
 //MCMC dimensions
   Real mcmc.burnin = 200; 
@@ -52,24 +52,24 @@ BysMcmc::Config bsr.config =
   Real report.histogram.parts  = 100;
   Real report.kerDens.points   = 0;
 //Generic flags
-  Real do.resume          = mcmc.sampleLength+mcmc.burnin-1;
+  Real do.resume          = mcmc.sampleLength+mcmc.burnin-100;
   Real do.report          = True;
   Real do.eval            = True;
   Real do.linear.effects  = False;
   Real do.mcmc.profiler   = True
 ]];
 
-BysMcmc::Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   bsr.parsed, 
-  BysMcmc::McmcPartialHandler::Null(0), 
+  BysMcmc::@McmcPartialHandler::Null(0), 
   bsr.config, 
-  BysMcmc::Notifier::Null(0));
+  BysMcmc::@Notifier::Null(0));
 
 Real cycler::_.sampler::_.arm.blk::refreshFrequency := 0;
 
 //Real cycler::initialize(0);
 
-BysMcmc::Estimation estim = BysMcmc::Estimation::New(cycler);
+BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
 
 Real estim::Run(0);
 
@@ -86,7 +86,7 @@ Set partialResults_ =
 Real quality_ = And(numErr0 == numErr1);
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);

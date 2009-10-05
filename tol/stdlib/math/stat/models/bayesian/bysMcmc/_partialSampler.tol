@@ -9,7 +9,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //Base Class to inherite MCMC reloading engines
-Class McmcReloader
+Class @McmcReloader
 //////////////////////////////////////////////////////////////////////////////
 {
   Real _.sequential;
@@ -54,10 +54,10 @@ Class McmcReloader
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Static McmcReloader Null(Real unused)
+  Static @McmcReloader Null(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::McmcReloader aux =
+    BysMcmc::@McmcReloader aux =
     [[
       Real _.sequential = True
     ]]
@@ -70,7 +70,7 @@ Class McmcReloader
 //////////////////////////////////////////////////////////////////////////////
 //Stores all fixed and reloaded parameters for full MCMC and the method of
 //reloading old simulations
-Class McmcPartialHandler
+Class @McmcPartialHandler
 //////////////////////////////////////////////////////////////////////////////
 {
   //Names of all fixed parameters in the MCMC
@@ -81,29 +81,29 @@ Class McmcPartialHandler
   //Names of all reloaded parameters in the MCMC
   Set _.reloadParam  = Copy(Empty);
   //Reloader of old simulations
-  BysMcmc::McmcReloader _.reloader;
+  BysMcmc::@McmcReloader _.reloader;
 
-  //Null McmcPartialHandler does nothing
-  Static McmcPartialHandler Null(Real unused)
+  //Null @McmcPartialHandler does nothing
+  Static @McmcPartialHandler Null(Real unused)
   {
-    BysMcmc::McmcPartialHandler aux = [[
-      BysMcmc::McmcReloader _.reloader = BysMcmc::McmcReloader::Null(0) 
+    BysMcmc::@McmcPartialHandler aux = [[
+      BysMcmc::@McmcReloader _.reloader = BysMcmc::@McmcReloader::Null(0) 
     ]]
   };
 
-  //Builds a generic instance of McmcPartialHandler
-  Static McmcPartialHandler New(
+  //Builds a generic instance of @McmcPartialHandler
+  Static @McmcPartialHandler New(
     Set fixedParam,        //Names of fixed parameters       
     VMatrix fixedValues,   //Values of fixed parameters
     Set reloadParam,       //Names of reloaded parameters       
-    McmcReloader reloader  //Reloading handler
+    @McmcReloader reloader  //Reloading handler
   )
   {
-    BysMcmc::McmcPartialHandler aux = [[
+    BysMcmc::@McmcPartialHandler aux = [[
       Set _.fixedParam  = SetTolNameAndIndex(fixedParam);    
       VMatrix _.fixedValues = fixedValues;
       Set _.reloadParam = SetTolNameAndIndex(reloadParam);    
-      BysMcmc::McmcReloader _.reloader = reloader ]];
+      BysMcmc::@McmcReloader _.reloader = reloader ]];
     aux
   }
 
@@ -113,12 +113,12 @@ Class McmcPartialHandler
 //////////////////////////////////////////////////////////////////////////////
 //Stores information about partial simulation related to a specific block 
 //where this object will be a member
-Class BlockPartialSampler
+Class @BlockPartialSampler
 //////////////////////////////////////////////////////////////////////////////
 {
   //Full MCMC partial sampling handler
-  BysMcmc::McmcPartialHandler _.mcmcPartialHandler = 
-    BysMcmc::McmcPartialHandler::Null(0);
+  BysMcmc::@McmcPartialHandler _.mcmcPartialHandler = 
+    BysMcmc::@McmcPartialHandler::Null(0);
 
   //Total number of parameters in the block
   Real _.N = ?; 
@@ -156,22 +156,22 @@ Class BlockPartialSampler
 
 
   ////////////////////////////////////////////////////////////////////////////
-  Static BlockPartialSampler Null(Real unused)
+  Static @BlockPartialSampler Null(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::BlockPartialSampler aux = [[ Real _.N = 0 ]];
+    BysMcmc::@BlockPartialSampler aux = [[ Real _.N = 0 ]];
     aux
   };
 
   ////////////////////////////////////////////////////////////////////////////
   //Selects fixed and reloaded parameters related to a block
   Real build(Set blockParam, 
-             McmcPartialHandler mcmcPartialHandler)
+             @McmcPartialHandler mcmcPartialHandler)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE BlockPartialSampler::build 1");
+  //WriteLn("TRACE @BlockPartialSampler::build 1");
     Real _.N := Card(blockParam);
-    BysMcmc::McmcPartialHandler _.mcmcPartialHandler := mcmcPartialHandler;
+    BysMcmc::@McmcPartialHandler _.mcmcPartialHandler := mcmcPartialHandler;
     Set fixedParamIdx = Copy(Empty);
     Set reloadParamIdx = Copy(Empty);
     Real   _.fixedParamNum  := 0;
@@ -253,7 +253,7 @@ Class BlockPartialSampler
   Real getMergedFixedAndReloadedSample(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" BlockPartialSampler::getMergedFixedAndReloadedSample 0");
+  //WriteLn("TRACE"+_MID+" @BlockPartialSampler::getMergedFixedAndReloadedSample 0");
     VMatrix _.reloadValues := _.mcmcPartialHandler::_.reloader::
      reloadSimulation(numSim, _.reloadParamIdxOrig);
   //WriteLn("TRACE"+_MID+" _.fixedValues:"<<_.fixedValues);
@@ -284,7 +284,7 @@ Class BlockPartialSampler
   VMatrix mergeWithFreeSample(VMatrix freeValues)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" BlockPartialSampler::getMergedFixedAndReloadedSample 0");
+  //WriteLn("TRACE"+_MID+" @BlockPartialSampler::getMergedFixedAndReloadedSample 0");
   //WriteLn("TRACE"+_MID+" _.fixedValues:"<<_.fixedValues);
   //WriteLn("TRACE"+_MID+" _.fixedParamIdx:"<<_.fixedParamIdx);
   //WriteLn("TRACE"+_MID+" _.reloadValues:"<<_.reloadValues);

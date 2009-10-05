@@ -139,13 +139,13 @@ void BCmpMinus::CalcContens()
 { contens_ = -Cmp(Arg(1)); }
 
 //--------------------------------------------------------------------
-DeclareContensClass(BCmp, BCmpTemporary, BCmpSign);
-DefIntOpr(1, BCmpSign, "~", 1, 1,
+DeclareContensClass(BCmp, BCmpTemporary, BCmpConjugated);
+DefIntOpr(1, BCmpConjugated, "~", 1, 1,
 	  "(Complex x)",
 	  I2("Returns the conjugated of a complex number.",
 	     "Devuelve el conjugado de un número complejo."),
 	  BOperClassify::ComplexArythmetic_);
-void BCmpSign::CalcContens()
+void BCmpConjugated::CalcContens()
 //--------------------------------------------------------------------
 { contens_ = Conj( Cmp(Arg(1)) ); }
 

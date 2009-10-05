@@ -1,13 +1,13 @@
 /////////////////////////////////////////////////////////////////////////////
 // LIBRARY: StdtLib (Standard Library of TOL)
 // FILE: _nonLinBlock.tol
-// PURPOSE: Defines Class BysMcmc::Bsr::Gibbs::BlockNonLin
+// PURPOSE: Defines Class BysMcmc::Bsr::Gibbs::@BlockNonLin
 /////////////////////////////////////////////////////////////////////////////
 
-Class MasterSamplerBasic;
+Class @MasterSamplerBasic;
 
 /////////////////////////////////////////////////////////////////////////////
-Class BlockNonLin : BlockSampler
+Class @BlockNonLin : @BlockSampler
 /////////////////////////////////////////////////////////////////////////////
 {
   //--------------------------------------------------------------------------
@@ -16,7 +16,7 @@ Class BlockNonLin : BlockSampler
   //Scalar sampler
   Code _scalarSampler;
   //Basic BSR that will be modified by filter
-  MasterSamplerBasic _.bsr;
+  @MasterSamplerBasic _.bsr;
   //Filter evaluator
   NameBlock _.filter;
   //Name of affected segment in BSR
@@ -273,31 +273,31 @@ Class BlockNonLin : BlockSampler
   "    Set get.bounds(i,u): Returns left and right bounds for i-th \n"
   "      parameter for current values of the rest of them.\n"
   "    Matrix eval(Matrix param): Returns the filter matrix\n"
-  "  MasterSampler bsr: Result of calling MasterSamplerNonLin::New\n"
+  "  @MasterSampler bsr: Result of calling MasterSamplerNonLin::New\n"
   "  Real numBlock: The order of this block in full MCMC.\n"
   "  Real firstCol: First column of this block in full MCMC\n"
   "  Config config: User configuration parameters\n";
   //////////////////////////////////////////////////////////////////////////////
-  Static BlockNonLin New(
+  Static @BlockNonLin New(
     //Filter evaluator
     NameBlock usrFilter, 
     //Basic BSR that will be modified by filter
-    MasterSamplerBasic bsr,
+    @MasterSamplerBasic bsr,
     //Number of block in non linear master
     Real numBlock, 
     //First column in MCMC
     Real firstCol,
     //Configuration parameters
-    BysMcmc::Config config)
+    BysMcmc::@Config config)
   //////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE NonLinBlock 0 ");
-    BysMcmc::Bsr::Gibbs::BlockNonLin blk = [[
+    BysMcmc::Bsr::Gibbs::@BlockNonLin blk = [[
     Code _.buildWorkSpace = _buildWorkSpace;
     //Scalar sampler
     Code _scalarSampler = config::bsr.scalarSampler.nonLinBlock;
     //Basic BSR that will be modified by filter
-    MasterSamplerBasic _.bsr = bsr;
+    @MasterSamplerBasic _.bsr = bsr;
     //Filter evaluator
     NameBlock _.filter = usrFilter;
     

@@ -28,8 +28,8 @@ Text dump.b = Dump(b);
 Text dump.c = Dump(c);
 
 Set ok.all = [[
-  Real ok.1.1 =  ObjectExist("WithName","a"),
-  Real ok.1.2 =  ObjectExist("Doc",     "b"),
+  Real ok.1.1 =  ObjectExist("@WithName","a"),
+  Real ok.1.2 =  ObjectExist("@Doc",     "b"),
   Real ok.2.1 =  ObjectExist("Text","name.a"),
   Real ok.2.2 =  ObjectExist("Text","name.b"),
   Real ok.2.3 = !ObjectExist("Text","name.c"),

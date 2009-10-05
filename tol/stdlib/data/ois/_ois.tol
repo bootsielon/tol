@@ -14,7 +14,7 @@
     path,
     Empty, 
     data,
-    Ois.DocStr
+    @Ois.DocStr
     (
       Ois.DefDoc->Name+If(Ois.DefDoc->Name!="","::","")+name,
       {category="Data.Store"},
@@ -81,7 +81,7 @@ Ois.CheckUpdCaducity);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Text Ois.GetAddress(Text root, Ois.AddressStr address)
+  Text Ois.GetAddress(Text root, @Ois.AddressStr address)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text r0 = Replace(root,            "\\","/");

@@ -13,64 +13,64 @@
 //////////////////////////////////////////////////////////////////////////////
 /*
 //  Entre los modulos de los que depende el modulo 'ModAlgebra' está el
-// módulo de TCL (ya que usa la estructura TclArgSt.
+// módulo de TCL (ya que usa la estructura @TclArgSt.
 Set TclMagDefSet = SetOfSet
 (
-  TclArgSt("-cols", "2")    // Numero de columnas en que se muestra la 
+  @TclArgSt("-cols", "2")    // Numero de columnas en que se muestra la 
                             // magnitud, por defecto es 2
 );
 
 Set TclDimDefSet = SetOfSet
 (
-  TclArgSt("-cols", "1")    // Numero de columnas en que se muestran las 
+  @TclArgSt("-cols", "1")    // Numero de columnas en que se muestran las 
                             // subdimensiones, por defecto es tantas como 
                             // Subdimensiones tenga.
 );
 
 Set TclSubDimDefSet = SetOfSet
 (
-  TclArgSt("-type", "Dir"), // Indica el tipo de selector
+  @TclArgSt("-type", "Dir"), // Indica el tipo de selector
                             // "Dir" Seleccion directa:
                             // radiobuttons o checkbuttons
                             // "Ind" Seleccion indirecta: 
                             // bselectfields o beditselector
-  TclArgSt("-cols", "2")    // Numero de columnas en que se muestran los 
+  @TclArgSt("-cols", "2")    // Numero de columnas en que se muestran los 
                             // valores solamente se utiliza para tipo "Dir".
 );
 */
 //////////////////////////////////////////////////////////////////////////////
 // 1. Metadata
 //////////////////////////////////////////////////////////////////////////////
-Struct AlgDefSt
+Struct @AlgDefSt
 {
   Real NumCarDim,      // Numero de letras por codigo de dimensión
   Text FunAlgGetData,  // Función de acceso a datos a través del álgebra
   Text DimSep,         // Separador de dimensión
   Text SubDimSep,      // Separador de subdimensión
   Set  SetNode,        // Conjunto de magnitudes con estructura AlgDefMagSt 
-  Set  TclSet          // Información TCL en forma TclArgSt
+  Set  TclSet          // Información TCL en forma @TclArgSt
 };
 
-Struct AlgDefMagSt
+Struct @AlgDefMagSt
 {
   Text CodMag,         // Código corto de magnitud
   Text Nam,            // Nombre de la magnitud
   Text Des,            // Descripción de la magnitud
   Set  SetNode,        // Conjunto de dimensiones y subdimensiones que definen
                        // la magnitud con estructura AlgDefNodeSt
-  Set  TclSet,         // Información Tcl en forma TclArgSt
+  Set  TclSet,         // Información Tcl en forma @TclArgSt
   Set  SerCre          // Información de creación de los objetos TOL asociados
                        // a cada nombre. Cjto. con estructura AlgSerCreMetSt
 };
 
-Struct AlgSerCreMetSt
+Struct @AlgSerCreMetSt
 {
   Code CodMet, 
   Set  ParMet
 };
 
 
-Struct AlgDefNodeSt
+Struct @AlgDefNodeSt
 {
   Text CodDim,         // Codigo corto de dimension 
   Text CodSubDim,      // Codigo corto de subdimension
@@ -94,16 +94,16 @@ Struct AlgDefNodeSt
                        // - Para subdim retorna un Text con el código que 
                        // debe ser seleccionado para la subdimensión como
                        // DefValue
-  Set  TclSet          // Informacion Tcl en forma TclArgSt
+  Set  TclSet          // Informacion Tcl en forma @TclArgSt
 };
 
-Struct AlgDependSt
+Struct @AlgDependSt
 {
   Text CodDim,         // Codigo corto de Dimension
   Text CodSubDim       // Codigo corto de Subdimension
 };
 
-Struct AlgListValueSt
+Struct @AlgListValueSt
 {
   Text Ide,            // Identificador de objeto
   Text Cod,            // Codigo corto de objeto
@@ -111,7 +111,7 @@ Struct AlgListValueSt
   Text Des             // Descripcion
 };
 
-Struct AlgListValueHieSt
+Struct @AlgListValueHieSt
 {
   Text Ide,            // Identificador de objeto
   Text Cod,            // Codigo corto de objeto
@@ -124,13 +124,13 @@ Struct AlgListValueHieSt
 //////////////////////////////////////////////////////////////////////////////
 // 2. Instances
 //////////////////////////////////////////////////////////////////////////////
-Struct AlgSt
+Struct @AlgSt
 {
   Text CodMag,         // Codigo corto de magnitud
   Set  SetNode         // Conjunto de nodos con estructura AlgNodeSt cada uno
 };
 
-Struct AlgNodeSt
+Struct @AlgNodeSt
 {
   Text CodDim,         // Codigo corto de dimension
   Text CodSubDim,      // Codigo corto de subdimension 

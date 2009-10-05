@@ -15,7 +15,7 @@
     Real numErr0 = Copy(NError);
     
   // Clase objeto
-  Class Object
+  Class @Object
   {
     Text _.name;
     Text GetName(Real void) {
@@ -23,14 +23,14 @@
     }
   };
   
-  // Creo objeto (Este si es un objeto de la Clase Object)
-  Object obj1 = 
+  // Creo objeto (Este si es un objeto de la Clase @Object)
+  @Object obj1 = 
   [[
     Text _.name = "Objeto 1"
   ]];
   
-  // Intento crear objeto sin nombre (es un NameBlock, no es un objeto de la clase Object)
-  Object  
+  // Intento crear objeto sin nombre (es un NameBlock, no es un objeto de la clase @Object)
+  @Object  
   [[
     Text _.name = "Objeto 2"
   ]];

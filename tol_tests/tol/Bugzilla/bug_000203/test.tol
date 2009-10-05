@@ -21,7 +21,7 @@
   [[
     Real ok1 = ToName("1id") == "_1id",
     Real ok2 = ToName("'id") == "_'id",
-    Real ok3 = ToName("@id") == "_id",
+    Real ok3 = ToName("@id") == "@id",
     Real ok4 = ToName("multiple word id") == "multiple_word_id"
   ]];
 

@@ -31,7 +31,7 @@ NameBlock Lat.Homog(
   Text _.name = name;
   Set _.alfa = lowLevelParam;
   Real _.sigma = sigma;
-  Set _.param = [[Bsr.Param.Info(_.name+".Average", initValue, lowerBound, upperBound)]];
+  Set _.param = [[@Bsr.Param.Info(_.name+".Average", initValue, lowerBound, upperBound)]];
   NameBlock _.constraints = constraints;
 //Mandatory methods that will be used by BysMcmc::Bsr::Import
 

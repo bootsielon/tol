@@ -15,7 +15,7 @@ Real BTS.InputWithLevel = Copy(TRUE);
 // STRUCTURES
 //////////////////////////////////////////////////////////////////////////////
 
-Struct BTSARIMAInputDef
+Struct @BTSARIMAInputDef
 {
   Text Name,            // Nombre de la serie temporal input 
   Serie X,              // Serie input
@@ -23,7 +23,7 @@ Struct BTSARIMAInputDef
   Set DeltaInfo 	// Informacion sobre el polinomio Delta BTSARIMAPolynDef
 };
 
-Struct BTSARIMAPolynDef
+Struct @BTSARIMAPolynDef
 {
   Polyn IniValue,       // Valor inicial del polinomio 
   Set PriorInfo,        // Conjunto con estructura BTSARIMAPriorInfo que 
@@ -32,34 +32,34 @@ Struct BTSARIMAPolynDef
                         // contiene los limites en el muestreo
 };
 
-Struct BTSARIMAPriorInfo
+Struct @BTSARIMAPriorInfo
 {
   Text Class,
   Set Parameters
 };
 
-Struct BTSARIMAPriorInfo.Normal
+Struct @BTSARIMAPriorInfo.Normal
 {
   Polyn Nu,
   Polyn Sigma
 };
 
-Struct BTSARIMAPriorInfo.Fixed
+Struct @BTSARIMAPriorInfo.Fixed
 {
   Polyn Value
 };
 
-Struct BTSARIMALimInfo
+Struct @BTSARIMALimInfo
 {
   Polyn LimInf,
   Polyn LimSup
 };
 
-Struct BTSARIMAModelDef
+Struct @BTSARIMAModelDef
 {
   Text  Name,
   Serie Output, 
-  Set   BoxCox, // Conjunto con estructura BoxCoxStruct
+  Set   BoxCox, // Conjunto con estructura @BoxCoxStruct
   Set   Dif, 
   Set   AR, 
   Set   MA,
@@ -434,7 +434,7 @@ Set BTSARIMAEstimateLikelyhood(Set modelResult)
   Set arimaSet = difSet<<arSet<<maSet;
 
   Real maxDeg = SetMax(EvalSet(arimaSet,Degree));
-  Set model_MLH = ModelDef
+  Set model_MLH = @ModelDef
   (
     transformed-filter, 1, 0, maxDeg, 0, SetProd(difSet), arSet, maSet, 
     Copy(Empty), Copy(Empty)
@@ -449,7 +449,7 @@ Set BTSARIMAEstimateLikelyhood(Set modelResult)
   ( 
     nameOut,
     output, 
-    BCInfo, // Conjunto con estructura BoxCoxStruct
+    BCInfo, // Conjunto con estructura @BoxCoxStruct
     difSet, 
     newARSet, 
     newMASet, 
