@@ -320,7 +320,7 @@ Text TestResultRoot(Real void)
   Real NonDeletedObjects = NObject      - maxObjects;
   Real ElapsedSeconds = Time         - initTime;
   Real UsedMemoryKb   = initMemAvail - MemoryStatus(0)["AvailPhys"]/1024;
-  Set  my_metric      = strTestMetric
+  Set  my_metric      = @strTestMetric
   (
     baseDir,
     parameters,
