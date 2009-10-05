@@ -18,8 +18,8 @@ Text _.autodoc.member.DeltaPrior =
 "  Text   segmentName : identifier of affected output segment\n"
 "  Text   inputName   : identifier of affected input group\n"
 "  Serie  oriInp      : original input data\n"
-"  Set    omega.info  : Bsr.Param.Info or Empty if it's for output\n" 
-"  Set    delta.info  : Bsr.TruncatedNormal \n" 
+"  Set    omega.info  : @Bsr.Param.Info or Empty if it's for output\n" 
+"  Set    delta.info  : @Bsr.TruncatedNormal \n" 
 "";
 //////////////////////////////////////////////////////////////////////////////
 NameBlock DeltaPrior

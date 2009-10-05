@@ -12,9 +12,9 @@ Text _.autodoc.member.PubAdStock_ExpBetaDelta =
 "  Text           inputName   : identifier of affected input group\n"
 "  Serie          oriInp      : original input data\n"
 "  Set            omega.info  : linear parameter or Empty if it's for output\n" 
-"  Bsr.Param.Info beta.info   : coefficient of exponent\n" 
-"  Bsr.Param.Info delta.info  : transfer denominator coefficient\n" 
-"  Bsr.Param.Info iniVal.info : initial value of difference equation\n"
+"  @Bsr.Param.Info beta.info   : coefficient of exponent\n" 
+"  @Bsr.Param.Info delta.info  : transfer denominator coefficient\n" 
+"  @Bsr.Param.Info iniVal.info : initial value of difference equation\n"
 "";
 //////////////////////////////////////////////////////////////////////////////
 NameBlock PubAdStock_ExpBetaDelta
@@ -24,9 +24,9 @@ NameBlock PubAdStock_ExpBetaDelta
   Text           inputName,    
   Serie          oriInp,
   Set            omega.info,
-  Bsr.Param.Info beta.info,    
-  Bsr.Param.Info delta.info,    
-  Bsr.Param.Info iniVal.info,
+  @Bsr.Param.Info beta.info,    
+  @Bsr.Param.Info delta.info,    
+  @Bsr.Param.Info iniVal.info,
   Real simulate.iniVal
 )
 //////////////////////////////////////////////////////////////////////////////

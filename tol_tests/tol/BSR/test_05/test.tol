@@ -144,10 +144,10 @@ WriteLn("Creando en la base de datos los nodos observacionales");
       Text  segmentName = _.id_node,
       Text  inputName = "priMesAdStock",
       Serie oriInp = tmIn::sub(CalInd(D(1),C),0),
-      Set Bsr.Param.Info("Omega", Rand(500,1000),100,5000),
-      Set Bsr.Param.Info("Beta",  Rand(0.60,0.60),0.0001, 1),
-      Set Bsr.Param.Info("Delta", _priMesAdStock.delta,0.0001,0.9999),
-      Set Bsr.Param.Info("IniVal",_priMesAdStock.iniVal,
+      Set @Bsr.Param.Info("Omega", Rand(500,1000),100,5000),
+      Set @Bsr.Param.Info("Beta",  Rand(0.60,0.60),0.0001, 1),
+      Set @Bsr.Param.Info("Delta", _priMesAdStock.delta,0.0001,0.9999),
+      Set @Bsr.Param.Info("IniVal",_priMesAdStock.iniVal,
                                 _priMesAdStock.iniVal,_priMesAdStock.iniVal),
       Real simulate.iniVal=False
     ) ]]};

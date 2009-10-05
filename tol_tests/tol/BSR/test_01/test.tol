@@ -86,7 +86,7 @@ Set CompareTable =
   Matrix beta.var.sim  = SetMat(Extract(estim::report::coda.summary,2));
   For(1,Card(estim::report::colNames), Set(Real k)
   {
-    CompareStruct
+    @CompareStruct
     (
       k, 
       estim::report::colNames[k], 

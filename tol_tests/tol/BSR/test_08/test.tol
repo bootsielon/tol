@@ -65,7 +65,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
 //////////////////////////////////////////////////////////////////////////////
 [[
   //##Documentation about the model
-  Set  _.docInfo = BSR.DocInfo (
+  Set  _.docInfo = @BSR.DocInfo (
     Text Model.Name = 
       "OneNodeProbit",
     Text Model.Description = 
@@ -119,7 +119,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   ]];
   //Input matrix
   VMatrix _.X = Group("ConcatColumns",
-  EvalSet(_.linearParamInfo, VMatrix(Bsr.OneNode.LinearParamInfo lpi)
+  EvalSet(_.linearParamInfo, VMatrix(@Bsr.OneNode.LinearParamInfo lpi)
   {
     Mat2VMat(_.data.handler[lpi->Name])
   }));

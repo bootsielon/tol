@@ -61,7 +61,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
 //////////////////////////////////////////////////////////////////////////////
 [[
   //##Documentation about the model
-  Set  _.docInfo = BSR.DocInfo (
+  Set  _.docInfo = @BSR.DocInfo (
     Text Model.Name = 
       "OneNodeLinear",
     Text Model.Description = 
