@@ -385,7 +385,7 @@ Text TestResultRoot(Real void)
 //WriteLn("ok = "<<ok);
   Real waitBst = If(!FileExist(bst),Sleep(2),0);
   Set table = If(And(ok,FileExist(bst)),IncludeBST(bst),Empty);
-  Set metric = If(Card(table),table[1], strTestMetric
+  Set metric = If(Card(table),table[1], @strTestMetric
   (
     baseDir,
     parameters,
