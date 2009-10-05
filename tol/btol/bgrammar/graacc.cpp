@@ -754,18 +754,8 @@ BOperator* BGrammar::FindOperator(const BText& name)const
   {
     found = FindOperator(BText("@")+name);
 #ifdef CATCH_NON_STANDARD_STRUCT
-    if(found)
-    {
-      _non_standard_struct_() << "CALLING STRUCT '@"<<name.String()<<
-        "' WITHOUT @";
-      if(BSourcePath::Current())
-      {
-        _non_standard_struct_() <<  
-          " IN FILE '"<<BSourcePath::Current()->Name().String()<<"'";
-      }
-      _non_standard_struct_() <<  "\n";
-      _non_standard_struct_().flush();
-    }
+    if(found) { 
+      _non_standard_struct_calling_without(name); }
 #endif
   }
 #endif
@@ -844,7 +834,7 @@ BList* BGrammar::GetOperators() const
   while(lst_unb)
   {
     unb = (BUserNameBlock*)lst_unb->Car();
-    if(!unb->Contens().Class()
+    if(!unb->Contens().Class())
     {
     //Std(BText("\n")+Name()+"::GetOperators() Exploring NameBlock "+unb->FullName());
       lst_opr = unb->Contens().SelectMembersDeep(lst_opr, oc);
@@ -1006,6 +996,16 @@ BSyntaxObject* BAnyGrammar::FindOperand(const BText& name, bool mayBeConst) cons
     }
   }
   if(!found)  { found = BNameBlock::UsingMember(name);  }
+#ifdef ALLOW_NON_STANDARD_STRUCT
+  if(!found && (name[0]!='@'))
+  {
+    found = FindOperand(BText("@")+name, false);
+#ifdef CATCH_NON_STANDARD_STRUCT
+    if(found) { 
+      _non_standard_struct_calling_without(name); }
+#endif
+  }
+#endif
   return(found);
 }
 
@@ -1083,6 +1083,16 @@ BOperator* BAnyGrammar::FindOperator(const BText& name) const
   {
     found = getOperator(this, BNameBlock::UsingMember(name));
   }
+#ifdef ALLOW_NON_STANDARD_STRUCT
+  if(!found && (name[0]!='@'))
+  {
+    found = FindOperator(BText("@")+name);
+#ifdef CATCH_NON_STANDARD_STRUCT
+    if(found) { 
+      _non_standard_struct_calling_without(name); }
+#endif
+  }
+#endif
   return(found);
 }
 
