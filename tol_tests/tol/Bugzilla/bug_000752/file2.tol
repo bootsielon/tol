@@ -1,0 +1,3 @@
+/* -*- mode: C++ -*- */
+#Embed "file0.tol";
+Set Include( "objA.oza" );

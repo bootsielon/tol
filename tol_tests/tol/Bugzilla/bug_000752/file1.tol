@@ -1,0 +1,8 @@
+/* -*- mode: C++ -*- */
+
+
+#Embed "file0.tol";
+
+@A objA;
+
+Real Ois.Store( SetOfNameBlock(objA), "objA.oza" );

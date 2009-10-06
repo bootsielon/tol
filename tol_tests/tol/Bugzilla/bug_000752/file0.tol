@@ -1,0 +1,8 @@
+
+WriteLn("Defining Class @A");
+
+Class @A {
+  Real v = 1
+};
+
+
