@@ -216,6 +216,7 @@ DMat MinimumResidualsSolve(const DMat& A_,
  */
 //--------------------------------------------------------------------
 {
+  double tolerance = chop*chop;
   BInt k, rows=A_.Rows(), cols=A_.Columns();
   /* PRECONDITIONS: ENSURING DIMENSIONS */
   if(!rows||!cols||!b0.Columns()||!x0.Columns()||
@@ -274,43 +275,32 @@ DMat MinimumResidualsSolve(const DMat& A_,
     advance = R-oldR;
     relAdv = advance/oldR;
 #ifdef TRZ_MinimumResidualsSolve
-    Std(pr+" Iteration "+k+
-	      "\tAbsMaxNorm : "+maxpa.Format("%lg")+
-	      "\tResNorm : "+BDat(R).Format("%lg"));
-#endif
-    if(k)
+    if(k && !(k%cols))
     {
-#ifdef TRZ_MinimumResidualsSolve
+      Std(pr+" Iteration "+k+
+	        "\tAbsMaxNorm : "+maxpa.Format("%lg")+
+	        "\tResNorm : "+BDat(R).Format("%lg"));
       Std(BText(" - ")+
-	  BDat(oldR	   ).Format("%lg"   )+" = "+
-	  BDat(advance	   ).Format("%lg"   )+" ("+
-	  BDat(xNormAdvance).Format("%lg"   )+" ,"+
-	  BDat(100*relAdv  ).Format("%8.4lf")+"%)");
+  	  BDat(oldR	   ).Format("%lg"   )+" = "+
+	    BDat(advance	   ).Format("%lg"   )+" ("+
+	    BDat(xNormAdvance).Format("%lg"   )+" ,"+
+	    BDat(100*relAdv  ).Format("%8.4lf")+"%)");
+   }
 #endif
-      if(S.IsUnknown()               ) { break; }
-      if(maxpa.IsUnknown()           ) { break; }
-      if(advance             >   0   ) { break; }
-      if(S                   <= chop ) { break; }
-/*
-      if(maxpa               <= chop ) { break; }
-      if(fabs(advance)       <= chop ) { break; }
-      if(fabs(relAdv)        <= chop ) { break; }
-      if(fabs(R)             <= chop ) { break; }
-      if(oldMaxpa            <= tol  ) { break; }
-      if(maxpa               <= tol  ) { break; }
-      if(fabs(advance)       <= tol  ) { break; }
-      if(xNormAdvance.Abs()  <= tol  ) { break; }
-*/
-    }
-    r -= q*a;
-    s  = At*r;
-    oldS = S;
-    S  = MtMSqr(s)(0,0);
-    b  = S.Value()/oldS.Value();
-    p*=b; p+=s;
+    if(S.IsUnknown()                    ) { break; }
+    if(maxpa.IsUnknown()                ) { break; }
+    if(advance             >=  0        ) { break; }
+    if(S                   <= tolerance ) { break; }
+    if(1+maxpa-1           == 0         ) { break; }
+  }
+  r -= q*a;
+  s  = At*r;
+  oldS = S;
+  S  = MtMSqr(s)(0,0);
+  b  = S.Value()/oldS.Value();
+  p*=b; p+=s;
 
 //  Std(BText("\cols")+k+"\t"+S);
-  }
 /*
   Std(pr+" Iteration "+k+
 	    "\tAbsMaxNorm : "+maxpa.Format("%lg")+
