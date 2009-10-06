@@ -129,7 +129,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
     {
       if(S.IsUnknown()                    ) { break; }
       if(maxpa.IsUnknown()                ) { break; }
-      if(advance             >   0        ) { break; }
+      if(advance             >=  0        ) { break; }
       if(S                   <= tolerance ) { break; }
       if(1+maxpa-1           == 0         ) { break; }
 /*
