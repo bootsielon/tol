@@ -15,10 +15,10 @@ Text session.description =
 "Random seed="<<rndSeed;
 
 //Number of variables of each observational node
-Real n = IntRand(10,100);
+Real n = IntRand(10,30);
 Real S = 7;
 //Data length of each observational node
-Real m  = IntRand(4*n,Min(20*n,7000));
+Real m  = IntRand(Max(30,4*(n+1)),Min(20*(n+1),7000));
 //Number of observational nodes
 Real K1 = IntRand(1,1);
 //
@@ -32,7 +32,7 @@ Real q1 = enableARMA*IntRand(0,Max(0,2-p1));
 //Seasonal AR Degree
 Real qS = enableARMA*0*IntRand(0,Max(0,1-pS));
 //Number of missing values in input matrix
-Real MissInp = Max(4,IntRand(0.01*n*K1,0.05*n*K1));
+Real MissInp = If(!n, 0, Max(4,IntRand(0.01*n*K1,0.05*n*K1)));
 //Number of missing values in input matrix
 Real MissOut = Max(2,IntRand(0.002*m*K1,0.005*m*K1));
 //Total number of variables at obervational level
@@ -104,7 +104,7 @@ Set obsNodes = For(1, K1, Set(Real k)
   //Sample standard error
   Real   sse = MatStDs(e);
   //Output data
-  Matrix Y = X*b + z;
+  Matrix Y = If(n, X*b + z, z);
   //Original sum of squares
   Real yy = MatDat(MtMSqr(Y),1,1);
   //Position of first row
@@ -277,9 +277,12 @@ WriteLn("Writing model in BSR format "+Time);
 Text bys.sparse.reg.path = 
 {
   Text bsr.Y = model.data.path+model.name+"_"+session.name+"_Y.bbm";
-  Text bsr.X = model.data.path+model.name+"_"+session.name+"_X.bbm";
   Matrix MatWriteFile(bsr.Y, VMat2Mat(Y));
-  Matrix MatWriteFile(bsr.X, VMat2Mat(X));
+  Text bsr.X = If(!n, "", {
+    Text aux = model.data.path+model.name+"_"+session.name+"_X.bbm";
+    Matrix MatWriteFile(aux, VMat2Mat(X));
+    aux
+  });
   Text bsr = model.data.path+model.name+"_"+session.name+"_parse.bsr";
   WriteLn("  bys.sparse.reg.path="+bsr);
   Real OSDirMake(model.data.path);
@@ -297,25 +300,29 @@ Text bys.sparse.reg.path =
   "Model.Description = \n\""+Replace(model.description,"\n","\\n\"\n\"")+"\";\n"
   "Session.Name = \""+session.name+"\";\n"
   "Session.Description = \n\""+Replace(session.description,"\n","\\n\"\n\"")+"\";\n"
-  "Session.Authors = \""+session.authors+"\";\n"
-  "\n"
-  "////////////////////////////////////////////////////////////////////////////////\n"
-  "// Regression Variables Declarations with initial values\n"
-  "////////////////////////////////////////////////////////////////////////////////\n"
-  "\n"
-  );
-  WriteLn("Writing Linear Block "+Time);
-  Real j = 0;
-  Real declareVariable(Text name)
-  {
-    j := j+1;
-    FPutText(f,""+name+" <- "+
-             FormatReal(MatDat(beta0,j,1),"%+.018lg")+";\n")
-  };
-  Set For(1,K1,Real(Real k)
-  {
-    Set EvalSet((obsNodes[k])::varNames, declareVariable);
-    1
+  "Session.Authors = \""+session.authors+"\";\n");
+
+  If(n, {
+    WriteLn("Writing Linear Block "+Time);
+    Real FPutText(f,
+    "\n"+If(!n, "",
+    "////////////////////////////////////////////////////////////////////////////////\n"
+    "// Regression Variables Declarations with initial values\n"
+    "////////////////////////////////////////////////////////////////////////////////\n"
+    "\n")
+    );
+    Real j = 0;
+    Real declareVariable(Text name)
+    {
+      j := j+1;
+      FPutText(f,""+name+" <- "+
+               FormatReal(MatDat(beta0,j,1),"%+.018lg")+";\n")
+    };
+    Set For(1,K1,Real(Real k)
+    {
+      Set EvalSet((obsNodes[k])::varNames, declareVariable);
+      1
+    }) 
   });
   WriteLn("Writing Residuals Distributions "+Time);
   Real FPutText(f,
@@ -347,8 +354,10 @@ Text bys.sparse.reg.path =
   );
   WriteLn("  Writing Regression equations for observational node"+Time);
   Real FPutText(f,
-  "Output = {$ Matrix MatReadFile(\""+bsr.Y+"\") $};\n"
-  "Input  = {$ Matrix MatReadFile(\""+bsr.X+"\") $};\n");
+  "Output = {$ Matrix MatReadFile(\""+bsr.Y+"\") $};\n");
+  
+  Real If(n, FPutText(f,
+  "Input  = {$ Matrix MatReadFile(\""+bsr.X+"\") $};\n"));
 
   Real If(MissInp, {
   WriteLn("Writing Missing Input Declaration "+Time);

@@ -19,22 +19,10 @@ WriteLn("Current Random Seed = "<<rndSeed);
 //Creates a random model and writes it in "parse.bsr"
 Set Include("load.tol");
 
-
 BysMcmc::@Config bsr.config = [[
   Real mcmc.sampleLength = 2000;
   Real mcmc.cacheLength = 100;
   Real mcmc.burnin = 100;
-
-  Real bsr.linBlk.MH.useAfterIter   = 10;
-  Real bsr.linBlk.MH.maxRejected    = 3;
-  Real bsr.linBlk.MH.maxConsecutive = 100;
-
-  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::DifEq;
-//Code bsr.scalarSampler.armaBlock = BysMcmc::Options::Scalar.Sampler::Arms;
-//Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Arms;
-
-
-  Real do.resume = 0;
   Real do.mcmc.profiler   = True
 ]];
 
@@ -43,6 +31,7 @@ BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   BysMcmc::@McmcPartialHandler::Null(0), 
   bsr.config, 
   BysMcmc::@Notifier::Null(0));
+
 
 //Real cycler::initialize(0);
 
