@@ -1,0 +1,415 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: def.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2009-09-16
+//PURPOSE: Testing a simple primary module os ASCII-BSR
+//////////////////////////////////////////////////////////////////////////////
+
+
+Set Include("id.tol");
+
+Text model.description = 
+"Randomly generation of a pure observational dense model without linear inputs";
+Text session.authors = "vdebuen@tol-project.org";
+Text session.description = 
+"Random seed="<<rndSeed;
+
+//Number of variables of each observational node
+Real n = IntRand(0,0);
+Real S = 7;
+//Data length of each observational node
+Real m  = IntRand(Max(30,4*(n+1)),Min(20*(n+1),7000));
+//Number of observational nodes
+Real K1 = IntRand(1,1);
+//
+Real enableARMA = true;
+//Regular AR Degree
+Real p1 = enableARMA*IntRand(0,2);
+//Seasonal AR Degree
+Real pS = enableARMA*IntRand(1,1);
+//Regular AR Degree
+Real q1 = enableARMA*IntRand(0,Max(0,2-p1));
+//Seasonal AR Degree
+Real qS = enableARMA*0*IntRand(0,Max(0,1-pS));
+//Number of missing values in input matrix
+Real MissInp = If(!n, 0, Max(4,IntRand(0.01*n*K1,0.05*n*K1)));
+//Number of missing values in input matrix
+Real MissOut = Max(2,IntRand(0.002*m*K1,0.005*m*K1));
+//Total number of variables at obervational level
+Real N1 = n*K1;
+//Total data length at obervational level
+Real M1 = m*K1;
+//Total number of variables
+Real N = N1;
+//Total data length
+Real M = M1;
+
+
+Matrix _arma = Rand(0,1,0,0);
+WriteLn("Generating random observational nodes "+Time);
+Set obsNodes = For(1, K1, Set(Real k)
+{
+  //Node identifier
+  Text   id = "NodeObs."+IntText(k);
+  Set varNames = For(1,n,Text(Real j)
+  {
+    id+"_Var."+IntText(j)
+  });
+  //Input matrix
+  Matrix X = VMat2Mat(Rand(m,n,-0.5,0.5,"Cholmod.R.Sparse",m*n*Rand(.01,.10)));
+  //Real beta block
+  Matrix b = Rand(n,1,-10,10);
+  //Standard deviation
+  Real s = Rand(0.50,0.90);
+  Polyn ar1 = RandStationary(p1);
+  Polyn arS = RandStationary(pS,S);
+  Polyn ma1 = RandStationary(q1);
+  Polyn maS = RandStationary(qS,S);
+  Polyn dif1 = (1-B)^If(Coef(ma1,1)<-0.9,1,0);
+  Polyn difS = (1-B^S)^If(Coef(maS,1)<-0.9,1,0);
+  
+  Matrix pol2col(Polyn pol)
+  { 
+  //WriteLn("TRACE pol2col("<<pol+") 1-pol="<<Polyn(1-pol));
+    SetCol(EvalSet(Monomes(1-pol), Real(Polyn mon) 
+    {
+      Real d = Degree(mon);
+      Coef(mon, d)
+    }))
+  };
+
+  Matrix If(Degree(ar1),  _arma := _arma << pol2col(ar1));
+  Matrix If(Degree(ma1),  _arma := _arma << pol2col(ma1));
+  Matrix If(Degree(arS),  _arma := _arma << pol2col(arS));
+  Matrix If(Degree(maS),  _arma := _arma << pol2col(maS));
+  Set arima = SetOfSet
+  (
+    @ARIMAStruct(1,ar1,ma1,dif1),
+    @ARIMAStruct(S,arS,maS,difS)
+  );
+
+  Text arimaExpr = "ARIMA.COV("<<arima+")";
+
+  Polyn ar  = ar1  * arS;
+  Polyn ma  = ma1  * maS;
+  Polyn dif = dif1 * difS;
+  Polyn ari = ar*dif;
+  Real p   = Degree(ari);
+  Real q   = Degree(ma);
+  //Standard residuals
+  Matrix e_  = Gaussian(100*m,1,0,s);
+  Matrix z_  = DifEq(ma/ari, e_, Rand(q,1,0,0), Rand(p,1,0,0));
+  Matrix e   = Sub(e_, 99*m+1, 1, m, 1);
+  Matrix z   = Sub(z_, 99*m+1, 1, m, 1);
+  //Sample standard error
+  Real   sse = MatStDs(e);
+  //Output data
+  Matrix Y = If(n, X*b + z, z);
+  //Original sum of squares
+  Real yy = MatDat(MtMSqr(Y),1,1);
+  //Position of first row
+  Real i = (k-1)*m+1;
+  //Position of first column
+  Real j = (k-1)*n+1;
+ 
+  Eval(id+"=[[ id, varNames, X, b, s, e, z, arimaExpr, sse, Y, yy, i, j]]")
+});
+
+WriteLn("Descriptors of columns in Markov Chain "+Time);
+Set colNames = BinGroup("<<", For(1,K1,Set(Real k)
+{
+  (obsNodes[k])::varNames
+})) 
+<< For(1,K1,Text(Real k)
+{
+  (obsNodes[k])::id+"_Sigma2"
+});
+
+
+WriteLn("Joint beta matrix (Real generated values "+Time);
+Matrix _beta =
+{
+  Matrix b.obs = Group("ConcatRows", For(1,Card(obsNodes),Matrix(Real k)
+  {
+    (obsNodes[k])::b
+  }));
+  b.obs 
+};
+
+WriteLn("Joint sigma matrix (Real generated values) "+Time);
+Matrix _variance =
+{
+  Matrix s2.obs = SetCol(For(1,Card(obsNodes),Real(Real k)
+  {
+    (obsNodes[k])::s^2
+  }));
+  s2.obs
+};
+
+WriteLn("Initial values of blocks) "+Time);
+Matrix beta0     = Rand(N, 1, -1, 1);
+Matrix variance0 = Rand(K1,1,  0, 0);
+
+
+WriteLn("Joint output matrix "+Time);
+VMatrix Y =
+{
+  VMatrix Y.obs = Group("ConcatRows", For(1,Card(obsNodes),VMatrix(Real k)
+  {
+    Mat2VMat((obsNodes[k])::Y)
+  }))
+};
+
+WriteLn("Joint input matrix "+Time);
+VMatrix X =
+{
+  VMatrix X.obs = Mat2VMat((obsNodes[1])::X)
+};
+
+WriteLn("Generating X triplet "+Time);
+Matrix Yt = VMat2Triplet(Y);
+Matrix Xt = VMat2Triplet(X);
+
+WriteLn("Generating random missing inputs "+Time);
+Set inputMissing = For(1, MissInp, Set(Real k)
+{
+  Real idx    = Copy(?);
+  Real equIdx = Copy(?); 
+  Real varIdx = Copy(?); 
+  Real value  = Copy(?); 
+  While(IsUnknown(value),
+  {
+    Real idx    := IntRand(1,Rows(Xt));
+    Real equIdx := MatDat(Xt,idx,1); 
+    WriteLn("  idx "<<idx + "  equIdx "<<equIdx);
+    Real varIdx := If(equIdx<=M1, MatDat(Xt,idx,2), ?); 
+    Real value  := If(equIdx<=M1, MatDat(Xt,idx,3), ?)
+  });
+  Real Do PutMatDat(Xt,idx,3,?);
+  Real Do PutVMatDat(X,equIdx,varIdx,?);
+  Text id = "MissInp.NodeObs."+IntText(varIdx)+"."+IntText(equIdx);
+  If(IsUnknown(VMatDat(X,equIdx,varIdx)),
+  { 
+    WriteLn("  Set unknown for missing input "+id)
+  },
+  { 
+    WriteLn("Cannot set unknown for missing input "+id,"E")
+  });
+  //Si en la misma ecuación de regresión (por ejemplo en el mismo día si es 
+  //una ecuación de observación de una serie) tenemos dos o más inputs 
+  //omitidos sin información a priori entonces el sistema lineal subyacente 
+  //al bloque de omitidos del input es singular. De momento no se simulan
+  //omitidos sin prior
+  Real rnd = IntRand(2,3);
+  Text prior = Case
+  (
+    rnd==1, 
+    {
+      " <- "<<value
+    },
+    rnd==2,
+    {
+      Real sigma2 = ((value)/2)^2;
+      " ~ Normal("<<value+","<<sigma2+")"
+    },
+    rnd==3,
+    {
+      Real sigma2 = ((value)/2)^2;
+      Real min   = If(value>=0, 0, 10*value);
+      Real max   = If(value<=0, 0, 10*value);
+      " ~ TruncatedNormal("<<value+","<<sigma2+","<<min+","<<max+")"
+    }
+  );
+  Eval(id+"=[[ id, varIdx, equIdx, prior]]")
+});
+Real If(MissInp, SetIndexByName(inputMissing));
+
+
+WriteLn("Generating random missing outputs "+Time);
+Set outputMissing = For(1, MissOut, Set(Real k)
+{
+  Real idx    = Copy(?);
+  Real equIdx = Copy(?); 
+  Real value  = Copy(?); 
+  While(IsUnknown(value),
+  {
+    Real idx    := IntRand(1,Rows(Yt));
+    Real equIdx := MatDat(Yt,idx,1); 
+    WriteLn("  idx "<<idx + "  equIdx "<<equIdx);
+    Real value  := If(equIdx<=M1, MatDat(Yt,idx,3), ?)
+  });
+  Real Do PutMatDat(Yt,idx,3,?);
+  Real Do PutVMatDat(Y,equIdx,1,?);
+  Text id = "MissOut.NodeObs."+IntText(equIdx);
+  If(IsUnknown(VMatDat(Y,equIdx,1)),
+  { 
+    WriteLn("  Set unknown for missing output "+id)
+  },
+  { 
+    WriteLn("Cannot set unknown for missing output "+id,"E")
+  });
+  Real rnd = IntRand(1,1);
+  Text prior = Case
+  (
+    rnd==1, 
+    {
+      " <- "<<value
+    },
+    rnd==2,
+    {
+      Real sigma2 = ((value)/2)^2;
+      " ~ Normal("<<value+","<<sigma2+")"
+    },
+    rnd==3,
+    {
+      Real sigma2 = ((value)/2)^2;
+      Real min   = If(value>=0, 0, 10*value);
+      Real max   = If(value<=0, 0, 10*value);
+      " ~ TruncatedNormal("<<value+","<<sigma2+","<<min+","<<max+")"
+    }
+  );
+  Real varIdx=0;
+  Eval(id+"=[[ id, varIdx, equIdx, prior]]")
+});
+Real If(MissOut, SetIndexByName(outputMissing));
+
+WriteLn("Writing model in BSR format "+Time);
+Text bys.sparse.reg.path = 
+{
+  Text bsr.Y = model.data.path+model.name+"_"+session.name+"_Y.bbm";
+  Matrix MatWriteFile(bsr.Y, VMat2Mat(Y));
+  Text bsr.X = If(!n, "", {
+    Text aux = model.data.path+model.name+"_"+session.name+"_X.bbm";
+    Matrix MatWriteFile(aux, VMat2Mat(X));
+    aux
+  });
+  Text bsr = model.data.path+model.name+"_"+session.name+"_parse.bsr";
+  WriteLn("  bys.sparse.reg.path="+bsr);
+  Real OSDirMake(model.data.path);
+  Real f = FOpen(bsr,"wb");
+  WriteLn("Writing header "+Time);
+  Real FPutText(f,
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Bayesian Sparsed Regression \n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"+
+  "$BEGIN \n"
+  "\n"
+  "Module.Type = primary;\n"
+  "Model.Name = \""+model.name+"\";\n"
+  "Model.Description = \n\""+Replace(model.description,"\n","\\n\"\n\"")+"\";\n"
+  "Session.Name = \""+session.name+"\";\n"
+  "Session.Description = \n\""+Replace(session.description,"\n","\\n\"\n\"")+"\";\n"
+  "Session.Authors = \""+session.authors+"\";\n");
+
+  If(n, {
+    WriteLn("Writing Linear Block "+Time);
+    Real FPutText(f,
+    "\n"+If(!n, "",
+    "////////////////////////////////////////////////////////////////////////////////\n"
+    "// Regression Variables Declarations with initial values\n"
+    "////////////////////////////////////////////////////////////////////////////////\n"
+    "\n")
+    );
+    Real j = 0;
+    Real declareVariable(Text name)
+    {
+      j := j+1;
+      FPutText(f,""+name+" <- "+
+               FormatReal(MatDat(beta0,j,1),"%+.018lg")+";\n")
+    };
+    Set For(1,K1,Real(Real k)
+    {
+      Set EvalSet((obsNodes[k])::varNames, declareVariable);
+      1
+    }) 
+  });
+  WriteLn("Writing Residuals Distributions "+Time);
+  Real FPutText(f,
+  "\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Regression Residuals Declarations Normal(0,sigma^2)\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"
+  );
+  Set For(1,K1,Real(Real k)
+  {
+    Real Tk = Rows((obsNodes[k])::e);
+    Date last = y2008m08d28;
+    Date first = Succ(last, Daily, 1-Tk);
+    Text sigmaName = (obsNodes[k])::id+"_Sigma2";
+    Text resName   = (obsNodes[k])::id+"_Residuals";
+    FPutText(f,""+resName+"["+IntText(Rows((obsNodes[k])::e))+" "
+    "dating Daily from "<<first+" until "<<last+
+    "] "
+    "~ Normal(0,"+sigmaName+"*"+(obsNodes[k])::arimaExpr+");\n")
+  });
+  WriteLn("Writing Regression equations "+Time);
+  Real FPutText(f,
+  "\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Regression equations \n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"
+  );
+  WriteLn("  Writing Regression equations for observational node"+Time);
+  Real FPutText(f,
+  "Output = {$ Matrix MatReadFile(\""+bsr.Y+"\") $};\n");
+  
+  Real If(n, FPutText(f,
+  "Input  = {$ Matrix MatReadFile(\""+bsr.X+"\") $};\n"));
+
+  Real If(MissInp, {
+  WriteLn("Writing Missing Input Declaration "+Time);
+  Real FPutText(f,
+  "\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Regression Missing Input Declarations \n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"
+  );
+  Set For(1,MissInp,Real(Real k)
+  {
+    Set mis = inputMissing[k];
+    FPutText(f,mis::id+" ? "
+      "at row "+IntText(mis::equIdx)+" "+
+      "for input "<<mis::varIdx+" "+
+      mis::prior+";\n")
+  });
+  0});
+  
+  Real If(MissOut, {
+  WriteLn("Writing Missing Output Declaration "+Time);
+  Real FPutText(f,
+  "\n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "// Regression Missing Output Declarations \n"
+  "////////////////////////////////////////////////////////////////////////////////\n"
+  "\n"
+  );
+  Set For(1,MissOut,Real(Real k)
+  {
+    Set mis = outputMissing[k];
+    FPutText(f,mis::id+" ? "
+      "at row "+IntText(mis::equIdx)+" "+
+      "for output "+
+      mis::prior+";\n")
+  });
+  0});
+  Real FPutText(f,
+  "\n"+
+  "$END \n"
+  "\n");
+  Real FClose(f);
+  bsr
+};
+
+WriteLn("Reading model in RLR format "+Time);
+Set bsr.parsed = BSR.Parse(bys.sparse.reg.path,"primary");
+
+Matrix _inpMis= If(!MissInp,Rand(0,1,0,0),
+{
+  Matrix SetMat(Set Extract(bsr.parsed->InputMissingBlock,6))
+});
+Matrix _outMis= If(!MissOut,Rand(0,1,0,0),
+  SetMat(Set Extract(bsr.parsed->OutputMissingBlock,6)));
