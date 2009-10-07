@@ -447,7 +447,7 @@ public:
           *(variable) >> 
           noise  >> 
           output >> 
-          input >> 
+          (input | eps_p) >> 
           *(missing)  >>
           *(inequation)
         ) >>
@@ -528,6 +528,7 @@ public:
     int b = noise.count;
     int m = numEqu_;
     int r = ine_vec.size();
+    if(!n && !X_.Rows()) { X_.BlasRDense(m,0); }
     Std(BSR()+" Building model definition of primary module\n");
     int result = checkDimensions(m);
     if(result) { return(result); }

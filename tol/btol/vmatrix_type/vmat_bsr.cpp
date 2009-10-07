@@ -184,13 +184,7 @@ int bys_sparse_reg::expand2AllEqu_covAndFactors(noise_info& resInfo)
 int bys_sparse_reg::checkDimensions(int m)
 /////////////////////////////////////////////////////////////////////////////
 {
-  int n = var.vec.size();
   int b = noise.vec.size();
-  if(!n)
-  {
-    Error(BSR()+"At least a linear regression variable must be defined");
-    return(-3);
-  }
   if(!b)
   {
     Error(BSR()+"At least a vector of noise with independent normal distribution must be defined");
