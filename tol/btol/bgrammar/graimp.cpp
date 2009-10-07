@@ -861,11 +861,11 @@ BSyntaxObject* BGrammar::EvaluateTree(
   if(result && (result->Grammar()==GraNameBlock()))
   {
     BUserNameBlock* unb = (BUserNameBlock*)result;
-    BUserNameBlock* own = unb->Contens().Owner();
+    BNameBlock& nb = unb->Contens();
+    BUserNameBlock* own = nb.Owner();
     if(unb->HasName() && (own!=unb))
     {
-      BNameBlock& nb = unb->Contens();
-      if(!own || (own->Level()>unb->Level()))
+      if(!own || (unb->Level()==0))
       {
         nb.PutOwner(unb);
         nb.PutLocalName(unb->Name());
