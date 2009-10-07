@@ -478,7 +478,7 @@ BOperator::~BOperator()
 {
   if(uCode_)
   {
-    uCode_->DecNRefs();
+  //uCode_->DecNRefs();
   }
 }
 
@@ -501,7 +501,7 @@ BOperator::~BOperator()
   uCode_ = uc; 
   if(uCode_)
   {
-    uCode_->IncNRefs();
+  //uCode_->IncNRefs();
   }
 }
 
