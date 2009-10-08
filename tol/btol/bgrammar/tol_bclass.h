@@ -154,6 +154,10 @@ public:
   bool AddMemberList  (List*  memberLst);
   //! Sorts parsed members by appearing order
   void SortMembers();
+  BList* Select(BList* lst, bool isStatic, bool isMethod) const;
+  BList* SelectStaticMembers(BList* lst) const;
+  BList* SelectStaticMethods(BList* lst) const;
+  BList* SelectNonStaticMethods(BList* lst) const;
   DeclareClassNewDelete(BMemberOwner);
 };
 

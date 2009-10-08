@@ -902,6 +902,45 @@ int MbrNumCmp(const void* v1, const void* v2)
   return(ok);
 }
 
+//--------------------------------------------------------------------
+  BList* BMemberOwner::Select(
+    BList* lst, bool isStatic, bool isMethod) const
+//--------------------------------------------------------------------
+{
+  int i;
+  for(i=0; i<member_.Size(); i++)
+  {
+    BMember& mbr = *(member_[i]->member_);
+    if((mbr.isStatic_==isStatic) && 
+       (mbr.isMethod_==isMethod))
+    {
+           if(mbr.method_) { lst = Cons(mbr.method_,lst); }
+      else if(mbr.static_) { lst = Cons(mbr.static_,lst); }
+    }
+  }
+  return(lst);
+};
+
+//--------------------------------------------------------------------
+  BList* BMemberOwner::SelectStaticMembers(BList* lst) const
+//--------------------------------------------------------------------
+{
+  return(Select(lst, true, false));
+}
+
+//--------------------------------------------------------------------
+  BList* BMemberOwner::SelectStaticMethods(BList* lst) const
+//--------------------------------------------------------------------
+{
+  return(Select(lst, true, true));
+}
+
+//--------------------------------------------------------------------
+  BList* BMemberOwner::SelectNonStaticMethods(BList* lst) const
+//--------------------------------------------------------------------
+{
+  return(Select(lst, false, true));
+}
 
 //--------------------------------------------------------------------
   BNameBlockMemberOwner::BNameBlockMemberOwner(BNameBlock* nb)
@@ -931,6 +970,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 { 
   return(nb_->Dump()); 
 }
+
 
 //--------------------------------------------------------------------
 BClass::BClass(const BText& name)
