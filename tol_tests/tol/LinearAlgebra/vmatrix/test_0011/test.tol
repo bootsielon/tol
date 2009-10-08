@@ -12,7 +12,7 @@ Real numErr0 = Copy(NError);
 //////////////////////////////////////////////////////////////////////////////
 //Carga de datos
 //////////////////////////////////////////////////////////////////////////////
-Set data = { Ois.Load("matrices_b.oza")[1] };
+Set data = { Ois.Load("matrices_b")[1] };
 VMatrix T = data::vT;
 VMatrix A = data::vA;
 VMatrix B = data::vB;
@@ -58,7 +58,7 @@ Set partialResults_ =
 Real quality_ = Min(quality.x, quality.Z);
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);
