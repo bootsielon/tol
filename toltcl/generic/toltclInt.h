@@ -312,10 +312,10 @@ int Tol_ParseDate(Tcl_Interp * interp, char * what, BDate & date);
  *     return value is NULL an error message is left in interp.
  */
 extern
-const BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
-					Tcl_Obj    *obj_ref,
-                                        Tcl_Obj    *obj_result/*,
-                                        BGrammar   *grammar=NULL*/);
+BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
+                                  Tcl_Obj    *obj_ref,
+                                  Tcl_Obj    *obj_result/*,
+                                                          BGrammar   *grammar=NULL*/);
 
 extern
 int Tol_ListToDate _ANSI_ARGS_(( Tcl_Interp * interp, Tcl_Obj * list,

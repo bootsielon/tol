@@ -468,9 +468,9 @@ BSyntaxObject * Tol_GetConsoleObject(int index )
  * obj_result.
  * 
  */
-const BSyntaxObject * Tol_FindGlobalContainer(const char* Type,
-                                              const char* obj_name,
-                                              Tcl_Obj*    obj_result)
+BSyntaxObject * Tol_FindGlobalContainer(const char* Type,
+                                        const char* obj_name,
+                                        Tcl_Obj*    obj_result)
 {
   BGrammar *gra;
   BSyntaxObject* var;
@@ -514,10 +514,10 @@ const BSyntaxObject * Tol_FindGlobalContainer(const char* Type,
  *
  */
 
-const BSyntaxObject * Tol_FindChild(Tcl_Interp    *interp,
-                                    const BSyntaxObject *syn_obj,
-                                    Tcl_Obj       **indexes, int n,
-                                    Tcl_Obj       *obj_result)
+BSyntaxObject * Tol_FindChild(Tcl_Interp    *interp,
+                              BSyntaxObject *syn_obj,
+                              Tcl_Obj       **indexes, int n,
+                              Tcl_Obj       *obj_result)
 {
   int tcl_code;
   Tcl_DString dstr;
@@ -569,9 +569,9 @@ const BSyntaxObject * Tol_FindChild(Tcl_Interp    *interp,
  *     return value is NULL an error message is left in interp.
  */
 
-const BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
-                                        Tcl_Obj    *obj_ref,
-                                        Tcl_Obj    *obj_result)
+BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
+                                  Tcl_Obj    *obj_ref,
+                                  Tcl_Obj    *obj_result)
 {
   Tcl_Obj ** items;
   int n;
@@ -586,7 +586,7 @@ const BSyntaxObject * Tol_ResolveObject(Tcl_Interp *interp,
   }
 
   // this Tcl_Obj is to leave error messages
-  const BSyntaxObject * syn = NULL;
+  BSyntaxObject * syn = NULL;
 
   if (n >= 2) {
     type = Tcl_GetString(items[0]);
@@ -665,7 +665,7 @@ int Tol_FindSOInSet(BSet * ptrSet, const BSyntaxObject * syn,
 		    ToltclPool & indexes)
 {
   int j;
-  const BSyntaxObject * so;
+  BSyntaxObject * so;
   
   for (j = 1; j <= ptrSet->Card(); j++) {
     so = (*ptrSet)[j];
@@ -805,6 +805,161 @@ inline void SAVE_SET_STRING( Tcl_Obj **obj, Tcl_DString* dstr )
     Tcl_SetStringObj( *obj, Tcl_DStringValue( dstr ),-1 );
 }
 
+class ContainerIterator
+{
+public:
+
+  static ContainerIterator *New( BSyntaxObject *obj );
+  
+  enum status_t { VALID, INVALID };
+
+  virtual ~ContainerIterator( ) { }
+  
+  status_t GetStatus() const {
+    return m_status;
+  }
+  
+  virtual status_t Begin( ) = 0;
+  virtual BSyntaxObject *Next( ) = 0;
+
+protected:
+
+  ContainerIterator() : m_status( INVALID ) { }
+  
+  status_t m_status;
+};
+
+class SetIterator : public ContainerIterator
+{
+public:
+  SetIterator( BSet *set )
+  {
+    m_set = set;
+    Begin();
+  }
+
+  virtual ~SetIterator( )
+  {
+  }
+  
+  virtual ContainerIterator::status_t Begin()
+  {
+    m_idx = 0;
+    m_status = m_set ? VALID : INVALID;
+    return m_status;
+  }
+  
+  virtual BSyntaxObject *Next()
+  {
+    BSyntaxObject *so = _next();
+    if ( !so ) {
+      /* start over */
+      Begin();
+    }
+    return so;
+  }
+
+protected:
+
+  BSyntaxObject *_next()
+  {
+    if ( m_set ) {
+      ++m_idx;
+      return ( m_idx > m_set->Card( ) ) ? NULL : ( *m_set )[ m_idx ];
+    }
+    return NULL;
+  }
+
+  size_t m_idx;
+  BSet *m_set;
+};
+
+class USetIterator : public SetIterator
+{
+public:
+  USetIterator( BUserSet *uset )
+    : SetIterator( &( uset->Contens( ) ) )
+  {
+  }
+  virtual ~USetIterator() { }
+};
+
+class UNameBlockIterator : public SetIterator
+{
+public:
+  UNameBlockIterator( BUserNameBlock *unb )
+    : SetIterator( &( unb->Contens( ).Set( ) ) ),
+      m_data_static( NULL ),
+      m_methods_static( NULL ),
+      m_methods_instance( NULL ),
+      m_ptr_item( NULL )
+  {
+    const BClass *cls = unb->Contens( ).Class( );
+    if ( cls ) {
+      m_data_static = cls->SelectStaticMembers( NULL );
+      m_methods_static = cls->SelectStaticMethods( NULL );
+      m_methods_instance = cls->SelectNonStaticMethods( NULL );
+    }
+  }
+
+  virtual ~UNameBlockIterator( )
+  {
+    DESTROY( m_data_static );
+    DESTROY( m_methods_static );
+    DESTROY( m_methods_instance );
+  }
+  
+  virtual status_t Begin( )
+  {
+    SetIterator::Begin( );
+    m_ptr_item = NULL;
+    return GetStatus( );
+  }
+  
+  virtual BSyntaxObject *Next()
+  {
+    BSyntaxObject *so;
+    
+    so = _next();
+    
+    if ( so ) {
+      return so;
+    }
+    
+    if ( m_ptr_item ) {
+      m_ptr_item = Cdr( m_ptr_item );
+    } else {
+      m_ptr_item = m_methods_instance;
+    }
+
+    if ( m_ptr_item ) {
+      return (BSyntaxObject*)Car( m_ptr_item );
+    } else {
+      // si despues de avanzar no encuentro 'obj', lo dejo listo para
+      // que de la vuelta
+      Begin( );
+      return NULL;
+    }
+  }
+
+private:
+  BList *m_data_static;
+  BList *m_methods_static;
+  BList *m_methods_instance;
+  BList *m_ptr_item;
+};
+
+ContainerIterator *ContainerIterator::New( BSyntaxObject *obj )
+{
+  if ( obj->Grammar( ) == GraSet( ) ) {
+    return new USetIterator( (BUserSet*)obj );
+  }
+  if ( obj->Grammar( ) == GraNameBlock( ) ) {
+    return new UNameBlockIterator( (BUserNameBlock*)obj );
+  }
+  return NULL;
+}
+
 /*! Implement a foreach proc similar to the one provided in Tcl except
  *  that instead of iterating over the list's items it iterates over
  *  the Set's items. The set could be tolset if the indexes is empty
@@ -815,11 +970,11 @@ int Tol_ForEach (Tcl_Interp * interp,
                  Tcl_Obj *CONST objv[],
                  Tcl_Obj * obj_result)
 {
-  const BSyntaxObject* container;
+  BSyntaxObject* container;
   Tcl_DString dstr;
   Tcl_Obj * ArgIndexes;
   int tcl_code = TCL_OK;
-  int i, card ;
+  int i;
   int n, index_length;
   Tcl_Obj ** items;
 
@@ -872,20 +1027,19 @@ int Tol_ForEach (Tcl_Interp * interp,
   if ( !( container = Tol_ResolveObject( interp, objv[ 1 ], obj_result ) ) ) {
     return TCL_ERROR;
   }
-  BSet *set = ContainerGetSet( container );
-  if (!set) {
+  ContainerIterator *citer = ContainerIterator::New( container );
+  
+  if ( !citer ) {
     Tcl_AppendStringsToObj(obj_result,
                            "object '",
                            Tcl_GetString( objv[ 1 ] ),
                            "' is not a valid container ",
                            NULL);
-      return TCL_ERROR;
+    return TCL_ERROR;
   }
   
-  card = set->Card();
-  
   // is ok to ask for a list
-  Tcl_ListObjGetElements( interp, objv[ 0 ], &n, &items );
+  Tcl_ListObjGetElements( interp, objv[ 1 ], &n, &items );
 
   // initialize the list of indexes (the common part) for every item
   // in the Set
@@ -911,7 +1065,7 @@ int Tol_ForEach (Tcl_Interp * interp,
   datav[ OBJ_PATHV ]    = Tcl_NewObj( );
   datav[ OBJ_DESC ]     = Tcl_NewStringObj( "description", -1 );
   datav[ OBJ_DESCV ]    = Tcl_NewObj( );
-  Tcl_Obj * last_index  = Tcl_NewIntObj( 0 );
+  Tcl_Obj * last_index  = Tcl_NewIntObj( 1 );
   Tcl_ListObjAppendElement( NULL, ArgIndexes, last_index );
   datav[ OBJ_INDEXES ]  = Tcl_NewStringObj( "indexes", -1 );
   datav[ OBJ_INDEXESV ] = ArgIndexes;
@@ -938,10 +1092,9 @@ int Tol_ForEach (Tcl_Interp * interp,
   Tcl_DStringInit( &dstr );
   BText btxt;
  
-  for ( i = 1; i <= card; ++i ) {
-    syn_i = ( *set )[ i ];
-    
+  for ( i = 1; ( syn_i = citer->Next( ) ); ++i ) {
     /* read the grammar */
+    
     btxt = syn_i->Grammar( )->Name( );
     Tcl_ExternalToUtfDString( NULL, btxt, -1, &dstr );
     SAVE_SET_STRING( datav + OBJ_GRAMMARV, &dstr ); 
@@ -972,19 +1125,20 @@ int Tol_ForEach (Tcl_Interp * interp,
     SAVE_SET_STRING( datav + OBJ_PATHV, &dstr ); 
     Tcl_DStringFree(&dstr);
 
+    /* update last index */
+    if ( Tcl_IsShared( last_index ) ) {
+      last_index = Tcl_NewIntObj( i );
+      Tcl_ListObjReplace( NULL, datav[ OBJ_INDEXESV ], index_length-1,
+                          1, 1, &last_index );
+    } else {
+      Tcl_SetIntObj( last_index, i );
+    }
+    /* to refresh the string */
+    Tcl_InvalidateStringRep( datav[ OBJ_INDEXESV ] );
     // Este if es para incluir en los items que son Set informacion
     // que solo ellos llevan como: Subtype, IsFile, etc ...
+
     if ( ( set_i = ContainerGetSet( syn_i ) ) ) {
-      /* update last index */
-      if ( Tcl_IsShared( last_index ) ) {
-        last_index = Tcl_NewIntObj( i );
-        Tcl_ListObjReplace( NULL, datav[ OBJ_INDEXESV ], index_length-1,
-                           1, 1, &last_index );
-      }
-      /* set the last value index */
-      Tcl_SetIntObj( last_index, i );
-      /* to refresh the string */
-      Tcl_InvalidateStringRep( datav[ OBJ_INDEXESV ] );
       if ( Tcl_IsShared( datav[ OBJ_ISFILEV ] ) ) {
         Tcl_DecrRefCount( datav[ OBJ_ISFILEV ] );
 #ifdef ISFILE_IMPLEMENTED
@@ -1059,6 +1213,8 @@ int Tol_ForEach (Tcl_Interp * interp,
       }
     }
   }
+
+  delete citer;
   
   /* liberar los objetos tcl */
   for ( i = 0; i < NUM_OBJS; ++i ) {
@@ -1083,11 +1239,11 @@ int Tol_IterChildren(Tcl_Interp * interp,
                      Tcl_Obj *CONST objv[],
                      Tcl_Obj * obj_result)
 {
-  const BSyntaxObject* container;
+  BSyntaxObject* container;
   Tcl_DString dstr;
   Tcl_Obj * ArgIndexes;
   int tcl_code;
-  int i, card ;
+  int i;
   int n, index_length;
   Tcl_Obj ** items;
   Tcl_Obj ** script_header;
@@ -1137,8 +1293,9 @@ int Tol_IterChildren(Tcl_Interp * interp,
   if ( !( container=Tol_ResolveObject( interp, objv[0], obj_result ) ) ) {
     return TCL_ERROR;
   }
-  BSet *set = ContainerGetSet( container );
-  if (!set) {
+  ContainerIterator *citer = ContainerIterator::New( container );
+  
+  if ( !citer ) {
     Tcl_AppendStringsToObj(obj_result,
                            "object '",
                            Tcl_GetString(objv[0]),
@@ -1146,8 +1303,6 @@ int Tol_IterChildren(Tcl_Interp * interp,
                            NULL);
       return TCL_ERROR;
   }
-  
-  card = set->Card();
   
   int datac;
   Tcl_Obj ** datav = new ( Tcl_Obj* [ NUM_ARGS ] );
@@ -1176,7 +1331,7 @@ int Tol_IterChildren(Tcl_Interp * interp,
   datav[ARG_CONTENT] = Tcl_NewObj();
   datav[ARG_PATH]    = Tcl_NewObj();
   datav[ARG_DESC]    = Tcl_NewObj();
-  Tcl_Obj * last_index = Tcl_NewIntObj(0);
+  Tcl_Obj * last_index = Tcl_NewIntObj(1);
   Tcl_ListObjAppendElement(NULL,ArgIndexes,last_index);
   datav[ARG_INDEXES] = ArgIndexes;
   Tcl_ListObjLength(NULL,datav[ARG_INDEXES],&index_length);
@@ -1195,8 +1350,7 @@ int Tol_IterChildren(Tcl_Interp * interp,
   Tcl_DStringInit(&dstr);
   BText btxt;
  
-  for ( i = 1; i <= card; ++i ) {
-    syn_i = (*set)[i];
+  for ( i = 1; ( syn_i = citer->Next( ) ); ++i ) {
     
     /* read the grammar */
     btxt = syn_i->Grammar()->Name();
@@ -1260,9 +1414,10 @@ int Tol_IterChildren(Tcl_Interp * interp,
         last_index = Tcl_NewIntObj(i);
         Tcl_ListObjReplace(NULL, datav[ARG_INDEXES], index_length-1,
                            1, 1, &last_index);
+      } else {
+        /* set the last value index */
+        Tcl_SetIntObj( last_index, i );
       }
-      /* set the last value index */
-      Tcl_SetIntObj( last_index, i );
       /* to refresh the string */
       Tcl_InvalidateStringRep( datav[ ARG_INDEXES ] );
       if ( Tcl_IsShared( datav[ ARG_ISFILE ] ) ) {
@@ -1331,6 +1486,9 @@ int Tol_IterChildren(Tcl_Interp * interp,
   for ( i = 0; i < NUM_ARGS; ++i ) {
     Tcl_DecrRefCount( datav[ i ] );
   }
+
+  delete citer;
+  
   delete []datav;
   return tcl_code;
 }
