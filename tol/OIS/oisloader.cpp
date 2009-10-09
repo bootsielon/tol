@@ -155,26 +155,6 @@ if(! ( fn = streamHandler_->Open(T,SubPath()+N) ) ) \
   {
     TRACE_SHOW_LOW(fun,"2.1");
     EnsureFileOpenR(header_,  "header",  "header.xml");
-    header_->SetPos(header_->Bytes()-10);
-    BText foundEnd="NO_FOUND_";
-    header_->Read(foundEnd.Buffer(), 1, 9);
-    foundEnd.PutLength(9);
-    TRACE_SHOW_LOW(fun,"2.2");
-    BText expectedEnd = "</header>";
-    if(foundEnd!=expectedEnd) 
-    { 
-      Error(I2("Corrupted XML file: ",
-               "Fichero XML corrupto: ")+
-            header_->Name()+
-            I2("\nThis file should ends with '",
-               "\nEl fichero debería acabar con '")+
-            expectedEnd+"'"+
-            I2(" instead of with '",
-               " en lugar de con '")+
-            foundEnd+"'");
-      Ensure(false); 
-    }
-    header_->SetPos(0);
     EnsureFileOpenR(tolref_,  "tolref",  ".tolref"   );
     EnsureFileOpenR(oisref_,  "oisref",  ".oisref"   );
     EnsureFileOpenR(object_,  "object",  ".object"   );
