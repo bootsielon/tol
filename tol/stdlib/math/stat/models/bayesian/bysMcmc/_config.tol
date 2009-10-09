@@ -117,7 +117,7 @@ Class @Config
   Real bsr.cholesky.warningFreq = 100;
   //The number of burnin realizations in Gibbs drawing of truncated 
   //multinormal
-  Real bsr.truncMNormal.gibbsNumIter = 0;
+  Real bsr.truncMNormal.gibbsNumIter = 1;
   //Drops linear block matrix to force maximum sparsity
   Real bsr.linBlk.X.drop = 1.E-16;
   //Enables/disbales precondidioning for linear blocks of BSR
