@@ -552,8 +552,16 @@ public:
     void PutContens (const Any& con) { if(BRefTemplate::GetResult()) { BRefTemplate::GetResult()->PutContens(con); }  }
     Any& Contens    ()               
     { 
-      if(BRefTemplate::GetResult()) { return(BRefTemplate::GetResult()->Contens()); }
-      else            { return(Any::Unknown());         }
+      if(BRefTemplate::GetResult()) 
+      { 
+        return(BRefTemplate::GetResult()->Contens()); 
+      }
+      else            
+      { 
+        Any& th = ((Any&)*this);
+        th = Any::Unknown();
+        return(th); 
+      }
     }
  ~BReferenceContens() 
   {
