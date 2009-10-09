@@ -85,7 +85,7 @@
 
   Real Dbt.Exists = ObjectExist("Set","Dbt.Connect");
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     If(Dbt.Exists,Dbt.Connect->engine_, ""),
                     If(Dbt.Exists,Dbt.Connect->host_,   ""),

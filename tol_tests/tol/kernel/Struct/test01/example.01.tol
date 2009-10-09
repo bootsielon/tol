@@ -3,29 +3,29 @@
 // PURPOSE: Using Struct in TOL
 //////////////////////////////////////////////////////////////////////////////
 
-Struct DocStr
+Struct @DocStr
 { 
   Text name;
   Text description
 };
 
-DocStr x.1 = DocStr("MiDocumento","MiDescripción");
-DocStr x.2 = [["MiDocumento","MiDescripción"]];
-Set    x.3 = [["MiDocumento","MiDescripción"]];
-DocStr x.4 = PutStructure("DocStr",x.3);
-Set    x.5 = PutStructure("DocStr",[[3]]);
+@DocStr x.1 = @DocStr("MiDocumento","MiDescripción");
+@DocStr x.2 = [["MiDocumento","MiDescripción"]];
+Set     x.3 = [["MiDocumento","MiDescripción"]];
+@DocStr x.4 = PutStructure("@DocStr",x.3);
+Set     x.5 = PutStructure("@DocStr",[[3]]);
 
-Struct PeopleStr
+Struct @PeopleStr
 { 
-  DocStr doc,
+  @DocStr doc,
   Real age,
   Real weight,
   Real heigh
 };
 
-PeopleStr y.1 = PeopleStr
+@PeopleStr y.1 = @PeopleStr
 (
-  DocStr("Víctor","Consultor estadístico"),
+  @DocStr("Víctor","Consultor estadístico"),
   40,
   95,
   1.79

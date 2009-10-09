@@ -1,4 +1,4 @@
-TransformacionesSt; Type; code; Name; ExpresionXLS; 
+@TransformacionesSt; Type; code; Name; ExpresionXLS; 
  ;"T";"LPrecio01";LPrecio;"A;B";
  ;"T";"LPrecio01";LPrecio;"A,B";
  ;"T";"LPrecio01";LPrecio;"A;B" 

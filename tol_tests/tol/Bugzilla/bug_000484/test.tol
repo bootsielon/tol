@@ -20,7 +20,7 @@ Real DoUnparseNodes := 2;
   Real quality_ = And(NError == numErr0, Last(ven)==y2005m08d31);
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "",
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

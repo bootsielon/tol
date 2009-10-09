@@ -11,13 +11,13 @@
 
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
-  Struct Estructura
+  Struct @Estructura
   { 
     Real campo
   };  
   Set fun( Matrix  mat)
   {
-   Estructura( MatDat(mat,1,1) )
+   @Estructura( MatDat(mat,1,1) )
   };
   Matrix mat  = Rand(1,2,0,1);
   
@@ -31,7 +31,7 @@
   Real quality_ = And(numErr0==NError, r==MatDat(mat,1,1));
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

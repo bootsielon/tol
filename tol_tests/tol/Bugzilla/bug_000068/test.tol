@@ -12,9 +12,9 @@
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
 
-  Struct str {Text n};
+  Struct @str {Text n};
   
-  Set s = str("kk");
+  Set s = @str("kk");
   
   Set sel = Select(s, Real(Set reg) {reg->n == "PL"});
   
@@ -28,7 +28,7 @@
   Real quality_ = And(numErr0+3==NError, c==0);
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

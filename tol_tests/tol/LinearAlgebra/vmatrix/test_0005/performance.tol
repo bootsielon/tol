@@ -8,7 +8,7 @@ Real rndSeed = GetRandomSeed(0);
 
 WriteLn("rndSeed="<<rndSeed);
 
-Struct CholeskiPerfStr
+Struct @CholeskiPerfStr
 {
   Real iter,
   Real nrow,
@@ -129,7 +129,7 @@ Set performance = For(1,numIter, Set(Real iter)
   Real _tSolv = (Copy(Time)-t0)/_repeat;
   Real _quality = 1-MatMax(Abs(_b-_b_));
 
-  Set results = CholeskiPerfStr
+  Set results = @CholeskiPerfStr
   (
     iter, r, c,
 //  X.nz, y.nz, b.nz, XtX.nz, L.nz,
@@ -141,7 +141,7 @@ Set performance = For(1,numIter, Set(Real iter)
 
   WriteLn(ReplaceTable(""<<results,
   [[ 
-    [["CholeskiPerfStr(",""]],
+    [["@CholeskiPerfStr(",""]],
     [[")",""]],
     [[",","\t"]]
   ]]));

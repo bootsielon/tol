@@ -1,4 +1,4 @@
-Struct TransformacionesSt
+Struct @TransformacionesSt
 {
   Text Type; 
   Text code; 

@@ -31,7 +31,7 @@ Set {
 //This is a messure of the success of the test 
   Real quality_ = And(q0,q1,q2);
 //Return the results 
-  Set strTestStatus(summary_, link_, quality_,
+  Set @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     "vdebuen@tol-project.org")

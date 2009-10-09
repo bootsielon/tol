@@ -20,10 +20,10 @@
     Real _aux_1 = 1;
     Real _aux_2 = 2;
   //Public:
-    Struct mystr { Real x_; Text t_ };
+    Struct @mystr { Real x_; Text t_ };
     Set real2mystr(Real x) 
     { 
-      mystr(x,""+FormatReal(x,"%.15lg"))
+      @mystr(x,""+FormatReal(x,"%.15lg"))
     };
   //Private:
     Set  _aux_3 = real2mystr(2);
@@ -81,7 +81,7 @@
   Real quality_ = And(numErr0 == NError, ok);
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

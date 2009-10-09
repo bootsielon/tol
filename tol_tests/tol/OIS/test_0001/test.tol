@@ -30,7 +30,7 @@
   Real quality_ = And(numErr0 == NError, s1==9, s2==9, s3==8);
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

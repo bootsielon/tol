@@ -31,9 +31,10 @@ BysMcmc::@Config bsr.config = [[
   Real partialSampling.Sequential = True
 ]];
 
+Text bsr.path = model.data.path+model.name+"_"+session.name+"_parse.bsr";
 
 BysMcmc::@McmcRecover recover = BysMcmc::@McmcRecover::Load(
-  model.data.path+"test_03_ses.001_parse.bsr", bsr.config);
+  bsr.path, bsr.config);
 
 Set LinearBlk = Select(recover::_.colNames, Real(Text param)
 {
@@ -69,10 +70,8 @@ BysMcmc::@McmcPartialHandler::New(
   recover
 );
  
-
 Set bsr.parsed = 
 {
-   Text bsr.path = model.data.path+model.name+"_"+session.name+"_parse.bsr";
    Set aux =  BSR.Parse(bsr.path);
    Set di = aux->DocInfo;
    Text di->Model.Name := "Test16";
@@ -82,6 +81,8 @@ Set bsr.parsed =
    Text di->Session.Description := 
      "Metropolis-Hastings partial simulation of BSR linear block";
    Date di->Session.Creation := Copy(Now);
+   Text di->Path := 
+     model.data.path+di->Model.Name+"_"+di->Session.Name+"_parse.bsr";
    aux
 };
 

@@ -17,9 +17,9 @@
 
   Set s = For(1, 2, Set(Real n)
   {
-    Struct AuxSt(Real Orden, Real Doble);
+    Struct @AuxSt(Real Orden, Real Doble);
     Set c = [[ n, n*2 ]];
-    PutStructure("AuxSt", c)
+    PutStructure("@AuxSt", c)
   });
   
 //Extented information about test behaviour
@@ -37,7 +37,7 @@
   );
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

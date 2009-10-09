@@ -49,7 +49,7 @@ path... "+ Time);
 WriteLn("
 struct... "+ Time);
 
-  Struct ReducedModelDefSt
+  Struct @ReducedModelDefSt
   (
   Real  FstTransfor,
   Real  SndTransfor,

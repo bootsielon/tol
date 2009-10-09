@@ -1,4 +1,4 @@
-Dbt.EngineType; os_;       engine_;  driver_; 
+@Dbt.EngineType; os_;       engine_;  driver_; 
 ;               "Windows"; "MsSql";  "odbc";  
 ;               "Linux";   "Oracle"; "odbc";  
 ;               "Windows"; "Oracle"; "odbc";  

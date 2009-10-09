@@ -12,12 +12,12 @@
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
 
-  Struct AlgOpc
+  Struct @AlgOpc
   {
     Text IdOpc,
     Set SubDims  
   };
-  Set algOpc = SetOfSet(AlgOpc("PL",SetOfText("y2002m07d01","y2002m07d31")));
+  Set algOpc = SetOfSet(@AlgOpc("PL",SetOfText("y2002m07d01","y2002m07d31")));
   Set selPla = Select(algOpc, Real (Set reg) { reg->IdOpc == "PL" });
 
 //Extented information about test behaviour
@@ -30,7 +30,7 @@
   Real quality_ = And(numErr0==NError, c==2);
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

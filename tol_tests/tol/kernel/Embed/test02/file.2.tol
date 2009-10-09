@@ -5,9 +5,9 @@
 //Initial embedding
 #Embed "file.3.tol";
 
-Set x = MyStruct("Juan",23);
+Set x = @MyStruct("Juan",23);
 
-Real MyStruct.Age(MyStruct str)
+Real MyStruct.Age(@MyStruct str)
 {
   str->age
 }; 

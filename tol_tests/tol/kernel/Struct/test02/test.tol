@@ -15,8 +15,8 @@ Real numErr0 = Copy(NError);
 #Embed "example.02.tol";
 
 Set ok.all = [[
-  Real ok.1 =  ObjectExist("MyStr1","x.1"),
-  Real ok.2 =  ObjectExist("MyStr2","x.2")
+  Real ok.1 =  ObjectExist("@MyStr1","x.1"),
+  Real ok.2 =  ObjectExist("@MyStr2","x.2")
 ]];
 
 Real numErr1 = Copy(NError);
@@ -32,7 +32,7 @@ Set partialResults_ = ok.all <<
 Real quality_ = Group("And",SetOfReal(numErr0 == numErr1)<<ok.all);
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);

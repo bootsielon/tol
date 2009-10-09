@@ -18,7 +18,7 @@
                      (0.0,1.0,0.0),
                      (0.0,0.0,1.0));
 
-  Struct strQValues {
+  Struct @strQValues {
     Real q25,
     Real q50,
     Real q51,
@@ -38,7 +38,7 @@
     Set q_result0 = EvalSet(Q, Real(Real q_i) {
       QuantileS(ser_bug04, y2000m01d01, y2000m01d31, q_i)
     });
-    Set q_result = PutStructure("strQValues", q_result0);
+    Set q_result = PutStructure("@strQValues", q_result0);
     Set BSTFile([[q_result]], q_file);
     Real 1.0
   });
@@ -87,7 +87,7 @@
 });
 
 //Return the results 
-  Set resultStr_ =  strTestStatus(summary_, link_, quality_, 
+  Set resultStr_ =  @strTestStatus(summary_, link_, quality_, 
                       "Partial results = "<<partialResults_+
                       If(reason_=="","","\n"+reason_),
                       "NO DBServerType", "NO DBServerHost", "NO DBAlias",

@@ -16,9 +16,9 @@ Real numErr0 = Copy(NError);
 #Embed "file.2.tol";
 
 
-Set x = MyStruct("Juan",23);
+Set x = @MyStruct("Juan",23);
 
-Real MyStruct.Age(MyStruct str)
+Real MyStruct.Age(@MyStruct str)
 {
   str->age
 }; 
@@ -41,7 +41,7 @@ Set partialResults_ =
 Real quality_ = And(numErr0 == numErr1, age==23);
 
 //Return the results 
-Set resultStr_ = strTestStatus(summary_, link_, quality_,
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "Partial results = "<<partialResults_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);

@@ -6,34 +6,34 @@
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary 
   Real bugNum_ = 234;
   Text email_ = "vdebuen@tol-project.org"; 
-  Text summary_ = "Struct  St ( Polyn a)   fails  evaluating polynomies (V 1.1.2 Jan 13 2005 for WINDOWS)";
+  Text summary_ = "Struct  @St ( Polyn a)   fails  evaluating polynomies (V 1.1.2 Jan 13 2005 for WINDOWS)";
   Text link_ = GetTolBugzillaLink(bugNum_);
 
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
 
-  Struct St(Polyn a);
+  Struct @St(Polyn a);
   WriteLn("Test part 1");
   //  FAIL  
   Set  conj1  = SetOfSet
   (
-     St( -1),  // Fail -- Its return  1   instead of -1
-     St(  2)
+     @St( -1),  // Fail -- Its return  1   instead of -1
+     @St(  2)
   );
   Set View(conj1,"");
   WriteLn("\nTest part 2");
   // Works 
   Set  conj2  = SetOfSet
   (
-     St( Polyn  -1),         
-     St( Polyn   2)
+     @St( Polyn  -1),         
+     @St( Polyn   2)
   ) ;
   Set View(conj2,"");
   WriteLn("\nTest part 3");
   // FAIL ( Return a different error meassege )
   Set  conj3  = SetOfSet
   (
-    St(1-B)
+    @St(1-B)
   );
   Set View(conj3,"");
   WriteLn("");
@@ -57,7 +57,7 @@
   Real quality_ = And(numErr0==NError, 1);
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

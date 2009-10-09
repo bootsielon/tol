@@ -13,13 +13,13 @@
 //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
 
-  Struct TextoLineaSt
+  Struct @TextoLineaSt
   {
     Text Line
   };
   
   Text File = "sample.txt";
-  Set fileHdl = BDBOpen(File, 0, "", "", "TextoLineaSt");
+  Set fileHdl = BDBOpen(File, 0, "", "", "@TextoLineaSt");
   Set cabecera = Tokenizer((BDBReg(fileHdl, 1))->Line, ";");
   Real BDBClose(fileHdl);
   
@@ -36,7 +36,7 @@
   Real quality_ = And(numErr1 == numErr0, Card(cabecera)==7);
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

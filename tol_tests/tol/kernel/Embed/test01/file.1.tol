@@ -6,7 +6,7 @@
 Real a.1 = 1;
 Text b.1 = "2";
 
-Struct MyStruct
+Struct @MyStruct
 (
   Text name,
   Real age

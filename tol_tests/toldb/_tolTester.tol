@@ -49,7 +49,7 @@ Set EvalSet(Dbt.Engine.Active, Text(Set ci)
 "\n"
 "Set Include(\"../../dbt.tol\");\n"
 "\n"
-"Set Dbt.Connect = Dbt.Open(Dbt.ConnectInfo\n"
+"Set Dbt.Connect = Dbt.Open(@Dbt.ConnectInfo\n"
 "(\n"
 "  \""+ci->os_+"\",\n"
 "  \""+ci->engine_+"\",\n"

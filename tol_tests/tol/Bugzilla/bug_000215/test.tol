@@ -15,13 +15,13 @@
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
 
-  Struct StTest
+  Struct @StTest
   {
     Text field01,
     Real field01
   };
-  Text args1 = Arguments(FindCode("StTest","Set"));
-  Text args2 = Arguments(FindCode("Set","StTest"));
+  Text args1 = Arguments(FindCode("@StTest","Set"));
+  Text args2 = Arguments(FindCode("Set","@StTest"));
   
 //Extented information about test behaviour
   Set partialResults_ = 
@@ -39,7 +39,7 @@
   );
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

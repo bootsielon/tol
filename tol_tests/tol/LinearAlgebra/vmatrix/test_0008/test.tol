@@ -96,7 +96,7 @@ Set check.quality(Real ncol, Text subType, Real nonZeroRatio)
   Real quality_ = And(numErr0 == numErr1)*quality.DifEq.1;
 
 //Return the results 
-  Set resultStr_ = strTestStatus(summary_, link_, quality_,
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                     "Partial results = "<<partialResults_,
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);

@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Struct Dbt.EngineType
+  Struct @Dbt.EngineType
 //////////////////////////////////////////////////////////////////////////////
 { 
   Text os_,      //Operative System
@@ -13,7 +13,7 @@
 };
 
 //////////////////////////////////////////////////////////////////////////////
-  Struct Dbt.EngineInfo
+  Struct @Dbt.EngineInfo
 //////////////////////////////////////////////////////////////////////////////
 { 
   Text driver_,    //Client Driver
@@ -23,7 +23,7 @@
 };
 
 //////////////////////////////////////////////////////////////////////////////
-  Struct Dbt.ConnectInfo
+  Struct @Dbt.ConnectInfo
 //////////////////////////////////////////////////////////////////////////////
 { 
   Text os_,        //Operative System  
@@ -46,7 +46,7 @@
 };
 
 //////////////////////////////////////////////////////////////////////////////
-  Set Dbt.ConnectInfoSeed(Dbt.EngineType ct)
+  Set Dbt.ConnectInfoSeed(@Dbt.EngineType ct)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text alias = "TolTests_"+ct->engine_+"_"+ct->os_+"_"+ct->driver_;
@@ -57,8 +57,8 @@
                   "localhost",
                   ct->os_+"_host");
   Text port  = "";
-  Set  eng   = Dbt.EngineInfo(ct->driver_,dbn,host,port);
-  Set Dbt.ConnectInfo 
+  Set  eng   = @Dbt.EngineInfo(ct->driver_,dbn,host,port);
+  Set @Dbt.ConnectInfo 
   (
     ct->os_,
     ct->engine_,
@@ -70,14 +70,14 @@
 };
 
 //////////////////////////////////////////////////////////////////////////////
-  Set Dbt.Open(Dbt.ConnectInfo ci)
+  Set Dbt.Open(@Dbt.ConnectInfo ci)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set  eng   = Dbt.EngineInfo(ci->driver_,ci->database_,ci->host_,ci->port_);
+  Set  eng   = @Dbt.EngineInfo(ci->driver_,ci->database_,ci->host_,ci->port_);
   Real open  = If(ci->driver_=="odbc",
                   DBOpen(ci->alias_,ci->user_,ci->password_),
                   DBOpen(ci->alias_,ci->user_,ci->password_,eng));
-  Set Dbt.ConnectInfo 
+  Set @Dbt.ConnectInfo 
   (
     ci->os_,
     ci->engine_,
@@ -93,7 +93,7 @@
 };
 
 //////////////////////////////////////////////////////////////////////////////
-  Set Dbt.Try(Dbt.ConnectInfo ci)
+  Set Dbt.Try(@Dbt.ConnectInfo ci)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set  con = Dbt.Open(ci);
@@ -127,12 +127,12 @@
   Set Dbt.Engine.Active.Update(Real unused)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set allowed = Select(Dbt.Engine.Allowed.Get(0),Real(Dbt.ConnectInfo c) 
+  Set allowed = Select(Dbt.Engine.Allowed.Get(0),Real(@Dbt.ConnectInfo c) 
   { 
     c->available_ 
   });
   Set try = EvalSet(allowed,Dbt.Try);
-  Set Dbt.Engine.Active = Select(try,Real(Dbt.ConnectInfo c) 
+  Set Dbt.Engine.Active = Select(try,Real(@Dbt.ConnectInfo c) 
   { 
     c->available_ 
   });
