@@ -302,7 +302,7 @@ Text bys.sparse.reg.path =
   "Session.Description = \n\""+Replace(session.description,"\n","\\n\"\n\"")+"\";\n"
   "Session.Authors = \""+session.authors+"\";\n");
 
-  If(n, {
+  Real If(n, {
     WriteLn("Writing Linear Block "+Time);
     Real FPutText(f,
     "\n"+If(!n, "",
@@ -322,7 +322,8 @@ Text bys.sparse.reg.path =
     {
       Set EvalSet((obsNodes[k])::varNames, declareVariable);
       1
-    }) 
+    }); 
+    1
   });
   WriteLn("Writing Residuals Distributions "+Time);
   Real FPutText(f,
