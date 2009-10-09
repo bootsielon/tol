@@ -70,11 +70,21 @@ char * skipWhite(char * pch)
 static
 BText GetObjectName(const BSyntaxObject * so)
 {
-  return so->HasName() ? so->FullName() : so->LocalName();
+  // antes estaba FullName pero salian cosas como:
+  // estim::cycler::_.sampler::_.buildWorkSpace
+  return so->HasName() ? so->Name() : so->LocalName();
 }
 
 static
 void GetName( const BSyntaxObject * so, BText & res )
+{
+  // antes estaba FullName pero salian cosas como:
+  // estim::cycler::_.sampler::_.buildWorkSpace
+  res = so->Name();
+}
+
+static
+void GetFullName( const BSyntaxObject * so, BText & res )
 {
   res = so->FullName();
 }
@@ -1995,6 +2005,7 @@ int Tol_FillFunctionInfo(BOperator * opr, Tcl_Obj * obj_result)
       Tcl_DStringAppend(&dstr_info, " ", -1);
       // function name
       Tcl_DStringInit(&dstr);
+      // antes estaba FullName
       Tcl_ExternalToUtfDString(NULL, opr->FullName(), -1, &dstr); 
       Tcl_DStringAppend(&dstr_info, Tcl_DStringValue(&dstr), -1);
       Tcl_DStringFree(&dstr);
@@ -2065,7 +2076,7 @@ int Tol_SetFunctionsObj (Tcl_Interp * interp, Tcl_Obj * gra_name,
   
   if (gra) {
     BList * lstOper = gra->GetOperators();
-    if (BList2TclList(interp,lstOper,obj_result,&GetName) != TCL_OK) {
+    if (BList2TclList(interp,lstOper,obj_result,&GetFullName) != TCL_OK) {
       Tcl_AppendObjToObj(obj_result,Tcl_GetObjResult(interp));
       DESTROY(lstOper);
       return TCL_ERROR;
