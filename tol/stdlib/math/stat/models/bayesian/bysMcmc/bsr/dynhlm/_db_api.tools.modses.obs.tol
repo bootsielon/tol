@@ -167,7 +167,8 @@ Real ModSes.Obs.Create(Text dbName, Text model, Text session,
   Real outIsATimeSerie = ObjectExist("Serie",  "out::_.serie");
   Real outIsAVector    = ObjectExist("Matrix", "out::_.vector");
   Real sigma = If(ObjectExist("Real","out::_.sigma"),out::_.sigma,?);
-  Real sigmaPriorWeight = If(ObjectExist("Real","out::_.sigmaPriorWeight"),out::_.sigma,?);
+  Real sigmaPriorWeight = If(ObjectExist("Real","out::_.sigmaPriorWeight"),
+    out::_.sigmaPriorWeight,?);
   Real ok.2 = Case(
   outIsATimeSerie,
   {
