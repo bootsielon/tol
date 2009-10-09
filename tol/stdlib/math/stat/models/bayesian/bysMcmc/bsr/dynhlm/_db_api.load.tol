@@ -201,6 +201,7 @@ NameBlock LoadObsNode(Text dbName,
                       Text id_node, 
                       NameBlock modelHandler,
                       Set input.missing.labels,
+                      Text module.type,
                       Set genericNonLinearFilters)
 ////////////////////////////////////////////////////////////////////////////
 {
@@ -359,7 +360,7 @@ NameBlock LoadObsNode(Text dbName,
     If(!FunctionExist("Real", "modelHandler::ForceZeroInputCoef"),0,
       modelHandler::ForceZeroInputCoef(0));
   BysMcmc::Bsr::DynHlm::BuildNode::Obs(
-    output, input, transFun, input.missing.labels, 
+    output, input, transFun, input.missing.labels, module.type,
     _.constr, forceZeroInputCoef, genericNonLinearFilters)
 };
 
@@ -734,7 +735,7 @@ NameBlock LoadModelDef.Joint(
       {
         BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
           _.dbName, _.id_model, _.id_session, id_node, 
-          _.modelHandler, input.missing.labels, gnlf)
+          _.modelHandler, input.missing.labels, _.moduleType, gnlf)
       },   
       node->NodeType=="LAT", 
       {
@@ -845,7 +846,7 @@ NameBlock LoadModelDef.Master.ObsAsPrimary(
         _.dbName, _.id_model, _.id_session, _.id_node, _.modelHandler);
     NameBlock _.segment = BysMcmc::Bsr::DynHlm::DBApi::LoadObsNode(
         _.dbName, _.id_model, _.id_session, _.id_node, 
-        _.modelHandler, _.input.missing.labels[1], _.gnlf);
+        _.modelHandler, _.input.missing.labels[1], _.moduleType, _.gnlf);
 
     //////////////////////////////////////////////////////////////////////////
     //Mandatory methods that will be used by BysMcmc::Bsr::Import
