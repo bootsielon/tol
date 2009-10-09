@@ -80,7 +80,7 @@ Class @ScalarMin
   ////////////////////////////////////////////////////////////////////////////
   {
     @Point P_ = @Point::New(P0::region, P0::x + v*t);
-//  WriteLn("TRACE @ScalarMin::evalSegmentPoint "
+////WriteLn("TRACE @ScalarMin::evalSegmentPoint "
 //          "lastIterMethod="+lastIterMethod+
 //          " t="<<t+
 //          " P_::f="<<P_::f);
@@ -300,7 +300,8 @@ Class @Region
   Real IsFeasible(VMatrix A, VMatrix a, VMatrix x)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatMax(A*x - a)<=0
+    Real drop = VRows(A)*VRows(x)*1.E-15;
+    VMatMax(A*x - a)<=drop
   }
 
 
