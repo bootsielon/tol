@@ -145,7 +145,7 @@ Class @BlockSampler
       //WriteLn("TRACE "+_MID+" get.draw 3.3");
         draw(numSim)
       });
-    //WriteLn("TRACE "+_MID+" get.draw 4");
+    //WriteLn("TRACE "+_MID+" get.draw 4 b'="<<VMat2Mat(b,1));
       Real setStore(VMat2Mat(b));
       b
     })
