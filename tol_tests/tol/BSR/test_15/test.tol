@@ -104,6 +104,8 @@ Set bsr.parsed =
    Text di->Session.Description := 
      "Metropolis-Hastings partial simulation of BSR linear block";
    Date di->Session.Creation := Copy(Now);
+   Text di->Path := GetAbsolutePath(
+     di->Model.Name+"_"+di->Session.Name+"_model.bsr");
    aux
 };
 
