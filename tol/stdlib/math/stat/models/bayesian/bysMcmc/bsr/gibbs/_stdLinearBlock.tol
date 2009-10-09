@@ -195,9 +195,20 @@ Class @BlockStdLinSub
           Rand(_.N,1,0,0)
         },
         {
-          WriteLn(_MID+"Zero init values doesn't match constrain inequations.","W");
-          Real ok := FALSE;
-          beta0
+          WriteLn(_MID+"Zero init values doesn't match constrain inequations."
+                  "Trying Polytope::FindFeasible solution ...", "W");
+          VMatrix ff = Polytope::FindFeasible(_.A, _.a, beta0, _.N*10, FALSE);
+          Real ffMatch = isFeasible(ff);
+          If(ffMatch, 
+          {
+            WriteLn(_MID+"Polytope::FindFeasible solution matches constrain inequations.");
+            ff
+          },
+          {
+            WriteLn(_MID+"Polytope::FindFeasible init values doesn't match constrain inequations.","W");
+            Real ok := FALSE;
+            beta0
+          })
         })
       })
     });
@@ -340,8 +351,11 @@ Class @BlockStdLinSub
   {
   //WriteLn("TRACE "+_MID+" draw.unconstrained 1");
     VMatrix z = Gaussian(_.N,1,0,1);
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 2 z="<<VMat2Mat(z));
     Real _.logDens.Q := -0.5*VMatDat(MtMSqr(z),1,1);
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 3 nu="<<VMat2Mat(nu));
     VMatrix _.beta:=nu+CholeskiSolve(_.L,z,"LtP");
+  //WriteLn("TRACE "+_MID+" draw.unconstrained 2 _.beta="<<VMat2Mat(_.beta));
     Copy(_.beta)
   };
 
@@ -351,6 +365,7 @@ Class @BlockStdLinSub
   VMatrix draw.gibbs.constrained(Real numSim, VMatrix nu)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1");
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1.1 _.A("<<VRows(_.A)+"x"<<VColumns(_.A)+")");
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1.2 _.a("<<VRows(_.a)+"x"<<VColumns(_.a)+")");
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 1.3 nu ("<<VRows( nu)+"x"<<VColumns( nu)+")");
@@ -359,22 +374,23 @@ Class @BlockStdLinSub
     VMatrix If(changed.X, _.D  := Tra(CholeskiSolve(_.L,_.At,"PtL")));
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3");
     VMatrix z0  = Tra(Tra(_.beta-nu)*_.Ls);
-  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.1");
-    Real If(Not(Polytope::IsFeasible(_.D,d,z0)),
+    Real feasible0 = Polytope::IsFeasible(_.D,d,z0);
+  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.1 feasible0="<<feasible0);
+    Real If(!feasible0,
     {
     //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.2");
       Real _.nonFeasibleInitialPointNum := _.nonFeasibleInitialPointNum +1;
     //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.3");
-      VMatrix z0 := Polytope::FindFeasible(_.D, d, z0, 10*_.N, TRUE);
+      VMatrix z0 := Polytope::FindFeasible(_.D, d, z0, 10*_.N, FALSE);
     //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 3.4");
       1
     });
-  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 4");
+  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 4 truncMNormal.gibbsNumIter="<<truncMNormal.gibbsNumIter);
     VMatrix z = TruncStdGaussian(_.D,d,z0,1,truncMNormal.gibbsNumIter);
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 5");
-    Real distBorder = VMatMax(_.D*z-d);
-  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 6");
-    Real If(distBorder<=0,
+    Real feasible = Polytope::IsFeasible(_.D,d,z);
+  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 6 feasible="<<feasible);
+    Real If(feasible,
     {
     //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 7");
       VMatrix _.beta0 := _.beta;
@@ -397,7 +413,7 @@ Class @BlockStdLinSub
     Real _.logDens.Q := -0.5*VMatDat(MtMSqr(z),1,1);
   //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 11");
     VMatrix  _.beta := nu + CholeskiSolve(_.L,z,"LtP");
-  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 12");
+  //WriteLn("TRACE "+_MID+" draw.gibbs.constrained 12 _.beta="<<VMat2Mat(_.beta));
     Copy(_.beta)
   };
 
@@ -603,8 +619,10 @@ Class @BlockStdLin: @BlockSampler
       _.config::bsr.linBlk.usePreconditioning;
     Real _.freeBlock::cholesky.warningFreq := 
       _.config::bsr.cholesky.warningFreq;
-    Real _.freeBlock::truncMNormal.gibbsNumIter := 
-      _.config::bsr.truncMNormal.gibbsNumIter;
+    Real _.freeBlock::truncMNormal.gibbsNumIter := Case(
+      _.N2<=10, 10,
+      _.N2<=100, 5, 
+      1==1,      Max(1,_.config::bsr.truncMNormal.gibbsNumIter));
     Real _.freeBlock::drop_val := 
       _.config::bsr.linBlk.X.drop;
     Real _.freeBlock::_.eps := 
