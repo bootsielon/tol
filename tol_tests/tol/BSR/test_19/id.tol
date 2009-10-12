@@ -6,5 +6,5 @@
 //////////////////////////////////////////////////////////////////////////////
 
 Text model.data.path = Ois.DefRoot+"HlmBsrTest/";
-Text model.name = "test_17";
+Text model.name = "test_19";
 Text session.name   = "ses.001";
