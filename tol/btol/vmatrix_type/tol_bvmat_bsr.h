@@ -229,8 +229,6 @@ struct noise_info
   double           sigmaCte;
   std::string      sigPriExpr;
   std::string      arimaExpr;
-  std::string      covExpr; 
-  bool             covIsDiag;
   BVMat            cov;
   BVMat            L;
   BVMat            Li;
@@ -251,8 +249,6 @@ struct noise_info
     sigmaCte  (BDat::Nan()),
     sigPriExpr(""),
     arimaExpr (""),
-    covExpr   (""),
-    covIsDiag (true),
     cov       (),
     L         (),
     Li        (),
@@ -273,8 +269,6 @@ struct noise_info
     sigmaCte  (BDat::Nan()),
     sigPriExpr(""),
     arimaExpr (""),
-    covExpr   (""),
-    covIsDiag (true),
     cov       (),
     L         (),
     Li        (),
@@ -303,8 +297,6 @@ struct noise_info
     sigmaCte   = aux.sigmaCte;
     sigPriExpr = aux.sigPriExpr;
     arimaExpr  = aux.arimaExpr;
-    covExpr    = aux.covExpr;
-    covIsDiag  = aux.covIsDiag;
     cov        = aux.cov;
     L          = aux.L;
     Li         = aux.Li;
@@ -328,7 +320,6 @@ struct noise_info
       "\n  sigmaCte="+sigmaCte+", "+
       "\n  sigPriExpr="+sigPriExpr.c_str()+", "+
       "\n  arimaExpr="+arimaExpr.c_str()+", "+
-      "\n  covExpr="+covExpr.c_str()+", "+
       "\n  used="+(int)used+", "+
       "\n  dating="+dating.c_str()+", "+
       "\n  firstDate="+firstDate.c_str()+", "+
