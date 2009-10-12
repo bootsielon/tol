@@ -294,10 +294,12 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
   FPutText(fileHandler, name+"::Noise"
     "["+IntText(segment::Get.Equation.Size(0))+timeExpr+"]"+
     "\n  ~ Normal(0,"<<s2+s2Prior);
-  Real arima.size = segment::Get.ARIMA.Size(0);
-  If(arima.size, 
+  Real arima.size = If(!FunctionExist("Text","segment::Get.ARIMA.Size"),0,
+     segment::Get.ARIMA.Size(0));
+  Case(
+  arima.size, 
   {
-    FPutText(fileHandler, "*ARIMA.COV([[");
+    FPutText(fileHandler, " * Cov = ArimaCovariance([[");
     Set For(1, arima.size, Real(Real af)
     {
       Set fac = segment::Get.ARIMA.Factor(af);
@@ -308,6 +310,22 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
         fac->DIF+")")
     });
     FPutText(fileHandler, "]])")
+  },
+  FunctionExist("Text","segment::Get.Cov"),
+  {
+    FPutText(fileHandler, " * Cov = {$ "+segment::Get.Cov(0)+" $}")
+  },
+  FunctionExist("Text","segment::Get.CovInv"),
+  {
+    FPutText(fileHandler, " * CovInv = {$ "+segment::Get.CovInv(0)+" $}")
+  },
+  FunctionExist("Text","segment::Get.CovChol"),
+  {
+    FPutText(fileHandler, " * CovChol = {$ "+segment::Get.CovChol(0)+" $}")
+  },
+  FunctionExist("Text","segment::Get.CovInvChol"),
+  {
+    FPutText(fileHandler, " * CovInvChol = {$ "+segment::Get.CovInvChol(0)+" $}")
   });
   FPutText(fileHandler, ")");
   If(!FunctionExist("Set","segment::Get.NonLinearFilters"),

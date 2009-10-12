@@ -62,7 +62,7 @@ public:
       noiseName, noisePosition,
       posSign, negSign, unknown, product,
       initValue, like, power2, member, nonLinearFilters,
-      noiseSize, normalDist, normalNu, eq, le, ge,
+      noiseSize, normalDist, normalNu, eq, le, ge, tolExpression,
       argumentSeparator, endOfSentence, 
       openParenthesys, closeParenthesys,
       openBracket, closeBracket,
@@ -95,7 +95,10 @@ public:
       assign_sigma_to_noise assign_sigma_to_noise_(s.sig.table, s.sig.vec, s.noise.info, s.numEqu_);
       assign_sig_pri assign_sig_pri_(s.noise.info);
       assign_const_sigma_to_res assign_const_sigma_to_res_(s.noise.info);
-      assign_covariance_to_res  assign_covariance_to_res_ (s.noise.info);
+      assign_cov_to_res  assign_cov_to_res_ (s.noise.info);
+      assign_covinv_to_res  assign_covinv_to_res_ (s.noise.info);
+      assign_covl_to_res  assign_covl_to_res_ (s.noise.info);
+      assign_covlinv_to_res  assign_covlinv_to_res_ (s.noise.info);
       assign_non_lin_flt_to_noise assign_non_lin_flt_to_noise_(s.noise.info);
       assign_reg_matrix assign_output_(s.descY_, s.exprY_, s.Y_);
       assign_reg_matrix assign_input_ (s.descX_, s.exprX_, s.X_);
@@ -155,6 +158,8 @@ public:
         ;
       ge = str_p(">=")
         ;
+      tolExpression = confix_p(str_p("{$"), (*(anychar_p)), "$}")
+        ;
   // TOL identifiers
       identifier_simple =
         lexeme_d[((alpha_p | '_' ) >> *(alnum_p | '_' | '.'))]
@@ -185,39 +190,28 @@ public:
       constantSigma = 
         ureal_p[assign_const_sigma_to_res_]
         ;
-      covariance = 
-        (
-          (
-            str_p("SetDiag") >> 
-            confix_p("([[", (*(anychar_p)), "]])")
-          )
-          |
-          (
-            str_p("Diag") >> 
-            confix_p("(", (*(anychar_p)), ")")
-          ) 
-        )
-        [assign_covariance_to_res_]
+      covariance =          
+        (str_p("Cov")       >>str_p("=")>>tolExpression[assign_cov_to_res_]    ) | 
+        (str_p("CovInv")    >>str_p("=")>>tolExpression[assign_covinv_to_res_] ) | 
+        (str_p("CovChol")   >>str_p("=")>>tolExpression[assign_covl_to_res_]   ) | 
+        (str_p("CovInvChol")>>str_p("=")>>tolExpression[assign_covlinv_to_res_]) 
         ;
       arima = 
         (
-          (
-            str_p("*") >>
-            str_p("ARIMA.COV") >> 
-            confix_p("([[", (*(anychar_p)), "]])")[assign_a(s.noise.info.arimaExpr)]
-          )
-          |
-          eps_p[assign_a(s.noise.info.arimaExpr,"")]
+          (str_p("ARIMA.COV") | (str_p("Cov") >>str_p("=")>> str_p("Arima"))) >> 
+          confix_p("([[", (*(anychar_p)), "]])")[assign_a(s.noise.info.arimaExpr)]
         )
         ;
       resSigmaDef = 
         (
-          covariance | 
           constantSigma | 
           variantSigma | 
           error_sigmaExpected
         ) >>
-        arima
+        (
+          (str_p("*") >> (arima | covariance) ) 
+          | eps_p
+        )
         ;
       knownReal =
         real_p[assign_a(s.realValue)]
@@ -310,7 +304,7 @@ public:
 
       nonLinearFilters = (
         str_p("with") >> str_p("non") >> str_p("linear") >> str_p("filters") >>
-        (confix_p("{$", (*(anychar_p)), "$}")[assign_non_lin_flt_to_noise_])
+        tolExpression[assign_non_lin_flt_to_noise_]
       ) | (
          eps_p[assign_non_lin_flt_to_noise_]
       );
@@ -335,13 +329,9 @@ public:
         nonLinearFilters >>
         endOfSentence[add_res]
         ;
-      output = str_p("Output") >> ch_p('=') >> 
-      //str_p("{$") >> (((*(anychar_p)) - str_p("$}"))[assign_output_]) >> str_p("$}") 
-        confix_p("{$", (*(anychar_p)), "$}") [assign_output_]
+      output = str_p("Output") >> ch_p('=') >>  tolExpression[assign_output_]
         >> endOfSentence;
-      input  = str_p("Input") >> ch_p('=') >> 
-      //str_p("{$") >> (((*(anychar_p)) - str_p("$}"))[assign_input_ ]) >> str_p("$}") 
-        confix_p("{$", (*(anychar_p)), "$}") [assign_input_]
+      input  = str_p("Input")  >> ch_p('=') >>  tolExpression [assign_input_]
         >> endOfSentence;
 
       posSign = str_p("+")

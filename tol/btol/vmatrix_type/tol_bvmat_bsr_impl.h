@@ -551,102 +551,6 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-class assign_sigma_to_noise
-///////////////////////////////////////////////////////////////////////////////
-{
-public:
-  symbols<int>*       sig_table_;
-  vector<sigma_info>* sig_vec_;
-  noise_info*         noise_info_; 
-  int*                numEqu_; 
-
-  assign_sigma_to_noise(
-    symbols<int>&       sig_table,
-    vector<sigma_info>& sig_vec,
-    noise_info&         noise_inf,
-    int&                numEqu)
-  : sig_table_   (&sig_table),
-    sig_vec_     (&sig_vec),
-    noise_info_  (&noise_inf), 
-    numEqu_      (&numEqu)
-  {}
-
-  void action(sigma_info& sigInf) const
-  {
-    assign_sigma_to_noise* t = (assign_sigma_to_noise*)this;
-  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
-  //Std(BText("sigmaIdx=")+sigInf->index);
-    t->noise_info_->sigmaName  = sigInf.name;
-    t->noise_info_->sigmaIdx   = sigInf.index;
-    t->noise_info_->sigmaCte   = BDat::Nan();
-    t->noise_info_->covExpr    = "";
-    t->noise_info_->cov.Eye(noise_info_->size,noise_info_->size,0,1);
-    t->noise_info_->covIsDiag=true;
-  }
-  void operator()(const boost::reference_wrapper<int>& pos) const
-  {
-    int n = pos.get(); 
-    action((*sig_vec_)[n]);
-  }
-
-  void action(const std::string& str) const
-  {
-  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
-    int* pos = find(*sig_table_,str.c_str());
-    assert(pos);
-    if(pos)
-    {
-      sigma_info& sigInf = (*sig_vec_)[*pos];
-      action(sigInf);
-    }
-    else
-    {
-      Error(BText("Cannot find Sigma ")+str.c_str());
-      noise_info_->sigmaIdx = -1;
-    }   
-  }
-  template<typename IteratorT>
-  void operator()(IteratorT first, IteratorT last) const
-  {
-    std::string str;
-    str.assign(first, last);
-    action(str);
-  }
-
-};
-
-///////////////////////////////////////////////////////////////////////////////
-class assign_sig_pri
-///////////////////////////////////////////////////////////////////////////////
-{
-public:
-  noise_info* noise_info_; 
-  assign_sig_pri(noise_info& noise_inf) 
-  : noise_info_(&noise_inf)
-  {}
-  void action(const std::string& str) const
-  {
-    noise_info* noise_inf = noise_info_;
-  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
-  //Std(BText("sigmaIdx=")+sigInf->index);
-    noise_inf->sigPriExpr  = str;
-  }
-  void operator()(const std::string& str) const
-  {
-    action(str);
-  }
-
-  template<typename IteratorT>
-  void operator()(IteratorT first, IteratorT last) const
-  {
-    std::string str;
-    str.assign(first, last);
-    action(str);
-  }
-
-};
-
-///////////////////////////////////////////////////////////////////////////////
 class assign_reg_matrix
 ///////////////////////////////////////////////////////////////////////////////
 {
@@ -715,12 +619,14 @@ public:
   {
     noise_info* noise_inf = noise_info_;
   //Std(BText("\nassign_const_sigma_to_res(")+d+")");
-    noise_inf->sigmaName  = "";
-    noise_inf->sigmaIdx   = -1;
-    noise_inf->sigmaCte   = d;
-    noise_inf->covExpr    = "";
-    noise_inf->cov.Eye(noise_inf->size,noise_inf->size,0,noise_inf->sigmaCte);
-    noise_inf->covIsDiag=true;
+    noise_inf->sigmaName = "";
+    noise_inf->sigmaIdx = -1;
+    noise_inf->sigmaCte = d;
+    noise_inf->sigPriExpr = "";
+    noise_inf->cov.Eye(noise_inf->size,noise_inf->size,0,d);
+    noise_inf->L.Eye(noise_inf->size,noise_inf->size,0,sqrt(d));
+    noise_inf->Li.Eye(noise_inf->size,noise_inf->size,0,1/sqrt(d));
+    noise_inf->arimaExpr= "";
   //Std(BText(" sigmaIdx=-1"));
   //Std(BText(" sigmaCte=")+noise_info_->sigmaCte);
   }
@@ -741,41 +647,62 @@ public:
   }
 };
 
-
 ///////////////////////////////////////////////////////////////////////////////
-class assign_covariance_to_res
+class assign_sigma_to_noise
 ///////////////////////////////////////////////////////////////////////////////
 {
 public:
-  noise_info* noise_info_; 
-  assign_covariance_to_res(noise_info& noise_inf)
-  : noise_info_(&noise_inf)
+  symbols<int>*       sig_table_;
+  vector<sigma_info>* sig_vec_;
+  noise_info*         noise_info_; 
+  int*                numEqu_; 
+
+  assign_sigma_to_noise(
+    symbols<int>&       sig_table,
+    vector<sigma_info>& sig_vec,
+    noise_info&         noise_inf,
+    int&                numEqu)
+  : sig_table_   (&sig_table),
+    sig_vec_     (&sig_vec),
+    noise_info_  (&noise_inf), 
+    numEqu_      (&numEqu)
   {}
+
+  void action(sigma_info& sigInf) const
+  {
+    assign_sigma_to_noise* t = (assign_sigma_to_noise*)this;
+  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
+  //Std(BText("sigmaIdx=")+sigInf->index);
+    t->noise_info_->sigmaName = sigInf.name;
+    t->noise_info_->sigmaIdx = sigInf.index;
+    t->noise_info_->sigmaCte = BDat::Nan();
+    t->noise_info_->sigPriExpr = "";
+    t->noise_info_->cov.Eye(noise_info_->size,noise_info_->size,0,1);
+    t->noise_info_->L = t->noise_info_->cov;
+    t->noise_info_->Li = t->noise_info_->cov;
+    t->noise_info_->arimaExpr= "";
+  }
+  void operator()(const boost::reference_wrapper<int>& pos) const
+  {
+    int n = pos.get(); 
+    action((*sig_vec_)[n]);
+  }
+
   void action(const std::string& str) const
   {
-    noise_info* noise_inf = noise_info_; 
-  //Std(BText("\nassign_covariance_to_res(")+str.c_str()+")");
-    noise_inf->sigmaName  = "";
-    noise_inf->sigmaIdx   = -2;
-    noise_inf->sigmaCte   = 1;
-    noise_inf->covExpr    = str;
-    BUserVMat* u = (BUserVMat*)GraVMatrix()->EvaluateExpr(str.c_str());
-    int err = 0;
-    if(!u)
+  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
+    int* pos = find(*sig_table_,str.c_str());
+    assert(pos);
+    if(pos)
     {
-      err = -999999;
+      sigma_info& sigInf = (*sig_vec_)[*pos];
+      action(sigInf);
     }
     else
     {
-      noise_inf->cov = u->Contens();
-      noise_inf->covIsDiag=noise_inf->cov.IsDiagonal();
-    }
-    if(err)
-    {
-      Error(BText("Not valid covariance definition ")+str.c_str());
-    }
-  //Std(BText(" sigmaIdx=-1"));
-  //Std(BText(" sigmaCte=")+noise_info_->sigmaCte);
+      Error(BText("Cannot find Sigma ")+str.c_str());
+      noise_info_->sigmaIdx = -1;
+    }   
   }
   template<typename IteratorT>
   void operator()(IteratorT first, IteratorT last) const
@@ -784,7 +711,349 @@ public:
     str.assign(first, last);
     action(str);
   }
+
 };
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_sig_pri
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  noise_info* noise_info_; 
+  assign_sig_pri(noise_info& noise_inf) 
+  : noise_info_(&noise_inf)
+  {}
+  void action(const std::string& str) const
+  {
+    noise_info* noise_inf = noise_info_;
+  //Std(BText("\nassign_sigma_to_noise(")+str.c_str()+")");
+  //Std(BText("sigmaIdx=")+sigInf->index);
+    noise_inf->sigPriExpr  = str;
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_cov_to_res
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  noise_info* noise_info_; 
+  assign_cov_to_res(noise_info& noise_inf)
+  : noise_info_(&noise_inf)
+  {}
+  void action(const std::string& str) const
+  {
+    noise_info* noise_inf = noise_info_; 
+  //Std(BText("\nassign_covariance_to_res(")+str.c_str()+")");
+    BText expr(str.c_str()+2, str.size()-4);
+    BUserVMat* u = (BUserVMat*)GraVMatrix()->EvaluateExpr(expr);
+    double s2 = 1;
+    if(noise_inf->sigmaName.size())
+    {
+      s2 = noise_inf->sigmaCte;
+    }
+    int err = 0;
+    if(!u)
+    {
+      err = -999999;
+      Error(BSR()+"A valid VMatrix expression was expected as covariance "
+            "instead of "+expr+" for noise "+noise_inf->name.c_str());
+    }
+    else
+    {
+      BVMat &cov=noise_inf->cov;
+      BVMat &L=noise_inf->L;
+      BVMat &Li=noise_inf->Li;
+      BVMat Lf, D;
+      cov = u->Contens();
+      int r = cov.Rows();
+      int c = cov.Columns();
+      int n = noise_inf->size;
+      if((r!=n)||(c!=n))
+      {
+        err = -999998;
+        Error(BSR()+"An square ("+n+"x"+n+") VMatrix expression was expected as "
+             "covariance instead of ("+r+"x"+c+") "+expr+
+              " for noise "+noise_inf->name.c_str());
+      }
+      else
+      {
+        err = BVMat::CholeskiFactor(cov,Lf,BVMat::ECFO_XtX,true,true,true);
+        if(err) 
+        { 
+          Error(BSR()+"Non symmetric positive definite covariance matrix "+expr+
+                " for noise "+noise_inf->name.c_str());
+        }
+        else
+        {
+          D.Eye(n);
+          L.Convert(Lf,BVMat::ESC_chlmRsparse);
+          err = BVMat::CholeskiSolve(Lf, D, Li, BVMat::ECSS_L);
+          if(err) 
+          { 
+            Error(BSR()+"Cannot inverse Choleski Factor of covariance matrix"+
+                  " for noise "+noise_inf->name.c_str());
+          }
+        }
+      }
+    }
+  }
+
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_covinv_to_res
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  noise_info* noise_info_; 
+  assign_covinv_to_res(noise_info& noise_inf)
+  : noise_info_(&noise_inf)
+  {}
+  void action(const std::string& str) const
+  {
+    noise_info* noise_inf = noise_info_; 
+  //Std(BText("\nassign_covariance_to_res(")+str.c_str()+")");
+    BText expr(str.c_str()+2, str.size()-4);
+    BUserVMat* u = (BUserVMat*)GraVMatrix()->EvaluateExpr(expr);
+    int err = 0;
+    if(!u)
+    {
+      err = -999999;
+      Error(BSR()+"A valid VMatrix expression was expected as inverse covariance "
+            "instead of "+expr+" for noise "+noise_inf->name.c_str());
+    }
+    else
+    {
+      BVMat &cov=noise_inf->cov;
+      BVMat &L=noise_inf->L;
+      BVMat &Li=noise_inf->Li;
+      BVMat Litf, Lit, D, covi;
+      covi = u->Contens();
+      int r = covi.Rows();
+      int c = covi.Columns();
+      int n = noise_inf->size;
+      if((r!=n)||(c!=n))
+      {
+        err = -999998;
+        Error(BSR()+"An square ("+n+"x"+n+") VMatrix expression was expected as "
+             "inverse covariance instead of ("+r+"x"+c+") "+expr+
+              " for noise "+noise_inf->name.c_str());
+      }
+      else
+      {
+        err = BVMat::CholeskiFactor(covi,Litf,BVMat::ECFO_XtX,true,true,true);
+        if(err) 
+        { 
+          Error(BSR()+"Non symmetric positive definite inverse covariance matrix "+expr+
+                " for noise "+noise_inf->name.c_str());
+        }
+        else
+        {
+          D.Eye(n);
+          Lit.Convert(Litf,BVMat::ESC_chlmRsparse);
+          Li = Lit.T();
+          err = BVMat::CholeskiSolve(L, D, Litf, BVMat::ECSS_Lt);
+          if(err) 
+          { 
+            Error(BSR()+"Cannot inverse Choleski Factor of inverse covariance matrix"+
+                  " for noise "+noise_inf->name.c_str());
+          }
+        }
+      }
+    }
+  }
+
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_covl_to_res
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  noise_info* noise_info_; 
+  assign_covl_to_res(noise_info& noise_inf)
+  : noise_info_(&noise_inf)
+  {}
+  void action(const std::string& str) const
+  {
+    noise_info* noise_inf = noise_info_; 
+  //Std(BText("\nassign_covariance_to_res(")+str.c_str()+")");
+    BText expr(str.c_str()+2, str.size()-4);
+    BUserVMat* u = (BUserVMat*)GraVMatrix()->EvaluateExpr(expr);
+    int err = 0;
+    if(!u)
+    {
+      err = -999999;
+      Error(BSR()+"A valid VMatrix expression was expected as "
+            "Choleski decomposition of covariance instead of "+expr+
+            " for noise "+noise_inf->name.c_str());
+    }
+    else
+    {
+      BVMat &cov=noise_inf->cov;
+      BVMat &L=noise_inf->L;
+      BVMat &Li=noise_inf->Li;
+      BVMat Lf, D;
+      Lf = u->Contens();
+      int r = Lf.Rows();
+      int c = Lf.Columns();
+      int n = noise_inf->size;
+      if((r!=n)||(c!=n))
+      {
+        err = -999998;
+        Error(BSR()+"An square ("+n+"x"+n+") VMatrix expression was expected as "
+            "Choleski decomposition of covariance instead of "
+            "("+r+"x"+c+") "+expr+" for noise "+noise_inf->name.c_str());
+      }
+      else
+      {
+        if(Lf.code_==BVMat::ESC_chlmRfactor)
+        {
+          L.Convert(Lf,BVMat::ESC_chlmRsparse);          
+        } 
+        else
+        {
+          L = Lf;
+          err = BVMat::CholeskiFactor(L,Lf,BVMat::ECFO_X,true,true,true);
+          if(err) 
+          { 
+            Error(BSR()+"Non valid Choleski decomposition covariance matrix "+expr+
+                  " for noise "+noise_inf->name.c_str());
+          }
+        }
+        if(!err)
+        {
+          D.Eye(n);
+          L.Convert(Lf,BVMat::ESC_chlmRsparse);
+          err = BVMat::CholeskiSolve(Lf, D, Li, BVMat::ECSS_L);
+          if(err) 
+          { 
+            Error(BSR()+"Cannot inverse Choleski factor of covariance matrix"+
+                  " for noise "+noise_inf->name.c_str());
+          }
+        }
+      }
+    }
+  }
+
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_covlinv_to_res
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  noise_info* noise_info_; 
+  assign_covlinv_to_res(noise_info& noise_inf)
+  : noise_info_(&noise_inf)
+  {}
+  void action(const std::string& str) const
+  {
+    noise_info* noise_inf = noise_info_; 
+  //Std(BText("\nassign_covariance_to_res(")+str.c_str()+")");
+    BText expr(str.c_str()+2, str.size()-4);
+    BUserVMat* u = (BUserVMat*)GraVMatrix()->EvaluateExpr(expr);
+    int err = 0;
+    if(!u)
+    {
+      err = -999999;
+      Error(BSR()+"A valid VMatrix expression was expected as "
+            "Choleski inverse decomposition of covariance instead of "+expr+
+            " for noise "+noise_inf->name.c_str());
+    }
+    else
+    {
+      BVMat &cov=noise_inf->cov;
+      BVMat &L=noise_inf->L;
+      BVMat &Li=noise_inf->Li;
+      BVMat Lit, Litf, D;
+      Litf = u->Contens();
+      int r = Litf.Rows();
+      int c = Litf.Columns();
+      int n = noise_inf->size;
+      if((r!=n)||(c!=n))
+      {
+        err = -999998;
+        Error(BSR()+"An square ("+n+"x"+n+") VMatrix expression was expected as "
+            "Choleski inverse decomposition of covariance instead of "
+            "("+r+"x"+c+") "+expr+" for noise "+noise_inf->name.c_str());
+      }
+      else
+      {
+        if(Litf.code_==BVMat::ESC_chlmRfactor)
+        {
+          Lit.Convert(Litf,BVMat::ESC_chlmRsparse);          
+          Li = Li.T();
+        } 
+        else
+        {
+          Lit = Litf;
+          Li = Li.T();
+          err = BVMat::CholeskiFactor(Lit,Litf,BVMat::ECFO_X,true,true,true);
+          if(err) 
+          { 
+            Error(BSR()+"Non valid Choleski inverse decomposition covariance matrix "+expr+
+                  " for noise "+noise_inf->name.c_str());
+          }
+        }
+        if(!err)
+        {
+          D.Eye(n);
+          err = BVMat::CholeskiSolve(L, D, Litf, BVMat::ECSS_Lt);
+          if(err) 
+          { 
+            Error(BSR()+"Cannot inverse Choleski Factor of inverse covariance matrix"+
+                  " for noise "+noise_inf->name.c_str());
+          }
+        }
+      }
+    }
+  }
+
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 class assign_non_lin_flt_to_noise
@@ -1479,8 +1748,7 @@ public:
   };
   
 protected:     
-  int expand2AllEqu(noise_info& resInfo, 
-                    const BVMat& A, BVMat& A_);
+  int expand2AllEqu(noise_info& resInfo, BVMat& A_);
 
   int expand2AllEqu_covAndFactors(noise_info& resInfo);
 

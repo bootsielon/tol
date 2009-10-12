@@ -69,12 +69,10 @@ bys_sparse_reg::bys_sparse_reg()
 }
    
 /////////////////////////////////////////////////////////////////////////////
-int bys_sparse_reg::expand2AllEqu(
-  noise_info& resInfo, 
-  const BVMat& A, 
-  BVMat& A_) 
+int bys_sparse_reg::expand2AllEqu(noise_info& resInfo, BVMat& A_) 
 /////////////////////////////////////////////////////////////////////////////
 {
+  BVMat A = A_;
 //Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu 1"));
   int s = resInfo.equIdx.size();
   int n = A.Rows();
@@ -129,54 +127,10 @@ int bys_sparse_reg::expand2AllEqu(
 int bys_sparse_reg::expand2AllEqu_covAndFactors(noise_info& resInfo) 
 /////////////////////////////////////////////////////////////////////////////
 {
-//Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu_covAndFactors 1"));
-  int k, n, err;
-  BVMat cov, L, Ls, Li, D;
-  cov = resInfo.cov;
-  n = cov.Rows();
-  if(resInfo.covIsDiag)
-  {
-  //Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu_covAndFactors 2"));
-    L = cov;
-    Li = cov;
-    double* xCov, *xL, * xLi;
-    int nzmax;
-    cov.StoredData(xCov, nzmax);
-    L  .StoredData(xL,   nzmax);
-    Li .StoredData(xLi,  nzmax);
-    for(k=0; k<nzmax; k++)
-    {
-      xL [k] = sqrt(xCov[k]);
-      xLi[k] = 1.0/xL[k];
-    }
-    if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-    if(err = expand2AllEqu(resInfo, L,   resInfo.L  )) { return(err); }
-    if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
-  }
-  else
-  {
-  //Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu_covAndFactors 3"));
-    err = BVMat::CholeskiFactor(cov,L,BVMat::ECFO_XtX,true,true,true);
-    if(err) 
-    { 
-      Error(BSR()+"Non symmetric definite positive covariance matrix for noise "+
-        resInfo.name.c_str());
-      return(err); 
-    }
-    D.Eye(n);
-    err = BVMat::CholeskiSolve(L, D, Li, BVMat::ECSS_L);
-    if(err) 
-    { 
-      Error(BSR()+"Cannot inverse Choleski Factor of covariance matrix for noise "+
-        resInfo.name.c_str());
-      return(err); 
-    }
-    Ls.Convert(L,BVMat::ESC_chlmRsparse);
-    if(err = expand2AllEqu(resInfo, cov, resInfo.cov)) { return(err); }
-    if(err = expand2AllEqu(resInfo, Ls,  resInfo.L  )) { return(err); }
-    if(err = expand2AllEqu(resInfo, Li,  resInfo.Li )) { return(err); }
-  }
-//Std(BText("\nTRACE bys_sparse_reg::expand2AllEqu_covAndFactors END"));
+  int err = 0;
+  if(err = expand2AllEqu(resInfo, resInfo.cov)) { return(err); }
+  if(err = expand2AllEqu(resInfo, resInfo.L  )) { return(err); }
+  if(err = expand2AllEqu(resInfo, resInfo.Li )) { return(err); }
   return(err);
 };
 
