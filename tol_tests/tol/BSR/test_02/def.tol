@@ -28,7 +28,7 @@ Text session.description =
 //Number of variables of each observational node
 Real n  = IntRand(10,10);
 //Data length of each observational node
-Real m  = IntRand(100,100);
+Real m  = IntRand(300,300);
 //Number of observational nodes
 Real K1 = IntRand(4,4);
 
@@ -43,9 +43,9 @@ Real q1 = enableARMA*IntRand(0,Max(0,2-p1));
 //Seasonal AR Degree
 Real q7 = enableARMA*IntRand(0,Max(0,1-p7));
 //Number of missing values in input matrix
-Real MissInp = IntRand(0.01*n*K1,0.05*n*K1);
-//Number of missing values in input matrix
-Real MissOut = IntRand(0.002*m*K1,0.005*m*K1);
+Real MissInp = IntRand(0.003*m*K1,0.009*m*K1);
+//Number of missing values in output matrix
+Real MissOut = IntRand(0.003*m*K1,0.009*m*K1);
 //Total number of variables at obervational level
 Real N1 = n*K1;
 //Total data length at obervational level
@@ -299,24 +299,31 @@ Set inputMissing = For(1, MissInp, Set(Real k)
   //omitidos sin información a priori entonces el sistema lineal subyacente 
   //al bloque de omitidos del input es singular. De momento no se simulan
   //omitidos sin prior
-  Real rnd = IntRand(2,3);
+  Real rnd = IntRand(3,4);
   Text prior = Case
   (
     rnd==1, 
     {
-      "? <- "<<value
+      "? <- "<<(value*Rand(0.5,2))
     },
     rnd==2,
     {
-      Real sigma2 = ((value)/2)^2;
-      "? ~ Normal("<<value+","<<sigma2+")"
+      Real min   = If(value>=0, 0, 10*value);
+      Real max   = If(value<=0, 0, 10*value);
+      "? <- "<<(value*Rand(0.5,2))+"\n"+
+      " ~ Uniform("<<min+","<<max+")"
     },
     rnd==3,
     {
       Real sigma2 = ((value)/2)^2;
+      "? ~ Normal("<<(value*Rand(0.8,1.2))+","<<sigma2+")"
+    },
+    rnd==4,
+    {
+      Real sigma2 = ((value)/2)^2;
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? ~ TruncatedNormal("<<value+","<<sigma2+","<<min+","<<max+")"
+      "? ~ TruncatedNormal("<<(value*Rand(0.8,1.2))+","<<sigma2+","<<min+","<<max+")"
     }
   );
   Eval(id+"=[[ id, varIdx, equIdx, prior]]")
@@ -347,24 +354,31 @@ Set outputMissing = For(1, MissOut, Set(Real k)
   { 
     WriteLn("Cannot set unknown for missing output "+id,"E")
   });
-  Real rnd = IntRand(1,1);
+  Real rnd = IntRand(1,4);
   Text prior = Case
   (
     rnd==1, 
     {
-      "? <- "<<value
+      "? <- "<<(value*Rand(0.5,2))
     },
     rnd==2,
     {
-      Real sigma2 = ((value)/2)^2;
-      "? ~ Normal("<<value+","<<sigma2+")"
+      Real min   = If(value>=0, 0, 10*value);
+      Real max   = If(value<=0, 0, 10*value);
+      "? <- "<<(value*Rand(0.5,2))+"\n"+
+      " ~ Uniform("<<min+","<<max+")"
     },
     rnd==3,
     {
       Real sigma2 = ((value)/2)^2;
+      "? ~ Normal("<<(value*Rand(0.8,1.2))+","<<sigma2+")"
+    },
+    rnd==4,
+    {
+      Real sigma2 = ((value)/2)^2;
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? ~ TruncatedNormal("<<value+","<<sigma2+","<<min+","<<max+")"
+      "? ~ TruncatedNormal("<<(value*Rand(0.8,1.2))+","<<sigma2+","<<min+","<<max+")"
     }
   );
   Real varIdx=1;

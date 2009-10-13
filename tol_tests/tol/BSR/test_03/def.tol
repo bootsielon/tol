@@ -343,24 +343,31 @@ Set inputMissing = For(1, MissInp, Set(Real k)
   //omitidos sin información a priori entonces el sistema lineal subyacente 
   //al bloque de omitidos del input es singular. De momento no se simulan
   //omitidos sin prior
-  Real rnd = IntRand(2,3);
+  Real rnd = IntRand(3,4);
   Text prior = Case
   (
     rnd==1, 
     {
-      "? <- "<<value
+      "? <- "<<(value*Rand(0.5,2))
     },
     rnd==2,
     {
-      Real sigma2 = ((value)/2)^2;
-      "? ~ Normal("<<value+","<<sigma2+")"
+      Real min   = If(value>=0, 0, 10*value);
+      Real max   = If(value<=0, 0, 10*value);
+      "? <- "<<(value*Rand(0.5,2))+"\n"+
+      " ~ Uniform("<<min+","<<max+")"
     },
     rnd==3,
     {
       Real sigma2 = ((value)/2)^2;
+      "? ~ Normal("<<(value*Rand(0.8,1.2))+","<<sigma2+")"
+    },
+    rnd==4,
+    {
+      Real sigma2 = ((value)/2)^2;
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? ~ TruncatedNormal("<<value+","<<sigma2+","<<min+","<<max+")"
+      "? ~ TruncatedNormal("<<(value*Rand(0.8,1.2))+","<<sigma2+","<<min+","<<max+")"
     }
   );
   Eval(id+"=[[ id, varIdx, equIdx, prior]]")
@@ -391,24 +398,31 @@ Set outputMissing = For(1, MissOut, Set(Real k)
   { 
     WriteLn("Cannot set unknown for missing output "+id,"E")
   });
-  Real rnd = IntRand(1,1);
+  Real rnd = IntRand(1,4);
   Text prior = Case
   (
     rnd==1, 
     {
-      "? <- "<<value
+      "? <- "<<(value*Rand(0.5,2))
     },
     rnd==2,
     {
-      Real sigma2 = ((value)/2)^2;
-      "? ~ Normal("<<value+","<<sigma2+")"
+      Real min   = If(value>=0, 0, 10*value);
+      Real max   = If(value<=0, 0, 10*value);
+      "? <- "<<(value*Rand(0.5,2))+"\n"+
+      " ~ Uniform("<<min+","<<max+")"
     },
     rnd==3,
     {
       Real sigma2 = ((value)/2)^2;
+      "? ~ Normal("<<(value*Rand(0.8,1.2))+","<<sigma2+")"
+    },
+    rnd==4,
+    {
+      Real sigma2 = ((value)/2)^2;
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? ~ TruncatedNormal("<<value+","<<sigma2+","<<min+","<<max+")"
+      "? ~ TruncatedNormal("<<(value*Rand(0.8,1.2))+","<<sigma2+","<<min+","<<max+")"
     }
   );
   Real varIdx=1;

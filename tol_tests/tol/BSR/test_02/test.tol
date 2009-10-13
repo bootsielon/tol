@@ -54,6 +54,7 @@ BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   bsr.config, 
   BysMcmc::@Notifier::Null(0));
 
+
 //Real cycler::initialize(0);
 
 BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
@@ -109,6 +110,23 @@ Set CompareChart = Extract(CompareTable,3,4);
 
 Set DifChart  = Extract(CompareTable,5);
 Set KDifChart = Extract(CompareTable,7);
+
+Set compare_forecast = For(1,Card(mod::obsNodes),Set(Real nu_node)
+{
+  Set est = (estim::eval.average)[nu_node];
+
+  Set aux = [[
+    Real   stdErr = ((mod::obsNodes)[nu_node])::sse;
+    Real   stdErr.Estim = est::stdErr;
+    Matrix Residuals = ((mod::obsNodes)[nu_node])::e;
+    Matrix Residuals.Estim = est::noise;
+    Matrix Residuals.Cmp = Residuals | Residuals.Estim;
+    Matrix Output = ((mod::obsNodes)[nu_node])::Y;
+    Matrix Output.Estim = est::output.full;
+    Matrix Output.Cmp = Output | Output.Estim
+  ]];
+  Eval(Name((estim::eval.average)[nu_node])+"=aux")
+});
 
 /* */
 
