@@ -1,5 +1,5 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
@@ -27,6 +27,10 @@
 
 \hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
 \end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+\end_modules
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -37,9 +41,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -64,7 +70,8 @@
 \begin_body
 
 \begin_layout Chapter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "cha:El-bloque-de-omitidos"
 
 \end_inset
@@ -79,7 +86,8 @@ En la simulación de Gibbs de una regresión lineal generalizada con datos
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:MissingBlock_Antecedentes"
 
 \end_inset
@@ -472,7 +480,8 @@ A_{v}\cdot v\leq a_{v}\\
 \end_inset
 
 que se puede tratar como se explicaba en el capítulo 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sub:LinearBlock_Antecedentes"
 
 \end_inset
@@ -622,8 +631,99 @@ A_{u}\cdot u\leq a_{u}\\
 \end_inset
 
 que se puede tratar como se explicaba en el capítulo 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sub:LinearBlock_Antecedentes"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Distribución condicionada conjjunta de los omitidos del input y el output
+ 
+\end_layout
+
+\begin_layout Standard
+Lo anterior es válido bajo el supuesto de que los conjuntos de omitidos
+ del input y el output son disjuntos, pues de lo contrario sería imposible
+ formular el condicionamiento mutuo de ambos bloques y no habría otro remedio
+ que simularlos conjuntamente en un vector 
+\begin_inset Formula $w\in\mathbb{R}^{K_{0}+K-K'}$
+\end_inset
+
+ que englobara los parámetros 
+\begin_inset Formula $u$
+\end_inset
+
+ y 
+\begin_inset Formula $v$
+\end_inset
+
+, sin repetición de los 
+\begin_inset Formula $K'$
+\end_inset
+
+ comunes, como es lógico.
+\end_layout
+
+\begin_layout Standard
+En tal caso, si se conocen 
+\begin_inset Formula $\beta,\sigma^{2},\Sigma$
+\end_inset
+
+ y una descomposición simétrica 
+\begin_inset Formula $\Sigma=L\cdot L^{T}$
+\end_inset
+
+ entonces, premultiplicando por 
+\begin_inset Formula $L^{-1}$
+\end_inset
+
+ y llevando al lado izquierdo todo lo conocido, a lo cual llamaremos 
+\begin_inset Formula $C$
+\end_inset
+
+, se tiene que
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+E=\dot{L}^{-1}\cdot\left(Y-X\cdot\beta\right)=\dot{L}^{-1}\cdot\left(V-U\cdot\beta\right)+\varepsilon\\
+\dot{L}^{-1}=L^{-1}\cdot\nabla\triangle\\
+\varepsilon=L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Siguiendo los razonamientos de los puntos anteriores, existirá una matriz
+ 
+\begin_inset Formula $J$
+\end_inset
+
+ tal que 
+\begin_inset Formula \begin{equation}
+V-U\cdot\beta=J\cdot w\end{equation}
+
+\end_inset
+
+de forma que podríamos escribir todo lo anterior como una sola regresión
+ lineal
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+E=J\cdot w+\varepsilon\\
+L_{w}\cdot\mu_{w}=L_{w}\cdot w+\varepsilon_{w}\\
+A_{w}\cdot w\leq a_{w}\\
+\varepsilon\sim N\left(0,I_{m}\right)\\
+\varepsilon_{w}\sim N\left(0,I_{K_{0}+K-K'}\right)\end{array}\label{eq:apriori-omitidos-input-output}\end{equation}
 
 \end_inset
 
