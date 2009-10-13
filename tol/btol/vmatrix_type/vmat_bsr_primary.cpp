@@ -254,47 +254,50 @@ public:
               str_p("<-")[assign_a(s.mis.info.prior,"None")]>>
               (real_p[assign_a(s.mis.info.nu)] | error_badNumber) >>
               (
-                ch_p('~') >>
                 (
+                  ch_p('~') >>
                   (
-                    str_p("Uniform")[assign_a(s.mis.info.prior,"Uniform")] >> 
-                    openParenthesys >>
-                    ((str_p("?")|real_p)[assign_missing_min_] | error_badNumber) >>
-                    argumentSeparator >>
-                    ((str_p("?")|real_p)[assign_missing_max_] | error_badNumber) >>
-                    closeParenthesys
-                  ) 
+                    (
+                      str_p("Uniform")[assign_a(s.mis.info.prior,"Uniform")] >> 
+                      openParenthesys >>
+                      ((str_p("?")|real_p)[assign_missing_min_] | error_badNumber) >>
+                      argumentSeparator >>
+                      ((str_p("?")|real_p)[assign_missing_max_] | error_badNumber) >>
+                      closeParenthesys
+                    ) 
+                  )
                 )
-              )
-              | eps_p
-            )[assign_a(s.mis.info.sigma2,BDat::Nan())]
-          |
-          (
-            ch_p('~') >>
+                | eps_p
+              )[assign_a(s.mis.info.sigma2,BDat::Nan())]
+            )
+            |
             (
+              ch_p('~') >>
               (
-                str_p("Normal")[assign_a(s.mis.info.prior,"Normal")] >> 
-                openParenthesys >>
-                (real_p[assign_a(s.mis.info.nu)] | error_badNumber) >> 
-                argumentSeparator >>
-                (real_p[assign_a(s.mis.info.sigma2)] | error_badNumber) >>
-                closeParenthesys
-              )
-              |
-              (
-                str_p("TruncatedNormal")[assign_a(s.mis.info.prior,"TruncatedNormal")] >> 
-                openParenthesys >>
-                (real_p[assign_a(s.mis.info.nu)] | error_badNumber) >>
-                argumentSeparator >>
-                (real_p[assign_a(s.mis.info.sigma2)] | error_badNumber)>>
-                argumentSeparator >>
-                ((str_p("?")|real_p)[assign_missing_min_] | error_badNumber) >>
-                argumentSeparator >>
-                ((str_p("?")|real_p)[assign_missing_max_] | error_badNumber) >>
-                closeParenthesys
-              )
-            ) 
-          )) 
+                (
+                  str_p("Normal")[assign_a(s.mis.info.prior,"Normal")] >> 
+                  openParenthesys >>
+                  (real_p[assign_a(s.mis.info.nu)] | error_badNumber) >> 
+                  argumentSeparator >>
+                  (real_p[assign_a(s.mis.info.sigma2)] | error_badNumber) >>
+                  closeParenthesys
+                )
+                |
+                (
+                  str_p("TruncatedNormal")[assign_a(s.mis.info.prior,"TruncatedNormal")] >> 
+                  openParenthesys >>
+                  (real_p[assign_a(s.mis.info.nu)] | error_badNumber) >>
+                  argumentSeparator >>
+                  (real_p[assign_a(s.mis.info.sigma2)] | error_badNumber)>>
+                  argumentSeparator >>
+                  ((str_p("?")|real_p)[assign_missing_min_] | error_badNumber) >>
+                  argumentSeparator >>
+                  ((str_p("?")|real_p)[assign_missing_max_] | error_badNumber) >>
+                  closeParenthesys
+                )
+              ) 
+            )
+          ) 
         )    
         | error_missingVariableDeclareExpected)
         >> endOfSentence[add_mis]
