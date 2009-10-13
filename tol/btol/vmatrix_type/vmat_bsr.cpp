@@ -191,9 +191,13 @@ int bys_sparse_reg::getMissing(
       inputMissingInfo_[i].index = i+1;
       if(inputMissingInfo_[i].prior == "None")
       {
-        inputMissingInfo_[i].sigma2   = BDat::Nan();
-        inputMissingInfo_[i].minBound = BDat::Nan();
-        inputMissingInfo_[i].maxBound = BDat::Nan();
+        inputMissingInfo_[i].sigma2   = BDat::PosInf();
+        inputMissingInfo_[i].minBound = BDat::NegInf();
+        inputMissingInfo_[i].maxBound = BDat::PosInf();
+      }
+      else if(inputMissingInfo_[i].prior == "Uniform")
+      {
+        inputMissingInfo_[i].sigma2   = BDat::PosInf();
       }
       else if(inputMissingInfo_[i].prior == "Normal")
       {
@@ -208,7 +212,8 @@ int bys_sparse_reg::getMissing(
     int r = outputMissingInfo_[i].row;
     if((r<=0)||(r>Y.Rows()))
     {
-      Error(BSR()+"Wrong missing output "+outputMissingInfo_[i].name.c_str());
+      Error(BSR()+"Wrong missing output "+outputMissingInfo_[i].name.c_str()+
+            "row="+r+" is out of range[1,"+Y.Rows()+"]");
       return(-8);
     }
     else
@@ -216,11 +221,15 @@ int bys_sparse_reg::getMissing(
       Y.PutCell(r-1, 0, 0.0);
 
       outputMissingInfo_[i].index = i+1;
-      if(outputMissingInfo_[i].prior == "None")
+      if(outputMissingInfo_[i].prior == "NOne")
       {
-        outputMissingInfo_[i].sigma2   = BDat::Nan();
-        outputMissingInfo_[i].minBound = BDat::Nan();
-        outputMissingInfo_[i].maxBound = BDat::Nan();
+        outputMissingInfo_[i].sigma2   = BDat::PosInf();
+        outputMissingInfo_[i].minBound = BDat::NegInf();
+        outputMissingInfo_[i].maxBound = BDat::PosInf();
+      }
+      else if(outputMissingInfo_[i].prior == "Uniform")
+      {
+        outputMissingInfo_[i].sigma2   = BDat::PosInf();
       }
       else if(outputMissingInfo_[i].prior == "Normal")
       {

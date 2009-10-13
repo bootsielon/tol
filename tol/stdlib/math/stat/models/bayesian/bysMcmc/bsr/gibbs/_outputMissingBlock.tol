@@ -12,6 +12,8 @@ Class @BlockOutputMissing : @BlockStdLin
   //--------------------------------------------------------------------------
   // Mandatory members
   //--------------------------------------------------------------------------
+  //Set of @Bsr.Missing.Info
+  Set _.missingInfo;
   //Output missing pairs i,k
   Set _.t;
   //Selecting output missing variables with prior information
@@ -124,29 +126,29 @@ Class @BlockOutputMissing : @BlockStdLin
   //WriteLn("TRACE "+_MID+" initialize 1");
     VMatrix u = _.store;
     //Selecting output missing variables with left truncated prior information
-    Set leftConstrainedPrior.sel = 
-      Select(_.prior.sel, Real(@BSR.MissingBlock b)
+    Set leftConstrained = 
+      Select(_.missingInfo, Real(@BSR.MissingBlock b)
       {
-        GT(b->MinBound,-1/0)
+        And(!IsUnknown(b->MinBound),GT(b->MinBound,-1/0))
       });
     //Selecting output missing variables with right truncated prior information
-    Set rightConstrainedPrior.sel = 
-      Select(_.prior.sel, Real(@BSR.MissingBlock b)
+    Set rightConstrained = 
+      Select(_.missingInfo, Real(@BSR.MissingBlock b)
       {
-        LT(b->MaxBound,1/0)
+        And(!IsUnknown(b->MinBound),LT(b->MaxBound,1/0))
       });
   //WriteLn("TRACE "+_MID+" initialize 2");
     //Number of output missing with left constrained prior 
-    Real left.R = Card(leftConstrainedPrior.sel);
+    Real left.R = Card(leftConstrained);
     //Number of output missing with left constrained prior 
-    Real right.R = Card(rightConstrainedPrior.sel);
+    Real right.R = Card(rightConstrained);
     //Number of output missing with constrained prior 
     Real R = left.R + right.R;
     //Border of output missing constrains
     VMatrix prior.a = If(!R, Rand(0,0,0,0), 
     {
-      If(!left.R,  Rand(0,1,0,0), (-Mat2VMat(SetMat(Extract(leftConstrainedPrior.sel,  8)))))  <<
-      If(!right.R, Rand(0,1,0,0), (+Mat2VMat(SetMat(Extract(rightConstrainedPrior.sel, 9)))))  
+      If(!left.R,  Rand(0,1,0,0), (-Mat2VMat(SetMat(Extract(leftConstrained,  8)))))  <<
+      If(!right.R, Rand(0,1,0,0), (+Mat2VMat(SetMat(Extract(rightConstrained, 9)))))  
     });
   //WriteLn("TRACE "+_MID+" initialize 3");
     //Coefficients of output missing constrains
@@ -156,11 +158,11 @@ Class @BlockOutputMissing : @BlockStdLin
       Set right.range = Range(1+left.R, R,      1);
       Matrix left  = If(!left.R, Rand(0,3,0,0),
                      SetMat(Traspose([[left.range]])) | 
-                     SetMat(Extract(leftConstrainedPrior.sel, 2)) |
+                     SetMat(Extract(leftConstrained, 2)) |
                      Rand(left.R,1,-1,-1));
       Matrix right = If(!right.R, Rand(0,3,0,0),
                      SetMat(Traspose([[right.range]])) | 
-                     SetMat(Extract(rightConstrainedPrior.sel, 2)) |
+                     SetMat(Extract(rightConstrained, 2)) |
                      Rand(right.R,1,+1,+1));
       Convert(Triplet(left<<right,R,_.N),"Cholmod.R.Sparse")
     };
@@ -203,6 +205,7 @@ Class @BlockOutputMissing : @BlockStdLin
     If(!Card(outputMissingBlock), 
     BysMcmc::Bsr::Gibbs::@BlockStdLinEmpty::New(name, numBlock, firstCol, config),
     BysMcmc::Bsr::Gibbs::@BlockOutputMissing blk = [[
+    Set _.missingInfo = outputMissingBlock;
     Code _.buildWorkSpace = _buildWorkSpace;
     VMatrix _.store = Mat2VMat(SetMat(Extract(outputMissingBlock, 6)));
     //Defining the block in the Markov Chain
@@ -217,19 +220,19 @@ Class @BlockOutputMissing : @BlockStdLin
     Set _.t = Traspose(Extract(outputMissingBlock, 3))[1];
     //Selecting output missing variables with prior information
     Matrix _.I = SetCol(_.t);
-    Set _.prior.sel = Select(outputMissingBlock, Real(@BSR.MissingBlock b)
+    Set _.prior.normal = Select(outputMissingBlock, Real(@BSR.MissingBlock b)
     {
-      b->Prior != "None"
+      Or(b->Prior == "Normal",b->Prior == "TruncatedNormal")
     });
     //Number of output missing prior equations
-    Real _.prior.M = Card(_.prior.sel);
+    Real _.prior.M = Card(_.prior.normal);
     //Average vector of output missing priors
     Matrix _.prior.nu = If(!_.prior.M, Rand(0,0,0,0), 
-      SetMat(Extract(_.prior.sel, 6)));
+      SetMat(Extract(_.prior.normal, 6)));
     //Inverse of standard deviation vector of output missing priors
     Matrix _.prior.si = If(!_.prior.M, Rand(0,0,0,0), 
     {
-      Matrix s2 = SetMat(Extract(_.prior.sel, 7));
+      Matrix s2 = SetMat(Extract(_.prior.normal, 7));
       RPow(s2,-1/2)
     });
     //Standarized output of output missing priors
@@ -240,7 +243,7 @@ Class @BlockOutputMissing : @BlockStdLin
     {
     //WriteLn("TRACE "+_MID+" _.prior.X 1");
       Matrix triplet = SetMat(Traspose([[Set Range(1,_.prior.M,1)]])) | 
-                       SetMat(Extract(_.prior.sel, 2)) |
+                       SetMat(Extract(_.prior.normal, 2)) |
                        _.prior.si;
     //WriteLn("TRACE "+_MID+" _.prior.X 2 triplet=\n"<<triplet);
       VMatrix tr = Triplet(triplet,_.prior.M,_.N);

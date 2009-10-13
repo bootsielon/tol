@@ -244,6 +244,14 @@ Real Write.Data.MissingBlock(NameBlock segment,
         P->Name+" ? "+position+
         "\n <- "+RealTextS(P->Prior.Average)+";\n")
     },
+    !nr,
+    {
+      FPutText(fileHandler, P->Name+" ? "+position+
+        "\n <- "+RealTextS(P->Prior.Average)+
+        "\n ~ Uniform("+ 
+        RealTextS(P->Prior.LowerBound)+","+
+        RealTextS(P->Prior.UpperBound)+")"+";\n")
+    },
     !lb & !ub,
     {
       FPutText(fileHandler, P->Name+" ? "+position+

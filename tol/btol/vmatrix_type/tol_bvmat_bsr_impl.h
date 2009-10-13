@@ -258,6 +258,7 @@ public:
   //sh_->info.show();
     sh->table.add(sh->info.name.c_str(), sh->vec.size());
     sh->vec.push_back(sh_->info);
+  //sh->info = T();
     sh->count++;
   }
   void  operator()(const char& str) const { action();  }
@@ -462,7 +463,11 @@ public:
   void action() const
   {
     symbol_handler<missing_info>* mis = mis_;
-    mis_->info.col  = 0;
+    mis->info.col  = 0;
+    mis->info.nu = BDat::Nan();
+    mis->info.sigma2 = BDat::Nan();
+    mis->info.minBound  = BDat::Nan();
+    mis->info.maxBound  = BDat::Nan();
   }
   void  operator()(const char& str) const { action();  }
   template<typename IteratorT>
@@ -487,6 +492,11 @@ public:
   {
     assign_missing_input* t = (assign_missing_input*)this;
     t->mis_->info.col  = d;
+    t->mis_->info.sigma2 = BDat::Nan();
+    t->mis_->info.nu = BDat::Nan();
+    t->mis_->info.sigma2 = BDat::Nan();
+    t->mis_->info.minBound  = BDat::Nan();
+    t->mis_->info.maxBound  = BDat::Nan();
   }
   void operator()(const int d) const
   {
