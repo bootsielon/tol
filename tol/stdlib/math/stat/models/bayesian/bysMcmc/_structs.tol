@@ -248,7 +248,7 @@ Struct @Bsr.Missing.Info
   Real Prior.Average,     // Prior average or initial value 
   Real Prior.Sigma,       // Prior standard deviation or +1/0 
   Real Prior.LowerBound,  // Prior minimum feasible value or -1/0
-  Real Prior.UpperBound   // Prior minimum feasible value or +1/0
+  Real Prior.UpperBound   // Prior maximum feasible value or +1/0
 };  
 
 /////////////////////////////////////////////////////////////////////////////
