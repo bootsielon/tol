@@ -14,6 +14,15 @@ Class @BlockInputMissing : @BlockStdLin
   //--------------------------------------------------------------------------
   //Set of @Bsr.Missing.Info without repeatitions
   Set _.missingInfo;
+  Real _.prior.M;
+  //Average vector of missing priors
+  Matrix _.prior.nu;
+  //Inverse of standard deviation vector of missing priors
+  Matrix _.prior.si;
+  //Standarized output of missing priors
+  VMatrix _.prior.Y;
+  //Standarized input of missing priors
+  VMatrix _.prior.X;
   //Classification of missing by name
   Set _.inputMissingDistinct;
   //Index of store position of each missing
@@ -27,20 +36,11 @@ Class @BlockInputMissing : @BlockStdLin
   //Selecting input missing variables with prior information
   Set _.prior.normal;
   //Number of input missing prior equations
-  Real _.prior.M;
-  //Average vector of input missing priors
-  Matrix _.prior.nu;
-  //Inverse of standard deviation vector of input missing priors
-  Matrix _.prior.si;
-  //Standarized output of input missing priors
-  VMatrix _.prior.Y;
-  //Standarized input of input missing priors
-  VMatrix _.prior.X;
-
 
   //--------------------------------------------------------------------------
   // Auxiliar members
   //--------------------------------------------------------------------------
+  //Work space
   @WorkSpace.LinReg _.ws = BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg::Null(0);
   //Standarized input of free missing priors
   VMatrix _.prior.X.free = Rand(0,0,0,0);
@@ -147,7 +147,7 @@ Class @BlockInputMissing : @BlockStdLin
   //WriteLn("TRACE "+_MID+" initialize 1");
   //WriteLn("TRACE "+_MID+" 7");
     VMatrix store = _.store;
-    //Selecting input missing variables with left truncated prior information
+    //Selecting missing variables with left truncated prior information
     Set leftConstrained = 
       Select(_.missingInfo, Real(@BSR.MissingBlock b)
       {
@@ -160,13 +160,13 @@ Class @BlockInputMissing : @BlockStdLin
         And(!IsUnknown(b->MinBound),LT(b->MaxBound,1/0))
       });
   //WriteLn("TRACE "+_MID+" initialize 2");
-    //Number of input missing with left constrained prior 
+    //Number of missing with left constrained prior 
     Real left.R = Card(leftConstrained);
-    //Number of input missing with left constrained prior 
+    //Number of missing with left constrained prior 
     Real right.R = Card(rightConstrained);
-    //Number of input missing with constrained prior 
+    //Number of missing with constrained prior 
     Real R = left.R + right.R;
-    //Border of input missing constrains
+    //Border of missing constrains
     VMatrix prior.a = If(!R, Rand(0,0,0,0), 
     {
     //WriteLn("TRACE "+_MID+" 8");
@@ -178,7 +178,7 @@ Class @BlockInputMissing : @BlockStdLin
       aux1<<aux2
     });
   //WriteLn("TRACE "+_MID+" initialize 3");
-    //Coefficients of input missing constrains
+    //Coefficients of missing constrains
     VMatrix prior.A = If(!R, Rand(0,0,0,0), 
     {
       Set left.range  = Range(1,        left.R, 1);
@@ -203,13 +203,13 @@ Class @BlockInputMissing : @BlockStdLin
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.filter =
-  "Filter regression input with current missing block values. You can set a "
+  "Filter regression with current missing block values. You can set a "
   "previously simulated vector of paramters calling before to method "
   "setMcmcRow";
   VMatrix filter(VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE "+_MID+" filter 1");
+  //WriteLn("TRACE"+_MID+" filter Z:"<<Z);
     If(Not(enabled), Z,
     {
     //WriteLn("TRACE "+_MID+" filter 2");
@@ -220,8 +220,8 @@ Class @BlockInputMissing : @BlockStdLin
     })
   };
 
-  //////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.New =
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.New =
   "Builds a NameBlock that can draw a Gibbs sample of a Input Missing block "
   "of a Bayesian Sparse Regression model";
   //////////////////////////////////////////////////////////////////////////////
@@ -237,7 +237,6 @@ Class @BlockInputMissing : @BlockStdLin
     If(!Card(inputMissingBlock), 
     BysMcmc::Bsr::Gibbs::@BlockStdLinEmpty::New(name, numBlock, firstCol, config),
     BysMcmc::Bsr::Gibbs::@BlockInputMissing blk = [[
-    Code _.buildWorkSpace = _buildWorkSpace;
     Set _.inputMissingDistinct = 
     {
       Set aux.1 = Classify(inputMissingBlock, 
@@ -264,17 +263,6 @@ Class @BlockInputMissing : @BlockStdLin
     };
     Set _.storeIndex = EvalSet(inputMissingBlock, 
      Real(@BSR.MissingBlock mis){ mis->Index }), 
-    //Given initial values of block variables
-    VMatrix _.store = Mat2VMat(SetMat(
-       EvalSet(_.inputMissingDistinct, Set(Set cl){ [[(cl[1])->Nu]] })));
-    //Defining the block in the Markov Chain
-    Real _defined = define(
-      name, 
-      EvalSet(_.inputMissingDistinct, Text(Set cl){ (cl[1])->Name }), 
-      mcmcPartialHandler,
-      numBlock, 
-      firstCol, 
-      config);
     //Input missing pairs (equation,variable)
     Matrix _.tj = {
     //WriteLn("TRACE "+_MID+" 1");
@@ -288,43 +276,49 @@ Class @BlockInputMissing : @BlockStdLin
     };
     //Input missing index j
     Set _.j = Traspose(Extract(inputMissingBlock, 4))[1];
+    Set _.missingInfo = EvalSet(_.inputMissingDistinct, Set(Set cl){ cl[1] });
 
-      Set _.missingInfo = EvalSet(_.inputMissingDistinct, Set(Set cl){ cl[1] });
+    //Given initial values of block variables
+    VMatrix _.store = Mat2VMat(SetMat(Extract(_.missingInfo, 6)));
+    Code _.buildWorkSpace = _buildWorkSpace;
+    //Defining the block in the Markov Chain
+    Real _defined = define(
+      name, 
+      EvalSet(_.missingInfo, Text(@BSR.MissingBlock b){ b->Name }), 
+      mcmcPartialHandler,
+      numBlock, 
+      firstCol, 
+      config);
     //Selecting input missing variables with prior information
-    Set _.prior.normal = 
+    Set _.prior.normal = Select(_.missingInfo, Real(@BSR.MissingBlock b)
     {
-      Select(_.missingInfo, Real(@BSR.MissingBlock b)
-      {
-        Or(b->Prior == "Normal",b->Prior == "TruncatedNormal")
-      })
-    };
-    //Number of input missing prior equations
+      Or(b->Prior == "Normal",b->Prior == "TruncatedNormal")
+    });
+    //Number of missing prior equations
     Real _.prior.M = Card(_.prior.normal);
-    //Average vector of input missing priors
-    Matrix _.prior.nu = If(Not(_.prior.M),Rand(0,1,0,0),
+    //Average vector of missing priors
+    Matrix _.prior.nu = If(!_.prior.M,Rand(0,1,0,0),
     {
     //WriteLn("TRACE "+_MID+" 3");
       SetMat(Extract(_.prior.normal, 6))
     });
-    //Inverse of standard deviation vector of input missing priors
-    Matrix _.prior.si = If(Not(_.prior.M),Rand(0,1,0,0),
+    //Inverse of standard deviation vector of missing priors
+    Matrix _.prior.si = If(!_.prior.M,Rand(0,1,0,0),
     {
     //WriteLn("TRACE "+_MID+" 4");
       Matrix s2 = SetMat(Extract(_.prior.normal, 7));
       RPow(s2,-1/2)
     });
-    //Standarized output of input missing priors
-    VMatrix _.prior.Y = If(Not(_.prior.M),Rand(0,1,0,0), 
+    //Standarized output of missing priors
+    VMatrix _.prior.Y = If(!_.prior.M,Rand(0,1,0,0), 
       Mat2VMat(_.prior.nu $* _.prior.si));
-    //Standarized input of input missing priors
-    VMatrix _.prior.X = If(Not(_.prior.M),Rand(0,_.N,0,0),
+    //Standarized input of missing priors
+    VMatrix _.prior.X = If(!_.prior.M,Rand(0,_.N,0,0),
     {
     //WriteLn("TRACE "+_MID+" _.prior.X 1");
-    //WriteLn("TRACE "+_MID+" 5");
-      Matrix aux1= SetMat(Traspose([[Set Range(1,_.prior.M,1)]]));
-    //WriteLn("TRACE "+_MID+" 6");
-      Matrix aux2= SetMat(Extract(_.prior.normal, 2));
-      Matrix triplet =  aux1 | aux2 | _.prior.si;
+      Matrix triplet = SetMat(Traspose([[Set Range(1,_.prior.M,1)]])) | 
+                       SetMat(Extract(_.prior.normal, 2)) |
+                       _.prior.si;
     //WriteLn("TRACE "+_MID+" _.prior.X 2 triplet=\n"<<triplet);
       VMatrix tr = Triplet(triplet,_.prior.M,_.N);
     //WriteLn("TRACE "+_MID+" _.prior.X 3");
