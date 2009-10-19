@@ -644,6 +644,8 @@ Tree* BParser::ParseNone(Tree* tre, BCloseToken* close)
 Tree* BParser::ParseOpen (Tree* tre) 
 {
   BToken* arg  = NULL;
+  BText sym = NextSymbol()->Name();
+  filter_->UnReplace(sym);
   if(!arg && delayedSymbol_ && lastSymbol_2_ && lastSymbol_2_->Name()=="Struct")
   {
     arg = delayedSymbol_;
@@ -736,7 +738,21 @@ Tree* BParser::ParseClose (Tree* tre, BCloseToken* close)
   }
   if(tre && tre->getTree()) 
   {
-    BParser::treToken(tre->getTree())->PutClose(close);
+    BToken* tok = BParser::treToken(tre->getTree());
+    if(tok->Close() && (tok->Close()->Name()=="}"))
+    {
+      BText closeSym = NextSymbol()->Name();
+      filter_->UnReplace(closeSym);
+      if(closeSym!="}")
+      {
+        BCloseToken* close = (BCloseToken*)NextSymbol();
+        BText openSym = close->Open()->Name();
+        filter_->UnReplace(openSym);
+        messageError_+= I2("Invalid sequence ","Secuencia inválida ")+ 
+          openSym +"{ ... }" + closeSym;
+      }
+    }    
+    tok->PutClose(close);
   }
   complete_ = BTRUE;
   return(tre);
