@@ -1164,12 +1164,17 @@ Text GetUrlContents(Text url)
 {
   WriteLn("Downloading from \""+url+"\" ...");
   Text tcl_helper = "
-package require http
+package require uri
 
-proc ::get_url_contens { {url} } {
-  
-  set data [http::data [http::geturl $url]]
-  set data
+proc ::get_url_contens { url } {
+
+  array set uri_info [ uri::split $url ]
+  if { $uri_info(scheme) eq \"http\" } {
+    set url_content [ uri::geturl $url ]
+    set ${url_content}(body)
+  } elseif { $uri_info(scheme) eq \"ftp\" } {
+    uri::geturl $url
+  }
 }";
   
   Set result0 = Tcl_Eval(tcl_helper);
