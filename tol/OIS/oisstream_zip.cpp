@@ -130,17 +130,17 @@ public:
   offset_  = 0;
   entries_ = 0;
   isOk_ = true;
-  BText action = I2("'INVALID ACTION'", "'ACCIÓN INVÁLIDA'");
+  BText action = I2("'INVALID ACTION'", "'ACCIN INVLIDA'");
   try
   {
     if(read)
     {
       action = I2("reading","lectura");
-      if(index<0)
+      if((index<0) || (index==ZIP_FILE_INDEX_NOT_FOUND))
       {
         index = sh_.zip_.FindFile(name_);
       }
-      isOk_ = index>=0;
+      isOk_ = ((index>=0) && (index!=ZIP_FILE_INDEX_NOT_FOUND));
       if(isOk_)
       {
         sh_.zip_.ExtractFile(index, mf_);
@@ -152,9 +152,6 @@ public:
     else if(write)
     {
       action = I2("writing","escritura");
-    //int index = sh_.zip_.FindFile(name_);
-    //if(index>=0) { sh_.zip_.DeleteFile(index); }
-    //isOk_ = index<0;
     }
   }
   catch(CZipException ex)
@@ -229,7 +226,7 @@ public:
     if(index_<0)
     {
       sh_.zip_.AddNewFile(mf_, name_.String(), cmprsLvl_);
-			//VBR: No sé porqué en linux no se cumple esta condición pero
+			//VBR: No s porqu en linux no se cumple esta condicin pero
 			//luego todo parece funcionar bien.
       //assert(index_>=0);
     }
@@ -423,7 +420,7 @@ const BINT64& BZipStream::GetPos()
   connection_ = GetAbsolutePath(connection);
 //Std(BText("\nOpening ZIP ")+connection_);
   openMode_ = openMode;
-  BText action = I2("'INVALID ACTION'", "'ACCIÓN INVÁLIDA'");
+  BText action = I2("'INVALID ACTION'", "'ACCIN INVLIDA'");
   try
   {
     if(read)
@@ -531,7 +528,7 @@ const BINT64& BZipStream::GetPos()
     ShowCatchedException(ex, connection_+"/"+fileName, T->zip_);
     index = -1;
   }
-  return(index>=0);
+  return((index>=0) && (index!=ZIP_FILE_INDEX_NOT_FOUND));
 }
 
 //--------------------------------------------------------------------

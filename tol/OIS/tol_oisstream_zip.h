@@ -40,7 +40,7 @@
                bool errorWarning);
   void Disconnect();
   BMedia Media() { return(BSHM_zip); }
-  BStream* Open(const char* title, const char* name, int index=-1);
+  BStream* Open(const char* title, const char* name, int index=ZIP_FILE_INDEX_NOT_FOUND);
   bool HasFile(const char* fileName) const;
   bool RemoveFiles(const BArray<BText>& files);
 };
