@@ -130,7 +130,7 @@ public:
   offset_  = 0;
   entries_ = 0;
   isOk_ = true;
-  BText action = I2("'INVALID ACTION'", "'ACCIN INVLIDA'");
+  BText action = I2("'INVALID ACTION'", "'ACCIÓN INVALIDA'");
   try
   {
     if(read)
