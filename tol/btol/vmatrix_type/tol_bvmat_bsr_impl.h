@@ -376,6 +376,67 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
+class assign_missing_min_neginf
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<missing_info>*  mis_;
+  
+  assign_missing_min_neginf(symbol_handler<missing_info>& mis)
+  : mis_(&mis)
+  {}
+  void action() const
+  {
+    symbol_handler<missing_info>* mis = mis_;
+    mis->info.minBound  = BDat::NegInf();
+  }
+  void  operator()(const char& str) const { action();  }
+  template<typename IteratorT>
+  void  operator()(IteratorT first, IteratorT last) const { action(); }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_missing_max_posinf
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<missing_info>*  mis_;
+  
+  assign_missing_max_posinf(symbol_handler<missing_info>& mis)
+  : mis_(&mis)
+  {}
+  void action() const
+  {
+    symbol_handler<missing_info>* mis = mis_;
+    mis->info.maxBound  = BDat::PosInf();
+  }
+  void  operator()(const char& str) const { action();  }
+  template<typename IteratorT>
+  void  operator()(IteratorT first, IteratorT last) const { action(); }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+class assign_missing_sigma2_posinf
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<missing_info>*  mis_;
+  
+  assign_missing_sigma2_posinf(symbol_handler<missing_info>& mis)
+  : mis_(&mis)
+  {}
+  void action() const
+  {
+    symbol_handler<missing_info>* mis = mis_;
+    mis->info.sigma2  = BDat::PosInf();
+  }
+  void  operator()(const char& str) const { action();  }
+  template<typename IteratorT>
+  void  operator()(IteratorT first, IteratorT last) const { action(); }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
 class assign_missing_max
 ///////////////////////////////////////////////////////////////////////////////
 {

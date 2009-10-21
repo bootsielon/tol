@@ -91,6 +91,9 @@ public:
       add_symbol<noise_info>    add_res(s.noise);
       assign_declared_var_name assign_declared_var_name_(s.var);
       assign_extern_var_name assign_extern_var_name_(s.var);
+      assign_missing_min_neginf assign_missing_min_neginf_(s.mis); 
+      assign_missing_max_posinf assign_missing_max_posinf_(s.mis); 
+      assign_missing_sigma2_posinf assign_missing_sigma2_posinf_(s.mis); 
       assign_missing_min assign_missing_min_(s.mis); 
       assign_missing_max assign_missing_max_(s.mis); 
       assign_noise_size assign_noise_size_(s.noise.info, s.var.count, s.numEqu_);
@@ -279,11 +282,14 @@ public:
         (
           (
             (
-              str_p("<-")[assign_a(s.mis.info.prior,"None")]>>
+              str_p("<-")[assign_a(s.mis.info.prior,"None")]
+                         [assign_missing_sigma2_posinf_]
+                         [assign_missing_min_neginf_]
+                         [assign_missing_max_posinf_]>>
               (real_p[assign_a(s.mis.info.nu)] | error_badNumber) >>
               (
                 (
-                  ch_p('~') >>
+                  ch_p('~')[assign_missing_sigma2_posinf_] >>
                   (
                     (
                       str_p("Uniform")[assign_a(s.mis.info.prior,"Uniform")] >> 
