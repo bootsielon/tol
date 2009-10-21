@@ -641,7 +641,7 @@ reference "sub:LinearBlock_Antecedentes"
 \end_layout
 
 \begin_layout Section
-Distribución condicionada conjjunta de los omitidos del input y el output
+Distribución condicionada conjunta de los omitidos del input y el output
  
 \end_layout
 
@@ -682,7 +682,7 @@ En tal caso, si se conocen
 \end_inset
 
  y llevando al lado izquierdo todo lo conocido, a lo cual llamaremos 
-\begin_inset Formula $C$
+\begin_inset Formula $E$
 \end_inset
 
 , se tiene que
@@ -691,7 +691,7 @@ En tal caso, si se conocen
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-E=\dot{L}^{-1}\cdot\left(Y-X\cdot\beta\right)=\dot{L}^{-1}\cdot\left(V-U\cdot\beta\right)+\varepsilon\\
+E=\dot{L}^{-1}\cdot\left(Y-X\cdot\beta\right)=\dot{L}^{-1}\cdot\left(U\cdot\beta-V\right)+\varepsilon\\
 \dot{L}^{-1}=L^{-1}\cdot\nabla\triangle\\
 \varepsilon=L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\end{equation}
 
@@ -708,7 +708,7 @@ Siguiendo los razonamientos de los puntos anteriores, existirá una matriz
 
  tal que 
 \begin_inset Formula \begin{equation}
-V-U\cdot\beta=J\cdot w\end{equation}
+\dot{L}^{-1}\cdot\left(U\cdot\beta-V\right)=J\cdot w\end{equation}
 
 \end_inset
 
