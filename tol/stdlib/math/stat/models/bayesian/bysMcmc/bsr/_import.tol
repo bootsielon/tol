@@ -302,7 +302,7 @@ Real Write.Data.NoiseDistribution(NameBlock segment,
   FPutText(fileHandler, name+"::Noise"
     "["+IntText(segment::Get.Equation.Size(0))+timeExpr+"]"+
     "\n  ~ Normal(0,"<<s2+s2Prior);
-  Real arima.size = If(!FunctionExist("Text","segment::Get.ARIMA.Size"),0,
+  Real arima.size = If(!FunctionExist("Real","segment::Get.ARIMA.Size"),0,
      segment::Get.ARIMA.Size(0));
   Case(
   arima.size, 
