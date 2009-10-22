@@ -201,7 +201,10 @@ public:
         ;
       arima = 
         (
-          (str_p("ARIMA.COV") | (str_p("Cov") >>str_p("=")>> str_p("Arima"))) >> 
+          ( 
+            str_p("ARIMA.COV") | 
+            (str_p("Cov") >> str_p("=") >> str_p("ArimaCovariance"))
+          ) >> 
           confix_p("([[", (*(anychar_p)), "]])")[assign_a(s.noise.info.arimaExpr)]
         )
         ;
@@ -254,14 +257,11 @@ public:
           >>
           (
             (
-              str_p("<-")[assign_a(s.mis.info.prior,"None")]
-                         [assign_missing_sigma2_posinf_]
-                         [assign_missing_min_neginf_]
-                         [assign_missing_max_posinf_]>>
+              str_p("<-")[assign_a(s.mis.info.prior,"None")]>>
               (real_p[assign_a(s.mis.info.nu)] | error_badNumber) >>
               (
                 (
-                  ch_p('~')[assign_missing_sigma2_posinf_] >>
+                  ch_p('~') >>
                   (
                     (
                       str_p("Uniform")[assign_a(s.mis.info.prior,"Uniform")] >> 
@@ -273,8 +273,9 @@ public:
                     ) 
                   )
                 )
-                | eps_p
-              )[assign_a(s.mis.info.sigma2,BDat::Nan())]
+                | eps_p[assign_missing_min_neginf_]
+                       [assign_missing_max_posinf_]
+              )[assign_missing_sigma2_posinf_]
             )
             |
             (
