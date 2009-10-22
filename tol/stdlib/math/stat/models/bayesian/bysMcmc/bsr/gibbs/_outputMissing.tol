@@ -1,0 +1,216 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _outputMissingBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::OutputMissingBlock
+/////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////
+Class @OutputMissingBase :
+////////////////////////////////////////////////////////////////////////////
+{
+  //--------------------------------------------------------------------------
+  // Mandatory members
+  //--------------------------------------------------------------------------
+  //data length (number of rows of matrices in main linear regression )
+  Real _.M;
+  //Total number of distinct missing (input and output)
+  Real _.N;
+
+  //--------------------------------------------------------------------------
+  // Auxiliar members
+  //--------------------------------------------------------------------------
+  //Component of dependent term of regression 
+  VMatrix _.H = Rand(0,0,0,0);
+  //Fixed or reloaded component to filter independent term of regression
+  VMatrix _.V1 = Rand(0,0,0,0);
+
+  //--------------------------------------------------------------------------
+  //Methods
+  //--------------------------------------------------------------------------
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @OutputMissingBase Default(Real M, Real N)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Bsr::Gibbs::@OutputMissingBase out = [[
+    Real _.M = M;
+    Real _.N = N
+  ]]};
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Set i1, Set i2)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.H  := Zeros(_.M, Card(i2));
+    VMatrix _.V1 := Zeros(_.M, 1);
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real build_full(
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
+    VMatrix si)    //SigmaBlock filter
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real build_partial(
+    VMatrix store, //Current missing values  
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //Arima Block handler
+    VMatrix si)    //SigmaBlock filter
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    True
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix filter(VMatrix Z, VMatrix store)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Z
+  }
+
+};
+
+
+////////////////////////////////////////////////////////////////////////////
+Class @OutputMissing : @OutputMissingBase
+////////////////////////////////////////////////////////////////////////////
+{
+  //--------------------------------------------------------------------------
+  // Mandatory members
+  //--------------------------------------------------------------------------
+  //Set of @Bsr.Missing.Info
+  Set _.outputMissingBlock;
+  //Indexes of output missing in full missing block
+  Set _.i;
+
+  //--------------------------------------------------------------------------
+  // Auxiliar members
+  //--------------------------------------------------------------------------
+  //Number of non free missing in full missing block
+  Real _.N1 = 0;
+  //Number of free missing in full missing block
+  Real _.N2 = 0;
+  //Number of non free output missing in full missing block
+  Real _.n1 = 0;
+  //Number of free output missing in full missing block
+  Real _.n2 = 0;
+  //Indexes of non free output missing in full missing block
+  Set _.i1 = Copy(Empty);
+  //Indexes of free output missing in full missing block
+  Set _.i2 = Copy(Empty);
+  //Indexes of output missing in full missing block in matrix form
+  Matrix _.I = Rand(0,0,0,0);
+  //Indexes of non free output missing in full missing block in matrix form
+  Matrix _.I1 = Rand(0,0,0,0);
+  //Indexes of free output missing in full missing block in matrix form
+  Matrix _.I2 = Rand(0,0,0,0);
+  //Row of output missing 
+  Set _.t = Copy(Empty);
+  //Row of output missing in matrix form
+  Matrix _.T = Rand(0,0,0,0);
+  //Used for evaluate _.H in each iteration
+  VMatrix _.HEye = Rand(0,0,0,0);
+  Set _.t2 = Copy(Empty);
+  VMatrix H2t = Rand(0,0,0,0);
+  VMatrix H2 = Rand(0,0,0,0);
+
+  //--------------------------------------------------------------------------
+  //Methods
+  //--------------------------------------------------------------------------
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @OutputMissing New(
+    Set outputMissingBlock,
+    Real M, 
+    Real N, 
+    Set i)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Bsr::Gibbs::@OutputMissing blk = [[
+    Set _.outputMissingBlock = outputMissingBlock; 
+    Real _.M = M;
+    Real _.N = N;
+    Set _.i = i
+  ]]};
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Set i1, Set i2)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE @OutputMissing::initialize 1");
+    Matrix _.I := SetCol(_.i);
+    Real _.N1 := Card(i1);
+    Real _.N2 := Card(i2);
+    Set _.i1 := i1 * _.i;
+    Set _.i2 := i2 * _.i;
+    Real _.n1 := Card(_.i1);
+    Real _.n2 := Card(_.i2);
+    Matrix _.I1 := SetCol(_.i1);
+    Matrix _.I2 := SetCol(_.i2);
+    Set _.t := Traspose(Extract(_.outputMissingBlock, 3))[1];
+    Matrix _.T := SetCol(_.t);
+    VMatrix _.HEye := If(!_.n2, Zeros(_.M, _.N2),
+    {
+      WriteLn("TRACE @OutputMissing::initialize 4");
+      Set _.t2 := ExtractByIndex(_.t, _.i2);
+      WriteLn("TRACE @OutputMissing::initialize 5 _.t2:"<<_.t2);
+      VMatrix H2t := Tra(SubCol(Eye(_.M), _.t2));
+      WriteLn("TRACE @OutputMissing::initialize 6 H2t:"<<H2t);
+      VMatrix H2 := Tra(Convert(MergeRows(_.N, [[ [[ H2t, _.I2 ]] ]]),
+                             "Cholmod.R.Sparse"));
+      WriteLn("TRACE @OutputMissing::initialize 7 H2:"<<H2);
+      SubCol(H2, i2)
+    });
+    WriteLn("TRACE @OutputMissing::initialize 8 _.HEye:"<<_.HEye);
+    1
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real build_full(
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
+    VMatrix si)    //SigmaBlock filter
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.H := arm.blk::filter(-si*_.HEye);
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real build_partial(
+    VMatrix store, //Current missing values  
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //Arima Block handler
+    VMatrix si)    //SigmaBlock filter
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.V1 := If(!_.n1, Zeros(_.M, 1),
+    {    
+      VMatrix v1 = SubRow(store, _.i1);
+      MergeRows(_.M, [[ [[ v1, _.I1 ]] ]])
+    });
+    VMatrix _.H := If(!_.n2, Zeros(_.M, _.N2),
+    {
+      arm.blk::filter(si*_.HEye)
+    });
+    True
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix filter(VMatrix Z, VMatrix store)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" filter Z:"<<Z);
+    VMatrix v1 = SubRow(store, _.i);
+    VMatrix V = MergeRows(_.M, [[ [[ v1, _.T]] ]]);
+    Z+Convert(V,"Blas.R.Dense")
+  }
+
+};
+

@@ -1,0 +1,357 @@
+/////////////////////////////////////////////////////////////////////////////
+// LIBRARY: StdtLib (Standard Library of TOL)
+// MODULE: Stat (Statistics)
+// FILE: _missingBlock.tol
+// PURPOSE: Declares method BysMcmc::Bsr::Gibbs::MissingBlock
+/////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////
+Class @BlockMissingBase : 
+////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix filter.output(VMatrix Z);
+  VMatrix filter.input (VMatrix Z)
+};
+
+////////////////////////////////////////////////////////////////////////////
+Class @BlockMissingEmpty : @BlockStdLinEmpty, @BlockMissingBase
+////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix filter.output(VMatrix Z) { Z };
+  VMatrix filter.input (VMatrix Z) { Z };
+  //////////////////////////////////////////////////////////////////////////////
+  Static @BlockMissingEmpty New(
+   Text name, 
+   Real numBlock, 
+   Real firstCol, 
+   BysMcmc::@Config config)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Bsr::Gibbs::@BlockMissingEmpty aux = 
+    [[
+      Real _defined = define(name, Empty, BysMcmc::@McmcPartialHandler::Null(0),
+                            numBlock, firstCol, config)
+    ]]
+  }
+};
+
+////////////////////////////////////////////////////////////////////////////
+Class @BlockMissing : @BlockStdLin, @BlockMissingBase 
+////////////////////////////////////////////////////////////////////////////
+{
+  //--------------------------------------------------------------------------
+  // Mandatory members
+  //--------------------------------------------------------------------------
+  //Set of @Bsr.Missing.Info without repeatitions
+  Set _.missingInfo;
+  //data length (number of rows of regression matrices)
+  Real _.M;
+  //Number of distinct missing with normal priors
+  Real _.prior.M;
+  //Average vector of missing priors
+  Matrix _.prior.nu;
+  //Inverse of standard deviation vector of missing priors
+  Matrix _.prior.si;
+  //Standarized output of missing priors
+  VMatrix _.prior.Y;
+  //Standarized input of missing priors
+  VMatrix _.prior.X;
+  
+  @OutputMissingBase _.output;
+  @InputMissingBase  _.input;
+
+  //--------------------------------------------------------------------------
+  // Auxiliar members
+  //--------------------------------------------------------------------------
+  //Work space
+  @WorkSpace.LinReg _.ws = BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg::Null(0);
+  //Standarized output of free missing priors
+  VMatrix _.prior.Y.free = Rand(0,0,0,0);
+  //Standarized input of free missing priors
+  VMatrix _.prior.X.free = Rand(0,0,0,0);
+  VMatrix _.beta = Rand(0,0,0,0);
+
+  //--------------------------------------------------------------------------
+  //Methods
+  //--------------------------------------------------------------------------
+  ////////////////////////////////////////////////////////////////////////////
+  @WorkSpace.LinReg getWorkSpaceLinReg(Real unused) 
+  ////////////////////////////////////////////////////////////////////////////
+  { _.ws };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.New =
+  "Builds a NameBlock that can draw a Gibbs sample of a Missing block "
+  "of a Bayesian Sparse Regression model";
+  //////////////////////////////////////////////////////////////////////////////
+  Static @BlockStdLin New(
+    Text name, 
+    Set  outputMissingBlock, 
+    Set  inputMissingBlock, 
+    Real dataLength,
+    BysMcmc::@McmcPartialHandler mcmcPartialHandler,
+    Real numBlock, 
+    Real firstCol,
+    BysMcmc::NameBlock config)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text MID_ = "[@BlockMissing::New] ";
+    Real outNum = Card(outputMissingBlock);
+    Real inpNum = Card(inputMissingBlock);
+    Real allNum = outNum + inpNum;
+    Set all = DeepCopy(outputMissingBlock << inputMissingBlock);
+  //WriteLn("TRACE "+MID_+" 1 outNum="<<outNum);
+  //WriteLn("TRACE "+MID_+" 2 inpNum="<<inpNum);
+  //WriteLn("TRACE "+MID_+" 3 allNum="<<allNum);
+    If(!allNum, 
+    BysMcmc::Bsr::Gibbs::@BlockMissingEmpty::New(name,numBlock,firstCol,config),
+    BysMcmc::Bsr::Gibbs::@BlockMissing blk = [[
+    Code _.buildWorkSpace = _buildWorkSpace;
+    Real _.M = dataLength;
+    Set _.missingInfo = 
+    {
+      Set For(1,allNum, Real(Real k) { (all[k])->Index := k });
+      Set aux = @BlockMissing::Get.MissingDistinct(all);
+      EvalSet(aux, Set(Set cl){ cl[1] })
+    };
+    Real _.N = Card(_.missingInfo);
+    //Given initial values of block variables
+    VMatrix _.store = Mat2VMat(SetMat(Extract(_.missingInfo, 6)));
+    //Defining the block in the Markov Chain
+    Real _defined = define(
+      name, 
+      EvalSet(_.missingInfo, Text(@BSR.MissingBlock b){ b->Name }), 
+      mcmcPartialHandler,
+      numBlock, 
+      firstCol, 
+      config);
+    @OutputMissingBase _.output=If(!outNum,@OutputMissingBase::Default(_.M,_.N),
+    {
+      Set rng = Range(1,outNum,1);
+      Set out = ExtractByIndex(all,rng);
+      Set aux = Classify(out,Real(@BSR.MissingBlock a, @BSR.MissingBlock b)
+      {
+        Compare(a->Index, b->Index)
+      });
+      Set i = EvalSet(aux,Real(Set cl) { cl[1]->Index });
+      @OutputMissing::New(out,_.M,_.N,i)
+    });
+    @InputMissingBase _.input=If(!inpNum,@InputMissingBase::Default(_.M,_.N),
+    {
+      Set rng = Range(1+outNum,allNum,1);
+      Set inp = ExtractByIndex(all,rng); 
+      Set aux = Classify(inp,Real(@BSR.MissingBlock a, @BSR.MissingBlock b)
+      {
+        Compare(a->Index, b->Index)
+      });
+      Set i = EvalSet(aux,Real(Set cl) { cl[1]->Index });
+      @InputMissing ::New(inp,_.M,_.N,i)
+    });
+    //Selecting input missing variables with prior information
+    Set _.prior.normal = Select(_.missingInfo, Real(@BSR.MissingBlock b)
+    {
+      Or(b->Prior == "Normal",b->Prior == "TruncatedNormal")
+    });
+    //Number of missing prior equations
+    Real _.prior.M = Card(_.prior.normal);
+    //Average vector of missing priors
+    Matrix _.prior.nu = If(!_.prior.M,Rand(0,1,0,0),
+    {
+    //WriteLn("TRACE "+_MID+" 3");
+      SetMat(Extract(_.prior.normal, 6))
+    });
+    //Inverse of standard deviation vector of missing priors
+    Matrix _.prior.si = If(!_.prior.M,Rand(0,1,0,0),
+    {
+    //WriteLn("TRACE "+_MID+" 4");
+      Matrix s2 = SetMat(Extract(_.prior.normal, 7));
+      RPow(s2,-1/2)
+    });
+    //Standarized output of missing priors
+    VMatrix _.prior.Y = If(!_.prior.M,Rand(0,1,0,0), 
+      Mat2VMat(_.prior.nu $* _.prior.si));
+    //Standarized input of missing priors
+    VMatrix _.prior.X = If(!_.prior.M,Rand(0,_.N,0,0),
+    {
+    //WriteLn("TRACE "+_MID+" _.prior.X 1");
+      Matrix triplet = SetMat(Traspose([[Set Range(1,_.prior.M,1)]])) | 
+                       SetMat(Extract(_.prior.normal, 2)) |
+                       _.prior.si;
+    //WriteLn("TRACE "+_MID+" _.prior.X 2 triplet=\n"<<triplet);
+      VMatrix tr = Triplet(triplet,_.prior.M,_.N);
+    //WriteLn("TRACE "+_MID+" _.prior.X 3");
+      VMatrix pX = Convert(tr,"Cholmod.R.Sparse");
+    //WriteLn("TRACE "+_MID+" _.prior.X 4");
+      pX
+    })
+  ]])};
+
+  ///////////////////////////////////////////////////////////////////////////
+  Real initialize(Real unused)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Real initialize.subBlocks(unused);
+    Real _.output::initialize(_.i1, _.i2);
+    Real _.input ::initialize(_.i1, _.i2);
+  //WriteLn("TRACE "+_MID+" initialize 1");
+    VMatrix store = _.store;
+    VMatrix _.prior.Y.free := _.prior.Y;
+    VMatrix _.prior.X.free := SubCol(_.prior.X, _.i2);
+    //Selecting missing variables with left truncated prior information
+    Set leftConstrained = 
+      Select(_.missingInfo, Real(@BSR.MissingBlock b)
+      {
+        And(!IsUnknown(b->MinBound),GT(b->MinBound,-1/0))
+      });
+    //Selecting output missing variables with right truncated prior information
+    Set rightConstrained = 
+      Select(_.missingInfo, Real(@BSR.MissingBlock b)
+      {
+        And(!IsUnknown(b->MinBound),LT(b->MaxBound,1/0))
+      });
+  //WriteLn("TRACE "+_MID+" initialize 2");
+    //Number of missing with left constrained prior 
+    Real left.R = Card(leftConstrained);
+    //Number of missing with left constrained prior 
+    Real right.R = Card(rightConstrained);
+    //Number of missing with constrained prior 
+    Real R = left.R + right.R;
+    //Border of missing constrains
+    VMatrix prior.a = If(!R, Rand(0,0,0,0), 
+    {
+    //WriteLn("TRACE "+_MID+" 8");
+      VMatrix aux1=If(!left.R,  Rand(0,1,0,0), 
+        (-Mat2VMat(SetMat(Extract(leftConstrained,  8)))));
+    //WriteLn("TRACE "+_MID+" 9");
+      VMatrix aux2=If(!right.R, Rand(0,1,0,0), 
+        (+Mat2VMat(SetMat(Extract(rightConstrained, 9)))));
+      aux1<<aux2
+    });
+  //WriteLn("TRACE "+_MID+" initialize 3 prior.a:"<<prior.a);
+    //Coefficients of missing constrains
+    VMatrix prior.A = If(!R, Rand(0,0,0,0), 
+    {
+      Set left.range  = Range(1,        left.R, 1);
+      Set right.range = Range(1+left.R, R,      1);
+    //WriteLn("TRACE "+_MID+" 10");
+      Matrix left  = If(!left.R, Rand(0,3,0,0), 
+                                 SetMat(Traspose([[left.range]])) | 
+                                 SetMat(Extract(leftConstrained, 2)) | 
+                                 Rand(left.R,1,-1,-1));
+    //WriteLn("TRACE "+_MID+" 11");
+      Matrix right = If(!right.R, Rand(0,3,0,0),
+                                  SetMat(Traspose([[right.range]])) | 
+                                  SetMat(Extract(rightConstrained, 2)) | 
+                                  Rand(right.R,1,+1,+1));
+      Convert(Triplet(left<<right,R,_.N),"Cholmod.R.Sparse")
+    });
+  //WriteLn("TRACE "+_MID+" initialize 4 prior.A:"<<prior.A);
+    Real ok = matchConstrains(store,prior.A,prior.a);
+  //WriteLn("TRACE "+_MID+" initialize 5");
+    ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace_full(
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
+    VMatrix si,    //SigmaBlock filter
+    VMatrix Z,     //Noise of main linear block
+    VMatrix beta)  //Main Linear Block parameters 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.output::build_full(arm.blk,si);
+    Real _.input ::build_full(arm.blk,si,beta);
+    VMatrix Y = arm.blk::filter(si*Z);
+    VMatrix X = _.input::_.G - _.output::_.H;
+    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg wslr = 
+    [[
+      VMatrix _.Y = Y << _.prior.Y;
+      VMatrix _.X = X << _.prior.X
+    ]];
+    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg _.ws := wslr;
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace_partial(
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
+    VMatrix si,    //SigmaBlock filter
+    VMatrix Z,     //Noise of main linear block
+    VMatrix beta)  //Main Linear Block parameters 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.output::build_partial(_.partialSampler::_.values,arm.blk,si     );
+    Real _.input ::build_partial(_.partialSampler::_.values,arm.blk,si,beta);
+    VMatrix Y = arm.blk::filter(si*(Z+_.input::_.U1-_.output::_.V1));
+    VMatrix X = _.input::_.G - _.output::_.H;
+    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg wslr = 
+    [[
+      VMatrix _.Y = Y << _.prior.Y.free;
+      VMatrix _.X = X << _.prior.X.free
+    ]];
+    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg _.ws := wslr;
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _buildWorkSpace(
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
+    VMatrix si,    //SigmaBlock filter
+    VMatrix Z,     //Noise of main linear block
+    VMatrix beta)  //Main Linear Block parameters 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.beta := beta;
+    If(!_.N1,
+      _buildWorkSpace_full   (arm.blk,si,Z,beta),
+      _buildWorkSpace_partial(arm.blk,si,Z,beta))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix filter.output(VMatrix Z)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(Not(enabled), Z, _.output::filter(Z,_.store))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix filter.input(VMatrix Z)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(Not(enabled), Z, _.input::filter(Z,_.store))
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+    Static Set Get.MissingDistinct(Set missing)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Text MID_ = "[@BlockMissing::Get.MissingDistinct] ";
+  //WriteLn("TRACE "+MID_+" 1 Card(missing)="<<Card(missing));
+    Set aux.1 = Classify(missing, 
+    Real(@BSR.MissingBlock a, @BSR.MissingBlock b)
+    {
+      Compare(a->Name, b->Name)
+    });
+  //WriteLn("TRACE "+MID_+" 2 Card(aux.1)="<<Card(aux.1));
+    Set aux.2 = Sort(aux.1, 
+    Real(Set a, Set b)
+    {
+      Real a.minIndex = SetMin(Traspose(Extract(a,2))[1]);
+      Real b.minIndex = SetMin(Traspose(Extract(b,2))[1]);
+      Compare(a.minIndex, b.minIndex)
+    });
+  //WriteLn("TRACE "+MID_+" 3 Card(aux.2)="<<Card(aux.2));
+    Set For(1, Card(aux.2), Real(Real k)
+    { 
+      Set EvalSet(aux.2[k], Real(@BSR.MissingBlock mis)
+      {
+        Set PutName(ToName(mis->Name), mis);
+        Real mis->Index := k
+      });
+      k
+    });
+    aux.2
+  }
+};
+
