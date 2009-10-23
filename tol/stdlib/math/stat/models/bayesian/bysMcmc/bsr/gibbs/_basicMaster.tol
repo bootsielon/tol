@@ -20,8 +20,7 @@ Class @MasterSamplerBasic : @MasterSampler
   BysMcmc::Bsr::Gibbs::@BlockStdLin _.mln.blk;
   BysMcmc::Bsr::Gibbs::@BlockSigma  _.sig.blk;
   BysMcmc::Bsr::Gibbs::@BlockArima  _.arm.blk;
-  BysMcmc::Bsr::Gibbs::@BlockStdLin _.inpMis.blk;
-  BysMcmc::Bsr::Gibbs::@BlockStdLin _.outMis.blk;
+  BysMcmc::Bsr::Gibbs::@BlockStdLin _.mis.blk;
   //Non linear blocks
   Set _.nonLinBlk;
 
@@ -156,7 +155,7 @@ Class @MasterSamplerBasic : @MasterSampler
         seg->NonLinFilters
       });
       Set nonLinFilter = BinGroup("<<", aux.nlb);
-      Real nextCol = _.outMis.blk::_.lastCol+1;
+      Real nextCol = _.mis.blk::_.lastCol+1;
       @MasterSamplerBasic T = _this;
       For(1,Card(nonLinFilter), NameBlock(Real numBlk)
       {
@@ -185,8 +184,7 @@ Class @MasterSamplerBasic : @MasterSampler
       _.mln.blk,
       _.sig.blk,
       _.arm.blk,
-      _.inpMis.blk,
-      _.outMis.blk
+      _.mis.blk
     ]]
     << _.nonLinBlk;
     Real _defined := define(
@@ -212,9 +210,9 @@ Class @MasterSamplerBasic : @MasterSampler
     Set _.nonLinDrawFilter := Select(_.nonLinBlk, sel.drwFlt);
 
   //WriteLn("TRACE"+_MID+" initialize 1");
-    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
+    VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
   //WriteLn("TRACE"+_MID+" initialize 1.1 _.YplusV("<<VRows(_.YplusV)+"x"<<VColumns(_.YplusV)+")");
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
+    VMatrix _.XplusU := _.mis.blk::filter.input(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" initialize 1.2 _.XplusU("<<VRows(_.XplusU)+"x"<<VColumns(_.XplusU)+")");
     Matrix givenBeta=
     SetCol(EvalSet(_.modelDef->LinearBlock,Real(@BSR.LinearBlock b)
@@ -266,8 +264,8 @@ Class @MasterSamplerBasic : @MasterSampler
   {
   //WriteLn("TRACE"+_MID+" resume 0");
     Real initialize.blocks(unused);
-    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
+    VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
+    VMatrix _.XplusU := _.mis.blk::filter.input(_.modelDef->X);
     VMatrix _.beta   := _.mln.blk::_.store;
     Real ok = _.mln.blk::matchConstrains(_.beta, _.modelDef->A, _.modelDef->a);
     If(ok,
@@ -304,37 +302,25 @@ Class @MasterSamplerBasic : @MasterSampler
   {
   //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 1");
     Real DoNonLinOutputFilter(0);
-    VMatrix om = If(Not(_.outMis.blk::_.N),
+
+    VMatrix mis = If(Not(_.mis.blk::_.N),
     {
       VMatrix _.YplusV := _.Y;
-      Rand(0,1,0,0)
-    },
-    {
-      Real If(_.outMis.blk::_.partialSampler::_.freeParamNum,
-      {
-        Real _.outMis.blk::_.buildWorkSpace(
-          _.arm.blk,_.sig.blk::_.sigmaInv,_.Y-_.XplusU*_.beta)
-      });
-      VMatrix aux = _.outMis.blk::get.draw(numSim, False);
-      VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
-      aux
-    });
-  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 2 om="<<om);
-    VMatrix im = If(Not(_.inpMis.blk::_.N),
-    {
       VMatrix _.XplusU := _.modelDef->X;
       Rand(0,1,0,0)
     },
     {
-      Real If(_.inpMis.blk::_.partialSampler::_.freeParamNum,
+      Real If(_.mis.blk::_.partialSampler::_.freeParamNum,
       {
-        Real _.inpMis.blk::_.buildWorkSpace(
-          _.arm.blk,_.sig.blk::_.sigmaInv,_.YplusV-_.modelDef->X*_.beta,_.beta)
+        Real _.mis.blk::_.buildWorkSpace(
+          _.arm.blk,_.sig.blk::_.sigmaInv,_.modelDef->Y-_.modelDef->X*_.beta,_.beta)
       });
-      VMatrix aux = _.inpMis.blk::get.draw(numSim, False);
-      VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
+      VMatrix aux = _.mis.blk::get.draw(numSim, False);
+      VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
+      VMatrix _.XplusU := _.mis.blk::filter.input(_.modelDef->X);
       aux
     });
+
   //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 3 im="<<im);
     VMatrix _.filter := If(Not(_.mln.blk::_.N),
       _.YplusV*0,
@@ -389,7 +375,7 @@ Class @MasterSamplerBasic : @MasterSampler
       Group("ConcatRows", nlb.aux)
     }); 
   //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 6 _.beta="<<_.beta);
-    VMatrix param = _.beta << sig << arm << im << om << nlb;
+    VMatrix param = _.beta << sig << arm << mis << nlb;
   //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 7 param="<<VRows(param)+"x"<<VColumns(param)+")");
     Real putStoreV(param);
     param
@@ -427,10 +413,10 @@ Class @MasterSamplerBasic : @MasterSampler
     Real setStore(values);
     Real DoNonLinOutputFilter(0);
   //WriteLn("TRACE"+_MID+" eval 2");
-    VMatrix _.YplusV := _.outMis.blk::filter(_.Y);
-    VMatrix fullOutput.mis = _.outMis.blk::filter(_.Y*0);
+    VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
+    VMatrix fullOutput.mis = _.mis.blk::filter.output(_.Y*0);
   //WriteLn("TRACE"+_MID+" eval 3");
-    VMatrix _.XplusU := _.inpMis.blk::filter(_.modelDef->X);
+    VMatrix _.XplusU := _.mis.blk::filter.input(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" eval 4");
     VMatrix _.beta := _.mln.blk::_.store;
     VMatrix fullFilter = _.modelDef->X*_.beta;
@@ -515,7 +501,7 @@ Class @MasterSamplerBasic : @MasterSampler
           Serie serDifNoise  = MatSerSet(Tra(difNoise), ti->Dating, difFirst)[1];
           Serie serResiduals = MatSerSet(Tra(residuals),ti->Dating, difFirst)[1];
           Serie serForecast  = MatSerSet(Tra(forecast), ti->Dating, difFirst)[1];
-          [[sigma, stdErr, avr, serOutput, serOutput.mis, serOutput.full, 
+          [[sigma, stdErr, avr, serOutput, serOutput.mis, serOutput.extFil, serOutput.full, 
             serFilter, serFilter.mis, serFilter.full, serNoise, serForecast,
             serDifNoise, serResiduals, arima]]
         },
@@ -693,7 +679,7 @@ Class @MasterSamplerBasic : @MasterSampler
   Matrix getInput(Anything resBlock, Set beta.index)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix X_U = _.inpMis.blk::filter(_.modelDef->X);
+    VMatrix X_U = _.mis.blk::filter.input(_.modelDef->X);
     VMatrix X = SubCol(X_U,beta.index);
     VMat2Mat(subRegEquBlockV(resBlock, X))
   };
@@ -706,7 +692,7 @@ Class @MasterSamplerBasic : @MasterSampler
   Matrix getOutput(Anything resBlock)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix Y = _.outMis.blk::filter(_.modelDef->Y);
+    VMatrix Y = _.mis.blk::filter.output(_.modelDef->Y);
     VMat2Mat(subRegEquBlockV(resBlock, Y))
   };
 
@@ -732,7 +718,7 @@ Class @MasterSamplerBasic : @MasterSampler
   Matrix getDifInputFull(Anything resBlock)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix X_U = _.inpMis.blk::filter(_.modelDef->X);
+    VMatrix X_U = _.mis.blk::filter.input(_.modelDef->X);
     VMat2Mat(subDifRegEquBlockV(resBlock, X_U))
   };
 
@@ -744,7 +730,7 @@ Class @MasterSamplerBasic : @MasterSampler
   Matrix getDifInput(Anything resBlock, Set beta.index)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix X_U = _.inpMis.blk::filter(_.modelDef->X);
+    VMatrix X_U = _.mis.blk::filter.input(_.modelDef->X);
     VMatrix X = SubCol(X_U,beta.index);
     VMat2Mat(subDifRegEquBlockV(resBlock, X))
   };
@@ -757,7 +743,7 @@ Class @MasterSamplerBasic : @MasterSampler
   Matrix getDifOutput(Anything resBlock)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix Y_V = _.outMis.blk::filter(_.modelDef->Y);
+    VMatrix Y_V = _.mis.blk::filter.output(_.modelDef->Y);
     VMat2Mat(subDifRegEquBlockV(resBlock, Y_V))
   };
 
@@ -897,25 +883,16 @@ Class @MasterSamplerBasic : @MasterSampler
         config
       );
 
-      BysMcmc::Bsr::Gibbs::@BlockStdLin _.inpMis.blk = 
-      BysMcmc::Bsr::Gibbs::@BlockInputMissing::New
+      BysMcmc::Bsr::Gibbs::@BlockStdLin _.mis.blk = 
+      BysMcmc::Bsr::Gibbs::@BlockMissing::New
       (
-        "@BSR.InputMissingBlock."+name,
+        "@BSR.MissingBlock."+name,
+        _.modelDef->OutputMissingBlock,
         _.modelDef->InputMissingBlock,
+        VRows(_.modelDef->Y),
         mcmcPartialHandler,
         4,
         _.arm.blk::_.lastCol+1,
-        config
-      );
-
-      BysMcmc::Bsr::Gibbs::@BlockStdLin _.outMis.blk = 
-      BysMcmc::Bsr::Gibbs::@BlockOutputMissing::New
-      (
-        "@BSR.OutputMissingBlock."+name,
-        _.modelDef->OutputMissingBlock,
-        mcmcPartialHandler,
-        5,
-        _.inpMis.blk::_.lastCol+1,
         config
       );
       Set _.nonLinBlk = Copy(Empty);

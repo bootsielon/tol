@@ -232,8 +232,7 @@ Class @BlockSigma : @BlockSampler
   //WriteLn("TRACE"+_MID+" setStore("<<Rows(values)+"x"<<Columns(values)+")");
     If(_.N<=0,0,{
     Real putStore(values);
-    VMatrix sigmaInvVar = BinGroup("+", 
-    For(1,Card(_.sigmaBlockVar), VMatrix (Real k)
+    VMatrix sigmaInvVar = SetSum(For(1,Card(_.sigmaBlockVar), VMatrix (Real k)
     {
       Real si = 1/Sqrt(VMatDat(_.store,k,1));
       _.sigmaBlockVar[k]->Li*si
@@ -291,7 +290,7 @@ Class @BlockSigma : @BlockSampler
     //A diagonal matrix with sum of all constant sigmas that will be used in 
     //regression standarizing
     VMatrix _.sigmaInvCte = If(!Card(_.sigmaBlockCte), Zeros(_.m),
-      BinGroup("+", EvalSet(_.sigmaBlockCte, VMatrix (@BSR.NoiseDistrib d) 
+      SetSum(EvalSet(_.sigmaBlockCte, VMatrix (@BSR.NoiseDistrib d) 
       { d->Li })));
     //Sigma block current store
     VMatrix _.sigmaInv = _.sigmaInvCte

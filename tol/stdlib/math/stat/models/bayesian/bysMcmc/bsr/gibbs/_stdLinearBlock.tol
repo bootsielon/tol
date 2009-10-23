@@ -591,6 +591,9 @@ Class @BlockStdLin: @BlockSampler
   Real _.N1 = ?;
   Real _.N2 = ?;
 
+  //Indexes of inequations related to free variables
+  Set _.r2 = Copy(Empty);
+
   //--------------------------------------------------------------------------
   //Methods
   //--------------------------------------------------------------------------
@@ -665,18 +668,31 @@ Class @BlockStdLin: @BlockSampler
       VMatrix b1 = SubRow(_.fullBlock::_.beta0, _.i1);
       Real ok2 = If(!ok1, False,
       {
-        If(!_.N2, True,
+        Case(!_.N2, True,
+        !VRows(A),
+        {
+          VMatrix b2 = SubRow(_.fullBlock::_.beta0, _.i2);
+          _.freeBlock::matchConstrains(b2,Rand(0,_.N2,0,0),Rand(0,1,0,0))
+        },
+        1==1,  
         {
         //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.4");
           VMatrix b2 = SubRow(_.fullBlock::_.beta0, _.i2);
         //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.5");
           VMatrix A1 = SubCol(A, _.i1);
         //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.6");
-          VMatrix A2 = SubCol(A, _.i2);
+          VMatrix A2_ = SubCol(A, _.i2);
+          VMatrix a2_ = a - A1*b1;
         //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.7");
-          VMatrix a2 = a - A1*b1;
+          Matrix aux = VMat2Mat(Abs(A2_)*Rand(_.N2,1,1,1));
+          Matrix nz  = NE(aux,Rand(_.fullBlock::_.R,1,0,0));
+          Matrix idx = SetCol(Range(1,_.fullBlock::_.R,1));
+          Set nz_idx = MatSet(Tra(nz $* idx))[1];
+          Set _.r2 = Select(nz_idx,Real(Real j) { j>0 });
+          VMatrix A2 = SubRow(A2_,_.r2);
+          VMatrix a2 = SubRow(a2_,_.r2);
         //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.8");
-          Real _.freeBlock::matchConstrains(b2,A2,a2)
+          _.freeBlock::matchConstrains(b2,A2,a2)
        })
       });
     //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.9");
@@ -704,10 +720,15 @@ Class @BlockStdLin: @BlockSampler
       {
       //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 2.1");
         VMatrix b1 = SubRow(_.partialSampler::_.values, _.i1);
-      //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 2.2");
-        VMatrix A1 = SubCol(_.fullBlock::_.A, _.i1);
-      //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 2.3");
-        VMatrix _.freeBlock::_.a := _.fullBlock::_.a - A1*b1;
+        Real If(_.freeBlock::_.R,
+        {
+        //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 2.2");
+          VMatrix A1 = SubCol(_.fullBlock::_.A, _.i1);
+        //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 2.3");
+          VMatrix a2_ = _.fullBlock::_.a - A1*b1;
+          VMatrix _.freeBlock::_.a := SubRow(a2_,_.r2);
+          True
+        });
       //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 2.4");
         True
       });

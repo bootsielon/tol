@@ -11,6 +11,7 @@ NameBlock Gibbs =
   Text _.autodoc.description =
   "Gibbs related methods for BSR and extensions.";
 
+  //Sigma block related methods
   #Embed "_sigmaBlock.tol";
   //ARIMA block related methods
   #Embed "_arimaBlock.tol";
@@ -18,12 +19,11 @@ NameBlock Gibbs =
   #Embed "_stdLinearBlock.tol";
   //Linear blocks related methods
   #Embed "_mainLinearBlock.tol";
-  //Sigma block related methods
-  //Missing input block related methods
-  #Embed "_inputMissingBlock.tol";
-  //Missing output block related methods
-  #Embed "_outputMissingBlock.tol";
-  //Generic I/O non linear filter block
+  //Missing block related methods
+  #Embed "_inputMissing.tol";
+  #Embed "_outputMissing.tol";
+  #Embed "_missingBlock.tol";
+  //Generic non linear filter block
   #Embed "_nonLinBlock.tol";
   //Basic BSR master (Lineal+Sigma+ARIMA+Missing I/O)
   #Embed "_basicMaster.tol";

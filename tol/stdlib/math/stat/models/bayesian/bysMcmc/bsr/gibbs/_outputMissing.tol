@@ -178,7 +178,7 @@ Class @OutputMissing : @OutputMissingBase
     VMatrix si)    //SigmaBlock filter
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix _.H := arm.blk::filter(-si*_.HEye);
+    VMatrix _.H := si*arm.blk::filter(_.HEye);
     True
   };
 
@@ -196,7 +196,7 @@ Class @OutputMissing : @OutputMissingBase
     });
     VMatrix _.H := If(!_.n2, Zeros(_.M, _.N2),
     {
-      arm.blk::filter(si*_.HEye)
+      si*arm.blk::filter(_.HEye)
     });
     True
   };
