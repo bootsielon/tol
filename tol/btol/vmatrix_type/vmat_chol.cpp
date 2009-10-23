@@ -198,6 +198,7 @@
     common_->print_function = cholmod_print_function;
     common_->error_handler  = cholmod_error_handler;
   }
+  if(X__!=&X_) { delete X__; }
   return(0);
 }
   
