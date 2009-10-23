@@ -1249,9 +1249,12 @@ Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close)
           }
           else
           {
+            BText sym = "";
+                 if(NextSymbol  ()) { sym=NextSymbol  ()->Name(); }
+            else if(NextArgument()) { sym=NextArgument()->Name(); }
             messageError_+=
               I2("Unexpected symbol ",
-                 "Símbolo fuera de lugar")+NextSymbol()->Name()+"\n"+
+                 "Símbolo fuera de lugar '")+sym+"' \n"+
               I2("A separator, close symbol or end of file was expected "
                  "after macro #Embed ",
                  "Se esperaba un separador, un símbolo de cierre o el final "
