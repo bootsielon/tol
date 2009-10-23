@@ -26,9 +26,9 @@ Text session.description =
 "Random seed="<<rndSeed;
 
 //Number of variables of each observational node
-Real n  = IntRand(10,10);
+Real n  = IntRand(20,20);
 //Data length of each observational node
-Real m  = IntRand(300,300);
+Real m  = IntRand(200,200);
 //Number of observational nodes
 Real K1 = IntRand(4,4);
 
@@ -124,8 +124,14 @@ Set obsNodes = For(1, K1, Set(Real k)
     id+"_Var."+IntText(j)
   });
   //Input matrix
-  Matrix aux = Rand(m,n,-1,1);
-  Matrix X = IfMat(LT(Abs(aux),Rand(m,n,0.5,0.5)),Rand(m,n,0,0),aux);
+  Matrix aux = Group("ConcatColumns",For(1,n,Matrix(Real j)
+  {
+    Real avr = Rand(-10, 10);
+    Real sig = Rand(0.1, 0.8);
+    Gaussian(m,1,avr,sig)
+  }));
+  Matrix X = IfMat(LT(Abs(Rand(m,n,-2,2)),Rand(m,n,0.5,0.5)),
+     Rand(m,n,0,0),aux);
   //Real beta block
   Matrix b = SetCol(For(1,n,Real(Real h)
   {
@@ -300,6 +306,7 @@ Set inputMissing = For(1, MissInp, Set(Real k)
   //al bloque de omitidos del input es singular. De momento no se simulan
   //omitidos sin prior
   Real rnd = IntRand(3,4);
+  Real nu = value*Rand(0.8,1.2);
   Text prior = Case
   (
     rnd==1, 
@@ -310,23 +317,23 @@ Set inputMissing = For(1, MissInp, Set(Real k)
     {
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? <- "<<(value*Rand(0.5,2))+"\n"+
+      "? <- "<<nu+"\n"+
       " ~ Uniform("<<min+","<<max+")"
     },
     rnd==3,
     {
       Real sigma2 = ((value)/2)^2;
-      "? ~ Normal("<<(value*Rand(0.8,1.2))+","<<sigma2+")"
+      "? ~ Normal("<<nu+","<<sigma2+")"
     },
     rnd==4,
     {
       Real sigma2 = ((value)/2)^2;
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? ~ TruncatedNormal("<<(value*Rand(0.8,1.2))+","<<sigma2+","<<min+","<<max+")"
+      "? ~ TruncatedNormal("<<nu+","<<sigma2+","<<min+","<<max+")"
     }
   );
-  Eval(id+"=[[ id, varIdx, equIdx, prior]]")
+  Eval(id+"=[[ id, varIdx, equIdx, prior, value, nu]]")
 });
 Real If(MissInp, SetIndexByName(inputMissing));
 
@@ -355,34 +362,35 @@ Set outputMissing = For(1, MissOut, Set(Real k)
     WriteLn("Cannot set unknown for missing output "+id,"E")
   });
   Real rnd = IntRand(1,4);
+  Real nu = value*Rand(0.8,1.2);
   Text prior = Case
   (
     rnd==1, 
     {
-      "? <- "<<(value*Rand(0.5,2))
+      "? <- "<<(value*Rand(0.8,1.2))
     },
     rnd==2,
     {
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? <- "<<(value*Rand(0.5,2))+"\n"+
+      "? <- "<<nu+"\n"+
       " ~ Uniform("<<min+","<<max+")"
     },
     rnd==3,
     {
       Real sigma2 = ((value)/2)^2;
-      "? ~ Normal("<<(value*Rand(0.8,1.2))+","<<sigma2+")"
+      "? ~ Normal("<<nu+","<<sigma2+")"
     },
     rnd==4,
     {
       Real sigma2 = ((value)/2)^2;
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? ~ TruncatedNormal("<<(value*Rand(0.8,1.2))+","<<sigma2+","<<min+","<<max+")"
+      "? ~ TruncatedNormal("<<nu+","<<sigma2+","<<min+","<<max+")"
     }
   );
   Real varIdx=1;
-  Eval(id+"=[[ id, varIdx, equIdx, prior]]")
+  Eval(id+"=[[ id, varIdx, equIdx, prior, value, nu]]")
 });
 Real If(MissOut, SetIndexByName(outputMissing));
 
@@ -462,7 +470,7 @@ Text bys.sparse.reg.path =
   Real FPutText(f,
   "\n"
   "////////////////////////////////////////////////////////////////////////////////\n"
-  "// Regression NOise Declarations Normal(0,sigma^2)\n"
+  "// Regression Noise Declarations Normal(0,sigma^2)\n"
   "////////////////////////////////////////////////////////////////////////////////\n"
   "\n"
   );
@@ -637,10 +645,10 @@ Set bsr.parsed = BSR.Parse(bys.sparse.reg.path);
 
 Matrix _inpMis= If(!MissInp,Rand(0,1,0,0),
 {
-  Matrix SetMat(Set Extract(bsr.parsed->InputMissingBlock,6))
+  Matrix SetMat(Set Extract(inputMissing,5))
 });
 Matrix _outMis= If(!MissOut,Rand(0,1,0,0),
-  SetMat(Set Extract(bsr.parsed->OutputMissingBlock,6)));
+  SetMat(Set Extract(outputMissing,5)));
 
 Real ok.Y = (VMatMax(Abs(bsr.parsed::Y-Y))+10)==10;
 Real ok.X = (VMatMax(Abs(bsr.parsed::X-X))+10)==10;

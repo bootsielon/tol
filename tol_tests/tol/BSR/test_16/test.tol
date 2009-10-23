@@ -39,22 +39,22 @@ BysMcmc::@McmcRecover recover = BysMcmc::@McmcRecover::Load(
 Set LinearBlk = Select(recover::_.colNames, Real(Text param)
 {
    If(!TextBeginWith(param,"Node")|
-       TextEndAt(param,"_Sigma2"),0,Rand(0,1)<0.98)
+       TextEndAt(param,"_Sigma2"),0,Rand(0,1)<0.95)
 });
 
 Set MissingBlk = Select(recover::_.colNames, Real(Text param)
 {
-   If(!TextBeginWith(param,"MissInp."),0,Rand(0,1)<0.98)
+   If(!TextBeginWith(param,"MissInp."),0,Rand(0,1)<0.50)
 });
 
 Set SigmaBlk = Select(recover::_.colNames, Real(Text param)
 {
-   If(!TextEndAt(param,"_Sigma2"),0,Rand(0,1)<0.98)
+   If(!TextEndAt(param,"_Sigma2"),0,Rand(0,1)<0.95)
 });
 
 Set ArimaBlk = Select(recover::_.colNames, Real(Text param)
 {
-   If(!TextBeginWith(param,"ArmaBlk"),0,Rand(0,1)<.98)
+   If(!TextBeginWith(param,"ArmaBlk"),0,Rand(0,1)<0.50)
 });
 
 

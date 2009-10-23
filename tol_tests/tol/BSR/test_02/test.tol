@@ -54,14 +54,10 @@ BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   bsr.config, 
   BysMcmc::@Notifier::Null(0));
 
-
 //Real cycler::initialize(0);
 
 BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
-
 Real estim::Run(0);
-
-/* */
 Struct @CompareStruct 
 {
   Real Index,
@@ -81,8 +77,8 @@ Set CompareTable =
   Matrix var.real = 
     mod::_beta << 
     mod::_variance <<
-    mod::_inpMis <<
-    mod::_outMis;
+    mod::_outMis <<
+    mod::_inpMis ;
   For(1,Card(estim::report::colNames), Set(Real k)
   {
     Real x.r = MatDat(var.real,k,1);
@@ -121,6 +117,10 @@ Set compare_forecast = For(1,Card(mod::obsNodes),Set(Real nu_node)
     Matrix Residuals = ((mod::obsNodes)[nu_node])::e;
     Matrix Residuals.Estim = est::noise;
     Matrix Residuals.Cmp = Residuals | Residuals.Estim;
+    Matrix Filter = ((mod::obsNodes)[nu_node])::X*
+                    ((mod::obsNodes)[nu_node])::b;
+    Matrix Filter.Estim = est::filter.full;
+    Matrix Filter.Cmp = Filter | Filter.Estim;
     Matrix Output = ((mod::obsNodes)[nu_node])::Y;
     Matrix Output.Estim = est::output.full;
     Matrix Output.Cmp = Output | Output.Estim

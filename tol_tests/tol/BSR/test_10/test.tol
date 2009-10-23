@@ -19,7 +19,7 @@ Real numErr0 = Copy(NError);
 Set Include("../general/general.tol");
 
 //Random seed setting
-Real PutRandomSeed(1610450658);
+Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 

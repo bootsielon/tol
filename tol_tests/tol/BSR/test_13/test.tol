@@ -143,11 +143,11 @@ Set SelectNewMissing(Set missingBlock)
       k,
       m->Row+new.obs.length-old.obs.length,
       m->Col,
-      m->Prior,
+      "None",
       m->Nu,
-      m->Sigma2,
-      m->MinBound,
-      m->MaxBound)
+      +1/0,
+      -1/0,
+      +1/0)
   })
 };
   

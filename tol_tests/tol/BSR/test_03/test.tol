@@ -80,9 +80,9 @@ Set CompareTable =
   Matrix var.real = 
     mod::_beta << 
     mod::_variance <<
-    mod::_arma <<
-    mod::_inpMis <<
-    mod::_outMis;
+    mod::_arma  <<
+    mod::_outMis <<
+    mod::_inpMis;
   For(1,Card(estim::report::colNames), Set(Real k)
   {
     Real x.r = MatDat(var.real,k,1);

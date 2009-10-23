@@ -28,20 +28,20 @@ Text session.description =
 
 
 //Number of variables of each observational node
-Real n = IntRand(2,3);
+Real n = IntRand(20,30);
 Real S = 7;
 //Data length of each observational node
-Real m  = IntRand(20,50);
+Real m  = IntRand(300,600);
 //Number of observational nodes
-Real K1 = IntRand(2,3);
+Real K1 = IntRand(2,4);
 //
 Real enableARMA = true;
 //Regular AR Degree
-Real p1 = enableARMA*IntRand(0,2);
+Real p1 = enableARMA*IntRand(0,1);
 //Seasonal AR Degree
 Real pS = enableARMA*IntRand(1,1);
 //Regular AR Degree
-Real q1 = enableARMA*IntRand(0,Max(0,2-p1));
+Real q1 = enableARMA*IntRand(0,Max(0,1-p1));
 //Seasonal AR Degree
 Real qS = enableARMA*0*IntRand(0,Max(0,1-pS));
 //Number of missing values in input matrix
@@ -127,8 +127,14 @@ Set obsNodes = For(1, K1, Set(Real k)
     id+"_Var."+IntText(j)
   });
   //Input matrix
-  Matrix aux = Rand(m,n,-1,1);
-  Matrix X = IfMat(LT(Abs(aux),Rand(m,n,0.5,0.5)),Rand(m,n,0,0),aux);
+  Matrix aux = Group("ConcatColumns",For(1,n,Matrix(Real j)
+  {
+    Real avr = Rand(-10, 10);
+    Real sig = Rand(0.1, 0.8);
+    Gaussian(m,1,avr,sig)
+  }));
+  Matrix X = IfMat(LT(Abs(Rand(m,n,-2,2)),Rand(m,n,0.5,0.5)),
+     Rand(m,n,0,0),aux);
   //Real beta block
   Matrix b = SetCol(For(1,n,Real(Real h)
   {
@@ -136,10 +142,10 @@ Set obsNodes = For(1, K1, Set(Real k)
   }));
   //Standard deviation
   Real s = Rand(0.50,0.90);
-  Polyn ar1 = RandStationary(p1);
-  Polyn arS = RandStationary(pS,S);
-  Polyn ma1 = RandStationary(q1);
-  Polyn maS = RandStationary(qS,S);
+  Polyn ar1 = If(p1,1-Rand(-0.95,0.95)*B,1);
+  Polyn arS = If(pS,1-Rand(-0.95,0.95)*B^S,1);
+  Polyn ma1 = If(q1,1-Rand(-0.95,0.95)*B,1);
+  Polyn maS = If(qS,1-Rand(-0.95,0.95)*B^S,1);
   Polyn dif1 = (1-B)^If(Coef(ma1,1)<-0.9,1,0);
   Polyn difS = (1-B^S)^If(Coef(maS,1)<-0.9,1,0);
   
@@ -344,6 +350,7 @@ Set inputMissing = For(1, MissInp, Set(Real k)
   //al bloque de omitidos del input es singular. De momento no se simulan
   //omitidos sin prior
   Real rnd = IntRand(3,4);
+  Real nu = value*Rand(0.8,1.2);
   Text prior = Case
   (
     rnd==1, 
@@ -354,23 +361,23 @@ Set inputMissing = For(1, MissInp, Set(Real k)
     {
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? <- "<<(value*Rand(0.5,2))+"\n"+
+      "? <- "<<nu+"\n"+
       " ~ Uniform("<<min+","<<max+")"
     },
     rnd==3,
     {
       Real sigma2 = ((value)/2)^2;
-      "? ~ Normal("<<(value*Rand(0.8,1.2))+","<<sigma2+")"
+      "? ~ Normal("<<nu+","<<sigma2+")"
     },
     rnd==4,
     {
       Real sigma2 = ((value)/2)^2;
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? ~ TruncatedNormal("<<(value*Rand(0.8,1.2))+","<<sigma2+","<<min+","<<max+")"
+      "? ~ TruncatedNormal("<<nu+","<<sigma2+","<<min+","<<max+")"
     }
   );
-  Eval(id+"=[[ id, varIdx, equIdx, prior]]")
+  Eval(id+"=[[ id, varIdx, equIdx, prior, value, nu]]")
 });
 Real If(MissInp, SetIndexByName(inputMissing));
 
@@ -399,34 +406,35 @@ Set outputMissing = For(1, MissOut, Set(Real k)
     WriteLn("Cannot set unknown for missing output "+id,"E")
   });
   Real rnd = IntRand(1,4);
+  Real nu = value*Rand(0.8,1.2);
   Text prior = Case
   (
     rnd==1, 
     {
-      "? <- "<<(value*Rand(0.5,2))
+      "? <- "<<(value*Rand(0.8,1.2))
     },
     rnd==2,
     {
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? <- "<<(value*Rand(0.5,2))+"\n"+
+      "? <- "<<nu+"\n"+
       " ~ Uniform("<<min+","<<max+")"
     },
     rnd==3,
     {
       Real sigma2 = ((value)/2)^2;
-      "? ~ Normal("<<(value*Rand(0.8,1.2))+","<<sigma2+")"
+      "? ~ Normal("<<nu+","<<sigma2+")"
     },
     rnd==4,
     {
       Real sigma2 = ((value)/2)^2;
       Real min   = If(value>=0, 0, 10*value);
       Real max   = If(value<=0, 0, 10*value);
-      "? ~ TruncatedNormal("<<(value*Rand(0.8,1.2))+","<<sigma2+","<<min+","<<max+")"
+      "? ~ TruncatedNormal("<<nu+","<<sigma2+","<<min+","<<max+")"
     }
   );
   Real varIdx=1;
-  Eval(id+"=[[ id, varIdx, equIdx, prior]]")
+  Eval(id+"=[[ id, varIdx, equIdx, prior, value, nu]]")
 });
 Real If(MissOut, SetIndexByName(outputMissing));
 
@@ -685,10 +693,10 @@ Set bsr.parsed = BSR.Parse(bys.sparse.reg.path);
 
 Matrix _inpMis= If(!MissInp,Rand(0,1,0,0),
 {
-  Matrix SetMat(Set Extract(bsr.parsed->InputMissingBlock,6))
+  Matrix SetMat(Set Extract(inputMissing,5))
 });
 Matrix _outMis= If(!MissOut,Rand(0,1,0,0),
-  SetMat(Set Extract(bsr.parsed->OutputMissingBlock,6)));
+  SetMat(Set Extract(outputMissing,5)));
 
 Real ok.Y = (VMatMax(Abs(bsr.parsed::Y-Y))+10)==10;
 Real ok.X = (VMatMax(Abs(bsr.parsed::X-X))+10)==10;
