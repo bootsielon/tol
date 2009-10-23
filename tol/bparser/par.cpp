@@ -1084,8 +1084,8 @@ Tree* BParser::ParseMacroEmbed (Tree* tre)
   {
     messageError_+=
       I2("Expected valid file path argument for #Embed macro instead of ",
-      "Se esperaba un nombre de fiechero válido para la macro #Embed en "
-      "lugar de")+ pathArg+" . ";
+      "Se esperaba un nombre de fichero válido para la macro #Embed en "
+      "lugar de ")+ pathArg+" . ";
   } 
   else if(tre->isEmpty() && (!embedded->isEmpty()))
   {
