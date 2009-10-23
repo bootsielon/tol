@@ -835,21 +835,25 @@ BMatrix<double> BVMat::GetDMat () const
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-  void BVMat::Eye(int nrow, int ncol, int diag, const BVMat& v)
+  void BVMat::Eye(int nrow, int ncol, int diag, const BVMat& v_)
 //Importing method
 ////////////////////////////////////////////////////////////////////////////////
 {
+  static BText fName = "Eye";
   Delete();
   if((nrow<0)||(ncol<0))
   {
-    err_invalid_dimensions("Eye",nrow,ncol);
+    err_invalid_dimensions(fName,nrow,ncol);
     return;
   }
+  BVMat* v__;
+  convertIfNeeded_cRt2cRs(v_,v__,fName);
+  BVMat &v = *v__;
   bool isCol = v.Columns()==1;
   bool isRow = v.Rows   ()==1;
   if(!isCol && !isRow)
   {
-    err_cannot_apply("Eye", "(is not a row nor column VMatrix)", v);
+    err_cannot_apply(fName, "(is not a row nor column VMatrix)", v);
     return;
   }
   bool lower = diag<=0;
@@ -880,6 +884,7 @@ BMatrix<double> BVMat::GetDMat () const
   code_  = ESC_chlmRsparse;
   s_.chlmRsparse_ = cholmod_triplet_to_sparse(triplet, triplet->nnz, common_);
   cholmod_free_triplet(&triplet, common_);
+  if(v__!=&v_) { delete v__; }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -887,10 +892,11 @@ BMatrix<double> BVMat::GetDMat () const
 //Importing method
 ////////////////////////////////////////////////////////////////////////////////
 {
+  static BText fName = "Eye";
   Delete();
   if((nrow<0)||(ncol<0))
   {
-    err_invalid_dimensions("Eye",nrow,ncol);
+    err_invalid_dimensions(fName,nrow,ncol);
     return;
   }
   bool lower = diag<=0;
@@ -930,10 +936,11 @@ BMatrix<double> BVMat::GetDMat () const
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
+  static BText fName = "Eye";
   Delete();
   if((nrow<0)||(ncol<0))
   {
-    err_invalid_dimensions("Eye",nrow,ncol);
+    err_invalid_dimensions(fName,nrow,ncol);
     return;
   }
   switch(c) {
@@ -946,7 +953,7 @@ BMatrix<double> BVMat::GetDMat () const
     s_.chlmRsparse_=cholmod_speye(nrow, ncol, CHOLMOD_REAL, common_);
     break;
   default: 
-    err_cannot_create("Eye",c); }
+    err_cannot_create(fName,c); }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -954,10 +961,11 @@ BMatrix<double> BVMat::GetDMat () const
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
+  static BText fName = "Zeros";
   Delete();
   if((nrow<0)||(ncol<0))
   {
-    err_invalid_dimensions("Zeros",nrow,ncol);
+    err_invalid_dimensions(fName,nrow,ncol);
     return;
   }
   switch(c) {
@@ -970,7 +978,7 @@ BMatrix<double> BVMat::GetDMat () const
     s_.chlmRsparse_=cholmod_spzeros(nrow, ncol, 0, CHOLMOD_REAL, common_);
     break;
   default: 
-    err_cannot_create("Zeros",c);  }
+    err_cannot_create(fName,c);  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1241,7 +1249,7 @@ BMatrix<double> BVMat::GetDMat () const
     if((rows[i]<0)||(rows[i]>=R))
     {
       err_cannot_apply(fName, 
-        BText("Row index ")+(rows[i]+1)+" out of range 1..."+(R+1), 
+        BText("Row index ")+(rows[i]+1)+" out of range 1..."+R, 
         *this);
       return(-1);
     }
@@ -1298,7 +1306,7 @@ BMatrix<double> BVMat::GetDMat () const
     if((cols[j]<0)||(cols[j]>=C))
     {
       err_cannot_apply(fName, 
-        BText("Column index ")+(cols[j]+1)+" out of range 1..."+(C+1), 
+        BText("Column index ")+(cols[j]+1)+" out of range 1..."+C, 
         *this);
       return(-1);
     }
