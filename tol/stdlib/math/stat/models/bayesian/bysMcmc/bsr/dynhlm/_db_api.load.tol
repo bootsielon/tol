@@ -10,8 +10,10 @@
 //////////////////////////////////////////////////////////////////////////////
 {[[
   //Se crean las series de cada nodo
-  Set _.obs.node = obs.node.handlers; 
-
+  Set _.obs.node = EvalSet(obs.node.handlers, NameBlock(NameBlock aux)
+  {
+    Eval(aux::_.id_node+"=aux")
+  });
   //Se comprueba la unicidad de nombres y se indexa para acelerar búsquedas
   Real _check_unique = SetIndexByName(_.obs.node);
 
@@ -21,7 +23,12 @@
   Anything GetSerie(Text id_node, Text id_serie)
   ///////////////////////////////////////////////////////////////////////////
   {
-    (_.obs.node[id_node])::GetSerie(id_serie)
+  //WriteLn("TRACE CreateSeriesHandler::GetSerie("+id_node+","+id_serie+")");
+    NameBlock node = (_.obs.node[id_node]);
+  //WriteLn("TRACE CreateSeriesHandler::GetSerie 1");
+    Code getSer = node::GetSerie;
+  //WriteLn("TRACE CreateSeriesHandler::GetSerie 2");
+    getSer(id_serie)
   };
 
   ///////////////////////////////////////////////////////////////////////////
