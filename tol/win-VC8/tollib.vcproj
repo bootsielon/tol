@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="tollib"
 	ProjectGUID="{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}"
 	RootNamespace="tollib"
@@ -4637,6 +4637,10 @@
 					</File>
 					<File
 						RelativePath="..\contrib\alglib\rotations.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\contrib\alglib\spline2d.cpp"
 						>
 					</File>
 					<File
