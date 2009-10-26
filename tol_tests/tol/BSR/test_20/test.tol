@@ -1,13 +1,13 @@
 //////////////////////////////////////////////////////////////////////////////
 //FILE: test.tol
 //AUTHOR: vdebuen@tol-project.org
-//CREATION: 2009-10-26
+//CREATION: 2008-09-23
 //PURPOSE: Testing Bsr-Hlm with missing inputs common to various nodes that
 // are output missing in other one node
 //////////////////////////////////////////////////////////////////////////////
 
 Text email_ = "vdebuen@tol-project.org"; 
-Text link_ = "https://www.tol-project.org/ticket/759";
+Text link_ = "https://www.tol-project.org/ticket/622";
 Text summary_ = "BSR DBApi can share missing inputs related to "
                 "identical series among different observational nodes that "
                 "are output missing in other one node";
@@ -402,7 +402,9 @@ For(1,Card(series.handler::_.obs.node),Set(Real nu_node)
   NameBlock known = node::real.data;
   Set estim = (bsr.estim::eval.average)[nu_node];
   Set aux = [[
-    //Filtro real del input
+    //Filtro estimado del output
+    Serie FilterOut.Estim = estim::serOutput.extFil;
+    //Filtro real del output
     Serie FilterOut = known::_.filterOut, 
     //Filtro estimado del output
     Serie FilterOut.Estim = estim::serOutput.extFil;
@@ -420,6 +422,8 @@ For(1,Card(series.handler::_.obs.node),Set(Real nu_node)
     Serie Noise.Estim = estim::serNoise;
     //Output real
     Serie Output = known::_.output, 
+    //Output real
+    Serie Output.Full = estim::serOutput.full, 
     //Previsión
     Serie Forecast = estim::serForecast;
     //Error en términos absolutos
@@ -433,7 +437,7 @@ For(1,Card(series.handler::_.obs.node),Set(Real nu_node)
 
 /* */ 
 Real DBConnection::BsrHlm::Close(0);
-/* * /
+/* */
 
 Set quality.all = For(1,Card(compare_forecast),Real(Real k)
 {
