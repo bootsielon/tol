@@ -635,7 +635,8 @@ NameBlock Obs(
     {
       Mat2VMat(aux::serie::Get.Matrix(aux::degree))
     });
-    Group("ConcatColumns", inp << trf)
+    If(!Card(inp) & !Card(trf), Rand(0,0,0,0),
+       Group("ConcatColumns", inp << trf))
   };
 
   Real Get.Equation.Size(Real unused) 
