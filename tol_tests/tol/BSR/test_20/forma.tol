@@ -1,0 +1,90 @@
+
+//////////////////////////////////////////////////////////////////////////////
+//Loads general tools for BSR tests
+//////////////////////////////////////////////////////////////////////////////
+Set Include("../general/general.tol");
+
+NameBlock tmIn = GetTimeInterval(y2008m01d01, y2008m12d31);
+
+NameBlock Obs.Node_Input.Forma = [[
+  //##Nombre del nodo
+  Text _.id_node = "Obs.Node_Input.Forma";
+  //##Descripción del nodo
+  Text _.description = "Nodo observacional del input forma";
+
+  //Para recorte de series input y output
+
+  NameBlock real.data = { Generator::ObsNode(
+      tmIn, 
+      Real sigma = Rand(0.8,1.2), 
+      Set arima = [[@ARIMAStruct(1, 1-1.75*B+0.79*B^2, 1,          1     ), 
+                    @ARIMAStruct(7, 1,                 1-0.97*B^7, 1-B^7 )]],
+      Set linInput = Copy(Empty);
+      Set transFunDelta = Copy(Empty),
+      Set nonLinFilInp  = Copy(Empty),
+      Set nonLinFilOut  = Copy(Empty)) };
+
+  Serie forma = real.data::_.output;
+  Serie miss = tmIn::sub(LT(Rand(0,1,C),0.01),?);
+  Serie output = IfSer(miss,forma*?,forma);
+  Set input = Copy(Empty);
+    
+  //#Contiene todas las series input y output con nombres únicos dentro
+  //de cada nodo.
+    Set _.series = 
+    { [[ Serie output  ]]} << input;
+  //#Se comprueba la unicidad de nombres y se indexa para acelerar 
+  //búsquedas
+  Real _check_unique = SetIndexByName(_.series);
+
+  //##Devuelve una serie del nodo dado un identificador único
+  Serie GetSerie(Text id_serie)
+  {
+    _.series[id_serie]
+  };
+
+  //##Información adicional del modelo sobre el output
+  NameBlock _.output = 
+  {[[
+    //##Nombre con el que reconoce la serie en la base de datos
+    Text _.name = "output";
+    //##Serie output
+    Serie _.serie = _.series::output;
+    //##Número de sigmas para la distribución a priori de los omitidos
+    //se multiplicará por la desviación típica muestral de la serie.
+    //La media a priori será la de la propia serie.
+    Real _.mis_pri_sig_fac = ?;
+    //##Valor mínimo a priori para los omitidos
+    Real _.mis_pri_min     = -1/0;
+    //##Valor máximo a priori para los omitidos
+    Real _.mis_pri_max     = +1/0;
+    //##Fecha inicial de estimación del nodo
+    Date _.firstDate = tmIn::_.firstDate;
+    //##Fecha final de estimación del nodo
+    Date _.lastDate = tmIn::_.lastDate;
+    // Prior value for sigma
+    Real _.sigma = real.data::_.sigma;
+    // Relative weight of prior versus data : n0/(n0+n)  
+    Real _.sigmaPriorWeight = .50;
+    //##Parte ARIMA asociada
+    Set _.arima = 
+    {
+      Polyn randPolynClone(Polyn pol, Real period)
+      {
+        RandStationary(Degree(pol)/period,period)
+      };      
+      EvalSet(real.data::_.arima,@ARIMAStruct(@ARIMAStruct factor)
+      {
+        @ARIMAStruct(
+          factor->Periodicity,
+          randPolynClone(factor->AR, factor->Periodicity),
+          randPolynClone(factor->MA, factor->Periodicity),
+          factor->DIF)
+      })   
+    }
+  ]]};
+
+  Set _.input = Copy(Empty)
+
+]];
+
