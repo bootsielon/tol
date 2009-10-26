@@ -682,7 +682,7 @@ double BVMat::GetBackwardValue(const BPolyn  <BDat>& P,
   }
   else     
   { 
-    assert(n0+1>=0);
+    assert(n0+i>=0);
     xk = X0[n0+i];
   }
   return(P[k].Coef().Value() * xk);
@@ -697,18 +697,43 @@ double BVMat::GetBackwardValue(const BPolyn  <BDat>& P,
 //--------------------------------------------------------------------
 {
   double xk = 0;
-  i+=P[k].Degree();
-  if(i<n) 
+  BMonome<BDat>& Pk = P[k];
+  int d = Pk.Degree();
+  double c = Pk.Coef().Value();
+  int id = i+d;
+  if(id<n) 
   { 
-    assert(i>=0);
-    xk = X[i];
+    assert(id>=0);
+    xk = X[id];
+/*  Std(BText("  GetForwardValue ")+
+      "\tn0= "+n0+
+      "\tn= "+n+
+      "\ti= "+i+
+      "\tk= "+k+
+      "\td= "+d+
+      "\tc= "+c+
+      "\tid= "+id+
+      "\txk= X["+id+"]="+xk+
+      "\tc*xk= "+(c * xk)+
+      "\n"); */
   }
   else	   
   { 
-    assert(n+i<n0);
-    xk = X0[n+i];
+    assert(id-n<n0);
+    xk = X0[id-n];
+/*  Std(BText("  GetForwardValue ")+
+      "\tn0= "+n0+
+      "\tn= "+n+
+      "\ti= "+i+
+      "\tk= "+k+
+      "\td= "+d+
+      "\tc= "+c+
+      "\tid= "+id+
+      "\txk= X0["+(id-n)+"]="+xk+
+      "\tc*xk= "+(c * xk)+
+      "\n"); */
   }
-  return(P[k].Coef().Value() * xk);
+  return(c * xk);
 }
 
 //--------------------------------------------------------------------
@@ -852,29 +877,32 @@ void BVMat::BackDifEq(const BRational <BDat>& R,
   BVMatColMajIter x_ (X,  fName);
   BVMatColMajIter y0_(Y0, fName);
   BArray<double> _x0, _x, _y0;
-  double *x0, *x, *y0, *y;
-  double *yij= ((double*)Y->s_.blasRdense_->x);
+  double *x0=NULL, *x=NULL, *y0=NULL, *y=NULL;
+  double *yij= ((double*)Y->s_.blasRdense_->x)+(r*c-1);
   int nnz = 0;
-  for(j=0; j<c; j++)
+  for(j=c-1; j>=0; j--)
   {
-    x0_.GetCol(j,_x0); x0 = _x0.GetBuffer();
-    x_ .GetCol(j,_x ); x  = _x .GetBuffer();
-    y0_.GetCol(j,_y0); y0 = _y0.GetBuffer();
-    y = yij;
+    if(p) { x0_.GetCol(j,_x0); x0 = _x0.GetBuffer(); }
+            x_ .GetCol(j,_x ); x  = _x .GetBuffer();
+    if(q) { y0_.GetCol(j,_y0); y0 = _y0.GetBuffer(); }
+    y = yij-r+1;
    	for(i=r-1; i>=0; i--)
 	  {
 	    *yij = 0.0;
+    //Std(BText("BackDifEq AR\n"));
 	    for(k=0; k<num.Size(); k++)
 	    {
 		    *yij += GetForwardValue(num,x0,p,x,r,i,k);
 	    }
+    //Std(BText("BackDifEq MA\n"));
 	    for(k=1; k<den.Size(); k++)
 	    {
 		    *yij -= GetForwardValue(den,y0,q,y,r,i,k);
 	    }
       if(fabs(*yij)<chop) { *yij=0.0; }
       if(fabs(*yij)>0.0)  { nnz++; }
-      yij++;
+    //Std(BText("y[")+i+"]="+y[i]+"\n");
+      yij--; 
 	  }
   }
   if(X.code_==ESC_chlmRsparse) 
