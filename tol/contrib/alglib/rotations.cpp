@@ -37,7 +37,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
 #include <stdafx.h>
+#include <stdio.h>
 #include "rotations.h"
+
+static void testrotations();
 
 /*************************************************************************
 Application of a sequence of  elementary rotations to a matrix
@@ -103,11 +106,11 @@ void applyrotationsfromtheleft(bool isforward,
                 if( ctemp!=1||stemp!=0 )
                 {
                     jp1 = j+1;
-                    ap::vmove(work.getvector(n1, n2), a.getrow(jp1, n1, n2), ctemp);
-                    ap::vsub(work.getvector(n1, n2), a.getrow(j, n1, n2), stemp);
-                    ap::vmul(a.getrow(j, n1, n2), ctemp);
-                    ap::vadd(a.getrow(j, n1, n2), a.getrow(jp1, n1, n2), stemp);
-                    ap::vmove(a.getrow(jp1, n1, n2), work.getvector(n1, n2));
+                    ap::vmove(&work(n1), &a(jp1, n1), ap::vlen(n1,n2), ctemp);
+                    ap::vsub(&work(n1), &a(j, n1), ap::vlen(n1,n2), stemp);
+                    ap::vmul(&a(j, n1), ap::vlen(n1,n2), ctemp);
+                    ap::vadd(&a(j, n1), &a(jp1, n1), ap::vlen(n1,n2), stemp);
+                    ap::vmove(&a(jp1, n1), &work(n1), ap::vlen(n1,n2));
                 }
             }
         }
@@ -145,11 +148,11 @@ void applyrotationsfromtheleft(bool isforward,
                 if( ctemp!=1||stemp!=0 )
                 {
                     jp1 = j+1;
-                    ap::vmove(work.getvector(n1, n2), a.getrow(jp1, n1, n2), ctemp);
-                    ap::vsub(work.getvector(n1, n2), a.getrow(j, n1, n2), stemp);
-                    ap::vmul(a.getrow(j, n1, n2), ctemp);
-                    ap::vadd(a.getrow(j, n1, n2), a.getrow(jp1, n1, n2), stemp);
-                    ap::vmove(a.getrow(jp1, n1, n2), work.getvector(n1, n2));
+                    ap::vmove(&work(n1), &a(jp1, n1), ap::vlen(n1,n2), ctemp);
+                    ap::vsub(&work(n1), &a(j, n1), ap::vlen(n1,n2), stemp);
+                    ap::vmul(&a(j, n1), ap::vlen(n1,n2), ctemp);
+                    ap::vadd(&a(j, n1), &a(jp1, n1), ap::vlen(n1,n2), stemp);
+                    ap::vmove(&a(jp1, n1), &work(n1), ap::vlen(n1,n2));
                 }
             }
         }
@@ -349,6 +352,121 @@ void generaterotation(double f, double g, double& cs, double& sn, double& r)
             }
         }
     }
+}
+
+
+static void testrotations()
+{
+    ap::real_2d_array al1;
+    ap::real_2d_array al2;
+    ap::real_2d_array ar1;
+    ap::real_2d_array ar2;
+    ap::real_1d_array cl;
+    ap::real_1d_array sl;
+    ap::real_1d_array cr;
+    ap::real_1d_array sr;
+    ap::real_1d_array w;
+    int m;
+    int n;
+    int maxmn;
+    double t;
+    int pass;
+    int passcount;
+    int i;
+    int j;
+    double err;
+    double maxerr;
+    bool isforward;
+
+    passcount = 1000;
+    maxerr = 0;
+    for(pass = 1; pass <= passcount; pass++)
+    {
+        
+        //
+        // settings
+        //
+        m = 2+ap::randominteger(50);
+        n = 2+ap::randominteger(50);
+        isforward = ap::randomreal()>0.5;
+        maxmn = ap::maxint(m, n);
+        al1.setbounds(1, m, 1, n);
+        al2.setbounds(1, m, 1, n);
+        ar1.setbounds(1, m, 1, n);
+        ar2.setbounds(1, m, 1, n);
+        cl.setbounds(1, m-1);
+        sl.setbounds(1, m-1);
+        cr.setbounds(1, n-1);
+        sr.setbounds(1, n-1);
+        w.setbounds(1, maxmn);
+        
+        //
+        // matrices and rotaions
+        //
+        for(i = 1; i <= m; i++)
+        {
+            for(j = 1; j <= n; j++)
+            {
+                al1(i,j) = 2*ap::randomreal()-1;
+                al2(i,j) = al1(i,j);
+                ar1(i,j) = al1(i,j);
+                ar2(i,j) = al1(i,j);
+            }
+        }
+        for(i = 1; i <= m-1; i++)
+        {
+            t = 2*ap::pi()*ap::randomreal();
+            cl(i) = cos(t);
+            sl(i) = sin(t);
+        }
+        for(j = 1; j <= n-1; j++)
+        {
+            t = 2*ap::pi()*ap::randomreal();
+            cr(j) = cos(t);
+            sr(j) = sin(t);
+        }
+        
+        //
+        // Test left
+        //
+        applyrotationsfromtheleft(isforward, 1, m, 1, n, cl, sl, al1, w);
+        for(j = 1; j <= n; j++)
+        {
+            applyrotationsfromtheleft(isforward, 1, m, j, j, cl, sl, al2, w);
+        }
+        err = 0;
+        for(i = 1; i <= m; i++)
+        {
+            for(j = 1; j <= n; j++)
+            {
+                err = ap::maxreal(err, fabs(al1(i,j)-al2(i,j)));
+            }
+        }
+        maxerr = ap::maxreal(err, maxerr);
+        
+        //
+        // Test right
+        //
+        applyrotationsfromtheright(isforward, 1, m, 1, n, cr, sr, ar1, w);
+        for(i = 1; i <= m; i++)
+        {
+            applyrotationsfromtheright(isforward, i, i, 1, n, cr, sr, ar2, w);
+        }
+        err = 0;
+        for(i = 1; i <= m; i++)
+        {
+            for(j = 1; j <= n; j++)
+            {
+                err = ap::maxreal(err, fabs(ar1(i,j)-ar2(i,j)));
+            }
+        }
+        maxerr = ap::maxreal(err, maxerr);
+    }
+    printf("TESTING ROTATIONS\n");
+    printf("Pass count %0ld\n",
+        long(passcount));
+    printf("Error is %5.3le\n",
+        double(maxerr));
 }
 
 

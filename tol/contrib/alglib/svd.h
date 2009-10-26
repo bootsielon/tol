@@ -59,7 +59,7 @@ Take into account that the subroutine does not return matrix V but V^T.
 
 Input parameters:
     A           -   matrix to be decomposed.
-                    Array whose indexes range within [1..M, 1..N].
+                    Array whose indexes range within [0..M-1, 0..N-1].
     M           -   number of rows in matrix A.
     N           -   number of columns in matrix A.
     UNeeded     -   0, 1 or 2. See the description of the parameter U.
@@ -82,19 +82,34 @@ Output parameters:
                     are not calculated.
                     if Uneeded=1, U contains left singular vectors (first
                     min(M,N) columns of matrix U). Array whose indexes range
-                    within [1..M, 1..Min(M,N)].
+                    within [0..M-1, 0..Min(M,N)-1].
                     if UNeeded=2, U contains matrix U wholly. Array whose
-                    indexes range within [1..M, 1..M].
+                    indexes range within [0..M-1, 0..M-1].
     VT          -   if VTNeeded=0, VT isn’t changed, the right singular vectors
                     are not calculated.
                     if VTNeeded=1, VT contains right singular vectors (first
                     min(M,N) rows of matrix V^T). Array whose indexes range
-                    within [1..min(M,N), 1..N].
+                    within [0..min(M,N)-1, 0..N-1].
                     if VTNeeded=2, VT contains matrix V^T wholly. Array whose
-                    indexes range within [1..N, 1..N].
+                    indexes range within [0..N-1, 0..N-1].
 
   -- ALGLIB --
      Copyright 2005 by Bochkanov Sergey
+*************************************************************************/
+bool rmatrixsvd(ap::real_2d_array a,
+     int m,
+     int n,
+     int uneeded,
+     int vtneeded,
+     int additionalmemory,
+     ap::real_1d_array& w,
+     ap::real_2d_array& u,
+     ap::real_2d_array& vt);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine.
+See RMatrixSVD for 0-based replacement.
 *************************************************************************/
 bool svddecomposition(ap::real_2d_array a,
      int m,

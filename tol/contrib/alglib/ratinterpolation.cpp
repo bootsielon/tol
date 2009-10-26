@@ -70,8 +70,8 @@ void buildfloaterhormannrationalinterpolant(ap::real_1d_array x,
     ap::integer_1d_array perm;
     ap::real_1d_array wtemp;
 
-    ap::ap_error::make_assertion(n>0);
-    ap::ap_error::make_assertion(d>=0&&d<=n);
+    ap::ap_error::make_assertion(n>0, "BuildRationalInterpolantWithoutPoles: N<=0!");
+    ap::ap_error::make_assertion(d>=0&&d<=n, "BuildRationalInterpolantWithoutPoles: incorrect D!");
     
     //
     // Prepare
@@ -137,7 +137,7 @@ void buildfloaterhormannrationalinterpolant(ap::real_1d_array x,
     // Reorder W
     //
     wtemp.setbounds(0, n-1);
-    ap::vmove(wtemp.getvector(0, n-1), w.getvector(0, n-1));
+    ap::vmove(&wtemp(0), &w(0), ap::vlen(0,n-1));
     for(i = 0; i <= n-1; i++)
     {
         w(perm(i)) = wtemp(i);

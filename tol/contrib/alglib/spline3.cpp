@@ -33,18 +33,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdafx.h>
 #include "spline3.h"
 
-void heapsortpoints(ap::real_1d_array& x, ap::real_1d_array& y, int n);
-void heapsortdpoints(ap::real_1d_array& x,
+static void heapsortpoints(ap::real_1d_array& x, ap::real_1d_array& y, int n);
+static void heapsortdpoints(ap::real_1d_array& x,
      ap::real_1d_array& y,
      ap::real_1d_array& d,
      int n);
-void solvetridiagonal(ap::real_1d_array a,
+static void solvetridiagonal(ap::real_1d_array a,
      ap::real_1d_array b,
      ap::real_1d_array c,
      ap::real_1d_array d,
      int n,
      ap::real_1d_array& x);
-double diffthreepoint(double t,
+static double diffthreepoint(double t,
      double x0,
      double f0,
      double x1,
@@ -75,7 +75,7 @@ void buildlinearspline(ap::real_1d_array x,
     int i;
     int tblsize;
 
-    ap::ap_error::make_assertion(n>=2);
+    ap::ap_error::make_assertion(n>=2, "BuildLinearSpline: N<2!");
     
     //
     // Sort points
@@ -157,9 +157,9 @@ void buildcubicspline(ap::real_1d_array x,
     double delta2;
     double delta3;
 
-    ap::ap_error::make_assertion(n>=2);
-    ap::ap_error::make_assertion(boundltype==0||boundltype==1||boundltype==2);
-    ap::ap_error::make_assertion(boundrtype==0||boundrtype==1||boundrtype==2);
+    ap::ap_error::make_assertion(n>=2, "BuildCubicSpline: N<2!");
+    ap::ap_error::make_assertion(boundltype==0||boundltype==1||boundltype==2, "BuildCubicSpline: incorrect BoundLType!");
+    ap::ap_error::make_assertion(boundrtype==0||boundrtype==1||boundrtype==2, "BuildCubicSpline: incorrect BoundRType!");
     a1.setbounds(0, n-1);
     a2.setbounds(0, n-1);
     a3.setbounds(0, n-1);
@@ -289,7 +289,7 @@ void buildhermitespline(ap::real_1d_array x,
     double delta2;
     double delta3;
 
-    ap::ap_error::make_assertion(n>=2);
+    ap::ap_error::make_assertion(n>=2, "BuildHermiteSpline: N<2!");
     
     //
     // Sort points
@@ -352,7 +352,7 @@ void buildakimaspline(ap::real_1d_array x,
     ap::real_1d_array w;
     ap::real_1d_array diff;
 
-    ap::ap_error::make_assertion(n>=5);
+    ap::ap_error::make_assertion(n>=5, "BuildAkimaSpline: N<5!");
     
     //
     // Sort points
@@ -422,7 +422,7 @@ double splineinterpolation(const ap::real_1d_array& c, double x)
     int r;
     int m;
 
-    ap::ap_error::make_assertion(ap::round(c(1))==3);
+    ap::ap_error::make_assertion(ap::round(c(1))==3, "SplineInterpolation: incorrect C!");
     n = ap::round(c(2));
     
     //
@@ -480,7 +480,7 @@ void splinedifferentiation(const ap::real_1d_array& c,
     int r;
     int m;
 
-    ap::ap_error::make_assertion(ap::round(c(1))==3);
+    ap::ap_error::make_assertion(ap::round(c(1))==3, "SplineInterpolation: incorrect C!");
     n = ap::round(c(2));
     
     //
@@ -531,7 +531,7 @@ void splinecopy(const ap::real_1d_array& c, ap::real_1d_array& cc)
 
     s = ap::round(c(0));
     cc.setbounds(0, s-1);
-    ap::vmove(cc.getvector(0, s-1), c.getvector(0, s-1));
+    ap::vmove(&cc(0), &c(0), ap::vlen(0,s-1));
 }
 
 
@@ -563,7 +563,7 @@ void splineunpack(const ap::real_1d_array& c, int& n, ap::real_2d_array& tbl)
 {
     int i;
 
-    ap::ap_error::make_assertion(ap::round(c(1))==3);
+    ap::ap_error::make_assertion(ap::round(c(1))==3, "SplineUnpack: incorrect C!");
     n = ap::round(c(2));
     tbl.setbounds(0, n-2, 0, 5);
     
@@ -606,7 +606,7 @@ void splinelintransx(ap::real_1d_array& c, double a, double b)
     ap::real_1d_array y;
     ap::real_1d_array d;
 
-    ap::ap_error::make_assertion(ap::round(c(1))==3);
+    ap::ap_error::make_assertion(ap::round(c(1))==3, "SplineLinTransX: incorrect C!");
     n = ap::round(c(2));
     
     //
@@ -669,7 +669,7 @@ void splinelintransy(ap::real_1d_array& c, double a, double b)
     ap::real_1d_array y;
     ap::real_1d_array d;
 
-    ap::ap_error::make_assertion(ap::round(c(1))==3);
+    ap::ap_error::make_assertion(ap::round(c(1))==3, "SplineLinTransX: incorrect C!");
     n = ap::round(c(2));
     
     //
@@ -708,7 +708,7 @@ double splineintegration(const ap::real_1d_array& c, double x)
     int m;
     double w;
 
-    ap::ap_error::make_assertion(ap::round(c(1))==3);
+    ap::ap_error::make_assertion(ap::round(c(1))==3, "SplineIntegration: incorrect C!");
     n = ap::round(c(2));
     
     //
@@ -932,7 +932,7 @@ double spline3interpolate(int n, const ap::real_2d_array& c, const double& x)
 /*************************************************************************
 Internal subroutine. Heap sort.
 *************************************************************************/
-void heapsortpoints(ap::real_1d_array& x, ap::real_1d_array& y, int n)
+static void heapsortpoints(ap::real_1d_array& x, ap::real_1d_array& y, int n)
 {
     int i;
     int j;
@@ -1063,7 +1063,7 @@ void heapsortpoints(ap::real_1d_array& x, ap::real_1d_array& y, int n)
 /*************************************************************************
 Internal subroutine. Heap sort.
 *************************************************************************/
-void heapsortdpoints(ap::real_1d_array& x,
+static void heapsortdpoints(ap::real_1d_array& x,
      ap::real_1d_array& y,
      ap::real_1d_array& d,
      int n)
@@ -1209,7 +1209,7 @@ void heapsortdpoints(ap::real_1d_array& x,
 /*************************************************************************
 Internal subroutine. Tridiagonal solver.
 *************************************************************************/
-void solvetridiagonal(ap::real_1d_array a,
+static void solvetridiagonal(ap::real_1d_array a,
      ap::real_1d_array b,
      ap::real_1d_array c,
      ap::real_1d_array d,
@@ -1239,7 +1239,7 @@ void solvetridiagonal(ap::real_1d_array a,
 /*************************************************************************
 Internal subroutine. Three-point differentiation
 *************************************************************************/
-double diffthreepoint(double t,
+static double diffthreepoint(double t,
      double x0,
      double f0,
      double x1,

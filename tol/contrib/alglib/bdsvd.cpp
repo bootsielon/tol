@@ -39,9 +39,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdafx.h>
 #include "bdsvd.h"
 
-double extsignbdsqr(double a, double b);
-void svd2x2(double f, double g, double h, double& ssmin, double& ssmax);
-void svdv2x2(double f,
+static bool bidiagonalsvddecompositioninternal(ap::real_1d_array& d,
+     ap::real_1d_array e,
+     int n,
+     bool isupper,
+     bool isfractionalaccuracyrequired,
+     ap::real_2d_array& u,
+     int ustart,
+     int nru,
+     ap::real_2d_array& c,
+     int cstart,
+     int ncc,
+     ap::real_2d_array& vt,
+     int vstart,
+     int ncvt);
+static double extsignbdsqr(double a, double b);
+static void svd2x2(double f, double g, double h, double& ssmin, double& ssmax);
+static void svdv2x2(double f,
      double g,
      double h,
      double& ssmin,
@@ -78,27 +92,27 @@ of the biggest singular value.
 
 Input parameters:
     D       -   main diagonal of matrix B.
-                Array whose index ranges within [1..N].
+                Array whose index ranges within [0..N-1].
     E       -   superdiagonal (or subdiagonal) of matrix B.
-                Array whose index ranges within [1..N-1].
+                Array whose index ranges within [0..N-2].
     N       -   size of matrix B.
     IsUpper -   True, if the matrix is upper bidiagonal.
     IsFractionalAccuracyRequired -
                 accuracy to search singular values with.
     U       -   matrix to be multiplied by Q.
-                Array whose indexes range within [1..NRU, 1..N].
+                Array whose indexes range within [0..NRU-1, 0..N-1].
                 The matrix can be bigger, in that case only the  submatrix
-                [1..NRU, 1..N] will be multiplied by Q.
+                [0..NRU-1, 0..N-1] will be multiplied by Q.
     NRU     -   number of rows in matrix U.
     C       -   matrix to be multiplied by Q'.
-                Array whose indexes range within [1..N, 1..NCC].
+                Array whose indexes range within [0..N-1, 0..NCC-1].
                 The matrix can be bigger, in that case only the  submatrix
-                [1..N, 1..NCC] will be multiplied by Q'.
+                [0..N-1, 0..NCC-1] will be multiplied by Q'.
     NCC     -   number of columns in matrix C.
     VT      -   matrix to be multiplied by P^T.
-                Array whose indexes range within [1..N, 1..NCVT].
+                Array whose indexes range within [0..N-1, 0..NCVT-1].
                 The matrix can be bigger, in that case only the  submatrix
-                [1..N, 1..NCVT] will be multiplied by P^T.
+                [0..N-1, 0..NCVT-1] will be multiplied by P^T.
     NCVT    -   number of columns in matrix VT.
 
 Output parameters:
@@ -129,6 +143,47 @@ History:
      Courant Institute, Argonne National Lab, and Rice University
      October 31, 1999.
 *************************************************************************/
+bool rmatrixbdsvd(ap::real_1d_array& d,
+     ap::real_1d_array e,
+     int n,
+     bool isupper,
+     bool isfractionalaccuracyrequired,
+     ap::real_2d_array& u,
+     int nru,
+     ap::real_2d_array& c,
+     int ncc,
+     ap::real_2d_array& vt,
+     int ncvt)
+{
+    bool result;
+    ap::real_1d_array d1;
+    ap::real_1d_array e1;
+
+    d1.setbounds(1, n);
+    ap::vmove(&d1(1), &d(0), ap::vlen(1,n));
+    if( n>1 )
+    {
+        e1.setbounds(1, n-1);
+        ap::vmove(&e1(1), &e(0), ap::vlen(1,n-1));
+    }
+    result = bidiagonalsvddecompositioninternal(d1, e1, n, isupper, isfractionalaccuracyrequired, u, 0, nru, c, 0, ncc, vt, 0, ncvt);
+    ap::vmove(&d(0), &d1(1), ap::vlen(0,n-1));
+    return result;
+}
+
+
+/*************************************************************************
+Obsolete 1-based subroutine. See RMatrixBDSVD for 0-based replacement.
+
+History:
+    * 31 March, 2007.
+        changed MAXITR from 6 to 12.
+
+  -- LAPACK routine (version 3.0) --
+     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
+     Courant Institute, Argonne National Lab, and Rice University
+     October 31, 1999.
+*************************************************************************/
 bool bidiagonalsvddecomposition(ap::real_1d_array& d,
      ap::real_1d_array e,
      int n,
@@ -139,6 +194,31 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
      ap::real_2d_array& c,
      int ncc,
      ap::real_2d_array& vt,
+     int ncvt)
+{
+    bool result;
+
+    result = bidiagonalsvddecompositioninternal(d, e, n, isupper, isfractionalaccuracyrequired, u, 1, nru, c, 1, ncc, vt, 1, ncvt);
+    return result;
+}
+
+
+/*************************************************************************
+Internal working subroutine for bidiagonal decomposition
+*************************************************************************/
+static bool bidiagonalsvddecompositioninternal(ap::real_1d_array& d,
+     ap::real_1d_array e,
+     int n,
+     bool isupper,
+     bool isfractionalaccuracyrequired,
+     ap::real_2d_array& u,
+     int ustart,
+     int nru,
+     ap::real_2d_array& c,
+     int cstart,
+     int ncc,
+     ap::real_2d_array& vt,
+     int vstart,
      int ncvt)
 {
     bool result;
@@ -197,7 +277,11 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
     bool fwddir;
     double tmp;
     int mm1;
+    int mm0;
     bool bchangedir;
+    int uend;
+    int cend;
+    int vend;
 
     result = true;
     if( n==0 )
@@ -211,7 +295,7 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
             d(1) = -d(1);
             if( ncvt>0 )
             {
-                ap::vmul(vt.getrow(1, 1, ncvt), -1);
+                ap::vmul(&vt(vstart, vstart), ap::vlen(vstart,vstart+ncvt-1), -1);
             }
         }
         return result;
@@ -224,9 +308,12 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
     work1.setbounds(1, n-1);
     work2.setbounds(1, n-1);
     work3.setbounds(1, n-1);
-    utemp.setbounds(1, ap::maxint(nru, 1));
-    vttemp.setbounds(1, ap::maxint(ncvt, 1));
-    ctemp.setbounds(1, ap::maxint(ncc, 1));
+    uend = ustart+ap::maxint(nru-1, 0);
+    vend = vstart+ap::maxint(ncvt-1, 0);
+    cend = cstart+ap::maxint(ncc-1, 0);
+    utemp.setbounds(ustart, uend);
+    vttemp.setbounds(vstart, vend);
+    ctemp.setbounds(cstart, cend);
     maxitr = 12;
     rightside = true;
     fwddir = true;
@@ -274,11 +361,11 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
         //
         if( nru>0 )
         {
-            applyrotationsfromtheright(fwddir, 1, nru, 1, n, work0, work1, u, utemp);
+            applyrotationsfromtheright(fwddir, ustart, uend, 1+ustart-1, n+ustart-1, work0, work1, u, utemp);
         }
         if( ncc>0 )
         {
-            applyrotationsfromtheleft(fwddir, 1, n, 1, ncc, work0, work1, c, ctemp);
+            applyrotationsfromtheleft(fwddir, 1+cstart-1, n+cstart-1, cstart, cend, work0, work1, c, ctemp);
         }
     }
     
@@ -442,30 +529,33 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
             //
             if( ncvt>0 )
             {
-                mm1 = m-1;
-                ap::vmove(vttemp.getvector(1, ncvt), vt.getrow(mm1, 1, ncvt), cosr);
-                ap::vadd(vttemp.getvector(1, ncvt), vt.getrow(m, 1, ncvt), sinr);
-                ap::vmul(vt.getrow(m, 1, ncvt), cosr);
-                ap::vsub(vt.getrow(m, 1, ncvt), vt.getrow(mm1, 1, ncvt), sinr);
-                ap::vmove(vt.getrow(mm1, 1, ncvt), vttemp.getvector(1, ncvt));
+                mm0 = m+(vstart-1);
+                mm1 = m-1+(vstart-1);
+                ap::vmove(&vttemp(vstart), &vt(mm1, vstart), ap::vlen(vstart,vend), cosr);
+                ap::vadd(&vttemp(vstart), &vt(mm0, vstart), ap::vlen(vstart,vend), sinr);
+                ap::vmul(&vt(mm0, vstart), ap::vlen(vstart,vend), cosr);
+                ap::vsub(&vt(mm0, vstart), &vt(mm1, vstart), ap::vlen(vstart,vend), sinr);
+                ap::vmove(&vt(mm1, vstart), &vttemp(vstart), ap::vlen(vstart,vend));
             }
             if( nru>0 )
             {
-                mm1 = m-1;
-                ap::vmove(utemp.getvector(1, nru), u.getcolumn(mm1, 1, nru), cosl);
-                ap::vadd(utemp.getvector(1, nru), u.getcolumn(m, 1, nru), sinl);
-                ap::vmul(u.getcolumn(m, 1, nru), cosl);
-                ap::vsub(u.getcolumn(m, 1, nru), u.getcolumn(mm1, 1, nru), sinl);
-                ap::vmove(u.getcolumn(mm1, 1, nru), utemp.getvector(1, nru));
+                mm0 = m+ustart-1;
+                mm1 = m-1+ustart-1;
+                ap::vmove(utemp.getvector(ustart, uend), u.getcolumn(mm1, ustart, uend), cosl);
+                ap::vadd(utemp.getvector(ustart, uend), u.getcolumn(mm0, ustart, uend), sinl);
+                ap::vmul(u.getcolumn(mm0, ustart, uend), cosl);
+                ap::vsub(u.getcolumn(mm0, ustart, uend), u.getcolumn(mm1, ustart, uend), sinl);
+                ap::vmove(u.getcolumn(mm1, ustart, uend), utemp.getvector(ustart, uend));
             }
             if( ncc>0 )
             {
-                mm1 = m-1;
-                ap::vmove(ctemp.getvector(1, ncc), c.getrow(mm1, 1, ncc), cosl);
-                ap::vadd(ctemp.getvector(1, ncc), c.getrow(m, 1, ncc), sinl);
-                ap::vmul(c.getrow(m, 1, ncc), cosl);
-                ap::vsub(c.getrow(m, 1, ncc), c.getrow(mm1, 1, ncc), sinl);
-                ap::vmove(c.getrow(mm1, 1, ncc), ctemp.getvector(1, ncc));
+                mm0 = m+cstart-1;
+                mm1 = m-1+cstart-1;
+                ap::vmove(&ctemp(cstart), &c(mm1, cstart), ap::vlen(cstart,cend), cosl);
+                ap::vadd(&ctemp(cstart), &c(mm0, cstart), ap::vlen(cstart,cend), sinl);
+                ap::vmul(&c(mm0, cstart), ap::vlen(cstart,cend), cosl);
+                ap::vsub(&c(mm0, cstart), &c(mm1, cstart), ap::vlen(cstart,cend), sinl);
+                ap::vmove(&c(mm1, cstart), &ctemp(cstart), ap::vlen(cstart,cend));
             }
             m = m-2;
             continue;
@@ -678,15 +768,15 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
                 //
                 if( ncvt>0 )
                 {
-                    applyrotationsfromtheleft(fwddir, ll, m, 1, ncvt, work0, work1, vt, vttemp);
+                    applyrotationsfromtheleft(fwddir, ll+vstart-1, m+vstart-1, vstart, vend, work0, work1, vt, vttemp);
                 }
                 if( nru>0 )
                 {
-                    applyrotationsfromtheright(fwddir, 1, nru, ll, m, work2, work3, u, utemp);
+                    applyrotationsfromtheright(fwddir, ustart, uend, ll+ustart-1, m+ustart-1, work2, work3, u, utemp);
                 }
                 if( ncc>0 )
                 {
-                    applyrotationsfromtheleft(fwddir, ll, m, 1, ncc, work2, work3, c, ctemp);
+                    applyrotationsfromtheleft(fwddir, ll+cstart-1, m+cstart-1, cstart, cend, work2, work3, c, ctemp);
                 }
                 
                 //
@@ -729,15 +819,15 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
                 //
                 if( ncvt>0 )
                 {
-                    applyrotationsfromtheleft(!fwddir, ll, m, 1, ncvt, work2, work3, vt, vttemp);
+                    applyrotationsfromtheleft(!fwddir, ll+vstart-1, m+vstart-1, vstart, vend, work2, work3, vt, vttemp);
                 }
                 if( nru>0 )
                 {
-                    applyrotationsfromtheright(!fwddir, 1, nru, ll, m, work0, work1, u, utemp);
+                    applyrotationsfromtheright(!fwddir, ustart, uend, ll+ustart-1, m+ustart-1, work0, work1, u, utemp);
                 }
                 if( ncc>0 )
                 {
-                    applyrotationsfromtheleft(!fwddir, ll, m, 1, ncc, work0, work1, c, ctemp);
+                    applyrotationsfromtheleft(!fwddir, ll+cstart-1, m+cstart-1, cstart, cend, work0, work1, c, ctemp);
                 }
                 
                 //
@@ -796,15 +886,15 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
                 //
                 if( ncvt>0 )
                 {
-                    applyrotationsfromtheleft(fwddir, ll, m, 1, ncvt, work0, work1, vt, vttemp);
+                    applyrotationsfromtheleft(fwddir, ll+vstart-1, m+vstart-1, vstart, vend, work0, work1, vt, vttemp);
                 }
                 if( nru>0 )
                 {
-                    applyrotationsfromtheright(fwddir, 1, nru, ll, m, work2, work3, u, utemp);
+                    applyrotationsfromtheright(fwddir, ustart, uend, ll+ustart-1, m+ustart-1, work2, work3, u, utemp);
                 }
                 if( ncc>0 )
                 {
-                    applyrotationsfromtheleft(fwddir, ll, m, 1, ncc, work2, work3, c, ctemp);
+                    applyrotationsfromtheleft(fwddir, ll+cstart-1, m+cstart-1, cstart, cend, work2, work3, c, ctemp);
                 }
                 
                 //
@@ -864,15 +954,15 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
                 //
                 if( ncvt>0 )
                 {
-                    applyrotationsfromtheleft(!fwddir, ll, m, 1, ncvt, work2, work3, vt, vttemp);
+                    applyrotationsfromtheleft(!fwddir, ll+vstart-1, m+vstart-1, vstart, vend, work2, work3, vt, vttemp);
                 }
                 if( nru>0 )
                 {
-                    applyrotationsfromtheright(!fwddir, 1, nru, ll, m, work0, work1, u, utemp);
+                    applyrotationsfromtheright(!fwddir, ustart, uend, ll+ustart-1, m+ustart-1, work0, work1, u, utemp);
                 }
                 if( ncc>0 )
                 {
-                    applyrotationsfromtheleft(!fwddir, ll, m, 1, ncc, work0, work1, c, ctemp);
+                    applyrotationsfromtheleft(!fwddir, ll+cstart-1, m+cstart-1, cstart, cend, work0, work1, c, ctemp);
                 }
             }
         }
@@ -897,7 +987,7 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
             //
             if( ncvt>0 )
             {
-                ap::vmul(vt.getrow(i, 1, ncvt), -1);
+                ap::vmul(&vt(i+vstart-1, vstart), ap::vlen(vstart,vend), -1);
             }
         }
     }
@@ -933,23 +1023,23 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
             if( ncvt>0 )
             {
                 j = n+1-i;
-                ap::vmove(vttemp.getvector(1, ncvt), vt.getrow(isub, 1, ncvt));
-                ap::vmove(vt.getrow(isub, 1, ncvt), vt.getrow(j, 1, ncvt));
-                ap::vmove(vt.getrow(j, 1, ncvt), vttemp.getvector(1, ncvt));
+                ap::vmove(&vttemp(vstart), &vt(isub+vstart-1, vstart), ap::vlen(vstart,vend));
+                ap::vmove(&vt(isub+vstart-1, vstart), &vt(j+vstart-1, vstart), ap::vlen(vstart,vend));
+                ap::vmove(&vt(j+vstart-1, vstart), &vttemp(vstart), ap::vlen(vstart,vend));
             }
             if( nru>0 )
             {
                 j = n+1-i;
-                ap::vmove(utemp.getvector(1, nru), u.getcolumn(isub, 1, nru));
-                ap::vmove(u.getcolumn(isub, 1, nru), u.getcolumn(j, 1, nru));
-                ap::vmove(u.getcolumn(j, 1, nru), utemp.getvector(1, nru));
+                ap::vmove(utemp.getvector(ustart, uend), u.getcolumn(isub+ustart-1, ustart, uend));
+                ap::vmove(u.getcolumn(isub+ustart-1, ustart, uend), u.getcolumn(j+ustart-1, ustart, uend));
+                ap::vmove(u.getcolumn(j+ustart-1, ustart, uend), utemp.getvector(ustart, uend));
             }
             if( ncc>0 )
             {
                 j = n+1-i;
-                ap::vmove(ctemp.getvector(1, ncc), c.getrow(isub, 1, ncc));
-                ap::vmove(c.getrow(isub, 1, ncc), c.getrow(j, 1, ncc));
-                ap::vmove(c.getrow(j, 1, ncc), ctemp.getvector(1, ncc));
+                ap::vmove(&ctemp(cstart), &c(isub+cstart-1, cstart), ap::vlen(cstart,cend));
+                ap::vmove(&c(isub+cstart-1, cstart), &c(j+cstart-1, cstart), ap::vlen(cstart,cend));
+                ap::vmove(&c(j+cstart-1, cstart), &ctemp(cstart), ap::vlen(cstart,cend));
             }
         }
     }
@@ -957,7 +1047,7 @@ bool bidiagonalsvddecomposition(ap::real_1d_array& d,
 }
 
 
-double extsignbdsqr(double a, double b)
+static double extsignbdsqr(double a, double b)
 {
     double result;
 
@@ -973,7 +1063,11 @@ double extsignbdsqr(double a, double b)
 }
 
 
-void svd2x2(double f, double g, double h, double& ssmin, double& ssmax)
+static void svd2x2(double f,
+     double g,
+     double h,
+     double& ssmin,
+     double& ssmax)
 {
     double aas;
     double at;
@@ -1041,7 +1135,7 @@ void svd2x2(double f, double g, double h, double& ssmin, double& ssmax)
 }
 
 
-void svdv2x2(double f,
+static void svdv2x2(double f,
      double g,
      double h,
      double& ssmin,

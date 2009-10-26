@@ -66,7 +66,7 @@ double barycentricinterpolation(const ap::real_1d_array& x,
     int i;
     int j;
 
-    ap::ap_error::make_assertion(n>0);
+    ap::ap_error::make_assertion(n>0, "BarycentricInterpolation: N<=0!");
     threshold = sqrt(ap::minrealnumber);
     
     //
@@ -157,7 +157,7 @@ double equidistantpolynomialinterpolation(double a,
     double w;
     double x;
 
-    ap::ap_error::make_assertion(n>0);
+    ap::ap_error::make_assertion(n>0, "BarycentricInterpolation: N<=0!");
     threshold = sqrt(ap::minrealnumber);
     
     //
@@ -270,7 +270,7 @@ double chebyshev1interpolation(double a,
     double w;
     double p1;
 
-    ap::ap_error::make_assertion(n>0);
+    ap::ap_error::make_assertion(n>0, "Chebyshev1Interpolation: N<=0!");
     threshold = sqrt(ap::minrealnumber);
     t = (t-0.5*(a+b))/(0.5*(b-a));
     
@@ -432,7 +432,7 @@ double chebyshev2interpolation(double a,
     double w;
     double p1;
 
-    ap::ap_error::make_assertion(n>1);
+    ap::ap_error::make_assertion(n>1, "Chebyshev2Interpolation: N<=1!");
     threshold = sqrt(ap::minrealnumber);
     t = (t-0.5*(a+b))/(0.5*(b-a));
     

@@ -1,34 +1,85 @@
 /********************************************************************
-AP library.
+AP Library version 1.3
+
+Copyright (c) 2003-2007, Sergey Bochkanov (ALGLIB project).
 See www.alglib.net or alglib.sources.ru for details.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+- Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer listed
+  in this license in the documentation and/or other materials
+  provided with the distribution.
+
+- Neither the name of the copyright holders nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ********************************************************************/
 
 #ifndef AP_H
 #define AP_H
 
 #include <stdlib.h>
+#include <string>
 #include <math.h>
 
+#ifdef __BORLANDC__
+#include <list.h>
+#include <vector.h>
+#else
+#include <list>
+#include <vector>
+#endif
+
 /********************************************************************
-Checking of the array boundaries mode.
+Array bounds check
 ********************************************************************/
-#define NO_AP_ASSERT
-//#define AP_ASSERT
+#define AP_ASSERT
 
-#ifndef AP_ASSERT
-#define NO_AP_ASSERT
-#endif
-
-#ifdef NO_AP_ASSERT
-#ifdef AP_ASSERT
-#undef NO_AP_ASSERT
-#endif
-#endif
+#ifndef AP_ASSERT     //
+#define NO_AP_ASSERT  // This code avoids definition of the
+#endif                // both AP_ASSERT and NO_AP_ASSERT symbols
+#ifdef NO_AP_ASSERT   //
+#ifdef AP_ASSERT      //
+#undef NO_AP_ASSERT   //
+#endif                //
+#endif                //
 
 
 /********************************************************************
-This symbol is used for debugging. Do not define it and do not remove 
-comments. 
+Current environment.
+********************************************************************/
+#ifndef AP_WIN32
+#ifndef AP_UNKNOWN
+#define AP_UNKNOWN
+#endif
+#endif
+#ifdef AP_WIN32
+#ifdef AP_UNKNOWN
+#error Multiple environments are declared!
+#endif
+#endif
+
+/********************************************************************
+This symbol is used for debugging. Do not define it and do not remove
+comments.
 ********************************************************************/
 //#define UNSAFE_MEM_COPY
 
@@ -39,6 +90,15 @@ Namespace of a standard library AlgoPascal.
 namespace ap
 {
 
+/********************************************************************
+Service routines:
+    amalloc - allocates an aligned block of size bytes
+    afree - frees block allocated by amalloc
+    vlen - just alias for n2-n1+1
+********************************************************************/
+void* amalloc(size_t size, size_t alignment);
+void afree(void *block);
+int vlen(int n1, int n2);
 
 /********************************************************************
 Exception class.
@@ -46,8 +106,15 @@ Exception class.
 class ap_error
 {
 public:
+    ap_error(){};
+    ap_error(const char *s){ msg = s; };
+
+    std::string msg;
+
     static void make_assertion(bool bClause)
         { if(!bClause) throw ap_error(); };
+    static void make_assertion(bool bClause, const char *msg)
+        { if(!bClause) throw ap_error(msg); };
 private:
 };
 
@@ -123,536 +190,49 @@ const complex csqr(const complex &z);
 
 
 /********************************************************************
-Template defining vector in memory. It is used by the basic 
-subroutines of linear algebra.
-
-Vector consists of Length elements of type T, starting from an element, 
-which Data is pointed to. Interval between adjacent elements equals 
-the value of Step.
-
-The class provides an access for reading only.
+Templates for vector operations
 ********************************************************************/
-template<class T>
-class const_raw_vector
-{
-public:
-    const_raw_vector(const T *Data, int Length, int Step):
-        pData(const_cast<T*>(Data)),iLength(Length),iStep(Step){};
-
-    const T* GetData() const
-    { return pData; };
-
-    int GetLength() const
-    { return iLength; };
-
-    int GetStep() const
-    { return iStep; };
-protected:
-    T       *pData;
-    int     iLength, iStep;
-};
-
+#include "apvt.h"
 
 /********************************************************************
-Template defining vector in memory, derived from const_raw_vector.
-It is used by the basic subroutines of linear algebra.
-
-Vector consists of Length elements of type T, starting from an element, 
-which Data is pointed to. Interval between adjacent elements equals 
-the value of Step.
-
-The class provides an access both for reading and writing.
+BLAS functions
 ********************************************************************/
-template<class T>
-class raw_vector : public const_raw_vector<T>
-{
-public:
-    raw_vector(T *Data, int Length, int Step):const_raw_vector<T>(Data, Length, Step){};
+double vdotproduct(const double *v1, const double *v2, int N);
+complex vdotproduct(const complex *v1, const complex *v2, int N);
 
-    T* GetData()
-    { return const_raw_vector<T>::pData; };
-};
+void vmove(double *vdst, const double* vsrc, int N);
+void vmove(complex *vdst, const complex* vsrc, int N);
 
+void vmoveneg(double *vdst, const double *vsrc, int N);
+void vmoveneg(complex *vdst, const complex *vsrc, int N);
 
-/********************************************************************
-Scalar product
-********************************************************************/
-template<class T>
-T vdotproduct(const_raw_vector<T> v1, const_raw_vector<T> v2)
-{
-    ap_error::make_assertion(v1.GetLength()==v2.GetLength());
-    if( v1.GetStep()==1 && v2.GetStep()==1 )
-    {
-        //
-        // fast
-        //
-        T r = 0;
-        const T *p1 = v1.GetData();
-        const T *p2 = v2.GetData();
-        int imax = v1.GetLength()/4;
-        int i;
-        for(i=imax; i!=0; i--)
-        {
-            r += (*p1)*(*p2) + p1[1]*p2[1] + p1[2]*p2[2] + p1[3]*p2[3];
-            p1+=4;
-            p2+=4;
-        }
-        for(i=0; i<v1.GetLength()%4; i++)
-            r += (*(p1++))*(*(p2++));
-        return r;
-    }
-    else
-    {
-        //
-        // general
-        //
-        int offset11 = v1.GetStep(), offset12 = 2*offset11, offset13 = 3*offset11, offset14 = 4*offset11;
-        int offset21 = v2.GetStep(), offset22 = 2*offset21, offset23 = 3*offset21, offset24 = 4*offset21;
-        T r = 0;
-        const T *p1 = v1.GetData();
-        const T *p2 = v2.GetData();
-        int imax = v1.GetLength()/4;
-        int i;
-        for(i=0; i<imax; i++)
-        {
-            r += (*p1)*(*p2) + p1[offset11]*p2[offset21] + p1[offset12]*p2[offset22] + p1[offset13]*p2[offset23];
-            p1+=offset14;
-            p2+=offset24;
-        }
-        for(i=0; i<v1.GetLength()%4; i++)
-        {
-            r += (*p1)*(*p2);
-            p1+=offset11;
-            p2+=offset21;
-        }
-        return r;
-    }
-}
+void vmove(double *vdst, const double *vsrc, int N, double alpha);
+void vmove(complex *vdst, const complex *vsrc, int N, double alpha);
+void vmove(complex *vdst, const complex *vsrc, int N, complex alpha);
 
+void vadd(double *vdst, const double *vsrc, int N);
+void vadd(complex *vdst, const complex *vsrc, int N);
 
-/********************************************************************
-Copy one vector into another
-********************************************************************/
-template<class T>
-void vmove(raw_vector<T> vdst, const_raw_vector<T> vsrc)
-{
-    ap_error::make_assertion(vdst.GetLength()==vsrc.GetLength());
-    if( vdst.GetStep()==1 && vsrc.GetStep()==1 )
-    {
-        //
-        // fast
-        //
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/2;
-        int i;
-        for(i=imax; i!=0; i--)
-        {
-            *p1 = *p2;
-            p1[1] = p2[1];
-            p1 += 2;
-            p2 += 2;
-        }
-        if(vdst.GetLength()%2 != 0)
-            *p1 = *p2;
-        return;
-    }
-    else
-    {
-        //
-        // general
-        //
-        int offset11 = vdst.GetStep(), offset12 = 2*offset11, offset13 = 3*offset11, offset14 = 4*offset11;
-        int offset21 = vsrc.GetStep(), offset22 = 2*offset21, offset23 = 3*offset21, offset24 = 4*offset21;
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=0; i<imax; i++)
-        {
-            *p1 = *p2;
-            p1[offset11] = p2[offset21];
-            p1[offset12] = p2[offset22];
-            p1[offset13] = p2[offset23];
-            p1 += offset14;
-            p2 += offset24;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-        {
-            *p1 = *p2;
-            p1 += vdst.GetStep();
-            p2 += vsrc.GetStep();
-        }
-        return;
-    }
-}
+void vadd(double *vdst, const double *vsrc, int N, double alpha);
+void vadd(complex *vdst, const complex *vsrc, int N, double alpha);
+void vadd(complex *vdst, const complex *vsrc, int N, complex alpha);
 
+void vsub(double *vdst, const double *vsrc, int N);
+void vsub(complex *vdst, const complex *vsrc, int N);
 
-/********************************************************************
-Copy one vector multiplied by -1 into another.
-********************************************************************/
-template<class T>
-void vmoveneg(raw_vector<T> vdst, const_raw_vector<T> vsrc)
-{
-    ap_error::make_assertion(vdst.GetLength()==vsrc.GetLength());
-    if( vdst.GetStep()==1 && vsrc.GetStep()==1 )
-    {
-        //
-        // fast
-        //
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/2;
-        int i;
-        for(i=0; i<imax; i++)
-        {
-            *p1 = -*p2;
-            p1[1] = -p2[1];
-            p1 += 2;
-            p2 += 2;
-        }
-        if(vdst.GetLength()%2 != 0)
-            *p1 = -*p2;
-        return;
-    }
-    else
-    {
-        //
-        // general
-        //
-        int offset11 = vdst.GetStep(), offset12 = 2*offset11, offset13 = 3*offset11, offset14 = 4*offset11;
-        int offset21 = vsrc.GetStep(), offset22 = 2*offset21, offset23 = 3*offset21, offset24 = 4*offset21;
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=imax; i!=0; i--)
-        {
-            *p1 = -*p2;
-            p1[offset11] = -p2[offset21];
-            p1[offset12] = -p2[offset22];
-            p1[offset13] = -p2[offset23];
-            p1 += offset14;
-            p2 += offset24;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-        {
-            *p1 = -*p2;
-            p1 += vdst.GetStep();
-            p2 += vsrc.GetStep();
-        }
-        return;
-    }
-}
+void vsub(double *vdst, const double *vsrc, int N, double alpha);
+void vsub(complex *vdst, const complex *vsrc, int N, double alpha);
+void vsub(complex *vdst, const complex *vsrc, int N, complex alpha);
 
-
-/********************************************************************
-Copy one vector multiplied by a number into another vector.
-********************************************************************/
-template<class T, class T2>
-void vmove(raw_vector<T> vdst, const_raw_vector<T> vsrc, T2 alpha)
-{
-    ap_error::make_assertion(vdst.GetLength()==vsrc.GetLength());
-    if( vdst.GetStep()==1 && vsrc.GetStep()==1 )
-    {
-        //
-        // fast
-        //
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=imax; i!=0; i--)
-        {
-            *p1 = alpha*(*p2);
-            p1[1] = alpha*p2[1];
-            p1[2] = alpha*p2[2];
-            p1[3] = alpha*p2[3];
-            p1 += 4;
-            p2 += 4;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-            *(p1++) = alpha*(*(p2++));
-        return;
-    }
-    else
-    {
-        //
-        // general
-        //
-        int offset11 = vdst.GetStep(), offset12 = 2*offset11, offset13 = 3*offset11, offset14 = 4*offset11;
-        int offset21 = vsrc.GetStep(), offset22 = 2*offset21, offset23 = 3*offset21, offset24 = 4*offset21;
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=0; i<imax; i++)
-        {
-            *p1 = alpha*(*p2);
-            p1[offset11] = alpha*p2[offset21];
-            p1[offset12] = alpha*p2[offset22];
-            p1[offset13] = alpha*p2[offset23];
-            p1 += offset14;
-            p2 += offset24;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-        {
-            *p1 = alpha*(*p2);
-            p1 += vdst.GetStep();
-            p2 += vsrc.GetStep();
-        }
-        return;
-    }
-}
-
-
-/********************************************************************
-Vector addition
-********************************************************************/
-template<class T>
-void vadd(raw_vector<T> vdst, const_raw_vector<T> vsrc)
-{
-    ap_error::make_assertion(vdst.GetLength()==vsrc.GetLength());
-    if( vdst.GetStep()==1 && vsrc.GetStep()==1 )
-    {
-        //
-        // fast
-        //
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=imax; i!=0; i--)
-        {
-            *p1 += *p2;
-            p1[1] += p2[1];
-            p1[2] += p2[2];
-            p1[3] += p2[3];
-            p1 += 4;
-            p2 += 4;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-            *(p1++) += *(p2++);
-        return;
-    }
-    else
-    {
-        //
-        // general
-        //
-        int offset11 = vdst.GetStep(), offset12 = 2*offset11, offset13 = 3*offset11, offset14 = 4*offset11;
-        int offset21 = vsrc.GetStep(), offset22 = 2*offset21, offset23 = 3*offset21, offset24 = 4*offset21;
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=0; i<imax; i++)
-        {
-            *p1 += *p2;
-            p1[offset11] += p2[offset21];
-            p1[offset12] += p2[offset22];
-            p1[offset13] += p2[offset23];
-            p1 += offset14;
-            p2 += offset24;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-        {
-            *p1 += *p2;
-            p1 += vdst.GetStep();
-            p2 += vsrc.GetStep();
-        }
-        return;
-    }
-}
-
-
-/********************************************************************
-Add one vector multiplied by a number to another vector.
-********************************************************************/
-template<class T, class T2>
-void vadd(raw_vector<T> vdst, const_raw_vector<T> vsrc, T2 alpha)
-{
-    ap_error::make_assertion(vdst.GetLength()==vsrc.GetLength());
-    if( vdst.GetStep()==1 && vsrc.GetStep()==1 )
-    {
-        //
-        // fast
-        //
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=imax; i!=0; i--)
-        {
-            *p1 += alpha*(*p2);
-            p1[1] += alpha*p2[1];
-            p1[2] += alpha*p2[2];
-            p1[3] += alpha*p2[3];
-            p1 += 4;
-            p2 += 4;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-            *(p1++) += alpha*(*(p2++));
-        return;
-    }
-    else
-    {
-        //
-        // general
-        //
-        int offset11 = vdst.GetStep(), offset12 = 2*offset11, offset13 = 3*offset11, offset14 = 4*offset11;
-        int offset21 = vsrc.GetStep(), offset22 = 2*offset21, offset23 = 3*offset21, offset24 = 4*offset21;
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=0; i<imax; i++)
-        {
-            *p1 += alpha*(*p2);
-            p1[offset11] += alpha*p2[offset21];
-            p1[offset12] += alpha*p2[offset22];
-            p1[offset13] += alpha*p2[offset23];
-            p1 += offset14;
-            p2 += offset24;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-        {
-            *p1 += alpha*(*p2);
-            p1 += vdst.GetStep();
-            p2 += vsrc.GetStep();
-        }
-        return;
-    }
-}
-
-
-/********************************************************************
-Vector subtraction
-********************************************************************/
-template<class T>
-void vsub(raw_vector<T> vdst, const_raw_vector<T> vsrc)
-{
-    ap_error::make_assertion(vdst.GetLength()==vsrc.GetLength());
-    if( vdst.GetStep()==1 && vsrc.GetStep()==1 )
-    {
-        //
-        // fast
-        //
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=imax; i!=0; i--)
-        {
-            *p1 -= *p2;
-            p1[1] -= p2[1];
-            p1[2] -= p2[2];
-            p1[3] -= p2[3];
-            p1 += 4;
-            p2 += 4;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-            *(p1++) -= *(p2++);
-        return;
-    }
-    else
-    {
-        //
-        // general
-        //
-        int offset11 = vdst.GetStep(), offset12 = 2*offset11, offset13 = 3*offset11, offset14 = 4*offset11;
-        int offset21 = vsrc.GetStep(), offset22 = 2*offset21, offset23 = 3*offset21, offset24 = 4*offset21;
-        T *p1 = vdst.GetData();
-        const T *p2 = vsrc.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=0; i<imax; i++)
-        {
-            *p1 -= *p2;
-            p1[offset11] -= p2[offset21];
-            p1[offset12] -= p2[offset22];
-            p1[offset13] -= p2[offset23];
-            p1 += offset14;
-            p2 += offset24;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-        {
-            *p1 -= *p2;
-            p1 += vdst.GetStep();
-            p2 += vsrc.GetStep();
-        }
-        return;
-    }
-}
-
-
-/********************************************************************
-Subtract one vector multiplied by a number from another vector.
-********************************************************************/
-template<class T, class T2>
-void vsub(raw_vector<T> vdst, const_raw_vector<T> vsrc, T2 alpha)
-{
-    vadd(vdst, vsrc, -alpha);
-}
-
-
-/********************************************************************
-In-place vector multiplication
-********************************************************************/
-template<class T, class T2>
-void vmul(raw_vector<T> vdst, T2 alpha)
-{
-    if( vdst.GetStep()==1 )
-    {
-        //
-        // fast
-        //
-        T *p1 = vdst.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=imax; i!=0; i--)
-        {
-            *p1 *= alpha;
-            p1[1] *= alpha;
-            p1[2] *= alpha;
-            p1[3] *= alpha;
-            p1 += 4;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-            *(p1++) *= alpha;
-        return;
-    }
-    else
-    {
-        //
-        // general
-        //
-        int offset11 = vdst.GetStep(), offset12 = 2*offset11, offset13 = 3*offset11, offset14 = 4*offset11;
-        T *p1 = vdst.GetData();
-        int imax = vdst.GetLength()/4;
-        int i;
-        for(i=0; i<imax; i++)
-        {
-            *p1 *= alpha;
-            p1[offset11] *= alpha;
-            p1[offset12] *= alpha;
-            p1[offset13] *= alpha;
-            p1 += offset14;
-        }
-        for(i=0; i<vdst.GetLength()%4; i++)
-        {
-            *p1 *= alpha;
-            p1 += vdst.GetStep();
-        }
-        return;
-    }
-}
+void vmul(double *vdst, int N, double alpha);
+void vmul(complex *vdst, int N, double alpha);
+void vmul(complex *vdst, int N, complex alpha);
 
 
 /********************************************************************
 Template of a dynamical one-dimensional array
 ********************************************************************/
-template<class T>
+template<class T, bool Aligned = false>
 class template_1d_array
 {
 public:
@@ -660,62 +240,54 @@ public:
     {
         m_Vec=0;
         m_iVecSize = 0;
+        m_iLow = 0;
+        m_iHigh = -1;
         copy_=true;
     };
 
     ~template_1d_array()
     {
         if(m_Vec && copy_)
-            delete[] m_Vec;
+        {
+            if( Aligned )
+                ap::afree(m_Vec);
+            else
+                delete[] m_Vec;
+        }
     };
 
     template_1d_array(const template_1d_array &rhs)
     {
-        m_iVecSize = rhs.m_iVecSize;
-        m_iLow = rhs.m_iLow;
-        m_iHigh = rhs.m_iHigh;
-        if(rhs.m_Vec)
-        {
-            m_Vec = new T[m_iVecSize];
-            #ifndef UNSAFE_MEM_COPY
-            for(int i=0; i<m_iVecSize; i++)
-                m_Vec[i] = rhs.m_Vec[i];
-            #else
-            memcpy(m_Vec, rhs.m_Vec, m_iVecSize*sizeof(T));
-            #endif
-        }
-        else
-            m_Vec=0;
+        m_Vec=0;
+        m_iVecSize = 0;
+        m_iLow = 0;
+        m_iHigh = -1;
+        if( rhs.m_iVecSize!=0 )
+            setcontent(rhs.m_iLow, rhs.m_iHigh, rhs.getcontent());
         copy_=true;
     };
 
-    
+
     const template_1d_array& operator=(const template_1d_array &rhs)
     {
         if( this==&rhs )
             return *this;
 
-        m_iLow = rhs.m_iLow;
-        m_iHigh = rhs.m_iHigh;
-        m_iVecSize = rhs.m_iVecSize;
         if(m_Vec && copy_)
             delete[] m_Vec;
-        if(rhs.m_Vec)
-        {
-            m_Vec = new T[m_iVecSize];
-            #ifndef UNSAFE_MEM_COPY
-            for(int i=0; i<m_iVecSize; i++)
-                m_Vec[i] = rhs.m_Vec[i];
-            #else
-            memcpy(m_Vec, rhs.m_Vec, m_iVecSize*sizeof(T));
-            #endif
-        }
+        if( rhs.m_iVecSize!=0 )
+            setcontent(rhs.m_iLow, rhs.m_iHigh, rhs.getcontent());
         else
+        {
             m_Vec=0;
+            m_iVecSize = 0;
+            m_iLow = 0;
+            m_iHigh = -1;
+        }
         return *this;
     };
 
-    
+
     const T& operator()(int i) const
     {
         #ifndef NO_AP_ASSERT
@@ -724,7 +296,7 @@ public:
         return m_Vec[ i-m_iLow ];
     };
 
-    
+
     T& operator()(int i)
     {
         #ifndef NO_AP_ASSERT
@@ -733,23 +305,37 @@ public:
         return m_Vec[ i-m_iLow ];
     };
 
-    
-    void setbounds( int iLow, int iHigh, int copy=-1 )
+
+    void setbounds( int iLow, int iHigh, int copy=-1  )
     {
-      if(copy==-1) { copy  = copy_; }
-      else         { copy_ = copy!=0; }
+        if(copy==-1) { copy  = copy_; }
+        else         { copy_ = copy!=0; }
         if(m_Vec && copy_)
-            delete[] m_Vec;
+        {
+            if( Aligned )
+                ap::afree(m_Vec);
+            else
+                delete[] m_Vec;
+        }
         m_iLow = iLow;
         m_iHigh = iHigh;
         m_iVecSize = iHigh-iLow+1;
         if(copy)
         {
-          m_Vec = new T[m_iVecSize];
+          if( Aligned )
+              m_Vec = (T*)ap::amalloc(m_iVecSize*sizeof(T), 16);
+          else
+              m_Vec = new T[m_iVecSize];
         }
     };
 
-    
+
+    void setlength(int iLen)
+    {
+        setbounds(0, iLen-1);
+    }
+
+
     void setcontent( int iLow, int iHigh, const T *pContent, bool copy=true)
     {
         setbounds(iLow, iHigh, copy);
@@ -764,7 +350,7 @@ public:
         }
     };
 
-    
+
     T* getcontent()
     {
         return m_Vec;
@@ -775,13 +361,13 @@ public:
         return m_Vec;
     };
 
-    
+
     int getlowbound(int iBoundNum = 0) const
     {
         return m_iLow;
     };
 
-    
+
     int gethighbound(int iBoundNum = 0) const
     {
         return m_iHigh;
@@ -795,7 +381,7 @@ public:
             return raw_vector<T>(m_Vec+iStart-m_iLow, iEnd-iStart+1, 1);
     };
 
-    
+
     const_raw_vector<T> getvector(int iStart, int iEnd) const
     {
         if( iStart>iEnd || wrongIdx(iStart) || wrongIdx(iEnd) )
@@ -817,7 +403,7 @@ private:
 /********************************************************************
 Template of a dynamical two-dimensional array
 ********************************************************************/
-template<class T>
+template<class T, bool Aligned = false>
 class template_2d_array
 {
 public:
@@ -825,62 +411,69 @@ public:
     {
         m_Vec=0;
         m_iVecSize=0;
+        m_iLow1 = 0;
+        m_iHigh1 = -1;
+        m_iLow2 = 0;
+        m_iHigh2 = -1;
     };
 
     ~template_2d_array()
     {
         if(m_Vec)
-            delete[] m_Vec;
+        {
+            if( Aligned )
+                ap::afree(m_Vec);
+            else
+                delete[] m_Vec;
+        }
     };
 
     template_2d_array(const template_2d_array &rhs)
     {
-        m_iVecSize = rhs.m_iVecSize;
-        m_iLow1 = rhs.m_iLow1;
-        m_iLow2 = rhs.m_iLow2;
-        m_iHigh1 = rhs.m_iHigh1;
-        m_iHigh2 = rhs.m_iHigh2;
-        m_iConstOffset = rhs.m_iConstOffset;
-        m_iLinearMember = rhs.m_iLinearMember;
-        if(rhs.m_Vec)
+        m_Vec=0;
+        m_iVecSize=0;
+        m_iLow1 = 0;
+        m_iHigh1 = -1;
+        m_iLow2 = 0;
+        m_iHigh2 = -1;
+        if( rhs.m_iVecSize!=0 )
         {
-            m_Vec = new T[m_iVecSize];
-            #ifndef UNSAFE_MEM_COPY
-            for(int i=0; i<m_iVecSize; i++)
-                m_Vec[i] = rhs.m_Vec[i];
-            #else
-            memcpy(m_Vec, rhs.m_Vec, m_iVecSize*sizeof(T));
-            #endif
+            setbounds(rhs.m_iLow1, rhs.m_iHigh1, rhs.m_iLow2, rhs.m_iHigh2);
+            for(int i=m_iLow1; i<=m_iHigh1; i++)
+                for(int j=m_iLow2; j<=m_iHigh2; j++)
+                    operator()(i,j) = rhs(i,j);
+                //vmove(&(operator()(i,m_iLow2)), &(rhs(i,m_iLow2)), m_iHigh2-m_iLow2+1);
         }
-        else
-            m_Vec=0;
     };
     const template_2d_array& operator=(const template_2d_array &rhs)
     {
         if( this==&rhs )
             return *this;
 
-        m_iLow1 = rhs.m_iLow1;
-        m_iLow2 = rhs.m_iLow2;
-        m_iHigh1 = rhs.m_iHigh1;
-        m_iHigh2 = rhs.m_iHigh2;
-        m_iConstOffset = rhs.m_iConstOffset;
-        m_iLinearMember = rhs.m_iLinearMember;
-        m_iVecSize = rhs.m_iVecSize;
-        if(m_Vec)
-            delete[] m_Vec;
-        if(rhs.m_Vec)
+        if( rhs.m_iVecSize!=0 )
         {
-            m_Vec = new T[m_iVecSize];
-            #ifndef UNSAFE_MEM_COPY
-            for(int i=0; i<m_iVecSize; i++)
-                m_Vec[i] = rhs.m_Vec[i];
-            #else
-            memcpy(m_Vec, rhs.m_Vec, m_iVecSize*sizeof(T));
-            #endif
+            setbounds(rhs.m_iLow1, rhs.m_iHigh1, rhs.m_iLow2, rhs.m_iHigh2);
+            for(int i=m_iLow1; i<=m_iHigh1; i++)
+                for(int j=m_iLow2; j<=m_iHigh2; j++)
+                    operator()(i,j) = rhs(i,j);
+                //vmove(&(operator()(i,m_iLow2)), &(rhs(i,m_iLow2)), m_iHigh2-m_iLow2+1);
         }
         else
+        {
+            if(m_Vec)
+            {
+                if( Aligned )
+                    ap::afree(m_Vec);
+                else
+                    delete[] m_Vec;
+            }
             m_Vec=0;
+            m_iVecSize=0;
+            m_iLow1 = 0;
+            m_iHigh1 = -1;
+            m_iLow2 = 0;
+            m_iHigh2 = -1;
+        }
         return *this;
     };
 
@@ -905,32 +498,47 @@ public:
     void setbounds( int iLow1, int iHigh1, int iLow2, int iHigh2 )
     {
         if(m_Vec)
-            delete[] m_Vec;
-        m_iVecSize = (iHigh1-iLow1+1)*(iHigh2-iLow2+1);
-        m_Vec = new T[m_iVecSize];
+        {
+            if( Aligned )
+                ap::afree(m_Vec);
+            else
+                delete[] m_Vec;
+        }
+        int n1 = iHigh1-iLow1+1;
+        int n2 = iHigh2-iLow2+1;
+        m_iVecSize = n1*n2;
+        if( Aligned )
+        {
+            //if( n2%2!=0 )
+            while( (n2*sizeof(T))%16!=0 )
+            {
+                n2++;
+                m_iVecSize += n1;
+            }
+            m_Vec = (T*)ap::amalloc(m_iVecSize*sizeof(T), 16);
+        }
+        else
+            m_Vec = new T[m_iVecSize];
         m_iLow1  = iLow1;
         m_iHigh1 = iHigh1;
         m_iLow2  = iLow2;
         m_iHigh2 = iHigh2;
-        m_iConstOffset = -m_iLow2-m_iLow1*(m_iHigh2-m_iLow2+1);
-        m_iLinearMember = (m_iHigh2-m_iLow2+1);
+        m_iConstOffset = -m_iLow2-m_iLow1*n2;
+        m_iLinearMember = n2;
     };
+
+    void setlength(int iLen1, int iLen2)
+    {
+        setbounds(0, iLen1-1, 0, iLen2-1);
+    }
 
     void setcontent( int iLow1, int iHigh1, int iLow2, int iHigh2, const T *pContent )
     {
         setbounds(iLow1, iHigh1, iLow2, iHigh2);
-        for(int i=0; i<m_iVecSize; i++)
-            m_Vec[i]=pContent[i];
-    };
-
-    T* getcontent()
-    {
-        return m_Vec;
-    };
-
-    const T* getcontent() const
-    {
-        return m_Vec;
+        for(int i=m_iLow1; i<=m_iHigh1; i++, pContent += m_iHigh2-m_iLow2+1)
+            for(int j=m_iLow2; j<=m_iHigh2; j++)
+                operator()(i,j) = pContent[j-m_iLow2];
+            //vmove(&(operator()(i,m_iLow2)), pContent, m_iHigh2-m_iLow2+1);
     };
 
     int getlowbound(int iBoundNum) const
@@ -985,14 +593,60 @@ private:
 };
 
 
-typedef template_1d_array<int>     integer_1d_array;
-typedef template_1d_array<double>  real_1d_array;
-typedef template_1d_array<complex> complex_1d_array;
-typedef template_1d_array<bool>    boolean_1d_array;
-typedef template_2d_array<int>     integer_2d_array;
-typedef template_2d_array<double>  real_2d_array;
-typedef template_2d_array<complex> complex_2d_array;
-typedef template_2d_array<bool>    boolean_2d_array;
+typedef template_1d_array<int>          integer_1d_array;
+typedef template_1d_array<double,true>  real_1d_array;
+typedef template_1d_array<complex>      complex_1d_array;
+typedef template_1d_array<bool>         boolean_1d_array;
+
+typedef template_2d_array<int>          integer_2d_array;
+typedef template_2d_array<double,true>  real_2d_array;
+typedef template_2d_array<complex>      complex_2d_array;
+typedef template_2d_array<bool>         boolean_2d_array;
+
+
+/********************************************************************
+dataset functions.
+will be finished in AP 1.4
+********************************************************************/
+/*class dataset
+{
+public:
+    dataset():nin(0), nout(0), nclasses(0), iscls(false), isreg(false), trnsize(0), valsize(0), tstsize(0), size(0){};
+
+    int nin, nout, nclasses;
+    bool iscls, isreg;
+
+    int trnsize;
+    int valsize;
+    int tstsize;
+    int size;
+
+    ap::real_2d_array trn;
+    ap::real_2d_array val;
+    ap::real_2d_array tst;
+    ap::real_2d_array all;
+};*/
+
+//bool opendataset(std::string file, dataset *pdataset);
+
+//
+// internal functions
+//
+bool readstrings(std::string file, std::list<std::string> *pOutput);
+bool readstrings(std::string file, std::list<std::string> *pOutput, std::string comment);
+void explodestring(std::string s, char sep, std::vector<std::string> *pOutput);
+
+/********************************************************************
+reverse communication state
+********************************************************************/
+struct rcommstate
+{
+    int stage;
+    ap::integer_1d_array ia;
+    ap::boolean_1d_array ba;
+    ap::real_1d_array ra;
+    ap::complex_1d_array ca;
+};
 
 
 /********************************************************************

@@ -138,7 +138,7 @@ void buildgeneralleastsquares(const ap::real_1d_array& y,
     }
     for(i = 1; i <= ni; i++)
     {
-        v = ap::vdotproduct(b.getvector(1, mi), q.getrow(i, 1, mi));
+        v = ap::vdotproduct(&b(1), &q(i, 1), ap::vlen(1,mi));
         b2(1,i) = v;
     }
     
@@ -210,7 +210,7 @@ void buildgeneralleastsquares(const ap::real_1d_array& y,
     for(i = 1; i <= ni; i++)
     {
         v = b2(1,i);
-        ap::vadd(b.getvector(1, ni), vt.getrow(i, 1, ni), v);
+        ap::vadd(&b(1), &vt(i, 1), ap::vlen(1,ni), v);
     }
     
     //
@@ -353,7 +353,7 @@ void buildsplineleastsquares(const ap::real_1d_array& x,
     ap::real_1d_array sx;
     ap::real_1d_array sy;
 
-    ap::ap_error::make_assertion(m>=2);
+    ap::ap_error::make_assertion(m>=2, "BuildSplineLeastSquares: M is too small!");
     mi = n;
     ni = m;
     sx.setbounds(0, ni-1);
@@ -416,7 +416,7 @@ void buildsplineleastsquares(const ap::real_1d_array& x,
     }
     for(i = 1; i <= ni; i++)
     {
-        v = ap::vdotproduct(mb.getvector(1, mi), q.getrow(i, 1, mi));
+        v = ap::vdotproduct(&mb(1), &q(i, 1), ap::vlen(1,mi));
         b2(1,i) = v;
     }
     
@@ -497,7 +497,7 @@ void buildsplineleastsquares(const ap::real_1d_array& x,
     for(i = 1; i <= ni; i++)
     {
         v = b2(1,i);
-        ap::vadd(mb.getvector(1, ni), vt.getrow(i, 1, ni), v);
+        ap::vadd(&mb(1), &vt(i, 1), ap::vlen(1,ni), v);
     }
     
     //
@@ -575,6 +575,11 @@ void buildpolynomialleastsquares(const ap::real_1d_array& x,
             minx = x(i);
         }
     }
+    if( minx==maxx )
+    {
+        minx = minx-0.5;
+        maxx = maxx+0.5;
+    }
     w.setbounds(0, n-1);
     for(i = 0; i <= n-1; i++)
     {
@@ -595,11 +600,9 @@ void buildpolynomialleastsquares(const ap::real_1d_array& x,
         c1(i) = 0;
     }
     d = 0;
-    i = 0;
-    do
+    for(i = 0; i <= m; i++)
     {
-        k = i;
-        do
+        for(k = i; k <= m; k++)
         {
             e = c1(k);
             c1(k) = 0;
@@ -619,9 +622,7 @@ void buildpolynomialleastsquares(const ap::real_1d_array& x,
                 }
             }
             d = e;
-            k = k+1;
         }
-        while(k<=m);
         d = c1(i);
         e = 0;
         k = i;
@@ -631,9 +632,7 @@ void buildpolynomialleastsquares(const ap::real_1d_array& x,
             k = k+2;
         }
         c1(i) = e;
-        i = i+1;
     }
-    while(i<=m);
     
     //
     // Linear translation
@@ -646,31 +645,23 @@ void buildpolynomialleastsquares(const ap::real_1d_array& x,
     c(0) = c1(0);
     z1(0) = 1;
     z2(0) = 1;
-    i = 1;
-    do
+    for(i = 1; i <= m; i++)
     {
         z2(i) = 1;
         z1(i) = l2*z1(i-1);
         c(0) = c(0)+c1(i)*z1(i);
-        i = i+1;
     }
-    while(i<=m);
-    j = 1;
-    do
+    for(j = 1; j <= m; j++)
     {
         z2(0) = l1*z2(0);
         c(j) = c1(j)*z2(0);
-        i = j+1;
-        while(i<=m)
+        for(i = j+1; i <= m; i++)
         {
             k = i-j;
             z2(k) = l1*z2(k)+z2(k-1);
             c(j) = c(j)+c1(i)*z2(k)*z1(k);
-            i = i+1;
         }
-        j = j+1;
     }
-    while(j<=m);
 }
 
 
@@ -790,7 +781,7 @@ void buildchebyshevleastsquares(const ap::real_1d_array& x,
     }
     for(i = 1; i <= ni; i++)
     {
-        v = ap::vdotproduct(mb.getvector(1, mi), q.getrow(i, 1, mi));
+        v = ap::vdotproduct(&mb(1), &q(i, 1), ap::vlen(1,mi));
         b2(1,i) = v;
     }
     
@@ -871,7 +862,7 @@ void buildchebyshevleastsquares(const ap::real_1d_array& x,
     for(i = 1; i <= ni; i++)
     {
         v = b2(1,i);
-        ap::vadd(mb.getvector(1, ni), vt.getrow(i, 1, ni), v);
+        ap::vadd(&mb(1), &vt(i, 1), ap::vlen(1,ni), v);
     }
     
     //
@@ -969,9 +960,9 @@ bool buildchebyshevleastsquaresconstrained(const ap::real_1d_array& x,
     ap::real_2d_array tmpmatrix;
     double v;
 
-    ap::ap_error::make_assertion(n>0);
-    ap::ap_error::make_assertion(m>=0);
-    ap::ap_error::make_assertion(nc>=0&&nc<m+1);
+    ap::ap_error::make_assertion(n>0, "");
+    ap::ap_error::make_assertion(m>=0, "");
+    ap::ap_error::make_assertion(nc>=0&&nc<m+1, "");
     result = true;
     
     //
@@ -1085,7 +1076,7 @@ bool buildchebyshevleastsquaresconstrained(const ap::real_1d_array& x,
                     uj(j) = 2*v*uj(j-1)-uj(j-2);
                     dtj(j) = j*uj(j-1);
                 }
-                ap::ap_error::make_assertion(dc(i)==0||dc(i)==1);
+                ap::ap_error::make_assertion(dc(i)==0||dc(i)==1, "");
                 if( dc(i)==0 )
                 {
                     cmatrix(i+1,j+1) = tj(j);
@@ -1135,7 +1126,7 @@ bool buildchebyshevleastsquaresconstrained(const ap::real_1d_array& x,
         for(i = 1; i <= nc; i++)
         {
             v = tmp(i);
-            ap::vadd(d.getvector(1, m+1), vt.getrow(i, 1, m+1), v);
+            ap::vadd(&d(1), &vt(i, 1), ap::vlen(1,m+1), v);
         }
         
         //
@@ -1145,7 +1136,7 @@ bool buildchebyshevleastsquaresconstrained(const ap::real_1d_array& x,
         //
         for(i = 1; i <= n; i++)
         {
-            v = ap::vdotproduct(designmatrix.getrow(i, 1, m+1), d.getvector(1, m+1));
+            v = ap::vdotproduct(&designmatrix(i, 1), &d(1), ap::vlen(1,m+1));
             rightpart(i) = rightpart(i)-v;
         }
         reducedsize = m+1-nc;
@@ -1158,7 +1149,7 @@ bool buildchebyshevleastsquaresconstrained(const ap::real_1d_array& x,
     //
     // Solve reduced problem DesignMatrix*t = RightPart.
     //
-    if( !svddecomposition(designmatrix, n, reducedsize, 2, 2, 2, ws, u, vt) )
+    if( !svddecomposition(designmatrix, n, reducedsize, 1, 1, 2, ws, u, vt) )
     {
         result = false;
         return result;
@@ -1172,7 +1163,7 @@ bool buildchebyshevleastsquaresconstrained(const ap::real_1d_array& x,
     for(i = 1; i <= n; i++)
     {
         v = rightpart(i);
-        ap::vadd(tmp.getvector(1, reducedsize), u.getrow(i, 1, reducedsize), v);
+        ap::vadd(&tmp(1), &u(i, 1), ap::vlen(1,reducedsize), v);
     }
     for(i = 1; i <= reducedsize; i++)
     {
@@ -1192,7 +1183,7 @@ bool buildchebyshevleastsquaresconstrained(const ap::real_1d_array& x,
     for(i = 1; i <= reducedsize; i++)
     {
         v = tmp(i);
-        ap::vadd(tmp2.getvector(1, reducedsize), vt.getrow(i, 1, reducedsize), v);
+        ap::vadd(&tmp2(1), &vt(i, 1), ap::vlen(1,reducedsize), v);
     }
     
     //
@@ -1202,7 +1193,7 @@ bool buildchebyshevleastsquaresconstrained(const ap::real_1d_array& x,
     ctbl.setbounds(0, m+2);
     for(i = 1; i <= m+1; i++)
     {
-        v = ap::vdotproduct(c.getrow(i, 1, reducedsize), tmp2.getvector(1, reducedsize));
+        v = ap::vdotproduct(&c(i, 1), &tmp2(1), ap::vlen(1,reducedsize));
         ctbl(i-1) = v+d(i);
     }
     ctbl(m+1) = a;

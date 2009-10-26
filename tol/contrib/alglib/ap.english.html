@@ -52,7 +52,12 @@ The library includes the only module <code>ap.cpp</code> (with header file <code
 In the header file <code>ap.h</code> the namespace <code>ap</code> is defined. It must be taken into account that the names of functions, constants and classes listed further should be prefixed by <i>ap::</i>.
 </p>
 
-<a name="conditionals"><h1>Conditional Compillation Settings</h1></a>
+<a name="conditionals"><h1>Conditional Compilation Settings</h1></a>
+
+<p align=justify>
+<span class=cond>AP_WIN32</span><br>
+This symbol (<b>if defined by user</b>) indicates that AP library is compiled under Win32. It allows library to use ABLAS (lightweight BLAS-like library with SSE2 support) if ABLAS is present on your system.
+</p>
 
 <p align=justify>
 <span class=cond>AP_ASSERT</span><br> This symbol enables checking of the array boundaries. If it is set by the &quot;define&quot; directive, then at each addressing to the dynamic array elements, the transferred index is verified for its correctness. In case of error the <code>ap_error</code> exception is thrown. Checking the array boundaries makes the program more reliable, but slows down the program operation.
@@ -272,10 +277,6 @@ This class is a template of dynamical two-dimensional array with variable upper 
 </p>
 
 <p align=justify>
-<span class=func>T* getcontent()</span><br> Gets pointer to the array. The data pointed by the returned pointer can be changed, and the array content will be changed as well. 
-</p>
-
-<p align=justify>
 <span class=func><b>int</b> getlowbound(<b>int</b> iBoundNum)<br><b>int</b> gethighbound(<b>int</b> iBoundNum)</span><br> Get lower and upper boundaries of one-dimensional array with number iBoundNum.
 </p>
 
@@ -294,11 +295,11 @@ Basic subroutines of linear algebra included into the AP library are close by th
 </p>
 
 <p align=justify>
-Subroutines should be used in the following way. First you need to get an object of the  <code>raw_vector</code> type or  <code>const_raw_vector</code> type, pointing to the part of the matrix or array being processed using the methods <code>getcolumn</code>/<code>getrow</code> (for the matrix), or  <code>getvector</code> (for the array). The object holds the pointer for the line (or column) start, the number of elements in the processed line (column), and the interval between the two adjacent elements. When using a standard scheme for matrixes storage in the memory (that is, by lines), the interval between the elements of one line equals 1, and the interval between the adjacent elements of one column equals the number of columns.
+Subroutines should be used in the following way. First you need to get an object of the  <code>raw_vector</code> type or  <code>const_raw_vector</code> type, pointing to the part of the matrix or array being processed using the methods <code>getcolumn</code>/<code>getrow</code> (for the matrix), or  <code>getvector</code> (for the array). The object holds the pointer for the line (or column) start, the number of elements in the processed line (column), and the interval between the two adjacent elements. When using a standard scheme for matrixes storage in the memory (that is, by lines), the interval between the elements of one line equals 1, and the interval between the adjacent elements of one column equals the number of columns. The received object is transferred as argument to the corresponding subroutine, which performs operations on the matrix part pointed by the internal object pointer.
 </p>
 
 <p align=justify>
-The received object is transferred as argument to the corresponding subroutine, which performs operations on the matrix part pointed by the internal object pointer. Below is given the list of basic subroutines of linear algebra, available in the AP library.
+Below is given the list of basic subroutines of linear algebra, available in the AP library.
 </p>
 
 <p align=justify>
@@ -321,6 +322,25 @@ The received object is transferred as argument to the corresponding subroutine, 
 <span class=func>template&lt;<b>class</b> T, <b>class</b> T2&gt; <b>void</b> vmul(raw_vector&lt;T&gt; vdst, T2 alpha)</span><br> Multiplies vector by a number and stores the result in the same place.
 </p>
 
+<h2>Alternative syntax</h2>
+
+<p align=justify>
+If both operands are vectors/rows with interval between the elements equals 1 and length equals N, alternative syntax can be used.
+</p>
+
+<p align=justify>
+<span class=func>
+template&lt;<b>class</b> T&gt; T vdotproduct(<b>const</b> T *v1, <b>const</b> T *v2, <b>int</b> N)<br>
+template&lt;<b>class</b> T&gt; <b>void</b> vmove(T *vdst, <b>const</b> T *vsrc, <b>int</b> N)<br>
+template&lt;<b>class</b> T&gt; <b>void</b> vmoveneg(T *vdst, <b>const</b> T *vsrc, <b>int</b> N)<br>
+template&lt;<b>class</b> T, <b>class</b> T2&gt; <b>void</b> vmove(T *vdst, <b>const</b> T *vsrc, <b>int</b> N, T2 alpha)<br>
+template&lt;<b>class</b> T&gt; <b>void</b> vadd(T *vdst, <b>const</b> T *vsrc, <b>int</b> N)<br>
+template&lt;<b>class</b> T, <b>class</b> T2&gt; <b>void</b> vadd(T *vdst, <b>const</b> T *vsrc, <b>int</b> N, T2 alpha)<br>
+template&lt;<b>class</b> T&gt; <b>void</b> vsub(T *vdst, <b>const</b> T *vsrc, <b>int</b> N)<br>
+template&lt;<b>class</b> T, <b>class</b> T2&gt; <b>void</b> vsub(T *vdst, <b>const</b> T *vsrc, <b>int</b> N, T2 alpha)<br>
+template&lt;<b>class</b> T, <b>class</b> T2> <b>void</b> vmul(T *vdst, <b>int</b> N, T2 alpha)
+</span>
+</p>
 
 <a name="complex"><h1>Class of complex numbers</h1></a>
 

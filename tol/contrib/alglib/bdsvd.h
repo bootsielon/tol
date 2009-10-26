@@ -71,27 +71,27 @@ of the biggest singular value.
 
 Input parameters:
     D       -   main diagonal of matrix B.
-                Array whose index ranges within [1..N].
+                Array whose index ranges within [0..N-1].
     E       -   superdiagonal (or subdiagonal) of matrix B.
-                Array whose index ranges within [1..N-1].
+                Array whose index ranges within [0..N-2].
     N       -   size of matrix B.
     IsUpper -   True, if the matrix is upper bidiagonal.
     IsFractionalAccuracyRequired -
                 accuracy to search singular values with.
     U       -   matrix to be multiplied by Q.
-                Array whose indexes range within [1..NRU, 1..N].
+                Array whose indexes range within [0..NRU-1, 0..N-1].
                 The matrix can be bigger, in that case only the  submatrix
-                [1..NRU, 1..N] will be multiplied by Q.
+                [0..NRU-1, 0..N-1] will be multiplied by Q.
     NRU     -   number of rows in matrix U.
     C       -   matrix to be multiplied by Q'.
-                Array whose indexes range within [1..N, 1..NCC].
+                Array whose indexes range within [0..N-1, 0..NCC-1].
                 The matrix can be bigger, in that case only the  submatrix
-                [1..N, 1..NCC] will be multiplied by Q'.
+                [0..N-1, 0..NCC-1] will be multiplied by Q'.
     NCC     -   number of columns in matrix C.
     VT      -   matrix to be multiplied by P^T.
-                Array whose indexes range within [1..N, 1..NCVT].
+                Array whose indexes range within [0..N-1, 0..NCVT-1].
                 The matrix can be bigger, in that case only the  submatrix
-                [1..N, 1..NCVT] will be multiplied by P^T.
+                [0..N-1, 0..NCVT-1] will be multiplied by P^T.
     NCVT    -   number of columns in matrix VT.
 
 Output parameters:
@@ -113,6 +113,31 @@ Additional information:
     where Epsilon is the machine precision. It is not  recommended  to  use
     TOL less than 10*Epsilon since this will  considerably  slow  down  the
     algorithm and may not lead to error decreasing.
+History:
+    * 31 March, 2007.
+        changed MAXITR from 6 to 12.
+
+  -- LAPACK routine (version 3.0) --
+     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
+     Courant Institute, Argonne National Lab, and Rice University
+     October 31, 1999.
+*************************************************************************/
+bool rmatrixbdsvd(ap::real_1d_array& d,
+     ap::real_1d_array e,
+     int n,
+     bool isupper,
+     bool isfractionalaccuracyrequired,
+     ap::real_2d_array& u,
+     int nru,
+     ap::real_2d_array& c,
+     int ncc,
+     ap::real_2d_array& vt,
+     int ncvt);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine. See RMatrixBDSVD for 0-based replacement.
+
 History:
     * 31 March, 2007.
         changed MAXITR from 6 to 12.

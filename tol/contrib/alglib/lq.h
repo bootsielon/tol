@@ -42,35 +42,91 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 LQ decomposition of a rectangular matrix of size MxN
 
 Input parameters:
-    A   -   matrix A whose indexes range within [1..M, 1..N].
+    A   -   matrix A whose indexes range within [0..M-1, 0..N-1].
     M   -   number of rows in matrix A.
     N   -   number of columns in matrix A.
 
 Output parameters:
     A   -   matrices L and Q in compact form (see below)
     Tau -   array of scalar factors which are used to form
-            matrix Q. Array whose index ranges within [1..Min(M,N)].
+            matrix Q. Array whose index ranges within [0..Min(M,N)-1].
 
 Matrix A is represented as A = LQ, where Q is an orthogonal matrix of size
 MxM, L - lower triangular (or lower trapezoid) matrix of size M x N.
 
-The elements of matrix L are located on and below the main diagonal of
-matrix A. The elements which are located in Tau array and above the main
+The elements of matrix L are located on and below  the  main  diagonal  of
+matrix A. The elements which are located in Tau array and above  the  main
 diagonal of matrix A are used to form matrix Q as follows:
 
 Matrix Q is represented as a product of elementary reflections
 
-Q = H(k)*H(k-1)*...*H(2)*H(1),
+Q = H(k-1)*H(k-2)*...*H(1)*H(0),
 
 where k = min(m,n), and each H(i) is of the form
 
 H(i) = 1 - tau * v * (v^T)
 
-where tau is a scalar stored in Tau[I]; v - real vector,
-so that v(1:i-1) = 0, v(i) = 1, v(i+1:n) stored in A(i,i+1:n).
+where tau is a scalar stored in Tau[I]; v - real vector, so that v(0:i-1)=0,
+v(i) = 1, v(i+1:n-1) stored in A(i,i+1:n-1).
+
+  -- ALGLIB --
+     Copyright 2005-2007 by Bochkanov Sergey
+*************************************************************************/
+void rmatrixlq(ap::real_2d_array& a, int m, int n, ap::real_1d_array& tau);
+
+
+/*************************************************************************
+Partial unpacking of matrix Q from the LQ decomposition of a matrix A
+
+Input parameters:
+    A       -   matrices L and Q in compact form.
+                Output of RMatrixLQ subroutine.
+    M       -   number of rows in given matrix A. M>=0.
+    N       -   number of columns in given matrix A. N>=0.
+    Tau     -   scalar factors which are used to form Q.
+                Output of the RMatrixLQ subroutine.
+    QRows   -   required number of rows in matrix Q. N>=QRows>=0.
+
+Output parameters:
+    Q       -   first QRows rows of matrix Q. Array whose indexes range
+                within [0..QRows-1, 0..N-1]. If QRows=0, the array remains
+                unchanged.
 
   -- ALGLIB --
      Copyright 2005 by Bochkanov Sergey
+*************************************************************************/
+void rmatrixlqunpackq(const ap::real_2d_array& a,
+     int m,
+     int n,
+     const ap::real_1d_array& tau,
+     int qrows,
+     ap::real_2d_array& q);
+
+
+/*************************************************************************
+Unpacking of matrix L from the LQ decomposition of a matrix A
+
+Input parameters:
+    A       -   matrices Q and L in compact form.
+                Output of RMatrixLQ subroutine.
+    M       -   number of rows in given matrix A. M>=0.
+    N       -   number of columns in given matrix A. N>=0.
+
+Output parameters:
+    L       -   matrix L, array[0..M-1, 0..N-1].
+
+  -- ALGLIB --
+     Copyright 2005 by Bochkanov Sergey
+*************************************************************************/
+void rmatrixlqunpackl(const ap::real_2d_array& a,
+     int m,
+     int n,
+     ap::real_2d_array& l);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine
+See RMatrixLQ for 0-based replacement.
 *************************************************************************/
 void lqdecomposition(ap::real_2d_array& a,
      int m,
@@ -79,24 +135,8 @@ void lqdecomposition(ap::real_2d_array& a,
 
 
 /*************************************************************************
-Partial unpacking of matrix Q from the LQ decomposition of a matrix A
-
-Input parameters:
-    A       -   matrices L and Q in compact form.
-                Output of LQDecomposition subroutine.
-    M       -   number of rows in given matrix A. M>=0.
-    N       -   number of columns in given matrix A. N>=0.
-    Tau     -   scalar factors which are used to form Q.
-                Output of the LQDecomposition subroutine.
-    QRows   -   required number of rows in matrix Q. N>=QRows>=0.
-
-Output parameters:
-    Q       -   first QRows rows of matrix Q. Array whose indexes range
-                within [1..QRows, 1..N]. If QRows=0, the array remains
-                unchanged.
-
-  -- ALGLIB --
-     Copyright 2005 by Bochkanov Sergey
+Obsolete 1-based subroutine
+See RMatrixLQUnpackQ for 0-based replacement.
 *************************************************************************/
 void unpackqfromlq(const ap::real_2d_array& a,
      int m,
@@ -107,14 +147,7 @@ void unpackqfromlq(const ap::real_2d_array& a,
 
 
 /*************************************************************************
-LQ decomposition of a rectangular matrix of size MxN
-
-It uses LQDecomposition. L and Q are not output in compact form, but as
-separate general matrices. L is filled up by zeros in their corresponding
-positions, and Q is generated as a product of elementary reflections.
-
-  -- ALGLIB --
-     Copyright 2005 by Bochkanov Sergey
+Obsolete 1-based subroutine
 *************************************************************************/
 void lqdecompositionunpacked(ap::real_2d_array a,
      int m,

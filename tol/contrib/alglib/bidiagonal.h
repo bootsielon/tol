@@ -51,7 +51,7 @@ The algorithm reduces the rectangular matrix A to  bidiagonal form by
 orthogonal transformations P and Q: A = Q*B*P.
 
 Input parameters:
-    A       -   source matrix. Array whose indexes range within [1..N, 1..N].
+    A       -   source matrix. array[0..M-1, 0..N-1]
     M       -   number of rows in matrix A.
     N       -   number of columns in matrix A.
 
@@ -60,24 +60,25 @@ Output parameters:
     TauQ    -   scalar factors which are used to form matrix Q.
     TauP    -   scalar factors which are used to form matrix P.
 
-The main diagonal and one of the secondary diagonals of matrix A are
-replaced with bidiagonal matrix B. Other elements contain elementary
+The main diagonal and one of the  secondary  diagonals  of  matrix  A  are
+replaced with bidiagonal  matrix  B.  Other  elements  contain  elementary
 reflections which form MxM matrix Q and NxN matrix P, respectively.
 
-If M>=N, B is the upper bidiagonal MxN matrix and is stored in the
-corresponding  elements  of matrix A. Matrix Q is represented as a product
-of elementary reflections Q = H(1)*H(2)*...*H(n), where H(i) = 1 - tau*v*v'.
-Here tau is a scalar which is stored in TauQ[i], and vector v has the
-following structure: v(1:i-1)=0, v(i)=1, v(i+1:m) is stored in elements
-A(i+1:m,i). Matrix P is as follows: P = G(1)*G(2)*...*G(n-1), where
-G(i) = 1 - tau*u*u'. Tau is stored in TauP[i], u(1:i)=0, u(i+1)=1,  u(i+2:n)
-is stored in elements A(i,i+2:n).
+If M>=N, B is the upper  bidiagonal  MxN  matrix  and  is  stored  in  the
+corresponding  elements  of  matrix  A.  Matrix  Q  is  represented  as  a
+product   of   elementary   reflections   Q = H(0)*H(1)*...*H(n-1),  where
+H(i) = 1-tau*v*v'. Here tau is a scalar which is stored  in  TauQ[i],  and
+vector v has the following  structure:  v(0:i-1)=0, v(i)=1, v(i+1:m-1)  is
+stored   in   elements   A(i+1:m-1,i).   Matrix   P  is  as  follows:  P =
+G(0)*G(1)*...*G(n-2), where G(i) = 1 - tau*u*u'. Tau is stored in TauP[i],
+u(0:i)=0, u(i+1)=1, u(i+2:n-1) is stored in elements A(i,i+2:n-1).
 
-If M<N, B is the lower bidiagonal MxN matrix and is stored in the
-corresponding elements of matrix A. Q = H(1)*H(2)*...*H(m-1), where
-H(i) = 1 - tau*v*v',  tau  is stored in TauQ, v(1:i)=0, v(i+1)=1, v(i+2:m)
-is stored in elements A(i+1:m,i).  P = G(1)*G(2)*...*G(m),  G(i) = 1 - tau*u*u',
-tau is stored in TauP,  u(1:i-1)=0, u(i)=1, u(i+1:n) is stored A(i,i+1:n).
+If M<N, B is the  lower  bidiagonal  MxN  matrix  and  is  stored  in  the
+corresponding   elements  of  matrix  A.  Q = H(0)*H(1)*...*H(m-2),  where
+H(i) = 1 - tau*v*v', tau is stored in TauQ, v(0:i)=0, v(i+1)=1, v(i+2:m-1)
+is    stored    in   elements   A(i+2:m-1,i).    P = G(0)*G(1)*...*G(m-1),
+G(i) = 1-tau*u*u', tau is stored in  TauP,  u(0:i-1)=0, u(i)=1, u(i+1:n-1)
+is stored in A(i,i+1:n-1).
 
 EXAMPLE:
 
@@ -93,7 +94,7 @@ m=6, n=5 (m > n):               m=5, n=6 (m < n):
 Here vi and ui are vectors which form H(i) and G(i), and d and e -
 are the diagonal and off-diagonal elements of matrix B.
 *************************************************************************/
-void tobidiagonal(ap::real_2d_array& a,
+void rmatrixbd(ap::real_2d_array& a,
      int m,
      int n,
      ap::real_1d_array& tauq,
@@ -115,13 +116,13 @@ Input parameters:
 
 Output parameters:
     Q           -   first QColumns columns of matrix Q.
-                    Array whose indexes range within [1..M, 1..QColumns].
+                    Array[0..M-1, 0..QColumns-1]
                     If QColumns=0, the array is not modified.
 
   -- ALGLIB --
      Copyright 2005 by Bochkanov Sergey
 *************************************************************************/
-void unpackqfrombidiagonal(const ap::real_2d_array& qp,
+void rmatrixbdunpackq(const ap::real_2d_array& qp,
      int m,
      int n,
      const ap::real_1d_array& tauq,
@@ -142,7 +143,7 @@ Input parameters:
     TAUQ        -   scalar factors which are used to form Q.
                     Output of ToBidiagonal subroutine.
     Z           -   multiplied matrix.
-                    array whose indexes range within [1..ZRows, 1..ZColumns].
+                    array[0..ZRows-1,0..ZColumns-1]
     ZRows       -   number of rows in matrix Z. If FromTheRight=False,
                     ZRows=M, otherwise ZRows can be arbitrary.
     ZColumns    -   number of columns in matrix Z. If FromTheRight=True,
@@ -152,13 +153,13 @@ Input parameters:
 
 Output parameters:
     Z           -   product of Z and Q.
-                    Array whose indexes range within [1..ZRows, 1..ZColumns].
+                    Array[0..ZRows-1,0..ZColumns-1]
                     If ZRows=0 or ZColumns=0, the array is not modified.
 
   -- ALGLIB --
      Copyright 2005 by Bochkanov Sergey
 *************************************************************************/
-void multiplybyqfrombidiagonal(const ap::real_2d_array& qp,
+void rmatrixbdmultiplybyq(const ap::real_2d_array& qp,
      int m,
      int n,
      const ap::real_1d_array& tauq,
@@ -184,13 +185,13 @@ Input parameters:
 
 Output parameters:
     PT      -   first PTRows columns of matrix P^T
-                Array whose indexes range within [1..PTRows, 1..N].
+                Array[0..PTRows-1, 0..N-1]
                 If PTRows=0, the array is not modified.
 
   -- ALGLIB --
-     Copyright 2005 by Bochkanov Sergey
+     Copyright 2005-2007 by Bochkanov Sergey
 *************************************************************************/
-void unpackptfrombidiagonal(const ap::real_2d_array& qp,
+void rmatrixbdunpackpt(const ap::real_2d_array& qp,
      int m,
      int n,
      const ap::real_1d_array& taup,
@@ -205,13 +206,13 @@ The algorithm allows pre- or post-multiply by P or P'.
 
 Input parameters:
     QP          -   matrices Q and P in compact form.
-                    Output of ToBidiagonal subroutine.
+                    Output of RMatrixBD subroutine.
     M           -   number of rows in matrix A.
     N           -   number of columns in matrix A.
     TAUP        -   scalar factors which are used to form P.
-                    Output of ToBidiagonal subroutine.
+                    Output of RMatrixBD subroutine.
     Z           -   multiplied matrix.
-                    Array whose indexes range within [1..ZRows, 1..ZColumns].
+                    Array whose indexes range within [0..ZRows-1,0..ZColumns-1].
     ZRows       -   number of rows in matrix Z. If FromTheRight=False,
                     ZRows=N, otherwise ZRows can be arbitrary.
     ZColumns    -   number of columns in matrix Z. If FromTheRight=True,
@@ -221,13 +222,13 @@ Input parameters:
 
 Output parameters:
     Z - product of Z and P.
-                Array whose indexes range within [1..ZRows,1..ZColumns].
+                Array whose indexes range within [0..ZRows-1,0..ZColumns-1].
                 If ZRows=0 or ZColumns=0, the array is not modified.
 
   -- ALGLIB --
-     Copyright 2005 by Bochkanov Sergey
+     Copyright 2005-2007 by Bochkanov Sergey
 *************************************************************************/
-void multiplybypfrombidiagonal(const ap::real_2d_array& qp,
+void rmatrixbdmultiplybyp(const ap::real_2d_array& qp,
      int m,
      int n,
      const ap::real_1d_array& taup,
@@ -243,7 +244,7 @@ Unpacking of the main and secondary diagonals of bidiagonal decomposition
 of matrix A.
 
 Input parameters:
-    B   -   output of ToBidiagonal subroutine.
+    B   -   output of RMatrixBD subroutine.
     M   -   number of rows in matrix B.
     N   -   number of columns in matrix B.
 
@@ -251,14 +252,91 @@ Output parameters:
     IsUpper -   True, if the matrix is upper bidiagonal.
                 otherwise IsUpper is False.
     D       -   the main diagonal.
-                Array whose index ranges within [1..Min(M,N)].
+                Array whose index ranges within [0..Min(M,N)-1].
     E       -   the secondary diagonal (upper or lower, depending on
                 the value of IsUpper).
-                Array index ranges within [1..Min(M,N)], the last
+                Array index ranges within [0..Min(M,N)-1], the last
                 element is not used.
 
   -- ALGLIB --
-     Copyright 2005 by Bochkanov Sergey
+     Copyright 2005-2007 by Bochkanov Sergey
+*************************************************************************/
+void rmatrixbdunpackdiagonals(const ap::real_2d_array& b,
+     int m,
+     int n,
+     bool& isupper,
+     ap::real_1d_array& d,
+     ap::real_1d_array& e);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine.
+See RMatrixBD for 0-based replacement.
+*************************************************************************/
+void tobidiagonal(ap::real_2d_array& a,
+     int m,
+     int n,
+     ap::real_1d_array& tauq,
+     ap::real_1d_array& taup);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine.
+See RMatrixBDUnpackQ for 0-based replacement.
+*************************************************************************/
+void unpackqfrombidiagonal(const ap::real_2d_array& qp,
+     int m,
+     int n,
+     const ap::real_1d_array& tauq,
+     int qcolumns,
+     ap::real_2d_array& q);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine.
+See RMatrixBDMultiplyByQ for 0-based replacement.
+*************************************************************************/
+void multiplybyqfrombidiagonal(const ap::real_2d_array& qp,
+     int m,
+     int n,
+     const ap::real_1d_array& tauq,
+     ap::real_2d_array& z,
+     int zrows,
+     int zcolumns,
+     bool fromtheright,
+     bool dotranspose);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine.
+See RMatrixBDUnpackPT for 0-based replacement.
+*************************************************************************/
+void unpackptfrombidiagonal(const ap::real_2d_array& qp,
+     int m,
+     int n,
+     const ap::real_1d_array& taup,
+     int ptrows,
+     ap::real_2d_array& pt);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine.
+See RMatrixBDMultiplyByP for 0-based replacement.
+*************************************************************************/
+void multiplybypfrombidiagonal(const ap::real_2d_array& qp,
+     int m,
+     int n,
+     const ap::real_1d_array& taup,
+     ap::real_2d_array& z,
+     int zrows,
+     int zcolumns,
+     bool fromtheright,
+     bool dotranspose);
+
+
+/*************************************************************************
+Obsolete 1-based subroutine.
+See RMatrixBDUnpackDiagonals for 0-based replacement.
 *************************************************************************/
 void unpackdiagonalsfrombidiagonal(const ap::real_2d_array& b,
      int m,

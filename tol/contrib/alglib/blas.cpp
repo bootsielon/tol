@@ -144,7 +144,7 @@ double upperhessenberg1norm(const ap::real_2d_array& a,
     int i;
     int j;
 
-    ap::ap_error::make_assertion(i2-i1==j2-j1);
+    ap::ap_error::make_assertion(i2-i1==j2-j1, "UpperHessenberg1Norm: I2-I1<>J2-J1!");
     for(j = j1; j <= j2; j++)
     {
         work(j) = 0;
@@ -183,12 +183,12 @@ void copymatrix(const ap::real_2d_array& a,
     {
         return;
     }
-    ap::ap_error::make_assertion(is2-is1==id2-id1);
-    ap::ap_error::make_assertion(js2-js1==jd2-jd1);
+    ap::ap_error::make_assertion(is2-is1==id2-id1, "CopyMatrix: different sizes!");
+    ap::ap_error::make_assertion(js2-js1==jd2-jd1, "CopyMatrix: different sizes!");
     for(isrc = is1; isrc <= is2; isrc++)
     {
         idst = isrc-is1+id1;
-        ap::vmove(b.getrow(idst, jd1, jd2), a.getrow(isrc, js1, js2));
+        ap::vmove(&b(idst, jd1), &a(isrc, js1), ap::vlen(jd1,jd2));
     }
 }
 
@@ -210,8 +210,8 @@ void inplacetranspose(ap::real_2d_array& a,
     {
         return;
     }
-    ap::ap_error::make_assertion(i1-i2==j1-j2);
-    for(i = i1; i <= i2; i++)
+    ap::ap_error::make_assertion(i1-i2==j1-j2, "InplaceTranspose error: incorrect array size!");
+    for(i = i1; i <= i2-1; i++)
     {
         j = j1+i-i1;
         ips = i+1;
@@ -219,7 +219,7 @@ void inplacetranspose(ap::real_2d_array& a,
         l = i2-i;
         ap::vmove(work.getvector(1, l), a.getcolumn(j, ips, i2));
         ap::vmove(a.getcolumn(j, ips, i2), a.getrow(i, jps, j2));
-        ap::vmove(a.getrow(i, jps, j2), work.getvector(1, l));
+        ap::vmove(&a(i, jps), &work(1), ap::vlen(jps,j2));
     }
 }
 
@@ -242,8 +242,8 @@ void copyandtranspose(const ap::real_2d_array& a,
     {
         return;
     }
-    ap::ap_error::make_assertion(is2-is1==jd2-jd1);
-    ap::ap_error::make_assertion(js2-js1==id2-id1);
+    ap::ap_error::make_assertion(is2-is1==jd2-jd1, "CopyAndTranspose: different sizes!");
+    ap::ap_error::make_assertion(js2-js1==id2-id1, "CopyAndTranspose: different sizes!");
     for(isrc = is1; isrc <= is2; isrc++)
     {
         jdst = isrc-is1+jd1;
@@ -280,8 +280,8 @@ void matrixvectormultiply(const ap::real_2d_array& a,
         {
             return;
         }
-        ap::ap_error::make_assertion(j2-j1==ix2-ix1);
-        ap::ap_error::make_assertion(i2-i1==iy2-iy1);
+        ap::ap_error::make_assertion(j2-j1==ix2-ix1, "MatrixVectorMultiply: A and X dont match!");
+        ap::ap_error::make_assertion(i2-i1==iy2-iy1, "MatrixVectorMultiply: A and Y dont match!");
         
         //
         // beta*y
@@ -295,7 +295,7 @@ void matrixvectormultiply(const ap::real_2d_array& a,
         }
         else
         {
-            ap::vmul(y.getvector(iy1, iy2), beta);
+            ap::vmul(&y(iy1), ap::vlen(iy1,iy2), beta);
         }
         
         //
@@ -303,7 +303,7 @@ void matrixvectormultiply(const ap::real_2d_array& a,
         //
         for(i = i1; i <= i2; i++)
         {
-            v = ap::vdotproduct(a.getrow(i, j1, j2), x.getvector(ix1, ix2));
+            v = ap::vdotproduct(&a(i, j1), &x(ix1), ap::vlen(j1,j2));
             y(iy1+i-i1) = y(iy1+i-i1)+alpha*v;
         }
     }
@@ -317,8 +317,8 @@ void matrixvectormultiply(const ap::real_2d_array& a,
         {
             return;
         }
-        ap::ap_error::make_assertion(i2-i1==ix2-ix1);
-        ap::ap_error::make_assertion(j2-j1==iy2-iy1);
+        ap::ap_error::make_assertion(i2-i1==ix2-ix1, "MatrixVectorMultiply: A and X dont match!");
+        ap::ap_error::make_assertion(j2-j1==iy2-iy1, "MatrixVectorMultiply: A and Y dont match!");
         
         //
         // beta*y
@@ -332,7 +332,7 @@ void matrixvectormultiply(const ap::real_2d_array& a,
         }
         else
         {
-            ap::vmul(y.getvector(iy1, iy2), beta);
+            ap::vmul(&y(iy1), ap::vlen(iy1,iy2), beta);
         }
         
         //
@@ -341,7 +341,7 @@ void matrixvectormultiply(const ap::real_2d_array& a,
         for(i = i1; i <= i2; i++)
         {
             v = alpha*x(ix1+i-i1);
-            ap::vadd(y.getvector(iy1, iy2), a.getrow(i, j1, j2), v);
+            ap::vadd(&y(iy1), &a(i, j1), ap::vlen(iy1,iy2), v);
         }
     }
 }
@@ -429,7 +429,7 @@ void matrixmatrixmultiply(const ap::real_2d_array& a,
         brows = bj2-bj1+1;
         bcols = bi2-bi1+1;
     }
-    ap::ap_error::make_assertion(acols==brows);
+    ap::ap_error::make_assertion(acols==brows, "MatrixMatrixMultiply: incorrect matrix sizes!");
     if( arows<=0||acols<=0||brows<=0||bcols<=0 )
     {
         return;
@@ -463,7 +463,7 @@ void matrixmatrixmultiply(const ap::real_2d_array& a,
     {
         for(i = ci1; i <= ci2; i++)
         {
-            ap::vmul(c.getrow(i, cj1, cj2), beta);
+            ap::vmul(&c(i, cj1), ap::vlen(cj1,cj2), beta);
         }
     }
     
@@ -478,7 +478,7 @@ void matrixmatrixmultiply(const ap::real_2d_array& a,
             {
                 v = alpha*a(l,aj1+r-bi1);
                 k = ci1+l-ai1;
-                ap::vadd(c.getrow(k, cj1, cj2), b.getrow(r, bj1, bj2), v);
+                ap::vadd(&c(k, cj1), &b(r, bj1), ap::vlen(cj1,cj2), v);
             }
         }
         return;
@@ -495,7 +495,7 @@ void matrixmatrixmultiply(const ap::real_2d_array& a,
             {
                 for(l = ai1; l <= ai2; l++)
                 {
-                    v = ap::vdotproduct(a.getrow(l, aj1, aj2), b.getrow(r, bj1, bj2));
+                    v = ap::vdotproduct(&a(l, aj1), &b(r, bj1), ap::vlen(aj1,aj2));
                     c(ci1+l-ai1,cj1+r-bi1) = c(ci1+l-ai1,cj1+r-bi1)+alpha*v;
                 }
             }
@@ -507,7 +507,7 @@ void matrixmatrixmultiply(const ap::real_2d_array& a,
             {
                 for(r = bi1; r <= bi2; r++)
                 {
-                    v = ap::vdotproduct(a.getrow(l, aj1, aj2), b.getrow(r, bj1, bj2));
+                    v = ap::vdotproduct(&a(l, aj1), &b(r, bj1), ap::vlen(aj1,aj2));
                     c(ci1+l-ai1,cj1+r-bi1) = c(ci1+l-ai1,cj1+r-bi1)+alpha*v;
                 }
             }
@@ -526,7 +526,7 @@ void matrixmatrixmultiply(const ap::real_2d_array& a,
             {
                 v = alpha*a(ai1+r-bi1,l);
                 k = ci1+l-aj1;
-                ap::vadd(c.getrow(k, cj1, cj2), b.getrow(r, bj1, bj2), v);
+                ap::vadd(&c(k, cj1), &b(r, bj1), ap::vlen(cj1,cj2), v);
             }
         }
         return;
@@ -549,7 +549,7 @@ void matrixmatrixmultiply(const ap::real_2d_array& a,
                 {
                     v = alpha*b(r,bj1+l-ai1);
                     k = cj1+r-bi1;
-                    ap::vadd(work.getvector(1, crows), a.getrow(l, aj1, aj2), v);
+                    ap::vadd(&work(1), &a(l, aj1), ap::vlen(1,crows), v);
                 }
                 ap::vadd(c.getcolumn(k, ci1, ci2), work.getvector(1, crows));
             }
@@ -563,7 +563,7 @@ void matrixmatrixmultiply(const ap::real_2d_array& a,
                 ap::vmove(work.getvector(1, k), a.getcolumn(l, ai1, ai2));
                 for(r = bi1; r <= bi2; r++)
                 {
-                    v = ap::vdotproduct(work.getvector(1, k), b.getrow(r, bj1, bj2));
+                    v = ap::vdotproduct(&work(1), &b(r, bj1), ap::vlen(1,k));
                     c(ci1+l-aj1,cj1+r-bi1) = c(ci1+l-aj1,cj1+r-bi1)+alpha*v;
                 }
             }
