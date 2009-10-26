@@ -368,14 +368,17 @@ Real Write.Data.RegressionMatrices(NameBlock segment,
 {
   Text ResName = segment::Get.Name(0)+"::Noise";
   VMatrix Y = segment::Get.OutputVMatrix(0);
-  VMatrix X = segment::Get.InputVMatrix(0);
   Real Ois.Store([[Y]],path.prefix+"Output.oza");
-  Real Ois.Store([[X]],path.prefix+"Input.oza");
   Real FPutText(fileHandler, "\nOutput = "
   "  {$ VMatrix { Include(\"./Output.oza\")[1] } $};");
-  Real FPutText(fileHandler, "\nInput = "
-  "  {$ VMatrix { Include(\"./Input.oza\")[1] } $};");
-  0
+  VMatrix X = segment::Get.InputVMatrix(0);
+  If(!VColumns(X),1,
+  {
+    Real Ois.Store([[X]],path.prefix+"Input.oza");
+    Real FPutText(fileHandler, "\nInput = "
+    "  {$ VMatrix { Include(\"./Input.oza\")[1] } $};");
+    2
+  })
 };
 
 ///////////////////////////////////////////////////////////////////////////
