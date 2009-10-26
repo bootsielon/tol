@@ -1,0 +1,95 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  621;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = "Wrong behaviour in BackDifEq of VMatrix";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real m = 30;
+  Real  s1 = 1;
+  Real  s2 = 4;
+  Real  p1 = IntRand(1,1);
+  Real  q1 = IntRand(1,1);
+  Real  p2 = IntRand(0,0);
+  Real  q2 = IntRand(0,0);
+  Polyn ar1 = RandStationary(p1,s1);
+  Polyn ar2 = RandStationary(p2,s2);
+  Polyn ma1 = RandStationary(q1,s1);
+  Polyn ma2 = RandStationary(q2,s2);
+  Polyn ar = ar1*ar2;
+  Polyn ma = ma1*ma2;
+
+  Real p = Degree(ar);
+  Real q = Degree(ma);
+  Real n = Max(p,q);
+
+
+  NameBlock CF1 = ARMAProcess::FastCholeskiCovFactor(ar1, ma1, m);
+  NameBlock CF2 = ARMAProcess::FastCholeskiCovFactor(ar2, ma2, m);
+  NameBlock CF  = ARMAProcess::FastCholeskiCovFactor(ar,  ma,  m);
+
+  VMatrix A = Gaussian(m,1,0,1);
+
+  VMatrix Li_ar.f = CholeskiFactor(CF::_.Li_ar,"XXt",True);
+
+  VMatrix L_ma.s  = Convert(CF::_.L_ma,"Cholmod.R.Sparse");
+
+  VMatrix X = CholeskiSolve(Li_ar.f,L_ma.s*A,"PtL");
+
+  VMatrix CF.X = CF::filter(X);
+
+  VMatrix cmp.CF   = A | CF.X;
+
+  VMatrix CF12.X = CF2::filter(CF1::filter(X));
+
+  VMatrix A.n   = Sub(CF12.X, m-n+1, 1, n,  1);
+  VMatrix A.q   = Sub(CF12.X, m-n+1, 1, q,  1);
+  VMatrix X.p   = Sub(X,      m-n+1, 1, p,  1);
+  VMatrix X.m_n = Sub(X,          1, 1, m-n,1);
+
+  VMatrix Rev(VMatrix v) { Mat2VMat(Reverse(VMat2Mat(v))) };
+
+  VMatrix B.m_n_rev = Rev(DifEq(ar/ma,Rev(X.m_n),Rev(X.p),Rev(A.q)));
+
+  VMatrix B.m_n = BackDifEq(ar/ma,X.m_n,X.p,A.q);
+  VMatrix B.m_n_ = Mat2VMat(BackDifEq(ar/ma,VMat2Mat(X.m_n),VMat2Mat(X.p),VMat2Mat(A.q)));
+  VMatrix B.m_n_cmp = B.m_n | B.m_n_ | B.m_n_rev;
+
+
+  VMatrix F.m_n = DifEq(ar/ma,X.m_n,X.p,A.q);
+  VMatrix F.m_n_ = Mat2VMat(DifEq(ar/ma,VMat2Mat(X.m_n),VMat2Mat(X.p),VMat2Mat(A.q)));
+  VMatrix F.m_n_cmp = F.m_n | F.m_n_;
+
+  Real B.error.rev = VMatMax(Abs(B.m_n_rev-B.m_n_));
+  Real B.error = VMatMax(Abs(B.m_n-B.m_n_));
+  Real F.error = VMatMax(Abs(F.m_n-F.m_n_));
+  Real quality = Min(Max(0,1-B.error),Max(0,1-B.error.rev),Max(0,1-F.error));
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0, numErr1, B.error, F.error, quality
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0) * quality;
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
