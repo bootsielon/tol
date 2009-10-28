@@ -398,7 +398,10 @@ bool BFixedSizeMemoryHandler::BPage::IsAssigned(const BYTE* address)
 //--------------------------------------------------------------------
 {
   if((address<pool_)||(address>=poolLimit_)) { return(false); }
-  return(GetBit(isAssigned_,int(address-pool_)/baseSize_));
+  int dif = int(address-pool_);
+  int pos = dif / baseSize_;
+  if(pos*baseSize_!=dif) { return(false); }
+  return(GetBit(isAssigned_,pos));
 }
 
 //--------------------------------------------------------------------
