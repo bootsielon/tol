@@ -24,6 +24,7 @@
 
 #include <tol/tol_bmodel.h>
 #include <tol/tol_bratgra.h>
+#include <tol/tol_btsrgrav.h>
 
 //--------------------------------------------------------------------
 // forward references
@@ -128,6 +129,33 @@ private:
     bool SearchNextOutlier();
     virtual void Initialize();
     virtual BList* Input();
+};
+
+//--------------------------------------------------------------------
+class BTsrRationExpand : public BTsrDummy
+//--------------------------------------------------------------------
+{
+private:
+  BOutlier* out_;
+public:
+  BTsrRationExpand(BList* arg) 
+  : BTsrDummy(arg)
+  {
+    BRat& rat = Rat(LstNthCar(arg,3));
+    out_ = BOutlier::Find(rat);
+    if(!out_) { out_ = new BOutlier("", rat); }
+  }
+  BTsrRationExpand(const BDate& center,
+                   BUserTimeSet* dating,
+                   const BRat& rat) 
+  : BTsrDummy(center, dating)
+  {
+    out_ = BOutlier::Find(rat);
+    if(!out_) { out_ = new BOutlier("", rat); }
+  }
+//BDat operator[] (const BDate& dte) { return(GetDat(dte)); }
+  BDat GetDat(const BDate& dte);
+  RedeclareClassNewDelete(BTsrRationExpand);
 };
 
 #endif // TOL_BAIA_H

@@ -25,6 +25,8 @@
 #include <win_tolinc.h>
 #endif
 
+
+#include <tol/tol_bfilter.h>
 #include <tol/tol_baia.h>
 #include <tol/tol_bstat.h>
 #include <tol/tol_bmatrix.h>
@@ -333,10 +335,13 @@ BSyntaxObject* BOutlier::GetInputDef(BInt t, BDat w) const
 //--------------------------------------------------------------------
 {
   if(!aia_) { return(NIL); }
-  BText expression = GetExpression(t,w);
+  BDate f = aia_->res_->Dating()->Next(aia_->res_->FirstDate(),t);  
+  BSyntaxObject* aux0 = new BTsrRationExpand(f,aia_->res_->Dating(),rat_);
+  BText name = BText("RationExpand_")+ToName(f.Name()+"_"+Name());
+  BSyntaxObject* aux1 = new BTsrRenamed(name, aux0);
+  BText expression = BText("InputDef(")+w+", "+name+")";
   BSyntaxObject* result = GraSet()->EvaluateExpr(expression);
-//BGrammar::DoUnparseNodes() = aux;
-  if(result) { result->PutDescription(expression); }
+  if(result) { result->PutDescription(GetExpression(t, w)); }
   return(result);
 }
 
@@ -719,25 +724,6 @@ void BSetAia::CalcContens()
   }
   delete res;
 }
-
-
-//--------------------------------------------------------------------
-class BTsrRationExpand : public BTsrDummy
-//--------------------------------------------------------------------
-{
-private:
-  BOutlier* out_;
-public:
-  BTsrRationExpand(BList* arg) : BTsrDummy(arg)
-  {
-    BRat& rat = Rat(LstNthCar(arg,3));
-    out_ = BOutlier::Find(rat);
-    if(!out_) { out_ = new BOutlier("", rat); }
-  }
-//BDat operator[] (const BDate& dte) { return(GetDat(dte)); }
-  BDat GetDat(const BDate& dte);
-  RedeclareClassNewDelete(BTsrRationExpand);
-};
 
 
 
