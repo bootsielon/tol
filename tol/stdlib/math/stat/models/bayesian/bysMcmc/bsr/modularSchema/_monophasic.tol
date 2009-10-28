@@ -10,13 +10,24 @@ NameBlock Monophasic =
 /////////////////////////////////////////////////////////////////////////////
 [[
   //////////////////////////////////////////////////////////////////////////
+  @BSR.ModelDef _childToJoint(Set module)
+  //////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE ChildToJoint module "+module->ModuleType+" "+Name(module));
+    If(module->ModuleType!="master", module, 
+       BysMcmc::Bsr::ModularSchema::Monophasic::MasterToJoint(module))
+  };
+  //////////////////////////////////////////////////////////////////////////
   @BSR.ModelDef MasterToJoint(Set master)
   //////////////////////////////////////////////////////////////////////////
   {
-    If(Card(master->SubModule)==1,(master->SubModule)[1],{
+  //WriteLn("TRACE MasterToJoint module "+master->ModuleType+" "+Name(master));
+    Set subModule = EvalSet(master->SubModule, 
+      BysMcmc::Bsr::ModularSchema::Monophasic::_childToJoint);
+    If(Card(subModule)==1,subModule[1],{
     Set LinearBlock = 
     {
-      Set aux.1 = EvalSet(master->SubModule, Set(@BSR.ModelDef module)
+      Set aux.1 = EvalSet(subModule, Set(@BSR.ModelDef module)
       {
         Set sel = Select(module->LinearBlock, Real(@BSR.LinearBlock v)
         {
@@ -29,7 +40,7 @@ NameBlock Monophasic =
     };
     Real n = Card(LinearBlock);
 
-    Set col.index = EvalSet(master->SubModule, Matrix(@BSR.ModelDef module)
+    Set col.index = EvalSet(subModule, Matrix(@BSR.ModelDef module)
     {
       Set index = EvalSet(module->LinearBlock,Real(@BSR.LinearBlock v)
       {
@@ -42,7 +53,7 @@ NameBlock Monophasic =
     });
 
     Real m = 0;
-    Set row.index = EvalSet(master->SubModule, Set(@BSR.ModelDef module)
+    Set row.index = EvalSet(subModule, Set(@BSR.ModelDef module)
     {
       Real r0 = m+1;
       Real m := m+VRows(module->Y);
@@ -51,9 +62,9 @@ NameBlock Monophasic =
     Real missingInputBlock.index = 0;
     Real missingOutputBlock.index = 0;
 
-    Set reDim = Traspose(For(1,Card(master->SubModule), Set(Real k)
+    Set reDim = Traspose(For(1,Card(subModule), Set(Real k)
     {
-      @BSR.ModelDef module = (master->SubModule)[k];
+      @BSR.ModelDef module = subModule[k];
       Real mk = Card(row.index[k]);
       Real m0 = row.index[k][1];
 
