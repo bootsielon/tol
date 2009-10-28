@@ -402,8 +402,6 @@ For(1,Card(series.handler::_.obs.node),Set(Real nu_node)
   NameBlock known = node::real.data;
   Set estim = (bsr.estim::eval.average)[nu_node];
   Set aux = [[
-    //Filtro estimado del output
-    Serie FilterOut.Estim = estim::serOutput.extFil;
     //Filtro real del output
     Serie FilterOut = known::_.filterOut, 
     //Filtro estimado del output
