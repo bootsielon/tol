@@ -52,6 +52,14 @@ protected:
   BDate postCenter_;
 
 public:
+  BTsrDummy(const BDate& center,
+            BUserTimeSet* dating) : BTsrTemporary(NULL) 
+  {
+    PutDating(dating);
+    center_ = center;
+    postCenter_ = Center() + Dating();
+    if(Dating()) { Dating()->ForceCache(); }
+  }
   BTsrDummy(BList* arg) : BTsrTemporary(arg) 
   {
     BUserTimeSet* dating = NIL;
