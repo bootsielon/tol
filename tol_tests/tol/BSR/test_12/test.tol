@@ -168,8 +168,8 @@ Real BysMcmc::Bsr::DynHlm::DBApi::ModSes.Obs.CreateAll(
 //////////////////////////////////////////////////////////////////////////////
 BysMcmc::@Config bsr.config = [[
 //MCMC dimensions
-  Real mcmc.burnin        =  1; 
-  Real mcmc.sampleLength  =  25;
+  Real mcmc.burnin        =  20; 
+  Real mcmc.sampleLength  =  200;
   Real mcmc.cacheLength   =  1;
 //Basic master configuration
   Real bsr.cholesky.epsilon          = 1.E-13;
