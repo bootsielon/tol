@@ -22,8 +22,7 @@ NameBlock Monophasic =
   //////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE MasterToJoint module "+master->ModuleType+" "+Name(master));
-    Set subModule = EvalSet(master->SubModule, 
-      BysMcmc::Bsr::ModularSchema::Monophasic::_childToJoint);
+    Set subModule = EvalSet(master->SubModule, _childToJoint);
     If(Card(subModule)==1,subModule[1],{
     Set LinearBlock = 
     {
