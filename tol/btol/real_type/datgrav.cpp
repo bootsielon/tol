@@ -1481,6 +1481,24 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   contens_.PutValue(result);
 }
 
+static BText _comment_diffDist_ = BText("\n")+
+I2("You can modify differential step used in calculations by "
+   "means of global variable DiffDist",
+   "Es posible modificar el tamaño de paso diferencial utilizado "
+   "para los cálculos con la variable global Real DiffDist");
+
+static BText _comment_tolerance_ = BText("\n")+
+I2("You can modify the minimum enhancement between consecutive "
+   "iterations by means of global variable Tolerance",
+   "Es posible especificar la mínima mejora entre iteraciones "
+   "consecutivas necesaria para continuar con la variable global "
+   "Real Tolerance");
+
+static BText _comment_maxIter_ = BText("\n")+
+I2("You can modify the maximum number of iterations by means of "
+   "global variable MaxIter",
+   "Es posible especificar el máximo número de iteraciones "
+   "con la variable global Real MaxIter");
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatNFirstDer);
@@ -1489,7 +1507,8 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
      "(Code f, Real x [, Real fx])"),
   I2("Returns the first derivative of a function in x."
      "with a given tolerance",
-     "Devuelve la derivada primera numérica de una función en x."),
+     "Devuelve la derivada primera numérica de una función en x.")+
+  _comment_diffDist_,
      BOperClassify::NumericalAnalysis_);
   void BDatNFirstDer::CalcContens()
 //--------------------------------------------------------------------
@@ -1510,15 +1529,14 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   I2("(Code f, Real x)",
      "(Code f, Real x)"),
   I2("Returns the numérical second derivative of a function in x.",
-     "Devuelve la derivada segunda numérica de una función en x."),
+     "Devuelve la derivada segunda numérica de una función en x.")+
+  _comment_diffDist_,
      BOperClassify::NumericalAnalysis_);
   void BDatNSecondDer::CalcContens()
 //--------------------------------------------------------------------
 {
   BCode&  code = Code(Arg(1));
   BDat	  x    = Dat (Arg(2));
-  BDat	  t    = BDat::Tolerance();
-  if(Arg(3)) { t = Dat (Arg(3)); }
   BRRCode f(code);
   contens_ = f.SecondDerivative(x);
 }
@@ -1600,9 +1618,15 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   DeclareContensClass(BDat, BDatTemporary, BDatNewtonSolve);
   DefExtOpr(1, BDatNewtonSolve, "NewtonSolve", 2, 3, "Code Real Real",
   "(Code f, Real x0 [, Real y=0])",
-  I2("Solves the equation f(x) = y using the Newton method begining at x0.",
-     "Resuelve la ecuación f(x) = y usando el método de Newton con valor "
-     "inicial x0."),
+  I2("Solves the equation 'f(x)=y' using the Newton-Raphson iterative "
+     "method with numerical derivatives (secant method) starting at "
+     "initial value x0.",
+     "Resuelve la ecuación 'f(x)=y' usando el método iterativo de "
+     "Newton-Raphson con derivadas numéricas (método de la secante) y "
+     "comenzando con valor inicial x0.")+
+  _comment_diffDist_+
+  _comment_maxIter_+
+  _comment_tolerance_,
      BOperClassify::NumericalAnalysis_);
   void BDatNewtonSolve::CalcContens()
 //--------------------------------------------------------------------
@@ -1615,14 +1639,20 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
 }
 
 
-
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatNewtonMaxMin);
   DefExtOpr(1, BDatNewtonMaxMin, "NewtonMaxMin", 2, 2, "Code Real",
   I2("(Code f, Real x)",
      "(Code f, Real x)"),
-  I2("Solves the equation f'(x) = 0 using the Newton method.",
-     "Resuelve la ecuacion f'(x) = 0 usando el método de Newton."),
+  I2("Solves the equation 'f(x)=y' using the Newton-Raphson iterative "
+     "method with numerical derivatives (secant method) starting at "
+     "initial value x0.",
+     "Resuelve la ecuacion 'f(x)=y' usando el método iterativo de "
+     "Newton-Raphson con derivadas numéricas (método de la secante) y "
+     "comenzando con valor inicial x0.")+
+  _comment_diffDist_+
+  _comment_maxIter_+
+  _comment_tolerance_,
      BOperClassify::NumericalAnalysis_);
   void BDatNewtonMaxMin::CalcContens()
 //--------------------------------------------------------------------
