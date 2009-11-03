@@ -72,6 +72,24 @@ function(fin, fout, verbose=FALSE, varByCol=TRUE,
   write.bbm(fout, result$resmatrix)
 }
 
+
+################################################################################
+gelman.bbm <-
+################################################################################
+function(numChain, fin, fout, verbose=FALSE, varByCol=TRUE, 
+         confidence=0.95, transform=FALSE, autoburnin=TRUE) {
+  mcmc <- list()
+  for(i in 1:numChain) {
+  mcmc[i] <- get.mcmc.bbm(paste(fin,i),verbose,varByCol,"gelman.diag")
+  }
+  result <- gelman.diag(mcmc,confidence,transform,autoburnin)
+  if(verbose)
+  {
+    print(result)
+  }
+  write.bbm(fout, result$resmatrix)
+}
+
 ################################################################################
 ### RGA This is a wrapper for spectrum0 which returns NA if
 ### spectrum0 crashes.  This has happened to me several times when

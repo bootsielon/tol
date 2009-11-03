@@ -47,6 +47,7 @@ NameBlock RCODA =
   Text _tolcoda.R = _cwd+"/"+ "_tolcoda.R";
   Text _tmp.mcmc.bbm = _tmpdir+"/"+"mcmc%S.bbm";
   Text _tmp.raftery.bbm = _tmpdir+"/"+"raftery%S.bbm";
+  Text _tmp.gelman.bbm = _tmpdir+"/"+"gelman%S.bbm";
   Text _tmp.varstat.bbm = _tmpdir+"/"+"varstat%S.bbm";
   Text _tmp.varquant.bbm = _tmpdir+"/"+"varquant%S.bbm";
 
@@ -173,7 +174,89 @@ NameBlock RCODA =
                      verbose)[1]
   };
   
-  
+  //////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.gelman.diag = 
+  "Function RCODA::gelman.diag is a TOL port to R function "
+  "gelman.diag {coda} \n"
+  "\n"
+  "URL: http://cran.r-project.org/doc/packages/coda.pdf\n"
+  "\n"          
+  "Description\n"
+  "The ‘potential scale reduction factor’ is calculated for each variable in "
+  "x, together with upper and lower confidence limits. Approximate convergence "
+  "is diagnosed when the upper limit is close to 1. For multivariate chains, "
+  "a multivariate value is calculated that bounds above the potential scale "
+  "reduction factor for any linear combination of the (possibly transformed) "
+  "variables.\n"
+  "The confidence limits are based on the assumption that the stationary "
+  "distribution of the variable under examination is normal. Hence the "
+  "‘transform’ parameter may be used to improve the normal approximation.\n"  
+  "\n"          
+  "Usage examples\n"
+  "\n"
+  "  Matrix RCODA::gelman.diag(data, {[[\n"
+  "    Real verbose=FALSE, \n"
+  "    Real varByCol=TRUE, \n"
+  "    Real confidence=0.95, \n"
+  "    Real transform=FALSE, \n"
+  "    Real autoburnin=TRUE]]})\n"
+  "\n"
+  "  Matrix RCODA::gelman.diag(data, {[[\n"
+  "    Real varByCol=FALSE, \n"
+  "    Real confidence=0.95]]})\n"
+  "\n"
+  "  Matrix RCODA::gelman.diag(data,Empty)\n"
+  "\n"
+  "Arguments\n"
+  "  data: an mcmc object that could be a Set variable wich two or more "
+          "elements are Matrix or a Text one with the path to a BBM file\n"
+  "  optArgs: supplies optional arguments:\n" 
+  "    Real verbose: If TRUE some traces will be send to standard output"
+  "    Real varByCol: If TRUE then each column contains the Markov Chain of a "
+                     "variable and each row has a simulation. In other case "
+                     "each row is a variable and each column is a simulation"
+                     "Default value is TRUE\n"
+  "    Real confidence: the coverage probability of the confidence interval "
+                        "for the potential scale reduction factor\n"
+  "    Real transform: a logical flag indicating whether variables in x "
+                      "should be transformed to improve the normality of "
+                      "the distribution. If set to TRUE, a log transform or "
+                      "logit transform, as appropriate, will be applied.\n"
+  "    Real autoburnin: a logical flag indicating whether only the second half "
+                       "of the series should be used in the computation. If set "
+                       "to TRUE (default) and start(x) is less than end(x)/2 "
+                       "then start of series will be adjusted so that only "
+                       "second half of series is used.\n"
+  "\n"          
+  "Returns ? (Uncompleted)"
+  "\n"
+  "Acknowledgements:\n"+ _coda_citation(0);
+  Matrix gelman.diag(Anything data, Set optArgs)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real verbose    = getOptArg(optArgs,"verbose",    FALSE);
+    Real varByCol   = getOptArg(optArgs,"varByCol",   TRUE);
+    Real confidence = getOptArg(optArgs,"confidence", 0.95);
+    Real transform  = getOptArg(optArgs,"transform",  FALSE);
+    Real autoburnin = getOptArg(optArgs,"autoburnin", TRUE);
+
+    Set args.bbm = [[_mat.in(data)]];
+    Set result.names = [[ _tmp.gelman.bbm ]];
+    
+    Text script = 
+      "source('"+_tolcoda.R+"'); gelman.bbm('"+args.bbm[1][1]+"','"
+      +_tmp.raftery.bbm+"',"
+      <<FormatReal(verbose,     "%.0lg")+","
+      <<FormatReal(varByCol,    "%.0lg")+","
+      <<FormatReal(confidence,  "%.15lg")+","
+      <<FormatReal(transform,   "%.0lg")+","
+      <<FormatReal(autoburnin,  "%.0lg")
+      <<")";
+    Rapi::RunRScript(script, args.bbm, "",
+                     result.names,
+                     verbose)[1]
+  };
+    
   Set _def.quantiles = [[0.025, 0.25, 0.5, 0.75, 0.975]];
   //////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.summary = 
