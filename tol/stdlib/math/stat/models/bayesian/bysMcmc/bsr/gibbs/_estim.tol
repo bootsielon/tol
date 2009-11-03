@@ -59,7 +59,7 @@ Text _.autodoc.member.GetCyclerFromAscii =
 "Builds the @Cycler of a BSR model by Gibbs method\n"+
 "Argument `ascii` must be an ASCII file path prepared to be parsed by "
 "function BSR.Parse\n";
-@Cycler GetCyclerFromAscii(Text ascii_, 
+@Cycler GetCyclerFromAscii(Text ascii_, Text moduleType,
                           @McmcPartialHandler mcmcPartialHandler,
                           @Config config,
                           @Notifier notifier)
@@ -68,7 +68,7 @@ Text _.autodoc.member.GetCyclerFromAscii =
 //WriteLn("TRACE EstimAscii Card(nonLinFilter) = "<<Card(nonLinFilter));
   Text ascii = ascii_;
   Real notifier::parsing(0);
-  Set parsed = BSR.Parse(ascii);
+  Set parsed = BSR.Parse(ascii,moduleType);
   BysMcmc::@Cycler cycler = GetCyclerFromParsed(
     parsed, mcmcPartialHandler, config, notifier);
   Set Append(cycler::auxInfo, [[ascii]]);
@@ -96,12 +96,15 @@ Text _.autodoc.member.GetCycler =
     g=="Set",  GetCyclerFromParsed(
       modelDef, mcmcPartialHandler, config, notifier),
     g=="Text", GetCyclerFromAscii(
-      modelDef, mcmcPartialHandler, config, notifier),
+      modelDef, "joint", mcmcPartialHandler, config, notifier),
     g=="NameBlock", 
     {
       Text ascii = BysMcmc::Bsr::Import::Write(modelDef);
+      Real metModTyp = FunctionExist("Text","modelDef::Get.ModuleType");
+      Text moduleType = If(!metModTyp, "joint",
+        ToLower(modelDef::Get.ModuleType(0)));
       BysMcmc::@Cycler cycler = GetCyclerFromAscii(
-        ascii, mcmcPartialHandler, config, notifier);
+        ascii, moduleType, mcmcPartialHandler, config, notifier);
       Real cycler::setImporter(modelDef);
       cycler
     },
