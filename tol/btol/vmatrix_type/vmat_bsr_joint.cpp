@@ -51,6 +51,7 @@ public:
   {
     equ_info.index = 0;
     ine_info.index = 0;
+    moduleType = "joint";
   }
     
   template <typename ScannerT>
@@ -89,6 +90,7 @@ public:
       add_symbol<missing_info>  add_mis(s.mis);
       add_symbol<sigma_info>    add_sig(s.sig);
       add_symbol<noise_info>    add_res(s.noise);
+      assign_moduleType assign_moduleType_(s.moduleType);
       assign_declared_var_name assign_declared_var_name_(s.var);
       assign_extern_var_name assign_extern_var_name_(s.var);
       assign_missing_min_neginf assign_missing_min_neginf_(s.mis); 
@@ -115,7 +117,7 @@ public:
       assign_neg_sign_to_ine_term assign_neg_sign_to_ine_term_(s.ine_var_term_info);
       assign_IsGE_to_ine assign_IsGE_to_ine_(s.ine_info);
       assign_IsLE_to_ine assign_IsLE_to_ine_(s.ine_info);
-      assign_var_to_ine_term assign_var_to_ine_term_(s.var.vec,s.ine_var_term_info,s.Anzmax_);
+      assign_var_to_ine_term assign_var_to_ine_term_(s.var,s.ine_var_term_info,s.Anzmax_);
       assign_noise_to_term assign_noise_to_term_(s.noise.vec,s.sig.vec,&s.equ_info);
       add_term_to_equ add_term_to_equ_(s.equ_info.X, s.equ_var_term_info);
       add_term_to_ine add_term_to_ine_(s.ine_info.A,s.ine_var_term_info);
@@ -402,12 +404,12 @@ public:
       ineVarTerm = 
         signIneVarTerm >>
         (
-          s.var.table[assign_var_to_ine_term_]
+          variableExistentOrExtern[assign_var_to_ine_term_]
           |
           (
             knownURealIneTerm >>
-            (product                              | error_prodExpected     ) >> 
-            (s.var.table[assign_var_to_ine_term_] | error_linBlkVarExpected)
+            (product                                           | error_prodExpected     ) >> 
+            (variableExistentOrExtern[assign_var_to_ine_term_] | error_linBlkVarExpected)
           )
         )
         ;
@@ -490,7 +492,9 @@ public:
         (explicit_begin | eps_p) >>
         //header
         (
-          ((str_p("Module.Type") >> ch_p('=') >> str_p("joint")[assign_a(s.moduleType)] >> endOfSentence) | eps_p) >>
+          ((str_p("Module.Type") >> ch_p('=') >> 
+                  str_p("joint")[assign_moduleType_] >> 
+           endOfSentence) | eps_p) >>
           model_nameDef >>
           model_descriptionDef >>
           session_nameDef >>
@@ -683,6 +687,7 @@ int Parse_Module_Joint(
 {
   bys_sparse_reg_joint bsr;
   int errCode = 0;
+  bool verbose = true;
   #include "tol_bvmat_bsr_run.h"
   if(!errCode)
   {

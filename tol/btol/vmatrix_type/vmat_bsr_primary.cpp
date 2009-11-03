@@ -51,6 +51,7 @@ public:
     descY_ = "Output regression matrix";
     descX_ = "Input regression matrix";
     var.info.used = true;
+    moduleType = "primary";
   }
     
   template <typename ScannerT>
@@ -67,14 +68,14 @@ public:
       openParenthesys, closeParenthesys,
       openBracket, closeBracket,
       openKey, closeKey,
-      identifier_simple, identifier,  newIdentifier, 
+      identifier_simple, identifier, nonExistentIdentifier, newIdentifier, 
       resSigmaDef, errorTerm, 
       signEquVarTerm, signIneVarTerm, 
       knownReal, unkOrReal, 
       unkOrRealInitValue, 
       knownURealEquTerm, 
       knownURealIneTerm,
-      variable, missing, arima, noise,
+      variable, variableExistentOrExtern, missing, arima, noise,
       matOrVMatExpr, output, input,
       ineVarTerm, inequation,
       module_type, model_nameDef, model_descriptionDef, 
@@ -88,7 +89,9 @@ public:
       add_symbol<missing_info>  add_mis(s.mis);
       add_symbol<sigma_info>    add_sig(s.sig);
       add_symbol<noise_info>    add_res(s.noise);
+      assign_moduleType assign_moduleType_(s.moduleType);
       assign_declared_var_name assign_declared_var_name_(s.var);
+      assign_extern_var_name assign_extern_var_name_(s.var);
       assign_missing_min_neginf assign_missing_min_neginf_(s.mis); 
       assign_missing_max_posinf assign_missing_max_posinf_(s.mis); 
       assign_missing_sigma2_posinf assign_missing_sigma2_posinf_(s.mis); 
@@ -113,7 +116,7 @@ public:
       assign_neg_sign_to_ine_term assign_neg_sign_to_ine_term_(s.ine_var_term_info);
       assign_IsGE_to_ine assign_IsGE_to_ine_(s.ine_info);
       assign_IsLE_to_ine assign_IsLE_to_ine_(s.ine_info);
-      assign_var_to_ine_term assign_var_to_ine_term_(s.var.vec,s.ine_var_term_info,s.Anzmax_);
+      assign_var_to_ine_term assign_var_to_ine_term_(s.var,s.ine_var_term_info,s.Anzmax_);
       add_term_to_ine add_term_to_ine_(s.ine_info.A,s.ine_var_term_info);
       add_ine add_ine_(s.ine_vec, s.ine_info);
 
@@ -171,9 +174,11 @@ public:
       identifier =
         (*(identifier_simple >> member)) >> identifier_simple;
         ;
+      nonExistentIdentifier = 
+         (identifier - (s.var.table | s.sig.table | s.mis.table | s.noise.table));
       newIdentifier = 
         (
-          (identifier - (s.var.table | s.sig.table | s.mis.table | s.noise.table)) |
+          nonExistentIdentifier |
           (identifier >> error_alreadyInUse >> nothing_p >> end_p)
         )
         ;
@@ -240,6 +245,12 @@ public:
         )>>
         endOfSentence[add_var]
         ;
+      variableExistentOrExtern =
+        s.var.table |
+        (
+          nonExistentIdentifier[assign_extern_var_name_]
+                               [add_var]
+        );
       missing =
         newIdentifier[increment_a(s.mis.info.index)]
                             [assign_a(s.mis.info.name)] >> 
@@ -371,12 +382,12 @@ public:
       ineVarTerm = 
         signIneVarTerm >>
         (
-          s.var.table[assign_var_to_ine_term_]
+          variableExistentOrExtern[assign_var_to_ine_term_]
           |
           (
             knownURealIneTerm >>
-            (product                              | error_prodExpected     ) >> 
-            (s.var.table[assign_var_to_ine_term_] | error_linBlkVarExpected)
+            (product                                           | error_prodExpected     ) >> 
+            (variableExistentOrExtern[assign_var_to_ine_term_] | error_linBlkVarExpected)
           )
         )
         ;
@@ -396,7 +407,7 @@ public:
       (
         (
           str_p("Module.Type") >> ch_p('=') >> 
-          str_p("primary")[assign_a(s.moduleType)] >> 
+          str_p("primary")[assign_moduleType_] >> 
           endOfSentence
         ) |
         error_ModuleTypePrimaryDefExpected
@@ -635,6 +646,7 @@ int Parse_Module_Primary(
 {
   bys_sparse_reg_primary bsr;
   int errCode = 0;
+  bool verbose = true;
   #include "tol_bvmat_bsr_run.h"
   if(!errCode)
   {

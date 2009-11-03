@@ -374,7 +374,6 @@ struct moduleDef
     "/test_01/parse.bsr";
     return(aux);
   };
-
   const BText& BSR();
   int Initialize();
   BStruct* ModelDefStr();
@@ -384,7 +383,6 @@ struct moduleDef
   BStruct* NoiseDistribStr();
   BStruct* NoiseTimeInfo();
   BStruct* MasterInfo();
-
   int Parse_Module_Joint(
     const string &          fileName,
     doc_info&               docInfo,
@@ -396,7 +394,6 @@ struct moduleDef
     BVMat&                  X,
     BVMat&                  a, 
     BVMat&                  A);
-
   int Parse_Module_Primary(
     const string &          fileName,
     doc_info&               docInfo,
@@ -408,17 +405,14 @@ struct moduleDef
     BVMat&                  X,
     BVMat&                  a, 
     BVMat&                  A);
-
   int Parse_Module_Master(
     const std::string &     fileName,
     doc_info&               docInfo,
     std::string &           sampler,
     vector<moduleDef>&      subModules);
-
   int Parse_Module(const BText& filePath, 
-                         BText& moduleType,
+                   const BText& moduleType,
                          BSet& contens_);
-
 };
 
 #endif // TOL_BVMAT_RLR_H

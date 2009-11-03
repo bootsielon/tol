@@ -298,6 +298,32 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+class assign_moduleType
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  string* moduleType_;
+  assign_moduleType(string& moduleType) 
+  : moduleType_(&moduleType)
+  {}
+  void action(const std::string& str) const
+  {
+    (*moduleType_) = str;
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }
+};
+
+///////////////////////////////////////////////////////////////////////////////
 class assign_extern_var_name
 ///////////////////////////////////////////////////////////////////////////////
 {
@@ -326,6 +352,7 @@ public:
     action(str);
   }
 };
+
 
 ///////////////////////////////////////////////////////////////////////////////
 class assign_missing_min
@@ -1268,6 +1295,49 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
+class assign_var_to_ine_term
+///////////////////////////////////////////////////////////////////////////////
+{
+public:
+  symbol_handler<variable_info>* var_; 
+  var_term*              var_term_info_; 
+  int*                   nzmax_;
+
+  assign_var_to_ine_term(
+    symbol_handler<variable_info>& var, 
+    var_term&              var_term_info,
+    int&                   nzmax)
+  :
+  var_(&var),
+  var_term_info_(&var_term_info),
+  nzmax_(&nzmax)
+  {}
+
+  void action(variable_info& varInfo) const
+  {
+    assign_var_to_ine_term* t = (assign_var_to_ine_term*)this;
+    varInfo.used = true;
+    t->var_term_info_->varIndex = varInfo.index;
+    (*(t->nzmax_))++;
+  }
+  void operator()(const boost::reference_wrapper<int>& pos) const
+  {
+    int n = pos.get(); 
+    action(var_->vec[n]);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    int* pos = find(var_->table,str.c_str());
+    action((var_->vec)[*pos]);
+  }
+
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
 class assign_var_to_equ_term
 ///////////////////////////////////////////////////////////////////////////////
 {
@@ -1296,7 +1366,7 @@ public:
   void operator()(const boost::reference_wrapper<int>& pos) const
   {
     int n = pos.get(); 
-    action((var_->vec)[n]);
+    action(var_->vec[n]);
   }
   template<typename IteratorT>
   void operator()(IteratorT first, IteratorT last) const
@@ -1426,38 +1496,6 @@ public:
 
 };
       
-
-///////////////////////////////////////////////////////////////////////////////
-class assign_var_to_ine_term
-///////////////////////////////////////////////////////////////////////////////
-{
-public:
-  vector<variable_info>* var_vec_; 
-  var_term*              var_term_info_; 
-  int*                   nzmax_;
-
-  assign_var_to_ine_term(
-    vector<variable_info>& var_vec, 
-    var_term&              var_term_info,
-    int&                   nzmax)
-  :
-  var_vec_(&var_vec),
-  var_term_info_(&var_term_info),
-  nzmax_(&nzmax)
-  {}
-  void action(variable_info& varInfo) const
-  {
-    assign_var_to_ine_term* t = (assign_var_to_ine_term*) this;
-    t->var_term_info_->varIndex = varInfo.index;
-    (*t->nzmax_)++;
-  }
-  void operator()(const boost::reference_wrapper<int>& pos) const
-  {
-    assign_var_to_ine_term* t = (assign_var_to_ine_term*) this;
-    int n = pos.get(); 
-    action((*t->var_vec_)[n]);
-  }
-};
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1787,7 +1825,7 @@ class bys_sparse_reg
 public:
   string    moduleType;
   string    fileName;
-  ifstream* file;
+//ifstream* file;
   size_t    fileSize;
 
   doc_info docInfo;

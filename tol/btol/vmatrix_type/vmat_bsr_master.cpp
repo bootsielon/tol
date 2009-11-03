@@ -45,6 +45,7 @@ public:
     subMod(),
     currentSubMod()
   {
+    moduleType = "master";
   }
     
   template <typename ScannerT>
@@ -63,6 +64,7 @@ public:
     definition(const bys_sparse_reg_master& s_)
     : s ((bys_sparse_reg_master&)s_)
     {
+      assign_moduleType assign_moduleType_(s.moduleType);
       add_submodule add_submodule_(s.subMod, s.currentSubMod); 
       assign_explicit_end assign_explicit_end_(s.endFound_);
 
@@ -80,7 +82,7 @@ public:
       (
         (
           str_p("Module.Type") >> ch_p('=') >> 
-          (str_p("master")[assign_a(s.moduleType)]) >> 
+          (str_p("master")[assign_moduleType_]) >> 
           endOfSentence
         ) |
         error_ModuleTypeMasterDefExpected
@@ -257,6 +259,7 @@ int Parse_Module_Master(
 {
   bys_sparse_reg_master bsr;
   int errCode = 0;
+  bool verbose = true;
   #include "tol_bvmat_bsr_run.h"
   if(!errCode)
   {

@@ -274,12 +274,13 @@ public:
     definition(const bys_sparse_reg_moduletype& s_)
     : s ((bys_sparse_reg_moduletype&)s_)
     {
+      assign_moduleType assign_moduleType_(s.moduleType);
       #include "tol_bvmat_bsr_err.h"     
       endOfSentence = (ch_p(';') | error_comma2Expected);
       module_type =
       (
         str_p("Module.Type") >> ch_p('=') >> 
-        (str_p("primary")|str_p("joint")|str_p("master"))[assign_a(s.moduleType)] >> 
+        (str_p("primary")|str_p("joint")|str_p("master"))[assign_moduleType_] >> 
         endOfSentence
       );
       problem = 
@@ -301,6 +302,7 @@ static int Parse_ModuleType(const BText& fileName_,
   string fileName = fileName_.String();
   bys_sparse_reg_moduletype bsr;
   int errCode = 0;
+  bool verbose = false;
   #include "tol_bvmat_bsr_run.h"
   if(!errCode)
   {
@@ -760,15 +762,16 @@ int Parse_MasterModule(const BText& filePath,
 
 ////////////////////////////////////////////////////////////////////////////////
 int Parse_Module(const BText& filePath, 
-                       BText& moduleType,
+                 const BText& moduleType,
                  BSet& contens_)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  if(moduleType=="")
+  BText modTyp = moduleType;
+  if(modTyp=="")
   {
-    Parse_ModuleType(filePath, moduleType);
+    Parse_ModuleType(filePath, modTyp);
   }
-  if(moduleType=="master")
+  if(modTyp=="master")
   {
     return(Parse_MasterModule(filePath,contens_));
   }
