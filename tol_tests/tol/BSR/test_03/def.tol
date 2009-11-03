@@ -688,8 +688,8 @@ Text bys.sparse.reg.path =
   bsr
 };
 
-WriteLn("Reading model in RLR format "+Time);
-Set bsr.parsed = BSR.Parse(bys.sparse.reg.path);
+WriteLn("Reading model in BSR format "+Time);
+Set bsr.parsed = BSR.Parse(bys.sparse.reg.path,"joint");
 
 Matrix _inpMis= If(!MissInp,Rand(0,1,0,0),
 {

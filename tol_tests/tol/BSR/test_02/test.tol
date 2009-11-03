@@ -23,6 +23,7 @@ WriteLn("Current Random Seed = "<<rndSeed);
 //Creates a random model and writes it in "parse.bsr"
 Set Include("load.tol");
 
+
 BysMcmc::@Config bsr.config =
 [[
 //MCMC dimensions

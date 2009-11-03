@@ -60,7 +60,7 @@ BysMcmc::@Config bsr.config =
 BysMcmc::@McmcRecover recover = BysMcmc::@McmcRecover::Load(
   "../test_11/model.bsr", bsr.config);
 
-Set parsed = BSR.Parse("model.bsr");
+Set parsed = BSR.Parse("model.bsr","joint");
 
 Real new.obs.length = 365;
 

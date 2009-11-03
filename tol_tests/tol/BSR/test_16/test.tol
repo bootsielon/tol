@@ -72,7 +72,7 @@ BysMcmc::@McmcPartialHandler::New(
  
 Set bsr.parsed = 
 {
-   Set aux =  BSR.Parse(bsr.path);
+   Set aux =  BSR.Parse(bsr.path,"joint");
    Set di = aux->DocInfo;
    Text di->Model.Name := "Test16";
    Text di->Model.Description := 

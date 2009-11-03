@@ -241,7 +241,7 @@ NameBlock modelImport = BysMcmc::Bsr::DynHlm::DBApi::GetModelDef
 
 Text ascii = BysMcmc::Bsr::Import::Write(modelImport);
 
-Set parsed_ = BSR.Parse(ascii);
+Set parsed_ = BSR.Parse(ascii,"master");
 Text StructName(parsed_);
 Set parsed = BysMcmc::Bsr::ModularSchema::Monophasic::MasterToJoint(parsed_);
 Text StructName(parsed);

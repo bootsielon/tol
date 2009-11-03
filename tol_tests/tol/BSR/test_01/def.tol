@@ -456,8 +456,8 @@ Text bys.sparse.reg.path =
   bsr
 };
 
-WriteLn("Reading model in RLR format "+Time);
-Set bsr.parsed = BSR.Parse(bys.sparse.reg.path);
+WriteLn("Reading model in BSR format "+Time);
+Set bsr.parsed = BSR.Parse(bys.sparse.reg.path,"joint");
 
 Real ok.Y = (VMatMax(Abs(bsr.parsed::Y-Y))+10)==10;
 Real ok.X = (VMatMax(Abs(bsr.parsed::X-X))+10)==10;
