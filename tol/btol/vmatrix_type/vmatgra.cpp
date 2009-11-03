@@ -2308,9 +2308,9 @@ void BSetGetBoundsInPolytope::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetParseResLinReg);
-DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 2, 
+DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 2, 2, 
   "Text Text",
-  "(Text filePath [, Text moduleType=\"\"])",
+  "(Text filePath, Text moduleType)",
   I2("Parses an ASCII file written in BSR language (Restricted Linear "
      "Regression) and returns a Set with structure of "
      "@BSR.ModelDef containing all needed information to make "
@@ -2344,13 +2344,6 @@ DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 1, 2,
      " * \"primary\" \n" 
      " * \"joint\" \n" 
      " * \"master\" \n"+
-     I2("If empty string is specified then it will read the file "
-     "prior to search ModuleType clause and if not found will take "
-     "the default \"joint\" to ensure backwards compatibility.",
-     "Si se especifica a cadena vacía entonces se hará una lectura "
-     "previa del fichero para buscar la cláusula ModuleType y si no "
-     "se encuentra se tomará el valor por defecto \"joint\" para "
-     "garantizar la compatibilidad hacia atrás.")+
      BysSparseReg::url_parse_bsr(),
 BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
