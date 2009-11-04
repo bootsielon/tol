@@ -1,0 +1,47 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  769;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "SetCol & SetRow for VMatrix.";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Real n = IntRand(1,100);
+  Matrix m = Rand(1,n,-10,10);
+  Set s = MatSet(m)[1];
+  VMatrix v_r = SetRow(s);
+  VMatrix v_c = SetCol(s);
+
+  Real ok.1 = And(VRows(v_r)==1,VColumns(v_r)==n);
+  Real ok.2 = And(VRows(v_c)==n,VColumns(v_c)==1);
+  Real ok.3 = VMatMax(Abs(v_r-Mat2VMat(m)))==0;
+  Real ok.4 = VMatMax(Abs(v_c-Tra(v_r)))==0;
+
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[numErr0, numErr1, ok.1, ok.2, ok.3, ok.4]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0, 
+                      ok.1, ok.2, ok.3, ok.4);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
