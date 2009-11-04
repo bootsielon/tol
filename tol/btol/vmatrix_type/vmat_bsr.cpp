@@ -134,23 +134,6 @@ int bys_sparse_reg::expand2AllEqu_covAndFactors(noise_info& resInfo)
   return(err);
 };
 
-/////////////////////////////////////////////////////////////////////////////
-int bys_sparse_reg::checkDimensions(int m)
-/////////////////////////////////////////////////////////////////////////////
-{
-  int b = noise.vec.size();
-  if(!b)
-  {
-    Error(BSR()+"At least a vector of noise with independent normal distribution must be defined");
-    return(-4);
-  }
-  if(!m)
-  {
-    Error(BSR()+"At least a linear equation must be defined");
-    return(-5);
-  }
-  return(0);
-};
 
 /////////////////////////////////////////////////////////////////////////////
 int bys_sparse_reg::getMissing(
@@ -327,7 +310,7 @@ int Parse_NoMasterModule(const BText& filePath,
   std::vector<BysSparseReg::missing_info>    outputMissingInfo;
   std::vector<BysSparseReg::noise_info>      noiseInfo;
   BText oldPath = BDir::GetCurrent();
-  BText dirPath = GetAbsolutePath(GetFilePath(filePath));
+  BText dirPath = GetStandardAbsolutePath(GetFilePath(filePath));
   BText fName = GetFileName(filePath);
   BText fullPath = dirPath+fName;
   BDir::ChangeCurrent(dirPath);
@@ -675,7 +658,7 @@ int Parse_MasterModule(const BText& filePath,
   std::vector<moduleDef> subMod;
   BSet SM, HD;
   BText oldPath = BDir::GetCurrent();
-  BText dirPath = GetAbsolutePath(GetFilePath(filePath));
+  BText dirPath = GetStandardAbsolutePath(GetFilePath(filePath));
   BText fName = GetFileName(filePath);
   BText fullPath = dirPath+fName;
   BDir::ChangeCurrent(dirPath);
