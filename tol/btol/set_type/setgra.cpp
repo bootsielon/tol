@@ -110,7 +110,9 @@ public:
 		  I2("Attaches the elements of set2 to the end of set1 without "
        "eliminating repeated elements and preserving the order.\n"
        "If incrementalIndexByName is true then the index of names "
-       "will be incremented if original set had an index, or created i"  ,
+       "will be incremented if original set had an index and new "
+       "elements are compatible with old ones; or created if set "
+       "was null"  ,
 	     "Concatena los elementos del conjunto set1 al final de set2 "
        "sin eliminar elementos repetidos y conservando el orden.\n"
        "Si incrementalIndexByName es cierto entonces el índice de "
