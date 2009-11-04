@@ -88,6 +88,10 @@ Class @McmcRecover: @McmcReloader
   Static Real Store(@Cycler cycler, Real sequential)
   ///////////////////////////////////////////////////////////////////////////
   {
+    Text config.path = 
+      cycler::_.sampler::get.path(0)+".config.oza";
+    WriteLn("Storing @Config into path "+config.path);
+    Real Ois.Store([[cycler::_.config]],config.path);
     Text recover.path = 
       cycler::_.sampler::get.path(0)+".recover.oza";
     WriteLn("Storing @McmcRecover into path "+recover.path);
