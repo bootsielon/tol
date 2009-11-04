@@ -1,0 +1,64 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  772;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "New function TextToReal";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Matrix matrix.1 =
+    Rand(IntRand(1,100),1,-1.E+15,+1.E+15) << 
+    Rand(IntRand(1,100),1,-1,+1) << 
+    Rand(IntRand(1,100),1,-1.E-15,+1.E-15);
+
+  Set real.1 = MatSet(Tra(matrix.1))[1];
+
+  Set text.1 = EvalSet(real.1, Text(Real x)
+  {
+    FormatReal(x, "%.16lg")
+  });
+
+  Set real.2 = EvalSet(text.1, Real(Text t)
+  {
+    TextToReal(t, "%lg")
+  });
+
+  Set text.2 = EvalSet(real.2, Text(Real x)
+  {
+    FormatReal(x, "%.16lg")
+  });
+
+  Matrix matrix.2 = Tra(SetMat([[real.2]]));
+  Matrix cmp = matrix.1 | matrix.2;
+  Matrix absDif = Abs(matrix.1-matrix.2);
+  Matrix relAbsDif = absDif $/ matrix.1;
+  Real maxRelAbsDif = MatMax(relAbsDif);
+  Real quality =  1 - maxRelAbsDif;
+  
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[numErr0, numErr1, maxRelAbsDif, quality]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0) * quality;
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
