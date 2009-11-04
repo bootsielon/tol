@@ -45,17 +45,18 @@ function(fbbm, mat) {
 get.mcmc.bbm <-
 ################################################################################
 function(fin, verbose=FALSE, varByCol=TRUE, title) {
-  mcmc <- if (varByCol)
+  chain <- if (varByCol)
     read.bbm(fin)
   else
     t(read.bbm(fin))
   if(verbose)
   {
-    print(paste("Doing ",title," over a Markov Chain with"),quote=FALSE)
-    print(paste("  Number of variables: ",  dim(mcmc)[2]),quote=FALSE)
-    print(paste("  Number of simulations: ",dim(mcmc)[1]),quote=FALSE) 
+    print(paste("[",title,"]Loading Markov Chain with",
+                dim(chain)[2], " variables and",
+                dim(chain)[1], " simulations."), 
+          quote=FALSE) 
   }
-  mcmc
+  chain
 }
 
 ################################################################################
@@ -63,8 +64,8 @@ raftery.bbm <-
 ################################################################################
 function(fin, fout, verbose=FALSE, varByCol=TRUE, 
          q=0.025, r=0.005, s=0.95, eps=0.001) {
-  mcmc <- get.mcmc.bbm(fin,verbose,varByCol,"raftery.diag")
-  result <- raftery.diag(mcmc,q,r,s,eps)
+  mcmc_item <- get.mcmc.bbm(fin,verbose,varByCol,"raftery.diag")
+  result <- raftery.diag(mcmc_item,q,r,s,eps)
   if(verbose)
   {
     print(result)
@@ -76,18 +77,28 @@ function(fin, fout, verbose=FALSE, varByCol=TRUE,
 ################################################################################
 gelman.bbm <-
 ################################################################################
-function(numChain, fin, fout, verbose=FALSE, varByCol=TRUE, 
+function(mcmc_fin, fout, verbose=FALSE, varByCol=TRUE, 
          confidence=0.95, transform=FALSE, autoburnin=TRUE) {
-  mcmc <- list()
-  for(i in 1:numChain) {
-  mcmc[i] <- get.mcmc.bbm(paste(fin,i),verbose,varByCol,"gelman.diag")
+  print("gelman.bbm TRACE [1]...")
+  mcmc_items <- list()
+  print("gelman.bbm TRACE [2]...")
+  for(i in 1:length(mcmc_fin)) {
+    X <- mcmc(get.mcmc.bbm(mcmc_fin[i],verbose,varByCol,"gelman.diag"))
+    mcmc_items[[i]] <- X
   }
-  result <- gelman.diag(mcmc,confidence,transform,autoburnin)
+  print("gelman.bbm TRACE [3]...")
+  mcmc_list = mcmc.list(mcmc_items);
+  print("gelman.bbm TRACE [4]...")
+  print(paste("mcmc_list:\n",mcmc_list,"\n"),quote=FALSE)
+  print("running gelman.diag...")
+  result <- gelman.diag(mcmc_list,confidence,transform,autoburnin)
   if(verbose)
   {
     print(result)
   }
-  write.bbm(fout, result$resmatrix)
+  mpsrf <- matrix(result$mpsrf,1,1)
+  write.bbm(paste(fout,"_psrf", sep=""), result$psrf )
+  write.bbm(paste(fout,"_mpsrf",sep=""), mpsrf)
 }
 
 ################################################################################

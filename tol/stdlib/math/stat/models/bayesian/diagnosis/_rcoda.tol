@@ -67,12 +67,37 @@ NameBlock RCODA =
       }, 
       type=="Matrix", 
       {
-        Set [[ _tmp.mcmc.bbm, Matrix sample ]]
+        Set [[ [[ _tmp.mcmc.bbm, sample ]] ]]
+      }, 
+      type=="Set", 
+      {
+        For(1,Card(sample),Anything(Real k)
+        {
+          Text type.k = Grammar(sample[k]);
+          Case
+          (
+            type.k=="Text", 
+            {
+              Text sample[k]
+            }, 
+            type.k=="Matrix", 
+            {
+              Set [[ _tmp.mcmc.bbm+"_"+IntText(k), sample[k] ]]
+            }, 
+            1==1,
+            {
+              WriteLn("[RCODA::_mat.in] Invalid object type for sample argument, "
+                      "must be Text (path to the bbm matrix), Matrix or Set of matrices","E");
+              Real Stop;
+              ""
+            }
+          )
+        })
       }, 
       1==1,
       {
         WriteLn("[RCODA::_mat.in] Invalid object type for sample argument, "
-                "must be Text (path to the bbm matrix) or Matrix","E");
+                "must be Text (path to the bbm matrix), Matrix or Set of matrices","E");
         Real Stop;
         ""
       }
@@ -156,7 +181,7 @@ NameBlock RCODA =
     Real s        = getOptArg(optArgs,"s",        0.950);
     Real eps      = getOptArg(optArgs,"eps",      0.001);
 
-    Set args.bbm = [[_mat.in(data)]];
+    Set args.bbm = _mat.in(data);
     Set result.names = [[ _tmp.raftery.bbm ]];
     
     Text script = 
@@ -231,7 +256,7 @@ NameBlock RCODA =
   "Returns ? (Uncompleted)"
   "\n"
   "Acknowledgements:\n"+ _coda_citation(0);
-  Matrix gelman.diag(Anything data, Set optArgs)
+  Set gelman.diag(Set data, Set optArgs)
   //////////////////////////////////////////////////////////////////////////////
   {
     Real verbose    = getOptArg(optArgs,"verbose",    FALSE);
@@ -240,21 +265,29 @@ NameBlock RCODA =
     Real transform  = getOptArg(optArgs,"transform",  FALSE);
     Real autoburnin = getOptArg(optArgs,"autoburnin", TRUE);
 
-    Set args.bbm = [[_mat.in(data)]];
-    Set result.names = [[ _tmp.gelman.bbm ]];
-    
+    Set args.bbm = _mat.in(data);
+    Set result.names = [[ _tmp.gelman.bbm+"_psrf",
+                          _tmp.gelman.bbm+"_mpsrf" ]];
+    Text args.bbm.list = "c("+SetSum(For(1,Card(args.bbm),Text(Real k)
+    {
+      If(k>1,", ","") + "'"+args.bbm[k][1]+"'"
+    }))+")";
     Text script = 
-      "source('"+_tolcoda.R+"'); gelman.bbm('"+args.bbm[1][1]+"','"
-      +_tmp.raftery.bbm+"',"
+      "source('"+_tolcoda.R+"'); gelman.bbm("+args.bbm.list+",'"
+      +_tmp.gelman.bbm+"',"
       <<FormatReal(verbose,     "%.0lg")+","
       <<FormatReal(varByCol,    "%.0lg")+","
       <<FormatReal(confidence,  "%.15lg")+","
       <<FormatReal(transform,   "%.0lg")+","
       <<FormatReal(autoburnin,  "%.0lg")
       <<")";
-    Rapi::RunRScript(script, args.bbm, "",
+    Set aux = Rapi::RunRScript(script, args.bbm, "",
                      result.names,
-                     verbose)[1]
+                     verbose);
+    [[
+      Matrix psrf=aux[1]; 
+      Real mpsrf = MatDat(aux[2],1,1)
+    ]]
   };
     
   Set _def.quantiles = [[0.025, 0.25, 0.5, 0.75, 0.975]];
@@ -310,7 +343,7 @@ NameBlock RCODA =
       FormatReal(quantiles[k],"%.15lg")
     }))+")";
 
-    Set args.bbm = [[_mat.in(data)]];
+    Set args.bbm = _mat.in(data);
     Set result.names = [[ _tmp.varstat.bbm, _tmp.varquant.bbm ]];
     
      Text script = 
