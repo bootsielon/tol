@@ -191,9 +191,11 @@ public:
   BBool  IsEven()	 const { return(IsMultipleOf(2)); }
 
   //! Updates with the values of BChar
-  void   PutValue (const BChar* name);
+  void PutValue (const BChar* name);
   //! Updates with the values of BText
-  void   PutValue (const BText& expr);    //dattext.cpp
+  void PutValue (const BText& expr);    //dattext.cpp
+  //! Updates with the values of BText and specified format
+  void PutValue(const BText& name, const BText& format);
   //! Updates \a value_ attribute with \a x
   void   PutValue (BReal x) { value_ = x; }
   //! If !t sets value to NaN, else if value_ is NaN sets value to 0

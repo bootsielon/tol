@@ -1197,6 +1197,23 @@ void BDat::PutValue(const BText& name)
 }
 
 //--------------------------------------------------------------------
+void BDat::PutValue(const BText& name, const BText& format)
+
+/*! Puts the real value of name in this or unknown if name is not
+ *  a valid real number
+ * \param name Value thet is assigned to BDat
+ */
+//--------------------------------------------------------------------
+{
+  value_ = nan_;
+  int ret = sscanf(name.String(),format.String(),&value_);
+  if(ret!=1)
+  {
+    value_ = nan_;
+  }
+}
+
+//--------------------------------------------------------------------
 ostream& operator<< (ostream& os, const BArray<BDat>& arr)
 
 /*! Redefines the operator << to show the elements of a BArray

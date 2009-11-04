@@ -1679,6 +1679,36 @@ I2("You can modify the maximum number of iterations by means of "
 }
 
 
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatTextToReal);
+DefExtOpr(1, BDatTextToReal, "TextToReal", 1, 2, "Text Text",
+  "(Text txt [, Text format=\"%lg\"])",
+  I2("Convers to real a formatted text. You can specify any standard "
+     "C format for type double.",
+     "Convierte a real un texto formateado. Se puede especificar un "
+     "formato estándar cualquiera de C para el tipo double ")+
+  I2("\nWARNING: Not all formats are inversible. "
+     "For example, format strings with literals "
+     "they must be separated with a specified separator character.",
+     "\nCUIDADO: No todas las cadenas de formato tienen porqué ser inversibles. "
+     "Por ejemplo, si usan literales "
+     "éstos deben estar separados del resto por un caracter especificado."),
+	  BOperClassify::TimeAlgebra_);
+//--------------------------------------------------------------------
+void BDatTextToReal::CalcContens()
+//--------------------------------------------------------------------
+{
+  BText& txt = Text(Arg(1));
+  if(!Arg(2))
+  {
+    contens_.PutValue(txt);
+  }
+  else
+  {
+    BText& fmt = Text(Arg(2));
+    contens_.PutValue(txt,fmt);
+  }
+}
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatTextLength);
