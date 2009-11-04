@@ -79,18 +79,12 @@ gelman.bbm <-
 ################################################################################
 function(mcmc_fin, fout, verbose=FALSE, varByCol=TRUE, 
          confidence=0.95, transform=FALSE, autoburnin=TRUE) {
-  print("gelman.bbm TRACE [1]...")
   mcmc_items <- list()
-  print("gelman.bbm TRACE [2]...")
   for(i in 1:length(mcmc_fin)) {
     X <- mcmc(get.mcmc.bbm(mcmc_fin[i],verbose,varByCol,"gelman.diag"))
     mcmc_items[[i]] <- X
   }
-  print("gelman.bbm TRACE [3]...")
   mcmc_list = mcmc.list(mcmc_items);
-  print("gelman.bbm TRACE [4]...")
-  print(paste("mcmc_list:\n",mcmc_list,"\n"),quote=FALSE)
-  print("running gelman.diag...")
   result <- gelman.diag(mcmc_list,confidence,transform,autoburnin)
   if(verbose)
   {
