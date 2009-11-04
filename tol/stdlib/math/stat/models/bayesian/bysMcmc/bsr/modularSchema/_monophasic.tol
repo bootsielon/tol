@@ -23,7 +23,19 @@ NameBlock Monophasic =
   {
   //WriteLn("TRACE MasterToJoint module "+master->ModuleType+" "+Name(master));
     Set subModule = EvalSet(master->SubModule, _childToJoint);
-    If(Card(subModule)==1,subModule[1],{
+    If(Card(subModule)==1, {
+      @BSR.ModelDef(
+        subModule[1]->ModuleType;
+        master->DocInfo;
+        subModule[1]->LinearBlock;
+        subModule[1]->MissingInputBlock;
+        subModule[1]->MissingOutputBlock;
+        subModule[1]->NoiseDistrib;
+        subModule[1]->Y;
+        subModule[1]->X;
+        subModule[1]->a;
+        subModule[1]->A)
+    }, {
     Set LinearBlock = 
     {
       Set aux.1 = EvalSet(subModule, Set(@BSR.ModelDef module)
@@ -36,7 +48,7 @@ NameBlock Monophasic =
       Set aux.2 = BinGroup("<<", aux.1);
       Real SetIndexByName(aux.2);
       aux.2 
-    };
+    };  
     Real n = Card(LinearBlock);
 
     Set col.index = EvalSet(subModule, Matrix(@BSR.ModelDef module)
@@ -138,7 +150,6 @@ NameBlock Monophasic =
       VMatrix Y = Convert(Group("ConcatRows",reDim[4]),"Blas.R.Dense");
       VMatrix X = Convert(Group("ConcatRows",reDim[5]),"Cholmod.R.Sparse");
       VMatrix a = Convert(Group("ConcatRows",reDim[6]),"Cholmod.R.Sparse");
-      VMatrix A = Convert(Group("ConcatRows",reDim[7]),"Blas.R.Dense")
-    )
+      VMatrix A = Convert(Group("ConcatRows",reDim[7]),"Blas.R.Dense"))
   })}
 ]];
