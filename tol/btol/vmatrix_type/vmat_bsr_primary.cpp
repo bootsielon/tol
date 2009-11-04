@@ -539,6 +539,24 @@ public:
   
 
   /////////////////////////////////////////////////////////////////////////////
+  int checkDimensions(int m)
+  /////////////////////////////////////////////////////////////////////////////
+  {
+    int b = noise.vec.size();
+    if(!b)
+    {
+      Error(BSR()+"At least a vector of noise with independent normal distribution must be defined");
+      return(-4);
+    }
+    if(!m)
+    {
+      Error(BSR()+"At least a linear equation must be defined");
+      return(-5);
+    }
+    return(0);
+  };
+
+  /////////////////////////////////////////////////////////////////////////////
   int getData(vector<variable_info>&  linearInfo_,
               vector<missing_info>&   inputMissingInfo_,
               vector<missing_info>&   outputMissingInfo_,

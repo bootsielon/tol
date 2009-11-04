@@ -1861,7 +1861,7 @@ protected:
 
   int expand2AllEqu_covAndFactors(noise_info& resInfo);
 
-  int checkDimensions(int m);
+  virtual int checkDimensions(int m) { return(0); }
 
   int getMissing(BVMat& Y,
                  BVMat& X, 
