@@ -760,8 +760,14 @@ BSet BSet::operator + (const BSet& set) const
  */
 //--------------------------------------------------------------------
 {
-  BSet res  = (*this);
-  for(BInt n=1; n<=set.Card(); n++)
+  int n;
+  BSet res;
+  res.PrepareStore(Card()+set.Card());
+  for(n=0; n<array_.Size(); n++)
+  { 
+    res.AddElement(array_[n]); 
+  }
+  for(n=1; n<=set.Card(); n++)
   { 
     if(!Includes(set[n])) 
     { 
