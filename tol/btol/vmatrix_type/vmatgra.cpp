@@ -813,6 +813,58 @@ void BVMatSetDiag::CalcContens()
   assert(contens_.Check());
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatSetCol);
+DefExtOpr(1, BVMatSetCol, "SetCol", 1, 1, "Set",
+  I2("(Set values)",
+     "(Set values)"),
+  I2("Creates a dense column matrix with the elements of a set of real numbers.",
+     "Crea una matriz columna densa con los elementos de un conjunto de numeros "
+     "reales."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatSetCol::CalcContens()
+//--------------------------------------------------------------------
+{
+  BInt  i;
+  BSet& s = Set(Arg(1));
+  BInt  n = s.Card();
+  if(!n) { return; }
+  contens_.BlasRDense(n,1); 
+  double* x = (double*)contens_.s_.blasRdense_->x;
+  for(i=0; i<n; i++)
+  {
+    x[i] = Real(s[i+1]);
+  }
+  assert(contens_.Check());
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatSetRow);
+DefExtOpr(1, BVMatSetRow, "SetRow", 1, 1, "Set",
+  I2("(Set values)",
+     "(Set values)"),
+  I2("Creates a dense row matrix with the elements of a set of real numbers.",
+     "Crea una matriz fila densa con los elementos de un conjunto de numeros "
+     "reales."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatSetRow::CalcContens()
+//--------------------------------------------------------------------
+{
+  BInt  i;
+  BSet& s = Set(Arg(1));
+  BInt  n = s.Card();
+  if(!n) { return; }
+  contens_.BlasRDense(1,n); 
+  double* x = (double*)contens_.s_.blasRdense_->x;
+  for(i=0; i<n; i++)
+  {
+    x[i] = Real(s[i+1]);
+  }
+  assert(contens_.Check());
+}
+
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatConcatCol);
