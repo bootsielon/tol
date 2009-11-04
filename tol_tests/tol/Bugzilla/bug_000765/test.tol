@@ -1,0 +1,49 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  765;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_ = 
+  "Función AIA con fechados no globales.";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Serie residuos = SubSer(Gaussian(0,0.2)+Pulse(y2004),y2000,y2008);
+
+  Serie transformaTimeSet(Serie residuos) {
+
+    TimeSet nuevoTimeSet = Diario;
+//  Serie DatCh(residuos,Diario,FirstS)
+    Serie DatCh(residuos,nuevoTimeSet,FirstS)
+    
+
+  };
+
+  Serie residuosNuevos = transformaTimeSet(residuos);
+  Set aia = AIA(residuosNuevos,Ratio (1-0.1*B)/(1-0.1*B));
+
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[numErr0, numErr1]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */

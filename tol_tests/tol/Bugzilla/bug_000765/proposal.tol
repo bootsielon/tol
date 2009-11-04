@@ -1,0 +1,16 @@
+
+  Serie residuos = SubSer(Gaussian(0,0.2)+Pulse(y2004),y2000,y2008);
+
+  TimeSet creaTimeSet(Serie res) {
+    //Es de suponer que aquí irá una expresión compleja dependiente de res
+     Diario
+  };
+
+  TimeSet nuevoTimeSet = creaTimeSet(residuos);
+
+  Serie transformaTimeSet(Serie res) {
+    Serie DatCh(residuos,nuevoTimeSet,FirstS)
+  };
+
+  Serie residuosNuevos = transformaTimeSet(residuos);
+  Set aia = AIA(residuosNuevos,Ratio (1-0.1*B)/(1-0.1*B));

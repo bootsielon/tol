@@ -1,0 +1,36 @@
+//////////////////////////////////////////////////////////////////////////////
+
+Class @CElemento {
+  Real a;
+  Text DiLaClase(Real void) {
+    Text cl = ClassOf(_this);
+    // Método para usar el _this
+    WriteLn("Mi clase es "<<cl);
+    cl
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock contenedor = [[
+  Set elementos = [[
+    @CElemento elem = [[
+      Real a = 1
+    ]]
+  ]]
+]];
+
+
+/* */
+// lo referencio en local
+Real {
+  @CElemento aux = (contenedor::elementos)[1];
+0};
+/* */
+
+// y encuentro el error al usar el método:
+Text className = { ((contenedor::elementos)[1])::DiLaClase(?) };
+
+//////////////////////////////////////////////////////////////////////////////
+
+

@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  
+  
+
+  
+
+
+  
+
+  <head>
+    <title>
+      Attachment –
+      TOL-Project
+    </title>
+        <link rel="search" href="/search" />
+        <link rel="help" href="/wiki/TracGuide" />
+        <link rel="alternate" href="/raw-attachment/ticket/751/Test_Oza_v1.7_To_v2.oza" type="application/x-oz-application; charset=iso-8859-15" title="Original Format" />
+        <link rel="up" href="/ticket/751" title="Ticket #751" />
+        <link rel="start" href="/wiki" />
+        <link rel="stylesheet" href="/chrome/common/css/trac.css" type="text/css" /><link rel="stylesheet" href="/chrome/common/css/code.css" type="text/css" />
+        <link rel="shortcut icon" href="/chrome/site/tolp.ico" type="image/x-icon" />
+        <link rel="icon" href="/chrome/site/tolp.ico" type="image/x-icon" />
+      <link type="application/opensearchdescription+xml" rel="search" href="/search/opensearch" title="Search TOL-Project" />
+    <script type="text/javascript" src="/chrome/common/js/jquery.js"></script><script type="text/javascript" src="/chrome/common/js/trac.js"></script><script type="text/javascript" src="/chrome/common/js/search.js"></script>
+    <!--[if lt IE 7]>
+    <script type="text/javascript" src="/chrome/common/js/ie_pre7_hacks.js"></script>
+    <![endif]-->
+    <link rel="stylesheet" type="text/css" href="/chrome/site/style.css" />
+  </head>
+  <body>
+    <div id="siteheader">
+    <div class="content"><div class="imgCenter">
+    <a href="http://www.mityc.es/DGDSI/Secciones/PorServicio/PROFIT/">
+    <img src="/chrome/site/minitc.png" align="right" width="140" height="58" alt="minitc.png" />
+    <img src="/chrome/site/profit.png" align="right" width="140" height="42" alt="profit.png" /></a>
+    </div>
+</div>
+    </div>
+    <div id="banner">
+      <div id="header">
+        <a id="logo" href="/wiki/TracIni#header_logo-section"><img src="/chrome/site/logo.png" alt="Keeping an eye on the Past to Foresee the Future" /></a>
+      </div>
+      <form id="search" action="/search" method="get">
+        <div>
+          <label for="proj-search">Search:</label>
+          <input type="text" id="proj-search" name="q" size="18" value="" />
+          <input type="submit" value="Search" />
+        </div>
+      </form>
+      <div id="metanav" class="nav">
+    <ul>
+      <li class="first">logged in as vdebuen</li><li><a href="/logout">Logout</a></li><li><a href="/prefs">Preferences</a></li><li><a href="/wiki/TracGuide">Help/Guide</a></li><li class="last"><a href="/about">About Trac</a></li>
+    </ul>
+  </div>
+    </div>
+    <div id="mainnav" class="nav">
+    <ul>
+      <li class="first"><a href="/wiki">Home</a></li><li><a href="/timeline">Timeline</a></li><li><a href="/roadmap">Roadmap</a></li><li><a href="/browser">Browse Source</a></li><li><a href="/report">View Tickets</a></li><li><a href="/newticket">New Ticket</a></li><li><a href="/search">Search</a></li><li class="last"><a href="/admin" title="Administration">Admin</a></li>
+    </ul>
+  </div>
+    <div id="main">
+      <div id="ctxtnav" class="nav">
+        <h2>Context Navigation</h2>
+          <ul>
+            <li class="first last"><a href="/ticket/751">Back to Ticket #751</a></li>
+          </ul>
+        <hr />
+      </div>
+    <div id="content" class="attachment">
+        <h1><a href="/ticket/751">Ticket #751</a>: Test_Oza_v1.7_To_v2.oza</h1>
+        <table id="info" summary="Description">
+          <tbody>
+            <tr>
+              <th scope="col">
+                File Test_Oza_v1.7_To_v2.oza, <span title="3137 bytes">3.1 kB</span>
+                (added by atorre,  <a class="timeline" href="/timeline?from=2009-09-23T18%3A06%3A38Z%2B0200&amp;precision=second" title="2009-09-23T18:06:38Z+0200 in Timeline">31 minutes</a> ago)
+              </th>
+            </tr>
+            <tr>
+              <td class="message searchable">
+                
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div id="preview" class="searchable">
+      <p>
+        <strong>HTML preview not available</strong>,
+            since no preview renderer could handle it.
+        Try <a href="/raw-attachment/ticket/751/Test_Oza_v1.7_To_v2.oza">downloading</a> the file instead.
+      </p>
+        </div>
+          <div class="buttons">
+            <form method="get" action="">
+              <div id="delete">
+                <input type="hidden" name="action" value="delete" />
+                <input type="submit" value="Delete attachment" />
+              </div>
+            </form>
+          </div>
+    </div>
+    <div id="altlinks">
+      <h3>Download in other formats:</h3>
+      <ul>
+        <li class="last first">
+          <a rel="nofollow" href="/raw-attachment/ticket/751/Test_Oza_v1.7_To_v2.oza">Original Format</a>
+        </li>
+      </ul>
+    </div>
+    </div>
+    <div id="footer" lang="en" xml:lang="en"><hr />
+      <a id="tracpowered" href="http://trac.edgewall.org/"><img src="/chrome/common/trac_logo_mini.png" height="30" width="107" alt="Trac Powered" /></a>
+      <p class="left">
+        Powered by <a href="/about"><strong>Trac 0.11.1</strong></a><br />
+        By <a href="http://www.edgewall.org/">Edgewall Software</a>.
+      </p>
+      <p class="right">All logos and trademarks in this site are property of their respective owner.<br />
+Tol and Tolbase are products developed by <A href="http://www.bayesforecast.com">Bayes Forecast, SL</A> (Spain, EU)<br />
+Web site maintained by the Tol Development Team</p>
+    </div>
+  </body>
+</html>

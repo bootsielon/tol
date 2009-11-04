@@ -1,0 +1,9 @@
+NameBlock Fun(Set s){
+  NameBlock k = SetToNameBlock(s)
+};
+
+NameBlock KK = [[
+  NameBlock Eco = Fun({[[Text cod = "Eco"]]});
+  NameBlock Cli = Fun({[[Text cod = "Cli"]]});
+  NameBlock kk = Fun({[[Text cod = "kk"]]})
+]];
