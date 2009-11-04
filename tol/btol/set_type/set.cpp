@@ -129,13 +129,13 @@ void BSet::Realloc(BInt n)
 }
 
 //--------------------------------------------------------------------
-void	BSet::Copy(const BSet& set)
+void BSet::Copy(const BSet& set)
 //--------------------------------------------------------------------
 {
   int n;
   Delete(); 
   array_.ReallocBuffer(set.Card());
-  bool hasIdx = set.HasIndexByName();
+  bool hasIdx = set.HasIndexByName()!=0;
   for(n=0; n<array_.Size(); n++)
   {
 	  array_[n] = set[n+1];
@@ -330,15 +330,57 @@ void BSet::AddElement(BSyntaxObject* syn)
 }
 
 //--------------------------------------------------------------------
-void BSet::Append(const BSet& set)
+static bool DoIndexElement(BObjByIdxNameHash** indexByName, 
+                           BSyntaxObject* obj,
+                           int i)
 //--------------------------------------------------------------------
 {
+  bool ok = true;
+  if(indexByName && *indexByName && obj)
+  {
+    const BText& name = obj->Name();
+    if(name.HasName())
+    {
+      BObjByIdxNameHash::const_iterator found = (*indexByName)->find(name);
+      if(found!=(*indexByName)->end())
+      {
+        Error(I2("Duplicated index name ",
+                 "Nombre de �ndice duplicado ")+
+              name);
+        ok = false;
+      }
+      (**indexByName)[name] = BIndexedSyntaxObject(i,obj);
+    }
+    else
+    {
+      Error(I2("A indexed by name set cannot have elements without a valid name ",
+               "Un conjunto indexado por nombres no puede tener elementos sin un nombre v�lido ")
+            +"'"+name+"'");
+      ok = false;
+    }
+   if(!ok) { delete *indexByName; *indexByName = NULL; }
+  }
+  return(ok);
+}
+
+//--------------------------------------------------------------------
+void BSet::Append(const BSet& set, bool incrementalIndex)
+//--------------------------------------------------------------------
+{
+  if(!incrementalIndex && indexByName_) 
+  { delete indexByName_; indexByName_ = NULL; } 
+  if(incrementalIndex && !array_.Size()) 
+  {
+    indexByName_ = new BObjByIdxNameHash;
+    SetEmptyKey((*indexByName_), NULL);
+  }
   int m=Card(), n=set.Card(), i, j=m;
   array_.ReallocBuffer(m+n);
   for(i=1; i<=n; i++, j++)
   {
     array_[j]=set[i];
     array_[j]->IncNRefs();
+    DoIndexElement(&indexByName_,array_[j],j);
   }
 }
 
@@ -392,37 +434,17 @@ BSyntaxObject* BSet::GetElement(BInt n)  const
   indexByName_ = new BObjByIdxNameHash;
   SetEmptyKey((*indexByName_), NULL);
 
-  BSyntaxObject* obj;
-  int i, j;
+  int i;
   if(!array_.Size())
   {
     Error(I2("Cannot index by name an empty set.",
              "No se puede indexar por nombre un conjunto vac�o."));
     return(false);
   }
-  for(i=j=0; i<array_.Size(); i++)
+  for(i=0; i<array_.Size(); i++)
   {
-    obj = array_[i];
-    assert(obj);
-    const BText& name = obj->Name();
-    if(name.HasName())
-    {
-      if(operator[](name))
-      {
-        Error(I2("Duplicated index name ",
-                 "Nombre de �ndice duplicado ")+
-              name);
-        return(false);
-      }
-      (*indexByName_)[name] = BIndexedSyntaxObject(i,obj);
-    }
-    else
-    {
-      Error(I2("A indexed by name set cannot have elements without a valid name ",
-               "Un conjunto indexado por nombres no puede tener elementos sin un nombre v�lido ")
-            +"'"+name+"'");
-      return(false);
-    }
+    assert(array_[i]);
+    if(!DoIndexElement(&indexByName_,array_[i],i)) { return(false); }
   }
   return(true);
 }

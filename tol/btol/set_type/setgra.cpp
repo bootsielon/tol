@@ -105,12 +105,19 @@ public:
   BSetAppend()
   : BExternalOperator
     (
-      "Append", GraSet(), "Set Set", NIL, 2, 2,
-      "(Set set1, Set set2)",
+      "Append", GraSet(), "Set Set Real", NIL, 2, 3,
+      "(Set set1, Set set2, [Real incrementalIndexByName=False])",
 		  I2("Attaches the elements of set2 to the end of set1 without "
-       "eliminating repeated elements and preserving the order.",
+       "eliminating repeated elements and preserving the order.\n"
+       "If incrementalIndexByName is true then the index of names "
+       "will be incremented if original set had an index, or created i"  ,
 	     "Concatena los elementos del conjunto set1 al final de set2 "
-       "sin eliminar elementos repetidos y conservando el orden."),
+       "sin eliminar elementos repetidos y conservando el orden.\n"
+       "Si incrementalIndexByName es cierto entonces el índice de "
+       "nombres, se mantendrá incrementalmente, siempre y cuando "
+       "ya existiera previamente y los nuevos elementos sean "
+       "compatibles, o bien se creará un índice nuevo si se parte "
+       "del conjunto vacío."),
 		  BOperClassify::SetAlgebra_
     )
   {
@@ -121,9 +128,15 @@ public:
   BSyntaxObject* Evaluator(BList* arg) const
   { 
     BList* lst = arg;
+    bool incrementalIndexByName = false;
     BUserSet* uSet1 = USet(lst->Car()); lst = lst->Cdr();
     BUserSet* uSet2 = USet(lst->Car()); lst = lst->Cdr();
-    uSet1->Contens().Append(uSet2->Contens());
+    if(lst && lst->Car())
+    {
+      BUserDat* uDat3 = UDat(lst->Car());
+      incrementalIndexByName = uDat3->Contens()!=0.0;
+    }
+    uSet1->Contens().Append(uSet2->Contens(),incrementalIndexByName);
     SAFE_DESTROY(arg, uSet1);
     return(uSet1);
   }
