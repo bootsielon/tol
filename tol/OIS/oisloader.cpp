@@ -703,6 +703,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   ERead(mode,             object_);
   ERead(tol_type,         object_);
   ERead(name,             object_);
+
   BGrammar* gra = BGrammar::FindByGid((BGrammarId)tol_type,true);
   if(system) 
   {
@@ -861,6 +862,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       } 
       else if(mode==BOBJECTMODE) 
       { 
+        BUserNameBlock* oldBuilding = BNameBlock::Building();
+        BNameBlock::SetBuilding(NULL);
         if(tol_type == BGI_Real) 
         { 
           BDat x;
@@ -1052,8 +1055,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           ERead(isNameBlock,set_);
           assert(isNameBlock);
           ERead(fullName,set_);
-
-          BUserNameBlock* oldBuilding = BNameBlock::Building();
         //const BNameBlock* oldCurrent = BNameBlock::Current();
           BGrammar::IncLevel();
           int stackPos = BGrammar::StackSize();
@@ -1061,7 +1062,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           BNameBlock::SetBuilding(unb);
         //BNameBlock::SetCurrent(&unb->Contens());
           unb->PutDescription(description);
-          assert(GraNameBlock()->FindLocal(name)==unb);
+          assert(!name.HasName() || (GraNameBlock()->FindLocal(name)==unb));
           readed_[found].PutObject(unb);
           BNameBlock& x = unb->Contens(); 
           x.Set().PutSubType(BSet::BSubType(sbt));
@@ -1132,7 +1133,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               }
             }
           } 
-          BNameBlock::SetBuilding(oldBuilding);
         //BNameBlock::SetCurrent(oldCurrent);
           BGrammar::DestroyStackUntil(stackPos, unb);    
           BGrammar::DecLevel();
@@ -1314,6 +1314,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           else                
           { result = x; }
         }
+        BNameBlock::SetBuilding(oldBuilding);
       }
       else 
       { 
