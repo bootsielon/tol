@@ -28,8 +28,8 @@ NameBlock Monophasic =
         subModule[1]->ModuleType;
         master->DocInfo;
         subModule[1]->LinearBlock;
-        subModule[1]->MissingInputBlock;
-        subModule[1]->MissingOutputBlock;
+        subModule[1]->InputMissingBlock;
+        subModule[1]->OutputMissingBlock;
         subModule[1]->NoiseDistrib;
         subModule[1]->Y;
         subModule[1]->X;
