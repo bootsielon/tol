@@ -1,0 +1,44 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for NewtonSolve
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = "Algorithms of Numeric Calculations: NewtonSolve" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+//Newton method requires 
+
+  Real fun(Real x) { Cos(x) - x^3 };
+
+  //Set plot = Plot(fun, -2,1,1000);
+
+  //Initial values to be checked
+  Set X0 = SetOfReal(-1,-0.5,0,0.5,1);
+
+  
+  Set check = EvalSet(X0, Set(Real x0)
+  {
+    //Resuelve fun(x)==0 utilizando el valor inicial x0[k]
+    Real x = NewtonSolve(fun,x0,0);
+    Real y = fun(x);
+    [[x0, x, y]]
+  });
+
+//Extented information about test behaviour
+  Set partialResults_ = Extract(check,3);
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
