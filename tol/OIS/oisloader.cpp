@@ -1495,12 +1495,16 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 {
   if(closed_) { return(false); }
   int n;
-  for(n=0; n<readed_.Size(); n++)
+  if(data_!=NULL)
   {
-    if(readed_[n].Object())
+    for(n=0; n<readed_.Size(); n++)
     {
-      readed_[n].Object()->PutOisOffset(0);
-      readed_[n].Object()->DecNRefs();
+      BSyntaxObject* obj = readed_[n].Object();
+      if(obj && obj->IsAssigned())
+      {
+        obj->PutOisOffset(0);
+        obj->DecNRefs();
+      }
     }
   }
   BOis::Close();
