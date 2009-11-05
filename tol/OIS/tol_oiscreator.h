@@ -53,6 +53,7 @@ public:
   BArray<BSyntaxObject*> tolEnvironment_;
   BArray<BSyntaxObject*> saved_;
 
+  bool WriteBlock(const void* v, size_t size, size_t count, BStream* stream);
   bool Write(const void* v, size_t size, size_t count, BStream* stream);
 //bool Write(const          bool&    x, BStream* stream) { return(stream->Write((const void*)&x,1,1)==1); }
   bool Write(const          char&    x, BStream* stream) { return(stream->Write((const void*)&x,1,1)==1); }

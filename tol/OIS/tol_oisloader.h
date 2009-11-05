@@ -88,6 +88,7 @@ public:
   bool showCheckingTraces_;
   bool oisHasPriorityOnConflict_;
 
+  bool ReadBlock(void* v, size_t size, size_t count, BStream* stream);
   bool Read(void* v, size_t size, size_t count, BStream* stream);
 //bool Read(         bool&    x, BStream* stream) { return(stream->Read((void*)&x,1,1)==1); }
   bool Read(         char&    x, BStream* stream) { return(stream->Read((void*)&x,1,1)==1); }

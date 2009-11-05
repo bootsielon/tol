@@ -29,10 +29,88 @@
 
 BTraceInit("oiscompress.cpp");
 
+static size_t _MaxBlockLength_ = 1024*1024;
 
 //--------------------------------------------------------------------
 // OIS compression coding functions
 //--------------------------------------------------------------------
+//--------------------------------------------------------------------
+  bool BOisCreator::WriteBlock(const void* v, size_t size, size_t count, BStream* stream)
+//--------------------------------------------------------------------
+{
+  unsigned int sourceLen, destLen;
+  sourceLen = size*count;
+  destLen   = sourceLen;
+  size_t w, c;
+  if(!enable_BSE_ || (options_.compressor_.serialization_.engine_!=BSE_BZIP2_) ||
+    (sourceLen<options_.compressor_.serialization_.minSizeCmprs_))
+  {
+    w = stream->Write(v,size,c=count);
+  }
+  else //BZip2 Compress method
+  {
+    char* dest = new char[destLen];
+    int cmprs = BZ2_bzBuffToBuffCompress 
+    ( 
+      dest, 
+      &destLen,
+      (char*)v, 
+      sourceLen,
+      options_.compressor_.serialization_.level_, //blockSize100k: compression factor (1..9)
+      0, //verbosity: 0..3
+      30  //workFactor: sorting effort(1-255) 0 is default value 30
+    );
+    if(cmprs==BZ_OUTBUFF_FULL)
+    {
+      destLen=0;
+      EWrite(destLen, stream);
+      w = stream->Write(v,size,c=count);
+    }
+    else
+    {
+    //Std(BText("\nBOisCreator::Write local compress from ")<< (int)sourceLen << " to " << (int)destLen <<" bytes");
+      EWrite(destLen, stream);
+      w = stream->Write(dest,1,c=destLen);
+    }
+  }
+  if(w!=c) 
+  { 
+    return(Error(I2("Cannot write on file ",
+                    "No se pudo escribir en el fichero ")+stream->Name()+" "+
+                 (int)count+ I2(" items of " ," elementos de ")+
+                 (int)size+ "bytes")); 
+  }
+#ifdef TRACE_OIS_FILE
+  if(&stream==&tolref_) { return(true); }
+  if(&stream==&oisref_) { return(true); }
+  if(&stream==&code_)   { return(true); }
+  fprintf(logWrite_, "\n%s\tw\t%ld\t%ld", stream->Name().String(), size, count);
+  fflush(logWrite_);
+#endif
+  return(true);
+}
+
+//--------------------------------------------------------------------
+  bool BOisCreator::Write(const void* v_, size_t size, size_t count, BStream* stream)
+//--------------------------------------------------------------------
+{
+  int maxCount = 1 + _MaxBlockLength_ / size;
+  int c = count;
+  char* v = (char*)v_;
+  bool ok = true;
+  while(ok && (c>maxCount))
+  {
+    ok=WriteBlock(v,size,maxCount,stream);
+    v += size*maxCount;
+    c -= maxCount;
+  }
+  if(ok && c)  
+  {
+    ok=WriteBlock(v,size,c,stream);
+  }
+  return(ok);
+};
+
 //--------------------------------------------------------------------
   bool BOisCreator::Write(const BINT64& x, BStream* stream)
 //--------------------------------------------------------------------
@@ -186,65 +264,93 @@ BTraceInit("oiscompress.cpp");
   return(Write((const void*)&x,8,1,stream)); 
 }
 
+
 //--------------------------------------------------------------------
-  bool BOisCreator::Write(const void* v, size_t size, size_t count, BStream* stream)
+// OIS compression decoding functions
+//--------------------------------------------------------------------
+
+//--------------------------------------------------------------------
+  bool BOisLoader::ReadBlock(void* v, size_t size, size_t count, BStream* stream)
 //--------------------------------------------------------------------
 {
-  unsigned int sourceLen, destLen;
-  sourceLen = size*count;
-  destLen   = sourceLen;
-  size_t w, c;
+  unsigned int sourceLen, destLen=count*size;
+  size_t r, c;
   if(!enable_BSE_ || (options_.compressor_.serialization_.engine_!=BSE_BZIP2_) ||
-    (sourceLen<options_.compressor_.serialization_.minSizeCmprs_))
+     (destLen<unsigned(options_.compressor_.serialization_.minSizeCmprs_)))
   {
-    w = stream->Write(v,size,c=count);
+    r = stream->Read(v,size,c=count);
   }
-  else //BZip2 Compress method
+  else //BZip2 Decompress method
   {
-    char* dest = new char[destLen];
-    int cmprs = BZ2_bzBuffToBuffCompress 
-    ( 
-      dest, 
-      &destLen,
-      (char*)v, 
-      sourceLen,
-      options_.compressor_.serialization_.level_, //blockSize100k: compression factor (1..9)
-      0, //verbosity: 0..3
-      30  //workFactor: sorting effort(1-255) 0 is default value 30
-    );
-    if(cmprs==BZ_OUTBUFF_FULL)
+    ERead(sourceLen, stream);
+    if(sourceLen==0)
     {
-      destLen=0;
-      EWrite(destLen, stream);
-      w = stream->Write(v,size,c=count);
+      r = stream->Read(v,size,c=count);
     }
     else
     {
-    //Std(BText("\nBOisCreator::Write local compress from ")<< (int)sourceLen << " to " << (int)destLen <<" bytes");
-      EWrite(destLen, stream);
-      w = stream->Write(dest,1,c=destLen);
+      char* source = new char[sourceLen];
+      if(!source)
+      {
+        return(Error(BText("Wrong string format or not enougth memory in ")+stream->Name()));
+      }
+      r = stream->Read(source,1,c=sourceLen);
+      int dcmprs = BZ2_bzBuffToBuffDecompress 
+      ( 
+        (char*)v, 
+        &destLen,
+        source,
+        sourceLen,
+        0, 
+        0 
+      );
     }
   }
-  if(w!=c) 
+  if(r!=c) 
   { 
-    return(Error(I2("Cannot write on file ",
-                    "No se pudo escribir en el fichero ")+stream->Name()+" "+
+    return(Error(I2("Cannot read from file ",
+                    "No se pudo leer del fichero ")+stream->Name()+" "+
                  (int)count+ I2(" items of " ," elementos de ")+
-                 (int)size+ "bytes")); 
+                 (int)size+ "bytes"));
   }
 #ifdef TRACE_OIS_FILE
-  if(&stream==&tolref_) { return(true); }
-  if(&stream==&oisref_) { return(true); }
-  if(&stream==&code_)   { return(true); }
-  fprintf(logWrite_, "\n%s\tw\t%ld\t%ld", stream->Name().String(), size, count);
-  fflush(logWrite_);
+  if(&stream==&tolref_)  { return(true); }
+  if(&stream==&oisref_)  { return(true); }
+  if(&stream==&code_)    { return(true); }
+  fprintf(logRead_, "\n%s\tr\t%ld\t%ld", stream->Name().String(), size, count);
+  fflush(logRead_);
 #endif
   return(true);
 }
 
 //--------------------------------------------------------------------
-// OIS compression decoding functions
+  bool BOisLoader::Read(void* v_, size_t size, size_t count, BStream* stream)
 //--------------------------------------------------------------------
+{
+  bool ok = true;
+  if(control_.oisEngine_.oisVersion_<"02.12")
+  {
+    ok = ReadBlock(v_,size,count,stream);
+  }
+  else
+  {
+    int maxCount = 1 + _MaxBlockLength_ / size;
+    int c = count;
+    char* v = (char*)v_;
+    while(ok&&(c>maxCount))
+    {
+      ok=ReadBlock(v,size,maxCount,stream);
+      v += size*maxCount;
+      c -= maxCount;
+    }
+    if(ok&&c)  
+    {
+      ok=ReadBlock(v,size,c,stream);
+    }
+  }
+  return(ok);
+
+};
 
 //--------------------------------------------------------------------
   bool BOisLoader::Read(BINT64& x, BStream* stream)
@@ -436,58 +542,4 @@ BTraceInit("oiscompress.cpp");
   return(Read((void*)&x,8,1,stream)); 
 }
 
-
-//--------------------------------------------------------------------
-  bool BOisLoader::Read(void* v, size_t size, size_t count, BStream* stream)
-//--------------------------------------------------------------------
-{
-  unsigned int sourceLen, destLen=count*size;
-  size_t r, c;
-  if(!enable_BSE_ || (options_.compressor_.serialization_.engine_!=BSE_BZIP2_) ||
-     (destLen<unsigned(options_.compressor_.serialization_.minSizeCmprs_)))
-  {
-    r = stream->Read(v,size,c=count);
-  }
-  else //BZip2 Decompress method
-  {
-    ERead(sourceLen, stream);
-    if(sourceLen==0)
-    {
-      r = stream->Read(v,size,c=count);
-    }
-    else
-    {
-      char* source = new char[sourceLen];
-      if(!source)
-      {
-        return(Error(BText("Wrong string format or not enougth memory in ")+stream->Name()));
-      }
-      r = stream->Read(source,1,c=sourceLen);
-      int dcmprs = BZ2_bzBuffToBuffDecompress 
-      ( 
-        (char*)v, 
-        &destLen,
-        source,
-        sourceLen,
-        0, 
-        0 
-      );
-    }
-  }
-  if(r!=c) 
-  { 
-    return(Error(I2("Cannot read from file ",
-                    "No se pudo leer del fichero ")+stream->Name()+" "+
-                 (int)count+ I2(" items of " ," elementos de ")+
-                 (int)size+ "bytes"));
-  }
-#ifdef TRACE_OIS_FILE
-  if(&stream==&tolref_)  { return(true); }
-  if(&stream==&oisref_)  { return(true); }
-  if(&stream==&code_)    { return(true); }
-  fprintf(logRead_, "\n%s\tr\t%ld\t%ld", stream->Name().String(), size, count);
-  fflush(logRead_);
-#endif
-  return(true);
-}
 
