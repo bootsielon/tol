@@ -13,29 +13,44 @@ Real numWar0 = Copy(NWarning);
 
 #Embed "../../graphtools.tol";
 
-Real vertex.num =   20000;
-Real edge.num   =  300000;
+Real vertex.num =  2000;
+Real edge.num   =  300;
 
-WriteLn("Creating graph with  "<<vertex.num+ " vertices and "<<
+WriteLn("Creating graph with  "<<vertex.num+ " vertices and close to "<<
         edge.num+" edges ...");
 Real t0 = Copy(Time);
 
-GraphTools::@Graph graph = GraphTools::@Graph::New("test_0001");
+GraphTools::@Graph graph = GraphTools::@Graph::New("test_0001",True);
 
 Real graph::initialize(Set { vertex.names = For(1,vertex.num,Text(Real k)
 {
-   "Key_"<<FormatReal(k,"%6.0f")<<
-       "_"+FormatReal(IntRand(0,999999999),"%9.0lf")
+   "Key_"<<FormatReal(k,"0%6.0f")<<
+       "_"+FormatReal(IntRand(0,999999999),"%09.0lf")
 })});
 
 Real graph::_.edge::add.feature.numeric("Length");
 Real graph::_.edge::add.feature.numeric("Hight");
 
-Real graph::edge.build(Matrix { data = 
+
+Matrix data = 
   { InOut  = RandCombination(edge.num,vertex.num,2) } |
   { Length = Rand(edge.num, 1, 10, 100) } |
-  { Hight  = Rand(edge.num, 1, 1, 10) }
-});
+  { Hight  = Rand(edge.num, 1,  1,  10) };
+
+Real graph::edge.build(data);
+
+
+Real edge.idx = IntRand(1,edge.num);
+Set edge.info = graph::edge.get.all(edge.idx);
+Real edge.idx.1 = graph::edge.index(edge.info[1], edge.info[2]);
+Real edge.idx.2 = graph::edge.index(edge.info[2], edge.info[1]);
+
+WriteLn("edge.idx = "<<edge.idx);
+WriteLn("edge.idx.1 = "<<edge.idx.1);
+WriteLn("edge.idx.2 = "<<edge.idx.2);
+
+Real ok.1 = edge.idx.1==edge.idx;
+Real ok.2 = edge.idx.2==edge.idx;
 
 Real t1 = Copy(Time);
 

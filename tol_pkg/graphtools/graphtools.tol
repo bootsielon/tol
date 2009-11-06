@@ -168,14 +168,14 @@ Class @FeatureSet
     FindIndexByName(_.feature, name )
   };
 
-
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.get = "Returns the value of a feature for an entity";
   Anything get(Real entity, 
                Anything feature) //Real position or Text name
   ////////////////////////////////////////////////////////////////////////////
   {
-    (_.feature[feature])::get(_.data, entity)
+    @Feature.Abstract f = _.feature[feature];
+    f::get(_.data, entity)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -184,7 +184,10 @@ Class @FeatureSet
   Set get.all(Real entity) 
   ////////////////////////////////////////////////////////////////////////////
   { 
-    SetRow(EvalSet(_.feature, Anything(Real f) { get(entity, f) }))
+    EvalSet(_.feature, Anything get.all.cycle(@FeatureSet f) 
+    { 
+      f::get(_.data, entity)
+    })
   }
 
 };
@@ -203,6 +206,8 @@ Class @Graph
 
   //The identifier of the graph
   Text _.name;
+  //Indicates if the graph is directed or symmetric
+  Real _.directed;
   //Features of vertices. First feature must be the identifier of vertices
   @FeatureSet _.vertex = @FeatureSet::New(?);
   //Number of vertices
@@ -213,16 +218,19 @@ Class @Graph
   Real _.edge.num = 0;  
   //Sparse matrix storing index of edge for each cell (out,in) 
   VMatrix _.edge.map = Rand(0,0,0,0);
-  
+  VMatrix _.edge.map.rep = Rand(0,0,0,0);
+  Real _.edge.check.rep = ?;
+
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.New = "Creates a new instance of "
   "Class @Graph";
-  Static @Graph New(Text name)
+  Static @Graph New(Text name, Real directed)
   ////////////////////////////////////////////////////////////////////////////
   {
     @Graph aux =
     [[
-      Text _.name = name
+      Text _.name = name;
+      Real _.directed = directed
     ]]
   };
 
@@ -238,8 +246,8 @@ Class @Graph
     });
     Real _.vertex::add.feature.nonnumeric("Identifier", vertex.names);
     Matrix _.vertex::_.data := DifEq(1/(1-B),Rand(_.vertex.num,1,1,1));
-    Real _.edge::add.feature.numeric("Input");
     Real _.edge::add.feature.numeric("Output");
+    Real _.edge::add.feature.numeric("Input");
     True
   };
 
@@ -248,13 +256,24 @@ Class @Graph
   Real edge.build(Matrix data)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Matrix _.edge::_.data := data;
     Real _.edge.num := Rows(data);
-    Matrix in  = SubCol(data,[[1]]);
-    Matrix out = SubCol(data,[[2]]);
+    Matrix out_ = SubCol(data,[[1]]);
+    Matrix in_  = SubCol(data,[[2]]);
+    Matrix out  = If(_.directed, out_, Min(in_, out_));
+    Matrix in   = If(_.directed, in_,  Max(in_, out_));
+    Matrix _.edge::_.data := out | in | SubCol(data,Range(3,Columns(data),1));
     Matrix idx = DifEq(1/(1-B),Rand(_.edge.num,1,1,1));
-    VMatrix triplet = Triplet(in|out|idx,_.vertex.num,_.vertex.num);
+    VMatrix triplet = Triplet(out|in|idx,_.vertex.num,_.vertex.num);
     VMatrix _.edge.map := Convert(triplet,"Cholmod.R.Sparse");
+    Matrix idx.rep = Rand(_.edge.num,1,1,1);
+    VMatrix triplet.rep = Triplet(out|in|idx.rep,_.vertex.num,_.vertex.num);
+    VMatrix _.edge.map.rep := Convert(triplet.rep,"Cholmod.R.Sparse");
+    Real _.edge.check.rep := VMatMax(_.edge.map.rep)>1;
+    If(_.edge.check.rep,
+    {
+      WriteLn("[GraphTools::@Graph "+_.name+"::edge.build()] "+
+              "There are repeated edges","E")
+    });
     True
   };
 
@@ -270,10 +289,20 @@ Class @Graph
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.edge.index = "Returns the index of an edge or 0 "
   "if it not exists";
-  Real edge.index(Real in, Real out)
+  Real edge.index(Real out_, Real in_)
   ////////////////////////////////////////////////////////////////////////////
   {
+    Real out  = If(_.directed, out_, Min(in_, out_));
+    Real in   = If(_.directed, in_,  Max(in_, out_));
     VMatDat(_.edge.map, in, out)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.edge.get.all = "";
+  Set edge.get.all(Real idx)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.edge::get.all(idx)
   }
 
 }
