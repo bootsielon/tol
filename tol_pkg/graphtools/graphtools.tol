@@ -18,8 +18,8 @@ Real Append.Indexed(Set set, Anything newElement, Text name)
   Real idx = FindIndexByName(set, name );
   If(idx != 0, 
   {
-    WriteLn("[Graph::Append.Indexed] Cannot add an existant element "
-            "["<<idx+"]"+name,"E");
+    WriteLn("[GraphTools::Append.Indexed] Cannot add an existant element "+
+            Name(set)+"["<<idx+"] with name "+ name,"E");
     0
   },
   {
@@ -45,7 +45,7 @@ Class @Feature.Abstract
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.get = "Returns the stored value corresponding "
   "to this feature related to an individual entity.";
-  Anything get(Matrix store, Real entity);
+  Anything get(Matrix store, Real entity)
   ////////////////////////////////////////////////////////////////////////////
 };
 
@@ -63,18 +63,18 @@ Class @Feature.Numeric : @Feature.Abstract
   Static @Feature.Numeric New(Text name, Real position)
   ////////////////////////////////////////////////////////////////////////////
   {
-    @Feature.Numeric aux
+    @Feature.Numeric aux =
     [[
       Text _.name = name;
       Real _.position  = position
-    ]];
+    ]]
   };
   
   ////////////////////////////////////////////////////////////////////////////
-  Anything get(Matrix value, Real entity)
+  Anything get(Matrix store, Real entity)
   ////////////////////////////////////////////////////////////////////////////
   {
-    MatDat(value, entity, _.position)
+    MatDat(store, entity, _.position)
   }
 };
 
@@ -107,10 +107,10 @@ Class @Feature.NonNumeric : @Feature.Abstract
   }; 
 
   ////////////////////////////////////////////////////////////////////////////
-  Anything get(Matrix value, Real entity)
+  Anything get(Matrix store, Real entity)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real idx = MatDat(value, entity, _.position);
+    Real idx = MatDat(store, entity, _.position);
     _.domain[idx]
   }
 
@@ -124,7 +124,7 @@ Class @FeatureSet
   Set _.feature = Copy(Empty);
   //In each row of this matrix are stored the values or indexes of features
   //related to an individual entity
-  Matrix _.value = Rand(0,0,0,0);
+  Matrix _.data = Rand(0,0,0,0);
 
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.New = "Creates a new instance of "
@@ -136,24 +136,26 @@ Class @FeatureSet
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.add.feature = "Adds a new numerical feature";
+  Static Text _.autodoc.member.add.feature.numeric = 
+  "Adds a new numerical feature";
   Real add.feature.numeric(Text name)
   ////////////////////////////////////////////////////////////////////////////
   {
     GraphTools::Append.Indexed(
       _.feature,
-      @Feature.Numeric::New(name, Card(_.feature)),
+      @Feature.Numeric::New(name, Card(_.feature)+1),
       name)
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.add.feature="Adds a new non numerical feature";
+  Static Text _.autodoc.member.add.feature.nonnumeric=
+  "Adds a new non numerical feature";
   Real add.feature.nonnumeric(Text name, Set domain)
   ////////////////////////////////////////////////////////////////////////////
   {
     GraphTools::Append.Indexed(
       _.feature,
-      @Feature.NonNumeric::New(name, Card(_.feature), domain),
+      @Feature.NonNumeric::New(name, Card(_.feature)+1, domain),
       name)
   };
 
@@ -173,7 +175,7 @@ Class @FeatureSet
                Anything feature) //Real position or Text name
   ////////////////////////////////////////////////////////////////////////////
   {
-    (_.feature[feature])::get(_.value, entity)
+    (_.feature[feature])::get(_.data, entity)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -195,25 +197,67 @@ Class @Graph
   Text _.autodoc.description = "Class for handling with generic indexed by "
   "name graphs in TOL. In abstract, a graph is a pair of sets \n"
   "  V : a finite set of vertices \n"
-  "  E : a finite set of edges relating an input vertex with an output \n";
+  "  E : a finite set of edges relating an input vertex with an output \n"
   "Each vertex has a set of features related with the system\n"
-  "Each edge also has its own set of features.\n"
+  "Each edge also has its own set of features.\n";
 
   //The identifier of the graph
   Text _.name;
-  //Set of real numbers that will be indexed by name
-  Set _.vertex;
+  //Features of vertices. First feature must be the identifier of vertices
+  @FeatureSet _.vertex = @FeatureSet::New(?);
   //Number of vertices
-  Real _.vertex.num = 0;
-  //Features of vertices
-  @FeatureSet _.vertex.feature = 0;
+  Real _.vertex.num = 0;  
+  //Features of edges. First two features must be input and output vertex
+  @FeatureSet _.edge = @FeatureSet::New(?);
   //Number of edges
-  Real _.edge.num = 0;
-  //Features of edges. First features must be input and output vertex
-  @FeatureSet _.edge.feature = 0;
+  Real _.edge.num = 0;  
   //Sparse matrix storing index of edge for each cell (out,in) 
   VMatrix _.edge.map = Rand(0,0,0,0);
   
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates a new instance of "
+  "Class @Graph";
+  Static @Graph New(Text name)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Graph aux =
+    [[
+      Text _.name = name
+    ]]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize(Set vertex.names)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.vertex.num := Card(vertex.names);
+    Set For(1,_.vertex.num, Real(Real k)
+    {
+      Text PutName(vertex.names[k], vertex.names[k]);
+      k
+    });
+    Real _.vertex::add.feature.nonnumeric("Identifier", vertex.names);
+    Matrix _.vertex::_.data := DifEq(1/(1-B),Rand(_.vertex.num,1,1,1));
+    Real _.edge::add.feature.numeric("Input");
+    Real _.edge::add.feature.numeric("Output");
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.edge.build = "";
+  Real edge.build(Matrix data)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix _.edge::_.data := data;
+    Real _.edge.num := Rows(data);
+    Matrix in  = SubCol(data,[[1]]);
+    Matrix out = SubCol(data,[[2]]);
+    Matrix idx = DifEq(1/(1-B),Rand(_.edge.num,1,1,1));
+    VMatrix triplet = Triplet(in|out|idx,_.vertex.num,_.vertex.num);
+    VMatrix _.edge.map := Convert(triplet,"Cholmod.R.Sparse");
+    True
+  };
+
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.vertex.index = "Returns the index of a vertex or 0 "
   "if it not exists";
@@ -224,29 +268,13 @@ Class @Graph
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.vertex.add = "Adds and index a new vertex and "
-  "returns 0 if it´s all right. If a vertex with given name exists already "
-  "then returns its index, else returns 0";
-  Real vertex.add(Text name, Matrix feature.values)
+  Text _.autodoc.member.edge.index = "Returns the index of an edge or 0 "
+  "if it not exists";
+  Real edge.index(Real in, Real out)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real n = Card(_.vertex);
-    Real ok = Graph::Append.Indexed(_.vertex,n,name);
-    Matrix _.vertex.feature := _.vertex.feature << feature.values
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.edge.build = "";
-  Real edge.add(Matrix feature.data)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real c = Columns(data)
-    If(c<2, False,
-    {
-      _.edge.feature := SubCol(data,Range(3,c,1)));
-      True
-    })
-  };
+    VMatDat(_.edge.map, in, out)
+  }
 
 }
 
