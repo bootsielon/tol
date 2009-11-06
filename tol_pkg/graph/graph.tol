@@ -1,0 +1,253 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : graph.tol
+// PURPOSE: Defines NameBlock GraphTools
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock GraphTools =
+//////////////////////////////////////////////////////////////////////////////
+[[
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Append.Indexed = "Adds and index a new element to a "
+"set and returns 0 if it´s all right. If an element with given name exists "
+"already then returns its index, else returns 0";
+Real Append.Indexed(Set set, Anything newElement, Text name)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real idx = FindIndexByName(set, name );
+  If(idx != 0, 
+  {
+    WriteLn("[Graph::Append.Indexed] Cannot add an existant element "
+            "["<<idx+"]"+name,"E");
+    0
+  },
+  {
+    Set aux =  [[ Copy(newElement) ]];
+    Anything PutName(name, aux[1]);
+    Set Append(set, aux, True);
+    idx
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @Feature.Abstract
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Class for handling with abstract "
+  "features of arbitrary entities, numerical or not, that will be stored in "
+  "an external matrix with a row for each entity.";
+  //The name of the feature
+  Text _.name;
+  //The number of the feature in the full set of features
+  Real _.position;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.get = "Returns the stored value corresponding "
+  "to this feature related to an individual entity.";
+  Anything get(Matrix store, Real entity);
+  ////////////////////////////////////////////////////////////////////////////
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @Feature.Numeric : @Feature.Abstract
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Class for handling with numerical "
+  "numerical features of arbitrary entities that will be stored in an "
+  "external matrix with a row for each entity.";
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates a new instance of "
+  "Class @Feature.Numeric";
+  Static @Feature.Numeric New(Text name, Real position)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Feature.Numeric aux
+    [[
+      Text _.name = name;
+      Real _.position  = position
+    ]];
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Anything get(Matrix value, Real entity)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    MatDat(value, entity, _.position)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @Feature.NonNumeric : @Feature.Abstract
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Class for handling with numerical "
+  "numerical features of arbitrary entities that will be stored in an "
+  "external matrix with a row for each entity. Here the stored value is the "
+  "index of the feature stored in an arbitrary domain.";
+
+  //The set of valid values for this feature indexed by name
+  Set _.domain;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates a new instance of "
+  "Class @Feature.NonNumeric";
+  Static @Feature.NonNumeric New(Text name, Real position, Set domain)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Feature.NonNumeric aux =
+    [[
+      Text _.name = name;
+      Real _.position  = position;
+      Set _.domain = domain    
+    ]];
+    Real SetIndexByName(aux::_.domain);
+    aux
+  }; 
+
+  ////////////////////////////////////////////////////////////////////////////
+  Anything get(Matrix value, Real entity)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real idx = MatDat(value, entity, _.position);
+    _.domain[idx]
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @FeatureSet
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Stores and index by name a set of instances od @Feature.Abstract
+  Set _.feature = Copy(Empty);
+  //In each row of this matrix are stored the values or indexes of features
+  //related to an individual entity
+  Matrix _.value = Rand(0,0,0,0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates a new instance of "
+  "Class @FeatureSet";
+  Static @FeatureSet New(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @FeatureSet aux
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.add.feature = "Adds a new numerical feature";
+  Real add.feature.numeric(Text name)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    GraphTools::Append.Indexed(
+      _.feature,
+      @Feature.Numeric::New(name, Card(_.feature)),
+      name)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.add.feature="Adds a new non numerical feature";
+  Real add.feature.nonnumeric(Text name, Set domain)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    GraphTools::Append.Indexed(
+      _.feature,
+      @Feature.NonNumeric::New(name, Card(_.feature), domain),
+      name)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.feature.index = "Returns the index of a feature or 0 "
+  "if it not exists";
+  Real feature.index(Text name)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    FindIndexByName(_.feature, name )
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get = "Returns the value of a feature for an entity";
+  Anything get(Real entity, 
+               Anything feature) //Real position or Text name
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    (_.feature[feature])::get(_.value, entity)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.all = "Returns a set with the values of all "
+  "features for an entity";
+  Set get.all(Real entity) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    SetRow(EvalSet(_.feature, Anything(Real f) { get(entity, f) }))
+  }
+
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Class @Graph
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text _.autodoc.description = "Class for handling with generic indexed by "
+  "name graphs in TOL. In abstract, a graph is a pair of sets \n"
+  "  V : a finite set of vertices \n"
+  "  E : a finite set of edges relating an input vertex with an output \n";
+  "Each vertex has a set of features related with the system\n"
+  "Each edge also has its own set of features.\n"
+
+  //The identifier of the graph
+  Text _.name;
+  //Set of real numbers that will be indexed by name
+  Set _.vertex;
+  //Number of vertices
+  Real _.vertex.num = 0;
+  //Features of vertices
+  @FeatureSet _.vertex.feature = 0;
+  //Number of edges
+  Real _.edge.num = 0;
+  //Features of edges. First features must be input and output vertex
+  @FeatureSet _.edge.feature = 0;
+  //Sparse matrix storing index of edge for each cell (out,in) 
+  VMatrix _.edge.map = Rand(0,0,0,0);
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.vertex.index = "Returns the index of a vertex or 0 "
+  "if it not exists";
+  Real vertex.index(Text name)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    FindIndexByName(_.vertex, name )
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.vertex.add = "Adds and index a new vertex and "
+  "returns 0 if it´s all right. If a vertex with given name exists already "
+  "then returns its index, else returns 0";
+  Real vertex.add(Text name, Matrix feature.values)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real n = Card(_.vertex);
+    Real ok = Graph::Append.Indexed(_.vertex,n,name);
+    Matrix _.vertex.feature := _.vertex.feature << feature.values
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.edge.build = "";
+  Real edge.add(Matrix feature.data)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real c = Columns(data)
+    If(c<2, False,
+    {
+      _.edge.feature := SubCol(data,Range(3,c,1)));
+      True
+    })
+  };
+
+}
+
+]];

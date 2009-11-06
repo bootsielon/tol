@@ -1,0 +1,499 @@
+/////////////////////////////////////////////////////////////////////////////
+// FILE: _mhCnstrLinRegArima.tol
+// PURPOSE: Metropolis-Hastings simulation of a linear regression with ARIMA 
+// noise and linear inequality constraints
+/////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Class @MhCnstrLinRegArima
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Basic class for Metropolis-Hastings "
+  "simulation of a linear regression with ARIMA noise and linear inequality "
+  "constraints:\n"
+  "\n"
+  "\n  Y = X*b + z"
+  "\n  A*b <= a"
+  "\n  Ar(B)*Dif(B):z = Ma(B):e"
+  "\n  e ~ N(0, s^2)"
+  "\n"
+  "\nFor more details see mhCnstrLinRegArima.pdf (Sorry only spanish doc).";
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Definition members
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix _.Y;       //Output matrix
+  VMatrix _.X;       //Input matrix
+  VMatrix _.A;       //Coefficients of inequation
+  VMatrix _.a;       //Border of inequation
+  Real    _.s2;      //Residuals variance
+  Polyn   _.ar;      //Autoregressive polynomial
+  Polyn   _.ma;      //Moving average polynomial
+  Polyn   _.dif;     //Difference and deterministic structure
+  NameBlock _.armaL; //ARMA filter
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Auxiliar members
+  ////////////////////////////////////////////////////////////////////////////
+  //Data length
+  Real _.m = 0;
+  //Number of variables
+  Real _.n = 0;
+  //Number of inequations
+  Real _.r = 0;
+  //Residuals standard deviation
+  Real _.s = ?;
+  //The expected best ratio of candidates aceptation
+  Real _.acceptRatioTarget=?;
+  //Diagonal matrix with square root of inverse of sum of squares of each row 
+  //of _.A used to calculate distances to the polytope _.A*b <= _.a
+  VMatrix _.DAi = Rand(0,0,0,0);
+  //Current number of tried candidates
+  Real _.tryNumber = 0;
+  //Current number of accepted candidates
+  Real _.acceptNumber = 0;
+  //Current ratio of candidates aceptation (_.acceptNumber / _.tryNumber)
+  Real _.acceptRatio = 0; 
+  //Last accepted candidate
+  VMatrix _.b = Rand(0,0,0,0);
+  //Current distance from _.b to polytope A*b<=a
+  Real _.distance = ?;
+  //Current ratio of hyperspheric candidate region with center in _.b
+  Real _.ratio = ?;
+  //Candidate density of last accepted candidate
+  Real _.log.Q = -1/0;
+  //Target density of last accepted candidate
+  Real _.log.P = -1/0;
+  //Maximum environment ratio
+  Real _.g = ?; 
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Configuration parameters
+  ////////////////////////////////////////////////////////////////////////////
+  //Initial value of maximum environment ratio
+  Real _.gInitial = 0.01; 
+  //Tuner factor for _.g that will be divided or multipled for this number
+  //in order to get the target accept ratio
+  Real _.gFactor = 1.1; 
+  //Valid interval for accept ratio will be defined as 
+  //  _.acceptRatioTarget*_.acceptRangeFactor <= 
+  //  _.acceptNumber / _.tryNumber <= 
+  //  _.acceptRatioTarget*_.acceptRangeFactor
+  Real _.acceptRangeFactor = 1.10;
+  //Maximum number of tries before accept a candidate
+  Real _.maxIter = 10000;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Creates an instance of @MhCnstrLinRegArima
+  Static @MhCnstrLinRegArima New(
+    VMatrix Y,      //Output matrix
+    VMatrix X,      //Input matrix
+    VMatrix A,      //Coefficients of inequation
+    VMatrix a,      //Border of inequation
+    Real    s2,     //Residuals variance
+    Polyn   ar,     //Autoregressive polynomial
+    Polyn   ma,     //Moving average polynomial
+    Polyn   dif     //Difference and deterministic structure
+  )
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @MhCnstrLinRegArima aux = 
+    [[
+      VMatrix _.Y = Y;
+      VMatrix _.X = X;
+      VMatrix _.A = A;
+      VMatrix _.a = a;
+      Real    _.s2 = s2; 
+      Polyn   _.ar = ar;
+      Polyn   _.ma = ma;
+      Polyn   _.dif = dif;
+      Real    _.m = VRows(_.X);
+      Real    _.n = VColumns(_.X);
+      Real    _.r = VRows(_.A);
+      NameBlock _.armaL = ARMAProcess::FastCholeskiCovFactor(_.ar,_.ma,_.m)
+    ]]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Initializes a Markov chain
+  Real initialize(VMatrix b0)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "@MhCnstrLinRegArima::initialize ";
+
+    Real ok = Case(
+    !_.m, 
+    { WriteLn(_MID+"Invalid dimensions VRows(_.X)==0","E"); 0 },
+    !_.n, 
+    { WriteLn(_MID+"Invalid dimensions VColumns(_.X)==0","E"); 0 },
+    VRows   (_.Y)!=_.m, 
+    { WriteLn(_MID+"Invalid dimensions VRows(_.Y)!=VRows(_.X)","E"); 0 },
+    VColumns(_.Y)!=  1, 
+    { WriteLn(_MID+"Invalid dimensions VColumns(_.Y)!=1","E"); 0 },
+    _.r & (VColumns(_.A)!=_.n), 
+    { WriteLn(_MID+"Invalid dimensions VColumns(_.A)!=VColumns(_.X)","E"); 0 },
+    _.r & (VRows   (_.a)!=_.r), 
+    { WriteLn(_MID+"Invalid dimensions VRows(_.a)!=VRows(_.A)","E"); 0 },
+    _.r & (VColumns(_.a)!=  1), 
+    { WriteLn(_MID+"Invalid dimensions VColumns(_.a)!=1","E"); 0 },
+    VRows(b0)!= _.n, 
+    { WriteLn(_MID+"Invalid dimensions VRows(_.b)!=VColumns(_.X)","E"); 0 },
+    VColumns(b0)!=  1, 
+    { WriteLn(_MID+"Invalid dimensions VColumns(_.b)!=1","E"); 0 },
+    1==1, 
+    { True });
+    If(!ok, False,
+    {
+      Real _.tryNumber := 0;
+      Real _.acceptNumber := 0;
+      Real _.acceptRatio := 0; 
+      Real _.g := _.gInitial;
+      Real _.s := Sqrt(_.s2);
+      Real _.acceptRatioTarget := 0.234  + (0.5-0.234)*Exp(1-_.n);
+      VMatrix If(_.r,
+      _.DAi := Mat2VMat(SetCol(For(1,_.r,Real(Real j) 
+      { 
+        VMatrix Ai = SubRow(_.A,[[j]]);
+        VMatMoment(Ai,2)^(-0.5)
+      }))));
+      Real setStore(b0);
+      True
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Stores an accepted candidate b_ and updates related members
+  Real setStore(VMatrix b_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.b := b_; 
+    Real _.distance := If(!_.r, 1/0, eval.distance(_.b));
+    Real _.ratio := If(!_.r, 1/0, Min(_.g, _.distance));
+    Real _.log.Q := If(!_.r, 1, { -3*Log(_.ratio) });
+    Real _.log.P := eval.log.density(_.b);
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Calculates distance from a point b_ to the polytope A*b<=a
+  Real eval.distance(VMatrix b_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!_.r,1/0,
+      VMatMin(Abs(_.A*b_-_.a) $* _.DAi))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Calculates the ratio of the spheric region of candidates for a given 
+  //point b_
+  Real eval.ratio(VMatrix b_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!_.r,1/0,
+    {
+      Real dist = eval.distance(b_);
+      Min(_.g, dist)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Calculates candidate log of density Q(b0, b1).
+  //If there are no restrictions Q is symmetric, so the value it´s indiferent
+  //In other case it is a uniform that depends just on position of b0 respect 
+  //to the polytope A*b<=a
+  //
+  Real eval.candidate.log.density(VMatrix b0, VMatrix b1)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!_.r, 1,
+    {
+      -3*Log(eval.ratio(b0))
+    })
+  };
+
+  Real _2pi = 2*Pi;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Generates a new candidate with
+  VMatrix new.candidate(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "@MhCnstrLinRegArima::new.candidate ";
+    If(!_.r,
+    {
+      VMatrix u = Gaussian(_.n,1,0,_.s*_.g);
+      _.b + u            
+    },
+    {
+      Real h = _.ratio*(Rand(0,1)^(1/_.n));
+      VMatrix u = Gaussian(_.n,1,0,1);
+      VMatrix v = u/(VMatDat(MtMSqr(u),1,1)^0.5);
+      VMatrix w = v * h;
+      VMatrix c_ = _.b + w;
+      Real trace.all(Real void)
+      {
+        WriteLn("TRACE "+_MID+
+          "\n"<<Matrix VMat2Mat(Tra(_.b|c_|w))<<"\n"<<
+          "\t_.ratio="<< _.ratio<<
+          "\th="<< h<<
+          "\t||v||="<<Real(VMatDat(MtMSqr(v),1,1)^0.5)<<
+          "\t||w||="<<Real(VMatDat(MtMSqr(w),1,1)^0.5));
+        0
+      };
+    //Real trace.all(0);
+      c_
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Applies difference polynomial to a matrix
+  VMatrix applyDif(VMatrix z)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real d = Degree(_.dif);
+    SubRow(DifEq(_.dif, z), Range(d+1,_.m, 1))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Filters a noise vector to get standarized residuals N(0,I)
+  VMatrix standarize(VMatrix z)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.armaL::filter(applyDif(z/_.s))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Evaluates logarithm of target density for a point b
+  Real eval.log.density(VMatrix b)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix e = standarize(_.Y-_.X*b);
+    - 0.5 * VMatDat(MtMSqr(e),1,1)
+
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Returns true if c matches all inequations A*c<=a
+  Real isFeasible(VMatrix c)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!_.r, True, VMatMax(_.A*c-_.a)<=0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Tries a new candidate and returns true if it is accepted
+  Real maxLikelihoodStep(Real maxIter)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "@MhCnstrLinRegArima::maxLikelihoodStep ";
+    Real iter = 1;
+    Real advance = False;
+    While(iter<=maxIter,
+    {    
+      VMatrix c = new.candidate(0);
+      Real log.P.c = eval.log.density(c);
+      Real advance := log.P.c > _.log.P;
+      Real trace.all(Real void)
+      {
+        WriteLn("TRACE "+_MID+
+          "\t_.log.P=\t"<<_.log.P<<
+          "\tlog.P.c=\t"<<log.P.c<<
+          "\tadvance=\t"<<advance);
+         0
+      };
+    //Real trace.all(0);
+      If(advance, { setStore(c) });
+      Real iter := iter+1
+    });
+    iter
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Tries a new candidate and returns true if it is accepted
+  Real try(Real checkFeasible)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "@MhCnstrLinRegArima::try ";
+    Real _.tryNumber := _.tryNumber + 1;
+    VMatrix c = new.candidate(0);
+    Real feasible = If(!checkFeasible, True, isFeasible(c));
+    If(!feasible, 
+    { 
+      WriteLn(_MID+"Non feasible point","");
+      False
+    }, 
+    {
+      Real log.Q.c = eval.candidate.log.density(c,_.b);
+      Real log.P.c = eval.log.density(c);
+      Real log.w = Min(1,(log.P.c-_.log.P)+(_.log.Q-log.Q.c));
+      Real w = Exp(log.w);
+      Real r = Rand(0,1);
+      Real accept = r <= w;
+      Real _.acceptRatio := _.acceptNumber / _.tryNumber;
+      Real trace.all(Real void)
+      {
+        WriteLn("TRACE "+_MID+
+          "\n"<<Matrix VMat2Mat(Tra(_.b|c))<<"\n"<<
+          "\taccept=\t"<<accept<<
+          "\tacceptRatio=\t"<<_.acceptRatio<<If(!_.r,"",
+          "\t_.g=\t"<<_.g<<
+          "\t_.distance=\t"<<_.distance<<
+          "\t_.ratio=\t"<<_.ratio<<
+          "\t_.log.Q=\t"<<_.log.Q<<
+          "\tlog.Q.c=\t"<<log.Q.c)<<
+          "\t_.log.P=\t"<<_.log.P<<
+          "\tlog.P.c=\t"<<log.P.c<<
+          "\tw=\t"<<w);
+         0
+      };
+    //Real trace.all(0);
+      If(accept, 
+      {
+        Real _.acceptNumber := _.acceptNumber + 1;
+        setStore(Copy(c))
+      });
+      Real mclra::tuner(0);
+      accept
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Modifies _.g in order to _.acceptRatio goes closer than 
+  //_.acceptRatioTarget
+  Real tuner(Real 0)
+  //////////////////////////////////////////////////////////////////////////
+  {
+    Case(
+    _.acceptRatio<_.acceptRatioTarget/_.acceptRangeFactor,
+    {
+      Real _.g := _.g/_.gFactor
+    },
+    _.acceptRatio>_.acceptRatioTarget*_.acceptRangeFactor,
+    {
+      Real _.g := _.g*_.gFactor
+    },
+    1==1,
+    {
+      _.g
+    });
+    Real trace.all(Real void)
+    {
+      WriteLn("["<<_.tryNumber+"]"+
+              "_.acceptRatio="<<_.acceptRatio+" "+
+              "_.g="<<_.g+" ");
+      0
+    }; 
+  //Real trace.all(0);
+    If(_.r,
+    {
+      Real _.ratio := Min(_.g, _.distance);
+      Real _.log.Q := -3*Log(_.ratio)
+    });
+    _.g
+  }
+  
+};
+
+
+//VBR: UNDER CONSTRUCTION
+////////////////////////////////////////////////////////////////////////////
+Class @MhCnstrLinRegArimaStd : @MhCnstrLinRegArima
+////////////////////////////////////////////////////////////////////////////
+{
+  Real _.sz;
+  VMatrix _.Dx;
+  VMatrix _.Dix;
+
+  //////////////////////////////////////////////////////////////////////////
+  Static @MhCnstrLinRegArimaStd New(@MhCnstrLinRegArima reg)
+  //////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix Y = reg::applyDif(reg::_.Y);
+    VMatrix X = reg::applyDif(reg::_.X);
+    VMatrix A = reg::_.A;
+    VMatrix a = reg::_.a;
+    Real    s2 = reg::_.s2; 
+    Polyn   ar = reg::_.ar;
+    Polyn   ma = reg::_.ma;
+    Polyn   dif = reg::_.dif;
+    Real    m = reg::_.m;
+    Real    n = reg::_.n;
+    Real    r = reg::_.r;
+
+    Real sz = Sqrt(s2);
+    Matrix dx = SetCol(For(1,n,Real(Real j) 
+    { 
+      VMatrix Xj = SubCol(X,[[j]]);
+      Sqrt(VMatDat(MtMSqr(Xj),1,1))
+    }));
+    Matrix dxi = RPow(dx,-1);
+    VMatrix Dx = Eye(n,n,0,Mat2VMat(dx));
+    VMatrix Dix = Eye(n,n,0,Mat2VMat(dxi));
+
+    @MhCnstrLinRegArimaStd aux = 
+    [[
+      VMatrix _.Y = Y;
+      VMatrix _.X = X;
+      VMatrix _.A = A;
+      VMatrix _.a = a;
+      Real    _.s2 = 1; 
+      Polyn   _.ar = ar;
+      Polyn   _.ma = ma;
+      Polyn   _.dif = 1;
+      NameBlock _.armaL = reg::_.armaL;
+      Real    _.m = m;
+      Real    _.n = n;
+      Real    _.r = r;
+      Real    _.sz = sz;
+      VMatrix _.Dx = Dx;
+      VMatrix _.Dix = Dix
+    ]]
+  };
+
+  //////////////////////////////////////////////////////////////////////////
+  VMatrix applyDif(VMatrix z)
+  //////////////////////////////////////////////////////////////////////////
+  {
+    z
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Filters a noise vector to get standarized residuals N(0,I)
+  VMatrix standarize(VMatrix z)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.armaL::filter(z)
+  }
+
+};
+
+
+/*
+  ////////////////////////////////////////////////////////////////////////////
+  //Tries a new candidate and returns true if it is accepted
+  Real try.multiple(Real length)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "@MhCnstrLinRegArima::try ";
+    Real _.tryNumber := _.tryNumber + 1;
+    Set c = For(1, length, new.candidate);
+    	
+      Real log.Q.c = eval.candidate.log.density(c,_.b);
+      Real log.P.c = eval.log.density(c);
+      Real log.w = Min(1,(log.P.c-_.log.P)+(_.log.Q-log.Q.c));
+      Real w = Exp(log.w);
+      Real r = Rand(0,1);
+      Real accept = r <= w;
+
+      If(accept, 
+      {
+        Real _.acceptNumber := _.acceptNumber + 1;
+        setStore(c)
+      });
+      accept
+    })
+  };
+
+/* */
+
