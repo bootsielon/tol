@@ -38,7 +38,7 @@
 //When the first part changes new software version is not able to
 //read old OIS files. This will be called a hard change. Then a
 //traslation utility will be available.
-#define OIS_VERSION "02.12"
+#define OIS_VERSION "02.13"
 
 #define OIS_Load_Mode_Header          0 
 #define OIS_Load_Mode_Data            1

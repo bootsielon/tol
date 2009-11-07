@@ -35,15 +35,11 @@
 #include <tol/tol_bcmpgra.h>
 #include <tol/tol_bvmatgra.h>
 #include <tol/tol_bstruct.h>
+#include "tol_ois_macros.h"
 
         
 BTraceInit("oiscreator.cpp");
 
-//#define TRACE_OIS_HIERARCHY
-#ifdef TRACE_OIS_HIERARCHY
-static FILE* logHrchyWrite_ = 
-  fopen((BSys::TolAppData()+"syslog/OisHierarchyLogWrite.log").String(),"w");
-#endif
 
 
 //--------------------------------------------------------------------
@@ -327,9 +323,10 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::Write(const BText& v, BStream* stream)
 //--------------------------------------------------------------------
 {
-  int sz = v.Size();
-  EWrite(sz,stream);
-  Ensure(Write((const void*)v.String(),1,sz, stream));
+  TRACE_OIS_STREAM("WRITE",stream,"BText", v);
+  int length = v.Length();
+  EWrite(length,stream);
+  Ensure(Write((const void*)v.String(),1,length, stream));
   return(true);
 };
 
@@ -337,6 +334,7 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::Write(const BDat& v, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("WRITE",stream,"BDat", BText("")<<v);
   double x = v.Value();
   EWrite(x, stream);
   return(true);
@@ -346,6 +344,7 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::Write(const BComplex& v, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("WRITE",stream,"BComplex", BText("")<<v);
   EWrite(v.X(), stream);
   EWrite(v.Y(), stream);
   return(true);
@@ -355,6 +354,7 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::Write(const BDate& v, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("WRITE",stream,"BDate", BText("")<<v);
   double h = v.Hash();
   return(Write(h,stream));
 };
@@ -363,6 +363,7 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::Write(const BDat* buf, int s, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("WRITE",stream,"BDat*", BText("")<<s);
   Ensure(Write(buf,sizeof(BDat),s,stream));
   return(true);
 };
@@ -371,6 +372,7 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::Write(const BPol& x, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("WRITE",stream,"BPol", x.Name());
   int s = x.Size();
   EWrite(s, stream);
   BCoefDeg* buf = new BCoefDeg[x.Size()];
@@ -391,9 +393,10 @@ if(!BDir::CheckIsDir(dir))                                \
                           BStream* stream)
 //--------------------------------------------------------------------
 {
-  BMemberOwner::BClassByNameHash::const_iterator iterC;
   int n = 0;
   int s = x.size();
+  TRACE_OIS_STREAM("WRITE",stream,"BMemberOwner", "");
+  BMemberOwner::BClassByNameHash::const_iterator iterC;
   EWrite(s,stream);
   for(iterC=x.begin(); iterC!=x.end(); iterC++, n++)
   {
@@ -406,6 +409,7 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::Write(const BClass& cls, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("WRITE",stream,"BClass", BText("")<<cls.FullName());
   Ensure(Write(cls, *(cls.parentHash_), object_));
   Ensure(Write(cls, *(cls.ascentHash_), object_));
   int n = 0;
@@ -862,10 +866,11 @@ if(!BDir::CheckIsDir(dir))                                \
   BNameBlock& nb = v->Contens();
   Ensure(Write(nb.Set()));
   char hasClass = nb.Class()!=NULL;
-  Ensure(Write(hasClass, object_));
+  Ensure(Write(hasClass, set_));
   if(hasClass)
   {
-    Ensure(Write(nb.Class()->FullName(), object_));
+    BText className = nb.Class()->FullName();
+    Ensure(Write(className, set_));
   }
   return(true);
 };

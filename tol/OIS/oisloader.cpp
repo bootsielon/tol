@@ -40,15 +40,10 @@
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bstruct.h>
+#include "tol_ois_macros.h"
 
 BTraceInit("oisloader.cpp");
 
-
-//#define TRACE_OIS_HIERARCHY
-#ifdef TRACE_OIS_HIERARCHY
-  static FILE* logHrchyRead_ = 
-  fopen((BSys::TolAppData()+"syslog/OisHierarchyLogRead.log").String,"w");
-#endif
 
 //--------------------------------------------------------------------
 // BOisLoader::BOffsetObject Functions 
@@ -260,12 +255,24 @@ if(! ( fn = streamHandler_->Open(T,SubPath()+N) ) ) \
 bool BOisLoader::Read(BText& v, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("READ",stream,"BText", v);
   static char aux_[65536];
-  int sz;
-  ERead(sz,stream);
-  Ensure(Read(aux_,1,sz, stream));
-  aux_[sz]=0; 
-  v.Copy(aux_);
+  if(control_.oisEngine_.oisVersion_<"02.13")
+  {
+    int sz;
+    ERead(sz,stream);
+    Ensure(Read(aux_,1,sz, stream));
+    aux_[sz]=0; 
+    v.Copy(aux_);
+  }
+  else
+  {
+    int length;
+    ERead(length,stream);
+    v.ReallocateBuffer(length+1);
+    v.PutLength(length);
+    Ensure(Read(v.Buffer(),1,length, stream));
+  }
   return(true);
 };
 
@@ -273,6 +280,7 @@ bool BOisLoader::Read(BText& v, BStream* stream)
 bool BOisLoader::Read(BDat& v, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("READ",stream,"BDat", BText("")<<v);
   if(control_.typeSizes_.sizeof_BDat_==sizeof(BDatOld))
   {
     char   k;
@@ -301,6 +309,7 @@ bool BOisLoader::Read(BDat& v, BStream* stream)
 bool BOisLoader::Read(BComplex& v, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("READ",stream,"BComplex", BText("")<<v);
   BDat x, y;
   ERead(x, stream);
   ERead(y, stream);
@@ -312,6 +321,7 @@ bool BOisLoader::Read(BComplex& v, BStream* stream)
 bool BOisLoader::Read(BDate& v, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("READ",stream,"BDate", BText("")<<v);
   double h;
   ERead(h,stream);
   v.PutHash(h);
@@ -322,6 +332,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   bool BOisLoader::Read(BDat* buf, int s, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("READ",stream,"BDat*", BText("")<<s);
   if(control_.typeSizes_.sizeof_BDat_==sizeof(BDatOld))
   {
     BArray<BDatOld> d_(s);
@@ -352,6 +363,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   bool BOisLoader::Read(BPol& x, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("READ",stream,"BPol", x.Name());
   int s, i;
   bool ok = true;
   ERead(s, stream);
@@ -395,6 +407,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                         BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("READ",stream,"BMemberOwner", "");
   BMemberOwner::BClassByNameHash::const_iterator iterC;
   int n = 0;
   int s;
@@ -421,6 +434,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   bool BOisLoader::Read(BClass& cls, BStream* stream)
 //--------------------------------------------------------------------
 {
+  TRACE_OIS_STREAM("READ",stream,"BClass", BText("")<<cls.FullName());
   BMemberOwner::BClassByNameHash& parents = *cls.parentHash_;
   Ensure(Read(cls,parents,stream));
   BMemberOwner::BClassByNameHash::const_iterator iterC;
@@ -1140,11 +1154,25 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           if(control_.oisEngine_.oisVersion_>="02.08")
           {
             char hasClass;
-            Ensure(Read(hasClass, object_));
+            if(control_.oisEngine_.oisVersion_>="02.13")
+            {
+              Ensure(Read(hasClass, set_));
+            }
+            else
+            {
+              Ensure(Read(hasClass, object_));
+            }
             if(hasClass)
             {
               BText className;
-              Ensure(Read(className, object_));
+              if(control_.oisEngine_.oisVersion_>="02.13")
+              {
+                Ensure(Read(className, set_));
+              }
+              else
+              {
+                Ensure(Read(className, object_));
+              }
               if(control_.oisEngine_.oisVersion_<"02.09")
               {
                 return(NullError(
