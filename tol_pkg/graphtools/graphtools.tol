@@ -285,7 +285,16 @@ Class @Graph
   {
     Real out  = If(_.directed, out_, Min(in_, out_));
     Real in   = If(_.directed, in_,  Max(in_, out_));
-    VMatDat(_.edge.map, in, out)
+    VMatDat(_.edge.map, out, in)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.edge.exists = "Returns true if exists the edge from "
+  "out_ to in_";
+  Real edge.exists(Real out_, Real in_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    get.edge.index(out_, in_)!=0
   };
 
   ////////////////////////////////////////////////////////////////////////////
