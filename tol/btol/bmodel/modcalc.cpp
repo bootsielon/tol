@@ -1427,20 +1427,45 @@ void BModel::CleanInterruptions(BMatrix<BDat>& A, BBool recalculate)
     BMat CI(I,1);  CI.SetAllValuesTo(0);
     CI = MinimumResidualsSolve(PIW_,-A_, CI);
     BBool CI_isKnown = FrobeniusNormU(CI.Data()).IsKnown();
-    BMat err = PIW_.T()*(PIW_*CI+A_);
-    BDat test = err.MaxAbsNorm(); 
-    if(!CI_isKnown ||(test>Sqrt(BDat::Tolerance())))
+    BMat CI_res = PIW_.T()*(PIW_*CI+A_);
+    BDat CI_maxAbsErr = CI_res.MaxAbsNorm(); 
+    BMat CI_U(N,I), CI_V(I,I);
+    BDiagMatrix<BDat> CI_D(I,1.0), CI_Dp;
+    if(!CI_isKnown ||(CI_maxAbsErr>Sqrt(BDat::Tolerance())))
     {
-    //Std(BText("\nBModel::CleanInterruptions test>Sqrt(BDat::Tolerance())"));
+      Warning(I2("Cannot calculate values for interruptions due "
+                 "to a numerical error solving related linear programming "
+                 "problem by means of minimum residuals method.\n"
+                 "Singular value decomposition method will be tried."
+                 "This is a more robust but much slower method.",
+                 "No se pudieron calcular los valores de las interrupciones "
+                 "debido a un error de tipo numérico resolviendo el "
+                 "problema de programación lineal correspondiente "
+                 "mediante el método de mínimos residuos.\n"
+                 "Se intentará resolver mediante descomposición de valor "
+                 "singular que es más robusto pero mucho más lento.")+
+               "\n  Max(|PIW'(PIW*CI+A_)|)="<<CI_maxAbsErr);
       BText method = BText("Golub_Reinsch_Mod");
-      BMat U(N,I), V(I,I);
-      BDiagMatrix<BDat> D(I,1.0), Dp;
-      gsl_SingularValueDecomposition(PIW_,U,D,V, method);
-      Dp=D.P(Sqrt(DEpsilon()));
-      CI=V*Dp*(A_.T()*U).T();
+      gsl_SingularValueDecomposition(PIW_,CI_U,CI_D,CI_V, method);
+      CI_Dp=CI_D.P(Sqrt(DEpsilon()));
+      CI=CI_V*CI_Dp*(A_.T()*CI_U).T();
+      CI_isKnown = FrobeniusNormU(CI.Data()).IsKnown();
+      CI_res = PIW_.T()*(PIW_*CI+A_);
+      CI_maxAbsErr = CI_res.MaxAbsNorm(); 
     }
-    CI_isKnown = FrobeniusNormU(CI.Data()).IsKnown();
-    if(CI_isKnown)
+    if(!CI_isKnown ||(CI_maxAbsErr>Sqrt(BDat::Tolerance())))
+    {
+      Error(I2("Cannot calculate values for interruptions due "
+               "to a numerical error solving related linear programming "
+               "problem by means of singular value decomposition method.",
+               "No se pudieron calcular los valores de las interrupciones "
+               "debido a un error de tipo numérico resolviendo el "
+               "problema de programación lineal correspondiente "
+               "mediante el método de descomposición de valor singular.")+
+            "\n  Max(|PIW'(PIW*CI+A_)|)="<<CI_maxAbsErr);
+      A_ = A*BDat::PosInf();
+    }
+    else
     {
       for(j=0; j<I; j++) { interruptionValue_[interruptionIndex_[j]] = CI(j,0); }
       BMat PIWC = PIW_*CI;
@@ -1459,15 +1484,6 @@ void BModel::CleanInterruptions(BMatrix<BDat>& A, BBool recalculate)
         //Std(BText("\nfullData(I[")+i+"]="<<ti<<")="<<fullData(ti));
         }
       }
-    }
-    else
-    {
-      Warning(I2("Cannot calculate values for interruptions, probably due "
-                 "to a numerical problem in SVD of partial PI-weights matrix.",
-                 "No se pudieron calcular los valores de las interrupciones "
-                 "debido probablemente a un error de tipo numérico en la "
-                 "SVD de la matriz parcial de los PI-weights."));
-      A_ = A*BDat::PosInf();
     }
   }
 }
