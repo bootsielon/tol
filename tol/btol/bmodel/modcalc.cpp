@@ -1444,7 +1444,7 @@ void BModel::CleanInterruptions(BMatrix<BDat>& A, BBool recalculate)
                  "mediante el método de mínimos residuos.\n"
                  "Se intentará resolver mediante descomposición de valor "
                  "singular que es más robusto pero mucho más lento.")+
-               "\n  Max(|PIW'(PIW*CI+A_)|)="<<CI_maxAbsErr);
+               "\n  Max(|PIW'(PIW*CI+A_)|)="+CI_maxAbsErr);
       BText method = BText("Golub_Reinsch_Mod");
       gsl_SingularValueDecomposition(PIW_,CI_U,CI_D,CI_V, method);
       CI_Dp=CI_D.P(Sqrt(DEpsilon()));
@@ -1462,7 +1462,7 @@ void BModel::CleanInterruptions(BMatrix<BDat>& A, BBool recalculate)
                "debido a un error de tipo numérico resolviendo el "
                "problema de programación lineal correspondiente "
                "mediante el método de descomposición de valor singular.")+
-            "\n  Max(|PIW'(PIW*CI+A_)|)="<<CI_maxAbsErr);
+            "\n  Max(|PIW'(PIW*CI+A_)|)="+CI_maxAbsErr);
       A_ = A*BDat::PosInf();
     }
     else
