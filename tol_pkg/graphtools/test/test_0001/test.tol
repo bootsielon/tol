@@ -14,14 +14,16 @@ Real numWar0 = Copy(NWarning);
 
 #Embed "../../graphtools.tol";
 
-Real vertex.num =  2000;
+Real vertex.num = 2000;
 Real edge.num   =  300;
+Real directed   = True;
 
 WriteLn("Creating graph with  "<<vertex.num+ " vertices and close to "<<
         edge.num+" edges ...");
 Real t0 = Copy(Time);
 
-GraphTools::@Graph graph = GraphTools::@Graph::New("test_0001",True);
+
+GraphTools::@Graph graph = GraphTools::@Graph::New("test_0001",directed);
 
 Set vertex.names = For(1,vertex.num,Text(Real k)
 {
@@ -43,20 +45,30 @@ Matrix data =
 Real graph::edge.build(data);
 
 Real edge.idx = IntRand(1,edge.num);
-Set edge.info = graph::edge.get.all(edge.idx);
-Real edge.idx.1 = graph::edge.index(edge.info[1], edge.info[2]);
-Real edge.idx.2 = graph::edge.index(edge.info[2], edge.info[1]);
+Set edge.info = graph::get.edge.all(edge.idx);
+Real edge.idx.1 = graph::get.edge.index(edge.info[1], edge.info[2]);
+Real edge.idx.2 = graph::get.edge.index(edge.info[2], edge.info[1]);
 
 WriteLn("edge.idx = "<<edge.idx);
 WriteLn("edge.idx.1 = "<<edge.idx.1);
 WriteLn("edge.idx.2 = "<<edge.idx.2);
 
-Real ok.1 = edge.idx.1==edge.idx;
+Real ok.1 = If(directed,edge.idx.1==0,edge.idx.1==edge.idx);
 Real ok.2 = edge.idx.2==edge.idx;
 
 Set vertex.names_ = graph::get.vertex.names(?);
 
 Real ok.3 = Card(vertex.names)==Card(vertex.names_);
+
+Real vertex.idx = IntRand(1,vertex.num);
+
+Text vertex.name_ = graph::get.vertex.name(vertex.idx);
+Real ok.4 = vertex.name_==vertex.names[vertex.idx];
+
+Real high = MatDat(data,edge.idx,4);
+Real high.1 = graph::get.edge.feature(edge.idx,4);
+Real high.2 = graph::get.edge.feature(edge.idx,"Hight");
+Real ok.5 = Eq(high,high.1,high.2);
 
 Real t1 = Copy(Time);
 
@@ -76,12 +88,12 @@ Real numErr1 = Copy(NError);
 Real numWar1 = Copy(NWarning);
 
 Set partialResults_ = [[numErr0, numErr1, 
-                        ok.1, ok.2, ok.3]];
+                        ok.1, ok.2, ok.3, ok.4]];
 
 //This is a messure of the success of the test 
 Real quality_ = And(numErr1 == numErr0, 
                     numWar1 == numWar0, 
-                    ok.1, ok.2, ok.3);
+                    ok.1, ok.2, ok.3, ok.4);
 
 //Return the results 
 Set resultStr_ = @strTestStatus(summary_, link_, quality_,
