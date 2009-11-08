@@ -1,0 +1,42 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : GisTools.tol
+// PURPOSE: Defines NameBlock GisTools
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock GisTools = [[
+//////////////////////////////////////////////////////////////////////////////
+//Selects rows of matrix M that are inside the hipercube whose side length is 
+//2*d and is centered in point given by row matrix P 
+Set SelectRowsInHyperCube(Matrix M, Matrix P, Real d)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real r = Rows(M);
+  Real c = Columns(M);
+  Matrix D = Rand(r,1,d,d);
+  VMatrix match = Group("And",For(1,c, VMatrix(Real k)
+  {
+    Mat2VMat(LE(Abs(SubCol(M,[[k]])-MatDat(P,1,k)),D))
+  }));
+  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Selects rows of matrix M_ that are inside the hipersphere with specified  
+//ratio and is centered in point given by row matrix P 
+Set SelectRowsInHyperSphere(Matrix M, Matrix P, Real ratio)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real r = Rows(M);
+  Real c = Columns(M);
+  Matrix R = Rand(r,1,ratio,ratio);
+  Matrix dist = Sqrt(SetSum(For(1,c, Matrix(Real k)
+  {
+    RPow(SubCol(M,[[k]])-MatDat(P,1,k),2)
+  })));
+  VMatrix match = Mat2VMat(LE(dist,R));
+  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+}
+]];
