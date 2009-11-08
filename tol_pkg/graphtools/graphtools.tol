@@ -272,40 +272,14 @@ Class @Graph
     If(_.edge.check.rep,
     {
       WriteLn("[GraphTools::@Graph "+_.name+"::edge.build()] "+
-              "There are repeated edges","E")
+              "There are repeated edges","W")
     });
     True
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.get.edge.index = "Returns the index of an edge or 0 "
-  "if it not exists";
-  Real get.edge.index(Real out_, Real in_)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real out  = If(_.directed, out_, Min(in_, out_));
-    Real in   = If(_.directed, in_,  Max(in_, out_));
-    VMatDat(_.edge.map, out, in)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.edge.exists = "Returns true if exists the edge from "
-  "out_ to in_";
-  Real edge.exists(Real out_, Real in_)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    get.edge.index(out_, in_)!=0
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.get.edge.all = "";
-  Set get.edge.all(Real idx)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    _.edge::get.all(idx)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.vertex.names = "Returns the names of all "
+  "vertices";
   Set get.vertex.names(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -313,6 +287,8 @@ Class @Graph
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.vertex.name = "Returns the name of one "
+  "vertex";
   Text get.vertex.name(Real idx)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -329,6 +305,59 @@ Class @Graph
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.vertex.features = "Returns all the features for "
+  "an vertex";
+  Set get.vertex.features(Real vertex.idx)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.vertex::get.all(vertex.idx)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.vertex.feature = "Returns specified feature for "
+  "an vertex. Feature identifier can be the name (Text) or the position "
+  "(Real)";
+  Anything get.vertex.feature(
+    Real vertex.idx,
+    Anything feature.id) //Text name or Real num
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.edge::get(vertex.idx, feature.id)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.edge.index = "Returns the index of an edge or 0 "
+  "if it not exists";
+  Real get.edge.index(Real out_, Real in_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real out  = If(_.directed, out_, Min(in_, out_));
+    Real in   = If(_.directed, in_,  Max(in_, out_));
+    Real edge.idx = VMatDat(_.edge.map, out, in);
+    edge.idx / VMatDat(_.edge.map.rep, out, in) 
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.edge.exists = "Returns true if exists the edge from "
+  "out_ to in_";
+  Real edge.exists(Real out_, Real in_)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    get.edge.index(out_, in_)!=0
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.edge.features = "Returns all the features for "
+  "an edge";
+  Set get.edge.features(Real edge.idx)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.edge::get.all(edge.idx)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.edge.feature = "Returns specified feature for "
+  "an edge. Feature identifier can be the name (Text) or the position (Real";
   Anything get.edge.feature(
     Real edge.idx,
     Anything feature.id) //Text name or Real num
