@@ -11,14 +11,20 @@ Text summary_ = "checking a simple graph";
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
+//Random seed setting
+Real PutRandomSeed(553740924);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
 
 #Embed "../../graphtools.tol";
 
-Real vertex.num = 2000;
-Real edge.num   =  300;
-Real directed   = True;
+Real vertex.num = IntRand(2,10);
+Real edge.num   = IntRand(1,Sqrt(vertex.num)*(vertex.num-1));
+Real directed   = IntRand(0,1);
 
-WriteLn("Creating graph with  "<<vertex.num+ " vertices and close to "<<
+WriteLn("Creating "+If(directed,"directed","symmetric")+
+        " graph with  "<<vertex.num+ " vertices and close to "<<
         edge.num+" edges ...");
 Real t0 = Copy(Time);
 
@@ -44,8 +50,17 @@ Matrix data =
 
 Real graph::edge.build(data);
 
+Set vertex.names_ = graph::get.vertex.names(?);
+
+Real ok.1 = Card(vertex.names)==Card(vertex.names_);
+
+Real vertex.idx = IntRand(1,vertex.num);
+
+Text vertex.name_ = graph::get.vertex.name(vertex.idx);
+Real ok.2 = vertex.name_==vertex.names[vertex.idx];
+
 Real edge.idx = IntRand(1,edge.num);
-Set edge.info = graph::get.edge.all(edge.idx);
+Set edge.info = graph::get.edge.features(edge.idx);
 Real edge.idx.1 = graph::get.edge.index(edge.info[1], edge.info[2]);
 Real edge.idx.2 = graph::get.edge.index(edge.info[2], edge.info[1]);
 
@@ -53,17 +68,8 @@ WriteLn("edge.idx = "<<edge.idx);
 WriteLn("edge.idx.1 = "<<edge.idx.1);
 WriteLn("edge.idx.2 = "<<edge.idx.2);
 
-Real ok.1 = If(directed,edge.idx.1==0,edge.idx.1==edge.idx);
-Real ok.2 = edge.idx.2==edge.idx;
-
-Set vertex.names_ = graph::get.vertex.names(?);
-
-Real ok.3 = Card(vertex.names)==Card(vertex.names_);
-
-Real vertex.idx = IntRand(1,vertex.num);
-
-Text vertex.name_ = graph::get.vertex.name(vertex.idx);
-Real ok.4 = vertex.name_==vertex.names[vertex.idx];
+Real ok.3 = If(directed,edge.idx.1==0,edge.idx.1==edge.idx);
+Real ok.4 = edge.idx.2==edge.idx;
 
 Real high = MatDat(data,edge.idx,4);
 Real high.1 = graph::get.edge.feature(edge.idx,4);
@@ -92,7 +98,7 @@ Set partialResults_ = [[numErr0, numErr1,
 
 //This is a messure of the success of the test 
 Real quality_ = And(numErr1 == numErr0, 
-                    numWar1 == numWar0, 
+                    numWar1 <= numWar0+1, 
                     ok.1, ok.2, ok.3, ok.4, ok.5);
 
 //Return the results 
