@@ -425,6 +425,7 @@ public:
                     bool traspose = false, 
                     double minSparse = 0.5,
                     double drop = 0.0);
+  void DMat2tripletUnique(const BMatrix<double>& d, int nrow, int columns);
   void DMat2triplet(const BMatrix<double>& d, int nrow, int columns);
   void DMat2triplet(const BMatrix<double>& d, int nrow, int columns,
                     const BArray<int>& rowIdx, const BArray<int>& colIdx);

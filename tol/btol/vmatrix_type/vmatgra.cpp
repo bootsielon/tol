@@ -484,7 +484,6 @@ void BVMatPack::CalcContens()
   assert(contens_.Check());
 }
 
-
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatTriplet);
 DefExtOpr(1, BVMatTriplet, "Triplet", 3, 5, 
@@ -499,7 +498,9 @@ DefExtOpr(1, BVMatTriplet, "Triplet", 3, 5,
      "truncated.\n"
      "It's posible to remap row and column indexes of cells by specifying it "
      "with rowIdx and colIdx arguments, that must be row or column matrices "
-     "of integer numbers.",
+     "of integer numbers."
+     "CAUTION: Repeated cells will be summed!. To avoid this use "
+     "TripletUnique" ,
      "Construye una VMatrix Cholmod.R.Triplet T con la sdimensiones dadas a "
      "partir de una lista de tripletas ijx que pueden expresarse bien "
      "como un conjunto de conjuntos de tres números cada uno, bien como "
@@ -508,7 +509,9 @@ DefExtOpr(1, BVMatTriplet, "Triplet", 3, 5,
      "Si los índices de fila i ó columna j no son enteros serán truncados.\n"
      "Es posible reubicar los índices de las filas y columnas de las celdas "
      "especificándolo con los argumentos rowIdx y colIdx, que deben ser "
-     "matrices fila o columna de números enteros."),
+     "matrices fila o columna de números enteros.\n"
+     "CUIDADO: ¡Las celdas repetidas serán sumadas! Para evitarlo use "
+     "TripletUnique"),
 BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BVMatTriplet::CalcContens()
@@ -611,6 +614,39 @@ void BVMatTriplet::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatTripletUnique);
+DefExtOpr(1, BVMatTripletUnique, "TripletUnique", 3, 3, 
+  "Matrix Real Real",
+  "(Matrix ijx, Real nrow, Real ncol)",
+  I2("Creates a Cholmod.R.Triplet VMatrix T of given dimensions from a list "
+     "of triplets ijx that can be expressed as a matrix with three columns. "
+     "Each triplet (i,j,x) defines an stored cell T[i,j]=x. Non listed ones are "
+     "assumed as zero. If row i or columns j index are not integers will be "
+     "truncated.\n"
+     "It's posible to remap row and column indexes of cells by specifying it "
+     "with rowIdx and colIdx arguments, that must be row or column matrices "
+     "of integer numbers.",
+     "Construye una VMatrix Cholmod.R.Triplet T con la sdimensiones dadas a "
+     "partir de una lista de tripletas ijx que pueden expresarse bien "
+     "como un conjunto de conjuntos de tres números cada uno, bien como "
+     "una matriz con tres columnas. Cada tripleta (i,j,x) define una celda "
+     "almacenada T(i,j)=x. Las celdas no listadas se asumen como cero.\n"
+     "Si los índices de fila i ó columna j no son enteros serán truncados.\n"
+     "Es posible reubicar los índices de las filas y columnas de las celdas "
+     "especificándolo con los argumentos rowIdx y colIdx, que deben ser "
+     "matrices fila o columna de números enteros."),
+BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatTripletUnique::CalcContens()
+//--------------------------------------------------------------------
+{ 
+  BMatrix<double>& ijx = (BMatrix<double>&)Mat(Arg(1));
+  int nrow = (int)Real(Arg(2));
+  int ncol = (int)Real(Arg(3));
+  contens_.DMat2tripletUnique(ijx,nrow,ncol);
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatVMat2Triplet);
 DefExtOpr(1, BMatVMat2Triplet, "VMat2Triplet", 1, 2,
   "VMatrix Real",
@@ -627,6 +663,7 @@ void BMatVMat2Triplet::CalcContens()
   BVMat& V = VMat(Arg(1));
   V.GetTriplet((BMatrix<double>&)contens_);
 }
+
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BPol2VMat);

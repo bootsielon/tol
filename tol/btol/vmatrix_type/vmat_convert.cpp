@@ -459,6 +459,63 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+  void BVMat::DMat2tripletUnique(const BMatrix<double>& ijx, int nrow, int ncol)
+//Importing method
+//Converts a row major BMatrix<double> to a column major cholmod dense matrix
+////////////////////////////////////////////////////////////////////////////////
+{
+  BHashBoolByIntPair hashPairs;
+  BIntPair p;
+  double x;
+  static BText fName = "TripletUnique";
+  Delete();
+  int h, k, n = ijx.Rows();
+  code_  = ESC_chlmRtriplet;
+  s_.chlmRtriplet_ = cholmod_allocate_triplet
+    (nrow,ncol,n,0,CHOLMOD_REAL,common_);
+  int*    r_ = (int*)   s_.chlmRtriplet_->i;
+  int*    c_ = (int*)   s_.chlmRtriplet_->j;
+  double* x_ = (double*)s_.chlmRtriplet_->x;
+  bool ok = true;
+  k=-1;
+  for(h=0; h<n; h++)
+  {
+    p.r_ = (int)ijx(h,0)-1;
+    p.c_ = (int)ijx(h,1)-1;
+    x = ijx(h,2);
+    if(x==0.0) { continue; }
+    BHashBoolByIntPair::const_iterator fc = hashPairs.find(p);
+    if(fc!=hashPairs.end()) { continue; }
+    hashPairs[p] = true;
+    k++;
+    r_[k] = p.r_;
+    c_[k] = p.c_;
+    x_[k] = x;
+
+    if((r_[k]<0)||(r_[k]>=nrow))
+    {
+      err_cannot_apply(fName, 
+        BText("Row index ")+(r_[k]+1)+" out of range 1..."+(nrow+1), 
+        *this);
+      ok = false;
+      break;
+    }
+    else if((c_[k]<0)||(c_[k]>=ncol))
+    {
+      err_cannot_apply(fName, 
+        BText("Columns index ")+(c_[k]+1)+" out of range 1..."+(ncol+1), 
+        *this);
+      ok = false;
+      break;
+    }
+    s_.chlmRtriplet_->nnz++; 
+  }
+  if(!ok) { Delete(); }
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
   void BVMat::DMat2triplet(const BMatrix<double>& ijx, int nrow, int ncol)
 //Importing method
 //Converts a row major BMatrix<double> to a column major cholmod dense matrix

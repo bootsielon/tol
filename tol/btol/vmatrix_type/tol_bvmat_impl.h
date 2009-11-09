@@ -31,7 +31,8 @@
 #pragma pack(8)
 #include "cholmod.h"
 #pragma pack(4)
-typedef hash_map_by_BIntPair<double>::sparse_ BHashPairs;
+typedef hash_map_by_BIntPair<double>::sparse_ BHashDoubleByIntPair;
+typedef hash_map_by_BIntPair<bool>::sparse_ BHashBoolByIntPair;
 
 BEGIN_DECLS
 #include <cblas.h>
