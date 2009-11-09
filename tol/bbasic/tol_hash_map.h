@@ -109,6 +109,15 @@ struct hash_BIntPair
   }
 };
 
+struct hash_double
+{
+  size_t operator()(const double& s) const 
+  {
+    size_t aux= *((size_t*)&s);
+    return(aux);
+  }
+};
+
 //--------------------------------------------------------------------
 //this template struct allow define generic typedef of hash_map
 //by name and int.
@@ -182,6 +191,27 @@ struct hash_map_by_size_t
   <
     size_t,
     _T
+  >sparse_;
+};
+
+template<class _T>
+struct hash_map_by_double
+{
+  //dense hash_map indexed by double
+  typedef dense_hash_map
+  <
+    double,
+    _T,
+    hash_double,
+    std::equal_to<double>
+  >dense_;
+  //sparse hash_map indexed by double
+  typedef sparse_hash_map
+  <
+    double,
+    _T,
+    hash_double,
+    std::equal_to<double>
   >sparse_;
 };
 

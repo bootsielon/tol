@@ -6712,7 +6712,80 @@ void BMatForMat::CalcContens()
         DESTROY(ev);
       }
     }
+  }  
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatReplace);
+DefExtOpr(1, BMatReplace, "MatReplace", 3, 3, "Matrix Matrix Matrix",
+  "(Matrix data, Matrix old, Matrix new)",
+  I2("Replaces in arbitrary matrix 'data' all occurrences of cell "
+  "given in column matrix 'old' by corresponding cell in column "
+  "matrix 'new', having obviously the same dimensions that 'old'.\n"
+  "CAUTION!: 'old' cannot have repeated cells\n",
+  "Reemplaza en la matriz arbitraria 'data' todas las ocurrencias "
+  "de las celdas de la matriz columna 'old' por la celda "
+  "correspondiente de la matriz columna 'new', que lógicamente "
+  "debe tener las mismas dimensiones que 'old'.\n"
+  "¡CUIDADO!: 'old' no debe tener celdas repetidas\n"),
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatReplace::CalcContens()
+//--------------------------------------------------------------------
+{
+  int k;
+  DMat& A    = dMat(Arg(1));
+  DMat& old_ = dMat(Arg(2));
+  DMat& new_ = dMat(Arg(3));
+  int m = old_.Rows(); 
+  if((new_.Rows()!=m)|(old_.Columns()!=1)|(new_.Columns()!=1))
+  {
+    Error(I2("Arguments 'old' and 'new' must be column matrices with "
+             "the same number of rows.",
+             "Los argumentos 'old' y 'mew' deben ser matrices columna "
+             "con el mismo numero de filas.")+
+             "\n  old:("+old_.Rows()+"x"+old_.Columns()+"); "+
+             "\n  new:("+new_.Rows()+"x"+new_.Columns()+"); ");
+    return;
+  }
+  hash_map_by_double<double>::sparse_ hashMap;
+  hash_map_by_double<double>::sparse_::const_iterator fc;
+  const double* x = old_.Data().Buffer();
+  const double* y = new_.Data().Buffer();
+  for(k=0; k<m; k++, x++, y++)
+  {
+    const double& xk = *x;
+    fc = hashMap.find(xk);
+    if(fc!=hashMap.end()) 
+    { 
+      Error(I2("Argument 'old' cannot have repeated cells.",
+               "El argumento 'old' no puede tener celdas repetidas.")+
+               "\n  old["+(k+1)+"] = "+xk+"; ");
+      return;
+    }
+    hashMap[xk] = *y;
+  }
+  int rows = A.Rows();
+  int cols = A.Columns();
+  contens_.Alloc(rows, cols);
+  const BArray<double>& data = A.Data();
+  int s = data.Size();
+  const double* a = data.Buffer();
+  double* c = (double*)(contens_.GetData().GetBuffer());
+  for(k=0; k<s; k++, a++, c++)
+  {
+    fc = hashMap.find(*a);
+    if(fc!=hashMap.end()) 
+    { 
+      *c = fc->second;
+    }
+    else
+    {
+      *c = *a;
+    }
   }
    
 }
+
 
