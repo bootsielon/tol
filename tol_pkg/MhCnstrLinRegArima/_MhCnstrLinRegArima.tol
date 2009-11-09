@@ -1,25 +1,30 @@
 /////////////////////////////////////////////////////////////////////////////
 // FILE: _mhCnstrLinRegArima.tol
-// PURPOSE: Metropolis-Hastings simulation of a linear regression with ARIMA 
-// noise and linear inequality constraints
 /////////////////////////////////////////////////////////////////////////////
 
 
+NameBlock MhCnstrLinRegArima = [[
+Text _.autodoc.description = "Metropolis-Hastings "
+"simulation of a linear regression with ARIMA noise and linear inequality "
+"constraints:\n"
+"\n"
+"\n  Y = X*b + z"
+"\n  A*b <= a"
+"\n  Ar(B)*Dif(B):z = Ma(B):e"
+"\n  e ~ N(0, s^2)"
+"\n\n"
+"The tarjet of this package is just to serve as example and test for "
+"some constrained Metropolis-Hastings simulation methods and related "
+"functions as Gelman diagnosis.\n"
+"For more details see mhCnstrLinRegArima.pdf (Sorry only spanish doc).";
+
+Text _.autodoc.keywords = "MCMC,Markov,Bayesian,Metropolis,Hastings,"
+  "linear,regression,ARIMA,inequality,constraints,polytope";
+
 //////////////////////////////////////////////////////////////////////////////
-Class @MhCnstrLinRegArima
+Class @Simulator
 //////////////////////////////////////////////////////////////////////////////
 {
-  Static Text _.autodoc.description = "Basic class for Metropolis-Hastings "
-  "simulation of a linear regression with ARIMA noise and linear inequality "
-  "constraints:\n"
-  "\n"
-  "\n  Y = X*b + z"
-  "\n  A*b <= a"
-  "\n  Ar(B)*Dif(B):z = Ma(B):e"
-  "\n  e ~ N(0, s^2)"
-  "\n"
-  "\nFor more details see mhCnstrLinRegArima.pdf (Sorry only spanish doc).";
-
   ////////////////////////////////////////////////////////////////////////////
   //Definition members
   ////////////////////////////////////////////////////////////////////////////
@@ -85,8 +90,8 @@ Class @MhCnstrLinRegArima
   Real _.maxIter = 10000;
 
   ////////////////////////////////////////////////////////////////////////////
-  //Creates an instance of @MhCnstrLinRegArima
-  Static @MhCnstrLinRegArima New(
+  //Creates an instance of @Simulator
+  Static @Simulator New(
     VMatrix Y,      //Output matrix
     VMatrix X,      //Input matrix
     VMatrix A,      //Coefficients of inequation
@@ -98,7 +103,7 @@ Class @MhCnstrLinRegArima
   )
   ////////////////////////////////////////////////////////////////////////////
   {
-    @MhCnstrLinRegArima aux = 
+    @Simulator aux = 
     [[
       VMatrix _.Y = Y;
       VMatrix _.X = X;
@@ -120,7 +125,7 @@ Class @MhCnstrLinRegArima
   Real initialize(VMatrix b0)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "@MhCnstrLinRegArima::initialize ";
+    Text _MID = "@Simulator::initialize ";
 
     Real ok = Case(
     !_.m, 
@@ -219,7 +224,7 @@ Class @MhCnstrLinRegArima
   VMatrix new.candidate(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "@MhCnstrLinRegArima::new.candidate ";
+    Text _MID = "@Simulator::new.candidate ";
     If(!_.r,
     {
       VMatrix u = Gaussian(_.n,1,0,_.s*_.g);
@@ -286,7 +291,7 @@ Class @MhCnstrLinRegArima
   Real maxLikelihoodStep(Real maxIter)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "@MhCnstrLinRegArima::maxLikelihoodStep ";
+    Text _MID = "@Simulator::maxLikelihoodStep ";
     Real iter = 1;
     Real advance = False;
     While(iter<=maxIter,
@@ -314,7 +319,7 @@ Class @MhCnstrLinRegArima
   Real try(Real checkFeasible)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "@MhCnstrLinRegArima::try ";
+    Text _MID = "@Simulator::try ";
     Real _.tryNumber := _.tryNumber + 1;
     VMatrix c = new.candidate(0);
     Real feasible = If(!checkFeasible, True, isFeasible(c));
@@ -393,12 +398,12 @@ Class @MhCnstrLinRegArima
     _.g
   }
   
-};
+}
 
-
+/*
 //VBR: UNDER CONSTRUCTION
 ////////////////////////////////////////////////////////////////////////////
-Class @MhCnstrLinRegArimaStd : @MhCnstrLinRegArima
+Class @Simulator.Std : @Simulator
 ////////////////////////////////////////////////////////////////////////////
 {
   Real _.sz;
@@ -406,7 +411,7 @@ Class @MhCnstrLinRegArimaStd : @MhCnstrLinRegArima
   VMatrix _.Dix;
 
   //////////////////////////////////////////////////////////////////////////
-  Static @MhCnstrLinRegArimaStd New(@MhCnstrLinRegArima reg)
+  Static @Simulator.Std New(@Simulator reg)
   //////////////////////////////////////////////////////////////////////////
   {
     VMatrix Y = reg::applyDif(reg::_.Y);
@@ -431,7 +436,7 @@ Class @MhCnstrLinRegArimaStd : @MhCnstrLinRegArima
     VMatrix Dx = Eye(n,n,0,Mat2VMat(dx));
     VMatrix Dix = Eye(n,n,0,Mat2VMat(dxi));
 
-    @MhCnstrLinRegArimaStd aux = 
+    @Simulator.Std aux = 
     [[
       VMatrix _.Y = Y;
       VMatrix _.X = X;
@@ -466,7 +471,10 @@ Class @MhCnstrLinRegArimaStd : @MhCnstrLinRegArima
     _.armaL::filter(z)
   }
 
-};
+}
+*/
+
+]];
 
 
 /*
@@ -475,7 +483,7 @@ Class @MhCnstrLinRegArimaStd : @MhCnstrLinRegArima
   Real try.multiple(Real length)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "@MhCnstrLinRegArima::try ";
+    Text _MID = "@Simulator::try ";
     Real _.tryNumber := _.tryNumber + 1;
     Set c = For(1, length, new.candidate);
     	
