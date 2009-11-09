@@ -9,10 +9,16 @@ NameBlock GraphTools =
 //////////////////////////////////////////////////////////////////////////////
 [[
 
-Text _.autodoc.description = "Functions and classes related with "
-"Graph Theory.";
-
-Text _.autodoc.keywords = "Graph Theory,vertex,edge,adjacent";
+Text _.autodoc.description = "Functions and classes related with Graph "
+  "theory. In order to get faster behaviour, internal implementation uses "
+  "matrix and sparse matrix to storing and handling with all numerical "
+  "information about vertices and edges and indexed sets to handle with non "
+  "numerical data.";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["Graph theory","vertex","edge","adjacent"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org",
+   "josp@tol-project.org" ]];
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Append.Indexed = "Adds and index a new element to a "
@@ -203,8 +209,8 @@ Class @FeatureSet
 Class @Graph
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text _.autodoc.description = "Class for handling with generic indexed by "
-  "name graphs in TOL. In abstract, a graph is a pair of sets \n"
+  Static Text _.autodoc.description = "Class for handling with generic "
+  "indexed by name graphs in TOL. In abstract, a graph is a pair of sets \n"
   "  V : a finite set of vertices \n"
   "  E : a finite set of edges relating an input vertex with an output \n"
   "Each vertex has a set of features related with the system\n"

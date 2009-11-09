@@ -35,17 +35,17 @@ Real coord.min = -distance*coordFactor;
 Real coord.max = +distance*coordFactor;
 
 //Log-Normal random generation of number of point by city
-Matrix city.points = 
+Matrix city.points.num = 
 { 
   Real sigma = 0.9995;
   Real ratio = point.num.approx/city.num;
   Real nu = Log(ratio)-0.5*sigma^2;
   Round(Exp(Gaussian(city.num,1,nu,0.99995))) 
 };
-Matrix city.points.freq = Frequency(city.points,100);
+Matrix city.points.freq = Frequency(city.points.num,100);
 
 //Exact number of geographic points
-Real point.num = MatSum(city.points);
+Real point.num = MatSum(city.points.num);
 
 //Locations of cities
 Matrix city.center = BinGroup("<<",For(1,city.num, Matrix(Real city)
@@ -56,7 +56,7 @@ Matrix city.center = BinGroup("<<",For(1,city.num, Matrix(Real city)
 //Locations of points inside each city as gaussian around the center
 Set city.points = For(1,city.num, Matrix(Real city)
 {
-  Real n = MatDat(city.points,city,1); 
+  Real n = MatDat(city.points.num,city,1); 
   Real x = MatDat(city.center,city,1);
   Real y = MatDat(city.center,city,2);
   Matrix X = Rand(n,1,x,x);

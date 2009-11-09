@@ -2,7 +2,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : test.tol
 //////////////////////////////////////////////////////////////////////////////
-
 Text email_ = "vdebuen@tol-project.org"; 
 Text link_ = ""; 
 Text summary_ = "checking a simple graph";
@@ -26,7 +25,13 @@ Real vertex.idx = IntRand(1,vertex.num);
 Text vertex.name_ = graph::get.vertex.name(vertex.idx);
 Real ok.2 = vertex.name_==vertex.names[vertex.idx];
 
-Real edge.idx = IntRand(1,edge.num);
+Real edge.idx = 
+{
+  Real aux = IntRand(1,edge.num);
+  Set  info = graph::get.edge.features(aux);
+  graph::get.edge.index(info[1], info[2])
+};
+
 Set edge.info = graph::get.edge.features(edge.idx);
 Real edge.idx.1 = graph::get.edge.index(edge.info[1], edge.info[2]);
 Real edge.idx.2 = graph::get.edge.index(edge.info[2], edge.info[1]);
@@ -56,19 +61,19 @@ Real high.1 = graph::get.edge.feature(edge.idx,4);
 Real high.2 = graph::get.edge.feature(edge.idx,"Hight");
 Real ok.5 = Eq(high,high.1,high.2);
 
-Real t1 = Copy(Time);
+Set {
+  Real OSFilRemove("graph.oza");
+  Real t1 := Copy(Time);
+  WriteLn("Creating time "<<(t1-t0)+" seconds");
+  Real Ois.Store([[graph]],"graph.oza");
+  Real t2 = Copy(Time);
+  WriteLn("Saving OIS time "<<(t2-t1)+" seconds");
+  Set load = { Include("graph.oza") };
+  Real t3 = Copy(Time);
+  WriteLn("Loading OIS time "<<(t3-t2)+" seconds");
+  load
+};
 
-WriteLn("Creating time "<<(t1-t0)+" seconds");
-
-Real Ois.Store([[graph]],"graph.oza");
-Real t2 = Copy(Time);
-
-WriteLn("Saving OIS time "<<(t2-t1)+" seconds");
-
-Set load = { Include("graph.oza") };
-Real t3 = Copy(Time);
-
-WriteLn("Loading OIS time "<<(t3-t2)+" seconds");
 
 Real numErr1 = Copy(NError);
 Real numWar1 = Copy(NWarning);
@@ -87,7 +92,7 @@ Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                   email_);
 WriteLn(""<<resultStr_);
-resultStr_;
+resultStr_
 
 /* */
 

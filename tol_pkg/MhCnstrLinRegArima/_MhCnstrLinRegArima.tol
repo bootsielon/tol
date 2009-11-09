@@ -17,9 +17,12 @@ Text _.autodoc.description = "Metropolis-Hastings "
 "some constrained Metropolis-Hastings simulation methods and related "
 "functions as Gelman diagnosis.\n"
 "For more details see mhCnstrLinRegArima.pdf (Sorry only spanish doc).";
-
-Text _.autodoc.keywords = "MCMC,Markov,Bayesian,Metropolis,Hastings,"
-  "linear,regression,ARIMA,inequality,constraints,polytope";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["MCMC","Markov chain","Bayesian","Metropolis",
+  "Hastings","linear","regression","ARIMA","inequality","constraints",
+  "polytope"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org"]];
 
 //////////////////////////////////////////////////////////////////////////////
 Class @Simulator

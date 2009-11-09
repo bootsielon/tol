@@ -9,11 +9,14 @@ NameBlock GisTools = [[
 Text _.autodoc.description = "Functions and classes related with "
 "Geographic Information System (GIS), selection and classification methods "
 "over matricial data over massive geographical points.";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["GIS","Geographic","select","classify"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org"   ]];
 
-Text _.autodoc.keywords = "GIS,Geographic,select,classify";
 
 //////////////////////////////////////////////////////////////////////////////
-Static Text _.autodoc.member.SelectRowsInHyperCube = "Selects rows of matrix "
+Text _.autodoc.member.SelectRowsInHyperCube = "Selects rows of matrix "
 "M that are inside the hipercube whose side length is 2*d and is centered in "
 "point given by row matrix P ";
 Set SelectRowsInHyperCube(Matrix M, Matrix P, Real d)
@@ -31,7 +34,7 @@ Set SelectRowsInHyperCube(Matrix M, Matrix P, Real d)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Static Text _.autodoc.member.SelectRowsInHyperSphere = "Selects rows of "
+Text _.autodoc.member.SelectRowsInHyperSphere = "Selects rows of "
 "matrix M that are inside the hipersphere with specified  ratio and is "
 "centered in point given by row matrix P";
 Set SelectRowsInHyperSphere(Matrix M, Matrix P, Real ratio)
@@ -50,8 +53,8 @@ Set SelectRowsInHyperSphere(Matrix M, Matrix P, Real ratio)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Static Text _.autodoc.member.ClassifyColumnByRank = "Classifies a column "
-"matrix by the ranking position respect a set of R sortednumbers. The class "
+Text _.autodoc.member.ClassifyColumnByRank = "Classifies a column "
+"matrix by the ranking position respect a set of R sorted numbers. The class "
 "of the i-th row will be assigned in this way:\n"
 " class[i] = 1   <=>                 M[i] < rankBound[1]\n"
 " class(i] = k+1 <=> rankBound[k] <= M[i] < rankBound[k+1]; k=1...R\n"
