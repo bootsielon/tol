@@ -1259,7 +1259,7 @@ static BClass* FindClassInNameBlock(
     sufix  = name.SubString(pos+2,name.Length());
     if(!unb)
     {
-      obj = GraNameBlock()->FindVariable(prefix);
+      obj = GraNameBlock()->FindOperand(prefix,false);
       if(obj && obj->Grammar()==GraNameBlock())
       {
         unb = (BUserNameBlock*)obj;
