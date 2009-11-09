@@ -1,0 +1,60 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: GisTools test
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = ""; 
+Text summary_ = "checking matrix row selection";
+
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+
+#Embed "../../_GisTools.tol";
+#Embed "../../../GraphTools/_GraphTools.tol";
+
+Real rndSeed = 0;
+Real vertex.num = 200;
+Real edge.num = 300;
+Real removeRepeatedEdges = False;
+Real class.num = 1000;
+#Embed "../../../GraphTools/test/test_0001/define.random.graph.tol";
+
+Matrix Length = SubCol(
+  graph::_.edge::_.data, 
+  [[graph::get.edge.feature.index("Length")]]);
+
+WriteLn("Quantile over edge's length ... ");
+Set q.def = Range(1/class.num,1-1/class.num,1/class.num);
+Set q = MatSet(Tra(Quantile(Length, SetCol(q.def))))[1];
+Real t2 = Copy(Time);
+WriteLn("Quantile time "<<(t2-t1)+" seconds");
+
+WriteLn("ClassifyColumnByRank over edge's length... ");
+Matrix length.class = GisTools::ClassifyColumnByRank(Length, q);
+Real t3 = Copy(Time);
+WriteLn("ClassifyColumnByRank time "<<(t3-t2)+" seconds");
+
+
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[numErr0, numErr1]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr1 == numErr0, 
+                    numWar1 <= numWar0+1);
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
