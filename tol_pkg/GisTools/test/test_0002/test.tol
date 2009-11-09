@@ -14,18 +14,13 @@ Real numWar0 = Copy(NWarning);
 
 
 #Embed "../../_GisTools.tol";
-#Embed "../../../GraphTools/_GraphTools.tol";
 
+Real t1 = Copy(Time);
 Real rndSeed = 0;
-Real vertex.num = 200;
-Real edge.num = 300;
-Real removeRepeatedEdges = False;
-Real class.num = 1000;
-#Embed "../../../GraphTools/test/test_0001/define.random.graph.tol";
+Real data.num = 600000;
+Real class.num = 10;
 
-Matrix Length = SubCol(
-  graph::_.edge::_.data, 
-  [[graph::get.edge.feature.index("Length")]]);
+Matrix Length = Rand(data.num,1,-10000,10000);
 
 WriteLn("Quantile over edge's length ... ");
 Set q.def = Range(1/class.num,1-1/class.num,1/class.num);
