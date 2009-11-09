@@ -219,6 +219,7 @@ Class @Graph
   //Sparse matrix storing index of edge for each cell (out,in) 
   VMatrix _.edge.map = Rand(0,0,0,0);
   VMatrix _.edge.adjacency = Rand(0,0,0,0);
+  VMatrix _.edge.rep = Rand(0,0,0,0);
   Real _.edge.check.rep = ?;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -262,18 +263,26 @@ Class @Graph
     Matrix out  = If(_.directed, out_, Min(in_, out_));
     Matrix in   = If(_.directed, in_,  Max(in_, out_));
     Matrix _.edge::_.data := out | in | SubCol(data,Range(3,Columns(data),1));
+
     Matrix idx = DifEq(1/(1-B),Rand(_.edge.num,1,1,1));
-    VMatrix triplet = Triplet(out|in|idx,_.vertex.num,_.vertex.num);
-    VMatrix _.edge.map := Convert(triplet,"Cholmod.R.Sparse");
     Matrix idx.rep = Rand(_.edge.num,1,1,1);
-    VMatrix triplet.rep = Triplet(out|in|idx.rep,_.vertex.num,_.vertex.num);
-    VMatrix _.edge.adjacency := Convert(triplet.rep,"Cholmod.R.Sparse");
-    Real _.edge.check.rep := VMatMax(_.edge.adjacency)>1;
-    If(_.edge.check.rep,
+    Matrix outInRep = out|in|idx.rep;
+    VMatrix triplet.rep = Triplet(outInRep,_.vertex.num,_.vertex.num);
+    VMatrix _.edge.rep := Convert(triplet.rep,"Cholmod.R.Sparse");
+    Real _.edge.check.rep := VMatMax(_.edge.rep)>1;
+    VMatrix triplet.map = If(!_.edge.check.rep,
+    {
+      VMatrix _.edge.adjacency := _.edge.rep;
+      Triplet(out|in|idx,_.vertex.num,_.vertex.num)
+    },
     {
       WriteLn("[GraphTools::@Graph "+_.name+"::edge.build()] "+
-              "There are repeated edges","W")
+              "There are repeated edges","W");
+      VMatrix triplet.adj = TripletUnique(outInRep,_.vertex.num,_.vertex.num);
+      VMatrix _.edge.adjacency := Convert(triplet.adj,"Cholmod.R.Sparse");
+      TripletUnique(out|in|idx,_.vertex.num,_.vertex.num)
     });
+    VMatrix _.edge.map := Convert(triplet.map,"Cholmod.R.Sparse");
     True
   };
 
@@ -334,7 +343,7 @@ Class @Graph
     Real out  = If(_.directed, out_, Min(in_, out_));
     Real in   = If(_.directed, in_,  Max(in_, out_));
     Real edge.idx = VMatDat(_.edge.map, out, in);
-    edge.idx / VMatDat(_.edge.adjacency, out, in) 
+    edge.idx
   };
 
   ////////////////////////////////////////////////////////////////////////////
