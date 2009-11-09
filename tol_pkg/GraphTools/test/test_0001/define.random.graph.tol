@@ -1,0 +1,40 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : define.random.graph.tol
+//////////////////////////////////////////////////////////////////////////////
+
+//Random seed setting
+Real PutRandomSeed(1388242905);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+Real vertex.num = IntRand(2,1000);
+Real edge.num   = IntRand(1,(vertex.num)^1.6);
+Real directed   = IntRand(0,1);
+
+WriteLn("Creating "+If(directed,"directed","symmetric")+
+        " graph with  "<<vertex.num+ " vertices and close to "<<
+        edge.num+" edges ...");
+Real t0 = Copy(Time);
+
+
+GraphTools::@Graph graph = GraphTools::@Graph::New("test_0001",directed);
+
+Set vertex.names = For(1,vertex.num,Text(Real k)
+{
+   "Key_"<<FormatReal(k,"%06.0f")<<
+       "_"+FormatReal(IntRand(0,999999999),"%09.0lf")
+});
+
+Real graph::initialize(vertex.names);
+
+Real graph::_.edge::add.feature.numeric("Length");
+Real graph::_.edge::add.feature.numeric("Hight");
+
+Matrix data = 
+  { InOut  = RandCombination(edge.num,vertex.num,2) } |
+  { Length = Rand(edge.num, 1, 10, 100) } |
+  { Hight  = Rand(edge.num, 1,  1,  10) };
+
+Real graph::edge.build(data);
+

@@ -11,44 +11,9 @@ Text summary_ = "checking a simple graph";
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
-//Random seed setting
-Real PutRandomSeed(0);
-Real rndSeed = GetRandomSeed(0);
-WriteLn("Current Random Seed = "<<rndSeed);
-
 
 #Embed "../../_GraphTools.tol";
-
-Real vertex.num = IntRand(2,1000);
-Real edge.num   = IntRand(1,Sqrt(vertex.num)*(vertex.num-1)*15);
-Real directed   = IntRand(0,0);
-
-WriteLn("Creating "+If(directed,"directed","symmetric")+
-        " graph with  "<<vertex.num+ " vertices and close to "<<
-        edge.num+" edges ...");
-Real t0 = Copy(Time);
-
-
-GraphTools::@Graph graph = GraphTools::@Graph::New("test_0001",directed);
-
-Set vertex.names = For(1,vertex.num,Text(Real k)
-{
-   "Key_"<<FormatReal(k,"%06.0f")<<
-       "_"+FormatReal(IntRand(0,999999999),"%09.0lf")
-});
-
-Real graph::initialize(vertex.names);
-
-Real graph::_.edge::add.feature.numeric("Length");
-Real graph::_.edge::add.feature.numeric("Hight");
-
-
-Matrix data = 
-  { InOut  = RandCombination(edge.num,vertex.num,2) } |
-  { Length = Rand(edge.num, 1, 10, 100) } |
-  { Hight  = Rand(edge.num, 1,  1,  10) };
-
-Real graph::edge.build(data);
+#Embed "./define.random.graph.tol";
 
 Set vertex.names_ = graph::get.vertex.names(?);
 
@@ -68,8 +33,21 @@ WriteLn("edge.idx = "<<edge.idx);
 WriteLn("edge.idx.1 = "<<edge.idx.1);
 WriteLn("edge.idx.2 = "<<edge.idx.2);
 
-Real ok.3 = If(directed,edge.idx.1==0,edge.idx.1==edge.idx);
-Real ok.4 = edge.idx.2==edge.idx;
+Real ok.3_ = edge.idx.1==edge.idx;
+Real ok.4_ = edge.idx.2==edge.idx;
+
+Real ok.3 = ?;
+Real ok.4 = ?;
+
+Real If(directed,
+{
+   Real ok.3 := ok.3_ | ok.4_;
+   Real ok.4 := ok.3_ | ok.4_
+},
+{
+   Real ok.3 := ok.3_;
+   Real ok.4 := ok.3_
+});
 
 Real high = MatDat(data,edge.idx,4);
 Real high.1 = graph::get.edge.feature(edge.idx,4);
