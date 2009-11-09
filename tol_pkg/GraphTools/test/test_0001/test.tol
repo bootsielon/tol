@@ -11,6 +11,8 @@ Text summary_ = "checking a simple graph";
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
+Real rndSeed = 0;
+Real removeRepeatedEdges = True;
 
 #Embed "../../_GraphTools.tol";
 #Embed "./define.random.graph.tol";

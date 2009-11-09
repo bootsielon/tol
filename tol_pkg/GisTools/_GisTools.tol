@@ -5,9 +5,17 @@
 //////////////////////////////////////////////////////////////////////////////
 
 NameBlock GisTools = [[
+
+Text _.autodoc.description = "Functions and classes related with "
+"Geographic Information System (GIS), selection and classification methods "
+"over matricial data over massive geographical points.";
+
+Text _.autodoc.keywords = "GIS,Geographic,select,classify";
+
 //////////////////////////////////////////////////////////////////////////////
-//Selects rows of matrix M that are inside the hipercube whose side length is 
-//2*d and is centered in point given by row matrix P 
+Static Text _.autodoc.member.SelectRowsInHyperCube = "Selects rows of matrix "
+"M that are inside the hipercube whose side length is 2*d and is centered in "
+"point given by row matrix P ";
 Set SelectRowsInHyperCube(Matrix M, Matrix P, Real d)
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -23,8 +31,9 @@ Set SelectRowsInHyperCube(Matrix M, Matrix P, Real d)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Selects rows of matrix M_ that are inside the hipersphere with specified  
-//ratio and is centered in point given by row matrix P 
+Static Text _.autodoc.member.SelectRowsInHyperSphere = "Selects rows of "
+"matrix M that are inside the hipersphere with specified  ratio and is "
+"centered in point given by row matrix P";
 Set SelectRowsInHyperSphere(Matrix M, Matrix P, Real ratio)
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -38,5 +47,43 @@ Set SelectRowsInHyperSphere(Matrix M, Matrix P, Real ratio)
   VMatrix match = Mat2VMat(LE(dist,R));
   Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
   If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Static Text _.autodoc.member.ClassifyColumnByRank = "Classifies a column "
+"matrix by the ranking position respect a set of R sortednumbers. The class "
+"of the i-th row will be assigned in this way:\n"
+" class[i] = 1   <=>                 M[i] < rankBound[1]\n"
+" class(i] = k+1 <=> rankBound[k] <= M[i] < rankBound[k+1]; k=1...R\n"
+" class[i] = R+1 <=> rankBound[R] <= M[i]\n";
+Matrix ClassifyColumnByRank(Matrix M, Set rankBound)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real m = Rows(M);
+  Real R = Card(rankBound);
+  Real min = 
+  {
+    Real aux = MatMin(M);
+    aux - Abs(aux) - 1
+  };
+  Real max = 
+  { 
+    Real aux = MatMax(M);
+    aux + Abs(aux) + 1
+  };
+  Set rnk = SetOfReal(min)<<rankBound<<SetOfReal(max);
+  VMatrix class = Zeros(m,1);
+  Real r = 1;
+  While(r<=R+1,
+  {
+    Matrix  left  = Rand(m,1,rnk[r  ],rnk[r  ]);
+    Matrix  right = Rand(m,1,rnk[r+1],rnk[r+1]);
+    VMatrix left.match = Mat2VMat(LE(left,M));
+    VMatrix right.match = Mat2VMat(LT(M,right));
+    VMatrix class := class + And(left.match,right.match)*r;
+    Real r := r+1
+  });
+  VMat2Mat(class)
 }
+
 ]];

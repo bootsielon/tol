@@ -8,6 +8,12 @@
 NameBlock GraphTools =
 //////////////////////////////////////////////////////////////////////////////
 [[
+
+Text _.autodoc.description = "Functions and classes related with "
+"Graph Theory.";
+
+Text _.autodoc.keywords = "Graph Theory,vertex,edge,adjacent";
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Append.Indexed = "Adds and index a new element to a "
 "set and returns 0 if it´s all right. If an element with given name exists "
@@ -219,9 +225,9 @@ Class @Graph
   //Sparse matrix storing index of edge for each cell (out,in) 
   VMatrix _.edge.map = Rand(0,0,0,0);
   VMatrix _.edge.adjacency = Rand(0,0,0,0);
-  VMatrix _.edge.rep = Rand(0,0,0,0);
-  Real _.edge.check.rep = ?;
-
+  VMatrix _.edge.repeated = Rand(0,0,0,0);
+  Real _.edge.check.repeated = ?;
+  Real _.edge.check.repaired = ?;
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.New = "Creates a new instance of "
   "Class @Graph";
@@ -254,7 +260,7 @@ Class @Graph
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.edge.build = "";
-  Real edge.build(Matrix data)
+  Real edge.build(Matrix data, Real removeRepeatedEdges)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real _.edge.num := Rows(data);
@@ -263,25 +269,37 @@ Class @Graph
     Matrix out  = If(_.directed, out_, Min(in_, out_));
     Matrix in   = If(_.directed, in_,  Max(in_, out_));
     Matrix _.edge::_.data := out | in | SubCol(data,Range(3,Columns(data),1));
-
     Matrix idx = DifEq(1/(1-B),Rand(_.edge.num,1,1,1));
     Matrix idx.rep = Rand(_.edge.num,1,1,1);
     Matrix outInRep = out|in|idx.rep;
     VMatrix triplet.rep = Triplet(outInRep,_.vertex.num,_.vertex.num);
-    VMatrix _.edge.rep := Convert(triplet.rep,"Cholmod.R.Sparse");
-    Real _.edge.check.rep := VMatMax(_.edge.rep)>1;
-    VMatrix triplet.map = If(!_.edge.check.rep,
+    VMatrix _.edge.repeated := Convert(triplet.rep,"Cholmod.R.Sparse");
+    VMatrix _.edge.adjacency := Or(_.edge.repeated, Zeros(_.vertex.num));
+    VMatrix _.edge.repeated := _.edge.repeated - _.edge.adjacency;
+    Real _.edge.check.repeated := VMatSum(_.edge.repeated);
+    Code funTriplet = Case(
+    !_.edge.check.repeated,
     {
-      VMatrix _.edge.adjacency := _.edge.rep;
-      Triplet(out|in|idx,_.vertex.num,_.vertex.num)
+      Real _.edge.check.repaired := 0;
+      Triplet
     },
+    removeRepeatedEdges,
     {
       WriteLn("[GraphTools::@Graph "+_.name+"::edge.build()] "+
-              "There are repeated edges","W");
-      VMatrix triplet.adj = TripletUnique(outInRep,_.vertex.num,_.vertex.num);
-      VMatrix _.edge.adjacency := Convert(triplet.adj,"Cholmod.R.Sparse");
-      TripletUnique(out|in|idx,_.vertex.num,_.vertex.num)
+              "There was "<<_.edge.check.repeated+
+              " repeated edges that has been removed","W");
+      Real _.edge.check.repaired := _.edge.check.repeated;
+      TripletUnique
+    },
+    1==1,
+    {
+      WriteLn("[GraphTools::@Graph "+_.name+"::edge.build()] "+
+              "There are "<<_.edge.check.repeated+" repeated edges "
+              "but they don't will be deleted","W");
+      Real _.edge.check.repaired := 0;
+      Triplet
     });
+    VMatrix triplet.map = funTriplet(out|in|idx,_.vertex.num,_.vertex.num);
     VMatrix _.edge.map := Convert(triplet.map,"Cholmod.R.Sparse");
     True
   };
