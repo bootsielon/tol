@@ -218,7 +218,7 @@ Class @Graph
   Real _.edge.num = 0;  
   //Sparse matrix storing index of edge for each cell (out,in) 
   VMatrix _.edge.map = Rand(0,0,0,0);
-  VMatrix _.edge.map.rep = Rand(0,0,0,0);
+  VMatrix _.edge.adjacency = Rand(0,0,0,0);
   Real _.edge.check.rep = ?;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -267,8 +267,8 @@ Class @Graph
     VMatrix _.edge.map := Convert(triplet,"Cholmod.R.Sparse");
     Matrix idx.rep = Rand(_.edge.num,1,1,1);
     VMatrix triplet.rep = Triplet(out|in|idx.rep,_.vertex.num,_.vertex.num);
-    VMatrix _.edge.map.rep := Convert(triplet.rep,"Cholmod.R.Sparse");
-    Real _.edge.check.rep := VMatMax(_.edge.map.rep)>1;
+    VMatrix _.edge.adjacency := Convert(triplet.rep,"Cholmod.R.Sparse");
+    Real _.edge.check.rep := VMatMax(_.edge.adjacency)>1;
     If(_.edge.check.rep,
     {
       WriteLn("[GraphTools::@Graph "+_.name+"::edge.build()] "+
@@ -334,7 +334,7 @@ Class @Graph
     Real out  = If(_.directed, out_, Min(in_, out_));
     Real in   = If(_.directed, in_,  Max(in_, out_));
     Real edge.idx = VMatDat(_.edge.map, out, in);
-    edge.idx / VMatDat(_.edge.map.rep, out, in) 
+    edge.idx / VMatDat(_.edge.adjacency, out, in) 
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -365,6 +365,32 @@ Class @Graph
   {
     _.edge::get(edge.idx, feature.id)
   }
+
+/*
+PENDIENTE! : Funciones de adyacencia o vecindad de vértices
+
+http://www.absoluteastronomy.com/topics/Adjacency_matrix
+
+////////////////////////////////////////////////////////////////////////////
+Crea las matrices de adyancencia hasta un orden pedido por el usuario y las 
+guarda en un set. Sólo crea las que no existan aún. Sólo devuelve la del
+orden solicitado.
+Matrix get.adyacency(Real order)
+////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////
+Devuelve los vértices adyacentes de salida de orden dado para el vértice
+especificado.  V -> ... (n-1) ... -> U
+Set get.adyacency.output(Real V, Real order)
+////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////
+Devuelve los vértices adyacentes U de entrada de orden dado para el vértice
+especificado.  U -> ... (n-1) ... -> V
+Set get.adyacency.input(Real V, Real order)
+////////////////////////////////////////////////////////////////////////////
+
+*/
 
 }
 
