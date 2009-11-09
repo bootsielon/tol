@@ -76,13 +76,13 @@ Matrix ClassifyColumnByRank(Matrix M, Set rankBound)
   };
   Set rnk = SetOfReal(min)<<rankBound<<SetOfReal(max);
   VMatrix class = Zeros(m,1);
+  VMatrix vM = Mat2VMat(M);
   Real r = 1;
+  VMatrix constant = Rand(m,1,1,1);
   While(r<=R+1,
   {
-    Matrix  left  = Rand(m,1,rnk[r  ],rnk[r  ]);
-    Matrix  right = Rand(m,1,rnk[r+1],rnk[r+1]);
-    VMatrix left.match = Mat2VMat(LE(left,M));
-    VMatrix right.match = Mat2VMat(LT(M,right));
+    VMatrix left.match = LE(constant*rnk[r],vM);
+    VMatrix right.match = LT(vM,constant*rnk[r+1]);
     VMatrix class := class + And(left.match,right.match)*r;
     Real r := r+1
   });
