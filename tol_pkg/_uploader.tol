@@ -1,0 +1,94 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : uploader.tol
+// PURPOSE : call all prepared tests about TOL features checking are binding 
+// to decide if a version should be published or not.
+//////////////////////////////////////////////////////////////////////////////
+
+//Text compress = "\"c:\Archivos de programa\7-Zip\7z.exe\" a -r -tzip ";
+Text compress = " ";
+Text tolpkg = TmpDir+"tol_pkg/";
+Text local = ".";
+Text export = tolpkg+"export";
+Text upload = tolpkg+"upload";
+Real OSDirRemove(tolpkg);
+
+Real OSCmdWaitWr(Text order)
+{
+  WriteLn(order);
+  Real OSCmdWait(order)
+};
+
+Real OSCmdWaitWr("svn export --force "
+  "https://www.tol-project.org/svn/tolp/trunk/tol_pkg \""+export+"\"");
+
+Set packages = 
+{
+  Set aux = Select(GetDir(export)[2], Real(Text subDir)
+  {
+    Real fst = ASCII(Sub(subDir,1,1)); 
+    LE(ASCII("A"),fst,ASCII("Z"))
+  });
+  Sort(aux,Real(Text a, Text b) { Compare(a,b) })
+};
+  
+Text SetOfTextToWikiList(Set set, Text margin, Text quote)
+{
+  If(Card(set)==1,quote+set[1]+quote,
+  SetSum(For(1,Card(set),Text(Real k)
+  {
+    margin+quote+set[k]+quote
+  })))
+};
+
+Real OSDirMake(upload);
+
+Real wiki = FOpen(tolpkg+"wiki.txt","wb");
+
+Real FPutText(wiki,"[[PageOutline]]\n"
+"= TOL Packages =\n"
+"TOL packages are libraries, tools and examples writen in TOL in order to "
+"help users to make an efficient and standarized use of the language.\n\n");
+
+Set EvalSet(packages, Real(Text name)
+{
+  Text loc = local+"/"+name;
+  Text exp = export+"/"+name;
+  Text upl = upload+"/"+name;
+  Set aux = {[[Include(loc+"/_"+name+".tol")]]};
+  NameBlock nb = aux[1][1];
+  Real FPutText(wiki,
+"
+== !"+name+" ==
+ * '''description''' : "+nb::_.autodoc.description+"
+ * '''keywords''' : "+SetOfTextToWikiList(nb::_.autodoc.keys," ","__")+"
+ * '''authors''' : "+SetOfTextToWikiList(nb::_.autodoc.authors," ","''")+"
+ * '''links''' : "
+  " ["+name+" Official page]"
+  " [source:/tolp/trunk/tol_pkg/"+name+" view source code]"
+  " [http://packages.tol-project.org/tol_pkg/upload/"+name+".zip download full package]"
+  " [http://packages.tol-project.org/tol_pkg/upload/"+name+".oza download just OIS compressed package]
+");
+  Real Ois.Store(aux[1],upl+".oza");
+  Real OSCmdWaitWr("zip -9 -r "+
+               ReplaceSlash("\""+upl+".zip\"")+" "+
+               ReplaceSlash("\""+exp+"\""))
+});
+
+Real FClose(wiki);
+
+Text remoteUser = 
+  "toldevel@tolp.localbayes.es";
+Text remoteRoot = 
+  "/var/www/packages/tol_pkg";
+
+Text WriteFile(upload+".bat",
+"cd \""+ReplaceSlash(tolpkg)+"\"\n"+
+"tar cvzf upload.tgz upload\n"+
+"pscp upload.tgz "+remoteUser+":"+remoteRoot+"/upload.tgz\n"
+"plink "+remoteUser+" \"cd "+remoteRoot+";./upload_local.sh\"\n"
+);
+Real OSCmdWaitWr("\""+ReplaceSlash(upload+".bat")+"\"");
+
+
+
+/* */
