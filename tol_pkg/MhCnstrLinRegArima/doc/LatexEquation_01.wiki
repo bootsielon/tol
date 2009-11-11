@@ -1,0 +1,7 @@
+[[LatexEquation(Y=X\cdot\beta+Z)]] [[BR]]
+[[LatexEquation(A\cdot\beta\leq a)]] [[BR]] 
+[[LatexEquation(\phi\left(B\right)\triangle\left(B\right)Z_{t}=\theta\left(B\right)E_{t})]] [[BR]]
+[[LatexEquation(E\sim N\left(0,\sigma^{2}I\right))]] [[BR]]
+[[LatexEquation(Y,Z,E\in\mathbb{R}^{m}; X\in\mathbb{R}^{m\times n}; a\in\mathbb{R}^{r}\wedge A\in\mathbb{R}^{r\times n};rank\left(X\right)=n; m>n>0; r\geq0; n,m,r\in\mathbb{N})]] [[BR]]
+
+
