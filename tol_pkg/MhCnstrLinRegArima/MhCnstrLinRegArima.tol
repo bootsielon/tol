@@ -1,14 +1,14 @@
 /////////////////////////////////////////////////////////////////////////////
-// FILE: _mhCnstrLinRegArima.tol
+// MhCnstrLinRegArima TOL Package header 
 /////////////////////////////////////////////////////////////////////////////
 
 
 NameBlock MhCnstrLinRegArima = [[
 Text _.autodoc.description = "Metropolis-Hastings "
 "simulation of a linear regression with ARIMA noise and linear inequality "
-"constraints:\n"
+"constraints:\n"+
 //Y = X*b + z 
-//A*b <= a"
+//A*b <= a
 //Ar(B)*Dif(B):z = Ma(B):e
 //e ~ N(0, s^2)
 "\n[[LatexEquation(Y=X\cdot\beta+Z)]] [[BR]]"
