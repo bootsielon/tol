@@ -939,6 +939,27 @@ const char * TOLVersionBuild()
 }
 
 //--------------------------------------------------------------------
+const char * TOLVersionShortName()
+//--------------------------------------------------------------------
+{
+  static char aux_  [64];
+  static bool init_ = false;
+  if(!init_)
+  {
+    snprintf
+    (
+     aux_, 64,
+      "v%d_%d_%d"
+     ,VERSION_MAJOR,
+      VERSION_MINOR,
+      VERSION_RELEASE
+    );
+    init_ = true;
+  }
+  return aux_;
+}
+
+//--------------------------------------------------------------------
 const char * TOLVersion()
 //--------------------------------------------------------------------
 {

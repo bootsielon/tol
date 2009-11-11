@@ -22,10 +22,12 @@
 #include <win_tolinc.h>
 #endif
 
-#include <tol/tol_init.h>
 #include <tol/tol_blanguag.h>
-#include <tol/tol_bspfun.h>
+#include <tol/tol_init.h>
 #include <tol/tol_bsys.h>
+#include <tol/tol_bdir.h>
+#include <tol/tol_init.h>
+#include <tol/tol_bspfun.h>
 #include <tol/tol_bmoninfo.h>
 #include <tol/tol_bstruct.h>
 #include <tol/tol_btsrgrp.h>
@@ -1299,3 +1301,104 @@ BDate TsrLastDate(BSyntaxObject* obj)
     return(Tsr(obj)->LastDate());
 }
 
+//--------------------------------------------------------------------
+  BSyntaxObject* LoadRequiredPackage(const BText& package, bool retry)
+//--------------------------------------------------------------------
+{
+  static BText help_ = I2(
+    "Read information about TOL packages on ",
+    "Lea información acerca de los paquetes TOL en ")+
+    "https://www.tol-project.org/wiki/TolPkg\n";
+  BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
+  BText path = BSys::TolAppData()+"OIS/Require/tol_pkg/"+
+    TOLVersionShortName()+"/"+package+".oza";
+  BDir dir = path;
+  BText url = BText("http://packages.tol-project.org/tol_pkg/")+
+        TOLVersionShortName()+"/"+package+".oza";
+  if(!pkg)
+  {
+    if(!dir.Exist())
+    {
+ 
+      BText order = BText("wget ")+
+        url+" "+
+        "-O\""+ReplaceSlash(path)+"\"";
+      Std(I2("Installing required package ",
+             "Instalando el paquete requerido ")+package+"\n"+order+"\n");
+      #ifdef UNIX
+      system(order);
+      #else
+      BSys::WinSystem(order,0,true);
+      #endif 
+      dir = path;
+    }
+    if(dir.Exist() && dir.IsFile())
+    {
+      if(!dir.Bytes())
+      {
+        Error(I2("Cannot install empty package ",
+                 "No se puede instalar el paquete vacío ")+
+              package+"\n"+help_);
+      }
+      else
+      {    
+        int oldLevel = BGrammar::Level();
+        BGrammar::PutLevel(0); 
+        BSyntaxObject* aux = BOisLoader::LoadFull(path);
+        if(aux && (aux->Grammar()==GraSet()))
+        { 
+          BSet& set = Set(aux);
+          if((set.Card()==1)&&(set[1]->Grammar()==GraNameBlock()))
+          {
+            pkg = set[1];
+            pkg->IncNRefs();
+            pkg->IncNRefs();
+          }
+        }
+        BGrammar::PutLevel(oldLevel); 
+      }
+    } 
+  }
+  BText ok = I2("Loaded","Ha sido cargado");
+  BText help = ""; 
+  if(!pkg)
+  {
+    if(dir.Exist())
+    {
+      BSys::Remove(path);
+      if(retry)
+      {
+        Error(I2("Corrupted package ",
+                 "El paquete corrupto ")+package+
+              I2(" has been locally removed ",
+                 " ha sido eliminado localmente ")+
+              I2("and will be reinstalled from ",
+                 "y será reinstalado desde ")+
+              url);
+        return(LoadRequiredPackage(package, false));
+      } 
+      else
+      {
+        Error(I2("Corrupted package ",
+                 "El paquete corrupto ")+package+
+              I2(" has been locally removed ",
+                 " ha sido eliminado localmente ")+
+              I2("but it will not be reinstalled again.",
+                 "pero no será reinstalado de nuevo."));
+      }  
+    } 
+    ok = I2("NOT loaded","No ha sido cargado");
+    help = help_;
+  }
+  Std(ok+I2(" package ", " el paquete ")+package+"\n"+help);
+  if(pkg)
+  {
+    BNameBlock::AddGlobalRequiredPackage(package);
+    BUserNameBlock* nbBuilding = BNameBlock::Building();
+    if(nbBuilding)
+    {
+      nbBuilding->Contens().AddRequiredPackage(package);
+    }
+  }
+  return(pkg);
+}

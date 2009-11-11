@@ -1146,49 +1146,6 @@ Tree* BParser::ParseMacroEmbed (Tree* tre)
   return(tre);
 }
 
-//--------------------------------------------------------------------
-Tree* BParser::ParseMacro (Tree* tre) 
-//--------------------------------------------------------------------
-{
-  tre  = ParseDelayed (tre);
-  const BText& name = NextSymbol()->Name();
-  if(name=="#Embed") 
-  { 
-    return(ParseMacroEmbed(tre)); 
-  } 
-  else if(name=="#Require") 
-  {
-    BText& arg = scan_->NextArgument();
-    BSyntaxObject* pkg = GraNameBlock()->FindOperand(arg,false);
-    if(!pkg)
-    {
-      BText path = BSys::TolAppData()+"OIS/Require/"+arg+".oza";
-      BDir dir = path;
-      if(dir.Exist() && dir.IsFile())
-      {
-        int oldLevel = BGrammar::Level();
-        BGrammar::PutLevel(0); 
-        pkg = GraNameBlock()->EvaluateExpr(BText("Include(\"")+path+"\")[1]");
-        pkg->IncNRefs();
-        pkg->IncNRefs();
-        BGrammar::PutLevel(oldLevel); 
-      } 
-      else
-      {
-        Error(I2("Cannot find TOL package ",
-                 "No se encuentra el paquete TOL ")+path);
-      }
-    }
-    return(tre);
-  }
-  else
-  {
-    messageError_+=
-      I2("Unknown parsing macro ",
-       "Macro de parseo desconocida ")+ name+" . ";
-    return(tre);
-  } 
-}
 
 //--------------------------------------------------------------------
 Tree* BParser::ParseDelayed (Tree* tre) 
@@ -1197,6 +1154,12 @@ Tree* BParser::ParseDelayed (Tree* tre)
   if(!delayedSymbol_) { return(tre); }
   if(delayedSymbol_->TokenType()==TYPE)
   {
+    if(delayedSymbol_->Name()=="#Require") 
+    { 
+      BText package = scan_->NextArgument();
+      LoadRequiredPackage(package);
+    }
+
     delayedSymbol_->PutPrecedence(9);
     Tree* branch = Tree::createMonary(delayedSymbol_,NIL);
     tre->putMostRight(branch);
@@ -1283,64 +1246,13 @@ Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close)
         { 
           tre=ParseMacroEmbed(tre); 
         } 
-        else 
-        { 
-          static BText help_ = I2(
-            "Read information about TOL packages on ",
-            "Lea información acerca de los paquetes TOL en ")+
-            "https://www.tol-project.org/wiki/TolPkg\n";
-          BText package = scan_->NextArgument();
-          BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
-          if(!pkg)
-          {
-            BText path = BSys::TolAppData()+"OIS/Require/tol_pkg/"+package+".oza";
-            BDir dir = path;
-            if(!dir.Exist())
-            {
-              BText order = BText("wget ")+
-                "http://packages.tol-project.org/tol_pkg/upload/"+package+".oza "+
-                "-O\""+ReplaceSlash(path)+"\"";
-              Std(I2("Installing required package ",
-                     "Instalando el paquete requerido ")+package+"\n"+order+"\n");
-              #ifdef UNIX
-              system(order);
-              #else
-              BSys::WinSystem(order,0,true);
-              #endif 
-              dir = path;
-            }
-            if(dir.Exist() && dir.IsFile())
-            {
-              if(!dir.Bytes())
-              {
-                Error(I2("Cannot install package ",
-                         "No se puede instalar el paquete ")+
-                      package+"\n"+help_);
-              }
-              else
-              {    
-                int oldLevel = BGrammar::Level();
-                BGrammar::PutLevel(0); 
-                BSyntaxObject* aux = OisLoad(path);
-                if(aux && (aux->Grammar()==GraSet()))
-                { 
-                  pkg = Set(aux)[1];
-                  pkg->IncNRefs();
-                  pkg->IncNRefs();
-                }
-                BGrammar::PutLevel(oldLevel); 
-              }
-            } 
-          }
-          BText ok = I2("Loaded","Ha sido cargado");
-          BText help = ""; 
-          if(!pkg)
-          {
-            ok = I2("NOT loaded","No ha sido cargado");
-            help = help_;
-          }
-          Std(ok+I2(" package ", " el paquete ")+package+"\n"+help);
-        }
+        else
+        {
+          messageError_+=
+            I2("Unknown parsing macro ",
+             "Macro de parseo desconocida ")+ *name+" . ";
+          return(tre);
+        } 
       }
       break;
       default: 

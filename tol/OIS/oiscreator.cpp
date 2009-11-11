@@ -864,6 +864,12 @@ if(!BDir::CheckIsDir(dir))                                \
 //--------------------------------------------------------------------
 {
   BNameBlock& nb = v->Contens();
+  int k, crp = nb.CountRequiredPackage();
+  Ensure(Write(crp,set_));
+  for(k=0; k<crp; k++)
+  {
+    Ensure(Write(nb.GetRequiredPackage(k),set_));
+  }
   Ensure(Write(nb.Set()));
   char hasClass = nb.Class()!=NULL;
   Ensure(Write(hasClass, set_));

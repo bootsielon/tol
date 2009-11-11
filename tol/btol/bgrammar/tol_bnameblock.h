@@ -45,28 +45,45 @@
 //--------------------------------------------------------------------
 template<class Any> class BGraContensBase;
 
+typedef hash_map_by_name<int>::dense_ BIntByNameHash;
+
+//--------------------------------------------------------------------
+class BRequiredPackage
+//--------------------------------------------------------------------
+{
+private:
+  BIntByNameHash hash_;
+  BArray<BText> array_;
+public:
+  BRequiredPackage();
+  bool AddRequiredPackage(const BText& name);
+  int CountRequiredPackage();
+  const BText& GetRequiredPackage(int k);
+};
 
 //--------------------------------------------------------------------
 class TOL_API BNameBlock: public BObject
 //--------------------------------------------------------------------
 {
 private:
-  BObjByNameHash public_;
-  BObjByNameHash private_;
-  BSet set_;
-  int evLevel_;
-  int level_;
-  const BNameBlock* father_;
-  BClass* class_;
   static const BNameBlock* current_;
   static BUserNameBlock* building_;
   static BNameBlock* unknown_;
   static BObjByNameHash using_;
   static BObjByNameHash usingSymbols_;
   static BObjByClassNameHash usingSymbolsByClass_;
+  static BRequiredPackage globalRequiredPackages_;
+  BObjByNameHash public_;
+  BObjByNameHash private_;
+  BSet set_;
+  const BNameBlock* father_;
+  BClass* class_;
+  BGraContensBase<BNameBlock>* owner_;
+  BRequiredPackage* requiredPackages_;
   BText localName_;
   bool createdWithNew_;
-  BGraContensBase<BNameBlock>* owner_;
+  int evLevel_;
+  int level_;
   int nonPrivateMembers_;
 public:
   static bool Initialize();
@@ -134,6 +151,14 @@ public:
   void RebuildFullNameDeep(BText parentFullName, BText memberName);
 
   short EnsureIsAssigned() const;
+
+  bool AddRequiredPackage(const BText& name);
+  int CountRequiredPackage();
+  const BText& GetRequiredPackage(int k);
+
+  static bool AddGlobalRequiredPackage(const BText& name);
+  static int CountGlobalRequiredPackage();
+  static const BText& GetGlobalRequiredPackage(int k);
 
   DeclareClassNewDelete(BNameBlock);
 };

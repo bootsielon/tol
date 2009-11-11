@@ -365,13 +365,13 @@ static BTypeToken defTyp_[] =
   BTypeToken("Serie",     BTypeToken::BSYSTEM),
   BTypeToken("CSeries",   BTypeToken::BSYSTEM),
   BTypeToken("Code",      BTypeToken::BSYSTEM),
-  BTypeToken("NameBlock", BTypeToken::BSYSTEM)
+  BTypeToken("NameBlock", BTypeToken::BSYSTEM),
+  BTypeToken("#Require",  BTypeToken::BSYSTEM)
 };
 
 static BMacroToken defMac_[] =
 {
-  BMacroToken("#Embed"),
-  BMacroToken("#Require")
+  BMacroToken("#Embed")
 };
 
 static const char* alias_[][2] =

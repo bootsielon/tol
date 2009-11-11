@@ -69,6 +69,7 @@ TOL_API void InteractiveTOL();
 TOL_API void StopFlagOn();
 TOL_API void StopFlagOff();
 TOL_API bool StopFlag();
+TOL_API BSyntaxObject* LoadRequiredPackage(const BText& package, bool retry=false);
 
 BDate TsrFirstDate(BSyntaxObject* obj);
 BDate TsrLastDate (BSyntaxObject* obj);

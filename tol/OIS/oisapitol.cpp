@@ -1175,7 +1175,7 @@ static BExternalOperator * ois_use_module_ =
 				    &clone_ois_use_module_));
 
 //--------------------------------------------------------------------
-BSyntaxObject* OisLoad(const BText& root)
+BSyntaxObject* BOisLoader::LoadFull(const BText& root)
 //--------------------------------------------------------------------
 {
   bool doShowHierarchy     = false;

@@ -1061,6 +1061,27 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           BINT64 offset;
           BText fullName;
           BText localName;
+          BGrammar::IncLevel();
+          int stackPos = BGrammar::StackSize();
+          BUserNameBlock* unb = new BGraContensP<BNameBlock>(name, new BNameBlock);
+          BNameBlock::SetBuilding(unb);
+        //BNameBlock::SetCurrent(&unb->Contens());
+          unb->PutDescription(description);
+          readed_[found].PutObject(unb);
+          BNameBlock& x = unb->Contens(); 
+          assert(!name.HasName() || (GraNameBlock()->FindLocal(name)==unb));
+          if(control_.oisEngine_.oisVersion_>="02.14")
+          {
+            int k, crp;
+            Ensure(Read(crp,set_));
+            for(k=0; k<crp; k++)
+            {
+              BText package;
+              Ensure(Read(package,set_));
+              LoadRequiredPackage(package);
+            //x.AddRequiredPackage(package);
+            }
+          }
           ERead(offset, object_);
           set_->SetPos(offset);
           ERead(s, set_);  
@@ -1070,18 +1091,9 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           assert(isNameBlock);
           ERead(fullName,set_);
         //const BNameBlock* oldCurrent = BNameBlock::Current();
-          BGrammar::IncLevel();
-          int stackPos = BGrammar::StackSize();
-          BUserNameBlock* unb = new BGraContensP<BNameBlock>(name, new BNameBlock);
-          BNameBlock::SetBuilding(unb);
-        //BNameBlock::SetCurrent(&unb->Contens());
-          unb->PutDescription(description);
-          assert(!name.HasName() || (GraNameBlock()->FindLocal(name)==unb));
-          readed_[found].PutObject(unb);
-          BNameBlock& x = unb->Contens(); 
+          x.PutName(fullName);
           x.Set().PutSubType(BSet::BSubType(sbt));
           x.Set().PutNameBlock(&x);
-          x.PutName(fullName);
           if(control_.oisEngine_.oisVersion_>="02.07")
           {
             ERead(localName,set_);

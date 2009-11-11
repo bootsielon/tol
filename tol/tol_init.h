@@ -43,6 +43,7 @@ TOL_API const char * Tol_gsl_strerror (const int gsl_errno);
 TOL_API tgsl_error_handler * 
   Tol_gsl_set_error_handler (tgsl_error_handler * new_handler);
 
+TOL_API const char* TOLVersionShortName();
 TOL_API const char* TOLVersion();
 TOL_API const char* TOLVersionBuild();
 TOL_API const char* TOLSessionPath ();

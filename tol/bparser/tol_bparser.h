@@ -103,7 +103,6 @@ class BParser {
     Tree* ParseBinary(Tree*);
     Tree* ParseSeparator(Tree*);
     Tree* ParseMacroEmbed (Tree* tre);
-    Tree* ParseMacro (Tree* tre);
     Tree* ParseDelayed (Tree* tre);
     Tree* ParseSymbol(Tree*, BCloseToken*);
     

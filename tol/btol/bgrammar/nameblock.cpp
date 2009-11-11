@@ -55,6 +55,7 @@ const BNameBlock*         BNameBlock::current_  = NULL;
       BObjByNameHash      BNameBlock::using_;
       BObjByNameHash      BNameBlock::usingSymbols_;
       BObjByClassNameHash BNameBlock::usingSymbolsByClass_;
+      BRequiredPackage    BNameBlock::globalRequiredPackages_;
 
 static BFixedSizeMemoryBase* BFSMEM_Hndlr = 
  BFSMSingleton<sizeof(BNameBlock)>::Handler();
@@ -99,7 +100,8 @@ static bool BNameBlock_IsInitialized()
   class_   (NULL),
   localName_(),
   owner_    (NULL),
-  nonPrivateMembers_(0)
+  nonPrivateMembers_(0),
+  requiredPackages_(NULL)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -120,7 +122,8 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   class_   (NULL),
   localName_(localName),
   owner_    (NULL),
-  nonPrivateMembers_(0)
+  nonPrivateMembers_(0),
+  requiredPackages_(NULL)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -141,7 +144,8 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   class_   (NULL),
   localName_(),
   owner_    (NULL),
-  nonPrivateMembers_(0)
+  nonPrivateMembers_(0),
+  requiredPackages_(NULL)
 {
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
   createdWithNew_ = isAssigned!=-1;
@@ -169,6 +173,12 @@ void BNameBlock::Clean()
     class_->DecNRefs();
     DESTROY(class_);
   }
+  if(requiredPackages_)
+  {
+    delete requiredPackages_;
+    requiredPackages_ = NULL;
+  }
+
 }
 
 
@@ -427,10 +437,21 @@ const BText& BNameBlock::LocalName() const
     newNameBlock.Set().PrepareStore(n);
     while(b)
     {
-      obj = GraAnything()->EvaluateTree((const List*)b->car());
-      if(obj)
+      const List* br = (const List*)b->car();
+      BToken* tok = (BToken*)br->car();
+      if((tok->TokenType()==TYPE) && (tok->Name()=="#Require"))
       {
-        newNameBlock.AddElement(obj,true);
+        const BText& package = 
+          ((BToken*)(((const List*)(br->cdr()->car()))->car()))->Name();
+        newNameBlock.AddRequiredPackage(package);
+      } 
+      else
+      {
+        obj = GraAnything()->EvaluateTree(br);
+        if(obj)
+        {
+          newNameBlock.AddElement(obj,true);
+        }
       }
       b = b->cdr();
     };
@@ -1098,6 +1119,97 @@ const BText& BNameBlock::LocalName() const
   }
   return(lst);
 }
+
+//--------------------------------------------------------------------
+BRequiredPackage::BRequiredPackage()
+//--------------------------------------------------------------------
+: hash_(),
+  array_(0)
+{
+  SetEmptyKey(hash_ ,NULL);
+};
+//--------------------------------------------------------------------
+bool BRequiredPackage::AddRequiredPackage(const BText& name)
+//--------------------------------------------------------------------
+{
+  BIntByNameHash::const_iterator fc = hash_.find(name);
+  if(fc==hash_.end())
+  {
+    int s = array_.Size();
+    array_.Add(name);
+    hash_[ array_[s] ] = s;
+    return(true);
+  }
+  else
+  {
+    return(false);
+  }
+};
+//--------------------------------------------------------------------
+  int BRequiredPackage::CountRequiredPackage()
+//--------------------------------------------------------------------
+{
+  return(array_.Size());
+}
+
+//--------------------------------------------------------------------
+  const BText& BRequiredPackage::GetRequiredPackage(int k)
+//--------------------------------------------------------------------
+{
+  return(array_[k]);
+}
+
+
+//--------------------------------------------------------------------
+  bool BNameBlock::AddRequiredPackage(const BText& name)
+//--------------------------------------------------------------------
+{
+  if(!requiredPackages_)
+  {
+    requiredPackages_ = new BRequiredPackage;
+  }
+  return(requiredPackages_->AddRequiredPackage(name));
+}
+
+//--------------------------------------------------------------------
+  int BNameBlock::CountRequiredPackage()
+//--------------------------------------------------------------------
+{
+  if(!requiredPackages_) { return(0); }
+  else { return(requiredPackages_->CountRequiredPackage()); }
+}
+
+//--------------------------------------------------------------------
+  const BText& BNameBlock::GetRequiredPackage(int k)
+//--------------------------------------------------------------------
+{
+  static BText noPackage = "";
+  if(!requiredPackages_) { return(noPackage); }
+  else { return(requiredPackages_->GetRequiredPackage(k)); }
+}
+
+//--------------------------------------------------------------------
+  bool BNameBlock::AddGlobalRequiredPackage(const BText& name)
+//--------------------------------------------------------------------
+{
+  return(globalRequiredPackages_.AddRequiredPackage(name));
+}
+
+//--------------------------------------------------------------------
+  int BNameBlock::CountGlobalRequiredPackage()
+//--------------------------------------------------------------------
+{
+  return(globalRequiredPackages_.CountRequiredPackage()); 
+}
+
+//--------------------------------------------------------------------
+  const BText& BNameBlock::GetGlobalRequiredPackage(int k)
+//--------------------------------------------------------------------
+{
+  return(globalRequiredPackages_.GetRequiredPackage(k));
+}
+
+
 
 //--------------------------------------------------------------------
 //Gramatical items

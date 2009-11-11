@@ -9,7 +9,8 @@ Text compress = " ";
 Text tolpkg = TmpDir+"tol_pkg/";
 Text local = ".";
 Text export = tolpkg+"export";
-Text upload = tolpkg+"tol_pkg";
+Text version = Replace(Tokenizer(Version," ")[1],".","_");
+Text upload = tolpkg+"tol_pkg/"+version;
 Real OSDirRemove(tolpkg);
 
 Real OSCmdWaitWr(Text order)
@@ -49,7 +50,7 @@ Real FPutText(wiki,ReadFile("_wiki_header.txt"));
 Text WriteFile(tolpkg+"compress.bat",
 "cd \""+ReplaceSlash(export)+"\"\n"+
 "zip -9 -r %1.zip %1\n"
-"mv %1.zip ..\\tol_pkg\n"
+"mv %1.zip ..\\tol_pkg\\"+version+"\n"
 );
 
 Set EvalSet(packages, Real(Text name)
@@ -61,7 +62,7 @@ Set EvalSet(packages, Real(Text name)
   Real FPutText(wiki,
 "
 === !"+name+" ===
- * '''description''' : "+nb::_.autodoc.description+"
+"+nb::_.autodoc.description+"
  * '''keywords''' : "+SetOfTextToWikiList(nb::_.autodoc.keys," ","__")+"
  * '''authors''' : "+SetOfTextToWikiList(nb::_.autodoc.authors," ","''")+"
  * '''links''' : "
@@ -82,10 +83,10 @@ Text remoteRoot =
   "/var/www/packages";
 
 Text WriteFile(upload+".bat",
-"cd \""+ReplaceSlash(tolpkg)+"\"\n"+
-"tar cvzf tol_pkg.tgz tol_pkg\n"+
-"pscp tol_pkg.tgz "+remoteUser+":"+remoteRoot+"/tol_pkg.tgz\n"
-"plink "+remoteUser+" \"cd "+remoteRoot+";./upload_tol_pkg.sh\"\n"
+"cd \""+ReplaceSlash(tolpkg+"/tol_pkg")+"\"\n"+
+"tar cvzf "+version+".tgz "+version+"\n"+
+"pscp "+version+".tgz "+remoteUser+":"+remoteRoot+"/tol_pkg/"+version+".tgz\n"
+"plink "+remoteUser+" \"cd "+remoteRoot+"/tol_pkg; ./upload_tol_pkg.sh "+version+"\"\n"
 );
 Real OSCmdWaitWr("\""+ReplaceSlash(upload+".bat")+"\"");
 

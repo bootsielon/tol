@@ -25,6 +25,7 @@
 #include <tol/tol_bsys.h>
 #include <tol/tol_bdir.h>
 #include <tol/tol_btimer.h>
+#include <tol/tol_init.h>
 #include <ctype.h>
 
 #ifdef UNIX
@@ -79,7 +80,7 @@ static BText Buil_TolAppData_()
     tolAppData_ = BSys::GetEnv("HOME")+"/.tol/";
 #  endif
     BSys::MkDir(tolAppData_+"syslog", true);
-    BSys::MkDir(tolAppData_+"OIS/Require/tol_pkg", true);
+    BSys::MkDir(tolAppData_+"OIS/Require/tol_pkg/"+TOLVersionShortName(), true);
     BSys::MkDir(tolAppData_+"tests_results",true);
     tolAppData_ = GetStandardAbsolutePath(tolAppData_);
     int ll = tolAppData_.Length();

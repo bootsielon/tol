@@ -196,6 +196,7 @@ public:
 
   static void Interactive();
   bool Close             ();
+  static BSyntaxObject* LoadFull(const BText& root);
 };
 
 //--------------------------------------------------------------------

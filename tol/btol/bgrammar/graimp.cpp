@@ -707,6 +707,10 @@ BSyntaxObject* BGrammar::EvaluateTree(
       }
     }
   }
+  else if((type == TYPE) && (name=="#Require"))
+  {
+    return(NULL);  
+  }
   else if((type == TYPE) && (newGrammar=TknFindGrammar(tok)))
   {
     TRACE_SHOW_MEDIUM(fun,"2.3");
