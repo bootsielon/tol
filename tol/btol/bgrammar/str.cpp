@@ -610,7 +610,8 @@ BSyntaxObject* BStruct::Create(BList* lst, const BText& desc)
     {
       obj = set[n+1];
       fld = &(*field_)[n];
-      ok = obj && (fld->Grammar()==obj->Grammar());
+      ok = obj && ((fld->Grammar()==GraAnything()) || 
+                   (fld->Grammar()==obj->Grammar()));
       if(ok)
       {
         if(fld->Struct() && (fld->Struct()!=Set(obj).Struct()))
@@ -620,9 +621,9 @@ BSyntaxObject* BStruct::Create(BList* lst, const BText& desc)
               I2("was expected when was found object of type",
                  " cuando se encontro el objeto de tipo")+" "+
               obj->Grammar()->Name()+" "+
-              I2("without structure or with onother one",
+              I2("without structure or with another one",
                  "sin estructura o con otra distinta")+" "+
-              I2("at element number ", "en el el elemento número ")+(n+1));
+              I2("at element number ", "en el elemento número ")+(n+1));
           ok = false;
         }
         if(fld->Class())
