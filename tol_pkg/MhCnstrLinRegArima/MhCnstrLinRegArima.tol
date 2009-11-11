@@ -6,19 +6,11 @@
 NameBlock MhCnstrLinRegArima = [[
 Text _.autodoc.description = "Metropolis-Hastings "
 "simulation of a linear regression with ARIMA noise and linear inequality "
-"constraints:\n"+
+"constraints:\n"+ReadFile("doc/LatexEquation_01.wiki")+
 //Y = X*b + z 
 //A*b <= a
 //Ar(B)*Dif(B):z = Ma(B):e
 //e ~ N(0, s^2)
-"\n[[LatexEquation(Y=X\cdot\beta+Z)]] [[BR]]"
-"\n[[LatexEquation(A\cdot\beta\leq a)]] [[BR]] "
-"\n[[LatexEquation(\phi\left(B\right)\triangle\left(B\right)Z_{t}="
-"\theta\left(B\right)E_{t})]] [[BR]]"
-"\n[[LatexEquation(E\sim N\left(0,\sigma^{2}I\right))]] [[BR]]"
-"\n[[LatexEquation(Y,Z,E\in\mathbb{R}^{m}; X\in\mathbb{R}^{m\times n}; "
-"a\in\mathbb{R}^{r}\wedge A\in\mathbb{R}^{r\times n};rank\left(X\right)"
-"=n; m>n>0; r\geq0; n,m,r\in\mathbb{N})]] [[BR]]"
 "The tarjet of this package is just to serve as example and test for "
 "some constrained Metropolis-Hastings simulation methods and related "
 "functions as Gelman diagnosis.\n"
