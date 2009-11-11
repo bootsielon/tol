@@ -1174,3 +1174,25 @@ static BExternalOperator * ois_use_module_ =
   (BExternalOperator*)(__delay_init((void**)&ois_use_module_,
 				    &clone_ois_use_module_));
 
+//--------------------------------------------------------------------
+BSyntaxObject* OisLoad(const BText& root)
+//--------------------------------------------------------------------
+{
+  bool doShowHierarchy     = false;
+  bool checkIsUpdate       = false;
+  bool doLoadData          = true;
+  bool loadModeSpecified   = false;
+  int  showHrchyDepth      = -1;
+  int  showHrchyMaxChilds  = -1;
+  BText sourceRoot = "";
+  BOisLoader ois;
+  ois.SetPath(root,NULL);
+  ois.Load(true,
+           doShowHierarchy,
+           checkIsUpdate,
+           doLoadData,
+           showHrchyDepth,
+           showHrchyMaxChilds,
+           NULL); 
+  return(ois.GetData());
+}

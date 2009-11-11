@@ -27,6 +27,10 @@
 #include <tol/tol_bdir.h>
 #include <tol/tol_bfilter.h>
 #include <tol/tol_bscanner.h>
+#include <tol/tol_bsetgra.h>
+#include <tol/tol_bnameblock.h>
+#include <tol/tol_blanguag.h>
+#include <tol/tol_bsys.h>
 
 BTraceInit("par.cpp");
 
@@ -1152,7 +1156,32 @@ Tree* BParser::ParseMacro (Tree* tre)
   { 
     return(ParseMacroEmbed(tre)); 
   } 
-  else 
+  else if(name=="#Require") 
+  {
+    BText& arg = scan_->NextArgument();
+    BSyntaxObject* pkg = GraNameBlock()->FindOperand(arg,false);
+    if(!pkg)
+    {
+      BText path = BSys::TolAppData()+"OIS/Require/"+arg+".oza";
+      BDir dir = path;
+      if(dir.Exist() && dir.IsFile())
+      {
+        int oldLevel = BGrammar::Level();
+        BGrammar::PutLevel(0); 
+        pkg = GraNameBlock()->EvaluateExpr(BText("Include(\"")+path+"\")[1]");
+        pkg->IncNRefs();
+        pkg->IncNRefs();
+        BGrammar::PutLevel(oldLevel); 
+      } 
+      else
+      {
+        Error(I2("Cannot find TOL package ",
+                 "No se encuentra el paquete TOL ")+path);
+      }
+    }
+    return(tre);
+  }
+  else
   {
     messageError_+=
       I2("Unknown parsing macro ",
@@ -1179,6 +1208,8 @@ Tree* BParser::ParseDelayed (Tree* tre)
   delayedSymbol_ = NULL;
   return(tre);
 }
+
+BSyntaxObject* OisLoad(const BText& root);
 
 //--------------------------------------------------------------------
 //! Takes next symbol from scanner & invokes parser method related with it
@@ -1221,54 +1252,98 @@ Tree* BParser::ParseSymbol (Tree* tre, BCloseToken* close)
       case MONARY    : tre=ParseMonary   (tre);        break;
       case BINARY    : tre=ParseBinary   (tre);        break;
       case MACRO     : 
+      {
+        ok = ReadNextSymbol(newSymbolType);
+        if(newSymbolType == SEPARATOR) 
+        { 
+          needsRead = true;
+        } 
+        else if(newSymbolType == CLOSE)
+        { 
+          needsRead = false;
+        }
+        else if(newSymbolType == NONE)
+        { 
+          needsRead = true;
+        }
+        else
+        {
+          BText sym = "";
+               if(NextSymbol  ()) { sym=NextSymbol  ()->Name(); }
+          else if(NextArgument()) { sym=NextArgument()->Name(); }
+          messageError_+=
+            I2("Unexpected symbol ",
+               "Símbolo fuera de lugar '")+sym+"' \n"+
+            I2("A separator, close symbol or end of file was expected "
+               "after macro ",
+               "Se esperaba un separador, un símbolo de cierre o el final "
+               "del archivo tras la macro "+(*name));
+        } 
         if(*name=="#Embed") 
         { 
-          ok = ReadNextSymbol(newSymbolType);
           tre=ParseMacroEmbed(tre); 
-          if(newSymbolType == SEPARATOR) 
-          { 
-          //PutNextArgument(NULL);
-            needsRead = true;
-          } 
-          else if(newSymbolType == CLOSE)
-          { 
-            needsRead = false; /*
-            needsRead = true;
-            if(tre && tre->getTree()) 
-            {
-              BParser::treToken(tre->getTree())->PutClose(close);
-            }
-            close     = NULL;
-            openNumber_--;
-            complete_ = true; */
-          }
-          else if(newSymbolType == NONE)
-          { 
-            needsRead = true;
-          //complete_ = true;
-          }
-          else
-          {
-            BText sym = "";
-                 if(NextSymbol  ()) { sym=NextSymbol  ()->Name(); }
-            else if(NextArgument()) { sym=NextArgument()->Name(); }
-            messageError_+=
-              I2("Unexpected symbol ",
-                 "Símbolo fuera de lugar '")+sym+"' \n"+
-              I2("A separator, close symbol or end of file was expected "
-                 "after macro #Embed ",
-                 "Se esperaba un separador, un símbolo de cierre o el final "
-                 "del archivo tras la macro #Embed");
-          } 
         } 
         else 
-        {
-          messageError_+=
-            I2("Unknown parsing macro ",
-             "Macro de parseo desconocida ")+ *name+" . ";
-        } 
+        { 
+          static BText help_ = I2(
+            "Read information about TOL packages on ",
+            "Lea información acerca de los paquetes TOL en ")+
+            "https://www.tol-project.org/wiki/TolPkg\n";
+          BText package = scan_->NextArgument();
+          BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
+          if(!pkg)
+          {
+            BText path = BSys::TolAppData()+"OIS/Require/tol_pkg/"+package+".oza";
+            BDir dir = path;
+            if(!dir.Exist())
+            {
+              BText order = BText("wget ")+
+                "http://packages.tol-project.org/tol_pkg/upload/"+package+".oza "+
+                "-O\""+ReplaceSlash(path)+"\"";
+              Std(I2("Installing required package ",
+                     "Instalando el paquete requerido ")+package+"\n"+order+"\n");
+              #ifdef UNIX
+              system(order);
+              #else
+              BSys::WinSystem(order,0,true);
+              #endif 
+              dir = path;
+            }
+            if(dir.Exist() && dir.IsFile())
+            {
+              if(!dir.Bytes())
+              {
+                Error(I2("Cannot install package ",
+                         "No se puede instalar el paquete ")+
+                      package+"\n"+help_);
+              }
+              else
+              {    
+                int oldLevel = BGrammar::Level();
+                BGrammar::PutLevel(0); 
+                BSyntaxObject* aux = OisLoad(path);
+                if(aux && (aux->Grammar()==GraSet()))
+                { 
+                  pkg = Set(aux)[1];
+                  pkg->IncNRefs();
+                  pkg->IncNRefs();
+                }
+                BGrammar::PutLevel(oldLevel); 
+              }
+            } 
+          }
+          BText ok = I2("Loaded","Ha sido cargado");
+          BText help = ""; 
+          if(!pkg)
+          {
+            ok = I2("NOT loaded","No ha sido cargado");
+            help = help_;
+          }
+          Std(ok+I2(" package ", " el paquete ")+package+"\n"+help);
+        }
+      }
       break;
-      default        : 
+      default: 
       {
         messageError_+= I2("Unexpected symbol ",
                            "Símbolo fuera de lugar")+". ";

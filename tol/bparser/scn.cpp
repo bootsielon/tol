@@ -370,7 +370,8 @@ static BTypeToken defTyp_[] =
 
 static BMacroToken defMac_[] =
 {
-  BMacroToken("#Embed")
+  BMacroToken("#Embed"),
+  BMacroToken("#Require")
 };
 
 static const char* alias_[][2] =

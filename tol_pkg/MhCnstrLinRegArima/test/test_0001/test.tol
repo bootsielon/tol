@@ -20,7 +20,7 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-#Embed "../../_MhCnstrLinRegArima.tol";
+#Require MhCnstrLinRegArima;
 
 /////////////////////////////////////////////////////////////////////////////
 //MCMC method configuration parameters

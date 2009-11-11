@@ -17,7 +17,7 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-#Embed "../../_GisTools.tol";
+#Require GisTools;
 
 //The order of magnitude required for number of geographic points
 Real point.num.approx = 20000;

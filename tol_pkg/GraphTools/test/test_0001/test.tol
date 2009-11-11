@@ -13,7 +13,7 @@ Real numWar0 = Copy(NWarning);
 Real rndSeed = 0;
 Real removeRepeatedEdges = True;
 
-#Embed "../../_GraphTools.tol";
+#Require GraphTools;
 #Embed "./define.random.graph.tol";
 
 Set vertex.names_ = graph::get.vertex.names(?);

@@ -126,7 +126,11 @@ BBool BFilter::IsIdentifier(const BText& expression) const
 {
   if(!expression.HasName()) { return(BFALSE); }
   if((expression[0]=='?')&&(expression[1]=='\0')) { return(BTRUE); }
-  if(expression=="#Embed") { return(BTRUE); }
+  if(expression[0]=='#')
+  {
+    if(expression=="#Embed") { return(BTRUE); }
+    if(expression=="#Require") { return(BTRUE); }
+  }
   int n;
   char ch = expression.Get(0);
   if(!StartIdentifier(ch)) { return(BFALSE); }

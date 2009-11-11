@@ -9,7 +9,7 @@ Text compress = " ";
 Text tolpkg = TmpDir+"tol_pkg/";
 Text local = ".";
 Text export = tolpkg+"export";
-Text upload = tolpkg+"upload";
+Text upload = tolpkg+"tol_pkg";
 Real OSDirRemove(tolpkg);
 
 Real OSCmdWaitWr(Text order)
@@ -44,17 +44,66 @@ Real OSDirMake(upload);
 
 Real wiki = FOpen(tolpkg+"wiki.txt","wb");
 
-Real FPutText(wiki,"[[PageOutline]]\n"
-"= TOL Packages =\n"
-"TOL packages are libraries, tools and examples writen in TOL in order to "
-"help users to make an efficient and standarized use of the language.\n\n");
+Real FPutText(wiki,"
+[[PageOutline]]
+= TOL Packages =
+TOL packages are objects of type NameBlock containinig libraries, tools and 
+examples writen in TOL in order to help users to make an efficient and 
+standarized use of the language.
+
+The only requirement to use them is open source cross-platform sofware 
+[http://www.gnu.org/software/wget/ wget] that is distributed with almost 
+all linux systems. A Windows binary setup is available 
+[http://downloads.sourceforge.net/gnuwin32/wget-1.11.4-1-setup.exe here].
+
+In order to load a package like !GraphTools in your code you only need to 
+write 
+{{{
+#Require GraphTools;
+}}}
+
+This command creates an object of type NameBlock with the same name in the 
+global scope, so that subsequent calls from the same session does 
+absolutely nothing. The command returns nothing in the current scope, ie is 
+transparent to the browser !TolBase and for the contents of the sets, 
+instances, etc. The first time you use a package in a computer it will be 
+automatically installed from this public repository.
+
+If you want to upgrade to a newer version of a package you can call global 
+function
+{{{
+Real UpgradePackage(Text PackageName)
+}}}
+In order to upgrade all local packages you can write
+{{{
+Real UpgradePackage(\"all\")
+}}}
+
+The package is a root directory whose name follows the CamelCase convention,
+and it will have a file almost a file with teh same name and extension 
+{{{.tol}}} containg just one object of type NameBlock that is the TOL engine 
+of the package. From the NameBlock it will be loaded any file situated 
+inside the root directory in an arbitrary hierarchy of subdirectories.
+
+Usually the directory have also an special directory called '''test''' where 
+there standard TOL checking programs tha can be used also as examples of use. 
+
+Some complex packages can require specific documentation that will be put in
+'''doc''' directory
+
+");
+
+Text WriteFile(tolpkg+"compress.bat",
+"cd \""+ReplaceSlash(export)+"\"\n"+
+"zip -9 -r %1.zip %1\n"
+"mv %1.zip ..\\tol_pkg\n"
+);
 
 Set EvalSet(packages, Real(Text name)
 {
-  Text loc = local+"/"+name;
   Text exp = export+"/"+name;
   Text upl = upload+"/"+name;
-  Set aux = {[[Include(loc+"/_"+name+".tol")]]};
+  Set aux = {[[Include(exp+"/"+name+".tol")]]};
   NameBlock nb = aux[1][1];
   Real FPutText(wiki,
 "
@@ -65,13 +114,11 @@ Set EvalSet(packages, Real(Text name)
  * '''links''' : "
   " ["+name+" Official page]"
   " [source:/tolp/trunk/tol_pkg/"+name+" view source code]"
-  " [http://packages.tol-project.org/tol_pkg/upload/"+name+".zip download full package]"
-  " [http://packages.tol-project.org/tol_pkg/upload/"+name+".oza download just OIS compressed package]
+  " [http://packages.tol-project.org/tol_pkg/"+name+".zip download full package]"
+  " [http://packages.tol-project.org/tol_pkg/"+name+".oza download just OIS compressed package]
 ");
   Real Ois.Store(aux[1],upl+".oza");
-  Real OSCmdWaitWr("zip -9 -r "+
-               ReplaceSlash("\""+upl+".zip\"")+" "+
-               ReplaceSlash("\""+exp+"\""))
+  Real OSCmdWaitWr("\""+tolpkg+"compress.bat\" "+name)
 });
 
 Real FClose(wiki);
@@ -79,13 +126,13 @@ Real FClose(wiki);
 Text remoteUser = 
   "toldevel@tolp.localbayes.es";
 Text remoteRoot = 
-  "/var/www/packages/tol_pkg";
+  "/var/www/packages";
 
 Text WriteFile(upload+".bat",
 "cd \""+ReplaceSlash(tolpkg)+"\"\n"+
-"tar cvzf upload.tgz upload\n"+
-"pscp upload.tgz "+remoteUser+":"+remoteRoot+"/upload.tgz\n"
-"plink "+remoteUser+" \"cd "+remoteRoot+";./upload_local.sh\"\n"
+"tar cvzf tol_pkg.tgz tol_pkg\n"+
+"pscp tol_pkg.tgz "+remoteUser+":"+remoteRoot+"/tol_pkg.tgz\n"
+"plink "+remoteUser+" \"cd "+remoteRoot+";./upload_tol_pkg.sh\"\n"
 );
 Real OSCmdWaitWr("\""+ReplaceSlash(upload+".bat")+"\"");
 

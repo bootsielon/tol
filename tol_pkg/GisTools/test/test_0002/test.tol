@@ -13,7 +13,7 @@ Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
 
-#Embed "../../_GisTools.tol";
+#Require GisTools;
 
 Real t1 = Copy(Time);
 Real rndSeed = 0;
