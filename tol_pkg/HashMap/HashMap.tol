@@ -1,0 +1,41 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : HashMap.tol
+// PURPOSE: Defines Package HashMap
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock HashMap =
+//////////////////////////////////////////////////////////////////////////////
+[[
+
+Text _.autodoc.description = "Handling and storing generic hashed mapping "
+"data using internal index by name features of set";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["hash","index","map"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org"]];
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Append.Indexed = "Adds and index a new element to a "
+"set and returns 0 if it´s all right. If an element with given name exists "
+"already then returns its index, else returns 0";
+Real Append.Indexed(Set set, Anything newElement, Text name)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real idx = FindIndexByName(set, name );
+  If(idx != 0, 
+  {
+    WriteLn("[GraphTools::Append.Indexed] Cannot add an existant element "+
+            Name(set)+"["<<idx+"] with name "+ name,"E");
+    0
+  },
+  {
+    Set aux =  [[ Copy(newElement) ]];
+    Anything PutName(name, aux[1]);
+    Set Append(set, aux, True);
+    idx
+  })
+}
+
+]];
