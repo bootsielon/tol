@@ -1,0 +1,130 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Package MatQuery test
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = ""; 
+Text summary_ = "checking matrix row selection";
+
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+#Embed "../../MatQuery.tol";
+//#Require MatQuery;
+
+//The order of magnitude required for number of geographic points
+Real point.num.approx = 20000;
+//Number of cities
+Real city.num = 500;
+//Distance around targets
+Real distance = 2000;
+//Factor of Country size respect dtarget distance
+Real coordFactor = 400;
+//Distance of points inside a city
+Real cityInsideDistance = distance / 4;
+
+//Country dimensions
+Real coord.min = -distance*coordFactor;
+Real coord.max = +distance*coordFactor;
+
+//Log-Normal random generation of number of point by city
+Matrix city.points.num = 
+{ 
+  Real sigma = 0.9995;
+  Real ratio = point.num.approx/city.num;
+  Real nu = Log(ratio)-0.5*sigma^2;
+  Round(Exp(Gaussian(city.num,1,nu,0.99995))) 
+};
+Matrix city.points.freq = Frequency(city.points.num,100);
+
+//Exact number of geographic points
+Real point.num = MatSum(city.points.num);
+
+//Locations of cities
+Matrix city.center = BinGroup("<<",For(1,city.num, Matrix(Real city)
+{
+  Rand(1, 2, coord.min, coord.max)
+}));
+
+//Locations of points inside each city as gaussian around the center
+Set city.points = For(1,city.num, Matrix(Real city)
+{
+  Real n = MatDat(city.points.num,city,1); 
+  Real x = MatDat(city.center,city,1);
+  Real y = MatDat(city.center,city,2);
+  Matrix X = Rand(n,1,x,x);
+  Matrix Y = Rand(n,1,y,y);
+  (X|Y)+Gaussian(n, 2, 0, cityInsideDistance)
+});
+
+//All points
+VMatrix points = Mat2VMat(BinGroup("<<",city.points));
+
+//Target point
+VMatrix p0 = SubRow(points,[[IntRand(1,point.num)]])+
+           Gaussian(1, 2, 0, cityInsideDistance);
+
+Real t0 = Copy(Time);
+//Selecting neighbors of target in an hipercube
+WriteLn("SelectRowsInHyperCube full ...");
+Set p0.select.idx.HC = MatQuery::SelectRowsInHyperCube(
+  points, p0, distance);
+VMatrix p0.select.HC = SubRow(points,p0.select.idx.HC);
+Real t1 = Copy(Time);
+WriteLn("SelectRowsInHyperCube full "<<VRows(p0.select.HC)+" items "
+  "Time:"<<(t1-t0));
+
+//Selecting neighbors of target in an hipersphere
+WriteLn("SelectRowsInHyperSphere full ...");
+Set p0.select.idx.HE.1 = MatQuery::SelectRowsInHyperSphere(
+  points, p0, distance);
+VMatrix p0.select.HE.1 = SubRow(points,p0.select.idx.HE.1);
+Real t2 = Copy(Time);
+WriteLn("SelectRowsInHyperSphere full "<<VRows(p0.select.HE.1)+" items "
+  "Time:"<<(t2-t1));
+
+//Selecting neighbors of target in an hipersphere from the hipercube
+WriteLn("SelectRowsInHyperSphere over SelectRowsInHyperCube ...");
+Set p0.select.idx.HE.2 = MatQuery::SelectRowsInHyperSphere(
+  p0.select.HC, p0, distance);
+VMatrix p0.select.HE.2 = SubRow(p0.select.HC,p0.select.idx.HE.2);
+Real t3 = Copy(Time);
+WriteLn("SelectRowsInHyperSphere over SelectRowsInHyperCube "<<
+  VRows(p0.select.HE.2)+" items Time:"<<(t3-t2));
+WriteLn("SelectRowsInHyperSphere+SelectRowsInHyperCube Time:"<<(t3-t2+t1-t0));
+
+Real ok.1 = And(
+  Card(p0.select.idx.HE.1) <= Card(p0.select.idx.HC),
+  Card(p0.select.idx.HE.1   *      p0.select.idx.HC) == 
+  Card(p0.select.idx.HE.1));
+Real ok.2 = VMatMax(Abs(p0.select.HE.2-p0.select.HE.1))==0;
+
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[numErr0, numErr1, 
+                        ok.1, ok.2]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr1 == numErr0, 
+                    numWar1 == numWar0, 
+                    ok.1, ok.2);
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+

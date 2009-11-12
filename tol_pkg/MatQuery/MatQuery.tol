@@ -1,0 +1,134 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : MatQuery.tol
+// PURPOSE: Defines package MatQuery
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock MatQuery = [[
+
+Text _.autodoc.description = "Functions and classes related with efficient "
+"selection and classification methods over large matricial data.";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["select","classify"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org"   ]];
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.SelectRowsWithValue = 
+"Selects rows of a column matrix whose cell is exactly the specified value";
+Set SelectRowsWithValue(VMatrix M, Real value)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real r = VRows(M);
+  VMatrix V = Rand(r,1,value,value);
+  VMatrix match = EQ(M,V);
+  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.SelectRowsInInterval = 
+"Selects rows of a column matrix whose cell is inside the interval defined "
+"as: \n"
+"  [min,max]: if minIncluded=True  and minIncluded=True\n"
+"  (min,max]: if minIncluded=False and minIncluded=True\n"
+"  [min,max): if minIncluded=True  and minIncluded=False\n"
+"  (min,max): if minIncluded=False and minIncluded=False\n";
+Set SelectRowsInInterval(
+ VMatrix M, 
+ Real minIncluded,
+ Real min, 
+ Real max,
+ Real maxIncluded )
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real r = VRows(M);
+  VMatrix Min = Rand(r,1,min,min);
+  VMatrix Max = Rand(r,1,max,max);
+  VMatrix match =
+  Case(
+     minIncluded &  maxIncluded, And(LE(Min,M),LE(M,Max)),
+    !minIncluded &  maxIncluded, And(LT(Min,M),LE(M,Max)),
+     minIncluded & !maxIncluded, And(LE(Min,M),LT(M,Max)),
+    !minIncluded & !maxIncluded, And(LT(Min,M),LT(M,Max))
+  );
+  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.SelectRowsInHyperCube = "Selects rows of matrix "
+"M that are inside the hipercube whose side length is 2*d and is centered in "
+"point given by row matrix P ";
+Set SelectRowsInHyperCube(VMatrix M, VMatrix P, Real d)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real r = VRows(M);
+  Real c = VColumns(M);
+  VMatrix D = Rand(r,1,d,d);
+  VMatrix match = Group("And",For(1,c, VMatrix(Real k)
+  {
+    LE(Abs(SubCol(M,[[k]])-VMatDat(P,1,k)),D)
+  }));
+  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.SelectRowsInHyperSphere = "Selects rows of "
+"matrix M that are inside the hipersphere with specified  ratio and is "
+"centered in point given by row matrix P";
+Set SelectRowsInHyperSphere(VMatrix M, VMatrix P, Real ratio)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real r = VRows(M);
+  Real c = VColumns(M);
+  Real ratio2 = ratio^2;
+  VMatrix R2 = Rand(r,1,ratio2,ratio2);
+  VMatrix dist2 = SetSum(For(1,c, VMatrix(Real k)
+  {
+    RPow(SubCol(M,[[k]])-VMatDat(P,1,k),2)
+  }));
+  VMatrix match = LE(dist2,R2);
+  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.ClassifyRowsByRank = "Classifies the rows of a column "
+"matrix by the ranking position respect a set of R sorted numbers. The class "
+"of the i-th row will be assigned in this way:\n"
+" class[i] = 1   <=>                 M[i] < rankBound[1]\n"
+" class(i] = k+1 <=> rankBound[k] <= M[i] < rankBound[k+1]; k=1...R\n"
+" class[i] = R+1 <=> rankBound[R] <= M[i]\n";
+VMatrix ClassifyRowsByRank(VMatrix M, Set rankBound)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real m = VRows(M);
+  Real R = Card(rankBound);
+  Real min = 
+  {
+    Real aux = VMatMin(M);
+    aux - Abs(aux) - 1
+  };
+  Real max = 
+  { 
+    Real aux = VMatMax(M);
+    aux + Abs(aux) + 1
+  };
+  Set rnk = SetOfReal(min)<<rankBound<<SetOfReal(max);
+  VMatrix class = Zeros(m,1);
+  Real r = 1;
+  VMatrix constant = Rand(m,1,1,1);
+  While(r<=R+1,
+  {
+    VMatrix left.match = LE(constant*rnk[r],M);
+    VMatrix right.match = LT(M,constant*rnk[r+1]);
+    VMatrix class := class + And(left.match,right.match)*r;
+    Real r := r+1
+  });
+  class
+}
+
+
+]];
