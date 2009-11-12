@@ -253,11 +253,6 @@ Class @Graph
   Real vertex.out.degree(Real vertex.index)
   {
     VMatSum(SubCol(_.edge.adjacency.out,[[vertex.index]]))
-  };
-
-  Real vertex.in.degree(Real vertex.index)
-  {
-    VMatSum(SubCol(_.edge.adjacency.out,[[vertex.inde]]))
   }
 
 /*
