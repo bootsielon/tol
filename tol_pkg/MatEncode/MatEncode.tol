@@ -192,10 +192,10 @@ Class @FeatureSet
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.select.feature.with.value = 
+  Text _.autodoc.member.match.feature.with.value = 
   "Returns a column matrix with True in rows where given feature has "
   "specified value";
-  VMatrix select.feature.with.value(
+  VMatrix match.feature.with.value(
     Text feature.name, 
     Anything value.id) //Text value identifier in domain or  Real value
   ////////////////////////////////////////////////////////////////////////////
@@ -209,10 +209,10 @@ Class @FeatureSet
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.intersect.feature.with.value = 
+  Text _.autodoc.member.and.match.feature.with.value = 
   "Returns a column matrix with True in rows where given feature has "
   "specified value";
-  VMatrix intersect.feature.with.value(
+  VMatrix and.match.feature.with.value(
     Text feature.name, 
     Anything value.id, //Text value identifier in domain or  Real value
     VMatrix match)
