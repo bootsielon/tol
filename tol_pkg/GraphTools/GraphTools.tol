@@ -1,13 +1,15 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
-// FILE   : graphtools.tol
-// PURPOSE: Defines NameBlock GraphTools
+// FILE   : GraphTools.tol
+// PURPOSE: Defines Package GraphTools
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 NameBlock GraphTools =
 //////////////////////////////////////////////////////////////////////////////
 [[
+#Require MatEncode;
+#Require MatQuery;
 
 Text _.autodoc.description = "Functions and classes related with Graph "
   "theory. In order to get faster behaviour, internal implementation uses "
@@ -19,191 +21,6 @@ Set _.autodoc.keys = [["Graph theory","vertex","edge","adjacent"]];
 Set _.autodoc.authors = [[
    "vdebuen@tol-project.org",
    "josp@tol-project.org" ]];
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Append.Indexed = "Adds and index a new element to a "
-"set and returns 0 if it´s all right. If an element with given name exists "
-"already then returns its index, else returns 0";
-Real Append.Indexed(Set set, Anything newElement, Text name)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real idx = FindIndexByName(set, name );
-  If(idx != 0, 
-  {
-    WriteLn("[GraphTools::Append.Indexed] Cannot add an existant element "+
-            Name(set)+"["<<idx+"] with name "+ name,"E");
-    0
-  },
-  {
-    Set aux =  [[ Copy(newElement) ]];
-    Anything PutName(name, aux[1]);
-    Set Append(set, aux, True);
-    idx
-  })
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Class @Feature.Abstract
-//////////////////////////////////////////////////////////////////////////////
-{
-  Static Text _.autodoc.description = "Class for handling with abstract "
-  "features of arbitrary entities, numerical or not, that will be stored in "
-  "an external matrix with a row for each entity.";
-  //The name of the feature
-  Text _.name;
-  //The number of the feature in the full set of features
-  Real _.position;
-
-  ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.get = "Returns the stored value corresponding "
-  "to this feature related to an individual entity.";
-  Anything get(Matrix store, Real entity)
-  ////////////////////////////////////////////////////////////////////////////
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Class @Feature.Numeric : @Feature.Abstract
-//////////////////////////////////////////////////////////////////////////////
-{
-  Static Text _.autodoc.description = "Class for handling with numerical "
-  "numerical features of arbitrary entities that will be stored in an "
-  "external matrix with a row for each entity.";
-
-  ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.New = "Creates a new instance of "
-  "Class @Feature.Numeric";
-  Static @Feature.Numeric New(Text name, Real position)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    @Feature.Numeric aux =
-    [[
-      Text _.name = name;
-      Real _.position  = position
-    ]]
-  };
-  
-  ////////////////////////////////////////////////////////////////////////////
-  Anything get(Matrix store, Real entity)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    MatDat(store, entity, _.position)
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Class @Feature.NonNumeric : @Feature.Abstract
-//////////////////////////////////////////////////////////////////////////////
-{
-  Static Text _.autodoc.description = "Class for handling with numerical "
-  "numerical features of arbitrary entities that will be stored in an "
-  "external matrix with a row for each entity. Here the stored value is the "
-  "index of the feature stored in an arbitrary domain.";
-
-  //The set of valid values for this feature indexed by name
-  Set _.domain;
-
-  ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.New = "Creates a new instance of "
-  "Class @Feature.NonNumeric";
-  Static @Feature.NonNumeric New(Text name, Real position, Set domain)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    @Feature.NonNumeric aux =
-    [[
-      Text _.name = name;
-      Real _.position  = position;
-      Set _.domain = domain    
-    ]];
-    Real SetIndexByName(aux::_.domain);
-    aux
-  }; 
-
-  ////////////////////////////////////////////////////////////////////////////
-  Anything get(Matrix store, Real entity)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real idx = MatDat(store, entity, _.position);
-    _.domain[idx]
-  }
-
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Class @FeatureSet
-//////////////////////////////////////////////////////////////////////////////
-{
-  //Stores and index by name a set of instances od @Feature.Abstract
-  Set _.feature = Copy(Empty);
-  //In each row of this matrix are stored the values or indexes of features
-  //related to an individual entity
-  Matrix _.data = Rand(0,0,0,0);
-
-  ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.New = "Creates a new instance of "
-  "Class @FeatureSet";
-  Static @FeatureSet New(Real void)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    @FeatureSet aux
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.add.feature.numeric = 
-  "Adds a new numerical feature";
-  Real add.feature.numeric(Text name)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    GraphTools::Append.Indexed(
-      _.feature,
-      @Feature.Numeric::New(name, Card(_.feature)+1),
-      name)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.add.feature.nonnumeric=
-  "Adds a new non numerical feature";
-  Real add.feature.nonnumeric(Text name, Set domain)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    GraphTools::Append.Indexed(
-      _.feature,
-      @Feature.NonNumeric::New(name, Card(_.feature)+1, domain),
-      name)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.feature.index = "Returns the index of a feature or 0 "
-  "if it not exists";
-  Real feature.index(Text name)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    FindIndexByName(_.feature, name )
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.get = "Returns the value of a feature for an entity";
-  Anything get(Real entity, 
-               Anything feature) //Real position or Text name
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    @Feature.Abstract f = _.feature[feature];
-    f::get(_.data, entity)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.get.all = "Returns a set with the values of all "
-  "features for an entity";
-  Set get.all(Real entity) 
-  ////////////////////////////////////////////////////////////////////////////
-  { 
-    EvalSet(_.feature, Anything get.all.cycle(@FeatureSet f) 
-    { 
-      f::get(_.data, entity)
-    })
-  }
-
-};
-
 
 //////////////////////////////////////////////////////////////////////////////
 Class @Graph
@@ -221,16 +38,17 @@ Class @Graph
   //Indicates if the graph is directed or symmetric
   Real _.directed;
   //Features of vertices. First feature must be the identifier of vertices
-  @FeatureSet _.vertex = @FeatureSet::New(?);
+  MatEncode::@FeatureSet _.vertex = MatEncode::@FeatureSet::New(?);
   //Number of vertices
   Real _.vertex.num = 0;  
   //Features of edges. First two features must be input and output vertex
-  @FeatureSet _.edge = @FeatureSet::New(?);
+  MatEncode::@FeatureSet _.edge = MatEncode::@FeatureSet::New(?);
   //Number of edges
   Real _.edge.num = 0;  
   //Sparse matrix storing index of edge for each cell (out,in) 
   VMatrix _.edge.map = Rand(0,0,0,0);
-  VMatrix _.edge.adjacency = Rand(0,0,0,0);
+  VMatrix _.edge.adjacency.out = Rand(0,0,0,0);
+  VMatrix _.edge.adjacency.in  = Rand(0,0,0,0);
   VMatrix _.edge.repeated = Rand(0,0,0,0);
   Real _.edge.check.repeated = ?;
   Real _.edge.check.repaired = ?;
@@ -280,8 +98,9 @@ Class @Graph
     Matrix outInRep = out|in|idx.rep;
     VMatrix triplet.rep = Triplet(outInRep,_.vertex.num,_.vertex.num);
     VMatrix _.edge.repeated := Convert(triplet.rep,"Cholmod.R.Sparse");
-    VMatrix _.edge.adjacency := Or(_.edge.repeated, Zeros(_.vertex.num));
-    VMatrix _.edge.repeated := _.edge.repeated - _.edge.adjacency;
+    VMatrix _.edge.adjacency.out := Or(_.edge.repeated, Zeros(_.vertex.num));
+    VMatrix _.edge.adjacency.in := Tra(_.edge.adjacency.out);
+    VMatrix _.edge.repeated := _.edge.repeated - _.edge.adjacency.out;
     Real _.edge.check.repeated := VMatSum(_.edge.repeated);
     Code funTriplet = Case(
     !_.edge.check.repeated,
@@ -307,6 +126,7 @@ Class @Graph
     });
     VMatrix triplet.map = funTriplet(out|in|idx,_.vertex.num,_.vertex.num);
     VMatrix _.edge.map := Convert(triplet.map,"Cholmod.R.Sparse");
+    VMatrix _.edge.map.t := Tra(_.edge.map);
     True
   };
 
@@ -408,13 +228,36 @@ Class @Graph
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.get.edge.feature = "Returns specified feature for "
-  "an edge. Feature identifier can be the name (Text) or the position (Real";
+  "an edge. Feature identifier can be the name (Text) or the position (Real)";
   Anything get.edge.feature(
     Real edge.idx,
     Anything feature.id) //Text name or Real num
   ////////////////////////////////////////////////////////////////////////////
   {
     _.edge::get(edge.idx, feature.id)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.vertex.in.degree = "Returns the number of input "
+  "vertices in edges whose output is the specified vertex";
+  ////////////////////////////////////////////////////////////////////////////
+  Real vertex.in.degree(Real vertex.index)
+  {
+    VMatSum(SubCol(_.edge.adjacency.in,[[vertex.index]]))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.vertex.out.degree = "Returns the number of output "
+  "vertices in edges whose input is the specified vertex";
+  ////////////////////////////////////////////////////////////////////////////
+  Real vertex.out.degree(Real vertex.index)
+  {
+    VMatSum(SubCol(_.edge.adjacency.out,[[vertex.index]]))
+  };
+
+  Real vertex.in.degree(Real vertex.index)
+  {
+    VMatSum(SubCol(_.edge.adjacency.out,[[vertex.inde]]))
   }
 
 /*
@@ -429,17 +272,31 @@ orden solicitado.
 Matrix get.adyacency(Real order)
 ////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////
-Devuelve los vértices adyacentes de salida de orden dado para el vértice
-especificado.  V -> ... (n-1) ... -> U
-Set get.adyacency.output(Real V, Real order)
-////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.adyacent.input = "Returns the set of vertices "
+  "U which are input adyacent with specified order n of a given output "
+  "vertex V \n"
+  "  V -> ... (n-1) ... -> U \n";
+  Set get.input.order(Real V, Real n)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix match = SubCol(_.edge.adjacency.out, [[V]]);
+    Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+    If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])    
+  };
 
-////////////////////////////////////////////////////////////////////////////
-Devuelve los vértices adyacentes U de entrada de orden dado para el vértice
-especificado.  U -> ... (n-1) ... -> V
-Set get.adyacency.input(Real V, Real order)
-////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.adyacent.output = "Returns the set of vertices "
+  "U which are output adyacent with specified order n of a given input "
+  "vertex V \n"
+  "  U -> ... (n-1) ... -> V \n";
+  Set get.output.order(Real V, Real n)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix match = SubCol(_.edge.adjacency.in, [[V]]);
+    Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+    If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])    
+  }
 
 */
 
