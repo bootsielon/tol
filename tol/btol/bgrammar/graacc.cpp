@@ -532,6 +532,16 @@ BSyntaxObject* BGrammar::FindOperand(const BText& name,
   }
   bool isGraCode = (this==GraCode());
 /* */
+  if(!found) 
+  { 
+    found = BNameBlock::LocalMember(name); 
+    found = getOperand(this, found);
+  }
+  if(!found) 
+  { 
+    found = FindLocal(name); 
+    found = getOperand(this, found);
+  }
   const BClass* cls = BClass::currentClassBuildingInstance_;
   if(cls && (this==GraCode()))  
   { 
@@ -552,17 +562,6 @@ BSyntaxObject* BGrammar::FindOperand(const BText& name,
     {
       found = met;
     }
-  }
-/* */
-  if(!found) 
-  { 
-    found = BNameBlock::LocalMember(name); 
-    found = getOperand(this, found);
-  }
-  if(!found) 
-  { 
-    found = FindLocal(name); 
-    found = getOperand(this, found);
   }
   if(!found)
   {
@@ -675,7 +674,15 @@ BOperator* BGrammar::FindOperator(const BText& name)const
   BOperator* found = NULL;
   BSyntaxObject* met = NULL;
 /* */
+  if(!found) 
+  { 
+    found = getOperator(this, BNameBlock::LocalMember(name));
+  }
   const BClass* cls = BClass::currentClassBuildingInstance_;
+  if(!found) 
+  { 
+    found = getOperator(this, FindLocal(name));
+  }
   if(!found && cls)  
   { 
     met = cls->FindMethod(name,true); 
@@ -696,15 +703,6 @@ BOperator* BGrammar::FindOperator(const BText& name)const
       found = uCode->Contens().Operator();
     }
   } 
-/* */
-  if(!found) 
-  { 
-    found = getOperator(this, BNameBlock::LocalMember(name));
-  }
-  if(!found) 
-  { 
-    found = getOperator(this, FindLocal(name));
-  }
   BGrammar* g;
   BObjByClassHash* obch=NULL;
   BObjByClassHash::const_iterator f;
