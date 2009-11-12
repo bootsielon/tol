@@ -438,19 +438,22 @@ const BText& BNameBlock::LocalName() const
     while(b)
     {
       const List* br = (const List*)b->car();
-      BToken* tok = (BToken*)br->car();
-      if((tok->TokenType()==TYPE) && (tok->Name()=="#Require"))
-      {
-        const BText& package = 
-          ((BToken*)(((const List*)(br->cdr()->car()))->car()))->Name();
-        newNameBlock.AddRequiredPackage(package);
-      } 
-      else
-      {
-        obj = GraAnything()->EvaluateTree(br);
-        if(obj)
+      if(br)
+      { 
+        BToken* tok = (BToken*)br->car();
+        if((tok->TokenType()==TYPE) && (tok->Name()=="#Require"))
         {
-          newNameBlock.AddElement(obj,true);
+          const BText& package = 
+            ((BToken*)(((const List*)(br->cdr()->car()))->car()))->Name();
+          newNameBlock.AddRequiredPackage(package);
+        } 
+        else
+        {
+          obj = GraAnything()->EvaluateTree(br);
+          if(obj)
+          {
+            newNameBlock.AddElement(obj,true);
+          }
         }
       }
       b = b->cdr();
