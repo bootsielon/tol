@@ -1,138 +1,273 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : GisTools.tol
-// PURPOSE: Defines NameBlock GisTools
+// PURPOSE: Defines Package GisTools
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
 NameBlock GisTools = [[
+//////////////////////////////////////////////////////////////////////////////
+
+#Require MatQuery;
 
 Text _.autodoc.description = "Functions and classes related with "
-"Geographic Information System (GIS), selection and classification methods "
-"over matricial data over massive geographical points.";
+"Geographic Information System (GIS), with all type of methods "
+"over large matricial geographical points.";
 Text _.autodoc.url = "";
-Set _.autodoc.keys = [["GIS","Geographic","select","classify"]];
+Set _.autodoc.keys = [["GIS","Geographic","point","distance"]];
 Set _.autodoc.authors = [[
    "vdebuen@tol-project.org"   ]];
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.SelectRowsWithValue = 
-"Selects rows of a column matrix whose cell is exactly the specified value";
-Set SelectRowsWithValue(Matrix M, Real value)
+//Abstract class to handle with a bidimensional point.
+Class @Point2D
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real r = Rows(M);
-  VMatrix V = Rand(r,1,value,value);
-  VMatrix vM = Mat2VMat(M);
-  VMatrix match = EQ(vM,V);
-  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
-  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
-};
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.numberOfPoints = 
+  "Returns the number of stored points";
+  Real numberOfPoints(Real void);
+  ////////////////////////////////////////////////////////////////////////////
 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.x = 
+  "Returns the first coordinate of the k-th point";
+  Real x(Real k);
+  ////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.SelectRowsInInterval = 
-"Selects rows of a column matrix whose cell is inside the interval defined "
-"as: \n"
-"  [min,max]: if minIncluded=True  and minIncluded=True\n"
-"  (min,max]: if minIncluded=False and minIncluded=True\n"
-"  [min,max): if minIncluded=True  and minIncluded=False\n"
-"  (min,max): if minIncluded=False and minIncluded=False\n";
-Set SelectRowsInInterval(
- Matrix M, 
- Real minIncluded,
- Real min, 
- Real max,
- Real maxIncluded )
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real r = Rows(M);
-  VMatrix Min = Rand(r,1,min,min);
-  VMatrix Max = Rand(r,1,max,max);
-  VMatrix vM = Mat2VMat(M);
-  VMatrix match =
-  Case(
-     minIncluded &  maxIncluded, And(LE(Min,vM),LE(vM,Max)),
-    !minIncluded &  maxIncluded, And(LT(Min,vM),LE(vM,Max)),
-     minIncluded & !maxIncluded, And(LE(Min,vM),LT(vM,Max)),
-    !minIncluded & !maxIncluded, And(LT(Min,vM),LT(vM,Max))
-  );
-  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
-  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.y = 
+  "Returns the second coordinate of the k-th point";
+  Real y(Real k)
+  ////////////////////////////////////////////////////////////////////////////
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.SelectRowsInHyperCube = "Selects rows of matrix "
-"M that are inside the hipercube whose side length is 2*d and is centered in "
-"point given by row matrix P ";
-Set SelectRowsInHyperCube(Matrix M, Matrix P, Real d)
+//Class to handle with just one bidimensional point that
+//isn´t externally stored
+Class @Point2D.Simple : @Point2D
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real r = Rows(M);
-  Real c = Columns(M);
-  Matrix D = Rand(r,1,d,d);
-  VMatrix match = Group("And",For(1,c, VMatrix(Real k)
+  Real _.x;
+  Real _.y;
+
+  //Just one point is stored
+  Real numberOfPoints(Real void) { 1 };
+  //Argument k is unused
+  Real x(Real k) { _.x };
+  //Argument k is unused
+  Real y(Real k) { _.y };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates an instance of @Point2D.Simple";
+  @Point2D.Simple New(Real x, Real y)
+  ////////////////////////////////////////////////////////////////////////////
   {
-    Mat2VMat(LE(Abs(SubCol(M,[[k]])-MatDat(P,1,k)),D))
-  }));
-  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
-  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
+    @Point2D.Simple new = [[
+      Real _.x = x;
+      Real _.y = y ]];
+    new
+  }
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.SelectRowsInHyperSphere = "Selects rows of "
-"matrix M that are inside the hipersphere with specified  ratio and is "
-"centered in point given by row matrix P";
-Set SelectRowsInHyperSphere(Matrix M, Matrix P, Real ratio)
+//Class to store al large set of points as rows of a matrix with 2 columns.
+Class @Point2D.Stored
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real r = Rows(M);
-  Real c = Columns(M);
-  Matrix R = Rand(r,1,ratio,ratio);
-  Matrix dist = Sqrt(SetSum(For(1,c, Matrix(Real k)
-  {
-    RPow(SubCol(M,[[k]])-MatDat(P,1,k),2)
-  })));
-  VMatrix match = Mat2VMat(LE(dist,R));
-  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
-  If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
-};
+  VMatrix _.xy;
 
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.ClassifyRowsByRank = "Classifies the rows of a column "
-"matrix by the ranking position respect a set of R sorted numbers. The class "
-"of the i-th row will be assigned in this way:\n"
-" class[i] = 1   <=>                 M[i] < rankBound[1]\n"
-" class(i] = k+1 <=> rankBound[k] <= M[i] < rankBound[k+1]; k=1...R\n"
-" class[i] = R+1 <=> rankBound[R] <= M[i]\n";
-Matrix ClassifyRowsByRank(Matrix M, Set rankBound)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real m = Rows(M);
-  Real R = Card(rankBound);
-  Real min = 
+  Real numberOfPoints(Real void) { VRows(_.xy) };
+  Real x(Real k) { VMatDat(_.xy,k,1) };
+  Real y(Real k) { VMatDat(_.xy,k,1) };
+
+  @Point2D.Simple center(Real void)
   {
-    Real aux = MatMin(M);
-    aux - Abs(aux) - 1
+    Real m = VRows(_.xy);
+    Matrix c = Rand(m,1,1/m,1/m)*_.xy;
+    @Point2D.Simple::New(MatDat(c,1,1), MatDat(c,1,2))
   };
-  Real max = 
-  { 
-    Real aux = MatMax(M);
-    aux + Abs(aux) + 1
-  };
-  Set rnk = SetOfReal(min)<<rankBound<<SetOfReal(max);
-  VMatrix class = Zeros(m,1);
-  VMatrix vM = Mat2VMat(M);
-  Real r = 1;
-  VMatrix constant = Rand(m,1,1,1);
-  While(r<=R+1,
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates an instance of @Point2D.Stored";
+  @Point2D.Stored New(VMatrix xy)
+  ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix left.match = LE(constant*rnk[r],vM);
-    VMatrix right.match = LT(vM,constant*rnk[r+1]);
-    VMatrix class := class + And(left.match,right.match)*r;
-    Real r := r+1
-  });
-  VMat2Mat(class)
+    If(Colunms(xy)>2,
+      WriteLn("[@Point2D.Stored::New] Only 2 first of "<<Colunms(xy)+
+      " columns of argument xy will be used","W"));
+    If(Colunms(xy)<2,
+      WriteLn("[@Point2D.Stored::New] Almost 2 columns instead of "<<
+      Colunms(xy)+" are needed for argument xy","E"));
+    @Point2D.Simple new = [[
+      VMatrix _.xy = xy ]];
+    new
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Abstract class to inherite bidimensional interpolating classes.
+Class @Interpolate2D
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Bidimensional points in cartesian coordinates. Dim: _.m x 2
+  @Point2D.Stored _.P;
+  //Tarjet data to be interpolated, Dim : _.m x _.n
+  VMatrix _.F;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Auxiliar members
+  ////////////////////////////////////////////////////////////////////////////
+  //Number of interpolation points
+  Real _.m = ?;
+  //Number of independent interpolation functions.
+  //When _.n==1 it´s called the scalar interpolating case
+  //When _.n>=2 it´s called the vectorial interpolating case
+  Real _.n = ?;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.build = 
+  "Initializes all members which are needed to build the interpolating "
+  "methods";
+  Real build(Real void);
+  ////////////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.eval.vector = 
+  "Evaluates all interpolation function at point x,y";
+  VMatrix eval.vector(@Point2D p);
+  ////////////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.eval = 
+  "Evaluates the first interpolation function at point x,y. It's useful in "
+  "the scalar case, when _.F has just one column (_.n==1)";
+  Real eval(@Point2D p)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatDat(eval.vector(p),1,1)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Abstract class to inherite bidimensional weighted interpolating classes.
+Class @Interpolate2D.Weighted : @Interpolate2D
+//////////////////////////////////////////////////////////////////////////////
+{
+  //In order to be more efficient, the points farther of this distance will 
+  //be skipped due its weight is almost null 
+  Real _.maxDistance;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Auxiliar members
+  ////////////////////////////////////////////////////////////////////////////
+  Set     _.x.range   = Copy(Empty);
+  VMatrix _.x.class   = Rand(0,0,0,0);
+  Set     _.y.range   = Copy(Empty);
+  VMatrix _.y.class   = Rand(0,0,0,0);
+  Set     _.point.idx = Rand(0,0,0,0);
+  Set     _.grid      = Copy(Empty);
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real build(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.m := VRows(_.P::_.XY);
+    Real _.n := VRows(_.F);
+    If(VColunms(_.P::_.XY)!=2,
+      WriteLn("Interpolate2D.Weighted::_.P::_.XY must have 2 columns instead "
+              "of "<<Colunms(_.P::_.XY)));
+    If(VRows(_.F)!=m,
+      WriteLn("Interpolate2D.Weighted::_.XY must have 2 columns instead of "
+              <<Colunms(_.P::_.XY)));
+
+    Set _.point.idx := Range(1,_.m,1);
+    VMatrix x = SubCol(_.P::_.xy,[[1]]);
+    VMatrix y = SubCol(_.P::_.xy,[[2]]);
+    Set _.x.range := Range(VMatMin(x),VMatMax(x),_.maxDistance);
+    Set _.y.range := Range(VMatMin(y),VMatMax(y),_.maxDistance);
+    VMatrix _.x.class := MatQuery::ClassifyRowsByRank(x,_.x.range);
+    VMatrix _.y.class := MatQuery::ClassifyRowsByRank(y,_.y.range);
+    Set xy.class = Classify(point.idx, Real(Real a, Real b)
+    {
+      Real x.cmp = Compare(VMatDat(_.x.class,a,1),VMatDat(_.x.class,b,1));
+      If(x.cmp, x.cmp,
+      Real y.cmp = Compare(VMatDat(_.y.class,a,1),VMatDat(_.y.class,b,1)))
+    });
+    Set _.grid := For(1,Card(_.x.range)+1,Set(Real i)
+    {
+      For(1,Card(_.y.range)+1,Set(Real j)
+      {
+        Copy(Empty)
+      })
+    });
+    Set EvalSet(xy.class, Real(Set cl)
+    {
+      Real k = cl[1];
+      Real x.class = MatDat(_.x.class,k,1);
+      Real y.class = MatDat(_.y.class,k,1);
+      Set _.grid[x.class][y.class] := cl;
+      k
+    });
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.get.distance = 
+  "Evaluates the weight between a given point p and each point of a 2 "
+  "columns matrix of coordinates";
+  VMatrix get.distance(@Point2D p, VMatrix xy)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(xy);
+    VMatrix p.x = Rand(m,1,p::X(1),p::X(1));
+    VMatrix p.y = Rand(m,1,p::Y(1),p::Y(1));
+    VMatrix x = SubCol(xy,[[1]]);
+    VMatrix y = SubCol(xy,[[1]]);
+    RPow(RPow(x,2)+RPow(y,2),0.5)
+  };
+ 
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix eval.vector(@Point2D p)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix p.x = Rand(1,1,p::X(1),p::X(1));
+    VMatrix p.y = Rand(1,1,p::Y(1),p::Y(1));
+    VMatrix p.xy = p.x | p.y;
+    Real p.x.class = VMatDat(MatQuery::ClassifyRowsByRank(p.x,_.x.range),1,1);
+    Real p.y.class = VMatDat(MatQuery::ClassifyRowsByRank(p.y,_.y.range),1,1);
+    Real i.min = Max(1,p.x.class-1);
+    Real i.max = Min(Card(_.x.range)+1,p.x.class+1);
+    Real j.min = Max(1,p.y.class-1);
+    Real j.max = Min(Card(_.y.range)+1,p.y.class+1);
+    Set p.candidates = Bingroup("<<",For(i.min, i.max, Real(Real i)
+    {
+      Bingroup("<<",For(j.min, j.max, Real(Real j)
+      {
+        _.grid[i][j]  
+      }))
+    }));
+    VMatrix xy.candidates = SubRow(_.P::_.xy, p.neighborhood);
+    VMatrix d.candidates = get.distance(p,xy.candidates);
+    Set neighborhood = MatQuery::SelectRowsInInterval(d.candidates, 
+      False, 0, _.maxDistance, True);
+    VMatrix d = SubRows(d.candidates, neighborhood);
+    VMatrix w = RPow(d,-0.5);
+    Tra(w/VMatSum(w)) * SubRow(SubRow(_.F,p.candidates),neighborhood)
+  };
+
+  Static Text _.autodoc.member.New = "Creates an instance of "
+  "@Interpolate2D.Weighted";
+  @Interpolate2D.Weighted New(VMatrix XY, VMatrix F, Real maxDistance)
+  {
+    @Interpolate2D.Weighted new =
+    [[
+      @Point2D.Stored _.P = @Point2D.Stored::New(XY);
+      VMatrix _.F = F;
+      Real _.maxDistance = maxDistance
+    ]]
+  }
 }
 
-
 ]];
+
+
