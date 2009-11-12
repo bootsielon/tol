@@ -1,0 +1,225 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : MatEncode.tol
+// PURPOSE: Defines Package MatEncode
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock MatEncode =
+//////////////////////////////////////////////////////////////////////////////
+[[
+
+#Require HashMap;
+#Require MatQuery;
+
+Text _.autodoc.description = "Handling and storing generic features, "
+"numerical or not, in an efficient way by means of encoded matrices.";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["encode","decode","category","feature"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org" ]];
+
+//////////////////////////////////////////////////////////////////////////////
+Class @Feature
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Class for handling with abstract "
+  "features of arbitrary entities, numerical or not, that will be stored in "
+  "an external matrix with a row for each entity.";
+  //The name of the feature
+  Text _.name;
+  //The number of the feature in the full set of features
+  Real _.position;
+
+  Real is.numeric(Real void);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.get = "Returns the stored value corresponding "
+  "to this feature related to an individual entity.";
+  Anything get(Matrix store, Real entity)
+  ////////////////////////////////////////////////////////////////////////////
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @Feature.Numeric : @Feature
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Class for handling with numerical "
+  "numerical features of arbitrary entities that will be stored in an "
+  "external matrix with a row for each entity.";
+
+  Real is.numeric(Real void) { True };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates a new instance of "
+  "Class @Feature.Numeric";
+  Static @Feature.Numeric New(Text name, Real position)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Feature.Numeric aux =
+    [[
+      Text _.name = name;
+      Real _.position  = position
+    ]]
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Anything get(Matrix store, Real entity)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    MatDat(store, entity, _.position)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @Feature.NonNumeric : @Feature
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Class for handling with numerical "
+  "numerical features of arbitrary entities that will be stored in an "
+  "external matrix with a row for each entity. Here the stored value is the "
+  "index of the feature stored in an arbitrary domain.";
+
+  //The set of valid values for this feature indexed by name
+  Set _.domain;
+
+  Real is.numeric(Real void) { False };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates a new instance of "
+  "Class @Feature.NonNumeric";
+  Static @Feature.NonNumeric New(Text name, Real position, Set domain)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Feature.NonNumeric aux =
+    [[
+      Text _.name = name;
+      Real _.position  = position;
+      Set _.domain = domain    
+    ]];
+    Real SetIndexByName(aux::_.domain);
+    aux
+  }; 
+
+  ////////////////////////////////////////////////////////////////////////////
+  Anything get(Matrix store, Real entity)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real idx = MatDat(store, entity, _.position);
+    _.domain[idx]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real domain.index(Text name)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    FindIndexByName(_.domain, name)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @FeatureSet
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Stores and index by name a set of instances od @Feature
+  Set _.feature = Copy(Empty);
+  //In each row of this matrix are stored the values or indexes of features
+  //related to an individual entity
+  Matrix _.data = Rand(0,0,0,0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates a new instance of "
+  "Class @FeatureSet";
+  Static @FeatureSet New(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @FeatureSet aux
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.add.feature.numeric = 
+  "Adds a new numerical feature";
+  Real add.feature.numeric(Text name)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    HashMap::Append.Indexed(
+      _.feature,
+      @Feature.Numeric::New(name, Card(_.feature)+1),
+      name)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.add.feature.nonnumeric=
+  "Adds a new non numerical feature";
+  Real add.feature.nonnumeric(Text name, Set domain)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    HashMap::Append.Indexed(
+      _.feature,
+      @Feature.NonNumeric::New(name, Card(_.feature)+1, domain),
+      name)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.feature.index = "Returns the index of a feature or 0 "
+  "if it not exists";
+  Real feature.index(Text name)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    FindIndexByName(_.feature, name )
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get = "Returns the value of a feature for an entity";
+  Anything get(Real entity, 
+               Anything feature) //Real position or Text name
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Feature f = _.feature[feature];
+    f::get(_.data, entity)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.get.all = "Returns a set with the values of all "
+  "features for an entity";
+  Set get.all(Real entity) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    EvalSet(_.feature, Anything get.all.cycle(@FeatureSet f) 
+    { 
+      f::get(_.data, entity)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.select.feature.with.value = 
+  "Returns a column matrix with True in rows where given feature has "
+  "specified value";
+  VMatrix select.feature.with.value(
+    Text feature.name, 
+    Anything value.id) //Text value identifier in domain or  Real value
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real num = _.feature.index(feature.name);
+    @Feature f = _.feature[num];
+    Real value = If(f::is.numeric(0),
+      value.id,
+      f::_.domain.index(value.id));
+    MatQuery::MatchRowsWithValue(SubCol(_.data,[[num]]),value)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.intersect.feature.with.value = 
+  "Returns a column matrix with True in rows where given feature has "
+  "specified value";
+  VMatrix intersect.feature.with.value(
+    Text feature.name, 
+    Anything value.id, //Text value identifier in domain or  Real value
+    VMatrix match)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    And(match,select.feature.with.value(feature.name,value.id))
+  }
+}
+
+]];
