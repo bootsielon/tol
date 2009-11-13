@@ -28,18 +28,18 @@ Text session.description =
 
 
 //Number of variables of each observational node
-Real n = IntRand(20,30);
+Real n = IntRand(10,10);
 Real S = 7;
 //Data length of each observational node
 Real m  = IntRand(300,600);
 //Number of observational nodes
-Real K1 = IntRand(2,4);
+Real K1 = IntRand(2,2);
 //
 Real enableARMA = true;
 //Regular AR Degree
 Real p1 = enableARMA*IntRand(0,1);
 //Seasonal AR Degree
-Real pS = enableARMA*IntRand(1,1);
+Real pS = enableARMA*0*IntRand(1,1);
 //Regular AR Degree
 Real q1 = enableARMA*IntRand(0,Max(0,1-p1));
 //Seasonal AR Degree

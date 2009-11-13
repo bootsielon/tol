@@ -17,7 +17,7 @@ Text summary_ =
 Real numErr0 = Copy(NError);
 
 Real PutRandomSeed(0);
-
+	
 //Random seed setting
 //VBR: Con estas semillas se cae sólo en la batería de tests pero no en tolbase
 //Real PutRandomSeed(208774589);
@@ -36,7 +36,7 @@ BysMcmc::@Config bsr.config = [[
   Real mcmc.cacheLength = 100;
   Real mcmc.burnin = 100;
   Real bsr.linBlk.MH.useAfterIter = 1/0;
-  Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::DifEq;
+  Real bsr.arimaStoreInitialValues = True;
 //Code bsr.scalarSampler.armaBlock = BysMcmc::Options::Scalar.Sampler::Arms;
 //Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Arms;
   Real do.resume = 0;
@@ -60,6 +60,13 @@ BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
 
 Real estim::Run(0);
 
+Matrix U0.mcmc = cycler::_.sampler::_.arm.blk::_.U0.mcmc;
+Set U0.names = cycler::_.sampler::_.arm.blk::_.U0.names;
+Set U.report = BysMcmc::Inference::report(
+  "InitialValues", 
+  U0.names,
+  bsr.config::GetReportConfig(0),
+  U0.mcmc);
 
 Struct @CompareStruct 
 {
@@ -110,6 +117,9 @@ Set CompareChart = Extract(CompareTable,3,4);
 
 Set DifChart  = Extract(CompareTable,5);
 Set KDifChart = Extract(CompareTable,7);
+
+Matrix U0.mcmc = cycler::_.sampler::_.arm.blk::_.U0.mcmc;
+Set U0.names = cycler::_.sampler::_.arm.blk::_.U0.names;
 
 /* */
 
