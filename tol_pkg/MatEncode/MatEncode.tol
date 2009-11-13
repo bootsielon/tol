@@ -9,8 +9,8 @@ NameBlock MatEncode =
 //////////////////////////////////////////////////////////////////////////////
 [[
 
-#Require HashMap;
-#Require MatQuery;
+  #Require HashMap;
+  #Require MatQuery;
 
 Text _.autodoc.description = "Handling and storing generic features, "
 "numerical or not, in an efficient way by means of encoded matrices.";
@@ -36,7 +36,7 @@ Class @Feature
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.get = "Returns the stored value corresponding "
   "to this feature related to an individual entity.";
-  Anything get(Matrix store, Real entity)
+  Anything get(VMatrix store, Real entity)
   ////////////////////////////////////////////////////////////////////////////
 };
 
@@ -64,10 +64,10 @@ Class @Feature.Numeric : @Feature
   };
   
   ////////////////////////////////////////////////////////////////////////////
-  Anything get(Matrix store, Real entity)
+  Anything get(VMatrix store, Real entity)
   ////////////////////////////////////////////////////////////////////////////
   {
-    MatDat(store, entity, _.position)
+    VMatDat(store, entity, _.position)
   }
 };
 
@@ -102,10 +102,10 @@ Class @Feature.NonNumeric : @Feature
   }; 
 
   ////////////////////////////////////////////////////////////////////////////
-  Anything get(Matrix store, Real entity)
+  Anything get(VMatrix store, Real entity)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real idx = MatDat(store, entity, _.position);
+    Real idx = VMatDat(store, entity, _.position);
     _.domain[idx]
   };
 
@@ -125,7 +125,7 @@ Class @FeatureSet
   Set _.feature = Copy(Empty);
   //In each row of this matrix are stored the values or indexes of features
   //related to an individual entity
-  Matrix _.data = Rand(0,0,0,0);
+  VMatrix _.data = Rand(0,0,0,0);
 
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.New = "Creates a new instance of "
@@ -161,9 +161,9 @@ Class @FeatureSet
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.feature.index = "Returns the index of a feature or 0 "
-  "if it not exists";
-  Real feature.index(Text name)
+  Text _.autodoc.member.get.feature.index = "Returns the index of a feature "
+  "or 0 if it not exists";
+  Real get.feature.index(Text name)
   ////////////////////////////////////////////////////////////////////////////
   {
     FindIndexByName(_.feature, name )
@@ -194,13 +194,14 @@ Class @FeatureSet
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.match.feature.with.value = 
   "Returns a column matrix with True in rows where given feature has "
-  "specified value";
+  "specified value, numerical or not. If the value is not numeric argument "
+  "'value.id' must be its name to search it in feature domain";
   VMatrix match.feature.with.value(
     Text feature.name, 
     Anything value.id) //Text value identifier in domain or  Real value
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real num = _.feature.index(feature.name);
+    Real num = get.feature.index(feature.name);
     @Feature f = _.feature[num];
     Real value = If(f::is.numeric(0),
       value.id,
@@ -209,17 +210,58 @@ Class @FeatureSet
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.and.match.feature.with.value = 
-  "Returns a column matrix with True in rows where given feature has "
-  "specified value";
-  VMatrix and.match.feature.with.value(
+  Text _.autodoc.member.match.feature.in.interval = 
+  "Returns a column matrix with True in rows where given numerical feature "
+  "whose cell is inside the interval defined as: \n"
+  "  [min,max]: if minIncluded=True  and minIncluded=True\n"
+  "  (min,max]: if minIncluded=False and minIncluded=True\n"
+  "  [min,max): if minIncluded=True  and minIncluded=False\n"
+  "  (min,max): if minIncluded=False and minIncluded=False\n";
+  VMatrix match.feature.in.interval(
     Text feature.name, 
-    Anything value.id, //Text value identifier in domain or  Real value
-    VMatrix match)
+    Real minIncluded,
+    Real min, 
+    Real max,
+    Real maxIncluded) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    And(match,select.feature.with.value(feature.name,value.id))
+    Real num = get.feature.index(feature.name);
+    @Feature f = _.feature[num];
+    MatQuery::MatchRowsInInterval(
+      SubCol(_.data,[[num]]),
+      minIncluded,
+      min, 
+      max,
+      maxIncluded)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.extract.feature = 
+  "Returns a column matrix with all rows with numerical code of a given "
+  "feature";
+  VMatrix extract.feature(
+    Text feature.name, 
+    Set row.indexes) //Text value identifier in domain or  Real value
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real col = get.feature.index(feature.name);
+    SubCol(_.data,[[col]])
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.extract.feature.rows = 
+  "Returns a column matrix with selected rows with numerical code of a "
+  "given feature";
+  VMatrix extract.feature.rows(
+    Text feature.name, 
+    Set row.indexes) //Text value identifier in domain or  Real value
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real col = get.feature.index(feature.name);
+    SubRow(SubCol(_.data,[[col]]),row.indexes)
   }
+
+
 }
 
 ]];
