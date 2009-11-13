@@ -14,7 +14,7 @@ Real rndSeed = 0;
 Real removeRepeatedEdges = True;
 
 #Require GraphTools;
-#Embed "./define.random.graph.tol";
+#Embed "../define.random.graph.tol";
 
 Set vertex.names_ = graph::get.vertex.names(?);
 
