@@ -14,9 +14,9 @@ WriteLn("Current Random Seed = "<<rndSeed);
 
 
 Real If(ObjectExist("Real","vertex.num"), vertex.num, 
-  vertex.num = IntRand(2,100) );
+  vertex.num = IntRand(2,1000) );
 Real If(ObjectExist("Real","edge.num"), edge.num, 
-  edge.num = IntRand(1,(vertex.num)^1.6) );
+  edge.num = IntRand(1,(vertex.num)^1.5) );
 Real If(ObjectExist("Real","directed"), directed, 
  directed = IntRand(0,1) );
 Real If(ObjectExist("Real","removeRepeatedEdges"), removeRepeatedEdges, 
@@ -40,10 +40,10 @@ Real graph::initialize(vertex.names);
 Real graph::_.edge::add.feature.numeric("Length");
 Real graph::_.edge::add.feature.numeric("Hight");
 
-Matrix data = 
+VMatrix data = Mat2VMat(
   { InOut  = RandCombination(edge.num,vertex.num,2) } |
   { Length = Rand(edge.num, 1, 10, 100) } |
-  { Hight  = Rand(edge.num, 1,  1,  10) };
+  { Hight  = Rand(edge.num, 1,  1,  10) });
 
 Real graph::edge.build(data,removeRepeatedEdges);
 

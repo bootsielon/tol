@@ -13,7 +13,9 @@ Real numWar0 = Copy(NWarning);
 Real rndSeed = 0;
 Real removeRepeatedEdges = True;
 
-#Require GraphTools;
+  #Require GraphTools;
+//#Embed "../../../_embed_all.tol";
+
 #Embed "../define.random.graph.tol";
 
 Set vertex.names_ = graph::get.vertex.names(?);
@@ -56,7 +58,7 @@ Real If(directed,
    Real ok.4 := ok.3_
 });
 
-Real high = MatDat(data,edge.idx,4);
+Real high = VMatDat(data,edge.idx,4);
 Real high.1 = graph::get.edge.feature(edge.idx,4);
 Real high.2 = graph::get.edge.feature(edge.idx,"Hight");
 Real ok.5 = Eq(high,high.1,high.2);

@@ -12,7 +12,8 @@ Text summary_ = "checking matrix row selection";
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
-#Require MatQuery;
+  #Require MatQuery;
+//#Embed "../../../_embed_all.tol";
 
 Real t1 = Copy(Time);
 Real rndSeed = 0;
@@ -27,10 +28,10 @@ Set q = MatSet(Tra(Quantile(VMat2Mat(Length), SetCol(q.def))))[1];
 Real t2 = Copy(Time);
 WriteLn("Quantile time "<<(t2-t1)+" seconds");
 
-WriteLn("ClassifyColumnByRank over edge's length... ");
+WriteLn("ClassifyRowsByRank over edge's length... ");
 VMatrix length.class = MatQuery::ClassifyRowsByRank(Length, q);
 Real t3 = Copy(Time);
-WriteLn("ClassifyColumnByRank time "<<(t3-t2)+" seconds");
+WriteLn("ClassifyRowsByRank time "<<(t3-t2)+" seconds");
 
 Real q.select = IntRand(2,Card(q)-1);
 Set length.select.1 = MatQuery::SelectRowsWithValue(
