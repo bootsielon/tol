@@ -625,6 +625,7 @@ Class @BlockArima : @BlockSampler
         });
         aux::u0  
       });  
+      Real oldResBlockNum := pd->resBlockNum;
       VMatrix z0 = almagro::Get.Z0(u0);
       VMatrix a0 = almagro::Get.A0(u0);
     //WriteLn("TRACE"+_MID+" draw.scalar almagro::_.p="<<almagro::_.p);
