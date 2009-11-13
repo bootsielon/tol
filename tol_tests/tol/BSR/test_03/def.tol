@@ -33,17 +33,17 @@ Real S = 7;
 //Data length of each observational node
 Real m  = IntRand(300,600);
 //Number of observational nodes
-Real K1 = IntRand(2,2);
+Real K1 = IntRand(2,4);
 //
 Real enableARMA = true;
 //Regular AR Degree
-Real p1 = enableARMA*IntRand(0,1);
+Real p1 = enableARMA*IntRand(0,2);
 //Seasonal AR Degree
-Real pS = enableARMA*0*IntRand(1,1);
+Real pS = enableARMA*IntRand(0,2);
 //Regular AR Degree
 Real q1 = enableARMA*IntRand(0,Max(0,1-p1));
 //Seasonal AR Degree
-Real qS = enableARMA*0*IntRand(0,Max(0,1-pS));
+Real qS = enableARMA*IntRand(0,Max(0,1-pS));
 //Number of missing values in input matrix
 Real MissInp = Max(4,IntRand(0.01*n*K1,0.05*n*K1));
 //Number of missing values in input matrix

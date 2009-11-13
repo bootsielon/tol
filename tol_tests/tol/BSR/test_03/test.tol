@@ -118,8 +118,6 @@ Set CompareChart = Extract(CompareTable,3,4);
 Set DifChart  = Extract(CompareTable,5);
 Set KDifChart = Extract(CompareTable,7);
 
-Matrix U0.mcmc = cycler::_.sampler::_.arm.blk::_.U0.mcmc;
-Set U0.names = cycler::_.sampler::_.arm.blk::_.U0.names;
 
 /* */
 
