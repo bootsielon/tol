@@ -8,7 +8,7 @@
 NameBlock GisTools = [[
 //////////////////////////////////////////////////////////////////////////////
 
-#Require MatQuery;
+  #Require MatQuery;
 
 Text _.autodoc.description = "Functions and classes related with "
 "Geographic Information System (GIS), with all type of methods "
@@ -83,8 +83,8 @@ Class @Point2D.Stored
   @Point2D.Simple center(Real void)
   {
     Real m = VRows(_.xy);
-    Matrix c = Rand(m,1,1/m,1/m)*_.xy;
-    @Point2D.Simple::New(MatDat(c,1,1), MatDat(c,1,2))
+    VMatrix c = Rand(m,1,1/m,1/m)*_.xy;
+    @Point2D.Simple::New(VMatDat(c,1,1), VMatDat(c,1,2))
   };
 
   ////////////////////////////////////////////////////////////////////////////
