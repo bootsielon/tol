@@ -33,6 +33,10 @@ Class @BlockArima : @BlockSampler
   Set       _.paramDesc      = Copy(Empty); 
   VMatrix   _.difFilter      = Rand(0,0,0,0);
   Set       _.segment.free.index = Copy(Empty);
+  VMatrix   _.U0 = Rand(0,1,0,0); 
+  Matrix    _.U0.cache = Rand(0,0,0,0); 
+  Matrix    _.U0.mcmc = Rand(0,0,0,0); 
+  Set       _.U0.names = Copy(Empty);
 
   //--------------------------------------------------------------------------
   //Methods
@@ -85,9 +89,10 @@ Class @BlockArima : @BlockSampler
     Polyn ma = 1;
     Real numDifData = m;
     VMatrix D = Eye(m);
+    VMatrix u0 = Rand(0,0,0,0);
     Set segment->ArimaAuxInfo := 
     [[
-      numPar, m, difDegree, p, q, numDifData, dif, ar, ma, D
+      numPar, m, difDegree, p, q, numDifData, dif, ar, ma, D, u0
     ]];
     Real SetIndexByName(segment->ArimaAuxInfo);
   //WriteLn("TRACE"+_MID+" initializeNoArimaBlock before _.difFilter:"<<_.difFilter);
@@ -190,12 +195,32 @@ Class @BlockArima : @BlockSampler
     VMatrix L_ma  = Rand(0,0,0,0);
     Set Li_ar_factors = Copy(Empty);
     Set L_ma_factors = Copy(Empty);
-  //WriteLn("TRACE"+_MID+" initializeArimaBlock["<<resBlockNum_+"] 2.2.7 "+Time);
+    VMatrix u0 = Rand(0,0,0,0);
+    WriteLn("TRACE"+_MID+" initializeArimaBlock 3 ");
+    Set If(_.config::bsr.arimaStoreInitialValues, 
+    {
+      WriteLn("TRACE"+_MID+" initializeArimaBlock 4.1 p="<<p);
+      Set z0.names = For(1,p,Text(Real k)
+      {
+        Text name = segment->Name+".InitialValue.Noise."+IntText(k);
+        Eval(name+"=name")
+      });
+      WriteLn("TRACE"+_MID+" initializeArimaBlock 4.2 q="<<q);
+      Set a0.names = For(1,q,Text(Real k)
+      {
+        Text name = segment->Name+".InitialValue.Residual."+IntText(k);
+        Eval(name+"=name")
+      });
+      Set u0.names = z0.names<<a0.names;
+      WriteLn("TRACE"+_MID+" initializeArimaBlock after 4.3 u0.names=\n"<<u0.names);
+      Append(_.U0.names, u0.names, True)
+    });
+    WriteLn("TRACE"+_MID+" initializeArimaBlock 5 ");
     Set segment->ArimaAuxInfo := 
     [[
        numPar, m, difDegree, p, q, numDifData, 
        dif, ar, ma, Li_ar, L_ma ,Li_ar_factors, L_ma_factors,
-       D, equIdxVec
+       D, equIdxVec, u0
     ]];
     Real SetIndexByName(segment->ArimaAuxInfo);
     1
@@ -537,6 +562,11 @@ Class @BlockArima : @BlockSampler
   {
   //WriteLn("TRACE"+_MID+" draw.scalar [iter "<<numSim+"] 1 ");
     Matrix noise_ = VMat2Mat(noise);
+    Real oldResBlockNum = -1;
+    VMatrix If(_.config::bsr.arimaStoreInitialValues, 
+    {
+      VMatrix _.U0 := Rand(0,1,0,0)
+    }); 
     Set arma.draw.all = 
     EvalSet(_.segment.free.index, Real arma.arms.draw(Real paramNum)
     {
@@ -583,7 +613,18 @@ Class @BlockArima : @BlockSampler
       Polyn  ma = ARIMAGetMA(arima);
       NameBlock almagro = ARMAProcess::Eval.Almagro(ar,ma,z_,sigma);
 
-      VMatrix u0 = almagro::Draw.U_cond_Z(0);
+      VMatrix u0 = If(oldResBlockNum == pd->resBlockNum,
+      {
+        aux::u0
+      },
+      {
+        aux::u0 := almagro::Draw.U_cond_Z(0);
+        If(_.config::bsr.arimaStoreInitialValues, 
+        {
+          _.U0 := _.U0 << aux::u0
+        });
+        aux::u0  
+      });  
       VMatrix z0 = almagro::Get.Z0(u0);
       VMatrix a0 = almagro::Get.A0(u0);
     //WriteLn("TRACE"+_MID+" draw.scalar almagro::_.p="<<almagro::_.p);
@@ -608,6 +649,25 @@ Class @BlockArima : @BlockSampler
 
     //WriteLn("TRACE"+_MID+" draw.scalar pd->coef="<<pd->coef);
       pd->coef
+    });
+
+    Matrix If(_.config::bsr.arimaStoreInitialValues,
+    {
+      Case(
+      numSim==1,
+      {
+        _.U0.mcmc := Rand(0,VRows(_.U0),0,0);
+        _.U0.cache := VMat2Mat(_.U0,True)
+      },
+      numSim%100,
+      {
+        _.U0.cache := _.U0.cache << VMat2Mat(_.U0,True)
+      },
+      1==1,
+      {
+        _.U0.mcmc := _.U0.mcmc << _.U0.cache;
+        _.U0.cache := Rand(0,VRows(_.U0),0,0)
+      })
     });
   //Real show.arma(0);
     Matrix values = SetCol(arma.draw.all);
@@ -802,6 +862,8 @@ Class @BlockArima : @BlockSampler
     Set _.NoiseDistrib = NoiseDistrib;
     Set _.arimaStructBlock = 
     {
+      BysMcmc::@Config _.config := Copy(config);
+
     //WriteLn("TRACESelecting noise with known wariance");
       Select(NoiseDistrib, Real(@BSR.NoiseDistrib segment)
       { Card(segment->Arima)>0 })

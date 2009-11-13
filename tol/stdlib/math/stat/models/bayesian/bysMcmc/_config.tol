@@ -137,6 +137,8 @@ Class @Config
   Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Slice;
   //Arima filter method
   Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
+  //Enables/disables storement of the Markov chain of initial values 
+  Real bsr.arimaStoreInitialValues = False;
 //===========================================================================
 //CODA and other diagnostic report configuration
 //===========================================================================
@@ -187,6 +189,20 @@ Class @Config
     BysMcmc::Options::DBApi.Master.Sampler::Monophasic;
   //If true an internal TOL profiling will be executed
   Real do.mcmc.profiler = False;
+ 
+  @BysInf.Report.Config GetReportConfig(Real void)
+  {
+    @BysInf.Report.Config
+    (
+      report.raftery.diag.q,
+      report.raftery.diag.r,
+      report.raftery.diag.s,
+      report.raftery.diag.eps,
+      report.acf.lag,
+      report.histogram.parts,
+      report.kerDens.points
+    )
+  };
 
   ////////////////////////////////////////////////////////////////////////////
   Static @Config Default(Real unused)
