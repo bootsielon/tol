@@ -17,8 +17,7 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-#Embed "../../MatQuery.tol";
-//#Require MatQuery;
+#Require MatQuery;
 
 //The order of magnitude required for number of geographic points
 Real point.num.approx = 20000;

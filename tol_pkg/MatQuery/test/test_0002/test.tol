@@ -12,9 +12,7 @@ Text summary_ = "checking matrix row selection";
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
-
-#Embed "../../MatQuery.tol";
-//#Require MatQuery;
+#Require MatQuery;
 
 Real t1 = Copy(Time);
 Real rndSeed = 0;
