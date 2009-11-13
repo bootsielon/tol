@@ -196,26 +196,26 @@ Class @BlockArima : @BlockSampler
     Set Li_ar_factors = Copy(Empty);
     Set L_ma_factors = Copy(Empty);
     VMatrix u0 = Rand(0,0,0,0);
-    WriteLn("TRACE"+_MID+" initializeArimaBlock 3 ");
+  //WriteLn("TRACE"+_MID+" initializeArimaBlock 3 ");
     Set If(_.config::bsr.arimaStoreInitialValues, 
     {
-      WriteLn("TRACE"+_MID+" initializeArimaBlock 4.1 p="<<p);
+    //WriteLn("TRACE"+_MID+" initializeArimaBlock 4.1 p="<<p);
       Set z0.names = For(1,p,Text(Real k)
       {
         Text name = segment->Name+".InitialValue.Noise."+IntText(k);
         Eval(name+"=name")
       });
-      WriteLn("TRACE"+_MID+" initializeArimaBlock 4.2 q="<<q);
+    //WriteLn("TRACE"+_MID+" initializeArimaBlock 4.2 q="<<q);
       Set a0.names = For(1,q,Text(Real k)
       {
         Text name = segment->Name+".InitialValue.Residual."+IntText(k);
         Eval(name+"=name")
       });
       Set u0.names = z0.names<<a0.names;
-      WriteLn("TRACE"+_MID+" initializeArimaBlock after 4.3 u0.names=\n"<<u0.names);
+    //WriteLn("TRACE"+_MID+" initializeArimaBlock after 4.3 u0.names=\n"<<u0.names);
       Append(_.U0.names, u0.names, True)
     });
-    WriteLn("TRACE"+_MID+" initializeArimaBlock 5 ");
+  //WriteLn("TRACE"+_MID+" initializeArimaBlock 5 ");
     Set segment->ArimaAuxInfo := 
     [[
        numPar, m, difDegree, p, q, numDifData, 
