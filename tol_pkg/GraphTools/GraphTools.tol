@@ -8,8 +8,8 @@
 NameBlock GraphTools =
 //////////////////////////////////////////////////////////////////////////////
 [[
-#Require MatEncode;
-#Require MatQuery;
+  #Require MatEncode;
+  #Require MatQuery;
 
 Text _.autodoc.description = "Functions and classes related with Graph "
   "theory. In order to get faster behaviour, internal implementation uses "
@@ -76,7 +76,7 @@ Class @Graph
       k
     });
     Real _.vertex::add.feature.nonnumeric("Identifier", vertex.names);
-    Matrix _.vertex::_.data := DifEq(1/(1-B),Rand(_.vertex.num,1,1,1));
+    VMatrix _.vertex::_.data := DifEq(1/(1-B),Rand(_.vertex.num,1,1,1));
     Real _.edge::add.feature.numeric("Output");
     Real _.edge::add.feature.numeric("Input");
     True
@@ -84,18 +84,18 @@ Class @Graph
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.edge.build = "";
-  Real edge.build(Matrix data, Real removeRepeatedEdges)
+  Real edge.build(VMatrix data, Real removeRepeatedEdges)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real _.edge.num := Rows(data);
-    Matrix out_ = SubCol(data,[[1]]);
-    Matrix in_  = SubCol(data,[[2]]);
-    Matrix out  = If(_.directed, out_, Min(in_, out_));
-    Matrix in   = If(_.directed, in_,  Max(in_, out_));
-    Matrix _.edge::_.data := out | in | SubCol(data,Range(3,Columns(data),1));
-    Matrix idx = DifEq(1/(1-B),Rand(_.edge.num,1,1,1));
-    Matrix idx.rep = Rand(_.edge.num,1,1,1);
-    Matrix outInRep = out|in|idx.rep;
+    Real _.edge.num := VRows(data);
+    VMatrix out_ = SubCol(data,[[1]]);
+    VMatrix in_  = SubCol(data,[[2]]);
+    VMatrix out  = If(_.directed, out_, Min(in_, out_));
+    VMatrix in   = If(_.directed, in_,  Max(in_, out_));
+    VMatrix _.edge::_.data := out|in|SubCol(data,Range(3,VColumns(data),1));
+    VMatrix idx = DifEq(1/(1-B),Rand(_.edge.num,1,1,1));
+    VMatrix idx.rep = Rand(_.edge.num,1,1,1);
+    Matrix outInRep = VMat2Mat(out|in|idx.rep);
     VMatrix triplet.rep = Triplet(outInRep,_.vertex.num,_.vertex.num);
     VMatrix _.edge.repeated := Convert(triplet.rep,"Cholmod.R.Sparse");
     VMatrix _.edge.adjacency.out := Or(_.edge.repeated, Zeros(_.vertex.num));
@@ -124,9 +124,9 @@ Class @Graph
       Real _.edge.check.repaired := 0;
       Triplet
     });
-    VMatrix triplet.map = funTriplet(out|in|idx,_.vertex.num,_.vertex.num);
+    VMatrix triplet.map = funTriplet(
+      VMat2Mat(out|in|idx),_.vertex.num,_.vertex.num);
     VMatrix _.edge.map := Convert(triplet.map,"Cholmod.R.Sparse");
-    VMatrix _.edge.map.t := Tra(_.edge.map);
     True
   };
 
@@ -264,7 +264,7 @@ http://www.absoluteastronomy.com/topics/Adjacency_matrix
 Crea las matrices de adyancencia hasta un orden pedido por el usuario y las 
 guarda en un set. Sólo crea las que no existan aún. Sólo devuelve la del
 orden solicitado.
-Matrix get.adyacency(Real order)
+VMatrix get.adyacency(Real order)
 ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
