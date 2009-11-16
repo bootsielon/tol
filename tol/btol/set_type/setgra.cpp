@@ -742,67 +742,60 @@ DeclareContensClass(BSet, BSetTemporary, BSetRange);
 DefExtOpr(1, BSetRange, "Range", 3, 3, "Real Real Real",
 	  I2("(Real a, Real b, Real p)",
 	     "(Real desde, Real hasta, Real distancia)"),
-	  I2("Returns the set of the real\n\n"
-	     
-	     "	n,  n + p ,  n + 2*p, ...\n\n"
-	     
-	     "smaller or just as m."
-	     
+	  I2("Returns the set of real numbers \n"
+       " \n"
+       "  a+k*p with k = 0,1,2,3,... \n"
+       " \n"
+       "in the interval [a,b] if p>0 or [b,a] if p<0 \n"
+       " \n"
+       "If p==0 shows an error and returns the empty file. \n"
+       "If p>0 and a>b returns the empty file without showing any error. \n"
+       "If p<0 and a<b returns the empty file without showing any error."
 	     ,
-	     
-	     "Devuelve el conjunto de los reales que van del número "
-	     "a al número b separados entre sí por la distancia p."),
+	     "Devuelve el conjunto de los reales "
+       " \n"
+       "  a+k*p con k = 0,1,2,3,... \n"
+       " \n"
+       "en el intervalo [a,b] si p>0 ó [b,a] si p<0 \n"
+       " \n"
+       "Si p==0 muestra un error y devuelve el conjunto vacío \n"
+       "Si p>0 y a>b devuelve el conjunto vacío sin mostrar error alguno. \n"
+       "Si p<0 y a<b devuelve el conjunto vacío sin mostrar error alguno."),
 	  BOperClassify::SetAlgebra_);
 
 //--------------------------------------------------------------------
 void BSetRange::CalcContens()
 //--------------------------------------------------------------------
 {
-    BList* result = NIL;
-    BList* aux	  = NIL;
-    
-    BDat   fromDat    = Dat(Arg(1));
-    BDat   untilDat   = Dat(Arg(2));
-    BDat   stepDat    = Dat(Arg(3));
-    
-    if (!fromDat.IsKnown() || !untilDat.IsKnown() || !stepDat.IsKnown()) {
-      Warning(I2("Some of the Range's arguments are unknown",
-                 "Alguno de los argumentos de Range son desconocidos"));
-      return;
-    }
-    
-    double from = fromDat.Value();
-    double until = untilDat.Value();
-    double step = stepDat.Value();
-    int i;
-    
-    if (step == 0.0) { /* warning!!! : this is a bad comparison */
-      return;
-    }
-    
-    double spans = (until-from)/step;
-    int n = abs(int(round((until-from)/step)));
-    if (until > from)
-      step = fabs(step);
-    else
-      step = -fabs(step);
-    
-    BDat x = from + step*n;
-    if(x>untilDat) { n--; }
-    for(i = 0; i<=n; i++)
-    {
-      x = from + step*i;
-      LstFastAppend(result, aux, new BContensDat("",x));
-    }
-#if 0
-    /* last item could not belong because of rounding error */
-    double item = from + step * i;
-    /* warning!!! : this is a bad comparison */
-    if ((step>0 && item <= until) || (step<0 && item >= until)) {
-      LstFastAppend(result, aux, new BContensDat("",item));
-    }
-#endif
-    contens_.RobElement(result);
+  BList* result = NIL;
+  BList* aux	  = NIL;
+  
+  BDat   fromDat    = Dat(Arg(1));
+  BDat   untilDat   = Dat(Arg(2));
+  BDat   stepDat    = Dat(Arg(3));
+  
+  if (!fromDat.IsKnown() || !untilDat.IsKnown() || !stepDat.IsKnown()) {
+    Warning(I2("Some of the Range's arguments are unknown",
+               "Alguno de los argumentos de Range son desconocidos"));
+    return;
+  }
+  double from = fromDat.Value();
+  double until = untilDat.Value();
+  double step = stepDat.Value();
+  int k;
+  double x;
+  if (step == 0.0) { /* warning!!! : this is a bad comparison */
+    Warning(I2("Argument 'p' of function Range cannot be zero",
+               "El argumento 'p' de la función Range no peude ser cero."));
+    return;
+  }
+  for(k=0;;k++)
+  {
+    x = from + step*k;
+    if((step>0)?(x>until):(x<until)) { break; }
+    LstFastAppend(result, aux, new BContensDat("",x));
+  }
+  contens_.RobElement(result);
 }
 
 
