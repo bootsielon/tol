@@ -1078,7 +1078,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             {
               BText package;
               Ensure(Read(package,set_));
-              LoadRequiredPackage(package);
+              BPackage::Load(package);
             //x.AddRequiredPackage(package);
             }
           }

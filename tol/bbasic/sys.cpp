@@ -80,7 +80,7 @@ static BText Buil_TolAppData_()
     tolAppData_ = BSys::GetEnv("HOME")+"/.tol/";
 #  endif
     BSys::MkDir(tolAppData_+"syslog", true);
-    BSys::MkDir(tolAppData_+"OIS/Require/tol_pkg/"+TOLVersionShortName(), true);
+    BSys::MkDir(tolAppData_+"OIS", true);
     BSys::MkDir(tolAppData_+"tests_results",true);
     tolAppData_ = GetStandardAbsolutePath(tolAppData_);
     int ll = tolAppData_.Length();

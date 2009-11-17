@@ -1157,7 +1157,7 @@ Tree* BParser::ParseDelayed (Tree* tre)
     if(delayedSymbol_->Name()=="#Require") 
     { 
       BText package = scan_->NextArgument();
-      LoadRequiredPackage(package);
+      BPackage::Load(package);
     }
 
     delayedSymbol_->PutPrecedence(9);

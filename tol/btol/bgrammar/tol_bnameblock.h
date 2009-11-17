@@ -85,6 +85,7 @@ private:
   int evLevel_;
   int level_;
   int nonPrivateMembers_;
+  bool doingRebuildFullNameDeep;
 public:
   static bool Initialize();
   static BNameBlock&  Unknown() { return(*unknown_); }

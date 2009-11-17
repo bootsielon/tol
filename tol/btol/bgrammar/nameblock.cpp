@@ -101,7 +101,8 @@ static bool BNameBlock_IsInitialized()
   localName_(),
   owner_    (NULL),
   nonPrivateMembers_(0),
-  requiredPackages_(NULL)
+  requiredPackages_(NULL),
+  doingRebuildFullNameDeep(false)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -123,7 +124,8 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   localName_(localName),
   owner_    (NULL),
   nonPrivateMembers_(0),
-  requiredPackages_(NULL)
+  requiredPackages_(NULL),
+  doingRebuildFullNameDeep(false)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -145,7 +147,8 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   localName_(),
   owner_    (NULL),
   nonPrivateMembers_(0),
-  requiredPackages_(NULL)
+  requiredPackages_(NULL),
+  doingRebuildFullNameDeep(false)
 {
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
   createdWithNew_ = isAssigned!=-1;
@@ -1047,6 +1050,9 @@ const BText& BNameBlock::LocalName() const
 //--------------------------------------------------------------------
 {
 //Std(BText("\n")+"BNameBlock::SelectMembersDeep Exploring NameBlock "+Name());
+  if(doingRebuildFullNameDeep) 
+  { return; }
+  doingRebuildFullNameDeep = true;
   BSyntaxObject* obj;
   BUserNameBlock* unb;
   BObjByNameHash::const_iterator iter;
@@ -1102,6 +1108,7 @@ const BText& BNameBlock::LocalName() const
       unb->Contens().RebuildFullNameDeep(parentFullName, obj->Name());
     }
   }
+  doingRebuildFullNameDeep = false;
 }
 
 

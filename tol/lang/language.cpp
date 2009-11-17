@@ -1301,68 +1301,111 @@ BDate TsrLastDate(BSyntaxObject* obj)
     return(Tsr(obj)->LastDate());
 }
 
+BText BPackage::help_ = I2(
+  "Read information about TOL packages on ",
+  "Lea información acerca de los paquetes TOL en ")+
+  "https://www.tol-project.org/wiki/TolPkg\n";
+
+BText BPackage::localRoot_ = 
+  BSys::TolAppData()+"OIS/Require/tol_pkg/"+
+  TOLVersionShortName()+"/";
+
+BText BPackage::urlRoot_ = 
+  BText("http://packages.tol-project.org/tol_pkg/")+
+  TOLVersionShortName()+"/";
+
 //--------------------------------------------------------------------
-  BSyntaxObject* LoadRequiredPackage(const BText& package, bool retry)
+  BText BPackage::LocalPath(const BText& package)
 //--------------------------------------------------------------------
 {
-  static BText help_ = I2(
-    "Read information about TOL packages on ",
-    "Lea información acerca de los paquetes TOL en ")+
-    "https://www.tol-project.org/wiki/TolPkg\n";
-  BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
-  BText path = BSys::TolAppData()+"OIS/Require/tol_pkg/"+
-    TOLVersionShortName()+"/"+package+".oza";
+  BText path = localRoot_+package+".oza";
+  return(path);
+}
+
+//--------------------------------------------------------------------
+  BText BPackage::Url(const BText& package)
+//--------------------------------------------------------------------
+{
+  BText url = urlRoot_+package+".oza";
+  return(url);  
+}
+
+//--------------------------------------------------------------------
+  bool BPackage::CleanLocal(const BText& package)
+//--------------------------------------------------------------------
+{
+  return(BSys::Remove(LocalPath(package)));  
+}
+
+//--------------------------------------------------------------------
+  bool BPackage::Install(const BText& package)
+//--------------------------------------------------------------------
+{
+  BText path = LocalPath(package);
+  BText url = Url(package);
+  BSys::MkDir(localRoot_,true);
+  BText order = BText("wget ")+
+    url+" "+
+    "-O\""+ReplaceSlash(path)+"\"";
+  Std(I2("Installing required package ",
+         "Instalando el paquete requerido ")+package+"\n"+order+"\n");
+  #ifdef UNIX
+  system(order);
+  #else
+  BSys::WinSystem(order,0,true);
+  #endif 
   BDir dir = path;
-  BText url = BText("http://packages.tol-project.org/tol_pkg/")+
-        TOLVersionShortName()+"/"+package+".oza";
-  if(!pkg)
+  bool ok = true;
+  if(!dir.Exist() || !dir.IsFile() || !dir.Bytes())
+  {
+    ok = false;
+    Error(I2("Cannot install empty package ",
+             "No se puede instalar el paquete vacío ")+
+          package+"\n"+help_);
+  }
+  return(ok);  
+}
+
+//--------------------------------------------------------------------
+  BSyntaxObject* BPackage::Load(const BText& package, bool retry)
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
+  bool ok = pkg!=NULL;
+  BText path = LocalPath(package);
+  BDir dir = path;
+  if(!ok)
   {
     if(!dir.Exist())
     {
- 
-      BText order = BText("wget ")+
-        url+" "+
-        "-O\""+ReplaceSlash(path)+"\"";
-      Std(I2("Installing required package ",
-             "Instalando el paquete requerido ")+package+"\n"+order+"\n");
-      #ifdef UNIX
-      system(order);
-      #else
-      BSys::WinSystem(order,0,true);
-      #endif 
-      dir = path;
+      ok = Install(package);
     }
-    if(dir.Exist() && dir.IsFile())
+    if(ok)
     {
-      if(!dir.Bytes())
-      {
-        Error(I2("Cannot install empty package ",
-                 "No se puede instalar el paquete vacío ")+
-              package+"\n"+help_);
-      }
-      else
-      {    
-        int oldLevel = BGrammar::Level();
-        BGrammar::PutLevel(0); 
-        BSyntaxObject* aux = BOisLoader::LoadFull(path);
-        if(aux && (aux->Grammar()==GraSet()))
-        { 
-          BSet& set = Set(aux);
-          if((set.Card()==1)&&(set[1]->Grammar()==GraNameBlock()))
-          {
-            pkg = set[1];
-            pkg->IncNRefs();
-            pkg->IncNRefs();
-          }
+      int oldLevel = BGrammar::Level();
+      BGrammar::PutLevel(0); 
+      BSyntaxObject* aux = BOisLoader::LoadFull(path);
+      if(aux && (aux->Grammar()==GraSet()))
+      { 
+        BSet& set = Set(aux);
+        if((set.Card()==1)&&(set[1]->Grammar()==GraNameBlock()))
+        {
+          pkg = set[1];
+          pkg->IncNRefs();
+          pkg->IncNRefs();
+          BNameBlock::AddGlobalRequiredPackage(package);
         }
-        BGrammar::PutLevel(oldLevel); 
-      }
+      }      
+      BGrammar::PutLevel(oldLevel); 
+      ok = pkg!=NULL;
     } 
   }
-  BText ok = I2("Loaded","Ha sido cargado");
+  BText load = I2("Loaded","Ha sido cargado");
   BText help = ""; 
-  if(!pkg)
+  if(!ok)
   {
+    BText path = LocalPath(package);
+    BText url = Url(package);
     if(dir.Exist())
     {
       BSys::Remove(path);
@@ -1375,7 +1418,7 @@ BDate TsrLastDate(BSyntaxObject* obj)
               I2("and will be reinstalled from ",
                  "y será reinstalado desde ")+
               url);
-        return(LoadRequiredPackage(package, false));
+        return(Load(package, false));
       } 
       else
       {
@@ -1387,13 +1430,12 @@ BDate TsrLastDate(BSyntaxObject* obj)
                  "pero no será reinstalado de nuevo."));
       }  
     } 
-    ok = I2("NOT loaded","No ha sido cargado");
+    load = I2("NOT loaded","No ha sido cargado");
     help = help_;
   }
-  Std(ok+I2(" package ", " el paquete ")+package+"\n"+help);
+  Std(load+I2(" package ", " el paquete ")+package+"\n"+help);
   if(pkg)
   {
-    BNameBlock::AddGlobalRequiredPackage(package);
     BUserNameBlock* nbBuilding = BNameBlock::Building();
     if(nbBuilding)
     {
@@ -1402,3 +1444,4 @@ BDate TsrLastDate(BSyntaxObject* obj)
   }
   return(pkg);
 }
+
