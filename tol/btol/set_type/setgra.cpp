@@ -786,7 +786,7 @@ void BSetRange::CalcContens()
   double x;
   if (step == 0.0) { /* warning!!! : this is a bad comparison */
     Warning(I2("Argument 'p' of function Range cannot be zero",
-               "El argumento 'p' de la función Range no peude ser cero."));
+               "El argumento 'p' de la función Range no puede ser cero."));
     return;
   }
   for(k=0;;k++)
