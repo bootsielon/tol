@@ -28,13 +28,16 @@ Set SelectMatch(VMatrix match)
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.MatchRowsWithValue = 
 "Returns a column matrix with True in rows where given column matrix M has "
-"exactly the specified value";
+"exactly the specified value, that might even be the unknown value";
 VMatrix MatchRowsWithValue(VMatrix M, Real value)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real r = VRows(M);
-  VMatrix V = Rand(r,1,value,value);
-  EQ(M,V)
+  If(IsUnknown(value), IsUnknown(M),
+  {
+    Real r = VRows(M);
+    VMatrix V = Rand(r,1,value,value);
+    EQ(M,V)
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
