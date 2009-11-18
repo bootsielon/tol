@@ -9,4 +9,5 @@ WriteLn("Embed all packages for development testing only");
 #Embed "MatQuery/MatQuery.tol";
 #Embed "MatEncode/MatEncode.tol";
 #Embed "GraphTools/GraphTools.tol";
+#Embed "GisTools/GisTools.tol";
 #Embed "MhCnstrLinRegArima/MhCnstrLinRegArima.tol";
