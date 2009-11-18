@@ -1,0 +1,110 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Package GisTools test
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = ""; 
+Text summary_ = "Test for gravitational interpolation";
+
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+#Require GisTools;
+//#Embed "../../../_embed_all.tol";
+
+//The order of magnitude required for number of geographic points
+Real point.num.approx = 2000;
+
+//Distance around targets
+Real distance = 0.01;
+//Factor of Country size respect dtarget distance
+Real coordFactor = 1;
+
+//Country dimensions
+Real coord.min = +  distance*coordFactor;
+Real coord.max = +3*distance*coordFactor;
+Real coord.rng = coord.max - coord.min;
+
+Set range = Range(coord.min, coord.max, coord.rng/Sqrt(point.num.approx));
+VMatrix points = Mat2VMat(SetMat(range^2));
+
+Real point.num  = VRows(points);
+Real Function(Real x, Real y)
+{
+  10+x+y+Sin(x*scale)*Cos(y*scale)
+};
+
+Real scale = 10/coord.rng;
+VMatrix eval.points = 
+{
+  VMatrix x = SubCol(points,[[1]]);
+  VMatrix y = SubCol(points,[[2]]);
+  x+y+Sin(x*scale) $* Cos(y*scale)+10
+};
+
+VMatrix eval.points_ = SetCol(For(1,point.num,Real(Real k)
+{
+  Function(VMatDat(points,k,1),VMatDat(points,k,2)) 
+}));
+
+Real ok.1 = VMatMax(Abs(eval.points-eval.points_))==0;
+
+
+//Target point
+GisTools::@Point2D.Simple p0 = 
+{
+  VMatrix aux = SubRow(points,[[IntRand(1,point.num)]])+
+           Gaussian(1, 2, 0, distance/4);
+  GisTools::@Point2D.Simple::FromRow(aux,1)
+};
+
+Real eval.p0_ = Function(p0::x(0),p0::y(0));
+
+GisTools::@Interp2D.Gravit i2dg = 
+GisTools::@Interp2D.Gravit::New(points,eval.points,distance*10);
+
+Real i2dg::build(0);
+
+Real eval.p0 = i2dg::eval(p0);
+
+NameBlock i2dg::evaluate(p0);
+
+/*
+GisTools::@Point2D.Simple p = p0;
+Set _.x.range = i2dg::_.x.range;
+Set _.y.range = i2dg::_.y.range;
+Set _.grid = i2dg::_.grid;
+GisTools::@Point2D.Stored _.P = i2dg::_.P;
+VMatrix _.F = i2dg::_.F;
+
+/*
+
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[numErr0, numErr1, 
+                        ok.1, ok.2]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr1 == numErr0, 
+                    numWar1 == numWar0, 
+                    ok.1, ok.2);
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
