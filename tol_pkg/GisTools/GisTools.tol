@@ -1,4 +1,4 @@
-/* -*- mode: C++ -*- */
+  /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : GisTools.tol
 // PURPOSE: Defines Package GisTools
@@ -8,7 +8,7 @@
 NameBlock GisTools = [[
 //////////////////////////////////////////////////////////////////////////////
 
-  #Require MatQuery;
+#Require MatQuery;
 
 Text _.autodoc.description = "Functions and classes related with "
 "Geographic Information System (GIS), with all type of methods "
@@ -59,12 +59,34 @@ Class @Point2D.Simple : @Point2D
   Real y(Real k) { _.y };
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.New = "Creates an instance of @Point2D.Simple";
-  @Point2D.Simple New(Real x, Real y)
+  Static @Point2D.Simple New(Real x, Real y)
   ////////////////////////////////////////////////////////////////////////////
   {
     @Point2D.Simple new = [[
       Real _.x = x;
       Real _.y = y ]];
+    new
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.FromRow = "Creates an instance of "
+  "@Point2D.Simple using the 2 first columns of selected row of given matrix";
+  Static @Point2D.Simple FromRow(VMatrix M, Real numRow)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Point2D.Simple new = [[
+      Real _.x = VMatDat(M,numRow,1);
+      Real _.y = VMatDat(M,numRow,2) ]];
+    new
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.FromCol = "Creates an instance of "
+  "@Point2D.Simple using the 2 first rows of selected column of given matrix";
+  Static @Point2D.Simple FromCol(VMatrix M, Real numCol)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Point2D.Simple new = [[
+      Real _.x = VMatDat(M,1,numCol);
+      Real _.y = VMatDat(M,2,numRow) ]];
     new
   }
 };
@@ -89,16 +111,16 @@ Class @Point2D.Stored
 
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.New = "Creates an instance of @Point2D.Stored";
-  @Point2D.Stored New(VMatrix xy)
+  Static @Point2D.Stored New(VMatrix xy)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(Colunms(xy)>2,
-      WriteLn("[@Point2D.Stored::New] Only 2 first of "<<Colunms(xy)+
+    If(VColumns(xy)>2,
+      WriteLn("[@Point2D.Stored::New] Only 2 first of "<<VColumns(xy)+
       " columns of argument xy will be used","W"));
-    If(Colunms(xy)<2,
+    If(VColumns(xy)<2,
       WriteLn("[@Point2D.Stored::New] Almost 2 columns instead of "<<
-      Colunms(xy)+" are needed for argument xy","E"));
-    @Point2D.Simple new = [[
+      VColumns(xy)+" are needed for argument xy","E"));
+    @Point2D.Stored new = [[
       VMatrix _.xy = xy ]];
     new
   }
@@ -106,7 +128,7 @@ Class @Point2D.Stored
 
 //////////////////////////////////////////////////////////////////////////////
 //Abstract class to inherite bidimensional interpolating classes.
-Class @Interpolate2D
+Class @Interp2D
 //////////////////////////////////////////////////////////////////////////////
 {
   //Bidimensional points in cartesian coordinates. Dim: _.m x 2
@@ -150,7 +172,7 @@ Class @Interpolate2D
 
 //////////////////////////////////////////////////////////////////////////////
 //Abstract class to inherite bidimensional weighted interpolating classes.
-Class @Interpolate2D.Weighted : @Interpolate2D
+Class @Interp2D.Gravit : @Interp2D
 //////////////////////////////////////////////////////////////////////////////
 {
   //In order to be more efficient, the points farther of this distance will 
@@ -160,25 +182,26 @@ Class @Interpolate2D.Weighted : @Interpolate2D
   ////////////////////////////////////////////////////////////////////////////
   //Auxiliar members
   ////////////////////////////////////////////////////////////////////////////
+  Set     _.point.idx = Copy(Empty);
   Set     _.x.range   = Copy(Empty);
   VMatrix _.x.class   = Rand(0,0,0,0);
   Set     _.y.range   = Copy(Empty);
   VMatrix _.y.class   = Rand(0,0,0,0);
-  Set     _.point.idx = Rand(0,0,0,0);
+  VMatrix _.grid.map  = Rand(0,0,0,0);
   Set     _.grid      = Copy(Empty);
   
   ////////////////////////////////////////////////////////////////////////////
   Real build(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real _.m := VRows(_.P::_.XY);
+    Real _.m := VRows(_.P::_.xy);
     Real _.n := VRows(_.F);
-    If(VColunms(_.P::_.XY)!=2,
-      WriteLn("Interpolate2D.Weighted::_.P::_.XY must have 2 columns instead "
-              "of "<<Colunms(_.P::_.XY)));
-    If(VRows(_.F)!=m,
-      WriteLn("Interpolate2D.Weighted::_.XY must have 2 columns instead of "
-              <<Colunms(_.P::_.XY)));
+    If(VColumns(_.P::_.xy)!=2,
+      WriteLn("Interp2D.Gravit::_.P::_.xy must have 2 columns instead "
+              "of "<<VColumns(_.P::_.xy)));
+    If(VRows(_.F)!=_.m,
+      WriteLn("Interp2D.Gravit::_.xy must have 2 columns instead of "
+              <<VColumns(_.P::_.xy)));
 
     Set _.point.idx := Range(1,_.m,1);
     VMatrix x = SubCol(_.P::_.xy,[[1]]);
@@ -187,7 +210,7 @@ Class @Interpolate2D.Weighted : @Interpolate2D
     Set _.y.range := Range(VMatMin(y),VMatMax(y),_.maxDistance);
     VMatrix _.x.class := MatQuery::ClassifyRowsByRank(x,_.x.range);
     VMatrix _.y.class := MatQuery::ClassifyRowsByRank(y,_.y.range);
-    Set xy.class = Classify(point.idx, Real(Real a, Real b)
+    Set xy.class = Classify(_.point.idx, Real(Real a, Real b)
     {
       Real x.cmp = Compare(VMatDat(_.x.class,a,1),VMatDat(_.x.class,b,1));
       If(x.cmp, x.cmp,
@@ -200,14 +223,14 @@ Class @Interpolate2D.Weighted : @Interpolate2D
         Copy(Empty)
       })
     });
-    Set EvalSet(xy.class, Real(Set cl)
+    VMatrix _.grid.map := Group("ConcatRows",EvalSet(xy.class, VMatrix(Set cl)
     {
       Real k = cl[1];
-      Real x.class = MatDat(_.x.class,k,1);
-      Real y.class = MatDat(_.y.class,k,1);
+      Real x.class = VMatDat(_.x.class,k,1);
+      Real y.class = VMatDat(_.y.class,k,1);
       Set _.grid[x.class][y.class] := cl;
-      k
-    });
+      SetRow([[x.class,y.class]])
+    }));
     True
   };
 
@@ -219,19 +242,19 @@ Class @Interpolate2D.Weighted : @Interpolate2D
   ////////////////////////////////////////////////////////////////////////////
   {
     Real m = VRows(xy);
-    VMatrix p.x = Rand(m,1,p::X(1),p::X(1));
-    VMatrix p.y = Rand(m,1,p::Y(1),p::Y(1));
+    VMatrix p.x = Rand(m,1,p::x(1),p::x(1));
+    VMatrix p.y = Rand(m,1,p::y(1),p::y(1));
     VMatrix x = SubCol(xy,[[1]]);
-    VMatrix y = SubCol(xy,[[1]]);
-    RPow(RPow(x,2)+RPow(y,2),0.5)
+    VMatrix y = SubCol(xy,[[2]]);
+    RPow(RPow(x-p.x,2)+RPow(y-p.y,2),0.5)
   };
  
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix eval.vector(@Point2D p)
+  NameBlock evaluate(@Point2D p)
   ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix p.x = Rand(1,1,p::X(1),p::X(1));
-    VMatrix p.y = Rand(1,1,p::Y(1),p::Y(1));
+  {[[
+    VMatrix p.x = Rand(1,1,p::x(1),p::x(1));
+    VMatrix p.y = Rand(1,1,p::y(1),p::y(1));
     VMatrix p.xy = p.x | p.y;
     Real p.x.class = VMatDat(MatQuery::ClassifyRowsByRank(p.x,_.x.range),1,1);
     Real p.y.class = VMatDat(MatQuery::ClassifyRowsByRank(p.y,_.y.range),1,1);
@@ -239,27 +262,58 @@ Class @Interpolate2D.Weighted : @Interpolate2D
     Real i.max = Min(Card(_.x.range)+1,p.x.class+1);
     Real j.min = Max(1,p.y.class-1);
     Real j.max = Min(Card(_.y.range)+1,p.y.class+1);
-    Set p.candidates = Bingroup("<<",For(i.min, i.max, Real(Real i)
+    Set p.candidates = BinGroup("<<",For(i.min, i.max, Set(Real i)
     {
-      Bingroup("<<",For(j.min, j.max, Real(Real j)
+      BinGroup("<<",For(j.min, j.max, Set(Real j)
       {
         _.grid[i][j]  
       }))
     }));
-    VMatrix xy.candidates = SubRow(_.P::_.xy, p.neighborhood);
+    VMatrix xy.candidates = SubRow(_.P::_.xy, p.candidates);
     VMatrix d.candidates = get.distance(p,xy.candidates);
     Set neighborhood = MatQuery::SelectRowsInInterval(d.candidates, 
       False, 0, _.maxDistance, True);
-    VMatrix d = SubRows(d.candidates, neighborhood);
-    VMatrix w = RPow(d,-0.5);
-    Tra(w/VMatSum(w)) * SubRow(SubRow(_.F,p.candidates),neighborhood)
+    Matrix d = VMat2Mat(SubRow(d.candidates, neighborhood));
+    VMatrix v = Mat2VMat(RPow(d,2));
+    VMatrix w = v/VMatSum(v);
+    VMatrix f = Tra(w) * SubRow(SubRow(_.F,p.candidates),neighborhood)
+  ]]};
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix eval.vector(@Point2D p)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix p.x = Rand(1,1,p::x(1),p::x(1));
+    VMatrix p.y = Rand(1,1,p::y(1),p::y(1));
+    VMatrix p.xy = p.x | p.y;
+    Real p.x.class = VMatDat(MatQuery::ClassifyRowsByRank(p.x,_.x.range),1,1);
+    Real p.y.class = VMatDat(MatQuery::ClassifyRowsByRank(p.y,_.y.range),1,1);
+    Real i.min = Max(1,p.x.class-1);
+    Real i.max = Min(Card(_.x.range)+1,p.x.class+1);
+    Real j.min = Max(1,p.y.class-1);
+    Real j.max = Min(Card(_.y.range)+1,p.y.class+1);
+    Set p.candidates = BinGroup("<<",For(i.min, i.max, Set(Real i)
+    {
+      BinGroup("<<",For(j.min, j.max, Set(Real j)
+      {
+        _.grid[i][j]  
+      }))
+    }));
+    VMatrix xy.candidates = SubRow(_.P::_.xy, p.candidates);
+    VMatrix d.candidates = get.distance(p,xy.candidates);
+    Set neighborhood = MatQuery::SelectRowsInInterval(d.candidates, 
+      False, 0, _.maxDistance, True);
+    Matrix d = VMat2Mat(SubRow(d.candidates, neighborhood),1);
+    VMatrix v = Mat2VMat(RPow(d,2));
+    VMatrix w = v/VMatSum(v);
+    w * SubRow(SubRow(_.F,p.candidates),neighborhood)
   };
 
   Static Text _.autodoc.member.New = "Creates an instance of "
-  "@Interpolate2D.Weighted";
-  @Interpolate2D.Weighted New(VMatrix XY, VMatrix F, Real maxDistance)
+  "@Interp2D.Gravit";
+
+  Static @Interp2D.Gravit New(VMatrix XY, VMatrix F, Real maxDistance)
   {
-    @Interpolate2D.Weighted new =
+    @Interp2D.Gravit new =
     [[
       @Point2D.Stored _.P = @Point2D.Stored::New(XY);
       VMatrix _.F = F;
