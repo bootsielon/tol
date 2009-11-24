@@ -110,10 +110,6 @@ s y la existencia de relaciones latentes entre las funciones de aproximación
  
 \end_layout
 
-\begin_layout Part*
-Aproximación de funciones multivariantes mediante regresión lineal jerárquica
-\end_layout
-
 \begin_layout Section
 Antecedentes
 \end_layout
@@ -539,6 +535,182 @@ entonces podemos añadir a la matriz
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Estimación adaptativa
+\end_layout
+
+\begin_layout Standard
+El diseño de un modelo puede ser globalmente aceptable y sin embargo acumular
+ en alguna zona concreta demasiados residuos altos.
+ También puede ocurrir que con el tiempo se vaya disponiendo de nuevos datos
+ que produzcan esos residuos inesperados, o que simplemente caigan fuera
+ del alcance del recubrimiento actual.
+ En ambos casos podría ser necesario introducir más puntos de referencia
+ y de estrés por las proximidades.
+ Si lo que ocurre es que la aproximación no consigue adpatarse a la curvatura
+ aparente de los datos podría ser que hubiera que aumentar el tamaño de
+ la base.
+ 
+\end_layout
+
+\begin_layout Standard
+Cuando las dimensiones de la regresión son pequeñas se podría readaptar
+ el diseño sin más y volver a estimarla desde cero, pero en los casos de
+ datos masivos eso puede tener un coste difícil de asumir.
+ En estos casos se puede aplicar un conocido mecanismo de ampliación matricial
+ sobre el algoritmo de Cholesky.
+\end_layout
+
+\begin_layout Standard
+Supongamos que tenemos el problema original resuelto para una matriz de
+ input 
+\begin_inset Formula $Q_{11}$
+\end_inset
+
+de 
+\begin_inset Formula $J_{1}+T_{1}$
+\end_inset
+
+ ecuaciones y 
+\begin_inset Formula $H_{1}\cdot K_{1}$
+\end_inset
+
+ variables y un output 
+\begin_inset Formula $F_{1}$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+Q_{11}^{T}\cdot Q_{11}=L_{0}\cdot L_{0}^{T}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\hat{\beta}_{0}=L_{1}^{-T}L_{1}^{-1}Q_{1}\cdot F_{1}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Por las razones antedichas tenemos que añadir un número notablemente inferior
+ 
+\begin_inset Formula $J_{2}+T_{2}$
+\end_inset
+
+ de ecuaciones y de 
+\begin_inset Formula $H_{2}\cdot K_{2}$
+\end_inset
+
+ variables nuevas para formar las nuevas matrices
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+Q=\left(\begin{array}{cc}
+Q_{11} & Q_{12}\\
+Q_{21} & Q_{22}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+F=\left(\begin{array}{c}
+F_{1}\\
+F_{2}\end{array}\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Desarrollando el producto por bloques
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+Q^{T}\cdot Q=\left(\begin{array}{cc}
+Q_{11}^{T} & Q_{21}^{T}\\
+Q_{12}^{T} & Q_{22}^{T}\end{array}\right)\cdot\left(\begin{array}{cc}
+Q_{11} & Q_{12}\\
+Q_{21} & Q_{22}\end{array}\right)=\left(\begin{array}{cc}
+Q_{11}^{T}\cdot Q_{11}+Q_{21}^{T}\cdot Q_{21} & Q_{11}^{T}\cdot Q_{12}+Q_{21}^{T}\cdot Q_{22}\\
+Q_{12}^{T}\cdot Q_{11}+Q_{22}^{T}\cdot Q_{21} & Q_{12}^{T}\cdot Q_{12}+Q_{22}^{T}\cdot Q_{22}\end{array}\right)\end{equation}
+
+\end_inset
+
+y haciendo lo propio con la descomposición de Cholesky
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+Q^{T}\cdot Q=LL^{T}=\left(\begin{array}{cc}
+L_{11} & 0\\
+L_{21} & L_{22}\end{array}\right)\cdot\left(\begin{array}{cc}
+L_{11}^{T} & L_{21}^{T}\\
+0 & L_{22}^{T}\end{array}\right)=\left(\begin{array}{cc}
+L_{11}\cdot L_{11}^{T} & L_{11}\cdot L_{21}^{T}\\
+L_{21}\cdot L_{11}^{T} & L_{21}\cdot L_{21}^{T}+L_{22}\cdot L_{22}^{T}\end{array}\right)\end{equation}
+
+\end_inset
+
+se obtienen las igualdades bloque a bloque
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+L_{11}\cdot L_{11}^{T}=L_{0}\cdot L_{0}^{T}+Q_{21}^{T}\cdot Q_{21}\\
+L_{21}\cdot L_{11}^{T}=Q_{12}^{T}\cdot Q_{11}+Q_{22}^{T}\cdot Q_{21}\\
+L_{21}\cdot L_{21}^{T}+L_{22}\cdot L_{22}^{T}=Q_{12}^{T}\cdot Q_{12}+Q_{22}^{T}\cdot Q_{22}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+La primera ecuación de bloque es la que concentra el mayor peso del problema
+ pero en realidad está ya casi resuelta pues el término 
+\begin_inset Formula $Q_{21}^{T}\cdot Q_{21}$
+\end_inset
+
+ es apenas una pequeña alteración de 
+\begin_inset Formula $L_{0}\cdot L_{0}^{T}$
+\end_inset
+
+ que es facilmente soluble tal y como se explica en 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Modifying-Sparse-Cholesky-factorization,Multiple-rank-modifications-of-a-sparse-Cholesky-factorization"
+
+\end_inset
+
+ .
+ Las otras dos ecuaciones de bloque tienen poco coste computacional por
+ ser de pequeño tamaño y su efecto se reduce a añadir nuevas filas a la
+ matriz triangular según se expone en 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Row-modifications-of-a-sparse-Cholesky-factorization"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Section
@@ -1845,186 +2017,6 @@ Una forma alternativa y más sencilla de homogeneizar el recubrimiento es
 \end_inset
 
 
-\end_layout
-
-\begin_layout Section
-Estimación adaptativa
-\end_layout
-
-\begin_layout Standard
-El diseño de un modelo puede ser globalmente aceptable y sin embargo acumular
- en alguna zona concreta demasiados residuos altos.
- También puede ocurrir que con el tiempo se vaya disponiendo de nuevos datos
- que produzcan esos residuos inesperados, o que simplemente caigan fuera
- del alcance del recubrimiento actual.
- En ambos casos podría ser necesario introducir más puntos de referencia
- y de estrés por las proximidades.
- Si lo que ocurre es que la aproximación no consigue adpatarse a la curvatura
- aparente de los datos podría ser que hubiera que aumentar el tamaño de
- la base.
- 
-\end_layout
-
-\begin_layout Standard
-Cuando las dimensiones de la regresión son pequeñas se podría readaptar
- el diseño sin más y volver a estimarla desde cero, pero en los casos de
- datos masivos eso puede tener un coste difícil de asumir.
- En estos casos se puede aplicar un conocido mecanismo de ampliación matricial
- sobre el algoritmo de Cholesky.
-\end_layout
-
-\begin_layout Standard
-Supongamos que tenemos el problema original resuelto para una matriz de
- input 
-\begin_inset Formula $Q_{11}$
-\end_inset
-
-de 
-\begin_inset Formula $J_{1}+T_{1}$
-\end_inset
-
- ecuaciones y 
-\begin_inset Formula $H_{1}\cdot K_{1}$
-\end_inset
-
- variables y un output 
-\begin_inset Formula $F_{1}$
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{equation}
-Q_{11}^{T}\cdot Q_{11}=L_{0}\cdot L_{0}^{T}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{equation}
-\hat{\beta}_{0}=L_{1}^{-T}L_{1}^{-1}Q_{1}\cdot F_{1}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Por las razones antedichas tenemos que añadir un número notablemente inferior
- 
-\begin_inset Formula $J_{2}+T_{2}$
-\end_inset
-
- de ecuaciones y de 
-\begin_inset Formula $H_{2}\cdot K_{2}$
-\end_inset
-
- variables nuevas para formar las nuevas matrices
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{equation}
-Q=\left(\begin{array}{cc}
-Q_{11} & Q_{12}\\
-Q_{21} & Q_{22}\end{array}\right)\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{equation}
-F=\left(\begin{array}{c}
-F_{1}\\
-F_{2}\end{array}\right)\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Desarrollando el producto por bloques
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{equation}
-Q^{T}\cdot Q=\left(\begin{array}{cc}
-Q_{11}^{T} & Q_{21}^{T}\\
-Q_{12}^{T} & Q_{22}^{T}\end{array}\right)\cdot\left(\begin{array}{cc}
-Q_{11} & Q_{12}\\
-Q_{21} & Q_{22}\end{array}\right)=\left(\begin{array}{cc}
-Q_{11}^{T}\cdot Q_{11}+Q_{21}^{T}\cdot Q_{21} & Q_{11}^{T}\cdot Q_{12}+Q_{21}^{T}\cdot Q_{22}\\
-Q_{12}^{T}\cdot Q_{11}+Q_{22}^{T}\cdot Q_{21} & Q_{12}^{T}\cdot Q_{12}+Q_{22}^{T}\cdot Q_{22}\end{array}\right)\end{equation}
-
-\end_inset
-
-y haciendo lo propio con la descomposición de Cholesky
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{equation}
-Q^{T}\cdot Q=LL^{T}=\left(\begin{array}{cc}
-L_{11} & 0\\
-L_{21} & L_{22}\end{array}\right)\cdot\left(\begin{array}{cc}
-L_{11}^{T} & L_{21}^{T}\\
-0 & L_{22}^{T}\end{array}\right)=\left(\begin{array}{cc}
-L_{11}\cdot L_{11}^{T} & L_{11}\cdot L_{21}^{T}\\
-L_{21}\cdot L_{11}^{T} & L_{21}\cdot L_{21}^{T}+L_{22}\cdot L_{22}^{T}\end{array}\right)\end{equation}
-
-\end_inset
-
-se obtienen las igualdades bloque a bloque
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{equation}
-\begin{array}{c}
-L_{11}\cdot L_{11}^{T}=L_{0}\cdot L_{0}^{T}+Q_{21}^{T}\cdot Q_{21}\\
-L_{21}\cdot L_{11}^{T}=Q_{12}^{T}\cdot Q_{11}+Q_{22}^{T}\cdot Q_{21}\\
-L_{21}\cdot L_{21}^{T}+L_{22}\cdot L_{22}^{T}=Q_{12}^{T}\cdot Q_{12}+Q_{22}^{T}\cdot Q_{22}\end{array}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-La primera ecuación de bloque es la que concentra el mayor peso del problema
- pero en realidad está ya casi resuelta pues el término 
-\begin_inset Formula $Q_{21}^{T}\cdot Q_{21}$
-\end_inset
-
- es apenas una pequeña alteración de 
-\begin_inset Formula $L_{0}\cdot L_{0}^{T}$
-\end_inset
-
- que es facilmente soluble tal y como se explica en 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "Modifying-Sparse-Cholesky-factorization,Multiple-rank-modifications-of-a-sparse-Cholesky-factorization"
-
-\end_inset
-
- .
- Las otras dos ecuaciones de bloque tienen poco coste computacional por
- ser de pequeño tamaño y su efecto se reduce a añadir nuevas filas a la
- matriz triangular según se expone en 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "Row-modifications-of-a-sparse-Cholesky-factorization"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Part*
-Bibliografía
 \end_layout
 
 \begin_layout Bibliography
