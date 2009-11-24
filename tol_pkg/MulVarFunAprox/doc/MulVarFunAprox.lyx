@@ -2,7 +2,7 @@
 \lyxformat 345
 \begin_document
 \begin_header
-\textclass amsart
+\textclass paper
 \begin_preamble
 \usepackage{a4wide}
 %\documentclass[spanish]{article}
@@ -110,6 +110,10 @@ s y la existencia de relaciones latentes entre las funciones de aproximación
  
 \end_layout
 
+\begin_layout Part*
+Aproximación de funciones multivariantes mediante regresión lineal jerárquica
+\end_layout
+
 \begin_layout Section
 Antecedentes
 \end_layout
@@ -203,7 +207,7 @@ Como introducción al estado del arte en el ataque clásico de la ingeniería
  cuadrados móviles, sería interesente la lectura del artículo 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "key-4"
+key "Meshless-methods-An-overview-and-recent-developments"
 
 \end_inset
 
@@ -2002,7 +2006,7 @@ La primera ecuación de bloque es la que concentra el mayor peso del problema
  que es facilmente soluble tal y como se explica en 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "key-1,key-2"
+key "Modifying-Sparse-Cholesky-factorization,Multiple-rank-modifications-of-a-sparse-Cholesky-factorization"
 
 \end_inset
 
@@ -2012,51 +2016,94 @@ key "key-1,key-2"
  matriz triangular según se expone en 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "key-3"
+key "Row-modifications-of-a-sparse-Cholesky-factorization"
 
 \end_inset
 
 .
 \end_layout
 
-\begin_layout Bibliography
-\begin_inset CommandInset bibitem
-LatexCommand bibitem
-label "T. A. Davis, J. R. Gilbert, S. I. Larimore, and E. G. Ng. SIAM J. Matrix Anal. Applic. 20(3):606–627, 1999. Modifying a sparse Cholesky factorization."
-key "key-1"
-
-\end_inset
-
-
+\begin_layout Part*
+Bibliografía
 \end_layout
 
 \begin_layout Bibliography
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-label "T. A. Davis and W. W. Hager SIAM J. Matrix Anal. Applic., 22(4):997–1013, 2001. Multiple-rank modifications of a sparse Cholesky factorization."
-key "key-2"
+label "1"
+key "Modifying-Sparse-Cholesky-factorization"
 
 \end_inset
 
-
+Modifying a Sparse Cholesky factorization.
+ T.
+ A.
+ Davis, J.
+ R.
+ Gilbert, S.
+ I.
+ Larimore, and E.
+ G.
+ Ng.
+ SIAM J.
+ Matrix Anal.
+ Applic.
+ 20(3):606–627, 1999.
 \end_layout
 
 \begin_layout Bibliography
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-label "T. A. Davis and W. W. Hager SIAM J. Matrix Anal. Applic. 26(3):621–639, 2005. Row modifications of a sparse Cholesky factorization"
-key "key-3"
+label "2"
+key "Multiple-rank-modifications-of-a-sparse-Cholesky-factorization"
 
 \end_inset
 
-
+ Multiple-rank modifications of a sparse Cholesky factorization.
+ T.
+ A.
+ Davis and W.
+ W.
+ Hager.
+ SIAM J.
+ Matrix Anal.
+ Applic., 22(4):997–1013, 2001.
 \end_layout
 
 \begin_layout Bibliography
 \begin_inset CommandInset bibitem
 LatexCommand bibitem
-label "T. Belytschko, Y. Krongauz, D. Organ , M. Fleming and P. Krysl. Meshless methods: An overview and recent developments "
-key "key-4"
+label "3"
+key "Row-modifications-of-a-sparse-Cholesky-factorization"
+
+\end_inset
+
+ Row modifications of a sparse Cholesky factorization.SIAM J.
+ Matrix Anal.
+ Applic.
+ 26(3):621–639, 2005.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+label "4"
+key "Meshless-methods-An-overview-and-recent-developments"
+
+\end_inset
+
+ Meshless methods: An overview and recent developments.
+ T.
+ Belytschko, Y.
+ Krongauz, D.
+ Organ , M.
+ Fleming and P.
+ Krysl.
+ 
+\begin_inset CommandInset href
+LatexCommand href
+name "doi:10.1016/S0045-7825(96)01078-X"
+target "http://dx.doi.org/10.1016/S0045-7825(96)01078-X"
 
 \end_inset
 
