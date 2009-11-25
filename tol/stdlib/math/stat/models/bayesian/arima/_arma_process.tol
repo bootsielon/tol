@@ -54,13 +54,11 @@ NameBlock ARMAProcess =
   {
   //WriteLn("TRACE CholeskiFactorCov("+FullName(cov)+") VRows(cov)="<<VRows(cov)+" Sparsity(cov)="<<Real(VNonNullCells(cov)/VRows(cov)^2));
     VMatrix c = Drop(cov,1.E-16/VRows(cov)^2);
-  //WriteLn("TRACE CholeskiFactorCov Sparsity(c)="<<Real(VNonNullCells(c)/VRows(c)^2));
-  //Real t0 = Copy(Time);
-  //VMatrix L = CholeskiFactor(c,"X",True);
-  //Real tm = Time-t0;
-  //WriteLn("TRACE CholeskiFactorCov time="<<tm);
-  //L 
-    Pack(CholeskiFactor(c,"X",True))
+    VMatrix L = CholeskiFactor(c,"X",True);
+  //WriteLn("TRACE CholeskiFactorCov L:"<<L);
+    VMatrix pL = Pack(L,1);
+  //WriteLn("TRACE CholeskiFactorCov pL:"<<pL);
+    pL
   };
 
   ////////////////////////////////////////////////////////////////////////////
