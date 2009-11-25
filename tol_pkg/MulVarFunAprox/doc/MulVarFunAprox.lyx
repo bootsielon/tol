@@ -311,7 +311,7 @@ por lo que es obvio que deben ser continuas y doblemente diferenciables
 \end_layout
 
 \begin_layout Subsection
-La función de ponderación
+Ponderación
 \end_layout
 
 \begin_layout Standard
@@ -320,7 +320,17 @@ La función de aproximación global en un punto se definirá a su vez como
  dicho punto 
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-\widehat{f}\left(x\right)=\overset{}{\underset{x\in\Omega_{h}}{\sum}}w_{h}\left(x\right)\cdot g_{h}\left(x\right)\forall x\in\mathbb{R}^{n}\end{array}\end{equation}
+\widehat{f}\left(x\right)=\overset{}{\underset{x\in\Omega_{h}}{\sum}}w_{h}\left(x\right)g_{h}\left(x\right)\forall x\in\mathbb{R}^{n}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\widehat{f}\left(x\right)=\overset{}{\underset{x\in\Omega_{h}}{\sum}}\overset{K}{\underset{k=1}{\sum}}\alpha_{h,k}p_{k}\left(x-y_{h}\right)w_{h}\left(x\right)\forall x\in\mathbb{R}^{n}\end{array}\end{equation}
 
 \end_inset
 
@@ -341,8 +351,8 @@ ables en todo
 \begin_inset Formula $\mathbb{R}^{n}$
 \end_inset
 
-, alcanzar el máximo valor en el punto de referencia, y dar siempre suma
- 
+, alcanzar el máximo valor en el punto de referencia para favorecer los
+ puntos más cercanos al de referencia, y dar siempre suma 
 \begin_inset Formula $1$
 \end_inset
 
@@ -354,6 +364,20 @@ w_{h}\left(x\right)\geq0\forall\in\Omega_{h}\\
 w_{h}\left(x\right)=0\forall\notin\Omega_{h}\\
 w_{h}\left(x\right)\leq w_{h}\left(y_{h}\right)\forall x\in\mathbb{R}^{n}\\
 \overset{}{\underset{x\in\Omega_{h}}{\sum}}w_{h}\left(x\right)=1\forall x\in\mathbb{R}^{n}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Es importante observar que si las funciones de la base y las de ponderación
+ tienen todas una formulación analítica cuyas derivadas parciales son todas
+ perfectamente conocidas, entonces es trivial aproximar las derivadas parciales
+ de la función objetivo sin ningún esfuerzo adicional de estimación.
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\frac{\partial\widehat{f}\left(x\right)}{\partial x^{i}}=\overset{}{\underset{x\in\Omega_{h}}{\sum}}\overset{K}{\underset{k=1}{\sum}}\alpha_{h,k}\left(\frac{\partial p_{k}\left(x-y_{h}\right)}{\partial x^{i}}w_{h}\left(x\right)+p_{k}\left(x-y_{h}\right)\frac{\partial w_{h}\left(x\right)}{\partial x^{i}}\right)\end{array}\end{equation}
 
 \end_inset
 
@@ -493,7 +517,7 @@ target "http://www.cise.ufl.edu/research/sparse/cholmod/"
 \end_layout
 
 \begin_layout Subsection
-Modelo jerárquico
+Modelo con información a priori
 \end_layout
 
 \begin_layout Standard
@@ -501,10 +525,10 @@ Para forzar que la función de aproximación global sea más suave es posible
  añadir más hipótesis al modelo que obliguen a las funciones de aproximación
  locales parecerse en cierta medida a sus vecinas en las zonas compartidas
  de sus entornos locales.
- Una hipótesis que parece bastante razonable es que en los puntos nodales
- comunes a varios entornos locales las diferencias entre las correspondientes
- aproximaciones locales siga una distribución normal similar a la de los
- errores de aproximación global, es decir
+ Una hipótesis que parece bastante razonable a priori es que en los puntos
+ nodales comunes a varios entornos locales las diferencias entre las correspondi
+entes aproximaciones locales siga una distribución normal similar a la de
+ los errores de aproximación global, es decir
 \begin_inset Formula \[
 g_{h}\left(x\right)-g_{s}\left(x\right)=e_{h,s}\left(x\right)\sim N\left(0,\sigma^{2}\right)\forall x\in\Omega_{h}\cap\Omega_{s}\]
 
@@ -532,7 +556,7 @@ T=\overset{\Omega_{h}\cap\Omega_{s}\neq\emptyset}{\underset{h,s}{\sum}}T_{h,s}\e
 
 \end_inset
 
-entonces podemos añadir a la matriz 
+Podemos añadir a la matriz 
 \begin_inset Formula $Q$
 \end_inset
 
@@ -540,7 +564,7 @@ entonces podemos añadir a la matriz
 \begin_inset Formula $T$
 \end_inset
 
- ecuaciones latentes al modelo definido anteriormente
+ ecuaciones a priori al modelo definido anteriormente
 \end_layout
 
 \begin_layout Standard
@@ -551,6 +575,70 @@ entonces podemos añadir a la matriz
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Por razones análogas se podría desear que las aproximaciones locales vecinas
+ no sólo tuvieran valores similares si no también derivadas parciales igualmente
+ parecidas.
+ Para ello habría que añadir a la matriz 
+\begin_inset Formula $Q$
+\end_inset
+
+ las 
+\begin_inset Formula $K\cdot T$
+\end_inset
+
+ ecuaciones a priori 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+0=\overset{K}{\underset{k=1}{\sum}}\frac{\partial p_{k}\left(z_{h,s,t}-y_{h}\right)}{\partial x^{i}}\alpha_{h,k}\cdot-\overset{K}{\underset{k=1}{\sum}}\frac{\partial p_{k}\left(z_{h,s,t}-y_{s}\right)}{\partial x^{i}}\alpha_{s,k}\cdot+e_{h,s,j,i}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Los residuos de estas igualdades son asintóticamente restas de residuos
+ con distribuciones 
+\begin_inset Formula $N\left(0,\sigma^{2}\right)$
+\end_inset
+
+ independientes, luego sus distribuciones serán 
+\begin_inset Formula $N\left(0,2\sigma^{2}\right)$
+\end_inset
+
+ independientes.
+\end_layout
+
+\begin_layout Standard
+Se podría incuso forzar el mismo tipo de restricciones para las segundas
+ derivadas parciales añadiendo las 
+\begin_inset Formula $K^{2}\cdot T$
+\end_inset
+
+ ecuaciones a priori 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+0=\overset{K}{\underset{k=1}{\sum}}\frac{\partial^{2}p_{k}\left(z_{h,s,t}-y_{h}\right)}{\partial x^{i_{1}}\partial x^{i_{2}}}\alpha_{h,k}\cdot-\overset{K}{\underset{k=1}{\sum}}\frac{\partial^{2}p_{k}\left(z_{h,s,t}-y_{s}\right)}{\partial x^{i_{1}}\partial x^{i_{2}}}\alpha_{s,k}\cdot+e_{h,s,j,i_{1},i_{2}}\end{array}\end{equation}
+
+\end_inset
+
+con residuos distribuidos como 
+\begin_inset Formula $N\left(0,4\sigma^{2}\right)$
+\end_inset
+
+ independientes.
+\end_layout
+
+\begin_layout Standard
+Evidentemente este tipo de restricciones a priori sólo tienen sentido si
+ la base de aproximación local tiene componentes con el órden suficiente
+ de derivadas parciales no nulas.
 \end_layout
 
 \begin_layout Subsection
@@ -1253,7 +1341,7 @@ Sea la función real escalar continua y doblemente diferenciale en todo
  
 \begin_inset Formula \begin{equation}
 \gamma\left(\tau\right)=\begin{cases}
-\left(\frac{1}{2}-\frac{1}{2}\tau\right)^{4}\left(\frac{1}{2}+\frac{1}{2}\tau\right)^{4} & \forall\tau\leq1\\
+\frac{1}{64}\left(1-\tau^{2}\right)^{4} & \forall\tau\leq1\\
 0 & \forall\tau>1\end{cases}\end{equation}
 
 \end_inset
@@ -1423,7 +1511,7 @@ función de cercanía local
  
 \begin_inset Formula \begin{equation}
 \lambda_{h}\left(x\right)=\gamma\left(\tau_{h}\left(x\right)\right)=\begin{cases}
-\left(\frac{1}{2}-\frac{1}{2}\tau_{h}\left(x\right)\right)^{4}\left(\frac{1}{2}+\frac{1}{2}\tau_{h}\left(x\right)\right)^{4} & \forall x\in\Omega_{h}\\
+\frac{1}{64}\left(1-\tau_{h}^{2}\left(x\right)\right)^{4} & \forall x\in\Omega_{h}\\
 0 & \forall x\notin\Omega_{h}\end{cases}\end{equation}
 
 \end_inset
@@ -1459,9 +1547,22 @@ w_{h}\left(x\right)=\begin{cases}
 \end_layout
 
 \begin_layout Standard
-Todo lo anterior seguiría siendo cierto partiendo de cualquier distribución
- beta simétrica de orden entero mayor o igual que 4 pero no con orden 3
- pues en ese caso la segunda derivada no sería continua en la frontera.
+A la función 
+\begin_inset Formula $\gamma$
+\end_inset
+
+ le llamaremos 
+\emph on
+función generatriz de cercanía local
+\emph default
+.
+ Todo lo anterior seguiría siendo cierto si para definir 
+\begin_inset Formula $\gamma$
+\end_inset
+
+se partiera de cualquier distribución beta simétrica de orden entero mayor
+ o igual que 4 pero no con orden 3 pues en ese caso la segunda derivada
+ no sería continua en la frontera.
  En la gráfica siguiente se muestra cómo la función de cercanía se hace
  más concentrada en el punto de referencia cuanto más grande es el orden
  de la beta simétrica.
@@ -1898,44 +1999,7 @@ Si se coloca un punto de referencia en cada punto nodal y no se usan puntos
  de estrés entonces estaríamos ante el caso particular de aproximación de
  funciones sin malla, aunque dado el sistema de estimación no aportaría
  ninguna ganancia sino más bien al contrario: de una buena selección de
- la malla puede depender la calidad y laeficiencia de la aproximación.
-\end_layout
-
-\begin_layout Standard
-Para que la regresión lineal no sea degenerada debe tener más ecuaciones
- que variables 
-\begin_inset Formula \begin{equation}
-J+T\geq\begin{array}{c}
-H\cdot K\end{array}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-De hecho, para que se pueda hacer inferencia la superficie de contraste
- ha de ser razonablemente grande
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{equation}
-SC=\begin{array}{c}
-\frac{J+T}{H\cdot K}\gg1\end{array}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Para aumentar la superficie de contraste sin rebajar el tamaño de la base
- ni el número de puntos de referencia se deben añadir máspuntosde estrés.
- En las intersecciones entre pares de entornos locales en los que haya algún
- punto nodal lo más prudente sería que estos ejercieran a su vez de puntos
- de estrés.
- En aquellas en las que no los hubiera sería recomendable introducirlos
- de forma artificial.
+ la malla puede depender la calidad y la eficiencia de la aproximación.
 \end_layout
 
 \begin_layout Standard
@@ -1981,6 +2045,14 @@ Recubrimiento bidimensional regular
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Obsérvese que en una malla regular, cada entorno local interior interseca
+ con otros 4 en el espacio bidimiensional, con sólo 2 en el espacio unidimension
+al y con 6 en el tridimensional, es decir, con el mismo número que caras
+ tiene el hipercubo correspondiente a la dimensión del espacio.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -2033,6 +2105,59 @@ Una forma alternativa y más sencilla de homogeneizar el recubrimiento es
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Según se introduzca o no información a priori sobre los puntos de estrés
+ el número 
+\begin_inset Formula $M$
+\end_inset
+
+ de ecuaciones del modelo podría estar en el rango
+\begin_inset Formula \begin{equation}
+J\leq M\leq J+T\left(1+K+K^{2}\right)\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Para que la regresión lineal no sea degenerada debe tener más ecuaciones
+ que variables 
+\begin_inset Formula \begin{equation}
+M\geq\begin{array}{c}
+H\cdot K\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+De hecho, para que se pueda hacer inferencia la superficie de contraste
+ ha de ser razonablemente grande
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+SC=\begin{array}{c}
+\frac{M}{H\cdot K}\gg1\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Para aumentar la superficie de contraste sin rebajar el tamaño de la base
+ ni el número de puntos de referencia se deben añadir más puntos de estrés
+ o mayor orden de diferenciación en la información a priori.
+ En las intersecciones entre pares de entornos locales en los que haya algún
+ punto nodal lo más prudente sería que estos ejercieran a su vez de puntos
+ de estrés.
+ En aquellas en las que no los hubiera sería recomendable introducirlos
+ de forma artificial.
 \end_layout
 
 \begin_layout Bibliography
