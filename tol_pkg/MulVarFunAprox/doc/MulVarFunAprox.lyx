@@ -115,6 +115,23 @@ Antecedentes
 \end_layout
 
 \begin_layout Standard
+Como introducción al estado del arte en el ataque clásico de la ingeniería
+ mecánica acerca de los métodos de malla, y en especial de los de mínimos
+ cuadrados móviles, sería interesente la lectura del artículo 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Meshless-methods-An-overview-and-recent-developments"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Función objetivo
+\end_layout
+
+\begin_layout Standard
 Sea la
 \emph on
  función objetivo
@@ -197,21 +214,8 @@ función de aproximación global
 
 \end_layout
 
-\begin_layout Standard
-Como introducción al estado del arte en el ataque clásico de la ingeniería
- mecánica acerca de los métodos de malla, y en especial de los de mínimos
- cuadrados móviles, sería interesente la lectura del artículo 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "Meshless-methods-An-overview-and-recent-developments"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
-Modelo lineal observacional puro
+\begin_layout Subsection
+Aproximación local
 \end_layout
 
 \begin_layout Standard
@@ -306,6 +310,10 @@ por lo que es obvio que deben ser continuas y doblemente diferenciables
  
 \end_layout
 
+\begin_layout Subsection
+La función de ponderación
+\end_layout
+
 \begin_layout Standard
 La función de aproximación global en un punto se definirá a su vez como
  una combinación convexa de las funciones locales cuyos entornos contengan
@@ -350,6 +358,14 @@ w_{h}\left(x\right)\leq w_{h}\left(y_{h}\right)\forall x\in\mathbb{R}^{n}\\
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Estimación de los parámetros
+\end_layout
+
+\begin_layout Subsection
+Modelo lineal observacional puro
 \end_layout
 
 \begin_layout Standard
@@ -476,7 +492,7 @@ target "http://www.cise.ufl.edu/research/sparse/cholmod/"
  y con mayor eficacia cuanto más dispersa sea la matriz.
 \end_layout
 
-\begin_layout Section
+\begin_layout Subsection
 Modelo jerárquico
 \end_layout
 
@@ -537,7 +553,7 @@ entonces podemos añadir a la matriz
 
 \end_layout
 
-\begin_layout Section
+\begin_layout Subsection
 Estimación adaptativa
 \end_layout
 
