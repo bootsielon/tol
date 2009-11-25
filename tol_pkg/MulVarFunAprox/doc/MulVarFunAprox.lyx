@@ -804,7 +804,7 @@ key "Modifying-Sparse-Cholesky-factorization,Multiple-rank-modifications-of-a-sp
 
 \end_inset
 
- .
+.
  Las otras dos ecuaciones de bloque tienen poco coste computacional por
  ser de pequeño tamaño y su efecto se reduce a añadir nuevas filas a la
  matriz triangular según se expone en 
@@ -1281,7 +1281,7 @@ Dimensión de la base polinómica
 \end_layout
 
 \begin_layout Standard
-Si se puede presumir algun tipo de periodicidad o pseudo-periodicidad en
+Si se puede presumir algún tipo de periodicidad o pseudo-periodicidad en
  la función objetivo, entonces sería mejor usar una base de Fourier.
  Si se observan hay grandes saltos en poco espacio se pueden añadir componentes
  exponenciales.
@@ -1334,7 +1334,8 @@ cas especificadas anteriormente.
 \end_layout
 
 \begin_layout Standard
-Sea la función real escalar continua y doblemente diferenciale en todo 
+Sea la función real escalar continua y doblemente diferenciable en todo
+ 
 \begin_inset Formula $\mathbb{R}$
 \end_inset
 
@@ -2015,7 +2016,7 @@ Lo ideal sería que cada entorno de referencia encerrara aproximadamente
  Si los puntos nodales se hallan distribuidos más o menos uniformemente
  la forma de malla regular es la manera más eficaz de colocar los puntos
  de referencia y sus entornos para recubrir una región del espacio con el
- mínimo solpamiento.
+ mínimo solapamiento.
 \end_layout
 
 \begin_layout Standard
@@ -2155,8 +2156,8 @@ Para aumentar la superficie de contraste sin rebajar el tamaño de la base
  En aquellas en las que no los hubiera sería recomendable introducirlos
  de forma artificial.
  Obsérvese que en una malla regular, cada entorno local interior interseca
- con otros 4 en el espacio bidimiensional, con sólo 2 en el espacio unidimension
-al y con 6 en el tridimensional, es decir, con el mismo número que caras
+ con otros 4 en el espacio bidimensional, con sólo 2 en el espacio unidimensiona
+l y con 6 en el tridimensional, es decir, con el mismo número que caras
  tiene el hipercubo correspondiente a la dimensión del espacio:
 \begin_inset Formula $2n$
 \end_inset
