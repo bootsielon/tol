@@ -2048,14 +2048,6 @@ Recubrimiento bidimensional regular
 \end_layout
 
 \begin_layout Standard
-Obsérvese que en una malla regular, cada entorno local interior interseca
- con otros 4 en el espacio bidimiensional, con sólo 2 en el espacio unidimension
-al y con 6 en el tridimensional, es decir, con el mismo número que caras
- tiene el hipercubo correspondiente a la dimensión del espacio.
- 
-\end_layout
-
-\begin_layout Standard
 Cuando la densidad de puntos nodales no es homogénea lo más prudente es
  adaptar el recubrimiento a las circunstancias.
  Resulta relativamente sencillo pasar de un recubrimiento de un radio dado
@@ -2108,21 +2100,6 @@ Una forma alternativa y más sencilla de homogeneizar el recubrimiento es
 \end_layout
 
 \begin_layout Standard
-Según se introduzca o no información a priori sobre los puntos de estrés
- el número 
-\begin_inset Formula $M$
-\end_inset
-
- de ecuaciones del modelo podría estar en el rango
-\begin_inset Formula \begin{equation}
-J\leq M\leq J+T\left(1+K+K^{2}\right)\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 Para que la regresión lineal no sea degenerada debe tener más ecuaciones
  que variables 
 \begin_inset Formula \begin{equation}
@@ -2158,6 +2135,305 @@ Para aumentar la superficie de contraste sin rebajar el tamaño de la base
  de estrés.
  En aquellas en las que no los hubiera sería recomendable introducirlos
  de forma artificial.
+ Obsérvese que en una malla regular, cada entorno local interior interseca
+ con otros 4 en el espacio bidimiensional, con sólo 2 en el espacio unidimension
+al y con 6 en el tridimensional, es decir, con el mismo número que caras
+ tiene el hipercubo correspondiente a la dimensión del espacio:
+\begin_inset Formula $2n$
+\end_inset
+
+.
+ Por lo tanto el número deseable de puntos de estrés sería dela forma
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+T\approx n\cdot T_{0}\cdot H\end{equation}
+
+\end_inset
+
+siendo 
+\begin_inset Formula $T_{0}$
+\end_inset
+
+ el número de puntos de estrés por intersección de pares de entornos locales.
+\end_layout
+
+\begin_layout Standard
+Según se introduzcan o no puntos de estrés y según el orden de diferenciación
+ aplicado sobre ellos, el número 
+\begin_inset Formula $M$
+\end_inset
+
+ de ecuaciones del modelo sería distinto, así como la superficie de contraste
+ según se ve en la siguiente tabla
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="4">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Caso
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Información a priori
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $M$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $SC$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IP1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Ninguna
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $J$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\frac{J}{H\cdot K}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IP2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sin derivadas
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $J+T\approx n\cdot T_{0}\cdot H$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\frac{J+T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\cdot T_{0}}{K}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IP3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Derivadas primeras
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $J+\left(1+K\right)\cdot T\approx n\cdot T_{0}\cdot\left(1+K\right)\cdot H$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\frac{J+\left(1+K\right)\cdot T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\cdot T_{0}\left(1+K\right)}{K}>n\cdot T_{0}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IP4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Derivadas segundas
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $J+\left(1+K+K^{2}\right)\cdot T\approx n\cdot T_{0}\cdot\left(1+K+K^{2}\right)\cdot H$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\frac{J+\left(1+K+K^{2}\right)\cdot T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\cdot T_{0}\left(1+K+K^{2}\right)}{K}>n\cdot T_{0}+K$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Superficie de contraste 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Obsérvese que sólo los casos IP3 e IP4 pueden asegurar una superficie de
+ contraste suficiente independientemente del número de puntos de referencia
+ y de estrés por intersección escogidos.
+ En el caso IP2 bastaría con forzar 
+\begin_inset Formula $T_{0}\gg\frac{K}{n}$
+\end_inset
+
+ .
 \end_layout
 
 \begin_layout Bibliography
