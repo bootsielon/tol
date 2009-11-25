@@ -467,20 +467,45 @@ void BVMatConvert::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatPack);
-DefExtOpr(1, BVMatPack, "Pack", 1, 1, 
-  "VMatrix",
-  "(VMatrix data)",
-  I2("Packs an sparse matrix to be stored in the minimum posible size."
-     "It has no effect over non sparse matrices.",
-     "Empaqueta una matriz sparse para que ocupe el mínimo espacio posible."
-     "No tiene ningún efecto sobre matrices no sparse."),
+DefExtOpr(1, BVMatPack, "Pack", 1, 2, 
+  "VMatrix Real",
+  "(VMatrix data [, Real sparsity=?])",
+  I2("Converts a virtual matrix to be stored in the optimal way:"
+     " * Converts a dense matrix to sparse if it has enough zero cells, ie if \n"
+     "  1-VNonNullCells(M)/(VRows(M)*VColumns(M)) >= sparsity\n"
+     " * Converts an sparse matrix to dense if it hasn't enough zero cells, ie if \n"
+     "  1-VNonNullCells(M)/(VRows(M)*VColumns(M)) <= sparsity\n"
+     " Sparse matrices will be packed internally in other case.\n"
+     " * Converts triplet matrices to dense or sparse, following the same explained "
+     "rules\n"
+     "If argument 'sparsity' is unknown then it will be calculated to ensure the "
+     "minimum size of returned matrix."
+,
+     "Convierte una matriz virtual para ser almacenados en la forma óptima:\n"
+     " * Convierte una matriz densa a escasa si tiene bastantes celdas cero, es decir, si\n"
+     "1-VNonNullCells (M) / (VRows (M) * VColumns (M))> = sparsity\n"
+     "* Convierte una matriz dispersa a densa si no hay bastantes celdas cero, es decir, si\n"
+     "1-VNonNullCells (M) / (VRows (M) * VColumns (M)) <= sparsity\n"
+     "Si no es así, las matrices sparse serán empaquetadas al máximo internamente.\n"
+     "* Convierte las matrices triplet a denso o sparse según estas mismas reglas\n"
+     "* Las matrices factor serán empaquetadas al máximo internamente\n"
+     "Si el argumento 'sparsity' es desconocido entonces será calculado "
+     "para garantizar el mínimo tamaño posible de la matriz devuelta."),
 BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------------------------
 void BVMatPack::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_.Copy(VMat(Arg(1)));
-  contens_.Pack();
+  contens_ = VMat(Arg(1));
+  if(Arg(2)) 
+  { 
+    double sparsity = Real(Arg(2));
+    contens_.Pack(sparsity); 
+  }
+  else
+  {
+    contens_.Pack(); 
+  }
   assert(contens_.Check());
 }
 

@@ -265,8 +265,10 @@ public:
   void Delete();
 //Copy operator
   const BVMat& operator = (const BVMat& v);  
+  ECode Code() const { return(code_); }
   int  Check       () const;
   void Pack        ();
+  void Pack        (double sparsity);
   void Copy        (const BVMat& v);
   void BlasRDense  (int nrow, int ncol);
   void ChlmRSparse (int nrow, int ncol, int nzmax);
@@ -334,6 +336,8 @@ public:
   static void err_cannot_apply(const char* fName, const char* cond, 
                                const BVMat& a);
 private:
+  static size_t bytes_blasRdense(int nzmax);
+  static size_t bytes_chlmRsparse(int nzmax, int ncol, bool packed);
   size_t bytes_blasRdense  () const;
   size_t bytes_chlmRsparse () const;
   size_t bytes_chlmRfactor () const;

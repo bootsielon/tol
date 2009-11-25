@@ -197,7 +197,11 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   A_ = (BVMat*)&A;
   B_ = (BVMat*)&B;
   int result = 0;
-  if((A.code_==ESC_chlmRsparse) && (B.code_!=ESC_chlmRsparse))
+  if((A.code_==ESC_chlmRsparse) && (B.code_==ESC_chlmRsparse))
+  {
+    result = -1;
+  }
+  else if((A.code_==ESC_chlmRsparse) && (B.code_!=ESC_chlmRsparse))
   { 
     warn_convert2cRs(fName,B);
     B_ = new BVMat(B, ESC_chlmRsparse); 
@@ -253,7 +257,11 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   A_ = (BVMat*)&A;
   B_ = (BVMat*)&B;
   int result = 0;
-  if((A.code_==ESC_blasRdense) && (B.code_!=ESC_blasRdense))
+  if((A.code_==ESC_blasRdense) && (B.code_==ESC_blasRdense))
+  {
+    result = -1;
+  }
+  else if((A.code_==ESC_blasRdense) && (B.code_!=ESC_blasRdense))
   { 
     warn_convert2bRd(fName,B);
     B_ = new BVMat(B, ESC_blasRdense); 

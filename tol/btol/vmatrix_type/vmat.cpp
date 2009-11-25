@@ -287,38 +287,139 @@ void BVMat::restore_cholmod_common()
 //Importing method
 ////////////////////////////////////////////////////////////////////////////////
 {
+  int nz,ncol,nrow,dense_size,sparse_size;
+  BVMat aux;
   switch(code_) {
   case(ESC_blasRdense  ) : 
   {
+    nz = NonNullCells(0);
+    ncol=Columns();
+    nrow=Rows();
+    dense_size = bytes_blasRdense(nrow*ncol);
+    sparse_size = bytes_chlmRsparse(nz, ncol, true);
+    if(sparse_size<dense_size)
+    {
+      aux.Convert(*this,ESC_chlmRsparse);
+      *this = aux;
+    }
     break;
   }
   case(ESC_chlmRsparse ) : 
   {
-    int nnz = NonNullCells(0);
-    if(s_.chlmRsparse_->nzmax > nnz)
+    cholmod_drop(0,s_.chlmRsparse_, common_);
+    nz = NonNullCells(0);
+    ncol=Columns();
+    nrow=Rows();
+    dense_size = bytes_blasRdense(nrow*ncol);
+    sparse_size = bytes_chlmRsparse(nz, ncol, true);
+    if(sparse_size>dense_size)
     {
-      cholmod_drop(0,s_.chlmRsparse_, common_);
+      aux.Convert(*this,ESC_blasRdense);
+      *this = aux;
     }
-    cholmod_sort(s_.chlmRsparse_, common_);
+    else
+    {
+      cholmod_sort(s_.chlmRsparse_,   common_);
+    }
     break;
+  }
+  case(ESC_chlmRtriplet) : 
+  {
+    Drop(0);
+    nz = NonNullCells(0);
+    ncol=Columns();
+    nrow=Rows();
+    dense_size = bytes_blasRdense(nrow*ncol);
+    sparse_size = bytes_chlmRsparse(nz, ncol, true);
+    if(sparse_size<dense_size)
+    {
+      aux.Convert(*this,ESC_chlmRsparse);
+    }
+    else
+    {
+      aux.Convert(*this,ESC_blasRdense);
+    }
+    *this = aux;
+    break; 
   }
   case(ESC_chlmRfactor ) : 
   {
     cholmod_pack_factor(s_.chlmRfactor_,common_);
     break;
   }
+  default: 
+    Error(I2("FATAL ERROR in",
+             "ERROR FATAL en")+" BVMat::Pack()"); 
+    assert(1); }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::Pack(double sparsity)
+//Importing method
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(sparsity==BDat::Nan()) { Pack(); return; }
+  int nz,ncol,nrow;
+  double sparseRatio;
+  BVMat aux;
+  switch(code_) {
+  case(ESC_blasRdense  ) : 
+  {
+    nz = NonNullCells(0);
+    ncol=Columns();
+    nrow=Rows();
+    sparseRatio = 1.0 - double(nz)/double(nrow*ncol);
+    if(sparseRatio>sparsity)
+    {
+      aux.Convert(*this,ESC_chlmRsparse);
+      *this = aux;
+    }
+    break;
+  }
+  case(ESC_chlmRsparse ) : 
+  {
+    cholmod_drop(0,s_.chlmRsparse_, common_);
+    nz = NonNullCells(0);
+    ncol=Columns();
+    nrow=Rows();
+    sparseRatio = 1.0 - double(nz)/double(nrow*ncol);
+    if(sparseRatio<sparsity)
+    {
+      aux.Convert(*this,ESC_blasRdense);
+      *this = aux;
+    }
+    else
+    {
+      cholmod_sort(s_.chlmRsparse_,   common_);
+    }
+    break;
+  }
   case(ESC_chlmRtriplet) : 
   {
-    int nnz = NonNullCells(0);
-    if(s_.chlmRtriplet_->nzmax > nnz)
+    Drop(0);
+    nz = NonNullCells(0);
+    ncol=Columns();
+    nrow=Rows();
+    sparseRatio = 1.0 - double(nz)/double(nrow*ncol);
+    if(sparseRatio>=sparsity)
     {
-      Drop(0);
+      aux.Convert(*this,ESC_chlmRsparse);
     }
+    else
+    {
+      aux.Convert(*this,ESC_blasRdense);
+    }
+    *this = aux;
     break; 
+  }
+  case(ESC_chlmRfactor ) : 
+  {
+    cholmod_pack_factor(s_.chlmRfactor_,common_);
+    break;
   }
   default: 
     Error(I2("FATAL ERROR in",
-             "ERROR FATAL en")+" BVMat::Pack(const BVMat& v)"); 
+             "ERROR FATAL en")+" BVMat::Pack()"); 
     assert(1); }
 };
 
@@ -1074,13 +1175,16 @@ void BVMat::CompactSymmetric(bool check)
   int r = Rows();
   int c = Columns();
   double cells = StoredCells();
+  double nz = NonNullCells();
   double denseCells = (double)r*(double)c;
-  double cellPercent = round(10000.0*cells/denseCells)/100.0;
   double bytes = Bytes();
   double denseBytes = sizeof(BVMat)+sizeof(cholmod_dense)+ 
                      (denseCells)*sizeof(double);
+  double nzPercent = round(10000.0*nz/denseCells)/100.0;
+  double cellPercent = round(10000.0*cells/denseCells)/100.0;
   double bytesPercent = round(10000.0*bytes/denseBytes)/100.0;
   aux +=BText("\n")+ 
+        " Non zero cells "+nz+"/("+r+"x"+c+")="+nzPercent+"%\n"+
         " Stored cells "+cells+"/("+r+"x"+c+")="+cellPercent+"%\n"+
         " Stored bytes "+bytes+"/"+denseBytes+"="+bytesPercent+"%\n"; 
   return(aux);
