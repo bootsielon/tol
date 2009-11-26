@@ -779,20 +779,22 @@ void BSetRange::CalcContens()
                "Alguno de los argumentos de Range son desconocidos"));
     return;
   }
-  double from = fromDat.Value();
+  double from  = fromDat.Value();
   double until = untilDat.Value();
-  double step = stepDat.Value();
+  double step  = stepDat.Value();
   int k;
   double x;
-  if (step == 0.0) { /* warning!!! : this is a bad comparison */
+  if(step == 0.0) { /* warning!!! : this is a bad comparison */
     Warning(I2("Argument 'p' of function Range cannot be zero",
                "El argumento 'p' de la función Range no puede ser cero."));
     return;
   }
-  for(k=0;;k++)
+  if(((step>0.0)&&(until<from))||
+     ((step<0.0)&&(until>from))) { return; }
+  int K = 1+(int)floor(1.0+fabs((from-until)/step)-1.0);
+  for(k=0; k<K; k++)
   {
-    x = from + step*k;
-    if((step>0)?(x>until):(x<until)) { break; }
+    x = 1.0 + (from + step*k) -1.0;
     LstFastAppend(result, aux, new BContensDat("",x));
   }
   contens_.RobElement(result);
