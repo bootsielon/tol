@@ -1,0 +1,238 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : MulVarFunAprox.tol
+// PURPOSE: Defines package MulVarFunAprox
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock MulVarFunAprox = [[
+
+#Require MatQuery;
+
+Text _.autodoc.description = "Aproximation of multivariate real functions "
+"by means of linear regression.";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["aproximation","interpolation"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org"   ]];
+
+//////////////////////////////////////////////////////////////////////////////
+//Base of K mutivariate arbitrary linearly independent functions R^n -> R of 
+//class C2, ie, continuous and having first and second partial continuous
+//derivatives
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2FunRn2R
+{
+  //Dimension of domain vectorial space
+  Real _.n;
+  //Dimension of the base
+  Real _.K;
+
+  //Evaluates the k-th basic function for a 
+  //point x given as a row matrix
+  Real function.r(Real k, VMatrix x);
+  //Evaluates the first partial derivative of k-th basic function for a  
+  //point x given as a row matrix
+  Real partial.derivative.1.r(Real k, VMatrix x, Real i);
+  //Evaluates the second partial derivative of k-th basic function for a  
+  //point x given as a row matrix
+  Real partial.derivative.2.r(Real k, VMatrix x, Real i, Real j);
+
+  //For efficience reasonsthe base has specific method for evaluation over 
+  //massive data stored in a matrix
+
+  //Evaluates the k-th basic function for an 
+  //array of points given as the rows of a matrix 
+  VMatrix function.v(Real k, VMatrix X);
+  //Evaluates the first partial derivative of k-th basic function for an  
+  //array of points given as the rows of a matrix 
+  VMatrix partial.derivative.1.v(Real k, VMatrix X, Real i);
+  //Evaluates the second partial derivative of k-th basic function for an  
+  //array of points given as the rows of a matrix 
+  VMatrix partial.derivative.2.v(Real k, VMatrix X, Real i, Real j)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2FunRn2R.Monomial : @BaseC2FunRn2R
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Base of K mutivariate monomial "
+  "functions R^n -> R . Linear independence is ensured since distinct "
+  "monomials are allways independent\n";
+
+  //Maximum degree of the monomial: sum of degrees of all variables
+  Real _.maxDeg;
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Auxiliar memebers
+  ////////////////////////////////////////////////////////////////////////////
+
+  //Combination of degrees for each basic function
+  Set  _.degComb;
+  //Indexes for derivatives {1,...,n} - {i}
+  Set  _.range.der.1;
+  //Indexes for second derivatives {1,...,n} - {i,j}
+  Set  _.range.der.2;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates an instance of "
+  "@BaseC2FunRn2R.Monomial on R^n with specified maximum degree.";
+  Static @BaseC2FunRn2R.Monomial New(Real n, Real maxDeg)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix degCombAll = Mat2VMat(SetMat(Range(0,maxDeg,1)^n));
+    VMatrix degSum = degCombAll*Rand(n,1,1,1); 
+    VMatrix match = LE(degSum,Rand(VRows(degCombAll),1,maxDeg,maxDeg));
+    Set select = MatQuery::SelectMatch(match);
+    Set degComb = VMat2Set(SubRow(degCombAll, select));
+    Real K = Card(degComb);
+    Set range.der.1 = For(1,n,Set(Real i)
+    { 
+      Range(1,n,1)-[[i]]
+    });
+    Set range.der.2 = For(1,n,Set(Real i)
+    { 
+      For(1,n,Set(Real j)
+      { 
+        Range(1,n,1)-[[i,j]]
+      })
+    });
+    @BaseC2FunRn2R.Monomial aux = [[
+      Real _.n = n;
+      Real _.K = K;
+      Real _.maxDeg = maxDeg;
+      Set _.degComb = degComb;
+      Set _.range.der.1 = range.der.1;
+      Set _.range.der.2 = range.der.2
+  ]]};
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.function.r = 
+  "Evaluates the k-th basic function for a point x given as a row matrix";
+  Real function.r(Real k, VMatrix x)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    SetProd(For(1,_.n, Real(Real i)
+    {
+      MatDat(x,1,i)^_.degComb[k][i]
+    }))
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.1.r = 
+  "Evaluates the first partial derivative of k-th basic function for a "  
+  "point x given as a row matrix";
+  Real partial.derivative.1.r(Real k, VMatrix x, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real d = _.degComb[k][i];
+    If(d==0, 0,
+    {
+      (MatDat(x,1,i)^(d-1))*d*
+      SetProd(EvalSet(_.range.der.1[i], Real(Real h)
+      {
+        MatDat(x,1,h)^_.degComb[k][h]
+      }))
+    })
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.2.r = 
+  "Evaluates the second partial derivative of k-th basic function for a "
+  "point x given as a row matrix";
+  Real partial.derivative.2.r(Real k, VMatrix x, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(i==j,
+    {
+      Real d = _.degComb[k][i];
+      If(d<=1, 0,
+      {
+        (MatDat(x,1,i)^(d-2))*(d-1)*d*
+        SetProd(EvalSet(_.range.der.1[i], Real(Real h)
+        {
+          MatDat(x,1,h)^_.degComb[k][h]
+        }))
+      })
+    },
+    {
+      Real d.i = _.degComb[k][i];
+      Real d.j = _.degComb[k][j];
+      If(Or(d.i==0, d.j==0), 0,
+      {
+        (MatDat(x,1,i)^(d.i-1))*d.i*
+        (MatDat(x,1,j)^(d.j-1))*d.j*
+        SetProd(EvalSet(_.range.der.2[i][j], Real(Real h)
+        {
+          MatDat(x,1,h)^_.degComb[k][h]
+        }))
+      })
+    })
+  };
+
+  //For efficience reasonsthe base has specific method for evaluation over 
+  //massive data stored in a matrix
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.function.v = 
+  "Evaluates the k-th basic function for an "
+  "array of points given as the rows of a matrix ";
+  VMatrix function.v(Real k, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    BinGroup("$*", For(1,_.n, Real(Real i)
+    {
+      RPow(SubCol(x,[[i]]),_.degComb[k][i])
+    }))
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.1.v = 
+  "Evaluates the first partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix partial.derivative.1.v(Real k, VMatrix X, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real d = _.degComb[k][i];
+    If(d==0, 0,
+    {
+      (RPow(SubCol(x,[[i]]),d-1)*d) $*
+      BinGroup("$*", EvalSet(_.range.der.1[i], Real(Real h)
+      {
+        RPow(SubCol(x,[[h]]),_.degComb[k][h])
+      }))
+    })
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.2.v = 
+  "Evaluates the second partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix partial.derivative.2.v(Real k, VMatrix X, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(i==j,
+    {
+      Real d = _.degComb[k][i];
+      If(d<=1, 0,
+      {
+        (RPow(SubCol(x,[[h]]),d-2)*((d-1)*d)) $*
+        BinGroup("$*", EvalSet(_.range.der.1[i], Real(Real h)
+        {
+          RPow(SubCol(x,[[h]]),_.degComb[k][h])
+        }))
+      })
+    },
+    {
+      Real d.i = _.degComb[k][i];
+      Real d.j = _.degComb[k][j];
+      If(Or(d.i==0, d.j==0), 0,
+      {
+        (RPow(SubCol(x,[[i]]),d.i-1)*d.i) $*
+        (RPow(SubCol(x,[[j]]),d.j-1)*d.j) $*
+        BinGroup("$*", (_.range.der.2[i][j], Real(Real h)
+        {
+          RPow(SubCol(x,[[h]]),_.degComb[k][h])
+        }))
+      })
+    })
+  }
+}
+
+
+]];
