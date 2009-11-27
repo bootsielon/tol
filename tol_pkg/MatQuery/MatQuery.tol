@@ -13,6 +13,21 @@ Set _.autodoc.keys = [["select","classify"]];
 Set _.autodoc.authors = [[
    "vdebuen@tol-project.org"   ]];
 
+//It will be passed to built-in function Pack to convert to the best storage
+//Default value is set to unknown that will ensure minimum space
+Real _.packSparsity = ?;
+
+//////////////////////////////////////////////////////////////////////////////
+Real _checkColumnVector(Text method, VMatrix M)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(VColumns(M)==1,True,
+  { 
+    WriteLn("[MatQuery::"+method+"] a column matrix was "
+    "expected instead of ("<<VRows(M)+"x"+VColumns(M)+")","E");
+    False
+  }) 
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.SelectMatch = 
@@ -20,10 +35,21 @@ Text _.autodoc.member.SelectMatch =
 Set SelectMatch(VMatrix match)
 //////////////////////////////////////////////////////////////////////////////
 {
+  If(!_checkColumnVector("SelectMatch",match),Copy(Empty), {
   Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
   If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
-};
+})};
 
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.MatchRowsFullKnown = 
+"Returns a column matrix with True in rows where all cells have konwn values";
+VMatrix MatchRowsFullKnown(VMatrix M)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real m = VRows(M);
+  Real n = VColumns(M);
+  Pack(Not(IsUnknown(M)*Rand(n,1,1,1)),_.packSparsity)
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.MatchRowsWithValue = 
@@ -32,13 +58,14 @@ Text _.autodoc.member.MatchRowsWithValue =
 VMatrix MatchRowsWithValue(VMatrix M, Real value)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(IsUnknown(value), IsUnknown(M),
+  If(!_checkColumnVector("MatchRowsWithValue",M), Rand(0,0,0,0), {
+  Pack(If(IsUnknown(value), IsUnknown(M),
   {
     Real r = VRows(M);
     VMatrix V = Rand(r,1,value,value);
     EQ(M,V)
-  })
-};
+  }),_.packSparsity)
+})};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.SelectRowsWithValue = 
@@ -65,16 +92,17 @@ VMatrix MatchRowsInInterval(
   Real maxIncluded )
 //////////////////////////////////////////////////////////////////////////////
 {
+  If(!_checkColumnVector("MatchRowsInInterval",M), Rand(0,0,0,0), {
   Real r = VRows(M);
   VMatrix Min = Rand(r,1,min,min);
   VMatrix Max = Rand(r,1,max,max);
-  Case(
+  Pack(Case(
      minIncluded &  maxIncluded, And(LE(Min,M),LE(M,Max)),
     !minIncluded &  maxIncluded, And(LT(Min,M),LE(M,Max)),
      minIncluded & !maxIncluded, And(LE(Min,M),LT(M,Max)),
     !minIncluded & !maxIncluded, And(LT(Min,M),LT(M,Max))
-  )
-};
+  ),_.packSparsity)
+})};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.SelectRowsInInterval = 
@@ -107,7 +135,7 @@ VMatrix MatchRowsInHyperCube(VMatrix M, VMatrix P, Real d)
   VMatrix D = Rand(r,1,d,d);
   Group("And",For(1,c, VMatrix(Real k)
   {
-    LE(Abs(SubCol(M,[[k]])-VMatDat(P,1,k)),D)
+    Pack(LE(Abs(SubCol(M,[[k]])-VMatDat(P,1,k)),D), _.packSparsity)
   }))
 };
 
@@ -136,7 +164,7 @@ VMatrix MatchRowsInHyperSphere(VMatrix M, VMatrix P, Real ratio)
   {
     RPow(SubCol(M,[[k]])-VMatDat(P,1,k),2)
   }));
-  LE(dist2,R2)
+  Pack(LE(dist2,R2),_.packSparsity)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -159,6 +187,7 @@ Text _.autodoc.member.ClassifyRowsByRank = "Classifies the rows of a column "
 VMatrix ClassifyRowsByRank(VMatrix M, Set rankBound)
 //////////////////////////////////////////////////////////////////////////////
 {
+  If(!_checkColumnVector("ClassifyRowsByRank",M), Rand(0,0,0,0), {
   Real m = VRows(M);
   Real R = Card(rankBound);
   Real min = 
@@ -183,7 +212,8 @@ VMatrix ClassifyRowsByRank(VMatrix M, Set rankBound)
     Real r := r+1
   });
   class
-}
+})}
+
 
 
 ]];
