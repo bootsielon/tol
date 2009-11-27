@@ -817,6 +817,18 @@ key "Row-modifications-of-a-sparse-Cholesky-factorization"
 .
 \end_layout
 
+\begin_layout Subsection
+Modelo con información exógena
+\end_layout
+
+\begin_layout Standard
+Si además de la información de los valores de la función objetivo se sabe
+ que dicha función depende linealmente de una serie de factores exógenos
+ (inputs) de los cuales se tiene información para cualquier punto, o al
+ menos para los puntosen los que se desea evaluar la aproximación, entonces
+ sólo habría que añadir al modelo anterior una variable para cada input.
+\end_layout
+
 \begin_layout Section
 Diseño del modelo
 \end_layout
@@ -1241,7 +1253,7 @@ status open
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $1,x_{1},x_{2},x_{3},x_{1}^{2},x_{1}x_{2},x_{2}^{2},x_{2}x_{3},x_{3}^{2}$
+\begin_inset Formula $1,x_{1},x_{2},x_{3},x_{1}^{2},x_{1}x_{2},x_{1}x_{3},x_{2}^{2},x_{2}x_{3},x_{3}^{2}$
 \end_inset
 
 
@@ -1253,7 +1265,7 @@ status open
 \begin_inset Text
 
 \begin_layout Plain Layout
-9
+10
 \end_layout
 
 \end_inset
@@ -1303,14 +1315,25 @@ La dimensión
  empieza a no ser muy pequeño puede ser conveniente ortogonalizar la base
  aplicando la misma técnica del punto anterior a la matriz
 \begin_inset Formula \begin{equation}
-X_{\mathcal{P}}=\left(\begin{array}{ccc}
-p_{1}\left(x_{1}\right) & \cdots & p_{K}\left(x_{1}\right)\\
+P_{u}=\left(\begin{array}{ccc}
+p_{1}\left(u_{1}\right) & \cdots & p_{K}\left(u_{1}\right)\\
 \vdots & \vdots & \vdots\\
-p_{1}\left(x_{J}\right) & \cdots & p_{K}\left(x_{J}\right)\end{array}\right)\in\mathbb{R}^{J\times K}\end{equation}
+p_{1}\left(u_{m}\right) & \cdots & p_{K}\left(u_{m}\right)\end{array}\right)\in\mathbb{R}^{m\times K}\wedge m\gg K\end{equation}
 
 \end_inset
 
+donde los puntos 
+\begin_inset Formula $u_{1},\ldots,u_{m}$
+\end_inset
 
+ se pueden seleccionar aletatoriamente alrededor del origen.
+ En este caso puede ser más interesante utilizar la descomposición de valor
+ singular o la de Jordan para disminuir la dimensión 
+\begin_inset Formula $K$
+\end_inset
+
+ tomando los autovectores correspondientes a los autovalores por encima
+ de un nivel mínimo, o los que sumen cierto porcentaje de la traza.
 \end_layout
 
 \begin_layout Subsection
