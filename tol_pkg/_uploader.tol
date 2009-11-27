@@ -11,7 +11,14 @@ Text local = ".";
 Text export = tolpkg+"export";
 Text version = Replace(Tokenizer(Version," ")[1],".","_");
 Text upload = tolpkg+"tol_pkg/"+version;
+Text tolpkg_install = Replace(TolAppDataPath+
+  "OIS/Require/tol_pkg/"+version+"/","\\","/");
+
+Real OSDirRemove(tolpkg_install);
+Real OSDirMake(tolpkg_install);
 Real OSDirRemove(tolpkg);
+Real OSDirMake(tolpkg);
+Real OSDirMake(upload);
 
 Real OSCmdWaitWr(Text order)
 {
@@ -22,7 +29,18 @@ Real OSCmdWaitWr(Text order)
 Real OSCmdWaitWr("svn export --force "
   "https://www.tol-project.org/svn/tolp/trunk/tol_pkg \""+export+"\"");
 
+
 Set packages = 
+[[
+  "HashMap",
+  "MatQuery",
+  "MatEncode",
+  "MulVarFunAprox",
+  "MhCnstrLinRegArima",
+  "GraphTools",
+  "GisTools"
+]];
+/*
 {
   Set aux = Select(GetDir(export)[2], Real(Text subDir)
   {
@@ -34,6 +52,7 @@ Set packages =
   });
   Sort(aux,Real(Text a, Text b) { Compare(a,b) })
 };
+*/
   
 Text SetOfTextToWikiList(Set set, Text margin, Text quote)
 {
@@ -44,7 +63,6 @@ Text SetOfTextToWikiList(Set set, Text margin, Text quote)
   })))
 };
 
-Real OSDirMake(upload);
 
 Real wiki = FOpen(tolpkg+"wiki.txt","wb");
 
@@ -75,6 +93,7 @@ Set EvalSet(packages, Real(Text name)
   " [http://packages.tol-project.org/tol_pkg/"+name+".oza download just OIS compressed package]
 ");
   Real Ois.Store(aux[1],upl+".oza");
+  Real OSCmdWaitWr("cp "+upl+".oza \""+ReplaceSlash(tolpkg_install)+"\"");
   Real OSCmdWaitWr("\""+tolpkg+"compress.bat\" "+name)
 });
 
