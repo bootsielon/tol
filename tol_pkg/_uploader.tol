@@ -27,7 +27,10 @@ Set packages =
   Set aux = Select(GetDir(export)[2], Real(Text subDir)
   {
     Real fst = ASCII(Sub(subDir,1,1)); 
-    LE(ASCII("A"),fst,ASCII("Z"))
+    If(!LE(ASCII("A"),fst,ASCII("Z")),False,
+    {
+      FileExist(subDir+"/"+subDir+".tol")
+    })
   });
   Sort(aux,Real(Text a, Text b) { Compare(a,b) })
 };
