@@ -13,87 +13,24 @@ Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
 //Random seed setting
-Real PutRandomSeed(0);
+Real PutRandomSeed(234234);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-#Require MulVarFunAprox;
+//#Require MulVarFunAprox;
 //#Embed "../../../_embed_all.tol";
+#Embed "../../MulVarFunAprox.tol";
 
 Real n = 2;
 
+Real maxDeg = 4;
 
-Set Base.VFun = {SetOfCode(
-  VMatrix p00 (VMatrix x) { Rand(VRows(x),1,1,1) },
-  VMatrix p10 (VMatrix x) { SubCol(x,[[1]]) },
-  VMatrix p01 (VMatrix x) { SubCol(x,[[2]]) },
-  VMatrix p20 (VMatrix x) { RPow(SubCol(x,[[1]]),2) },
-  VMatrix p02 (VMatrix x) { RPow(SubCol(x,[[2]]),2) },
-  VMatrix p11 (VMatrix x) { SubCol(x,[[1]])$*SubCol(x,[[2]]) }
-)};
 
-Set Base.VDerFst = {[[
-{SetOfCode(
-  VMatrix p00 (VMatrix x) { Rand(VRows(x),1,0,0) },
-  VMatrix p10 (VMatrix x) { Rand(VRows(x),1,1,1) },
-  VMatrix p01 (VMatrix x) { Rand(VRows(x),1,0,0) },
-  VMatrix p20 (VMatrix x) { SubCol(x,[[1]])*2 },
-  VMatrix p02 (VMatrix x) { Rand(VRows(x),1,0,0) },
-  VMatrix p11 (VMatrix x) { SubCol(x,[[2]]) }
-)};
-{SetOfCode(
-  VMatrix p00 (VMatrix x) { Rand(VRows(x),1,0,0) },
-  VMatrix p10 (VMatrix x) { Rand(VRows(x),1,0,0) },
-  VMatrix p01 (VMatrix x) { Rand(VRows(x),1,1,1) },
-  VMatrix p20 (VMatrix x) { Rand(VRows(x),1,0,0) },
-  VMatrix p02 (VMatrix x) { SubCol(x,[[2]])*2 },
-  VMatrix p11 (VMatrix x) { SubCol(x,[[1]]) }
-)}
-]]};
+MulVarFunAprox::@BaseC2FunRn2R.Monomial base = 
+  MulVarFunAprox::@BaseC2FunRn2R.Monomial::New(n,maxDeg);
 
-Set Base.VDerSnd = {[[
-{[[
-  {SetOfCode(
-    VMatrix p00 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p10 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p01 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p20 (VMatrix x) { Rand(VRows(x),1,2,2) },
-    VMatrix p02 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p11 (VMatrix x) { Rand(VRows(x),1,0,0) }
-  )};
-  {SetOfCode(
-    VMatrix p00 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p10 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p01 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p20 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p02 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p11 (VMatrix x) { Rand(VRows(x),1,1,1) }
-  )}
-]]},
-{[[
-  {SetOfCode(
-    VMatrix p00 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p10 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p01 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p20 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p02 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p11 (VMatrix x) { Rand(VRows(x),1,1,1) }
-  )};
-  {SetOfCode(
-    VMatrix p00 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p10 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p01 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p20 (VMatrix x) { Rand(VRows(x),1,0,0) },
-    VMatrix p02 (VMatrix x) { Rand(VRows(x),1,2,2) },
-    VMatrix p11 (VMatrix x) { Rand(VRows(x),1,0,0) }
-  )}
-]]} ]]};
-
-Real K = Card(Base.VFun);
-
-/* */
-
-Real J = K*100;
+Real K = base::_.K;
+Real J = K*1000;
 
 VMatrix X = Group("ConcatColumns",For(1,n,VMatrix(Real i)
 {
@@ -122,7 +59,7 @@ VMatrix fun.eval.extra.base(VMatrix X)
 
 VMatrix Fx = fun.eval.extra.base(X);
 
-Real lengthRatio = 1*(J/(K*n))^(1/n);
+Real lengthRatio = 0.5*(J/(K*n))^(1/n);
 
 Set X.col.info = For(1,n,Set(Real i)
 {[[
@@ -260,21 +197,22 @@ Set X.weight = For(1,X.maxNeighbour,VMatrix(Real i)
 
 Matrix QX.triplet = Group("ConcatRows", For(1,X.maxNeighbour,Matrix(Real i)
 {
-  VMatrix X.hiK = (SubCol(X.h,[[i]])-1)*K;
+  VMatrix w.i = X.weight[i];
+  Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
+  VMatrix wi = SubRow(w.i,sel.rows);
+  VMatrix X.hiK = SubRow((SubCol(X.h,[[i]])-1)*K,sel.rows);
+  VMatrix Xdif.i = SubRow(X.dif[i],sel.rows);
+  VMatrix X.j.i = SubRow(X.j,sel.rows);
   Group("ConcatRows", For(1,K,Matrix(Real k)
   {
-    Code bvf = Base.VFun[k];
-    VMatrix pk = bvf(X.dif[i]);
-    VMatrix qk = X.weight[i]$*pk; 
-    Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(qk),1.E-15),qk*0));
-    VMat2Mat(
-      SubRow(X.j,sel.rows) |
-     (SubRow(X.hiK,sel.rows)+k) |
-      SubRow(qk,sel.rows))
+    VMatrix pk = base::function.v(k,Xdif.i);
+    VMatrix qk = wi$*pk; 
+    VMat2Mat(X.j.i | (X.hiK+k) | qk)
   }))
 }));
 
 VMatrix QX = Pack(Convert(Triplet(QX.triplet, J, N),"Cholmod.R.Sparse"));
+
 
 VMatrix displ.Z.1 = 
   Rand(H,1,-0.1,0.1)*grid.size/2 |
@@ -316,7 +254,7 @@ Real Mz = Case(
   prior.Z.order==2, T*(1+(n^2)*K));
 
 Real Z.maxNeighbour = If(Mz,2,0);
-VMatrix Z.j=DifEq(1/(1-B),Rand(T,1,1,1));
+VMatrix Z.t=DifEq(1/(1-B),Rand(T,1,1,1));
 
 VMatrix Z.h=Z.h.1 | Z.h.2;
 
@@ -339,35 +277,35 @@ Set Z.match = For(1,Z.maxNeighbour,VMatrix(Real i)
 Matrix PZ.triplet = Group("ConcatRows", For(1,Z.maxNeighbour,Matrix(Real i)
 {
   VMatrix Z.hiK = (SubCol(Z.h,[[i]])-1)*K;
+  VMatrix Zdif.i = Z.dif[i];
+  VMatrix Z.t.i = Z.t;
   Group("ConcatRows", For(1,K,Matrix(Real k)
   {
     Real cumRows = 0;
-    Code bvf = Base.VFun[k];
-    VMatrix pk = bvf(Z.dif[i])*If(i==1,+1,-1);
-    Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(pk),1.E-15),pk*0));
-    VMatrix col.idx = (SubRow(Z.hiK,sel.rows)+k);
+    VMatrix pk = base::function.v(k,Zdif.i)*If(i==1,+1,-1);
+    VMatrix col.idx = (Z.hiK+k);
     {
-      VMatrix row.idx = SubRow(Z.j,sel.rows)+cumRows;
+      VMatrix row.idx = Z.t.i+cumRows;
       Real cumRows := cumRows + T;
-      VMat2Mat(row.idx | col.idx | SubRow(pk,sel.rows))
+      VMat2Mat(row.idx | col.idx | pk)
     }  << If(prior.Z.order<1,Rand(0,3,0,0),
     Group("ConcatRows",For(1,n,Matrix(Real d)
     {
-      Code bvfd = Base.VDerFst[d][k];
-      VMatrix pkd = bvfd(Z.dif[i])*If(i==1,+1/2,-1/2);
-      VMatrix row.idx = SubRow(Z.j,sel.rows)+cumRows;
+      Real sign = If(i==1,+1/2,-1/2);
+      VMatrix pkd = base::partial.derivative.1.v(k,Zdif.i,d)*sign;
+      VMatrix row.idx = Z.t.i+cumRows;
       Real cumRows := cumRows + T;
-      VMat2Mat(row.idx | col.idx | SubRow(pkd,sel.rows))
+      VMat2Mat(row.idx | col.idx | pkd)
     })))<< If(prior.Z.order<2,Rand(0,3,0,0),
     Group("ConcatRows",For(1,n,Matrix(Real d1)
     {
       Group("ConcatRows",For(d1,n,Matrix(Real d2)
       {
-        Code bvfd2 = Base.VDerSnd[d1][d2][k];
-        VMatrix pkd2 = bvfd2(Z.dif[i])*If(i==1,+1/4,-1/4);
-        VMatrix row.idx = SubRow(Z.j,sel.rows)+cumRows;
+        Real sign = If(i==1,+1/4,-1/4);
+        VMatrix pkd2 = base::partial.derivative.2.v(k,Zdif.i,d1,d2)*sign;
+        VMatrix row.idx = Z.t.i+cumRows;
         Real cumRows := cumRows + T;
-        VMat2Mat(row.idx | col.idx | SubRow(pkd2,sel.rows))
+        VMat2Mat(row.idx | col.idx | pkd2)
       }))
     })))
   }))
@@ -376,7 +314,7 @@ Matrix PZ.triplet = Group("ConcatRows", For(1,Z.maxNeighbour,Matrix(Real i)
 
 Real M = J+Mz;
 
-VMatrix PZ = Pack(Convert(Triplet(PZ.triplet, Mz, N),"Cholmod.R.Sparse"));
+VMatrix PZ = Convert(Triplet(PZ.triplet, Mz, N),"Cholmod.R.Sparse");
 
 VMatrix Fz = Rand(Mz,1,0,0);
 VMatrix F = Fx<<Fz;
