@@ -52,6 +52,189 @@ Class @BaseC2FunRn2R
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Class @BaseC2FunRn2R.Map : @BaseC2FunRn2R
+//////////////////////////////////////////////////////////////////////////////
+{
+  @BaseC2FunRn2R _.base; 
+  Set _.map; 
+
+  Static Text _.autodoc.description = "Extracts a sub-base of a given base "
+  "whose k-th basic function are given by _.map[k] basic function of "
+  "_.base. Of course _.map cannot have repated indexes to ensure linear "
+  "independence.";
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates an instance of "
+  "@BaseC2FunRn2R.Map on R^n with specified maximum degree.";
+  Static @BaseC2FunRn2R.Map New(@BaseC2FunRn2R base, Set map)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @BaseC2FunRn2R.Map aux = [[
+      Real _.n = base::_.n;
+      Real _.K = Card(map);
+      @BaseC2FunRn2R _.base = base; 
+      Set _.map = map    
+  ]]};
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.function.r = 
+  "Evaluates the k-th basic function for a point x given as a row matrix";
+  Real function.r(Real k, VMatrix x)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.base::function.r(_.map[k], x)
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.1.r = 
+  "Evaluates the first partial derivative of k-th basic function for a "  
+  "point x given as a row matrix";
+  Real partial.derivative.1.r(Real k, VMatrix x, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    partial.derivative.1.r(_.map[k], x, i)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.2.r = 
+  "Evaluates the second partial derivative of k-th basic function for a "
+  "point x given as a row matrix";
+  Real partial.derivative.2.r(Real k, VMatrix x, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.base::partial.derivative.2.r(_.map[k], x, i, j)
+  };
+
+  //For efficience reasonsthe base has specific method for evaluation over 
+  //massive data stored in a matrix
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.function.v = 
+  "Evaluates the k-th basic function for an "
+  "array of points given as the rows of a matrix ";
+  VMatrix function.v(Real k, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.base::function.v(_.map[k], X)
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.1.v = 
+  "Evaluates the first partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix partial.derivative.1.v(Real k, VMatrix X, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.base::partial.derivative.1.v(_.map[k], X, i)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.2.v = 
+  "Evaluates the second partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix partial.derivative.2.v(Real k, VMatrix X, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.base::partial.derivative.2.v(_.map[k], X, i, j)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2FunRn2R.Concat : @BaseC2FunRn2R
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static Text _.autodoc.description = "Concats a set of linearly independent "
+  "bases over the same domain vectorial space.";
+
+  Set _.base;   //Set of @BaseC2FunRn2R
+
+  //Auxiliar member to map concatenated bases
+  Set _.map;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates an instance of "
+  "@BaseC2FunRn2R.Concat on R^n with specified maximum degree.";
+  Static @BaseC2FunRn2R.Concat New(Set base)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real n = (base[1])::_.n;
+    Set map = BinGroup("<<", For(1,Card(base),Set(Real h)
+    {
+      If((base[h])::_.n!=n,WriteLn("[@BaseC2FunRn2R.Concat::New] "
+      "Cannot concat bases with different domain vectorial space dimension "
+      <<n+"!="<<(base[h])::_.n),"E");
+      For(1,(base[h])::_.K,Set(Real k)
+      {
+        [[h,k]]
+      })
+    }));
+    @BaseC2FunRn2R.Concat aux = [[
+      Real _.n = base::_.n;
+      Real _.K = Card(map);
+      Set _.base = base; 
+      Set _.map = map
+  ]]};
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.function.r = 
+  "Evaluates the k-th basic function for a point x given as a row matrix";
+  Real function.r(Real k, VMatrix x)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set aux = _.map[k];
+    (_.base[aux::h])::function.r(aux::k, x)
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.1.r = 
+  "Evaluates the first partial derivative of k-th basic function for a "  
+  "point x given as a row matrix";
+  Real partial.derivative.1.r(Real k, VMatrix x, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set aux = _.map[k];
+    (_.base[aux::h])::partial.derivative.1.r(aux::k, x, i)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.2.r = 
+  "Evaluates the second partial derivative of k-th basic function for a "
+  "point x given as a row matrix";
+  Real partial.derivative.2.r(Real k, VMatrix x, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set aux = _.map[k];
+    (_.base[aux::h])::_.base::partial.derivative.2.r(aux::k, x, i, j)
+  };
+
+  //For efficience reasonsthe base has specific method for evaluation over 
+  //massive data stored in a matrix
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.function.v = 
+  "Evaluates the k-th basic function for an "
+  "array of points given as the rows of a matrix ";
+  VMatrix function.v(Real k, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set aux = _.map[k];
+    (_.base[aux::h])::_.base::function.v(aux::k, X)
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.1.v = 
+  "Evaluates the first partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix partial.derivative.1.v(Real k, VMatrix X, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set aux = _.map[k];
+    (_.base[aux::h])::_.base::partial.derivative.1.v(aux::k, X, i)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.partial.derivative.2.v = 
+  "Evaluates the second partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix partial.derivative.2.v(Real k, VMatrix X, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set aux = _.map[k];
+    (_.base[aux::h])::_.base::partial.derivative.2.v(aux::k, X, i, j)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Class @BaseC2FunRn2R.Monomial : @BaseC2FunRn2R
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -177,9 +360,9 @@ Class @BaseC2FunRn2R.Monomial : @BaseC2FunRn2R
   VMatrix function.v(Real k, VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
-    BinGroup("$*", For(1,_.n, Real(Real i)
+    BinGroup("$*", For(1,_.n, VMatrix(Real i)
     {
-      RPow(SubCol(x,[[i]]),_.degComb[k][i])
+      RPow(SubCol(X,[[i]]),_.degComb[k][i])
     }))
   }; 
   ////////////////////////////////////////////////////////////////////////////
@@ -190,13 +373,14 @@ Class @BaseC2FunRn2R.Monomial : @BaseC2FunRn2R
   ////////////////////////////////////////////////////////////////////////////
   {
     Real d = _.degComb[k][i];
-    If(d==0, 0,
+    If(d==0, Rand(VRows(X),1,0,0),
     {
-      (RPow(SubCol(x,[[i]]),d-1)*d) $*
-      BinGroup("$*", EvalSet(_.range.der.1[i], Real(Real h)
+      VMatrix aux = (RPow(SubCol(X,[[i]]),d-1)*d);
+      If(!Card(_.range.der.1[i]),aux,aux $*
+      BinGroup("$*", EvalSet(_.range.der.1[i], VMatrix rd1(Real h)
       {
-        RPow(SubCol(x,[[h]]),_.degComb[k][h])
-      }))
+        RPow(SubCol(X,[[h]]),_.degComb[k][h])
+      })))
     })
   };
   ////////////////////////////////////////////////////////////////////////////
@@ -209,26 +393,28 @@ Class @BaseC2FunRn2R.Monomial : @BaseC2FunRn2R
     If(i==j,
     {
       Real d = _.degComb[k][i];
-      If(d<=1, 0,
+      If(d<=1, Rand(VRows(X),1,0,0),
       {
-        (RPow(SubCol(x,[[h]]),d-2)*((d-1)*d)) $*
-        BinGroup("$*", EvalSet(_.range.der.1[i], Real(Real h)
+        VMatrix aux = (RPow(SubCol(X,[[i]]),d-2)*((d-1)*d));
+        If(!Card(_.range.der.1[i]),aux,aux $*
+        BinGroup("$*", EvalSet(_.range.der.1[i], VMatrix rd21(Real h)
         {
-          RPow(SubCol(x,[[h]]),_.degComb[k][h])
-        }))
+          RPow(SubCol(X,[[h]]),_.degComb[k][h])
+        })))
       })
     },
     {
       Real d.i = _.degComb[k][i];
       Real d.j = _.degComb[k][j];
-      If(Or(d.i==0, d.j==0), 0,
+      If(Or(d.i==0, d.j==0), Rand(VRows(X),1,0,0),
       {
-        (RPow(SubCol(x,[[i]]),d.i-1)*d.i) $*
-        (RPow(SubCol(x,[[j]]),d.j-1)*d.j) $*
-        BinGroup("$*", (_.range.der.2[i][j], Real(Real h)
+        VMatrix aux = (RPow(SubCol(X,[[i]]),d.i-1)*d.i) $*
+                      (RPow(SubCol(X,[[j]]),d.j-1)*d.j);
+        If(!Card(_.range.der.2[i][j]),aux,aux $*
+        BinGroup("$*", EvalSet(_.range.der.2[i][j], VMatrix rd22(Real h)
         {
-          RPow(SubCol(x,[[h]]),_.degComb[k][h])
-        }))
+          RPow(SubCol(X,[[h]]),_.degComb[k][h])
+        })))
       })
     })
   }
