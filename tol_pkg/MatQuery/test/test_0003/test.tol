@@ -8,29 +8,39 @@ Text email_ = "vdebuen@tol-project.org";
 Text link_ = ""; 
 Text summary_ = "checking matrix row selection of unknown values";
 
+//#Require MatQuery;
+//#Embed "../../../_embed_all.tol";
+
 //Write here the initial test TOL code if needed
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
-#Require MatQuery;
-//#Embed "../../../_embed_all.tol";
-
 Real t1 = Copy(Time);
 Real rndSeed = 0;
 Real m = 300;
+Real n = 10;
 
-VMatrix unk.match = LE(Rand(m,1,0,1),Rand(m,1,1,1)*.20);
-VMatrix M = IfVMat(unk.match, Rand(m,1,1,1)*?, Rand(m,1,-10,10));
+VMatrix unk.match = LE(Rand(m,n,0,1),Rand(m,n,1,1)*.20);
+VMatrix M = IfVMat(unk.match, Rand(m,n,1,1)*?, Rand(m,n,-10,10));
 
-VMatrix unk.match_ = MatQuery::MatchRowsWithValue(M,?);
-Real ok.1 = VMatMax(Abs(unk.match-unk.match))==0;
+VMatrix M.unk = Min(IsUnknown(M)*Rand(n,1,1,1), Rand(m,1,1,1));
 
-Set sel.known = MatQuery::SelectMatch(Not(unk.match_));
+VMatrix M.rows.known = Pack(Not(IsUnknown(M)*Rand(n,1,1,1)));
+VMatrix M.rows.unknown = Pack(Not(M.rows.known));
+VMatrix M.rows.known_= MatQuery::MatchRowsFullKnown(M);
 
-VMatrix extract.known = SubRow(M, sel.known);
+VMatrix unk.match.1 = LE(Rand(m,1,0,1),Rand(m,1,1,1)*.20);
+VMatrix M1 = IfVMat(unk.match.1, Rand(m,1,1,1)*?, Rand(m,1,-10,10));
+
+VMatrix unk.match.1_ = MatQuery::MatchRowsWithValue(M1,?);
+Real ok.1 = VMatMax(Abs(unk.match.1-unk.match.1))==0;
+
+Set sel.known = MatQuery::SelectMatch(Not(unk.match.1_));
+
+VMatrix extract.known = SubRow(M1, sel.known);
 
 Real ok.2 = VMatSum(IsUnknown(extract.known))==0;
-Real ok.3 = VRows(extract.known)==m-VMatSum(unk.match);
+Real ok.3 = VRows(extract.known)==m-VMatSum(unk.match.1);
 
 
 Real numErr1 = Copy(NError);

@@ -17,8 +17,8 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-//#Require MulVarFunAprox;
-#Embed "../../../_embed_all.tol";
+#Require MulVarFunAprox;
+//#Embed "../../../_embed_all.tol";
 
 Real n = 2;
 
@@ -93,7 +93,7 @@ Real K = Card(Base.VFun);
 
 /* */
 
-Real J = K*10000;
+Real J = K*100;
 
 VMatrix X = Group("ConcatColumns",For(1,n,VMatrix(Real i)
 {

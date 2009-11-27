@@ -75,9 +75,9 @@ Real i2dg::build(0);
 
 Real eval.p0 = i2dg::eval(p0);
 
-NameBlock i2dg::evaluate(p0);
 
 /*
+NameBlock i2dg::evaluate(p0);
 GisTools::@Point2D.Simple p = p0;
 Set _.x.range = i2dg::_.x.range;
 Set _.y.range = i2dg::_.y.range;
@@ -85,18 +85,15 @@ Set _.grid = i2dg::_.grid;
 GisTools::@Point2D.Stored _.P = i2dg::_.P;
 VMatrix _.F = i2dg::_.F;
 
-/*
+*/
 
 Real numErr1 = Copy(NError);
 Real numWar1 = Copy(NWarning);
 
-Set partialResults_ = [[numErr0, numErr1, 
-                        ok.1, ok.2]];
+Set partialResults_ = [[numErr0, numErr1]];
 
 //This is a messure of the success of the test 
-Real quality_ = And(numErr1 == numErr0, 
-                    numWar1 == numWar0, 
-                    ok.1, ok.2);
+Real quality_ = And(numErr1 == numErr0);
 
 //Return the results 
 Set resultStr_ = @strTestStatus(summary_, link_, quality_,

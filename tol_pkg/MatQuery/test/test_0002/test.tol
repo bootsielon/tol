@@ -8,12 +8,12 @@ Text email_ = "vdebuen@tol-project.org";
 Text link_ = ""; 
 Text summary_ = "checking matrix row selection";
 
+  #Require MatQuery;
+//#Embed "../../../_embed_all.tol";
+
 //Write here the initial test TOL code if needed
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
-
-  #Require MatQuery;
-//#Embed "../../../_embed_all.tol";
 
 Real t1 = Copy(Time);
 Real rndSeed = 0;

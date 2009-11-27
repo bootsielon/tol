@@ -8,6 +8,9 @@ Text email_ = "vdebuen@tol-project.org";
 Text link_ = ""; 
 Text summary_ = "checking matrix row selection";
 
+  #Require MatQuery;
+//#Embed "../../../_embed_all.tol";
+
 //Write here the initial test TOL code if needed
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
@@ -17,8 +20,6 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-  #Require MatQuery;
-//#Embed "../../../_embed_all.tol";
 
 //The order of magnitude required for number of geographic points
 Real point.num.approx = 20000;
@@ -68,6 +69,7 @@ Set city.points = For(1,city.num, Matrix(Real city)
 //All points
 VMatrix points = Mat2VMat(BinGroup("<<",city.points));
 
+
 //Target point
 VMatrix p0 = SubRow(points,[[IntRand(1,point.num)]])+
            Gaussian(1, 2, 0, cityInsideDistance);
@@ -78,6 +80,7 @@ WriteLn("SelectRowsInHyperCube full ...");
 Set p0.select.idx.HC = MatQuery::SelectRowsInHyperCube(
   points, p0, distance);
 VMatrix p0.select.HC = SubRow(points,p0.select.idx.HC);
+
 Real t1 = Copy(Time);
 WriteLn("SelectRowsInHyperCube full "<<VRows(p0.select.HC)+" items "
   "Time:"<<(t1-t0));
@@ -87,6 +90,7 @@ WriteLn("SelectRowsInHyperSphere full ...");
 Set p0.select.idx.HE.1 = MatQuery::SelectRowsInHyperSphere(
   points, p0, distance);
 VMatrix p0.select.HE.1 = SubRow(points,p0.select.idx.HE.1);
+
 Real t2 = Copy(Time);
 WriteLn("SelectRowsInHyperSphere full "<<VRows(p0.select.HE.1)+" items "
   "Time:"<<(t2-t1));
@@ -105,6 +109,7 @@ Real ok.1 = And(
   Card(p0.select.idx.HE.1) <= Card(p0.select.idx.HC),
   Card(p0.select.idx.HE.1   *      p0.select.idx.HC) == 
   Card(p0.select.idx.HE.1));
+
 Real ok.2 = VMatMax(Abs(p0.select.HE.2-p0.select.HE.1))==0;
 
 Real numErr1 = Copy(NError);

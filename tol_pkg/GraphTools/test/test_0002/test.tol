@@ -6,6 +6,9 @@ Text email_ = "vdebuen@tol-project.org";
 Text link_ = ""; 
 Text summary_ = "checking a simple graph";
 
+  #Require GraphTools;
+//#Embed "../../../_embed_all.tol";
+
 //Write here the initial test TOL code if needed
 Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
@@ -14,9 +17,6 @@ Real rndSeed = 0;
 Real vertex.num = 1000;
 Real edge.num = 20000;
 Real removeRepeatedEdges = True;
-
-  #Require GraphTools;
-//#Embed "../../../_embed_all.tol";
 
 #Embed "../define.random.graph.tol";
 
