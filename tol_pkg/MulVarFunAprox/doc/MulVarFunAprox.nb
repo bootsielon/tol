@@ -39,9 +39,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[    817374,      17268]*)
-(*NotebookOutlinePosition[    818028,      17291]*)
-(*  CellTagsIndexPosition[    817984,      17287]*)
+(*NotebookOptionsPosition[    817446,      17271]*)
+(*NotebookOutlinePosition[    818100,      17294]*)
+(*  CellTagsIndexPosition[    818056,      17290]*)
 (*WindowFrame->Normal*)
 
 
@@ -17262,7 +17262,10 @@ Cell[BoxData[
     TagBox[\(\[SkeletonIndicator]  Graphics  \[SkeletonIndicator]\),
       False,
       Editable->False]], "Output"]
-}, Open  ]]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(\(Plot3D\)\([\)\(Sin[x]*Cos[x]\)\)\)], "Input"]
 }, Open  ]]
 }, Open  ]]
 },
@@ -17380,7 +17383,8 @@ Cell[706593, 15329, 3049, 58, 550, "Input"],
 Cell[709645, 15389, 107556, 1869, 239, 14742, 719, "GraphicsData", \
 "PostScript", "Graphics"],
 Cell[817204, 17260, 130, 3, 29, "Output"]
-}, Open  ]]
+}, Open  ]],
+Cell[817349, 17266, 69, 1, 30, "Input"]
 }, Open  ]]
 }, Open  ]]
 }

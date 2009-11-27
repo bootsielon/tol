@@ -618,7 +618,7 @@ Los residuos de estas igualdades son asintóticamente restas de residuos
 \begin_layout Standard
 Se podría incuso forzar el mismo tipo de restricciones para las segundas
  derivadas parciales añadiendo las 
-\begin_inset Formula $n^{2}\cdot T$
+\begin_inset Formula $n\left(n-1\right)T$
 \end_inset
 
  ecuaciones a priori 
@@ -674,11 +674,11 @@ Supongamos que tenemos el problema original resuelto para una matriz de
 \end_inset
 
 de 
-\begin_inset Formula $J_{1}+T_{1}$
+\begin_inset Formula $M_{1}$
 \end_inset
 
  ecuaciones y 
-\begin_inset Formula $H_{1}\cdot K_{1}$
+\begin_inset Formula $N_{1}$
 \end_inset
 
  variables y un output 
@@ -709,11 +709,11 @@ Q_{11}^{T}\cdot Q_{11}=L_{0}\cdot L_{0}^{T}\end{equation}
 \begin_layout Standard
 Por las razones antedichas tenemos que añadir un número notablemente inferior
  
-\begin_inset Formula $J_{2}+T_{2}$
+\begin_inset Formula $M_{2}$
 \end_inset
 
  de ecuaciones y de 
-\begin_inset Formula $H_{2}\cdot K_{2}$
+\begin_inset Formula $N_{2}$
 \end_inset
 
  variables nuevas para formar las nuevas matrices
@@ -2371,7 +2371,7 @@ Derivadas primeras
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\frac{J+\left(1+K\right)\cdot T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\left(1+n\right)T_{0}}{K}$
+\begin_inset Formula $\frac{J+\left(1+n\right)\cdot T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\left(1+n\right)T_{0}}{K}$
 \end_inset
 
 
@@ -2403,7 +2403,7 @@ Derivadas segundas
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $J+\left(1+K+K^{2}\right)\cdot T\approx n\cdot\left(1+n+n^{2}\right)\cdot T_{0}\cdot H$
+\begin_inset Formula $J+\left(1+K+K^{2}\right)\cdot T\approx n\cdot\left(1+n+n\left(n-1\right)\right)\cdot T_{0}\cdot H$
 \end_inset
 
 
@@ -2415,7 +2415,7 @@ Derivadas segundas
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\frac{J+\left(1+K+K^{2}\right)\cdot T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\left(1+n+n^{2}\right)T_{0}}{K}$
+\begin_inset Formula $\frac{J+\left(1+n+n^{2}\right)\cdot T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\left(1+n^{2}\right)T_{0}}{K}$
 \end_inset
 
 
