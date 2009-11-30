@@ -13,7 +13,7 @@ Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
 //Random seed setting
-Real PutRandomSeed(234234);
+Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -25,41 +25,54 @@ Real n = 2;
 
 Real maxDeg = 4;
 
-
-MulVarFunAprox::@BaseC2FunRn2R.Monomial base = 
-  MulVarFunAprox::@BaseC2FunRn2R.Monomial::New(n,maxDeg);
+FunRn2R::@BaseC2.Monomial base = 
+  FunRn2R::@BaseC2.Monomial::New(n,maxDeg);
 
 Real K = base::_.K;
-Real J = K*1000;
+Real J = K*20;
 
-VMatrix X = Group("ConcatColumns",For(1,n,VMatrix(Real i)
+//////////////////////////////////////////////////////////////////////////////
+VMatrix generate.nodal.points(Real J, Real n)
+//////////////////////////////////////////////////////////////////////////////
 {
-  Real min = Rand(0,0);
-  Real len = Rand(5,10)*(i^(1/n));
-  Rand(J,1,min,min+len)
-}));
-
-
-VMatrix fun.eval.intra.base(VMatrix X) 
-{
-  Set x = For(1,n,VMatrix(Real i) { SubCol(X,[[i]]) });
-  (x[1]*0+1)*Rand(-10,10)+
-  x[1]*Rand(-10,10)+
-  x[2]*Rand(-10,10)+
-  x[1]^2*Rand(-10,10)+
-  x[2]^2*Rand(-10,10)+
-  x[1]$*x[2]*Rand(-10,10)
+  Group("ConcatColumns",For(1,n,VMatrix(Real i)
+  {
+    Real min = Rand(0,0);
+    Real len = Rand(5,10)*(i^(1/n));
+    Rand(J,1,min,min+len)
+  }))
 };
 
+//////////////////////////////////////////////////////////////////////////////
+  NameBlock base.random.fun =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Matrix coef = Rand(base::_.K, 1, -10, 10);
+  VMatrix eval(VMatrix X) 
+  {
+    SetSum(For(1,base::_.K, VMatrix(Real k) 
+    { 
+      base::function.v(k,X)*MatDat(coef,k,1)
+    }))
+  }
+]];
+
+//////////////////////////////////////////////////////////////////////////////
 VMatrix fun.eval.extra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
 {
   Set x = For(1,n,VMatrix(Real i) { SubCol(X,[[i]]) });
   Sin(x[1])+Cos(x[1])
 };
 
-VMatrix Fx = fun.eval.extra.base(X);
+Code fun.eval = fun.eval.extra.base;
+//Code fun.eval = base.random.fun::eval;
 
-Real lengthRatio = 0.5*(J/(K*n))^(1/n);
+
+VMatrix X = generate.nodal.points(J,n);
+VMatrix Fx = fun.eval(X);
+
+Real lengthRatio = 0.7*(J/(K*n))^(1/n);
 
 Set X.col.info = For(1,n,Set(Real i)
 {[[
@@ -108,7 +121,9 @@ VMatrix show.X.Y =
   ((X*0) <<  Y   ) |
   ( X    << (Y*0)); 
 
+//////////////////////////////////////////////////////////////////////////////
 VMatrix closest.Y.index(VMatrix A)
+//////////////////////////////////////////////////////////////////////////////
 {
   Real m = VRows(A);
   VMatrix cumulated = Rand(m,1,1,1);
@@ -155,63 +170,71 @@ Set Y.neighbourhood.extrictly = For(1,H,Set(Real h)
 
 Real X.maxNeighbour = 1+2*n;
 
-VMatrix X.closest.Y.index = closest.Y.index(X);
-VMatrix X.closest.Y = SubRow(Y,VCol2Set(X.closest.Y.index));
-
-VMatrix X.j=DifEq(1/(1-B),Rand(J,1,1,1));
-
-VMatrix X.h=SubRow(Y.neighbourhood, VCol2Set(X.closest.Y.index));
-
-Set X.dif = For(1,X.maxNeighbour,VMatrix(Real i)
+//////////////////////////////////////////////////////////////////////////////
+VMatrix builds.obs.input(VMatrix X)
+//////////////////////////////////////////////////////////////////////////////
 {
-  X - SubRow(Y,VCol2Set(SubCol(X.h,[[i]])))
-});
-
-Set X.tao = For(1,X.maxNeighbour,VMatrix(Real i)
-{
-  VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(n,1,1,1);
-  RPow(X.norm2,0.5)/radius
-});
-
-Set X.tao2 = For(1,X.maxNeighbour,VMatrix(Real i)
-{
-  RPow(X.tao[i],2)
-});
-
-Set X.match = For(1,X.maxNeighbour,VMatrix(Real i)
-{
-  LE(X.tao[i],Rand(J,1,1,1))
-});
-
-Set X.lambda = For(1,X.maxNeighbour,VMatrix(Real i)
-{
-  RPow(X.match[i] $* (Rand(J,1,1,1)-X.tao2[i]),4)
-});
-
-VMatrix X.lambda.sum = SetSum(X.lambda);
-
-Set X.weight = For(1,X.maxNeighbour,VMatrix(Real i)
-{
-  X.lambda[i] $/ X.lambda.sum
-});
-
-Matrix QX.triplet = Group("ConcatRows", For(1,X.maxNeighbour,Matrix(Real i)
-{
-  VMatrix w.i = X.weight[i];
-  Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
-  VMatrix wi = SubRow(w.i,sel.rows);
-  VMatrix X.hiK = SubRow((SubCol(X.h,[[i]])-1)*K,sel.rows);
-  VMatrix Xdif.i = SubRow(X.dif[i],sel.rows);
-  VMatrix X.j.i = SubRow(X.j,sel.rows);
-  Group("ConcatRows", For(1,K,Matrix(Real k)
+  Real J = VRows(X);
+  
+  VMatrix X.closest.Y.index = closest.Y.index(X);
+  VMatrix X.closest.Y = SubRow(Y,VCol2Set(X.closest.Y.index));
+  
+  VMatrix X.j=DifEq(1/(1-B),Rand(J,1,1,1));
+  
+  VMatrix X.h=SubRow(Y.neighbourhood, VCol2Set(X.closest.Y.index));
+  
+  Set X.dif = For(1,X.maxNeighbour,VMatrix(Real i)
   {
-    VMatrix pk = base::function.v(k,Xdif.i);
-    VMatrix qk = wi$*pk; 
-    VMat2Mat(X.j.i | (X.hiK+k) | qk)
-  }))
-}));
+    X - SubRow(Y,VCol2Set(SubCol(X.h,[[i]])))
+  });
+  
+  Set X.tao = For(1,X.maxNeighbour,VMatrix(Real i)
+  {
+    VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(n,1,1,1);
+    RPow(X.norm2,0.5)/radius
+  });
+  
+  Set X.tao2 = For(1,X.maxNeighbour,VMatrix(Real i)
+  {
+    RPow(X.tao[i],2)
+  });
+  
+  Set X.match = For(1,X.maxNeighbour,VMatrix(Real i)
+  {
+    LE(X.tao[i],Rand(J,1,1,1))
+  });
+  
+  Set X.lambda = For(1,X.maxNeighbour,VMatrix(Real i)
+  {
+    RPow(X.match[i] $* (Rand(J,1,1,1)-X.tao2[i]),4)
+  });
+  
+  VMatrix X.lambda.sum = SetSum(X.lambda);
+  
+  Set X.weight = For(1,X.maxNeighbour,VMatrix(Real i)
+  {
+    X.lambda[i] $/ X.lambda.sum
+  });
+  
+  Matrix QX.triplet = Group("ConcatRows", For(1,X.maxNeighbour,Matrix(Real i)
+  {
+    VMatrix w.i = X.weight[i];
+    Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
+    VMatrix wi = SubRow(w.i,sel.rows);
+    VMatrix X.hiK = SubRow((SubCol(X.h,[[i]])-1)*K,sel.rows);
+    VMatrix Xdif.i = SubRow(X.dif[i],sel.rows);
+    VMatrix X.j.i = SubRow(X.j,sel.rows);
+    Group("ConcatRows", For(1,K,Matrix(Real k)
+    {
+      VMatrix pk = base::function.v(k,Xdif.i);
+      VMatrix qk = wi$*pk; 
+      VMat2Mat(X.j.i | (X.hiK+k) | qk)
+    }))
+  }));
+  Pack(Convert(Triplet(QX.triplet, J, N),"Cholmod.R.Sparse"))
+};
 
-VMatrix QX = Pack(Convert(Triplet(QX.triplet, J, N),"Cholmod.R.Sparse"));
+VMatrix QX = builds.obs.input(X);
 
 
 VMatrix displ.Z.1 = 
@@ -333,10 +356,22 @@ VMatrix E = Fx - F.frc;
 Real E.avr = VMatAvr(E);
 Real E.ste = VMatStDs(E);
 
+
+VMatrix X2 = generate.nodal.points(J,n);
+VMatrix Fx2 = fun.eval(X2);
+VMatrix QX2 = builds.obs.input(X2);
+VMatrix F2.frc = QX2*alpha;
+VMatrix E2 = Fx2 - F2.frc;
+Real E2.avr = VMatAvr(E2);
+Real E2.ste = VMatStDs(E2);
+
 Set View([[
-Real n, K, J, H, 
-X.maxNeighbour, Z.maxNeighbour,
-T, N, Mz,M, E.avr, E.ste, "\n"]],"");
+  Real n, K, J, H, 
+  X.maxNeighbour, Z.maxNeighbour,
+  T, N, Mz,M, 
+  E.avr, E.ste, 
+  E2.avr, E2.ste, 
+  "\n"]],"");
 
 /*
 Matrix Q_ = VMat2Mat(Q);
@@ -364,55 +399,5 @@ Set resultStr_ = @strTestStatus(summary_, link_, quality_,
 WriteLn(""<<resultStr_);
 resultStr_;
 
-/* */
-
-/*
-VMatrix Z.min = Group("ConcatColumns", For(1,n,VMatrix(Real i)
-{
-  Real aux = range[i][1];
-  Rand(2*H,1,aux,aux)
-}));
-
-VMatrix Z.max = Group("ConcatColumns", For(1,n,VMatrix(Real i)
-{
-  Real aux = range[i][Card(range[i])];
-  Rand(2*H,1,aux,aux)
-}));
-
-VMatrix Z.interior = EQ(
-  And(GE(Z.all,Z.min), LE(Z.all,Z.max))*Rand(n,1,1,1),
-  Rand(2*H,1,n,n));
-
-VMatrix Z = SubRow(Z.all,MatQuery::SelectMatch(Z.interior));
-VMatrix Z.Y.1 = SubRow(Z.Y.1.all,MatQuery::SelectMatch(Z.interior));
-VMatrix Z.Y.2 = SubRow(Z.Y.2.all,MatQuery::SelectMatch(Z.interior));
-VMatrix Z.h.1 = closest.Y.index(Z.Y.1);
-VMatrix Z.h.2 = closest.Y.index(Z.Y.2);
-*/
-
-/*
-Real deg = 3;
-
-Real dim = 2;
-Real maxDeg = 3;
-VMatrix candidates = Mat2VMat(SetMat(Range(0,maxDeg,1)^dim));
-VMatrix match = LE(candidates*Rand(dim,1,1,1),Rand(VRows(candidates),1,maxDeg,maxDeg));
-VMatrix degrees = SubRow(candidates, MatQuery::SelectMatch(match));
-Real K = VRows(degrees);
-Class @PolynBasic
-{
-  Real k;
-  VMatrix fun (VMatrix x) 
-  {
-    SetProd(For(1,dim,VMatrix(Real i)
-    {
-      
-    })
-  };
-  
-};
-Set base = For(1,K,NameBlock(Real k)
-{
-});
 /* */
 
