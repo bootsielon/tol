@@ -6,7 +6,6 @@
 
 NameBlock MulVarFunAprox = [[
 
-#Require MatQuery;
 #Require FunRn2R;
 
 Text _.autodoc.description = "Aproximation of multivariate real functions "
