@@ -1,0 +1,87 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : BaseC2.tol
+// PURPOSE: Defines Class @BaseC2
+//////////////////////////////////////////////////////////////////////////////
+
+Text _.autodoc.member.BaseC2.Cache = 
+"Cacheable base";
+
+Class @BaseC2.Cache : @BaseC2
+{
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Auxiliar members for cache
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix _.function = Rand(0,0,0,0);
+  Set _.partial.derivative.1 = Copy(Empty);
+  Set _.partial.derivative.2 = Copy(Empty);
+
+  //Returns the cached value of the k-th basic function for an 
+  //array of points given as the rows of a matrix 
+  VMatrix function.v(Real k, VMatrix X)
+  { 
+    SubCol(_.function.v,[[k]])
+  };
+  //Returns the cached value of the first partial derivative of k-th basic 
+  //function for an  array of points given as the rows of a matrix 
+  VMatrix partial.derivative.1.v(Real k, VMatrix X, Real i)
+  { 
+    SubCol(_.partial.derivative.1.v[i],[[k]]) 
+  };
+  //Returns the cached value of the second partial derivative of k-th basic 
+  //function for an  array of points given as the rows of a matrix 
+  VMatrix partial.derivative.2.v(Real k, VMatrix X, Real i, Real j)
+  { 
+    Real i_ = Max(i,j);
+    Real j_ = Min(i,j);
+    SubCol(_.partial.derivative.2.v[i_][j_],[[k]]) 
+  };
+
+  //Evaluates all basic functions, one in each returned column, for an 
+  //array of points given as the rows of a matrix 
+  VMatrix function.m(VMatrix X)
+  { 
+    _.function
+  };
+  //Evaluates the first partial derivative of all basic functions, one in 
+  //each returned column, for an  array of points given as the rows of a 
+  //matrix 
+  VMatrix partial.derivative.1.m(VMatrix X, Real i)
+  { 
+    _.partial.derivative.1[i]
+  };
+  //Evaluates the second partial derivative of all basic functions, one in 
+  //each returned column, for an  array of points given as the rows of a 
+  //matrix 
+  VMatrix partial.derivative.2.m(VMatrix X, Real i, Real j)
+  { 
+    Real i_ = Max(i,j);
+    Real j_ = Min(i,j);
+    _.partial.derivative.2[i_][j_]
+  };
+
+  //Some bases are more efficient using cache
+  Real _build.cache(VMatrix X, Real order)
+  {
+    VMatrix If(order>=0, { _.function.r := 
+      _build.function.m(X)
+    });
+    Set If(order>=1, { _.partial.derivative.1 := 
+      For(1, _.n, VMatrix(Real i)
+      { _build.partial.derivative.1.m(X,i) })
+    });
+    Set If(order>=2, { _.partial.derivative.2 := 
+      For(1, _.n, Set(Real i)
+      { 
+        For(1, i, VMatrix(Real j)
+        { 
+          _build.partial.derivative.2.m(X,i,j) 
+        })
+      })
+    });
+    True
+  }
+
+};
+

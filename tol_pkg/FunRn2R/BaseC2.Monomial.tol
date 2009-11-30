@@ -1,0 +1,130 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : BaseC2.Monomial.tol
+// PURPOSE: Defines class @BaseC2.Monomial
+//////////////////////////////////////////////////////////////////////////////
+
+Text _.autodoc.member.BaseC2.Monomial = "Base of K mutivariate monomial "
+  "functions R^n -> R . Linear independence is ensured since distinct "
+  "monomials are allways independent\n";
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2.Monomial : @BaseC2
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Maximum degree of the monomial: sum of degrees of all variables
+  Real _.maxDeg;
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Auxiliar memebers
+  ////////////////////////////////////////////////////////////////////////////
+
+  //Combination of degrees for each basic function
+  Set  _.degComb;
+  //Indexes for derivatives {1,...,n} - {i}
+  Set  _.range.der.1;
+  //Indexes for second derivatives {1,...,n} - {i,j}
+  Set  _.range.der.2;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates an instance of "
+  "@BaseC2.Monomial on R^n with specified maximum degree.";
+  Static @BaseC2.Monomial New(Real n, Real maxDeg)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix degCombAll = Mat2VMat(SetMat(Range(0,maxDeg,1)^n));
+    VMatrix degSum = degCombAll*Rand(n,1,1,1); 
+    VMatrix match = LE(degSum,Rand(VRows(degCombAll),1,maxDeg,maxDeg));
+    Set select = MatQuery::SelectMatch(match);
+    Set degComb = VMat2Set(SubRow(degCombAll, select));
+    Real K = Card(degComb);
+    Set range.der.1 = For(1,n,Set(Real i)
+    { 
+      Range(1,n,1)-[[i]]
+    });
+    Set range.der.2 = For(1,n,Set(Real i)
+    { 
+      For(1,n,Set(Real j)
+      { 
+        Range(1,n,1)-[[i,j]]
+      })
+    });
+    @BaseC2.Monomial aux = [[
+      Real _.n = n;
+      Real _.K = K;
+      Real _.maxDeg = maxDeg;
+      Set _.degComb = degComb;
+      Set _.range.der.1 = range.der.1;
+      Set _.range.der.2 = range.der.2
+  ]]};
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.function.v = 
+  "Evaluates the k-th basic function for an "
+  "array of points given as the rows of a matrix ";
+  VMatrix _build.function.v(Real k, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE @BaseC2.Monomial::_build.function.2.v");
+    BinGroup("$*", For(1,_.n, VMatrix(Real i)
+    {
+      RPow(SubCol(X,[[i]]),_.degComb[k][i])
+    }))
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.partial.derivative.1.v = 
+  "Evaluates the first partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix _build.partial.derivative.1.v(Real k, VMatrix X, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE @BaseC2.Monomial::_build.partial.derivative.1.v");
+    Real d = _.degComb[k][i];
+    If(d==0, Rand(VRows(X),1,0,0),
+    {
+      VMatrix aux = (RPow(SubCol(X,[[i]]),d-1)*d);
+      If(!Card(_.range.der.1[i]),aux,aux $*
+      BinGroup("$*", EvalSet(_.range.der.1[i], VMatrix rd1(Real h)
+      {
+        RPow(SubCol(X,[[h]]),_.degComb[k][h])
+      })))
+    })
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.partial.derivative.2.v = 
+  "Evaluates the second partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix _build.partial.derivative.2.v(Real k, VMatrix X, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE @BaseC2.Monomial::_build.partial.derivative.2.v");
+    If(i==j,
+    {
+      Real d = _.degComb[k][i];
+      If(d<=1, Rand(VRows(X),1,0,0),
+      {
+        VMatrix aux = (RPow(SubCol(X,[[i]]),d-2)*((d-1)*d));
+        If(!Card(_.range.der.1[i]),aux,aux $*
+        BinGroup("$*", EvalSet(_.range.der.1[i], VMatrix rd21(Real h)
+        {
+          RPow(SubCol(X,[[h]]),_.degComb[k][h])
+        })))
+      })
+    },
+    {
+      Real d.i = _.degComb[k][i];
+      Real d.j = _.degComb[k][j];
+      If(Or(d.i==0, d.j==0), Rand(VRows(X),1,0,0),
+      {
+        VMatrix aux = (RPow(SubCol(X,[[i]]),d.i-1)*d.i) $*
+                      (RPow(SubCol(X,[[j]]),d.j-1)*d.j);
+        If(!Card(_.range.der.2[i][j]),aux,aux $*
+        BinGroup("$*", EvalSet(_.range.der.2[i][j], VMatrix rd22(Real h)
+        {
+          RPow(SubCol(X,[[h]]),_.degComb[k][h])
+        })))
+      })
+    })
+  }
+
+};

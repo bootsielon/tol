@@ -1,0 +1,86 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : BaseC2.Map.tol
+// PURPOSE: Defines Class @BaseC2.Map
+//////////////////////////////////////////////////////////////////////////////
+
+Text _.autodoc.member.BaseC2.Map = "Extracts a sub-base of a given base "
+  "whose k-th basic function are given by _.map[k] basic function of "
+  "_.base. Of course _.map cannot have repated indexes to ensure linear "
+  "independence.";
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2.Map : @BaseC2
+//////////////////////////////////////////////////////////////////////////////
+{
+  @BaseC2 _.base; 
+  Set _.map; 
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates an instance of "
+  "@BaseC2.Map on R^n with specified maximum degree.";
+  Static @BaseC2.Map New(@BaseC2 base, Set map)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @BaseC2.Map aux = [[
+      Real _.n = base::_.n;
+      Real _.K = Card(map);
+      @BaseC2 _.base = base; 
+      Set _.map = map    
+  ]]};
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.function.v = 
+  "Evaluates the k-th basic function for an "
+  "array of points given as the rows of a matrix ";
+  VMatrix _build.function.v(Real k, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.base::function.v(_.map[k], X)
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.partial.derivative.1.v = 
+  "Evaluates the first partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix _build.partial.derivative.1.v(Real k, VMatrix X, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.base::partial.derivative.1.v(_.map[k], X, i)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.partial.derivative.2.v = 
+  "Evaluates the second partial derivative of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix _build.partial.derivative.2.v(Real k, VMatrix X, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.base::partial.derivative.2.v(_.map[k], X, i, j)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.function.m = 
+  "Evaluates all basic functions for an "
+  "array of points given as the rows of a matrix ";
+  VMatrix _build.function.m(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    SubCol(_.base::function.m(X),_.map)
+  }; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.partial.derivative.1.m = 
+  "Evaluates the first partial derivative of all basic functions for an "
+  "array of points given as the rows of a matrix";
+  VMatrix _build.partial.derivative.1.m(VMatrix X, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    SubCol(_.base::partial.derivative.1.m(X,i),_.map)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.partial.derivative.2.m = 
+  "Evaluates the second partial derivative of all basic functions for an "
+  "array of points given as the rows of a matrix";
+  VMatrix _build.partial.derivative.2.m(VMatrix X, Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    SubCol(_.base::partial.derivative.2.m(X,i,j),_.map)
+  }
+};

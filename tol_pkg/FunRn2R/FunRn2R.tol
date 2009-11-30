@@ -1,0 +1,24 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : _root.tol
+// PURPOSE: Defines package FunRn2R
+//////////////////////////////////////////////////////////////////////////////
+
+
+NameBlock FunRn2R = [[
+
+Text _.autodoc.description = "Tools for handling with multivariate real "
+"functions R^n->R";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["multivariate real functions","functional bases"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org"   ]];
+
+#Embed "BaseC2.tol";
+#Embed "BaseC2.Cache.tol";
+#Embed "BaseC2.Map.tol";
+#Embed "BaseC2.Concat.tol";
+#Embed "BaseC2.LinComb.tol";
+#Embed "BaseC2.Monomial.tol"
+
+]]

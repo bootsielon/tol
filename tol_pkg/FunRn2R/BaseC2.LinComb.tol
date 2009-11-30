@@ -1,0 +1,90 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : BaseC2.LinComb.tol
+// PURPOSE: Defines class @BaseC2.LinComb
+//////////////////////////////////////////////////////////////////////////////
+
+Text _.autodoc.member.BaseC2.LinComb = "Defines a new base B2 of "
+"order K2 as a linear combination B2=V*B1 of functions of a previous base "
+"B1 of order K1>=K2. The matrix of change V must have rank K2 to ensure "
+"linear independence.";
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2.LinComb : @BaseC2.Cache
+//////////////////////////////////////////////////////////////////////////////
+{
+  @BaseC2 _.base; 
+  VMatrix _.V;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.New = "Creates an instance B2 of "
+  "@BaseC2.LinComb as B2 = V*B1";
+  Static @BaseC2.LinComb New(@BaseC2 B1, VMatrix V)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real n = (B1[1])::_.n;
+    
+    @BaseC2.Concat aux = [[
+      Real _.n = B1::_.n;
+      Real _.K = VRows(V);
+      Set _.base = base; 
+      VMatrix _.V = V
+  ]]};
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.Compact = "Creates an instance of "
+  "@BaseC2.LinComb that is close to be orthonormal and has at least "
+  "the specified ratio of information of original base";
+  Static @BaseC2.LinComb Compact(
+    @BaseC2 base, 
+    Real informationRatio)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real K1 = base::_.K;
+
+    VMatrix u = Rand(K1*10, K1, -1, 1);
+
+    VMatrix Pu = Group("ConcatColumns", For(1, K1, VMatrix(Real k)
+    {
+      base::function.v(k,u)
+    }));
+
+    Set Pu.svd = SVD(VMat2Mat(Pu));
+
+    Matrix Pu.eigenvalue = RPow(Tra(SubDiag(Pu.svd[2],0)),2);
+    Matrix Pu.eigenvalueCum = 
+    {
+       Matrix aux = DifEq(1/(1-B),Pu.eigenvalue);
+       aux*(1/MatSum(Pu.eigenvalue))
+    };
+    VMatrix ratio = Rand(K1,1,informationRatio,informationRatio);
+    Real K.new = MatSum(LE(Pu.eigenvalueCum,ratio));
+    VMatrix V = Mat2VMat(SubCol(Pu.svd[3],Range(1,K.new,1)));
+    New(base, V)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real _build.cache(VMatrix X, Real order) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    Real _.base::upgrade.cache.v(order);
+    VMatrix If(order>=0, { _.function.r := 
+      _V*_.base::function.m(X)
+    });
+    Set If(order>=1, { _.partial.derivative.1 := 
+      For(1, _.n, VMatrix(Real i)
+      { _V*_.base::partial.derivative.1.m(X,i) })
+    });
+    Set If(order>=2, { _.partial.derivative.2 := 
+      For(1, _.n, Set(Real i)
+      { 
+        For(1, i, VMatrix(Real j)
+        { 
+          _V*_.base::partial.derivative.2.m(X,i,j) 
+        })
+      })
+    });
+    True
+  }
+
+};
