@@ -7,6 +7,8 @@
 
 NameBlock FunRn2R = [[
 
+#Require MatQuery;
+
 Text _.autodoc.description = "Tools for handling with multivariate real "
 "functions R^n->R";
 Text _.autodoc.url = "";
@@ -19,6 +21,8 @@ Set _.autodoc.authors = [[
 #Embed "BaseC2.Map.tol";
 #Embed "BaseC2.Concat.tol";
 #Embed "BaseC2.LinComb.tol";
-#Embed "BaseC2.Monomial.tol"
+#Embed "BaseC2.Monomial.tol";
+
+#Embed "FunC2.tol"
 
 ]]

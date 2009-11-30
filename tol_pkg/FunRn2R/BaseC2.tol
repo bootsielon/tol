@@ -4,6 +4,7 @@
 // PURPOSE: Defines Class @BaseC2
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.BaseC2 = 
 "Base of K mutivariate arbitrary linearly independent functions R^n -> R of " 
 "class C2, ie, continuous and having first and second partial derivatives "
@@ -14,8 +15,8 @@ Text _.autodoc.member.BaseC2 =
 "_build.*.v and _build.*.m. At least a group of these methods must be "
 "redefined by inherited classes. Also is possible to redefine public "
 "access methods in order to not use private ones.";
-
 Class @BaseC2
+//////////////////////////////////////////////////////////////////////////////
 {
   //Dimension of domain vectorial space
   Real _.n;
@@ -114,7 +115,7 @@ Class @BaseC2
   VMatrix function.m(VMatrix X)
   { 
   //WriteLn("TRACE @BaseC2::function.m");
-    _build.function.m(k, X) 
+    _build.function.m(X) 
   };
   //Evaluates the first partial derivative of all basic functions, one in 
   //each returned column, for an  array of points given as the rows of a 
@@ -122,7 +123,7 @@ Class @BaseC2
   VMatrix partial.derivative.1.m(VMatrix X, Real i)
   {
   //WriteLn("TRACE @BaseC2::partial.derivative.1.m");
-    _build.partial.derivative.1.m(k, X, i) 
+    _build.partial.derivative.1.m(X, i) 
   };
   //Evaluates the second partial derivative of all basic functions, one in 
   //each returned column, for an  array of points given as the rows of a 
@@ -130,12 +131,13 @@ Class @BaseC2
   VMatrix partial.derivative.2.m(VMatrix X, Real i, Real j)
   { 
   //WriteLn("TRACE @BaseC2::partial.derivative.2.m");
-    _build.partial.derivative.2.m(k, X, i, j) 
+    _build.partial.derivative.2.m(X, i, j) 
   };
 
   //Some bases are more efficient using cache
   Real upgrade.cache(VMatrix X, Real order) 
   { _build.cache(X,order) }
+
 
 };
 
