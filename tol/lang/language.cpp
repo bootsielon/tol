@@ -1376,10 +1376,8 @@ BText BPackage::urlRoot_ =
   BDir dir = path;
   if(!ok)
   {
-    if(!dir.Exist())
-    {
-      ok = Install(package);
-    }
+    ok=dir.Exist();
+    if(!ok) { ok = Install(package); }
     if(ok)
     {
       int oldLevel = BGrammar::Level();
