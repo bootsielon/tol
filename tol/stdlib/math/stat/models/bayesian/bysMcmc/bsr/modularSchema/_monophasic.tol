@@ -10,7 +10,7 @@ NameBlock Monophasic =
 /////////////////////////////////////////////////////////////////////////////
 [[
   //////////////////////////////////////////////////////////////////////////
-  @BSR.ModelDef _childToJoint(Set module)
+  @BSR.ModelDef childToJoint(Set module)
   //////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE ChildToJoint module "+module->ModuleType+" "+Name(module));
@@ -22,7 +22,7 @@ NameBlock Monophasic =
   //////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE MasterToJoint module "+master->ModuleType+" "+Name(master));
-    Set subModule = EvalSet(master->SubModule, _childToJoint);
+    Set subModule = EvalSet(master->SubModule, childToJoint);
     If(Card(subModule)==1, {
       @BSR.ModelDef(
         subModule[1]->ModuleType;
@@ -36,6 +36,7 @@ NameBlock Monophasic =
         subModule[1]->a;
         subModule[1]->A)
     }, {
+  //WriteLn("TRACE MasterToJoint 1");
     Set LinearBlock = 
     {
       Set aux.1 = EvalSet(subModule, Set(@BSR.ModelDef module)
@@ -50,19 +51,22 @@ NameBlock Monophasic =
       aux.2 
     };  
     Real n = Card(LinearBlock);
-
+  //WriteLn("TRACE MasterToJoint 2");
     Set col.index = EvalSet(subModule, Matrix(@BSR.ModelDef module)
     {
       Set index = EvalSet(module->LinearBlock,Real(@BSR.LinearBlock v)
       {
         Text name = Name(v);
         Real idx = FindIndexByName(LinearBlock, name);
+        If(!idx, WriteLn("Cannot resolve symbol of external linear variable "
+        "\n  "+v->Name+
+        "\nused in module \n  "+module->DocInfo->Path,"E"));
       //WriteLn("  Index("+name+")="<<idx);
         idx
       });
       SetCol(index)
     });
-
+  //WriteLn("TRACE MasterToJoint 3");
     Real m = 0;
     Set row.index = EvalSet(subModule, Set(@BSR.ModelDef module)
     {
@@ -73,12 +77,15 @@ NameBlock Monophasic =
     Real missingInputBlock.index = 0;
     Real missingOutputBlock.index = 0;
 
+  //WriteLn("TRACE MasterToJoint 4");
     Set reDim = Traspose(For(1,Card(subModule), Set(Real k)
     {
       @BSR.ModelDef module = subModule[k];
+    //WriteLn("TRACE MasterToJoint 5.1 subModule "<<k);
       Real mk = Card(row.index[k]);
       Real m0 = row.index[k][1];
 
+    //WriteLn("TRACE MasterToJoint 5.2");
       Set prc.mis.in(@BSR.MissingBlock mis)
       {@BSR.MissingBlock(
         Text Name = mis->Name;
@@ -92,6 +99,7 @@ NameBlock Monophasic =
         Real MaxBound = mis->MaxBound
       )};
       
+    //WriteLn("TRACE MasterToJoint 5.3");
       Set prc.mis.out(@BSR.MissingBlock mis)
       {@BSR.MissingBlock(
         Text Name = mis->Name;
@@ -105,8 +113,11 @@ NameBlock Monophasic =
         Real MaxBound = mis->MaxBound
       )};
       
+    //WriteLn("TRACE MasterToJoint 5.4");
       Set MissingInputBlock = EvalSet(module->InputMissingBlock,prc.mis.in);
+    //WriteLn("TRACE MasterToJoint 5.5");
       Set MissingOutputBlock = EvalSet(module->OutputMissingBlock,prc.mis.out);
+    //WriteLn("TRACE MasterToJoint 5.6");
       Set NoiseDistrib = EvalSet(module->NoiseDistrib,Set(@BSR.NoiseDistrib seg)
       {
         Set aux = [[ @BSR.NoiseDistrib(
@@ -127,7 +138,8 @@ NameBlock Monophasic =
         Set PutName(seg->Name,aux[1]);
         aux[1]
       });
-      [[
+    //WriteLn("TRACE MasterToJoint 5.7");
+      {[[
         Set MissingInputBlock;
         Set MissingOutputBlock;
         Set NoiseDistrib;
@@ -137,19 +149,39 @@ NameBlock Monophasic =
         VMatrix a = If(!VRows(module->a),Rand(0,1,0,0),module->a);
         VMatrix A = If(!VRows(module->A),Rand(0,n,0,0),
          Tra(MergeRows(n,[[ [[Tra(module->A), col.index[k] ]] ]])))
-      ]]
+      ]]}
     }));
+/*
+  //WriteLn("TRACE MasterToJoint 6");
+    Text ModuleType = "joint";
+    Set MissingInputBlock = BinGroup("<<",reDim[1]);
+    Set MissingOutputBlock = BinGroup("<<",reDim[2]);
+    Set NoiseDistrib = BinGroup("<<",reDim[3]);
+  //WriteLn("TRACE MasterToJoint 7.1");
+    VMatrix Y = Convert(Group("ConcatRows",reDim[4]),"Blas.R.Dense");
+  //WriteLn("TRACE MasterToJoint 7.2");
+  //VMatrix X = Convert(Group("ConcatRows",reDim[5]),"Cholmod.R.Sparse");
+    VMatrix X = Group("ConcatRows",reDim[5]);
+  //WriteLn("TRACE MasterToJoint 7.3");
+    VMatrix a = Convert(Group("ConcatRows",reDim[6]),"Cholmod.R.Sparse");
+  //WriteLn("TRACE MasterToJoint 7.4");
+    VMatrix A = Convert(Group("ConcatRows",reDim[7]),"Blas.R.Dense");
+  //WriteLn("TRACE MasterToJoint 8");
 
     @BSR.ModelDef(
-      Text ModuleType = "joint";
+      Text ModuleType;
       Set master->DocInfo;
       Set LinearBlock;
-      Set MissingInputBlock = BinGroup("<<",reDim[1]);
-      Set MissingOutputBlock = BinGroup("<<",reDim[2]);
-      Set NoiseDistrib = BinGroup("<<",reDim[3]);
-      VMatrix Y = Convert(Group("ConcatRows",reDim[4]),"Blas.R.Dense");
-      VMatrix X = Convert(Group("ConcatRows",reDim[5]),"Cholmod.R.Sparse");
-      VMatrix a = Convert(Group("ConcatRows",reDim[6]),"Cholmod.R.Sparse");
-      VMatrix A = Convert(Group("ConcatRows",reDim[7]),"Blas.R.Dense"))
+      Set MissingInputBlock;
+      Set MissingOutputBlock;
+      Set NoiseDistrib;
+      VMatrix Y;
+      VMatrix X;
+      VMatrix a;
+      VMatrix A)
+*/
+    reDim
+
   })}
+ 
 ]];
