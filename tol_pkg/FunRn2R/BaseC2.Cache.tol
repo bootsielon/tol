@@ -21,13 +21,13 @@ Class @BaseC2.Cache : @BaseC2
   //array of points given as the rows of a matrix 
   VMatrix function.v(Real k, VMatrix X)
   { 
-    SubCol(_.function.v,[[k]])
+    SubCol(_.function,[[k]])
   };
   //Returns the cached value of the first partial derivative of k-th basic 
   //function for an  array of points given as the rows of a matrix 
   VMatrix partial.derivative.1.v(Real k, VMatrix X, Real i)
   { 
-    SubCol(_.partial.derivative.1.v[i],[[k]]) 
+    SubCol(_.partial.derivative.1[i],[[k]]) 
   };
   //Returns the cached value of the second partial derivative of k-th basic 
   //function for an  array of points given as the rows of a matrix 
@@ -35,7 +35,7 @@ Class @BaseC2.Cache : @BaseC2
   { 
     Real i_ = Max(i,j);
     Real j_ = Min(i,j);
-    SubCol(_.partial.derivative.2.v[i_][j_],[[k]]) 
+    SubCol(_.partial.derivative.2[i_][j_],[[k]]) 
   };
 
   //Evaluates all basic functions, one in each returned column, for an 
