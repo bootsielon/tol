@@ -39,11 +39,11 @@ VMatrix F1 = f1::eval.function.v(X);
 VMatrix u1 = f1::_.linComb;
 
 FunRn2R::@BaseC2.LinComb B2 = 
-  FunRn2R::@BaseC2.LinComb::Compact(B1, informationRatio);
+  FunRn2R::@BaseC2.LinComb::Compact.Ratio(B1, informationRatio);
 
 Real K2 = B2::_.K;
 
-VMatrix u2 = Tra(Tra(u1)*B2::_.V);
+VMatrix u2 = B2::_.Vi*u1;
 
 FunRn2R::@FunC2 f2 = FunRn2R::@FunC2.InBaseC2::New(B2, u2);
 
