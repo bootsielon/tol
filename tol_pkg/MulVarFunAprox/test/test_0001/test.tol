@@ -17,19 +17,9 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-//#Require MulVarFunAprox;
-//#Embed "../../../_embed_all.tol";
-#Embed "../../MulVarFunAprox.tol";
+#Require MulVarFunAprox;
+//#Embed "../../MulVarFunAprox.tol";
 
-Real n = 2;
-
-Real maxDeg = 4;
-
-FunRn2R::@BaseC2.Monomial base = 
-  FunRn2R::@BaseC2.Monomial::New(n,maxDeg);
-
-Real K = base::_.K;
-Real J = K*20;
 
 //////////////////////////////////////////////////////////////////////////////
 VMatrix generate.nodal.points(Real J, Real n)
@@ -37,359 +27,117 @@ VMatrix generate.nodal.points(Real J, Real n)
 {
   Group("ConcatColumns",For(1,n,VMatrix(Real i)
   {
-    Real min = Rand(0,0);
+    Real min = Rand(2,4);
     Real len = Rand(5,10)*(i^(1/n));
     Rand(J,1,min,min+len)
   }))
 };
 
-//////////////////////////////////////////////////////////////////////////////
-  NameBlock base.random.fun =
-//////////////////////////////////////////////////////////////////////////////
-[[
-  Matrix coef = Rand(base::_.K, 1, -10, 10);
-  VMatrix eval(VMatrix X) 
-  {
-    SetSum(For(1,base::_.K, VMatrix(Real k) 
-    { 
-      base::function.v(k,X)*MatDat(coef,k,1)
-    }))
-  }
-]];
+MulVarFunAprox::@DesignC2 design =
+  MulVarFunAprox::@DesignC2.Mesh.Spheric.Monomial::New(
+    generate.nodal.points(15000,2));
+
+Real design::force.reference.near.nodal := True;
+Real design::radius.margin := 0.05;
+Real design::max.deg := 6;
+
+Real t0 = Copy(Time);
+WriteLn("Building model design for "<<design::_.J+" points "<<
+  "of dimension "<<design::_.n+" ...");
+Real deg = design::build.model.design(0);
+Real t.building = Copy(Time)-t0;
+WriteLn("Built model design in "<<t.building+" seconds");
+
+Real t0 := Copy(Time);
+WriteLn("Building design decomposition for design matrix ("<<
+  design::_.M+"x"<<design::_.N+") ...");
+Real design::build.decomposition(0);
+Real t.decomposition = Copy(Time)-t0;
+WriteLn("Input decomposed in "<<t.decomposition+" seconds");
+
+FunRn2R::@BaseC2 b = design::get.base(0);
+
+FunRn2R::@FunC2 base.random.fun=FunRn2R::@FunC2.InBaseC2::Random(b, 1);
 
 //////////////////////////////////////////////////////////////////////////////
 VMatrix fun.eval.extra.base(VMatrix X) 
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set x = For(1,n,VMatrix(Real i) { SubCol(X,[[i]]) });
-  Sin(x[1])+Cos(x[1])
+   BinGroup("$*",For(1,design::_.n,VMatrix(Real i) 
+   { 
+     VMatrix Xi = SubCol(X,[[i]]);
+     If(i%2==1,Sin(Xi),Cos(Xi))
+   })) 
+   $* RPow(SubCol(X,[[1]]),2)
 };
 
-Code fun.eval = fun.eval.extra.base;
-//Code fun.eval = base.random.fun::eval;
+//Code fun.eval = fun.eval.extra.base;
+Code fun.eval = base.random.fun::eval.function.v;
+Real b::upgrade.cache(design::_.X,0);
 
 
-VMatrix X = generate.nodal.points(J,n);
-VMatrix Fx = fun.eval(X);
+Real t0 := Copy(Time);
+WriteLn("Running regression model for design matrix "<<design::_.Q);
+MulVarFunAprox::@ModelC2 model = MulVarFunAprox::@ModelC2::New(
+   design,
+   fun.eval(design::_.X));
+Real t.estimating = Copy(Time)-t0;
+WriteLn("Estimated model in "<<t.estimating+" seconds");
 
-Real lengthRatio = 0.7*(J/(K*n))^(1/n);
+VMatrix X2 = { design::generate.internal.points(
+  Real m = design::_.J/2,
+  Real design::force.reference.near.nodal)};
 
-Set X.col.info = For(1,n,Set(Real i)
-{[[
-  VMatrix col = SubCol(X,[[i]]);
-  Real min = VMatMin(col);
-  Real max = VMatMax(col);
-  Real length = max-min;
-  Real grid.size = 1*length/lengthRatio
-]]});
-
-Real grid.size = SetAvr(Traspose(Extract(X.col.info,5))[1]);
-Real radius = grid.size / Sqrt(2);
-
-Set range = For(1,n,Set(Real i)
-{
-  Set info = X.col.info[i];
-  Real points = 1+Ceil(info::length/grid.size);
-  Real exceed = (points-1)*grid.size-info::length;
-  Matrix rnk = Tra(DifEq(1/(1-B),Rand(points,1,1,1))-Rand(points,1,1,1));   
-  Set MatSet((rnk*grid.size)+info::min-exceed/2)[1]
-});
-
-VMatrix Y = Mat2VMat(SetMat(Group("CartProd",range)));
-Real H = VRows(Y);
-Real N = H*K;
-
-VMatrix Y.min = Group("ConcatColumns", For(1,n,VMatrix(Real i)
-{
-  Real aux = range[i][1];
-  Rand(H,1,aux,aux)
-}));
-
-VMatrix Y.max = Group("ConcatColumns", For(1,n,VMatrix(Real i)
-{
-  Real aux = range[i][Card(range[i])];
-  Rand(H,1,aux,aux)
-}));
-
-
-VMatrix Y.index = Mat2VMat(SetMat(Group("CartProd",For(1,n,Set(Real i)
-{
-  Range(1,Card(range[i]),1)
-}))));
-
-VMatrix show.X.Y = 
-  ((X*0) <<  Y   ) |
-  ( X    << (Y*0)); 
-
-//////////////////////////////////////////////////////////////////////////////
-VMatrix closest.Y.index(VMatrix A)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real m = VRows(A);
-  VMatrix cumulated = Rand(m,1,1,1);
-  VMatrix A.position = Rand(m,1,1,1)+SetSum(For(1,n,VMatrix(Real i_)
-  {
-    Real i = n-i_+1;
-    Real cRi = Card(range[i]);
-    Set info = X.col.info[i];
-    VMatrix Ai = SubCol(A,[[i]]);
-    VMatrix Yi.min = Rand(m,1,range[i][1],range[i][1]);
-    VMatrix Ri = Round((Ai-Yi.min)/grid.size);
-    VMatrix minRi = Rand(m,1,0,0);
-    VMatrix maxRi = Rand(m,1,cRi-1,cRi-1);
-    VMatrix aux = Min(maxRi,Max(minRi,Ri));
-    VMatrix pos = aux $* cumulated;
-    VMatrix cumulated := cumulated*cRi;
-    pos
-  }))
-};
-
-VMatrix Y.closest.Y.index = closest.Y.index(Y);
-VMatrix Y.closest.Y = SubRow(Y,VCol2Set(Y.closest.Y.index));
-Real ok.1 = VMatMax(Abs(Y-Y.closest.Y))==0;
-
-VMatrix Y.neighbour.pos = Min(Y.max, Y + Rand(H,n,grid.size,grid.size));
-VMatrix Y.neighbour.neg = Max(Y.min, Y - Rand(H,n,grid.size,grid.size));
-
-VMatrix Y.neighbourhood = DifEq(1/(1-B),Rand(H,1,1,1)) |
-{
-  Set aux.1 = BinGroup("<<", For(1,n,Set(Real i)
-  {
-    VMatrix pre  = SubCol(Y,Range(1,  i-1,1));
-    VMatrix post = SubCol(Y,Range(i+1,n,  1));
-    SetOfVMatrix(pre | SubCol(Y.neighbour.neg,[[i]]) | post,
-                 pre | SubCol(Y.neighbour.pos,[[i]]) | post)
-  }));
-  Group("ConcatColumns",EvalSet(aux.1,closest.Y.index))
-};
-
-Set Y.neighbourhood.extrictly = For(1,H,Set(Real h) 
-{ 
-  VCol2Set(SubRow(Y.neighbourhood,[[h]]))  - [[h]]
-});
-
-Real X.maxNeighbour = 1+2*n;
-
-//////////////////////////////////////////////////////////////////////////////
-VMatrix builds.obs.input(VMatrix X)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real J = VRows(X);
-  
-  VMatrix X.closest.Y.index = closest.Y.index(X);
-  VMatrix X.closest.Y = SubRow(Y,VCol2Set(X.closest.Y.index));
-  
-  VMatrix X.j=DifEq(1/(1-B),Rand(J,1,1,1));
-  
-  VMatrix X.h=SubRow(Y.neighbourhood, VCol2Set(X.closest.Y.index));
-  
-  Set X.dif = For(1,X.maxNeighbour,VMatrix(Real i)
-  {
-    X - SubRow(Y,VCol2Set(SubCol(X.h,[[i]])))
-  });
-  
-  Set X.tao = For(1,X.maxNeighbour,VMatrix(Real i)
-  {
-    VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(n,1,1,1);
-    RPow(X.norm2,0.5)/radius
-  });
-  
-  Set X.tao2 = For(1,X.maxNeighbour,VMatrix(Real i)
-  {
-    RPow(X.tao[i],2)
-  });
-  
-  Set X.match = For(1,X.maxNeighbour,VMatrix(Real i)
-  {
-    LE(X.tao[i],Rand(J,1,1,1))
-  });
-  
-  Set X.lambda = For(1,X.maxNeighbour,VMatrix(Real i)
-  {
-    RPow(X.match[i] $* (Rand(J,1,1,1)-X.tao2[i]),4)
-  });
-  
-  VMatrix X.lambda.sum = SetSum(X.lambda);
-  
-  Set X.weight = For(1,X.maxNeighbour,VMatrix(Real i)
-  {
-    X.lambda[i] $/ X.lambda.sum
-  });
-  
-  Matrix QX.triplet = Group("ConcatRows", For(1,X.maxNeighbour,Matrix(Real i)
-  {
-    VMatrix w.i = X.weight[i];
-    Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
-    VMatrix wi = SubRow(w.i,sel.rows);
-    VMatrix X.hiK = SubRow((SubCol(X.h,[[i]])-1)*K,sel.rows);
-    VMatrix Xdif.i = SubRow(X.dif[i],sel.rows);
-    VMatrix X.j.i = SubRow(X.j,sel.rows);
-    Group("ConcatRows", For(1,K,Matrix(Real k)
-    {
-      VMatrix pk = base::function.v(k,Xdif.i);
-      VMatrix qk = wi$*pk; 
-      VMat2Mat(X.j.i | (X.hiK+k) | qk)
-    }))
-  }));
-  Pack(Convert(Triplet(QX.triplet, J, N),"Cholmod.R.Sparse"))
-};
-
-VMatrix QX = builds.obs.input(X);
-
-
-VMatrix displ.Z.1 = 
-  Rand(H,1,-0.1,0.1)*grid.size/2 |
-  Rand(H,1, 0.9,1.1)*grid.size/2;
-VMatrix displ.Z.2 = 
-  Rand(H,1, 0.9,1.1)*grid.size/2 |
-  Rand(H,1,-0.1,0.1)*grid.size/2;
-VMatrix displ.Z.3 = 
-  Rand(H,1,-0.9,-1.1)*grid.size/2 |
-  Rand(H,1,-0.9,-1.1)*grid.size/2;
-
-VMatrix Z.all = (Y+displ.Z.1) << (Y+displ.Z.2) << (Y+displ.Z.3);
-VMatrix Z.Y.1.all = Y << Y << Y;
-VMatrix Z.Y.2.all = (Y+displ.Z.1*2) << (Y+displ.Z.2*2) << (Y+displ.Z.3*2);
-
-VMatrix Z = Z.all;
-VMatrix Z.Y.1 = Z.Y.1.all;
-VMatrix Z.Y.2 = Z.Y.2.all;
-VMatrix Z.h.1 = closest.Y.index(Z.Y.1);
-VMatrix Z.h.2 = closest.Y.index(Z.Y.2);
-
-
-VMatrix show.X.Y.Z = 
-  ( X    << (Y*0) << (Z*0)) |
-  ((X*0) <<  Y    << (Z*0)) | 
-  ((X*0) << (Y*0) <<  Z   ); 
-
-VMatrix show.Y.Z = 
-  ( Y    << (Z*0)) | 
-  ((Y*0) <<  Z   ); 
-
-
-Real T = VRows(Z);
-Real prior.Z.order = 2;
-Real Mz = Case(
-  prior.Z.order< 0, 0,
-  prior.Z.order==0, T,
-  prior.Z.order==1, T*(1+n*K),
-  prior.Z.order==2, T*(1+(n^2)*K));
-
-Real Z.maxNeighbour = If(Mz,2,0);
-VMatrix Z.t=DifEq(1/(1-B),Rand(T,1,1,1));
-
-VMatrix Z.h=Z.h.1 | Z.h.2;
-
-Set Z.dif = For(1,Z.maxNeighbour,VMatrix(Real i)
-{
-  Z - SubRow(Y,VCol2Set(SubCol(Z.h,[[i]])))
-});
-
-Set Z.tao = For(1,Z.maxNeighbour,VMatrix(Real i)
-{
-  VMatrix Z.norm2 = RPow(Z.dif[i],2)*Rand(n,1,1,1);
-  RPow(Z.norm2,0.5)/radius
-});
-
-Set Z.match = For(1,Z.maxNeighbour,VMatrix(Real i)
-{
-  LE(Z.tao[i],Rand(T,1,1,1))
-});
-
-Matrix PZ.triplet = Group("ConcatRows", For(1,Z.maxNeighbour,Matrix(Real i)
-{
-  VMatrix Z.hiK = (SubCol(Z.h,[[i]])-1)*K;
-  VMatrix Zdif.i = Z.dif[i];
-  VMatrix Z.t.i = Z.t;
-  Group("ConcatRows", For(1,K,Matrix(Real k)
-  {
-    Real cumRows = 0;
-    VMatrix pk = base::function.v(k,Zdif.i)*If(i==1,+1,-1);
-    VMatrix col.idx = (Z.hiK+k);
-    {
-      VMatrix row.idx = Z.t.i+cumRows;
-      Real cumRows := cumRows + T;
-      VMat2Mat(row.idx | col.idx | pk)
-    }  << If(prior.Z.order<1,Rand(0,3,0,0),
-    Group("ConcatRows",For(1,n,Matrix(Real d)
-    {
-      Real sign = If(i==1,+1/2,-1/2);
-      VMatrix pkd = base::partial.derivative.1.v(k,Zdif.i,d)*sign;
-      VMatrix row.idx = Z.t.i+cumRows;
-      Real cumRows := cumRows + T;
-      VMat2Mat(row.idx | col.idx | pkd)
-    })))<< If(prior.Z.order<2,Rand(0,3,0,0),
-    Group("ConcatRows",For(1,n,Matrix(Real d1)
-    {
-      Group("ConcatRows",For(d1,n,Matrix(Real d2)
-      {
-        Real sign = If(i==1,+1/4,-1/4);
-        VMatrix pkd2 = base::partial.derivative.2.v(k,Zdif.i,d1,d2)*sign;
-        VMatrix row.idx = Z.t.i+cumRows;
-        Real cumRows := cumRows + T;
-        VMat2Mat(row.idx | col.idx | pkd2)
-      }))
-    })))
-  }))
-}));
-
-
-Real M = J+Mz;
-
-VMatrix PZ = Convert(Triplet(PZ.triplet, Mz, N),"Cholmod.R.Sparse");
-
-VMatrix Fz = Rand(Mz,1,0,0);
-VMatrix F = Fx<<Fz;
-VMatrix Q.all = QX << PZ;
-Set Q.active = MatQuery::SelectMatch(
-  NE(Tra(Rand(1,M,1,1)*Abs(Q.all)),Rand(N,1,0,0)));
-
-VMatrix Q = SubCol(Q.all,Q.active);
-
-VMatrix LQ = CholeskiFactor(Q,"XtX");
-
-VMatrix alpha = CholeskiSolve(LQ,Tra(Tra(F)*Q),"PtLLtP");
-VMatrix F.frc = SubRow(Q*alpha,Range(1,J,1));
-VMatrix F.cmp = Fx | F.frc;
-VMatrix E = Fx - F.frc;
-Real E.avr = VMatAvr(E);
-Real E.ste = VMatStDs(E);
-
-
-VMatrix X2 = generate.nodal.points(J,n);
+Real b::upgrade.cache(X2,0);
 VMatrix Fx2 = fun.eval(X2);
-VMatrix QX2 = builds.obs.input(X2);
-VMatrix F2.frc = QX2*alpha;
+Real t0 := Copy(Time);
+WriteLn("Evaluating forecast for "<<VRows(X2)+" points...");
+VMatrix F2.frc = model::evaluate(X2);
+Real t.forecasting = Copy(Time)-t0;
+WriteLn("Evaluated forecast in "<<t.forecasting+" seconds");
+WriteLn("Forecast time by point "<<(t.forecasting/VRows(X2))+" seconds");
+VMatrix F2.cmp = Fx2 | F2.frc;
 VMatrix E2 = Fx2 - F2.frc;
 Real E2.avr = VMatAvr(E2);
 Real E2.ste = VMatStDs(E2);
 
+Real q.1 = 1-model::_.E.ste;
+Real q.2 = 1-E2.ste;
 Set View([[
-  Real n, K, J, H, 
-  X.maxNeighbour, Z.maxNeighbour,
-  T, N, Mz,M, 
-  E.avr, E.ste, 
+  Real design::_.n, design::_.K, design::_.J, design::_.H, 
+  design::_.X.maxNeighbour, design::_.Z.maxNeighbour,
+  design::_.T, design::_.N, design::_.Mz, design::_.M, 
+  model::_.E.avr, model::_.E.ste,
+  "\n"]],"");
+
+Set View([[
   E2.avr, E2.ste, 
   "\n"]],"");
 
-/*
-Matrix Q_ = VMat2Mat(Q);
+VMatrix show.X.Y = 
+  ((design::_.X*0) <<  design::_.Y   ) |
+  ( design::_.X    << (design::_.Y*0)); 
 
-Set svd = SVD(Q_);
-Matrix svd.D = Tra(SubDiag(svd[2],0));
+VMatrix show.X.Y.Z = 
+  ( design::_.X    << (design::_.Y*0) << (design::_.Z*0)) |
+  ((design::_.X*0) <<  design::_.Y    << (design::_.Z*0)) | 
+  ((design::_.X*0) << (design::_.Y*0) <<  design::_.Z   ); 
 
-/*
+VMatrix show.Y.Z = 
+  ( design::_.Y    << (design::_.Z*0)) | 
+  ((design::_.Y*0) <<  design::_.Z   ); 
+
+
+
 Real numErr1 = Copy(NError);
 Real numWar1 = Copy(NWarning);
 
 Set partialResults_ = [[numErr0, numErr1, 
-                        ok.1, ok.2]];
+                        q.1, q.2]];
 
 //This is a messure of the success of the test 
 Real quality_ = And(numErr1 == numErr0, 
-                    numWar1 == numWar0, 
-                    ok.1, ok.2);
+                    numWar1 == numWar0)*Min(q.1,q.2);
 
 //Return the results 
 Set resultStr_ = @strTestStatus(summary_, link_, quality_,
