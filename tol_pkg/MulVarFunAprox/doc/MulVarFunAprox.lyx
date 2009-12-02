@@ -70,7 +70,7 @@ theorems-ams
 \begin_body
 
 \begin_layout Title
-Aproximación de funciones multivariantes mediante regresión lineal jerárquica
+Aproximación de funciones multivariantes mediante regresión lineal bayesiana
 \end_layout
 
 \begin_layout Author
@@ -83,8 +83,9 @@ vdebuen@tol-project.org
 
 \begin_layout Abstract
 El enfoque usual de aproximación de funciones como un problema de mero cálculo
- numérico es reemplazado en este artículo por una visión estadística del
- problema que permite una formulación más robusta y un mecanismo más eficiente.
+ numérico es reemplazado en este artículo por una visión estadística bayesiana
+ del problema que permite una formulación más robusta y un mecanismo más
+ eficiente.
  
 \end_layout
 
@@ -618,7 +619,7 @@ Los residuos de estas igualdades son asintóticamente restas de residuos
 \begin_layout Standard
 Se podría incuso forzar el mismo tipo de restricciones para las segundas
  derivadas parciales añadiendo las 
-\begin_inset Formula $n\left(n-1\right)T$
+\begin_inset Formula $\frac{1}{2}n\left(n+1\right)T$
 \end_inset
 
  ecuaciones a priori 
@@ -936,7 +937,7 @@ status open
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $n$
+\begin_inset Formula $n\geq1$
 \end_inset
 
 
@@ -948,7 +949,7 @@ status open
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $r$
+\begin_inset Formula $r\geq0$
 \end_inset
 
 
@@ -972,7 +973,9 @@ status open
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $K$
+\begin_inset Formula $K=\overset{r}{\underset{d=0}{\sum}}\left(\begin{array}{c}
+n+d-1\\
+d\end{array}\right)$
 \end_inset
 
 
@@ -1231,7 +1234,7 @@ status open
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -1240,7 +1243,7 @@ status open
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -1249,7 +1252,7 @@ status open
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -1261,7 +1264,7 @@ status open
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -2382,7 +2385,7 @@ Derivadas primeras
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $J+\left(1+K\right)\cdot T\approx n\cdot\left(1+n\right)\cdot T_{0}\cdot H$
+\begin_inset Formula $J+\left(1+n\right)\cdot T\approx n\cdot\left(1+n\right)\cdot T_{0}\cdot H$
 \end_inset
 
 
@@ -2426,7 +2429,7 @@ Derivadas segundas
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $J+\left(1+K+K^{2}\right)\cdot T\approx n\cdot\left(1+n+n\left(n-1\right)\right)\cdot T_{0}\cdot H$
+\begin_inset Formula $J+\left(1+n+\frac{1}{2}n\left(n+1\right)\right)\cdot T\approx n\cdot\left(1+\frac{3}{2}n+\frac{1}{2}n^{2}\right)\cdot T_{0}\cdot H$
 \end_inset
 
 
@@ -2438,7 +2441,7 @@ Derivadas segundas
 \begin_inset Text
 
 \begin_layout Plain Layout
-\begin_inset Formula $\frac{J+\left(1+n+n^{2}\right)\cdot T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\left(1+n^{2}\right)T_{0}}{K}$
+\begin_inset Formula $\frac{J+\left(1+\frac{3}{2}n+\frac{1}{2}\right)\cdot T}{H\cdot K}\approx\frac{J}{H\cdot K}+\frac{n\left(1+\frac{3}{2}n+\frac{1}{2}\right)T_{0}}{K}$
 \end_inset
 
 
