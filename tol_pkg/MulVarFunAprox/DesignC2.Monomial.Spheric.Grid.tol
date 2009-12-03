@@ -1,0 +1,388 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : DesignC2.tol
+// PURPOSE: Defines Class @DesignC2
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DesignC2.Monomial.Spheric.Grid = 
+"";
+Class @DesignC2.Monomial.Spheric.Grid : @DesignC2
+//////////////////////////////////////////////////////////////////////////////
+{
+//////////////////////////////////////////////////////////////////////////////
+//Configuration parameters
+//////////////////////////////////////////////////////////////////////////////
+  
+  Real force.reference.near.nodal = True;
+  Real radius.margin  = 0.05;
+  Real max.deg = 6;
+  Real grid.size = ?;
+
+//////////////////////////////////////////////////////////////////////////////
+//Auxiliar members
+//////////////////////////////////////////////////////////////////////////////
+  Real _.K0 = ?;
+  Set _.X.col.info = Copy(Empty);
+  Set _.range = Copy(Empty);
+  Real _.radius = ?;
+  VMatrix _.grid = Rand(0,0,0,0);
+  Real _.G = ?;
+  Matrix _.grid.active = Rand(0,0,0,0);
+  Matrix _.grid.inactive = Rand(0,0,0,0);
+  VMatrix _.Y.match = Rand(0,0,0,0);
+  VMatrix _.Y.h = Rand(0,0,0,0);
+  VMatrix _.Y.neighbourhood = Rand(0,0,0,0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @DesignC2.Monomial.Spheric.Grid New(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @DesignC2.Monomial.Spheric.Grid new =
+    [[ 
+      VMatrix _.X = X;
+      Real    _.n = VColumns(X);
+      Real    _.J = VRows(X)
+    ]] 
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  VMatrix closest.grid.index(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X);
+    VMatrix cumulated = Rand(m,1,1,1);
+    VMatrix X.position = Rand(m,1,1,1)+SetSum(For(1,_.n,VMatrix(Real i_)
+    {
+      Real i = _.n-i_+1;
+      Real cRi = Card(_.range[i]);
+      Set info = _.X.col.info[i];
+      VMatrix Xi = SubCol(X,[[i]]);
+      VMatrix Yi.min = Rand(m,1,_.range[i][1],_.range[i][1]);
+      VMatrix Ri = Round((Xi-Yi.min)/grid.size);
+      VMatrix minRi = Rand(m,1,0,0);
+      VMatrix maxRi = Rand(m,1,cRi-1,cRi-1);
+      VMatrix aux = Min(maxRi,Max(minRi,Ri));
+      VMatrix pos = aux $* cumulated;
+      VMatrix cumulated := cumulated*cRi;
+      pos
+    }))
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  VMatrix closest.reference.index(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X);
+    VMatrix X.closest.grid.index = 
+    {
+      Matrix aux.1 = VMat2Mat(closest.grid.index(X));
+      Matrix aux.2 = -MatReplace(aux.1,_.grid.active,-VMat2Mat(_.Y.h));
+      Mat2VMat(aux.2)
+    };
+    SubRow(_.Y.neighbourhood, VCol2Set(X.closest.grid.index))
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Real build.reference.points(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.reference.points] ";
+    WriteLn("TRACE "+_MID+"1");
+    Set _.X.col.info := For(1,_.n,Set(Real i)
+    {[[
+      VMatrix col = SubCol(_.X,[[i]]);
+      Real min = VMatMin(col);
+      Real max = VMatMax(col);
+      Real length = max-min
+    ]]});
+    
+    Real If(Or(IsUnknown(grid.size),grid.size<=0),
+    {
+      Real length.max = SetMax(Traspose(Extract(_.X.col.info,4))[1]);
+      Real density = _.J/SetProd(Traspose(Extract(_.X.col.info,4))[1]);
+      grid.size := 0.5*(_.K0/density)^(1/_.n)
+    });
+    
+    Real _.radius := (1+radius.margin)*grid.size/Sqrt(2);
+    
+    WriteLn("TRACE "+_MID+"2");
+    Set _.range := For(1,_.n,Set(Real i)
+    {
+      Set info = _.X.col.info[i];
+      Real points = 1+Ceil(info::length/grid.size);
+      Real exceed = (points-1)*grid.size-info::length;
+      Matrix rnk = Tra(DifEq(1/(1-B),Rand(points,1,1,1))-Rand(points,1,1,1));   
+      Set MatSet((rnk*grid.size)+info::min-exceed/2)[1]
+    });
+    WriteLn("TRACE "+_MID+"3");
+    
+    VMatrix _.grid := Mat2VMat(SetMat(Group("CartProd",_.range)));
+    Real _.G := VRows(_.grid);
+    WriteLn("TRACE "+_MID+"4");
+    Matrix _.grid.active := If(!force.reference.near.nodal,
+    {
+      DifEq(1/(1-B),Rand(_.G,1,1,1))
+    },
+    {
+      VMatrix X.closest.grid.index = closest.grid.index(_.X);
+      SetCol(Sort(Unique(VCol2Set(X.closest.grid.index)),Compare))
+    });
+    WriteLn("TRACE "+_MID+"5");
+    Matrix _.grid.inactive := If(!force.reference.near.nodal,
+    {
+      Rand(0,1,0,0)
+    },
+    {
+      SetCol(Range(1,_.G,1)-Col2Set(_.grid.active))
+    });
+    WriteLn("TRACE "+_MID+"6");
+    VMatrix _.Y := SubRow(_.grid,Col2Set(_.grid.active));
+    Real _.H := VRows(_.Y);
+    WriteLn("TRACE "+_MID+"7");
+    VMatrix _.Y.match := Convert(Triplet(_.grid.active|Rand(Rows(_.grid.active),2,1,1),_.G,1),
+      "Cholmod.R.Sparse");
+    
+    VMatrix Y.min = Group("ConcatColumns", For(1,_.n,VMatrix(Real i)
+    {
+      Real aux = _.range[i][1];
+      Rand(_.H,1,aux,aux)
+    }));
+    
+    VMatrix Y.max = Group("ConcatColumns", For(1,_.n,VMatrix(Real i)
+    {
+      Real aux = _.range[i][Card(_.range[i])];
+      Rand(_.H,1,aux,aux)
+    }));
+    
+    VMatrix Y.index = Mat2VMat(SetMat(Group("CartProd",For(1,_.n,Set(Real i)
+    {
+      Range(1,Card(_.range[i]),1)
+    }))));
+    WriteLn("TRACE "+_MID+"8");
+   
+    VMatrix Y.closest.grid.index = closest.grid.index(_.Y);
+    
+    VMatrix Y.neighbour.pos = Min(Y.max, _.Y + Rand(_.H,_.n,grid.size,grid.size));
+    VMatrix Y.neighbour.neg = Max(Y.min, _.Y - Rand(_.H,_.n,grid.size,grid.size));
+    
+    VMatrix _.Y.h := DifEq(1/(1-B),Rand(_.H,1,1,1));
+    
+    WriteLn("TRACE "+_MID+"9");
+    VMatrix _.Y.neighbourhood := _.Y.h | If(!force.reference.near.nodal,
+    {
+      Set aux.1 = BinGroup("<<", For(1,_.n,Set(Real i)
+      {
+        VMatrix pre  = SubCol(_.Y,Range(1,  i-1,1));
+        VMatrix post = SubCol(_.Y,Range(i+1,_.n,  1));
+        SetOfVMatrix(pre | SubCol(Y.neighbour.neg,[[i]]) | post,
+                     pre | SubCol(Y.neighbour.pos,[[i]]) | post)
+      }));
+      Group("ConcatColumns",EvalSet(aux.1,closest.grid.index))
+    },
+    {
+      Set aux.1 = BinGroup("<<", For(1,_.n,Set(Real i)
+      {
+        VMatrix pre    = SubCol(_.Y,Range(1,  i-1,1));
+        VMatrix post   = SubCol(_.Y,Range(i+1,_.n,  1));
+        VMatrix pre.1  = pre | SubCol(Y.neighbour.neg,[[i]]) | post;
+        VMatrix post.1 = pre | SubCol(Y.neighbour.pos,[[i]]) | post;
+        [[pre.1, post.1]]
+      }));
+      Matrix Y.cls = VMat2Mat(_.Y.h);
+      Matrix Y.inact0 = Rand(Rows(_.grid.inactive),1,0,0);
+      Group("ConcatColumns",EvalSet(aux.1,VMatrix(VMatrix g)
+      {
+        Matrix aux.1 = VMat2Mat(closest.grid.index(g));
+        Matrix aux.2 = MatReplace(aux.1,_.grid.active,-Y.cls);
+        Matrix aux.3 = MatReplace(aux.2,_.grid.inactive,Y.inact0);
+        Matrix aux.4 = IfMat(aux.3,-aux.3,Y.cls);
+        Mat2VMat(aux.4)
+      }))
+    });
+    _.H
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Real build.stress.points(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.stress.points] ";
+    WriteLn("TRACE "+_MID+"1");
+    Matrix Y.neighbour.triplet = Group("ConcatRows", For(1,_.H,Matrix(Real h)
+    {
+      Set neighbours = Unique(VRow2Set(SubRow(_.Y.neighbourhood,[[h]])));
+      Set neighbours.up = Select(neighbours,Real(Real s) { s>h });
+      Matrix s = SetCol(Sort(neighbours.up,Compare));
+      Rand(Rows(s),1,h,h)|s|Rand(Rows(s),1,1,1)
+    }));
+    
+    WriteLn("TRACE "+_MID+"2");
+    VMatrix Y.neighbour.1.map = Triplet(Y.neighbour.triplet,_.H,_.H);
+    VMatrix Y.neighbour.2.map = Y.neighbour.1.map*Y.neighbour.1.map;
+    VMatrix Y.neighbour.12.map = Max(Y.neighbour.1.map,Y.neighbour.2.map);
+    Matrix Y.neighbour.12.triplet = VMat2Triplet(Y.neighbour.12.map);
+    VMatrix Z.h.a = Mat2VMat(SubCol(Y.neighbour.12.triplet,[[1]]));
+    VMatrix Z.h.b = Mat2VMat(SubCol(Y.neighbour.12.triplet,[[2]]));
+    VMatrix Y.neighbour.a = SubRow(_.Y,VCol2Set(Z.h.a));
+    VMatrix Y.neighbour.b = SubRow(_.Y,VCol2Set(Z.h.b));
+    VMatrix Z.all = (Y.neighbour.a + Y.neighbour.b)*0.5;
+    
+    WriteLn("TRACE "+_MID+"3");
+    VMatrix Z.interior.a = 
+    {
+      VMatrix Z.norm2 = RPow(Y.neighbour.a-Z.all,2)*Rand(_.n,1,1,1);
+      VMatrix Z.tao = RPow(Z.norm2,0.5)/_.radius;
+      LE(Z.tao,Rand(VRows(Z.tao),1,1,1)) 
+    };
+    VMatrix Z.interior.b = 
+    {
+      VMatrix Z.norm2 = RPow(Y.neighbour.b-Z.all,2)*Rand(_.n,1,1,1);
+      VMatrix Z.tao = RPow(Z.norm2,0.5)/_.radius;
+      LE(Z.tao,Rand(VRows(Z.tao),1,1,1)) 
+    };
+    VMatrix Z.interior = Z.interior.a $* Z.interior.b;
+    
+    WriteLn("TRACE "+_MID+"4");
+    VMatrix _.Z := SubRow(Z.all,MatQuery::SelectMatch(Z.interior));
+    VMatrix _.Z.h := SubRow(Z.h.a | Z.h.b,MatQuery::SelectMatch(Z.interior));
+    
+    Real _.T := VRows(_.Z);
+    Real _.Mz := Case(
+      prior.Z.order< 0, 0,
+      prior.Z.order==0, _.T,
+      prior.Z.order==1, _.T*(1+_.n),
+      prior.Z.order==2, _.T*(1+_.n*3/2+(1/2)*_.n^2));
+    _.T
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+    Real build.base(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.base] ";
+    Real max.K = Min(_.K0, Floor(_.M/(_.H*min.contrast.surface)));
+    
+    WriteLn("TRACE "+_MID+"1.1 K0="<<_.K0);
+    WriteLn("TRACE "+_MID+"1.2 M="<<_.M);
+    WriteLn("TRACE "+_MID+"1.3 H="<<_.H);
+    WriteLn("TRACE "+_MID+"1.4 SC="<<min.contrast.surface);
+    WriteLn("TRACE "+_MID+"1.5 max.K="<<max.K);
+    Real deg = 
+    {
+      Real deg = 0;
+      Real K = 1;
+      Set pair.deg.K = [[ [[Copy(deg),Copy(K),1]] ]];
+      While(And(deg<=max.deg, K<=max.K),
+      {
+        Real deg := deg+1;
+        Real k = Comb(_.n+deg-1,deg);
+        Real K := K+k;
+        WriteLn("TRACE "+_MID+"2."<<deg+" K="<<K);
+        Set Append(pair.deg.K, [[ [[Copy(deg),Copy(K),Copy(k)]] ]])
+      });
+      If(pair.deg.K[deg+1][2]<=max.K,deg,deg-1)
+    };
+
+    WriteLn("TRACE "+_MID+"3");
+    FunRn2R::@BaseC2 base.feasible = FunRn2R::@BaseC2.Monomial::New(_.n,deg);
+    Real _.K := base.feasible::_.K;
+    Set Append(_.base, [[base.feasible]]);
+    Real _.base.sel := Card(_.base);
+    _.K
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+    Real build.model.design(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.model.design] ";
+    FunRn2R::@BaseC2 base.max = 
+      FunRn2R::@BaseC2.Monomial::New(_.n,max.deg);
+    Set Append(_.base, [[base.max]]);
+    Real _.base.sel := Card(_.base);
+    Real _.K0 := base.max::_.K;
+    _build.model.design(void)
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Set get.X.weight(Set X.dif)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X.dif[1]);
+    Set X.tao = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(_.n,1,1,1);
+      RPow(X.norm2,0.5)/_.radius
+    });
+    Set X.tao2 = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      RPow(X.tao[i],2)
+    });
+    Set X.match = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      LE(X.tao[i],Rand(m,1,1,1))
+    });
+    Set X.lambda = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),4)
+    });
+    VMatrix X.lambda.sum = SetSum(X.lambda);
+    
+    Set X.weight = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      X.lambda[i] $/ X.lambda.sum
+    })
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+    VMatrix generate.internal.points(
+      Real m, 
+      Real force.reference.near.nodal)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    If(force.reference.near.nodal, 
+    {
+      VMatrix h = Round(Rand(m,1,0.5,_.H+0.499999999));
+      VMatrix y = SubRow(_.Y,VCol2Set(h));
+      VMatrix v = Gaussian(m,_.n,0,1);
+      VMatrix u = v*(VMatDat(MtMSqr(v),1,1)^-0.5);
+      y+u*(Rand(0,1)*_.radius)
+    },
+    {
+      VMatrix h = Round(Rand(m,1,0.5,_.G+0.499999999));
+      VMatrix y = SubRow(_.grid,VCol2Set(h));
+      VMatrix v = Gaussian(m,_.n,0,1);
+      VMatrix u = v*(VMatDat(MtMSqr(v),1,1)^-0.5);
+      y+u*(Rand(0,1)*_.radius)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+    VMatrix match.evaluable(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X);
+    Real G.0 = Rows(_.grid.inactive);
+    VMatrix X.closest.grid.index = closest.grid.index(X);
+    If(G.0==0,
+    {
+      VMatrix X.h=SubRow(SubCol(_.Y.neighbourhood,[[1]]), 
+                         VCol2Set(X.closest.grid.index)); 
+      VMatrix X.dif = X - SubRow(_.Y,VCol2Set(X.h));
+      VMatrix X.norm2 = RPow(X.dif,2)*Rand(_.n,1,1,1);
+      VMatrix X.tao = RPow(X.norm2,0.5)/_.radius;
+      LE(X.tao,Rand(m,1,1,1))
+    },
+    {
+      Matrix true_ = Rand(_.H,1,1,1);
+      Matrix false_ = Rand(G.0,1,0,0);
+      Matrix aux.1 = VMat2Mat(X.closest.grid.index);
+      Matrix aux.2 = MatReplace(aux.1,_.grid.active,-true_);
+      Matrix aux.3 = -MatReplace(aux.2,_.grid.inactive,false_);
+      Mat2VMat(aux.3)
+    })
+  }
+
+};

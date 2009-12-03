@@ -1,0 +1,72 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : ModelC2.tol
+// PURPOSE: Defines Class @ModelC2
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.ModelC2 = 
+"";
+Class @ModelC2
+//////////////////////////////////////////////////////////////////////////////
+{
+  @DesignC2 _.design;
+  VMatrix _.Fx;
+
+//////////////////////////////////////////////////////////////////////////////
+//Auxiliar members
+//////////////////////////////////////////////////////////////////////////////
+  VMatrix _.Fz = Rand(0,0,0,0);
+  VMatrix _.F = Rand(0,0,0,0);
+  VMatrix _.alpha = Rand(0,0,0,0);
+  VMatrix _.F.frc = Rand(0,0,0,0);
+  VMatrix _.F.cmp = Rand(0,0,0,0);
+  VMatrix _.E = Rand(0,0,0,0);
+  Real _.E.avr = ?;
+  Real _.E.ste = ?;
+
+  //////////////////////////////////////////////////////////////////////////////
+    Static @ModelC2 New(@DesignC2 design, VMatrix Fx)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    @ModelC2 new =
+    [[
+      @DesignC2 _.design = design;
+      VMatrix _.Fx = Fx
+    ]];
+    Real new::estimate(0);
+    new
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+    Real estimate(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.Fz := Rand(_.design::_.Mz,1,0,0);
+    VMatrix _.F := _.Fx<<_.Fz;
+    VMatrix _.alpha := CholeskiSolve(_.design::_.LQ,Tra(Tra(_.F)*_.design::_.Q),"PtLLtP");
+    VMatrix _.F.frc := SubRow(_.design::_.Q*_.alpha,Range(1,_.design::_.J,1));
+    VMatrix _.F.cmp := _.Fx | _.F.frc;
+    VMatrix _.E := _.Fx - _.F.frc;
+    Real _.E.avr := VMatAvr(_.E);
+    Real _.E.ste := VMatStDs(_.E);
+    _.E.ste
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix evaluate(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X);
+    VMatrix X.match = _.design::match.evaluable(X);
+    Set X.select = MatQuery::SelectMatch(X.match);
+    VMatrix X.1 = SubRow(X,X.select);
+    Real m.1 = VRows(X.1);
+    VMatrix QX.1 = _.design::build.obs(X.1);
+    VMatrix F.1 = QX.1*_.alpha;
+    Matrix triplet.1 = SetCol(X.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
+    Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"))
+  }
+  
+};
+

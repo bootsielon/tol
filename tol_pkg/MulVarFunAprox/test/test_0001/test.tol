@@ -17,8 +17,8 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-#Require MulVarFunAprox;
-//#Embed "../../MulVarFunAprox.tol";
+//#Require MulVarFunAprox;
+#Embed "../../MulVarFunAprox.tol";
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ VMatrix generate.nodal.points(Real J, Real n)
 };
 
 MulVarFunAprox::@DesignC2 design =
-  MulVarFunAprox::@DesignC2.Mesh.Spheric.Monomial::New(
+  MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
     generate.nodal.points(15000,2));
 
 Real design::force.reference.near.nodal := True;

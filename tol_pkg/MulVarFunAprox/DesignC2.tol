@@ -1,0 +1,182 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : DesignC2.tol
+// PURPOSE: Defines Class @DesignC2
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DesignC2 = 
+"";
+Class @DesignC2
+//////////////////////////////////////////////////////////////////////////////
+{
+//Nodal points
+  VMatrix _.X;
+  Real _.n;
+  Real _.J;
+
+//////////////////////////////////////////////////////////////////////////////
+//Configuration parameters
+//////////////////////////////////////////////////////////////////////////////
+  Real prior.Z.order = 2;
+  Real min.contrast.surface = 3;
+
+//////////////////////////////////////////////////////////////////////////////
+//Auxiliar members
+//////////////////////////////////////////////////////////////////////////////
+
+  Real _.X.maxNeighbour = ?;
+  Real _.Z.maxNeighbour = ?;
+  VMatrix _.Y = Rand(0,0,0,0);
+  Real _.H = ?;
+  VMatrix _.Z = Rand(0,0,0,0);
+  VMatrix _.Z.h = Rand(0,0,0,0);
+  Real _.T = ?;
+  Real _.Mz = ?;
+  Real _.M = ?;
+  Real _.K = ?;
+  Real _.N = ?;
+  Set _.base = Copy(Empty);
+  Real _.base.sel = ?;
+  VMatrix _.QX = Rand(0,0,0,0);
+  VMatrix _.PZ = Rand(0,0,0,0);
+  VMatrix _.Q = Rand(0,0,0,0);
+  VMatrix _.LQ = Rand(0,0,0,0);
+
+  //////////////////////////////////////////////////////////////////////////////
+  NameBlock get.base(Real sel)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real sel_ = If(Or(IsUnknown(sel),sel<=0,sel>Card(_.base)),_.base.sel);
+    _.base[sel_]
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  //Virtual methods
+  //////////////////////////////////////////////////////////////////////////////
+  Real build.reference.points(Real void);
+  Real build.stress.points(Real void);
+  Real build.base(Real void);
+  Set get.X.weight(Set X.dif);
+  VMatrix match.evaluable(VMatrix X);
+  VMatrix closest.reference.index(VMatrix X);
+
+  //////////////////////////////////////////////////////////////////////////////
+    Real _build.model.design(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.X.maxNeighbour := 1+2*_.n;
+    Real _.Z.maxNeighbour := If(prior.Z.order>=0,2,0);
+    Real build.reference.points(0);
+    Real build.stress.points(0);
+    Real _.M := _.J+_.Mz;
+    Real build.base(0);
+    Real _.N := _.H*_.K;
+    _.N<_.M
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+    Real build.model.design(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    _build.model.design(void)
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix build.obs(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X);
+    VMatrix X.h=closest.reference.index(X);
+    VMatrix X.j=DifEq(1/(1-B),Rand(m,1,1,1));
+    Set X.dif = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      Set X.h.i = VCol2Set(SubCol(X.h,[[i]]));
+      X - SubRow(_.Y,X.h.i)
+    });
+    Set X.weight = get.X.weight(X.dif);
+    FunRn2R::@BaseC2 b = get.base(0);
+    Matrix QX.triplet = Group("ConcatRows", For(1,_.X.maxNeighbour,Matrix(Real i)
+    {
+      VMatrix w.i = X.weight[i];
+      Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
+      VMatrix wi = SubRow(w.i,sel.rows);
+      VMatrix X.hiK = SubRow((SubCol(X.h,[[i]])-1)*_.K,sel.rows);
+      VMatrix Xdif.i = SubRow(X.dif[i],sel.rows);
+      VMatrix X.j.i = SubRow(X.j,sel.rows);
+      Real b::upgrade.cache(Xdif.i,0);
+      Group("ConcatRows", For(1,_.K,Matrix(Real k)
+      {
+        VMatrix pk = b::function.v(k,Xdif.i);
+        VMatrix qk = wi$*pk; 
+        VMat2Mat(X.j.i | (X.hiK+k) | qk)
+      }))
+    }));
+    Pack(Convert(Triplet(QX.triplet, m, _.N),"Cholmod.R.Sparse"))
+  };
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix build.prior(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix Z.t=DifEq(1/(1-B),Rand(_.T,1,1,1));
+    
+    Set Z.dif = For(1,_.Z.maxNeighbour,VMatrix(Real i)
+    {
+      _.Z - SubRow(_.Y,VCol2Set(SubCol(_.Z.h,[[i]])))
+    });
+    FunRn2R::@BaseC2 b = get.base(0);    
+    Matrix PZ.triplet = Group("ConcatRows", For(1,_.Z.maxNeighbour,Matrix(Real i)
+    {
+      VMatrix Z.hiK = (SubCol(_.Z.h,[[i]])-1)*_.K;
+      VMatrix Zdif.i = Z.dif[i];
+      VMatrix Z.t.i = Z.t;
+      Real b::upgrade.cache(Zdif.i,prior.Z.order);
+      Real lastRow = 0;
+      Group("ConcatRows", For(1,_.K,Matrix(Real k)
+      {
+        Real cumRows = lastRow;
+        VMatrix pk = b::function.v(k,Zdif.i)*If(i==1,+1,-1);
+        VMatrix col.idx = (Z.hiK+k);
+        {
+          VMatrix row.idx = Z.t.i+cumRows;
+          Real cumRows := cumRows + _.T;
+          VMat2Mat(row.idx | col.idx | pk)
+        }  << If(prior.Z.order<1,Rand(0,3,0,0),
+        Group("ConcatRows",For(1,_.n,Matrix(Real d)
+        {
+          Real sign = If(i==1,+1/2,-1/2);
+          VMatrix pkd = b::partial.derivative.1.v(k,Zdif.i,d)*sign;
+          VMatrix row.idx = Z.t.i+cumRows;
+          Real cumRows := cumRows + _.T;
+          VMat2Mat(row.idx | col.idx | pkd)
+        })))<< If(prior.Z.order<2,Rand(0,3,0,0),
+        Group("ConcatRows",For(1,_.n,Matrix(Real d1)
+        {
+          Group("ConcatRows",For(1,d1,Matrix(Real d2)
+          {
+            Real sign = If(i==1,+1/4,-1/4);
+            VMatrix pkd2 = b::partial.derivative.2.v(k,Zdif.i,d1,d2)*sign;
+            VMatrix row.idx = Z.t.i+cumRows;
+            Real cumRows := cumRows + _.T;
+            VMat2Mat(row.idx | col.idx | pkd2)
+          }))
+        })))
+      }))
+    }));
+    Convert(Triplet(PZ.triplet, _.Mz, _.N),"Cholmod.R.Sparse")
+  };
+  //////////////////////////////////////////////////////////////////////////////
+    Real build.decomposition(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.QX := build.obs(_.X);
+    VMatrix _.PZ := build.prior(0);
+    VMatrix Q.all = _.QX << _.PZ;
+    Set Q.active = MatQuery::SelectMatch(
+      NE(Tra(Rand(1,_.M,1,1)*Abs(Q.all)),Rand(_.N,1,0,0)));
+    VMatrix _.Q := SubCol(Q.all,Q.active);
+    VMatrix _.LQ := CholeskiFactor(_.Q,"XtX");
+    True
+  }
+};
+

@@ -13,7 +13,13 @@ Text _.autodoc.description = "Aproximation of multivariate real functions "
 Text _.autodoc.url = "";
 Set _.autodoc.keys = [["aproximation","interpolation"]];
 Set _.autodoc.authors = [[
-   "vdebuen@tol-project.org"   ]]
+   "vdebuen@tol-project.org"   ]];
+
+#Embed "DesignC2.tol";
+#Embed "DesignC2.Monomial.tol";
+#Embed "DesignC2.Spheric.tol";
+#Embed "DesignC2.Monomial.Spheric.Grid.tol";
+#Embed "ModelC2.tol"
 
 
 ]];
