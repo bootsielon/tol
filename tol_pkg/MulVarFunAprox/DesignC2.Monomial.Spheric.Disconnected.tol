@@ -1,0 +1,127 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : DesignC2.tol
+// PURPOSE: Defines Class @DesignC2
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DesignC2.Monomial.Spheric.Disconnected = 
+"";
+Class @DesignC2.Monomial.Spheric.Disconnected : 
+  @DesignC2.Monomial, 
+  @DesignC2.Spheric
+//////////////////////////////////////////////////////////////////////////////
+{
+//////////////////////////////////////////////////////////////////////////////
+//Configuration parameters
+//////////////////////////////////////////////////////////////////////////////
+  @IndexedGrid.Border _.grid;
+
+//////////////////////////////////////////////////////////////////////////////
+//Auxiliar members
+//////////////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @DesignC2.Monomial.Spheric.Disconnected New(
+    VMatrix X, 
+    Real radius.margin,
+    Real radius,
+    Real do.build.border)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @DesignC2.Monomial.Spheric.Disconnected new =
+    [[ 
+      VMatrix _.X = X;
+      Real    _.n = VColumns(X);
+      Real    _.J = VRows(X);
+      Real    _.radius = radius;
+      Real    _.radius.margin = radius.margin;
+      Real    _.grid.size = Sqrt(2)*radius/(1+radius.margin);
+      @IndexedGrid.Border _.grid = 
+       @IndexedGrid.Border::New(X,_.grid.size,True,do.build.border)
+    ]] 
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  VMatrix closest.reference.index(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    SubRow(_.Y.neighbourhood, Col2Set(_.grid::point2index(X)))
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Real build.reference.points(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::Disconnected.reference.points] ";
+    VMatrix _.Y := _.grid::_.Y;
+    VMatrix _.Y.h := Mat2VMat(_.grid::_.Y.h);
+    VMatrix _.Y.neighbourhood := _.Y.h | Group("ConcatColumns",
+    For(1,2*_.n, VMatrix(Real i)
+    {
+      VMatrix aux = SubCol(_.grid::_.Y.neighbourhood.index,[[i]]);
+      IfVMat(aux,aux,_.Y.h)
+    }));
+    Real _.H := _.grid::_.H
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  Real build.border.points(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial.Spheric.Disconnected::build.border.points] ";
+    VMatrix   B.t  = Mat2VMat(SubCol(_.grid::_.border.assign,[[1]]));
+    VMatrix _.B.h := Mat2VMat(SubCol(_.grid::_.border.assign,[[2]]));
+    VMatrix _.B := SubRow(_.grid::_.border::_.Y, VCol2Set(B.t));
+    Real _.Tb := VRows(_.B);
+    Real _.Mb := Case(
+      prior.Z.order< 0, 0,
+      prior.Z.order==0, _.Tb,
+      prior.Z.order==1, _.Tb*(1+_.n),
+      prior.Z.order==2, _.Tb*(1+_.n*3/2+(1/2)*_.n^2));
+    _.Tb
+
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+    Real build.model.design(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial.Spheric.Disconnected::build.model.design] ";
+    FunRn2R::@BaseC2 base.max = 
+      FunRn2R::@BaseC2.Monomial::New(_.n,max.deg);
+    Set Append(_.base, [[base.max]]);
+    Real _.base.sel := Card(_.base);
+    Real _.K0 := base.max::_.K;
+    _build.model.design(void)
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+    VMatrix generate.internal.points(
+      Real m, 
+      Real force.reference.near.nodal)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix h = Round(Rand(m,1,0.5,_.H+0.499999999));
+    VMatrix y = SubRow(_.Y,VCol2Set(h));
+    VMatrix v = Gaussian(m,_.n,0,1);
+    VMatrix u = v*(VMatDat(MtMSqr(v),1,1)^-0.5);
+    y+u*(Rand(0,1)*_.radius)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+    VMatrix match.evaluable(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X);
+    VMatrix X.closest.index = closest.reference.index(X);
+    VMatrix X.h=SubRow(SubCol(_.Y.neighbourhood,[[1]]), 
+                       VCol2Set(X.closest.index)); 
+    VMatrix X.dif = X - SubRow(_.Y,VCol2Set(X.h));
+    VMatrix X.norm2 = RPow(X.dif,2)*Rand(_.n,1,1,1);
+    VMatrix X.tao = RPow(X.norm2,0.5)/_.radius;
+    LE(X.tao,Rand(m,1,1,1))
+  }
+
+};

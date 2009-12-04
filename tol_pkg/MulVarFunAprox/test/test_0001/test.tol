@@ -13,7 +13,7 @@ Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
 //Random seed setting
-Real PutRandomSeed(0);
+Real PutRandomSeed(1096004697);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -32,13 +32,21 @@ VMatrix generate.nodal.points(Real J, Real n)
     Rand(J,1,min,min+len)
   }))
 };
-
-MulVarFunAprox::@DesignC2 design =
+VMatrix X = generate.nodal.points(15000,2);
+/* * /
+MulVarFunAprox::@DesignC2 design = {
   MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
-    generate.nodal.points(15000,2));
-
-Real design::force.reference.near.nodal := True;
-Real design::radius.margin := 0.05;
+    X, radius.margin=0.05) };
+/* */
+MulVarFunAprox::@DesignC2 design = {
+  MulVarFunAprox::@DesignC2.Monomial.Spheric.Disconnected::New(
+    VMatrix X, 
+    Real radius.margin = Sqrt(2)-1,
+    Real radius = .5,
+    Real do.build.border = False)};
+/* */
+//Real design::force.reference.near.nodal := True;
+Real design::_.radius.margin := 0.05;
 Real design::max.deg := 6;
 
 Real t0 = Copy(Time);
@@ -86,7 +94,7 @@ WriteLn("Estimated model in "<<t.estimating+" seconds");
 
 VMatrix X2 = { design::generate.internal.points(
   Real m = design::_.J/2,
-  Real design::force.reference.near.nodal)};
+  True)};
 
 Real b::upgrade.cache(X2,0);
 VMatrix Fx2 = fun.eval(X2);

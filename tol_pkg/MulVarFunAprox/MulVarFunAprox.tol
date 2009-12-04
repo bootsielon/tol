@@ -15,10 +15,12 @@ Set _.autodoc.keys = [["aproximation","interpolation"]];
 Set _.autodoc.authors = [[
    "vdebuen@tol-project.org"   ]];
 
+#Embed "IndexedGrid.tol";
 #Embed "DesignC2.tol";
 #Embed "DesignC2.Monomial.tol";
 #Embed "DesignC2.Spheric.tol";
 #Embed "DesignC2.Monomial.Spheric.Grid.tol";
+#Embed "DesignC2.Monomial.Spheric.Disconnected.tol";
 #Embed "ModelC2.tol"
 
 

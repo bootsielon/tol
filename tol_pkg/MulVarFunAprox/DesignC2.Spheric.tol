@@ -1,0 +1,110 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : DesignC2.tol
+// PURPOSE: Defines Class @DesignC2
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DesignC2.Spheric = 
+"";
+Class @DesignC2.Spheric : @DesignC2
+//////////////////////////////////////////////////////////////////////////////
+{
+//////////////////////////////////////////////////////////////////////////////
+//Configuration parameters
+//////////////////////////////////////////////////////////////////////////////
+  Real _.radius;
+  Real _.radius.margin;
+  Real _.grid.size;
+
+//////////////////////////////////////////////////////////////////////////////
+//Auxiliar members
+//////////////////////////////////////////////////////////////////////////////
+  VMatrix _.Y.h = Rand(0,0,0,0);
+  VMatrix _.Y.neighbourhood = Rand(0,0,0,0);
+
+  //////////////////////////////////////////////////////////////////////////////
+  Real build.stress.points(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Spheric::build.stress.points] ";
+    WriteLn("TRACE "+_MID+"1");
+    Matrix Y.neighbour.triplet = Group("ConcatRows", For(1,_.H,Matrix(Real h)
+    {
+      Set neighbours = Unique(VRow2Set(SubRow(_.Y.neighbourhood,[[h]])));
+      Set neighbours.up = Select(neighbours,Real(Real s) { s>h });
+      Matrix s = SetCol(Sort(neighbours.up,Compare));
+      Rand(Rows(s),1,h,h)|s|Rand(Rows(s),1,1,1)
+    }));
+    
+    WriteLn("TRACE "+_MID+"2");
+    VMatrix Y.neighbour.1.map = Triplet(Y.neighbour.triplet,_.H,_.H);
+    VMatrix Y.neighbour.2.map = Y.neighbour.1.map*Y.neighbour.1.map;
+    VMatrix Y.neighbour.12.map = Max(Y.neighbour.1.map,Y.neighbour.2.map);
+    Matrix Y.neighbour.12.triplet = VMat2Triplet(Y.neighbour.12.map);
+    VMatrix Z.h.a = Mat2VMat(SubCol(Y.neighbour.12.triplet,[[1]]));
+    VMatrix Z.h.b = Mat2VMat(SubCol(Y.neighbour.12.triplet,[[2]]));
+    VMatrix Y.neighbour.a = SubRow(_.Y,VCol2Set(Z.h.a));
+    VMatrix Y.neighbour.b = SubRow(_.Y,VCol2Set(Z.h.b));
+    VMatrix Z.all = (Y.neighbour.a + Y.neighbour.b)*0.5;
+    
+    WriteLn("TRACE "+_MID+"3");
+    VMatrix Z.interior.a = 
+    {
+      VMatrix Z.norm2 = RPow(Y.neighbour.a-Z.all,2)*Rand(_.n,1,1,1);
+      VMatrix Z.tao = RPow(Z.norm2,0.5)/_.radius;
+      LE(Z.tao,Rand(VRows(Z.tao),1,1,1)) 
+    };
+    VMatrix Z.interior.b = 
+    {
+      VMatrix Z.norm2 = RPow(Y.neighbour.b-Z.all,2)*Rand(_.n,1,1,1);
+      VMatrix Z.tao = RPow(Z.norm2,0.5)/_.radius;
+      LE(Z.tao,Rand(VRows(Z.tao),1,1,1)) 
+    };
+    VMatrix Z.interior = Z.interior.a $* Z.interior.b;
+    
+    WriteLn("TRACE "+_MID+"4");
+    VMatrix _.Z := SubRow(Z.all,MatQuery::SelectMatch(Z.interior));
+    VMatrix _.Z.h := SubRow(Z.h.a | Z.h.b,MatQuery::SelectMatch(Z.interior));
+    
+    Real _.Tz := VRows(_.Z);
+    Real _.Mz := Case(
+      prior.Z.order< 0, 0,
+      prior.Z.order==0, _.Tz,
+      prior.Z.order==1, _.Tz*(1+_.n),
+      prior.Z.order==2, _.Tz*(1+_.n*3/2+(1/2)*_.n^2));
+    _.Tz
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+  Set get.X.weight(Set X.dif)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X.dif[1]);
+    Set X.tao = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(_.n,1,1,1);
+      RPow(X.norm2,0.5)/_.radius
+    });
+    Set X.tao2 = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      RPow(X.tao[i],2)
+    });
+    Set X.match = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      LE(X.tao[i],Rand(m,1,1,1))
+    });
+    Set X.lambda = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),4)
+    });
+    VMatrix X.lambda.sum = SetSum(X.lambda);
+    
+    Set X.weight = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      X.lambda[i] $/ X.lambda.sum
+    })
+  }
+
+};

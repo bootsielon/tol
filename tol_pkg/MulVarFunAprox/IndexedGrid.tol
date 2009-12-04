@@ -1,0 +1,228 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : ModelC2.tol
+// PURPOSE: Defines Class @ModelC2
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.IndexedGrid = 
+"";
+
+//////////////////////////////////////////////////////////////////////////////
+  Class @IndexedGrid
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix _.X;
+  Real _.edge.length;
+
+  Real _.n = ?;
+  Real _.m = ?;
+  Set _.key.dim =Copy(Empty);
+  Matrix _.key.factor = Rand(0,0,0,0);
+  Matrix _.Y.key = Rand(0,0,0,0);
+  Matrix _.Y.h = Rand(0,0,0,0);
+  VMatrix _.Y = Rand(0,0,0,0);
+  Real _.H = 0;
+  Set _.Y.neighbourhood.point = Copy(Empty);
+  VMatrix _.Y.neighbourhood.index = Rand(0,0,0,0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @IndexedGrid None(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @IndexedGrid new = [[
+      VMatrix _.X = Rand(0,0,0,0);
+      Real _.edge.length = ?
+    ]];
+    new
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static @IndexedGrid New(
+    VMatrix X, 
+    Real edge.length, 
+    Real do.build.neighbourhood)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @IndexedGrid new = [[
+      VMatrix _.X = X;
+      Real _.edge.length = edge.length
+    ]];
+    Real new::build.index(0);
+    Real If(do.build.neighbourhood, new::build.neighbourhood(0));
+    new
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static NameBlock MatModule(Matrix A, Matrix B)
+  ////////////////////////////////////////////////////////////////////////////
+  {[[
+    Matrix quotient = Round(A $/ B);
+    Matrix rest = A - quotient $* B
+  ]]};
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Static NameBlock MatModuleR(Matrix A, Real b)
+  ////////////////////////////////////////////////////////////////////////////
+  {[[
+    Matrix quotient = Floor(A *(1/b));
+    Matrix rest = A - quotient * b
+  ]]};
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Matrix point2key(VMatrix A)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix zero = Rand(VRows(A),1,0,0);
+    Matrix A.key.dim = Group("ConcatColumns", For(1,_.n, Matrix(Real i)
+    {
+      -Min(zero, MatReplace(
+        Round(VMat2Mat(SubCol(A,[[i]]))*(1/_.edge.length)),
+        SubCol(_.key.dim[i],[[2]]),
+       -SubCol(_.key.dim[i],[[1]])))
+    }));
+    A.key.dim * _.key.factor
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix key2point(Matrix key)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Group("ConcatColumns", 
+    {
+      Matrix aux = Copy(key);
+      Set reverse = EvalSet(Range(_.n,1,-1), VMatrix(Real i)
+      {
+        NameBlock mod=@IndexedGrid::MatModuleR(aux,MatDat(_.key.factor,i,1));
+        Matrix aux := Copy(mod::rest);
+        Mat2VMat(MatReplace(
+          mod::quotient,
+          SubCol(_.key.dim[i],[[1]]),
+          SubCol(_.key.dim[i],[[2]])))*_.edge.length
+      });
+      EvalSet(Range(_.n,1,-1), VMatrix(Real i) { reverse[i] })
+    })
+  };
+  /////////////////////////////////////////////////////////////////////////////
+  Matrix index2key(Matrix idx)
+  /////////////////////////////////////////////////////////////////////////////
+  {
+    -Min(Rand(Rows(idx),1,0,0), MatReplace(idx, _.Y.h, -_.Y.key))
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Matrix key2index(Matrix key)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    -Min(Rand(Rows(key),1,0,0), MatReplace(key, _.Y.key, -_.Y.h))
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix index2point(Matrix idx)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    key2point(index2key(idx))
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Matrix point2index(VMatrix A)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    key2index(point2key(A))
+  };
+    
+  ////////////////////////////////////////////////////////////////////////////
+  Real build.index(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.n := VColumns(_.X);
+    Real _.m := VRows(_.X);
+    VMatrix X.round = Round(_.X/_.edge.length);
+    Set _.key.dim := For(1,_.n, Matrix(Real i)
+    {
+      Matrix key = SetCol(Sort(Unique(VCol2Set(SubCol(X.round,[[i]]))),Compare));
+      Matrix idx = DifEq(1/(1-B),Rand(Rows(key),1,1,1));
+      idx|key
+    });
+    
+    Matrix _.key.factor := 
+    {
+      Matrix aux.1 = SetCol(EvalSet(_.key.dim,Rows));
+      Matrix aux.2 = Floor(Log10(aux.1))+1;
+      Matrix aux.3 = DifEq(1/(1-B),Col(0)<<SubRow(aux.2,Range(1,_.n-1,1)));
+      Matrix aux.4 = Exp(aux.3*Log(10))      
+    };
+    Matrix X.key = point2key(X);
+    Matrix _.Y.key := SetCol(Sort(Unique(Col2Set(X.key)),Compare));
+    Matrix _.Y.h := DifEq(1/(1-B),Rand(Rows(_.Y.key),1,1,1));
+    VMatrix _.Y := key2point(_.Y.key);
+    Real _.H := VRows(_.Y)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real build.neighbourhood(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix Y.neighbour.pos = _.Y + Rand(_.H,_.n,_.edge.length,_.edge.length);
+    VMatrix Y.neighbour.neg = _.Y - Rand(_.H,_.n,_.edge.length,_.edge.length);
+    Set _.Y.neighbourhood.point := BinGroup("<<", For(1,_.n,Set(Real i)
+    { 
+      VMatrix pre  = SubCol(_.Y,Range(1,  i-1,1));
+      VMatrix post = SubCol(_.Y,Range(i+1,_.n,1));
+      SetOfVMatrix(pre | SubCol(Y.neighbour.neg,[[i]]) | post,
+                   pre | SubCol(Y.neighbour.pos,[[i]]) | post)
+    }));
+    
+    VMatrix _.Y.neighbourhood.index := Mat2VMat(Group("ConcatColumns",
+      EvalSet(_.Y.neighbourhood.point, point2index)));
+    True
+  }
+
+};
+
+//////////////////////////////////////////////////////////////////////////////
+  Class @IndexedGrid.Border : @IndexedGrid
+//////////////////////////////////////////////////////////////////////////////
+{
+  @IndexedGrid _.border = @IndexedGrid::None(0);
+  Matrix _.border.assign = Rand(0,0,0,0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @IndexedGrid.Border New(
+    VMatrix X, 
+    Real edge.length,
+    Real do.build.neighbourhood,
+    Real do.build.border)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @IndexedGrid.Border new = [[
+      VMatrix _.X = X;
+      Real _.edge.length = edge.length
+    ]];
+    Real new::build.index(0);
+    Real If(do.build.neighbourhood | do.build.border, 
+      new::build.neighbourhood(0));
+    Real If(do.build.border, 
+      new::build.border(0));
+    new
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real build.border(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set match.0 = For(1, 2*_.n, VMatrix(Real i)
+    {
+      MatQuery::MatchRowsWithValue(SubCol(_.Y.neighbourhood.index,[[i]]),0)
+    });
+    VMatrix border = Group("ConcatRows", For(1, 2*_.n, VMatrix(Real i)
+    {
+      SubRow(_.Y.neighbourhood.point[i], MatQuery::SelectMatch(match.0[i]))
+    }));
+    @IndexedGrid _.border := 
+      @IndexedGrid::New(border,_.edge.length, False);
+
+    Matrix _.border.assign := Group("ConcatRows", For(1, 2*_.n, Matrix(Real i)
+    {
+      Set sel.0.i = MatQuery::SelectMatch(match.0[i]);
+      Matrix Y.h.i = SubRow(_.Y.h, sel.0.i);
+      Matrix B.b.i = _.border::point2index(
+        SubRow(_.Y.neighbourhood.point[i], sel.0.i));
+      B.b.i|Y.h.i|Rand(Rows(Y.h.i),1,i,i)
+    }));
+
+    True
+  }
+};

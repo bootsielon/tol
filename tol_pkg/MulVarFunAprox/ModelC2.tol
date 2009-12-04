@@ -16,12 +16,13 @@ Class @ModelC2
 //////////////////////////////////////////////////////////////////////////////
 //Auxiliar members
 //////////////////////////////////////////////////////////////////////////////
-  VMatrix _.Fz = Rand(0,0,0,0);
-  VMatrix _.F = Rand(0,0,0,0);
-  VMatrix _.alpha = Rand(0,0,0,0);
-  VMatrix _.F.frc = Rand(0,0,0,0);
-  VMatrix _.F.cmp = Rand(0,0,0,0);
-  VMatrix _.E = Rand(0,0,0,0);
+  VMatrix _.F = Rand(0,1,0,0);
+  VMatrix _.Fz = Rand(0,1,0,0);
+  VMatrix _.Fb = Rand(0,1,0,0);
+  VMatrix _.alpha = Rand(0,1,0,0);
+  VMatrix _.F.frc = Rand(0,1,0,0);
+  VMatrix _.F.cmp = Rand(0,2,0,0);
+  VMatrix _.E = Rand(0,1,0,0);
   Real _.E.avr = ?;
   Real _.E.ste = ?;
 
@@ -43,7 +44,8 @@ Class @ModelC2
   //////////////////////////////////////////////////////////////////////////////
   {
     VMatrix _.Fz := Rand(_.design::_.Mz,1,0,0);
-    VMatrix _.F := _.Fx<<_.Fz;
+    VMatrix _.Fb := Rand(_.design::_.Mb,1,0,0);
+    VMatrix _.F := _.Fx << _.Fb << _.Fz;
     VMatrix _.alpha := CholeskiSolve(_.design::_.LQ,Tra(Tra(_.F)*_.design::_.Q),"PtLLtP");
     VMatrix _.F.frc := SubRow(_.design::_.Q*_.alpha,Range(1,_.design::_.J,1));
     VMatrix _.F.cmp := _.Fx | _.F.frc;
@@ -62,7 +64,8 @@ Class @ModelC2
     Set X.select = MatQuery::SelectMatch(X.match);
     VMatrix X.1 = SubRow(X,X.select);
     Real m.1 = VRows(X.1);
-    VMatrix QX.1 = _.design::build.obs(X.1);
+    VMatrix X.1.h = _.design::closest.reference.index(X.1);
+    VMatrix QX.1 = _.design::build.obs(X.1, X.1.h);
     VMatrix F.1 = QX.1*_.alpha;
     Matrix triplet.1 = SetCol(X.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
     Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"))
