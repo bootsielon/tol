@@ -738,15 +738,26 @@ int MbrNumCmp(const void* v1, const void* v2)
   }
   else if(mbrDef)
   {
-    //If new member has no default value and old one had it then it's an error
-    ok = false;
-    Error(I2("Inheritage conflict: ",
-             "Conflicto de herencia: ")+
-          I2("Cannot replace member definition ",
-             "No se puede reemplazar la definición de miembro ")+
-          "\n"+mbrDef->FullExpression()+"\n"+
-          I2(" by declaration ", " por la declaración ")+
-          "\n"+newMember->FullExpression()+"\n");
+    BClass* mbrDefParent = NULL;
+    BClass* newMbrParent = NULL;
+    if(mbrDef->parent_->OwnerType()==BCLASS)
+    { mbrDefParent = (BClass*)mbrDef->parent_; }
+    if(newMember->parent_->OwnerType()==BCLASS)
+    { newMbrParent = (BClass*)newMember->parent_; }
+    //Avoiding secondary effects of multiple inheritage 
+    if(!mbrDefParent || !newMbrParent || 
+       !mbrDefParent->InheritesFrom(newMbrParent))
+    {
+      //If new member has no default value and old one had it then it's an error
+      ok = false;
+      Error(I2("Inheritage conflict: ",
+               "Conflicto de herencia: ")+
+            I2("Cannot replace member definition ",
+               "No se puede reemplazar la definición de miembro ")+
+            "\n"+mbrDef->FullExpression()+"\n"+
+            I2(" by declaration ", " por la declaración ")+
+            "\n"+newMember->FullExpression()+"\n");
+    }
   }
   //If new member nor old one with same name and declaration has no default 
   //value then does nothing: no error showing and no member adding
@@ -1031,7 +1042,7 @@ BClass::~BClass()
       {
         Error(I2("Special documentation member ",
                  "El miembro especial de documentación ")+
-              mbr.name_+
+              FullName()+"::"+mbr.name_+
               I2(" is corrupted or it didn't have declared as static.",
                  " está corrupto o no se declaró como static."));
         ok = false;
@@ -1040,7 +1051,7 @@ BClass::~BClass()
       {
         Error(I2("Special documentation member ",
                  "El miembro especial de documentación ")+
-              mbr.name_+
+              FullName()+"::"+mbr.name_+
               I2(" should be a Text instead of a ",
                  " debería ser un Text en lugar de un ")+
               mbr.static_->Grammar()->Name());
@@ -1055,7 +1066,7 @@ BClass::~BClass()
         {
           Warning(I2("Special documentation member ",
                      "El mimebro especial de documentación ")+
-                  mbr.name_+
+                  FullName()+"::"+mbr.name_+
                   I2(" is irrelevant due it doesn't exist a member nor method called ",
                      " es irrelevante porque no existe ningún miembro ni método llamado ")+
                   auxName);
