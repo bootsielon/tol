@@ -521,6 +521,10 @@ target "http://www.cise.ufl.edu/research/sparse/cholmod/"
 Modelo con información a priori
 \end_layout
 
+\begin_layout Subsubsection
+Puntos de estrés
+\end_layout
+
 \begin_layout Standard
 Para forzar que la función de aproximación global sea más suave es posible
  añadir más hipótesis al modelo que obliguen a las funciones de aproximación
@@ -640,6 +644,23 @@ con residuos distribuidos como
 Evidentemente este tipo de restricciones a priori sólo tienen sentido si
  la base de aproximación local tiene componentes con el órden suficiente
  de derivadas parciales no nulas.
+\end_layout
+
+\begin_layout Subsubsection
+Condiciones de contorno
+\end_layout
+
+\begin_layout Standard
+Los puntos de estrés ayudan a las funciones de aproximación a parecerse
+ a sus vecinas, pero no ayudan igual en todas partes pues en la frontera
+ del dominio el número de vecinos se reduce, incluso puede no haber entornos
+ aislados que no tienen vecinos.
+ Nótese que en ningún momento se ha dicho que el dominio tenga que ser conexo.
+ Hay muchas ocasiones en las que el valor de la función es conocido en la
+ frontera, normalmente porque debe ser cero.
+ En estos casos es posible añadir condiciones de contorno en los puntos
+ de frontera.
+ 
 \end_layout
 
 \begin_layout Subsection
