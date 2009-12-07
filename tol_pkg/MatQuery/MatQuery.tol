@@ -24,7 +24,7 @@ Real _checkColumnVector(Text method, VMatrix M)
   If(VColumns(M)==1,True,
   { 
     WriteLn("[MatQuery::"+method+"] a column matrix was "
-    "expected instead of ("<<VRows(M)+"x"+VColumns(M)+")","E");
+    "expected instead of ("<<VRows(M)+"x"<<VColumns(M)+")","E");
     False
   }) 
 };
