@@ -4,6 +4,7 @@
 // PURPOSE: Defines Class @DesignC2
 //////////////////////////////////////////////////////////////////////////////
 
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.DesignC2 = 
 "";
@@ -90,7 +91,7 @@ Class @DesignC2
   };
 
   //////////////////////////////////////////////////////////////////////////////
-    VMatrix build.obs(VMatrix X, VMatrix X.h)
+    VMatrix build.obs.eval(VMatrix X, VMatrix X.h, FunRn2R::@BaseC2.Eval eval)
   //////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[@DesignC2::build.obs] ";
@@ -109,8 +110,6 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"2");
     Set X.weight = get.X.weight(X.dif);
     WriteLn("TRACE "+_MID+"2");
-    FunRn2R::@BaseC2 b = get.base(0);
-    WriteLn("TRACE "+_MID+"2");
     Matrix QX.triplet = Group("ConcatRows", For(1,_.X.maxNeighbour,Matrix(Real i)
     {
       VMatrix w.i = X.weight[i];
@@ -119,16 +118,50 @@ Class @DesignC2
       VMatrix X.hiK = SubRow((SubCol(X.h,[[i]])-1)*_.K,sel.rows);
       VMatrix Xdif.i = SubRow(X.dif[i],sel.rows);
       VMatrix X.j.i = SubRow(X.j,sel.rows);
-      Real b::upgrade.cache(Xdif.i,0);
+      Real eval::upgrade.cache(Xdif.i);
       Group("ConcatRows", For(1,_.K,Matrix(Real k)
       {
-        VMatrix pk = b::function.v(k,Xdif.i);
+        VMatrix pk = eval::evaluate.v(k,Xdif.i);
         VMatrix qk = wi$*pk; 
         VMat2Mat(X.j.i | (X.hiK+k) | qk)
       }))
     }));
     Pack(Convert(Triplet(QX.triplet, m, _.N),"Cholmod.R.Sparse"))
   })};
+
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix build.obs(VMatrix X, VMatrix X.h)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Function eval = 
+     FunRn2R::@BaseC2.Eval.Function::New(get.base(0));
+    build.obs.eval(X,X.h,eval)
+  };
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix build.obs.partial.derivative.1(VMatrix X, VMatrix X.h, Real s)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Partial.Derivative.1 eval = 
+     FunRn2R::@BaseC2.Eval.Partial.Derivative.1::New(get.base(0), s);
+    build.obs.eval(X,X.h,eval)
+  };
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix build.obs.partial.derivative.2(VMatrix X, VMatrix X.h, 
+                                           Real s1, Real s2)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Partial.Derivative.2 eval = 
+     FunRn2R::@BaseC2.Eval.Partial.Derivative.2::New(get.base(0), s1, s2);
+    build.obs.eval(X,X.h,eval)
+  };
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix build.obs.partial.integrate.1(VMatrix X, VMatrix X.h, Real s)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Partial.Integrate.1 eval = 
+     FunRn2R::@BaseC2.Eval.Partial.Integrate.1::New(get.base(0), s);
+    build.obs.eval(X,X.h,eval)
+  };
   //////////////////////////////////////////////////////////////////////////////
     VMatrix build.border.prior(Real void)
   //////////////////////////////////////////////////////////////////////////////

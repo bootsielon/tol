@@ -40,6 +40,48 @@ Class @ModelC2
   };
 
   //////////////////////////////////////////////////////////////////////////////
+    Static @ModelC2 New.Monomial.Spheric.Disconnected(
+     VMatrix Fx,
+     VMatrix X, 
+     Real max.deg,
+     Real min.contrast.surface,
+     Real radius.margin,
+     Real radius,
+     Real do.build.border)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@ModelC2::New.Monomial.Spheric.Disconnected] ";
+    MulVarFunAprox::@DesignC2 design = {
+      MulVarFunAprox::@DesignC2.Monomial.Spheric.Disconnected::New(
+        VMatrix X, 
+        Real radius.margin,
+        Real radius,
+        Real do.build.border)};
+    Real design::max.deg := max.deg;
+    Real design::min.contrast.surface := min.contrast.surface;
+    Real t0 = Copy(Time);
+    WriteLn("TRACE"+_MID+"Building model design for "<<design::_.J+" points "<<
+      "of dimension "<<design::_.n+" ...");
+    Real deg = design::build.model.design(0);
+    Real t.building = Copy(Time)-t0;
+    WriteLn("TRACE"+_MID+"Built model design in "<<t.building+" seconds");
+    Real t0 := Copy(Time);
+    WriteLn("TRACE"+_MID+"Building decomposition for design matrix ("<<
+      design::_.M+"x"<<design::_.N+") ...");
+    Real design::build.decomposition(0);
+    Real t.decomposition = Copy(Time)-t0;
+    WriteLn("TRACE"+_MID+"Input decomposed in "<<t.decomposition+" seconds");
+    Real t0 := Copy(Time);
+    WriteLn("TRACE"+_MID+"Running regression model for design matrix "<<design::_.Q);
+    MulVarFunAprox::@ModelC2 model = MulVarFunAprox::@ModelC2::New(
+       design,
+       Fx);
+    Real t.estimating = Copy(Time)-t0;
+    WriteLn("TRACE"+_MID+"Estimated model in "<<t.estimating+" seconds");
+    model
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
     Real estimate(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
@@ -56,7 +98,7 @@ Class @ModelC2
   };
 
   //////////////////////////////////////////////////////////////////////////////
-    VMatrix evaluate(VMatrix X)
+    VMatrix evaluate.eval(VMatrix X, FunRn2R::@BaseC2.Eval eval)
   //////////////////////////////////////////////////////////////////////////////
   {
     Real m = VRows(X);
@@ -65,11 +107,44 @@ Class @ModelC2
     VMatrix X.1 = SubRow(X,X.select);
     Real m.1 = VRows(X.1);
     VMatrix X.1.h = _.design::closest.reference.index(X.1);
-    VMatrix QX.1 = _.design::build.obs(X.1, X.1.h);
+    VMatrix QX.1 = _.design::build.obs.eval(X.1, X.1.h, eval);
     VMatrix F.1 = QX.1*_.alpha;
     Matrix triplet.1 = SetCol(X.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
     Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"))
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix evaluate(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Function eval = 
+     FunRn2R::@BaseC2.Eval.Function::New(_.design::get.base(0));
+    evaluate.eval(X,eval)
+  };
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix evaluate.partial.derivative.1(VMatrix X, Real s)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Partial.Derivative.1 eval = 
+     FunRn2R::@BaseC2.Eval.Partial.Derivative.1::New(_.design::get.base(0), s);
+    evaluate.eval(X,eval)
+  };
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix evaluate.partial.derivative.2(VMatrix X, 
+                                          Real s1, Real s2)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Partial.Derivative.2 eval = 
+     FunRn2R::@BaseC2.Eval.Partial.Derivative.2::New(_.design::get.base(0), s1, s2);
+    evaluate.eval(X,eval)
+  };
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix evaluate.partial.integrate.1(VMatrix X, Real s)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Partial.Integrate.1 eval = 
+     FunRn2R::@BaseC2.Eval.Partial.Integrate.1::New(_.design::get.base(0), s);
+    evaluate.eval(X,eval)
   }
-  
 };
 
