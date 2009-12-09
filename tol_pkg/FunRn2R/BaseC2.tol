@@ -48,6 +48,13 @@ Class @BaseC2
   //WriteLn("TRACE @BaseC2::_build.partial.derivative.2.v");
     SubCol( _build.partial.derivative.2.m(X,i,j),[[k]])
   };
+  //Evaluates the partial integration of k-th basic function for an  
+  //array of points given as the rows of a matrix 
+  VMatrix _build.partial.integrate.1.v(Real k, VMatrix X, Real i)
+  {
+  //WriteLn("TRACE @BaseC2::_build.partial.derivative.1.v");
+    SubCol( _build.partial.integrate.1.m(X,i),[[k]])
+  };
 
   //Evaluates all basic functions, one in each returned column, for an 
   //array of points given as the rows of a matrix 
@@ -81,6 +88,17 @@ Class @BaseC2
       _build.partial.derivative.2.v(k, X, i, j)
     }))
   };
+  //Evaluates the first partial integration of all basic functions, one in 
+  //each returned column, for an  array of points given as the rows of a 
+  //matrix 
+  VMatrix _build.partial.integrate.1.m(VMatrix X, Real i)
+  {
+  //WriteLn("TRACE @BaseC2::_build.partial.derivative.1.m");
+    Group("ConcatColumns", For(1,_.K,VMatrix(Real k)
+    {
+      _build.partial.integrate.1.v(k, X, i)
+    }))
+  };
   //Some bases are more efficient using cache
   Real _build.cache(VMatrix X, Real order) { False };
 
@@ -109,6 +127,13 @@ Class @BaseC2
   //WriteLn("TRACE @BaseC2::partial.derivative.2.v");
     _build.partial.derivative.2.v(k, X, i, j) 
   };
+  //Evaluates the first partial integration of k-th basic function for an  
+  //array of points given as the rows of a matrix 
+  VMatrix partial.integrate.1.v(Real k, VMatrix X, Real i)
+  { 
+  //WriteLn("TRACE @BaseC2::partial.derivative.1.v");
+    _build.partial.integrate.1.v(k, X, i) 
+  };
 
   //Evaluates all basic functions, one in each returned column, for an 
   //array of points given as the rows of a matrix 
@@ -134,10 +159,15 @@ Class @BaseC2
     _build.partial.derivative.2.m(X, i, j) 
   };
 
+  //Evaluates the first partial integration of all basic functions, one in 
+  //each returned column, for an  array of points given as the rows of a 
+  //matrix 
+  VMatrix partial.integrate.1.m(VMatrix X, Real i)
+  {
+  //WriteLn("TRACE @BaseC2::partial.derivative.1.m");
+    _build.partial.integrate.1.m(X, i) 
+  };
   //Some bases are more efficient using cache
   Real upgrade.cache(VMatrix X, Real order) 
   { _build.cache(X,order) }
-
-
 };
-

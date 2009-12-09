@@ -124,6 +124,22 @@ Class @BaseC2.Monomial : @BaseC2
         })))
       })
     })
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member._build.partial.integrate.1.v = 
+  "Evaluates the first partial integration of k-th basic function for an "
+  "array of points given as the rows of a matrix";
+  VMatrix _build.partial.integrate.1.v(Real k, VMatrix X, Real i)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE @BaseC2.Monomial::_build.partial.integrate.1.v");
+    Real d = _.degComb[k][i];
+    VMatrix aux = (RPow(SubCol(X,[[i]]),d+1)/(d+1));
+    If(!Card(_.range.der.1[i]),aux,aux $*
+    BinGroup("$*", EvalSet(_.range.der.1[i], VMatrix rd1(Real h)
+    {
+      RPow(SubCol(X,[[h]]),_.degComb[k][h])
+    })))
   }
 
 };
