@@ -1,0 +1,115 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : BaseC2.Eval.tol
+// PURPOSE: Defines Class @BaseC2.Eval
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.BaseC2.Eval = 
+"Generic evaluation of R^n->R C2 basis functions, partial derivation and "
+"integration";
+Class @BaseC2.Eval
+//////////////////////////////////////////////////////////////////////////////
+{
+  @BaseC2 _.base;
+  VMatrix evaluate.v(Real k, VMatrix X);
+  VMatrix evaluate.m(VMatrix X);
+  Real upgrade.cache(VMatrix X)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2.Eval.Function : @BaseC2.Eval
+//////////////////////////////////////////////////////////////////////////////
+{
+  Static @BaseC2.Eval.Function New(@BaseC2 base)
+  {
+    @BaseC2.Eval.Function new = [[
+    @BaseC2 _.base = base ]]  
+  };
+  VMatrix evaluate.v(Real k, VMatrix X) 
+  {
+    _.base::function.v(k, X)
+  };
+  VMatrix evaluate.m(VMatrix X)
+  {
+    _.base::function.m(X)
+  };
+  Real upgrade.cache(VMatrix X)
+  {
+    _.base::upgrade.cache(X,0)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2.Eval.Partial.Derivative.1 : @BaseC2.Eval
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real _.s;
+  Static @BaseC2.Eval.Partial.Derivative.1 New(@BaseC2 base, Real s)
+  {
+    @BaseC2.Eval.Partial.Derivative.1 new = [[
+    @BaseC2 _.base = base;
+    Real _.s = s ]]  
+  };
+  VMatrix evaluate.v(Real k, VMatrix X) 
+  {
+    _.base::partial.derivative.1.v(k, X, _.s)
+  };
+  VMatrix evaluate.m(VMatrix X)
+  {
+    _.base::partial.derivative.1.m(X, _.s)
+  };
+  Real upgrade.cache(VMatrix X)
+  {
+    _.base::upgrade.cache(X,1)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2.Eval.Partial.Derivative.2 : @BaseC2.Eval
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real _.s1;
+  Real _.s2;
+  Static @BaseC2.Eval.Partial.Derivative.2 New(@BaseC2 base, Real s1, Real s2)
+  {
+    @BaseC2.Eval.Partial.Derivative.1 new = [[
+    @BaseC2 _.base = base;
+    Real _.s1 = s1;
+    Real _.s2 = s2 ]]  
+  };
+  VMatrix evaluate.v(Real k, VMatrix X) 
+  {
+    _.base::partial.derivative.2.v(k, X, _.s1, _.s2)
+  };
+  VMatrix evaluate.m(VMatrix X)
+  {
+    _.base::partial.derivative.2.m(X, _.s1, _.s2)
+  };
+  Real upgrade.cache(VMatrix X)
+  {
+    _.base::upgrade.cache(X,1)
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class @BaseC2.Eval.Partial.Integrate.1 : @BaseC2.Eval
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real _.s;
+  Static @BaseC2.Eval.Partial.Integrate.1 New(@BaseC2 base, Real s)
+  {
+    @BaseC2.Eval.Partial.Derivative.1 new = [[
+    @BaseC2 _.base = base;
+    Real _.s = s ]]  
+  };
+  VMatrix evaluate.v(Real k, VMatrix X) 
+  {
+    _.base::partial.integrate.1.v(k, X, _.s)
+  };
+  VMatrix evaluate.m(VMatrix X)
+  {
+    _.base::partial.1ntegrate.1.m(X, _.s)
+  }
+};
+

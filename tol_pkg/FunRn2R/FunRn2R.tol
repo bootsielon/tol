@@ -22,7 +22,7 @@ Set _.autodoc.authors = [[
 #Embed "BaseC2.Concat.tol";
 #Embed "BaseC2.LinComb.tol";
 #Embed "BaseC2.Monomial.tol";
-
+#Embed "BaseC2.Eval.tol";
 #Embed "FunC2.tol"
 
 ]]
