@@ -720,6 +720,11 @@ public:
     noise_inf->sigmaName = "";
     noise_inf->sigmaIdx = -1;
     noise_inf->sigmaCte = d;
+    if(d==0)
+    {
+      Error(BSR()+"Cannot define regression segment "+noise_info_->name.c_str()+
+            " with variance cero");
+    }
     noise_inf->sigPriExpr = "";
     noise_inf->cov.Eye(noise_inf->size,noise_inf->size,0,d);
     noise_inf->L.Eye(noise_inf->size,noise_inf->size,0,sqrt(d));
