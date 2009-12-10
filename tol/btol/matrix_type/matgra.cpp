@@ -6552,10 +6552,8 @@ class BMatOrder
   static const BMatrix<BDat>* mat_;
   static const BArray<int>*   criterium_;
  public:
-  static int Compare(const void* v1, const void* v2)
+  static int CompareValue(int i1, int i2)
   {
-    int i1 = *(int*)v1;
-    int i2 = *(int*)v2;
     int k,j,h;
     for(k=0; k<criterium_->Size(); k++)
     {
@@ -6579,6 +6577,17 @@ class BMatOrder
     }
     return(0);
   }
+  static int Compare(int i1, int i2)
+  {
+    int cmp = CompareValue(i1,i2);
+    if(!cmp) { cmp = i1-i2;}
+    return(cmp);
+  }
+
+  static int Compare(const void* v1, const void* v2)
+  {
+    return(Compare(*(int*)v1,*(int*)v2));
+  }
   static void Sort(const BMatrix<BDat>& mat, 
             const BArray<int>& criterium,
             BArray<int>& perm) 
@@ -6600,8 +6609,8 @@ const BArray<int>*   BMatOrder::criterium_ = NULL;
   
   //--------------------------------------------------------------------
   DeclareContensClass(BMat, BMatTemporary, BMatSort);
-  DefExtOpr(1, BMatSort, "Sort", 2, 2, "Matrix Set",
-  "(Matrix mat, Set criterium)",
+  DefExtOpr(1, BMatSort, "Sort", 2, 3, "Matrix Set Real",
+  "(Matrix mat, Set criterium [, Real unique])",
   I2("Sorts rows of a matrix given a mixed criterium of ascent or "
      "descent columns. For example, criterium=[[-2,3]] sorts by 2-nd "
      "column descent and 3-th one ascent in case of tie."
@@ -6619,9 +6628,13 @@ const BArray<int>*   BMatOrder::criterium_ = NULL;
 {
   BMat& m = Mat(Arg(1));
   BSet& c = Set(Arg(2));
+  bool unique = false;
+  if(Arg(3))
+  {
+    unique = Real(Arg(3))!=0.0;
+  }
   BArray<int> c_(c.Card());
   BArray<int> p(m.Rows());
-  contens_.Alloc(m.Rows(),1);
   int j,k;
   bool ok=true;
   double x;
@@ -6645,11 +6658,35 @@ const BArray<int>*   BMatOrder::criterium_ = NULL;
     }
   }
   BMatOrder::Sort(m,c_,p);
-  for(k=0;k<m.Rows();k++)
+  if(!unique)
   {
-    contens_(k,0)=p[k]+1;
+    contens_.Alloc(m.Rows(),1);
+    for(k=0;k<m.Rows();k++)
+    {
+      contens_(k,0)=p[k]+1;
+    }
+  }
+  else
+  {
+    int d=1;
+    BArray<int> cmp(m.Rows());
+    cmp[0]=1;
+    for(k=1;k<m.Rows();k++)
+    {
+      if(cmp[k]=BMatOrder::CompareValue(p[k-1],p[k])) { d++; }
+    }
+    contens_.Alloc(d,1);
+    for(k=d=0;k<m.Rows();k++)
+    {
+      if(cmp[k]) 
+      { 
+        contens_(d,0)=p[k]+1;
+        d++; 
+      }
+    }
   }
 }
+
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatForMat);
