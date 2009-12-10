@@ -37,8 +37,6 @@ BysMcmc::@Config bsr.config = [[
   Real mcmc.burnin = 100;
   Real bsr.linBlk.MH.useAfterIter = 1/0;
   Real bsr.arimaStoreInitialValues = True;
-//Code bsr.scalarSampler.armaBlock = BysMcmc::Options::Scalar.Sampler::Arms;
-//Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Arms;
   Real do.resume = 0;
   Real do.mcmc.profiler   = True
 ]];

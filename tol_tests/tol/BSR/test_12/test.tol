@@ -175,10 +175,6 @@ BysMcmc::@Config bsr.config = [[
   Real bsr.cholesky.epsilon          = 1.E-13;
   Real bsr.cholesky.warningFreq      = 100;
   Real bsr.truncMNormal.gibbsNumIter = 5;
-  Code bsr.scalarSampler.armaBlock = 
-    BysMcmc::Options::Scalar.Sampler::Slice;
-  Code bsr.scalarSampler.nonLinBlock =
-    BysMcmc::Options::Scalar.Sampler::Slice;
 //Metodo de aproximacion del arima
   Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastCholSea;
 //Report configuration

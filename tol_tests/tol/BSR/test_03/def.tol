@@ -28,22 +28,23 @@ Text session.description =
 
 
 //Number of variables of each observational node
-Real n = IntRand(10,10);
+Real n = IntRand(3,3);
 Real S = 7;
 //Data length of each observational node
-Real m  = IntRand(300,600);
+Real m  = IntRand(100,100);
 //Number of observational nodes
-Real K1 = IntRand(2,4);
+Real K1 = IntRand(2,2);
 //
-Real enableARMA = true;
+Real enableARMA = True;
+Real enableARMASeasonal = And(enableARMA,True);
 //Regular AR Degree
 Real p1 = enableARMA*IntRand(0,2);
 //Seasonal AR Degree
-Real pS = enableARMA*IntRand(0,2);
+Real pS = enableARMASeasonal*IntRand(0,2);
 //Regular AR Degree
 Real q1 = enableARMA*IntRand(0,Max(0,1-p1));
 //Seasonal AR Degree
-Real qS = enableARMA*IntRand(0,Max(0,1-pS));
+Real qS = enableARMASeasonal*IntRand(0,Max(0,1-pS));
 //Number of missing values in input matrix
 Real MissInp = Max(4,IntRand(0.01*n*K1,0.05*n*K1));
 //Number of missing values in input matrix

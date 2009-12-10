@@ -80,8 +80,6 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   //##Observational node name
   Text _.segmentName = "Obs";
 
-  //Tool function to reduce registers length in _.linearParamInfo
-  Code LPI = BysMcmc::Bsr::OneNode::LPI;
   //#Original data storer by columns with names 
   Set _.data.orig = For(1, Card(data.name), Matrix(Real j)
   {
@@ -107,7 +105,10 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   Real _.cteAvg = DistNormalInv(VMatAvr(_.Y));
 
   //Linear block definition with domain and prior restrictions
-  Set _.linearParamInfo = [[
+  Set _.linearParamInfo = {
+  //Tool function to reduce registers length in _.linearParamInfo
+  Code LPI = BysMcmc::Bsr::OneNode::LPI;
+  [[
     //   Variable      initVal   min    max     priAvg   priSig  priSigWeight
     LPI("Input_1",           0, -1/0,     0,         ?,       ?,          ?),
     LPI("Input_2",           0, -1/0,     0,         ?,       ?,          ?),
@@ -116,7 +117,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
     LPI("Input_5",           0,    0,  +1/0,         ?,       ?,          ?),
     LPI("Input_Prod_1_2",    0,    0,  +1/0,         ?,       ?,          ?),
     LPI("Constant" ,  _.cteAvg, -1/0,  +1/0,  _.cteAvg,    0.25,       0.90) 
-  ]];
+  ]]};
   //Input matrix
   VMatrix _.X = Group("ConcatColumns",
   EvalSet(_.linearParamInfo, VMatrix(@Bsr.OneNode.LinearParamInfo lpi)
@@ -146,8 +147,6 @@ BysMcmc::@Config bsr.config = [[
   Real mcmc.sampleLength  =  4400;
   Real mcmc.thinning      =     2; //Probit mcmc have high alternance
   Real mcmc.cacheLength   =   100;
-  Code bsr.scalarSampler.nonLinBlock=BysMcmc::Options::Scalar.Sampler::Slice;
-
     //Try order for given by user solution to start MCMC
     Real bsr.iniVal.try.givenByUser = 3;
     //Try order for zero solution to start MCMC
