@@ -328,7 +328,7 @@ Class @BlockMissing : @BlockStdLin, @BlockMissingBase
       _buildWorkSpace_full(
          param::_.armBlkRef[1],param::_.si,param::_.Z),
       _buildWorkSpace_partial(
-         param::_.armBlkRef,param::_.si,param::_.Z))
+         param::_.armBlkRef[1],param::_.si,param::_.Z))
   };
 
   ////////////////////////////////////////////////////////////////////////////
