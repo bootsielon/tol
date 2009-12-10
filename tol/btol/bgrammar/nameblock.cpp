@@ -166,7 +166,12 @@ BNameBlock::~BNameBlock()
 void BNameBlock::Clean() 
 //--------------------------------------------------------------------
 {
+  int n;
   owner_ = NULL;
+  for(n=1; n<=set_.Card(); n++)
+	{
+    set_[n]->PutNameBlock(NULL);
+  }
   public_.clear();
   private_.clear();
   set_.Delete();
@@ -682,8 +687,9 @@ const BText& BNameBlock::LocalName() const
 {
   if((nonPrivateMembers_==0)&&!class_)
   {
-    Warning(I2("A NameBlock should have at least a public or read only member.",
-               "Un NameBlock debería tener al menos un miembro público o de sólo lectura."));
+    Warning(BText("NameBlock ")+Name()+" "+
+            I2("should have at least a public or read only member.",
+               "debería tener al menos un miembro público o de sólo lectura."));
     return(false);
   }
   else

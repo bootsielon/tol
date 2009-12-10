@@ -117,6 +117,7 @@ protected:
     bool calculating_ :1; //!< Indicates if object is still calculating
     bool isDeadObj_   :1; //!< Indicates if object is a false or dead object
     bool isConst_     :1; //!< Indicates if object value is constant or variable
+    bool isMethod_    :1; //!< Indicates if object is a method of a class
   } flags_;
 
 public:
@@ -199,6 +200,7 @@ public:
   bool           Released    () const { return(flags_.released_); }
   bool		       IsDeadObj   () const { return(flags_.isDeadObj_); }
   bool		       IsConstant  () const { return(flags_.isConst_); }
+  bool		       IsMethod    () const { return(flags_.isMethod_); }
   int            Ems         () const { return(ems_); }
 
   const BSetFromFile*  Source () const;
@@ -211,6 +213,7 @@ public:
   void PutHashed  (bool isHas) { flags_.isHashed_ = isHas; }
   void PutReleased()           { flags_.released_ = true; }
   void PutConstant()           { flags_.isConst_  = true; }
+  void PutMethod()             { flags_.isMethod_  = true; }
   void PutEms     (int ems)    { ems_ = ems; }
 
   virtual BInt                 Mode       () const { return(BNOMODE); }

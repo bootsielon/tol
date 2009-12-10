@@ -175,6 +175,7 @@ void BSyntaxObject::TraceMemory(const char* msg) const
   nSyntaxObject_ ++;
   PutSystem(!TOLHasBeenInitialized());
   flags_.isConst_= false;
+  flags_.isMethod_ = false;
   if(flags_.system_) { IncNRefs(); IncNRefs(); IncNRefs(); }
   TRACE_MEMORY_SHOW(this, "BSyntaxObject::InitSynObj");
 }

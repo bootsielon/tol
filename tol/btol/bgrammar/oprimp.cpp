@@ -1631,9 +1631,24 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
   BGrammar::CleanTreeCache(definition_, true);
   if(arglistOK)
   {
+    const BClass* oldStaticOwner = BClass::currentStatic_;
     const BNameBlock* oldNameBlock = BNameBlock::Current();
     const BNameBlock* funNameBlock = NameBlock();
-    const BClass* oldStaticOwner = BClass::currentStatic_;
+    if(funNameBlock && funNameBlock->Class() && !IsMethod()) 
+    { 
+      funNameBlock = NULL; 
+    }
+    if(funNameBlock && !funNameBlock->EnsureIsAssigned())
+    { 
+      if(!funNameBlock->Class()) 
+      {
+        Error(BText("Corrupted method ")+Identify()+"\n"
+          "Possibly this problem is due to a non standard use of OOP, if "
+          "this function was assigned to a member of type Code of a "
+          "NameBlock or Class instance that has been destroyed already.");
+      } 
+      funNameBlock = NULL;
+    }
     if(funNameBlock)
     {
       BNameBlock::SetCurrent(funNameBlock);

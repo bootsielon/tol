@@ -228,10 +228,19 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   if(!isGood_ || !name_.HasName() || !declaration_.HasName())
   {
     isGood_ = false;
-    Error(I2("Wrong syntax in member declaration ",
-             "Sintaxis incorrecta en declaración de miembro ")+
+    Error(I2("Wrong syntax in member declaration \n",
+             "Sintaxis incorrecta en declaración de miembro \n")+
           BParser::Unparse(branch_,"","\n")+
           I2(" of Class ", " de Class ")+parent->getName());
+  }
+  if(isGood_ && declaration_.BeginWith("Code") && !isMethod_)
+  {
+    Warning(I2("Potential failure due to a non standard use of OOP:\n"
+               "A class should have no members of type Code as \n",
+               "Error potencial debido a un uso no estándar de OOP:\n"
+               "Una clase no debería tener miembros de tipo Code como \n")+
+            BParser::Unparse(branch_,"","\n")+
+            I2(" of Class ", " de Class ")+parent->getName());
   }
   if(parent->OwnerType()==BMemberOwner::BCLASS)
   {
@@ -239,7 +248,6 @@ BMember::BMember(BMemberOwner* parent, List* branch)
     BuildStatic();
   }
 }
-
 
 //--------------------------------------------------------------------
 BMember::~BMember()
@@ -294,6 +302,9 @@ BMember::~BMember()
     {
       method_ = obj;
       method_->IncNRefs(); 
+      method_->PutMethod();
+      BUserCode* uCode = UCode(method_);
+      uCode->Contens().Operator()->PutMethod();
       return(1);
     }
     else
@@ -905,9 +916,9 @@ int MbrNumCmp(const void* v1, const void* v2)
   }
   if(!ok)
   {
-    Error(I2("Wrong syntax on member area of Class declaration",
+    Error(I2("Wrong syntax on member area of declaration ",
              "Sintaxis errónea en el área de de miembros de "
-             "declaración de Class")+ getDump());
+             "declaración de ")+ getDump());
   }
   isGood_ = ok;
   return(ok);
