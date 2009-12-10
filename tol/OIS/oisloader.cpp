@@ -1162,7 +1162,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         //BNameBlock::SetCurrent(oldCurrent);
           BGrammar::DestroyStackUntil(stackPos, unb);    
           BGrammar::DecLevel();
-          x.CheckMembers();
           if(control_.oisEngine_.oisVersion_>="02.08")
           {
             char hasClass;
@@ -1209,6 +1208,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               x.PutClass(cls);
             }
           }
+          x.CheckMembers();
           BGrammar::DecLevel();
           result=PutVariableName(unb,name,is_referenceable);
         }  
