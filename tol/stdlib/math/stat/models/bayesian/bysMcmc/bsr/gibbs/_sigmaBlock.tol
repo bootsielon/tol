@@ -14,6 +14,20 @@ Struct @BlockSigma.PartialIndex
   Real idxReload
 };
 
+//////////////////////////////////////////////////////////////////////////////
+Class @WorkSpace.Sigma : @WorkSpace
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text get.blockSamplerClassName(Real void) { "@BlockSigma" };
+  VMatrix _.residuals;
+
+  Static @WorkSpace.Sigma New(VMatrix residuals)
+  {
+    @WorkSpace.Sigma new = @WorkSpace.Sigma[[
+      VMatrix _.residuals=residuals]]
+  }
+};
+
 /////////////////////////////////////////////////////////////////////////////
 Class @BlockSigma : @BlockSampler
 /////////////////////////////////////////////////////////////////////////////
@@ -38,7 +52,7 @@ Class @BlockSigma : @BlockSampler
   //--------------------------------------------------------------------------
   //Auxiliar members
   //--------------------------------------------------------------------------
-  NameBlock _.ws = [[ Real unused_=? ]];
+  @WorkSpace.Sigma _.ws = @WorkSpace.Sigma::New(Rand(0,0,0,0));
   Set _.segment.free.index = Copy(Empty);
 
   //--------------------------------------------------------------------------
@@ -87,15 +101,18 @@ Class @BlockSigma : @BlockSampler
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(VMatrix residuals_)
+  Real _buildWorkSpace(@WorkSpace.Sigma param)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" @BlockSigma::_buildWorkSpace 0");
-    NameBlock _.ws := 
-    [[
-      VMatrix  residuals = residuals_
-    ]];
+    VMatrix _.ws::_.residuals := param::_.residuals;
     True
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real buildWorkSpace(@WorkSpace param) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _buildWorkSpace(param)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -217,7 +234,7 @@ Class @BlockSigma : @BlockSampler
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix drawn = draw.invRandChisq(numSim, _.ws::residuals);
+    VMatrix drawn = draw.invRandChisq(numSim, _.ws::_.residuals);
   //WriteLn("TRACE"+_MID+" draw drawn("<<VRows(drawn)+"x"<<VColumns(drawn)+")");
     drawn
   };
@@ -257,8 +274,6 @@ Class @BlockSigma : @BlockSampler
   //////////////////////////////////////////////////////////////////////////////
   {
     BysMcmc::Bsr::Gibbs::@BlockSigma sigBlk = [[
-
-    Code _.buildWorkSpace = _buildWorkSpace;
 
     Real _.m = VRows(NoiseDistrib[1]->Li);
     //Selects residuals with constant sigma

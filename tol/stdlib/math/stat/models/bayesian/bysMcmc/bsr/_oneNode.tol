@@ -40,7 +40,24 @@ NameBlock OneNode =
   Class @ModelData
   ///////////////////////////////////////////////////////////////////////////
   {
-    Code LPI = BysMcmc::Bsr::OneNode::LPI;
+    Set LPI(
+      Text Name,              // Unique identidier of the parameter
+      Real InitValue,         // Given by user initial value or ?
+      Real Prior.LowerBound,  // Minimum feasible value or -1/0
+      Real Prior.UpperBound,  // Maximum feasible value or +1/0
+      Real Prior.Average,     // Normal prior average
+      Real Prior.Sigma,       // Normal prior standard deviation 
+      Real Prior.SigmaWeight)       // Normal prior weight
+    {
+      BysMcmc::Bsr::OneNode::LPI(
+        Name,
+        InitValue,
+        Prior.LowerBound,
+        Prior.UpperBound,
+        Prior.Average,
+        Prior.Sigma,
+        Prior.SigmaWeight)
+    };
   //Mandatory members
     Set  _.docInfo;        //@BSR.DocInfo
     Set _.linearParamInfo; //Set of @Bsr.OneNode.LinearParamInfo

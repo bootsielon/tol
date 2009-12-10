@@ -6,9 +6,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////
-Class @WorkSpace.LinReg
+Class @WorkSpace.LinReg : @WorkSpace
 ////////////////////////////////////////////////////////////////////////////
 {
+  Text get.blockSamplerClassName(Real void) { "generic linear blocks" };
   VMatrix _.Y; //Output matrix
   VMatrix _.X; //Input matrix
   Real rows(Real unused) { VRows(_.Y) }; //Data length
@@ -742,8 +743,6 @@ Class @BlockStdLinEmpty : @BlockStdLin
 //////////////////////////////////////////////////////////////////////////////
 {
   VMatrix draw(Real numSim) { Rand(0,1,0,0) };
-  Real buildWorkSpace(Real unused) { True };
-  Code _.buildWorkSpace = buildWorkSpace;
   Real initialize.subBlocks(Real unused) { True };
   Real matchConstrains(VMatrix beta0, VMatrix A, VMatrix a) { True };
 

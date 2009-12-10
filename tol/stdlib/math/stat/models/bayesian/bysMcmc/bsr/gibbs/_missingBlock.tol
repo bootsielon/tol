@@ -36,6 +36,34 @@ Class @BlockMissingEmpty : @BlockStdLinEmpty, @BlockMissingBase
   }
 };
 
+//////////////////////////////////////////////////////////////////////////////
+Class @WorkSpace.Missing : @WorkSpace
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text get.blockSamplerClassName(Real void) { "@BlockMissing" };
+  //Pointer to ArimaBlock filter to avoid copying of large objects
+  Set _.armBlkRef; 
+  //SigmaBlock filter
+  VMatrix _.si;    
+  //Noise of main linear block
+  VMatrix _.Z;     
+  //Main Linear Block parameters 
+  VMatrix _.beta;  
+
+  Static @WorkSpace.Missing New(
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk,
+    VMatrix si,
+    VMatrix Z,
+    VMatrix beta)
+  {
+    @WorkSpace.Missing new = @WorkSpace.Missing[[
+      Set _.armBlkRef = [[arm.blk]];
+      VMatrix _.si = si;
+      VMatrix _.Z = Z;
+      VMatrix _.beta = beta]]
+  }
+};
+
 ////////////////////////////////////////////////////////////////////////////
 Class @BlockMissing : @BlockStdLin, @BlockMissingBase 
 ////////////////////////////////////////////////////////////////////////////
@@ -107,7 +135,6 @@ Class @BlockMissing : @BlockStdLin, @BlockMissingBase
     If(!allNum, 
     BysMcmc::Bsr::Gibbs::@BlockMissingEmpty::New(name,numBlock,firstCol,config),
     BysMcmc::Bsr::Gibbs::@BlockMissing blk = [[
-    Code _.buildWorkSpace = _buildWorkSpace;
     Real _.M = dataLength;
     Set _.missingInfo = 
     {
@@ -256,12 +283,11 @@ Class @BlockMissing : @BlockStdLin, @BlockMissingBase
   Real _buildWorkSpace_full(
     BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
     VMatrix si,    //SigmaBlock filter
-    VMatrix Z,     //Noise of main linear block
-    VMatrix beta)  //Main Linear Block parameters 
+    VMatrix Z)     //Noise of main linear block
   ////////////////////////////////////////////////////////////////////////////
   {
     Real _.output::build_full(arm.blk,si);
-    Real _.input ::build_full(arm.blk,si,beta);
+    Real _.input ::build_full(arm.blk,si,_.beta);
     VMatrix Y = arm.blk::filter(si*Z);
     VMatrix X = _.input::_.G - _.output::_.H;
     BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg wslr = 
@@ -277,12 +303,11 @@ Class @BlockMissing : @BlockStdLin, @BlockMissingBase
   Real _buildWorkSpace_partial(
     BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
     VMatrix si,    //SigmaBlock filter
-    VMatrix Z,     //Noise of main linear block
-    VMatrix beta)  //Main Linear Block parameters 
+    VMatrix Za)  //Main Linear Block parameters 
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real _.output::build_partial(_.partialSampler::_.values,arm.blk,si     );
-    Real _.input ::build_partial(_.partialSampler::_.values,arm.blk,si,beta);
+    Real _.output::build_partial(_.partialSampler::_.values,arm.blk,si);
+    Real _.input ::build_partial(_.partialSampler::_.values,arm.blk,si);
     VMatrix Y = arm.blk::filter(si*(Z+_.input::_.U1-_.output::_.V1));
     VMatrix X = _.input::_.G - _.output::_.H;
     BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg wslr = 
@@ -295,17 +320,22 @@ Class @BlockMissing : @BlockStdLin, @BlockMissingBase
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(
-    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
-    VMatrix si,    //SigmaBlock filter
-    VMatrix Z,     //Noise of main linear block
-    VMatrix beta)  //Main Linear Block parameters 
+  Real _buildWorkSpace(@WorkSpace.Missing param) 
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix _.beta := beta;
+    VMatrix _.beta := param::_.beta;
     If(!_.N1,
-      _buildWorkSpace_full   (arm.blk,si,Z,beta),
-      _buildWorkSpace_partial(arm.blk,si,Z,beta))
+      _buildWorkSpace_full(
+         param::_.armBlkRef[1],param::_.si,param::_.Z),
+      _buildWorkSpace_partial(
+         param::_.armBlkRef,param::_.si,param::_.Z))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real buildWorkSpace(@WorkSpace param) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _buildWorkSpace(param)
   };
 
   ////////////////////////////////////////////////////////////////////////////

@@ -13,10 +13,11 @@
 /////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////
-//Method _.buildWorkSpace must create _.ws as an instance of this class
-Class @WorkSpace.ArimaReg : @WorkSpace.LinReg
+//Method buildWorkSpace must create _.ws as an instance of this class
+Class @WorkSpace.MainLinear : @WorkSpace.LinReg
 ////////////////////////////////////////////////////////////////////////////
 {
+  Text get.blockSamplerClassName(Real void) { "@BlockMainLinear" };
   Set _.armBlkRef;
   
   //////////////////////////////////////////////////////////////////////////
@@ -27,17 +28,32 @@ Class @WorkSpace.ArimaReg : @WorkSpace.LinReg
   };
 
   //////////////////////////////////////////////////////////////////////////
-  Static @WorkSpace.ArimaReg Null(Real unused)
+  Static @WorkSpace.MainLinear Null(Real unused)
   //////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::Gibbs::@WorkSpace.ArimaReg aux = 
+    BysMcmc::Bsr::Gibbs::@WorkSpace.MainLinear new = 
     [[
       VMatrix _.Y = Rand(0,0,0,0);
       VMatrix _.X = Rand(0,0,0,0);
       Set _.armBlkRef = Copy(Empty)
     ]]
+  };
+
+  //////////////////////////////////////////////////////////////////////////
+  Static @WorkSpace.MainLinear New(
+    VMatrix Y, 
+    VMatrix X,    
+    BysMcmc::Bsr::Gibbs::@BlockArima arm.blk )
+  //////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Bsr::Gibbs::@WorkSpace.MainLinear new = [[
+      VMatrix _.Y = Y,    
+      VMatrix _.X = X,    
+      Set _.armBlkRef = [[arm.blk]] ]]
   }
+
 };
+
 
 ////////////////////////////////////////////////////////////////////////////
 Class @BlockMainLinear : @BlockStdLin 
@@ -46,7 +62,8 @@ Class @BlockMainLinear : @BlockStdLin
   //--------------------------------------------------------------------------
   // Auxiliar members
   //--------------------------------------------------------------------------
-  @WorkSpace.ArimaReg _.ws = BysMcmc::Bsr::Gibbs::@WorkSpace.ArimaReg::Null(0);
+  @WorkSpace.MainLinear _.ws = 
+    BysMcmc::Bsr::Gibbs::@WorkSpace.MainLinear::Null(0);
 
   //--------------------------------------------------------------------------
   //Methods
@@ -70,25 +87,29 @@ Class @BlockMainLinear : @BlockStdLin
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(VMatrix Y,    //Non filtered output
-                       VMatrix X,    //Non filtered input
-                       BysMcmc::Bsr::Gibbs::@BlockArima arm.blk) 
+  Real _buildWorkSpace(@WorkSpace.MainLinear param) 
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 0");
     If(!_.N1,
     {
     //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 1");
-      _do_buildWorkSpace(Y,X,arm.blk)
+      _do_buildWorkSpace(param::_.Y, param::_.X, (param::_.armBlkRef)[1])
     },
     {
     //WriteLn("TRACE"+_MID+" MainLinearBlock::_buildWorkSpace 2");
       VMatrix b1 = SubRow(_.partialSampler::_.values, _.i1);
-      VMatrix X1 = SubCol(X, _.i1);
-      VMatrix X2 = SubCol(X, _.i2);
-      VMatrix Y2 = Y - X1*b1;
-      _do_buildWorkSpace(Y2,X2,arm.blk)
+      VMatrix X1 = SubCol(param::_.X, _.i1);
+      VMatrix X2 = SubCol(param::_.X, _.i2);
+      VMatrix Y2 = param::_.Y - X1*b1;
+      _do_buildWorkSpace(Y2, X2, (param::_.armBlkRef)[1])
     })
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real buildWorkSpace(@WorkSpace param) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _buildWorkSpace(param)
   };
 
   //////////////////////////////////////////////////////////////////////////////
@@ -108,8 +129,6 @@ Class @BlockMainLinear : @BlockStdLin
     If(!Card(varNames), 
     BysMcmc::Bsr::Gibbs::@BlockStdLinEmpty::New(name,numBlock,firstCol,config),
     BysMcmc::Bsr::Gibbs::@BlockMainLinear blk = [[
-
-    Code _.buildWorkSpace = _buildWorkSpace;
 
     //Defining the block in the Markov Chain
     Real _defined = define(

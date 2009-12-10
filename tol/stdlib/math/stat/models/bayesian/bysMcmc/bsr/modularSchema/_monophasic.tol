@@ -13,7 +13,7 @@ NameBlock Monophasic =
   @BSR.ModelDef childToJoint(Set module)
   //////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE ChildToJoint module "+module->ModuleType+" "+Name(module));
+    WriteLn("TRACE ChildToJoint module "+module->ModuleType+" "+Name(module));
     If(module->ModuleType!="master", module, 
        BysMcmc::Bsr::ModularSchema::Monophasic::MasterToJoint(module))
   };
@@ -21,9 +21,15 @@ NameBlock Monophasic =
   @BSR.ModelDef MasterToJoint(Set master)
   //////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE MasterToJoint module "+master->ModuleType+" "+Name(master));
+    Text _MID = "[MasterToJoint]";
+    WriteLn("TRACE MasterToJoint module "+master->ModuleType+" "+Name(master));
     Set subModule = EvalSet(master->SubModule, childToJoint);
-    If(Card(subModule)==1, {
+    Case(
+    Card(subModule)==0, {
+      WriteLn(_MID+" Master "+master->DocInfo->Path+" has no submodule","E");
+      Copy(Empty)
+    }, 
+    Card(subModule)==1, {
       @BSR.ModelDef(
         subModule[1]->ModuleType;
         master->DocInfo;
@@ -31,11 +37,12 @@ NameBlock Monophasic =
         subModule[1]->InputMissingBlock;
         subModule[1]->OutputMissingBlock;
         subModule[1]->NoiseDistrib;
-        subModule[1]->Y;
+        Y=Convert(subModule[1]->Y,"Blas.R.Dense");
         subModule[1]->X;
         subModule[1]->a;
         subModule[1]->A)
-    }, {
+    }, 
+    1==1, {
   //WriteLn("TRACE MasterToJoint 1");
     Set LinearBlock = 
     {
@@ -58,7 +65,7 @@ NameBlock Monophasic =
       {
         Text name = Name(v);
         Real idx = FindIndexByName(LinearBlock, name);
-        If(!idx, WriteLn("Cannot resolve symbol of external linear variable "
+        If(!idx, WriteLn(_MID+" Cannot resolve symbol of external linear variable "
         "\n  "+v->Name+
         "\nused in module \n  "+module->DocInfo->Path,"E"));
       //WriteLn("  Index("+name+")="<<idx);
@@ -70,8 +77,15 @@ NameBlock Monophasic =
     Real m = 0;
     Set row.index = EvalSet(subModule, Set(@BSR.ModelDef module)
     {
+      Real Y.rows = VRows(module->Y);
+      Real A.rows = VRows(module->A);
+      If(!Y.rows & !A.rows,
+      {
+        WriteLn(_MID+" Submodule "+module->DocInfo->Path+" has no "
+        "equation nor inequation","E")
+      });
       Real r0 = m+1;
-      Real m := m+VRows(module->Y);
+      Real m := m+Y.rows;
       Range(r0,m,1)
     });
     Real missingInputBlock.index = 0;
@@ -83,7 +97,7 @@ NameBlock Monophasic =
       @BSR.ModelDef module = subModule[k];
     //WriteLn("TRACE MasterToJoint 5.1 subModule "<<k);
       Real mk = Card(row.index[k]);
-      Real m0 = row.index[k][1];
+      Real m0 = If(!Card(row.index[k]),0,row.index[k][1]);
 
     //WriteLn("TRACE MasterToJoint 5.2");
       Set prc.mis.in(@BSR.MissingBlock mis)
@@ -143,7 +157,7 @@ NameBlock Monophasic =
         Set MissingInputBlock;
         Set MissingOutputBlock;
         Set NoiseDistrib;
-        VMatrix Y = If(!VRows(module->Y),Rand(0,1,0,0),module->Y);
+        VMatrix Y = Convert(If(!VRows(module->Y),Rand(0,1,0,0),module->Y),"Blas.R.Dense");
         VMatrix X = If(!VRows(module->X),Rand(0,n,0,0),
           Tra(MergeRows(n,[[ [[Tra(module->X), col.index[k] ]] ]])));
         VMatrix a = If(!VRows(module->a),Rand(0,1,0,0),module->a);
@@ -151,7 +165,6 @@ NameBlock Monophasic =
          Tra(MergeRows(n,[[ [[Tra(module->A), col.index[k] ]] ]])))
       ]]}
     }));
-/*
   //WriteLn("TRACE MasterToJoint 6");
     Text ModuleType = "joint";
     Set MissingInputBlock = BinGroup("<<",reDim[1]);
@@ -179,9 +192,6 @@ NameBlock Monophasic =
       VMatrix X;
       VMatrix a;
       VMatrix A)
-*/
-    reDim
-
   })}
  
 ]];

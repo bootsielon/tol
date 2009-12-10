@@ -230,9 +230,8 @@ Class @MasterSamplerBasic : @MasterSampler
       Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
       {
       //WriteLn("TRACE"+_MID+" initialize 6.1 ");
-        VMatrix res = _.YplusV - _.XplusU*_.beta;
-      //WriteLn("TRACE"+_MID+" initialize 6.2 ");
-        _.sig.blk::_.buildWorkSpace(res)
+        _.sig.blk::buildWorkSpace(@WorkSpace.Sigma::New(
+          _.YplusV-_.XplusU*_.beta))
       });
       VMatrix sig_0 = _.sig.blk::get.draw(0, True);
     //WriteLn("TRACE"+_MID+" initialize 7");
@@ -248,7 +247,7 @@ Class @MasterSamplerBasic : @MasterSampler
     //WriteLn("TRACE"+_MID+" init 9");
       Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
       {
-        Real _.sig.blk::_.buildWorkSpace(_.residuals)
+        _.sig.blk::buildWorkSpace(@WorkSpace.Sigma::New(_.residuals))
       });
     //WriteLn("TRACE"+_MID+" init 10");
       VMatrix sig_1 = _.sig.blk::get.draw(0, True);
@@ -277,7 +276,7 @@ Class @MasterSamplerBasic : @MasterSampler
       VMatrix _.residuals := _.arm.blk::filter(_.noise);
       Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
       {
-        Real _.sig.blk::_.buildWorkSpace(_.residuals)
+        _.sig.blk::buildWorkSpace(@WorkSpace.Sigma::New(_.residuals))
       });
       VMatrix sig_1 = _.sig.blk::get.draw(0, True);
       ok
@@ -312,8 +311,11 @@ Class @MasterSamplerBasic : @MasterSampler
     {
       Real If(_.mis.blk::_.partialSampler::_.freeParamNum,
       {
-        Real _.mis.blk::_.buildWorkSpace(
-          _.arm.blk,_.sig.blk::_.sigmaInv,_.modelDef->Y-_.modelDef->X*_.beta,_.beta)
+        _.mis.blk::buildWorkSpace(@WorkSpace.Missing::New(
+          _.arm.blk,
+          _.sig.blk::_.sigmaInv,
+          _.modelDef->Y-_.modelDef->X*_.beta,
+          _.beta))
       });
       VMatrix aux = _.mis.blk::get.draw(numSim, False);
       VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
@@ -334,7 +336,8 @@ Class @MasterSamplerBasic : @MasterSampler
     {
       Real If(_.arm.blk::_.partialSampler::_.freeParamNum,
       {
-        Real _.arm.blk::_.buildWorkSpace(_.noise, _.sig.blk::_.store )
+        _.arm.blk::buildWorkSpace(@WorkSpace.Arima::New(
+          _.noise,_.sig.blk::_.store))
       });
       _.arm.blk::get.draw(numSim, False)
     });
@@ -349,7 +352,7 @@ Class @MasterSamplerBasic : @MasterSampler
     {
       Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
       {
-        Real _.sig.blk::_.buildWorkSpace(_.residuals)
+        _.sig.blk::buildWorkSpace(@WorkSpace.Sigma::New(_.residuals))
       });
       _.sig.blk::get.draw(numSim, False)
     });
@@ -362,7 +365,8 @@ Class @MasterSamplerBasic : @MasterSampler
     //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 5.1 _.mln.blk::_.partialSampler::_.freeParamNum="<<_.mln.blk::_.partialSampler::_.freeParamNum);
       Real If(_.mln.blk::_.partialSampler::_.freeParamNum,
       {
-        Real _.mln.blk::_.buildWorkSpace(_Y, _X, _.arm.blk)
+        _.mln.blk::buildWorkSpace(@WorkSpace.MainLinear::New(
+          _Y,_X,_.arm.blk))
       });
       _.mln.blk::get.draw(numSim, False)
     });

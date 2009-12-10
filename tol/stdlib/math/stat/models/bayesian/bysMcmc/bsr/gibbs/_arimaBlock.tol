@@ -5,6 +5,30 @@
 // PURPOSE: Declares method BysMcmc::Bsr::Gibbs::ArimaBlock
 /////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+Class @WorkSpace.Arima : @WorkSpace
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text get.blockSamplerClassName(Real void) { "@BlockArima" };
+  VMatrix _.noise;
+  VMatrix _.sigma.full;
+
+  Static @WorkSpace.Arima Default(Real void)
+  {
+    @WorkSpace.Arima new = @WorkSpace.Arima[[
+      VMatrix _.noise = Rand(0,0,0,0);
+      VMatrix _.sigma.full = Rand(0,0,0,0) ]]
+  };
+  Static @WorkSpace.Arima New(
+    VMatrix noise,
+    VMatrix sigma.full)
+  {
+    @WorkSpace.Arima new = @WorkSpace.Arima[[
+      VMatrix _.noise = noise;
+      VMatrix _.sigma.full = sigma.full ]]
+  }
+};
+
 /////////////////////////////////////////////////////////////////////////////
 Class @BlockArima : @BlockSampler
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +36,7 @@ Class @BlockArima : @BlockSampler
   //--------------------------------------------------------------------------
   // Mandatory members
   //--------------------------------------------------------------------------
-  Code _scalarSampler;
+  BysMcmc::Options::@Scalar.Sampler _scalarSampler;
   //Selects noise with constant sigma
   Set _.NoiseDistrib;
   Set _.arimaStructBlock;
@@ -24,7 +48,7 @@ Class @BlockArima : @BlockSampler
   //--------------------------------------------------------------------------
   //Auxiliar members
   //--------------------------------------------------------------------------
-  NameBlock _.ws             = [[ Real unused_=? ]];
+  @WorkSpace.Arima _.ws  = @WorkSpace.Arima::Default(0);
   Set       _.armaParamBlock = Copy(Empty);
   Real      _.N              = 0;
   Real      _.numDifData     = 0;
@@ -271,16 +295,19 @@ Class @BlockArima : @BlockSampler
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(VMatrix noise_, VMatrix sigma.full_)
+  Real _buildWorkSpace(@WorkSpace.Arima param)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" @BlockArima::_buildWorkSpace 0");
-    NameBlock _.ws := 
-    [[
-      VMatrix noise = noise_;
-      VMatrix sigma.full = sigma.full_
-    ]];
+    VMatrix _.ws::_.noise := param::_.noise;
+    VMatrix _.ws::_.sigma.full := param::_.sigma.full;
     True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real buildWorkSpace(@WorkSpace param)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _buildWorkSpace(param)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -646,7 +673,7 @@ Class @BlockArima : @BlockSampler
       };
       Code LogDens = LogDens.Almagro.Z_cond_U;
       Real If(Or(pd->coef<x0,pd->coef>x1), { pd->coef := Rand(x0,x1) }, 0);
-      Real pd->coef:= _scalarSampler(LogDens,x0,x1,pd->coef);
+      Real pd->coef:= _scalarSampler::sample(LogDens,x0,x1,pd->coef);
 
     //WriteLn("TRACE"+_MID+" draw.scalar pd->coef="<<pd->coef);
       pd->coef
@@ -683,7 +710,7 @@ Class @BlockArima : @BlockSampler
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    draw.scalar(numSim, _.ws::noise, _.ws::sigma.full)
+    draw.scalar(numSim, _.ws::_.noise, _.ws::_.sigma.full)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -832,7 +859,8 @@ Class @BlockArima : @BlockSampler
   //////////////////////////////////////////////////////////////////////////////
   {
     BysMcmc::Bsr::Gibbs::@BlockArima blk = [[
-    Code _scalarSampler = BysMcmc::Options::Scalar.Sampler::Slice;
+    BysMcmc::Options::@Scalar.Sampler _scalarSampler = 
+      BysMcmc::Options::Scalar.Sampler::Slice;
     Set _.NoiseDistrib = Copy(Empty);
     Set _.arimaStructBlock = Copy(Empty);
     Text _MID = "";
@@ -858,7 +886,8 @@ Class @BlockArima : @BlockSampler
   //////////////////////////////////////////////////////////////////////////////
   {
     BysMcmc::Bsr::Gibbs::@BlockArima blk = [[
-    Code _scalarSampler = config::bsr.scalarSampler.armaBlock;
+    BysMcmc::Options::@Scalar.Sampler _scalarSampler = 
+      config::bsr.scalarSampler.armaBlock;
     //Selects noise with constant sigma
     Set _.NoiseDistrib = NoiseDistrib;
     Set _.arimaStructBlock = 
@@ -875,7 +904,6 @@ Class @BlockArima : @BlockSampler
     //Number of variant variances (dimension of sigma block)
     Real    _.C          = Card(_.arimaStructBlock);
     Real    _.m          = VRows(_.NoiseDistrib[1]->Li);
-    Code _.buildWorkSpace = _buildWorkSpace;
     //Defining the block in the Markov Chain
     Real _defined = {
       Real prepare(0);

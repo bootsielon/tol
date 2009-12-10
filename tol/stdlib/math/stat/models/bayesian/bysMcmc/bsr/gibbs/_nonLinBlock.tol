@@ -14,7 +14,7 @@ Class @BlockNonLin : @BlockSampler
   // Mandatory members
   //--------------------------------------------------------------------------
   //Scalar sampler
-  Code _scalarSampler;
+  BysMcmc::Options::@Scalar.Sampler _scalarSampler;
   //Basic BSR that will be modified by filter
   @MasterSamplerBasic _.bsr;
   //Filter evaluator
@@ -27,17 +27,27 @@ Class @BlockNonLin : @BlockSampler
   Set _.segment;
   //For input filters is +1, for output ones -1
   Real _.isInputFilter;
-  //Default value for custom partial draw
-  Matrix _default.custom.partial.draw;
   //Optional filter method to be called before to call draw.scalar
   //This method will be called just before to call draw method of corresponding 
   //internal non linear block in order to select which parameters will be drawn. 
   //It will return a matrix with custom partial sampling in selected indexes and ? in
   //other ones that will be sampled by non linear block in the standard way
-  Code _.custom.partial.draw;
+  Real _.custom.partial.draw.exist = False;
+  Matrix custom.partial.draw(Real void)
+  {
+    If(!_.custom.partial.draw.exist,
+     Rand(Card(_.colNames), 1, ?, ?),
+     _.filter::custom.partial.draw(void))
+  };
   //Optional filter method that returns log of prior density for one parameter
   //Real get.priorLogDens(Real paramIdx)
-  Code _.get.priorLogDens;
+  Real _.get.priorLogDens.exist = False;
+  Real get.priorLogDens(Real paramIdx)
+  {
+    If(!_.get.priorLogDens.exist, 0,
+      _.filter::get.priorLogDens(paramIdx))
+  };
+
   //Names of affected parameters in linear block 
   //(just for input filters)
   Set _.linBlkNames;
@@ -86,7 +96,7 @@ Class @BlockNonLin : @BlockSampler
     Matrix _.Z := _.W + _.Fi * omega;
     Matrix Z = _.Z;
 
-    Code _getPriorLogDens = _.get.priorLogDens;
+    Code _getPriorLogDens = get.priorLogDens;
 
     NameBlock [[
     Set       _.segment   = segment;
@@ -173,7 +183,7 @@ Class @BlockNonLin : @BlockSampler
   //WriteLn("TRACE"+_MID+"draw.scalar 2");
     
     NameBlock ev = get.evaluator(0);
-    Matrix mrgDraw = _.custom.partial.draw(0);
+    Matrix mrgDraw = custom.partial.draw(0);
     Set draw.all = For(1, Rows(mrgDraw), Real(Real i)
     {
       Real mrg = MatDat(mrgDraw,i,1);
@@ -187,7 +197,7 @@ Class @BlockNonLin : @BlockSampler
       Real x1 = bounds[2];
       Real If(Or(x<x0,x>x1), x := Rand(x0,x1) );
     //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].5");
-      Real x:= _scalarSampler(ev::LogDens,x0,x1,x);
+      Real x:= _scalarSampler::sample(ev::LogDens,x0,x1,x);
     //WriteLn("TRACE draw.scalar x= "<<x);
     //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].6");
       Real PutMatDat(ev::_.u,i,1,x);
@@ -199,12 +209,6 @@ Class @BlockNonLin : @BlockSampler
     Mat2VMat(SetCol(draw.all))
   };
 
-  ////////////////////////////////////////////////////////////////////////////
-  Real _buildWorkSpace(Real unused_)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    True
-  };
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =
@@ -293,9 +297,9 @@ Class @BlockNonLin : @BlockSampler
   {
   //WriteLn("TRACE NonLinBlock 0 ");
     BysMcmc::Bsr::Gibbs::@BlockNonLin blk = [[
-    Code _.buildWorkSpace = _buildWorkSpace;
     //Scalar sampler
-    Code _scalarSampler = config::bsr.scalarSampler.nonLinBlock;
+    BysMcmc::Options::@Scalar.Sampler _scalarSampler = 
+      config::bsr.scalarSampler.nonLinBlock;
     //Basic BSR that will be modified by filter
     @MasterSamplerBasic _.bsr = bsr;
     //Filter evaluator
@@ -337,28 +341,12 @@ Class @BlockNonLin : @BlockSampler
     {
       0
     });
-    //Default value for custom partial draw
-    Matrix _default.custom.partial.draw = Rand(Card(_.colNames), 1, ?, ?);
-    //Optional filter method to be called before to call draw.scalar
-    //This method will be called just before to call draw method of corresponding 
-    //internal non linear block in order to select which parameters will be drawn. 
-    //It will return a matrix with custom partial sampling in selected indexes and ? in
-    //other ones that will be sampled by non linear block in the standard way
-    Code _.custom.partial.draw = If(
-    FunctionExist("Matrix","_.filter::custom.partial.draw"),
-    {
-      WriteLn(_MID+"Using specified custom.partial.draw method");
-      _.filter::custom.partial.draw
-    },
-    {
-      WriteLn(_MID+"Using default custom.partial.draw method");
-      Matrix custom.partial.draw(Real unused) { _default.custom.partial.draw } 
-    });
+    Real _.custom.partial.draw.exist = 
+     FunctionExist("Matrix","_.filter::custom.partial.draw");
+
     //Optional filter method that returns log of prior density for one parameter
     //Real get.priorLogDens(Real paramIdx)
-    Code _.get.priorLogDens = If(FunctionExist("Real","_.filter::get.priorLogDens"),
-      _.filter::get.priorLogDens,
-      Real (Real paramIdx) { 0 } );
+    Real _.get.priorLogDens.exist = FunctionExist("Real","_.filter::get.priorLogDens");
     //Names of affected parameters in linear block 
     //(just for input filters)
     Set _.linBlkNames = If(!_.isInputFilter, Copy(Empty),

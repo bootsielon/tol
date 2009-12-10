@@ -6,6 +6,13 @@
 //////////////////////////////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////
+Class @WorkSpace
+//Abstract class to inherite work spaces needed for each sampler block
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text get.blockSamplerClassName(Real void)
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Class @BlockSampler
@@ -43,17 +50,14 @@ Class @BlockSampler
   Real _defined;
 
   ////////////////////////////////////////////////////////////////////////////
-  //_buildWorkSpace will be the internal method used to build work space of 
-  //specialized blocks and can take any number of arguments of any type
-  //This member will store a reference of _buildWorkSpace if needed
-  //Default behaviour does nothing 
+  //buildWorkSpace will be the internal method used to build work space of 
+  //specialized blocks and can take any number of arguments of any type that
+  //will be passed inside a NameBlock
   ////////////////////////////////////////////////////////////////////////////
-  Real _noWorkSpace(Real unused) 
+  Real buildWorkSpace(@WorkSpace param)
   {
-  //WriteLn("TRACE"+_MID+" @BlockSampler::_noWorkSpace 0");
-    0 
+    True
   };
-  Code _.buildWorkSpace = _noWorkSpace;
 
   //Method of sample generation 
   VMatrix draw(Real numSim);
@@ -95,11 +99,6 @@ Class @BlockSampler
       1
     });
     Real _.partialSampler::build(_.colNames, mcmcPartialHandler);
-    Real If(Not(_.partialSampler::_.freeParamNum), 
-    {
-      Code _.buildWorkSpace := _noWorkSpace;
-      1
-    });
     Real _.numBlock := numBlock;
     Real _.firstCol := firstCol;
     Real _.lastCol  := firstCol+_.N-1;

@@ -20,16 +20,21 @@ NameBlock Options =
   //density function and a domain interval
   //The API of a scalar sampler  is given by a function like this
   //  Real (Code logDens, Real x0, Real x1)
+  Class @Scalar.Sampler {
+    Real sample(Code logDens, Real x.min, Real x.max, Real x.0)
+  };
+  Class @Scalar.Sampler.Arms : @Scalar.Sampler{
+    Real sample(Code logDens, Real x.min, Real x.max, Real x.0)
+    { ARMS(logDens, x.min, x.max, x.0) }
+  };
+  Class @Scalar.Sampler.Slice : @Scalar.Sampler{
+    Real sample(Code logDens, Real x.min, Real x.max, Real x.0)
+    { MatDat(SliceSampler1D(logDens, x.min, x.max, x.0),1,1) }
+  };
   NameBlock Scalar.Sampler = 
   [[
-    Real Arms(Code logDens, Real x.min, Real x.max, Real x.0)
-    {
-      ARMS(logDens, x.min, x.max, x.0)
-    };
-    Real Slice(Code logDens, Real x.min, Real x.max, Real x.0)
-    {
-      MatDat(SliceSampler1D(logDens, x.min, x.max, x.0),1,1)
-    }
+    @Scalar.Sampler.Arms Arms;
+    @Scalar.Sampler.Slice Slice
   ]];
   NameBlock Arima.Filter =
   [[
@@ -131,10 +136,12 @@ Class @Config
   Real bsr.linBlk.MH.maxConsecutive = 10;
   //Scalar sampler used in ARMA block of basic BSR can be a member of 
   //BysMcmc::Options::Scalar.Sampler or an API equivalent function
-  Code bsr.scalarSampler.armaBlock = BysMcmc::Options::Scalar.Sampler::Slice;
+  BysMcmc::Options::@Scalar.Sampler bsr.scalarSampler.armaBlock = 
+    BysMcmc::Options::Scalar.Sampler::Slice;
   //Scalar sampler used in ARMA block of basic BSR can be a member of 
   //BysMcmc::Options::Scalar.Sampler or an API equivalent function
-  Code bsr.scalarSampler.nonLinBlock = BysMcmc::Options::Scalar.Sampler::Slice;
+  BysMcmc::Options::@Scalar.Sampler bsr.scalarSampler.nonLinBlock = 
+    BysMcmc::Options::Scalar.Sampler::Slice;
   //Arima filter method
   Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
   //Enables/disables storement of the Markov chain of initial values 
