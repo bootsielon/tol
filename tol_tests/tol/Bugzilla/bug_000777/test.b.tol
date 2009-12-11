@@ -1,0 +1,28 @@
+Class @B {
+  Text name = "B";
+  Real a = 1;
+  Text Print(Real void) { WriteLn( "Hola" ) }
+};
+
+Class @C {
+  @B aB
+};
+
+Class @A
+{
+  @B aBinA;
+  @C aCinA
+};
+
+@B instB;
+
+@A instA =
+  [[
+    @B aBinA = instB;
+    @C aCinA = [[ @B aB = instB ]]
+  ]];
+
+Real Ois.Store( [[ instA ]], "./test.oza" );
+
+Set kk = Ois.Load( "./test.oza" );
+

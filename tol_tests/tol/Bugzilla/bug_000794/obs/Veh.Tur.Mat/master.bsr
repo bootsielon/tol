@@ -1,0 +1,17 @@
+/////////////////////////////////////////////////////////////////////////////
+// Bayesian Sparse Regression 
+/////////////////////////////////////////////////////////////////////////////
+
+$BEGIN
+
+Module.Type = master;
+Model.Name = "Veh.Tur.Mat";
+Model.Description = "Turismo";
+Session.Name = "y2009m12d07h18i44s02.00";
+Session.Description = "Sesión creada en el instante y2009m12d07h18i44s02.00";
+Session.Authors = "user@bayesforecast.com";
+
+Modular.Schema = monophasic;
+Include primary module "./primary/primary.bsr";
+
+$END

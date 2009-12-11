@@ -1,0 +1,32 @@
+WriteLn("TRACE Running ... ");
+
+Class @B {
+  Text name = "B";
+  //Real a = 1;
+  Text Print(Real void) { WriteLn( "Hola" ) }
+};
+
+Class @C {
+  @B aB
+};
+
+Class @A
+{
+  @B aBinA;
+  @C aCinA
+};
+
+@B instB;
+
+@A instA =
+  [[
+    @B aBinA = instB;
+    @C aCinA = [[ @B aB = instB ]]
+  ]];
+
+WriteLn("TRACE Ois.Store ... ");
+Real Ois.Store( [[ instA ]], "./test.oza" );
+
+WriteLn("TRACE Ois.Load ... ");
+Set kk = Ois.Load( "./test.oza" );
+

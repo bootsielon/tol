@@ -5,28 +5,25 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
-  Real bugNum_ =  753;
+  Real bugNum_ =  782;
   Text email_ = "vdebuen@tol-project.org"; 
-  Text summary_ = 
-  "pure virtual function call";
+  Text summary_ = "Struct con elementos Anything";
   Text link_ = GetTolBugzillaLink(bugNum_);
 
   //Write here the initial test TOL code if needed
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
-    
-  Class @CEjemplo {
-    Code AtributoTipoCode
+
+  Struct ejemplo{
+    Text a,
+    Anything b,
+    Text c
+  
   };
-  	
-  @CEjemplo ej = [[
-    Code AtributoTipoCode = ( Real(Real x) { x } )
-  ]];
-
-  Code globaltipoCode = ( Real(Real x) { x } );
-
-  Set GetGlobalFunctions( "Real" );
-    
+  
+  
+  Set ejemplo("","","");
+  
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);
 
@@ -34,7 +31,7 @@
 
 //This is a messure of the success of the test 
   Real quality_ = And(numErr1 == numErr0, 
-                      numWar1 == numWar0+2);
+                      numWar1 == numWar0);
 
 //Return the results 
   Set resultStr_ = @strTestStatus(summary_, link_, quality_,
@@ -45,3 +42,4 @@
   resultStr_;
 
 /* */
+
