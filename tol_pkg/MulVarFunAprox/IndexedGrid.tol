@@ -66,12 +66,13 @@ Text _.autodoc.member.IndexedGrid =
     Matrix quotient = Floor(A *(1/b));
     Matrix rest = A - quotient * b
   ]]};
-  
+
   ////////////////////////////////////////////////////////////////////////////
   Matrix point2key(VMatrix A)
   ////////////////////////////////////////////////////////////////////////////
   {
     Matrix zero = Rand(VRows(A),1,0,0);
+
     Matrix A.key.dim = Group("ConcatColumns", For(1,_.n, Matrix(Real i)
     {
       -Min(zero, MatReplace(
@@ -137,8 +138,7 @@ Text _.autodoc.member.IndexedGrid =
       Matrix key = SetCol(Sort(Unique(VCol2Set(SubCol(X.round,[[i]]))),Compare));
       Matrix idx = DifEq(1/(1-B),Rand(Rows(key),1,1,1));
       idx|key
-    });
-    
+    });    
     Matrix _.key.factor := 
     {
       Matrix aux.1 = SetCol(EvalSet(_.key.dim,Rows));
@@ -185,7 +185,8 @@ Text _.autodoc.member.IndexedGrid =
     VMatrix X, 
     Real edge.length,
     Real do.build.neighbourhood,
-    Real do.build.border)
+    Real do.build.border,
+    Real do.build.neighbourhood.border)
   ////////////////////////////////////////////////////////////////////////////
   {
     @IndexedGrid.Border new = [[
@@ -196,11 +197,11 @@ Text _.autodoc.member.IndexedGrid =
     Real If(do.build.neighbourhood | do.build.border, 
       new::build.neighbourhood(0));
     Real If(do.build.border, 
-      new::build.border(0));
+      new::build.border(do.build.neighbourhood.border));
     new
   };
   ////////////////////////////////////////////////////////////////////////////
-  Real build.border(Real void)
+  Real build.border(Real do.build.neighbourhood.border)
   ////////////////////////////////////////////////////////////////////////////
   {
     Set match.0 = For(1, 2*_.n, VMatrix(Real i)
@@ -212,7 +213,7 @@ Text _.autodoc.member.IndexedGrid =
       SubRow(_.Y.neighbourhood.point[i], MatQuery::SelectMatch(match.0[i]))
     }));
     @IndexedGrid _.border := 
-      @IndexedGrid::New(border,_.edge.length, False);
+      @IndexedGrid::New(border,_.edge.length, do.build.neighbourhood.border);
 
     Matrix _.border.assign := Group("ConcatRows", For(1, 2*_.n, Matrix(Real i)
     {
