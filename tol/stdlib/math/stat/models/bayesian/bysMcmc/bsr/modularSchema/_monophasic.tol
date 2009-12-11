@@ -145,7 +145,7 @@ NameBlock Monophasic =
           VMatrix Cov=Convert(Enlarge(seg->Cov,m,m,m0,m0),"Cholmod.R.Sparse");
           VMatrix L  =Convert(Enlarge(seg->L,  m,m,m0,m0),"Cholmod.R.Sparse");
           VMatrix Li =Convert(Enlarge(seg->Li, m,m,m0,m0),"Cholmod.R.Sparse");
-          Set EquIdx = row.index[k];
+          Set EquIdx = ExtractByIndex(row.index[k],seg->EquIdx);
           Set seg->TimeInfo;
           Set seg->NonLinFilters
         ) ]];
