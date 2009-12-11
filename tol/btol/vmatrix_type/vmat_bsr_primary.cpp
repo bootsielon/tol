@@ -252,8 +252,9 @@ public:
                                [add_var]
         );
       missing =
-        newIdentifier[increment_a(s.mis.info.index)]
-                            [assign_a(s.mis.info.name)] >> 
+        (s.mis.table | newIdentifier[increment_a(s.mis.info.index)])
+        [assign_a(s.mis.info.name)]
+        >> 
         ch_p('?') >> (
         (
           ((str_p("at") >> str_p("row") >> int_p[assign_missing_row_]) | 

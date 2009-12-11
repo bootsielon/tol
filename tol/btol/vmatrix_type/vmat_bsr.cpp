@@ -368,7 +368,7 @@ int Parse_NoMasterModule(const BText& filePath,
     aux.PutStruct(BysSparseReg::MissingBlockStr());
     MI.AddElement(BContensSet::New(name,aux,""));
   }
-  if(MI.Card()) { MI.SetIndexByName(); }
+//if(MI.Card()) { MI.SetIndexByName(); }
   MO.PrepareStore(outputMissingInfo.size());
   for(k=0; k<outputMissingInfo.size(); k++)
   {
@@ -387,7 +387,7 @@ int Parse_NoMasterModule(const BText& filePath,
     aux.PutStruct(BysSparseReg::MissingBlockStr());
     MO.AddElement(BContensSet::New(name,aux,""));
   }
-  if(MO.Card()) { MO.SetIndexByName(); }
+//if(MO.Card()) { MO.SetIndexByName(); }
   DI.PrepareStore(noiseInfo.size());
   for(k=0; k<noiseInfo.size(); k++)
   {
