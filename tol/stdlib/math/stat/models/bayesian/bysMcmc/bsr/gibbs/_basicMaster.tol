@@ -456,9 +456,14 @@ Class @MasterSamplerBasic : @MasterSampler
       Matrix filter.mis  = IfMat(filter.mis_,filter.mis_,RProd(filter.mis_,?));
       Matrix noise = VMat2Mat(SubRow(fullNoise,segment->EquIdx));
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.2 segment->SigmaIndex="<<segment->SigmaIndex);
-      Real sigma  = If(segment->SigmaIndex<=0, 
-        VMatDat(segment->L,(segment->EquIdx)[1],(segment->EquIdx)[1]),
-        Sqrt(VMatDat(_.sig.blk::_.store,segment->SigmaIndex,1)));
+      Real L.det = 
+      {
+        //The determinant of a triangular matrix is the product of its diagonal
+        VMatrix L.diag = SubRow(Tra(SubDiag(segment->L,0)),segment->EquIdx);
+        Exp(VMatSum(Log(L.diag)))^(1/Card(segment->EquIdx))
+      };
+      Real sigma  = L.det*If(segment->SigmaIndex<=0, 1,
+       Sqrt(VMatDat(_.sig.blk::_.store,segment->SigmaIndex,1)));
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.3");
       Set ti = If(useTimeInfo, segment->TimeInfo, Copy(Empty));
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].3");
