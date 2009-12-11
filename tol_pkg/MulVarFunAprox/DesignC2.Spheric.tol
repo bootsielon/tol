@@ -123,9 +123,44 @@ Class @DesignC2.Spheric : @DesignC2
     });
     VMatrix X.lambda.sum = SetSum(X.lambda);
     
-    Set X.weight = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
       X.lambda[i] $/ X.lambda.sum
+    })
+  };
+  ///////////////////////////////////////////////////////////////////////////
+  Set get.X.weight.partial.derivative.1(Set X.dif, Real s)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Real m = VRows(X.dif[1]);
+    Set X.tao = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(_.n,1,1,1);
+      RPow(X.norm2,0.5)/_.radius
+    });
+    Set X.tao2 = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      RPow(X.tao[i],2)
+    });
+    Set X.match = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      LE(X.tao[i],Rand(m,1,1,1))
+    });
+    Set X.lambda = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),4)
+    });
+    Set X.lambda.der = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),3)$*X.tao[i]/2
+    });
+    VMatrix X.lambda.sum = SetSum(X.lambda);
+    VMatrix X.lambda.sum.2 = RPow(X.lambda.sum,2);
+    VMatrix X.lambda.der.sum = SetSum(X.lambda.der);
+    For(1,_.X.maxNeighbour,VMatrix(Real i)
+    {
+      (X.lambda.der[i]$*X.lambda.sum-X.lambda[i]$*X.lambda.der.sum) 
+      $/ X.lambda.sum.2
     })
   }
 

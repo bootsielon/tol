@@ -97,8 +97,9 @@ Class @ModelC2
     _.E.ste
   };
 
+
   //////////////////////////////////////////////////////////////////////////////
-    VMatrix evaluate.eval(VMatrix X, FunRn2R::@BaseC2.Eval eval)
+    VMatrix evaluate(VMatrix X)
   //////////////////////////////////////////////////////////////////////////////
   {
     Real m = VRows(X);
@@ -107,44 +108,27 @@ Class @ModelC2
     VMatrix X.1 = SubRow(X,X.select);
     Real m.1 = VRows(X.1);
     VMatrix X.1.h = _.design::closest.reference.index(X.1);
-    VMatrix QX.1 = _.design::build.obs.eval(X.1, X.1.h, eval);
+    VMatrix QX.1 = _.design::build.obs(X.1, X.1.h);
     VMatrix F.1 = QX.1*_.alpha;
     Matrix triplet.1 = SetCol(X.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
     Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"))
   };
 
   //////////////////////////////////////////////////////////////////////////////
-    VMatrix evaluate(VMatrix X)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    FunRn2R::@BaseC2.Eval.Function eval = 
-     FunRn2R::@BaseC2.Eval.Function::New(_.design::get.base(0));
-    evaluate.eval(X,eval)
-  };
-  //////////////////////////////////////////////////////////////////////////////
     VMatrix evaluate.partial.derivative.1(VMatrix X, Real s)
   //////////////////////////////////////////////////////////////////////////////
   {
-    FunRn2R::@BaseC2.Eval.Partial.Derivative.1 eval = 
-     FunRn2R::@BaseC2.Eval.Partial.Derivative.1::New(_.design::get.base(0), s);
-    evaluate.eval(X,eval)
-  };
-  //////////////////////////////////////////////////////////////////////////////
-    VMatrix evaluate.partial.derivative.2(VMatrix X, 
-                                          Real s1, Real s2)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    FunRn2R::@BaseC2.Eval.Partial.Derivative.2 eval = 
-     FunRn2R::@BaseC2.Eval.Partial.Derivative.2::New(_.design::get.base(0), s1, s2);
-    evaluate.eval(X,eval)
-  };
-  //////////////////////////////////////////////////////////////////////////////
-    VMatrix evaluate.partial.integrate.1(VMatrix X, Real s)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    FunRn2R::@BaseC2.Eval.Partial.Integrate.1 eval = 
-     FunRn2R::@BaseC2.Eval.Partial.Integrate.1::New(_.design::get.base(0), s);
-    evaluate.eval(X,eval)
+    Real m = VRows(X);
+    VMatrix X.match = _.design::match.evaluable(X);
+    Set X.select = MatQuery::SelectMatch(X.match);
+    VMatrix X.1 = SubRow(X,X.select);
+    Real m.1 = VRows(X.1);
+    VMatrix X.1.h = _.design::closest.reference.index(X.1);
+    VMatrix QX.1 = _.design::build.obs.partial.derivative.1(X.1, X.1.h, s);
+    VMatrix F.1 = QX.1*_.alpha;
+    Matrix triplet.1 = SetCol(X.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
+    Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"))
   }
+
 };
 
