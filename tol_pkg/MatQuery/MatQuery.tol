@@ -212,8 +212,25 @@ VMatrix ClassifyRowsByRank(VMatrix M, Set rankBound)
     Real r := r+1
   });
   class
-})}
+})};
 
-
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.SortAndCount = "Sorts the rows of a column matrix and "
+"returns a matrix with two columns. The first one contains sorted unique "
+"values found in given matrixand second one conatins the number of times "
+"that this value is presented.";
+VMatrix SortAndCount(VMatrix A)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix B = VMat2Mat(A);
+  VMatrix C = Mat2VMat(PivotByRows(B,Sort(B,[[1]])));
+  Real m = VRows(C);
+  Set change = Col2Set(Sort(VMat2Mat(C),[[1]],True));
+  Set next = ExtractByIndex(change,Range(2,Card(change),1))<<[[Real m+1]];
+  VMatrix aux.1 = DifEq(1/(1-B),Rand(m+1,1,1,1));
+  VMatrix aux.2 = SubRow(aux.1,change);
+  VMatrix aux.3 = SubRow(aux.1,next);
+  SubRow(C,change) | (aux.3-aux.2)
+}
 
 ]];
