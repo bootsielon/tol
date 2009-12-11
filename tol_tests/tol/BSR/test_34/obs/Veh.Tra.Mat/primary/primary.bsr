@@ -1,0 +1,66 @@
+/////////////////////////////////////////////////////////////////////////////
+// Bayesian Sparse Regression 
+/////////////////////////////////////////////////////////////////////////////
+
+$BEGIN
+
+Module.Type = primary;
+Model.Name = "Veh.Tra.Mat";
+Model.Description = "Tractores industriales";
+Session.Name = "y2009m12d10h18i14s08.00";
+Session.Description = "Sesión creada en el instante y2009m12d10h18i14s08.00";
+Session.Authors = "user@bayesforecast.com";
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of Regression Variables
+/////////////////////////////////////////////////////////////////////////////
+
+Veh.Tra.Mat__Pib.es.Men.Deg0.Coef <- +1.2;
+Veh.Tra.Mat__Pib.es.Men.Deg1.Coef <- +0.1;
+Veh.Tra.Mat__Crisis.200801.Deg0.Coef <- -0.1;
+Veh.Tra.Mat__Crisis.200805.Deg0.Coef <- -0.1;
+Veh.Tra.Mat__Crisis.200805.Deg3.Coef <- -0.1;
+Veh.Tra.Mat__Lab.es.Men.Deg0.Coef <- +0.1;
+Veh.Tra.Mat__PlanPreverI.Deg0.Coef <- +0.1;
+Veh.Tra.Mat__PlanPreverII.Deg0.Coef <- +0.1;
+Veh.Tra.Mat__PlanPreverIII.Deg0.Coef <- +0.1;
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of noise distribution
+/////////////////////////////////////////////////////////////////////////////
+
+Veh.Tra.Mat::Noise[137 dating Mensual from y1998m01d01h00i00s00.00 until y2009m05d01h00i00s00.00]
+  ~ Normal(0,Veh.Tra.Mat::sigma2 * Cov = ArimaCovariance([[
+  @ARIMAStruct(1,1-0.1*B,1,1),
+  @ARIMAStruct(12,1,1+0.1*B^12,1-B^12)]]));
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining regression equations
+/////////////////////////////////////////////////////////////////////////////
+
+
+Output =   {$ VMatrix { Include("./Output.oza")[1] } $};
+Input =   {$ VMatrix { Include("./Input.oza")[1] } $};
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of Regression Missing Values
+/////////////////////////////////////////////////////////////////////////////
+
+Veh.Tra.Mat.y2000m04d01 ? 
+ at row 28 for output
+ <- +0;
+Pib.es.Men.Inp.y2009m01d01 ? 
+ at row 133 for input 1
+ <- +0;
+Pib.es.Men.Inp.y1997m12d01 ? 
+ at row 1 for input 2
+ <- +0;
+Pib.es.Men.Inp.y2009m01d01 ? 
+ at row 134 for input 2
+ <- +0;
+
+$END

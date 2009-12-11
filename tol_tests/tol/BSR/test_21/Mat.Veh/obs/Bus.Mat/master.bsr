@@ -1,0 +1,20 @@
+/////////////////////////////////////////////////////////////////////////////
+// Bayesian Sparse Regression 
+/////////////////////////////////////////////////////////////////////////////
+
+$BEGIN
+
+Module.Type = master;
+Model.Name = "Mat.Veh";
+Model.Description = "Modelo de matriculación de vehículos";
+Session.Name = "Mat.Veh_1.0";
+Session.Description = "Session Mat.Veh_1.0 para el modelo: Mat.Veh Modelo de matriculación de vehículos";
+Session.Authors = "user@bayesforecast.com";
+
+Modular.Schema = monophasic;
+Include primary module "./primary.bsr";
+
+//VBR: Cuando metas la parte no observacional interna al nodo observacional activas esto
+//Include joint module "./joint.bsr";
+
+$END

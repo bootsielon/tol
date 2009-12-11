@@ -1,0 +1,76 @@
+/////////////////////////////////////////////////////////////////////////////
+// Bayesian Sparse Regression 
+/////////////////////////////////////////////////////////////////////////////
+
+$BEGIN
+
+Module.Type = joint;
+Model.Name = "Mat.Veh__1.0";
+Model.Description = "Modelo de matriculación de vehículos";
+Session.Name = "y2009m12d10h18i14s08.00";
+Session.Description = "Sesión creada en el instante y2009m12d10h18i14s08.00";
+Session.Authors = "user@bayesforecast.com";
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of Regression Variables
+/////////////////////////////////////////////////////////////////////////////
+
+Pib.es.Men.Deg0_Homogeneity__Promedio.Coef <- +0.1;
+Lab.es.Men_2Causas__NoRuedas.Coef <- +0.1;
+Lab.es.Men_2Causas__Tamano.Coef <- +0.1;
+Pib.es.Men.Deg0_Hier3__Promedio.Coef <- +0.1;
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of Regression Missing Values
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of noise distribution
+/////////////////////////////////////////////////////////////////////////////
+
+Pib.es.Men.Deg0_Homogeneity::Noise[6]
+  ~ Normal(0,Pib.es.Men.Deg0_Homogeneity::sigma2 ~ @Bsr.Sigma.Prior.InverseGamma(0.15,0.5) );
+Lab.es.Men_2Causas::Noise[6]
+  ~ Normal(0,Lab.es.Men_2Causas::sigma2 ~ @Bsr.Sigma.Prior.InverseGamma(0.15,0.5) );
+Pib.es.Men.Deg0_Hier3::Noise[4]
+  ~ Normal(0,Pib.es.Men.Deg0_Hier3::sigma2 ~ @Bsr.Sigma.Prior.InverseGamma(0.85,0.8) );
+Veh.Tur.Mat__Pib.es.Men.Deg0.Coef::Noise[1]
+  ~ Normal(0,0.0225);
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining regression equations
+/////////////////////////////////////////////////////////////////////////////
+
+0 == Pib.es.Men.Deg0_Homogeneity::Noise[1]+1*Veh.Tur.Mat__Pib.es.Men.Deg0.Coef-1*Pib.es.Men.Deg0_Homogeneity__Promedio.Coef;
+0 == Pib.es.Men.Deg0_Homogeneity::Noise[2]+1*Veh.Bus.Mat__Pib.es.Men.Deg0.Coef-1*Pib.es.Men.Deg0_Homogeneity__Promedio.Coef;
+0 == Pib.es.Men.Deg0_Homogeneity::Noise[3]+1*Veh.CaF.Mat__Pib.es.Men.Deg0.Coef-1*Pib.es.Men.Deg0_Homogeneity__Promedio.Coef;
+0 == Pib.es.Men.Deg0_Homogeneity::Noise[4]+1*Veh.Mot.Mat__Pib.es.Men.Deg0.Coef-1*Pib.es.Men.Deg0_Homogeneity__Promedio.Coef;
+0 == Pib.es.Men.Deg0_Homogeneity::Noise[5]+1*Veh.Tra.Mat__Pib.es.Men.Deg0.Coef-1*Pib.es.Men.Deg0_Homogeneity__Promedio.Coef;
+0 == Pib.es.Men.Deg0_Homogeneity::Noise[6]+1*Veh.Otr.Mat__Pib.es.Men.Deg0.Coef-1*Pib.es.Men.Deg0_Homogeneity__Promedio.Coef;
+0 == Lab.es.Men_2Causas::Noise[1]+1*Veh.Tur.Mat__Lab.es.Men.Deg0.Coef-4*Lab.es.Men_2Causas__NoRuedas.Coef-1*Lab.es.Men_2Causas__Tamano.Coef;
+0 == Lab.es.Men_2Causas::Noise[2]+1*Veh.Bus.Mat__Lab.es.Men.Deg0.Coef-4*Lab.es.Men_2Causas__NoRuedas.Coef-3*Lab.es.Men_2Causas__Tamano.Coef;
+0 == Lab.es.Men_2Causas::Noise[3]+1*Veh.CaF.Mat__Lab.es.Men.Deg0.Coef-6*Lab.es.Men_2Causas__NoRuedas.Coef-3*Lab.es.Men_2Causas__Tamano.Coef;
+0 == Lab.es.Men_2Causas::Noise[4]+1*Veh.Mot.Mat__Lab.es.Men.Deg0.Coef-2*Lab.es.Men_2Causas__NoRuedas.Coef-0.5*Lab.es.Men_2Causas__Tamano.Coef;
+0 == Lab.es.Men_2Causas::Noise[5]+1*Veh.Tra.Mat__Lab.es.Men.Deg0.Coef-3*Lab.es.Men_2Causas__NoRuedas.Coef-2*Lab.es.Men_2Causas__Tamano.Coef;
+0 == Lab.es.Men_2Causas::Noise[6]+1*Veh.Otr.Mat__Lab.es.Men.Deg0.Coef-1*Lab.es.Men_2Causas__NoRuedas.Coef-1*Lab.es.Men_2Causas__Tamano.Coef;
+0 == Pib.es.Men.Deg0_Hier3::Noise[1]+1*Veh.Tur.Mat__Crisis.200801.Deg0.Coef-1*Pib.es.Men.Deg0_Hier3__Promedio.Coef;
+0 == Pib.es.Men.Deg0_Hier3::Noise[2]+1*Veh.Mot.Mat__Crisis.200801.Deg0.Coef-1*Pib.es.Men.Deg0_Hier3__Promedio.Coef;
+0 == Pib.es.Men.Deg0_Hier3::Noise[3]+0.3333333333333333*Veh.Bus.Mat__Crisis.200801.Deg0.Coef+0.3333333333333333*Veh.CaF.Mat__Crisis.200801.Deg0.Coef+0.3333333333333333*Veh.Tra.Mat__Crisis.200801.Deg0.Coef-1*Pib.es.Men.Deg0_Hier3__Promedio.Coef;
+0 == Pib.es.Men.Deg0_Hier3::Noise[4]+1*Veh.Otr.Mat__Crisis.200801.Deg0.Coef-1*Pib.es.Men.Deg0_Hier3__Promedio.Coef;
+1 == Veh.Tur.Mat__Pib.es.Men.Deg0.Coef::Noise[1]+1*Veh.Tur.Mat__Pib.es.Men.Deg0.Coef;
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining Parameter Constraints
+/////////////////////////////////////////////////////////////////////////////
+
++0>=+1*Veh.Tur.Mat__Crisis.200801.Deg0.Coef;
++0>=+1*Veh.Mot.Mat__Crisis.200801.Deg0.Coef+1*Veh.Mot.Mat__Crisis.200805.Deg0.Coef;
+
+$END

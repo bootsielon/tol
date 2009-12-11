@@ -1,0 +1,222 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-09-23
+//PURPOSE: Metropolis-Hastings simulation of BSR linear block
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "http://www.linkedin.com/groupAnswers?viewQuestionAndAnswers=&discussionID=8965990&gid=1592517&trk=EML_anet_qa_ttle-d7hOon0JumNFomgJt7dBpSBA";
+Text summary_ = "A property estimating company wants to build a model via";
+
+/*
+
+*/
+
+//////////////////////////////////////////////////////////////////////////////
+//Loads general tools for BSR tests
+//////////////////////////////////////////////////////////////////////////////
+Set Include("../general/general.tol");
+
+Real numErr0 = Copy(NError);
+
+Struct @PropertyValue
+{
+  Real Identifier, 
+  Real SalePrice,
+  Real LandAssessment,
+  Real HouseAssessment, 
+  Real NetArea
+};
+
+Set PropertyData = Include("PropertyData.bst");
+
+Matrix data = SetMat(PropertyData);
+Set data.columns = [[
+Matrix SalePrice = SubCol(data,[[2]])*1/1000; 
+Matrix Constant  = Rand(Rows(data),1,1,1);
+Matrix Order     = SubCol(data,[[1]])*1/1000000;
+Matrix LandAss   = SubCol(data,[[3]])*1/1000000;
+Matrix HouseAss  = SubCol(data,[[4]])*1/1000000;
+Matrix NetArea   = SubCol(data,[[5]])*1/1000]];
+
+Set data.pairs = For(2,Card(data.columns),Matrix(Real k)
+{
+  Matrix cmp = data.columns[1] | data.columns[k];
+  Eval(Name(data.columns[1])+"_vs_"+Name(data.columns[k])+"=cmp")
+});
+
+//Data matrix containing full output and input
+Matrix data.mat = Group("ConcatColumns",data.columns);
+//Set of names of columns in data.mat
+Set data.name = EvalSet(data.columns, Name);
+
+
+  Real hasConstant = False;
+  Text metric = "";
+//Text metric = ".byNetArea";
+//Text metric = ".Log";
+
+//////////////////////////////////////////////////////////////////////////////
+//Model definition for BSR one node API
+  BysMcmc::Bsr::OneNode::@ModelData bsr.oneNode.data =
+//////////////////////////////////////////////////////////////////////////////
+[[
+
+  //##Documentation about the model
+  Set  _.docInfo = @BSR.DocInfo (
+    Text Model.Name = 
+      "BeijingProperty",
+    Text Model.Description = 
+      "A property estimating company wants to build a model via: sale price, "
+      "landed property assessment, house property assessment, and net area "
+      "for predict the sale prices of houses better. All the buildings are "
+      "in Beijing, the capital of China.";
+    Text Session.Name = "SES_"+Model.Name+".01";
+    Text Session.Description = 
+      "Pure linear regression";
+    Text Session.Authors = 
+      "vdebuen@tol-project.org;";
+    Date Session.Creation = Copy(Now);
+    Text Path = Ois.DefRoot+"BSR/" );
+  //##Observational node name
+  Text _.segmentName = "Obs";
+
+  //#Original data storer by columns with names 
+  Set _.data.aux = For(1, Card(data.name), Matrix(Real j)
+  {
+    Matrix aux = SubCol(data.mat,[[j]]);
+    Eval(data.name[j]+"=aux")
+  }) << For(1, Card(data.name), Matrix(Real j)
+  {
+    Matrix aux = Log(SubCol(data.mat,[[j]]));
+    Eval(data.name[j]+".Log=aux")
+  }) << For(1, Card(data.name), Matrix(Real j)
+  {
+    Matrix aux = SubCol(data.mat,[[j]]) $/ NetArea;
+    Eval(data.name[j]+".byNetArea=aux")
+  }) << BinGroup("<<", For(1, Card(data.name), Set(Real i)
+  {
+    Matrix auxi = SubCol(data.mat,[[i]]);
+    For(1, Card(data.name), Matrix(Real j)
+    {
+      Matrix aux = SubCol(data.mat,[[j]]);
+      Eval(data.name[i]+"_"+data.name[j]+".geoAvr=Sqrt(aux $* auxi)")
+    })
+  }));
+
+  //Checks unique names and indexes them
+  Real _check_data.aux = SetIndexByName(_.data.aux);
+
+  Set _.data.handler = _.data.aux  <<
+    [[Matrix Output = _.data.aux["SalePrice"+metric] ]];
+
+  Real _check_data.handler = SetIndexByName(_.data.handler);
+
+  //Output vector
+  VMatrix _.Y = Mat2VMat(_.data.handler::Output, False, 1, 0);
+  //output average should be a good average prior for constant parameter 
+  Real _.cteAvg = VMatAvr(_.Y);
+
+  Text LandAss  = "LandAss"+metric;
+  Text HouseAss = "HouseAss"+metric;
+  Text NetArea  = "NetArea"+If(metric==".Log",metric,"");
+
+  Text LHga = "LandAss_HouseAss.geoAvr";
+  Text NHga = "NetArea_HouseAss.geoAvr";
+ 
+  Text LandbyNA = "LandAss.byNetArea";
+  Text HousebyNA = "HouseAss.byNetArea";
+
+  //Linear block definition with domain and prior restrictions
+  Set _.linearParamInfo = {
+  //Tool function to reduce registers length in _.linearParamInfo
+  Code LPI = BysMcmc::Bsr::OneNode::LPI;
+  [[
+    //   Variable    initVal   min    max     priAvg   priSig  priSigWeight
+  //LPI("Constant",        0,    0,  +1/0,         ?,       ?,          ?),
+  //LPI("Order",           0, -1/0,     0,         ?,       ?,          ?),
+    LPI(HouseAss,          0,    0,  +1/0,         ?,       ?,          ?),
+    LPI(LandAss,           0,    0,  +1/0,         ?,       ?,          ?),
+    LPI(NetArea,           0,    0,  +1/0,         ?,       ?,          ?)
+  ]]};
+  //Input matrix
+  VMatrix _.X = Group("ConcatColumns",
+  EvalSet(_.linearParamInfo, VMatrix(Bsr.OneNode.LinearParamInfo lpi)
+  {
+    Mat2VMat(_.data.handler[lpi->Name])
+  }));
+  //Sigma is inknown and needs to be simulated
+  Real _.sigma = ?;
+  //Non mandatory members
+  //Order relations between linear parameters. This member can be Empty or 
+  //simply not exist if there are no known order relation
+  Set _.orderRelation = Copy(Empty)
+
+]];
+  
+/* */
+//////////////////////////////////////////////////////////////////////////////
+//BSR generic configuration parameters
+BysMcmc::@Config bsr.config = [[
+//////////////////////////////////////////////////////////////////////////////
+//MCMC dimensions
+  Real mcmc.burnin        =   500; 
+  Real mcmc.sampleLength  = 20000;
+  Real mcmc.thinning      =     1;
+  Real mcmc.cacheLength   =  1000;
+
+//Generic flags
+  Real do.resume          =  0;
+  Real do.report          =  True;
+  Real do.eval            =  True;
+  Real do.linear.effects  =  True 
+]];
+
+BysMcmc::@Cycler bsr.oneNode.cycler = BysMcmc::Bsr::OneNode::GetCycler(
+  bsr.oneNode.data, Copy(Empty), bsr.config);
+
+BysMcmc::@Estimation bsr.oneNode = BysMcmc::@Estimation::New(bsr.oneNode.cycler);
+Real bsr.oneNode::Run(0);
+
+
+Matrix Forecast = Case(
+  metric == "", 
+  bsr.oneNode::eval.average::Obs::forecast;
+  metric == ".byNetArea", 
+  bsr.oneNode::eval.average::Obs::forecast $* NetArea;
+  metric == ".Log", 
+  Exp(bsr.oneNode::eval.average::Obs::forecast));
+
+Matrix Error = SalePrice - Forecast;
+Matrix RelativeError = Error $/ SalePrice;
+Real relAbsErr = MatAvr(Abs(RelativeError));
+
+Set Adjust = [[ [["SalePrice", "Forecast"]] ]] << 
+  MatSet(SalePrice | Forecast );
+Set AdjustFull = [[ [["SalePrice", "Forecast", "Error" , "RelativeError"]] ]] << 
+  MatSet(SalePrice | Forecast| Error | RelativeError);
+Set Input = [[ [["LandAss", "HouseAss", "NetArea"]] ]] << 
+  MatSet(LandAss | HouseAss | NetArea);
+
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1
+]];
+
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1);
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+/* */
