@@ -29,8 +29,14 @@ Class @DesignC2
   Real _.X.maxNeighbour = ?;
   Real _.Z.maxNeighbour = ?;
   VMatrix _.Y = Rand(0,2,0,0);
+  VMatrix _.Yj = Rand(0,1,0,0);
+  VMatrix _.Yt = Rand(0,1,0,0);
+  VMatrix _.Yb = Rand(0,1,0,0);
+  VMatrix _.Ym = Rand(0,1,0,0);
+  VMatrix _.Yn = Rand(0,1,0,0);
   VMatrix _.Z = Rand(0,2,0,0);
   VMatrix _.Z.h = Rand(0,1,0,0);
+  VMatrix _.Z.Y.neighbour= Rand(0,1,0,0);
   VMatrix _.B = Rand(0,2,0,0);
   VMatrix _.B.h = Rand(0,0,0,0);
   Real _.K = 0;
@@ -49,6 +55,7 @@ Class @DesignC2
   VMatrix _.Q = Rand(0,0,0,0);
   VMatrix _.LQ = Rand(0,0,0,0);
   VMatrix _.Q.nonNullCellsByColumns = Rand(0,0,0,0);
+
   //////////////////////////////////////////////////////////////////////////////
   NameBlock get.base(Real sel)
   //////////////////////////////////////////////////////////////////////////////
@@ -77,6 +84,11 @@ Class @DesignC2
     Real build.reference.points(0);
     Real build.stress.points(0);
     Real build.border.points(0);
+    VMatrix _.Ym := _.Yj+((_.Yt+_.Yb)*Case(
+      prior.Z.order< 0, 0,
+      prior.Z.order==0, 1,
+      prior.Z.order==1, 1*(1+_.n),
+      prior.Z.order==2, 1*(1+_.n*3/2+(1/2)*_.n^2)));
     Real _.M := _.J+_.Mb+_.Mz;
     Real build.base(0);
     Real _.N := _.H*_.K;
@@ -99,17 +111,17 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"1 m="<<m);
     If(!m, Rand(0,_.N,0,0), {
     WriteLn("TRACE "+_MID+"2");
-    WriteLn("TRACE "+_MID+"2");
+    WriteLn("TRACE "+_MID+"3");
     VMatrix X.j=DifEq(1/(1-B),Rand(m,1,1,1));
-    WriteLn("TRACE "+_MID+"2");
+    WriteLn("TRACE "+_MID+"4");
     Set X.dif = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
       Set X.h.i = VCol2Set(SubCol(X.h,[[i]]));
       X - SubRow(_.Y,X.h.i)
     });
-    WriteLn("TRACE "+_MID+"2");
+    WriteLn("TRACE "+_MID+"5");
     Set X.weight = get.X.weight(X.dif);
-    WriteLn("TRACE "+_MID+"2");
+    WriteLn("TRACE "+_MID+"6");
     Matrix QX.triplet = Group("ConcatRows", For(1,_.X.maxNeighbour,Matrix(Real i)
     {
       VMatrix w.i = X.weight[i];
@@ -126,6 +138,7 @@ Class @DesignC2
         VMat2Mat(X.j.i | (X.hiK+k) | qk)
       }))
     }));
+    WriteLn("TRACE "+_MID+"7");
     Pack(Convert(Triplet(QX.triplet, m, _.N),"Cholmod.R.Sparse"))
   })};
 
@@ -273,7 +286,7 @@ Class @DesignC2
     VMatrix _.PZ := build.stress.prior(0);
     WriteLn("TRACE "+_MID+"4");
     VMatrix _.Q := _.QX << _.QB << _.PZ;
-    WriteLn("TRACE "+_MID+"7");
+    WriteLn("TRACE "+_MID+"5");
     VMatrix _.Q.nonNullCellsByColumns := 
     {
       VMatrix aux = Tra(Rand(1,_.M,1,1)*Or(_.Q,Zeros(_.M,_.N)));
@@ -282,9 +295,9 @@ Class @DesignC2
         SubRow(aux,Range(k,_.N,_.K)) 
       }))
     };
-    WriteLn("TRACE "+_MID+"8");
+    WriteLn("TRACE "+_MID+"6");
     VMatrix _.LQ := CholeskiFactor(_.Q,"XtX");
-    WriteLn("TRACE "+_MID+"9");
+    WriteLn("TRACE "+_MID+"7");
     True
   }
 };
