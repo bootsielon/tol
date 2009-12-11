@@ -166,11 +166,11 @@ proc Tol_SerieTabulate { source {title ""} {geometry {}} } {
   # list of series tabulate
   set lstSerie {}    
   switch $namGra {
-    Serie   { set lstSerie $source }
+    Serie   { set lstSerie [ list [ list Serie $source ] ] }
     Set     {
       set nsource [lindex [TclGetVar Set $source] 0]
       for {set i 1} {$i <= $nsource} {incr i} {
-        lappend lstSerie "$source $i"
+        lappend lstSerie [list Set $source $i ]
       }
     }
   }  
@@ -348,8 +348,10 @@ proc Tol_SetTabulate { set {title ""} {geometry {}} } {
 
   if {[llength $set] > 1} {
     set nameSet [lindex [::tol::info variable $set] 1]
+    set setref $set
   } else {
     set nameSet $set
+    set setref [ list Set $set ]
   }
   
   if { ![llength $title] } { set title  "[mc "Set table"]: $nameSet" }
@@ -357,7 +359,7 @@ proc Tol_SetTabulate { set {title ""} {geometry {}} } {
   set setgrp group[clock clicks]
 
   set tl {}
-  if {![catch {::tol::tableset create $setgrp $set}]} {
+  if { ![ catch { ::tol::tableset create $setgrp $setref } ] } {
     # create
     set tl [::project::CreateForm \
         -title $title \
