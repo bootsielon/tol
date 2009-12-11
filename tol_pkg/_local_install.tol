@@ -1,0 +1,19 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE    : uploader.tol
+// PURPOSE : call all prepared tests about TOL features checking are binding 
+// to decide if a version should be published or not.
+//////////////////////////////////////////////////////////////////////////////
+
+Set Include("_install_tools.tol");
+
+Real OSDirRemove(tolpkg_install);
+Real OSDirMake(tolpkg_install);
+  
+Set EvalSet(packages, Real(Text name)
+{
+  Set aux = {[[Include(name+"/"+name+".tol")]]};
+  Real Ois.Store(aux[1],tolpkg_install+name+".oza")
+});
+
+
+/* */
