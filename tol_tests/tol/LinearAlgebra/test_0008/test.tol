@@ -21,12 +21,14 @@
   Matrix s=PivotByRows(mat,p);
 
   Set set = MatSet(mat);
-  Set sorted = Sort(set,Real(Set a, Set b)
+  Set sorted.index = Sort(Range(1,Card(set),1),Real(Real a, Real b)
   {
-    Compare(a[1],b[1])*100+
-    Compare(b[2],a[2])*10+
-    Compare(a[3],b[3])
+    Compare(set[a][1],set[b][1])*1000+
+    Compare(set[b][2],set[a][2])*100+
+    Compare(set[a][3],set[b][3])*10+
+    Compare(a,b)
   });
+  Set sorted = ExtractByIndex(set,sorted.index);
   Real ok = MatMax(Abs(s-SetMat(sorted)))==0;
 
   Real numErr1 = Copy(NError);
