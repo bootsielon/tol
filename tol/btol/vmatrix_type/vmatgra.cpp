@@ -716,6 +716,24 @@ void BPol2VMat::CalcContens()
   assert(contens_.Check());
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatConstant);
+DefExtOpr(1, BVMatConstant, "Constant",  3, 3, 
+  "Real Real Real",
+  "(Real nrow, Real ncol, Real value])",
+  I2("Creates a dense matrix with all elements equal to given value.",
+     "Devuelve una matriz densa cuyas celdas son todas iguales al "
+     "valor especificado."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatConstant::CalcContens()
+//--------------------------------------------------------------------
+{
+  int r = (BInt)Real(Arg(1));
+  int c = (BInt)Real(Arg(2));
+  double v = Real(Arg(3));
+  contens_.BlasRDense(r,c, v);
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatZero);

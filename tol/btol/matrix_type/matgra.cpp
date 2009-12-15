@@ -91,15 +91,14 @@ void BGraContensBase<BMat>::InitInstances()
 //--------------------------------------------------------------------
 {
     BTraceInit("BGraContens<BMat>::InitInstances");
-    BArray<BDat> cell(BDat::Unknown(), 1);
-    BArray< BArray<BDat> > mat(cell, 1);
+    BMatrix<BDat> mat;
     
     BSystemMat* unknown_ = new BSystemMat
-  (
+    (
       "UnknownMatrix",
-      BMat(1, 1, mat),
+      mat,
       I2("The unknown matrix.", "La matriz desconocida.")
-      );
+    );
     OwnGrammar()->PutDefect(unknown_);
 }
 
@@ -2564,6 +2563,54 @@ void BMatGradient::CalcContens()
 }
 
   
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatZeros);
+DefExtOpr(1, BMatZeros, "Zeros",  1, 2, 
+  "Real Real",
+  "(Real nrow [, Real ncol=nrow])",
+  I2("Creates a matrix with all elements equal to zero.",
+     "Devuelve una matriz cuyas celdas son todas cero."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatZeros::CalcContens()
+//--------------------------------------------------------------------
+{
+  int r = (BInt)Real(Arg(1));
+  int c = r;
+  if(Arg(2)) { c = (BInt)Real(Arg(2)); }
+  contens_.Alloc(r,c);
+  int k, s= contens_.Data().Size();
+  double* x=(double*)contens_.GetData().GetBuffer();
+  for(k=0; k<s; k++,x++)
+  {
+    *x = 0; 
+  }
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatConstant);
+DefExtOpr(1, BMatConstant, "Constant",  3, 3, 
+  "Real Real Real",
+  "(Real nrow, Real ncol, Real value])",
+  I2("Creates a matrix with all elements equal to given value.",
+     "Devuelve una matriz cuyas celdas son todas iguales al valor "
+     "especificado."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatConstant::CalcContens()
+//--------------------------------------------------------------------
+{
+  int r = (BInt)Real(Arg(1));
+  int c = (BInt)Real(Arg(2));
+  double v = Real(Arg(3));
+  contens_.Alloc(r,c);
+  int k, s= contens_.Data().Size();
+  double* x=(double*)contens_.GetData().GetBuffer();
+  for(k=0; k<s; k++, x++)
+  {
+    *x = v;
+  }
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatRandom);
@@ -3458,8 +3505,8 @@ void BMatExtractRow::CalcContens()
   register int iRow;
   register bool ok = true;
   
-  if(r*c<=0) { return; }
   contens_.Alloc(r,c);
+  if(r*c<=0) { return; }
   if(contens_.Rows()!=r) { return; }
   register const double* x0 = M.Data().Buffer();
   register const double* x;
@@ -3510,8 +3557,8 @@ void BMatExtractColumns::CalcContens()
   register double jElement;
   register bool ok = true;
   
-  if(r*c<=0) { return; }
   contens_.Alloc(r,c);
+  if(r*c<=0) { return; }
   register const double* x0 = M.Data().Buffer();
   register const double* x;
   register double* y = b2dMat(contens_).GetData().GetBuffer();
@@ -3570,8 +3617,8 @@ void BMatExtractRectangle::CalcContens()
   BInt  i,j;
   BBool ok = BTRUE;
   
-  if(r*c<=0) { return; }
   contens_.Alloc(r,c);
+  if(r*c<=0) { return; }
   if(contens_.Rows()!=r) { return; }
   for(j=0; ok && j<c; j++)
   {

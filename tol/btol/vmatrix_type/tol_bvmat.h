@@ -271,6 +271,7 @@ public:
   void Pack        (double sparsity);
   void Copy        (const BVMat& v);
   void BlasRDense  (int nrow, int ncol);
+  void BlasRDense  (int nrow, int ncol, double value);
   void ChlmRSparse (int nrow, int ncol, int nzmax);
   void ChlmRTriplet(int nrow, int ncol, int nzmax);
 //Dimensions
