@@ -70,6 +70,8 @@ namespace eval ::tolsh {
 proc ::tolsh::getoptions { cmdline } {
   variable options
 
+  logtmp "entering ::tolsh::getoptions $cmdline"
+
   # cmdline could be a bad list so the next sentence could fail.
   # try to test it in front of bugs situations.
   set num [llength $cmdline]
@@ -288,9 +290,14 @@ proc ::tolsh::setup_pkg { pkg } {
 #
 ###############################################################################
 proc ::tolsh::setup_autopath { } {
+  logtmp "entering ::tolsh::setup_autopath"
+
   setup_pkg toltcl
   setup_pkg tolcomm
   setup_pkg tlogger
+
+  logtmp "auto_path = $::auto_path"
+  logtmp "leaving ::tolsh::setup_autopath"  
 }
 
 ###############################################################################
@@ -301,13 +308,19 @@ proc ::tolsh::setup_autopath { } {
 proc ::tolsh::run { cmdline } {
   variable options
 
+  logtmp "user : [ exec whoami ]"
+  logtmp "entering run with cmdline = $cmdline"
   # Process command line options
   #
   getoptions $cmdline
+  logtmp "options(compile): $options(compile)"
+  logtmp "options(runmode): $options(runmode)"
   if {![something_to_compile] && ($options(runmode) eq "")} {
     show_usage
     return
   }
+  
+  logtmp "pase getoptions"
 
   # Ensure Toltcl is found
   #
@@ -316,6 +329,9 @@ proc ::tolsh::run { cmdline } {
   # Load Toltcl (+tol)
   #
   package require Toltcl
+
+  logtmp "after require Toltcl"
+
   tol::initkernel $options(lang) $options(vmode)
 
   # Load initLibrary if required
@@ -326,6 +342,8 @@ proc ::tolsh::run { cmdline } {
 
   set appdata [string trim \
                [lindex [::tol::info var [list Text TolAppDataPath]] 2] \"]
+
+  logtmp "appdata = $appdata"
 
   set tolcomm_dir [file join $appdata tolcomm] 
   file mkdir $tolcomm_dir
@@ -413,6 +431,15 @@ proc ::tolsh::stdin_handler {} {
   # return a new pseudo-prompt
   console_prompt
   return
+}
+
+proc logtmp { msg } {
+  return 
+  set user [ exec whoami ]
+  set fd [ open "/tmp/tolsh.${user}.log" a ]
+  puts $fd $msg
+  flush $fd
+  close $fd
 }
 
 ::tolsh::run $argv
