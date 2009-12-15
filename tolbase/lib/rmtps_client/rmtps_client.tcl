@@ -9,6 +9,29 @@
 
 package provide rmtps_client 1.0
 
+package require base64
+
+if { [ catch { package require tlogger } ] } {
+  namespace eval tlogger {
+    variable _level "error"
+
+    proc init { svc {logfile ""} } {
+    }
+    
+    proc level { svc l } {
+      variable _level $l
+    }
+
+    proc log { l msg } {
+      variable _level 
+
+      if { $l eq $_level } {
+        puts $msg
+      }
+    }
+  }
+}
+
 ###############################################################################
 #
 #   rmtps_client - encapsulate the client code and variable in a
@@ -37,6 +60,18 @@ namespace eval ::rmtps_client {
   # client part written in TOL
   #
   variable mydir [file normalize [file dir [info script]]]
+
+  
+}
+
+proc ::rmtps_client::init { {logfile ""} } {
+  ::tlogger::init  rmtps_client $logfile
+  ::tlogger::level rmtps_client "error"
+}
+
+proc ::rmtps_client::log { level msg } {
+  
+  ::tlogger::log rmtps_client $level $msg
 }
 
 ###############################################################################
@@ -95,8 +130,11 @@ proc ::rmtps_client::wait_result { chan } {
   variable server_timeout 
   variable error_reason
 
+  log "debug" "wait_result $chan"
+
   if {![eof $chan]} {
     if {[gets $chan data] == -1} {
+      log "debug" "wait_result : incomplete data"
       return;			# only handle complete lines
     }
   } else {
@@ -105,6 +143,7 @@ proc ::rmtps_client::wait_result { chan } {
     after cancel $timeout_id
     fileevent $chan readable {}
     set error_reason "end of channel from server"
+    log "warn" "wait_result : end of channel from server"
     # Cancel vwait
     #
     set server_result ""
@@ -115,6 +154,7 @@ proc ::rmtps_client::wait_result { chan } {
   set error_reason ""
   # Return the data via the vwaited variable
   #
+  log "debug" "wait_result read : $data"
   set server_result $data
 }
 
@@ -127,6 +167,8 @@ proc ::rmtps_client::wait_result { chan } {
 proc ::rmtps_client::handle_timeout { chan } {
   variable server_result
   variable error_reason
+
+  log "debug" "handle_timeout $chan" 
 
   # Set result from server to empty to return from vwait
   #
@@ -160,6 +202,8 @@ proc ::rmtps_client::ask_server { host port request } {
   variable error_reason
   variable asking_error
 
+  log "debug" "enter ask_server $host $port $request"
+
   # open channel to server
   #
   set chan [socket $host $port]
@@ -189,13 +233,10 @@ proc ::rmtps_client::ask_server { host port request } {
   #
   vwait ::rmtps_client::server_result
   
-#  if {$asking_error} {
-#    set asking_error 0
-#  } elseif {[string is integer $server_result] && $server_result==0} {
-#    set asking_error 1
-#    set error_reason [ask_server $host $port "LERROR"]
-#  }
   catch {close $chan}
+
+  log "debug" "enter ask_server $host $port $server_result"
+  
   set server_result
 }
 
@@ -217,10 +258,16 @@ proc ::rmtps_client::ask_server { host port request } {
 ###############################################################################
 proc ::rmtps_client::server_ping { host port } {
 
+  log "debug" "enter server_ping $host $port"
+
   # send request to server
   #
   set ans [ask_server $host $port "PING"]
-  expr {$ans eq "RMTPS_SERVER WORKING"}
+  set result [expr {$ans eq "RMTPS_SERVER WORKING"}]
+
+  log "debug" "leave server_ping $host $port"
+
+  set result
 }
 
 ###############################################################################
@@ -242,18 +289,28 @@ proc ::rmtps_client::server_ping { host port } {
 ###############################################################################
 proc ::rmtps_client::ps_is_active { host port PID } {
 
+  log "debug" "enter ps_is_active $host $port $PID"
+
   # send request to server
   #
   set result [ask_server $host $port "ALIVE $PID"]
-  # Answer from server must be an integer or boolean value
+
+  log "debug" "from ask_server = '$result'"
+
+  # Answer from server must be an integer value
   #
-  if {![string is integer $result] || ![string is boolean $result]} {
+  if { $result eq "" || ![string is integer $result] ||
+      ![string is boolean $result] } {
     set result -1
   } else {
     # Make sure 0 or 1 is returned
     #
     set result [expr {!!$result}]
   }
+
+  log "debug" "leave ps_is_active $host $port $PID : $result"
+
+  set result
 }
 
 ###############################################################################
@@ -277,6 +334,8 @@ proc ::rmtps_client::ps_is_active { host port PID } {
 ###############################################################################
 proc ::rmtps_client::ps_kill { host port PID } {
 
+  log "debug" "enter ps_kill $host $port $PID"
+
   # send request to server
   #
   set result [ask_server $host $port "KILL $PID"]
@@ -287,8 +346,12 @@ proc ::rmtps_client::ps_kill { host port PID } {
   } else {
     # Make sure 0, 1 or -1 is returned
     #
-    expr {$result==-1?-1:$result!=0}
+    set result [expr {$result==-1?-1:$result!=0}]
   }
+
+  log "debug" "leave ps_kill $host $port $PID : $result"
+
+  set result
 }
 
 ###############################################################################
@@ -309,6 +372,8 @@ proc ::rmtps_client::ps_kill { host port PID } {
 ###############################################################################
 proc ::rmtps_client::ps_run { host port cmdline } {
 
+  log "debug" "enter ps_run $host $port $cmdline"
+
   # send request to server
   #
   set result [ask_server $host $port "RUN $cmdline"]
@@ -317,6 +382,46 @@ proc ::rmtps_client::ps_run { host port cmdline } {
   if {![string is integer $result] || $result<0} {
     set result 0
   }
+
+  log "debug" "leave ps_run $host $port $cmdline : $result"
+
+  set result
+}
+
+
+###############################################################################
+#
+#  ps_runtol -- execute a TOL process on a remote host
+#
+#   Arguments --
+#
+#     host        - computer (remote host) where RmtPS_Server is running
+#     port        - port where the server socket is listening
+#     cmdln_args  - TOL arguments
+#
+#   Return --
+#
+#     PID of the process if cmdline could be executed
+#     0 if the command line could not be executed
+#
+###############################################################################
+proc ::rmtps_client::ps_runtol { host port cmdln_args } {
+
+  log "debug" "enter ps_runtol $host $port $cmdln_args"
+
+  # send request to server
+  #
+  set cmdln64 [ base64::encode -wrapchar "" $cmdln_args ]
+  #set cmdln64 $cmdln_args
+  set result [ask_server $host $port "RUNTOL $cmdln64"]
+  # Make sure that 0 or PID>0 is returned
+  #
+  if {![string is integer $result] || $result<0} {
+    set result 0
+  }
+
+  log "debug" "leave ps_runtol $host $port $cmdln_args : $result"
+
   set result
 }
 
