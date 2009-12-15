@@ -9,8 +9,9 @@
  *
  *  Argumentos:
  *
- *    Host:
- *    Port:
+ *    Host: host que aloja al servidor RMTPS
+ *    
+ *    Port: puerto donde el servidor RMPTS esta escuchando
  *
  *  Resultado:
  *  
@@ -36,8 +37,10 @@ PutDescription("Verifica si un servidor RMTPS_SERVER esta ejecutandose en un "
  *
  *  Argumentos:
  *
- *    Host:
- *    Port:
+ *    Host: host que aloja al servidor RMTPS
+ *    
+ *    Port: puerto donde el servidor RMPTS esta escuchando
+ *
  *    CmdLine:
  *
  *  Resultado:
@@ -64,9 +67,97 @@ PutDescription("Ejecuta en un ordenador remoto un comando dado en CmdLine. "
                RemoteExec);
 
 /**
+ *  RemoteTOL -- Invoca un proceso TOL remoto
+ *
+ *  Argumentos:
+ *
+ *    Host: host que aloja al servidor RMTPS
+ *    
+ *    Port: puerto donde el servidor RMPTS esta escuchando
+ *
+ *    Args:
+ *
+ *  Resultado:
+ *
+ *    PID del proceso TOL lanzado o 0 si algun error ha ocurrido
+ *  
+ */
+Real RemoteTOL(Text Host, Real Port, Set Args )
+{
+
+  Text cmd = "::rmtps_client::ps_runtol";
+  Text port = FormatReal(Port, "%.0lf");
+  Text project = Args[ 1 ];
+  Set tolargs = Args[ 2 ];
+  Set cmdln_args = If( project=="", Copy( Empty ),
+                       [[ "-project", project ]] );
+  Set EvalSet( tolargs, Real( Set item ) {
+      Text type = Name( item[ 1 ] );
+      Case( type=="expr", {
+          Set Append( cmdln_args, [[ "-expr", item[ 1 ] ]] );
+          Real 0
+        },
+        type=="file", {
+          Real idx_rel = FindIndexByName( item, "relative" );
+          Set Append( cmdln_args,
+                      If( idx_rel, {
+                          Set [[ "-relative", item[ idx_rel ],
+                                 "-file", item[ 1 ] ]]
+                        }, {
+                          Set [[ "-file", item[ 1 ] ]]
+                        } ) );
+          Real 0
+        } ,
+        1, {
+          Warning( "RemoteTOL: tipo de elemento desconocido '"
+                   + type + "' debe "
+                   "ser 'expr' o 'file'" );
+          Real 0
+        } );
+        Real 0
+    } );
+  Set tcl_args = [[ cmd, host, port ]] << [[ cmdln_args ]];
+  //Set View( tcl_args, "Std" );
+  Set result = Tcl_EvalEx( tcl_args );
+  Real If(result["status"], Eval(result["result"]),{
+      WriteLn("RemoteTOL: "+result["result"],"E");
+      Real 0
+    })
+};
+PutDescription("Ejecuta en proceso TOL remoto. Args es un conjunto con los "
+               "argumentos a pasar a TOL en la linea de comandos.\n"
+               "Los elementos de Args son interpretados por el servidor de "
+               "procesos TOL y se traducen en argumentos de linea de comandos "
+               "al proceso TOL que se invoca. Los argumentos son:\n"
+               "\tText project = nombre del proyecto que se cargara\n"
+               "\tSet tolargs = conjunto de elementos a evaluar.\n"
+               "El conjunto tolargs contiene expresiones TOL o archivos a "
+               "evaluar en la linea de comandos. Cada uno de los "
+               "elementos es un conjunto con los siguientes elementos con "
+               "nombre:\n"
+               "\tText tolargs[1] : contiene la expresion o el nombre del "
+               "\tarchivo a evaluar. El nombre de tolargs[1] debe ser expr o "
+               "\tfile. Si el nombre es expr el valor se considera una "
+               "\texpresion TOL. Si el nombre es file el valor se considera "
+               "\tel nombre de un archivo a evaluar."
+               "\tText relative = nombre de proyecto respecto al cual se "
+               "\tcargara el archivo TOL. Este campo es opcional y solo se "
+               "\tconsidera cuando el tolargs[1] es un archivo. Por omision "
+               "\tel archivo se toma trelativo al argumento project.\n\n"
+               "Retorna el PID del proceso TOL ejecutado o 0 si algun error "
+               "ocurrio durante el intento de ejecucion. "
+               "Necesita que un servidor RmtPS_Server este escuchando en el "
+               "puerto Port del ordenador Host",
+               RemoteTOL);
+
+/**
  *  RemoteAlive -- Verifica, en remoto, si un proceso continua vivo
  *
  *  Argumentos:
+ *
+ *    Host: host que aloja al servidor RMTPS
+ *    
+ *    Port: puerto donde el servidor RMPTS esta escuchando
  *
  *    Host:
  *    Port:
@@ -106,6 +197,10 @@ PutDescription("Verifica si un proceso dado por su PID continua vivo en un "
  *  RemoteKill -- Termina la ejecucion de un proceso activo
  *
  *  Argumentos:
+ *
+ *    Host: host que aloja al servidor RMTPS
+ *    
+ *    Port: puerto donde el servidor RMPTS esta escuchando
  *
  *    Host:
  *    Port:

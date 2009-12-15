@@ -9,7 +9,28 @@
 
 package provide rmtps_client 1.0
 
-package require tlogger
+package require base64
+
+if { [ catch { package require tlogger } ] } {
+  namespace eval tlogger {
+    variable _level "error"
+
+    proc init { svc {logfile ""} } {
+    }
+    
+    proc level { svc l } {
+      variable _level $l
+    }
+
+    proc log { l msg } {
+      variable _level 
+
+      if { $l eq $_level } {
+        puts $msg
+      }
+    }
+  }
+}
 
 ###############################################################################
 #
@@ -158,6 +179,15 @@ proc ::rmtps_client::handle_timeout { chan } {
   set error_reason "server timeout"
 }
 
+proc ask_server_channel { chan request } {
+
+  usado sobre todo para pedir la razon del fallo
+
+  el timeout quizas deba cerrar el channel, esa peticion se cancela
+
+  file channels puedo usarlo para verificar si un socket existe.
+}
+
 ###############################################################################
 #
 #   ask_server --
@@ -269,7 +299,8 @@ proc ::rmtps_client::ps_is_active { host port PID } {
 
   # Answer from server must be an integer value
   #
-  if {$result eq "" || ![string is integer $result]} {
+  if { $result eq "" || ![string is integer $result] ||
+      ![string is boolean $result] } {
     set result -1
   } else {
     # Make sure 0 or 1 is returned
@@ -353,6 +384,43 @@ proc ::rmtps_client::ps_run { host port cmdline } {
   }
 
   log "debug" "leave ps_run $host $port $cmdline : $result"
+
+  set result
+}
+
+
+###############################################################################
+#
+#  ps_runtol -- execute a TOL process on a remote host
+#
+#   Arguments --
+#
+#     host        - computer (remote host) where RmtPS_Server is running
+#     port        - port where the server socket is listening
+#     cmdln_args  - TOL arguments
+#
+#   Return --
+#
+#     PID of the process if cmdline could be executed
+#     0 if the command line could not be executed
+#
+###############################################################################
+proc ::rmtps_client::ps_runtol { host port cmdln_args } {
+
+  log "debug" "enter ps_runtol $host $port $cmdln_args"
+
+  # send request to server
+  #
+  set cmdln64 [ base64::encode -wrapchar "" $cmdln_args ]
+  #set cmdln64 $cmdln_args
+  set result [ask_server $host $port "RUNTOL $cmdln64"]
+  # Make sure that 0 or PID>0 is returned
+  #
+  if {![string is integer $result] || $result<0} {
+    set result 0
+  }
+
+  log "debug" "leave ps_runtol $host $port $cmdln_args : $result"
 
   set result
 }
