@@ -16,6 +16,7 @@ Class @BaseC2.Cache : @BaseC2
   VMatrix _.function = Rand(0,0,0,0);
   Set _.partial.derivative.1 = Copy(Empty);
   Set _.partial.derivative.2 = Copy(Empty);
+  Set _.partial.integrate.1 = Copy(Empty);
 
   //Returns the cached value of the k-th basic function for an 
   //array of points given as the rows of a matrix 
@@ -36,6 +37,12 @@ Class @BaseC2.Cache : @BaseC2
     Real i_ = Max(i,j);
     Real j_ = Min(i,j);
     SubCol(_.partial.derivative.2[i_][j_],[[k]]) 
+  };
+  //Returns the cached value of the first partial integration of k-th basic 
+  //function for an  array of points given as the rows of a matrix 
+  VMatrix partial.integrate.1.v(Real k, VMatrix X, Real i)
+  { 
+    SubCol(_.partial.integrate.1[i],[[k]]) 
   };
 
   //Evaluates all basic functions, one in each returned column, for an 
@@ -61,17 +68,22 @@ Class @BaseC2.Cache : @BaseC2
     _.partial.derivative.2[i_][j_]
   };
 
+  //Evaluates the first partial integration of all basic functions, one in 
+  //each returned column, for an  array of points given as the rows of a 
+  //matrix 
+  VMatrix partial.integrate.1.m(VMatrix X, Real i)
+  { 
+    _.partial.integrate.1[i]
+  };
   //Some bases are more efficient using cache
-  Real _build.cache(VMatrix X, Real order)
+  Real _build.cache(VMatrix X, Real deriv.order, Real integ.order)
   {
-    VMatrix If(order>=0, { _.function.r := 
-      _build.function.m(X)
-    });
-    Set If(order>=1, { _.partial.derivative.1 := 
+    VMatrix _.function := _build.function.m(X);
+    Set If(deriv.order>=1, { _.partial.derivative.1 := 
       For(1, _.n, VMatrix(Real i)
       { _build.partial.derivative.1.m(X,i) })
     });
-    Set If(order>=2, { _.partial.derivative.2 := 
+    Set If(deriv.order>=2, { _.partial.derivative.2 := 
       For(1, _.n, Set(Real i)
       { 
         For(1, i, VMatrix(Real j)
@@ -79,6 +91,10 @@ Class @BaseC2.Cache : @BaseC2
           _build.partial.derivative.2.m(X,i,j) 
         })
       })
+    });
+    Set If(integ.order>=1, { _.partial.integrate.1 := 
+      For(1, _.n, VMatrix(Real i)
+      { _build.partial.integrate.1.m(X,i) })
     });
     True
   }

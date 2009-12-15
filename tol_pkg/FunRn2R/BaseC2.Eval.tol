@@ -36,7 +36,7 @@ Class @BaseC2.Eval.Function : @BaseC2.Eval
   };
   Real upgrade.cache(VMatrix X)
   {
-    _.base::upgrade.cache(X,0)
+    _.base::upgrade.cache(X,0,0)
   }
 };
 
@@ -61,7 +61,7 @@ Class @BaseC2.Eval.Partial.Derivative.1 : @BaseC2.Eval
   };
   Real upgrade.cache(VMatrix X)
   {
-    _.base::upgrade.cache(X,1)
+    _.base::upgrade.cache(X,1,0)
   }
 };
 
@@ -88,7 +88,7 @@ Class @BaseC2.Eval.Partial.Derivative.2 : @BaseC2.Eval
   };
   Real upgrade.cache(VMatrix X)
   {
-    _.base::upgrade.cache(X,1)
+    _.base::upgrade.cache(X,2,0)
   }
 };
 
@@ -110,6 +110,10 @@ Class @BaseC2.Eval.Partial.Integrate.1 : @BaseC2.Eval
   VMatrix evaluate.m(VMatrix X)
   {
     _.base::partial.1ntegrate.1.m(X, _.s)
+  };
+  Real upgrade.cache(VMatrix X)
+  {
+    _.base::upgrade.cache(X,0,1)
   }
 };
 

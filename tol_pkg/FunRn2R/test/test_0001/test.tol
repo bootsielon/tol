@@ -47,7 +47,7 @@ VMatrix u2 = B2::_.Vi*u1;
 
 FunRn2R::@FunC2 f2 = FunRn2R::@FunC2.InBaseC2::New(B2, u2);
 
-Real B2::upgrade.cache(X,0);
+Real B2::upgrade.cache(X,0,0);
 
 VMatrix F2 = f2::eval.function.v(X);
 

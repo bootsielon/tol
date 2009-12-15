@@ -100,7 +100,7 @@ Class @BaseC2
     }))
   };
   //Some bases are more efficient using cache
-  Real _build.cache(VMatrix X, Real order) { False };
+  Real _build.cache(VMatrix X, Real deriv.order, Real integ.order) { False };
 
   ////////////////////////////////////////////////////////////////////////////
   //Public access methods call by defect to private ones
@@ -168,6 +168,6 @@ Class @BaseC2
     _build.partial.integrate.1.m(X, i) 
   };
   //Some bases are more efficient using cache
-  Real upgrade.cache(VMatrix X, Real order) 
-  { _build.cache(X,order) }
+  Real upgrade.cache(VMatrix X, Real deriv.order, Real integ.order) 
+  { _build.cache(X, deriv.order, integ.order) }
 };

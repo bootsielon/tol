@@ -8,7 +8,7 @@
 Text _.autodoc.member.BaseC2.Monomial = "Base of K mutivariate monomial "
   "functions R^n -> R . Linear independence is ensured since distinct "
   "monomials are allways independent\n";
-Class @BaseC2.Monomial : @BaseC2
+Class @BaseC2.Monomial :  @BaseC2.Cache
 //////////////////////////////////////////////////////////////////////////////
 {
   //Maximum degree of the monomial: sum of degrees of all variables
@@ -64,10 +64,15 @@ Class @BaseC2.Monomial : @BaseC2
   VMatrix _build.function.v(Real k, VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE @BaseC2.Monomial::_build.function.2.v");
+  //WriteLn("TRACE @BaseC2.Monomial::_build.function.v");
     BinGroup("$*", For(1,_.n, VMatrix(Real i)
     {
-      RPow(SubCol(X,[[i]]),_.degComb[k][i])
+      Real d = _.degComb[k][i];
+      If(d==0, Rand(VRows(X),1,1,1),
+      {
+      //WriteLn("  _.degComb["<<k+"]["<<i+"]="<<_.degComb[k][i]);
+        RPow(SubCol(X,[[i]]),_.degComb[k][i])
+      })
     }))
   }; 
   ////////////////////////////////////////////////////////////////////////////
