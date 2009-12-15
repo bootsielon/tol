@@ -193,10 +193,13 @@ Class @BlockPartialSampler
       {
         Set   fixedParamAll  = _.mcmcPartialHandler::_.fixedParam;
         Set   fixedParamAux  = SelectIndexByName(blockParam, fixedParamAll);
-        Real If(!Card(fixedParamAux), 
+        VMatrix _.fixedValues := 
+          SubRow(_.mcmcPartialHandler::_.fixedValues, fixedParamAux);
+        Real If(Card(fixedParamAux), 
         {
-          Set _.fixedParam    := ExtractByIndex(fixedParamAll, fixedParamAux);
-          Real SetIndexByName(_.fixedParam);
+          Set _.fixedParam := ExtractByIndex(fixedParamAll, fixedParamAux);
+          Set EvalSet(_.fixedParam, Text(Text prm){PutName(ToName(prm),prm)});
+          Real If(Card(_.fixedParam), SetIndexByName(_.fixedParam));
           Set fixedParamIdx := SelectIndexByName(_.fixedParam, blockParam);
           Matrix _.fixedParamIdx := SetCol(fixedParamIdx);
           1 
@@ -209,7 +212,8 @@ Class @BlockPartialSampler
         Real If(Card(reloadParamAux), 
         {
           Set _.reloadParam    := ExtractByIndex(reloadParamAll, reloadParamAux);
-          Real SetIndexByName(_.reloadParam);
+          Set EvalSet(_.reloadParam, Text(Text prm){PutName(ToName(prm),prm)});
+          Real If(Card(_.reloadParam), SetIndexByName(_.reloadParam));
           Set reloadParamIdx := SelectIndexByName(_.reloadParam, blockParam);
           Matrix _.reloadParamIdx := SetCol(reloadParamIdx);
           Set _.reloadParamIdxOrig := 
