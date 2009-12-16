@@ -1,0 +1,47 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Storing Class definitions and instances in OIS
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "https://www.tol-project.org/ticket/674";
+Text summary_ = "test for Class static memnbers and methods" ;
+
+//Write here the initial test TOL code if needed
+
+Real numErr0 = Copy(NError);
+
+Real { Ois.Store(Include("../test08/ClAge.tol"),"ClAge.oza") };
+
+Set Include("ClAge.oza");
+Set Include("../test08/check.tol");
+
+Real OSFilRemove("ClAge.oza");
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0,
+  numErr1,
+  x0,x1,x2,
+  ok.x0,ok.x1,ok.x2,ok.x3
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0<numErr1,ok.x0,ok.x1,ok.x2,ok.x3);
+
+//Return the results 
+Set resultStr_ = strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+WriteLn("NObject="<<NObject);
+WriteLn("NCore="<<NCore);
+resultStr_
+/* */
+
+
+

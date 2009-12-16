@@ -1,0 +1,22 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : check.tol
+// PURPOSE: Using Class ClAge with static methdos and members
+//////////////////////////////////////////////////////////////////////////////
+
+Set sample = For(1,1000, @ClAge(Real k)
+{
+  @ClAge aux = @ClAge::New("a_"+IntText(k), Gaussian(36, 3))
+});
+
+
+Real x0 = @ClAge::AgeAverage(0);
+Real x1 = @ClAge::AgeStdDev(0);
+Real x2 = (sample[1])::ageStdDev(0);
+
+//Invalid acces to private member
+Real x3 = @ClAge::_ageSum;
+
+Real ok.x0 =  ObjectExist("Real","x0");
+Real ok.x1 =  ObjectExist("Real","x1");
+Real ok.x2 =  ObjectExist("Real","x2");
+Real ok.x3 = !ObjectExist("Real","x3");

@@ -1,0 +1,41 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : ClAge.tol
+// PURPOSE: Define a class with static methdos and members
+//////////////////////////////////////////////////////////////////////////////
+
+Class @ClAge
+{
+  Text _.name;
+  Real _.age;
+
+  Static Real _count   = 0;
+  Static Real _ageSum  = 0;
+  Static Real _ageSum2 = 0;
+
+  Static Real AgeAverage(Real void)
+  {
+     _ageSum / _count
+  };
+
+  Static Real AgeStdDev(Real void)
+  {
+     Sqrt(_ageSum2 / _count - AgeAverage(0)^2)
+  };
+
+  Static @ClAge New(Text name, Real age)
+  {
+    Real _count   := _count + 1;
+    Real _ageSum  := _ageSum + age;
+    Real _ageSum2 := _ageSum2 + age^2;
+    @ClAge [[
+      Text _.name = name;
+      Real _.age = age    ]]
+  };
+
+  //Non static methods can access to static members and methods
+  Real ageStdDev(Real void)
+  {
+    (_.age - (_ageSum / _count)) / AgeStdDev(0)
+  }
+
+};
