@@ -1,0 +1,177 @@
+TOL en debian
+
+Creamos un directorio raiz donde realizaremos la compilacion:
+
+ mkdir ~/tol-devel
+
+Descargamos las herramientas de desarrollo del sistema:
+
+ sudo apt-get install subversion gcc g++ autoconf make
+
+ Download tolp
+
+ svn co https://www.tol-project.org/svn/tolp
+
+ BJAM
+
+En linux compilamos TOL con bjam. Se recomienda usar la version snapshot:
+
+ SVN Revision 45903
+ Thu May 29 17:33:43 MSD 2008
+
+No es una version oficial pero la version que se ha instalado con apt-get en ubuntu 9.04 tiene un error que imposibilita compilar TOL. Para obtener la version de BJAM mencionada debemos ejecutar
+
+ cd ~/tol-devel/tolp/branches/tol_v_1_1_7/debian
+ tar jxf boost-build-29052008.tar.bz2
+ cd boost-build-29052008/jam_src/
+ ./build.sh
+ sudo cp bin.linuxx86/bjam /usr/local/bin
+
+ahora aseguremos que la variable BOOST_BUILD_PATH apunta al directorio de bjam que acabamos de instalar
+
+ export BOOST_BUILD_PATH=/<path to boost-build-29052008>
+
+la instruccion anterior deberiamos ponerla en el archivo de incializacion de sesion .profile
+
+Ademas de TOL, tambien compilamos con BJAM los paquetes GBLA y CHOLMOD.
+
+ Dependencias externas
+
+    google sparse hash
+
+  cd ~/tol-devel/
+  wget http://google-sparsehash.googlecode.com/files/sparsehash-1.5.2.tar.gz
+  tar zxf sparsehash-1.5.2.tar.gz
+  cd sparsehash-1.5.2/
+  ./configure
+  make
+  sudo make install
+
+    ZipArchive
+
+  cd ~/tol-devel/tolp/branches/tol_v_1_1_7/debian
+  tar jxf ZipArchive-4.0.1.tar.bz2
+  cd ZipArchive-4.0.1/ZipArchive
+  cp ../_projects/Linux/Makefile .
+  make
+  sudo make install
+
+    BZ2
+
+ sudo aptitude install libbz2-dev
+
+    GSL
+
+  sudo aptitude install libgsl0-dev
+
+    ATLAS
+
+Averiguamos que puede hacer nuestro procesador:
+
+ sudo cat /proc/cpuinfo | grep flags
+
+Si tenemos un procesador intel
+
+ sudo aptitude install libatlas-sse2-dev
+
+Si tenemos un procesador AMD
+
+ sudo aptitude install libatlas-3dnow-dev
+
+aseguramos que libblas.so y liblapack.so de /usr/lib/ son las de atlas
+
+ sudo ln -sf /usr/lib/sse2/atlas/libblas.so /usr/lib/libblas.so
+ sudo ln -sf /usr/lib/sse2/atlas/liblapack.so /usr/lib/liblapack.so
+
+    boost
+
+ sudo aptitude install libboost-dev
+
+    mysql
+
+ sudo aptitude install libmysqlclient15-dev
+
+    unixodbc
+
+ sudo aptitude install unixodbc-dev
+
+    postgres
+
+ sudo aptitude install libpq-dev
+
+ Tol
+
+    gbla
+
+ cd ~/tol-devel
+ svn co https://www.tol-project.org/svn/gbla
+ cd gbla/trunk/libltdl
+ chmod +x configure
+ ./configure
+ cd ..
+ bjam release
+ cd examples/blas
+ bjam release
+ #ejecutar los binarios generados
+ bin/gcc-4.3.3/release/blas1_check
+ bin/gcc-4.3.3/release/blas2_check
+ bin/gcc-4.3.3/release/blas3_check
+ cd ../..
+ sudo BOOST_BUILD_PATH=`echo $BOOST_BUILD_PATH` bjam release install
+
+    cholmod
+
+En tol-project hemos preparado una version de SuiteSparse que incluye archivos de compilacion para bjam y uso de blas/lapack a traves de gbla.
+
+ cd ~/tol-devel/tolp/branches/tol_v_1_1_7/debian
+ tar jxf SuiteSparse_TOL.tar.bz2
+ cd SuiteSparse_TOL/BB2/CHOLMOD
+ bjam release
+ sudo BOOST_BUILD_PATH=`echo $BOOST_BUILD_PATH` bjam release install
+
+    compilar & instalar tol
+
+ cd ~/tol-devel/tolp/branches/tol_v_1_1_7/tol
+ cp prj-config.jam.tpl prj-config.jam
+ #editar prj-config.jam de acuerdo a la configuracion instalada
+ ./bjam-gcc-release
+ sudo BOOST_BUILD_PATH=`echo $BOOST_BUILD_PATH` ./bjam-gcc-release install
+
+hay que asegurarse que /usr/local/lib este en el camino de busqueda de ld. He encontrado situaciones en las cuales /usr/local/lib estaba listado en /etc/ld.so.conf.d/libc.conf pero no era capaz de resolver las referencias a .so en dicho directorio. Despues de ejecutar:
+
+  sudo ldconfig
+
+verificamos si tol arranca bien ejecutando
+
+ /usr/local/tol117-gcc-release/bin/tolcon -c"WriteLn(\"Hola soy TOL \")"
+
+ Toltcl
+
+ sudo aptitude install tcl8.4-dev
+ cd ~/tol-devel/tolp/branches/tol_v_1_1_7/toltcl/release
+ ./default_config.sh --with-tol=/usr/local/tol117-gcc-release
+ make
+ sudo make install
+ # verificamos que toltcl carga OK
+ echo "package require Toltcl; tol::initkernel; tol::initlibrary; puts OK; exit" | tclsh
+
+ Tolsh
+
+ cd ~/tol-devel/tolp/branches/tol_v_1_1_7/tolsh
+ ./build.sh
+ sudo cp Linux/tolsh /usr/local/bin/.
+ tolsh -vU -c"WriteLn(\"Hola soy TOL \")"
+
+ Tolbase
+
+ sudo aptitude install tcl tk8.4-dev tcllib tclodbc libtk-img bwidget libtktable2.9 blt
+
+creamos un enlace directo al script de arranque de tolbase:
+
+ cd ~/tol-devel/tolp/branches/tol_v_1_1_7
+ sudo mkdir /usr/lib/tolbase1.1.7
+ sudo cp -r tolbase/lib/* /usr/lib/tolbase1.1.7/.
+ sudo chmod a+w /usr/lib/tolbase1.1.7/toltk/project.ini
+ sudo ln -s /usr/lib/tolbase1.1.7/toltk/init_toltk.tcl /usr/local/bin/tolbase
+
+y ya esta! 
