@@ -252,7 +252,7 @@ public:
                                [add_var]
         );
       missing =
-        (s.mis.table | newIdentifier[increment_a(s.mis.info.index)])
+        ((nonExistentIdentifier[increment_a(s.mis.info.index)]) | s.mis.table)
         [assign_a(s.mis.info.name)]
         >> 
         ch_p('?') >> (

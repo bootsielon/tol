@@ -13,7 +13,7 @@ NameBlock Monophasic =
   @BSR.ModelDef childToJoint(Set module)
   //////////////////////////////////////////////////////////////////////////
   {
-    WriteLn("TRACE ChildToJoint module "+module->ModuleType+" "+Name(module));
+  //WriteLn("TRACE ChildToJoint module "+module->ModuleType+" "+Name(module));
     If(module->ModuleType!="master", module, 
        BysMcmc::Bsr::ModularSchema::Monophasic::MasterToJoint(module))
   };
@@ -22,7 +22,7 @@ NameBlock Monophasic =
   //////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[MasterToJoint]";
-    WriteLn("TRACE MasterToJoint module "+master->ModuleType+" "+Name(master));
+  //WriteLn("TRACE MasterToJoint module "+master->ModuleType+" "+Name(master));
     Set subModule = EvalSet(master->SubModule, childToJoint);
     Case(
     Card(subModule)==0, {
@@ -53,7 +53,7 @@ NameBlock Monophasic =
           Not(v->Extern)
         })
       });
-      Set aux.2 = BinGroup("<<", aux.1);
+      Set aux.2 = Unique(BinGroup("<<", aux.1));
       Real SetIndexByName(aux.2);
       aux.2 
     };  
