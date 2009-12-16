@@ -334,15 +334,7 @@ proc ::tolsh::run { cmdline } {
 
   # Load Toltcl (+tol)
   #
-  if { $options(tolversion) eq "" } {
-    puts "Loading default tol version : [ package require Toltcl ]"
-  } else {
-    puts "Loading requested tol version : $options(tolversion)"
-    package require -exact Toltcl $options(tolversion)
-  }
-
-  logtmp "after require Toltcl"
-
+  package require -exact Toltcl 2.0.1
   tol::initkernel $options(lang) $options(vmode)
 
   # Load initLibrary if required
