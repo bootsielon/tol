@@ -193,6 +193,8 @@ Matrix CompareBeta = b | b_;
 Matrix CompareProb = Y|Yp|outProbExcBys|outProbAprBys;
 Matrix residuals = InvF01(Yp)-InvF01(outProbExcBys);
 Matrix CompareResiduals = residuals | e;
+Real residuals.avr = MatAvr(residuals);
+Real residuals.stds = MatStDs(residuals);
 
 //Success table for Bayesian inference by exact method
 Set STExcBys = Diagnostics::BinaryModel::SuccessTable(
