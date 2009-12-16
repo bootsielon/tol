@@ -328,7 +328,7 @@ proc ::tolsh::run { cmdline } {
 
   # Load Toltcl (+tol)
   #
-  package require Toltcl
+  package require -exact Toltcl 2.0.1
 
   logtmp "after require Toltcl"
 
