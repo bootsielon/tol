@@ -1,0 +1,6 @@
+El archivo rmtps_client.* debe ser identico en tolsh.vfs/lib/tolcomm
+en tolbase/lib/rmtps_client.
+
+Asumiremos que tolbase/lib/rmtps_client/rmtps_client.* es un espejo
+del contenido de tolsh.vfs. Cualquier cambio o prueba debe hacerse en
+tolsh.vfs y luego debe copiarse a tolbase.
