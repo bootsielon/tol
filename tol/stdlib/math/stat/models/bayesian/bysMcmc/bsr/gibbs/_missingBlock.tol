@@ -302,12 +302,12 @@ Class @BlockMissing : @BlockStdLin, @BlockMissingBase
   ////////////////////////////////////////////////////////////////////////////
   Real _buildWorkSpace_partial(
     BysMcmc::Bsr::Gibbs::@BlockArima arm.blk, //ArimaBlock filter
-    VMatrix si,    //SigmaBlock filter
-    VMatrix Za)  //Main Linear Block parameters 
+    VMatrix si, //SigmaBlock filter
+    VMatrix Z)  //Main Linear Block parameters 
   ////////////////////////////////////////////////////////////////////////////
   {
     Real _.output::build_partial(_.partialSampler::_.values,arm.blk,si);
-    Real _.input ::build_partial(_.partialSampler::_.values,arm.blk,si);
+    Real _.input ::build_partial(_.partialSampler::_.values,arm.blk,si,_.beta);
     VMatrix Y = arm.blk::filter(si*(Z+_.input::_.U1-_.output::_.V1));
     VMatrix X = _.input::_.G - _.output::_.H;
     BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg wslr = 
