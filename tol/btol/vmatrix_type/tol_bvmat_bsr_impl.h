@@ -266,6 +266,29 @@ public:
   void  operator()(IteratorT first, IteratorT last) const { action(); }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+class trace_msg
+///////////////////////////////////////////////////////////////////////////////
+{
+  const std::string& msg_;
+public:
+  trace_msg(std::string& msg) : msg_(msg) {}
+  void action(const std::string& str) const
+  {
+    Std(BSR()+"TRACE "+msg_.c_str()+" : '"+str.c_str()+"'");
+  }
+  void operator()(const std::string& str) const
+  {
+    action(str);
+  }
+  template<typename IteratorT>
+  void operator()(IteratorT first, IteratorT last) const
+  {
+    std::string str;
+    str.assign(first, last);
+    action(str);
+  }};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 class assign_declared_var_name
