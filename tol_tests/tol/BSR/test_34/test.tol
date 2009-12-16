@@ -6,9 +6,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 Text email_ = "vdebuen@tol-project.org"; 
-Text link_ = "https://www.tol-project.org/ticket/766";
-Text summary_ = "Parse error in API modular ASCII when no regression "
-                "equations are defined.";
+Text link_ = "https://www.tol-project.org/ticket/800";
+Text summary_ = "Identical missings labels in primary module type.";
 
 //////////////////////////////////////////////////////////////////////////////
 //Loads general tools for BSR tests
