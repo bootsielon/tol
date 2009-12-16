@@ -6,7 +6,7 @@
 
 
 /////////////////////////////////////////////////////////////////////////////
-NameBlock Monophasic =
+NameBlock Monophasic = 
 /////////////////////////////////////////////////////////////////////////////
 [[
   //////////////////////////////////////////////////////////////////////////
@@ -170,6 +170,15 @@ NameBlock Monophasic =
     Set MissingInputBlock = BinGroup("<<",reDim[1]);
     Set MissingOutputBlock = BinGroup("<<",reDim[2]);
     Set NoiseDistrib = BinGroup("<<",reDim[3]);
+    Real sigmaIndex = 0;
+    Set EvalSet(NoiseDistrib,Real (@BSR.NoiseDistrib seg)
+    {
+      Real If(seg->SigmaIndex<=0,seg->SigmaIndex, 
+      { 
+        sigmaIndex:=sigmaIndex+1;
+        seg->SigmaIndex := Copy(sigmaIndex)
+      })
+    });
   //WriteLn("TRACE MasterToJoint 7.1");
     VMatrix Y = Convert(Group("ConcatRows",reDim[4]),"Blas.R.Dense");
   //WriteLn("TRACE MasterToJoint 7.2");
@@ -192,6 +201,6 @@ NameBlock Monophasic =
       VMatrix X;
       VMatrix a;
       VMatrix A)
-  })}
- 
+  })} 
 ]];
+
