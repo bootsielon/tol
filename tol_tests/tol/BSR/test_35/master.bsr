@@ -1,0 +1,23 @@
+/////////////////////////////////////////////////////////////////////////////
+// Bayesian Sparse Regression 
+/////////////////////////////////////////////////////////////////////////////
+
+$BEGIN
+
+Module.Type = master;
+Model.Name = "Mat.Veh__1.0";
+Model.Description = "Modelo de matriculación de vehículos";
+Session.Name = "y2009m12d11h18i12s58.00";
+Session.Description = "Sesión creada en el instante y2009m12d11h18i12s58.00";
+Session.Authors = "user@bayesforecast.com";
+
+Modular.Schema = monophasic;
+Include master module "./obs/Veh.Tur.Mat/master.bsr";
+Include master module "./obs/Veh.Bus.Mat/master.bsr";
+Include master module "./obs/Veh.CaF.Mat/master.bsr";
+Include master module "./obs/Veh.Mot.Mat/master.bsr";
+Include master module "./obs/Veh.Tra.Mat/master.bsr";
+Include master module "./obs/Veh.Otr.Mat/master.bsr";
+Include joint module "./joint/joint.bsr";
+
+$END
