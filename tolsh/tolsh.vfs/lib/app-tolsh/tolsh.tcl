@@ -35,6 +35,7 @@ namespace eval ::tolsh {
   set options(vmode)   ""
   set options(out,enabled) no
   set options(runmode) ""
+  set options(tolversion) ""
 }
 
 ###############################################################################
@@ -59,7 +60,8 @@ namespace eval ::tolsh {
 #    -d       --> start in dialog mode
 #    -e?n?    --> use english language
 #    -s?p?    --> use spanish language
-#    -server [port] --> start tol as a server tolsvc.<pid>.log will be the log
+#    -tolversion ver --> specify an strict tol version to start with
+#    -server [port]  --> start tol as a server tolsvc.<pid>.log will be the log
 #             [port] is the port number where the serve will be listening.
 #
 #  Any other value will be considered a file to compile
@@ -132,6 +134,9 @@ proc ::tolsh::getoptions { cmdline } {
           puts "Replacing previous run mode '$options(runmode)' with 'interactive'"
         }
         set options(runmode) "interactive"
+      } elseif {$opt eq "tolversion"} {
+        incr i 
+        set options(tolversion) [lindex $cmdline $i]
       } elseif {$opt eq "server"} {
         # check if next argument is the port number
         set port [lindex $cmdline [expr {$i+1}]]
@@ -215,8 +220,9 @@ proc ::tolsh::show_usage { } {
     -d       --> start in dialog mode
     -e?n?    --> use english language
     -s?p?    --> use spanish language
-   -server [port] --> start tol as a server tolsvc.<pid>.log will be the log
-           [port] is the port number where the serve will be listening.
+    -tolversion --> specify an strict tol version to start with
+    -server [port] --> start tol as a server tolsvc.<pid>.log will be the log
+            [port] is the port number where the serve will be listening.
  
   Multiple verbose mode is accepted in one option, for instance,
 
@@ -328,7 +334,12 @@ proc ::tolsh::run { cmdline } {
 
   # Load Toltcl (+tol)
   #
-  package require -exact Toltcl 2.0.1
+  if { $options(tolversion) eq "" } {
+    puts "Loading default tol version : [ package require Toltcl ]"
+  } else {
+    puts "Loading requested tol version : $options(tolversion)"
+    package require -exact Toltcl $options(tolversion)
+  }
 
   logtmp "after require Toltcl"
 
