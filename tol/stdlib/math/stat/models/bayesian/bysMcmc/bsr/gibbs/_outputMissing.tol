@@ -158,17 +158,17 @@ Class @OutputMissing : @OutputMissingBase
     Matrix _.T := SetCol(_.t);
     VMatrix _.HEye := If(!_.n2, Zeros(_.M, _.N2),
     {
-      WriteLn("TRACE @OutputMissing::initialize 4");
+    //WriteLn("TRACE @OutputMissing::initialize 4");
       Set _.t2 := ExtractByIndex(_.t, _.i2);
-      WriteLn("TRACE @OutputMissing::initialize 5 _.t2:"<<_.t2);
+    //WriteLn("TRACE @OutputMissing::initialize 5 _.t2:"<<_.t2);
       VMatrix H2t := Tra(SubCol(Eye(_.M), _.t2));
-      WriteLn("TRACE @OutputMissing::initialize 6 H2t:"<<H2t);
+    //WriteLn("TRACE @OutputMissing::initialize 6 H2t:"<<H2t);
       VMatrix H2 := Tra(Convert(MergeRows(_.N, [[ [[ H2t, _.I2 ]] ]]),
                              "Cholmod.R.Sparse"));
-      WriteLn("TRACE @OutputMissing::initialize 7 H2:"<<H2);
+    //WriteLn("TRACE @OutputMissing::initialize 7 H2:"<<H2);
       SubCol(H2, i2)
     });
-    WriteLn("TRACE @OutputMissing::initialize 8 _.HEye:"<<_.HEye);
+  //WriteLn("TRACE @OutputMissing::initialize 8 _.HEye:"<<_.HEye);
     1
   };
 
