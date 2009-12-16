@@ -159,9 +159,7 @@ PutDescription("Ejecuta en proceso TOL remoto. Args es un conjunto con los "
  *    
  *    Port: puerto donde el servidor RMPTS esta escuchando
  *
- *    Host:
- *    Port:
- *    PID:
+ *    PID: pid del proceso a verificar
  *
  *  Resultado:
  *  
@@ -202,9 +200,7 @@ PutDescription("Verifica si un proceso dado por su PID continua vivo en un "
  *    
  *    Port: puerto donde el servidor RMPTS esta escuchando
  *
- *    Host:
- *    Port:
- *    PID:
+ *    PID: pid del proceso a finalizar
  *
  *  Resultado:
  *  
