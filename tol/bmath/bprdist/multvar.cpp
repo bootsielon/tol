@@ -259,7 +259,7 @@ bool RandTruncatedMultNormal(         BMatrix<BDat>& tn,
 //--------------------------------------------------------------------
 {
   BInt i, k, n=nu.Rows();
-  if((1< nu  .Columns())||(1> n             )||
+  if((1!=nu  .Columns())||(1> n             )||
      (1!=A   .Columns())||(1!=B   .Columns())||
      (n!=A   .Rows   ())||(n!=B   .Rows   ())  )
   {
