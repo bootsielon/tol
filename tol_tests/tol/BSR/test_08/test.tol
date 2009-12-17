@@ -20,8 +20,11 @@ WriteLn("Current Random Seed = "<<rndSeed);
 //Randomly generated probit model to allow contrast with model estimations
 //These information is unknown in real world problems
 //////////////////////////////////////////////////////////////////////////////
+Real m = 1000;
+Matrix zero = Rand(m,1,0,0);
+Matrix one = zero+1;
 //Original supplied data 
-Matrix X1 = Rand(1000, 5, -.3, .3);
+Matrix X1 = Rand(m, 5, -.3, .3);
 //Deived inputs
 Matrix X2 = SubCol(X1,[[1]]) $* SubCol(X1,[[2]]);
 //Constant input
@@ -41,13 +44,15 @@ Matrix b  = {Col(
 Matrix e  = Gaussian(Rows(X),1,0,1);
 //Real filter matrix
 Matrix F = X*b;
-//Real linear output
-Matrix Z  = F+e;
+//Latent linear output
+Matrix Z = F+e;
 //Real output probabilities
 Matrix Yp = F01(Z);
-//Real binary output is true when probability is great than a cutting value
-Real CuttingValue = 0.50;
-Matrix Y  = GE(Yp,Yp*0+CuttingValue);
+//Simulated probit model
+Matrix Y  = GE(Z,zero);
+
+Set mh.estim = Probit(Y, X);
+Matrix b.mh = mh.estim[1];
 
 //////////////////////////////////////////////////////////////////////////////
 //These is the only information that will be known in real world problems
@@ -144,17 +149,14 @@ BysMcmc::@Config bsr.config = [[
 //////////////////////////////////////////////////////////////////////////////
 //MCMC dimensions
   Real mcmc.burnin        =  1000; 
-  Real mcmc.sampleLength  =  4400;
+  Real mcmc.sampleLength  =  4000;
   Real mcmc.thinning      =     2; //Probit mcmc have high alternance
   Real mcmc.cacheLength   =   100;
-    //Try order for given by user solution to start MCMC
-    Real bsr.iniVal.try.givenByUser = 3;
-    //Try order for zero solution to start MCMC
+    Real bsr.iniVal.try.findFeasible = 1;
     Real bsr.iniVal.try.zero = 2;
-    //Try order for constrained minimum norm solution to start MCMC
-    Real bsr.iniVal.try.cnstrMinNorm = 4;
-    //Try order for constrained max likelihood solution to start MCMC
-    Real bsr.iniVal.try.cnstrMLE = 1;
+    Real bsr.iniVal.try.givenByUser = 3;
+    Real bsr.iniVal.try.cnstrMinNorm = 5;
+    Real bsr.iniVal.try.cnstrMLE = 4;
 //Generic flags
   Real do.resume          =  0;
   Real do.report          =  True;
@@ -189,12 +191,13 @@ Matrix outProbExcBys = bsr.oneNode.probit::GetProb(X_);
 //simulated parameters (Bayesian inference by aproximation method)
 Matrix outProbAprBys = bsr.oneNode.probit::GetProbAvg(X_);
 
-Matrix CompareBeta = b | b_;
-Matrix CompareProb = Y|Yp|outProbExcBys|outProbAprBys;
-Matrix residuals = InvF01(Yp)-InvF01(outProbExcBys);
-Matrix CompareResiduals = residuals | e;
-Real residuals.avr = MatAvr(residuals);
-Real residuals.stds = MatStDs(residuals);
+Matrix outExcBys = GE(outProbExcBys,one*0.5);
+Matrix outAprBys = GE(outProbAprBys,one*0.5);
+
+Matrix CompareBeta = b | b_ | b.mh;
+Matrix CompareProb = Yp|outProbExcBys|outProbAprBys;
+Matrix SuccessExcBys = EQ(Y,outExcBys);
+Matrix SuccessAprBys = EQ(Y,outAprBys);
 
 //Success table for Bayesian inference by exact method
 Set STExcBys = Diagnostics::BinaryModel::SuccessTable(
@@ -209,7 +212,7 @@ Set STAprBys = Diagnostics::BinaryModel::SuccessTable(
 
 Real numErr1 = Copy(NError);
 
-Real quality = Min(1,MatStDs(e)/MatStDs(residuals));
+Real quality = MatAvr(SuccessExcBys);
 //Extented information about test behaviour
 Set partialResults_ = 
 [[

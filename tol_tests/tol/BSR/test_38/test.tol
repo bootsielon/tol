@@ -127,14 +127,11 @@ BysMcmc::@Config bsr.config = [[
   Real mcmc.sampleLength  =  4000;
   Real mcmc.thinning      =     2; //Probit mcmc have high alternance
   Real mcmc.cacheLength   =   100;
-    //Try order for given by user solution to start MCMC
-    Real bsr.iniVal.try.givenByUser = 3;
-    //Try order for zero solution to start MCMC
+    Real bsr.iniVal.try.findFeasible = 1;
     Real bsr.iniVal.try.zero = 2;
-    //Try order for constrained minimum norm solution to start MCMC
-    Real bsr.iniVal.try.cnstrMinNorm = 4;
-    //Try order for constrained max likelihood solution to start MCMC
-    Real bsr.iniVal.try.cnstrMLE = 1;
+    Real bsr.iniVal.try.givenByUser = 3;
+    Real bsr.iniVal.try.cnstrMinNorm = 5;
+    Real bsr.iniVal.try.cnstrMLE = 4;
 //Generic flags
   Real do.resume          =  0;
   Real do.report          =  True;
