@@ -67,6 +67,7 @@ NameBlock ProbitFilter
   VMatrix _.VS = Mat2VMat(_.S);
   VMatrix _.D  = SetDiag(MatSet(Tra(_.S))[1]);
   Matrix _one = Rand(1,1,1,1);
+  Matrix _zero = _.Y*0;
   Matrix _emptyMatrix = Rand(0,0,0,0);
 
   ///////////////////////////////////////////////////////////////////////////
@@ -103,8 +104,14 @@ NameBlock ProbitFilter
   //Returns the filter matrix
   ///////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+"eval 1");
+  //WriteLn("TRACE"+_MID+"eval _.externalInfo[3]=\n"<<Matrix VMat2Mat(_.externalInfo[3],1));
+  //WriteLn("TRACE"+_MID+"eval _.externalInfo[4]=\n"<<Matrix SetRow(_.externalInfo[4]));
     Matrix Xb = VMat2Mat(SubRow(_.externalInfo[3],_.externalInfo[4]));
-    _.Y-RandTruncatedMultNormal(Xb, _one, _.A, _.B)
+  //WriteLn("TRACE"+_MID+"eval Xb=\n"<<Matrix Tra(Xb));
+    Matrix e = RandTruncatedMultNormal(Xb, _one, _.A, _.B);
+  //WriteLn("TRACE"+_MID+"eval e=\n"<<Matrix Tra(e));
+    _.Y-e
   }
 
 ]]};
