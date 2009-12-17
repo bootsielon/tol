@@ -1,0 +1,212 @@
+//////////////////////////////////////////////////////////////////////////////
+//FILE: test.tol
+//AUTHOR: vdebuen@tol-project.org
+//CREATION: 2008-12-06
+//PURPOSE: Chequea Bsr::OneNode::EstimProbit
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = "Chequea Bsr::OneNode::EstimProbit" ;
+
+Real numErr0 = Copy(NError);
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+//////////////////////////////////////////////////////////////////////////////
+//Randomly generated probit model to allow contrast with model estimations
+//These information is unknown in real world problems
+//////////////////////////////////////////////////////////////////////////////
+//Number of rows
+Real m = 1000;
+Matrix zero = Rand(m,1,0,0);
+Matrix one = zero+1;
+//Inputs
+Matrix X = Rand(m, 1, 1, 1) | Round(Rand(m, 1, 0, 10));
+Real n = Columns(X);
+//Real parameters of linear block
+Matrix b  = Rand(n,1,-2,2);
+//Real standard normal independent residuals
+Matrix e  = Gaussian(Rows(X),1,0,1);
+//Real filter matrix
+Matrix F = X*b;
+//Latent linear output
+Matrix Z = F+e;
+//Real output probabilities
+Matrix Yp = F01(Z);
+//Simulated probit model
+Matrix Y  = GE(Z,zero);
+
+Set mh.estim = Probit(Y, X);
+Matrix b.mh = mh.estim[1];
+
+//////////////////////////////////////////////////////////////////////////////
+//These is the only information that will be known in real world problems
+//////////////////////////////////////////////////////////////////////////////
+//Data matrix containing full output and input
+Matrix data.mat = Y|X;
+//Set of names of columns in data.mat
+Set data.name = [["Output"]]<<For(1,n,Text(Real j)
+{ "Input_"+IntText(j)} );
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Model definition for BSR one node API
+    BysMcmc::Bsr::OneNode::@ModelData bsr.oneNode.data =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //##Documentation about the model
+  Set  _.docInfo = @BSR.DocInfo (
+    Text Model.Name = 
+      "OneNodeProbit",
+    Text Model.Description = 
+      "Randomly generated probit model";
+    Text Session.Name = "SES_"+Model.Name+".01";
+    Text Session.Description = 
+      "Random seed "<<rndSeed;
+    Text Session.Authors = 
+      "vdebuen@tol-project.org;";
+    Date Session.Creation = Copy(Now);
+    Text Path = Ois.DefRoot+"BSR/" );
+  //##Observational node name
+  Text _.segmentName = "Obs";
+
+  //#Original data storer by columns with names 
+  Set _.data.orig = For(1, Card(data.name), Matrix(Real j)
+  {
+    Matrix aux = SubCol(data.mat,[[j]]);
+    Eval(data.name[j]+"=aux")
+  });
+
+  //Checks unique names and indexes them
+  Real _check_data.orig = SetIndexByName(_.data.orig);
+
+  Set _.data.handler = _.data.orig;
+
+  Real _check_data.handler = SetIndexByName(_.data.handler);
+
+  //Output vector
+  VMatrix _.Y = Mat2VMat(_.data.handler::Output, False, 1, 0);
+  //Normal standarized transformation of frequency of ones in output should be
+  //a good average prior for constant parameter 
+  Real _.cteAvg = DistNormalInv(VMatAvr(_.Y));
+
+  //Linear block definition with domain and prior restrictions
+  Set _.linearParamInfo = {
+  //Tool function to reduce registers length in _.linearParamInfo
+  Code LPI = BysMcmc::Bsr::OneNode::LPI;
+  For(1, n, Set(Real k)
+  {
+    //   Variable      initVal   min    max     priAvg   priSig  priSigWeight
+    LPI("Input_"<<k ,        0, -1/0,  +1/0,         ?,       ?,           ?) 
+  })};
+  //Input matrix
+  VMatrix _.X = Group("ConcatColumns",
+  EvalSet(_.linearParamInfo, VMatrix(@Bsr.OneNode.LinearParamInfo lpi)
+  {
+    Mat2VMat(_.data.handler[lpi->Name])
+  }));
+  //A BSR probit model must have sigma=1
+  Real _.sigma = 1;
+  //Non mandatory members
+  //Order relations between linear parameters. This member can be Empty or 
+  //simply not exist if there are no known order relation
+  Set _.orderRelation = Copy(Empty)
+]];
+  
+/* */
+//////////////////////////////////////////////////////////////////////////////
+//BSR generic configuration parameters
+BysMcmc::@Config bsr.config = [[
+//////////////////////////////////////////////////////////////////////////////
+//MCMC dimensions
+  Real mcmc.burnin        =  1000; 
+  Real mcmc.sampleLength  =  4000;
+  Real mcmc.thinning      =     2; //Probit mcmc have high alternance
+  Real mcmc.cacheLength   =   100;
+    //Try order for given by user solution to start MCMC
+    Real bsr.iniVal.try.givenByUser = 3;
+    //Try order for zero solution to start MCMC
+    Real bsr.iniVal.try.zero = 2;
+    //Try order for constrained minimum norm solution to start MCMC
+    Real bsr.iniVal.try.cnstrMinNorm = 4;
+    //Try order for constrained max likelihood solution to start MCMC
+    Real bsr.iniVal.try.cnstrMLE = 1;
+//Generic flags
+  Real do.resume          =  0;
+  Real do.report          =  True;
+  Real do.eval            =  False; //Has no sense for probit models
+  Real do.linear.effects  =  False  //Has no sense for probit models
+]];
+
+
+BysMcmc::@Cycler bsr.oneNode.cycler = 
+  BysMcmc::Bsr::OneNode::GetCyclerProbit(bsr.oneNode.data, bsr.config);
+
+//Real bsr.oneNode.cycler::initialize(0);
+
+/* */
+
+BysMcmc::@Estimation bsr.oneNode.estim = BysMcmc::@Estimation::New(bsr.oneNode.cycler);
+Real bsr.oneNode.estim::Run(0);
+
+BysMcmc::Bsr::OneNode::@Probit bsr.oneNode.probit = 
+  BysMcmc::Bsr::OneNode::GetProbit(bsr.oneNode.estim);
+
+Matrix b_full = bsr.oneNode.probit::_.param;
+Matrix b_ = Sub(b_full,1,1,Rows(b),1);
+Matrix X_ = VMat2Mat(bsr.oneNode.data::_.X) | 
+            Rand(VRows(bsr.oneNode.data::_.X),
+                 Rows(b_full)-VColumns(bsr.oneNode.data::_.X),0,0);
+
+//Output probabilities for given input matrix integrated over all simulated 
+//vectors of parameters (Bayesian inference by exact method)
+Matrix outProbExcBys = bsr.oneNode.probit::GetProb(X_);
+//Output probabilities for given input matrix and average vector of 
+//simulated parameters (Bayesian inference by aproximation method)
+Matrix outProbAprBys = bsr.oneNode.probit::GetProbAvg(X_);
+
+Matrix outExcBys = GE(outProbExcBys,one*0.5);
+Matrix outAprBys = GE(outProbAprBys,one*0.5);
+
+Matrix CompareBeta = b | b_ | b.mh;
+Matrix CompareProb = Yp|outProbExcBys|outProbAprBys;
+Matrix SuccessExcBys = EQ(Y,outExcBys);
+Matrix SuccessAprBys = EQ(Y,outAprBys);
+
+//Success table for Bayesian inference by exact method
+Set STExcBys = Diagnostics::BinaryModel::SuccessTable(
+  Diagnostics::BinaryModel::CutValRng(outProbExcBys,.01),
+  VMat2Mat(bsr.oneNode.data::_.Y),
+  outProbExcBys);
+//Success table for Bayesian inference by aproximation method
+Set STAprBys = Diagnostics::BinaryModel::SuccessTable(
+  Diagnostics::BinaryModel::CutValRng(outProbAprBys,.01),
+  VMat2Mat(bsr.oneNode.data::_.Y),
+  outProbAprBys);
+
+Real numErr1 = Copy(NError);
+
+Real quality = MatAvr(SuccessExcBys);
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1
+]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1)*quality;
+
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */  
