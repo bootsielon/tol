@@ -74,7 +74,9 @@ Class @MasterSamplerBasic : @MasterSampler
     //WriteLn("TRACE"+_MID+"DoNonLinOutputFilter 3");
       Real filter.blk(BysMcmc::@BlockSampler extFlt)
       {
-        extFlt::do.filter(_.Y)
+        Real ok = extFlt::do.filter(_.Y);
+      //WriteLn("TRACE"+_MID+"DoNonLinOutputFilter 4 _.Y=\n"<<VMat2Mat(_.Y,1));
+        ok
       };
       SetMin(EvalSet(_.nonLinOutputFilter,filter.blk))
     })
@@ -148,6 +150,7 @@ Class @MasterSamplerBasic : @MasterSampler
   Real define.all(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+" define.all 0");
     Set _.nonLinBlk := 
     {
       Set aux.nlb = EvalSet(_.modelDef->NoiseDistrib,Set(@BSR.NoiseDistrib seg)
@@ -201,8 +204,13 @@ Class @MasterSamplerBasic : @MasterSampler
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" initialize 0");
+    Matrix givenBeta=
+    SetCol(EvalSet(_.modelDef->LinearBlock,Real(@BSR.LinearBlock b)
+    { b->InitialValue }));
+    VMatrix beta0 = findMatchingBeta(Mat2VMat(givenBeta));
+    VMatrix _.filter := _.modelDef->X*beta0;
     Real initialize.blocks(unused);
-
+  //WriteLn("TRACE"+_MID+"initialize _.filter=\n"<<Matrix VMat2Mat(_.filter,1));
     Real sel.extFlt (BysMcmc::@BlockSampler nlb) { !(nlb::_.isInputFilter) };
     Set _.nonLinOutputFilter := Select(_.nonLinBlk, sel.extFlt);
 
@@ -214,10 +222,6 @@ Class @MasterSamplerBasic : @MasterSampler
   //WriteLn("TRACE"+_MID+" initialize 1.1 _.YplusV("<<VRows(_.YplusV)+"x"<<VColumns(_.YplusV)+")");
     VMatrix _.XplusU := _.mis.blk::filter.input(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" initialize 1.2 _.XplusU("<<VRows(_.XplusU)+"x"<<VColumns(_.XplusU)+")");
-    Matrix givenBeta=
-    SetCol(EvalSet(_.modelDef->LinearBlock,Real(@BSR.LinearBlock b)
-    { b->InitialValue }));
-    VMatrix beta0 = findMatchingBeta(Mat2VMat(givenBeta));
   //WriteLn("TRACE"+_MID+" initialize 3 beta0("<<VRows(beta0)+"x"<<VColumns(beta0)+")");
     Real ok = _.mln.blk::matchConstrains(beta0, _.modelDef->A, _.modelDef->a);
     If(ok,

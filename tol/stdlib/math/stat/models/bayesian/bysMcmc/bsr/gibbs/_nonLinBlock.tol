@@ -242,10 +242,11 @@ Class @BlockNonLin : @BlockSampler
   {
   //WriteLn("TRACE "+_MID+"::setStore 1 values("<<Rows(values)+"x"<<Columns(values)+")");
     Real putStore(values);
+  //WriteLn("TRACE "+_MID+"::setStore 3");
+    Matrix _.Fi := _.filter::eval(VMat2Mat(_.store));
+  //WriteLn("TRACE "+_MID+"::setStore 3.1");
     Real If(_.N==0, True,
     {
-    //WriteLn("TRACE "+_MID+"::setStore 3");
-      Matrix _.Fi := _.filter::eval(VMat2Mat(_.store));
     //WriteLn("TRACE "+_MID+"::setStore 4");
       Real ok = If(!_.isInputFilter, 0,
       {
