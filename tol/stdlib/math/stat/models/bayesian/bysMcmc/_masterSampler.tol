@@ -83,6 +83,7 @@ Class @SubMasterBlock: @BlockSampler
   Real initialize.blocks(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE "+_.name+"::initialize.blocks 1");   
     Real _.N := 0; 
     Real _.fixedParamNum := 0;
     Real _.reloadParamNum := 0;
