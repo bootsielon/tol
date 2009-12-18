@@ -13,7 +13,7 @@ Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
 //Random seed setting
-Real PutRandomSeed(1096004697);
+Real PutRandomSeed(2131234);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -32,7 +32,7 @@ VMatrix generate.nodal.points(Real J, Real n)
     Rand(J,1,min,min+len)
   }))
 };
-VMatrix X = generate.nodal.points(15000,2);
+VMatrix X = generate.nodal.points(5000,2);
 /* * /
 MulVarFunAprox::@DesignC2 design = {
   MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
@@ -45,7 +45,9 @@ MulVarFunAprox::@DesignC2 design = {
     Real radius = .5,
     Real do.build.border = False)};
 /* */
-Real design::max.deg := 6;
+Real design::max.deg := 3;
+Real design::use.compact.base := False;
+Real design::min.contrast.surface := 2.5;
 
 Real t0 = Copy(Time);
 WriteLn("Building model design for "<<design::_.J+" points "<<
@@ -65,30 +67,97 @@ FunRn2R::@BaseC2 b = design::get.base(0);
 
 FunRn2R::@FunC2 base.random.fun=FunRn2R::@FunC2.InBaseC2::Random(b, 1);
 
+
+//////////////////////////////////////////////////////////////////////////////
+VMatrix fun.eval.intra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  VMatrix one = X1*0+1;
+  one*7 -X1 +X2*2 -X1$*X1*3 +X1$*X2 +X1$*X1$*X1*0.4 -X1$*X2$*X2*0.1
+};
+//////////////////////////////////////////////////////////////////////////////
+VMatrix der.1.eval.intra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  VMatrix one = X1*0+1;
+    -one    -X1*6  +X2 +X1$*X1*1.2 - X2$*X2*0.1
+};
+//////////////////////////////////////////////////////////////////////////////
+VMatrix der.2.eval.intra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  VMatrix one = X1*0+1;
+   one*2 +X2 -X1$*X2*0.2
+};
+
 //////////////////////////////////////////////////////////////////////////////
 VMatrix fun.eval.extra.base(VMatrix X) 
 //////////////////////////////////////////////////////////////////////////////
 {
-   BinGroup("$*",For(1,design::_.n,VMatrix(Real i) 
-   { 
-     VMatrix Xi = SubCol(X,[[i]]);
-     If(i%2==1,Sin(Xi),Cos(Xi))
-   })) 
-   $* RPow(SubCol(X,[[1]]),2)
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  Sin(X1)$*Cos(X2)
 };
+//////////////////////////////////////////////////////////////////////////////
+VMatrix der.1.eval.extra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  Cos(X1)$*Cos(X2)
+};
+//////////////////////////////////////////////////////////////////////////////
+VMatrix der.2.eval.extra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  -Sin(X1)$*Sin(X2)
+};
+
+Real use_extra = True;
+
+Code fun.eval   = If(use_extra,  fun.eval.extra.base,  fun.eval.intra.base);
+Code der.1.eval = If(use_extra,der.1.eval.extra.base,der.1.eval.intra.base);
+Code der.2.eval = If(use_extra,der.2.eval.extra.base,der.2.eval.intra.base);
 
 //Real b::upgrade.cache(design::_.X,0,0);
 //Code fun.eval = base.random.fun::eval.function.v;
-Code fun.eval = fun.eval.extra.base;
 
+VMatrix F_X= fun.eval(design::_.X);
 
 Real t0 := Copy(Time);
 WriteLn("Running regression model for design matrix "<<design::_.Q);
 MulVarFunAprox::@ModelC2 model = MulVarFunAprox::@ModelC2::New(
    design,
-   fun.eval(design::_.X));
+   F_X);
 Real t.estimating = Copy(Time)-t0;
 WriteLn("Estimated model in "<<t.estimating+" seconds");
+
+
+VMatrix dF_X1 = der.1.eval(design::_.X);
+VMatrix dF_X2 = der.2.eval(design::_.X);
+
+VMatrix dF_X1_ = model::evaluate.partial.derivative.1(design::_.X, 1);
+VMatrix dF_X2_ = model::evaluate.partial.derivative.1(design::_.X, 2);
+
+VMatrix dF_X1_cmp = dF_X1 | dF_X1_;
+VMatrix dF_X2_cmp = dF_X2 | dF_X2_;
+
+VMatrix dF_X1_err = dF_X1 - dF_X1_;
+VMatrix dF_X2_err = dF_X2 - dF_X2_;
+
+Real dF_X1_err.avr = VMatAvr (dF_X1_err);
+Real dF_X1_err.ste = VMatStDs(dF_X1_err);
+Real dF_X2_err.avr = VMatAvr (dF_X2_err);
+Real dF_X2_err.ste = VMatStDs(dF_X2_err);
+
 
 VMatrix X2 = { design::generate.internal.points(
   Real m = design::_.J/2,
@@ -132,7 +201,6 @@ VMatrix show.X.Y.Z =
 VMatrix show.Y.Z = 
   ( design::_.Y    << (design::_.Z*0)) | 
   ((design::_.Y*0) <<  design::_.Z   ); 
-
 
 
 Real numErr1 = Copy(NError);
