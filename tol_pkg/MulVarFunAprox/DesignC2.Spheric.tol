@@ -152,7 +152,7 @@ Class @DesignC2.Spheric : @DesignC2
     });
     Set X.lambda.der = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
-      RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),3)$*X.tao[i]/2
+      RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),3)$*SubCol(X.dif[i],[[s]])*8/_.radius
     });
     VMatrix X.lambda.sum = SetSum(X.lambda);
     VMatrix X.lambda.sum.2 = RPow(X.lambda.sum,2);
