@@ -17,8 +17,8 @@ Real PutRandomSeed(1096004697);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-//#Require MulVarFunAprox;
-#Embed "../../MulVarFunAprox.tol";
+#Require MulVarFunAprox;
+//#Embed "../../MulVarFunAprox.tol";
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -45,8 +45,6 @@ MulVarFunAprox::@DesignC2 design = {
     Real radius = .5,
     Real do.build.border = False)};
 /* */
-//Real design::force.reference.near.nodal := True;
-Real design::_.radius.margin := 0.05;
 Real design::max.deg := 6;
 
 Real t0 = Copy(Time);
@@ -79,9 +77,9 @@ VMatrix fun.eval.extra.base(VMatrix X)
    $* RPow(SubCol(X,[[1]]),2)
 };
 
-//Code fun.eval = fun.eval.extra.base;
-Code fun.eval = base.random.fun::eval.function.v;
-Real b::upgrade.cache(design::_.X,0);
+//Real b::upgrade.cache(design::_.X,0,0);
+//Code fun.eval = base.random.fun::eval.function.v;
+Code fun.eval = fun.eval.extra.base;
 
 
 Real t0 := Copy(Time);
@@ -96,7 +94,7 @@ VMatrix X2 = { design::generate.internal.points(
   Real m = design::_.J/2,
   True)};
 
-Real b::upgrade.cache(X2,0);
+Real b::upgrade.cache(X2,0,0);
 VMatrix Fx2 = fun.eval(X2);
 Real t0 := Copy(Time);
 WriteLn("Evaluating forecast for "<<VRows(X2)+" points...");
@@ -114,7 +112,7 @@ Real q.2 = 1-E2.ste;
 Set View([[
   Real design::_.n, design::_.K, design::_.J, design::_.H, 
   design::_.X.maxNeighbour, design::_.Z.maxNeighbour,
-  design::_.T, design::_.N, design::_.Mz, design::_.M, 
+  design::_.Tz, design::_.N, design::_.Mz, design::_.M, 
   model::_.E.avr, model::_.E.ste,
   "\n"]],"");
 
