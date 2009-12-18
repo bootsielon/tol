@@ -37,7 +37,7 @@ Class @DesignC2.Monomial.Spheric.Disconnected :
       Real    _.J = VRows(X);
       Real    _.radius = radius;
       Real    _.radius.margin = radius.margin;
-      Real    _.grid.size = Sqrt(2)*radius/(1+radius.margin);
+      Real    _.grid.size = radius/(1+radius.margin);
       @IndexedGrid.Border _.grid = @IndexedGrid.Border::New(
          X,_.grid.size,True,do.build.border,do.build.border)
     ]] 
