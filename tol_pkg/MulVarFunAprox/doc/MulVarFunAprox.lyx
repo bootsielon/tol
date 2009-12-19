@@ -1395,7 +1395,7 @@ Sea la función real escalar continua y doblemente diferenciable en todo
  
 \begin_inset Formula \begin{equation}
 \gamma\left(\tau\right)=\begin{cases}
-\frac{1}{64}\left(1-\tau^{2}\right)^{4} & \forall\tau\leq1\\
+\left(1-\tau^{2}\right)^{4} & \forall\tau\leq1\\
 0 & \forall\tau>1\end{cases}\end{equation}
 
 \end_inset
@@ -1453,7 +1453,7 @@ Sus derivadas primera y segunda existen y son continuas en todo
  
 \begin_inset Formula \begin{equation}
 \gamma'=\begin{cases}
-\frac{1}{32}\tau\left(\tau^{2}-1\right)^{3} & \forall\tau\leq1\\
+8\tau\left(\tau^{2}-1\right)^{3} & \forall\tau\leq1\\
 0 & \forall x\notin\Omega_{h}\end{cases}\end{equation}
 
 \end_inset
@@ -1494,7 +1494,7 @@ status open
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
 \gamma''=\begin{cases}
-\frac{1}{32}\left(\tau^{2}-1\right)^{2}\left(7\tau^{2}-1\right) & \forall\tau\leq1\\
+8\left(\tau^{2}-1\right)^{2}\left(7\tau^{2}-1\right) & \forall\tau\leq1\\
 0 & \forall\tau>1\end{cases}\end{equation}
 
 \end_inset
@@ -1565,7 +1565,7 @@ función de cercanía local
  
 \begin_inset Formula \begin{equation}
 \lambda_{h}\left(x\right)=\gamma\left(\tau_{h}\left(x\right)\right)=\begin{cases}
-\frac{1}{64}\left(1-\tau_{h}^{2}\left(x\right)\right)^{4} & \forall x\in\Omega_{h}\\
+\left(1-\tau_{h}^{2}\left(x\right)\right)^{4} & \forall x\in\Omega_{h}\\
 0 & \forall x\notin\Omega_{h}\end{cases}\end{equation}
 
 \end_inset
