@@ -88,10 +88,10 @@ Class @DesignC2.Monomial.Spheric.Disconnected :
 
     Real _.Tb := VRows(_.B);
     Real _.Mb := Case(
-      prior.Z.order< 0, 0,
-      prior.Z.order==0, _.Tb,
-      prior.Z.order==1, _.Tb*(1+_.n),
-      prior.Z.order==2, _.Tb*(1+_.n*3/2+(1/2)*_.n^2));
+      prior.B.order< 0, 0,
+      prior.B.order==0, _.Tb,
+      prior.B.order==1, _.Tb*(1+_.n),
+      prior.B.order==2, _.Tb*(1+_.n*3/2+(1/2)*_.n^2));
     _.Tb
     })
   };

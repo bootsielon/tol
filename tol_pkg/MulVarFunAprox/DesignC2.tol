@@ -20,6 +20,7 @@ Class @DesignC2
 //Configuration parameters
 //////////////////////////////////////////////////////////////////////////////
   Real prior.Z.order = 2;
+  Real prior.B.order = 0;
   Real min.contrast.surface = 3;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -205,7 +206,7 @@ Class @DesignC2
     Matrix PB.triplet = 
     {
       VMatrix B.hK = (_.B.h-1)*_.K;
-      Real b::upgrade.cache(B.dif,prior.Z.order,0);
+      Real b::upgrade.cache(B.dif,prior.B.order,0);
       Real lastRow = 0;
       Group("ConcatRows", For(1,_.K,Matrix(Real k)
       {
@@ -216,14 +217,14 @@ Class @DesignC2
           VMatrix row.idx = B.t+cumRows;
           Real cumRows := cumRows + _.Tb;
           VMat2Mat(row.idx | col.idx | pk)
-        }  << If(prior.Z.order<1,Rand(0,3,0,0),
+        }  << If(prior.B.order<1,Rand(0,3,0,0),
         Group("ConcatRows",For(1,_.n,Matrix(Real d)
         {
           VMatrix pkd = b::partial.derivative.1.v(k,B.dif,d);
           VMatrix row.idx = B.t+cumRows;
           Real cumRows := cumRows + _.Tb;
           VMat2Mat(row.idx | col.idx | pkd)
-        })))<< If(prior.Z.order<2,Rand(0,3,0,0),
+        })))<< If(prior.B.order<2,Rand(0,3,0,0),
         Group("ConcatRows",For(1,_.n,Matrix(Real d1)
         {
           Group("ConcatRows",For(1,d1,Matrix(Real d2)
