@@ -211,7 +211,7 @@ void BSetANNKDTreeKSearch::CalcContens()
       *dists_buffer++ = nn_dists[ _k ];
     }
   }
-  assert( (buffer - ((DMat&)qpoints).GetData().GetBuffer()) ==
+  assert( (qp_buffer - ((DMat&)qpoints).GetData().GetBuffer()) ==
           qpoints.Rows()*qpoints.Columns() );
   annDeallocPt( pt );
   delete [] nn_idx;
