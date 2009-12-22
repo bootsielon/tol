@@ -1581,7 +1581,10 @@ static BSyntaxObject* EvMemberArg
 //--------------------------------------------------------------------
 static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
 
-/*! Evaluate Member expressions Set::PublicName
+/*! Evaluate Member expressions 
+     Set::PublicName
+     NameBlock::PublicName
+     Class::StaticMember
  */
 //--------------------------------------------------------------------
 {
@@ -1665,6 +1668,43 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
           (_name_, gra, branch2, arg2, memberName, ns.Name(), errMsg, result);
       }
     }
+  }
+  if(errMsg.HasName())
+  {
+    assert(!result);
+    Error(I2("Evaluating expression ",
+             "Evaluando la expresión ")+"'"+
+             BParser::Unparse(tre)+"'\n"+errMsg);
+  }
+  result=TestResult(_name_,result,tre,NIL,BTRUE);
+  return(result);
+}
+
+//--------------------------------------------------------------------
+static BSyntaxObject* EvGlobalFind(BGrammar* gra, const List* tre, BBool left)
+
+/*! Evaluate Member expressions ::GlobalName
+ */
+//--------------------------------------------------------------------
+{
+  static BText _name_ = "::";
+  BSyntaxObject* result = NIL;
+  BInt nb = NumBranches(tre);
+  BText errMsg;
+  if(gra==GraAnything())
+  {
+    errMsg = I2("Cannot apply monary global find operator ::<global_variable> "
+    "to type Anything",
+    "No se puede aplicar el operador de búsqueda global ::<variable_global> "
+    "al tipo Anything");
+  }
+  else if(TestNumArg(_name_, 1, nb, 1))
+  {
+    List* branch = Branch(tre,1);
+    BToken* arg = BParser::treToken(branch);
+    const BText& globalName = arg->Name();
+    BObjClassify oc(gra,BOBJECTMODE);
+    result = BGrammar::SymbolTable().Search(oc, globalName);
   }
   if(errMsg.HasName())
   {
@@ -2131,6 +2171,16 @@ bool BSpecialFunction::Initialize()
      "Esta línea devuelve un error porque los miembros que comienzan por _ son privados:"
      "Real b = MySN::_aux;\n"),
      EvMember);
+
+  AddLeftInstance(" :: ",
+  I2("(Text globalName)",
+     "(Text nombreGlobal)"),
+  I2("Returns a global variable or function.\n\n"
+     "Example:\n",
+     "Devuelve una variable o función global.\n\n"
+     "Ejemplo:\n")+
+     "Real ::Tolerance;\n",
+     EvGlobalFind);
 
   AddLeftInstance("Class",
      " Class name [: parentClass1, ...] { members }",

@@ -332,7 +332,7 @@ static BToken defBin_[] =
   BBinaryToken(">>",      15),   // 28
   BBinaryToken("->",      16),   // 29
   BBinaryToken("#E#",     17),   // 30
-  BBinaryToken("::",      18)    // 31
+  BBinaryToken("#::#",    18)    // 31
 };
 
 static BMonaryToken defMon_[] =
@@ -344,7 +344,8 @@ static BMonaryToken defMon_[] =
   BMonaryToken("Do"),
   BMonaryToken("Struct"),
   BMonaryToken("Class"),
-  BMonaryToken("Static")
+  BMonaryToken("Static"),
+  BMonaryToken("::", &(defBin_[31]))
 };
 
 static BTypeToken defTyp_[] =
