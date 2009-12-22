@@ -87,22 +87,24 @@ private:
 const int tol_kdtree::bucket_size = 5;
 
 //--------------------------------------------------
-DeclareContensClass(BDat, BDatTemporary, BDatKDTreeNew);
-DefExtOpr(1, BDatKDTreeNew, "KDTree.New", 1, 1, "Matrix",
+DeclareContensClass(BDat, BDatTemporary, BDatANNKDTreeNew);
+DefExtOpr(1, BDatANNKDTreeNew, "ANN.KDTree.New", 1, 1, "Matrix",
           "(Matrix points)",
 	  I2("Build a kd-tree and return its identifier. A kd-tree is a "
              "complex data structure useful to perform nearest neighbourhood "
              "searches. When the kd-tree is not needed any more it should be "
-             "relased with KDTree.Delete\n"
-             "See also KDTree.Delete, KDTree.RSearch, KDTree.KSearch",
+             "relased with ANN.KDTree.Delete\n"
+             "See also ANN.KDTree.Delete, ANN.KDTree.RSearch and "
+             "ANN.KDTree.KSearch",
              "Construye un kd-tree y retorna su identificador. Un kd-tree es "
              "una estructura de datos compleja util en la busqueda de "
              "vecinos cercanos. Cuando un kd-tree ya no se necesite mas debe "
-             "liberarse con KDTree.Delete\n"
-             "Vease tambien KDTree.Delete, KDTree.RSearch, KDTree.KSearch"),
+             "liberarse con ANN.KDTree.Delete\n"
+             "Vease tambien ANN.KDTree.Delete, ANN.KDTree.RSearch y "
+             "ANN.KDTree.KSearch"),
 	  BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------
-void BDatKDTreeNew::CalcContens()
+void BDatANNKDTreeNew::CalcContens()
 {
   tol_kdtree *aux = NULL;
   DMat &points = dMat( Arg( 1 ) );
@@ -120,18 +122,20 @@ void BDatKDTreeNew::CalcContens()
 }
 
 //--------------------------------------------------
-DeclareContensClass(BDat, BDatTemporary, BDatKDTreeDelete);
-DefIntOpr(1, BDatKDTreeDelete, "KDTree.Delete", 1, 1,
+DeclareContensClass(BDat, BDatTemporary, BDatANNKDTreeDelete);
+DefIntOpr(1, BDatANNKDTreeDelete, "ANN.KDTree.Delete", 1, 1,
 	  "(Real kdtree)",
-	  I2("Release a kd-tree previously created with KDTree.New. "
+	  I2("Release a kd-tree previously created with ANN.KDTree.New. "
              "Returns 1 if success or 0 in case of fail.\n"
-             "See also KDTree.New, KDTree.RSearch, KDTree.KSearch",
-             "Libera un kd-tree previamente creado con KDTree.New. "
+             "See also ANN.KDTree.New, ANN.KDTree.RSearch and "
+             "ANN.KDTree.KSearch",
+             "Libera un kd-tree previamente creado con ANN.KDTree.New. "
              "Retorna 1 se libero exitosamente o 0 en caso de fallo.\n"
-             "Vease tambien KDTree.New, KDTree.RSearch, KDTree.KSearch"),
+             "Vease tambien ANN.KDTree.New, ANN.KDTree.RSearch y "
+             "ANN.KDTree.KSearch"),
 	  BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------
-void BDatKDTreeDelete::CalcContens()
+void BDatANNKDTreeDelete::CalcContens()
 {
   double addr = Dat( Arg( 1 ) ).Value();
   tol_kdtree *aux = tol_kdtree::decode_addr( addr );
@@ -143,21 +147,23 @@ void BDatKDTreeDelete::CalcContens()
 }
 
 //--------------------------------------------------
-DeclareContensClass(BSet, BSetTemporary, BSetKDTreeKSearch);
-DefExtOpr(1, BSetKDTreeKSearch, "KDTree.KSearch", 3, 3, "Real Matrix Real",
+DeclareContensClass(BSet, BSetTemporary, BSetANNKDTreeKSearch);
+DefExtOpr(1, BSetANNKDTreeKSearch, "ANN.KDTree.KSearch", 3, 3,
+          "Real Matrix Real",
           "(Real kdtree, Matrix qpoints, Real k)",
 	  I2("Computes for every point in points the k nearest neighbors. "
              "The result is a Set containing the matrix result for each "
              "point. Each matrix result contain in the column 1 the index "
              "the neighbors and in the column 2 the squared distance to the "
              "query point. The index is referred to the ordering of the "
-             "points given in KDTree.New. The argument kdtree must be a "
-             "valid kdtree as returned from KDTree.New\n"
-             "See also KDTree.New, KDTree.Delete and KDTree.RSearch",
+             "points given in ANN.KDTree.New. The argument kdtree must be a "
+             "valid kdtree as returned from ANN.KDTree.New\n"
+             "See also ANN.KDTree.New, ANN.KDTree.Delete and "
+             "ANN.KDTree.RSearch",
              ""),
 	  BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------
-void BSetKDTreeKSearch::CalcContens()
+void BSetANNKDTreeKSearch::CalcContens()
 {
   double addr = Dat( Arg( 1 ) ).Value();
   tol_kdtree *tree = tol_kdtree::decode_addr( addr );
@@ -198,7 +204,7 @@ void BSetKDTreeKSearch::CalcContens()
     LstFastAppend( lst_result, lst_aux, nn_umat );
   }
   assert( (buffer - ((DMat&)qpoints).GetData().GetBuffer()) ==
-          qpoints.Rows()*qpoints.columns() );
+          qpoints.Rows()*qpoints.Columns() );
   annDeallocPt( pt );
   delete [] nn_idx;
   delete [] dists;
