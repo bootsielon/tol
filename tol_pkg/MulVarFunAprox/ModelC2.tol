@@ -40,7 +40,7 @@ Class @ModelC2
   };
 
   //////////////////////////////////////////////////////////////////////////////
-    Static @ModelC2 New.Monomial.Spheric.Disconnected(
+    Static @ModelC2 New.Monomial.Spheric.Grid(
      VMatrix Fx,
      VMatrix X, 
      Real max.deg,
@@ -50,9 +50,9 @@ Class @ModelC2
      Real do.build.border)
   //////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[@ModelC2::New.Monomial.Spheric.Disconnected] ";
+    Text _MID = "[@ModelC2::New.Monomial.Spheric.Grid] ";
     MulVarFunAprox::@DesignC2 design = {
-      MulVarFunAprox::@DesignC2.Monomial.Spheric.Disconnected::New(
+      MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
         VMatrix X, 
         Real radius.margin,
         Real radius,

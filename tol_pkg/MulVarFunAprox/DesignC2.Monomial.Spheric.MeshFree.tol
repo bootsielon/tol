@@ -55,7 +55,7 @@ Class @DesignC2.Monomial.Spheric.MeshFree.tol :
   Real build.reference.points(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::Disconnected.reference.points] ";
+    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::Grid.reference.points] ";
     VMatrix _.Y := _.grid::_.Y;
     VMatrix _.Y.h := Mat2VMat(_.grid::_.Y.h);
     VMatrix _.Y.neighbourhood := _.Y.h | Group("ConcatColumns",
