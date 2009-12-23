@@ -36,7 +36,7 @@ Set SelectMatch(VMatrix match)
 //////////////////////////////////////////////////////////////////////////////
 {
   If(!_checkColumnVector("SelectMatch",match),Copy(Empty), {
-  Matrix select = VMat2Triplet(Convert(match,"Cholmod.R.Triplet"));
+  Matrix select = VMat2Triplet(Convert(Pack(match),"Cholmod.R.Triplet"));
   If(!Rows(select),Copy(Empty), MatSet(Tra(SubCol(select,[[1]])))[1])
 })};
 
@@ -231,6 +231,99 @@ VMatrix SortAndCount(VMatrix A)
   VMatrix aux.2 = SubRow(aux.1,change);
   VMatrix aux.3 = SubRow(aux.1,next);
   SubRow(C,change) | (aux.3-aux.2)
+};
+
+//Forward reference
+Class @KNN.Neighbourhood;
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.KNN = 
+"Abstract class to inherite K-Nearest Neighbor Searching engines";
+Class @KNN
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Dimension of points
+  Real _.n;
+  //Number of reference points
+  Real _.m;
+  //Reference points by rows: Rows(_.X)==_.m && Columns(_.X)==_.n
+  Matrix _.X;
+
+  //Searches
+  @KNN.Neighbourhood search(Matrix Q, Real k)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.KNN.Neighbourhood = 
+"Result of K-Nearest Neighbor Searching ";
+Class @KNN.Neighbourhood
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Number of searched neigbours
+  Real _.k;
+  //Number of queried points
+  Real _.q;
+  //Query points by rows: Rows(_.Q)==_.q && Columns(_.Q)==_.k
+  Matrix _.Q;
+  //Neighbour searcher engine 
+  @KNN _.knn;
+  //Indexes of neighbours in the searcher engine 
+  Matrix _.neighbour;
+  //Distance from queried points to its found neighbours
+  Matrix _.distance; 
+  ////////////////////////////////////////////////////////////////////////////
+  Static @KNN.Neighbourhood New(
+    @KNN knn, 
+    Matrix Q, 
+    Matrix neighbour,  
+    Matrix distance)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @KNN.Neighbourhood new = [[
+      @KNN _.knn = knn;
+      Real _.k = Columns(Q);
+      Real _.q = Rows(Q);
+      Matrix _.Q = Q;
+      Matrix _.neighbour = neighbour;
+      Matrix _.distance  = distance ]]
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.ANN.KDTree = 
+"This class is part of the TOL-OOP-API for ANN: A Library for Approximate "
+"Nearest Neighbor Searching ";
+Class @ANN.KDTree : @KNN
+//////////////////////////////////////////////////////////////////////////////
+{
+  //ANN identifier of internal KDTree
+  Real _id = ?;
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Static @ANN.KDTree New(Matrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @ANN.KDTree new = [[
+      Real _.n = Columns(X);
+      Real _.m = Rows(X);
+      Matrix _.X = X;
+      Real _id = ANN.KDTree.New(_.X) ]]
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real __destroy(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!IsUnknown(_id) & _id, ANN.KDTree.Delete(_id));
+    Real _id := 0;
+    True
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  @KNN.Neighbourhood search(Matrix Q, Real k)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set aux=ANN.KDTree.KSearch(_id,Q,k);
+    @KNN.Neighbourhood::New(_this,Q,aux[1],aux[2])
+  }
 }
 
 ]];
