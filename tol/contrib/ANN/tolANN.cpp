@@ -207,7 +207,7 @@ void BSetANNKDTreeKSearch::CalcContens()
                                     0.0 );
     // results rows for pt
     for( int _k = 0; _k < k; ++_k ) {
-      *nn_buffer++ = double( nn_idx[ _k ] );
+      *nn_buffer++ = double( nn_idx[ _k ] +1);
       *dists_buffer++ = nn_dists[ _k ];
     }
   }
