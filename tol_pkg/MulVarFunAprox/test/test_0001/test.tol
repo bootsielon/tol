@@ -13,7 +13,7 @@ Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
 //Random seed setting
-Real PutRandomSeed(234543);
+Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
