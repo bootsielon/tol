@@ -69,10 +69,7 @@ Class @BaseC2.Monomial :  @BaseC2.Cache
     {
       Real d = _.degComb[k][i];
       If(d==0, Rand(VRows(X),1,1,1),
-      {
-      //WriteLn("  _.degComb["<<k+"]["<<i+"]="<<_.degComb[k][i]);
-        RPow(SubCol(X,[[i]]),_.degComb[k][i])
-      })
+        RPow(SubCol(X,[[i]]),_.degComb[k][i]))
     }))
   }; 
   ////////////////////////////////////////////////////////////////////////////
@@ -90,7 +87,8 @@ Class @BaseC2.Monomial :  @BaseC2.Cache
       If(!Card(_.range.der.1[i]),aux,aux $*
       BinGroup("$*", EvalSet(_.range.der.1[i], VMatrix rd1(Real h)
       {
-        RPow(SubCol(X,[[h]]),_.degComb[k][h])
+        If(_.degComb[k][h]==0, Rand(VRows(X),1,1,1),
+          RPow(SubCol(X,[[h]]),_.degComb[k][h]))
       })))
     })
   };
@@ -111,7 +109,8 @@ Class @BaseC2.Monomial :  @BaseC2.Cache
         If(!Card(_.range.der.1[i]),aux,aux $*
         BinGroup("$*", EvalSet(_.range.der.1[i], VMatrix rd21(Real h)
         {
-          RPow(SubCol(X,[[h]]),_.degComb[k][h])
+          If(_.degComb[k][h]==0, Rand(VRows(X),1,1,1),
+            RPow(SubCol(X,[[h]]),_.degComb[k][h]))
         })))
       })
     },
@@ -143,7 +142,8 @@ Class @BaseC2.Monomial :  @BaseC2.Cache
     If(!Card(_.range.der.1[i]),aux,aux $*
     BinGroup("$*", EvalSet(_.range.der.1[i], VMatrix rd1(Real h)
     {
-      RPow(SubCol(X,[[h]]),_.degComb[k][h])
+      If(_.degComb[k][h]==0, Rand(VRows(X),1,1,1),
+        RPow(SubCol(X,[[h]]),_.degComb[k][h]))
     })))
   }
 
