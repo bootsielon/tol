@@ -1,0 +1,78 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Package MatQuery test
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = ""; 
+Text summary_ = "checking class @ANN.KDTree";
+
+#Require MatQuery;
+//#Embed "../../../_embed_all.tol";
+
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+Real t1 = Copy(Time);
+Real rndSeed = 0;
+Real m = 3000;
+Real n = 2;
+Real scale = 0.1;
+Matrix Q = Round(Rand(m,n,-m,m)*(1/scale))*scale;
+Matrix draw_neighbour(Real k)
+{
+  Matrix v = Gaussian(m,n,0, 1);
+  Matrix u = v*(scale/Sqrt(MatDat(MtMSqr(v),1,1)));
+  Q+u*(Rand(scale*(k-1),scale*k))
+};
+
+Matrix X1 = draw_neighbour(1);
+Matrix X2 = draw_neighbour(2);
+Matrix X3 = draw_neighbour(3);
+Matrix X = X1<<X2<<X3;
+
+Matrix neighbour = 
+{
+  Matrix ngbr.1 = DifEq(1/(1-B),Rand(m,1,1,1));
+  ngbr.1 | (ngbr.1+m) | (ngbr.1+(2*m))
+};
+
+Matrix distance2 =
+  (Q-X1)$*(Q-X1)*Rand(n,1,1,1) |
+  (Q-X2)$*(Q-X2)*Rand(n,1,1,1) |
+  (Q-X3)$*(Q-X3)*Rand(n,1,1,1);
+
+MatQuery::@ANN.KDTree ann = MatQuery::@ANN.KDTree::New(X);
+MatQuery::@KNN.Neighbourhood ngbh = ann::search(Q,3);
+
+
+Matrix neighbour.diff = (ngbh::_.neighbour-neighbour)*(1/m);
+Real ok = MatMax(Abs(neighbour.diff-Round(neighbour.diff)))==0;
+Matrix show = 
+ ( Q    << (X*0))|
+ ((Q*0) <<  X   );
+
+
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[numErr0, numErr1, 
+                        ok]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr1 == numErr0, 
+                    numWar1 <= numWar0, 
+                    ok);
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
