@@ -11,103 +11,20 @@ Text _.autodoc.member.DesignC2.Spheric =
 Class @DesignC2.Spheric : @DesignC2
 //////////////////////////////////////////////////////////////////////////////
 {
-//////////////////////////////////////////////////////////////////////////////
-//Configuration parameters
-//////////////////////////////////////////////////////////////////////////////
-  Real _.radius;
-  Real _.radius.margin;
-  Real _.grid.size;
-
-//////////////////////////////////////////////////////////////////////////////
-//Auxiliar members
-//////////////////////////////////////////////////////////////////////////////
-  VMatrix _.Y.h = Rand(0,0,0,0);
-  VMatrix _.Y.neighbourhood = Rand(0,0,0,0);
-
   //////////////////////////////////////////////////////////////////////////////
-  Real build.stress.points(Real void)
+  //Virtual methods
   //////////////////////////////////////////////////////////////////////////////
-  {
-    Text _MID = "[@DesignC2.Spheric::build.stress.points] ";
-    WriteLn("TRACE "+_MID+"1");
-    Matrix Y.neighbour.triplet = Group("ConcatRows", For(1,_.H,Matrix(Real h)
-    {
-      Set neighbours = Unique(VRow2Set(SubRow(_.Y.neighbourhood,[[h]])));
-      Set neighbours.up = Select(neighbours,Real(Real s) { s>h });
-      Matrix s = SetCol(Sort(neighbours.up,Compare));
-      Rand(Rows(s),1,h,h)|s|Rand(Rows(s),1,1,1)
-    }));
-
-    WriteLn("TRACE "+_MID+"2");
-    VMatrix Y.neighbour.1.map = Triplet(Y.neighbour.triplet,_.H,_.H);
-    VMatrix Y.neighbour.2.map = Y.neighbour.1.map*Y.neighbour.1.map;
-    VMatrix Y.neighbour.12.map = Max(Y.neighbour.1.map,Y.neighbour.2.map);
-    Matrix Y.neighbour.12.triplet = VMat2Triplet(Y.neighbour.12.map);
-    VMatrix Z.h.a = Mat2VMat(SubCol(Y.neighbour.12.triplet,[[1]]));
-    VMatrix Z.h.b = Mat2VMat(SubCol(Y.neighbour.12.triplet,[[2]]));
-    VMatrix Y.neighbour.a = SubRow(_.Y,VCol2Set(Z.h.a));
-    VMatrix Y.neighbour.b = SubRow(_.Y,VCol2Set(Z.h.b));
-    VMatrix Z.all = (Y.neighbour.a + Y.neighbour.b)*0.5;
-
-    WriteLn("TRACE "+_MID+"3");
-    VMatrix Z.interior.a = 
-    {
-      VMatrix Z.norm2 = RPow(Y.neighbour.a-Z.all,2)*Rand(_.n,1,1,1);
-      VMatrix Z.tao = RPow(Z.norm2,0.5)/_.radius;
-      LE(Z.tao,Rand(VRows(Z.tao),1,1,1)) 
-    };
-    VMatrix Z.interior.b = 
-    {
-      VMatrix Z.norm2 = RPow(Y.neighbour.b-Z.all,2)*Rand(_.n,1,1,1);
-      VMatrix Z.tao = RPow(Z.norm2,0.5)/_.radius;
-      LE(Z.tao,Rand(VRows(Z.tao),1,1,1)) 
-    };
-    VMatrix match.interior = Z.interior.a $* Z.interior.b;
-
-    Set sel.interior = MatQuery::SelectMatch(match.interior);
-    VMatrix Z.interior = SubRow(Z.all,sel.interior);
-    VMatrix Z.h.interior = SubRow(Z.h.a | Z.h.b,sel.interior);
-    Set criterium = Range(1,_.n,1);
-    Set sel.unique = Col2Set(Sort(VMat2Mat(Z.interior),criterium,True));
-    WriteLn("TRACE "+_MID+"4");
-    VMatrix _.Z := SubRow(Z.interior, sel.unique);
-    VMatrix _.Z.h := SubRow(Z.h.interior, sel.unique);
-    Real _.Tz := VRows(_.Z);
-    VMatrix _.Z.Y.neighbour := 
-    {
-      Matrix Z.t = DifEq(1/(1-B),Rand(_.Tz,1,1,1));
-      Matrix Z.th = (Z.t << Z.t) | 
-       VMat2Mat((SubCol(_.Z.h,[[1]])<<SubCol(_.Z.h,[[2]])));
-      Matrix Z.Y.idx = PivotByRows(Z.th,Sort(Z.th,[[2]]));
-      VMatrix Z.Y.dif = 
-       SubRow(_.Z,Col2Set(SubCol(Z.Y.idx,[[1]]))) -
-       SubRow(_.Y,Col2Set(SubCol(Z.Y.idx,[[2]])));
-        VMatrix Z.Y.norm2 = RPow(Z.Y.dif,2)*Rand(_.n,1,1,1);
-        VMatrix Z.Y.tao = RPow(Z.Y.norm2,0.5)/_.radius;
-        VMatrix Z.Y.match = LE(Z.Y.tao,Rand(VRows(Z.Y.tao),1,1,1));
-      SubRow(Mat2VMat(Z.Y.idx),MatQuery::SelectMatch(Z.Y.match))
-    };
-    VMatrix aux = MatQuery::SortAndCount(SubCol(_.Z.Y.neighbour,[[2]]));
-    VMatrix _.Yt := Triplet(VMat2Mat(SubCol(aux,[[1]])) |  
-                            Rand(VRows(aux),1,1,1) | 
-                            VMat2Mat(SubCol(aux,[[2]])),_.H,1);
-    Real _.Mz := Case(
-      prior.Z.order< 0, 0,
-      prior.Z.order==0, _.Tz,
-      prior.Z.order==1, _.Tz*(1+_.n),
-      prior.Z.order==2, _.Tz*(1+_.n*3/2+(1/2)*_.n^2));
-    _.Tz
-  };
+  VMatrix get.radius(VMatrix Y.idx);
 
   ///////////////////////////////////////////////////////////////////////////
-  Set get.X.weight(Set X.dif)
+  Set get.X.weight(Set X.dif, Set X.h)
   ///////////////////////////////////////////////////////////////////////////
   {
     Real m = VRows(X.dif[1]);
     Set X.tao = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
       VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(_.n,1,1,1);
-      RPow(X.norm2,0.5)/_.radius
+      RPow(X.norm2,0.5)$/get.radius(X.h[i])
     });
     Set X.tao2 = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
@@ -129,14 +46,14 @@ Class @DesignC2.Spheric : @DesignC2
     })
   };
   ///////////////////////////////////////////////////////////////////////////
-  Set get.X.weight.partial.derivative.1(Set X.dif, Real s)
+  Set get.X.weight.partial.derivative.1(Set X.dif, Set X.h, Real s)
   ///////////////////////////////////////////////////////////////////////////
   {
     Real m = VRows(X.dif[1]);
     Set X.tao = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
       VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(_.n,1,1,1);
-      RPow(X.norm2,0.5)/_.radius
+      RPow(X.norm2,0.5)$/get.radius(X.h[i])
     });
     Set X.tao2 = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
@@ -152,7 +69,9 @@ Class @DesignC2.Spheric : @DesignC2
     });
     Set X.lambda.der = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
-      RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),3)$*SubCol(X.dif[i],[[s]])*8/_.radius
+      RPow(X.match[i] $* 
+           (Rand(m,1,1,1)-X.tao2[i]),3) $*
+           (SubCol(X.dif[i],[[s]])*8) $/ get.radius(X.h[i])
     });
     VMatrix X.lambda.sum = SetSum(X.lambda);
     VMatrix X.lambda.sum.2 = RPow(X.lambda.sum,2);

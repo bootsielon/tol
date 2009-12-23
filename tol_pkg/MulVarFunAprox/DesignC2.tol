@@ -74,8 +74,8 @@ Class @DesignC2
   Real build.border.points(Real void) { False };
   VMatrix closest.reference.index(VMatrix X);
   VMatrix match.evaluable(VMatrix X);
-  Set get.X.weight(Set X.dif);
-  Set get.X.weight.partial.derivative.1(Set X.dif, Real s);
+  Set get.X.weight(Set X.dif, Set X.h);
+  Set get.X.weight.partial.derivative.1(Set X.dif, Set X.h, Real s);
 
   //////////////////////////////////////////////////////////////////////////////
     Real _build.model.design(Real void)
@@ -117,13 +117,14 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"2");
     VMatrix X.j=DifEq(1/(1-B),Rand(m,1,1,1));
     WriteLn("TRACE "+_MID+"3");
+    Set X.h_ = For(1,_.X.maxNeighbour,VMatrix(Real i) { SubCol(X.h,[[i]]) });
     Set X.dif = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
-      Set X.h.i = VCol2Set(SubCol(X.h,[[i]]));
+      Set X.h.i = VCol2Set(X.h_[i]);
       X - SubRow(_.Y,X.h.i)
     });
     WriteLn("TRACE "+_MID+"4");
-    Set X.weight = get.X.weight(X.dif);
+    Set X.weight = get.X.weight(X.dif, X.h_);
     WriteLn("TRACE "+_MID+"5");
     VMatrix YnCum = DifEq(1/(1-B),_.Yn);
     VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
@@ -168,14 +169,15 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"3");
     VMatrix X.j=DifEq(1/(1-B),Rand(m,1,1,1));
     WriteLn("TRACE "+_MID+"4");
+    Set X.h_ = For(1,_.X.maxNeighbour,VMatrix(Real i) { SubCol(X.h,[[i]]) });
     Set X.dif = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
-      Set X.h.i = VCol2Set(SubCol(X.h,[[i]]));
+      Set X.h.i = VCol2Set(X.h_[i]);
       X - SubRow(_.Y,X.h.i)
     });
     WriteLn("TRACE "+_MID+"5");
-    Set X.weight = get.X.weight(X.dif);
-    Set X.weight.der = get.X.weight.partial.derivative.1(X.dif,s);
+    Set X.weight = get.X.weight(X.dif, X.h_);
+    Set X.weight.der = get.X.weight.partial.derivative.1(X.dif,X.h_,s);
     WriteLn("TRACE "+_MID+"6");
     VMatrix YnCum = DifEq(1/(1-B),_.Yn);
     VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
