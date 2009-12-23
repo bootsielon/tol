@@ -1057,11 +1057,6 @@ BClass::~BClass()
   BClassByNameHash::const_iterator iterC;
   BClassByNameHash& par = *(parentHash_);
   bool ok = true;
-  for(iterC=par.begin(); iterC!=par.end(); iterC++)
-  {
-    BClass* parent = iterC->second;
-    ok &= parent->DestroyInstance(instance);
-  }
   if(__destroy)
   {
     BUserFunCode* ufc= (BUserFunCode*)__destroy;
@@ -1074,6 +1069,11 @@ BClass::~BClass()
     else { ok = (bool)Real(result); }
     dstryr->PutNameBlock(old);
     DESTROY(result); 
+  }
+  for(iterC=par.begin(); iterC!=par.end(); iterC++)
+  {
+    BClass* parent = iterC->second;
+    ok &= parent->DestroyInstance(instance);
   }
   return(ok);
 }
