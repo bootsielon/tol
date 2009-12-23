@@ -67,7 +67,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
   Real build.reference.points(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::Grid.reference.points] ";
+    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.reference.points] ";
     VMatrix _.Y := _.grid::_.Y;
     VMatrix _.Y.h := Mat2VMat(_.grid::_.Y.h);
     VMatrix _.Y.neighbourhood := _.Y.h | Group("ConcatColumns",
@@ -181,19 +181,6 @@ Class @DesignC2.Monomial.Spheric.Grid :
       prior.B.order==2, _.Tb*(1+_.n*3/2+(1/2)*_.n^2));
     _.Tb
     })
-  };
-
-  //////////////////////////////////////////////////////////////////////////////
-    Real build.model.design(Real void)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.model.design] ";
-    FunRn2R::@BaseC2 base.max = 
-      FunRn2R::@BaseC2.Monomial::New(_.n,max.deg);
-    Set Append(_.base, [[base.max]]);
-    Real _.base.sel := Card(_.base);
-    Real _.K0 := base.max::_.K;
-    _build.model.design(void)
   };
 
   ///////////////////////////////////////////////////////////////////////////
