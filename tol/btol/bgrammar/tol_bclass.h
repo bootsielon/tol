@@ -184,6 +184,7 @@ public:
   bool isDefined_;
   static const BClass* currentClassBuildingInstance_;
   static const BClass* currentStatic_;
+  BSyntaxObject* __destroy;
   // Constructors and destructors: bgrammar\class.cpp
   BClass(const BText& name);
  ~BClass();
@@ -199,7 +200,8 @@ public:
 	BText	    Dump	     () const;
 
   bool CheckAutoDoc();
-
+  void PutDestroy(BSyntaxObject* destroy);
+  bool DestroyInstance(BNameBlock* instance);
   //! Evaluates a parsed tree with a Class declaration
   static BClass* PredeclareClass(const BText&name, BClass*&old, bool &ok);
   static BClass* PredeclareClass(const BText&name);

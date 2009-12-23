@@ -167,6 +167,12 @@ void BNameBlock::Clean()
 //--------------------------------------------------------------------
 {
   int n;
+  if(class_)
+  {
+    class_->DestroyInstance(this);
+    class_->DecNRefs();
+    DESTROY(class_);
+  }
   owner_ = NULL;
   for(n=1; n<=set_.Card(); n++)
 	{
@@ -176,17 +182,11 @@ void BNameBlock::Clean()
   private_.clear();
   set_.Delete();
   father_ = NULL;
-  if(class_)
-  {
-    class_->DecNRefs();
-    DESTROY(class_);
-  }
   if(requiredPackages_)
   {
     delete requiredPackages_;
     requiredPackages_ = NULL;
   }
-
 }
 
 

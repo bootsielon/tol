@@ -36,6 +36,7 @@
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_btxtgra.h>
+#include <tol/tol_bdatgra.h>
 
 
 //--------------------------------------------------------------------
@@ -290,6 +291,7 @@ BMember::~BMember()
 //! Builds a well defined method
 //--------------------------------------------------------------------
 {
+  static BText __destroyDec = "Real __destroy(Real void)";
   if(!isStatic_ && !method_ && isMethod_ && definition_.HasName())
   {
     BGrammar::IncLevel();
@@ -303,6 +305,23 @@ BMember::~BMember()
       method_ = obj;
       method_->IncNRefs(); 
       method_->PutMethod();
+      bool isDestroy = method_->Name()=="__destroy";
+      if(isDestroy) 
+      { 
+        if(Compact(declaration_)==__destroyDec)
+        {
+          cls->PutDestroy(method_); 
+        }
+        else
+        {
+          Error(I2("Wrong declaration of destroyer method of Class ",
+                   "Declaración errónea del método destructor de Class ")+
+                parent_->getName()+
+                "\n"+declaration_+"\n"+
+                I2(" should be ", " debería ser ")+__destroyDec+
+                "\n"+__destroyDec+"\n");
+        }  
+      }
       BUserCode* uCode = UCode(method_);
       uCode->Contens().Operator()->PutMethod();
       return(1);
@@ -313,7 +332,7 @@ BMember::~BMember()
       Error(I2("Wrong syntax in method declaration ",
                "Sintaxis incorrecta en declaración de método ")+
             BParser::Unparse(branch_,"","\n")+
-            I2(" of Class ", "de Class ")+parent_->getName());
+            I2(" of Class ", " de Class ")+parent_->getName());
       return(0);
     }
   }
@@ -999,7 +1018,8 @@ BClass::BClass(const BText& name)
 //--------------------------------------------------------------------
 : BSyntaxObject(),
   BMemberOwner(),
-  isDefined_(false)
+  isDefined_(false),
+  __destroy(NULL)
 {
   CreateMemberHashes();
   CreateParentHashes();
@@ -1021,6 +1041,13 @@ BClass::~BClass()
   BScanner::DelSymbol(Name());
   //Remove symbol from language searchers
   BGrammar::DelObject(this);
+}
+
+//--------------------------------------------------------------------
+  void BClass::PutDestroy(BSyntaxObject* destroy) 
+//--------------------------------------------------------------------
+{
+  if(!__destroy) { __destroy = destroy; }
 }
 
 //--------------------------------------------------------------------
@@ -1437,3 +1464,30 @@ BSyntaxObject* BClass::FindStatic(const BText& methodName, bool fullAccess) cons
   return(result);
 }
 
+//--------------------------------------------------------------------
+  bool BClass::DestroyInstance(BNameBlock* instance)
+//--------------------------------------------------------------------
+{
+  BClassByNameHash::const_iterator iterC;
+  BClassByNameHash& par = *(parentHash_);
+  bool ok = true;
+  for(iterC=par.begin(); iterC!=par.end(); iterC++)
+  {
+    BClass* parent = iterC->second;
+    ok &= parent->DestroyInstance(instance);
+  }
+  if(__destroy)
+  {
+    BUserFunCode* ufc= (BUserFunCode*)__destroy;
+    BUserFunction* dstryr = (BUserFunction*)ufc->Contens().Operator();
+    BList* args = NCons(new BContensDat(0.0));
+    const BNameBlock* old = dstryr->NameBlock();
+    dstryr->PutNameBlock(instance);
+    BSyntaxObject* result = dstryr->Evaluator(args);
+    if(!result) { ok = false; }
+    else { ok = (bool)Real(result); }
+    dstryr->PutNameBlock(old);
+    DESTROY(result); 
+  }
+  return(ok);
+}
