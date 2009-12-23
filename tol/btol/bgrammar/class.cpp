@@ -1051,6 +1051,33 @@ BClass::~BClass()
 }
 
 //--------------------------------------------------------------------
+  bool BClass::DestroyInstance(BNameBlock* instance)
+//--------------------------------------------------------------------
+{
+  BClassByNameHash::const_iterator iterC;
+  BClassByNameHash& par = *(parentHash_);
+  bool ok = true;
+  for(iterC=par.begin(); iterC!=par.end(); iterC++)
+  {
+    BClass* parent = iterC->second;
+    ok &= parent->DestroyInstance(instance);
+  }
+  if(__destroy)
+  {
+    BUserFunCode* ufc= (BUserFunCode*)__destroy;
+    BUserFunction* dstryr = (BUserFunction*)ufc->Contens().Operator();
+    BList* args = NCons(new BContensDat(0.0));
+    const BNameBlock* old = dstryr->NameBlock();
+    dstryr->PutNameBlock(instance);
+    BSyntaxObject* result = dstryr->Evaluator(args);
+    if(!result) { ok = false; }
+    else { ok = (bool)Real(result); }
+    dstryr->PutNameBlock(old);
+    DESTROY(result); 
+  }
+  return(ok);
+}
+//--------------------------------------------------------------------
 	BGrammar* BClass::Grammar() const
 //--------------------------------------------------------------------
 {
@@ -1464,30 +1491,3 @@ BSyntaxObject* BClass::FindStatic(const BText& methodName, bool fullAccess) cons
   return(result);
 }
 
-//--------------------------------------------------------------------
-  bool BClass::DestroyInstance(BNameBlock* instance)
-//--------------------------------------------------------------------
-{
-  BClassByNameHash::const_iterator iterC;
-  BClassByNameHash& par = *(parentHash_);
-  bool ok = true;
-  for(iterC=par.begin(); iterC!=par.end(); iterC++)
-  {
-    BClass* parent = iterC->second;
-    ok &= parent->DestroyInstance(instance);
-  }
-  if(__destroy)
-  {
-    BUserFunCode* ufc= (BUserFunCode*)__destroy;
-    BUserFunction* dstryr = (BUserFunction*)ufc->Contens().Operator();
-    BList* args = NCons(new BContensDat(0.0));
-    const BNameBlock* old = dstryr->NameBlock();
-    dstryr->PutNameBlock(instance);
-    BSyntaxObject* result = dstryr->Evaluator(args);
-    if(!result) { ok = false; }
-    else { ok = (bool)Real(result); }
-    dstryr->PutNameBlock(old);
-    DESTROY(result); 
-  }
-  return(ok);
-}
