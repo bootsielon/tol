@@ -70,8 +70,9 @@ Class @DesignC2
   //////////////////////////////////////////////////////////////////////////////
   Real build.base(Real void);
   Real build.reference.points(Real void);
-  Real build.stress.points(Real void) { False };
-  Real build.border.points(Real void) { False };
+  Real build.stress.points(Real void);
+  Real build.border.points(Real void);
+  Real build.model.design(Real void);
   VMatrix closest.reference.index(VMatrix X);
   VMatrix match.evaluable(VMatrix X);
   Set get.X.weight(Set X.dif, Set X.h);
@@ -81,27 +82,26 @@ Class @DesignC2
     Real _build.model.design(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
-    Real _.X.maxNeighbour := 1+2*_.n;
-    Real _.Z.maxNeighbour := If(prior.Z.order>=0,2,0);
+    Text _MID = "[@DesignC2::_build.model.design] ";
+    WriteLn("TRACE "+_MID+"1");
     Real build.reference.points(0);
+    WriteLn("TRACE "+_MID+"2");
     Real build.stress.points(0);
+    WriteLn("TRACE "+_MID+"3");
     Real build.border.points(0);
+    WriteLn("TRACE "+_MID+"4");
     VMatrix _.Ym := _.Yj+((_.Yt+_.Yb)*Case(
       prior.Z.order< 0, 0,
       prior.Z.order==0, 1,
       prior.Z.order==1, 1*(1+_.n),
       prior.Z.order==2, 1*(1+_.n*3/2+(1/2)*_.n^2)));
+    WriteLn("TRACE "+_MID+"5");
     Real _.M := _.J+_.Mb+_.Mz;
+    WriteLn("TRACE "+_MID+"6");
     Real build.base(0);
+    WriteLn("TRACE "+_MID+"7");
     Real _.N := VMatSum(_.Yn);
     _.N<_.M
-  };
-
-  //////////////////////////////////////////////////////////////////////////////
-    Real build.model.design(Real void)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    _build.model.design(void)
   };
 
   //////////////////////////////////////////////////////////////////////////////

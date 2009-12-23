@@ -78,6 +78,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
     }));
     Set X.class = Classify(Col2Set(_.grid::point2index(_.X)),Compare);
     VMatrix _.Yj := Mat2VMat(SetMat([[EvalSet(X.class,Card)]]),1);
+    Real _.X.maxNeighbour := 1+2*_.n;
     Real _.H := _.grid::_.H
   };
 
@@ -87,6 +88,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
   {
     Text _MID = "[@DesignC2.Spheric::build.stress.points] ";
     WriteLn("TRACE "+_MID+"1");
+    Real _.Z.maxNeighbour := If(prior.Z.order>=0,2,0);
     Matrix Y.neighbour.triplet = Group("ConcatRows", For(1,_.H,Matrix(Real h)
     {
       Set neighbours = Unique(VRow2Set(SubRow(_.Y.neighbourhood,[[h]])));
