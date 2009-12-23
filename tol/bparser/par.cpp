@@ -801,11 +801,19 @@ Tree* BParser::ParseType (Tree* tre)
  */
 Tree* BParser::ParseMonary (Tree* tre) 
 {
-  tre  = ParseDelayed (tre);
+  BToken* delayedStaticMember = delayedSymbol_;
+  if(!delayedStaticMember ||
+     (delayedSymbol_->TokenType()!=TYPE) ||
+     (delayedSymbol_->Name()[0]!='@') || 
+     (NextSymbol()->Name()!="::"))
+  {
+    delayedStaticMember = NULL;
+    tre  = ParseDelayed (tre);
+  }
   if(NextSymbol()->Name() == "!") { NextSymbol()->PutName("Not"); }
   const BBinaryToken* bin;
   bin = ((BMonaryToken*)(scan_->NextSymbol()))->Binary();
-  if(NextArgument() || complete_) 
+  if(NextArgument() || delayedStaticMember || complete_) 
   {
     if(bin) 
     {
