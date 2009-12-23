@@ -182,9 +182,13 @@ void BSetANNKDTreeKSearch::CalcContens()
   
   BDat dK = Dat( Arg( 3 ) );
 
-  if ( dK.IsUnknown( ) || dK.Value() <= 0 ) {
-    Error( I2( "Invalid k argument: must be positive",
-               "Argumento k es invalido: debe ser positivo" ) );
+  if ( dK.IsUnknown( ) || 
+      (dK.Value() <= 0) || 
+      (dK.Value() > qpoints.Rows()) ) {
+    Error( I2( "Invalid k argument: must be positive and lesser or equal than "
+               "number of reference points.",
+               "Argumento k es invalido: debe ser positivo y menor o igual que "
+               "el número de puntos de referencia." ) );
     return;
   }
   int k = int( round( dK.Value( ) ) );
