@@ -270,13 +270,13 @@ Class @KNN.Neighbourhood
   //Indexes of neighbours in the searcher engine 
   Matrix _.neighbour;
   //Distance from queried points to its found neighbours
-  Matrix _.distance; 
+  Matrix _.distance2; 
   ////////////////////////////////////////////////////////////////////////////
   Static @KNN.Neighbourhood New(
     @KNN knn, 
     Matrix Q, 
     Matrix neighbour,  
-    Matrix distance)
+    Matrix distance2)
   ////////////////////////////////////////////////////////////////////////////
   {
     @KNN.Neighbourhood new = [[
@@ -285,7 +285,7 @@ Class @KNN.Neighbourhood
       Real _.q = Rows(Q);
       Matrix _.Q = Q;
       Matrix _.neighbour = neighbour;
-      Matrix _.distance  = distance ]]
+      Matrix _.distance2  = distance2 ]]
   }
 };
 
