@@ -20,7 +20,7 @@ Class @DesignC2
 //Configuration parameters
 //////////////////////////////////////////////////////////////////////////////
   Real prior.Z.order = 2;
-  Real prior.B.order = 0;
+  Real prior.B.order = 1;
   Real min.contrast.surface = 3;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ Class @DesignC2
       prior.Z.order==2, 1*(1+_.n*3/2+(1/2)*_.n^2)));
     Real _.M := _.J+_.Mb+_.Mz;
     Real build.base(0);
-    Real _.N := _.H*_.K;
+    Real _.N := VMatSum(_.Yn);
     _.N<_.M
   };
 
@@ -115,23 +115,27 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"1 m="<<m);
     If(!m, Rand(0,_.N,0,0), {
     WriteLn("TRACE "+_MID+"2");
-    WriteLn("TRACE "+_MID+"3");
     VMatrix X.j=DifEq(1/(1-B),Rand(m,1,1,1));
-    WriteLn("TRACE "+_MID+"4");
+    WriteLn("TRACE "+_MID+"3");
     Set X.dif = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
       Set X.h.i = VCol2Set(SubCol(X.h,[[i]]));
       X - SubRow(_.Y,X.h.i)
     });
-    WriteLn("TRACE "+_MID+"5");
+    WriteLn("TRACE "+_MID+"4");
     Set X.weight = get.X.weight(X.dif);
-    WriteLn("TRACE "+_MID+"6");
+    WriteLn("TRACE "+_MID+"5");
+    VMatrix YnCum = DifEq(1/(1-B),_.Yn);
+    VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
     Matrix QX.triplet = Group("ConcatRows", For(1,_.X.maxNeighbour,Matrix(Real i)
     {
       VMatrix w.i = X.weight[i];
       Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
       VMatrix wi = SubRow(w.i,sel.rows);
-      VMatrix X.hiK = SubRow((SubCol(X.h,[[i]])-1)*_.K,sel.rows);
+      VMatrix X.hi = SubCol(X.h,[[i]]);
+      Set X.hi.set = VCol2Set(X.hi);
+      VMatrix X.hiK0 = SubRow(SubRow(YnCumB,X.hi.set),sel.rows);
+      VMatrix X.hiK1 = SubRow(SubRow(YnCum, X.hi.set),sel.rows);
       VMatrix Xdif.i = SubRow(X.dif[i],sel.rows);
       VMatrix X.j.i = SubRow(X.j,sel.rows);
       Real eval::upgrade.cache(Xdif.i);
@@ -139,10 +143,12 @@ Class @DesignC2
       {
         VMatrix pk = eval::evaluate.v(k,Xdif.i);
         VMatrix qk = wi$*pk; 
-        VMat2Mat(X.j.i | (X.hiK+k) | qk)
+        VMatrix X.hik = X.hiK0+k;
+        VMatrix match = LE(X.hik,X.hiK1);
+        SubRow(VMat2Mat(X.j.i | (X.hik) | qk),MatQuery::SelectMatch(match))
       }))
     }));
-    WriteLn("TRACE "+_MID+"7");
+    WriteLn("TRACE "+_MID+"6");
     Pack(Convert(Triplet(QX.triplet, m, _.N),"Cholmod.R.Sparse"))
   })};
 
@@ -171,13 +177,18 @@ Class @DesignC2
     Set X.weight = get.X.weight(X.dif);
     Set X.weight.der = get.X.weight.partial.derivative.1(X.dif,s);
     WriteLn("TRACE "+_MID+"6");
+    VMatrix YnCum = DifEq(1/(1-B),_.Yn);
+    VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
     Matrix QX.triplet = Group("ConcatRows", For(1,_.X.maxNeighbour,Matrix(Real i)
     {
       VMatrix w.i = X.weight[i];
       Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
       VMatrix wi = SubRow(w.i,sel.rows);
       VMatrix wi.der = SubRow(X.weight.der[i],sel.rows);
-      VMatrix X.hiK = SubRow((SubCol(X.h,[[i]])-1)*_.K,sel.rows);
+      VMatrix X.hi = SubCol(X.h,[[i]]);
+      Set X.hi.set = VCol2Set(X.hi);
+      VMatrix X.hiK0 = SubRow(SubRow(YnCumB,X.hi.set),sel.rows);
+      VMatrix X.hiK1 = SubRow(SubRow(YnCum, X.hi.set),sel.rows);
       VMatrix Xdif.i = SubRow(X.dif[i],sel.rows);
       VMatrix X.j.i = SubRow(X.j,sel.rows);
       Real eval::upgrade.cache(Xdif.i);
@@ -187,7 +198,9 @@ Class @DesignC2
         VMatrix pk = eval::evaluate.v(k,Xdif.i);
         VMatrix pk.der = der::evaluate.v(k,Xdif.i);
         VMatrix qk = wi$*pk.der+wi.der$*pk; 
-        VMat2Mat(X.j.i | (X.hiK+k) | qk)
+        VMatrix X.hik = X.hiK0+k;
+        VMatrix match = LE(X.hik,X.hiK1);
+        SubRow(VMat2Mat(X.j.i | (X.hik) | qk),MatQuery::SelectMatch(match))
       }))
     }));
     WriteLn("TRACE "+_MID+"7");
@@ -203,27 +216,35 @@ Class @DesignC2
     VMatrix Y = SubRow(_.Y, VCol2Set(_.B.h));
     VMatrix B.dif = _.B - Y;
     FunRn2R::@BaseC2 b = get.base(0);    
+    VMatrix YnCum = DifEq(1/(1-B),_.Yn);
+    VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
     Matrix PB.triplet = 
     {
-      VMatrix B.hK = (_.B.h-1)*_.K;
+    //VMatrix B.hK = (_.B.h-1)*_.K;
+      Set B.h.set = VCol2Set(_.B.h);
+      VMatrix B.hK0 = SubRow(YnCumB,B.h.set);
+      VMatrix B.hK1 = SubRow(YnCum, B.h.set);
+
       Real b::upgrade.cache(B.dif,prior.B.order,0);
       Real lastRow = 0;
       Group("ConcatRows", For(1,_.K,Matrix(Real k)
       {
         Real cumRows = lastRow;
         VMatrix pk = b::function.v(k,B.dif);
-        VMatrix col.idx = (B.hK+k);
+        VMatrix B.hk = B.hK0+k;
+        VMatrix match = LE(B.hk,B.hK1);
+        Set selRows = MatQuery::SelectMatch(match);
         {
           VMatrix row.idx = B.t+cumRows;
           Real cumRows := cumRows + _.Tb;
-          VMat2Mat(row.idx | col.idx | pk)
+          SubRow(VMat2Mat(row.idx | B.hk | pk),selRows)
         }  << If(prior.B.order<1,Rand(0,3,0,0),
         Group("ConcatRows",For(1,_.n,Matrix(Real d)
         {
           VMatrix pkd = b::partial.derivative.1.v(k,B.dif,d);
           VMatrix row.idx = B.t+cumRows;
           Real cumRows := cumRows + _.Tb;
-          VMat2Mat(row.idx | col.idx | pkd)
+          SubRow(VMat2Mat(row.idx | B.hk | pkd),selRows)
         })))<< If(prior.B.order<2,Rand(0,3,0,0),
         Group("ConcatRows",For(1,_.n,Matrix(Real d1)
         {
@@ -232,7 +253,7 @@ Class @DesignC2
             VMatrix pkd2 = b::partial.derivative.2.v(k,B.dif,d1,d2);
             VMatrix row.idx = B.t+cumRows;
             Real cumRows := cumRows + _.Tb;
-            VMat2Mat(row.idx | col.idx | pkd2)
+            SubRow(VMat2Mat(row.idx | B.hk | pkd2),selRows)
           }))
         })))
       }))
@@ -251,9 +272,15 @@ Class @DesignC2
       _.Z - SubRow(_.Y,VCol2Set(SubCol(_.Z.h,[[i]])))
     });
     FunRn2R::@BaseC2 b = get.base(0);    
+    VMatrix YnCum = DifEq(1/(1-B),_.Yn);
+    VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
     Matrix PZ.triplet = Group("ConcatRows", For(1,_.Z.maxNeighbour,Matrix(Real i)
     {
-      VMatrix Z.hiK = (SubCol(_.Z.h,[[i]])-1)*_.K;
+      VMatrix Z.hi = SubCol(_.Z.h,[[i]]);
+      Set Z.hi.set = VCol2Set(Z.hi);
+      VMatrix Z.hiK0 = SubRow(YnCumB,Z.hi.set);
+      VMatrix Z.hiK1 = SubRow(YnCum, Z.hi.set);
+
       VMatrix Zdif.i = Z.dif[i];
       VMatrix Z.t.i = Z.t;
       Real b::upgrade.cache(Zdif.i,prior.Z.order,0);
@@ -262,11 +289,13 @@ Class @DesignC2
       {
         Real cumRows = lastRow;
         VMatrix pk = b::function.v(k,Zdif.i)*If(i==1,+1,-1);
-        VMatrix col.idx = (Z.hiK+k);
+        VMatrix Z.hik = Z.hiK0+k;
+        VMatrix match = LE(Z.hik,Z.hiK1);
+        Set selRows = MatQuery::SelectMatch(match);
         {
           VMatrix row.idx = Z.t.i+cumRows;
           Real cumRows := cumRows + _.Tz;
-          VMat2Mat(row.idx | col.idx | pk)
+          SubRow(VMat2Mat(row.idx | Z.hik | pk),selRows)
         }  << If(prior.Z.order<1,Rand(0,3,0,0),
         Group("ConcatRows",For(1,_.n,Matrix(Real d)
         {
@@ -274,7 +303,7 @@ Class @DesignC2
           VMatrix pkd = b::partial.derivative.1.v(k,Zdif.i,d)*sign;
           VMatrix row.idx = Z.t.i+cumRows;
           Real cumRows := cumRows + _.Tz;
-          VMat2Mat(row.idx | col.idx | pkd)
+          SubRow(VMat2Mat(row.idx | Z.hik | pkd),selRows)
         })))<< If(prior.Z.order<2,Rand(0,3,0,0),
         Group("ConcatRows",For(1,_.n,Matrix(Real d1)
         {
@@ -284,7 +313,7 @@ Class @DesignC2
             VMatrix pkd2 = b::partial.derivative.2.v(k,Zdif.i,d1,d2)*sign;
             VMatrix row.idx = Z.t.i+cumRows;
             Real cumRows := cumRows + _.Tz;
-            VMat2Mat(row.idx | col.idx | pkd2)
+            SubRow(VMat2Mat(row.idx | Z.hik | pkd2),selRows)
           }))
         })))
       }))
@@ -306,6 +335,7 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"4");
     VMatrix _.Q := _.QX << _.QB << _.PZ;
     WriteLn("TRACE "+_MID+"5");
+/*
     VMatrix _.Q.nonNullCellsByColumns := 
     {
       VMatrix aux = Tra(Rand(1,_.M,1,1)*Or(_.Q,Zeros(_.M,_.N)));
@@ -314,6 +344,7 @@ Class @DesignC2
         SubRow(aux,Range(k,_.N,_.K)) 
       }))
     };
+*/
     WriteLn("TRACE "+_MID+"6");
     VMatrix _.LQ := CholeskiFactor(_.Q,"XtX");
     WriteLn("TRACE "+_MID+"7");
