@@ -653,11 +653,11 @@ Condiciones de contorno
 \begin_layout Standard
 Los puntos de estrés ayudan a las funciones de aproximación a parecerse
  a sus vecinas, pero no ayudan igual en todas partes pues en la frontera
- del dominio el número de vecinos se reduce, incluso puede no haber entornos
+ del dominio el número de vecinos se reduce, incluso puede haber entornos
  aislados que no tienen vecinos.
  Nótese que en ningún momento se ha dicho que el dominio tenga que ser conexo.
  Cuando el dominio no es conexo no es posible hablar propiamente de continuidad
- ni diferenciabilidad, pero se extenderá esa noción aplicandola a cada uno
+ ni diferenciabilidad, pero se extenderá esa noción aplicándola a cada uno
  de los subdominios conexos independientes en los que quedaría dividido
  el dominio global.
 \end_layout

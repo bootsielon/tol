@@ -1,14 +1,14 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
-// FILE   : DesignC2.tol
-// PURPOSE: Defines Class @DesignC2
+// FILE   : DesignC2.Monomial.Spheric.MeshFree.tol
+// PURPOSE: Defines Class @DesignC2.Monomial.Spheric.MeshFree.tol
 //////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.DesignC2.Monomial.Spheric.Grid = 
+Text _.autodoc.member.DesignC2.Monomial.Spheric.MeshFree.tol = 
 "";
-Class @DesignC2.Monomial.Spheric.Grid : 
+Class @DesignC2.Monomial.Spheric.MeshFree.tol : 
   @DesignC2.Monomial, 
   @DesignC2.Spheric
 //////////////////////////////////////////////////////////////////////////////
@@ -23,14 +23,14 @@ Class @DesignC2.Monomial.Spheric.Grid :
 //////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
-  Static @DesignC2.Monomial.Spheric.Grid New(
+  Static @DesignC2.Monomial.Spheric.MeshFree.tol New(
     VMatrix X, 
     Real radius.margin,
     Real radius,
     Real do.build.border)
   ////////////////////////////////////////////////////////////////////////////
   {
-    @DesignC2.Monomial.Spheric.Grid new =
+    @DesignC2.Monomial.Spheric.MeshFree.tol new =
     [[ 
       VMatrix _.X = X;
       Real    _.n = VColumns(X);
@@ -77,7 +77,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
       VMatrix _.Yb := Zeros(_.H,1);
       Real _.Tb := 0
     },{
-    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.border.points] ";
+    Text _MID = "[@DesignC2.Monomial.Spheric.MeshFree.tol::build.border.points] ";
     VMatrix   B.t  = Mat2VMat(SubCol(_.grid::_.border.assign,[[1]]));
     VMatrix _.B.h := Mat2VMat(SubCol(_.grid::_.border.assign,[[2]]));
     VMatrix _.B := SubRow(_.grid::_.border::_.Y, VCol2Set(B.t));
@@ -100,7 +100,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
     Real build.model.design(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.model.design] ";
+    Text _MID = "[@DesignC2.Monomial.Spheric.MeshFree.tol::build.model.design] ";
     FunRn2R::@BaseC2 base.max = 
       FunRn2R::@BaseC2.Monomial::New(_.n,max.deg);
     Set Append(_.base, [[base.max]]);

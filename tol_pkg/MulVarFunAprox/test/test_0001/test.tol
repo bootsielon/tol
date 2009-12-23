@@ -13,7 +13,7 @@ Real numErr0 = Copy(NError);
 Real numWar0 = Copy(NWarning);
 
 //Random seed setting
-Real PutRandomSeed(2131234);
+Real PutRandomSeed(234543);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -28,26 +28,26 @@ VMatrix generate.nodal.points(Real J, Real n)
   Group("ConcatColumns",For(1,n,VMatrix(Real i)
   {
     Real min = Rand(2,4);
-    Real len = Rand(5,10)*(i^(1/n));
+    Real len = Rand(5,10)*((i/n)^(1/n));
     Rand(J,1,min,min+len)
   }))
 };
-VMatrix X = generate.nodal.points(5000,2);
+VMatrix X = generate.nodal.points(15000,2);
 /* * /
 MulVarFunAprox::@DesignC2 design = {
   MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
-    X, radius.margin=0.05) };
+    X, radius.margin=0.1) };
 /* */
 MulVarFunAprox::@DesignC2 design = {
-  MulVarFunAprox::@DesignC2.Monomial.Spheric.Disconnected::New(
+  MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
     VMatrix X, 
     Real radius.margin = Sqrt(2)-1,
-    Real radius = .5,
+    Real radius = 0.5,
     Real do.build.border = False)};
 /* */
-Real design::max.deg := 3;
-Real design::use.compact.base := False;
-Real design::min.contrast.surface := 2.5;
+Real design::max.deg := 6;
+Real design::use.compact.base := True;
+Real design::min.contrast.surface := 2.0;
 
 Real t0 = Copy(Time);
 WriteLn("Building model design for "<<design::_.J+" points "<<
@@ -121,7 +121,7 @@ VMatrix der.2.eval.extra.base(VMatrix X)
   -Sin(X1)$*Sin(X2)
 };
 
-Real use_extra = True;
+Real use_extra = False;
 
 Code fun.eval   = If(use_extra,  fun.eval.extra.base,  fun.eval.intra.base);
 Code der.1.eval = If(use_extra,der.1.eval.extra.base,der.1.eval.intra.base);
@@ -203,6 +203,7 @@ VMatrix show.Y.Z =
   ((design::_.Y*0) <<  design::_.Z   ); 
 
 
+VMatrix Y.n.m = model::_.design::_.Yn | model::_.design::_.Ym;
 Real numErr1 = Copy(NError);
 Real numWar1 = Copy(NWarning);
 
