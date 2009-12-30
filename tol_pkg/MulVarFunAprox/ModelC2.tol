@@ -14,6 +14,12 @@ Class @ModelC2
   VMatrix _.Fx;
 
 //////////////////////////////////////////////////////////////////////////////
+//Configuration parameters
+//////////////////////////////////////////////////////////////////////////////
+  Real allow.MinimumResidualsSolve.Full = False;
+  Real allow.MinimumResidualsSolve.NonFull = False;
+
+//////////////////////////////////////////////////////////////////////////////
 //Auxiliar members
 //////////////////////////////////////////////////////////////////////////////
   VMatrix _.F = Rand(0,1,0,0);
@@ -35,7 +41,7 @@ Class @ModelC2
       @DesignC2 _.design = design;
       VMatrix _.Fx = Fx
     ]];
-    Real new::estimate(0);
+  //Real new::estimate(0);
     new
   };
 
@@ -71,13 +77,9 @@ Class @ModelC2
     Real design::build.decomposition(0);
     Real t.decomposition = Copy(Time)-t0;
     WriteLn("TRACE"+_MID+"Input decomposed in "<<t.decomposition+" seconds");
-    Real t0 := Copy(Time);
-    WriteLn("TRACE"+_MID+"Running regression model for design matrix "<<design::_.Q);
     MulVarFunAprox::@ModelC2 model = MulVarFunAprox::@ModelC2::New(
        design,
        Fx);
-    Real t.estimating = Copy(Time)-t0;
-    WriteLn("TRACE"+_MID+"Estimated model in "<<t.estimating+" seconds");
     model
   };
 
@@ -85,10 +87,37 @@ Class @ModelC2
     Real estimate(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
+    Real t0 := Copy(Time);
+    Text _MID = "[@ModelC2::estimate] ";
+    WriteLn("TRACE"+_MID+"Running regression model for design matrix "<<design::_.Q);
     VMatrix _.Fz := Rand(_.design::_.Mz,1,0,0);
     VMatrix _.Fb := Rand(_.design::_.Mb,1,0,0);
     VMatrix _.F := _.Fx << _.Fb << _.Fz;
-    VMatrix _.alpha := CholeskiSolve(_.design::_.LQ,Tra(Tra(_.F)*_.design::_.Q),"PtLLtP");
+    VMatrix _.alpha := Case(
+    EQ(VRows(_.design::_.LQ),design::_.N),
+    {
+      WriteLn("TRACE"+_MID+" 3.1 CholeskiSolve");
+      CholeskiSolve(_.design::_.LQ,Tra(Tra(_.F)*_.design::_.Q),"PtLLtP")
+    },
+    allow.MinimumResidualsSolve.Full & (_.design::_.M>_.design::_.N),
+    {
+      WriteLn("TRACE"+_MID+" 3.2 MinimumResidualsSolve full");
+      MinimumResidualsSolve(_.design::_.Q, _.F)
+    },
+    allow.MinimumResidualsSolve.NonFull,
+    {
+      WriteLn("TRACE"+_MID+" 3.3 MinimumResidualsSolve non full");
+      MinimumResidualsSolve(
+        _.design::_.Q<<Zeros(_.design::_.N-_.design::_.M,_.design::_.N), 
+        _.F)
+    },
+    1==1,
+    {
+      WriteLn(_MID+" Cannot solve linear system ","E");
+      Rand(_.design::_.N,1,0,0)
+    });
+    Real t.estimating = Copy(Time)-t0;
+    WriteLn("TRACE"+_MID+"Estimated model in "<<t.estimating+" seconds");
     VMatrix _.F.frc := SubRow(_.design::_.Q*_.alpha,Range(1,_.design::_.J,1));
     VMatrix _.F.cmp := _.Fx | _.F.frc;
     VMatrix _.E := _.Fx - _.F.frc;
@@ -99,19 +128,29 @@ Class @ModelC2
 
 
   //////////////////////////////////////////////////////////////////////////////
-    VMatrix evaluate(VMatrix X)
+    VMatrix evaluate(VMatrix X, Real defaultValue)
   //////////////////////////////////////////////////////////////////////////////
   {
     Real m = VRows(X);
     VMatrix X.match = _.design::match.evaluable(X);
-    Set X.select = MatQuery::SelectMatch(X.match);
-    VMatrix X.1 = SubRow(X,X.select);
+    Set X.1.select = MatQuery::SelectMatch(X.match);
+    VMatrix X.1 = SubRow(X,X.1.select);
     Real m.1 = VRows(X.1);
     VMatrix X.1.h = _.design::closest.reference.index(X.1);
     VMatrix QX.1 = _.design::build.obs(X.1, X.1.h);
     VMatrix F.1 = QX.1*_.alpha;
-    Matrix triplet.1 = SetCol(X.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
-    Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"))
+    Matrix triplet.1 = SetCol(X.1.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
+    VMatrix T.1 = Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"));
+    If(And(!IsUnknown(defaultValue),defaultValue==0), T.1, 
+    {
+      Set X.2.select = MatQuery::SelectMatch(Not(X.match));
+      VMatrix X.2 = SubRow(X,X.2.select);
+      Real m.2 = VRows(X.2);
+      VMatrix F.2 = Constant(m.2,1,defaultValue);
+      Matrix triplet.2 = SetCol(X.2.select)|Rand(m.2,1,1,1)|VMat2Mat(F.2);
+      VMatrix T.2 = Pack(Convert(Triplet(triplet.2,m,1),"Cholmod.R.Sparse"));
+      T.1+T.2
+    })
   };
 
   //////////////////////////////////////////////////////////////////////////////
