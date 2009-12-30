@@ -37,7 +37,6 @@ Class @DesignC2
   VMatrix _.Yn = Rand(0,1,0,0);
   VMatrix _.Z = Rand(0,2,0,0);
   VMatrix _.Z.h = Rand(0,1,0,0);
-  VMatrix _.Z.Y.neighbour= Rand(0,1,0,0);
   VMatrix _.B = Rand(0,2,0,0);
   VMatrix _.B.h = Rand(0,0,0,0);
   Real _.K = 0;
@@ -54,6 +53,7 @@ Class @DesignC2
   VMatrix _.QB = Rand(0,0,0,0);
   VMatrix _.PZ = Rand(0,0,0,0);
   VMatrix _.Q = Rand(0,0,0,0);
+  VMatrix _.QtQ = Rand(0,0,0,0);
   VMatrix _.LQ = Rand(0,0,0,0);
   VMatrix _.Q.nonNullCellsByColumns = Rand(0,0,0,0);
 
@@ -68,41 +68,16 @@ Class @DesignC2
   //////////////////////////////////////////////////////////////////////////////
   //Virtual methods
   //////////////////////////////////////////////////////////////////////////////
+  Set get.X.weight(Set X.dif, Set X.h);
+  Set get.X.weight.partial.derivative.1(Set X.dif, Set X.h, Real s);
   Real build.base(Real void);
   Real build.reference.points(Real void);
   Real build.stress.points(Real void);
   Real build.border.points(Real void);
   Real build.model.design(Real void);
-  VMatrix closest.reference.index(VMatrix X);
   VMatrix match.evaluable(VMatrix X);
-  Set get.X.weight(Set X.dif, Set X.h);
-  Set get.X.weight.partial.derivative.1(Set X.dif, Set X.h, Real s);
-
-  //////////////////////////////////////////////////////////////////////////////
-    Real _build.model.design(Real void)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    Text _MID = "[@DesignC2::_build.model.design] ";
-    WriteLn("TRACE "+_MID+"1");
-    Real build.reference.points(0);
-    WriteLn("TRACE "+_MID+"2");
-    Real build.stress.points(0);
-    WriteLn("TRACE "+_MID+"3");
-    Real build.border.points(0);
-    WriteLn("TRACE "+_MID+"4");
-    VMatrix _.Ym := _.Yj+((_.Yt+_.Yb)*Case(
-      prior.Z.order< 0, 0,
-      prior.Z.order==0, 1,
-      prior.Z.order==1, 1*(1+_.n),
-      prior.Z.order==2, 1*(1+_.n*3/2+(1/2)*_.n^2)));
-    WriteLn("TRACE "+_MID+"5");
-    Real _.M := _.J+_.Mb+_.Mz;
-    WriteLn("TRACE "+_MID+"6");
-    Real build.base(0);
-    WriteLn("TRACE "+_MID+"7");
-    Real _.N := VMatSum(_.Yn);
-    _.N<_.M
-  };
+  VMatrix closest.reference.index(VMatrix X);
+  VMatrix generate.internal.points(Real m);
 
   //////////////////////////////////////////////////////////////////////////////
     VMatrix build.obs(VMatrix X, VMatrix X.h)
@@ -116,8 +91,9 @@ Class @DesignC2
     If(!m, Rand(0,_.N,0,0), {
     WriteLn("TRACE "+_MID+"2");
     VMatrix X.j=DifEq(1/(1-B),Rand(m,1,1,1));
-    WriteLn("TRACE "+_MID+"3");
+    WriteLn("TRACE "+_MID+"3 X.h:\n"<<X.h);
     Set X.h_ = For(1,_.X.maxNeighbour,VMatrix(Real i) { SubCol(X.h,[[i]]) });
+    WriteLn("TRACE "+_MID+"3.1");
     Set X.dif = For(1,_.X.maxNeighbour,VMatrix(Real i)
     {
       Set X.h.i = VCol2Set(X.h_[i]);
@@ -149,7 +125,7 @@ Class @DesignC2
         SubRow(VMat2Mat(X.j.i | (X.hik) | qk),MatQuery::SelectMatch(match))
       }))
     }));
-    WriteLn("TRACE "+_MID+"6");
+    WriteLn("TRACE "+_MID+"6 Rows(QX.triplet)="<<Rows(QX.triplet));
     Pack(Convert(Triplet(QX.triplet, m, _.N),"Cholmod.R.Sparse"))
   })};
 
@@ -322,6 +298,33 @@ Class @DesignC2
     }));
     Convert(Triplet(PZ.triplet, _.Mz, _.N),"Cholmod.R.Sparse")
   })};
+
+  //////////////////////////////////////////////////////////////////////////////
+    Real _build.model.design(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2::_build.model.design] ";
+    WriteLn("TRACE "+_MID+"1");
+    Real build.reference.points(0);
+    WriteLn("TRACE "+_MID+"2");
+    Real build.stress.points(0);
+    WriteLn("TRACE "+_MID+"3");
+    Real build.border.points(0);
+    WriteLn("TRACE "+_MID+"4");
+    VMatrix _.Ym := _.Yj+((_.Yt+_.Yb)*Case(
+      prior.Z.order< 0, 0,
+      prior.Z.order==0, 1,
+      prior.Z.order==1, 1*(1+_.n),
+      prior.Z.order==2, 1*(1+_.n*3/2+(1/2)*_.n^2)));
+    WriteLn("TRACE "+_MID+"5");
+    Real _.M := _.J+_.Mb+_.Mz;
+    WriteLn("TRACE "+_MID+"6");
+    Real build.base(0);
+    WriteLn("TRACE "+_MID+"7");
+    Real _.N := VMatSum(_.Yn);
+    _.N<_.M
+  };
+
   //////////////////////////////////////////////////////////////////////////////
     Real build.decomposition(Real void)
   //////////////////////////////////////////////////////////////////////////////
@@ -348,7 +351,18 @@ Class @DesignC2
     };
 */
     WriteLn("TRACE "+_MID+"6");
-    VMatrix _.LQ := CholeskiFactor(_.Q,"XtX");
+    VMatrix _.QtQ := MtMSqr(_.Q);
+    VMatrix _.LQ := CholeskiFactor(_.QtQ,"X",False,False);
+    Real iter = 1;
+    Real lambda = 1.e-15;
+    While(And(!VRows(_.LQ), iter<=10),
+    {
+      VMatrix _.QtQ := _.QtQ + Eye(_.N,_.N,0,lambda);
+      VMatrix _.LQ := CholeskiFactor(_.QtQ,"X",False,False);
+      Real lambda := lambda * 2;
+      Real iter := iter+1
+    });
+  //VMatrix _.LQ := CholeskiFactor(_.Q,"XtX");
     WriteLn("TRACE "+_MID+"7");
     True
   }
