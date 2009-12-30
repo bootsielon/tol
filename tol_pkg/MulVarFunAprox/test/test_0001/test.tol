@@ -28,11 +28,11 @@ VMatrix generate.nodal.points(Real J, Real n)
   Group("ConcatColumns",For(1,n,VMatrix(Real i)
   {
     Real min = Rand(2,4);
-    Real len = Rand(5,10)*((i/n)^(1/n));
+    Real len = Rand(5,15)*((i/n)^(1/n));
     Rand(J,1,min,min+len)
   }))
 };
-VMatrix X = generate.nodal.points(15000,2);
+VMatrix X = generate.nodal.points(5000,2);
 /* * /
 MulVarFunAprox::@DesignC2 design = {
   MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
@@ -46,7 +46,7 @@ MulVarFunAprox::@DesignC2 design = {
     Real do.build.border = False)};
 /* */
 Real design::max.deg := 6;
-Real design::use.compact.base := True;
+Real design::use.compact.base := False;
 Real design::min.contrast.surface := 2.0;
 
 Real t0 = Copy(Time);
@@ -121,7 +121,7 @@ VMatrix der.2.eval.extra.base(VMatrix X)
   -Sin(X1)$*Sin(X2)
 };
 
-Real use_extra = False;
+Real use_extra = True;
 
 Code fun.eval   = If(use_extra,  fun.eval.extra.base,  fun.eval.intra.base);
 Code der.1.eval = If(use_extra,der.1.eval.extra.base,der.1.eval.intra.base);
@@ -132,15 +132,16 @@ Code der.2.eval = If(use_extra,der.2.eval.extra.base,der.2.eval.intra.base);
 
 VMatrix F_X= fun.eval(design::_.X);
 
-Real t0 := Copy(Time);
-WriteLn("Running regression model for design matrix "<<design::_.Q);
+Real box.cox.exp = 1;
 MulVarFunAprox::@ModelC2 model = MulVarFunAprox::@ModelC2::New(
    design,
-   F_X);
+   RPow(F_X,box.cox.exp));
+WriteLn("Running regression model for design matrix "<<design::_.Q);
+Real t0 := Copy(Time);
+Real model::estimate(0);
 Real t.estimating = Copy(Time)-t0;
 WriteLn("Estimated model in "<<t.estimating+" seconds");
-
-
+/*
 VMatrix dF_X1 = der.1.eval(design::_.X);
 VMatrix dF_X2 = der.2.eval(design::_.X);
 
@@ -158,16 +159,14 @@ Real dF_X1_err.ste = VMatStDs(dF_X1_err);
 Real dF_X2_err.avr = VMatAvr (dF_X2_err);
 Real dF_X2_err.ste = VMatStDs(dF_X2_err);
 
-
-VMatrix X2 = { design::generate.internal.points(
-  Real m = design::_.J/2,
-  True)};
+*/
+VMatrix X2 = { design::generate.internal.points(Real m = design::_.J/2)};
 
 Real b::upgrade.cache(X2,0,0);
 VMatrix Fx2 = fun.eval(X2);
 Real t0 := Copy(Time);
 WriteLn("Evaluating forecast for "<<VRows(X2)+" points...");
-VMatrix F2.frc = model::evaluate(X2);
+VMatrix F2.frc = model::evaluate(X2,0);
 Real t.forecasting = Copy(Time)-t0;
 WriteLn("Evaluated forecast in "<<t.forecasting+" seconds");
 WriteLn("Forecast time by point "<<(t.forecasting/VRows(X2))+" seconds");
@@ -204,6 +203,72 @@ VMatrix show.Y.Z =
 
 
 VMatrix Y.n.m = model::_.design::_.Yn | model::_.design::_.Ym;
+
+VMatrix xyz = X|F_X;
+
+Matrix MatWriteFile("real.xyz.bbm",VMat2Mat(xyz));
+
+VMatrix _.X = X;
+Real _.n = VColumns(_.X);
+    Set _.X.col.info = For(1,_.n,Set(Real i)
+    {[[
+      VMatrix col = SubCol(_.X,[[i]]);
+      Real min = VMatMin(col);
+      Real max = VMatMax(col);
+      Real length = max-min;
+      Set Range(min,max,length/99)
+    ]]});
+VMatrix grid.X = Mat2VMat(SetMat(Group("CartProd",Traspose(Extract(_.X.col.info,5))[1])));
+VMatrix grid.F = RPow(model::evaluate(grid.X,?),1/box.cox.exp);
+
+//Rango de latitudes
+Matrix x = SetCol(_.X.col.info[1][5]);
+//Rango de latitudes
+Matrix y = SetCol(_.X.col.info[2][5]);
+Matrix z = 
+{
+  Matrix aux= Group("ConcatColumns",For(1,Rows(x),Matrix(Real j)
+  {
+    VMat2Mat(SubRow(grid.F, Range(1+(j-1)*Rows(y),(j)*Rows(y),1)))
+  }));
+  Tra(aux)
+};
+
+Matrix MatWriteFile("aprox.x.bbm",x);
+Matrix MatWriteFile("aprox.y.bbm",y);
+Matrix MatWriteFile("aprox.z.bbm",z);
+
+Set BMTFile([[z]],"aprox.grid.csv");
+
+Text currentDir = GetAbsolutePath(GetFilePath(GetSourcePath(z)));
+Text WriteFile("show.R", 
+"
+library(rgl)
+
+################################################################################
+read.bbm <-
+################################################################################
+function(fbbm) {
+  fd = file(fbbm, open='rb')
+  dim <- readBin(fd,integer(), n=2)
+  data<-readBin(fd,double(),n=dim[1]*dim[2])
+  close(fd)
+  matrix(data, nrow=dim[1], ncol=dim[2], byrow=TRUE)
+}
+
+x<-t(read.bbm(\""+currentDir+"aprox.x.bbm\")) 
+ y<-t(read.bbm(\""+currentDir+"aprox.y.bbm\")) 
+ z<-read.bbm(\""+currentDir+"aprox.z.bbm\")
+xyz.real <- read.bbm(\""+currentDir+"real.xyz.bbm\")
+open3d()
+bg3d(\"white\")
+
+persp3d(x[,],y[,],z, xlim = range(x, na.rm = TRUE), ylim = range(y, na.rm = TRUE), col=\"green\")
+points3d(xyz.real)
+");
+
+Real OSCmdWait("Rgui CMD BATCH --vanilla show.R show.R.log");
+/*
 Real numErr1 = Copy(NError);
 Real numWar1 = Copy(NWarning);
 
