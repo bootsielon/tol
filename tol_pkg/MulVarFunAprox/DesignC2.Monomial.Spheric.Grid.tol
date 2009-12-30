@@ -24,7 +24,6 @@ Class @DesignC2.Monomial.Spheric.Grid :
 //////////////////////////////////////////////////////////////////////////////
 //Auxiliar members
 //////////////////////////////////////////////////////////////////////////////
-  VMatrix _.Y.h = Rand(0,0,0,0);
   VMatrix _.Y.neighbourhood = Rand(0,0,0,0);
 
   ////////////////////////////////////////////////////////////////////////////
@@ -49,32 +48,17 @@ Class @DesignC2.Monomial.Spheric.Grid :
   };
 
   //////////////////////////////////////////////////////////////////////////////
-  VMatrix get.radius(VMatrix Y.idx)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    Constant(VRows(Y.idx),1,_.radius)
-  };
-
-  //////////////////////////////////////////////////////////////////////////////
-  VMatrix closest.reference.index(VMatrix X)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    WriteLn("TRACE [closest.reference.index] 1");
-    SubRow(_.Y.neighbourhood, Col2Set(_.grid::point2index(X)))
-  };
-
-  //////////////////////////////////////////////////////////////////////////////
   Real build.reference.points(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.reference.points] ";
     VMatrix _.Y := _.grid::_.Y;
-    VMatrix _.Y.h := Mat2VMat(_.grid::_.Y.h);
-    VMatrix _.Y.neighbourhood := _.Y.h | Group("ConcatColumns",
+    VMatrix Y.h = Mat2VMat(_.grid::_.Y.h);
+    VMatrix _.Y.neighbourhood := Y.h | Group("ConcatColumns",
     For(1,2*_.n, VMatrix(Real i)
     {
       VMatrix aux = SubCol(_.grid::_.Y.neighbourhood.index,[[i]]);
-      IfVMat(aux,aux,_.Y.h)
+      IfVMat(aux,aux,Y.h)
     }));
     Set X.class = Classify(Col2Set(_.grid::point2index(_.X)),Compare);
     VMatrix _.Yj := Mat2VMat(SetMat([[EvalSet(X.class,Card)]]),1);
@@ -86,7 +70,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
   Real build.stress.points(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[@DesignC2.Spheric::build.stress.points] ";
+    Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.stress.points] ";
     WriteLn("TRACE "+_MID+"1");
     Real _.Z.maxNeighbour := If(prior.Z.order>=0,2,0);
     Matrix Y.neighbour.triplet = Group("ConcatRows", For(1,_.H,Matrix(Real h)
@@ -132,7 +116,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
     VMatrix _.Z := SubRow(Z.interior, sel.unique);
     VMatrix _.Z.h := SubRow(Z.h.interior, sel.unique);
     Real _.Tz := VRows(_.Z);
-    VMatrix _.Z.Y.neighbour := 
+    VMatrix Z.Y.neighbour = 
     {
       Matrix Z.t = DifEq(1/(1-B),Rand(_.Tz,1,1,1));
       Matrix Z.th = (Z.t << Z.t) | 
@@ -146,7 +130,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
         VMatrix Z.Y.match = LE(Z.Y.tao,Rand(VRows(Z.Y.tao),1,1,1));
       SubRow(Mat2VMat(Z.Y.idx),MatQuery::SelectMatch(Z.Y.match))
     };
-    VMatrix aux = MatQuery::SortAndCount(SubCol(_.Z.Y.neighbour,[[2]]));
+    VMatrix aux = MatQuery::SortAndCount(SubCol(Z.Y.neighbour,[[2]]));
     VMatrix _.Yt := Triplet(VMat2Mat(SubCol(aux,[[1]])) |  
                             Rand(VRows(aux),1,1,1) | 
                             VMat2Mat(SubCol(aux,[[2]])),_.H,1);
@@ -185,17 +169,19 @@ Class @DesignC2.Monomial.Spheric.Grid :
     })
   };
 
-  ///////////////////////////////////////////////////////////////////////////
-    VMatrix generate.internal.points(
-      Real m, 
-      Real force.reference.near.nodal)
-  ///////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+  VMatrix get.radius(VMatrix Y.idx)
+  //////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix h = Round(Rand(m,1,0.5,_.H+0.499999999));
-    VMatrix y = SubRow(_.Y,VCol2Set(h));
-    VMatrix v = Gaussian(m,_.n,0,1);
-    VMatrix u = v*(VMatDat(MtMSqr(v),1,1)^-0.5);
-    y+u*(Rand(0,1)*_.radius)
+    Constant(VRows(Y.idx),1,_.radius)
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  VMatrix closest.reference.index(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    WriteLn("TRACE [closest.reference.index] 1");
+    SubRow(_.Y.neighbourhood, Col2Set(_.grid::point2index(X)))
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -204,15 +190,18 @@ Class @DesignC2.Monomial.Spheric.Grid :
   {
     Real m = VRows(X);
     Mat2VMat(_.grid::point2index(X))
-/*
-    VMatrix X.closest.index = closest.reference.index(X);
-    VMatrix X.h=SubRow(SubCol(_.Y.neighbourhood,[[1]]), 
-                       VCol2Set(X.closest.index)); 
-    VMatrix X.dif = X - SubRow(_.Y,VCol2Set(X.h));
-    VMatrix X.norm2 = RPow(X.dif,2)*Rand(_.n,1,1,1);
-    VMatrix X.tao = RPow(X.norm2,0.5)/_.radius;
-    LE(X.tao,Rand(m,1,1,1))
-*/
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+    VMatrix generate.internal.points(Real m)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix h = Round(Rand(m,1,0.5,_.H+0.499999999));
+    VMatrix y = SubRow(_.Y,VCol2Set(h));
+    VMatrix v = Gaussian(m,_.n,0,1);
+    VMatrix u = v*(VMatDat(MtMSqr(v),1,1)^-0.5);
+    y+u*(Rand(0,1)*_.radius)
   }
+
 
 };
