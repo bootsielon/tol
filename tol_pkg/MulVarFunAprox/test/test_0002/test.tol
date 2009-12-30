@@ -1,0 +1,293 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Package MulVarFunAprox test
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = ""; 
+Text summary_ = "Test for mutivariant function aproximation";
+
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+#Require MulVarFunAprox;
+//#Embed "../../MulVarFunAprox.tol";
+
+
+//////////////////////////////////////////////////////////////////////////////
+VMatrix generate.nodal.points(Real J, Real n)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Group("ConcatColumns",For(1,n,VMatrix(Real i)
+  {
+    Real min = Rand(2,4);
+    Real len = Rand(5,15)*((i/n)^(1/n));
+    Rand(J,1,min,min+len)
+  }))
+};
+VMatrix X = generate.nodal.points(500,2);
+/* * /
+MulVarFunAprox::@DesignC2 design = {
+  MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
+    X, radius.margin=0.1) };
+/* */
+WriteLn("TRACE 1");
+MulVarFunAprox::@DesignC2 design = {
+  MulVarFunAprox::@DesignC2.Monomial.Spheric.MeshFree::New(
+    VMatrix X, 
+    Real maxNeighbour = 4*VColumns(X),
+    Real stress.maxDistance_ = 5) };
+/* */
+WriteLn("TRACE 2");
+Real design::max.deg := 8;
+Real design::prior.Z.order := 2;
+Real design::use.compact.base := False;
+Real design::min.contrast.surface := 1.0;
+
+Real t0 = Copy(Time);
+WriteLn("Building model design for "<<design::_.J+" points "<<
+  "of dimension "<<design::_.n+" ...");
+Real deg = design::build.model.design(0);
+Real t.building = Copy(Time)-t0;
+WriteLn("Built model design in "<<t.building+" seconds");
+
+Real t0 := Copy(Time);
+WriteLn("Building design decomposition for design matrix ("<<
+  design::_.M+"x"<<design::_.N+") ...");
+Real design::build.decomposition(0);
+Real t.decomposition = Copy(Time)-t0;
+WriteLn("Input decomposed in "<<t.decomposition+" seconds");
+
+FunRn2R::@BaseC2 b = design::get.base(0);
+
+FunRn2R::@FunC2 base.random.fun=FunRn2R::@FunC2.InBaseC2::Random(b, 1);
+
+
+//////////////////////////////////////////////////////////////////////////////
+VMatrix fun.eval.intra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  VMatrix one = X1*0+1;
+  one*7 -X1 +X2*2 -X1$*X1*3 +X1$*X2 +X1$*X1$*X1*0.4 -X1$*X2$*X2*0.1
+};
+//////////////////////////////////////////////////////////////////////////////
+VMatrix der.1.eval.intra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  VMatrix one = X1*0+1;
+    -one    -X1*6  +X2 +X1$*X1*1.2 - X2$*X2*0.1
+};
+//////////////////////////////////////////////////////////////////////////////
+VMatrix der.2.eval.intra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  VMatrix one = X1*0+1;
+   one*2 +X2 -X1$*X2*0.2
+};
+
+//////////////////////////////////////////////////////////////////////////////
+VMatrix fun.eval.extra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  Sin(X1)$*Cos(X2)
+};
+//////////////////////////////////////////////////////////////////////////////
+VMatrix der.1.eval.extra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  Cos(X1)$*Cos(X2)
+};
+//////////////////////////////////////////////////////////////////////////////
+VMatrix der.2.eval.extra.base(VMatrix X) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  VMatrix X1 =SubCol(X,[[1]]);
+  VMatrix X2 =SubCol(X,[[2]]);
+  -Sin(X1)$*Sin(X2)
+};
+
+Real use_extra = True;
+
+Code fun.eval   = If(use_extra,  fun.eval.extra.base,  fun.eval.intra.base);
+Code der.1.eval = If(use_extra,der.1.eval.extra.base,der.1.eval.intra.base);
+Code der.2.eval = If(use_extra,der.2.eval.extra.base,der.2.eval.intra.base);
+
+//Real b::upgrade.cache(design::_.X,0,0);
+//Code fun.eval = base.random.fun::eval.function.v;
+
+VMatrix F_X= fun.eval(design::_.X);
+
+Real box.cox.exp = 1;
+MulVarFunAprox::@ModelC2 model = MulVarFunAprox::@ModelC2::New(
+   design,
+   RPow(F_X,box.cox.exp));
+WriteLn("Running regression model for design matrix "<<design::_.Q);
+Real t0 := Copy(Time);
+Real model::estimate(0);
+Real t.estimating = Copy(Time)-t0;
+WriteLn("Estimated model in "<<t.estimating+" seconds");
+
+/*
+VMatrix dF_X1 = der.1.eval(design::_.X);
+VMatrix dF_X2 = der.2.eval(design::_.X);
+
+VMatrix dF_X1_ = model::evaluate.partial.derivative.1(design::_.X, 1);
+VMatrix dF_X2_ = model::evaluate.partial.derivative.1(design::_.X, 2);
+
+VMatrix dF_X1_cmp = dF_X1 | dF_X1_;
+VMatrix dF_X2_cmp = dF_X2 | dF_X2_;
+
+VMatrix dF_X1_err = dF_X1 - dF_X1_;
+VMatrix dF_X2_err = dF_X2 - dF_X2_;
+
+Real dF_X1_err.avr = VMatAvr (dF_X1_err);
+Real dF_X1_err.ste = VMatStDs(dF_X1_err);
+Real dF_X2_err.avr = VMatAvr (dF_X2_err);
+Real dF_X2_err.ste = VMatStDs(dF_X2_err);
+
+*/
+VMatrix X2 = { design::generate.internal.points(Real m = design::_.J/2)};
+
+Real b::upgrade.cache(X2,0,0);
+VMatrix Fx2 = fun.eval(X2);
+Real t0 := Copy(Time);
+WriteLn("Evaluating forecast for "<<VRows(X2)+" points...");
+VMatrix F2.frc = model::evaluate(X2,0);
+Real t.forecasting = Copy(Time)-t0;
+WriteLn("Evaluated forecast in "<<t.forecasting+" seconds");
+WriteLn("Forecast time by point "<<(t.forecasting/VRows(X2))+" seconds");
+VMatrix F2.cmp = Fx2 | F2.frc;
+VMatrix E2 = Fx2 - F2.frc;
+Real E2.avr = VMatAvr(E2);
+Real E2.ste = VMatStDs(E2);
+
+Real q.1 = 1-model::_.E.ste;
+Real q.2 = 1-E2.ste;
+Set View([[
+  Real design::_.n, design::_.K, design::_.J, design::_.H, 
+  design::_.X.maxNeighbour, design::_.Z.maxNeighbour,
+  design::_.Tz, design::_.N, design::_.Mz, design::_.M, 
+  model::_.E.avr, model::_.E.ste,
+  "\n"]],"");
+
+Set View([[
+  E2.avr, E2.ste, 
+  "\n"]],"");
+
+VMatrix show.X.Y = 
+  ((design::_.X*0) <<  design::_.Y   ) |
+  ( design::_.X    << (design::_.Y*0)); 
+
+VMatrix show.X.Y.Z = 
+  ( design::_.X    << (design::_.Y*0) << (design::_.Z*0)) |
+  ((design::_.X*0) <<  design::_.Y    << (design::_.Z*0)) | 
+  ((design::_.X*0) << (design::_.Y*0) <<  design::_.Z   ); 
+
+VMatrix show.Y.Z = 
+  ( design::_.Y    << (design::_.Z*0)) | 
+  ((design::_.Y*0) <<  design::_.Z   ); 
+
+
+VMatrix Y.n.m = model::_.design::_.Yn | model::_.design::_.Ym;
+
+VMatrix xyz = X|F_X;
+
+Matrix MatWriteFile("real.xyz.bbm",VMat2Mat(xyz));
+
+VMatrix _.X = X;
+Real _.n = VColumns(_.X);
+    Set _.X.col.info = For(1,_.n,Set(Real i)
+    {[[
+      VMatrix col = SubCol(_.X,[[i]]);
+      Real min = VMatMin(col);
+      Real max = VMatMax(col);
+      Real length = max-min;
+      Set Range(min,max,length/99)
+    ]]});
+VMatrix grid.X = Mat2VMat(SetMat(Group("CartProd",Traspose(Extract(_.X.col.info,5))[1])));
+VMatrix grid.F = RPow(model::evaluate(grid.X,0),1/box.cox.exp);
+
+//Rango de latitudes
+Matrix x = SetCol(_.X.col.info[1][5]);
+//Rango de latitudes
+Matrix y = SetCol(_.X.col.info[2][5]);
+Matrix z = 
+{
+  Matrix aux= Group("ConcatColumns",For(1,Rows(x),Matrix(Real j)
+  {
+    VMat2Mat(SubRow(grid.F, Range(1+(j-1)*Rows(y),(j)*Rows(y),1)))
+  }));
+  Tra(aux)
+};
+
+Matrix MatWriteFile("aprox.x.bbm",x);
+Matrix MatWriteFile("aprox.y.bbm",y);
+Matrix MatWriteFile("aprox.z.bbm",z);
+
+Set BMTFile([[z]],"aprox.grid.csv");
+
+Text currentDir = GetAbsolutePath(GetFilePath(GetSourcePath(z)));
+Text WriteFile("show.R", 
+"
+library(rgl)
+
+################################################################################
+read.bbm <-
+################################################################################
+function(fbbm) {
+  fd = file(fbbm, open='rb')
+  dim <- readBin(fd,integer(), n=2)
+  data<-readBin(fd,double(),n=dim[1]*dim[2])
+  close(fd)
+  matrix(data, nrow=dim[1], ncol=dim[2], byrow=TRUE)
+}
+
+x<-t(read.bbm(\""+currentDir+"aprox.x.bbm\")) 
+ y<-t(read.bbm(\""+currentDir+"aprox.y.bbm\")) 
+ z<-read.bbm(\""+currentDir+"aprox.z.bbm\")
+xyz.real <- read.bbm(\""+currentDir+"real.xyz.bbm\")
+open3d()
+bg3d(\"white\")
+
+persp3d(x[,],y[,],z, xlim = range(x, na.rm = TRUE), ylim = range(y, na.rm = TRUE), col=\"green\")
+points3d(xyz.real)
+");
+
+/*
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[numErr0, numErr1, 
+                        q.1, q.2]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr1 == numErr0, 
+                    numWar1 == numWar0)*Min(q.1,q.2);
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
