@@ -26,7 +26,7 @@ Class @DesignC2.Monomial : @DesignC2
   //////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[@DesignC2.Monomial::build.base] ";
-    Real max.K = Min(_.K0, Floor(_.M/(_.H*min.contrast.surface)));
+    Real max.K = Max(1,Min(_.K0, Floor(_.M/(_.H*min.contrast.surface))));
     FunRn2R::@BaseC2 base.feasible = If(use.compact.base,
     {
       FunRn2R::@BaseC2.LinComb::Compact.K(_.base[1],_.K0)
