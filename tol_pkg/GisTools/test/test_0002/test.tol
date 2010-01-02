@@ -1,0 +1,81 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Package GisTools test
+//////////////////////////////////////////////////////////////////////////////
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = ""; 
+Text summary_ = "Test for UTM formulaes";
+
+//Write here the initial test TOL code if needed
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+#Require GisTools;
+//#Embed "../../../_embed_all.tol";
+
+Set GisTools::@UTMFormula::datum;
+/* */
+
+  Matrix data = Include("sample.bmt")[1];
+  VMatrix lon = Mat2VMat(SubCol(data,[[1]]));
+  VMatrix lat = Mat2VMat(SubCol(data,[[2]]));
+  VMatrix deg = lon|lat;
+  VMatrix lonZone = Mat2VMat(SubCol(data,[[3]]));
+  VMatrix latZone = Floor(lat/8)*8;
+  VMatrix x = Mat2VMat(SubCol(data,[[4]]));
+  VMatrix y = Mat2VMat(SubCol(data,[[5]]));
+  VMatrix utm = x|y;
+
+/* * /
+VMatrix deg = Mat2VMat(Row(80.05111111,57.38666667));
+VMatrix utm = Mat2VMat(Row(442957.26,6360827.14));
+/* * /
+VMatrix deg = { 
+Matrix aux= (
+(80.05111111,-57.38666667),
+(80.05111111,10.38666667),
+(80.05111111,-10.38666667),
+(80.05111111,57.38666667));
+Mat2VMat(aux)};
+VMatrix utm = { 
+Matrix aux= (
+(442957.26,3639172.86),
+(396126.87,1148319.33),
+(396126.87,8851680.67),
+(442957.26,6360827.14));
+Mat2VMat(aux)};
+/* */
+Real zone = 44;
+VMatrix utm_ = GisTools::@UTMFormula::datum::WGS84::deg2utm(deg,lonZone);
+VMatrix deg_ = GisTools::@UTMFormula::datum::WGS84::utm2deg(utm,lonZone,latZone);
+
+VMatrix cmp = deg | deg_ | utm | utm_ | lonZone | latZone;
+  Real deg.quality = Max(0,1-VMatMax(Abs(deg-deg_)));
+  Real utm.quality = Max(0,1-VMatMax(Round(Abs(utm-utm_))))
+
+/*
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[numErr0, numErr1]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr1 == numErr0);
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
