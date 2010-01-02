@@ -123,11 +123,12 @@ Class @UTMFormula
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Static Set datum = Copy(Empty); 
-  Static Real BuildDatum(Real void)
+  Static Set _datum = Copy(Empty); 
+  Static Set Datum(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set datum := [[
+    If(Card(_datum),_datum, {
+    Set _datum := [[
     @UTMFormula::New("NAD83",              6378137,   6356752.3142, "Global");
     @UTMFormula::New("WGS84",              6378137,   6356752.3142, "Global");
     @UTMFormula::New("GRS80",              6378137,   6356752.3141, "US");
@@ -141,8 +142,8 @@ Class @UTMFormula
     @UTMFormula::New("Airy.1830",          6377563.4, 6356256.9,    "Great Britain");
     @UTMFormula::New("Bessel.1841",        6377397.2, 6356079.0,    "Central Europe, Chile, Indonesia");
     @UTMFormula::New("Everest.1830",       6377276.3, 6356075.4,    "South Asia") ]];
-    Real SetIndexByName(datum);
-    True
+    Real SetIndexByName(_datum);
+    _datum})
   };
 
 
@@ -338,9 +339,6 @@ Class @UTMFormula
     utm2rad(xy,lonZone,latZone)/deg2rad
   }
 };
-
-
-Real _UTMFormula.BuildDatum = @UTMFormula::BuildDatum(?);
 
 //////////////////////////////////////////////////////////////////////////////
 //Abstract class to handle with a bidimensional point.
