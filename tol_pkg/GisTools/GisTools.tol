@@ -18,6 +18,321 @@ Set _.autodoc.keys = [["GIS","Geographic","point","distance"]];
 Set _.autodoc.authors = [[
    "vdebuen@tol-project.org"   ]];
 
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Abstract class to handle with Universal Transverse Mercator System
+//http://www.uwgb.edu/dutchs/UsefulData/UTMFormulas.HTM
+Class @UTMFormula
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Convertingfactor from decimal degrees to radians
+  Static Real deg2rad = Pi/180;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //UTM Datum defining
+  ////////////////////////////////////////////////////////////////////////////
+  //Datum name
+  Text _.name;
+  //Equatorial Radius, meters
+  Real _.a;
+  //Polar Radius, meters
+  Real _.b;
+  //Geographic zone of application
+  Text _.use;
+
+  //scale along central meridian of zone. Even though it´s a constant, 
+  //we retain it as a separate symbol to keep the numerical 
+  //coefficients simpler, also to allow for systems that might use 
+  //a different Mercator projection.
+  Real _.k0 = 0.9996;
+  //eccentricity of the earth´s elliptical cross-section.
+  Real _.e = ?;
+  //auxiliar transformed eccentricity.
+  Real _.e.2 = ?;
+  Real _.e_1 = ?;
+  //auxiliar ratio of difference and sum of elliptic radius
+  Real _.n = ?;
+  //auxiliar variables used to calculate Meridional Arc
+  Real _.A = ?;
+  Real _.B = ?;
+  Real _.C = ?;
+  Real _.D = ?;
+  Real _.E = ?;
+  //auxiliar variables used to calculate Footprint Latitude
+  Real _.J1 = ?;
+  Real _.J2 = ?;
+  Real _.J3 = ?;
+  Real _.J4 = ?;
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialice(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real e2 = 1-(_.b/_.a)^2;
+    Real _.e := Sqrt(e2);
+    Real e4 = _.e^4;
+    Real e6 = _.e^6;
+    Real _.e.2 := e2/(1-e2);
+    Real _.n := (_.a-_.b)/(_.a+_.b);
+    Real _.e_1 := (1-Sqrt((1-e2)))/(1+Sqrt((1-e2)));
+    //Calculating the arc length of an ellipse involves functions called 
+    //elliptic integrals, which don´t reduce to neat closed formulas. 
+    //So they have to be represented as series.
+/* */
+    //Army form
+    Real n23 = _.n^2-_.n^3;
+    Real n45 = _.n^4-_.n^5;
+    Real _.A := +_.a*                  (1-_.n + (5/4)*n23 + (81/64)*n45);
+    Real _.B := -_.a*((3/2)    *_.n*   (1-_.n + (7/8)*n23 + (55/64)*n45));
+    Real _.C := +_.a*((15/16)  *_.n^2* (1-_.n + (3/4)*n23));
+    Real _.D := -_.a*((35/48)  *_.n^3* (1-_.n + (11/16)*n23));
+    Real _.E := +_.a*((315/512)*_.n^4* (1-_.n));
+/* * /
+    //The USGS gives this form, which may be more appealing to some. 
+    Real _.A := +_.a*(1-  e2/4 -3*e4/64  - 5*e6/256 );
+    Real _.B := -_.a*(  3*e2/8 +3*e4/32  +45*e6/1024);
+    Real _.C := +_.a*(         15*e4/256 +45*e6/1024);
+    Real _.D := -_.a*(                    35*e6/3072);
+    Real _.E := 0;
+/* */
+    //Auxiliar variables to calculate Footprint Latitude
+    Real E1 = _.e_1;
+    Real E2 = _.e_1^2;
+    Real E3 = _.e_1^3;
+    Real E4 = _.e_1^4;
+    Real _.J1 := 3*E1/2 - 27*E3/32;
+    Real _.J2 := 21*E2/16 - 55*E4/32;
+    Real _.J3 := 151*E3/96;
+    Real _.J4 := 1097*E4/512;
+
+    True
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static @UTMFormula New(Text name, Real a, Real b, Text use)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @UTMFormula aux = [[
+      Text _.name = name;
+      Text _.use = use;
+      Real _.a = a;
+      Real _.b = b
+    ]];
+    Real aux::initialice(?);
+    Eval(name+"=aux")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Set datum = Copy(Empty); 
+  Static Real BuildDatum(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set datum := [[
+    @UTMFormula::New("NAD83",              6378137,   6356752.3142, "Global");
+    @UTMFormula::New("WGS84",              6378137,   6356752.3142, "Global");
+    @UTMFormula::New("GRS80",              6378137,   6356752.3141, "US");
+    @UTMFormula::New("WGS72",              6378135,   6356750.5,    "NASA, DOD");
+    @UTMFormula::New("Australian.1965",    6378160,   6356774.7,    "Australia");
+    @UTMFormula::New("Krasovsky.1940",     6378245,   6356863.0,    "Soviet Union");
+    @UTMFormula::New("International.1924", 6378388,   6356911.9,    "Global except as listed");
+    @UTMFormula::New("Hayford.1909",       6378388,   6356911.9,    "Global except as listed");
+    @UTMFormula::New("Clake.1880",         6378249.1, 6356514.9,    "France, Africa");
+    @UTMFormula::New("Clarke.1866",        6378206.4, 6356583.8,    "North America");
+    @UTMFormula::New("Airy.1830",          6377563.4, 6356256.9,    "Great Britain");
+    @UTMFormula::New("Bessel.1841",        6377397.2, 6356079.0,    "Central Europe, Chile, Indonesia");
+    @UTMFormula::New("Everest.1830",       6377276.3, 6356075.4,    "South Asia") ]];
+    Real SetIndexByName(datum);
+    True
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.get.zone.deg= "Returns UTM zone of longitude "
+  "in degrees";
+  Static VMatrix get.zone.deg(Real long)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(long<0,Floor((180+long)/6)+1,Floor(long/6)+31)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.get.zone.rad = "Returns UTM zone of longitude "
+  "in radians";
+  Static VMatrix get.zone.rad(Real long)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @UTMFormula::get.zone.deg(long/deg2rad)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.get.zoneCentralMeridian.deg= 
+  "Returns central meridian of UTM zone for given longitude in degrees";
+  Static VMatrix get.zoneCentralMeridian.deg(Real long)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    6*@UTMFormula::get.zone.deg(long)-183
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.get.zoneCentralMeridian.rad = 
+  "Returns entral meridian of UTM zone for given longitude in radians";
+  Static VMatrix get.zoneCentralMeridian.rad(Real long)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @UTMFormula::get.zoneCentralMeridian.deg(long/deg2rad)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.rad2utm = "Formulas for converting "
+  "coordinates of latitude and longitude in radians to UTM";
+  VMatrix rad2utm(
+    VMatrix lonlat, //Matrix with two columns, first one is longitud, second 
+                    //one is latitude, both meassured in in radians
+    Real zone) //UTM zone
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    //Central meridian of zone
+    Real long0 = (6*zone-183)*deg2rad;
+    //longitude of points
+    VMatrix long = ASin(Sin(SubCol(lonlat,[[1]])));
+    //latitude of points
+    VMatrix lat = ASin(Sin(SubCol(lonlat,[[2]])));
+    Real e2 = _.e^2;
+    VMatrix e2sinlat2_1 = -(Sin(lat)^2)*e2+1;
+    //This is the radius of curvature  of the earth in the meridian plane.
+    VMatrix rho = (e2sinlat2_1^(-3/2))*(_.a*(1-e2));
+    //This is the radius of curvature of the earth perpendicular to the 
+    //meridian plane. It is also the distance from the point in question 
+    //to the polar axis, measured perpendicular to the earth´s surface.
+    VMatrix nu = (e2sinlat2_1^(-1/2))*_.a; 
+    VMatrix p = long-long0;
+    VMatrix k0nu = nu*_.k0;
+    VMatrix sinlat  = Sin(lat);
+    VMatrix sin2lat = Sin(lat*2);
+    VMatrix sin4lat = Sin(lat*4);
+    VMatrix sin6lat = Sin(lat*6);
+    VMatrix sin8lat = Sin(lat*8);
+    VMatrix coslat  = Cos(lat);
+    VMatrix coslat2  = coslat^2;
+    VMatrix coslat3  = coslat^3;
+    VMatrix coslat4  = coslat^4;
+    VMatrix tanlat   = Tan(lat);
+    VMatrix tanlat2  = tanlat^2;
+    VMatrix tanlat3  = tanlat^3;
+    VMatrix S = 
+      lat*_.A + 
+      sin2lat*_.B + 
+      sin4lat*_.C + 
+      sin6lat*_.D + 
+      sin8lat*_.E;
+    VMatrix K1 = S*_.k0;
+    VMatrix K2 = sin2lat$*k0nu/4;
+    VMatrix K3 = 
+     (sinlat$*coslat3$*(k0nu/24))$*
+     (-tanlat2 + coslat2*(9*_.e.2) + coslat4*(4*_.e.2^2) + 5);
+    VMatrix K4 = coslat$*k0nu;
+    VMatrix K5 = (coslat3$*k0nu/6)$*
+                 (-tanlat2 + coslat2*_.e.2 +1);
+    //northing of points
+    VMatrix y = (K1 + K2$*p^2 + K3$*p^4);
+    //easting of points
+    VMatrix x = (K4$*p + K5$*p^3)+500000;
+    x|IfVMat(LT(lat,lat*0),y+1.E+7,y)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.deg2utm = "Formulas for converting "
+  "coordinates of latitude and longitude in degrees to UTM";
+  VMatrix deg2utm(
+    VMatrix lonlat, //Matrix with two columns, first one is longitud, second 
+                    //one is latitude, both meassured in degrees
+    Real zone) //UTM zone
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    rad2utm(lonlat*deg2rad,zone)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.utm2rad = "Formulas for converting "
+  "UTM coordinates to latitude and longitude in radians";
+  VMatrix utm2rad(
+    VMatrix xy, //Matrix with two columns
+    Real zone) //UTM zone
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    //Central meridian of zone
+    Real long0 = (6*zone-183)*deg2rad;
+    //easting of points
+    VMatrix x = SubCol(xy,[[1]])-500000;
+    //northing of points
+    VMatrix y = SubCol(xy,[[2]]);
+    Real e2 = _.e^2;
+    Real e4 = _.e^4;
+    Real e6 = _.e^6;
+  //WriteLn("TRACE x="<<VMat2Mat(x));
+  //WriteLn("TRACE y="<<VMat2Mat(y));
+    //Calculate the Meridional Arc
+    VMatrix M = y/_.k0;
+  //WriteLn("TRACE M="<<VMat2Mat(M));
+    //Calculating Footprint Latitude
+    VMatrix mu = M/(_.a*(1-  e2/4 -3*e4/64  - 5*e6/256));
+  //WriteLn("TRACE mu="<<VMat2Mat(mu));
+    VMatrix fp = 
+      mu + 
+      Sin(mu*2)*_.J1 + 
+      Sin(mu*4)*_.J2 + 
+      Sin(mu*6)*_.J3 + 
+      Sin(mu*8)*_.J4;
+  //WriteLn("TRACE fp="<<VMat2Mat(fp));
+    VMatrix sinfp = Sin(fp);
+    VMatrix cosfp = Cos(fp);
+    VMatrix tanfp = sinfp$/cosfp;
+    VMatrix C1 = (cosfp^2)*_.e.2;
+  //WriteLn("TRACE C1="<<VMat2Mat(C1));
+    VMatrix T1 = tanfp^2;
+  //WriteLn("TRACE T1="<<VMat2Mat(T1));
+    VMatrix sinfp2e21 = -(sinfp^2)*_.e^2+1;
+    VMatrix R1 = sinfp2e21^(-3/2)*(_.a*(1-_.e^2));
+  //WriteLn("TRACE R1="<<VMat2Mat(R1));
+    VMatrix N1 = sinfp2e21^(-1/2)*_.a;
+  //WriteLn("TRACE N1="<<VMat2Mat(N1));
+    VMatrix D = x$/(N1*_.k0);
+  //WriteLn("TRACE D="<<VMat2Mat(D));
+    VMatrix Q1 = N1$*tanfp$/R1;
+  //WriteLn("TRACE Q1="<<VMat2Mat(Q1));
+    VMatrix Q2 = (D^2)/2;
+  //WriteLn("TRACE Q2="<<VMat2Mat(Q2));
+    VMatrix Q3 = (T1* 3 + C1* 10           - C1^2*4 +(5-   9*_.e.2))$*D^4/24;
+  //WriteLn("TRACE Q3="<<VMat2Mat(Q3));
+    VMatrix Q4 = (T1*90 + C1*298 + T1^2*45 - C1^2*3 +(61-252*_.e.2))$*D^6/720;
+  //WriteLn("TRACE Q4="<<VMat2Mat(Q4));
+    VMatrix Q5 = D;
+  //WriteLn("TRACE Q5="<<VMat2Mat(Q5));
+    VMatrix Q6 = (T1*2  + C1 + 1)$*D^3/6;
+  //WriteLn("TRACE Q6="<<VMat2Mat(Q6));
+    VMatrix Q7 = (T1*28 - C1*2   + T1^2*24 - C1^2*3 +(5 +  8*_.e.2))$*D^5/120;
+  //WriteLn("TRACE Q7="<<VMat2Mat(Q7));
+    VMatrix lat = fp - Q1$*(Q2 - Q3 + Q4);
+  //WriteLn("TRACE lat="<<VMat2Mat(lat));
+    VMatrix long = (Q5 - Q6 + Q7)$/cosfp+long0;
+  //WriteLn("TRACE long="<<VMat2Mat(long));
+    long | lat
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.utm2deg = "Formulas for converting "
+  "UTM coordinates to latitude and longitude in degrees";
+  VMatrix utm2deg(
+    VMatrix xy, //Matrix with two columns
+    Real zone) //UTM zone
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    utm2rad(xy,zone)/deg2rad
+  }
+};
+
+
+Real _UTMFormula.BuildDatum = @UTMFormula::BuildDatum(?);
+
 //////////////////////////////////////////////////////////////////////////////
 //Abstract class to handle with a bidimensional point.
 Class @Point2D
@@ -126,6 +441,7 @@ Class @Point2D.Stored
   }
 };
 
+
 //////////////////////////////////////////////////////////////////////////////
 //Abstract class to inherite bidimensional interpolating classes.
 Class @Interp2D
@@ -161,7 +477,7 @@ Class @Interp2D
 
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.eval = 
-  "Evaluates the first interpolation function at point x,y. It's useful in "
+  "Evaluates the first interpolation function at point x,y. It´s useful in "
   "the scalar case, when _.F has just one column (_.n==1)";
   Real eval(@Point2D p)
   ////////////////////////////////////////////////////////////////////////////
@@ -323,5 +639,6 @@ Class @Interp2D.Gravit : @Interp2D
 }
 
 ]];
+
 
 
