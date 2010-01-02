@@ -20,7 +20,7 @@ WriteLn("Current Random Seed = "<<rndSeed);
 #Require GisTools;
 //#Embed "../../../_embed_all.tol";
 
-Set datum = GisTools::@UTMFormula::Datum(0);
+GisTools::@UTMFormula WGS84 = GisTools::@UTMFormula::GetDatum("WGS84");
 /* */
 
 Matrix data = Include("sample.bmt")[1];
@@ -33,8 +33,8 @@ VMatrix x = Mat2VMat(SubCol(data,[[4]]));
 VMatrix y = Mat2VMat(SubCol(data,[[5]]));
 VMatrix utm = x|y;
 
-VMatrix utm_ = datum::WGS84::deg2utm(deg,lonZone);
-VMatrix deg_ = datum::WGS84::utm2deg(utm,lonZone,latZone);
+VMatrix utm_ = WGS84::deg2utm(deg,lonZone);
+VMatrix deg_ = WGS84::utm2deg(utm,lonZone,latZone);
 
 VMatrix cmp = deg | deg_ | utm | utm_ | lonZone | latZone;
   Real deg.quality = Max(0,1-VMatMax(Abs(deg-deg_)));
