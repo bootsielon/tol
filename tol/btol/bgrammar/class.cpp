@@ -351,39 +351,52 @@ BMember::~BMember()
   {
     isStatic_ = true;
   }
-  if(!static_ && isStatic_ && definition_.HasName())
+  if(!static_ && isStatic_)
   {
     BClass* cls = (BClass*)parent_; 
-    BGrammar::IncLevel();
-    int stackPos = BGrammar::StackSize();
-    const BClass* oldStaticOwner = BClass::currentStatic_;
-    BClass::currentStatic_ = cls;
-    BSyntaxObject* obj = GraAnything()->EvaluateTree(branch_);
-    BClass::currentStatic_ = oldStaticOwner;
-    BGrammar::DestroyStackUntil(stackPos, obj);    
-    BGrammar::DecLevel();
-    if(obj)
+    if(!definition_.HasName())
     {
-      static_ = obj;
-      if(isMethod_)
-      {
-        if(obj->Mode()==BOBJECTMODE)
-        {
-          obj = UCode(obj)->Contens().Operator();
-        }
-        ((BUserFunction*)obj)->staticOwner_=(const BClass*)parent_;
-      }
-      static_->IncNRefs(); 
-      return(1);
+      Error(I2("Cannot declare an Static element without definig it "
+               "inline",
+               "No se puede declarar un elemento estático sin "
+               "definirlo en línea")+":\n"+
+      "  Static "+BParser::Unparse(branch_,"","\n")+
+      I2(" of Class ", "de Class ")+parent_->getName());
+      return(0);
     }
     else
     {
-      isGood_ = false;
-      Error(I2("Wrong syntax in static declaration ",
-               "Sintaxis incorrecta en declaración estática ")+
-            "static "+BParser::Unparse(branch_,"","\n")+
-            I2(" of Class ", "de Class ")+parent_->getName());
-      return(0);
+      BGrammar::IncLevel();
+      int stackPos = BGrammar::StackSize();
+      const BClass* oldStaticOwner = BClass::currentStatic_;
+      BClass::currentStatic_ = cls;
+      BSyntaxObject* obj = GraAnything()->EvaluateTree(branch_);
+      BClass::currentStatic_ = oldStaticOwner;
+      BGrammar::DestroyStackUntil(stackPos, obj);    
+      BGrammar::DecLevel();
+      if(obj)
+      {
+        static_ = obj;
+        if(isMethod_)
+        {
+          if(obj->Mode()==BOBJECTMODE)
+          {
+            obj = UCode(obj)->Contens().Operator();
+          }
+          ((BUserFunction*)obj)->staticOwner_=(const BClass*)parent_;
+        }
+        static_->IncNRefs(); 
+        return(1);
+      }
+      else
+      {
+        isGood_ = false;
+        Error(I2("Wrong syntax in static declaration ",
+                 "Sintaxis incorrecta en declaración estática ")+
+              "Static "+BParser::Unparse(branch_,"","\n")+
+              I2(" of Class ", "de Class ")+parent_->getName());
+        return(0);
+      }
     }
   }
   else
@@ -1456,8 +1469,7 @@ BSyntaxObject* BClass::FindStaticMethod(const BText& methodName, bool fullAccess
   if(mbr && mbr->isStatic_ && mbr->isMethod_  && 
      checkNonPrivate(this, methodName, fullAccess))
   { 
-    result = mbr->static_;
-    result->PutNameBlock(NULL);
+    if(result = mbr->static_) { result->PutNameBlock(NULL); }
   } 
   return(result);
 }
@@ -1471,8 +1483,7 @@ BSyntaxObject* BClass::FindStaticMemeber(const BText& memberName, bool fullAcces
   if(mbr && mbr->static_ && !mbr->isMethod_  && 
      checkNonPrivate(this, memberName, fullAccess))
   { 
-    result = mbr->static_;
-    result->PutNameBlock(NULL);
+    if(result = mbr->static_) { result->PutNameBlock(NULL); }
   } 
   return(result);
 }
@@ -1485,8 +1496,7 @@ BSyntaxObject* BClass::FindStatic(const BText& methodName, bool fullAccess) cons
   BMember* mbr = FindMember(methodName);
   if(mbr && mbr->isStatic_  && checkNonPrivate(this, methodName, fullAccess))
   { 
-    result = mbr->static_;
-    result->PutNameBlock(NULL);
+    if(result = mbr->static_) { result->PutNameBlock(NULL); }
   } 
   return(result);
 }
