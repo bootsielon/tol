@@ -557,7 +557,10 @@ const BText& BNameBlock::LocalName() const
   }
   BGrammar::DecLevel();
   BGrammar::DestroyStackUntil(stackPos, ns_result);    
-  newNameBlock.CheckMembers();
+  if(ns_result)
+  { 
+    newNameBlock.CheckMembers();
+  }
   int numErr = (int)TOLErrorNumber().Value()-oldErr;
   if(numErr)
   {
