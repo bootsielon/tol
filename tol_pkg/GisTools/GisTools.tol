@@ -66,7 +66,7 @@ Class @UTMFormula
   Real _.J4 = ?;
 
   ////////////////////////////////////////////////////////////////////////////
-  Real initialice(Real void)
+  Real initialize(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real e2 = 1-(_.b/_.a)^2;
@@ -118,7 +118,7 @@ Class @UTMFormula
       Real _.a = a;
       Real _.b = b
     ]];
-    Real aux::initialice(?);
+    Real aux::initialize(?);
     Eval(name+"=aux")
   };
 
@@ -188,15 +188,15 @@ Class @UTMFormula
   VMatrix rad2utm(
     VMatrix lonlat, //Matrix with two columns, first one is longitud, second 
                     //one is latitude, both meassured in in radians
-    Real zone) //UTM zone
+    VMatrix lonZone) //UTM longitud zone
   ////////////////////////////////////////////////////////////////////////////
   {
     //Central meridian of zone
-    Real long0 = (6*zone-183)*deg2rad;
+    VMatrix long0 = (lonZone*6-183)*deg2rad;
     //longitude of points
-    VMatrix long = ASin(Sin(SubCol(lonlat,[[1]])));
+    VMatrix long = SubCol(lonlat,[[1]]);
     //latitude of points
-    VMatrix lat = ASin(Sin(SubCol(lonlat,[[2]])));
+    VMatrix lat = SubCol(lonlat,[[2]]);
     Real e2 = _.e^2;
     VMatrix e2sinlat2_1 = -(Sin(lat)^2)*e2+1;
     //This is the radius of curvature  of the earth in the meridian plane.
@@ -246,10 +246,10 @@ Class @UTMFormula
   VMatrix deg2utm(
     VMatrix lonlat, //Matrix with two columns, first one is longitud, second 
                     //one is latitude, both meassured in degrees
-    Real zone) //UTM zone
+    VMatrix lonZone) //UTM longitud zone
   ////////////////////////////////////////////////////////////////////////////
   {
-    rad2utm(lonlat*deg2rad,zone)
+    rad2utm(lonlat*deg2rad,lonZone)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -257,15 +257,23 @@ Class @UTMFormula
   "UTM coordinates to latitude and longitude in radians";
   VMatrix utm2rad(
     VMatrix xy, //Matrix with two columns
-    Real zone) //UTM zone
+    VMatrix lonZone, //UTM longitud zone
+    VMatrix latZone) //UTM latitud zone
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE zone="<<zone);
     //Central meridian of zone
-    Real long0 = (6*zone-183)*deg2rad;
+    VMatrix long0 = (lonZone*6-183)*deg2rad;
+  //WriteLn("TRACE long0="<<long0);
     //easting of points
     VMatrix x = SubCol(xy,[[1]])-500000;
     //northing of points
-    VMatrix y = SubCol(xy,[[2]]);
+    VMatrix isSouthern = LT(latZone,latZone*0);
+    VMatrix y = 
+    {
+      VMatrix aux = SubCol(xy,[[2]]);
+      IfVMat(isSouthern,-aux+1.E+7,aux)
+    };
     Real e2 = _.e^2;
     Real e4 = _.e^4;
     Real e6 = _.e^6;
@@ -286,7 +294,7 @@ Class @UTMFormula
   //WriteLn("TRACE fp="<<VMat2Mat(fp));
     VMatrix sinfp = Sin(fp);
     VMatrix cosfp = Cos(fp);
-    VMatrix tanfp = sinfp$/cosfp;
+    VMatrix tanfp = Tan(fp);
     VMatrix C1 = (cosfp^2)*_.e.2;
   //WriteLn("TRACE C1="<<VMat2Mat(C1));
     VMatrix T1 = tanfp^2;
@@ -316,17 +324,18 @@ Class @UTMFormula
   //WriteLn("TRACE lat="<<VMat2Mat(lat));
     VMatrix long = (Q5 - Q6 + Q7)$/cosfp+long0;
   //WriteLn("TRACE long="<<VMat2Mat(long));
-    long | lat
+    long | IfVMat(isSouthern,-lat,lat)
   };
   ////////////////////////////////////////////////////////////////////////////
   Static Text _.autodoc.member.utm2deg = "Formulas for converting "
   "UTM coordinates to latitude and longitude in degrees";
   VMatrix utm2deg(
     VMatrix xy, //Matrix with two columns
-    Real zone) //UTM zone
+    VMatrix lonZone, //UTM longitud zone
+    VMatrix latZone) //UTM latitud zone
   ////////////////////////////////////////////////////////////////////////////
   {
-    utm2rad(xy,zone)/deg2rad
+    utm2rad(xy,lonZone,latZone)/deg2rad
   }
 };
 
@@ -639,6 +648,8 @@ Class @Interp2D.Gravit : @Interp2D
 }
 
 ]];
+
+
 
 
 
