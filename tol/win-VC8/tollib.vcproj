@@ -154,7 +154,7 @@
 				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois"
+				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(TPP_INCLUDE)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois"
 				PreprocessorDefinitions="NDEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__;__USE_ZIP_ARCHIVE__"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -187,6 +187,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(ATLAS_LIB)&quot;;&quot;$(GSL_LIB)&quot;;&quot;$(CHOLMOD_LIB)&quot;;&quot;$(BZIP2_LIB)&quot;;&quot;$(ANN_LIB)&quot;;&quot;$(ZipArchive_LIB)&quot;"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames=""
 				ProgramDatabaseFile="$(IntDir)\tol.pdb"
 				ImportLibrary="$(OutDir)\tol.lib"
 				TargetMachine="1"
@@ -4689,6 +4691,42 @@
 					>
 					<File
 						RelativePath="..\contrib\ANN\tolANN.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="TPP"
+					>
+					<File
+						RelativePath="..\contrib\tpp\del_impl.cpp"
+						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions="CDT_ONLY;REDUCED;ANSI_DECLARATORS;NO_TIMER;_CRT_SECURE_NO_DEPRECATE;TRILIBRARY"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions="CDT_ONLY;REDUCED;ANSI_DECLARATORS;NO_TIMER;_CRT_SECURE_NO_DEPRECATE;TRILIBRARY"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="profile|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions="CDT_ONLY;REDUCED;ANSI_DECLARATORS;NO_TIMER;_CRT_SECURE_NO_DEPRECATE;TRILIBRARY"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath="..\contrib\tpp\tolTPP.cpp"
 						>
 					</File>
 				</Filter>
