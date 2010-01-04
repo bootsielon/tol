@@ -1,5 +1,4 @@
-/* datgra.cpp: Real Grammar's arithmetic functions
-               GNU/TOL Language.
+/* tolANN.cpp: API for ANN.
 
    Copyright (C) 2003 - Bayes Decision, SL (Spain [EU])
 
@@ -90,7 +89,7 @@ const int tol_kdtree::bucket_size = 5;
 DeclareContensClass(BDat, BDatTemporary, BDatANNKDTreeNew);
 DefExtOpr(1, BDatANNKDTreeNew, "ANN.KDTree.New", 1, 1, "Matrix",
           "(Matrix points)",
-	  I2("Build a kd-tree and return its identifier. A kd-tree is a "
+    I2("Build a kd-tree and return its identifier. A kd-tree is a "
              "complex data structure useful to perform nearest neighbourhood "
              "searches. When the kd-tree is not needed any more it should be "
              "relased with ANN.KDTree.Delete\n\n"
@@ -102,7 +101,7 @@ DefExtOpr(1, BDatANNKDTreeNew, "ANN.KDTree.New", 1, 1, "Matrix",
              "liberarse con ANN.KDTree.Delete\n\n"
              "Vease tambien ANN.KDTree.Delete, ANN.KDTree.RSearch y "
              "ANN.KDTree.KSearch"),
-	  BOperClassify::MatrixAlgebra_);
+    BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------
 void BDatANNKDTreeNew::CalcContens()
 {
@@ -124,8 +123,8 @@ void BDatANNKDTreeNew::CalcContens()
 //--------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatANNKDTreeDelete);
 DefIntOpr(1, BDatANNKDTreeDelete, "ANN.KDTree.Delete", 1, 1,
-	  "(Real kdtree)",
-	  I2("Release a kd-tree previously created with ANN.KDTree.New. "
+    "(Real kdtree)",
+    I2("Release a kd-tree previously created with ANN.KDTree.New. "
              "Returns 1 if success or 0 in case of fail.\n\n"
              "See also ANN.KDTree.New, ANN.KDTree.RSearch and "
              "ANN.KDTree.KSearch",
@@ -133,7 +132,7 @@ DefIntOpr(1, BDatANNKDTreeDelete, "ANN.KDTree.Delete", 1, 1,
              "Retorna 1 si se libero exitosamente o 0 en caso de fallo.\n\n"
              "Vease tambien ANN.KDTree.New, ANN.KDTree.RSearch y "
              "ANN.KDTree.KSearch"),
-	  BOperClassify::MatrixAlgebra_);
+    BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------
 void BDatANNKDTreeDelete::CalcContens()
 {
@@ -151,7 +150,7 @@ DeclareContensClass(BSet, BSetTemporary, BSetANNKDTreeKSearch);
 DefExtOpr(1, BSetANNKDTreeKSearch, "ANN.KDTree.KSearch", 3, 3,
           "Real Matrix Real",
           "(Real kdtree, Matrix qpoints, Real k)",
-	  I2("Computes for every point in qpoints the k nearest neighbors. "
+    I2("Computes for every point in qpoints the k nearest neighbors. "
              "The result is a Set containing two matrix: indices and dists."
              "The matrix indices contains for each point the set of neighbors "
              "in increasing order of distance. The matrix dists contains the "
@@ -172,7 +171,7 @@ DefExtOpr(1, BSetANNKDTreeKSearch, "ANN.KDTree.KSearch", 3, 3,
              "ANN.KDTree.New\n\n"
              "Vease tambien ANN.KDTree.New, ANN.KDTree.Delete y "
              "ANN.KDTree.RSearch"),
-	  BOperClassify::MatrixAlgebra_);
+    BOperClassify::MatrixAlgebra_);
 //--------------------------------------------------
 void BSetANNKDTreeKSearch::CalcContens()
 {
