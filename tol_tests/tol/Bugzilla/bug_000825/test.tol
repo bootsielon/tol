@@ -14,24 +14,24 @@
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
  
-  Real G = 1;
+  Real tolerance = Tolerance;
   Set aux =
   {
-    Real G = 2;
+    Real Tolerance = 2;
     
-    [[(Real ::G), G]]
+    [[(Real ::Tolerance), Tolerance]]
   };
-  Real ok.1 = aux[1]==1;
+  Real ok.1 = aux[1]==tolerance;
   Real ok.2 = aux[2]==2;
 
   Set aux.fail =
   {
-    Real G = 2;
+    Real Tolerance = 2;
     //Esto da un error porque no es posible aplicar el operador de búsqueda 
     //global al tipo Anything debido a que es posible crear variables de
     //distinto tipo con el mismo nombre y todas ellas serían aceptables dando
     //lugar a una ambigüedad dificil de resolver sin pérdida de efciciencia.
-    [[ ::G, G]]
+    [[ ::Tolerance, Tolerance]]
   };
 
   Class @A
