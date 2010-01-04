@@ -411,6 +411,7 @@ const BText& BNameBlock::LocalName() const
   BGrammar::IncLevel();
   int stackPos = BGrammar::StackSize();
   ns_result = new BGraContensP<BNameBlock>(name, new BNameBlock);
+  
   BNameBlock::SetBuilding((BUserNameBlock*)ns_result);
   int oldBuildingLevel = -1;
   int ns_resultLevel = -1; 
@@ -427,6 +428,7 @@ const BText& BNameBlock::LocalName() const
     }
   } 
   BNameBlock& newNameBlock  = ns_result->Contens();
+  newNameBlock.PutOwner(ns_result);
   newNameBlock.PutName(fullName);
   newNameBlock.PutLocalName(name);
   int oldErr = (int)TOLErrorNumber().Value();

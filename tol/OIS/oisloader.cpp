@@ -1069,6 +1069,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           unb->PutDescription(description);
           readed_[found].PutObject(unb);
           BNameBlock& x = unb->Contens(); 
+          x.PutOwner(unb);
           assert(!name.HasName() || (GraNameBlock()->FindLocal(name)==unb));
           if(control_.oisEngine_.oisVersion_>="02.14")
           {
