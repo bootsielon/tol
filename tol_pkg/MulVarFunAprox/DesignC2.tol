@@ -311,11 +311,18 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"3");
     Real build.border.points(0);
     WriteLn("TRACE "+_MID+"4");
-    VMatrix _.Ym := _.Yj+((_.Yt+_.Yb)*Case(
+    VMatrix _.Ym := 
+      _.Yj+
+      _.Yt*Case(
       prior.Z.order< 0, 0,
       prior.Z.order==0, 1,
       prior.Z.order==1, 1*(1+_.n),
-      prior.Z.order==2, 1*(1+_.n*3/2+(1/2)*_.n^2)));
+      prior.Z.order==2, 1*(1+_.n*3/2+(1/2)*_.n^2))+
+      _.Yb*Case(
+      prior.B.order< 0, 0,
+      prior.B.order==0, 1,
+      prior.B.order==1, 1*(1+_.n),
+      prior.B.order==2, 1*(1+_.n*3/2+(1/2)*_.n^2));
     WriteLn("TRACE "+_MID+"5");
     Real _.M := _.J+_.Mb+_.Mz;
     WriteLn("TRACE "+_MID+"6");
