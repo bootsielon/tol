@@ -29,7 +29,8 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
   Static @DesignC2.Monomial.Spheric.MeshFree New(
     VMatrix X, 
     Real maxNeighbour,
-    Real stress.maxDistance_)
+    Real stress.maxDistance_,
+    Real radius.margin)
   ////////////////////////////////////////////////////////////////////////////
   {
     @DesignC2.Monomial.Spheric.MeshFree new =
@@ -39,6 +40,7 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
       Real _.J = VRows(X);
       Real _.X.maxNeighbour = maxNeighbour+1;
       Real stress.maxDistance = stress.maxDistance_;
+      Real _.radius.margin = radius.margin;
       MatQuery::@ANN.KDTree _.ann = 
         MatQuery::@ANN.KDTree::New(VMat2Mat(X));
       MatQuery::@KNN.Neighbourhood _.ngbh =
@@ -53,7 +55,9 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
     Text _MID = "[@DesignC2.Monomial.Spheric.MeshFree::build.reference.points] ";
     VMatrix _.Y := _.X;
     Real _.H := VRows(_.Y);
-    VMatrix _.R := Mat2VMat(Sqrt(SubCol(_.ngbh::_.distance2,[[_.X.maxNeighbour]])));
+    VMatrix _.R := 
+      Mat2VMat(Sqrt(SubCol(_.ngbh::_.distance2,[[_.X.maxNeighbour]])))*
+      (1+Min(0,_.radius.margin));
     VMatrix _.Yj := Constant(_.H,1,_.X.maxNeighbour-1);
     _.H
   };
@@ -132,7 +136,20 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
     VMatrix _.Yb := Zeros(_.H,1);
     Real _.Tb := 0
   };
-
+/*
+  //////////////////////////////////////////////////////////////////////////////
+    Real build.base(Real void)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial::build.base] ";
+    VMatrix _.Yn := 
+      Floor(Min(Rand(_.H,1,_.K0,_.K0),Max(_.Ym/min.contrast.surface,_.Ym*0+1)));
+   
+    Set Append(_.base, [[base.feasible]]);
+    Real _.base.sel := Card(_.base);
+    _.K
+  };
+*/
   ////////////////////////////////////////////////////////////////////////////
     VMatrix match.evaluable(VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
