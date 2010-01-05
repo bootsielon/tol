@@ -33,59 +33,18 @@ Class @BaseC2.LinComb : @BaseC2.Cache
   ]]};
 
   ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.Compact.Ratio = "Creates an instance of "
-  "@BaseC2.LinComb that is close to be orthonormal and has at least "
-  "the specified ratio of information of original base";
-  Static @BaseC2.LinComb Compact.Ratio(
-    @BaseC2 base, 
-    Real informationRatio)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real K1 = base::_.K;
-
-    VMatrix u = Rand(K1*10, K1, -1, 1);
-
-    VMatrix Pu = Group("ConcatColumns", For(1, K1, VMatrix(Real k)
-    {
-      base::function.v(k,u)
-    }));
-
-    Set Pu.svd = SVD(VMat2Mat(Pu));
-
-    Matrix Pu.eigenvalue = Tra(SubDiag(Pu.svd[2],0));
-    Matrix Pu.eigenvalueCum = 
-    {
-       Matrix aux = DifEq(1/(1-B),Pu.eigenvalue);
-       aux*(1/MatSum(Pu.eigenvalue))
-    };
-    Matrix ratio = Rand(K1,1,informationRatio,informationRatio);
-    Real K = MatSum(LE(Pu.eigenvalueCum,ratio));
-    Set range.K = Range(1,K,1);
-    VMatrix V = Mat2VMat(SubCol(Pu.svd[3],range.K));
-    VMatrix D = Eye(K,K,0,RPow(Mat2VMat(SubRow(Pu.eigenvalue,range.K)),+1));
-    VMatrix Di = Eye(K,K,0,RPow(Mat2VMat(SubRow(Pu.eigenvalue,range.K)),-1));
-    VMatrix W = V*Di;
-    VMatrix Wi = D*Tra(V);
-    New(base, W, Wi)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Static Text _.autodoc.member.Compact.K = "Creates an instance of "
-  "@BaseC2.LinComb that is close to be orthonormal and has exactly K "
+  Static Text _.autodoc.member.Orthogonal = "Creates an instance of "
+  "@BaseC2.LinComb that is orthonormal for given points and has exactly K "
   "elements";
-  Static @BaseC2.LinComb Compact.K(
+  Static @BaseC2.LinComb Orthogonal(
     @BaseC2 base, 
-    Real K)
+    Real K, 
+    VMatrix u)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set aux = [[
     Set range.K = Range(1,K,1);
     Real n = base::_.n;
     Real K1 = base::_.K;
-
-    VMatrix u = Gaussian(K1, n, 0, 1);
-  //VMatrix u = Eye(K1,n);
-  //WriteLn("TRACE [@BaseC2.LinComb Compact.K] u:"<<u);
     Real base::upgrade.cache(u,0,0);
     VMatrix Pu = Group("ConcatColumns", For(1, K1, VMatrix(Real k)
     {
@@ -99,10 +58,25 @@ Class @BaseC2.LinComb : @BaseC2.Cache
     VMatrix D = Eye(K,K,0,RPow(Mat2VMat(SubRow(Pu.eigenvalue,range.K)),+1));
     VMatrix Di = Eye(K,K,0,RPow(Mat2VMat(SubRow(Pu.eigenvalue,range.K)),-1));
     VMatrix W = V*Di;
-    VMatrix Wi = D*Tra(V) ]];
+    VMatrix Wi = D*Tra(V);
     @BaseC2.LinComb new = New(base, W, Wi);
-    Set new::_.aux := aux;
+    Set new::_.aux :=
+    [[
+      K,n,K1,u,Pu,Pu.svd,Pu.eigenvalue,V,D,Di,W,Wi 
+    ]];
     new
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Text _.autodoc.member.Orthogonal.Rand = "Creates an instance of "
+  "@BaseC2.LinComb that is orthonormal for random points and has exactly K "
+  "elements";
+  Static @BaseC2.LinComb Orthogonal.Rand(
+    @BaseC2 base, 
+    Real K)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Orthogonal(base,K,Gaussian(10*base::_.K, base::_.n, 0, 1))
   };
 
   ////////////////////////////////////////////////////////////////////////////
