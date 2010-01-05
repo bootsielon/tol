@@ -1,0 +1,303 @@
+  /* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : KML.tol
+// PURPOSE: Defines Class GisTools::@KML
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// Class to generating KML code that can be shown with Google Earth
+Class @KML
+//////////////////////////////////////////////////////////////////////////////
+{
+  ////////////////////////////////////////////////////////////////////////////
+  //Definition members
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.fileName;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Auxiliar members
+  ////////////////////////////////////////////////////////////////////////////
+  Real _.file = ?;
+  Text _.name = "";
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Configuration members
+  ////////////////////////////////////////////////////////////////////////////
+  Text xml.version = "1.0";
+  Text encoding = "UTF-8";
+  Text kml.xmlns = "http://www.opengis.net/kml/2.2";
+  Text polygone.color.transparent = "47";
+  Set polygone.colors = [[
+    "B4B4B4","1400FF","1478FF","14B4FF","14F0FF","783200","78DC3C","785078",
+    "78E6B4","78C8F0","785AF0","3C7800","F07800","F07878","327878","3C78B4",
+    "F078B4","2878B4","FA78F0","1478F0","00FA14","002814","781E14","3C9614",
+    "B4F014","B41E14","F0FF14"]];
+  Text polygone.lineStyle.with = "0.1";
+  Text pole.lineStyle.with = "0.3";
+  Text pole.lineStyle.color = "ffffffff";
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @KML New(Text fileName)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @KML new = [[
+      Text _.fileName = fileName;
+      Text _.name = GetFilePrefix(fileName) ]];
+    new
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real __destroy(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!IsUnknown(_.file) & _.file, close(void));
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real begin(Real void) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.file := FOpen(_.fileName,"wb");
+    If(!_.file,False,
+    Real FPutText(_.file,
+    "<?xml version=\""+xml.version+"\" encoding=\""+encoding+"\"?>\n"+
+    "<kml xmlns=\""+kml.xmlns+"\">\n"+
+    "<Document>\n"+
+    "<name>"+_.name+"</name>\n"));
+    Real style.polygone(0);
+    Real style.pole(0);
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real style.polygone(Real void) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    SetMin(For(1,Card(polygone.colors),Real(Real i)
+    {
+      Real FPutText(_.file,
+      "  <Style id=\"stypePolygone_"<<i+"\">\n"+
+      "    <LineStyle>\n"+
+      "      <width>"+polygone.lineStyle.with+"</width>\n"+
+      "    </LineStyle>\n"+
+      "    <PolyStyle>\n"+
+      "      <color>"+polygone.color.transparent+polygone.colors[i]+
+            "</color>\n"+
+      "    </PolyStyle>\n"+
+      "  </Style>\n")
+    }))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real style.pole(Real void) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real FPutText(_.file,
+    "  <Style id=\"stylePoles\">\n"+
+    "    <LineStyle>\n"+
+    "      <width>"+pole.lineStyle.with+"</width>\n"+
+    "      <color>"+pole.lineStyle.color+"</color>\n"+
+    "    </LineStyle>\n"+
+    "  </Style>\n")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real begin.folder(
+    Text name, 
+    Text description, 
+    Text visibility)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real FPutText(_.file,
+    "<Folder>\n"+
+    "  <name>"+name+"</name>\n"+
+    If(description=="","",
+    "  <description>"+description+"</description>\n")+
+    "  <visibility>"+visibility+"</visibility>\n")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real end.folder(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real FPutText(_.file,"</Folder>\n")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Set _get.xyz(Set coordinates) 
+  //Coordinates can be passed in one of this forms
+  // a) [[Real x, Real y, Real z]]  
+  // b) [[Real x, Real y]]        : z will be set to 0
+  // c) [[Matrix x, Real row]]    : If Columns(x)==2 z will be set to 0
+  // d) [[VMatrix x, Real row]]   : If VColumns(x)==2 z will be set to 0
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text g1 = Grammar(coordinates[1]);
+    Set coords = Case(
+    g1=="Real",
+    {
+      xyz
+    },
+    g1=="Matrix",
+    {
+      Row2Set(SubRow(coordinates[1],[[ coordinates[2] ]]))
+    },
+    g1=="VMatrix",
+    {
+      VRow2Set(SubRow(coordinates[1],[[ coordinates[2] ]]))
+    });
+    If(Card(coords)==3,coords,coords<<[[0]])
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real add.point(
+    Text name,
+    Set coordinates) //View _get.xyz to know format options of coordinates
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set xyz = _get.xyz(coordinates);
+    Real FPutText(_.file,
+    "  <Placemark>\n"+
+    "    <name>"+name+"</name>\n"+
+    "    <Point>\n"+
+    "      <coordinates>"<<xyz[1]+","<<xyz[2]+","<<xyz[3]+"</coordinates>\n"+
+    "    </Point>\n"+
+    "  </Placemark>\n")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real add.point.collection(
+    Text name,
+    Text description,
+    Text visibility,
+    Matrix xy,
+    Set xy.names) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    begin.folder(name,description,visibility);
+    Real SetMin(For(1,Rows(xy),Real(Real row)
+    {
+      Real add.point(xy.names[row],[[xy,row]])
+    }));
+    end.folder(0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real begin.placemark.multi(
+    Text name, 
+    Text style)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real FPutText(_.file,
+    "  <Placemark>\n"+
+    "    <name>"+name+"</name>\n"+
+    If(style=="","",
+    "  <styleUrl>#"+style+"</styleUrl>\n")+
+    "    <MultiGeometry>\n")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real end.placemark.multi(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real FPutText(_.file,
+    "    </MultiGeometry>\n"+
+    "  </Placemark>\n")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real add.polygon(
+    Matrix points3D, 
+    Real extrude,
+    Real tessellate) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real FPutText(_.file,
+    "    <Polygon>\n"+
+    "      <extrude>"<<extrude+"</extrude>\n"+
+    "      <tessellate>"<<tessellate+"</tessellate>\n"+
+    "      <altitudeMode>relativeToGround</altitudeMode>\n"+
+    "      <outerBoundaryIs>\n"+
+    "        <LinearRing>\n"+
+    "          <coordinates>\n"+
+    "            ");
+    Set rows = Range(1,Rows(points3D),1)<<[[1]];
+    Set EvalSet(rows,Real(Real r)
+    {
+      Real x = MatDat(points3D,r,1);
+      Real y = MatDat(points3D,r,2);
+      Real z = MatDat(points3D,r,3);
+      FPutText(_.file,""<<x+","<<y+","<<z+" ")
+    });
+    Real FPutText(_.file,
+    "          </coordinates>\n"+
+    "        </LinearRing>\n"+
+    "      </outerBoundaryIs>\n"+
+    "    </Polygon>\n")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real add.pole(Set coordinates) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set xyz = _get.xyz(coordinates);
+    Real FPutText(_.file,
+    "    <LineString>\n"+
+    "      <altitudeMode>relativeToGround</altitudeMode>\n"+
+    "      <coordinates>\n"+
+    "        "<<xyz[1]+","<<xyz[2]+",0\n"+
+    "        "<<xyz[1]+","<<xyz[2]+","<<xyz[3]+"\n"+
+    "      </coordinates>\n"+
+    "    </LineString>\n")
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real add.delaunay(
+    MatQuery::@TPP.Delaunay delaunay,
+    Matrix z,
+    Text name,
+    Text description,
+    Text visibility,
+    Real stypePolygone.number,
+    Real extrude,
+    Real tessellate) 
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text stypePolygone = "stypePolygone_"<<stypePolygone.number;
+    Real begin.folder(name, description, visibility);
+    Real begin.placemark.multi("Surface",stypePolygone);
+    Matrix xy = delaunay::get.vertices(0);
+    Matrix xyz = xy|z;
+    Matrix faces = delaunay::get.faces(0);
+    Matrix v1 = SubRow(xyz,Col2Set(SubCol(faces,[[1]]))); 
+    Matrix v2 = SubRow(xyz,Col2Set(SubCol(faces,[[2]]))); 
+    Matrix v3 = SubRow(xyz,Col2Set(SubCol(faces,[[3]]))); 
+    Real SetMin(For(1,Rows(faces),Real(Real f)
+    {
+      Matrix points3D = 
+        SubRow(v1,[[f]]) << SubRow(v2,[[f]]) << SubRow(v3,[[f]]);
+      Real add.polygon(points3D, extrude, tessellate)
+    }));
+    Real end.placemark.multi(0);
+    Real begin.placemark.multi("Poles","stylePoles");
+    Real SetMin(For(1,Rows(xy),Real(Real row)
+    {
+      Real add.pole([[xy,row]])
+    }));
+    Real end.placemark.multi(0);
+    Real end.folder(0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real close(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real FPutText(_.file,
+    "</Document>\n"
+    "</kml>\n");
+    Real ok = FClose(_.file);
+    Real _.file := 0;
+    True
+  }  
+};
+
