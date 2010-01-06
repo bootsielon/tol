@@ -39,10 +39,45 @@ Class @TPP.Delaunay
     TPP.Delaunay.GetVertices(_id)
   };
   ////////////////////////////////////////////////////////////////////////////
-  Matrix get.faces(Real void)
+  Matrix get.faces.idx(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
     TPP.Delaunay.GetFaces(_id)
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Set get.faces(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix faces = TPP.Delaunay.GetFaces(_id);
+    Matrix xy = TPP.Delaunay.GetVertices(_id);
+    Matrix A = SubRow(xy,Col2Set(SubCol(faces,[[1]]))); 
+    Matrix B = SubRow(xy,Col2Set(SubCol(faces,[[2]]))); 
+    Matrix C = SubRow(xy,Col2Set(SubCol(faces,[[3]]))); 
+    [[A,B,C]]
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Set get.circumcircles(Real void)
+  //http://en.wikipedia.org/wiki/Circumscribed_circle
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set faces = get.faces(void);
+    Matrix A = faces::A; 
+    Matrix B = faces::B; 
+    Matrix C = faces::C; 
+    Matrix B_ = B-A; 
+    Matrix C_ = C-A; 
+    Matrix Bx = SubCol(B_,[[1]]);
+    Matrix By = SubCol(B_,[[2]]);
+    Matrix Cx = SubCol(C_,[[1]]);
+    Matrix Cy = SubCol(C_,[[2]]);
+    Matrix D  = (Bx$*Cy-By$*Cx)*2;
+    Matrix B2 = Bx^2+By^2;
+    Matrix C2 = Cx^2+Cy^2;
+    Matrix Rx = (Cy*B2-By*C2)$/D;
+    Matrix Ry = (Bx*C2-Cx*B2)$/D;
+    Matrix radius = Sqrt(Rx^2+Ry^2); 
+    Matrix center = (Rx|Ry)+A;
+    [[center, radius]]
   }
 };
 
