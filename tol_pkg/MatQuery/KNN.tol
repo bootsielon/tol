@@ -5,9 +5,54 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-//Forward reference
-Class @KNN.Neighbourhood;
+Text _.autodoc.member.KNN.Neighbourhood = 
+"Result of K-Nearest Neighbor Searching ";
+Class @KNN.Neighbourhood
 //////////////////////////////////////////////////////////////////////////////
+{
+  //Number of searched neigbours
+  Real _.k = 0;
+  //Number of queried points
+  Real _.q = 0;
+  //Query points by rows: Rows(_.Q)==_.q && Columns(_.Q)==_.k
+  Matrix _.Q = Rand(0,0,0,0);
+  //Indexes of neighbours in the searcher engine 
+  Matrix _.neighbour = Rand(0,0,0,0);
+  //Distance from queried points to its found neighbours
+  Matrix _.distance2 = Rand(0,0,0,0);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @KNN.Neighbourhood Default(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @KNN.Neighbourhood new
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real set.data(
+    Matrix Q, 
+    Matrix neighbour,  
+    Matrix distance2)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.k := Columns(Q);
+    Real _.q := Rows(Q);
+    Matrix _.Q := Q;
+    Matrix _.neighbour := neighbour;
+    Matrix _.distance2  := distance2;
+    True
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Static @KNN.Neighbourhood New(
+    Matrix Q, 
+    Matrix neighbour,  
+    Matrix distance2)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @KNN.Neighbourhood new;
+    Real new::set.data(Q,neighbour,distance2);
+    new
+  }
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.KNN = 
@@ -16,50 +61,15 @@ Class @KNN
 //////////////////////////////////////////////////////////////////////////////
 {
   //Dimension of points
-  Real _.n;
+  Real _.n = 0;
   //Number of reference points
-  Real _.m;
+  Real _.m = 0;
   //Reference points by rows: Rows(_.X)==_.m && Columns(_.X)==_.n
-  Matrix _.X;
+  Matrix _.X = Rand(0,0,0,0);
 
   //Searches
-  @KNN.Neighbourhood search(Matrix Q, Real k)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.KNN.Neighbourhood = 
-"Result of K-Nearest Neighbor Searching ";
-Class @KNN.Neighbourhood
-//////////////////////////////////////////////////////////////////////////////
-{
-  //Number of searched neigbours
-  Real _.k;
-  //Number of queried points
-  Real _.q;
-  //Query points by rows: Rows(_.Q)==_.q && Columns(_.Q)==_.k
-  Matrix _.Q;
-  //Neighbour searcher engine 
-  @KNN _.knn;
-  //Indexes of neighbours in the searcher engine 
-  Matrix _.neighbour;
-  //Distance from queried points to its found neighbours
-  Matrix _.distance2; 
-  ////////////////////////////////////////////////////////////////////////////
-  Static @KNN.Neighbourhood New(
-    @KNN knn, 
-    Matrix Q, 
-    Matrix neighbour,  
-    Matrix distance2)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    @KNN.Neighbourhood new = [[
-      @KNN _.knn = knn;
-      Real _.k = Columns(Q);
-      Real _.q = Rows(Q);
-      Matrix _.Q = Q;
-      Matrix _.neighbour = neighbour;
-      Matrix _.distance2  = distance2 ]]
-  }
+  @KNN.Neighbourhood search(Matrix Q, Real k);
+  Real update.search(Matrix Q, Real k, @KNN.Neighbourhood ngbh)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -71,16 +81,30 @@ Class @ANN.KDTree : @KNN
 {
   //ANN identifier of internal KDTree
   Real _id = ?;
-  
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @ANN.KDTree Default(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @ANN.KDTree new
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real set.data(Matrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real __destroy(0);
+    Real _.n := Columns(X);
+    Real _.m := Rows(X);
+    Matrix _.X := X;
+    Real _id := ANN.KDTree.New(_.X)
+  };
   ////////////////////////////////////////////////////////////////////////////
   Static @ANN.KDTree New(Matrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
-    @ANN.KDTree new = [[
-      Real _.n = Columns(X);
-      Real _.m = Rows(X);
-      Matrix _.X = X;
-      Real _id = ANN.KDTree.New(_.X) ]]
+    @ANN.KDTree new;
+    Real set.data(X);
+    new
   };
   ////////////////////////////////////////////////////////////////////////////
   Real __destroy(Real void)
@@ -95,6 +119,13 @@ Class @ANN.KDTree : @KNN
   ////////////////////////////////////////////////////////////////////////////
   {
     Set aux=ANN.KDTree.KSearch(_id,Q,k);
-    @KNN.Neighbourhood::New(_this,Q,aux[1],aux[2])
+    @KNN.Neighbourhood::New(Q,aux[1],aux[2])
+  };
+  ////////////////////////////////////////////////////////////////////////////
+  Real update.search(Matrix Q, Real k, @KNN.Neighbourhood ngbh)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set aux=ANN.KDTree.KSearch(_id,Q,k);
+    ngbh::set.data(Q,aux[1],aux[2])
   }
 };
