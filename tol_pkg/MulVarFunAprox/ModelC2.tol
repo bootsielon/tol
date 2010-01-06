@@ -136,8 +136,7 @@ Class @ModelC2
     Set X.1.select = MatQuery::SelectMatch(X.match);
     VMatrix X.1 = SubRow(X,X.1.select);
     Real m.1 = VRows(X.1);
-    VMatrix X.1.h = _.design::closest.reference.index(X.1);
-    VMatrix QX.1 = _.design::build.obs(X.1, X.1.h);
+    VMatrix QX.1 = _.design::build.obs(X.1);
     VMatrix F.1 = QX.1*_.alpha;
     Matrix triplet.1 = SetCol(X.1.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
     VMatrix T.1 = Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"));
@@ -162,8 +161,7 @@ Class @ModelC2
     Set X.select = MatQuery::SelectMatch(X.match);
     VMatrix X.1 = SubRow(X,X.select);
     Real m.1 = VRows(X.1);
-    VMatrix X.1.h = _.design::closest.reference.index(X.1);
-    VMatrix QX.1 = _.design::build.obs.partial.derivative.1(X.1, X.1.h, s);
+    VMatrix QX.1 = _.design::build.obs.partial.derivative.1(X.1, s);
     VMatrix F.1 = QX.1*_.alpha;
     Matrix triplet.1 = SetCol(X.select)|Rand(m.1,1,1,1)|VMat2Mat(F.1);
     Pack(Convert(Triplet(triplet.1,m,1),"Cholmod.R.Sparse"))

@@ -80,13 +80,14 @@ Class @DesignC2
   VMatrix generate.internal.points(Real m);
 
   //////////////////////////////////////////////////////////////////////////////
-    VMatrix build.obs(VMatrix X, VMatrix X.h)
+    VMatrix build.obs(VMatrix X)
   //////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[@DesignC2::build.obs] ";
     FunRn2R::@BaseC2.Eval.Function eval = 
      FunRn2R::@BaseC2.Eval.Function::New(get.base(0));
     Real m = VRows(X);
+    VMatrix X.h=closest.reference.index(X);
     WriteLn("TRACE "+_MID+"1 m="<<m);
     If(!m, Rand(0,_.N,0,0), {
     WriteLn("TRACE "+_MID+"2");
@@ -132,7 +133,7 @@ Class @DesignC2
 
 
   //////////////////////////////////////////////////////////////////////////////
-    VMatrix build.obs.partial.derivative.1(VMatrix X, VMatrix X.h, Real s)
+    VMatrix build.obs.partial.derivative.1(VMatrix X, Real s)
   //////////////////////////////////////////////////////////////////////////////
   {
     FunRn2R::@BaseC2.Eval.Function eval = 
@@ -141,6 +142,7 @@ Class @DesignC2
      FunRn2R::@BaseC2.Eval.Partial.Derivative.1::New(get.base(0), s);
     Text _MID = "[@DesignC2::build.obs.partial.derivative.1] ";
     Real m = VRows(X);
+    VMatrix X.h=closest.reference.index(_.X);
     WriteLn("TRACE "+_MID+"1 m="<<m);
     If(!m, Rand(0,_.N,0,0), {
     WriteLn("TRACE "+_MID+"2");
@@ -341,8 +343,7 @@ Class @DesignC2
   {
     Text _MID = "[@DesignC2::build.decomposition] ";
     WriteLn("TRACE "+_MID+"1");
-    VMatrix X.h=closest.reference.index(_.X);
-    VMatrix _.QX := build.obs(_.X, X.h);
+    VMatrix _.QX := build.obs(_.X);
     WriteLn("TRACE "+_MID+"2");
     VMatrix _.QB := build.border.prior(0);
     WriteLn("TRACE "+_MID+"3");
