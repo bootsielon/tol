@@ -268,7 +268,7 @@ Class @KML
     Real begin.placemark.multi("Surface",stypePolygone);
     Matrix xy = delaunay::get.vertices(0);
     Matrix xyz = xy|z;
-    Matrix faces = delaunay::get.faces(0);
+    Matrix faces = delaunay::get.faces.idx(0);
     Matrix v1 = SubRow(xyz,Col2Set(SubCol(faces,[[1]]))); 
     Matrix v2 = SubRow(xyz,Col2Set(SubCol(faces,[[2]]))); 
     Matrix v3 = SubRow(xyz,Col2Set(SubCol(faces,[[3]]))); 
