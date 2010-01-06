@@ -41,7 +41,7 @@ MulVarFunAprox::@DesignC2 design = {
 MulVarFunAprox::@DesignC2 design = {
   MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
     VMatrix X, 
-    Real radius.margin = Sqrt(2)-1,
+    Real radius.margin = Sqrt(2)-1+0.00001,
     Real radius = 0.5,
     Real do.build.border = False)};
 /* */
@@ -267,7 +267,6 @@ persp3d(x[,],y[,],z, xlim = range(x, na.rm = TRUE), ylim = range(y, na.rm = TRUE
 points3d(xyz.real)
 ");
 
-Real OSCmdWait("Rgui CMD BATCH --vanilla show.R show.R.log");
 /*
 Real numErr1 = Copy(NError);
 Real numWar1 = Copy(NWarning);

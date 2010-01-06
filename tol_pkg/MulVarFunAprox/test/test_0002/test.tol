@@ -32,7 +32,7 @@ VMatrix generate.nodal.points(Real J, Real n)
     Rand(J,1,min,min+len)
   }))
 };
-VMatrix X = generate.nodal.points(500,2);
+VMatrix X = generate.nodal.points(200,2);
 /* * /
 MulVarFunAprox::@DesignC2 design = {
   MulVarFunAprox::@DesignC2.Monomial.Spheric.Grid::New(
@@ -43,6 +43,7 @@ MulVarFunAprox::@DesignC2 design = {
   MulVarFunAprox::@DesignC2.Monomial.Spheric.MeshFree::New(
     VMatrix X, 
     Real maxNeighbour = 4*VColumns(X),
+    Real radius.margin = 0.0001;
     Real stress.maxDistance_ = 5) };
 /* */
 WriteLn("TRACE 2");

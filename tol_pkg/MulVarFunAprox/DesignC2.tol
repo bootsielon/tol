@@ -92,9 +92,10 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"2");
     VMatrix X.j=DifEq(1/(1-B),Rand(m,1,1,1));
     WriteLn("TRACE "+_MID+"3 X.h:\n"<<X.h);
-    Set X.h_ = For(1,_.X.maxNeighbour,VMatrix(Real i) { SubCol(X.h,[[i]]) });
+    Real numNeighbour = VColumns(X.h);
+    Set X.h_ = For(1,numNeighbour,VMatrix(Real i) { SubCol(X.h,[[i]]) });
     WriteLn("TRACE "+_MID+"3.1");
-    Set X.dif = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Set X.dif = For(1,numNeighbour,VMatrix(Real i)
     {
       Set X.h.i = VCol2Set(X.h_[i]);
       X - SubRow(_.Y,X.h.i)
@@ -104,7 +105,7 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"5");
     VMatrix YnCum = DifEq(1/(1-B),_.Yn);
     VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
-    Matrix QX.triplet = Group("ConcatRows", For(1,_.X.maxNeighbour,Matrix(Real i)
+    Matrix QX.triplet = Group("ConcatRows", For(1,numNeighbour,Matrix(Real i)
     {
       VMatrix w.i = X.weight[i];
       Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
@@ -129,6 +130,7 @@ Class @DesignC2
     Pack(Convert(Triplet(QX.triplet, m, _.N),"Cholmod.R.Sparse"))
   })};
 
+
   //////////////////////////////////////////////////////////////////////////////
     VMatrix build.obs.partial.derivative.1(VMatrix X, VMatrix X.h, Real s)
   //////////////////////////////////////////////////////////////////////////////
@@ -145,8 +147,9 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"3");
     VMatrix X.j=DifEq(1/(1-B),Rand(m,1,1,1));
     WriteLn("TRACE "+_MID+"4");
-    Set X.h_ = For(1,_.X.maxNeighbour,VMatrix(Real i) { SubCol(X.h,[[i]]) });
-    Set X.dif = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Real numNeighbour = VColumns(X.h);
+    Set X.h_ = For(1,numNeighbour,VMatrix(Real i) { SubCol(X.h,[[i]]) });
+    Set X.dif = For(1,numNeighbour,VMatrix(Real i)
     {
       Set X.h.i = VCol2Set(X.h_[i]);
       X - SubRow(_.Y,X.h.i)
@@ -157,7 +160,7 @@ Class @DesignC2
     WriteLn("TRACE "+_MID+"6");
     VMatrix YnCum = DifEq(1/(1-B),_.Yn);
     VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
-    Matrix QX.triplet = Group("ConcatRows", For(1,_.X.maxNeighbour,Matrix(Real i)
+    Matrix QX.triplet = Group("ConcatRows", For(1,numNeighbour,Matrix(Real i)
     {
       VMatrix w.i = X.weight[i];
       Set sel.rows = MatQuery::SelectMatch(NE(Drop(Abs(w.i),1.E-15),w.i*0));
@@ -359,17 +362,19 @@ Class @DesignC2
 */
     WriteLn("TRACE "+_MID+"6");
     VMatrix _.QtQ := MtMSqr(_.Q);
-    VMatrix _.LQ := CholeskiFactor(_.QtQ,"X",False,False);
+    VMatrix _.LQ := CholeskiFactor(_.Q,"XtX");
+/*
+    VMatrix _.LQ := CholeskiFactor(_.QtQ,"X",False,True);
     Real iter = 1;
     Real lambda = 1.e-15;
     While(And(!VRows(_.LQ), iter<=10),
     {
       VMatrix _.QtQ := _.QtQ + Eye(_.N,_.N,0,lambda);
-      VMatrix _.LQ := CholeskiFactor(_.QtQ,"X",False,False);
+      VMatrix _.LQ := CholeskiFactor(_.QtQ,"X",False,True);
       Real lambda := lambda * 2;
       Real iter := iter+1
     });
-  //VMatrix _.LQ := CholeskiFactor(_.Q,"XtX");
+*/
     WriteLn("TRACE "+_MID+"7");
     True
   }

@@ -16,21 +16,14 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
 //////////////////////////////////////////////////////////////////////////////
 //Configuration parameters
 //////////////////////////////////////////////////////////////////////////////
-  MatQuery::@ANN.KDTree _.ann;
   Real stress.maxDistance;
-
-//////////////////////////////////////////////////////////////////////////////
-//Auxiliar members
-//////////////////////////////////////////////////////////////////////////////
-  VMatrix _.R =Rand(0,0,0,0);
-  MatQuery::@KNN.Neighbourhood _.ngbh;
 
   ////////////////////////////////////////////////////////////////////////////
   Static @DesignC2.Monomial.Spheric.MeshFree New(
     VMatrix X, 
     Real maxNeighbour,
-    Real stress.maxDistance_,
-    Real radius.margin)
+    Real radius.margin,
+    Real stress.maxDistance_)
   ////////////////////////////////////////////////////////////////////////////
   {
     @DesignC2.Monomial.Spheric.MeshFree new =
@@ -39,12 +32,8 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
       Real _.n = VColumns(X);
       Real _.J = VRows(X);
       Real _.X.maxNeighbour = maxNeighbour+1;
-      Real stress.maxDistance = stress.maxDistance_;
       Real _.radius.margin = radius.margin;
-      MatQuery::@ANN.KDTree _.ann = 
-        MatQuery::@ANN.KDTree::New(VMat2Mat(X));
-      MatQuery::@KNN.Neighbourhood _.ngbh =
-        _.ann::search(_.ann::_.X,_.X.maxNeighbour)
+      Real stress.maxDistance = stress.maxDistance_
     ]] 
   };
 
@@ -53,11 +42,7 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
   //////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[@DesignC2.Monomial.Spheric.MeshFree::build.reference.points] ";
-    VMatrix _.Y := _.X;
-    Real _.H := VRows(_.Y);
-    VMatrix _.R := 
-      Mat2VMat(Sqrt(SubCol(_.ngbh::_.distance2,[[_.X.maxNeighbour]])))*
-      (1+Min(0,_.radius.margin));
+    Real set.reference.points(_.X);
     VMatrix _.Yj := Constant(_.H,1,_.X.maxNeighbour-1);
     _.H
   };
@@ -135,71 +120,6 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
   {
     VMatrix _.Yb := Zeros(_.H,1);
     Real _.Tb := 0
-  };
-/*
-  //////////////////////////////////////////////////////////////////////////////
-    Real build.base(Real void)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    Text _MID = "[@DesignC2.Monomial::build.base] ";
-    VMatrix _.Yn := 
-      Floor(Min(Rand(_.H,1,_.K0,_.K0),Max(_.Ym/min.contrast.surface,_.Ym*0+1)));
-   
-    Set Append(_.base, [[base.feasible]]);
-    Real _.base.sel := Card(_.base);
-    _.K
-  };
-*/
-  ////////////////////////////////////////////////////////////////////////////
-    VMatrix match.evaluable(VMatrix X)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    MatQuery::@KNN.Neighbourhood ngbh = 
-      _.ann::search(VMat2Mat(X),1);
-    VMatrix Y = SubRow(_.Y,Col2Set(ngbh::_.neighbour));
-    VMatrix dist = Mat2VMat(Sqrt(ngbh::_.distance2));
-    VMatrix X.h = Mat2VMat(ngbh::_.neighbour);
-    LE(dist,get.radius(X.h))$*
-    LE(dist,Constant(VRows(dist),1,stress.maxDistance))
-    
-  };
-
-  //////////////////////////////////////////////////////////////////////////////
-  VMatrix closest.reference.index(VMatrix X)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    MatQuery::@KNN.Neighbourhood ngbh = 
-      _.ann::search(VMat2Mat(X),_.X.maxNeighbour);
-    Mat2VMat(ngbh::_.neighbour)
-  };
-
-  //////////////////////////////////////////////////////////////////////////////
-  VMatrix get.radius(VMatrix Y.idx)
-  //////////////////////////////////////////////////////////////////////////////
-  {
-    SubRow(_.R,VCol2Set(Y.idx))
-  };
-
-  ///////////////////////////////////////////////////////////////////////////
-    VMatrix generate.internal.points(Real m)
-  ///////////////////////////////////////////////////////////////////////////
-  {
-    Text _MID = "[@DesignC2.Monomial.Spheric.MeshFree::generate.internal.points] ";
-    WriteLn("TRACE "+_MID+"1 m="<<m);
-    VMatrix h = Round(Rand(m,1,0.5,_.H+0.499999999));
-    WriteLn("TRACE "+_MID+"2 h:\n"<<h);
-    VMatrix y = SubRow(_.Y,VCol2Set(h));
-    WriteLn("TRACE "+_MID+"3 y:\n"<<y);
-    VMatrix v = Gaussian(m,_.n,0,1);
-    WriteLn("TRACE "+_MID+"4 v:\n"<<v);
-    VMatrix u = v*(VMatDat(MtMSqr(v),1,1)^-0.5);
-    WriteLn("TRACE "+_MID+"5 u:\n"<<u);
-    VMatrix rnd = get.radius(h)$*Rand(m,1,0,1);
-    WriteLn("TRACE "+_MID+"5 rnd:\n"<<rnd);
-    VMatrix r = Eye(m,m,0,rnd);
-    WriteLn("TRACE "+_MID+"6 r:\n"<<r);
-    y + r * u
   }
-
 
 };

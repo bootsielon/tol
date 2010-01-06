@@ -51,7 +51,8 @@ Class @DesignC2.Monomial.Spheric.Grid :
   //////////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.reference.points] ";
-    VMatrix _.Y := _.grid::_.Y;
+    Real _.X.maxNeighbour := 1+2*_.n;
+    Real set.reference.points(_.grid::_.Y);
     VMatrix Y.h = Mat2VMat(_.grid::_.Y.h);
     VMatrix _.Y.neighbourhood := Y.h | Group("ConcatColumns",
     For(1,2*_.n, VMatrix(Real i)
@@ -61,8 +62,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
     }));
     Set X.class = Classify(Col2Set(_.grid::point2index(_.X)),Compare);
     VMatrix _.Yj := Mat2VMat(SetMat([[EvalSet(X.class,Card)]]),1);
-    Real _.X.maxNeighbour := 1+2*_.n;
-    Real _.H := _.grid::_.H
+    Real _.H
   };
 
   //////////////////////////////////////////////////////////////////////////////
@@ -72,6 +72,12 @@ Class @DesignC2.Monomial.Spheric.Grid :
     Text _MID = "[@DesignC2.Monomial.Spheric.Grid::build.stress.points] ";
     WriteLn("TRACE "+_MID+"1");
     Real _.Z.maxNeighbour := If(prior.Z.order>=0,2,0);
+    If(!_.Z.maxNeighbour, 
+    {
+      VMatrix _.Yt := Zeros(_.H,1);
+      Real _.Tz := 0
+    },{
+    WriteLn("TRACE "+_MID+"2.1");
     Matrix Y.neighbour.triplet = Group("ConcatRows", For(1,_.H,Matrix(Real h)
     {
       Set neighbours = Unique(VRow2Set(SubRow(_.Y.neighbourhood,[[h]])));
@@ -80,7 +86,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
       Rand(Rows(s),1,h,h)|s|Rand(Rows(s),1,1,1)
     }));
 
-    WriteLn("TRACE "+_MID+"2");
+    WriteLn("TRACE "+_MID+"2.2");
     VMatrix Y.neighbour.1.map = Triplet(Y.neighbour.triplet,_.H,_.H);
     VMatrix Y.neighbour.2.map = Y.neighbour.1.map*Y.neighbour.1.map;
     VMatrix Y.neighbour.12.map = Max(Y.neighbour.1.map,Y.neighbour.2.map);
@@ -139,7 +145,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
       prior.Z.order==1, _.Tz*(1+_.n),
       prior.Z.order==2, _.Tz*(1+_.n*3/2+(1/2)*_.n^2));
     _.Tz
-  };
+  })};
 
   //////////////////////////////////////////////////////////////////////////////
   Real build.border.points(Real void)
@@ -201,6 +207,5 @@ Class @DesignC2.Monomial.Spheric.Grid :
     VMatrix u = v*(VMatDat(MtMSqr(v),1,1)^-0.5);
     y+u*(Rand(0,1)*_.radius)
   }
-
 
 };

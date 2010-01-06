@@ -17,36 +17,108 @@ Class @DesignC2.Spheric : @DesignC2
 //////////////////////////////////////////////////////////////////////////////
   Real _.radius.margin;
 
+//////////////////////////////////////////////////////////////////////////////
+//Auxiliar members
+//////////////////////////////////////////////////////////////////////////////
+  VMatrix _.R =Rand(0,0,0,0);
+  MatQuery::@ANN.KDTree _.ann = 
+    MatQuery::@ANN.KDTree::Default(0);
+  MatQuery::@KNN.Neighbourhood _.ngbh = 
+    MatQuery::@KNN.Neighbourhood::Default(0);
+
   //////////////////////////////////////////////////////////////////////////////
-  //Virtual methods
+  //Methods
   //////////////////////////////////////////////////////////////////////////////
-  VMatrix get.radius(VMatrix Y.idx);
+
+  //////////////////////////////////////////////////////////////////////////////
+  Real set.reference.points(VMatrix Y)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.Y := Y;
+    Real _.H := VRows(_.Y);
+    Real _.ann::set.data(VMat2Mat(_.Y));
+    Real _.ann::update.search(_.ann::_.X,_.X.maxNeighbour,_.ngbh);
+    VMatrix _.R := 
+      Mat2VMat(Sqrt(SubCol(_.ngbh::_.distance2,[[_.X.maxNeighbour]])))*
+      (1+Min(0,_.radius.margin));
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+    VMatrix match.evaluable(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    MatQuery::@KNN.Neighbourhood ngbh = 
+      _.ann::search(VMat2Mat(X),1);    
+    VMatrix dist = Mat2VMat(Sqrt(ngbh::_.distance2));
+    VMatrix X.h = Mat2VMat(ngbh::_.neighbour);
+    LE(dist,get.radius(X.h))$*
+    LE(dist,Constant(VRows(dist),1,stress.maxDistance))
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  VMatrix closest.reference.index(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    MatQuery::@KNN.Neighbourhood ngbh = 
+      _.ann::search(VMat2Mat(X),_.X.maxNeighbour);
+    Mat2VMat(ngbh::_.neighbour)
+  };
+
+  //////////////////////////////////////////////////////////////////////////////
+  VMatrix get.radius(VMatrix Y.idx)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    SubRow(_.R,VCol2Set(Y.idx))
+  };
+
+  ///////////////////////////////////////////////////////////////////////////
+    VMatrix generate.internal.points(Real m)
+  ///////////////////////////////////////////////////////////////////////////
+  {
+    Text _MID = "[@DesignC2.Monomial.Spheric.MeshFree::generate.internal.points] ";
+    WriteLn("TRACE "+_MID+"1 m="<<m);
+    VMatrix h = Round(Rand(m,1,0.5,_.H+0.499999999));
+    WriteLn("TRACE "+_MID+"2 h:\n"<<h);
+    VMatrix y = SubRow(_.Y,VCol2Set(h));
+    WriteLn("TRACE "+_MID+"3 y:\n"<<y);
+    VMatrix v = Gaussian(m,_.n,0,1);
+    WriteLn("TRACE "+_MID+"4 v:\n"<<v);
+    VMatrix u = v*(VMatDat(MtMSqr(v),1,1)^-0.5);
+    WriteLn("TRACE "+_MID+"5 u:\n"<<u);
+    VMatrix rnd = get.radius(h)$*Rand(m,1,0,1);
+    WriteLn("TRACE "+_MID+"5 rnd:\n"<<rnd);
+    VMatrix r = Eye(m,m,0,rnd);
+    WriteLn("TRACE "+_MID+"6 r:\n"<<r);
+    y + r * u
+  };
 
   ///////////////////////////////////////////////////////////////////////////
   Set get.X.weight(Set X.dif, Set X.h)
   ///////////////////////////////////////////////////////////////////////////
   {
     Real m = VRows(X.dif[1]);
-    Set X.tao = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Real numNeighbour = Card(X.h);
+    Set X.tao = For(1,numNeighbour,VMatrix(Real i)
     {
       VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(_.n,1,1,1);
       RPow(X.norm2,0.5)$/get.radius(X.h[i])
     });
-    Set X.tao2 = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Set X.tao2 = For(1,numNeighbour,VMatrix(Real i)
     {
       RPow(X.tao[i],2)
     });
-    Set X.match = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Set X.match = For(1,numNeighbour,VMatrix(Real i)
     {
       LE(X.tao[i],Rand(m,1,1,1))
     });
-    Set X.lambda = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Set X.lambda = For(1,numNeighbour,VMatrix(Real i)
     {
       RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),4)
     });
     VMatrix X.lambda.sum = SetSum(X.lambda);
     
-    For(1,_.X.maxNeighbour,VMatrix(Real i)
+    For(1,numNeighbour,VMatrix(Real i)
     {
       X.lambda[i] $/ X.lambda.sum
     })
@@ -56,24 +128,25 @@ Class @DesignC2.Spheric : @DesignC2
   ///////////////////////////////////////////////////////////////////////////
   {
     Real m = VRows(X.dif[1]);
-    Set X.tao = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Real numNeighbour = Card(X.h);
+    Set X.tao = For(1,numNeighbour,VMatrix(Real i)
     {
       VMatrix X.norm2 = RPow(X.dif[i],2)*Rand(_.n,1,1,1);
       RPow(X.norm2,0.5)$/get.radius(X.h[i])
     });
-    Set X.tao2 = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Set X.tao2 = For(1,numNeighbour,VMatrix(Real i)
     {
       RPow(X.tao[i],2)
     });
-    Set X.match = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Set X.match = For(1,numNeighbour,VMatrix(Real i)
     {
       LE(X.tao[i],Rand(m,1,1,1))
     });
-    Set X.lambda = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Set X.lambda = For(1,numNeighbour,VMatrix(Real i)
     {
       RPow(X.match[i] $* (Rand(m,1,1,1)-X.tao2[i]),4)
     });
-    Set X.lambda.der = For(1,_.X.maxNeighbour,VMatrix(Real i)
+    Set X.lambda.der = For(1,numNeighbour,VMatrix(Real i)
     {
       RPow(X.match[i] $* 
            (Rand(m,1,1,1)-X.tao2[i]),3) $*
@@ -82,7 +155,7 @@ Class @DesignC2.Spheric : @DesignC2
     VMatrix X.lambda.sum = SetSum(X.lambda);
     VMatrix X.lambda.sum.2 = RPow(X.lambda.sum,2);
     VMatrix X.lambda.der.sum = SetSum(X.lambda.der);
-    For(1,_.X.maxNeighbour,VMatrix(Real i)
+    For(1,numNeighbour,VMatrix(Real i)
     {
       (X.lambda.der[i]$*X.lambda.sum-X.lambda[i]$*X.lambda.der.sum) 
       $/ X.lambda.sum.2
