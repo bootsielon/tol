@@ -72,7 +72,21 @@ public:
     return *((tol_tpp**)(&addr));
   }
 
-  void get_faces(DMat& face) const
+  void get_vertices(DMat& vertex) const
+  {
+    vertex.Alloc(delaunay_->nvertices(),2);
+    int v=0;
+    for(tpp::Delaunay::vIterator vit  = delaunay_->vbegin(); 
+                            vit != delaunay_->vend(); 
+                        ++vit, v++)
+    {
+      tpp::Delaunay::Point & p = *vit;
+      vertex(v,0)=p[0];
+      vertex(v,1)=p[1];
+    }
+  }
+
+  void get_faces(DMat& face, int first) const
   {
     face.Alloc(delaunay_->ntriangles(),3);
     int f=0;
@@ -80,9 +94,9 @@ public:
                             fit != delaunay_->fend(); 
                         ++fit, f++)
     {
-      face(f,0)=delaunay_->Org(fit);
-      face(f,1)=delaunay_->Dest(fit);
-      face(f,2)=delaunay_->Apex(fit);
+      face(f,0)=delaunay_->Org(fit)+first;
+      face(f,1)=delaunay_->Dest(fit)+first;
+      face(f,2)=delaunay_->Apex(fit)+first;
     }
   }
 
@@ -149,8 +163,29 @@ void BDatTPPDelaunayDelete::CalcContens()
 }
 
 //--------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatTPPDelaunayGetVertices);
+DefExtOpr(1, BMatTPPDelaunayGetVertices, "TPP.Delaunay.GetVertices", 1, 1,
+"Real",
+"(Real delaunay)",
+I2("Returns the list of vertices of a Delaunay triangulation previously "
+   "created with TPP.Delaunay.New, as a matrix with two columns "
+   "storing the coordinates of each triangle.",
+   "Devuelve la lista de los vértices de una triangulacón de Delaunay "
+   "previamente creada con TPP.Delaunay.New, como una matriz de dos "
+   "columnas con las coordenadas de cada vértice."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------
+void BMatTPPDelaunayGetVertices::CalcContens()
+{
+  double addr = Dat( Arg( 1 ) ).Value();
+  tol_tpp *aux = tol_tpp::decode_addr( addr );
+  aux->get_vertices((DMat&)contens_);
+}
+
+
+//--------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatTPPDelaunayGetFaces);
-DefExtOpr(1, BMatTPPDelaunayGetFaces, "Tpp.Delaunay.GetFaces", 1, 1,
+DefExtOpr(1, BMatTPPDelaunayGetFaces, "TPP.Delaunay.GetFaces", 1, 1,
 "Real",
 "(Real delaunay)",
 I2("Returns the list of faces of a Delaunay triangulation previously "
@@ -165,7 +200,9 @@ void BMatTPPDelaunayGetFaces::CalcContens()
 {
   double addr = Dat( Arg( 1 ) ).Value();
   tol_tpp *aux = tol_tpp::decode_addr( addr );
-  aux->get_faces((DMat&)contens_);
+  aux->get_faces((DMat&)contens_,1);
 }
+
+
 
 /* */
