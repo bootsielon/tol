@@ -203,6 +203,16 @@ proc ::TolConsole::Create { w } {
  
   bind . <Control-Key-k> +::tol::stop
   bind Text <Control-Key-k> ""
+  bind Text <Shift-Control-slash> {
+    set start [ %W index sel.first ]
+    set end [ %W index sel.last ]
+    set selection [ %W get $start $end ]
+    if { [ regsub -all {\\} $selection {/} changed ] } {
+      %W delete $start $end
+      %W insert $start $changed
+    }
+    break
+  }
   return $path
 }
 
