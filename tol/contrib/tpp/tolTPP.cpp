@@ -25,6 +25,7 @@
 
 #include "del_interface.hpp"
 
+
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bsetgra.h>
@@ -32,6 +33,14 @@
 #ifndef dMat
 #define dMat(arg) ((DMat&)Mat(arg))
 #endif
+
+bool MyAssertFunction( bool b, const char* desc, int line, const char* file)
+{
+#if defined( _DEBUG )
+  assert(b);
+#endif
+  return(b);
+}
 
 class tol_tpp {
 public:
