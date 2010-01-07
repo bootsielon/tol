@@ -178,10 +178,11 @@ DLLEXPORT(int) postgres_ExecQuery(pgsqld *dbd, const char *query)
     else if(status_type == PGRES_TUPLES_OK)
       num_rows = dbd->n_tuples;
   } 
-  else {
+  if(num_rows<0) 
+  {
     error_msg = PQresultErrorMessage(dbd->result);
     out_msg = calloc(strlen(error_msg)+10, sizeof(char));
-    sprintf(out_msg, "%s", error_msg);
+    sprintf(out_msg, "<E>\n%s\n<\E>", error_msg);
     stdOutWriter(out_msg);
     free(out_msg);
   }
