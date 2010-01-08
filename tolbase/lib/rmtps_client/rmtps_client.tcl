@@ -22,7 +22,7 @@ if { [ catch { package require tlogger } ] } {
       variable _level $l
     }
 
-    proc log { l msg } {
+    proc log { svc l msg } {
       variable _level 
 
       if { $l eq $_level } {
