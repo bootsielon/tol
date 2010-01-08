@@ -182,7 +182,7 @@ DLLEXPORT(int) postgres_ExecQuery(pgsqld *dbd, const char *query)
   {
     error_msg = PQresultErrorMessage(dbd->result);
     out_msg = calloc(strlen(error_msg)+10, sizeof(char));
-    sprintf(out_msg, "<E>\n%s\n<\E>", error_msg);
+    sprintf(out_msg, "<E>\n%s\n</E>", error_msg);
     stdOutWriter(out_msg);
     free(out_msg);
   }
