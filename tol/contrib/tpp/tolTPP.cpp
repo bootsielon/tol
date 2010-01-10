@@ -34,6 +34,7 @@
 #define dMat(arg) ((DMat&)Mat(arg))
 #endif
 
+namespace tpp {
 bool MyAssertFunction( bool b, const char* desc, int line, const char* file)
 {
 #if defined( _DEBUG )
@@ -41,7 +42,7 @@ bool MyAssertFunction( bool b, const char* desc, int line, const char* file)
 #endif
   return(b);
 }
-
+}
 class tol_tpp {
 public:
   tpp::Delaunay* delaunay_;
