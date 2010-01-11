@@ -964,6 +964,22 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   contens_ = result!=NULL;
 }
 
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatIsInstanceOf);
+  DefExtOpr(1, BDatIsInstanceOf, "IsInstanceOf", 2, 2, "NameBlock Text",
+  "(NameBlock obj, Text rootClass)",
+  I2("Returns true if an object <obj> is an instance of <rootClass> or "
+     "a class inherited from her.",
+     "Devuelve verdadero si el objeto <obj>en una instancia de la "
+     "clase <rootClass> o de una clase heredada de ella."),
+     BOperClassify::System_);
+  void BDatIsInstanceOf::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BNameBlock& nb = ((BUserNameBlock*)(Arg(1)))->Contens();
+  const BText& rootClass = Text(Arg(2));
+  contens_ = nb.IsInstanceOf(rootClass);
+};
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatFileBytes);
