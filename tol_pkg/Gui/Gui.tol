@@ -50,7 +50,7 @@ Class @MultiDimSelect
   //usuario para dicha dimensión.
   //Este método será lanzado por el propio sistema gráfico cuando el 
   //usuario pulse el botón de aceptar.
-  Real onAccept(Set selected)
+  Real onAccept(Set selected);
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
