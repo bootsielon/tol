@@ -514,6 +514,7 @@ proc ::TolInspector::CreateMenus {} {
   set data_menu(Anything,Functions) [menu $data_menu(main).mspfu -tearoff 0]
   set data_menu(Text,Functions)     [menu $data_menu(main).mtefu -tearoff 0]
   set data_menu(TimeSet,Functions)  [menu $data_menu(main).mtifu -tearoff 0]
+  set data_menu(NameBlock,Functions)  [menu $data_menu(main).mnbfu -tearoff 0]
 
   set data_menu(Matrix,Table)       [menu $data_menu(main).mmat   -tearoff 0]
   set data_menu(Matrix,Export)      [menu $data_menu(main).mmae   -tearoff 0]
@@ -1823,6 +1824,45 @@ proc ::TolInspector::NotBusy { } {
   }
 }
 
+proc Tol_ObjIsClassOf { obj_addr cls_name } {
+  tol::console eval [ string map [ list %A $obj_addr %C $cls_name ] {
+    Real __gui_check__ = IsInstanceOf(GetObjectFromAddress("%A"),"%C")
+  } ]
+  set info [ tol::info variable {Real __gui_check__} ]
+  set x [ lindex $info 2 ]
+  tol::console stack release __gui_check__
+  expr { round($x) }
+}
+
+proc TolGui_GetMenuEntries { obj_addr } {
+  set try [ catch {
+    tol::console eval [ string map [ list %A $obj_addr ] {
+      @MenuDesc __aux_menu__ = GetObjectFromAddress("%A");
+      Set __gui_menu_entries__ = __aux_menu__::getMenuEntries(?)
+    } ] } msg ]
+  if { $try } {
+    puts "ERROR TolGui_GetMenuEntries : $msg"
+    set result ""
+  } else {
+    set result [ TolObj2TclObj {Set __gui_menu_entries__} ]
+  }
+  tol::console stack release __aux_menu__
+  tol::console stack release __gui_menu_entries__
+  set result
+}
+
+proc TolGui_InvokeMethod { obj_addr method } {
+  set try [ catch {
+    tol::console eval [ string map [ list %A $obj_addr %M $method ] {
+      NameBlock __aux_instance__ = GetObjectFromAddress("%A");
+      Real __aux_result__ = __aux_instance__::%M(?)
+    } ] } msg ]
+  if { $try } {
+    puts "ERROR TolGui_InvokeMethod : $msg"
+  }
+  tol::console stack release __aux_instance__
+  tol::console stack release __aux_result__
+}
 
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::PostVariable { x y } {
@@ -1903,6 +1943,7 @@ proc ::TolInspector::PostVariable { x y } {
           Serie   -
           Anything -
           Text    -
+          NameBlock -
           TimeSet {
             lappend options_selected($grammar) [list $object $objName $path]
           }
@@ -2014,6 +2055,23 @@ proc ::TolInspector::PostVariable { x y } {
                 foreach objInfo $options_selected(TimeSet) {
                   $data_menu(TimeSet,View) add command -label [lindex $objInfo 1] \
                     -command [list ::TolInspector::ViewTimeSet [lindex $objInfo 0]]
+                }
+              }
+            }
+            NameBlock {
+              if { [ llength $options_selected(NameBlock) ] } {
+                puts "ooo = $options_selected(NameBlock)"
+                set obj_info [ lindex $options_selected(NameBlock) 0 ]
+                set tcl_ref [ lindex $obj_info 0 ]
+                set obj_addr [ ::tol::info address $tcl_ref ]
+                puts "obj_addr $obj_addr"
+                if { [ Tol_ObjIsClassOf $obj_addr "@MenuDesc" ] } {
+                  set entries [ TolGui_GetMenuEntries $obj_addr ]
+                  foreach ent $entries {
+                    $data_menu(main) add command -label [ lindex $ent 0 ] \
+                        -command [ list TolGui_InvokeMethod \
+                                       $obj_addr  [ lindex $ent 1 ] ]
+                  }
                 }
               }
             }
@@ -2254,6 +2312,7 @@ proc ::TolInspector::PostTree { x y } {
   #return
   array unset options_selected
   
+  puts "::TolInspector::PostTree $x $y" 
   foreach it [array names data_menu] {
     $data_menu($it) delete 0 end
   }
@@ -2267,17 +2326,17 @@ proc ::TolInspector::PostTree { x y } {
   #puts "node_act: $node_act"  
   if { [string length $node_act] } {
     set vars_selected [$ht_tree curselection]
-    #puts "vars_selected: $vars_selected"      
+    puts "vars_selected: $vars_selected"      
     if { [lsearch $vars_selected $node_act] >= 0 } { ;# Not root node
       set index [$ht_tree index anchor]
-      #puts "index: $index"    
+      puts "index: $index"    
       if { $index } {
         set info_node [split [lindex [$ht_tree get -full $index] end] "-"]
-        #puts "info_node: $info_node"  
+        puts "info_node: $info_node"  
         set node_type [lindex $info_node 0]
-        #puts "node_type: $node_type"          
+        puts "node_type: $node_type"          
         set node_name [lindex $info_node 1]
-        #puts "node_name: $node_name"          
+        puts "node_name: $node_name"          
       } else { ;# root node
         set node_type root
         set node_name root
@@ -2289,7 +2348,7 @@ proc ::TolInspector::PostTree { x y } {
       }
       # label of object showed in the tree
       set objName [$ht_tree entry cget $index -label]
-      #puts "1objName: $objName"
+      puts "objName: $objName"
       set object $objName
 
       if {$InRootFiles} {
@@ -2311,7 +2370,7 @@ proc ::TolInspector::PostTree { x y } {
           set object $objName
         }
       }
-      
+      puts "object = $objName '[$ht_tree entry cget $index -data]'"
 #Tolcon_Trace "***********************************" {red}
 #Tolcon_Trace "index=$index, node_type=$node_type, node_name=$node_name" {red}
 #Tolcon_Trace "tolset=$tolset, tolindex=$tolindex, aryData= [$ht_tree entry cget $index -data]" {red}
@@ -3229,8 +3288,6 @@ proc ::TolInspector::CallUserFunction {grammar idx} {
     ::TolInspector::UpdateConsoleObj
   }
 }
-
-
 
 namespace eval ::LoadStatus {
   variable data
