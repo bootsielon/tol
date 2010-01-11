@@ -73,8 +73,8 @@ Class @TPP.Delaunay
     Matrix D  = (Bx$*Cy-By$*Cx)*2;
     Matrix B2 = Bx^2+By^2;
     Matrix C2 = Cx^2+Cy^2;
-    Matrix Rx = (Cy*B2-By*C2)$/D;
-    Matrix Ry = (Bx*C2-Cx*B2)$/D;
+    Matrix Rx = (Cy$*B2-By$*C2)$/D;
+    Matrix Ry = (Bx$*C2-Cx$*B2)$/D;
     Matrix radius = Sqrt(Rx^2+Ry^2); 
     Matrix center = (Rx|Ry)+A;
     [[center, radius]]
