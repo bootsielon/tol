@@ -49,11 +49,20 @@ Class @VectorDoc.Ser: @VectorDoc
 Class @VectorDoc.Mat: @VectorDoc
 {
   Matrix _mat;
+  Matrix  get.column  (Anything unused) { _mat };
   Matrix  get.data    (Anything unused) { _mat };
   Real    has.timeInfo(Anything unused) { False };
   TimeSet dating      (Anything unused) { W };
   Date    firstDate   (Anything unused) { UnknownDate };
   Date    lastDate    (Anything unused) { UnknownDate }
 };
+
+
+@VectorDoc.Mat vim =
+[[
+  Text _.name = "rand";
+  Text _.description = "";
+  Matrix _mat = Rand(100,1,-1,1)
+]];
 
 
