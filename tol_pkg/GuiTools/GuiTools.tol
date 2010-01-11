@@ -62,3 +62,7 @@ Class @MultiDimSelect
 }
 
 ]];
+
+Set Tcl_EvalEx( [[ "source", GetAbsolutePath(".") + "/GuiDim.tcl" ]] );
+
+//set addr [tol::info address {NameBlock guidim_test}]
