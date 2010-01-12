@@ -15,6 +15,7 @@ Real OSCmdWaitWr(Text order)
 
 Set packages = 
 [[
+  "GuiTools",
   "HashMap",
   "MatQuery",
   "MatEncode",
@@ -22,7 +23,7 @@ Set packages =
   "MulVarFunAprox",
   "MhCnstrLinRegArima",
   "GraphTools",
-  "GisTools" 
+  "GisTools"
 ]];
 
 Real OSDirRemove(tolpkg_install);
