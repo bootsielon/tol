@@ -1,6 +1,3 @@
-Set Include( "/home/jsperez/TOL/FROM_SVN/tolp/trunk/tol_pkg/GuiTools/GuiTools.tol" );
-#Require GuiTools;
-Real UsingNameBlock(GuiTools);
 
 Class @GuiTest_Hello : @MenuDesc
 {
@@ -75,6 +72,7 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
   Real loadData( Real void )
   {
     Set _.load_status := Tcl_EvalEx( [[ "ShowDimSelector", GetAddressFromObject( _this ) ]] );
+    WriteLn("loadData _.load_status:\n"<<_.load_status);
     Real 0
   };
 
@@ -85,3 +83,5 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
 };
 
 @GuiDim_Test guidim_test;
+
+/* */

@@ -1,0 +1,4 @@
+#Require GuiTools;
+Real UsingNameBlock(GuiTools);
+Real @MultiDimSelect::LoadTcl(0);
+Set @MultiDimSelect::tcl_eval;

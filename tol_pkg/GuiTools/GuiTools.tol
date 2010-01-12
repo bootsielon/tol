@@ -28,11 +28,33 @@ Class @MenuDesc
   ////////////////////////////////////////////////////////////////////////////
 };
 
+//El archivo TCL debe leerse fuera de la clase para que se quede almacenado 
+//en el OZA
+Text _MultiDimSelect.tcl = ReadFile("MultiDimSelect.tcl");
+
 //////////////////////////////////////////////////////////////////////////////
 //Clase abstracta para selección múltiple en varias dimensiones
 Class @MultiDimSelect
 //////////////////////////////////////////////////////////////////////////////
 {
+  Static Set tcl_eval = Copy(Empty);
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static Real LoadTcl(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real If(Card(tcl_eval),True,
+    {
+    //WriteLn("LoadTcl _MultiDimSelect.tcl:\n"+MultiDimSelect.tcl+"\n");
+      Text temp = TmpDir+"MultiDimSelect.tcl";
+      Text WriteFile(temp, _MultiDimSelect.tcl);
+      Set @MultiDimSelect::tcl_eval := 
+        Tcl_EvalEx( [[ "source", temp ]] );
+      WriteLn("LoadTcl _tcl_eval:\n"<<@MultiDimSelect::tcl_eval+"\n");
+      True
+    })
+  };
+
   ////////////////////////////////////////////////////////////////////////////
   //Devuelve un conjunto de textos con los nombres de las dimensiones
   Set getDimensions(Real void);
@@ -63,6 +85,3 @@ Class @MultiDimSelect
 
 ]];
 
-Set Tcl_EvalEx( [[ "source", GetAbsolutePath(".") + "/GuiDim.tcl" ]] );
-
-//set addr [tol::info address {NameBlock guidim_test}]
