@@ -1,0 +1,87 @@
+Set Include( "/home/jsperez/TOL/FROM_SVN/tolp/trunk/tol_pkg/GuiTools/GuiTools.tol" );
+#Require GuiTools;
+Real UsingNameBlock(GuiTools);
+
+Class @GuiTest_Hello : @MenuDesc
+{
+  Real showMessage( Real void )
+  {
+    Set Tcl_Eval( "tk_messageBox -message {Hola Mundo} -icon info" );
+    Real 0
+  };
+
+  Set getMenuEntries(Real void) {
+    Set [[ [[ "Hola ...", "showMessage" ]] ]]
+  }
+};
+
+@GuiTest_Hello gui_obj;
+
+Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
+{
+  Set _.dimensions_info =
+    [[
+      Set Dimension1 = [[ "Dim1.Name1", "Dim1.Name2", "Dim1.Name3" ]];
+      Set Dimension2 = [[ "Dim2.Name1", "Dim2.Name2" ]]
+    ]];
+
+  Set _.result = Copy( Empty );
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //Devuelve un conjunto de textos con los nombres de las dimensiones
+  Set getDimensions(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set [[ "Dimension1", "Dimension2" ]]
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //Devuelve un conjunto de textos con los valores de una dimensión dada
+  Set getDimValues(Text dimName)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set _.dimensions_info[ dimName ]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Ejecuta una acción sobre los valores seleccionados de las dimensiones
+  //El argumento debe ser un conjunto de tantos conjuntos como dimensiones
+  //conteniendo cada uno los valores que han sido seleccionados por el
+  //usuario para dicha dimensión.
+  //Este método será lanzado por el propio sistema gráfico cuando el 
+  //usuario pulse el botón de aceptar.
+  Real onAccept(Set selected)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set _.result := selected
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //Devuelve un conjunto de pares de texto con la etiqueta a mostrar en el 
+  //cada botón adicional y el nombre del método a ejecutar
+  Set getButtonEntries(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Set Empty
+  };
+
+  Real showMessage( Real void )
+  {
+    Set Tcl_Eval( "tk_messageBox -message {Hola Mundo, soy @GuiDim_Test} -icon info" );
+    Real 0
+  };
+
+  Set _.load_status = Copy( Empty );
+  Real loadData( Real void )
+  {
+    Set _.load_status := Tcl_EvalEx( [[ "ShowDimSelector", GetAddressFromObject( _this ) ]] );
+    Real 0
+  };
+
+  Set getMenuEntries(Real void) {
+    Set [[ [[ "Hola ...", "showMessage" ]], [[ "Load data...", "loadData" ]] ]]
+  }  
+  
+};
+
+@GuiDim_Test guidim_test;
