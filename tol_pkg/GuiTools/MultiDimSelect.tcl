@@ -122,6 +122,7 @@ snit::widgetadaptor DimSelector {
   delegate method * to hull
 
   variable widgets
+  variable ids 0
 
   constructor { args } {
     installhull using Dialog
@@ -140,36 +141,48 @@ snit::widgetadaptor DimSelector {
   }
 
   method _getDimensions { } {
+    puts "_getDimensions"
+    puts "*** [ tol::console stack list ] ***"
+    incr ids
+    set id_obj __aux_dsel__$ids
+    set id_dims __dimensions__$ids
     set try [ catch {
-      tol::console eval [ string map [ list %A $options(-addr) ] {
-        @MultiDimSelect __aux_dsel__ = GetObjectFromAddress("%A");
-        Set __dimensions__ = __aux_dsel__::getDimensions(?)
+      tol::console eval [ string map [ list %A $options(-addr) %I1 $id_obj %I2 $id_dims ] {
+        @MultiDimSelect %I1 = GetObjectFromAddress("%A");
+        Set %I2 = %I1::getDimensions(?)
       } ] } msg ]
     if { $try } {
       puts "ERROR DimSelector::_getDimensions : $msg"
       set result ""
     } else {
-      set result [ TolObj2TclObj {Set __dimensions__} ]
+      set result [ TolObj2TclObj [ list Set $id_dims ] ]
     }
-    tol::console stack release __aux_dsel__
-    tol::console stack release __dimensions__
+    tol::console stack release $id_dims
+    tol::console stack release $id_obj
+    puts "_getDimensions: DONE"
     set result
   }
   
   method _getDimValues { dim } {
+    puts "_getDimValues $dim"
+    puts "*** [ tol::console stack list ] ***"
+    incr ids
+    set id_obj __aux_dsel__$ids
+    set id_values __dimvalues__$ids
     set try [ catch {
-      tol::console eval [ string map [ list %A $options(-addr) %D $dim ] {
-        @MultiDimSelect __aux_dsel__ = GetObjectFromAddress("%A");
-        Set __dimvalues__ = __aux_dsel__::getDimValues("%D")
+      tol::console eval [ string map [ list %A $options(-addr) %D $dim %I1 $id_obj %I2 $id_values ] {
+        @MultiDimSelect %I1 = GetObjectFromAddress("%A");
+        Set %I2 = %I1::getDimValues("%D");
       } ] } msg ]
     if { $try } {
       puts "ERROR DimSelector::_getDimValues : $msg"
       set result ""
     } else {
-      set result [ TolObj2TclObj {Set __dimvalues__} ]
+      set result [ TolObj2TclObj [ list Set $id_values ] ]
     }
-    tol::console stack release __aux_dsel__
-    tol::console stack release __dimvalues__
+    tol::console stack release $id_values
+    tol::console stack release $id_obj
+    puts "_getDimValues: DONE"
     set result
   }
 
@@ -204,7 +217,8 @@ snit::widgetadaptor DimSelector {
 
 proc ShowDimSelector { addr } {
   DimSelector .dimsel -addr $addr -geometry 200x200 -parent .
-  .dimsel draw
+  set result [ .dimsel draw ]
+  puts "sali con $result"
   destroy .dimsel
 }
 
