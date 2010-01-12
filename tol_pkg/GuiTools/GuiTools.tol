@@ -9,7 +9,7 @@ NameBlock GuiTools = [[
 //////////////////////////////////////////////////////////////////////////////
 
 Text _.autodoc.description = "Funciones y clases relacionadas con interfaces "
-"gr·ficas de usuario GUI (Graphic User Interfaces)";
+"gr√°ficas de usuario GUI (Graphic User Interfaces)";
 Text _.autodoc.url = "";
 Set _.autodoc.keys = [["Graphic User Interfaces","GUI"]];
 Set _.autodoc.authors = [[
@@ -17,13 +17,13 @@ Set _.autodoc.authors = [[
    "vdebuen@tol-project.org"   ]];
 
 //////////////////////////////////////////////////////////////////////////////
-//Clase abstracta para asignar men˙ contextual gr·fico a las instancias
+//Clase abstracta para asignar men√∫ contextual gr√°fico a las instancias
 Class @MenuDesc
 //////////////////////////////////////////////////////////////////////////////
 {
   ////////////////////////////////////////////////////////////////////////////
   //Devuelve un conjunto de pares de texto con la etiqueta a mostrar en el 
-  //men˙ y el nombre del mÈtodo a ejecutar
+  //men√∫ y el nombre del m√©todo a ejecutar
   Set getMenuEntries(Real void)
   ////////////////////////////////////////////////////////////////////////////
 };
@@ -33,7 +33,7 @@ Class @MenuDesc
 Text _MultiDimSelect.tcl = ReadFile("MultiDimSelect.tcl");
 
 //////////////////////////////////////////////////////////////////////////////
-//Clase abstracta para selecciÛn m˙ltiple en varias dimensiones
+//Clase abstracta para selecci√≥n m√∫ltiple en varias dimensiones
 Class @MultiDimSelect
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -61,23 +61,23 @@ Class @MultiDimSelect
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
-  //Devuelve un conjunto de textos con los valores de una dimensiÛn dada
+  //Devuelve un conjunto de textos con los valores de una dimensi√≥n dada
   Set getDimValues(Text dimName);
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
-  //Ejecuta una acciÛn sobre los valores seleccionados de las dimensiones
+  //Ejecuta una acci√≥n sobre los valores seleccionados de las dimensiones
   //El argumento debe ser un conjunto de tantos conjuntos como dimensiones
   //conteniendo cada uno los valores que han sido seleccionados por el
-  //usuario para dicha dimensiÛn.
-  //Este mÈtodo ser· lanzado por el propio sistema gr·fico cuando el 
-  //usuario pulse el botÛn de aceptar.
+  //usuario para dicha dimensi√≥n.
+  //Este m√©todo ser√° lanzado por el propio sistema gr√°fico cuando el 
+  //usuario pulse el bot√≥n de aceptar.
   Real onAccept(Set selected);
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
   //Devuelve un conjunto de pares de texto con la etiqueta a mostrar en el 
-  //cada botÛn adicional y el nombre del mÈtodo a ejecutar
+  //cada bot√≥n adicional y el nombre del m√©todo a ejecutar
   Set getButtonEntries(Real void)
   ////////////////////////////////////////////////////////////////////////////
 

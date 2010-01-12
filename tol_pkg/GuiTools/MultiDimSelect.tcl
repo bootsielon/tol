@@ -61,6 +61,19 @@ snit::widgetadaptor DimSelector {
     set uncheckedImg [ image create photo -data $uncheckedImgData ]  
   }
 
+  typemethod _invokeButton { obj_addr method dims } {
+    set try [ catch {
+      tol::console eval [ string map [ list %A $obj_addr %M $method %D $dims ] {
+        NameBlock __aux_instance__ = GetObjectFromAddress("%A");
+        Real __aux_result__ = __aux_instance__::%M(%D)
+      } ] } msg ]
+    if { $try } {
+      puts "ERROR ${type}::_invokeButton : $msg"
+    }
+    tol::console stack release __aux_instance__
+    tol::console stack release __aux_result__
+  }
+
   typemethod createTableDim { w } {
     frame $w
     
@@ -90,6 +103,19 @@ snit::widgetadaptor DimSelector {
     ::autoscroll::autoscroll $vs
     ::autoscroll::autoscroll $hs
     set w
+  }
+
+  typemethod getDimSelected { w } {
+    $w finishediting
+    set info [ $w get 0 end ]
+    puts "getDimSelected, info : $info"
+    set result [ list ]
+    foreach r $info {
+      if { [ lindex $r 0 ] } {
+        lappend result [ lindex $r 1 ]
+      }
+    }
+    set result
   }
   
   typemethod emptyStr { val } {
@@ -124,22 +150,52 @@ snit::widgetadaptor DimSelector {
   delegate method * to hull
 
   variable widgets
+  variable dimensions
   variable ids 0
 
   constructor { args } {
-    installhull using Dialog
-    $win add -text Accept
-    $win add -text Cancel
+    installhull using Dialog -modal none -geometry 200x200
+    $win add -text Accept -command [ mymethod _onAccept ]
+    $win add -text Close -command "destroy $win"
     $self configurelist $args
     set widgets [ list ]
     set f [ $win getframe ]
     set main [ frame $f.main ]
-    foreach dim [ $self _getDimensions ] {
+    set dimensions [ $self _getDimensions ]
+    foreach dim $dimensions {
       $self _createDimWidget $dim
     }
     $self _packWidgets
     grid rowconfigure $f 0 -weight 1
     grid columnconfigure $f 0 -weight 1
+  }
+
+  method _onAccept { } {
+    set dims_selected [ $self _getDimSelected ]
+    puts "dims_selected $dims_selected"
+    set level1 [ list ]
+    foreach d $dims_selected {
+      set level2 [ list ]
+      foreach v $d {
+        lappend level2 \"$v\"
+      }
+      if { [ llength $level2 ] } {
+        lappend level1 "SetOfText([ join $level2 , ])"
+      } else {
+        lappend level1 "Copy(Empty)"
+      }
+    }
+    $type _invokeButton $options(-addr) onAccept "SetOfSet([ join $level1 , ])"
+    after idle destroy $win
+  }
+
+  method _getDimSelected { } {
+    set result [ list ]
+    foreach w $widgets d $dimensions {
+      set ff [ $w getframe ]
+      lappend result [ $type getDimSelected $ff.tl.tbl ]
+    }
+    set result
   }
 
   method _getDimensions { } {
@@ -221,7 +277,6 @@ proc ShowDimSelector { addr } {
   DimSelector .dimsel -addr $addr -geometry 200x200 -parent .
   set result [ .dimsel draw ]
   puts "sali con $result"
-  destroy .dimsel
 }
 
 #set addr [tol::info address {NameBlock guidim_test}]
