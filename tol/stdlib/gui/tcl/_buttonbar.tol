@@ -89,7 +89,7 @@ Text TclAddIncludeTOLCodeButton(Set valArg)
 
   TclAddButtonBar( SetOfSet(
     @TclArgSt("-image",TclGAV("-image",aplArg)),
-    @TclArgSt("-tooltip", "Incluye el archivo"+TclGAV("-file",aplArg)),
+    @TclArgSt("-tooltip", BBr("Incluye el archivo "+TclGAV("-file",aplArg))),
     @TclArgSt("-tclCmd","::tol::include "+ Quotes 
       + Replace(TclGAV("-file",aplArg),Quotes,"\\"+Quotes)+Quotes)
   ))
