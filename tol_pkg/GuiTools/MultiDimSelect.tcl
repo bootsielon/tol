@@ -1,6 +1,8 @@
 package require snit
 package require BWidget
 package require autoscroll
+package require tablelist
+
 
 snit::widgetadaptor DimSelector {
 
@@ -43,8 +45,8 @@ snit::widgetadaptor DimSelector {
     option add *Tablelist.stripeBackground	#e0e8f0
     option add *Tablelist.setGrid		yes
     option add *Tablelist.movableColumns	yes
-    option add *Tablelist.labelCommand	tablelist::sortByColumn
-    option add *Tablelist.labelCommand2	tablelist::addToSortColumns
+    option add *Tablelist.labelCommand	::tablelist::sortByColumn
+    option add *Tablelist.labelCommand2	::tablelist::addToSortColumns
 
     set checkedImgData {
       R0lGODdhCwALAJEAAH9/f////wAAAP///ywAAAAACwALAAACLISPRvEPAE8o
@@ -62,7 +64,7 @@ snit::widgetadaptor DimSelector {
   typemethod createTableDim { w } {
     frame $w
     
-    set tbl [ tablelist::tablelist $w.tbl \
+    set tbl [ ::tablelist::tablelist $w.tbl \
                   -columns { 0 "Selected" center 0 "Dimension Value" left } \
                   -editendcommand [ mytypemethod editEndCmd ] \
                   -editstartcommand [ mytypemethod editStartCmd ] \
