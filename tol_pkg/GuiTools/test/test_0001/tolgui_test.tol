@@ -24,6 +24,8 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
 
   Set _.result = Copy( Empty );
   
+  Text _.address = "";
+
   ////////////////////////////////////////////////////////////////////////////
   //Devuelve un conjunto de textos con los nombres de las dimensiones
   Set getDimensions(Real void)
@@ -50,6 +52,7 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
   Real onAccept(Set selected)
   ////////////////////////////////////////////////////////////////////////////
   {
+    WriteLn("onAccept");
     Set _.result := selected;
     Real 0
   };
@@ -87,7 +90,7 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
   Set _.load_status = Copy( Empty );
   Real loadData( Real void )
   {
-    Set _.load_status := Tcl_EvalEx( [[ "ShowDimSelector", GetAddressFromObject( _this ) ]] );
+    Set _.load_status := Tcl_EvalEx( [[ "ShowDimSelector", _.address ]] );
     WriteLn("loadData _.load_status:\n"<<_.load_status);
     Real 0
   };
@@ -99,5 +102,7 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
 };
 
 @GuiDim_Test guidim_test;
+
+Text guidim_test::_.address := GetAddressFromObject(guidim_test)
 
 /* */
