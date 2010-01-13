@@ -64,7 +64,7 @@ snit::widgetadaptor DimTable {
 
   typemethod editEndCmd { w row col text } {
     if { [ $w columncget $col -name ] eq "selected" } {
-      set img [ expr { $text ? $DimSelector::checkedImg : $DimSelector::uncheckedImg } ]
+      set img [ expr { $text ? $DimTable::checkedImg : $DimTable::uncheckedImg } ]
       $w cellconfigure $row,$col -image $img
     }
     return $text
