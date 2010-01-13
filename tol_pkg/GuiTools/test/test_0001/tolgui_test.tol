@@ -52,20 +52,20 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
   Real onAccept(Set selected)
   ////////////////////////////////////////////////////////////////////////////
   {
-    WriteLn("onAccept");
+    WriteLn("onAccept "<<selected);
     Set _.result := selected;
     Real 0
   };
 
   Real onTabla( Set selected )
   {
-    WriteLn( "onTabla" );
+    WriteLn( "onTabla "<<selected );
     Real 0
   };
 
   Real onGrafica( Set selected )
   {
-    WriteLn( "onGrafica" );
+    WriteLn( "onGrafica "<<selected );
     Real 0
   };
   
