@@ -135,6 +135,17 @@ snit::widget DimSelector {
 
   hulltype toplevel
 
+  typevariable instNumber
+
+  typeconstructor {
+    set instNumber 0
+  }
+
+  typemethod New { addr } {
+    incr instNumber
+    DimSelector .dimsel$instNumber -addr $addr
+  }
+
   option -addr -readonly yes -validatemethod _checkAddr
 
   method _invokeButton { method dims } {
@@ -179,6 +190,8 @@ snit::widget DimSelector {
   method _createFrames { } {
     set fmain [ frame $win.fmain ]
     set fbut [ frame $win.fbut ]
+    grid rowconfigure $fmain 0 -weight 1
+    grid columnconfigure $fmain 0 -weight 1
     grid $fmain -row 0 -column 0 -sticky snew
     grid $fbut -row 1 -column 0 -sticky snew
     set bok [ button $fbut.bok -text Accept \
@@ -359,10 +372,7 @@ snit::widget DimSelector {
 
 proc ShowDimSelector { addr } {
   puts "ShowDimSelector $addr"
-  DimSelector .dimsel -addr $addr
-  puts "[ .dimsel cget -addr]"
-  set result [ .dimsel draw ]
-  puts "sali con $result"
+  DimSelector New $addr
 }
 
 #set addr [tol::info address {NameBlock guidim_test}]
