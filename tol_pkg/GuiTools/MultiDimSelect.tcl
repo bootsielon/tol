@@ -236,7 +236,7 @@ snit::widgetadaptor DimSelector {
         lappend level2 $v
       }
       if { [ llength $level2 ] } {
-        lappend level1 "SetOfReal[ join $level2 , ])"
+        lappend level1 "SetOfReal([ join $level2 , ])"
       } else {
         lappend level1 "Copy(Empty)"
       }
