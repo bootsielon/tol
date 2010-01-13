@@ -3,10 +3,7 @@ package require BWidget
 package require autoscroll
 package require tablelist
 
-
-snit::widgetadaptor DimSelector {
-
-  option -addr -readonly yes -validatemethod _checkAddr
+snit::widgetadaptor DimTable {
 
   typevariable checkedImg
   typevariable uncheckedImg
@@ -61,63 +58,6 @@ snit::widgetadaptor DimSelector {
     set uncheckedImg [ image create photo -data $uncheckedImgData ]  
   }
 
-  typemethod _invokeButton { obj_addr method dims } {
-    set try [ catch {
-      tol::console eval [ string map [ list %A $obj_addr %M $method %D $dims ] {
-        NameBlock __aux_instance__ = GetObjectFromAddress("%A");
-        Real __aux_result__ = __aux_instance__::%M(%D)
-      } ] } msg ]
-    if { $try } {
-      puts "ERROR ${type}::_invokeButton : $msg"
-    }
-    tol::console stack release __aux_instance__
-    tol::console stack release __aux_result__
-  }
-
-  typemethod createTableDim { w } {
-    frame $w
-    
-    set tbl [ ::tablelist::tablelist $w.tbl \
-                  -columns { 0 "Selected" center 0 "Dimension Value" left } \
-                  -editendcommand [ mytypemethod editEndCmd ] \
-                  -editstartcommand [ mytypemethod editStartCmd ] \
-                  -selectmode extended ]
-    $tbl columnconfigure 0 -name selected -editable yes \
-        -editwindow checkbutton \
-        -formatcommand [ mytypemethod emptyStr ]
-    if { [ $tbl cget -selectborderwidth ] == 0 } {
-      $tbl configure -spacing 1
-    }
-    set hs [ scrollbar $w.hs -orient horizontal \
-                 -command [ list $tbl xview ] ]
-    set vs [ scrollbar $w.vs -orient vertical \
-                 -command [list $tbl yview ] ]
-    $tbl configure \
-        -xscrollcommand "$hs set" \
-        -yscrollcommand "$vs set"
-    grid $tbl -row 0 -column 0 -sticky snew
-    grid $vs -row 0 -column 1 -sticky ns
-    grid $hs -row 1 -column 0 -sticky ew
-    grid rowconfigure $w 0 -weight 1
-    grid columnconfigure $w 0 -weight 1
-    ::autoscroll::autoscroll $vs
-    ::autoscroll::autoscroll $hs
-    set w
-  }
-
-  typemethod getDimSelected { w } {
-    $w finishediting
-    set info [ $w get 0 end ]
-    puts "getDimSelected, info : $info"
-    set result [ list ]
-    foreach r $info {
-      if { [ lindex $r 0 ] } {
-        lappend result [ lindex $r 1 ]
-      }
-    }
-    set result
-  }
-  
   typemethod emptyStr { val } {
     return ""
   }
@@ -134,10 +74,77 @@ snit::widgetadaptor DimSelector {
     return $text
   }
 
-  typemethod appendRow { w dimValue } {
-    $w insert end [ list 0 $dimValue ]
-    $w cellconfigure end,selected -image $DimSelector::uncheckedImg
+  component table -public table
+
+  delegate option * to hull
+  delegate method * to hull
+
+  constructor { args } {
+    eval installhull using LabelFrame $args
+    set f [ $win getframe ]
+    install table using ::tablelist::tablelist $f.tbl \
+                  -columns { 0 "Selected" center 0 "Dimension Value" left } \
+                  -editendcommand [ mytypemethod editEndCmd ] \
+                  -editstartcommand [ mytypemethod editStartCmd ] \
+                  -selectmode extended
+    $table columnconfigure 0 -name selected -editable yes \
+        -editwindow checkbutton \
+        -formatcommand [ mytypemethod emptyStr ]
+    if { [ $table cget -selectborderwidth ] == 0 } {
+      $table configure -spacing 1
+    }
+    set hs [ scrollbar $f.hs -orient horizontal \
+                 -command [ list $table xview ] ]
+    set vs [ scrollbar $f.vs -orient vertical \
+                 -command [list $table yview ] ]
+    $table configure \
+        -xscrollcommand "$hs set" \
+        -yscrollcommand "$vs set"
+    grid $table -row 0 -column 0 -sticky snew
+    grid $vs -row 0 -column 1 -sticky ns
+    grid $hs -row 1 -column 0 -sticky ew
+    grid rowconfigure $f 0 -weight 1
+    grid columnconfigure $f 0 -weight 1
+    ::autoscroll::autoscroll $vs
+    ::autoscroll::autoscroll $hs
   }
+
+  method getChecked { } {
+    $table finishediting
+    set info [ $table get 0 end ]
+    puts "getChecked, info : $info"
+    set result [ list ]
+    foreach r $info {
+      if { [ lindex $r 0 ] } {
+        lappend result [ lindex $r 1 ]
+      }
+    }
+    set result
+  }
+
+  method appendRow { dimValue } {
+    $table insert end [ list 0 $dimValue ]
+    $table cellconfigure end,selected -image $DimTable::uncheckedImg
+  }
+
+};
+
+snit::widgetadaptor DimSelector {
+
+  option -addr -readonly yes -validatemethod _checkAddr
+
+  typemethod _invokeButton { obj_addr method dims } {
+    set try [ catch {
+      tol::console eval [ string map [ list %A $obj_addr %M $method %D $dims ] {
+        NameBlock __aux_instance__ = GetObjectFromAddress("%A");
+        Real __aux_result__ = __aux_instance__::%M(%D)
+      } ] } msg ]
+    if { $try } {
+      puts "ERROR ${type}::_invokeButton : $msg"
+    }
+    tol::console stack release __aux_instance__
+    tol::console stack release __aux_result__
+  }  
 
   method _checkAddr { option value } {
     if { ![ Tol_ObjIsClassOf $value "@MultiDimSelect" ] } {
@@ -154,24 +161,69 @@ snit::widgetadaptor DimSelector {
   variable ids 0
 
   constructor { args } {
-    installhull using Dialog -modal none -geometry 200x200
-    $win add -text Accept -command [ mymethod _onAccept ]
+    installhull using Dialog -modal none
+    $win add -text Accept -command [ mymethod invokeButton onAccept yes ]
     $win add -text Close -command "destroy $win"
     $self configurelist $args
     set widgets [ list ]
+    $self _createDimTables
+    $self _createButtons
     set f [ $win getframe ]
-    set main [ frame $f.main ]
-    set dimensions [ $self _getDimensions ]
-    foreach dim $dimensions {
-      $self _createDimWidget $dim
-    }
-    $self _packWidgets
     grid rowconfigure $f 0 -weight 1
     grid columnconfigure $f 0 -weight 1
   }
 
-  method _onAccept { } {
-    set dims_selected [ $self _getDimSelected ]
+  method _createDimTables { } {
+    set f [ $win getframe ]
+    set main [ frame $f.main ]
+    set dimensions [ $self _getObjDimensions ]
+    set widgets [ list ]
+    grid $main -row 0 -column 0 -sticky snew
+    grid rowconfigure $main 0 -weight 1
+    foreach dim $dimensions {
+      set idx [ llength $widgets ]
+      set dt [ DimTable $main.dt$idx -text $dim -side top ]
+      foreach dv [ $self _getObjDimValues $dim ] {
+        $dt appendRow $dv
+      }
+      grid $dt -row 0 -column $idx -sticky snew
+      grid columnconfigure $main $idx -weight 1
+      lappend widgets $dt
+    }
+  }
+
+  method _createButtons { } {
+    set f [ $win getframe ]
+    set but_info [ $self _getObjButtons ]
+    if { [ llength $but_info ] } {
+      set sep [ Separator $f.sep -orient vertical ]
+      grid $sep -row 0 -column 1 -sticky sn
+      set fbut [ frame $f.fbut ]
+      grid $fbut -row 0 -column 2 -sticky sn
+      array set but_opts {
+        -image ""
+        -exit "no"
+        -method ""
+      }
+      set idx 0
+      foreach but $but_info {
+        array set but_opts {
+          -image ""
+          -exit "no"
+          -method ""
+        }
+        array set but_opts $but
+        button $fbut.but$idx -text $but_opts(-label) \
+            -image $but_opts(-image) \
+            -command [ mymethod invokeButton $but_opts(-method) $but_opts(-exit) ]
+        grid $fbut.but$idx -row $idx -column 0 -sticky ew
+        incr idx
+      }
+    }
+  }
+
+  method invokeButton { met ex } {
+    set dims_selected [ $self getDimSelected ]
     puts "dims_selected $dims_selected"
     set level1 [ list ]
     foreach d $dims_selected {
@@ -185,21 +237,22 @@ snit::widgetadaptor DimSelector {
         lappend level1 "Copy(Empty)"
       }
     }
-    $type _invokeButton $options(-addr) onAccept "SetOfSet([ join $level1 , ])"
-    after idle destroy $win
+    $type _invokeButton $options(-addr) $met "SetOfSet([ join $level1 , ])"
+    if { $ex } {
+      after idle destroy $win
+    }
   }
 
-  method _getDimSelected { } {
+  method getDimSelected { } {
     set result [ list ]
     foreach w $widgets d $dimensions {
-      set ff [ $w getframe ]
-      lappend result [ $type getDimSelected $ff.tl.tbl ]
+      lappend result [ $w getChecked ]
     }
     set result
   }
 
-  method _getDimensions { } {
-    puts "_getDimensions"
+  method _getObjDimensions { } {
+    puts "_getObjDimensions"
     puts "*** [ tol::console stack list ] ***"
     incr ids
     set id_obj __aux_dsel__$ids
@@ -210,20 +263,18 @@ snit::widgetadaptor DimSelector {
         Set %I2 = %I1::getDimensions(?)
       } ] } msg ]
     if { $try } {
-      puts "ERROR DimSelector::_getDimensions : $msg"
+      puts "ERROR DimSelector::_getObjDimensions : $msg"
       set result ""
     } else {
       set result [ TolObj2TclObj [ list Set $id_dims ] ]
     }
     tol::console stack release $id_dims
     tol::console stack release $id_obj
-    puts "_getDimensions: DONE"
+    puts "_getObjDimensions: DONE"
     set result
   }
   
-  method _getDimValues { dim } {
-    puts "_getDimValues $dim"
-    puts "*** [ tol::console stack list ] ***"
+  method _getObjDimValues { dim } {
     incr ids
     set id_obj __aux_dsel__$ids
     set id_values __dimvalues__$ids
@@ -233,14 +284,33 @@ snit::widgetadaptor DimSelector {
         Set %I2 = %I1::getDimValues("%D");
       } ] } msg ]
     if { $try } {
-      puts "ERROR DimSelector::_getDimValues : $msg"
+      puts "ERROR DimSelector::_getObjDimValues : $msg"
       set result ""
     } else {
       set result [ TolObj2TclObj [ list Set $id_values ] ]
     }
     tol::console stack release $id_values
     tol::console stack release $id_obj
-    puts "_getDimValues: DONE"
+    set result
+  }
+
+  method _getObjButtons { } {
+    incr ids
+    set id_obj __aux_dsel__$ids
+    set id_buttons __buttons__$ids
+    set try [ catch {
+      tol::console eval [ string map [ list %A $options(-addr) %I1 $id_obj %I2 $id_buttons ] {
+        @MultiDimSelect %I1 = GetObjectFromAddress("%A");
+        Set %I2 = %I1::getButtonEntries(?);
+      } ] } msg ]
+    if { $try } {
+      puts "ERROR DimSelector::_getObjButtons : $msg"
+      set result ""
+    } else {
+      set result [ TolObj2TclObj [ list Set $id_buttons ] ]
+    }
+    tol::console stack release $id_buttons
+    tol::console stack release $id_obj
     set result
   }
 
@@ -251,7 +321,7 @@ snit::widgetadaptor DimSelector {
     set w [ LabelFrame $f.dimf${l} -text $dim -side top ]
     set ff [ $w getframe ]
     set tl [ $type createTableDim $ff.tl ]
-    foreach dv [ $self _getDimValues $dim ] {
+    foreach dv [ $self _getObjDimValues $dim ] {
       $type appendRow $tl.tbl $dv
     }
     grid $tl -row 0 -column 0 -sticky snew

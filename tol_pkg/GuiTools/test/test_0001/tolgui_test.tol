@@ -53,6 +53,18 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
     Set _.result := selected;
     Real 0
   };
+
+  Real onTabla( Set selected )
+  {
+    WriteLn( "onTabla" );
+    Real 0
+  };
+
+  Real onGrafica( Set selected )
+  {
+    WriteLn( "onGrafica" );
+    Real 0
+  };
   
   ////////////////////////////////////////////////////////////////////////////
   //Devuelve un conjunto de pares de texto con la etiqueta a mostrar en el 
@@ -60,7 +72,10 @@ Class @GuiDim_Test : @MultiDimSelect, @MenuDesc
   Set getButtonEntries(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set Empty
+    Set [[
+      [[ "-label", "Grafica", "-exit", "no", "-method", "onGrafica" ]],
+      [[ "-label", "Tabla", "-exit", "no", "-method", "onTabla" ]]
+    ]]
   };
 
   Real showMessage( Real void )
