@@ -114,10 +114,12 @@ snit::widgetadaptor DimTable {
     set info [ $table get 0 end ]
     puts "getChecked, info : $info"
     set result [ list ]
+    set idx 1
     foreach r $info {
       if { [ lindex $r 0 ] } {
-        lappend result [ lindex $r 1 ]
+        lappend result $idx
       }
+      incr idx
     }
     set result
   }
@@ -133,9 +135,11 @@ snit::widgetadaptor DimSelector {
 
   option -addr -readonly yes -validatemethod _checkAddr
 
-  typemethod _invokeButton { obj_addr method dims } {
+  method _invokeButton { method dims } {
+    set addr $options(-addr)
+    puts "_invokeButton $addr $method $dims"
     set try [ catch {
-      tol::console eval [ string map [ list %A $obj_addr %M $method %D $dims ] {
+      tol::console eval [ string map [ list %A $addr %M $method %D $dims ] {
         NameBlock __aux_instance__ = GetObjectFromAddress("%A");
         Real __aux_result__ = __aux_instance__::%M(%D)
       } ] } msg ]
@@ -237,7 +241,7 @@ snit::widgetadaptor DimSelector {
         lappend level1 "Copy(Empty)"
       }
     }
-    $type _invokeButton $options(-addr) $met "SetOfSet([ join $level1 , ])"
+    $self _invokeButton $met "SetOfSet([ join $level1 , ])"
     if { $ex } {
       after idle destroy $win
     }
@@ -344,7 +348,9 @@ snit::widgetadaptor DimSelector {
 }
 
 proc ShowDimSelector { addr } {
+  puts "ShowDimSelector $addr"
   DimSelector .dimsel -addr $addr -geometry 200x200 -parent .
+  puts "[ .dimsel cget -addr]"
   set result [ .dimsel draw ]
   puts "sali con $result"
 }
