@@ -45,12 +45,12 @@ Class @MultiDimSelect
   {
     Real If(Card(tcl_eval),True,
     {
-    //WriteLn("LoadTcl _MultiDimSelect.tcl:\n"+MultiDimSelect.tcl+"\n");
+    //WriteLn("TRACE LoadTcl _MultiDimSelect.tcl:\n"+MultiDimSelect.tcl+"\n");
       Text temp = TmpDir+"MultiDimSelect.tcl";
       Text WriteFile(temp, _MultiDimSelect.tcl);
       Set @MultiDimSelect::tcl_eval := 
         Tcl_EvalEx( [[ "source", temp ]] );
-      WriteLn("LoadTcl _tcl_eval:\n"<<@MultiDimSelect::tcl_eval+"\n");
+    //WriteLn("TRACE LoadTcl _tcl_eval:\n"<<@MultiDimSelect::tcl_eval+"\n");
       True
     })
   };
