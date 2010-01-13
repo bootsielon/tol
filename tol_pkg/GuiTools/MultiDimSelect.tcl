@@ -233,10 +233,10 @@ snit::widgetadaptor DimSelector {
     foreach d $dims_selected {
       set level2 [ list ]
       foreach v $d {
-        lappend level2 \"$v\"
+        lappend level2 $v
       }
       if { [ llength $level2 ] } {
-        lappend level1 "SetOfText([ join $level2 , ])"
+        lappend level1 "SetOfReal[ join $level2 , ])"
       } else {
         lappend level1 "Copy(Empty)"
       }
