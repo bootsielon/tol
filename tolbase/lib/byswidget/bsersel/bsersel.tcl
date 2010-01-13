@@ -602,7 +602,7 @@ method _fillSubDimHie {mag dim sDi trigger} {
     if {$trigger} {
       set tmp($mag,$dim,$sDi) [ btreeview $w.sw${sDi}.tv \
         -bonselcmd [list $self _trigger $mag $dim $sDi] \
-		-btogglehier false \
+		    -btogglehier false \
         -height 150 -linewidth 2 -borderwidth 1 \
         -bmultiselect false -bicosel false ] 
     } else {
@@ -611,10 +611,7 @@ method _fillSubDimHie {mag dim sDi trigger} {
         -height 150 -linewidth 2 -borderwidth 1 \
         -bmultiselect true -bicosel true ]
     }
-    
     $tmp($mag,$dim,$sDi) bColumnInsert end cod -hide true
-    
-    
     $w.sw${sDi} setwidget $w.sw${sDi}.tv
     grid $w.sw${sDi} -sticky news
     #grid $w.sw${sDi}.tv  -row 0 -column 0 -sticky new
@@ -624,63 +621,53 @@ method _fillSubDimHie {mag dim sDi trigger} {
   }
   # Insertar los valores
   # Crear elementos nuevos
-    #set idx 0
-    $tmp($mag,$dim,$sDi) delete root
-    set alg(sDi,$mag,$dim,-hie,$sDi) ""
-    set plotted 0
-    set iteration -1
-    set regidx 0
-    set plottedreg ""
-    set numels [expr [llength $lstReg]-1 ]
+  #set idx 0
+  $tmp($mag,$dim,$sDi) delete root
+  set alg(sDi,$mag,$dim,-hie,$sDi) ""
+  set plotted 0
+  set iteration 0
+  set regidx 0
+  set plottedreg ""
+  set numels [expr [llength $lstReg] ]
     
-    while { ($plotted < $numels) && ($iteration < $numels) } {
-       set iteration [expr $iteration + 1]
-
-       foreach reg $lstReg {
-          set ide [lindex $reg 0]
-          set abr [lindex $reg 1]
-          set nom [lindex $reg 2]
-          set des [lindex $reg 3]
-          set par [lindex $reg 4]
-          set lev [lindex $reg 5]
-          if {$iteration eq 0} { lappend plottedreg 0 }
-          if { $abr eq $defval } {
-            set mark ON
-          } else {
-            set mark OFF
+  while { ($plotted < $numels) && ($iteration < $numels) } {
+    foreach reg $lstReg {
+      set ide [lindex $reg 0]
+      set abr [lindex $reg 1]
+      set nom [lindex $reg 2]
+      set des [lindex $reg 3]
+      set par [lindex $reg 4]
+      set lev [lindex $reg 5]
+      if {$iteration eq 0} { lappend plottedreg 0 }
+      if { $abr eq $defval } {
+        set mark ON
+      } else {
+        set mark OFF
+      }
+      set isplotted [lindex $plottedreg $regidx]
+      #puts "Processing iteration $iteration regidx $regidx plotted $plotted plottedreg -> $plottedreg \");"
+      if { $isplotted eq 0 } {
+        set infCols [ list cod $abr ]
+        if {$par ne ""} {
+          set paridx [$self _findcode $alg(sDi,$mag,$dim,-hie,$sDi) $par]
+          if { $paridx >= 0 } {
+            set plottedreg [ lreplace $plottedreg $regidx $regidx 1 ]
+            set plotted [expr $plotted+1]
+            set idx [ $tmp($mag,$dim,$sDi) insertNode $paridx 0 $mark $abr $nom $infCols ]
+              lappend alg(sDi,$mag,$dim,-hie,$sDi) [list $idx $abr]
           }
-          set isplotted [lindex $plottedreg $regidx]
-
-#          set cmd "Text WriteLn(\"Processing iteration $iteration regidx $regidx plotted $plotted plottedreg -> $plottedreg \");"
-#          ::tol::console eval $cmd
-
-          if { $isplotted eq 0 } {
-              set infCols [ list cod $abr ]
-              if {$par ne ""} {
-                 set paridx [$self _findcode $alg(sDi,$mag,$dim,-hie,$sDi) $par]
-#				 set cmd "Text WriteLn(\"already inserted pairs $mag $dim $sDi : $alg(sDi,$mag,$dim,-hie,$sDi) \");"
-#                 ::tol::console eval $cmd
-                 if { $paridx >= 0 } {
-                   set plottedreg [ lreplace $plottedreg $regidx $regidx 1 ]
-                   set plotted [expr $plotted+1]
-                   set idx [ $tmp($mag,$dim,$sDi) insertNode $paridx 0 $mark $abr $nom $infCols ]
-				   lappend alg(sDi,$mag,$dim,-hie,$sDi) [list $idx $abr]
-#				   set cmd "Text WriteLn(\"Inserting it $iteration $abr $nom ($idx) parent $par ($paridx) \");"
-#                   ::tol::console eval $cmd
-                 }
-              } else {
-                 set plottedreg [ lreplace $plottedreg $regidx $regidx 1 ]
-                 set plotted [expr $plotted+1]
-                 set idx [ $tmp($mag,$dim,$sDi) insertNode root 0 $mark $abr $nom $infCols ]
-				 lappend alg(sDi,$mag,$dim,-hie,$sDi) [list $idx $abr]
-#				   set cmd "Text WriteLn(\"Inserting it $iteration $abr $nom ($idx) \");"
-#                   ::tol::console eval $cmd
-              }
-          }
-          set regidx [expr $regidx+1]
-       }
-       set regidx 0
+        } else {
+          set plottedreg [ lreplace $plottedreg $regidx $regidx 1 ]
+          set plotted [expr $plotted+1]
+          set idx [ $tmp($mag,$dim,$sDi) insertNode root 0 $mark $abr $nom $infCols ]
+          lappend alg(sDi,$mag,$dim,-hie,$sDi) [list $idx $abr]
+        }
+      }
+      set regidx [expr $regidx+1]
     }
+    set regidx 0
+    set iteration [expr $iteration + 1]
+  }
 }
   
 #/////////////////////////////////////////////////////////////////////////////
