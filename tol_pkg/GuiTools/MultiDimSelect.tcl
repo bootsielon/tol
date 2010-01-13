@@ -131,7 +131,9 @@ snit::widgetadaptor DimTable {
 
 };
 
-snit::widgetadaptor DimSelector {
+snit::widget DimSelector {
+
+  hulltype toplevel
 
   option -addr -readonly yes -validatemethod _checkAddr
 
@@ -165,20 +167,28 @@ snit::widgetadaptor DimSelector {
   variable ids 0
 
   constructor { args } {
-    installhull using Dialog -modal none
-    $win add -text Accept -command [ mymethod invokeButton onAccept yes ]
-    $win add -text Close -command "destroy $win"
     $self configurelist $args
+    $self _createFrames
     set widgets [ list ]
     $self _createDimTables
     $self _createButtons
-    set f [ $win getframe ]
-    grid rowconfigure $f 0 -weight 1
-    grid columnconfigure $f 0 -weight 1
+    grid rowconfigure $win 0 -weight 1
+    grid columnconfigure $win 0 -weight 1
+  }
+
+  method _createFrames { } {
+    set fmain [ frame $win.fmain ]
+    set fbut [ frame $win.fbut ]
+    grid $fmain -row 0 -column 0 -sticky snew
+    grid $fbut -row 1 -column 0 -sticky snew
+    set bok [ button $fbut.bok -text Accept \
+                  -command [ mymethod invokeButton onAccept yes ] ]
+    set bclose [ button $fbut.close -text Close -command "destroy $win" ]
+    grid $bok $bclose
   }
 
   method _createDimTables { } {
-    set f [ $win getframe ]
+    set f $win.fmain
     set main [ frame $f.main ]
     set dimensions [ $self _getObjDimensions ]
     set widgets [ list ]
@@ -197,9 +207,9 @@ snit::widgetadaptor DimSelector {
   }
 
   method _createButtons { } {
-    set f [ $win getframe ]
     set but_info [ $self _getObjButtons ]
     if { [ llength $but_info ] } {
+      set f $win.fmain
       set sep [ Separator $f.sep -orient vertical ]
       grid $sep -row 0 -column 1 -sticky sn
       set fbut [ frame $f.fbut ]
@@ -349,7 +359,7 @@ snit::widgetadaptor DimSelector {
 
 proc ShowDimSelector { addr } {
   puts "ShowDimSelector $addr"
-  DimSelector .dimsel -addr $addr -geometry 200x200 -parent .
+  DimSelector .dimsel -addr $addr
   puts "[ .dimsel cget -addr]"
   set result [ .dimsel draw ]
   puts "sali con $result"
