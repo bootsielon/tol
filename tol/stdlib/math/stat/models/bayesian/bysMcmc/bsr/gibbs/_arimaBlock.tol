@@ -352,6 +352,7 @@ Class @BlockArima : @BlockSampler
   Real covDecomp.FastChol(@BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+" covDecomp.FastChol ["+segment->Name+"] 1");
     Set     aux         = segment->ArimaAuxInfo;
     Real    m           = aux::m;
     NameBlock fastChol  = ARMAProcess::FastCholeskiCovFactor(aux::ar, aux::ma, m);
@@ -371,7 +372,7 @@ Class @BlockArima : @BlockSampler
   VMatrix filterJustBlock.FastChol(@BSR.NoiseDistrib segment, VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
+  //WriteLn("TRACE"+_MID+" filterJustBlock.FastChol ["+segment->Name+"] 1");
     Set aux = segment->ArimaAuxInfo;
     CholeskiSolve(aux::L_ma,aux::Li_ar*Z,"PtL")
   };
@@ -384,6 +385,7 @@ Class @BlockArima : @BlockSampler
   Real covDecomp.FastCholSea(@BSR.NoiseDistrib segment)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE"+_MID+" covDecomp.FastCholSea ["+segment->Name+"] 1");
     Set     aux         = segment->ArimaAuxInfo;
     Real    m           = aux::m;
     Set aux::Li_ar_factors := Copy(Empty);
@@ -409,7 +411,7 @@ Class @BlockArima : @BlockSampler
   VMatrix filterJustBlock.FastCholSea(@BSR.NoiseDistrib segment, VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
+  //WriteLn("TRACE"+_MID+" filterJustBlock.FastCholSea ["+segment->Name+"] 1");
     Set aux = segment->ArimaAuxInfo;
     VMatrix F = Z; 
     Set For(1,Card(segment->Arima), Real(Real k)
@@ -436,7 +438,7 @@ Class @BlockArima : @BlockSampler
   VMatrix filterJustBlock.DifEq(@BSR.NoiseDistrib segment, VMatrix Z)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" filterJustBlock ["+segment->Name+"] 1");
+  //WriteLn("TRACE"+_MID+" filterJustBlock.DifEq ["+segment->Name+"] 1");
     Set aux = segment->ArimaAuxInfo;
     DifEq(aux::ar/aux::ma,Z)
   };
@@ -560,10 +562,11 @@ Class @BlockArima : @BlockSampler
   ////////////////////////////////////////////////////////////////////////////
   {
     If(_.isNeutral, Z, {
+  //WriteLn("TRACE"+_MID+" filter  Z="<<Z);
   //WriteLn("TRACE"+_MID+" filter 1 ("+Identify(Z)+")="<< Z);
     VMatrix filterNoArma = filter.deterministic(Z);
   //WriteLn("TRACE"+_MID+" filter 2 filterNoArima="<< filterNoArma);
-    If(!Card(_.armaParamBlock),
+    VMatrix Zf = If(!Card(_.armaParamBlock),
     {
     //WriteLn("TRACE"+_MID+" filter 3.1");
       filterNoArma
@@ -576,7 +579,9 @@ Class @BlockArima : @BlockSampler
       VMatrix flt = fltNoArma+fltArma;
     //WriteLn("TRACE"+_MID+" filter 5 flt="<< flt);
       flt
-    })
+    });
+  //WriteLn("TRACE"+_MID+" filter  Zf="<<Zf);
+    Zf
   })};
 
 
