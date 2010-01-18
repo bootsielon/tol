@@ -228,7 +228,16 @@ BBool BDir::CheckIsDir(const BText& dirName)
 //--------------------------------------------------------------------
 {
   struct stat buffer;
-  
+  char last = dirName.Last();
+  #ifdef UNIX
+  if(last=='/')
+  #else
+  if(last=='/' || last=='\\')
+  #endif
+  {
+    BText dirName_(dirName.String(),dirName.Length()-1);
+    return(CheckIsDir(dirName_));
+  }
   if ( dirName.Length() && stat( dirName.String(), &buffer ) != -1 &&
        buffer.st_mode & S_IFDIR )
     return BTRUE;
