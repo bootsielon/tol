@@ -53,7 +53,7 @@ NameBlock ARMAProcess =
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE CholeskiFactorCov("+FullName(cov)+") VRows(cov)="<<VRows(cov)+" Sparsity(cov)="<<Real(VNonNullCells(cov)/VRows(cov)^2));
-    VMatrix c = Drop(cov,1.E-16/VRows(cov)^2);
+    VMatrix c = Drop(cov,1.E-16*VRows(cov)^2);
     VMatrix L = CholeskiFactor(c,"X",True);
   //WriteLn("TRACE CholeskiFactorCov L:"<<L);
     VMatrix pL = Pack(L,1);
@@ -72,6 +72,7 @@ NameBlock ARMAProcess =
     VMatrix ExtendBandedSymToeplitz(VMatrix S, Real m)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE ExtendBandedSymToeplitz Begin "+Time); 
     Real n = VRows(S);
     VMatrix s = ARMAProcess::AvoidSymRoundErr(Case(
       m==n, S,
@@ -89,13 +90,14 @@ NameBlock ARMAProcess =
         )+Pol2VMat(pol, m, m);
         aux
       }));
-    Drop(s,1.E-16/n^2)
+    Drop(s,1.E-16*n^2)
   }; 
 
   ////////////////////////////////////////////////////////////////////////////
     VMatrix ExtendBandedLowTriangToeplitz(VMatrix L, Real m)
   ////////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE ExtendBandedLowTriangToeplitz Begin "+Time); 
     Real n = VRows(L);
     VMatrix L_ = Case(
       m==n, L,
@@ -109,7 +111,7 @@ NameBlock ARMAProcess =
         )+Pol2VMat(pol, m, m);
         aux
       });
-    Drop(L_,1.E-16/n^2)
+    Drop(L_,1.E-16*n^2)
   }; 
 
   ////////////////////////////////////////////////////////////////////////////
