@@ -143,10 +143,11 @@ BysMcmc::@Config bsr.config = [[
   Real mcmc.thinning      =    1;
   Real mcmc.cacheLength   =  100;
 
+  Real bsr.iniVal.try.findFeasible = 1;
   Real bsr.iniVal.try.givenByUser = 2;
   Real bsr.iniVal.try.zero = 3;
   Real bsr.iniVal.try.cnstrMinNorm = 4;
-  Real bsr.iniVal.try.cnstrMLE = 1;
+  Real bsr.iniVal.try.cnstrMLE = 5;
 
 //Generic flags
   Real do.resume          =  0;
