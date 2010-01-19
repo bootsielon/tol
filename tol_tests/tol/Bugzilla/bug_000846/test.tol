@@ -1,0 +1,60 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  846;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="Errors in MinimumResidualsSolve working with Matrix";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+   
+  Matrix mB = Diag(3, 1);
+  Matrix mC = Col(1,2,3);
+  Matrix mX1 = VMat2Mat(MinimumResidualsSolve(Mat2VMat(mB), Mat2VMat(mC)));
+  //> (1, 2, 3)
+  Real ok.1 = MatMax(Abs(mX1-mC))==0;
+  Matrix mX2 = MinimumResidualsSolve(mB, mC);
+  //> (?, ?, ?)
+  Real ok.2 = MatMax(Abs(mX2-mC))==0;
+  
+  Matrix mB2 = SetMat([[ 
+    [[2500, 1264, 1231]], 
+    [[1264, 1264, 1623]],
+    [[1231, 1623, 1231]] 
+  ]]);
+  Matrix mC2 = Col(2021,1922,546);
+  Matrix mX3 = VMat2Mat(MinimumResidualsSolve(Mat2VMat(mB2), Mat2VMat(mC2)));
+  //> (0.69, -1.66, 1.93)
+  Real ok.3 = 1-MatMax(Abs(mB2*mX3-mC2));
+  Matrix mX4 = MinimumResidualsSolve(mB2, mC2);
+  //> (222448.05, -390853.09, 111433.23)
+  Real ok.4 = 1-MatMax(Abs(mB2*mX4-mC2));
+  Real ok.5 = MatMax(Abs(mX3-mX4))==0;
+  
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[ numErr0, numErr1,  
+   ok.1, ok.2, ok.3, ok.4, ok.5 ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0)*Min(
+                  ok.1, ok.2, ok.3, ok.4, ok.5);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
+
