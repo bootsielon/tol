@@ -78,8 +78,8 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
   double q2;
   double advance;
   double relAdv;
-  double oldR;
   double R=r.FrobeniusNorm();
+  double oldR=R*2.0;
   BDat xNorm=x.FrobeniusNorm();
   BDat oldxNorm;
   BDat xNormAdvance;
@@ -106,13 +106,10 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
     a = S.Value()/q2;
     pa = p*a;
     oldMaxpa = maxpa;
-    oldR = R;
-    R = r.FrobeniusNorm();
     oldxNorm = xNorm;
     x = x+pa;
     xNorm = x.FrobeniusNorm();
     xNormAdvance = xNorm-oldxNorm;
-
     maxpa = 0;
     for(i=0; i<cols; i++)
     {
@@ -122,32 +119,30 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
         if(rpa>maxpa) { maxpa = rpa; }
       }
     }
-
+    r = r - q*a;
+    oldR = R;
+    R = r.FrobeniusNorm();
     advance = R-oldR;
     relAdv = advance/oldR;
-    if(k)
-    {
-      if(S.IsUnknown()                    ) { break; }
-      if(maxpa.IsUnknown()                ) { break; }
-      if(advance             >=  0        ) { break; }
-      if(S                   <= tolerance ) { break; }
-      if(1+maxpa-1           == 0         ) { break; }
-/*
-      if(maxpa               <= chop ) { break; }
-      if(fabs(advance)       <= chop ) { break; }
-      if(fabs(relAdv)        <= chop ) { break; }
-      if(fabs(R)             <= chop ) { break; }
-      if(oldMaxpa            <= tol  ) { break; }
-      if(maxpa               <= tol  ) { break; }
-      if(fabs(advance)       <= tol  ) { break; }
-      if(xNormAdvance.Abs()  <= tol  ) { break; }
-*/
-    }
-    r = r - q*a;
   //s  = At*r;
     s = (r.T()*A).T();
     oldS = S;
     S  = s.SquaredSum();
+    if(S                   <= tolerance ) { break; }
+    if(S.IsUnknown()                    ) { break; }
+    if(maxpa.IsUnknown()                ) { break; }
+    if(advance             >=  0        ) { break; }
+    if(1+maxpa-1           == 0         ) { break; }
+/*
+    if(maxpa               <= chop ) { break; }
+    if(fabs(advance)       <= chop ) { break; }
+    if(fabs(relAdv)        <= chop ) { break; }
+    if(fabs(R)             <= chop ) { break; }
+    if(oldMaxpa            <= tol  ) { break; }
+    if(maxpa               <= tol  ) { break; }
+    if(fabs(advance)       <= tol  ) { break; }
+    if(xNormAdvance.Abs()  <= tol  ) { break; }
+*/
     b  = S.Value()/oldS.Value();
     p = p*b+s;
   }
@@ -237,7 +232,6 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
   static BText funName = "MinimumResidualsSolve";
   int i, k;
   BVMat x, r;
-  if(!CheckOprProd(A,funName)) { return(x); }
   r.Convert(b0,ESC_blasRdense);
   if(!x0.Rows())
   {
@@ -245,7 +239,7 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
   }
   else
   {
-    x .Convert(x0,ESC_blasRdense);
+    x.Convert(x0,ESC_blasRdense);
   }
   BVMat q;
   OprProd(A,x,false, q);
@@ -258,17 +252,18 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
 
   int rows = q.Rows();
   int cols = p.Rows();
-  //PRECONDITIONS: ENSURING DIMENSIONS 
+  /* PRECONDITIONS: ENSURING DIMENSIONS */
   if(!rows||!cols||!r.Columns()||!x.Columns()||
      (rows<cols)||(rows!=r.Rows())||(cols!=x.Rows())) 
   { 
     return(x); 
   }
-  
+
   if(chop<0) { chop = sqrt(DEpsilon()/cols); }
   double tolerance = chop*chop;
   if((rows<cols)||(rows!=r.Rows())) { return(x); }
-
+//BVMat At = A.T();
+//BVMat s = At*r;
   BVMat pa;
   BVMat rpa;
   double a;
@@ -276,8 +271,8 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
   double q2;
   double advance;
   double relAdv;
-  double oldR;
   double R=r.FrobeniusNorm();
+  double oldR=R*2.0;
   BDat xNorm=x.FrobeniusNorm();
   BDat oldxNorm;
   BDat xNormAdvance;
@@ -289,6 +284,7 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
 
   for(k=0; k<maxIter;  k++)
   {
+/*
     if(k && !(k%cols))
     {
       Std(BText("\nBVMat::MinimumResidualsSolve ")+
@@ -297,18 +293,16 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
         " S="+S+
         " advance="+advance);
     }
-    OprProd(A,p,false,q);
+*/
+    OprProd(A,x,false, q);
     q2 = q.SquaredSum();
     a = S.Value()/q2;
     pa = p*a;
     oldMaxpa = maxpa;
-    oldR = R;
-    R = r.FrobeniusNorm();
     oldxNorm = xNorm;
     x = x+pa;
     xNorm = x.FrobeniusNorm();
     xNormAdvance = xNorm-oldxNorm;
-
     maxpa = 0;
     for(i=0; i<cols; i++)
     {
@@ -318,29 +312,30 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
         if(rpa>maxpa) { maxpa = rpa; }
       }
     }
-
+    r = r - q*a;
+    oldR = R;
+    R = r.FrobeniusNorm();
     advance = R-oldR;
     relAdv = advance/oldR;
-    if(k)
-    {
-      if(S.IsUnknown()    ) 
-      { break; }
-      if(maxpa.IsUnknown()) 
-      { break; }
-      if(S <= tolerance   ) 
-      { break; }
-/* */
-      if(1+maxpa-1 == 0   ) 
-      { break; }
-      if(advance >   0    ) 
-      { break; }
-/* */
-    }
-    r = r - q*a;
   //s  = At*r;
     OprProd(A,r,true,s);
     oldS = S;
     S  = s.SquaredSum();
+    if(S                   <= tolerance ) { break; }
+    if(S.IsUnknown()                    ) { break; }
+    if(maxpa.IsUnknown()                ) { break; }
+    if(advance             >=  0        ) { break; }
+    if(1+maxpa-1           == 0         ) { break; }
+/*
+    if(maxpa               <= chop ) { break; }
+    if(fabs(advance)       <= chop ) { break; }
+    if(fabs(relAdv)        <= chop ) { break; }
+    if(fabs(R)             <= chop ) { break; }
+    if(oldMaxpa            <= tol  ) { break; }
+    if(maxpa               <= tol  ) { break; }
+    if(fabs(advance)       <= tol  ) { break; }
+    if(xNormAdvance.Abs()  <= tol  ) { break; }
+*/
     b  = S.Value()/oldS.Value();
     p = p*b+s;
   }
