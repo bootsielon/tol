@@ -238,10 +238,10 @@ double BVMat::FrobeniusNorm() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-double BVMat::SquaresdSum() const
+double BVMat::SquaredSum() const
 ////////////////////////////////////////////////////////////////////////////////
 {
-  if(!CheckDefined("VMatSquaresdSum")) { return(BDat::Nan()); }
+  if(!CheckDefined("VMatSquaredSum")) { return(BDat::Nan()); }
   int k,nzmax;
   int size = Rows()*Columns();
   int n = size;
@@ -266,7 +266,7 @@ double BVMat::EuclideanNorm() const
 ////////////////////////////////////////////////////////////////////////////////
 {
   if(!CheckDefined("VMatEuclideanNorm")) { return(BDat::Nan()); }
-  return(sqrt(SquaresdSum()));
+  return(sqrt(SquaredSum()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

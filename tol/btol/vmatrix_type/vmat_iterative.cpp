@@ -86,7 +86,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
   BDat maxpa;
   BDat oldMaxpa;
   BDat oldS;
-  BDat S = s.SquaresdSum();
+  BDat S = s.SquaredSum();
   BDat tol = BDat::Tolerance();
 
   for(k=0; k<maxIter;  k++)
@@ -102,7 +102,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
     }
 */
     q = A*p;
-    q2 = q.SquaresdSum();
+    q2 = q.SquaredSum();
     a = S.Value()/q2;
     pa = p*a;
     oldMaxpa = maxpa;
@@ -147,7 +147,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
   //s  = At*r;
     s = (r.T()*A).T();
     oldS = S;
-    S  = s.SquaresdSum();
+    S  = s.SquaredSum();
     b  = S.Value()/oldS.Value();
     p = p*b+s;
   }
@@ -284,7 +284,7 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
   BDat maxpa;
   BDat oldMaxpa;
   BDat oldS;
-  BDat S = s.SquaresdSum();
+  BDat S = s.SquaredSum();
   BDat tol = BDat::Tolerance();
 
   for(k=0; k<maxIter;  k++)
@@ -298,7 +298,7 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
         " advance="+advance);
     }
     OprProd(A,p,false,q);
-    q2 = q.SquaresdSum();
+    q2 = q.SquaredSum();
     a = S.Value()/q2;
     pa = p*a;
     oldMaxpa = maxpa;
@@ -340,7 +340,7 @@ BVMat BVMat::MinimumResidualsSolve(BStandardOperator* A,
   //s  = At*r;
     OprProd(A,r,true,s);
     oldS = S;
-    S  = s.SquaresdSum();
+    S  = s.SquaredSum();
     b  = S.Value()/oldS.Value();
     p = p*b+s;
   }

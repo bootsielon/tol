@@ -514,7 +514,7 @@ public:
   double CenterMoment(int order) const;
   double Var() const;
   double StDs() const;
-  double SquaresdSum() const;
+  double SquaredSum() const;
   double EuclideanNorm() const;
   double FrobeniusNorm() const;
   double Asymmetry() const;
