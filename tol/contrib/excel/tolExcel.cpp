@@ -18,17 +18,19 @@
    USA.
  */
 
+extern "C" {
+#include <libxls/xls.h>
+}
+
+#pragma pack(4)
 
 #if defined(_MSC_VER)
 #include <win_tolinc.h>
 #endif
 
-extern "C" {
-#include <libxls/xls.h>
-}
-
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_btxtgra.h>
+
 
 class tol_excel_t {
 public:
