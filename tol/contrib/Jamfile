@@ -1,4 +1,4 @@
-local subdirs = kmlocal clusterlib alglib optimal_bw ;
+local subdirs = kmlocal clusterlib alglib optimal_bw ANN excel ;
 
 local contrib-objs ;
 for local d in $(subdirs)
