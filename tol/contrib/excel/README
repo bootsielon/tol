@@ -1,0 +1,3 @@
+In order to create the dll this could be used:
+
+gcc -shared -o xlsreader.dll ole.o xls.o xlstool.o -Wl,--out-implib,xlsreader.lib,-no-undefined,--enable-runtime-pseudo-reloc

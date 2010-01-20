@@ -161,7 +161,7 @@ void BDatExcelOpen::CalcContens()
   BText &path = Text( Arg( 1 ) );
   BText encoding = NumArgs( ) > 1 ? ToUpper(Text(Arg(2))) : "ASCII";
   tol_excel_t *aux = new tol_excel_t( path.Buffer(), encoding );
-  if ( aux->validWB() ) {
+  if ( !aux->validWB() ) {
     delete aux;
     aux = NULL;
   }
@@ -187,3 +187,50 @@ void BDatExcelClose::CalcContens()
   contens_ = BDat( 1.0 );
 }
 
+//---------------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatExcelActivateNamedWS);
+DefExtOpr(1, BDatExcelActivateNamedWS, "Excel.ActivateNamedWS", 2, 2,
+          "Real Text",
+          "(Real ExcelHandler, Text WorkSheet)",
+          I2("Change the current active work sheet to a given work sheet name. "
+             "Returns 1 if the work sheet is valid 0 in case of error",
+             ""),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BDatExcelActivateNamedWS::CalcContens()
+{
+  double addr = Dat( Arg( 1 ) ).Value();
+  BText &name = Text( Arg( 2 ) );
+  tol_excel_t *xls = tol_excel_t::decode_addr( addr );
+  contens_ = BDat( xls->activateWS( name.Buffer() ) );
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatExcelActivateWS);
+DefExtOpr(1, BDatExcelActivateWS, "Excel.ActivateWS", 2, 2, "Real Real",
+          "(Real ExcelHandler, Real indexWS)",
+          I2("Change the current active work sheet to a given work sheet "
+             "index. Returns 1 if the work sheet is valid 0 in case of error",
+             ""),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BDatExcelActivateWS::CalcContens()
+{
+  double addr = Dat( Arg( 1 ) ).Value();
+  BDat &index = Dat( Arg( 2 ) );
+  if ( index.IsKnown() ) {
+    int idx = int( index.Value() );
+    if ( idx >= 0 ) {
+      tol_excel_t *xls = tol_excel_t::decode_addr( addr );
+      contens_ = BDat( xls->activateWS( idx ) );
+    } else {
+      Error( I2("Excel.ActivateWS : invalid Work Sheet index, must be >= 0",
+                "Excel.ActivateWS : indice de hoja invalido, debe ser >= 0") );
+      contens_ = BDat( 0.0 );
+    }
+  } else {
+    Error( I2("Excel.ActivateWS : invalid Work Sheet index, must be known",
+              "Excel.ActivateWS : indice de hoja invalido, debe ser conocido") );
+    contens_ = BDat( 0.0 );
+  }
+}
