@@ -81,6 +81,8 @@ public:
     return m_ptrActiveWS ? xls_cell( m_ptrActiveWS, row, column ) : NULL;
   }
 
+  BSyntaxObject *GetObjCell( BText &err_name, int row, int col );
+  
   static double code_addr( tol_excel_t* ptr )
   {
     double addr = 0.0;
@@ -151,6 +153,52 @@ int tol_excel_t::activateWS( const char * sheetName )
     closeActiveWS();
   }
   return 0;
+}
+
+BSyntaxObject *tol_excel_t::GetObjCell( BText &err_name, int row, int col )
+{
+  BSyntaxObject *result = NULL;
+  
+  if ( !validWS( ) ) {
+    Error( err_name + ": " +
+           I2("there is no active work sheet",
+              "no hay hoja de trabajo activa") );
+    return NULL;
+  }
+  xlsCell *cell = GetCell( row, col  );
+  if ( !cell || cell->ishiden ) {
+    Warning( err_name + ": " +
+             I2("the cell does not exists or is hiden",
+                "la celda no existe o esta oculta") );
+    result = new BContensText( "" );
+  } else {
+    if ( cell->id == 0x27e || cell->id == 0x0BD ||
+         cell->id == 0x203 ) {
+      result = new BContensDat( cell->d );
+    } else if ( cell->id == 0x06 ) {
+      // formula
+      if ( cell->l == 0 ) {
+        // its a number 
+        result = new BContensDat( cell->d );
+      } else {
+        if ( !strcmp( cell->str, "bool" ) ) {
+          // its boolean, and test cell->d
+          result = new BContensDat( cell->d );
+        } else if ( !strcmp( cell->str, "error" ) ) {
+          // formula is in error
+          result = new BContensText( "*error*" );
+        } else {
+          // ... cell->str is valid as the result of a string formula.
+          result = new BContensText( cell->str );
+        }
+      }      
+    } else if (cell->str != NULL) {
+      result = new BContensText( cell->str );
+    } else {
+      result = new BContensText( "" );
+    }
+  }
+  return result;
 }
 
 //---------------------------------------------------------------------------
@@ -302,47 +350,8 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
                I2("invalid excel object address",
                   "direccion de objecto excel invalido") );
         return NULL;
-      } 
-      
-      if ( !xls->validWS( ) ) {
-        Error( _name_ + ": " +
-               I2("there is no active work sheet",
-                  "no hay hoja de trabajo activa") );
-        return NULL;
-      }
-      xlsCell *cell = xls->GetCell( i_row, i_col  );
-      if ( !cell || cell->ishiden ) {
-        Warning( _name_ + ": " +
-                 I2("the cell does not exists or is hiden",
-                    "la celda no existe o esta oculta") );
-        result = new BContensText( "" );
-      } else {
-        if ( cell->id == 0x27e || cell->id == 0x0BD ||
-             cell->id == 0x203 ) {
-          result = new BContensDat( cell->d );
-        } else if ( cell->id == 0x06 ) {
-          // formula
-          if ( cell->l == 0 ) {
-            // its a number 
-            result = new BContensDat( cell->d );
-          } else {
-            if ( !strcmp( cell->str, "bool" ) ) {
-              // its boolean, and test cell->d
-              result = new BContensDat( cell->d );
-            } else if ( !strcmp( cell->str, "error" ) ) {
-              // formula is in error
-              result = new BContensText( "*error*" );
-            } else {
-              // ... cell->str is valid as the result of a string formula.
-              result = new BContensText( cell->str );
-            }
-          }      
-        } else if (cell->str != NULL) {
-          result = new BContensText( cell->str );
-        } else {
-          result = new BContensText( "" );
-        }
-      }
+      }    
+      result = xls->GetObjCell( _name_, i_row, i_col );    
     }
   }
   result = BSpecialFunction::TestResult( _name_, result, tre, NIL, BTRUE );
