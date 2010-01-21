@@ -28,8 +28,11 @@ extern "C" {
 #include <win_tolinc.h>
 #endif
 
+#include <tol/tol_tree.h>
+#include <tol/tol_blanguag.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_btxtgra.h>
+#include <tol/tol_bspfun.h>
 
 
 class tol_excel_t {
@@ -50,6 +53,9 @@ public:
   int activateWS( int num )
   {
     m_ptrActiveWS = xls_getWorkSheet( m_ptrWB, num );
+    if ( m_ptrActiveWS ) {
+      xls_parseWorkSheet( m_ptrActiveWS );
+    }
     return m_ptrActiveWS != NULL;
   }
 
@@ -183,8 +189,15 @@ void BDatExcelClose::CalcContens()
   /* debemos tener un hash de las direccion creadas con Open de forma
      tal que podamos verificar si la direccion es valida antes de
      hacer delete */
-  delete aux;
-  contens_ = BDat( 1.0 );
+  if ( aux ) {
+    delete aux;
+    contens_ = BDat( 1.0 );
+  } else {
+    Error( BText( "Excel.Close: " ) +
+           I2("invalid excel handler",
+              "identificador de objeto excel invalido") );
+    contens_ = BDat( 0.0 );
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -202,7 +215,14 @@ void BDatExcelActivateNamedWS::CalcContens()
   double addr = Dat( Arg( 1 ) ).Value();
   BText &name = Text( Arg( 2 ) );
   tol_excel_t *xls = tol_excel_t::decode_addr( addr );
-  contens_ = BDat( xls->activateWS( name.Buffer() ) );
+  if ( xls ) {
+    contens_ = BDat( xls->activateWS( name.Buffer() ) );
+  } else {
+    Error( BText( "Excel.Close: " ) +
+           I2("invalid excel handler",
+              "identificador de objeto excel invalido") );
+    contens_ = BDat( 0.0 );
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -222,10 +242,18 @@ void BDatExcelActivateWS::CalcContens()
     int idx = int( index.Value() );
     if ( idx >= 0 ) {
       tol_excel_t *xls = tol_excel_t::decode_addr( addr );
-      contens_ = BDat( xls->activateWS( idx ) );
+      if ( xls ) {
+        contens_ = BDat( xls->activateWS( idx ) );
+      } else {
+        Error( BText( "Excel.ActivateWS: " ) +
+               I2("invalid excel handler",
+                  "identificador de objeto excel invalido") );
+        contens_ = BDat( 0.0 );
+      }
     } else {
-      Error( I2("Excel.ActivateWS : invalid Work Sheet index, must be >= 0",
-                "Excel.ActivateWS : indice de hoja invalido, debe ser >= 0") );
+      Error( BText( "Excel.ActivateWS: " ) +
+             I2( "invalid work sheet index, must be >= 0",
+                 "indice de hoja invalido, debe ser >= 0") );
       contens_ = BDat( 0.0 );
     }
   } else {
@@ -234,3 +262,102 @@ void BDatExcelActivateWS::CalcContens()
     contens_ = BDat( 0.0 );
   }
 }
+
+//--------------------------------------------------------------------
+static BSyntaxObject*
+EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
+/*! Evaluate Copy expressions
+*/
+//--------------------------------------------------------------------
+{
+  static BText _name_ = "Excel.ReadCell";
+  BSyntaxObject* result = NIL;
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if( BSpecialFunction::TestNumArg( _name_, 3, nb, 3 ) ) {
+    BSyntaxObject *addr = GraReal()->EvaluateTree( Branch( tre, 1 ) );
+    if ( !Dat( addr ).IsKnown( ) ) {
+      Error( _name_ + ": " +
+             I2( "invalid excel object address, must be known",
+                 "direccion de objeto excel invalida, debe ser conocida" ) );
+      return NULL;
+    }
+    BSyntaxObject *row = GraReal()->EvaluateTree( Branch( tre, 2 ) );
+    BSyntaxObject *col = GraReal()->EvaluateTree( Branch( tre, 3 ) );
+    if ( row && col ) {
+      BDat &dat_row = Dat( row );
+      BDat &dat_col = Dat( col );
+      if ( !dat_row.IsKnown() || dat_row.Value() < 0 ||
+           !dat_col.IsKnown() || dat_col.Value() < 0 ) {
+        Error( _name_ + ": " +
+               I2("invalid cell coordinates, must be ",
+                  "coordenadas de celda invalidas, deben ser ") +
+               "(row,col)>=(0,0)" );
+        return NULL;
+      }
+      WORD i_row = DWORD( dat_row.Value() );
+      WORD i_col = DWORD( dat_col.Value() );
+      tol_excel_t *xls = tol_excel_t::decode_addr( Dat( addr ).Value() );
+      if ( !xls ) {
+        Error( _name_ + ": " +
+               I2("invalid excel object address",
+                  "direccion de objecto excel invalido") );
+        return NULL;
+      } 
+      
+      if ( !xls->validWS( ) ) {
+        Error( _name_ + ": " +
+               I2("there is no active work sheet",
+                  "no hay hoja de trabajo activa") );
+        return NULL;
+      }
+      xlsCell *cell = xls->GetCell( i_row, i_col  );
+      if ( !cell || cell->ishiden ) {
+        Warning( _name_ + ": " +
+                 I2("the cell does not exists or is hiden",
+                    "la celda no existe o esta oculta") );
+        result = new BContensText( "" );
+      } else {
+        if ( cell->id == 0x27e || cell->id == 0x0BD ||
+             cell->id == 0x203 ) {
+          result = new BContensDat( cell->d );
+        } else if ( cell->id == 0x06 ) {
+          // formula
+          if ( cell->l == 0 ) {
+            // its a number 
+            result = new BContensDat( cell->d );
+          } else {
+            if ( !strcmp( cell->str, "bool" ) ) {
+              // its boolean, and test cell->d
+              result = new BContensDat( cell->d );
+            } else if ( !strcmp( cell->str, "error" ) ) {
+              // formula is in error
+              result = new BContensText( "*error*" );
+            } else {
+              // ... cell->str is valid as the result of a string formula.
+              result = new BContensText( cell->str );
+            }
+          }      
+        } else if (cell->str != NULL) {
+          result = new BContensText( cell->str );
+        } else {
+          result = new BContensText( "" );
+        }
+      }
+    }
+  }
+  result = BSpecialFunction::TestResult( _name_, result, tre, NIL, BTRUE );
+  return(result);
+}
+
+static void* cloneInitExcelReadCell_()
+{
+  BSpecialFunction::AddInstance( "Excel.ReadCell",
+  "(Real ExcelID, Real Row, Real Column)",
+  I2("Read the contents of a cell in the active work sheet",
+     "Lee el contenido de una celda en la hoja de trabajo activa"),
+  EvExcelReadCell );
+  return new int(1);
+};
+
+static int *_init_ExcelReadCell =
+  (int*)(__delay_init((void**)(&_init_ExcelReadCell), &cloneInitExcelReadCell_));
