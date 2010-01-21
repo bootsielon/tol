@@ -57,41 +57,68 @@ class TOL_API BSpecialFunction
     
  public:
 
-     BSpecialFunction(const BText&	    name	= "",
-		      const BText&	    arguments	= "",
-		      const BText&	    description = "",
-		      BSpecialEvaluator     function	= NIL);
+  BSpecialFunction(const BText&	    name	= "",
+      const BText&	    arguments	= "",
+      const BText&	    description = "",
+      BSpecialEvaluator     function	= NIL);
 
-     ~BSpecialFunction();
+  ~BSpecialFunction();
 
-     static bool Initialize();
-     static void AddInstance(const BText&		  name,
-			     const BText&		  arguments,
-			     const BText&		  description,
-				   BSpecialEvaluator      function);
+  static bool Initialize();
+  static BText LstIdentify(
+    const BList* lst,
+    const BText& openSign,
+    const BText& closeSign,
+    const BText& separatorSign);
+  static BInt NumBranches(const List* tre);
+  static BBool TestNumArg(
+    const BText& name, 
+    BInt min, BInt n, BInt max);
+  static void GetArg(BSet& set, 
+                     const List* tre, 
+                     BGrammar* graParam[], 
+                     int numParam);
+  static BSyntaxObject* TestResult(const BText&        name,
+                                         BSyntaxObject* result,
+                                   const List*        tre,
+                                         BSyntaxObject* defect,
+                                         BBool        warn);
+  static BSyntaxObject* TestResult(const BText&         name,
+                                         BSyntaxObject* result,
+                                   const List*          tre,
+                                         BSyntaxObject* defect,
+                                         BBool          warn,
+                                   const BText&         msg);
+  static void ArgumentFail(
+    const BText & function, const BText & arg, const List* tre);
 
-     static void AddLeftInstance(const BText&	         name,
-				 const BText&	         arguments,
-				 const BText&	         description,
-				       BSpecialEvaluator function);
-     static const BSpFunHash& Instances() { return(instances_); }
-     void PutName(const BText& name) { name_ = name; }
+  static void AddInstance(const BText&		  name,
+       const BText&		  arguments,
+       const BText&		  description,
+	     BSpecialEvaluator      function);
 
-     const BText& Name	  () const 
-	 { return(name_	); }
+  static void AddLeftInstance(const BText&	         name,
+	   const BText&	         arguments,
+	   const BText&	         description,
+	         BSpecialEvaluator function);
+  static const BSpFunHash& Instances() { return(instances_); }
+  void PutName(const BText& name) { name_ = name; }
 
-     const BText& Arguments  () const 
-	 { return(arguments_	); }
+  const BText& Name	  () const 
+  { return(name_	); }
 
-     const BText& Description() const 
-	 { return(description_); }
+  const BText& Arguments  () const 
+  { return(arguments_	); }
 
-     BSyntaxObject* Evaluate(      BGrammar* gra,
-			     const List*     tre,
-			           BBool     left=BFALSE) const;
+  const BText& Description() const 
+  { return(description_); }
 
-     static const BSpecialFunction* Get	     (const BText& name);
-     static const BSpecialFunction* LeftGet  (const BText& name);
+  BSyntaxObject* Evaluate(      BGrammar* gra,
+       const List*     tre,
+             BBool     left=BFALSE) const;
+
+  static const BSpecialFunction* Get	     (const BText& name);
+  static const BSpecialFunction* LeftGet  (const BText& name);
 
 };
 

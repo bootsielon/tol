@@ -53,7 +53,7 @@
 BTraceInit("spfuninst.cpp");
 
 //--------------------------------------------------------------------
-extern BText LstIdentify(const BList* lst,
+BText BSpecialFunction::LstIdentify(const BList* lst,
 			 const BText& openSign,
 			 const BText& closeSign,
 			 const BText& separatorSign)
@@ -74,7 +74,7 @@ extern BText LstIdentify(const BList* lst,
 	BSyntaxObject* car = (BSyntaxObject*)Car(lst);
 	if(car)	{
 	    if(IsList(car)) { 
-		txt += LstIdentify((BList*)car, openSign, closeSign, separatorSign); 
+		txt += BSpecialFunction::LstIdentify((BList*)car, openSign, closeSign, separatorSign); 
 	    } else { 
 		txt += car->Identify(); 
 	    }
@@ -91,7 +91,7 @@ extern BText LstIdentify(const BList* lst,
 
 
 //--------------------------------------------------------------------
-static BInt NumBranches(const List* tre)
+BInt BSpecialFunction::NumBranches(const List* tre)
 
 /*! Evaluate If expressions
  */
@@ -104,7 +104,8 @@ static BInt NumBranches(const List* tre)
 }
 
 //--------------------------------------------------------------------
-static BBool TestNumArg(const BText& name, BInt min, BInt n, BInt max)
+BBool BSpecialFunction::TestNumArg(
+  const BText& name, BInt min, BInt n, BInt max)
 
 /*! Returns true if the number of branch in a tree if correct
  */
@@ -127,7 +128,7 @@ static BBool TestNumArg(const BText& name, BInt min, BInt n, BInt max)
 
 
 //--------------------------------------------------------------------
-static void GetArg(BSet& set, 
+void BSpecialFunction::GetArg(BSet& set, 
                    const List* tre, 
                    BGrammar* graParam[], 
                    int numParam)
@@ -138,7 +139,7 @@ static void GetArg(BSet& set,
 {
   BList* lst = NIL;
   BList* aux = NIL;
-  BInt n = NumBranches(tre);
+  BInt n = BSpecialFunction::NumBranches(tre);
   if(numParam)
   {
     for(BInt i=0; i<n; i++)
@@ -168,11 +169,12 @@ static void GetArg(BSet& set,
 
 
 //--------------------------------------------------------------------
-static BSyntaxObject* TestResult(const BText&        name,
-                                       BSyntaxObject* result,
-                                 const List*        tre,
-                                       BSyntaxObject* defect,
-                                       BBool        warn)
+BSyntaxObject* BSpecialFunction::TestResult(
+  const BText&        name,
+       BSyntaxObject* result,
+  const List*        tre,
+       BSyntaxObject* defect,
+       BBool        warn)
     
 /*! Sends an error message if result is NULL
  */
@@ -195,12 +197,13 @@ static BSyntaxObject* TestResult(const BText&        name,
 }
 
 //--------------------------------------------------------------------
-static BSyntaxObject* TestResult(const BText&         name,
-                                       BSyntaxObject* result,
-                                 const List*          tre,
-                                       BSyntaxObject* defect,
-                                       BBool          warn,
-                                 const BText&         msg)
+BSyntaxObject* BSpecialFunction::TestResult(
+  const BText&         name,
+       BSyntaxObject* result,
+  const List*          tre,
+       BSyntaxObject* defect,
+       BBool          warn,
+  const BText&         msg)
     
 /*! Sends an error message if result is NULL
  */
@@ -226,8 +229,8 @@ static BSyntaxObject* TestResult(const BText&         name,
 
 
 //--------------------------------------------------------------------
-static inline
-void ArgumentFail(const BText & function, const BText & arg, const List* tre)
+void BSpecialFunction::ArgumentFail(
+  const BText & function, const BText & arg, const List* tre)
 //--------------------------------------------------------------------
 {
   Error(I2(BText("Fail evaluating argument '")+arg+"' at function "+function,
@@ -239,8 +242,6 @@ void ArgumentFail(const BText & function, const BText & arg, const List* tre)
 // special functions evaluator
 //--------------------------------------------------------------------
 
-
-
 //--------------------------------------------------------------------
 static BSyntaxObject* EvIf(BGrammar* gra, const List* tre, BBool left)
 
@@ -251,8 +252,8 @@ static BSyntaxObject* EvIf(BGrammar* gra, const List* tre, BBool left)
   static BText _name_ = "If";
   BSyntaxObject* result = NIL;
   BSyntaxObject* condition = NIL;
-  BInt nb = NumBranches(tre);
-  if(TestNumArg(_name_, 2, nb, 3))
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 3))
   {
   //Std(BText("\nEvaluating ")+BParser::Unparse(tre, "  ", "\n"));
     List* b1 = Branch(tre,1);
@@ -287,7 +288,7 @@ static BSyntaxObject* EvIf(BGrammar* gra, const List* tre, BBool left)
     }
     SAFE_DESTROY(condition,result);
   }
-  result=TestResult(_name_,result,tre,NIL,BFALSE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
   return(result);
 }
 
@@ -301,10 +302,10 @@ static BSyntaxObject* EvCase(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "Case";
   BSyntaxObject* result = NIL;
-  BInt nb = NumBranches(tre);
+  BInt nb = BSpecialFunction::NumBranches(tre);
   BList* stack = NIL;
   bool unknowCond = false;
-  if(TestNumArg(_name_, 2, nb, 0))
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 0))
   {
     BBool cond = BFALSE;
     BInt n=0;
@@ -330,7 +331,7 @@ static BSyntaxObject* EvCase(BGrammar* gra, const List* tre, BBool left)
     assert(!result);
     result = gra->UnknownVar();
   }
-  result=TestResult(_name_,result,tre,NIL,BFALSE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
   SAFE_DESTROY(stack,result);
   return(result);
 }
@@ -349,7 +350,7 @@ static BSyntaxObject* EvFind(BGrammar* gra, const List* tre, BBool left )
     GraText()
   };
   BSyntaxObject* result = NIL;
-  BSet args; GetArg(args, tre, graParam, 1);
+  BSet args; BSpecialFunction::GetArg(args, tre, graParam, 1);
   BText txt = "";
   if(args.Card()==1)
   {
@@ -357,7 +358,7 @@ static BSyntaxObject* EvFind(BGrammar* gra, const List* tre, BBool left )
 	  result = gra->FindLocal(txt);
 	  if(!result) { result = gra->FindVariable(txt); }
   }
-  result=TestResult(_name_,result,tre,gra->Defect(),BTRUE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,gra->Defect(),BTRUE);
   return(result);
 }
 
@@ -374,8 +375,8 @@ static BSyntaxObject* EvMakeGlobal(      BGrammar* gra,
   static BText _name_ = "MakeGlobal";
     BSyntaxObject* result = NIL;
     BSyntaxObject* uTxt	= NIL;
-    BInt nb = NumBranches(tre);
-    if(TestNumArg(_name_, 1, nb, 1))
+    BInt nb = BSpecialFunction::NumBranches(tre);
+    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
     {
 //	Std("\nEvMakeGlobal 1");
 	result = gra->EvaluateTree(Branch(tre,1));
@@ -420,7 +421,7 @@ static BSyntaxObject* EvMakeGlobal(      BGrammar* gra,
 	    }
 	}
     }
-    result=TestResult(_name_,result,tre,gra->Defect(),BTRUE);
+    result=BSpecialFunction::TestResult(_name_,result,tre,gra->Defect(),BTRUE);
     SAFE_DESTROY(uTxt,result);
     return(result);
 }
@@ -440,12 +441,12 @@ static BSyntaxObject* EvEval(BGrammar* gra, const List* tre, BBool left)
   };
     BSyntaxObject* result = NIL;
     BSet args; 
-    GetArg(args, tre, graParam, 1);
+    BSpecialFunction::GetArg(args, tre, graParam, 1);
     if(args.Card()==1)
     {
 	result  = gra->EvaluateExpr(Text(args[1]));
     }
-    result=TestResult(_name_,result,tre,gra->Defect(),BTRUE);
+    result=BSpecialFunction::TestResult(_name_,result,tre,gra->Defect(),BTRUE);
     return(result);
 }
 
@@ -464,7 +465,7 @@ static BSyntaxObject* EvEvalArg(BGrammar* gra, const List* tre,BBool left)
     GraSet()
   };
   BSyntaxObject* result = NIL;
-  BSet args; GetArg(args, tre, graParam, 2);
+  BSet args; BSpecialFunction::GetArg(args, tre, graParam, 2);
   if(args.Card()==2)
   {
     BText txt  = args[1]->Dump();
@@ -477,7 +478,7 @@ static BSyntaxObject* EvEvalArg(BGrammar* gra, const List* tre,BBool left)
       result = opr->Evaluator(arg);
     }
   }
-  result=TestResult(_name_,result,tre,gra->Defect(),BTRUE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,gra->Defect(),BTRUE);
   return(result);
 }
 
@@ -494,7 +495,7 @@ static BSyntaxObject* EvGroup(BGrammar* gra, const List* tre, BBool left)
     GraText(),
     GraSet()
   };
-  BSet args; GetArg(args, tre, graParam, 2);
+  BSet args; BSpecialFunction::GetArg(args, tre, graParam, 2);
   BSyntaxObject* result = NIL;
   BSyntaxObject* uTxt  = NIL;
   BSyntaxObject* uSet  = NIL;
@@ -560,7 +561,7 @@ static BSyntaxObject* EvGroup(BGrammar* gra, const List* tre, BBool left)
 	    }
     }
   }
-  result=TestResult(_name_,result,tre,NIL,BTRUE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
   return(result);
 }
 
@@ -589,7 +590,7 @@ static BSyntaxObject* EvBinGroup(BGrammar* gra, const List* tre, BBool left)
       GraSet()
     };
   //Std(BText("\nEvBinGroup ")+BParser::Unparse(tre));
-    BSet args; GetArg(args, tre, graParam, 2);
+    BSet args; BSpecialFunction::GetArg(args, tre, graParam, 2);
     if(args.Card()==2) 
     {
       uTxt = args[1];
@@ -659,7 +660,7 @@ static BSyntaxObject* EvBinGroup(BGrammar* gra, const List* tre, BBool left)
       }
     }
   }
-  result=TestResult(_name_,result,tre,NIL,BTRUE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
   return(result);
 }
 
@@ -674,8 +675,8 @@ static BSyntaxObject* EvField(BGrammar* gra, const List* tre, BBool left)
   static BText _name_ = BText("Field (")+I2("or","ó")+" -> )";
   BSyntaxObject* result = NIL;
   BSyntaxObject* uSet	= NIL;
-  BInt nb = NumBranches(tre);
-  if(TestNumArg(_name_, 2, nb, 2))
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
   {
     if(left) { uSet = GraSet() ->LeftEvaluateTree(Branch(tre,1)); }
     else     { uSet = GraSet() ->EvaluateTree(Branch(tre,1)); }
@@ -687,7 +688,7 @@ static BSyntaxObject* EvField(BGrammar* gra, const List* tre, BBool left)
       result = set.Field(fieldName);
     }
   }
-  result=TestResult(_name_,result,tre,NIL,BTRUE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
   if(!left) { SAFE_DESTROY(uSet,result); }
   return(result);
 }
@@ -704,13 +705,13 @@ static BSyntaxObject* EvElement(BGrammar* gra, const List* tre, BBool left)
   BSyntaxObject* result = NIL;
   BSyntaxObject* uSet  = NIL;
   BSyntaxObject * uIndex = NIL;
-  BInt nb = NumBranches(tre);
+  BInt nb = BSpecialFunction::NumBranches(tre);
   bool deleteUIndex = false;
   bool needCleanTree = false;
 /*Std(BText("EvElement(")+gra->Name()+","+
       BParser::Unparse(tre,"","")+","+(int)left+")\n\n"+
       BParser::treWrite((List*)tre,"  ",false));  */
-  if(TestNumArg(_name_, 2, nb, 2))
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
   {
   //Std(BText("\nEvElement tre=")+BParser::Unparse(tre));
     if(left) uSet = GraSet()->LeftEvaluateTree(Branch(tre,1));
@@ -780,7 +781,7 @@ static BSyntaxObject* EvElement(BGrammar* gra, const List* tre, BBool left)
 	    }
 	  }
   }
-  result = TestResult(_name_, result, tre, NIL, BFALSE);
+  result = BSpecialFunction::TestResult(_name_, result, tre, NIL, BFALSE);
   BText resGraName = (result)?result->Grammar()->Name():"";
   if (result && gra!=GraAnything() && result->Grammar() != gra) 
   {
@@ -815,10 +816,10 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
   // bool error = false; // unused
   BSyntaxObject* result = NIL;
   BGrammar *type = gra;
-  BInt nb = NumBranches(tre);
+  BInt nb = BSpecialFunction::NumBranches(tre);
   //BSyntaxObjectDisplayInfo() = true;
   //BText unparsed = BParser::Unparse(tre,"","");
-  if(TestNumArg(_name_, 2, nb, 2)) 
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2)) 
   {
     List* left  = Branch(tre,1);
     List* right = Branch(tre,2);
@@ -828,7 +829,7 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
       if(gra!=result->Grammar()) { type = result->Grammar(); }
       if(type == GraTimeSet()) 
       {
-        TestResult(_name_,NIL,tre,NIL,BTRUE,
+        BSpecialFunction::TestResult(_name_,NIL,tre,NIL,BTRUE,
                    I2("Cannot change a value of type ",
                       "No se puede cambiar un valor de tipo ") 
                    + type->Name());
@@ -866,7 +867,7 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
           BUserNameBlock* unb2 = (BUserNameBlock*)(val);
             unb1->PutContens(unb2->Contens()); }
         else {
-          TestResult(_name_,NIL,tre,NIL,BTRUE,
+          BSpecialFunction::TestResult(_name_,NIL,tre,NIL,BTRUE,
                I2("Incompatible types: ",
                   "Tipos incompatibles: ") + 
                result->Name() + I2(" is a ", " es de tipo ") +
@@ -878,7 +879,7 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
       }
     }
   }
-  result = TestResult(_name_,result,tre,NIL,BTRUE);
+  result = BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
 //BSyntaxObjectDisplayInfo() = false;
   return(result);
 }
@@ -894,8 +895,8 @@ static BSyntaxObject* EvPutName(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "PutName";
     BSyntaxObject* result = NIL;
-    BInt nb = NumBranches(tre);
-    if(TestNumArg(_name_, 2, nb, 2))
+    BInt nb = BSpecialFunction::NumBranches(tre);
+    if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
     {
 	BSyntaxObject* namObj = GraText()->EvaluateTree(Branch(tre,1));
   BGrammar::PutLast(gra);
@@ -921,7 +922,7 @@ static BSyntaxObject* EvPutName(BGrammar* gra, const List* tre, BBool left)
 	}
 	else
 	{
-	    TestResult(_name_,NIL,tre,NIL,BTRUE);
+	    BSpecialFunction::TestResult(_name_,NIL,tre,NIL,BTRUE);
 	}
 	SAFE_DESTROY(namObj,obj);
     }
@@ -939,8 +940,8 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
 //--------------------------------------------------------------------
 {
   static BText _name_ = "PutDescription";
-  BInt nb = NumBranches(tre);
-  if(TestNumArg(_name_, 2, nb, 2))
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
   {
     BSyntaxObject* desObj = GraText    ()->EvaluateTree(Branch(tre,1));
     BGrammar::PutLast(gra);
@@ -988,7 +989,7 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
     }
     else
     {
-      TestResult(_name_,NIL,tre,NIL,BTRUE);
+      BSpecialFunction::TestResult(_name_,NIL,tre,NIL,BTRUE);
     }
     SAFE_DESTROY(desObj,obj);
   }
@@ -1005,8 +1006,8 @@ static BSyntaxObject* EvWhile(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "While";
     BSyntaxObject* result = NIL;
-    BInt nb = NumBranches(tre);
-    if(TestNumArg(_name_, 2, nb, 2))
+    BInt nb = BSpecialFunction::NumBranches(tre);
+    if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
     {
 	BBool cond = BFALSE;
 	BInt  n = 0;
@@ -1039,7 +1040,7 @@ static BSyntaxObject* EvWhile(BGrammar* gra, const List* tre, BBool left)
 	    n++;
 	} while(cond);
     }
-//result=TestResult(_name_,result,tre,NIL,BTRUE);
+//result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
   return(NIL);
 }
 
@@ -1054,8 +1055,8 @@ static BSyntaxObject* EvCopy(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "Copy";
     BSyntaxObject* result = NIL;
-    BInt nb = NumBranches(tre);
-    if(TestNumArg(_name_, 1, nb, 1))
+    BInt nb = BSpecialFunction::NumBranches(tre);
+    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
     {
 	BSyntaxObject* toCopy = gra->EvaluateTree(Branch(tre,1));
 	if(toCopy)
@@ -1067,7 +1068,7 @@ static BSyntaxObject* EvCopy(BGrammar* gra, const List* tre, BBool left)
 	    }
 	}
     }
-    result=TestResult(_name_,result,tre,NIL,BTRUE);
+    result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
     return(result);
 }
 
@@ -1081,13 +1082,13 @@ static BSyntaxObject* EvDo(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "Do";
     BSyntaxObject* result = NIL;
-    BInt nb = NumBranches(tre);
-    if(TestNumArg(_name_, 1, nb, 1))
+    BInt nb = BSpecialFunction::NumBranches(tre);
+    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
     {
 	result = gra->EvaluateTree(Branch(tre,1));
 	if(result) {  result->Do();	 }
     }
-//result=TestResult(_name_,result,tre,NIL,BTRUE);
+//result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
     return(result);
 }
 
@@ -1101,13 +1102,13 @@ static BSyntaxObject* EvReCalc(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "ReCalc";
     BSyntaxObject* result = NIL;
-    BInt nb = NumBranches(tre);
-    if(TestNumArg(_name_, 1, nb, 1))
+    BInt nb = BSpecialFunction::NumBranches(tre);
+    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
     {
 	result = gra->EvaluateTree(Branch(tre,1));
 	if(result) {  result->ReCalc(); result->Do(); }
     }
-    result=TestResult(_name_,result,tre,NIL,BTRUE);
+    result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
     return(result);
 }
 
@@ -1121,9 +1122,9 @@ static BSyntaxObject* EvTOLPath(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "TOLPath";
     BSyntaxObject* result = NIL;
-    BInt nb = NumBranches(tre);
+    BInt nb = BSpecialFunction::NumBranches(tre);
     BUserText* uTxt=NULL;
-    if(TestNumArg(_name_, 1, nb, 1))
+    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
     {
 	uTxt = (BUserText*)GraText()->EvaluateTree(Branch(tre,1));
   BGrammar::PutLast(gra);
@@ -1145,7 +1146,7 @@ static BSyntaxObject* EvTOLPath(BGrammar* gra, const List* tre, BBool left)
 	}
     }
     SAFE_DESTROY(uTxt,result);
-    result=TestResult(_name_,result,tre,NIL,BTRUE);
+    result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
     return(result);
 }
 
@@ -1159,9 +1160,9 @@ static BSyntaxObject* EvGetObjectFromAddress(
 {
   static BText _name_ = "GetObjectFromAddress";
   BSyntaxObject* result = NIL;
-  BInt nb = NumBranches(tre);
+  BInt nb = BSpecialFunction::NumBranches(tre);
   BUserText* uTxt=NULL;
-  if(TestNumArg(_name_, 1, nb, 1))
+  if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
   {
     uTxt = (BUserText*)GraText()->EvaluateTree(Branch(tre,1));
     BGrammar::PutLast(gra);
@@ -1175,7 +1176,7 @@ static BSyntaxObject* EvGetObjectFromAddress(
     }
   }
   SAFE_DESTROY(uTxt,result);
-  result=TestResult(_name_,result,tre,NIL,BTRUE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
   return(result);
 }
 
@@ -1190,8 +1191,8 @@ static BSyntaxObject* EvDating(BGrammar* gra, const List* tre, BBool left)
     BSyntaxObject* result = NIL;
     if((gra==GraTimeSet()) || (gra==GraAnything()))
     {
-	BInt nb = NumBranches(tre);
-	if(TestNumArg(_name_, 1, nb, 1))
+	BInt nb = BSpecialFunction::NumBranches(tre);
+	if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
 	{
 	    BSyntaxObject* ser = NIL;
 	    ser = GraSerie()->EvaluateTree(Branch(tre,1));
@@ -1200,7 +1201,7 @@ static BSyntaxObject* EvDating(BGrammar* gra, const List* tre, BBool left)
 	    SAFE_DESTROY(ser,result);
 	}
     }
-    result=TestResult(_name_,result,tre,NIL,BTRUE);
+    result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
     return(result);
 }
 
@@ -1213,8 +1214,8 @@ static BSyntaxObject* EvWrite(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 {
   static BText _name_ = "Write";
-  BInt nb = NumBranches(tre);
-  if(TestNumArg(_name_, 1, nb, 2))
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if(BSpecialFunction::TestNumArg(_name_, 1, nb, 2))
   {
     BText type = "U";
     BSyntaxObject* uTxt = GraText()->EvaluateTree(Branch(tre,1));
@@ -1258,8 +1259,8 @@ static BSyntaxObject* EvWriteLn(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 {
   static BText _name_ = "WriteLn";
-  BInt nb = NumBranches(tre);
-  if(TestNumArg(_name_, 1, nb, 2))
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if(BSpecialFunction::TestNumArg(_name_, 1, nb, 2))
   {
     BText type = "U";
     BSyntaxObject* uTxt = GraText()->EvaluateTree(Branch(tre,1));
@@ -1306,16 +1307,16 @@ BSyntaxObject* EvMHWSPut(BGrammar* gra, const List* tre, BBool left)
   static BText _name_ = "MHWSPut";
   BSyntaxObject *result = NULL;
   BSyntaxObject *arg;
-  BInt nb = NumBranches(tre);
+  BInt nb = BSpecialFunction::NumBranches(tre);
 
-  if (TestNumArg(_name_, 3, nb, 3)) {
+  if (BSpecialFunction::TestNumArg(_name_, 3, nb, 3)) {
     int id_mh_ws, idx_obj;
     BDat * ptr_dat;
     
     arg = GraReal()->EvaluateTree(Branch(tre,1)); /* ID_WS */
     BGrammar::PutLast(gra);
     if (!arg) {
-      ArgumentFail(_name_, "ID_WS", tre);
+      BSpecialFunction::ArgumentFail(_name_, "ID_WS", tre);
       return NULL;
     }
     ptr_dat = &(((BUserDat*)arg)->Contens());
@@ -1331,7 +1332,7 @@ BSyntaxObject* EvMHWSPut(BGrammar* gra, const List* tre, BBool left)
     arg = GraReal()->EvaluateTree(Branch(tre,2)); /* IdxObj */
     BGrammar::PutLast(gra);
     if (!arg) {
-      ArgumentFail(_name_, "IdxObj", tre);
+      BSpecialFunction::ArgumentFail(_name_, "IdxObj", tre);
       return NULL;
     }
     ptr_dat = &(((BUserDat*)arg)->Contens());
@@ -1347,7 +1348,7 @@ BSyntaxObject* EvMHWSPut(BGrammar* gra, const List* tre, BBool left)
     arg = gra->EvaluateTree(Branch(tre,3));
     BGrammar::PutLast(gra);
     if (!arg) {
-      ArgumentFail(_name_, "NewValue", tre);
+      BSpecialFunction::ArgumentFail(_name_, "NewValue", tre);
       return NULL;
     }
     int ret = MHWS_put_extra(id_mh_ws, idx_obj-1, arg);
@@ -1368,7 +1369,7 @@ BSyntaxObject* EvMHWSPut(BGrammar* gra, const List* tre, BBool left)
           break;
     }
   } else {
-    /* unparse because TestNumArg does not do it */
+    /* unparse because BSpecialFunction::TestNumArg does not do it */
     Error(BParser::Unparse(tre,"  ", "\n"));
   }
   return result;
@@ -1380,16 +1381,16 @@ BSyntaxObject* EvMHWSGet(BGrammar* gra, const List* tre, BBool left)
   static BText _name_ = "MHWSGet";
   BSyntaxObject *result = NULL;
   BSyntaxObject *arg;
-  BInt nb = NumBranches(tre);
+  BInt nb = BSpecialFunction::NumBranches(tre);
 
-  if (TestNumArg(_name_, 2, nb, 2)) {
+  if (BSpecialFunction::TestNumArg(_name_, 2, nb, 2)) {
     int id_mh_ws, idx_obj;
     BDat * ptr_dat;
     
     arg = GraReal()->EvaluateTree(Branch(tre,1)); /* ID_WS */
     BGrammar::PutLast(gra);
     if (!arg) {
-      ArgumentFail(_name_, "ID_WS", tre);
+      BSpecialFunction::ArgumentFail(_name_, "ID_WS", tre);
       return NULL;
     }
     ptr_dat = &(((BUserDat*)arg)->Contens());
@@ -1405,7 +1406,7 @@ BSyntaxObject* EvMHWSGet(BGrammar* gra, const List* tre, BBool left)
     arg = GraReal()->EvaluateTree(Branch(tre,2)); /* IdxObj */
     BGrammar::PutLast(gra);
     if (!arg) {
-      ArgumentFail(_name_, "IdxObj", tre);
+      BSpecialFunction::ArgumentFail(_name_, "IdxObj", tre);
       return NULL;
     }
     ptr_dat = &(((BUserDat*)arg)->Contens());
@@ -1433,7 +1434,7 @@ BSyntaxObject* EvMHWSGet(BGrammar* gra, const List* tre, BBool left)
           break;
     }
   } else {
-    /* unparse because TestNumArg does not do it */
+    /* unparse because BSpecialFunction::TestNumArg does not do it */
     Error(BParser::Unparse(tre,"  ", "\n"));
   }
   return result;
@@ -1446,9 +1447,9 @@ static BSyntaxObject* EvIsUnknownObject(BGrammar* gra,
 {
   static BText _name_ = "IsUnknown";
     BSyntaxObject* result = NIL;
-    BInt nb = NumBranches(tre);
+    BInt nb = BSpecialFunction::NumBranches(tre);
 
-    if(TestNumArg(_name_, 1, nb, 1))
+    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
     {
 	BSyntaxObject* bob = GraAnything()->EvaluateTree(Branch(tre,1));
   BGrammar::PutLast(gra);
@@ -1480,7 +1481,7 @@ static BSyntaxObject* EvIsUnknownObject(BGrammar* gra,
 	}
     }
 
-    result=TestResult(_name_,result,tre,NIL,BTRUE);
+    result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
     return(result);
 }
 
@@ -1590,9 +1591,9 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "::";
   BSyntaxObject* result = NIL;
-  BInt nb = NumBranches(tre);
+  BInt nb = BSpecialFunction::NumBranches(tre);
   BText errMsg;
-  if(TestNumArg(_name_, 2, nb, 2))
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
   {
     List* branch1 = Branch(tre,1);
     List* branch2 = Branch(tre,2);
@@ -1676,7 +1677,7 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
              "Evaluando la expresión ")+"'"+
              BParser::Unparse(tre)+"'\n"+errMsg);
   }
-  result=TestResult(_name_,result,tre,NIL,BTRUE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
   return(result);
 }
 
@@ -1689,7 +1690,7 @@ static BSyntaxObject* EvGlobalFind(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "::";
   BSyntaxObject* result = NIL;
-  BInt nb = NumBranches(tre);
+  BInt nb = BSpecialFunction::NumBranches(tre);
   BText errMsg;
   if(gra==GraAnything())
   {
@@ -1698,7 +1699,7 @@ static BSyntaxObject* EvGlobalFind(BGrammar* gra, const List* tre, BBool left)
     "No se puede aplicar el operador de búsqueda global ::<variable_global> "
     "al tipo Anything");
   }
-  else if(TestNumArg(_name_, 1, nb, 1))
+  else if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
   {
     List* branch = Branch(tre,1);
     BToken* arg = BParser::treToken(branch);
@@ -1713,7 +1714,7 @@ static BSyntaxObject* EvGlobalFind(BGrammar* gra, const List* tre, BBool left)
              "Evaluando la expresión ")+"'"+
              BParser::Unparse(tre)+"'\n"+errMsg);
   }
-  result=TestResult(_name_,result,tre,NIL,BTRUE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
   return(result);
 }
 
@@ -1726,7 +1727,7 @@ static BSyntaxObject* EvClass(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "Class";
   BSyntaxObject* result = BClass::Evaluate(tre);
-  result=TestResult(_name_,result,tre,NIL,BFALSE);
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
   return(result);
 }
 
