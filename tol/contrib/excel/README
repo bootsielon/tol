@@ -1,3 +1,15 @@
+================= ExcelFormat ==================
+
+Actualizar el codigo fuente:
+
+  svn co http://shell.franken.de/svn/sky/excel/trunk/ExcelFormat ExcelFormat
+
+Para linux: modificar el archivo BasicExcel.cpp
+
+  #include <string.h>
+
+================= libxls ======================
+
 In order to create the dll this could be used:
 
 gcc -shared -o xlsreader.dll ole.o xls.o xlstool.o -Wl,--out-implib,xlsreader.lib,-no-undefined,--enable-runtime-pseudo-reloc

@@ -1,4 +1,6 @@
-/* tolExcel.cpp: API for libxls : http://libxls.sourceforge.net/
+/* tolExcel.cpp: API for read and write excel files.
+
+   Based on ExcelFormat from  http://shell.franken.de/svn/sky/excel/trunk/ExcelFormat
 
    Copyright (C) 2003 - Bayes Decision, SL (Spain [EU])
 
@@ -18,11 +20,8 @@
    USA.
  */
 
-extern "C" {
-#include <libxls/xls.h>
-}
-
-#pragma pack(4)
+#include "ExcelFormat.h"
+using namespace ExcelFormat;
 
 #if defined(_MSC_VER)
 #include <win_tolinc.h>
@@ -31,180 +30,413 @@ extern "C" {
 #include <tol/tol_tree.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bdatgra.h>
+#include <tol/tol_bdtegra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bspfun.h>
 
-
-class tol_excel_t {
+class TolExcel {
 public:
-  tol_excel_t( char *path, char *encoding );
-  ~tol_excel_t();
+  TolExcel( );
+  TolExcel( char *path );
+  ~TolExcel();
 
-  int validWB()
+  bool IsValid()
   {
-    return m_ptrWB != NULL;
+    return m_ptrXLS != NULL;
   }
   
-  int validWS()
+  size_t NumberOfWorkSheets()
+  {
+    return m_ptrXLS ? m_ptrXLS->GetTotalWorkSheets() : 0;
+  }
+  
+  bool HasActiveWS()
   {
     return m_ptrActiveWS != NULL;
   }
 
-  int activateWS( int num )
+  bool SetActiveWS( size_t num )
   {
-    m_ptrActiveWS = xls_getWorkSheet( m_ptrWB, num );
-    if ( m_ptrActiveWS ) {
-      xls_parseWorkSheet( m_ptrActiveWS );
+    m_ptrActiveWS = m_ptrXLS->GetWorksheet( num );
+    return m_ptrActiveWS != NULL;
+  }
+
+  bool SetActiveWS( const char * sheetName )
+  {
+    m_ptrActiveWS = m_ptrXLS->GetWorksheet( sheetName );
+    return m_ptrActiveWS != NULL;
+  }
+  
+  const char *GetActiveWSName()
+  {
+    return m_ptrActiveWS ? m_ptrActiveWS->GetAnsiSheetName( ) : NULL;
+  }
+  
+  BSyntaxObject *GetCellAnything( const BText &err_name,
+                                  size_t row, size_t col );
+
+  bool GetCellReal( const BText &err_name,
+                    size_t row, size_t col, BDat &result )
+  {
+    BasicExcelCell * cell = GetCell( err_name, row, col );
+
+    return GetCellReal( cell, err_name, row, col, result );
+  }
+
+  bool GetCellReal( BasicExcelCell *cell, const BText &err_name,
+                    size_t row, size_t col, BDat &result )
+  {
+    assert( cell != NULL );
+    
+    char cell_coord[ 64 ];
+    double d;
+
+    if ( cell->Get( d ) ) {
+      result = BDat( d );
+      return true;
     }
-    return m_ptrActiveWS != NULL;
+    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    Warning( err_name + ": " +
+             I2("the cell ", "la celda " ) + cell_coord +
+             I2(" does not contain a Real", " no contiene un Real" ) );
+    result = BDat::Unknown( );
+    return false;
+  }
+  
+  bool GetCellText( const BText &err_name,
+                    size_t row, size_t col, BText &result )
+  {
+    BasicExcelCell * cell = GetCell( err_name, row, col );
+
+    return GetCellText( cell, err_name, row, col, result );
+  }
+  
+  bool GetCellText( BasicExcelCell *cell, const BText &err_name,
+                    size_t row, size_t col, BText &result )
+  {
+    assert( cell != NULL );
+
+    char cell_coord[ 64 ];
+    const char *str;
+    
+    if ( ( str = cell->GetString( ) ) ) {
+      result = str;
+      return true;
+    }
+    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    Warning( err_name + ": " +
+             I2("the cell ", "la celda " ) + cell_coord +
+             I2(" does not contain a Text", " no contiene un Text" ) );
+    result = "";
+    return false;
+  }
+  
+  bool GetCellDate( const BText &err_name,
+                    size_t row, size_t col, BDate &result )
+  {
+    BasicExcelCell * cell = GetCell( err_name, row, col );
+
+    return GetCellDate( cell, err_name, row, col, result );
   }
 
-  int activateWS( const char * sheetName );
-  
-  int getActiveWSIndex()
+  bool GetCellDate( BasicExcelCell *cell, const BText &err_name,
+                    size_t row, size_t col, BDate &result )
   {
-    return m_idxWS;
-  }
-  
-  const char *getActiveWSName()
-  {
-    return m_idxWS >= 0 ? m_ptrWB->sheets.sheet[ m_idxWS ].name : NULL;
-  }
-  
-  xlsCell *GetCell( int iWS, int row, int column )
-  {
-    return NULL;
-  }
-  
-  xlsCell *GetCell( int row, int column )
-  {
-    return m_ptrActiveWS ? xls_cell( m_ptrActiveWS, row, column ) : NULL;
-  }
+    assert( cell != NULL );
 
-  BSyntaxObject *GetObjCell( BText &err_name, int row, int col );
+    char cell_coord[ 64 ];
+    double d;
+
+    if ( cell->Get( d ) ) {
+      int D, M, Y, H, Mi, S;
+      
+      double t = ExcelSerialDateToDMY( d, D, M, Y );
+      ExcelSerialTimeToHMS( t, H, Mi, S );
+
+      result = BDate( Y, M, D, H, Mi, S );
+      return true;
+    }
+    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    Warning( err_name + ": " +
+             I2("the cell ", "la celda " ) + cell_coord +
+             I2(" does not contain a date/time",
+                " no contiene una fecha/hora" ) );
+    result = BDate::Unknown( );
+    return false;
+  }
   
-  static double code_addr( tol_excel_t* ptr )
+  static double code_addr( TolExcel* ptr )
   {
     double addr = 0.0;
-    *((tol_excel_t**)(&addr)) = ptr;
+    *((TolExcel**)(&addr)) = ptr;
     return addr;
   }
   
-  static tol_excel_t* decode_addr( double addr )
+  static TolExcel* decode_addr( double addr )
   {
-    return *((tol_excel_t**)(&addr));
+    return *((TolExcel**)(&addr));
+  }
+
+  static double ExcelSerialDateToDMY( double SerialDate, int &nDay, 
+                                      int &nMonth, int &nYear);
+  static double ExcelSerialTimeToHMS( double SerialTime,
+                                      int &nHour, int &nMinute, int &nSecond )
+  {
+    nHour = int( floor( SerialTime *24 ) );
+    double tH = SerialTime - nHour;
+    nMinute = int( floor( tH * 60 ) );
+    double tM = tH - nMinute;
+    nSecond = int( floor( tM * 60 ) );
+    return tM - nSecond;
+  }
+
+  static int DMYToExcelSerialDate( int nDay, int nMonth, int nYear );
+
+  static double HMSToExcelSerialTime( int nHour, int nMinute, int nSecond )
+  {
+    const double nHiD = 24.0;
+    const double nMiD = 24.0 * 60;
+    const double nSiD = 24.0 * 60 * 60;
+    
+    return nHour / nHiD + nMinute / nMiD + nSecond / nSiD;
   }
 
 protected:
-  
-  int closeActiveWS( )
+
+  BasicExcelCell *GetCell( const BText &err_name,
+                           BasicExcelWorksheet * ptrWS,
+                           size_t row, size_t col );
+
+  BasicExcelCell *GetCell( const BText &err_name, size_t row, size_t col )
   {
-    if ( m_ptrActiveWS ) {
-      xls_close_WS( m_ptrActiveWS );
-      m_ptrActiveWS = NULL;
-      m_idxWS = -1;
-      return 1;
+    if ( !HasActiveWS( ) ) {
+      Error( err_name + ": " +
+             I2("there is no active work sheet",
+                "no hay hoja de trabajo activa") );
+      return NULL;
     }
-    return 0;
+    return GetCell( err_name, m_ptrActiveWS, row, col );
   }
 
-  int closeWB()
+  BasicExcelCell *GetCell( const BText &err_name,
+                           size_t iWS, size_t row, size_t col )
   {
-    if ( m_ptrWB ) {
-      closeActiveWS();
-      xls_close_WB( m_ptrWB );
-      m_ptrWB = NULL;
-      return 1;
+    char strNumWS[ 16 ];
+    
+    BasicExcelWorksheet* ptrWS = m_ptrXLS->GetWorksheet( iWS );
+    if ( !ptrWS ) {
+      snprintf( strNumWS, 16, "%d", iWS );
+      Error( err_name + ": " +
+             I2("worksheet with index ",
+                "la hoja de trabajo con indice ") + strNumWS +
+             I2( " was not found", " no existe" ) );
+      return NULL;
     }
-    return 0;
+    return GetCell( err_name, ptrWS, row, col );    
   }
   
 private:
-  xlsWorkBook* m_ptrWB;
-  xlsWorkSheet* m_ptrActiveWS;
-  int m_idxWS;
+  bool m_isOpen;
+  BasicExcel *m_ptrXLS;
+  XLSFormatManager *m_ptrFmtMgr;
+  BasicExcelWorksheet *m_ptrActiveWS;
 };
 
-tol_excel_t::tol_excel_t( char *path, char *encoding )
+TolExcel::TolExcel( )
 {
-  m_ptrWB = xls_open( path, encoding );
+  m_ptrXLS = new BasicExcel;
   m_ptrActiveWS = NULL;
-  m_idxWS = -1;
+  m_isOpen = false;
 }
 
-tol_excel_t::~tol_excel_t()
+TolExcel::TolExcel( char *path )
 {
-  closeWB();
-}
-
-int tol_excel_t::activateWS( const char * sheetName )
-{
-  DWORD i;
-  
-  for ( i = 0; i < m_ptrWB->sheets.count; i++ ) {
-    if ( strcmp( sheetName, m_ptrWB->sheets.sheet[i].name ) == 0 ) {
-      break;
-    }
-  }
-  
-  if ( i == m_ptrWB->sheets.count) {
-    return activateWS( i );
+  m_ptrXLS = new BasicExcel;
+  if ( !( m_isOpen = m_ptrXLS->Load( path ) ) ) {
+    delete m_ptrXLS;
+    m_ptrXLS = NULL;
   } else {
-    closeActiveWS();
   }
-  return 0;
+  if ( m_ptrXLS ) {
+    m_ptrFmtMgr = new XLSFormatManager( *m_ptrXLS );
+  }
+  m_ptrActiveWS = NULL;
 }
 
-BSyntaxObject *tol_excel_t::GetObjCell( BText &err_name, int row, int col )
+TolExcel::~TolExcel()
+{
+  if ( m_ptrFmtMgr ) {
+    delete m_ptrFmtMgr;
+    m_ptrFmtMgr = NULL;
+  }
+  if ( m_ptrXLS ) {
+    delete m_ptrXLS;
+    m_ptrXLS = NULL;
+  }
+  m_isOpen = false;
+  m_ptrXLS = NULL;
+}
+
+BSyntaxObject *TolExcel::GetCellAnything( const BText &err_name,
+                                          size_t row, size_t col )
 {
   BSyntaxObject *result = NULL;
+  char cell_coord[ 64 ];
   
-  if ( !validWS( ) ) {
-    Error( err_name + ": " +
-           I2("there is no active work sheet",
-              "no hay hoja de trabajo activa") );
-    return NULL;
-  }
-  xlsCell *cell = GetCell( row, col  );
-  if ( !cell || cell->ishiden ) {
-    Warning( err_name + ": " +
-             I2("the cell does not exists or is hiden",
-                "la celda no existe o esta oculta") );
-    result = new BContensText( "" );
-  } else {
-    if ( cell->id == 0x27e || cell->id == 0x0BD ||
-         cell->id == 0x203 ) {
-      result = new BContensDat( cell->d );
-    } else if ( cell->id == 0x06 ) {
-      // formula
-      if ( cell->l == 0 ) {
-        // its a number 
-        result = new BContensDat( cell->d );
+  BasicExcelCell *cell = GetCell( err_name, row, col  );
+  assert( !cell || ( cell && cell->Type( ) != BasicExcelCell::UNDEFINED ) );
+  if ( cell ) {
+    CellFormat fmt( *m_ptrFmtMgr, cell );
+    switch ( cell->Type() ) {
+    case BasicExcelCell::INT:
+    case BasicExcelCell::DOUBLE:
+      /* habria que inferir el tipo Date a partir del formato */
+      result = new BContensDat( cell->GetDouble() );
+      break;
+    case BasicExcelCell::STRING:
+      result = new BContensText( cell->GetString() );
+      break;
+    case BasicExcelCell::FORMULA:
+      double d;
+      const char * str;
+      if ( cell->Get( d ) ) {
+        /* habria que inferir el tipo Date a partir del formato */
+        result = new BContensDat( d );
+      } else if( ( str = cell->GetString() ) ) {
+        result = new BContensText( str );
       } else {
-        if ( !strcmp( cell->str, "bool" ) ) {
-          // its boolean, and test cell->d
-          result = new BContensDat( cell->d );
-        } else if ( !strcmp( cell->str, "error" ) ) {
-          // formula is in error
-          result = new BContensText( "*error*" );
-        } else {
-          // ... cell->str is valid as the result of a string formula.
-          result = new BContensText( cell->str );
-        }
-      }      
-    } else if (cell->str != NULL) {
-      result = new BContensText( cell->str );
-    } else {
+        /* no se como interpretar el resultado de la formula */
+        snprintf( cell_coord, 64, "(%d,%d)", row, col );        
+        Warning( err_name + ": " +
+                 I2("don't know how to interpret the result in cell ",
+                    "no se como interpretar el resultado en la celda " ) + cell_coord );
+        result = new BContensText( "" );
+      }
+      break;
+    default:
+      snprintf( cell_coord, 64, "(%d,%d)", row, col );        
+      Warning( err_name + ": " +
+               I2("don't know what to do with cell ",
+                  "no se que hacer con la celda " ) + cell_coord );
       result = new BContensText( "" );
     }
   }
   return result;
 }
 
+BasicExcelCell *TolExcel::GetCell( const BText &err_name,
+                                   BasicExcelWorksheet * ptrWS,
+                                   size_t row, size_t col )
+{
+  assert( ptrWS != NULL );
+  
+  char cell_coord[ 64 ];
+  
+  BasicExcelCell *cell = ptrWS->Cell( row, col );
+  if ( !cell ) {
+    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    Warning( err_name + ": " +
+             I2("the cell ",  "la celda " ) + cell_coord +
+             I2(" does not exists", " no existe") );
+  } else if ( cell->Type() == BasicExcelCell::UNDEFINED ) {
+    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    Warning( err_name + ": " +
+             I2("the cell ", "la celda " ) + cell_coord +
+             I2(" is undefined", " no esta definida" ) );
+    cell = NULL;
+  }
+  return cell;
+}
+
+double TolExcel::ExcelSerialDateToDMY( double SerialDate, int &nDay, 
+                                       int &nMonth, int &nYear)
+{
+  // extract and remove time information
+  
+  int nSerialDate = int( floor( SerialDate ) );
+  double SerialTime = SerialDate - nSerialDate;
+  
+  // Excel/Lotus 123 have a bug with 29-02-1900. 1900 is not a leap
+  // year, but Excel/Lotus 123 think it is...
+  
+  if (nSerialDate == 60) {
+    nDay   = 29;
+    nMonth = 2;
+    nYear  = 1900;
+    
+    return SerialTime;
+  }
+  else if (nSerialDate < 60) {
+    // Because of the 29-02-1900 bug, any serial date under 60 is one
+    // off... Compensate.
+    
+    nSerialDate++;
+  }
+  
+  // Modified Julian to DMY calculation with an addition of 2415019
+  
+  int l = nSerialDate + 68569 + 2415019;
+  int n = int(( 4 * l ) / 146097);
+  l = l - int(( 146097 * n + 3 ) / 4);
+  int i = int(( 4000 * ( l + 1 ) ) / 1461001);
+  l = l - int(( 1461 * i ) / 4) + 31;
+  int j = int(( 80 * l ) / 2447);
+  nDay = l - int(( 2447 * j ) / 80);
+  l = int(j / 11);
+  nMonth = j + 2 - ( 12 * l );
+  nYear = 100 * ( n - 49 ) + i + l;
+  
+  return SerialTime;
+}
+
+int TolExcel::DMYToExcelSerialDate( int nDay, int nMonth, int nYear )
+{
+  // Excel/Lotus 123 have a bug with 29-02-1900. 1900 is not a leap
+  // year, but Excel/Lotus 123 think it is...
+  
+  if (nDay == 29 && nMonth == 02 && nYear==1900)
+    return 60;
+  
+  // DMY to Modified Julian calculatie with an extra substraction of
+  // 2415019.
+  
+  long nSerialDate = 
+    int(( 1461 * ( nYear + 4800 + int(( nMonth - 14 ) / 12) ) ) / 4) +
+    int(( 367 * ( nMonth - 2 - 12 * ( ( nMonth - 14 ) / 12 ) ) ) / 12) -
+    int(( 3 * ( int(( nYear + 4900 + int(( nMonth - 14 ) / 12) ) / 100) ) ) / 4) +
+    nDay - 2415019 - 32075;
+  
+  if (nSerialDate < 60) {
+    // Because of the 29-02-1900 bug, any serial date under 60 is one
+    // off... Compensate.
+        
+    nSerialDate--;
+  }
+  
+  return (int)nSerialDate;
+}
+
+bool ValidCellCoord( const BText & name, const BDat Row, const BDat Col,
+                     size_t &r, size_t &c )
+{
+  
+  if ( !Row.IsKnown() || Row.Value() < 0 ||
+       !Col.IsKnown() || Col.Value() < 0 ) {
+    char buffer[256];
+    snprintf( buffer, 256, "(%f,%f)", Row.Value(), Col.Value() );
+    Error( name + ": " +
+           I2( "invalid cell coordinates ",
+               "coordenadas de celda invalidas " ) + buffer );
+    return false;
+  }
+  r = size_t( Row.Value( ) );
+  c = size_t( Col.Value( ) );
+  return true;
+}
+
 //---------------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatExcelOpen);
-DefExtOpr(1, BDatExcelOpen, "Excel.Open", 1, 2, "Text Text",
-          "(Text path [, Text encoding])",
+DefExtOpr(1, BDatExcelOpen, "Excel.Open", 1, 1, "Text", "(Text path)",
           I2("Read and excel file and returns the object handler. "
              "If the file does not exists 0.0 is returned",
              ""),
@@ -213,27 +445,27 @@ DefExtOpr(1, BDatExcelOpen, "Excel.Open", 1, 2, "Text Text",
 void BDatExcelOpen::CalcContens()
 {
   BText &path = Text( Arg( 1 ) );
-  BText encoding = NumArgs( ) > 1 ? ToUpper(Text(Arg(2))) : "ASCII";
-  tol_excel_t *aux = new tol_excel_t( path.Buffer(), encoding );
-  if ( !aux->validWB() ) {
+  TolExcel *aux = new TolExcel( path.Buffer() );
+  if ( !aux->IsValid() ) {
     delete aux;
     aux = NULL;
   }
-  contens_ = BDat( tol_excel_t::code_addr( aux ) );
+  contens_ = BDat( TolExcel::code_addr( aux ) );
 }
 
 //---------------------------------------------------------------------------
-DeclareContensClass(BDat, BDatTemporary, BDatExcelClose);
-DefIntOpr(1, BDatExcelClose, "Excel.Close", 1, 1,
+DeclareContensClass(BDat, BDatTemporary, BDatExcelDestroy);
+DefIntOpr(1, BDatExcelDestroy, "Excel.Destroy", 1, 1,
           "(Real ExcelHandler)",
-          I2("Close a previously openned excel handler. See alsoExcel.Open ",
+          I2("Destroy a previously created excel handler. See also "
+             "Excel.Open, Excel.Create",
              ""),
           BOperClassify::System_);
 //----------------------------------------------------------------------------
-void BDatExcelClose::CalcContens()
+void BDatExcelDestroy::CalcContens()
 {
   double addr = Dat( Arg( 1 ) ).Value();
-  tol_excel_t *aux = tol_excel_t::decode_addr( addr );
+  TolExcel *aux = TolExcel::decode_addr( addr );
   /* debemos tener un hash de las direccion creadas con Open de forma
      tal que podamos verificar si la direccion es valida antes de
      hacer delete */
@@ -241,7 +473,7 @@ void BDatExcelClose::CalcContens()
     delete aux;
     contens_ = BDat( 1.0 );
   } else {
-    Error( BText( "Excel.Close: " ) +
+    Error( BText( "Excel.Destroy: " ) +
            I2("invalid excel handler",
               "identificador de objeto excel invalido") );
     contens_ = BDat( 0.0 );
@@ -262,11 +494,11 @@ void BDatExcelActivateNamedWS::CalcContens()
 {
   double addr = Dat( Arg( 1 ) ).Value();
   BText &name = Text( Arg( 2 ) );
-  tol_excel_t *xls = tol_excel_t::decode_addr( addr );
+  TolExcel *xls = TolExcel::decode_addr( addr );
   if ( xls ) {
-    contens_ = BDat( xls->activateWS( name.Buffer() ) );
+    contens_ = BDat( xls->SetActiveWS( name.Buffer() ) );
   } else {
-    Error( BText( "Excel.Close: " ) +
+    Error( BText( "Excel.ActivateNamedWS: " ) +
            I2("invalid excel handler",
               "identificador de objeto excel invalido") );
     contens_ = BDat( 0.0 );
@@ -289,9 +521,9 @@ void BDatExcelActivateWS::CalcContens()
   if ( index.IsKnown() ) {
     int idx = int( index.Value() );
     if ( idx >= 0 ) {
-      tol_excel_t *xls = tol_excel_t::decode_addr( addr );
+      TolExcel *xls = TolExcel::decode_addr( addr );
       if ( xls ) {
-        contens_ = BDat( xls->activateWS( idx ) );
+        contens_ = BDat( xls->SetActiveWS( size_t( idx ) ) );
       } else {
         Error( BText( "Excel.ActivateWS: " ) +
                I2("invalid excel handler",
@@ -308,6 +540,99 @@ void BDatExcelActivateWS::CalcContens()
     Error( I2("Excel.ActivateWS : invalid Work Sheet index, must be known",
               "Excel.ActivateWS : indice de hoja invalido, debe ser conocido") );
     contens_ = BDat( 0.0 );
+  }
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatExcelGetReal);
+DefExtOpr(1, BDatExcelGetReal, "Excel.ReadReal", 3, 3, "Real Real Real",
+          "(Real ExcelHandler, Real Row, Real Column)",
+          I2("Return the contents of the given cell as a Real. If the contents "
+             "of the cell is not a Real value then ? is returned",
+             ""),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BDatExcelGetReal::CalcContens()
+{
+  double addr = Dat( Arg( 1 ) ).Value();
+  BDat &Row = Dat( Arg( 2 ) );
+  BDat &Col = Dat( Arg( 3 ) );
+  size_t r, c;
+  
+  if ( ValidCellCoord( Name( ), Row, Col, r, c ) ) {
+    TolExcel *xls = TolExcel::decode_addr( addr );
+    if ( xls ) {
+      xls->GetCellReal( Name(), r, c, contens_ );
+    } else {
+      Error( Name() +
+             I2(": invalid excel handler",
+                ": identificador de objeto excel invalido") );
+      contens_ = BDat::Unknown( );
+    }
+  } else {
+    contens_ = BDat::Unknown( );
+  }
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BDat, BTxtTemporary, BTxtExcelGetText);
+DefExtOpr(1, BTxtExcelGetText, "Excel.ReadText", 3, 3, "Real Real Real",
+          "(Real ExcelHandler, Real Row, Real Column)",
+          I2("Return the contents of the given cell as a Text. If the contents "
+             "of the cell is not a Text value then \"\" is returned",
+             ""),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BTxtExcelGetText::CalcContens()
+{
+  double addr = Dat( Arg( 1 ) ).Value();
+  BDat &Row = Dat( Arg( 2 ) );
+  BDat &Col = Dat( Arg( 3 ) );
+  size_t r, c;
+  
+  if ( ValidCellCoord( Name( ), Row, Col, r, c ) ) {
+    TolExcel *xls = TolExcel::decode_addr( addr );
+    if ( xls ) {
+      xls->GetCellText( Name(), r, c, contens_ );
+    } else {
+      Error( Name() +
+             I2(": invalid excel handler",
+                ": identificador de objeto excel invalido") );
+      contens_ = "";
+    }
+  } else {
+    contens_ = "";
+  }
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BDat, BDteTemporary, BDteExcelGetReal);
+DefExtOpr(1, BDteExcelGetReal, "Excel.ReadDate", 3, 3, "Real Real Real",
+          "(Real ExcelHandler, Real Row, Real Column)",
+          I2("Return the contents of the given cell as a Date. If the contents "
+             "of the cell is not a Date value then the unknown date is returned",
+             ""),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BDteExcelGetReal::CalcContens()
+{
+  double addr = Dat( Arg( 1 ) ).Value();
+  BDat &Row = Dat( Arg( 2 ) );
+  BDat &Col = Dat( Arg( 3 ) );
+  size_t r, c;
+  
+  if ( ValidCellCoord( Name( ), Row, Col, r, c ) ) {
+    TolExcel *xls = TolExcel::decode_addr( addr );
+    if ( xls ) {
+      xls->GetCellDate( Name(), r, c, contens_ );
+    } else {
+      Error( Name() +
+             I2(": invalid excel handler",
+                ": identificador de objeto excel invalido") );
+      contens_ = BDate::Unknown( );
+    }
+  } else {
+    contens_ = BDate::Unknown( );
   }
 }
 
@@ -342,16 +667,16 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
                "(row,col)>=(0,0)" );
         return NULL;
       }
-      WORD i_row = DWORD( dat_row.Value() );
-      WORD i_col = DWORD( dat_col.Value() );
-      tol_excel_t *xls = tol_excel_t::decode_addr( Dat( addr ).Value() );
+      size_t i_row = size_t( dat_row.Value() );
+      size_t i_col = size_t( dat_col.Value() );
+      TolExcel *xls = TolExcel::decode_addr( Dat( addr ).Value() );
       if ( !xls ) {
         Error( _name_ + ": " +
                I2("invalid excel object address",
                   "direccion de objecto excel invalido") );
         return NULL;
       }    
-      result = xls->GetObjCell( _name_, i_row, i_col );    
+      result = xls->GetCellAnything( _name_, i_row, i_col );
     }
   }
   result = BSpecialFunction::TestResult( _name_, result, tre, NIL, BTRUE );
