@@ -36,6 +36,7 @@
   NameBlock GetNonLinFlt(Text id_node, Text id_nonLinFlt)
   ///////////////////////////////////////////////////////////////////////////
   {
+  //WriteLn("TRACE CreateSeriesHandler::GetNonLinFlt("<<id_nonLinFlt+")");
     (_.obs.node[id_node])::GetNonLinFlt(id_nonLinFlt)
   };
 
@@ -175,7 +176,7 @@ Set LoadNodeNonLinFil(
   Text id_node, 
   NameBlock modelHandler)
 ///////////////////////////////////////////////////////////////////////////
-{
+{  
 //WriteLn("TRACE [LoadNodeNonLinFil] 1 id_node="+id_node);
   NameBlock _table = BysMcmc::Bsr::DynHlm::DBApi::_.table;
   Set db_genericNonLinBlk = BysMcmc::Bsr::DynHlm::DBApi::SqlTableTrace(
@@ -732,6 +733,7 @@ NameBlock LoadModelDef.Joint(
   NameBlock Get.LinReg.Segment(Real segmentNumber) 
   ////////////////////////////////////////////////////////////////////////////
   { 
+  //WriteLn("TRACE [Get.LinReg.Segment] 1 segmentNumber="+segmentNumber);
     Set node = _.nodes[segmentNumber];
     Text id_node = node->Node;
     Set gnlf = BysMcmc::Bsr::DynHlm::DBApi::LoadNodeNonLinFil(
