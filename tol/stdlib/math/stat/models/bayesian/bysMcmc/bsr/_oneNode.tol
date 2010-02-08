@@ -213,11 +213,14 @@ NameBlock OneNode =
     Set noisePrior = For(1,Card(prior.index),Set(Real j)
     {
       Set pi = (data::_.linearParamInfo)[prior.index[j] ];
-      Real estimSigma = IsUnknown(pi->Prior.Sigma) | 
-                       !IsUnknown(pi->Prior.SigmaWeight);
+      Real estimSigma = Case(
+        IsUnknown(pi->Prior.Sigma), True,
+        IsUnknown(pi->Prior.SigmaWeight), True,
+        pi->Prior.SigmaWeight<1, True,
+        pi->Prior.SigmaWeight==1, False);
       Real sigmaIndex := sigmaIndex + estimSigma;
 
-      Set SigmaPrior = If(IsUnknown(pi->Prior.SigmaWeight),Copy(Empty),
+      Set SigmaPrior = If(Or(!estimSigma,IsUnknown(pi->Prior.SigmaWeight)),Copy(Empty),
         @Bsr.Sigma.Prior.InverseGamma(pi->Prior.Sigma,pi->Prior.SigmaWeight));
       Real cov.value = If(estimSigma, 1, pi->Prior.Sigma);
       Real L.value   = If(estimSigma, 1, Sqrt(pi->Prior.Sigma));
