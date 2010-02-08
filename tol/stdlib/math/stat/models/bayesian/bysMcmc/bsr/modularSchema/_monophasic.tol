@@ -54,7 +54,7 @@ NameBlock Monophasic =
         })
       });
       Set aux.2 = Unique(BinGroup("<<", aux.1));
-      Real SetIndexByName(aux.2);
+      Real If(Card(aux.2), SetIndexByName(aux.2));
       aux.2 
     };  
     Real n = Card(LinearBlock);
@@ -179,6 +179,7 @@ NameBlock Monophasic =
         seg->SigmaIndex := Copy(sigmaIndex)
       })
     });
+    {
   //WriteLn("TRACE MasterToJoint 7.1");
     VMatrix Y = Convert(Group("ConcatRows",reDim[4]),"Blas.R.Dense");
   //WriteLn("TRACE MasterToJoint 7.2");
@@ -200,7 +201,7 @@ NameBlock Monophasic =
       VMatrix Y;
       VMatrix X;
       VMatrix a;
-      VMatrix A)
+      VMatrix A) }
   })} 
 ]];
 
