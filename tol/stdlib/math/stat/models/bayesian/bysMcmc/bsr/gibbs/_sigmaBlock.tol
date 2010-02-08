@@ -178,9 +178,9 @@ Class @BlockSigma : @BlockSampler
       {
       //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.3 ");
         //w = m0/(m0+m); m0*(w-1)=-m*w; m0 = m*w/(1-w)
-        Real m0 = Max(1,Round(sumSqr::m*w/(1-w)));
+        Real m0 = If(!sumSqr::m, 1, Max(1,Round(sumSqr::m*w/(1-w))));
       //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.4 ");
-        Real rss = sumSqr::rss + m0 * s2;
+        Real rss = If(!sumSqr::m, s2, sumSqr::rss + m0 * s2);
       //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.5 ");
         Real m = sumSqr::m + m0;
       //WriteLn("TRACE "+_MID+" draw.invRandChisq 2.2.3.6 ");
