@@ -82,14 +82,14 @@ NameBlock OneNode =
   ///////////////////////////////////////////////////////////////////////////
   {
     Text _MID = "[BysMcmc::Bsr::OneNode::GetCycler]";
-  //WriteLn(_MID+" TRACE 1");
+  //WriteLn(" TRACE "+_MID+" 1");
     //Output matrix
     VMatrix Y = data::_.Y;
-  //WriteLn(_MID+" TRACE 2");
+  //WriteLn("TRACE "+_MID+" 2");
     //Input matrix
     VMatrix X = data::_.X;
 
-  //WriteLn(_MID+" TRACE 3");
+  //WriteLn("TRACE "+_MID+" 3");
     //Observational data length
     Real m = VRows(Y);
     //Number of variables at linear block 
@@ -105,13 +105,13 @@ NameBlock OneNode =
     VMatrix domain.a = Rand(0,1,0,0);
     Matrix  domain.A.triplet = Rand(0,3,0,0);
     
-  //WriteLn(_MID+" TRACE 4");
+  //WriteLn("TRACE "+_MID+" 4");
     //Builds linear block and collects prior and domain information
     Set linearBlock = For(1,n, Set(Real j)
     {
       Set pi = (data::_.linearParamInfo)[j];
       Set aux = [[@BSR.LinearBlock(pi->Name, pi->InitValue, True, False)]];
-    //WriteLn(_MID+" TRACE 4.["<<j+"].1");
+    //WriteLn("TRACE "+_MID+" 4.["<<j+"].1");
       Real prior.Average = If(ObjectExist("Real","pi->Prior.Average"),
                               pi->Prior.Average, ?);
       Real estimSigma = IsUnknown(pi->Prior.Sigma) | 
@@ -128,7 +128,7 @@ NameBlock OneNode =
           prior.X.triplet << Row(prior.num,j,factor);
         0
       });
-    //WriteLn(_MID+" TRACE 4.["<<j+"].2");
+    //WriteLn("TRACE "+_MID+" 4.["<<j+"].2");
       Real prior.LowerBound = If(ObjectExist("Real","pi->Prior.LowerBound"),
                               pi->Prior.LowerBound, -1/0);
       Real If(!IsUnknown(prior.LowerBound) & GT(prior.LowerBound,Real -1/0),
@@ -139,7 +139,7 @@ NameBlock OneNode =
         Matrix domain.A.triplet := domain.A.triplet << Row(domain.num,j,-1);
         0
       });
-    //WriteLn(_MID+" TRACE 4.["<<j+"].3");
+    //WriteLn("TRACE "+_MID+" 4.["<<j+"].3");
       Real prior.UpperBound = If(ObjectExist("Real","pi->Prior.UpperBound"),
                               pi->Prior.UpperBound, +1/0);
       Real If(!IsUnknown(prior.UpperBound) & LT(prior.UpperBound,Real +1/0),
@@ -156,7 +156,7 @@ NameBlock OneNode =
     });
     //Checks unique name and prepares for hashed searching by name
     Real SetIndexByName(linearBlock);
-  //WriteLn(_MID+" TRACE 5");
+  //WriteLn("TRACE "+_MID+" 5");
     //Domain constraints
     VMatrix domain.A = Triplet(domain.A.triplet,domain.num,n);
     //Building order relations if exist
@@ -183,7 +183,7 @@ NameBlock OneNode =
 
     Real m.full = m+prior.num;
 
-  //WriteLn(_MID+" TRACE 6");
+  //WriteLn("TRACE "+_MID+" 6");
     //Observational information
     Real sigmaIsUnknown = IsUnknown(data::_.sigma);
     Set noiseObs = {[[
@@ -206,12 +206,14 @@ NameBlock OneNode =
       )
     ]]};
 
-  //WriteLn(_MID+" TRACE 7");
+  //WriteLn("TRACE "+_MID+" 7.1");
     //Prior information
-    VMatrix prior.X = Triplet(prior.X.triplet,prior.num,n);
+    VMatrix prior.X = Convert(Triplet(prior.X.triplet,prior.num,n),"Cholmod.R.Sparse");
+  //WriteLn("TRACE "+_MID+" 7.2");
     Real sigmaIndex = If(sigmaIsUnknown,1,0);
     Set noisePrior = For(1,Card(prior.index),Set(Real j)
     {
+    //If(!j%100, WriteLn("TRACE "+_MID+"  8."<<j));
       Set pi = (data::_.linearParamInfo)[prior.index[j] ];
       Real estimSigma = Case(
         IsUnknown(pi->Prior.Sigma), True,
@@ -245,9 +247,9 @@ NameBlock OneNode =
         Set TimeInfo = Copy(Empty);
         Set NonLinFilters = Copy(Empty)
       )
-   });
+    });
 
-  //WriteLn(_MID+" TRACE 8");
+  //WriteLn("TRACE "+_MID+" 9.1");
     //All allowed segments in this simplified API are obs and prior (optionally)
     Set noiseDistrib_ = noiseObs << noisePrior;
     //Setting name of segments to allow hashed searching
@@ -258,7 +260,7 @@ NameBlock OneNode =
     });
     //Checks unique name and prepares for hashed searching by name
     Real SetIndexByName(noiseDistrib);
-  //WriteLn(_MID+" TRACE 9");
+  //WriteLn("TRACE "+_MID+" 9.2");
     //Building generic model definition
     Set modelDef = @BSR.ModelDef (
       "joint",
@@ -274,15 +276,17 @@ NameBlock OneNode =
       VMatrix a = domain.a << order.a,
       VMatrix A = domain.A << order.A
     );
+  //WriteLn("TRACE "+_MID+" 9.3");
     BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCyclerFromParsed
-   (
+    (
       modelDef,
       BysMcmc::@McmcPartialHandler::Null(0),
       config_,
       BysMcmc::@Notifier::Null(0)
     );
+  //WriteLn("TRACE "+_MID+" 9.4");
     Set Append(cycler::auxInfo,[[data]]);
-  //WriteLn(_MID+" TRACE 12");
+  //WriteLn("TRACE "+_MID+" 9.5");
     cycler
   };
 
