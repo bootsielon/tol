@@ -495,7 +495,6 @@ Text _.autodoc.member.Write.Primary =
   Text Write.Primary(NameBlock model)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real numSegment = model::Get.LinReg.Size(0);
   NameBlock segment = model::Get.LinReg.Segment(0);
   Text segName = segment::Get.Name(0);
   Text path.prefix = model::Get.Doc.Path(0);
