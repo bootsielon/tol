@@ -198,8 +198,8 @@ Real Write.Data.MainLinearBlock(NameBlock segment,
     Set P = segment::Get.Param(k);
     Real iv = If(!IsUnknown(P->InitValue),
     {
+      FPutText(fileHandler, P->Name+" <- "+ RealTextS(P->InitValue)+";\n");
       P->InitValue
-      FPutText(fileHandler, P->Name+" <- "+ RealTextS(iv)+";\n");
     },
     {
       If(IsUnknown(P->LowerBound)&IsUnknown(P->UpperBound),
@@ -208,8 +208,9 @@ Real Write.Data.MainLinearBlock(NameBlock segment,
         ?
       }, 
       {
-        Rand(P->LowerBound, P->UpperBound),
-        FPutText(fileHandler, P->Name+" <- "+ RealTextS(iv)+";\n");
+        Real rv = Rand(P->LowerBound, P->UpperBound),
+        FPutText(fileHandler, P->Name+" <- "+ RealTextS(rv)+";\n");
+        rv
       })
     });
     Real 0
