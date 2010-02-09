@@ -202,13 +202,13 @@ Real Write.Data.MainLinearBlock(NameBlock segment,
       P->InitValue
     },
     {
-      If(IsUnknown(P->LowerBound)&IsUnknown(P->UpperBound),
+      If(IsUnknown(P->Prior.LowerBound)&IsUnknown(P->Prior.UpperBound),
       {
         FPutText(fileHandler, "$Extern "+P->Name+";\n");
         ?
       }, 
       {
-        Real rv = Rand(P->LowerBound, P->UpperBound),
+        Real rv = Rand(P->Prior.LowerBound, P->Prior.UpperBound),
         FPutText(fileHandler, P->Name+" <- "+ RealTextS(rv)+";\n");
         rv
       })
