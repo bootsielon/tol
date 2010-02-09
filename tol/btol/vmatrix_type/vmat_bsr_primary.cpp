@@ -237,7 +237,7 @@ public:
         |
         real_p[assign_a(s.var.info.initValue)]
         ;
-      variable =  ( 
+      variable =  (( 
         str_p("$Extern") >>
         newIdentifier[assign_extern_var_name_]
         ) | ( 
@@ -245,7 +245,7 @@ public:
         str_p("<-") >> 
         (
           unkOrRealInitValue | error_linearVariableDeclareExpected
-        )) >>
+        ))) >>
         endOfSentence[add_var]
         ;
       variableExistentOrExtern =
