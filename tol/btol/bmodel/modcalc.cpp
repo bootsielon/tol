@@ -161,7 +161,7 @@ static void MatFromPolF(BUpTrMatrix<BDat>& mat,
 
 //--------------------------------------------------------------------
 BBool ApplyPolB(BArray<BDat>& ps, const BArray<BDat>& s,
-		const BPol& p_, BInt deg, const BText& name)
+		const BPol& p_, BInt deg, const BText& name, int maxTransferDegree)
 //--------------------------------------------------------------------
 {
   BInt j, k;
@@ -177,7 +177,7 @@ BBool ApplyPolB(BArray<BDat>& ps, const BArray<BDat>& s,
 //    Std(BText("    s[")+jj+"]="+s[jj].Name()+"\n");
     }
 //  Std(BText("	 ps[")+j+"]="+ps[j].Name()+"\n");
-    if(ps(j).IsUnknown() && ok)
+    if(ok && (j>=maxTransferDegree) && ps(j).IsUnknown())
     {
       Error(name+ I2(" has unknown data at ",
 		     " tiene valores desconocidos en ")+ j);
@@ -190,7 +190,7 @@ BBool ApplyPolB(BArray<BDat>& ps, const BArray<BDat>& s,
 
 //--------------------------------------------------------------------
 static BBool ApplyPolB(BMat& ps, int rPs, const BMat& s, int rS,
-		       const BPol& p_, BInt deg, const BText& name)
+		       const BPol& p_, BInt deg, const BText& name, int maxTransferDegree)
 //--------------------------------------------------------------------
 {
   BInt j, k;
@@ -206,7 +206,7 @@ static BBool ApplyPolB(BMat& ps, int rPs, const BMat& s, int rS,
 //    Std(BText("    s[")+jj+"]="+s[jj].Name()+"\n");
     }
 //  Std(BText("	 ps[")+j+"]="+ps[j].Name()+"\n");
-    if(ps(rPs,j).IsUnknown() && ok)
+    if(ok && (j>=maxTransferDegree) && ps(rPs,j).IsUnknown())
     {
       Error(name+ I2(" has unknown data at ",
 		     " tiene valores desconocidos en ")+ j);
@@ -219,7 +219,7 @@ static BBool ApplyPolB(BMat& ps, int rPs, const BMat& s, int rS,
 
 //--------------------------------------------------------------------
 BBool ApplyPolB(BMat& ps, int row, const BData& s,
-		const BPol& p_, BInt deg, const BText& name)
+		const BPol& p_, BInt deg, const BText& name, int maxTransferDegree)
 //--------------------------------------------------------------------
 {
   BInt j, k;
@@ -235,7 +235,7 @@ BBool ApplyPolB(BMat& ps, int row, const BData& s,
 //    Std(BText("    s[")+jj+"]="+s[jj].Name()+"\n");
     }
 //  Std(BText("	 ps[")+j+"]="+ps[j].Name()+"\n");
-    if(ps(row,j).IsUnknown() && ok)
+    if(ok && (j>=maxTransferDegree) && ps(row,j).IsUnknown())
     {
       Error(name+ I2(" has unknown data at ",
 		     " tiene valores desconocidos en ")+ j);
@@ -349,7 +349,7 @@ BBool BModel::InitData(const BDate& f, const BDate& l, BInt numPrev)
 */
       N_ = outData_.NumDates()-difDeg_;
       outDifData_.Alloc(1, N_);
-      ApplyPolB(outDifData_, 0, fullData_, dif_, difDeg_, outName_+"_Full");
+      ApplyPolB(outDifData_, 0, fullData_, dif_, difDeg_, outName_+"_Full", 0);
       Z_ = outDifData_.T();
       initialError_ = Sqrt(CenterMoment(outDifData_.Data(),2));
       standardError_ = initialError_;
@@ -417,7 +417,7 @@ BBool BModel::InitData(const BDate& f, const BDate& l, BInt numPrev)
 	         {
 	           n+=transfer_(i).Size();
 	           if(!ApplyPolB(inDifData_,i,inData_.Data(),i,dif_,
-		          difDeg_,inpName_(i)))
+		          difDeg_,inpName_(i),maxTransferDegree_))
 	           { ok = BFALSE; }
 	         }
 	       }
@@ -805,7 +805,7 @@ void BModel::CalcNonLinnearInputDifFilter(BInt N)
 //    for(j=0; j<nli.NumDates(); j++)
 //    { Std(nli.Date(j).Name()+"\t"+nli.Data()[0][j].Name()+"\n"); }
 
-      if(ApplyPolB(inDifNonLin_, nli.Data().Data(), dif_, difDeg_, name))
+      if(ApplyPolB(inDifNonLin_, nli.Data().Data(), dif_, difDeg_, name, 0))
       { for(j=0; j<size; j++) { inputDifFilter_(j)+=inDifNonLin_(j); } }
       else
       { nonLinPar_.Delete(); }
@@ -1249,7 +1249,7 @@ void BModel::CalcDifNoise(BInt N)
 {
   BInt j;
 
-  ApplyPolB(outDifData_, 0, fullData_, dif_, difDeg_, outName_+"_Full");
+  ApplyPolB(outDifData_, 0, fullData_, dif_, difDeg_, outName_+"_Full", 0);
   Z_ = outDifData_.T();
   if(inputParam_)
   {
