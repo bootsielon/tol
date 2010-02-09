@@ -428,6 +428,7 @@ void BVMat::restore_cholmod_common()
 //Importing method
 ////////////////////////////////////////////////////////////////////////////////
 {
+//Std(BText("TRACE BVMat::Copy ")<<v.Info());
   if(&v==this) { return; }
   Delete();
   code_ = v.code_;
@@ -485,6 +486,7 @@ void BVMat::restore_cholmod_common()
      *x = value;
     }
   }
+  CheckDefined("BlasRDense");
 }  
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1186,7 +1188,7 @@ void BVMat::CompactSymmetric(bool check)
   BText BVMat::Info() const
 ////////////////////////////////////////////////////////////////////////////////
 {
-  if(!CheckDefined("Info")) { return(""); }
+  if((code_!=ESC_undefined)&&(!s_.undefined_)) { return(""); }
   BText aux=BText("Virtual matrix ")+CodeName(code_);
   if(code_==ESC_undefined) { return(aux); }
   int r = Rows();
