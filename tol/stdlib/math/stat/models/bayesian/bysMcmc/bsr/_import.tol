@@ -187,7 +187,6 @@ Real Write.Header.Constraints(NameBlock model, Real fileHandler)
   0
 };
 
-
 ///////////////////////////////////////////////////////////////////////////
 Real Write.Data.MainLinearBlock(NameBlock segment,
                                 Real fileHandler)
@@ -197,10 +196,22 @@ Real Write.Data.MainLinearBlock(NameBlock segment,
   Set For(1,segment::Get.Param.Size(0), Real(Real k) 
   {
     Set P = segment::Get.Param(k);
-    Real iv = If(IsUnknown(P->InitValue),
-      Rand(P->LowerBound, P->UpperBound),
-      P->InitValue);
-    FPutText(fileHandler, P->Name+" <- "+ RealTextS(iv)+";\n");
+    Real iv = If(!IsUnknown(P->InitValue),
+    {
+      P->InitValue
+      FPutText(fileHandler, P->Name+" <- "+ RealTextS(iv)+";\n");
+    },
+    {
+      If(IsUnknown(P->LowerBound)&IsUnknown(P->UpperBound),
+      {
+        FPutText(fileHandler, "$Extern "+P->Name+";\n");
+        ?
+      }, 
+      {
+        Rand(P->LowerBound, P->UpperBound),
+        FPutText(fileHandler, P->Name+" <- "+ RealTextS(iv)+";\n");
+      })
+    });
     Real 0
   });
   0
