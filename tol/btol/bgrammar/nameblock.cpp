@@ -278,6 +278,7 @@ const BText& BNameBlock::LocalName() const
 //--------------------------------------------------------------------
 {
   if(!class_) { return(false); }
+//if(name == class_->FullName())  { return(true); }
   if(name == class_->Name())  { return(true); }
   return(class_->InheritesFrom(name));
 }
