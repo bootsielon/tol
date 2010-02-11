@@ -1,0 +1,83 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  864;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="TOL breakdown in erroneous defining class";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+     
+  Class @Circle
+  {
+  //Definition members
+    Real _.center.x_;
+    Real _.center.y_;
+    Real _.radius;
+  
+  //Auxiliar members
+    Real _.perimeter;
+    Real _.area;
+    
+  //Basic Constructor 
+    Static @Circle New(
+      Real x,  //First coordinate of center 
+      Real y,  //Second coordinate of center 
+      Real r)  //Radius
+    {
+      @Circle new =
+      [[
+        Real _.center.x_ = x;
+        Real _.center.y_ = y;
+        Real _.radius = r;
+        //Auxiliuar members definition
+        Real _.perimeter = 2*Pi*r;
+        Real _.area = Pi*r^2
+      ]]
+    };
+  //Derivate constructor
+    Static @Circle Random(
+     Real min.x, Real max.x,
+     Real min.y, Real max.y,
+     Real min.r, Real max.r)
+    {
+      @Circle::New(Rand(min.x,max.x),
+                   Rand(min.y,max.y),
+                   Rand(min.r,max.r))
+    };
+  
+  //Returns true if the point (x,y) is inside the circle
+  Real includes(Real x, Real y)
+  {
+    (x-_.center.x_)^2+(y-_.center.y_)^2<=_.radius^2
+  };
+  Real outsides(Real x, Real y){ Not(includes(x,y)) }
+  };
+  
+  @Circle c1 = @Circle[[0,1,1]];
+  
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[ numErr0, numErr1]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 > numErr0, 
+                      numWar1 > numWar0);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
+
