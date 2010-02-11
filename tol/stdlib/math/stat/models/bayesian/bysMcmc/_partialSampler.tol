@@ -288,7 +288,7 @@ Class @BlockPartialSampler
   VMatrix mergeWithFreeSample(VMatrix freeValues)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" @BlockPartialSampler::getMergedFixedAndReloadedSample 0");
+  //WriteLn("TRACE"+_MID+" @BlockPartialSampler::mergeWithFreeSample 0");
   //WriteLn("TRACE"+_MID+" _.fixedValues:"<<_.fixedValues);
   //WriteLn("TRACE"+_MID+" _.fixedParamIdx:"<<_.fixedParamIdx);
   //WriteLn("TRACE"+_MID+" _.reloadValues:"<<_.reloadValues);
