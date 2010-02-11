@@ -62,6 +62,8 @@ Class @BlockNonLin : @BlockSampler
   Matrix _.Z;
   Matrix _.Fi;
 
+
+
   //--------------------------------------------------------------------------
   //Methods
   //--------------------------------------------------------------------------
@@ -183,10 +185,11 @@ Class @BlockNonLin : @BlockSampler
   //WriteLn("TRACE"+_MID+"draw.scalar 2");
     
     NameBlock ev = get.evaluator(0);
-    Matrix mrgDraw = custom.partial.draw(0);
-    Set draw.all = For(1, Rows(mrgDraw), Real(Real i)
+    Matrix mrgDraw.all = custom.partial.draw(0);
+    Matrix mrgDraw.free = SubRow(mrgDraw.all, _.partialSampler::_.freeIndex);
+    Set draw.all = For(1, Rows(mrgDraw.free), Real(Real i)
     {
-      Real mrg = MatDat(mrgDraw,i,1);
+      Real mrg = MatDat(mrgDraw.free,i,1);
       If(Not(IsUnknown(mrg)), mrg, {
       Real ev::_.i := i;
     //WriteLn("TRACE"+_MID+"draw.scalar.one 2.["+IntText(i)+"].3");
