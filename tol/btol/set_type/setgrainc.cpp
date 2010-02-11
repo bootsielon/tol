@@ -1565,7 +1565,7 @@ void BSetIncludeBST::CalcContens()
   BInt n;
   BInt numLine=0;
   BBool lastComma = BFALSE;
-  BText errMsg=BST+I2("\nIn file ", "\nEn el fichero ")+TolPath();
+  BText errMsg=BST;
   BText txt(MaxLineLength,' ');
 
   if(!Open())
@@ -1639,7 +1639,8 @@ void BSetIncludeBST::CalcContens()
         for(n = 0; (n<str->Size() && !error); n++)
         {
           BSyntaxObject* fieldValue = NIL;
-          ftxt = fieldText[n];
+          bool ok = true;   
+          ftxt = fieldText[n]; 
         //ftxt.Compact();
           if(!ftxt.HasName())
           {
@@ -1656,22 +1657,34 @@ void BSetIncludeBST::CalcContens()
           //Std(BText("\n(")+numLine+","+n+") : <"+ftxt+">");
             if(gra==GraDate())
             {
-              fieldValue = new BContensDate("",ConstantDate(ftxt),"");
+              BDate dte = ConstantDate(ftxt);
+              fieldValue = new BContensDate("",dte,"");
+              ok = dte.HasValue() | (ftxt=="?") | (ftxt=="UnknownDate");
             }
-            if(!fieldValue)
+            else if(gra==GraReal())
+            {
+              char * pEnd;
+              double x = strtod(ftxt.String(),&pEnd);
+              if(!pEnd || pEnd[0]) { x = BDat::Nan(); }
+              fieldValue = new BContensDat("",x,"");
+              ok = !IS_NAN(x) | (ftxt=="?");
+            }
+            if(!fieldValue) 
             {
               fieldValue = gra->EvaluateExpr(ftxt);
             }
-            if(!fieldValue)
+            bool error = !fieldValue;
+            if(error || !ok)
             {
-              Error(errMsg+I2(", line ", ", linea ")+
-                    numLine+"\n<"+ftxt+">\n"+
+              BText msg = errMsg+I2(", line ", ", linea ")+numLine+
+                    " '"+ftxt+"' "+
                     I2("is not a valid value for field ",
                        "no es un valor válido para el campo ")+
-                    field.Grammar()->Name()+ " " +field.Name());
-              error = BTRUE;
+                    field.Grammar()->Name()+ " " +field.Name(); 
+              if(error) { Error(msg); }
+              else      { Warning(msg+"\nSe asumirá el valor desconocido"); }
             }
-            else
+            if(!error)
             {
             //Std(BText("\n")+field.Name()+" = "
             //+fieldValue->Dump());
