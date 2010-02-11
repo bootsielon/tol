@@ -458,15 +458,16 @@ Class @MasterSamplerBasic : @MasterSampler
       Matrix filter.full = filter_+filter.mis_;
       Matrix filter = IfMat(filter.mis_,RProd(filter_,?),filter_);
       Matrix filter.mis  = IfMat(filter.mis_,filter.mis_,RProd(filter.mis_,?));
-      Matrix noise = VMat2Mat(SubRow(fullNoise,segment->EquIdx));
+      VMatrix noise.v = SubRow(fullNoise,segment->EquIdx);
+      Matrix noise = VMat2Mat(noise.v);
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.2 segment->SigmaIndex="<<segment->SigmaIndex);
       Real L.det = 
       {
         //The determinant of a triangular matrix is the product of its diagonal
         VMatrix L.diag = SubRow(Tra(SubDiag(segment->L,0)),segment->EquIdx);
-        Exp(VMatSum(Log(L.diag)))^(1/Card(segment->EquIdx))
+        Exp(VMatAvr(Log(L.diag)))
       };
-      Real sigma  = L.det*If(segment->SigmaIndex<=0, 1,
+      Real sigma  = If(segment->SigmaIndex<=0, 1,
        Sqrt(VMatDat(_.sig.blk::_.store,segment->SigmaIndex,1)));
     //WriteLn("TRACE"+_MID+" eval 7["<<k+"].2.3");
       Set ti = If(useTimeInfo, segment->TimeInfo, Copy(Empty));
@@ -475,7 +476,8 @@ Class @MasterSamplerBasic : @MasterSampler
       Real hasArima = Card(arima)>0;
 
       Matrix difNoise = noise;
-      Matrix residuals = noise;
+      VMatrix Li = SubRow(SubCol(segment->Li,segment->EquIdx),segment->EquIdx);
+      Matrix residuals = VMat2Mat(Li * noise.v);
       Matrix forecast = output.full - noise;
       Real difDeg = 0;
       Real If(hasArima,
