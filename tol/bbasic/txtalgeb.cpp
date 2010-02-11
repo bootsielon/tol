@@ -1289,8 +1289,8 @@ BInt ReadAllTokens(const BText& line, BArray<BText>& txt, BChar sep, BChar quote
       else 
       { 
         if(n==txt.Size()) { txt.ReallocBuffer(2*n); }
-        token_[k++] = '\0'; 
-        txt[n++].Copy(token_,k);
+        token_[k] = '\0'; 
+        txt[n++].Copy(token_,k++);
         k = 0;
       }
     }
@@ -1301,8 +1301,8 @@ BInt ReadAllTokens(const BText& line, BArray<BText>& txt, BChar sep, BChar quote
   }
 //if(k)
   {
-    token_[k++] = '\0'; 
-    txt[n++].Copy(token_,k);
+    token_[k] = '\0'; 
+    txt[n++].Copy(token_,k++);
   }
   txt.ReallocBuffer(n);
   return(n);
