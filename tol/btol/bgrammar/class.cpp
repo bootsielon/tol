@@ -636,6 +636,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 //! True if inherites from a Class called as given name
 //--------------------------------------------------------------------
 {
+//return(InheritesFrom(parent->FullName()));
   return(InheritesFrom(parent->Name()));
 }
 
@@ -825,6 +826,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 //Std(BText("\n")+Name()+"::AddParent("+parent->Name()+")");
   bool ok = true;
   int n;
+//const BText& name = parent->FullName();
   const BText& name = parent->Name();
   //Checks parent is already a parent class
   BClassByNameHash::const_iterator found = parentHash_->find(name);
