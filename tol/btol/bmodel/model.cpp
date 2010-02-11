@@ -247,7 +247,7 @@ BModel::BModel(BSet& set)
     : aborted_(BFALSE), constant_(BDat::Unknown()), DI_(NULL)
 {
     ModelInitialize();
-    BStruct* strInput  = FindStruct("InputDef");
+    BStruct* strInput  = FindStruct("@InputDef");
 //Std(set.Name());
     BInt n,k;
     output_	     	        = Tsr (set.Field("Output"));
@@ -276,8 +276,8 @@ BModel::BModel(BSet& set)
 	    BSet& inp = Set(input[n+1]);
       if(inp.Struct()!=strInput)
       {
-    		Error(I2("One or more inputs has no InputDef structure",
-		          	 "Uno o más inputs no tienen estructura InputDef"));
+    		Error(I2("One or more inputs has no @InputDef structure",
+		          	 "Uno o más inputs no tienen estructura @InputDef"));
 		    aborted_ = BTRUE;
 		    return;
       }
@@ -437,28 +437,28 @@ BList* BModel::GetDefinitionList()
  */
 //--------------------------------------------------------------------
 {
-    BStruct* strInput  = FindStruct("InputDef");
-    BStruct* strModel  = FindStruct("ModelDef");
-    BStruct* strNonLin = FindStruct("NonLinearInputDef");
+    BStruct* strInput  = FindStruct("@InputDef");
+    BStruct* strModel  = FindStruct("@ModelDef");
+    BStruct* strNonLin = FindStruct("@NonLinearInputDef");
     
     if(!strInput)
     {
-	Error(I2("InputDef structure is not implementeded.",
-		 "La estructura InputDef no está implementada."));
+	Error(I2("@InputDef structure is not implementeded.",
+		 "La estructura @InputDef no está implementada."));
 	aborted_ = BTRUE;
 	return(NIL);
     }
     if(!strModel)
     {
-	Error(I2("ModelDef structure is not implementeded.",
-		 "La estructura ModelDef no está implementada."));
+	Error(I2("@ModelDef structure is not implementeded.",
+		 "La estructura @ModelDef no está implementada."));
 	aborted_ = BTRUE;
 	return(NIL);
     }
     if(!strNonLin)
     {
-	Error(I2("NonLinearInputDef structure is not implementeded.",
-		 "La estructura NonLinearInputDef no está implementada."));
+	Error(I2("@NonLinearInputDef structure is not implementeded.",
+		 "La estructura @NonLinearInputDef no está implementada."));
 	aborted_ = BTRUE;
 	return(NIL);
     }
@@ -523,7 +523,7 @@ BSyntaxObject* BModel::GetDefinition()
  */
 //--------------------------------------------------------------------
 {
-    BStruct* strModel  = FindStruct("ModelDef");
+    BStruct* strModel  = FindStruct("@ModelDef");
     BSyntaxObject * def = strModel->Create(GetDefinitionList(),"Definition");
     def->PutName("Definition");
     return def;
@@ -548,7 +548,7 @@ BSyntaxObject* BModel::OneParamInfo(BText name,
     {
 	T = new BNormalDist(0,1);
     }
-    BStruct* strParam = FindStruct("ParameterInf");
+    BStruct* strParam = FindStruct("@ParameterInf");
     if(!strParam)
     {
 	Error(I2("ParamaterInf structure is not implementeded.",
@@ -673,11 +673,11 @@ BSyntaxObject* BModel::ParamInfo()
 BSyntaxObject* BModel::OneParamDiag(BInt n)
 //--------------------------------------------------------------------
 {
-  BStruct* strTestResult = FindStruct("TestResult");
+  BStruct* strTestResult = FindStruct("@TestResult");
   if(!strTestResult)
   {
-    Error(I2("TestResult structure is not implementeded.",
-	     "La estructura TestResult no está implementada"));
+    Error(I2("@TestResult structure is not implementeded.",
+	     "La estructura @TestResult no está implementada"));
     aborted_ = BTRUE;
     return(NIL);
   }

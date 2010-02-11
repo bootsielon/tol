@@ -236,16 +236,16 @@ DefExtOpr(1, BSetEstimate, "Estimate", 1, 4, "Set Date Date Set",
 void BSetEstimate::CalcContens()
 //--------------------------------------------------------------------
 {
-  BStruct* strModel  = FindStruct("ModelDef");
+  BStruct* strModel  = FindStruct("@ModelDef");
   assert(strModel);
   BInt n=0;
   BSet& set = Set(Arg(1));
   if(!set.Card() || (set.Struct()!=strModel)) 
   { 
     Error(I2("First argument of Estimate must be a Set with structure "
-             "ModelDef",
+             "@ModelDef",
              "El primer argumento para Estimate debe ser se tipo Set con "
-             "estructura ModelDef"));
+             "estructura @ModelDef"));
     return; 
   }
   BModel  mod(set);
@@ -304,11 +304,11 @@ DefExtOpr(1, BSetLinearRegression, "LinearRegression", 2, 2, "Serie Set",
 void BSetLinearRegression::CalcContens()
 //--------------------------------------------------------------------
 {
-  BStruct* strParam = FindStruct("LinRegParamInf");
+  BStruct* strParam = FindStruct("@LinRegParamInf");
   if(!strParam)
   {
-    Error(I2("LinRegParamInf structure is not implementeded.",
-	     "La estructura LinRegParamInf no está implementada."));
+    Error(I2("@LinRegParamInf structure is not implementeded.",
+	     "La estructura @LinRegParamInf no está implementada."));
     return;
   }
   BInt i;
@@ -438,11 +438,11 @@ DefExtOpr(1, BSetAutoRegression, "AutoRegression", 1, 3, "Serie Real Set",
 void BSetAutoRegression::CalcContens()
 //--------------------------------------------------------------------
 {
-  BStruct* strParam = FindStruct("ParameterInf");
+  BStruct* strParam = FindStruct("@ParameterInf");
   if(!strParam)
   {
-    Error(I2("LinRegParamInf structure is not implementeded.",
-	     "La estructura LinRegParamInf no está implementa."));
+    Error(I2("@LinRegParamInf structure is not implementeded.",
+	     "La estructura @LinRegParamInf no está implementa."));
     return;
   }
   BUserTimeSerie* y	  = Tsr(Arg(1));
@@ -582,11 +582,11 @@ DefExtOpr(1, BSetLinReg, "LinReg", 2, 2, "Matrix Matrix",
 void BSetLinReg::CalcContens()
 //--------------------------------------------------------------------
 {
-  BStruct* strParam = FindStruct("LinRegParamInf");
+  BStruct* strParam = FindStruct("@LinRegParamInf");
   if(!strParam)
   {
-    Error(I2("LinRegParamInf structure is not implementeded.",
-	     "La estructura LinRegParamInf no está implementa."));
+    Error(I2("@LinRegParamInf structure is not implementeded.",
+	     "La estructura @LinRegParamInf no está implementa."));
     return;
   }
   BMat y = Mat(Arg(1));
@@ -692,11 +692,11 @@ void BooleanModelEstimation(const BMat& y,
 			    BSet& result)
 //--------------------------------------------------------------------
 {
-  BStruct* strParam = FindStruct("LinRegParamInf");
+  BStruct* strParam = FindStruct("@LinRegParamInf");
   if(!strParam)
   {
-    Error(I2("LinRegParamInf structure is not implementeded.",
-	     "La estructura LinRegParamInf no está implementa."));
+    Error(I2("@LinRegParamInf structure is not implementeded.",
+	     "La estructura @LinRegParamInf no está implementa."));
     return;
   }
   BInt i,j,N=y.Rows(),n=X.Columns();

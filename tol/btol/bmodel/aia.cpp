@@ -320,7 +320,7 @@ BText BOutlier::GetExpression(BInt t, BDat	w) const
   BUserTimeSet* dating = aia_->res_->Dating();
   BDate f     = dating->Next(aia_->res_->FirstDate(),t);  
   BText expression = 
-    BText("InputDef(")+w+", RationExpand("+
+    BText("@InputDef(")+w+", RationExpand("+
     f.Name()+","+
     dating->Identify()+","+
     Name()+"))";
@@ -340,7 +340,7 @@ BSyntaxObject* BOutlier::GetInputDef(BInt t, BDat w) const
   BSyntaxObject* aux0 = new BTsrRationExpand(f,aia_->res_->Dating(),rat_);
   BText name = BText("RationExpand_")+ToName(f.Name()+"_"+Name());
   BSyntaxObject* aux1 = new BTsrRenamed(name, aux0);
-  BText expression = BText("InputDef(")+w+", "+name+")";
+  BText expression = BText("@InputDef(")+w+", "+name+")";
   BSyntaxObject* result = GraSet()->EvaluateExpr(expression);
   BGrammar::DecLevel();
   if(result) { result->PutDescription(GetExpression(t, w)); }

@@ -208,7 +208,7 @@ DefExtOpr(1, BSetPrevision, "TransPrev", 4, 4, "Set Date Date Real",
 void BSetPrevision::CalcContens()
 //--------------------------------------------------------------------
 {
-    BStruct* str = FindStruct("NormalDistSerie");
+    BStruct* str = FindStruct("@NormalDistSerie");
     
     BMat	 mat;
     BSet&	 set   = Set (Arg(1));

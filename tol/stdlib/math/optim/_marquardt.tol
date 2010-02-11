@@ -81,7 +81,7 @@
     Real sig  = Sqrt(MatDat(Cov,k,k));
     Real t    = val/sig;
     Real pr   = 1-DistT(Abs(t),Max(1,N-n-1));
-    LinRegParamInf(name,val,sig,t,pr)
+    @LinRegParamInf(name,val,sig,t,pr)
   });
   Set Correlations = [[L,LI,Cov,Cor]];
   [[m,SetOfSet(X,Y),param,Correlations]]

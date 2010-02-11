@@ -283,11 +283,11 @@ Set InpDefPulse(Serie indicador)
   Set  datesPul  = Dates(tmSer,First(indicador),Last(indicador));
   Set  inputDef  = If(IsEmpty(datesPul), Empty, EvalSet(datesPul,Set(Date dat)
   {
-    Eval("InputDef(0.1,Pulse("+FormatDate(dat)+","+datingSer+"));")
+    Eval("@InputDef(0.1,Pulse("+FormatDate(dat)+","+datingSer+"));")
   }))
 };
 ////////////////////////////////////////////////////////////////////////////
-PutDescription("Devuelve un conjunto InputDef con Omega 0.1 y Serie Pulse para 
+PutDescription("Devuelve un conjunto @InputDef con Omega 0.1 y Serie Pulse para 
 cada fecha con valor no nulo de la serie que recibe",InpDefPulse);
 ////////////////////////////////////////////////////////////////////////////
 
@@ -302,7 +302,7 @@ Set InpDefPulseName(Serie indicador, Text label)
    EvalSet(datesPul,Set(Date dat)
    {
      Serie pul = Pulse(dat, Dating(indicador));
-     InputDef
+     @InputDef
      (
        0.1,
        Eval("Serie "+label+"Pulse"+FormatDate(dat, "%c%Y%m%d")+" = pul; ")
@@ -311,7 +311,7 @@ Set InpDefPulseName(Serie indicador, Text label)
   )
 };
 ////////////////////////////////////////////////////////////////////////////
-PutDescription("Devuelve un conjunto InputDef con Omega 0.1 y Serie Pulse para 
+PutDescription("Devuelve un conjunto @InputDef con Omega 0.1 y Serie Pulse para 
 cada fecha con valor no nulo de la serie que recibe", InpDefPulseName);
 ////////////////////////////////////////////////////////////////////////////
 
@@ -480,7 +480,7 @@ Set SplitInput(Set input, Date iniEstim, Date endEstim)
     Polyn omega    = reg->Omega;
     Set monOmega   = Monomes(omega);
     Set monInputSet = EvalSet(monOmega, Set(Polyn monome)
-    {  InputDef(monome, Eval("Serie "+nameInput+"; "))  });
+    {  @InputDef(monome, Eval("Serie "+nameInput+"; "))  });
     monInputSet
   });  
    
@@ -495,7 +495,7 @@ Set SplitInput(Set input, Date iniEstim, Date endEstim)
     });
     If(IsEmpty(selMon), Copy(Empty),
     {
-      InputDef
+      @InputDef
       (
         SetSum(EvalSet(selMon, Polyn(Set reg){reg->Omega})),
         selMon[1]->X
