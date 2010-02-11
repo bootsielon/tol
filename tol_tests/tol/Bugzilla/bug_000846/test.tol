@@ -22,7 +22,7 @@
   Matrix mX2 = MinimumResidualsSolve(mB, mC);
   //> (?, ?, ?)
   Real ok.2 = MatMax(Abs(mX2-mC))==0;
-  
+
   Matrix mB2 = SetMat([[ 
     [[2500, 1264, 1231]], 
     [[1264, 1264, 1623]],
@@ -31,10 +31,11 @@
   Matrix mC2 = Col(2021,1922,546);
   Matrix mX3 = VMat2Mat(MinimumResidualsSolve(Mat2VMat(mB2), Mat2VMat(mC2)));
   //> (0.69, -1.66, 1.93)
-  Real ok.3 = 1-MatMax(Abs(mB2*mX3-mC2));
+  Real ok.3 = Max(0,1-MatMax(Abs(mB2*mX3-mC2)));
+
   Matrix mX4 = MinimumResidualsSolve(mB2, mC2);
   //> (222448.05, -390853.09, 111433.23)
-  Real ok.4 = 1-MatMax(Abs(mB2*mX4-mC2));
+  Real ok.4 = Max(0,1-MatMax(Abs(mB2*mX4-mC2)));
   Real ok.5 = MatMax(Abs(mX3-mX4))==0;
   
   Real numErr1 = Copy(NError);
