@@ -642,7 +642,7 @@ public:
     X.Convert(X_,BVMat::ESC_chlmRsparse);
     oldRatio = 0;
     An = 0;
-    Std(BSR()+"Building "+r+"constrain inequations with "+n+" variables\n");
+    Std(BSR()+"Building "+r+" constrain inequations with "+n+" variables\n");
     for(i=0; i<r; i++)
     {
       int ratio = i/r;
