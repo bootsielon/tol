@@ -434,9 +434,6 @@ public:
   void DMat2triplet(const BMatrix<double>& d, int nrow, int columns);
   void DMat2triplet(const BMatrix<double>& d, int nrow, int columns,
                     const BArray<int>& rowIdx, const BArray<int>& colIdx);
-  void Set2triplet (const BSet& ijx, int nrow, int columns);
-  void Set2triplet (const BSet& ijx, int nrow, int columns,
-                    const BArray<int>& rowIdx, const BArray<int>& colIdx);
   void BSet2sparse (const BSet& sparseDef);
   void BPol2sparse (const BPolyn<BDat>& pol_, int nrow, int ncol);
   void BSetSparseLinReg2sparse(const BSet& sparseDef);

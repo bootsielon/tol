@@ -545,18 +545,23 @@ void BVMatTriplet::CalcContens()
   BSyntaxObject* ijx_ = Arg(1);
   int nrow = (int)Real(Arg(2));
   int ncol = (int)Real(Arg(3));
+  BMatrix<double> ijx;
+  if(ijx_->Grammar()==GraMatrix())
+  {
+    ijx = (BMatrix<double>&)Mat(ijx_);
+  }
+  else //ijx_->Grammar()==GraSet()
+  {
+    bool internal_builtin_SetMat(
+      const BText& fun_id,
+      const BSet &set, 
+      BMatrix<BDat>& mat);
+    if(!internal_builtin_SetMat("VMatrix Triplet(Set ijx, ...)",
+       Set(ijx_), (BMatrix<BDat>&)ijx)) { return; }
+  }
   if(!Arg(4))
   {
-    if(ijx_->Grammar()==GraMatrix())
-    {
-      BMatrix<double>& ijx = (BMatrix<double>&)Mat(ijx_);
-      contens_.DMat2triplet(ijx,nrow,ncol);
-    }
-    else //ijx_->Grammar()==GraSet()
-    {
-      BSet& ijx = Set(ijx_);
-      contens_.Set2triplet(ijx,nrow,ncol);
-    }
+    contens_.DMat2triplet(ijx,nrow,ncol);
   }
   else
   {
@@ -624,16 +629,7 @@ void BVMatTriplet::CalcContens()
       //Std(BText("\ncolIdx[")+j+"]="+colIdx[j]);
       }
     }
-    if(ijx_->Grammar()==GraMatrix())
-    {
-      BMatrix<double>& ijx = (BMatrix<double>&)Mat(ijx_);
-      contens_.DMat2triplet(ijx,nrow,ncol,rowIdx,colIdx);
-    }
-    else //ijx_->Grammar()==GraSet()
-    {
-      BSet& ijx = Set(ijx_);
-      contens_.Set2triplet(ijx,nrow,ncol,rowIdx,colIdx);
-    }
+    contens_.DMat2triplet(ijx,nrow,ncol,rowIdx,colIdx);
   }
   assert(contens_.Check());
 }

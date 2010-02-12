@@ -2832,6 +2832,67 @@ void BMatSetCol::CalcContens()
   }
 }
 
+//--------------------------------------------------------------------
+bool internal_builtin_SetMat(
+  const BText& fun_id,
+  const BSet &set, 
+  BMatrix<BDat>& mat)
+//--------------------------------------------------------------------
+{
+  BInt i, j;
+  BText _mid = I2("Converting set to matrix with ",
+                  "Convirtiendo de conjunto a matriz con ")+fun_id;
+  BText _wrongFormat = 
+    _mid+I2("Wrong set format: all elements should "
+            "be sets with the same number of reals ",
+            "Fallo en formato de conjunto: todos sus elementos "
+            "deberían ser conjuntos con el mismo número de reales");
+  if(!set.Card() || (set[1]->Grammar()->Name()!="Set"))
+  {
+    Error(_wrongFormat);
+    mat = BMat::Unknown();
+    return(false);
+  }
+  BInt  numRow = set.Card();
+  BInt  numCol = Set(set[1]).Card();
+  if(!numRow)
+  {
+    Warning(_mid+I2("Emty set is converted in empty matrix",
+             "El conjunto vacío se convierte en la matriz vacía"));
+    mat = BMat::Unknown();
+  }
+  else if(!numCol)
+  {
+    Error(_wrongFormat);
+  }
+  else 
+  {
+    mat.Alloc(numRow,numCol);
+    if(mat.Rows()!=numRow) { return(false); }
+    for(i=0; i < numRow; i++)
+    {
+      if((set[i+1]->Grammar()->Name()!="Set") ||
+         (Set(set[i+1]).Card()!=numCol))
+      {
+        Error(_wrongFormat);
+        mat = BMat::Unknown();
+        return(false);  
+      }
+      BSet& seti = Set(set[i+1]);
+      for(j=0; j < numCol; j++)
+      {
+        if(seti[j+1]->Grammar()->Name()!="Real")
+        {
+          Error(_wrongFormat);
+          mat = BMat::Unknown();
+          return(false);  
+        }
+        b2dMat(mat)(i,j) = Real(seti[j+1]);
+      }
+    }
+  }
+  return(true);
+};
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatSetMat);
@@ -2845,54 +2906,8 @@ DefExtOpr(1, BMatSetMat,   "SetMat", 1, 1, "Set",
 void BMatSetMat::CalcContens()
 //--------------------------------------------------------------------
 {
-  BInt i, j;
   BSet& set  = Set(Arg(1));
-  if(!set.Card() || (set[1]->Grammar()->Name()!="Set"))
-  {
-    Error(I2("Wrong set format for SetMat",
-             "Fallo en formato de conjunto para SetMat")+
-             "("+Arg(1)->Identify()+")");
-    contens_ = BMat::Unknown();
-    return;
-  }
-  BInt  numRow = set.Card();
-  BInt  numCol = Set(set[1]).Card();
-  if(numRow*numCol>0)
-  {
-    contens_.Alloc(numRow,numCol);
-    if(contens_.Rows()!=numRow) { return; }
-    for(i=0; i < numRow; i++)
-    {
-      if((set[i+1]->Grammar()->Name()!="Set") ||
-         (Set(set[i+1]).Card()!=numCol))
-      {
-        Error(I2("Wrong set format for SetMat",
-                 "Fallo en formato de conjunto para SetMat"));
-        contens_ = BMat::Unknown();
-        return;
-      }
-      BSet& seti = Set(set[i+1]);
-      for(j=0; j < numCol; j++)
-      {
-        if(seti[j+1]->Grammar()->Name()!="Real")
-        {
-          Error(I2("Wrong set format for SetMat",
-                   "Fallo en formato de conjunto para SetMat"));
-          contens_ = BMat::Unknown();
-          return;
-        }
-        b2dMat(contens_)(i,j) = Real(seti[j+1]);
-      }
-    }
-  }
-  else
-  {
-    Error(I2("Wrong set format for SetMat",
-             "Fallo en formato de conjunto para SetMat")+
-             "("+Arg(1)->Identify()+")");
-    contens_ = BMat::Unknown();
-    return;
-  }
+  internal_builtin_SetMat("Matrix SetMat(Set s)",set,contens_);
 }
 
 /*
