@@ -1657,17 +1657,19 @@ void BSetIncludeBST::CalcContens()
           //Std(BText("\n(")+numLine+","+n+") : <"+ftxt+">");
             if(gra==GraDate())
             {
-              BDate dte = ConstantDate(ftxt);
+              BText expr = Compact(ftxt);
+              BDate dte = ConstantDate(expr);
               fieldValue = new BContensDate("",dte,"");
-              ok = dte.HasValue() | (ftxt=="?") | (ftxt=="UnknownDate");
+              ok = dte.HasValue() | (expr=="?") | (expr=="UnknownDate");
             }
             else if(gra==GraReal())
             {
               char * pEnd;
-              double x = strtod(ftxt.String(),&pEnd);
+              BText expr = Compact(ftxt);
+              double x = strtod(expr.String(),&pEnd);
               if(!pEnd || pEnd[0]) { x = BDat::Nan(); }
               fieldValue = new BContensDat("",x,"");
-              ok = !IS_NAN(x) | (ftxt=="?");
+              ok = !IS_NAN(x) | (expr=="?");
             }
             if(!fieldValue) 
             {
