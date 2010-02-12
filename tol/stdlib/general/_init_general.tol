@@ -4,6 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 Set Include("_constant.tol");
+Set Include("_structs.tol");
 Set Include("grammars/_init_grammars.tol");
 Set Include("system/_init_system.tol");
 Set Include("various/_init_various.tol");
