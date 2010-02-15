@@ -1,0 +1,18 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : ImportExport.tol
+// PURPOSE: Defines package ImportExport
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock ImportExport = [[
+
+Text _.autodoc.description = "Exporting data from TOL to others plattforms "
+"and importing from them to TOL.";
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["import","export","excel"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org"   ]];
+
+#Embed "Excel.tol"
+
+]];
