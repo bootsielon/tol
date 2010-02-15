@@ -57,7 +57,8 @@ public:
 
   bool SetActiveWS( size_t num )
   {
-    m_ptrActiveWS = m_ptrXLS->GetWorksheet( num );
+    m_ptrActiveWS = num < m_ptrXLS->GetTotalWorkSheets()
+      ? m_ptrXLS->GetWorksheet( num ) : NULL;
     return m_ptrActiveWS != NULL;
   }
 
@@ -80,7 +81,7 @@ public:
   {
     BasicExcelCell * cell = GetCell( err_name, row, col );
 
-    return GetCellReal( cell, err_name, row, col, result );
+    return cell ? GetCellReal( cell, err_name, row, col, result ) : false;
   }
 
   bool GetCellReal( BasicExcelCell *cell, const BText &err_name,
@@ -108,7 +109,7 @@ public:
   {
     BasicExcelCell * cell = GetCell( err_name, row, col );
 
-    return GetCellText( cell, err_name, row, col, result );
+    return  cell ? GetCellText( cell, err_name, row, col, result ) : false;
   }
   
   bool GetCellText( BasicExcelCell *cell, const BText &err_name,
@@ -136,7 +137,7 @@ public:
   {
     BasicExcelCell * cell = GetCell( err_name, row, col );
 
-    return GetCellDate( cell, err_name, row, col, result );
+    return cell ? GetCellDate( cell, err_name, row, col, result ) : false;
   }
 
   bool GetCellDate( BasicExcelCell *cell, const BText &err_name,
@@ -496,7 +497,13 @@ void BDatExcelActivateNamedWS::CalcContens()
   BText &name = Text( Arg( 2 ) );
   TolExcel *xls = TolExcel::decode_addr( addr );
   if ( xls ) {
-    contens_ = BDat( xls->SetActiveWS( name.Buffer() ) );
+    bool status = xls->SetActiveWS( name.Buffer() );
+    if ( !status ) {
+      Error( BText( "Excel.ActivateNamedWS: " ) +
+             I2("unable to activate worksheet ",
+                "no se ha posido establecer la hoja activa " ) + name );
+    }
+    contens_ = BDat( status );
   } else {
     Error( BText( "Excel.ActivateNamedWS: " ) +
            I2("invalid excel handler",
@@ -523,7 +530,15 @@ void BDatExcelActivateWS::CalcContens()
     if ( idx >= 0 ) {
       TolExcel *xls = TolExcel::decode_addr( addr );
       if ( xls ) {
-        contens_ = BDat( xls->SetActiveWS( size_t( idx ) ) );
+        bool status = xls->SetActiveWS( size_t( idx ) );
+        if ( !status ) {
+          char buffer[16];
+          snprintf( buffer, 16, "%d", idx );
+          Error( BText( "Excel.ActivateWS: " ) +
+                 I2("unable to activate worksheet ",
+                    "no se ha posido establecer la hoja activa ") + buffer );
+        }
+        contens_ = BDat( status );
       } else {
         Error( BText( "Excel.ActivateWS: " ) +
                I2("invalid excel handler",
@@ -554,17 +569,18 @@ DefExtOpr(1, BDatExcelGetReal, "Excel.ReadReal", 3, 3, "Real Real Real",
 //----------------------------------------------------------------------------
 void BDatExcelGetReal::CalcContens()
 {
+  static BText _name_( "Excel.ReadReal" );
   double addr = Dat( Arg( 1 ) ).Value();
   BDat &Row = Dat( Arg( 2 ) );
   BDat &Col = Dat( Arg( 3 ) );
   size_t r, c;
   
-  if ( ValidCellCoord( Name( ), Row, Col, r, c ) ) {
+  if ( ValidCellCoord( _name_, Row, Col, r, c ) ) {
     TolExcel *xls = TolExcel::decode_addr( addr );
     if ( xls ) {
-      xls->GetCellReal( Name(), r, c, contens_ );
+      xls->GetCellReal( _name_, r, c, contens_ );
     } else {
-      Error( Name() +
+      Error( _name_ +
              I2(": invalid excel handler",
                 ": identificador de objeto excel invalido") );
       contens_ = BDat::Unknown( );
@@ -575,7 +591,7 @@ void BDatExcelGetReal::CalcContens()
 }
 
 //---------------------------------------------------------------------------
-DeclareContensClass(BDat, BTxtTemporary, BTxtExcelGetText);
+DeclareContensClass(BText, BTxtTemporary, BTxtExcelGetText);
 DefExtOpr(1, BTxtExcelGetText, "Excel.ReadText", 3, 3, "Real Real Real",
           "(Real ExcelHandler, Real Row, Real Column)",
           I2("Return the contents of the given cell as a Text. If the contents "
@@ -585,17 +601,18 @@ DefExtOpr(1, BTxtExcelGetText, "Excel.ReadText", 3, 3, "Real Real Real",
 //----------------------------------------------------------------------------
 void BTxtExcelGetText::CalcContens()
 {
+  static BText _name_( "Excel.ReadText" );
   double addr = Dat( Arg( 1 ) ).Value();
   BDat &Row = Dat( Arg( 2 ) );
   BDat &Col = Dat( Arg( 3 ) );
   size_t r, c;
   
-  if ( ValidCellCoord( Name( ), Row, Col, r, c ) ) {
+  if ( ValidCellCoord( _name_, Row, Col, r, c ) ) {
     TolExcel *xls = TolExcel::decode_addr( addr );
     if ( xls ) {
-      xls->GetCellText( Name(), r, c, contens_ );
+      xls->GetCellText( _name_, r, c, contens_ );
     } else {
-      Error( Name() +
+      Error( _name_ +
              I2(": invalid excel handler",
                 ": identificador de objeto excel invalido") );
       contens_ = "";
@@ -606,27 +623,28 @@ void BTxtExcelGetText::CalcContens()
 }
 
 //---------------------------------------------------------------------------
-DeclareContensClass(BDat, BDteTemporary, BDteExcelGetReal);
-DefExtOpr(1, BDteExcelGetReal, "Excel.ReadDate", 3, 3, "Real Real Real",
+DeclareContensClass(BDate, BDteTemporary, BDteExcelGetDate);
+DefExtOpr(1, BDteExcelGetDate, "Excel.ReadDate", 3, 3, "Real Real Real",
           "(Real ExcelHandler, Real Row, Real Column)",
           I2("Return the contents of the given cell as a Date. If the contents "
              "of the cell is not a Date value then the unknown date is returned",
              ""),
           BOperClassify::System_);
 //----------------------------------------------------------------------------
-void BDteExcelGetReal::CalcContens()
+void BDteExcelGetDate::CalcContens()
 {
+  static BText _name_( "Excel.ReadDate" );
   double addr = Dat( Arg( 1 ) ).Value();
   BDat &Row = Dat( Arg( 2 ) );
   BDat &Col = Dat( Arg( 3 ) );
   size_t r, c;
   
-  if ( ValidCellCoord( Name( ), Row, Col, r, c ) ) {
+  if ( ValidCellCoord( _name_, Row, Col, r, c ) ) {
     TolExcel *xls = TolExcel::decode_addr( addr );
     if ( xls ) {
-      xls->GetCellDate( Name(), r, c, contens_ );
+      xls->GetCellDate( _name_, r, c, contens_ );
     } else {
-      Error( Name() +
+      Error( _name_ +
              I2(": invalid excel handler",
                 ": identificador de objeto excel invalido") );
       contens_ = BDate::Unknown( );
@@ -643,7 +661,7 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
 */
 //--------------------------------------------------------------------
 {
-  static BText _name_ = "Excel.ReadCell";
+  static BText _name_( "Excel.ReadCell" );
   BSyntaxObject* result = NIL;
   BInt nb = BSpecialFunction::NumBranches(tre);
   if( BSpecialFunction::TestNumArg( _name_, 3, nb, 3 ) ) {
