@@ -5,9 +5,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
-  Real bugNum_ =  864;
+  Real bugNum_ =  869;
   Text email_ = "vdebuen@tol-project.org"; 
-  Text summary_="TOL breakdown in erroneous defining class";
+  Text summary_="Error working with Object References and Decompilation";
   Text link_ = GetTolBugzillaLink(bugNum_);
 
   //Write here the initial test TOL code if needed
