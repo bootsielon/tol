@@ -1145,7 +1145,7 @@ BClass::~BClass()
         if(!auxMember)
         {
           Warning(I2("Special documentation member ",
-                     "El mimebro especial de documentación ")+
+                     "El miembro especial de documentación ")+
                   FullName()+"::"+mbr.name_+
                   I2(" is irrelevant due it doesn't exist a member nor method called ",
                      " es irrelevante porque no existe ningún miembro ni método llamado ")+
