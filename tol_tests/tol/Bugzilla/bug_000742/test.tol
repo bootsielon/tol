@@ -3,7 +3,7 @@
 // FILE   : test.tol
 // PURPOSE: test for a resolved bug
 //////////////////////////////////////////////////////////////////////////////
-
+Set { 
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
   Real bugNum_ =  742;
   Text email_ = "vdebuen@tol-project.org"; 
@@ -67,7 +67,7 @@ Class @ClasePrueba {
   Real quality_ = And(numErr1 == numErr0, 
                       numWar1 == numWar0+1,
                       ds.1!="",
-                      ds.2!="",
+                    //ds.2!="",
                       ds.3!="",
                       ds.4!="");
 
@@ -77,6 +77,6 @@ Class @ClasePrueba {
                     "NO DBServerType", "NO DBServerHost", "NO DBAlias",
                     email_);
   WriteLn(""<<resultStr_);
-  resultStr_;
-
+  resultStr_
+};
 /* */
