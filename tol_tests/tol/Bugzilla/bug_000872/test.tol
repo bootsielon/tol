@@ -1,0 +1,96 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  872;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="Lost instances when the use of the :: operator is concatenated";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+     
+//////////////////////////////////////////////////////////////////////////////
+
+Class @Sample {
+  Matrix _.sample = Rand(1000,1,0,1);
+  Real GetAverage(Real void) {
+    MatAvr(_.sample)
+  }
+};
+// Nota: si se compila y decompila este archivo, debido a los objetos
+// de tipo @Sample que se pierden por la concatenación de varios "::"
+// esta clase no se decompilará y no hará falta volver a crearla.
+// Basta con comentar su definición.
+// A propósito, ¿hay alguna manera de saber si una clase está definida?
+
+NameBlock SampleCreator = [[
+  @Sample CreateSample(Real void) { @Sample new }
+]];
+
+  Real maxIter = 1000;
+  Real nObject01 = Copy(NObject);
+  Real check.1 =
+  {
+    Set For(1, maxIter, Real (Real i) 
+    {
+    //NameBlock sample = SampleCreator::CreateSample(?);
+    //Real sample::GetAverage(?);
+      Real SampleCreator::CreateSample(?)::GetAverage(?);
+      0
+    });
+    1
+  };
+  Real nObject02 = Copy(NObject);
+
+  Real lost.1 = (nObject02-nObject01 -2)/maxIter;
+
+  //Los únicos objetos que deben sobrevivir son Real check.1 y el propio 
+  //Real nObject01 usado para medir el número de objetos
+  // así que hay que restar 2 objetos para obtener los no borrados
+  WriteLn("Número de objetos no borrados por iteración: "<<lost.1);
+
+
+  Real check.2 =
+  {
+    Set For(1, maxIter, Real (Real i) 
+    {
+    //NameBlock sample = SampleCreator::CreateSample(?);
+    //Real sample::GetAverage(?);
+      Real SampleCreator::CreateSample(?)::GetAverage(?);
+      0
+    });
+    1
+  };
+  Real nObject03 = Copy(NObject);
+  Real lost.2 = (nObject03-nObject02 -3)/maxIter;
+
+  //Los únicos objetos que deben sobrevivir son Real check.1 y los propios 
+  //Real nObject02 y lost.1 usados para medir el número de objetos
+  // así que hay que restar 2 objetos para obtener los no borrados
+  WriteLn("Número de objetos no borrados por iteración: "<<lost.2);
+
+
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[ numErr0, numErr1, lost.1, lost.2]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0, !lost.1, !lost.2);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
+
