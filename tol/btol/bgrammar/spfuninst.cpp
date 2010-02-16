@@ -1552,12 +1552,14 @@ static BSyntaxObject* EvMemberArg
         BUserCode* uCode = UCode(result);
         BOperator* opr   = GetOperator(uCode);
         result = opr->Evaluate(branch2->cdr());
+        DESTROY(opr);
       }
     }
     if((tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
     {
       BStruct* str = (BStruct*)result;
       result = str->Function()->Evaluate(branch2->cdr());
+      DESTROY(str);
     }
     if((tt==TYPE)&&(result->Mode()==BCLASSMODE))
     {
@@ -1572,8 +1574,10 @@ static BSyntaxObject* EvMemberArg
       {
         errMsg = I2("It was expected an instance of Class ",
                  "Se esperaba una instancia de Class ") +cls->Name();
+        DESTROY(result);
         result=NULL;
       }
+      DESTROY(cls);
     }
   }
   return(result);
@@ -1591,8 +1595,11 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "::";
   BSyntaxObject* result = NIL;
+  int stackPos = BGrammar::StackSize();
   BInt nb = BSpecialFunction::NumBranches(tre);
   BText errMsg;
+  BSyntaxObject* uns = NULL;
+  bool needsDeleteUns = false;
   if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
   {
     List* branch1 = Branch(tre,1);
@@ -1609,7 +1616,8 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
     Std(BText("\nEvMember tre='")+ups+"'\n"); 
 /* */
     bool oldEnabled = BOut::Disable();
-    BSyntaxObject* uns = GraNameBlock()->LeftEvaluateTree(branch1);
+    int nObjOld = BSyntaxObject::NSyntaxObject();
+    uns = GraNameBlock()->LeftEvaluateTree(branch1);
     if(!uns) { uns = GraSet()->LeftEvaluateTree(branch1); }
     if(!uns) 
     { 
@@ -1629,6 +1637,8 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
         }
       }
     }
+    int nObjNew = BSyntaxObject::NSyntaxObject();
+    needsDeleteUns = (uns!=NULL) && (nObjNew>nObjOld);
     if(oldEnabled) { BOut::Enable(); }
     BToken* arg2 = BParser::treToken(branch2);
     if(uns && arg2)
@@ -1638,8 +1648,10 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
       {
         BClass* cls = (BClass*)uns;
         result = cls->FindStatic(memberName,false);
-        result = EvMemberArg
+        BSyntaxObject* r = EvMemberArg
          (_name_, gra, branch2, arg2, memberName,cls->Name(), errMsg, result);
+        DESTROY(result);
+        result = r;
       }
       else if(uns->Grammar()==GraSet())
       {
@@ -1665,8 +1677,10 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
         {
           result = ns.PublicMember(memberName);
         }
-        result = EvMemberArg
+        BSyntaxObject* r = EvMemberArg
           (_name_, gra, branch2, arg2, memberName, ns.Name(), errMsg, result);
+        DESTROY(result);
+        result = r;
       }
     }
   }
@@ -1678,6 +1692,8 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
              BParser::Unparse(tre)+"'\n"+errMsg);
   }
   result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
+  if(needsDeleteUns) { DESTROY(uns); }
+  BGrammar::DestroyStackUntil(stackPos, result);    
   return(result);
 }
 
