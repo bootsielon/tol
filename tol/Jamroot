@@ -222,6 +222,8 @@ config.genlib cholmod ;
 
 config.genlib bz2 ;
 
+config.genlib ANN ;
+
 config.genlib ziparch  ;
 alias libziparch : ziparch : <zarch>yes ;
 alias libziparch :         : <zarch>no ;
@@ -232,7 +234,7 @@ alias libz :   : <zarch>no ;
 
 lib dl ;
 
-all_libs = gsl lapack cholmod bz2 libziparch libz dl ;
+all_libs = gsl lapack cholmod bz2 libziparch ANN xlsreader libz dl ;
 
 lib tol
     : init $(all-obj-aliases) $(all_libs)
