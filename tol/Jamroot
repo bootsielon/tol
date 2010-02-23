@@ -234,7 +234,7 @@ alias libz :   : <zarch>no ;
 
 lib dl ;
 
-all_libs = gsl lapack cholmod bz2 libziparch ANN xlsreader libz dl ;
+all_libs = gsl lapack cholmod bz2 libziparch ANN libz dl ;
 
 lib tol
     : init $(all-obj-aliases) $(all_libs)
