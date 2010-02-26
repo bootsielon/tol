@@ -1658,18 +1658,34 @@ void BSetIncludeBST::CalcContens()
             if(gra==GraDate())
             {
               BText expr = Compact(ftxt);
-              BDate dte = ConstantDate(expr);
+              BDate dte;
+              if((expr=="") | (expr=="?") | (expr=="Unknown") | (expr=="UnknownDate"))
+              {
+                ok = true; 
+              }
+              else
+              { 
+                dte = ConstantDate(expr);
+                ok = (dte.HasValue()!=0);
+              }
               fieldValue = new BContensDate("",dte,"");
-              ok = dte.HasValue() | (expr=="?") | (expr=="UnknownDate");
             }
             else if(gra==GraReal())
             {
               char * pEnd;
               BText expr = Compact(ftxt);
-              double x = strtod(expr.String(),&pEnd);
-              if(!pEnd || pEnd[0]) { x = BDat::Nan(); }
+              double x = BDat::Nan();
+              if((expr=="") | (expr=="?"))
+              {
+                ok = true; 
+              }
+              else
+              { 
+                x = strtod(expr.String(),&pEnd);
+                if(!pEnd || pEnd[0]) { x = BDat::Nan(); }
+                ok = !IS_NAN(x);
+              }
               fieldValue = new BContensDat("",x,"");
-              ok = !IS_NAN(x) | (expr=="?");
             }
             if(!fieldValue) 
             {
