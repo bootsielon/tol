@@ -1551,8 +1551,11 @@ static BSyntaxObject* EvMemberArg
       {
         BUserCode* uCode = UCode(result);
         BOperator* opr   = GetOperator(uCode);
-        result = opr->Evaluate(branch2->cdr());
-        DESTROY(opr);
+        if(opr)
+        {
+          result = opr->Evaluate(branch2->cdr());
+          DESTROY(opr);
+        }
       }
     }
     if((tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
