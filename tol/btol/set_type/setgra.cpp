@@ -588,6 +588,37 @@ void BSetUnique::CalcContens()
     contens_ = Set(Arg(1)).Unique();
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetConcatAll);
+DefIntOpr(1, BSetConcatAll, "Concat", 2, 0,
+	  I2("(Set set1, Set set2 [, Set set3, ...])",
+	     "(Set cto1, Set cto2 [, Set cto3, ...])"),
+	  I2("Returns the concatenation of two or more sets.",
+	     "Devuelve la concatenación de dos o más conjuntos."),
+	  BOperClassify::SetAlgebra_);
+//--------------------------------------------------------------------
+void BSetConcatAll::CalcContens()
+//--------------------------------------------------------------------
+{
+  BSet setOfSets;
+  setOfSets.PutElement(ArgList());
+  int k, n, totCard = 0;
+  for(n=1; n<=setOfSets.Card(); n++)
+  { 
+    BSet& set = Set(setOfSets[n]);
+    totCard += set.Card(); 
+  }
+  contens_.PrepareStore(totCard);
+  for(n=1; n<=setOfSets.Card(); n++)
+  {
+    BSet& set = Set(setOfSets[n]);
+    for(k=1; k<=set.Card(); k++)
+    {
+      contens_.AddElement(set[k]);
+    }
+  }
+}
+
 
 //--------------------------------------------------------------------
 class BSetBinary: public BSetTemporary
@@ -735,6 +766,7 @@ void BSetPower::CalcContens()
     BSetCartesianProduct set(lst);
     contens_ = set.Contens();
 }
+
 
 
 //--------------------------------------------------------------------
