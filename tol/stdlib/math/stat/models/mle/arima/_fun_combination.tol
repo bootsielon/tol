@@ -358,7 +358,7 @@ Matrix MLH_Cov
     Serie resInvAddSub = SubSer(resInvAdd, iniRes, endRes);
     SerMat(resInvAddSub)
   });
-  Matrix numbers = BinGroup("<<", numbersSet);
+  Matrix numbers = Group("Concat", numbersSet);
   Matrix zero  = Rand(m, m, 0, 0); 
   Matrix Nxy   = numbers*Tra(numbers); 
   Matrix Nxy_1 = IfMat(EQ(Nxy, zero), zero, RPow(Nxy, -1));

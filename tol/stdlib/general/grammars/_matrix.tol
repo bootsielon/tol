@@ -159,7 +159,7 @@ PutDescription("Matrix ConcatSetCols (Set cols):\n"
 // PURPOSE : Retorna la matriz resultado de concatenar los vectores fila del
 //           conjunto <rows>.
 //////////////////////////////////////////////////////////////////////////////
-{BinGroup("<<",rows)};
+{Group("Concat",rows)};
 
 PutDescription("Matrix ConcatSetRows (Set rows):\n"
 "Retorna la matriz resultado de concatenar los vectores fila del "
@@ -432,7 +432,7 @@ PutDescription("Aplica un Polyn ar a una Matrix z", FunArMat);
 //////////////////////////////////////////////////////////////////////////////
 Matrix  ColDiag( Matrix col)
 //////////////////////////////////////////////////////////////////////////////
-{ SetDiag( BinGroup("<<",MatSet(col))) };
+{ SetDiag( Group("Concat",MatSet(col))) };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("Dada una matriz columna de tamaño n devuevle una matriz 
 cuadrada con elementos en la diagonal a[ii]=col[i]. 

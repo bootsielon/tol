@@ -157,7 +157,7 @@ Class @MasterSamplerBasic : @MasterSampler
       {
         seg->NonLinFilters
       });
-      Set nonLinFilter = BinGroup("<<", aux.nlb);
+      Set nonLinFilter = Group("Concat", aux.nlb);
       Real nextCol = _.mis.blk::_.lastCol+1;
       @MasterSamplerBasic T = _this;
       For(1,Card(nonLinFilter), NameBlock(Real numBlk)

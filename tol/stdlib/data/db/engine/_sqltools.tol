@@ -564,7 +564,7 @@ Text SqlGetWhereCalendarTms(Set calendar, Text field, Date iniDate,
     })
   });
   Set setUqDtFmt = 
-    If(IsEmpty(setDtFmt), Copy(Empty), BinGroup("<<", setDtFmt));
+    If(IsEmpty(setDtFmt), Copy(Empty), Group("Concat", setDtFmt));
   Set setUqDtFmt2 = Select(setUqDtFmt, Real(Text t) {
     t!=""
   });    

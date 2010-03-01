@@ -835,7 +835,7 @@ Set SetSerWD(Anything setSerOrSerDia)
   gram == "Serie", setSerWD.OneSerie(setSerOrSerDia),
   gram == "Set",
   {
-    Set sWD.SS = BinGroup("<<", EvalSet(setSerOrSerDia, setSerWD.OneSerie));
+    Set sWD.SS = Group("Concat", EvalSet(setSerOrSerDia, setSerWD.OneSerie));
     Eval("Set WD."+ ToTolName(Name(setSerOrSerDia)) +".WD = sWD.SS;")
   },
   1, { Text WLERROR("SetSerWD:\n Unknown grammar"); Copy(Empty)})
@@ -862,7 +862,7 @@ GuiConcatSetCol);
 Set GuiConcatSetRow(Set s)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set ConcatSetRow = BinGroup("<<", s);
+  Set ConcatSetRow = Group("Concat", s);
   ConcatSetRow
 };
 //////////////////////////////////////////////////////////////////////////////
@@ -1107,7 +1107,7 @@ Set FullPermutations(Set Objects)
           },
           SetOfSet([[Anything _i=i]]))
     });
-    Set perm = BinGroup("<<", perms)
+    Set perm = Group("Concat", perms)
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("Genera todas las permutaciones para un conjunto de objetos, y

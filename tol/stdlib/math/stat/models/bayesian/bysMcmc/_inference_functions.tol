@@ -446,7 +446,7 @@ Set compare.reports(Set rep1, Set rep2)
     Eval(varName+"=aux")
   });
   Real CMsg::Trace::show(1,"4. BysMcmc::Inference::compare.reports acf");
-  Set acf = BinGroup("<<", For(1,Card(acfByVar),Set(Real k)
+  Set acf = Group("Concat", For(1,Card(acfByVar),Set(Real k)
   {
     Text varName = colNames[k];
     Real CMsg::Trace::show(2,"4."+IntText(k)+" "+varName);

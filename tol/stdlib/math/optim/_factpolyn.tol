@@ -43,7 +43,7 @@
       })
     })
   });
-  Set    Fact  = BinGroup("<<",FRC);  
+  Set    Fact  = Group("Concat",FRC);  
   Polyn  Prod = SetProd(Fact);
   [[Fact,Prod,marq]]
 };
@@ -92,7 +92,7 @@
       [[x1,x2]]
     })
   });
-  Set Roots  = BinGroup("<<",roots);
+  Set Roots  = Group("Concat",roots);
   [[Roots,Fact]]
 };
 

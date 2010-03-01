@@ -282,7 +282,7 @@ Text HTMLChartType = "JAVA";
       )
     }
   );
-  Set idSet = BinGroup("<<",inputBackNames);
+  Set idSet = Group("Concat",inputBackNames);
   Set input = EvalSet(idSet, Serie (Text expr) { Eval(expr) } );
 
   Real n = Card(input);

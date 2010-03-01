@@ -341,11 +341,11 @@
 //          de conjuntos con estructura @ARIMAStruct
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set ARMAPolynSet = BinGroup("<<",Traspose(EvalSet(arima,Set(Set factor)
+  Set ARMAPolynSet = Group("Concat",Traspose(EvalSet(arima,Set(Set factor)
   {
     [[factor->AR, factor->MA]]
   })));
-  BinGroup("<<",EvalSet(ARMAPolynSet,Set(Polyn pol)
+  Group("Concat",EvalSet(ARMAPolynSet,Set(Polyn pol)
   {
     EvalSet(Monomes(1-pol),Real(Polyn m) { Coef(m,Degree(m)) })
   }))
@@ -359,7 +359,7 @@
 //          (1-P(B)) donde P es cada uno de los factores AR ó MA 
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set degrees = BinGroup("<<",Traspose(EvalSet(arima,Set(Set factor)
+  Set degrees = Group("Concat",Traspose(EvalSet(arima,Set(Set factor)
   {
     SetOfReal(Card(Monomes(1-factor->AR)), Card(Monomes(1-factor->MA)))
   })));

@@ -69,7 +69,7 @@ Set SimInfo
        For(1, numInput, Set(Real k)
        {  SetOfReal(root, sigma, Gaussian(root,sigma))  })
      });
-     Set parameters = BinGroup("<<",treeParam);
+     Set parameters = Group("Concat",treeParam);
   
      Set inputs = For(1, Card(parameters), Serie(Real k)
      {
@@ -104,7 +104,7 @@ Set SimInfo
   Real numData  = SetSum(EvalSet(traSerOut[1], Real(Serie ser){CountS(ser)}));
   Real numInput = SetSum(EvalSet(traSerOut[4],Card));
   Real numPar   = numInput+numOut;  
-  Set inputParam = BinGroup("<<", traSerOut[6]);
+  Set inputParam = Group("Concat", traSerOut[6]);
   Set sigmaParam = traSerOut[7];
   Set treeParam  = traSerOut[6]; 
   Set allParameters = (Traspose(inputParam)[3])<<sigmaParam;
@@ -209,7 +209,7 @@ Set GenRandomModel
     });
     info
   });
-  Set hierDefinitionTra = Traspose(BinGroup("<<", hierDefinitionOut));
+  Set hierDefinitionTra = Traspose(Group("Concat", hierDefinitionOut));
   Set paramSet  = Unique(hierDefinitionTra[1]);
   Set sigmaBlock = Unique(hierDefinitionTra[2]);
   Set tree = hierDefinitionTra[3];
@@ -217,7 +217,7 @@ Set GenRandomModel
    (paramSet, sigmaBlock,tree);
 
 
-  Set inputDefinition = BinGroup("<<", inputDefinitionOut);
+  Set inputDefinition = Group("Concat", inputDefinitionOut);
   
   Set sigmaDefinition =  For(1, numOut, Set(Real k)
   {

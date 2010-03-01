@@ -17,7 +17,7 @@ Set doForEachTask(Set command)
 //WriteLn("TRACE Tpa::parallelEval totProc="<<totProc);
 //WriteLn("TRACE Tpa::parallelEval totServ="<<totServ);
 //WriteLn("TRACE Tpa::parallelEval numStages="<<numStages);
-  Set result = BinGroup("<<",For(1, numStages, Set(Real stage)
+  Set result = Group("Concat",For(1, numStages, Set(Real stage)
   {
   //For each stage there is a window of corresponding processes
     Real firstProc = (stage-1)*totServ+1;

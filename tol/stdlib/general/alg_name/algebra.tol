@@ -535,7 +535,7 @@ Set AlgGet(Text name, Set algDef)
     { AlgGetDim(txtDim, algDefSetNode, numCarDim, subDimSep) });
 
     Set alg = If(EQ(cTokSet,2), AlgSt(codMag, dimSet[1]), 
-    AlgSt(codMag, BinGroup("<<", dimSet)));
+    AlgSt(codMag, Group("Concat", dimSet)));
 
     Real chkAlg=1;//= AlgCheck(alg, algDef);
 

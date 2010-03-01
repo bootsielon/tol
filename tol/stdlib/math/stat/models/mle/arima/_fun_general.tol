@@ -241,7 +241,7 @@ EnsuredBeginOfEstimate);
   [[
     [["Name","Polynomial","Refuse Prob."]]
   ]]<<
-  BinGroup("<<",pares)
+  Group("Concat",pares)
 };
 //////////////////////////////////////////////////////////////////////////////
   Serie TransferOne(Set tr)
@@ -524,7 +524,7 @@ EnsuredBeginOfEstimate);
     jacobFi << jacobTeta
   });
   
-  Set jacob = BinGroup("<<", jacobTransfer << jacobARIMA);
+  Set jacob = Group("Concat", jacobTransfer << jacobARIMA);
   
   Matrix Jacobian = Tra(SerSetMat(jacob));
   Jacobian
@@ -1099,7 +1099,7 @@ Set GetArimaFromLabel(Text label)
               )
             })
           });
-          Set gradesTotal = BinGroup("<<", gradesSet);
+          Set gradesTotal = Group("Concat", gradesSet);
           Set monomes     = EvalSet(gradesTotal, Polyn(Real grade)
            {If(EQ(grade,0), 0,-defCoef*(B^(grade))) });
           1+SetSum(monomes) 
@@ -1368,7 +1368,7 @@ Serie GroupInputs(Set inputs)
 {
   Set FreeAPriori =          
     CreateParameterAPrioriInf("",ModelDefinition->Constant) <<
-    BinGroup("<<",EvalSet(ModelDefinition->Input,Set(@ModelDef s) 
+    Group("Concat",EvalSet(ModelDefinition->Input,Set(@ModelDef s) 
     { 
       WriteLn("CreateParameterAPrioriInf("+Identify(s->X)+","<<s->Omega+")");
       CreateParameterAPrioriInf(Identify(s->X),s->Omega)
