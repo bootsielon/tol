@@ -165,6 +165,8 @@ int eval_depth_t::level = -1;
   StartTknStat;
   BSyntaxObject* obj = NULL;
   const BText& name = tok->Name();
+  if(name=="_this")
+    printf("");
 #ifdef UseTknCache
   if((tok->ObjectClass()=='A') && tok->Object()) 
   { 
@@ -869,7 +871,8 @@ BSyntaxObject* BGrammar::EvaluateTree(
     BUserNameBlock* own = nb.Owner();
     if(unb->HasName() && (own!=unb))
     {
-      if(!own || (unb->Level()==0))
+    //if(!own || (unb->Level()==0))
+      if(!own)
       {
         nb.PutOwner(unb);
         nb.PutLocalName(unb->Name());
