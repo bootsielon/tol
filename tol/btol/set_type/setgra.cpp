@@ -589,12 +589,38 @@ void BSetUnique::CalcContens()
 }
 
 //--------------------------------------------------------------------
+void setConcat(const BSet& setOfSets, BSet& contens_)
+//--------------------------------------------------------------------
+{
+  int k, n, totCard = 0;
+  for(n=1; n<=setOfSets.Card(); n++)
+  { 
+    if(setOfSets[n]->Grammar()==GraSet())
+    {
+      BSet& set = Set(setOfSets[n]);
+      totCard += set.Card(); 
+    }
+  }
+  contens_.PrepareStore(totCard);
+  for(n=1; n<=setOfSets.Card(); n++)
+  {
+    if(setOfSets[n]->Grammar()==GraSet())
+    {
+      BSet& set = Set(setOfSets[n]);
+      for(k=1; k<=set.Card(); k++)
+      {
+        contens_.AddElement(set[k]);
+      }
+    }
+  }
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetConcatAll);
-DefIntOpr(1, BSetConcatAll, "Concat", 2, 0,
-	  I2("(Set set1, Set set2 [, Set set3, ...])",
-	     "(Set cto1, Set cto2 [, Set cto3, ...])"),
-	  I2("Returns the concatenation of two or more sets.",
-	     "Devuelve la concatenación de dos o más conjuntos."),
+DefIntOpr(1, BSetConcatAll, "Concat", 1, 0,
+	  "(Set set1 [, Set set2, ...])",
+	  I2("Returns the concatenation of a list of sets.",
+	     "Devuelve la concatenación de una lista conjuntos."),
 	  BOperClassify::SetAlgebra_);
 //--------------------------------------------------------------------
 void BSetConcatAll::CalcContens()
@@ -602,23 +628,24 @@ void BSetConcatAll::CalcContens()
 {
   BSet setOfSets;
   setOfSets.PutElement(ArgList());
-  int k, n, totCard = 0;
-  for(n=1; n<=setOfSets.Card(); n++)
-  { 
-    BSet& set = Set(setOfSets[n]);
-    totCard += set.Card(); 
-  }
-  contens_.PrepareStore(totCard);
-  for(n=1; n<=setOfSets.Card(); n++)
-  {
-    BSet& set = Set(setOfSets[n]);
-    for(k=1; k<=set.Card(); k++)
-    {
-      contens_.AddElement(set[k]);
-    }
-  }
+  setConcat(setOfSets, contens_);
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetSetConcat);
+DefIntOpr(1, BSetSetConcat, "SetConcat", 1, 1,
+	  "(Set set)",
+	  I2("Returns the concatenation of a the elements of a set of sets.",
+	     "Devuelve la concatenación de los elementos de un conjunto de "
+       "conjuntos."),
+	  BOperClassify::SetAlgebra_);
+//--------------------------------------------------------------------
+void BSetSetConcat::CalcContens()
+//--------------------------------------------------------------------
+{
+  BSet& setOfSets = Set(Arg(1));
+  setConcat(setOfSets, contens_);
+}
 
 //--------------------------------------------------------------------
 class BSetBinary: public BSetTemporary
@@ -712,9 +739,9 @@ void BSetDifference::CalcContens()
 DeclareContensClass(BSet, BSetTemporary, BSetCartesianProduct);
 DefIntOpr(1, BSetCartesianProduct, "CartProd", 2, 0,
 	  I2("(Set set1, Set set2 [, Set set3, ...])",
-	     "(Set cto1, Set cto2 [, Set cto3, ...])"),
-	  I2("Returns the cartesian product of two or more sets.",
-	     "Devuelve el producto cartesiano de dos o más conjuntos."),
+	     "(Set cto1, Set set2 [, Set cto3, ...])"),
+	  I2("Returns the cartesian product of a list of sets.",
+	     "Devuelve el producto cartesiano de una lista de conjuntos."),
 	  BOperClassify::SetAlgebra_);
 
 //--------------------------------------------------------------------
