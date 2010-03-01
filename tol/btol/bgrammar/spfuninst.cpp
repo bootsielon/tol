@@ -506,19 +506,34 @@ static BSyntaxObject* EvGroup(BGrammar* gra, const List* tre, BBool left)
   }
   else
   {
-    if(args.Card()==2)
+    if(args.Card()>=2)
     {
 	    uTxt = args[1];
 	    uSet = args[2];
-	    if(uTxt && uSet && Set(uSet).Card())
+      
+	    if(uTxt && uSet)
 	    {
-	      BText txt	 = uTxt->Dump();
+        BSet& set = Set(uSet);
+	      BText txt	= uTxt->Dump();
 				txt = txt.SubString(1,txt.Length()-2);
 	      BStandardOperator* ope = (BStandardOperator*)gra->FindOperator(txt);
 	      if(ope)
 	      {
-		      BSet&  set  = Set(uSet);
-		      if(set.Card()>0) 
+		      if(set.Card()==0) 
+          {
+            if(args.Card()==3)
+            {
+	            result = args[3];
+            }
+            else
+            {
+              Error(I2("Cannot evaluate Group over empty set without "
+                       "a default value.",
+				               "No sepuede evaluar Group sobre un conjunto vacío "
+                       "sin valor por defecto."));
+            }
+          }
+          else  
           {
 		        BBool ok = BTRUE;
             BGrammar* g;
@@ -1958,8 +1973,8 @@ bool BSpecialFunction::Initialize()
   EvFind);
 
   AddInstance("Group",
-  I2("(Text function, Set s)",
-     "(Text función, Set s)"),
+  I2("(Text function, Set s [, Anything defaultForEmpty])",
+     "(Text función, Set s [, Anything defaultForEmpty])"),
   I2("Evaluates a function taking as arguments the elements of a set.\n\n"
      "Example:\n"
      "Set s = SetOfAnything(a,b,c,d);\n"
