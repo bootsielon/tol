@@ -34,7 +34,7 @@
   
     Set do_dir(Real unused)
     {
-      Group("Concat", EvalSet(dir[2],Anything(Text subDir)
+      SetConcat(EvalSet(dir[2],Anything(Text subDir)
       {
          Text fileFullPath = root+"/"+subDir;
          If(processDir<recursive,
@@ -108,7 +108,7 @@
     //Function to process directories recursively
     RecDir.FunOrderStr("rec",recursive, Set (Real unused)
     {
-      Group("Concat", 
+      SetConcat(
         EvalSet(dir[2], Set(Text subDir)
         {
           RecDir.DoWithTree(fun,root+"/"+subDir,
@@ -128,7 +128,7 @@
     Compare(a->order_, b->order_)
   });
   If(verbose>11, WriteLn("Sorted processes "<<sortedDo));
-  Group("Concat", EvalSet(sortedDo,Set(RecDir.FunOrderStr a) 
+  SetConcat(EvalSet(sortedDo,Set(RecDir.FunOrderStr a) 
   { 
     If(verbose>11, WriteLn("Processing ["+a->type_+"]"));
     Code f = a->fun_;

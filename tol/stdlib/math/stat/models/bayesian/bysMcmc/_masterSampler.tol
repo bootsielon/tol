@@ -24,7 +24,7 @@ Class @SubMasterBlock: @BlockSampler
     {
       blk::_.partialSampler::_.fixedParam
     };
-    Group("Concat",EvalSet(_.blocks, gfp))
+    SetConcat(EvalSet(_.blocks, gfp))
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ Class @SubMasterBlock: @BlockSampler
     {
       blk::_.partialSampler::_.reloadParam
     };
-    Group("Concat",EvalSet(_.blocks, grp))
+    SetConcat(EvalSet(_.blocks, grp))
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -194,7 +194,7 @@ Class @MasterSampler: @SubMasterBlock
     {
       blk::_.colNames
     };
-    Group("Concat",EvalSet(_.blocks, gcn))
+    SetConcat(EvalSet(_.blocks, gcn))
   }
 };
 

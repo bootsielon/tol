@@ -377,7 +377,7 @@ Text TxtFormListDel(Set  valSet,
                    {
                      Set txtVal = For(2,card,Text(Real p)
                      { sepTxt + format(valSet[p]) });
-                     format(valSet[1]) + BinGroup("+",txtVal)
+                     format(valSet[1]) + SetSum(txtVal)
                    })));
   If (body=="", "", iniTxt+body+endTxt)
 };
@@ -423,7 +423,7 @@ TxtFormListDel);
   If(EQ(Card(setText),1),setText[1],
   {  
     Set txt01   = For(1,Card(setText)-1,Text(Real t){setText[t]+","});
-    Text result = BinGroup("+",txt01) << setText[Card(setText)]
+    Text result = SetSum(txt01) << setText[Card(setText)]
   }))
 };
 

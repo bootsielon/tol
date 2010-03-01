@@ -39,13 +39,13 @@ Set BLR_SMNP
     SetOfMatrix(xk2, betak)
   });   
   Set traCovBetaSet = Traspose(covBetaSet);
-  Matrix covBeta_1  = BinGroup("+", traCovBetaSet[1]); 
+  Matrix covBeta_1  = SetSum(traCovBetaSet[1]); 
   Matrix covBeta    = If(BLR_SMNP_Mode == "SVD", 
    SVDInverse(covBeta_1), UnknownMatrix);
   Matrix L          = If(BLR_SMNP_Mode == "SVD", Choleski(covBeta),
   CholeskiInverse(Choleski(covBeta_1)));
 
-  Matrix sumBetak = BinGroup("+",  traCovBetaSet[2]);
+  Matrix sumBetak = SetSum(traCovBetaSet[2]);
   Matrix beta     = If(BLR_SMNP_Mode == "SVD", covBeta*sumBetak,
   {
     Matrix ConjugateGradientSolve(covBeta_1, sumBetak)

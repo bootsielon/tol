@@ -23,7 +23,7 @@ Text GuiAlgGetDef(Set algDef)
     @TclArgSt("-sDiSep",        subDimSep)
   );
   Set tclSet         = tclSetPre << algDef->TclSet;
-  TxtListTcl(BinGroup("+",tclSet))
+  TxtListTcl(SetSum(tclSet))
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("Devuelve las definiciones generales del algebra.",
@@ -199,7 +199,7 @@ Text GuiAlgGetMagTclSet(Text codMag, Set algDef)
 //////////////////////////////////////////////////////////////////////////////
 { 
   Set tclSet = AlgDefGetReg(codMag, algDef)->TclSet;
-  Text If(IsEmpty(tclSet), "",  TxtListTcl(BinGroup("+",tclSet)))
+  Text If(IsEmpty(tclSet), "",  TxtListTcl(SetSum(tclSet)))
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("Retorna la informacion Tcl de una magnitud.",
@@ -220,7 +220,7 @@ Text GuiAlgGetNodeTclSet
   Set node          = AlgDefGetNode(codDim, codSubDim, algDefSetNode);
   Text If(IsEmpty(node), "", {
     Set tclSet = node[1]->TclSet;
-    If(IsEmpty(tclSet), "", TxtListTcl(BinGroup("+",tclSet)))
+    If(IsEmpty(tclSet), "", TxtListTcl(SetSum(tclSet)))
   })
 };
 //////////////////////////////////////////////////////////////////////////////

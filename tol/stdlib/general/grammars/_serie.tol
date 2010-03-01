@@ -1325,7 +1325,7 @@ Serie SerComunFechado(Set ser)
 //////////////////////////////////////////////////////////////////////////////
 {
     Set serMen = EvalSet(ser,Serie(Serie s){ InvCh(s,CalInd(W,Diario)) });
-    Serie and  = AutoDating(BinGroup("And",serMen))
+    Serie and  = AutoDating(Group("And",serMen))
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("
@@ -1740,7 +1740,7 @@ DatChSet);
 Set DatChSetCommonTmsNotOmit(Set sSer, Code fun)
 //////////////////////////////////////////////////////////////////////////////
 {
-  TimeSet tmsCommonNotOmit = BinGroup("Union",
+  TimeSet tmsCommonNotOmit = Group("Union",
   EvalSet(sSer, TimeSet(Serie sr)
   { SerTms(Not(IsUnknown(sr))) }));
   DatChSet(sSer, tmsCommonNotOmit, fun)

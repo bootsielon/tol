@@ -107,7 +107,7 @@
   Set texParInv = 
       EvalSet(Range(1,Card(pcg),1),Text(Real r)
                                           { texPar[Card(pcg)+1-r] } );
-  BinGroup("+",texParInv)
+  SetSum(texParInv)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@
                   Polyn p = Eval("a*B^b");
                   p
                 });
-  BinGroup("+",polTerm)
+  SetSum(polTerm)
 };
 
 
@@ -174,7 +174,7 @@
                   Polyn p = Eval("a*B^b");
                   p
                 });
-  BinGroup("+",polTerm)
+  SetSum(polTerm)
 };
 
 

@@ -28,7 +28,7 @@ TimeSet MinComunFechado(Set ser)
   {
    SerTmsUsu(ser[x])
   });
-   BinGroup("+",tms) 
+  Group("Union",tms) 
 };
 
 //////////////////////////////////////////////////////////////////////////////

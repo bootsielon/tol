@@ -136,7 +136,7 @@ Matrix BLR_GetHiperBlock(Set allParamNames, Set sheets, Text hpName)
 
   Matrix one    = Rand(1,1,1,1);
   Matrix oneCol = Rand(Card(sheets),1,-1,-1);
-  Matrix matrixSheet = Group("Concat", EvalSet(indexSheets, Matrix(Real i)
+  Matrix matrixSheet = Group("ConcatRows", EvalSet(indexSheets, Matrix(Real i)
   {
     Text nIndex = allParamNames[i];
     Real scale  = sheets[nIndex][2]; 
@@ -307,12 +307,12 @@ Matrix BLR_LinConBlock
 
   Matrix one_     = Rand(1,1,-1,-1);
 
-  Matrix matrixOut = Group("Concat", EvalSet(indexOutCon, Matrix(Real i)
+  Matrix matrixOut = Group("ConcatRows", EvalSet(indexOutCon, Matrix(Real i)
   {
     FullWithZeroCol(one_, i, numAllPar)
   })); 
 
-  Matrix matrixInp = BinGroup("+", For(1, Card(inpConNames), Matrix(Real i)
+  Matrix matrixInp = SetSum( For(1, Card(inpConNames), Matrix(Real i)
   {
     FullWithZeroCol(SubCol(X, SetOfReal(i)), indexInpCon[i], numAllPar)
   }));
@@ -337,7 +337,7 @@ Set BLR_AddLinCon(Set model, Set linConModel)
 
   Set sYN         = DeepCopy(sY);
   Set sXN         = DeepCopy(sX);
-  Set inputDefN   = inputDef+Group("Concat", Traspose(linConModel)[4]);
+  Set inputDefN   = inputDef+SetConcat(Traspose(linConModel)[4]);
   Set sigmaDefN   = DeepCopy(sigmaDef);
 
   Set allParamNames  = Traspose(inputDefN)[1];
@@ -414,8 +414,8 @@ Set BLR2BLRC(Set model, Set linSet)
   })<<SetOfSet(linSet);
   Set limInfoSel    = Select(limInfo, Real(Set reg){Not(IsEmpty(reg))});
   Set traLimInfoSel = Traspose(limInfoSel);
-  Matrix B = Group("Concat", traLimInfoSel[1]);
-  Matrix b = Group("Concat", traLimInfoSel[2]);
+  Matrix B = Group("ConcatRows", traLimInfoSel[1]);
+  Matrix b = Group("ConcatRows", traLimInfoSel[2]);
   SetOfMatrix(B, b)
 };
 //////////////////////////////////////////////////////////////////////////////

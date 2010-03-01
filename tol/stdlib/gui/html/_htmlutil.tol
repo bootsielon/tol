@@ -282,7 +282,7 @@ Text HTMLChartType = "JAVA";
       )
     }
   );
-  Set idSet = Group("Concat",inputBackNames);
+  Set idSet = SetConcat(inputBackNames);
   Set input = EvalSet(idSet, Serie (Text expr) { Eval(expr) } );
 
   Real n = Card(input);
@@ -333,7 +333,7 @@ Text HTMLChartType = "JAVA";
   Real err    = info[5];
   Real sw     = info[6]*2;
   Text expression = "Est" + outputName + " = " + 
-                    Text (BinGroup("+", ExprInf)) + 
+                    Text (SetSum( ExprInf)) + 
                     NL + "    + Gaussian(0," + err +")";
 
   Text InfoFile = 

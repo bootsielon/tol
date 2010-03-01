@@ -241,7 +241,7 @@ EnsuredBeginOfEstimate);
   [[
     [["Name","Polynomial","Refuse Prob."]]
   ]]<<
-  Group("Concat",pares)
+  SetConcat(pares)
 };
 //////////////////////////////////////////////////////////////////////////////
   Serie TransferOne(Set tr)
@@ -524,7 +524,7 @@ EnsuredBeginOfEstimate);
     jacobFi << jacobTeta
   });
   
-  Set jacob = Group("Concat", jacobTransfer << jacobARIMA);
+  Set jacob = SetConcat(jacobTransfer << jacobARIMA);
   
   Matrix Jacobian = Tra(SerSetMat(jacob));
   Jacobian
@@ -1099,7 +1099,7 @@ Set GetArimaFromLabel(Text label)
               )
             })
           });
-          Set gradesTotal = Group("Concat", gradesSet);
+          Set gradesTotal = SetConcat(gradesSet);
           Set monomes     = EvalSet(gradesTotal, Polyn(Real grade)
            {If(EQ(grade,0), 0,-defCoef*(B^(grade))) });
           1+SetSum(monomes) 
@@ -1236,21 +1236,21 @@ Ratio GetRatioFromLabel (Text txtArima)
       Polyn 0.1
     },
     {
-      Polyn BinGroup("+", EvalSet(ar,Polyn(Polyn pp)
+      Polyn SetSum(EvalSet(ar,Polyn(Polyn pp)
        { pp*B^(periodo-1) }))+ (Polyn 1)
     });
     Polyn polMA = If(Eq(Card(ma),0), {
       Polyn 0.1
     },
     {
-      Polyn BinGroup("+",  EvalSet(ma, Polyn(Polyn pp)
+      Polyn SetSum(EvalSet(ma, Polyn(Polyn pp)
        { pp*B^(periodo-1) }))+ (Polyn 1)
     });
     @ARIMAStruct(periodo, polAR, polMA, dif)
   });
-  Polyn AR  = BinGroup("*", Traspose(arima02)[2]);
-  Polyn MA  = BinGroup("*", Traspose(arima02)[3]);
-  Polyn DIF = BinGroup("*", Traspose(arima02)[4]);
+  Polyn AR  = SetProd(Traspose(arima02)[2]);
+  Polyn MA  = SetProd(Traspose(arima02)[3]);
+  Polyn DIF = SetProd(Traspose(arima02)[4]);
   Ratio piw = (AR*DIF)/MA;
   piw
 };
@@ -1368,7 +1368,7 @@ Serie GroupInputs(Set inputs)
 {
   Set FreeAPriori =          
     CreateParameterAPrioriInf("",ModelDefinition->Constant) <<
-    Group("Concat",EvalSet(ModelDefinition->Input,Set(@ModelDef s) 
+    SetConcat(EvalSet(ModelDefinition->Input,Set(@ModelDef s) 
     { 
       WriteLn("CreateParameterAPrioriInf("+Identify(s->X)+","<<s->Omega+")");
       CreateParameterAPrioriInf(Identify(s->X),s->Omega)

@@ -120,7 +120,7 @@
       n==1, htmlSet[1], If(
       n==2, htmlSet [1] + htmlSet[2], 
             {
-              BinGroup("+", htmlSet) 
+              SetSum( htmlSet) 
             })));
 //title + table
   table
@@ -671,10 +671,10 @@ Set LinRegMet =
     Text extra = If(!n,"",
     {
       Set  pTxt  = For(1,n,Text(Real k){ ", p["<<k<<"]" });
-      BinGroup("+", pTxt)
+      SetSum( pTxt)
     });
     "<LI>" + HtmlTitle(serMet[k]->Title,2,Blue) + "<BR>"+
     Eval(Name(serMet[k]->Function)+"(series"+extra+")")
   });
-  "<OL>"+BinGroup("+", metTxt)+"</OL>"
+  "<OL>"+SetSum( metTxt)+"</OL>"
 };

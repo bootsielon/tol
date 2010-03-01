@@ -468,11 +468,11 @@ NameBlock Obs(
   NameBlock _.output = output;
   Set _.input = input;
   Set _.transFun = transFun;
-  Set _.transFun.omega = Group("Concat",EvalSet(_.transFun, Set(NameBlock tf)
+  Set _.transFun.omega = SetConcat(EvalSet(_.transFun, Set(NameBlock tf)
   {
     tf::_.omegaParam
   }));
-  Set _.transFun.serie = Group("Concat",EvalSet(_.transFun, Set(NameBlock tf)
+  Set _.transFun.serie = SetConcat(EvalSet(_.transFun, Set(NameBlock tf)
   {
     EvalSet(Monomes(tf::_.omega), NameBlock(Polyn mon)
     {[[
@@ -502,7 +502,7 @@ NameBlock Obs(
   Real _.forceZeroInputCoef = forceZeroInputCoef;
   Text _.module.type = module.type;
   Set _.missing = _.output::_.serie.info::_.missing << 
-    Group("Concat", For(1,_.nInp, Set(Real j)
+    SetConcat(For(1,_.nInp, Set(Real j)
     {
       NameBlock inp = _.input[j];
     //WriteLn("TRACE 1 inp::_.serie.info::_.missing = "<<inp::_.serie.info::_.missing);

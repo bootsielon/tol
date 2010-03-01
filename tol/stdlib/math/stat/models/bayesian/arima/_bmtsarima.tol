@@ -203,7 +203,7 @@ Text WriteLn("Processing Output "+nameOut);
   Date iniOut = Max(First(difTransfARMA), iniEstim);
   Date endOut = Min(Last(difTransfARMA), endEstim);
 
-  Set ARMAXSet    = Group("Concat", EvalSet(input, Set(Set reg)
+  Set ARMAXSet    = SetConcat(EvalSet(input, Set(Set reg)
   {
     Serie inpSer         = reg->X;
     Serie difInpSer      = difPol:inpSer; 
@@ -236,7 +236,7 @@ Text WriteLn("Processing Output "+nameOut);
     SetOfSet(SetOfReal(1,1)<<SetOfMatrix(x))
   };
 
-  Set inputDefinition = Group("Concat", EvalSet(input, Set(Set reg)
+  Set inputDefinition = SetConcat(EvalSet(input, Set(Set reg)
   {
     Text nameInp   = reg->Name;
     Polyn omega    = reg->OmegaInfo->IniValue;

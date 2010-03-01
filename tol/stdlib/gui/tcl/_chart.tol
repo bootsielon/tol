@@ -343,7 +343,7 @@ WriteLn(cmd);
     );
     evalTcl["result"]+NL
   });
-  Text If(IsEmpty(setResult), "", BinGroup("+",setResult))
+  Text If(IsEmpty(setResult), "", SetSum(setResult))
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("

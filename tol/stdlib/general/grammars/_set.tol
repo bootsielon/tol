@@ -69,7 +69,7 @@ Struct @DistribSt
 //
 ////////////////////////////////////////////////////////////////////////////// 
 {  
-  IncludeText(BinGroup("+", EvalSet(set, code)))
+  IncludeText(SetSum(EvalSet(set, code)))
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -97,51 +97,6 @@ Set SetDist(Set values,Real isSort)
                            Percentil(75,values, isSort));
   DistribSt(values,media,desTip,max,min,mediana,IQR)
 };
-
-//////////////////////////////////////////////////////////////////////////////
-Set SetConcat(Set set)
-//////////////////////////////////////////////////////////////////////////////
-{
-  // Eliminar de set aquellos elementos que sean Empty o no sean de tipo Set
-  Set setOk = Select(set, Real(Anything subSet)
-  {
-    If(Grammar(subSet)!="Set", FALSE,
-    If(LE(Card(subSet),0),     FALSE,
-                               TRUE))
-  });
-
-  If(LE(Card(setOk),0), Empty,
-  {
-    // Contar el numero de elementos en cada subset de set
-    Real numEle = SetSum(EvalSet(set, Real(Set subSet) { Card(subSet) }));
-  
-    Real ctrSub = 1; // Contador de subsets dentro de set
-    Real ctrEle = 1; // Contador de elementos en cada subset
-  
-    For(1, numEle, Anything(Real num)
-    {
-      Real newSet = If(LE(ctrEle, Card(setOk[ctrSub])), FALSE,
-      {
-        Real(ctrSub:=ctrSub+1); // Cambia al siguiente subset
-        Real(ctrEle:=1);        // Comienza desde el primer elemento
-        FALSE
-      });
-
-      Anything ele = setOk[ctrSub][ctrEle]; // Extraer el elemento
-      Real(ctrEle:=ctrEle+1);               // Siguiente elemento
-      ele                                   // Retornar el elemento
-    })
-  })
-};
-//////////////////////////////////////////////////////////////////////////////
-PutDescription(
-"Retorna lo mismo que la expresion BinGroup('<<',set), donde set es un set de
-sets y lo hace mediante una sola instruccion For().
-Esta funcion es el doble de lenta que el BinGroup(), pero frente a conjuntos
-grandes (por ejemplo 70x300) es mas robusta.",
-SetConcat);
-//////////////////////////////////////////////////////////////////////////////
-
 
 //////////////////////////////////////////////////////////////////////////////
 Set SetClassify(Set set, Code fun)
@@ -202,7 +157,7 @@ Set ReadTable(Text path)
 PutDescription("
 Lee un fichero con estructura de tabla separados los campos por <;>. Todos los
 Campos los devuelve tipo Text."
-,SetConcat);
+,ReadTable);
 //////////////////////////////////////////////////////////////////////////////
 
 
@@ -323,7 +278,7 @@ Set TrasladaMinOrigen(Set setSer)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set   origenSer = EvalSet(setSer, Date(Serie ser){First(ser)});
-  Date  origen = BinGroup("Min",origenSer);
+  Date  origen = Group("Min",origenSer);
   Serie traslado(Serie ser){ TrasladaAOrigen(ser, origen) };
   Set EvalSet(setSer,traslado)
 };
@@ -336,7 +291,7 @@ Set TrasladaMaxOrigen(Set setSer)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set   origenSer = EvalSet(setSer, Date(Serie ser){First(ser)});
-  Date  origen = BinGroup("Max",origenSer);
+  Date  origen = Group("Max",origenSer);
   Serie traslado(Serie ser){ TrasladaAOrigen(ser, origen) };
   Set EvalSet(setSer,traslado)
 };
@@ -653,8 +608,8 @@ PutDescription
 {
   Set ft     = EvalSet(setSer,First);
   Set lt     = EvalSet(setSer,Last);
-  Date ftMax = BinGroup("Max",ft);
-  Date ltMin = BinGroup("Min",lt);
+  Date ftMax = Group("Max",ft);
+  Date ltMin = Group("Min",lt);
   Set  adjustSetSer = EvalSet(setSer, Serie(Serie ser)
   { 
     Text name = Name(ser);
@@ -835,7 +790,7 @@ Set SetSerWD(Anything setSerOrSerDia)
   gram == "Serie", setSerWD.OneSerie(setSerOrSerDia),
   gram == "Set",
   {
-    Set sWD.SS = Group("Concat", EvalSet(setSerOrSerDia, setSerWD.OneSerie));
+    Set sWD.SS = SetConcat(EvalSet(setSerOrSerDia, setSerWD.OneSerie));
     Eval("Set WD."+ ToTolName(Name(setSerOrSerDia)) +".WD = sWD.SS;")
   },
   1, { Text WLERROR("SetSerWD:\n Unknown grammar"); Copy(Empty)})
@@ -844,30 +799,6 @@ Set SetSerWD(Anything setSerOrSerDia)
 PutDescription("Construye una Serie para cada dia de la semana. El fechado de
 la Serie proporcionada ha de estar en base Diaria. Las Series resultado estan
 en fechado Semanal", SetSerWD);
-//////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////
-Set GuiConcatSetCol(Set s)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Set ConcatSetCol = BinGroup("|", s);
-  ConcatSetCol
-};
-//////////////////////////////////////////////////////////////////////////////
-PutDescription("Concatena los conjuntos seleccionados por columnas",
-GuiConcatSetCol);
-//////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////
-Set GuiConcatSetRow(Set s)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Set ConcatSetRow = Group("Concat", s);
-  ConcatSetRow
-};
-//////////////////////////////////////////////////////////////////////////////
-PutDescription("Concatena los conjuntos seleccionados por filas",
-GuiConcatSetRow);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1107,7 +1038,7 @@ Set FullPermutations(Set Objects)
           },
           SetOfSet([[Anything _i=i]]))
     });
-    Set perm = Group("Concat", perms)
+    Set perm = SetConcat(perms)
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("Genera todas las permutaciones para un conjunto de objetos, y
@@ -1123,8 +1054,8 @@ Set ExpandSetSer(Set setSer)
 {
   Set ft     = EvalSet(setSer,First);
   Set lt     = EvalSet(setSer,Last);
-  Date ftMin = BinGroup("Min",ft);
-  Date ltMax = BinGroup("Max",lt);
+  Date ftMin = Group("Min",ft);
+  Date ltMax = Group("Max",lt);
   Set  expandSetSer = EvalSet(setSer, Serie(Serie ser)
   { Eval("Serie "+ Name(ser) +".ess = ExtendSerie(ser, ftMin, ltMax);") })
 };

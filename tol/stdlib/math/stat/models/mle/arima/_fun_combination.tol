@@ -222,7 +222,7 @@ Set MLH_ARIMA_Rel
     Polyn ariPol = ariSet[k];
     PolMat(Expand(maPol/ariPol, numFor-1), numFor, 1) 
   });
-  Matrix polMat = Group("|", polMatSet);
+  Matrix polMat = Group("ConcatColumns", polMatSet);
 
   Real Msg("MLH_ARIMA_Rel", "Calculating forecast combination ...");
   Set forComSet = For(1, numFor, Matrix(Real h)
@@ -249,7 +249,7 @@ Set MLH_ARIMA_Rel
   });
 
   Real Msg("MLH_ARIMA_Rel", "Showing results");
-  Matrix forComMat = BinGroup("|",forComSet);
+  Matrix forComMat = Group("ConcatColumns",forComSet);
   Set forComSetSer = MatSerSet(forComMat,  Dating(oneSerie), iniFor);
 
   Real Msg("MLH_ARIMA_Rel", "Calculus finished");
@@ -358,7 +358,7 @@ Matrix MLH_Cov
     Serie resInvAddSub = SubSer(resInvAdd, iniRes, endRes);
     SerMat(resInvAddSub)
   });
-  Matrix numbers = Group("Concat", numbersSet);
+  Matrix numbers = Group("ConcatRows", numbersSet);
   Matrix zero  = Rand(m, m, 0, 0); 
   Matrix Nxy   = numbers*Tra(numbers); 
   Matrix Nxy_1 = IfMat(EQ(Nxy, zero), zero, RPow(Nxy, -1));

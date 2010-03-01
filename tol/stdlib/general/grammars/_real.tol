@@ -120,8 +120,8 @@ Real SerPearsonCoef(Serie ser01,Serie ser02)
   Matrix matser01 = SerMat(SubSer(ser01,fsDate,lsDate ));
   Matrix matser02 = SerMat(SubSer(ser02,fsDate,lsDate ));
   
-  Set setser01 = BinGroup("+",MatSet(matser01));
-  Set setser02 = BinGroup("+",MatSet(matser02));
+  Set setser01 = SetSum(MatSet(matser01));
+  Set setser02 = SetSum(MatSet(matser02));
   
   SetPearsonCoef(setser01,setser02)
 };
@@ -708,7 +708,7 @@ Real Ver2NumGen(
     Text txt = Sub(itemExt,TextLength(itemExt)-padVer+1, TextLength(itemExt));
     txt
   });
-  Text num = BinGroup("+",setNumExt);
+  Text num = SetSum(setNumExt);
   Eval("Real "+num)
 };
 //////////////////////////////////////////////////////////////////////////////

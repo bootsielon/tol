@@ -43,7 +43,7 @@
       })
     })
   });
-  Set    Fact  = Group("Concat",FRC);  
+  Set    Fact  = SetConcat(FRC);  
   Polyn  Prod = SetProd(Fact);
   [[Fact,Prod,marq]]
 };
@@ -92,7 +92,7 @@
       [[x1,x2]]
     })
   });
-  Set Roots  = Group("Concat",roots);
+  Set Roots  = SetConcat(roots);
   [[Roots,Fact]]
 };
 

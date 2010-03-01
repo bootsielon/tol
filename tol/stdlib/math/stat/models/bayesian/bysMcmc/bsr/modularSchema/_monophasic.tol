@@ -53,7 +53,7 @@ NameBlock Monophasic =
           Not(v->Extern)
         })
       });
-      Set aux.2 = Unique(Group("Concat", aux.1));
+      Set aux.2 = Unique(SetConcat(aux.1));
       Real If(Card(aux.2), SetIndexByName(aux.2));
       aux.2 
     };  
@@ -167,9 +167,9 @@ NameBlock Monophasic =
     }));
   //WriteLn("TRACE MasterToJoint 6");
     Text ModuleType = "joint";
-    Set MissingInputBlock = Group("Concat",reDim[1]);
-    Set MissingOutputBlock = Group("Concat",reDim[2]);
-    Set NoiseDistrib = Group("Concat",reDim[3]);
+    Set MissingInputBlock = SetConcat(reDim[1]);
+    Set MissingOutputBlock = SetConcat(reDim[2]);
+    Set NoiseDistrib = SetConcat(reDim[3]);
     Real sigmaIndex = 0;
     Set EvalSet(NoiseDistrib,Real (@BSR.NoiseDistrib seg)
     {

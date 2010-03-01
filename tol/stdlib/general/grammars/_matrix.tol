@@ -28,7 +28,7 @@ Matrix IncludeMatrix(Text file)
 {
   Matrix M     = IncludeBMT(file)[1];
   Set    lastF = MatSet(SubRow(M, SetOfReal(Rows(M))));
-  Real   isUnk = BinGroup("*",EvalSet(lastF[1],Real(Real r){ IsUnknown(r) }));
+  Real   isUnk = SetProd(EvalSet(lastF[1],Real(Real r){ IsUnknown(r) }));
   If(isUnk, Sub(M, 1, 1, Rows(M) -1, Columns(M)), M)
 };
 //////////////////////////////////////////////////////////////////////////////
@@ -41,8 +41,8 @@ Matrix MatSetSeries(Set setSer)
 {
   Date  FsDat(Serie s){ First(s) };
   Date  LsDat(Serie s){ Last(s) };
-  Date fs = BinGroup("Max", EvalSet(setSer,FsDat));
-  Date ls = BinGroup("Min", EvalSet(setSer,LsDat));
+  Date fs = Group("Max", EvalSet(setSer,FsDat));
+  Date ls = Group("Min", EvalSet(setSer,LsDat));
   SerSetMat(setSer,fs,ls)
 };
 //////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ Matrix MatTriSup(Matrix mat)
         leftMat|(diag<<downMat)      
       })      
     });
-    BinGroup("+", diags)
+    SetSum(diags)
   })
 };
 //////////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ MatTriSup);
 // PURPOSE : Retorna la matriz resultado de concatenar los vectores columna del
 //           conjunto <cols>.
 //////////////////////////////////////////////////////////////////////////////
-{BinGroup("|",cols)};
+{Group("ConcatColumns",cols)};
 
 PutDescription("Matrix ConcatSetCols (Set cols):\n"
 "Retorna la matriz resultado de concatenar los vectores columna del " 
@@ -159,7 +159,7 @@ PutDescription("Matrix ConcatSetCols (Set cols):\n"
 // PURPOSE : Retorna la matriz resultado de concatenar los vectores fila del
 //           conjunto <rows>.
 //////////////////////////////////////////////////////////////////////////////
-{Group("Concat",rows)};
+{Group("ConcatRows",rows)};
 
 PutDescription("Matrix ConcatSetRows (Set rows):\n"
 "Retorna la matriz resultado de concatenar los vectores fila del "
@@ -432,7 +432,7 @@ PutDescription("Aplica un Polyn ar a una Matrix z", FunArMat);
 //////////////////////////////////////////////////////////////////////////////
 Matrix  ColDiag( Matrix col)
 //////////////////////////////////////////////////////////////////////////////
-{ SetDiag( Group("Concat",MatSet(col))) };
+{ SetDiag( MatSet(Tra(col))[1] ) };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("Dada una matriz columna de tamaño n devuevle una matriz 
 cuadrada con elementos en la diagonal a[ii]=col[i]. 

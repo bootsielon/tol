@@ -182,8 +182,8 @@ Text TestResultRoot(Real void)
   };
   //Joins the tables of reports and details of all batteries in just two tables
   //There are all results you need to see in this file
-  Set AllReport = Group("Concat",EvalSet(AllBatteries,Set(Set s) { s[1] }));
-  Set AllDetail = Group("Concat",EvalSet(AllBatteries,Set(Set s) { s[2] }));
+  Set AllReport = SetConcat(EvalSet(AllBatteries,Set(Set s) { s[1] }));
+  Set AllDetail = SetConcat(EvalSet(AllBatteries,Set(Set s) { s[2] }));
   Set stats = CalcReportStats("ALL MERGED",AllDetail);
   Text indicator = Case
   (
@@ -225,7 +225,7 @@ Text TestResultRoot(Real void)
   WriteLn("\nReportTester of battery "+title);
   If(!times, Empty,
   { 
-    Set aux = Group("Concat",For(1,times,Set(Real k)
+    Set aux = SetConcat(For(1,times,Set(Real k)
     {
       RunTests(beginTime,baseDir,config->Parameters,k,times)
     }));
@@ -434,7 +434,7 @@ Text TestResultRoot(Real void)
   {
     RunTests(beginTime,baseDir+"/"+subdir, parameters, iter, maxIter)
   });
-  Set sub_metrics = Group("Concat", deepTest);
+  Set sub_metrics = SetConcat(deepTest);
   Text my_test = baseDir+"/test.tol";
 
   Set aux = If(!FileExist(my_test), sub_metrics,
