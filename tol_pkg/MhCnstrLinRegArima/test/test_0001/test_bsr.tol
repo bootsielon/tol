@@ -54,10 +54,10 @@
 
 BysMcmc::@Config bsr.config = [[
 //MCMC dimensions
-  Real mcmc.burnin        =  100; 
+  Real mcmc.burnin        =  Burnin; 
   Real mcmc.sampleLength  = SampleLength;
   Real mcmc.cacheLength   =  100;
-  Real bsr.linBlk.MH.useAfterIter   = 10
+  Real bsr.linBlk.MH.useAfterIter   = 1/0
 ]];
 
 BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(

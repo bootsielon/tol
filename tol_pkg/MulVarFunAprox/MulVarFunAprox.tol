@@ -21,6 +21,7 @@ Set _.autodoc.authors = [[
 #Embed "DesignC2.Spheric.tol";
 #Embed "DesignC2.Monomial.Spheric.Grid.tol";
 #Embed "DesignC2.Monomial.Spheric.MeshFree.tol";
+#Embed "DesignC2.Monomial.Spheric.Delaunay2D.tol";
 #Embed "ModelC2.tol"
 
 

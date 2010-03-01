@@ -72,6 +72,70 @@ Class @DesignC2.Spheric : @DesignC2
     SubRow(_.R,VCol2Set(Y.idx))
   };
 
+  //////////////////////////////////////////////////////////////////////////////
+    VMatrix build.obs(VMatrix X)
+  //////////////////////////////////////////////////////////////////////////////
+  {
+    FunRn2R::@BaseC2.Eval.Function eval = 
+       FunRn2R::@BaseC2.Eval.Function::New(get.base(0));
+    MatQuery::@KNN.Neighbourhood ngbh = 
+      _.ann::search(VMat2Mat(X),_.X.maxNeighbour);
+    Real m = VRows(X);
+    VMatrix dist = Mat2VMat(Sqrt(ngbh::_.distance2));
+    VMatrix X.h = Mat2VMat(ngbh::_.neighbour);
+    VMatrix X.idx = DifEq(1/(1-B),Constant(m,1,1));
+    VMatrix triplet.all = Group("ConcatRows", For(1,_.X.maxNeighbour,VMatrix(Real k)
+    {
+      VMatrix X.h.k = SubCol(X.h,[[k]]);
+      VMatrix dist.k = SubCol(dist,[[k]]);
+      VMatrix R = get.radius(X.h.k);
+      VMatrix tao = dist.k $/ R;
+      VMatrix lambda = (-tao^2+1)^4;
+      VMatrix match = LT(dist.k,R);
+      SubRow(X.idx | X.h.k | dist.k | tao| lambda, MatQuery::SelectMatch(match))
+    }));
+    VMatrix x.idx = SubCol(triplet.all,[[1]]);
+    VMatrix y.idx = SubCol(triplet.all,[[2]]);
+    VMatrix xy.idx = x.idx | y.idx;
+    VMatrix lambda.col = SubCol(triplet.all,[[5]]);
+    VMatrix triplet.lambda = xy.idx | lambda.col;
+    VMatrix lambda = Triplet(VMat2Mat(triplet.lambda),m,_.H);
+    VMatrix sum.lambda = lambda*Constant(_.H,1,1);
+    VMatrix sum.lambda.inv = Convert(sum.lambda,"Blas.R.Dense")^-1;
+    VMatrix weight = Eye(m,m,0,sum.lambda.inv)*lambda;
+    VMatrix dif = 
+      SubRow(  X,VCol2Set(SubCol(triplet.all,[[1]]))) -
+      SubRow(_.Y,VCol2Set(SubCol(triplet.all,[[2]]))) ;
+    VMatrix P.row = Group("ConcatRows", For(1,_.K,VMatrix(Real k)
+    {
+      x.idx
+    }));
+    VMatrix P.y = Group("ConcatRows", For(1,_.K,VMatrix(Real k)
+    {
+      y.idx
+    }));
+    VMatrix YnCum = DifEq(1/(1-B),_.Yn);
+    VMatrix YnCumB = Sub(SetCol([[0]])<<YnCum,1,1,_.H,1);
+    VMatrix P.YnCum  = SubRow(YnCum, VCol2Set(P.y));
+    VMatrix P.YnCumB = SubRow(YnCumB,VCol2Set(P.y));
+    VMatrix P.k = Group("ConcatRows", For(1,_.K,VMatrix(Real k)
+    {
+      y.idx*0+k
+    }));
+    VMatrix P.col = P.YnCumB + P.k;
+    VMatrix P.match = LE(P.col,P.YnCum);
+    Real eval::upgrade.cache(dif);
+    VMatrix P.ev = Group("ConcatRows", For(1,_.K,VMatrix(Real k)
+    {
+      lambda.col $* eval::evaluate.v(k,dif)
+    }));
+    Matrix P.triplet = VMat2Mat(
+      SubRow(P.row | P.col | P.ev, MatQuery::SelectMatch(P.match)));
+    VMatrix Px = Pack(Convert(Triplet(P.triplet, m, _.N),"Cholmod.R.Sparse"));
+    VMatrix Qx = Eye(m,m,0,sum.lambda.inv)*Px
+  };
+
+
   ///////////////////////////////////////////////////////////////////////////
     VMatrix generate.internal.points(Real m)
   ///////////////////////////////////////////////////////////////////////////

@@ -51,7 +51,7 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
   Real build.stress.points(Real void)
   //////////////////////////////////////////////////////////////////////////////
   {
-    Text _MID = "[@DesignC2.Monomial.Spheric.MeshFree::build.stress.points] ";
+    Text _MID = "[@DesignC2.Monomial.Spheric.Delaunay2D::build.stress.points] ";
     Real _.Z.maxNeighbour := If(prior.Z.order>=0,2,0);
     If(!_.Z.maxNeighbour, 
     {
@@ -73,7 +73,7 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
     Set match_ = For(1,_.X.maxNeighbour-1,VMatrix(Real k)
     {
       And(
-        LE(distance_[k], Constant(_.J,1,stress.maxDistance)),
+        LE(distance_[k], Constant(_.H,1,stress.maxDistance)),
         LT(Y1_[k],Y2_[k]))
     });
     VMatrix distance.all = Group("ConcatRows",distance_);
@@ -113,6 +113,7 @@ Class @DesignC2.Monomial.Spheric.MeshFree :
       prior.Z.order==2, _.Tz*(1+_.n*3/2+(1/2)*_.n^2));
     _.Tz
   })};
+
 
   //////////////////////////////////////////////////////////////////////////////
   Real build.border.points(Real void)
