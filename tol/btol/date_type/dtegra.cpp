@@ -224,15 +224,14 @@ static BPutDefaultDates * putDefaultDates_ = (BPutDefaultDates*)(__delay_init((v
 
 //--------------------------------------------------------------------
 DeclareContensClass(BDate, BDteTemporary, BDteMin);
-DefIntOpr(1, BDteMin, "Min", 2, 0,
-  I2("(Date date1, Date date2, [Date date3, ...])",
-     "(Date fecha1, Date fecha2, [Date fecha3, ...])"),
-  I2("Returns the minimal from among two or more dates.\n\n"
+DefIntOpr(1, BDteMin, "Min", 1, 0,
+  "(Date date1, [Date date2, ...])",
+  I2("Returns the minimal from among a list of dates.\n\n"
      "Example:\n"
      "Date x = Min(y1996m1d1, y1971m12d31, y1971m12d30, y1997m12d31);\n\n"
      "Result:\n"
      "x == y1971m12d30",
-     "Devuelve la mínima de entre dos o más fechas.\n\n"
+     "Devuelve la mínima de una lista de fechas.\n\n"
      "Ejemplo:\n"
      "Date x = Min(y1996m1d1, y1971m12d31, y1971m12d30, y1997m12d31);\n\n"
      "Resultado:\n"
@@ -256,15 +255,14 @@ void BDteMin::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BDate, BDteTemporary, BDteMax);
-DefIntOpr(1, BDteMax, "Max", 2, 0,
-  I2("(Date date1, Date date2, [Date date3, ...])",
-     "(Date fecha1, Date fecha2, [Date fecha3, ...])"),
-  I2("Returns the maximal from among two or more dates.\n\n"
+DefIntOpr(1, BDteMax, "Max", 1, 0,
+  "(Date date1, [Date date2, ...])",
+  I2("Returns the maximal from among a list of dates.\n\n"
      "Example:\n"
      "Date x = Min(y1996m1d1, y1971m12d31, y1971m12d30, y1997m12d31);\n\n"
      "Result:\n"
      "x == y1997m12d31",
-     "Devuelve la máxima de entre dos o más fechas.\n\n"
+     "Devuelve la máxima de una lista de fechas.\n\n"
      "Ejemplo:\n"
      "Date x = Min(y1996m1d1, y1971m12d31, y1971m12d30, y1997m12d31);\n\n"
      "Resultado:\n"
