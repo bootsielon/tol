@@ -891,8 +891,8 @@ static void ApplyFunToList(BDatBinary fun,
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatMin);
-DefIntOpr(1, BMatMin, "Min", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefIntOpr(1, BMatMin, "Min", 1, 0,
+  "(Matrix M1 [, Matrix M2, ...])",
   I2("Returns the minimum of all arguments.",
      "Devuelve el minimo de todos los argumentos."),
     BOperClassify::MatrixAlgebra_);
@@ -906,8 +906,8 @@ void BMatMin::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatMax);
-DefIntOpr(1, BMatMax, "Max", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefIntOpr(1, BMatMax, "Max", 1, 0,
+  "(Matrix M1 [, Matrix M2, ...])",
   I2("Returns the maximum of all arguments.",
      "Devuelve el maximo de todos los argumentos."),
     BOperClassify::MatrixAlgebra_);
