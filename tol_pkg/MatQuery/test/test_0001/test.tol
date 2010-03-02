@@ -50,7 +50,7 @@ Matrix city.points.freq = Frequency(city.points.num,100);
 Real point.num = MatSum(city.points.num);
 
 //Locations of cities
-Matrix city.center = BinGroup("<<",For(1,city.num, Matrix(Real city)
+Matrix city.center = Group("ConcatRows",For(1,city.num, Matrix(Real city)
 {
   Rand(1, 2, coord.min, coord.max)
 }));
@@ -67,7 +67,7 @@ Set city.points = For(1,city.num, Matrix(Real city)
 });
 
 //All points
-VMatrix points = Mat2VMat(BinGroup("<<",city.points));
+VMatrix points = Mat2VMat(Group("ConcatRows",city.points));
 
 
 //Target point

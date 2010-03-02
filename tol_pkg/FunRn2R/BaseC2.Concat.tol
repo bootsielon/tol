@@ -23,7 +23,7 @@ Class @BaseC2.Concat : @BaseC2
   ////////////////////////////////////////////////////////////////////////////
   {
     Real n = (base[1])::_.n;
-    Set map = BinGroup("<<", For(1,Card(base),Set(Real h)
+    Set map = SetConcat(For(1,Card(base),Set(Real h)
     {
       If((base[h])::_.n!=n,WriteLn("[@BaseC2.Concat::New] "
       "Cannot concat bases with different domain vectorial space dimension "

@@ -141,9 +141,9 @@ Class @Interp2D.Gravit : @Interp2D
     Real i.max = Min(Card(_.x.range)+1,p.x.class+1);
     Real j.min = Max(1,p.y.class-1);
     Real j.max = Min(Card(_.y.range)+1,p.y.class+1);
-    Set p.candidates = BinGroup("<<",For(i.min, i.max, Set(Real i)
+    Set p.candidates = SetConcat(For(i.min, i.max, Set(Real i)
     {
-      BinGroup("<<",For(j.min, j.max, Set(Real j)
+      SetConcat(For(j.min, j.max, Set(Real j)
       {
         _.grid[i][j]  
       }))
@@ -170,9 +170,9 @@ Class @Interp2D.Gravit : @Interp2D
     Real i.max = Min(Card(_.x.range)+1,p.x.class+1);
     Real j.min = Max(1,p.y.class-1);
     Real j.max = Min(Card(_.y.range)+1,p.y.class+1);
-    Set p.candidates = BinGroup("<<",For(i.min, i.max, Set(Real i)
+    Set p.candidates = SetConcat(For(i.min, i.max, Set(Real i)
     {
-      BinGroup("<<",For(j.min, j.max, Set(Real j)
+      SetConcat(For(j.min, j.max, Set(Real j)
       {
         _.grid[i][j]  
       }))

@@ -158,7 +158,7 @@ Text _.autodoc.member.IndexedGrid =
   {
     VMatrix Y.neighbour.pos = _.Y + Rand(_.H,_.n,_.edge.length,_.edge.length);
     VMatrix Y.neighbour.neg = _.Y - Rand(_.H,_.n,_.edge.length,_.edge.length);
-    Set _.Y.neighbourhood.point := BinGroup("<<", For(1,_.n,Set(Real i)
+    Set _.Y.neighbourhood.point := SetConcat(For(1,_.n,Set(Real i)
     { 
       VMatrix pre  = SubCol(_.Y,Range(1,  i-1,1));
       VMatrix post = SubCol(_.Y,Range(i+1,_.n,1));

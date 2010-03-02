@@ -173,7 +173,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
     WriteLn("TRACE "+_MID+"9");
     VMatrix _.Y.neighbourhood := _.Y.h | If(!force.reference.near.nodal,
     {
-      Set aux.1 = BinGroup("<<", For(1,_.n,Set(Real i)
+      Set aux.1 = SetConcat(For(1,_.n,Set(Real i)
       {
         VMatrix pre  = SubCol(_.Y,Range(1,  i-1,1));
         VMatrix post = SubCol(_.Y,Range(i+1,_.n,  1));
@@ -183,7 +183,7 @@ Class @DesignC2.Monomial.Spheric.Grid :
       Group("ConcatColumns",EvalSet(aux.1,closest.grid.index))
     },
     {
-      Set aux.1 = BinGroup("<<", For(1,_.n,Set(Real i)
+      Set aux.1 = SetConcat(For(1,_.n,Set(Real i)
       {
         VMatrix pre    = SubCol(_.Y,Range(1,  i-1,1));
         VMatrix post   = SubCol(_.Y,Range(i+1,_.n,  1));
