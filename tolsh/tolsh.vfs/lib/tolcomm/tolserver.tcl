@@ -28,7 +28,16 @@ namespace eval ::tolserver {
     queue,tasks  ""
     queue,cancel ""
   }
+  
+  variable trace_active
+  
+  set trace_active 0
 }
+
+global shared_data
+set shared_data(request) ""
+set shared_data(init) ""
+set shared_data(server_init) 0
 
 ###############################################################################
 #
@@ -287,7 +296,7 @@ proc ::tolserver::on_toleval { chan idrq cmd }  {
   log "notice" "TOLEVAL $cmd"
   set idtask [insert_expr $chan $idrq $cmd]
   send_to_client $chan "TSTART" "$idrq $idtask"
-  schedule_queue
+  after idle ::tolserver::dispatch_to_slave
   
   log "debug" "leave, on_toleval"
 }
@@ -439,31 +448,46 @@ proc ::tolserver::close_socket { } {
 #
 ###############################################################################
 proc ::tolserver::start { args } {
-  variable data
+  global shared_data
 
   array set options {
     -port 6669
     -logfile ""
+    -compile ""
   }
   array set options $args
 
   ::tlogger::init tolserver $options(-logfile)
-  ::tlogger::level tolserver "error"
+  ::tlogger::level tolserver "debug"
 
-  # redirect the log
-  ::tol::console eval [string map "%P $options(-port)" {
-    Text {
-      Text srv_root = TolAppDataPath+"/server";
-      Real OSDirMake(srv_root);
-      Text PutDumpFile(srv_root+"/start.%P.log")
-    }
-  }]
   if {[catch {open_socket $options(-port)} msgerr]} {
     log emergency "::tolserver::start '$msgerr'"
     exit
   } else {
     log "notice" "started"
   }
+  
+  server_attach_data
+
+  log "debug" "shared_data(init)=$options(-compile)"
+  set shared_data(init) $options(-compile)  
+  set shared_data(server_init) 1
+}
+
+proc ::tolserver::server_attach_data {} {
+  package require tequila
+  global shared_data
+
+  tequila::open localhost 20458
+  tequila::attach shared_data
+  trace add var shared_data write tolserver::server_listen
+}    
+
+proc tolserver::server_listen {name index op} {
+  global shared_data
+
+  log "debug" "server_listen:index=$index"
+  log "debug" "[array get shared_data]"
 }
 
 ###############################################################################
@@ -507,48 +531,59 @@ proc ::tolserver::insert_expr { chan idrq tol_expr } {
   incr data(queue,id)
   set client [get_client_id $chan]
   set idtask "${client}:$data(queue,id)"
-  lappend data(queue,tasks) [list $idtask $idrq $chan $tol_expr]
-
+  push_queue_tasks [list $idtask $idrq $chan $tol_expr]
   log "debug" "leave, insert_expr, $idtask"
   set idtask
 }
 
-proc ::tolserver::process_queue { } {
+proc ::tolserver::push_queue_tasks {item} {
   variable data
 
-  log "debug" "enter, process_queue"
-
-  if {[llength $data(queue,tasks)]} {
-    set item [lindex $data(queue,tasks) 0]
-    set data(queue,tasks) [lrange data(queue,tasks) 1 end]
-    foreach {idtask idrq chan tol_expr} $item break
-    set idx [lsearch $data(queue,cancel) $idrq]
-    if {$idx != -1} {
-      log debug "canceling task $idtask"
-      # remove idrq from the cancel list
-      set data(queue,cancel) [lreplace $data(queue,cancel) $idx $idx]
-    } else {
-      log debug "processing task $idtask"
-      ::tol::console eval $tol_expr
-      # inform client this request has being finished
-      after idle [namespace code "send_to_client $chan TFINISH $idtask"]
-    }
-    schedule_queue
-  }
-
-  log "debug" "leave, process_queue"
+  log "debug" "tolserver::push_queue_tasks:item=$item"
+  lappend data(queue,tasks) $item
 }
 
-###########################################################################
-#
-# 
-#
-###########################################################################
-proc ::tolserver::schedule_queue { } {
+proc ::tolserver::dispatch_to_slave {} {
+  global shared_data
+  variable trace_active
 
+  log "debug" "tolserver::dispatch_to_slave"
+  if {$shared_data(slave_status) eq "ready"} {
+    send_tasks_to_slave
+  } else {
+    set trace_active 1
+    trace add var shared_data(slave_status) write ::tolserver::send_tasks_to_slave
+  }
+}
+
+proc ::tolserver::send_tasks_to_slave {} {
+  global shared_data
+  variable trace_active
+
+  if {$trace_active == 1} {
+    trace remove var shared_data(slave_status) write ::tolserver::send_tasks_to_slave
+    set trace_active 0
+  }
+  log "debug" "tolserver::send_tasks_to_slave"
+  set t_list [get_queue_tasks]
+  set_queue_shared $t_list
+  if {$shared_data(ack) eq 0} {
+    vwait shared_data(ack)
+  }
+}
+
+proc ::tolserver::get_queue_tasks {} {
   variable data
 
-  if {[llength $data(queue,tasks)]} {
-    after idle [namespace code process_queue]
-  }
+  set t_list $data(queue,tasks)
+  set data(queue,tasks) [list]
+  log "debug" "tolserver::get_queue_tasks:t_list=$t_list"
+  return $t_list
+}
+
+proc ::tolserver::set_queue_shared {t_list} {
+  global shared_data
+  
+  log "debug" "tolserver::set_queue_shared:t_list=$t_list"
+  set shared_data(request) $t_list
 }

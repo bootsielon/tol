@@ -156,6 +156,19 @@ proc ::tolsh::getoptions { cmdline } {
           puts "Could not start as a server: invalid port number '${port}'"
           exit
         }
+      } elseif {$opt eq "slave"} {
+        # the next argument is the port number
+        set options(server,port) [lindex $cmdline [expr {$i+1}]]
+        incr i
+        if {$options(runmode) ne "" && $options(runmode) ne "slave"} {
+          puts "Replacing previous run mode '$options(runmode)' with 'slave'"
+        }
+        set options(runmode) "slave"
+      } elseif {$opt eq "shared"} {
+        if {$options(runmode) ne "" && $options(runmode) ne "shared"} {
+          puts "Replacing previous run mode '$options(runmode)' with 'shared'"
+        }
+        set options(runmode) "shared"
       } else {
         append delayed_msg "\nignoring unknown option: '$item'"
       }
@@ -301,9 +314,28 @@ proc ::tolsh::setup_autopath { } {
   setup_pkg toltcl
   setup_pkg tolcomm
   setup_pkg tlogger
+  setup_pkg tequila
+  setup_pkg tequilas
 
   logtmp "auto_path = $::auto_path"
   logtmp "leaving ::tolsh::setup_autopath"  
+}
+
+proc GetHomeDir { } {
+  global env 
+  # Check if we're using windows 
+  if { $::tcl_platform(platform) eq "windows" } {
+    package require registry 1.0
+    set key1 {HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders}
+    set key2 {Personal}
+    set env_home [ registry get $key1 $key2 ]
+    if {[string match %USERPROFILE%* $env_home]} {
+      set env_home [string replace $env_home 0 12 $env(USERPROFILE)]
+    } 
+  } else {
+    set env_home $env(HOME)
+  }
+  return $env_home
 }
 
 ###############################################################################
@@ -332,55 +364,61 @@ proc ::tolsh::run { cmdline } {
   #
   setup_autopath
 
-  # Load Toltcl (+tol)
+  # Load Toltcl (+tol) and initLibrary if required
   #
-  package require -exact Toltcl 2.0.1
-  tol::initkernel $options(lang) $options(vmode)
+  if {$options(runmode) != "server" && $options(runmode) != "shared"} {
+    package require -exact Toltcl 2.0.1
+    tol::initkernel $options(lang) $options(vmode)
 
-  # Load initLibrary if required
-  #
-  if {$options(initlib)} {
-    tol::initlibrary
+    if {$options(initlib)} {
+      tol::initlibrary
+    }
+
+    set appdata [string trim \
+               [lindex [::tol::info var [list Text TolAppDataPath]] 2] \"]
+    logtmp "appdata = $appdata"
   }
 
-  set appdata [string trim \
-               [lindex [::tol::info var [list Text TolAppDataPath]] 2] \"]
-
-  logtmp "appdata = $appdata"
-
-  set tolcomm_dir [file join $appdata tolcomm] 
+  set tolcomm_dir [file join [GetHomeDir] tolcomm] 
   file mkdir $tolcomm_dir
 
-  # load rmtps_client
+  # load rmtps_client and tolclient if required
   #
-  if {[catch {package require rmtps_client} msg]} {
-    std "could not load rmtps_client: $msg"
-  } else {
-    ::rmtps_client::init [file join $tolcomm_dir "rmtps_client.log"]
-    if {[catch rmtps_client::define_TOLAPI msg]} {
-      std "could not load tol code for rmtps_client: $msg"
-    }
-  }
+  if {$options(runmode) != "server" && $options(runmode) != "shared"} {
   
-  # load tolclient
-  #
-  if {[catch {package require tolclient} msg]} {
-    std "could not load tolclient: $msg"
-  } else {
-    ::tolclient::init [file join $tolcomm_dir "tolclient.log"]
-    if {[catch ::tolclient::define_TOLAPI msg]} {
-      std "could not load tol code for rmtps_client: $msg"
+    if {[catch {package require rmtps_client} msg]} {
+      std "could not load rmtps_client: $msg"
+    } else {
+      ::rmtps_client::init [file join $tolcomm_dir "rmtps_client.log"]
+      if {[catch rmtps_client::define_TOLAPI msg]} {
+        std "could not load tol code for rmtps_client: $msg"
+      }
     }
+  
+    if {[catch {package require tolclient} msg]} {
+      std "could not load tolclient: $msg"
+    } else {
+      ::tolclient::init [file join $tolcomm_dir "tolclient.log"]
+      if {[catch ::tolclient::define_TOLAPI msg]} {
+        std "could not load tol code for rmtps_client: $msg"
+      }
+    }
+    
   }
 
-  # Compile expression and tol file provided in the command line
+  # Compile expression and tol file provided in the command line if required
   #
-  foreach item $options(compile) {
-    if {[lindex $item 0] eq "expr"} {
-      tol::console eval [lindex $item 1]
-    } elseif {[lindex $item 0] eq "file"} {
-      tol::include [lindex $item 1]
+  if {$options(runmode) != "server" && $options(runmode) != "shared" \
+                                    && $options(runmode) != "slave" } {
+
+    foreach item $options(compile) {
+      if {[lindex $item 0] eq "expr"} {
+        tol::console eval [lindex $item 1]
+      } elseif {[lindex $item 0] eq "file"} {
+        tol::include [lindex $item 1]
+      }
     }
+
   }
   
   if {$options(runmode) eq "interactive"} {
@@ -391,13 +429,58 @@ proc ::tolsh::run { cmdline } {
     console_prompt
     # enter the tcl event loop
     vwait __forever__
+    
   } elseif {$options(runmode) eq "server"} {
-    package require tolserver
-    tolserver::start -port $options(server,port) \
-        -logfile [file join $tolcomm_dir "tolserver.log"]
-    vwait __forever__
+    puts "runmode=server"
+    run_as_server $tolcomm_dir
+    
+  } elseif {$options(runmode) eq "shared"} {
+    puts "runmode=shared"
+    run_as_shared    
+  
+  } elseif {$options(runmode) eq "slave"} {
+    puts "runmode=slave"
+    run_as_slave $tolcomm_dir   
   }
 }
+
+proc ::tolsh::run_as_server {tolcomm_dir} {
+  variable options
+  package require tolserver
+
+  clone
+  tolserver::start -port $options(server,port) \
+    -logfile [file join $tolcomm_dir "tolserver.log"] \
+    -compile $options(compile)
+  vwait __forever__
+}   
+
+proc ::tolsh::clone {} {
+  variable options
+
+  puts "::tolsh::clone"
+  set tolsh [info nameofexecutable]
+  puts "exec shared"
+  exec $tolsh -shared &
+  after 5000            ;# wait for data sharing are created by 'shared'
+  puts "exec slave"
+  exec $tolsh -slave $options(server,port) &
+}
+
+proc ::tolsh::run_as_shared {} {
+  package require tolshared
+
+  tolshared::start
+}   
+
+proc ::tolsh::run_as_slave {tolcomm_dir} {
+  variable options
+  package require tolslave
+
+  tolslave::start -port $options(server,port) \
+    -logfile [file join $tolcomm_dir "tolslave.log"]
+  vwait __forever__
+}   
 
 proc ::tolsh::console_cmd { cmd } {
   if {$cmd eq "END" || $cmd eq "QUIT" || $cmd eq "EXIT"} {
