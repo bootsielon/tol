@@ -379,7 +379,7 @@ proc ::tolsh::run { cmdline } {
     logtmp "appdata = $appdata"
   }
 
-  set tolcomm_dir [file join [GetHomeDir] tolcomm] 
+  set tolcomm_dir [file join [GetHomeDir] ".tol" "tolcomm"] 
   file mkdir $tolcomm_dir
 
   # load rmtps_client and tolclient if required

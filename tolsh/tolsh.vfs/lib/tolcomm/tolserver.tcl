@@ -28,10 +28,6 @@ namespace eval ::tolserver {
     queue,tasks  ""
     queue,cancel ""
   }
-  
-  variable trace_active
-  
-  set trace_active 0
 }
 
 global shared_data
@@ -480,6 +476,8 @@ proc ::tolserver::server_attach_data {} {
 
   tequila::open localhost 20458
   tequila::attach shared_data
+  
+  # this trace is just for debbuging, it's not necesary actually
   trace add var shared_data write tolserver::server_listen
 }    
 
@@ -532,6 +530,7 @@ proc ::tolserver::insert_expr { chan idrq tol_expr } {
   set client [get_client_id $chan]
   set idtask "${client}:$data(queue,id)"
   push_queue_tasks [list $idtask $idrq $chan $tol_expr]
+
   log "debug" "leave, insert_expr, $idtask"
   set idtask
 }
@@ -539,37 +538,33 @@ proc ::tolserver::insert_expr { chan idrq tol_expr } {
 proc ::tolserver::push_queue_tasks {item} {
   variable data
 
-  log "debug" "tolserver::push_queue_tasks:item=$item"
+  log "debug" "push_queue_tasks:item=$item"
   lappend data(queue,tasks) $item
 }
 
 proc ::tolserver::dispatch_to_slave {} {
   global shared_data
-  variable trace_active
 
-  log "debug" "tolserver::dispatch_to_slave"
-  if {$shared_data(slave_status) eq "ready"} {
-    send_tasks_to_slave
-  } else {
-    set trace_active 1
-    trace add var shared_data(slave_status) write ::tolserver::send_tasks_to_slave
+  log "debug" "enter dispatch_to_slave"
+  if {$shared_data(slave_status) ne "ready"} {
+    log "debug" "dispatch_to_slave: vwait shared_data(slave_status)"
+    vwait shared_data(slave_status)
   }
+  send_tasks_to_slave
+  log "debug" "leave dispatch_to_slave"
 }
 
 proc ::tolserver::send_tasks_to_slave {} {
   global shared_data
-  variable trace_active
 
-  if {$trace_active == 1} {
-    trace remove var shared_data(slave_status) write ::tolserver::send_tasks_to_slave
-    set trace_active 0
-  }
-  log "debug" "tolserver::send_tasks_to_slave"
+  log "debug" "enter send_tasks_to_slave"
   set t_list [get_queue_tasks]
   set_queue_shared $t_list
-  if {$shared_data(ack) eq 0} {
-    vwait shared_data(ack)
-  }
+  #if {$shared_data(ack) == 0} {
+    #log "debug" "send_tasks_to_slave: vwait shared_data(ack)"
+    #vwait shared_data(ack)
+  #}
+  log "debug" "leave send_tasks_to_slave"
 }
 
 proc ::tolserver::get_queue_tasks {} {
@@ -577,13 +572,13 @@ proc ::tolserver::get_queue_tasks {} {
 
   set t_list $data(queue,tasks)
   set data(queue,tasks) [list]
-  log "debug" "tolserver::get_queue_tasks:t_list=$t_list"
+  log "debug" "get_queue_tasks:t_list=$t_list"
   return $t_list
 }
 
 proc ::tolserver::set_queue_shared {t_list} {
   global shared_data
   
-  log "debug" "tolserver::set_queue_shared:t_list=$t_list"
+  log "debug" "set_queue_shared:t_list=$t_list"
   set shared_data(request) $t_list
 }

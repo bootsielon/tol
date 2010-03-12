@@ -25,7 +25,7 @@ namespace eval ::tolslave {
 }
 
 global shared_data
-set shared_data(ack) 0
+#set shared_data(ack) 0
 set shared_data(slave_status) "busy"
 
 ###############################################################################
@@ -75,7 +75,7 @@ proc ::tolslave::start {args} {
 
   # Compile expression and tol file provided in the command line
   #
-  if {$shared_data(server_init) eq 0} {
+  if {$shared_data(server_init) == 0} {
     vwait shared_data(server_init)
   }
   foreach item $shared_data(init) {
@@ -88,8 +88,9 @@ proc ::tolslave::start {args} {
     }
   }
 
-  set shared_data(ack) 0
+  #set shared_data(ack) 0
   set shared_data(slave_status) "ready"
+  log "debug" "leave start"
 }
 
 proc ::tolslave::slave_attach_data {} {
@@ -98,16 +99,20 @@ proc ::tolslave::slave_attach_data {} {
 
   tequila::open localhost 20458
   tequila::attach shared_data
-  trace add var shared_data(request) write tolslave::slave_listen
+  #trace add var shared_data(request) write tolslave::slave_listen
+  trace add var shared_data write tolslave::slave_listen
 }    
 
 proc tolslave::slave_listen {name index op} {
   global shared_data
 
-  log "debug" "slave_listen:index=$index"
+  log "debug" "enter slave_listen:index=$index"
   log "debug" "[array get ::shared_data]"
-  set shared_data(ack) 0
-  schedule_queue
+  #set shared_data(ack) 0
+  if {$index eq "request"} {
+    schedule_queue
+  }
+  log "debug" "leave slave_listen"
 }
 
 proc ::tolslave::schedule_queue { } {
@@ -117,7 +122,7 @@ proc ::tolslave::schedule_queue { } {
   set t_list [get_queue_shared]
   set_queue_tasks $t_list
   after idle [process_queue]
-  set shared_data(ack) 1
+  #set shared_data(ack) 1
   log "debug" "leave, schedule_queue"
 }
 
@@ -125,21 +130,21 @@ proc ::tolslave::get_queue_shared {} {
   global shared_data
 
   set t_list $shared_data(request)
-  #tequila::privTracer "shared_data" "request" "w"
-  log "debug" "tolslave::get_queue_shared:t_list=$t_list"
+  log "debug" "get_queue_shared:t_list=$t_list"
   return $t_list
 }
 
 proc ::tolslave::set_queue_tasks {t_list} {
   variable data
 
-  log "debug" "tolslave::set_queue_tasks:t_list=$t_list"
+  log "debug" "set_queue_tasks:t_list=$t_list"
   #lappend data(queue,tasks) {*}$t_list
   set data(queue,tasks) $t_list
 }
 
 proc ::tolslave::process_queue { } {
   variable data
+  global shared_data
 
   log "debug" "enter, process_queue"
 
@@ -148,7 +153,7 @@ proc ::tolslave::process_queue { } {
   foreach item $data(queue,tasks) {
     foreach {idtask idrq chan tol_expr} $item break
     set idx [lsearch $data(queue,cancel) $idrq]
-    log "debug" "::tolslave::process_queue idx=$idx, idtask=$idtask"
+    log "debug" "process_queue idx=$idx, idtask=$idtask"
     if {$idx != -1} {
       log debug "canceling task $idtask"
       # remove idrq from the cancel list
@@ -162,6 +167,6 @@ proc ::tolslave::process_queue { } {
     }
   }
   set shared_data(slave_status) "ready"
-  #tequila::GetAll "shared_data"
+  #tequila::do GetAll shared_data
   log "debug" "leave, process_queue"
 }
