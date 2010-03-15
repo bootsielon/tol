@@ -36,6 +36,7 @@ set shared_tasks(init) ""
 set shared_tasks(server_init) 0
 
 global shared_state
+global shared_finish
 
 ###############################################################################
 #
@@ -476,17 +477,35 @@ proc ::tolserver::server_attach_data {} {
   package require tequila
   global shared_tasks
   global shared_state
+  global shared_finish
 
   tequila::open localhost 20458
   tequila::attach shared_tasks
   tequila::attach shared_state
+  tequila::attach shared_finish
   
+  #trace add var shared_finish(tasks) write tolserver::server_listen_finish
+  trace add var shared_finish write tolserver::server_listen_finish
+
   # this trace is just for debbuging, it's not necesary actually
   trace add var shared_tasks write tolserver::server_listen_tasks
   
   # this trace is just for debbuging, it's not necesary actually
   trace add var shared_state write tolserver::server_listen_state
 }    
+
+proc tolserver::server_listen_finish {name index op} {
+  global shared_finish
+
+  log "debug" "enter server_listen_finish:index=$index"
+  log "debug" "[array get ::shared_finish]"
+  
+  # inform client this request has being finished
+  foreach {chan idtask} $shared_finish(tasks) break
+  after idle [namespace code "send_to_client $chan TFINISH $idtask"]
+
+  log "debug" "leave server_listen_finish"
+}
 
 proc tolserver::server_listen_tasks {name index op} {
   global shared_tasks
@@ -569,17 +588,12 @@ proc ::tolserver::dispatch_to_slave {} {
 }
 
 proc ::tolserver::send_tasks_to_slave {} {
-  #global shared_data
 
   log "debug" "enter send_tasks_to_slave"
   set t_list [get_queue_tasks]
   if {[llength $t_list] != 0} {
     set_queue_shared $t_list
   }
-  #if {$shared_data(ack) == 0} {
-    #log "debug" "send_tasks_to_slave: vwait shared_data(ack)"
-    #vwait shared_data(ack)
-  #}
   log "debug" "leave send_tasks_to_slave"
 }
 
