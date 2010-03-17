@@ -80,7 +80,8 @@ TimeSet Semestral     = D(1)*(M(1)+M(7));
 TimeSet Anual         = D(1)*M(1);
 TimeSet Bianual       = Periodic(y1900,2, Anual);
 TimeSet Bianual1      = Periodic(y1901,2, Anual);
-TimeSet Decanual      = Periodic(y1901,10,Anual);
+TimeSet Quinquenal    = Periodic(y1900,5, Anual);
+TimeSet Decanual      = Periodic(y1900,10,Anual);
 
 TimeSet Hourly        = Mi(0);
 TimeSet Weekly        = WD(1);
@@ -97,7 +98,8 @@ TimeSet HalfYearly    = D(1)*(M(1)+M(7));
 TimeSet Yearly        = D(1)*M(1);
 TimeSet Biyearly      = Periodic(y1900,2,Anual);
 TimeSet Biyearly1     = Periodic(y1901,2,Anual);
-TimeSet Tenyearly     = Periodic(y1901,10,Anual);
+TimeSet Fiveyearly    = Periodic(y1900,5,Anual);
+TimeSet Tenyearly     = Periodic(y1900,10,Anual);
 
 TimeSet PseudoMensual = Range(D(1),0,6)*WD(1);
 TimeSet PseudoAnual   = Range(M(1)*D(1),0,6)*WD(1);
@@ -125,5 +127,4 @@ Serie   ThursayInMonth   = CalVar(WD(4), Monthly);
 Serie   FridayInMonth    = CalVar(WD(5), Monthly);
 Serie   SaturdayInMonth  = CalVar(WD(6), Monthly);
 Serie   SundayInMonth    = CalVar(WD(7), Monthly);
-
 
