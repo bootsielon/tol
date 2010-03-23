@@ -1,3 +1,4 @@
+Real UsingNameBlock(GuiTools);
 
 Class @GuiTest_Hello : @MenuDesc
 {
@@ -8,7 +9,7 @@ Class @GuiTest_Hello : @MenuDesc
   };
 
   Set getMenuEntries(Real void) {
-    Set [[ [[ "Hola ...", "showMessage" ]] ]]
+    Set [[ [[ "Hola ...", "showMessage" ]],  [[ "Hola 2...", "showMessage" ]] ]]
   }
 };
 
