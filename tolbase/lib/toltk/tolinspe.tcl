@@ -499,6 +499,7 @@ proc ::TolInspector::CreateMenus {} {
   set data_menu(Anything,File) [menu $data_menu(main).mspf -tearoff 0]
   set data_menu(Text,File)     [menu $data_menu(main).mtef -tearoff 0]
   set data_menu(TimeSet,File)  [menu $data_menu(main).mtif -tearoff 0]
+  set data_menu(NameBlock,File)  [menu $data_menu(main).mnbf -tearoff 0]
 
   set data_menu(Code,Functions)     [menu $data_menu(main).mcofu -tearoff 0]
   set data_menu(Complex,Functions)  [menu $data_menu(main).mcxfu -tearoff 0]
