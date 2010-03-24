@@ -1827,7 +1827,7 @@ proc ::TolInspector::NotBusy { } {
 
 proc Tol_ObjIsClassOf { obj_addr cls_name } {
   tol::console eval [ string map [ list %A $obj_addr %C $cls_name ] {
-    Real __gui_check__ = IsInstanceOf(GetObjectFromAddress("%A"),"%C")
+    Real __gui_check__ = IsInstanceOf( GetObjectFromAddress( "%A" ),"%C" )
   } ]
   set info [ tol::info variable {Real __gui_check__} ]
   set x [ lindex $info 2 ]
@@ -1835,7 +1835,50 @@ proc Tol_ObjIsClassOf { obj_addr cls_name } {
   expr { round($x) }
 }
 
-proc TolGui_GetMenuEntries { obj_addr } {
+proc Tol_ClassOf { obj_addr } {
+  tol::console eval [ string map [ list %A $obj_addr ] {
+    Text __gui_classof__ = {
+      Anything obj = GetObjectFromAddress( "%A" );
+      // WriteLn( "Tol_ClassOf " << Grammar( obj ) );
+      Text If( Grammar( obj ) == "NameBlock", ClassOf( obj ), "" )
+    }
+  } ]
+  set info [ tol::info variable {Text __gui_classof__} ]
+  set x [ string trim [ lindex $info 2 ]  \" ]
+  tol::console stack release __gui_classof__
+  set x
+}
+
+proc TolGui_GetMenuEntries { selection idx } {
+  array set instances {}
+  array set menu_class {}
+  set i 0
+  foreach obj_info $selection {
+    set tcl_ref [ lindex $obj_info 0 ]
+    set obj_addr [ ::tol::info address $tcl_ref ]
+    set class [ Tol_ClassOf $obj_addr ]
+    if { $class ne "" } {
+      lappend instances($class) $obj_addr
+      set name_inst [ lindex $obj_info 1 ]
+      set menu_items [ TolGui_GetObjMenu $obj_addr ]
+      # esto hace que estemos guardando la ultima instancia, asumimos
+      # tambien que todas las instancia tienen la misma espcificacion
+      # de menu
+      if { ![ llength [ array names menu_class $class ] ] || $i == $idx } {
+        set menu_class($class) \
+            [ list $name_inst $obj_addr $menu_items ]
+      }
+    }
+    incr i
+  }
+  set menu_info [ list ]
+  foreach c [ array names instances ] {
+      lappend menu_info [ list $c $menu_class($c) $instances($c) ]
+  }
+  set menu_info
+}
+
+proc TolGui_GetObjMenu { obj_addr } {
   set try [ catch {
     tol::console eval [ string map [ list %A $obj_addr ] {
       @MenuDesc __aux_menu__ = GetObjectFromAddress("%A");
@@ -1852,7 +1895,7 @@ proc TolGui_GetMenuEntries { obj_addr } {
   set result
 }
 
-proc TolGui_InvokeMethod { obj_addr method } {
+proc TolGui_InvokeMethod { method obj_addr } {
   set try [ catch {
     tol::console eval [ string map [ list %A $obj_addr %M $method ] {
       NameBlock __aux_instance__ = GetObjectFromAddress("%A");
@@ -1862,6 +1905,27 @@ proc TolGui_InvokeMethod { obj_addr method } {
     puts "ERROR TolGui_InvokeMethod : $msg"
   }
   tol::console stack release __aux_instance__
+  tol::console stack release __aux_result__
+}
+
+proc TclList2SetOfText { lst } {
+  set result [ list ]
+  foreach i $lst {
+    lappend result \"$i\"
+  }
+  return "SetOfText([join $result ,])"
+}
+
+proc TolGui_InvokeGroup { cname function group } {
+  set SOA [ TclList2SetOfText $group ]
+  set try [ catch {
+    tol::console eval \
+        [ string map [ list %C $cname %F $function %S $SOA ] {
+          Real __aux_result__ = %C::%F( %S )
+        } ] } msg ]
+  if { $try } {
+    puts "ERROR TolGui_InvokeGroup : $msg"
+  }
   tol::console stack release __aux_result__
 }
 
@@ -1900,7 +1964,7 @@ proc ::TolInspector::PostVariable { x y } {
   set InRootFiles [string equal [lindex [$ht_tree get -full anchor] end] "root-files"]
   #puts "PostVariable: InRootConsole,InRootPool,InRootFiles = $InRootConsole,$InRootPool,$InRootFiles"
   set node_act [$ht_vars index current]
-  if { [string length $node_act] } {      
+  if { [string length $node_act] } {
     set vars_selected [$ht_vars curselection]
     if { [lsearch $vars_selected $node_act] >= 0 } {
       foreach var $vars_selected {
@@ -1916,7 +1980,7 @@ proc ::TolInspector::PostVariable { x y } {
 		} else {
           if {[llength $aryData(Reference)]} {
             #set object [lindex $aryData(Reference) 0]
-			set object [lrange $aryData(Reference) 0 end]
+            set object [lrange $aryData(Reference) 0 end]
           } else {
             if { [string length $tolset] } {
               #set object [concat [list File $tolset] $tolindex $itemid]
@@ -2061,17 +2125,32 @@ proc ::TolInspector::PostVariable { x y } {
             }
             NameBlock {
               if { [ llength $options_selected(NameBlock) ] } {
-                puts "ooo = $options_selected(NameBlock)"
-                set obj_info [ lindex $options_selected(NameBlock) 0 ]
-                set tcl_ref [ lindex $obj_info 0 ]
-                set obj_addr [ ::tol::info address $tcl_ref ]
-                puts "obj_addr $obj_addr"
-                if { [ Tol_ObjIsClassOf $obj_addr "@MenuDesc" ] } {
-                  set entries [ TolGui_GetMenuEntries $obj_addr ]
-                  foreach ent $entries {
-                    $data_menu(main) add command -label [ lindex $ent 0 ] \
+                set idx_current [ lsearch $vars_selected $node_act ]
+                foreach mi [ TolGui_GetMenuEntries \
+                                 $options_selected(NameBlock) $idx_current ] {
+                  set _cname [ lindex $mi 0 ]
+                  set cname [ string map [ list @ "" . _ ] $_cname ]
+                  foreach { ninst obj_addr entries } [ lindex $mi 1 ] break
+                  set instances [ lindex $mi 2 ]
+                  # creo el menu de la clase si no existe
+                  set mclass $data_menu(main).cls$cname
+                  if { ![ winfo exists $mclass ] } {
+                    menu $data_menu(main).cls$cname -tearoff 0
+                  } else {
+                    $mclass delete 0 end
+                  }
+                  $data_menu(main) add cascade -label $cname -menu $mclass
+                  foreach inst_entry $entries {
+                    foreach { label single group } $inst_entry break
+                    $mclass add command -label "$label $ninst" \
                         -command [ list TolGui_InvokeMethod \
-                                       $obj_addr  [ lindex $ent 1 ] ]
+                                       $single $obj_addr ]
+                    if { $group ne "" && [ llength $instances ] > 1 } {
+                      # hay una funcion que se aplica a toda la seleccion
+                      $mclass add command -label "$label All" \
+                          -command [ list TolGui_InvokeGroup \
+                                         $_cname $group $instances ]
+                    }
                   }
                 }
               }
