@@ -928,7 +928,10 @@ proc ::Editor::BalloonHlp {this w arg {fixed 0} {posx 0} {posy 0} {special 0}} {
   }
 }
 
-
+proc ::Editor::InsertText {this new_text {pos end} } {
+  upvar \#0 ${this}::data data
+  $data(txt) insert $pos $new_text
+}
 
 proc ::Editor::GetText {this} {
   upvar \#0 ${this}::data data
