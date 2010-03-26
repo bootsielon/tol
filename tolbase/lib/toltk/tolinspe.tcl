@@ -2124,10 +2124,14 @@ proc ::TolInspector::PostVariable { x y } {
               }
             }
             NameBlock {
-              if { [ llength $options_selected(NameBlock) ] } {
+              set sel_length [ llength $options_selected(NameBlock) ]
+              if { $sel_length } {
                 set idx_current [ lsearch $vars_selected $node_act ]
-                foreach mi [ TolGui_GetMenuEntries \
-                                 $options_selected(NameBlock) $idx_current ] {
+                set all_nb_options \
+                    [ TolGui_GetMenuEntries \
+                          $options_selected(NameBlock) $idx_current ]
+                set num_options [ llength $all_nb_options ]
+                foreach mi $all_nb_options {
                   set _cname [ lindex $mi 0 ]
                   set cname [ string map [ list @ "" . _ ] $_cname ]
                   foreach { ninst obj_addr entries } [ lindex $mi 1 ] break
@@ -2135,19 +2139,26 @@ proc ::TolInspector::PostVariable { x y } {
                   # creo el menu de la clase si no existe
                   set mclass $data_menu(main).cls$cname
                   if { ![ winfo exists $mclass ] } {
-                    menu $data_menu(main).cls$cname -tearoff 0
+                    menu $mclass -tearoff 0
                   } else {
                     $mclass delete 0 end
                   }
-                  $data_menu(main) add cascade -label $cname -menu $mclass
+                  if { $num_options > 1 } {
+                    $data_menu(main) add cascade -label $cname -menu $mclass
+                    set target_menu $mclass
+                  } else {
+                    set target_menu $data_menu(main)
+                  }
                   foreach inst_entry $entries {
                     foreach { label single group } $inst_entry break
-                    $mclass add command -label "$label $ninst" \
+                    set opt_label \
+                        "$label [ expr { $sel_length>1 ? $ninst : {} } ]"
+                    $target_menu add command -label $opt_label \
                         -command [ list TolGui_InvokeMethod \
                                        $single $obj_addr ]
                     if { $group ne "" && [ llength $instances ] > 1 } {
                       # hay una funcion que se aplica a toda la seleccion
-                      $mclass add command -label "$label All" \
+                      $target_menu add command -label "$label All" \
                           -command [ list TolGui_InvokeGroup \
                                          $_cname $group $instances ]
                     }
