@@ -21,10 +21,8 @@ Class @Cycler
   BysMcmc::@Notifier     _.notifier;
   BysMcmc::@Config       _.config;
 
-  NameBlock _.importer = 
-  [[
-    Real void = ?
-  ]];
+  //[pgea] _.importer_ es un conjunto que contiene lareferencia al _.importer
+  Set _.importer_ = Copy(Empty); 
 
   //Stores the sampler name
   Text _.name = "";
@@ -58,7 +56,8 @@ Class @Cycler
   //--------------------------------------------------------------------------
   Real setImporter(NameBlock importer)
   {
-    NameBlock _.importer := importer;
+    //[pgea]
+    Set _.importer_ := [[importer]];
     1
   };
   Real define(Real unused)
