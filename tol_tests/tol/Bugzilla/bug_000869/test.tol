@@ -14,53 +14,31 @@
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
      
-  Class @Circle
-  {
-  //Definition members
-    Real _.center.x_;
-    Real _.center.y_;
-    Real _.radius;
-  
-  //Auxiliar members
-    Real _.perimeter;
-    Real _.area;
-    
-  //Basic Constructor 
-    Static @Circle New(
-      Real x,  //First coordinate of center 
-      Real y,  //Second coordinate of center 
-      Real r)  //Radius
-    {
-      @Circle new =
-      [[
-        Real _.center.x_ = x;
-        Real _.center.y_ = y;
-        Real _.radius = r;
-        //Auxiliuar members definition
-        Real _.perimeter = 2*Pi*r;
-        Real _.area = Pi*r^2
-      ]]
-    };
-  //Derivate constructor
-    Static @Circle Random(
-     Real min.x, Real max.x,
-     Real min.y, Real max.y,
-     Real min.r, Real max.r)
-    {
-      @Circle::New(Rand(min.x,max.x),
-                   Rand(min.y,max.y),
-                   Rand(min.r,max.r))
-    };
-  
-  //Returns true if the point (x,y) is inside the circle
-  Real includes(Real x, Real y)
-  {
-    (x-_.center.x_)^2+(y-_.center.y_)^2<=_.radius^2
-  };
-  Real outsides(Real x, Real y){ Not(includes(x,y)) }
-  };
-  
-  @Circle c1 = @Circle[[0,1,1]];
+//////////////////////////////////////////////////////////////////////////////
+// Compílese el archivo (con F9)
+
+Class @Element {
+  Text _.info;
+  Anything GetThis(Real void){ _this }
+};
+
+NameBlock Container = [[
+  Set _.elements = Copy(Empty);
+  Real CreateElement(Text info) {
+    @Element element = [[
+      Text _.info = info
+    ]];
+    Set Append(_.elements, [[element]]);
+  0};
+  @Element GetElement(Real index) {
+    _.elements[index]
+  }
+]];
+
+Real Container::CreateElement("nota");
+
+
+/*
   
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);
