@@ -346,7 +346,7 @@ proc GetHomeDir { } {
 proc ::tolsh::run { cmdline } {
   variable options
 
-  logtmp "user : [ exec whoami ]"
+  #logtmp "user : [ exec whoami ]"
   logtmp "entering run with cmdline = $cmdline"
   # Process command line options
   #
