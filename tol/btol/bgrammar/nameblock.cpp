@@ -613,13 +613,20 @@ const BText& BNameBlock::LocalName() const
 {
   if(!obj) { return(true); }
   const BText& name = obj->Name();
- 
+  int i;
   if(!name.HasName() || 
      !BParser::DefaultParser()->Filter()->IsIdentifier(name))
   {
+    BText set_dump = "";
+    for(i=1; i<=set_.Card(); i++)
+    {
+      set_dump += BText("  ")+set_[i]->Grammar()->Name()+
+                         " "+set_[i]->Name()+"\n";
+    };
     Error(I2("A NameBlock cannot have members without a valid name ",
              "Un NameBlock no puede tener miembros sin un nombre válido ")
-          +"'"+name+"'");
+          +"'"+name+"'\n"+set_dump);
+
     return(false);
   }
   if(name=="_this")
