@@ -1921,7 +1921,12 @@ proc TolGui_InvokeGroup { cname function group } {
   set try [ catch {
     tol::console eval \
         [ string map [ list %C $cname %F $function %S $SOA ] {
-          Real __aux_result__ = %C::%F( %S )
+          Real __aux_result__ = {
+            Set aux = EvalSet( %S, NameBlock( Text addr ) {
+              NameBlock GetObjectFromAddress( addr )
+            } );
+            Real %C::%F( aux )
+          }
         } ] } msg ]
   if { $try } {
     puts "ERROR TolGui_InvokeGroup : $msg"
