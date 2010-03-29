@@ -489,7 +489,11 @@ if(!BDir::CheckIsDir(dir))                                \
     memcpy(streamBuf.GetBuffer()+pos,&cl,sizeof(char));
     pos+=sizeof(char);
   }
-  else
+  else if(!tre->car())
+  {
+    return(Error("BOisCreator::WriteTree unexpected empty tree"));
+  }
+  else 
   {
     cl = tre->car()->IsListClass()?2:1; 
     memcpy(streamBuf.GetBuffer()+pos,&cl,sizeof(char));
