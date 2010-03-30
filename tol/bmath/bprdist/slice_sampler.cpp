@@ -103,14 +103,14 @@ double slice_sampler_1D( const gsl_rng *rng,
 
   if ( L > lower ) {
     _gx = ( *g )( L, gdata );
-    if ( !gsl_finite( _gx0 ) ) {
+    if ( !gsl_finite( _gx ) ) {
       /* found undefined density value while expanding interval */
       return x0;
     }
   }
   if ( R < upper ) {
     _gx = ( *g )( R, gdata );
-    if ( !gsl_finite( _gx0 ) ) {
+    if ( !gsl_finite( _gx ) ) {
       /* found  undefined density value while expanding interval */
       return x0;
     }
@@ -126,7 +126,7 @@ double slice_sampler_1D( const gsl_rng *rng,
       if ( L <= lower ) break;
       ++uni_slice_evals;
       _gx = ( *g )( L, gdata );
-      if ( !gsl_finite( _gx0 ) ) {
+      if ( !gsl_finite( _gx ) ) {
         /* found  undefined density value while expanding interval */
         L += w;
         break;
@@ -139,7 +139,7 @@ double slice_sampler_1D( const gsl_rng *rng,
       if ( R >= upper ) break;
       ++uni_slice_evals;
       _gx = ( *g )( R, gdata );
-      if ( !gsl_finite( _gx0 ) ) {
+      if ( !gsl_finite( _gx ) ) {
         /* found  undefined density value while expanding interval */
         R -= w;
         break;
@@ -155,7 +155,7 @@ double slice_sampler_1D( const gsl_rng *rng,
       if ( L <= lower ) break;
       ++uni_slice_evals;
       _gx = ( *g )( L, gdata );
-      if ( !gsl_finite( _gx0 ) ) {
+      if ( !gsl_finite( _gx ) ) {
         /* found  undefined density value while expanding interval */
         L += w;
         break;
@@ -169,7 +169,7 @@ double slice_sampler_1D( const gsl_rng *rng,
       if ( R >= upper ) break;
       ++uni_slice_evals;
       _gx = ( *g )( R, gdata );
-      if ( !gsl_finite( _gx0 ) ) {
+      if ( !gsl_finite( _gx ) ) {
         /* found  undefined density value while expanding interval */
         R -= w;
         break;
