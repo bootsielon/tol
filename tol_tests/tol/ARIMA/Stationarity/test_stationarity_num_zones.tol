@@ -1,0 +1,129 @@
+
+Matrix get.stationary.map(Polyn pol, Real d, Real h)
+{
+  SetMat(EvalSet(Range(-d,d,h), Set(Real c)
+  {
+    Polyn p = Copy(pol);
+    Real c_ = If(c, c, 1.E-10);
+    Real PutCoef(p,d,c_);
+    [[c,IsStationary(p)]]
+  }))
+};
+
+//Set sample = For(1,1000000,Set(Real numSim)
+//{
+/* * /
+  If(!(numSim%100), WriteLn("Simulation "<<numSim));
+  Real deg = IntRand(3,6);
+  Real d = IntRand(1,deg);
+  Polyn pol = RandStationary(deg-1,1)*(1-Rand(0.50,0.98)*B);
+/* */
+  Polyn pol = 1-0.09944049062890037*B+0.4208976407813203*B^2-0.07979027150930651*B^3-0.524509273364506*B^4+0.1794384784972413*B^5+0.01042162544590616*B^6;
+
+  Real deg = Degree(pol);
+  Real d=1;
+/* * /
+//Devuelve omitidos en abos límites
+  Polyn pol = 1-0.992961909343496*B-0.254087193085502*B^2+0.0536857995303705*B^3;
+
+//Calcula mal el ímite inferior
+1-1.93779597075656*B+0.8845448103970836*B^2+0.2478605728841987*B^3-0.1817737473588354*B^4;
+
+  Polyn pol=1-2.974593237955123*B+3.272964293001163*B^2-1.573461235947314*B^3+0.2774688555158664*B^4;
+  Polyn pol = 1-0.09944049062890037*B+0.4208976407813203*B^2-0.07979027150930651*B^3-0.524509273364506*B^4+0.1794384784972413*B^5+0.01042162544590616*B^6;
+  Polyn pol = 1-1.730507835764438*B+0.323605518391054*B^2+0.6102327327892247*B^3-0.1326327931561877*B^4-0.06436451777425137*B^5-0.004239313304088343*B^6;
+  Real d=1;
+
+/* */
+
+//Polyn pol = RandStationary(deg,1);
+  Real isStationary = IsStationary(pol);
+
+  Polyn p = Copy(pol);
+  Real test_stationarity_point(Real x)
+  {
+    Real x_ = If(x, x, tol);
+    Real PutCoef(p,d,x_);
+    IsStationary(p)
+  };
+  Real test_stationarity_interval(Real x, Real y, Real numSim)
+  {
+    SetAvr(For(1,numSim,Real(Real s)
+    {
+      test_stationarity_point(Rand(x,y))
+    }))
+  };
+  Real a = StationaryMin(pol, d);
+  Real b = StationaryMax(pol, d);
+
+  Real is.1 = If(a==-d,False,test_stationarity_interval(-d,a,1000));
+  Real is.2 = test_stationarity_interval( a,b,1000);
+  Real is.3 = If(b== d,False,test_stationarity_interval( b,d,1000));
+  Real ok = And(is.1==0, is.2==1, is.3==0);
+
+
+/* * /
+  Set result = [[numSim,deg,pol,isStationary,d,a,b,is.1,is.2,is.3,ok]];
+  If(!ok,
+    WriteLn(" at simulation "<<result,"E"));
+  result
+});
+
+/* */
+  Matrix map = get.stationary.map(pol,d,0.001);
+/*
+  Real numZonesStat = MatSum(Abs(DifEq((1-B)/1, SubCol(map,[[2]]))))/2;
+
+  Real tol = 1.E-15;
+  Real c = Coef(p,d);
+  Real a = -d;
+  Real b = +d;
+  Real ok.a = test_stationarity(a);
+  Real ok.b = test_stationarity(b);
+  Real ok.c = test_stationarity(c);
+  Real end = Or(And(ok.a,ok.b),!ok.c);
+  Real c.a = c;
+  Real c.b = c;
+  While(!end,
+  {
+    Real If(!ok.a, 
+    {
+      If(Abs(c.a-a)<tol, 
+      { 
+         a := c.a; ok.a := True 
+      },
+      {
+        x = (a+c.a)/2;
+        If(test_stationarity(x), c.a := x, a := x)
+      })
+    });
+    Real If(!ok.b, 
+    {
+      If(Abs(c.b-b)<tol, 
+      { 
+         b := c.b; ok.b := True 
+      },
+      {
+        x = (b+c.b)/2;
+        If(test_stationarity(x), c.b := x, b := x)
+      })
+    });
+    end := And(ok.a,ok.b)
+  });
+
+/*
+//Matrix If(numZonesStat>1, map:=get.stationary.map(pol,d,0.001));
+  [[deg,d,isStationary,stationaryValue,numZonesStat,pol,map]]
+});
+
+Set sel = Select(sample,Real(Set reg)
+{
+  reg::numZonesStat>1
+});
+
+Set EvalSet(sel,Set(Set reg)
+{
+  Matrix map.2 = get.stationary.map(reg::pol,reg::d,0.001);
+  reg << [[map.2]]
+});
+*/

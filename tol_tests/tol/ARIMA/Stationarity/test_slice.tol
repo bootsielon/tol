@@ -1,0 +1,133 @@
+//////////////////////////////////////////////////////////////////////////////
+// Semilla de generación aleatoria fijada para reproducir el comportamiento
+// exacto
+// 
+// 3 de 8 no estacionarias incluida la última: devuelve el valor inicial
+// Real PutRandomSeed(1836343167);
+// 
+// ninguna no estacionaria: devuelve una simulación válida
+// Real PutRandomSeed(1664310743);
+// 
+// 2 de 8 no estacionarias, pero no la última: devuelve una simulación válida
+// Real PutRandomSeed(440791623);
+//////////////////////////////////////////////////////////////////////////////
+Real PutRandomSeed(440791623);
+Real rndSeed = GetRandomSeed(0);
+
+WriteLn("TRACE  rndSeed:"<<rndSeed);
+
+//Se define un modelo AR con un polinomio que tiene un dominio
+//inconexo de estacionariedad para el coeficiente de grado 1
+Polyn ar = 1-0.09944049062890037*B
+            +0.4208976407813203*B^2
+            -0.07979027150930651*B^3
+            -0.524509273364506*B^4
+            +0.1794384784972413*B^5
+            +0.01042162544590616*B^6;
+Polyn ma = 1;
+
+//Se copia el polinomio ma para evitar efectos secundarios en la evaluación
+Polyn p = Copy(ar);
+Real d = 1;
+
+//Esta función evalúa la estacionariedad de un polinomio pol con respecto al 
+//coeficiente de grado d en el intervalo [-d,d] con longitud de paso h
+Matrix get.stationary.map(Polyn pol, Real d, Real h)
+{
+  SetMat(EvalSet(Range(-d,d,h), Set(Real c)
+  {
+    Polyn p = Copy(pol);
+    Real c_ = If(c, c, 1.E-10);
+    Real PutCoef(p,d,c_);
+    [[c,IsStationary(p)]]
+  }))
+};
+Matrix map = get.stationary.map(p,d,0.001);
+
+//Se debe comenzar por un polinomio que sea estacionario
+Real isStationary = IsStationary(ar);
+
+//Se generan aleatoriamente los residuos
+VMatrix res = Gaussian(1000,1,0,1);
+
+//Para ilustrar mejor como el dominio de estacioanriedad no es conexo
+//construimos series de ruidos en tres valores
+
+Real c1 = -0.5; VMatrix z1 = { Real PutCoef(p,d,c1); DifEq(ma/p,res) };
+Real c2 = +0.3; VMatrix z2 = { Real PutCoef(p,d,c2); DifEq(ma/p,res) };
+Real c3 = +0.7; VMatrix z3 = { Real PutCoef(p,d,c3); DifEq(ma/p,res) };
+
+//Para las pruebas nos sirve cualquiera estacionario: tomamos el original
+//Retomamos el valor inicial
+VMatrix z = DifEq(ma/ar,res);
+Polyn p := Copy(ar);
+
+//Se genera el evaluador de la verosimilitud ARMA
+NameBlock almagro = ARMAProcess::Eval.Almagro(ar,ma,z,1);
+//Se calculan los valores iniciales condicionados
+VMatrix u0 = almagro::Draw.U_cond_Z(0);
+VMatrix z0 = almagro::Get.Z0(u0);
+VMatrix a0 = almagro::Get.A0(u0);
+
+//Se toma el coeficiente de grado 1
+Real x0 = Coef(ar,d);
+Real L = -d;    //Mínimo valor para el que se da estacionariedad
+Real U = +d; //Máximo valor para el que se da estacionariedad
+
+//Función de actualización del polinomio AR que devuelve cierto si es 
+//estacionario con el nuevo coeficiente
+Real SetValue(Real x_)
+{
+  //Se asegura de que no pone coeficiete 0 porque destruye la forma del 
+  //polinomio como vector de monomios. Es algo que habría que arreglar.
+  Real x = If(Eq(1+x_,1), 0.000001, x_);
+  Real PutCoef(p, d, x);
+  Real isStationary = IsStationary(p);
+//WriteLn("TRACE  SetValue("<<x+") isStationary:"<<isStationary);
+  isStationary
+};
+//Función de evaluación del logaritmo de la densidad
+Real LogDens.Almagro.Z_cond_U(Real x)
+{
+  Real llh =  If(!SetValue(x), -1/0, {
+    Copy(almagro::LogLH.Z_cond_U(p,ma,z0,a0))
+  }) ;
+//WriteLn("TRACE  LogDens.Almagro.Z_cond_U("<<x+") :"<<llh);
+  llh
+};
+//Llamada al método de simulación escalar slice
+//Real x.slice = MatDat(SliceSampler1D(LogDens.Almagro.Z_cond_U, L, U, x0),1,1);
+//WriteLn("TRACE x.slice="<<x.slice);
+
+Set sample.uniform = Copy(Empty);
+Real n = 0;
+Real i = 0;
+Real ld.max = -1/0;
+While(And(n<10,i<100),
+{
+  Real x = Rand(L,U);
+  Real ld = LogDens.Almagro.Z_cond_U(x);
+  If(GT(ld,-1/0),
+  {
+    Real ld.max := Max(ld.max,ld);
+    Set Append(sample.uniform,[[ [[x,ld]] ]]);
+    Real n:= n+1
+  });
+  Real i := i+1
+});
+
+Set sample.sorted = Sort(sample.uniform,Real(Set a, Set b)
+{
+  Compare(a[2],b[2])
+});
+
+Real cum = 0;
+Set sample.cum = EvalSet(sample.sorted, Set(Set a)
+{
+  Real weight = Exp(a[2]-ld.max);
+  Real cum := cum + weight;
+  a<<[[weight,Copy(cum)]]
+});
+
+
+/* */
