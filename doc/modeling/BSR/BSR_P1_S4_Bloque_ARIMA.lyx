@@ -1,5 +1,5 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
@@ -27,6 +27,10 @@
 
 \hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
 \end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+\end_modules
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -37,9 +41,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -64,7 +70,8 @@
 \begin_body
 
 \begin_layout Chapter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "cha:El-bloque-ARIMA"
 
 \end_inset
@@ -114,7 +121,8 @@ En la simulación de Gibbs de un modelo ARMA se puede utilizar el método
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:ArmaBlock_Antecedentes"
 
 \end_inset
@@ -177,9 +185,10 @@ El método ARMS
 \begin_inset Foot
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Ver
-\begin_inset LatexCommand cite
+\begin_inset CommandInset citation
+LatexCommand cite
 key "ARMS-Gilks-Best-Tan"
 
 \end_inset
@@ -197,7 +206,8 @@ key "ARMS-Gilks-Best-Tan"
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:Distribución-condicionada-de-los-valores-iniciales-ARMA"
 
 \end_inset
@@ -386,7 +396,8 @@ Nótese que las matrices
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sec:Distribución-condicionada-de-los-parámetros-ARMA"
 
 \end_inset
@@ -480,7 +491,8 @@ En el caso de ser información a priori
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:Dominio-de-estacionariedad"
 
 \end_inset
@@ -548,11 +560,12 @@ wide false
 sideways false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Caption
 
-\begin_layout Standard
-\begin_inset LatexCommand label
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
 name "fig:Gráfico-de-simulaciones-grado_2"
 
 \end_inset
@@ -612,7 +625,8 @@ Si
 
 Las condiciones de estacionariedad son por tanto las siguientes (ver figura
  
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "fig:Gráfico-de-simulaciones-grado_2"
 
 \end_inset
@@ -675,18 +689,19 @@ wide false
 sideways false
 status open
 
-\begin_layout Standard
+\begin_layout Plain Layout
 \begin_inset Caption
 
-\begin_layout Standard
-\begin_inset LatexCommand label
-name "fig:Gráfico-de-simulaciones-grado_3"
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Gráfico-de-simulaciones-grado_6-1"
 
 \end_inset
 
 
 \begin_inset Graphics
-	filename stationarity-pol-deg-3.PNG
+	filename stationarity-pol-deg-6_z1.PNG
 	scale 50
 
 \end_inset
@@ -696,11 +711,23 @@ name "fig:Gráfico-de-simulaciones-grado_3"
 
 \end_inset
 
-Gráfico de simulaciones de polinomios estacionarios de grado 3.
- El dominio de estacionariedad no es una región conexa.
- Fijado el coeficiente de grado 2 el de grado 3 no está delimitado en un
- intervalo sino en la unión de dos intervalos inconexos y no se puede aplicar
- el método ARMS
+El ruido AR gaussiano con el polinomio 
+\begin_inset Formula \[
+\begin{array}{c}
+p\left(B\right)=1+\alpha_{1}B+\alpha_{2}B^{2}+\alpha_{3}B^{3}+\alpha_{4}B^{4}+\alpha_{5}B^{5}+\alpha_{6}B^{6}\\
+\alpha_{2}=0.4208976407813203\\
+\alpha_{3}=-0.07979027150930651\\
+\alpha_{4}=-0.524509273364506\\
+\alpha_{5}=0.1794384784972413\\
+\alpha_{6}=0.01042162544590616\end{array}\]
+
+\end_inset
+
+ en 
+\begin_inset Formula $\alpha_{1}=-0.5$
+\end_inset
+
+ es claramente estacionario
 \end_layout
 
 \end_inset
@@ -709,6 +736,129 @@ Gráfico de simulaciones de polinomios estacionarios de grado 3.
 \end_layout
 
 \begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Gráfico-de-simulaciones-grado_6-2"
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename stationarity-pol-deg-6_z2.PNG
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+El ruido AR gaussiano con el polinomio anterior en 
+\begin_inset Formula $\alpha_{1}=+0.3$
+\end_inset
+
+ es claramente no estacionario
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Gráfico-de-simulaciones-grado_6-3"
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename stationarity-pol-deg-6_z3.PNG
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+El ruido AR gaussiano con el polinomio anterior en 
+\begin_inset Formula $\alpha_{1}=+0.7$
+\end_inset
+
+ vuelve a ser estacionario, luego el dominio de estacioanriedad es inconexo
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Gráfico-de-simulaciones-grado_3"
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename stationarity-pol-deg-6_indicator.PNG
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+Diagrama de estacionariedad con respecto al coeficiente 
+\begin_inset Formula $\alpha_{1}$
+\end_inset
+
+ del polinomio de los ejemplos anteriores.
+ El dominio de estacionariedad no es una región conexa.
+ Fijado los coeficientes de gradso 2 al 6 no está delimitado en un intervalo
+ sino en la unión de dos intervalos inconexos y no se puede aplicar el método
+ ARMS
+\end_layout
+
+\end_inset
+
 La razón por la que se obliga a disponer de factores de grado máximo 2 es
  que la región de estacionariedad de un polinomio de grado 1 es simplemente
  el intervalo 
@@ -721,7 +871,8 @@ La razón por la que se obliga a disponer de factores de grado máximo 2 es
  Para grados superiores las regiones son complicadas de definir analíticamente
  por lo que resulta bastante complicado fijar el intervalo de estacionariedad
  de cada parámetro condicionado al resto (ver figura 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "fig:Gráfico-de-simulaciones-grado_3"
 
 \end_inset
@@ -740,7 +891,8 @@ ión en binomios si es que existe alguna razón de peso para pensar que debe
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:Condicionamiento-a-los-ARMA"
 
 \end_inset
@@ -890,7 +1042,8 @@ A continuación se presenta un método implícito de descomposición sintética
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:Descomposición-sintética"
 
 \end_inset
@@ -1191,7 +1344,8 @@ En un proceso MA puro es
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:Algoritmo-de-la-descomposición-ARMA-sintética"
 
 \end_inset
@@ -1380,7 +1534,8 @@ y tamaño a almacenar de
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:Algoritmo-de-filtrado ARMA sintético"
 
 \end_inset
