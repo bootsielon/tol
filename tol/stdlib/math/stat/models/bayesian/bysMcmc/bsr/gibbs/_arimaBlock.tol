@@ -145,6 +145,7 @@ Class @BlockArima : @BlockSampler
     Set For(1,Card(segment->Arima), Real(Real factorNum_)
     {
       Set arimaFactor = (segment->Arima)[factorNum_];
+/*
       Real If(Degree(arimaFactor->AR)>2*arimaFactor->Periodicity,
       {
         Real CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotDrawArima,
@@ -158,6 +159,7 @@ Class @BlockArima : @BlockSampler
         ]]);
         1
       });
+*/
       Set arParDsc = EvalSet(Monomes(1-arimaFactor->AR), Set set.arParDsc(Polyn mon)
       {
         Real deg = Degree(mon);
@@ -165,6 +167,7 @@ Class @BlockArima : @BlockSampler
         Text name = "ArmaBlk::"+segment->Name+"::AR.F"+IntText(factorNum_)+".D"+IntText(deg);
           @ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "AR", deg, c, 0, 0, 0)
       });
+/*
       If(Degree(arimaFactor->MA)>2*arimaFactor->Periodicity,
       {
         Real CMsg::Coded::show(BysMcmc::_.cmsg::_.cannotDrawArima,
@@ -178,6 +181,7 @@ Class @BlockArima : @BlockSampler
         ]]);
         1
       });
+*/
       Set maParDsc = EvalSet(Monomes(1-arimaFactor->MA), Set set.maParDsc(Polyn mon)
       {
         Real deg = Degree(mon);
@@ -618,25 +622,25 @@ Class @BlockArima : @BlockSampler
     //WriteLn("TRACE"+_MID+" draw.scalar 2.1 polRef[1]="<<polRef[1]);
       Real deg = pd->degree;
       Set bounds = ARMAProcess::StationarityBounds.2(polRef[1], factor->Periodicity, deg);
-      Real x0 = bounds[1]+0.001;
-      Real x1 = bounds[2]-0.001;
-    //WriteLn("TRACE"+_MID+" draw.scalar 3 bounds=["<<x0+","<<x1+"]");
+      Real L = bounds[1]+0.001;
+      Real R = bounds[2]-0.001;
+    //WriteLn("TRACE"+_MID+" draw.scalar 3 bounds=["<<L+","<<R+"]");
       Real m = aux::m;
       Real n = m - aux::difDegree;
       Matrix pdNoise_ = SubRow(noise_,equIdx);
 
-      Real SetValue(Real x0)
+      Real SetValue(Real x_)
       {
-        Real x = If(1+x==1, 0.000001, x);
-      //WriteLn("TRACE"+_MID+" SetValue("<<x+")");
+        Real x = If(1+x_==1, 0.000001, x_);
         Real pd->numEvalDens := pd->numEvalDens+1;
-        Real x__ = PutCoef(polRef[1], deg, -x);
-        Real x_  = Coef(polRef[1],deg);
-        Polyn pol = polRef[1];
-        Real isStationary = IsStationary(pol);
+        Real PutCoef(polRef[1], deg, -x);
+        Real isStationary = IsStationary(polRef[1]);
+/*
         If(!isStationary, Real CMsg::Coded::show
           (BysMcmc::_.cmsg::_.nonStationaryDraw,[[_MID,pd->name,pol,x]]));
-        x
+        WriteLn("TRACE"+_MID+" SetValue("<<x+") isStationary:"<<isStationary);
+*/
+        isStationary
       };
 
       Matrix z = Sub(DifEq(dif/1,pdNoise_),aux::difDegree+1,1,n,1);
@@ -670,16 +674,33 @@ Class @BlockArima : @BlockSampler
 
       Real LogDens.Almagro.Z_cond_U(Real x)
       {
-        Real Do SetValue(x);
-        Polyn  ar = ARIMAGetAR(arima);
-        Polyn  ma = ARIMAGetMA(arima);
-        Real llh = Copy(almagro::LogLH.Z_cond_U(ar,ma,z0,a0));
-        llh 
+        Real If(!SetValue(x), -1/0, {
+          Polyn  ar = ARIMAGetAR(arima);
+          Polyn  ma = ARIMAGetMA(arima);
+          Real llh = Copy(almagro::LogLH.Z_cond_U(ar,ma,z0,a0));
+          llh 
+        }) 
       };
       Code LogDens = LogDens.Almagro.Z_cond_U;
-      Real If(Or(pd->coef<x0,pd->coef>x1), { pd->coef := Rand(x0,x1) }, 0);
-      Real pd->coef:= _scalarSampler::sample(LogDens,x0,x1,pd->coef);
+      Real If(Or(pd->coef<L,pd->coef>R), { pd->coef := Rand(L,R) }, 0);
+      
+      Real pd->coef:= If(Degree(polRef[1])<=2,
+      {
+        _scalarSampler::sample(LogDens,L,R,pd->coef)
+      },
+      {
+        AsymptoticSampler1D(LogDens,L,R)
+      });
 
+      Real isStationary = {
+        Real PutCoef(polRef[1], deg, -pd->coef);
+        Real isStationary = IsStationary(polRef[1]);
+      //WriteLn("TRACE"+_MID+" pd->coef "<<pd->coef);
+      //WriteLn("TRACE"+_MID+" isStationary "<<isStationary);
+        isStationary
+      };
+
+      
     //WriteLn("TRACE"+_MID+" draw.scalar pd->coef="<<pd->coef);
       pd->coef
     });
