@@ -40,10 +40,12 @@ NameBlock ARMAProcess =
     If(n==1, SetOfReal(-1,1),
     {
       Real d = degree/periodicity;
+      Real b = n-d+1;
       Case
       (
-        d==1, ARMAProcess::StationarityBounds.2.1(pol, periodicity),
-        d==2, ARMAProcess::StationarityBounds.2.2(pol, periodicity)
+        And(n<=2,d==1), ARMAProcess::StationarityBounds.2.1(pol, periodicity),
+        And(n<=2,d==2), ARMAProcess::StationarityBounds.2.2(pol, periodicity),
+        d>=3, SetOfReal(-b*periodicity,b*periodicity)
       )
     })
   };
