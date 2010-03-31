@@ -1286,7 +1286,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatStationaryValue::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = Pol(Arg(1)).StationaryValue();
+  contens_ = Pol(Arg(1)).StationaryValue(BFALSE);
 }
 
 
@@ -1694,6 +1694,148 @@ I2("You can modify the maximum number of iterations by means of "
   contens_ = x;
 }
 
+struct AsymptoticSampler1D_SampleInfo
+{
+  double x;
+  double f;
+  double g; 
+};
+
+//--------------------------------------------------------------------
+BInt AsymptoticSampler1D_cmp(const void* v1, const void* v2)
+//--------------------------------------------------------------------
+{
+  AsymptoticSampler1D_SampleInfo* u1 = (AsymptoticSampler1D_SampleInfo*)v1;
+  AsymptoticSampler1D_SampleInfo* u2 = (AsymptoticSampler1D_SampleInfo*)v2;
+  double dif = u1->f-u2->f;
+  return((dif<0)?-1:((dif>0)?+1:0));
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatAsymptoticSampler1D);
+DefExtOpr(1, BDatAsymptoticSampler1D, "AsymptoticSampler1D", 3, 5,
+"Code Real Real Real Real",
+"(Code logDens, Real L, Real R [, Real numOfCandidates = 10, Real maxIter = 100])",
+"Este método consiste en una aproximación asintótica muy sencilla "
+"para simular realizaciones de una distribución de probabilidad con "
+"densidad arbitraria con dominio no necesariamente conexo dentro de un "
+"intervalo [L,R] orientativo:\n"
+" 1. Se toman secuencialmente valores x[k] uniformemente distribuidos en [L,R] \n"
+" 2. Se calcula el logaritmo de su densidad salvo una constante \n"
+"      f[k] = log(d(x[k]))+c \n"
+" 3. Se descartan los que den logaritmo de densidad -Inf, para forzar, densidad no nula, o sea, \n"
+"      d(x[k])>0 \n"
+" 4. Se para cuando se obtiene el número deseado de candidatos con densidad no nula o se supera el máximo de iteraciones\n"
+" 5. Se resta a cada uno el máximo de las f y se toma su exponencial \n"
+"      g[k] = Exp( f[k] - max{f[i]} ) \n"
+" 6. Se calcula el peso relativo w[k] de cada valor de forma proporcional a su densidad \n"
+"      w[k] = g[k] / Sum( g[i] ) \n"
+" 7. Se ordenan por densidad creciente \n"
+"      w(x[k])<=w(x[k+1]) \n"
+" 8. Se calculan los pesos acumulados \n"
+"      W(x[1]) = w(x[1]) \n"
+"      W(x[k+1])=W(x[k])+w(x[k+1]) \n"
+" 9. Se toma un valor p uniformemente distribuido en [0,1] \n"
+"10. Se elige el primer valor que supera o iguala a p en peso acumulado \n"
+"      W(x[k-1]) < p <= W(x[k]) \n"
+"\n"
+"Cuando n->Inf esto da simulación exacta, pero con valores de apenas n=10 nos "
+"da puede dar una buena aproximación si el intervalo es lo bastante denso como "
+"para que no se descarte la totalidad de los candidatos.",
+BOperClassify::Statistic_);
+void BDatAsymptoticSampler1D::CalcContens()
+//--------------------------------------------------------------------
+{
+  BCode& cod = Code(Arg(1));
+  double L = Real(Arg(2));
+  double R = Real(Arg(3));
+  int numOfCandidates = 10;
+  int maxIter = 100;
+  if(Arg(4)) { numOfCandidates = int(Real(Arg(4))); }
+  if(Arg(5)) { maxIter = int(Real(Arg(5))); }
+
+  BText english("In AsymptoticSampler1D, ");
+  BText spanish("En AsymptoticSampler1D, ");
+
+  if (!cod.Operator()) {
+    english += "invalid code argument";
+    spanish += "argumento código inválido";
+    Error(I2(english,spanish));
+    return;
+  }
+  
+  if (cod.Operator()->MinArg()!=1 && 
+      cod.Operator()->MaxArg()!=1) {
+    english += "invalid argument number for logf argument: should be 1";
+    spanish += "número de argumentos inválidos para argumento logf: debe ser 1";
+    Error(I2(english,spanish));  
+    return;
+  }
+
+  /* check user function's grammar */
+  if (cod.Grammar() != GraReal()) {
+    english += "invalid type ";
+    english += cod.Grammar()->Name();
+    english += " for logf argument: should be Real";
+    spanish += " tipo inválido ";
+    spanish += cod.Grammar()->Name();
+    spanish += " para argumento logf: debe ser Real";
+    Error(I2(english,spanish));
+    return;
+  } 
+
+  /* check grammar of user function's first argument */
+  if (cod.Operator()->GrammarForArg(1) != GraReal()) {
+    english += "invalid type ";
+    english += cod.Operator()->GrammarForArg(1)->Name();
+    english += " for first argument of logf argument: should be Real";
+    spanish += "tipo inválido ";
+    spanish += cod.Operator()->GrammarForArg(1)->Name();
+    spanish += " en el primer argumento del argumento logf: debe ser Real";
+    Error(I2(english,spanish));
+    return;
+  }
+  BUniformDist U(L,R);
+  BUniformDist U01(0,1);
+  BRRCode fun(cod);
+  BArray< AsymptoticSampler1D_SampleInfo > sample;
+  sample.AllocBuffer(numOfCandidates);
+  int i, k;
+  double x, f, g, w, f_max = BDat::NegInf(), g_sum = 0, W=0, p;
+  for(i=k=0; (i<maxIter)&&(k<numOfCandidates); i++)
+  {
+    x = U.Random().Value();
+    f = (fun[x]).Value();
+    if(f>BDat::NegInf())
+    {
+      if(f_max<f) { f_max = f; }
+      sample[k].x = x;
+      sample[k].f = f;
+      k++;
+    }
+  }
+  int n = k;
+  sample.ReallocBuffer(n);
+  sample.Sort(AsymptoticSampler1D_cmp);
+  for(k=0; k<n; k++)
+  {
+    g = exp(sample[k].f-f_max);
+    g_sum += g;
+    sample[k].g = g;
+  }
+  p = U01.Random().Value();
+  for(k=0; k<n; k++)
+  {
+    w = sample[k].g / g_sum;
+    W += w;
+    if(W>=p) 
+    {
+      contens_ = sample[k].x;
+      return;
+    }
+  }
+  contens_ = BDat::Unknown();
+};
 
 //--------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatTextToReal);
