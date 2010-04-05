@@ -383,6 +383,9 @@ public:
         | 
         negSign[assign_neg_sign_to_ine_term_]
         ;
+      knownURealIneTerm =
+        ureal_p[assign_a(s.ine_var_term_info.coef)]
+        ;
       ineVarTerm = 
         signIneVarTerm >>
         (
