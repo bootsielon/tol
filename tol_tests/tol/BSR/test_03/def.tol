@@ -38,9 +38,9 @@ Real K1 = IntRand(2,2);
 Real enableARMA = True;
 Real enableARMASeasonal = And(enableARMA,True);
 //Regular AR Degree
-Real p1 = enableARMA*IntRand(0,2);
+Real p1 = enableARMA*IntRand(2,2);
 //Seasonal AR Degree
-Real pS = enableARMASeasonal*IntRand(0,2);
+Real pS = enableARMASeasonal*IntRand(0,1);
 //Regular AR Degree
 Real q1 = enableARMA*IntRand(0,Max(0,1-p1));
 //Seasonal AR Degree
@@ -143,13 +143,19 @@ Set obsNodes = For(1, K1, Set(Real k)
   }));
   //Standard deviation
   Real s = Rand(0.50,0.90);
+/* * / 
   Polyn ar1 = If(p1,1-Rand(-0.95,0.95)*B,1);
   Polyn arS = If(pS,1-Rand(-0.95,0.95)*B^S,1);
   Polyn ma1 = If(q1,1-Rand(-0.95,0.95)*B,1);
   Polyn maS = If(qS,1-Rand(-0.95,0.95)*B^S,1);
+/* */  
+  Polyn ar1 = If(p1,RandStationary(p1,1),1);
+  Polyn arS = If(pS,RandStationary(pS,S),1);
+  Polyn ma1 = If(q1,RandStationary(q1,1),1);
+  Polyn maS = If(qS,RandStationary(qS,S),1);
+/* */
   Polyn dif1 = (1-B)^If(Coef(ma1,1)<-0.9,1,0);
   Polyn difS = (1-B^S)^If(Coef(maS,1)<-0.9,1,0);
-  
   Matrix pol2col(Polyn pol)
   { 
   //WriteLn("TRACE pol2col("<<pol+") 1-pol="<<Polyn(1-pol));

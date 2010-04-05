@@ -37,7 +37,11 @@ BysMcmc::@Config bsr.config = [[
   Real mcmc.burnin = 100;
   Real bsr.linBlk.MH.useAfterIter = 1/0;
   Real bsr.arimaStoreInitialValues = True;
-  Real do.resume = 0;
+  Real do.resume = 1/0;
+  Real do.report = True;
+  Real do.eval = True;
+  Real do.linear.effects = True;
+  Real do.save.DBApi.Estim.Oza = True;
   Real do.mcmc.profiler   = True
 ]];
 
@@ -57,7 +61,7 @@ Real cycler::_.sampler::_.outMis.blk::refreshFrequency := 0.25;
 BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
 
 Real estim::Run(0);
-
+/*
 Matrix U0.mcmc = cycler::_.sampler::_.arm.blk::_.U0.mcmc;
 Set U0.names = cycler::_.sampler::_.arm.blk::_.U0.names;
 Set U.report = BysMcmc::Inference::report(
@@ -65,6 +69,7 @@ Set U.report = BysMcmc::Inference::report(
   U0.names,
   bsr.config::GetReportConfig(0),
   U0.mcmc);
+*/
 
 Struct @CompareStruct 
 {
