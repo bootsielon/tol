@@ -465,61 +465,31 @@ DefExtOpr(1, BPolRandStationary, "RandStationary", 1, 2, "Real Real",
 void BPolRandStationary::CalcContens()
 //--------------------------------------------------------------------
 {
-    BInt degree = (BInt)Real(Arg(1));
-    BInt period = 1;
-    BInt n2 = degree/2;
-    BInt n1 = degree-2*n2;
-    BPol p1 = BPol::One();
-    BPol p2 = BPol::One();
-    BDat lim = 1-2*BDat::Zero();
+  BInt degree = (BInt)Real(Arg(1));
+  BInt period = 1;
+  BInt n2 = degree/2;
+  BInt n1 = degree-2*n2;
+  BPol p1 = BPol::One();
+  BPol p2 = BPol::One();
+  BUniformDist u(-1+2*DEpsilon(),1-2*DEpsilon());
+  BDat a, b;
     
-    if(Arg(2)) { period = (BInt)Real(Arg(2)); }
-    BPol BP = BPol::X() ^ period;
-    if(n1)
+  if(Arg(2)) { period = (BInt)Real(Arg(2)); }
+  BPol BP = BPol::X() ^ period;
+  if(n1)
+  {
+    p1 = BPol::One()-u.Random()*BP;
+  };
+  for(BInt k=0; k<n2; k++)
+  {
+    do
     {
-	BUniformDist u(-lim,lim);
-	p1 = BPol::One()-u.Random()*BP;
-    };
-    for(BInt k=0; k<n2; k++)
-    {
-/*
-    BUniformDist ub(0,2*lim);
-    BDat b = ub.Random();
-    BUniformDist ua(-lim,lim);
-    BDat a = ua.Random();
-    if((a>1-b)||((a==1-b)&&(BUniformDist::Random01()<0.5)))
-    {
-      b=b-2; a=-a;
-    }
+      a = u.Random();
+      b = u.Random()*2;
+    } while ( (a>=1-b) || (a>=1+b) );
     p2 *= (BPol::One()-b*BP-a*(BP^2));
-*/
-	BUniformDist u(-lim,lim);
-
-	BDat r = BUniformDist::Random01();
-	if(r<4.0/(4.0+BDat::Pi()))
-	{
-	    //The probability of the fact that a random stationary binomial
-	    //will have two real roots is (4/(4+PI)).
-	    BUniformDist u1(-lim,lim);
-	    BDat r1 = u1.Random();
-	    u.Random(); u.Random(); u.Random();
-	    BUniformDist u2(-lim,lim);
-	    BDat r2 = u2.Random();
-	    p2 *= (BPol::One()-r1*BP)*
-		(BPol::One()-r2*BP);
-	}
-	else
-	{
-	    //The probability of the fact that a random stationary binomial
-	    //will have two complex roots is (PI/(4+PI)).
-	    BDat a = BUniformDist::Random01();
-	    BDat m = 2*Sqrt(a);
-	    BUniformDist v(-m*lim,m*lim);
-	    BDat b = v.Random();
-	    p2 *= (BPol::One()-b*BP+a*(BP^2));
-	}
-    }
-    contens_ = p1 * p2;
+  }
+  contens_ = p1 * p2;
 }
 
 
