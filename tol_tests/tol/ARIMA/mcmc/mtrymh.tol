@@ -690,7 +690,7 @@ Simulation "<<numSim+ " _.acceptRatio="<<mtm_arima::_.acceptRatio));
 Real mtm_arima::_.sFactor := 1.01;
 Real numSim := 0;
 Real mh.t0 = Copy(Time);
-While(numSim<10, append_draw(mtm_arima::draw_single_try(0)));
+While(numSim<1000, append_draw(mtm_arima::draw_single_try(0)));
 Real mh.time = (Copy(Time) - mh.t0)/numSim;
 WriteLn("Time by MH simulation "<<mh.time);
 
