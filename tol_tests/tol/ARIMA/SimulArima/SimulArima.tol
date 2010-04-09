@@ -3,7 +3,9 @@
 // PURPOSE : Simulador de modelos ARIMA por generación aleatoria.
 //////////////////////////////////////////////////////////////////////////////
 
-Set Include("SimulArimaParam.tol");
+Set If(ObjectExist("Set","SimulationParameters"), 
+  SimulationParameters,
+  Include("SimulArimaParam.tol"));
 
 WriteLn("\n\n"
 "////////////////////////////////////////////////////////////////////////////"
