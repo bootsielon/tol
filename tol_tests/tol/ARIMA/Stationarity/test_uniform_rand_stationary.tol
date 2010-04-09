@@ -1,0 +1,138 @@
+
+#Require MatQuery;
+
+
+//////////////////////////////////////////////////////////////////////////////
+Set getFaces(Matrix sample) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real c = Columns(sample);
+  SetConcat(For(1,c-1,Set(Real i)
+  {
+    For(i+1,c,Matrix(Real j)
+    {
+      Matrix face = SubCol(sample,[[i,j]]);
+      Eval("Face_"<<i+"_"<<j+"=face")
+    })
+  }))
+};
+
+Real maxIterByTry = 0;
+Real n = 3;
+Real size = 2000;
+Real distance.target = 0.001;
+Real neighbour.num = 10;
+
+Real candidate.factor = 1;
+
+//////////////////////////////////////////////////////////////////////////////
+Matrix draw.arbitrary(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  -SubCol(Tra(PolMat(RandStationary(n),n+1,1)),Range(2,n+1,1))
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real isInDomain(Matrix x)
+//////////////////////////////////////////////////////////////////////////////
+{
+  IsStationary(1-MatPol(x)*B)
+};
+
+Matrix candidates =
+{
+  Matrix sample = Group("ConcatRows",For(1,size,draw.arbitrary));
+  MatQuery::@ANN.KDTree ann = MatQuery::@ANN.KDTree::New(sample);
+  MatQuery::@KNN.Neighbourhood neighbour = ann::search(sample,2);
+  Real distance.average = MatAvr(Sqrt(SubCol(neighbour::_.distance2,[[2]])));
+  Real candidate.factor := Ceil(distance.average/distance.target);
+  Matrix If(candidate.factor>1,sample,
+    sample := sample << 
+    Group("ConcatRows",For(1,size*(candidate.factor-1),draw.arbitrary)));
+  sample << Group("ConcatRows",For(2,neighbour.num,Matrix(Real k)
+  {
+    sample + Rand(size,n,-distance.target,+distance.target)
+  }))
+};
+
+Real candidate.num = Rows(candidates);
+
+Matrix candidates.isInDomain = SetCol(For(1,candidate.num,Real(Real i)
+{
+  isInDomain(SubRow(candidates,[[i]]))
+}));
+
+Real candidates.isInDomain.ratio = MatAvr(candidates.isInDomain);
+
+Real numOutDomain = candidate.num-MatSum(candidates.isInDomain);
+
+
+Matrix candidates.sample = SubRow(candidates,
+  MatSet(Sub(RandPermutation(1,Rows(candidates)),1,1,1,size))[1]);
+
+Set candidates.showFaces = getFaces(candidates.sample);
+
+MatQuery::@ANN.KDTree ann = MatQuery::@ANN.KDTree::New(candidates);
+
+MatQuery::@KNN.Neighbourhood neighbour = ann::search(candidates,neighbour.num);
+
+Real distance.average = MatAvr(Sqrt(SubCol(neighbour::_.distance2,[[2]])));
+
+VMatrix NN = Group("ConcatRows", For(2,neighbour.num,VMatrix(Real j)
+{
+  Mat2VMat(SubCol(neighbour::_.neighbour,[[j]]))   
+}));
+
+
+VMatrix NNSC = MatQuery::SortAndCount(NN);
+
+Matrix candidates.dens = 
+{
+  VMatrix aux = RPow(SubCol(NNSC,[[2]]),-1) $* Mat2VMat(candidates.isInDomain);
+  Real sum.f = VMatSum(aux);
+  VMatrix w = (aux / sum.f);
+  VMat2Mat(SubCol(NNSC,[[1]]) | w )
+};
+
+Matrix candidates.dens.sort = 
+{
+  Matrix perm = Sort(candidates.dens,[[2]]);
+  SubRow(PivotByRows(candidates.dens,perm),
+         Range(numOutDomain+1,candidate.num,1))
+};
+
+Matrix candidates.dens.cum = 
+{
+  Matrix dens = SubCol(candidates.dens.sort,[[2]]);
+  Matrix cum = DifEq(1/(1-B),dens);
+  candidates.dens.sort | cum
+};
+
+Set workSpace =  { AlgLib.Interp.Vector.CreateWorkSpace(
+  Text interpMet = "LinearSpline",
+  Matrix x = Tra(SubCol(candidates.dens.cum,[[3]])),
+  Matrix F = Tra(DifEq(1/(1-B),Constant(Columns(x),1,1)))) };
+
+Code fun = AlgLib.Interp.Vector.LoadWorkSpace(workSpace);
+
+Set candidates.extract = For(1,size,Real(Real k)
+{
+  Real pos = 
+    Min(candidate.num-numOutDomain,
+    Max(1,Round(MatDat(fun(0,Rand(0,1)),1,1))));
+  MatDat(candidates.dens.sort,pos,1)
+});
+
+Matrix sample = SubRow(candidates, candidates.extract);
+
+Set sample.showFaces = getFaces(sample);
+
+Matrix sample.isInDomain = SetCol(For(1,size,Real(Real i)
+{
+  isInDomain(SubRow(sample,[[i]]))
+}));
+
+Real sample.isInDomain.ratio = MatAvr(sample.isInDomain);
+
+/* */

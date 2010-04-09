@@ -11,7 +11,7 @@
 // 2 de 8 no estacionarias, pero no la última: devuelve una simulación válida
 // Real PutRandomSeed(440791623);
 //////////////////////////////////////////////////////////////////////////////
-Real PutRandomSeed(440791623);
+Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 
 WriteLn("TRACE  rndSeed:"<<rndSeed);
@@ -99,6 +99,9 @@ Real LogDens.Almagro.Z_cond_U(Real x)
 //Real x.slice = MatDat(SliceSampler1D(LogDens.Almagro.Z_cond_U, L, U, x0),1,1);
 //WriteLn("TRACE x.slice="<<x.slice);
 
+Real sim = AsymptoticSampler1D(LogDens.Almagro.Z_cond_U,L,U);
+Real sim.ok = { PutCoef(p, d, sim); IsStationary(p) };
+/*
 Set sample.uniform = Copy(Empty);
 Real n = 0;
 Real i = 0;
