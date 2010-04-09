@@ -9,7 +9,7 @@ Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
 Set SimulArima = {
-  [[ Set SimulationParameters =
+  Set SimulationParameters =
   [[
     Real Sigma            =   0.1; //Desviación típica de los residuos
     Real MinCycles        =     6;   //Mínimo de ciclos estacionales del output
@@ -26,7 +26,7 @@ Set SimulArima = {
     Real RestrictLTqp     = False;
   //Posibles estacionalidades 
     Set  PeriodsTable     = [[ 1,12 ]]
-  ]]  ]] <<
+  ]];
   Set Include("./SimulArima/SimulArima.tol")
 };
   
