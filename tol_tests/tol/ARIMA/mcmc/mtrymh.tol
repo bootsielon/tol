@@ -27,7 +27,7 @@ Set SimulArima = {
   //Posibles estacionalidades 
     Set  PeriodsTable     = [[ 1,12 ]]
   ]];
-  Set Include("./SimulArima/SimulArima.tol")
+  Set Include("../SimulArima/SimulArima.tol")
 };
   
 Serie z = SimulArima::ARIMASeries::DifNoise;
@@ -633,28 +633,33 @@ Real mtm_arima::_.s := 0.01;
 
 Real numSim = 0;
 
+Real append_draw(VMatrix draw)
+{
+  If(!(numSim%10), WriteLn("
+##############################################################################
+Simulation "<<numSim+ " _.acceptRatio="<<mtm_arima::_.acceptRatio));
+  Matrix mcmc := mcmc << VMat2Mat(Tra(draw));
+  Real numSim := numSim+1
+};
+
 /* */ 
 Real mtm_arima::_.sFactor := 1.01;
 Real numSim := 0;
-While(numSim<1000,
-{
-  If(!(numSim%10), WriteLn("
-##############################################################################
-Simulation MH "<<numSim+ " _.acceptRatio="<<mtm_arima::_.acceptRatio));
-  Matrix mcmc := mcmc << VMat2Mat(Tra(mtm_arima::draw_single_try(0)));
-  Real numSim := numSim+1
-});
+Real mh.t0 = Copy(Time);
+While(numSim<1000, append_draw(mtm_arima::draw_single_try(0)));
+Real mh.time = (Copy(Time) - mh.t0)/numSim;
+WriteLn("Time by MH simulation "<<mh.time);
+
 /* */
 Real mtm_arima::_.sFactor := 1.0;
 Real numSim := 0;
-While(numSim<2500,
-{
-  If(!(numSim%10), WriteLn("
-##############################################################################
-Simulation MTM "<<numSim+ " _.acceptRatio="<<mtm_arima::_.acceptRatio));
-  Matrix mcmc := mcmc << VMat2Mat(Tra(mtm_arima::draw_multiple_try(0)));
-  Real numSim := numSim+1
-});
+Real mtm.t0 = Copy(Time);
+Real TolOprProfiler.Enabled := True;
+While(numSim<2500, append_draw(mtm_arima::draw_multiple_try(0)));
+Real TolOprProfiler.Dump("draw_multiple_try.csv");
+Real mtm.time = (Copy(Time) - mtm.t0)/numSim;
+WriteLn("Time by MTM simulation "<<mtm.time);
+/* */
 
 Matrix real_param = Group("ConcatColumns", For(1,Columns(PARAM),Matrix(Real j) 
 {
