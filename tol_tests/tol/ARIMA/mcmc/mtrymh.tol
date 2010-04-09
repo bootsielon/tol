@@ -172,22 +172,25 @@ Class @MTryMetropolis
     accept_reject(y,pi_logDens_y) 
   };
 
+    VMatrix lwYjx = Rand(0,0,0,0);
+    VMatrix gYjx = Rand(0,0,0,0);
+    Real lwYjx_max = ?;
+    Real gYjx_sum  = ?;
+    VMatrix lwXjy = Rand(0,0,0,0);
+    Real lwXjy_max = ?;
+    Real gXjy_sum = ?;
+
   ////////////////////////////////////////////////////////////////////////////
   VMatrix draw_multiple_try(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
     If(_.k==1, draw_single_try(void), {
     Real _.num_draw := _.num_draw + 1;
-    Real lwYjx_max = ?;
-    Real lwXjy_max = ?;
-    Real gYjx_sum  = ?;
-    Real gXjy_sum = ?;
     VMatrix J = DifEq(1/(1-B),Constant(_.k,1,1)); 
     Set Y = For(1,_.k, VMatrix Y_Q_draw(Real j) { Q_draw(_.x) });
-    
     Real calc_numerator_Yjx(Real void)
     {
-      VMatrix lwYjx = Mat2VMat(SetCol(For(1,_.k, Real(Real j)
+      VMatrix lwYjx := Mat2VMat(SetCol(For(1,_.k, Real(Real j)
       {
         Real _.num_logWeight := _.num_logWeight+1;
         logWeight(Y[j],_.x)
@@ -195,7 +198,7 @@ Class @MTryMetropolis
     //WriteLn("TRACE draw lwYjx=\n"<<Matrix Tra(VMat2Mat(lwYjx)));
       Real lwYjx_max := VMatMax(lwYjx);
     //WriteLn("TRACE draw lwYjx_max=\n"<<lwYjx_max);
-      VMatrix gYjx = Exp(lwYjx-lwYjx_max);
+      VMatrix gYjx := Exp(lwYjx-lwYjx_max);
     //WriteLn("TRACE draw gYjx=\n"<<Matrix Tra(VMat2Mat(gYjx)));
       Real gYjx_sum := VMatSum(gYjx);
     //WriteLn("TRACE draw gYjx_sum=\n"<<gYjx_sum);
@@ -230,7 +233,7 @@ Class @MTryMetropolis
     Real calc_denominator_Xjy(Real void)
     {
     //WriteLn("TRACE draw pi_matchesDomain(y)="<<pi_matchesDomain(y));
-      VMatrix lwXjy = Mat2VMat(SetCol(For(1,_.k, Real(Real j)
+      VMatrix lwXjy := Mat2VMat(SetCol(For(1,_.k, Real(Real j)
       {
         Real _.num_logWeight := _.num_logWeight+1;
         logWeight(X[j],y)
@@ -687,7 +690,7 @@ Simulation "<<numSim+ " _.acceptRatio="<<mtm_arima::_.acceptRatio));
 Real mtm_arima::_.sFactor := 1.01;
 Real numSim := 0;
 Real mh.t0 = Copy(Time);
-While(numSim<1000, append_draw(mtm_arima::draw_single_try(0)));
+While(numSim<10, append_draw(mtm_arima::draw_single_try(0)));
 Real mh.time = (Copy(Time) - mh.t0)/numSim;
 WriteLn("Time by MH simulation "<<mh.time);
 
