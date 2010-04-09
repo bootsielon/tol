@@ -125,16 +125,16 @@ Class @MTryMetropolis
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix accept_reject(VMatrix y, Real pi_logDens_y)
+  Real accept_reject(VMatrix y)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real _.accept := GE(_.r,Rand(0,1));
   //WriteLn("TRACE accept_reject _.accept=\n"<<_.accept);
     Real If(_.accept, 
     {
-      Real _.num_accept := _.num_accept +1;
       VMatrix _.x := Copy(y);
-      Real _.pi_logDens_x := pi_logDens_y
+      Real doAfterDraw(0);
+      Real _.num_accept := _.num_accept +1
     });
     Real _.acceptRatio := _.num_accept / _.num_draw; 
     Real Case(
@@ -146,9 +146,7 @@ Class @MTryMetropolis
     {
       Real _.s := _.s*_.sFactor
     });
-
-    Real doAfterDraw(0);
-    _.x
+    _.accept
   };
 
 
@@ -159,8 +157,6 @@ Class @MTryMetropolis
     Real _.num_draw := _.num_draw + 1;
     VMatrix y = Q_draw(_.x);
     Real pi_logDens_y = pi_logDens(y);
-    Real cumulate(y,pi_logDens_y,False);
-
     Real _.r := Min(1, If(_.simetricQ,
     {
       Exp(pi_logDens_y-_.pi_logDens_x)
@@ -169,7 +165,8 @@ Class @MTryMetropolis
       Exp((  pi_logDens_y + Q_logDens(  y, _.x)) -
           (_.pi_logDens_x + Q_logDens(_.x,   y)) )
     }));
-    accept_reject(y,pi_logDens_y) 
+    Real If(accept_reject(y), _.pi_logDens_x := pi_logDens_y);
+    _.x
   };
 
     VMatrix lwYjx = Rand(0,0,0,0);
@@ -250,8 +247,8 @@ Class @MTryMetropolis
     //WriteLn("TRACE draw gXjy_sum=\n"<<gXjy_sum);
     Real _.r := Min(1,Exp(lwYjx_max-lwXjy_max)*(gYjx_sum/gXjy_sum));
   //WriteLn("TRACE draw _.r=\n"<<_.r);
-    Real pi_logDens_y = pi_logDens(y);
-    accept_reject(y,pi_logDens_y) 
+    Real accept_reject(y);
+    y
   })}
 };
 
@@ -700,7 +697,7 @@ Real numSim := 0;
 Real mtm.t0 = Copy(Time);
 Real TolOprProfiler.Enabled := True;
 While(numSim<2500, append_draw(mtm_arima::draw_multiple_try(0)));
-Real TolOprProfiler.Dump("draw_multiple_try.02.csv");
+Real TolOprProfiler.Dump("draw_multiple_try.03.csv");
 Real mtm.time = (Copy(Time) - mtm.t0)/numSim;
 WriteLn("Time by MTM simulation "<<mtm.time);
 /* */
