@@ -178,50 +178,73 @@ Class @MTryMetropolis
   {
     If(_.k==1, draw_single_try(void), {
     Real _.num_draw := _.num_draw + 1;
+    Real lwYjx_max = ?;
+    Real lwXjy_max = ?;
+    Real gYjx_sum  = ?;
+    Real gXjy_sum = ?;
     VMatrix J = DifEq(1/(1-B),Constant(_.k,1,1)); 
-    Set Y = For(1,_.k, VMatrix (Real j) { Q_draw(_.x) });
-    VMatrix lwYjx = Mat2VMat(SetCol(For(1,_.k, Real(Real j)
+    Set Y = For(1,_.k, VMatrix Y_Q_draw(Real j) { Q_draw(_.x) });
+    
+    Real calc_numerator_Yjx(Real void)
     {
-      Real _.num_logWeight := _.num_logWeight+1;
-      logWeight(Y[j],_.x)
-    })));
-  //WriteLn("TRACE draw lwYjx=\n"<<Matrix Tra(VMat2Mat(lwYjx)));
-    Real lwYjx_max = VMatMax(lwYjx);
-  //WriteLn("TRACE draw lwYjx_max=\n"<<lwYjx_max);
-    VMatrix gYjx = Exp(lwYjx-lwYjx_max);
-  //WriteLn("TRACE draw gYjx=\n"<<Matrix Tra(VMat2Mat(gYjx)));
-    Real gYjx_sum = VMatSum(gYjx);
-  //WriteLn("TRACE draw gYjx_sum=\n"<<gYjx_sum);
-    Matrix fYjx = VMat2Mat(gYjx / gYjx_sum);
-  //WriteLn("TRACE draw fYjx=\n"<<Matrix Tra(fYjx));
-    Matrix perm = Sort(VMat2Mat(lwYjx),[[1]]);
-  //WriteLn("TRACE draw perm=\n"<<Matrix Tra(perm));
-    Matrix fxYp = PivotByRows(fYjx,perm);
-  //WriteLn("TRACE draw fxYp=\n"<<Matrix Tra(fxYp));
-    Matrix FxYp = DifEq(1/(1-B),fxYp);
-  //WriteLn("TRACE draw FxYp=\n"<<Matrix Tra(FxYp));
-    Real u = Rand(0,1);
-  //WriteLn("TRACE draw Constant(_.k,1,u)=\n"<<Matrix Tra(Constant(_.k,1,u)));
-    Matrix FLTu = LT(FxYp,Constant(_.k,1,u));
-  //WriteLn("TRACE draw FLTu=\n"<<Matrix Tra(FLTu));
-    Real sFLTu = MatSum(FLTu);
-    Real h = Min(_.k,1+sFLTu);
-    Real j = MatDat(perm,h,1);
-  //WriteLn("TRACE draw u="<<u+" sFLTu="<<sFLTu+" h="<<h+" j="<<j);
-    VMatrix y = Y[j];
-  //WriteLn("TRACE draw pi_matchesDomain(y)="<<pi_matchesDomain(y));
-    Set X = For(1,_.k-1, VMatrix (Real j) { Q_draw(y) }) << [[_.x]];
-    VMatrix lwXjy = Mat2VMat(SetCol(For(1,_.k, Real(Real j)
+      VMatrix lwYjx = Mat2VMat(SetCol(For(1,_.k, Real(Real j)
+      {
+        Real _.num_logWeight := _.num_logWeight+1;
+        logWeight(Y[j],_.x)
+      })));
+    //WriteLn("TRACE draw lwYjx=\n"<<Matrix Tra(VMat2Mat(lwYjx)));
+      Real lwYjx_max := VMatMax(lwYjx);
+    //WriteLn("TRACE draw lwYjx_max=\n"<<lwYjx_max);
+      VMatrix gYjx = Exp(lwYjx-lwYjx_max);
+    //WriteLn("TRACE draw gYjx=\n"<<Matrix Tra(VMat2Mat(gYjx)));
+      Real gYjx_sum := VMatSum(gYjx);
+    //WriteLn("TRACE draw gYjx_sum=\n"<<gYjx_sum);
+      True
+    };
+    Real calc_numerator_Yjx(0);
+
+    VMatrix draw_y(Real void)
     {
-      Real _.num_logWeight := _.num_logWeight+1;
-      logWeight(X[j],y)
-    })));
-  //WriteLn("TRACE draw lwXjy=\n"<<Matrix Tra(VMat2Mat(lwXjy)));
-    Real lwXjy_max = VMatMax(lwXjy);
-  //WriteLn("TRACE draw lwXjy_max=\n"<<lwXjy_max);
-    VMatrix gXjy = Exp(lwXjy-lwXjy_max);
-    Real gXjy_sum = VMatSum(gXjy);
-  //WriteLn("TRACE draw gXjy_sum=\n"<<gXjy_sum);
+      Matrix fYjx = VMat2Mat(gYjx / gYjx_sum);
+    //WriteLn("TRACE draw fYjx=\n"<<Matrix Tra(fYjx));
+      Matrix perm = Sort(VMat2Mat(lwYjx),[[1]]);
+    //WriteLn("TRACE draw perm=\n"<<Matrix Tra(perm));
+      Matrix fxYp = PivotByRows(fYjx,perm);
+    //WriteLn("TRACE draw fxYp=\n"<<Matrix Tra(fxYp));
+      Matrix FxYp = DifEq(1/(1-B),fxYp);
+    //WriteLn("TRACE draw FxYp=\n"<<Matrix Tra(FxYp));
+      Real u = Rand(0,1);
+    //WriteLn("TRACE draw Constant(_.k,1,u)=\n"<<Matrix Tra(Constant(_.k,1,u)));
+      Matrix FLTu = LT(FxYp,Constant(_.k,1,u));
+    //WriteLn("TRACE draw FLTu=\n"<<Matrix Tra(FLTu));
+      Real sFLTu = MatSum(FLTu);
+      Real h = Min(_.k,1+sFLTu);
+      Real j = MatDat(perm,h,1);
+    //WriteLn("TRACE draw u="<<u+" sFLTu="<<sFLTu+" h="<<h+" j="<<j);
+      Y[j]
+    };
+    VMatrix y = draw_y(0);
+
+    Set X = For(1,_.k-1, VMatrix X_Q_draw(Real j) { Q_draw(y) }) << [[_.x]];
+
+    Real calc_denominator_Xjy(Real void)
+    {
+    //WriteLn("TRACE draw pi_matchesDomain(y)="<<pi_matchesDomain(y));
+      VMatrix lwXjy = Mat2VMat(SetCol(For(1,_.k, Real(Real j)
+      {
+        Real _.num_logWeight := _.num_logWeight+1;
+        logWeight(X[j],y)
+      })));
+    //WriteLn("TRACE draw lwXjy=\n"<<Matrix Tra(VMat2Mat(lwXjy)));
+      Real lwXjy_max := VMatMax(lwXjy);
+    //WriteLn("TRACE draw lwXjy_max=\n"<<lwXjy_max);
+      VMatrix gXjy = Exp(lwXjy-lwXjy_max);
+      Real gXjy_sum := VMatSum(gXjy);
+      True
+    };
+    Real calc_denominator_Xjy(0);
+
+    //WriteLn("TRACE draw gXjy_sum=\n"<<gXjy_sum);
     Real _.r := Min(1,Exp(lwYjx_max-lwXjy_max)*(gYjx_sum/gXjy_sum));
   //WriteLn("TRACE draw _.r=\n"<<_.r);
     Real pi_logDens_y = pi_logDens(y);
@@ -443,28 +466,42 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
   VMatrix _.z;
   Real _.sigma;
   Set _.arima = Copy(Empty);
+  Set _.arma = Copy(Empty);
   Polyn  _.ar = 1;
   Polyn  _.ma = 1;
   NameBlock _.almagro = [[ Real void=? ]];
   VMatrix _.u0 = Rand(0,0,0,0);
   VMatrix _.z0 = Rand(0,0,0,0);
   VMatrix _.a0 = Rand(0,0,0,0);
-
   
   ////////////////////////////////////////////////////////////////////////////
   VMatrix arima2col(Set arima)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Mat2VMat(SetCol(ARIMAToParam(arima)))
+  //Mat2VMat(SetCol(ARIMAToParam(arima)))
+    Set arma = EvalSet(arima, Set(ARIMAStruct f)
+    {
+      SetOfPolyn(1-f->AR, 1-f->MA)
+    });
+    Mat2VMat(Tra(GetNumeric(arma)))
   };
   
   ////////////////////////////////////////////////////////////////////////////
   Set col2arima(VMatrix x)
   ////////////////////////////////////////////////////////////////////////////
   {
-    ParamToARIMA(_.arima, MatSet(Tra(VMat2Mat(x)))[1])
+//  ParamToARIMA(_.arima, MatSet(Tra(VMat2Mat(x)))[1])
+    Set arma = DeepCopy(_.arma, VMat2Mat(x));
+    Set arima =  DeepCopy(_.arima); 
+    Set For(1,Card(_.arima), Real(Real k)
+    {
+      Polyn arima[k]->AR := 1-arma[k][1];
+      Polyn arima[k]->MA := 1-arma[k][2];
+      True
+    });
+    arima
   };
-  
+
   ////////////////////////////////////////////////////////////////////////////
   Real setArima(Real void)
   ////////////////////////////////////////////////////////////////////////////
@@ -483,7 +520,11 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
   ////////////////////////////////////////////////////////////////////////////
   {
     Set _.arima := DeepCopy(arima);
-    VMatrix _.x := arima2col(_.arima);
+    Set _.arma := EvalSet(_.arima, Set(ARIMAStruct f)
+    {
+      SetOfPolyn(1-f->AR, 1-f->MA)
+    });
+        VMatrix _.x := arima2col(_.arima);
     Real ok = setArima(0);
     Real _.n := VRows(_.x);
     Real _.acceptRatioTarget := 0.234  + (0.5-0.234)*Exp(1-_.n);
@@ -656,7 +697,7 @@ Real numSim := 0;
 Real mtm.t0 = Copy(Time);
 Real TolOprProfiler.Enabled := True;
 While(numSim<2500, append_draw(mtm_arima::draw_multiple_try(0)));
-Real TolOprProfiler.Dump("draw_multiple_try.csv");
+Real TolOprProfiler.Dump("draw_multiple_try.02.csv");
 Real mtm.time = (Copy(Time) - mtm.t0)/numSim;
 WriteLn("Time by MTM simulation "<<mtm.time);
 /* */
