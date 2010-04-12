@@ -133,7 +133,6 @@ Class @MTryMetropolis
     Real If(_.accept, 
     {
       VMatrix _.x := Copy(y);
-      Real doAfterDraw(0);
       Real _.num_accept := _.num_accept +1
     });
     Real _.acceptRatio := _.num_accept / _.num_draw; 
@@ -146,6 +145,8 @@ Class @MTryMetropolis
     {
       Real _.s := _.s*_.sFactor
     });
+  //Real If(_.accept, { Real doAfterDraw(0) });
+    Real doAfterDraw(0);
     _.accept
   };
 
@@ -506,9 +507,13 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
   Real setArima(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Polyn  _.ar := ARIMAGetAR(_.arima);
-    Polyn  _.ma := ARIMAGetMA(_.arima);
-    NameBlock _.almagro := ARMAProcess::Eval.Almagro(_.ar,_.ma,_.z,_.sigma);
+    Real If(_.accept,
+    {
+      Polyn  _.ar := ARIMAGetAR(_.arima);
+      Polyn  _.ma := ARIMAGetMA(_.arima);
+      NameBlock _.almagro := ARMAProcess::Eval.Almagro(_.ar,_.ma,_.z,_.sigma);
+      True
+    });
     VMatrix _.u0 := _.almagro::Draw.U_cond_Z(0);
     VMatrix _.z0 := _.almagro::Get.Z0(_.u0);
     VMatrix _.a0 := _.almagro::Get.A0(_.u0);
@@ -524,7 +529,8 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
     {
       SetOfPolyn(1-f->AR, 1-f->MA)
     });
-        VMatrix _.x := arima2col(_.arima);
+    VMatrix _.x := arima2col(_.arima);
+    Real _.accept := True;
     Real ok = setArima(0);
     Real _.n := VRows(_.x);
     Real _.acceptRatioTarget := 0.234  + (0.5-0.234)*Exp(1-_.n);
@@ -556,9 +562,9 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
   Real doAfterDraw(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Set _.arima := col2arima(_.x);
-    Real setArima(void);
-    Real doAfterDraw_cum(void)
+    Set If(_.accept, _.arima := col2arima(_.x));
+    Real setArima(void)
+//  Real doAfterDraw_cum(void)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -697,15 +703,17 @@ Real numSim := 0;
 Real mtm.t0 = Copy(Time);
 Real TolOprProfiler.Enabled := True;
 While(numSim<2500, append_draw(mtm_arima::draw_multiple_try(0)));
-Real TolOprProfiler.Dump("draw_multiple_try.03.csv");
+Real TolOprProfiler.Dump("draw_multiple_try.csv");
 Real mtm.time = (Copy(Time) - mtm.t0)/numSim;
 WriteLn("Time by MTM simulation "<<mtm.time);
 /* */
 
-Matrix real_param = Group("ConcatColumns", For(1,Columns(PARAM),Matrix(Real j) 
+Matrix cmp = mcmc | Group("ConcatColumns", For(1,Rows(PARAM),Matrix(Real j) 
 {
-  Constant(Rows(PARAM),1,MatDat(PARAM,j,1))
+  Constant(Rows(mcmc),1,MatDat(PARAM,j,1))
 }));
 
 /* */
+
+
 
