@@ -96,6 +96,20 @@ Class @MTryMetropolis
     });
     Real _.acceptRatio := _.num_accept / _.num_draw; 
     Real Case(
+    _.acceptRatio<0.50,
+    {
+      If(_.k<_.n,    _.k := _.k+1);
+      If(_.s>1.E-3,  _.s := _.s/_.sFactor)
+    },
+    _.acceptRatio>0.75,
+    {
+      If(_.k>1,     Real _.k := _.k-1);
+      If(_.s<1.E+3, Real _.s := _.s*_.sFactor)
+    });
+
+/*
+    Real Case(
+    _.k>1, { False },
     _.acceptRatio<_.acceptRatioTarget/1.01,
     {
       Real _.s := _.s/_.sFactor
@@ -104,6 +118,7 @@ Class @MTryMetropolis
     {
       Real _.s := _.s*_.sFactor
     });
+*/
   //Real If(_.accept, { Real doAfterDraw(0) });
     Real doAfterDraw(0);
     _.accept
