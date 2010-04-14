@@ -1,7 +1,7 @@
 
 //Random seed setting
 //Real PutRandomSeed(1514116838);
-Real PutRandomSeed(1992968191);
+Real PutRandomSeed(0);
 //Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
