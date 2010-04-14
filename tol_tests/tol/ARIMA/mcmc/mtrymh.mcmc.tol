@@ -9,18 +9,24 @@ Real mtm_arima::_.k := If(ObjectExist("Real","k"), k,
 
 Matrix mcmc = Rand(0,mtm_arima::_.n,0,0);
 
-Matrix L = {
-  Matrix COV = modEst.0::Correlations::COV;
-  Real n = mtm_arima::_.n;
-  Real r = Rows(COV);
-  Real k = r-n+1;
-  Choleski(Sub(COV,k,k,n,n))
-};
-Matrix Li = LTInverse(L);
-VMatrix mtm_arima::_.L := Mat2VMat(L);
-VMatrix mtm_arima::_.Li := Mat2VMat(Li);
-Real mtm_arima::_.s := 1;
-
+Real If(!ObjectExist("Matrix","modEst.0::Correlations::COV"),
+{
+  Real mtm_arima::_.s := 0.001
+},
+{
+  Matrix L = {
+    Matrix COV = modEst.0::Correlations::COV;
+    Real n = mtm_arima::_.n;
+    Real r = Rows(COV);
+    Real k = r-n+1;
+    Choleski(Sub(COV,k,k,n,n))
+  };
+  Matrix Li = LTInverse(L);
+  VMatrix mtm_arima::_.L := Mat2VMat(L);
+  VMatrix mtm_arima::_.Li := Mat2VMat(Li);
+  Real mtm_arima::_.s := 1
+});
+  
 
 Real numSim = 0;
 
@@ -42,7 +48,7 @@ Real mh.time = (Copy(Time) - mh.t0)/numSim;
 WriteLn("Time by MH simulation "<<mh.time);
 
 /* */
-Real mtm_arima::_.sFactor := 1.00;
+Real mtm_arima::_.sFactor := 1.01;
 Real numSim := 0;
 Real mtm.t0 = Copy(Time);
 //Real TolOprProfiler.Enabled := True;
@@ -61,6 +67,7 @@ Real raftery.burnin = ?;
 Real raftery.thinning = ?;
 Real raftery.rate = ?;
 Real raftery.speed = ?;
+Real burnin = 500;
 
 Matrix cmp = mcmc | Group("ConcatColumns", For(1,Rows(PARAM),Matrix(Real j) 
 {
@@ -77,17 +84,38 @@ Set raftery.report = If(numErr, Copy(Empty),
     Real eps = 0.001
   ]]});
   Real raftery.burnin := MatMax(SubCol(raftery,[[1]]));
+  Real burnin := Min(raftery.burnin,500);
   Real raftery.thinning := MatMax(SubCol(raftery,[[4]]));
   Real raftery.rate := (numSim-raftery.burnin)/(numSim*raftery.thinning);
   Real raftery.speed := raftery.rate / mtm.time
 ]]});
   
+Matrix mcmc.sub = SubRow(mcmc, Range(burnin+1,Rows(mcmc),1));
+Matrix x.avr = Tra(Constant(1,Rows(mcmc.sub),1/Rows(mcmc.sub))*mcmc.sub);
+Set arima.avr = mtm_arima::col2arima(Mat2VMat(x.avr));
+Set ev.avr = ARIMALevinsonEval(arima.avr, Tra(SerMat(z)));
+Serie e;
+Serie residuals.avr  = 
+{
+  Matrix res = ev.avr[4];
+  Date   ini = Succ(Last(z),Diario,-Rows(ev.avr[4])+1);
+  If(!Rows(res), 0*z, MatSerSet(Tra(res),Diario,ini)[1])
+};
+Real logLH.real = (SimulArima::EvalRealARIMA::ev)[12];
+Real logLH.avr = (ev.avr)[12];
+Real prob.refuse = Min(1,Max(0,1-Exp(logLH.avr-logLH.real)));
+
+Real Q_draw_by_Pi_draw = mtm_arima::_.num_Q_draw/mtm_arima::_.num_draw;
+Real num_logWeight_by_Pi_draw = mtm_arima::_.num_logWeight/mtm_arima::_.num_draw;
+
 Text report = ""
   <<rndSeed+"\t"
   <<rndSeed_iv+"\t"
   <<arima.label+"\t"
   <<mtm_arima::_.n+"\t"
   <<mtm_arima::_.k+"\t"
+  <<Q_draw_by_Pi_draw+"\t"
+  <<num_logWeight_by_Pi_draw+"\t"
   <<arima.time+"\t"
   <<mtm.time+"\t"
   <<mtm_arima::_.acceptRatio+"\t"
@@ -96,6 +124,9 @@ Text report = ""
   <<raftery.thinning+"\t"
   <<raftery.rate+"\t"
   <<raftery.speed+"\t"
+  <<logLH.real+"\t"
+  <<logLH.avr+"\t"
+  <<prob.refuse+"\t"
   <<numErr+"\t"
   <<numWar+"\n";
 Text If(!FileExist(report.path), WriteFile(report.path,""
@@ -104,6 +135,8 @@ Text If(!FileExist(report.path), WriteFile(report.path,""
   +"arima.label\t"
   +"mtm_arima::_.n\t"
   +"mtm_arima::_.k\t"
+  +"Q_draw_by_Pi_draw\t"
+  +"num_logWeight_by_Pi_draw\t"
   +"arima.time\t"
   +"mtm.time\t"
   +"mtm_arima::_.acceptRatio\t"
@@ -111,7 +144,9 @@ Text If(!FileExist(report.path), WriteFile(report.path,""
   +"raftery.burnin\t"
   +"raftery.thinning\t"
   +"raftery.rate\t"
-  +"raftery.speed\t"
+  +"logLH.real\t"
+  +"logLH.avr\t"
+  +"prob.refuse\t"
   +"numErr\t"
   +"numWar\n"));
 
