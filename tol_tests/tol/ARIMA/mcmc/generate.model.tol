@@ -1,0 +1,47 @@
+
+//Random seed setting
+//Real PutRandomSeed(1514116838);
+Real PutRandomSeed(1992968191);
+//Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+Set SimulArima = Copy(Empty);
+Set ARIMA = Copy(Empty);
+Matrix PARAM = Rand(0,0,0,0);
+
+While(!Rows(PARAM),
+{
+  Set SimulArima := {
+    Set SimulationParameters =
+    [[
+      Real Sigma            =   0.1; //Desviación típica de los residuos
+      Real MinCycles        =     6;   //Mínimo de ciclos estacionales del output
+      Real MinData          =    40;   //Mínima longitud de la serie output 
+      Real MaxData          =  3000;   //Máxima longitud de la serie output 
+      Real MaxInterruptions =     0;   //Máximo nº de interrupciones
+      Real MaxInputs        =     0;   //Máximo nº de inputs
+      Real MaxRegDIF        =     0;   //Máximo nº de diferencias regulares
+      Real MaxSeaDIF        =     0;   //Máximo nº de diferencias estacionales
+      Real MaxRegAR         =     4;   //Máximo grado AR regular
+      Real MaxRegMA         =     4;   //Máximo grado AR estacional
+      Real MaxSeaAR         =     2;   //Máximo grado MA regular
+      Real MaxSeaMA         =     2;   //Máximo grado MA estacional
+      Real RestrictLTqp     = False;
+    //Posibles estacionalidades 
+      Set  PeriodsTable     = [[ 1,12 ]]
+    ]];
+    Set Include("../SimulArima/SimulArima.tol")
+  };
+  Set ARIMA := SimulArima::ARIMAPolynomials::ARIMA;
+  Matrix PARAM := SetCol(ARIMAToParam(ARIMA))
+});
+
+
+Serie z = SimulArima::ARIMASeries::DifNoise;
+Serie e = SimulArima::ARIMASeries::Residuals;
+VMatrix Z = Mat2VMat(Tra(SerMat(z)));
+Real SIGMA = SimulArima::SimulationParameters::Sigma;
+
+Text arima.label = GetLabelFromArima(ARIMA);
+

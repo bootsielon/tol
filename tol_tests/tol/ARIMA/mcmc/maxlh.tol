@@ -1,0 +1,52 @@
+Real PutRandomSeed(0);
+Real rndSeed_iv = GetRandomSeed(0);
+WriteLn("Current Random Seed for initial values= "<<rndSeed_iv);
+
+Polyn closeToCeroStationary(Polyn p)
+{
+  1-((1-p)*1.E-6)
+};
+
+Set arima.0 = RandCopyARIMA(ARIMA);
+
+Real arima.t0 = Copy(Time);
+Set arima.0.tr = Traspose(arima.0);
+Set ar.0 = EvalSet(arima.0.tr[2],closeToCeroStationary);
+Set ma.0 = EvalSet(arima.0.tr[3],closeToCeroStationary);
+Polyn dif = ARIMAGetDIF(arima.0);
+Real period = SetMax(arima.0.tr[1]);
+
+Set modDef.0 = ModelDef
+(
+  z, 1, 0, period, 0, dif,
+  ar.0,
+  ma.0,
+  Copy(Empty),
+  Copy(Empty)
+);
+
+//Parámetros de la estimación
+Set 
+[[
+  Real (NullInitResiduals:=0);
+  Real (MaxIter:=100);
+  Real (CGMaxIter:=3);
+  Real (DiffDist :=1.E-4);
+  Real (Tolerance:=1.E-4);
+  Real (RelativeTolerance:=1.E-4);
+  Real (DoStatistics:=True);
+//Text (JacobianMethod:="Numerical")
+  Text (JacobianMethod:="Analytical")
+]];
+
+Set  modEst.0 = Estimate(modDef.0);
+
+Set For(1,Card(arima.0), Real(Real k)
+{
+  Polyn arima.0[k]->AR := (modEst.0::Definition::AR)[k];
+  Polyn arima.0[k]->MA := (modEst.0::Definition::MA)[k];
+  True
+});
+
+Real arima.time = Copy(Time)-arima.t0;
+
