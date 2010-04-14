@@ -46,49 +46,76 @@ Real mtm_arima::_.sFactor := 1.00;
 Real numSim := 0;
 Real mtm.t0 = Copy(Time);
 //Real TolOprProfiler.Enabled := True;
-While(numSim<2500, append_draw(mtm_arima::draw_multiple_try(0)));
+While(And(numSim<2500,NError==numErr.0), append_draw(mtm_arima::draw_multiple_try(0)));
 //Real TolOprProfiler.Dump("draw_multiple_try.k"<<mtm_arima::_.k+".csv");
 Real mtm.time = (Copy(Time) - mtm.t0)/numSim;
+Real mtm.speed = mtm_arima::_.acceptRatio / mtm.time;
 WriteLn("Time by MTM simulation "<<mtm.time);
 /* */
+Real numErr = Copy(NError) - numErr.0;
+Real numWar = Copy(NWarning) - numWar.0;
+
+Text report.path = "mtrymh.tab";
+
+Real raftery.burnin = ?;
+Real raftery.thinning = ?;
+Real raftery.rate = ?;
+Real raftery.speed = ?;
 
 Matrix cmp = mcmc | Group("ConcatColumns", For(1,Rows(PARAM),Matrix(Real j) 
 {
   Constant(Rows(mcmc),1,MatDat(PARAM,j,1))
 }));
-
-Real mtm.speed = mtm_arima::_.acceptRatio / mtm.time;
-
-Real numErr = Copy(NError) - numErr.0;
-Real numWar = Copy(NWarning) - numWar.0;
-
-/* */
-Text report.path = "mtrymh.tab";
+Set raftery.report = If(numErr, Copy(Empty),
+{[[
+  Matrix raftery=RCODA::raftery.diag(mcmc,{ [[
+    Real verbose=TRUE, 
+    Real varByCol=TRUE,
+    Real q = 0.025;
+    Real r = 0.007;  
+    Real s = 0.950;  
+    Real eps = 0.001
+  ]]});
+  Real raftery.burnin := MatMax(SubCol(raftery,[[1]]));
+  Real raftery.thinning := MatMax(SubCol(raftery,[[4]]));
+  Real raftery.rate := (numSim-raftery.burnin)/(numSim*raftery.thinning);
+  Real raftery.speed := raftery.rate / mtm.time
+]]});
+  
 Text report = ""
   <<rndSeed+"\t"
   <<rndSeed_iv+"\t"
   <<arima.label+"\t"
-  <<arima.time+"\t"
   <<mtm_arima::_.n+"\t"
   <<mtm_arima::_.k+"\t"
-  <<mtm_arima::_.acceptRatio+"\t"
+  <<arima.time+"\t"
   <<mtm.time+"\t"
+  <<mtm_arima::_.acceptRatio+"\t"
   <<mtm.speed+"\t"
+  <<raftery.burnin+"\t"
+  <<raftery.thinning+"\t"
+  <<raftery.rate+"\t"
+  <<raftery.speed+"\t"
   <<numErr+"\t"
   <<numWar+"\n";
 Text If(!FileExist(report.path), WriteFile(report.path,""
   +"rndSeed\t"
   +"rndSeed_iv\t"
   +"arima.label\t"
-  +"arima.time\t"
   +"mtm_arima::_.n\t"
   +"mtm_arima::_.k\t"
-  +"mtm_arima::_.acceptRatio\t"
+  +"arima.time\t"
   +"mtm.time\t"
+  +"mtm_arima::_.acceptRatio\t"
   +"mtm.speed\t"
+  +"raftery.burnin\t"
+  +"raftery.thinning\t"
+  +"raftery.rate\t"
+  +"raftery.speed\t"
   +"numErr\t"
   +"numWar\n"));
 
-Text AppendFile(report.path,report);
 WriteLn(report);
+Text AppendFile(report.path,report);
+
 

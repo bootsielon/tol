@@ -1,6 +1,7 @@
 
 Set For(1,1000,Real(Real modelNum)
 {
-  Set aux = IncludeText(ReadFile("mtrymh.tol"));
+  //Set aux = IncludeText(ReadFile("mtrymh.tol"));
+  Real OSCmdWait(TOLSH_PATH+"tolsh.exe mtrymh.tol");
   True
 });
