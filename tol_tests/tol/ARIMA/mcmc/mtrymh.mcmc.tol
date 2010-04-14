@@ -45,9 +45,9 @@ WriteLn("Time by MH simulation "<<mh.time);
 Real mtm_arima::_.sFactor := 1.00;
 Real numSim := 0;
 Real mtm.t0 = Copy(Time);
-Real TolOprProfiler.Enabled := True;
+//Real TolOprProfiler.Enabled := True;
 While(numSim<2500, append_draw(mtm_arima::draw_multiple_try(0)));
-Real TolOprProfiler.Dump("draw_multiple_try.k"<<mtm_arima::_.k+".csv");
+//Real TolOprProfiler.Dump("draw_multiple_try.k"<<mtm_arima::_.k+".csv");
 Real mtm.time = (Copy(Time) - mtm.t0)/numSim;
 WriteLn("Time by MTM simulation "<<mtm.time);
 /* */
