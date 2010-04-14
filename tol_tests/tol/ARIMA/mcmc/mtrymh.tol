@@ -9,9 +9,10 @@ Set Include("generate.model.tol");
 Set Include("maxlh.tol");
 Set Include("MTryMetropolis.tol");
 
-
-//Set k.range = [[1]];
-Set k.range = Range(1,Rows(PARAM),1);
+/* */
+//Set k.range = [[ 1 ]];
+  Set k.range = [[Real Ceil(Sqrt(Rows(PARAM))) ]];
+//Set k.range = Range(1,Rows(PARAM),1);
 
 Set simulation = EvalSet(k.range, Set(Real k)
 {
@@ -22,3 +23,4 @@ Set simulation = EvalSet(k.range, Set(Real k)
               "K"<<k;
   Eval(name+"=aux")
 });
+/* */
