@@ -7,4 +7,5 @@ Set Include("linear/_init_linear.tol");
 Set Include("generalized_linear/_init_generalized_linear.tol");
 Set Include("arima/_init_arima.tol");
 Set Include("diagnosis/_init_diagnosis.tol");
+Set Include("multiTryMetropolis/_multiTryMetropolis.tol");
 Set Include("bysMcmc/_bysMcmc.tol");
