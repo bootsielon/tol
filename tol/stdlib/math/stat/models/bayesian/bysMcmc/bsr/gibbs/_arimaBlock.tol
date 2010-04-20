@@ -683,22 +683,27 @@ Class @BlockArima : @BlockSampler
       };
       Code LogDens = LogDens.Almagro.Z_cond_U;
       Real If(Or(pd->coef<L,pd->coef>R), { pd->coef := Rand(L,R) }, 0);
-      
-      Real pd->coef:= If(Degree(polRef[1])<=2,
+      Real isStationary = False;
+      Real subIter = 0;
+      While(And(!isStationary,subIter<10),
       {
-        _scalarSampler::sample(LogDens,L,R,pd->coef)
-      },
-      {
-        AsymptoticSampler1D(LogDens,L,R)
-      });
+        Real subIter := subIter+1;
+        Real pd->coef:= If(Degree(polRef[1])<=2,
+        {
+          _scalarSampler::sample(LogDens,L,R,pd->coef)
+        },
+        {
+          AsymptoticSampler1D(LogDens,L,R)
+        });
 
-      Real isStationary = {
-        Real PutCoef(polRef[1], deg, -pd->coef);
-        Real isStationary = IsStationary(polRef[1]);
-      //WriteLn("TRACE"+_MID+" pd->coef "<<pd->coef);
-      //WriteLn("TRACE"+_MID+" isStationary "<<isStationary);
-        isStationary
-      };
+        Real isStationary := {
+          Real PutCoef(polRef[1], deg, -pd->coef);
+          Real isStationary = IsStationary(polRef[1]);
+        //WriteLn("TRACE"+_MID+" pd->coef "<<pd->coef);
+        //WriteLn("TRACE"+_MID+" isStationary "<<isStationary);
+          isStationary
+        }
+      });
 
       
     //WriteLn("TRACE"+_MID+" draw.scalar pd->coef="<<pd->coef);
