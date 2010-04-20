@@ -1,5 +1,5 @@
 
 Matrix rs2 = Group("ConcatRows",For(1,1000,Matrix(Real n)
 {
-  -SubCol(Tra(PolMat(RandStationary(2),3,1)),[[2,3]])
+  SubCol(Tra(PolMat(RandStationary(2),3,1)),[[2,3]])
 }));

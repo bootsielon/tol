@@ -2,10 +2,10 @@
 Class @MTryMetropolis
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real useOnlySingleTry = False;
   Real _.n = 0;
   Real _.k = 0;
   VMatrix _.x = Rand(0,0,0,0);
-  Real _.pi_logDens_x = ?;
   Real _.r = ?;
   Real _.s = 1;
   Real _.sFactor = 1.001;
@@ -17,67 +17,60 @@ Class @MTryMetropolis
   Real _.maxDomainSearchIter = 100;
   Real _.num_draw = 0;
   Real _.num_accept = 0;
-  Real _.num_Q_draw_pre = 0;
-  Real _.num_Q_draw = 0;
   Real _.num_logWeight = 0;
 
+  VMatrix _.nu = Rand(0,0,0,0);
+  VMatrix _.L = Rand(0,0,0,0);  // Cov = L*L´
+  VMatrix _.Li = Rand(0,0,0,0); // L*Li = I
+
   ////////////////////////////////////////////////////////////////////////////
-  Real pi_matchesDomain(VMatrix x);
+  VMatrix Q_draw(VMatrix x)
   ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix e = Gaussian(_.n,1,0,1);
+     _.nu + _.L*e*_.s
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real Q_logDens(VMatrix x, VMatrix y)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix e = _.Li*(y-x);
+    -0.5*VMatDat(MtMSqr(e),1,1)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real pi_logDens_aprox(VMatrix x)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix e = _.Li*(x-_.nu);
+    -0.5*VMatDat(MtMSqr(e),1,1)    
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real pi_matchesDomain(VMatrix x)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    True
+  };
 
   ////////////////////////////////////////////////////////////////////////////
   Real pi_logDens(VMatrix x);
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
-  Real Q_logDens(VMatrix x, VMatrix y) { 1 };
-  ////////////////////////////////////////////////////////////////////////////
-
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix Q_draw_pre(VMatrix x);
-  ////////////////////////////////////////////////////////////////////////////
-
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix Q_draw(VMatrix x)
+  Real logLambda(VMatrix x, VMatrix y)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE Q_draw 1 ");
-    Real _.num_Q_draw := _.num_Q_draw + 1;
-    Q_draw_pre(x)
-/*
-    VMatrix x_ = If(!_.constrainedDomain, 
-    {
-    //WriteLn("TRACE Q_draw 2.1 ");
-      Real _.num_Q_draw_pre := _.num_Q_draw_pre + 1;
-      Q_draw_pre(x)
-    },
-    {
-    //WriteLn("TRACE Q_draw 2.2 ");
-      VMatrix y = Rand(0,0,0,0);
-      Real ok = False;
-      Real iter = 1;
-      While(And(!ok, iter<=_.maxDomainSearchIter),
-      {
-        VMatrix y := Q_draw_pre(x);
-        Real ok := pi_matchesDomain(y);
-        Real _.num_Q_draw_pre := _.num_Q_draw_pre + 1;
-        Real iter := iter +1
-      });
-    //WriteLn("TRACE Q_draw 2.3 iter="<<iter+ " ok="<<ok);
-      If(ok,y,
-      {
-        WriteLn("Cannot find a valid draw after "<<iter+" iterations","W");
-        x
-      })
-    });
-  //WriteLn("TRACE Q_draw 3 x_=\n"<<Matrix Tra(VMat2Mat(x_)));
-    x_
-*/
+    -Q_logDens(x,y)
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real logWeight(VMatrix x, VMatrix y);
+  Real logWeight(VMatrix x, VMatrix y)
   ////////////////////////////////////////////////////////////////////////////
+  {
+    pi_logDens(x)
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   Real doAfterDraw(Real void);
@@ -95,7 +88,17 @@ Class @MTryMetropolis
       Real _.num_accept := _.num_accept +1
     });
     Real _.acceptRatio := _.num_accept / _.num_draw; 
-    Real Case(
+    Real If(useOnlySingleTry, Case(
+    _.k>1, { False },
+    _.acceptRatio<_.acceptRatioTarget/1.01,
+    {
+      Real _.s := _.s/_.sFactor
+    },
+    _.acceptRatio>_.acceptRatioTarget*1.01,
+    {
+      Real _.s := _.s*_.sFactor
+    }),
+    Case(
     _.acceptRatio<0.50,
     {
       If(_.k<_.n,    _.k := _.k+1);
@@ -105,25 +108,10 @@ Class @MTryMetropolis
     {
       If(_.k>1,     Real _.k := _.k-1);
       If(_.s<1.E+3, Real _.s := _.s*_.sFactor)
-    });
-
-/*
-    Real Case(
-    _.k>1, { False },
-    _.acceptRatio<_.acceptRatioTarget/1.01,
-    {
-      Real _.s := _.s/_.sFactor
-    },
-    _.acceptRatio>_.acceptRatioTarget*1.01,
-    {
-      Real _.s := _.s*_.sFactor
-    });
-*/
-  //Real If(_.accept, { Real doAfterDraw(0) });
+    }));
     Real doAfterDraw(0);
     _.accept
   };
-
 
   ////////////////////////////////////////////////////////////////////////////
   VMatrix draw_single_try(Real void)
@@ -132,19 +120,25 @@ Class @MTryMetropolis
     Real _.num_draw := _.num_draw + 1;
     VMatrix y = Q_draw(_.x);
     Real pi_logDens_y = pi_logDens(y);
-    Real _.pi_logDens_x := pi_logDens(_.x);
+    Real pi_logDens_x = pi_logDens(_.x);
     Real _.r := Min(1, If(_.simetricQ,
     {
-      Exp(pi_logDens_y-_.pi_logDens_x)
+      Exp(pi_logDens_y-pi_logDens_x)
     },
     {
-      Exp((  pi_logDens_y + Q_logDens(  y, _.x)) -
-          (_.pi_logDens_x + Q_logDens(_.x,   y)) )
+      Exp((pi_logDens_y + Q_logDens(  y, _.x)) -
+          (pi_logDens_x + Q_logDens(_.x,   y)) )
     }));
     Real accept_reject(y);
     _.x
   };
 
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix draw_multiple_try(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.k==1, draw_single_try(void), {
     VMatrix lwYjx = Rand(0,0,0,0);
     VMatrix gYjx = Rand(0,0,0,0);
     Real lwYjx_max = ?;
@@ -152,12 +146,6 @@ Class @MTryMetropolis
     VMatrix lwXjy = Rand(0,0,0,0);
     Real lwXjy_max = ?;
     Real gXjy_sum = ?;
-
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix draw_multiple_try(Real void)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    If(_.k==1, draw_single_try(void), {
     Real _.num_draw := _.num_draw + 1;
     VMatrix J = DifEq(1/(1-B),Constant(_.k,1,1)); 
     Set Y = For(1,_.k, VMatrix Y_Q_draw(Real j) { Q_draw(_.x) });
@@ -224,217 +212,13 @@ Class @MTryMetropolis
     Real accept_reject(y);
     _.x
   }) }
-};
 
-//////////////////////////////////////////////////////////////////////////////
-Class @MTryMetropolisGeneric : @MTryMetropolis
-//////////////////////////////////////////////////////////////////////////////
-{
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real logLambda(VMatrix x, VMatrix y);
-  ////////////////////////////////////////////////////////////////////////////
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real logWeight(VMatrix x, VMatrix y)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    pi_logDens(x)+Q_logDens(x,y)+logLambda(x,y)
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Class @MTryMetropolisSymmetric : @MTryMetropolis
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real _.simetricQ = True;
-  Real _.constrainedDomain = False;
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real logWeight(VMatrix x, VMatrix y)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    pi_logDens(x)
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Class @MTryMetropolisSymmetricNormal : @MTryMetropolisSymmetric
-//////////////////////////////////////////////////////////////////////////////
-{
-  VMatrix _.L;  // Cov = L*L´
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real pi_matchesDomain(VMatrix x) { True };
-  ////////////////////////////////////////////////////////////////////////////
-
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix Q_draw_pre(VMatrix x)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix e = Gaussian(_.n,1,0,1);
-    x + _.L*e*_.s
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Class @MTryMetropolisTruncNormal : @MTryMetropolis
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real _.simetricQ = False;
-  Real _.constrainedDomain = True;
-  VMatrix _.nu = Rand(0,0,0,0);
-  VMatrix _.L = Rand(0,0,0,0);  // Cov = L*L´
-  VMatrix _.Li = Rand(0,0,0,0); // L*Li = I
-  Real _.do_cum = False;
-  Real _.pi_logScale = ?;
-  Real _.iter_cum = 0;
-  Real _.pi_cum = 0;
-  VMatrix _.nu_cum = Rand(0,0,0,0);
-  VMatrix _.var_cum = Rand(0,0,0,0);
-
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix Q_draw_pre(VMatrix x)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix e = Gaussian(_.n,1,0,1);
-     _.nu + _.L*e*_.s
-  };
-  ////////////////////////////////////////////////////////////////////////////
-  Real Q_logDens(VMatrix x, VMatrix y)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix e = _.Li*(y-_.nu);
-    -0.5*VMatDat(MtMSqr(e),1,1)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real cumulate(VMatrix x, Real x_pi_logDens, Real forze)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real Case(
-    !_.do_cum, 
-    { 
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.1");
-      False  
-    },
-    VMatMax(Abs(_.x-_.nu))==0, 
-    { 
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.2");
-      False  
-    },
-    x_pi_logDens <= -TheMaxAbsValue, 
-    { 
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.3");
-      False  
-    },
-    IsUnknown(_.pi_logScale),
-    {
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.4");
-      Real _.iter_cum := _.iter_cum +1;
-      Real _.pi_logScale := x_pi_logDens;
-      Real _.pi_cum := 1;
-      VMatrix _.nu_cum := x;
-      VMatrix _.var_cum := (x-_.nu)^2;
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.4 _.var_cum=\n"<<Tra(VMat2Mat(_.var_cum)));
-      True
-    },
-    x_pi_logDens < _.pi_logScale,
-    {
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.5");
-      Real _.iter_cum := _.iter_cum +1;
-      Real x_pi = Exp(x_pi_logDens-_.pi_logScale);
-      Real _.pi_cum := _.pi_cum + x_pi;
-      VMatrix _.nu_cum := _.nu_cum + x*x_pi;
-      VMatrix _.var_cum := _.var_cum + ((x-_.nu)^2)*x_pi;
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.5 _.var_cum=\n"<<Tra(VMat2Mat(_.var_cum)));
-      True
-    },
-    x_pi_logDens > _.pi_logScale,
-    {
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.6");
-      Real _.iter_cum := _.iter_cum +1;
-      Real coef = Exp(_.pi_logScale-x_pi_logDens);
-      Real _.pi_logScale := x_pi_logDens;
-      Real _.pi_cum := _.pi_cum*coef + 1;
-      VMatrix _.nu_cum := _.nu_cum*coef + x;
-      VMatrix _.var_cum := _.var_cum*coef + ((x-_.nu)^2);
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.6 _.var_cum=\n"<<Tra(VMat2Mat(_.var_cum)));
-      True
-    },
-    1==1,
-    {
-    //WriteLn("TRACE @MTryMetropolisTruncNormal::cumulate 2.7");
-      False
-    })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real logWeight(VMatrix x, VMatrix y)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real y_Q_logDens = Q_logDens(x,y);
-    Real x_Q_logDens = Q_logDens(y,x);
-    Real x_pi_logDens = pi_logDens(x);
-    Real cumulate(x,x_pi_logDens,False);
-    x_pi_logDens + 0.5*(y_Q_logDens-x_Q_logDens)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real initialize_Q(Real void)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real _.pi_logDens_x := pi_logDens(_.x);
-    VMatrix _.nu := _.x;
-    VMatrix _.L  := Eye(_.n);
-    VMatrix _.Li := Eye(_.n);
-    True
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real initialize_cum(Real void)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real _.do_cum := True;
-    Real _.pi_cum := 0;
-    VMatrix _.nu_cum := Rand(_.n,1,0,0);
-    VMatrix _.var_cum := Rand(_.n,1,0,0);
-    Real cumulate(_.x, pi_logDens(_.x), True);
-    True
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real doAfterDraw_cum(Real void)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Case(
-    Or(!_.do_cum, !_.iter_cum),
-    {
-      VMatrix _.nu := _.x;
-      False  
-    },
-    _.pi_logDens_x > _.pi_logScale,
-    {
-      VMatrix _.nu := _.x;
-      VMatrix var = _.var_cum /_.pi_cum;
-      VMatrix _.L  := Eye(_.n,_.n,0,RPow(var,+1/2));
-      VMatrix _.Li := Eye(_.n,_.n,0,RPow(var,-1/2));
-      True
-    },
-    1==1,
-    {
-      VMatrix _.nu := _.nu_cum /_.pi_cum;
-      VMatrix var = _.var_cum /_.pi_cum;
-      VMatrix _.L  := Eye(_.n,_.n,0,RPow(var,+1/2));
-      VMatrix _.Li := Eye(_.n,_.n,0,RPow(var,-1/2));
-      True
-    })
-  }
 };
 
 
+
 //////////////////////////////////////////////////////////////////////////////
-Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
+Class @MTryMetropolis_ARIMA : @MTryMetropolis
 //////////////////////////////////////////////////////////////////////////////
 {
   VMatrix _.z;
@@ -494,7 +278,7 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real initialize(Set arima, Real doCum)
+  Real initialize(Set arima)
   ////////////////////////////////////////////////////////////////////////////
   {
     Set _.arima := DeepCopy(arima);
@@ -508,8 +292,6 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
     Real _.n := VRows(_.x);
     Real _.acceptRatioTarget := 0.234  + (0.5-0.234)*Exp(1-_.n);
     Real _.k := Ceil(Sqrt(_.n));
-    Real initialize_Q(0);
-    Real If(doCum, initialize_cum(0));
     ok
   };
   
@@ -518,8 +300,7 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
   Static @MTryMetropolis_ARIMA New(
      VMatrix z, 
      Real sigma, 
-     Set arima, 
-     Real doCum)
+     Set arima)
   ////////////////////////////////////////////////////////////////////////////
   {
     @MTryMetropolis_ARIMA new = 
@@ -527,7 +308,7 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
       VMatrix _.z = z;
       Real _.sigma = sigma
     ]];
-    Real new::initialize(arima, doCum);
+    Real new::initialize(arima);
     new
   };
   
@@ -537,7 +318,6 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
   {
     Set If(_.accept, _.arima := col2arima(_.x));
     Real setArima(void)
-//  Real doAfterDraw_cum(void)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -567,22 +347,6 @@ Class @MTryMetropolis_ARIMA : @MTryMetropolisTruncNormal
     pi_logDens_(col2arima(x))
   };
 
-  Real _.simetricQ = True;
-  ////////////////////////////////////////////////////////////////////////////
-  VMatrix Q_draw(VMatrix x)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix e = Gaussian(_.n,1,0,1);
-    y = x + _.L*e*_.s;
-  //WriteLn("TRACE Q_draw y=\n"<<Matrix Tra(VMat2Mat(y)));
-    y
-  };
-  ////////////////////////////////////////////////////////////////////////////
-  Real logWeight(VMatrix x, VMatrix y)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    pi_logDens(x)
-  };
 
   ////////////////////////////////////////////////////////////////////////////
   Matrix move_to_average(Real maxIter)

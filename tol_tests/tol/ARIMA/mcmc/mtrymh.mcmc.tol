@@ -11,6 +11,9 @@ Matrix mcmc = Rand(0,mtm_arima::_.n,0,0);
 
 Real If(!ObjectExist("Matrix","modEst.0::Correlations::COV"),
 {
+  VMatrix mtm_arima::_.nu := mtm_arima::_.x;
+  VMatrix mtm_arima::_.L := Eye(mtm_arima::_.n);
+  VMatrix mtm_arima::_.Li :=  Eye(mtm_arima::_.n);
   Real mtm_arima::_.s := 0.001
 },
 {
@@ -22,6 +25,7 @@ Real If(!ObjectExist("Matrix","modEst.0::Correlations::COV"),
     Choleski(Sub(COV,k,k,n,n))
   };
   Matrix Li = LTInverse(L);
+  VMatrix mtm_arima::_.nu := mtm_arima::_.x;
   VMatrix mtm_arima::_.L := Mat2VMat(L);
   VMatrix mtm_arima::_.Li := Mat2VMat(Li);
   Real mtm_arima::_.s := 1
