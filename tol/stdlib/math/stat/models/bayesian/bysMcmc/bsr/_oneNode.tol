@@ -155,7 +155,7 @@ NameBlock OneNode =
       aux[1]
     });
     //Checks unique name and prepares for hashed searching by name
-    Real SetIndexByName(linearBlock);
+    Real If(Card(linearBlock), SetIndexByName(linearBlock));
   //WriteLn("TRACE "+_MID+" 5");
     //Domain constraints
     VMatrix domain.A = Triplet(domain.A.triplet,domain.num,n);
