@@ -200,10 +200,9 @@ Class @MasterSamplerBasic : @MasterSampler
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real initialize(Real unused)
+  Real initialize_with_linear_block(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
-  //WriteLn("TRACE"+_MID+" initialize 0");
     Matrix givenBeta=
     SetCol(EvalSet(_.modelDef->LinearBlock,Real(@BSR.LinearBlock b)
     { b->InitialValue }));
@@ -260,9 +259,50 @@ Class @MasterSamplerBasic : @MasterSampler
     });
     ok
   };
+  ////////////////////////////////////////////////////////////////////////////
+  Real initialize_without_linear_block(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.filter := _.modelDef->Y*0;
+    Real initialize.blocks(unused);
+    Real sel.extFlt (BysMcmc::@BlockSampler nlb) { !(nlb::_.isInputFilter) };
+    Set _.nonLinOutputFilter := Select(_.nonLinBlk, sel.extFlt);
+
+    Real sel.drwFlt (BysMcmc::@BlockSampler nlb) { nlb::_.N>0 };
+    Set _.nonLinDrawFilter := Select(_.nonLinBlk, sel.drwFlt);
+
+    VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
+    VMatrix _.XplusU := _.filter;
+    VMatrix _.beta   := _.mln.blk::_.store;
+    Real DoNonLinOutputFilter(0);
+    Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+    {
+      _.sig.blk::buildWorkSpace(@WorkSpace.Sigma::New(
+        _.YplusV))
+    });
+    VMatrix sig_0 = _.sig.blk::get.draw(0, True);
+    VMatrix _.noise := _.YplusV;
+    VMatrix _.residuals := _.arm.blk::filter(_.noise);
+    Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+    {
+      _.sig.blk::buildWorkSpace(@WorkSpace.Sigma::New(_.residuals))
+    });
+    VMatrix sig_1 = _.sig.blk::get.draw(0, True);
+    True  
+  };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real resume(Real unused)
+  Real initialize(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" initialize 0");
+    If(_.mln.blk::_.N,
+      initialize_with_linear_block   (unused),
+      initialize_without_linear_block(unused))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real resume_with_linear_block(Real unused)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" resume 0");
@@ -288,6 +328,36 @@ Class @MasterSamplerBasic : @MasterSampler
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Real resume_without_linear_block(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" resume 0");
+    Real initialize.blocks(unused);
+    VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
+    VMatrix _.XplusU := _.modelDef->Y*0;
+    VMatrix _.beta   := _.mln.blk::_.store;
+    Real DoNonLinOutputFilter(0);
+    VMatrix _.filter := _.modelDef->Y*0;
+    VMatrix _.noise := _.YplusV;
+    VMatrix _.residuals := _.arm.blk::filter(_.noise);
+    Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+    {
+      _.sig.blk::buildWorkSpace(@WorkSpace.Sigma::New(_.residuals))
+    });
+    VMatrix sig_1 = _.sig.blk::get.draw(0, True);
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real resume(Real unused)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.mln.blk::_.N,
+      resume_with_linear_block   (unused),
+      resume_without_linear_block(unused))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Real setStore(Matrix values) 
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -297,21 +367,16 @@ Class @MasterSamplerBasic : @MasterSampler
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Text _.autodoc.member.draw =
+  Text _.autodoc.member.draw_with_linear_block =
   "Converts the original regression to standarized noise N(0,I) and "
   "solves it";
-  VMatrix draw(Real numSim)
+  VMatrix draw_with_linear_block(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 1");
     Real DoNonLinOutputFilter(0);
 
-    VMatrix mis = If(Not(_.mis.blk::_.N),
-    {
-      VMatrix _.YplusV := _.Y;
-      VMatrix _.XplusU := _.modelDef->X;
-      Rand(0,1,0,0)
-    },
+    VMatrix mis = 
     {
       Real If(_.mis.blk::_.partialSampler::_.freeParamNum,
       {
@@ -325,18 +390,12 @@ Class @MasterSamplerBasic : @MasterSampler
       VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
       VMatrix _.XplusU := _.mis.blk::filter.input(_.modelDef->X);
       aux
-    });
+    };
 
   //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 3 im="<<im);
-    VMatrix _.filter := If(Not(_.mln.blk::_.N),
-      _.YplusV*0,
-      _.XplusU*_.beta);
+    VMatrix _.filter :=  _.XplusU*_.beta;
     VMatrix _.noise := _.YplusV - _.filter;
-    VMatrix arm = If(Not(_.arm.blk::_.N),
-    {
-      VMatrix _.residuals := _.noise;
-      Rand(0,1,0,0)
-    },
+    VMatrix arm = 
     {
       Real If(_.arm.blk::_.partialSampler::_.freeParamNum,
       {
@@ -344,7 +403,7 @@ Class @MasterSamplerBasic : @MasterSampler
           _.noise,_.sig.blk::_.store))
       });
       _.arm.blk::get.draw(numSim, False)
-    });
+    };
     VMatrix _.residuals := _.arm.blk::filter(_.noise);
   //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 4 arm="<<arm);
     VMatrix _Y = _.YplusV;
@@ -364,7 +423,7 @@ Class @MasterSamplerBasic : @MasterSampler
     VMatrix _Y := si*_Y;
     VMatrix _X := si*_X;
   //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 5 sig="<<sig);
-    VMatrix _.beta := If(Not(_.mln.blk::_.N),Rand(0,1,0,0),
+    VMatrix _.beta := 
     {
     //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 5.1 _.mln.blk::_.partialSampler::_.freeParamNum="<<_.mln.blk::_.partialSampler::_.freeParamNum);
       Real If(_.mln.blk::_.partialSampler::_.freeParamNum,
@@ -373,7 +432,7 @@ Class @MasterSamplerBasic : @MasterSampler
           _Y,_X,_.arm.blk))
       });
       _.mln.blk::get.draw(numSim, False)
-    });
+    };
     VMatrix nlb = If(!Card(_.nonLinBlk),Rand(0,1,0,0),
     {
       Set nlb.aux = EvalSet(_.nonLinBlk, VMatrix(@BlockNonLin nlb)
@@ -388,6 +447,85 @@ Class @MasterSamplerBasic : @MasterSampler
     Real putStoreV(param);
     param
   };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw_without_linear_block =
+  "Converts the original regression to standarized noise N(0,I) and "
+  "solves it";
+  VMatrix draw_without_linear_block(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 1");
+    Real DoNonLinOutputFilter(0);
+    VMatrix mis = 
+    {
+      Real If(_.mis.blk::_.partialSampler::_.freeParamNum,
+      {
+        _.mis.blk::buildWorkSpace(@WorkSpace.Missing::New(
+          _.arm.blk,
+          _.sig.blk::_.sigmaInv,
+          _.modelDef->Y,
+          _.beta))
+      });
+      VMatrix aux = _.mis.blk::get.draw(numSim, False);
+      VMatrix _.YplusV := _.mis.blk::filter.output(_.Y);
+      aux
+    };
+    VMatrix _.noise := _.YplusV;
+    VMatrix arm = If(Not(_.arm.blk::_.N),
+    {
+      VMatrix _.residuals := _.noise;
+      Rand(0,1,0,0)
+    },
+    {
+      Real If(_.arm.blk::_.partialSampler::_.freeParamNum,
+      {
+        _.arm.blk::buildWorkSpace(@WorkSpace.Arima::New(
+          _.noise,_.sig.blk::_.store))
+      });
+      _.arm.blk::get.draw(numSim, False)
+    });
+    VMatrix _.residuals := _.arm.blk::filter(_.noise);
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 4 arm="<<arm);
+    VMatrix sig = If(Not(_.sig.blk::_.N),
+    { 
+       Rand(0,1,0,0)
+    },
+    {
+      Real If(_.sig.blk::_.partialSampler::_.freeParamNum,
+      {
+        _.sig.blk::buildWorkSpace(@WorkSpace.Sigma::New(_.residuals))
+      });
+      _.sig.blk::get.draw(numSim, False)
+    });
+    VMatrix nlb = If(!Card(_.nonLinBlk),Rand(0,1,0,0),
+    {
+      Set nlb.aux = EvalSet(_.nonLinBlk, VMatrix(@BlockNonLin nlb)
+      {
+        nlb::get.draw(numSim,False)
+      });
+      Group("ConcatRows", nlb.aux)
+    }); 
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 6 _.beta="<<_.beta);
+    VMatrix param = sig << arm << mis << nlb;
+  //WriteLn("TRACE"+_MID+" @MasterSamplerBasic::draw 7 param="<<VRows(param)+"x"<<VColumns(param)+")");
+    Real putStoreV(param);
+    param
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw =
+  "Converts the original regression to standarized noise N(0,I) and "
+  "solves it";
+  VMatrix draw(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(_.mln.blk::_.N,
+      draw_with_linear_block   (numSim),
+      draw_without_linear_block(numSim))
+  };
+
 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -427,8 +565,8 @@ Class @MasterSamplerBasic : @MasterSampler
     VMatrix _.XplusU := _.mis.blk::filter.input(_.modelDef->X);
   //WriteLn("TRACE"+_MID+" eval 4");
     VMatrix _.beta := _.mln.blk::_.store;
-    VMatrix fullFilter = _.modelDef->X*_.beta;
-    VMatrix fullFilter.full = _.XplusU*_.beta;
+    VMatrix fullFilter = If(_.mln.blk::_.N, _.modelDef->X*_.beta, _.modelDef->Y*0);
+    VMatrix fullFilter.full = If(_.mln.blk::_.N, _.XplusU*_.beta, fullFilter);
     VMatrix fullFilter.mis = fullFilter.full - fullFilter;
     VMatrix fullNoise  = _.YplusV - fullFilter.full;
   //WriteLn("TRACE"+_MID+" eval 5");
