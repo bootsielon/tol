@@ -1247,19 +1247,49 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
       class_ = PredeclareClass(name, old, ok);
       ok = (class_!=NULL);
       cdr = cdr->cdr();
+      BText owner = "";
       while(ok && !memberLst && cdr && 
             cdr->car() && cdr->car()->IsListClass())
       {
         car = ((List*)(cdr->car()))->car();
         tok = (BToken*)car;
-        if((tok->TokenType()==TYPE) && 
+        BText parentName = "";
+        if(tok->Name()=="::")
+        {
+          ok = false;
+          if(cdr->car() && cdr->car()->IsListClass())
+          {
+            cdr = ((List*)(cdr->car()))->cdr();
+            if(cdr && cdr->car()->IsListClass())
+            {
+              car = ((List*)(cdr->car()))->car();
+              cdr = cdr->cdr();
+              BToken* tokOwner = (BToken*)car;
+              if(owner.HasName()) { owner = owner + "::" + tokOwner->Name(); }
+              else { owner = tokOwner->Name(); }
+              ok = true;
+            }
+          }
+          continue;
+        }
+        else if((tok->TokenType()==TYPE) && 
            (!tok->Close()) && 
            (((BTypeToken*)tok)->type_==BTypeToken::BCLASS))
         {
           parentArr.ReallocBuffer(nParent+1);
-          parentArr[nParent] = FindClass(tok->Name(),-1);
-          if(parentArr[nParent])
+          BClass* parent = NULL;
+          if(owner.HasName())
           {
+            parent = FindClass(owner+"::"+tok->Name(),-1);
+            owner = "";
+          }
+          else
+          {
+            parent = FindClass(tok->Name(),-1);
+          }
+          if(parent)
+          {
+            parentArr[nParent] = parent;
             nParent++;
             cdr = ((List*)(cdr->car()))->cdr();
           }
@@ -1278,7 +1308,15 @@ BSyntaxObject* BClass::Evaluate(const List* _tree)
           memberLst = (List*)(cdr->car());
         }
       }
-      if(ok && !memberLst && cdr)
+      if(ok && !parentArr.Size())
+      {
+        ok = false;
+        parentArr.ReallocBuffer(0);
+        Error(I2("No valid parent class list",
+                 "Lista de clases padre no válida")+":\n"+
+              BParser::Unparse(tree));
+      }
+      else if(ok && !memberLst && cdr)
       {
         memberLst = (List*)(cdr->car());
       }
