@@ -178,17 +178,17 @@ private:
   static BArray<const BSourcePath*> statusTable_;
   static const BSourcePath* current_;
   const BSetFromFile* set_;
-
   void PutSet(const BSetFromFile* set) { set_ = set; }
 
 public:
+  BArray<BText> embeded_;
   BSourcePath(const BSetFromFile* set, const BText& path);
  ~BSourcePath() {}
 
 	BInt Mode() const;
 	BGrammar* Grammar () const { return(GraAnything()); }
   const BSetFromFile* Set() const { return(set_); }
-
+  
   void SetDestroyed();
   static int GetItemNumber() { return(statusTable_.Size()); } 
   static const BSourcePath* GetItem(int n) { return(statusTable_[n]); } 
@@ -197,6 +197,7 @@ public:
   static const BSourcePath*	Current();
   static const BSourcePath*	Find(const BText& path);
   static bool IsAlive(const BSourcePath* sp);
+  static void AddEmbed(const BText& txt);
   DeclareClassNewDelete(BSourcePath);
 };
 

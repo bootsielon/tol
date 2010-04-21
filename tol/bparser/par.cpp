@@ -1084,9 +1084,11 @@ Tree* BParser::ParseMacroEmbed (Tree* tre)
       embedded = childParser->Parse(fileContens);
       if(embedded)
       { 
+        BText absPath = GetStandardAbsolutePath(path);
+        BSourcePath::AddEmbed(absPath);
         Std(I2("Embedded file ",
                "Ha sido incrustado el archivo ")+
-            GetAbsolutePath(path)+"\n"); 
+            absPath+"\n"); 
       }
       delete childParser;
       BDir::ChangeCurrent(oldDir);

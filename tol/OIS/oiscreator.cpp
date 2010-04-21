@@ -564,10 +564,16 @@ if(!BDir::CheckIsDir(dir))                                \
   }  
   if(!system)
   {
-    BText path = GetStandardAbsolutePath(v->SourcePath());
-    if(path.HasName())
-    {
-      allSourcePath_.AddUniqueSorted(path,BTextOrderCriterium);
+    const BSourcePath* sp = v->GetSourcePath();
+    if(sp)
+    { 
+      allSourcePath_.AddUniqueSorted(
+        GetStandardAbsolutePath(sp->Name()),BTextOrderCriterium);
+      for(int emb=0; emb<sp->embeded_.Size(); emb++)
+      {
+        allSourcePath_.AddUniqueSorted(
+          GetStandardAbsolutePath(sp->embeded_[emb]),BTextOrderCriterium);
+      }    
     }
   }
   BUserFunction* usf = NULL;

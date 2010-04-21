@@ -131,7 +131,7 @@ BDat BSetIncludeBDT::fillValue_    = 0;
 //--------------------------------------------------------------------
    BSourcePath::BSourcePath(const BSetFromFile* set, const BText& path)
 //--------------------------------------------------------------------
-: BSyntaxObject(path), set_(set)
+: BSyntaxObject(path), set_(set), embeded_()
 {
   TRACE_MEMORY_SHOW(this,"BSourcePath::BSourcePath");
   BGrammar::SymbolTable().Add(this); 
@@ -149,6 +149,14 @@ BDat BSetIncludeBDT::fillValue_    = 0;
   int pos = statusTable_.FindSorted(this, StatusTableCmp);
   assert(pos<0);
   statusTable_.AddSorted(this,StatusTableCmp);
+}
+
+//--------------------------------------------------------------------
+  void BSourcePath::AddEmbed(const BText& txt)
+//--------------------------------------------------------------------
+{
+  assert(current_);
+  ((BSourcePath*)current_)->embeded_.Add(txt);
 }
 
 //--------------------------------------------------------------------
