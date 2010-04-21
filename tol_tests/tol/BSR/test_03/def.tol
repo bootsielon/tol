@@ -38,7 +38,7 @@ Real K1 = IntRand(2,2);
 Real enableARMA = True;
 Real enableARMASeasonal = And(enableARMA,True);
 //Regular AR Degree
-Real p1 = enableARMA*IntRand(2,2);
+Real p1 = enableARMA*IntRand(3,3);
 //Seasonal AR Degree
 Real pS = enableARMASeasonal*IntRand(0,1);
 //Regular AR Degree
