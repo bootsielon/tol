@@ -1,8 +1,7 @@
-@MTryMetropolis_ARIMA mtm_arima = @MTryMetropolis_ARIMA::New(
+@MultiTryMetropolis_ARIMA mtm_arima = @MultiTryMetropolis_ARIMA::New(
   Z,
   SIGMA,
-  arima.0,
-  False);
+  arima.0);
 
 Real mtm_arima::_.k := If(ObjectExist("Real","k"), k, 
   IntRand(1,mtm_arima::_.n));
