@@ -565,15 +565,22 @@ if(!BDir::CheckIsDir(dir))                                \
   if(!system)
   {
     const BSourcePath* sp = v->GetSourcePath();
-    if(sp)
+    if(sp && sp->HasName())
     { 
-      allSourcePath_.AddUniqueSorted(
-        GetStandardAbsolutePath(sp->Name()),BTextOrderCriterium);
-      for(int emb=0; emb<sp->embeded_.Size(); emb++)
-      {
-        allSourcePath_.AddUniqueSorted(
-          GetStandardAbsolutePath(sp->embeded_[emb]),BTextOrderCriterium);
-      }    
+      BText path = GetStandardAbsolutePath(sp->Name());  
+      bool isNew = (allSourcePath_.Find(path,BTextOrderCriterium)<0);
+      if(isNew)
+      {   
+        allSourcePath_.AddSorted(path,BTextOrderCriterium);
+        for(int emb=0; emb<sp->embeded_.Size(); emb++)
+        {
+          if(sp->embeded_[emb].HasName())
+          {  
+            allSourcePath_.AddUniqueSorted(
+              GetStandardAbsolutePath(sp->embeded_[emb]),BTextOrderCriterium);
+          }
+        }
+      }
     }
   }
   BUserFunction* usf = NULL;
