@@ -1455,7 +1455,7 @@ void BModel::CleanInterruptions(BMatrix<BDat>& A, BBool recalculate)
     }
     if(!CI_isKnown ||(CI_maxAbsErr>Sqrt(BDat::Tolerance())))
     {
-      Error(I2("Cannot calculate values for interruptions due "
+      Warning(I2("Cannot calculate values for interruptions due "
                "to a numerical error solving related linear programming "
                "problem by means of singular value decomposition method.",
                "No se pudieron calcular los valores de las interrupciones "
