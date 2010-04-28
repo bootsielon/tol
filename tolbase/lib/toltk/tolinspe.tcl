@@ -1856,8 +1856,8 @@ proc TolGui_GetMenuEntries { selection idx } {
   foreach obj_info $selection {
     set tcl_ref [ lindex $obj_info 0 ]
     set obj_addr [ ::tol::info address $tcl_ref ]
-    set class [ Tol_ClassOf $obj_addr ]
-    if { $class ne "" } {
+    if { [ Tol_ObjIsClassOf $obj_addr "@MenuDesc" ] } {
+      set class [ Tol_ClassOf $obj_addr ]
       lappend instances($class) $obj_addr
       set name_inst [ lindex $obj_info 1 ]
       set menu_items [ TolGui_GetObjMenu $obj_addr ]
@@ -1873,7 +1873,7 @@ proc TolGui_GetMenuEntries { selection idx } {
   }
   set menu_info [ list ]
   foreach c [ array names instances ] {
-      lappend menu_info [ list $c $menu_class($c) $instances($c) ]
+    lappend menu_info [ list $c $menu_class($c) $instances($c) ]
   }
   set menu_info
 }
@@ -1885,7 +1885,7 @@ proc TolGui_GetObjMenu { obj_addr } {
       Set __gui_menu_entries__ = __aux_menu__::getMenuEntries(?)
     } ] } msg ]
   if { $try } {
-    puts "ERROR TolGui_GetMenuEntries : $msg"
+    puts "ERROR TolGui_GetObjMenu : $msg"
     set result ""
   } else {
     set result [ TolObj2TclObj {Set __gui_menu_entries__} ]
