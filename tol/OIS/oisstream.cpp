@@ -75,6 +75,7 @@ BTraceInit("oisstream.cpp");
 //if(b=="db:/") { media = BSHM_db; }
   if(e==".zip") { media = BSHM_zip; }
   if(e==".oza") { media = BSHM_zip; }
+//Std(BText("TRACE BStreamHandler::GetConnect 4\n"));
   BStreamHandler* fh = NULL;
   switch(media)
   {
@@ -87,11 +88,15 @@ BTraceInit("oisstream.cpp");
   //case BSHM_db:  fh = new BDbStreamHandler;   break;
     default: assert(1); break;
   };
+//Std(BText("TRACE BStreamHandler::GetConnect 5\n"));
   if(fh && !fh->Connect(connection, openMode, errorWarning))
   {
+  //Std(BText("TRACE BStreamHandler::GetConnect 6\n"));
     delete fh;
+  //Std(BText("TRACE BStreamHandler::GetConnect 7\n"));
     fh = NULL;
   }
+//Std(BText("TRACE BStreamHandler::GetConnect 8\n"));
   return(fh);
 }
 
