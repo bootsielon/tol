@@ -426,7 +426,9 @@ BOis::BArchiveEngine BOis::ArchiveEngine      (const BText& txt)
   if(!streamHandler_) { return(false); }
   BArray<BText> all(allFiles_.Size());
   int n=0;
+//Std(BText("TRACE  BOis::RemoveImage() 1\n"));
   BText sp = ReplaceSlash(SubPath());
+//Std(BText("TRACE  BOis::RemoveImage() 2\n"));
   all[n++]=sp+"header.xml";
   all[n++]=sp+".tolref";
   all[n++]=sp+".oisref";
@@ -442,7 +444,9 @@ BOis::BArchiveEngine BOis::ArchiveEngine      (const BText& txt)
   all[n++]=sp+".hrchyOffset";
   all[n++]=sp+".hrchyOrder";
   all[n++]=sp+"export.csv";
+//Std(BText("TRACE  BOis::RemoveImage() 3\n"));
   streamHandler_->RemoveFiles(all);
+//Std(BText("TRACE  BOis::RemoveImage() 4\n"));
   return(true);
 }
 
