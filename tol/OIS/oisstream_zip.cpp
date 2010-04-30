@@ -535,21 +535,35 @@ const BINT64& BZipStream::GetPos()
   bool BZipStreamHandler::RemoveFiles(const BArray<BText>& files)
 //--------------------------------------------------------------------
 {
+//Std(BText("TRACE BZipStreamHandler::RemoveFiles() 1\n"));
   CZipStringArray files_;
+//Std(BText("TRACE BZipStreamHandler::RemoveFiles() 2\n"));
+  int k = 0;
   for(int n=0; n<files.Size(); n++)
   {
-    CZipString str(files[n].String());
-    files_.Add(str);
+    if(HasFile(files[n].String()))
+    {
+    //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 3.")+n+".1\n");
+      CZipString str(files[n].String());
+    //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 3.")+n+".1\n");
+      files_.Add(str);
+    //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 3.")+n+".1\n");
+    }
   }
-  try
+  if(k) { try
   {
+  //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 4\n"));
     zip_.RemoveFiles(files_);
+  //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 5\n"));
   }
   catch(CZipException ex)
   {
+  //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 6\n"));
     ShowCatchedException(ex, connection_, zip_);
+  //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 7\n"));
     return(false);
-  }
+  } }
+//Std(BText("TRACE BZipStreamHandler::RemoveFiles() 8\n"));
   return(true);
 }
 
