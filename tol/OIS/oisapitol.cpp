@@ -623,7 +623,9 @@ static const char* aliasSpanishDescription_ =
   if(Arg(5)) { opt = &Set(Arg(5)); }
   BOisCreator ois;
   ois.Create(root,uData,&add,doc,opt);
+//Std(BText("TRACE BDatOisCreate::CalcContens() 1\n"));
   contens_ = ois.Build();
+//Std(BText("TRACE BDatOisCreate::CalcContens() 2\n"));
 }  
 /* */
 
