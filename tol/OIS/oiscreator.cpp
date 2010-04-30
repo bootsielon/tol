@@ -213,53 +213,91 @@ if(!BDir::CheckIsDir(dir))                                \
   bool BOisCreator::Open()
 //--------------------------------------------------------------------
 {
+//Std(BText("TRACE  BOisCreator::Open() 1\n"));
   streamHandler_ = BStreamHandler::GetConnect
   (
     connection_, 
     BStreamHandler::BSHOM_WRITE, 
     true
   );
+//Std(BText("TRACE  BOisCreator::Open() 2\n"));
   if(streamHandler_)
   {
+  //Std(BText("TRACE  BOisCreator::Open() 3\n"));
     RemoveImage();
+  //Std(BText("TRACE  BOisCreator::Open() 4\n"));
     EnsureFileOpenW(header_,      "header",      "header.xml"   );
+  //Std(BText("TRACE  BOisCreator::Open() 5\n"));
     EnsureFileOpenW(tolref_,      "tolref",      ".tolref"      );
+  //Std(BText("TRACE  BOisCreator::Open() 6\n"));
     EnsureFileOpenW(oisref_,      "oisref",      ".oisref"      );
+  //Std(BText("TRACE  BOisCreator::Open() 7\n"));
     EnsureFileOpenW(object_,      "object",      ".object"      );
+  //Std(BText("TRACE  BOisCreator::Open() 8\n"));
     EnsureFileOpenW(set_,         "set",         ".set"         );
+  //Std(BText("TRACE  BOisCreator::Open() 9\n"));
     EnsureFileOpenW(serie_,       "serie",       ".serie"       );
+  //Std(BText("TRACE  BOisCreator::Open() 10\n"));
     EnsureFileOpenW(timeset_,     "timeset",     ".timeset"     );
+  //Std(BText("TRACE  BOisCreator::Open() 11\n"));
     EnsureFileOpenW(matrix_,      "matrix",      ".matrix"      );
+  //Std(BText("TRACE  BOisCreator::Open() 12\n"));
     EnsureFileOpenW(polyn_,       "polyn",       ".polyn"       );
+  //Std(BText("TRACE  BOisCreator::Open() 13\n"));
     EnsureFileOpenW(ratio_,       "ratio",       ".ratio"       );
+  //Std(BText("TRACE  BOisCreator::Open() 14\n"));
     EnsureFileOpenW(code_,        "code",        ".code"        );
+  //Std(BText("TRACE  BOisCreator::Open() 15\n"));
     EnsureFileOpenW(hrchyDetail_, "hrchyDetail", ".hrchyDetail" );
+  //Std(BText("TRACE  BOisCreator::Open() 16\n"));
     EnsureFileOpenW(hrchyOffset_, "hrchyOffset", ".hrchyOffset" );
+  //Std(BText("TRACE  BOisCreator::Open() 17\n"));
     EnsureFileOpenW(hrchyOrder_,  "hrchyOrder",  ".hrchyOrder"  );
+  //Std(BText("TRACE  BOisCreator::Open() 18\n"));
     EnsureFileOpenW(export_,      "export",      "export.csv"   );
+  //Std(BText("TRACE  BOisCreator::Open() 19\n"));
 
     BText address = SubPath();
+  //Std(BText("TRACE  BOisCreator::Open() 20\n"));
     EWrite(address+"/.tolref>\n",      tolref_);
+  //Std(BText("TRACE  BOisCreator::Open() 21\n"));
     EWrite(address+"/.oisref>\n",      oisref_);
+  //Std(BText("TRACE  BOisCreator::Open() 22\n"));
     EWrite(address+"/.object>\n",      object_);
+  //Std(BText("TRACE  BOisCreator::Open() 23\n"));
     EWrite(address+"/.set>\n",         set_);
+  //Std(BText("TRACE  BOisCreator::Open() 24\n"));
     EWrite(address+"/.serie>\n",       serie_);
+  //Std(BText("TRACE  BOisCreator::Open() 25\n"));
     EWrite(address+"/.timeset>\n",     timeset_);
+  //Std(BText("TRACE  BOisCreator::Open() 26\n"));
     EWrite(address+"/.matrix>\n",      matrix_);
+  //Std(BText("TRACE  BOisCreator::Open() 27\n"));
     EWrite(address+"/.polyn>\n",       polyn_);
+  //Std(BText("TRACE  BOisCreator::Open() 28\n"));
     EWrite(address+"/.ratio>\n",       ratio_);
+  //Std(BText("TRACE  BOisCreator::Open() 29\n"));
     EWrite(address+"/.code>\n",        code_);
+  //Std(BText("TRACE  BOisCreator::Open() 30\n"));
     EWrite(address+"/.hrchyDetail>\n", hrchyDetail_);
+  //Std(BText("TRACE  BOisCreator::Open() 31\n"));
     EWrite(address+"/.hrchyOffset>\n", hrchyOffset_);
+  //Std(BText("TRACE  BOisCreator::Open() 32\n"));
     EWrite(address+"/.hrchyOrder>\n",  hrchyOrder_);
+  //Std(BText("TRACE  BOisCreator::Open() 33\n"));
     export_->Print("ModeId;GrammarId;Name;Mode;Grammar;\n");
+  //Std(BText("TRACE  BOisCreator::Open() 34\n"));
     enable_BSE_ = true;
   }
   else
   {
+  //Std(BText("TRACE  BOisCreator::Open() 35\n"));
     Error("Cannot create image");
+  //Std(BText("TRACE  BOisCreator::Open() 36\n"));
   }
+//Std(BText("TRACE  BOisCreator::Open() 37\n"));
   SetAllFiles();
+//Std(BText("TRACE  BOisCreator::Open() 38\n"));
   return(streamHandler_!=NULL);
 }
 
@@ -1068,13 +1106,21 @@ if(!BDir::CheckIsDir(dir))                                \
 {
   saved_.AllocBuffer(16);
   saved_.AllocBuffer(0);
+//Std(BText("TRACE BOisCreator::Build() 1\n"));
   Ensure(BuilTolEnv    ());
+//Std(BText("TRACE BOisCreator::Build() 2\n"));
   Ensure(Open          ());
+//Std(BText("TRACE BOisCreator::Build() 3\n"));
   Ensure(Write         (data_));
+//Std(BText("TRACE BOisCreator::Build() 4\n"));
   Ensure(SortHierarchy ());
+//Std(BText("TRACE BOisCreator::Build() 5\n"));
   Ensure(Flush         ());
+//Std(BText("TRACE BOisCreator::Build() 6\n"));
   Ensure(WriteHeader());
+//Std(BText("TRACE BOisCreator::Build() 7\n"));
   Ensure(Close         ());
+//Std(BText("TRACE BOisCreator::Build() 8\n"));
   return(true);
 }
 
