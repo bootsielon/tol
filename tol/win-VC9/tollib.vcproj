@@ -27,7 +27,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				CommandLine="cd ..&#x0D;&#x0A;win-vc8\Debug\build_date_gen.exe&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois"
+				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois"
 				PreprocessorDefinitions="_DEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__;__USE_ZIP_ARCHIVE__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -79,11 +79,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib ws2_32.lib shell32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/debug/libgsl_dll_d.lib $(CHOLMOD_LIB)/debug/libcholmod.lib $(CHOLMOD_LIB)/debug/blapi.lib $(BZIP2_LIB)/debug/libbz2_debug.lib $(ZipArchive_LIB)/debug/ZipArchive.lib $(NOINHERIT)"
+				AdditionalDependencies="user32.lib ws2_32.lib shell32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/debug/libgsl_dll_d.lib $(CHOLMOD_LIB)/debug/libcholmod.lib $(CHOLMOD_LIB)/debug/blapi.lib $(BZIP2_LIB)/debug/libbz2_debug.lib $(ZipArchive_LIB)/debug/ZipArchive.lib ANN.lib $(NOINHERIT)"
 				OutputFile="Debug/tol.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(ATLAS_LIB)&quot;;&quot;$(GSL_LIB)&quot;;&quot;$(CHOLMOD_LIB)&quot;;&quot;$(BZIP2_LIB)&quot;;&quot;$(ZipArchive_LIB)&quot;"
+				AdditionalLibraryDirectories="&quot;$(ATLAS_LIB)&quot;;&quot;$(GSL_LIB)&quot;;&quot;$(CHOLMOD_LIB)&quot;;&quot;$(BZIP2_LIB)&quot;;&quot;$(ANN_LIB)&quot;;&quot;$(ZipArchive_LIB)&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/tol.pdb"
 				RandomizedBaseAddress="1"
@@ -128,7 +128,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				CommandLine="Echo TOL Contrib Environment&#x0D;&#x0A;set  ATLAS_INC&#x0D;&#x0A;set  ATLAS_LIB&#x0D;&#x0A;set  GSL_INC&#x0D;&#x0A;set  GSL_LIB&#x0D;&#x0A;set  CHOLMOD_INC&#x0D;&#x0A;set  CHOLMOD_LIB&#x0D;&#x0A;set  BZIP2_INC&#x0D;&#x0A;set  BZIP2_LIB&#x0D;&#x0A;set  ZipArchive_INC&#x0D;&#x0A;set  ZipArchive_LIB&#x0D;&#x0A;set  MYSQL_INCLUDE&#x0D;&#x0A;set  MYSQL_LIB&#x0D;&#x0A;set  PGSQL_INCLUDE&#x0D;&#x0A;set  PGSQL_LIB&#x0D;&#x0A;set ANN_INCLUDE&#x0D;&#x0A;set ANN_LIB&#x0D;&#x0A;set  GOOGLE_SPARSEHASH&#x0D;&#x0A;&#x0D;&#x0A;cd ..&#x0D;&#x0A;win-vc8\Release\build_date_gen.exe&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -154,7 +154,7 @@
 				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois"
+				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois"
 				PreprocessorDefinitions="NDEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__;__USE_ZIP_ARCHIVE__"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -182,11 +182,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib shell32.lib ws2_32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/release/libgsl_dll.lib $(CHOLMOD_LIB)/release/libcholmod.lib $(CHOLMOD_LIB)/release/blapi.lib $(BZIP2_LIB)/release/libbz2.lib $(ZipArchive_LIB)/release/ZipArchive.lib $(NOINHERIT)"
+				AdditionalDependencies="user32.lib shell32.lib ws2_32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/release/libgsl_dll.lib $(CHOLMOD_LIB)/release/libcholmod.lib $(CHOLMOD_LIB)/release/blapi.lib $(BZIP2_LIB)/release/libbz2.lib $(ZipArchive_LIB)/release/ZipArchive.lib ANN.lib $(NOINHERIT)"
 				OutputFile="$(OutDir)\tol.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(ATLAS_LIB)&quot;;&quot;$(GSL_LIB)&quot;;&quot;$(CHOLMOD_LIB)&quot;;&quot;$(BZIP2_LIB)&quot;;&quot;$(ZipArchive_LIB)&quot;"
+				AdditionalLibraryDirectories="&quot;$(ATLAS_LIB)&quot;;&quot;$(GSL_LIB)&quot;;&quot;$(CHOLMOD_LIB)&quot;;&quot;$(BZIP2_LIB)&quot;;&quot;$(ANN_LIB)&quot;;&quot;$(ZipArchive_LIB)&quot;"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames=""
 				ProgramDatabaseFile="$(IntDir)\tol.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -2371,6 +2373,10 @@
 					Name="bgrammar"
 					>
 					<File
+						RelativePath="..\btol\bgrammar\class.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\btol\bgrammar\gra.cpp"
 						>
 						<FileConfiguration
@@ -4136,6 +4142,22 @@
 						>
 					</File>
 					<File
+						RelativePath="..\btol\vmatrix_type\vmat_bsr_joint.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\btol\vmatrix_type\vmat_bsr_master.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\btol\vmatrix_type\vmat_bsr_primary.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\btol\vmatrix_type\vmat_bsr_struct.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\btol\vmatrix_type\vmat_chol.cpp"
 						>
 					</File>
@@ -4145,6 +4167,10 @@
 					</File>
 					<File
 						RelativePath="..\btol\vmatrix_type\vmat_io.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\btol\vmatrix_type\vmat_iterative.cpp"
 						>
 					</File>
 					<File
@@ -4614,6 +4640,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\contrib\alglib\spline2d.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\contrib\alglib\spline3.cpp"
 						>
 					</File>
@@ -4651,6 +4681,66 @@
 					</File>
 					<File
 						RelativePath="..\contrib\optimal_bw\FastUnivariateDensityDerivative.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="ANN"
+					>
+					<File
+						RelativePath="..\contrib\ANN\tolANN.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="TPP"
+					>
+					<File
+						RelativePath="..\contrib\tpp\del_impl.cpp"
+						>
+						<FileConfiguration
+							Name="Debug|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions="CDT_ONLY;REDUCED;ANSI_DECLARATORS;NO_TIMER;_CRT_SECURE_NO_DEPRECATE;TRILIBRARY"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions="CDT_ONLY;REDUCED;ANSI_DECLARATORS;NO_TIMER;_CRT_SECURE_NO_DEPRECATE;TRILIBRARY"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="profile|Win32"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+								PreprocessorDefinitions="CDT_ONLY;REDUCED;ANSI_DECLARATORS;NO_TIMER;_CRT_SECURE_NO_DEPRECATE;TRILIBRARY"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath="..\contrib\tpp\tolTPP.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="excel"
+					>
+					<File
+						RelativePath="..\contrib\excel\BasicExcel.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\contrib\excel\ExcelFormat.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\contrib\excel\tolExcel.cpp"
 						>
 					</File>
 				</Filter>

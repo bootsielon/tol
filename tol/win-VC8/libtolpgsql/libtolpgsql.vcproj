@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9,00"
 	Name="libtolpgsql"
 	ProjectGUID="{10793CDE-F71F-4DAB-919F-CA5CD86C98EE}"
 	RootNamespace="libtolpgsql"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -81,6 +82,8 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(PGSQL_LIB)"
 				ProgramDatabaseFile=".\Release/libtolpgsql.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Release/libtolpgsql.lib"
 				TargetMachine="1"
 			/>
@@ -103,9 +106,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -180,6 +180,8 @@
 				AdditionalLibraryDirectories="$(PGSQL_LIB)"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/libtolpgsql.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Debug/libtolpgsql.lib"
 				TargetMachine="1"
 			/>
@@ -202,9 +204,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -278,6 +277,8 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(PGSQL_LIB)"
 				ProgramDatabaseFile=".\Release/libtolpgsql.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Release/libtolpgsql.lib"
 				TargetMachine="1"
 			/>
@@ -300,9 +301,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

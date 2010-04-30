@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tollib", "tollib.vcproj", "{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}"
 	ProjectSection(ProjectDependencies) = postProject
 		{24C5C2A9-CA02-465E-A717-E002BD576BF2} = {24C5C2A9-CA02-465E-A717-E002BD576BF2}
