@@ -28,4 +28,4 @@ being [[BR]]
 
 the constraining function. [[BR]]
 
-The method used in this package is based on [http://research.microsoft.com/en-us/um/people/minka/papers/minka-linear.ps.gz  Bayesian linear regression Thomas Minka (2001)]
+The method used in this package is based on [https://www.tol-project.org/export/HEAD/tolp/trunk/tol_pkg/BysVecLinReg/doc/bayes-linear-minka.pdf  Bayesian linear regression Thomas Minka (2001)]
