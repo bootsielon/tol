@@ -1,0 +1,33 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : BysVecLinReg.tol
+// PURPOSE: Defines Package BysVecLinReg
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock BysVecLinReg = [[
+Text _.autodoc.description = ReadFile("doc/BysVecLinReg.wiki");
+Text _.autodoc.url = "";
+Set _.autodoc.keys = [["MCMC","Markov chain","Bayesian","Metropolis",
+  "Hastings","multivariant","linear","regression","inequality","constraints"]];
+Set _.autodoc.authors = [[
+   "vdebuen@tol-project.org"]];
+
+//////////////////////////////////////////////////////////////////////////////
+Class @Base
+//////////////////////////////////////////////////////////////////////////////
+{
+  ////////////////////////////////////////////////////////////////////////////
+  //Definition members
+  ////////////////////////////////////////////////////////////////////////////
+  Real    _.N;       //Data length
+  Real    _.d;       //Number of output vectors
+  Real    _.m;       //Number of input vectors
+  VMatrix _.Y;       //Output matrix dxN 
+  VMatrix _.X;       //Input matrix mxN
+  VMatrix _.A;       //Regression coefficients dxm
+  Real    _.E;       //Residuals dxN
+  Real    _.V;       //Covariance inside each column of residuals
+  Real    _.r = 0;   //Number of constraining inequations
+  //Returns true if A
+  Real isFeasible(VMatrix A) { True }
+};
