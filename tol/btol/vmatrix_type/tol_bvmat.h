@@ -621,6 +621,7 @@ public:
   static int Prod      (const BVMat& A, const BVMat& B, BVMat& C);
   static int WeightProd(const BVMat& A, const BVMat& B, BVMat& C);
   static int WeightQuot(const BVMat& A, const BVMat& B, BVMat& C);
+  static int KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C);
 
   static double GetBackwardValue(const BPolyn  <BDat>& P,
                                  const double* X0, int n0, 
