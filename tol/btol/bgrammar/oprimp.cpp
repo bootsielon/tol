@@ -72,6 +72,7 @@ struct BTolOprProfiler
   int    index;      
   BText  identify;   //Function identifier Type+Name+Path
   double calls;      //Number of times that function has been called
+  double availMem;   //Difference of available memory in bytes between the end and the begin of function executions
   double time;       //Total time elapsed during function executions
   double time2;      //Total squared time to calculate standard deviation
   double timeMin;    //Minimun time elapsed in one execution
@@ -100,6 +101,7 @@ struct BTolOprProfiler
   //Builds and initializes the profiler for a given operator
   BTolOprProfiler(BOperator* opr)
   : calls  (0.0),
+    availMem    (0.0),
     time   (0.0),
     time2  (0.0),
     timeMin(BDat::PosInf()),
@@ -194,7 +196,9 @@ struct BTolOprProfiler
     return(profiler);
   }
 
-  static BTolOprProfiler* StartProfile(BOperator* opr, double& initTime_)
+  static BTolOprProfiler* StartProfile(BOperator* opr, 
+    double& initTime_, 
+    double& initAvailMem_)
   {
     if(!(enabled_.Value())) { return(NULL); }
     BTolOprProfiler* profiler = BTolOprProfiler::nullProfiler_;
@@ -235,19 +239,25 @@ struct BTolOprProfiler
         runningIndex_.push_back(profiler->index);
         profiler->isRunning_ = true;
         initTime_ = BSys::SessionTime(); 
+        initAvailMem_ = BSys::SessionAvailMem(); 
       }
     }
     return(profiler);
   }
 
-  static void StopProfile(BTolOprProfiler* profiler, double initTime_)
+  static void StopProfile(
+    BTolOprProfiler* profiler, 
+    double initTime_, 
+    double initAvailMem_)
   {
     if(profiler) 
     { 
       runningIndex_.pop_back();
       profiler->isRunning_ = false;
+      double availMem_ = (BSys::SessionAvailMem() - initAvailMem_)*1000.0;
       double time_ = (BSys::SessionTime() - initTime_)*1000.0;
       profiler->calls  += 1.0;
+      profiler->availMem   += availMem_;
       profiler->time   += time_;
       profiler->time2  += time_*time_;
       profiler->timeMax = Maximum(profiler->timeMax, time_);
@@ -322,6 +332,7 @@ struct BTolOprProfiler
      "Name\t"+
      "Path\t"+
      "Calls\t"+
+     "MemoryDiffInBytes\t"+
      "MiliSeconds\t"+
      "TimeAverage\t"+
      "TimeStdDev\t"+
@@ -346,6 +357,7 @@ struct BTolOprProfiler
           sop->index,
           sop->identify.String(),
           sop->calls,
+          sop->availMem,
           sop->time,
           timeAverage,
           timeStdDev,
@@ -459,11 +471,12 @@ int BTolOprProfiler_Dump() { return(BTolOprProfiler::Dump      ()); }
 
 #define Do_TolOprProfiler_Start(opr) \
   double initTime_; \
+  double initAvailMem_; \
   BTolOprProfiler* profiler; \
-  profiler = BTolOprProfiler::StartProfile(opr, initTime_);
+  profiler = BTolOprProfiler::StartProfile(opr, initTime_, initAvailMem_);
 
 #define Do_TolOprProfiler_Stop(opr) \
-  BTolOprProfiler::StopProfile(profiler, initTime_);
+  BTolOprProfiler::StopProfile(profiler, initTime_, initAvailMem_);
 
 #else
 

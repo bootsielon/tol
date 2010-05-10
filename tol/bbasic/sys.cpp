@@ -162,6 +162,17 @@ static BText Buil_TolAppData_()
 }
 
 //--------------------------------------------------------------------
+  double BSys::SessionAvailMem()
+//Return the time elapsed since program started
+//--------------------------------------------------------------------
+{
+  MEMORYSTATUSEX statex;
+  statex.dwLength = sizeof (statex);
+  GlobalMemoryStatusEx (&statex);
+  return((double)statex.ullAvailVirtual);
+};
+
+//--------------------------------------------------------------------
 BText BSys::TolAppData()
 
 //! Returns the standard system directory to store application data

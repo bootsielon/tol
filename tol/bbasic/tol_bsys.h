@@ -151,7 +151,9 @@ public:
   static void	Unix2Dos   (const BText& fileName);
   //! Converts a text file from DOS format to UNIX format
   static void	Dos2Unix   (const BText& fileName);
-  //Return the time elapsed since program started
+  //! Returns current available memory in bytes
+  static double SessionAvailMem();
+  //! Return the time elapsed since program started
   static double	SessionTime();
   static const BDate& SessionInitTime();
 
