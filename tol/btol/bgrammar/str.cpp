@@ -453,6 +453,59 @@ BGrammar* BStruct::Grammar() const
     return(GraAnything());
 }
 
+//--------------------------------------------------------------------
+static BStruct* FindStructInNameBlock(
+  const BText& name,
+  BUserNameBlock*& unb )
+//--------------------------------------------------------------------
+{
+  BStruct* str = NULL;
+  BSyntaxObject* obj;
+  int pos = name.Find("::",0);
+  if(pos>=0)
+  {
+    BText prefix;
+    BText sufix;
+    prefix = name.SubString(0,pos-1);
+    sufix  = name.SubString(pos+2,name.Length());
+    if(!unb)
+    {
+      obj = GraNameBlock()->FindOperand(prefix,false);
+      if(obj && obj->Grammar()==GraNameBlock())
+      {
+        unb = (BUserNameBlock*)obj;
+      }
+    }
+    else
+    {
+      BNameBlock& nb = unb->Contens();
+      obj = nb.Member(prefix);
+      if(obj && obj->Grammar()==GraNameBlock())
+      {
+        unb = (BUserNameBlock*)obj;
+      }
+      else
+      {
+        unb = NULL;
+      }
+    }
+    if(unb) 
+    {
+      str = FindStructInNameBlock(sufix, unb);         
+    }
+  }
+  else if(unb)
+  {
+    BNameBlock& nb = unb->Contens();
+    obj = nb.Member(name);
+    if(obj && obj->Mode()==BSTRUCTMODE)
+    {
+      str = (BStruct*)obj;
+    }
+  }
+  return(str); 
+}
+
 
 //--------------------------------------------------------------------
 BStruct* FindStruct(const BText& name,
@@ -465,7 +518,12 @@ BStruct* FindStruct(const BText& name,
 //--------------------------------------------------------------------
 {
   BSyntaxObject* result = NULL;
-  BStruct* bstr = BStackManager::FindStruct(name);
+  BUserNameBlock* unb = NULL;
+  BStruct* bstr = FindStructInNameBlock(name, unb);
+  if(!bstr)
+  {
+    bstr = BStackManager::FindStruct(name);
+  }
   if(!bstr)
   {
     const BNameBlock* cns = BNameBlock::Current();
