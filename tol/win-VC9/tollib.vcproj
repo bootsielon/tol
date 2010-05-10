@@ -27,7 +27,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cd ..&#x0D;&#x0A;win-vc8\Debug\build_date_gen.exe&#x0D;&#x0A;"
+				CommandLine="cd ..&#x0D;&#x0A;win-vc9\Debug\build_date_gen.exe&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -128,7 +128,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="Echo TOL Contrib Environment&#x0D;&#x0A;set  ATLAS_INC&#x0D;&#x0A;set  ATLAS_LIB&#x0D;&#x0A;set  GSL_INC&#x0D;&#x0A;set  GSL_LIB&#x0D;&#x0A;set  CHOLMOD_INC&#x0D;&#x0A;set  CHOLMOD_LIB&#x0D;&#x0A;set  BZIP2_INC&#x0D;&#x0A;set  BZIP2_LIB&#x0D;&#x0A;set  ZipArchive_INC&#x0D;&#x0A;set  ZipArchive_LIB&#x0D;&#x0A;set  MYSQL_INCLUDE&#x0D;&#x0A;set  MYSQL_LIB&#x0D;&#x0A;set  PGSQL_INCLUDE&#x0D;&#x0A;set  PGSQL_LIB&#x0D;&#x0A;set ANN_INCLUDE&#x0D;&#x0A;set ANN_LIB&#x0D;&#x0A;set  GOOGLE_SPARSEHASH&#x0D;&#x0A;&#x0D;&#x0A;cd ..&#x0D;&#x0A;win-vc8\Release\build_date_gen.exe&#x0D;&#x0A;"
+				CommandLine="Echo TOL Contrib Environment&#x0D;&#x0A;set  ATLAS_INC&#x0D;&#x0A;set  ATLAS_LIB&#x0D;&#x0A;set  GSL_INC&#x0D;&#x0A;set  GSL_LIB&#x0D;&#x0A;set  CHOLMOD_INC&#x0D;&#x0A;set  CHOLMOD_LIB&#x0D;&#x0A;set  BZIP2_INC&#x0D;&#x0A;set  BZIP2_LIB&#x0D;&#x0A;set  ZipArchive_INC&#x0D;&#x0A;set  ZipArchive_LIB&#x0D;&#x0A;set  MYSQL_INCLUDE&#x0D;&#x0A;set  MYSQL_LIB&#x0D;&#x0A;set  PGSQL_INCLUDE&#x0D;&#x0A;set  PGSQL_LIB&#x0D;&#x0A;set ANN_INCLUDE&#x0D;&#x0A;set ANN_LIB&#x0D;&#x0A;set  GOOGLE_SPARSEHASH&#x0D;&#x0A;&#x0D;&#x0A;cd ..&#x0D;&#x0A;win-vc9\Release\build_date_gen.exe&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -233,7 +233,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cd ..&#x0D;&#x0A;win-vc8\Release\build_date_gen.exe&#x0D;&#x0A;"
+				CommandLine="cd ..&#x0D;&#x0A;win-vc9\Release\build_date_gen.exe&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
