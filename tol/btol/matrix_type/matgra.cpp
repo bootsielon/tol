@@ -209,13 +209,29 @@ void BBM_BinAppend(const BText& fileName, const BMat& M)
 {
   BInt rows, cols, rows2w, cols2w;
   FILE *fil;
-
-  /* check number of columns */
-  if(!(fil = fopen(fileName.String(), "rb"))) {
-    BBM_BinWrite(fileName,M);
-    return; 
+  BDir dir = fileName;
+  if(!dir.Exist())
+  {
+    BBM_BinWrite(fileName, M);
+    return;
+  }
+  else if(dir.IsDir())
+  {
+    Error(I2("Cannot open BBM file ",
+       "No se pudo abrir el fichero BBM ") + 
+    fileName+I2(" due to it's a directory"," porque es un directorio"));
+    return;
   }
   
+  /* open for overwrite */
+  if(!(fil = fopen(fileName.String(), "r+b"))) {
+    Error(I2("Cannot open (rewrite mode) BBM file ",
+       "No se pudo abrir (modo de sobreescritura) el fichero BBM ") + 
+    fileName);
+    return;
+  }
+  fpos_t pos = 0;
+  fsetpos(fil, &pos);
   fread(&rows,sizeof(BInt),1,fil);
   fread(&cols,sizeof(BInt),1,fil);
   rows2w = M.Rows();
@@ -225,34 +241,26 @@ void BBM_BinAppend(const BText& fileName, const BMat& M)
     fclose(fil);
     return;
   }
-  fclose(fil);
-
-  /* open for overwrite */
-  if(!(fil = fopen(fileName.String(), "r+b"))) {
-    Error(I2("Cannot open (rewrite mode) BBM file ",
-       "No se pudo abrir (modo de sobreescritura) el fichero BBM ") + 
-    fileName);
-    return;
-  }
-  
-  if(fseek(fil, 0L, SEEK_SET)) {
-    Error(I2("Cannot access BBM file ", "No se pudo acceder al fichero BBM ") + 
-    fileName);
-    fclose(fil);
-    return;
-  }
+  pos = 0;
+  fsetpos(fil, &pos);
   rows += rows2w;
   fwrite(&rows, sizeof(BInt), 1, fil);
-  fclose(fil);  
-
+  fflush(fil);
+  fclose(fil);
+  fil = NULL;
+  for(int tryNum = 0; !fil && (tryNum < 1000); tryNum++)
+  {
+    fil = fopen(fileName.String(), "ab");
+  }
   /* open for append */
-  if(!(fil = fopen(fileName.String(), "ab"))) {
+  if(!fil) {
     Error(I2("Cannot open (append mode) BBM file ",
        "No se pudo abrir (modo de insercion) el fichero BBM ") + 
     fileName);
     return;
   }
   fwrite(M.Data().Buffer(), sizeof(BDat), rows2w*cols2w, fil);
+  fflush(fil);
   if(fclose(fil))
   {
     Error(I2("Cannot close after append BBM file ",
