@@ -7,27 +7,11 @@
 Text email_ = "vdebuen@tol-project.org"; 
 Text link_ = "";
 Text summary_ = 
-"test_0001 multivariant linear model wit known covariance matrix" ;
+"test_0001 multivariant linear model with known covariance matrix" ;
 
 Real numErr0 = Copy(NError);
 
-//Random seed setting
-Real PutRandomSeed(0);
-Real rndSeed = GetRandomSeed(0);
-WriteLn("Current Random Seed = "<<rndSeed);
-
-Real d = IntRand(2,20);
-Real m = IntRand(2,20);
-Real N = IntRand(m*10,m*100);
-Real sampleLength = 5000;
-
-VMatrix X = Rand(m,N,-10,10);
-VMatrix A = Rand(d,m,-10,10); 
-VMatrix V = (MMtSqr(Rand(d,N,-0.8,0.8,"Cholmod.R.Sparse",d*N/4))+Eye(d,d)); 
-VMatrix V.L = CholeskiFactor(V,"X");
-VMatrix E01 = Gaussian(d,N,0,1) ; 
-VMatrix E = V*E01;
-VMatrix Y = A*X+E; 
+#Embed "../gen_multivariant_linear_regression.tol";
 
 BysVecLinReg::@Multivariant MV = { BysVecLinReg::@Multivariant::New(
   Text desc = summary_,
@@ -70,10 +54,15 @@ Real numErr1 = Copy(NError);
 //Extented information about test behaviour
 Set partialResults_ = 
 [[
-  numErr0, numErr1, stdErr, stdErr_
+  numErr0, numErr1, stdErr, stdErr_,
+  ok_.X.Li, ok_.IdxXL, ok_.IdxXLi, okLLt
+
 ]];
 
-Real quality_ = Min(1,Exp((stdErr-stdErr_)*N*d));
+Real quality_ = And(
+  numErr1==numErr0,
+  ok_.X.Li, ok_.IdxXL, ok_.IdxXLi, okLLt)*
+  Min(1,Exp((stdErr-stdErr_)*N*d));
 
 //Return the results 
 Set resultStr_ = @strTestStatus(summary_, link_, quality_,

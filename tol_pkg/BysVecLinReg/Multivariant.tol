@@ -27,8 +27,9 @@ Class @Multivariant
   VMatrix _.Y = Rand(0,0,0,0);    //Multivariant output matrix DxN 
   VMatrix _.X = Rand(0,0,0,0);    //Multivariant input matrix MxN
   Real _.alpha = 0;               //Prior invariant scaling factor
+  Real _.W.weight = 0;            //Weight of prior Wishart freedom degrees
   Real _.W.N0 = 0;                //Prior Wishart freedom degrees
-  VMatrix _.W.W0 = Rand(0,0,0,0); //Prior Wishart scale factor matrix
+  VMatrix _.W.V0 = Rand(0,0,0,0); //Prior Wishart scale factor matrix
   
   ////////////////////////////////////////////////////////////////////////////
   //Auxiliar members
@@ -55,8 +56,6 @@ Class @Multivariant
   VMatrix _.YYt = Rand(0,0,0,0); 
   //Y*X'*(X*Xt)^-1*X*Y'
   VMatrix _.nuXYt = Rand(0,0,0,0); 
-  //Reduced squared sum Syy - Syx*Sxx^-1Syx'
-  VMatrix _.Sy.x = Rand(0,0,0,0); 
   //Cholesky decomposition of X*X' as sparse factor (mxm)
   VMatrix _.X.Lf = Rand(0,0,0,0);
   //Cholesky decomposition of X*X' as sparse explicit (mxm)
@@ -132,6 +131,8 @@ Class @Multivariant
       change.X(X);
       change.Y(Y);
       change.alpha(0);
+      VMatrix _.vec.A := (_.vec.nu)/(1+_.alpha);
+      VMatrix _.A := @Multivariant::vec2vmatrix(_.vec.A,Constant(_.d,_.m,1));
       change.V(Eye(_.d));
       True
     })
@@ -155,12 +156,19 @@ Class @Multivariant
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real set.prior.V.inverseWishart(Real W.N0, VMatrix W.V0)
+  Real set.prior.V.inverseWishart(Real W.weight, VMatrix W.V0)
   ////////////////////////////////////////////////////////////////////////////
   {
     If(!check.dim("set.prior.V.inverseWishart",W.V0,_.d,_.d),False,
     {
-      Real _.W.N0 := Copy(W.N0);
+      Real _.W.N0 := Case(
+      W.weight==0,0,
+      W.weight>=0.99,_.N*99,
+      1==1,
+      {
+        Max(1, _.N * W.weight / (1-W.weight))
+      });
+      Real _.W.weight := _.W.N0 / (_.W.N0+_.N);
       VMatrix _.W.V0 := Copy(W.V0);
       True
     })
@@ -211,7 +219,6 @@ Class @Multivariant
     },
     {
       Real _.alpha := alpha;
-      VMatrix _.Sy.x := _.YYt - _.nuXYt/(1+_.alpha);
       True
     })
   };
@@ -249,7 +256,9 @@ Class @Multivariant
   VMatrix gibbs.draw.V(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real change.V(RandIWishart(_.N+_.W.N0, _.Sy.x+_.W.V0));
+    VMatrix E = _.Y - _.A * _.X;
+    VMatrix S2 = MMtSqr(E);
+    Real change.V(Mat2VMat(RandIWishart(_.N+_.W.N0, VMat2Mat(S2+_.W.V0*_.W.N0))));
     Copy(_.V)
   };
 
@@ -269,7 +278,7 @@ Class @Multivariant
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix gibbs.draw.vec.A(numSim);
-    VMatrix _.A := @Multivariant::vec2vmatrix(_.vec.a);
+    VMatrix _.A := @Multivariant::vec2vmatrix(_.vec.A,_.A);
     Copy(_.A)
   }
 
