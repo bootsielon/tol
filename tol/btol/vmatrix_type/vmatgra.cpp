@@ -2434,6 +2434,34 @@ void BSetGetBoundsInPolytope::CalcContens()
   }
 }
 
+///////////////////////////////////////////////////////////////
+
+  DeclareContensClass(BVMat, BVMatTemporary, BVMatKroneckerProduct);
+  DefExtOpr(1, BVMatKroneckerProduct, "KroneckerProduct", 2, 2, 
+  "VMatrix VMatrix",
+  "(VMatrix A, VMatrix B)",
+  I2("In mathematics, the Kronecker product, denoted by x inside a circle, "
+     "is an operation on two matrices of arbitrary size resulting in the "
+     "block matrix (aij*B)"
+     "It is a special case of a tensor product. The Kronecker "
+     "product should not be confused with the usual matrix multiplication, "
+     "which is an entirely different operation."
+     ,
+     "En matematicas, el producto de Kronecker, denotado por una x dentro "
+     "de un circulo, es una operacion de dos matrices de tamaño arbitrario "
+     "dando por resultado la matriz del bloque (aij*B).  "
+     "Es un caso especial de un producto del tensor. El producto de "
+     "Kronecker no se debe confundir con la multiplicacion usual de matrices, "
+     "que es una operacion enteramente distinta."),
+     BOperClassify::MatrixAlgebra_);
+   void BVMatKroneckerProduct::CalcContens()
+///////////////////////////////////////////////////////////////
+{
+  BVMat& A = VMat(Arg(1));
+  BVMat& B = VMat(Arg(2));
+  BVMat::KroneckerProd(A, B, contens_);
+}
+
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetParseResLinReg);
 DefExtOpr(1, BSetParseResLinReg, "BSR.Parse", 2, 2, 

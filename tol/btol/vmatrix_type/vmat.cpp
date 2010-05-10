@@ -1255,6 +1255,10 @@ void BVMat::CompactSymmetric(bool check)
   { 
     for(i=0; i<nzmax; i++) { x[i] = (*f)(x[i]); }
   }
+  if(B.code_==ESC_chlmRsparse)
+  {
+    cRs_ensure_packed(B.s_.chlmRsparse_);
+  }
   return(0);
 };
 

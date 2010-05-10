@@ -533,6 +533,103 @@ int BVMat::Prod(const BVMat& A_, const BVMat& B_, BVMat& C)
   return(aux);
 };
 
+////////////////////////////////////////////////////////////////////////////////
+int BVMat::KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C)
+////////////////////////////////////////////////////////////////////////////////
+{
+  static char* fName = "KroneckerProd";
+  if(!A.CheckDefined(fName)) { return(-1); }
+  if(!B.CheckDefined(fName)) { return(-1); }
+  int rA = A.Rows(); 
+  int cA = A.Columns(); 
+  int rB = B.Rows(); 
+  int cB = B.Columns(); 
+  int rC = rA*rB; 
+  int cC = cA*cB;
+  if((A.code_ == ESC_blasRdense) && (B.code_ == ESC_blasRdense))
+  {
+    int iC, jC, iA, jA, iB, jB; 
+    C.BlasRDense(rC,cC);
+    double* xA0 =(double*)A.s_.blasRdense_->x;
+    double* xB0 =(double*)B.s_.blasRdense_->x;
+    double* xC0 =(double*)C.s_.blasRdense_->x;
+    double* xA = xA0;
+    double* xB;
+    double* xC;
+
+    for(jA=0; jA<cA; jA++)
+    {
+      for(iA=0; iA<rA; iA++, xA++)
+      {
+        iC = iA*rB;
+        for(jB=0; jB<cB; jB++)
+        { 
+          jC = jA*cB + jB;
+          xC = xC0 + (jC*rC+iC);
+          xB = xB0 + (jB*rB);
+          for(iB=0; iB<rB; iB++, xC++, xB++)
+          {
+            (*xC) = (*xA)*(*xB);  
+          }
+        }
+      }
+    }
+    return(0);
+  } 
+  if((A.code_ == ESC_chlmRtriplet) && (B.code_ == ESC_chlmRtriplet))
+  {
+    int nA = A.s_.chlmRtriplet_->nnz;
+    int* iA = (int*)A.s_.chlmRtriplet_->i;
+    int* jA = (int*)A.s_.chlmRtriplet_->j;
+    double* xA = (double*)A.s_.chlmRtriplet_->x;
+    int nB = B.s_.chlmRtriplet_->nnz;
+    int* iB = (int*)B.s_.chlmRtriplet_->i;
+    int* jB = (int*)B.s_.chlmRtriplet_->j;
+    double* xB = (double*)B.s_.chlmRtriplet_->x;
+    int nC = nA*nB;
+    C.ChlmRTriplet(rC, cC, nC);
+    int* iC = (int*)C.s_.chlmRtriplet_->i;
+    int* jC = (int*)C.s_.chlmRtriplet_->j;
+    double* xC = (double*)C.s_.chlmRtriplet_->x;
+    int kA, kB;
+    double x;
+    C.s_.chlmRtriplet_->nnz = 0;
+    for(kA=0; kA<nA; kA++, iA++, jA++, xA++)
+    {
+      iB = (int*)B.s_.chlmRtriplet_->i;
+      jB = (int*)B.s_.chlmRtriplet_->j;
+      xB = (double*)B.s_.chlmRtriplet_->x;
+      for(kB=0; kB<nB; kB++, iB++, jB++, xB++)
+      {
+        x=(*xA)*(*xB);
+        if(x)
+        {
+          (*iC) = (*iA)*rB+(*iB);
+          (*jC) = (*jA)*cB+(*jB);
+          (*xC) = x;
+          iC++;
+          jC++;
+          xC++;
+          C.s_.chlmRtriplet_->nnz++;
+        }
+      }
+    }
+    return(0);
+  }
+  else 
+  {
+    BVMat A_, B_, C_;
+    A_.Convert(A,ESC_chlmRtriplet);
+    B_.Convert(B,ESC_chlmRtriplet);
+    int err = BVMat::KroneckerProd(A_,B_,C_);
+    if(!err)
+    {
+      C.Convert(C_,ESC_chlmRsparse);
+    }
+    return(err);
+  } 
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////
   int BVMat::MtMSqr(const BVMat& A, BVMat& B)
@@ -665,6 +762,7 @@ int BVMat::Prod(const BVMat& A_, const BVMat& B_, BVMat& C)
   MMtSqr(*this, aux);
   return(aux);
 };
+
 
 //--------------------------------------------------------------------
 double BVMat::GetBackwardValue(const BPolyn  <BDat>& P,

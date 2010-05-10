@@ -77,6 +77,8 @@ int BVMat::bRd2cRs(BVMat& left, const BVMat& right)
   left.code_ = ESC_chlmRsparse;
   left.s_.chlmRsparse_ = 
     cholmod_dense_to_sparse(right.s_.blasRdense_, 1, common_);
+  if(!left.s_.undefined_) { left.code_ = ESC_undefined; }
+  else { cRs_ensure_packed(left.s_.chlmRsparse_); }
   return(0);
 };
 
@@ -98,6 +100,7 @@ int BVMat::cRf2cRs(BVMat& left, const BVMat& right)
   left.code_ = ESC_chlmRsparse;
   left.s_.chlmRsparse_ = cRf2cRs(right.s_.chlmRfactor_);
   if(!left.s_.undefined_) { left.code_ = ESC_undefined; }
+  else { cRs_ensure_packed(left.s_.chlmRsparse_); }
   return(0);
 };
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,6 +111,7 @@ int BVMat::cRt2cRs(BVMat& left, const BVMat& right)
   left.s_.chlmRsparse_ = cholmod_triplet_to_sparse
     (right.s_.chlmRtriplet_, right.s_.chlmRtriplet_->nnz, common_);
   if(!left.s_.undefined_) { left.code_ = ESC_undefined; }
+  else { cRs_ensure_packed(left.s_.chlmRsparse_); }
   return(0);
 };
 ////////////////////////////////////////////////////////////////////////////////

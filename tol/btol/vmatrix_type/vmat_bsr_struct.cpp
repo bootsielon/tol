@@ -198,6 +198,45 @@ BStruct* MasterInfo()
   return(aux);
 };
 
+//--------------------------------------------------------------------
+BStruct* BsrParamInfo()
+//Parameter information in a BSR model definition
+//--------------------------------------------------------------------
+{
+  static BStruct* aux = NULL;
+  if(!aux)
+  {
+    aux = NewStructSymbol( 
+    "@Bsr.Param.Info"
+    ,
+    "Text:Name,"              // Unique identidier of the parameter
+    "Real:InitValue,"         // Given by user initial value or ?
+    "Real:Prior.LowerBound,"  // Prior minimum feasible value or -1/0
+    "Real:Prior.UpperBound");   // Prior minimum feasible value or +1/0
+  }
+  return(aux);
+};
+
+//--------------------------------------------------------------------
+BStruct* SigmaPriorInverseGamma()
+//Sigma Inverse-Gamma prior information in a BSR model 
+//Described in Bayesian Data Analisys (Gelman-Carlin-Stern-Rubin) Second 
+//Edition, section 14.8, subsection "Prior information about variance 
+//parameters"  page 384
+//--------------------------------------------------------------------
+{
+  static BStruct* aux = NULL;
+  if(!aux)
+  {
+    aux = NewStructSymbol( 
+    "@Bsr.Sigma.Prior.InverseGamma"
+    ,
+    "Real:Sigma2,"  // Residuals square average: sigma0^2
+    "Real:Weight"); // Relative weight of prior versus data : n0/(n0+n)  
+  }
+  return(aux);
+};
+
 ///////////////////////////////////////////////////////////////////////////////
   int Initialize()
 ///////////////////////////////////////////////////////////////////////////////
@@ -213,6 +252,8 @@ BStruct* MasterInfo()
     BStruct* aux5 = NoiseDistribStr();
     BStruct* aux6 = NoiseTimeInfo();
     BStruct* aux7 = MasterInfo();
+    BStruct* aux8 = BsrParamInfo();
+    BStruct* aux9 = SigmaPriorInverseGamma();
     
     return(true);
   }
