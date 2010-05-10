@@ -72,10 +72,10 @@ Class @Multivariant
   //Choleski decomposition of VxIm as sparse factor((d*m)x(d*m))
   VMatrix _.VxIm.Lf = Rand(0,0,0,0);
   //Choleski decomposition of VxIm as sparse explicit((d*m)x(d*m))
-  VMatrix _.VxIm.Ls = Rand(0,0,0,0);
+  VMatrix _.VxIm.Le = Rand(0,0,0,0);
  
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix vmatrix2vec(VMatrix M)
+  Static VMatrix vmatrix2vec(VMatrix M)
   ////////////////////////////////////////////////////////////////////////////
   {
     Matrix Mt = VMat2Mat(M,True);
@@ -83,11 +83,11 @@ Class @Multivariant
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix vec2vmatrix(VMatrix vec, VMatrix M)
+  Static VMatrix vec2vmatrix(VMatrix vec, VMatrix M)
   ////////////////////////////////////////////////////////////////////////////
   {
     Matrix Mt = VMat2Mat(M,True);
-    Mat2VMat(DeepCopy([[Mt]],vec)[1])
+    Mat2VMat(DeepCopy([[Mt]],VMat2Mat(vec))[1],True)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -176,7 +176,7 @@ Class @Multivariant
       VMatrix _.X.Lf:=CholeskiFactor(_.X,"XXt");
       VMatrix _.X.Le := CholeskiSolve(_.X.Lf,
         Convert(_.X.Lf, "Cholmod.R.Sparse"),"P");
-      VMatrix _.X.Li := CholeskiSolve(_.X.Lf,Eye(_.m),"PtLLtP");
+      VMatrix _.X.Li := CholeskiSolve(_.X.Lf,Eye(_.m),"PtL");
       VMatrix _.IdxXL := KroneckerProduct(Eye(_.d),_.X.Le);
       VMatrix _.IdxXLi := KroneckerProduct(Eye(_.d),_.X.Li);
       True
@@ -193,8 +193,8 @@ Class @Multivariant
       VMatrix _.YYt := MMtSqr(_.Y);
       VMatrix XYt =_.X*Tra(_.Y);
       VMatrix _.nu:=Tra(CholeskiSolve(_.X.Lf,XYt,"PtLLtP"));
-      VMatrix _.nuXYt = _.nu*XYt;
-      VMatrix _.vec.nu:=vmatrix2vec(_.nu);
+      VMatrix _.nuXYt := _.nu*XYt;
+      VMatrix _.vec.nu:=@Multivariant::vmatrix2vec(_.nu);
       True
     })
   };
@@ -211,7 +211,7 @@ Class @Multivariant
     },
     {
       Real _.alpha := alpha;
-      VMatrix _.Sy.x = _.YYt - _.nuXYt/(1+_.alpha);
+      VMatrix _.Sy.x := _.YYt - _.nuXYt/(1+_.alpha);
       True
     })
   };
@@ -224,10 +224,10 @@ Class @Multivariant
     {
       VMatrix _.V := Copy(V); 
       VMatrix _.VxIm := KroneckerProduct(_.V, Eye(_.m));
-      VMatrix _.VxIm.Lf := CholeskiSolve(_.VxIm,"X");
+      VMatrix _.VxIm.Lf := CholeskiFactor(_.VxIm,"X");
       VMatrix _.VxIm.Le := CholeskiSolve(_.VxIm.Lf,
         Convert(_.VxIm.Lf, "Cholmod.R.Sparse"),"P");
-      VMatrix _.VxIm.Lf := CholeskiSolve(_.VxIm,"X");
+      VMatrix _.VxIm.Lf := CholeskiFactor(_.VxIm,"X");
       VMatrix _.VxIm.Le := CholeskiSolve(_.VxIm.Lf,
         Convert(_.VxIm.Lf, "Cholmod.R.Sparse"),"P");
       True
@@ -254,22 +254,24 @@ Class @Multivariant
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix gibbs.draw.A(Real numSim)
+  VMatrix gibbs.draw.vec.A(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix e = Gaussian(_.d*_.m_,1,0,1);
+    VMatrix e = Gaussian(_.d*_.m,1,0,1);
     VMatrix e.1 = _.VxIm.Le*e;
-    VMatrix e.2 = _.IdxXLi*e.1;
+    VMatrix e.2 = Tra(Tra(e.1)*_.IdxXLi);
     VMatrix _.vec.A := (_.vec.nu + e.2)/(1+_.alpha);
-    VMatrix _.A := vec2vmatrix(_.vec.a);
-    Copy(_.A)
+    _.vec.A
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix gibbs.draw(Real numSim)
+  VMatrix gibbs.draw.A(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    _.vec.A
+    VMatrix gibbs.draw.vec.A(numSim);
+    VMatrix _.A := @Multivariant::vec2vmatrix(_.vec.a);
+    Copy(_.A)
   }
+
 }
 
