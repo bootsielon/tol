@@ -1,0 +1,275 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : Multivariant.tol
+// PURPOSE: Defines Class BysVecLinReg::@Multivariant
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Multivariant linear regression
+// Y = A*X + E
+//where
+//   Y is the known output matrix DxN
+//   X is the known input matrix MxN
+//   A is the unknown cofficient matrix NxD
+//   E is the unknown residuals matrix DxN with distribution
+//     E[.,t] ~ N(0,V) for all t = 1 ... N
+//     V has a prior inverse Wishart W(V0,N0)
+//
+Class @Multivariant
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text _.desc;
+  Set _.outputNames;
+  Set _.inputNames;
+  ////////////////////////////////////////////////////////////////////////////
+  //Definition members
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix _.Y = Rand(0,0,0,0);    //Multivariant output matrix DxN 
+  VMatrix _.X = Rand(0,0,0,0);    //Multivariant input matrix MxN
+  Real _.alpha = 0;               //Prior invariant scaling factor
+  Real _.W.N0 = 0;                //Prior Wishart freedom degrees
+  VMatrix _.W.W0 = Rand(0,0,0,0); //Prior Wishart scale factor matrix
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //Auxiliar members
+  ////////////////////////////////////////////////////////////////////////////
+  //Data length
+  Real _.N = ?; 
+  //Number of multivariant output vectors
+  Real _.d = ?; 
+  //Number of multivariantinput vectors
+  Real _.m = ?; 
+  //multivariant residuals (dxN)
+  VMatrix _.E = Rand(0,0,0,0);
+  //Instant covariance of multivariant residuals (dxd)
+  VMatrix _.V = Rand(0,0,0,0);
+  //Regression multivariant coefficients (dxm)
+  VMatrix _.A = Rand(0,0,0,0); 
+  //Stacked columns of A (D*Mx1)
+  VMatrix _.vec.A = Rand(0,0,0,0); 
+  //Average of posterior distribution of A for alpha=0: Y*X'*(X*Xt)^-1 (dxm)
+  VMatrix _.nu = Rand(0,0,0,0); 
+  //Stacked columns of nu ((d*m)x1)
+  VMatrix _.vec.nu = Rand(0,0,0,0); 
+  //Y*Y'
+  VMatrix _.YYt = Rand(0,0,0,0); 
+  //Y*X'*(X*Xt)^-1*X*Y'
+  VMatrix _.nuXYt = Rand(0,0,0,0); 
+  //Reduced squared sum Syy - Syx*Sxx^-1Syx'
+  VMatrix _.Sy.x = Rand(0,0,0,0); 
+  //Cholesky decomposition of X*X' as sparse factor (mxm)
+  VMatrix _.X.Lf = Rand(0,0,0,0);
+  //Cholesky decomposition of X*X' as sparse explicit (mxm)
+  VMatrix _.X.Le = Rand(0,0,0,0);
+  //Inverse of Cholesky decomposition of X*X' as sparse explicit (mxm)
+  VMatrix _.X.Li = Rand(0,0,0,0);
+  //Kronecker product of identity of order d by X.L ((d*m)x(d*m))
+  VMatrix _.IdxXL = Rand(0,0,0,0);
+  //Kronecker product of identity of order d by X.Li ((d*m)x(d*m))
+  VMatrix _.IdxXLi = Rand(0,0,0,0);
+  //Kronecker product of V by identity of order m ((d*m)x(d*m))
+  VMatrix _.VxIm = Rand(0,0,0,0);
+  //Choleski decomposition of VxIm as sparse factor((d*m)x(d*m))
+  VMatrix _.VxIm.Lf = Rand(0,0,0,0);
+  //Choleski decomposition of VxIm as sparse explicit((d*m)x(d*m))
+  VMatrix _.VxIm.Ls = Rand(0,0,0,0);
+ 
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix vmatrix2vec(VMatrix M)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix Mt = VMat2Mat(M,True);
+    Mat2VMat(Tra(GetNumeric([[ Mt ]])))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix vec2vmatrix(VMatrix vec, VMatrix M)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix Mt = VMat2Mat(M,True);
+    Mat2VMat(DeepCopy([[Mt]],vec)[1])
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real check.dim(Text method, VMatrix M, Real nRow, Real nCol)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(And(VRows(M)==nRow, VColumns(M)==nCol), True,
+    {
+      WriteLn("[BysVecLinReg::@Multivariant::"+method+"] "
+              "Incongruent dimensions of _.W.V0 that should be "
+              "("<<nRow+","<<nCol+") instead of "
+              "("<<VRows(M)+","<<VColumns(M)+")","E"); 
+      False
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real set.outputInput(VMatrix Y, VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.d := VRows(Y);
+    Real _.m := VRows(X);
+    Real _.N := VColumns(X);
+    Case(
+    VColumns(Y)!=_.N, 
+    {
+      WriteLn("[BysVecLinReg::@Multivariant::set.outputInput] "
+              "Incongruent rows data length between input "
+              "("<<VRows(X)+","<<VColumns(X)+") "
+              "and output "
+              "("<<VRows(Y)+","<<VColumns(Y)+")","E"); 
+      False
+    },
+    _.m > _.N, 
+    {
+      WriteLn("[BysVecLinReg::@Multivariant::set.outputInput] "
+              "Too much inputs for data length "<<_.N+"<"<<_.m,"E"); 
+      False
+    },
+    1==1, 
+    {
+      change.X(X);
+      change.Y(Y);
+      change.alpha(0);
+      change.V(Eye(_.d));
+      True
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Static @Multivariant New(  
+    Text desc,
+    Set outputNames,
+    Set inputNames,
+    VMatrix Y, 
+    VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Multivariant new = [[
+      Text _.desc = desc;
+      Set _.outputNames = outputNames;
+      Set _.inputNames = inputNames]];
+    Real new::set.outputInput(Y,X);
+    new
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real set.prior.V.inverseWishart(Real W.N0, VMatrix W.V0)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!check.dim("set.prior.V.inverseWishart",W.V0,_.d,_.d),False,
+    {
+      Real _.W.N0 := Copy(W.N0);
+      VMatrix _.W.V0 := Copy(W.V0);
+      True
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real change.X(VMatrix X)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!check.dim("change.X",X,_.m,_.N),False,
+    {
+      VMatrix _.X := Copy(X); 
+      VMatrix _.X.Lf:=CholeskiFactor(_.X,"XXt");
+      VMatrix _.X.Le := CholeskiSolve(_.X.Lf,
+        Convert(_.X.Lf, "Cholmod.R.Sparse"),"P");
+      VMatrix _.X.Li := CholeskiSolve(_.X.Lf,Eye(_.m),"PtLLtP");
+      VMatrix _.IdxXL := KroneckerProduct(Eye(_.d),_.X.Le);
+      VMatrix _.IdxXLi := KroneckerProduct(Eye(_.d),_.X.Li);
+      True
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real change.Y(VMatrix Y)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!check.dim("change.Y",Y,_.d,_.N),False,
+    {
+      VMatrix _.Y := Copy(Y); 
+      VMatrix _.YYt := MMtSqr(_.Y);
+      VMatrix XYt =_.X*Tra(_.Y);
+      VMatrix _.nu:=Tra(CholeskiSolve(_.X.Lf,XYt,"PtLLtP"));
+      VMatrix _.nuXYt = _.nu*XYt;
+      VMatrix _.vec.nu:=vmatrix2vec(_.nu);
+      True
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real change.alpha(Real alpha)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(alpha<0,
+    {
+      WriteLn("[BysVecLinReg::@Multivariant::change.alpha] "
+              "scaling invariant parameter alpha must be non negative","E"); 
+      False
+    },
+    {
+      Real _.alpha := alpha;
+      VMatrix _.Sy.x = _.YYt - _.nuXYt/(1+_.alpha);
+      True
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real change.V(VMatrix V)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!check.dim("change.V",V,_.d,_.d),False,
+    {
+      VMatrix _.V := Copy(V); 
+      VMatrix _.VxIm := KroneckerProduct(_.V, Eye(_.m));
+      VMatrix _.VxIm.Lf := CholeskiSolve(_.VxIm,"X");
+      VMatrix _.VxIm.Le := CholeskiSolve(_.VxIm.Lf,
+        Convert(_.VxIm.Lf, "Cholmod.R.Sparse"),"P");
+      VMatrix _.VxIm.Lf := CholeskiSolve(_.VxIm,"X");
+      VMatrix _.VxIm.Le := CholeskiSolve(_.VxIm.Lf,
+        Convert(_.VxIm.Lf, "Cholmod.R.Sparse"),"P");
+      True
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real set.maxEvidence.alpha(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix V.L = CholeskiFactor(_.V,"X");
+    VMatrix aux = CholeskiSolve(V.L,_.nuXYt,"PtLLtP");
+    Real trace = VMatSum(SubDiag(aux));
+    Real md = _.m*_.d;
+    change.alpha(md/(trace-md))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix gibbs.draw.V(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real change.V(RandIWishart(_.N+_.W.N0, _.Sy.x+_.W.V0));
+    Copy(_.V)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix gibbs.draw.A(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix e = Gaussian(_.d*_.m_,1,0,1);
+    VMatrix e.1 = _.VxIm.Le*e;
+    VMatrix e.2 = _.IdxXLi*e.1;
+    VMatrix _.vec.A := (_.vec.nu + e.2)/(1+_.alpha);
+    VMatrix _.A := vec2vmatrix(_.vec.a);
+    Copy(_.A)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix gibbs.draw(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    _.vec.A
+  }
+}
+

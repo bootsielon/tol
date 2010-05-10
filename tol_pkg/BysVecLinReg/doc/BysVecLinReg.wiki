@@ -58,7 +58,7 @@ the arbitrary constraining function. [[BR]]
 == Invariant-scale prior over coefficient matrix ==
 
 Although Minka not explicitly stated in any place, under the invariant prior
-follows that [[LatexEquation(X)]] must be full-range [[LatexEquation(m <= N)]]
+follows that [[LatexEquation(X)]] must be full-rank [[LatexEquation(m <= N)]]
 because [[LatexEquation(X W X ^ T)]] must be nonsingular with
 [[LatexEquation(W = \alpha I_{m})]], where [[LatexEquation(\alpha)]] is the
 scale-invariant parameter governing the prior and estimated more

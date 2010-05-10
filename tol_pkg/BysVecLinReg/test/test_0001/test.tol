@@ -1,0 +1,22 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+//////////////////////////////////////////////////////////////////////////////
+
+Real d = 2;
+Real m = 3;
+Real N = 10;
+VMatrix X = Rand(m,N,-10,10);
+VMatrix A = Rand(d,m,-10,10); 
+VMatrix E = Gaussian(d,N,0,1); 
+VMatrix Y = A*X+E; 
+
+
+BysVecLinReg::@Multivariant MV = { BysVecLinReg::@Multivariant::New(
+  Text desc = "test_0001 multivariant model",
+  Set outputNames = For(1,d,Text(Real i) { "Output_"<<i }),
+  Set inputNames = For(1,d,Text(Real i) { "Input_"<<i }),
+  Y,X
+)};
+
+/* */
