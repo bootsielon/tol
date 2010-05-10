@@ -3,20 +3,87 @@
 // FILE   : test.tol
 //////////////////////////////////////////////////////////////////////////////
 
-Real d = 2;
-Real m = 3;
-Real N = 10;
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = 
+"test_0001 multivariant linear model wit known covariance matrix" ;
+
+Real numErr0 = Copy(NError);
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+Real d = IntRand(2,20);
+Real m = IntRand(2,20);
+Real N = IntRand(m*10,m*100);
+Real sampleLength = 5000;
+
 VMatrix X = Rand(m,N,-10,10);
 VMatrix A = Rand(d,m,-10,10); 
-VMatrix E = Gaussian(d,N,0,1); 
+VMatrix V = (MMtSqr(Rand(d,N,-0.8,0.8,"Cholmod.R.Sparse",d*N/4))+Eye(d,d)); 
+VMatrix V.L = CholeskiFactor(V,"X");
+VMatrix E01 = Gaussian(d,N,0,1) ; 
+VMatrix E = V*E01;
 VMatrix Y = A*X+E; 
 
-
 BysVecLinReg::@Multivariant MV = { BysVecLinReg::@Multivariant::New(
-  Text desc = "test_0001 multivariant model",
+  Text desc = summary_,
   Set outputNames = For(1,d,Text(Real i) { "Output_"<<i }),
   Set inputNames = For(1,d,Text(Real i) { "Input_"<<i }),
   Y,X
 )};
+
+Real MV::change.V(V);
+
+VMatrix S = KroneckerProduct(V,MtMSqr(MV::_.X.Li));
+VMatrix L = Tra(MV::_.IdxXLi) * MV::_.VxIm.Le;
+VMatrix LLt = MMtSqr(L);
+
+Real ok_.X.Li = VMatMax(Abs((MV::_.X.Li * MV::_.X.Le+m*N)-m*N - Eye(m)))==0;
+Real ok_.IdxXL = VMatMax(Abs((Tra(MV::_.IdxXL)*S*MV::_.IdxXL - MV::_.VxIm+m*d)-m*d))==0;
+Real ok_.IdxXLi = VMatMax(Abs((MV::_.IdxXLi * MV::_.IdxXL+m*N)-m*N - Eye(m*d)))==0;
+Real okLLt = VMatMax(Abs((LLt-S+m*N)-m*N ))==0;
+
+VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
+{
+  Tra(MV::gibbs.draw.vec.A(0))
+}));
+
+VMatrix vec.A_ = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
+VMatrix vec.A = BysVecLinReg::@Multivariant::vmatrix2vec(A);
+VMatrix cmp.A = vec.A | vec.A_;
+
+VMatrix A_ = BysVecLinReg::@Multivariant::vec2vmatrix(vec.A_,A);
+VMatrix E_ = Y - A_*X;
+VMatrix E01_ = CholeskiSolve(V.L,E_,"PtLLtP");
+VMatrix cmpE01 = BysVecLinReg::@Multivariant::vmatrix2vec(E01) |
+                 BysVecLinReg::@Multivariant::vmatrix2vec(E01_); 
+
+Real stdErr  = VMatAvr(E01 ^2);
+Real stdErr_ = VMatAvr(E01_^2);
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1, stdErr, stdErr_
+]];
+
+Real quality_ = Min(1,Exp((stdErr-stdErr_)*N*d));
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */
+
 
 /* */
