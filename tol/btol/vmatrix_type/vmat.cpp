@@ -282,9 +282,21 @@ void BVMat::restore_cholmod_common()
   return(result);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::SetUnsymmetric()
+////////////////////////////////////////////////////////////////////////////////
+{
+  if(code_ == ESC_blasRdense)
+  {
+    cholmod_R_sparse* old = s_.chlmRsparse_;
+    s_.chlmRsparse_ = cholmod_copy(old, 0, 1, common_);
+    cholmod_free_sparse(&old, common_);
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
   void BVMat::Pack()
-//Importing method
 ////////////////////////////////////////////////////////////////////////////////
 {
   int nz,ncol,nrow,dense_size,sparse_size;
@@ -779,8 +791,10 @@ static int intCmp_(const void* v1, const void* v2)
          "(Existen "+nfk+" celdas no almacenadas de "
          "la matriz sparse que serán modificadas)"),
       *this); 
+    cholmod_R_sparse* unsym = cholmod_copy(s_.chlmRsparse_, 0, 1, common_);
     cholmod_R_triplet* tr_old = 
-      cholmod_sparse_to_triplet(s_.chlmRsparse_, common_);
+      cholmod_sparse_to_triplet(unsym, common_);
+    cholmod_free_sparse(&unsym, common_); 
     cholmod_R_triplet* tr_new = 
       cholmod_allocate_triplet(r, c, tr_old->nzmax+nfk, 0, CHOLMOD_REAL, common_);
     tr_new->nnz = tr_new->nzmax;

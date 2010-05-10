@@ -270,6 +270,7 @@ public:
   void Pack        ();
   void Pack        (double sparsity);
   void Copy        (const BVMat& v);
+  void SetUnsymmetric();
   void BlasRDense  (int nrow, int ncol);
   void BlasRDense  (int nrow, int ncol, double value);
   void ChlmRSparse (int nrow, int ncol, int nzmax);

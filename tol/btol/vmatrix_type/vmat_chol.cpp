@@ -63,12 +63,14 @@
 }
   
 ////////////////////////////////////////////////////////////////////////////////
-  void BVMat::cRs_choFac_X(const BVMat& X, BVMat& L, 
+  void BVMat::cRs_choFac_X(const BVMat& X_, BVMat& L, 
                            bool& isOk, bool& isNotPosDef)
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
   int res;
+  BVMat X;
+  X.Copy(X_);
   L.code_ = ESC_chlmRfactor;
   L.s_.chlmRfactor_ = cholmod_analyze(X.s_.chlmRsparse_,common_);
   res = cholmod_factorize(X.s_.chlmRsparse_,L.s_.chlmRfactor_,common_);

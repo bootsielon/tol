@@ -119,8 +119,10 @@ int BVMat::cRs2cRt(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   left.code_ = ESC_chlmRtriplet;
+  cholmod_R_sparse* unsym = cholmod_copy(right.s_.chlmRsparse_, 0, 1, common_);
   left.s_.chlmRtriplet_ = 
-    cholmod_sparse_to_triplet(right.s_.chlmRsparse_, common_);
+    cholmod_sparse_to_triplet(unsym, common_);
+  cholmod_free_sparse(&unsym, common_); 
   if(!left.s_.undefined_) { left.code_ = ESC_undefined; }
   return(0);
 };
