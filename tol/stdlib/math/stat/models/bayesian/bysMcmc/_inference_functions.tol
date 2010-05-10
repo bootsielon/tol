@@ -7,7 +7,7 @@
 /////////////////////////////////////////////////////////////////////////////
 Set get.sample(Text                 name, 
                Set                  colNames, 
-               @BysInf.Report.Config repCfg, 
+               BysMcmc::@BysInf.Report.Config repCfg, 
                Matrix               mcmc)
 //Extracts each column of a Markov chain and renames as the corresponding
 //parameter name
@@ -27,7 +27,7 @@ Set get.sample(Text                 name,
 /////////////////////////////////////////////////////////////////////////////
 Set get.coda.raftery.diag(Text                 name, 
                           Set                  colNames,
-                          @BysInf.Report.Config repCfg,
+                          BysMcmc::@BysInf.Report.Config repCfg,
                           Matrix               mcmc)
 //Calls to method RCODA::raftery.diag and builds a table with structure of
 //@BysInf.Coda.Diag.Raftery, adding a final register with the worst results
@@ -56,7 +56,7 @@ Set get.coda.raftery.diag(Text                 name,
     Real remain     = 1-Max(0,Min(1,(m-burnin)/(size-burnin)));
     Real If(_.raftery.diag.remain< remain,
             _.raftery.diag.remain:=remain);
-    Set res = @BysInf.Coda.Diag.Raftery
+    Set res = BysMcmc::@BysInf.Coda.Diag.Raftery
     (
       colNames[j],
       m, 
@@ -68,7 +68,7 @@ Set get.coda.raftery.diag(Text                 name,
     )
   }) <<
   [[
-    @BysInf.Coda.Diag.Raftery
+    BysMcmc::@BysInf.Coda.Diag.Raftery
     ( 
       "#MaxValues#",
       m,
@@ -86,7 +86,7 @@ Set get.coda.raftery.diag(Text                 name,
 /////////////////////////////////////////////////////////////////////////////
 Set get.coda.summary(Text                   name, 
                      Set                    colNames,
-                     @BysInf.Report.Config repCfg,
+                     BysMcmc::@BysInf.Report.Config repCfg,
                      Matrix                 mcmc)
 //Calls to method RCODA::summary and builds a table with structure of
 //BysInf.Coda.Summary
@@ -101,7 +101,7 @@ Set get.coda.summary(Text                   name,
   Matrix varquant = coda.summary[2];  
   Set summary = For(1,n, Set(Real j)
   {
-    @BysInf.Coda.Summary.Stats
+    BysMcmc::@BysInf.Coda.Summary.Stats
     {
       colNames[j],
       Real mean     = MatDat(varstats,j,1),
@@ -123,7 +123,7 @@ Set get.coda.summary(Text                   name,
 /////////////////////////////////////////////////////////////////////////////
 Set get.param.signif(Text                 name, 
                      Set                  colNames,
-                     @BysInf.Report.Config repCfg, 
+                     BysMcmc::@BysInf.Report.Config repCfg, 
                      Set                  sample)
 //Builds the signification test of parameters
 /////////////////////////////////////////////////////////////////////////////
@@ -136,7 +136,7 @@ Set get.param.signif(Text                 name,
   Set test = For(1,n, Set(Real j)
   {
     Set test = AlgLib.OneSampleSignTest(sample[j], 0);
-    @BysInf.Param.Signif
+    BysMcmc::@BysInf.Param.Signif
     {
       colNames[j],
       Real isZero_ = test::bothtails,
@@ -169,7 +169,7 @@ Matrix principalComponents = mcmc.dif*svd[3];
 /////////////////////////////////////////////////////////////////////////////
 Set get.acf(Text                 name, 
             Set                  colNames,
-            @BysInf.Report.Config repCfg, 
+            BysMcmc::@BysInf.Report.Config repCfg, 
             Set                  sample)
 //Builds the sample autocorrelation function (ACF) of each parameter
 /////////////////////////////////////////////////////////////////////////////
@@ -193,7 +193,7 @@ Set get.acf(Text                 name,
 /////////////////////////////////////////////////////////////////////////////
 Set get.histogram(Text                   name, 
                   Set                    colNames, 
-                  @BysInf.Report.Config repCfg, 
+                  BysMcmc::@BysInf.Report.Config repCfg, 
                   Set                    sample)
 //Builds the sample histogram of frequencies of each parameter
 /////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ Set get.histogram(Text                   name,
 /////////////////////////////////////////////////////////////////////////////
 Set get.kerDens(Text                   name, 
                 Set                    colNames, 
-                @BysInf.Report.Config repCfg, 
+                BysMcmc::@BysInf.Report.Config repCfg, 
                 Set                    sample)
 //Builds the kerenl density aproximation of each parameter
 /////////////////////////////////////////////////////////////////////////////
@@ -252,7 +252,7 @@ Set get.kerDens(Text                   name,
 /////////////////////////////////////////////////////////////////////////////
 Set report(Text                 name_, 
            Set                  colNames_,
-           @BysInf.Report.Config repCfg_,
+           BysMcmc::@BysInf.Report.Config repCfg_,
            Matrix               mcmc_)
 //Builds the full report about a Markov chain including arguments of calling 
 // and results of next methods
@@ -430,7 +430,7 @@ Set compare.reports(Set rep1, Set rep2)
      (SubCol(acf2,[[3]])*Real(-3)) ;
     Set aux = For(1,Rows(cmp),Set(Real lag)
     {
-      @StRepCmp.AcfByVar
+      BysMcmc::@StRepCmp.AcfByVar
       (
         MatDat(cmp,lag,1),
         MatDat(cmp,lag,2),
@@ -450,9 +450,9 @@ Set compare.reports(Set rep1, Set rep2)
   {
     Text varName = colNames[k];
     Real CMsg::Trace::show(2,"4."+IntText(k)+" "+varName);
-    EvalSet(acfByVar[k], Set(@StRepCmp.AcfByVar a)
+    EvalSet(acfByVar[k], Set(BysMcmc::@StRepCmp.AcfByVar a)
     {
-      @StRepCmp.Acf
+      BysMcmc::@StRepCmp.Acf
       (
         varName,
         a->lag, 

@@ -3,7 +3,6 @@
 // PURPOSE: Generic MonteCarlo Markov Chain methods
 //////////////////////////////////////////////////////////////////////////////
 
-#Embed "_structs.tol";
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -14,6 +13,7 @@ NameBlock BysMcmc =
   Text _.autodoc.description =
   "Generic MonteCarlo Markov Chain methods and some applications.";
   //private implementation
+  #Embed "_structs.tol";
   #Embed "_cmsgs.tol"; 
   #Embed "_config.tol";
   #Embed "_notifier.tol";

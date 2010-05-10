@@ -5,6 +5,7 @@
 // PURPOSE: Declares method BysMcmc::Bsr::Gibbs::ArimaBlock
 /////////////////////////////////////////////////////////////////////////////
 
+
 //////////////////////////////////////////////////////////////////////////////
 Class @WorkSpace.Arima : @WorkSpace
 //////////////////////////////////////////////////////////////////////////////
@@ -165,7 +166,7 @@ Class @BlockArima : @BlockSampler
         Real deg = Degree(mon);
         Real c = Coef(mon,deg);
         Text name = "ArmaBlk::"+segment->Name+"::AR.F"+IntText(factorNum_)+".D"+IntText(deg);
-          @ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "AR", deg, c, 0, 0, 0)
+          BysMcmc::@ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "AR", deg, c, 0, 0, 0)
       });
 /*
       If(Degree(arimaFactor->MA)>2*arimaFactor->Periodicity,
@@ -187,7 +188,7 @@ Class @BlockArima : @BlockSampler
         Real deg = Degree(mon);
         Real c = Coef(mon,deg);
         Text name = "ArmaBlk::"+segment->Name+"::MA.F"+IntText(factorNum_)+".D"+IntText(deg);
-          @ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "MA", deg, c, 0, 0, 0)
+          BysMcmc::@ArmaParamDescStruct(name, 0, resBlockNum_, factorNum_, "MA", deg, c, 0, 0, 0)
       });
       Set Append(_.paramDesc,arParDsc);
       Set Append(_.paramDesc,maParDsc);
@@ -325,7 +326,7 @@ Class @BlockArima : @BlockSampler
     Real hasPartial = hasFixed | hasReload;
     Real paramNum = 0;
 
-    Real SetFixedAndReloadIndexes(@ArmaParamDescStruct prm)
+    Real SetFixedAndReloadIndexes(BysMcmc::@ArmaParamDescStruct prm)
     {
       Text name = ToName(prm->name);
       Real paramNum := paramNum + 1;
@@ -483,7 +484,7 @@ Class @BlockArima : @BlockSampler
       Real putStore(values);
       Real k = 1;
     //WriteLn("TRACE"+_MID+" setStore 1 _.store="<<Matrix VMat2Mat(_.store));
-      Set Do EvalSet(_.paramDesc, Real setValue(@ArmaParamDescStruct pd)
+      Set Do EvalSet(_.paramDesc, Real setValue(BysMcmc::@ArmaParamDescStruct pd)
       {
       //WriteLn("TRACE"+_MID+" setStore 2.0 pd="<<pd);
       //WriteLn("TRACE"+_MID+" setStore 2.1 k="<<k);
@@ -606,7 +607,7 @@ Class @BlockArima : @BlockSampler
     Set arma.draw.all = 
     EvalSet(_.segment.free.index, Real arma.arms.draw(Real paramNum)
     {
-      @ArmaParamDescStruct pd = _.paramDesc[paramNum];
+      BysMcmc::@ArmaParamDescStruct pd = _.paramDesc[paramNum];
     //WriteLn("TRACE"+_MID+" draw.scalar 2 pd="<<pd);
       Set segment = _.NoiseDistrib[pd->resBlockNum];
       Set arima  = segment->Arima;
@@ -622,8 +623,8 @@ Class @BlockArima : @BlockSampler
     //WriteLn("TRACE"+_MID+" draw.scalar 2.1 polRef[1]="<<polRef[1]);
       Real deg = pd->degree;
       Set bounds = ARMAProcess::StationarityBounds.2(polRef[1], factor->Periodicity, deg);
-      Real L = bounds[1]+0.001;
-      Real R = bounds[2]-0.001;
+      Real L = bounds[1]+0.0001;
+      Real R = bounds[2]-0.0001;
     //WriteLn("TRACE"+_MID+" draw.scalar 3 bounds=["<<L+","<<R+"]");
       Real m = aux::m;
       Real n = m - aux::difDegree;
@@ -941,7 +942,7 @@ Class @BlockArima : @BlockSampler
       define
       (
         name,
-        EvalSet(_.paramDesc, Text set.colName(@ArmaParamDescStruct pd) { pd->name }),
+        EvalSet(_.paramDesc, Text set.colName(BysMcmc::@ArmaParamDescStruct pd) { pd->name }),
         mcmcPartialHandler,
         numBlock,
         firstCol,
@@ -950,7 +951,7 @@ Class @BlockArima : @BlockSampler
     Real _.updateAll = 
     {
     //WriteLn("TRACE "+_MID+" initial _.paramDesc = "<<_.paramDesc);
-      Matrix values = SetCol(EvalSet(_.paramDesc, Real (@ArmaParamDescStruct pd)
+      Matrix values = SetCol(EvalSet(_.paramDesc, Real (BysMcmc::@ArmaParamDescStruct pd)
       {
         pd->coef
       }));

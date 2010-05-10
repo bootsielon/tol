@@ -5,19 +5,41 @@
 
 //////////////////////////////////////////////////////////////////////////////
 Class @MultiTryMetropolis
+//Default behaviour is a normal random walk:
+// * candidate generator is simmetric standard multinormal
+//      Q(x,y) ~ Normal(x, s^2*COV)
+// * If COV is an aproximation of target covariance matrix then method will
+//   be more efficient
+// * Number s is called dispersion factor and must be tunned to have a good
+//   acceptance ratio
+// * methodsprodLinvVector, Q_logDens and logLambda are defined to serve as 
+//   examples to be inherited, but they will not be evaluated in basic class
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real useOnlySingleTry = False;
-  Real _.n = 0;
+  //Current number of tries by iteration
   Real _.k = 0;
-  VMatrix _.x = Rand(0,0,0,0);
-  Real _.r = ?;
-  Real _.s = 1;
-  Real _.sFactor = 1.001;
+  //Minimum number of tries by iteration
+  Real _.kMin = 2;
+  //Maximum number of tries by iteration
+  Real _.kMax = 100;
+  //Don't use multiple try (force _.k = 1)
+  Real useOnlySingleTry = False;
+  //True if current drawn is accepted
   Real _.accept = ?;
+  //Current rejection limit
+  Real _.rejectLimit = ?;
+  //Current dispersion factor of random walk
+  Real _.s = 1;
+  //Minimum number of tries by iteration
+  Real _.sMin = 1.E-3;
+  //Maximum number of tries by iteration
+  Real _.sMax = 1.E+3;
+  //Modification coefficient of _.s along tunning process
+  Real _.sFactor = 1.01;
+  //Current acceptance ratio
   Real _.acceptRatio = ?;
+  //Desired acceptance ratio
   Real _.acceptRatioTarget = ?;
-  Real _.constrainedDomain = False;
   Real _.simetricQ = True;
   Real _.maxDomainSearchIter = 100;
   Real _.num_draw = 0;
@@ -25,72 +47,92 @@ Class @MultiTryMetropolis
   Real _.num_accept = 0;
   Real _.num_logWeight = 0;
 
-  VMatrix _.nu = Rand(0,0,0,0);
-  VMatrix _.L = Rand(0,0,0,0);  // Cov = L*L´
-  VMatrix _.Li = Rand(0,0,0,0); // L*Li = I
 
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix Q_draw(VMatrix x)
+  //Data access are virtual member to avoid overhead and excessive copying
   ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix e = Gaussian(_.n,1,0,1);
-     _.nu + _.L*e*_.s
-  };
+  //Number of variables to be simulated
+  Real get.n(Real void);
+  //Returns current drawn values
+  VMatrix get.x(Real void);
+  //Sets current drawn values
+  Real set.x(VMatrix x);
 
   ////////////////////////////////////////////////////////////////////////////
-  Real Q_logDens(VMatrix x, VMatrix y)
+  Real setDefault(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix e = _.Li*(y-x);
-    -0.5*VMatDat(MtMSqr(e),1,1)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real pi_logDens_aprox(VMatrix x)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    VMatrix e = _.Li*(x-_.nu);
-    -0.5*VMatDat(MtMSqr(e),1,1)    
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real pi_matchesDomain(VMatrix x)
-  ////////////////////////////////////////////////////////////////////////////
-  {
+    Real n = get.n(0);
+    Real _.acceptRatioTarget := 0.234  + (0.5-0.234)*Exp(1-n);
+    Real _.k := Max(_.kMin, Min(_.kMax, Ceil(Sqrt(n))));
     True
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real pi_logDens(VMatrix x);
+  //If L is Cholesky decomposition of Covariance matrix (COV = L * L') then
+  //this function returns L * vector
+  VMatrix prodLVector (VMatrix vector)
   ////////////////////////////////////////////////////////////////////////////
+  { vector };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real logLambda(VMatrix x, VMatrix y)
+  //If L is Cholesky decomposition of Covariance matrix (COV = L * L') then
+  //this function returns L^-1 * vector
+  VMatrix prodLinvVector (VMatrix vector)
   ////////////////////////////////////////////////////////////////////////////
-  {
-    -Q_logDens(x,y)
+  { vector };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //candidate drawer
+  VMatrix Q_draw(VMatrix z) 
+  ////////////////////////////////////////////////////////////////////////////
+  { 
+    VMatrix e = Gaussian(get.n(0),1,0,_.s);
+    z + prodLVector(e) 
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real logWeight(VMatrix x, VMatrix y)
+  //Log-density of candidate generator
+  Real Q_logDens(VMatrix u, VMatrix v) 
   ////////////////////////////////////////////////////////////////////////////
-  {
-    pi_logDens(x)
+  { 
+    VMatrix e = prodLinvVector((v-u)/_.s);
+    -0.5*VMatDat(MtMSqr(e),1,1)
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real doAfterDraw(Real void);
+  //Target log-density
+  Real pi_logDens(VMatrix z);
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
-  Real accept_reject(VMatrix y)
+  //Symmetric log factor
+  Real logLambda(VMatrix u, VMatrix v) 
+  ////////////////////////////////////////////////////////////////////////////
+  { -Q_logDens(u,v) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Log-Weight function
+  Real logWeight(VMatrix u, VMatrix v) 
+  ////////////////////////////////////////////////////////////////////////////
+  { pi_logDens(u) };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Will be called after each accepted or rejected simulation
+  Real doAfterDraw(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  { True };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Accepts or rejects using current rejection limit and tries to tunne 
+  //parameters to get a good acceptance ratio
+  Real acceptRejectTunner(VMatrix y)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real _.accept := GE(_.r,Rand(0,1));
-  //WriteLn("TRACE accept_reject _.accept=\n"<<_.accept);
+    Real _.accept := GE(_.rejectLimit,Rand(0,1));
     Real If(_.accept, 
     {
-      VMatrix _.x := Copy(y);
+      Real set.x(y);
       Real _.num_accept := _.num_accept +1
     });
     Real _.acceptRatio := _.num_accept / _.num_draw; 
@@ -98,54 +140,53 @@ Class @MultiTryMetropolis
     _.k>1, { False },
     _.acceptRatio<_.acceptRatioTarget/1.01,
     {
-      Real _.s := _.s/_.sFactor
+      If(_.s>_.sMin, _.s := _.s/_.sFactor)
     },
     _.acceptRatio>_.acceptRatioTarget*1.01,
     {
-      Real _.s := _.s*_.sFactor
+      If(_.s<_.sMax, _.s := _.s*_.sFactor)
     }),
     Case(
     _.acceptRatio<0.50,
     {
-      If(_.k<_.n,    _.k := _.k+1);
-      If(_.s>1.E-3,  _.s := _.s/_.sFactor)
+      If(_.k<_.kMax, _.k := _.k+1);
+      If(_.s>_.sMin, _.s := _.s/_.sFactor)
     },
     _.acceptRatio>0.75,
     {
-      If(_.k>1,     Real _.k := _.k-1);
-      If(_.s<1.E+3, Real _.s := _.s*_.sFactor)
+      If(_.k>_.kMin, _.k := _.k-1);
+      If(_.s<_.sMax, _.s := _.s*_.sFactor)
     }));
     Real doAfterDraw(0);
     _.accept
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix draw_single_try(Real void)
+  //Draws a simulation with single try (standard Metropolis-Hastings)
+  //When _.k = 1 is equivalent and faster than drawMultipleTry
+  VMatrix drawSingleTry(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real _.num_draw := _.num_draw + 1;
     Real _.num_Q_draw := _.num_Q_draw +1;
-    VMatrix y = Q_draw(_.x);
+    VMatrix x = get.x(0);
+    VMatrix y = Q_draw(x);
     Real pi_logDens_y = pi_logDens(y);
-    Real pi_logDens_x = pi_logDens(_.x);
-    Real _.r := Min(1, If(_.simetricQ,
-    {
-      Exp(pi_logDens_y-pi_logDens_x)
-    },
-    {
-      Exp((pi_logDens_y + Q_logDens(  y, _.x)) -
-          (pi_logDens_x + Q_logDens(_.x,   y)) )
-    }));
-    Real accept_reject(y);
-    _.x
+    Real pi_logDens_x = pi_logDens(x);
+    Real _.rejectLimit := Min(1,Exp(logWeight(y,x)-logWeight(x,y)));
+    Real acceptRejectTunner(y);
+    get.x(0)
   };
 
-
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix draw_multiple_try(Real void)
+  //Draws a simulation by multiple try Metropolis method
+  VMatrix drawMultipleTry(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(_.k==1, draw_single_try(void), {
+    If(_.k==1, drawSingleTry(void), {
+    VMatrix x = get.x(0);
+    VMatrix y = x;
+  //WriteLn("TRACE draw x=\n"<<Matrix Tra(VMat2Mat(x)));
     VMatrix lwYjx = Rand(0,0,0,0);
     VMatrix gYjx = Rand(0,0,0,0);
     Real lwYjx_max = ?;
@@ -155,14 +196,14 @@ Class @MultiTryMetropolis
     Real gXjy_sum = ?;
     Real _.num_draw := _.num_draw + 1;
     VMatrix J = DifEq(1/(1-B),Constant(_.k,1,1)); 
-    Set Y = For(1,_.k, VMatrix Y_Q_draw(Real j) { Q_draw(_.x) });
+    Set Y = For(1,_.k, VMatrix Y_Q_draw(Real j) { Q_draw(x) });
  
     Real calc_numerator_Yjx(Real void)
     {
       VMatrix lwYjx := Mat2VMat(SetCol(For(1,_.k, Real(Real j)
       {
         Real _.num_logWeight := _.num_logWeight+1;
-        logWeight(Y[j],_.x)
+        logWeight(Y[j],x)
       })));
     //WriteLn("TRACE draw lwYjx=\n"<<Matrix Tra(VMat2Mat(lwYjx)));
       Real lwYjx_max := VMatMax(lwYjx);
@@ -173,8 +214,6 @@ Class @MultiTryMetropolis
     //WriteLn("TRACE draw gYjx_sum=\n"<<gYjx_sum);
       True
     };
-    Real calc_numerator_Yjx(0);
-
     VMatrix draw_y(Real void)
     {
       Matrix fYjx = VMat2Mat(gYjx / gYjx_sum);
@@ -186,7 +225,6 @@ Class @MultiTryMetropolis
       Matrix FxYp = DifEq(1/(1-B),fxYp);
     //WriteLn("TRACE draw FxYp=\n"<<Matrix Tra(FxYp));
       Real u = Rand(0,1);
-    //WriteLn("TRACE draw Constant(_.k,1,u)=\n"<<Matrix Tra(Constant(_.k,1,u)));
       Matrix FLTu = LT(FxYp,Constant(_.k,1,u));
     //WriteLn("TRACE draw FLTu=\n"<<Matrix Tra(FLTu));
       Real sFLTu = MatSum(FLTu);
@@ -195,53 +233,70 @@ Class @MultiTryMetropolis
     //WriteLn("TRACE draw u="<<u+" sFLTu="<<sFLTu+" h="<<h+" j="<<j);
       Y[j]
     };
-    VMatrix y = If(_.k==1,Y[1],draw_y(0));
-  //WriteLn("TRACE draw pi_matchesDomain(y)="<<pi_matchesDomain(y));
-    Set X = For(1,_.k-1, VMatrix X_Q_draw(Real j) { Q_draw(y) }) << [[_.x]];
-    Real _.num_Q_draw := _.num_Q_draw + 2*_.k-1;
-    Real calc_denominator_Xjy(Real void)
+    Real calc_numerator_Yjx(0);
+    Real _.rejectLimit := If(!gYjx_sum, 0,
     {
-      VMatrix lwXjy := Mat2VMat(SetCol(For(1,_.k, Real(Real j)
+      VMatrix y := If(_.k==1,Y[1],draw_y(0));
+    //WriteLn("TRACE draw pi_matchesDomain(y)="<<pi_matchesDomain(y));
+      Set X = For(1,_.k-1, VMatrix X_Q_draw(Real j) { Q_draw(y) }) << [[x]];
+      Real _.num_Q_draw := _.num_Q_draw + 2*_.k-1;
+      Real calc_denominator_Xjy(Real void)
       {
-        Real _.num_logWeight := _.num_logWeight+1;
-        logWeight(X[j],y)
-      })));
-    //WriteLn("TRACE draw lwXjy=\n"<<Matrix Tra(VMat2Mat(lwXjy)));
-      Real lwXjy_max := VMatMax(lwXjy);
-    //WriteLn("TRACE draw lwXjy_max=\n"<<lwXjy_max);
-      VMatrix gXjy = Exp(lwXjy-lwXjy_max);
-      Real gXjy_sum := VMatSum(gXjy);
-    //WriteLn("TRACE draw gXjy_sum=\n"<<gXjy_sum);
-      True
-    };
-    Real calc_denominator_Xjy(0);
-
-    Real _.r := Min(1,Exp(lwYjx_max-lwXjy_max)*(gYjx_sum/gXjy_sum));
-  //WriteLn("TRACE draw _.r=\n"<<_.r);
-    Real accept_reject(y);
-    _.x
+        VMatrix lwXjy := Mat2VMat(SetCol(For(1,_.k, Real(Real j)
+        {
+          Real _.num_logWeight := _.num_logWeight+1;
+          logWeight(X[j],y)
+        })));
+      //WriteLn("TRACE draw lwXjy=\n"<<Matrix Tra(VMat2Mat(lwXjy)));
+        Real lwXjy_max := VMatMax(lwXjy);
+      //WriteLn("TRACE draw lwXjy_max=\n"<<lwXjy_max);
+        VMatrix gXjy = Exp(lwXjy-lwXjy_max);
+        Real gXjy_sum := VMatSum(gXjy);
+      //WriteLn("TRACE draw gXjy_sum=\n"<<gXjy_sum);
+        True
+      };
+      Real calc_denominator_Xjy(0);
+      Min(1,Exp(lwYjx_max-lwXjy_max)*(gYjx_sum/gXjy_sum))
+    });
+  //WriteLn("TRACE draw _.rejectLimit=\n"<<_.rejectLimit);
+    Real acceptRejectTunner(y);
+    get.x(0)
   }) }
-
 };
-
 
 
 //////////////////////////////////////////////////////////////////////////////
 Class @MultiTryMetropolis_ARIMA : @MultiTryMetropolis
+//Implementation of multiple try Metropolis to an ARIMA model.
+//Initial values of ARIMA difference equation are treated as a complementary 
+//Gibbs block that will be simulated after each simulation or ARMA parameters
 //////////////////////////////////////////////////////////////////////////////
 {
+  //ARIMA noise
   VMatrix _.z;
+  //ARMA parameters
+  VMatrix _.x;
+  //Nuber of ARMA parameters
+  Real _.n;
+  //Standard deviation 
   Real _.sigma;
+  //Set of ARIMAStruct elements
   Set _.arima = Copy(Empty);
-  Set _.arma = Copy(Empty);
+  //Aggregated autoregressive polynomial
   Polyn  _.ar = 1;
+  //Aggregated moving-average polynomial
   Polyn  _.ma = 1;
+  //Internal representation of ARMA parameters used in conversions
+  Set _.arma = Copy(Empty);
+  //Internal ARIMA evaluation handler
   NameBlock _.almagro = [[ Real void=? ]];
+  //Initial values of ARIMA difference equation
   VMatrix _.u0 = Rand(0,0,0,0);
   VMatrix _.z0 = Rand(0,0,0,0);
   VMatrix _.a0 = Rand(0,0,0,0);
   
   ////////////////////////////////////////////////////////////////////////////
+  //Converts a Set of ARIMAStruct elements in a column vector
   VMatrix arima2col(Set arima)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -254,6 +309,8 @@ Class @MultiTryMetropolis_ARIMA : @MultiTryMetropolis
   };
   
   ////////////////////////////////////////////////////////////////////////////
+  //Converts a column vector in a Set of ARIMAStruct elements with the same
+  //structure than initial definition of member _.arima
   Set col2arima(VMatrix x)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -270,10 +327,12 @@ Class @MultiTryMetropolis_ARIMA : @MultiTryMetropolis
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real setArima(Real void)
+  //Draws Gibbs block of ARMA initial values
+  Real drawArmaInitValues(Real recalcHandler)
   ////////////////////////////////////////////////////////////////////////////
   {
-    Real If(_.accept,
+    //Evaluation handler must be recalculated just when parameters has changed
+    Real If(recalcHandler,
     {
       Polyn  _.ar := ARIMAGetAR(_.arima);
       Polyn  _.ma := ARIMAGetMA(_.arima);
@@ -287,6 +346,7 @@ Class @MultiTryMetropolis_ARIMA : @MultiTryMetropolis
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  //Initialize all members to be congruent with a given ARIMA model
   Real initialize(Set arima)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -296,16 +356,15 @@ Class @MultiTryMetropolis_ARIMA : @MultiTryMetropolis
       SetOfPolyn(1-f->AR, 1-f->MA)
     });
     VMatrix _.x := arima2col(_.arima);
-    Real _.accept := True;
-    Real ok = setArima(0);
+    Real ok = drawArmaInitValues(Real _.accept := True);
     Real _.n := VRows(_.x);
-    Real _.acceptRatioTarget := 0.234  + (0.5-0.234)*Exp(1-_.n);
-    Real _.k := Ceil(Sqrt(_.n));
+    //This is the theorical acceptance ratio for single-try
+    Real setDefault(0);
     ok
   };
   
   ////////////////////////////////////////////////////////////////////////////
-  //Inicialización de la cadena
+  //Creates a new instance
   Static @MultiTryMetropolis_ARIMA New(
      VMatrix z, 
      Real sigma, 
@@ -322,24 +381,37 @@ Class @MultiTryMetropolis_ARIMA : @MultiTryMetropolis
   };
   
   ////////////////////////////////////////////////////////////////////////////
+  //MEMEBERS AND METHODS INHERITED FROM @MultiTryMetropolis
+  ////////////////////////////////////////////////////////////////////////////
+
+  //Number of variables to be simulated
+  Real get.n(Real void) { Copy(_.n) };
+  //Returns current drawn values
+  VMatrix get.x(Real void) { Copy(_.x) };
+  //Sets current drawn values
+  Real set.x(VMatrix x) { VMatrix _.x := Copy(x); True };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //After each simulation does conversion to ARIMA if needed, and draws the 
+  //Gibbs block of ARMA initial values
   Real doAfterDraw(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
     Set If(_.accept, _.arima := col2arima(_.x));
-    Real setArima(void)
+    Real drawArmaInitValues(_.accept)
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Real pi_matchesDomain(VMatrix x)
+  //If L is Cholesky decomposition of Covariance matrix (COV = L * L') then
+  //this function returns L * vector
+  VMatrix _.L = Rand(0,0,0,0);
+  VMatrix prodLVector (VMatrix vector)
   ////////////////////////////////////////////////////////////////////////////
-  {
-    Set arima = col2arima(x);
-    Polyn ar = ARIMAGetAR(arima);
-    Polyn ma = ARIMAGetMA(arima);
-    And(IsStationary(ar), IsStationary(ma))
-  };
+  { _.L*vector };
+
 
   ////////////////////////////////////////////////////////////////////////////
+  //Internal representation of target log-density of an ARIMA model
   Real pi_logDens_(Set arima)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -350,54 +422,11 @@ Class @MultiTryMetropolis_ARIMA : @MultiTryMetropolis
   };
   
   ////////////////////////////////////////////////////////////////////////////
-  Real pi_logDens(VMatrix x)
+  //target log-density (black-box)
+  Real pi_logDens(VMatrix z)
   ////////////////////////////////////////////////////////////////////////////
   {
-    pi_logDens_(col2arima(x))
-  };
-
-
-  ////////////////////////////////////////////////////////////////////////////
-  Matrix move_to_average(Real maxIter)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-/* * /
-    Real pi_logDens_x = _.pi_logDens_x;
-    VMatrix x = _.x;
-    Matrix Y = Group("ConcatRows", For(1,maxIter,Matrix(Real iter)
-    {
-      VMatrix y = arima2col(RandCopyARIMA(_.arima));
-      Real pi_logDens_y = pi_logDens(y);
-      Real pi_logDens_y_dif = pi_logDens_y - pi_logDens_x;
-      Real If(pi_logDens_y_dif>0,
-      {
-        Real coef = Exp(-pi_logDens_y_dif);
-        VMatrix x := (x*coef + y)/(coef+1);
-        Real pi_logDens_x := pi_logDens(x)
-      },
-      {
-        Real coef = Exp(pi_logDens_y_dif);
-        VMatrix x := (x + y*coef)/(coef+1);
-        Real pi_logDens_x := pi_logDens(x)
-      });
-      Copy(VMat2Mat(Tra(x)))
-    }));
-/* */
-    Matrix pi_logDens_y = Rand(1,maxIter,0,0);
-    Matrix Y = Group("ConcatRows", For(1,maxIter,Matrix(Real iter)
-    {
-      VMatrix y = arima2col(RandCopyARIMA(_.arima));
-      Real PutMatDat(pi_logDens_y, 1, iter, pi_logDens(y));
-      Copy(VMat2Mat(Tra(y)))
-    }));
-    Real pi_logDens_max = MatMax(pi_logDens_y);
-    Matrix w = Exp(pi_logDens_y - pi_logDens_max);
-    Matrix g = w * (1/MatSum(w));
-    VMatrix _.x := Mat2VMat(Tra(g*Y));
-    Real _.pi_logDens_x := pi_logDens(_.x);
-    Real doAfterDraw(0);
-/* */
-    Y
+    pi_logDens_(col2arima(z))
   }
 
 };

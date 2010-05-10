@@ -23,7 +23,7 @@ NameBlock OneNode =
     Real Prior.Sigma,       // Normal prior standard deviation 
     Real Prior.SigmaWeight)       // Normal prior weight
   {
-    @Bsr.OneNode.LinearParamInfo(
+    BysMcmc::@Bsr.OneNode.LinearParamInfo(
       Text Name,              
       Real InitValue,         
       Real Prior.LowerBound,  

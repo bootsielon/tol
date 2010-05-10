@@ -467,7 +467,7 @@ Real Write.Data.Constraints(NameBlock segmentOrFullModel,
     //WriteLn("TRACE gc->UpperBound ="<<gc->UpperBound);
     //WriteLn("TRACE lb ="<<lb+" ub="<<ub);
     Text expr =  If(!Card(gc->LinearComb),"", SetSum(
-      EvalSet(gc->LinearComb, Text(@Bsr.LinearCombTerm term)
+      EvalSet(gc->LinearComb, Text(BysMcmc::@Bsr.LinearCombTerm term)
       {
         If(term->Coefficient==0,"",
           RealTextS(term->Coefficient)+"*"<<term->Parameter)

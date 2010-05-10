@@ -182,16 +182,6 @@ Struct @ArmaParamDescStruct
   Real idxReload
 );
 
-/////////////////////////////////////////////////////////////////////////////
-//Parameter information in a BSR model definition
-/////////////////////////////////////////////////////////////////////////////
-Struct @Bsr.Param.Info
-{
-  Text Name,              // Unique identidier of the parameter
-  Real InitValue,         // Given by user initial value or ?
-  Real Prior.LowerBound,  // Prior minimum feasible value or -1/0
-  Real Prior.UpperBound   // Prior minimum feasible value or +1/0
-};  
 
 /////////////////////////////////////////////////////////////////////////////
 //Truncated normal info
@@ -223,17 +213,6 @@ Struct @Bsr.OneNode.LinearParamInfo
   Real Prior.Missing.UpperBound
 };
 
-/////////////////////////////////////////////////////////////////////////////
-//Sigma Inverse-Gamma prior information in a BSR model 
-//Described in Bayesian Data Analisys (Gelman-Carlin-Stern-Rubin) Second 
-//Edition, section 14.8, subsection "Prior information about variance 
-//parameters"  page 384
-/////////////////////////////////////////////////////////////////////////////
-Struct @Bsr.Sigma.Prior.InverseGamma
-{
-  Real Sigma2, // Residuals square average: sigma0^2
-  Real Weight  // Relative weight of prior versus data : n0/(n0+n)  
-};  
 
 /////////////////////////////////////////////////////////////////////////////
 //Missing value with optional normal prior information in a BSR model 

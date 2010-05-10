@@ -75,6 +75,7 @@ Class @BlockStdLinSub
   "block of a general regression model with variant input and ouput regression "
   "matrices and optional but fixed constraining inequations.";
   Text _MID;
+  Set _.ws = Copy(Empty);
   //Transformed restrictions
   VMatrix _.D = Rand(0,0,0,0);
   //Cholesky decomposition of current information matrix that is not
@@ -110,6 +111,7 @@ Class @BlockStdLinSub
   //Logarithm of density of last generated vector
   Real _.logDens.Q = -1/0;
 
+  Real _.cacheLength = ?;
   Real _.MH.useAfterIter = ?;
   Real _.MH.maxRejected  = ?;
   Real _.MH.maxConsecutive = ?;
@@ -431,9 +433,10 @@ Class @BlockStdLinSub
   ////////////////////////////////////////////////////////////////////////////
   //Return standarized residuals of linear reggression for a given vector of
   //parameters 
-  VMatrix getStdResiduals(@WorkSpace.LinReg ws, VMatrix b)
+  VMatrix getStdResiduals(VMatrix b)
   ////////////////////////////////////////////////////////////////////////////
   {
+    @WorkSpace.LinReg ws = _.ws[1];
   //WriteLn("TRACE "+_MID+" @BlockStdLinSub::getStdResiduals");
     ws::standarize(ws::_.Y-ws::_.X*b)    
   };
@@ -441,11 +444,11 @@ Class @BlockStdLinSub
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw.gibbs =
   "Method of Gibss simulation of output missing block";
-  VMatrix draw.gibbs(@WorkSpace.LinReg ws, Real numSim)
+  VMatrix draw.gibbs(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
+    @WorkSpace.LinReg ws = _.ws[1];
   //WriteLn("TRACE "+_MID+" @BlockStdLinSub::draw.gibbs");
-    Real _.MH.consecutive := 0;
   //WriteLn("TRACE "+_MID+" draw.gibbs 1 ws::_.Y=" << ws::_.Y);
     VMatrix Y01 = ws::standarize(ws::_.Y);
   //WriteLn("TRACE "+_MID+" draw.gibbs 2 Y01=" << Y01);
@@ -461,9 +464,10 @@ Class @BlockStdLinSub
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw.mh =
   "Method of Metroplois-Hastings simulation of output missing block";
-  VMatrix draw.mh(@WorkSpace.LinReg ws, Real numSim)
+  VMatrix draw.mh(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
+    @WorkSpace.LinReg ws = _.ws[1];
   //WriteLn("TRACE "+_MID+" @BlockStdLinSub::draw.mh");
   //WriteLn("TRACE "+_MID+" draw.mh 1");
 /* * /
@@ -475,94 +479,150 @@ Class @BlockStdLinSub
 /* */
     Real m = VRows(ws::_.Y);
   //WriteLn("TRACE "+_MID+" draw.mh 1");
-    Real _.MH.consecutive := _.MH.consecutive + 1;
   //WriteLn("TRACE "+_MID+" draw.mh 2");
-    VMatrix b = _.beta;
-  //WriteLn("TRACE "+_MID+" draw.mh 3");
-    VMatrix ep = getStdResiduals(ws, b);
+    VMatrix e0 = getStdResiduals(_.beta);
   //WriteLn("TRACE "+_MID+" draw.mh 4");
-    Real p0 = -0.5*VMatDat(MtMSqr(ep),1,1);
-  //WriteLn("TRACE "+_MID+" draw.mh 5");
-    Real q0 = _.logDens.Q;
-  //WriteLn("TRACE "+_MID+" draw.mh 6");
-    Real s0 = Sqrt(-2*p0/m);
-  //WriteLn(" s0="<<s0+" p0="<<p0+" q0="<<q0);
-  //WriteLn("TRACE "+_MID+" draw.mh 7");
-    Real p1 = ?;
-    Real q1 = ?;
-  //WriteLn("TRACE "+_MID+" draw.mh 8");
-    Real accept = False;
-  //WriteLn("TRACE "+_MID+" draw.mh 9");
-    Real i = 1;
-  //WriteLn("TRACE "+_MID+" draw.mh 10");
-    While(Not(accept) & (i<=_.MH.maxRejected),
+    Real p0 = -0.5*VMatDat(MtMSqr(e0),1,1);
+
+    Real mh.s = 0.5;
+    VMatrix z = Gaussian(_.N,1,0,mh.s);
+    VMatrix b1 = _.beta + CholeskiSolve(_.L,z,"LtP");
+    Real isFeasible = Polytope::IsFeasible(_.A,_.a,b1);
+    Real p1 = 1/0;
+    Real a = 1;
+    Real c = 0;
+    Real accept = If(!isFeasible, 0,
     {
-      Real t0 = Copy(Time);
-      Real changed.X := False;
-      VMatrix b := gibbs.drawer(numSim, _.solution::_.nu);
-      VMatrix ep := getStdResiduals(ws,b);
-      Real p1 := -0.5*VMatDat(MtMSqr(ep),1,1);
-      Real s1 = Sqrt(-2*p1/m);
-      Real q1 := _.logDens.Q;
-      Real a = Rand(0,1);
-      Real c = Exp((p1+q0)-(p0+q1));
-      Real s = s0*Sqrt(gsl_ran_chisq(m)/m);
-      Real accept := Case(
-      //s1 <= 1, True,
-        s1 <= s, True,
-        1  == 1, a<c);
-      Real tm = Copy(Time) - t0;
-/* * /
-      WriteLn(" i="<<i+
-              " s1="<<s1+
-              " p1="<<p1+
-              " q1="<<q1+
-              " c="<<c+
-              " a="<<a+
-              " s="<<s+
-              " accept="<<accept+
-              " time="<<tm);
-/* */
-      Real _.MH.tried := _.MH.tried +1 ;
-      Real _.MH.rejected := _.MH.rejected + Not(accept);
-      Real i := i+1
+      VMatrix e1 = getStdResiduals(b1);
+      Real p1 := -0.5*VMatDat(MtMSqr(e1),1,1);
+      Real a := Rand(0,1);
+      Real c := Exp(p1-p0);
+      a<=c
     });
-  //WriteLn("TRACE "+_MID+" draw.mh 11");
-    If(accept, 
-    {
-      Real _.MH.success := _.MH.success + 1;
-      b
-    }, 
-    {
-      draw.gibbs(ws,numSim)
-    })  
+  //WriteLn("TRACE "+_MID+" a="<<a+" c="<<c+" accept="<<accept);
+    If(accept, b1, _.beta)
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.draw =
   "Method of generation of output missing block";
-  VMatrix draw(@WorkSpace.LinReg ws, Real numSim)
+  VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
   //WriteLn("TRACE "+_MID+" draw 1");
     Real _.calculatedSimulation := _.calculatedSimulation+1;
-  //WriteLn("TRACE "+_MID+" draw 4");
     If(And(_.calculatedSimulation >_.MH.useAfterIter,
            _.MH.consecutive <= _.MH.maxConsecutive),
-       draw.mh   (ws,numSim),
-       draw.gibbs(ws,numSim))
+    {
+      Real _.MH.consecutive := _.MH.consecutive + 1;
+      draw.mh   (numSim)
+    },
+    {
+      Real _.MH.consecutive := 0;
+      draw.gibbs(numSim)
+    })
   };
 
   ////////////////////////////////////////////////////////////////////////////
   Static @BlockStdLinSub New(Text mid)
   ////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::Gibbs::@BlockStdLinSub freeBlock = 
+    BysMcmc::Bsr::Gibbs::@BlockStdLinSub new = 
     [[ Text _MID = mid ]]
   }
 
 };
 
+//////////////////////////////////////////////////////////////////////////////
+Class @BlockStdLinSubMTM : @MultiTryMetropolis, @BlockStdLinSub
+//Implementation of multiple try Metropolis to an ARIMA model.
+//Initial values of ARIMA difference equation are treated as a complementary 
+//Gibbs block that will be simulated after each simulation or ARMA parameters
+//////////////////////////////////////////////////////////////////////////////
+{
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Static @BlockStdLinSubMTM New(Text mid)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    BysMcmc::Bsr::Gibbs::@BlockStdLinSubMTM new = 
+    [[ Text _MID = mid ]]
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Initialize all members to be congruent with a given ARIMA model
+  Real initialize(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    //This is the theorical acceptance ratio for single-try
+    setDefault(0);
+    Real _.s := 0.1;
+    Real _.sFactor := 1.001;
+    Real _.k := Round(Sqrt(_.N));
+    True
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //MEMBERS AND METHODS INHERITED FROM @BlockStdLinSub
+  ////////////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.draw.mh =
+  "Method of Metroplois-Hastings simulation of output missing block";
+  VMatrix draw.mh(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+  //WriteLn("TRACE "+_MID+"@BlockStdLinSubMTM::draw.mh");
+    drawMultipleTry(0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //MEMBERS AND METHODS INHERITED FROM @MultiTryMetropolis
+  ////////////////////////////////////////////////////////////////////////////
+
+  //Number of variables to be simulated
+  Real get.n(Real void) { Copy(_.N) };
+  //Returns current drawn values
+  VMatrix get.x(Real void) { Copy(_.beta) };
+  //Sets current drawn values
+  Real set.x(VMatrix x) { VMatrix _.beta := Copy(x); True };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //After each simulation does conversion to ARIMA if needed, and draws the 
+  //Gibbs block of ARMA initial values
+  Real doAfterDraw(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(Not(_.num_draw%_.cacheLength),
+      WriteLn("  "+_MID+" Multiple-Try-Metropolis acceptance ratio="
+      <<_.acceptRatio+" scale factor="<<_.s+" number of tries="<<_.k) );
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //If L is Cholesky decomposition of Covariance matrix (COV = L * L') then
+  //this function returns L * e
+  //In this case _.L is the Choleski decomposition of information matrix
+  VMatrix prodLVector (VMatrix vector)
+  ////////////////////////////////////////////////////////////////////////////
+  {  CholeskiSolve(_.L,vector,"LtP") };
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //target log-density (black-box)
+  Real pi_logDens(VMatrix z)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real ok = If(!_.R, True, Polytope::IsFeasible(_.A,_.a,z));
+  //WriteLn("TRACE "+_MID+"@BlockStdLinSubMTM::pi_logDens isFeasible="<<ok);
+    Real logPi = If(!ok, -1/0,
+    { 
+       VMatrix e = getStdResiduals(z);
+       -0.5*VMatDat(MtMSqr(e),1,1)
+    });
+  //WriteLn("TRACE "+_MID+"@BlockStdLinSubMTM::pi_logDens logPi="<<logPi);
+    logPi
+  }
+};
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -584,8 +644,8 @@ Class @BlockStdLin: @BlockSampler
   //--------------------------------------------------------------------------
   BysMcmc::Bsr::Gibbs::@BlockStdLinSub _.fullBlock = 
     BysMcmc::Bsr::Gibbs::@BlockStdLinSub::New(_MID+"[_.fullBlock] ");
-  BysMcmc::Bsr::Gibbs::@BlockStdLinSub _.freeBlock = 
-    BysMcmc::Bsr::Gibbs::@BlockStdLinSub::New(_MID+"[_.freeBlock] ");
+  BysMcmc::Bsr::Gibbs::@BlockStdLinSubMTM _.freeBlock = 
+    BysMcmc::Bsr::Gibbs::@BlockStdLinSubMTM::New(_MID+"[_.freeBlock] ");
 
   Set _.i1 = Copy(Empty); //_.partialSampler::getNonFreeIndex(0);
   Set _.i2 = Copy(Empty); //_.partialSampler::getFreeIndex(0);
@@ -637,6 +697,8 @@ Class @BlockStdLin: @BlockSampler
       _.config::bsr.linBlk.MH.maxRejected;
     Real _.freeBlock::_.MH.maxConsecutive := 
       _.config::bsr.linBlk.MH.maxConsecutive;
+    Real _.freeBlock::_.cacheLength := 
+      _.config::mcmc.cacheLength;
     1
   };
 
@@ -658,6 +720,7 @@ Class @BlockStdLin: @BlockSampler
       Real ok = _.freeBlock::matchConstrains(beta0,A,a);
     //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 1.2");
       Real putStoreV(_.freeBlock::_.beta0);
+      Real _.freeBlock::initialize(0);
     //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 1.3");
       ok
     },
@@ -694,13 +757,14 @@ Class @BlockStdLin: @BlockSampler
           VMatrix a2 = SubRow(a2_,_.r2);
         //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.8");
           _.freeBlock::matchConstrains(b2,A2,a2)
-       })
+        })
       });
     //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.9");
       VMatrix b_ = _.partialSampler::mergeWithFreeSample(_.freeBlock::_.beta0); 
     //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.10");
       Real putStoreV(b_);
     //WriteLn("TRACE"+_MID+" @BlockStdLin::matchConstrains 2.11");
+      Real _.freeBlock::initialize(0);
       ok2
     })
   };
@@ -709,12 +773,12 @@ Class @BlockStdLin: @BlockSampler
   VMatrix draw(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    BysMcmc::Bsr::Gibbs::@WorkSpace.LinReg ws = getWorkSpaceLinReg(0);
+    Set _.freeBlock::_.ws := [[ getWorkSpaceLinReg(0) ]];
   //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 0");
     If(!_.N1,  
     {
     //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 1.1");
-    _.freeBlock::draw(ws, numSim)
+    _.freeBlock::draw(numSim)
     },
     {
       Real ok = If(!_.N2, True,
@@ -733,10 +797,12 @@ Class @BlockStdLin: @BlockSampler
       //WriteLn("TRACE"+_MID+" @BlockStdLin::draw 2.4");
         True
       });
-      _.freeBlock::draw(ws, numSim)
+      _.freeBlock::draw(numSim)
     })
   }
 };
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 Class @BlockStdLinEmpty : @BlockStdLin

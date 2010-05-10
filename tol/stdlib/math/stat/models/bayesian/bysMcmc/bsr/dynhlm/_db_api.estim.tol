@@ -24,7 +24,7 @@ Real SaveParamStats(Text dbName, Text model, Text session, @Estimation estim)
   {
     Set cs = summary[k];
     Set cr = If(Card(raftery), raftery[k], 
-                @BysInf.Coda.Diag.Raftery("",?,?,?,?,?,?));
+                BysMcmc::@BysInf.Coda.Diag.Raftery("",?,?,?,?,?,?));
     WriteLn("[SaveParamStats] Storing "+cs->varName_);
     Set token = Tokenizer(Replace(cs->varName_,"::",":"),":");
     Text gibbs_blk = token[1];

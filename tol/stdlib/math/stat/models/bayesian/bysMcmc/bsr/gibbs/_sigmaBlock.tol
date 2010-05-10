@@ -49,6 +49,9 @@ Class @BlockSigma : @BlockSampler
   //Sigma block current store
   VMatrix _.sigmaInv;
 
+  //Sigma crossing regression 
+  //VMatrix _.sigmaCross;
+
   //--------------------------------------------------------------------------
   //Auxiliar members
   //--------------------------------------------------------------------------

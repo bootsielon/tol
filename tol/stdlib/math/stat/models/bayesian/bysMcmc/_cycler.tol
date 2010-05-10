@@ -83,7 +83,7 @@ Class @Cycler
     //be added at the end. In other case old simulations will be lost.
     Real resume_ := _.config::do.resume;
     //Bayesian inference configuration
-    Set bysInf_ := {@BysInf.Report.Config
+    Set bysInf_ := {BysMcmc::@BysInf.Report.Config
     (
       Real raftery.diag.q   = _.config::report.raftery.diag.q,
       Real raftery.diag.r   = _.config::report.raftery.diag.r,

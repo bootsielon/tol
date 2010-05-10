@@ -132,7 +132,7 @@ NameBlock Obs.Serie.Info(
       Real x = SerDat(_.serie,dte);
       If(!IsUnknown(x),Copy(Empty),
       {
-        Set mis = @Bsr.Missing.Info(
+        Set mis = BysMcmc::@Bsr.Missing.Info(
           Text Name = missing.name(dte),
           Real Owner.Type = _.ownerType, 
           Text Owner.Name = _.id_node+"::"+_.name, 
@@ -240,7 +240,7 @@ NameBlock Obs.Vector.Info(
       Real x = MatDat(_.serie,num,1);
       If(!IsUnknown(x),Copy(Empty),
       {
-        @Bsr.Missing.Info(
+        BysMcmc::@Bsr.Missing.Info(
           Text Name = missing.name(num), 
 
           Real Owner.Type = _.ownerType, 
@@ -514,7 +514,7 @@ NameBlock Obs(
         inp::_.serie.info::_.missing
       },
       {
-        Select(inp::_.serie.info::_.missing, Real(@Bsr.Missing.Info mis)
+        Select(inp::_.serie.info::_.missing, Real(BysMcmc::@Bsr.Missing.Info mis)
         {
           Text name = Name(mis);
           Real idx = FindIndexByName(input.missing.labels,name);
@@ -531,7 +531,7 @@ NameBlock Obs(
         Real SetIndexByName(input.missing.labels);
         0
       });
-      Set EvalSet(aux, Real(@Bsr.Missing.Info mis)
+      Set EvalSet(aux, Real(BysMcmc::@Bsr.Missing.Info mis)
       {
         Real mis->Owner.Column := j
       });

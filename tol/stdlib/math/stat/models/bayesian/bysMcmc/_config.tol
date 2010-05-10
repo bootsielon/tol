@@ -129,11 +129,11 @@ Class @Config
   Real bsr.linBlk.usePreconditioning = False;
   //Use Metropolis-Hastings instead og Gibbs for linear blocks after
   //this number of iterations
-  Real bsr.linBlk.MH.useAfterIter = 10;
+  Real bsr.linBlk.MH.useAfterIter = 1/0;
   //Use Gibbs method after these rejections of Metropolis-Hastings 
   Real bsr.linBlk.MH.maxRejected  = 2;
   //Use Gibbs method after these consecutive iterations of Metropolis-Hastings 
-  Real bsr.linBlk.MH.maxConsecutive = 10;
+  Real bsr.linBlk.MH.maxConsecutive = 9;
   //Scalar sampler used in ARMA block of basic BSR can be a member of 
   //BysMcmc::Options::Scalar.Sampler or an API equivalent function
   BysMcmc::Options::@Scalar.Sampler bsr.scalarSampler.armaBlock = 
@@ -197,9 +197,9 @@ Class @Config
   //If true an internal TOL profiling will be executed
   Real do.mcmc.profiler = False;
  
-  @BysInf.Report.Config GetReportConfig(Real void)
+  BysMcmc::@BysInf.Report.Config GetReportConfig(Real void)
   {
-    @BysInf.Report.Config
+    BysMcmc::@BysInf.Report.Config
     (
       report.raftery.diag.q,
       report.raftery.diag.r,
