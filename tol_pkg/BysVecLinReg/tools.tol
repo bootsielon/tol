@@ -32,11 +32,35 @@ Real vmatrix2vec.getPosition(Real i, Real j, VMatrix M)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Draws an standard multinormal x with equality constraining linear equations 
+//Draws an standard multinormal x with full rank constraining linear 
+//equalities
 // 
-//  x ~ N(0,I)
-//  C*x = c
-//  
+//  e ~ N(0,I) 
+//  C*e = c 
+//
+// where
+//  e <: R^n
+//  C <: R^rxn, r<n, rank(C)=r
+//  c <: R^r
+//
+//ALGORITHM:
+// 
+// 1. Get pivoting order p of columns of diagonal of C*C'
+// 3. Select p.1 as gaussian components of x as (n-r) last pivoted columns
+// 2. Select p.2 as dependent components of x as first r pivoted columns
+// 4. Draw e.1 as standard independent normal 
+// 5. Rewrite constraining linear equalities conditioned to e.1
+//     
+//      C = (C.1 C.2)
+//      e' = (e.1' e.2')
+//      C.1 * e.1 + C.2 * e.2 = c
+//      c.2 = c - C.1
+//      C.2 * e.2 = c.2
+// 
+// 6. Solve linear system to get e.2
+// 7. Merge e.1 and e.2 following the selected pivoting order to get the
+//    wanted draw of e
+// 
 VMatrix eqConstrainedStdGaussian(VMatrix C, VMatrix c)
 //////////////////////////////////////////////////////////////////////////////
 {
