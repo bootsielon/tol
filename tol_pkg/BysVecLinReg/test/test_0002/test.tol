@@ -7,43 +7,42 @@
 Text email_ = "vdebuen@tol-project.org"; 
 Text link_ = "";
 Text summary_ = 
-"test_0001 multivariate linear model with known covariance matrix" ;
+"test_0001 multivariate linear model with unknown covariance matrix" ;
 
 Real numErr0 = Copy(NError);
 
 #Embed "../gen_multivariant_linear_regression.tol";
 
-
 BysVecLinReg::@Multivariate MV = [[
-  Text _.desc = "Modelo lineal multivariante para ventas de Fanta en Turquía",
-  Set _.outputNames = For(1,d,Text(Real i) { "Output_"<<i }),
+  Text _.desc = summary_;
+  Set _.outputNames = For(1,d,Text(Real i) { "Output_"<<i });
   Set _.inputNames = For(1,m,Text(Real i) { "Input_"<<i })
 ]];
 
 Real MV::set.outputInput(Y,X);
-Real MV::change.V(V);
 
-VMatrix S = KroneckerProduct(V,MtMSqr(MV::_.X.Li));
-VMatrix L = Tra(MV::_.IdxXLi) * MV::_.VxIm.Le;
-VMatrix LLt = MMtSqr(L);
-
-Real ok_.X.Li = VMatMax(Abs((MV::_.X.Li * MV::_.X.Le+m*N)-m*N - Eye(m)))==0;
-Real ok_.IdxXL = VMatMax(Abs((Tra(MV::_.IdxXL)*S*MV::_.IdxXL - MV::_.VxIm+m*d)-m*d))==0;
-Real ok_.IdxXLi = VMatMax(Abs((MV::_.IdxXLi * MV::_.IdxXL+m*N)-m*N - Eye(m*d)))==0;
-Real okLLt = VMatMax(Abs((LLt-S+m*N)-m*N ))==0;
+Real MV::set.prior.V.none(0);
+//Real MV::set.prior.V.inverseWishart(0.50, Eye(d)*0.8);
 
 VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
 {
-  Tra(MV::gibbs.draw.vec.A(0))
+  Tra(MV::gibbs.draw.vec.A(numSim)) |
+  Tra(MV::gibbs.draw.vec.V(numSim))
 }));
 
-VMatrix vec.A_ = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
-VMatrix vec.A = BysVecLinReg::@Multivariate::vmatrix2vec(A);
-VMatrix cmp.A = vec.A | vec.A_;
+VMatrix avg = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
+VMatrix vec.A = BysVecLinReg::@Multivariate::vmatrix2vec(
+  SubRow(avg,Range(1,MV::_.m * MV::_.d,1)));
+VMatrix vec.V = BysVecLinReg::@Multivariate::vmatrix2vec(
+  SubRow(avg,Range(MV::_.m * MV::_.d+1,VRows(avg),1)));
 
-VMatrix A_ = BysVecLinReg::@Multivariate::vec2vmatrix(vec.A_,A);
+VMatrix A_ = BysVecLinReg::@Multivariate::vec2vmatrix(vec.A,MV::_.A);
+VMatrix V_ = BysVecLinReg::@Multivariate::vec2vmatrix(vec.V,MV::_.V);
 VMatrix E_ = Y - A_*X;
+VMatrix E_t = Tra(E_);
 VMatrix E01_ = CholeskiSolve(V.L,E_,"PtLLtP");
+VMatrix cmpE = BysVecLinReg::@Multivariate::vmatrix2vec(E) |
+               BysVecLinReg::@Multivariate::vmatrix2vec(E_); 
 VMatrix cmpE01 = BysVecLinReg::@Multivariate::vmatrix2vec(E01) |
                  BysVecLinReg::@Multivariate::vmatrix2vec(E01_); 
 
@@ -55,15 +54,10 @@ Real numErr1 = Copy(NError);
 //Extented information about test behaviour
 Set partialResults_ = 
 [[
-  numErr0, numErr1, stdErr, stdErr_,
-  ok_.X.Li, ok_.IdxXL, ok_.IdxXLi, okLLt
-
+  numErr0, numErr1, stdErr, stdErr_
 ]];
 
-Real quality_ = And(
-  numErr1==numErr0,
-  ok_.X.Li, ok_.IdxXL, ok_.IdxXLi, okLLt)*
-  Min(1,Exp((stdErr-stdErr_)*N*d));
+Real quality_ = Min(1,Exp((stdErr-stdErr_)*N*d));
 
 //Return the results 
 Set resultStr_ = @strTestStatus(summary_, link_, quality_,

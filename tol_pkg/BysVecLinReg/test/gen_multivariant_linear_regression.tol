@@ -1,7 +1,7 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
 // FILE : gen_multivariant_linear_regression.tol
-// PURPOSE : generates a random multivariant linear regression model
+// PURPOSE : generates a random multivariate linear regression model
 //////////////////////////////////////////////////////////////////////////////
 
 //Random seed setting
