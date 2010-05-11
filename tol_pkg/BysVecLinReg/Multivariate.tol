@@ -93,13 +93,20 @@ Class @Multivariate
     If(And(VRows(M)==nRow, VColumns(M)==nCol), True,
     {
       WriteLn("[BysVecLinReg::@Multivariate::"+method+"] "
-              "Incongruent dimensions of _.W.V0 that should be "
+              "Incongruent dimensions of "+Name(M)+" that should be "
               "("<<nRow+","<<nCol+") instead of "
               "("<<VRows(M)+","<<VColumns(M)+")","E"); 
       False
     })
   };
-
+  
+  ////////////////////////////////////////////////////////////////////////////
+  Real vec.A.position(Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    vmatrix2vec.getPosition(i,j,_.A)
+  };
+ 
   ////////////////////////////////////////////////////////////////////////////
   Real set.outputInput(VMatrix Y, VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
