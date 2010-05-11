@@ -87,6 +87,24 @@ Class @Multivariate
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
+  // Optional arbitrary constraining inequalities
+  // 
+  //   G(A) >= 0
+  // 
+  //Number of arbitrary constraining inequalities
+  Real _.r.G = 0;
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Returns G(A)
+  // User must inherite a class redefining this method to apply 
+  // arbitrary constraining inequalities and set the correct value of _.r.G
+  VMatrix eval.arbitraryConstrainingInequalities(VMatrix A)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Rand(0,1,0,0)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Real check.dim(Text method, VMatrix M, Real nRow, Real nCol)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -101,12 +119,20 @@ Class @Multivariate
   };
   
   ////////////////////////////////////////////////////////////////////////////
-  Real vec.A.position(Real i, Real j)
+  Real set.linearConstrainingEquations(VMatrix C, VMatrix c)
   ////////////////////////////////////////////////////////////////////////////
   {
-    vmatrix2vec.getPosition(i,j,_.A)
+    Real r = VRows(c);
+    If(Or(!check.dim("set.linearConstrainingEquations",C,r,_.m*_.d),
+          !check.dim("set.linearConstrainingEquations",c,r,1      )),False,
+    {
+      Real _.r.C := r;
+      VMatrix _.C := C; 
+      VMatrix _.c := c; 
+      True
+    })
   };
- 
+
   ////////////////////////////////////////////////////////////////////////////
   Real set.outputInput(VMatrix Y, VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
@@ -169,21 +195,6 @@ Class @Multivariate
       Real _.W.weight := _.W.N0 / (_.W.N0+_.N);
       VMatrix _.W.V0 := Copy(W.V0);
       VMatrix gibbs.draw.V(0);
-      True
-    })
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Real set.linearConstrainingEquations(VMatrix C, VMatrix c)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Real r = VRows(c);
-    If(Or(!check.dim("set.linearConstrainingEquations",C,r,_.m*_.d),
-          !check.dim("set.linearConstrainingEquations",c,r,1      )),False,
-    {
-      Real _.r.C := r;
-      VMatrix _.C := C; 
-      VMatrix _.c := c; 
       True
     })
   };
@@ -314,6 +325,13 @@ Class @Multivariate
     VMatrix gibbs.draw.vec.A(numSim);
     VMatrix _.A := vec2vmatrix(_.vec.A,_.A);
     Copy(_.A)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real vec.A.position(Real i, Real j)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    vmatrix2vec.getPosition(i,j,_.d,_.m)
   }
 
 }
