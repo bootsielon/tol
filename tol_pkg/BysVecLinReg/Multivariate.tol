@@ -74,22 +74,6 @@ Class @Multivariate
   VMatrix _.VxIm.Le = Rand(0,0,0,0);
  
   ////////////////////////////////////////////////////////////////////////////
-  Static VMatrix vmatrix2vec(VMatrix M)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Matrix Mt = VMat2Mat(M,True);
-    Mat2VMat(Tra(GetNumeric([[ Mt ]])))
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  Static VMatrix vec2vmatrix(VMatrix vec, VMatrix M)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Matrix Mt = VMat2Mat(M,True);
-    Mat2VMat(DeepCopy([[Mt]],VMat2Mat(vec))[1],True)
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
   Real check.dim(Text method, VMatrix M, Real nRow, Real nCol)
   ////////////////////////////////////////////////////////////////////////////
   {
@@ -132,7 +116,7 @@ Class @Multivariate
       change.Y(Y);
       change.alpha(0);
       VMatrix _.vec.A := (_.vec.nu)/(1+_.alpha);
-      VMatrix _.A := @Multivariate::vec2vmatrix(_.vec.A,Constant(_.d,_.m,1));
+      VMatrix _.A := vec2vmatrix(_.vec.A,Constant(_.d,_.m,1));
       change.V(Eye(_.d));
       True
     })
@@ -197,7 +181,7 @@ Class @Multivariate
       VMatrix XYt =_.X*Tra(_.Y);
       VMatrix _.nu:=Tra(CholeskiSolve(_.X.Lf,XYt,"PtLLtP"));
       VMatrix _.nuXYt := _.nu*XYt;
-      VMatrix _.vec.nu:=@Multivariate::vmatrix2vec(_.nu);
+      VMatrix _.vec.nu:=vmatrix2vec(_.nu);
       True
     })
   };
@@ -262,7 +246,7 @@ Class @Multivariate
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix gibbs.draw.V(numSim);
-    @Multivariate::vmatrix2vec(_.V)
+    vmatrix2vec(_.V)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -281,7 +265,7 @@ Class @Multivariate
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix gibbs.draw.vec.A(numSim);
-    VMatrix _.A := @Multivariate::vec2vmatrix(_.vec.A,_.A);
+    VMatrix _.A := vec2vmatrix(_.vec.A,_.A);
     Copy(_.A)
   }
 

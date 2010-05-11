@@ -12,6 +12,7 @@ Set _.autodoc.keys = [["MCMC","Markov chain","Bayesian","Metropolis",
 Set _.autodoc.authors = [[
    "vdebuen@tol-project.org"]];
 
+#Embed "tools.tol";
 #Embed "Multivariate.tol"
 
 ]];

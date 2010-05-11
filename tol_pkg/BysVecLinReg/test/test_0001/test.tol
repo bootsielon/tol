@@ -38,14 +38,14 @@ VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
 }));
 
 VMatrix vec.A_ = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
-VMatrix vec.A = BysVecLinReg::@Multivariate::vmatrix2vec(A);
+VMatrix vec.A = BysVecLinReg::vmatrix2vec(A);
 VMatrix cmp.A = vec.A | vec.A_;
 
-VMatrix A_ = BysVecLinReg::@Multivariate::vec2vmatrix(vec.A_,A);
+VMatrix A_ = BysVecLinReg::vec2vmatrix(vec.A_,A);
 VMatrix E_ = Y - A_*X;
 VMatrix E01_ = CholeskiSolve(V.L,E_,"PtLLtP");
-VMatrix cmpE01 = BysVecLinReg::@Multivariate::vmatrix2vec(E01) |
-                 BysVecLinReg::@Multivariate::vmatrix2vec(E01_); 
+VMatrix cmpE01 = BysVecLinReg::vmatrix2vec(E01) |
+                 BysVecLinReg::vmatrix2vec(E01_); 
 
 Real stdErr  = VMatAvr(E01 ^2);
 Real stdErr_ = VMatAvr(E01_^2);

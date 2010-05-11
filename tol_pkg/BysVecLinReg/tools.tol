@@ -1,0 +1,47 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : tools.tol
+// PURPOSE: Defines Class BysVecLinReg::@Multivariate
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+VMatrix vmatrix2vec(VMatrix M)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix Mt = VMat2Mat(M,True);
+  Mat2VMat(Tra(GetNumeric([[ Mt ]])))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+VMatrix vec2vmatrix(VMatrix vec, VMatrix M)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Matrix Mt = VMat2Mat(M,True);
+  Mat2VMat(DeepCopy([[Mt]],VMat2Mat(vec))[1],True)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Draws an standard multinormal x with equality constraining linear equations 
+// 
+//  x ~ N(0,I)
+//  C*x = c
+//  
+VMatrix eqConstrainedStdGaussian(VMatrix C, VMatrix c)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real r = VRows(C);
+  Real n = VColumns(C);
+  VMatrix C2 = Constant(1,r,1) * (C$*C);
+  Matrix p = ColumnPivots(VMat2Mat(C2));
+  Set p.1 = MatSet(Sub(p,1,r+1,1,n-r))[1];
+  Set p.2 = MatSet(Sub(p,1,1,  1,r  ))[1];
+
+  VMatrix e.1 = Gaussian(n-r,1,0,1);
+  VMatrix C.1 = SubCol(C,p.1);
+  VMatrix C.2 = SubCol(C,p.2);
+  VMatrix c.1 = C.1 * e.1;
+  VMatrix c.2 = c-c.1;
+  VMatrix e.2 = MinimumResidualsSolve(C.2,c.2);
+//VMatrix C.2*e.2-c.2
+  e.2
+};
