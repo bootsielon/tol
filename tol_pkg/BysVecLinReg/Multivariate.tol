@@ -6,15 +6,28 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //Multivariate linear regression
+// 
 // Y = A*X + E
+// 
 //where
-//   Y is the known output matrix DxN
-//   X is the known input matrix MxN
-//   A is the unknown cofficient matrix NxD
-//   E is the unknown residuals matrix DxN with distribution
+//   Y is the known output matrix dxN
+//   X is the known input matrix mxN
+//   A is the unknown cofficient matrix dxm
+//   E is the unknown residuals matrix dxN with distribution
 //     E[.,t] ~ N(0,V) for all t = 1 ... N
-//     V has a prior inverse Wishart W(V0,N0)
+//     V is the instant covariance matrix mxm
+//     V has an optional prior inverse Wishart W(V0,N0)
 //
+//Optionally it's posible to include full rak linear constraining equalities 
+//over stacked columns form of coefficient matrix 
+// 
+//   C * vec(A) = c
+//
+//where
+//   C is the coefficient matrix of linear equalities rx(m*d)
+//   r is the number of linear equalities 
+//   r < m*d
+//   rank(C) = r
 Class @Multivariate
 //////////////////////////////////////////////////////////////////////////////
 {
