@@ -50,6 +50,7 @@ VMatrix cmpE01 = BysVecLinReg::vmatrix2vec(E01) |
 
 Real stdErr  = VMatAvr(E01 ^2);
 Real stdErr_ = VMatAvr(E01_^2);
+Real quality.adjust = Min(1,Exp((stdErr-stdErr_)*N*d));
 
 Real numErr1 = Copy(NError);
 
@@ -59,7 +60,7 @@ Set partialResults_ =
   numErr0, numErr1, stdErr, stdErr_
 ]];
 
-Real quality_ = Min(1,Exp((stdErr-stdErr_)*N*d));
+Real quality_ = And(numErr0==numErr1)*quality.adjust;
 
 //Return the results 
 Set resultStr_ = @strTestStatus(summary_, link_, quality_,
