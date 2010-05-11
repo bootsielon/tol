@@ -1,11 +1,11 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
-// FILE   : Multivariant.tol
-// PURPOSE: Defines Class BysVecLinReg::@Multivariant
+// FILE   : Multivariate.tol
+// PURPOSE: Defines Class BysVecLinReg::@Multivariate
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-//Multivariant linear regression
+//Multivariate linear regression
 // Y = A*X + E
 //where
 //   Y is the known output matrix DxN
@@ -15,7 +15,7 @@
 //     E[.,t] ~ N(0,V) for all t = 1 ... N
 //     V has a prior inverse Wishart W(V0,N0)
 //
-Class @Multivariant
+Class @Multivariate
 //////////////////////////////////////////////////////////////////////////////
 {
   Text _.desc;
@@ -24,8 +24,8 @@ Class @Multivariant
   ////////////////////////////////////////////////////////////////////////////
   //Definition members
   ////////////////////////////////////////////////////////////////////////////
-  VMatrix _.Y = Rand(0,0,0,0);    //Multivariant output matrix DxN 
-  VMatrix _.X = Rand(0,0,0,0);    //Multivariant input matrix MxN
+  VMatrix _.Y = Rand(0,0,0,0);    //Multivariate output matrix DxN 
+  VMatrix _.X = Rand(0,0,0,0);    //Multivariate input matrix MxN
   Real _.alpha = 0;               //Prior invariant scaling factor
   Real _.W.weight = 0;            //Weight of prior Wishart freedom degrees
   Real _.W.N0 = 0;                //Prior Wishart freedom degrees
@@ -36,15 +36,15 @@ Class @Multivariant
   ////////////////////////////////////////////////////////////////////////////
   //Data length
   Real _.N = ?; 
-  //Number of multivariant output vectors
+  //Number of multivariate output vectors
   Real _.d = ?; 
   //Number of multivariantinput vectors
   Real _.m = ?; 
-  //multivariant residuals (dxN)
+  //multivariate residuals (dxN)
   VMatrix _.E = Rand(0,0,0,0);
-  //Instant covariance of multivariant residuals (dxd)
+  //Instant covariance of multivariate residuals (dxd)
   VMatrix _.V = Rand(0,0,0,0);
-  //Regression multivariant coefficients (dxm)
+  //Regression multivariate coefficients (dxm)
   VMatrix _.A = Rand(0,0,0,0); 
   //Stacked columns of A (D*Mx1)
   VMatrix _.vec.A = Rand(0,0,0,0); 
@@ -95,7 +95,7 @@ Class @Multivariant
   {
     If(And(VRows(M)==nRow, VColumns(M)==nCol), True,
     {
-      WriteLn("[BysVecLinReg::@Multivariant::"+method+"] "
+      WriteLn("[BysVecLinReg::@Multivariate::"+method+"] "
               "Incongruent dimensions of _.W.V0 that should be "
               "("<<nRow+","<<nCol+") instead of "
               "("<<VRows(M)+","<<VColumns(M)+")","E"); 
@@ -113,7 +113,7 @@ Class @Multivariant
     Case(
     VColumns(Y)!=_.N, 
     {
-      WriteLn("[BysVecLinReg::@Multivariant::set.outputInput] "
+      WriteLn("[BysVecLinReg::@Multivariate::set.outputInput] "
               "Incongruent rows data length between input "
               "("<<VRows(X)+","<<VColumns(X)+") "
               "and output "
@@ -122,7 +122,7 @@ Class @Multivariant
     },
     _.m > _.N, 
     {
-      WriteLn("[BysVecLinReg::@Multivariant::set.outputInput] "
+      WriteLn("[BysVecLinReg::@Multivariate::set.outputInput] "
               "Too much inputs for data length "<<_.N+"<"<<_.m,"E"); 
       False
     },
@@ -132,27 +132,21 @@ Class @Multivariant
       change.Y(Y);
       change.alpha(0);
       VMatrix _.vec.A := (_.vec.nu)/(1+_.alpha);
-      VMatrix _.A := @Multivariant::vec2vmatrix(_.vec.A,Constant(_.d,_.m,1));
+      VMatrix _.A := @Multivariate::vec2vmatrix(_.vec.A,Constant(_.d,_.m,1));
       change.V(Eye(_.d));
       True
     })
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  Static @Multivariant New(  
-    Text desc,
-    Set outputNames,
-    Set inputNames,
-    VMatrix Y, 
-    VMatrix X)
+  Real set.prior.V.none(Real void)
   ////////////////////////////////////////////////////////////////////////////
   {
-    @Multivariant new = [[
-      Text _.desc = desc;
-      Set _.outputNames = outputNames;
-      Set _.inputNames = inputNames]];
-    Real new::set.outputInput(Y,X);
-    new
+    Real _.W.N0 := 0;
+    Real _.W.weight := 0;
+    VMatrix _.W.V0 := Constant(_.d,_.d,0);
+    VMatrix gibbs.draw.V(0);
+    True
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -170,6 +164,7 @@ Class @Multivariant
       });
       Real _.W.weight := _.W.N0 / (_.W.N0+_.N);
       VMatrix _.W.V0 := Copy(W.V0);
+      VMatrix gibbs.draw.V(0);
       True
     })
   };
@@ -202,7 +197,7 @@ Class @Multivariant
       VMatrix XYt =_.X*Tra(_.Y);
       VMatrix _.nu:=Tra(CholeskiSolve(_.X.Lf,XYt,"PtLLtP"));
       VMatrix _.nuXYt := _.nu*XYt;
-      VMatrix _.vec.nu:=@Multivariant::vmatrix2vec(_.nu);
+      VMatrix _.vec.nu:=@Multivariate::vmatrix2vec(_.nu);
       True
     })
   };
@@ -213,7 +208,7 @@ Class @Multivariant
   {
     If(alpha<0,
     {
-      WriteLn("[BysVecLinReg::@Multivariant::change.alpha] "
+      WriteLn("[BysVecLinReg::@Multivariate::change.alpha] "
               "scaling invariant parameter alpha must be non negative","E"); 
       False
     },
@@ -229,7 +224,7 @@ Class @Multivariant
   {
     If(!check.dim("change.V",V,_.d,_.d),False,
     {
-      VMatrix _.V := Copy(V); 
+      VMatrix _.V := (V+Tra(V))/2; 
       VMatrix _.VxIm := KroneckerProduct(_.V, Eye(_.m));
       VMatrix _.VxIm.Lf := CholeskiFactor(_.VxIm,"X");
       VMatrix _.VxIm.Le := CholeskiSolve(_.VxIm.Lf,
@@ -256,10 +251,18 @@ Class @Multivariant
   VMatrix gibbs.draw.V(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix E = _.Y - _.A * _.X;
-    VMatrix S2 = MMtSqr(E);
+    VMatrix _.E := _.Y - _.A * _.X;
+    VMatrix S2 = MMtSqr(_.E);
     Real change.V(Mat2VMat(RandIWishart(_.N+_.W.N0, VMat2Mat(S2+_.W.V0*_.W.N0))));
     Copy(_.V)
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix gibbs.draw.vec.V(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix gibbs.draw.V(numSim);
+    @Multivariate::vmatrix2vec(_.V)
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -278,7 +281,7 @@ Class @Multivariant
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix gibbs.draw.vec.A(numSim);
-    VMatrix _.A := @Multivariant::vec2vmatrix(_.vec.A,_.A);
+    VMatrix _.A := @Multivariate::vec2vmatrix(_.vec.A,_.A);
     Copy(_.A)
   }
 

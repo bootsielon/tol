@@ -7,7 +7,7 @@
 Text email_ = "vdebuen@tol-project.org"; 
 Text link_ = "";
 Text summary_ = 
-"test_0001 multivariate linear model with unknown covariance matrix" ;
+"test_0002 multivariate linear model with unknown covariance matrix" ;
 
 Real numErr0 = Copy(NError);
 

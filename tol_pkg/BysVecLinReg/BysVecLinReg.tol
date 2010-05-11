@@ -8,10 +8,10 @@ NameBlock BysVecLinReg = [[
 Text _.autodoc.description = ReadFile("doc/BysVecLinReg.wiki");
 Text _.autodoc.url = "";
 Set _.autodoc.keys = [["MCMC","Markov chain","Bayesian","Metropolis",
-  "Hastings","multivariant","linear","regression","inequality","constraints"]];
+  "Hastings","multivariate","linear","regression","inequality","constraints"]];
 Set _.autodoc.authors = [[
    "vdebuen@tol-project.org"]];
 
-#Embed "Multivariant.tol"
+#Embed "Multivariate.tol"
 
 ]];
