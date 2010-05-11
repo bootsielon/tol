@@ -26,6 +26,8 @@ Real MV::set.prior.V.none(0);
 
 VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
 {
+  If(!(numSim%100), 
+    WriteLn("  Simulation "<<numSim+" of "<<sampleLength+" ["+Time+"]") );
   Tra(MV::gibbs.draw.vec.A(numSim)) |
   Tra(MV::gibbs.draw.vec.V(numSim))
 }));

@@ -34,6 +34,8 @@ Real okLLt = VMatMax(Abs((LLt-S+m*N)-m*N ))==0;
 
 VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
 {
+  If(!(numSim%100), 
+    WriteLn("  Simulation "<<numSim+" of "<<sampleLength+" ["+Time+"]") );
   Tra(MV::gibbs.draw.vec.A(0))
 }));
 
