@@ -42,6 +42,10 @@ VMatrix eqConstrainedStdGaussian(VMatrix C, VMatrix c)
   VMatrix c.1 = C.1 * e.1;
   VMatrix c.2 = c-c.1;
   VMatrix e.2 = MinimumResidualsSolve(C.2,c.2);
-//VMatrix C.2*e.2-c.2
-  e.2
+  VMatrix err = C.2*e.2-c.2;
+  Real errMax = VMatMax(Abs(err));
+  If((n^3)+errMax^2 != n^3,
+    WriteLn("[BysVecLinReg::eqConstrainedStdGaussian] errMax="<<errMax,"W"));
+  Triplet(SetCol(p.1<<p.2) | Constant(n,1,1) | VMat2Mat(e.1 << e.2), n, 1)
+//SetOfMatrix(Tra(p), Constant(n,1,1),VMat2Mat(e.1 << e.2))
 };

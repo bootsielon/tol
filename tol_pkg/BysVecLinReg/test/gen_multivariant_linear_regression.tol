@@ -9,9 +9,11 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
-Real d = IntRand(2,10);
-Real m = IntRand(2,10);
-Real N = IntRand(m*10,m*100);
+Real If(!ObjectExist("Real","r.eq"), r.eq = 0, r.eq);
+
+Real d = IntRand(r.eq+2,r.eq+10);
+Real m = IntRand(r.eq+2,r.eq+10);
+Real N = IntRand(m*5,m*30);
 Real sampleLength = 5000;
 
 VMatrix X = Rand(m,N,-10,10);
@@ -22,3 +24,7 @@ VMatrix E01 = Gaussian(d,N,0,1) ;
 VMatrix E = V*E01;
 VMatrix Y = A*X+E; 
 
+VMatrix C = If(!r.eq,Rand(0,d*m,0,0), 
+  Round(Rand(r.eq,d*m,-2.5,2.5,"Cholmod.R.Sparse",r.eq*2)));
+VMatrix c = If(!r.eq,Rand(0,1,0,0),
+  C*BysVecLinReg::vmatrix2vec(A));

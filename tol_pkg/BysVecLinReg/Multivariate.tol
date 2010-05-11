@@ -72,7 +72,20 @@ Class @Multivariate
   VMatrix _.VxIm.Lf = Rand(0,0,0,0);
   //Choleski decomposition of VxIm as sparse explicit((d*m)x(d*m))
   VMatrix _.VxIm.Le = Rand(0,0,0,0);
- 
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Optional linear constraining equalities
+  // 
+  //   C * vec(A) = c
+  // 
+  //Number of linear constraining equalities
+  Real _.r.C = 0;
+  //Coefficient matrix of linear constraining equalities 
+  VMatrix _.C = Rand(0,0,0,0);
+  //Right vector of linear constraining equalities 
+  VMatrix _.c = Rand(0,0,0,0);
+  ////////////////////////////////////////////////////////////////////////////
+
   ////////////////////////////////////////////////////////////////////////////
   Real check.dim(Text method, VMatrix M, Real nRow, Real nCol)
   ////////////////////////////////////////////////////////////////////////////
@@ -149,6 +162,21 @@ Class @Multivariate
       Real _.W.weight := _.W.N0 / (_.W.N0+_.N);
       VMatrix _.W.V0 := Copy(W.V0);
       VMatrix gibbs.draw.V(0);
+      True
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  Real set.linearConstrainingEquations(VMatrix C, VMatrix c)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real r = VRows(c);
+    If(Or(!check.dim("set.linearConstrainingEquations",C,r,_.m*_.d),
+          !check.dim("set.linearConstrainingEquations",c,r,1      )),False,
+    {
+      Real _.r.C := r;
+      VMatrix _.C := C; 
+      VMatrix _.c := c; 
       True
     })
   };
@@ -250,10 +278,22 @@ Class @Multivariate
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  VMatrix gibbs.draw.vec.A.std(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    If(!_.r.C, Gaussian(_.d*_.m,1,0,1),
+    {
+      VMatrix C = Tra(_.IdxXLi*Tra(_.C))*_.VxIm.Le;
+      VMatrix c = _.c - _.C * _.vec.nu;
+      eqConstrainedStdGaussian(C,c)
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   VMatrix gibbs.draw.vec.A(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix e = Gaussian(_.d*_.m,1,0,1);
+    VMatrix e = gibbs.draw.vec.A.std(numSim);
     VMatrix e.1 = _.VxIm.Le*e;
     VMatrix e.2 = Tra(Tra(e.1)*_.IdxXLi);
     VMatrix _.vec.A := (_.vec.nu + e.2)/(1+_.alpha);

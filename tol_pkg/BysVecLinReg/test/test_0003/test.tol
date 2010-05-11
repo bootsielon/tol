@@ -1,0 +1,89 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+//////////////////////////////////////////////////////////////////////////////
+
+
+Text email_ = "vdebuen@tol-project.org"; 
+Text link_ = "";
+Text summary_ = 
+"test_0003 multivariate linear model with unknown covariance matrix and "
+"constraining linear equalities" ;
+
+Real numErr0 = Copy(NError);
+
+Real r.eq = 3;
+#Embed "../gen_multivariant_linear_regression.tol";
+
+
+BysVecLinReg::@Multivariate MV = [[
+  Text _.desc = summary_;
+  Set _.outputNames = For(1,d,Text(Real i) { "Output_"<<i });
+  Set _.inputNames = For(1,m,Text(Real i) { "Input_"<<i })
+]];
+
+Real MV::set.outputInput(Y,X);
+
+Real MV::set.prior.V.none(0);
+//Real MV::set.prior.V.inverseWishart(0.50, Eye(d)*0.8);
+
+Real MV::set.linearConstrainingEquations(C, c);
+
+//VMatrix vec.A_ = MV::gibbs.draw.vec.A(0);
+//VMatrix C.dist = C*vec.A_ - c;
+//Real quality.C = Max(0, 1 - VMatMax(Abs(C.dist)));
+
+VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
+{
+  If(!(numSim%100), 
+    WriteLn("  Simulation "<<numSim+" of "<<sampleLength+" ["+Time+"]") );
+  Tra(MV::gibbs.draw.vec.A(numSim)) |
+  Tra(MV::gibbs.draw.vec.V(numSim))
+}));
+
+VMatrix avg = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
+VMatrix vec.A = BysVecLinReg::vmatrix2vec(
+  SubRow(avg,Range(1,MV::_.m * MV::_.d,1)));
+VMatrix vec.V = BysVecLinReg::vmatrix2vec(
+  SubRow(avg,Range(MV::_.m * MV::_.d+1,VRows(avg),1)));
+
+VMatrix A_ = BysVecLinReg::vec2vmatrix(vec.A,MV::_.A);
+VMatrix V_ = BysVecLinReg::vec2vmatrix(vec.V,MV::_.V);
+VMatrix E_ = Y - A_*X;
+VMatrix E_t = Tra(E_);
+VMatrix E01_ = CholeskiSolve(V.L,E_,"PtLLtP");
+VMatrix cmpE = BysVecLinReg::vmatrix2vec(E) |
+               BysVecLinReg::vmatrix2vec(E_); 
+VMatrix cmpE01 = BysVecLinReg::vmatrix2vec(E01) |
+                 BysVecLinReg::vmatrix2vec(E01_); 
+
+Real stdErr  = VMatAvr(E01 ^2);
+Real stdErr_ = VMatAvr(E01_^2);
+
+Real quality.adjust = Min(1,Exp((stdErr-stdErr_)*N*d));
+
+VMatrix C.dist = C*vec.A - c;
+Real quality.C = Max(0, 1 - VMatMax(Abs(C.dist)));
+
+Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+Set partialResults_ = 
+[[
+  numErr0, numErr1, stdErr, stdErr_, quality.adjust, quality.C
+]];
+
+Real quality_ = And(numErr0==numErr1)*quality.adjust*quality.C;
+
+//Return the results 
+Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                  "Partial results = "<<partialResults_,
+                  "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                  email_);
+WriteLn(""<<resultStr_);
+resultStr_
+
+/* */
+
+
+/* */
