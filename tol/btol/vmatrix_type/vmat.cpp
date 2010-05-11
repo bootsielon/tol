@@ -1104,6 +1104,7 @@ static int intCmp_(const void* v1, const void* v2)
   int i, nnz = 0, nzmax = 0;
   const double* x = NULL;
   if(!StoredData(x, nzmax)) { return(-1); }
+  if(!x) { return(-1); }
   for(i=0; i<nzmax; i++)
   {
     nnz += fabs(x[i])>chop;
