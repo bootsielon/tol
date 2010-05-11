@@ -24,11 +24,12 @@ VMatrix vec2vmatrix(VMatrix vec, VMatrix M)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Returns the position of cell (i,j) of M in stacked columns form
-Real vmatrix2vec.getPosition(Real i, Real j, VMatrix M)
+//Returns the position of cell (i,j) of in stacked columns form of a matrix 
+//with r rows and c columns
+Real vmatrix2vec.getPosition(Real i, Real j, Real r, Real c)
 //////////////////////////////////////////////////////////////////////////////
 {
-  MatDat(VMat2Triplet(vmatrix2vec(Triplet([[ [[i,j,1]] ]],_.d,_.m))),1,1)
+  MatDat(VMat2Triplet(vmatrix2vec(Triplet([[ [[i,j,1]] ]],r,c))),1,1)
 };
 
 //////////////////////////////////////////////////////////////////////////////
