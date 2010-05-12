@@ -296,7 +296,10 @@ Class @Multivariate
   {
     VMatrix _.E := _.Y - _.A * _.X;
     VMatrix S2 = MMtSqr(_.E);
-    Real change.V(Mat2VMat(RandIWishart(_.N+_.W.N0, VMat2Mat(S2+_.W.V0*_.W.N0))));
+    VMatrix W = S2 + _.W.V0*_.W.N0;
+    Real freDeg = _.N+_.W.N0;
+    VMatrix V = Mat2VMat(RandIWishart(freDeg, VMat2Mat(W)));
+    Real change.V(V);
     Copy(_.V)
   };
 
