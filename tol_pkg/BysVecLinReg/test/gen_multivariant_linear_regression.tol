@@ -19,12 +19,27 @@ Real sampleLength = 5000;
 VMatrix X = Rand(m,N,-10,10);
 VMatrix A = Rand(d,m,-10,10); 
 VMatrix V = (MMtSqr(Rand(d,N,-0.8,0.8,"Cholmod.R.Sparse",d*N/4))+Eye(d,d)); 
+
 VMatrix V.L = CholeskiFactor(V,"X");
+VMatrix V.Le = CholeskiSolve(V.L, Convert(V.L, "Cholmod.R.Sparse"),"P");
+
 VMatrix E01 = Gaussian(d,N,0,1) ; 
-VMatrix E = V*E01;
+VMatrix E = V.Le*E01;
 VMatrix Y = A*X+E; 
 
 VMatrix C = If(!r.eq,Rand(0,d*m,0,0), 
   Round(Rand(r.eq,d*m,-2.5,2.5,"Cholmod.R.Sparse",r.eq*2)));
 VMatrix c = If(!r.eq,Rand(0,1,0,0),
   C*BysVecLinReg::vmatrix2vec(A));
+
+VMatrix vec.A = BysVecLinReg::vmatrix2vec(A);
+VMatrix vec.V = BysVecLinReg::vmatrix2vec(V);
+
+
+VMatrix S2 = MMtSqr(E);
+VMatrix W = Mat2VMat(RandIWishart(N, VMat2Mat(S2)));
+
+VMatrix V.COR = Mat2VMat(NormDiag(VMat2Mat(V)));
+VMatrix S2.COR = Mat2VMat(NormDiag(VMat2Mat(S2)));
+VMatrix W.COR = Mat2VMat(NormDiag(VMat2Mat(W)));
+

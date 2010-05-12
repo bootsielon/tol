@@ -21,8 +21,8 @@ BysVecLinReg::@Multivariate MV = [[
 
 Real MV::set.outputInput(Y,X);
 
-Real MV::set.prior.V.none(0);
-//Real MV::set.prior.V.inverseWishart(0.50, Eye(d)*0.8);
+//Real MV::set.prior.V.none(0);
+Real MV::set.prior.V.inverseWishart(0.90, V);
 
 VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
 {
@@ -33,16 +33,27 @@ VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
 }));
 
 VMatrix avg = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
-VMatrix vec.A = BysVecLinReg::vmatrix2vec(
+VMatrix vec.A_ = BysVecLinReg::vmatrix2vec(
   SubRow(avg,Range(1,MV::_.m * MV::_.d,1)));
-VMatrix vec.V = BysVecLinReg::vmatrix2vec(
+VMatrix vec.V_ = BysVecLinReg::vmatrix2vec(
   SubRow(avg,Range(MV::_.m * MV::_.d+1,VRows(avg),1)));
 
-VMatrix A_ = BysVecLinReg::vec2vmatrix(vec.A,MV::_.A);
-VMatrix V_ = BysVecLinReg::vec2vmatrix(vec.V,MV::_.V);
+VMatrix A_ = BysVecLinReg::vec2vmatrix(vec.A_,MV::_.A);
+VMatrix V_ = BysVecLinReg::vec2vmatrix(vec.V_,MV::_.V);
+//Instant residuals correlation
+VMatrix V.COR_ = Mat2VMat(NormDiag(VMat2Mat(V_)));
+
 VMatrix E_ = Y - A_*X;
 VMatrix E_t = Tra(E_);
 VMatrix E01_ = CholeskiSolve(V.L,E_,"PtLLtP");
+
+VMatrix S2_ = MMtSqr(E_);
+VMatrix S2.COR_ = Mat2VMat(NormDiag(VMat2Mat(S2_)));
+
+VMatrix cmpA = BysVecLinReg::vmatrix2vec(A) |
+               BysVecLinReg::vmatrix2vec(A_); 
+VMatrix cmpV = BysVecLinReg::vmatrix2vec(V) |
+               BysVecLinReg::vmatrix2vec(V_); 
 VMatrix cmpE = BysVecLinReg::vmatrix2vec(E) |
                BysVecLinReg::vmatrix2vec(E_); 
 VMatrix cmpE01 = BysVecLinReg::vmatrix2vec(E01) |
