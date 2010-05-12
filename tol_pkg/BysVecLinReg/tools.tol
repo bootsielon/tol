@@ -1,7 +1,7 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : tools.tol
-// PURPOSE: Defines Class BysVecLinReg::@Multivariate
+// PURPOSE: Defines generic functions used in BysVecLinReg
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ VMatrix vec2vmatrix(VMatrix vec, VMatrix M)
 Real vmatrix2vec.getPosition(Real i, Real j, Real r, Real c)
 //////////////////////////////////////////////////////////////////////////////
 {
-  MatDat(VMat2Triplet(vmatrix2vec(Triplet([[ [[i,j,1]] ]],r,c))),1,1)
+  MatDat(VMat2Triplet(BysVecLinReg::vmatrix2vec(Triplet([[ [[i,j,1]] ]],r,c))),1,1)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -71,11 +71,11 @@ VMatrix eqConstrainedStdGaussian(VMatrix C, VMatrix c)
   //Calculates diagonal of C*C' in a faster way
   VMatrix C2 = Constant(1,r,1) * (C $* C);
   //Builds pivoting order of columns of diagonal of C*C'
-  Matrix p = ColumnPivots(VMat2Mat(C2));
+  Matrix piv = ColumnPivots(VMat2Mat(C2));
   //Select p.1 as gaussian components of x as (n-r) last pivoted columns
-  Set p.1 = MatSet(Sub(p,1,r+1,1,n-r))[1];
+  Set p.1 = MatSet(Sub(piv,1,r+1,1,n-r))[1];
   //Select p.2 as dependent components of x as first r pivoted columns
-  Set p.2 = MatSet(Sub(p,1,1,  1,r  ))[1];
+  Set p.2 = MatSet(Sub(piv,1,1,  1,r  ))[1];
   //Draw e.1 as standard independent normal 
   VMatrix e.1 = Gaussian(n-r,1,0,1);
   //Rewrite constraining linear equalities conditioned to e.1
