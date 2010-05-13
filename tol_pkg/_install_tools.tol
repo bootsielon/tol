@@ -15,6 +15,7 @@ Real OSCmdWaitWr(Text order)
 
 Set packages = 
 [[
+  "BysVecLinReg", 
   "GuiTools",
   "HashMap",
   "MatQuery",
