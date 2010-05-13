@@ -61,6 +61,8 @@ Class @Multivariate
   VMatrix _.A = Rand(0,0,0,0); 
   //Stacked columns of A (D*Mx1)
   VMatrix _.vec.A = Rand(0,0,0,0); 
+  VMatrix _.vec.A.prior.nu = Rand(0,0,0,0); 
+  VMatrix _.vec.A.prior.S = Rand(0,0,0,0); 
   //Average of posterior distribution of A for alpha=0: Y*X'*(X*Xt)^-1 (dxm)
   VMatrix _.nu = Rand(0,0,0,0); 
   //Stacked columns of nu ((d*m)x1)
@@ -86,6 +88,9 @@ Class @Multivariate
   //Choleski decomposition of VxIm as sparse explicit((d*m)x(d*m))
   VMatrix _.VxIm.Le = Rand(0,0,0,0);
 
+  Real maxAcceptRejectTry = 100;
+  Real _.totalTry = 0;
+
   ////////////////////////////////////////////////////////////////////////////
   // Optional linear constraining equalities
   // 
@@ -97,6 +102,9 @@ Class @Multivariate
   VMatrix _.C = Rand(0,0,0,0);
   //Right vector of linear constraining equalities 
   VMatrix _.c = Rand(0,0,0,0);
+  //Constraining equalities in standariced metric used internally
+  VMatrix _.C01 = Rand(0,0,0,0);
+  VMatrix _.c01 = Rand(0,0,0,0);
   ////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////
@@ -142,7 +150,7 @@ Class @Multivariate
       Real _.r.C := r;
       VMatrix _.C := C; 
       VMatrix _.c := c; 
-      True
+      recalc.C01c01(0)
     })
   };
 
@@ -150,6 +158,7 @@ Class @Multivariate
   Real set.outputInput(VMatrix Y, VMatrix X)
   ////////////////////////////////////////////////////////////////////////////
   {
+    Real _.totalTry := 0;
     Real _.d := VRows(Y);
     Real _.m := VRows(X);
     Real _.N := VColumns(X);
@@ -171,12 +180,14 @@ Class @Multivariate
     },
     1==1, 
     {
-      change.X(X);
-      change.Y(Y);
-      change.alpha(0);
+      Real change.X(X);
+      Real change.Y(Y);
+      Real change.alpha(0);
       VMatrix _.vec.A := (_.vec.nu)/(1+_.alpha);
-      VMatrix _.A := vec2vmatrix(_.vec.A,Constant(_.d,_.m,1));
-      change.V(Eye(_.d));
+      VMatrix _.A := BysVecLinReg::vec2vmatrix(_.vec.A,Constant(_.d,_.m,1));
+      Real change.V(Eye(_.d));
+      VMatrix _.vec.A.prior.nu := _.vec.nu*0;
+      VMatrix _.vec.A.prior.S := _.V*0;
       True
     })
   };
@@ -240,7 +251,7 @@ Class @Multivariate
       VMatrix XYt =_.X*Tra(_.Y);
       VMatrix _.nu:=Tra(CholeskiSolve(_.X.Lf,XYt,"PtLLtP"));
       VMatrix _.nuXYt := _.nu*XYt;
-      VMatrix _.vec.nu:=vmatrix2vec(_.nu);
+      VMatrix _.vec.nu:=BysVecLinReg::vmatrix2vec(_.nu);
       True
     })
   };
@@ -262,12 +273,22 @@ Class @Multivariate
   };
 
   ////////////////////////////////////////////////////////////////////////////
+  Real recalc.C01c01(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    VMatrix _.C01 := Tra(_.IdxXLi*Tra(_.C))*_.VxIm.Le;
+    VMatrix _.c01 := _.c - _.C * _.vec.nu;
+    True
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
   Real change.V(VMatrix V)
   ////////////////////////////////////////////////////////////////////////////
   {
     If(!check.dim("change.V",V,_.d,_.d),False,
     {
       VMatrix _.V := (V+Tra(V))/2; 
+    //WriteLn("TRACE change.V 1");
       VMatrix _.VxIm := KroneckerProduct(_.V, Eye(_.m));
       VMatrix _.VxIm.Lf := CholeskiFactor(_.VxIm,"X");
       VMatrix _.VxIm.Le := CholeskiSolve(_.VxIm.Lf,
@@ -275,9 +296,10 @@ Class @Multivariate
       VMatrix _.VxIm.Lf := CholeskiFactor(_.VxIm,"X");
       VMatrix _.VxIm.Le := CholeskiSolve(_.VxIm.Lf,
         Convert(_.VxIm.Lf, "Cholmod.R.Sparse"),"P");
-      True
+      If(!_.r.C, True, recalc.C01c01(0))
     })
   };
+
 
   ////////////////////////////////////////////////////////////////////////////
   Real set.maxEvidence.alpha(Real void)
@@ -308,30 +330,69 @@ Class @Multivariate
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix gibbs.draw.V(numSim);
-    vmatrix2vec(_.V)
+    BysVecLinReg::vmatrix2vec(_.V)
   };
 
   ////////////////////////////////////////////////////////////////////////////
   VMatrix gibbs.draw.vec.A.std(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    If(!_.r.C, Gaussian(_.d*_.m,1,0,1),
-    {
-      VMatrix C = Tra(_.IdxXLi*Tra(_.C))*_.VxIm.Le;
-      VMatrix c = _.c - _.C * _.vec.nu;
-      eqConstrainedStdGaussian(C,c)
-    })
+    If(!_.r.C, 
+      Gaussian(_.d*_.m,1,0,1),
+      BysVecLinReg::eqConstrainedStdGaussian(_.C01,_.c01))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  VMatrix try.draw.vec.A(Real numSim)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real _.totalTry := _.totalTry + 1;
+    VMatrix e = gibbs.draw.vec.A.std(numSim);
+    VMatrix e.1 = _.VxIm.Le*e;
+    VMatrix e.2 = Tra(Tra(e.1)*_.IdxXLi);
+    (_.vec.nu + e.2)/(1+_.alpha)
   };
 
   ////////////////////////////////////////////////////////////////////////////
   VMatrix gibbs.draw.vec.A(Real numSim)
   ////////////////////////////////////////////////////////////////////////////
   {
-    VMatrix e = gibbs.draw.vec.A.std(numSim);
-    VMatrix e.1 = _.VxIm.Le*e;
-    VMatrix e.2 = Tra(Tra(e.1)*_.IdxXLi);
-    VMatrix _.vec.A := (_.vec.nu + e.2)/(1+_.alpha);
-    _.vec.A
+  //WriteLn("TRACE gibbs.draw.vec.A 1");
+    VMatrix vec.A = try.draw.vec.A(numSim);
+    If(!_.r.G, 
+    {
+    //WriteLn("TRACE gibbs.draw.vec.A 2");
+      VMatrix _.vec.A := vec.A;
+      vec.A
+    },
+    {
+      Real match = False;
+      Real _numTry = 0;
+      VMatrix A = BysVecLinReg::vec2vmatrix(vec.A,_.A);
+      While(And(!match,_numTry<maxAcceptRejectTry),
+      {
+      //WriteLn("TRACE gibbs.draw.vec.A 3");
+        VMatrix G.A = eval.arbitraryConstrainingInequalities(A);
+        Real match := VMatMin(G.A)>=0;
+        VMatrix If(!match, 
+        {
+          VMatrix vec.A := try.draw.vec.A(numSim);
+          VMatrix A     := BysVecLinReg::vec2vmatrix(vec.A,_.A)
+        });
+        Real _numTry := _numTry+1
+      });
+      If(match,
+      {
+        VMatrix _.vec.A := vec.A;
+        VMatrix _.A := A;
+        Copy(_.vec.A)
+      },
+      {
+        WriteLn("[BysVecLinReg::@Multivariate::gibbs.draw.vec.A] Too much "
+        "rejected tries at simulation "<<numSim, "W");
+        Copy(_.vec.A)
+      })
+    }) 
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -339,7 +400,10 @@ Class @Multivariate
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix gibbs.draw.vec.A(numSim);
-    VMatrix _.A := vec2vmatrix(_.vec.A,_.A);
+    If(!_.r.G,
+    {
+      VMatrix _.A := BysVecLinReg::vec2vmatrix(_.vec.A,_.A)
+    });
     Copy(_.A)
   };
 
@@ -347,7 +411,7 @@ Class @Multivariate
   Real vec.A.position(Real i, Real j)
   ////////////////////////////////////////////////////////////////////////////
   {
-    vmatrix2vec.getPosition(i,j,_.d,_.m)
+    BysVecLinReg::vmatrix2vec.getPosition(i,j,_.d,_.m)
   }
 
 }
