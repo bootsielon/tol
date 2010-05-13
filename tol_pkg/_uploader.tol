@@ -73,7 +73,7 @@ Text remoteRoot =
 
 Text WriteFile(upload+".bat",
 "cd \""+ReplaceSlash(tolpkg+"/tol_pkg")+"\"\n"+
-"tar cvzf "+version+".tgz "+version+"\n"+
+"tar cvf "+version+".tgz "+version+"\n"+
 "pscp "+version+".tgz "+remoteUser+":"+remoteRoot+"/tol_pkg/"+version+".tgz\n"
 "plink "+remoteUser+" \"cd "+remoteRoot+"/tol_pkg; ./upload_tol_pkg.sh "+version+"\"\n"
 );
