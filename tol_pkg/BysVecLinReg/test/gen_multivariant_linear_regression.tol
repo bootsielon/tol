@@ -5,8 +5,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //Random seed setting
-Real PutRandomSeed(0);
-Real rndSeed = GetRandomSeed(0);
+Real PutRandomSeed(If(ObjectExist("Real","rndSeed"),rndSeed,0));
+Real If(ObjectExist("Real","rndSeed"), rndSeed, rndSeed = GetRandomSeed(0));
 WriteLn("Current Random Seed = "<<rndSeed);
 
 Real If(!ObjectExist("Real","r.eq"), r.eq = 0, r.eq);
