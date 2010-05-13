@@ -116,10 +116,10 @@ Class @Multivariate
   Real _.r.G = 0;
 
   ////////////////////////////////////////////////////////////////////////////
-  // Returns G(A)
+  // Returns G(coefMat)
   // User must inherite a class redefining this method to apply 
   // arbitrary constraining inequalities and set the correct value of _.r.G
-  VMatrix eval.arbitraryConstrainingInequalities(VMatrix A)
+  VMatrix eval.arbitraryConstrainingInequalities(VMatrix coefMat)
   ////////////////////////////////////////////////////////////////////////////
   {
     Rand(0,1,0,0)
@@ -369,11 +369,14 @@ Class @Multivariate
       Real match = False;
       Real _numTry = 0;
       VMatrix A = BysVecLinReg::vec2vmatrix(vec.A,_.A);
+      VMatrix G.A = Rand(0,0,0,0);
+      Real min.G.A = ?;
       While(And(!match,_numTry<maxAcceptRejectTry),
       {
       //WriteLn("TRACE gibbs.draw.vec.A 3");
-        VMatrix G.A = eval.arbitraryConstrainingInequalities(A);
-        Real match := VMatMin(G.A)>=0;
+        VMatrix G.A := eval.arbitraryConstrainingInequalities(A);
+        Real min.G.A := VMatMin(G.A);
+        Real match := Copy(min.G.A>0);
         VMatrix If(!match, 
         {
           VMatrix vec.A := try.draw.vec.A(numSim);
@@ -383,14 +386,16 @@ Class @Multivariate
       });
       If(match,
       {
-        VMatrix _.vec.A := vec.A;
-        VMatrix _.A := A;
+      //WriteLn("TRACE [BysVecLinReg::@Multivariate::gibbs.draw.vec.A] accepted simulation "<<numSim+" with min.G.A = "<<min.G.A+" after "<<_numTry+" tries ");
+      //WriteLn("TRACE [BysVecLinReg::@Multivariate::gibbs.draw.vec.A] vec.A=\n"<<VMat2Mat(vec.A));
+        VMatrix _.vec.A := Copy(vec.A);
+        VMatrix _.A := Copy(A);
         Copy(_.vec.A)
       },
       {
         WriteLn("[BysVecLinReg::@Multivariate::gibbs.draw.vec.A] Too much "
         "rejected tries at simulation "<<numSim, "W");
-        Copy(_.vec.A)
+        Copy(vec.A)
       })
     }) 
   };
