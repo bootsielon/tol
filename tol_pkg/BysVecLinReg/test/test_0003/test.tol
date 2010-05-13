@@ -12,7 +12,10 @@ Text summary_ =
 
 Real numErr0 = Copy(NError);
 
+#Require BysVecLinReg;
+//Se generará un modelo con r.eq restricciones de igualdad lineales
 Real r.eq = 3;
+Real rndSeed = 792466945;
 #Embed "../gen_multivariant_linear_regression.tol";
 
 
@@ -41,6 +44,42 @@ VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
   Tra(MV::gibbs.draw.vec.V(numSim))
 }));
 
+//////////////////////////////////////////////////////////////////////////////
+//Standard report
+//////////////////////////////////////////////////////////////////////////////
+
+Set report = { 
+  BysMcmc::@Config cfg = BysMcmc::@Config::Default(0);
+  BysMcmc::Inference::report(
+  MV::_.desc, 
+  Set colNames_ = SetConcat(For(1,MV::_.m,Set(Real j)
+  {
+    For(1,MV::_.d,Text(Real i)
+    {
+      "linblk_a_"<<i<<"_"<<j+"_"+MV::_.outputNames[i]+"_"+MV::_.inputNames[j]
+    })
+  })) << SetConcat(For(1,MV::_.d,Set(Real j)
+  {
+    For(1,MV::_.d,Text(Real i)
+    {
+      "sigblk_s_"<<i<<"_"<<j+"_"+MV::_.outputNames[i]+"_"+MV::_.outputNames[j]
+    })
+  })),
+  Set BysMcmc::@BysInf.Report.Config
+  (
+    cfg::report.raftery.diag.q,
+    cfg::report.raftery.diag.r,
+    cfg::report.raftery.diag.s,
+    cfg::report.raftery.diag.eps,
+    cfg::report.acf.lag,
+    cfg::report.histogram.parts,
+    cfg::report.kerDens.points
+  ),
+  Matrix VMat2Mat(mcmc))};
+
+//////////////////////////////////////////////////////////////////////////////
+//Reporting about average of simulations
+//////////////////////////////////////////////////////////////////////////////
 VMatrix avg = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
 VMatrix vec.A_ = BysVecLinReg::vmatrix2vec(
   SubRow(avg,Range(1,MV::_.m * MV::_.d,1)));

@@ -11,6 +11,7 @@ Text summary_ =
 
 Real numErr0 = Copy(NError);
 
+#Require BysVecLinReg;
 #Embed "../gen_multivariant_linear_regression.tol";
 
 BysVecLinReg::@Multivariate MV = [[
@@ -22,7 +23,7 @@ BysVecLinReg::@Multivariate MV = [[
 Real MV::set.outputInput(Y,X);
 
 //Real MV::set.prior.V.none(0);
-Real MV::set.prior.V.inverseWishart(0.90, V);
+Real MV::set.prior.V.inverseWishart(0.10, V);
 
 VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
 {

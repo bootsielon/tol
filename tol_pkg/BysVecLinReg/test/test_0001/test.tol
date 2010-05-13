@@ -11,6 +11,7 @@ Text summary_ =
 
 Real numErr0 = Copy(NError);
 
+#Require BysVecLinReg;
 #Embed "../gen_multivariant_linear_regression.tol";
 
 
@@ -40,7 +41,6 @@ VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
 }));
 
 VMatrix vec.A_ = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
-VMatrix vec.A = BysVecLinReg::vmatrix2vec(A);
 VMatrix cmp.A = vec.A | vec.A_;
 
 VMatrix A_ = BysVecLinReg::vec2vmatrix(vec.A_,A);
@@ -58,7 +58,7 @@ Real numErr1 = Copy(NError);
 //Extented information about test behaviour
 Set partialResults_ = 
 [[
-  numErr0, numErr1, stdErr, stdErr_, quality.adjust
+  numErr0, numErr1, stdErr, stdErr_, quality.adjust,
   ok_.X.Li, ok_.IdxXL, ok_.IdxXLi, okLLt
 
 ]];
