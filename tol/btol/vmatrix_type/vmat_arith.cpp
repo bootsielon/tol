@@ -703,7 +703,7 @@ int BVMat::KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C)
 ////////////////////////////////////////////////////////////////////////////////
 {
   BVMat aux;
-  MMtSqr(*this, aux);
+  MtMSqr(*this, aux);
   return(aux);
 };
 
@@ -713,8 +713,8 @@ int BVMat::KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C)
 ////////////////////////////////////////////////////////////////////////////////
 {
   BVMat aux1 = T();
-  BVMat aux2 = T();
-  MMtSqr(aux1, aux2);
+  BVMat aux2;
+  MtMSqr(aux1, aux2);
   return(aux2);
 };
 
