@@ -694,53 +694,7 @@ int BVMat::KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C)
 ////////////////////////////////////////////////////////////////////////////////
 {
   if(!A.CheckDefined("MMtSqr")) { return(-1); }
-  int i, j;
-  int r = A.Rows();
-  int c = A.Columns();  
-  if(!r || !c) 
-  {
-    B=A;
-    return(0);
-  }
-  double * x;
-  BVMat sp, tr;
-  int *fset;
-  switch(A.code_) {
-  case(ESC_blasRdense  ) :
-    B.code_ = ESC_blasRdense;
-    B.s_.blasRdense_ = cholmod_allocate_dense(r, r, r, CHOLMOD_REAL, common_);
-    x = (double*)B.s_.blasRdense_->x;
-    cblas_dsyrk
-    (
-      CblasColMajor, CblasLower, CblasNoTrans, 
-      r, c, 1.0, (const double*)A.s_.blasRdense_->x, r, 0.0, x, r
-    );
-    for(i=0; i<r; i++) { for(j=0; j<i; j++) { x[i*r+j] = x[j*r+i]; } }
-    break;
-  case(ESC_chlmRtriplet ) :
-    sp.Convert(A,ESC_chlmRsparse);
-    MMtSqr(sp,B);
-    break;
-  case(ESC_chlmRsparse ) :
-    B.code_ = ESC_chlmRsparse;
-    if(A.s_.chlmRsparse_->stype==0)
-    {
-      fset = new int[r];
-      for(j=0; j<r; j++) { fset[j] = j; }
-      B.s_.chlmRsparse_ = cholmod_aat(A.s_.chlmRsparse_,fset,r,1,common_);
-      delete [] fset;
-    }
-    else 
-    {
-      T(A, tr);
-      cRs_cRs_prod(A,tr,sp); 
-      B.s_.chlmRsparse_ = cholmod_copy(sp.s_.chlmRsparse_,-1,1,common_);
-    }
-    break;
-  default:
-    err_invalid_subtype("MMtSqr",A); 
-    return(-1); }
-  return(0);
+  return(MtMSqr(A.T(),B));
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -758,9 +712,10 @@ int BVMat::KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C)
 //Matrix algebra operator
 ////////////////////////////////////////////////////////////////////////////////
 {
-  BVMat aux;
-  MMtSqr(*this, aux);
-  return(aux);
+  BVMat aux1 = T();
+  BVMat aux2 = T();
+  MMtSqr(aux1, aux2);
+  return(aux2);
 };
 
 
