@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.SortAndCount = "Sorts the rows of a column matrix and "
 "returns a matrix with two columns. The first one contains sorted unique "
-"values found in given matrixand second one conatins the number of times "
+"values found in given matrixand second one contains the number of times "
 "that this value is presented.";
 VMatrix SortAndCount(VMatrix A)
 //////////////////////////////////////////////////////////////////////////////
