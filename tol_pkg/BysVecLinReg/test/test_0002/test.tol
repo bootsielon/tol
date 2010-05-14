@@ -60,6 +60,9 @@ VMatrix cmpE = BysVecLinReg::vmatrix2vec(E) |
 VMatrix cmpE01 = BysVecLinReg::vmatrix2vec(E01) |
                  BysVecLinReg::vmatrix2vec(E01_); 
 
+VMatrix E.COV = BysVecLinReg::vmatrix2vec(S2_/N);
+cmpV  | E.COV;
+
 Real stdErr  = VMatAvr(E01 ^2);
 Real stdErr_ = VMatAvr(E01_^2);
 Real quality.adjust = Min(1,Exp((stdErr-stdErr_)*N*d));
