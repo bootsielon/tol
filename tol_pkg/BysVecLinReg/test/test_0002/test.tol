@@ -43,6 +43,7 @@ VMatrix A_ = BysVecLinReg::vec2vmatrix(vec.A_,MV::_.A);
 VMatrix V_ = BysVecLinReg::vec2vmatrix(vec.V_,MV::_.V);
 //Instant residuals correlation
 VMatrix V.COR_ = Mat2VMat(NormDiag(VMat2Mat(V_)));
+VMatrix E.COV = BysVecLinReg::vmatrix2vec(S2_/N);
 
 VMatrix E_ = Y - A_*X;
 VMatrix E_t = Tra(E_);
@@ -54,14 +55,13 @@ VMatrix S2.COR_ = Mat2VMat(NormDiag(VMat2Mat(S2_)));
 VMatrix cmpA = BysVecLinReg::vmatrix2vec(A) |
                BysVecLinReg::vmatrix2vec(A_); 
 VMatrix cmpV = BysVecLinReg::vmatrix2vec(V) |
-               BysVecLinReg::vmatrix2vec(V_); 
+               BysVecLinReg::vmatrix2vec(V_) |
+               BysVecLinReg::vmatrix2vec(E.COV); 
 VMatrix cmpE = BysVecLinReg::vmatrix2vec(E) |
                BysVecLinReg::vmatrix2vec(E_); 
 VMatrix cmpE01 = BysVecLinReg::vmatrix2vec(E01) |
                  BysVecLinReg::vmatrix2vec(E01_); 
 
-VMatrix E.COV = BysVecLinReg::vmatrix2vec(S2_/N);
-cmpV  | E.COV;
 
 Real stdErr  = VMatAvr(E01 ^2);
 Real stdErr_ = VMatAvr(E01_^2);
