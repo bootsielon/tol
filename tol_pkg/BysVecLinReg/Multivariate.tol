@@ -247,7 +247,7 @@ Class @Multivariate
     If(!check.dim("change.Y",Y,_.d,_.N),False,
     {
       VMatrix _.Y := Copy(Y); 
-      VMatrix _.YYt := MMtSqr(_.Y);
+      VMatrix _.YYt := _.Y*Tra(_.Y);
       VMatrix XYt =_.X*Tra(_.Y);
       VMatrix _.nu:=Tra(CholeskiSolve(_.X.Lf,XYt,"PtLLtP"));
       VMatrix _.nuXYt := _.nu*XYt;
@@ -317,7 +317,8 @@ Class @Multivariate
   ////////////////////////////////////////////////////////////////////////////
   {
     VMatrix _.E := _.Y - _.A * _.X;
-    VMatrix S2 = MMtSqr(_.E);
+    //VMatrix S2 = MMtSqr(_.E);
+	VMatrix S2 = _.YYt -_.nuXYt;
     VMatrix W = S2 + _.W.V0*_.W.N0;
     Real freDeg = _.N+_.W.N0;
     VMatrix V = Mat2VMat(RandIWishart(freDeg, VMat2Mat(W)));
