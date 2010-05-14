@@ -28,9 +28,9 @@ VMatrix S = KroneckerProduct(V,MtMSqr(MV::_.X.Li));
 VMatrix L = Tra(MV::_.IdxXLi) * MV::_.VxIm.Le;
 VMatrix LLt = MMtSqr(L);
 
-Real ok_.X.Li = VMatMax(Abs((MV::_.X.Li * MV::_.X.Le+m*N)-m*N - Eye(m)))==0;
-Real ok_.IdxXL = VMatMax(Abs((Tra(MV::_.IdxXL)*S*MV::_.IdxXL - MV::_.VxIm+m*d)-m*d))==0;
-Real ok_.IdxXLi = VMatMax(Abs((MV::_.IdxXLi * MV::_.IdxXL+m*N)-m*N - Eye(m*d)))==0;
+Real ok_.X.Li = 1-VMatMax(Abs((MV::_.X.Li * MV::_.X.Le+m*N)-m*N - Eye(m)));
+Real ok_.IdxXL = 1-VMatMax(Abs((Tra(MV::_.IdxXL)*S*MV::_.IdxXL - MV::_.VxIm+m*d)-m*d));
+Real ok_.IdxXLi = 1-VMatMax(Abs((MV::_.IdxXLi * MV::_.IdxXL+m*N)-m*N - Eye(m*d)));
 Real okLLt = VMatMax(Abs((LLt-S+m*N)-m*N ))==0;
 
 VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
@@ -40,32 +40,58 @@ VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
   Tra(MV::gibbs.draw.vec.A(0))
 }));
 
+//////////////////////////////////////////////////////////////////////////////
+//Standard report
+//////////////////////////////////////////////////////////////////////////////
+
+Set report = { 
+  BysMcmc::@Config cfg = BysMcmc::@Config::Default(0);
+  BysMcmc::Inference::report(
+  MV::_.desc, 
+  Set colNames_ = SetConcat(For(1,MV::_.m,Set(Real j)
+  {
+    For(1,MV::_.d,Text(Real i)
+    {
+      "linblk_a_"<<i<<"_"<<j+"_"+MV::_.outputNames[i]+"_"+MV::_.inputNames[j]
+    })
+  })),
+  Set BysMcmc::@BysInf.Report.Config
+  (
+    cfg::report.raftery.diag.q,
+    cfg::report.raftery.diag.r,
+    cfg::report.raftery.diag.s,
+    cfg::report.raftery.diag.eps,
+    cfg::report.acf.lag,
+    cfg::report.histogram.parts,
+    cfg::report.kerDens.points
+  ),
+  Matrix VMat2Mat(mcmc))};
+
 VMatrix vec.A_ = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
 VMatrix cmp.A = vec.A | vec.A_;
 
 VMatrix A_ = BysVecLinReg::vec2vmatrix(vec.A_,A);
 VMatrix E_ = Y - A_*X;
-VMatrix E01_ = CholeskiSolve(V.L,E_,"PtLLtP");
+VMatrix E01_ = CholeskiSolve(V.L,E_,"PtL");
 VMatrix cmpE01 = BysVecLinReg::vmatrix2vec(E01) |
                  BysVecLinReg::vmatrix2vec(E01_); 
 
-Real stdErr  = VMatAvr(E01 ^2);
-Real stdErr_ = VMatAvr(E01_^2);
-Real quality.adjust = Min(1,Exp((stdErr-stdErr_)*N*d));
+Real stdErr01_ = VMatAvr(E01_^2);
+Real quality.adjust = Min(1,Exp((stdErr01-stdErr01_)*N*d));
 
 Real numErr1 = Copy(NError);
 
 //Extented information about test behaviour
 Set partialResults_ = 
 [[
-  numErr0, numErr1, stdErr, stdErr_, quality.adjust,
+  numErr0, numErr1, stdErr01, stdErr01_, quality.adjust,
   ok_.X.Li, ok_.IdxXL, ok_.IdxXLi, okLLt
 
 ]];
 
 Real quality_ = And(
-  numErr1==numErr0,
-  ok_.X.Li, ok_.IdxXL, ok_.IdxXLi, okLLt)*
+  numErr1==numErr0)*
+  ok_.X.Li*ok_.IdxXL*ok_.IdxXLi*okLLt*
   quality.adjust;
 
 //Return the results 

@@ -33,6 +33,42 @@ VMatrix mcmc = Group("ConcatRows", For(1,sampleLength,VMatrix(Real numSim)
   Tra(MV::gibbs.draw.vec.V(numSim))
 }));
 
+//////////////////////////////////////////////////////////////////////////////
+//Standard report
+//////////////////////////////////////////////////////////////////////////////
+
+Set report = { 
+  BysMcmc::@Config cfg = BysMcmc::@Config::Default(0);
+  BysMcmc::Inference::report(
+  MV::_.desc, 
+  Set colNames_ = SetConcat(For(1,MV::_.m,Set(Real j)
+  {
+    For(1,MV::_.d,Text(Real i)
+    {
+      "linblk_a_"<<i<<"_"<<j+"_"+MV::_.outputNames[i]+"_"+MV::_.inputNames[j]
+    })
+  })) << SetConcat(For(1,MV::_.d,Set(Real j)
+  {
+    For(1,MV::_.d,Text(Real i)
+    {
+      "sigblk_s_"<<i<<"_"<<j+"_"+MV::_.outputNames[i]+"_"+MV::_.outputNames[j]
+    })
+  })),
+  Set BysMcmc::@BysInf.Report.Config
+  (
+    cfg::report.raftery.diag.q,
+    cfg::report.raftery.diag.r,
+    cfg::report.raftery.diag.s,
+    cfg::report.raftery.diag.eps,
+    cfg::report.acf.lag,
+    cfg::report.histogram.parts,
+    cfg::report.kerDens.points
+  ),
+  Matrix VMat2Mat(mcmc))};
+
+//////////////////////////////////////////////////////////////////////////////
+//Reporting about average of simulations
+//////////////////////////////////////////////////////////////////////////////
 VMatrix avg = Tra(Constant(1,sampleLength,1/sampleLength)*mcmc);
 VMatrix vec.A_ = BysVecLinReg::vmatrix2vec(
   SubRow(avg,Range(1,MV::_.m * MV::_.d,1)));
@@ -41,38 +77,39 @@ VMatrix vec.V_ = BysVecLinReg::vmatrix2vec(
 
 VMatrix A_ = BysVecLinReg::vec2vmatrix(vec.A_,MV::_.A);
 VMatrix V_ = BysVecLinReg::vec2vmatrix(vec.V_,MV::_.V);
+VMatrix V_.L = CholeskiFactor(V_,"X");
+VMatrix V_.Le = CholeskiSolve(V_.L, Convert(V_.L, "Cholmod.R.Sparse"),"P");
+
 //Instant residuals correlation
 VMatrix V.COR_ = Mat2VMat(NormDiag(VMat2Mat(V_)));
-VMatrix E.COV = BysVecLinReg::vmatrix2vec(S2_/N);
 
 VMatrix E_ = Y - A_*X;
-VMatrix E_t = Tra(E_);
-VMatrix E01_ = CholeskiSolve(V.L,E_,"PtLLtP");
-
-VMatrix S2_ = MMtSqr(E_);
-VMatrix S2.COR_ = Mat2VMat(NormDiag(VMat2Mat(S2_)));
+VMatrix E.S2_ = MMtSqr(E_);
+VMatrix E.COV_ = E.S2_/N;
+VMatrix E.COR_ = Mat2VMat(NormDiag(VMat2Mat(E.S2_)));
+VMatrix E01_ = CholeskiSolve(V_.L,E_,"PtL");
 
 VMatrix cmpA = BysVecLinReg::vmatrix2vec(A) |
                BysVecLinReg::vmatrix2vec(A_); 
 VMatrix cmpV = BysVecLinReg::vmatrix2vec(V) |
                BysVecLinReg::vmatrix2vec(V_) |
-               BysVecLinReg::vmatrix2vec(E.COV); 
+               BysVecLinReg::vmatrix2vec(E.COV) |
+               BysVecLinReg::vmatrix2vec(E.COV_); 
 VMatrix cmpE = BysVecLinReg::vmatrix2vec(E) |
                BysVecLinReg::vmatrix2vec(E_); 
 VMatrix cmpE01 = BysVecLinReg::vmatrix2vec(E01) |
                  BysVecLinReg::vmatrix2vec(E01_); 
 
+Real stdErr01_ = VMatAvr(E01_^2);
+Real quality.adjust = Min(1,Exp((stdErr01-stdErr01_)*N*d));
 
-Real stdErr  = VMatAvr(E01 ^2);
-Real stdErr_ = VMatAvr(E01_^2);
-Real quality.adjust = Min(1,Exp((stdErr-stdErr_)*N*d));
 
 Real numErr1 = Copy(NError);
 
 //Extented information about test behaviour
 Set partialResults_ = 
 [[
-  numErr0, numErr1, stdErr, stdErr_
+  numErr0, numErr1, stdErr01, stdErr01_
 ]];
 
 Real quality_ = And(numErr0==numErr1)*quality.adjust;
