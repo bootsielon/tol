@@ -62,8 +62,8 @@ Class @Glossary
       Text _.name = name
     ]]
   }
-};
-
+}
+/*
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Glossary = "Implements a glossary of unique terms "
 "that refers to arbitrary objects";
@@ -145,5 +145,5 @@ Real Append.Indexed(Set set, Anything newElement, Text name)
     idx
   })
 }
-
+*/
 ]];
