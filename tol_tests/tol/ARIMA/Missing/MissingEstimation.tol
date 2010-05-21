@@ -1,0 +1,97 @@
+
+Real PutRandomSeed(0);
+
+//////////////////////////////////////////////////////////////////////////////
+// Creación de los datos
+
+Date begin = y2010;
+Date end = y2010m12d31;
+
+Serie residuals_gen = Gaussian(0, 1, C);
+
+Polyn ar = 1 - 0.98*B; // - 0.2*B**2 +0.3*B**3;
+Polyn ma = 1 - 0.6*B;
+Polyn dif = 1; // - B;
+
+Real p = Degree(ar);
+Real q = Degree(ma);
+Real d = Degree(dif);
+Real initLength = 100*Max(p+d,q);
+Date begin_ = Succ(begin,Dating(residuals_gen),-initLength);
+Serie residuals_= SubSer(residuals_gen,begin_,end);
+Serie noise_ = DifEq(ma/(dif*ar), residuals_);
+Serie residuals = SubSer(residuals_,begin, end);
+Serie noise = SubSer(noise_, begin, end);
+
+Date date = y2010m06;
+Real size = 10;
+Set pulses = For(1, size, Serie(Real d) {
+  Date dt = Succ(date, C, d-IntRand(-100,100));
+  Eval("Pulse_"<<dt+"=Pulse(dt,C)")
+});
+Serie zero1 = 1-SetSum(pulses);
+Serie missing1 = Log(zero1*Exp(1));
+
+//////////////////////////////////////////////////////////////////////////////
+// [1] Estimación de omitidos con las interrupciones de Estimate
+
+Serie output1 = noise*missing1;
+
+Set mod1 = ModelDef(output1, 1,0,1,0,
+  Polyn dif, SetOfPolyn(ar), SetOfPolyn(ma),
+  Copy(Empty), Copy(Empty));
+Set est1 = Estimate(mod1);
+
+Set results1 = BinGroup("<<", For(1, size, Set (Real d) {
+  Date dt = Succ(date, C, d-1);
+  Real omit = SerDat(est1[3][4], dt);
+  Real resid = SerDat(est1[3][1], dt);
+  [[ PutName("Omitido_"<<dt, omit), PutName("Residuo_"<<dt, resid) ]]
+})) << For(Card(est1[4])-Card(Monomes(ar))-Card(Monomes(ma))+3, Card(est1[4]), Real (Real p) {
+  Real arima = est1[4][p][4];
+  Text name = est1[4][p][1]<<"_"<<est1[4][p][2]<<"_"<<est1[4][p][3];
+  PutName(name, arima)
+});
+
+//////////////////////////////////////////////////////////////////////////////
+// [2] Estimación de omitidos con pulsos
+
+Serie output2 = noise*zero1;
+
+Set mod2 = ModelDef(output2, 1,0,1,0,
+  Polyn dif, SetOfPolyn(ar), SetOfPolyn(ma),
+  EvalSet(pulses, Set(Serie s) 
+  { 
+    Eval(Name(s)+"=InputDef(1, -s) ")
+  }), Copy(Empty));
+Set est2 = Estimate(mod2);
+
+Set results2 = BinGroup("<<", For(1, size, Set (Real d) {
+  Date dt = Succ(date, C, d-1);
+  Real omit = SerDat(est2[4][d][4], dt);
+  Real resid = SerDat(est2[3][1], dt);
+  [[ PutName("Omitido_"<<dt, omit), PutName("Residuo_"<<dt, resid) ]]
+})) << For(Card(est2[4])-Card(Monomes(ar))-Card(Monomes(ma))+3, Card(est2[4]), Real (Real p) {
+  Real arima = est2[4][p][4];
+  Text name = est2[4][p][1]<<"_"<<est2[4][p][2]<<"_"<<est2[4][p][3];
+  PutName(name, arima)
+});
+
+//////////////////////////////////////////////////////////////////////////////
+// Resumen
+
+Set report = [[ results1, results2 ]];
+
+//////////////////////////////////////////////////////////////////////////////
+
+
+Serie noise;
+Serie est1::Series::Noise;
+Serie est2::Series::Noise;
+Serie residuals;
+Serie est1::Series::Residuals;
+Serie est2::Series::Residuals;
+
+
+
+/* */
