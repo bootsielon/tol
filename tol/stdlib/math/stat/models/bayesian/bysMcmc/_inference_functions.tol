@@ -250,10 +250,10 @@ Set get.kerDens(Text                   name,
  
 
 /////////////////////////////////////////////////////////////////////////////
-Set report(Text                 name_, 
-           Set                  colNames_,
+Set report(Text name_, 
+           Set  colNames_,
            BysMcmc::@BysInf.Report.Config repCfg_,
-           Matrix               mcmc_)
+           Matrix mcmc_)
 //Builds the full report about a Markov chain including arguments of calling 
 // and results of next methods
 //   get.sample
@@ -267,70 +267,79 @@ Set report(Text                 name_,
   Real CMsg::Phase::show(1,"1. BysMcmc::Inference::report of "+name_);
   Text name = ToName(name_);
   Set colNames = colNames_;
-  Set repCfg = repCfg_;
-  Matrix mcmc = mcmc_;
-  Real n = Columns(mcmc);
-  Real m = Rows   (mcmc);
-
-  Set idx_ = Range(1,n,1);
-  Set idx = Select(idx_,Real(Real col)
+  If(Columns(mcmc_)!=Card(colNames),
   {
-    Matrix c = SubCol(mcmc,[[col]]);
-    MatMax(c)>MatMin(c)
-  });
-  Matrix mcmcV = SubCol(mcmc_, idx);
-//WriteLn("TRACE mcmcV("<<Rows(mcmcV)+"x"<<Columns(mcmcV));
-  Set colNamesV = ExtractByIndex(colNames_,idx);
-//WriteLn("TRACE colNamesV="<<colNamesV);
-  Set coda.raftery.diag = get.coda.raftery.diag(name, colNamesV, repCfg, mcmcV);
-  Set sample = get.sample(name, colNames, repCfg, mcmc);
-  Set coda.summary = get.coda.summary(name, colNames, repCfg, mcmc);
-  Set param.signif = get.param.signif(name, colNames, repCfg, sample);
-  Set acf = get.acf(name, colNames, repCfg, sample);
-  Set histogram = get.histogram(name, colNames, repCfg, sample);
-  Set kerDens = get.kerDens(name, colNames, repCfg, sample);
-  Set aux = 
-  [[
-    name, 
-    colNames, 
-    repCfg, 
-    mcmc, 
-    coda.raftery.diag, 
-    sample,
-    coda.summary,
-    param.signif,
-    acf, 
-    histogram, 
-    kerDens
-  ]];
-  Do PutDescription("Model name",
-    aux::name);
-  Do PutDescription("Names of all variables of the Markov Chain",
-    aux::colNames);
-  Do PutDescription("Configuration of this Bayesian Inference report",
-    aux::repCfg);
-  Do PutDescription("The Markov Chain matrix where each simulation is "
-    "a row and each variable is a column",
-    aux::mcmc);
-  Do PutDescription("Each individual column of tha Markov Chain with its "
-    "corresponding name to be easily tabulated or charted",
-    aux::sample);
-  Do PutDescription("The result of CODA Raftery convergency test for each "
-    "individual variable",
-    aux::coda.raftery.diag);
-  Do PutDescription("The CODA summary information about each individual "
-    "variable",
-    aux::coda.summary);
-  Do PutDescription("Test of parameter signification gives p-value of be zero, "
-    "positive or negative for each parameter",
-    aux::coda.summary);
-  Do PutDescription("Observed AutoCorrelation Function for each individual "
-    "sample",aux::acf);
-  Do PutDescription("Observed histogram of density for each individual "
-    "sample",aux::histogram);
-  Do PutDescription("Aproximated kernel density for each individual sample",
-    aux::kerDens);
-  Eval(name+".REPORT=aux")
+    WriteLn("[Inference::report] "
+    "Invalid number of variables in Markov Chain "<<
+    Card(colNames)+"!="<<Columns(mcmc_),"E");
+    Copy(Empty)
+  }, 
+  { 
+    Set repCfg = repCfg_;
+    Matrix mcmc = mcmc_;
+    Real n = Columns(mcmc);
+    Real m = Rows   (mcmc);
+
+    Set idx_ = Range(1,n,1);
+    Set idx = Select(idx_,Real(Real col)
+    {
+      Matrix c = SubCol(mcmc,[[col]]);
+      MatMax(c)>MatMin(c)
+    });
+    Matrix mcmcV = SubCol(mcmc_, idx);
+  //WriteLn("TRACE mcmcV("<<Rows(mcmcV)+"x"<<Columns(mcmcV));
+    Set colNamesV = ExtractByIndex(colNames_,idx);
+  //WriteLn("TRACE colNamesV="<<colNamesV);
+    Set coda.raftery.diag = get.coda.raftery.diag(name, colNamesV, repCfg, mcmcV);
+    Set sample = get.sample(name, colNames, repCfg, mcmc);
+    Set coda.summary = get.coda.summary(name, colNames, repCfg, mcmc);
+    Set param.signif = get.param.signif(name, colNames, repCfg, sample);
+    Set acf = get.acf(name, colNames, repCfg, sample);
+    Set histogram = get.histogram(name, colNames, repCfg, sample);
+    Set kerDens = get.kerDens(name, colNames, repCfg, sample);
+    Set aux = 
+    [[
+      name, 
+      colNames, 
+      repCfg, 
+      mcmc, 
+      coda.raftery.diag, 
+      sample,
+      coda.summary,
+      param.signif,
+      acf, 
+      histogram, 
+      kerDens
+    ]];
+    Do PutDescription("Model name",
+      aux::name);
+    Do PutDescription("Names of all variables of the Markov Chain",
+      aux::colNames);
+    Do PutDescription("Configuration of this Bayesian Inference report",
+      aux::repCfg);
+    Do PutDescription("The Markov Chain matrix where each simulation is "
+      "a row and each variable is a column",
+      aux::mcmc);
+    Do PutDescription("Each individual column of tha Markov Chain with its "
+      "corresponding name to be easily tabulated or charted",
+      aux::sample);
+    Do PutDescription("The result of CODA Raftery convergency test for each "
+      "individual variable",
+      aux::coda.raftery.diag);
+    Do PutDescription("The CODA summary information about each individual "
+      "variable",
+      aux::coda.summary);
+    Do PutDescription("Test of parameter signification gives p-value of be zero, "
+      "positive or negative for each parameter",
+      aux::coda.summary);
+    Do PutDescription("Observed AutoCorrelation Function for each individual "
+      "sample",aux::acf);
+    Do PutDescription("Observed histogram of density for each individual "
+      "sample",aux::histogram);
+    Do PutDescription("Aproximated kernel density for each individual sample",
+      aux::kerDens);
+    Eval(name+".REPORT=aux")
+  })
 };
 
 /////////////////////////////////////////////////////////////////////////////
