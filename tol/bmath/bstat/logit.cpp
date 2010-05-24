@@ -134,8 +134,6 @@ BBool Logit(const BMatrix    <BDat>& y,
       lnLikelyhood += lnL(i,0);
     }
     H = H_;
-    //dif	    = MinimumResidualsSolve(H_,G);
-      //MinimumResidualsSolve(H_,G, BDat(DEpsilon()));
     dif = gsl_MinimumResidualsSolve(H_,G);
     norm    = G.FrobeniusNorm();
     advance = dif.FrobeniusNorm();
@@ -241,7 +239,6 @@ BBool Probit(const BMatrix    <BDat>& y,
       lnLikelyhood += lnL(i,0);
     }
     H = H_;
-  //dif	    = MinimumResidualsSolve(H_,G);
     dif       = gsl_MinimumResidualsSolve(H_,G);
     norm      = G.FrobeniusNorm();
     advance   = dif.FrobeniusNorm();
