@@ -27,6 +27,7 @@
 #include <tol/tol_gsl.h>
 #include <tol/tol_gslmat.h>
 #include <tol/tol_matrix.h>
+#include <tol/tol_bvmat.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bpolgra.h>
@@ -139,13 +140,14 @@ BSyntaxObject* BGraContensBase<BMat>::Casting(BSyntaxObject* obj)
 #else
 //--------------------------------------------------------------------
   void BBM_CheckSize(const BText& function, const BText& fileName, 
-                     int rows, int cols)
+                     int rows, int cols, 
+                     char msgType='E', BText comment = "")
 //--------------------------------------------------------------------
 {
   size_t fs = GetFileSize(fileName);
   if(fs!=rows*cols*sizeof(BDat)+2*sizeof(int))
   {
-    Error(BText("[")+function+"]"+
+    BText msg = BText("[")+function+"]"+
           I2("Corrupted BBM file ",
              "Fichero BBM corrupto ")+
           fileName+
@@ -165,7 +167,9 @@ BSyntaxObject* BGraContensBase<BMat>::Casting(BSyntaxObject* obj)
              "\n Tamaño esperado del fichero:")+
           (int)(rows*cols*sizeof(BDat)+2*sizeof(int))+
           I2("\n Real file size e: ",
-             "\n Tamaño real del fichero:")+(int)fs);
+             "\n Tamaño real del fichero:")+(int)fs + comment;
+         if(msgType=='E') { Error(msg); }
+    else if(msgType=='W') { Warning(msg); }
   }
 }
 #endif
@@ -271,7 +275,8 @@ void BBM_BinAppend(const BText& fileName, const BMat& M)
 }
 
 //--------------------------------------------------------------------
-void BBM_BinRead(const BText& fileName, BMat& M)
+void BBM_BinRead(const BText& fileName, BMat& M, 
+   bool forceReadAvailableRows=false)
 //--------------------------------------------------------------------
 {
   BInt fs = GetFileSize(fileName);
@@ -354,6 +359,24 @@ void BBM_BinRead(const BText& fileName, BMat& M)
     //Std(BText("(")+(int)k+","+x+"); ");
     }
   //Std("\n");
+  }
+  else if(forceReadAvailableRows)
+  {
+    int m_ = m;
+    m = s/(n*sizeof(BDat));
+    mn = m*n;
+    BBM_CheckSize("BBM_BinRead",fileName,m_,n,'W',
+    BText("\nIt seems that ")+(m_-m)+" rows are lost, but rest of matrix "
+    "will be loaded");
+    M.Alloc(m,n);
+    fread(M.GetData().GetBuffer(), sizeof(BDat), mn, fil);
+    if(fclose(fil))
+    {
+      Error(I2("Cannot close after reading BBM file ",
+               "No se pudo cerrar despues de leer el fichero BBM ")+
+            fileName);
+    };
+
   }
   else
   {
@@ -497,8 +520,9 @@ void BMatAppendFile::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatReadFile);
-DefExtOpr(1, BMatReadFile, "MatReadFile", 1, 2, "Text Text",
-  "(Text filename [, Text format=\"BINARY\"])",
+DefExtOpr(1, BMatReadFile, "MatReadFile", 1, 3, "Text Text Real",
+  "(Text filename [, Text format=\"BINARY\", "
+                     "Real forceReadAvailableRows=True])",
   I2("Reads a matrix from a file in the specified format",
      "Lee una matriz de un fichero en el formato especificado")+":\n"+
      "BINARY: "+
@@ -521,10 +545,12 @@ void BMatReadFile::CalcContens()
 {
   BText fileName = Text(Arg(1));
   BText format = "BINARY";
+  bool forceReadAvailableRows= true;
   if(Arg(2)) { format = Text(Arg(2)); }
+  if(Arg(3)) { forceReadAvailableRows = Real(Arg(3))!=0; }
   if(format=="BINARY")
   {
-    BBM_BinRead(fileName,contens_);
+    BBM_BinRead(fileName,contens_,forceReadAvailableRows);
   }
   else if(format=="WGRIB2TXT")
   {
@@ -1807,6 +1833,26 @@ void BMatSolve::CalcContens()
 {
   Mat(Arg(1)).Solve(Mat(Arg(2)), contens_);
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatCholeskiMinimumResiduals);
+DefExtOpr(1, BMatCholeskiMinimumResiduals, "CholeskiMinimumResiduals", 
+  2, 2, "Matrix Matrix", 
+  "(Matrix M, Matrix B)",
+  I2("Applies the Cholesky decomposition to solve X in the linear "
+     "regresion M*X=B+e ",
+     "Aplica la descomposición de Cholesky para resolver X en la "
+     "regresión lineal M*X=B+e."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatCholeskiMinimumResiduals::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BMat& M = Mat(Arg(1));
+  const BMat& B = Mat(Arg(2));
+  contens_=CholeskiMinimumResidualsSolve(M,B);
+}
+
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatMinimumResidualsSolve);
