@@ -61,6 +61,14 @@ BMat MinimumResidualsSolve
   int maxIter = -1
 );
 
+BMatrix<double> CholeskiMinimumResidualsSolve(
+  const BMatrix<double>& A, 
+  const BMatrix<double>& b);
+BMat CholeskiMinimumResidualsSolve(
+  const BMat& A, 
+  const BMat& b);
+
+
 BDat LinearLeastSquareSolve
 (
   const BMatrix<BDat>&	  A,

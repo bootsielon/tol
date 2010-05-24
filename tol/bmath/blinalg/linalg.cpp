@@ -291,6 +291,40 @@ BMat MinimumResidualsSolve(const BMat& A, const BMat& b0,
   return(MinimumResidualsSolve(A, b0, A.T()*b0, chop, maxIter));
 }
 
+//--------------------------------------------------------------------
+BMatrix<double> CholeskiMinimumResidualsSolve(
+  const BMatrix<double>& A, 
+  const BMatrix<double>& b)
+
+/*! Solves Ax=b using Cholesky decomposition
+ */
+//--------------------------------------------------------------------
+{
+  BMatrix<double> x;
+  BVMat A_, b_, x_;
+  A_.DMat2VMat(A, false,0.50,DEpsilon());
+  b_.DMat2dense(b);
+  if(!BVMat::CholeskiMinRes(A_,b_,x_))
+  {
+    x_.GetDMat(x);
+  }
+  return(x);
+}
+
+//--------------------------------------------------------------------
+BMat CholeskiMinimumResidualsSolve(const BMat& A, const BMat& b)
+
+/*! Solves Ax=b using Cholesky decomposition
+ */
+//--------------------------------------------------------------------
+{
+  BMat x;
+  BMatrix<double>& dA = (BMatrix<double>&)A;
+  BMatrix<double>& db = (BMatrix<double>&)b;
+  BMatrix<double>& dx = (BMatrix<double>&)x;
+  dx = CholeskiMinimumResidualsSolve(dA,db);
+  return(x);
+}
 
 //--------------------------------------------------------------------
 BMat Kernel(const BMat& A)
@@ -378,7 +412,7 @@ void OrthonormalCompletion(BMat& U, BInt m)
     BMat Urc = U.Sub(0,0,r,c);
     BMat A = B << Urc.T();
     BMat z(n-r,1); z.SetAllValuesTo(0);
-    BMat v = MinimumResidualsSolve(A, y) ;
+    BMat v = gsl_MinimumResidualsSolve(A, y) ;
     
     for(j=0; j<c; j++)
     {
