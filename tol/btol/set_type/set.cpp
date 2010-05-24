@@ -767,6 +767,8 @@ BSet BSet::operator << (const BSet& set) const
 //--------------------------------------------------------------------
 {
   BSet res  = (*this);
+//res.PutStruct(NULL);
+  res.struct_ = NULL;
   for(BInt n=1; n<=set.Card(); n++)
   { 
     res.AddElement(set[n]); 
