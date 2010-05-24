@@ -760,3 +760,15 @@
   return(aux);
 };
 
+////////////////////////////////////////////////////////////////////////////////
+  int BVMat::CholeskiMinRes (const BVMat& X, const BVMat& b, BVMat& a)
+//Find b as minimum residuals solution to linear regression
+// a = X*b + e; e ~ N(0,s); s>0
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat L;
+  if(CholeskiFactor(X, L, BVMat::ECFO_XtX, false, false, true)) { return(-1); }
+  BVMat Xtb = X.T()*b;
+  if(CholeskiSolve(L,Xtb,a, BVMat::ECSS_PtLLtP)) { return(-2); }
+  return(0);
+};

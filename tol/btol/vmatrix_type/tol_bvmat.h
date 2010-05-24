@@ -725,6 +725,7 @@ public:
   static int CholeskiSolve (const BVMat& L,const BVMat& B,
                             BVMat& X, const BText&sys);
   static int CholeskiInv   (const BVMat& X, BVMat& Xi);
+  static int CholeskiMinRes(const BVMat& X, const BVMat& b, BVMat& a);
   
 private:
   static void bRd_choFac_X  (const BVMat& X, BVMat& L,

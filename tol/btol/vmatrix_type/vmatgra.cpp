@@ -2107,6 +2107,26 @@ void BVMatCholeskiInv::CalcContens()
   assert(contens_.Check());
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatCholeskiMinimumResiduals);
+DefExtOpr(1, BVMatCholeskiMinimumResiduals, "CholeskiMinimumResiduals", 
+  2, 2, "VMatrix VMatrix", 
+  "(VMatrix M, VMatrix B)",
+  I2("Applies the Cholesky decomposition to solve X in the linear "
+     "regresion M*X=B+e ",
+     "Aplica la descomposición de Cholesky para resolver X en la "
+     "regresión lineal M*X=B+e."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatCholeskiMinimumResiduals::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BVMat& M = VMat(Arg(1));
+  const BVMat& B = VMat(Arg(2));
+  BVMat::CholeskiMinRes(M,B,contens_);
+}
+
+
 /*------------------------------------------------------------------------------
   vmat_iterative.cpp: Iterative methods for solving linear problems
 ------------------------------------------------------------------------------*/
