@@ -550,7 +550,7 @@ BBool LinearStep(      BMatrix<BDat>& dX,
 //--------------------------------------------------------------------
 {
   BInt r = J.Rows(), c = J.Columns();
-  dX = MinimumResidualsSolve(J,-dY);
+  dX = gsl_MinimumResidualsSolve(J,-dY);
   BMatrix<BDat> test = J.T()*(J*dX+dY);
   BDat testErr = FrobeniusNormU(test.Data());
   BBool ok = testErr < Sqrt(DEpsilon());
@@ -561,7 +561,7 @@ BBool LinearStep(      BMatrix<BDat>& dX,
     BMatrix<BDat> U(r, c), V(c, c), B;
     BDat anorm;
     LanczosBidiagonalization(J, U, B, V, anorm);
-    dX = V*MinimumResidualsSolve(B,-(dY.T()*U).T());
+    dX = V*gsl_MinimumResidualsSolve(B,-(dY.T()*U).T());
     test = J.T()*(J*dX+dY);
     testErr = FrobeniusNormU(test.Data());
     ok = testErr < Sqrt(DEpsilon());
