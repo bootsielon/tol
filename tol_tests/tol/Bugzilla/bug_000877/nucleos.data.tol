@@ -1,0 +1,782 @@
+/* -*- mode: c++ -*- */
+
+Set Include( "config.tol" );
+Set Include( "../dataaccess/data.frame.tol" );
+Set Include( "../dataaccess/dbconnection.tol" );
+
+NameBlock LoaderDataEstimTarifa( NameBlock dbconn,
+                                     NameBlock args )
+{
+  Text tarifa = args::tarifa;
+  Real null_tarifa = getOptArg( args, "null_tarifa", 0 );
+  Real lower_vol3g = getOptArg( args, "lower_vol3g", -1 );
+  Real lower_duracion_voz = getOptArg( args, "lower_duracion_voz", -1 );
+  Real lower_cob_ba = getOptArg( args, "lower_cob_ba", -1 );
+  Real lower_cob_3g = getOptArg( args, "lower_cob_3g", -1 );
+  Real lower_cob_2g = getOptArg( args, "lower_cob_2g", -1 );
+  Text file.suffix = getOptArg( args, "file.suffix", "" );
+  Text select_category = getOptArg( args, "select_category", "" );
+  Set select_regions = getOptArg( args, "select_regions", Copy(Empty) );
+  Real needs_where = 0;
+  Text cond_v3g = If( lower_vol3g < 0,
+                      "", " AND qt_vol_datos_umts>" << lower_vol3g );
+  Text cond_duracion_voz =
+    If( lower_duracion_voz < 0,
+        "",
+        " AND qt_duracion_voz_gprs + qt_duracion_voz_umts>"<<
+        lower_duracion_voz );
+  Text cond_cob_ba = If( lower_vol3g < 0,
+                          "", " AND perc_cob_ba>" << lower_cob_ba );
+  Text cond_cob_3g = If( lower_cob_3g < 0,
+                          "", " AND perc_cob_umts>" << lower_cob_3g );
+  Text cond_cob_2g = If( lower_cob_2g < 0,
+                          "", " AND perc_cob_gprs>" << lower_cob_2g );
+  Text cond_region =
+    Case(
+         select_category == "", {
+           Text ""
+         },
+         select_category == "CCAA", {
+           sab.codautonomia = If( Card(select_regions), {
+               Text rr = If( needs_where,
+                 { Real needs_where:=0; Text " WHERE " },
+                 Text " AND " ) +
+                 "sab.codautonomia in " + 
+                 BinGroup( "+",
+                           [[ "('" + select_regions[1] + "'" ]] <<
+                           Set For( 2, Card( select_regions), Text( Real k ) {
+                               Text ",'" + select_regions[ k ] + "'"
+                                 } ) << [[ ")" ]] )
+                 }, Text "" )
+         },
+         select_category == "PROV", {
+           Warning( "select_category = \"PROV\" no ha sido implementado todavia" );
+           Text ""
+         },
+         1 == 1, {
+           Warning( "select_category = " + select_category + " es invalido. Se asume no seleccion." );
+           Text ""
+         } );
+  Text query =
+"
+SELECT 
+ tab.cnuc,
+ qt_lineas_datos_gprs_tarifa,
+ qt_lineas_datos_gprs as qt_lineas_datos_gprs_nucleo,
+ qt_lineas_datos_umts_tarifa,
+ qt_lineas_datos_umts as qt_lineas_datos_umts_nucleo,
+ qt_vol_datos_gprs_tarifa/(1024*1024) AS qt_vol_datos_gprs_tarifa, 
+ qt_vol_datos_gprs/(1024*1024) AS qt_vol_datos_gprs_nucleo, 
+ qt_vol_datos_umts_tarifa/(1024*1024) AS qt_vol_datos_umts_tarifa,
+ qt_vol_datos_umts/(1024*1024) AS qt_vol_datos_umts_nucleo,
+ qt_vol_datos_gprs_pot_tarifa/(1024*1024) AS qt_vol_datos_gprs_pot_tarifa,
+ qt_vol_datos_gprs_pot/(1024*1024) AS qt_vol_datos_gprs_pot_nucleo,
+ qt_vol_datos_umts_pot_tarifa/(1024*1024) AS qt_vol_datos_umts_pot_tarifa, 
+ qt_vol_datos_umts_pot/(1024*1024) AS qt_vol_datos_umts_pot_nucleo,
+ qt_lineas_datos_censored AS qt_lineas_datos_censored_nucleo ,
+ qt_vol_datos_umts_censored/(1024*1024) AS qt_vol_datos_umts_censored_nucleo,
+ qt_lineas_voz_gprs_tarifa,
+ qt_lineas_voz_gprs  AS qt_lineas_voz_gprs_nucleo,
+ qt_lineas_voz_umts_tarifa,
+ qt_lineas_voz_umts  AS qt_lineas_voz_umts_nucleo,
+ qt_duracion_voz_gprs_tarifa, 
+ qt_duracion_voz_gprs  AS qt_duracion_voz_gprs_nucleo, 
+ qt_duracion_voz_umts_tarifa,
+ qt_duracion_voz_umts  AS qt_duracion_voz_umts_nucleo,
+ qt_llamadas_voz_gprs_tarifa,
+ qt_llamadas_voz_gprs  AS qt_llamadas_voz_gprs_nucleo,
+ qt_llamadas_voz_umts_tarifa, 
+ qt_llamadas_voz_umts  AS qt_llamadas_voz_umts_nucleo, 
+ perc_cob_gprs, perc_cob_umts,
+ tab.locales AS QT_LOCALES,
+ tab.accesostotales AS QT_RTB_TOTAL,
+ tab.adsltotales AS QT_ADSL_TOTAL,
+ tab.accesosempresas AS QT_RTB_NRES,
+ tab.adslempresas AS QT_ADSL_NRES,
+ CASE WHEN qt_poblacion IS NULL THEN 0 ELSE qt_poblacion END as qt_poblacion,
+ CASE WHEN qt_lineas_rtb IS NULL THEN 0 ELSE qt_lineas_rtb END as qt_lineas_rtb,
+ CASE WHEN perc_cob_ba IS NULL THEN 0 ELSE perc_cob_ba END as perc_cob_ba,
+ CASE WHEN perc_cob_ba IS NULL THEN 0 
+      WHEN perc_cob_ba < 0.5 THEN 0 
+	  WHEN perc_cob_ba >= 0.5 THEN 1 ELSE NULL END as ind_perc_cob_ba,
+ qt_pob_no_cob_ba, 
+ tipol_muni,
+ CASE WHEN  \"numero emplazamientos UMTS datos\" IS NULL THEN 0 ELSE \"numero emplazamientos UMTS datos\" END AS qt_emps_3g,
+ tipo,
+ CASE WHEN \"TOTAL VIVIENDAS\" IS NULL OR \"TOTAL VIVIENDAS\" < 0 THEN 0 ELSE \"TOTAL VIVIENDAS\" END AS qt_viviendas_tot,
+ CASE WHEN accesosrtbcorr IS NULL THEN 0 ELSE accesosrtbcorr END AS qt_rtb
+FROM table_nucleo_modelo_agr_tarifa_092009 tab
+     INNER JOIN
+     sabana sab
+     ON tab.cnuc = sab.cnuc
+WHERE qt_poblacion > 0 AND tarifa='" + tarifa + "'" + 
+    cond_v3g + cond_duracion_voz + cond_cob_ba + cond_cob_3g + cond_cob_2g + cond_region;
+  Text msg = "Cargando datos por nucleo para la tarifa '" + tarifa + "'";
+  Text file.prefix =
+    "data.nucleos.tarifa."+Replace( tarifa, " ", "_" )+file.suffix;
+  NameBlock loader =
+    CreateDataLoader.SQL( dbconn, query, msg, file.prefix,
+                          ConfigNucleos::data.dir )
+  
+};
+
+// NameBlock loader = LoaderDataForTarifa( RaDe3G.DB::rade3g, "Big Screen" );
+// Set bs.data = loader::LoadData( 0 );
+// 
+
+NameBlock LoaderDataForecastNucleo( NameBlock dbconn,
+                                    NameBlock args )
+{
+  Real lower_vol3g = getOptArg( args, "lower_vol3g", -1 );
+  Real lower_duracion_voz = getOptArg( args, "lower_duracion_voz", -1 );
+  Real lower_cob_ba = getOptArg( args, "lower_cob_ba", -1 );
+  Real lower_cob_3g = getOptArg( args, "lower_cob_3g", -1 );
+  Real lower_cob_2g = getOptArg( args, "lower_cob_2g", -1 );
+  Text file.suffix = getOptArg( args, "file.suffix", "" );
+  Text select_category = getOptArg( args, "select_category", "" );
+  Set select_regions = getOptArg( args, "select_regions", Copy(Empty) );
+  Real needs_where = 1;
+  Text cond_v3g =
+    If( lower_vol3g < 0,
+        "", {
+          If( needs_where,
+            { Real needs_where:=0;Text " WHERE " },
+            Text " AND " ) +
+            "qt_vol_datos_umts>" << lower_vol3g } );
+  Text cond_duracion_voz =
+    If( lower_duracion_voz < 0,
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        "qt_duracion_voz_gprs + qt_duracion_voz_umts>"<<
+        lower_duracion_voz );
+  Text cond_cob_ba =
+    If( lower_cob_ba < 0,
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        "perc_cob_ba>" << lower_cob_ba );
+  Text cond_region =
+    Case(
+         select_category == "", {
+           Text ""
+         },
+         select_category == "CCAA", {
+           sab.codautonomia = If( Card(select_regions), {
+               Text rr = If( needs_where,
+                 { Real needs_where:=0; Text " WHERE " },
+                 Text " AND " ) +
+                 "sab.codautonomia in " + 
+                 BinGroup( "+",
+                           [[ "('" + select_regions[1] + "'" ]] <<
+                           Set For( 2, Card( select_regions), Text( Real k ) {
+                               Text ",'" + select_regions[ k ] + "'"
+                                 } ) << [[ ")" ]] )
+                 }, Text "" )
+         },
+         select_category == "PROV", {
+           Warning( "select_category = \"PROV\" no ha sido implementado todavia" );
+           Text ""
+         },
+         1 == 1, {
+           Warning( "select_category = " + select_category + " es invalido. Se asume no seleccion." );
+           Text ""
+         } );
+  Text query =
+"
+SELECT 
+ tab.cnuc,
+ CASE WHEN qt_lineas_datos_gprs IS NULL THEN 0 ELSE qt_lineas_datos_gprs END AS qt_lineas_datos_gprs_nucleo,
+ CASE WHEN qt_lineas_datos_umts IS NULL THEN 0 ELSE qt_lineas_datos_umts END AS qt_lineas_datos_umts_nucleo,
+ CASE WHEN qt_vol_datos_gprs IS NULL THEN 0 ELSE qt_vol_datos_gprs/(1024*1024) END AS qt_vol_datos_gprs_nucleo, 
+ CASE WHEN qt_vol_datos_umts IS NULL THEN 0 ELSE qt_vol_datos_umts/(1024*1024) END AS qt_vol_datos_umts_nucleo,
+ CASE WHEN qt_vol_datos_gprs_pot IS NULL THEN 0 ELSE qt_vol_datos_gprs_pot/(1024*1024) END AS qt_vol_datos_gprs_pot_nucleo,
+ CASE WHEN qt_vol_datos_umts_pot IS NULL THEN 0 ELSE qt_vol_datos_umts_pot/(1024*1024) END AS qt_vol_datos_umts_pot_nucleo,
+ CASE WHEN qt_lineas_datos_censored IS NULL THEN 0 ELSE qt_lineas_datos_censored END AS qt_lineas_datos_censored_nucleo ,
+ CASE WHEN qt_vol_datos_umts_censored IS NULL THEN 0 
+      ELSE qt_vol_datos_umts_censored/(1024*1024) END AS qt_vol_datos_umts_censored_nucleo,
+ CASE WHEN qt_lineas_voz_gprs IS NULL THEN 0 ELSE qt_lineas_voz_gprs END AS qt_lineas_voz_gprs_nucleo,
+ CASE WHEN qt_lineas_voz_umts IS NULL THEN 0 ELSE qt_lineas_voz_umts END AS qt_lineas_voz_umts_nucleo,
+ CASE WHEN qt_duracion_voz_gprs IS NULL THEN 0 ELSE qt_duracion_voz_gprs END AS qt_duracion_voz_gprs_nucleo, 
+ CASE WHEN qt_duracion_voz_umts IS NULL THEN 0 ELSE qt_duracion_voz_umts END AS qt_duracion_voz_umts_nucleo,
+ CASE WHEN qt_llamadas_voz_gprs IS NULL THEN 0 ELSE qt_llamadas_voz_gprs END AS qt_llamadas_voz_gprs_nucleo,
+ CASE WHEN qt_llamadas_voz_umts IS NULL THEN 0 ELSE qt_llamadas_voz_umts END AS qt_llamadas_voz_umts_nucleo, 
+ CASE WHEN perc_cob_gprs IS NULL THEN 0 ELSE perc_cob_gprs END AS perc_cob_gprs,
+ CASE WHEN perc_cob_umts IS NULL OR perc_cob_umts < 1 THEN 1 ELSE perc_cob_umts END AS perc_cob_umts,
+ tab.locales AS QT_LOCALES,
+ tab.accesostotales AS QT_RTB_TOTAL,
+ tab.adsltotales AS QT_ADSL_TOTAL,
+ tab.accesosempresas AS QT_RTB_NRES,
+ tab.adslempresas AS QT_ADSL_NRES,
+ CASE WHEN qt_poblacion IS NULL THEN 0 ELSE qt_poblacion END AS qt_poblacion,
+ CASE WHEN qt_lineas_rtb IS NULL THEN 0 ELSE qt_lineas_rtb END AS qt_lineas_rtb,
+ CASE WHEN perc_cob_ba IS NULL THEN 0 ELSE perc_cob_ba END AS perc_cob_ba,
+ CASE WHEN perc_cob_ba IS NULL THEN 0 
+      WHEN perc_cob_ba < 0.5 THEN 0 
+	  WHEN perc_cob_ba >= 0.5 THEN 1 ELSE NULL END as ind_perc_cob_ba,
+ CASE WHEN qt_pob_no_cob_ba IS NULL THEN 0 ELSE qt_pob_no_cob_ba END AS qt_pob_no_cob_ba,
+ CASE WHEN tipol_muni IS NULL THEN 0 ELSE tipol_muni END AS tipol_muni,
+ CASE WHEN \"numero emplazamientos UMTS datos\" IS NULL THEN 0 ELSE \"numero emplazamientos UMTS datos\" END AS qt_emps_3g,
+ CASE WHEN tipo IS NULL THEN 0 ELSE tipo END AS tipo,
+ CASE WHEN \"TOTAL VIVIENDAS\" IS NULL OR \"TOTAL VIVIENDAS\" < 0 THEN 0 ELSE \"TOTAL VIVIENDAS\" END AS qt_viviendas_tot,
+ CASE WHEN accesosrtbcorr IS NULL THEN 0 ELSE accesosrtbcorr END AS qt_rtb 
+FROM table_nucleo_modelo_092009 tab
+     INNER JOIN
+     sabana sab
+     ON tab.cnuc = sab.cnuc" +
+cond_v3g + cond_duracion_voz + cond_cob_ba + cond_region ;
+  Text msg = "Cargando datos para prediccion por nucleo";
+  Text file.prefix =
+    "data.nucleos."+file.suffix;
+  NameBlock loader =
+    CreateDataLoader.SQL( dbconn, query, msg, file.prefix,
+                          ConfigNucleos::data.dir )
+  
+};
+
+// NameBlock loader = LoaderDataForTarifa( RaDe3G.DB::rade3g, "Big Screen" );
+// Set bs.data = loader::LoadData( 0 );
+// 
+
+NameBlock LoaderDataNucleos( NameBlock dbconn,
+                            NameBlock args )
+{
+  Real lower_vol3g = getOptArg( args, "lower_vol3g", -1 );
+  Real lower_duracion_voz = getOptArg( args, "lower_duracion_voz", -1 );
+  Real lower_cob_ba = getOptArg( args, "lower_cob_ba", -1 );
+  Real lower_cob_3g = getOptArg( args, "lower_cob_3g", -1 );
+  Real lower_cob_2g = getOptArg( args, "lower_cob_2g", -1 );
+  Real is_estim = getOptArg( args, "is_estim", 0 );
+  Text file.suffix = getOptArg( args, "file.suffix", "" );
+  Text select_category = getOptArg( args, "select_category", "" );
+  Set select_regions = getOptArg( args, "select_regions", Copy(Empty) );
+  Real needs_where = 1;
+  Text cond_v3g =
+    If( lower_vol3g < 0,
+        "", {
+          If( needs_where,
+            { Real needs_where:=0;Text " WHERE " },
+            Text " AND " ) +
+            "qt_vol_datos_umts>" << lower_vol3g } );
+  Text cond_duracion_voz =
+    If( lower_duracion_voz < 0,
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        "qt_duracion_voz_gprs + qt_duracion_voz_umts>"<<
+        lower_duracion_voz );
+  Text cond_cob_ba =
+    If( lower_cob_ba < 0,
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        "perc_cob_ba>" << lower_cob_ba );
+  Text cond_cob_3g =
+    If( !is_estim | (lower_cob_3g < 0),
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        " perc_cob_umts>" << lower_cob_3g );
+  Text cond_cob_2g =
+    If( !is_estim | (lower_cob_2g < 0),
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        " perc_cob_gprs>" << lower_cob_2g );
+  Text var_cob_3g  =
+    If( !is_estim,
+        "CASE WHEN perc_cob_umts IS NULL OR perc_cob_umts <" << lower_cob_3g
+        <<  " THEN " << lower_cob_3g
+        << " ELSE perc_cob_umts END AS perc_cob_umts,", "perc_cob_umts," );
+  Text cond_region =
+    Case(
+         select_category == "", {
+           Text ""
+         },
+         select_category == "CCAA", {
+           sab.codautonomia = If( Card(select_regions), {
+               Text rr = If( needs_where,
+                 { Real needs_where:=0; Text " WHERE " },
+                 Text " AND " ) +
+                 "sab.codautonomia in " + 
+                 BinGroup( "+",
+                           [[ "('" + select_regions[1] + "'" ]] <<
+                           Set For( 2, Card( select_regions), Text( Real k ) {
+                               Text ",'" + select_regions[ k ] + "'"
+                                 } ) << [[ ")" ]] )
+                 }, Text "" )
+         },
+         select_category == "PROV", {
+           Warning( "select_category = \"PROV\" no ha sido implementado todavia" );
+           Text ""
+         },
+         1 == 1, {
+           Warning( "select_category = " + select_category + " es invalido. Se asume no seleccion." );
+           Text ""
+         } );
+  Text query =
+"
+SELECT 
+ tab.cnuc,
+ CASE WHEN qt_lineas_datos_gprs IS NULL THEN 0 ELSE qt_lineas_datos_gprs END AS qt_lineas_datos_gprs_nucleo,
+ CASE WHEN qt_lineas_datos_umts IS NULL THEN 0 ELSE qt_lineas_datos_umts END AS qt_lineas_datos_umts_nucleo,
+ CASE WHEN qt_vol_datos_gprs IS NULL THEN 0 ELSE qt_vol_datos_gprs/(1024*1024) END AS qt_vol_datos_gprs_nucleo, 
+ CASE WHEN qt_vol_datos_umts IS NULL THEN 0 ELSE qt_vol_datos_umts/(1024*1024) END AS qt_vol_datos_umts_nucleo,
+ CASE WHEN qt_vol_datos_gprs_pot IS NULL THEN 0 ELSE qt_vol_datos_gprs_pot/(1024*1024) END AS qt_vol_datos_gprs_pot_nucleo,
+ CASE WHEN qt_vol_datos_umts_pot IS NULL THEN 0 ELSE qt_vol_datos_umts_pot/(1024*1024) END AS qt_vol_datos_umts_pot_nucleo,
+ CASE WHEN qt_lineas_datos_censored IS NULL THEN 0 ELSE qt_lineas_datos_censored END AS qt_lineas_datos_censored_nucleo ,
+ CASE WHEN qt_vol_datos_umts_censored IS NULL THEN 0 
+      ELSE qt_vol_datos_umts_censored/(1024*1024) END AS qt_vol_datos_umts_censored_nucleo,
+ CASE WHEN qt_lineas_voz_gprs IS NULL THEN 0 ELSE qt_lineas_voz_gprs END AS qt_lineas_voz_gprs_nucleo,
+ CASE WHEN qt_lineas_voz_umts IS NULL THEN 0 ELSE qt_lineas_voz_umts END AS qt_lineas_voz_umts_nucleo,
+ CASE WHEN qt_duracion_voz_gprs IS NULL THEN 0 ELSE qt_duracion_voz_gprs END AS qt_duracion_voz_gprs_nucleo, 
+ CASE WHEN qt_duracion_voz_umts IS NULL THEN 0 ELSE qt_duracion_voz_umts END AS qt_duracion_voz_umts_nucleo,
+ CASE WHEN qt_llamadas_voz_gprs IS NULL THEN 0 ELSE qt_llamadas_voz_gprs END AS qt_llamadas_voz_gprs_nucleo,
+ CASE WHEN qt_llamadas_voz_umts IS NULL THEN 0 ELSE qt_llamadas_voz_umts END AS qt_llamadas_voz_umts_nucleo, 
+ CASE WHEN perc_cob_gprs IS NULL THEN 0 ELSE perc_cob_gprs END AS perc_cob_gprs,"+var_cob_3g+
+"tab.locales AS QT_LOCALES,
+ tab.accesostotales AS QT_RTB_TOTAL,
+ tab.adsltotales AS QT_ADSL_TOTAL,
+ tab.accesosempresas AS QT_RTB_NRES,
+ tab.adslempresas AS QT_ADSL_NRES,
+ CASE WHEN qt_poblacion IS NULL THEN 0 ELSE qt_poblacion END AS qt_poblacion,
+ CASE WHEN qt_lineas_rtb IS NULL THEN 0 ELSE qt_lineas_rtb END AS qt_lineas_rtb,
+ CASE WHEN perc_cob_ba IS NULL THEN 0 ELSE perc_cob_ba END AS perc_cob_ba, 
+ CASE WHEN perc_cob_ba IS NULL THEN 0 
+      WHEN perc_cob_ba < 0.5 THEN 0 
+	  WHEN perc_cob_ba >= 0.5 THEN 1 ELSE NULL END as ind_perc_cob_ba,
+ CASE WHEN qt_pob_no_cob_ba IS NULL THEN 0 ELSE qt_pob_no_cob_ba END AS qt_pob_no_cob_ba,
+ CASE WHEN tipol_muni IS NULL THEN 0 ELSE tipol_muni END AS tipol_muni,
+ CASE WHEN \"numero emplazamientos UMTS datos\" IS NULL THEN 0 ELSE \"numero emplazamientos UMTS datos\" END AS qt_emps_3g,
+ CASE WHEN tipo IS NULL THEN 0 ELSE tipo END AS tipo,
+ CASE WHEN \"TOTAL VIVIENDAS\" IS NULL OR \"TOTAL VIVIENDAS\" < 0 THEN 0 ELSE \"TOTAL VIVIENDAS\" END AS qt_viviendas_tot,
+ CASE WHEN accesosrtbcorr IS NULL THEN 0 ELSE accesosrtbcorr END AS qt_rtb 
+FROM table_nucleo_modelo_092009 tab
+     INNER JOIN
+     sabana sab
+     ON tab.cnuc = sab.cnuc" +
+cond_v3g + cond_duracion_voz + cond_cob_ba + cond_cob_3g + cond_cob_2g + cond_region;
+  Text msg = "Cargando datos para " +
+    If( is_estim, "estimacion ", "prediccion " ) + "por nucleo";
+  Text file.prefix =
+    "data.nucleos." + If( is_estim, "estim", "forecast" );
+  NameBlock loader =
+    CreateDataLoader.SQL( dbconn, query, msg, file.prefix,
+                          ConfigNucleos::data.dir )
+  
+};
+
+NameBlock LoaderDataNucleosWeightedPobRTB( NameBlock dbconn,
+                                           NameBlock args )
+{
+  Real lower_vol3g = getOptArg( args, "lower_vol3g", -1 );
+  Real lower_duracion_voz = getOptArg( args, "lower_duracion_voz", -1 );
+  Real lower_cob_ba = getOptArg( args, "lower_cob_ba", -1 );
+  Real lower_cob_3g = getOptArg( args, "lower_cob_3g", -1 );
+  Real lower_cob_2g = getOptArg( args, "lower_cob_2g", -1 );
+  Real is_estim = getOptArg( args, "is_estim", 0 );
+  Text file.suffix = getOptArg( args, "file.suffix", "" );
+  Text select_category = getOptArg( args, "select_category", "" );
+  Set select_regions = getOptArg( args, "select_regions", Copy(Empty) );
+  Text cond_pob = " where qt_poblacion < 100000"
+    //" where qt_poblacion  1000000";
+  Real needs_where = 0;
+  Text cond_v3g =
+    If( lower_vol3g < 0,
+        "", {
+          If( needs_where,
+            { Real needs_where:=0;Text " WHERE " },
+            Text " AND " ) +
+            "qt_vol_datos_umts>" << lower_vol3g } );
+  Text cond_duracion_voz =
+    If( lower_duracion_voz < 0,
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        "qt_duracion_voz_gprs + qt_duracion_voz_umts>"<<
+        lower_duracion_voz );
+  Text cond_cob_ba =
+    If( lower_cob_ba < 0,
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        "perc_cob_ba>" << lower_cob_ba );
+  Text cond_cob_3g =
+    If( !is_estim | (lower_cob_3g < 0),
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        " perc_cob_umts>" << lower_cob_3g );
+  Text cond_cob_2g =
+    If( !is_estim | (lower_cob_2g < 0),
+        "",
+        If( needs_where,
+          { Real needs_where:=0;Text " WHERE " },
+          Text " AND " ) +
+        " perc_cob_gprs>" << lower_cob_2g );
+  Text var_cob_3g  =
+    If( !is_estim,
+        "CASE WHEN perc_cob_umts <" << lower_cob_3g
+        <<  " THEN " << lower_cob_3g
+        << " ELSE perc_cob_umts END AS perc_cob_umts,", "perc_cob_umts," );
+  Text cond_region =
+    Case(
+         select_category == "", {
+           Text ""
+         },
+         select_category == "CCAA", {
+           sab.codautonomia = If( Card(select_regions), {
+               Text rr = If( needs_where,
+                 { Real needs_where:=0; Text " WHERE " },
+                 Text " AND " ) +
+                 "sab.codautonomia in " + 
+                 BinGroup( "+",
+                           [[ "('" + select_regions[1] + "'" ]] <<
+                           Set For( 2, Card( select_regions), Text( Real k ) {
+                               Text ",'" + select_regions[ k ] + "'"
+                                 } ) << [[ ")" ]] )
+                 }, Text "" )
+         },
+         select_category == "PROV", {
+           Warning( "select_category = \"PROV\" no ha sido implementado todavia" );
+           Text ""
+         },
+         1 == 1, {
+           Warning( "select_category = " + select_category + " es invalido. Se asume no seleccion." );
+           Text ""
+         } );
+  Text query =
+"
+SELECT 
+ tab.cnuc,
+ tab.qt_lineas_datos_gprs as qt_lineas_datos_gprs_nucleo,
+ tab.qt_lineas_datos_umts as qt_lineas_datos_umts_nucleo,
+ tab.qt_vol_datos_gprs/(1024*1024) as qt_vol_datos_gprs_nucleo,
+ tab.qt_vol_datos_umts/(1024*1024) as qt_vol_datos_umts_nucleo,
+ tab.qt_vol_datos_gprs_pot/(1024*1024) AS qt_vol_datos_gprs_pot_nucleo,
+ tab.qt_vol_umts_pot_1/(1024*1024) AS qt_vol_datos_umts_pot_nucleo,
+ tab.qt_lineas_datos_censored as qt_lineas_datos_censored_nucleo ,
+ tab.qt_vol_datos_umts_censored/(1024*1024) AS qt_vol_datos_umts_censored_nucleo,
+ tab.qt_lineas_voz_gprs AS qt_lineas_voz_gprs_nucleo,
+ tab.qt_lineas_voz_umts AS qt_lineas_voz_umts_nucleo,
+ tab.qt_duracion_voz_gprs AS qt_duracion_voz_gprs_nucleo, 
+ tab.qt_duracion_voz_umts AS qt_duracion_voz_umts_nucleo,
+ tab.qt_llamadas_voz_gprs AS qt_llamadas_voz_gprs_nucleo,
+ tab.qt_llamadas_voz_umts AS qt_llamadas_voz_umts_nucleo, 
+ tab.perc_cob_gprs,"+var_cob_3g+
+"tab.qt_locales,
+ tab.qt_rtb_total0,
+ tab.qt_adsl_total,
+ tab.qt_rtb_empresas AS QT_RTB_NRES,
+ tab.qt_adsl_empresa AS QT_ADSL_NRES,
+ tab.qt_poblacion,
+ tab.qt_rtb_total AS qt_lineas_rtb,
+ tab.perc_cob_ba, 
+ CASE WHEN perc_cob_ba < 0.5  THEN 0 
+      WHEN perc_cob_ba >= 0.5 THEN 1 END as ind_perc_cob_ba,
+ tab.qt_pob_no_cob_ba,
+ tab.tipol_muni,
+ -- sab.\"numero emplazamientos UMTS datos\" IS NULL THEN 0 ELSE \"numero emplazamientos UMTS datos\" END AS qt_emps_3g,
+ -- CASE WHEN tipo IS NULL THEN 0 ELSE tipo END AS tipo,
+ --CASE WHEN sab.\"TOTAL VIVIENDAS\" IS NULL OR sab.\"TOTAL VIVIENDAS\" < 0 THEN 0 ELSE sab.\"TOTAL VIVIENDAS\" END AS qt_viviendas_tot
+ tab.qt_viviendas_total
+ --,CASE WHEN accesosrtbcorr IS NULL THEN 0 ELSE accesosrtbcorr END AS qt_rtb 
+FROM 
+table_modelo_nucleo_102009 tab
+-- view_nucleo_modelo_wpobrtb_agr_102009 tab
+--     INNER JOIN
+--     sabana sab
+--     ON tab.cnuc = sab.cnuc\n" +cond_pob+
+cond_v3g + cond_duracion_voz + cond_cob_ba + cond_cob_3g + cond_cob_2g + cond_region;
+  Text msg = "Cargando datos para " +
+    If( is_estim, "estimacion ", "prediccion " ) + "por nucleo";
+  Text file.prefix =
+    "data.nucleos." + If( is_estim, "estim", "forecast" );
+  NameBlock loader =
+    CreateDataLoader.SQL( dbconn, query, msg, file.prefix,
+                          ConfigNucleos::data.dir )
+  
+};
+
+/*
+NameBlock estim_args = 
+[[
+  Real lower_vol3g = -1;
+  Real lower_duracion_voz = 1000;
+  Real lower_cob_ba = 0.05;
+  Real lower_cob_3g = 0.2;
+  Real is_estim = 1;
+  Real rebuild = 1
+]];
+
+NameBlock forecast_args = 
+[[
+  Real lower_vol3g = -1;
+  Real lower_duracion_voz = -1;
+  Real lower_cob_ba = -1;
+  Real lower_cob_3g = 0.2;
+  Real is_estim = 0;
+  Real rebuild = 1
+]];
+
+NameBlock ld = LoaderDataNucleo( RaDe3G.DB::rade3g, forecast_args );
+Set data = ld::LoadData( 1 );
+ */
+
+Real BuildVariablePredictors( NameBlock df )
+{
+  Matrix V2G_NUC = df::GetColumn( "QT_VOL_DATOS_GPRS_NUCLEO" );
+  Matrix V3G_NUC = df::GetColumn( "QT_VOL_DATOS_UMTS_NUCLEO" );
+  Matrix V2G_POT_NUC = df::GetColumn( "QT_VOL_DATOS_GPRS_POT_NUCLEO" );
+  Matrix V3G_POT_NUC = df::GetColumn( "QT_VOL_DATOS_UMTS_POT_NUCLEO" );
+  Matrix V3G_CENSORED_NUC = df::GetColumn( "QT_VOL_DATOS_UMTS_CENSORED_NUCLEO" );
+
+  Matrix L3G_CENSORED_NUC = df::GetColumn( "QT_LINEAS_DATOS_CENSORED_NUCLEO" );
+  Matrix L3G_NUC = df::GetColumn( "QT_LINEAS_DATOS_UMTS_NUCLEO" );
+
+  Matrix LINEAS_VOZ_2G = df::GetColumn( "QT_LINEAS_VOZ_GPRS_NUCLEO" );
+  Matrix LINEAS_VOZ_3G = df::GetColumn( "QT_LINEAS_VOZ_UMTS_NUCLEO" );
+  Matrix LINEAS_VOZ_TOT = LINEAS_VOZ_2G + LINEAS_VOZ_3G;
+
+  Matrix DURACION_VOZ_2G = df::GetColumn( "QT_DURACION_VOZ_GPRS_NUCLEO" );
+  Matrix DURACION_VOZ_3G = df::GetColumn( "QT_DURACION_VOZ_UMTS_NUCLEO" );
+  Matrix DURACION_VOZ_TOT = DURACION_VOZ_2G + DURACION_VOZ_3G;
+
+  Matrix LLAMADAS_VOZ_2G = df::GetColumn( "QT_LLAMADAS_VOZ_GPRS_NUCLEO" );
+  Matrix LLAMADAS_VOZ_3G = df::GetColumn( "QT_LLAMADAS_VOZ_UMTS_NUCLEO" );
+  Matrix LLAMADAS_VOZ_TOT = LLAMADAS_VOZ_2G + LLAMADAS_VOZ_3G;
+
+  Matrix PERC_COB_2G = df::GetColumn( "PERC_COB_GPRS" );
+  Matrix PERC_COB_3G = df::GetColumn( "PERC_COB_UMTS" );
+
+  Matrix LINEAS_RTB = df::GetColumn( "QT_LINEAS_RTB" );
+  Matrix PERC_COB_BA = df::GetColumn( "PERC_COB_BA" );
+  Matrix IND_PERC_COB_BA = df::GetColumn( "IND_PERC_COB_BA" );
+
+  // Matrix RTB = df::GetColumn( "QT_RTB" );
+  
+  Matrix ADSL_TOT = df::GetColumn( "QT_ADSL_TOTAL" );
+  
+  // Matrix EMPS_3G = df::GetColumn( "QT_EMPS_3G" );
+  
+  // Matrix TIPO = df::GetColumn( "TIPO" );
+  
+  // Matrix VIVIENDAS_TOT = df::GetColumn( "QT_VIVIENDAS_TOT" );
+  
+  Matrix POB = df::GetColumn( "QT_POBLACION" );
+  Matrix POB_NO_COB_BA = df::GetColumn( "QT_POB_NO_COB_BA" );
+
+  Matrix MARKET = POB + LINEAS_RTB*2;
+  Matrix Log_MARKET = Log( MARKET + 1 );
+  Real df::AppendVariable( Log_MARKET );
+  Matrix COMPETENCIA = RatioPen( DURACION_VOZ_TOT, MARKET );
+  Matrix Log_COMPETENCIA = Log( COMPETENCIA + 1 );
+  Real df::AppendVariable( Log_COMPETENCIA );
+  
+  Matrix TIPOL_MUNI = df::GetColumn( "TIPOL_MUNI" );
+  Real max_tipol_ = MatMax( TIPOL_MUNI );
+  Matrix MAX_TIPOL = Rand( Rows( TIPOL_MUNI ), 1, max_tipol_, max_tipol_ );
+  Matrix TRUE_IND = Not( Not( TIPOL_MUNI ) );
+  Matrix TIPOL_MUNI_INCR = ( MAX_TIPOL - TIPOL_MUNI + 1 ) $* TRUE_IND;
+  Matrix Log_TIPOL_MUNI_INCR = Log( TIPOL_MUNI_INCR + 1 );
+  Real df::AppendVariable( TIPOL_MUNI_INCR );
+  Real df::AppendVariable( Log_TIPOL_MUNI_INCR );
+
+  Matrix Log_V2G_NUC = Log( V2G_NUC + 1 );
+  Real df::AppendVariable( Log_V2G_NUC );
+
+  Matrix Log_V3G_NUC = Log( V3G_NUC + 1 );
+  Real df::AppendVariable( Log_V3G_NUC );
+
+  Matrix Log_L3G_NUC = Log( L3G_NUC + 1 );
+  Real df::AppendVariable( Log_L3G_NUC );
+  
+  Matrix Log_V2G_POT_NUC = Log( V2G_POT_NUC + 1 );
+  Real df::AppendVariable( Log_V2G_POT_NUC );
+
+  Matrix Log_V3G_POT_NUC = Log( V3G_POT_NUC + 1 );
+  Real df::AppendVariable( Log_V3G_POT_NUC );
+
+  Matrix V3GxL3G_POT_NUC = RatioPen( V3G_POT_NUC, L3G_NUC );
+  Matrix Log_V3GxL3G_POT_NUC = Log( V3GxL3G_POT_NUC + 1 );
+  Real df::AppendVariable( Log_V3GxL3G_POT_NUC );
+  
+  Matrix Log_V3G_CENSORED_NUC = Log( V3G_CENSORED_NUC + 1 );
+  Real df::AppendVariable( Log_V3G_CENSORED_NUC );  
+
+  Matrix Log_L3G_CENSORED_NUC = Log( L3G_CENSORED_NUC + 1 );
+  Real df::AppendVariable( Log_L3G_CENSORED_NUC );
+  
+  Matrix V3GxL3G_CENSORED = RatioPen( V3G_CENSORED_NUC, L3G_CENSORED_NUC );
+  Matrix Log_V3GxL3G_CENSORED_NUC = Log( V3GxL3G_CENSORED + 1 );
+  Real df::AppendVariable( Log_V3GxL3G_CENSORED_NUC );  
+  
+  Matrix Log_LINEAS_VOZ_2G = Log( LINEAS_VOZ_2G + 1 );
+  Real df::AppendVariable( Log_LINEAS_VOZ_2G );
+
+  Matrix Log_LINEAS_VOZ_3G = Log( LINEAS_VOZ_3G + 1 );
+  Real df::AppendVariable( Log_LINEAS_VOZ_3G );
+
+  Matrix Log_LINEAS_VOZ_TOT = Log( LINEAS_VOZ_TOT + 1 );
+  Real df::AppendVariable( Log_LINEAS_VOZ_TOT );
+
+  Matrix Log_DURACION_VOZ_2G = Log( DURACION_VOZ_2G + 1 );
+  Real df::AppendVariable( Log_DURACION_VOZ_2G );
+
+  Matrix Log_DURACION_VOZ_3G = Log( DURACION_VOZ_3G + 1 );
+  Real df::AppendVariable( Log_DURACION_VOZ_3G );
+
+  Matrix Log_DURACION_VOZ_TOT = Log( DURACION_VOZ_TOT + 1 );
+  Real df::AppendVariable( Log_DURACION_VOZ_TOT );
+
+  Matrix Log_LLAMADAS_VOZ_2G = Log( LLAMADAS_VOZ_2G + 1 );
+  Real df::AppendVariable( Log_LLAMADAS_VOZ_2G );
+
+  Matrix Log_LLAMADAS_VOZ_3G = Log( LLAMADAS_VOZ_3G + 1 );
+  Real df::AppendVariable( Log_LLAMADAS_VOZ_3G );
+
+  Matrix Log_LLAMADAS_VOZ_TOT = Log( LLAMADAS_VOZ_TOT + 1 );
+  Real df::AppendVariable( Log_LLAMADAS_VOZ_TOT );
+
+  Matrix Log_PERC_COB_2G = Log( PERC_COB_2G + 1 );
+  Real df::AppendVariable( Log_PERC_COB_2G );
+  
+  Matrix Log_PERC_COB_3G = Log( PERC_COB_3G + 1 );
+  Real df::AppendVariable( Log_PERC_COB_3G );
+
+  Matrix Log_LINEAS_RTB = Log( LINEAS_RTB + 1 );
+  Real df::AppendVariable( Log_LINEAS_RTB );
+
+  //Matrix Log_RTB = Log( RTB + 1 );
+  //Real df::AppendVariable( Log_RTB );
+  
+  Matrix Log_PERC_COB_BA = Log( PERC_COB_BA + 1 );
+  Real df::AppendVariable( Log_PERC_COB_BA );
+
+  Matrix Log_IND_PERC_COB_BA = Log( IND_PERC_COB_BA + 1 );
+  Real df::AppendVariable( Log_IND_PERC_COB_BA );  
+  
+  Matrix Log_ADSL_TOT = Log( ADSL_TOT + 1 );
+  Real df::AppendVariable( Log_ADSL_TOT );
+  
+  Matrix PENET_ADSL_POB = RatioPen( ADSL_TOT, POB );
+  Matrix Log_PENET_ADSL_POB = Log( PENET_ADSL_POB + 1 );
+  Real df::AppendVariable( Log_PENET_ADSL_POB );  
+  
+  //Matrix Log_EMPS_3G = Log( EMPS_3G + 1 );
+  //Real df::AppendVariable( Log_EMPS_3G );
+
+  // Matrix Log_VIVIENDAS_TOT = Log( VIVIENDAS_TOT + 1 );
+  // Real df::AppendVariable( Log_VIVIENDAS_TOT );
+  
+  Matrix Log_POB = Log( POB + 1 );
+  Real df::AppendVariable( Log_POB );
+  
+  Matrix Log_POB_NO_COB_BA = Log( POB_NO_COB_BA + 1 );
+  Real df::AppendVariable( Log_POB_NO_COB_BA );
+
+  Matrix COB_BA_POB = RatioPen( POB - POB_NO_COB_BA, POB );
+  Matrix Log_COB_BA_POB = Log( COB_BA_POB + 1 );
+  Matrix INTER_COB = Log_COB_BA_POB $* Log_PERC_COB_3G ;
+  Real df::AppendVariable( Log_COB_BA_POB );
+  Real df::AppendVariable( INTER_COB )
+  
+  //Matrix Log_TIPO = Log( TIPO + 1 );
+  //Real df::AppendVariable( Log_TIPO )
+};
+
+Real BuildVariableOutputs( NameBlock df )
+{
+  Matrix V2G_TAR = df::GetColumn( "QT_VOL_DATOS_GPRS_TARIFA" );
+  Matrix V3G_TAR = df::GetColumn( "QT_VOL_DATOS_UMTS_TARIFA" );
+  Matrix V2G_POT_TAR = df::GetColumn( "QT_VOL_DATOS_GPRS_POT_TARIFA" );
+  Matrix V3G_POT_TAR = df::GetColumn( "QT_VOL_DATOS_UMTS_POT_TARIFA" );
+
+  Matrix DURACION_VOZ_2G_TAR = df::GetColumn( "QT_DURACION_VOZ_GPRS_TARIFA" );
+  Matrix DURACION_VOZ_3G_TAR = df::GetColumn( "QT_DURACION_VOZ_UMTS_TARIFA" );
+  Matrix DURACION_VOZ_TOT_TAR = DURACION_VOZ_2G_TAR + DURACION_VOZ_3G_TAR;
+  
+  Matrix LINEAS_VOZ_2G_TAR = df::GetColumn( "QT_LINEAS_VOZ_GPRS_TARIFA" );
+  Matrix LINEAS_VOZ_3G_TAR = df::GetColumn( "QT_LINEAS_VOZ_UMTS_TARIFA" );
+  Matrix LINEAS_VOZ_TOT_TAR = LINEAS_VOZ_2G_TAR + LINEAS_VOZ_3G_TAR;
+ 
+  Matrix LINEAS_DATOS_3G_TAR = df::GetColumn( "QT_LINEAS_DATOS_UMTS_TARIFA" );
+ 
+  Matrix Log_V2G_TAR = Log( V2G_TAR + 1 );
+  Real df::AppendVariable( Log_V2G_TAR );
+
+  Matrix Log_V3G_TAR = Log( V3G_TAR + 1 );
+  Real df::AppendVariable( Log_V3G_TAR );
+  
+  Matrix Log_V2G_POT_TAR = Log( V2G_POT_TAR + 1 );
+  Real df::AppendVariable( Log_V2G_POT_TAR );
+
+  Matrix Log_V3G_POT_TAR = Log( V3G_POT_TAR + 1 );
+  Real df::AppendVariable( Log_V3G_POT_TAR );
+  
+  Matrix Log_DURACION_VOZ_TOT_TAR = Log( DURACION_VOZ_TOT_TAR + 1 );
+  Real df::AppendVariable( Log_DURACION_VOZ_TOT_TAR );
+   
+  Matrix Log_LINEAS_VOZ_TOT_TAR = Log( LINEAS_VOZ_TOT_TAR + 1 );
+  Real df::AppendVariable( Log_LINEAS_VOZ_TOT_TAR );
+  
+  Matrix V3GxL3G_TAR = RatioPen( V3G_TAR, LINEAS_DATOS_3G_TAR );
+  Matrix Log_V3GxL3G_TAR = Log( V3GxL3G_TAR + 1 );
+  Real df::AppendVariable( Log_V3GxL3G_TAR );
+
+  Matrix Log_LINEAS_DATOS_3G_TAR = Log( LINEAS_DATOS_3G_TAR + 1 );
+  Real df::AppendVariable( Log_LINEAS_DATOS_3G_TAR )  
+};
+
+Set BuildDataNucleosEstimTarifa( NameBlock args )
+{
+  NameBlock loader = LoaderDataEstimTarifa( RaDe3G.DB::rade3g, args );
+  Real rebuild = getOptArg( args, "rebuild", 1 );
+  Set data = loader::BuildDataFrame( rebuild );
+  Set If( Card( data ), {
+      NameBlock df = data[ 1 ];
+      Real df::SetObsIdColumn( "CNUC" );
+      Real BuildVariableOutputs( df );
+      Real BuildVariablePredictors( df );
+      data
+    }, data )
+};
+
+Set BuildDataNucleosForecast( NameBlock args )
+{
+  NameBlock loader = LoaderDataForecastNucleo( RaDe3G.DB::rade3g, args );
+  Real rebuild = getOptArg( args, "rebuild", 1 );
+ Set data = loader::BuildDataFrame( rebuild );
+  Set If( Card( data ), {
+      NameBlock df = data[ 1 ];
+      Real df::SetObsIdColumn( "CNUC" );
+      Real BuildVariablePredictors( df );
+      data
+    }, data )
+};
+
+Set BuildDataNucleos( NameBlock args )
+{
+  //NameBlock loader = LoaderDataNucleos( RaDe3G.DB::rade3g, args );
+  NameBlock loader = LoaderDataNucleosWeightedPobRTB( RaDe3G.DB::rade3g, args );
+  Real rebuild = getOptArg( args, "rebuild", 1 );
+  Set data = loader::BuildDataFrame( rebuild );
+  Set If( Card( data ), {
+      NameBlock df = data[ 1 ];
+      Real df::SetObsIdColumn( "CNUC" );
+      Real BuildVariablePredictors( df );
+      data
+    }, data )
+};
+
+// NameBlock args = [[ Text tarifa = "BigScreen" ]];
+// Set BuildDataNucleosTarifa( "Big Screen", 0 );

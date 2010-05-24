@@ -1,0 +1,247 @@
+/* -*- mode: c++ -*- */
+
+Set Include( "nucleos.data.tol" );
+Set Include( "nucleos.models.tol" );
+
+NameBlock bsr.config = BysMcmc::@Config::Default( 0 );
+
+//Text variable = "DUR_VOZ_TOT_NUCLEO";
+//Text variable = "L3G_BIG_SCREEN";
+Text variable = "V3G_TOT_NUCLEO";
+//Text variable = "L3G_TOT_NUCLEO";
+
+
+Set data_args =
+[[
+
+  NameBlock DUR_VOZ_TOT_NUCLEO = 
+  [[
+    NameBlock estim_args = [[
+      Real lower_vol3g = -1;
+      Real lower_duracion_voz = 500 * 60;
+      Real lower_cob_ba = -1;
+      Real lower_cob_3g = -1;
+      Real lower_cob_2g = -1;
+      Real is_estim = 1;
+      //Text select_category = "CCAA";
+      //Set select_regions = [[ "05" ]];
+      Real rebuild = 1
+    ]];
+    Code build_data_estim = FindCode( "Set", "BuildDataNucleos" );
+    Set mdl_info =
+     [[ "Nucleos.DurVoz",
+         FindCode( "NameBlock", "BuildModelNucleosDuracionVOZ" ) ]];
+    NameBlock fore_args = [[
+      Real lower_vol3g = -1;
+      Real lower_duracion_voz = -1;
+      Real lower_cob_ba = -1;
+      Real lower_cob_3g =  1;
+      //Real lower_cob_2g =  1;
+      Real is_estim = 0;
+      //Text select_category = "CCAA";
+      //Set select_regions = [[ "05" ]];
+      Real rebuild = 1
+    ]];
+    Code build_data_fore = FindCode( "Set", "BuildDataNucleos" )
+  ]];
+
+  NameBlock V3G_TOT_NUCLEO = 
+  [[
+    NameBlock estim_args = [[
+      Real lower_vol3g = 5*1024*1024;
+      Real lower_duracion_voz = -1;
+      Real lower_cob_ba = -1;
+      Real lower_cob_3g = 0.2;
+      //Text select_category = "CCAA";
+      //Set select_regions = [[ "05" ]];
+      Real is_estim = 1;
+      Real rebuild = 1
+    ]];
+    Code build_data_estim = FindCode( "Set", "BuildDataNucleos" );
+    Set mdl_info =
+     [[ "Nucleos.V3G",
+         FindCode( "NameBlock", "BuildModelNucleosV3G" ) ]];
+    NameBlock fore_args = [[
+      Real lower_vol3g = -1;
+      Real lower_duracion_voz = -1;
+      Real lower_cob_ba = -1;
+      Real lower_cob_3g = 1;
+      //Text select_category = "CCAA";
+      //Set select_regions = [[ "05" ]]; // [[ "16", "17" ]];
+      Real is_estim = 0;
+      Real rebuild = 1
+    ]];
+    Code build_data_fore = FindCode( "Set", "BuildDataNucleos" )
+  ]];
+
+  NameBlock L3G_TOT_NUCLEO = 
+  [[
+    NameBlock estim_args = [[
+      Real lower_vol3g = 5*1024*1024;
+      Real lower_duracion_voz = -1;
+      Real lower_cob_ba = -1;
+      Real lower_cob_3g = 0.2;
+      Real is_estim = 1;
+      Real rebuild = 1
+    ]];
+    Code build_data_estim = FindCode( "Set", "BuildDataNucleos" );
+    Set mdl_info =
+     [[ "Nucleos.L3G",
+         FindCode( "NameBlock", "BuildModelNucleosL3G" ) ]];
+    NameBlock fore_args = [[
+      Real lower_vol3g = -1;
+      Real lower_duracion_voz = -1;
+      Real lower_cob_ba = -1;
+      Real lower_cob_3g = 0.2;
+      Real is_estim = 0;
+      Real rebuild = 1
+    ]];
+    Code build_data_fore = FindCode( "Set", "BuildDataNucleos" )
+  ]];
+
+  NameBlock L3G_BIG_SCREEN = 
+  [[
+    NameBlock estim_args = 
+    [[
+      Text tarifa = "Big Screen";
+      Real lower_vol3g = 5*1024*1024;
+      Real lower_duracion_voz = -1;
+      Real lower_cob_ba = -1;
+      Real lower_cob_3g = 0.2;
+      //Text select_category = "CCAA";
+      //Set select_regions = [[ "05" ]];
+      Text file.suffix = ".estim";
+      Real rebuild = 1
+    ]];
+    Code build_data_estim = FindCode( "Set", "BuildDataNucleosEstimTarifa" );
+    Set mdl_info =
+     [[ "Nucleos.Big_Screen.LinDat3G",
+        FindCode( "NameBlock", "BuildModelNucleosLineasDatos3GTarifa" ) ]];
+    NameBlock fore_args = 
+    [[
+      Real lower_vol3g = -1;
+      Real lower_duracion_voz = -1;
+      Real lower_cob_ba = -1;
+      Real lower_cob_3g = 1;
+      //Text select_category = "CCAA";
+      //Set select_regions = [[ "05" ]];
+      Text file.suffix = ".Big_Screen.forecast";
+      Real rebuild = 1
+    ]];
+    Code build_data_fore = FindCode( "Set", "BuildDataNucleosForecast" )
+  ]]
+
+]];
+
+/*
+Set data_estim = 
+  Set BuildDataNucleosEstimTarifa( estim_args );
+*/
+
+NameBlock variable_info = data_args[ variable ];
+Set data_estim = variable_info::build_data_estim( variable_info::estim_args );
+
+//Real Stop;
+
+Real If( Not( Card( data_estim ) ), {
+    Error( "No hay datos para estimar" );
+    Real Stop
+  } );
+
+//Real Stop;
+
+NameBlock df_estim = data_estim[ 1 ];
+// Real Stop;
+
+Set models = BuildTreeModels( df_estim, [[ variable_info::mdl_info ]] );
+
+Set estim = EstimTreeModels( models, bsr.config, 0 );
+
+Matrix histY = Frequency( (estim[1])::Y, 20 );
+
+
+/*
+Set mdl.info =
+  [[
+    [[ "Nucleos." + Replace( estim_args::tarifa, " ", "_" ) + ".LinVoz",
+       FindCode( "NameBlock", "BuildModelNucleosLineasVOZTarifa" ) ]]
+  ]];
+*/
+
+/*
+Set mdl.info =
+  [[
+    [[ "Nucleos." + Replace( estim_args::tarifa, " ", "_" ) + ".DurVoz",
+       FindCode( "NameBlock", "BuildModelNucleosDuracionVOZTarifa" ) ]]
+  ]];
+*/
+
+/*
+Set mdl.info =
+  [[
+    [[ "Nucleos." + Replace( estim_args::tarifa, " ", "_" ) + ".VolDat3G",
+       FindCode( "NameBlock", "BuildModelNucleosV3GTarifa" ) ]]
+  ]];
+*/
+
+/*
+Set mdl.info =
+  [[
+    [[ "Nucleos." + Replace( estim_args::tarifa, " ", "_" ) + ".VolDat3G",
+       FindCode( "NameBlock", "BuildModelNucleosV3GTarifa.ByLines" ) ]]
+  ]];
+*/
+
+/*
+Set mdl.info =
+  [[
+    [[ "Nucleos." + Replace( estim_args::tarifa, " ", "_" ) + ".LinDat3G",
+       FindCode( "NameBlock", "BuildModelNucleosLineasDatos3GTarifa" ) ]]
+  ]];
+*/
+
+/*
+Set models = BuildTreeModels( df_estim, mdl.info );
+
+Set estim = EstimTreeModels( models, bsr.config, 0 );
+
+Real Stop;
+*/
+
+// a partir de aqui es prevision
+
+Set data_pred = variable_info::build_data_fore( variable_info::fore_args );
+
+Real If( Not( Card( data_pred ) ), {
+    Error( "No hay datos para predecir" );
+    Real Stop
+  } );
+
+NameBlock df_pred = data_pred[ 1 ];
+Set forecast = ForecastFromEstim( estim[ 1 ], df_pred );
+Text output_name = (models[ 1 ])::_.output.name;
+Text header = JoinTexts( [[ df_pred::GetObsIdColumnName(?),
+                            Sub( output_name, 5, TextLength( output_name ) ),
+                            output_name ]] <<
+                         forecast::predictors, ";" );
+
+Text file_export = TmpDir + "cnuc_fore_" + variable + ".csv";
+Set BMTFile([[ forecast::ID | forecast::Yhat1 | forecast::Yhat0 | forecast::X ]],
+            file_export,
+            header, CIERTO, ";", "\n" );
+WriteLn( "La prediccion ha sido exportada a " + file_export );
+
+/*
+
+Matrix Y = estim[1]["Y"];
+
+Set stats = SetOfReal(
+Real output.min = MatMin(Y),
+Real output.max = MatMax(Y),
+Real output.var = MatVar(Y)
+);
+
+Matrix stand.res.hist = Frequency( estim[1][1], 100 ) * (1/estim[1]["sigma"]);
+
+
+*/
