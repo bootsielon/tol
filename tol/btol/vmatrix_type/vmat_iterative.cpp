@@ -62,7 +62,7 @@ BVMat BVMat::MinimumResidualsSolve(const BVMat& A,
     return(x); 
   }
 
-  if(maxIter<=0) { maxIter=BDat::MaxIter(); }
+  if(maxIter<=0) { maxIter = (int)BDat::MaxIter().Value(); }
   if(chop<0) { chop = sqrt(DEpsilon()/cols); }
   double tolerance = chop*chop;
   if((rows<cols)||(rows!=r.Rows())) { return(x); }
