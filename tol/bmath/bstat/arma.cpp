@@ -591,29 +591,6 @@ BInt ArrayARIMAFactorCmp(const void* v1, const void* v2)
     test = A*gp-m;
     err  = test.FrobeniusNorm();
 
-//*
-  //TRZ(psi); TRZ(m); TRZ(A);
-/*
-    if(p>100)
-    {
-      gp   = MinimumResidualsSolve(A,m); 
-      test = A*gp-m;
-      err  = test.FrobeniusNorm();
-    }
-    else
-    {
-      BMatrix<BDat> Ai = ShermanMorrisonInverse(A);
-      gp   = Ai*m;
-      test = A*gp-m;
-      err  = test.FrobeniusNorm();
-      if(!err.IsKnown() || (err>Sqrt(DEpsilon())))
-      {
-        gp   = MinimumResidualsSolve(A,m,gp); 
-        test = A*gp-m;
-        err  = test.FrobeniusNorm();
-      }
-    }
-*/
     bool closeToNonStationary = false;
     if(err.IsUnknown()  || (err>Sqrt((1+p)*DEpsilon()))) 
     {
