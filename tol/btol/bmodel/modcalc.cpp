@@ -1425,21 +1425,31 @@ void BModel::CleanInterruptions(BMatrix<BDat>& A, BBool recalculate)
     }
     PIW_ = PIW_.Sub(n-N,0,N,I);   
     BMat CI(I,1);  CI.SetAllValuesTo(0);
-    CI = MinimumResidualsSolve(PIW_,-A_, CI);
+    CI = CholeskiMinimumResidualsSolve(PIW_,-A_);
     BBool CI_isKnown = FrobeniusNormU(CI.Data()).IsKnown();
     BMat err = PIW_.T()*(PIW_*CI+A_);
     BDat test = err.MaxAbsNorm(); 
     if(!CI_isKnown ||(test>Sqrt(BDat::Tolerance())))
     {
-    //Std(BText("\nBModel::CleanInterruptions test>Sqrt(BDat::Tolerance())"));
+      Warning(BText("There are numerical problems to calculate values for "
+      "interruptions by means of Cholesky decomposition. So SVD method will "
+      "be tried and process could become slower"));
       BText method = BText("Golub_Reinsch_Mod");
       BMat U(N,I), V(I,I);
       BDiagMatrix<BDat> D(I,1.0), Dp;
       gsl_SingularValueDecomposition(PIW_,U,D,V, method);
+    //Std(BText("\nBModel::CleanInterruptions U=\n")+U.Name()+"\n");
+    //Std(BText("\nBModel::CleanInterruptions D=\n")+D.Name()+"\n");
+    //Std(BText("\nBModel::CleanInterruptions V=\n")+V.Name()+"\n");
       Dp=D.P(Sqrt(DEpsilon()));
-      CI=V*Dp*(A_.T()*U).T();
+    //Std(BText("\nBModel::CleanInterruptions Dp=\n")+Dp.Name()+"\n");
+      CI=-V*Dp*(A_.T()*U).T();
+    //Std(BText("\nBModel::CleanInterruptions CI=\n")+CI.T().Name()+"\n");
+    //Std(BText("\nBModel::CleanInterruptions PIW_*CI=\n")+(PIW_*CI).T().Name()+"\n");
       err = PIW_.T()*(PIW_*CI+A_);
+    //Std(BText("\nBModel::CleanInterruptions err=\n")+(err).T().Name()+"\n");
       test = err.MaxAbsNorm(); 
+    //Std(BText("\nBModel::CleanInterruptions test=")+test+"\n");
     }
     CI_isKnown = FrobeniusNormU(CI.Data()).IsKnown();
     if(!CI_isKnown ||(test>Sqrt(BDat::Tolerance())))
@@ -1459,7 +1469,7 @@ void BModel::CleanInterruptions(BMatrix<BDat>& A, BBool recalculate)
       BMat PIWC = PIW_*CI;
       A_  = E + PIWC;
       sigma = FrobeniusNormU(A.Data());
-    //Std(BText("\nCleanInterruptions sigma after = ") + sigma);
+      //Std(BText("\nCleanInterruptions sigma after = ") + sigma);
       if(sigma.IsKnown() && 
          !gsl_isinf(sigma.Value()) && 
          !gsl_isnan(sigma.Value()) && 
