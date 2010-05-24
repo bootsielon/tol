@@ -70,7 +70,7 @@ DMat TridiagMinimumResidualsSolve(const BSymMatrix<double>& A,
  */
 //--------------------------------------------------------------------
 {
-//BTimer tm("MinimumResidualsSolve");
+//BTimer tm("TridiagMinimumResidualsSolve");
     BInt k, m=A.Rows(), n=A.Columns();
     if((m<n)||(m!=b0.Rows())) { return(x0); }
     DMat x  = x0;
