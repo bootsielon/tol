@@ -308,11 +308,7 @@ struct BTolOprProfiler
                  "No se puedo abrir para escritura el archivo ")+path+ 
               I2(" (trying again after 10 seconds)",
                  " (reintentando tras 10 segundos)"));
-        #ifdef _MSC_VER
-        Sleep(10000);
-        #else
-        sleep(10);
-        #endif
+        BSys::SleepMilliSeconds(10000);
         dump = fopen(path,"w");
       }
     }

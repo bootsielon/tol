@@ -979,3 +979,38 @@ BInt LongRandom(BInt max)
     return(BInt(r*BReal(max)));
 }
 
+
+//--------------------------------------------------------------------
+//Make inactive waiting until they have passed a given number of milliseconds
+void BSys::SleepMilliSeconds(unsigned int milliseconds)
+//--------------------------------------------------------------------
+{
+#ifdef _MSC_VER
+  Sleep(milliseconds);
+#else
+  usleep(milliseconds*1000);
+#endif
+}
+
+//--------------------------------------------------------------------
+//Opens a file and locks it
+//If cannot do it then sleeps and retries again until time is out
+FILE* FOpenAndLock(
+   const char *filename,
+   const char *mode,
+   unsigned int timeOutInMilliseconds,
+   char* errorMessage)
+//--------------------------------------------------------------------
+{
+  FILE* fil=NULL;
+  return(fil);
+}
+
+//--------------------------------------------------------------------
+//Unlocks a file and close it
+i FUnlockAndClose(FILE* file)
+//--------------------------------------------------------------------
+{
+  FILE* fil=NULL;
+  return(fil);
+}

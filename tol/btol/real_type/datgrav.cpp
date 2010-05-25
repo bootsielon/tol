@@ -2060,19 +2060,18 @@ void BDatTextToReal::CalcContens()
   DefExtOpr(1, BDatSleep, "Sleep", 1, 1, "Real",
   I2("(Real seconds)",
      "(Real segundos)"),
-  I2("Sleeps TOL process while the specified time.",
+  I2("Sleeps TOL process while the specified time. Minimum unit is "
+     "millsecond, I.E. 0.001 seconds ",
      "El proceso TOL se queda en estado de espera no activa durante el "
-     "tiempo especificado. El proceso no consumirá CPU en este periodo."),
+     "tiempo especificado. El proceso no consumirá CPU en este periodo. "
+     "La unidad mínima de tiempo es el milisegundo, o sea, 0.001 "
+     "segundos"),
      BOperClassify::Conversion_);
   void BDatSleep::CalcContens()
 //--------------------------------------------------------------------
 {
   contens_ = Dat(Arg(1));
-#ifdef _MSC_VER
-  Sleep((BInt)contens_.Value()*1000);
-#else
-  sleep((BInt)contens_.Value());
-#endif
+  BSys::SleepMilliSeconds((BInt)contens_.Value()*1000);
 }
 
 

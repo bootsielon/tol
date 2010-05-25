@@ -156,7 +156,17 @@ public:
   //! Return the time elapsed since program started
   static double	SessionTime();
   static const BDate& SessionInitTime();
-
+  //Make inactive waiting until they have passed a given number of milliseconds
+  static void SleepMilliSeconds(unsigned int milliseconds);
+  //Opens a file and locks it
+  //If cannot do it then sleeps and retries again until time is out
+  static FILE* FOpenAndLock(
+   const char *filename,
+   const char *mode,
+   unsigned int timeOutInMilliseconds=0,
+   char* errorMessage=NULL);
+  //Unlocks a file and close it
+  static void FUnlockAndClose(FILE* file);
 };
 
 //! Generate a pseudo-random series of uniformely distributed in [0,1]
