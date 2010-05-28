@@ -185,6 +185,9 @@ public:
     CZipFileHeader* header = zip->CentralDir()[index_];
     header->SetTime(time);
     sh_.zip_.FlushBuffers();
+    sh_.zip_.OverwriteLocalHeader(index_);
+    sh_.zip_.RemoveCentralDirectoryFromArchive();
+    sh_.zip_.CommitChanges();
   }
   catch(CZipException ex)
   {
@@ -213,7 +216,6 @@ public:
   return(size);
 }
 
-
 //--------------------------------------------------------------------
   void BZipStream::Flush()
 /*! Must be called just one time before closing in write mode to get 
@@ -230,6 +232,7 @@ public:
 			//luego todo parece funcionar bien.
       //assert(index_>=0);
     }
+    sh_.zip_.CommitChanges();
 		sh_.zip_.FlushBuffers();
 	}
   catch(CZipException ex)
@@ -421,6 +424,25 @@ const BINT64& BZipStream::GetPos()
 //Std(BText("\nOpening ZIP ")+connection_);
   openMode_ = openMode;
   BText action = I2("'INVALID ACTION'", "'ACCIN INVLIDA'");
+  if(write)
+  {
+    BDir path = connection;
+    if(path.Exist()) 
+    { 
+      if(path.IsDir())
+      {
+        BText msg = I2("Cannot ","No se puede ")+action+" ZIP "+
+          connection_+" due it is an existant directory";
+        if(errorWarning) { Error(msg); }
+        else             { Warning(msg); }
+        return(false);
+      }
+      else
+      {
+        remove(connection); 
+      }
+    }
+  }
   try
   {
     if(read)
@@ -497,6 +519,13 @@ const BINT64& BZipStream::GetPos()
   BZipStream* fs = NULL;
   try
   {
+    if(openMode_==BSHOM_WRITE)
+    {
+      BArray<BText> arr;
+      arr.AllocBuffer(1);
+      arr[0] = name;
+      RemoveFiles(arr);
+    }
     fs = new BZipStream(*this);
     if(!fs->Open(title,name,openMode_,index))
     {
@@ -547,6 +576,7 @@ const BINT64& BZipStream::GetPos()
       CZipString str(files[n].String());
     //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 3.")+n+".1\n");
       files_.Add(str);
+      k++;
     //Std(BText("TRACE BZipStreamHandler::RemoveFiles() 3.")+n+".1\n");
     }
   }
