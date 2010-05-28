@@ -60,26 +60,45 @@ BFileDesc::BFileHashByHandle& BFileDesc::FileHandle()
 
 
 /////////////////////////////////////////////////////////////////////////////
- FILE* BFileDesc::CheckFileHandle(int handle, bool verbose, const BText& msg, 
-                                  BFileHashByHandle::const_iterator& found)
+ BFileDesc* BFileDesc::FindFileHandle(
+  int handle, bool verbose, const BText& msg, 
+  BFileHashByHandle::const_iterator& found)
 /////////////////////////////////////////////////////////////////////////////
 {
-  FILE* file;
+  BFileDesc* fd;
   found = FileHandle().find(handle);
   if(found==FileHandle().end())
   { 
-    file = NULL;
+    fd = NULL;
   }
   else
   {
-    file = found->second->file_;
+    fd = found->second;
   }
-  if(!file && verbose)
+  if(!fd && verbose)
   {
     Error(I2("Invalid file descriptor ",
              "Descriptor de fichero inválido ")+handle+"\n"+msg);
   }
-  return(file);
+  return(fd);
+};
+
+/////////////////////////////////////////////////////////////////////////////
+ BFileDesc* BFileDesc::FindFileHandle(
+   int handle, bool verbose, const BText& msg)
+/////////////////////////////////////////////////////////////////////////////
+{
+  BFileHashByHandle::const_iterator found;
+  return(FindFileHandle(handle, verbose, msg, found));
+};
+
+/////////////////////////////////////////////////////////////////////////////
+ FILE* BFileDesc::CheckFileHandle(int handle, bool verbose, const BText& msg, 
+                                  BFileHashByHandle::const_iterator& found)
+/////////////////////////////////////////////////////////////////////////////
+{
+  BFileDesc* fd = FindFileHandle(handle, verbose, msg, found);
+  return((fd)?fd->file_:NULL);
 };
 
 /////////////////////////////////////////////////////////////////////////////

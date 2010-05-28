@@ -163,10 +163,10 @@ public:
   static FILE* FOpenAndLock(
    const char *filename,
    const char *mode,
-   unsigned int timeOutInMilliseconds=0,
-   char* errorMessage=NULL);
+   unsigned int timeOutInMilliseconds,
+   char* errorMessage);
   //Unlocks a file and close it
-  static void FUnlockAndClose(FILE* file);
+  static bool FUnlockAndClose(FILE* file, const char *filename);
 };
 
 //! Generate a pseudo-random series of uniformely distributed in [0,1]

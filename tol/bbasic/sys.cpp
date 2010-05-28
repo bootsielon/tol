@@ -994,8 +994,24 @@ void BSys::SleepMilliSeconds(unsigned int milliseconds)
 
 //--------------------------------------------------------------------
 //Opens a file and locks it
-//If cannot do it then sleeps and retries again until time is out
-FILE* FOpenAndLock(
+static FILE* fOpenAndLock(
+   const char *filename,
+   const char *mode)
+//--------------------------------------------------------------------
+{
+  FILE* fil=NULL;
+  #ifdef _MSC_VER
+  fopen_s(&fil, filename, mode);
+  #else
+  fil = fopen(filename, mode);
+  #endif
+  return(fil);
+}
+
+//--------------------------------------------------------------------
+//Opens a file and locks it
+//If doesn't can do it then sleeps and retries again until time is out
+FILE* BSys::FOpenAndLock(
    const char *filename,
    const char *mode,
    unsigned int timeOutInMilliseconds,
@@ -1003,14 +1019,45 @@ FILE* FOpenAndLock(
 //--------------------------------------------------------------------
 {
   FILE* fil=NULL;
+  double sleep = 1.0;
+  double sleepCum = 0.0;
+  int tryNum = 0; 
+  bool ok = false;
+  do
+  {
+    #ifdef _MSC_VER
+    ok = fopen_s(&fil, filename, mode)==0;
+    #else
+    fil = fopen(filename, mode);
+    ok = fil!=NULL;
+    #endif
+    if(!ok)
+    {
+      fil = NULL;
+      BSys::SleepMilliSeconds((unsigned int)sleep);
+      sleepCum += sleep;
+      sleep = floor(1.1*sleep)+(1+timeOutInMilliseconds/100);
+      tryNum++;
+      Warning(BText("[BSys::FOpenAndLock] Retraying to open locked file ")+filename+" for "+tryNum+"-th time\n");
+    }
+  } while(!fil && (sleepCum<timeOutInMilliseconds));
+  if(!fil && errorMessage && errorMessage[0])
+  {
+    Error(BText("Cannot open file ")+filename+" in mode "+mode+"\n"+
+          errorMessage);
+  }
   return(fil);
 }
 
 //--------------------------------------------------------------------
-//Unlocks a file and close it
-i FUnlockAndClose(FILE* file)
+//Unlocks a file and closes it
+bool BSys::FUnlockAndClose(FILE* file, const char *filename)
 //--------------------------------------------------------------------
 {
-  FILE* fil=NULL;
-  return(fil);
+  if(fclose(file))
+  {
+    Error(BText("Cannot close file ")+filename);
+    return(false);
+  }
+  return(true);
 }

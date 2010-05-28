@@ -174,36 +174,22 @@ BSyntaxObject* BGraContensBase<BMat>::Casting(BSyntaxObject* obj)
 }
 #endif
 
+//Time out for open BBM files in milliseconds
+#define BBM_TimeOut 1000
+
 //--------------------------------------------------------------------
 void BBM_BinWrite(const BText& fileName, const BMat& M)
 //--------------------------------------------------------------------
 {
-  FILE* fil = fopen(fileName.String(),"wb");
-  if(!fil)
-  {
-    Error(I2("Cannot open for write BBM file ",
-             "No se pudo abrir para escritura el fichero BBM ")+
-          fileName);
-    return;
-  }
+  FILE* fil = BSys::FOpenAndLock(fileName.String(),"wb",
+   BBM_TimeOut, "Unexpected error writing to BBM file");
+  if(!fil) { return; } 
   BInt m = M.Rows();
   BInt n = M.Columns();
   fwrite(&m,sizeof(BInt),1,fil);
   fwrite(&n,sizeof(BInt),1,fil);
   fwrite(M.Data().Buffer(), sizeof(BDat), n*m, fil);
-#ifndef NDEBUG
-  int lastPos = ftell(fil);
-#endif
-  if(fclose(fil))
-  {
-    Error(I2("Cannot close after writing BBM file ",
-             "No se pudo cerrar despues de escribir el fichero BBM ")+
-          fileName);
-  };
-#ifndef NDEBUG
-  BInt fs = GetFileSize(fileName);
-  assert(fs==lastPos);
-#endif
+  if(!BSys::FUnlockAndClose(fil,fileName.String())) { return; }
   BBM_CheckSize("BBM_BinWrite",fileName,m,n);
 }
 
@@ -228,49 +214,32 @@ void BBM_BinAppend(const BText& fileName, const BMat& M)
   }
   
   /* open for overwrite */
-  if(!(fil = fopen(fileName.String(), "r+b"))) {
-    Error(I2("Cannot open (rewrite mode) BBM file ",
-       "No se pudo abrir (modo de sobreescritura) el fichero BBM ") + 
-    fileName);
-    return;
-  }
-  fpos_t pos = 0;
-  fsetpos(fil, &pos);
+  fil = BSys::FOpenAndLock(fileName.String(),"a+b",
+   BBM_TimeOut, "Unexpected error appending BBM file");
+  if(!fil) { return; } 
+  fpos_t pos;
+  pos = 0; fsetpos(fil, &pos); 
   fread(&rows,sizeof(BInt),1,fil);
   fread(&cols,sizeof(BInt),1,fil);
   rows2w = M.Rows();
   cols2w = M.Columns();
-  if(cols!=cols2w) {
+  if(cols!=cols2w) 
+  {
     Error("MatAppendFile: Different number of columns");
-    fclose(fil);
-    return;
   }
-  pos = 0;
-  fsetpos(fil, &pos);
-  rows += rows2w;
-  fwrite(&rows, sizeof(BInt), 1, fil);
-  fflush(fil);
-  fclose(fil);
-  fil = NULL;
-  for(int tryNum = 0; !fil && (tryNum < 1000); tryNum++)
+  else
   {
-    fil = fopen(fileName.String(), "ab");
+    rows += rows2w;
+    pos = rows*cols*sizeof(BDat)+2*sizeof(int); fsetpos(fil, &pos); 
+    fwrite(M.Data().Buffer(), sizeof(BDat), rows2w*cols2w, fil);
+    if(!BSys::FUnlockAndClose(fil,fileName.String())) { return; }
+    fil = BSys::FOpenAndLock(fileName.String(),"r+b",
+     BBM_TimeOut*10, "Unexpected error changing BBM file");
+    if(!fil) { return; } 
+    pos = 0; fsetpos(fil, &pos); 
+    fwrite(&rows, sizeof(BInt), 1, fil); 
   }
-  /* open for append */
-  if(!fil) {
-    Error(I2("Cannot open (append mode) BBM file ",
-       "No se pudo abrir (modo de insercion) el fichero BBM ") + 
-    fileName);
-    return;
-  }
-  fwrite(M.Data().Buffer(), sizeof(BDat), rows2w*cols2w, fil);
-  fflush(fil);
-  if(fclose(fil))
-  {
-    Error(I2("Cannot close after append BBM file ",
-             "No se pudo cerrar despues de añadir al fichero BBM ")+
-          fileName);
-  };
+  BSys::FUnlockAndClose(fil,fileName.String());
 //BBM_CheckSize("BBM_BinAppend",fileName,rows,cols);
 }
 
@@ -281,20 +250,16 @@ void BBM_BinRead(const BText& fileName, BMat& M,
 {
   BInt fs = GetFileSize(fileName);
 //Std(BText("\nBBM_BinRead ")+fileName+" bytes "+fs);
-  FILE* fil = fopen(fileName.String(),"rb");
-  if(!fil)
-  {
-    Error(I2("Cannot open for read BBM file ",
-             "No se pudo abrir para lectura el fichero BBM ")+
-          fileName);
-    return; 
-  }
+  FILE* fil = BSys::FOpenAndLock(fileName.String(),"rb",
+   BBM_TimeOut, "Unexpected error reading from BBM file");
+  if(!fil) { return; } 
+
   BInt i, m, n, mn;
   fread(&m,sizeof(BInt),1,fil);
   fread(&n,sizeof(BInt),1,fil);
   if(!m || !n) 
   { 
-    fclose(fil);
+    BSys::FUnlockAndClose(fil,fileName.String());
     return; 
   }
   int s = fs -2*sizeof(BInt);
@@ -305,12 +270,7 @@ void BBM_BinRead(const BText& fileName, BMat& M,
     M.Alloc(m,n);
     if(M.Rows()!=m) { return; }
     fread(M.GetData().GetBuffer(), sizeof(BDat), mn, fil);
-    if(fclose(fil))
-    {
-      Error(I2("Cannot close after reading BBM file ",
-               "No se pudo cerrar despues de leer el fichero BBM ")+
-            fileName);
-    };
+    if(!BSys::FUnlockAndClose(fil,fileName.String())) { return; }
   }
   //In TOL versions before 2007-01-15 structure page size = 8 => sizeof(BDat)=16
   else if(s==mn*(int)sizeof(BOis::BDatOld)) 
@@ -319,12 +279,7 @@ void BBM_BinRead(const BText& fileName, BMat& M,
     if(M.Rows()!=m) { return; }
     BArray<BOis::BDatOld> M_;
     fread(M_.GetBuffer(), sizeof(BOis::BDatOld), mn, fil);
-    if(fclose(fil))
-    {
-      Error(I2("Cannot close after reading BBM file ",
-               "No se pudo cerrar despues de leer el fichero BBM ")+
-            fileName);
-    };
+    if(!BSys::FUnlockAndClose(fil,fileName.String())) { return; }
     for(i=0; i<mn; i++)
     {
       if(M_(i).known_) { M.Data()(i) = M_(i).value_; }
@@ -342,12 +297,7 @@ void BBM_BinRead(const BText& fileName, BMat& M,
     char* buffer = new char[s];
     BDat* data   = M.GetData().GetBuffer();
     fread(buffer, 1, s, fil);
-    if(fclose(fil))
-    {
-      Error(I2("Cannot close after reading BBM file ",
-               "No se pudo cerrar despues de leer el fichero BBM ")+
-            fileName);
-    };
+    if(!BSys::FUnlockAndClose(fil,fileName.String())) { return; }
     for(i=0; i<mn; i++)
     {
     //if(!(i%n)) Std("\n");
@@ -370,13 +320,7 @@ void BBM_BinRead(const BText& fileName, BMat& M,
     "will be loaded");
     M.Alloc(m,n);
     fread(M.GetData().GetBuffer(), sizeof(BDat), mn, fil);
-    if(fclose(fil))
-    {
-      Error(I2("Cannot close after reading BBM file ",
-               "No se pudo cerrar despues de leer el fichero BBM ")+
-            fileName);
-    };
-
+    if(!BSys::FUnlockAndClose(fil,fileName.String())) { return; }
   }
   else
   {
@@ -385,7 +329,9 @@ void BBM_BinRead(const BText& fileName, BMat& M,
 }
 
 //--------------------------------------------------------------------
-void BBM_BinReadRows(FILE* fil, BMat& M, 
+void BBM_BinReadRows(FILE* fil, 
+                     const BText& fileName,
+                     BMat& M, 
                      int m, int n, 
                      int i, int r, int t=1)
 //--------------------------------------------------------------------
@@ -440,7 +386,9 @@ void BBM_BinReadRows(FILE* fil, BMat& M,
 }
 
 //--------------------------------------------------------------------
-void BBM_BinReadCell(FILE* fil, BDat& cell, 
+void BBM_BinReadCell(FILE* fil, 
+                     const BText& fileName,
+                     BDat& cell, 
                      int m, int n, 
                      int i, int j)
 //--------------------------------------------------------------------
@@ -454,7 +402,7 @@ void BBM_BinReadCell(FILE* fil, BDat& cell,
   if((0>i)||(i>=m)||
      (0>j)||(j>=n) ) 
   { 
-    fclose(fil);
+    BSys::FUnlockAndClose(fil,fileName.String());
     return; 
   }
   int pos = 2*sizeof(BInt)+(i*n+j)*sizeof(BDat);
@@ -469,22 +417,12 @@ void BBM_BinReadDimensions(const BText& fileName,
 {
   BInt fs = GetFileSize(fileName);
 //Std(BText("\nBBM_BinRead ")+fileName+" bytes "+fs);
-  FILE* fil = fopen(fileName.String(),"rb");
-  if(!fil)
-  {
-    Error(I2("Cannot open for read BBM file ",
-             "No se pudo abrir para lectura el fichero BBM ")+
-          fileName);
-    return; 
-  }
+  FILE* fil = BSys::FOpenAndLock(fileName.String(),"rb",
+   BBM_TimeOut, "Unexpected error reading from BBM file");
+  if(!fil) { return; } 
   fread(&rows,   sizeof(BInt),1,fil);
   fread(&columns,sizeof(BInt),1,fil);
-  if(fclose(fil))
-  {
-    Error(I2("Cannot close after reading BBM file ",
-             "No se pudo cerrar despues de leer el fichero BBM ")+
-          fileName);
-  };
+  BSys::FUnlockAndClose(fil,fileName.String());
 }
 
 //--------------------------------------------------------------------
@@ -648,26 +586,21 @@ void BMatReadRows::CalcContens()
   if(Arg(1)->Grammar()==GraReal())
   {
     int handle = (int)Real(Arg(1));
-    FILE* file = BFileDesc::CheckFileHandle(handle,true,
+    BFileDesc* fd = BFileDesc::FindFileHandle(handle,true,
       I2("Fail in ","Fallo en ")+"BMatReadRows");  
-    if(file)
+    if(fd)
     {
-      BBM_BinReadRows(file,contens_,m,n,i,r,t);
+      BBM_BinReadRows(fd->file_,fd->path_.String(),contens_,m,n,i,r,t);
     }
   }
   else
   {
     BText& path = Text(Arg(1));
-    file = fopen(path.String(),"rb");
-    if(!file)
-    {
-      Error(I2("Cannot open for MatReadRows BBM file ",
-               "No se pudo abrir para MatReadRows el fichero BBM ")+
-            path);
-      return; 
-    }
-    BBM_BinReadRows(file,contens_,m,n,i,r,t);
-    fclose(file);
+    file = BSys::FOpenAndLock(path.String(),"rb",
+      BBM_TimeOut, "Unexpected error reading from BBM file");
+    if(!file) { return; } 
+    BBM_BinReadRows(file,path.String(),contens_,m,n,i,r,t);
+    BSys::FUnlockAndClose(file,path.String());
   }
 }
 //--------------------------------------------------------------------
@@ -710,26 +643,21 @@ void BMatReadCell::CalcContens()
   if(Arg(1)->Grammar()==GraReal())
   {
     int handle = (int)Real(Arg(1));
-    FILE* file = BFileDesc::CheckFileHandle(handle,true,
+    BFileDesc* fd = BFileDesc::FindFileHandle(handle,true,
       I2("Fail in ","Fallo en ")+"MatReadCell");  
-    if(file)
+    if(fd)
     {
-      BBM_BinReadCell(file,contens_,m,n,i,j);
+      BBM_BinReadCell(fd->file_,fd->path_.String(),contens_,m,n,i,j);
     }
   }
   else
   {
     BText& path = Text(Arg(1));
-    file = fopen(path.String(),"rb");
-    if(!file)
-    {
-      Error(I2("Cannot open for MatReadCell BBM file ",
-               "No se pudo abrir para MatReadCell el fichero BBM ")+
-            path);
-      return; 
-    }
-    BBM_BinReadCell(file,contens_,m,n,i,j);
-    fclose(file);
+    file = BSys::FOpenAndLock(path.String(),"rb",
+     BBM_TimeOut, "Unexpected error reading from BBM file");
+    if(!file) { return; } 
+    BBM_BinReadCell(file,path.String(),contens_,m,n,i,j);
+    BSys::FUnlockAndClose(file,path.String());
   }
 }
 

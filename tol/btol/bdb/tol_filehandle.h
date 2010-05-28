@@ -43,6 +43,10 @@ public:
   { }
 
   static BFileHashByHandle& FileHandle();
+  static BFileDesc* FindFileHandle(int handle, bool verbose, const BText& msg, 
+                             BFileHashByHandle::const_iterator& found);
+
+  static BFileDesc* FindFileHandle(int handle, bool verbose, const BText& msg);
   static FILE* CheckFileHandle(int handle, bool verbose, const BText& msg, 
                              BFileHashByHandle::const_iterator& found);
 
