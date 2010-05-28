@@ -5,7 +5,7 @@ Real PutRandomSeed(0);
 // Creación de los datos
 
 Date begin = y2010;
-Date end = y2010m12d31;
+Date end = y2010m01d12;
 
 Serie residuals_gen = Gaussian(0, 1, C);
 
@@ -23,10 +23,9 @@ Serie noise_ = DifEq(ma/(dif*ar), residuals_);
 Serie residuals = SubSer(residuals_,begin, end);
 Serie noise = SubSer(noise_, begin, end);
 
-Date date = y2010m06;
-Real size = 10;
+Real size = 2;
 Set pulses = For(1, size, Serie(Real d) {
-  Date dt = Succ(date, C, d-IntRand(-100,100));
+  Date dt = Succ(begin, C, IntRand(3,CountS(noise)-3));
   Eval("Pulse_"<<dt+"=Pulse(dt,C)")
 });
 Serie zero1 = 1-SetSum(pulses);
@@ -42,6 +41,7 @@ Set mod1 = ModelDef(output1, 1,0,1,0,
   Copy(Empty), Copy(Empty));
 Set est1 = Estimate(mod1);
 
+/*
 Set results1 = BinGroup("<<", For(1, size, Set (Real d) {
   Date dt = Succ(date, C, d-1);
   Real omit = SerDat(est1[3][4], dt);

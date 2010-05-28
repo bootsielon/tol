@@ -115,7 +115,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   ]]};
   //Input matrix
   VMatrix _.X = Group("ConcatColumns",
-  EvalSet(_.linearParamInfo, VMatrix(Bsr.OneNode.LinearParamInfo lpi)
+  EvalSet(_.linearParamInfo, VMatrix(BysMcmc::@Bsr.OneNode.LinearParamInfo lpi)
   {
     Mat2VMat(_.data.handler[lpi->Name])
   }));
@@ -126,8 +126,8 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   //simply not exist if there are no known order relation
   Set _.orderRelation = [[
     //                      lower        <=  upper  
-    @Bsr.OrderRelation.Info("Input_4",       "Input_5"),
-    @Bsr.OrderRelation.Info("Input_5",       "Input_Pr_1_2")
+    BysMcmc::@Bsr.OrderRelation.Info("Input_4",       "Input_5"),
+    BysMcmc::@Bsr.OrderRelation.Info("Input_5",       "Input_Pr_1_2")
   ]]
 
 ]];

@@ -23,7 +23,7 @@ BysMcmc::@Config bsr.config =
 //MCMC dimensions
   Real mcmc.burnin = 200; 
   Real mcmc.sampleLength = 2000;
-  Real mcmc.cacheLength = 1;
+  Real mcmc.cacheLength = 10;
 //Basic master configuration
   Real basic.cholesky.epsilon = 1.E-13;
   Real basic.cholesky.warningFreq = 100;
@@ -36,9 +36,9 @@ BysMcmc::@Config bsr.config =
   Text bsr.arimaFilter = BysMcmc::Options::Arima.Filter::FastChol;
   Real bsr.arimaSkipIter = 1;
 
-  Real bsr.linBlk.MH.useAfterIter   = 10;
+  Real bsr.linBlk.MH.useAfterIter   = 9;
   Real bsr.linBlk.MH.maxRejected    = 3;
-  Real bsr.linBlk.MH.maxConsecutive = 100;
+  Real bsr.linBlk.MH.maxConsecutive = 9;
 
   Real bsr.linBlk.X.drop = 1.E-15;
   Real bsr.linBlk.usePreconditioning = 0;

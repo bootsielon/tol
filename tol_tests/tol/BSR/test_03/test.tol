@@ -30,7 +30,6 @@ WriteLn("Current Random Seed = "<<rndSeed);
 //Creates a random model and writes it in "parse.bsr"
 Set Include("load.tol");
 
-
 BysMcmc::@Config bsr.config = [[
   Real mcmc.sampleLength = 2000;
   Real mcmc.cacheLength = 100;
@@ -52,24 +51,14 @@ BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   BysMcmc::@Notifier::Null(0));
 
 //Real cycler::initialize(0);
-/*
-Real cycler::_.sampler::_.arm.blk::refreshFrequency    := 0.25;
-Real cycler::_.sampler::_.inpMis.blk::refreshFrequency := 0.25;
-Real cycler::_.sampler::_.outMis.blk::refreshFrequency := 0.25;
-*/
+//Real cycler::_.sampler::_.arm.blk::refreshFrequency    := 0.25;
+//Real cycler::_.sampler::_.inpMis.blk::refreshFrequency := 0.25;
+//Real cycler::_.sampler::_.outMis.blk::refreshFrequency := 0.25;
+
 
 BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
 
 Real estim::Run(0);
-/*
-Matrix U0.mcmc = cycler::_.sampler::_.arm.blk::_.U0.mcmc;
-Set U0.names = cycler::_.sampler::_.arm.blk::_.U0.names;
-Set U.report = BysMcmc::Inference::report(
-  "InitialValues", 
-  U0.names,
-  bsr.config::GetReportConfig(0),
-  U0.mcmc);
-*/
 
 Struct @CompareStruct 
 {
@@ -122,8 +111,6 @@ Set DifChart  = Extract(CompareTable,5);
 Set KDifChart = Extract(CompareTable,7);
 
 
-/* */
-
 Set quality.obs = For(1,mod::K1,Real(Real k)
 {
   MatStDs(((mod::obsNodes      )[k])::e       ) /
@@ -150,3 +137,13 @@ WriteLn(""<<resultStr_);
 resultStr_
 
 /* */
+
+/*
+Matrix U0.mcmc = cycler::_.sampler::_.arm.blk::_.U0.mcmc;
+Set U0.names = cycler::_.sampler::_.arm.blk::_.U0.names;
+Set U.report = BysMcmc::Inference::report(
+  "InitialValues", 
+  U0.names,
+  bsr.config::GetReportConfig(0),
+  U0.mcmc);
+*/

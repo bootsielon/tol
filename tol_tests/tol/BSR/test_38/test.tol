@@ -105,7 +105,7 @@ Set data.name = [["Output"]]<<For(1,n,Text(Real j)
   })};
   //Input matrix
   VMatrix _.X = Group("ConcatColumns",
-  EvalSet(_.linearParamInfo, VMatrix(@Bsr.OneNode.LinearParamInfo lpi)
+  EvalSet(_.linearParamInfo, VMatrix(BysMcmc::@Bsr.OneNode.LinearParamInfo lpi)
   {
     Mat2VMat(_.data.handler[lpi->Name])
   }));

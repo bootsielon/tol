@@ -24,9 +24,9 @@ Class @A
     @C aCinA = [[ @B aB = instB ]]
   ]];
 
-WriteLn("TRACE Ois.Store ... ");
+WriteLn("TRACE test.a Ois.Store ... ");
 Real Ois.Store( [[ instA ]], "./test.oza" );
 
-WriteLn("TRACE Ois.Load ... ");
+//WriteLn("TRACE test.a Ois.Load ... ");
 Set kk = Ois.Load( "./test.oza" );
 

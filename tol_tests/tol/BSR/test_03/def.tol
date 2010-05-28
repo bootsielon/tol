@@ -38,7 +38,7 @@ Real K1 = IntRand(2,2);
 Real enableARMA = True;
 Real enableARMASeasonal = And(enableARMA,True);
 //Regular AR Degree
-Real p1 = enableARMA*IntRand(3,3);
+Real p1 = enableARMA*IntRand(0,2);
 //Seasonal AR Degree
 Real pS = enableARMASeasonal*IntRand(0,1);
 //Regular AR Degree
@@ -705,8 +705,8 @@ Matrix _inpMis= If(!MissInp,Rand(0,1,0,0),
 Matrix _outMis= If(!MissOut,Rand(0,1,0,0),
   SetMat(Set Extract(outputMissing,5)));
 
-Real ok.Y = (VMatMax(Abs(bsr.parsed::Y-Y))+10)==10;
-Real ok.X = (VMatMax(Abs(bsr.parsed::X-X))+10)==10;
+Real ok.Y = (VMatMax(IfVMat(IsUnknown(Y),bsr.parsed::Y*0, Abs(bsr.parsed::Y-Y)))+10)==10;
+Real ok.X = (VMatMax(IfVMat(IsUnknown(X),bsr.parsed::X*0, Abs(bsr.parsed::X-X)))+10)==10;
 Real ok.a = (VMatMax(Abs(bsr.parsed::a-domain.d))+10)==10;
 Real ok.A = (VMatMax(Abs(bsr.parsed::A-domain.D))+10)==10;
 
