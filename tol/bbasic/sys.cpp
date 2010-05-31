@@ -30,6 +30,7 @@
 
 #ifdef UNIX
 #  include <errno.h>
+#  include <sys/resource.h>
 #else // WINDOWS
 #  include <windows.h>
 #  include <process.h>
@@ -166,10 +167,20 @@ static BText Buil_TolAppData_()
 //Return the time elapsed since program started
 //--------------------------------------------------------------------
 {
+#if defined(WIN32)
   MEMORYSTATUSEX statex;
   statex.dwLength = sizeof (statex);
   GlobalMemoryStatusEx (&statex);
   return((double)statex.ullAvailVirtual);
+#else
+  int who = RUSAGE_SELF; 
+  struct rusage usage; 
+  int ret; 
+
+  ret=getrusage(who,&usage);
+
+  return usage.ru_maxrss;
+#endif
 };
 
 //--------------------------------------------------------------------
