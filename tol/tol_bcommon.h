@@ -64,7 +64,6 @@ using namespace std;
 #  include <exception>
 #endif
 
-
 #include <stdio.h>
 #include <assert.h>
 #include <ctype.h>
@@ -94,6 +93,19 @@ using namespace std;
 # else
 #  include <time.h>
 # endif
+#endif
+
+#if defined(__GNUC__)
+#define _FILE_OFFSET_BITS 64
+#elif defined(WIN32)
+#define fseeko _fseeki64
+#define ftello _ftelli64
+typedef __int64 off_t;
+#else
+#define fseeko fseek
+#define ftello ftell
+typedef long off_t;
+
 #endif
 
 #include <tol/tol_memhandler.h>
