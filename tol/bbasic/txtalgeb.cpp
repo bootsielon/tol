@@ -1243,7 +1243,7 @@ BInt ReadAllTokens(const BText& line, BArray<BText>& txt, BChar sep, BChar quote
  * \param txt : Array of BText to store the tokens
  * \param sep : Separator character. Usually ;
  * \param quote : String quotes indicator. Usually " 
- * \param quote : Scape character into quoted strings. Usually \
+ * \param scape : Scape character into quoted strings. Usually \
  * \return  Number of tokens.
  */
 //--------------------------------------------------------------------

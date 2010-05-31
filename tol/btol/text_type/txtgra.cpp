@@ -1924,13 +1924,38 @@ void Tokenizer(BSet& set, const BText& txt, BChar sep)
 
 
 //--------------------------------------------------------------------
+void Tokenizer(BSet& set, const BText& txt, BChar sep, 
+               BChar quote, BChar scape)
+//--------------------------------------------------------------------
+{
+  BArray<BText> tok;
+  ReadAllTokens(txt,tok,sep,quote,scape);
+  set.PrepareStore(tok.Size());
+//Std(BText("\nTokenizer TARCE 1"));
+  for(BInt i=0; i<tok.Size(); i++)
+  {
+    set.AddElement(new BContensText(tok[i]));
+  }
+//Std(BText("\nTokenizer TARCE 2"));
+}
+
+
+//--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetReadAllTokens);
-DefExtOpr(1, BSetReadAllTokens, "Tokenizer", 2, 2,  "Text Text",
-	  I2("(Text string, Text separator)",
-	     "(Text cadena, Text separador)"),
-	  I2(".",
+DefExtOpr(1, BSetReadAllTokens, "Tokenizer", 2, 4,  "Text Text Text Text",
+	  "(Text string, Text separator [, Text quote=\"\", Text scape=\"\"])",
+	  I2("Divides a text in fields separated by specified character."
+       "If <quote> argument is specified, then fields begining by this char "
+       "will stand joint even of there are occurences of the separator char. "
+       "If <scape> argument is specified, then fields begining by <quote> "
+       "character then the pair <scape><quote> will be treated as <quote>.",
 	     "Divide un texto en cada una de las partes separadas por el caracter "
-	     "de separacion dado."),
+	     "de separacion dado."
+       "Si se especifica el argumento <quote>, entonces los campos que "
+       "comiencen por ese caracter podrán incluir el caracter separador sin "
+       "que les afecte el mismo."
+       "Si además se especifica el argumento <quote>, entonces el par "
+       "<scape><quote> será tratado como <quote>"),
 	  BOperClassify::System_);
 
 //--------------------------------------------------------------------
@@ -1939,7 +1964,17 @@ void BSetReadAllTokens::CalcContens()
 {
   BText& txt = Text(Arg(1));
   BText& sep = Text(Arg(2));
-  Tokenizer(contens_,txt,sep.Get(0));
+  if(!Arg(3))
+  { 
+    Tokenizer(contens_,txt,sep.Get(0));
+  }
+  else
+  { 
+    BText& quote = Text(Arg(3));
+    BText scape = "\\";
+    if(Arg(4)) { scape = Text(Arg(4)); }
+    Tokenizer(contens_,txt,sep.Get(0),quote.Get(0),scape.Get(0));
+  }
 }
 
 //--------------------------------------------------------------------
