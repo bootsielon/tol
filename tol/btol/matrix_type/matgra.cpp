@@ -217,8 +217,9 @@ void BBM_BinAppend(const BText& fileName, const BMat& M)
   fil = BSys::FOpenAndLock(fileName.String(),"a+b",
    BBM_TimeOut, "Unexpected error appending BBM file");
   if(!fil) { return; } 
-  fpos_t pos;
-  pos = 0; fsetpos(fil, &pos); 
+  off_t pos = 0;
+  fseeko(fil,0,SEEK_SET);
+  
   fread(&rows,sizeof(BInt),1,fil);
   fread(&cols,sizeof(BInt),1,fil);
   rows2w = M.Rows();
@@ -230,13 +231,13 @@ void BBM_BinAppend(const BText& fileName, const BMat& M)
   else
   {
     rows += rows2w;
-    pos = rows*cols*sizeof(BDat)+2*sizeof(int); fsetpos(fil, &pos); 
+    pos = rows*cols*sizeof(BDat)+2*sizeof(int); fseeko(fil,pos,SEEK_SET); 
     fwrite(M.Data().Buffer(), sizeof(BDat), rows2w*cols2w, fil);
     if(!BSys::FUnlockAndClose(fil,fileName.String())) { return; }
     fil = BSys::FOpenAndLock(fileName.String(),"r+b",
      BBM_TimeOut*10, "Unexpected error changing BBM file");
     if(!fil) { return; } 
-    pos = 0; fsetpos(fil, &pos); 
+    fseeko(fil,0,SEEK_SET);
     fwrite(&rows, sizeof(BInt), 1, fil); 
   }
   BSys::FUnlockAndClose(fil,fileName.String());
@@ -341,7 +342,7 @@ void BBM_BinReadRows(FILE* fil,
   BInt mn;
   if((m<=0)||(n<=0))
   {
-    fseek(fil,0,SEEK_SET);
+    fseeko(fil,0,SEEK_SET);
     fread(&m,sizeof(BInt),1,fil);
     fread(&n,sizeof(BInt),1,fil);
   }
@@ -362,8 +363,8 @@ void BBM_BinReadRows(FILE* fil,
   {
     M.Alloc(r,n);
     if(M.Rows()!=r) { return; }
-    int pos = 2*sizeof(BInt)+(i*n)*sizeof(BDat);
-    fseek(fil,pos,SEEK_SET);
+    off_t pos = 2*sizeof(BInt)+(i*n)*sizeof(BDat);
+    fseeko(fil,pos,SEEK_SET);
     BDat* ptr = M.GetData().GetBuffer();
     if(t==1)
     {
@@ -376,7 +377,7 @@ void BBM_BinReadRows(FILE* fil,
         if(k>0)
         {
           pos = 2*sizeof(BInt)+((i+k*t)*n)*sizeof(BDat);
-          fseek(fil,pos,SEEK_SET);
+          fseeko(fil,pos,SEEK_SET);
         }
         fread(ptr, sizeof(BDat), n, fil);
         ptr += n;
@@ -395,7 +396,7 @@ void BBM_BinReadCell(FILE* fil,
 {
   if((m<=0)||(n<=0))
   {
-    fseek(fil,0,SEEK_SET);
+    fseeko(fil,0,SEEK_SET);
     fread(&m,sizeof(BInt),1,fil);
     fread(&n,sizeof(BInt),1,fil);
   }
@@ -405,8 +406,8 @@ void BBM_BinReadCell(FILE* fil,
     BSys::FUnlockAndClose(fil,fileName.String());
     return; 
   }
-  int pos = 2*sizeof(BInt)+(i*n+j)*sizeof(BDat);
-  fseek(fil,pos,SEEK_SET);
+  off_t pos = 2*sizeof(BInt)+(i*n+j)*sizeof(BDat);
+  fseeko(fil,pos,SEEK_SET);
   fread(&cell, 1, sizeof(BDat), fil);
 }
 
