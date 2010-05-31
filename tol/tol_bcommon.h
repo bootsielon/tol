@@ -100,7 +100,7 @@ using namespace std;
 #elif defined(WIN32)
 #define fseeko _fseeki64
 #define ftello _ftelli64
-typedef __int64 off_t;
+#define off_t  __int64
 #else
 #define fseeko fseek
 #define ftello ftell
