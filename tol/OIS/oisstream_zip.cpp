@@ -426,7 +426,7 @@ const BINT64& BZipStream::GetPos()
   BText action = I2("'INVALID ACTION'", "'ACCIN INVLIDA'");
   if(write)
   {
-    BDir path = connection;
+    BDir path(connection);
     if(path.Exist()) 
     { 
       if(path.IsDir())
