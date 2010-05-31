@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="8.00"
 	Name="libtolmysql"
 	ProjectGUID="{5C9D97C1-5E2F-476F-A0D8-87ABE7ECAAAA}"
 	RootNamespace="libtolmysql"
-	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -82,8 +81,6 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(MYSQL_LIB)"
 				ProgramDatabaseFile=".\Release/libtolmysql.pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				ImportLibrary=".\Release/libtolmysql.lib"
 				TargetMachine="1"
 			/>
@@ -106,6 +103,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -180,8 +180,6 @@
 				AdditionalLibraryDirectories="$(MYSQL_LIB)"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/libtolmysql.pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				ImportLibrary=".\Debug/libtolmysql.lib"
 				TargetMachine="1"
 			/>
@@ -204,6 +202,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -280,8 +281,6 @@
 				AdditionalLibraryDirectories="&quot;$(MYSQL_LIB)&quot;;&quot;$(DUMA_LIB)/debug&quot;;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\libtolmysql.pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)\libtolmysql.lib"
 				TargetMachine="1"
 			/>
@@ -304,6 +303,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -377,8 +379,6 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(MYSQL_LIB)"
 				ProgramDatabaseFile=".\Release/libtolmysql.pdb"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				ImportLibrary=".\Release/libtolmysql.lib"
 				TargetMachine="1"
 			/>
@@ -401,6 +401,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
