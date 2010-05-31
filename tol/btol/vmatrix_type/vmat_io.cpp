@@ -341,9 +341,9 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
   MM_typecode matcode;
   
   if (code_==ESC_chlmRsparse) {
-    cholmod_R_sparse unsym = cholmod_copy(s_.chlmRsparse_, 0, 1, common_);
+    cholmod_R_sparse *unsym = cholmod_copy(s_.chlmRsparse_, 0, 1, common_);
     ptr_triplet = cholmod_sparse_to_triplet(unsym, common_);
-    cholmod_free_sparse(unsym); 
+    cholmod_free_sparse(&unsym, common_); 
     should_free = true;
   } else if (code_==ESC_chlmRtriplet) {
     ptr_triplet = s_.chlmRtriplet_;
