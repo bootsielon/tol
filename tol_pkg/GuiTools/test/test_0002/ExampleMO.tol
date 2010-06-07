@@ -1,0 +1,20 @@
+Real OptionState( NameBlock obj, Set extraData )
+{
+  Real 1
+};
+
+Real OptionCmd( NameBlock obj, Set extraData )
+{
+  WriteLn( "OptionCmd invoked" );
+  Real 1
+};
+  
+@MenuOption submenu1 = @MenuOption::New( [[ Text name = "SubMenu1" ]] );
+@MenuOption submenu2 = @MenuOption::New( [[ Text name = "SubMenu1/SubMenu2" ]] );
+@MenuCommand cmd1 =
+  @MenuCommand::New(
+                    [[ Text name = "SubMenu1/SubMenu2/Option1",
+                       Text label = "Option 1",
+                       Code CmdInvoke = OptionCmd,
+                       Code CmdState = OptionState ]] );
+

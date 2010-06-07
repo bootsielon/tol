@@ -1,0 +1,151 @@
+NameBlock MenuManager =
+[[
+  // contenedor de opciones, son instancias de @MenuOption
+  Set _.options = Copy( Empty );
+  // asociacion explicitas entre clases y opciones de menu
+  Set _.explicit_assoc = Copy( Empty );
+  // asociaciones implicitas entre clases y opciones de menu, son
+  // aquellas que se derivan a partir de relaciones de herencia.
+  Set _.implicit_assoc = Copy( Empty );
+  // cuando una seleccion multiple contiene mas de un tipo de dato,
+  // las opciones de menu se agrupan bajo un submenu cuya etiqueta es el
+  // nombre del tipo. La etiqueta que se muestra puede se personalizada y 
+  // la informacion de personalizacion se almacena en _.typeLabels
+  Set _.typeLabels = Copy( Empty );
+  
+#Embed "MenuOption.tol";
+  
+  @MenuOption defineSubMenu( NameBlock args )
+  {
+    Real idx = findOption( args::name );
+    @MenuOption option = If( idx, {
+        Warning( "El submenu " + args::name + " ya esta definido" );
+        getOption( idx )
+       }, {
+        @MenuOption option = @MenuOption::New( args );
+        Real _addOption( option );
+        option
+      } )
+   };
+
+  Real defineMenuCommand( Text typeName, NameBlock args )
+  {
+    Real idx = findOption( args::name );
+    
+    @MenuCommand option = If( idx, getOption( idx ), {
+        @MenuCommand option = @MenuCommand::New( args );
+        Real _addOption( option );
+        option
+      } );
+    NameBlock PutName( option::_.name, option );
+    // asociamos la opcion a la clase
+    Set typeOptions = _getTypeAssociation( typeName );
+    // TODO: verificar si la opcion ya existe?
+    Set Append( typeOptions, [[ option ]], True );
+    Real Card( typeOptions )
+  };
+
+  Real defineTypeLabel( Text typeName, Text label, Real translate )
+  {
+    Real idx = FindIndexByName( _.typeLabels, typeName );
+    If( idx, {
+        Warning( "Redefiniendo etiqueta de menu para la clase " + typeName );
+        Set _.typeLabels[typeName] := [[ label, translate ]];
+        Real idx
+      }, {
+        Set aux = [[ label, translate ]];
+        Set Append( _.typeLabels, [[ PutName( typeName, aux ) ]], True );
+        Real Card( _.typeLabels )
+      } )
+  };
+
+  Real findOption( Text optionName )
+  {
+    Real FindIndexByName( _.options, optionName )
+  };
+
+  Set getEntryInfo( Text optionName )
+  {
+    Real idx = findOption( optionName );
+    Set If( idx, {
+        NameBlock option = getOption( idx );
+        Set option::getEntryInfo(?)
+      }, Copy( Empty ) )
+  };
+
+  Real invokeEntry( Text optionName, Anything objOrSelection )
+  {
+    Real idx = findOption( optionName );
+    If( idx, {
+        @MenuCommand option = getOption( idx );
+        Real option::invoke( objOrSelection )
+      }, 0 )
+  };
+
+  Real checkStateEntry( Text optionName, Anything objOrSelection )
+  {
+    Real idx = findOption( optionName );
+    If( idx, {
+        @MenuCommand option = getOption( idx );
+        Real option::checkState( objOrSelection )
+      }, 0 )
+  };
+
+  Set getTypeLabelInfo( Text typeName )
+  {
+    Real idx = FindIndexByName( _.typeLabels, typeName );
+    Set If( idx, _.typeLabels[ idx ], Copy( Empty ) )
+  };
+
+  Set getDefaultTypeLabelInfo( Text typeName )
+  {
+    Text label = typeName;
+    Real flagTranslate = 0;
+    Set [[ label, flagTranslate ]]
+  };
+
+  Set getDefaultEntryInfo( Text optionName )
+  {
+    Set @MenuOption::getDefaultEntryInfo( optionName )
+  };
+  
+  Set getTypeOptionsInfo( Text typeName )
+  {
+    // _getTypeAssociation solo retorna las opciones explicitas
+    Set EvalSet( _getTypeAssociation( typeName ), Set( @MenuCommand entry ) {
+        Set getEntryInfo( entry::_.name )
+      } )
+  };
+  
+  @MenuOption getOption( Real idx )
+  {
+    _.options[ idx ]
+  };
+   
+  // private methods
+
+  Real _addOption( @MenuOption option )
+  {
+     // TODO: verificar si ya existe la opcion
+    Real card = Card( _.options );
+    @MenuOption obj = option;
+    NameBlock PutName( option::_.name, obj );
+    Set Append( _.options, [[ obj ]], True );
+    Real Card( _.options ) - card
+  };
+
+  Set _getTypeAssociation( Text typeName )
+  {
+    Real idxType = FindIndexByName( _.explicit_assoc, typeName );
+    Set If( idxType, _.explicit_assoc[ idxType ],
+            _createTypeAssociation( typeName ) )
+  };
+
+  Set _createTypeAssociation( Text typeName )
+  {
+    Set aux = Copy( Empty );
+    Set Append( _.explicit_assoc, [[ PutName( typeName, aux ) ]], True );
+    Set _.explicit_assoc[ Card( _.explicit_assoc ) ]
+  }
+]];
+

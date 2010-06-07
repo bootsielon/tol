@@ -1,0 +1,112 @@
+Class @MenuOption {
+  // Nombre de la opcion. Se sigue el convenio
+  // "parent1/parent2/option" para indicar que "parent1" es un submenu
+  // que contiene al submenu "parent2" y este a su vez la opcion
+  // "option"
+  Text _.name;
+  // Etiqueta a mostrar en el menu, por omision toma el valor de _.name
+  Text _.label;
+  // nombre de la imagen a mostrar, por omision no tiene imagen
+  // asociada.
+  Text _.image = "";
+  // flag de traduccion, por omision traduce. Por ahora tenemos un
+  // problema ya que la representacion de las cadenas en tol no
+  // admiten multibyte requerido en traducciones. Basado en este
+  // atributo el GUI hara la traduccion apropiada.
+  Real _.flagTranslate = 1;
+
+  Set getEntryInfo( Real void )
+  {
+    Set _getEntryInfo(?)
+  };
+
+  Set _getEntryInfo( Real void )
+  {
+    Set [[ _.name, _.label, _.image, _.flagTranslate ]]
+  };  
+
+  Static @MenuOption New( NameBlock args )
+  {
+    @MenuOption
+      [[
+        Text _.name = args::name;
+        Text _.label = getOptArg( args, "label", args::name );
+        Text _.image = getOptArg( args, "image", "" );
+        Real _.flagTranslate = getOptArg( args, "flagTranslate", 1 )
+      ]]
+  };
+  
+  Static Set getDefaultEntryInfo( Text optionName )
+  {
+    Set items = Tokenizer( optionName, "/" );
+    Text name = optionName;
+    Text label = items[ Card( items ) ];
+    Text image = "";
+    Real flagTranslate = 0;
+    Set [[ name, label, image, flagTranslate ]]
+  }
+};
+
+Class @MenuCommand : @MenuOption {
+  // flag de opcion de grupo, por omision es individual.
+  Real _.flagGroup = 0;
+  // conjunto de comandos asociado a la opcion de menu. Los comandos
+  // reconocidos son:
+  //  CmdInvoke: funcion que se invoca al seleccionar la opcione de menu
+  //  CmdState: funcion que se invoca para determinar el estado de la opcion.
+  Set _.commands = Copy( Empty );
+  // Argumentos extras que se pasaran a los comandos en la ultima
+  // posicion de la lista e argumentos.
+  Set _.extraData;
+
+  Set getEntryInfo( Real void )
+  {
+    Set _getEntryInfo(?) << [[ _.flagGroup ]]
+  };
+
+  Real invoke( Anything objOrSelection )
+  {
+    Real idx = FindIndexByName( _.commands, "CmdInvoke" );
+    If( idx, {
+        Code actionInvoke = _.commands[idx];
+        Real actionInvoke( objOrSelection, _.extraData )
+      }, {
+        Warning( "No se ha podido invocar la accion ya que CmdInvoke no esta definido para " + _.name );
+          0
+        } )
+  };
+
+  Real checkState( Anything objOrSelection )
+  {
+    Real idx = FindIndexByName( _.commands, "CmdCheckState" );
+    // si CmdState no esta definido asumo estado "normal"
+    If( idx, {
+        Code actionState = _.commands[idx];
+        Real actionState( objOrSelection, _.extraData )
+      }, 1 )
+  };
+
+  Static Real doNothing( Anything any, Set extraData )
+  {
+    1
+  };
+
+  Static @MenuCommand New( NameBlock args )
+    {
+      @MenuCommand inst =
+        [[
+          Text _.name = args::name;
+          Text _.label = getOptArg( args, "label", args::name );
+          Text _.image = getOptArg( args, "image", "" );
+          Real _.flagTranslate = getOptArg( args, "flagTranslate", 1 );
+          Real _.flagGroup = getOptArg( args, "flagGroup", 0 );
+          Set  _.commands =
+          [[ Code CmdInvoke =
+               getOptArg( args, "CmdInvoke", @MenuCommand::doNothing ),
+             Code CmdCheckState =
+               getOptArg( args, "CmdCheckState", @MenuCommand::doNothing )
+          ]];
+          Set  _.extraData = DeepCopy( getOptArg( args, "extraData", Empty ) )
+        ]]
+    }
+};

@@ -1,0 +1,107 @@
+Real UsingNameBlock(GuiTools);
+
+NameBlock MyContextMenuFunctions =
+[[
+  Real Chart( NameBlock instance, Set extraData )
+  {
+    ChartGroup( [[instance]], extraData )
+  };
+  
+  Real ChartGroup( Set instances, Set extraData )
+  {
+    Set all_series = EvalSet(instances, Serie(NameBlock object){
+      object::GetData(?)
+    });
+    Text TclChartSerie(all_series, SetOfSet(
+      @TclArgSt("-title", Tcl_Eval("mc \"Serie chart\"")[1])
+     ));
+    Real 0
+  };
+
+  Real writeMsgGroup1( Set instances, Set extraData )
+  {
+    WriteLn( "writeMsgGroup1 : la seleccion tiene " << Card(instances) << " elementos" );
+    0
+  };
+
+  Real writeMsgGroup2( Set instances, Set extraData )
+  {
+    WriteLn( "writeMsgGroup2 : la seleccion tiene " << Card(instances) << " elementos" );
+    0
+  };
+
+  Real checkOnlyEven( Set instances, Set extraData )
+  {
+    Real result = Not( Card( instances ) % 2 );
+    WriteLn( "result = " << result );
+    result
+  }
+]];
+
+Class @Ejemplo1
+{
+  Serie _.data;
+  Serie GetData(Real void) {
+    _.data
+  }
+};
+
+Class @Ejemplo2
+{
+  Serie _.data;
+  Serie GetData(Real void) {
+    _.data
+  }
+};
+
+Real MenuManager::defineTypeLabel( "@Ejemplo1", "Ejemplo1", 0 );
+Real MenuManager::defineTypeLabel( "@Ejemplo2", "Ejemplo2", 0 );
+
+Real MenuManager::defineMenuCommand
+( "@Ejemplo1",
+  [[ Text name = "Chart_Serie",
+     Text label = "(INDIV) Grafica",
+     Real flagGroup = 0,
+     Code CmdInvoke = MyContextMenuFunctions::Chart ]]
+);
+
+Real MenuManager::defineMenuCommand
+( "@Ejemplo2",
+  [[ Text name = "Chart_Serie" ]]
+);
+
+Real MenuManager::defineMenuCommand
+( "@Ejemplo1",
+  [[ Text name = "SubMenu/ChartGroup_Serie",
+     Text label = "(MULTI) Grafica Grupo",
+     Real flagGroup = 1,
+     Code CmdInvoke = MyContextMenuFunctions::ChartGroup,
+     Code CmdCheckState = MyContextMenuFunctions::checkOnlyEven ]]
+);
+
+Real MenuManager::defineMenuCommand
+( "@Ejemplo2",
+  [[ Text name = "SubMenu/ChartGroup_Serie" ]]
+);
+
+Real MenuManager::defineMenuCommand
+( "@Ejemplo1",
+  [[ Text name = "WriteMsgGroup1",
+     Text label = "(MULTI) Write Msg 1",
+     Real flagGroup = 1,
+     Code CmdInvoke = MyContextMenuFunctions::writeMsgGroup1 ]]
+);
+
+Real MenuManager::defineMenuCommand
+( "@Ejemplo2",
+  [[ Text name = "WriteMsgGroup2",
+     Text label = "(MULTI) Write Msg 2",
+     Real flagGroup = 1,
+     Code CmdInvoke = MyContextMenuFunctions::writeMsgGroup2 ]]
+);
+
+@Ejemplo1 ej11 = [[ Serie _.data = Gaussian(0,1,C) ]];
+@Ejemplo1 ej12 = [[ Serie _.data = Gaussian(0,1,C) ]];
+@Ejemplo1 ej13 = [[ Serie _.data = Gaussian(0,1,C) ]];
+@Ejemplo2 ej21 = [[ Serie _.data = Gaussian(0,1,C) ]];
+@Ejemplo2 ej22 = [[ Serie _.data = Gaussian(0,1,C) ]];

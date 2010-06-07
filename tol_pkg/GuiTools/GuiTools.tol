@@ -81,7 +81,9 @@ Class @MultiDimSelect
   Set getButtonEntries(Real void)
   ////////////////////////////////////////////////////////////////////////////
 
-}
+};
+
+#Embed "MenuManager.tol"
 
 ]];
 
