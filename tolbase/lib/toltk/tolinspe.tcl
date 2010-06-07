@@ -1850,6 +1850,7 @@ proc Tol_ClassOf { obj_addr } {
 }
 
 proc TolGui_GetMenuEntries { selection idx } {
+  #puts "TolGui_GetMenuEntries $selection $idx"
   array set instances {}
   array set menu_class {}
   set i 0
@@ -1875,7 +1876,17 @@ proc TolGui_GetMenuEntries { selection idx } {
   foreach c [ array names instances ] {
     lappend menu_info [ list $c $menu_class($c) $instances($c) ]
   }
+  #puts "$menu_info"
   set menu_info
+}
+
+proc TolGui_InsertEntriesFromMenuManager { targetMenu selection } {
+  set addrList [ list ]
+  foreach obj_info $selection {
+    set tcl_ref [ lindex $obj_info 0 ]
+    lappend addrList [ ::tol::info address $tcl_ref ]
+  }
+  MenuManager::insertEntriesForSelection $targetMenu $addrList
 }
 
 proc TolGui_GetObjMenu { obj_addr } {
@@ -1896,6 +1907,7 @@ proc TolGui_GetObjMenu { obj_addr } {
 }
 
 proc TolGui_InvokeMethod { method obj_addr } {
+  #puts "TolGui_InvokeMethod $method $obj_addr"
   set try [ catch {
     tol::console eval [ string map [ list %A $obj_addr %M $method ] {
       NameBlock __aux_instance__ = GetObjectFromAddress("%A");
@@ -2129,6 +2141,11 @@ proc ::TolInspector::PostVariable { x y } {
               }
             }
             NameBlock {
+              # entradas desde MenuManager
+              TolGui_InsertEntriesFromMenuManager \
+                  $data_menu(main) \
+                  $options_selected(NameBlock)
+              # entradas desde @MenuDesc
               set sel_length [ llength $options_selected(NameBlock) ]
               if { $sel_length } {
                 set idx_current [ lsearch $vars_selected $node_act ]
@@ -2136,19 +2153,21 @@ proc ::TolInspector::PostVariable { x y } {
                     [ TolGui_GetMenuEntries \
                           $options_selected(NameBlock) $idx_current ]
                 set num_options [ llength $all_nb_options ]
+                #puts "num_options = $num_options"
                 foreach mi $all_nb_options {
                   set _cname [ lindex $mi 0 ]
                   set cname [ string map [ list @ "" . _ ] $_cname ]
+                  #puts "cname = $cname"
                   foreach { ninst obj_addr entries } [ lindex $mi 1 ] break
                   set instances [ lindex $mi 2 ]
-                  # creo el menu de la clase si no existe
-                  set mclass $data_menu(main).cls$cname
-                  if { ![ winfo exists $mclass ] } {
-                    menu $mclass -tearoff 0
-                  } else {
-                    $mclass delete 0 end
-                  }
                   if { $num_options > 1 } {
+                  # creo el menu de la clase si no existe
+                    set mclass $data_menu(main).cls$cname
+                    if { ![ winfo exists $mclass ] } {
+                      menu $mclass -tearoff 0
+                    } else {
+                      $mclass delete 0 end
+                    }
                     $data_menu(main) add cascade -label $cname -menu $mclass
                     set target_menu $mclass
                   } else {
