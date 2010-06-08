@@ -54,9 +54,14 @@ Class @Ejemplo2
   }
 };
 
-Real MenuManager::defineTypeLabel( "@Ejemplo1", "Ejemplo1", 0 );
-Real MenuManager::defineTypeLabel( "@Ejemplo2", "Ejemplo2", 0 );
+// Etiqueta a mostrar en el submenu asociado a la seleccion multiple
+// de instancia de las clase @Ejemplo1 y @Ejemplo2, solo se crea el
+// submenu en el caso de que en la seleccion aparezcan mas de 1 tipo
+// de dato con opciones de menu definidas.
+Real MenuManager::defineTypeLabel( "@Ejemplo1", [[ Text label = "Ejemplo1" ]] );
+Real MenuManager::defineTypeLabel( "@Ejemplo2", [[ Text label = "Ejemplo2" ]] );
 
+// Chart_Serie es una opcion que se aplica sobre una unica instancia
 Real MenuManager::defineMenuCommand
 ( "@Ejemplo1",
   [[ Text name = "Chart_Serie",
@@ -65,11 +70,14 @@ Real MenuManager::defineMenuCommand
      Code CmdInvoke = MyContextMenuFunctions::Chart ]]
 );
 
+// @Ejemplo2 comparte la opcion Chart_Serie con @Ejemplo1
 Real MenuManager::defineMenuCommand
 ( "@Ejemplo2",
   [[ Text name = "Chart_Serie" ]]
 );
 
+// SubMenu/ChartGroup_Serie esta habilitada solo si la seleccion tiene
+// un numero par de elementos
 Real MenuManager::defineMenuCommand
 ( "@Ejemplo1",
   [[ Text name = "SubMenu/ChartGroup_Serie",
@@ -79,6 +87,7 @@ Real MenuManager::defineMenuCommand
      Code CmdCheckState = MyContextMenuFunctions::checkOnlyEven ]]
 );
 
+// @Ejemplo2 comparte la opcion SubMenu/ChartGroup_Serie con @Ejemplo1
 Real MenuManager::defineMenuCommand
 ( "@Ejemplo2",
   [[ Text name = "SubMenu/ChartGroup_Serie" ]]
