@@ -13,7 +13,7 @@ Class @MenuOption {
   // problema ya que la representacion de las cadenas en tol no
   // admiten multibyte requerido en traducciones. Basado en este
   // atributo el GUI hara la traduccion apropiada.
-  Real _.flagTranslate = 1;
+  Real _.flagTranslate = 0;
 
   Set getEntryInfo( Real void )
   {
@@ -32,7 +32,7 @@ Class @MenuOption {
         Text _.name = args::name;
         Text _.label = getOptArg( args, "label", args::name );
         Text _.image = getOptArg( args, "image", "" );
-        Real _.flagTranslate = getOptArg( args, "flagTranslate", 1 )
+        Real _.flagTranslate = getOptArg( args, "flagTranslate", 0 )
       ]]
   };
   
@@ -98,7 +98,7 @@ Class @MenuCommand : @MenuOption {
           Text _.name = args::name;
           Text _.label = getOptArg( args, "label", args::name );
           Text _.image = getOptArg( args, "image", "" );
-          Real _.flagTranslate = getOptArg( args, "flagTranslate", 1 );
+          Real _.flagTranslate = getOptArg( args, "flagTranslate", 0 );
           Real _.flagGroup = getOptArg( args, "flagGroup", 0 );
           Set  _.commands =
           [[ Code CmdInvoke =

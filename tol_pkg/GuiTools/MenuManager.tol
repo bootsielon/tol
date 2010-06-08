@@ -15,16 +15,15 @@ NameBlock MenuManager =
   
 #Embed "MenuOption.tol";
   
-  @MenuOption defineSubMenu( NameBlock args )
+  Real defineOptionLabel( NameBlock args )
   {
     Real idx = findOption( args::name );
-    @MenuOption option = If( idx, {
-        Warning( "El submenu " + args::name + " ya esta definido" );
-        getOption( idx )
+    If( idx, {
+        Warning( "La opcion " + args::name + " ya esta definida" );
+        idx
        }, {
         @MenuOption option = @MenuOption::New( args );
-        Real _addOption( option );
-        option
+        Real _addOption( option )
       } )
    };
 
@@ -45,15 +44,17 @@ NameBlock MenuManager =
     Real Card( typeOptions )
   };
 
-  Real defineTypeLabel( Text typeName, Text label, Real translate )
+  Real defineTypeLabel( Text typeName, NameBlock args )
   {
     Real idx = FindIndexByName( _.typeLabels, typeName );
     If( idx, {
-        Warning( "Redefiniendo etiqueta de menu para la clase " + typeName );
-        Set _.typeLabels[typeName] := [[ label, translate ]];
+        Warning( "La etiqueta de menu para la clase " + typeName + " ya ha sido definida" );
         Real idx
       }, {
-        Set aux = [[ label, translate ]];
+        Text label = args::label;
+        Text image = getOptArg( args, "image", "" );
+        Real flagTranslate = getOptArg( args, "flagTranslate", 0 );
+        Set aux = [[ label, image, flagTranslate ]];
         Set Append( _.typeLabels, [[ PutName( typeName, aux ) ]], True );
         Real Card( _.typeLabels )
       } )
