@@ -203,15 +203,13 @@ proc MenuManager::createSubMenuIfNeeded { targetMenu name } {
 }
 
 proc MenuManager::insertEntries { menuWidget objSelection entriesInfo } {
-  set multiple [ llength $objSelection ]
+  set multiple [ expr { [ llength $objSelection ] > 1 } ]
   foreach entryInfo $entriesInfo {
     foreach {name label image translate group} $entryInfo break
-    if { !$group && $multiple } continue
+    if { $group ^ $multiple } continue
     set mm [ createSubMenuIfNeeded $menuWidget $name ]
     set state [ checkEntryState $name $objSelection $group ]
-    puts "state for $name = $state"
     set entryLabel [ expr { $translate ? [ msgcat::mc $label ] : $label } ]
-    puts "definiendo entry $entryLabel en $mm"
     $mm add command -label $entryLabel \
         -command [ list MenuManager::invokeCommand $name $objSelection $group ] \
         -state [ expr { $state ? "normal" : "disabled" } ]
@@ -233,7 +231,7 @@ proc MenuManager::insertEntriesForSelection { menuWidget selection } {
       } else {
         $menuType delete 0 end
       }
-      foreach {label translate} $typesSelected(labelInfo,$type) break  
+      foreach {label image translate} $typesSelected(labelInfo,$type) break  
       set labelCascade [ expr { $translate ? [ msgcat::mc $label ] : $label } ]
       $menuWidget add cascade -label $labelCascade -menu $menuType
       insertEntries $menuType \
