@@ -46,16 +46,37 @@ NameBlock Monophasic =
   //WriteLn("TRACE MasterToJoint 1");
     Set LinearBlock = 
     {
-      Set aux.1 = EvalSet(subModule, Set(@BSR.ModelDef module)
+      Set defined = Copy(Empty);
+      Set EvalSet(subModule, Real(@BSR.ModelDef module)
       {
         Set sel = Select(module->LinearBlock, Real(@BSR.LinearBlock v)
         {
-          Not(v->Extern)
-        })
+          If(v->Extern, False,
+          {
+            Real found = FindIndexByName(defined,Name(v));
+            If(!found, True,
+            {
+              Real oldDef = defined[found]->InitialValue;
+              Real newDef = v->InitialValue;
+              If(oldDef==newDef,
+              {
+                Real v->Extern := True;
+                False
+              },
+              {
+                Error("Linear block variable "+Name(v)+" <- "<<newDef+
+                      "is already defined as "+Name(v)+" <- "<<oldDef);
+                True 
+              })
+            }) 
+          })
+        });
+        Set Append(defined,sel,True);
+        True
       });
-      Set aux.2 = Unique(SetConcat(aux.1));
-      Real If(Card(aux.2), SetIndexByName(aux.2));
-      aux.2 
+    //Set aux.2 = Unique(SetConcat(aux.1));
+    //Real If(Card(defined), SetIndexByName(defined));
+      defined
     };  
     Real n = Card(LinearBlock);
   //WriteLn("TRACE MasterToJoint 2");
