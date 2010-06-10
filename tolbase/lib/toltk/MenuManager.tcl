@@ -1,7 +1,7 @@
-namespace eval MenuManager {
+namespace eval ::MenuManager {
 }
 
-proc MenuManager::getTypeOfObject { addr } {
+proc ::MenuManager::getTypeOfObject { addr } {
   set rvar "__getTypeOfObject__"
   set tolExpr [ string map [ list %A $addr %RV $rvar ] {
     Text %RV = {
@@ -20,13 +20,13 @@ proc MenuManager::getTypeOfObject { addr } {
   return $value
 }
 
-proc MenuManager::getLabelInfoForType { type } {
+proc ::MenuManager::getLabelInfoForType { type } {
   set rvar "__getLabelForType__"
   set tolExpr [ string map [ list %RV $rvar %T $type ] {
     Set %RV = {
-      Set aux = MenuManager::getTypeLabelInfo( "%T" );
+      Set aux = GuiTools::MenuManager::getTypeLabelInfo( "%T" );
       Set If( Card( aux ),
-              aux, MenuManager::getDefaultTypeLabelInfo( "%T" ) )
+              aux, GuiTools::MenuManager::getDefaultTypeLabelInfo( "%T" ) )
     }
   } ]
   tol::console eval $tolExpr
@@ -35,13 +35,13 @@ proc MenuManager::getLabelInfoForType { type } {
   return $value
 }
 
-proc MenuManager::getLabelInfoForEntry { entryName } {
+proc ::MenuManager::getLabelInfoForEntry { entryName } {
   set rvar "__getLabelInfoForEntry__"
   set tolExpr [ string map [ list %RV $rvar %N $entryName ] {
     Set %RV = {
-      Set aux = MenuManager::getEntryInfo( "%N" );
+      Set aux = GuiTools::MenuManager::getEntryInfo( "%N" );
       Set If( Card( aux ),
-              aux, MenuManager::getDefaultEntryInfo( "%N" ) )
+              aux, GuiTools::MenuManager::getDefaultEntryInfo( "%N" ) )
     }
   } ]
   tol::console eval $tolExpr
@@ -50,10 +50,10 @@ proc MenuManager::getLabelInfoForEntry { entryName } {
   return $value
 }
 
-proc MenuManager::getMenuOptionsForType { type } {
+proc ::MenuManager::getMenuOptionsForType { type } {
   set rvar "__getMenuOptionsForType__"
   set tolExpr [ string map [ list %RV $rvar %T $type ] {
-    Set %RV = MenuManager::getTypeOptionsInfo( "%T" );
+    Set %RV = GuiTools::MenuManager::getTypeOptionsInfo( "%T" );
   } ]
   tol::console eval $tolExpr
   set value [ TolObj2TclObj [ list Set $rvar ] ]
@@ -61,10 +61,8 @@ proc MenuManager::getMenuOptionsForType { type } {
   return $value
 }
 
-proc MenuManager::checkEntryState { name objSelection group } {
+proc ::MenuManager::checkEntryState { name objSelection group } {
   variable typesSelected
-
-  puts "MenuManager::checkEntryState $name $objSelection $group"
 
   set SOA [ TclList2SetOfText $objSelection ]
   set rvar "__checkEntryState__"
@@ -76,8 +74,7 @@ proc MenuManager::checkEntryState { name objSelection group } {
           GetObjectFromAddress( addr )
         } )
       }, GetObjectFromAddress( objAddress[ 1 ] ) );
-      WriteLn( "%N" << target );
-      Real MenuManager::checkStateEntry( "%N", target )
+      Real GuiTools::MenuManager::checkStateEntry( "%N", target )
     }
   } ]
   tol::console eval $tolExpr
@@ -87,7 +84,7 @@ proc MenuManager::checkEntryState { name objSelection group } {
   return $value
 }
 
-proc MenuManager::invokeCommand { name objSelection group } {
+proc ::MenuManager::invokeCommand { name objSelection group } {
   variable typesSelected
 
   set SOA [ TclList2SetOfText $objSelection ]
@@ -100,7 +97,7 @@ proc MenuManager::invokeCommand { name objSelection group } {
           GetObjectFromAddress( addr )
         } )
       }, GetObjectFromAddress( objAddress[ 1 ] ) );
-      Real MenuManager::invokeEntry( "%N", target )
+      Real GuiTools::MenuManager::invokeEntry( "%N", target )
     }
   } ]
   tol::console eval $tolExpr
@@ -110,7 +107,7 @@ proc MenuManager::invokeCommand { name objSelection group } {
   return $value
 }
 
-proc MenuManager::checkIfMenuManagerIsLoaded { } {
+proc ::MenuManager::checkIfMenuManagerIsLoaded { } {
   set rvar "__checkIfMenuManagerIsLoaded__"
   set tolExpr [ string map [ list %RV $rvar  ] {
     Real %RV = ObjectExist( "NameBlock", "GuiTools::MenuManager" )
@@ -122,7 +119,7 @@ proc MenuManager::checkIfMenuManagerIsLoaded { } {
   return [ expr { $value!=0 } ]
 }
 
-proc MenuManager::initTypesInfoFromSelection { selection } {
+proc ::MenuManager::initTypesInfoFromSelection { selection } {
   variable typesSelected
 
   array unset typesSelected
@@ -164,23 +161,7 @@ proc MenuManager::initTypesInfoFromSelection { selection } {
   return $typesSelected(types)
 }
 
-proc MenuManager::kk { } {
-  variable typesSelected
-
-  set numberOfTypes [ llength $typesSelected(types) ]
-  #set typesSelected(globalOptions) [ list ]
-  foreach optionIndex [ array names typesSelected types,* ] {
-    puts "optionIndex = $optionIndex"
-    set optionName [ string range $optionIndex 6 end ]
-    puts "optionName = $optionName"
-    if { [ llength $typesSelected(types,$optionName) ] == $numberOfTypes } {
-      lappend typesSelected(globalOptions) \
-          $typesSelected(optionInfo,$optionName)
-    }
-  }
-}
-
-proc MenuManager::createSubMenuIfNeeded { targetMenu name } {
+proc ::MenuManager::createSubMenuIfNeeded { targetMenu name } {
   set path0 [ split $name "/" ]
   set mm $targetMenu
   set nn ""
@@ -194,15 +175,19 @@ proc MenuManager::createSubMenuIfNeeded { targetMenu name } {
     set nn [ expr { $nn eq "" ? $n : "/$n" } ]
     set labelInfo [ getLabelInfoForEntry $nn ]
     foreach { name label image translate } $labelInfo break
+    set image0 [ ::ImageManager::getImageResourceId $image ]
+    if { $image0 ne "" } {
+      set image $image0
+    }
     $mm add cascade -menu $mm0 \
         -label [ expr { $translate ? [ msgcat::mc $label ] : $label } ] \
-        -image $image
+        -image $image -compound [ expr { $image eq "" ? "none" : "left" } ]
     set mm $mm0
   }
   return $mm
 }
 
-proc MenuManager::insertEntries { menuWidget objSelection entriesInfo } {
+proc ::MenuManager::insertEntries { menuWidget objSelection entriesInfo } {
   set multiple [ expr { [ llength $objSelection ] > 1 } ]
   foreach entryInfo $entriesInfo {
     foreach {name label image translate group} $entryInfo break
@@ -210,13 +195,18 @@ proc MenuManager::insertEntries { menuWidget objSelection entriesInfo } {
     set mm [ createSubMenuIfNeeded $menuWidget $name ]
     set state [ checkEntryState $name $objSelection $group ]
     set entryLabel [ expr { $translate ? [ msgcat::mc $label ] : $label } ]
+    set image0 [ ::ImageManager::getImageResourceId $image ]
+    if { $image0 ne "" } {
+      set image $image0
+    }
     $mm add command -label $entryLabel \
-        -command [ list MenuManager::invokeCommand $name $objSelection $group ] \
-        -state [ expr { $state ? "normal" : "disabled" } ]
+        -command [ list ::MenuManager::invokeCommand $name $objSelection $group ] \
+        -state [ expr { $state ? "normal" : "disabled" } ] \
+        -image $image -compound [ expr { $image eq "" ? "none" : "left" } ]
   }
 }
 
-proc MenuManager::insertEntriesForSelection { menuWidget selection } {
+proc ::MenuManager::insertEntriesForSelection { menuWidget selection } {
   variable typesSelected
 
   if { ![ llength [ initTypesInfoFromSelection $selection ] ] } return
@@ -233,7 +223,12 @@ proc MenuManager::insertEntriesForSelection { menuWidget selection } {
       }
       foreach {label image translate} $typesSelected(labelInfo,$type) break  
       set labelCascade [ expr { $translate ? [ msgcat::mc $label ] : $label } ]
-      $menuWidget add cascade -label $labelCascade -menu $menuType
+      set image0 [ ::ImageManager::getImageResourceId $image ]
+      if { $image0 ne "" } {
+        set image $image0
+      }
+      $menuWidget add cascade -label $labelCascade -menu $menuType \
+          -image $image -compound [ expr { $image eq "" ? "none" : "left" } ]
       insertEntries $menuType \
           $typesSelected(objects,$type) $typesSelected(entriesInfo,$type)
     }
