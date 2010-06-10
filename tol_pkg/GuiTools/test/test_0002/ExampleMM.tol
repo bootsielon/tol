@@ -66,6 +66,7 @@ Real MenuManager::defineMenuCommand
 ( "@Ejemplo1",
   [[ Text name = "Chart_Serie",
      Text label = "(INDIV) Grafica",
+     Text image = "Serie1",
      Real flagGroup = 0,
      Code CmdInvoke = MyContextMenuFunctions::Chart ]]
 );
@@ -82,6 +83,7 @@ Real MenuManager::defineMenuCommand
 ( "@Ejemplo1",
   [[ Text name = "SubMenu/ChartGroup_Serie",
      Text label = "(MULTI) Grafica Grupo",
+     Text image = "Serie2",
      Real flagGroup = 1,
      Code CmdInvoke = MyContextMenuFunctions::ChartGroup,
      Code CmdCheckState = MyContextMenuFunctions::checkOnlyEven ]]
@@ -97,6 +99,7 @@ Real MenuManager::defineMenuCommand
 ( "@Ejemplo1",
   [[ Text name = "WriteMsgGroup1",
      Text label = "(MULTI) Write Msg 1",
+     Text image = "checkedBox",
      Real flagGroup = 1,
      Code CmdInvoke = MyContextMenuFunctions::writeMsgGroup1 ]]
 );
@@ -105,6 +108,7 @@ Real MenuManager::defineMenuCommand
 ( "@Ejemplo2",
   [[ Text name = "WriteMsgGroup2",
      Text label = "(MULTI) Write Msg 2",
+     Text image = "checkedBox",
      Real flagGroup = 1,
      Code CmdInvoke = MyContextMenuFunctions::writeMsgGroup2 ]]
 );

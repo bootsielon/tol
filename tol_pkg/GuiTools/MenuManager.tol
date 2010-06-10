@@ -101,8 +101,9 @@ NameBlock MenuManager =
   Set getDefaultTypeLabelInfo( Text typeName )
   {
     Text label = typeName;
+    Text image = "";
     Real flagTranslate = 0;
-    Set [[ label, flagTranslate ]]
+    Set [[ label, image, flagTranslate ]]
   };
 
   Set getDefaultEntryInfo( Text optionName )

@@ -83,7 +83,8 @@ Class @MultiDimSelect
 
 };
 
-#Embed "MenuManager.tol"
+#Embed "MenuManager.tol";
+#Embed "ImageManager.tol"
 
 ]];
 
