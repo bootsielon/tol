@@ -1315,40 +1315,40 @@ BText BPackage::urlRoot_ =
   TOLVersionShortName()+"/";
 
 //--------------------------------------------------------------------
-  BText BPackage::LocalPath(const BText& package)
+  BText BPackage::LocalPath(const BText& package_version)
 //--------------------------------------------------------------------
 {
-  BText path = localRoot_+package+".oza";
+  BText path = localRoot_+package_version+".oza";
   return(path);
 }
 
 //--------------------------------------------------------------------
-  BText BPackage::Url(const BText& package)
+  BText BPackage::Url(const BText& package_version)
 //--------------------------------------------------------------------
 {
-  BText url = urlRoot_+package+".oza";
+  BText url = urlRoot_+package_version+".oza";
   return(url);  
 }
 
 //--------------------------------------------------------------------
-  bool BPackage::CleanLocal(const BText& package)
+  bool BPackage::CleanLocal(const BText& package_version)
 //--------------------------------------------------------------------
 {
-  return(BSys::Remove(LocalPath(package)));  
+  return(BSys::Remove(LocalPath(package_version)));  
 }
 
 //--------------------------------------------------------------------
-  bool BPackage::Install(const BText& package)
+  bool BPackage::Install(const BText& package_version)
 //--------------------------------------------------------------------
 {
-  BText path = LocalPath(package);
-  BText url = Url(package);
+  BText path = LocalPath(package_version);
+  BText url = Url(package_version);
   BSys::MkDir(localRoot_,true);
   BText order = BText("wget ")+
     url+" "+
     "-O\""+ReplaceSlash(path)+"\"";
   Std(I2("Installing required package ",
-         "Instalando el paquete requerido ")+package+"\n"+order+"\n");
+         "Instalando el paquete requerido ")+package_version+"\n"+order+"\n");
   #ifdef UNIX
   system(order);
   #else
@@ -1361,23 +1361,36 @@ BText BPackage::urlRoot_ =
     ok = false;
     Error(I2("Cannot install empty package ",
              "No se puede instalar el paquete vacío ")+
-          package+"\n"+help_);
+          package_version+"\n"+help_);
   }
   return(ok);  
 }
 
 //--------------------------------------------------------------------
-  BSyntaxObject* BPackage::Load(const BText& package, bool retry)
+  BSyntaxObject* BPackage::Load(
+    const BText& package_version, 
+    bool retry)
 //--------------------------------------------------------------------
 {
+  BText package, version;
+  int point = package_version.Find(".",1);
+  if(point<0)
+  {
+    package = package_version;
+  }
+  else
+  {
+    package = package_version.SubString(0,point-1);
+    version = package_version.SubString(point+1,package_version.Length()-1);
+  }
   BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
   bool ok = pkg!=NULL;
-  BText path = LocalPath(package);
+  BText path = LocalPath(package_version);
   BDir dir = path;
   if(!ok)
   {
     ok=dir.Exist();
-    if(!ok) { ok = Install(package); }
+    if(!ok) { ok = Install(package_version); }
     if(ok)
     {
       int oldLevel = BGrammar::Level();
@@ -1402,26 +1415,26 @@ BText BPackage::urlRoot_ =
   BText help = ""; 
   if(!ok)
   {
-    BText path = LocalPath(package);
-    BText url = Url(package);
+    BText path = LocalPath(package_version);
+    BText url = Url(package_version);
     if(dir.Exist())
     {
       BSys::Remove(path);
       if(retry)
       {
         Error(I2("Corrupted package ",
-                 "El paquete corrupto ")+package+
+                 "El paquete corrupto ")+package_version+
               I2(" has been locally removed ",
                  " ha sido eliminado localmente ")+
               I2("and will be reinstalled from ",
                  "y será reinstalado desde ")+
               url);
-        return(Load(package, false));
+        return(Load(package_version, false));
       } 
       else
       {
         Error(I2("Corrupted package ",
-                 "El paquete corrupto ")+package+
+                 "El paquete corrupto ")+package_version+
               I2(" has been locally removed ",
                  " ha sido eliminado localmente ")+
               I2("but it will not be reinstalled again.",
@@ -1431,7 +1444,7 @@ BText BPackage::urlRoot_ =
     load = I2("NOT loaded","No ha sido cargado");
     help = help_;
   }
-  Std(load+I2(" package ", " el paquete ")+package+"\n"+help);
+  Std(load+I2(" package ", " el paquete ")+package_version+"\n"+help);
   if(pkg)
   {
     BUserNameBlock* nbBuilding = BNameBlock::Building();
