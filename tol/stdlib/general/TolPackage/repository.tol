@@ -14,9 +14,10 @@
   Real version.high,
   Real version.low,
   Text desc,
+  Text keys,
   Text minTolVersion,
   Text releaseDate,
-  Set dependencies
+  Set  dependencies
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -141,9 +142,10 @@ Real Connect(Real void)
         Real name.version = If(IsUnknown(version.high),name,
           name+"."<<version.high+"."<<version.low),
         Text desc = fields[4],
-        Text minTolVersion = fields[5],
-        Text releaseDate = fields[6],
-        Set dependencies = Eval("SetOfText("+fields[7]+")")
+        Text keys =  fields[5],
+        Text minTolVersion = fields[6],
+        Text releaseDate = fields[7],
+        Set dependencies = Eval("SetOfText("+fields[8]+")")
       ) ]] };
       Set PutName(aux[1]->name.version,aux[1]);
       aux[1]
@@ -288,12 +290,7 @@ Real ForceExactRequirements(Text package.version)
   Real pos = FindIndexByName(_.status,package.version),
   If(!pos, False,
   { 
-    Set EvalSet(_.status[pos]->dependencies,Real(Text required)
-    {
-      Set IncludeText("#Require "+required+";\nReal True;");
-      True
-    });
-    True
+    TolPackage::DoRequirements(_.status[pos]->dependencies)
   })
 }
 
