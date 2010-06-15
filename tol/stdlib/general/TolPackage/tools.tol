@@ -80,13 +80,23 @@ Real Upgrade(Text remote.repository, Text package, Real caducityInDays)
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Upgrade.All = 
-"Actualiza automáticamentetodos los paquetes disponibles en un repositorio "
+"Actualiza automáticamente todos los paquetes disponibles en un repositorio "
 "remoto para los que la copia local haya caducado.";
 Real Upgrade.All(Text remote.repository, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
   @Repository r = @Repository::Get(remote.repository);
   r::Upgrade.All(caducityInDays)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Upgrade.AllInAll = 
+"Actualiza automáticamente todos los paquetes disponibles en todos los "
+"repositorios remotos consultados para los que la copia local haya caducado.";
+Real Upgrade.AllInAll(Real caducityInDays)
+//////////////////////////////////////////////////////////////////////////////
+{
+  @Repository::Upgrade.AllInAll(caducityInDays)
 };
 
 //////////////////////////////////////////////////////////////////////////////
