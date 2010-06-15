@@ -22,7 +22,7 @@ Text _.localRoot =
   aux
 };
 
-#Embed "repository.tol"
+#Embed "repository.tol";
 #Embed "tools.tol"
 
 ]];
