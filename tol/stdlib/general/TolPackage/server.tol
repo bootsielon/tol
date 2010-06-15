@@ -1,0 +1,55 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : server.tol
+// PURPOSE: TolPackage server side tools
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text ScapeField(Text field)
+//////////////////////////////////////////////////////////////////////////////
+{
+  ReplaceTable(field,[[
+    [["\n","[[BR]]"]],
+    [[";",","]] ]])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real ResetPackageInfo(Text file, NameBlock pkg)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text AppendFile(file, info);
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real AddPackageInfo.Version(Text file, NameBlock pkg, Real specificVersion)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set dependencies = pkg::_.autodoc.dependencies = Copy(Empty);
+  Text name = Name(pkg);
+  Text name.version = If(!specificVersion,name,
+    name+"."<<_.autodoc.version.high+"."<<_.autodoc.version.low);
+  Text info =
+    pkg:: _.autodoc.url + ";"
+  <<name + ";"
+  <<name.version+ ";"
+  <<If(!specificVersion,?,pkg::_.autodoc.version.high) + ";"
+  <<If(!specificVersion,?,pkg::_.autodoc.version.low) + ";"
+  <<pkg::ScapeField(_.autodoc.description) + ";"
+  <<pkg::ScapeField(_.autodoc.keys) + ";"
+  <<pkg::ScapeField(_.autodoc.authors) + ";"
+  <<pkg::_.autodoc.minTolVersion + ";"
+  <<Now + ";"
+  <<dependencies+ "\n";
+  Text AppendFile(file, info);
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real AddPackageInfo(Text file, NameBlock pkg)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real AddPackageInfo.Version(file,pkg,True);
+  Real AddPackageInfo.Version(file,pkg,False)
+};
+

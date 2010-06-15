@@ -24,7 +24,8 @@ Text _.localRoot =
 };
 
 #Embed "repository.tol";
-#Embed "tools.tol"
+#Embed "client.tol";
+#Embed "server.tol"
 
 ]];
 
