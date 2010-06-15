@@ -31,7 +31,7 @@ Text _.autodoc.member.Install =
 Real Install(Text remote.repository, Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Repository r = Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository);
   r::Install(package.version)
 };
 
@@ -42,7 +42,7 @@ Text _.autodoc.member.Install.All =
 Real Install.All(Text remote.repository)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Repository r = Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository);
   r::Install.All(0)
 };
 
@@ -53,7 +53,7 @@ Text _.autodoc.member.LastDate =
 Date LastDate(Text remote.repository, Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Repository r = Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository);
   r::LastDate(package)
 };
 
@@ -64,7 +64,7 @@ Text _.autodoc.member.Upgrade =
 Real Upgrade(Text remote.repository, Text package, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Repository r = Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository);
   r::Upgrade(package, caducityInDays)
 };
 
@@ -75,7 +75,7 @@ Text _.autodoc.member.Upgrade.All =
 Real Upgrade.All(Text remote.repository, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Repository r = Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository);
   r::Upgrade.All(caducityInDays)
 };
 
@@ -92,7 +92,7 @@ Text _.autodoc.member.ForceExactRequirements =
 Real ForceExactRequirements(Text remote.repository, Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Repository r = Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository);
   r::ForceExactRequirements(package.version)
 };
 
