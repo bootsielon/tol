@@ -1,12 +1,12 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : repository.tol
-// PURPOSE: Class TolPackage::Repository
+// PURPOSE: Class TolPackage::@Repository
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 //Información de un paquete dentro del archivo de estado un repositorio
-  Struct PackageInfo {
+  Struct @PackageInfo {
 //////////////////////////////////////////////////////////////////////////////
   Text repository,
   Text name,
@@ -20,7 +20,7 @@
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Class Repository {
+Class @Repository {
 //////////////////////////////////////////////////////////////////////////////
 
 //Dirección del repositorio remoto.
@@ -51,19 +51,19 @@ Static Set _.instances = Copy(Empty);
 //sido consultado previamente se conecta primero al repositorio remoto.
 //Si hay cambios en el directorio remoto durante la sesión TOL estos no serán
 //percibidos.
-Static Repository Get(Text url)
+Static @Repository Get(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real pos = FindIndexByName(Repository::_.instances, ToName(url));
+  Real pos = FindIndexByName(@Repository::_.instances, ToName(url));
   If(pos, _.instances[pos],
   {
-    Repository::_Open(url)
+    @Repository::_Open(url)
   })
 };
 
 //////////////////////////////////////////////////////////////////////////////
 //Abre un repositorio por primera vez
-Static Repository _Open(Text url)
+Static @Repository _Open(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real prtPos = TextFind(url,"://")+2;
@@ -71,7 +71,7 @@ Static Repository _Open(Text url)
   Text protocol = SubString(url,1,prtPos);
   //Resto de la URL tras el protocolo
   Text address =  SubString(url,prtPos+1,TextLength(url));
-  Set aux = [[ Repository new = [[
+  Set aux = [[ @Repository new = [[
     Text _.url = url;
     Text _.protocol = protocol;
     Text _.address = address;
@@ -79,7 +79,7 @@ Static Repository _Open(Text url)
   Real If(new::Connect(0),
   {
     NameBlock PutName(ToName(url), aux[1]);
-    Real Append(Repository::_.instances, aux, True);
+    Real Append(@Repository::_.instances, aux, True);
     True
   });
   aux[1]
@@ -124,10 +124,10 @@ Real Connect(Real void)
     Real numErr0 = Copy(NError);
     Text aux = GetFileContens("packages.csv");
     Set line = Tokenizer(aux,"\n");
-    Set pckInf = For(2,Card(line), PackageInfo(Real k)
+    Set pckInf = For(2,Card(line), @PackageInfo(Real k)
     {
       Set fields = Tokenizer(line[k],";","\"","\\");
-      Set aux = [[{PackageInfo(
+      Set aux = [[{@PackageInfo(
         Text repository = url,
         Text name = fields[1],
         Real version.high = Eval(fields[2]),
@@ -142,7 +142,7 @@ Real Connect(Real void)
       Set PutName(aux[1]->name.version,aux[1]);
       aux[1]
     });
-    Set _.status := Sort(pckInf,Real(PackageInfo a, PackageInfo b)
+    Set _.status := Sort(pckInf,Real(@PackageInfo a, @PackageInfo b)
     {
       Compare(b->name.version, a->name.version)
     });
@@ -187,7 +187,7 @@ Text _.autodoc.member.Install.All =
 Real Install.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SetMin(EvalSet(_.status, Real(PackageInfo pi)
+  SetMin(EvalSet(_.status, Real(@PackageInfo pi)
   {
     DownloadFile(pi->name.version)
   })
@@ -228,7 +228,7 @@ Text _.autodoc.member.Upgrade.All =
 Real Upgrade.All(Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SetSum(EvalSet(_.status, Real(PackageInfo pi)
+  SetSum(EvalSet(_.status, Real(@PackageInfo pi)
   {
     Upgrade(pi->name.version)
   })
