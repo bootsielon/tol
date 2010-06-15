@@ -97,5 +97,23 @@ Real ForceExactRequirements(Text remote.repository, Text package.version)
   r::ForceExactRequirements(package.version)
 };
 
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Remove = 
+"Borra un paquete del directorio local.";
+Real Remove(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  OSFilRemove(_.localRoot+package.version)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Remove.All = 
+"Borra todos los paquetes del directorio local.";
+Real Remove.All(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  OSDirRemove(_.localRoot);
+  OSDirMake(_.localRoot)
+};
 
 
