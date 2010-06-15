@@ -127,21 +127,24 @@ Real Connect(Real void)
     Set pckInf = For(2,Card(line), PackageInfo(Real k)
     {
       Set fields = Tokenizer(line[k],";","\"","\\");
-      {PackageInfo(
+      Set aux = [[{PackageInfo(
         Text repository = url,
         Text name = fields[1],
         Real version.high = Eval(fields[2]),
         Real version.low = Eval(fields[3]),
-        Real name.version
+        Real name.version = If(IsUnknown(version.high),name,
+          name+"."<<version.high+"."<<version.low),
         Text desc = fields[4],
         Text minTolVersion = fields[5],
         Text releaseDate = fields[6],
         Set dependencies = Eval("SetOfText("+fields[7]+")")
-      )}
+      )}]];
+      Set PutName(aux[1]->name.version,aux[1]);
+      aux[1]
     });
     Set _.status := Sort(pckInf,Real(PackageInfo a, PackageInfo b)
     {
-      Compare(a->name.version, b->name.version)
+      Compare(b->name.version, a->name.version)
     });
     Real numErr1 = Copy(NError);
     _.connected := And(numErr1==numErr0,Card(_.status))
@@ -186,6 +189,7 @@ Real Install.All(Real void)
 {
   SetMin(EvalSet(_.status, Real(PackageInfo pi)
   {
+    DownloadFile(pi->name.version)
   })
 };
 
@@ -196,31 +200,38 @@ Text _.autodoc.member.LastDate =
 Date LastDate(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  //Sin implementar
-  Today
+  Real pos = FindIndexByName(_.status,package),
+  If(!pos, TheBegin,
+  { 
+    _.status[pos]->lastDate
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Upgrade = 
-"Actualiza automáticamente la versión más avanzada de un paquete cada vez "
-"que caduca la copia local llamando a Install .";
+"Actualiza automáticamente un paquete si ha caducado caduca la copia local "
+"llamando a Install.";
 Real Upgrade(Text package, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  //Sin implementar
+  Date localDate = If(!FileExist(_.localRoot+path), TheBegin,
+    FileTime(_.localRoot+path));
+  Date lastDate = LastDate(package);
+  If(lastDate-localDate<=caducityInDays, False, Install(package));
   True
 };
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Upgrade.All = 
-"Actualiza automáticamente la última versión de todos los paquetes "
-"disponibles en un repositorio remoto cada vez que se caduca la copia "
-"local.";
+"Actualiza automáticamentetodos los paquetes disponibles en un repositorio "
+"remoto para los que la copia local haya caducado.";
 Real Upgrade.All(Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  //Sin implementar
-  True
+  SetSum(EvalSet(_.status, Real(PackageInfo pi)
+  {
+    Upgrade(pi->name.version)
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -236,8 +247,16 @@ Text _.autodoc.member.ForceExactRequirements =
 Real ForceExactRequirements(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  //Sin implementar
-  True
+  Real pos = FindIndexByName(_.status,package.version),
+  If(!pos, False,
+  { 
+    Set EvalSet(_.status[pos]->dependencies,Real(Text required)
+    {
+      Set IncludeText("#Require "+required+";\nReal True;");
+      True
+    });
+    True
+  })
 }
 
 
