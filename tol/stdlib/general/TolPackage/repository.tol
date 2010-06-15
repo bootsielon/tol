@@ -14,7 +14,8 @@
   Real version.high,
   Real version.low,
   Text desc,
-  Text keys,
+  Set  keys,
+  Set  authors,
   Text minTolVersion,
   Text releaseDate,
   Set  dependencies
@@ -142,10 +143,11 @@ Real Connect(Real void)
         Real name.version = If(IsUnknown(version.high),name,
           name+"."<<version.high+"."<<version.low),
         Text desc = fields[4],
-        Text keys =  fields[5],
-        Text minTolVersion = fields[6],
-        Text releaseDate = fields[7],
-        Set dependencies = Eval("SetOfText("+fields[8]+")")
+        Set keys =  Eval(fields[5]),
+        Set authors =  Eval(fields[6]),
+        Text minTolVersion = fields[7],
+        Text releaseDate = fields[8],
+        Set dependencies = Eval(fields[9])
       ) ]] };
       Set PutName(aux[1]->name.version,aux[1]);
       aux[1]
