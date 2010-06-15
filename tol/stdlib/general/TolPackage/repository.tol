@@ -13,7 +13,7 @@
   Text name.version,
   Real version.high,
   Real version.low,
-  Text description,
+  Text brief,
   Set  keys,
   Set  authors,
   Text minTolVersion,
@@ -29,19 +29,25 @@ Class @Repository {
 //Un repositorio remoto puede ser en realidad un directorio local para 
 //facilitar proceso de instalación cerrada. Para ello la URL comenzará por 
 //file:// seguido del path local donde se ubica el repositorio.\n
-//Si la URL empieza por http:// https:// ftp:// o cualquier otro protocolo
+//Si la URL empieza por http:// https:// o cualquier otro protocolo
 //reconocible por el sistema operativo se realizará la correspondiente 
 //descarga remota. 
 Text _.url;
 
-//Protocolo de acceso al repositorio file://, http://, https://, ftp://
-Text _.protocol ="";
+//Nombre oficial del repositorio;
+Text _.name = "";
+//Tipo del repositorio : "Private" ó "Public";
+Text _.type = "";
+//Descripción del repositorio;
+Text _.description = "";
+//Protocolo de acceso al repositorio file://, http://, ...
+Text _.protocol = "";
 //Resto de la URL tras el protocolo
 Text _.address = "";
 //Cierto si el protocolo no es file://
 Real _.isRemote = ?;
 //Archivo del estado actual de los paquetes del repositorio
-Set _.status = Copy(Empty);
+Set _.index = Copy(Empty);
 //Resultado de la conexión al repositorio remoto
 Real _.connected = ?;
 //Instancias de repositorios que han sido consultados durante la sesión de 
@@ -130,7 +136,11 @@ Real Connect(Real void)
   If(Not(IsUnknown(_.connected)), _.connected,
   {
     Real numErr0 = Copy(NError);
-    Text aux = GetFileContens("packages.csv");
+    Set repInf = IncludeText(GetFileContens("index.tol"));
+    Text _.name := repInf::name;
+    Text _.type := repInf::type;
+    Text _.description := repInf::description;
+    Text aux = GetFileContens("index.csv");
     Set line = Tokenizer(aux,"\n");
     Set pckInf = For(2,Card(line), @PackageInfo(Real k)
     {
@@ -141,7 +151,7 @@ Real Connect(Real void)
         Real version.high = Eval(fields[2]),
         Real version.low = Eval(fields[3]),
         Real name.version = Eval(fields[4]),
-        Text description = fields[5],
+        Text brief = fields[5],
         Set keys =  Eval(fields[6]),
         Set authors =  Eval(fields[7]),
         Text minTolVersion = fields[8],
@@ -151,18 +161,18 @@ Real Connect(Real void)
       Set PutName(aux[1]->name.version,aux[1]);
       aux[1]
     });
-    Set _.status := Sort(pckInf,Real(@PackageInfo a, @PackageInfo b)
+    Set _.index := Sort(pckInf,Real(@PackageInfo a, @PackageInfo b)
     {
       Compare(b->name.version, a->name.version)
     });
-    Real SetIndexByName(_.status);
-    Set Append(_.allPackages,_.status, True);
+    Real SetIndexByName(_.index);
+    Set Append(_.allPackages,_.index, True);
     Set _.allPackages := Sort(_.allPackages,Real(@PackageInfo a, @PackageInfo b)
     {
       Compare(b->name.version, a->name.version)
     });
     Real numErr1 = Copy(NError);
-    _.connected := And(numErr1==numErr0,Card(_.status))
+    _.connected := And(numErr1==numErr0,Card(_.index))
   })
 };
 
@@ -172,7 +182,7 @@ Text _.autodoc.member.Exist =
 Real Exist(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real pos = FindIndexByName(_.status,package);
+  Real pos = FindIndexByName(_.index,package);
   pos > 0
 };
 
@@ -219,7 +229,7 @@ Text _.autodoc.member.Install.All =
 Real Install.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SetMin(EvalSet(_.status, Real(@PackageInfo pi)
+  SetMin(EvalSet(_.index, Real(@PackageInfo pi)
   {
     DownloadFile(pi->name.version)
   }))
@@ -232,10 +242,10 @@ Text _.autodoc.member.LastDate =
 Date LastDate(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real pos = FindIndexByName(_.status,package);
+  Real pos = FindIndexByName(_.index,package);
   If(!pos, TheBegin,
   { 
-    _.status[pos]->lastDate
+    _.index[pos]->lastDate
   })
 };
 
@@ -260,7 +270,7 @@ Text _.autodoc.member.Upgrade.All =
 Real Upgrade.All(Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SetSum(EvalSet(_.status, Real(@PackageInfo pi)
+  SetSum(EvalSet(_.index, Real(@PackageInfo pi)
   {
     Upgrade(pi->name.version, caducityInDays)
   }))
@@ -292,10 +302,10 @@ Text _.autodoc.member.ForceExactRequirements =
 Real ForceExactRequirements(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real pos = FindIndexByName(_.status,package.version),
+  Real pos = FindIndexByName(_.index,package.version),
   If(!pos, False,
   { 
-    TolPackage::DoRequirements(_.status[pos]->dependencies)
+    TolPackage::DoRequirements(_.index[pos]->dependencies)
   })
 }
 

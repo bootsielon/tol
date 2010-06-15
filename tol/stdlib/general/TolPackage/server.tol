@@ -12,6 +12,9 @@ distinto repositorio.
  * No está permitido el requerimiento cíclico directo ni indirecto entre 
 paquetes, es decir, si A requiere a B directa o indirectamente B no puede 
 requerir a A ni directa ni indirectamente.
+ * Debe haber un comité o alguien responsable de probar todos los paquetes de
+un repositorio antes de publicar las actualizaciones de los paquetes para 
+asegurar la compatibilidad conjunta de todos ellos.
 
 */
 
@@ -25,22 +28,44 @@ Text ScapeField(Text field)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Real ResetPackageInfo(Text file, NameBlock pkg)
+Real ResetRepository(
+  Text root,         //Local server-side installing directory
+  Text url,          //A unique address with remote or local protocol
+  Text name,         //A unique name 
+  Text type,         //Private, Public
+  Text description)  //Purpose of repository
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text info = 
+  Text index.csv = 
   "repository;"+
   "name;"+
   "name.version;"+
   "version.high;"+
   "version.low;"+
-  "description;"+
+  "brief;"+
   "keys;"+
   "authors;"+
   "minTolVersion;"+
   "releaseDate;"+
   "dependencies;\n";
-  Text WriteFile(file, info);
+
+  Text index.tol =
+  "//////////////////////////////////////////////////////////////////////////////\n"
+  "//FILE : index.tol                                                            \n"
+  "//PURPOSE : internal use of Class TolPackage::@Repository                     \n"
+  "//                                                                            \n"
+  "//       PLEASE, DON'T TOUCH THIS FILE NOR OTHER ONE IN THIS DIRECTORY!       \n"
+  "//                                                                            \n"
+  "//////////////////////////////////////////////////////////////////////////////\n"
+  "  Text name = \""+name+"\";\n"+
+  "  Text type = \""+type+"\";\n"+
+  "  Text description = \""+description+"\";\n"+
+  "\n";
+    
+  Text WriteFile(root+"index.csv",  index.csv);
+  Text WriteFile(root+"index.tol",  index.tol);
+//Text WriteFile(root+"index.wiki", index.wiki);
+//Text WriteFile(root+"index.html", index.html);
   True
 };
 
@@ -68,7 +93,7 @@ Real ResetPackageInfo(Text file, NameBlock pkg)
 
 //////////////////////////////////////////////////////////////////////////////
 Real AddPackageInfo.Version(
-  Text statusFile, 
+  Text root, 
   NameBlock pkg, 
   Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
@@ -76,27 +101,31 @@ Real AddPackageInfo.Version(
   Text name = Name(pkg);
   Text name.version = GetNameVersion(pkg);
   Set dependencies = GetDeepDependencies(name);
-  Text info =
+  Text index.csv =
     pkg:: _.autodoc.url + ";"
   <<name + ";"
   <<name.version+ ";"
   <<If(!specificVersion,?,pkg::_.autodoc.version.high) + ";"
   <<If(!specificVersion,?,pkg::_.autodoc.version.low) + ";"
-  <<pkg::ScapeField(_.autodoc.description) + ";"
+  <<pkg::ScapeField(_.autodoc.brief) + ";"
   <<pkg::ScapeField(_.autodoc.keys) + ";"
   <<pkg::ScapeField(_.autodoc.authors) + ";"
   <<pkg::_.autodoc.minTolVersion + ";"
   <<Now + ";"
   <<dependencies+ "\n";
-  Text AppendFile(statusFile, info);
+  Text AppendFile(root+"index.csv",  index.csv);
+  //Text AppendFile(root+"index.wiki", index.wiki);
+  //Text AppendFile(root+"index.html", index.html);
   True
 };
 
+
+
 //////////////////////////////////////////////////////////////////////////////
-Real AddPackageInfo(Text statusFile, NameBlock pkg)
+Real AddPackage(Text root, NameBlock pkg)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real AddPackageInfo.Version(statusFile,pkg,True);
-  Real AddPackageInfo.Version(statusFile,pkg,False)
+  Real AddPackageInfo.Version(root,pkg,True);
+  Real AddPackageInfo.Version(root,pkg,False)
 };
 
