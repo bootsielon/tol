@@ -100,6 +100,20 @@ Real Upgrade.AllInAll(Real caducityInDays)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DoRequirements= 
+"Llama a #Require para una lista de paquetes";
+Real DoRequirements(Set packages)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set EvalSet(packages,Real(Text required)
+  {
+    Set IncludeText("#Require "+required+";\nReal True;");
+    True
+  });
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.ForceExactRequirements = 
 "Permite usar una versión de un paquete distinta de la última con #Require "
 "asegurando la compatibilidad con el estado exacto de los paquetes de los "
