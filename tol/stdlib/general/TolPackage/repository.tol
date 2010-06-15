@@ -1,0 +1,230 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : repository.tol
+// PURPOSE: Class TolPackage::Repository
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Información de un paquete dentro del archivo de estado un repositorio
+  Struct PackageInfo {
+//////////////////////////////////////////////////////////////////////////////
+  Text repository,
+  Text name,
+  Real version.high,
+  Real version.low,
+  Text desc,
+  Text minTolVersion,
+  Text releaseDate,
+  Set dependencies
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Class Repository {
+//////////////////////////////////////////////////////////////////////////////
+
+//Dirección del repositorio remoto
+//Un repositorio remoto puede ser en realidad un directorio local para 
+//facilitar proceso de instalación cerrada. Para ello la URL comenzará por 
+//file:// seguido del path local donde se ubica el repositorio.\n
+//Si la URL empieza por http:// https:// ftp:// o cualquier otro protocolo
+//reconocible por el sistema operativo se realizará la correspondiente 
+//descarga remota. 
+Text _.url;
+
+//Archivo del estado actual de los paquetes del repositorio
+Set _.status = Copy(Empty);
+
+//Resultado de la conexión al repositorio remoto
+Real _.connected = ?;
+
+//Instancias de repositorios que han sido consultados durante la sesión de 
+//TOL actual
+Static Set _.instances = Copy(Empty);
+
+//////////////////////////////////////////////////////////////////////////////
+//Devuelve la instancia de repositorio correspondiente a una URL. Si no había
+//sido consultado previamente se conecta primero al repositorio remoto.
+//Si hay cambios en el directorio remoto durante la sesión TOL estos no serán
+//percibidos.
+Static Repository Get(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real pos = FindIndexByName(Repository::_.instances, ToName(url));
+  If(pos, _.instances[pos],
+  {
+    Repository::_Open(url)
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Abre un repositorio por primera vez
+Static Repository _Open(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set aux = [[
+    Repository new = [[
+      Text _.url = url;
+    ]]
+  ]];
+  Real If(new::Connect(0),
+  {
+    NameBlock PutName(ToName(url), aux[1]);
+    Real Append(Repository::_.instances, aux, True);
+    True
+  });
+  aux[1]
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Devuelve el contenido de un fichero de texto ubicado en el repositorio
+  Text GetFileContens(Text path)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TextBeginWith(_.url,"file://"),
+  {
+    ReadFile(_.url+path)
+  },
+  {
+    StdLib::GetUrlContents(_.url+path)
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Copia un fichero del repositorio remoto al directorio local de paquetes
+  Text CopyFileToLocalRoot(Text path)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TextBeginWith(_.url,"file://"),
+  {
+    OSFilCopy(_.url+path,_.localRoot+path)
+  },
+  {
+    //Hay que buscar una forma de copiar remoto sin wget, con el TCL
+    OSCmdWait("wget -O\""+_.localRoot+path+"\" \""+_.url+path+"\"")
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Función de conexión al repositorio remoto 
+Real Connect(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Not(IsUnknown(_.connected), _.connected,
+  {
+    Real numErr0 = Copy(NError);
+    Text aux = GetFileContens("packages.csv");
+    Set line = Tokenizer(aux,"\n");
+    Set _.status := For(2,Card(line), PackageInfo(Real k)
+    {
+      Set fields = Tokenizer(line[k],";","\"","\\");
+      {PackageInfo(
+        Text repository = url,
+        Text name = fields[1],
+        Real version.high = Eval(fields[2]),
+        Real version.low = Eval(fields[3]),
+        Text desc = fields[4],
+        Text minTolVersion = fields[5],
+        Text releaseDate = fields[6],
+        Set dependencies = Eval("SetOfText("+fields[7]+")")
+      )}
+    });
+    Real numErr1 = Copy(NError);
+    _.connected := And(numErr1==numErr0,Card(_.status))
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Install = 
+"Instala desde el repositorio remoto al local un paquete determinado "
+"para que esté disponible llamando a #Require. \n"
+"Un repositorio remoto puede ser en realidad un directorio local para "
+"facilitar proceso de instalación cerrada. Para ello la URL comenzará por "
+"file:// seguido del path local donde se ubica el repositorio.\n"
+"Si la URL empieza por http:// https:// ftp:// o cualquier otro protocolo"
+"reconocible por el sistema operativo se realizará la correspondiente "
+"descarga remota. \n"
+"En un mismo repositorio local puede haber distintas veriones de un mismo "
+"paquete que se distinguirán unas de otras por el texto posterior al "
+"primer punto. Antes del punto el nombre del paquete ha de seguir la "
+"nomenclatura tipo WIKI AaaBbb \n"
+"Si no se especifica ninguna versión se instalará la última disponible "
+"con una copia que especifique el nombre con versión y otra sin versión, "
+"sólo con el nombre del paquete, de forma que el #Require funcione igual "
+"tanto si se especifica la última versión como si no se especifica "
+"ninguna. \n"
+"Si ya existía una copia en el repositorio local será substituida sin "
+"mayores contemplaciones por lo que el usuario debe saber lo que pide. \n"
+"Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
+"que se lancen desde ese momento podrán usarlos.";
+Real Install(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Sin implementar
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Install.All = 
+"Instala la última versión de todos los paquetes disponibles en un "
+"repositorio remoto.";
+Real Install.All(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Sin implementar
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LastDate = 
+"Devuelve la fecha de la última actualización de un paquete en un "
+"repositorio";
+Date LastDate(Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Sin implementar
+  Today
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Upgrade = 
+"Actualiza automáticamente la versión más avanzada de un paquete cada vez "
+"que caduca la copia local llamando a Install .";
+Real Upgrade(Text package, Real caducityInDays)
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Sin implementar
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Upgrade.All = 
+"Actualiza automáticamente la última versión de todos los paquetes "
+"disponibles en un repositorio remoto cada vez que se caduca la copia "
+"local.";
+Real Upgrade.All(Real caducityInDays)
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Sin implementar
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.ForceExactRequirements = 
+"Permite usar una versión de un paquete distinta de la última con #Require "
+"asegurando la compatibilidad con el estado exacto de los paquetes de los "
+"que depende el requerido y recursivamente los que dependen de ellos. \n"
+"Lee en el repositorio remoto la lista de requerimientos para el paquete y " 
+"hace los requires de las versiones exactas. \n"
+"Hay que llamar a este método siempre antes de hacer ningún #Require de "
+"cualquiera de los paquetes requeridos directa o indirectamente por lo que " 
+"lo más aconsejable es hacerlo justo después de cargar la StdLib ";
+Real ForceExactRequirements(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Sin implementar
+  True
+}
+
+
+
+};

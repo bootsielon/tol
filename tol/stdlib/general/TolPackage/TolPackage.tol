@@ -1,0 +1,24 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : TolPackage.tol
+// PURPOSE: Defines NameBlock TolPackage
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock TolPackage = [[
+Text _.autodoc.description = "Utilidades para el manejo de paquetes TOL: "
+"instalación, actualización, borrado, consulta de estado, etc.\n"
+"Tiene un depósito de Clase que implementa todos los métodos de un "
+"repositorio dado.\n"
+"Para facilitar las llamadas también hay un conjunto de métodos equivalentes "
+"teniendo el repositorio como un argumento de texto que se ocupa de obtener "
+"la instancia de la clase y llamar luego al étodo interno adecuado.";
+Set _.autodoc.keys = [["TOL","Package"]];
+Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
+
+Text _.localRoot = Replace(TolAppDataPath+
+"OIS/Require/tol_pkg/","\\","/");
+
+#Embed "repository.tol"
+#Embed "tools.tol"
+
+]];
