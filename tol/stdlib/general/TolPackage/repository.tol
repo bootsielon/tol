@@ -10,6 +10,7 @@
 //////////////////////////////////////////////////////////////////////////////
   Text repository,
   Text name,
+  Text name.version,
   Real version.high,
   Real version.low,
   Text desc,
@@ -123,7 +124,7 @@ Real Connect(Real void)
     Real numErr0 = Copy(NError);
     Text aux = GetFileContens("packages.csv");
     Set line = Tokenizer(aux,"\n");
-    Set _.status := For(2,Card(line), PackageInfo(Real k)
+    Set pckInf = For(2,Card(line), PackageInfo(Real k)
     {
       Set fields = Tokenizer(line[k],";","\"","\\");
       {PackageInfo(
@@ -131,11 +132,16 @@ Real Connect(Real void)
         Text name = fields[1],
         Real version.high = Eval(fields[2]),
         Real version.low = Eval(fields[3]),
+        Real name.version
         Text desc = fields[4],
         Text minTolVersion = fields[5],
         Text releaseDate = fields[6],
         Set dependencies = Eval("SetOfText("+fields[7]+")")
       )}
+    });
+    Set _.status := Sort(pckInf,Real(PackageInfo a, PackageInfo b)
+    {
+      Compare(a->name.version, b->name.version)
     });
     Real numErr1 = Copy(NError);
     _.connected := And(numErr1==numErr0,Card(_.status))
@@ -168,8 +174,7 @@ Text _.autodoc.member.Install =
 Real Install(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  //Sin implementar
-  True
+  DownloadFile(package.version)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -179,8 +184,9 @@ Text _.autodoc.member.Install.All =
 Real Install.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  //Sin implementar
-  True
+  SetMin(EvalSet(_.status, Real(PackageInfo pi)
+  {
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
