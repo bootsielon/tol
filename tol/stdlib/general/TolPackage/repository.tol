@@ -22,7 +22,7 @@
 Class Repository {
 //////////////////////////////////////////////////////////////////////////////
 
-//Dirección del repositorio remoto
+//Dirección del repositorio remoto.
 //Un repositorio remoto puede ser en realidad un directorio local para 
 //facilitar proceso de instalación cerrada. Para ello la URL comenzará por 
 //file:// seguido del path local donde se ubica el repositorio.\n
@@ -31,12 +31,16 @@ Class Repository {
 //descarga remota. 
 Text _.url;
 
+//Protocolo de acceso al repositorio file://, http://, https://, ftp://
+Text _.protocol ="";
+//Resto de la URL tras el protocolo
+Text _.address = "";
+//Cierto si el protocolo no es file://
+Real _.isRemote = ?;
 //Archivo del estado actual de los paquetes del repositorio
 Set _.status = Copy(Empty);
-
 //Resultado de la conexión al repositorio remoto
 Real _.connected = ?;
-
 //Instancias de repositorios que han sido consultados durante la sesión de 
 //TOL actual
 Static Set _.instances = Copy(Empty);
@@ -61,11 +65,16 @@ Static Repository Get(Text url)
 Static Repository _Open(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set aux = [[
-    Repository new = [[
-      Text _.url = url;
-    ]]
-  ]];
+  Real prtPos = TextFind(url,"://")+2;
+  //Protocolo de acceso al repositorio file://, http://, https://, ftp://
+  Text protocol = SubString(url,1,prtPos);
+  //Resto de la URL tras el protocolo
+  Text address =  SubString(url,prtPos+1,TextLength(url));
+  Set aux = [[ Repository new = [[
+    Text _.url = url;
+    Text _.protocol = protocol;
+    Text _.address = address;
+    Real _.isRemote =  protocol!="file://"  ]] ]];
   Real If(new::Connect(0),
   {
     NameBlock PutName(ToName(url), aux[1]);
@@ -80,9 +89,9 @@ Static Repository _Open(Text url)
   Text GetFileContens(Text path)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(TextBeginWith(_.url,"file://"),
+  If(!_.isRemote,
   {
-    ReadFile(_.url+path)
+    ReadFile(_.address+path)
   },
   {
     StdLib::GetUrlContents(_.url+path)
@@ -91,12 +100,12 @@ Static Repository _Open(Text url)
 
 //////////////////////////////////////////////////////////////////////////////
 //Copia un fichero del repositorio remoto al directorio local de paquetes
-  Text CopyFileToLocalRoot(Text path)
+  Real DownloadFile(Text path)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(TextBeginWith(_.url,"file://"),
+  If(!_.isRemote,
   {
-    OSFilCopy(_.url+path,_.localRoot+path)
+    OSFilCopy(_.address+path,_.localRoot+path)
   },
   {
     //Hay que buscar una forma de copiar remoto sin wget, con el TCL
