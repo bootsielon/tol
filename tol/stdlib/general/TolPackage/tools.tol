@@ -5,6 +5,16 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Exist = 
+"Devuelve cierto si existe el paquete especificado";
+Real Exist(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  @Repository r = @Repository::Get(remote.repository);
+  r::Exist(package.version)
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Install = 
 "Instala desde el repositorio remoto al local un paquete determinado "
 "para que esté disponible llamando a #Require. \n"
@@ -28,11 +38,11 @@ Text _.autodoc.member.Install =
 "Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
 "que se lancen desde ese momento podrán usarlos.";
 //////////////////////////////////////////////////////////////////////////////
-Real Install(Text remote.repository, Text package.version)
+Real Install(Text remote.repository, Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
   @Repository r = @Repository::Get(remote.repository);
-  r::Install(package.version)
+  r::Install(package.version,showError)
 };
 
 //////////////////////////////////////////////////////////////////////////////

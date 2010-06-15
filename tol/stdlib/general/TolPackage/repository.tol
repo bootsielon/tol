@@ -104,6 +104,7 @@ Static @Repository _Open(Text url)
   Real DownloadFile(Text path)
 //////////////////////////////////////////////////////////////////////////////
 {
+  If(FileExist(_.localRoot+path), OSFilRemove(_.localRoot+path));
   If(!_.isRemote,
   {
     OSFilCopy(_.address+path,_.localRoot+path)
@@ -152,6 +153,16 @@ Real Connect(Real void)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Exist = 
+"Devuelve cierto si existe el paquete especificado";
+Real Exist(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real pos = FindIndexByName(_.status,package);
+  pos > 0
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Install = 
 "Instala desde el repositorio remoto al local un paquete determinado "
 "para que esté disponible llamando a #Require. \n"
@@ -174,10 +185,17 @@ Text _.autodoc.member.Install =
 "mayores contemplaciones por lo que el usuario debe saber lo que pide. \n"
 "Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
 "que se lancen desde ese momento podrán usarlos.";
-Real Install(Text package.version)
+Real Install(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-  DownloadFile(package.version)
+  Real DownloadFile(package.version);
+  Real ok = FileExist(_.localRoot+package.version);
+  If(And(!ok,showError),
+  {
+    WriteLn("[TolPackage::Install] "
+    "Cannot install package "+_.url+package.version,"E")
+  });
+  ok
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -200,7 +218,7 @@ Text _.autodoc.member.LastDate =
 Date LastDate(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real pos = FindIndexByName(_.status,package),
+  Real pos = FindIndexByName(_.status,package);
   If(!pos, TheBegin,
   { 
     _.status[pos]->lastDate
