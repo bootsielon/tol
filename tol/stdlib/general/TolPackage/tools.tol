@@ -59,8 +59,8 @@ Date LastDate(Text remote.repository, Text package)
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Upgrade = 
-"Actualiza automáticamente la versión más avanzada de un paquete cada vez "
-"que caduca la copia local llamando a Install .";
+"Actualiza automáticamente un paquete si ha caducado caduca la copia local "
+"llamando a Install.";
 Real Upgrade(Text remote.repository, Text package, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -70,9 +70,8 @@ Real Upgrade(Text remote.repository, Text package, Real caducityInDays)
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Upgrade.All = 
-"Actualiza automáticamente la última versión de todos los paquetes "
-"disponibles en un repositorio remoto cada vez que se caduca la copia "
-"local.";
+"Actualiza automáticamentetodos los paquetes disponibles en un repositorio "
+"remoto para los que la copia local haya caducado.";
 Real Upgrade.All(Text remote.repository, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
