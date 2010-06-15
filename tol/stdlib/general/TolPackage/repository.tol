@@ -13,7 +13,7 @@
   Text name.version,
   Real version.high,
   Real version.low,
-  Text desc,
+  Text description,
   Set  keys,
   Set  authors,
   Text minTolVersion,
@@ -140,14 +140,13 @@ Real Connect(Real void)
         Text name = fields[1],
         Real version.high = Eval(fields[2]),
         Real version.low = Eval(fields[3]),
-        Real name.version = If(IsUnknown(version.high),name,
-          name+"."<<version.high+"."<<version.low),
-        Text desc = fields[4],
-        Set keys =  Eval(fields[5]),
-        Set authors =  Eval(fields[6]),
-        Text minTolVersion = fields[7],
-        Text releaseDate = fields[8],
-        Set dependencies = Eval(fields[9])
+        Real name.version = Eval(fields[4]),
+        Text description = fields[5],
+        Set keys =  Eval(fields[6]),
+        Set authors =  Eval(fields[7]),
+        Text minTolVersion = fields[8],
+        Text releaseDate = fields[9],
+        Set dependencies = Eval(fields[10])
       ) ]] };
       Set PutName(aux[1]->name.version,aux[1]);
       aux[1]
@@ -158,6 +157,10 @@ Real Connect(Real void)
     });
     Real SetIndexByName(_.status);
     Set Append(_.allPackages,_.status, True);
+    Set _.allPackages := Sort(_.allPackages,Real(@PackageInfo a, @PackageInfo b)
+    {
+      Compare(b->name.version, a->name.version)
+    });
     Real numErr1 = Copy(NError);
     _.connected := And(numErr1==numErr0,Card(_.status))
   })
