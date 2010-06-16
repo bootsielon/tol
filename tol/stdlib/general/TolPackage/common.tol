@@ -1,0 +1,48 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : common.tol
+// PURPOSE: TolPackage common tools
+// Funciones y estructuras comunes al lado de servidor y cliente
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Información de un paquete dentro del archivo de estado un repositorio
+  Struct @PackageInfo {
+//////////////////////////////////////////////////////////////////////////////
+  Text repository,
+  Text name,
+  Text name.version,
+  Real version.high,
+  Real version.low,
+  Text brief,
+  Set  keys,
+  Set  authors,
+  Text minTolVersion,
+  Text releaseDate,
+  Set  dependencies
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Devuelve el nombre de versión actual de un paquete ya cargado 
+  Set GetNameVersion(Text packageName, Real specificVersion)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock p = Eval(packageName);
+  Text name.version = If(!specificVersion,packageName,
+    packageName+"."<<p::_.autodoc.version.high+"."<<p::_.autodoc.version.low)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Devuelve la lista de dependencias directas e indirectas de un paquete ya 
+//cargado 
+  Set GetDeepDependencies(Text packageName, Real specificVersion)
+//////////////////////////////////////////////////////////////////////////////
+{
+  NameBlock p = Eval(packageName);
+  Text name.version = GetNameVersion(p);
+  If(!Card(p::_.autodoc.dependencies), Copy(Empty),
+  {
+    Unique(SetConcat(EvalSet(p::_.autodoc.dependencies,GetDeepDependencies))<<
+           name.version)
+  }) 
+};
