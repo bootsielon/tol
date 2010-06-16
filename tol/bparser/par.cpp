@@ -102,7 +102,7 @@ BParser::~BParser()
  *  If an error message was found adds error location information
  *  and displays it.
  */
-Tree* BParser::Parse(const BText& expr)
+Tree* BParser::Parsing(const BText& expr)
 {
   BScanner* oldScanner = BScanner::SetCurrent(scan_);
   Tree* tree = new Tree();
@@ -168,20 +168,13 @@ Tree* BParser::Parse(const BText& expr)
   return(tree);
 }
 
-//--------------------------------------------------------------------
-//! this method is used for parsing TOL code in setgra.cpp
-/*! Parses an expression with a given parser
- */
-Tree* BParser::Parsing (BParser* parse, const BText& expression) 
-{
-  return (parse->Parse(expression));
-}
+
 
 //-- static method ---------------------------------------------------
 //! Parses an expression with the standard parser
 Tree* BParser::parsing (const BText& expression) 
 {
-  return (BParser::DefaultParser()->Parse(expression));
+  return (BParser::DefaultParser()->Parsing(expression));
 }
 
 //- static method ----------------------------------------------------
@@ -447,11 +440,17 @@ BToken* BParser::treToken (const List* tree)
   }
 }
 
-//- static method -------------------------------------------------
 //! BTRUE if during parsing proccess has been an error
 BBool BParser::HasError() 
 {
-  return (DefaultParser()->messageError_.HasName());
+  return (messageError_.HasName());
+}
+
+//- static method -------------------------------------------------
+//! BTRUE if during parsing proccess has been an error
+BBool BParser::hasError() 
+{
+  return (DefaultParser()->HasError());
 }
 
 //--------------------------------------------------
@@ -1081,7 +1080,7 @@ Tree* BParser::ParseMacroEmbed (Tree* tre)
       BText currentDir = GetFilePath(path);
       BDir::ChangeCurrent(currentDir);
       BParser* childParser = new BParser;
-      embedded = childParser->Parse(fileContens);
+      embedded = childParser->Parsing(fileContens);
       if(embedded)
       { 
         BText absPath = GetStandardAbsolutePath(path);

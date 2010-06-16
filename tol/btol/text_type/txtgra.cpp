@@ -2413,8 +2413,10 @@ void BTextParseError::CalcContens()
     BText expr = Text(Arg(1));
     BBool stat = BOut::ErrorHci();
     BOut::PutErrorHci(BFALSE);
-    Tree* tree = BParser::DefaultParser()->Parse(expr);
-    contens_ = BParser::DefaultParser()->MessageError();
+    BParser* parser = new BParser;
+    Tree* tree = parser->Parsing(expr);
+    contens_ = parser->MessageError();
+    delete parser;
     BOut::PutErrorHci(stat);
     DESTROY(tree);
 }

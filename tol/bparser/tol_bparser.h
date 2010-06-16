@@ -63,8 +63,8 @@ class BParser {
     BParser();
     ~BParser();
     
-    Tree* Parse (const BText& expression);
-    Tree* Parsing (BParser* parse, const BText& expression);
+    Tree* Parsing (const BText& expression);
+    BBool HasError();
 
     static Tree* parsing (const BText& expression);
     static void InitDefaultParser();
@@ -77,7 +77,7 @@ class BParser {
 				const BText& endLin="\n");
     static BText treWrite(List* tree, BText indent, BBool last=BFALSE);
     static BToken* treToken(const List* tree);
-    static BBool HasError();
+    static BBool hasError();
 
     const BText& MessageError();
     BFilter* Filter() const;

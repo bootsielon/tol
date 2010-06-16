@@ -897,13 +897,14 @@ BSyntaxObject* BGrammar::EvaluateTree(
 BSyntaxObject* BGrammar::EvaluateExpr(const BText& expr)
 //--------------------------------------------------------------------
 {
+  BParser* parser = new BParser;
   try 
   {
     if(!Compact(expr).HasName()) { return(NIL); }
-    Tree* realTree = BParser::parsing(expr);
+    Tree* realTree = parser->Parsing(expr);
   //Trace(BText("Parsed expression :\n")+Unparsing(tre, "	 ", "|"));
     BSyntaxObject* result = NIL;
-    if(realTree && !BParser::HasError())
+    if(realTree && !parser->HasError())
     {
       List* tre = realTree->getTree();
       if((result = EvaluateTree(tre)))
@@ -917,11 +918,14 @@ BSyntaxObject* BGrammar::EvaluateExpr(const BText& expr)
     {
       result->PutExpression(expr);
     }
+    delete parser;
+    parser = NULL;
     return(result);
   }
   catch(...)
   {
     Error("EXCEPTION: Uncontrolled exception in TOL evaluator");
+    if(parser) { delete parser; }
     return(NULL);
   }
 }
@@ -930,13 +934,14 @@ BSyntaxObject* BGrammar::EvaluateExpr(const BText& expr)
 BSyntaxObject* BGrammar::LeftEvaluateExpr(const BText& expr)
 //--------------------------------------------------------------------
 {
+  BParser* parser = new BParser;
   try 
   {
     if(!Compact(expr).HasName()) { return(NIL); }
-    Tree* realTree = BParser::parsing(expr);
+    Tree* realTree = parser->Parsing(expr);
   //Trace(BText("Parsed expression :\n")+Unparsing(tre, "	 ", "|"));
     BSyntaxObject* result = NIL;
-    if(realTree && !BParser::HasError())
+    if(realTree && !parser->HasError())
     {
       List* tre = realTree->getTree();
       if((result = LeftEvaluateTree(tre)))
@@ -950,11 +955,14 @@ BSyntaxObject* BGrammar::LeftEvaluateExpr(const BText& expr)
     {
       result->PutExpression(expr);
     }
+    delete parser;
+    parser = NULL;
     return(result);
   }
   catch(...)
   {
     Error("EXCEPTION: Uncontrolled exception in TOL evaluator");
+    if(parser) { delete parser; }
     return(NULL);
   }
 }
@@ -987,14 +995,15 @@ BList* MultyEvaluate(const BText& expr)
   BList*    aux    = NIL;
 //InitTotalTime("MultyEvaluate");
 //Std(BText("\nMultyEvaluate 0")+BTimer::Text());
-  Tree* realTre = BParser::parsing(expr);
+  BParser* parser = new BParser;
+  Tree* realTre = parser->Parsing(expr);
   List* tre = realTre->getTree();
 
 //Std(BText("\nMultyEvaluate 1")+BTimer::Text()+"\n");
 //Std(BParser::treWrite(tre,"  ")+"\n");
 //Std(BParser::Unparse(tre, "  ", "\n"));
 
-  if(!tre || BParser::HasError()) { return(NIL); }
+  if(!tre || parser->HasError()) { return(NIL); }
   BToken*    tok    = BParser::treToken(tre);
   BTokenType type   = tok->TokenType();
   List*     branch = tre->cdr();
@@ -1077,6 +1086,8 @@ BList* MultyEvaluate(const BText& expr)
     }
   }
   realTre->Destroy();
+  delete parser;
+  parser = NULL;
 //SumPartialTime;
   return(result);
 }
