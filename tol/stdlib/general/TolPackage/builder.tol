@@ -38,7 +38,7 @@ Static @Builder Create(
     Set _.packages = packages;
     Text _.root = root 
   ]];
-  Real new::Build(void);
+  Real new::Build.All(0);
   new
 };
 
@@ -92,24 +92,26 @@ Text Escape(Text field)
 Text Build.PackageInfo.Version(Text name, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set aux = IncludeText("NameBlock "+packageName+";");
+  Set aux = IncludeText("NameBlock "+name+";");
   NameBlock pkg = aux[1];
-  Text name.version = GetCurrentNameVersion(name,specificVersion);
-  Set dependencies = GetDeepDependencies(name);
+  Text name.version = TolPackage::GetCurrentNameVersion(name,specificVersion);
+  Set dependencies = TolPackage::GetDeepDependencies(name, specificVersion);
   Text index.csv =
     pkg:: _.autodoc.url + ";"
   <<name + ";"
   <<name.version+ ";"
   <<If(!specificVersion,?,pkg::_.autodoc.version.high) + ";"
   <<If(!specificVersion,?,pkg::_.autodoc.version.low) + ";"
-  <<pkg::Escape(_.autodoc.brief) + ";"
-  <<pkg::Escape(_.autodoc.keys) + ";"
-  <<pkg::Escape(_.autodoc.authors) + ";"
+  <<Escape(pkg::_.autodoc.brief) + ";"
+  <<Escape(""<<pkg::_.autodoc.keys) + ";"
+  <<Escape(""<<pkg::_.autodoc.authors) + ";"
   <<pkg::_.autodoc.minTolVersion + ";"
   <<Now + ";"
   <<dependencies+ "\n";
-  Text WriteFile(_.root+"register/"+name,  index.csv);
-  Real Ois.Store(aux,_.root+name.version+".oza");
+  WriteLn("[TolPackage::Server::@Builder::Build.PackageInfo.Version] "+
+    name.version+":\n"+index.csv+"\n");
+  Text WriteFile(_.root+"register/"+name.version,  index.csv);
+  Real Ois.Store(aux,_.root+"packages/"+name.version+".oza");
   index.csv
 };
 
@@ -117,9 +119,8 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
 Text Build.PackageInfo(Text name)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text Build.PackageInfo.Version(name,True);
-  Text Build.PackageInfo.Version(name,False);
-  True
+  Build.PackageInfo.Version(name,True)+
+  Build.PackageInfo.Version(name,False)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -127,7 +128,7 @@ Real Build.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real new::Initialize(void);
-  Set IncludeText(SetConcat(EvalSet(_.packages, Text(Text pkgName)
+  Set IncludeText(SetSum(EvalSet(_.packages, Text(Text pkgName)
   {
     "Set Include(\""+_.sourceRoot+pkgName+"/"+pkgName+".tol\");"
   })));
