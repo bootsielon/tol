@@ -5,7 +5,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////
 NameBlock Server = [[
+//////////////////////////////////////////////////////////////////////////////
 
 Text _.localRoot = 
 {
@@ -14,116 +16,7 @@ Text _.localRoot =
   aux
 };
 
-//////////////////////////////////////////////////////////////////////////////
-Text ScapeField(Text field)
-//////////////////////////////////////////////////////////////////////////////
-{
-  ReplaceTable(field,[[
-    [["\n","[[BR]]"]],
-    [[";",","]] ]])
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Real ResetRepository(
-  Text root,         //Local server-side installing directory
-  Text url,          //A unique address with remote or local protocol
-  Text name,         //A unique name 
-  Text type,         //Private, Public
-  Text description)  //Purpose of repository
-//////////////////////////////////////////////////////////////////////////////
-{
-  Text index.csv = 
-  "repository;"+
-  "name;"+
-  "name.version;"+
-  "version.high;"+
-  "version.low;"+
-  "brief;"+
-  "keys;"+
-  "authors;"+
-  "minTolVersion;"+
-  "releaseDate;"+
-  "dependencies;\n";
-
-  Text index.tol =
-  "//////////////////////////////////////////////////////////////////////////////\n"
-  "//FILE : index.tol                                                            \n"
-  "//PURPOSE : internal use of Class TolPackage::@Repository                     \n"
-  "//                                                                            \n"
-  "//       PLEASE, DON'T TOUCH THIS FILE NOR OTHER ONE IN THIS DIRECTORY!       \n"
-  "//                                                                            \n"
-  "//////////////////////////////////////////////////////////////////////////////\n"
-  "  Text name = \""+name+"\";\n"+
-  "  Text type = \""+type+"\";\n"+
-  "  Text description = \""+description+"\";\n"+
-  "\n";
-    
-  Text WriteFile(root+"index.csv",  index.csv);
-  Text WriteFile(root+"index.tol",  index.tol);
-//Text WriteFile(root+"index.wiki", index.wiki);
-//Text WriteFile(root+"index.html", index.html);
-  True
-};
-
-//////////////////////////////////////////////////////////////////////////////
-  Set GetNameVersion(Text packageName, Real specificVersion)
-//////////////////////////////////////////////////////////////////////////////
-{
-  NameBlock p = Eval(packageName);
-  Text name.version = If(!specificVersion,packageName,
-    packageName+"."<<p::_.autodoc.version.high+"."<<p::_.autodoc.version.low)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-  Set GetDeepDependencies(Text packageName, Real specificVersion)
-//////////////////////////////////////////////////////////////////////////////
-{
-  NameBlock p = Eval(packageName);
-  Text name.version = GetNameVersion(p);
-  If(!Card(p::_.autodoc.dependencies), Copy(Empty),
-  {
-    Unique(SetConcat(EvalSet(p::_.autodoc.dependencies,GetDeepDependencies))<<
-           name.version)
-  }) 
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Real AddPackageInfo.Version(
-  Text root, 
-  NameBlock pkg, 
-  Real specificVersion)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Text name = Name(pkg);
-  Text name.version = GetNameVersion(pkg);
-  Set dependencies = GetDeepDependencies(name);
-  Text index.csv =
-    pkg:: _.autodoc.url + ";"
-  <<name + ";"
-  <<name.version+ ";"
-  <<If(!specificVersion,?,pkg::_.autodoc.version.high) + ";"
-  <<If(!specificVersion,?,pkg::_.autodoc.version.low) + ";"
-  <<pkg::ScapeField(_.autodoc.brief) + ";"
-  <<pkg::ScapeField(_.autodoc.keys) + ";"
-  <<pkg::ScapeField(_.autodoc.authors) + ";"
-  <<pkg::_.autodoc.minTolVersion + ";"
-  <<Now + ";"
-  <<dependencies+ "\n";
-  Text AppendFile(root+"index.csv",  index.csv);
-  //Text AppendFile(root+"index.wiki", index.wiki);
-  //Text AppendFile(root+"index.html", index.html);
-  True
-};
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-Real AddPackage(Text root, NameBlock pkg)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real AddPackageInfo.Version(root,pkg,True);
-  Real AddPackageInfo.Version(root,pkg,False)
-}
+#Embed "builder.tol"
 
 ]];
 
