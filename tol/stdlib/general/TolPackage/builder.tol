@@ -89,6 +89,13 @@ Text Escape(Text field)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text FormatSet(Set s)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(Card(s),Escape(""<<s),"Copy(Empty)")
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text Build.PackageInfo.Version(Text name, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -103,11 +110,11 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
   <<If(!specificVersion,?,pkg::_.autodoc.version.high) + ";"
   <<If(!specificVersion,?,pkg::_.autodoc.version.low) + ";"
   <<Escape(pkg::_.autodoc.brief) + ";"
-  <<Escape(""<<pkg::_.autodoc.keys) + ";"
-  <<Escape(""<<pkg::_.autodoc.authors) + ";"
+  <<FormatSet(pkg::_.autodoc.keys) + ";"
+  <<FormatSet(pkg::_.autodoc.authors) + ";"
   <<pkg::_.autodoc.minTolVersion + ";"
   <<Now + ";"
-  <<dependencies+ "\n";
+  <<FormatSet(dependencies)+ "\n";
   WriteLn("[TolPackage::Server::@Builder::Build.PackageInfo.Version] "+
     name.version+":\n"+index.csv+"\n");
   Text WriteFile(_.root+"register/"+name.version,  index.csv);
