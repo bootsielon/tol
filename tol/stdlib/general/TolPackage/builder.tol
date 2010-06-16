@@ -13,23 +13,33 @@ Text _.url;          //A unique address with remote or local protocol
 Text _.name;         //A unique name 
 Text _.type;         //Private, Public
 Text _.description;  //Purpose of repository
+Text _.sourceRoot;   //Root directory of package's TOL code 
+Set _.packages;      //Set of names of packages
 Text _.root;         //Local server-side installing directory
 
 //////////////////////////////////////////////////////////////////////////////
 Static @Builder Create(
-  Text url,          //A unique address with remote or local protocol
-  Text name,         //A unique name 
-  Text type,         //Private, Public
-  Text description)  //Purpose of repository
+  Text url,          
+  Text name,         
+  Text type,         
+  Text description,  
+  Text sourceRoot,
+  Set packages)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Text root = TolPackage::Server::_.localRoot+name+"/";
+  Real OSDirMake(root+"register/");
   @Builder new = [[
     Text _.url = url;
     Text _.name = name;
     Text _.type = type;
     Text _.description = description;
-    Text _.root = TolPackage::Server::_.localRoot+name+"/" ]];
-  Real new::Initialize(void)
+    Text _.sourceRoot = sourceRoot;
+    Set _.packages = packages;
+    Text _.root = root 
+  ]];
+  Real new::Build(void);
+  new
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -54,7 +64,7 @@ Real Initialize(Real void)
   "//FILE : index.tol                                                            \n"
   "//PURPOSE : internal use of Class TolPackage::Client::@Repository             \n"
   "//                                                                            \n"
-  "//       PLEASE, DON'T TOUCH THIS FILE NOR OTHER ONE IN THIS DIRECTORY!       \n"
+  "//       PLEASE, DON´T TOUCH THIS FILE NOR OTHER ONE IN THIS DIRECTORY!       \n"
   "//                                                                            \n"
   "//////////////////////////////////////////////////////////////////////////////\n"
   "  Text name = \""+_.name+"\";\n"+
@@ -79,11 +89,12 @@ Text Escape(Text field)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Real AddPackageInfo.Version(NameBlock pkg, Real specificVersion)
+Text Build.PackageInfo.Version(Text name, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text name = Name(pkg);
-  Text name.version = GetNameVersion(pkg);
+  Set aux = IncludeText("NameBlock "+packageName+";");
+  NameBlock pkg = aux[1];
+  Text name.version = GetCurrentNameVersion(name,specificVersion);
   Set dependencies = GetDeepDependencies(name);
   Text index.csv =
     pkg:: _.autodoc.url + ";"
@@ -97,18 +108,58 @@ Real AddPackageInfo.Version(NameBlock pkg, Real specificVersion)
   <<pkg::_.autodoc.minTolVersion + ";"
   <<Now + ";"
   <<dependencies+ "\n";
-  Text AppendFile(_.root+"index.csv",  index.csv);
-  //Text AppendFile(root+"index.wiki", index.wiki);
-  //Text AppendFile(root+"index.html", index.html);
+  Text WriteFile(_.root+"register/"+name,  index.csv);
+  Real Ois.Store(aux,_.root+name.version+".oza");
+  index.csv
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text Build.PackageInfo(Text name)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text Build.PackageInfo.Version(name,True);
+  Text Build.PackageInfo.Version(name,False);
   True
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Real AddPackage(NameBlock pkg)
+Real Build.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real AddPackageInfo.Version(pkg,True);
-  Real AddPackageInfo.Version(pkg,False)
+  Real new::Initialize(void);
+  Set IncludeText(SetConcat(EvalSet(_.packages, Text(Text pkgName)
+  {
+    "Set Include(\""+_.sourceRoot+pkgName+"/"+pkgName+".tol\");"
+  })));
+  Set EvalSet(_.packages, Real(Text pkgName)
+  {
+    Text AppendFile(_.root+"index.csv",  Build.PackageInfo(pkgName));
+  //Text AppendFile(_.root+"index.wiki", index.wiki);
+  //Text AppendFile(_.root+"index.html", index.html);
+    True
+  });
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Real Rebuild.One(Text pkgName)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real new::Initialize(void);
+  Set IncludeText(
+    "Set Include(\""+_.sourceRoot+pkgName+"/"+pkgName+".tol\");"
+  );
+  Text Build.PackageInfo(pkgName);
+  Set pkgLst = Sort(GetDir(_.root+"register/")[2], Real(Text a, Text b)
+  {
+    Compare(b,a)
+  });
+  Set EvalSet(pkgLst, Real(Text pkgName)
+  {
+    Text AppendFile(_.root+"index.csv",ReadFile(_.root+"register/"+pkgName));
+    True 
+  });
+  True
 }
 
 };
