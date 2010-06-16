@@ -17,9 +17,13 @@ Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
 Text _.currentTolVersion = Replace(Tokenizer(Version," ")[1],".","_");
 
 
-#Embed "repository.tol";
+#Embed "common.tol";
 #Embed "client.tol";
 #Embed "server.tol"
 
 ]];
+
+TolPackage::Client::@AutoLoadSave _loadSave = 
+  TolPackage::Client::@AutoLoadSave::Create(0);
+
 
