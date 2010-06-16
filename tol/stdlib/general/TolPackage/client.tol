@@ -13,13 +13,16 @@ Text _.localRoot =
   aux
 };
 
+#Embed "repository.tol";
+#Embed "autoLoadSave.tol";
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Exist = 
 "Devuelve cierto si existe el paquete especificado";
 Real Exist(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository, True);
   r::Exist(package.version)
 };
 
@@ -50,7 +53,7 @@ Text _.autodoc.member.Install =
 Real Install(Text remote.repository, Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository, True);
   r::Install(package.version,showError)
 };
 
@@ -61,8 +64,29 @@ Text _.autodoc.member.Install.All =
 Real Install.All(Text remote.repository)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository, True);
   r::Install.All(0)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Find = 
+"Busca un paquete entre todos los repositorios consultables y, si lo "
+"encuentra, devuelve el registro de información con estructura @PackageInfo, "
+"y si no, el conjunto vacío.";
+Set Find(Text remote.repository)
+//////////////////////////////////////////////////////////////////////////////
+{
+  @Repository::Find(remote.repository)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.FindAndInstall = 
+"Busca un paquete entre todos los repositorios consultables y si lo "
+"encuentra lo instala.";
+Real FindAndInstall(Text remote.repository)
+//////////////////////////////////////////////////////////////////////////////
+{
+  @Repository::FindAndInstall(remote.repository)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -72,7 +96,7 @@ Text _.autodoc.member.LastDate =
 Date LastDate(Text remote.repository, Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository, True);
   r::LastDate(package)
 };
 
@@ -83,7 +107,7 @@ Text _.autodoc.member.Upgrade =
 Real Upgrade(Text remote.repository, Text package, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository, True);
   r::Upgrade(package, caducityInDays)
 };
 
@@ -94,7 +118,7 @@ Text _.autodoc.member.Upgrade.All =
 Real Upgrade.All(Text remote.repository, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository, True);
   r::Upgrade.All(caducityInDays)
 };
 
@@ -135,7 +159,7 @@ Text _.autodoc.member.ForceExactRequirements =
 Real ForceExactRequirements(Text remote.repository, Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository);
+  @Repository r = @Repository::Get(remote.repository, True);
   r::ForceExactRequirements(package.version)
 };
 
