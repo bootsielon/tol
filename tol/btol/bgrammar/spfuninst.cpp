@@ -1573,13 +1573,13 @@ static BSyntaxObject* EvMemberArg
         }
       }
     }
-    if((tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
+    if(result && (tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
     {
       BStruct* str = (BStruct*)result;
       result = str->Function()->Evaluate(branch2->cdr());
       DESTROY(str);
     }
-    if((tt==TYPE)&&(result->Mode()==BCLASSMODE))
+    if(result && (tt==TYPE)&&(result->Mode()==BCLASSMODE))
     {
       BClass* cls = (BClass*)result;
       result = GraNameBlock()->EvaluateTree(branch2->cdr());
