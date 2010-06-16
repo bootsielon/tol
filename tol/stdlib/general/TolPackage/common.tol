@@ -24,7 +24,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //Devuelve el nombre de versión actual de un paquete ya cargado 
-  Set GetNameVersion(Text packageName, Real specificVersion)
+  Set GetCurrentNameVersion(Text packageName, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock p = Eval(packageName);
@@ -39,7 +39,7 @@
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock p = Eval(packageName);
-  Text name.version = GetNameVersion(p);
+  Text name.version = GetCurrentNameVersion(p);
   If(!Card(p::_.autodoc.dependencies), Copy(Empty),
   {
     Unique(SetConcat(EvalSet(p::_.autodoc.dependencies,GetDeepDependencies))<<
