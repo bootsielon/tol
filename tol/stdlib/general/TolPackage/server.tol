@@ -4,19 +4,15 @@
 // PURPOSE: TolPackage server side tools
 //////////////////////////////////////////////////////////////////////////////
 
-/*
-Reglas de construcción de paquetes y repositorios:
 
- * No puede haber paquetes con el mismo nombre de NameBlock ni el mismo ni en 
-distinto repositorio.
- * No está permitido el requerimiento cíclico directo ni indirecto entre 
-paquetes, es decir, si A requiere a B directa o indirectamente B no puede 
-requerir a A ni directa ni indirectamente.
- * Debe haber un comité o alguien responsable de probar todos los paquetes de
-un repositorio antes de publicar las actualizaciones de los paquetes para 
-asegurar la compatibilidad conjunta de todos ellos.
+NameBlock Server = [[
 
-*/
+Text _.localRoot = 
+{
+  Text aux = Replace(TolAppDataPath+"OIS/TolPackage/Server/","\\","/");
+  Real OSDirMake(aux);
+  aux
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text ScapeField(Text field)
@@ -127,5 +123,7 @@ Real AddPackage(Text root, NameBlock pkg)
 {
   Real AddPackageInfo.Version(root,pkg,True);
   Real AddPackageInfo.Version(root,pkg,False)
-};
+}
+
+]];
 

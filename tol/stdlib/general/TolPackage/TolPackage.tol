@@ -16,12 +16,6 @@ Set _.autodoc.keys = [["TOL","Package","Repository","Modularity"]];
 Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
 Text _.currentTolVersion = Replace(Tokenizer(Version," ")[1],".","_");
 
-Text _.localRoot = 
-{
-  Text aux = Replace(TolAppDataPath+"OIS/Require/tol_pkg/","\\","/");
-  Real OSDirMake(aux);
-  aux
-};
 
 #Embed "repository.tol";
 #Embed "client.tol";

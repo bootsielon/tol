@@ -117,14 +117,16 @@ Static @Repository _Open(Text url)
   Real DownloadFile(Text path)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(FileExist(_.localRoot+path), OSFilRemove(_.localRoot+path));
+  If(FileExist(TolPackge::Client::_.localRoot+path),
+    OSFilRemove(TolPackge::Client::_.localRoot+path));
   If(!_.isRemote,
   {
-    OSFilCopy(_.address+path,_.localRoot+path)
+    OSFilCopy(_.address+path,TolPackge::Client::_.localRoot+path)
   },
   {
     //Hay que buscar una forma de copiar remoto sin wget, con el TCL
-    OSCmdWait("wget -O\""+_.localRoot+path+"\" \""+_.url+path+"\"")
+    OSCmdWait("wget -O\""+TolPackge::Client::_.localRoot+path+"\" \""+
+              _.url+path+"\"")
   })
 };
 
@@ -213,7 +215,7 @@ Real Install(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real DownloadFile(package.version);
-  Real ok = FileExist(_.localRoot+package.version);
+  Real ok = FileExist(TolPackge::Client::_.localRoot+package.version);
   If(And(!ok,showError),
   {
     WriteLn("[TolPackage::Install] "
@@ -256,8 +258,9 @@ Text _.autodoc.member.Upgrade =
 Real Upgrade(Text package, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Date localDate = If(!FileExist(_.localRoot+path), TheBegin,
-    FileTime(_.localRoot+path));
+  Date localDate = If(!FileExist(TolPackge::Client::_.localRoot+path), 
+    TheBegin,
+    FileTime(TolPackge::Client::_.localRoot+path));
   Date lastDate = LastDate(package);
   If(lastDate-localDate<=caducityInDays, False, Install(package));
   True

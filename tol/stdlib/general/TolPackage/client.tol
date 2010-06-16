@@ -4,6 +4,15 @@
 // PURPOSE: TolPackage client tools
 //////////////////////////////////////////////////////////////////////////////
 
+NameBlock Client = [[
+
+Text _.localRoot = 
+{
+  Text aux = Replace(TolAppDataPath+"OIS/TolPackage/Client/","\\","/");
+  Real OSDirMake(aux);
+  aux
+};
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Exist = 
 "Devuelve cierto si existe el paquete especificado";
@@ -147,6 +156,8 @@ Real Remove.All(Real void)
 {
   OSDirRemove(_.localRoot);
   OSDirMake(_.localRoot)
-};
+}
+
+]];
 
 
