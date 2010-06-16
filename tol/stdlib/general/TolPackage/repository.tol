@@ -308,7 +308,8 @@ Static Set Find(Text package.version)
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.FindAndInstall = 
-"Busca un paquete entre todos los repositorios consultables.";
+"Busca un paquete entre todos los repositorios consultables y si lo "
+"encuentra lo instala.";
 Static Real FindAndInstall(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
