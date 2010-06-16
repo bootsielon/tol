@@ -14,7 +14,7 @@ Text _.autodoc.description = "Utilidades para el manejo de paquetes TOL: "
 "la instancia de la clase y llamar luego al étodo interno adecuado.";
 Set _.autodoc.keys = [["TOL","Package","Repository","Modularity"]];
 Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
-Text _.currentTolVersion = Replace(Tokenizer(Version," ")[1],".","_");
+Text _.currentTolVersion = Tokenizer(Version," ")[1];
 
 
 #Embed "common.tol";
