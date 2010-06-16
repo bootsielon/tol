@@ -83,10 +83,11 @@ Set Find(Text remote.repository)
 Text _.autodoc.member.FindAndInstall = 
 "Busca un paquete entre todos los repositorios consultables y si lo "
 "encuentra lo instala.";
-Real FindAndInstall(Text remote.repository)
+Real FindAndInstall(Text remote.repository, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository::FindAndInstall(remote.repository)
+//WriteLn("TRACE Client::FindAndInstall(\""+remote.repository+"\","<<showError+")");
+  @Repository::FindAndInstall(remote.repository, showError)
 };
 
 //////////////////////////////////////////////////////////////////////////////

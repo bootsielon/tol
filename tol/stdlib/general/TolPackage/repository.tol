@@ -54,7 +54,7 @@ Static Real LoadInstances(Real void)
     WriteLn("[TolPackage::Client::@Repository::LoadInstances]\n"
             "Loading list of available repositories from "+file);
     NameBlock @Repository::Get(
-      "http://packages.tol-project.org/tol_pkg/", False);
+      "http://packages.tol-project.org/OfficialTolArchiveNetwork/", False);
     Real If(FileExist(file),
     { 
       Set lines = Tokenizer(ReadFile(file),"\n");
@@ -95,11 +95,11 @@ Static Real SaveInstances(Real void)
     "//Official tol-project packages \n"
     "//This repository is very recommendable. Please don't remove next line\n"
     "//Type: Public\n"
-    "  http://packages.tol-project.org/tol_pkg/\n"
+    "  http://packages.tol-project.org/OfficialTolArchiveNetwork/\n"
     "\n"); 
     Set EvalSet(_.instances,Real(@Repository r)
     {
-      Text If(r::_.url != "http://packages.tol-project.org/tol_pkg/",
+      Text If(r::_.url != "http://packages.tol-project.org/OfficialTolArchiveNetwork/",
       {
         AppendFile(file,
         "\n"
@@ -123,13 +123,17 @@ Static Real SaveInstances(Real void)
 Static @Repository Get(Text url, Real connect)
 //////////////////////////////////////////////////////////////////////////////
 {
+//WriteLn("TRACE @Repository::Get(\""+url+"\","<<connect+")");
   Real pos = FindIndexByName(@Repository::_.instances, ToName(url));
+//WriteLn("TRACE @Repository::Get 1 pos="<<pos);
   If(pos, 
   {
+  //WriteLn("TRACE @Repository::Get 2");
     Real If(connect, (_.instances[pos])::Connect(0));
     _.instances[pos]
   },
   {
+  //WriteLn("TRACE @Repository::Get 3");
     @Repository::Open(url, connect)
   })
 };
@@ -179,12 +183,12 @@ Static @Repository Open(Text url, Real connect)
   If(FileExist(localPath), OSFilRemove(localPath));
   If(!_.isRemote,
   {
-    OSFilCopy(_.address+"packages/"+path,localPath)
+    OSFilCopy(_.address+"packages/"+packageName+".oza",localPath)
   },
   {
     //Hay que buscar una forma de copiar remoto sin wget, con el TCL
     OSCmdWait("wget -O\""+localPath+"\" \""+
-              _.url+"packages/"+path+"\"")
+              _.url+"packages/"+packageName+".oza\"")
   });
   FileExist(localPath)
 };
@@ -196,6 +200,8 @@ Real Connect(Real void)
 {
   If(Not(IsUnknown(_.connected)), _.connected,
   {
+    WriteLn("[TolPackage::Client::@Repository::Connect] "
+      "Trying to conect to repository "+_.url+" ...");
     Real numErr0 = Copy(NError);
     Set repInf = IncludeText(GetFileContens("index.tol"));
     Text _.name := repInf::name;
@@ -203,37 +209,50 @@ Real Connect(Real void)
     Text _.description := repInf::description;
     Text aux = GetFileContens("index.csv");
     Set line = Tokenizer(aux,"\n");
-    Set pckInf = For(2,Card(line), @PackageInfo(Real k)
+
+    Set cells.all = For(2,Card(line), Set(Real k)
     {
-      Set fields = Tokenizer(line[k],";","\"","\\");
-      Set aux = { [[ @PackageInfo(
-        Text repository = url,
-        Text name = fields[1],
-        Real version.high = Eval(fields[2]),
-        Real version.low = Eval(fields[3]),
-        Real name.version = Eval(fields[4]),
-        Text brief = fields[5],
-        Set keys =  Eval(fields[6]),
-        Set authors =  Eval(fields[7]),
-        Text minTolVersion = fields[8],
-        Text releaseDate = fields[9],
-        Set dependencies = Eval(fields[10])
+    //WriteLn("TRACE Connect line["<<k+"] = '"<<line[k]+"'");
+      Set fields = Tokenizer(line[k],";");
+    //WriteLn("TRACE Connect Card(fields) = "<<Card(fields));
+      fields
+    });
+    Set cells = Select(cells.all, Real(Set s) { Card(s)==11 });
+    Set pckInf = For(1,Card(cells), TolPackage::@PackageInfo(Real k)
+    {
+      Set fields = cells[k];
+      Set aux = { [[ TolPackage::@PackageInfo(
+        Text repository = fields[1],
+        Text name = fields[2],
+        Text name.version = fields[3],
+        Real version.high = Eval(fields[4]),
+        Real version.low = Eval(fields[5]),
+        Text brief = fields[6],
+        Set keys =  Eval(fields[7]),
+        Set authors =  Eval(fields[8]),
+        Text minTolVersion = fields[9],
+        Date releaseDate = Eval(fields[10]),
+        Set dependencies = Eval(fields[11])
       ) ]] };
       Set PutName(aux[1]->name.version,aux[1]);
       aux[1]
     });
-    Set _.index := Sort(pckInf,Real(@PackageInfo a, @PackageInfo b)
+
+    Set _.index := Sort(pckInf,Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
     {
       Compare(b->name.version, a->name.version)
     });
     Real SetIndexByName(_.index);
     Set Append(_.allPackages,_.index, True);
-    Set _.allPackages := Sort(_.allPackages,Real(@PackageInfo a, @PackageInfo b)
+    Set _.allPackages := Sort(_.allPackages,Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
     {
       Compare(b->name.version, a->name.version)
     });
     Real numErr1 = Copy(NError);
-    _.connected := And(numErr1==numErr0,Card(_.index))
+    Real _.connected := And(numErr1==numErr0,Card(_.index));
+    If(_.connected, WriteLn(" ... Connected!"), 
+                    WriteLn(" ... NOT Connected!","W"));
+    _.connected
   })
 };
 
@@ -273,6 +292,8 @@ Text _.autodoc.member.Install =
 Real Install(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
+  WriteLn("[TolPackage::Client::@Repository::Install] "
+    "Trying to download package from "+_.url+package.version);
   Real DownloadPackage(package.version);
   Real ok = FileExist(TolPackage::Client::_.localRoot+package.version);
   If(And(!ok,showError),
@@ -290,7 +311,7 @@ Text _.autodoc.member.Install.All =
 Real Install.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SetMin(EvalSet(_.index, Real(@PackageInfo pi)
+  SetMin(EvalSet(_.index, Real(TolPackage::@PackageInfo pi)
   {
     DownloadPackage(pi->name.version)
   }))
@@ -304,8 +325,13 @@ Text _.autodoc.member.Find =
 Static Set Find(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Set EvalSet(_.instances,Real(@Repository r)
+  {
+    If(!IsUnknown(r::_.connected), False, r::Connect(0))
+  });
   Real pos = FindIndexByName(_.allPackages,package.version);
-  If(pos<=0, Copy(Empty), _.allPackages[pos])
+  Set found = If(pos<=0, Copy(Empty), _.allPackages[pos]);
+  found
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -315,21 +341,26 @@ Text _.autodoc.member.FindAndInstall =
 Static Real FindAndInstall(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set pkgInf = @Repository::Find(_.allPackages,package.version);
+//WriteLn("TRACE @Repository::FindAndInstall(\""+remote.repository+"\","<<showError+")");
+  Set pkgInf = @Repository::Find(package.version);
+//WriteLn("TRACE @Repository::FindAndInstall 1 Card(pkgInf)="<<Card(pkgInf));
   Case(
-  pos>0,
+  Card(pkgInf)>0,
   { 
+  //WriteLn("TRACE @Repository::FindAndInstall 2");
     @Repository r = @Repository::Get(pkgInf->repository, True);
-    r::Install(pkgInf->name)
+    r::Install(pkgInf->name, showError)
   },
   showError,
   { 
+  //WriteLn("TRACE @Repository::FindAndInstall 3");
     WriteLn("[TolPackage::FindAndInstall] "
     "Cannot find package "+package.version+" in available repositories","E");
     False
   },
   1==1,
   {
+  //WriteLn("TRACE @Repository::FindAndInstall 4");
     False
   })
 };
@@ -370,7 +401,7 @@ Text _.autodoc.member.Upgrade.All =
 Real Upgrade.All(Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SetSum(EvalSet(_.index, Real(@PackageInfo pi)
+  SetSum(EvalSet(_.index, Real(TolPackage::@PackageInfo pi)
   {
     Upgrade(pi->name.version, caducityInDays)
   }))

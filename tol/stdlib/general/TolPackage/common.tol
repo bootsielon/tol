@@ -18,7 +18,7 @@
   Set  keys,
   Set  authors,
   Text minTolVersion,
-  Text releaseDate,
+  Date releaseDate,
   Set  dependencies
 };
 
