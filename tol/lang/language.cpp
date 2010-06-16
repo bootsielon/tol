@@ -1307,12 +1307,7 @@ BText BPackage::help_ = I2(
   "https://www.tol-project.org/wiki/TolPkg\n";
 
 BText BPackage::localRoot_ = 
-  BSys::TolAppData()+"OIS/Require/tol_pkg/"+
-  TOLVersionShortName()+"/";
-
-BText BPackage::urlRoot_ = 
-  BText("http://packages.tol-project.org/tol_pkg/")+
-  TOLVersionShortName()+"/";
+  BSys::TolAppData()+"OIS/TolPackage/Client/";
 
 //--------------------------------------------------------------------
   BText BPackage::LocalPath(const BText& package_version)
@@ -1320,14 +1315,6 @@ BText BPackage::urlRoot_ =
 {
   BText path = localRoot_+package_version+".oza";
   return(path);
-}
-
-//--------------------------------------------------------------------
-  BText BPackage::Url(const BText& package_version)
-//--------------------------------------------------------------------
-{
-  BText url = urlRoot_+package_version+".oza";
-  return(url);  
 }
 
 //--------------------------------------------------------------------
@@ -1341,29 +1328,13 @@ BText BPackage::urlRoot_ =
   bool BPackage::Install(const BText& package_version)
 //--------------------------------------------------------------------
 {
-  BText path = LocalPath(package_version);
-  BText url = Url(package_version);
-  BSys::MkDir(localRoot_,true);
-  BText order = BText("wget ")+
-    url+" "+
-    "-O\""+ReplaceSlash(path)+"\"";
-  Std(I2("Installing required package ",
-         "Instalando el paquete requerido ")+package_version+"\n"+order+"\n");
-  #ifdef UNIX
-  system(order);
-  #else
-  BSys::WinSystem(order,0,true);
-  #endif 
-  BDir dir = path;
-  bool ok = true;
-  if(!dir.Exist() || !dir.IsFile() || !dir.Bytes())
-  {
-    ok = false;
-    Error(I2("Cannot install empty package ",
-             "No se puede instalar el paquete vacío ")+
-          package_version+"\n"+help_);
-  }
-  return(ok);  
+  BSyntaxObject* fai = GraReal()->EvaluateExpr(BText(
+    "Real TolPackage::Client::FindAndInstall("
+    "\"")+package_version+"\",False);");
+  if(!fai) { return(false); }
+  bool ok = (bool)Real(fai);
+  DESTROY(fai);
+  return(ok);
 }
 
 //--------------------------------------------------------------------
@@ -1416,8 +1387,14 @@ BText BPackage::urlRoot_ =
   if(!ok)
   {
     BText path = LocalPath(package_version);
-    BText url = Url(package_version);
-    if(dir.Exist())
+    if(!dir.Exist())
+    {
+      Error(I2("Unknown package ",
+               "El paquete desconocido ")+package_version+
+            I2(" must be manually installed.",
+               " debe ser instalado manualmente."));
+    }
+    else
     {
       BSys::Remove(path);
       if(retry)
@@ -1426,9 +1403,8 @@ BText BPackage::urlRoot_ =
                  "El paquete corrupto ")+package_version+
               I2(" has been locally removed ",
                  " ha sido eliminado localmente ")+
-              I2("and will be reinstalled from ",
-                 "y será reinstalado desde ")+
-              url);
+              I2("and will be reinstalled.",
+                 "y será reinstalado."));
         return(Load(package_version, false));
       } 
       else
@@ -1437,8 +1413,8 @@ BText BPackage::urlRoot_ =
                  "El paquete corrupto ")+package_version+
               I2(" has been locally removed ",
                  " ha sido eliminado localmente ")+
-              I2("but it will not be reinstalled again.",
-                 "pero no será reinstalado de nuevo."));
+              I2("and it will not be reinstalled again.",
+                 "y no será reinstalado de nuevo."));
       }  
     } 
     load = I2("NOT loaded","No ha sido cargado");
