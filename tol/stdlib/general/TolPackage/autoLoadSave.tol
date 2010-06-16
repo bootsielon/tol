@@ -1,0 +1,29 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : repository.tol
+// PURPOSE: Class TolPackage::Client::@AutoLoadSave
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//El objetivo de esta clase es crear una sola instancia que llame a 
+//cuando se cree @Repository::LoadInstances y a @Repository::SaveInstances(0)
+//cuando se destruya. No se debe usar fuera de TolPackage.
+Class @AutoLoadSave 
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real _unused;
+
+  Static @AutoLoadSave Create(Real void)
+  {
+    @AutoLoadSave theOne = 
+    [[
+      Real _unused = void
+    ]];
+    Real TolPackage::Client::@Repository::LoadInstances(0);
+    theOne
+  };
+  Real __destroy(Real void)
+  {
+    TolPackage::Client::@Repository::SaveInstances(0)
+  }
+};
