@@ -171,20 +171,22 @@ Static @Repository Open(Text url, Real connect)
 
 //////////////////////////////////////////////////////////////////////////////
 //Copia un fichero del repositorio remoto al directorio local de paquetes
-  Real DownloadFile(Text path)
+  Real DownloadPackage(Text packageName)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(FileExist(TolPackage::Client::_.localRoot+path),
-    OSFilRemove(TolPackage::Client::_.localRoot+path));
+  Text localPath = 
+    TolPackage::Client::_.localRoot+packageName+".oza";
+  If(FileExist(localPath), OSFilRemove(localPath));
   If(!_.isRemote,
   {
-    OSFilCopy(_.address+path,TolPackage::Client::_.localRoot+path)
+    OSFilCopy(_.address+"packages/"+path,localPath)
   },
   {
     //Hay que buscar una forma de copiar remoto sin wget, con el TCL
-    OSCmdWait("wget -O\""+TolPackage::Client::_.localRoot+path+"\" \""+
-              _.url+path+"\"")
-  })
+    OSCmdWait("wget -O\""+localPath+"\" \""+
+              _.url+"packages/"+path+"\"")
+  });
+  FileExist(localPath)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -271,7 +273,7 @@ Text _.autodoc.member.Install =
 Real Install(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real DownloadFile(package.version);
+  Real DownloadPackage(package.version);
   Real ok = FileExist(TolPackage::Client::_.localRoot+package.version);
   If(And(!ok,showError),
   {
@@ -290,7 +292,7 @@ Real Install.All(Real void)
 {
   SetMin(EvalSet(_.index, Real(@PackageInfo pi)
   {
-    DownloadFile(pi->name.version)
+    DownloadPackage(pi->name.version)
   }))
 };
 
