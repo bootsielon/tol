@@ -1,25 +1,9 @@
 /* -*- mode: C++ -*- */
 //////////////////////////////////////////////////////////////////////////////
 // FILE   : repository.tol
-// PURPOSE: Class TolPackage::@Repository
+// PURPOSE: Class TolPackage::Client::@Repository
 //////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////
-//Información de un paquete dentro del archivo de estado un repositorio
-  Struct @PackageInfo {
-//////////////////////////////////////////////////////////////////////////////
-  Text repository,
-  Text name,
-  Text name.version,
-  Real version.high,
-  Real version.low,
-  Text brief,
-  Set  keys,
-  Set  authors,
-  Text minTolVersion,
-  Text releaseDate,
-  Set  dependencies
-};
 
 //////////////////////////////////////////////////////////////////////////////
 Class @Repository {
@@ -60,41 +44,114 @@ Static Set _.instances = Copy(Empty);
 Static Set _.allPackages = Copy(Empty);
 
 //////////////////////////////////////////////////////////////////////////////
+//Carga la lista de repositorios accesibles
+Static Real LoadInstances(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(_.instances),
+  {
+    Text file = TolPackage::Client::_.localRoot+"repositories.txt";
+    WriteLn("[TolPackage::Client::@Repository::LoadInstances]\n"
+            "Loading list of available repositories from "+file);
+    NameBlock @Repository::Get(
+      "http://packages.tol-project.org/tol_pkg/", False);
+    Real If(FileExist(file),
+    { 
+      Set lines = Tokenizer(ReadFile(file),"\n");
+      Set EvalSet(lines,Real ev_lines(Text line)
+      {
+        Text url = Compact(line);
+        Case(
+        url=="",False,
+        url==" ",False,
+        TextBeginWith(url, "//"),False,
+        1==1,
+        {
+          NameBlock @Repository::Get(url, False);
+          True
+        })
+      });
+      True   
+    })
+  });
+  Card(_.instances)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Guarda la lista de repositorios accesibles
+Static Real SaveInstances(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(!Card(_.instances), False,
+  {
+    Text file = TolPackage::Client::_.localRoot+"repositories.txt";
+    WriteLn("[TolPackage::Client::@Repository::SaveInstances]\n"
+            "Saving list of available repositories to "+file);
+    Text WriteFile(file,
+    "//////////////////////////////////////////////////////////////////////////////\n"
+    "//List of availables repositories of TOL packages\n"
+    "//////////////////////////////////////////////////////////////////////////////\n"
+    "\n"
+    "//Official tol-project repository is mandatory. \n"
+    "//Please don't remove next line\n"
+    "//Type: Public\n"
+    "  http://packages.tol-project.org/tol_pkg/\n"
+    "\n"); 
+    Set EvalSet(_.instances,Real(@Repository r)
+    {
+      Text If(r::_.url != "http://packages.tol-project.org/tol_pkg/",
+      {
+        AppendFile(file,
+        "\n"
+        "//"+r::_.name+" \n"
+        "//"+Compact(r::_.description)+" \n"
+        "//Type: "+r::_.type+"\n"
+        "  "+r::_.url+"\n"
+        "\n")
+      });
+      True   
+    });
+    True
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
 //Devuelve la instancia de repositorio correspondiente a una URL. Si no había
 //sido consultado previamente se conecta primero al repositorio remoto.
 //Si hay cambios en el directorio remoto durante la sesión TOL estos no serán
 //percibidos.
-Static @Repository Get(Text url)
+Static @Repository Get(Text url, Real connect)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real pos = FindIndexByName(@Repository::_.instances, ToName(url));
-  If(pos, _.instances[pos],
+  If(pos, 
   {
-    @Repository::_Open(url)
+    Real If(connect, (_.instances[pos])::Connect(0));
+    _.instances[pos]
+  },
+  {
+    @Repository::Open(url, connect)
   })
 };
 
 //////////////////////////////////////////////////////////////////////////////
 //Abre un repositorio por primera vez
-Static @Repository _Open(Text url)
+Static @Repository Open(Text url, Real connect)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real prtPos = TextFind(url,"://")+2;
   //Protocolo de acceso al repositorio file://, http://, https://, ftp://
-  Text protocol = SubString(url,1,prtPos);
+  Text protocol = Sub(url,1,prtPos);
   //Resto de la URL tras el protocolo
-  Text address =  SubString(url,prtPos+1,TextLength(url));
+  Text address =  Sub(url,prtPos+1,TextLength(url));
   Set aux = [[ @Repository new = [[
     Text _.url = url;
     Text _.protocol = protocol;
     Text _.address = address;
     Real _.isRemote =  protocol!="file://"  ]] ]];
-  Real If(new::Connect(0),
-  {
-    NameBlock PutName(ToName(url), aux[1]);
-    Set Append(@Repository::_.instances, aux, True);
-    True
-  });
+  Real If(connect, new::Connect(0));
+  NameBlock PutName(ToName(url), aux[1]);
+  Set Append(@Repository::_.instances, aux, True);
   aux[1]
 };
 
@@ -117,15 +174,15 @@ Static @Repository _Open(Text url)
   Real DownloadFile(Text path)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(FileExist(TolPackge::Client::_.localRoot+path),
-    OSFilRemove(TolPackge::Client::_.localRoot+path));
+  If(FileExist(TolPackage::Client::_.localRoot+path),
+    OSFilRemove(TolPackage::Client::_.localRoot+path));
   If(!_.isRemote,
   {
-    OSFilCopy(_.address+path,TolPackge::Client::_.localRoot+path)
+    OSFilCopy(_.address+path,TolPackage::Client::_.localRoot+path)
   },
   {
     //Hay que buscar una forma de copiar remoto sin wget, con el TCL
-    OSCmdWait("wget -O\""+TolPackge::Client::_.localRoot+path+"\" \""+
+    OSCmdWait("wget -O\""+TolPackage::Client::_.localRoot+path+"\" \""+
               _.url+path+"\"")
   })
 };
@@ -215,7 +272,7 @@ Real Install(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real DownloadFile(package.version);
-  Real ok = FileExist(TolPackge::Client::_.localRoot+package.version);
+  Real ok = FileExist(TolPackage::Client::_.localRoot+package.version);
   If(And(!ok,showError),
   {
     WriteLn("[TolPackage::Install] "
@@ -235,6 +292,43 @@ Real Install.All(Real void)
   {
     DownloadFile(pi->name.version)
   }))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Find = 
+"Busca un paquete entre todos los repositorios consultables y, si lo "
+"encuentra, devuelve el registro de información con estructura @PackageInfo, "
+"y si no, el conjunto vacío.";
+Static Set Find(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real pos = FindIndexByName(_.allPackages,package.version);
+  If(pos<=0, Copy(Empty), _.allPackages[pos])
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.FindAndInstall = 
+"Busca un paquete entre todos los repositorios consultables.";
+Static Real FindAndInstall(Text package.version, Real showError)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set pkgInf = @Repository::Find(_.allPackages,package.version);
+  Case(
+  pos>0,
+  { 
+    @Repository r = @Repository::Get(pkgInf->repository, True);
+    r::Install(pkgInf->name)
+  },
+  showError,
+  { 
+    WriteLn("[TolPackage::FindAndInstall] "
+    "Cannot find package "+package.version+" in available repositories","E");
+    False
+  },
+  1==1,
+  {
+    False
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -258,9 +352,9 @@ Text _.autodoc.member.Upgrade =
 Real Upgrade(Text package, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Date localDate = If(!FileExist(TolPackge::Client::_.localRoot+path), 
+  Date localDate = If(!FileExist(TolPackage::Client::_.localRoot+path), 
     TheBegin,
-    FileTime(TolPackge::Client::_.localRoot+path));
+    FileTime(TolPackage::Client::_.localRoot+path));
   Date lastDate = LastDate(package);
   If(lastDate-localDate<=caducityInDays, False, Install(package));
   True
@@ -312,6 +406,6 @@ Real ForceExactRequirements(Text package.version)
   })
 }
 
-
-
 };
+
+
