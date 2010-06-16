@@ -92,8 +92,8 @@ Static Real SaveInstances(Real void)
     "//List of availables repositories of TOL packages\n"
     "//////////////////////////////////////////////////////////////////////////////\n"
     "\n"
-    "//Official tol-project repository is mandatory. \n"
-    "//Please don't remove next line\n"
+    "//Official tol-project packages \n"
+    "//This repository is very recommendable. Please don't remove next line\n"
     "//Type: Public\n"
     "  http://packages.tol-project.org/tol_pkg/\n"
     "\n"); 
