@@ -24,7 +24,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //Devuelve el nombre de versión actual de un paquete ya cargado 
-  Set GetCurrentNameVersion(Text packageName, Real specificVersion)
+  Text GetCurrentNameVersion(Text packageName, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
   NameBlock p = Eval(packageName);
@@ -38,11 +38,18 @@
   Set GetDeepDependencies(Text packageName, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
+//WriteLn("TRACE GetDeepDependencies 1");
   NameBlock p = Eval(packageName);
-  Text name.version = GetCurrentNameVersion(p);
+//WriteLn("TRACE GetDeepDependencies 2");
+  Text name.version = 
+    TolPackage::GetCurrentNameVersion(packageName, specificVersion);
+//WriteLn("TRACE GetDeepDependencies 3");
   If(!Card(p::_.autodoc.dependencies), Copy(Empty),
   {
-    Unique(SetConcat(EvalSet(p::_.autodoc.dependencies,GetDeepDependencies))<<
-           name.version)
+    Set aux=EvalSet(p::_.autodoc.dependencies, Set(Text r)
+    {
+      TolPackage::GetDeepDependencies(r,specificVersion)
+    });
+    Unique(SetConcat(aux)<<[[name.version]])
   }) 
 };
