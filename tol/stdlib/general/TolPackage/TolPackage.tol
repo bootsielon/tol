@@ -23,7 +23,6 @@ Text _.currentTolVersion = Tokenizer(Version," ")[1];
 
 ]];
 
-TolPackage::Client::@AutoLoadSave _loadSave = 
-  TolPackage::Client::@AutoLoadSave::Create(0);
-
+//Sólo en version de pruebas
+//NameBlock TolPackage::Client::Initialize(0);
 
