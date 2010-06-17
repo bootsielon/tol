@@ -174,26 +174,6 @@ Static @Repository Open(Text url, Real connect)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Copia un fichero del repositorio remoto al directorio local de paquetes
-  Real DownloadPackage(Text packageName)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Text localPath = 
-    TolPackage::Client::_.localRoot+packageName+".oza";
-  If(FileExist(localPath), OSFilRemove(localPath));
-  If(!_.isRemote,
-  {
-    OSFilCopy(_.address+"packages/"+packageName+".oza",localPath)
-  },
-  {
-    //Hay que buscar una forma de copiar remoto sin wget, con el TCL
-    OSCmdWait("wget -O\""+localPath+"\" \""+
-              _.url+"packages/"+packageName+".oza\"")
-  });
-  FileExist(localPath)
-};
-
-//////////////////////////////////////////////////////////////////////////////
 //Función de conexión al repositorio remoto 
 Real Connect(Real void)
 //////////////////////////////////////////////////////////////////////////////
@@ -238,13 +218,15 @@ Real Connect(Real void)
       aux[1]
     });
 
-    Set _.index := Sort(pckInf,Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
+    Set _.index := Sort(pckInf,
+    Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
     {
       Compare(b->name.version, a->name.version)
     });
     Real SetIndexByName(_.index);
     Set Append(_.allPackages,_.index, True);
-    Set _.allPackages := Sort(_.allPackages,Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
+    Set _.allPackages := Sort(_.allPackages,
+    Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
     {
       Compare(b->name.version, a->name.version)
     });
@@ -257,6 +239,18 @@ Real Connect(Real void)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.ForceConnect.All = 
+"Fuerza la conexión de todos los paquetes consultados";
+Static Real ForceConnect.All(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  SetSum(EvalSet(_.instances,Real(@Repository r)
+  {
+    If(!IsUnknown(r::_.connected), False, r::Connect(0))
+  }))
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Exist = 
 "Devuelve cierto si existe el paquete especificado";
 Real Exist(Text package.version)
@@ -265,6 +259,44 @@ Real Exist(Text package.version)
   Real pos = FindIndexByName(_.index,package);
   pos > 0
 };
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Find = 
+"Busca un paquete entre todos los repositorios consultables y, si lo "
+"encuentra, devuelve el registro de información con estructura @PackageInfo, "
+"y si no, el conjunto vacío.";
+Static Set Find(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real @Repository::ForceConnect.All(0);
+  Real pos = FindIndexByName(_.allPackages,package.version);
+  Set found = If(pos<=0, Copy(Empty), _.allPackages[pos]);
+  found
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Copia un fichero del repositorio remoto al directorio local de paquetes
+  Real DownloadPackage(Text packageName)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text localPath = TolPackage::Client::LocalFile(packageName);
+  If(FileExist(localPath), OSFilRemove(localPath));
+  If(!_.isRemote,
+  {
+    OSFilCopy(_.address+"packages/"+packageName+".oza",localPath)
+  },
+  {
+    //Hay que buscar una forma de copiar remoto sin wget, con el TCL
+    Text order = 
+      "wget -O\""+localPath+"\" \""+ _.url+"packages/"+packageName+".oza\"";
+    WriteLn("[TolPackage::Client::@Repository::DownloadPackage] \n"+order);
+    Real ok = OSCmdWait(order);
+    Real Sleep(.1);
+    ok
+  });
+  FileExist(localPath)
+};
+
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Install = 
@@ -292,14 +324,20 @@ Text _.autodoc.member.Install =
 Real Install(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-  WriteLn("[TolPackage::Client::@Repository::Install] "
-    "Trying to download package from "+_.url+package.version);
+//WriteLn("TRACE Client::Install");
+  Real Connect(0);
   Real DownloadPackage(package.version);
-  Real ok = FileExist(TolPackage::Client::_.localRoot+package.version);
-  If(And(!ok,showError),
+  Real ok = FileExist(LocalFile(package.version));
+  Case(
+  ok,
   {
-    WriteLn("[TolPackage::Install] "
-    "Cannot install package "+_.url+package.version,"E")
+    WriteLn("[TolPackage::Client::@Repository::Install] "
+    "Installed package "+package.version)
+  },
+  showError, 
+  {
+    WriteLn("[TolPackage::Client::@Repository::Install] "
+    "Cannot install package "+package.version,"E")
   });
   ok
 };
@@ -311,6 +349,8 @@ Text _.autodoc.member.Install.All =
 Real Install.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
+//WriteLn("TRACE Client::Install.All");
+  Real Connect(0);
   SetMin(EvalSet(_.index, Real(TolPackage::@PackageInfo pi)
   {
     DownloadPackage(pi->name.version)
@@ -318,20 +358,18 @@ Real Install.All(Real void)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Find = 
-"Busca un paquete entre todos los repositorios consultables y, si lo "
-"encuentra, devuelve el registro de información con estructura @PackageInfo, "
-"y si no, el conjunto vacío.";
-Static Set Find(Text package.version)
+Text _.autodoc.member.Install.AllInAll = 
+"Instala todos los paquetes disponibles en todos los repositorios remotos "
+"consultados.";
+Static Real Install.AllInAll(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set EvalSet(_.instances,Real(@Repository r)
+//WriteLn("TRACE Client::Install.AllInAll");
+  Real @Repository::ForceConnect.All(0);
+  SetSum(EvalSet(@Repository::_.instances, Real(@Repository r)
   {
-    If(!IsUnknown(r::_.connected), False, r::Connect(0))
-  });
-  Real pos = FindIndexByName(_.allPackages,package.version);
-  Set found = If(pos<=0, Copy(Empty), _.allPackages[pos]);
-  found
+    r::Install.All(void)
+  }))
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -341,7 +379,7 @@ Text _.autodoc.member.FindAndInstall =
 Static Real FindAndInstall(Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE @Repository::FindAndInstall(\""+remote.repository+"\","<<showError+")");
+//WriteLn("TRACE @Repository::FindAndInstall(\""+repository+"\","<<showError+")");
   Set pkgInf = @Repository::Find(package.version);
 //WriteLn("TRACE @Repository::FindAndInstall 1 Card(pkgInf)="<<Card(pkgInf));
   Case(
@@ -354,7 +392,7 @@ Static Real FindAndInstall(Text package.version, Real showError)
   showError,
   { 
   //WriteLn("TRACE @Repository::FindAndInstall 3");
-    WriteLn("[TolPackage::FindAndInstall] "
+    WriteLn("[TolPackage::Client::@Repository::FindAndInstall] "
     "Cannot find package "+package.version+" in available repositories","E");
     False
   },
@@ -366,16 +404,17 @@ Static Real FindAndInstall(Text package.version, Real showError)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.LastDate = 
+Text _.autodoc.member.ReleaseDate = 
 "Devuelve la fecha de la última actualización de un paquete en un "
 "repositorio";
-Date LastDate(Text package)
+Date ReleaseDate(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real Connect(0);
   Real pos = FindIndexByName(_.index,package);
   If(!pos, TheBegin,
   { 
-    _.index[pos]->lastDate
+    _.index[pos]->releaseDate
   })
 };
 
@@ -383,15 +422,26 @@ Date LastDate(Text package)
 Text _.autodoc.member.Upgrade = 
 "Actualiza automáticamente un paquete si ha caducado caduca la copia local "
 "llamando a Install.";
-Real Upgrade(Text package, Real caducityInDays)
+Real Upgrade(Text package.version, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Date localDate = If(!FileExist(TolPackage::Client::_.localRoot+path), 
-    TheBegin,
-    FileTime(TolPackage::Client::_.localRoot+path));
-  Date lastDate = LastDate(package);
-  If(lastDate-localDate<=caducityInDays, False, Install(package));
-  True
+  Real Connect(0);
+  Text localFile = TolPackage::Client::LocalFile(package.version);
+  Date localDate = If(!FileExist(localFile), 
+    y1900,
+    FileTime(localFile));
+  Date releaseDate = ReleaseDate(package.version);
+  Real lapse = DateDif(Daily, localDate, releaseDate);
+//WriteLn("TRACE Upgrade localDate=" << localDate);
+//WriteLn("TRACE Upgrade releaseDate=" << releaseDate);
+//WriteLn("TRACE Upgrade lapse=" << lapse);
+//WriteLn("TRACE Upgrade caducityInDays=" << caducityInDays);
+  If(lapse<=caducityInDays, False, 
+  {
+    WriteLn("[TolPackage::Client::@Repository::Upgrade] "
+    "Package "+package.version+" is obsolete and will be upgraded","W");
+    Install(package.version, False)
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -401,10 +451,16 @@ Text _.autodoc.member.Upgrade.All =
 Real Upgrade.All(Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  SetSum(EvalSet(_.index, Real(TolPackage::@PackageInfo pi)
+  Real Connect(0);
+  WriteLn("[TolPackage::Client::@Repository::Upgrade.All] "
+  "Searching for obsolete packages at repository "+_.url);
+  Real n = SetSum(EvalSet(_.index, Real(TolPackage::@PackageInfo pi)
   {
     Upgrade(pi->name.version, caducityInDays)
-  }))
+  }));
+  WriteLn("[TolPackage::Client::@Repository::Upgrade.All] "<<n+
+  " packages where upgraded from repository "+_.url);
+  n
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -414,6 +470,7 @@ Text _.autodoc.member.Upgrade.AllInAll =
 Static Real Upgrade.AllInAll(Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real @Repository::ForceConnect.All(0);
   SetSum(EvalSet(@Repository::_.instances, Real(@Repository r)
   {
     r::Upgrade.All(caducityInDays)
@@ -433,6 +490,7 @@ Text _.autodoc.member.ForceExactRequirements =
 Real ForceExactRequirements(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real Connect(0);
   Real pos = FindIndexByName(_.index,package.version),
   If(!pos, False,
   { 
