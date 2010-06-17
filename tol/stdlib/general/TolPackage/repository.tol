@@ -439,7 +439,8 @@ Real Upgrade(Text package.version, Real caducityInDays)
   If(lapse<=caducityInDays, False, 
   {
     WriteLn("[TolPackage::Client::@Repository::Upgrade] "
-    "Package "+package.version+" is obsolete and will be upgraded","W");
+    "Package "+package.version+" is obsolete or not found and will be "
+    "upgraded","W");
     Install(package.version, False)
   })
 };
