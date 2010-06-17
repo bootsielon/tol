@@ -1,0 +1,52 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : methods.tol
+// PURPOSE: Defines TolConfigManager methods
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.BuildExpression=
+"Builds the TOL expression of a NameBlock";
+Text BuildExpression(NameBlock config, Text margin)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set members = DeepCopy(NameBlockToSet(config));
+  margin+"NameBlock "+Name(config)+" = \n"+margin+"[[\n"+
+  SetSum(For(1,Card(members),Text(Real k)
+  {
+    Text g = Grammar(members[k]);
+    Text dec = margin+"  "+g+" "+Name(members[k])+" = ";
+    If(k>1,";\n","")+
+    Case(
+      g=="Text", dec+"\""+members[k]+"\"",
+      g=="Real", dec<<members[k],
+      g=="Date", dec<<members[k],
+      g=="NameBlock", BuildExpression(members[k],margin+"  ")
+    )
+  }))+"\n"+
+  margin+"]]"
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.SaveConfig =
+"Saves configuration file with especified options.";
+Real SaveConfig(NameBlock config)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text WriteFile(_.path, BuildExpression(config,""));
+  True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LoadConfig=
+"Loads configuration file. If not exists creates it with default values.";
+NameBlock LoadConfig(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real If(!FileExist(_.path),
+  {
+     SaveConfig(Default)
+  });
+  Include(_.path)[1]
+};
+

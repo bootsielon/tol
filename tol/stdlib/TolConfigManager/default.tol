@@ -1,0 +1,112 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : default.tol
+// PURPOSE: Defines NameBlock TolConfigManager::Default
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Default = "Default configuration options";
+NameBlock Default =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  Text _.autodoc.member.Time = "Default dates";
+  NameBlock Time =
+  [[
+    Text _.autodoc.member.FirstDate = "Initial date";
+    Date FirstDate = y2010;
+    Text _.autodoc.member.LastDate = "Final date";
+    Date LastDate = y2010m12d31
+  ]];
+  Text _.autodoc.member.Output = "Output window";
+  NameBlock Output =
+  [[
+    Text _.autodoc.member.Use = "Write messages to output window";
+    Real Use = True;
+    Text _.autodoc.member.errorColor = "Error message color";
+    NameBlock errorColor = 
+    [[
+      Real Red = 255;
+      Real Green = 0;
+      Real Blue = 0;
+      Real Hue = 0;
+      Real Saturation = 240;
+      Real Brightness = 120
+    ]];
+    Text _.autodoc.member.warningColor = "Warning message color";
+    NameBlock warningColor = 
+    [[
+      Real Red = 0;
+      Real Green = 0;
+      Real Blue = 255;
+      Real Hue = 160;
+      Real Saturation = 240;
+      Real Brightness = 120
+    ]];
+    Text _.autodoc.member.refresh="Refresh updating in miliseconds";
+    Real refresh = 0
+  ]];
+  Text _.autodoc.member.Precision = "Default precision of real numbers";
+  NameBlock Precision =
+  [[
+    Text _.autodoc.member.Decimals = "Number of decimal digits";
+    Real Decimals = 4;
+    Text _.autodoc.member.ExpNotation = "Use of exponential notation over "
+    "this number of digits";
+    Real ExpNotation = 8
+  ]];
+  Text _.autodoc.member.ExternalTools = "Paths to external tools";
+  NameBlock ExternalTools =
+  [[
+    Text _.autodoc.member.Navigator = "Internet navigator";
+    Text Navigator = "";
+    Text _.autodoc.member.PdfViewer = "PDF viewer";
+    Text PdfViewer = "";
+    Text _.autodoc.member.Helper = "Helper program";
+    Text Helper = ""
+  ]];
+  Text _.autodoc.member.Upgrading = "Automated check and upgrade of "
+  "versions of TOL and packages";
+  NameBlock Upgrading =
+  [[
+    Text _.autodoc.member.TolVersion = "Automated check of TOL versions";
+    NameBlock TolVersion =
+    [[ 
+      Text _.autodoc.member.CheckAllowed = "Allows to check if there are new "
+      "versions";
+      Real CheckAllowed = True;
+      Text _.autodoc.member.MaxDaysOfDelay = "Number of days between checks";
+      Real MaxDaysOfDelay = 1
+    ]];
+    Text _.autodoc.member.TolPackage = "Automated upgrade of TOL packages";
+    NameBlock TolPackage =
+    [[ 
+      Text _.autodoc.member.LocalOnly = "Use only local repositories";
+      Real LocalOnly = 0;
+      Text _.autodoc.member.CaducityInMinutes = "Use only local repositories";
+      Real CaducityInMinutes = 1
+    ]]
+  ]];
+  Text _.autodoc.member.Various = "Various";
+  NameBlock Various =
+  [[
+    Text _.autodoc.member.Recent = "Stored recent files";
+    NameBlock Recent =
+    [[
+      Text _.autodoc.member.Number = "Number of stored recent files";
+      Real Number = 8;
+      Text _.autodoc.member.Order = "Order criterium for recent files";
+      Text Order = "ByDate"
+    ]];
+    Text _.autodoc.member.Language = "User Language";
+    Text Language = "Español";
+    Text _.autodoc.member.View = "Windows initial status";
+    NameBlock View =
+    [[
+      Text _.autodoc.member.ObjectInspector = "Object Inspector";
+      Real ObjectInspector = True
+    ]]
+  ]]
+]];
+
+
+

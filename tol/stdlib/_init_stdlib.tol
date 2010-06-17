@@ -14,6 +14,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+Set Include("TolConfigManager/TolConfigManager.tol");
+
 //The name of the TOL executable
 Text TOLAppName = ToLower(GetFilePrefix(TOLSessionPath));
 //The path of tolsh to call it via system
@@ -123,5 +125,14 @@ Set DefaultInitialProject = Case
 //////////////////////////////////////////////////////////////////////////////
 //Checks TOL release every day to detect obsolete versions
 //////////////////////////////////////////////////////////////////////////////
-Real CheckTOLReleaseIsUpdated = StdLib::CheckTOLRelease(1);
+Real CheckTOLReleaseIsUpdated = If(
+TolConfigManager::Config::Upgrading::TolVersion::CheckAllowed,
+{
+  StdLib::CheckTOLRelease(
+    TolConfigManager::Config::Upgrading::TolVersion::MaxDaysOfDelay
+  )
+},
+{
+  ?
+});
 
