@@ -112,6 +112,7 @@ Text TestResultRoot(Real void)
   Set CalcReportStats(Text title, Set tests)
 //////////////////////////////////////////////////////////////////////////////
 {
+  If(!Card(tests), Copy(Empty), {
   Set tr = Traspose(tests);
   Set stats = 
   [[
@@ -136,7 +137,7 @@ Text TestResultRoot(Real void)
           "\n  avgObjects   = "<<avgObjects+
           "\n  avgSeconds   = "<<avgSeconds+"\n\n");
   stats
-};
+})};
 
 //////////////////////////////////////////////////////////////////////////////
 //Runs all set of batteries of TOL tests
@@ -187,6 +188,7 @@ Text TestResultRoot(Real void)
   Set stats = CalcReportStats("ALL MERGED",AllDetail);
   Text indicator = Case
   (
+    !Card(stats),                                 "NONE",
     stats["minQuality"]<=MinQualityForError,      "FAIL",
     Or(stats["avgQuality"]<=AvgQualityForWarning,
        stats["unkQuality"]> 0),                   "WARNING",
@@ -234,7 +236,7 @@ Text TestResultRoot(Real void)
     Real OSDirMake  (dirResult);
     Set tests = BSTFile(aux,dirResult+"/test.results.bst");
     Set stats = CalcReportStats(title, tests);
-    Set batteryReport = BSTFile([[strTestBattery
+    Set batteryReport = If(!Card(stats), stats, BSTFile([[strTestBattery
     (
       baseDir,
       config->Parameters,
@@ -253,7 +255,7 @@ Text TestResultRoot(Real void)
       stats["avgCores"],
       stats["avgObjects"],
       stats["avgSeconds"]
-    )]], dirResult+"/battery_report.bst");
+    )]], dirResult+"/battery_report.bst"));
     batteryResult = [[batteryReport, tests]]
   })
 };
