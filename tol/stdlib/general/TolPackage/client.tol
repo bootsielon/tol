@@ -17,13 +17,33 @@ Text _.localRoot =
 #Embed "autoLoadSave.tol";
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalFile = 
+"Devuelve el path completo del fichero local correspondiente a un paquete.";
+Text LocalFile(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TolPackage::Client::_.localRoot+package.version+".oza"
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Exist = 
 "Devuelve cierto si existe el paquete especificado";
 Real Exist(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository, True);
+  @Repository r = @Repository::Get(repository, True);
   r::Exist(package.version)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Inicializa el sistema de almacenamiento persistente de la lista de 
+//repositorios 
+NameBlock Initialize(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TolPackage::Client::@AutoLoadSave _autoLoadSave = 
+    TolPackage::Client::@AutoLoadSave::Create(0);
+  _autoLoadSave
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -50,10 +70,10 @@ Text _.autodoc.member.Install =
 "Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
 "que se lancen desde ese momento podrán usarlos.";
 //////////////////////////////////////////////////////////////////////////////
-Real Install(Text remote.repository, Text package.version, Real showError)
+Real Install(Text repository, Text package.version, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository, True);
+  @Repository r = @Repository::Get(repository, True);
   r::Install(package.version,showError)
 };
 
@@ -61,11 +81,22 @@ Real Install(Text remote.repository, Text package.version, Real showError)
 Text _.autodoc.member.Install.All = 
 "Instala la última versión de todos los paquetes disponibles en un "
 "repositorio remoto.";
-Real Install.All(Text remote.repository)
+Real Install.All(Text repository)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository, True);
+  @Repository r = @Repository::Get(repository, True);
   r::Install.All(0)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Install.AllInAll = 
+"Instala todos los paquetes disponibles en todos los repositorios remotos "
+"consultados.";
+Real Install.AllInAll(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("TRACE Client::Install.AllInAll");
+  @Repository::Install.AllInAll(void)
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -73,42 +104,42 @@ Text _.autodoc.member.Find =
 "Busca un paquete entre todos los repositorios consultables y, si lo "
 "encuentra, devuelve el registro de información con estructura @PackageInfo, "
 "y si no, el conjunto vacío.";
-Set Find(Text remote.repository)
+Set Find(Text repository)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository::Find(remote.repository)
+  @Repository::Find(repository)
 };
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.FindAndInstall = 
 "Busca un paquete entre todos los repositorios consultables y si lo "
 "encuentra lo instala.";
-Real FindAndInstall(Text remote.repository, Real showError)
+Real FindAndInstall(Text repository, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE Client::FindAndInstall(\""+remote.repository+"\","<<showError+")");
-  @Repository::FindAndInstall(remote.repository, showError)
+//WriteLn("TRACE Client::FindAndInstall(\""+repository+"\","<<showError+")");
+  @Repository::FindAndInstall(repository, showError)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.LastDate = 
+Text _.autodoc.member.ReleaseDate = 
 "Devuelve la fecha de la última actualización de un paquete en un "
 "repositorio";
-Date LastDate(Text remote.repository, Text package)
+Date ReleaseDate(Text repository, Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository, True);
-  r::LastDate(package)
+  @Repository r = @Repository::Get(repository, True);
+  r::ReleaseDate(package)
 };
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Upgrade = 
 "Actualiza automáticamente un paquete si ha caducado caduca la copia local "
 "llamando a Install.";
-Real Upgrade(Text remote.repository, Text package, Real caducityInDays)
+Real Upgrade(Text repository, Text package.version, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository, True);
+  @Repository r = @Repository::Get(repository, True);
   r::Upgrade(package, caducityInDays)
 };
 
@@ -116,10 +147,10 @@ Real Upgrade(Text remote.repository, Text package, Real caducityInDays)
 Text _.autodoc.member.Upgrade.All = 
 "Actualiza automáticamente todos los paquetes disponibles en un repositorio "
 "remoto para los que la copia local haya caducado.";
-Real Upgrade.All(Text remote.repository, Real caducityInDays)
+Real Upgrade.All(Text repository, Real caducityInDays)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository, True);
+  @Repository r = @Repository::Get(repository, True);
   r::Upgrade.All(caducityInDays)
 };
 
@@ -157,10 +188,10 @@ Text _.autodoc.member.ForceExactRequirements =
 "Hay que llamar a este método siempre antes de hacer ningún #Require de "
 "cualquiera de los paquetes requeridos directa o indirectamente por lo que " 
 "lo más aconsejable es hacerlo justo después de cargar la StdLib ";
-Real ForceExactRequirements(Text remote.repository, Text package.version)
+Real ForceExactRequirements(Text repository, Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  @Repository r = @Repository::Get(remote.repository, True);
+  @Repository r = @Repository::Get(repository, True);
   r::ForceExactRequirements(package.version)
 };
 
