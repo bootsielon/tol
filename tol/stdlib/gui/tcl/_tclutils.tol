@@ -385,6 +385,7 @@ GetDirHelpSection);
       -1
     },
     {
+      Real TolPackage::Client::Upgrade.AllInAll(1);
       WriteLn(I2("Checking if TOL is updated.",
                  "Comprobando si TOL está actualizado."));
       Text WriteFile("tol_release_check.tol", 
