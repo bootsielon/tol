@@ -1,0 +1,25 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : Curl.tol
+// PURPOSE: Defines Package Curl which an interface with the curl library
+// throught Tcl layer.
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock Curl = [[
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.brief = "Curl API";
+Text _.autodoc.description = "TOL API to get access to Curl functionality. Based on TclCurl";
+Set _.autodoc.keys = [["curl","http","ftp"]];
+Set _.autodoc.authors = [[ "josp@tol-project.org" ]];
+
+#Embed "CurlFunctions.tol"
+]];
+
+Real {
+  Text dir = GetAbsolutePath(".") + "/";
+  Set tclStatus = Tcl_EvalEx( [[ "source", dir + "TolCurl.tcl" ]] );
+  Real If( Not(tclStatus["status"]), {
+      Error( "Initializing Curl: " + tclStatus["result"] );
+      Real 0
+    } )
+};

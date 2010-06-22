@@ -1,0 +1,26 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : Functions.tol
+// PURPOSE: Implement the functions for Curl package.
+//////////////////////////////////////////////////////////////////////////////
+
+Real Get( NameBlock args )
+{
+  Text url = args::url;
+  Text file = args::file;
+  // otros argumentos opcionales seran tratados mas adelante
+  Set cmd = [[ "::TolCurl::Get", url, file ]];
+  Set tclResult = Tcl_EvalEx( cmd );
+  Real status = tclResult["status"];
+  Real If( status, {
+      Real curlStatus = TextToReal( tclResult["result"] );
+      If( curlStatus, {
+          Set curlErrorMsg =
+            Tcl_EvalEx( [[ "::curl::easystrerror", tclResult["result"] ]] );
+          Error( "Curl::Get: " + curlErrorMsg["result"] );
+          Real 0
+        }, 1 /* Get OK */ )
+    }, {
+      Error( "Curl::Get: " + tclResult["result"] );
+      Real 0 /* Tcl Code is wrong!!! */
+    } )
+};
