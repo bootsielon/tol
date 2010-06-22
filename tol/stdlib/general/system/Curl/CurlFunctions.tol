@@ -3,8 +3,24 @@
 // PURPOSE: Implement the functions for Curl package.
 //////////////////////////////////////////////////////////////////////////////
 
+Real _tclCodeLoaded = 0;
+
+Real _InitTclCode( Real void )
+{
+  Real If( _tclCodeLoaded, 1, {
+      Set tclStatus = Tcl_EvalEx( [[ "eval", _tclCode ]] );
+      Real If( tclStatus["status"], _tclCodeLoaded:=1, {
+          Error( "Initializing Curl: " + tclStatus["result"] );
+          Real 0
+        } )
+    } )
+};
+
 Real Get( NameBlock args )
 {
+  // Esta inicializacion deberia desaparecer
+  Real _InitTclCode(?);
+  
   Text url = args::url;
   Text file = args::file;
   // otros argumentos opcionales seran tratados mas adelante

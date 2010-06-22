@@ -12,14 +12,10 @@ Text _.autodoc.description = "TOL API to get access to Curl functionality. Based
 Set _.autodoc.keys = [["curl","http","ftp"]];
 Set _.autodoc.authors = [[ "josp@tol-project.org" ]];
 
+Text _tclCode = { 
+  Text dir = GetAbsolutePath(".") + "/";
+  Text ReadFile( dir + "TolCurl.tcl" )
+};
+
 #Embed "CurlFunctions.tol"
 ]];
-
-Real {
-  Text dir = GetAbsolutePath(".") + "/";
-  Set tclStatus = Tcl_EvalEx( [[ "source", dir + "TolCurl.tcl" ]] );
-  Real If( Not(tclStatus["status"]), {
-      Error( "Initializing Curl: " + tclStatus["result"] );
-      Real 0
-    } )
-};
