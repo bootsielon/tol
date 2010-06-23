@@ -1,0 +1,161 @@
+
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : PackArchive.tol
+// PURPOSE: Defines Class PackArchive::@Store
+//////////////////////////////////////////////////////////////////////////////
+
+Class @Store
+{
+  //Identificador del motor de compresión 
+  Text _.engine;
+  //Extensión por defecto para los archivos del motor de compresión 
+  Text _.ext;
+  //Ubicación física del archivo en el disco local
+  Text _.path = "";
+  //Indica si el archivo está correctamente abierto
+  //para lectura o escritura o si no se pudo abrir
+  // " " : no se pudo abrir
+  // 'r' : se pudo abrir para lectura
+  // "w" : se pudo abrir para escritura
+  Text _.openMode = " ";
+  //Identificador interno de la instancia
+  Real _handle = 0;
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Crea una instancia de archivo y la abre para lectura o escritura
+  Static Text Extension(Text engine)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Case(
+     engine=="ZipArchive", ".zip",
+     1==1,"")
+  };
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Crea una instancia de archivo y la abre para lectura o escritura
+  Static @Store Create(Text engine, Text path, Text openMode)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    @Store new = [[
+      Text _.engine = engine;
+      Text _.ext = @Store::Extension(engine) ]];
+    Real new::Open(path, openMode);
+    new
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Crea una instancia de archivo y la abre para lectura o escritura
+  Static @Store PackFullDir(Text engine, Text originalDirPath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text ext = @Store::Extension(engine);
+    @Store s = @Store::Create(engine, originalDirPath+ext, "w");
+    Real ok = s::DirAdd(originalDirPath);
+    s::Close(0);
+    ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Crea una instancia de archivo y la abre para lectura o escritura
+  Static @Store UnpackFullDir(Text engine, Text originalDirPath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text ext = @Store::Extension(engine);
+    @Store s = @Store::Create(engine, originalDirPath+ext, "r");
+    Real ok = s::DirExtract("*",originalDirPath);
+    s::Close(0);
+    ok
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Abre el archivo para lectura o escritura
+  Real Open(Text path, Text openMode)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Text _.path := path;
+    Real _handle := PackArchive.Open(_.engine, path, openMode); 
+    Text _.openMode := If(_handle<=0," ", openMode);
+    _handle
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Cierra el archivo si no lo estaba ya o no se puedo abrir
+  Real Close(Real void)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real If(Or(_handle<=0, _.openMode==" "),False,
+    {
+      Real ok = PackArchive.Close(_handle);
+      Text _.openMode := " ";
+      ok
+    })
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Añade un fichero al archivo
+  Real FileAdd(Set originalFilePath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real If(Or(_handle<=0, _.openMode==" "),False,
+     PackArchive.FileAdd(_handle, originalFilePath))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Extrae un fichero del archivo
+  Real FileExtract(Text originalFilePath, Text destinationDirPath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real If(Or(_handle<=0, _.openMode==" "),False,
+     PackArchive.FileExtract(_handle, originalFilePath, destinationDirPath))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Determina si existe o no un fichero dentro del archivo
+  Real FileExists(Text originalFilePath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real If(Or(_handle<=0, _.openMode==" "),False,
+     PackArchive.FileExists(_handle, originalFilePath))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Añade un directorio completo recursivamente
+  Real DirAdd(Text originalDirPath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real If(Or(_handle<=0, _.openMode==" "),False,
+     PackArchive.DirAdd(_handle, originalDirPath))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Extrae un directorio completo recursivamente
+  Real DirExtract(Text originalDirPath, Text destinationDirPath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real If(Or(_handle<=0, _.openMode==" "),False,
+     PackArchive.DirExtract(_handle, originalDirPath, destinationDirPath))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //Determina si existe o no un directorio dentro del archivo
+  Real DirExists(Text originalDirPath)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Real If(Or(_handle<=0, _.openMode==" "),False,
+     PackArchive.DirExists(_handle, originalDirPath))
+  };
+
+  ////////////////////////////////////////////////////////////////////////////
+  //El destructor cierra el archivo si procede
+  Real __destroy (Real void)  
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Close(void)
+  }
+
+};
+
+
+/* */

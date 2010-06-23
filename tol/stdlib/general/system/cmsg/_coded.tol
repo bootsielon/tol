@@ -107,7 +107,7 @@
   Real _.status.current_ = 0;
 
 //private API
-  Real _status.idx = SetIndexByName(_.status);
+  Real reset (Real void) { SetIndexByName(_.status) };
   Set _argFunChk = Include("_coded_argFunChk.tol");
 
 //public API

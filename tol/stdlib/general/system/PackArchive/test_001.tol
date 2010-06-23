@@ -1,0 +1,28 @@
+
+
+//PackArchive::@Store::(
+
+Text root = "/tmp/PackArchive/test_001";
+Real OSDirMake(root);
+Text WriteFile(root+"/root.txt","root.txt");
+Real OSDirMake(root+"/d1");
+Real OSDirMake(root+"/d2");
+Text WriteFile(root+"/d1/d1.txt","d1.txt");
+Text WriteFile(root+"/d2/d2.txt","d2.txt");
+
+Text engine = "ZipArchive";
+Text ext = PackArchive::@Store::Extension(engine);
+Text originalDirPath = root;
+
+PackArchive::@Store s1 = PackArchive::@Store::Create(
+  engine, originalDirPath+ext, "w");
+Real ok.1 = s1::DirAdd(originalDirPath);
+Real s1::Close(0);
+
+Real OSDirRemove(root);
+
+PackArchive::@Store s2 = PackArchive::@Store::Create(
+  engine, originalDirPath+ext, "r");
+Real ok.2 = s2::DirExtract("*",originalDirPath+"_copy");
+Real s2::Close(0);
+

@@ -1,0 +1,21 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : PackArchive.tol
+// PURPOSE: Defines NameBlock PackArchive
+//////////////////////////////////////////////////////////////////////////////
+
+NameBlock PackArchive = [[
+Text _.autodoc.description = "Utilidades de compresión y archivado de "
+"ficheros y directorios que permitan leer y escribir directamente desde TOL "
+"archivos .zip, .7z, .gz, .tgz, tar, .";
+Set _.autodoc.keys = [["Archive","Pack","Compress","Compact","zip"]];
+Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
+Text _.currentTolVersion = Tokenizer(Version," ")[1];
+
+
+#Embed "store.tol"
+
+
+]];
+
+

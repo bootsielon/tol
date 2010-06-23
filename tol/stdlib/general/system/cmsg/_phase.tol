@@ -124,7 +124,6 @@
 //private API
   Real _lastLevel_ = Copy(?);
   Set  _histPos_   = Copy(Empty);
-  Set  _beginSec_  = Copy(Empty);
-  Real _reset      = reset(0) 
+  Set  _beginSec_  = Copy(Empty)
 ]];
 
