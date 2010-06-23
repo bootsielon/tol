@@ -165,8 +165,11 @@ proc ::MenuManager::createSubMenuIfNeeded { targetMenu name } {
   set path0 [ split $name "/" ]
   set mm $targetMenu
   set nn ""
+  set mapdot [ list . - ]
   foreach n [ lrange $path0 0 end-1 ] {
-    set mm0 ${mm}.mm$n
+    # evito el caracter . en el nombre de widget
+    set n0 [ string map $mapdot $n ]
+    set mm0 ${mm}.mm$n0
     if { [ winfo exists $mm0 ] } {
       $mm0 delete 0 end
     } else {
@@ -214,8 +217,11 @@ proc ::MenuManager::insertEntriesForSelection { menuWidget selection } {
   # inserto las opciones especificas de cada tipo si es que hay mas de
   # un tipo
   if { [ llength $typesSelected(types) ] > 1 } {
+    set mapdot [ list . - ]
     foreach type $typesSelected(types) {
-      set menuType $menuWidget.mtype$type
+      # type puede contener . por eso hay que reemplazarlo
+      set type0 [ string map $mapdot $type ]
+      set menuType $menuWidget.mtype$type0
       if { ![ winfo exists $menuType ] } {
         menu $menuType -tearoff 0
       } else {
