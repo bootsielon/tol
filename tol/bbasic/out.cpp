@@ -30,6 +30,7 @@
 #include <tol/tol_bsys.h>
 #include <tol/tol_bdat.h>
 #include <tol/tol_boper.h>
+#include <tol/tol_ois.h>
 
 //--------------------------------------------------------------------
 void HCIWriteString(const char* msg)
@@ -537,128 +538,14 @@ void BOut::LogHciWrite(const BText& txt)
   else              { Std(txt); }
 }
 
-/*
+
 //--------------------------------------------------------------------
-BText BOut::GetStatus()
-//--------------------------------------------------------------------
-{
-  BText vmode = "";
-  if(ErrorTerm  ()) { vmode += "E"; }
-  if(WarningTerm()) { vmode += "W"; }
-  if(StdTerm    ()) { vmode += "S"; }
-  if(InfoTerm   ()) { vmode += "U"; }
-  if(TraceTerm  ()) { vmode += "T"; }
-  if(vmode=="")     { vmode = "mA"; }
-  else              { vmode = "v"+vmode; }
-}
-  
-//--------------------------------------------------------------------
-bool BOut::SetStatusTerm()(const BText& vmode) 
+  bool CheckNonDeclarativeAction(const BText& msg)
 //--------------------------------------------------------------------
 {
-  bool ok = true;
-  unsigned int i=0;
-  if(!vmode.HasName()) { return; }
-  if((vmode[0]!='v')&&(vmode[0]!='m'))
-  {
-    ok = false;
-  }
-  else if((vmode[0]=='v') && (vmode[1]=='\0'))
-  {
-  //Backward compatibility of non explicit verbose mode vmode=="v"
-  //is equivalent to explicit verbose mode "vAmT", is to say, all
-  //vervose but traces
-    BOut::PutAllHci   (true);
-    BOut::PutAllTerm  (true);
-    BOut::PutTraceHci (false);
-    BOut::PutTraceTerm(false);
-  }
-  else if((vmode[0]=='m') && (vmode[1]=='\0'))
-  {
-  //Backward compatibility of non explicit verbose mode vmode=="m"
-  //is equivalent to explicit verbose mode "mAvE", is to say, all
-  //mute but errors
-    BOut::PutAllHci   (false);
-    BOut::PutAllTerm  (false);
-    BOut::PutErrorHci (true);
-    BOut::PutErrorTerm(true);
-  }
-  else
-  {
-    bool mode;
-  //If argument begis 
-    if(vmode[0]=='v')      
-    { 
-      BOut::PutAllHci (false);
-      BOut::PutAllTerm(false);
-      mode = true; 
-    }
-    else if(vmode[0]=='m') 
-    { 
-      BOut::PutAllHci (true);
-      BOut::PutAllTerm(true);
-      mode = false; 
-    }
-    else                   
-    { 
-      ok = false; 
-    }
-    for(i=1; ok && vmode[i]; i++) 
-    {
-      switch (vmode[i]) 
-      {
-        case 'A':
-          BOut::PutAllHci (mode);
-          BOut::PutAllTerm(mode);
-          break;
-        case 'E':
-          BOut::PutErrorHci (mode);
-          BOut::PutErrorTerm(mode);
-          break;
-        case 'W':
-          BOut::PutWarningHci (mode);
-          BOut::PutWarningTerm(mode);
-          break;
-        case 'S':
-          BOut::PutStdHci (mode);
-          BOut::PutStdTerm(mode);
-          break;
-        case 'U':
-          BOut::PutInfoHci (mode);
-          BOut::PutInfoTerm(mode);
-          break;
-        case 'T':
-          BOut::PutTraceHci (mode);
-          BOut::PutTraceTerm(mode);
-          break;
-        default :
-          // invalid character 
-          ok = false;
-          break;
-      }
-      if(!ok) { break; }
-    }
-  }
-  if(!ok)
-  {
-    InitVerboseMode();
-    Error(I2
-    (
-      "Wrong formatted verbose/mute argument\n"
-      "Default values will be used.\n"
-      "Unexpected character '",
-      "Formato inválido del argumento verbose/mute\n"
-      "Se usarán los valores por defecto.\n" 
-      "Caracter inesperado '"
-    )+vmode[i]+"' "+I2
-    (
-      "at position",
-      "en la posición"
-    )+" "+int(i+1)+I2
-    (
-      " of argument ",
-      " del argumento "
-    )+vmode+"\n\n\n"+HelpVerboseMode());
-  }
+  if(!BOis::RunningUseModule()) { return(false); }
+  Error(BText("OIS: ")+
+   "Sorry, non declarative actions are forbidden while Ois.UseModule "
+   "is running. Cannot use \n"+msg);
+  return(true);
 }
-*/

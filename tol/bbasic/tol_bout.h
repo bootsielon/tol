@@ -207,7 +207,11 @@ public:
   friend TOL_API void Dump(const BText&);
   //! Sends an Info level message to available outputs
   friend TOL_API void Info(const BText&);
-
+  //! Sends an error message to all current available outputs
+  //when it occurs a non declarative action while Ois.UseModule
+  //is running
+  friend TOL_API bool CheckNonDeclarativeAction(const BText&);
+  
   friend class TC_MsgMan;
 };
 
