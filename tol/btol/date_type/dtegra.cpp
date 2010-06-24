@@ -198,6 +198,7 @@ class BPutDefaultDates: public BExternalOperator
 BSyntaxObject* BPutDefaultDates::Evaluator(BList* arg) const
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutDefaultDates")) { return(NULL); }
     BDate d1 = Date(Car(arg));
     BDate d2 = Date(Car(Cdr(arg)));
     BDate::PutDefaultFirst(d1);
