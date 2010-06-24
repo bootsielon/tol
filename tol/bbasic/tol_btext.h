@@ -644,6 +644,16 @@ inline BInt StrCmp(const BText& txt1, const BText& txt2)
   return(StrCmp(txt1.String(),txt2.String()));
 }
 
+//--------------------------------------------------------------------
+   inline int CompareText(const void* v1, const void* v2)
+// Compares the entry number of two received pointers to 
+// BAlias
+//--------------------------------------------------------------------
+{
+  BText* obj1 = (BText*)v1;
+  BText* obj2 = (BText*)v2;
+	return( StrCmp(*obj1, *obj2));
+}
 
 //! Returns a text object initilized with a formated integer
 //--------------------------------------------------------------------
