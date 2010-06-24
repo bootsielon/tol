@@ -47,8 +47,9 @@ BTraceInit("PackArchive.cpp");
 char Store::_errMsg[16384];
 HashStoreByHandle Store::_instances;
 bool Store::_isInitialized = false;
-int Store::_uniqueId = 0;
+int Store::_uniqueId = 1;
 
+bool _Store_initialize_ = Store::Initialize(); 
 
 
 //--------------------------------------------------------------------
@@ -163,7 +164,8 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPackArchiveOpen);
-  DefExtOpr(1, BDatPackArchiveOpen, "PackArchive.Open", 1, 1, "Text",
+  DefExtOpr(1, BDatPackArchiveOpen, "PackArchive.Open", 
+  3, 3, "Text Text Text",
   "(Text engine, Text path, Text openMode)",
   I2("Open a packed archive for reading if openMode=='r' or writing "
      "if openMode=='w'",
@@ -196,6 +198,7 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
   Store* store = Store::FindInstance(handle);
   if(store)
   {
+    store->Close();
     delete store;
     contens_ = true;
   }

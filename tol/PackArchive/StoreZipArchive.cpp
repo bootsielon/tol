@@ -46,6 +46,7 @@ StoreZipArchive::~StoreZipArchive()
 bool StoreZipArchive::Open(BText path, char openMode)
 //--------------------------------------------------------------------
 {
+  _errMsg[0]='\0';
   _path = path; 
   _openMode = openMode; 
   bool ok = true;
@@ -54,11 +55,11 @@ bool StoreZipArchive::Open(BText path, char openMode)
     if(openMode=='w')
     {
       remove(_path); 
-      _zip.Open(_path, CZipArchive::zipCreate);
+      _zip.Open(_path.String(), CZipArchive::zipCreate);
     }
     else if(openMode=='r')
     {
-      _zip.Open(_path, CZipArchive::zipOpenReadOnly, false);
+      _zip.Open(_path.String(), CZipArchive::zipOpenReadOnly, false);
     }
   }
   catch(CZipException ex)
@@ -80,6 +81,7 @@ bool StoreZipArchive::Open(BText path, char openMode)
 bool StoreZipArchive::Close()
 //--------------------------------------------------------------------
 {
+  _errMsg[0]='\0';
   if(_openMode == ' ') { return(true); }
   bool ok = true;
   try
@@ -106,10 +108,11 @@ bool StoreZipArchive::Close()
 bool StoreZipArchive::FileAdd(BText originalFilePath)
 //--------------------------------------------------------------------
 {
+  _errMsg[0]='\0';
   bool ok = true;
   try
   {
-    _zip.AddNewFile(originalFilePath);
+    _zip.AddNewFile(originalFilePath.String());
   }
   catch(CZipException ex)
   {
@@ -119,6 +122,7 @@ bool StoreZipArchive::FileAdd(BText originalFilePath)
       originalFilePath.String(),
       (LPCTSTR)ex.GetErrorDescription());
   }
+  if(!ok) { Error(_errMsg); }
   return(ok);
 }
 
@@ -128,13 +132,14 @@ bool StoreZipArchive::FileAdd(BText originalFilePath)
 bool StoreZipArchive::FileExtract(BText originalFilePath, BText destinationDirPath)
 //--------------------------------------------------------------------
 {
+  _errMsg[0]='\0';
   bool ok = true;
   try
   {
-    int index = _zip.FindFile(originalFilePath);
+    int index = _zip.FindFile(originalFilePath.String());
     if((index>=0) && (index!=ZIP_FILE_INDEX_NOT_FOUND))
     {
-      _zip.ExtractFile(index, destinationDirPath);
+      _zip.ExtractFile(index, destinationDirPath.String());
     }
     else
     {
@@ -150,6 +155,7 @@ bool StoreZipArchive::FileExtract(BText originalFilePath, BText destinationDirPa
       destinationDirPath.String(),
       (LPCTSTR)ex.GetErrorDescription());
   }
+  if(!ok) { Error(_errMsg); }
   return(ok);
 }
 
@@ -159,11 +165,12 @@ bool StoreZipArchive::FileExtract(BText originalFilePath, BText destinationDirPa
 bool StoreZipArchive::FileExist(BText originalFilePath)
 //--------------------------------------------------------------------
 {
+  _errMsg[0]='\0';
   int index = -1;
   bool ok = false;
   try
   {
-    index = _zip.FindFile(originalFilePath);
+    index = _zip.FindFile(originalFilePath.String());
     ok = ((index>=0) && (index!=ZIP_FILE_INDEX_NOT_FOUND));
   }
   catch(CZipException ex)
@@ -174,6 +181,7 @@ bool StoreZipArchive::FileExist(BText originalFilePath)
       originalFilePath.String(),
       (LPCTSTR)ex.GetErrorDescription());
   }
+  if(!ok) { Error(_errMsg); }
   return(ok);
 }
 
@@ -183,6 +191,7 @@ bool StoreZipArchive::FileExist(BText originalFilePath)
 bool StoreZipArchive::DirAdd(BText originalDirPath)
 //--------------------------------------------------------------------
 {
+  _errMsg[0]='\0';
   bool ok = true;
   try
   {
@@ -192,7 +201,7 @@ bool StoreZipArchive::DirAdd(BText originalDirPath)
       false, 
       ZipArchiveLib::CNameFileFilter::toAll);
     // This will include empty directories
-    _zip.AddNewFiles(originalDirPath, filter);
+    _zip.AddNewFiles(originalDirPath.String(), filter);
   }
   catch(CZipException ex)
   {
@@ -202,6 +211,7 @@ bool StoreZipArchive::DirAdd(BText originalDirPath)
       originalDirPath.String(),
       (LPCTSTR)ex.GetErrorDescription());
   }
+  if(!ok) { Error(_errMsg); }
   return(ok);
 }
 
@@ -211,15 +221,23 @@ bool StoreZipArchive::DirAdd(BText originalDirPath)
 bool StoreZipArchive::DirExtract(BText originalDirPath, BText destinationDirPath)
 //--------------------------------------------------------------------
 {
+  _errMsg[0]='\0';
   bool ok = true;
   try
   {
     CZipIndexesArray indexes;
     // find files using wildcards
     //zip.FindMatches(_T("file?.*"), indexes);    
-    _zip.FindMatches(_T(originalDirPath+"/*"), indexes);    
-    _tprintf(_T("Matches found at positions:\r\n"));
+    BText match = originalDirPath;
+    _zip.FindMatches(match.String(), indexes);    
     ok = indexes.GetCount()>0;
+    if(!ok)
+    {
+      sprintf(_errMsg, "[ZipArchive] Cannot find files to extract from archive "
+        "%s matching pattern '%s'",
+        _path.String(),  
+        match.String());
+    }
     for (ZIP_ARRAY_SIZE_TYPE i = 0; i < indexes.GetCount(); i++)
     {
        _zip.ExtractFile(i, destinationDirPath);
@@ -228,12 +246,14 @@ bool StoreZipArchive::DirExtract(BText originalDirPath, BText destinationDirPath
   catch(CZipException ex)
   {
     ok = false;
-    sprintf(_errMsg, "[ZipArchive] Error while extracting from archive %s file %s to %s: %s",
+    sprintf(_errMsg, "[ZipArchive] Error while extracting from archive %s file "
+      "%s to %s: %s",
       _path.String(),  
       originalDirPath.String(),
       destinationDirPath.String(),
       (LPCTSTR)ex.GetErrorDescription());
   }
+  if(!ok) { Error(_errMsg); }
   return(ok);
 };
 
@@ -243,14 +263,15 @@ bool StoreZipArchive::DirExtract(BText originalDirPath, BText destinationDirPath
 bool StoreZipArchive::DirExist(BText originalDirPath)
 //--------------------------------------------------------------------
 {
+  _errMsg[0]='\0';
   bool ok = true;
   try
   {
     CZipIndexesArray indexes;
     // find files using wildcards
     //zip.FindMatches(_T("file?.*"), indexes);    
-    _zip.FindMatches(_T(originalDirPath+"/*"), indexes);    
-    _tprintf(_T("Matches found at positions:\r\n"));
+    BText match = originalDirPath+"/*";
+    _zip.FindMatches(match.String(), indexes);    
     ok = indexes.GetCount()>0;
   }
   catch(CZipException ex)
@@ -261,5 +282,6 @@ bool StoreZipArchive::DirExist(BText originalDirPath)
       originalDirPath.String(),
       (LPCTSTR)ex.GetErrorDescription());
   }
+  if(!ok) { Error(_errMsg); }
   return(ok);
 };
