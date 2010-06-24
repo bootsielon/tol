@@ -430,6 +430,7 @@ void BDatOfCSeries::CalcContens()
   void BDatPutSerDat::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutSerDat")) { return; }
   BUserTimeSerie& ser = *Tsr(Arg(1));
   BDate		  dte = Date(Arg(2));
   BDat		  x   = Dat(Arg(3));
@@ -651,6 +652,7 @@ void BDatPutCSerDat::CalcContens()
   void BDatSystem::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("System")) { return; }
   contens_ = (BReal)BSys::System(Text(Arg(1)));
 }
 
@@ -676,6 +678,7 @@ void BDatPutCSerDat::CalcContens()
   void BDatShellExecute::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("ShellExecute")) { return; }
   contens_ = (BInt)ShellExecute
   (
     0,			   // handle to parent window
@@ -719,6 +722,7 @@ void BDatPutCSerDat::CalcContens()
   void BDatWinSystem::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("WinSystem")) { return; }
   const BText& command = Text(Arg(1));
   int    show    = int(Real(Arg(2)));
   bool   wait    = Arg(3)?Real(Arg(3))!=0:false;
@@ -739,6 +743,7 @@ void BDatPutCSerDat::CalcContens()
   void BDatChildProcess::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("ChildProcess")) { return; }
   contens_ = (BReal)BSys::ChildProcess(Text(Arg(1)));
 }
 
@@ -1036,6 +1041,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatFileDelete::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("FileDelete")) { return; }
   const BText& file = Text(Arg(1));
   contens_ = BSys::Remove(file);
 }
@@ -1052,6 +1058,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatFileRename::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("FileRename")) { return; }
   const BText& oldFile = Text(Arg(1));
   const BText& newFile = Text(Arg(2));
   contens_ = !rename(oldFile.String(),newFile.String());
@@ -1078,6 +1085,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatFileCat::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("FileCat")) { return; }
   const BSet& origin = Set(Arg(1));
   const BText& target = Text(Arg(2));
   BArray<BText> in(origin.Card());
@@ -1112,6 +1120,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatMkDir::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("MkDir")) { return; }
   const BText& dir = Text(Arg(1));
   contens_  = BSys::MkDir(dir,true);
 }
@@ -1206,6 +1215,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatPutMatDat::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutMatDat")) { return; }
   BUserMat* uM = (BUserMat*)(Arg(1));
   BInt i  = (BInt)Real(Arg(2))-1;
   BInt j  = (BInt)Real(Arg(3))-1;
@@ -1415,6 +1425,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatPutCoef::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutCoef")) { return; }
   BPol& P    = Pol(Arg(1));
   BInt  deg  = (BInt)Real(Arg(2));
   BDat& coef = Dat(Arg(3));
@@ -2550,6 +2561,7 @@ int WinRmtProcessAlive(const char         *ServerName,
   void BDatWinRmtSystem::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("WinRmtSystem")) { return; }
   const BChar* serverName = Text(Arg(1)).String();
   const BInt   port       = (BInt)Real(Arg(2));
   const BChar* command    = Text(Arg(3)).String();
@@ -2585,6 +2597,7 @@ int WinRmtProcessAlive(const char         *ServerName,
   void BDatWinRmtKill::CalcContens()
 //--------------------------------------------------------------------
 {   
+  if(CheckNonDeclarativeAction("WinRmtKill")) { return; }
     contens_ = WinRmtKill(Text(Arg(1)).String(), 
 			  (BInt)Real(Arg(2)), 
 			  (BInt)Real(Arg(3)) );
@@ -2617,6 +2630,7 @@ int WinRmtProcessAlive(const char         *ServerName,
   void BDatWinRmtProcessAlive::CalcContens()
 //--------------------------------------------------------------------
 {   
+  if(CheckNonDeclarativeAction("WinRmtProcessAlive")) { return; }
     contens_ = WinRmtProcessAlive(Text(Arg(1)).String(), 
 				  (BInt)Real(Arg(2)), 
 				  (BInt)Real(Arg(3)) );
