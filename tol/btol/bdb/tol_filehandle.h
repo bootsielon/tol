@@ -19,6 +19,9 @@
    USA.
  */
 
+#ifndef TOL_FILEHANLER_H
+#define TOL_FILEHANLER_H
+
 #if defined(_MSC_VER)
 #include <win_tolinc.h>
 #endif
@@ -56,4 +59,5 @@ public:
 };
 
 
+#endif // TOL_FILEHANLER_H
 

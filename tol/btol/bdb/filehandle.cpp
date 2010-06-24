@@ -202,6 +202,7 @@ BText sysErrCleanVervose_ = I2(
   void BDatFOpen::CalcContens()
 /////////////////////////////////////////////////////////////////////////////
 {
+  if(CheckNonDeclarativeAction("FOpen")) { return; }
   static BText allowedAccess_ = " r w a rb wb ab r+ w+ a+ r+b w+b a+b ";
   BText& path   = Text(Arg(1));
   BText& access = Text(Arg(2));
@@ -245,6 +246,7 @@ BText sysErrCleanVervose_ = I2(
   void BTxtFGetText::CalcContens()
 /////////////////////////////////////////////////////////////////////////////
 {
+  if(CheckNonDeclarativeAction("FGetText")) { return; }
   int handle  = (int)Real(Arg(1));
   int maxSize = (int)Real(Arg(2));
   BText until = "\n";
@@ -269,6 +271,7 @@ BText sysErrCleanVervose_ = I2(
   void BDatFPutText::CalcContens()
 /////////////////////////////////////////////////////////////////////////////
 {
+  if(CheckNonDeclarativeAction("FPutText")) { return; }
   int    handle = (int)Real(Arg(1));
   BText& txt    = Text(Arg(2));
   contens_ = EOF;
@@ -292,6 +295,7 @@ BText sysErrCleanVervose_ = I2(
   void BDatFEof::CalcContens()
 /////////////////////////////////////////////////////////////////////////////
 {
+  if(CheckNonDeclarativeAction("FEof")) { return; }
   int handle  = (int)Real(Arg(1));
   contens_ = EOF;
   FILE* file = BFileDesc::CheckFileHandle(handle, true,
@@ -318,6 +322,7 @@ BText sysErrCleanVervose_ = I2(
   void BDatFFlush::CalcContens()
 /////////////////////////////////////////////////////////////////////////////
 {
+  if(CheckNonDeclarativeAction("FFlush")) { return; }
   int handle  = (int)Real(Arg(1));
   contens_ = EOF;
   if(!handle)
@@ -350,6 +355,7 @@ BText sysErrCleanVervose_ = I2(
   void BDatFClose::CalcContens()
 /////////////////////////////////////////////////////////////////////////////
 {
+  if(CheckNonDeclarativeAction("FClose")) { return; }
   bool clean   = true;
   bool verbose = false;
   int  handle  = (int)Real(Arg(1));
