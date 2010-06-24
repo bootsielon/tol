@@ -373,6 +373,7 @@ static BSyntaxObject* EvMakeGlobal(      BGrammar* gra,
 //--------------------------------------------------------------------
 {
   static BText _name_ = "MakeGlobal";
+  if(CheckNonDeclarativeAction(_name_)) { return(NULL); }
     BSyntaxObject* result = NIL;
     BSyntaxObject* uTxt	= NIL;
     BInt nb = BSpecialFunction::NumBranches(tre);
@@ -828,6 +829,7 @@ static BSyntaxObject* EvPutValue(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 {
   static BText _name_ = "PutValue";
+  if(CheckNonDeclarativeAction(_name_)) { return(NULL); }
   // bool error = false; // unused
   BSyntaxObject* result = NIL;
   BGrammar *type = gra;
@@ -909,6 +911,7 @@ static BSyntaxObject* EvPutName(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 {
   static BText _name_ = "PutName";
+  if(CheckNonDeclarativeAction(_name_)) { return(NULL); }
     BSyntaxObject* result = NIL;
     BInt nb = BSpecialFunction::NumBranches(tre);
     if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
@@ -955,6 +958,7 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
 //--------------------------------------------------------------------
 {
   static BText _name_ = "PutDescription";
+//if(CheckNonDeclarativeAction(_name_)) { return(NULL); }
   BInt nb = BSpecialFunction::NumBranches(tre);
   if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
   {
@@ -1320,6 +1324,7 @@ static
 BSyntaxObject* EvMHWSPut(BGrammar* gra, const List* tre, BBool left)
 {
   static BText _name_ = "MHWSPut";
+  if(CheckNonDeclarativeAction(_name_)) { return(NULL); }
   BSyntaxObject *result = NULL;
   BSyntaxObject *arg;
   BInt nb = BSpecialFunction::NumBranches(tre);
@@ -1622,15 +1627,13 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   {
     List* branch1 = Branch(tre,1);
     List* branch2 = Branch(tre,2);
-     
 /* * /
-    if(BParser::Unparse(tre, "  ")=="Point ::New(_this, x0)") 
-      printf("");
     BText ups = BParser::Unparse(tre, "  ");
+  //Std(ups+"\n"); 
+    if(ups=="a::fun(?)::b") 
+      printf("");
   //Std(BText("\nEvMember branch1='")+BParser::Unparse(branch1,"  ")+"'\n"); 
   //Std(BText("\nEvMember branch2='")+BParser::Unparse(branch2,"  ")+"'\n"); 
-    if(ups=="BysMcmc::Notifier ::Null(0)")
-      printf("");
     Std(BText("\nEvMember tre='")+ups+"'\n"); 
 /* */
     bool oldEnabled = BOut::Disable();
@@ -1710,7 +1713,7 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
              BParser::Unparse(tre)+"'\n"+errMsg);
   }
   result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
-  if(needsDeleteUns) { DESTROY(uns); }
+  if(needsDeleteUns) { SAFE_DESTROY(uns, result); }
   BGrammar::DestroyStackUntil(stackPos, result);    
   return(result);
 }
