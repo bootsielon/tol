@@ -10,10 +10,25 @@ NameBlock Server = [[
 //////////////////////////////////////////////////////////////////////////////
 
 Text _.localRoot = 
+  Replace(TolAppDataPath+"TolPackage/Server/","\\","/");
+
+Set _.supportedPlatforms =
+[[
+  "Windows-x86_32",
+  "Linux-x86_32"
+]];
+
+//////////////////////////////////////////////////////////////////////////////
+//Inicializa el servidor 
+Real Initialize(Real void)
+//////////////////////////////////////////////////////////////////////////////
 {
-  Text aux = Replace(TolAppDataPath+"OIS/TolPackage/Server/","\\","/");
-  Real OSDirMake(aux);
-  aux
+  Real OSDirMake(_.localRoot);
+  Set EvalSet(_.supportedPlatforms, Real(Text platform)
+  {
+    Real OSDirMake(_.localRoot+platform)
+  });
+  True
 };
 
 #Embed "builder.tol"

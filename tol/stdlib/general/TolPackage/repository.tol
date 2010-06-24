@@ -43,6 +43,10 @@ Static Set _.instances = Copy(Empty);
 //que no puede haber repositorios que compartan un mismo paquete
 Static Set _.allPackages = Copy(Empty);
 
+Static Real _.localOnlyWarningWasShown = False;
+
+Static Text _.platform = If(OSWin, "Windows-x86_32", "Linux-x86_32");
+
 //////////////////////////////////////////////////////////////////////////////
 //Carga la lista de repositorios accesibles
 Static Real LoadInstances(Real void)
@@ -71,6 +75,9 @@ Static Real LoadInstances(Real void)
           True
         })
       });
+      Text bst = TolPackage::Client::_.localRoot+"packages.bst"; 
+      Set If(And(FileExist(bst),FileBytes(bst)),  
+        @Repository::_.allPackages := IncludeBST(bst));
       True   
     })
   });
@@ -85,8 +92,6 @@ Static Real SaveInstances(Real void)
   If(!Card(_.instances), False,
   {
     Text file = TolPackage::Client::_.localRoot+"repositories.txt";
-    WriteLn("[TolPackage::Client::@Repository::SaveInstances]\n"
-            "Saving list of available repositories to "+file);
     Text WriteFile(file,
     "//////////////////////////////////////////////////////////////////////////////\n"
     "//List of availables repositories of TOL packages\n"
@@ -111,6 +116,12 @@ Static Real SaveInstances(Real void)
       });
       True   
     });
+    Set If(Card(@Repository::_.allPackages), 
+      BSTFile(@Repository::_.allPackages,
+        TolPackage::Client::_.localRoot+"packages.bst"));
+    WriteLn("[TolPackage::Client::@Repository::SaveInstances]\n"
+            "List of available repositories and packages have been saved to "
+            "local store \n  "+TolPackage::Client::_.localRoot);
     True
   })
 };
@@ -161,16 +172,90 @@ Static @Repository Open(Text url, Real connect)
 
 //////////////////////////////////////////////////////////////////////////////
 //Devuelve el contenido de un fichero de texto ubicado en el repositorio
-  Text GetFileContens(Text path)
+  Text GetFileContent(Text path)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(!_.isRemote,
+  Text content = If(!_.isRemote,
   {
+  //WriteLn("TRACE [GetFileContent] 1 _.address+path='"+_.address+path+"'");
     ReadFile(_.address+path)
   },
   {
+  //WriteLn("TRACE [GetFileContent] 2 _.url+path='"+_.url+path+"'");
     StdLib::GetUrlContents(_.url+path)
-  })
+  });
+//WriteLn("TRACE [GetFileContent] 3 content='"+content+"'");
+  content
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Copia un fichero del repositorio remoto al directorio local de paquetes
+  Real DownloadPackage(Text packageName)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text pack = packageName+".zip";
+  Text oza = packageName+"/"+packageName+".oza";
+  Text localPack = TolPackage::Client::_.localRoot+pack;
+  Text localOza = TolPackage::Client::_.localRoot+oza;
+  Text localDir = TolPackage::Client::_.localRoot+packageName;
+  If(FileExist(localPack), OSFilRemove(localPack));
+//WriteLn("TRACE DownloadPackage localPack="<<localPack);
+  If(!_.isRemote,
+  {
+  //WriteLn("TRACE DownloadPackage  cp \""+_.address+@Repository::_.platform+"/"+pack+"\" \""+localPack+"\"");
+    OSFilCopy(_.address+@Repository::_.platform+"/"+pack,localPack)
+  },
+  {
+    Curl::Get([[
+      Text url  = _.url+@Repository::_.platform+"/"+pack, 
+      Text file = localPack ]]) 
+  });
+  If(!FileExist(localPack), False,
+  {
+  //WriteLn("TRACE DownloadPackage UnpackFull("<<localDir+")");
+    Real PackArchive::UnpackFull("ZipArchive", localDir);
+    OSFilRemove(localPack);
+    True
+  });
+  FileExist(localOza)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Mezcla un listado de paquetes con la lista actual de los mismos comprobando
+//si no hay repeticiones y manteniendo los índices y el orden.
+Static Real MergePackages(Set packages)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set newPackages = Select(packages, Real(TolPackage::@PackageInfo a)
+  {
+    Set ap = @Repository::_.allPackages;
+    Real pos = FindIndexByName(ap,a->name.version);
+    Case(
+    pos<=0, 
+    {
+      True
+    },
+    ap[pos]->repository == a->repository,
+    {
+      False
+    },
+    1==1,
+    {
+      WriteLn("[TolPackage::Client::@Repository::Connect] Package "+
+      a->name.version+" is duplicated in these repositories: \n"+
+      "  "+ap[pos]->repository+"\n"+
+      "  "+a->repository+"\n" ,
+      "E");
+      False
+    })
+  });
+  Set Append(@Repository::_.allPackages, newPackages, True);
+  Set @Repository::_.allPackages := Sort(@Repository::_.allPackages,
+  Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
+  {
+    Compare(b->name.version, a->name.version)
+  });
+  True
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -178,18 +263,41 @@ Static @Repository Open(Text url, Real connect)
 Real Connect(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(Not(IsUnknown(_.connected)), _.connected,
+  Case(
+  Not(IsUnknown(_.connected)), 
+  {
+    _.connected
+  },
+  And(_.isRemote,TolConfigManager::Config::Upgrading::TolPackage::LocalOnly),
+  {
+    If(Not(@Repository::_.localOnlyWarningWasShown),
+    {
+      WriteLn("[TolPackage::Client::@Repository::Connect] "
+        "Remote connections are disabled by user configuration parameter\n"
+        "  TolConfigManager::Config::Upgrading::TolPackage::LocalOnly \n"
+        "Using just local information.");
+      @Repository::_.localOnlyWarningWasShown := True
+    });
+    Real _.connected := False;
+    _.connected
+  },
+  1==1,
   {
     WriteLn("[TolPackage::Client::@Repository::Connect] "
-      "Trying to conect to repository "+_.url+" ...");
+      "Trying to connect to repository "+_.url+" ...");
     Real numErr0 = Copy(NError);
-    Set repInf = IncludeText(GetFileContens("index.tol"));
+  //WriteLn("TRACE [Connect] 1");
+    Set repInf = IncludeText(GetFileContent("index.tol"));
     Text _.name := repInf::name;
+  //WriteLn("TRACE [Connect] 2 _.name='"+_.name+"'");
     Text _.type := repInf::type;
+  //WriteLn("TRACE [Connect] 3 _.type='"+_.type+"'");
     Text _.description := repInf::description;
-    Text aux = GetFileContens("index.csv");
+  //WriteLn("TRACE [Connect] 4 _.description='"+_.description+"'");
+    Text aux = GetFileContent("index.csv");
+  //WriteLn("TRACE [Connect] 5 aux=\n"+aux+"\n");
     Set line = Tokenizer(aux,"\n");
-
+  //WriteLn("TRACE [Connect] 6 Card(line)=\n"<<Card(line)+"\n");
     Set cells.all = For(2,Card(line), Set(Real k)
     {
     //WriteLn("TRACE Connect line["<<k+"] = '"<<line[k]+"'");
@@ -197,7 +305,9 @@ Real Connect(Real void)
     //WriteLn("TRACE Connect Card(fields) = "<<Card(fields));
       fields
     });
-    Set cells = Select(cells.all, Real(Set s) { Card(s)==11 });
+  //WriteLn("TRACE [Connect] 7 Card(cells.all)=\n"<<Card(cells.all)+"\n");
+    Set cells = Select(cells.all, Real(Set s) { Card(s)==12 });
+  //WriteLn("TRACE [Connect] 8 Card(cells)=\n"<<Card(cells)+"\n");
     Set pckInf = For(1,Card(cells), TolPackage::@PackageInfo(Real k)
     {
       Set fields = cells[k];
@@ -212,7 +322,8 @@ Real Connect(Real void)
         Set authors =  Eval(fields[8]),
         Text minTolVersion = fields[9],
         Date releaseDate = Eval(fields[10]),
-        Set dependencies = Eval(fields[11])
+        Set dependencies = Eval(fields[11]),
+        Set  nonTolResources = Eval(fields[12])
       ) ]] };
       Set PutName(aux[1]->name.version,aux[1]);
       aux[1]
@@ -224,12 +335,7 @@ Real Connect(Real void)
       Compare(b->name.version, a->name.version)
     });
     Real SetIndexByName(_.index);
-    Set Append(_.allPackages,_.index, True);
-    Set _.allPackages := Sort(_.allPackages,
-    Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
-    {
-      Compare(b->name.version, a->name.version)
-    });
+    Real @Repository::MergePackages(_.index);
     Real numErr1 = Copy(NError);
     Real _.connected := And(numErr1==numErr0,Card(_.index));
     If(_.connected, WriteLn(" ... Connected!"), 
@@ -251,16 +357,6 @@ Static Real ForceConnect.All(Real void)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Exist = 
-"Devuelve cierto si existe el paquete especificado";
-Real Exist(Text package.version)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real pos = FindIndexByName(_.index,package);
-  pos > 0
-};
-
-//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Find = 
 "Busca un paquete entre todos los repositorios consultables y, si lo "
 "encuentra, devuelve el registro de información con estructura @PackageInfo, "
@@ -269,34 +365,20 @@ Static Set Find(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real @Repository::ForceConnect.All(0);
-  Real pos = FindIndexByName(_.allPackages,package.version);
-  Set found = If(pos<=0, Copy(Empty), _.allPackages[pos]);
+  Real pos = FindIndexByName(@Repository::_.allPackages,package.version);
+  Set found = If(pos<=0, Copy(Empty), @Repository::_.allPackages[pos]);
   found
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Copia un fichero del repositorio remoto al directorio local de paquetes
-  Real DownloadPackage(Text packageName)
+Text _.autodoc.member.Exist = 
+"Devuelve cierto si existe el paquete especificado";
+Real Exist(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text localPath = TolPackage::Client::LocalFile(packageName);
-  If(FileExist(localPath), OSFilRemove(localPath));
-  If(!_.isRemote,
-  {
-    OSFilCopy(_.address+"packages/"+packageName+".oza",localPath)
-  },
-  {
-    //Hay que buscar una forma de copiar remoto sin wget, con el TCL
-    Text order = 
-      "wget -O\""+localPath+"\" \""+ _.url+"packages/"+packageName+".oza\"";
-    WriteLn("[TolPackage::Client::@Repository::DownloadPackage] \n"+order);
-    Real ok = OSCmdWait(order);
-    Real Sleep(.1);
-    ok
-  });
-  FileExist(localPath)
+  Real pos = FindIndexByName(_.index,package);
+  pos > 0
 };
-
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Install = 
@@ -326,20 +408,32 @@ Real Install(Text package.version, Real showError)
 {
 //WriteLn("TRACE Client::Install");
   Real Connect(0);
-  Real DownloadPackage(package.version);
-  Real ok = FileExist(LocalFile(package.version));
-  Case(
-  ok,
+  Real pos = FindIndexByName(_.index,package.version);
+  If(pos<=0,
   {
     WriteLn("[TolPackage::Client::@Repository::Install] "
-    "Installed package "+package.version)
+    "Package "+package.version+ " not found in repository "+_.url,"E");
+    False
   },
-  showError, 
   {
-    WriteLn("[TolPackage::Client::@Repository::Install] "
-    "Cannot install package "+package.version,"E")
-  });
-  ok
+    Real ok = DownloadPackage(package.version);
+    Case(
+    ok,
+    {
+    //Text depend = TolPackage::Client::GetRequirements(
+    //  _.index[pos]->dependencies);
+    //Text dependFile = TolPackage::Client::LocalDepend(package.version);
+    //Text WriteFile(dependFile, depend);
+      WriteLn("[TolPackage::Client::@Repository::Install] "
+      "Installed package "+package.version)
+    },
+    showError, 
+    {
+      WriteLn("[TolPackage::Client::@Repository::Install] "
+      "Cannot install package "+package.version,"E")
+    });     
+    ok
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -426,7 +520,7 @@ Real Upgrade(Text package.version, Real caducityInMinutes)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real Connect(0);
-  Text localFile = TolPackage::Client::LocalFile(package.version);
+  Text localFile = TolPackage::Client::LocalOza(package.version);
   Date localDate = If(!FileExist(localFile), 
     y1900,
     FileTime(localFile));
@@ -479,24 +573,44 @@ Static Real Upgrade.AllInAll(Real caducityInMinutes)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.ForceExactRequirements = 
-"Permite usar una versión de un paquete distinta de la última con #Require "
-"asegurando la compatibilidad con el estado exacto de los paquetes de los "
-"que depende el requerido y recursivamente los que dependen de ellos. \n"
-"Lee en el repositorio remoto la lista de requerimientos para el paquete y " 
-"hace los requires de las versiones exactas. \n"
-"Hay que llamar a este método siempre antes de hacer ningún #Require de "
-"cualquiera de los paquetes requeridos directa o indirectamente por lo que " 
-"lo más aconsejable es hacerlo justo después de cargar la StdLib ";
-Real ForceExactRequirements(Text package.version)
+Text _.autodoc.member.Clean = "Elimina un paquete concreto.";
+Real Clean(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text localFile = TolPackage::Client::LocalOza(package.version);
+  If(!FileExist(localFile), False, OSFilRemove(localFile))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Clean.All = 
+"Elimina todos los paquetes disponibles localmente procedentes del "
+"repositorio.";
+Real Clean.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real Connect(0);
-  Real pos = FindIndexByName(_.index,package.version),
-  If(!pos, False,
-  { 
-    TolPackage::DoRequirements(_.index[pos]->dependencies)
-  })
+  WriteLn("[TolPackage::Client::@Repository::Clean.All] "
+  "Removing local packages from repository "+_.url);
+  Real n = SetSum(EvalSet(_.index, Real(TolPackage::@PackageInfo pi)
+  {
+    Clean(pi->name.version)
+  }));
+  WriteLn("[TolPackage::Client::@Repository::Clean.All] "<<n+
+  " packages where removed from repository "+_.url);
+  n
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Clean.AllInAll = 
+"Elimina todos los paquetes disponibles localmente.";
+Static Real Clean.AllInAll(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real @Repository::ForceConnect.All(0);
+  SetSum(EvalSet(@Repository::_.instances, Real(@Repository r)
+  {
+    r::Clean.All(0)
+  }))
 }
 
 };

@@ -14,8 +14,11 @@ Text _.name;         //A unique name
 Text _.type;         //Private, Public
 Text _.description;  //Purpose of repository
 Text _.sourceRoot;   //Root directory of package's TOL code 
-Set _.packages;      //Set of names of packages
+Set  _.packageList;  //Set of names of packages
 Text _.root;         //Local server-side installing directory
+Text _.register;     //Local server-side register directory
+Text _.index;        //Local server-side index prefix
+
 
 //////////////////////////////////////////////////////////////////////////////
 Static @Builder Create(
@@ -24,20 +27,23 @@ Static @Builder Create(
   Text type,         
   Text description,  
   Text sourceRoot,
-  Set packages)
+  Set packageList)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text root = TolPackage::Server::_.localRoot+name+"/";
-  Real OSDirMake(root+"register/");
   @Builder new = [[
     Text _.url = url;
     Text _.name = name;
     Text _.type = type;
     Text _.description = description;
     Text _.sourceRoot = sourceRoot;
-    Set _.packages = packages;
-    Text _.root = root 
+    Set  _.packageList = packageList;
+    Text _.root = root;
+    Text _.register = root+"register/";
+    Text _.index = root+"index"
   ]];
+  Real OSDirMake(new::_.root);
+  Real OSDirMake(new::_.register);
   Real new::Build.All(0);
   new
 };
@@ -49,7 +55,7 @@ Real Initialize(Real void)
   Text index.csv = 
   "repository;"+
   "name;"+
-  "name.version;"+
+  "pkgName;"+
   "version.high;"+
   "version.low;"+
   "brief;"+
@@ -57,7 +63,8 @@ Real Initialize(Real void)
   "authors;"+
   "minTolVersion;"+
   "releaseDate;"+
-  "dependencies;\n";
+  "dependencies;"+
+  "nonTolResurces;\n";
 
   Text index.tol =
   "//////////////////////////////////////////////////////////////////////////////\n"
@@ -72,10 +79,10 @@ Real Initialize(Real void)
   "  Text description = \""+_.description+"\";\n"+
   "\n";
     
-  Text WriteFile(_.root+"index.csv",  index.csv);
-  Text WriteFile(_.root+"index.tol",  index.tol);
-//Text WriteFile(_.root+"index.wiki", index.wiki);
-//Text WriteFile(_.root+"index.html", index.html);
+  Text WriteFile(_.index+".csv",  index.csv);
+  Text WriteFile(_.index+".tol",  index.tol);
+//Text WriteFile(_.index+".wiki", index.wiki);
+//Text WriteFile(_.index+".html", index.html);
   True
 };
 
@@ -89,10 +96,37 @@ Text Escape(Text field)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text FormatSet(Set s)
+Text _.autodoc.member.FormatSet=
+"Builds the TOL expression of a Set";
+Text FormatSet(Set set)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(Card(s),Escape(""<<s),"Copy(Empty)")
+  Text bl = " ";
+  Text name = Name(set);
+  "Set { "+If(name=="","",Name(set)+" = ")+bl+
+  If(!Card(set),"Copy(Empty)",
+  {
+    "[["+bl+
+    SetSum(For(1,Card(set),Text(Real k)
+    {
+      Text gk = Grammar(set[k]);
+      Text nk = Name(set[k]);
+      Text dec = "  "+gk+" { "+If(nk=="","",nk+" = ");
+      If(k>1,","+bl,"")+
+      Case(
+      gk=="Text", dec+"\""+set[k]+"\" } ",
+      gk=="Real", dec<<set[k]+" } ",
+      gk=="Date", dec<<set[k]+" } ",
+      gk=="Set",  FormatSet(set[k]),
+      1==1,
+      {
+        WriteLn("[TolPackage::Server::@Builder::FormatSet] "
+        " Unexpected object "+If(nk,nk+" ","")+"of invalid type "+gk,"E"),
+        ""
+      })
+    }))+bl+"]]"
+  })+
+  " }"
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -101,12 +135,13 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
 {
   Set aux = IncludeText("NameBlock "+name+";");
   NameBlock pkg = aux[1];
-  Text name.version = TolPackage::GetCurrentNameVersion(name,specificVersion);
+  Text pkgName = TolPackage::GetCurrentNameVersion(name,specificVersion);
   Set dependencies = TolPackage::GetDeepDependencies(name, specificVersion);
-  Text index.csv =
-    pkg:: _.autodoc.url + ";"
+  Set nonTolResurces = If(!ObjectExist("Set",name+"::_.autodoc.nonTolResources"),
+    Copy(Empty),pkg::_.autodoc.nonTolResources);
+  Text index.csv = pkg::_.autodoc.url + ";"
   <<name + ";"
-  <<name.version+ ";"
+  <<pkgName+ ";"
   <<If(!specificVersion,?,pkg::_.autodoc.version.high) + ";"
   <<If(!specificVersion,?,pkg::_.autodoc.version.low) + ";"
   <<Escape(pkg::_.autodoc.brief) + ";"
@@ -114,11 +149,36 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
   <<FormatSet(pkg::_.autodoc.authors) + ";"
   <<pkg::_.autodoc.minTolVersion + ";"
   <<Now + ";"
-  <<FormatSet(dependencies)+ "\n";
+  <<FormatSet(dependencies)+ ";"
+  <<FormatSet(nonTolResurces)+"\n";
   WriteLn("[TolPackage::Server::@Builder::Build.PackageInfo.Version] "+
-    name.version+":\n"+index.csv+"\n");
-  Text WriteFile(_.root+"register/"+name.version,  index.csv);
-  Real Ois.Store(aux,_.root+"packages/"+name.version+".oza");
+    pkgName+":\n"+index.csv+"\n");
+  Text WriteFile(_.register+pkgName,  index.csv);
+  Real Ois.Store(aux,_.root+pkgName+".oza");
+  Set EvalSet(TolPackage::Server::_.supportedPlatforms, Real(Text platform)
+  {
+    Text ppRoot_ = _.root+platform+"/"+pkgName;
+    Text ppRoot = ppRoot_+"/";
+    Real OSDirMake(ppRoot);
+    Real OSFilCopy(_.root+pkgName+".oza", ppRoot+pkgName+".oza");
+    Set selResources = SetConcat(Select(nonTolResurces, Real(Set ptf)
+    {
+      Or(ptf==platform,ptf=="CrossPlatform")
+    }));
+    Set EvalSet(selResources, Real(Text resource)
+    {
+      Text orig = _.sourceRoot+name+"/"+resource; 
+      Text dest = ppRoot+"/"+Name(resource);
+      WriteLn("TRACE dir copy '"+orig+"' -> '"+dest+"'");
+      OSDirCopy(orig,dest)
+    });
+    Text ppr = If(!TextBeginWith(platform,"Windows"),ppRoot_,
+     Replace(ppRoot_,"/","\\"));
+    Real PackArchive::PackFull("ZipArchive", ppr);
+    Real OSDirRemove(ppRoot);
+    True
+  });
+  Real OSFilRemove(_.root+pkgName+".oza");
   index.csv
 };
 
@@ -130,22 +190,20 @@ Text Build.PackageInfo(Text name)
   Build.PackageInfo.Version(name,False)
 };
 
+
 //////////////////////////////////////////////////////////////////////////////
 Real Build.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real new::Initialize(void);
-  Set IncludeText(SetSum(EvalSet(_.packages, Text(Text pkgName)
+  Real Initialize(void);
+  Set EvalSet(_.packageList, Real(Text pkgName)
   {
-    "Set Include(\""+_.sourceRoot+pkgName+"/"+pkgName+".tol\");"
-  })));
-  Set EvalSet(_.packages, Real(Text pkgName)
-  {
-    Text AppendFile(_.root+"index.csv",  Build.PackageInfo(pkgName));
-  //Text AppendFile(_.root+"index.wiki", index.wiki);
-  //Text AppendFile(_.root+"index.html", index.html);
+    Text AppendFile(_.index+".csv",  Build.PackageInfo(pkgName));
+  //Text AppendFile(_.index+".wiki", index.wiki);
+  //Text AppendFile(_.index+".html", index.html);
     True
   });
+
   True
 };
 
@@ -153,18 +211,15 @@ Real Build.All(Real void)
 Real Rebuild.One(Text pkgName)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real new::Initialize(void);
-  Set IncludeText(
-    "Set Include(\""+_.sourceRoot+pkgName+"/"+pkgName+".tol\");"
-  );
+  Real Initialize(void);
   Text Build.PackageInfo(pkgName);
-  Set pkgLst = Sort(GetDir(_.root+"register/")[2], Real(Text a, Text b)
+  Set pkgLst = Sort(GetDir(_.register)[2], Real(Text a, Text b)
   {
     Compare(b,a)
   });
   Set EvalSet(pkgLst, Real(Text pkgName)
   {
-    Text AppendFile(_.root+"index.csv",ReadFile(_.root+"register/"+pkgName));
+    Text AppendFile(_.index+".csv", ReadFile(_.register+pkgName));
     True 
   });
   True

@@ -19,7 +19,8 @@
   Set  authors,
   Text minTolVersion,
   Date releaseDate,
-  Set  dependencies
+  Set  dependencies,
+  Set  nonTolResources
 };
 
 //////////////////////////////////////////////////////////////////////////////

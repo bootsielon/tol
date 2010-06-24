@@ -7,22 +7,54 @@
 NameBlock Client = [[
 
 Text _.localRoot = 
-{
-  Text aux = Replace(TolAppDataPath+"OIS/TolPackage/Client/","\\","/");
-  Real OSDirMake(aux);
-  aux
-};
+  Replace(TolAppDataPath+"TolPackage/Client/","\\","/");
 
 #Embed "repository.tol";
 #Embed "autoLoadSave.tol";
 
+
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.LocalFile = 
-"Devuelve el path completo del fichero local correspondiente a un paquete.";
-Text LocalFile(Text package.version)
+//Inicializa el sistema de almacenamiento persistente de la lista de 
+//repositorios 
+NameBlock Initialize(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  TolPackage::Client::_.localRoot+package.version+".oza"
+  Real OSDirMake(_.localRoot);
+  TolPackage::Client::@AutoLoadSave _autoLoadSave = 
+    TolPackage::Client::@AutoLoadSave::Create(0);
+  _autoLoadSave
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalPack = 
+"Devuelve el path completo del fichero local correspondiente a un paquete "
+"comprimido.";
+Text LocalPack(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TolPackage::Client::_.localRoot+package.version+"/"+package.version+".zip"
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalOza = 
+"Devuelve el path completo del fichero local OIS correspondiente a un "
+"paquete.";
+Text LocalOza(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TolPackage::Client::_.localRoot+package.version+"/"+package.version+".zip"
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalResourcePath = 
+"Devuelve el path completo del directorio local de un recurso ajeno a TOL "
+"necesario para el paquete especificado.";
+Text LocalResourcePath(Text package.version, Text resource)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TolPackage::Client::_.localRoot+package.version+"/"+resource
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -33,17 +65,6 @@ Real Exist(Text package.version)
 {
   @Repository r = @Repository::Get(repository, True);
   r::Exist(package.version)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-//Inicializa el sistema de almacenamiento persistente de la lista de 
-//repositorios 
-NameBlock Initialize(Real void)
-//////////////////////////////////////////////////////////////////////////////
-{
-  TolPackage::Client::@AutoLoadSave _autoLoadSave = 
-    TolPackage::Client::@AutoLoadSave::Create(0);
-  _autoLoadSave
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -165,6 +186,47 @@ Real Upgrade.AllInAll(Real caducityInMinutes)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Clean = "Elimina un paquete concreto.";
+Real Clean(Text repository, Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  @Repository r = @Repository::Get(repository, True);
+  r::Clean(package)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Clean.All = 
+"Elimina todos los paquetes disponibles localmente procedentes del "
+"repositorio.";
+Real Clean.All(Text repository)
+//////////////////////////////////////////////////////////////////////////////
+{
+  @Repository r = @Repository::Get(repository, True);
+  r::Clean.All(0)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Clean.AllInAll = 
+"Elimina todos los paquetes disponibles localmente.";
+Real Clean.AllInAll(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  @Repository::Clean.AllInAll(void)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetRequirements= 
+"Crea un texto con los #Require para una lista de paquetes";
+Text GetRequirements(Set packages)
+//////////////////////////////////////////////////////////////////////////////
+{
+  SetSum(EvalSet(packages,Text(Text required)
+  {
+    "#Require "+required+";\n"
+  }))
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.DoRequirements= 
 "Llama a #Require para una lista de paquetes";
 Real DoRequirements(Set packages)
@@ -176,42 +238,6 @@ Real DoRequirements(Set packages)
     True
   });
   True
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.ForceExactRequirements = 
-"Permite usar una versión de un paquete distinta de la última con #Require "
-"asegurando la compatibilidad con el estado exacto de los paquetes de los "
-"que depende el requerido y recursivamente los que dependen de ellos. \n"
-"Lee en el repositorio remoto la lista de requerimientos para el paquete y " 
-"hace los requires de las versiones exactas. \n"
-"Hay que llamar a este método siempre antes de hacer ningún #Require de "
-"cualquiera de los paquetes requeridos directa o indirectamente por lo que " 
-"lo más aconsejable es hacerlo justo después de cargar la StdLib ";
-Real ForceExactRequirements(Text repository, Text package.version)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::ForceExactRequirements(package.version)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Remove = 
-"Borra un paquete del directorio local.";
-Real Remove(Text package.version)
-//////////////////////////////////////////////////////////////////////////////
-{
-  OSFilRemove(_.localRoot+package.version)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Remove.All = 
-"Borra todos los paquetes del directorio local.";
-Real Remove.All(Real void)
-//////////////////////////////////////////////////////////////////////////////
-{
-  OSDirRemove(_.localRoot);
-  OSDirMake(_.localRoot)
 }
 
 ]];
