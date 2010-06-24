@@ -919,8 +919,9 @@ void BSetIncludePRJ::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetFromFile, BSetIncludeTOL);
-DefExtOpr(1, BSetIncludeTOL, "IncludeTOL", 1, 1, "Text",
-	  I2("(Text fileName)", "(Text nombreFichero)"),
+DefExtOpr(1, BSetIncludeTOL, "IncludeTOL", 1, 2, "Text Real",
+	  I2("(Text fileName [, Real isModule=False])", 
+       "(Text nombreFichero [, Real isModule=False])"),
 	  I2("Returns the set of all the objects of a file wrote in "
 	     "Time Object Language (TOL). wich name is the argument. "
 	     "Includes valid expressions in TOL separated by semicolon "
@@ -956,14 +957,22 @@ void BSetIncludeTOL::CalcContens()
     BText oldDir = BDir::GetCurrent();
     if(!Open())
     {
-	return;
+	    return;
+    }
+    bool isModule = false;
+    if(Arg(2))
+    {
+      isModule = (bool)Real(Arg(2));
     }
     BText currentDir = GetFilePath(TolPath());
     BDir::ChangeCurrent(currentDir);
     BDir	fil(TolPath());
     BText block(fil.Bytes()+10);
     Read(File(), block);
+    bool oldRunningUseModule = false;
+    if(isModule) { oldRunningUseModule = BOis::SetRunningUseModule(true); }
     BList* result = MultyEvaluate(block);
+    if(isModule) { BOis::SetRunningUseModule(oldRunningUseModule); }
     contens_.RobStruct(result,NIL,BSet::TOLFile);
     contens_.PutSourcePath(curSourcePath_);
     BDir::ChangeCurrent(oldDir);
@@ -1694,6 +1703,16 @@ void BSetIncludeBST::CalcContens()
                 ok = !IS_NAN(x);
               }
               fieldValue = new BContensDat("",x,"");
+            }
+            else if(gra==GraSet())
+            {
+              BText expr = Compact(ftxt);
+              if((expr=="[[ ]]"))
+              {
+                ok = true; 
+                BSet empty;
+                fieldValue = new BContensSet("",empty,"");
+              }
             }
             if(!fieldValue) 
             {
