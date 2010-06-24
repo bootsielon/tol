@@ -42,6 +42,7 @@
 #include <tol/tol_btsrgra.h>
 #include <tol/tol_btsrgrp.h>
 #include <tol/tol_bstruct.h>
+#include <tol/tol_bclass.h>
 
 #if defined(__USE_TC__)
 #  include <tol/tol_bctmsgra.h>
@@ -129,6 +130,7 @@ public:
 
   BSyntaxObject* Evaluator(BList* arg) const
   { 
+    if(CheckNonDeclarativeAction("Append")) { return(NULL); }
     BList* lst = arg;
     bool incrementalIndexByName = false;
     BUserSet* uSet1 = USet(lst->Car()); lst = lst->Cdr();
@@ -471,6 +473,7 @@ DefExtOpr(1, BSetPutStruct, "PutStructure", 2, 2, "Text Set",
 void BSetPutStruct::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutStructure")) { return; }
   BText    name = Text(Arg(1));
   BStruct* str  = FindStruct(name);
   if(!str)
@@ -941,6 +944,7 @@ BOperClassify::SetAlgebra_);
 void BDatSetIndexByName::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("SetIndexByName")) { return; }
   BSet& set = Set(Arg(1));
   contens_ = set.SetIndexByName();
 }
@@ -2594,6 +2598,7 @@ DefExtOpr(1, BSetTclEval, "Tcl_Eval", 1, 1, "Text",
 void BSetTclEval::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("Tcl_Eval")) { return; }
   BText &script = Text(Arg(1));
   BList * result = NIL;
   BSyntaxObject * so;
@@ -2635,6 +2640,7 @@ DefIntOpr(1, BSetTclEvalEx, "Tcl_EvalEx", 1, 1,
 void BSetTclEvalEx::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("Tcl_EvalEx")) { return; }
   BSet &cmd = Set(Arg(1));
   BList * result = NIL;
   BSyntaxObject * so;
@@ -2750,4 +2756,31 @@ void BSetLLKR::CalcContens()
 }
 
 
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetClassAscentOf);
+DefExtOpr(1, BSetClassAscentOf, "ClassAscentOf", 1, 1,
+	  "Text",
+	  "(Text className)",
+	  I2("Returns the ascent classes of a given class\"\"",
+	     "Retorna las clases ascendientes de una clase dada \"\""),
+	  BOperClassify::General_);
 
+//--------------------------------------------------------------------
+void BSetClassAscentOf::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BText& name = Text(Arg(1));
+  BClass* found = FindClass(name,1);
+  if(found)
+  {
+    BMemberOwner::BClassByNameHash* hash = found->ascentHash_;
+    BMemberOwner::BClassByNameHash::const_iterator iterC;
+    contens_.PrepareStore(hash->size());
+    for(iterC=hash->begin(); iterC!=hash->end(); iterC++)
+    {
+      BText fn = iterC->second->FullName();
+    //Std(BText(""\nBOisCreator::Write BMemberOwner parent ")+fn);
+      contens_.AddElement(new BContensText("",fn,""));
+    }
+  }
+}
