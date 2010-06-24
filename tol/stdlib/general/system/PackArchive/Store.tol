@@ -45,29 +45,6 @@ Class @Store
     new
   };
 
-  ////////////////////////////////////////////////////////////////////////////
-  //Crea una instancia de archivo y la abre para lectura o escritura
-  Static @Store PackFullDir(Text engine, Text originalDirPath)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Text ext = @Store::Extension(engine);
-    @Store s = @Store::Create(engine, originalDirPath+ext, "w");
-    Real ok = s::DirAdd(originalDirPath);
-    s::Close(0);
-    ok
-  };
-
-  ////////////////////////////////////////////////////////////////////////////
-  //Crea una instancia de archivo y la abre para lectura o escritura
-  Static @Store UnpackFullDir(Text engine, Text originalDirPath)
-  ////////////////////////////////////////////////////////////////////////////
-  {
-    Text ext = @Store::Extension(engine);
-    @Store s = @Store::Create(engine, originalDirPath+ext, "r");
-    Real ok = s::DirExtract("*",originalDirPath);
-    s::Close(0);
-    ok
-  };
 
   ////////////////////////////////////////////////////////////////////////////
   //Abre el archivo para lectura o escritura

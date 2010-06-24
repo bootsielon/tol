@@ -13,7 +13,35 @@ Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
 Text _.currentTolVersion = Tokenizer(Version," ")[1];
 
 
-#Embed "store.tol"
+#Embed "store.tol";
+
+////////////////////////////////////////////////////////////////////////////
+//Empaqueta un directorio completo como un archivo del mismo nombre con la
+//extensión correspondiente al archivo. El argumento originalDirPath se 
+//refiere al directorio luego no lleva extensión ni barra final.
+Real PackFull(Text engine, Text originalDirPath)
+////////////////////////////////////////////////////////////////////////////
+{
+  Text ext = @Store::Extension(engine);
+  @Store s = @Store::Create(engine, originalDirPath+ext, "w");
+  Real ok = s::DirAdd(originalDirPath);
+  s::Close(0);
+  ok
+};
+
+////////////////////////////////////////////////////////////////////////////
+//Desempaqueta un archivo completo como un directorio del mismo nombre pero 
+//sin extensión. El argumento originalDirPath se refiere al directorio luego 
+//no lleva extensión ni barra final.
+Real UnpackFull(Text engine, Text originalDirPath)
+////////////////////////////////////////////////////////////////////////////
+{
+  Text ext = @Store::Extension(engine);
+  @Store s = @Store::Create(engine, originalDirPath+ext, "r");
+  Real ok = s::DirExtract("*",originalDirPath);
+  s::Close(0);
+  ok
+}
 
 
 ]];
