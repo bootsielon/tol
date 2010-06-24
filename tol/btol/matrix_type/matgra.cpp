@@ -438,6 +438,7 @@ DefExtOpr(1, BMatWriteFile, "MatWriteFile", 2, 2, "Text Matrix",
 void BMatWriteFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("MatWriteFile")) { return; }
   contens_ = Mat(Arg(2));
   BBM_BinWrite(Text(Arg(1)),contens_);
 }
@@ -453,6 +454,7 @@ DefExtOpr(1, BMatAppendFile, "MatAppendFile", 2, 2, "Text Matrix",
 //--------------------------------------------------------------------
 void BMatAppendFile::CalcContens()
 {
+  if(CheckNonDeclarativeAction("MatAppendFile")) { return; }
   contens_ = Mat(Arg(2));
   BBM_BinAppend(Text(Arg(1)),contens_);
 }
