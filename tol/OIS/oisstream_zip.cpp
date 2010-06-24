@@ -420,7 +420,7 @@ const BINT64& BZipStream::GetPos()
 {
   BBool read  = openMode==BStreamHandler::BSHOM_READ;
   BBool write = openMode==BStreamHandler::BSHOM_WRITE;
-  connection_ = GetAbsolutePath(connection);
+  connection_ = GetStandardAbsolutePath(connection);
 //Std(BText("\nOpening ZIP ")+connection_);
   openMode_ = openMode;
   BText action = I2("'INVALID ACTION'", "'ACCIN INVLIDA'");

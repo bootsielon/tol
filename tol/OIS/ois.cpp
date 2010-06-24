@@ -43,7 +43,6 @@ BTraceInit("ois.cpp");
 #endif
 BText BOis::oisCurrentVersion_ = OIS_VERSION;
 BText BOis::oisDefRoot_        = "";
-
 int BOis::def_CLv_ = 9;
 
 #ifdef __USE_ZIP_ARCHIVE__
@@ -58,6 +57,8 @@ BDateFormat BOis::dateFmt_("%c%Y-%m-%d %h:%i:%s");
 BStruct*  BOis::addressStr_  = NULL;
 BStruct*  BOis::docStr_      = NULL;
 BUserSet* BOis::defDoc_      = NULL;
+
+bool BOis::runningUseModule_ = false;
 
 BArray<BSystemDat*> BOis::loadModeOptions_;
 
@@ -89,7 +90,8 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
   closed_       (false),
   connection_   (),
   streamHandler_(NULL),
-  source_       ()  
+  source_       (),
+  packages_     ()
 {
   InitBuild();
 }
@@ -100,6 +102,15 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
 //--------------------------------------------------------------------
 {
   Close();
+}
+
+//--------------------------------------------------------------------
+  bool BOis::SetRunningUseModule(bool r) 
+//--------------------------------------------------------------------
+{ 
+  bool old = runningUseModule_;
+  runningUseModule_ = r; 
+  return(old);
 }
 
 //--------------------------------------------------------------------
@@ -128,29 +139,25 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
 */
 //--------------------------------------------------------------------
 {  
-//VBR: Trazas temporales hasta la estabilización del código en linux
-//Std(BText("\nBOis::SetModulePath('")+tolFile+"'");
-  BText fp = GetFilePath(tolFile);
-//Std(BText("\n  fp='")+fp+"'; length = "<<fp.Length());
-  BText absPath = Replace(RemoveLastSlash(GetAbsolutePath(fp)),"\\","/");
-//Std(BText("\n  absPath='")+absPath+"'; length = "<<absPath.Length());
-  BText node  = GetFilePath(tolFile)+GetFilePrefix(tolFile);
-//Std(BText("\n  node='")+node+"'; length = "<<node.Length());
-  BText image = BOis::GetModulePath(tolFile);
-//Std(BText("\n  image='")+image+"'; length = "<<image.Length());
-  BText imr   = GetFilePath(image)+GetFilePrefix(image);
-//Std(BText("\n  imr='")+imr+"'; length = "<<imr.Length());
-  BText path  = absPath.SubString(0,absPath.Length()-fp  .Length()-1);
-//Std(BText("\n  path='")+path+"'; length = "<<path.Length());
-  connection_ = RemoveLastSlash(image.SubString(0,imr.Length()-node.Length()-1))+
-                ArchiveExtension();
-//Std(BText("\n  connection_='")+connection_+"'; length = "<<connection_.Length());
+  BText dirOriPath = GetFilePath(tolFile);
+  BText filPrf = GetFilePrefix(tolFile);
+  BText dirAbsPath = Replace(RemoveLastSlash(
+    GetStandardAbsolutePath(dirOriPath)),"\\","/");
+  BText oisSubPath = PlainPath(dirAbsPath+ArchiveExtension());
+  connection_ = Replace(oisDefRoot_,"\\","/")+"module/"+oisSubPath;
   address_.concept_  = "";
   address_.version_  = "";
-  address_.node_     = node;
+  address_.node_     = dirOriPath+filPrf;
   options_.tolSourceSearchPaths_.AllocBuffer(1);
-  options_.tolSourceSearchPaths_[0].alias_ = ToName(GetFilePrefix(path));
-  options_.tolSourceSearchPaths_[0].value_ = path;
+  options_.tolSourceSearchPaths_[0].alias_ = ToName(GetFilePrefix(dirAbsPath));
+  options_.tolSourceSearchPaths_[0].value_ = dirAbsPath;
+/*
+  Std(BText("\nTRACE BOis::SetModulePath('")+tolFile+"'");
+  Std(BText("\nTRACE   connection_='")+connection_+"'");
+  Std(BText("\nTRACE   node_='")+address_.node_+"'");
+  Std(BText("\nTRACE   alias_='")+options_.tolSourceSearchPaths_[0].alias_+"'");
+  Std(BText("\nTRACE   value_='")+options_.tolSourceSearchPaths_[0].value_+"'");
+*/
 }
 
 //--------------------------------------------------------------------
@@ -502,5 +509,4 @@ BOis::BArchiveEngine BOis::ArchiveEngine      (const BText& txt)
   ::Warning(BText("OIS: ")+SubPath()+"\n"+ msg);  
   return(false);
 }
-
 

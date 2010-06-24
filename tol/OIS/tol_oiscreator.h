@@ -41,6 +41,7 @@ class BVMat;
 //--------------------------------------------------------------------
 #define EWrite(x,stream) Ensure(Write(x,stream))
 
+
 //--------------------------------------------------------------------
   class BOisCreator: public BOis
 //--------------------------------------------------------------------
@@ -48,6 +49,8 @@ class BVMat;
 public:
   BUserSet* data_;
   int       curHrchyEntry_;
+  static BOisCreator* current_;
+  static void AddRequiredPackage(const BText& package);
 
   BArray<BText> allSourcePath_;
   BArray<BSyntaxObject*> tolEnvironment_;

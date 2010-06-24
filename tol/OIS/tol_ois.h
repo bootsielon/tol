@@ -38,7 +38,7 @@
 //When the first part changes new software version is not able to
 //read old OIS files. This will be called a hard change. Then a
 //traslation utility will be available.
-#define OIS_VERSION "02.14"
+#define OIS_VERSION "02.15"
 
 #define OIS_Load_Mode_Header          0 
 #define OIS_Load_Mode_Data            1
@@ -564,6 +564,9 @@ protected:
   static BStruct*  docStr_;
   static BUserSet* defDoc_;
 
+//Flag indicating that Ois.UseModule is running 
+  static bool runningUseModule_;
+
 //Enable/Disable serialization engine
   bool   enable_BSE_;
 
@@ -593,6 +596,7 @@ protected:
   BArray<BStream*>        allFiles_;
   BArray<BHierarchyIndex> hierarchyIndex_;
   BArray<int>             hierarchyOrder_;
+  BArray<BText>           packages_;
 
 //Time counter
   BTimer elapsed_;
@@ -629,6 +633,8 @@ public:
   static BText GetModulePath(const BText& tolFile);
   static bool  RemoveModule (const BText& tolFile);
   static BDate GetModuleTime(const BText& tolFile);
+  static bool RunningUseModule() { return(runningUseModule_); }
+  static bool SetRunningUseModule(bool r);
 
   static bool Initialize    ();
   static void SwapEndian    (void* Addr, const int Nb);

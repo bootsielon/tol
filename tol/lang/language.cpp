@@ -41,6 +41,7 @@
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bvmatgra.h>
+#include <tol/tol_oiscreator.h>
 
 #ifdef __USE_TC__
 #  include <tol/tol_bctmigra.h>
@@ -487,7 +488,7 @@ static void BSTWriteFile(BList* lst,
         BInt m, c;
         if (str) {
           if (header=="_DEFAULT_HEADER_") {
-            WriteFileOrStd(fileName, out, (str->Name() + colSeparator));
+            WriteFileOrStd(fileName, out, (str->FullName() + colSeparator));
             for(c=0; c<str->Size()-1; c++)
               {
                 WriteFileOrStd(fileName, out, ((*str)[c].Name() + colSeparator));
@@ -551,6 +552,7 @@ DefExtOpr(1, BSetTable, "BSTFile", 1, 6, "Set Text Text Real Text Text",
 void BSetTable::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BSTFile")) { return; }
   contens_ = Set(Arg(1));
   BText  fileName     = "Std";
   BText  header       = "_DEFAULT_HEADER_";
@@ -649,6 +651,7 @@ DefExtOpr(1, BSetBMTFile, "BMTFile", 1, 6, "Set Text Text Real Text Text",
 void BSetBMTFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BMTFile")) { return; }
   contens_ = Set(Arg(1));
   BText  fileName     = "Std";
   BText  header       = "";
@@ -804,6 +807,7 @@ DefExtOpr(1, BSetStatFile, "StatFile", 1, 6, "Set Text Text Real Text Text",
 void BSetStatFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("StatFile")) { return; }
   contens_ = Set(Arg(1));
   BText  fileName     = "Std";
   BText  header       = "_DEFAULT_HEADER_";
@@ -862,6 +866,7 @@ DefExtOpr(1, BSetBDTFile, "BDTFile", 1, 6, "Set Text Text Real Text Text",
 void BSetBDTFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDTFile")) { return; }
   contens_ = Set(Arg(1));
   BText  fileName     = "Std";
   BText  header       = "_DEFAULT_HEADER_";
@@ -1025,6 +1030,7 @@ DefExtOpr(1, BSetBSIFile, "BSIFile", 2, 2, "Set Text",
 void  BSetBSIFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BSIFile")) { return; }
     BText fileName = Text(Arg(2));
     contens_ = Set(Arg(1));
     BList* lst_aux_copy = contens_.ToList();
@@ -1307,30 +1313,25 @@ BText BPackage::help_ = I2(
   "https://www.tol-project.org/wiki/TolPkg\n";
 
 BText BPackage::localRoot_ = 
-  BSys::TolAppData()+"OIS/TolPackage/Client/";
+  BSys::TolAppData()+"TolPackage/Client/";
 
 //--------------------------------------------------------------------
   BText BPackage::LocalPath(const BText& package_version)
 //--------------------------------------------------------------------
 {
-  BText path = localRoot_+package_version+".oza";
+  BText path = localRoot_+package_version+"/"+package_version+".oza";
   return(path);
-}
-
-//--------------------------------------------------------------------
-  bool BPackage::CleanLocal(const BText& package_version)
-//--------------------------------------------------------------------
-{
-  return(BSys::Remove(LocalPath(package_version)));  
 }
 
 //--------------------------------------------------------------------
   bool BPackage::Install(const BText& package_version)
 //--------------------------------------------------------------------
 {
+  bool oldRunningUseModule = BOis::SetRunningUseModule(false);
   BSyntaxObject* fai = GraReal()->EvaluateExpr(BText(
     "Real TolPackage::Client::FindAndInstall("
     "\"")+package_version+"\",False);");
+  BOis::SetRunningUseModule(oldRunningUseModule);
   if(!fai) { return(false); }
   bool ok = (bool)Real(fai);
   DESTROY(fai);
@@ -1344,6 +1345,7 @@ BText BPackage::localRoot_ =
 //--------------------------------------------------------------------
 {
   BText package, version;
+  BOisCreator::AddRequiredPackage(package_version);
   int point = package_version.Find(".",1);
   if(point<0)
   {
@@ -1356,14 +1358,19 @@ BText BPackage::localRoot_ =
   }
   BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
   bool ok = pkg!=NULL;
+  if(ok) { return(pkg); }
   BText path = LocalPath(package_version);
-  BDir dir = path;
+  BDir dirPath = path;
   if(!ok)
   {
-    ok=dir.Exist();
+    ok=dirPath.Exist();
     if(!ok) { ok = Install(package_version); }
     if(ok)
     {
+      if(point)
+      {
+      //VBR: FALTA !! requerimiento de versiones específicas
+      }  
       int oldLevel = BGrammar::Level();
       BGrammar::PutLevel(0); 
       BSyntaxObject* aux = BOisLoader::LoadFull(path);
@@ -1376,6 +1383,12 @@ BText BPackage::localRoot_ =
           pkg->IncNRefs();
           pkg->IncNRefs();
           BNameBlock::AddGlobalRequiredPackage(package);
+          BText startActionsExpr = package+"::StartActions(0)";
+          bool oldRunningUseModule = BOis::SetRunningUseModule(false);
+          BSyntaxObject* startActions = GraReal()->EvaluateExpr(startActionsExpr);
+          BOis::SetRunningUseModule(oldRunningUseModule);
+        //Std(BText("\nTRACE startActionsExpr =")+startActionsExpr+" "+((startActions)?"OK":"FAIL")+"\n");
+          DESTROY(startActions);
         }
       }      
       BGrammar::PutLevel(oldLevel); 
@@ -1386,8 +1399,7 @@ BText BPackage::localRoot_ =
   BText help = ""; 
   if(!ok)
   {
-    BText path = LocalPath(package_version);
-    if(!dir.Exist())
+    if(!dirPath.Exist())
     {
       Error(I2("Unknown package ",
                "El paquete desconocido ")+package_version+

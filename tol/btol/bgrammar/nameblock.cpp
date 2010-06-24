@@ -279,7 +279,7 @@ const BText& BNameBlock::LocalName() const
 {
   if(!class_) { return(false); }
 //if(name == class_->FullName())  { return(true); }
-  if(name == class_->Name())  { return(true); }
+  if(name == class_->FullName())  { return(true); }
   return(class_->InheritesFrom(name));
 }
 
@@ -354,7 +354,6 @@ const BText& BNameBlock::LocalName() const
   BToken* tok = (BToken*)_tre->car();
   bool isDefaultInstance = tok->Name()=="#DefaultInstance";
   BText name  = BEqualOperator::CreatingName();
-
   BText fullName = BEqualOperator::CurrentFullName();
   const BClass* cls = BEqualOperator::CreatingClass();
   if(cls && cls->notImplementedMethods_>0)
@@ -1376,7 +1375,10 @@ public:
   BDatUsingNameBlock(BList* arg) : BDatTemporary(arg) 
   {
     uns_ = UNameBlock(Arg(1));
-    contens_ = BNameBlock::Using(uns_);
+    if(CheckNonDeclarativeAction("UsingNameBlock")) 
+    { contens_ = false; }
+    else
+    { contens_ = BNameBlock::Using(uns_); }
   }
  ~BDatUsingNameBlock()
   {

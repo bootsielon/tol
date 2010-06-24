@@ -129,6 +129,7 @@ public:
   void Copy(const BMemberOwner& mbrOwn);
 
   virtual const BText& getName() const = 0;
+  virtual BText		     getFullName() const = 0;
   virtual BText		     getDump() const = 0;
   virtual BOwnerType OwnerType() const = 0;
   void PutTree(List* tree);
@@ -172,6 +173,7 @@ class TOL_API BNameBlockMemberOwner: public BMemberOwner
   BNameBlockMemberOwner(BNameBlock* nb);
   BOwnerType OwnerType() const;
   const BText& getName() const;
+  BText        getFullName() const;
   BText		     getDump() const;
 };
 
@@ -180,7 +182,10 @@ class TOL_API BClass: public BSyntaxObject, public BMemberOwner
 //! User defined Class
 //--------------------------------------------------------------------
 {
+protected:
+  BText fullName_;
 public:
+
   bool isDefined_;
   static const BClass* currentClassBuildingInstance_;
   static const BClass* currentStatic_;
@@ -192,7 +197,9 @@ public:
   // Access & Manipulation: inline
   BOwnerType OwnerType() const { return(BCLASS); }
   const BText& getName() const { return(Name()); }
+  BText        getFullName() const { return(FullName()); }
   BText		     getDump() const { return(Dump()); }
+  const BText&  getFullNameRef() const;
 
   // Virtual functions inheritage
 	BInt	    Mode	     () const { return(BCLASSMODE); }

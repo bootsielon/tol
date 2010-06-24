@@ -77,13 +77,9 @@ class TOL_API BPackage
 private:
   static BText help_;
   static BText localRoot_;
-  static BText urlRoot_;
 public:
   static BText LocalPath(const BText& package);
-  static BText Url(const BText& package);
-  static bool CleanLocal(const BText& package);
   static bool Install(const BText& package);
-  static bool Upgrade(const BText& package);
   static BSyntaxObject* Load(const BText& package, bool retry=false);
 };
 

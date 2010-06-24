@@ -41,6 +41,17 @@
 BTraceInit("oiscreator.cpp");
 
 
+BOisCreator* BOisCreator::current_ = NULL;
+
+//--------------------------------------------------------------------
+void BOisCreator::AddRequiredPackage(const BText& package)
+//--------------------------------------------------------------------
+{
+  if(current_)
+  {
+    current_->packages_.AddUnique(package,CompareText);
+  }
+};
 
 //--------------------------------------------------------------------
 // BOisCreator Functions 
@@ -73,12 +84,14 @@ BTraceInit("oiscreator.cpp");
                            const BSet*  opt) 
 //--------------------------------------------------------------------
 {  
+  current_ = this;
   SetConnection(connection);
   SetAddress(address);
   SetDoc    (doc);
   SetControl();
   SetOptions(opt);
   SetData   (uData);
+  current_ = NULL;
 }
 
 //--------------------------------------------------------------------
@@ -434,11 +447,14 @@ if(!BDir::CheckIsDir(dir))                                \
   int n = 0;
   int s = x.size();
   TRACE_OIS_STREAM("WRITE",stream,"BMemberOwner", "");
+//Std(BText(""\nBOisCreator::Write BMemberOwner ")+owner.getFullName());
   BMemberOwner::BClassByNameHash::const_iterator iterC;
   EWrite(s,stream);
   for(iterC=x.begin(); iterC!=x.end(); iterC++, n++)
   {
-    EWrite(iterC->second->Name(),stream);
+    const BText& fn = iterC->second->getFullNameRef();
+  //Std(BText(""\nBOisCreator::Write BMemberOwner parent ")+fn);
+    EWrite(fn,stream);
   }
   return(true);
 }
@@ -448,6 +464,7 @@ if(!BDir::CheckIsDir(dir))                                \
 //--------------------------------------------------------------------
 {
   TRACE_OIS_STREAM("WRITE",stream,"BClass", BText("")<<cls.FullName());
+//Std(BText(""\nBOisCreator::Write BClass ")+cls.Name()+" "+cls.FullName());
   Ensure(Write(cls, *(cls.parentHash_), object_));
   Ensure(Write(cls, *(cls.ascentHash_), object_));
   int n = 0;
@@ -456,8 +473,9 @@ if(!BDir::CheckIsDir(dir))                                \
   for(n=0; n<cls.member_.Size(); n++)
   {
     const BMember& mbr = *(cls.member_[n]->member_);
-    EWrite(mbr.parent_->getName(), stream);
-    EWrite(mbr.name_             , stream);
+  //Std(BText(""\nBOisCreator::Write BClass parent ")+mbr.parent_->getFullName());
+    EWrite(mbr.parent_->getFullName(), stream);
+    EWrite(mbr.name_, stream);
     if(mbr.parent_==&cls)
     {
       char isMethod = mbr.isMethod_;
@@ -690,6 +708,7 @@ if(!BDir::CheckIsDir(dir))                                \
     else if(mode==BCLASSMODE)
     {
       BClass& cls = *((BClass*) v);
+    //Std(BText("\nBOisCreator::Write writing Class ")+cls.Name()+" "+cls.FullName());
       Ensure(Write(cls, object_));
     }
     else
@@ -774,8 +793,27 @@ if(!BDir::CheckIsDir(dir))                                \
   }
 
   EWrite(set_->GetPos(), object_);
+  int classForwardDeclarations = 0;
+  for(n=1; n<=s; n++)
+  {
+    if(x[n] && x[n]->Mode()==BCLASSMODE) 
+    {
+      classForwardDeclarations++;
+    }
+  }
+  EWrite(classForwardDeclarations, set_);
+  for(n=1; n<=s; n++)
+  {
+    if(x[n] && x[n]->Mode()==BCLASSMODE) 
+    {
+    //Std(BText("\nBOisCreator::Write Predeclared Class ")+x[n]->Name());
+      EWrite(x[n]->Name(), set_);
+    }
+  }
+
   EWrite(s, set_);
   EWrite(sbt, set_);
+
   char isNameBlock = x.GetNameBlock()!=NULL;
   EWrite(isNameBlock,set_);
   if(isNameBlock)
@@ -805,22 +843,6 @@ if(!BDir::CheckIsDir(dir))                                \
     Ensure(Write(x.Struct()));
   }
   h=0;
-  int classForwardDeclarations = 0;
-  for(n=1; n<=s; n++)
-  {
-    if(x[n] && x[n]->Mode()==BCLASSMODE) 
-    {
-      classForwardDeclarations++;
-    }
-  }
-  EWrite(classForwardDeclarations, set_);
-  for(n=1; n<=s; n++)
-  {
-    if(x[n] && x[n]->Mode()==BCLASSMODE) 
-    {
-      EWrite(x[n]->Name(), set_);
-    }
-  }
   for(n=1; n<=s; n++)
   {
     if(!x[n]) 

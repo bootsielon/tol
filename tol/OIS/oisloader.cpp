@@ -246,6 +246,10 @@ if(! ( fn = streamHandler_->Open(T,SubPath()+N) ) ) \
     readed_[n].PutNullObject();
   }
   readed_.Sort(CompareOffset);
+  for(n=0; n<packages_.Size(); n++)
+  {     
+    BPackage::Load(packages_[n], true);
+  }
 //for(n=0; n<readed_.Size(); n++) { printf("\n%"_LLD64_, readed_[n].OisOffset()); }
   return(true);
 }
@@ -408,6 +412,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 //--------------------------------------------------------------------
 {
   TRACE_OIS_STREAM("READ",stream,"BMemberOwner", "");
+//Std(BText(""\nBOisLoader::Read BMemberOwner ")+owner.getFullName());
   BMemberOwner::BClassByNameHash::const_iterator iterC;
   int n = 0;
   int s;
@@ -421,11 +426,13 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     {
       return(NullError(
         I2("Cannot load from OIS Class ","No se puede cargar del OIS Class ")+ 
-        owner.getName()+
-        I2("due to ascent Class ","Debido a que su ascendiente Class ")+
+        owner.getFullName()+
+        I2(" due to ascent Class "," debido a que su ascendiente Class ")+
         parentName+I2(" doesn't exist"," no existe")));
     }
-    x[parent->Name()] = parent;
+    const BText& fn = parent->getFullNameRef();
+  //Std(BText("\nBOisLoader::Read BMemberOwner parent ")+fn);
+    x[fn] = parent;
   }
   return(true);
 }
@@ -435,6 +442,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 //--------------------------------------------------------------------
 {
   TRACE_OIS_STREAM("READ",stream,"BClass", BText("")<<cls.FullName());
+//Std(BText(""\nBOisLoader::Read Class ")+cls.Name()+" "+cls.FullName());
   BMemberOwner::BClassByNameHash& parents = *cls.parentHash_;
   Ensure(Read(cls,parents,stream));
   BMemberOwner::BClassByNameHash::const_iterator iterC;
@@ -449,6 +457,11 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   ERead(s,stream);
   cls.member_.AllocBuffer(s);
   cls.isDefined_=s>0;
+  BText fullName = cls.getFullName();
+  if(BNameBlock::Building())
+  {
+    fullName = BNameBlock::Building()->FullName()+"::"+cls.getName();
+  }
   for(n=0; n<s; n++)
   {
     BText parentName;
@@ -456,7 +469,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     ERead(parentName, stream);
     ERead(name      , stream);
     BMember* mbr = NULL;
-    if(parentName==cls.getName())
+    if(parentName==fullName)
     {
       char isMethod;
       char isStatic=0;
@@ -480,25 +493,40 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     else
     {
       BClass* parent = FindClass(parentName,1);
-      mbr = parent->FindMember(name);
-      assert(mbr);
+      if(parent)
+      {
+        mbr = parent->FindMember(name);
+        assert(mbr);
+      }
+      else
+      {
+        NullError(
+          I2("Cannot load from OIS member ","No se puede cargar del OIS el miembro ")+ 
+          fullName+"::"+name+
+          I2(" due to ascent Class "," debido a que su ascendiente Class ")+
+          parentName+I2(" doesn't exist"," no existe"));
+        ok = false;
+      }
     }
-    BMbrNum* mbrNum = new BMbrNum;
-    mbrNum->member_ = mbr;
-    mbrNum->position_ = n;
-    cls.member_[n] = mbrNum;
-    (*cls.memberHash_)[mbr->name_] = mbrNum;
-    if(mbr->definition_.HasName())
+    if(mbr)
     {
-      (*cls.mbrDefHash_)[mbr->declaration_] = mbr;
-    }
-    else
-    {
-      (*cls.mbrDecHash_)[mbr->declaration_] = mbr;
+      BMbrNum* mbrNum = new BMbrNum;
+      mbrNum->member_ = mbr;
+      mbrNum->position_ = n;
+      cls.member_[n] = mbrNum;
+      (*cls.memberHash_)[mbr->name_] = mbrNum;
+      if(mbr->definition_.HasName())
+      {
+        (*cls.mbrDefHash_)[mbr->declaration_] = mbr;
+      }
+      else
+      {
+        (*cls.mbrDecHash_)[mbr->declaration_] = mbr;
+      }
     }
   }
   ok = ok && cls.CheckAutoDoc();
-  return(true);
+  return(ok);
 }
 
 
@@ -794,6 +822,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     { 
       BClass* cls = BClass::PredeclareClass(name);
       Ensure(Read(*cls,object_));
+    //Std(BText("\nBOisLoader::ReadNextObject Reading Class ")+cls->Name()+" "+cls->FullName());
       return(readed_[found].PutObject(cls));
     }
     else
@@ -979,6 +1008,19 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           BINT64 offset;
           ERead(offset, object_);
           set_->SetPos(offset);
+          if(control_.oisEngine_.oisVersion_>="02.15")
+          {
+            int classForwardDeclarations = 0;
+            ERead(classForwardDeclarations, set_);
+            for(n=1; n<=classForwardDeclarations; n++)
+            {
+              BText className;
+              ERead(className, set_);
+            //Std(BText("\nBOisLoader::ReadNextObject Predeclared Class ")+className);
+              BClass::PredeclareClass(className);
+            }
+          }
+
           ERead(s, set_);  
           BSet& x = uSet->Contens(); 
           x.PrepareStore(s);
@@ -1013,7 +1055,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             } 
             str = (BStruct*)r;
           }
-          if(control_.oisEngine_.oisVersion_>="02.11")
+          if((control_.oisEngine_.oisVersion_>="02.11") &&
+             (control_.oisEngine_.oisVersion_< "02.15"))
           {
             int classForwardDeclarations = 0;
             ERead(classForwardDeclarations, set_);
@@ -1021,6 +1064,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             {
               BText className;
               ERead(className, set_);
+            //Std(BText("\nBOisLoader::ReadNextObject Predeclared Class ")+className);
               BClass::PredeclareClass(className);
             }
           }
@@ -1085,6 +1129,18 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           }
           ERead(offset, object_);
           set_->SetPos(offset);
+          if(control_.oisEngine_.oisVersion_>="02.15")
+          {
+            int classForwardDeclarations = 0;
+            ERead(classForwardDeclarations, set_);
+            for(n=1; n<=classForwardDeclarations; n++)
+            {
+              BText className;
+              ERead(className, set_);
+            //Std(BText("\nBOisLoader::ReadNextObject Predeclared Class ")+className);
+              BClass::PredeclareClass(className);
+            }
+          }
           ERead(s, set_);  
           char sbt; ERead(sbt, set_);
           char isNameBlock;
@@ -1113,8 +1169,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             str = (BStruct*)r;
           }
           x.Set().PutStruct (str); 
-/* */
-          if(control_.oisEngine_.oisVersion_>="02.11")
+          if((control_.oisEngine_.oisVersion_>="02.11") &&
+             (control_.oisEngine_.oisVersion_< "02.15"))
           {
             int classForwardDeclarations = 0;
             ERead(classForwardDeclarations, set_);
@@ -1522,6 +1578,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     Ensure(InitReaded());
     Ensure(SearchOffsetInHierarchy(partial));
     object_->GetPos();
+
+
     data_ = ReadNextObject();
     ok = (data_!=NULL);
   }

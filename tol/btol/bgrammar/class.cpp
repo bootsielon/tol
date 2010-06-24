@@ -232,7 +232,7 @@ BMember::BMember(BMemberOwner* parent, List* branch)
     Error(I2("Wrong syntax in member declaration \n",
              "Sintaxis incorrecta en declaración de miembro \n")+
           BParser::Unparse(branch_,"","\n")+
-          I2(" of Class ", " de Class ")+parent->getName());
+          I2(" of Class ", " de Class ")+parent->getFullName());
   }
   if(isGood_ && declaration_.BeginWith("Code") && !isMethod_)
   {
@@ -241,7 +241,7 @@ BMember::BMember(BMemberOwner* parent, List* branch)
                "Error potencial debido a un uso no estándar de OOP:\n"
                "Una clase no debería tener miembros de tipo Code como \n")+
             BParser::Unparse(branch_,"","\n")+
-            I2(" of Class ", " de Class ")+parent->getName());
+            I2(" of Class ", " de Class ")+parent->getFullName());
   }
   if(parent->OwnerType()==BMemberOwner::BCLASS)
   {
@@ -316,7 +316,7 @@ BMember::~BMember()
         {
           Error(I2("Wrong declaration of destroyer method of Class ",
                    "Declaración errónea del método destructor de Class ")+
-                parent_->getName()+
+                parent_->getFullName()+
                 "\n"+declaration_+"\n"+
                 I2(" should be ", " debería ser ")+__destroyDec+
                 "\n"+__destroyDec+"\n");
@@ -332,7 +332,7 @@ BMember::~BMember()
       Error(I2("Wrong syntax in method declaration ",
                "Sintaxis incorrecta en declaración de método ")+
             BParser::Unparse(branch_,"","\n")+
-            I2(" of Class ", " de Class ")+parent_->getName());
+            I2(" of Class ", " de Class ")+parent_->getFullName());
       return(0);
     }
   }
@@ -361,7 +361,7 @@ BMember::~BMember()
                "No se puede declarar un elemento estático sin "
                "definirlo en línea")+":\n"+
       "  Static "+BParser::Unparse(branch_,"","\n")+
-      I2(" of Class ", "de Class ")+parent_->getName());
+      I2(" of Class ", "de Class ")+parent_->getFullName());
       return(0);
     }
     else
@@ -394,7 +394,7 @@ BMember::~BMember()
         Error(I2("Wrong syntax in static declaration ",
                  "Sintaxis incorrecta en declaración estática ")+
               "Static "+BParser::Unparse(branch_,"","\n")+
-              I2(" of Class ", "de Class ")+parent_->getName());
+              I2(" of Class ", "de Class ")+parent_->getFullName());
         return(0);
       }
     }
@@ -418,7 +418,7 @@ BMember::~BMember()
 //--------------------------------------------------------------------
 {
   BText dec = Replace(Compact(declaration_), BText(" ")+name_, 
-                      BText(" ")+parent_->getName()+"::"+name_);
+                      BText(" ")+parent_->getFullName()+"::"+name_);
   return(dec+((!HasDefVal())?BText(""):
          ((!isMethod_)?BText("="):BText(""))+definition_));
 }
@@ -636,8 +636,8 @@ int MbrNumCmp(const void* v1, const void* v2)
 //! True if inherites from a Class called as given name
 //--------------------------------------------------------------------
 {
-//return(InheritesFrom(parent->FullName()));
-  return(InheritesFrom(parent->Name()));
+  return(InheritesFrom(parent->getFullNameRef()));
+//return(InheritesFrom(parent->Name()));
 }
 
 //--------------------------------------------------------------------
@@ -823,11 +823,11 @@ int MbrNumCmp(const void* v1, const void* v2)
   if(!isGood_) { return(false); }
   if(!parent) { return(true); }
   if(!parentHash_) { CreateParentHashes(); }
-//Std(BText("\n")+Name()+"::AddParent("+parent->Name()+")");
+//Std(BText("\n")+Name()+"::AddParent("+parent->getFullNameRef()+")");
   bool ok = true;
   int n;
-//const BText& name = parent->FullName();
-  const BText& name = parent->Name();
+  const BText& name = parent->getFullNameRef();
+//const BText& name = parent->Name();
   //Checks parent is already a parent class
   BClassByNameHash::const_iterator found = parentHash_->find(name);
   if(found==parentHash_->end())
@@ -852,7 +852,7 @@ int MbrNumCmp(const void* v1, const void* v2)
     n=0;
     for(iterC=cls.begin(); iterC!=cls.end(); iterC++, n++)
     {
-      const BText& ascName = iterC->second->Name();
+      const BText& ascName = iterC->second->getFullNameRef();
       found = ascentHash_->find(ascName);
       if(found==ascentHash_->end())
       {
@@ -1017,8 +1017,16 @@ int MbrNumCmp(const void* v1, const void* v2)
   const BText& BNameBlockMemberOwner::getName() const 
 //--------------------------------------------------------------------
 { 
+  return(nb_->LocalName()); 
+}
+
+//--------------------------------------------------------------------
+  BText BNameBlockMemberOwner::getFullName() const 
+//--------------------------------------------------------------------
+{ 
   return(nb_->Name()); 
 }
+
 
 //--------------------------------------------------------------------
   BText BNameBlockMemberOwner::getDump() const 
@@ -1034,6 +1042,7 @@ BClass::BClass(const BText& name)
 : BSyntaxObject(),
   BMemberOwner(),
   isDefined_(false),
+  fullName_(""),
   __destroy(NULL)
 {
   CreateMemberHashes();
@@ -1105,6 +1114,17 @@ BClass::~BClass()
 {
   return(BParser::Unparse(tree_,"","\n"));
 }
+//--------------------------------------------------------------------
+  const BText& BClass::getFullNameRef() const 
+//--------------------------------------------------------------------
+{ 
+  if(!fullName_.HasName())
+  {
+    BClass* THIS = (BClass*)this;
+    THIS->fullName_ = FullName();
+  }
+  return(fullName_); 
+}
 
 //--------------------------------------------------------------------
   bool BClass::CheckAutoDoc()
@@ -1122,7 +1142,7 @@ BClass::~BClass()
       {
         Error(I2("Special documentation member ",
                  "El miembro especial de documentación ")+
-              FullName()+"::"+mbr.name_+
+              getFullNameRef()+"::"+mbr.name_+
               I2(" is corrupted or it didn't have declared as static.",
                  " está corrupto o no se declaró como static."));
         ok = false;
@@ -1131,7 +1151,7 @@ BClass::~BClass()
       {
         Error(I2("Special documentation member ",
                  "El miembro especial de documentación ")+
-              FullName()+"::"+mbr.name_+
+              getFullNameRef()+"::"+mbr.name_+
               I2(" should be a Text instead of a ",
                  " debería ser un Text en lugar de un ")+
               mbr.static_->Grammar()->Name());
@@ -1146,7 +1166,7 @@ BClass::~BClass()
         {
           Warning(I2("Special documentation member ",
                      "El miembro especial de documentación ")+
-                  FullName()+"::"+mbr.name_+
+                  getFullNameRef()+"::"+mbr.name_+
                   I2(" is irrelevant due it doesn't exist a member nor method called ",
                      " es irrelevante porque no existe ningún miembro ni método llamado ")+
                   auxName);
@@ -1479,7 +1499,7 @@ static bool checkNonPrivate(
     Error(I2("Cannot access to private member ",
              "No se puede acceder al miembro privado ")+memberName +
           I2(" of Class ",
-             " de Class ")+cls->Name());
+             " de Class ")+cls->getFullNameRef());
     return(false);
   }
   else

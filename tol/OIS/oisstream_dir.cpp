@@ -231,7 +231,7 @@ const BINT64& BDirStream::GetPos()
 {
   BBool read  = openMode==BSHOM_READ;
   BBool write = openMode==BSHOM_WRITE;
-  connection_ = GetAbsolutePath(connection);
+  connection_ = GetStandardAbsolutePath(connection);
   connection_.Replace('\\','/');
   connected_ = BDir::CheckIsDir(connection_)!=0;
   openMode_ = openMode;

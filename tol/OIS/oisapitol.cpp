@@ -234,7 +234,7 @@ BTraceInit("oisapitol.cpp");
   }
   else
   {
-    aux = GetAbsolutePath(aux);
+    aux = GetStandardAbsolutePath(aux);
   }
   aux.Replace("\\","/");
   return(aux);
@@ -256,7 +256,7 @@ BTraceInit("oisapitol.cpp");
    BText BOis::GetModulePath(const BText& tolFile)
 //--------------------------------------------------------------------
 {
-  BText aux = GetFilePath(GetAbsolutePath(tolFile))+
+  BText aux = GetFilePath(GetStandardAbsolutePath(tolFile))+
               GetFilePrefix(tolFile)+ArchiveExtension();
   aux = PlainPath(aux);
   aux = Replace(oisDefRoot_,"\\","/")+"module/"+aux;
@@ -1096,6 +1096,7 @@ BSyntaxObject* OisUseModuleEvaluator(BList* arg)
   int  showHrchyDepth      = -1;
   int  showHrchyMaxChilds  = -1;
   const BSet* partial      = NULL;
+  bool oldRunningUseModule = BOis::SetRunningUseModule(true);
   bool ok = oisLoader.Load
   (
     errorWarning,
@@ -1115,7 +1116,10 @@ BSyntaxObject* OisUseModuleEvaluator(BList* arg)
   {
     oisLoader.Close();
     int oldErr = (int)TOLErrorNumber().Value();
+    BOisCreator oisCreator;
+    BOisCreator::current_ = &oisCreator;
     BUserSet* uData = IncludeFile(name);
+    BOisCreator::current_ = NULL;
     result = uData;
     int numErr = (int)TOLErrorNumber().Value()-oldErr;
     if(numErr || !result)
@@ -1129,11 +1133,11 @@ BSyntaxObject* OisUseModuleEvaluator(BList* arg)
     }
     else
     {
-      BOisCreator oisCreator;
       oisCreator.CreateModule(name,uData);
       oisCreator.Build();
     }
   }
+  BOis::SetRunningUseModule(oldRunningUseModule);
   DESTROY(arg);
   return(result);
 }

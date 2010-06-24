@@ -104,7 +104,7 @@ BTraceInit("oisxml.cpp");
   header_->Print("<entries>%ld</entries>\n", options_.tolSourceSearchPaths_.Size());
   for(n=0; n<options_.tolSourceSearchPaths_.Size(); n++)
   {
-    options_.tolSourceSearchPaths_[n].value_ = GetAbsolutePath(options_.tolSourceSearchPaths_[n].value_);
+    options_.tolSourceSearchPaths_[n].value_ = GetStandardAbsolutePath(options_.tolSourceSearchPaths_[n].value_);
     header_->Print("<root_%ld><alias>%s</alias><path>%s</path></root_%ld>\n", 
             n+1,
             options_.tolSourceSearchPaths_[n].alias_.String(),
@@ -209,6 +209,18 @@ BTraceInit("oisxml.cpp");
     }
   }
   header_->Print("</TOLDependencies>\n");
+
+  header_->Print("<RequiredPackages>\n");
+  header_->Print("<entries>%ld</entries>\n",packages_.Size());
+  for(n=0; n<packages_.Size(); n++)
+  {
+    BText name = packages_[n];
+    header_->Print("<package_%ld>%s</package_%ld>\n", 
+                   n+1,
+                   name.String(), 
+                   n+1);
+  }
+  header_->Print("</RequiredPackages>\n");
 
   DoStat();
 
@@ -526,6 +538,18 @@ BTraceInit("oisxml.cpp");
     }
   }
   XMLEnsure(XMLEnsureEndTag("TOLDependencies"));
+  if(control_.oisEngine_.oisVersion_>="02.15")
+  {
+    XMLEnsure(XMLGetNextTagTitle(tag_, "RequiredPackages"));
+    XMLEnsure(XMLGetNextTagValue(tag_, value_, "entries")); sscanf(value_,"%d",&m); 
+    packages_.AllocBuffer(m);
+    for(n=0; n<m; n++)
+    {
+      BText fn = BText("package_")+(n+1);
+      XMLEnsure(XMLGetNextTagValue(tag_, value_, fn)); packages_[n] = value_;
+    }
+    XMLEnsure(XMLEnsureEndTag("RequiredPackages"));
+  }
   //Reading section <statistics>
   XMLEnsure(XMLGetNextTagTitle(tag_, "statistics"));
   XMLEnsure(XMLGetNextTagValue(tag_, value_, "buildingSeconds")); sscanf(value_,"%lf",&stat_.buildingTime_);
