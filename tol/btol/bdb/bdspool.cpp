@@ -206,6 +206,7 @@ DefExtOpr(1, BDatOpenDataBase, "DBOpen", 3, 4, "Text Text Text Set",
 void BDatOpenDataBase::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBOpen")) { return; }
   BSet dbStruct;
   
   if (Arg(4))
@@ -255,6 +256,7 @@ void BDatOpenDataBase::CalcContens()
   void BDatDBActivate::CalcContens()
 //////////////////////////////////////////////////////////////////////////////
 {
+  if(CheckNonDeclarativeAction("DBActivate")) { return; }
   contens_ = dbActivate(Text(Arg(1)).String());
 }
 
@@ -282,6 +284,7 @@ DefExtOpr(1, BSetDBGetOpened, "DBGetOpened", 1, 1,
 void BSetDBGetOpened::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBGetOpened")) { return; }
   BText B = "(Funcion DBGetOpened)";
   const char *type = Text(Arg(1)).String();
   BList* lst = NIL;
@@ -320,6 +323,7 @@ DefExtOpr(1, BDatCloseDataBase, "DBClose", 1, 1, "Text", "(Text alias)",
 void BDatCloseDataBase::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBClose")) { return; }
   const char* alias = NULL;
 
   if(Arg(1)) 
@@ -341,6 +345,7 @@ DefExtOpr(1, BDatDBExecQuery, "DBExecQuery", 1, 1, "Text",
 //--------------------------------------------------------------------
 void BDatDBExecQuery::CalcContens()
 {
+  if(CheckNonDeclarativeAction("DBExecQuery")) { return; }
     const BChar* query = Text(Arg(1)).String();
     contens_ = dbExecQuery(query);
 }
@@ -364,6 +369,7 @@ DefExtOpr(1, BSetDBSeries, "DBSeries", 3, 5, "Text TimeSet Set Set Real",
 void BSetDBSeries::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBSeries")) { return; }
     BText B = "(Funcion DBSeries) ";
 
     BText query = Text(Arg(1));
@@ -560,6 +566,7 @@ DefExtOpr(1, BSetDBSeriesColumn, "DBSeriesColumn", 2, 3,
 void BSetDBSeriesColumn::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBSeriesColumn")) { return; }
     BText B = "(Funcion DBSeriesColumn) ";
 
     BText         query        = Text(Arg(1));
@@ -760,6 +767,7 @@ DefExtOpr(1, BSetDBSeriesTable, "DBSeriesTable", 3, 5,
 void BSetDBSeriesTable::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBSeriesTable")) { return; }
     BText B = "(Funcion DBSeriesTable) ";
 
     BText	  query        = Text(Arg(1));
@@ -992,6 +1000,7 @@ DefExtOpr(1, BMatDBMatrix, "DBMatrix", 1, 2, "Text Real",
 void BMatDBMatrix::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBMatrix")) { return; }
     BText B = "(Funcion DBMatrix) ";
     BInt i,j;
     BText query  = Text(Arg(1));
@@ -1032,6 +1041,7 @@ DefExtOpr(1, BSetDBTable, "DBTable", 1, 2, "Text Text",
 void BSetDBTable::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBTable")) { return; }
     BText B = "(Funcion DBTable) ";
     BText query  = Text(Arg(1));
     BStruct* str = NIL;
@@ -1218,6 +1228,7 @@ DefExtOpr(1, BDatDBCreateSeriesTable, "DBCreateSeriesTable", 2, 6,
 void BDatDBCreateSeriesTable::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("DBCreateSeriesTable")) { return; }
     BText B          = "(Funcion DBCreateSeriesTable) ";
     BText name	     = Text(Arg(1));
     BSet& series     = Set(Arg(2));
@@ -1385,6 +1396,7 @@ void BSetDBTableColumn::CalcContens()
 // pretende permitir datos de todo tipo, tanto en series (lo cual no sería un
 // problema) como en prefijos, lo cual si incompatibiliza el uso de map.
 
+  if(CheckNonDeclarativeAction("DBTableColumn")) { return; }
   BText B = "(Funcion DBTableColumn) ";
   BText query  = Text(Arg(1));
   BInt indexNumber = (BInt)Real(Arg(2));

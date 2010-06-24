@@ -462,6 +462,7 @@ DefExtOpr(1, BSetBDBOpen, "BDBOpen", 5, 5, "Text Real Text Text Text",
 void BSetBDBOpen::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBOpen")) { return; }
   alias_ ++;
   BText	   alias = BText("_BDB_")+alias_+"_";
 
@@ -545,6 +546,7 @@ DefExtOpr(1, BDatBDBClose, "BDBClose", 1, 1, "@BDB",
 void BDatBDBClose::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBClose")) { return; }
     BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
     bdb->File()->Close();
 //bdb->DecNRefs();
@@ -568,6 +570,7 @@ DefExtOpr(1, BTxtBDBFieldName, "BDBFieldName", 2, 2, "@BDB Real",
 void BTxtBDBFieldName::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBFieldName")) { return; }
   BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
   contens_ = bdb->File()->FieldName((BInt)Real(Arg(2))-1);
 }
@@ -586,6 +589,7 @@ DefExtOpr(1, BDatBDBFieldPos, "BDBFieldPos", 2, 2, "@BDB Text",
 void BDatBDBFieldPos::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBFieldPos")) { return; }
     BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
     contens_ = 1+bdb->File()->Field(Text(Arg(2)));
 }
@@ -604,6 +608,7 @@ DefExtOpr(1, BTxtBDBReg, "BDBLine", 2, 2, "@BDB Real",
 void BTxtBDBReg::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBLine")) { return; }
     BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
     contens_ = bdb->File()->GetRegister((BInt)Real(Arg(2))-1);
 }
@@ -622,6 +627,7 @@ DefExtOpr(1, BSetBDBReg, "BDBReg", 2, 2, "@BDB Real",
 void BSetBDBReg::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBReg")) { return; }
     BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
     bdb->Reg((BInt)Real(Arg(2))-1, contens_);
 }
@@ -639,6 +645,7 @@ DefExtOpr(1, BSetBDBTable, "BDBTable", 1, 1, "@BDB",
 void BSetBDBTable::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBTable")) { return; }
     BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
     BInt reg = bdb->File()->RegNumber();
     contens_.PrepareStore(reg);
@@ -665,6 +672,7 @@ DefExtOpr(1, BTxtBDBRead, "BDBRead", 3, 3, "@BDB Real Real",
 void BTxtBDBRead::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBRead")) { return; }
     BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
     
     BInt	 from	= (BInt)Real(Arg(2))-1;
@@ -686,6 +694,7 @@ DefExtOpr(1, BTxtBDBRegField, "BDBCell", 3, 3, "@BDB Real Real",
 void BTxtBDBRegField::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBCell")) { return; }
     BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
     
     BInt	 reg   = (BInt)Real(Arg(2))-1;
@@ -708,6 +717,7 @@ DefExtOpr(1, BSetBDBSort, "BDBSort", 1, 2, "@BDB Set",
 void BSetBDBSort::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBSort")) { return; }
     BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
     BSet	     field;
     if(Arg(2)) { field = Set(Arg(2)); }
@@ -752,6 +762,7 @@ DefExtOpr(1, BTxtBDBSortAndSave, "BDBSortAndSave", 2, 3, "@BDB Text Set",
 void BTxtBDBSortAndSave::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBSortAndSave")) { return; }
     BDataBase* bdb     = GetDataBase(Arg(1)); if(!bdb) { return; }
     BText	     path    = Text(Arg(2));
     ofstream   output(path.String());
@@ -802,6 +813,7 @@ DefExtOpr(1, BSetBDBClassify, "BDBClassify", 2, 2, "@BDB Set",
 void BSetBDBClassify::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBClassify")) { return; }
   BDataBase* bdb   = GetDataBase(Arg(1)); if(!bdb) { return; }
   BSet	     field = Set(Arg(2));
   BInt	     M	   = field.Card();
@@ -858,6 +870,7 @@ DefExtOpr(1, BSetBDBSeries, "BDBSeries", 5, 7,
 void BSetBDBSeries::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBSeries")) { return; }
   BDataBase*	bdb	 = GetDataBase(Arg(1)); if(!bdb) { return; }
   BSet		dim	 = Set(Arg(2));
   BSet		mag	 = Set(Arg(3));
@@ -954,6 +967,7 @@ DefExtOpr(1, BTxtBDBSaveAs, "BDBSaveAs", 4, 5, "@BDB Text Set Set Text",
 void BTxtBDBSaveAs::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBSaveAs")) { return; }
   BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
 
   BText	       path   = Text(Arg(2));
@@ -1036,6 +1050,7 @@ DefExtOpr(1, BSetBDBExtract, "BDBExtract", 3, 3, "@BDB Set Set",
 void BSetBDBExtract::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("BDBExtract")) { return; }
   BDataBase* bdb = GetDataBase(Arg(1)); if(!bdb) { return; }
 
   BSet	       reg    = Set(Arg(2));
