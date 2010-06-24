@@ -14,6 +14,20 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+//Tol Release identifier
+Text TolReleaseId = 
+{
+  Set tok = Tokenizer(Version," ");
+  tok[1]+" "+tok[2]
+};
+
+//Tol Version identifier
+Text TolVersionId = 
+{
+  Set tok = Tokenizer(Version," ");
+  tok[1]
+};
+
 Set Include("TolConfigManager/TolConfigManager.tol");
 
 //The name of the TOL executable
@@ -84,6 +98,12 @@ NameBlock StdLib =
 //Publishing NameBlock StdLib to allow calling without prefix StdLib:: until
 //tol v.1.1.7 will be released and NameBlock became mandatory
 Real StdLib.Using = UsingNameBlock(StdLib);
+
+Real CMsg::Phase::reset(0);
+Real CMsg::Coded::reset(0);
+
+Text PutRealFormat("%.15lg");
+Text PutTableRealFormat(8,4);
 
 //////////////////////////////////////////////////////////////////////////////
 // OIS initialization
