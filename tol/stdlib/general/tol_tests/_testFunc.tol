@@ -158,7 +158,7 @@ Text TestResultRoot(Real void)
 //WriteLn("TRAZA ReportAllBatteries DupTestIndicatorPath='"+DupTestIndicatorPath_+"'");
   Real If (!doDupTest, 0,
     OSDirMake(DupTestIndicatorPath_));
-  Date PutDefaultDates(y1990,Succ(Today, Anual, 4));
+  Date PutDefaultDates(Succ(Today, Anual, -15),Succ(Today, Anual, 4));
   Text log = TestResultRoot(0)+"test_current.log";
   Text PutDumpFile(log);
   Real OSFilRemove(resRoot+"OK.txt");
