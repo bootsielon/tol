@@ -1857,7 +1857,7 @@ proc TolGui_GetMenuEntries { selection idx } {
   foreach obj_info $selection {
     set tcl_ref [ lindex $obj_info 0 ]
     set obj_addr [ ::tol::info address $tcl_ref ]
-    if { [ Tol_ObjIsClassOf $obj_addr "@MenuDesc" ] } {
+    if { [ Tol_ObjIsClassOf $obj_addr "GuiTools::@MenuDesc" ] } {
       set class [ Tol_ClassOf $obj_addr ]
       lappend instances($class) $obj_addr
       set name_inst [ lindex $obj_info 1 ]
@@ -1892,7 +1892,7 @@ proc TolGui_InsertEntriesFromMenuManager { targetMenu selection } {
 proc TolGui_GetObjMenu { obj_addr } {
   set try [ catch {
     tol::console eval [ string map [ list %A $obj_addr ] {
-      @MenuDesc __aux_menu__ = GetObjectFromAddress("%A");
+      GuiTools::@MenuDesc __aux_menu__ = GetObjectFromAddress("%A");
       Set __gui_menu_entries__ = __aux_menu__::getMenuEntries(?)
     } ] } msg ]
   if { $try } {
