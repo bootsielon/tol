@@ -165,8 +165,6 @@ int eval_depth_t::level = -1;
   StartTknStat;
   BSyntaxObject* obj = NULL;
   const BText& name = tok->Name();
-  if(name=="_this")
-    printf("");
 #ifdef UseTknCache
   if((tok->ObjectClass()=='A') && tok->Object()) 
   { 
@@ -819,9 +817,10 @@ BSyntaxObject* BGrammar::EvaluateTree(
       else     
       {
         BGrammar* rg = result->Grammar();
+      //if(!rg && (name=="::"))
         BText rgn = (rg)?rg->Name():"UNKNOWN TYPE";
         BText tgn = this->Name();
-        BText rid = result->Identify();
+        BText rid = (rg)?result->Identify():BParser::Unparse(tre, "  ", "\n");
         TRACE_SHOW_MEDIUM(fun,"3.3.1.2");
         BText en = BText("It has not been possible to convert from ")+ 
                    rgn+ " to "+
