@@ -433,6 +433,7 @@ DefIntOpr(1, BPutEditor, "PutEditor", 1, 1,
 void BPutEditor::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutEditor")) { return; }
     contens_ = BSys::Editor();
     BText editorPath = Text(Arg(1));
     editor_->Contens()=editorPath;
@@ -454,6 +455,7 @@ DefIntOpr(1, BPutLanguage, "PutLanguage", 1, 1,
 void BPutLanguage::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutLanguage")) { return; }
   contens_ = I2("ENGLISH","CASTELLANO");
   BText& lang = Text(Arg(1));
        if(lang=="ENGLISH"    ) { BText::PutLanguage(BENGLISH); }
@@ -1200,6 +1202,7 @@ DefExtOpr(1, BPutTableRealFormat, "PutTableRealFormat", 1, 2, "Anything Real",
  */
 void BPutTableRealFormat::CalcContens()
 {
+  if(CheckNonDeclarativeAction("PutTableRealFormat")) { return; }
     contens_ = BTableFormat::RealFormat();
     if(Arg(2))
 	BTableFormat::PutRealFormat((int) Real(Arg(1)), (int) Real(Arg(2)));
@@ -1231,6 +1234,7 @@ DefExtOpr(1, BPutTableDateFormat, "PutTableDateFormat",  1, 2, "Anything Text",
 //--------------------------------------------------------------------
 void BPutTableDateFormat::CalcContens()
 {
+  if(CheckNonDeclarativeAction("PutTableDateFormat")) { return; }
     contens_ = BTableFormat::DateFormat().Format();
     if(Arg(2))
     {
@@ -1257,6 +1261,7 @@ DefExtOpr(1, BPutRealFormat, "PutRealFormat", 1, 1, "Text",
 void BPutRealFormat::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutRealFormat")) { return; }
     contens_ = BDat::RealFormat();
     BDat::PutRealFormat(Text(Arg(1)));
 }
@@ -1355,6 +1360,7 @@ DefExtOpr(1, BPutDateFormat, "PutDateFormat", 1, 1,
 void BPutDateFormat::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutDateFormat")) { return; }
     contens_ = BDateFormat::Defect().Format();
     BDateFormat::Defect() =  BDateFormat(Text(Arg(1)));
 }
@@ -1393,6 +1399,7 @@ DefExtOpr(1, BPutDumpFile, "PutDumpFile", 1, 2, "Text Real",
 void BPutDumpFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutDumpFile")) { return; }
   BBool rewrite = BTRUE;
   if(Arg(2)) { rewrite = (BBool)Real(Arg(2)); }
   contens_ = BOut::DumpFile();
@@ -1786,6 +1793,7 @@ DefExtOpr(1, BTxtShowFile, "ShowFile",   1, 1, "Text",
 void BTxtShowFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("ShowFile")) { return; }
     contens_ = Text(Arg(1));
     BSys::Edit(contens_,1);
 }
@@ -1827,6 +1835,7 @@ DefExtOpr(1, BTxtWriteFile, "WriteFile",   2, 2, "Text Text",
 void BTxtWriteFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("WriteFile")) { return; }
     BText fileName = Text(Arg(1));
     if(OverWrite(fileName,Text(Arg(2))))
     {
@@ -1850,6 +1859,7 @@ DefExtOpr(1, BTxtAppendFile, "AppendFile",   2, 2, "Text Text",
 void BTxtAppendFile::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("AppendFile")) { return; }
     BText fileName = Text(Arg(1));
     if(AppendWrite(fileName,Text(Arg(2))))
     {
@@ -2278,7 +2288,7 @@ DefExtOpr(1, BTxtGetAbsolutePath, "GetAbsolutePath",	 1, 1, "Text",
 void BTxtGetAbsolutePath::CalcContens()
 //--------------------------------------------------------------------
 {
-    contens_ = GetAbsolutePath(Text(Arg(1)));
+    contens_ = GetStandardAbsolutePath(Text(Arg(1)));
 }
 
 //--------------------------------------------------------------------
