@@ -1,3 +1,5 @@
+#Require BysMcmc;
+
 NameBlock Build.Example.BSR(Text path.out, Text session.id,
                             Serie Y, Set X)
 {
