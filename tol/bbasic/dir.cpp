@@ -450,7 +450,7 @@ BText GetStandardAbsolutePath(const BText& path_)
  */
 //--------------------------------------------------------------------
 {
-  if(!path_.HasName()) { return(path_); }
+//if(!path_.HasName()) { return(path_); }
   /*
 #if defined(UNIX)
   char* ret_path = new char[PATH_MAX];
@@ -462,10 +462,13 @@ BText GetStandardAbsolutePath(const BText& path_)
   */
   BText path = GetAbsolutePath(path_);
 #ifdef WIN32
-  static int maxPathLength_ = 2048;
-  static char* fName = new char[maxPathLength_];
-  int  len = GetLongPathName(path.String(), fName, maxPathLength_-1);
-  return(BText(fName,len));
+  #define maxPathLength_ 10000
+  static char fName[maxPathLength_];
+  TCHAR** lppPart={NULL};
+  int  len = GetFullPathName(path.String(), maxPathLength_-1, fName, lppPart);
+  path.Copy(fName,len);
+  path.Replace("\\","/");
+  return(path);
 #else
   return path;
 #endif
