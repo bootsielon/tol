@@ -69,6 +69,7 @@ TimeSet Semimensual   = D(1) + ( D(15)*M(2) + D(16)*(C-M(2)) );
 TimeSet Mensual       = D(1);
 TimeSet Bimestral     = D(1)*(M(1)+M(3)+M(5)+M(7)+M(9)+M(11));
 
+
 //VBR: Se mantiene por compatibilidad hacia atrás pero no es el significado
 //correcto en castellano pues en realidad sería equivalente a Semimensual
 //y no a bimestral (ver http://bugs.tol-project.org/show_bug.cgi?id=493)
@@ -103,6 +104,10 @@ TimeSet Tenyearly     = Periodic(y1900,10,Anual);
 
 TimeSet PseudoMensual = Range(D(1),0,6)*WD(1);
 TimeSet PseudoAnual   = Range(M(1)*D(1),0,6)*WD(1);
+
+TimeSet CtH06b00 = Hourly*(H(0)+H(6)+H(12)+H(18));
+TimeSet CtH06b03 = Hourly*(H(3)+H(9)+H(15)+H(21));
+TimeSet CtH03b00 = Hourly*(H(0)+H(3)+H(6)+H(9)+H(12)+H(15)+H(18)+H(21));
 
 //////////////////////////////////////////////////////////////////////////////
 // Various time series objects frequently used 
