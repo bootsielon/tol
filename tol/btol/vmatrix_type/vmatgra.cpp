@@ -251,6 +251,7 @@ void BDatStoredCells::CalcContens()
   void BDatPutVMatDat::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutVMatDat")) { return; }
   BVMat& v = VMat(Arg(1));
   int i = (int)Real(Arg(2))-1;
   int j = (int)Real(Arg(3))-1;
@@ -273,6 +274,7 @@ void BDatStoredCells::CalcContens()
   void BDatPutVMatBlock::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("PutVMatDat")) { return; }
   BVMat& v = VMat(Arg(1));
   int i = (int)Real(Arg(2))-1;
   int j = (int)Real(Arg(3))-1;
@@ -346,6 +348,7 @@ DefExtOpr(1, BDatPrint, "VMatPrint", 3, 3,
 void BDatPrint::CalcContens()
 //--------------------------------------------------------------------
 {
+  if(CheckNonDeclarativeAction("VMatPrint")) { return; }
   BVMat& V     =  VMat(Arg(1));
   BText& fName = Text(Arg(2));
   int    level = (int)Real(Arg(3));
