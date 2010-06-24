@@ -14,6 +14,8 @@
   Real numErr0 = Copy(NError);
   Real numWar0 = Copy(NWarning);
  
+#Require BysMcmc;
+
   TimeSet If(Not(ObjectExist("TimeSet", "DatingA")), 
     TimeSet DatingA = D(1)
   );

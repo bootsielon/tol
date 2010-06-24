@@ -19,6 +19,7 @@ Real numErr0 = Copy(NError);
 
 Set bsr.parsed = BSR.Parse("./Mat.Veh/master.bsr","master");
 
+#Require BysMcmc;
 
 BysMcmc::@Config bsr.config = BysMcmc::@Config::Default (0);
 

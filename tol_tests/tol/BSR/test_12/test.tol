@@ -13,6 +13,7 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<< rndSeed);
 
+#Require BysMcmc;
 Set Include("../general/general.tol");
 
 Set data = Include ("data.oza");

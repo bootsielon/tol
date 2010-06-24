@@ -11,6 +11,7 @@ Text summary_ = "Partial reestimation";
 
 Real numErr0 = Copy(NError);
 
+#Require BysMcmc;
 Set Include("../test_03/id.tol");
 
 BysMcmc::@Config bsr.config = [[

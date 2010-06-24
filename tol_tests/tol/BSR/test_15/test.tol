@@ -15,6 +15,7 @@ Real numErr0 = Copy(NError);
 Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
+#Require BysMcmc;
 
 BysMcmc::@Config bsr.config = 
 [[

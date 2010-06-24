@@ -16,6 +16,8 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
+#Require BysMcmc;
+
 //////////////////////////////////////////////////////////////////////////////
 //Randomly generated linear model to allow contrast with model estimations
 //These information is unknown in real world problems

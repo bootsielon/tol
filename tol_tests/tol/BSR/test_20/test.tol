@@ -15,6 +15,7 @@ Text summary_ = "BSR DBApi can share missing inputs related to "
 
 Real numErr0 = Copy(NError);
 
+#Require BysMcmc;
 
 //Random seed setting
 Real PutRandomSeed(0);

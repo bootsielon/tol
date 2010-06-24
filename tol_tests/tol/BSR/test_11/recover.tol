@@ -1,2 +1,4 @@
+#Require BysMcmc;
+
 Set report = BysMcmc::RecoveAndReport("./", "Test10", "Test10.01",10,1/0,1);
 

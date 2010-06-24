@@ -1,4 +1,5 @@
 /* -*- mode: c++ -*- */
+#Require BysMcmc;
 
 Set Include( "nucleos.data.tol" );
 Set Include( "nucleos.models.tol" );

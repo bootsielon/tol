@@ -7,6 +7,8 @@ Real PutRandomSeed(1257333001);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("rndSeed="<<rndSeed);
 
+#Require BysMcmc;
+
 Real   m  = IntRand(15000,15000); 
 
 Real   q   = 1;

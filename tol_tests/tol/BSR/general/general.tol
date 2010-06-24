@@ -3,6 +3,8 @@
 // PURPOSE : Elementos generales del proyecto
 //////////////////////////////////////////////////////////////////////////////
 
+#Require BysMcmc;
+
 Set Include("dbconnection.tol");
 Set Include("timeInterval.tol");
 Set Include("generator/generator.tol");

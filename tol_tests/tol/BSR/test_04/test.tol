@@ -21,6 +21,8 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
+#Require BysMcmc;
+
 //////////////////////////////////////////////////////////////////////////////
 //NOTA IMPORTANTE: Los comentarios dentro de un NameBlock precedidos de ## 
 //significan que el método o miembro a continuación es obligatorio para 

@@ -11,6 +11,8 @@ Text summary_ = "Metropolis-Hastings simulation of BSR linear block";
 
 Real numErr0 = Copy(NError);
 
+#Require BysMcmc;
+
 Set bsr.parsed = BSR.Parse("model.bsr","joint");
 
 BysMcmc::@Config bsr.config = 

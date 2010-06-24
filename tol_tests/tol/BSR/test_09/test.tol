@@ -21,6 +21,8 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
+#Require BysMcmc;
+
 TimeSet CtLV = C - (WD(6)+WD(7));
 
 Set data = { Include ("data.oza") };

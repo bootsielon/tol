@@ -10,6 +10,7 @@ Text link_ = "https://www.tol-project.org/ticket/664";
 Text summary_ = "Forecasting by means of partial reestimation";
 
 Real numErr0 = Copy(NError);
+#Require BysMcmc;
 
 BysMcmc::@Config bsr.config = 
 [[

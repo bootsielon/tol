@@ -27,6 +27,8 @@ Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
+#Require BysMcmc;
+
 //Creates a random model and writes it in "parse.bsr"
 Set Include("load.tol");
 
