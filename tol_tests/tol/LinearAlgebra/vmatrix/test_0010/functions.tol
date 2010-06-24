@@ -19,7 +19,7 @@ NameBlock SimulateSparseMRS(Real iter_)
     GetRandomSeed(0)
   };
   Real iter = iter_;
-  Real m = IntRand(2,(100000)^(1/3))^3;
+  Real m = IntRand(2,(10000)^(1/3))^3;
   Real n = Min(5000,IntRand(1, m));
   Real r = Max(1,IntRand(n*0.8, n));
   Real s = Rand(1,10)*(n+m)/(n*m);
