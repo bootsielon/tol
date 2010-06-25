@@ -210,11 +210,12 @@ public:
   //! Sends an error message to all current available outputs
   //when it occurs a non declarative action while Ois.UseModule
   //is running
-  friend TOL_API bool CheckNonDeclarativeAction(const BText&);
+  //friend TOL_API bool CheckNonDeclarativeAction(const BText&);
   
   friend class TC_MsgMan;
 };
 
+bool CheckNonDeclarativeAction(const BText&);
 
 //--------------------------------------------------------------------
 // external functions
