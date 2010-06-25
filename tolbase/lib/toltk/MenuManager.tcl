@@ -146,6 +146,7 @@ proc ::MenuManager::initTypesInfoFromSelection { selection } {
           }
         }
       }
+      lappend typesSelected(objects) $addr
       lappend typesSelected(objects,$type) $addr
     }
   }
@@ -162,31 +163,41 @@ proc ::MenuManager::initTypesInfoFromSelection { selection } {
 }
 
 proc ::MenuManager::createSubMenuIfNeeded { targetMenu name } {
+  variable typesSelected
+
   set path0 [ split $name "/" ]
   set mm $targetMenu
   set nn ""
   set mapdot [ list . - ]
   foreach n [ lrange $path0 0 end-1 ] {
+    #puts "n = $n"
     # evito el caracter . en el nombre de widget
     set n0 [ string map $mapdot $n ]
     set mm0 ${mm}.mm$n0
-    if { [ winfo exists $mm0 ] } {
-      $mm0 delete 0 end
-    } else {
-      menu $mm0 -tearoff 0
+    #puts "mm0 = $mm0"
+    if { ![ info exists typesSelected(subMenu,inserted,$mm0) ] } {
+      if { [ winfo exists $mm0 ] } {
+        #puts "$mm0 existe"
+        $mm0 delete 0 end
+      } else {
+        menu $mm0 -tearoff 0
+      }
+      set nn [ expr { $nn eq "" ? $n : "${nn}/${n}" } ]
+      set labelInfo [ getLabelInfoForEntry $nn ]
+      foreach { name label image translate } $labelInfo break
+      set image0 [ ::ImageManager::getImageResourceId $image ]
+      if { $image0 ne "" } {
+        set image $image0
+      }
+      #puts "insertando menu $mm0 en $mm"
+      $mm add cascade -menu $mm0 \
+          -label [ expr { $translate ? [ msgcat::mc $label ] : $label } ] \
+          -image $image -compound [ expr { $image eq "" ? "none" : "left" } ]
+      set typesSelected(subMenu,inserted,$mm0) 1
     }
-    set nn [ expr { $nn eq "" ? $n : "/$n" } ]
-    set labelInfo [ getLabelInfoForEntry $nn ]
-    foreach { name label image translate } $labelInfo break
-    set image0 [ ::ImageManager::getImageResourceId $image ]
-    if { $image0 ne "" } {
-      set image $image0
-    }
-    $mm add cascade -menu $mm0 \
-        -label [ expr { $translate ? [ msgcat::mc $label ] : $label } ] \
-        -image $image -compound [ expr { $image eq "" ? "none" : "left" } ]
     set mm $mm0
   }
+  #puts "retornando con mm  = $mm"
   return $mm
 }
 
@@ -213,10 +224,16 @@ proc ::MenuManager::insertEntriesForSelection { menuWidget selection } {
   variable typesSelected
 
   if { ![ llength [ initTypesInfoFromSelection $selection ] ] } return
-  insertEntries $menuWidget $selection $typesSelected(globalOptions)
+  set lenghtValidSelection [ llength $typesSelected(objects) ]
+  set lengthSelection [ llength $selection ]
+  if { $lengthSelection == $lenghtValidSelection } {
+    insertEntries $menuWidget \
+        $typesSelected(objects) $typesSelected(globalOptions)
+  }
   # inserto las opciones especificas de cada tipo si es que hay mas de
   # un tipo
-  if { [ llength $typesSelected(types) ] > 1 } {
+  if { ( $lengthSelection != $lenghtValidSelection ) ||
+       [ llength $typesSelected(types) ] > 1 } {
     set mapdot [ list . - ]
     foreach type $typesSelected(types) {
       # type puede contener . por eso hay que reemplazarlo
