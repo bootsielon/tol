@@ -4943,6 +4943,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="PackArchive"
+				>
+				<File
+					RelativePath="..\PackArchive\PackArchive.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\PackArchive\StoreZipArchive.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
