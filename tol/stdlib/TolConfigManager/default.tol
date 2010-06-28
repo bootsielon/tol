@@ -82,8 +82,9 @@ NameBlock Default =
     [[ 
       Text _.autodoc.member.LocalOnly = "Use only local repositories";
       Real LocalOnly = 0;
-      Text _.autodoc.member.CaducityInMinutes = "Use only local repositories";
-      Real CaducityInMinutes = 1
+      Text _.autodoc.member.CaducityInMinutes = "Upgrade when local packages are "
+      "older than remote in this number of minutes";
+      Real CaducityInMinutes = 60
     ]]
   ]];
   Text _.autodoc.member.Various = "Various";
