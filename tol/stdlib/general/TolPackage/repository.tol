@@ -336,6 +336,7 @@ Real Connect(Real void)
     });
     Real SetIndexByName(_.index);
     Real @Repository::MergePackages(_.index);
+    Real @Repository::SaveInstances(0);
     Real numErr1 = Copy(NError);
     Real _.connected := And(numErr1==numErr0,Card(_.index));
     If(_.connected, WriteLn(" ... Connected!"), 
@@ -526,8 +527,9 @@ Real Upgrade(Text package.version, Real caducityInMinutes)
     FileTime(localFile));
   Date releaseDate = ReleaseDate(package.version);
   Real lapse = DateDif(S(0), localDate, releaseDate);
+//WriteLn("TRACE localFile=" << localFile);
 //WriteLn("TRACE Upgrade localDate=" << localDate);
-//WriteLn("TRACE Upgrade releaseDate=" << releaseDate);
+//WriteLn("TRACE Upgrade releaseDate=" << releaseDate); 
 //WriteLn("TRACE Upgrade lapse=" << lapse);
 //WriteLn("TRACE Upgrade caducityInMinutes=" << caducityInMinutes);
   If(lapse<=caducityInMinutes, False, 
