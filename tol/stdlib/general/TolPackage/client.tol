@@ -43,7 +43,7 @@ Text _.autodoc.member.LocalOza =
 Text LocalOza(Text package.version)
 //////////////////////////////////////////////////////////////////////////////
 {
-  TolPackage::Client::_.localRoot+package.version+"/"+package.version+".zip"
+  TolPackage::Client::_.localRoot+package.version+"/"+package.version+".oza"
 };
 
 
