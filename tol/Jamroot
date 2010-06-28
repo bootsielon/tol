@@ -193,7 +193,7 @@ ln-H [ glob *.h ] ;
 #local subdirs = bbasic bmath bparser btol contrib dbdrivers initLibrary 
 #                lang OIS
 
-local subdirs = bbasic bmath bparser btol contrib lang OIS ;
+local subdirs = bbasic bmath bparser btol contrib lang OIS PackArchive ;
 local all-obj-aliases ;
 for dir in $(subdirs)
 {
