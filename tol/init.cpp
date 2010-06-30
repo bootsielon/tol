@@ -157,6 +157,8 @@ static BSystemText*   tolSessionPath_             = NULL;
 {
   if(!TOLHasBeenEnded_)
   {
+    void DestroyInitTOLFile();
+    DestroyInitTOLFile();
     TOLHasBeenEnded_ = true;
     int BTolOprProfiler_Dump(); 
     BTolOprProfiler_Dump();
