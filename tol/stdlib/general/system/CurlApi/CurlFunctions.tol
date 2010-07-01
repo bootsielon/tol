@@ -16,7 +16,7 @@ Real _InitTclCode( Real void )
     } )
 };
 
-Real Get( NameBlock args )
+Set GetUrl( NameBlock args )
 {
   // Esta inicializacion deberia desaparecer
   Real _InitTclCode(?);
@@ -24,19 +24,16 @@ Real Get( NameBlock args )
   Text url = args::url;
   Text file = args::file;
   // otros argumentos opcionales seran tratados mas adelante
-  Set cmd = [[ "::TolCurl::Get", url, file ]];
+  Real verbose = getOptArg( args, "verbose", 0 );
+  Set cmd = [[ "::TolCurl::getUrl", url, file ]];
   Set tclResult = Tcl_EvalEx( cmd );
   Real status = tclResult["status"];
-  Real If( status, {
-      Real curlStatus = TextToReal( tclResult["result"] );
-      If( curlStatus, {
-          Set curlErrorMsg =
-            Tcl_EvalEx( [[ "::curl::easystrerror", tclResult["result"] ]] );
-          Error( "Curl::Get: " + curlErrorMsg["result"] );
-          Real 0
-        }, 1 /* Get OK */ )
+  Set If( status, {
+      Set curlResult = {
+        Eval( tclResult["result"] )
+      }
     }, {
-      Error( "Curl::Get: " + tclResult["result"] );
-      Real 0 /* Tcl Code is wrong!!! */
+      Error( "Curl::Get: " + tclResult[ "result" ] );
+      Set Copy( Empty ) /* Tcl Code is wrong!!! */
     } )
 };
