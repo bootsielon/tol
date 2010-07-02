@@ -1932,12 +1932,12 @@ int Tol_DecompileFile( Tcl_Interp * interp,
   }
   return TCL_OK;
 }
+
 /*
  *
  * Fill in obj_result the list of grammars defined in TOL
  *
  */
-
 int Tol_SetGrammarsObj(Tcl_Interp * interp, Tcl_Obj * obj_result )
 {
 
@@ -1979,6 +1979,37 @@ int Tol_SetGrammarDescObj(Tcl_Interp * interp, Tcl_Obj * gra_name,
                           Tcl_GetString(gra_name),
                           "\" isn't a grammar", NULL );
   return TCL_ERROR;
+}
+
+/*
+ *
+ * Fill in obj_result the list of packages defined in TOL
+ *
+ */
+int Tol_SetPackagesObj(Tcl_Interp * interp, Tcl_Obj * obj_result )
+{
+
+  BList* lstGra = BPackage::Required();
+
+  BList2TclList( interp, lstGra, obj_result, &GetName );
+  Tcl_AppendObjToObj( obj_result, Tcl_GetObjResult( interp ) );
+  return TCL_OK;
+}
+
+/*
+ *
+ * Fill in obj_result the description of package.
+ *
+ */
+int Tol_SetPackageDescObj( Tcl_Interp *interp, Tcl_Obj *pkgName,
+                           Tcl_Obj *obj_result )
+{
+  int status;
+  Tcl_Obj *graName = Tcl_NewStringObj( "NameBlock", -1 );
+  
+  status = Tol_SetVariableInfoObj( graName, pkgName, obj_result );
+  Tcl_DecrRefCount( graName );
+  return status;
 }
 
 /*

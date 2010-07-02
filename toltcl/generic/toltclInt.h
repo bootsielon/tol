@@ -199,10 +199,20 @@ extern int Tol_InfoIncluded _ANSI_ARGS_((Tcl_Interp * interp,
 extern int Tol_SetGrammarsObj _ANSI_ARGS_((Tcl_Interp * interp,
                                            Tcl_Obj * obj_result));
 
+/*! Fill in obj_result the list of packages defined in TOL
+ */
+extern int Tol_SetPackagesObj _ANSI_ARGS_((Tcl_Interp * interp,
+                                           Tcl_Obj * obj_result));
+
 /*! Fill in obj_result the description of gra_name.
  */
 int Tol_SetGrammarDescObj _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * gra_name,
                                         Tcl_Obj * obj_result));
+
+/*! Fill in obj_result the description of pkgName.
+ */
+int Tol_SetPackageDescObj _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj *pkgName,
+                                       Tcl_Obj * obj_result));
 
 /*! Fill in obj_result the functions defined for grammar gra_name.
  */

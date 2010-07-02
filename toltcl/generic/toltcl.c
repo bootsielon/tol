@@ -102,6 +102,10 @@ static int Tol_InfoGrammars _ANSI_ARGS_((Tcl_Interp *interp,
                                          int objc, Tcl_Obj *CONST objv[],
                                          Tcl_Obj * obj_result));
 
+static int Tol_InfoPackages _ANSI_ARGS_((Tcl_Interp *interp,
+                                         int objc, Tcl_Obj *CONST objv[],
+                                         Tcl_Obj * obj_result));
+
 static int Tol_InfoFunctions _ANSI_ARGS_((Tcl_Interp *interp,
                                           int objc, Tcl_Obj *CONST objv[],
                                           Tcl_Obj * obj_result));
@@ -964,6 +968,8 @@ Tol_InfoCmd(clientData, interp, objc, objv)
       tcl_result = Tol_InfoFunctions(interp, objc-1, objv+1, obj_result);
     else if (!strncasecmp("grammars", arg, length))
       tcl_result = Tol_InfoGrammars(interp, objc-1, objv+1, obj_result);
+    else if (!strncasecmp("packages", arg, length))
+      tcl_result = Tol_InfoPackages(interp, objc-1, objv+1, obj_result);
     else if (!strncasecmp("variables", arg, length))
       tcl_result = Tol_InfoVariables(interp, objc-1, objv+1, obj_result);
     else if (!strncasecmp("struct", arg, length))
@@ -1127,6 +1133,41 @@ Tol_InfoGrammars(interp, objc, objv, obj_result)
   }
   return  objc == 1 ? Tol_SetGrammarsObj(interp, obj_result) :
     Tol_SetGrammarDescObj(interp, objv[1], obj_result);
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Tol_InfoGrammars --
+ *
+ *        Implements the subcommand "::tol::info grammars ?grammar?".
+ *
+ * Results:
+ *       A standard Tcl result
+ *
+ * Side effects:
+ *       None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+Tol_InfoPackages(interp, objc, objv, obj_result)
+     Tcl_Interp *interp;       /* Current interpreter */
+     int objc;                 /* Number of arguments */
+     Tcl_Obj *CONST objv[];    /* Argument objects */
+     Tcl_Obj * obj_result;
+{
+  if ( objc > 2 ) {
+    Tcl_AppendStringsToObj(obj_result,
+                           "wrong # args: should be '",
+                           Tcl_GetString(objv[0]), " packages ?pkgName?'",
+                           NULL);
+    return TCL_ERROR;
+  }
+  return  objc == 1 ? Tol_SetPackagesObj(interp, obj_result) :
+    Tol_SetPackageDescObj(interp, objv[1], obj_result);
 }
 
 
