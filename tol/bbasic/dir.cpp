@@ -429,7 +429,7 @@ BText GetAbsolutePath(const BText& path)
     if(!IsSlash(fp.Last())) { fp+="/"; }
     p = fp+GetFileName(p);
   }
-  if(endSlash)
+  if(endSlash  && !IsSlash(p.Last()))
   {
     p += "/";
   }
@@ -450,16 +450,7 @@ BText GetStandardAbsolutePath(const BText& path_)
  */
 //--------------------------------------------------------------------
 {
-//if(!path_.HasName()) { return(path_); }
-  /*
-#if defined(UNIX)
-  char* ret_path = new char[PATH_MAX];
-  if(realpath(path_.String(), ret_path)==NULL) {
-    Error(path_+":"+strerror(errno));
-  }
-  return BText(ret_path);
-#else
-  */
+  bool endSlash = IsSlash(path_.Last());
   BText path = GetAbsolutePath(path_);
 #ifdef WIN32
   #define maxPathLength_ 10000
@@ -468,13 +459,15 @@ BText GetStandardAbsolutePath(const BText& path_)
   int  len = GetFullPathName(path.String(), maxPathLength_-1, fName, lppPart);
   path.Copy(fName,len);
   path.Replace("\\","/");
-  return(path);
 #else
-  return path;
+  //VBR: hay que buscar alguna forma de estandarizar el path en linux
+  //eliminando cosas inútiles como /./
 #endif
-  /*
-#endif
-  */
+  if(endSlash && !IsSlash(path.Last()))
+  {
+    path += "/";
+  }
+  return(path);
 }
 
 
