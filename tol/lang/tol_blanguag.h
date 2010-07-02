@@ -23,6 +23,7 @@
 #define TOL_BLANGUAG_H 1
 
 #include <tol/tol_bcommon.h>
+#include <tol/tol_blist.h>
 
 class BText;
 class BDate;
@@ -77,10 +78,12 @@ class TOL_API BPackage
 private:
   static BText help_;
   static BText localRoot_;
+  static BList* required_;
 public:
   static BText LocalPath(const BText& package);
   static bool Install(const BText& package);
   static BSyntaxObject* Load(const BText& package, bool retry=false);
+  static BList* Required() { return(required_); }
 };
 
 BDate TsrFirstDate(BSyntaxObject* obj);

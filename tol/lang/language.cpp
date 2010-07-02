@@ -81,6 +81,8 @@ TRACE_CLASS_SIZE(BTmpContens < CLASS >);
 //--------------------------------------------------------------------
 BTraceInit("language.cpp");
 
+BList* BPackage::required_;
+
 //--------------------------------------------------------------------
   TOL_API void StopFlagOn() 
 //--------------------------------------------------------------------
@@ -1382,6 +1384,7 @@ BText BPackage::localRoot_ =
           pkg = set[1];
           pkg->IncNRefs();
           pkg->IncNRefs();
+          required_ = Cons(pkg, required_);
           BNameBlock::AddGlobalRequiredPackage(package);
           BText startActionsExpr = package+"::StartActions(0)";
           bool oldRunningUseModule = BOis::SetRunningUseModule(false);
