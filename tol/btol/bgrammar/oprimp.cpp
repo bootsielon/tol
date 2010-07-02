@@ -1271,7 +1271,7 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
 			        BText bText = BParser::Unparse(b);
 			        Error(bText + I2(" is not a Set with structure ",
 					                     " no es un Set con estructura ") +
-			              str->Name());
+			              str->FullName());
 			        DESTROY(var);
 		        }
 		      }
@@ -1283,7 +1283,7 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
 			        BText bText = BParser::Unparse(b);
 			        Error(bText + I2(" is not a NameBlock instance of ",
 					                     " no es un NameBlock instancia de ") +
-			              cls->Name());
+			              cls->FullName());
 			        DESTROY(var);
 		        } 
 		      }
