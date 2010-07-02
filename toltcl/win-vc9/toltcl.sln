@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toltcl", "toltcl.vcproj", "{2AB526E1-78F2-447E-BBB8-071C3694BEC6}"
 EndProject
 Global
