@@ -735,6 +735,19 @@ Tree* BParser::ParseClose (Tree* tre, BCloseToken* close)
       I2("Unexpected close symbol "+closeStr,
          "Símbolo de cierre "+closeStr+" fuera de lugar")+". ";
   }
+  if(!NextArgument() && delayedSymbol_ &&
+      (delayedSymbol_->TokenType()==TYPE) &&
+     lastSymbol_2_&&
+     (lastSymbol_2_->TokenType()==TYPE))
+  {
+    BTypeToken* tt = (BTypeToken*)delayedSymbol_;
+    if((tt->type_==BTypeToken::BSTRUCT)||
+       (tt->type_==BTypeToken::BCLASS))
+    {
+      nextArgument_ = delayedSymbol_;
+      delayedSymbol_ = NULL;
+    } 
+  }
   if(NextArgument() && !lastWasEmbed)
   {
     tre->putMostRight(Tree::create(NextArgument(), NIL));
@@ -989,6 +1002,19 @@ Tree* BParser::ParseSeparator (Tree* tre)
   {
     BTypeToken* tt = (BTypeToken*)delayedSymbol_;
     if(tt->type_==BTypeToken::BCLASS)
+    {
+      nextArgument_ = delayedSymbol_;
+      delayedSymbol_ = NULL;
+    } 
+  }
+  if(!NextArgument() && delayedSymbol_ &&
+      (delayedSymbol_->TokenType()==TYPE) &&
+     lastSymbol_2_&&
+     (lastSymbol_2_->TokenType()==TYPE))
+  {
+    BTypeToken* tt = (BTypeToken*)delayedSymbol_;
+    if((tt->type_==BTypeToken::BSTRUCT)||
+       (tt->type_==BTypeToken::BCLASS))
     {
       nextArgument_ = delayedSymbol_;
       delayedSymbol_ = NULL;
@@ -1311,6 +1337,10 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
   }
 #endif
   symbolType = scan_->ReadNextSymbol();
+
+  if(scan_->NextSymbol() && ((scan_->NextSymbol()->Name()=="Relation")||(scan_->NextSymbol()->Name()=="@Relation")))
+    printf("");
+
 #ifdef ENABLE_SYMBOL_TRACE
   Std(BText("\n  Parser[")+(int)this+"] symbolType <- '"+TokenTypeName(symbolType));
   if(scan_->NextSymbol())
@@ -1345,10 +1375,34 @@ BBool BParser::ReadNextSymbol(BTokenType& symbolType)
     const BText& nxtArg = scan_->NextArgument();
     PutNextSymbol  (scan_->NextSymbol());
     PutNextArgument(nxtArg);
+/*
+    if(!nextArgument_ && 
+       lastSymbol_ && 
+       lastSymbol_->tokenType_==TYPE &&
+       nextSymbol_ &&
+       nextSymbol_->tokenType_==TYPE)
+    {
+      BTypeToken* tt = (BTypeToken*)nextSymbol_;
+      if(tt->type_==BTypeToken::BSTRUCT)
+      {
+        PutNextSymbol  (scan_->NextSymbol());
+        if(scan_->NextArgument().HasName())
+        {
+        }
+        else
+        {
+          nex
+        }
+      }
+    }
+*/
     if(nxtArg.HasName())
     {
       if(structFound) 
       {
+  if((nxtArg=="Relation")||(nxtArg=="@Relation"))
+    printf("");
+
         if(!scan_->FindSymbol(nxtArg))
         {
           BObject* arg = new BObject(nxtArg);
