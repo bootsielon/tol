@@ -206,7 +206,7 @@ Static @Repository Open(Text url, Real connect)
     OSFilCopy(_.address+@Repository::_.platform+"/"+pack,localPack)
   },
   {
-    Curl::Get([[
+    CurlApi::GetUrl([[
       Text url  = _.url+@Repository::_.platform+"/"+pack, 
       Text file = localPack ]]) 
   });
