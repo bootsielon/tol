@@ -310,7 +310,7 @@ int Parse_NoMasterModule(const BText& filePath,
   std::vector<BysSparseReg::missing_info>    outputMissingInfo;
   std::vector<BysSparseReg::noise_info>      noiseInfo;
   BText oldPath = BDir::GetCurrent();
-  BText dirPath = GetStandardAbsolutePath(GetFilePath(filePath));
+  BText dirPath = GetStandardAbsolutePath(GetFilePath(filePath)+"/");
   BText fName = GetFileName(filePath);
   BText fullPath = dirPath+fName;
   BDir::ChangeCurrent(dirPath);
@@ -658,7 +658,7 @@ int Parse_MasterModule(const BText& filePath,
   std::vector<moduleDef> subMod;
   BSet SM, HD;
   BText oldPath = BDir::GetCurrent();
-  BText dirPath = GetStandardAbsolutePath(GetFilePath(filePath));
+  BText dirPath = GetStandardAbsolutePath(GetFilePath(filePath)+"/");
   BText fName = GetFileName(filePath);
   BText fullPath = dirPath+fName;
   BDir::ChangeCurrent(dirPath);
