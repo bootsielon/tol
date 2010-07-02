@@ -248,8 +248,6 @@ BStruct::BStruct(const BText& name, bool addToSymbolTable)
 : BSyntaxObject(name), field_(NULL), function_(NULL)
 {
   assert(name!="");
-  if((name=="Relation")||(name=="@Relation"))
-    printf("");
   TRACE_Def_StructMember("BStruct",this,name); 
   TRACE_MEMORY_SHOW(this,"BStruct::BStruct");
   //VBR: Temporary behaviour until non standard struct will be obsolete
