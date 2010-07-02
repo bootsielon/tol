@@ -1455,6 +1455,14 @@ BClass* FindClass(const BText& name, int defined)
   BSyntaxObject* result = NULL;
   BUserNameBlock* unb = NULL;
   BClass* cls = FindClassInNameBlock(name, unb);
+  if(!cls && BNameBlock::Current())
+  {
+    result = BNameBlock::Current()->Member(name);
+    if(result && (result->Mode()==BCLASSMODE))
+    {
+      cls = (BClass*)result;
+    }
+  }
   if(!cls)
   {
     cls = BStackManager::FindClass(name);
