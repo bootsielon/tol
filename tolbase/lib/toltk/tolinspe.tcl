@@ -364,6 +364,7 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
   set img [::Bitmap::get Objects]
   $ht_tree entry configure root -label [mc "Tol Objects"]\
            -icons [list $img $img]
+
   # creation of the node father "Grammars"
   set img [::Bitmap::get Grammars]  
   set blt_idx [$blt_tree insert root -label "root-grammars"\
@@ -372,6 +373,14 @@ proc ::TolInspector::CreatePaneLeft { paneLeft } {
            -icons [list $img $img]
   # Inserts in the node of grammars a node by each grammar that exists in Tol
   InsertGrammars
+
+  # creation of the node father "Packages"
+  set img [::Bitmap::get "package"]  
+  set blt_idx [$blt_tree insert root -label "root-packages"\
+           -tags "root-packages"]
+  $ht_tree entry configure $blt_idx -label [mc "Packages"]\
+           -icons [list $img $img] -button yes
+
   # creation of the node father "Included Files"
   set img [::Bitmap::get "Files"]
   set blt_idx [$blt_tree insert root -label "root-files" -tags "root-files"]
@@ -822,6 +831,38 @@ proc ::TolInspector::ClearHiertables { } {
   }
 }
 
+# este proc debe pasar a ser un getContainerReference
+#
+proc ::TolInspector::getPackageReference { treePath } {
+  variable ht_tree
+
+  catch {
+    set typeContainer "NameBlock"
+    set order [ lindex  [ split [ lindex $treePath 2 ] "-" ] end ]
+    incr order -1
+    #puts "path,2 = [ lindex $treePath 2 ]"
+    #puts "order = $order"
+    set idx [ $ht_tree entry children "root-packages" $order $order ]
+    set nameContainer [ $ht_tree entry cget $idx -label ]
+    #puts "en root-package:"
+    #puts "\torder=$order"
+    #puts "\tidx=$idx"
+    #puts "\nameContainer=$nameContainer"
+    set container [ list $typeContainer $nameContainer ]
+    if { [ llength $treePath ] > 3 } {
+      foreach c [ lrange $treePath 3 end-1 ] {
+        set orderItem [ lindex  [ split $c "-" ] end ]
+        lappend container $orderItem
+      }
+      set tolindex [ lindex  [ split [ lindex $treePath end ] "-" ] end ]
+    } else {
+      set tolindex [ list ]
+    }
+  } msg
+  #puts "::TolInspector::getPackageReference: $msg"
+  return [ list $container $tolindex ]
+}
+
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolInspector::OpenObject { index } {
 #
@@ -841,15 +882,19 @@ proc ::TolInspector::OpenObject { index } {
 
   #puts "OpenObject: index=$index"
   set path [$ht_tree get -full $index] 
+  #puts "path = $path"
   if { $index } {
     set parent1 [lindex $path 1]
-    if { [set isfile [string equal $parent1 "root-files"]] ||
+    if { [set ispackage [string equal $parent1 "root-packages"]] ||
+         [set isfile [string equal $parent1 "root-files"]] ||
          [set isconsole [string equal $parent1 "root-console"]] ||
          [string equal $parent1 "root-pool"] } {
       set lpath [llength $path]
       #puts "lpath = $lpath"
       if { $lpath == 2 } {
-        if { $isfile } {
+        if { $ispackage } {
+          InsertPackages
+        } elseif { $isfile } {
           InsertFiles
         } elseif { $isconsole } {
           InsertConsoleObj
@@ -862,7 +907,9 @@ proc ::TolInspector::OpenObject { index } {
         set leaf_info [split $leaf "-"]
         set node_prefix [lindex $leaf_info 0]
         set _tolset $tolset
-        if { [string equal $parent1 "root-pool"] } {
+        if { $parent1 eq "root-packages" } {
+          foreach {tolset tolindex} [ getPackageReference $path ] break
+        } elseif { [string equal $parent1 "root-pool"] } {
           #Tolcon_Trace "OpenObject. tolset=$tolset"
           set tolset $data(pool,reference,[lindex $leaf_info 0])
           #puts "OpenObject: Spool: tolset=$tolset, leaf_info=$leaf_info"
@@ -911,6 +958,26 @@ proc ::TolInspector::OpenObject { index } {
         NotBusy
       }
     }
+  }
+}
+
+#/////////////////////////////////////////////////////////////////////////////
+proc ::TolInspector::InsertPackages {} {
+#
+# PURPOSE: Inserts a node in ht_tree (left ::blt::treeview) for each TOL
+#          packages
+#
+#/////////////////////////////////////////////////////////////////////////////
+  variable ht_tree
+  #upvar \#0 ::TolTk::Images Images
+    
+  set order 1
+  foreach pkg [::tol::info packages] {
+    # takes an icon with the same name that the grammar
+    set img [ ::Bitmap::get NameBlock ]
+    $ht_tree insert -at "root-packages" end package-$order -label $pkg\
+          -icons [list $img $img] -button yes
+    incr order
   }
 }
 
@@ -1095,7 +1162,7 @@ proc ::TolInspector::InsertSubset { args } {
   variable has_button 0
   variable blt_tree
   variable gra_parent
-
+  catch {
   #puts "InsertSubset, args=$args"
   set grammar [lindex $args 0]
   if {$grammar eq "Set" || $grammar eq "NameBlock"} {
@@ -1140,6 +1207,8 @@ proc ::TolInspector::InsertSubset { args } {
     $ht_tree entry configure $idnew -label $label -button $has_button \
       -icons [list $icon $icon] -foreground $fcolor 
   }
+} msg
+#puts "InsertSubSet: $msg"
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -1265,11 +1334,12 @@ proc ::TolInspector::SelectObject { } {
   }
   ClearHiertables
 
+  set path [ $ht_tree get -full $index ] 
   set tolset ""
   if { $index } {
     #puts "SelectObject index = $index"
-    #puts "SelectObject: full = [$ht_tree get -full $index]"
-    set info_node [split [lindex [$ht_tree get -full $index] end] "-"] ;# ojo si el path tiene -
+    #puts "SelectObject: full = $path"
+    set info_node [split [lindex $path end] "-"] ;# ojo si el path tiene -
     set node_type [lindex $info_node 0]
     set node_name [lindex $info_node 1]
     #puts "SelectObject: info_node = $info_node"
@@ -1279,7 +1349,7 @@ proc ::TolInspector::SelectObject { } {
   }
 
   Busy
-  #puts "SelectObject: node_type = $node_type"
+  #puts "SelectObject: node_type = $node_type, node_name = $node_name"
   switch -regexp $node_type  {
     root {
       switch $node_name {
@@ -1288,6 +1358,9 @@ proc ::TolInspector::SelectObject { } {
           ClearHiertables
           #$w_tabset tab configure Variables -state disabled
           #$w_tabset tab configure Functions -state disabled
+        }
+        package {
+          puts "implementa el llenado del panel derecho"
         }
         files {
           SelectFileRoot
@@ -1306,7 +1379,9 @@ proc ::TolInspector::SelectObject { } {
     default {
       set node_prefix $node_type
 	  #puts "SelectObject: node_prefix = $node_prefix"
-      if {[regexp -- "pool" $node_type]} {
+      if { $node_type eq "package" } {
+        foreach {tolset tolindex} [ getPackageReference $path ] break
+      } elseif {[regexp -- "pool" $node_type]} {
         set tolset $data(pool,reference,[lindex $node_type 0])
         #puts "SelectObject: Spool: tolset=$tolset, info_node=$info_node"
         if { [llength $info_node] == 1 } {
@@ -1317,14 +1392,14 @@ proc ::TolInspector::SelectObject { } {
           #set tolset [lindex $tolset 0]
           #lappend tolindex [lindex $info_node end]
           set tolindex [lrange $info_node 1 end]
-		  if {[lindex $tolset 0] eq "Console"} {
-		    set tolset [lindex $tolset 0]  
-		  } else {
-		    set tolset [lrange $tolset 0 1]
-		  }
+          if {[lindex $tolset 0] eq "Console"} {
+            set tolset [lindex $tolset 0]  
+          } else {
+            set tolset [lrange $tolset 0 1]
+          }
         }
       } elseif {[regexp -- "console(.+)" $node_type --> idx_con]} {
-	    #puts "SelectObject: Console: tolset=$tolset info_node=$info_node idx_con=$idx_con"
+        #puts "SelectObject: Console: tolset=$tolset info_node=$info_node idx_con=$idx_con"
         set tolset "Console"
         #set idx [$ht_tree find -name $node_type]
         #array set aryData [$ht_tree entry cget $idx -data]
@@ -1600,9 +1675,10 @@ proc ::TolInspector::CloseObject { index } {
   set path [$ht_tree get -full $index]
   if { $index } {
     set parent1 [lindex $path 1]
-    if { [string equal $parent1 "root-files"] ||
-     [string equal $parent1 "root-console"] || 
-     [string equal $parent1 "root-pool"] } {
+    if { [string equal $parent1 "root-packages"] ||
+         [string equal $parent1 "root-files"] ||
+         [string equal $parent1 "root-console"] || 
+         [string equal $parent1 "root-pool"] } {
       $ht_tree entry delete $index 0 end
     }
   }
