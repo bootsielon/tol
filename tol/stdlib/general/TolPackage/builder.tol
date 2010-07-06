@@ -168,7 +168,8 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
     Set EvalSet(selResources, Real(Text resource)
     {
       Text orig = _.sourceRoot+name+"/"+resource; 
-      Text dest = ppRoot+"/"+Name(resource);
+      Text dest = ppRoot+"/"+resource;
+      Real OSDirMake(dest);
       WriteLn("TRACE dir copy '"+orig+"' -> '"+dest+"'");
       OSDirCopy(orig,dest)
     });
