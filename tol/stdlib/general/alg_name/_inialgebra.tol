@@ -8,3 +8,5 @@ Set Include("algebragui.tol");
 Set Include("algMetSqlDep.tol");
 Set Include("algMetSqlDepSet.tol");
 Set Include("algMetSqlDepDBT.tol");
+Set Include("algebraUtils.tol");
+
