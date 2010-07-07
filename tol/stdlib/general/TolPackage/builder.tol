@@ -170,6 +170,9 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
       Text orig = _.sourceRoot+name+"/"+resource; 
       Text dest = ppRoot+"/"+resource;
       Real OSDirMake(dest);
+      // esto parece raro pero solo borra el dir destino, el make
+      // anterior ha creado el path de sus padres
+      If(OSUnix, OSDirRemove(dest));
       WriteLn("TRACE dir copy '"+orig+"' -> '"+dest+"'");
       OSDirCopy(orig,dest)
     });
