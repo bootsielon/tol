@@ -78,11 +78,15 @@ Text _.autodoc.member.InstallFromUrl =
 "reconocible por el sistema operativo se realizará la correspondiente "
 "descarga remota. \n";
 //////////////////////////////////////////////////////////////////////////////
-Real InstallFromUrl(Text url, Text package.version)
+Real InstallFromUrl(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text pack = package.version+".zip";
-  @Repository::DownloadPackageFromUrl(url,package.version)
+  WriteLn("TRACE [InstallFromUrl] url="<<url);
+  Text path = RemoveLastSlash(GetFilePath(url));
+  WriteLn("TRACE [InstallFromUrl] path="<<path);
+  Text package = GetFilePrefix(url);
+  WriteLn("TRACE [InstallFromUrl] package="<<package);
+  @Repository::DownloadPackageFromUrl(path,package)
 };
 
 //////////////////////////////////////////////////////////////////////////////
