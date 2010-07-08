@@ -190,6 +190,45 @@ Static @Repository Open(Text url, Real connect)
 
 //////////////////////////////////////////////////////////////////////////////
 //Copia un fichero del repositorio remoto al directorio local de paquetes
+  Static Real DownloadPackageFromUrl(Text url, Text packageName)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real prtPos = TextFind(url,"://")+2;
+  Text protocol = Sub(url,1,prtPos);
+  //Resto de la URL tras el protocolo
+  Real isRemote =  protocol!="file://";
+
+  Text pack = packageName+".zip";
+  Text oza = packageName+"/"+packageName+".oza";
+  Text localPack = TolPackage::Client::_.localRoot+pack;
+  Text localOza = TolPackage::Client::_.localRoot+oza;
+  Text localDir = TolPackage::Client::_.localRoot+packageName;
+  
+  If(FileExist(localPack), OSFilRemove(localPack));
+//WriteLn("TRACE DownloadPackage localPack="<<localPack);
+  If(!isRemote,
+  {
+    Text address =  Sub(url,prtPos+1,TextLength(url));
+  //WriteLn("TRACE DownloadPackage  cp \""+_.address+@Repository::_.platform+"/"+pack+"\" \""+localPack+"\"");
+    OSFilCopy(address+"/"+pack,localPack)
+  },
+  {
+    Set CurlApi::GetUrl([[
+      Text url  = url+"/"+pack, 
+      Text file = localPack ]]) 
+  });
+  If(!FileExist(localPack), False,
+  {
+  //WriteLn("TRACE DownloadPackage UnpackFull("<<localDir+")");
+    Real PackArchive::UnpackFull("ZipArchive", localDir);
+    OSFilRemove(localPack);
+    True
+  });
+  FileExist(localOza)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Copia un fichero del repositorio remoto al directorio local de paquetes
   Real DownloadPackage(Text packageName)
 //////////////////////////////////////////////////////////////////////////////
 {

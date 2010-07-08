@@ -68,6 +68,24 @@ Real Exist(Text package.version)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.InstallFromUrl = 
+"Instala desde una URL arbitraria un paquete determinado para que esté "
+"disponible llamando a #Require. \n"
+"La URL puede ser en realidad un directorio local para "
+"facilitar proceso de instalación cerrada. Para ello la URL comenzará por "
+"file:// seguido del path local donde se ubica el repositorio.\n"
+"Si la URL empieza por http:// https:// ftp:// o cualquier otro protocolo"
+"reconocible por el sistema operativo se realizará la correspondiente "
+"descarga remota. \n";
+//////////////////////////////////////////////////////////////////////////////
+Real InstallFromUrl(Text url, Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text pack = package.version+".zip";
+  @Repository::DownloadPackageFromUrl(url,package.version)
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Install = 
 "Instala desde el repositorio remoto al local un paquete determinado "
 "para que esté disponible llamando a #Require. \n"
