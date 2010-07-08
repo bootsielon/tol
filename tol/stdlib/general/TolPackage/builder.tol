@@ -176,7 +176,8 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
       WriteLn("TRACE dir copy '"+orig+"' -> '"+dest+"'");
       OSDirCopy(orig,dest)
     });
-    Real PackArchive::PackFull("ZipArchive", ppRoot_);
+    Text ppr = ReplaceSlash(ppRoot_);
+    Real PackArchive::PackFull("ZipArchive", ppr);
     Real OSDirRemove(ppRoot);
     True
   });
