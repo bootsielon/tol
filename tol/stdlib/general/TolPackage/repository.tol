@@ -213,9 +213,13 @@ Static @Repository Open(Text url, Real connect)
     OSFilCopy(address+"/"+pack,localPack)
   },
   {
-    Set CurlApi::GetUrl([[
+    Set contens = CurlApi::GetUrl([[
       Text url  = url+"/"+pack, 
-      Text file = localPack ]]) 
+      Text file = localPack ]]);
+    If(contens::failStatus,
+    WriteLn("[CurlApi::GetUrl] has failed. More details: \n"+
+            contens::explain,"W"));
+    Not(contens::failStatus)
   });
   If(!FileExist(localPack), False,
   {
@@ -245,9 +249,13 @@ Static @Repository Open(Text url, Real connect)
     OSFilCopy(_.address+@Repository::_.platform+"/"+pack,localPack)
   },
   {
-    Set CurlApi::GetUrl([[
+    Set contens = CurlApi::GetUrl([[
       Text url  = _.url+@Repository::_.platform+"/"+pack, 
-      Text file = localPack ]]) 
+      Text file = localPack ]]);
+    If(contens::failStatus,
+    WriteLn("[CurlApi::GetUrl] has failed. More details: \n"+
+            contens::explain,"W"));
+    Not(contens::failStatus)
   });
   If(!FileExist(localPack), False,
   {
