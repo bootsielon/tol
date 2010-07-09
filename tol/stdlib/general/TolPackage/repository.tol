@@ -335,60 +335,69 @@ Real Connect(Real void)
     Real numErr0 = Copy(NError);
   //WriteLn("TRACE [Connect] 1");
     Set repInf = IncludeText(GetFileContent("index.tol"));
-    Text _.name := repInf::name;
-  //WriteLn("TRACE [Connect] 2 _.name='"+_.name+"'");
-    Text _.type := repInf::type;
-  //WriteLn("TRACE [Connect] 3 _.type='"+_.type+"'");
-    Text _.description := repInf::description;
-  //WriteLn("TRACE [Connect] 4 _.description='"+_.description+"'");
-    Text aux = GetFileContent("index.csv");
-  //WriteLn("TRACE [Connect] 5 aux=\n"+aux+"\n");
-    Set line = Tokenizer(aux,"\n");
-  //WriteLn("TRACE [Connect] 6 Card(line)=\n"<<Card(line)+"\n");
-    Set cells.all = For(2,Card(line), Set(Real k)
+    If(!Card(repInf),
     {
-    //WriteLn("TRACE Connect line["<<k+"] = '"<<line[k]+"'");
-      Set fields = Tokenizer(line[k],";");
-    //WriteLn("TRACE Connect Card(fields) = "<<Card(fields));
-      fields
-    });
-  //WriteLn("TRACE [Connect] 7 Card(cells.all)=\n"<<Card(cells.all)+"\n");
-    Set cells = Select(cells.all, Real(Set s) { Card(s)==12 });
-  //WriteLn("TRACE [Connect] 8 Card(cells)=\n"<<Card(cells)+"\n");
-    Set pckInf = For(1,Card(cells), TolPackage::@PackageInfo(Real k)
+      _.connected := False;
+      WriteLn("[TolPackage::Client::@Repository::Connect] "
+        "Cannot connect to repository "+_.url,"W");
+      _.connected
+    },
     {
-      Set fields = cells[k];
-      Set aux = { [[ TolPackage::@PackageInfo(
-        Text repository = fields[1],
-        Text name = fields[2],
-        Text name.version = fields[3],
-        Real version.high = Eval(fields[4]),
-        Real version.low = Eval(fields[5]),
-        Text brief = fields[6],
-        Set keys =  Eval(fields[7]),
-        Set authors =  Eval(fields[8]),
-        Text minTolVersion = fields[9],
-        Date releaseDate = Eval(fields[10]),
-        Set dependencies = Eval(fields[11]),
-        Set  nonTolResources = Eval(fields[12])
-      ) ]] };
-      Set PutName(aux[1]->name.version,aux[1]);
-      aux[1]
-    });
+      Text _.name := repInf::name;
+    //WriteLn("TRACE [Connect] 2 _.name='"+_.name+"'");
+      Text _.type := repInf::type;
+    //WriteLn("TRACE [Connect] 3 _.type='"+_.type+"'");
+      Text _.description := repInf::description;
+    //WriteLn("TRACE [Connect] 4 _.description='"+_.description+"'");
+      Text aux = GetFileContent("index.csv");
+    //WriteLn("TRACE [Connect] 5 aux=\n"+aux+"\n");
+      Set line = Tokenizer(aux,"\n");
+    //WriteLn("TRACE [Connect] 6 Card(line)=\n"<<Card(line)+"\n");
+      Set cells.all = For(2,Card(line), Set(Real k)
+      {
+      //WriteLn("TRACE Connect line["<<k+"] = '"<<line[k]+"'");
+        Set fields = Tokenizer(line[k],";");
+      //WriteLn("TRACE Connect Card(fields) = "<<Card(fields));
+        fields
+      });
+    //WriteLn("TRACE [Connect] 7 Card(cells.all)=\n"<<Card(cells.all)+"\n");
+      Set cells = Select(cells.all, Real(Set s) { Card(s)==12 });
+    //WriteLn("TRACE [Connect] 8 Card(cells)=\n"<<Card(cells)+"\n");
+      Set pckInf = For(1,Card(cells), TolPackage::@PackageInfo(Real k)
+      {
+        Set fields = cells[k];
+        Set aux = { [[ TolPackage::@PackageInfo(
+          Text repository = fields[1],
+          Text name = fields[2],
+          Text name.version = fields[3],
+          Real version.high = Eval(fields[4]),
+          Real version.low = Eval(fields[5]),
+          Text brief = fields[6],
+          Set keys =  Eval(fields[7]),
+          Set authors =  Eval(fields[8]),
+          Text minTolVersion = fields[9],
+          Date releaseDate = Eval(fields[10]),
+          Set dependencies = Eval(fields[11]),
+          Set  nonTolResources = Eval(fields[12])
+        ) ]] };
+        Set PutName(aux[1]->name.version,aux[1]);
+        aux[1]
+      });
 
-    Set _.index := Sort(pckInf,
-    Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
-    {
-      Compare(b->name.version, a->name.version)
-    });
-    Real SetIndexByName(_.index);
-    Real @Repository::MergePackages(_.index);
-    Real @Repository::SaveInstances(0);
-    Real numErr1 = Copy(NError);
-    Real _.connected := And(numErr1==numErr0,Card(_.index));
-    If(_.connected, WriteLn(" ... Connected!"), 
-                    WriteLn(" ... NOT Connected!","W"));
-    _.connected
+      Set _.index := Sort(pckInf,
+      Real(TolPackage::@PackageInfo a, TolPackage::@PackageInfo b)
+      {
+        Compare(b->name.version, a->name.version)
+      });
+      Real SetIndexByName(_.index);
+      Real @Repository::MergePackages(_.index);
+      Real @Repository::SaveInstances(0);
+      Real numErr1 = Copy(NError);
+      Real _.connected := And(numErr1==numErr0,Card(_.index));
+      If(_.connected, WriteLn(" ... Connected!"), 
+                      WriteLn(" ... NOT Connected!","W"));
+      _.connected
+    })
   })
 };
 
