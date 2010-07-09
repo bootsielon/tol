@@ -9,15 +9,15 @@
 Class @Builder {
 //////////////////////////////////////////////////////////////////////////////
 
-Text _.url;          //A unique address with remote or local protocol
-Text _.name;         //A unique name 
-Text _.type;         //Private, Public
-Text _.description;  //Purpose of repository
-Text _.sourceRoot;   //Root directory of package's TOL code 
-Set  _.packageList;  //Set of names of packages
-Text _.root;         //Local server-side installing directory
-Text _.register;     //Local server-side register directory
-Text _.index;        //Local server-side index prefix
+Text _.url;           //A unique address with remote or local protocol
+Text _.name;          //A unique name 
+Text _.type;          //Private, Public
+Text _.description;   //Purpose of repository
+Set  _.packageList;   //Set of names of packages
+Set  _.pkgSourcePath; //Set of paths of packages
+Text _.root;          //Local server-side installing directory
+Text _.register;      //Local server-side register directory
+Text _.index;         //Local server-side index prefix
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -27,23 +27,38 @@ Static @Builder Create(
   Text type,         
   Text description,  
   Text sourceRoot,
-  Set packageList)
+  Set packageList_)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text root = TolPackage::Server::_.localRoot+name+"/";
+  Set pkgSourcePath = If(sourceRoot=="",
+  {
+    EvalSet(packageList_,GetFilePath)
+  },
+  {
+    NCopy(Card(packageList_),sourceRoot)
+  });
+  Set packageList = If(sourceRoot=="",
+  {
+    EvalSet(packageList_,GetFilePrefix)
+  },
+  {
+    DeepCopy(packageList_)
+  });
   @Builder new = [[
     Text _.url = url;
     Text _.name = name;
     Text _.type = type;
     Text _.description = description;
-    Text _.sourceRoot = sourceRoot;
     Set  _.packageList = packageList;
+    Set  _.pkgSourcePath = pkgSourcePath;
     Text _.root = root;
     Text _.register = root+"register/";
     Text _.index = root+"index"
   ]];
   Real OSDirMake(new::_.root);
   Real OSDirMake(new::_.register);
+
   Real new::Build.All(0);
   new
 };
@@ -130,11 +145,12 @@ Text FormatSet(Set set)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text Build.PackageInfo.Version(Text name, Real specificVersion)
+Text Build.PackageInfo.Version(Text sourcePath, Text name, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set aux = IncludeText("NameBlock "+name+";");
   NameBlock pkg = aux[1];
+  Text sourceRoot = sourcePath+"/"+name; 
   Text pkgName = TolPackage::GetCurrentNameVersion(name,specificVersion);
   Set dependencies = TolPackage::GetDeepDependencies(name, specificVersion);
   Set nonTolResurces = If(!ObjectExist("Set",name+"::_.autodoc.nonTolResources"),
@@ -167,7 +183,7 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
     }));
     Set EvalSet(selResources, Real(Text resource)
     {
-      Text orig = _.sourceRoot+name+"/"+resource; 
+      Text orig = sourceRoot+"/"+resource;
       Text dest = ppRoot+"/"+resource;
       Real OSDirMake(dest);
       // esto parece raro pero solo borra el dir destino, el make
@@ -186,11 +202,11 @@ Text Build.PackageInfo.Version(Text name, Real specificVersion)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text Build.PackageInfo(Text name)
+Text Build.PackageInfo(Text sourcePath, Text name)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Build.PackageInfo.Version(name,True)+
-  Build.PackageInfo.Version(name,False)
+  Build.PackageInfo.Version(sourcePath, name,True)+
+  Build.PackageInfo.Version(sourcePath, name,False)
 };
 
 
@@ -199,9 +215,11 @@ Real Build.All(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real Initialize(void);
-  Set EvalSet(_.packageList, Real(Text pkgName)
+  Set For(1,Card(_.packageList), Real(Real k)
   {
-    Text AppendFile(_.index+".csv",  Build.PackageInfo(pkgName));
+    Text pkgName = _.packageList[k];
+    Text sourcePath = _.pkgSourcePath[k];
+    Text AppendFile(_.index+".csv",  Build.PackageInfo(sourcePath, pkgName));
   //Text AppendFile(_.index+".wiki", index.wiki);
   //Text AppendFile(_.index+".html", index.html);
     True
@@ -211,11 +229,11 @@ Real Build.All(Real void)
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Real Rebuild.One(Text pkgName)
+Real Rebuild.One(Text sourcePath, Text pkgName)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real Initialize(void);
-  Text Build.PackageInfo(pkgName);
+  Text Build.PackageInfo(sourcePath,pkgName);
   Set pkgLst = Sort(GetDir(_.register)[2], Real(Text a, Text b)
   {
     Compare(b,a)
