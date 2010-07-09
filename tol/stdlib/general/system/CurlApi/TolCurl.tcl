@@ -32,7 +32,7 @@ proc ::TolCurl::getUrl0 { url receiveFile args } {
       set errorBuffer $r
     }
     #return -code error $errorBuffer
-    return [ list status $status explain $errorBuffer ]
+    return [ list failStatus $status explain $errorBuffer ]
   }
   
   set fileTime     [ $curlHandle getinfo filetime     ] 
