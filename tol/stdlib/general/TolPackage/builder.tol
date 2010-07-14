@@ -152,6 +152,9 @@ Text Build.PackageInfo.Version(Text sourcePath, Text name, Real specificVersion)
   NameBlock pkg = aux[1];
   Text sourceRoot = sourcePath+"/"+name; 
   Text pkgName = TolPackage::GetCurrentNameVersion(name,specificVersion);
+  Real If( ObjectExist("Real",name+"::specificVersion"), {
+      pkg::specificVersion := specificVersion
+    } );
   Set dependencies = TolPackage::GetDeepDependencies(name, specificVersion);
   Set nonTolResurces = If(!ObjectExist("Set",name+"::_.autodoc.nonTolResources"),
     Copy(Empty),pkg::_.autodoc.nonTolResources);
