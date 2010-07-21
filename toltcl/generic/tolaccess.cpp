@@ -2425,7 +2425,7 @@ int Tol_GetAddressFromObject( Tcl_Interp * interp,
   const BSyntaxObject *syn ;
 
 #ifndef _NDEBUG
-#define _PRINT_ADDR_OBJREF_
+  //#define _PRINT_ADDR_OBJREF_
 #endif
 
 #ifdef _PRINT_ADDR_OBJREF_
