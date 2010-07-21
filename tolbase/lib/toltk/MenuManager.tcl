@@ -203,8 +203,9 @@ proc ::MenuManager::createSubMenuIfNeeded { targetMenu name } {
 
 proc ::MenuManager::insertEntries { menuWidget objSelection entriesInfo } {
   set multiple [ expr { [ llength $objSelection ] > 1 } ]
-  foreach entryInfo $entriesInfo {
-    foreach {name label image translate group} $entryInfo break
+  # inserto las entries segun el orden inducido por el campo rank
+  foreach entryInfo [ lsort -real -index 4 $entriesInfo ] {
+    foreach {name label image translate rank group} $entryInfo break
     if { $group ^ $multiple } continue
     set mm [ createSubMenuIfNeeded $menuWidget $name ]
     set state [ checkEntryState $name $objSelection $group ]
