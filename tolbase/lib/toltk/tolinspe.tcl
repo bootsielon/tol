@@ -119,6 +119,8 @@ namespace eval ::TolInspector {
   variable at_set
   variable node_prefix
 
+  variable knownReference ""
+
   variable gra_parent ""
   # tree widget containing the TOL objects.
   variable ht_tree   ;# is a ::blt::treeview
@@ -720,6 +722,8 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
   variable ht_tree
   variable tolset
   variable tolindex
+  variable iterSet
+  variable knownReference
   variable node_prefix
   variable item_data
   variable item_id
@@ -784,7 +788,17 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
     if {$grammar eq "Set"} {
       set icon_grammar [SubTypeImage [lindex $args 2]]
     } else {
-      set icon_grammar [::Bitmap::get "NameBlock"]
+      if { $knownReference eq "" } {
+        set objRef $iterSet
+        lappend objRef $item_id
+      } else {
+        puts "knownReference = $knownReference"
+        set objRef $knownReference
+      }
+      set classOf [ Tol_ClassOfFromReference $objRef ]
+      set iconClass [ ::ImageManager::getIconForClass $classOf ]
+      set icon_grammar \
+          [ expr {$iconClass eq "" ? [::Bitmap::get "NameBlock"] : $iconClass} ]
     }
   } else {
     set item "item$item_id"
@@ -875,6 +889,7 @@ proc ::TolInspector::OpenObject { index } {
 #/////////////////////////////////////////////////////////////////////////////
   variable tolset
   variable tolindex
+  variable iterSet
   variable at_set
   variable node_prefix
   variable ht_tree
@@ -950,10 +965,9 @@ proc ::TolInspector::OpenObject { index } {
         }
         Busy
         set at_set $index
-        #set set_ref [eval list [list $tolset] $tolindex]
-        set set_ref [eval list $tolset $tolindex]
-        variable gra_parent [ GetParentGrammar $set_ref ]
-        ::tol::forallchild $set_ref ::TolInspector::InsertSubset
+        set iterSet [eval list $tolset $tolindex]
+        variable gra_parent [ GetParentGrammar $iterSet ]
+        ::tol::forallchild $iterSet ::TolInspector::InsertSubset
         set tolset $_tolset
         NotBusy
       }
@@ -1046,7 +1060,11 @@ proc ::TolInspector::InsertConsoleObj { } {
       if {$grammar eq "Set"} {
         set icon [SubTypeImage [lindex $co 7]]
       } else  {
-        set icon [::Bitmap::get "NameBlock"]
+        set objRef [ list "Console" $index ]
+        set classOf [ Tol_ClassOfFromReference $objRef ]
+        set iconClass [ ::ImageManager::getIconForClass $classOf ]
+        set icon \
+            [ expr {$iconClass eq "" ? [::Bitmap::get "NameBlock"] : $iconClass} ]
       }
       set name [lindex $co 1]
       #tol::forallchild $name HasSubset
@@ -1104,11 +1122,15 @@ proc ::TolInspector::InsertPoolObj { } {
       if {$obj(grammar) eq "Set"} {
         set icon [SubTypeImage [lindex $infoObj 7]]
       } else  {
-        set icon [::Bitmap::get "NameBlock"]
+        puts "en pool = $obj(reference)"
+        set classOf [ Tol_ClassOfFromReference $obj(reference) ]
+        set iconClass [ ::ImageManager::getIconForClass $classOf ]
+        set icon \
+            [ expr {$iconClass eq "" ? [::Bitmap::get "NameBlock"] : $iconClass} ]
       }
 
-	  $ht_tree insert -at root-pool end "pool$index" -label $name \
-        -icon [list $icon $icon] -button $has_button
+      $ht_tree insert -at root-pool end "pool$index" -label $name \
+          -icon [list $icon $icon] -button $has_button
       #Tolcon_Trace "InsertPoolObj. name=$name"
       if { ([llength $obj(reference)] > 1) && \
             [string equal $obj(reference) $obj(objName)]} {
@@ -1158,6 +1180,7 @@ proc ::TolInspector::InsertSubset { args } {
   variable ht_tree
   variable at_set
   variable tolset
+  variable iterSet
   variable node_prefix
   variable has_button 0
   variable blt_tree
@@ -1166,7 +1189,7 @@ proc ::TolInspector::InsertSubset { args } {
   #puts "InsertSubset, args=$args"
   set grammar [lindex $args 0]
   if {$grammar eq "Set" || $grammar eq "NameBlock"} {
-    
+    puts "InsertSubset, args=$args"
     if { $gra_parent eq "NameBlock" } {
       array set info_member [ FilterNameBlockMember [ lindex $args 1 ] ]
       if { !$info_member(-show) } {
@@ -1179,6 +1202,7 @@ proc ::TolInspector::InsertSubset { args } {
       set fcolor "black"
     } 
     set content [lindex $args 2]
+    # idx es el indice completo desde el Set root
     set idx     [lindex $args 5]
     set isfile  [lindex $args 6]
     set has_button [lindex $args 7]
@@ -1187,7 +1211,13 @@ proc ::TolInspector::InsertSubset { args } {
     if {$grammar eq "Set"} {
       set icon [SubTypeImage $subtype]
     } else {
-      set icon [::Bitmap::get "NameBlock"]
+      set objRef $iterSet
+      lappend objRef [ lindex $idx end ]
+      puts "objRef = $objRef"
+      set classOf [ Tol_ClassOfFromReference $objRef ]
+      set iconClass [ ::ImageManager::getIconForClass $classOf ]
+      set icon \
+          [ expr {$iconClass eq "" ? [::Bitmap::get "NameBlock"] : $iconClass} ]
     }
     # Tail por si es un fichero. Podría hacerse configurable por el usuario
     set label [file tail $name]
@@ -1460,6 +1490,8 @@ proc ::TolInspector::SelectConsoleRoot { } {
   variable ht_vars
   variable ht_funcs
   variable item_id 1
+  variable iterSet "Console"
+  variable knownReference ""
 
   ClearHiertables
   $ht_vars column  configure Index -hide yes
@@ -1468,10 +1500,11 @@ proc ::TolInspector::SelectConsoleRoot { } {
   foreach co [::tol::console stack list] {
    #puts "SelectConsoleRoot: co = $co"
    set gra  [lindex $co 0]
-    set name [lindex $co 1]
-    set cont [lindex $co 2]
-    set path [lindex $co 3]
-    set desc [lindex $co 4]
+   set name [lindex $co 1]
+   set cont [lindex $co 2]
+   set path [lindex $co 3]
+   set desc [lindex $co 4]
+   set knownReference [ list Console $item_id ]
     switch [lindex $co 0 ] {
       Code {
         InsertChild $gra $name $cont $path [list $desc] 0
@@ -1489,6 +1522,7 @@ proc ::TolInspector::SelectConsoleRoot { } {
       }
     }
   }
+  set knownReference ""
 }
 
 #/////////////////////////////////////////////////////////////////////////////
@@ -1503,6 +1537,7 @@ proc ::TolInspector::SelectPoolRoot { } {
   variable ht_vars
   variable data
   variable item_id 1
+  variable knownReference ""
 
   ClearHiertables
   $ht_vars column  configure Index -hide yes
@@ -1555,8 +1590,10 @@ proc ::TolInspector::SelectPoolRoot { } {
       }
       Set -
       NameBlock {
+        set knownReference $obj(reference)
         InsertChild $gra $name $cont $path [list $desc] \
             $item_id [lindex $infoObj 5] [lindex $infoObj 6] [lindex $infoObj 7] "Reference $obj(reference)"
+        set knownReference ""
       }
       default {
         InsertChild $gra $name $cont $path [list $desc] "Reference $obj(reference)"
@@ -1630,6 +1667,7 @@ proc ::TolInspector::SelectSet { } {
   
   variable tolset
   variable tolindex
+  variable iterSet
   variable var_id 1
   variable fun_id 1
   variable item_id
@@ -1644,9 +1682,9 @@ proc ::TolInspector::SelectSet { } {
   set item_id 1
   
   #puts "SelectSet: tolset=$tolset tolindex=$tolindex"
-  set set_ref [eval list $tolset $tolindex]
-  variable gra_parent [ GetParentGrammar $set_ref ]
-  ::tol::forallchild $set_ref ::TolInspector::_InsertChild
+  set iterSet [eval list $tolset $tolindex]
+  variable gra_parent [ GetParentGrammar $iterSet ]
+  ::tol::forallchild $iterSet ::TolInspector::_InsertChild
   #  set selecting_set 0
 }
 
@@ -1923,6 +1961,11 @@ proc Tol_ClassOf { obj_addr } {
   set x [ string trim [ lindex $info 2 ]  \" ]
   tol::console stack release __gui_classof__
   set x
+}
+
+proc Tol_ClassOfFromReference { objReference } {
+  set addr [ ::tol::info address $objReference ]
+  return [ Tol_ClassOf $addr ]
 }
 
 proc TolGui_GetMenuEntries { selection idx } {

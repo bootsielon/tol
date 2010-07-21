@@ -220,13 +220,13 @@ set info_script [info script]
 if {[file type $info_script] eq "link"} {
   set info_script [file readlink $info_script]
 }
-set toltk_script_path [file dirname $info_script]
+set toltk_script_path [ file normalize [file dirname $info_script] ]
 # load tclIndex
 set dir $toltk_script_path
 source [file join $toltk_script_path "tclIndex"]
 unset dir
 
-set executable_path [file dirname [info nameofexecutable]]
+set executable_path [ file normalize [file dirname [info nameofexecutable] ] ]
 array set GuiVersionInfo {major 1 minor 1 release 6 comment "cvs trunk"}
 
 # path user
