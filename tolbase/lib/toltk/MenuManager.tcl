@@ -204,8 +204,19 @@ proc ::MenuManager::createSubMenuIfNeeded { targetMenu name } {
 proc ::MenuManager::insertEntries { menuWidget objSelection entriesInfo } {
   set multiple [ expr { [ llength $objSelection ] > 1 } ]
   # inserto las entries segun el orden inducido por el campo rank
-  foreach entryInfo [ lsort -real -index 4 $entriesInfo ] {
+  if { [ llength [ lindex $entriesInfo 0 ] ] > 4 } {
+    # rank aparecio en la version 2.2 de GuiTools
+    set sortedEntriesInfo [ lsort -real -index 4 $entriesInfo ]
+  } else {
+    # se asume rank 0 para todos, el orden no cambia
+    set sortedEntriesInfo $entriesInfo
+  }
+  foreach entryInfo $sortedEntriesInfo {
     foreach {name label image translate rank group} $entryInfo break
+    if { $group eq "" } {
+      # rank aparecio en la version 2.2 de GuiTools
+      set group $rank
+    }
     if { $group ^ $multiple } continue
     set mm [ createSubMenuIfNeeded $menuWidget $name ]
     set state [ checkEntryState $name $objSelection $group ]
