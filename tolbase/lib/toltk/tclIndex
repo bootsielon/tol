@@ -169,7 +169,7 @@ set auto_index(::funcSearch::WriteIni) [list source [file join $dir fusearch.tcl
 set auto_index(::funcSearch::ReadIni) [list source [file join $dir fusearch.tcl]]
 set auto_index(::funcSearch::SearchWord) [list source [file join $dir fusearch.tcl]]
 set auto_index(::ImageManager::getImageResourceId) [list source [file join $dir ImageManager.tcl]]
-set auto_index(::ImageManager::getIconForClass) [list source [file join $dir ImageManager.tcl]]
+set auto_index(::ImageManager::getIconForInstance) [list source [file join $dir ImageManager.tcl]]
 set auto_index(::MatrixTable::Create) [list source [file join $dir mattable.tcl]]
 set auto_index(::MatrixTable::Fill) [list source [file join $dir mattable.tcl]]
 set auto_index(::MatrixTable::ReadIni) [list source [file join $dir mattable.tcl]]

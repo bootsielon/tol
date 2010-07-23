@@ -795,10 +795,8 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
         puts "knownReference = $knownReference"
         set objRef $knownReference
       }
-      set classOf [ Tol_ClassOfFromReference $objRef ]
-      set iconClass [ ::ImageManager::getIconForClass $classOf ]
-      set icon_grammar \
-          [ expr {$iconClass eq "" ? [::Bitmap::get "NameBlock"] : $iconClass} ]
+      set objAddress [ tol::info address $objRef ]
+      set icon_grammar [ ::ImageManager::getIconForInstance $objAddress ]
     }
   } else {
     set item "item$item_id"
@@ -1061,10 +1059,8 @@ proc ::TolInspector::InsertConsoleObj { } {
         set icon [SubTypeImage [lindex $co 7]]
       } else  {
         set objRef [ list "Console" $index ]
-        set classOf [ Tol_ClassOfFromReference $objRef ]
-        set iconClass [ ::ImageManager::getIconForClass $classOf ]
-        set icon \
-            [ expr {$iconClass eq "" ? [::Bitmap::get "NameBlock"] : $iconClass} ]
+        set objAddress [ tol::info address $objRef ]
+        set icon [ ::ImageManager::getIconForInstance $objAddress ]
       }
       set name [lindex $co 1]
       #tol::forallchild $name HasSubset
@@ -1123,10 +1119,8 @@ proc ::TolInspector::InsertPoolObj { } {
         set icon [SubTypeImage [lindex $infoObj 7]]
       } else  {
         puts "en pool = $obj(reference)"
-        set classOf [ Tol_ClassOfFromReference $obj(reference) ]
-        set iconClass [ ::ImageManager::getIconForClass $classOf ]
-        set icon \
-            [ expr {$iconClass eq "" ? [::Bitmap::get "NameBlock"] : $iconClass} ]
+        set objAddress [ tol::info address $objRef ]
+        set icon [ ::ImageManager::getIconForInstance $objAddress ]
       }
 
       $ht_tree insert -at root-pool end "pool$index" -label $name \
@@ -1189,7 +1183,7 @@ proc ::TolInspector::InsertSubset { args } {
   #puts "InsertSubset, args=$args"
   set grammar [lindex $args 0]
   if {$grammar eq "Set" || $grammar eq "NameBlock"} {
-    puts "InsertSubset, args=$args"
+    #puts "InsertSubset, args=$args"
     if { $gra_parent eq "NameBlock" } {
       array set info_member [ FilterNameBlockMember [ lindex $args 1 ] ]
       if { !$info_member(-show) } {
@@ -1213,11 +1207,8 @@ proc ::TolInspector::InsertSubset { args } {
     } else {
       set objRef $iterSet
       lappend objRef [ lindex $idx end ]
-      puts "objRef = $objRef"
-      set classOf [ Tol_ClassOfFromReference $objRef ]
-      set iconClass [ ::ImageManager::getIconForClass $classOf ]
-      set icon \
-          [ expr {$iconClass eq "" ? [::Bitmap::get "NameBlock"] : $iconClass} ]
+      set objAddress [ tol::info address $objRef ]
+      set icon [ ::ImageManager::getIconForInstance $objAddress ]
     }
     # Tail por si es un fichero. Podría hacerse configurable por el usuario
     set label [file tail $name]

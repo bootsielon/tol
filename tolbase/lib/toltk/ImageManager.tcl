@@ -1,3 +1,5 @@
+package require BWidget
+
 namespace eval ::ImageManager {
 }
 
@@ -16,14 +18,17 @@ proc ::ImageManager::getImageResourceId { imageName } {
   return $value
 }
 
-proc ::ImageManager::getIconForClass { className } {
-  set rvar "__getIconForClass__"
-  set tolExpr [ string map [ list %N $className %RV $rvar ] {
+proc ::ImageManager::getIconForInstance { objAddress } {
+  set rvar "__getIconForInstance__"
+  set tolExpr [ string map [ list %A $objAddress %RV $rvar ] {
     Text %RV = {
-      Real test = ObjectExist( "Code", "GuiTools::ImageManager::getIconForClass" );
-      Text imageName = If( test, 
-                           GuiTools::ImageManager::getIconForClass( "%N" ), 
-                           "" );
+      Real test = ObjectExist( "Code", "GuiTools::ImageManager::getIconForInstance" );
+      // obtengo el nombre del imagen
+      Text imageName = If( test, {
+                           NameBlock obj = GetObjectFromAddress( "%A" );
+                           Text GuiTools::ImageManager::getIconForInstance( obj )
+                          }, "" );
+      // obtengo el id del recurso que es el id de la imagen Tk
       Text GuiTools::ImageManager::getImageResourceId( imageName )
     }
   } ]
@@ -31,5 +36,5 @@ proc ::ImageManager::getIconForClass { className } {
   set info [ tol::info variable [ list Text $rvar ] ]
   set value [ string trim [ lindex $info 2 ] \" ]
   tol::console stack release $rvar
-  return $value
+  return [ expr {$value eq "" ? [::Bitmap::get "NameBlock"] : $value} ]
 }
