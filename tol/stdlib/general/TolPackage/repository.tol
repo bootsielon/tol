@@ -538,7 +538,7 @@ Static Real FindAndInstall(Text package.version, Real showError)
   { 
   //WriteLn("TRACE @Repository::FindAndInstall 2");
     @Repository r = @Repository::Get(pkgInf->repository, True);
-    r::Install(pkgInf->name, showError)
+    r::Install(pkgInf->name.version, showError)
   },
   showError,
   { 
