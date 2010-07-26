@@ -1388,7 +1388,10 @@ BText BPackage::localRoot_ =
           BNameBlock::AddGlobalRequiredPackage(package);
           BText startActionsExpr = package+"::StartActions(0)";
           bool oldRunningUseModule = BOis::SetRunningUseModule(false);
+          BText oldDir = BDir::GetCurrent();
+          BDir::ChangeCurrent( GetFilePath(path) );
           BSyntaxObject* startActions = GraReal()->EvaluateExpr(startActionsExpr);
+          BDir::ChangeCurrent(oldDir);
           BOis::SetRunningUseModule(oldRunningUseModule);
         //Std(BText("\nTRACE startActionsExpr =")+startActionsExpr+" "+((startActions)?"OK":"FAIL")+"\n");
           DESTROY(startActions);
