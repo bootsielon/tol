@@ -1643,10 +1643,6 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
     const BClass* oldStaticOwner = BClass::currentStatic_;
     const BNameBlock* oldNameBlock = BNameBlock::Current();
     const BNameBlock* funNameBlock = NameBlock();
-    if(funNameBlock && funNameBlock->Class() && !IsMethod()) 
-    { 
-      funNameBlock = NULL; 
-    }
     if(funNameBlock && !funNameBlock->EnsureIsAssigned())
     { 
       if(!funNameBlock->Class()) 
