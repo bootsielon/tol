@@ -1180,6 +1180,170 @@ static BExternalOperator * ois_use_module_ =
   (BExternalOperator*)(__delay_init((void**)&ois_use_module_,
 				    &clone_ois_use_module_));
 
+
+//--------------------------------------------------------------------
+BSyntaxObject* OisUseCacheEvaluator(BList* arg)
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* result=NULL;
+  BTimer tm;
+  BText name = Text((BSyntaxObject*)Car(arg));
+  if(!CheckIsFile(name)) 
+  { 
+    Error(I2("\nOIS: Cannot create cache of ",
+             "\nOIS: No se puede crear la caché de ")+ name+
+          I2(" due to file is not found",
+             " porque no se encuentra el fichero")+"\n");
+  }
+  else
+  {
+    BDat caducityInMinutes = BDat::PosInf();
+    BUserSet* address = (BUserSet*)GraSet()->EvaluateExpr("Copy(Empty)");
+    if(Cdr(arg))
+    {
+      caducityInMinutes = Dat((BSyntaxObject*)Car(Cdr(arg)));
+    }
+    BText ozaPath = BOis::GetModulePath(name);
+    bool ozaExist = CheckIsFile(ozaPath);
+    bool isObsolete = !ozaExist;
+    if(isObsolete)
+    {
+      Std(I2("\nOIS: Cannot find cache of ",
+           "\nOIS: No se encuentra la caché de ")+ name +"\n");
+    }
+    else if(caducityInMinutes.IsUnknown() || (caducityInMinutes<=0))
+    {
+      Std(I2("\nOIS: Cache of ",
+             "\nOIS: La caché de ")+ name +
+          I2(" cannot be used with non positive or unknown caducity\n",
+             " no puede ser utilizada con caducidad no positiva o desconocida\n"));
+      isObsolete = true;
+    }
+    else
+    {
+      BDate tolTime = BTimer::TimeToDate(GetFileTime(name));
+      BDate ozaTime = BTimer::TimeToDate(GetFileTime(ozaPath));
+      isObsolete = tolTime > ozaTime;
+      if(isObsolete)
+      {
+        Std(I2("\nOIS: Cache of ",
+             "\nOIS: La caché de ")+ name +" is older than source\n");
+      }
+      else
+      {
+        BDate nowTime = DteNow();
+        isObsolete = (nowTime-ozaTime)*24*60 > caducityInMinutes;
+        if(isObsolete)
+        {
+          Std(I2("\nOIS: Cache of ",
+                 "\nOIS: La caché de ")+ name +
+              I2(" is lapsed\n",
+                 " está caducada\n"));
+        }
+      }
+    }
+    
+    if(isObsolete)
+    {
+      BSys::Remove(ozaPath);
+      Std(I2("\nOIS: Building cache of ",
+             "\nOIS: Construyendo la caché de ")+ name +" ... \n");
+      BUserSet* uSet = IncludeFile(name);
+      result = uSet;
+      BBool ok = false;
+      if(result)
+      {
+        BOisCreator oisCreator;
+        oisCreator.Create(ozaPath,address,&(uSet->Contens()),NULL,NULL);
+      //Std(BText("TRACE BDatOisCreate::CalcContens() 1\n"));
+        ok = oisCreator.Build();
+      }
+      ok &= CheckIsFile(ozaPath);
+      if(!ok)
+      {
+        Error(I2("\nOIS: Cannot create cache of ",
+                 "\nOIS: No se puede crear la caché de ")+ name+"\n");
+      }
+    }
+    if(!isObsolete && !result)
+    {
+      Std(I2("\nOIS: Loading cache of ",
+             "\nOIS: Cargando la caché de ")+ name +" ... \n");
+      BOisLoader oisLoader;
+      oisLoader.SetPath(ozaPath,&(address->Contens()));
+      oisLoader.SetCheckSourceExists (false);
+      oisLoader.SetCheckSourceSize   (false);
+      oisLoader.SetCheckSourceDate   (false);
+      oisLoader.SetShowCheckingTraces(false);
+      bool errorWarning        = false;
+      bool doShowHierarchy     = false;
+      bool checkIsUpdate       = false;
+      bool doLoadData          = true;
+      int  showHrchyDepth      = -1;
+      int  showHrchyMaxChilds  = -1;
+      const BSet* partial      = NULL;
+      bool ok = oisLoader.Load
+      (
+        errorWarning,
+        doShowHierarchy,
+        checkIsUpdate,
+        doLoadData,
+        showHrchyDepth,
+        showHrchyMaxChilds,
+        partial
+      );
+      if(ok)
+      {
+        result = oisLoader.GetData();
+        oisLoader.Close();
+      }
+    }
+    DESTROY(address);
+  }
+  DESTROY(arg);
+  return(result);
+}
+
+static void * clone_ois_use_cache_() 
+{
+  return new	BExternalOperator 
+  (
+    "Ois.UseCache",
+    GraSet(),
+    "Text Real",
+    OisUseCacheEvaluator,
+    2,
+    2,
+    "(Text tolPath, Real caducityInMinutes)",
+    I2("Loads a precompiled OIS cache archive storing all objects of a TOL file that will be "
+       "compiled just if cache archive not exists yet or it's obsolete or lapsed, or "
+       "argument <caducityInMinutes> is non postive or unknown. \n"
+       "It is considered that the cache is obsolete if it's earlier than the source file.\n"
+       "Not take into account whether the source file has changed or not in reality, but only check its date.\n"
+       "If the source file depend on others, they are not taken into account for purposes of verifying whether the cache is obsolete.\n"
+       "It is considered that cache is lapsed when elapse more than <caducityInMinutes> minutes since its creation.\n"
+       "When OIS image is not rebuilt it will be loaded without compile the TOL file.\n"
+       "The OIS image will be generated in the directory specified in global Text "
+       "Ois.DefRoot\n"
+       ,
+       "Carga un archivo de caché OIS precompilado que almacena todos los objetos de un fichero "
+       "TOL que será compilado sólo si no existe, está caducado u obsoleto, o si el "
+       "argumento <caducityInMinutes> es no positivo o desconocido.\n"
+       "Se considera que la caché está obsoleta si su fecha es anterior a la del archivo fuente.\n"
+       "No se tendrá en cuenta si el archivo fuente ha cambiado o no en realidad, sino que se comprobará únicamente su fecha.\n"
+       "Si el archivo fuente depende de otros, éstos no serán tenidos en cuenta a efectos de comprobar si la caché está obsoleta.\n"
+       "Se considera que la caché está caducada si han transcurrido más de <caducityInMinutes> minutos desde su creación.\n"
+       "La imagen OIS se generará la imagen OIS dentro del directorio especificado "
+       "en la variable global Text Ois.DefRoot.\n"
+    ),
+    BOperClassify::FileIncluding_
+  );
+}
+
+static BExternalOperator * ois_use_cache_ = 
+  (BExternalOperator*)(__delay_init((void**)&ois_use_cache_,
+				    &clone_ois_use_cache_));
+
 //--------------------------------------------------------------------
 BSyntaxObject* BOisLoader::LoadFull(const BText& root)
 //--------------------------------------------------------------------
