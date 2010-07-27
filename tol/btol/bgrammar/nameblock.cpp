@@ -660,6 +660,11 @@ const BText& BNameBlock::LocalName() const
     return(false);  
   }
   obj->PutNameBlock(this);
+  if((obj->Grammar()==GraCode())&&(obj->Mode()==BOBJECTMODE))
+  {
+    BOperator* opr = Code(obj).Operator();
+    opr->PutNameBlock(this);
+  }
   if(name[0]!='_')
   {
     nonPrivateMembers_++;
