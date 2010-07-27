@@ -337,7 +337,7 @@ BSyntaxObject* BOutlier::GetInputDef(BInt t, BDat w) const
   if(!aia_) { return(NIL); }
   BDate f = aia_->res_->Dating()->Next(aia_->res_->FirstDate(),t);  
   BGrammar::IncLevel();
-  BSyntaxObject* aux0 = new BTsrRationExpand(f,aia_->res_->Dating(),rat_);
+  BSyntaxObject* aux0 = new BTsrRationExpand(f,aia_->res_->Dating(),responseFunction_);
   BText name = BText("RationExpand_")+ToName(f.Name()+"_"+Name());
   BSyntaxObject* aux1 = new BTsrRenamed(name, aux0);
   BText expression = BText("@InputDef(")+w+", "+name+")";
