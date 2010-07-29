@@ -1607,7 +1607,9 @@ proc ::TolInspector::SelectGrammar { } {
   variable ht_funcs
   variable item_id 1
   variable OnSelectItem
+  variable knownReference
 
+  set knownReference ""
   ClearHiertables
   $ht_vars column  configure Index -hide yes
   $ht_funcs column configure Index -hide yes
@@ -1626,8 +1628,11 @@ proc ::TolInspector::SelectGrammar { } {
       if { [string equal $grammar "Code"] } {
         #Tolcon_Trace "Code : -- $vinfo --"
         InsertChild $grammar $var [lindex $vinfo 2] [lindex $vinfo 3] [list [lindex $vinfo 4]] 1  
-      } elseif { [string equal $grammar "Set"] } {
+      } elseif { $grammar eq "Set" || $grammar eq "NameBlock" } {
         #Tolcon_Trace "Set : -- $vinfo --"
+        if { $grammar eq "NameBlock" } {
+          set knownReference [ list "NameBlock" $var ]
+        }
         InsertChild $grammar $var [lindex $vinfo 2] [lindex $vinfo 3] [list [lindex $vinfo 4]] \
           $item_id [lindex $vinfo 5] [lindex $vinfo 6] [lindex $vinfo 7]
       } else {
