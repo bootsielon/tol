@@ -3,7 +3,40 @@
 // FILE   : TolPackage.tol
 // PURPOSE: Defines NameBlock TolPackage
 //////////////////////////////////////////////////////////////////////////////
+/*
+//////////////////////////////////////////////////////////////////////////////
+//Clase base de la que deberían heredar los paquetes
+Class @PackageBase
+//////////////////////////////////////////////////////////////////////////////
+{
+  //Descripción breve en una línea
+  Text _.autodoc.brief;
+  //Descripción detallada
+  Text _.autodoc.description;
+  //i.e. http://packages.tol-project.org/OfficialTolArchiveNetwork/
+  Text _.autodoc.url;
+  //i.e. [["Palabras","Clave", ...]]
+  Set  _.autodoc.keys;
+  //i.e. [[ "fulanito@mail.tal", "menganito@mail.cual"]];
+  Set  _.autodoc.authors;
+  Text _.autodoc.minTolVersion =  Copy(TolReleaseId);
+  //Sube cuando hay cambios de cierta envergadura
+  //Mientras es cero se entiende que es una versión beta o en pruebas
+  Real _.autodoc.version.high;
+  //Sube ante cualquier cambio por pequeño que sea y baja a 1 ó 0
+  //cuando sube _.autodoc.version.high
+  //Cuando se tiene que probar alguna característica introducida en
+  //nueva versión alta se le pone 0 a la baja
+  Real _.autodoc.version.low;
+  //i.e. [["paquete1","paquete2", ...]];
+  Set  _.autodoc.dependencies;
 
+  //El método de inicialización de acciones no decarativas será invocado
+  //de forma automática por el #Require la primera vez que se le llame en
+  //cada sesión TOL
+  Real StartActions(Real void) { True }
+};
+*/
 NameBlock TolPackage = [[
 Text _.autodoc.description = "Utilidades para el manejo de paquetes TOL: "
 "instalación, actualización, borrado, consulta de estado, etc.\n"
