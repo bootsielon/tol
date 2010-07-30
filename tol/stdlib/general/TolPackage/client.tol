@@ -81,11 +81,11 @@ Text _.autodoc.member.InstallFromUrl =
 Real InstallFromUrl(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  WriteLn("TRACE [InstallFromUrl] url="<<url);
+//WriteLn("TRACE [InstallFromUrl] url="<<url);
   Text path = RemoveLastSlash(GetFilePath(url));
-  WriteLn("TRACE [InstallFromUrl] path="<<path);
+//WriteLn("TRACE [InstallFromUrl] path="<<path);
   Text package = GetFilePrefix(url);
-  WriteLn("TRACE [InstallFromUrl] package="<<package);
+//WriteLn("TRACE [InstallFromUrl] package="<<package);
   @Repository::DownloadPackageFromUrl(path,package)
 };
 

@@ -504,7 +504,7 @@ Real Install.All(Real void)
   Real Connect(0);
   SetMin(EvalSet(_.index, Real(TolPackage::@PackageInfo pi)
   {
-    DownloadPackage(pi->name.version)
+    Install(pi->name.version,True)
   }))
 };
 
@@ -515,8 +515,9 @@ Text _.autodoc.member.Install.AllInAll =
 Static Real Install.AllInAll(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE Client::Install.AllInAll");
+//WriteLn("TRACE Client::Install.AllInAll 1");
   Real @Repository::ForceConnect.All(0);
+//WriteLn("TRACE Client::Install.AllInAll 2 @Repository::_.instances=\n{"<<@Repository::_.instances+"}");
   SetSum(EvalSet(@Repository::_.instances, Real(@Repository r)
   {
     r::Install.All(void)
