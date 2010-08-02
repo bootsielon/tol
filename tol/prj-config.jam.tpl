@@ -11,4 +11,6 @@ configure lib : mysql : <name>mysqlclient <include>/usr/include/mysql ;
 configure lib : pgsql : <name>pq ;
 configure lib : bz2 ;
 configure lib : ziparch  : <include>/usr/include/ziparchive ;
-configure build : tolodbc tolmysql ;
+configure lib : ANN : <prefix>/usr/local/src/GEOM/ann_1.1.1 ;
+configure lib : xlsreader : <prefix>/usr/local/libxls ;
+configure build : tolodbc tolmysql tolpgsql ;
