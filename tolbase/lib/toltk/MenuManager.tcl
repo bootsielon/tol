@@ -201,12 +201,61 @@ proc ::MenuManager::createSubMenuIfNeeded { targetMenu name } {
   return $mm
 }
 
+proc ::MenuManager::compareMenuEntries { entry1 entry2 } {
+  # cache del rank de las entries, se pide a TOL solo una vez por
+  # ordenamiento
+  variable entriesRank
+
+  set name1 [ lindex $entry1 0 ]
+  set name2 [ lindex $entry2 0 ]
+  set path1 [ lrange [ split $name1 "/" ] 0 end-1 ]
+  set path2 [ lrange [ split $name2 "/" ] 0 end-1 ]
+  set submenu1 ""
+  set submenu2 ""
+  foreach subm1 $path1 subm2 $path2 {
+    if { $subm1 eq "" } {
+      # path1 es mas corto que path2, la parte comun es igual, asumo
+      # que es <
+      return -1
+    }
+    if { $subm2 eq "" } {
+      # path2 es mas corto que path2, la parte comun es igual, asumo
+      # que es >
+      return 1
+    }
+    append submenu1 [ expr { $submenu1 eq "" ? "" : "/" } ] $subm1
+    append submenu2 [ expr { $submenu2 eq "" ? "" : "/" } ] $subm2
+    if { ![ info exist entriesRank($submenu1) ] } {
+      set submenuInfo [ getLabelInfoForEntry $submenu1 ]
+      set entriesRank($submenu1,rank) [ lindex $submenuInfo 4 ]
+    }
+    if { ![ info exist entriesRank($submenu2) ] } {
+      set submenuInfo [ getLabelInfoForEntry $submenu2 ]
+      set entriesRank($submenu2,rank) [ lindex $submenuInfo 4 ]
+    }
+    set cmp \
+        [ expr { $entriesRank($submenu1,rank) - $entriesRank($submenu2,rank) } ]
+    if { $cmp != 0 } {
+      return $cmp
+    }
+  }
+  # hasta este punto los caminos son iguales hay que usar el rank de la entry
+  return [ expr { [ lindex $entry1 4 ] - [ lindex $entry2 4 ] } ]
+}
+
 proc ::MenuManager::insertEntries { menuWidget objSelection entriesInfo } {
+  variable entriesRank
+
   set multiple [ expr { [ llength $objSelection ] > 1 } ]
   # inserto las entries segun el orden inducido por el campo rank
   if { [ llength [ lindex $entriesInfo 0 ] ] > 4 } {
     # rank aparecio en la version 2.2 de GuiTools
-    set sortedEntriesInfo [ lsort -real -index 4 $entriesInfo ]
+    array unset entriesRank
+
+    #set sortedEntriesInfo [ lsort -real -index 4 $entriesInfo ]
+    set sortedEntriesInfo [ lsort \
+                                -command ::MenuManager::compareMenuEntries \
+                                $entriesInfo ]
   } else {
     # se asume rank 0 para todos, el orden no cambia
     set sortedEntriesInfo $entriesInfo
