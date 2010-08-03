@@ -34,9 +34,23 @@ This file implements the macroes needed to create C++ built-in libraries.
 
 #include <tol/tol_boper.h>
 
+TOL_API BExternalOperator* NewExternalOperator(
+  const BText& name,
+  BGrammar* gra,
+  const BText& grammars,
+  BEvaluator evaluator = NIL,
+  BInt min = 0,
+  BInt max = 0,
+  const BText& args = "",
+  const BText& desc = "",
+  BOperClassify* cl = NIL
+);
+
+TOL_API BGraContensP<BNameBlock>* NewUserNameBlock();
+
 #define DefMethod(ORD,CLASS,NAME,MINARG,MAXARG,LISTGRA,LISTARGS,DES,CL)      \
   static void * add_local_method_##NAME () {                                 \
-  BExternalOperator* opr = new BExternalOperator	                           \
+  BExternalOperator* opr = NewExternalOperator  	                           \
     ExtOprConstructor(CLASS,"",MINARG,MAXARG,LISTGRA,LISTARGS,DESC,CL);      \
   opr->PutCppFile(__FILE__);                                                 \
   opr->PutName(NAME);                                                        \
@@ -48,7 +62,7 @@ static BExternalOperator* local_method_##NAME = add_local_method_##NAME();
 
 #define DefMember(CLASS,PARAMCLASS,NAME,DESCRIPTION,EXPRESSION)              \
   static void * add_local_member_##NAME () {                                 \
-  BSyntaxOject* opr = new BExternalOperator	                                 \
+  BSyntaxOject* opr = NewExternalOperator  	                                 \
     ExtOprConstructor(CLASS,"",MINARG,MAXARG,LISTGRA,LISTARGS,DESC,CL);      \
   opr->PutCppFile(__FILE__);                                                 \
   opr->PutName(NAME);                                                        \
