@@ -37,14 +37,39 @@ This file implements the global built-in function used to load libraries.
 
 typedef void* (*get_nb_t)(void);
 
+
+//--------------------------------------------------------------------
+BExternalOperator* NewExternalOperator(
+  const BText& name,
+  BGrammar* gra,
+  const BText& grammars,
+  BEvaluator evaluator,
+  BInt min,
+  BInt max,
+  const BText& args,
+  const BText& desc,
+  BOperClassify* cl       )
+//--------------------------------------------------------------------
+{
+  return(new BExternalOperator(
+    name,gra,grammars,evaluator,min,max,args,desc,cl));
+}
+
+//--------------------------------------------------------------------
+BGraContensP<BNameBlock>* NewUserNameBlock()
+//--------------------------------------------------------------------
+{
+  return(new BGraContensP<BNameBlock>("", new BNameBlock));
+}
+
 //--------------------------------------------------------------------
 class BLoadDynLib: public BExternalOperator
 {
 public:
   BLoadDynLib() : BExternalOperator
   (
-    "LoadDynLib",GraNameBlock(),"Text", NIL,1,1,
-    "(Text libraryPath)",
+    "LoadDynLib",GraNameBlock(),"Text", NIL,1,2,
+    "(Text libraryPath [, Text libraryName])",
     I2("Returns a NameBlock that contains methods and members written "
     "in C + + in a precompiled library for dynamic linking. Once "
     "loaded Nameblock is nothing particular and can be used like "
@@ -68,6 +93,10 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
   if(CheckNonDeclarativeAction("LoadDynLib")) { return(NULL); }
   BText& libraryPath = Text(Car(arg));
   BText libraryName = GetFilePrefix(libraryPath);  
+  if(Cdr(arg))
+  {
+    libraryName = Text(Car(Cdr(arg)));
+  }
   BUserNameBlock* unb = NULL;
   //VBR: Jorge, inserta aquí el código que enlaza con la dll y pon
   //el resultado en unb para devolverlo
