@@ -100,3 +100,11 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
   DESTROY(arg);
   return(unb);
 }
+
+#if !defined(USE_DELAY_INIT)
+  static BLoadDynLib loadDynLib_;
+#else
+void * cloneBLoadDynLib_() { return new BLoadDynLib; }
+static BLoadDynLib * loadDynLib_ = 
+  (BLoadDynLib*)(__delay_init((void**)(&loadDynLib_), &cloneBLoadDynLib_));
+#endif
