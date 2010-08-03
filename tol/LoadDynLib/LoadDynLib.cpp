@@ -33,6 +33,9 @@ This file implements the global built-in function used to load libraries.
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdir.h>
 
+#include <ltdl.h>
+
+typedef void* (*get_nb_t)(void);
 
 //--------------------------------------------------------------------
 class BLoadDynLib: public BExternalOperator
@@ -69,6 +72,30 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
   //VBR: Jorge, inserta aquí el código que enlaza con la dll y pon
   //el resultado en unb para devolverlo
 
+  lt_dlhandle handleLib;
+
+  // abro la DynLib
+  handleLib = lt_dlopen( libraryPath );
+  if ( !handleLib ) {
+    BText reason( lt_dlerror( ) );
+    Error( reason );
+  } else {
+    // si OK, pido el nameblock
+    BText functionName( "GetDynLibNameBlock" );
+    functionName += libraryName;
+  
+    get_nb_t getNameBlock =
+      reinterpret_cast<get_nb_t>( lt_dlsym( handleLib, functionName ) );
+    if ( !getNameBlock ) {
+      BText reason( lt_dlerror( ) );
+      Error( reason );
+    } else {
+      unb = reinterpret_cast<BUserNameBlock*>((*getNameBlock)());
+      if ( !unb ) {
+        Error( "No se pudo convertir a NameBlock: dynamic_cast<BUserNameBlock*>" );
+      }
+    }
+  }
   //Al final hay que destruir la lista de argumentos antes de salir
   DESTROY(arg);
   return(unb);
