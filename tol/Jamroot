@@ -193,7 +193,9 @@ ln-H [ glob *.h ] ;
 #local subdirs = bbasic bmath bparser btol contrib dbdrivers initLibrary 
 #                lang OIS
 
-local subdirs = bbasic bmath bparser btol contrib lang OIS PackArchive ;
+local subdirs =
+      LoadDynLib bbasic bmath bparser btol contrib lang OIS PackArchive ;
+
 local all-obj-aliases ;
 for dir in $(subdirs)
 {
@@ -232,9 +234,11 @@ config.genlib z ;
 alias libz : z : <zarch>yes ;
 alias libz :   : <zarch>no ;
 
+lib ltdl ;
+
 lib dl ;
 
-all_libs = gsl lapack cholmod bz2 libziparch ANN libz dl ;
+all_libs = gsl lapack cholmod bz2 libziparch ANN libz ltdl dl ;
 
 lib tol
     : init $(all-obj-aliases) $(all_libs)
