@@ -52,5 +52,5 @@ void BLoadDynLib::CalcContens()
 //--------------------------------------------------------------------
 {
   BText& libraryPath = Text(Arg(1));
-  
+  BText libraryName = GetFilePrefix(libraryPath);  
 }
