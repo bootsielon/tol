@@ -33,10 +33,14 @@ This file implements the global built-in function used to load libraries.
 
 
 //--------------------------------------------------------------------
-DeclareContensClass(BNameBlock, BNameBlockTemporary, BLoadDynLib);
-DefExtOpr(1, BLoadDynLib, "LoadDynLib", 1, 1, "Set",
- "(Text libraryPath)",
- I2("Returns a NameBlock that contains methods and members written "
+class BLoadDynLib: public BExternalOperator
+{
+public:
+  BLoadDynLib() : BExternalOperator
+  (
+    "LoadDynLib",GraNameBlkock(),"Text", NIL,1,1,
+    "(Text libraryPath)",
+    I2("Returns a NameBlock that contains methods and members written "
     "in C + + in a precompiled library for dynamic linking. Once "
     "loaded Nameblock is nothing particular and can be used like "
     "any other object created with language TOL. See more details on ",
@@ -45,12 +49,25 @@ DefExtOpr(1, BLoadDynLib, "LoadDynLib", 1, 1, "Set",
     "dinámico. Una vez cargado el Nameblock no tiene nada de "
     "particular y puede ser usado como cualquier otro objeto creado "
     "con el lenguaje TOL. Vea más detalles en ")+"\n"
- "https://www.tol-project.org/wiki/LoadDynLib",
- BOperClassify::System_);
+    "https://www.tol-project.org/wiki/LoadDynLib",
+    BOperClassify::System_
+  )
+  { IncNRefs(); }
+  BSyntaxObject* Evaluator(BList* argTrees) const;
+};
+
 //--------------------------------------------------------------------
-void BLoadDynLib::CalcContens()
+BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
 //--------------------------------------------------------------------
 {
-  BText& libraryPath = Text(Arg(1));
+  if(CheckNonDeclarativeAction("LoadDynLib")) { return(NULL); }
+  BText& libraryPath = Text(Car(arg));
   BText libraryName = GetFilePrefix(libraryPath);  
+  BUserNameBlock* unb = NULL;
+  //VBR: Jorge, inserta aquí el código que enlaza con la dll y pon
+  //el resultado en unb para devolverlo
+
+  //Al final hay que destruir la lista de argumentos antes de salir
+  DESTROY(arg);
+  return(unb);
 }
