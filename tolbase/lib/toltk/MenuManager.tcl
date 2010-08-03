@@ -92,12 +92,11 @@ proc ::MenuManager::invokeCommand { name objSelection group } {
   set tolExpr [ string map [ list %RV $rvar %N $name %S $SOA %G $group ] {
     Real %RV = {
       Set objAddress = %S;
-      Anything target = If( %G, {
+      Real GuiTools::MenuManager::invokeEntry( "%N", If( %G, {
         EvalSet( objAddress, Anything( Text addr ) { 
           GetObjectFromAddress( addr )
         } )
-      }, GetObjectFromAddress( objAddress[ 1 ] ) );
-      Real GuiTools::MenuManager::invokeEntry( "%N", target )
+      }, GetObjectFromAddress( objAddress[ 1 ] ) ) )
     }
   } ]
   tol::console eval $tolExpr
