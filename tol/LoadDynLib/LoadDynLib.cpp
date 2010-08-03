@@ -29,7 +29,9 @@ This file implements the global built-in function used to load libraries.
 #endif
 
 #include <tol/tol_bnameblock.h>
+#include <tol/tol_blanguag.h>
 #include <tol/tol_btxtgra.h>
+#include <tol/tol_bdir.h>
 
 
 //--------------------------------------------------------------------
@@ -38,7 +40,7 @@ class BLoadDynLib: public BExternalOperator
 public:
   BLoadDynLib() : BExternalOperator
   (
-    "LoadDynLib",GraNameBlkock(),"Text", NIL,1,1,
+    "LoadDynLib",GraNameBlock(),"Text", NIL,1,1,
     "(Text libraryPath)",
     I2("Returns a NameBlock that contains methods and members written "
     "in C + + in a precompiled library for dynamic linking. Once "
