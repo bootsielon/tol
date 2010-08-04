@@ -22,12 +22,12 @@
 #ifndef TOL_BFSMEM_H
 #define TOL_BFSMEM_H 1
 
-#define BFSMEM_MAX_BASE_SIZE  1024
-
 #include <stdlib.h>
 
+#define BFSMEM_MAX_BASE_SIZE  1024
+
 //--------------------------------------------------------------------
-class BFixedSizeMemoryBase
+class TOL_API BFixedSizeMemoryBase
 //--------------------------------------------------------------------
 {
 public:
