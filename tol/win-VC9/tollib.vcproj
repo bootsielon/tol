@@ -79,7 +79,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib ws2_32.lib shell32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/debug/libgsl_dll_d.lib $(CHOLMOD_LIB)/debug/libcholmod.lib $(CHOLMOD_LIB)/debug/blapi.lib $(BZIP2_LIB)/debug/libbz2_debug.lib $(ZipArchive_LIB)/debug/ZipArchive.lib ANN.lib $(NOINHERIT)"
+				AdditionalDependencies="user32.lib ws2_32.lib shell32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/debug/libgsl_dll_d.lib $(CHOLMOD_LIB)/debug/libcholmod.lib $(CHOLMOD_LIB)/debug/blapi.lib $(BZIP2_LIB)/debug/libbz2_debug.lib $(ZipArchive_LIB)/debug/ZipArchive.lib ANN.lib libltdl.lib $(NOINHERIT)"
 				OutputFile="Debug/tol.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -182,7 +182,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib shell32.lib ws2_32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/release/libgsl_dll.lib $(CHOLMOD_LIB)/release/libcholmod.lib $(CHOLMOD_LIB)/release/blapi.lib $(BZIP2_LIB)/release/libbz2.lib $(ZipArchive_LIB)/release/ZipArchive.lib ANN.lib $(NOINHERIT)"
+				AdditionalDependencies="user32.lib shell32.lib ws2_32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/release/libgsl_dll.lib $(CHOLMOD_LIB)/release/libcholmod.lib $(CHOLMOD_LIB)/release/blapi.lib $(BZIP2_LIB)/release/libbz2.lib $(ZipArchive_LIB)/release/ZipArchive.lib ANN.lib libltdl.lib $(NOINHERIT)"
 				OutputFile="$(OutDir)\tol.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
