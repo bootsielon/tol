@@ -33,7 +33,7 @@
 #include <win_tolinc.h>
 #endif
 
-#include <tol/tol_bfsmem.h>
+#include <tol/tol_bcommon.h>
 #include <tol/tol_brealfun.h>
 
 #define  min(a,b) (((a)<(b))?(a):(b)) 
