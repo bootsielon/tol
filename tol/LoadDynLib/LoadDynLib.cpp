@@ -28,6 +28,7 @@ This file implements the global built-in function used to load libraries.
 #  include <win_tolinc.h>
 #endif
 
+#include "tol_LoadDynLib.h"
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_btxtgra.h>
@@ -37,9 +38,12 @@ This file implements the global built-in function used to load libraries.
 
 typedef void* (*get_nb_t)(void);
 
+static int  lt_dlinit_ =  lt_dlinit();
 
 //--------------------------------------------------------------------
-BExternalOperator* NewExternalOperator(
+TOL_API BUserCode* NewMethod(
+  BNameBlock& nb,
+  const BText& file,
   const BText& name,
   BGrammar* gra,
   const BText& grammars,
@@ -48,11 +52,20 @@ BExternalOperator* NewExternalOperator(
   BInt max,
   const BText& args,
   const BText& desc,
-  BOperClassify* cl       )
+  BOperClassify* cl)
 //--------------------------------------------------------------------
 {
-  return(new BExternalOperator(
-    name,gra,grammars,evaluator,min,max,args,desc,cl));
+  BExternalOperator* opr = new BExternalOperator(
+    "",gra,grammars,evaluator,min,max,args,desc,cl);
+  opr->PutCppFile(file),   
+  opr->PutName(name);
+  BCode code;
+  BUserCode* uCode = new BContensCode("", code, desc);
+  uCode->Contens().PutOperator(opr);
+  uCode->PutName(name);
+  uCode->PutDescription(desc);
+  nb.AddElement(uCode,true);
+  return(uCode);
 }
 
 //--------------------------------------------------------------------
@@ -97,34 +110,47 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
   {
     libraryName = Text(Car(Cdr(arg)));
   }
+//Std(BText("\nTRACE BLoadDynLib::Evaluator 1 libraryPath=")+libraryPath);
+//Std(BText("\nTRACE BLoadDynLib::Evaluator 2 libraryName=")+libraryName);
   BUserNameBlock* unb = NULL;
-  //VBR: Jorge, inserta aquí el código que enlaza con la dll y pon
-  //el resultado en unb para devolverlo
 
   lt_dlhandle handleLib;
 
   // abro la DynLib
   handleLib = lt_dlopen( libraryPath );
-  if ( !handleLib ) {
+  if ( !handleLib ) 
+  {
+  //Std(BText("\nTRACE BLoadDynLib::Evaluator 3 lt_dlerror='")+lt_dlerror()+"'");
     BText reason( lt_dlerror( ) );
-    Error( reason );
-  } else {
+    Error(BText("[LoadDynLib] lt_dlerror:'")+reason+"'");
+  } 
+  else 
+  {
     // si OK, pido el nameblock
     BText functionName( "GetDynLibNameBlock" );
     functionName += libraryName;
-  
+  //Std(BText("\nTRACE BLoadDynLib::Evaluator 4 functionName=")+functionName);
     get_nb_t getNameBlock =
       reinterpret_cast<get_nb_t>( lt_dlsym( handleLib, functionName ) );
-    if ( !getNameBlock ) {
+    if ( !getNameBlock ) 
+    {
+    //Std(BText("\nTRACE BLoadDynLib::Evaluator 5 lt_dlerror='")+lt_dlerror()+"'");
       BText reason( lt_dlerror( ) );
-      Error( reason );
-    } else {
+      Error(BText("[LoadDynLib] lt_dlerror:'")+reason+"'");
+    } 
+    else 
+    {
+    //Std(BText("\nTRACE BLoadDynLib::Evaluator 6"));
       unb = reinterpret_cast<BUserNameBlock*>((*getNameBlock)());
-      if ( !unb ) {
-        Error( "No se pudo convertir a NameBlock: dynamic_cast<BUserNameBlock*>" );
+      if ( !unb ) 
+      {
+      //Std(BText("\nTRACE BLoadDynLib::Evaluator 7"));
+        Error(BText("[LoadDynLib]")+
+              "No se pudo convertir a NameBlock: dynamic_cast<BUserNameBlock*>" );
       }
     }
   }
+//Std(BText("\nTRACE BLoadDynLib::Evaluator 8"));
   //Al final hay que destruir la lista de argumentos antes de salir
   DESTROY(arg);
   return(unb);
