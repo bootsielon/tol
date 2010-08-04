@@ -68,7 +68,7 @@ class BLoadDynLib: public BExternalOperator
 public:
   BLoadDynLib() : BExternalOperator
   (
-    "LoadDynLib",GraNameBlock(),"Text", NIL,1,2,
+    "LoadDynLib",GraNameBlock(),"Text Text", NIL,1,2,
     "(Text libraryPath [, Text libraryName])",
     I2("Returns a NameBlock that contains methods and members written "
     "in C + + in a precompiled library for dynamic linking. Once "
