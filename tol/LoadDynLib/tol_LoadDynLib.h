@@ -33,32 +33,37 @@ This file implements the macroes needed to create C++ built-in libraries.
 #endif
 
 #include <tol/tol_boper.h>
+#include <tol/tol_bcodgra.h>
 
-TOL_API BExternalOperator* NewExternalOperator(
+TOL_API BUserCode* NewMethod(
+  BNameBlock& nb,
+  const BText& file,
   const BText& name,
   BGrammar* gra,
   const BText& grammars,
-  BEvaluator evaluator = NIL,
-  BInt min = 0,
-  BInt max = 0,
-  const BText& args = "",
-  const BText& desc = "",
-  BOperClassify* cl = NIL
-);
+  BEvaluator evaluator,
+  BInt min,
+  BInt max,
+  const BText& args,
+  const BText& desc,
+  BOperClassify* cl       );
 
 TOL_API BGraContensP<BNameBlock>* NewUserNameBlock();
 
-#define DefMethod(ORD,CLASS,NAME,MINARG,MAXARG,LISTGRA,LISTARGS,DES,CL)      \
-  static void * add_local_method_##NAME () {                                 \
-  BExternalOperator* opr = NewExternalOperator  	                           \
-    ExtOprConstructor(CLASS,"",MINARG,MAXARG,LISTGRA,LISTARGS,DESC,CL);      \
-  opr->PutCppFile(__FILE__);                                                 \
-  opr->PutName(NAME);                                                        \
-  LOCAL_NAMEBLOCK.AddElement(opr,True)                                       \
-  return opr;                                                                \
-}                                                                            \
-static BExternalOperator* local_method_##NAME = add_local_method_##NAME(); 
-
+#define DefMethod(ORD,CLASS,NAME,MINARG,MAXARG,LISTGRA,LISTARGS,DES,CL)  \
+static BUserCode * new_local_method_##CLASS = NewMethod(			  \
+    LOCAL_NAMEBLOCK, \
+    __FILE__, \
+    NAME,								   \
+    CLASS::OwnGrammar(),						   \
+    LISTGRA,								   \
+    CLASS##Evaluator,							   \
+    MINARG,								   \
+    MAXARG,								   \
+    LISTARGS,								   \
+    DES,							   \
+    CL									   \
+  ); 
 
 #define DefMember(CLASS,PARAMCLASS,NAME,DESCRIPTION,EXPRESSION)              \
   static void * add_local_member_##NAME () {                                 \
