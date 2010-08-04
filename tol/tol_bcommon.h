@@ -108,7 +108,6 @@ typedef long off_t;
 
 #endif
 
-#include <tol/tol_memhandler.h>
 
 #undef BEGIN_DECLS
 #undef END_DECLS
@@ -387,5 +386,7 @@ inline long double sqrtl(long double x) { return (long double) sqrt((double)(x))
 
 #endif // DARWIN
 //--------------------------------------------------
+
+#include <tol/tol_memhandler.h>
 
 #endif /*! TOL_BCOMMON_H */
