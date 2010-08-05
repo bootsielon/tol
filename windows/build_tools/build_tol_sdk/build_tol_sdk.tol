@@ -38,5 +38,8 @@ Real PlainHeader(Text sourcePath)
   
 Real PlainHeader(sourcePath);
 Real OSFilCopy(libPath+"/tol.lib",sdkLibPath);
-Real OSFilCopy(libPath+"/../config.tol",sourcePath);
+Real OSFilCopy(libPath+"/../config.h",sdkIncPath);
+
+Real PackArchive::PackFull("ZipArchive", sdkPath);
+Real OSFilMove(sdkPath+".zip","../../ActiveTOL/lib");
 
