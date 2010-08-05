@@ -1,6 +1,6 @@
 Text sourcePath = "../../../tol";
 Text libPath = "../../../tol/win-VC9/release";
-Text sdkPath = "../../tol-sdk";
+Text sdkPath = "../../tol_sdk_win";
 Text sdkIncPath = sdkPath+"/tol";
 Text sdkLibPath = sdkPath+"/lib";
 Real OSDirMake(sdkIncPath);
