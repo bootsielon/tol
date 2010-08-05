@@ -74,6 +74,7 @@
 #pragma include_alias(<tol/tol_bsvdsep.h>, <tol_bsvdsep.h>)
 #pragma include_alias(<tol/tol_bmultvar.h>, <tol_bmultvar.h>)
 #pragma include_alias(<tol/tol_bprdist.h>, <tol_bprdist.h>)
+#pragma include_alias(<tol/tol_bprdist.h>, <tol_bprdist_internal.h>)
 #pragma include_alias(<tol/tol_bar.h>, <tol_bar.h>)
 #pragma include_alias(<tol/tol_barma.h>, <tol_barma.h>)
 #pragma include_alias(<tol/tol_blinreg.h>, <tol_blinreg.h>)
