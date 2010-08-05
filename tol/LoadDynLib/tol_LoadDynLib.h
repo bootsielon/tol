@@ -32,6 +32,12 @@ This file implements the macroes needed to create C++ built-in libraries.
 #  include <win_tolinc.h>
 #endif
 
+#if defined(WIN32)
+#define DynAPI extern "C"  _declspec(dllexport) 
+#else
+#define DynAPI extern "C"
+#endif
+
 #include <tol/tol_boper.h>
 #include <tol/tol_bcodgra.h>
 
