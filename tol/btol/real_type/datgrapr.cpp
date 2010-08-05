@@ -26,7 +26,7 @@
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_bmatgra.h>
-#include <tol/tol_bprdist.h>
+#include <tol/tol_bprdist_internal.h>
 #include <tol/tol_gslmat.h>
 
 #include <gsl/gsl_math.h>
@@ -173,19 +173,19 @@ BTraceInit("datgrapr.cpp");
   if (low == GSL_NEGINF)
     if (high == GSL_POSINF) {
       //Std("USANDO no acotada\n");
-      contens_.PutValue(nu+gsl_ran_gaussian(BProbDist::rng(),s));
+      contens_.PutValue(nu+gsl_ran_gaussian(getGslRng(),s));
     } else {
       //Std("USANDO acotada por arriba\n");      
-      contens_.PutValue(gsl_rtanorm_combo(BProbDist::rng(),
+      contens_.PutValue(gsl_rtanorm_combo(getGslRng(),
                                           nu, s, high, iter));
     } else
       if (high == GSL_POSINF) {
         //Std("USANDO acotada por abajo\n");
-        contens_.PutValue(gsl_rtbnorm_combo(BProbDist::rng(),
+        contens_.PutValue(gsl_rtbnorm_combo(getGslRng(),
                                             nu, s, low, iter));
       } else {
         //Std("USANDO acotada por ambos extremos\n");
-        contens_.PutValue(gsl_rtnorm_combo(BProbDist::rng(),
+        contens_.PutValue(gsl_rtnorm_combo(getGslRng(),
                                            nu, s, low, high));
       }
   
@@ -503,7 +503,7 @@ BTraceInit("datgrapr.cpp");
 	  return;
     }
       
-    contens_.PutValue(gsl_ran_lognormal(BProbDist::rng(),l->Value(),s->Value()));
+    contens_.PutValue(gsl_ran_lognormal(getGslRng(),l->Value(),s->Value()));
 }
 
 
@@ -527,7 +527,7 @@ BTraceInit("datgrapr.cpp");
 	contens_.PutKnown(0);
 	return;
     }
-    contens_.PutValue(gsl_ran_chisq(BProbDist::rng(),n->Value()));
+    contens_.PutValue(gsl_ran_chisq(getGslRng(),n->Value()));
 }
 
 //--------------------------------------------------------------------
@@ -634,8 +634,8 @@ BTraceInit("datgrapr.cpp");
     s2 = d->Value();
   }
     
-//     contens_.PutValue(1.0/gsl_ran_gamma(BProbDist::rng(),n->Value()/2,0.5));
-    contens_.PutValue((n*s2)/gsl_ran_chisq(BProbDist::rng(), n));
+//     contens_.PutValue(1.0/gsl_ran_gamma(getGslRng(),n->Value()/2,0.5));
+    contens_.PutValue((n*s2)/gsl_ran_chisq(getGslRng(), n));
 }
 
 //--------------------------------------------------------------------
@@ -1063,7 +1063,7 @@ void BDatRandGamma::CalcContens()
   }
   /* remember that gsl_ran_gamma is expecting for rate parameter
    * rate = 1/scale */
-  contens_.PutValue(gsl_ran_gamma(BProbDist::rng(),
+  contens_.PutValue(gsl_ran_gamma(getGslRng(),
                                   shape, is_scale?1/b:b));
 }
 
@@ -1217,7 +1217,7 @@ void BDatRandGamma::CalcContens()
 	contens_.PutKnown(0);
 	return;
     }
-    contens_.PutValue(gsl_ran_exponential(BProbDist::rng(),mu->Value()));
+    contens_.PutValue(gsl_ran_exponential(getGslRng(),mu->Value()));
 }
 
 //--------------------------------------------------------------------
@@ -1394,7 +1394,7 @@ void BDatRandGamma::CalcContens()
 	contens_.PutKnown(0);
 	return;
     }
-    contens_.PutValue(gsl_ran_cauchy(BProbDist::rng(),a->Value()));
+    contens_.PutValue(gsl_ran_cauchy(getGslRng(),a->Value()));
 }
 
 
@@ -1985,7 +1985,7 @@ void BDatDensMultiNormalTrunc::CalcContens()
   bmat_to_gsl(*mat_xl, xl);
   bmat_to_gsl(*mat_xu, xu);
   gsl_tmvn_workspace_t tmvn_ws;
-  gsl_tmvn_init(mean, cov, 1, xl->data, xu->data, BProbDist::rng(), 10000, &tmvn_ws);
+  gsl_tmvn_init(mean, cov, 1, xl->data, xu->data, getGslRng(), 10000, &tmvn_ws);
   density = gsl_log_tmvn_density(x, mean, &tmvn_ws, xl->data, xu->data);
   if (Arg(6)) {
     BDat * log_flag = &Dat(Arg(6));

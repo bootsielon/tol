@@ -1335,60 +1335,72 @@ BDat BRnRmFunction::ConjugateGradient(BArray<BDat>&	   x,
 }
 
 
-int BRnRmFunction::gsl_EvalFunction(const gsl_vector * x, void * instance, gsl_vector * f )
+int gsl_EvalFunction(const gsl_vector * x, void * instance, gsl_vector * f )
 {
   BRnRmFunction * this_ = (BRnRmFunction*)instance;
   int i;
+
+  BArray<BDat> &X = this_->GetX();
+  BArray<BDat> &Fx = this_->GetFx();
   
-  for(i=0; i<this_->n_; i++) this_->gsl_X(i)= gsl_vector_get(x, i);
-  this_->Evaluate(this_->gsl_Fx, this_->gsl_X);
-  for(i=0; i<this_->m_; i++) gsl_vector_set(f, i, this_->gsl_Fx(i).Value());
+  for(i=0; i<this_->GetDimN(); i++) X(i)= gsl_vector_get(x, i);
+  this_->Evaluate(Fx, X);
+  for(i=0; i<this_->GetDimM(); i++) gsl_vector_set(f, i, Fx(i).Value());
   return GSL_SUCCESS;
   
 }
 
-int BRnRmFunction::gsl_EvalJacFunction(const gsl_vector * x, void * instance, gsl_matrix * J )
+int gsl_EvalJacFunction(const gsl_vector * x, void * instance, gsl_matrix * J )
 {
   BRnRmFunction * this_ = (BRnRmFunction*)instance;
   
   int i, j;
   
-  for(i=0; i<this_->n_; i++) this_->gsl_X(i)= gsl_vector_get(x, i);
-  this_->Evaluate(this_->gsl_Fx, this_->gsl_X);
+  BArray<BDat> &X = this_->GetX();
+  BArray<BDat> &Fx = this_->GetFx();
+  BArray<BDat> &FStep = this_->GetFStep();
   
-  for(i=0; i<this_->n_; i++)
+  for(i=0; i<this_->GetDimN(); i++) X(i)= gsl_vector_get(x, i);
+  this_->Evaluate(Fx, X);
+  
+  for(i=0; i<this_->GetDimN(); i++)
     {
-      this_->gsl_X(i) += Distance();
-      this_->Evaluate(this_->gsl_FStep, this_->gsl_X);
-      this_->gsl_X(i)-=Distance();
-      for(j=0; j<this_->m_; j++)
+      X(i) += Distance();
+      this_->Evaluate(FStep, X);
+      X(i)-=Distance();
+      for(j=0; j<this_->GetDimM(); j++)
 	{
-	  BDat d = (this_->gsl_FStep(j)-this_->gsl_Fx(j))/Distance();
+	  BDat d = (FStep(j)-Fx(j))/Distance();
 	  gsl_matrix_set(J, j, i, d.Value());
 	}
     }
   return GSL_SUCCESS;
 }
 
-int BRnRmFunction::gsl_EvalBoth(const gsl_vector * x, void * instance, gsl_vector * f, gsl_matrix * J )
+int gsl_EvalBoth(const gsl_vector * x, void * instance, gsl_vector * f, gsl_matrix * J )
 {
   BRnRmFunction * this_ = (BRnRmFunction*)instance;
+  BArray<BDat> &X = this_->GetX();
+  BArray<BDat> &Fx = this_->GetFx();
+  BArray<BDat> &FStep = this_->GetFStep();
   
   int i, j;
   double d, dist = Distance().Value();
   
-  for(i=0; i<this_->n_; i++) this_->gsl_X(i)= gsl_vector_get(x, i);
-  this_->Evaluate(this_->gsl_Fx, this_->gsl_X);
-  for(j=0; j<this_->m_; j++) gsl_vector_set(f, j, this_->gsl_Fx(j).Value());
+  for(i=0; i<this_->GetDimN(); i++)
+    X(i)= gsl_vector_get(x, i);
+  this_->Evaluate(Fx, X);
+  for(j=0; j<this_->GetDimM(); j++)
+    gsl_vector_set(f, j, Fx(j).Value());
   
-  for(i=0; i<this_->n_; i++)
+  for(i=0; i<this_->GetDimN(); i++)
     {
-      this_->gsl_X(i) += Distance();
-      this_->Evaluate(this_->gsl_FStep, this_->gsl_X);
-      this_->gsl_X(i)-=Distance();
-      for(j=0; j<this_->m_; j++)
+      X(i) += Distance();
+      this_->Evaluate(FStep, X);
+      X(i)-=Distance();
+      for(j=0; j<this_->GetDimM(); j++)
 	{
-	  d = (this_->gsl_FStep(j)-this_->gsl_Fx(j)).Value()/dist;
+	  d = (FStep(j)-Fx(j)).Value()/dist;
 	  gsl_matrix_set(J, j, i, d);
 	}
     }

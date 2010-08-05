@@ -15,6 +15,7 @@
  uni.slice.evals <- 0	# Number of density evaluations done in these calls
 */
 
+#include <tol/tol_bprdist_internal.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_math.h>
 
@@ -58,24 +59,25 @@ static int uni_slice_evals = 0;
 #define _SS_ZERO_ 1.0e-10
 #define _SS_MAXITER_ 5000
 
-double slice_sampler_1D( const gsl_rng *rng,
+double slice_sampler_1D( const void /*gsl_rng*/ *_rng,
                          /* initial point */
                          double x0,
                          /* log of the probability density (plus constant) */
                          double (*g)(double,void*),
                          /* client data for g */
-                         void *gdata=NULL,
+                         void *gdata,
                          /* gx0 = g(x0,gdata) */
-                         double *gx0=NULL,
+                         double *gx0,
                          /* step's size for creating interval (default 1) */
-                         double w=1.0,
+                         double w,
                          /* Limit on steps (negative means infinite) */
-                         int m=-1,
+                         int m,
                          /* lower bound on support of the distribution */
-                         double lower=GSL_NEGINF,
+                         double lower,
                          /* upper bound on support of the distribution */   
-                         double upper=GSL_POSINF )
+                         double upper )
 {
+  gsl_rng *rng = getGslRng();
   double _gx0, _gx;
 
   ++uni_slice_calls;

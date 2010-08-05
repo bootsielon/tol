@@ -22,6 +22,7 @@
 #include <win_tolinc.h>
 #endif
 
+#include <tol/tol_bprdist_internal.h>
 #include <tol/tol_bvmat_impl.h>
 #include "gsl_ext.h"
 #include <gsl/gsl_math.h>
@@ -689,7 +690,7 @@ double BVMat::Quantile() const
     //Std(BText("\nBNormalDist z[")+j+"]="+zj);
     }
 # else
-    zj = gsl_rtabnorm_combo(BProbDist::rng(), 0.0, 1.0,
+    zj = gsl_rtabnorm_combo(getGslRng(), 0.0, 1.0,
                      lower, upper, 10);
     assert((lower<=zj) && (zj<=upper));
     if(!BDat(zj).IsFinite())

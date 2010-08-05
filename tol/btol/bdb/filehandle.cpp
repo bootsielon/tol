@@ -29,6 +29,8 @@
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdatgra.h>
 
+#include <errno.h>
+
 inline char* syserr(int numErr)
 {
   return(strerror(numErr));

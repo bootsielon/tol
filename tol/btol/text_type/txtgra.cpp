@@ -38,7 +38,7 @@
 #include <tol/tol_list.h>
 #include <tol/tol_bseed.h>
 #include <tol/tol_btimer.h>
-#include <tol/tol_bprdist.h>
+#include <tol/tol_bprdist_internal.h>
 #include <tol/tol_bfilter.h>
 #include <tol/tol_bparser.h>
 #include <tol/tol_bstruct.h>
@@ -415,7 +415,7 @@ DefIntOpr(1, BGetRngName, "GetRandomName", 1, 1,
 void BGetRngName::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = gsl_rng_name(BProbDist::rng());
+  contens_ = gsl_rng_name(getGslRng());
 }
 
 //--------------------------------------------------------------------

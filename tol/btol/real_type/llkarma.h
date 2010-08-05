@@ -1,5 +1,12 @@
-#ifndef _FUNCTIONS_H_
-#define _FUNCTIONS_H_
+/*
+  Este es un archivo interno que debe distribuirse en el SDK
+ */
+
+#ifndef _LLKARMA_H_
+#define _LLKARMA_H_
+
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
 void pMatpol(const gsl_vector *v, int n, gsl_matrix *M);
 void Matpol(const gsl_vector *v, int n, gsl_matrix *M);
 void DiagVector(const gsl_vector *v, gsl_matrix *D);
@@ -24,4 +31,5 @@ void PIRMatrix2(gsl_vector *v, const gsl_vector *pAR,
 		const gsl_vector *R, gsl_vector *PIR);
 void PhiRMatrix(const gsl_vector *pAR,const gsl_vector *R, gsl_vector *PIR);
 void MatSVDdetInverse(const gsl_matrix *M, gsl_matrix *Mi, double &det);
+
 #endif

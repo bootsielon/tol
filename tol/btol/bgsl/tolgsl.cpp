@@ -34,6 +34,7 @@
 #endif
 
 #include <tol/tol_gsl.h>
+#include <gsl/gsl_errno.h>
 
 BTraceInit("tolgsl.cpp");
 

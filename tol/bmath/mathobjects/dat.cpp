@@ -27,9 +27,7 @@
 #include <tol/tol_bdat.h>
 #include <tol/tol_bout.h>
 
-#if defined(_MSC_VER) /* Microsoft Visual C++ */
 #include <gsl/gsl_math.h>
-#endif
 
 #include <errno.h>
 #include <float.h>

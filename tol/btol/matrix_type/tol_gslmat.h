@@ -19,6 +19,11 @@
    USA.
  */
 
+/*
+  OJO: este archivo es interno y solo se incluye directamente desde
+  los cpp de tol, no forma parte del SDK.
+ */
+
 #include <tol/tol_bmatrix.h>
 #include <gsl/gsl_matrix.h>
 

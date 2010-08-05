@@ -23,6 +23,7 @@
 #include <win_tolinc.h>
 #endif
 
+#include <tol/tol_bprdist_internal.h>
 
 #include <tol/tol_matrix.h>
 #include <tol/tol_bmultvar.h>
@@ -240,7 +241,7 @@ void RandMultinomial(int N, const BArray<double>& p,
 {
   size_t K = p.Size();
   n.ReallocBuffer(K);
-  gsl_ran_multinomial (BProbDist::rng(), K, N, p.Buffer(), n.GetBuffer());
+  gsl_ran_multinomial (getGslRng(), K, N, p.Buffer(), n.GetBuffer());
 }
 
 
@@ -282,7 +283,7 @@ bool RandTruncatedMultNormal(         BMatrix<BDat>& tn,
       BTruncatedNormalDist tni(a(i,0), b(i,0), 0, 1);
       y(i,0) = tni.Random();
 # else
-      y(i,0) = gsl_rtabnorm_combo(BProbDist::rng(), 0.0, 1.0,
+      y(i,0) = gsl_rtabnorm_combo(getGslRng(), 0.0, 1.0,
                                   a(i,0).Value(), b(i,0).Value(), 10);
 # endif
     }

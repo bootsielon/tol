@@ -63,6 +63,8 @@
 #include <malloc.h>
 #include <locale.h>
 #include <signal.h>
+#include <errno.h>
+#include <gsl/gsl_errno.h>
 
 #include <tol/tol_bnameblock.h>
 
@@ -256,13 +258,15 @@ static void signal_error_SIGUNK(int sig)
 static void signal_assign()
 //--------------------------------------------------------------------
 {
-#ifdef UNIX
+#if defined(UNIX)
+#if 0
   signal(SIGINT,   signal_error_SIGINT);
   signal(SIGILL,   signal_error_SIGILL);
   signal(SIGFPE,   signal_error_SIGFPE);
   signal(SIGSEGV,  signal_error_SIGSEGV);
   signal(SIGTERM,  signal_error_SIGTERM);
   signal(SIGABRT,  signal_error_SIGABRT);
+#endif
 #else
   signal(SIGINT,   signal_error_SIGINT);
   signal(SIGILL,   signal_error_SIGILL);

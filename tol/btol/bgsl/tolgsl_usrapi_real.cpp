@@ -160,12 +160,12 @@ There are 387 functions in this TOL user's API about these GSL chapters
 #include <win_tolinc.h>
 #endif
 
+#include <tol/tol_bprdist_internal.h>
 #include <tol/tol_gsl.h>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
-#include <tol/tol_bprdist.h>
 
 
 //--------------------------------------------------------------------
@@ -4273,7 +4273,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_bernoulli(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_bernoulli(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_bernoulli");
 #endif
@@ -4405,7 +4405,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_beta(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_beta(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_beta");
 #endif
@@ -4493,7 +4493,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_binomial(BProbDist::rng(), Real(Arg(1)), (unsigned int)Real(Arg(2))); 
+  contens_ = gsl_ran_binomial(getGslRng(), Real(Arg(1)), (unsigned int)Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_binomial");
 #endif
@@ -4647,7 +4647,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_cauchy(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_cauchy(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_cauchy");
 #endif
@@ -4779,7 +4779,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_chisq(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_chisq(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_chisq");
 #endif
@@ -4911,7 +4911,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_exponential(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_exponential(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_exponential");
 #endif
@@ -4999,7 +4999,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_exppow(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_exppow(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_exppow");
 #endif
@@ -5131,7 +5131,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_fdist(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_fdist(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_fdist");
 #endif
@@ -5263,7 +5263,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_flat(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_flat(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_flat");
 #endif
@@ -5395,7 +5395,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_gamma(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_gamma(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_gamma");
 #endif
@@ -5417,7 +5417,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10600)
-  contens_ = gsl_ran_gamma_mt(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_gamma_mt(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10600,"gsl_ran_gamma_mt");
 #endif
@@ -5637,7 +5637,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_gaussian(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_gaussian(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_gaussian");
 #endif
@@ -5681,7 +5681,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_gaussian_ratio_method(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_gaussian_ratio_method(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_gaussian_ratio_method");
 #endif
@@ -5703,7 +5703,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10600)
-  contens_ = gsl_ran_gaussian_ziggurat(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_gaussian_ziggurat(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10600,"gsl_ran_gaussian_ziggurat");
 #endif
@@ -5725,7 +5725,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_ugaussian(BProbDist::rng()); 
+  contens_ = gsl_ran_ugaussian(getGslRng()); 
 #else
   ErrorGslFVer(10400,"gsl_ran_ugaussian");
 #endif
@@ -5769,7 +5769,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_ugaussian_ratio_method(BProbDist::rng()); 
+  contens_ = gsl_ran_ugaussian_ratio_method(getGslRng()); 
 #else
   ErrorGslFVer(10400,"gsl_ran_ugaussian_ratio_method");
 #endif
@@ -5791,7 +5791,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_gaussian_tail(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_gaussian_tail(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_gaussian_tail");
 #endif
@@ -5835,7 +5835,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_ugaussian_tail(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_ugaussian_tail(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_ugaussian_tail");
 #endif
@@ -5923,7 +5923,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_geometric(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_geometric(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_geometric");
 #endif
@@ -6011,7 +6011,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_hypergeometric(BProbDist::rng(), (unsigned int)Real(Arg(1)), (unsigned int)Real(Arg(2)), (unsigned int)Real(Arg(3))); 
+  contens_ = gsl_ran_hypergeometric(getGslRng(), (unsigned int)Real(Arg(1)), (unsigned int)Real(Arg(2)), (unsigned int)Real(Arg(3))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_hypergeometric");
 #endif
@@ -6055,7 +6055,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_landau(BProbDist::rng()); 
+  contens_ = gsl_ran_landau(getGslRng()); 
 #else
   ErrorGslFVer(10400,"gsl_ran_landau");
 #endif
@@ -6187,7 +6187,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_laplace(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_laplace(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_laplace");
 #endif
@@ -6231,7 +6231,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_levy(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_levy(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_levy");
 #endif
@@ -6253,7 +6253,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_levy_skew(BProbDist::rng(), Real(Arg(1)), Real(Arg(2)), Real(Arg(3))); 
+  contens_ = gsl_ran_levy_skew(getGslRng(), Real(Arg(1)), Real(Arg(2)), Real(Arg(3))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_levy_skew");
 #endif
@@ -6275,7 +6275,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_logarithmic(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_logarithmic(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_logarithmic");
 #endif
@@ -6407,7 +6407,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_logistic(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_logistic(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_logistic");
 #endif
@@ -6539,7 +6539,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_lognormal(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_lognormal(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_lognormal");
 #endif
@@ -6627,7 +6627,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_negative_binomial(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_negative_binomial(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_negative_binomial");
 #endif
@@ -6759,7 +6759,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_pareto(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_pareto(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_pareto");
 #endif
@@ -6847,7 +6847,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_pascal(BProbDist::rng(), Real(Arg(1)), (unsigned int)Real(Arg(2))); 
+  contens_ = gsl_ran_pascal(getGslRng(), Real(Arg(1)), (unsigned int)Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_pascal");
 #endif
@@ -6935,7 +6935,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_poisson(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_poisson(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_poisson");
 #endif
@@ -7067,7 +7067,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_rayleigh(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_rayleigh(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_rayleigh");
 #endif
@@ -7111,7 +7111,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_rayleigh_tail(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_rayleigh_tail(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_rayleigh_tail");
 #endif
@@ -7243,7 +7243,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_gumbel1(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_gumbel1(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_gumbel1");
 #endif
@@ -7375,7 +7375,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_gumbel2(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_gumbel2(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_gumbel2");
 #endif
@@ -7507,7 +7507,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_weibull(BProbDist::rng(), Real(Arg(1)), Real(Arg(2))); 
+  contens_ = gsl_ran_weibull(getGslRng(), Real(Arg(1)), Real(Arg(2))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_weibull");
 #endif
@@ -7639,7 +7639,7 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   contens_.PutKnown(false);
   for(int n=1; n<=NumArgs(); n++) { if(Dat(Arg(n)).IsUnknown()) { return; } }
 #if (GSL_VERSION_NUM >= 10400)
-  contens_ = gsl_ran_tdist(BProbDist::rng(), Real(Arg(1))); 
+  contens_ = gsl_ran_tdist(getGslRng(), Real(Arg(1))); 
 #else
   ErrorGslFVer(10400,"gsl_ran_tdist");
 #endif

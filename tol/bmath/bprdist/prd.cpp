@@ -23,7 +23,7 @@
 #include <win_tolinc.h>
 #endif
 
-#include <tol/tol_bprdist.h>
+#include <tol/tol_bprdist_internal.h>
 #include <tol/tol_bfibonac.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_butil.h>
@@ -51,7 +51,7 @@ BTraceInit("prd.cpp");
 
 
 BNormalDist BProbDist::n01_(StaticInit());
-gsl_rng *   BProbDist::rng_ = NULL;
+void *   BProbDist::rng_ = NULL;
 unsigned long int BProbDist::seed_ = 0;
 
 //--------------------------------------------------------------------
@@ -100,7 +100,7 @@ void BProbDist::InitGSLRand(unsigned long int seed)
 }
 
 //--------------------------------------------------------------------
-gsl_rng * BProbDist::rng()
+void * BProbDist::rng()
 
 /*! Initializes random GSL environment variable.
  */
@@ -477,7 +477,7 @@ BDat BUniformDist::Random01()
  */
 //--------------------------------------------------------------------
 {
-    return gsl_rng_uniform(BProbDist::rng());
+    return gsl_rng_uniform(getGslRng());
   /*
   double y;
   drand(&y);
@@ -565,7 +565,7 @@ BDat BNormalDist::Random01()
  */
 //--------------------------------------------------------------------
 {
-    return(BDat(gsl_ran_ugaussian(BProbDist::rng())));
+    return(BDat(gsl_ran_ugaussian(getGslRng())));
 }
 
 
@@ -1217,7 +1217,7 @@ BDat BTStudentDist::Inverse(BDat prob, BDat tolerance)
 BDat BTStudentDist::Random()
 //--------------------------------------------------------------------
 {
-    return gsl_ran_tdist(BProbDist::rng(), degree_);
+    return gsl_ran_tdist(getGslRng(), degree_);
     
     // return(n01_.Random()/Sqrt(BChiSquareDist(degree_).Random()/degree_));
 }

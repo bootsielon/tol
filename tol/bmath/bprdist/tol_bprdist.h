@@ -22,10 +22,12 @@
 #ifndef TOL_BPRDIST_H
 #define TOL_BPRDIST_H 1
 
+#include <limits>
+
 #include <tol/tol_bmatfun.h>
 #include <tol/tol_brealfun.h>
-#include <gsl/gsl_nan.h>
-#include <gsl/gsl_rng.h>
+//#include <gsl/gsl_nan.h>
+//#include <gsl/gsl_rng.h>
 
 //--------------------------------------------------------------------
 // forward references
@@ -79,7 +81,7 @@ class TOL_API BProbDist
 {
 protected:
   static BNormalDist n01_;
-  static gsl_rng * rng_;
+  static void * rng_;  // es un gsl_rng
   static unsigned long int seed_;
   static void InitGSLRand(long unsigned int);
   
@@ -161,7 +163,7 @@ public:
     return((*density_)[x]); 
   }
   
-  static gsl_rng * rng();
+  static void * rng();
   static void PutRandomSeed(unsigned long int seed);
   static unsigned long int GetRandomSeed();
 };
@@ -346,15 +348,15 @@ public:
   BDat Random	   ();
 };
 
-/*
-//--------------------------------------------------------------------//
-class TOL_API BTruncatedNormalDist : public BProbDist
-
 /*! Truncated normal probability distribution definition & code
  *  for some methods. 
  *  Based on N. Johnson, S.Kotz, Continuous Univariate Distributions, 
  *  Chapter 13
- * /
+ */
+/*
+//--------------------------------------------------------------------//
+class TOL_API BTruncatedNormalDist : public BProbDist
+
 //--------------------------------------------------------------------//
 {
 private:
@@ -982,7 +984,7 @@ public:
   BDat Dens	(BDat x);
 };
 
-double slice_sampler_1D(const gsl_rng *rng,
+double slice_sampler_1D(const void *rng,
                         /* initial point */
                         double x0,
                         /* log of the probability density (plus constant) */
@@ -996,8 +998,8 @@ double slice_sampler_1D(const gsl_rng *rng,
                         /* Limit on steps (negative means infinite) */
                         int m=-1,
                         /* lower bound on support of the distribution */
-                        double lower=GSL_NEGINF,
+                        double lower=std::numeric_limits<double>::min(),
                          /* upper bound on support of the distribution */   
-                        double upper=GSL_POSINF);
+                        double upper=std::numeric_limits<double>::max());
 
 #endif	// TOL_BPRDIST_H

@@ -39,7 +39,13 @@
 # define IS_NAN(x)     _isnan(x)
 # define IS_FINITE(x)  _finite(x)
 #else
-#include <gsl/gsl_math.h>
+// gsl/gsl_sys.h
+extern "C" {
+  int gsl_isnan (const double x);
+  int gsl_isinf (const double x);
+  int gsl_finite (const double x);
+}
+
 # define IS_NAN(x)     gsl_isnan(x)
 # define IS_FINITE(x)  gsl_finite(x)
 #endif

@@ -26,7 +26,7 @@
 #include <stdarg.h>
 
 #include <gsl/gsl_randist.h>
-#include <tol/tol_bprdist.h>
+#include <tol/tol_bprdist_internal.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bmatgra.h>
@@ -895,12 +895,12 @@ BSyntaxObject * SparseSamplePosterior(int n, int burning, int size,
   /* burning period */
   for (i = 0; i < burning; i++) {
     /* sample s2 */
-    s2 = ns2/gsl_ran_chisq(BProbDist::rng(), deg);
+    s2 = ns2/gsl_ran_chisq(getGslRng(), deg);
     s[0] = sqrt(s2); 
 
     /* sample IID N[0,1] */
     for (j = 0; j < k; j++) {
-      iid_x[j] = gsl_ran_ugaussian(BProbDist::rng());
+      iid_x[j] = gsl_ran_ugaussian(getGslRng());
     }
     /* sample beta correlated multinormal: beta = mean + s*F*iid */
     cholmod_copy_dense2(mean, beta, cm);           /* beta = mean */
@@ -914,13 +914,13 @@ BSyntaxObject * SparseSamplePosterior(int n, int burning, int size,
   /* sampling period */
   for (i = 0; i < size; i++) {
     /* sample s2 */
-    s2 = ns2/gsl_ran_chisq(BProbDist::rng(), deg);
+    s2 = ns2/gsl_ran_chisq(getGslRng(), deg);
     (*mat_sample)(i,0) = s2;
     s[0] = sqrt(s2); 
 
     /* sample IID N[0,1] */
     for (j = 0; j < k; j++) {
-      iid_x[j] = gsl_ran_ugaussian(BProbDist::rng());
+      iid_x[j] = gsl_ran_ugaussian(getGslRng());
     }
 
     /* sample beta correlated multinormal: beta = mean + s*F*iid */

@@ -34,7 +34,7 @@
 
 #include <tol/tol_gsl.h>
 #include <tol/tol_arms.h>
-#include <tol/tol_bprdist.h>
+#include <tol/tol_bprdist_internal.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_btxtgra.h>
@@ -1655,7 +1655,7 @@ int MH_blk_sampler::draw_mh_generic(MH_workspace & workspace,
   /* here we can test with an eps */
   if (log_alpha_xy < 0) {
     /* generate a random number from U(0,1) */
-    double log_u = log(gsl_rng_uniform_pos(BProbDist::rng()));
+    double log_u = log(gsl_rng_uniform_pos(getGslRng()));
     //printf("log(u) = %g\n", log_u);
     if (log_u > log_alpha_xy) {
       /* this DESTROY set ptr_umat_y to NULL */

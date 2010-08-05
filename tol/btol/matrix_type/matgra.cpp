@@ -29,6 +29,7 @@
 #include <tol/tol_matrix.h>
 #include <tol/tol_bvmat.h>
 #include <tol/tol_bmatgra.h>
+#include <tol/tol_bprdist_internal.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bpolgra.h>
 #include <tol/tol_bratgra.h>
@@ -4884,7 +4885,7 @@ void BMatCokeBoots::CalcContens()
     // resample residuals.
     if (has_ARIMA) {
       for (i = 0; i < (int)len_residuals; i++) {
-        i_rand = gsl_rng_uniform_int(BProbDist::rng(), len_residuals);
+        i_rand = gsl_rng_uniform_int(getGslRng(), len_residuals);
         buffer_mat_residuals[i] = buffer_tsr_residuals0[i_rand];
       }
       // rebuild noise.
@@ -4892,7 +4893,7 @@ void BMatCokeBoots::CalcContens()
     } else {
       // noise is equal to residuals
       for (i = 0; i < (int)len_residuals; i++) {
-        i_rand = gsl_rng_uniform_int(BProbDist::rng(), len_residuals);
+        i_rand = gsl_rng_uniform_int(getGslRng(), len_residuals);
         buffer_mat_noise[i] = buffer_tsr_residuals0[i_rand];
       }
     }
@@ -5255,7 +5256,7 @@ int TOL_BoostrapSample(BSyntaxObject * model,
     // resample residuals.
     if (has_ARIMA) {
       for (i = 0; i < len_residuals; i++) {
-        i_rand = gsl_rng_uniform_int(BProbDist::rng(), len_residuals);
+        i_rand = gsl_rng_uniform_int(getGslRng(), len_residuals);
         buffer_mat_residuals[i] = buffer_tsr_residuals0[i_rand];
       }
       // rebuild noise.
@@ -5264,7 +5265,7 @@ int TOL_BoostrapSample(BSyntaxObject * model,
     } else {
       // noise is equal to residuals
       for (i = 0; i < len_residuals; i++) {
-        i_rand = gsl_rng_uniform_int(BProbDist::rng(), len_residuals);
+        i_rand = gsl_rng_uniform_int(getGslRng(), len_residuals);
         buffer_mat_noise[i] = buffer_tsr_residuals0[i_rand];
       }
     }
@@ -5788,7 +5789,7 @@ void BMatGibbsCMN::CalcContens()
         }
       }
     }
-    gsl_rng *r = BProbDist::rng();
+    gsl_rng *r = getGslRng();
     const int iter = 10;
     if (low_bounded) {
       if (high_bounded) {
@@ -5832,10 +5833,10 @@ void BMatGibbsCMN::CalcContens()
       gsl_vector *sample = gsl_vector_alloc(dim);
       contens_.Alloc(size, dim);
       for (i = 0; i < burning; i++) {
-        gsl_rcmnorm_draw(BProbDist::rng(), &work, NULL);
+        gsl_rcmnorm_draw(getGslRng(), &work, NULL);
       }
       for (i = 0; i < size; i++) {
-        gsl_rcmnorm_draw(BProbDist::rng(), &work, sample);
+        gsl_rcmnorm_draw(getGslRng(), &work, sample);
         for (j = 0; j < dim; j++)
           contens_(i,j) = gsl_vector_get(sample, j);
       }
@@ -5900,7 +5901,7 @@ void BMatRandCMN::CalcContens()
     size_t i, j;
     
     for (i = 0; i < burning+size; i++) {
-      gsl_rcmnorm_draw(BProbDist::rng(), &work, NULL);
+      gsl_rcmnorm_draw(getGslRng(), &work, NULL);
     }
     /* use the last sample */
     size_t dim = work.alpha->size;
@@ -5972,7 +5973,7 @@ void BMatGibbsRMN::CalcContens()
     gsl_vector * sample = gsl_vector_alloc(dim);
     contens_.Alloc(size, dim);
     for (i = 0; i < size; i++) {
-      gsl_rcmnorm_draw(BProbDist::rng(), &work, sample);
+      gsl_rcmnorm_draw(getGslRng(), &work, sample);
       for (j = 0; j < dim; j++)
         contens_(i,j) = gsl_vector_get(sample, j);
     }
@@ -6036,7 +6037,7 @@ void BMatRandRMN::CalcContens()
     size_t i, j;
    
     for (i = 0; i < size; i++) {
-      gsl_rcmnorm_draw(BProbDist::rng(), &work, NULL);
+      gsl_rcmnorm_draw(getGslRng(), &work, NULL);
     }
     size_t dim = work.alpha->size;
     gsl_vector * sample = gsl_vector_alloc(dim);
@@ -6267,7 +6268,7 @@ void BDatLogDensTruncatedMultNormal::CalcContens()
   bmat_to_gsl(*S_, gsl_S);
   bmat_to_gsl(*S_, gsl_X);
 
-  gsl_rwish(BProbDist::rng(), v,gsl_S,gsl_X);
+  gsl_rwish(getGslRng(), v,gsl_S,gsl_X);
 
   gsl_to_bmat(gsl_X,contens_);
 
@@ -6301,7 +6302,7 @@ void BDatLogDensTruncatedMultNormal::CalcContens()
   bmat_to_gsl(*S_, gsl_S);
   bmat_to_gsl(*S_, gsl_X);
 
-  gsl_riwish(BProbDist::rng(), v,gsl_S,gsl_X);
+  gsl_riwish(getGslRng(), v,gsl_S,gsl_X);
 
   gsl_to_bmat(gsl_X,contens_);
 
@@ -6559,14 +6560,14 @@ void BMatSliceSampler1D::CalcContens()
   
   /* do burnin */
   for (int bi=0; bi<burn; bi++) {
-    sample = slice_sampler_1D(BProbDist::rng(), sample,
+    sample = slice_sampler_1D(getGslRng(), sample,
                               &RealGSLFunction::StaticEvalReal,
                               &ucode_eval, NULL, w, m, L, U);
   }
   /* collect the samples */
   BDat *cells = contens_.GetData().GetBuffer();
   for (int si=0; si<size; si++) {
-    sample = slice_sampler_1D(BProbDist::rng(), sample,
+    sample = slice_sampler_1D(getGslRng(), sample,
                               &RealGSLFunction::StaticEvalReal,
                               &ucode_eval, NULL, w, m, L, U);
     cells[si].PutValue(sample);

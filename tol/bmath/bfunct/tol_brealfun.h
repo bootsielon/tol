@@ -24,8 +24,6 @@
 
 #include <tol/tol_bfunct.h>
 #include <tol/tol_bmatrix.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
 
 #define HOUSEHOLDER 1
 #define GIVENS      2
@@ -174,6 +172,12 @@ public:
   void SetDimensions(BInt n, BInt m);
  ~BRnRmFunction() {}
 
+ BInt GetDimN() { return n_; }
+ BInt GetDimM() { return m_; }
+ BArray<BDat> &GetX() { return gsl_X; }
+ BArray<BDat> &GetFx() { return gsl_Fx; }
+ BArray<BDat> &GetFStep() { return gsl_FStep; }
+ 
   // Operations:
   virtual void Jacobian (const BArray<BDat>& x, 
 			 const BArray<BDat>& fx, 
@@ -188,18 +192,6 @@ public:
   BDat LeastSqrGaussNewton(BArray<BDat>& x,BArray<BDat>& r,BMatrix<BDat>& J);
   BDat LeastSqrMarquardt  (BArray<BDat>& x,BArray<BDat>& r,BMatrix<BDat>& J);
   BDat ConjugateGradient  (BArray<BDat>& x,BArray<BDat>& r,BMatrix<BDat>& J);
-
-  /* GSL interface */
-  static int gsl_EvalFunction   (const gsl_vector * x, 
-				       void *       instance, 
-				       gsl_vector * f );
-  static int gsl_EvalJacFunction(const gsl_vector * x, 
-				       void *       instance, 
-				       gsl_matrix * J );
-  static int gsl_EvalBoth       (const gsl_vector * x, 
-				       void *       instance, 
-				       gsl_vector * f, 
-				       gsl_matrix * J );
 
   BDat gsl_Marquardt(BArray<BDat>& x,BArray<BDat>& r,BMatrix<BDat>& J);
 
