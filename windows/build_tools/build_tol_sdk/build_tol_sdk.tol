@@ -1,0 +1,17 @@
+
+Text path = "../../tol";
+Set root = GetDir("../../tol");
+
+Set dir = root;
+
+Set head = Select(dir[1],Real(Text s)
+{
+  Or(TextEndAt(s,".h"),TextEndAt(s,".hpp"))
+});
+
+Set sub = Select(dir[2],Real(Text s)
+{
+  And(!TextBeginWith(s,"."),!TextBeginWith(s,"win"))
+});
+
+
