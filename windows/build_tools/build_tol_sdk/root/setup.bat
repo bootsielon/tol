@@ -8,7 +8,7 @@
 @echo =                     http://www.tol-project.org                             =
 @echo =                                                                            = 
 @echo ==============================================================================
-@set  _TOL_SDK_ROOT_PATH_=C:\Users\vdebuen\prj\tolp\trunk\windows\tol-sdk
+@set  _TOL_SDK_ROOT_PATH_=%CD%
 @set  TOL_SDK_INC="%_TOL_SDK_ROOT_PATH_%"
 @set  TOL_SDK_LIB="_TOL_SDK_ROOT_PATH_%\lib"       
 @echo Environment variables needed to compile TOL 2.0.1 in windows:
