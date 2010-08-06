@@ -1,9 +1,13 @@
-Text sourcePath = "../../../tol";
+Text tolSourcePath = "../../../tol";
+Text googleSourcePath = "../../tol-contrib/google/sparsehash-0.6/src/google";
+
 Text libPath = "../../../tol/win-VC9/release";
-Text sdkPath = "../../tol_sdk_win";
-Text sdkIncPath = sdkPath+"/tol";
+Text sdkPath = "../../ActiveTOL/tol_sdk_win";
+Text sdkTolIncPath = sdkPath+"/tol";
+Text sdkGoogleIncPath = sdkPath+"/google";
 Text sdkLibPath = sdkPath+"/lib";
-Real OSDirMake(sdkIncPath);
+Real OSDirMake(sdkTolIncPath);
+Real OSDirMake(sdkGoogleIncPath);
 Real OSDirMake(sdkLibPath);
 
 Set EvalSet(GetDir("root")[1],Real(Text file)
@@ -12,7 +16,7 @@ Set EvalSet(GetDir("root")[1],Real(Text file)
 });
 
 
-Real PlainHeader(Text sourcePath)
+Real PlainHeader(Text sourcePath, Text sdkIncPath)
 {
   WriteLn("PlainHeader "+sourcePath);
   Set dir = GetDir(sourcePath);
@@ -30,16 +34,17 @@ Real PlainHeader(Text sourcePath)
   });
   Set EvalSet(sub,Real(Text s)
   {
-    PlainHeader(sourcePath+"/"+s)
+    PlainHeader(sourcePath+"/"+s, sdkIncPath)
   });
   True
 };
   
   
-Real PlainHeader(sourcePath);
+Real PlainHeader(tolSourcePath, sdkTolIncPath);
+Real OSDirCopy(googleSourcePath,sdkGoogleIncPath);
 Real OSFilCopy(libPath+"/tol.lib",sdkLibPath);
-Real OSFilCopy(libPath+"/../config.h",sdkIncPath);
+Real OSFilCopy(libPath+"/../config.h",sdkTolIncPath);
 
-Real PackArchive::PackFull("ZipArchive", sdkPath);
-Real OSFilMove(sdkPath+".zip","../../ActiveTOL/lib");
+//Real PackArchive::PackFull("ZipArchive", sdkPath);
+//Real OSFilMove(sdkPath+".zip","../../ActiveTOL/lib");
 
