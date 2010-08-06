@@ -23,6 +23,7 @@
 #include <win_tolinc.h>
 #endif
 
+#include <tol/tol_bcommon.h>
 #include <tol/tol_bprdist_internal.h>
 #include <tol/tol_bfibonac.h>
 #include <tol/tol_bout.h>
