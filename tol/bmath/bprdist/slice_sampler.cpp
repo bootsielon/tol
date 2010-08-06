@@ -15,6 +15,10 @@
  uni.slice.evals <- 0	# Number of density evaluations done in these calls
 */
 
+#if defined(_MSC_VER)
+#include <win_tolinc.h>
+#endif
+
 #include <tol/tol_bprdist_internal.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_math.h>
