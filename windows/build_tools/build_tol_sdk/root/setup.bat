@@ -9,13 +9,9 @@
 @echo =                                                                            = 
 @echo ==============================================================================
 @set  _TOL_SDK_ROOT_PATH_=%CD%
-@set  TOL_SDK_INC="%_TOL_SDK_ROOT_PATH_%"
-@set  TOL_SDK_LIB="_TOL_SDK_ROOT_PATH_%\lib"       
+@set  TOL_SDK_PATH=_TOL_SDK_ROOT_PATH_
 @echo Environment variables needed to compile TOL 2.0.1 in windows:
-@set  _TOL_SDK_ROOT_PATH_
-@set  TOL_SDK_INC
-@set  TOL_SDK_LIB
+@set  TOL_SDK_PATH
 @echo Exporting environment variables for all users ...
-@setx TOL_SDK_INC "%_TOL_SDK_ROOT_PATH_%"                                     -m
-@setx TOL_SDK_LIB "%_TOL_SDK_ROOT_PATH_%\lib"                                 -m
+@setx TOL_SDK_PATH "%_TOL_SDK_ROOT_PATH_%"                                     -m
 @pause
