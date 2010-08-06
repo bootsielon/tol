@@ -1,4 +1,28 @@
 namespace eval ::MenuManager {
+  variable observers
+}
+
+proc ::MenuManager::addObserver { event when script } {
+  variable observers
+
+  if { $when ne "Before" || $when ne "After" } {
+    error "::MenuManager::addObserver -- valor invalido '$when' para el argumento when, debe ser Before o After"
+  }
+  lappend observers($event,$when) $script
+}
+
+proc ::MenuManager::invokeObservers { event when } {
+  variable observers
+
+  if { [ info exists observers($event,$when) ] } { 
+    foreach script $observers($event,$when) {
+      set result [ eval uplevel \#0 $script $when ]
+      if { !$result } {
+        return 0
+      }
+    }
+  }
+  return 1
 }
 
 proc ::MenuManager::getTypeOfObject { addr } {
@@ -87,6 +111,9 @@ proc ::MenuManager::checkEntryState { name objSelection group } {
 proc ::MenuManager::invokeCommand { name objSelection group } {
   variable typesSelected
 
+  if { ![ invokeObservers $name "Before" ] } {
+    return 0
+  }
   set SOA [ TclList2SetOfText $objSelection ]
   set rvar "__invokeCommand__"
   set tolExpr [ string map [ list %RV $rvar %N $name %S $SOA %G $group ] {
@@ -103,6 +130,7 @@ proc ::MenuManager::invokeCommand { name objSelection group } {
   set info [ tol::info variable [ list Real $rvar ] ]
   set value [ lindex $info 2 ]
   tol::console stack release $rvar
+  invokeObservers $name "After"
   return $value
 }
 
