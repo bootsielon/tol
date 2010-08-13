@@ -1715,6 +1715,41 @@ void BMatPivotByRows::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatInversePermutation);
+DefExtOpr(1, BMatInversePermutation, "InversePermutation", 1, 1, "Matrix",
+  "(Matrix p)",
+  I2("Given a column or row of any realignment of integers numbers "
+     "1 ... N returns the inverse permutation. ",
+     "Dada una fila o columna con una reordenación cualquiera de "
+     "los enteros 1 ... N, devuelve la permutación inversa."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatInversePermutation::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& P  = Mat(Arg(1));
+  int i, k, n = P.Data().Size();
+  int pr = P.Rows();
+  int pc = P.Columns();
+  if((pr!=1) && (pc!=1))
+  { 
+    Error(I2("Cannot apply InversePermutation to non vectorial matriz ",
+               "No se puede aplicar InversePermutation a la matriz no vectorial ")+
+            "p("+pr+"x"+pc+") ");
+    return; 
+  }
+  contens_.Alloc(pr,pc);
+  const double* p = (const double*)P.Data().Buffer();
+  double* c = (double*)contens_.GetData().GetBuffer();
+  for(i=1; i<=n; i++, p++)
+  {
+    k = (int)(*p);
+    c[k-1] = i;
+  //Std(BText("\n[InversePermutation] ")+k+" -> "+i)
+  }
+}
+
+//--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatLinComb);
 DefIntOpr(1, BMatLinComb, "LinComb", 1, 1,
   "(Matrix mat)",
