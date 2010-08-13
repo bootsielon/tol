@@ -122,7 +122,8 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
   {
   //Std(BText("\nTRACE BLoadDynLib::Evaluator 3 lt_dlerror='")+lt_dlerror()+"'");
     BText reason( lt_dlerror( ) );
-    Error(BText("[LoadDynLib] lt_dlerror:'")+reason+"'");
+    Error(BText("[LoadDynLib(\"")+libraryPath+"\")]"+" \n"
+    "  lt_dlopen error:'"+reason+"'");
   } 
   else 
   {
@@ -136,7 +137,8 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
     {
     //Std(BText("\nTRACE BLoadDynLib::Evaluator 5 lt_dlerror='")+lt_dlerror()+"'");
       BText reason( lt_dlerror( ) );
-      Error(BText("[LoadDynLib] lt_dlerror:'")+reason+"'");
+      Error(BText("[LoadDynLib(\"")+libraryPath+"\")] \n"
+      "  lt_dlsym error:'"+reason+"'");
     } 
     else 
     {
@@ -145,8 +147,8 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
       if ( !unb ) 
       {
       //Std(BText("\nTRACE BLoadDynLib::Evaluator 7"));
-        Error(BText("[LoadDynLib]")+
-              "No se pudo convertir a NameBlock: dynamic_cast<BUserNameBlock*>" );
+        Error(BText("[LoadDynLib(\"")+libraryPath+"\")] \n"+
+        "  No se pudo convertir a NameBlock: dynamic_cast<BUserNameBlock*>" );
       }
     }
   }
