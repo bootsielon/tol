@@ -386,6 +386,47 @@ void BTxtI2::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtGetHardSoftPlattform);
+DefExtOpr(1, BTxtGetHardSoftPlattform, "GetHardSoftPlattform", 1, 1,
+	  "Real","(Real unused)",
+	  I2("Returns the identifier of the platform where TOL is running.",
+	     "Devuelve el identificador de la platforma sobre la que "
+       "está funcionando TOL."),
+	  BOperClassify::Text_);
+//--------------------------------------------------------------------
+void BTxtGetHardSoftPlattform::CalcContens()
+//--------------------------------------------------------------------
+{
+  //"Windows-x86_32"
+  //"Linux-x86_32"
+  #ifdef UNIX
+  contens_= "Linux-x86_32";
+  #else
+  contens_= "Windows-x86_32";
+  #endif
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtGetSharedLibExt);
+DefExtOpr(1, BTxtGetSharedLibExt, "GetSharedLibExt", 1, 1,
+	  "Real","(Real unused)",
+	  I2("Returns the identifier of the platform where TOL is running.",
+	     "Devuelve el identificador de la platforma sobre la que "
+       "está funcionando TOL."),
+	  BOperClassify::Text_);
+//--------------------------------------------------------------------
+void BTxtGetSharedLibExt::CalcContens()
+//--------------------------------------------------------------------
+{
+  #ifdef UNIX
+  contens_= "so";
+  #else
+  contens_= "dll";
+  #endif
+}
+
+
+//--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BGetEnv);
 DefIntOpr(1, BGetEnv, "GetEnv", 1, 1,
 	  I2("(Text environmentVar)",
