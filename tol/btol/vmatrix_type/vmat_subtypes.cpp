@@ -40,22 +40,49 @@ typedef hash_map_by_int  <BVMat::StrCholFac*>::dense_ BHashCholFac;
 ////////////////////////////////////////////////////////////////////////////////
 // Static functions
 ////////////////////////////////////////////////////////////////////////////////
+static BHashCodeName* hashCodeName_ = NULL;
+static BHashCSysName* hashCSysName_ = NULL;
+static BHashCFacName* hashCFacName_ = NULL;
+static BHashDefCode*  hashDefCode_  = NULL;
+static BHashConvert*  hashConvert_  = NULL;
+static BHashProduct*  hashProduct_  = NULL;
+static BHashCholSol*  hashCholSol_  = NULL;
+static BHashCholFac*  hashCholFac_  = NULL;
+
+static bool InitialiceHashes()
+{
+  static bool done_ = false;
+  if(!done_)
+  {
+    done_ = true;
+    hashCodeName_ = new BHashCodeName;
+    hashCSysName_ = new BHashCSysName;
+    hashCFacName_ = new BHashCFacName;
+    hashDefCode_  = new BHashDefCode;
+    hashConvert_  = new BHashConvert;
+    hashProduct_  = new BHashProduct;
+    hashCholSol_  = new BHashCholSol;
+    hashCholFac_  = new BHashCholFac;
+  }
+  return(done_);
+}
+
 BHashCodeName& HashCodeName() 
-{ static BHashCodeName hashCodeName_; return(hashCodeName_); }
+{ InitialiceHashes();  return(*hashCodeName_); }
 BHashCSysName& HashCSysName() 
-{ static BHashCSysName hashCSysName_; return(hashCSysName_); }
+{ InitialiceHashes(); return(*hashCSysName_); }
 BHashCFacName& HashCFacName() 
-{ static BHashCFacName hashCFacName_; return(hashCFacName_); }
+{ InitialiceHashes(); return(*hashCFacName_); }
 BHashDefCode&  HashDefCode() 
-{ static BHashDefCode  hashDefCode_;  return(hashDefCode_ ); }
+{ InitialiceHashes(); return(*hashDefCode_ ); }
 BHashConvert&  HashConvert()  
-{ static BHashConvert  hashConvert_;  return(hashConvert_ ); }
+{ InitialiceHashes(); return(*hashConvert_ ); }
 BHashProduct&  HashProduct()
-{ static BHashProduct  hashProduct_;  return(hashProduct_ ); }
+{ InitialiceHashes(); return(*hashProduct_ ); }
 BHashCholSol&  HashCholSol()
-{ static BHashCholSol  hashCholSol_;  return(hashCholSol_ ); }
+{ InitialiceHashes(); return(*hashCholSol_ ); }
 BHashCholFac&  HashCholFac()
-{ static BHashCholFac  hashCholFac_;  return(hashCholFac_ ); }
+{ InitialiceHashes(); return(*hashCholFac_ ); }
 
 ////////////////////////////////////////////////////////////////////////////////
 // BVMat members
@@ -149,8 +176,10 @@ int BVMat::initializeIdentifiers()
   static bool done_ = 0;
   if(!done_)
   {
+
     int i;
     done_ = true;
+
 /*
 #define CHOLMOD_OK            ( 0) // success 
 #define CHOLMOD_NOT_INSTALLED (-1) // failure: method not installed 
