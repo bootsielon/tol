@@ -179,7 +179,7 @@ int BVMat::initializeIdentifiers()
 
     int i;
     done_ = true;
-
+    InitialiceHashes();
 /*
 #define CHOLMOD_OK            ( 0) // success 
 #define CHOLMOD_NOT_INSTALLED (-1) // failure: method not installed 
@@ -227,14 +227,24 @@ int BVMat::initializeIdentifiers()
     cFacName_[ECFO_XtX ] = new BText("XtX");
     cFacName_[ECFO_XXt ] = new BText("XXt");
 
-    SetEmptyKey  (HashCodeName(),  NULL);
-    SetEmptyKey  (HashCSysName(),  NULL);
-    SetEmptyKey  (HashCFacName(),  NULL);
-    SetEmptyKey  (HashDefCode (),  0);
-    SetEmptyKey  (HashConvert (),  0);
-    SetEmptyKey  (HashProduct (),  0);
-    SetEmptyKey  (HashCholSol (),  0);
-    SetEmptyKey  (HashCholFac (),  0);
+
+    BHashCodeName& hashCodeName = *hashCodeName_;
+    BHashCSysName& hashCSysName = *hashCSysName_;
+    BHashCFacName& hashCFacName = *hashCFacName_;
+    BHashDefCode&  hashDefCode  = *hashDefCode_;
+    BHashConvert&  hashConvert  = *hashConvert_;
+    BHashProduct&  hashProduct  = *hashProduct_;
+    BHashCholSol&  hashCholSol  = *hashCholSol_;
+    BHashCholFac&  hashCholFac  = *hashCholFac_;
+
+    SetEmptyKey  (hashCodeName, NULL);
+    SetEmptyKey  (hashCSysName, NULL);
+    SetEmptyKey  (hashCFacName, NULL);
+    SetEmptyKey  (hashDefCode,  0);
+    SetEmptyKey  (hashConvert,  0);
+    SetEmptyKey  (hashProduct,  0);
+    SetEmptyKey  (hashCholSol,  0);
+    SetEmptyKey  (hashCholFac,  0);
 
     assert(defCode_numOpt==5);
     defCode_[1] = StrDefCode
@@ -250,7 +260,7 @@ int BVMat::initializeIdentifiers()
     {
       ECode c = defCode_[i].code;
       HashCodeName()[ CodeName(c) ] = c;
-      defCodeAdd(defCode_ [c]);
+      defCodeAdd(defCode_[i]);
     }
     
     assert(convert_numOpt==8);
