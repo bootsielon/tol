@@ -223,11 +223,15 @@ public:
 //--------------------------------------------------------------------
 {
   assert(isOk_ && (sh_.OpenMode()==BStreamHandler::BSHOM_WRITE));
+//Std(BText("\nBZipStream::Flush() 1 ")+name_);
   try
   {
     if(index_<0)
     {
+    //Std(BText("\nBZipStream::Flush() 2 "));
       sh_.zip_.AddNewFile(mf_, name_.String(), cmprsLvl_);
+      index_ = sh_.zip_.FindFile(name_);
+    //Std(BText("\nBZipStream::Flush() 3 "));
 			//VBR: No s porqu en linux no se cumple esta condicin pero
 			//luego todo parece funcionar bien.
       //assert(index_>=0);
@@ -237,9 +241,11 @@ public:
 	}
   catch(CZipException ex)
   {
+  //Std(BText("\nBZipStream::Flush() 4 ")+name_);
     ShowCatchedException(ex, sh_.Connection()+"/"+name_, sh_.zip_);
     isOk_ = false;
   }
+//Std(BText("\nBZipStream::Flush() 5 ")+name_);
 }
 
 //--------------------------------------------------------------------
