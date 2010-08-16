@@ -51,8 +51,8 @@
 //------------------------------------------------------------------
 {
 protected: 
-  CZipMemFile        mf_;       //!< In memory cached file handler
   BZipStreamHandler& sh_;       //!< The Zip Archive object
+  CZipMemFile        mf_;       //!< In memory cached file handler
   int                cmprsLvl_; //!< Compression level (0..9)
 public:
   BZipStream(BZipStreamHandler& sh);
