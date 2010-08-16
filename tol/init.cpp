@@ -405,6 +405,7 @@ BBool BLAPI_Init()
     BDate    ::InitializeClass();
   //BDat     ::InitializeClass();
     BProbDist::InitializeClass();
+    BVMat    ::InitializeClass();
 
     return(false);
   }
