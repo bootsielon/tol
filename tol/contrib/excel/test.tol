@@ -4,41 +4,41 @@ Real Excel.ActivateWS( id, 0 );
 
 WriteLn( "Lectura Anyhting ..." );
 Set {
-  Anything cell_00_00 = Excel.ReadCell( id, 0, 0 );
-  Anything cell_00_01 = Excel.ReadCell( id, 0, 1 );
-  Anything cell_01_00 = Excel.ReadCell( id, 1, 0 );
   Anything cell_01_01 = Excel.ReadCell( id, 1, 1 );
-  Anything cell_02_00 = Excel.ReadCell( id, 2, 0 );
+  Anything cell_01_02 = Excel.ReadCell( id, 1, 2 );
   Anything cell_02_01 = Excel.ReadCell( id, 2, 1 );
-  Anything cell_03_00 = Excel.ReadCell( id, 3, 0 );
+  Anything cell_02_02 = Excel.ReadCell( id, 2, 2 );
   Anything cell_03_01 = Excel.ReadCell( id, 3, 1 );
-  Anything cell_04_00 = Excel.ReadCell( id, 4, 0 );
+  Anything cell_03_02 = Excel.ReadCell( id, 3, 2 );
   Anything cell_04_01 = Excel.ReadCell( id, 4, 1 );
-  Set View( [[ [[ cell_00_00, cell_00_01 ]],
-               [[ cell_01_00, cell_01_01 ]],
-               [[ cell_02_00, cell_02_01 ]],
-               [[ cell_03_00, cell_03_01 ]],
-               [[ cell_04_00, cell_04_01 ]] ]], "Std" )
+  Anything cell_04_02 = Excel.ReadCell( id, 4, 2 );
+  Anything cell_05_01 = Excel.ReadCell( id, 5, 1 );
+  Anything cell_05_02 = Excel.ReadCell( id, 5, 2 );
+  Set View( [[ [[ cell_01_01, cell_01_02 ]],
+               [[ cell_02_01, cell_01_02 ]],
+               [[ cell_03_01, cell_02_02 ]],
+               [[ cell_04_01, cell_03_02 ]],
+               [[ cell_05_01, cell_04_02 ]] ]], "Std" )
 };
   
 WriteLn( "Lectura tipada ..." );
 Set {
-  Text cell_00_00 = Excel.ReadText( id, 0, 0 );
-  Real cell_00_01 = Excel.ReadReal( id, 0, 1 );
-  Text cell_01_00 = Excel.ReadText( id, 1, 0 );
-  Date cell_01_01 = Excel.ReadDate( id, 1, 1 );
-  Text cell_02_00 = Excel.ReadText( id, 2, 0 );
+  Text cell_01_01 = Excel.ReadText( id, 1, 1 );
+  Real cell_01_02 = Excel.ReadReal( id, 1, 2 );
   Text cell_02_01 = Excel.ReadText( id, 2, 1 );
-  Text cell_03_00 = Excel.ReadText( id, 3, 0 );
-  Real cell_03_01 = Excel.ReadReal( id, 3, 1 );
-  Text cell_04_00 = Excel.ReadCell( id, 4, 0 );
-  Anything _cell_04_01 = Excel.ReadCell( id, 4, 1 );
-  Real cell_04_01 = If( Grammar( _cell_04_01 ) == "Real", _cell_04_01, ? );
-  Set View( [[ [[ cell_00_00, cell_00_01 ]],
-               [[ cell_01_00, cell_01_01 ]],
-               [[ cell_02_00, cell_02_01 ]],
-               [[ cell_03_00, cell_03_01 ]],
-               [[ cell_04_00, cell_04_01 ]] ]], "Std" )
+  Date cell_02_02 = Excel.ReadDate( id, 2, 2 );
+  Text cell_03_01 = Excel.ReadText( id, 3, 1 );
+  Text cell_03_02 = Excel.ReadText( id, 3, 2 );
+  Text cell_04_01 = Excel.ReadText( id, 4, 1 );
+  Real cell_04_02 = Excel.ReadReal( id, 4, 2 );
+  Text cell_05_01 = Excel.ReadCell( id, 5, 1 );
+  Anything _cell_05_02 = Excel.ReadCell( id, 5, 2 );
+  Real cell_05_02 = If( Grammar( _cell_05_02 ) == "Real", _cell_05_02, ? );
+  Set View( [[ [[ cell_01_01, cell_01_02 ]],
+               [[ cell_02_01, cell_02_02 ]],
+               [[ cell_03_01, cell_03_02 ]],
+               [[ cell_04_01, cell_04_02 ]],
+               [[ cell_05_01, cell_05_02 ]] ]], "Std" )
 };
   
 Real status = Excel.Destroy( id );

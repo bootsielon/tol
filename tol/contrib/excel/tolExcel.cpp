@@ -421,8 +421,8 @@ bool ValidCellCoord( const BText & name, const BDat Row, const BDat Col,
                      size_t &r, size_t &c )
 {
   
-  if ( !Row.IsKnown() || Row.Value() < 0 ||
-       !Col.IsKnown() || Col.Value() < 0 ) {
+  if ( !Row.IsKnown() || Row.Value() <= 0 ||
+       !Col.IsKnown() || Col.Value() <= 0 ) {
     char buffer[256];
     snprintf( buffer, 256, "(%f,%f)", Row.Value(), Col.Value() );
     Error( name + ": " +
@@ -430,8 +430,9 @@ bool ValidCellCoord( const BText & name, const BDat Row, const BDat Col,
                "coordenadas de celda invalidas " ) + buffer );
     return false;
   }
-  r = size_t( Row.Value( ) );
-  c = size_t( Col.Value( ) );
+  // Cell coordinates are 0-based internally
+  r = size_t( Row.Value( ) - 1 );
+  c = size_t( Col.Value( ) - 1 );
   return true;
 }
 
@@ -677,24 +678,17 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
     if ( row && col ) {
       BDat &dat_row = Dat( row );
       BDat &dat_col = Dat( col );
-      if ( !dat_row.IsKnown() || dat_row.Value() < 0 ||
-           !dat_col.IsKnown() || dat_col.Value() < 0 ) {
-        Error( _name_ + ": " +
-               I2("invalid cell coordinates, must be ",
-                  "coordenadas de celda invalidas, deben ser ") +
-               "(row,col)>=(0,0)" );
-        return NULL;
+      size_t i_row, i_col;
+      if ( ValidCellCoord( _name_, dat_row, dat_col, i_row, i_col ) ) {
+        TolExcel *xls = TolExcel::decode_addr( Dat( addr ).Value() );
+        if ( !xls ) {
+          Error( _name_ + ": " +
+                 I2("invalid excel object address",
+                    "direccion de objecto excel invalido") );
+          return NULL;
+        }    
+        result = xls->GetCellAnything( _name_, i_row, i_col );
       }
-      size_t i_row = size_t( dat_row.Value() );
-      size_t i_col = size_t( dat_col.Value() );
-      TolExcel *xls = TolExcel::decode_addr( Dat( addr ).Value() );
-      if ( !xls ) {
-        Error( _name_ + ": " +
-               I2("invalid excel object address",
-                  "direccion de objecto excel invalido") );
-        return NULL;
-      }    
-      result = xls->GetCellAnything( _name_, i_row, i_col );
     }
   }
   result = BSpecialFunction::TestResult( _name_, result, tre, NIL, BTRUE );
