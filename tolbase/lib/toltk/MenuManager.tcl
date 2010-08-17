@@ -5,7 +5,7 @@ namespace eval ::MenuManager {
 proc ::MenuManager::addObserver { event when script } {
   variable observers
 
-  if { $when ne "Before" || $when ne "After" } {
+  if { $when ne "Before" && $when ne "After" } {
     error "::MenuManager::addObserver -- valor invalido '$when' para el argumento when, debe ser Before o After"
   }
   lappend observers($event,$when) $script
