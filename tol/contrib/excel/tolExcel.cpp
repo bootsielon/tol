@@ -653,22 +653,26 @@ void BDatExcelActivateWS::CalcContens()
 
 //---------------------------------------------------------------------------
 DeclareContensClass(BDat, BDatTemporary, BDatExcelReadReal);
-DefExtOpr(1, BDatExcelReadReal, "Excel.ReadReal", 3, 3, "Real Real Real",
-          "(Real ExcelHandler, Real Row, Real Column)",
+DefExtOpr(1, BDatExcelReadReal, "Excel.ReadReal", 2, 2, "Real Anything",
+          "(Real ExcelHandler, Anything Cell)",
           I2("Return the contents of the given cell as a Real. If the contents "
-             "of the cell is not a Real value then ? is returned",
-             ""),
+             "of the cell is not a Real value then ? is returned. "
+             "The cell can be given as Text or Set. For instance you can use "
+             "either \"A1\" or [[1,1]].",
+             "Retorna el contenido de una celda leido como valor numerico. "
+             "Si el contenido de la celda no puede convertirse a Real se "
+             "retorna ?. Las coordenadas de la celda pueden especificarse como "
+             "Text o Set. Por ejemplo se puede usar indistintamente "
+             "\"A1\" o [[1,1]]."),
           BOperClassify::System_);
 //----------------------------------------------------------------------------
 void BDatExcelReadReal::CalcContens()
 {
   static BText _name_( "Excel.ReadReal" );
   double addr = Dat( Arg( 1 ) ).Value();
-  BDat &Row = Dat( Arg( 2 ) );
-  BDat &Col = Dat( Arg( 3 ) );
   size_t r, c;
   
-  if ( ValidCellCoord( _name_, Row, Col, r, c ) ) {
+  if ( TolExcel::getCellCoordinates( _name_, Arg(2), r, c ) ) {
     TolExcel *xls = TolExcel::decode_addr( addr );
     if ( xls ) {
       xls->GetCellReal( _name_, r, c, contens_ );
@@ -685,22 +689,26 @@ void BDatExcelReadReal::CalcContens()
 
 //---------------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtExcelReadText);
-DefExtOpr(1, BTxtExcelReadText, "Excel.ReadText", 3, 3, "Real Real Real",
-          "(Real ExcelHandler, Real Row, Real Column)",
+DefExtOpr(1, BTxtExcelReadText, "Excel.ReadText", 2, 2, "Real Anything",
+          "(Real ExcelHandler, Anything Cell)",
           I2("Return the contents of the given cell as a Text. If the contents "
-             "of the cell is not a Text value then \"\" is returned",
-             ""),
+             "of the cell is not a Text value then \"\" is returned. "
+             "The cell can be given as Text or Set. For instance you can use "
+             "either \"A1\" or [[1,1]].",
+             "Retorna el contenido de una celda leido como texto. "
+             "Si el contenido de la celda no puede convertirse a Text se "
+             "retorna ?. Las coordenadas de la celda pueden especificarse como "
+             "Text o Set. Por ejemplo se puede usar indistintamente "
+             "\"A1\" o [[1,1]]."),
           BOperClassify::System_);
 //----------------------------------------------------------------------------
 void BTxtExcelReadText::CalcContens()
 {
   static BText _name_( "Excel.ReadText" );
   double addr = Dat( Arg( 1 ) ).Value();
-  BDat &Row = Dat( Arg( 2 ) );
-  BDat &Col = Dat( Arg( 3 ) );
   size_t r, c;
   
-  if ( ValidCellCoord( _name_, Row, Col, r, c ) ) {
+  if ( TolExcel::getCellCoordinates( _name_, Arg(2), r, c ) ) {
     TolExcel *xls = TolExcel::decode_addr( addr );
     if ( xls ) {
       xls->GetCellText( _name_, r, c, contens_ );
@@ -717,22 +725,26 @@ void BTxtExcelReadText::CalcContens()
 
 //---------------------------------------------------------------------------
 DeclareContensClass(BDate, BDteTemporary, BDteExcelReadDate);
-DefExtOpr(1, BDteExcelReadDate, "Excel.ReadDate", 3, 3, "Real Real Real",
-          "(Real ExcelHandler, Real Row, Real Column)",
+DefExtOpr(1, BDteExcelReadDate, "Excel.ReadDate", 2, 2, "Real Anything",
+          "(Real ExcelHandler, Anything Cell)",
           I2("Return the contents of the given cell as a Date. If the contents "
-             "of the cell is not a Date value then the unknown date is returned",
-             ""),
+             "of the cell is not a Date value then the unknown date is returned"
+             "The cell can be given as Text or Set. For instance you can use "
+             "either \"A1\" or [[1,1]].",             
+             "Retorna el contenido de una celda leido como fecha. "
+             "Si el contenido de la celda no puede convertirse a Date se "
+             "retorna la fecha desconocida. Las coordenadas de la celda pueden "
+             "especificarse como Text o Set. Por ejemplo se puede usar "
+             "indistintamente \"A1\" o [[1,1]]."),          
           BOperClassify::System_);
 //----------------------------------------------------------------------------
 void BDteExcelReadDate::CalcContens()
 {
   static BText _name_( "Excel.ReadDate" );
   double addr = Dat( Arg( 1 ) ).Value();
-  BDat &Row = Dat( Arg( 2 ) );
-  BDat &Col = Dat( Arg( 3 ) );
   size_t r, c;
   
-  if ( ValidCellCoord( _name_, Row, Col, r, c ) ) {
+  if ( TolExcel::getCellCoordinates( _name_, Arg(2), r, c ) ) {
     TolExcel *xls = TolExcel::decode_addr( addr );
     if ( xls ) {
       xls->GetCellDate( _name_, r, c, contens_ );
@@ -804,7 +816,7 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
   static BText _name_( "Excel.ReadCell" );
   BSyntaxObject* result = NIL;
   BInt nb = BSpecialFunction::NumBranches(tre);
-  if( BSpecialFunction::TestNumArg( _name_, 3, nb, 3 ) ) {
+  if( BSpecialFunction::TestNumArg( _name_, 2, nb, 2 ) ) {
     BSyntaxObject *addr = GraReal()->EvaluateTree( Branch( tre, 1 ) );
     if ( !Dat( addr ).IsKnown( ) ) {
       Error( _name_ + ": " +
@@ -812,13 +824,10 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
                  "direccion de objeto excel invalida, debe ser conocida" ) );
       return NULL;
     }
-    BSyntaxObject *row = GraReal()->EvaluateTree( Branch( tre, 2 ) );
-    BSyntaxObject *col = GraReal()->EvaluateTree( Branch( tre, 3 ) );
-    if ( row && col ) {
-      BDat &dat_row = Dat( row );
-      BDat &dat_col = Dat( col );
+    BSyntaxObject *cell = GraAnything()->EvaluateTree( Branch( tre, 2 ) );
+    if ( cell ) {
       size_t i_row, i_col;
-      if ( ValidCellCoord( _name_, dat_row, dat_col, i_row, i_col ) ) {
+      if ( TolExcel::getCellCoordinates( _name_, cell, i_row, i_col ) ) {
         TolExcel *xls = TolExcel::decode_addr( Dat( addr ).Value() );
         if ( !xls ) {
           Error( _name_ + ": " +
