@@ -33,6 +33,7 @@ using namespace ExcelFormat;
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bspfun.h>
+#include <tol/tol_bsetgra.h>
 
 class TolExcel {
 public:
@@ -202,6 +203,13 @@ public:
     return nHour / nHiD + nMinute / nMiD + nSecond / nSiD;
   }
 
+  static size_t decodeColumn( char * cellName, size_t length );
+  static bool decodeCoordinates( char * cellName,
+                                 size_t &row, size_t &column );
+  static bool getCellCoordinates( const BText & name,
+                                  BSyntaxObject *cell,
+                                  size_t &row, size_t &column );
+
 protected:
 
   BasicExcelCell *GetCell( const BText &err_name,
@@ -242,6 +250,90 @@ private:
   XLSFormatManager *m_ptrFmtMgr;
   BasicExcelWorksheet *m_ptrActiveWS;
 };
+
+size_t TolExcel::decodeColumn( char * cellName, size_t length )
+{
+  if ( !length ) return 0;
+  char c = cellName[ --length ];
+  if ( c < 'A' || c > 'Z')
+    return 0;
+  return (c - 'A' + 1) + TolExcel::decodeColumn( cellName, length ) * 26;
+}
+
+bool TolExcel::decodeCoordinates( char * cellName, size_t &row, size_t &column )
+{
+  size_t i = 0;
+
+  // decode column A-based
+  char ch = cellName[ i ];
+  while ( ch >= 'A' && ch <= 'Z' ) { ch = cellName[ ++i ]; }
+  column = TolExcel::decodeColumn( cellName, i );
+  if ( !column ) {
+    return false;
+  }
+  // decode row 1-based
+  row = 0;
+  while ( ch >= '1' && ch <= '9' ) {
+    row = row * 10 + ch - '0';
+    ch = cellName[ ++i ];
+  }
+  if ( !row ) {
+    return false;
+  }
+  // cell coordinates are 0-based internally
+  --row;
+  --column;
+  return true;
+}
+
+bool TolExcel::getCellCoordinates( const BText & name, BSyntaxObject *cell,
+                                   size_t &row, size_t &column )
+{
+  bool status;
+  
+  if ( cell->Grammar() == GraText() ) {
+    BText & cellName = Text( cell );
+    
+    status = TolExcel::decodeCoordinates( cellName.Buffer(),
+                                               row, column );
+    if ( !status ) {
+      Error( name + ": " +
+             I2( "invalid cell coordinates ",
+                 "coordenadas de celda invalidas " ) + cellName );
+    }
+  } else if ( cell->Grammar() == GraSet() ) {
+    BSet &_cell = Set( cell );
+    if ( _cell.Card() != 2 ) {
+      Error( name + ": " +
+             I2( "invalid cell coordinates, must be a Set of two numbers ",
+                " coordenadas de celda invalidas, debe ser un conjunto de 2 "
+                 "numeros" ) );
+      status = false;
+    } else {
+      BDat &datRow = Dat( _cell[1] );
+      BDat &datCol = Dat( _cell[2] );
+      if ( !datRow.IsKnown() || datRow.Value() < 1 ||
+           !datCol.IsKnown() || datCol.Value() < 1 ) {
+        char buffer[256];
+        snprintf( buffer, 256, "(%f,%f)", datRow.Value(), datCol.Value() );
+        Error( name + ": " +
+               I2( "invalid cell coordinates ",
+                   "coordenadas de celda invalidas " ) + buffer );
+        status = false;
+      }
+      // Cell coordinates are 0-based internally
+      row = size_t( datRow.Value( ) - 1 );
+      column = size_t( datCol.Value( ) - 1 );
+      status = true;
+    }
+  } else {
+    Error( name + ": " +
+           I2( "invalid cell type, must be Text or Set ",
+               "referencia de celda invalida debe ser de tipo Text o Set " ));
+    status = false;
+  }
+  return status;
+}
 
 TolExcel::TolExcel( )
 {
@@ -560,15 +652,15 @@ void BDatExcelActivateWS::CalcContens()
 }
 
 //---------------------------------------------------------------------------
-DeclareContensClass(BDat, BDatTemporary, BDatExcelGetReal);
-DefExtOpr(1, BDatExcelGetReal, "Excel.ReadReal", 3, 3, "Real Real Real",
+DeclareContensClass(BDat, BDatTemporary, BDatExcelReadReal);
+DefExtOpr(1, BDatExcelReadReal, "Excel.ReadReal", 3, 3, "Real Real Real",
           "(Real ExcelHandler, Real Row, Real Column)",
           I2("Return the contents of the given cell as a Real. If the contents "
              "of the cell is not a Real value then ? is returned",
              ""),
           BOperClassify::System_);
 //----------------------------------------------------------------------------
-void BDatExcelGetReal::CalcContens()
+void BDatExcelReadReal::CalcContens()
 {
   static BText _name_( "Excel.ReadReal" );
   double addr = Dat( Arg( 1 ) ).Value();
@@ -592,15 +684,15 @@ void BDatExcelGetReal::CalcContens()
 }
 
 //---------------------------------------------------------------------------
-DeclareContensClass(BText, BTxtTemporary, BTxtExcelGetText);
-DefExtOpr(1, BTxtExcelGetText, "Excel.ReadText", 3, 3, "Real Real Real",
+DeclareContensClass(BText, BTxtTemporary, BTxtExcelReadText);
+DefExtOpr(1, BTxtExcelReadText, "Excel.ReadText", 3, 3, "Real Real Real",
           "(Real ExcelHandler, Real Row, Real Column)",
           I2("Return the contents of the given cell as a Text. If the contents "
              "of the cell is not a Text value then \"\" is returned",
              ""),
           BOperClassify::System_);
 //----------------------------------------------------------------------------
-void BTxtExcelGetText::CalcContens()
+void BTxtExcelReadText::CalcContens()
 {
   static BText _name_( "Excel.ReadText" );
   double addr = Dat( Arg( 1 ) ).Value();
@@ -624,15 +716,15 @@ void BTxtExcelGetText::CalcContens()
 }
 
 //---------------------------------------------------------------------------
-DeclareContensClass(BDate, BDteTemporary, BDteExcelGetDate);
-DefExtOpr(1, BDteExcelGetDate, "Excel.ReadDate", 3, 3, "Real Real Real",
+DeclareContensClass(BDate, BDteTemporary, BDteExcelReadDate);
+DefExtOpr(1, BDteExcelReadDate, "Excel.ReadDate", 3, 3, "Real Real Real",
           "(Real ExcelHandler, Real Row, Real Column)",
           I2("Return the contents of the given cell as a Date. If the contents "
              "of the cell is not a Date value then the unknown date is returned",
              ""),
           BOperClassify::System_);
 //----------------------------------------------------------------------------
-void BDteExcelGetDate::CalcContens()
+void BDteExcelReadDate::CalcContens()
 {
   static BText _name_( "Excel.ReadDate" );
   double addr = Dat( Arg( 1 ) ).Value();
@@ -652,6 +744,53 @@ void BDteExcelGetDate::CalcContens()
     }
   } else {
     contens_ = BDate::Unknown( );
+  }
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetExcelReadRange);
+DefExtOpr(1, BSetExcelReadRange, "Excel.ReadRange", 3, 3, "Real Anything Anything",
+          "(Real ExcelHandler, Anything CornerLT, Anything CornerRB)",
+          I2("Return the contents of the cells contained given cell's range. "
+             "The cell corners delimiting the range can be given as Text or "
+             "Set. For instance you can use either \"A1\" or [[1,1]].",
+             "Retorna el contenido de las celdas contenidas en el rango de "
+             "celdas dado. Las esquinas del rango pueden especificarse como "
+             "Text o Set. Por ejemplo se puede usar indistintamente "
+             "\"A1\" o [[1,1]]."),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BSetExcelReadRange::CalcContens()
+{
+  static BText _name_( "Excel.ReadRange" );
+  double addr = Dat( Arg( 1 ) ).Value();
+  BSyntaxObject *cornerLT = Arg(2);
+  BSyntaxObject *cornerBR = Arg(3);
+  size_t c0, r0, c1, r1;
+  
+  TolExcel *xls = TolExcel::decode_addr( addr );
+  if ( xls ) {
+    // bool status1 = ;
+    // bool status2 = ;
+    if ( TolExcel::getCellCoordinates( _name_, cornerLT, r0, c0 ) &&
+         TolExcel::getCellCoordinates( _name_, cornerBR, r1, c1 ) ) {
+      BList*	result = NIL;
+      BList*	aux    = NIL;
+      size_t	r,c;
+      for( r = r0; r <= r1; r++ ) {
+	BList* lsta	  = NIL;
+	BList* auxa	  = NIL;
+	for( c = c0; c <= c1; c++ ) {
+          LstFastAppend( lsta, auxa, xls->GetCellAnything( _name_, r, c ) );
+        }
+	LstFastAppend( result, aux, NewSet( "", "", lsta, NIL, BSet::Generic) );
+      }
+      contens_.RobStruct( result, NIL, BSet::Table );
+    }
+  } else {
+    Error( _name_ +
+           I2(": invalid excel handler",
+              ": identificador de objeto excel invalido") );
   }
 }
 

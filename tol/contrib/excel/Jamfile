@@ -4,4 +4,6 @@ objects objs
 
 exe test01 : test01.cpp ExcelFormat.cpp BasicExcel.cpp ;
 
-explicit test01 ;
+exe test02 : test02.cpp ;
+
+explicit test01 test02 ;

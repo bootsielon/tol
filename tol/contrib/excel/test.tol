@@ -40,5 +40,11 @@ Set {
                [[ cell_04_01, cell_04_02 ]],
                [[ cell_05_01, cell_05_02 ]] ]], "Std" )
 };
+
+WriteLn( "Lectura de rango ..." );
+Set {
+  Set range1 = Excel.ReadRange( id, "A1", "B5" );
+  Set View( range1, "Std" )
+};
   
 Real status = Excel.Destroy( id );
