@@ -620,10 +620,10 @@ void BDatExcelActivateWS::CalcContens()
   BDat &index = Dat( Arg( 2 ) );
   if ( index.IsKnown() ) {
     int idx = int( index.Value() );
-    if ( idx >= 0 ) {
+    if ( idx > 0 ) {
       TolExcel *xls = TolExcel::decode_addr( addr );
       if ( xls ) {
-        bool status = xls->SetActiveWS( size_t( idx ) );
+        bool status = xls->SetActiveWS( size_t( idx - 1 ) );
         if ( !status ) {
           char buffer[16];
           snprintf( buffer, 16, "%d", idx );
@@ -640,8 +640,8 @@ void BDatExcelActivateWS::CalcContens()
       }
     } else {
       Error( BText( "Excel.ActivateWS: " ) +
-             I2( "invalid work sheet index, must be >= 0",
-                 "indice de hoja invalido, debe ser >= 0") );
+             I2( "invalid work sheet index, must be >= 1",
+                 "indice de hoja invalido, debe ser >= 1") );
       contens_ = BDat( 0.0 );
     }
   } else {

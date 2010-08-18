@@ -1,6 +1,6 @@
 Text my.dir = GetAbsolutePath(".") + "/";
 Real id = Excel.Open( my.dir + "test.xls" );
-Real Excel.ActivateWS( id, 0 );
+Real Excel.ActivateWS( id, 1 );
 
 WriteLn( "Lectura Anyhting ..." );
 Set {
