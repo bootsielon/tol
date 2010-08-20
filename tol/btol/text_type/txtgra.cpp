@@ -397,12 +397,10 @@ DefExtOpr(1, BTxtGetHardSoftPlattform, "GetHardSoftPlattform", 1, 1,
 void BTxtGetHardSoftPlattform::CalcContens()
 //--------------------------------------------------------------------
 {
-  //"Windows-x86_32"
-  //"Linux-x86_32"
   #ifdef UNIX
-  contens_= "Linux-x86_32";
+  contens_= "Linux_x86_32";
   #else
-  contens_= "Windows-x86_32";
+  contens_= "Windows_x86_32";
   #endif
 }
 
