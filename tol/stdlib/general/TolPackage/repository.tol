@@ -45,7 +45,7 @@ Static Set _.allPackages = Copy(Empty);
 
 Static Real _.localOnlyWarningWasShown = False;
 
-Static Text _.platform = If(OSWin, "Windows-x86_32", "Linux-x86_32");
+Static Text _.platform = GetHardSoftPlattform(0);
 
 //////////////////////////////////////////////////////////////////////////////
 //Carga la lista de repositorios accesibles
