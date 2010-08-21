@@ -14,8 +14,8 @@ Text _.localRoot =
 
 Set _.supportedPlatforms =
 [[
-  "Windows-x86_32",
-  "Linux-x86_32"
+  "Windows_x86_32",
+  "Linux_x86_32"
 ]];
 
 //////////////////////////////////////////////////////////////////////////////
