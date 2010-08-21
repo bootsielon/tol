@@ -42,7 +42,8 @@ Real PlainHeader(Text sourcePath, Text sdkIncPath)
   
 Real PlainHeader(tolSourcePath, sdkTolIncPath);
 Real OSDirCopy(googleSourcePath,sdkGoogleIncPath);
-Real OSFilCopy(libPath+"/tol.lib",sdkLibPath);
+Real OSFilCopy(libPath+"/tol.lib",sdkLibPath+"/tol.lib");
+Real OSFilCopy(libPath+"/../debug/tol.lib",sdkLibPath+"/tol.dbg.lib");
 Real OSFilCopy(libPath+"/../config.h",sdkTolIncPath);
 
 //Real PackArchive::PackFull("ZipArchive", sdkPath);
