@@ -101,7 +101,7 @@ class TOL_API BSpecialFunction
 	   const BText&	         arguments,
 	   const BText&	         description,
 	         BSpecialEvaluator function);
-  static const BSpFunHash& Instances() { return(instances_); }
+  static const BSpFunHash& Instances();
   void PutName(const BText& name) { name_ = name; }
 
   const BText& Name	  () const 

@@ -71,6 +71,12 @@ BSpecialFunction::~BSpecialFunction()
 }
 
 
+//--------------------------------------------------------------------
+  const BSpFunHash& BSpecialFunction::Instances() 
+//--------------------------------------------------------------------
+{ 
+  return(instances_); 
+}
 
 //--------------------------------------------------------------------
 BSyntaxObject* BSpecialFunction::Evaluate(      BGrammar* gra,
