@@ -435,6 +435,7 @@ public:
   void DMat2triplet(const BMatrix<double>& d, int nrow, int columns);
   void DMat2triplet(const BMatrix<double>& d, int nrow, int columns,
                     const BArray<int>& rowIdx, const BArray<int>& colIdx);
+  bool AddTriplet(const BMatrix<double>& ijx);
   void BSet2sparse (const BSet& sparseDef);
   void BPol2sparse (const BPolyn<BDat>& pol_, int nrow, int ncol);
   void BSetSparseLinReg2sparse(const BSet& sparseDef);
@@ -531,6 +532,8 @@ public:
                                        double& upper);
   void TruncStdGaussian(const BVMat& D, const BVMat& d_, 
                         const BVMat& z0_, int ncol, int burnin);
+  void Histogram(const BVMat& M, int parts);
+  void Histogram(const BVMat& M, int parts, double min, double max);
 private:
   static cholmod_dense_struct*   bRd_rand(int nrow, int ncol,
                                           BProbDist& xu);
@@ -540,6 +543,8 @@ private:
                                 const BVMat& d, 
                                       BVMat& b, 
                                       BVMat& z);
+  void Histogram_bRd(const BVMat& M, int parts);
+  void Histogram_bRd(const BVMat& M, int parts, double min, double max);
   
 /*------------------------------------------------------------------------------
   vmat_arith.cpp: Arithmetic methods 

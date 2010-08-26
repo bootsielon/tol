@@ -2535,4 +2535,83 @@ void BSetParseResLinReg::CalcContens()
   BysSparseReg::Parse_Module(filePath, moduleType, contens_);
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatHistogram);
+DefExtOpr(1, BVMatHistogram,  "Histogram", 2, 4, "VMatrix Real Real Real",
+  "(VMatrix M, Real p [, Real min, Real max])",
+  I2("Makes a frequency analysis of p intervals for the each column "
+     "of a matrix M:rxc and returns a matrix with c+1 columns and p rows. "
+     "In the first column contains the upper bound of each interval. "
+     "The rest of columns j=2..c+1 contain the ratio of values of (j-1)-th "
+     "column of M belonging to the interval corresponding to the row.",
+     "Hace un analisis de frecuencia de p intervalos para cada  "
+     "columna de una matriz M:rxc y devuelve una matriz con c+1 columnas y p filas. "
+     "La primera columna contiene el limite superior de cada intervalo. "
+     "Las siguientes columnas j=2..c+1 contienen la proporción de valores de "
+     "la columna (j-1)-ésima de M que pertenecen al intervalo correspondiente "
+     "a la fila.")+"\n"+
+  I2("Defining the size of internal intervals as ",
+     "Definiendo el tamaño de los intervalos interiores como ")+"\n"+
+     "  h = (max-min)/p\n"+
+  I2("we will have the next p intervals",
+     "tendremos los siguientes p intervalos")+"\n"+
+     " min         < x <= min + h          \n"+
+     " min+h       < x <= min + h*2        \n"+
+     "              ...                    \n"+
+     " min+h*(p-1) < x <= min + h*p = max  \n",
+    BOperClassify::Statistic_);
+//--------------------------------------------------------------------
+void BVMatHistogram::CalcContens()
+//--------------------------------------------------------------------
+{
+  BVMat& M = VMat (Arg(1));
+  int  parts = (BInt)Real(Arg(2));
+  if(Arg(3) && Arg(4)) 
+  { 
+    double min = Real(Arg(3));
+    double max = Real(Arg(4));
+    contens_.Histogram(M,parts,min,max);
+  }
+  else
+  {
+    contens_.Histogram(M,parts);
+  }
+//contens_.Pack(0.5)
+}
+
+/*
+//--------------------------------------------------------------------
+class BSetMergeTriplet: public BExternalOperator
+//--------------------------------------------------------------------
+{
+public:
+  BSetMergeTriplet()
+  : BExternalOperator
+    (
+      "MergeTriplet", GraVMatrix(), "VMatrix Matrix", NIL, 2, 2,
+      "(VMatrix cum, Matrix triplets)",
+		  I2(""  ,
+	       ""),
+		  BOperClassify::MatrixtAlgebra_
+    )
+  {
+  }
+
+ ~BSetMergeTriplet() {}
+
+  BSyntaxObject* Evaluator(BList* arg) const
+  { 
+    if(CheckNonDeclarativeAction("MergeTriplet")) { return(NULL); }
+    BUserSet* uCum = UVMat(lst->Car());
+    BVMat& cum = uCum->Contens();
+    BMat& triplets = Mat(Arg(lst->Cdr()->Car()));
+    cum.AddTriplet(triplets);
+    SAFE_DESTROY(arg, uCum);
+    return(uCum);
+  }
+ private:
+  DeclareClassNewDelete(BSetMergeTriplet);
+};
+*/
+
 

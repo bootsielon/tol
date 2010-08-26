@@ -306,7 +306,8 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   if(A.code_!=ESC_blasRdense)
   { 
     warn_convert2bRd(fName,A);
-    A_ = new BVMat(A, ESC_blasRdense); 
+    A_ = new BVMat;
+    A_->Convert(A, ESC_blasRdense); 
   }
   return(0);
 }
@@ -615,7 +616,57 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   if(!ok) { Delete(); }
 };
 
-
+////////////////////////////////////////////////////////////////////////////////
+  bool BVMat::AddTriplet(const BMatrix<double>& ijx)
+////////////////////////////////////////////////////////////////////////////////
+{
+  static BText fName = "AddTriplet(Matrix triplets)";
+  Error(BText("Still not impemented function VMatrix ")+fName);
+  return(false);
+/*
+  int k, n = ijx.Rows();
+  bool ok = true;
+  if(code_  != ESC_chlmRtriplet)
+  {
+    err_wrong_defined(fName, *this);
+    ok = false;
+  }
+  else
+  {
+    int nrow; 
+    int ncol;
+    cholmod_triplet *all = cholmod_allocate_triplet
+      (nrow,ncol,n,0,CHOLMOD_REAL,common_);
+    int*    r_ = (int*)   s_.chlmRtriplet_->i;
+    int*    c_ = (int*)   s_.chlmRtriplet_->j;
+    double* x_ = (double*)s_.chlmRtriplet_->x;
+    for(k=0; k<n; k++)
+    {
+      r_[k] = (int)ijx(k,0)-1;
+      c_[k] = (int)ijx(k,1)-1;
+      x_[k] = ijx(k,2);
+      if((r_[k]<0)||(r_[k]>=nrow))
+      {
+        err_cannot_apply(fName, 
+          BText("Row index ")+(r_[k]+1)+" out of range 1..."+(nrow+1), 
+          *this);
+        ok = false;
+        break;
+      }
+      else if((c_[k]<0)||(c_[k]>=ncol))
+      {
+        err_cannot_apply(fName, 
+          BText("Columns index ")+(c_[k]+1)+" out of range 1..."+(ncol+1), 
+          *this);
+        ok = false;
+        break;
+      }
+      s_.chlmRtriplet_->nnz++; 
+    }
+  }
+  return(false);
+*/
+};
 
 ////////////////////////////////////////////////////////////////////////////////
   void BVMat::GetTriplet(BMatrix<double>& ijx) const

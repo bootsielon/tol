@@ -778,4 +778,73 @@ double BVMat::Quantile() const
     err_cannot_create(fName,D.code_);  }
 };
 
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::Histogram_bRd(const BVMat& M, int parts, double min, double max)
+////////////////////////////////////////////////////////////////////////////////
+{
+  int i,j,p;
+  int n = M.s_.blasRdense_->nzmax;
+  int r = M.s_.blasRdense_->nrow;
+  int c = M.s_.blasRdense_->ncol;
+  BlasRDense(parts, c+1);
+  BArray<double> sorted(r);
+  double* h = (double*)s_.blasRdense_->x; 
+  double step = (max-min)/double(parts);
+  for(p=0; p<parts-1; p++)
+  {
+    *(h++) = min+step*(p+1);
+  }
+  *(h++) = max;
+  memset(h,0,sizeof(double)*parts*c);
+  const double* x = (const double*)M.s_.blasRdense_->x; 
+  for(j=0; j<c; j++)
+  {
+    double* h0 = ((double*)s_.blasRdense_->x)+r*j;
+    for(i=0; i<r; i++, x++)
+    {
+      p = (int)((*x-min)/step)-1;
+      if(p<0) { p=0; }
+      if(p>=parts) { p=parts-1; }
+      h0[p] += 1.0/parts;
+    }
+  }
+};
 
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::Histogram_bRd(const BVMat& M, int parts)
+////////////////////////////////////////////////////////////////////////////////
+{
+  int k;
+  int n = M.s_.blasRdense_->nzmax;
+  double* x = (double*)M.s_.blasRdense_->x; 
+  double min = BDat::PosInf();
+  double max = BDat::NegInf();
+  for(k=0; k<n; k++, x++)
+  {
+    if(*x<min) { min=*x; }
+    if(*x>max) { max=*x; }
+  }
+  Histogram_bRd(M,parts,min,max);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::Histogram(const BVMat& M_, int parts, double min, double max)
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat *M__=NULL;
+  convertIfNeeded_all2bRd(M_, M__, "Histogram");  
+  BVMat &M = *M__;
+  Histogram_bRd(M,parts,min,max);
+  if(M__!=&M_) { delete M__; }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::Histogram(const BVMat& M_, int parts)
+////////////////////////////////////////////////////////////////////////////////
+{
+  BVMat *M__=NULL;
+  convertIfNeeded_all2bRd(M_, M__, "Histogram");
+  BVMat &M = *M__;
+  Histogram_bRd(M,parts);
+  if(M__!=&M_) { delete M__; }
+}
