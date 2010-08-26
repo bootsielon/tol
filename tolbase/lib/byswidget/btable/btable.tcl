@@ -1496,10 +1496,12 @@ if { [string equal $tcl_platform(platform) "windows"] } {
     #In other case the type is changed to text 
     } else {
       $self setType $col text
-      set rq [tk_messageBox -type "ok" -icon warning \
-       -title [mc "Warning"] -parent $widget(tab)\
-       -message "[mc SomeCellNotReal].\n\
+      if { 0 } {
+        set rq [tk_messageBox -type "ok" -icon warning \
+                    -title [mc "Warning"] -parent $widget(tab)\
+                    -message "[mc SomeCellNotReal].\n\
        [mc TypeSetText]"]
+      }
       return $matrix($cell)
     }
   }
@@ -1543,10 +1545,12 @@ if { [string equal $tcl_platform(platform) "windows"] } {
     #In other case the type is changed to text 
     } else {
       $self setType $col text
+      if { 0 } {
       set rq [tk_messageBox -type "ok" -icon warning \
        -title [mc "Warning"] -parent $self\
        -message "[mc SomeCellNotDate].\n\
        [mc TypeSetText]"]
+      }
       return $matrix($cell)
     }
   }
