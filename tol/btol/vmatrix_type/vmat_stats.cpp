@@ -806,7 +806,7 @@ double BVMat::Quantile() const
       p = (int)((*x-min)/step)-1;
       if(p<0) { p=0; }
       if(p>=parts) { p=parts-1; }
-      h0[p] += 1.0/parts;
+      h0[p] += 1.0/r;
     }
   }
 };
