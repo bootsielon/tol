@@ -2001,7 +2001,7 @@ proc TolGui_InsertEntriesFromMenuManager { targetMenu selection } {
     set tcl_ref [ lindex $obj_info 0 ]
     lappend addrList [ ::tol::info address $tcl_ref ]
   }
-  MenuManager::insertEntriesForSelection $targetMenu $addrList
+  ::MenuManager::insertEntriesForSelection $targetMenu $addrList
 }
 
 proc TolGui_GetObjMenu { obj_addr } {
