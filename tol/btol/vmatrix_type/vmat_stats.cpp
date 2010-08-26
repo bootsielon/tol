@@ -797,9 +797,10 @@ double BVMat::Quantile() const
   *(h++) = max;
   memset(h,0,sizeof(double)*parts*c);
   const double* x = (const double*)M.s_.blasRdense_->x; 
+//double* y = (double*)s_.blasRdense_->x+parts; 
   for(j=0; j<c; j++)
   {
-    double* h0 = ((double*)s_.blasRdense_->x)+r*j;
+    double* h0 = ((double*)s_.blasRdense_->x)+parts*(j+1);
     for(i=0; i<r; i++, x++)
     {
       p = (int)((*x-min)/step)-1;
