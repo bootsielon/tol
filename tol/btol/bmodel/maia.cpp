@@ -19,7 +19,7 @@
    USA.
  */
 
-//#define TRACE_LEVEL 1
+//#define TRACE_LEVEL 10
 
 #if defined(_MSC_VER)
 #include <win_tolinc.h>
@@ -203,9 +203,13 @@ bool BMultOutlier::Estimate(const BMatrix<BDat>& y,
   BTStudentDist tProbDist(N-s);
   minNonZeroParamProb_ = BDat::Unknown();
   BSymMatrix<BDat> M;
-  BLowTrMatrix<BDat> L;
+  BMatrix<BDat> L;
   MTMSquare(x_,M);
-  Choleski(M,L);
+  {
+    BLowTrMatrix<BDat> L_;
+    Choleski(M,L_);
+    L = L_;
+  }
   TRACE_SHOW_HIGH(fun,BText("  M=\n")+M.Name());
   TRACE_SHOW_HIGH(fun,BText("  L=\n")+L.Name());
 
@@ -231,9 +235,10 @@ bool BMultOutlier::Estimate(const BMatrix<BDat>& y,
     }
     eigenValueRelativeRange = Exp(maxLogEigenVal-minLogEigenVal);
     detL = Exp(logDetL);
-    TRACE_SHOW_HIGH(fun,BText("  logDetL=\n")+logDetL);
     t = L.T()*w_/sigma_;
+    TRACE_SHOW_HIGH(fun,BText("  t=\n")+t.Name());
   }
+  TRACE_SHOW_HIGH(fun,BText("  logDetL=")+logDetL);
   TRACE_SHOW_HIGH(fun,BText("  DetL=\n")+detL);
   TRACE_SHOW_HIGH(fun,BText("  eigenValueRelativeRange=\n")+eigenValueRelativeRange);
   
@@ -259,8 +264,10 @@ bool BMultOutlier::Estimate(const BMatrix<BDat>& y,
       { 
         minNonZeroParamProb_ = tProbNonZero; 
       }
-      TRACE_SHOW_HIGH(fun,BText(" tStudent="+t(i,0)+
-                                " tProbNonZero="+tProbNonZero));
+      TRACE_SHOW_HIGH(fun,BText("")+
+       " i="+i+
+       " tStudent="+t(i,0)+
+       " tProbNonZero="+tProbNonZero);
     }
   }
   if(nonZeroParamLogProb_.IsUnknown() ||
