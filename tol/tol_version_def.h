@@ -27,5 +27,7 @@
 #define VERSION_BUILD   "0.43.alpha"
 
 #if defined(_MSC_VER)
-#include <tol_build_date.h>
+#include "tol_build_date.h"
+#include "tol_build_svn_info.h"
 #endif
+

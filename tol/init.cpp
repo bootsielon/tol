@@ -306,6 +306,14 @@ static void signal_assign()
   return(_tolSessionPath_.String());
 }
 
+//////////////////////////////////////////////////////////////////////////////
+const BText& SvnInfo()
+//////////////////////////////////////////////////////////////////////////////
+{
+  static BText svnInfo = BText() +  __TOL_BUILD_SVN_INFO__;
+  return(svnInfo);
+};
+
 //--------------------------------------------------------------------
 void InitCommonInstances(BGrammar* gra)
 //--------------------------------------------------------------------
@@ -841,6 +849,13 @@ BBool InitGrammars()
 
   //initializing tools 
     BysSparseReg::Initialize();
+
+    static BSystemText* SvnInfo_ = new BSystemText
+	  ("SvnInfo", SvnInfo(),
+	   I2("Contains the information on the SVN URL and revision number from which TOL was compiled",
+	      "Contiene la información sobre la URL y el número de revisión del "
+        "SVN desde el que se ha generado la presente versión de TOL."));
+
     int BTolOprProfiler_Init();
     BTolOprProfiler_Init();
     TOLHasBeenInitialized_ = true;
