@@ -3,6 +3,7 @@
 import common ;
 import config ;
 import modules ;
+import string ;
 import os ;
 import option ;
 import package ;
@@ -35,7 +36,13 @@ if $(os) = UNIX
   os-reqs = <define>UNIX ;
   build-date = [ trim-nl [ SHELL "date +%F" ] ] ;
   build-time = [ trim-nl [ SHELL "date '+%T %z %Z'" ] ] ;
+  svn-info = [ SHELL "svn info" ] ;
+  svn0 = [ string.words $(svn-info) : "
+" ] ;
+  build-svn-info = [ string.join $(svn0) : "\\n" ] ;
 }
+
+#build-svn-info = "Path: .\\nURL: https://www.tol-project.org/svn/tolp/trunk/tol\\nRepository Root: https://www.tol-project.org/svn\\nRepository UUID: be4846ae-f051-483a-831f-b64e7d08527f\\nRevision: 2498\n\nNode Kind: directory\n\nSchedule: replace\n\nLast Changed Author: vdebuen\n\nLast Changed Rev: 2498\\nLast Changed Date: 2010-08-29 14:46:28 +0200 (dg, 29 ago 2010)" ;
 
 # por que no usar algo como?
 # configure version 1.1.6 ;
@@ -213,6 +220,7 @@ obj init : init.cpp
          : <define>TOLINIT_LIB_DIR=\\\"$(stdlib-location)\\\" 
            <define>__TOL_BUILD_DATE__=\"\\\"$(build-date)\\\"\"
            <define>__TOL_BUILD_TIME__=\"\\\"$(build-time)\\\"\"
+           <define>__TOL_BUILD_SVN_INFO__=\"\\\"$(build-svn-info)\\\"\"
            <conditional>@obj-req
          ;
 
