@@ -172,10 +172,6 @@
 #define __USE_DBTIME_MONITOR__
 /* Enables using ZIP Archive Library with OIS */
 
-#ifndef __USE_ZIP_ARCHIVE__ 
-  #define __USE_ZIP_ARCHIVE__
-#endif
-
 /******************************************************************************/
 /* Configuration of pool memory handlers */
 /******************************************************************************/

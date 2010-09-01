@@ -1592,10 +1592,14 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   bool BOisLoader::Close()
 //--------------------------------------------------------------------
 {
+//Std(BText("\nTRACE BOisLoader::Close() 1"));
   if(closed_) { return(false); }
+//Std(BText("\nTRACE BOisLoader::Close() 2"));
   int n;
+//Std(BText("\nTRACE BOisLoader::Close() 3"));
   if(data_!=NULL)
   {
+  //Std(BText("\nTRACE BOisLoader::Close() 4"));
     for(n=0; n<readed_.Size(); n++)
     {
       BSyntaxObject* obj = readed_[n].Object();
@@ -1605,8 +1609,11 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         obj->DecNRefs();
       }
     }
+  //Std(BText("\nTRACE BOisLoader::Close() 5"));
   }
+//Std(BText("\nTRACE BOisLoader::Close() 6"));
   BOis::Close();
+//Std(BText("\nTRACE BOisLoader::Close() 7"));
   return(true);
 }
 

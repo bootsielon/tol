@@ -29,6 +29,7 @@
 #include <tol/tol_btimer.h>
 
 #include <tol/tol_oisstream_dir.h>
+#include <tol/tol_StoreZipArchive.h>
 
 BTraceInit("oisstram_dir.cpp");
 
@@ -292,6 +293,88 @@ const BINT64& BDirStream::GetPos()
     BSys::Remove(files[n]);
   }
   return(true);
+}
+
+
+//--------------------------------------------------------------------
+  bool BZDirStreamHandler::Connect(const char* connection,
+                                  BOpenMode   openMode,
+                                  bool        errorWarning)
+//--------------------------------------------------------------------
+{
+  BBool read  = openMode==BSHOM_READ;
+  BBool write = openMode==BSHOM_WRITE;
+  connection_ = GetStandardAbsolutePath(connection);
+  #ifdef UNIX
+     connection_.Replace('\\','/');
+  #else
+     connection_.Replace('/','\\');
+  #endif
+  openMode_ = openMode;
+  if(read && !CheckIsFile(connection_))
+  {
+    connected_ = false;
+  }
+  else
+  {
+    BText dir = GetFilePath(connection_)+GetFilePrefix(connection_);
+    if(read)
+    {
+      Std(BText("[BZDirStreamHandler] Extracting from ")+connection_);
+      StoreZipArchive sza;
+      sza.Open(connection_, 'r');
+      sza.DirExtract("*",dir);
+      sza.Close();
+    }
+    connected_ = dsh_.Connect(dir,openMode,errorWarning);
+  }
+  return(connected_); 
+}
+
+//--------------------------------------------------------------------
+ void BZDirStreamHandler::Disconnect()
+//--------------------------------------------------------------------
+{
+  if(connected_ && (openMode_==BSHOM_WRITE))
+  {
+    Std(BText("[BZDirStreamHandler] Compressing to ")+connection_);
+    StoreZipArchive sza;
+    sza.Open(connection_, 'w');
+    BText dir = dsh_.Connection();
+    #ifdef UNIX
+       dir.Replace('\\','/');
+    #else
+       dir.Replace('/','\\');
+    #endif
+    sza.DirAdd(dir);
+    sza.Close();
+  }
+  BSys::RmDir(dsh_.Connection());
+  connected_ = false;
+}
+
+//--------------------------------------------------------------------
+  BStream* 
+  BZDirStreamHandler::Open(const char* title, 
+                          const char* name,
+                          int index)
+//--------------------------------------------------------------------
+{
+  return(dsh_.Open(title,name,index));
+}
+
+//--------------------------------------------------------------------
+  bool BZDirStreamHandler::HasFile(const char* fileName) const
+//--------------------------------------------------------------------
+{
+  return(dsh_.HasFile(fileName));
+}
+
+//--------------------------------------------------------------------
+  bool BZDirStreamHandler::RemoveFiles(const BArray<BText>& files)
+//--------------------------------------------------------------------
+{
+  return(dsh_.RemoveFiles(files));
 }
 
 

@@ -59,9 +59,6 @@
 #include <tol/tol_oisloader.h>
 #include <tol/tol_bsymboltable.h>
 
-#if defined(__USE_ZIP_ARCHIVE__)
-#  include <tol/tol_oisstream_zip.h>
-#endif
 #include <malloc.h>
 #include <locale.h>
 
@@ -350,9 +347,6 @@ void InteractiveTOL()
 #if   (__USE_POOL__==__POOL_BFSMEM__)
       void BFSMEM_ShowStatsOfAllInstances();
       BFSMEM_ShowStatsOfAllInstances();
-#     endif 
-#     if(defined(__USE_ZIP_ARCHIVE__))
-      Std(BZipStream::CPUReport());
 #     endif 
 #     ifdef TRACE_OPTINFO
       Std(BText("\nOptional info. number   = ")<<BSyntaxObject::OptInfoCount()<<" of "<<(BSyntaxObject::NSyntaxObject()-BDeadObject::DeadObjects()));

@@ -83,7 +83,8 @@ BTraceInit("oisstream.cpp");
 # ifdef __USE_ZIP_ARCHIVE__
     case BSHM_zip: fh = new BZipStreamHandler;  break;
 # else
-    case BSHM_zip: Error("ZipArchive is disabled in this TOL distribution");  break;
+    case BSHM_zip: fh = new BZDirStreamHandler;  break;
+  //case BSHM_zip: Error("ZipArchive is disabled in this TOL distribution");  break;
 # endif
   //case BSHM_db:  fh = new BDbStreamHandler;   break;
     default: assert(1); break;

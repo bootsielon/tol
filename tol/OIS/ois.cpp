@@ -49,8 +49,10 @@ int BOis::def_CLv_ = 9;
 BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_NONE_;
 BOis::BArchiveEngine BOis::def_BAE_ = BOis::BAE_ZIPARC_;
 #else
-BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_BZIP2_;
-BOis::BArchiveEngine BOis::def_BAE_ = BOis::BAE_NONE_;
+BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_NONE_;
+BOis::BArchiveEngine BOis::def_BAE_ = BOis::BAE_ZIPARC_;
+//BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_BZIP2_;
+//BOis::BArchiveEngine BOis::def_BAE_ = BOis::BAE_NONE_;
 #endif
 
 BDateFormat BOis::dateFmt_("%c%Y-%m-%d %h:%i:%s");
@@ -152,11 +154,11 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
   options_.tolSourceSearchPaths_[0].alias_ = ToName(GetFilePrefix(dirAbsPath));
   options_.tolSourceSearchPaths_[0].value_ = dirAbsPath;
 /*
-  Std(BText("\nTRACE BOis::SetModulePath('")+tolFile+"'");
-  Std(BText("\nTRACE   connection_='")+connection_+"'");
-  Std(BText("\nTRACE   node_='")+address_.node_+"'");
-  Std(BText("\nTRACE   alias_='")+options_.tolSourceSearchPaths_[0].alias_+"'");
-  Std(BText("\nTRACE   value_='")+options_.tolSourceSearchPaths_[0].value_+"'");
+//Std(BText("\nTRACE BOis::SetModulePath('")+tolFile+"'");
+//Std(BText("\nTRACE   connection_='")+connection_+"'");
+//Std(BText("\nTRACE   node_='")+address_.node_+"'");
+//Std(BText("\nTRACE   alias_='")+options_.tolSourceSearchPaths_[0].alias_+"'");
+//Std(BText("\nTRACE   value_='")+options_.tolSourceSearchPaths_[0].value_+"'");
 */
 }
 
@@ -461,9 +463,11 @@ BOis::BArchiveEngine BOis::ArchiveEngine      (const BText& txt)
  bool BOis::Close()
 //--------------------------------------------------------------------
 {
+//Std(BText("\nTRACE BOis::Close() 1"));
   if(closed_) { return(false); }
+//Std(BText("\nTRACE BOis::Close() 2"));
   int n;
-  if(streamHandler_) { streamHandler_->Disconnect(); }
+//Std(BText("\nTRACE BOis::Close() 4"));
   for(n=0; n<allFiles_.Size(); n++) 
   { 
     if(allFiles_[n]) 
@@ -473,6 +477,7 @@ BOis::BArchiveEngine BOis::ArchiveEngine      (const BText& txt)
       allFiles_[n] = NULL; 
     }
   }
+//Std(BText("\nTRACE BOis::Close() 5"));
   for(n=0; n<source_.Size(); n++) 
   { 
     if(source_[n]) 
@@ -482,7 +487,15 @@ BOis::BArchiveEngine BOis::ArchiveEngine      (const BText& txt)
       source_[n] = NULL; 
     }
   }
+//Std(BText("\nTRACE BOis::Close() 3"));
+  if(streamHandler_) { 
+    streamHandler_->Disconnect();
+    delete streamHandler_;
+    streamHandler_ = NULL;
+  }
+//Std(BText("\nTRACE BOis::Close() 6"));
   closed_ = true;
+//Std(BText("\nTRACE BOis::Close() 7"));
   return(true);
 }
 

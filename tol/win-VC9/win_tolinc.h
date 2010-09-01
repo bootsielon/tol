@@ -188,6 +188,9 @@
 #pragma include_alias(<tol/tol_oisstream_dir.h>, <tol_oisstream_dir.h>)
 #pragma include_alias(<tol/tol_oisstream_zip.h>, <tol_oisstream_zip.h>)
 
+#pragma include_alias(<tol/tol_PackArchive.h>, <tol_PackArchive.h>)
+#pragma include_alias(<tol/tol_StoreZipArchive.h>, <tol_StoreZipArchive.h>)
+
 //inconsistent DLL linkage. dllexport assumed.
 #pragma warning(disable : 4273)
 // C++ exception specification ignored 

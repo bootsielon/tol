@@ -50,6 +50,25 @@
 };
 
 //------------------------------------------------------------------
+   class BZDirStreamHandler: public BStreamHandler
+// Compressed directory stream handler
+//------------------------------------------------------------------
+{
+  BDirStreamHandler dsh_;
+ public:
+  BZDirStreamHandler() {}
+ ~BZDirStreamHandler() {};
+  bool Connect(const char* connection, 
+               BOpenMode   openMode,
+               bool errorWarning);
+  void Disconnect();
+  BMedia Media() { return(BSHM_zip); }
+  BStream* Open(const char* title, const char* name, int index=-1);
+  bool HasFile(const char* fileName) const;
+  bool RemoveFiles(const BArray<BText>& files);
+};
+
+//------------------------------------------------------------------
    class BDirStream: public BStream
 // Simple binary file stream
 //------------------------------------------------------------------

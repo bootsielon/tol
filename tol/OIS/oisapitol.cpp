@@ -1075,9 +1075,11 @@ static const char* aliasSpanishDescription_ =
 BSyntaxObject* OisUseModuleEvaluator(BList* arg)
 //--------------------------------------------------------------------
 {
+//Std(BText("\nTRACE OisUseModuleEvaluator 1"));
   BSyntaxObject* result=NULL;
   BTimer tm;
   BText name = Text((BSyntaxObject*)Car(arg));
+//Std(BText("\nTRACE OisUseModuleEvaluator 2"));
 
 //BText expr = BText("IncludeText(Ois.AutoGen(\"")+name+"\"))[1]";
 //result = GraSet()->EvaluateExpr(expr);
@@ -1088,6 +1090,7 @@ BSyntaxObject* OisUseModuleEvaluator(BList* arg)
   oisLoader.SetCheckSourceSize   (true);
   oisLoader.SetCheckSourceDate   (true);
   oisLoader.SetShowCheckingTraces(false);
+//Std(BText("\nTRACE OisUseModuleEvaluator 3"));
 
   bool errorWarning        = false;
   bool doShowHierarchy     = false;
@@ -1097,6 +1100,7 @@ BSyntaxObject* OisUseModuleEvaluator(BList* arg)
   int  showHrchyMaxChilds  = -1;
   const BSet* partial      = NULL;
   bool oldRunningUseModule = BOis::SetRunningUseModule(true);
+//Std(BText("\nTRACE OisUseModuleEvaluator 4"));
   bool ok = oisLoader.Load
   (
     errorWarning,
@@ -1107,38 +1111,59 @@ BSyntaxObject* OisUseModuleEvaluator(BList* arg)
     showHrchyMaxChilds,
     partial
   );
+//Std(BText("\nTRACE OisUseModuleEvaluator 5"));
   if(ok)
   {
+//Std(BText("\nTRACE OisUseModuleEvaluator 6"));
     result = oisLoader.GetData();
     oisLoader.Close();
   }
   else
   {
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.1"));
     oisLoader.Close();
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.2"));
     int oldErr = (int)TOLErrorNumber().Value();
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.3"));
     BOisCreator oisCreator;
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.4"));
     BOisCreator::current_ = &oisCreator;
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.5"));
     BUserSet* uData = IncludeFile(name);
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.6"));
     BOisCreator::current_ = NULL;
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.7"));
     result = uData;
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.8"));
     int numErr = (int)TOLErrorNumber().Value()-oldErr;
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.9"));
     if(numErr || !result)
     {
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.10"));
       Error(I2("\nOIS: Cannot create module ","\nOIS: NO se puede crear el módulo ")+
             name+
             I2(" with "," con ")+
             numErr+
             I2(" errors "," errores ")+"\n");
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.11"));
       BOis::RemoveModule(name);
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.12"));
     }
     else
     {
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.13"));
       oisCreator.CreateModule(name,uData);
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.14"));
       oisCreator.Build();
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.15"));
     }
+  //Std(BText("\nTRACE OisUseModuleEvaluator 7.16"));
   }
+//Std(BText("\nTRACE OisUseModuleEvaluator 8"));
   BOis::SetRunningUseModule(oldRunningUseModule);
+//Std(BText("\nTRACE OisUseModuleEvaluator 9"));
   DESTROY(arg);
+//Std(BText("\nTRACE OisUseModuleEvaluator 10"));
   return(result);
 }
 
