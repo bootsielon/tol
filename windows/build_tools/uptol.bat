@@ -6,11 +6,12 @@ Rem Luego procede a ejecutar _uptol.bat
 
 SetLocal enableextensions enabledelayedexpansion
 
+
+If not "%1"=="/no_update" (
 ECHO Actualizando el codigo desde el repositorio
-
 svn update ..\..
-
 ECHO Codigo actualizado
+)
 
 :DO
 
