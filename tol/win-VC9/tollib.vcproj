@@ -27,7 +27,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cd ..&#x0D;&#x0A;win-vc9\Debug\build_date_gen.exe&#x0D;&#x0A;tolsh -v svn_info.tol&#x0D;&#x0A;"
+				CommandLine="cd ..&#x0D;&#x0A;win-vc9\Release\build_date_gen.exe&#x0D;&#x0A;svn info | sed -n &quot;/:/p&quot; |  sed -e &quot;/Rut/d&quot; | sed &quot;s/.*/&amp;\\n\\/g&quot; &gt; tol_build_svn_info.center&#x0D;&#x0A;cat tol_build_svn_info.prefix tol_build_svn_info.center tol_build_svn_info.sufix &gt;  tol_build_svn_info.h&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -51,7 +51,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(LTDL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois;../PackArchive"
-				PreprocessorDefinitions="_DEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__"
+				PreprocessorDefinitions="_DEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__;__USE_ZIP_ARCHIVE__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -128,7 +128,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="Echo TOL Contrib Environment&#x0D;&#x0A;set  ATLAS_INC&#x0D;&#x0A;set  ATLAS_LIB&#x0D;&#x0A;set  GSL_INC&#x0D;&#x0A;set  GSL_LIB&#x0D;&#x0A;set  CHOLMOD_INC&#x0D;&#x0A;set  CHOLMOD_LIB&#x0D;&#x0A;set  BZIP2_INC&#x0D;&#x0A;set  BZIP2_LIB&#x0D;&#x0A;set  ZipArchive_INC&#x0D;&#x0A;set  ZipArchive_LIB&#x0D;&#x0A;set  MYSQL_INCLUDE&#x0D;&#x0A;set  MYSQL_LIB&#x0D;&#x0A;set  PGSQL_INCLUDE&#x0D;&#x0A;set  PGSQL_LIB&#x0D;&#x0A;set ANN_INCLUDE&#x0D;&#x0A;set ANN_LIB&#x0D;&#x0A;set  GOOGLE_SPARSEHASH&#x0D;&#x0A;&#x0D;&#x0A;cd ..&#x0D;&#x0A;win-vc9\Release\build_date_gen.exe&#x0D;&#x0A;tolsh -v svn_info.tol&#x0D;&#x0A;"
+				CommandLine="Echo TOL Contrib Environment&#x0D;&#x0A;set  ATLAS_INC&#x0D;&#x0A;set  ATLAS_LIB&#x0D;&#x0A;set  GSL_INC&#x0D;&#x0A;set  GSL_LIB&#x0D;&#x0A;set  CHOLMOD_INC&#x0D;&#x0A;set  CHOLMOD_LIB&#x0D;&#x0A;set  BZIP2_INC&#x0D;&#x0A;set  BZIP2_LIB&#x0D;&#x0A;set  ZipArchive_INC&#x0D;&#x0A;set  ZipArchive_LIB&#x0D;&#x0A;set  MYSQL_INCLUDE&#x0D;&#x0A;set  MYSQL_LIB&#x0D;&#x0A;set  PGSQL_INCLUDE&#x0D;&#x0A;set  PGSQL_LIB&#x0D;&#x0A;set ANN_INCLUDE&#x0D;&#x0A;set ANN_LIB&#x0D;&#x0A;set  GOOGLE_SPARSEHASH&#x0D;&#x0A;&#x0D;&#x0A;cd ..&#x0D;&#x0A;win-vc9\Release\build_date_gen.exe&#x0D;&#x0A;svn info | sed -n &quot;/:/p&quot; |  sed -e &quot;/Rut/d&quot; | sed &quot;s/.*/&amp;\\n\\/g&quot; &gt; tol_build_svn_info.center&#x0D;&#x0A;cat tol_build_svn_info.prefix tol_build_svn_info.center tol_build_svn_info.sufix &gt;  tol_build_svn_info.h&#x0D;&#x0A;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -155,7 +155,7 @@
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(LTDL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois;../PackArchive"
-				PreprocessorDefinitions="NDEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__"
+				PreprocessorDefinitions="NDEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__;__USE_ZIP_ARCHIVE__"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				StructMemberAlignment="3"
