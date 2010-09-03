@@ -1,0 +1,61 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  960;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="Inconsistent behaviour of functions MatMin, MatMax, VMatMin, VMatMax with matrices containing unknown values";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Matrix a = Col( 1, ?, 2 );
+  Real a.min = MatMin(a);
+  Real a.max = MatMax(a);
+  VMatrix va = Mat2VMat(a);
+  Real va.min = VMatMin(va);
+  Real va.max = VMatMax(va);
+  
+  Matrix b = Col( ?, 1, 2 );
+  Real b.min = MatMin(b);
+  Real b.max = MatMax(b);
+  VMatrix vb = Mat2VMat(b);
+  Real vb.min = VMatMin(vb);
+  Real vb.max = VMatMax(vb);
+  
+  
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+
+  Set partialResults_ = [[ numErr0, numErr1]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0,
+                      !IsUnknown(a.min),
+                      !IsUnknown(a.max),
+                      !IsUnknown(va.min),
+                      !IsUnknown(va.max),
+                      !IsUnknown(b.min),
+                      !IsUnknown(b.max),
+                      !IsUnknown(vb.min),
+                      !IsUnknown(vb.max),
+                      EQ(a.max,va.max,b.max,vb.max,2),
+                      EQ(a.min,va.min,b.min,vb.min,1));
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
+
