@@ -34,6 +34,7 @@
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bcmpgra.h>
 #include <tol/tol_bdtegra.h>
+#include <tol/tol_ois.h>
 #ifdef __USE_TC__
 #  include <tol/tol_bctmigra.h>
 #  include <tol/tol_bctmsgra.h>
@@ -1769,6 +1770,27 @@ static BSyntaxObject* EvClass(BGrammar* gra, const List* tre, BBool left)
 }
 
 //--------------------------------------------------------------------
+static BSyntaxObject* EvAvoidErrNonDecAct(BGrammar* gra, const List* tre, BBool left)
+
+/*! Evaluate Case expressions
+ */
+//--------------------------------------------------------------------
+{
+  static BText _name_ = "AvoidErr.NonDecAct";
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  BSyntaxObject* result = NULL;
+  if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
+  {
+    bool oldUseModule = BOis::RunningUseModule();
+    BOis::SetRunningUseModule(false);
+    BSyntaxObject* result = gra->EvaluateTree(tre);
+    BOis::SetRunningUseModule(oldUseModule);
+    result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
+  }
+  return(result);
+}
+
+//--------------------------------------------------------------------
 static bool BSpecialFunction_IsInitialized()
 //--------------------------------------------------------------------
 {
@@ -2225,6 +2247,17 @@ bool BSpecialFunction::Initialize()
   I2("Creates a user defined class as an specific API of NameBlock",
      "Crea una clase definida por el usuario como una API específica de NameBlock"),
      EvClass);
+
+  AddInstance("AvoidErr.NonDecAct",
+     "(Anything expression)",
+  I2("Avoid error message about not declarative actions while you are creating "
+     "an OIS module. Use with great care and only if you really want to load "
+     "during OIS not run these activities.",
+     "Evita el mensaje de error sobre acciones no declarativas mientras "
+     "se está creando un módulo OIS. Úsese con mucho cuidado y sólo si realmente "
+     "se quiere que durante la carga del OIS no se ejecuten dichas acciones."),
+     EvClass);
+
 
   return(true);
 }
