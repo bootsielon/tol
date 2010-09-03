@@ -307,17 +307,20 @@ BDat Maximum(const BArray<BDat>& vec)
 //--------------------------------------------------------------------
 {
     if(!vec.Size()) { return(BDat::Unknown()); }
-    BDat result = vec(0);
-    for(BInt k = 1; k<vec.Size(); k++)
+    BDat result = BDat::NegInf();
+  bool allUnknown = true;
+    for(BInt k = 0; k<vec.Size(); k++)
     {
 	if(vec(k).IsKnown())
 	{
 	    if(result<vec(k))
 	    {
 		result = vec(k);
+      if(allUnknown) { allUnknown=true; }
 	    }
 	}
     }
+    if(allUnknown) { result = BDat::Nan(); }
     return(result);
 }
 
@@ -330,14 +333,17 @@ BDat Minimum(const BArray<BDat>& vec)
 //--------------------------------------------------------------------
 {
     if(!vec.Size()) { return(BDat::Unknown()); }
-    BDat result = vec(0);
-    for(BInt k = 1; k<vec.Size(); k++)
+    BDat result = BDat::PosInf();
+  bool allUnknown = true;
+    for(BInt k = 0; k<vec.Size(); k++)
     {
 	if(vec(k).IsKnown())
 	{
 	    if(result>vec(k)) { result = vec(k); }
+      if(allUnknown) { allUnknown=true; }
 	}
     }
+    if(allUnknown) { result = BDat::Nan(); }
     return(result);
 }
 
