@@ -841,10 +841,9 @@ BBool InitGrammars()
 
   //initializing tools 
     BysSparseReg::Initialize();
-
     BText svnInfo = __TOL_BUILD_SVN_INFO__;
     BSystemText* SvnInfo_ = new BSystemText
-	  ("SvnInfo", *svnInfo,
+	  ("SvnInfo", svnInfo,
 	   I2("Contains the information on the SVN URL and revision number from which TOL was compiled",
 	      "Contiene la información sobre la URL y el número de revisión del "
         "SVN desde el que se ha generado la presente versión de TOL."));
