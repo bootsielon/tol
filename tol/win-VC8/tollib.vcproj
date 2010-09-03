@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="tollib"
 	ProjectGUID="{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}"
 	RootNamespace="tollib"
@@ -50,7 +50,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(LTDL_INC)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois;../PackArchive"
-				PreprocessorDefinitions="_DEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__"
+				PreprocessorDefinitions="_DEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__,__USE_ZIP_ARCHIVE__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -155,7 +155,7 @@
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories=".;..;../..;&quot;$(LTDL_INC)&quot;;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois;../PackArchive"
-				PreprocessorDefinitions="NDEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__"
+				PreprocessorDefinitions="NDEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__,__USE_ZIP_ARCHIVE__"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				StructMemberAlignment="3"
