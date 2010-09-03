@@ -1352,7 +1352,7 @@ BText BPackage::localRoot_ =
   {
     package = package_version;
     BSyntaxObject* lcv = GraText()->EvaluateExpr(BText(
-      "Real TolPackage::Client::LastCompatible("
+      "Text TolPackage::Client::LastCompatible("
       "\"")+package+"\");");
     if(!lcv) { return(false); }
     package_version = Text(lcv);
