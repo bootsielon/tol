@@ -1783,7 +1783,7 @@ static BSyntaxObject* EvAvoidErrNonDecAct(BGrammar* gra, const List* tre, BBool 
   {
     bool oldUseModule = BOis::RunningUseModule();
     BOis::SetRunningUseModule(false);
-    BSyntaxObject* result = gra->EvaluateTree(tre);
+    result = gra->EvaluateTree(Branch(tre,1));
     BOis::SetRunningUseModule(oldUseModule);
     result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
   }
