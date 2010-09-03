@@ -316,7 +316,7 @@ BDat Maximum(const BArray<BDat>& vec)
 	    if(result<vec(k))
 	    {
 		result = vec(k);
-      if(allUnknown) { allUnknown=true; }
+      if(allUnknown) { allUnknown=false; }
 	    }
 	}
     }
@@ -340,7 +340,7 @@ BDat Minimum(const BArray<BDat>& vec)
 	if(vec(k).IsKnown())
 	{
 	    if(result>vec(k)) { result = vec(k); }
-      if(allUnknown) { allUnknown=true; }
+      if(allUnknown) { allUnknown=false; }
 	}
     }
     if(allUnknown) { result = BDat::Nan(); }

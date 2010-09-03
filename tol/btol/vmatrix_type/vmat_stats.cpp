@@ -303,7 +303,7 @@ double BVMat::Max() const
     if(!IS_NAN(x[k]))
     {
       if(result<x[k]) { result=x[k]; }
-      if(allUnknown) { allUnknown=true; }
+      if(allUnknown) { allUnknown=false; }
     }
   }
   if(allUnknown) { result = BDat::Nan(); }
@@ -327,7 +327,7 @@ double BVMat::Min() const
     if(!IS_NAN(x[k]))
     {
       if(result>x[k]) { result=x[k]; }
-      if(allUnknown) { allUnknown=true; }
+      if(allUnknown) { allUnknown=false; }
     }
   }
   if(allUnknown) { result = BDat::Nan(); }
