@@ -2256,7 +2256,7 @@ bool BSpecialFunction::Initialize()
      "Evita el mensaje de error sobre acciones no declarativas mientras "
      "se está creando un módulo OIS. Úsese con mucho cuidado y sólo si realmente "
      "se quiere que durante la carga del OIS no se ejecuten dichas acciones."),
-     EvClass);
+     EvAvoidErrNonDecAct);
 
 
   return(true);
