@@ -27,6 +27,31 @@ NameBlock Initialize(Real void)
 
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LastCompatible = 
+"Devuelve la última versión de un paquete que es compatible con la "
+"versión actual de TOL.";
+Text LastCompatible(Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set pkgSel = Select(TolPackage::Client::@Repository::_.allPackages,
+  Real(TolPackage::@PackageInfo a)
+  {
+    And(
+      a->name == package,
+      Version>=a->minTolVersion)
+  });
+  If(!Card(pkgSel),"",
+  {
+    Set pkgSort = Sort(pkgSel,Real(TolPackage::@PackageInfo a, 
+                                   TolPackage::@PackageInfo b)
+    {
+      Compare(b->name.version, a->name.version)
+    });
+    pkgSort[1]->name.version
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.LocalPack = 
 "Devuelve el path completo del fichero local correspondiente a un paquete "
 "comprimido.";

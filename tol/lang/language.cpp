@@ -1336,21 +1336,27 @@ BText BPackage::localRoot_ =
 
 //--------------------------------------------------------------------
   BSyntaxObject* BPackage::Load(
-    const BText& package_version, 
+    const BText& package_version_, 
     bool retry)
 //--------------------------------------------------------------------
 {
-  BText package, version;
+  BText package_version = package_version_;
+  BText package;
   BOisCreator::AddRequiredPackage(package_version);
   int point = package_version.Find(".",1);
-  if(point<0)
+  if(point>=0)
   {
-    package = package_version;
+    package = package_version.SubString(0,point-1);
   }
   else
   {
-    package = package_version.SubString(0,point-1);
-    version = package_version.SubString(point+1,package_version.Length()-1);
+    package = package_version;
+    BSyntaxObject* lcv = GraReal()->EvaluateExpr(BText(
+      "Real TolPackage::Client::LastCompatible("
+      "\"")+package+"\",False);");
+    if(!lcv) { return(false); }
+    package_version = Text(lcv);
+    DESTROY(lcv);
   }
   BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
   bool ok = pkg!=NULL;
@@ -1363,10 +1369,6 @@ BText BPackage::localRoot_ =
     if(!ok) { ok = Install(package_version); }
     if(ok)
     {
-      if(point)
-      {
-      //VBR: FALTA !! requerimiento de versiones específicas
-      }  
       int oldLevel = BGrammar::Level();
       BGrammar::PutLevel(0); 
       BSyntaxObject* aux = BOisLoader::LoadFull(path);
