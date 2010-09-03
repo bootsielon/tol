@@ -208,8 +208,7 @@ Text Build.PackageInfo.Version(Text sourcePath, Text name, Real specificVersion)
 Text Build.PackageInfo(Text sourcePath, Text name)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Build.PackageInfo.Version(sourcePath, name,True)+
-  Build.PackageInfo.Version(sourcePath, name,False)
+  Build.PackageInfo.Version(sourcePath, name,True)
 };
 
 
