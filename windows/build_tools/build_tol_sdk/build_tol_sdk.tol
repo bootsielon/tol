@@ -1,7 +1,7 @@
 Text tolSourcePath = "../../../tol";
 Text googleSourcePath = "../../tol-contrib/google/sparsehash-0.6/src/google";
 
-Text libPath = "../../../tol/win-VC9/release";
+Text libPath = "../../../tol/win-VC8/release";
 Text sdkPath = "../../ActiveTOL/tol_sdk_win";
 Text sdkTolIncPath = sdkPath+"/tol";
 Text sdkGoogleIncPath = sdkPath+"/google";

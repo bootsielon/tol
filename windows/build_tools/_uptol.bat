@@ -145,8 +145,8 @@ If Not Defined _sln (
   Set _msg_error=Error interno variable _sln no definida en COMPILE
   Goto ERROR
 )
-If Not Exist ..\..\%_mod%\win-VC9\%_sln% (
-  Set _msg_error=No se puede compilar, el archivo %_mod%\win-VC9\%_sln% no existe
+If Not Exist ..\..\%_mod%\win-VC8\%_sln% (
+  Set _msg_error=No se puede compilar, el archivo %_mod%\win-VC8\%_sln% no existe
   Goto ERROR
 )
 If "%_vsvars32%"=="" (
@@ -169,10 +169,10 @@ If "%_vsvars32%"=="" (
   Echo vsvars32 ya ha sido invocado
 )
 Rem Verifico postbuild.bat: aseguro que existe. postbuild copia la compilacion a ActiveTOL
-If Not Exist ..\..\%_mod%\win-VC9\postbuild.bat (
-  xcopy /F /Y postbuild.bat %_mod%\win-VC9
+If Not Exist ..\..\%_mod%\win-VC8\postbuild.bat (
+  xcopy /F /Y postbuild.bat %_mod%\win-VC8
 )
-vcbuild %_rbopt% /useenv ..\..\%_mod%\win-VC9\%_sln% "Release|Win32"
+vcbuild %_rbopt% /useenv ..\..\%_mod%\win-VC8\%_sln% "Release|Win32"
 If errorlevel 1 (
   Set _msg_error=Fallo en vcbuild con la solucion %_sln%
   Goto ERROR
@@ -274,31 +274,31 @@ Goto UP_SCRIPTS
 Rem Recupero ficheros perdidos por cualquier causa
 If Not Exist ..\ActiveTOL\bin\tol.exe (
   Echo Recuperando ejecutable perdido ..\ActiveTOL\bin\tol.exe
-  copy ..\..\tol\win-VC9\release\tol.exe ..\ActiveTOL\bin\tol.exe
+  copy ..\..\tol\win-VC8\release\tol.exe ..\ActiveTOL\bin\tol.exe
 )
 If Not Exist ..\ActiveTOL\bin\tol.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\tol.dll
-  copy ..\..\tol\win-VC9\release\tol.dll ..\ActiveTOL\bin\tol.dll
+  copy ..\..\tol\win-VC8\release\tol.dll ..\ActiveTOL\bin\tol.dll
 )
 If Not Exist ..\ActiveTOL\bin\tolodbc*.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\tolodbc*.dll
-  copy ..\..\tol\win-VC9\libtolodbc\Release\*.dll ..\ActiveTOL\bin
+  copy ..\..\tol\win-VC8\libtolodbc\Release\*.dll ..\ActiveTOL\bin
 )  
 If Not Exist ..\ActiveTOL\bin\tolmysql*.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\tolmysql*.dll
-  copy ..\..\tol\win-VC9\libtolmysql\Release\*.dll ..\ActiveTOL\bin
+  copy ..\..\tol\win-VC8\libtolmysql\Release\*.dll ..\ActiveTOL\bin
 )  
 If Not Exist ..\ActiveTOL\bin\tolpgsql*.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\tolpgsql*.dll
-  copy ..\..\tol\win-VC9\libtolpgsql\Release\*.dll ..\ActiveTOL\bin
+  copy ..\..\tol\win-VC8\libtolpgsql\Release\*.dll ..\ActiveTOL\bin
 )  
 If Not Exist ..\ActiveTOL\lib\toltcl\toltcl.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\lib\toltcl\toltcl.dll
-  copy ..\..\toltcl\win-VC9\Release\toltcl.dll ..\ActiveTOL\lib\toltcl\toltcl.dll
+  copy ..\..\toltcl\win-VC8\Release\toltcl.dll ..\ActiveTOL\lib\toltcl\toltcl.dll
 )
 If Not Exist ..\ActiveTOL\bin\vbtol.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\vbtol.dll
-  copy ..\..\vbtol\win-VC9\Release\vbtol.dll ..\ActiveTOL\bin\vbtol.dll
+  copy ..\..\vbtol\win-VC8\Release\vbtol.dll ..\ActiveTOL\bin\vbtol.dll
 )
 
 Rem Ejecuto los tests si me lo han pedido
