@@ -1279,7 +1279,7 @@ BSyntaxObject* OisUseCacheEvaluator(BList* arg)
       if(result)
       {
         BOisCreator oisCreator;
-        oisCreator.Create(ozaPath,address,&(uSet->Contens()),NULL,NULL);
+        oisCreator.Create(ozaPath,uSet,&(address->Contens()),NULL,NULL);
       //Std(BText("TRACE BDatOisCreate::CalcContens() 1\n"));
         ok = oisCreator.Build();
       }
