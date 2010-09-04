@@ -150,15 +150,15 @@ If Not Exist ..\..\%_mod%\win-VC8\%_sln% (
   Goto ERROR
 )
 If "%_vsvars32%"=="" (
-  If Defined VS90COMNTOOLS (
-    call "%VS90COMNTOOLS%vsvars32"
+  If Defined VS80COMNTOOLS (
+    call "%VS80COMNTOOLS%vsvars32"
     If errorlevel 1 (
       Set _msg_error=No se pudo ejecutar vsvars32
       Goto ERROR
     )
     Set _vsvars32=1
   ) else (
-    Echo VS90COMNTOOLS no esta definida intentanto vsvars32 desde el PATH
+    Echo VS80COMNTOOLS no esta definida intentanto vsvars32 desde el PATH
     call vsvars32
     If errorlevel 1 (
       Set _msg_error=No se pudo ejecutar vsvars32
