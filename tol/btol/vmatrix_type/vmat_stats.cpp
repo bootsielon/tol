@@ -296,7 +296,7 @@ double BVMat::Max() const
   if(!size) { return(BDat::Nan()); }
   const double *x;
   if(!StoredData(x, nzmax)) { return(0.0); }
-  double result=(size>nzmax)?0.0:BDat::PosInf();
+  double result=(size>nzmax)?0.0:BDat::NegInf();
   bool allUnknown = true;
   for(k=0; k<nzmax; k++)
   {
@@ -320,7 +320,7 @@ double BVMat::Min() const
   if(!size) { return(BDat::Nan()); }
   const double *x;
   if(!StoredData(x, nzmax)) { return(0.0); }
-  double result=(size>nzmax)?0.0:BDat::NegInf();
+  double result=(size>nzmax)?0.0:BDat::PosInf();
   bool allUnknown = true;
   for(k=0; k<nzmax; k++)
   {
