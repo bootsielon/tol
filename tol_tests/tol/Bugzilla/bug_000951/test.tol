@@ -1,0 +1,81 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  951;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="No se satisfacen restricciones de dominio con parámetros fijos en BSR";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+#Require BysMcmc;
+     
+TimeSet DatingD = D(1);
+Text ascii = "y2010m07d27h12i35s14.00/master.bsr";
+Text moduleType = "master";
+
+Set parsed = BSR.Parse(ascii,moduleType);
+Set fixedNames  = [[ "OutputD__ExpTermD1__Deg0.Coef" ]];
+
+VMatrix  fixedValues = Mat2VMat(Col(0.12));
+
+BysMcmc::@McmcPartialHandler _.hdPartial = BysMcmc::@McmcPartialHandler::New(
+  fixedNames, fixedValues, Copy(Empty), BysMcmc::@McmcReloader::Null(?)); 
+
+BysMcmc::@Config _.bsr.config   = [[
+//MCMC dimensions
+  Real mcmc.burnin        =   100; 
+  Real mcmc.sampleLength  =   2000;
+  Real mcmc.cacheLength   =   100;
+
+  Text DBApi.modularSchema = 
+    BysMcmc::Options::DBApi.Modular.Schema::Master.ObsAsPrimary;
+//  BysMcmc::Options::DBApi.Modular.Schema::Joint.All;
+
+//Generic flags
+  Real do.resume          =  0;
+  Real do.report          =  True;
+  Real do.eval            =  True;
+  Real do.linear.effects  =  True
+]];
+
+BysMcmc::@Notifier _.bsr.notifier = BysMcmc::@Notifier::Null(?);
+
+BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCyclerFromParsed(
+parsed, 
+_.hdPartial, 
+_.bsr.config, 
+_.bsr.notifier
+);
+
+BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
+Real estim::Run(?);
+
+Set cs = (estim::report::coda.summary)[2];
+Real ok = LE(-10,cs::q.001,cs::q.999,0);
+    
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[ numErr0, numErr1]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0, ok);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
+
