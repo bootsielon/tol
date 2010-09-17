@@ -1738,13 +1738,43 @@ void BMatInversePermutation::CalcContens()
             "p("+pr+"x"+pc+") ");
     return; 
   }
+//Std(BText("\nTRACE [InversePermutation] 1 n=")+pr);
+//Std(BText("\nTRACE [InversePermutation] 2 pr=")+pr);
+//Std(BText("\nTRACE [InversePermutation] 3 pc=")+pr);
   contens_.Alloc(pr,pc);
   const double* p = (const double*)P.Data().Buffer();
   double* c = (double*)contens_.GetData().GetBuffer();
+  for(i=0; i<n; i++)
+  {
+    c[k-1] = 0.0;    
+  }
   for(i=1; i<=n; i++, p++)
   {
     k = (int)(*p);
-    c[k-1] = i;
+  //Std(BText("\nTRACE [InversePermutation] 4.")+i+" k="<<k);
+    if(*p!=k)
+    {
+      Error(I2("Cannot apply InversePermutation to a matrix with non integer cells ",
+               "No se puede aplicar InversePermutation a una matriz con celdas o enteras ")+
+      (*p)+"!= "+k+"]");
+    }
+    else if((k<1)||(k>n))
+    {
+      Error(I2("Cannot apply InversePermutation to a matrix with cells out of range ",
+               "No se puede aplicar InversePermutation a una matriz con celdas fuera de rango ")+
+      k + "!<: [1, ..., "+n+"]");
+      c[k-1] = BDat::Nan();
+    }
+    else if(c[k-1]!=0.0)
+    {
+      Error(I2("Cannot apply InversePermutation to a matrix with repeated cells ",
+               "No se puede aplicar InversePermutation a una matriz con celdas repetidas ")+
+      c[k-1] + " <-> "+i+"]");
+    }
+    else
+    {
+      c[k-1] = i;
+    }
   //Std(BText("\n[InversePermutation] ")+k+" -> "+i)
   }
 }
