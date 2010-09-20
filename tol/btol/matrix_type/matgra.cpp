@@ -1763,7 +1763,6 @@ void BMatInversePermutation::CalcContens()
       Error(I2("Cannot apply InversePermutation to a matrix with cells out of range ",
                "No se puede aplicar InversePermutation a una matriz con celdas fuera de rango ")+
       k + "!<: [1, ..., "+n+"]");
-      c[k-1] = BDat::Nan();
     }
     else if(c[k-1]!=0.0)
     {
