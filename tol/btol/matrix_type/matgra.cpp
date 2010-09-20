@@ -1746,7 +1746,7 @@ void BMatInversePermutation::CalcContens()
   double* c = (double*)contens_.GetData().GetBuffer();
   for(i=0; i<n; i++)
   {
-    c[k-1] = 0.0;    
+    c[i] = 0.0;    
   }
   for(i=1; i<=n; i++, p++)
   {
