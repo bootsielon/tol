@@ -5,9 +5,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-//El objetivo de esta clase es crear una sola instancia que llame a 
-//cuando se cree @Repository::LoadInstances y a @Repository::SaveInstances(0)
-//cuando se destruya. No se debe usar fuera de TolPackage.
+Text _.autodoc.member.AutoLoadSave = 
+"El objetivo de esta clase es crear una sola instancia que llame a "
+"cuando se cree @Repository::LoadInstances y a @Repository::SaveInstances(0) "
+"cuando se destruya. No se debe usar fuera de TolPackage.";
 Class @AutoLoadSave 
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -20,6 +21,7 @@ Class @AutoLoadSave
   ////////////////////////////////////////////////////////////////////////////
   Static @AutoLoadSave Create(Real void)
   {
+  //WriteLn("TRACE [TolPackage::Client::@AutoLoadSave::Create] ");
     @AutoLoadSave theOne = 
     [[
       Real _unused = void
