@@ -12,13 +12,13 @@ Text _.localRoot =
 #Embed "repository.tol";
 #Embed "autoLoadSave.tol";
 
-
 //////////////////////////////////////////////////////////////////////////////
 //Inicializa el sistema de almacenamiento persistente de la lista de 
 //repositorios 
 NameBlock Initialize(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
+//WriteLn("TRACE [TolPackage::Client::Initialize] ");
   Real OSDirMake(_.localRoot);
   TolPackage::Client::@AutoLoadSave _autoLoadSave = 
     TolPackage::Client::@AutoLoadSave::Create(0);
@@ -33,6 +33,10 @@ Text _.autodoc.member.LastCompatible =
 Text LastCompatible(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real numIns = Card(TolPackage::Client::@Repository::_.instances);
+  Real numPck = Card(TolPackage::Client::@Repository::_.allPackages);
+//WriteLn("TRACE [TolPackage::Client::LastCompatible] numIns="<<Card(numIns));
+//WriteLn("TRACE [TolPackage::Client::LastCompatible] numPck="<<Card(numPck));
   Set pkgSel = Select(TolPackage::Client::@Repository::_.allPackages,
   Real(TolPackage::@PackageInfo a)
   {
