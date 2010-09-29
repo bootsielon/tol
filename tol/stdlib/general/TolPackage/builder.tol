@@ -148,8 +148,10 @@ Text FormatSet(Set set)
 Text Build.PackageInfo.Version(Text sourcePath, Text name, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
+
   Set aux = IncludeText("NameBlock "+name+";");
   NameBlock pkg = aux[1];
+  Text pkg::_.autodoc.svnInfo := OSSvnInfo(sourcePath);
   Text sourceRoot = sourcePath+"/"+name; 
   Text pkgName = TolPackage::GetCurrentNameVersion(name,specificVersion);
   Real If( ObjectExist("Real",name+"::specificVersion"), {
@@ -192,7 +194,7 @@ Text Build.PackageInfo.Version(Text sourcePath, Text name, Real specificVersion)
       // esto parece raro pero solo borra el dir destino, el make
       // anterior ha creado el path de sus padres
       If(OSUnix, OSDirRemove(dest));
-      WriteLn("TRACE dir copy '"+orig+"' -> '"+dest+"'");
+    //WriteLn("TRACE dir copy '"+orig+"' -> '"+dest+"'");
       OSDirCopy(orig,dest)
     });
     Text ppr = ReplaceSlash(ppRoot_);
