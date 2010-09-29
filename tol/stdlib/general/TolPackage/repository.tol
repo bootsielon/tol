@@ -6,6 +6,9 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Repository = 
+"Manejador del repositorio remoto desde el cliente";
+//////////////////////////////////////////////////////////////////////////////
 Class @Repository {
 //////////////////////////////////////////////////////////////////////////////
 
@@ -52,33 +55,52 @@ Static Text _.platform = GetHardSoftPlattform(0);
 Static Real LoadInstances(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(!Card(_.instances),
+  Real numIns = Card(_.instances);
+//WriteLn("TRACE [TolPackage::Client::@Repository::LoadInstances] 1 numIns="<<numIns);
+  If(!numIns,
   {
     Text file = TolPackage::Client::_.localRoot+"repositories.txt";
     WriteLn("[TolPackage::Client::@Repository::LoadInstances]\n"
             "Loading list of available repositories from "+file);
     NameBlock @Repository::Get(
-      "http://packages.tol-project.org/OfficialTolArchiveNetwork/", False);
+      "http://packages.tol-project.org/OfficialTolArchiveNetwork/", True);
+    Real If(!FileExist(file),
+    {
+      SaveInstances(0)
+    });
     Real If(FileExist(file),
     { 
       Set lines = Tokenizer(ReadFile(file),"\n");
+    //WriteLn("TRACE [TolPackage::Client::@Repository::LoadInstances] 2.2.1 Card(lines)="<<Card(lines));
       Set EvalSet(lines,Real ev_lines(Text line)
       {
+      //WriteLn("TRACE [TolPackage::Client::@Repository::LoadInstances] 2.2.2 line="<<line);
         Text url = Compact(line);
+      //WriteLn("TRACE [TolPackage::Client::@Repository::LoadInstances] 2.2.3 url="<<url);
         Case(
         url=="",False,
         url==" ",False,
         TextBeginWith(url, "//"),False,
         1==1,
         {
-          NameBlock @Repository::Get(url, False);
+        //WriteLn("TRACE [TolPackage::Client::@Repository::LoadInstances] 2.2.4");
+          NameBlock @Repository::Get(url, True);
           True
         })
       });
       Text bst = TolPackage::Client::_.localRoot+"packages.bst"; 
+    //WriteLn("TRACE [TolPackage::Client::@Repository::LoadInstances] 3 bst="<<bst);
       Set If(And(FileExist(bst),FileBytes(bst)),  
-        @Repository::_.allPackages := IncludeBST(bst));
+      {
+        @Repository::_.allPackages := IncludeBST(bst)
+      });
       True   
+    });
+    Real If(FileExist(file),True,
+    {
+      WriteLn("[TolPackage::Client::@Repository::LoadInstances] "
+        "Cannot load instances ","E");
+      False
     })
   });
   Card(_.instances)
@@ -154,11 +176,15 @@ Static @Repository Get(Text url, Real connect)
 Static @Repository Open(Text url, Real connect)
 //////////////////////////////////////////////////////////////////////////////
 {
+//WriteLn("TRACE @Repository::Open(\""+url+"\","<<connect+")");
   Real prtPos = TextFind(url,"://")+2;
+//WriteLn("TRACE @Repository::Open prtPos="<<prtPos);
   //Protocolo de acceso al repositorio file://, http://, https://, ftp://
   Text protocol = Sub(url,1,prtPos);
+//WriteLn("TRACE @Repository::Open protocol="<<protocol);
   //Resto de la URL tras el protocolo
   Text address =  Sub(url,prtPos+1,TextLength(url));
+//WriteLn("TRACE @Repository::Open address="<<address);
   Set aux = [[ @Repository new = [[
     Text _.url = url;
     Text _.protocol = protocol;
@@ -310,6 +336,7 @@ Static Real MergePackages(Set packages)
 Real Connect(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
+//WriteLn("TRACE @Repository::Connect _.connected="<<_.connected);
   Case(
   Not(IsUnknown(_.connected)), 
   {
