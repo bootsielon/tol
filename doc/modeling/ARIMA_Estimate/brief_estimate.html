@@ -1515,7 +1515,7 @@ autovectores del n&uacute;cleo y hacer la extracci&oacute;n:</P>
 			<P ALIGN=CENTER>1</P>
 		</TD>
 		<TD>
-			<P ALIGN=CENTER>0</P>
+			<P ALIGN=CENTER>2</P>
 		</TD>
 		<TD>
 			<P ALIGN=CENTER>-0.11</P>
@@ -1550,7 +1550,7 @@ autovectores del n&uacute;cleo y hacer la extracci&oacute;n:</P>
 			<P ALIGN=CENTER>1</P>
 		</TD>
 		<TD>
-			<P ALIGN=CENTER>2</P>
+			<P ALIGN=CENTER>0</P>
 		</TD>
 		<TD>
 			<P ALIGN=CENTER>-0.1</P>
@@ -1639,11 +1639,17 @@ autovectores del n&uacute;cleo y hacer la extracci&oacute;n:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P ALIGN=JUSTIFY>Obs&eacute;rvese que aunque las t-student son casi
-todas bastante significativas, la significaci&oacute;n conjunta de 4
+todas bastante significativas, la significaci&oacute;n de 4
 de las 12 variables es cero. El motivo es que el estad&iacute;stico
 t-student expresa tan s&oacute;lo la distribuci&oacute;n marginal de
-cada par&aacute;metro. En este caso, a la vista de los autovectores
-se deduce inmediatamente que existen estas 4 colinealidades</P>
+cada par&aacute;metro. En este caso, a la vista de los autovectores,
+se sabe que existen cuatro relaciones lineales que afectan a 12 
+variables pero no está nada claro cual es la fora de resolver el
+problema: ¿qué variables sobran o están mal definidas por error?
+Lo que se hará es aplicar reducci&oacute;n gaussiana a las 4 columnas 
+para  simplificar las ecuaciones del kernel en busca de una base del 
+mismo con una expresión con el mínimo de coeficientes no nulos.
+El resultado final es que existen estas 4 colinealidades irreducibles </P>
 <H5 CLASS="western" STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm; font-weight: medium; page-break-after: avoid">
 <FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Serie
 kernel_1 = 0*Output - (B^0):input_1 + (B^7):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_1</SPAN></FONT></FONT></FONT>
@@ -1651,20 +1657,20 @@ kernel_1 = 0*Output - (B^0):input_1 + (B^7):<FONT COLOR="#0000ff"><FONT FACE="Lu
 <H5 CLASS="western" STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm; font-weight: medium; page-break-after: avoid">
 <FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Serie
 kernel_2 = 0*Output + (B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_3</SPAN></FONT></FONT></FONT>
--(B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_4</SPAN></FONT></FONT></FONT>
-+ (B^ 7):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_4</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
+- (B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_4</SPAN></FONT></FONT></FONT>
++ (B^7):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_4</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
 <H5 CLASS="western" STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm; font-weight: medium; page-break-after: avoid">
 <FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Serie
 kernel_3 = 0*Output + (B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_5</SPAN></FONT></FONT></FONT>
 - (B^0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_6</SPAN></FONT></FONT></FONT>
-+ (B^ 0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_6</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
++ (B^2):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_6</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
 <H5 CLASS="western" STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm; font-weight: medium; page-break-after: avoid">
 <FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2>Serie
 kernel_4 = 0*Output + (B^2):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_7
 </SPAN></FONT></FONT></FONT>- (B^2):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_7</SPAN></FONT></FONT></FONT>
-&ndash; (B^ 0):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_8</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
-<P ALIGN=JUSTIFY STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm">Estas
-cuatro series, combinaciones lineales de inputs, son nulas en el
+&ndash; (B^2):<FONT COLOR="#0000ff"><FONT FACE="Lucida Console, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">input_8</SPAN></FONT></FONT></FONT>;</FONT></FONT></FONT></H5>
+<P ALIGN=JUSTIFY STYLE="margin-top: 0.1cm; margin-bottom: 0.1cm">
+Estas cuatro series, combinaciones lineales de inputs, son nulas en el
 intervalo de estimaci&oacute;n, es decir forman el n&uacute;cleo de
 la matriz de informaci&oacute;n J'J. La t&eacute;cnica es la misma
 empleada en an&aacute;lisis de componentes principales, s&oacute;lo
