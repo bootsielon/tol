@@ -1342,11 +1342,13 @@ BText BPackage::localRoot_ =
 {
   BText package_version = package_version_;
   BText package;
+//Std(BText("\nTRACE BPackage::Load 1 package_version='")+package_version+"'");
   BOisCreator::AddRequiredPackage(package_version);
   int point = package_version.Find(".",1);
   if(point>=0)
   {
     package = package_version.SubString(0,point-1);
+  //Std(BText("\nTRACE BPackage::Load 2.1 package='")+package+"'");
   }
   else
   {
@@ -1356,27 +1358,39 @@ BText BPackage::localRoot_ =
       "\"")+package+"\");");
     if(!lcv) { return(false); }
     package_version = Text(lcv);
+  //Std(BText("\nTRACE BPackage::Load 2.2.1 package='")+package_version+"'");
+  //Std(BText("\nTRACE BPackage::Load 2.2.2 package_version='")+package_version+"'");
     DESTROY(lcv);
   }
   BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
   bool ok = pkg!=NULL;
   if(ok) { return(pkg); }
   BText path = LocalPath(package_version);
+//Std(BText("\nTRACE BPackage::Load 3 path='")+path+"'");
   BDir dirPath = path;
+//Std(BText("\nTRACE BPackage::Load 3 dirPath='")+dirPath.Name()+"'");
   if(!ok)
   {
     ok=dirPath.Exist();
-    if(!ok) { ok = Install(package_version); }
+  //Std(BText("\nTRACE BPackage::Load 4 ok=")+ok);
+    if(!ok) 
+    { 
+      ok = Install(package_version); 
+    //Std(BText("\nTRACE BPackage::Load 5 ok=")+ok);
+    }
     if(ok)
     {
+    //Std(BText("\nTRACE BPackage::Load 6 "));
       int oldLevel = BGrammar::Level();
       BGrammar::PutLevel(0); 
       BSyntaxObject* aux = BOisLoader::LoadFull(path);
       if(aux && (aux->Grammar()==GraSet()))
       { 
+      //Std(BText("\nTRACE BPackage::Load 7 "));
         BSet& set = Set(aux);
         if((set.Card()==1)&&(set[1]->Grammar()==GraNameBlock()))
         {
+        //Std(BText("\nTRACE BPackage::Load 8 "));
           pkg = set[1];
           pkg->IncNRefs();
           pkg->IncNRefs();
@@ -1393,14 +1407,18 @@ BText BPackage::localRoot_ =
           DESTROY(startActions);
         }
       }      
+    //Std(BText("\nTRACE BPackage::Load 9 "));
       BGrammar::PutLevel(oldLevel); 
       ok = pkg!=NULL;
+    //Std(BText("\nTRACE BPackage::Load 10 ok=")+ok);
     } 
   }
   BText load = I2("Loaded","Ha sido cargado");
   BText help = ""; 
+//Std(BText("\nTRACE BPackage::Load 11 "));
   if(!ok)
   {
+  //Std(BText("\nTRACE BPackage::Load 12 dirPath='")+dirPath.Name()+"'");
     if(!dirPath.Exist())
     {
       Error(I2("Unknown package ",
