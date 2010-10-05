@@ -484,6 +484,11 @@ class TOL_API BText
   //! Reallocate memory for the the text buffer
   void ReallocateBuffer(BInt newSize);
 
+  void base64_encode(const BArray<unsigned char>& binary);
+  int base64_decode(BArray<unsigned char>& binary) const;
+  void base64_encode_from_file(const BText& path);
+  int base64_decode_to_file(const BText& path) const;
+
  private:
 
   /* Miscelaneus internal operations: */
@@ -704,6 +709,9 @@ inline BText TxtFmt(long double d, const BChar* format = "%.16Lg")
     txt.Concat(d,format);
     return(txt);
 }
+
+std::string base64_encode(const BArray<unsigned char>& binary);
+int base64_decode(BArray<unsigned char>& binary, std::string const& encoded_string);
 
 #endif // TOL_BTEXT_H
 

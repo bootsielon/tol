@@ -27,6 +27,7 @@
 #include <tol/tol_btext.h>
 #include <tol/tol_btimer.h>
 #include <tol/tol_barray.h>
+#include <tol/tol_bdir.h>
 //#include <tol/tol_bfilter.h> no parece que haga falta aqui
 
 #include <ctype.h>
@@ -1597,7 +1598,7 @@ void BText::GetLine(FILE* file, BInt maxChars, BChar until)
     AllocItems(maxChars+1);
   }
   length_ = 0;
-  BChar ch  = 0, c;
+  BChar ch  = 0, c = 0;
   bool untilIsLF = until=='\n';
   for(;(length_<=maxChars)&&(ch!=until)&&(!feof(file)); length_++)
   {
@@ -1795,5 +1796,176 @@ BBool ReadCell(BTextCell& cell,const BText& fName,char l,char w)
   return(BTRUE);
 }
 
+
+
+
+static const std::string base64_chars = 
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
+
+
+//--------------------------------------------------------------------
+static inline bool is_base64(unsigned char c) 
+//--------------------------------------------------------------------
+{
+  return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+//--------------------------------------------------------------------
+std::string base64_encode(const BArray<unsigned char>& binary) 
+//--------------------------------------------------------------------
+{
+  unsigned char const* bytes_to_encode = binary.Buffer();
+  unsigned int in_len = binary.Size();
+  std::string ret;
+  int i = 0;
+  int j = 0;
+  unsigned char char_array_3[3];
+  unsigned char char_array_4[4];
+
+  while (in_len--) {
+    char_array_3[i++] = *(bytes_to_encode++);
+    if (i == 3) {
+      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+      char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+      char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+      char_array_4[3] = char_array_3[2] & 0x3f;
+
+      for(i = 0; (i <4) ; i++)
+        ret += base64_chars[char_array_4[i]];
+      i = 0;
+    }
+  }
+
+  if (i)
+  {
+    for(j = i; j < 3; j++)
+      char_array_3[j] = '\0';
+
+    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+    char_array_4[3] = char_array_3[2] & 0x3f;
+
+    for (j = 0; (j < i + 1); j++)
+      ret += base64_chars[char_array_4[j]];
+
+    while((i++ < 3))
+      ret += '=';
+
+  }
+
+  return ret;
+
+}
+
+//--------------------------------------------------------------------
+int base64_decode(BArray<unsigned char>& binary, std::string const& encoded_string) 
+//--------------------------------------------------------------------
+{
+  int in_len = encoded_string.size();
+  int i = 0;
+  int j = 0;
+  int in_ = 0;
+  unsigned char char_array_4[4], char_array_3[3];
+  int bin_len = (in_len * 2)/3 +1;
+  binary.AllocBuffer(bin_len);
+  binary.ReallocBuffer(0);
+
+  while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
+    char_array_4[i++] = encoded_string[in_]; in_++;
+    if (i ==4) {
+      for (i = 0; i <4; i++)
+        char_array_4[i] = base64_chars.find(char_array_4[i]);
+
+      char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+      char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+      char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+      for (i = 0; (i < 3); i++)
+        binary.Add(char_array_3[i]);
+      i = 0;
+    }
+  }
+  if (i) {
+    for (j = i; j <4; j++)
+      char_array_4[j] = 0;
+
+    for (j = 0; j <4; j++)
+      char_array_4[j] = base64_chars.find(char_array_4[j]);
+
+    char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+    char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+    char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+    for (j = 0; (j < i - 1); j++) { binary.Add(char_array_3[j]); }
+  }
+  return binary.Size();
+}
+
+//--------------------------------------------------------------------
+  void BText::base64_encode(const BArray<unsigned char>& binary)
+//--------------------------------------------------------------------
+{
+  std::string str = ::base64_encode(binary);
+  Copy(str.c_str(),str.length());
+}
+
+//--------------------------------------------------------------------
+  int BText::base64_decode(BArray<unsigned char>& binary) const
+//--------------------------------------------------------------------
+{
+  std::string str(String(), Length());
+  return(::base64_decode(binary, str));
+}
+
+//--------------------------------------------------------------------
+  void BText::base64_encode_from_file(const BText& path)
+//--------------------------------------------------------------------
+{
+  BDir dir(path);
+  bool ok = false;
+  if(dir.Exist() && dir.IsFile())
+  {
+    BArray<unsigned char> binary;
+    binary.AllocBuffer(dir.Bytes());
+    FILE *stream = fopen(path.String(),"rb");
+    if(stream)
+    {
+      fread(binary.GetBuffer(),1,binary.Size(),stream); 
+      fclose(stream);
+      ok = true;
+      base64_encode(binary);
+    }
+  }
+  if(!ok)
+  {
+    Error(BText("[base64_encode_from_file]: "
+      "cannot open file for reading:")+path); 
+    ReallocateBuffer(0);
+  }
+}
+
+//--------------------------------------------------------------------
+  int BText::base64_decode_to_file(const BText& path) const
+//--------------------------------------------------------------------
+{
+  BArray<unsigned char> binary;
+  int size = 0;
+  FILE *stream = fopen(path.String(),"wb");
+  if(stream)
+  {
+    size = base64_decode(binary);
+    fwrite(binary.Buffer(),1,binary.Size(),stream);   
+    fclose(stream);
+  }
+  else
+  {
+    Error(BText("[base64_decode_to_file]: "
+      "cannot open file for writing:")+path); 
+  }
+  return(size);
+}
 
 

@@ -1906,6 +1906,54 @@ void BTxtAppendFile::CalcContens()
     }
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtEncodeBase64FromFile);
+DefExtOpr(1, BTxtEncodeBase64FromFile, "EncodeBase64FromFile",   1, 1, 
+  "Text",
+	I2("(Text fileName)",
+	   "(Text nombreFichero)"),
+	I2("Returns the contents of a binary file decoded with Base64 "
+     "algorithm (http://en.wikipedia.org/wiki/Base64). "
+     "If the file not exists returns "
+	   "the void string and displays a warning message.",
+	   "Devuelve el contenido de un fichero binario codificado con "
+     "el algoritmo Base64 (http://es.wikipedia.org/wiki/Base64). "
+     "Si el fichero no existe "
+	   "devuelve la cadena vacía y muestra un mensaje de advertencia."),
+	  BOperClassify::Text_);
+
+//--------------------------------------------------------------------
+void BTxtEncodeBase64FromFile::CalcContens()
+//--------------------------------------------------------------------
+{
+  BText& path = Text(Arg(1));
+  contens_.base64_encode_from_file(path);
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatDecodeBase64ToFile);
+DefExtOpr(1, BDatDecodeBase64ToFile, "DecodeBase64ToFile", 2, 2, 
+  "Text Text",
+	I2("(Text fileName, Text encoded)",
+	   "(Text nombreFichero, Text encoded)"),
+	I2("Writes a binary a file with the result of decoding a text "
+     "using Base64 algorithm (http://en.wikipedia.org/wiki/Base64). "
+     "It returns the binary file size.",
+	   "Escribe un fichero binario con el resultado de descodificar un "
+     "texto usando el algoritmo Base64 "
+     "(http://es.wikipedia.org/wiki/Base64). Develve el tamaño del "
+     "fichero creado."),
+	BOperClassify::Text_);
+
+//--------------------------------------------------------------------
+void BDatDecodeBase64ToFile::CalcContens()
+//--------------------------------------------------------------------
+{
+  BText& path = Text(Arg(1));
+  BText& encoded = Text(Arg(2));
+  contens_ = encoded.base64_decode_to_file(path);
+}
 
 //--------------------------------------------------------------------
 DeclareContensClass(BText, BTxtTemporary, BTxtPeriodicNull);
