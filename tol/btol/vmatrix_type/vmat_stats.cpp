@@ -793,7 +793,6 @@ double BVMat::Quantile() const
   int r = M.s_.blasRdense_->nrow;
   int c = M.s_.blasRdense_->ncol;
   BlasRDense(parts, c+1);
-  BArray<double> sorted(r);
   double* h = (double*)s_.blasRdense_->x; 
   double step = (max-min)/double(parts);
   for(p=0; p<parts-1; p++)
@@ -817,6 +816,39 @@ double BVMat::Quantile() const
   }
 };
 
+/* * /
+////////////////////////////////////////////////////////////////////////////////
+  void BVMat::Histogram_cRs(const BVMat& M, int parts, double min, double max)
+////////////////////////////////////////////////////////////////////////////////
+{
+  int i,j,p;
+  int r = M.s_.cholmodRsparse_->nrow;
+  int c = M.s_.cholmodRsparse_->ncol;
+  int n = r*c;
+  BlasRDense(parts, c+1);
+  double* h = (double*)s_.blasRdense_->x; 
+  double step = (max-min)/double(parts);
+  for(p=0; p<parts-1; p++)
+  {
+    *(h++) = min+step*(p+1);
+  }
+  *(h++) = max;
+  memset(h,0,sizeof(double)*parts*c);
+  const double* x = (const double*)M.s_.blasRdense_->x; 
+//double* y = (double*)s_.blasRdense_->x+parts; 
+  for(j=0; j<c; j++)
+  {
+    double* h0 = ((double*)s_.blasRdense_->x)+parts*(j+1);
+    for(i=0; i<r; i++, x++)
+    {
+      p = (int)((*x-min)/step)-1;
+      if(p<0) { p=0; }
+      if(p>=parts) { p=parts-1; }
+      h0[p] += 1.0/r;
+    }
+  }
+};
+/* */
 ////////////////////////////////////////////////////////////////////////////////
   void BVMat::Histogram_bRd(const BVMat& M, int parts)
 ////////////////////////////////////////////////////////////////////////////////
@@ -833,6 +865,7 @@ double BVMat::Quantile() const
   }
   Histogram_bRd(M,parts,min,max);
 };
+
 
 ////////////////////////////////////////////////////////////////////////////////
   void BVMat::Histogram(const BVMat& M_, int parts, double min, double max)
