@@ -33,25 +33,15 @@ Text _.autodoc.member.LastCompatible =
 Text LastCompatible(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real numIns = Card(TolPackage::Client::@Repository::_.instances);
-  Real numPck = Card(TolPackage::Client::@Repository::_.allPackages);
-//WriteLn("TRACE [TolPackage::Client::LastCompatible] numIns="<<Card(numIns));
-//WriteLn("TRACE [TolPackage::Client::LastCompatible] numPck="<<Card(numPck));
-  Set pkgSel = Select(TolPackage::Client::@Repository::_.allPackages,
-  Real(TolPackage::@PackageInfo a)
+  Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
+  Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
   {
-    And(
-      a->name == package,
-      Version>=a->minTolVersion)
+    TextBeginWith( pkgNamVer, package+".")
   });
-  If(!Card(pkgSel),"",
+  Text If(!Card(pkgSel),"",
   {
-    Set pkgSort = Sort(pkgSel,Real(TolPackage::@PackageInfo a, 
-                                   TolPackage::@PackageInfo b)
-    {
-      Compare(b->name.version, a->name.version)
-    });
-    pkgSort[1]->name.version
+    Set pkgSort = Sort(pkgSel, Real(Text a, Text b) { Compare(b, a) });
+    pkgSort[1]
   })
 };
 
@@ -94,6 +84,20 @@ Real Exist(Text package.version)
 {
   @Repository r = @Repository::Get(repository, True);
   r::Exist(package.version)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.InstallFromLocalZip = 
+"Instala un paquete desde un archivo local comprimido con extensión .zip";
+Real InstallFromLocalZip(Text pkg.path.zip)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real OSFilCopy(pkg.path.zip, _.localRoot);
+  Text pkg.name.zip = GetFileName(pkg.path.zip);
+  Text pkg.name = Replace(pkg.name.zip,".zip","");
+  Real PackArchive::UnpackFull("ZipArchive",_.localRoot+pkg.name);
+  Real OSFilRemove(_.localRoot+pkg.name.zip);
+  FileExist(_.localRoot+pkg.name+"/"+pkg.name+".oza")
 };
 
 //////////////////////////////////////////////////////////////////////////////
