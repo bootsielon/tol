@@ -31,6 +31,126 @@ Real Initialize(Real void)
   True
 };
 
+//////////////////////////////////////////////////////////////////////////////
+Text BuildPackage(Text name, Text sourceRoot, Text destination)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text _MID = "[Build.Package] ";
+  WriteLn(_MID+sourceRoot+name+" -> "+destination);
+  Set pkgCnt = Eval("Set IncludeTOL(\""+
+     sourceRoot+name+"/"+name+".tol\",True)");
+  NameBlock pkg = pkgCnt[1];
+  Text name.version = TolPackage::GetCurrentNameVersion(name,True);
+  Set dependencies = TolPackage::GetDeepDependencies(name, True);
+  Set nonTolResources=If(!ObjectExist("Set",name+"::_.autodoc.nonTolResources"),
+    Copy(Empty),pkg::_.autodoc.nonTolResources);
+
+  Text ppRoot_ = destination+name.version;
+  Text ppRoot = ppRoot_+"/";
+  Real Ois.Store(pkgCnt,ppRoot+name.version+".oza");
+  Real OSDirMake(ppRoot);
+
+  Real cleanResource(Text dest)
+  {
+    Set dir = GetDir(dest);
+    Set sub = dir[2];
+    Set EvalSet(sub,Real(Text s)
+    {
+      Text dest_new = dest+"/"+s;
+      Text ls = ToLower(s);
+      If(Or(ls==".svn",ls=="svn",ls=="cvs",ls==".cvs"),
+        OSDirRemove(dest_new),
+        cleanResource(dest_new))
+    });
+    True
+  };
+  Real processResourceText(Text resource)
+  {
+    Text orig = sourceRoot+"/"+name+"/"+resource;
+    Text dest = ppRoot+"/"+resource;
+    Real OSDirMake(dest);
+    If(OSUnix, OSDirRemove(dest));
+    WriteLn("TRACE dir copy '"+orig+"' -> '"+dest+"'");
+    Real OSDirCopy(orig,dest);
+    cleanResource(dest)
+  };
+  Real processResourceSet(Set resourceSet)
+  {
+    Set EvalSet(resourceSet, processResourceText);
+    True
+  };
+  Set EvalSet(nonTolResources, Real (Anything res)
+  {
+    Text gra = Grammar(res);
+    WriteLn(_MID+"Processing resource "+gra+" "<<res);
+    Eval("processResource"+gra+"(res)")
+  });
+  Text ppr = ReplaceSlash(ppRoot_);
+  Real PackArchive::PackFull("ZipArchive", ppr);
+  Real OSDirRemove(ppRoot);
+  ppRoot_+".zip"
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Real UploadPackageFromLocalZip(NameBlock dbConnect, Text pkg.path.zip)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text root = GetFilePath(pkg.path.zip);
+  Text pkg.name.zip = GetFileName(pkg.path.zip);
+  Text pkg.name = Replace(pkg.name.zip,".zip","");
+  Real PackArchive::UnpackFull("ZipArchive",root+pkg.name);
+  Set pkgCnt = Include(root+pkg.name+"/"+pkg.name+".oza");
+  NameBlock pkg = pkgCnt[1];
+  Text name = Name(pkgCnt[1]);
+
+  Real dbConnect::Open(0);
+  Real DBExecQuery("set client_encoding to '""latin1""'");
+  Text repository.query = "
+  SELECT id_repository, co_repository, ds_repository, co_access, te_url
+  FROM 
+    repository_d_def AS D,
+    repository_d_access AS A
+  WHERE 
+      A.id_access = D.id_access
+  AND te_url = '"+pkg::_.autodoc.url+"'
+  ";
+  WriteLn(repository.query);
+  Set repository = DBTable(repository.query);
+
+  Set dep = TolPackage::GetDeepDependencies(name, True);
+  Set res = pkg::_.autodoc.nonTolResources;
+  Text bl_zip = EncodeBase64FromFile(pkg.path.zip);
+
+//Text exist.query = 
+  Text insert.query = "
+  INSERT INTO repository_f_packages(
+    id_repository, co_name, nu_version_high, nu_version_low, te_brief, 
+    te_keys, te_authors, te_mintolversion, dh_releasedate, te_dependencies, 
+    te_nontolresources, bl_zip)
+  VALUES (
+   "<<(repository[1])::id_repository+", "+
+   "'"+name+"', \n"+
+   ""<<pkg::_.autodoc.version.high+", \n"+
+   ""<<pkg::_.autodoc.version.high+", \n"+
+   "'"<<pkg::_.autodoc.brief+"', \n"+
+   "'"<<pkg::_.autodoc.keys+"', \n"+
+   "'"<<pkg::_.autodoc.authors+"', \n"+
+   "'"<<pkg::_.autodoc.minTolVersion+"', \n"+
+   "'"<<FormatDate(NowGmt,"%c%Y-%m-%d %h:%i:%s")+"', \n"+
+   "'"<<If(Card(dep),""<<dep,"")+"', \n"+
+   "'"<<If(Card(res),""<<res,"")+"', \n"+
+   "'"<<bl_zip+"' \n"+
+  ");";
+
+  Real num_reg = DBExecQuery(insert.query);
+  If(!num_reg, WriteLn(
+    "Package is already in the repository. Please upgrade the "
+    "version numbers or delete the register of existent package.","E"));
+  Real dbConnect::Close(0);
+  num_reg
+};
+
 #Embed "builder.tol"
 
 ]];
