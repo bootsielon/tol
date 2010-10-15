@@ -84,7 +84,12 @@ NameBlock Default =
       Real LocalOnly = 0;
       Text _.autodoc.member.CaducityInMinutes = "Upgrade when local packages are "
       "older than remote in this number of minutes";
-      Real CaducityInMinutes = 60
+      Real CaducityInMinutes = 60;
+      Text _.autodoc.member.Repositories = "List of remote repositories";
+      Set Repositories = 
+      [[
+        "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php"
+      ]] 
     ]]
   ]];
   Text _.autodoc.member.Various = "Various";
