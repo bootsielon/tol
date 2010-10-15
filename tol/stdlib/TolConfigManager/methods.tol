@@ -21,6 +21,7 @@ Text BuildExpression(NameBlock config, Text margin)
       g=="Text", dec+"\""+members[k]+"\"",
       g=="Real", dec<<members[k],
       g=="Date", dec<<members[k],
+      g=="Set",  dec<<members[k],
       g=="NameBlock", BuildExpression(members[k],margin+"  ")
     )
   }))+"\n"+
@@ -38,15 +39,56 @@ Real SaveConfig(NameBlock config)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.MergeOptions=
+"Merge default and user configurations";
+NameBlock MergeOptions(NameBlock a, NameBlock b)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set a_set = NameBlockToSet(a);
+  Set b_set = NameBlockToSet(b);
+  Set c_set = EvalSet(a_set, Anything(Anything element)
+  {
+    Text gra = Grammar(element);
+    Text name = Name(element);
+    Case(
+    TextBeginWith(name, "_.autodoc.member."), 
+    {
+      element
+    },
+    !ObjectExist(gra,"b::"+name),             
+    {
+      WriteLn("[MergeOptions] New configuration option "<<gra+" "+name+
+      " will be set as default value \n"<<element ,"W");
+      element
+    },
+    gra!="NameBlock",                         
+    {
+      Eval(gra+" b::"+name)
+    },
+    1==1,                                     
+    {
+      MergeOptions(element,Eval(gra+" b::"+name))
+    })
+  });
+  Eval(Name(b)+"=SetToNameBlock(c_set)")
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.LoadConfig=
 "Loads configuration file. If not exists creates it with default values.";
 NameBlock LoadConfig(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real If(!FileExist(_.path),
+  Case(!FileExist(_.path),
   {
-     SaveConfig(Default)
-  });
-  Include(_.path)[1]
+    Real SaveConfig(Default);
+    Include(_.path)[1]
+  },
+  1==1,
+  {
+    NameBlock Config = 
+      MergeOptions(TolConfigManager::Default, { Include(_.path)[1] });
+    Real SaveConfig(Config);
+    Config
+  })
 };
-
