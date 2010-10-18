@@ -132,7 +132,7 @@ Real LocalInstallPackage(Text pkg.path.zip)
   Text pkg.name.zip = GetFileName(pkg.path.zip);
   Text pkg.name = Replace(pkg.name.zip,".zip","");
   Real PackArchive::UnpackFull("ZipArchive",_.localRoot+pkg.name);
-//Real OSFilRemove(_.localRoot+pkg.name.zip);
+  Real OSFilRemove(_.localRoot+pkg.name.zip);
   FileExist(_.localRoot+pkg.name+"/"+pkg.name+".oza")
 };
 
@@ -284,7 +284,7 @@ Real RemoteInstallPackage(Text repository, Text package, Real showError)
   {
   //WriteLn("TRACE DownloadPackage UnpackFull("<<localDir+")");
     Real PackArchive::UnpackFull("ZipArchive", localDir);
-  //Real OSFilRemove(localPack);
+    Real OSFilRemove(localPack);
     True
   });
   FileExist(localOza)  
