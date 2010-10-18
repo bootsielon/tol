@@ -107,7 +107,11 @@ Text _.autodoc.member.BuildPackage =
 "\n"
 "  \"<destination>/<name>.<high>.<low>.zip\"\n"
 "\n";
-Text BuildPackage(Text name, Text sourceRoot, Text destination)
+Text BuildPackage(
+  Text name,         //Nombre del paquete (sin versión)
+  Text sourceRoot,   //Directorio raíz del código fuente
+  Text destination,  //Directorio de destino del paquete
+  Real removeDir)    //Si es cierto se borra el directorio descomprimido
 //////////////////////////////////////////////////////////////////////////////
 {
   Text _MID = "[BuildPackage] ";
@@ -164,7 +168,7 @@ Text BuildPackage(Text name, Text sourceRoot, Text destination)
   Set dep = TolPackage::GetDeepDependencies(name, True);
   
   Real PackArchive::PackFull("ZipArchive", ppr);
-  Real OSDirRemove(ppRoot);
+  Real If(removeDir, OSDirRemove(ppRoot));
   ppRoot_+".zip"
 };
 
@@ -301,17 +305,17 @@ Text _.autodoc.member.BuildAndUploadPackage =
 " Si checkInstallMode = \"remote\" se instala desde el repositorio.\n"
 " En otro caso no se instala nada.";
 Real BuildAndUploadPackage(
-  Text name, 
-  Text sourceRoot,
-  Text repository.url,
-  NameBlock repository.db, 
-  Text checkInstallMode)
+  Text name,                //Nombre del paquete (sin versión)
+  Text sourceRoot,          //Directorio raíz del código fuente
+  Text repository.url,      //URL del repositorio
+  NameBlock repository.db,  //Conexión a la base de datos
+  Text checkInstallMode)    //Modo de chequeo de la instalación
 //////////////////////////////////////////////////////////////////////////////
 {
   Text tmp = _.localRoot;
   Real OSDirMake(tmp);
   Text pkg.path.zip = TolPackage::Server::BuildPackage(
-    name, sourceRoot, tmp);
+    name, sourceRoot, tmp, True);
   Real TolPackage::Server::UploadPackage( 
     repository.db, pkg.path.zip);
   Text pkg.name = Replace(GetFileName(pkg.path.zip),".zip","");
