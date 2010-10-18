@@ -16,7 +16,8 @@
   Text te_min_tol_version,      //Required TOL version
   Text te_dependencies,         //Required packages
   Date dh_release_date_remote,  //Publication date in remote repository
-  Date dh_release_date_local    //Local installing date
+  Date dh_release_date_local,   //Local installing date
+  Real nu_bytes                 //Size of remote compressed archive
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -31,7 +32,8 @@
   Text co_last_version_remote,  //Name of last remote version
   Text co_last_version_local,   //Name of last local version
   Date dh_release_date_remote,  //Publication date in remote repository
-  Date dh_release_date_local    //Local installing date
+  Date dh_release_date_local,   //Local installing date
+  Real nu_bytes                 //Size of compressed file
 };
 
 //////////////////////////////////////////////////////////////////////////////
