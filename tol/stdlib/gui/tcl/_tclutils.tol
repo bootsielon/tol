@@ -390,7 +390,7 @@ GetDirHelpSection);
         0
       },
       { 
-        TolPackage::Client::Upgrade.AllInAll(
+        TolPackage::Client::RemoteUpgradeAll(
           TolConfigManager::Config::Upgrading::TolPackage::CaducityInMinutes)
       });
       WriteLn(I2("Checking if TOL is updated.",
