@@ -1378,6 +1378,7 @@ BText BPackage::localRoot_ =
     { 
       ok = Install(package_version); 
     //Std(BText("\nTRACE BPackage::Load 5 ok=")+ok);
+      if(ok) { return(BPackage::Load(package_version_, false)); }
     }
     if(ok)
     {
