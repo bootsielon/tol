@@ -1861,7 +1861,9 @@ std::string base64_encode(const BArray<unsigned char>& binary)
 }
 
 //--------------------------------------------------------------------
-int base64_decode(BArray<unsigned char>& binary, std::string const& encoded_string) 
+int base64_decode(
+  BArray<unsigned char>& binary, 
+  std::string const& encoded_string) 
 //--------------------------------------------------------------------
 {
   int in_len = encoded_string.size();
@@ -1872,9 +1874,15 @@ int base64_decode(BArray<unsigned char>& binary, std::string const& encoded_stri
   int bin_len = (in_len * 2)/3 +1;
   binary.AllocBuffer(bin_len);
   binary.ReallocBuffer(0);
-
-  while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
-    char_array_4[i++] = encoded_string[in_]; in_++;
+  unsigned char ch;
+  while (in_len-- && ( (ch=encoded_string[in_]) != '='))
+  {
+    if(!is_base64(ch))
+    {
+      if(ch=='\n') { in_++; continue; }
+      else         { break; }
+    }
+    char_array_4[i++] = ch; in_++;
     if (i ==4) {
       for (i = 0; i <4; i++)
         char_array_4[i] = base64_chars.find(char_array_4[i]);
