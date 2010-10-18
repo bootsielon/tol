@@ -8,9 +8,12 @@
   Text summary_ = "DecodeBase64ToFile and EncodeBase64FromFile";
 
   Real numErr0=Copy(NError);
-  Matrix M1 = Rand(100,10,-1,1);
+  Matrix M1 = Rand(100,10,-10,10);
   Matrix MatWriteFile("M.bbm",M1);
   Text encoded = EncodeBase64FromFile("M.bbm");
+  Real length = TextLength(encoded);
+  WriteLn("encoded='"<<encoded+"'");
+  WriteLn("length="<<length+"");
   Real DecodeBase64ToFile("M2.bbm",encoded);
   Matrix M2 = MatReadFile("M2.bbm");
 
