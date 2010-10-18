@@ -1306,7 +1306,7 @@ BDate TsrLastDate(BSyntaxObject* obj)
 BText BPackage::help_ = I2(
   "Read information about TOL packages on ",
   "Lea información acerca de los paquetes TOL en ")+
-  "https://www.tol-project.org/wiki/TolPkg\n";
+  "https://www.tol-project.org/wiki/TolPackageRulesAndComments\n";
 
 BText BPackage::localRoot_ = 
   BSys::TolAppData()+"TolPackage/Client/";
@@ -1325,8 +1325,8 @@ BText BPackage::localRoot_ =
 {
   bool oldRunningUseModule = BOis::SetRunningUseModule(false);
   BSyntaxObject* fai = GraReal()->EvaluateExpr(BText(
-    "Real TolPackage::Client::FindAndInstall("
-    "\"")+package_version+"\",False);");
+    "Real TolPackage::Client::RemoteInstall("
+    "\"\",\"")+package_version+"\",True);");
   BOis::SetRunningUseModule(oldRunningUseModule);
   if(!fai) { return(false); }
   bool ok = (bool)Real(fai);
@@ -1354,10 +1354,11 @@ BText BPackage::localRoot_ =
   {
     package = package_version;
     BSyntaxObject* lcv = GraText()->EvaluateExpr(BText(
-      "Text TolPackage::Client::LastCompatible("
+      "Text TolPackage::Client::LocalLastCompatible("
       "\"")+package+"\");");
     if(!lcv) { return(false); }
     package_version = Text(lcv);
+    if(package_version=="") { package_version = package; }
   //Std(BText("\nTRACE BPackage::Load 2.2.1 package='")+package_version+"'");
   //Std(BText("\nTRACE BPackage::Load 2.2.2 package_version='")+package_version+"'");
     DESTROY(lcv);
