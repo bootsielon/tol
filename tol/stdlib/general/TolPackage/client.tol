@@ -4,269 +4,45 @@
 // PURPOSE: TolPackage client tools
 //////////////////////////////////////////////////////////////////////////////
 
+Text _.autodoc.member.Client= 
+"Sistema cliente de gestión de paquetes TOL";
+
+//////////////////////////////////////////////////////////////////////////////
 NameBlock Client = [[
+//////////////////////////////////////////////////////////////////////////////
 
 Text _.localRoot = 
   Replace(TolAppDataPath+"TolPackage/Client/","\\","/");
 
-#Embed "repository.tol";
-#Embed "autoLoadSave.tol";
+Set _.syncInfo = Copy(Empty);
+
+Text min_tol_version_cond = 
+  "min_tol_version="+Replace(TolPackage::_.currentTolVersion," ","%20");
 
 //////////////////////////////////////////////////////////////////////////////
-//Inicializa el sistema de almacenamiento persistente de la lista de 
-//repositorios 
-NameBlock Initialize(Real void)
+Text _.autodoc.member.Initialize = 
+"Inicializa el cliente del servicio de paquetes TOL";
+Real Initialize(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE [TolPackage::Client::Initialize] ");
   Real OSDirMake(_.localRoot);
-  TolPackage::Client::@AutoLoadSave _autoLoadSave = 
-    TolPackage::Client::@AutoLoadSave::Create(0);
-  _autoLoadSave
-};
-
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.LastCompatible = 
-"Devuelve la última versión de un paquete que es compatible con la "
-"versión actual de TOL.";
-Text LastCompatible(Text package)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
-  Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
-  {
-    TextBeginWith( pkgNamVer, package+".")
-  });
-  Text If(!Card(pkgSel),"",
-  {
-    Set pkgSort = Sort(pkgSel, Real(Text a, Text b) { Compare(b, a) });
-    pkgSort[1]
-  })
+  True
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.LocalPack = 
-"Devuelve el path completo del fichero local correspondiente a un paquete "
-"comprimido.";
-Text LocalPack(Text package.version)
+Text _.autodoc.member.AddRepository = 
+"Añade un repositorio a la lista de configuración del usuario:\n"
+"  Set TolConfigManager::Config::Upgrading::TolPackage::Repositories\n";
+Real AddRepository(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  TolPackage::Client::_.localRoot+package.version+"/"+package.version+".zip"
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.LocalOza = 
-"Devuelve el path completo del fichero local OIS correspondiente a un "
-"paquete.";
-Text LocalOza(Text package.version)
-//////////////////////////////////////////////////////////////////////////////
-{
-  TolPackage::Client::_.localRoot+package.version+"/"+package.version+".oza"
-};
-
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.LocalResourcePath = 
-"Devuelve el path completo del directorio local de un recurso ajeno a TOL "
-"necesario para el paquete especificado.";
-Text LocalResourcePath(Text package.version, Text resource)
-//////////////////////////////////////////////////////////////////////////////
-{
-  TolPackage::Client::_.localRoot+package.version+"/"+resource
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Exist = 
-"Devuelve cierto si existe el paquete especificado";
-Real Exist(Text package.version)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::Exist(package.version)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.InstallFromLocalZip = 
-"Instala un paquete desde un archivo local comprimido con extensión .zip";
-Real InstallFromLocalZip(Text pkg.path.zip)
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real OSFilCopy(pkg.path.zip, _.localRoot);
-  Text pkg.name.zip = GetFileName(pkg.path.zip);
-  Text pkg.name = Replace(pkg.name.zip,".zip","");
-  Real PackArchive::UnpackFull("ZipArchive",_.localRoot+pkg.name);
-  Real OSFilRemove(_.localRoot+pkg.name.zip);
-  FileExist(_.localRoot+pkg.name+"/"+pkg.name+".oza")
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.InstallFromUrl = 
-"Instala desde una URL arbitraria un paquete determinado para que esté "
-"disponible llamando a #Require. \n"
-"La URL puede ser en realidad un directorio local para "
-"facilitar proceso de instalación cerrada. Para ello la URL comenzará por "
-"file:// seguido del path local donde se ubica el repositorio.\n"
-"Si la URL empieza por http:// https:// ftp:// o cualquier otro protocolo"
-"reconocible por el sistema operativo se realizará la correspondiente "
-"descarga remota. \n";
-//////////////////////////////////////////////////////////////////////////////
-Real InstallFromUrl(Text url)
-//////////////////////////////////////////////////////////////////////////////
-{
-//WriteLn("TRACE [InstallFromUrl] url="<<url);
-  Text path = RemoveLastSlash(GetFilePath(url));
-//WriteLn("TRACE [InstallFromUrl] path="<<path);
-  Text package = GetFilePrefix(url);
-//WriteLn("TRACE [InstallFromUrl] package="<<package);
-  @Repository::DownloadPackageFromUrl(path,package)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Install = 
-"Instala desde el repositorio remoto al local un paquete determinado "
-"para que esté disponible llamando a #Require. \n"
-"Un repositorio remoto puede ser en realidad un directorio local para "
-"facilitar proceso de instalación cerrada. Para ello la URL comenzará por "
-"file:// seguido del path local donde se ubica el repositorio.\n"
-"Si la URL empieza por http:// https:// ftp:// o cualquier otro protocolo"
-"reconocible por el sistema operativo se realizará la correspondiente "
-"descarga remota. \n"
-"En un mismo repositorio local puede haber distintas veriones de un mismo "
-"paquete que se distinguirán unas de otras por el texto posterior al "
-"primer punto. Antes del punto el nombre del paquete ha de seguir la "
-"nomenclatura tipo WIKI AaaBbb \n"
-"Si no se especifica ninguna versión se instalará la última disponible "
-"con una copia que especifique el nombre con versión y otra sin versión, "
-"sólo con el nombre del paquete, de forma que el #Require funcione igual "
-"tanto si se especifica la última versión como si no se especifica "
-"ninguna. \n"
-"Si ya existía una copia en el repositorio local será substituida sin "
-"mayores contemplaciones por lo que el usuario debe saber lo que pide. \n"
-"Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
-"que se lancen desde ese momento podrán usarlos.";
-//////////////////////////////////////////////////////////////////////////////
-Real Install(Text repository, Text package.version, Real showError)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::Install(package.version,showError)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Install.All = 
-"Instala la última versión de todos los paquetes disponibles en un "
-"repositorio remoto.";
-Real Install.All(Text repository)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::Install.All(0)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Install.AllInAll = 
-"Instala todos los paquetes disponibles en todos los repositorios remotos "
-"consultados.";
-Real Install.AllInAll(Real void)
-//////////////////////////////////////////////////////////////////////////////
-{
-//WriteLn("TRACE Client::Install.AllInAll");
-  @Repository::Install.AllInAll(void)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Find = 
-"Busca un paquete entre todos los repositorios consultables y, si lo "
-"encuentra, devuelve el registro de información con estructura @PackageInfo, "
-"y si no, el conjunto vacío.";
-Set Find(Text repository)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository::Find(repository)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.FindAndInstall = 
-"Busca un paquete entre todos los repositorios consultables y si lo "
-"encuentra lo instala.";
-Real FindAndInstall(Text repository, Real showError)
-//////////////////////////////////////////////////////////////////////////////
-{
-//WriteLn("TRACE Client::FindAndInstall(\""+repository+"\","<<showError+")");
-  @Repository::FindAndInstall(repository, showError)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.ReleaseDate = 
-"Devuelve la fecha de la última actualización de un paquete en un "
-"repositorio";
-Date ReleaseDate(Text repository, Text package)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::ReleaseDate(package)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Upgrade = 
-"Actualiza automáticamente un paquete si ha caducado caduca la copia local "
-"llamando a Install.";
-Real Upgrade(Text repository, Text package.version, Real caducityInMinutes)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::Upgrade(package, caducityInMinutes)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Upgrade.All = 
-"Actualiza automáticamente todos los paquetes disponibles en un repositorio "
-"remoto para los que la copia local haya caducado.";
-Real Upgrade.All(Text repository, Real caducityInMinutes)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::Upgrade.All(caducityInMinutes)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Upgrade.AllInAll = 
-"Actualiza automáticamente todos los paquetes disponibles en todos los "
-"repositorios remotos consultados para los que la copia local haya caducado.";
-Real Upgrade.AllInAll(Real caducityInMinutes)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository::Upgrade.AllInAll(caducityInMinutes)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Clean = "Elimina un paquete concreto.";
-Real Clean(Text repository, Text package.version)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::Clean(package)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Clean.All = 
-"Elimina todos los paquetes disponibles localmente procedentes del "
-"repositorio.";
-Real Clean.All(Text repository)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository r = @Repository::Get(repository, True);
-  r::Clean.All(0)
-};
-
-//////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.Clean.AllInAll = 
-"Elimina todos los paquetes disponibles localmente.";
-Real Clean.AllInAll(Real void)
-//////////////////////////////////////////////////////////////////////////////
-{
-  @Repository::Clean.AllInAll(void)
+//WriteLn("TRACE [TolPackage::Client::Initialize] ");
+  Set TolConfigManager::Config::Upgrading::TolPackage::Repositories :=
+    Unique(TolConfigManager::Config::Upgrading::TolPackage::Repositories <<
+           [[url]]);
+  Real TolConfigManager::SaveConfig(TolConfigManager::Config);
+  True
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -293,6 +69,364 @@ Real DoRequirements(Set packages)
     True
   });
   True
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalLastCompatible = 
+"Devuelve la última versión de un paquete disponible localmente que es "
+"compatible con la versión actual de TOL.";
+Text LocalLastCompatible(Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
+  Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
+  {
+    TextBeginWith( pkgNamVer, package+".")
+  });
+  Text If(!Card(pkgSel),"",
+  {
+    Set pkgSort = Sort(pkgSel, Real(Text a, Text b) { Compare(b, a) });
+    pkgSort[1]
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalPath = 
+"Devuelve el path completo del fichero local correspondiente a un paquete "
+"comprimido.";
+Text LocalPath(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TolPackage::Client::_.localRoot+package.version+"/"+package.version+".zip"
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalOza = 
+"Devuelve el path completo del fichero local OIS correspondiente a un "
+"paquete.";
+Text LocalOza(Text package.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TolPackage::Client::_.localRoot+package.version+"/"+package.version+".oza"
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalResourcePath = 
+"Devuelve el path completo del directorio local de un recurso ajeno a TOL "
+"necesario para el paquete especificado.";
+Text LocalResourcePath(Text package.version, Text resource)
+//////////////////////////////////////////////////////////////////////////////
+{
+  TolPackage::Client::_.localRoot+package.version+"/"+resource
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalInstallPackage = 
+"Instala un paquete desde el archivo local comprimido dado por el "
+"argumento:\n"
+"  Text pkg.path.zip = \"<directory>/<name>.<high>.<low>.zip\"\n";
+Real LocalInstallPackage(Text pkg.path.zip)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real OSFilCopy(pkg.path.zip, _.localRoot);
+  Text pkg.name.zip = GetFileName(pkg.path.zip);
+  Text pkg.name = Replace(pkg.name.zip,".zip","");
+  Real PackArchive::UnpackFull("ZipArchive",_.localRoot+pkg.name);
+//Real OSFilRemove(_.localRoot+pkg.name.zip);
+  FileExist(_.localRoot+pkg.name+"/"+pkg.name+".oza")
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalClean = 
+"Elimina un paquete local concreto.\n"
+"Si no se especifica número de versión se borrarán todas las versiones "
+"locales de dicho paquete.";
+Real LocalClean(Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real If(TextFind(package,"."),
+  {
+    Real OSDirRemove(_.localRoot+package)
+  },
+  {
+    Set dir = GetDir(_.localRoot)[2];
+    Set sel = Select(dir,Real(Text sub)
+    {
+      TextBeginWith(sub,package)
+    });
+    SetMin(EvalSet(sel,Real(Text pkg)
+    {
+      OSDirRemove(_.localRoot+pkg)
+    }))
+  })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalClean.All = 
+"Elimina todos los paquetes disponibles localmente.";
+Real LocalCleanAll(Text repository)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real OSDirRemove(_.localRoot);
+  Real OSDirMake(_.localRoot)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteFindRepository = 
+"Devuelve el repositorio al que pertenece un paquete dado de entre aquellos "
+"repositorios dados de alta en : \n"
+"  Set TolConfigManager::Config::Upgrading::TolPackage::Repositories\n"
+"Si no se encuentra el paquete en ninguno de ellos se devuelve la cadena "
+"vacía.";
+Text RemoteFindRepository(Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("TRACE [RemoteFindRepository] 1 package='"<<package+"'");
+  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, "", {
+//WriteLn("TRACE [RemoteFindRepository] 2");
+  Set repositories = 
+    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+  Real K = Card(repositories); 
+  Real k = 1;
+  Text found = "";
+//WriteLn("TRACE [RemoteFindRepository] 3 K="<<K);
+  While(And(found=="", k<=K),
+  {
+  //WriteLn("TRACE [RemoteFindRepository] 4 repositories["<<k+"]="<<repositories[k]);
+    Text pkgInfo = GetUrlContents(repositories[k]+"?"
+      "action=versions&limit=1&"+
+      "package="+package+"&"+
+      min_tol_version_cond);
+    Set pkgLst = IncludeText(pkgInfo);
+  //WriteLn("TRACE [RemoteFindRepository] 5 pkgInfo="<<pkgInfo);
+  //WriteLn("TRACE [RemoteFindRepository] 6 pkgLst="<<pkgLst);
+  //WriteLn("TRACE [RemoteFindRepository] 7 Card(pkgLst)="<<Card(pkgLst));
+    Text If(Card(pkgLst)>0, found := repositories[k]);
+    Real k := k+1
+  });
+  found
+})};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteReleaseDate = 
+"Devuelve la fecha de la última actualización compatible con la versión "
+"actual de TOL de un paquete en un repositorio dado. "
+"Si no se especifica ningún repositorio se buscará en todos los "
+"repositorios dados de alta en \n"
+"  Set TolConfigManager::Config::Upgrading::TolPackage::Repositories\n"
+"Si no se encuentra el paquete se devuelve la fecha desconocida.";
+Date RemoteReleaseDate(Text repository, Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, UnknownDate, {
+  Text rep = If(repository=="",repository,RemoteFindRepository(package));
+  If(rep=="", UnknownDate,
+  {
+    Text pkgInfo = GetUrlContents(rep+"?"
+      "action=versions&limit=1&"+
+      "package="+package+"&"+
+      min_tol_version_cond);
+    Set pkgLst = IncludeText(pkgInfo);
+    pkgLst[1]->dh_release_date_remote
+  })
+})};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteInstallPackage = 
+"Instala desde el repositorio remoto al local un paquete determinado "
+"para que esté disponible llamando a #Require. \n"
+"En un mismo repositorio local puede haber distintas veriones de un mismo "
+"paquete que se distinguirán unas de otras por el texto posterior al "
+"primer punto. Antes del punto el nombre del paquete suele de seguir la "
+"nomenclatura tipo WIKI AaaBbb \n"
+"Si no se especifica ninguna versión se instalará la última disponible."
+"Si ya existía una copia en el repositorio local será substituida sin "
+"mayores contemplaciones por lo que el usuario debe saber lo que pide. \n"
+"Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
+"que se lancen desde ese momento podrán usarlos.";
+//////////////////////////////////////////////////////////////////////////////
+Real RemoteInstallPackage(Text repository, Text package, Real showError)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
+//WriteLn("TRACE [RemoteInstallPackage] 1 repository='"<<repository+"'");
+  Text package.version = package;
+  Text If(TextFind(package,"."),
+  {
+    Text package := Tokenizer(package.version,".")[1]
+  },
+  {
+    Text pkgInfo = GetUrlContents(repository+"?"
+      "action=versions&limit=1&"+
+      "package="+package+"&"+
+      min_tol_version_cond);
+    Set pkgLst = IncludeText(pkgInfo);
+    Text package.version := pkgLst[1]->co_name_version
+  });
+
+//WriteLn("TRACE [RemoteInstallPackage] 2 package='"<<package+"'");
+//WriteLn("TRACE [RemoteInstallPackage] 3 package.version='"<<package.version+"'");
+
+  Text pack = package.version+".zip";
+  Text oza = package.version+"/"+package.version+".oza";
+  Text localPack = TolPackage::Client::_.localRoot+pack;
+  Text localOza = TolPackage::Client::_.localRoot+oza;
+  Text localDir = TolPackage::Client::_.localRoot+package.version;
+
+  Text encoded = GetUrlContents(repository+"?"
+    "action=download&"+
+    "format=base64&"+
+    "package="+package.version);
+//WriteLn("TRACE [RemoteInstallPackage] 4 encoded='"<<encoded+"'");
+  Real DecodeBase64ToFile(localPack, encoded);
+  If(!FileExist(localPack), False,
+  {
+  //WriteLn("TRACE DownloadPackage UnpackFull("<<localDir+")");
+    Real PackArchive::UnpackFull("ZipArchive", localDir);
+  //Real OSFilRemove(localPack);
+    True
+  });
+  FileExist(localOza)  
+})};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteInstallFullRepository = 
+"Instala la última versión compatible con la versión actual de TOL de todos "
+"los paquetes disponibles en un repositorio remoto.\n";
+//////////////////////////////////////////////////////////////////////////////
+Real RemoteInstallFullRepository(Text repository, Real showError)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
+  Text pkgInfo = GetUrlContents(repository+"?"
+    "action=versions&"+
+    min_tol_version_cond);
+  Set pkgLst = IncludeText(pkgInfo);
+  SetMin(EvalSet(pkgLst, Real(Set pkg)
+  {
+    RemoteInstallPackage(repository, pkg->co_name_version, showError)
+  }))
+})};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteInstall = 
+"Instala desde el repositorio remoto al local un paquete determinado "
+"para que esté disponible llamando a #Require. \n"
+"En un mismo repositorio local puede haber distintas veriones de un mismo "
+"paquete que se distinguirán unas de otras por el texto posterior al "
+"primer punto. Antes del punto el nombre del paquete suele de seguir la "
+"nomenclatura tipo WIKI AaaBbb \n"
+"Si no se especifica ninguna versión se instalará la última disponible."
+"Si no se especifica ningún paquete se instalará la última versión de "
+"todos los disponibles en el repositorio.\n"
+"Si no se especifica ningún repositorio se buscará en todos los "
+"repositorios dados de alta en \n"
+"  Set TolConfigManager::Config::Upgrading::TolPackage::Repositories\n"
+"Si ya existía una copia en el repositorio local será substituida sin "
+"mayores contemplaciones por lo que el usuario debe saber lo que pide. \n"
+"Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
+"que se lancen desde ese momento podrán usarlos.";
+//////////////////////////////////////////////////////////////////////////////
+Real RemoteInstall(Text repository, Text package, Real showError)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("TRACE [RemoteInstall] 1 repository='"<<repository+"'");
+//WriteLn("TRACE [RemoteInstall] 2 package='"<<package+"'");
+  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
+  Case(
+  And(repository!="",package!=""),
+  {
+  //WriteLn("TRACE [RemoteInstall] 3.1");
+    RemoteInstallPackage(repository, package, showError)
+  },
+  And(repository=="",package!=""),
+  {
+  //WriteLn("TRACE [RemoteInstall] 3.2");
+    Text rep = If(repository!="",repository,RemoteFindRepository(package));
+  //WriteLn("TRACE [RemoteInstall] 3.2.1 rep ="<<rep);
+    If(rep=="", 
+    {
+      If(showError,Error(I2(
+       "Cannot find package "+package+" in any repository",
+       "No se encuentra el paquete "+package+" en ningún repositorio")))
+    },
+    {
+    //WriteLn("TRACE [RemoteInstall] 3.2.2 ");
+      RemoteInstallPackage(rep, package, showError)
+    })
+  },
+  And(repository!="",package==""),
+  {
+  //WriteLn("TRACE [RemoteInstall] 3.3");
+    RemoteInstallFullRepository(repository, showError)
+  },
+  And(repository=="",package==""),
+  {
+  //WriteLn("TRACE [RemoteInstall] 3.4");
+    Set repositories = 
+      TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+    SetMin(EvalSet(repositories, Real(Text rep)
+    {
+      RemoteInstallFullRepository(rep, showError)
+    }))
+  })
+})};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteUpdateSyncInfo = 
+"Actualiza la información necesaria para la sincronización de paquetes "
+"locales con el repositorio remoto para aquellos que son compatibles con "
+"la versión actual de TOL.\n"
+"Devuelve el número de paquetes compatibles disponibles de forma remota.";
+Real RemoteUpdateSyncInfo(Real void)
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
+  Set repositories = 
+    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+  Set _.syncInfo := SetConcat(EvalSet(repositories,Set(Text rep)
+  {
+    Text pkgInfo = GetUrlContents(rep+"?"
+      "action=versions&"+
+      min_tol_version_cond);
+    IncludeText(pkgInfo)
+  }));
+  Real SetIndexByName(_.syncInfo);
+  Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
+  Set EvalSet(pkgLst, Real(Text pkg)
+  {
+    Real found = FindIndexByName(_.syncInfo, pkg);
+    Date If(!found, WriteLn("[RemoteUpdateSyncInfo] "+I2(
+      "Cannot find remote image of local package "+pkg+
+      " in any repository." ,
+      "No se encuentra la imagen remota del paquete local "+pkg+
+      " en ningún repositorio"),"W"),
+    {
+      Date gmt = Copy(NowGmt);
+      Date loc = Copy(Now);
+      Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
+      Text oza = TolPackage::Client::_.localRoot+pkg+"/"+pkg+".oza";
+      Date release.loc = FileTime(oza);
+      Date release.gmt = Succ(release.loc,S(0),lag);
+      _.syncInfo[found]->dh_release_date_local := release.gmt
+    });
+    True
+  });
+  Card(_.syncInfo)
+})};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteUpgradeAll = 
+"Actualiza automáticamente todos los paquetes disponibles en los "
+"repositorios remotos para los que la copia local haya caducado.\n";
+Real RemoteUpgradeAll(Real caducityInMinutes)
+//////////////////////////////////////////////////////////////////////////////
+{
+//Real RemoteUpdateSyncInfo(0);
+//Set outOfdate 
+  False
 }
 
 ]];

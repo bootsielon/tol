@@ -6,25 +6,42 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-//Información de un paquete dentro del archivo de estado un repositorio
-  Struct @PackageInfo {
+//Información de un paquete que es relevante para la sincronización de las 
+//copias locales con el repositorio remoto.
+  Struct @PackageSynchro {
 //////////////////////////////////////////////////////////////////////////////
-  Text repository,
-  Text name,
-  Text name.version,
-  Real version.high,
-  Real version.low,
-  Text brief,
-  Set  keys,
-  Set  authors,
-  Text minTolVersion,
-  Date releaseDate,
-  Set  dependencies,
-  Set  nonTolResources
+  Text te_url,                  //URL of repository
+  Text co_name,                 //Generic name of package
+  Text co_name_version,         //Name of versioned package 
+  Text te_min_tol_version,      //Required TOL version
+  Text te_dependencies,         //Required packages
+  Date dh_release_date_remote,  //Publication date in remote repository
+  Date dh_release_date_local    //Local installing date
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Devuelve el nombre de versión actual de un paquete ya cargado 
+Text _.official = 
+  "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php";
+//////////////////////////////////////////////////////////////////////////////
+
+Set _.currentTolVersionTokens = Tokenizer(Version," ");
+
+Text _.currentTolVersion = 
+{
+  _.currentTolVersionTokens[1]+" "+_.currentTolVersionTokens[2] 
+};
+
+Date _.currentTolReleaseDate = 
+{
+  TextToDate(
+    _.currentTolVersionTokens[3]+" "+_.currentTolVersionTokens[4],
+    "%Y-%m-%d %h:%i:%s") 
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetCurrentNameVersion =
+"Devuelve el nombre de versión actual de un paquete ya cargado";
   Text GetCurrentNameVersion(Text packageName, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
@@ -34,23 +51,25 @@
 };
 
 //////////////////////////////////////////////////////////////////////////////
-//Devuelve la lista de dependencias directas e indirectas de un paquete ya 
-//cargado 
-  Set GetDeepDependencies(Text packageName, Real specificVersion)
+Text _.autodoc.member.GetDeepDependencies =
+"Devuelve la lista de dependencias directas e indirectas de un paquete ya "
+"cargado";
+Set GetDeepDependencies(Text packageName, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE GetDeepDependencies 1");
   NameBlock p = Eval(packageName);
 //WriteLn("TRACE GetDeepDependencies 2");
-  Text name.version = 
-    TolPackage::GetCurrentNameVersion(packageName, specificVersion);
 //WriteLn("TRACE GetDeepDependencies 3");
   If(!Card(p::_.autodoc.dependencies), Copy(Empty),
   {
     Set aux=EvalSet(p::_.autodoc.dependencies, Set(Text r)
     {
+      Text name.version = 
+        TolPackage::GetCurrentNameVersion(r, specificVersion);
+      [[name.version]] <<
       TolPackage::GetDeepDependencies(r,specificVersion)
     });
-    Unique(SetConcat(aux)<<[[name.version]])
+    Unique(SetConcat(aux))
   }) 
 };
