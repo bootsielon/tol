@@ -42,6 +42,7 @@
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bvmatgra.h>
 #include <tol/tol_oiscreator.h>
+#include <tol/tol_StoreZipArchive.h>
 
 #ifdef __USE_TC__
 #  include <tol/tol_bctmigra.h>
@@ -1373,6 +1374,18 @@ BText BPackage::localRoot_ =
   if(!ok)
   {
     ok=dirPath.Exist();
+    if(!ok)
+    {
+      BDir zipPath = path+".zip";
+      if(zipPath.Exist())
+      {
+        StoreZipArchive zip;
+        zip.Open(zipPath.Name(),'r');
+        zip.DirExtract("*",dirPath.Name());
+        zip.Close();
+      }
+      ok=dirPath.Exist();
+    }
   //Std(BText("\nTRACE BPackage::Load 4 ok=")+ok);
     if(!ok) 
     { 
