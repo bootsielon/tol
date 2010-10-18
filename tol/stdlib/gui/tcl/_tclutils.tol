@@ -390,8 +390,7 @@ GetDirHelpSection);
         0
       },
       { 
-        TolPackage::Client::RemoteUpgradeAll(
-          TolConfigManager::Config::Upgrading::TolPackage::CaducityInMinutes)
+        TolPackage::Client::RemoteUpdatePackSyncInfo(True)
       });
       WriteLn(I2("Checking if TOL is updated.",
                  "Comprobando si TOL está actualizado."));

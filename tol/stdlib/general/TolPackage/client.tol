@@ -14,7 +14,12 @@ NameBlock Client = [[
 Text _.localRoot = 
   Replace(TolAppDataPath+"TolPackage/Client/","\\","/");
 
-Set _.syncInfo = Copy(Empty);
+Set _.versSyncInfo = Copy(Empty);
+Set _.packSyncInfo = Copy(Empty);
+Set _.packForUpdate = Copy(Empty);
+Set _.packForUpgrade = Copy(Empty);
+Set _.packForInstall = Copy(Empty);
+Set _.packInstalled = Copy(Empty);
 
 Text min_tol_version_cond = 
   "min_tol_version="+Replace(TolPackage::_.currentTolVersion," ","%20");
@@ -282,11 +287,12 @@ Real RemoteInstallPackage(Text repository, Text package, Real showError)
   Real DecodeBase64ToFile(localPack, encoded);
   If(!FileExist(localPack), False,
   {
-  //WriteLn("TRACE DownloadPackage UnpackFull("<<localDir+")");
+  //WriteLn("TRACE DownloadPackage 4 UnpackFull("<<localDir+")");
     Real PackArchive::UnpackFull("ZipArchive", localDir);
     Real OSFilRemove(localPack);
     True
   });
+//WriteLn("TRACE DownloadPackage 5");
   FileExist(localOza)  
 })};
 
@@ -374,30 +380,31 @@ Real RemoteInstall(Text repository, Text package, Real showError)
 })};
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.RemoteUpdateSyncInfo = 
-"Actualiza la información necesaria para la sincronización de paquetes "
-"locales con el repositorio remoto para aquellos que son compatibles con "
-"la versión actual de TOL.\n"
-"Devuelve el número de paquetes compatibles disponibles de forma remota.";
-Real RemoteUpdateSyncInfo(Real void)
+Text _.autodoc.member.RemoteUpdateVersSyncInfo = 
+"Actualiza la información necesaria para la sincronización de versiones de "
+"paquetes locales con el repositorio remoto para aquellos que son "
+"compatibles con la versión actual de TOL.\n"
+"Devuelve el número de versiones de paquetes compatibles disponibles de "
+"forma remota.";
+Real RemoteUpdateVersSyncInfo(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
   If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
   Set repositories = 
     TolConfigManager::Config::Upgrading::TolPackage::Repositories;
-  Set _.syncInfo := SetConcat(EvalSet(repositories,Set(Text rep)
+  Set _.versSyncInfo := SetConcat(EvalSet(repositories,Set(Text rep)
   {
     Text pkgInfo = GetUrlContents(rep+"?"
       "action=versions&"+
       min_tol_version_cond);
     IncludeText(pkgInfo)
   }));
-  Real SetIndexByName(_.syncInfo);
+  Real SetIndexByName(_.versSyncInfo);
   Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
   Set EvalSet(pkgLst, Real(Text pkg)
   {
-    Real found = FindIndexByName(_.syncInfo, pkg);
-    Date If(!found, WriteLn("[RemoteUpdateSyncInfo] "+I2(
+    Real found = FindIndexByName(_.versSyncInfo, pkg);
+    Date If(!found, WriteLn("[RemoteUpdateVersSyncInfo] "+I2(
       "Cannot find remote image of local package "+pkg+
       " in any repository." ,
       "No se encuentra la imagen remota del paquete local "+pkg+
@@ -409,24 +416,135 @@ Real RemoteUpdateSyncInfo(Real void)
       Text oza = TolPackage::Client::_.localRoot+pkg+"/"+pkg+".oza";
       Date release.loc = FileTime(oza);
       Date release.gmt = Succ(release.loc,S(0),lag);
-      _.syncInfo[found]->dh_release_date_local := release.gmt
+      _.versSyncInfo[found]->dh_release_date_local := release.gmt
     });
     True
   });
-  Card(_.syncInfo)
+  Card(_.versSyncInfo)
+})};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteUpdatePackSyncInfo = 
+"Actualiza la información necesaria para la sincronización de paquetes "
+"locales con el repositorio remoto para aquellos que son "
+"compatibles con la versión actual de TOL.\n"
+"Devuelve el número de paquetes compatibles disponibles de forma remota.";
+Real RemoteUpdatePackSyncInfo(Real showWarnings)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text _MID = "TolPackage::Client::[RemoteUpdatePackSyncInfo]\n";
+  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
+  Set repositories = 
+    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+  Set _.packSyncInfo := SetConcat(EvalSet(repositories,Set(Text rep)
+  {
+    Text pkgInfo = GetUrlContents(rep+"?"
+      "action=packages&"+
+      min_tol_version_cond);
+    IncludeText(pkgInfo)
+  }));
+  Real SetIndexByName(_.packSyncInfo);
+  Set verLst = GetDir(TolPackage::Client::_.localRoot)[2];
+  Set verCls = Classify(verLst,Real(Text a, Text b)
+  {
+    Compare(Tokenizer(a,".")[1], Tokenizer(b,".")[1])
+  });
+  Set EvalSet(verCls, Real(Set cls)
+  {
+    Text pkg = Tokenizer(cls[1],".")[1];
+    Real found = FindIndexByName(_.packSyncInfo, pkg);
+    Date If(And(!found,showWarnings), WriteLn(_MID+I2(
+      "Cannot find remote image of local package "+pkg+
+      " in any repository." ,
+      "No se encuentra la imagen remota del paquete local "+pkg+
+      " en ningún repositorio"),"W"),
+    {
+      Set ord = Sort(cls,Real(Text a, Text b) { Compare(b, a) });
+      Text ver = ord[1];
+      Date gmt = Copy(NowGmt);
+      Date loc = Copy(Now);
+      Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
+      Text oza = TolPackage::Client::_.localRoot+ver+"/"+ver+".oza";
+      Date release.loc = FileTime(oza);
+      Date release.gmt = Succ(release.loc,S(0),lag);
+      _.packSyncInfo[found]->co_last_version_local := ver;
+      _.packSyncInfo[found]->dh_release_date_local := release.gmt
+    });
+    True
+  });
+  Set _.packForUpdate := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
+  {
+    And(pkg->co_last_version_local != "",
+        pkg->co_last_version_local == pkg->co_last_version_remote,  
+        pkg->dh_release_date_local <  pkg->dh_release_date_remote)   
+  });
+  If(And(showWarnings,Card(_.packForUpdate)),
+  {
+    WriteLn(_MID+"There are "<<Card(_.packForUpdate)+" packages that you can update "
+            "from remote repositories to new releases of the same version.\n"
+            "You can view them at:\n "
+            "  Set TolPackage::Client::_.packForUpdate\n"
+            "You can update all them running this TOL sentence: \n"
+            "  Set TolPackage::Client::RemoteUpdateAll(0)\n",
+            "W")
+  });
+  Set _.packForUpgrade := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
+  {
+    And(pkg->co_last_version_local != "",
+        pkg->co_last_version_local < pkg->co_last_version_remote)   
+  });
+  If(And(showWarnings,Card(_.packForUpgrade)),
+  {
+    WriteLn(_MID+"There are "<<Card(_.packForUpgrade)+" packages that you can upgrade "
+            "from remote repositories to new versions.\n"
+            "You can view them at:\n "
+            "  Set TolPackage::Client::_.packForUpgrade\n"
+            "You can upgrade all them running this TOL sentence: \n"
+            "  Set TolPackage::Client::RemoteUpgradeAll(0)\n",
+            "W")
+  });
+  Set _.packForInstall := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
+  {
+    pkg->co_last_version_local == ""  
+  });
+  Set _.packInstalled := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
+  {
+    pkg->co_last_version_local != ""  
+  });
+  Card(_.packSyncInfo)
 })};
 
 
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.RemoteUpgradeAll = 
-"Actualiza automáticamente todos los paquetes disponibles en los "
+Text _.autodoc.member.RemoteUpdateAll = 
+"Actualiza automáticamente todos los paquetes disponibles desde los "
 "repositorios remotos para los que la copia local haya caducado.\n";
-Real RemoteUpgradeAll(Real caducityInMinutes)
+Real RemoteUpdateAll(Real updateSyncInfo)
 //////////////////////////////////////////////////////////////////////////////
 {
-//Real RemoteUpdateSyncInfo(0);
-//Set outOfdate 
-  False
+  Real If(Or(updateSyncInfo,Card(_.packSyncInfo)), 
+    RemoteUpdatePackSyncInfo(False));
+  If(!Card(_.packForUpdate), 0,
+  SetSum(EvalSet(_.packForUpdate, Real(TolPackage::@PackageSynchro pkg)
+  {
+    RemoteInstallPackage(pkg->te_url, pkg->co_last_version_remote, True)
+  })))
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteUpgradeAll = 
+"Actualiza automáticamente todos los paquetes disponibles desde los "
+"repositorios remotos para los que exista una versión más moderna.\n";
+Real RemoteUpgradeAll(Real updateSyncInfo)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real If(Or(updateSyncInfo,Card(_.packSyncInfo)), 
+    RemoteUpdatePackSyncInfo(False));
+  If(!Card(_.packForUpgrade), 0,
+  SetSum(EvalSet(_.packForUpgrade, Real(TolPackage::@PackageSynchro pkg)
+  {
+    RemoteInstallPackage(pkg->te_url, pkg->co_last_version_remote, True)
+  })))
 }
 
 ]];

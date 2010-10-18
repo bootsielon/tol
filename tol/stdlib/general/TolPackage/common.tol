@@ -8,13 +8,28 @@
 //////////////////////////////////////////////////////////////////////////////
 //Información de un paquete que es relevante para la sincronización de las 
 //copias locales con el repositorio remoto.
-  Struct @PackageSynchro {
+  Struct @VersionSynchro {
 //////////////////////////////////////////////////////////////////////////////
   Text te_url,                  //URL of repository
   Text co_name,                 //Generic name of package
   Text co_name_version,         //Name of versioned package 
   Text te_min_tol_version,      //Required TOL version
   Text te_dependencies,         //Required packages
+  Date dh_release_date_remote,  //Publication date in remote repository
+  Date dh_release_date_local    //Local installing date
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Información de un paquete que es relevante para la sincronización de las 
+//copias locales con el repositorio remoto.
+  Struct @PackageSynchro {
+//////////////////////////////////////////////////////////////////////////////
+  Text te_url,                  //URL of repository
+  Text co_name,                 //Generic name of package
+  Text te_brief,                //Brief description of package 
+  Text te_min_tol_version,      //Required TOL version
+  Text co_last_version_remote,  //Name of last remote version
+  Text co_last_version_local,   //Name of last local version
   Date dh_release_date_remote,  //Publication date in remote repository
   Date dh_release_date_local    //Local installing date
 };
@@ -72,4 +87,4 @@ Set GetDeepDependencies(Text packageName, Real specificVersion)
     });
     Unique(SetConcat(aux))
   }) 
-};
+}
