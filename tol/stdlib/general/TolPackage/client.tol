@@ -15,10 +15,15 @@ Text _.localRoot =
   Replace(TolAppDataPath+"TolPackage/Client/","\\","/");
 
 Set _.versSyncInfo = Copy(Empty);
+//Listado de todos los paquetes disponibles
 Set _.packSyncInfo = Copy(Empty);
+//Paquetes para los que la versión remota es más moderna
 Set _.packForUpdate = Copy(Empty);
+//Paquetes para los que hay versiones remotas ulteriores
 Set _.packForUpgrade = Copy(Empty);
+//Paquetes no instalados
 Set _.packForInstall = Copy(Empty);
+//Paquetes ya instalados
 Set _.packInstalled = Copy(Empty);
 
 Text min_tol_version_cond = 
