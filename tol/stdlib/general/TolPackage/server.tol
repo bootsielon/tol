@@ -210,7 +210,9 @@ Real UploadPackage(NameBlock dbConnect, Text pkg.path.zip)
   Real dbConnect::Open(0);
   Real DBExecQuery("set client_encoding to '""latin1""'");
   Text repository.query = "
-  SELECT id_repository, co_repository, ds_repository, co_access, co_version_control, te_url
+  SELECT 
+    id_repository, co_repository, ds_repository, 
+    co_access, co_version_control, te_url
   FROM 
     repository_d_def AS D,
     repository_d_access AS A,
@@ -218,8 +220,8 @@ Real UploadPackage(NameBlock dbConnect, Text pkg.path.zip)
   WHERE 
       A.id_access          = D.id_access
   AND V.id_version_control = D.id_version_control
-  AND (    te_url               = '"+pkg::_.autodoc.url+"' 
-        OR te_url               = '"+pkg::_.autodoc.url+"repository.php' ) 
+  AND (    te_url          = '"+pkg::_.autodoc.url+"' 
+        OR te_url          = '"+pkg::_.autodoc.url+"repository.php' ) 
   ";
 //WriteLn("TRACE "+_MID+"repository.query=\n"+repository.query);
   Set repository = DBTable(repository.query);
