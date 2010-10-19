@@ -178,7 +178,7 @@ Text _.autodoc.member.UploadPackage =
 "Sube al repositorio remoto un paquete desde el archivo local comprimido "
 "creado con TolPackage::Server::BuildPackage y dado por el argumento:\n"
 "  Text pkg.path.zip = \"<directory>/<name>.<high>.<low>.zip\"\n";
-Real UploadPackage(NameBlock dbConnect, Text pkg.path.zip)
+Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text _MID = "[UploadPackage] ";
@@ -211,7 +211,7 @@ Real UploadPackage(NameBlock dbConnect, Text pkg.path.zip)
       nu_version_low+"!="<<pkg::_.autodoc.version.low,"W");
     Real pkg::_.autodoc.version.low := nu_version_low
   });
-  Real dbConnect::Open(0);
+  Real repository.db::Open(0);
   Real DBExecQuery("set client_encoding to '""latin1""'");
   Text repository.query = "
   SELECT 
@@ -285,7 +285,7 @@ Real UploadPackage(NameBlock dbConnect, Text pkg.path.zip)
     If(!num_reg, WriteLn(_MID+
       "Package is already in the repository. Please upgrade the "
       "version numbers or delete the register of existent package.","E"));
-    Real dbConnect::Close(0);
+    Real repository.db::Close(0);
     num_reg
   })
 };
@@ -301,9 +301,14 @@ Text _.autodoc.member.BuildAndUploadPackage =
 "directorio del servidor a efectos de depuración si surgen problemas "
 "pero se puede borrar si se desea.\n"
 "Por último se chequeará la instalación según lo indicado:"
-" Si checkInstallMode = \"local\" se usa la copia local comprimida.\n"
-" Si checkInstallMode = \"remote\" se instala desde el repositorio.\n"
-" En otro caso no se instala nada.";
+"  Si checkInstallMode = \"local\" se usa la copia local comprimida.\n"
+"  Si checkInstallMode = \"remote\" se instala desde el repositorio.\n"
+"  En otro caso no se instala nada.\n"
+"Devuelve un código que indica en qué fase ha habido problemas:\n"
+"  0 todo parece haber ido bien\n"
+"  1 hubo fallos en la construcción (entonces la subida no se intenta)\n"
+"  2 no hubo fallos en la construcción pero sí en la subida (la instalación no se intenta)\n"
+"  3 no hubo fallos en la construcción ni en la subida pero la instalación ha dado errores\n";
 Real BuildAndUploadPackage(
   Text name,                //Nombre del paquete (sin versión)
   Text sourceRoot,          //Directorio raíz del código fuente
@@ -312,23 +317,69 @@ Real BuildAndUploadPackage(
   Text checkInstallMode)    //Modo de chequeo de la instalación
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real nErr0 = Copy(NError);
   Text tmp = _.localRoot;
   Real OSDirMake(tmp);
   Text pkg.path.zip = TolPackage::Server::BuildPackage(
     name, sourceRoot, tmp, True);
-  Real TolPackage::Server::UploadPackage( 
-    repository.db, pkg.path.zip);
-  Text pkg.name = Replace(GetFileName(pkg.path.zip),".zip","");
-  Real ok = Case(
-  ToLower(checkInstallMode) == "remote",
-  {
-    TolPackage::Client::RemoteInstallPackage(repository.url, pkg.name, True)
+  Real nErr1 = Copy(NError);
+  If(nErr1>nErr0, 
+  { 
+    WriteLn("Es posible que no se haya podido construir el paquete correctamente","W");
+    1
   },
-  ToLower(checkInstallMode) == "local",
   {
-    Real TolPackage::Client::LocalInstallPackage(pkg.path.zip)
-  },
-  1==1,True)
+    Real TolPackage::Server::UploadPackage( 
+      repository.db, pkg.path.zip);
+    Real nErr2 = Copy(NError);
+    If(nErr2>nErr1, 
+    { 
+      WriteLn("Es posible que no se haya podido enviar el paquete al repositorio","W");
+      2
+    },
+    {
+      Text pkg.name = Replace(GetFileName(pkg.path.zip),".zip","");
+      Real ok = Case(
+      ToLower(checkInstallMode) == "remote",
+      {
+        TolPackage::Client::RemoteInstallPackage(repository.url, pkg.name, True)
+      },
+      ToLower(checkInstallMode) == "local",
+      {
+        Real TolPackage::Client::LocalInstallPackage(pkg.path.zip)
+      },
+      1==1,True);
+      Real nErr3 = Copy(NError);
+      If(And(ok,nErr3==nErr2), 0,
+      { 
+        WriteLn("La instalación en modo '"+checkInstallMode+"' ha dado problemas","W");
+        3
+      })
+    })
+  })
+}; 
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemovePackageVersion = 
+"Borra una versión de un paquete del repositorio.\n"
+"Esta función no es reversible, así que debe usarse con mucho cuidado.\n"
+;
+Real RemovePackageVersion(
+  Text name,                //Nombre del paquete (sin versión)
+  Real nu_version_high,     //Primer número de versión
+  Real nu_version_low,      //Segundo número de versión
+  NameBlock repository.db)  //Conexión a la base de datos
+//////////////////////////////////////////////////////////////////////////////
+{
+  Real repository.db::Open(0);
+  Real reg = DBExecQuery(
+  "DELETE FROM package_f_contents\n"
+  "WHERE \n"
+  "  co_name = '"+name+"' AND\n"
+  "  nu_version_high = "<<nu_version_high+" AND\n"
+  "  nu_version_low = "<<nu_version_low+";\n");
+  Real repository.db::Close(0);
+  reg
 }
 
 ]];
