@@ -437,7 +437,7 @@ Text _.autodoc.member.RemoteUpdatePackSyncInfo =
 Real RemoteUpdatePackSyncInfo(Real showWarnings)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text _MID = "TolPackage::Client::[RemoteUpdatePackSyncInfo]\n";
+  Text _MID = "TolPackage::Client::[RemoteUpdatePackSyncInfo] ";
   If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
   Set repositories = 
     TolConfigManager::Config::Upgrading::TolPackage::Repositories;
@@ -479,28 +479,41 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
   });
   Set _.packForUpdate := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
   {
-    And(pkg->co_last_version_local != "",
+    Real need = And(pkg->co_last_version_local != "",
         pkg->co_last_version_local == pkg->co_last_version_remote,  
-        pkg->dh_release_date_local <  pkg->dh_release_date_remote)   
+        pkg->dh_release_date_local <  pkg->dh_release_date_remote);
+    If(And(showWarnings,need),
+    {
+      WriteLn("  Local package "+pkg->co_last_version_local+
+              " created at "<<pkg->dh_release_date_local+
+              " could be updated to newer remote patch since "+pkg->dh_release_date_remote)
+    });
+    need
   });
   If(And(showWarnings,Card(_.packForUpdate)),
   {
-    WriteLn(_MID+"There are "<<Card(_.packForUpdate)+" packages that you can update "
-            "from remote repositories to new releases of the same version.\n"
+    WriteLn(_MID+"There are "<<Card(_.packForUpdate)+" packages that you could update "
+            "from remote repositories to new patches of the same version.\n"
             "You can view them at:\n "
             "  Set TolPackage::Client::_.packForUpdate\n"
-            "You can update all them running this TOL sentence: \n"
+            "You could update all them running this TOL sentence: \n"
             "  Set TolPackage::Client::RemoteUpdateAll(0)\n",
             "W")
   });
   Set _.packForUpgrade := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
   {
-    And(pkg->co_last_version_local != "",
-        pkg->co_last_version_local < pkg->co_last_version_remote)   
+    Real need = And(pkg->co_last_version_local != "",
+        pkg->co_last_version_local < pkg->co_last_version_remote);
+    If(And(showWarnings,need),
+    {
+      WriteLn("  Local package "+pkg->co_last_version_local+
+              " could be upgraded to "<<pkg->co_last_version_remote)
+    });
+    need
   });
   If(And(showWarnings,Card(_.packForUpgrade)),
   {
-    WriteLn(_MID+"There are "<<Card(_.packForUpgrade)+" packages that you can upgrade "
+    WriteLn(_MID+"There are "<<Card(_.packForUpgrade)+" packages that you could upgrade "
             "from remote repositories to new versions.\n"
             "You can view them at:\n "
             "  Set TolPackage::Client::_.packForUpgrade\n"
