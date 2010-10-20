@@ -441,7 +441,7 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
   If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
   Set repositories = 
     TolConfigManager::Config::Upgrading::TolPackage::Repositories;
-  Set _.packSyncInfo := SetConcat(EvalSet(repositories,Set(Text rep)
+  Set _.packSyncInfo := SetConcat(EvalSet(repositories,Set ev.rep(Text rep)
   {
     Text pkgInfo = GetUrlContents(rep+"?"
       "action=packages&"+
@@ -450,21 +450,25 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
   }));
   Real SetIndexByName(_.packSyncInfo);
   Set verLst = GetDir(TolPackage::Client::_.localRoot)[2];
-  Set verCls = Classify(verLst,Real(Text a, Text b)
+  Set verCls = Classify(verLst,Real ev.class(Text a, Text b)
   {
     Compare(Tokenizer(a,".")[1], Tokenizer(b,".")[1])
   });
-  Set EvalSet(verCls, Real(Set cls)
+  Set EvalSet(verCls, Real ev.check(Set cls)
   {
     Text pkg = Tokenizer(cls[1],".")[1];
     Real found = FindIndexByName(_.packSyncInfo, pkg);
-    Date If(And(!found,showWarnings), WriteLn(_MID+I2(
+    Real If(And(!found,showWarnings), 
+    {
+      WriteLn(_MID+I2(
       "Cannot find remote image of local package "+pkg+
       " in any repository." ,
       "No se encuentra la imagen remota del paquete local "+pkg+
-      " en ningún repositorio"),"W"),
+      " en ningún repositorio"),"W");
+      False
+    },
     {
-      Set ord = Sort(cls,Real(Text a, Text b) { Compare(b, a) });
+      Set ord = Sort(cls,Real ev.sort(Text a, Text b) { Compare(b, a) });
       Text ver = ord[1];
       Date gmt = Copy(NowGmt);
       Date loc = Copy(Now);
@@ -472,8 +476,9 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
       Text oza = TolPackage::Client::_.localRoot+ver+"/"+ver+".oza";
       Date release.loc = FileTime(oza);
       Date release.gmt = Succ(release.loc,S(0),lag);
-      _.packSyncInfo[found]->co_last_version_local := ver;
-      _.packSyncInfo[found]->dh_release_date_local := release.gmt
+      Date _.packSyncInfo[found]->co_last_version_local := ver;
+      Date _.packSyncInfo[found]->dh_release_date_local := release.gmt;
+      True
     });
     True
   });
@@ -484,9 +489,9 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
         pkg->dh_release_date_local <  pkg->dh_release_date_remote);
     If(And(showWarnings,need),
     {
-      WriteLn("  Local package "+pkg->co_last_version_local+
+      WriteLn("  Local package "<<pkg->co_last_version_local+
               " created at "<<pkg->dh_release_date_local+
-              " could be updated to newer remote patch since "+pkg->dh_release_date_remote)
+              " could be updated to newer remote patch since "<<pkg->dh_release_date_remote)
     });
     need
   });
@@ -506,7 +511,7 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
         pkg->co_last_version_local < pkg->co_last_version_remote);
     If(And(showWarnings,need),
     {
-      WriteLn("  Local package "+pkg->co_last_version_local+
+      WriteLn("  Local package "<<pkg->co_last_version_local+
               " could be upgraded to "<<pkg->co_last_version_remote)
     });
     need
