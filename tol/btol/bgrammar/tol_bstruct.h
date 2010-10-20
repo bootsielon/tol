@@ -25,7 +25,7 @@
 #include <tol/tol_bobject.h>
 #include <tol/tol_bsyntax.h>
 
-//#define ALLOW_NON_STANDARD_STRUCT
+#define ALLOW_NON_STANDARD_STRUCT
 //#define CATCH_NON_STANDARD_STRUCT
 
 #ifdef CATCH_NON_STANDARD_STRUCT
