@@ -458,13 +458,14 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
   {
     Text pkg = Tokenizer(cls[1],".")[1];
     Real found = FindIndexByName(_.packSyncInfo, pkg);
-    Real If(And(!found,showWarnings), 
+    Real If(!found, 
     {
-      WriteLn(_MID+I2(
-      "Cannot find remote image of local package "+pkg+
-      " in any repository." ,
-      "No se encuentra la imagen remota del paquete local "+pkg+
-      " en ningún repositorio"),"W");
+      If(showWarnings,
+        WriteLn(_MID+I2(
+        "Cannot find remote image of local package "+pkg+
+        " in any repository." ,
+        "No se encuentra la imagen remota del paquete local "+pkg+
+        " en ningún repositorio"),"W"));
       False
     },
     {
