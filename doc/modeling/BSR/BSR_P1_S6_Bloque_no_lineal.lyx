@@ -1,5 +1,5 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 276
+#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
@@ -27,6 +27,12 @@
 
 \hypersetup{urlbordercolor=0 0 0,pdfborder=0 0 1 [3 2]}
 \end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+eqs-within-sections
+figs-within-sections
+\end_modules
 \language spanish
 \inputencoding auto
 \font_roman default
@@ -37,9 +43,11 @@
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \paperfontsize default
 \spacing single
+\use_hyperref false
 \papersize default
 \use_geometry false
 \use_amsmath 1
@@ -64,7 +72,8 @@
 \begin_body
 
 \begin_layout Chapter
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "cha:El-bloque-de-filtro-no-lineal"
 
 \end_inset
@@ -86,7 +95,8 @@ ar de forma no lineal para obtener relaciones lineales con los algunos inputs
 \end_layout
 
 \begin_layout Section
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:NonLinearFilterBlock_Antecedentes"
 
 \end_inset
@@ -166,7 +176,8 @@ La matriz
 \end_inset
 
  (ver 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sub:ArmaBlock_Antecedentes"
 
 \end_inset
@@ -188,7 +199,8 @@ reference "sub:ArmaBlock_Antecedentes"
 
  es la matriz de covarianzas, usualmente será o bien una matriz diagonal
  o bien la matriz de autocovarianzas de un proceso ARMA (ver 
-\begin_inset LatexCommand ref
+\begin_inset CommandInset ref
+LatexCommand ref
 reference "sub:ArmaBlock_Antecedentes"
 
 \end_inset
@@ -408,7 +420,32 @@ r\neq k\end{array}}^{R}F_{r}\cdot\alpha_{r}}\\
 \end_layout
 
 \begin_layout Standard
-Si fijamos ahora todos los componentes de 
+Para el filtro no lineal del output el proceso de simulación es prácticamente
+ el mismo: si se conocen todos los vectores de parámetros no lineales salvo
+ el del output 
+\begin_inset Formula $\tau_{0}$
+\end_inset
+
+ se obtiene 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\varepsilon=L^{-1}\cdot\triangle\cdot\left(Z_{0}-f_{0}\left(\tau_{0}\right)\right)\\
+Z_{0}=X\cdot\beta+{\displaystyle \sum_{\begin{array}{c}
+r=1\end{array}}^{R}F_{r}\cdot\alpha_{r}}\\
+\varepsilon=L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\label{eq:non-lin-filter-output}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Simulación con métodos escalares
+\end_layout
+
+\begin_layout Standard
+Nos referiremos sólo al caso del input pues el del output es igual.
+ Si fijamos ahora todos los componentes de 
 \begin_inset Formula $\tau_{k}=\left(\tau_{k,1},\ldots,\tau_{k,R_{k}}\right)$
 \end_inset
 
@@ -416,8 +453,8 @@ Si fijamos ahora todos los componentes de
 \begin_inset Formula $\tau_{k,i}\wedge i\in\left\{ 1,\ldots,R_{k}\right\} $
 \end_inset
 
- entonces es posible aplicar el método ARMS si se dispone de un método que
- permita construir el dominio de 
+ entonces es posible aplicar algún método escalar, como el ARMS o el SLICE,
+ si se dispone de un método que permita construir el dominio de 
 \begin_inset Formula $\tau_{k,i}$
 \end_inset
 
@@ -495,44 +532,6 @@ En el caso de ser información a priori
 \end_layout
 
 \begin_layout Standard
-Para el filtro no lineal del output el proceso de simulación es prácticamente
- el mismo: si se conocen todos los vectores de parámetros no lineales salvo
- el del output 
-\begin_inset Formula $\tau_{0}$
-\end_inset
-
- del input y los 
-\begin_inset Formula $\alpha,\beta,\Sigma$
-\end_inset
-
- y una descomposición simétrica 
-\begin_inset Formula $\Sigma=L\cdot L^{T}$
-\end_inset
-
- entonces, premultiplicando por 
-\begin_inset Formula $L^{-1}$
-\end_inset
-
- y llevando todo al lado derecho, salvo los residuos cuya distribución es
- conocida, se tiene la siguiente igualdad 
-\begin_inset Formula \begin{equation}
-\begin{array}{c}
-\varepsilon=L^{-1}\cdot\triangle\cdot\left(Z_{0}-f_{0}\left(\tau_{0}\right)\right)\\
-Z_{0}=X\cdot\beta+{\displaystyle \sum_{\begin{array}{c}
-r=1\end{array}}^{R}F_{r}\cdot\alpha_{r}}\\
-\varepsilon=L^{-1}\cdot a\sim N\left(0,I_{m}\right)\end{array}\label{eq:non-lin-filter-output}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-A partir de ahí es exactamente igual que con el input por lo que no se explicita
-n las fórmulas.
-\end_layout
-
-\begin_layout Standard
 Hay que hacer notar que en este esquema los resultados de los filtros no
  lineales no pueden tener omitidos.
  Si los datos originales a partir de los cuales se construye, y que sólo
@@ -545,12 +544,59 @@ Hay que hacer notar que en este esquema los resultados de los filtros no
  si hay muchos omitidos.
 \end_layout
 
+\begin_layout Subsection
+Simulación con métodos vectoriales
+\end_layout
+
+\begin_layout Standard
+Los métodos escalares funcionan muy bien si hay unos pocos parámetros y
+ no están muy correlacionados pero en otro caso se vuelven muy ineficaces
+ en cada iteración y además hay que desechar muchas de ellas.
+\end_layout
+
+\begin_layout Standard
+El método de Gibbs o es planteable en esta situación pero sí podría utilizarse
+ un Metrópolis-Hastings o mejor aún su variate Multiple-Try.
+ La forma más sencilla de aplicación de este método es utilizar un generador
+ simétrico de tipo paseo aleatorio que cree el candidato para la 
+\begin_inset Formula $\left(s+1\right)$
+\end_inset
+
+-ésima simulación cerca del valor aceptado en la anterior.
+ 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+\dot{\tau}_{k,i}^{(s+1)}\sim N\left(\tau_{k,i}^{(s)},\lambda_{s}\sigma_{\tau_{k,i}}^{2}\right)\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Si se dispone de información a priori sobre la esviación del parámetro lo
+ mejor es usar dicho valor como base del factor de escala.
+ En cualquier caso el método puede ir modificando la escala 
+\begin_inset Formula $\lambda_{s}$
+\end_inset
+
+en cada simulación para obtener un ratio de aceptación razonable.
+\end_layout
+
+\begin_layout Standard
+Con este método se reducirá drásticamente el número de evaluaciones de la
+ verosimilitud y además n oes necesario conocer los intervalos de factibilidad
+ de cada parámetro condicionado al resto: basta con un método que indique
+ si un vector conjunto de parámetros es factible.
+\end_layout
+
 \begin_layout Section
 Casos particulares
 \end_layout
 
 \begin_layout Subsection
-\begin_inset LatexCommand label
+\begin_inset CommandInset label
+LatexCommand label
 name "sub:Función-de-transferencia-no-lineal-deltas"
 
 \end_inset
@@ -559,15 +605,13 @@ Función de transferencia no lineal (deltas)
 \end_layout
 
 \begin_layout Standard
-Sea el modelo de series temporales con función de transferencia no lineal
+Sea el bloque de función de transferencia no lineal
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-y_{t}=\frac{\omega\left(B\right)}{\delta\left(B\right)}x_{t}+a_{t}\\
-a\sim N\left(0,\Sigma\right)\\
-t=1\ldots m\end{array}\end{equation}
+z_{t}=\frac{\omega\left(B\right)}{\delta\left(B\right)}x_{t}\forall t=1\ldots m\end{array}\end{equation}
 
 \end_inset
 
@@ -588,34 +632,7 @@ siendo
 
  estacionario, es decir, tal que sus raíces están todas fuera del círculo
  unidad.
-\end_layout
-
-\begin_layout Standard
-Esto es expresable dentro de la clase de modelos descritos anteriormente
- 
-\begin_inset Formula \begin{equation}
-\begin{array}{c}
-Y=f\left(\delta,z^{0},x^{0}\right)\cdot\omega+a\\
-a\sim N\left(0,\Sigma\right)\\
-Y,a\in\mathbb{R}^{m}\\
-F=f\left(\delta,z^{0},x^{0}\right)\in\mathbb{R}^{m\times h}\end{array}\end{equation}
-
-\end_inset
-
-donde la función de filtro no lineal se forma a partir del resultado de
- la ecuación en diferencias 
-\begin_inset Formula \begin{equation}
-\begin{array}{c}
-z_{t}={\displaystyle \sum_{j=1}^{d}\delta_{j}z_{t-j}}+x_{t}\\
-F_{t,i}=z_{t-i}\forall i=1\ldots h\end{array}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Los valores inciales 
+ Los valores inciales 
 \begin_inset Formula $x^{0}=\left(x_{1-h},\ldots,x_{0}\right)$
 \end_inset
 
@@ -630,21 +647,97 @@ Los valores inciales
 \end_inset
 
  se deberían adjuntar con estos valores iniciales.
+ En ambos casos deben ir acompañados de informaciñon a priori pues pueden
+ dar luga a colinealidades si se dejan libres.
  Los valores iniciales 
-\begin_inset Formula $z^{0}=\left(z_{1-k},\ldots,z_{0}\right)$
+\begin_inset Formula $z^{0}=\left(z_{1-q},\ldots,z_{0}\right)$
 \end_inset
 
- , con 
-\begin_inset Formula $k=\max\left(h,d\right)$
+ son siempre desconocidos y deben ser simulados.
+ Los parámetros del filtro no lineal serán 
+\begin_inset Formula $\tau=\left(\delta,z^{0},x^{0}\right)$
 \end_inset
 
-, son siempre desconocidos y deben ser simulados.
- Lo más sencillo sería considerarlos todos ellos variables auxiliares no
- lineales sin más y que sea el propio método ARMS el que los simule.
- Para todos estos parámetros el dominio es siempre la recta real, aunque
- es recomendable dar un intervalo lo más acotado que sea posible con la
- información de que se disponga, así como se debe tener en cuenta la información
- a priori sobre los mismos.
+ mientras que los 
+\begin_inset Formula $\omega$
+\end_inset
+
+ pertenecerán al bloque lineal del modelo en el que se introduce el filtro.
+\end_layout
+
+\begin_layout Standard
+Esto es expresable dentro de la clase de modelos descritos anteriormente
+ mediante la función de filtro no lineal sin más que establecer las series
+ de input lineales
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+z_{t}={\displaystyle \sum_{i=0}^{h}\omega_{i}F_{t,i}}\end{array}\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+F_{t,i}=y_{t-i}\forall i=1\ldots h\end{array}\end{equation}
+
+\end_inset
+
+donde la serie auxiliar 
+\begin_inset Formula $y_{t}$
+\end_inset
+
+ cumple simultáneamente las ecuaciones en diferencias 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+z_{t}=\omega\left(B\right)y_{t}\\
+x_{t}=\delta\left(B\right)y_{t}\end{array}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En cuanto a los valores iniciales de la varible auxiliar 
+\begin_inset Formula $y^{0}=\left(y_{1-k},\ldots,y_{0}\right)$
+\end_inset
+
+ , aunque sólo se necesitan los 
+\begin_inset Formula $\max\left(h,d\right)$
+\end_inset
+
+ utilizados realmente en las fórmulas, se pueden calcular de forma determinista
+ hasta 
+\begin_inset Formula $k=h+d$
+\end_inset
+
+ de ellos, a partir de las 
+\begin_inset Formula $h+d$
+\end_inset
+
+ igualdades lineales en las que se conocen los valores de 
+\begin_inset Formula $\left(x^{0},z^{0},\omega,\delta\right)$
+\end_inset
+
+ y los 
+\begin_inset Formula $y_{t}\forall t=1\ldots m$
+\end_inset
+
+ en la simulación anterior, lo cual es lícito en una cadena de Markov
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+y_{t}-{\displaystyle \sum_{j=1}^{d}\delta_{j}y_{t-j}}=x_{t}\forall t=1-h\cdots0\\
+{\displaystyle \sum_{i=0}^{h}\omega_{i}y_{t-i}}=z_{t}\forall t=1-d\cdots0\end{array}\end{equation}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -653,18 +746,69 @@ Para los parámetros
 \end_inset
 
  rigen las mismas condiciones de estacionariedad descritas en 
-\begin_inset LatexCommand vref
+\begin_inset CommandInset ref
+LatexCommand vref
 reference "sub:Dominio-de-estacionariedad"
 
 \end_inset
 
- para los parámetros AR y MA por lo que es necesario imponer la misma restricció
-n sobre el grado que no puede ser mayor que 2.
+ para los parámetros AR y MA por lo que, en el caso de estimación escalar,
+ es necesario imponer la misma restricción sobre el grado que no puede ser
+ mayor que 2.
  Si fuera preciso usar un grado mayor habría que factorizar 
 \begin_inset Formula $\delta\left(B\right)$
 \end_inset
 
  de forma similar a la allí descrita, sin ninguna pérdida de generalidad.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Función-de-transferencia-no-lineal-con-ganancia-unitaria"
+
+\end_inset
+
+Función de transferencia no lineal con ganancia unitaria
+\end_layout
+
+\begin_layout Standard
+Una variante del anterior filtro no lineal es la versión de ganancia unitaria
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+z_{t}=\frac{\delta\left(1\right)\omega\left(B\right)}{\delta\left(B\right)}x_{t}\end{array}\end{equation}
+
+\end_inset
+
+con la que pretende que el denominador no influya en el nivel del efecto.
+ La utilidad de esta variante es que el analista puede interpretar mejor
+ los valores de los 
+\begin_inset Formula $\omega$
+\end_inset
+
+ y es posible establecer relaciones jerárquicas o información a priori independi
+ente de los 
+\begin_inset Formula $\delta$
+\end_inset
+
+ concretos.
+\end_layout
+
+\begin_layout Standard
+Evidentemente se trata tan solo de un cambio de escala sobre los 
+\begin_inset Formula $\omega$
+\end_inset
+
+ por lo que el método de simulación sería el mismo sin más que aplicarlo
+ a 
+\begin_inset Formula \begin{equation}
+\begin{array}{c}
+z_{t}=\frac{\omega\left(B\right)}{\delta\left(B\right)}u_{t}\\
+u_{t}=\delta\left(1\right)x_{t}\end{array}\end{equation}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -684,8 +828,7 @@ Ocurre a veces que la mayor parte de los efectos que inciden sobre una serie
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-Log\left(Y-X^{\alpha}\cdot\alpha\right)=X^{\beta}\cdot\beta+a\\
-a\sim N\left(0,\Sigma\right)\end{array}\end{equation}
+Log\left(Y-X^{\alpha}\cdot\alpha\right)=X^{\beta}\cdot\beta\end{array}\end{equation}
 
 \end_inset
 
@@ -699,8 +842,8 @@ Despejando la serie transformada
 \begin_layout Standard
 \begin_inset Formula \begin{equation}
 \begin{array}{c}
-Log\left(Y\right)-Log\left(Y\right)+Log\left(Y-X^{\alpha}\cdot\alpha\right)=X^{\beta}\cdot\beta+a\\
-Log\left(Y\right)=Log\left(Y\right)-Log\left(Y-X^{\alpha}\cdot\alpha\right)+X^{\beta}\cdot\beta+a\end{array}\end{equation}
+Log\left(Y\right)-Log\left(Y\right)+Log\left(Y-X^{\alpha}\cdot\alpha\right)=X^{\beta}\cdot\beta\\
+Log\left(Y\right)=Log\left(Y\right)-Log\left(Y-X^{\alpha}\cdot\alpha\right)+X^{\beta}\cdot\beta\end{array}\end{equation}
 
 \end_inset
 
