@@ -1,13 +1,11 @@
-#LyX 1.6.0 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
 \textclass amsbook
 \begin_preamble
-\usepackage{a4wide}
 %\documentclass[spanish]{article}
 \usepackage{babel}
-\usepackage{a4wide}
 \usepackage{varioref}
 \usepackage{amssymb}
 \usepackage{latexsym}
@@ -30,6 +28,8 @@
 \use_default_options false
 \begin_modules
 theorems-ams
+eqs-within-sections
+figs-within-sections
 theorems-ams-extended
 \end_modules
 \language spanish
@@ -200,22 +200,11 @@ l.
 \end_layout
 
 \begin_layout Standard
-
-\size larger
-\color red
-Documento en construcción!
-\end_layout
-
-\begin_layout Standard
 \begin_inset CommandInset toc
 LatexCommand tableofcontents
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 
 \end_layout
 
@@ -555,7 +544,6 @@ filename "BSR_P1_S1_Clase_de_modelos.lyx"
 \begin_layout Standard
 \begin_inset CommandInset include
 LatexCommand input
-preview true
 filename "BSR_P1_S2_Bloque_lineal.lyx"
 
 \end_inset
@@ -577,7 +565,6 @@ filename "BSR_P1_S3_Bloque_de_varianzas.lyx"
 \begin_layout Standard
 \begin_inset CommandInset include
 LatexCommand input
-preview true
 filename "BSR_P1_S4_Bloque_ARIMA.lyx"
 
 \end_inset
