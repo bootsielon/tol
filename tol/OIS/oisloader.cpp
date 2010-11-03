@@ -821,6 +821,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     else if(mode==BCLASSMODE) 
     { 
       BClass* cls = BClass::PredeclareClass(name);
+      Ensure(cls);
       Ensure(Read(*cls,object_));
     //Std(BText("\nBOisLoader::ReadNextObject Reading Class ")+cls->Name()+" "+cls->FullName());
       return(readed_[found].PutObject(cls));
