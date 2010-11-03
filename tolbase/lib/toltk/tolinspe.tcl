@@ -848,18 +848,19 @@ proc ::TolInspector::ClearHiertables { } {
 proc ::TolInspector::getPackageReference { treePath } {
   variable ht_tree
 
+  #puts "::TolInspector::getPackageReference $treePath"
   catch {
     set typeContainer "NameBlock"
     set order [ lindex  [ split [ lindex $treePath 2 ] "-" ] end ]
     incr order -1
     #puts "path,2 = [ lindex $treePath 2 ]"
     #puts "order = $order"
-    set idx [ $ht_tree entry children "root-packages" $order $order ]
+    set idx [lindex [ $ht_tree entry children "root-packages"] $order]
     set nameContainer [ $ht_tree entry cget $idx -label ]
     #puts "en root-package:"
     #puts "\torder=$order"
     #puts "\tidx=$idx"
-    #puts "\nameContainer=$nameContainer"
+    #puts "\tnameContainer=$nameContainer"
     set container [ list $typeContainer $nameContainer ]
     if { [ llength $treePath ] > 3 } {
       foreach c [ lrange $treePath 3 end-1 ] {
@@ -872,6 +873,7 @@ proc ::TolInspector::getPackageReference { treePath } {
     }
   } msg
   #puts "::TolInspector::getPackageReference: $msg"
+  #puts "::TolInspector::getPackageReference: [ list $container $tolindex ]"
   return [ list $container $tolindex ]
 }
 
