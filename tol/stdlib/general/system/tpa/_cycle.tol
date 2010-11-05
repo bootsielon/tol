@@ -97,7 +97,7 @@ doForEachServer);
 Set doForAssignedTasks(Set assign, Code funcCommand)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set result = EvalSet(assign, Text(stTaskForServer tskSrv)
+  Set result = EvalSet(assign, Text(@stTaskForServer tskSrv)
   {
     If(!Card(tskSrv->tasks), "",
     {
