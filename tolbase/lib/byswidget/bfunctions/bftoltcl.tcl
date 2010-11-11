@@ -41,7 +41,7 @@ variable TclData
   set end 0
   set name $seed
   while {[string equal $end 0]} {
-    if [catch {::tol::info variable $gra $name}] {
+    if [catch {::tol::info variable [ list $gra $name ]}] {
       set end 1
     } else {
       set name ${seed}_$i
