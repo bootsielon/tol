@@ -65,7 +65,7 @@ BTraceInit("oisloader.cpp");
     } 
     object_ = obj;
     obj->PutOisOffset(offset_);
-    obj->IncNRefs();
+  //obj->IncNRefs();
     return(obj); 
   }
   else
@@ -1607,7 +1607,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       if(obj && obj->IsAssigned())
       {
         obj->PutOisOffset(0);
-        obj->DecNRefs();
+      //obj->DecNRefs();
       }
     }
   //Std(BText("\nTRACE BOisLoader::Close() 5"));

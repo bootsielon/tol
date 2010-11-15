@@ -934,11 +934,13 @@ static const char* aliasSpanishDescription_ =
   BSyntaxObject* info = NULL;
   if(doLoadData)
   {
+    int stackPos = BGrammar::StackSize();
     BSyntaxObject* data = ois.GetData();
     if(data)
     {
       contens_.AddElement(data);
     }
+    BGrammar::DestroyStackUntil(stackPos, data);    
   }
 }  
 
