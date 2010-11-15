@@ -237,8 +237,8 @@ BTraceInit("alglib_interp.cpp");
            bool          copy,
            bool          checkConstant)
   {
-    if(t==ALT_None)  
-    { return(false); }
+    if(!f || !x) { return(false); }
+    if(t==ALT_None) { return(false); }
     Reset();
     int j;
     double xMin = BDat::PosInf();
