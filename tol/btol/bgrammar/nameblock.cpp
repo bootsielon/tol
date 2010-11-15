@@ -624,7 +624,9 @@ const BText& BNameBlock::LocalName() const
     };
     Error(I2("A NameBlock cannot have members without a valid name ",
              "Un NameBlock no puede tener miembros sin un nombre válido ")
-          +"'"+name+"'\n"+set_dump);
+          +"'"+name+"'\n"+set_dump+"\n"+
+          I2("Cannot build NameBlock ",
+             "No se puede construir el NameBlock ")+Name());
 
     return(false);
   }
@@ -656,7 +658,8 @@ const BText& BNameBlock::LocalName() const
     }
     Warning(I2("Duplicated member name ",
                "Nombre de miembro duplicado ")+ name+"\n"+
-            I2("It will be skiped.","Sera ignorado."));
+            I2("It will be ignored in NameBlock ",
+               "Sera ignorado en el el NameBlock ")+Name());
     return(false);  
   }
   obj->PutNameBlock(this);
