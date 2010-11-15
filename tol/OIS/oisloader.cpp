@@ -103,7 +103,8 @@ BTraceInit("oisloader.cpp");
   showCheckingTraces_(false),
   oisHasPriorityOnConflict_(true),
   lostSource_(false),
-  tolSources_()
+  tolSources_(),
+  localDependencies_(NULL)
 {  
 }
 
@@ -723,7 +724,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 }
 
 //--------------------------------------------------------------------
-  BSyntaxObject* BOisLoader::ReadNextObject()
+  BSyntaxObject* BOisLoader::ReadNextObject(bool addToLocalDependencies)
 //--------------------------------------------------------------------
 {
   static BOffsetObject ofob;
@@ -751,23 +752,23 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   {
     if(mode==BOBJECTMODE) 
     { 
-      return(gra->FindOperand(name,false)); 
+      result = gra->FindOperand(name,false); 
     }
     else if((mode==BBUILTINFUNMODE)||(mode==BUSERFUNMODE))
     { 
-      return(gra->FindOperator(name)); 
+      result = gra->FindOperator(name); 
     }
     else if(mode==BSTRUCTMODE) 
     { 
-      return(FindStruct(name)); 
+      result = FindStruct(name); 
     }
     else if(mode==BCLASSMODE) 
     { 
-      return(FindClass(name,-1)); 
+      result = FindClass(name,-1); 
     }
     else 
     { 
-      return(NullError("FATAL in BOisLoader::ReadNextObject()"));
+      result = NullError("FATAL in BOisLoader::ReadNextObject()");
     }
   }
   else
@@ -816,7 +817,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         BGrammar::AddObject(str); 
         str->PutFunction(new BNewStruct(*str));
       }
-      return(readed_[found].PutObject(str));
+      result = str;
     }
     else if(mode==BCLASSMODE) 
     { 
@@ -824,7 +825,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       Ensure(cls);
       Ensure(Read(*cls,object_));
     //Std(BText("\nBOisLoader::ReadNextObject Reading Class ")+cls->Name()+" "+cls->FullName());
-      return(readed_[found].PutObject(cls));
+      result = cls;
     }
     else
     {
@@ -1048,7 +1049,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           if(offset) 
           { 
             object_->SetPos(offset);
-            BSyntaxObject* r = ReadNextObject(); 
+            //CALL ReadNextObject 
+            BSyntaxObject* r = ReadNextObject(true); 
             if(!r || (r->Mode()!=BSTRUCTMODE)) 
             { 
               delete uSet;
@@ -1074,7 +1076,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           {
             ERead(offset, set_);
             object_->SetPos(offset);
-            r = ReadNextObject();
+            //CALL ReadNextObject
+            r = ReadNextObject(false);
             if(!r) 
             { 
               delete uSet;
@@ -1162,7 +1165,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           if(offset) 
           { 
             object_->SetPos(offset);
-            BSyntaxObject* r = ReadNextObject(); 
+            //CALL ReadNextObject
+            BSyntaxObject* r = ReadNextObject(true); 
             if(!r || (r->Mode()!=BSTRUCTMODE)) 
             { 
               return(NullError("FATAL BOisLoader::ReadNextObject: cannot build structure of set")); 
@@ -1203,7 +1207,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           {
             ERead(offset, set_);
             object_->SetPos(offset);
-            r = ReadNextObject();
+            //CALL ReadNextObject
+            r = ReadNextObject(false);
             if(!r) 
             { 
               return(NullError("BOisLoader::ReadNextObject: NULL element of set ")); 
@@ -1286,7 +1291,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           else
           {
             object_->SetPos(offset);
-            BSyntaxObject* r = ReadNextObject();
+            //CALL ReadNextObject
+            BSyntaxObject* r = ReadNextObject(true);
             if(!r || (r->Grammar()!=GraTimeSet())) 
             { 
               return(NullError("FATAL cannot built dating of serie")); 
@@ -1423,8 +1429,16 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     { 
       result->PutDescription(description); 
     }
-    return(readed_[found].PutObject(result));
   }
+  if(result)
+  {
+    result = readed_[found].PutObject(result);
+    if(addToLocalDependencies) 
+    {
+      localDependencies_ = Cons(result, localDependencies_);
+    }
+  }
+  return(result);
 }
 
 //--------------------------------------------------------------------
@@ -1579,10 +1593,15 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
     Ensure(InitReaded());
     Ensure(SearchOffsetInHierarchy(partial));
     object_->GetPos();
-
-
-    data_ = ReadNextObject();
+    //CALL ReadNextObject
+    localDependencies_ = NULL;
+    data_ = ReadNextObject(false);
     ok = (data_!=NULL);
+    if(ok)
+    {
+      BSet& set = Set(data_);
+      set.PutOisLocalDependencies(localDependencies_);
+    }
   }
   Close();
   BSourcePath::SetCurrent(curSourcePath);

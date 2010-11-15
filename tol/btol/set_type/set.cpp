@@ -46,7 +46,8 @@ BSet::BSet()
 //--------------------------------------------------------------------
 : sourcePath_(NULL), struct_(NIL), subType_(Generic), array_(0),
   indexByName_(NULL),
-  nameBlock_(NULL)
+  nameBlock_(NULL),
+  oisLocalDependencies_(NULL)
 {
 }
 
@@ -59,7 +60,8 @@ BSet::BSet(const BSet& set)
 //--------------------------------------------------------------------
 : sourcePath_(NULL), struct_(NIL), subType_(Generic), array_(0),
   indexByName_(NULL),
-  nameBlock_(NULL)
+  nameBlock_(NULL),
+  oisLocalDependencies_(NULL)
 { 
   Copy(set);
 }
@@ -73,7 +75,8 @@ BSet::BSet(BList* arg, BStruct* str, BSubType sub)
 //--------------------------------------------------------------------
 : sourcePath_(NULL), struct_(NIL), subType_(Generic), array_(0),
   indexByName_(NULL),
-  nameBlock_(NULL)
+  nameBlock_(NULL),
+  oisLocalDependencies_(NULL)
 { 
   RobStruct(arg,str,sub); 
 }
@@ -87,6 +90,7 @@ BSet::~BSet()
 //--------------------------------------------------------------------
 {
   Delete();
+  DESTROY(oisLocalDependencies_);
 }
 
 //--------------------------------------------------------------------

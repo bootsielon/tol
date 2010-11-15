@@ -78,6 +78,7 @@ public:
   BText currentXMLTag_;
   BArray<BOffsetObject> readed_;
   BArray<BTOLDependency> tolSources_;
+  BList* localDependencies_;
   BSyntaxObject* data_;
   BText curHrchyPartialPath_;
   bool checkSourceExists_;
@@ -144,7 +145,7 @@ public:
                                  int         depth);
   bool   SearchOffsetInHierarchy(const BSet* partial);
 
-  BSyntaxObject* ReadNextObject();
+  BSyntaxObject* ReadNextObject(bool addToLocalDependencies);
   BSyntaxObject* PutVariableName(BSyntaxObject* result, 
                                  const BText& name,
                                  char is_referenceable);

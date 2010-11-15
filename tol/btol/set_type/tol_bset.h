@@ -89,7 +89,7 @@ private:
   const BSourcePath* sourcePath_;
   BObjByIdxNameHash* indexByName_;
   const BNameBlock* nameBlock_;
-
+  BList* oisLocalDependencies_;
   static BText          orderError_;
   static BCode          order_;
   static BSyntaxObject* objCond_;
@@ -149,7 +149,12 @@ public:
   BSyntaxObject* PublicMember(const BText& memberName,
                                     BText& errMsg) const;
 
-  BBool   Includes(BSyntaxObject*) const;
+  void PutOisLocalDependencies(BList* dep)
+  {
+    dep = oisLocalDependencies_;
+  };
+
+  BBool Includes(BSyntaxObject*) const;
 
   int BinWrite(FILE*) const { return 0; }
   int BinRead (FILE*)       { return 0; }
