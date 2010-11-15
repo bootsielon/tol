@@ -23,7 +23,7 @@ WriteLn("Número de objetos perdidos: "<<(Copy(NObject)-N0));
 */
 
 
-Real EnableTraceMemory := False;
+//Real EnableTraceMemory := False;
 Real  N0 = Copy(NObject);
 
 Real x = {
