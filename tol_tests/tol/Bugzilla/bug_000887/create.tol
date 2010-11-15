@@ -1,0 +1,10 @@
+
+
+Real Ois.Create("oza1.oza", Empty, [[Real one=1]]); 
+
+Real Ois.Store([[
+  For(1, 10, Real (Real i) {
+      Real Copy(i)
+  })
+]],"oza2.oza");
+

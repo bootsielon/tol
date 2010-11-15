@@ -1,0 +1,35 @@
+
+/*
+Real j = 1;
+
+Real  N0 = Copy(NObject);
+
+While (j<=3,
+{
+  Real  Ni = Copy(NObject);
+  WriteLn("Número de objetos al inicio del ciclo "<<j+": "<<(Ni-N0));
+  Real n = { 
+    Set aux = Ois.Load("oza1.oza");
+    WriteLn("Número de objetos "<<j+".2: "<<(Copy(NObject)-Ni));
+    //Copy(Card(aux))
+    0
+  };
+  WriteLn("Número de objetos "<<j+".3: "<<(Copy(NObject)-Ni));
+  Real j := j+1
+});
+
+WriteLn("Número de objetos perdidos: "<<(Copy(NObject)-N0));
+
+*/
+
+
+Real EnableTraceMemory := False;
+Real  N0 = Copy(NObject);
+
+Real x = {
+  Set aux = Ois.Load("oza1.oza");
+//Set aux = [[Real one_=1]];
+  0
+};
+WriteLn("Número de objetos perdidos: "<<(Copy(NObject)-N0-3));
+

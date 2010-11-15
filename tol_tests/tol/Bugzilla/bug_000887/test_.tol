@@ -1,0 +1,55 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  961;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="DBTFile não funciona";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+
+Set segmentos = [[ [["co_cliente";"id_cluster";"dt_inicio";"dt_fim"]] ]]<<
+
+   For(1, 700000, Set(Real x){
+
+     [[IntText(x), IntText(x), IntText(x), IntText(x)]]
+
+   });
+Real OSFilRemove("segmentos.bst");
+//Set BSTFile(segmentos,"segmentos.bst");
+//Real ok.1 = OSFilExist("segmentos.bst");
+
+Text tempFile = "TempFileCluster.txt";
+Text WriteFile(tempFile, "co_cliente;id_cluster;dt_inicio;dt_fim"+NL);
+Set EvalSet (segmentos, Real (Set line){
+  Text AppendFile(tempFile, TxtListItem(line, ";")+NL);
+  True
+});    
+
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+/*
+  Set partialResults_ = [[ numErr0, numErr1, q1, q2]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0)*q1*q2;
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
+
