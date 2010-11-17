@@ -156,13 +156,14 @@ public:
   BSetRemove()
   : BExternalOperator
     (
-      "Remove", GraSet(), "Set Real", NIL, 2, 2,
-      "(Set set, Real n)",
+      "Remove", GraSet(), "Set Real Real", NIL, 3, 3,
+      "(Set set, Real n, Real deleteOld)",
 		  I2("Removes the n-th element of a set and tries to delete it "
-         "from memory. Returns the own set with the rest of elements."  ,
+         "from memory if deleteOld is true. Returns the own set "
+         "with the rest of elements."  ,
 	       "Elimina el n-esimo elemento de un conjunto e intenta "
-         "borrarlo de la memoria. Devuelve el propio conjunto con "
-         "el resto de elementos."),
+         "borrar el viejo de la memoria si deleteOld es cierto. "
+         "Devuelve el propio conjunto con el resto de elementos."),
 		  BOperClassify::SetAlgebra_
     )
   {
