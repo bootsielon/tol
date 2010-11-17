@@ -388,6 +388,35 @@ void BSet::Append(const BSet& set, bool incrementalIndex)
   }
 }
 
+//--------------------------------------------------------------------
+void BSet::Remove(int n, bool deleteOld)
+//--------------------------------------------------------------------
+{
+  int s = array_.Size();
+  if((n<0)||(n>=s)) { return; }
+  BSyntaxObject* found = array_[n];
+  int i;
+  for(i=n; i<s-1; i++)
+  {
+    array_[i] = array_[i+1];
+  }
+  array_.ReallocBuffer(s-1);
+  found->DecNRefs();
+  if(deleteOld) { DESTROY(found); }
+}
+
+//--------------------------------------------------------------------
+void BSet::Replace(int n, BSyntaxObject* newObject, bool deleteOld)
+//--------------------------------------------------------------------
+{
+  int s = array_.Size();
+  if((n<0)||(n>=s)) { return; }
+  BSyntaxObject* found = array_[n];
+  newObject->IncNRefs();
+  array_[n] = newObject;
+  found->DecNRefs();
+  if(deleteOld) { DESTROY(found); }
+}
 
 //--------------------------------------------------------------------
 BSyntaxObject* BSet::operator[] (BInt n)  const

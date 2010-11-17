@@ -134,6 +134,8 @@ public:
   void   Delete  ();
   void   PrepareStore(int n) { Alloc(n); Alloc(0); }
   void   Append(const BSet& set, bool incrementalIndex);
+  void   Remove(int n, bool deleteOld);
+  void   Replace(int n, BSyntaxObject* newObject, bool deleteOld);
   void   AddElement(BSyntaxObject*);
   void   PutElement(BList* element = NIL);
   void   RobElement(BList* element = NIL);

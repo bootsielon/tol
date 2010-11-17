@@ -148,6 +148,90 @@ public:
   DeclareClassNewDelete(BSetAppend);
 };
 
+//--------------------------------------------------------------------
+class BSetRemove: public BExternalOperator
+//--------------------------------------------------------------------
+{
+public:
+  BSetRemove()
+  : BExternalOperator
+    (
+      "Remove", GraSet(), "Set Real", NIL, 2, 2,
+      "(Set set, Real n)",
+		  I2("Removes the n-th element of a set and tries to delete it "
+         "from memory. Returns the own set with the rest of elements."  ,
+	       "Elimina el n-esimo elemento de un conjunto e intenta "
+         "borrarlo de la memoria. Devuelve el propio conjunto con "
+         "el resto de elementos."),
+		  BOperClassify::SetAlgebra_
+    )
+  {
+  }
+
+ ~BSetRemove() {}
+
+  BSyntaxObject* Evaluator(BList* arg) const
+  { 
+    if(CheckNonDeclarativeAction("Remove")) { return(NULL); }
+    BList* lst = arg;
+    bool incrementalIndexByName = false;
+    BUserSet* uSet = USet(lst->Car()); lst = lst->Cdr();
+    BUserDat* uDat = UDat(lst->Car()); lst = lst->Cdr();
+    BUserDat* uDel = UDat(lst->Car()); 
+    uSet->Contens().Remove(
+     (int)(uDat->Contens().Value())-1,
+     uDel->Contens().Value()!=0.0);
+    SAFE_DESTROY(arg, uSet);
+    return(uSet);
+  }
+ private:
+  DeclareClassNewDelete(BSetRemove);
+};
+
+//--------------------------------------------------------------------
+class BSetReplace: public BExternalOperator
+//--------------------------------------------------------------------
+{
+public:
+  BSetReplace()
+  : BExternalOperator
+    (
+      "Replace", GraSet(), "Set Real Anything Real", NIL, 4, 4,
+      "(Set set, Real n, Anything new, Real deleteOld)",
+		  I2("Replaces the n-th element of a set by a another new one "
+         "and tries to delete the old one from memory if deleteOld "
+         "is true. Returns the own set with the new changed element.",
+	       "Reemplaza el n-ésimo elemento de un conjunto por otro "
+         "nuevo e intenta borrar el viejo de la memoria si deleteOld "
+         "es cierto. Devuelve el propio conjunto con el elemento "
+         "cambiado."),
+		  BOperClassify::SetAlgebra_
+    )
+  {
+  }
+
+ ~BSetReplace() {}
+
+  BSyntaxObject* Evaluator(BList* arg) const
+  { 
+    if(CheckNonDeclarativeAction("Replace")) { return(NULL); }
+    BList* lst = arg;
+    bool incrementalIndexByName = false;
+    BUserSet* uSet = USet(lst->Car()); lst = lst->Cdr();
+    BUserDat* uDat = UDat(lst->Car()); lst = lst->Cdr();
+    BSyntaxObject* uNew = (BSyntaxObject*)(lst->Car()); lst = lst->Cdr();
+    BUserDat* uDel = UDat(lst->Car()); 
+    uSet->Contens().Replace(
+      (int)(uDat->Contens().Value())-1, 
+      uNew,
+      uDel->Contens().Value()!=0.0);
+    SAFE_DESTROY(arg, uSet);
+    return(uSet);
+  }
+ private:
+  DeclareClassNewDelete(BSetReplace);
+};
+
 
 //--------------------------------------------------------------------
 /*! Initializes the TOL system instances of this type as static
@@ -165,6 +249,8 @@ void BGraContensBase<BSet>::InitInstances()
 	  ("Empty", BSet::Unknown(), I2("Empty set", "Conjunto vacío."));
     OwnGrammar()->PutDefect(empty1_);
     BSetAppend* BSetAppend_instance = new BSetAppend;
+    BSetRemove* BSetRemove_instance = new BSetRemove;
+    BSetReplace* BSetReplace_instance = new BSetReplace;
 }
 
 
