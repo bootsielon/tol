@@ -846,9 +846,14 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
 static void* cloneInitExcelReadCell_()
 {
   BSpecialFunction::AddInstance( "Excel.ReadCell",
-  "(Real ExcelID, Real Row, Real Column)",
-  I2("Read the contents of a cell in the active work sheet",
-     "Lee el contenido de una celda en la hoja de trabajo activa"),
+  "(Real ExcelHandler, Anything Cell)",
+  I2("Read the contents of a cell in the active work sheet"
+     "The cell can be given as Text or Set. For instance you can use "
+     "either \"A1\" or [[1,1]].",
+     "Lee el contenido de una celda en la hoja de trabajo activa"
+     "Las coordenadas de la celda pueden especificarse como "
+     "Text o Set. Por ejemplo se puede usar indistintamente "
+     "\"A1\" o [[1,1]]."),
   EvExcelReadCell );
   return new int(1);
 };
