@@ -1377,100 +1377,103 @@ static void add_triplet
     err_invalid_subtypes(fName,A,B);
     result = -2;
   }
-  int i, j, k, n, Ak, Bk, Ak1, Bk1;
-  cholmod_triplet* tr;
-  int *Ti, *Tj, *Ai, *Ap, *Bi, *Bp;
-  double *Tx, *Ax, *Bx, *Cx;
-  int nnz = 0;
-  double x;  
+  else
+  {
+    int i, j, k, n, Ak, Bk, Ak1, Bk1;
+    cholmod_triplet* tr;
+    int *Ti, *Tj, *Ai, *Ap, *Bi, *Bp;
+    double *Tx, *Ax, *Bx, *Cx;
+    int nnz = 0;
+    double x;  
 
-  switch(A.code_) {
-  case(ESC_blasRdense  ) :
-    C.BlasRDense(r,c);
-    n = A.s_.blasRdense_->nzmax;
-    Ax = (double*)A.s_.blasRdense_->x;
-    Bx = (double*)B.s_.blasRdense_->x;
-    Cx = (double*)C.s_.blasRdense_->x;
-    for(k=0; k<n; k++)
-    {
-      x = f(Ax[k], Bx[k]);
-      if(x!=0.0) { nnz++; }
-      Cx[k] = x;
-    };
-    if((Acode==ESC_chlmRsparse) || (Bcode==ESC_chlmRsparse) && (nnz<0.50*r*c))
-    {
-      BVMat C_;
-      BVMat::bRd2cRs(C_,C);
-      C = C_;
-    }
-    break;
-  case(ESC_chlmRsparse) :
-    assert(f00);
-    C.code_ = ESC_chlmRsparse;
-    cRs_ensure_packed(A.s_.chlmRsparse_);
-    cRs_ensure_packed(B.s_.chlmRsparse_);
-    if(f0x)
-    {
-      n = Minimum(A.s_.chlmRsparse_->nzmax,B.s_.chlmRsparse_->nzmax);
-    }
-    else
-    {
-      n = A.s_.chlmRsparse_->nzmax + B.s_.chlmRsparse_->nzmax;
-    }
-    tr=cholmod_allocate_triplet(r,c,n,0,CHOLMOD_REAL,common_);
-    Ti = (int*   )tr->i;
-    Tj = (int*   )tr->j;
-    Tx = (double*)tr->x;
-    Ap = (int*   )A.s_.chlmRsparse_->p;
-    Ai = (int*   )A.s_.chlmRsparse_->i;
-    Ax = (double*)A.s_.chlmRsparse_->x;
-    Bp = (int*   )B.s_.chlmRsparse_->p;
-    Bi = (int*   )B.s_.chlmRsparse_->i;
-    Bx = (double*)B.s_.chlmRsparse_->x;
-    k = 0;
-    for(j=0; j<c; j++)
-    {
-      Ak  = Ap[j];
-      Ak1 = Ap[j+1];
-      Bk  = Bp[j];
-      Bk1 = Bp[j+1];
-      for(; (Ak<Ak1)||(Bk<Bk1); )
+    switch(A.code_) {
+    case(ESC_blasRdense  ) :
+      C.BlasRDense(r,c);
+      n = A.s_.blasRdense_->nzmax;
+      Ax = (double*)A.s_.blasRdense_->x;
+      Bx = (double*)B.s_.blasRdense_->x;
+      Cx = (double*)C.s_.blasRdense_->x;
+      for(k=0; k<n; k++)
       {
-        if(Ak==Ak1)
-        {
-          if(!f0x) { add_triplet(r,c,n,i=Bi[Bk],j,x=f(0.0,Bx[Bk]),Ti,Tj,Tx,k); }
-          Bk++;
-        }
-        else if(Bk==Bk1)
-        {
-          if(!f0x) { add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],0.0),Ti,Tj,Tx,k); }
-          Ak++;
-        }
-        else if(Ai[Ak]==Bi[Bk])
-        {
-          add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],Bx[Bk]),Ti,Tj,Tx,k);
-          Ak++; 
-          Bk++;
-        }
-        else if(Ai[Ak]>Bi[Bk])
-        {
-          if(!f0x) { add_triplet(r,c,n,i=Bi[Bk],j,x=f(0.0,Bx[Bk]),Ti,Tj,Tx,k); }
-          Bk++;
-        }
-        else //if(Ai[Ak]<Bi[Bk])
-        {
-          if(!f0x) { add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],0.0),Ti,Tj,Tx,k); }
-          Ak++;
-        }
+        x = f(Ax[k], Bx[k]);
+        if(x!=0.0) { nnz++; }
+        Cx[k] = x;
+      };
+      if((Acode==ESC_chlmRsparse) || (Bcode==ESC_chlmRsparse) && (nnz<0.50*r*c))
+      {
+        BVMat C_;
+        BVMat::bRd2cRs(C_,C);
+        C = C_;
       }
-    }  
-    tr->nnz = k;
-    C.s_.chlmRsparse_ = cholmod_triplet_to_sparse(tr, tr->nnz, common_);
-    cholmod_free_triplet(&tr, common_);
-    break;
-  default:
-    err_invalid_subtype(fName,A); 
-    result=-3; }
+      break;
+    case(ESC_chlmRsparse) :
+      assert(f00);
+      C.code_ = ESC_chlmRsparse;
+      cRs_ensure_packed(A.s_.chlmRsparse_);
+      cRs_ensure_packed(B.s_.chlmRsparse_);
+      if(f0x)
+      {
+        n = Minimum(A.s_.chlmRsparse_->nzmax,B.s_.chlmRsparse_->nzmax);
+      }
+      else
+      {
+        n = A.s_.chlmRsparse_->nzmax + B.s_.chlmRsparse_->nzmax;
+      }
+      tr=cholmod_allocate_triplet(r,c,n,0,CHOLMOD_REAL,common_);
+      Ti = (int*   )tr->i;
+      Tj = (int*   )tr->j;
+      Tx = (double*)tr->x;
+      Ap = (int*   )A.s_.chlmRsparse_->p;
+      Ai = (int*   )A.s_.chlmRsparse_->i;
+      Ax = (double*)A.s_.chlmRsparse_->x;
+      Bp = (int*   )B.s_.chlmRsparse_->p;
+      Bi = (int*   )B.s_.chlmRsparse_->i;
+      Bx = (double*)B.s_.chlmRsparse_->x;
+      k = 0;
+      for(j=0; j<c; j++)
+      {
+        Ak  = Ap[j];
+        Ak1 = Ap[j+1];
+        Bk  = Bp[j];
+        Bk1 = Bp[j+1];
+        for(; (Ak<Ak1)||(Bk<Bk1); )
+        {
+          if(Ak==Ak1)
+          {
+            if(!f0x) { add_triplet(r,c,n,i=Bi[Bk],j,x=f(0.0,Bx[Bk]),Ti,Tj,Tx,k); }
+            Bk++;
+          }
+          else if(Bk==Bk1)
+          {
+            if(!f0x) { add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],0.0),Ti,Tj,Tx,k); }
+            Ak++;
+          }
+          else if(Ai[Ak]==Bi[Bk])
+          {
+            add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],Bx[Bk]),Ti,Tj,Tx,k);
+            Ak++; 
+            Bk++;
+          }
+          else if(Ai[Ak]>Bi[Bk])
+          {
+            if(!f0x) { add_triplet(r,c,n,i=Bi[Bk],j,x=f(0.0,Bx[Bk]),Ti,Tj,Tx,k); }
+            Bk++;
+          }
+          else //if(Ai[Ak]<Bi[Bk])
+          {
+            if(!f0x) { add_triplet(r,c,n,i=Ai[Ak],j,x=f(Ax[Ak],0.0),Ti,Tj,Tx,k); }
+            Ak++;
+          }
+        }
+      }  
+      tr->nnz = k;
+      C.s_.chlmRsparse_ = cholmod_triplet_to_sparse(tr, tr->nnz, common_);
+      cholmod_free_triplet(&tr, common_);
+      break;
+    default:
+      err_invalid_subtype(fName,A); 
+      result=-3; }
+  };
   if(A__!=&A_) { delete A__; }
   if(B__!=&B_) { delete B__; }
   return(result);
