@@ -87,6 +87,16 @@ BTraceInit("oisloader.cpp");
 }
 
 //--------------------------------------------------------------------
+  BSyntaxObject* BOisLoader::BOffsetObject::ReplaceObject(BSyntaxObject* obj)
+//--------------------------------------------------------------------
+{
+//Std(BText("\nBOisLoader::BOffsetObject::PutObject ")+(int)offset_+",["+(int)obj+"] "+obj->Identify());
+  object_ = obj;
+  obj->PutOisOffset(offset_);
+  return(obj); 
+}
+
+//--------------------------------------------------------------------
 // BOisLoader Functions 
 //--------------------------------------------------------------------
 
@@ -1292,13 +1302,25 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           {
             object_->SetPos(offset);
             //CALL ReadNextObject
-            BSyntaxObject* r = ReadNextObject(true);
-            if(!r || (r->Grammar()!=GraTimeSet())) 
-            { 
-              return(NullError("FATAL cannot built dating of serie")); 
+            BUserTimeSet* dating = NULL;
+            {
+              BINT64 offset_tms = object_->Offset();
+              BSyntaxObject* r = ReadNextObject(false);
+              if(!r || (r->Grammar()!=GraTimeSet())) 
+              { 
+                return(NullError("FATAL cannot built dating of serie")); 
+              }
+              dating = (BUserTimeSet*)GraTimeSet()->FindOperand(r->Name(), false);
+              if(!dating) { dating = (BUserTimeSet*)r; }
+              else if(dating!=r)       
+              { 
+                static BOffsetObject ofob_tms;
+                ofob_tms.PutOffset(offset_tms);
+                int found_tms = readed_.FindSorted(ofob_tms, CompareOffset);
+                readed_[found_tms].ReplaceObject(dating);
+                DESTROY(r);
+              }  
             }
-            BUserTimeSet* dating = (BUserTimeSet*)GraTimeSet()->FindOperand(r->Name(), false);
-            if(!dating) { dating = (BUserTimeSet*)r; }
             BDate first, last, beginCache, endCache;
             ERead(first, serie_);
             ERead(last,  serie_);

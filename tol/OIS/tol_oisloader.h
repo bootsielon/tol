@@ -54,6 +54,7 @@ public:
     }
     void PutNullObject() { object_ = NULL; }
     BSyntaxObject* PutObject(BSyntaxObject* obj);
+    BSyntaxObject* ReplaceObject(BSyntaxObject* obj);
     BINT64 Offset() { return(offset_); }
     BSyntaxObject* Object() { return(object_); }
   };
