@@ -40,6 +40,107 @@ BSyntaxObject* BSet::objCond_	= NIL;
 BSet	         BSet::unknown_;
 
 //--------------------------------------------------------------------
+static bool DoIndexElement(BObjByIdxNameHash** indexByName, 
+                           BSyntaxObject* obj,
+                           int i)
+//--------------------------------------------------------------------
+{
+  bool ok = true;
+  if(indexByName && *indexByName && obj)
+  {
+    const BText& name = obj->Name();
+    if(name.HasName())
+    {
+      BObjByIdxNameHash::const_iterator found = (*indexByName)->find(name);
+      if(found!=(*indexByName)->end())
+      {
+        Error(I2("Duplicated index name ",
+                 "Nombre de índice duplicado ")+
+              name);
+        ok = false;
+      }
+      (**indexByName)[name] = BIndexedSyntaxObject(i,obj);
+    }
+    else
+    {
+      Error(I2("A indexed by name set cannot have elements without a valid name ",
+               "Un conjunto indexado por nombres no puede tener elementos sin un nombre válido ")
+            +"'"+name+"'");
+      ok = false;
+    }
+   if(!ok) { delete *indexByName; *indexByName = NULL; }
+  }
+  return(ok);
+}
+
+//--------------------------------------------------------------------
+static bool UnIndexElement(BObjByIdxNameHash** indexByName, 
+                           BSyntaxObject* obj)
+//--------------------------------------------------------------------
+{
+  bool ok = true;
+  if(indexByName && *indexByName && obj)
+  {
+    const BText& name = obj->Name();
+    if(name.HasName())
+    {
+      BObjByIdxNameHash::const_iterator found = (*indexByName)->find(name);
+      if(found!=(*indexByName)->end())
+      {
+        (*indexByName)->erase(name);
+      }
+      else
+      {
+        Error(I2("Cannot remove the non found index name ",
+                 "No se puede eliminar el índice de nombre no encontrado ")+
+              name);
+        ok = false;
+      }
+    }
+    if(!ok) { delete *indexByName; *indexByName = NULL; }
+  }
+  return(ok);
+}
+
+//--------------------------------------------------------------------
+static bool ReIndexElement(BObjByIdxNameHash** indexByName, 
+                           BSyntaxObject* obj,
+                           int i)
+//--------------------------------------------------------------------
+{
+  bool ok = true;
+  if(indexByName && *indexByName && obj)
+  {
+    const BText& name = obj->Name();
+    if(name.HasName())
+    {
+      BObjByIdxNameHash::iterator found = (*indexByName)->find(name);
+      if(found!=(*indexByName)->end())
+      {
+        found->second.position_ = i;
+      }
+      else
+      {
+        Error(I2("Cannot remove the non found index name ",
+                 "No se puede eliminar el índice de nombre no encontrado ")+
+              name);
+        ok = false;
+      }
+    }
+    else
+    {
+      Error(I2("A indexed by name set cannot have elements without a valid name ",
+               "Un conjunto indexado por nombres no puede tener elementos sin un nombre válido ")
+            +"'"+name+"'");
+      ok = false;
+    }
+   if(!ok) { delete *indexByName; *indexByName = NULL; }
+  }
+  return(ok);
+}
+
+
+//--------------------------------------------------------------------
 BSet::BSet()
 
 //! BSet constructor
@@ -333,39 +434,7 @@ void BSet::AddElement(BSyntaxObject* syn)
   array_[size]->IncNRefs();
 }
 
-//--------------------------------------------------------------------
-static bool DoIndexElement(BObjByIdxNameHash** indexByName, 
-                           BSyntaxObject* obj,
-                           int i)
-//--------------------------------------------------------------------
-{
-  bool ok = true;
-  if(indexByName && *indexByName && obj)
-  {
-    const BText& name = obj->Name();
-    if(name.HasName())
-    {
-      BObjByIdxNameHash::const_iterator found = (*indexByName)->find(name);
-      if(found!=(*indexByName)->end())
-      {
-        Error(I2("Duplicated index name ",
-                 "Nombre de �ndice duplicado ")+
-              name);
-        ok = false;
-      }
-      (**indexByName)[name] = BIndexedSyntaxObject(i,obj);
-    }
-    else
-    {
-      Error(I2("A indexed by name set cannot have elements without a valid name ",
-               "Un conjunto indexado por nombres no puede tener elementos sin un nombre v�lido ")
-            +"'"+name+"'");
-      ok = false;
-    }
-   if(!ok) { delete *indexByName; *indexByName = NULL; }
-  }
-  return(ok);
-}
+
 
 //--------------------------------------------------------------------
 void BSet::Append(const BSet& set, bool incrementalIndex)
@@ -395,10 +464,12 @@ void BSet::Remove(int n, bool deleteOld)
   int s = array_.Size();
   if((n<0)||(n>=s)) { return; }
   BSyntaxObject* found = array_[n];
+  UnIndexElement(&indexByName_,found);
   int i;
   for(i=n; i<s-1; i++)
   {
     array_[i] = array_[i+1];
+    ReIndexElement(&indexByName_,array_[i],i);
   }
   array_.ReallocBuffer(s-1);
   found->DecNRefs();
@@ -412,8 +483,10 @@ void BSet::Replace(int n, BSyntaxObject* newObject, bool deleteOld)
   int s = array_.Size();
   if((n<0)||(n>=s)) { return; }
   BSyntaxObject* found = array_[n];
+  UnIndexElement(&indexByName_,found);
   newObject->IncNRefs();
   array_[n] = newObject;
+  DoIndexElement(&indexByName_,array_[n],n);
   found->DecNRefs();
   if(deleteOld) { DESTROY(found); }
 }

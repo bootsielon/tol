@@ -160,10 +160,13 @@ public:
       "(Set set, Real n, Real deleteOld)",
 		  I2("Removes the n-th element of a set and tries to delete it "
          "from memory if deleteOld is true. Returns the own set "
-         "with the rest of elements."  ,
+         "with the rest of elements."
+         "If the set was indexed by name then the indes will be updated.",
 	       "Elimina el n-esimo elemento de un conjunto e intenta "
          "borrar el viejo de la memoria si deleteOld es cierto. "
-         "Devuelve el propio conjunto con el resto de elementos."),
+         "Devuelve el propio conjunto con el resto de elementos."
+         "Si el conjunto estaba indexado por nombre el índice será "
+         "actualizado"),
 		  BOperClassify::SetAlgebra_
     )
   {
@@ -201,11 +204,14 @@ public:
       "(Set set, Real n, Anything new, Real deleteOld)",
 		  I2("Replaces the n-th element of a set by a another new one "
          "and tries to delete the old one from memory if deleteOld "
-         "is true. Returns the own set with the new changed element.",
+         "is true. Returns the own set with the new changed element."
+         "If the set was indexed by name then the indes will be updated." ,
 	       "Reemplaza el n-ésimo elemento de un conjunto por otro "
          "nuevo e intenta borrar el viejo de la memoria si deleteOld "
          "es cierto. Devuelve el propio conjunto con el elemento "
-         "cambiado."),
+         "cambiado."
+         "Si el conjunto estaba indexado por nombre el índice será "
+         "actualizado"),
 		  BOperClassify::SetAlgebra_
     )
   {
