@@ -1,0 +1,70 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Set Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "https://www.tol-project.org/ticket/1011";
+  Text summary_ = "Append, Remove and Replace" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  
+  Real n0 = IntRand(1,100);
+  Set set = For(1, n0, Real(Real k)
+  {
+    Eval("E"<<k+"=k")
+  });
+
+  Real fnd.1 = FindIndexByName(set, "E"<<IntRand(1,n0));
+
+  Set Append(set, For(n0+1, n0*2, Real(Real k)
+  {
+    Eval("E"<<k+"=k")
+  }));
+
+  Real fnd.2 = FindIndexByName(set, "E"<<IntRand(1,2*n0));
+
+  Real r3 = IntRand(n0+1,2*n0);
+  Real New = -r3;
+  Set Replace(set, r3, New, True);
+  Real fnd.3.1 = FindIndexByName(set, "E"<<r3);
+  Real fnd.3.2 = FindIndexByName(set, "E"<<IntRand(1,2*n0));
+  Real fnd.3.3 = FindIndexByName(set, "New");
+
+  Real r4 = IntRand(n0+1,2*n0);
+  Set Remove(set, r4, True);
+
+  Real fnd.4.1 = FindIndexByName(set, "E"<<r4);
+  Real fnd.4.2 = FindIndexByName(set, "E"<<IntRand(1,n0));
+
+  Set set.5 = Remove(Copy(Empty),IntRand(1,10*n0),True);
+
+  Set ok.all = [[
+    Real ok.1 = fnd.1 > 0;
+    Real ok.2 = fnd.2 > 0;
+    Real ok.3.1 = fnd.3.1 == 0;
+    Real ok.3.2 = fnd.3.2 > 0;
+    Real ok.3.3 = fnd.3.3 > 0;
+    Real ok.4.1 = fnd.4.1 == 0;
+    Real ok.4.2 = fnd.4.2 > 0;
+    Real ok.5 = Card(set.5)==0
+  ]];
+
+
+//Extented information about test behaviour
+  Set partialResults_ = ok.all;
+
+//This is a messure of the success of the test 
+  Real quality_ = Group("And",[[numErr0 == NError]] << ok.all);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */
