@@ -267,7 +267,7 @@ Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
      ""<<pkg::_.autodoc.version.high+", \n"+
      ""<<pkg::_.autodoc.version.low+", \n"+
      "'"<<pkg::_.autodoc.brief+"', \n"+
-     "'"<<Replace(pkg::_.autodoc.description,"\n","<BR>")+"', \n"+
+     "'"+Replace(pkg::_.autodoc.description,"\n","<BR>")+"', \n"+
      "'"<<TolPackage::Server::SqlFormatSetOfText(pkg::_.autodoc.keys)+"', \n"+
      "'"<<TolPackage::Server::SqlFormatSetOfText(pkg::_.autodoc.authors)+"', \n"+
      "'"<<pkg::_.autodoc.minTolVersion+"', \n"+
