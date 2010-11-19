@@ -98,7 +98,10 @@ public:
   static BUserNameBlock* Building();
   static BUserNameBlock* SetBuilding(BUserNameBlock* ns);
   static BSyntaxObject* EvaluateTree(const List* tre);
-  static bool Using  (const BSyntaxObject* uns);
+  static bool Using  (
+    const BSyntaxObject* uns,
+    bool usingAlsoReadOnly,
+    bool usingAlsoPrivate);
   static void Unusing(const BSyntaxObject* uns);
   static BSyntaxObject* LocalMember(const BText& memberName);
   static BSyntaxObject* UsingMember(const BText& memberName);
@@ -162,6 +165,14 @@ public:
   static const BText& GetGlobalRequiredPackage(int k);
 
   DeclareClassNewDelete(BNameBlock);
+
+private:
+  static bool add_using_symbol  (
+    const BText& name,
+    BObjByNameHash::const_iterator iter,
+    bool usingAlsoReadOnly,
+    bool usingAlsoPrivate
+  );
 };
 
 //--------------------------------------------------------------------

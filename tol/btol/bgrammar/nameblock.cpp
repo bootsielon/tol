@@ -834,7 +834,61 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
-  bool BNameBlock::Using(const BSyntaxObject* obj)
+bool BNameBlock::add_using_symbol(
+  const BText& name,
+  BObjByNameHash::const_iterator iter,
+  bool usingAlsoReadOnly,
+  bool usingAlsoPrivate
+)
+//--------------------------------------------------------------------
+{
+  if((iter->first)[0]=='_')
+  {
+    if(!usingAlsoReadOnly && ((iter->first)[1]=='.')) { return(true); }
+    if(!usingAlsoPrivate  && ((iter->first)[1]!='.')) { return(true); }
+  }
+  bool ok = true;
+  BObjByNameHash::const_iterator found ;
+  BObjByClassNameHash::iterator fc;
+  found = usingSymbols_.find(iter->first);
+  if(found==usingSymbols_.end())
+  {
+  //Std(BText("\nUsing member '")+name+"::"+iter->first+"'\n");
+    usingSymbols_[iter->first]=iter->second;
+    assert(usingSymbols_.find(iter->first)!=usingSymbols_.end());
+    BObjClassify oc(iter->second);
+    fc = usingSymbolsByClass_.find(oc);
+    BObjByNameHash* x;
+    if(fc!=usingSymbolsByClass_.end())
+    {
+      x = fc->second;
+    }
+    else
+    {
+      x = new BObjByNameHash;
+      SetEmptyKey  ((*x), NULL);
+      SetDeletedKey((*x), name_del_key());
+      usingSymbolsByClass_[oc] = x;
+    }
+    (*x)[iter->first]=iter->second;
+  }
+  else
+  {
+    Warning(found->second->FullName()+
+            I2(" is already in use as global. "
+               "So cannot add ",
+               " ya se está usando como global. "
+               "Por lo tanto no se puede añadir ")+
+               name+"::"+iter->second->Name());
+    ok = false;
+  }
+  return(true);
+}
+//--------------------------------------------------------------------
+  bool BNameBlock::Using(
+    const BSyntaxObject* obj,
+    bool usingAlsoReadOnly,
+    bool usingAlsoPrivate)
 //--------------------------------------------------------------------
 {
   assert(obj && (obj->Grammar()==GraNameBlock()));
@@ -855,45 +909,17 @@ const BText& BNameBlock::LocalName() const
     return(false);
   }
   bool ok = true;
+  BObjByNameHash::const_iterator iter;
   BNameBlock& ns = uns->Contens();
   BObjByNameHash& pbm = ns.Public();
-  BObjByNameHash::const_iterator iter;
-  BObjByNameHash::const_iterator found;
-  BObjByClassNameHash::iterator fc;
   for(iter=pbm.begin(); iter!=pbm.end(); iter++)
   {
-    found = usingSymbols_.find(iter->first);
-    if(found==usingSymbols_.end())
-    {
-    //Std(BText("\nUsing member '")+name+"::"+iter->first+"'\n");
-      usingSymbols_[iter->first]=iter->second;
-      assert(usingSymbols_.find(iter->first)!=usingSymbols_.end());
-      BObjClassify oc(iter->second);
-      fc = usingSymbolsByClass_.find(oc);
-      BObjByNameHash* x;
-      if(fc!=usingSymbolsByClass_.end())
-      {
-        x = fc->second;
-      }
-      else
-      {
-        x = new BObjByNameHash;
-        SetEmptyKey  ((*x), NULL);
-        SetDeletedKey((*x), name_del_key());
-        usingSymbolsByClass_[oc] = x;
-      }
-      (*x)[iter->first]=iter->second;
-    }
-    else
-    {
-      Warning(found->second->FullName()+
-              I2(" is already in use as global. "
-                 "So cannot add ",
-                 " ya se está usando como global. "
-                 "Por lo tanto no se puede añadir ")+
-                 name+"::"+iter->second->Name());
-      ok = false;
-    }
+    ok = add_using_symbol(name, iter, false, false);
+  }
+  BObjByNameHash& prm = ns.Private();
+  for(iter=prm.begin(); iter!=prm.end(); iter++)
+  {
+    ok = add_using_symbol(name, iter, usingAlsoReadOnly, usingAlsoPrivate);
   }
   return(ok);
 }
@@ -1387,11 +1413,29 @@ private:
 public:
   BDatUsingNameBlock(BList* arg) : BDatTemporary(arg) 
   {
-    uns_ = UNameBlock(Arg(1));
+    BList* lst = arg;
+    uns_ = UNameBlock(lst->Car()); 
+    lst = lst->Cdr();
     if(CheckNonDeclarativeAction("UsingNameBlock")) 
-    { contens_ = false; }
+    { 
+      contens_ = false; 
+    }
     else
-    { contens_ = BNameBlock::Using(uns_); }
+    { 
+      bool usingAlsoReadOnly = false;
+      bool usingAlsoPrivate = false;
+      if(lst && lst->Car())
+      {
+        usingAlsoReadOnly = Real(lst->Car())!=0.0;
+        lst = lst->Cdr();
+      }
+      if(lst && lst->Car())
+      {
+        usingAlsoPrivate = Real(lst->Car())!=0.0;
+        lst = lst->Cdr();
+      }
+      contens_ = BNameBlock::Using(uns_,usingAlsoReadOnly,usingAlsoPrivate); 
+    }
   }
  ~BDatUsingNameBlock()
   {
@@ -1403,8 +1447,11 @@ public:
 DeclareEvaluator(BDatUsingNameBlock);
 
 //--------------------------------------------------------------------
-  DefExtOpr(1, BDatUsingNameBlock, "UsingNameBlock",1,1,"NameBlock",
-  "(NameBlock nameBlock)",
+  DefExtOpr(1, BDatUsingNameBlock, "UsingNameBlock",1,3,
+  "NameBlock Real Real",
+  "(NameBlock nameBlock [, "
+    "Real usingAlsoReadOnly = False,"
+    "Real usingAlsoPrivate = False])",
   I2("In certain circumstances the public members of a NameBlock can "
      "pass to the global scope, that is to say, it is possible to "
      "access to them without specifying it with :: \n"
