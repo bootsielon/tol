@@ -1469,7 +1469,11 @@ DeclareEvaluator(BDatUsingNameBlock);
      "warning message to notice it to the user. \n"
      "This operator does not have desired effect if it is called in "
      "local scope, which includes within a NameBlock, and will give "
-      "back an error if it is tried"
+     "back an error if it is tried\n."
+     "If usingAlsoReadOnly is true then read only members will be "
+     "also exported.\n"
+     "If usingAlsoPrivate is true then private members will be "
+     "also exported.\n"
      ,
      "En determinadas circunstancias los miembros públicos de un "
      "NameBlock pueden pasar al ámbito global, es decir, se puede "
@@ -1487,7 +1491,11 @@ DeclareEvaluator(BDatUsingNameBlock);
      "mensaje de aviso para advertirlo.\n"
      "Este operador no surte efecto si se llama en ambiente local, "
      "lo cual incluye dentro de un NameBlock, y devolverá un "
-     "error si se intenta."),
+     "error si se intenta.\n"
+     "Si usingAlsoReadOnly es cierto los miembros de solo lectura "
+     "también serán exportados.\n"
+     "Si usingAlsoPrivate es cierto los miembros privados "
+     "también serán exportados.\n"),
   BOperClassify::System_);
 
 //--------------------------------------------------------------------
