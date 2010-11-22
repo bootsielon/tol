@@ -86,7 +86,7 @@ Text MetSqlDepGetQuery (
 
   Text query =
     "select "+datExp+" as idDateValue,"   +NL+
-    "       "+valExp+" as val"          +NL+
+            TextIndent(valExp,7)+" as val"+NL+
     "from "+ froExp                       +NL+
     If(wheExp!="","where "+wheExp+NL,wheExp)+
     If(doGrBy, "group by "+datExp+NL, "")+
