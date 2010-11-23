@@ -6822,8 +6822,8 @@ const BArray<int>*   BMatOrder::criterium_ = NULL;
   contens_.Alloc(r,2);
   for(i=0; i<r; i++)
   {
-    BDat& mi  = contens_.Get(i,0); 
-    BDat& max = contens_.Get(i,1); 
+    BDat& mi  = contens_(i,0); 
+    BDat& max = contens_(i,1); 
     max = BDat::NegInf();
     for(j=0; j<c; j++)
     {
