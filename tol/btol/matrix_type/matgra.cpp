@@ -6800,6 +6800,42 @@ const BArray<int>*   BMatOrder::criterium_ = NULL;
 }
 
 
+  //--------------------------------------------------------------------
+  DeclareContensClass(BMat, BMatTemporary, BMatMaxColByRow);
+  DefExtOpr(1, BMatMaxColByRow, "MaxColByRow", 1, 1, "Matrix",
+  "(Matrix mat)",
+  I2("For each row returns two columns: first one has the index of the "
+     "column with the maximum value inside these row, and second one "
+     "the maximum value. Unknown values are skipped.",
+     "Devuelve dos columnas para cada fila: la primera con el índice "
+     "de la columna de máximo valor dentro de esa fila, y la segunda "
+     "con dicho valor máximo. Los valores omitidos no se tienen en "
+     "cuenta."),
+     BOperClassify::Statistic_);
+  void BMatMaxColByRow::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& m = Mat(Arg(1));
+  int r = m.Rows();
+  int c = m.Columns();
+  int i, j;
+  contens_.Alloc(r,2);
+  for(i=0; i<r; i++)
+  {
+    BDat& mi  = contens_.Get(i,0); 
+    BDat& max = contens_.Get(i,1); 
+    max = BDat::NegInf();
+    for(j=0; j<c; j++)
+    {
+      if(max < m(i,j)) 
+      { 
+        mi = j+1;
+        max = m(i,j); 
+      }
+    }
+  }
+}
+
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatForMat);
 DefExtOpr(1, BMatForMat, "ForMat", 3, 3, "Real Real Code",
