@@ -32,6 +32,7 @@ This file implements the global built-in function used to load libraries.
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_btxtgra.h>
+#include <tol/tol_bdatgra.h>
 #include <tol/tol_bdir.h>
 
 #include <ltdl.h>
@@ -73,6 +74,45 @@ BGraContensP<BNameBlock>* NewUserNameBlock()
 //--------------------------------------------------------------------
 {
   return(new BGraContensP<BNameBlock>("", new BNameBlock));
+}
+
+  //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatLoadDynLib);
+  DefExtOpr(1, BDatLoadDynLib, "LoadDynLib", 1, 2, "Text Text",
+  "(Text libraryPath [, Text libraryName])",
+  I2("Link a dynamic library without TOL built-in functios.",
+     "Enlaca una librería dinámica sin funciones TOL nativas."),
+     BOperClassify::Statistic_);
+  void BDatLoadDynLib::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(CheckNonDeclarativeAction("LoadDynLib")) { return; }
+  BText& libraryPath = Text(Arg(1));
+  BText libraryName = GetFilePrefix(libraryPath);  
+  if(Arg(2))
+  {
+    libraryName = Text(Arg(2));
+  }
+//Std(BText("\nTRACE BLoadDynLib::Evaluator 1 libraryPath=")+libraryPath);
+//Std(BText("\nTRACE BLoadDynLib::Evaluator 2 libraryName=")+libraryName);
+  BUserNameBlock* unb = NULL;
+
+  lt_dlhandle handleLib;
+
+  // abro la DynLib
+  handleLib = lt_dlopen( libraryPath );
+  if ( !handleLib ) 
+  {
+  //Std(BText("\nTRACE BLoadDynLib::Evaluator 3 lt_dlerror='")+lt_dlerror()+"'");
+    BText reason( lt_dlerror( ) );
+    Error(BText("[LoadDynLib(\"")+libraryPath+"\")]"+" \n"
+    "  lt_dlopen error:'"+reason+"'");
+    contens_ = false;
+  } 
+  else
+  {
+    contens_ = true;
+  }
 }
 
 //--------------------------------------------------------------------
