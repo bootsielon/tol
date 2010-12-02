@@ -173,7 +173,8 @@ Text SQLDBMSStringConcatenation(Set strAConcatenar, Real gestor)
     EQ(gestor, GesMys), [[ "concat", "," ]],
     EQ(gestor, GesRed), [[ "concat", "," ]],
     EQ(gestor, GesPos), [[ "", "||" ]], 
-    EQ(gestor, GesAcc), [[ "", "&" ]]
+    EQ(gestor, GesAcc), [[ "", "&" ]],
+    EQ(gestor, GesTer), [[ "", "||" ]]
   );
    Text ret = concatFun[1] + "("+TxtListItem(strAConcatenar, concatFun[2])+")"
 };
