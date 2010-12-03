@@ -361,6 +361,7 @@ DLLEXPORT(int) odbc_GetFieldType(odbcd *dbd, int nfield)
   }
 
   dbd->typeList[nfield] = pfSqlType;
+  //printf( "pfSqlType=%d\n", pfSqlType ); 
   switch (pfSqlType)
     {
     case SQL_VARCHAR: case SQL_CHAR: case SQL_LONGVARCHAR: 
@@ -376,6 +377,9 @@ DLLEXPORT(int) odbc_GetFieldType(odbcd *dbd, int nfield)
 	break;
       }
     case SQL_DATE: case SQL_TIME: case SQL_TIMESTAMP:
+#if (ODBCVER >= 0x0300)
+    case SQL_TYPE_DATE: case SQL_TYPE_TIME: case SQL_TYPE_TIMESTAMP:
+#endif
       {
 	ret = TypeDBDate;
 	break;
@@ -617,18 +621,27 @@ DLLEXPORT(int) odbc_GetAsDate(odbcd *dbd, int nfield, struct dateStruct **dateva
   switch(type)
     {
     case SQL_DATE:
+#if (ODBCVER >= 0x0300)
+    case SQL_TYPE_DATE:
+#endif
       size   = sizeof(struct tagDATE_STRUCT);
       x_date = (struct tagDATE_STRUCT *)malloc(size);
       if(x_date==NULL) { stdOutWriter("Out of memory\n"); return 0; }
       pointer = x_date;
       break;
     case SQL_TIME:
+#if (ODBCVER >= 0x0300)
+    case SQL_TYPE_TIME:
+#endif
       size   = sizeof(struct tagTIME_STRUCT);
       x_time = (struct tagTIME_STRUCT *)malloc(size);
       if(x_time==NULL) { stdOutWriter("Out of memory\n"); return 0; }
       pointer = x_time;
       break;
     case SQL_TIMESTAMP:
+#if (ODBCVER >= 0x0300)
+    case SQL_TYPE_TIMESTAMP:
+#endif
       size        = sizeof(struct tagTIMESTAMP_STRUCT);
       x_timestamp = (struct tagTIMESTAMP_STRUCT *)malloc(size);
       if(x_timestamp==NULL) { stdOutWriter("Out of memory\n"); return 0; }
@@ -664,16 +677,25 @@ DLLEXPORT(int) odbc_GetAsDate(odbcd *dbd, int nfield, struct dateStruct **dateva
   switch(type)
     {
     case SQL_DATE:
+#if (ODBCVER >= 0x0300)
+    case SQL_TYPE_DATE:
+#endif
       (*dateval)->year  = (unsigned short)(x_date->year);
       (*dateval)->month = (unsigned short)(x_date->month);
       (*dateval)->day   = (unsigned short)(x_date->day);
       break;
     case SQL_TIME:
+#if (ODBCVER >= 0x0300)
+    case SQL_TYPE_TIME:
+#endif
       (*dateval)->hour    = (unsigned short)(x_time->hour);
       (*dateval)->minute  = (unsigned short)(x_time->minute);
       (*dateval)->second  = (unsigned short)(x_time->second);
       break;
     case SQL_TIMESTAMP:
+#if (ODBCVER >= 0x0300)
+    case SQL_TYPE_TIMESTAMP:
+#endif
       (*dateval)->year    = (unsigned short)(x_timestamp->year);
       (*dateval)->month   = (unsigned short)(x_timestamp->month);
       (*dateval)->day     = (unsigned short)(x_timestamp->day);
