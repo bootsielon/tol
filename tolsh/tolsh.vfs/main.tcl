@@ -1,5 +1,5 @@
 
   package require starkit
-  starkit::startup
+  set starkit::tolsh_mode [ starkit::startup ]
   package require tolsh
 
