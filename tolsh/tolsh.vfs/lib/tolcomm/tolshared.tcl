@@ -23,6 +23,7 @@ namespace eval ::tolshared {
 ###############################################################################
 proc ::tolshared::start {} {
   global tqs_info
+  package require Mk4tcl
   package require tequilas
 
   puts "::tolshared::start"
