@@ -268,6 +268,13 @@ proc ::tolsh::std { msg } {
   }
 }
 
+#puts "starkit = [namespace exist ::starkit]"
+#puts "topdir = [file dir $starkit::topdir]"
+#puts "info script = [info script]"
+#puts "starkit::startup = [starkit::startup]"
+#puts "[ info commands starkit::* ]"
+#puts "argv0 = $argv0"
+
 proc ::tolsh::setup_pkg { pkg } {
   if {[lsearch [package names] $pkg]==-1} {
     if {[namespace exist ::starkit]} {
@@ -459,12 +466,14 @@ proc ::tolsh::clone {} {
   variable options
 
   puts "::tolsh::clone"
-  set tolsh [info nameofexecutable]
-  puts "exec shared"
-  exec $tolsh -shared &
+  set tolsh [list [info nameofexecutable] ]
+  if { $starkit::tolsh_mode ne "starpack" } {
+    lappend tolsh $::argv0
+  }
+  eval exec $tolsh -shared &
   after 5000            ;# wait for data sharing are created by 'shared'
   puts "exec slave"
-  exec $tolsh -slave $options(server,port) &
+  eval exec $tolsh -slave $options(server,port) &
 }
 
 proc ::tolsh::run_as_shared {} {
