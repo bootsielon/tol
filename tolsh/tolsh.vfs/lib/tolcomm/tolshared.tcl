@@ -21,14 +21,15 @@ namespace eval ::tolshared {
 #  start -- Start the shared
 #
 ###############################################################################
-proc ::tolshared::start {} {
+proc ::tolshared::start { port datadir } {
   global tqs_info
   package require Mk4tcl
   package require tequilas
 
   puts "::tolshared::start"
-  mk::file open tqs tequilas.dat -nocommit
+  # OJO: este archivo hay abrirlo en algun directorio controlado
+  mk::file open tqs [ file join $datadir tequilas.${port}.dat ] -nocommit
   set tqs_info(verbose) 0     ;# default logging is off
   TqsTimer ""                 ;# default commit timer is 30 seconds
-  tqsRun 20458                ;# default port is 20458
+  tqsRun $port                ;# default port is 20458
 }

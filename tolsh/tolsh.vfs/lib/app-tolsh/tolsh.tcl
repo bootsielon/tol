@@ -165,10 +165,17 @@ proc ::tolsh::getoptions { cmdline } {
         }
         set options(runmode) "slave"
       } elseif {$opt eq "shared"} {
+        # the next argument is the port number
+        set options(shared,port) [lindex $cmdline [expr {$i+1}]]
+        incr i
         if {$options(runmode) ne "" && $options(runmode) ne "shared"} {
           puts "Replacing previous run mode '$options(runmode)' with 'shared'"
         }
         set options(runmode) "shared"
+      }  elseif {$opt eq "shport"} {
+        # the next argument is the port number
+        set options(shared,port) [lindex $cmdline [expr {$i+1}]]
+        incr i
       } else {
         append delayed_msg "\nignoring unknown option: '$item'"
       }
@@ -443,7 +450,7 @@ proc ::tolsh::run { cmdline } {
     
   } elseif {$options(runmode) eq "shared"} {
     puts "runmode=shared"
-    run_as_shared    
+    run_as_shared $tolcomm_dir
   
   } elseif {$options(runmode) eq "slave"} {
     puts "runmode=slave"
@@ -455,12 +462,28 @@ proc ::tolsh::run_as_server {tolcomm_dir} {
   variable options
   package require tolserver
 
-  clone
+  set shared_port [ clone ]
   tolserver::start -port $options(server,port) \
+    -shport $shared_port \
     -logfile [file join $tolcomm_dir "tolserver.log"] \
     -compile $options(compile)
   vwait __forever__
 }   
+
+proc ::tolsh::find_shared_port { port } {
+  puts "::tolsh::find_shared_port $port"
+  set i 0
+  while { $i < 100 } {
+    if { [ catch { socket localhost $port } fd ] } {
+      puts "find_shared_port OK = $port"
+      return $port
+    }
+    incr port
+    incr i
+  }
+  puts "find_shared_port FAIL!"
+  return 0
+}
 
 proc ::tolsh::clone {} {
   variable options
@@ -470,23 +493,30 @@ proc ::tolsh::clone {} {
   if { $starkit::tolsh_mode ne "starpack" } {
     lappend tolsh $::argv0
   }
-  eval exec $tolsh -shared &
+  set shared_port [ find_shared_port 20458 ]
+  if { !$shared_port } {
+    puts "::tolsh::clone: could not find a valid port for shared data"
+    exit
+  }
+  eval exec $tolsh -shared $shared_port &
   after 5000            ;# wait for data sharing are created by 'shared'
   puts "exec slave"
-  eval exec $tolsh -slave $options(server,port) &
+  eval exec $tolsh -slave $options(server,port) -shport $shared_port &
+  return $shared_port
 }
 
-proc ::tolsh::run_as_shared {} {
+proc ::tolsh::run_as_shared { tolcomm_dir } {
   package require tolshared
+  variable options
 
-  tolshared::start
+  tolshared::start $options(shared,port) $tolcomm_dir
 }   
 
-proc ::tolsh::run_as_slave {tolcomm_dir} {
+proc ::tolsh::run_as_slave { tolcomm_dir } {
   variable options
   package require tolslave
 
-  tolslave::start -port $options(server,port) \
+  tolslave::start -port $options(server,port) -shport $options(shared,port) \
     -logfile [file join $tolcomm_dir "tolslave.log"]
   vwait __forever__
 }   

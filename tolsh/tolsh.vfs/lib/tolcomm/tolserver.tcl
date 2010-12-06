@@ -451,6 +451,7 @@ proc ::tolserver::start { args } {
 
   array set options {
     -port 6669
+    -shport 20458
     -logfile ""
     -compile ""
   }
@@ -466,20 +467,20 @@ proc ::tolserver::start { args } {
     log "notice" "started"
   }
   
-  server_attach_data
+  server_attach_data $options(-shport)
 
   log "debug" "shared_tasks(init)=$options(-compile)"
   set shared_tasks(init) $options(-compile)  
   set shared_tasks(server_init) 1
 }
 
-proc ::tolserver::server_attach_data {} {
+proc ::tolserver::server_attach_data { shared_port } {
   package require tequila
   global shared_tasks
   global shared_state
   global shared_finish
 
-  tequila::open localhost 20458
+  tequila::open localhost $shared_port
   tequila::attach shared_tasks
   tequila::attach shared_state
   tequila::attach shared_finish
