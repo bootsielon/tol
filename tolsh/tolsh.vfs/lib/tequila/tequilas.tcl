@@ -430,7 +430,7 @@ proc TqsShutdown {} {
 # parameter values before calling tqsRun or tqsStart (background use).
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if {[lsearch -exact [package names] tequilas] < 0} {
+if {0 && [lsearch -exact [package names] tequilas] < 0} {
     package require Mk4tcl
     mk::file open tqs tequilas.dat -nocommit
 

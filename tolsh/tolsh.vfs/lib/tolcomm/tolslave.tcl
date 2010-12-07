@@ -60,6 +60,7 @@ proc ::tolslave::start {args} {
 
   array set options {
     -port 6669
+    -shport 20458
     -logfile ""
   }
   array set options $args
@@ -76,7 +77,7 @@ proc ::tolslave::start {args} {
     }
   }]
 
-  slave_attach_data
+  slave_attach_data $options(-shport)
 
   # Compile expression and tol file provided in the command line
   #
@@ -97,13 +98,13 @@ proc ::tolslave::start {args} {
   log "debug" "leave start"
 }
 
-proc ::tolslave::slave_attach_data {} {
+proc ::tolslave::slave_attach_data { port } {
   package require tequila
   global shared_state
   global shared_tasks
   global shared_finish
 
-  tequila::open localhost 20458
+  tequila::open localhost $port
   tequila::attach shared_state
   tequila::attach shared_tasks
   tequila::attach shared_finish
