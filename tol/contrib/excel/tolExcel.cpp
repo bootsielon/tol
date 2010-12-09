@@ -336,6 +336,10 @@ bool TolExcel::getCellCoordinates( const BText & name, BSyntaxObject *cell,
 }
 
 TolExcel::TolExcel( )
+: m_isOpen(false),
+  m_ptrXLS(NULL),
+  m_ptrFmtMgr(NULL),
+  m_ptrActiveWS(NULL)
 {
   m_ptrXLS = new BasicExcel;
   m_ptrActiveWS = NULL;
@@ -343,6 +347,10 @@ TolExcel::TolExcel( )
 }
 
 TolExcel::TolExcel( char *path )
+: m_isOpen(false),
+  m_ptrXLS(NULL),
+  m_ptrFmtMgr(NULL),
+  m_ptrActiveWS(NULL)
 {
   m_ptrXLS = new BasicExcel;
   if ( !( m_isOpen = m_ptrXLS->Load( path ) ) ) {
