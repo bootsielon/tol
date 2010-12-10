@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="tollib"
 	ProjectGUID="{9DFD4DC8-3362-4F04-A5FB-AFAF343CDF43}"
 	RootNamespace="tollib"
@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(LTDL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois;../PackArchive"
+				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(LTDL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;&quot;$(CINT_INC)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois;../PackArchive"
 				PreprocessorDefinitions="_DEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__;__USE_ZIP_ARCHIVE__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -79,7 +79,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib ws2_32.lib shell32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/debug/libgsl_dll_d.lib $(CHOLMOD_LIB)/debug/libcholmod.lib $(CHOLMOD_LIB)/debug/blapi.lib $(BZIP2_LIB)/debug/libbz2_debug.lib $(ZipArchive_LIB)/debug/ZipArchive.lib ANN.lib libltdl.lib $(NOINHERIT)"
+				AdditionalDependencies="user32.lib ws2_32.lib shell32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/debug/libgsl_dll_d.lib $(CHOLMOD_LIB)/debug/libcholmod.lib $(CHOLMOD_LIB)/debug/blapi.lib $(BZIP2_LIB)/debug/libbz2_debug.lib $(ZipArchive_LIB)/debug/ZipArchive.lib $(CINT_LIB)/libcint.lib ANN.lib libltdl.lib $(NOINHERIT)"
 				OutputFile="Debug/tol.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -154,7 +154,7 @@
 				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(LTDL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois;../PackArchive"
+				AdditionalIncludeDirectories=".;..;../..;&quot;$(BOOST)&quot;;&quot;$(BZIP2_INC)&quot;;&quot;$(ATLAS_INC)&quot;;&quot;$(ANN_INCLUDE)&quot;;&quot;$(CHOLMOD_INC)&quot;;&quot;$(GSL_INC)&quot;;&quot;$(ZipArchive_INC)&quot;;&quot;$(LTDL_INC)&quot;;&quot;$(GOOGLE_SPARSEHASH)&quot;;&quot;$(CINT_INC)&quot;;../bbasic;../bmath;../bmath/barith;../bmath/bfunct;../bmath/blinalg;../bmath/bprdist;../bmath/bstat;../bmath/csparse;../bmath/dcdflib;../bmath/mathobjects;../bmath/gsl_ext;../bparser;../btol;../btol/bdb;../btol/bgrammar;../btol/bgsl;../btol/bmodel;../btol/code_type;../btol/complex_type;../btol/date_type;../btol/ctime_type;../btol/matrix_type;../btol/vmatrix_type;../btol/polynomial_type;../btol/ratio_type;../btol/real_type;../btol/serie_type;../btol/set_type;../btol/text_type;../btol/timeset_type;../btol/ctimeset_type;../btol/cseries_type;../lang;../ois;../PackArchive"
 				PreprocessorDefinitions="NDEBUG;__WIN32__;WIN32;_WINDOWS;_USRDLL;HAVE_CONFIG_H;TOLDLL_EXPORTS;__USE_DYNSCOPE__;__USE_ZIP_ARCHIVE__"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -182,7 +182,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="user32.lib shell32.lib ws2_32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/release/libgsl_dll.lib $(CHOLMOD_LIB)/release/libcholmod.lib $(CHOLMOD_LIB)/release/blapi.lib $(BZIP2_LIB)/release/libbz2.lib $(ZipArchive_LIB)/release/ZipArchive.lib ANN.lib libltdl.lib $(NOINHERIT)"
+				AdditionalDependencies="user32.lib shell32.lib ws2_32.lib $(ATLAS_LIB)/libcblas.lib $(ATLAS_LIB)/libclapack.lib $(GSL_LIB)/release/libgsl_dll.lib $(CHOLMOD_LIB)/release/libcholmod.lib $(CHOLMOD_LIB)/release/blapi.lib $(BZIP2_LIB)/release/libbz2.lib $(ZipArchive_LIB)/release/ZipArchive.lib $(CINT_LIB)/libcint.lib ANN.lib libltdl.lib $(NOINHERIT)"
 				OutputFile="$(OutDir)\tol.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -4741,6 +4741,14 @@
 					</File>
 					<File
 						RelativePath="..\contrib\excel\tolExcel.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="cint"
+					>
+					<File
+						RelativePath="..\contrib\cint\tolCint.cpp"
 						>
 					</File>
 				</Filter>
