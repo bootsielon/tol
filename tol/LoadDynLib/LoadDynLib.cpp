@@ -80,7 +80,7 @@ BGraContensP<BNameBlock>* NewUserNameBlock()
   DeclareContensClass(BDat, BDatTemporary, BDatLoadDynLib);
   DefExtOpr(1, BDatLoadDynLib, "LoadDynLib", 1, 2, "Text Text",
   "(Text libraryPath [, Text libraryName])",
-  I2("Link a dynamic library without TOL built-in functios.",
+  I2("Link a dynamic library without TOL built-in functions.",
      "Enlaca una librería dinámica sin funciones TOL nativas."),
      BOperClassify::Statistic_);
   void BDatLoadDynLib::CalcContens()
