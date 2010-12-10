@@ -45,12 +45,19 @@ extern G__EXPORT G__value G__exec_tempfile G__P((G__CONST char *file));
 
 static int G__init_cint__ = G__init_cint("cint");
 
+static BText cint_url_link = I2( 
+  "\nSee more about the C/C++ interpreter CINT at ",
+  "\nMás detalles acerca del intérprete CINT para C/C++ en ")+
+  "\n  http://root.cern.ch/drupal/content/cint\n"
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatCINT_loadfile);
   DefExtOpr(1, BDatCINT_loadfile, "Cint.loadfile", 1, 1, "Text",
   "(Text filePath)",
-  I2(".",
-     "."),
+  I2("Loads a C/C++ file to global scope in order to be used in TOL " 
+     "by mean of CINT API functions.",
+     "Carga un fichero C/C++ en el ámbito global para ser usado en "
+     "TOL mediante las funciones de la API de CINT.")+
+     cint_url_link,
      BOperClassify::Conversion_);
   void BDatCINT_loadfile::CalcContens()
 //--------------------------------------------------------------------
@@ -64,8 +71,9 @@ static int G__init_cint__ = G__init_cint("cint");
   DeclareContensClass(BDat, BDatTemporary, BDatCINT_unloadfile);
   DefExtOpr(1, BDatCINT_unloadfile, "Cint.unloadfile", 1, 1, "Text",
   "(Text filePath)",
-  I2(".",
-     "."),
+  I2("Unloads a C/C++ file previously loaded by Cint.loadfile.",
+     "Descarga un fichero C/C++ previamente cargado con Cint.loadfile")+
+     cint_url_link,
      BOperClassify::Conversion_);
   void BDatCINT_unloadfile::CalcContens()
 //--------------------------------------------------------------------
@@ -102,8 +110,17 @@ static int G__init_cint__ = G__init_cint("cint");
   DeclareContensClass(BDat, BDatTemporary, BDatCINT_calc);
   DefExtOpr(1, BDatCINT_calc, "Cint.calc", 1, 1, "Text",
   "(Text expression)",
-  I2(".",
-     "."),
+  I2("Executes a simple C/C++ expression returning an integer or double "
+     "value.\n"
+     "Functions loaded with Cint.loadfile can be callable.\n"
+     "Declaration, loop  and  conditional statement can not be used in "
+     "the expression.\n",
+     "Ejecuta una expresión simple C/C++ que devuelve un resultado de tipo "
+     "integer o double.\n"
+     "Se pueden usar las funciones previamente cargadas con Cint.loadfile\n"
+     "No se pueden declarar variables ni funciones ni hacer ciclos ni "
+     "sentencias condicionales.")+
+     cint_url_link,
      BOperClassify::Conversion_);
   void BDatCINT_calc::CalcContens()
 //--------------------------------------------------------------------
