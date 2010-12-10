@@ -1,6 +1,7 @@
 /* tolCint.cpp: API for CINT, a interpreter to C and C++.
 
    http://root.cern.ch/drupal/content/cint
+   http://root.cern.ch/viewvc/trunk/cint/doc/ref.txt
 
    Copyright (C) 2010 - Bayes Decision, SL (Spain [EU])
 
@@ -36,19 +37,46 @@
 
 /*
 
-extern G__EXPORT G__value G__calc G__P((G__CONST char *expr));
-extern G__EXPORT int  G__loadfile G__P((G__CONST char* filename));
-extern G__EXPORT int  G__unloadfile G__P((G__CONST char* filename));
-extern G__EXPORT G__value G__exec_tempfile G__P((G__CONST char *file));
+G__scratch_all()
 
 */
 
-static int G__init_cint__ = G__init_cint("cint");
 
+//--------------------------------------------------------------------
+void Cint_errmsgcallback(char *msg)
+//--------------------------------------------------------------------
+{
+  BText filename = G__lasterror_filename();
+  BText linenum = G__lasterror_linenum();
+  BText locInfo = "";
+  if(filename.HasName()) 
+  { 
+    locInfo = BText("\nIn file ")+filename+" line "+linenum;
+  }
+  Error(BText("\n[Cint] ")+locInfo+msg);
+}
+
+
+//--------------------------------------------------------------------
+int Cint_initialize()
+//--------------------------------------------------------------------
+{
+  int G__init_cint_ = G__init_cint("cint");
+  G__set_errmsgcallback(Cint_errmsgcallback);
+  return(G__init_cint_);
+};
+
+//--------------------------------------------------------------------
+static int G__init_cint__ = Cint_initialize();
+//--------------------------------------------------------------------
+
+//--------------------------------------------------------------------
 static BText cint_url_link = I2( 
+//--------------------------------------------------------------------
   "\nSee more about the C/C++ interpreter CINT at ",
   "\nMás detalles acerca del intérprete CINT para C/C++ en ")+
-  "\n  http://root.cern.ch/drupal/content/cint\n";
+  "\n  http://root.cern.ch/drupal/content/cint\n"
+  "\n  http://root.cern.ch/viewvc/trunk/cint/doc/ref.txt\n";
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatCINT_loadfile);
@@ -86,18 +114,29 @@ static BText cint_url_link = I2(
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatCINT_exec_tempfile);
-  DefExtOpr(1, BDatCINT_exec_tempfile, "Cint.exec_tempfile", 1, 1, "Text",
-  "(Text filePath)",
-  I2(".",
-     "."),
+  DefExtOpr(1, BDatCINT_exec_tempfile, "Cint.exec_text", 1, 1, "Text",
+  "(Text expression)",
+    I2("Executes any C/C++ expression or set of expressions, such that the "
+     "last one returns an integer or double value.\n"
+     "Functions loaded with Cint.loadfile can be callable.\n"
+     "Unlike Cint.calc API, Cint.exec_text can evaluate declaration and "
+     "conditional statement. However, because Cint.exec_text uses temporary "
+     "file, execution can be slower than Cint.calc\n",
+     "Ejecuta una expresión C/C++ o grupo de expresiones tales que la última "
+     "de ellas devuelve un resultado de tipo integer o double.\n"
+     "Se pueden usar las funciones previamente cargadas con Cint.loadfile\n"
+     "Al contrario que con Cint.calc sí se pueden declarar variables y "
+     "funciones y usar ciclos o sentencias condicionales, pero debido a "
+     "que internamente se usa un fichero temporal en disco puede resultar "
+     "más lento en ejecución.")+
+     cint_url_link,
      BOperClassify::Conversion_);
   void BDatCINT_exec_tempfile::CalcContens()
 //--------------------------------------------------------------------
 {
-  if(CheckNonDeclarativeAction("Cint.exec_tempfile")) { return; }
-  BText& filePath = Text(Arg(1));
-  const char* str = filePath.String();
-  G__value g = G__exec_tempfile(str);
+  if(CheckNonDeclarativeAction("Cint.exec_text")) { return; }
+  BText& expression = Text(Arg(1));
+  G__value g = G__exec_text(expression);
   switch (g.type) 
   {
     case 100: contens_ = g.obj.d; break;
