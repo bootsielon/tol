@@ -48,7 +48,8 @@ static int G__init_cint__ = G__init_cint("cint");
 static BText cint_url_link = I2( 
   "\nSee more about the C/C++ interpreter CINT at ",
   "\nMás detalles acerca del intérprete CINT para C/C++ en ")+
-  "\n  http://root.cern.ch/drupal/content/cint\n"
+  "\n  http://root.cern.ch/drupal/content/cint\n";
+
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatCINT_loadfile);
   DefExtOpr(1, BDatCINT_loadfile, "Cint.loadfile", 1, 1, "Text",
