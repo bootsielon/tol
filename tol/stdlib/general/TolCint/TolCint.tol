@@ -20,7 +20,8 @@ Set _.standardModules = Copy(Empty);
 Real StartActions(Real void)
 {
   Set Append(_.standardModules, [[
-    @Module tol_cint_casting = @Module::Load(_root+"/tol_cint_casting.cpp")
+    @Module tol_cint_casting = @Module::Load(_root+"/tol_cint_casting.cpp"),
+    @Module tol_cint_msg     = @Module::Load(_root+"/tol_cint_msg.cpp")
   ]]);
   True
 }
