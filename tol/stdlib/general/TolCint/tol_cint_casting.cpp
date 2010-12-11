@@ -31,7 +31,7 @@ public:
     buffer_(NULL),
     deleteBuffer_(false)
   {
-    Alloc(rows. columns)
+    Alloc(rows,columns);
   }
 
  ~Matrix()
