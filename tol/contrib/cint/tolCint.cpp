@@ -42,6 +42,17 @@ G__scratch_all()
 
 */
 
+//--------------------------------------------------------------------
+ BText cint_url_link()
+//--------------------------------------------------------------------
+{
+  return(I2(  
+  "\nSee more about the C/C++ interpreter CINT at ",
+  "\nMás detalles acerca del intérprete CINT para C/C++ en ")+
+  "\n  http://root.cern.ch/drupal/content/cint\n"
+  "\n  http://root.cern.ch/viewvc/trunk/cint/doc/ref.txt\n");
+}
+
 
 //--------------------------------------------------------------------
 void Cint_errmsgcallback(char *msg)
@@ -72,13 +83,6 @@ int Cint_initialize()
 static int G__init_cint__ = Cint_initialize();
 //--------------------------------------------------------------------
 
-//--------------------------------------------------------------------
-static BText cint_url_link = I2( 
-//--------------------------------------------------------------------
-  "\nSee more about the C/C++ interpreter CINT at ",
-  "\nMás detalles acerca del intérprete CINT para C/C++ en ")+
-  "\n  http://root.cern.ch/drupal/content/cint\n"
-  "\n  http://root.cern.ch/viewvc/trunk/cint/doc/ref.txt\n";
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatCINT_loadfile);
@@ -88,7 +92,7 @@ static BText cint_url_link = I2(
      "by mean of CINT API functions.",
      "Carga un fichero C/C++ en el ámbito global para ser usado en "
      "TOL mediante las funciones de la API de CINT.")+
-     cint_url_link,
+     cint_url_link(),
      BOperClassify::Conversion_);
   void BDatCINT_loadfile::CalcContens()
 //--------------------------------------------------------------------
@@ -104,7 +108,7 @@ static BText cint_url_link = I2(
   "(Text filePath)",
   I2("Unloads a C/C++ file previously loaded by Cint.loadfile.",
      "Descarga un fichero C/C++ previamente cargado con Cint.loadfile")+
-     cint_url_link,
+     cint_url_link(),
      BOperClassify::Conversion_);
   void BDatCINT_unloadfile::CalcContens()
 //--------------------------------------------------------------------
@@ -118,34 +122,26 @@ static BText cint_url_link = I2(
   DeclareContensClass(BDat, BDatTemporary, BDatCINT_exec_tempfile);
   DefExtOpr(1, BDatCINT_exec_tempfile, "Cint.exec_text", 1, 1, "Text",
   "(Text expression)",
-    I2("Executes any C/C++ expression or set of expressions, such that the "
-     "last one returns an integer or double value.\n"
+    I2("Executes any C/C++ expression or set of expressions.\n"
      "Functions loaded with Cint.loadfile can be callable.\n"
      "Unlike Cint.calc API, Cint.exec_text can evaluate declaration and "
      "conditional statement. However, because Cint.exec_text uses temporary "
      "file, execution can be slower than Cint.calc\n",
-     "Ejecuta una expresión C/C++ o grupo de expresiones tales que la última "
-     "de ellas devuelve un resultado de tipo integer o double.\n"
+     "Ejecuta una expresión C/C++ o grupo de expresiones.\n"
      "Se pueden usar las funciones previamente cargadas con Cint.loadfile\n"
      "Al contrario que con Cint.calc sí se pueden declarar variables y "
      "funciones y usar ciclos o sentencias condicionales, pero debido a "
      "que internamente se usa un fichero temporal en disco puede resultar "
      "más lento en ejecución.")+
-     cint_url_link,
+     cint_url_link(),
      BOperClassify::Conversion_);
   void BDatCINT_exec_tempfile::CalcContens()
 //--------------------------------------------------------------------
 {
   if(CheckNonDeclarativeAction("Cint.exec_text")) { return; }
   BText& expression = Text(Arg(1));
-  G__value g = G__exec_text(expression);
-  switch (g.type) 
-  {
-    case 100: contens_ = g.obj.d; break;
-    case 105: contens_ = g.obj.i; break;
-    default: Error(I2("Unknown CINT type ",
-                      "Tipo CINT desconocido ")<<g.type);
-  }
+  G__exec_text(expression);
+  contens_ = true;
 }
 
 //--------------------------------------------------------------------
@@ -162,7 +158,7 @@ static BText cint_url_link = I2(
      "Se pueden usar las funciones previamente cargadas con Cint.loadfile\n"
      "No se pueden declarar variables ni funciones ni hacer ciclos ni "
      "sentencias condicionales.")+
-     cint_url_link,
+     cint_url_link(),
      BOperClassify::Conversion_);
   void BDatCINT_calc::CalcContens()
 //--------------------------------------------------------------------
@@ -211,7 +207,7 @@ static BText cint_url_link = I2(
      "pero el alojo de memoria no puede ser alterado. "
      "Por ejemplo, es posible cambiar los elementos de una matriz pero "
      "no el número de celdas, filas o columnas")+
-    cint_url_link,
+    cint_url_link(),
   BOperClassify::Conversion_);
   void BDatCINT_import_from_tol::CalcContens()
 //--------------------------------------------------------------------
