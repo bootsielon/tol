@@ -50,6 +50,7 @@
 #include <tol/tol_bparser.h>
 #include <tol/tol_bsymboltable.h>
 #include <tol/tol_bnameblock.h>
+#include <G__ci.h>
 
 BTraceInit("spfuninst.cpp");
 
@@ -1790,6 +1791,78 @@ static BSyntaxObject* EvAvoidErrNonDecAct(BGrammar* gra, const List* tre, BBool 
   return(result);
 }
 
+
+//--------------------------------------------------------------------
+static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool left)
+
+/*! Evaluate Case expressions
+ */
+//--------------------------------------------------------------------
+{
+  static BText _name_ = "Cint.export_to_tol";
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  BSyntaxObject* result = NULL;
+  if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
+  {
+    bool oldUseModule = BOis::RunningUseModule();
+    BSyntaxObject* uNam = GraText()->EvaluateTree(Branch(tre,1));
+    if(uNam && (uNam->Grammar()==GraText()))
+    {
+      const BText& name = Text(uNam);
+      int ptr = 0;
+      G__value g;
+      if(gra==GraReal())
+      {
+        g = G__calc(BText("(int)(double*)(")+name+")");
+        if(g.type == 105 ) { ptr = g.obj.i; }
+        if(ptr)
+        {
+          double cnt = *(double*)ptr;
+          result = new BContensDat(name,cnt,"");
+        }
+      }
+      else if(gra==GraMatrix())
+      {
+        int rows = -1, columns = -1;
+        double* buffer = NULL;
+        g = G__calc(name+".rows_");
+        if(g.type == 105 ) { rows = g.obj.i; }
+        g = G__calc(name+".columns_");
+        if(g.type == 105 ) { columns = g.obj.i; }
+        g = G__calc(BText("(int)(double*)(")+name+".buffer_)");
+        if(g.type == 105 ) { buffer = (double*)g.obj.i; }
+        if(rows>0 && columns>0 && buffer!=NULL)
+        {
+          BMat cnt(rows, columns, (BDat*)buffer);  
+          result = new BContensMat(name,cnt,"");
+        }
+      }
+      else if(gra==GraText())
+      {
+        int length = -1;
+        char* buffer = NULL;
+        g = G__calc(name+".length_");
+        if(g.type == 105 ) { length = g.obj.i; }
+        g = G__calc(BText("(int)(char*)(")+name+".buffer_)");
+        if(g.type == 105 ) { buffer = (char*)g.obj.i; }
+        if(length>0 && buffer!=NULL)
+        {
+          BText cnt(buffer, length);  
+          result = new BContensText(name,cnt,"");
+        }
+      }
+      else
+      {
+        Error(BText("[")+_name_+"] "+
+              I2("Not allowed TOL type ","Tipo TOL no permitido ")+
+              gra->Name());
+      }
+    }
+    result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
+  }
+  return(result);
+}
+
 //--------------------------------------------------------------------
 static bool BSpecialFunction_IsInitialized()
 //--------------------------------------------------------------------
@@ -2257,6 +2330,12 @@ bool BSpecialFunction::Initialize()
      "se está creando un módulo OIS. Úsese con mucho cuidado y sólo si realmente "
      "se quiere que durante la carga del OIS no se ejecuten dichas acciones."),
      EvAvoidErrNonDecAct);
+
+  AddInstance("Cint.export_to_tol",
+     "(Text name)",
+  I2(".",
+     "."),
+     EvCint_export_to_tol);
 
 
   return(true);
