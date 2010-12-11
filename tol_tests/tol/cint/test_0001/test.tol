@@ -39,6 +39,7 @@ Set partialResults_ =
 [[
   numErr0,
   numErr1,
+  N,
   x.cint,
   x.tol,
   t.cint,
