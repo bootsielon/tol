@@ -17,7 +17,7 @@ Real tolNum = Copy(const);
 
 Matrix tolMat = Col(1,2,3,4,5,6,7);
 
-Real imp = Cint.import_tol_var(tolNum, tolMat);
+Real imp = Cint.import_from_tol(tolNum, tolMat);
 
 Real Cint.exec_text("
   tolNum *= 2

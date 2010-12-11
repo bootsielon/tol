@@ -15,9 +15,9 @@ Real numErr0 = Copy(NError);
 Real N = 1000000;
 Real t0 = Copy(Time);
 
-Real Cint.loadfile("tools.cpp");
+NameBlock TolCint::@Module::Load("tools.cpp");
+
 Real x.cint = Cint.calc("sum_harmonic("<<N+")");
-Real Cint.unloadfile("tools.cpp");
 
 Real t.cint = Copy(Time)-t0;
 

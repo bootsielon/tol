@@ -5,7 +5,7 @@
 
 Text email_ = "vdebuen@tol-project.org"; 
 Text link_ = "";
-Text summary_ = "test for CINT API" ;
+Text summary_ = "Test for CINT API. CINT messages visible from TOL interface." ;
 
 
 //Write here the initial test TOL code if needed
@@ -14,13 +14,10 @@ Real numErr0 = Copy(NError);
 
 NameBlock TolCint::@Module::Load("tools.cpp");
 
-Real x.1 = Cint.exec_text("
-  my_inequation ineq_1( 0,2); 
-  my_inequation ineq_2(-1,1); 
-  0;
-");
-Real x.2 = Cint.calc("ineq_1.constraint(12,17)");
-Real x.3 = Cint.calc("ineq_2.constraint(12,17)");
+Real Cint.calc("check_pos(-1.0)");
+
+Real Sleep(3);
+Real Cint.calc("G__FreeConsole()");
 
 
 Real numErr1 = Copy(NError);
@@ -29,13 +26,12 @@ Real numErr1 = Copy(NError);
 Set partialResults_ = 
 [[
   numErr0,
-  numErr1,
-  x.2,
-  x.3
+  numErr1
 ]];
 
 //This is a messure of the success of the test 
-Real quality_ = And(numErr0 == numErr1, x.2 == -9, x.3 == -1348);
+Real quality_ = And(
+  numErr0 == numErr1);
 
 //Return the results 
 Set resultStr_ = @strTestStatus(summary_, link_, quality_,
