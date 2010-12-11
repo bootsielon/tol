@@ -40,8 +40,8 @@ NameBlock DBConnect =
         I2("Purpose: ","Propósito: ")+purpose;
 
       Text _.alias     = alias;
-      Text _.user      = user;
-      Text _.password  = password;
+      Text  _user      = user;
+      Text  _password  = password;
       Text _.server    = server;
       Real _.isOpen    = false;
       Text _.driver    = 
@@ -74,8 +74,8 @@ NameBlock DBConnect =
         //necesidad de crear el alias en la configuración de herramientas del
         //sistema
           Real ok = If(_.driver=="odbc",
-            DBOpen(_.alias, _.user, _.password),
-            DBOpen(_.alias, _.user, _.password, 
+            DBOpen(_.alias, _user, _password),
+            DBOpen(_.alias, _user, _password, 
                    [[_.driver, _.defaultDB, _.server]]));
           Real _.isOpen := ok;
           If(ok,
