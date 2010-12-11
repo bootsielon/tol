@@ -27,6 +27,7 @@
 
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bdatgra.h>
+#include <tol/tol_bmatgra.h>
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_btxtgra.h>
 
@@ -174,6 +175,77 @@ static BText cint_url_link = I2(
     case 105: contens_ = g.obj.i; break;
     default: Error(I2("Unknown CINT type ",
                       "Tipo CINT desconocido ")<<g.type);
+  }
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatCINT_import_tol_var);
+  DefExtOpr(1, BDatCINT_import_tol_var, 
+  "Cint.import_tol_var", 1, 0, "Anything Anything",
+  "(Anything var1 [, Anything var2, ...])",
+  I2("Imports TOL variables, global or local, into CINT global scope.\n"
+     "Returns the number of imported variables\n"
+     "TOL variables must have a valid name in TOL and C languages.\n"
+     "At this moment these are the available TOL types :\n"
+     "  TOL       CINT\n"
+     "  Real      double\n"
+     "  Matrix    class Matrix\n"
+     "  Text      class Text\n"
+     "You can view the declaration of corresponding C/C++ types at ",    
+     "Importa variables TOL, globales o locales, al ámbito global de CINT\n"
+     "Devuelve el número total de variables correctamen te importadas.\n" 
+     "Las variables TOL deben tener un nombre válido en los lenguajes "
+     "TOL y C\n"
+     "Los tipos TOL admitidos para la importación son los siguientes:\n"
+     "  TOL       CINT\n"
+     "  Real      double\n"
+     "  Matrix    class Matrix\n"
+     "  Text      class Text\n"
+     "Puede ver la declaración de los correspondientes tipos C/C++ en ")+
+     "\nhttps://www.tol-project.org/browser/tolp/trunk/tol/"
+     "stdlib/general/TolCint/tol_cint_casting.cpp"+
+     cint_url_link,
+     BOperClassify::Conversion_);
+  void BDatCINT_import_tol_var::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(CheckNonDeclarativeAction("Cint.import_tol_var")) { return; }
+  
+  BSyntaxObject* var = NULL;
+  int numArg; 
+  contens_ = 0;
+  
+  for(numArg = 1; var=Arg(numArg); numArg++)
+  {
+    BGrammar* gra = var->Grammar();
+    if(gra==GraReal())
+    {
+      BDat& dat = Dat(var);
+      double* ptr = (double*)(&dat);
+      int ptrNum = (int)ptr;
+      BText expression = BText("double& ")+var->Name()+" = *((double *)("<<ptrNum<<"))";
+    //Std(BText("TRACE [Cint.import_tol_variable] ")+expression);
+      G__exec_text(expression);
+      contens_ += 1;
+    }
+    else if(gra==GraMatrix())
+    {
+      BMat& mat = Mat(var);
+      double* ptr = (double*)(mat.GetData().GetBuffer());
+      int ptrNum = (int)ptr;
+      BText expression = BText("Matrix ")+var->Name()+" ( "<<
+        mat.Rows()<<","<<
+        mat.Columns()<<","<<
+        " ((double *)("<<ptrNum<<")) ); 0;";
+    //Std(BText("TRACE [Cint.import_tol_variable] ")+expression);
+      G__exec_text(expression);
+      contens_ += 1;
+    }
+    else 
+    {
+      Warning(BText("[Cint.import_tol_variable] ")+
+        "Cannot import TOL variables of type "<<gra->Name());
+    }
   }
 }
 
