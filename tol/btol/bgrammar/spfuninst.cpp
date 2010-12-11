@@ -1860,6 +1860,10 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
     }
     result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
   }
+  if(result)
+  {
+    BGrammar::AddObject(result);
+  }
   return(result);
 }
 
@@ -2331,10 +2335,26 @@ bool BSpecialFunction::Initialize()
      "se quiere que durante la carga del OIS no se ejecuten dichas acciones."),
      EvAvoidErrNonDecAct);
 
+ BText cint_url_link();
+
   AddInstance("Cint.export_to_tol",
      "(Text name)",
-  I2(".",
-     "."),
+     I2("Export global CINT variables to current TOL scope.\n"
+     "CINT variables must have a valid name in TOL and C languages.\n"
+     "At this moment these are the available TOL types :\n",    
+     "Exporta variables CINT globales al ámbito actual de TOL\n"
+     "Las variables TOL deben tener un nombre válido en los lenguajes "
+     "TOL y C\n"
+     "Los tipos TOL admitidos para la importación son los siguientes:\n")+
+     "  TOL       CINT\n"
+     "  Real      double\n"
+     "  Matrix    class Matrix\n"
+     "  Text      class Text\n"+
+     I2("You can view the declaration of corresponding C/C++ types at ",    
+     "Puede ver la declaración de los correspondientes tipos C/C++ en ")+
+     "\nhttps://www.tol-project.org/browser/tolp/trunk/tol/"
+     "stdlib/general/TolCint/tol_cint_casting.cpp"+
+     cint_url_link(),
      EvCint_export_to_tol);
 
 
