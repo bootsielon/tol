@@ -1818,7 +1818,7 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
         if(ptr)
         {
           double cnt = *(double*)ptr;
-          result = new BContensDat(name,cnt,"");
+          result = new BContensDat("",cnt,"");
         }
       }
       else if(gra==GraMatrix())
@@ -1834,7 +1834,7 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
         if(rows>0 && columns>0 && buffer!=NULL)
         {
           BMat cnt(rows, columns, (BDat*)buffer);  
-          result = new BContensMat(name,cnt,"");
+          result = new BContensMat("",cnt,"");
         }
       }
       else if(gra==GraText())
@@ -1848,7 +1848,7 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
         if(length>0 && buffer!=NULL)
         {
           BText cnt(buffer, length);  
-          result = new BContensText(name,cnt,"");
+          result = new BContensText("",cnt,"");
         }
       }
       else
@@ -1857,12 +1857,14 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
               I2("Not allowed TOL type ","Tipo TOL no permitido ")+
               gra->Name());
       }
+      if(result)
+      {
+        result->PutName(name);
+        BGrammar::AddObject(result);
+      }
+      DESTROY(uNam);
     }
     result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
-  }
-  if(result)
-  {
-    BGrammar::AddObject(result);
   }
   return(result);
 }
