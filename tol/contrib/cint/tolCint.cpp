@@ -74,7 +74,7 @@ int Cint_initialize()
 //--------------------------------------------------------------------
 {
   int G__init_cint_ = G__init_cint("cint");
-  G__set_errmsgcallback(Cint_errmsgcallback);
+  G__set_errmsgcallback(reinterpret_cast<void*>(Cint_errmsgcallback));
   G__setautoconsole(1);
   return(G__init_cint_);
 }
