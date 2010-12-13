@@ -524,7 +524,7 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
             "You can view them at:\n "
             "  Set TolPackage::Client::_.packForUpgrade\n"
             "You can upgrade all them running this TOL sentence: \n"
-            "  Set TolPackage::Client::RemoteUpgradeAll(0)\n",
+            "  Real TolPackage::Client::RemoteUpgradeAll(0)\n",
             "W")
   });
   Set _.packForInstall := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
