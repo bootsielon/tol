@@ -12,25 +12,31 @@ Text summary_ = "test for CINT API" ;
 
 Real numErr0 = Copy(NError);
 
+#Require TolCint;
+
 Real N = 1000000;
-Real t0 = Copy(Time);
 
 NameBlock TolCint::@Module::Load("tools.cpp");
 
+Real t0 = Copy(Time);
 Real x.cint = Cint.calc("sum_harmonic("<<N+")");
-
 Real t.cint = Copy(Time)-t0;
+
+WriteLn("Time for evaluation of sum_harmonic("<<N+") with Cint = "<<t.cint);
 
 #Embed "tools.tol";
 
 Real t0 := Copy(Time);
-
-Real x.tol = sum_harmonic(N);
-
+Real x.tol = sum_harmonic_cycle(N);
 Real t.tol = Copy(Time)-t0;
 
-WriteLn("Time for evaluation of sum_harmonic("<<N+") with Cint = "<<t.cint);
-WriteLn("Time for evaluation of sum_harmonic("<<N+") with TOL  = "<<t.tol);
+WriteLn("Time for evaluation of sum_harmonic_cycle("<<N+") with TOL cycle = "<<t.tol);
+
+Real t0 := Copy(Time);
+Real x.mat = sum_harmonic_matrix(N);
+Real t.mat = Copy(Time)-t0;
+
+WriteLn("Time for evaluation of sum_harmonic_matrix("<<N+") with TOL matrix trick = "<<t.mat);
 
 Real numErr1 = Copy(NError);
 
@@ -42,12 +48,17 @@ Set partialResults_ =
   N,
   x.cint,
   x.tol,
+  x.mat,
   t.cint,
-  t.tol
+  t.tol,
+  t.mat
 ]];
 
 //This is a messure of the success of the test 
-Real quality_ = And(numErr0 == numErr1, x.cint == x.tol);
+Real quality_ = And(
+  numErr0 == numErr1, 
+  x.cint == x.tol, 
+  x.cint == x.mat);
 
 //Return the results 
 Set resultStr_ = @strTestStatus(summary_, link_, quality_,

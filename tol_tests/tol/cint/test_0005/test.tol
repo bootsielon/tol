@@ -12,6 +12,8 @@ Text summary_ = "Test for CINT API. Exporting CINT variables to TOL." ;
 
 Real numErr0 = Copy(NError);
 
+#Require TolCint;
+
 Real N = 1000;
 Real Cint.exec_text("
 Matrix mat_cint("<<N+",1);

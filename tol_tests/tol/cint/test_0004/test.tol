@@ -12,6 +12,8 @@ Text summary_ = "Test for CINT API. CINT messages visible from TOL interface." ;
 
 Real numErr0 = Copy(NError);
 
+#Require TolCint;
+
 NameBlock TolCint::@Module::Load("tools.cpp");
 
 Real Cint.calc("check_pos(-1.0)");

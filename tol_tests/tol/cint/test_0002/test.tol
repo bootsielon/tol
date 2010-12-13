@@ -12,6 +12,8 @@ Text summary_ = "test for CINT API" ;
 
 Real numErr0 = Copy(NError);
 
+#Require TolCint;
+
 NameBlock TolCint::@Module::Load("tools.cpp");
 
 Real x.1 = Cint.exec_text("

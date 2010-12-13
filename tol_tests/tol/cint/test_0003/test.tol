@@ -12,6 +12,8 @@ Text summary_ = "Test for CINT API. Exporting TOL variables to CINT." ;
 
 Real numErr0 = Copy(NError);
 
+#Require TolCint;
+
 Real const = 8759;
 Real tolNum = Copy(const);
 
