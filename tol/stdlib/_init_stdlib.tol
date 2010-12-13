@@ -123,7 +123,6 @@ Set { Tpa.Hosts = If(TOLAppName!="tolsh",Copy(Empty),
 // TolPackage Client initialization
 //////////////////////////////////////////////////////////////////////////////
 Real TolPackage::Client::Initialize(0);
-Real TolCint::StartActions(0);
 
 //////////////////////////////////////////////////////////////////////////////
 // Check exists '_iniproject' to load user specific initialization files
