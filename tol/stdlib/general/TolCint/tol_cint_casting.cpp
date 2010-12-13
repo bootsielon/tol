@@ -150,18 +150,18 @@ public:
   }
   Text operator + (int num)
   {
-    int len = length_ + 64;
-    char* buf = new char[len+1];
+    int maxlen = length_ + 64;
+    char* buf = new char[maxlen+1];
     sprintf(buf,"%s%ld",buffer_,num);
-    Text txt(len, buf, 1);
+    Text txt(strlen(buf), buf, 1);
     return(txt);
   }
   Text operator + (double num)
   {
-    int len = length_ + 64;
-    char* buf = new char[len+1];
+    int maxlen = length_ + 64;
+    char* buf = new char[maxlen+1];
     sprintf(buf,"%s%.16lg",buffer_,n);
-    Text txt(len, buf, 1);
+    Text txt(strlen(buf), buf, 1);
     return(txt);
   }
 };
