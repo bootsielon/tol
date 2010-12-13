@@ -10,5 +10,3 @@ Set Include("system/_init_system.tol");
 Set Include("various/_init_various.tol");
 Set Include("tol_tests/_init_tol_tests.tol");
 Set Include("TolPackage/TolPackage.tol");
-Set Include("TolCint/TolCint.tol");
-
