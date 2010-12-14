@@ -905,6 +905,7 @@ const char * TOLVersionBuild()
 {
   static char aux_  [128];
   static bool init_ = false;
+
   if(!init_)
   {
    #ifdef __TOL_BUILD_DATE__
@@ -1123,14 +1124,6 @@ void LoadInitLibrary(char* calledProgram)
        "It's usefull, for example, to call TOL using operative system.",
 	     "El camino del programa TOL que esta siendo ejecutado en este momento."
        "Es util, por ejemplo, para llamar a TOL usando el sistema operativo."));
-  #ifdef UNIX
-  #else
-  BText binPath = GetFilePath(_tolSessionPath_);
-  _tolSdkPath_ = GetStandardAbsolutePath(binPath+"../tol_sdk_win/");
-  #endif
-  tolSdkPath_ = new BSystemText("TOLSdkPath", _tolSdkPath_,
-    I2("The path of the TOL headers.",
-	     "El camino de las cabeceras de TOL."));
 
   TOLHasBeenInitialized_ = true;
 
@@ -1160,6 +1153,19 @@ void LoadInitLibrary(char* calledProgram)
   {
     InitTOLFile(initTolPath.Name());
   }
+  #ifdef UNIX
+  // OJO: si tol se ejecuta desde el raiz del fuente entonces el
+  // stdlib se asume relativo a ese sitio y entonces el include que se
+  // forma aqui no es correcto.
+  BText stdlibPath = GetFilePath( initTolPath.Name() );
+  _tolSdkPath_ = GetStandardAbsolutePath( stdlibPath + "../../../include/" );
+  #else
+  BText binPath = GetFilePath( _tolSessionPath_ );
+  _tolSdkPath_ = GetStandardAbsolutePath( binPath+"../tol_sdk_win/" );
+  #endif
+  tolSdkPath_ = new BSystemText("TOLSDKPath", _tolSdkPath_,
+    I2("The path of the TOL headers.",
+	     "El camino de las cabeceras de TOL."));
 }
 
 //--------------------------------------------------------------------
