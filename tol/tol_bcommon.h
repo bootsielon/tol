@@ -51,7 +51,6 @@
 #  include <string>
 using namespace std;
 #    include <iostream>
-#    include <ostream>
 #    include <fstream>
 #    include <iosfwd>
 #  else
@@ -78,10 +77,6 @@ using namespace std;
 
 #if HAVE_UNISTD_H
 #  include <unistd.h>
-#endif
-
-#ifndef UNIX
-#  include <conio.h>
 #endif
 
 #if TIME_WITH_SYS_TIME
@@ -196,7 +191,6 @@ enum BSign { BPOSITIVE=1, BNULL=0, BNEGATIVE = -1 };
      TRACE_LEVEL, TRACE_MEMORY, TRACE_INIT, TRACE_BPARSER.
 */
 
-//#define TRACE_INIT 1
 
 /*You can define TRACE_LEVEL to filter some debuging traces and show the 
   rest ones. There are specific macroes for four main levels:
@@ -227,10 +221,10 @@ enum BSign { BPOSITIVE=1, BNULL=0, BNEGATIVE = -1 };
 */
 #ifdef __cplusplus
 
-//--------------------------------------------------------------------
+/* /////////////////////////////////////////////////////////////////////// */
   template <class Derived, class Base>
   class BCast
-//--------------------------------------------------------------------
+/* /////////////////////////////////////////////////////////////////////// */
 {
 public:
   static Derived* c(Base* base)
@@ -245,18 +239,18 @@ public:
   }
 };
 
-//--------------------------------------------------------------------
+/* /////////////////////////////////////////////////////////////////////// */
   class BStaticInit
-//--------------------------------------------------------------------
+/* /////////////////////////////////////////////////////////////////////// */
 {
 public:
   BStaticInit() { }
  ~BStaticInit() { }
 };
 
-//--------------------------------------------------------------------
+/* /////////////////////////////////////////////////////////////////////// */
 inline const BStaticInit& StaticInit()
-//--------------------------------------------------------------------
+/* /////////////////////////////////////////////////////////////////////// */
 {
   static BStaticInit aux_;
   return(aux_);
@@ -360,7 +354,7 @@ struct TOL_API BIntPair { BInt r_; BInt c_; };
   
 #endif
 
-//--------------------------------------------------
+/* /////////////////////////////////////////////////////////////////////// */
 #ifdef DARWIN
 
 long double  fabsl(long double x);
@@ -385,7 +379,7 @@ inline long double sqrtl(long double x) { return (long double) sqrt((double)(x))
 #  endif
 
 #endif // DARWIN
-//--------------------------------------------------
+/* /////////////////////////////////////////////////////////////////////// */
 
 #include <tol/tol_memhandler.h>
 
