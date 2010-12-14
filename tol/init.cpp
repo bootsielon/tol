@@ -120,6 +120,8 @@ static BText         _tolCredits_                 = "";
 static BText         _tolContribAcknowledgements_ = "";
 static BText         _tolSessionPath_             = "";
 static BSystemText*   tolSessionPath_             = NULL;
+static BText         _tolSdkPath_                 = "";
+static BSystemText*   tolSdkPath_                 = NULL;
 
 
 
@@ -1121,6 +1123,15 @@ void LoadInitLibrary(char* calledProgram)
        "It's usefull, for example, to call TOL using operative system.",
 	     "El camino del programa TOL que esta siendo ejecutado en este momento."
        "Es util, por ejemplo, para llamar a TOL usando el sistema operativo."));
+  #ifdef UNIX
+  #else
+  BText binPath = GetFilePath(_tolSessionPath_);
+  _tolSdkPath_ = GetStandardAbsolutePath(binPath+"../tol_sdk_win/");
+  #endif
+  tolSdkPath_ = new BSystemText("TOLSdkPath", _tolSdkPath_,
+    I2("The path of the TOL headers.",
+	     "El camino de las cabeceras de TOL."));
+
   TOLHasBeenInitialized_ = true;
 
   BText initpath = GetFilePath(_tolSessionPath_)+  "stdlib";
