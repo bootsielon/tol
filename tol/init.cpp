@@ -68,6 +68,8 @@
 
 #include <tol/tol_bnameblock.h>
 
+int Cint_initialize(const BText& filePath);
+
 #ifdef _DEBUG
 static int igtStep_=0;
 #define TrcIG(msg)   Trace(BText("\n -Step ")+(++igtStep_)+": "+(msg));
@@ -853,6 +855,7 @@ BBool InitGrammars()
     int BTolOprProfiler_Init();
     BTolOprProfiler_Init();
     TOLHasBeenInitialized_ = true;
+    Cint_initialize("");
     return(initGrammars_);
 }
 
@@ -1377,6 +1380,7 @@ static void ChangeVerboseMode(const char* vmode)
 void InitTolKernel( int lang, const char* vmode ) 
 //--------------------------------------------------------------------
 {
+  Cint_initialize("");
   BText::PutLanguage(lang);
   InitVerboseMode();
   /* Aqui hay que particionar vmode e iterar invocando
