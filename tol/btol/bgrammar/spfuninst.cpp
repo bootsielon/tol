@@ -1810,14 +1810,26 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
     {
       const BText& name = Text(uNam);
       int ptr = 0;
-      G__value g;
       if(gra==GraReal())
       {
-        g = G__calc(BText("(int)(double*)(")+name+")");
-        if(g.type == 105 ) { ptr = g.obj.i; }
-        if(ptr)
+        BDat cnt = G__double(G__calc(name));
+/*
+        g = G__calc(name);
+        bool ok = true;
+        switch (g.type) 
         {
-          double cnt = *(double*)ptr;
+          case 100: cnt = g.obj.d; break;
+          case 105: cnt = g.obj.i; break;
+          default:  ok = false;
+        }
+        if(!ok)
+        {
+          Error(I2("Unknown CINT numerical type ",
+                   "Tipo CINT numérico desconocido ")<<g.type);
+        }
+        else
+*/
+        {
           result = new BContensDat("",cnt,"");
         }
       }
@@ -1825,12 +1837,9 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
       {
         int rows = -1, columns = -1;
         double* buffer = NULL;
-        g = G__calc(name+".rows_");
-        if(g.type == 105 ) { rows = g.obj.i; }
-        g = G__calc(name+".columns_");
-        if(g.type == 105 ) { columns = g.obj.i; }
-        g = G__calc(BText("(int)(double*)(")+name+".buffer_)");
-        if(g.type == 105 ) { buffer = (double*)g.obj.i; }
+        rows = G__int(G__calc(name+".rows_"));
+        columns = G__int(G__calc(name+".columns_"));
+        buffer = (double*)G__int(G__calc(BText("(int)(")+name+".buffer_)"));
         if(rows>0 && columns>0 && buffer!=NULL)
         {
           BMat cnt(rows, columns, (BDat*)buffer);  
@@ -1841,10 +1850,8 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
       {
         int length = -1;
         char* buffer = NULL;
-        g = G__calc(name+".length_");
-        if(g.type == 105 ) { length = g.obj.i; }
-        g = G__calc(BText("(int)(char*)(")+name+".buffer_)");
-        if(g.type == 105 ) { buffer = (char*)g.obj.i; }
+        length = G__int(G__calc(name+".length_"));
+        buffer = (char*)G__int(G__calc(BText("(int)(")+name+".buffer_)"));
         if(length>0 && buffer!=NULL)
         {
           BText cnt(buffer, length);  
@@ -2341,7 +2348,7 @@ bool BSpecialFunction::Initialize()
 
   AddInstance("Cint.export_to_tol",
      "(Text name)",
-     I2("Export global CINT variables to current TOL scope.\n"
+     I2("Exports global CINT variables to current TOL scope.\n"
      "CINT variables must have a valid name in TOL and C languages.\n"
      "At this moment these are the available TOL types :\n",    
      "Exporta variables CINT globales al ámbito actual de TOL\n"
@@ -2362,3 +2369,4 @@ bool BSpecialFunction::Initialize()
 
   return(true);
 }
+
