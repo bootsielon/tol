@@ -465,9 +465,9 @@ static BStruct* FindStructInNameBlock(
   if(pos>=0)
   {
     BText prefix;
-    BText sufix;
+    BText suffix;
     prefix = name.SubString(0,pos-1);
-    sufix  = name.SubString(pos+2,name.Length());
+    suffix  = name.SubString(pos+2,name.Length());
     if(!unb)
     {
       obj = GraNameBlock()->FindOperand(prefix,false);
@@ -491,7 +491,7 @@ static BStruct* FindStructInNameBlock(
     }
     if(unb) 
     {
-      str = FindStructInNameBlock(sufix, unb);         
+      str = FindStructInNameBlock(suffix, unb);         
     }
   }
   else if(unb)
