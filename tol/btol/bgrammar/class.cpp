@@ -1403,9 +1403,9 @@ static BClass* FindClassInNameBlock(
   if(pos>=0)
   {
     BText prefix;
-    BText sufix;
+    BText suffix;
     prefix = name.SubString(0,pos-1);
-    sufix  = name.SubString(pos+2,name.Length());
+    suffix  = name.SubString(pos+2,name.Length());
     if(!unb)
     {
       obj = GraNameBlock()->FindOperand(prefix,false);
@@ -1429,7 +1429,7 @@ static BClass* FindClassInNameBlock(
     }
     if(unb) 
     {
-      cls = FindClassInNameBlock(sufix, unb);         
+      cls = FindClassInNameBlock(suffix, unb);         
     }
   }
   else if(unb)
