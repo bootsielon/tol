@@ -104,6 +104,7 @@ int Cint_initialize(const BText& filePath)
       Error("Cint initialization failed G__INIT_CINT_FAILURE.\n");
     }
     G__set_errmsgcallback(reinterpret_cast<void*>(Cint_errmsgcallback));
+    G__setautoconsole(1);
     return(G__init_cint_);
   }
 }
