@@ -68,7 +68,6 @@
 
 #include <tol/tol_bnameblock.h>
 
-int Cint_initialize(const BText& filePath);
 
 #ifdef _DEBUG
 static int igtStep_=0;
@@ -126,6 +125,14 @@ static BText         _tolSdkPath_                 = "";
 static BSystemText*   tolSdkPath_                 = NULL;
 
 
+int Cint_initialize(const BText& filePath);
+
+//--------------------------------------------------------------------
+TOL_API void  InitCint ()
+//--------------------------------------------------------------------
+{
+  Cint_initialize(""); 
+}
 
 //--------------------------------------------------------------------
   TOL_API const char* TOLCppRoot() 
@@ -426,7 +433,7 @@ BBool InitGrammars()
 {
   static BBool initGrammars_ = BFALSE;
 
-  Cint_initialize("");
+  InitCint();
   if(initGrammars_)  { return(false); }
 
   signal_assign();
@@ -856,7 +863,6 @@ BBool InitGrammars()
     int BTolOprProfiler_Init();
     BTolOprProfiler_Init();
     TOLHasBeenInitialized_ = true;
-    //Cint_initialize("");
     return(initGrammars_);
 }
 
@@ -1381,7 +1387,7 @@ static void ChangeVerboseMode(const char* vmode)
 void InitTolKernel( int lang, const char* vmode ) 
 //--------------------------------------------------------------------
 {
-  //Cint_initialize("");
+  InitCint();
   BText::PutLanguage(lang);
   InitVerboseMode();
   /* Aqui hay que particionar vmode e iterar invocando

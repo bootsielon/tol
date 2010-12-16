@@ -32,6 +32,7 @@
 BEGIN_DECLS
 
 //calledProgram should be argv[0] in main function
+TOL_API void  InitCint              ();
 TOL_API void  InitializeFromMainArgs(int argc, char *argv[], char *env[]);
 TOL_API void  LoadInitLibrary       (char* calledProgram);
 TOL_API void  InitTolKernel         (int lang, const char* vmode);
