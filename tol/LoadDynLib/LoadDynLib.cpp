@@ -177,8 +177,8 @@ BSyntaxObject* BLoadDynLib::Evaluator(BList* arg) const
     {
     //Std(BText("\nTRACE BLoadDynLib::Evaluator 5 lt_dlerror='")+lt_dlerror()+"'");
       BText reason( lt_dlerror( ) );
-      Error(BText("[LoadDynLib(\"")+libraryPath+"\")] \n"
-      "  lt_dlsym error:'"+reason+"'");
+      Error(BText("[LoadDynLib(\"")+libraryPath+"\")] \n"+
+      "Cannot found symbol '"+functionName+"'");
     } 
     else 
     {
