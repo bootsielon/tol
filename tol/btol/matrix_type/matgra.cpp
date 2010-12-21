@@ -6800,7 +6800,7 @@ const BArray<int>*   BMatOrder::criterium_ = NULL;
 }
 
 
-  //--------------------------------------------------------------------
+//--------------------------------------------------------------------
   DeclareContensClass(BMat, BMatTemporary, BMatMaxColByRow);
   DefExtOpr(1, BMatMaxColByRow, "MaxColByRow", 1, 1, "Matrix",
   "(Matrix mat)",
@@ -6835,6 +6835,7 @@ const BArray<int>*   BMatOrder::criterium_ = NULL;
     }
   }
 }
+
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatForMat);
@@ -6896,6 +6897,66 @@ void BMatForMat::CalcContens()
         contens_(i,j) = Dat(ev);
         DESTROY(ev);
       }
+    }
+  }  
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatEvalMat);
+DefExtOpr(1, BMatEvalMat, "EvalMat", 2, 2, "Matrix Code",
+  "(Matrix m, Code fun)",
+  I2("Returns a matrix with the evaluations of a given Real to Real "
+     "function in each cell of specified matrix.\n"
+  "Example : \n"
+  ,
+  "Devuelve una matriz con las evaluaciones de una función dada de "
+  "Real a Real en cada celda de la matriz especificada.\n"
+  "Ejemplo : \n")+
+  "Matrix EvalMat(X, gsl_sf_log_erfc );",
+  BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatEvalMat::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& M = Mat(Arg(1));
+  BCode&  code = Code(Arg(2));
+  int k;
+  int s = M.Data().Size();
+  BStandardOperator* opr = (BStandardOperator*)code.Operator();
+  if(!opr) 
+  {
+    Error(I2("<fun> argument of function EvalMat has no operator",
+             "El argumento <fun> de la función EvalMat no tiene operador"));
+    return;
+  }
+  if((opr->Grammar()!= GraReal()) ||
+     (opr->NumArg()!=1)||
+     (opr->GrammarForArg(1)!=GraReal())) 
+  {
+    Error(I2("<fun> argument of function EvalMat ",
+             "El argumento <fun> de la función EvalMat ")+"\n"+
+          opr->Grammar()->Name()+" "+code.Name()+opr->Arguments()+"\n"+
+          I2("should be declared as ",
+             "debería estar declarada como ")+"\n"+
+          "Real "+code.Name()+"(Real x) \n");
+    return;
+  }
+
+  contens_.Alloc(M.Rows(), M.Columns());
+  const double* x = (const double*)M.Data().Buffer();
+  double* y = (double*)contens_.GetData().GetBuffer();
+
+  BSyntaxObject* ev;
+  for(k=0; k<s; k++, x++, y++)
+  {
+    BContensDat* x_ = new BContensDat("",*x);
+    BList* args = NCons(x_);
+    ev = opr->Evaluator(args);
+    if(ev)
+    {
+      *y = Real(ev);
+      DESTROY(ev);
     }
   }  
 }
