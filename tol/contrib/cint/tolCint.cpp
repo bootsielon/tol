@@ -125,6 +125,23 @@ int Cint_scratch_all()
 }
 
 //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatCint_SetCINTSYSDIR);
+  DefExtOpr(1, BDatCint_SetCINTSYSDIR, "Cint.SetCINTSYSDIR", 1, 1, "Text",
+  "(Text CINTSYSDIR)",
+  I2("Set the value of the internal variable CINTSYSDIR.",
+     "Inicializa el valor de la variable interna CINTSYSDIR.")+
+     cint_url_link(),
+     BOperClassify::Conversion_);
+  void BDatCint_SetCINTSYSDIR::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(CheckNonDeclarativeAction("Cint.SetCINTSYSDIR")) { return; }
+  BText& filePath = Text(Arg(1));
+  G__SetCINTSYSDIR(filePath);
+  contens_ = 1;
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatCint_initialize);
   DefExtOpr(1, BDatCint_initialize, "Cint.initialize", 1, 1, "Text",
   "(Text filePath)",
