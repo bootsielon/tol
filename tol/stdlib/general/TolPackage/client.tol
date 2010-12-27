@@ -182,6 +182,38 @@ Real LocalCleanAll(Text unused)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetMinTolVersionForPackage = 
+"Devuelve la versión de TOL mínima que requiere un paquete dado"
+"Si no se encuentra el paquete se devuelve la cadena vacía.";
+Text GetMinTolVersionForPackage(Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("TRACE [RemoteFindRepository] 1 package='"<<package+"'");
+  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, "", {
+//WriteLn("TRACE [RemoteFindRepository] 2");
+  Set repositories = 
+    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+  Real K = Card(repositories); 
+  Real k = 1;
+  Text found = "";
+//WriteLn("TRACE [RemoteFindRepository] 3 K="<<K);
+  While(And(found=="", k<=K),
+  {
+  //WriteLn("TRACE [RemoteFindRepository] 4 repositories["<<k+"]="<<repositories[k]);
+    Text pkgInfo = GetUrlContents(repositories[k]+"?"
+      "action=versions&limit=1&"+
+      "package="+package);
+    Set pkgLst = IncludeText(pkgInfo);
+  //WriteLn("TRACE [RemoteFindRepository] 5 pkgInfo="<<pkgInfo);
+  //WriteLn("TRACE [RemoteFindRepository] 6 pkgLst="<<pkgLst);
+  //WriteLn("TRACE [RemoteFindRepository] 7 Card(pkgLst)="<<Card(pkgLst));
+    Text If(Card(pkgLst)>0, found := pkgLst[1]->te_min_tol_version);
+    Real k := k+1
+  });
+  found
+})};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.RemoteFindRepository = 
 "Devuelve el repositorio al que pertenece un paquete dado de entre aquellos "
 "repositorios dados de alta en : \n"
@@ -358,9 +390,22 @@ Real RemoteInstall(Text repository, Text package, Real showError)
   //WriteLn("TRACE [RemoteInstall] 3.2.1 rep ="<<rep);
     If(rep=="", 
     {
-      If(showError,Error(I2(
-       "Cannot find package "+package+" in any repository",
-       "No se encuentra el paquete "+package+" en ningún repositorio")))
+      If(showError,
+      {
+        Text minTolVersion = GetMinTolVersionForPackage(package);
+        If(minTolVersion=="", 
+        Error(I2(
+          "Cannot find package "+package+" in any repository for any TOL "
+          "version."
+          "No se encuentra el paquete "+package+" en ningún repositorio "
+          "para ninguna versión de TOL.")),
+        Error(I2(
+          "Cannot find package "+package+" in any repository for current "
+          "TOL version ",
+          "No se encuentra el paquete "+package+" en ningún repositorio "
+          "para la versión de TOL en curso ")+TolPackage::_.currentTolVersion+
+          ".\n"+I2("You needs to use ", "Es necesario usar ")+minTolVersion))
+      })
     },
     {
     //WriteLn("TRACE [RemoteInstall] 3.2.2 ");
@@ -572,5 +617,6 @@ Real RemoteUpgradeAll(Real updateSyncInfo)
 }
 
 ]];
+
 
 
