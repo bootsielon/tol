@@ -174,7 +174,7 @@ Real LocalClean(Text package)
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.LocalClean.All = 
 "Elimina todos los paquetes disponibles localmente.";
-Real LocalCleanAll(Text repository)
+Real LocalCleanAll(Text unused)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real OSDirRemove(_.localRoot);
