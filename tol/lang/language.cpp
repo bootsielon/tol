@@ -1330,9 +1330,24 @@ BText BPackage::localRoot_ =
     "\"\",\"")+package_version+"\",True);");
   BOis::SetRunningUseModule(oldRunningUseModule);
   if(!fai) { return(false); }
-  bool ok = (bool)Real(fai);
+  bool ok = (bool)(Real(fai)!=0);
   DESTROY(fai);
   return(ok);
+}
+
+//--------------------------------------------------------------------
+static void PkgStartActions(const BText& package, const BText path)
+//--------------------------------------------------------------------
+{
+  BText startActionsExpr = package+"::StartActions(0)";
+  bool oldRunningUseModule = BOis::SetRunningUseModule(false);
+  BText oldDir = BDir::GetCurrent();
+  BDir::ChangeCurrent( GetFilePath(path) );
+  BSyntaxObject* startActions = GraReal()->EvaluateExpr(startActionsExpr);
+  BDir::ChangeCurrent(oldDir);
+  BOis::SetRunningUseModule(oldRunningUseModule);
+//Std(BText("\nTRACE startActionsExpr =")+startActionsExpr+" "+((startActions)?"OK":"FAIL")+"\n");
+  DESTROY(startActions);
 }
 
 //--------------------------------------------------------------------
@@ -1365,15 +1380,24 @@ BText BPackage::localRoot_ =
     DESTROY(lcv);
   }
   BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
-  bool ok = pkg!=NULL;
-  if(ok) { return(pkg); }
   BText path = LocalPath(package_version);
 //Std(BText("\nTRACE BPackage::Load 3 path='")+path+"'");
   BDir dirPath = path;
+
+  bool ok = pkg!=NULL;
+  if(ok) { 
+    BNameBlock& nb = NameBlock(pkg);
+    if(!nb.startedPackage)
+    {
+      PkgStartActions(package, path);
+      nb.startedPackage = true;
+    }
+    return(pkg); 
+  }
 //Std(BText("\nTRACE BPackage::Load 3 dirPath='")+dirPath.Name()+"'");
   if(!ok)
   {
-    ok=dirPath.Exist();
+    ok=dirPath.Exist()!=0;
     if(!ok)
     {
       BDir zipPath = path+".zip";
@@ -1384,7 +1408,7 @@ BText BPackage::localRoot_ =
         zip.DirExtract("*",dirPath.Name());
         zip.Close();
       }
-      ok=dirPath.Exist();
+      ok=dirPath.Exist()!=0;
     }
   //Std(BText("\nTRACE BPackage::Load 4 ok=")+ok);
     if(!ok) 
@@ -1411,15 +1435,7 @@ BText BPackage::localRoot_ =
           pkg->IncNRefs();
           required_ = Cons(pkg, required_);
           BNameBlock::AddGlobalRequiredPackage(package);
-          BText startActionsExpr = package+"::StartActions(0)";
-          bool oldRunningUseModule = BOis::SetRunningUseModule(false);
-          BText oldDir = BDir::GetCurrent();
-          BDir::ChangeCurrent( GetFilePath(path) );
-          BSyntaxObject* startActions = GraReal()->EvaluateExpr(startActionsExpr);
-          BDir::ChangeCurrent(oldDir);
-          BOis::SetRunningUseModule(oldRunningUseModule);
-        //Std(BText("\nTRACE startActionsExpr =")+startActionsExpr+" "+((startActions)?"OK":"FAIL")+"\n");
-          DESTROY(startActions);
+          PkgStartActions(package, path);
         }
       }      
     //Std(BText("\nTRACE BPackage::Load 9 "));

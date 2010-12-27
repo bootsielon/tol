@@ -102,7 +102,8 @@ static bool BNameBlock_IsInitialized()
   owner_    (NULL),
   nonPrivateMembers_(0),
   requiredPackages_(NULL),
-  doingRebuildFullNameDeep(false)
+  doingRebuildFullNameDeep(false),
+  startedPackage(false)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -125,7 +126,8 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   owner_    (NULL),
   nonPrivateMembers_(0),
   requiredPackages_(NULL),
-  doingRebuildFullNameDeep(false)
+  doingRebuildFullNameDeep(false),
+  startedPackage(false)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
@@ -148,7 +150,8 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   owner_    (NULL),
   nonPrivateMembers_(0),
   requiredPackages_(NULL),
-  doingRebuildFullNameDeep(false)
+  doingRebuildFullNameDeep(false),
+  startedPackage(false)
 {
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
   createdWithNew_ = isAssigned!=-1;

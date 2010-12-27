@@ -87,6 +87,7 @@ private:
   int nonPrivateMembers_;
   bool doingRebuildFullNameDeep;
 public:
+  bool startedPackage;
   static bool Initialize();
   static BNameBlock&  Unknown() { return(*unknown_); }
   static BDat Compare(const BNameBlock* ns1, const BNameBlock* ns2)
