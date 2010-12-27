@@ -447,7 +447,24 @@ static BSyntaxObject* EvEval(BGrammar* gra, const List* tre, BBool left)
     BSpecialFunction::GetArg(args, tre, graParam, 1);
     if(args.Card()==1)
     {
-	result  = gra->EvaluateExpr(Text(args[1]));
+      const BText& expr = Text(args[1]);
+      if(gra==GraAnything())
+      {
+        int posBlank = expr.Find(" ");
+        if(posBlank>0)
+        {
+          BText usedGraNam(expr,0,posBlank-1);
+          BGrammar* usedGra = BGrammar::FindByName(usedGraNam,false);
+          if(usedGra) 
+          {  
+            result = usedGra->EvaluateExpr(expr);
+          }
+        }
+      }
+	    if(!result)
+      {
+        result = gra->EvaluateExpr(expr);
+      }
     }
     result=BSpecialFunction::TestResult(_name_,result,tre,gra->Defect(),BTRUE);
     return(result);
