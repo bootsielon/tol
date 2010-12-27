@@ -1336,18 +1336,26 @@ BText BPackage::localRoot_ =
 }
 
 //--------------------------------------------------------------------
-static void PkgStartActions(const BText& package, const BText path)
+static void PkgStartActions(
+  BSyntaxObject* pkg,
+  const BText& package, 
+  const BText path)
 //--------------------------------------------------------------------
 {
-  BText startActionsExpr = package+"::StartActions(0)";
-  bool oldRunningUseModule = BOis::SetRunningUseModule(false);
-  BText oldDir = BDir::GetCurrent();
-  BDir::ChangeCurrent( GetFilePath(path) );
-  BSyntaxObject* startActions = GraReal()->EvaluateExpr(startActionsExpr);
-  BDir::ChangeCurrent(oldDir);
-  BOis::SetRunningUseModule(oldRunningUseModule);
-//Std(BText("\nTRACE startActionsExpr =")+startActionsExpr+" "+((startActions)?"OK":"FAIL")+"\n");
-  DESTROY(startActions);
+  BNameBlock& nb = NameBlock(pkg);
+  if(!nb.startedPackage)
+  {
+    nb.startedPackage = true;
+    BText startActionsExpr = package+"::StartActions(0)";
+    bool oldRunningUseModule = BOis::SetRunningUseModule(false);
+    BText oldDir = BDir::GetCurrent();
+    BDir::ChangeCurrent( GetFilePath(path) );
+    BSyntaxObject* startActions = GraReal()->EvaluateExpr(startActionsExpr);
+    BDir::ChangeCurrent(oldDir);
+    BOis::SetRunningUseModule(oldRunningUseModule);
+  //Std(BText("\nTRACE startActionsExpr =")+startActionsExpr+" "+((startActions)?"OK":"FAIL")+"\n");
+    DESTROY(startActions);
+  }
 }
 
 //--------------------------------------------------------------------
@@ -1386,12 +1394,7 @@ static void PkgStartActions(const BText& package, const BText path)
 
   bool ok = pkg!=NULL;
   if(ok) { 
-    BNameBlock& nb = NameBlock(pkg);
-    if(!nb.startedPackage)
-    {
-      PkgStartActions(package, path);
-      nb.startedPackage = true;
-    }
+    PkgStartActions(pkg, package, path);
     return(pkg); 
   }
 //Std(BText("\nTRACE BPackage::Load 3 dirPath='")+dirPath.Name()+"'");
@@ -1435,7 +1438,7 @@ static void PkgStartActions(const BText& package, const BText path)
           pkg->IncNRefs();
           required_ = Cons(pkg, required_);
           BNameBlock::AddGlobalRequiredPackage(package);
-          PkgStartActions(package, path);
+          PkgStartActions(pkg, package, path);
         }
       }      
     //Std(BText("\nTRACE BPackage::Load 9 "));
