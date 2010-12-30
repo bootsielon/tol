@@ -41,20 +41,32 @@ Text _.official =
   "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php";
 //////////////////////////////////////////////////////////////////////////////
 
-Set _.currentTolVersionTokens = Tokenizer(Version," ");
+Set _.currentTolVersionTokens = Copy(Empty);
+Text _.currentTolVersion = "";
+Date _.currentTolReleaseDate = UnknownDate;
 
-Text _.currentTolVersion = 
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.Initialize = 
+"Inicializa el servicio de paquetes TOL";
+Real Initialize(Real void)
+//////////////////////////////////////////////////////////////////////////////
 {
-  _.currentTolVersionTokens[1]+" "+_.currentTolVersionTokens[2] 
+  If(Card(_.currentTolVersionTokens),False,
+  {
+    Set _.currentTolVersionTokens := Tokenizer(Version," ");
+    Text _.currentTolVersion := 
+    {
+     _.currentTolVersionTokens[1]+" "+_.currentTolVersionTokens[2] 
+    };
+    Date _.currentTolReleaseDate := 
+    {
+      TextToDate(
+       _.currentTolVersionTokens[3]+" "+_.currentTolVersionTokens[4],
+      "%Y-%m-%d %h:%i:%s") 
+   };
+   True
+ })
 };
-
-Date _.currentTolReleaseDate = 
-{
-  TextToDate(
-    _.currentTolVersionTokens[3]+" "+_.currentTolVersionTokens[4],
-    "%Y-%m-%d %h:%i:%s") 
-};
-
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetCurrentNameVersion =

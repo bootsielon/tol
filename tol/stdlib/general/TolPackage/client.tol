@@ -35,7 +35,7 @@ Text _.autodoc.member.Initialize =
 Real Initialize(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE [TolPackage::Client::Initialize] ");
+  Real TolPackage::Initialize(void);
   Real OSDirMake(_.localRoot);
   True
 };
