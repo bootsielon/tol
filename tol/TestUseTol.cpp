@@ -12,9 +12,11 @@
 
 #include <string.h>
 
-void Tol_HciWriter( const BText & str )
+void Tol_HciWriterEx( const BText & str, void *data )
 {
-  std::cout << str.String();
+  const char *name = (const char*)data;
+  
+  std::cout << name << ": " << str.String();
 }
 
 void TestMultyEvaluate( int argc, char* argv[] )
@@ -127,7 +129,8 @@ int main( int argc, char*argv[] )
   // inicializo el kernel de tol
   int lang = 1;
   char *vmode = NULL;
-  BOut::PutHciWriter( Tol_HciWriter );
+  const char *name = "Tester";
+  BOut::PutHciWriterEx( Tol_HciWriterEx, (void*)name );
   InitTolKernel( lang, vmode );
   std::cout << "\n";
   LoadInitLibrary( argv[ 0 ] );

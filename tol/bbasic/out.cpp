@@ -91,8 +91,12 @@ static BText StartDumpFile()
 //   Global variables (static in the class BoBBut)
 //--------------------------------------------------------------------
 BTraceInit("out.cpp");
-BHciWriter BOut::hciWriter_;
-BHciWriter BOut::logHciWriter_;
+BHciWriter BOut::hciWriter_=NULL;
+BHciWriter BOut::logHciWriter_=NULL;
+BHciWriterEx BOut::hciWriterEx_=NULL;
+BHciWriterEx BOut::logHciWriterEx_=NULL;
+void*      BOut::hciWriterExData_=NULL;
+void*      BOut::logHciWriterExData_=NULL;
 BBool      BOut::initialized_;
 BBool      BOut::enabled_;
 BBool      BOut::stdHci_;
@@ -144,6 +148,10 @@ DefIsAlreadyInitilialized(BOut);
     BOut::file_        = NIL;
     BOut::hciWriter_   = NIL;
     BOut::logHciWriter_ = NIL;
+    BOut::hciWriterEx_   = NIL;
+    BOut::logHciWriterEx_ = NIL;
+    BOut::hciWriterExData_   = NIL;
+    BOut::logHciWriterExData_ = NIL;
     BOut::errorOpenTag_    = "<E>\nERROR: ";
     BOut::errorCloseTag_   = "</E>\n";
     BOut::warningOpenTag_  = "<W>\nWarning: ";
@@ -523,7 +531,11 @@ void BOut::HciWrite(const BText& txt)
 //--------------------------------------------------------------------
 {
   if(!BOut::IsEnabled()) { return; }
-  if(hciWriter_)    { (*hciWriter_)(txt); }
+  if(hciWriter_) {
+    (*hciWriter_)(txt);
+  } else if( hciWriterEx_ ) {
+    (*hciWriterEx_)( txt, hciWriterExData_ );    
+  }
 }
 
 
@@ -534,8 +546,13 @@ void BOut::LogHciWrite(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(logHciWriter_) { (*logHciWriter_)(txt); } 
-  else              { Std(txt); }
+  if( logHciWriter_ ) {
+    (*logHciWriter_)(txt);
+  } else if ( logHciWriterEx_ ) {
+    (*logHciWriterEx_)( txt, logHciWriterExData_ );
+  } else {
+    Std( txt );
+  }
 }
 
 

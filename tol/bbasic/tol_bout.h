@@ -45,6 +45,7 @@ TOL_API BDat& TOLWarningNumber();
 //--------------------------------------------------------------------
 //! pointer to user defined function
 typedef void (*BHciWriter)(const BText&);
+typedef void (*BHciWriterEx)(const BText&, void*);
 
 
 //--------------------------------------------------------------------
@@ -96,6 +97,10 @@ private:
   //! Pointer to user defined function to write TOL messages
   static BHciWriter hciWriter_;
   static BHciWriter logHciWriter_;
+  static BHciWriterEx hciWriterEx_;
+  static void       *hciWriterExData_;
+  static BHciWriterEx logHciWriterEx_;
+  static void       *logHciWriterExData_;
 
   static BText errorOpenTag_; static BText errorCloseTag_;
   static BText warningOpenTag_; static BText warningCloseTag_;
@@ -130,9 +135,21 @@ public:
   //! Sets hciWriter 
   static       void   PutHciWriter(BHciWriter h) { 
       hciWriter_=h; 
+      hciWriterEx_=NULL; 
+  }
+  static       void   PutHciWriterEx(BHciWriterEx h, void *ClientData) { 
+      hciWriter_=NULL; 
+      hciWriterEx_=h;
+      hciWriterExData_ = ClientData;
   }
   static       void   PutLogHciWriter(BHciWriter h) { 
       logHciWriter_=h; 
+      logHciWriterEx_=NULL; 
+  }
+  static       void   PutLogHciWriterEx(BHciWriterEx h, void *ClientData) { 
+      logHciWriter_=NULL; 
+      logHciWriterEx_=h;
+      logHciWriterExData_ = ClientData;
   }
 
   //! Returns the actual hciWriter
