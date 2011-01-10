@@ -396,7 +396,7 @@ Real RemoteInstall(Text repository, Text package, Real showError)
         If(minTolVersion=="", 
         Error(I2(
           "Cannot find package "+package+" in any repository for any TOL "
-          "version."
+          "version.",
           "No se encuentra el paquete "+package+" en ningún repositorio "
           "para ninguna versión de TOL.")),
         Error(I2(
