@@ -1129,11 +1129,7 @@ BSyntaxObject* OisUseModuleEvaluator(BList* arg)
   //Std(BText("\nTRACE OisUseModuleEvaluator 7.3"));
     BOisCreator oisCreator;
   //Std(BText("\nTRACE OisUseModuleEvaluator 7.4"));
-    BOisCreator::current_ = &oisCreator;
-  //Std(BText("\nTRACE OisUseModuleEvaluator 7.5"));
     BUserSet* uData = IncludeFile(name);
-  //Std(BText("\nTRACE OisUseModuleEvaluator 7.6"));
-    BOisCreator::current_ = NULL;
   //Std(BText("\nTRACE OisUseModuleEvaluator 7.7"));
     result = uData;
   //Std(BText("\nTRACE OisUseModuleEvaluator 7.8"));
@@ -1231,7 +1227,7 @@ BSyntaxObject* OisUseCacheEvaluator(BList* arg)
       caducityInMinutes = Dat((BSyntaxObject*)Car(Cdr(arg)));
     }
     BText ozaPath = BOis::GetModulePath(name);
-    bool ozaExist = CheckIsFile(ozaPath);
+    bool ozaExist = CheckIsFile(ozaPath)!=0;
     bool isObsolete = !ozaExist;
     if(isObsolete)
     {
@@ -1250,7 +1246,7 @@ BSyntaxObject* OisUseCacheEvaluator(BList* arg)
     {
       BDate tolTime = BTimer::TimeToDate(GetFileTime(name));
       BDate ozaTime = BTimer::TimeToDate(GetFileTime(ozaPath));
-      isObsolete = tolTime > ozaTime;
+      isObsolete = (tolTime > ozaTime)!=0;
       if(isObsolete)
       {
         Std(I2("\nOIS: Cache of ",
@@ -1259,7 +1255,7 @@ BSyntaxObject* OisUseCacheEvaluator(BList* arg)
       else
       {
         BDate nowTime = DteNow();
-        isObsolete = (nowTime-ozaTime)*24*60 > caducityInMinutes;
+        isObsolete = ((nowTime-ozaTime)*24*60 > caducityInMinutes)!=0;
         if(isObsolete)
         {
           Std(I2("\nOIS: Cache of ",
