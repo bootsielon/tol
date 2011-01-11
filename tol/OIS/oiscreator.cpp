@@ -832,8 +832,6 @@ if(!BDir::CheckIsDir(dir))                                \
     Ensure(Write(x.Struct()));
   }
   h=0;
-  bool has_autodoc_name = false;           //_.autodoc.name
-  bool has_autodoc_dependencies = false;   //_.autodoc.dependencies
   for(n=1; n<=s; n++)
   {
     if(!x[n]) 
@@ -848,6 +846,7 @@ if(!BDir::CheckIsDir(dir))                                \
        (x[n]->Mode() == BOBJECTMODE    ) ||
        (x[n]->Mode() == BBUILTINFUNMODE)   )
     {
+      BINT64 offset = x[n]->OisOffset();
       if(!offset) { offset = object_->GetPos(); }
       if(options_.oisConfig_.buildHierarchy_)
       {
@@ -875,7 +874,6 @@ if(!BDir::CheckIsDir(dir))                                \
       }
       EWrite(offset, set_);
       Ensure(Write(x[n]));
-      
       h++;             
     }
     else 
