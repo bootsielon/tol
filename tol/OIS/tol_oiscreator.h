@@ -49,8 +49,6 @@ class BVMat;
 public:
   BUserSet* data_;
   int       curHrchyEntry_;
-  static BOisCreator* current_;
-  static void AddRequiredPackage(const BText& package);
 
   BArray<BText> allSourcePath_;
   BArray<BSyntaxObject*> tolEnvironment_;
