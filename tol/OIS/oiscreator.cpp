@@ -41,17 +41,6 @@
 BTraceInit("oiscreator.cpp");
 
 
-BOisCreator* BOisCreator::current_ = NULL;
-
-//--------------------------------------------------------------------
-void BOisCreator::AddRequiredPackage(const BText& package)
-//--------------------------------------------------------------------
-{
-  if(current_)
-  {
-    current_->packages_.AddUnique(package,CompareText);
-  }
-};
 
 //--------------------------------------------------------------------
 // BOisCreator Functions 
@@ -84,14 +73,12 @@ void BOisCreator::AddRequiredPackage(const BText& package)
                            const BSet*  opt) 
 //--------------------------------------------------------------------
 {  
-  current_ = this;
   SetConnection(connection);
   SetAddress(address);
   SetDoc    (doc);
   SetControl();
   SetOptions(opt);
   SetData   (uData);
-  current_ = NULL;
 }
 
 //--------------------------------------------------------------------
@@ -793,6 +780,8 @@ if(!BDir::CheckIsDir(dir))                                \
   }
 
   EWrite(set_->GetPos(), object_);
+
+
   int classForwardDeclarations = 0;
   for(n=1; n<=s; n++)
   {
@@ -843,6 +832,8 @@ if(!BDir::CheckIsDir(dir))                                \
     Ensure(Write(x.Struct()));
   }
   h=0;
+  bool has_autodoc_name = false;           //_.autodoc.name
+  bool has_autodoc_dependencies = false;   //_.autodoc.dependencies
   for(n=1; n<=s; n++)
   {
     if(!x[n]) 
@@ -857,7 +848,6 @@ if(!BDir::CheckIsDir(dir))                                \
        (x[n]->Mode() == BOBJECTMODE    ) ||
        (x[n]->Mode() == BBUILTINFUNMODE)   )
     {
-      BINT64 offset = x[n]->OisOffset();
       if(!offset) { offset = object_->GetPos(); }
       if(options_.oisConfig_.buildHierarchy_)
       {
@@ -885,6 +875,7 @@ if(!BDir::CheckIsDir(dir))                                \
       }
       EWrite(offset, set_);
       Ensure(Write(x[n]));
+      
       h++;             
     }
     else 
