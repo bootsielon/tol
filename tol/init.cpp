@@ -124,8 +124,17 @@ static BSystemText*   tolSessionPath_             = NULL;
 static BText         _tolSdkPath_                 = "";
 static BSystemText*   tolSdkPath_                 = NULL;
 
-
 int Cint_initialize(const BText& filePath);
+
+//#define DO_TRACE_CINT_DECIMAL;
+#ifdef DO_TRACE_CINT_DECIMAL 
+#include <G__ci.h>
+#define TRACE_CINT_DECIMAL \
+  G__exec_text(BText(" double x = 2.1112; printf(\"")+__FILE__+":"+__LINE__+" [x=%.15lg]\n\",x); ");
+#else
+#define TRACE_CINT_DECIMAL
+#endif
+
 
 //--------------------------------------------------------------------
 TOL_API void  InitCint ()
@@ -432,11 +441,13 @@ BBool InitGrammars()
 //--------------------------------------------------------------------
 {
   static BBool initGrammars_ = BFALSE;
+  TRACE_CINT_DECIMAL;
 
   InitCint();
   if(initGrammars_)  { return(false); }
 
   signal_assign();
+  TRACE_CINT_DECIMAL;
 
   initGrammars_=BTRUE;
   BStandardOperator::evaluatingFunctionArgument_ = false;
@@ -447,34 +458,42 @@ BBool InitGrammars()
   TrcIGSL(BText("Output logging ")+BOut::DumpFile());
   TrcIGSL("LC_NUMERIC=C");
   setlocale( LC_NUMERIC, "C");
+  TRACE_CINT_DECIMAL;
 
   TrcIG("System tools: ");
 # if defined(_MSC_VER) && (_MSC_VER>=1300)
   int sbh = defaultSBH_;
   TrcIGS(BText("Small Block Heap=")<<sbh);
   _set_sbh_threshold(sbh);
+  TRACE_CINT_DECIMAL;
 # endif
 # if defined(__USE_GBLA__)
   //------------------------------
   // GBLA Initialization:
   TrcIGS("GBLA");
   if(!BLAPI_Init()) return false;
+  TRACE_CINT_DECIMAL;
   //------------------------------
 # endif
   TrcIGS("GSL");
   GslInitialize();
+  TRACE_CINT_DECIMAL;
   TrcIGS("Parser");
   BParser::InitDefaultParser();
+  TRACE_CINT_DECIMAL;
   TrcIGS("Global Hashed Table");
   BGrammar::Initialize();
+  TRACE_CINT_DECIMAL;
   TrcIGS("Local Stack Manager");
   BStackManager::Initialize();
+  TRACE_CINT_DECIMAL;
 
   TrcIG("System types: ");
   //--------------------------------------------------
     TrcIGS("Anything");
   //--------------------------------------------------
   BAnyGrammar::InitGrammar();
+  TRACE_CINT_DECIMAL;
 
   //--------------------------------------------------
     TrcIGS("Real");
@@ -493,6 +512,7 @@ BBool InitGrammars()
      "Ejemplo :\nReal x = 192.3\n"),
             BCopyContens<BDat>::New,
             BFunArgContens<BDat>::NewLocal);
+  TRACE_CINT_DECIMAL;
 
   //--------------------------------------------------
     TrcIGS("Text");
@@ -509,6 +529,7 @@ BBool InitGrammars()
       "Ejemplo :\nText txt = \"Hola mundo\"\n\n"),
            BCopyContens<BText>::New,
            BFunArgContens<BText>::NewLocal);
+  TRACE_CINT_DECIMAL;
 
   //--------------------------------------------------
     TrcIGS("Date");
@@ -525,6 +546,7 @@ BBool InitGrammars()
       "Ejemplo :\nDate dte =y1995m2d11\n"),
             BCopyContens<BDate>::New,
             BFunArgContens<BDate>::NewLocal);
+  TRACE_CINT_DECIMAL;
 
   //--------------------------------------------------
     TrcIGS("Complex");
@@ -799,6 +821,7 @@ BBool InitGrammars()
     BOperClassify::InitInstances();
     TrcIGS("Special functions");
     BSpecialFunction::Initialize();
+  TRACE_CINT_DECIMAL;
 
     TrcIG("Built-in objects: ");
     TrcIGS("Code");
@@ -840,8 +863,10 @@ BBool InitGrammars()
     TrcIG("Sub-systems:");
     TrcIGSL("AIA: Automatic Intervention Analisis");
   	BAia::StaticInit();	
+  TRACE_CINT_DECIMAL;
     TrcIGSL("OIS: Objects Indexed Serialization");
     BOis::Initialize();
+  TRACE_CINT_DECIMAL;
     BGrammar::PutLast(GraSet());
 #   if defined(USE_DELAY_INIT)
     TrcIG("Delayed static objects");
@@ -850,6 +875,7 @@ BBool InitGrammars()
 
     TrcIGS("Methods");
     BuildMethodFunctions();
+  TRACE_CINT_DECIMAL;
 
   //initializing tools 
     BysSparseReg::Initialize();
@@ -860,8 +886,10 @@ BBool InitGrammars()
 	      "Contiene la información sobre la URL y el número de revisión del "
         "SVN desde el que se ha generado la presente versión de TOL."));
 
+  TRACE_CINT_DECIMAL;
     int BTolOprProfiler_Init();
     BTolOprProfiler_Init();
+  TRACE_CINT_DECIMAL;
     TOLHasBeenInitialized_ = true;
     return(initGrammars_);
 }
@@ -1119,6 +1147,7 @@ const char * TOLContribAcknowledgements()
 void LoadInitLibrary(char* calledProgram)
 //--------------------------------------------------------------------
 {
+  TRACE_CINT_DECIMAL;
   static bool done_ = false;
   static BSystemText* version_ = NULL;
   if(done_) { return; }
@@ -1136,6 +1165,7 @@ void LoadInitLibrary(char* calledProgram)
        "Es util, por ejemplo, para llamar a TOL usando el sistema operativo."));
 
   TOLHasBeenInitialized_ = true;
+  TRACE_CINT_DECIMAL;
 
   BText initpath = GetFilePath(_tolSessionPath_)+  "stdlib";
   BDir initTolPath = initpath + "/_init_stdlib.tol";
@@ -1176,6 +1206,7 @@ void LoadInitLibrary(char* calledProgram)
   tolSdkPath_ = new BSystemText("TOLSDKPath", _tolSdkPath_,
     I2("The path of the TOL headers.",
 	     "El camino de las cabeceras de TOL."));
+  TRACE_CINT_DECIMAL;
 }
 
 //--------------------------------------------------------------------

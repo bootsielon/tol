@@ -43,6 +43,16 @@ G__scratch_all()
 
 */
 
+//#define DO_TRACE_CINT_DECIMAL;
+#ifdef DO_TRACE_CINT_DECIMAL 
+#define TRACE_CINT_DECIMAL \
+  G__exec_text(BText(" double x = 2.1112; printf(\"")+__FILE__+":"+__LINE__+" [x=%.15lg]\n\",x); ");
+#else
+#define TRACE_CINT_DECIMAL
+#endif
+
+
+
 //--------------------------------------------------------------------
  BText cint_url_link()
 //--------------------------------------------------------------------
@@ -83,6 +93,7 @@ int Cint_initialize(const BText& filePath)
 {
   if(Cint_is_initialized())
   {
+    TRACE_CINT_DECIMAL;
     return(G__INIT_CINT_SUCCESS);
   }
   else
@@ -105,6 +116,7 @@ int Cint_initialize(const BText& filePath)
     }
     G__set_errmsgcallback(reinterpret_cast<void*>(Cint_errmsgcallback));
     G__setautoconsole(1);
+    TRACE_CINT_DECIMAL;
     return(G__init_cint_);
   }
 }
