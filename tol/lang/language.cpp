@@ -1367,7 +1367,6 @@ static void PkgStartActions(
   BText package_version = package_version_;
   BText package;
 //Std(BText("\nTRACE BPackage::Load 1 package_version='")+package_version+"'");
-  BOisCreator::AddRequiredPackage(package_version);
   int point = package_version.Find(".",1);
   if(point>=0)
   {
