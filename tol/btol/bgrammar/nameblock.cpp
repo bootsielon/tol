@@ -425,7 +425,7 @@ const BText& BNameBlock::LocalName() const
     ns_resultLevel = ns_result->Level();
     if(oldBuildingLevel == level-1)
     { 
-      oldBuilding->Contens().AddElement(ns_result, true);
+      oldBuilding->Contens().AddElement(ns_result, true, false);
     //BSyntaxObject* found = GraNameBlock()->EvaluateExpr(fullName);
     //assert(found);
     }
@@ -465,7 +465,7 @@ const BText& BNameBlock::LocalName() const
           obj = GraAnything()->EvaluateTree(br);
           if(obj)
           {
-            newNameBlock.AddElement(obj,true);
+            newNameBlock.AddElement(obj,true,false);
           }
         }
       }
@@ -553,7 +553,7 @@ const BText& BNameBlock::LocalName() const
         if(!mbr->method_ && !mbr->static_)
         {
           obj = GraAnything()->EvaluateTree(mbr->branch_);
-          newNameBlock.AddElement(obj, true);
+          newNameBlock.AddElement(obj, true, false);
         }
       }
       BClass::currentClassBuildingInstance_ = oldClass;
@@ -610,7 +610,7 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
-  bool BNameBlock::AddElement(BSyntaxObject* obj, bool addToSet)
+  bool BNameBlock::AddElement(BSyntaxObject* obj, bool addToSet, bool fromOis)
 //--------------------------------------------------------------------
 {
   if(!obj) { return(true); }
@@ -631,14 +631,6 @@ const BText& BNameBlock::LocalName() const
           I2("Cannot build NameBlock ",
              "No se puede construir el NameBlock ")+Name());
 
-    return(false);
-  }
-  if(name=="_this")
-  {
-    Error(I2("Reserved member name ",
-             "Nombre de miembro reservado  ")+ name+"\n"+
-            I2("Cannot build NameBlock ",
-               "No se puede construir el NameBlock ")+Name());
     return(false);
   }
   BSyntaxObject* mem = Member(name);
@@ -689,8 +681,63 @@ const BText& BNameBlock::LocalName() const
       //read only member
       nonPrivateMembers_++; 
     //Std(BText("\nTRACE BNameBlock::Build added read only member ")+Name()+"::"+name+"\n");
+      if(!fromOis && (name=="_.autodoc.dependencies"))
+      {
+        if(obj->Grammar()!=GraSet())
+        { 
+          Error(I2("Wrong declaration of ","Definición errónea de ")+
+                obj->Grammar()->Name()+" "+LocalName()+"::_.autodoc.dependencies"+
+                I2("It should be of type ","Debería ser de tipo ")+"Set");
+          return(false);
+        }
+        BSet& dep = ::Set(obj); 
+        if(dep.Card())
+        { 
+          Warning(I2("Obsolete declaration of ","Definición obsoleta de ")+
+                obj->Grammar()->Name()+" "+LocalName()+"::_.autodoc.dependencies"+
+                I2("It should be empty due it will be filled with required packages",
+                   "Debería estar vacío porque se rellena automáticamente con los "
+                   "paquetes requeridos"));
+        }
+        int reqNum = CountRequiredPackage();
+        dep.Delete();
+        dep.PrepareStore(reqNum);
+        int d;
+        for(d=0; d<reqNum; d++)
+        {
+          BText txt = GetRequiredPackage(d);
+          dep.AddElement(new BContensText("",txt,""));
+        }
+      }
+      else  if(!fromOis && (name=="_.autodoc.name"))
+      {
+        if(obj->Grammar()!=GraText())
+        { 
+          Error(I2("Wrong declaration of ","Definición errónea de ")+
+                obj->Grammar()->Name()+" "+LocalName()+"::_.autodoc.name"+
+                I2("It should be of type ","Debería ser de tipo ")+"Text");
+          return(false);
+        }
+        BText& nt = Text(obj); 
+        if(nt.HasName() && (nt!=LocalName()))
+        {
+          Error(I2("Wrong declaration of ","Definición errónea de ")+
+                obj->Grammar()->Name()+" "+LocalName()+"::_.autodoc.name = \""+nt+"\";\n"+
+                I2("It should be ","Debería ser \"")+LocalName()+"\"");
+          return(false);
+        } 
+        nt = LocalName();
+      }
+
     }
-  //else { Std(BText("\nTRACE BNameBlock::Build added private member ")+Name()+"::"+name+"\n"); }
+    else if(name=="_this")
+    {
+      Error(I2("Reserved member name ",
+               "Nombre de miembro reservado  ")+ name+"\n"+
+              I2("Cannot build NameBlock ",
+                 "No se puede construir el NameBlock ")+Name());
+      return(false);
+    }
     private_[name] = obj;
   }
   if(obj->Grammar()==GraCode())
@@ -736,7 +783,7 @@ const BText& BNameBlock::LocalName() const
   for(i=j=0; i<set_.Card(); i++)
   {
     obj = set_[i+1];
-    AddElement(obj, false);
+    AddElement(obj, false, false);
   }
   return(CheckMembers());
 }
@@ -1216,14 +1263,14 @@ bool BRequiredPackage::AddRequiredPackage(const BText& name)
   }
 };
 //--------------------------------------------------------------------
-  int BRequiredPackage::CountRequiredPackage()
+  int BRequiredPackage::CountRequiredPackage() const
 //--------------------------------------------------------------------
 {
   return(array_.Size());
 }
 
 //--------------------------------------------------------------------
-  const BText& BRequiredPackage::GetRequiredPackage(int k)
+  const BText& BRequiredPackage::GetRequiredPackage(int k) const
 //--------------------------------------------------------------------
 {
   return(array_[k]);
@@ -1242,7 +1289,7 @@ bool BRequiredPackage::AddRequiredPackage(const BText& name)
 }
 
 //--------------------------------------------------------------------
-  int BNameBlock::CountRequiredPackage()
+  int BNameBlock::CountRequiredPackage() const
 //--------------------------------------------------------------------
 {
   if(!requiredPackages_) { return(0); }
@@ -1250,7 +1297,7 @@ bool BRequiredPackage::AddRequiredPackage(const BText& name)
 }
 
 //--------------------------------------------------------------------
-  const BText& BNameBlock::GetRequiredPackage(int k)
+  const BText& BNameBlock::GetRequiredPackage(int k) const
 //--------------------------------------------------------------------
 {
   static BText noPackage = "";

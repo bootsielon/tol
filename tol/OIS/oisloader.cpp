@@ -174,10 +174,13 @@ if(! ( fn = streamHandler_->Open(T,SubPath()+N) ) ) \
     if(streamHandler_->HasFile(SubPath()+".hrchyDetail"))  
     {
       EnsureFileOpenR(hrchyDetail_, "hrchyDetail", ".hrchyDetail"    );
+    //hrchyDetail_.SetPos(strlen(".hrchyDetail"));
       TRACE_SHOW_LOW(fun,"2.15");
       EnsureFileOpenR(hrchyOffset_, "hrchyOffset", ".hrchyOffset"    );
+    //hrchyOffset_.SetPos(strlen(".hrchyOffset"));
       TRACE_SHOW_LOW(fun,"2.16");
       EnsureFileOpenR(hrchyOrder_,  "hrchyOrder",  ".hrchyOrder"     );
+    //hrchyOrder_.SetPos(strlen(".hrchyOrder"));
       TRACE_SHOW_LOW(fun,"2.17");
     }
     if(streamHandler_->HasFile(SubPath()+"export.csv"))
@@ -214,9 +217,16 @@ if(! ( fn = streamHandler_->Open(T,SubPath()+N) ) ) \
   ERead(aux, ratio_  ); if(aux!=address+"/.ratio>\n"  ) { return(BinError(".ratio"   )); }
   ERead(aux, code_   ); if(aux!=address+"/.code>\n"   ) { return(BinError(".code"    )); }
   if(control_.oisEngine_.oisVersion_>="01.07") {
-  ERead(aux, hrchyDetail_); if(aux!=address+"/.hrchyDetail>\n") { return(BinError(".hrchyDetail" )); }
-  ERead(aux, hrchyOffset_); if(aux!=address+"/.hrchyOffset>\n") { return(BinError(".hrchyOffset" )); }
-  ERead(aux, hrchyOrder_ ); if(aux!=address+"/.hrchyOrder>\n" ) { return(BinError(".hrchyOrder"  )); } }
+    ERead(aux, hrchyDetail_); 
+    if(aux!=address+"/.hrchyDetail>\n") { return(BinError(".hrchyDetail" )); }
+    hrchyDetail_->SetPos(sizeof(int)+aux.Length());
+    ERead(aux, hrchyOffset_); 
+    if(aux!=address+"/.hrchyOffset>\n") { return(BinError(".hrchyOffset" )); }
+    hrchyOffset_->SetPos(sizeof(int)+aux.Length());
+    ERead(aux, hrchyOrder_ ); 
+    if(aux!=address+"/.hrchyOrder>\n" ) { return(BinError(".hrchyOrder"  )); } 
+    hrchyOrder_->SetPos(sizeof(int)+aux.Length());
+  }
   else { numFiles-=3; }
   enable_BSE_=(control_.oisEngine_.oisVersion_>="01.08")!=0;
   for(n=1; n<numFiles; n++)
@@ -439,7 +449,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         I2("Cannot load from OIS Class ","No se puede cargar del OIS Class ")+ 
         owner.getFullName()+
         I2(" due to ascent Class "," debido a que su ascendiente Class ")+
-        parentName+I2(" doesn't exist"," no existe")));
+        parentName+I2(" doesn't exist"," no existe"))!=0);
     }
     const BText& fn = parent->getFullNameRef();
   //Std(BText("\nBOisLoader::Read BMemberOwner parent ")+fn);
@@ -1205,7 +1215,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               mem = oldBuilding->Contens().Member(unb->Name());
               if(!mem)
               {
-                oldBuilding->Contens().AddElement(unb, true);
+                oldBuilding->Contens().AddElement(unb, true, true);
               }
             }
           } 
@@ -1228,7 +1238,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               mem = x.Member(r->Name());
               if(!mem)
               {
-                x.AddElement(r, true); 
+                x.AddElement(r, true, true); 
               }
             }
           } 

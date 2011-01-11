@@ -57,8 +57,8 @@ private:
 public:
   BRequiredPackage();
   bool AddRequiredPackage(const BText& name);
-  int CountRequiredPackage();
-  const BText& GetRequiredPackage(int k);
+  int CountRequiredPackage() const;
+  const BText& GetRequiredPackage(int k) const;
 };
 
 //--------------------------------------------------------------------
@@ -142,7 +142,7 @@ public:
   int BinWrite(FILE*) const { return 0; }
   int BinRead (FILE*)       { return 0; }
 
-  bool AddElement(BSyntaxObject* obj, bool addToSet);
+  bool AddElement(BSyntaxObject* obj, bool addToSet, bool fromOis);
   bool CheckMembers();
   bool Build();
   bool Fill(const BSet& set);
@@ -158,8 +158,8 @@ public:
   short EnsureIsAssigned() const;
 
   bool AddRequiredPackage(const BText& name);
-  int CountRequiredPackage();
-  const BText& GetRequiredPackage(int k);
+  int CountRequiredPackage() const;
+  const BText& GetRequiredPackage(int k) const;
 
   static bool AddGlobalRequiredPackage(const BText& name);
   static int CountGlobalRequiredPackage();

@@ -65,7 +65,7 @@ TOL_API BUserCode* NewMethod(
   uCode->Contens().PutOperator(opr);
   uCode->PutName(name);
   uCode->PutDescription(desc);
-  nb.AddElement(uCode,true);
+  nb.AddElement(uCode,true,false);
   return(uCode);
 }
 
