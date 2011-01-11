@@ -26,8 +26,7 @@ Set _.packForInstall = Copy(Empty);
 //Paquetes ya instalados
 Set _.packInstalled = Copy(Empty);
 
-Text min_tol_version_cond = 
-  "min_tol_version="+Replace(TolPackage::_.currentTolVersion," ","%20");
+Text min_tol_version_cond = "";
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Initialize = 
@@ -36,6 +35,8 @@ Real Initialize(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real TolPackage::Initialize(void);
+  Text min_tol_version_cond := 
+    "min_tol_version="+Replace(TolPackage::_.currentTolVersion," ","%20");
   Real OSDirMake(_.localRoot);
   True
 };
