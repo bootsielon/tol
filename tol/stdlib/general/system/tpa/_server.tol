@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Text formatServer(@stServerInfo srv)
+  Text formatServer(Tpa::@stServerInfo srv)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text srv->host+
@@ -19,7 +19,7 @@ formatServer);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Text descServer(@stServerInfo srv)
+  Text descServer(Tpa::@stServerInfo srv)
 //////////////////////////////////////////////////////////////////////////////
 {
   Text "TolServer{"+srv->host+
@@ -38,7 +38,7 @@ descServer);
 //////////////////////////////////////////////////////////////////////////////
 {
   Set tok = Tokenizer(hostPort,":");
-  @stServerInfo
+  Tpa::@stServerInfo
   (
     Text host = tok[1];
     Real port = Eval(tok[2]),
@@ -49,7 +49,7 @@ descServer);
 PutDescription(I2(
 "Returns the Tap::@stServerInfo corresponding to a standard string of server "
 "definition host:port",
-"Devuelve la estructura Tap::@stServerInfo correspondiente a una cadena "
+"Devuelve la estructura Tpa::@stServerInfo correspondiente a una cadena "
 "est?ndard de definici?n de un servidor m?quina:puerto"),
 parseServer);
 //////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ Set launchServer(Text host, Real port, Real speed)
   //WriteLn("TRACE launchServer 1.4 command="<<command);
     Real pid = RemoteExec(host, _.rmtpsdPort, command);
   //WriteLn("TRACE launchServer 1.5 pid="<<pid);
-    Set srv = @stServerInfo(host, port, pid, speed);
+    Set srv = Tpa::@stServerInfo(host, port, pid, speed);
   //WriteLn("TRACE launchServer 1.6 srv="<<srv);
     Text desc = ToName(descServer(srv));
   //WriteLn("TRACE launchServer 1.7 desc="<<desc);
@@ -164,7 +164,7 @@ launchServer);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-Real killServer(@stServerInfo srv)
+Real killServer(Tpa::@stServerInfo srv)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set _.serverList := _.serverList - [[srv]];
@@ -259,7 +259,7 @@ testLocalSpeed);
 
 
 //////////////////////////////////////////////////////////////////////////////
-Real testRemoteSpeed(Real numIter, @stServerInfo srv)
+Real testRemoteSpeed(Real numIter, Tpa::@stServerInfo srv)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE testRemoteSpeed 1 srv="+formatServer(srv));
