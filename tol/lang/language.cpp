@@ -1393,7 +1393,8 @@ static void PkgStartActions(
 
   bool ok = pkg!=NULL;
   if(ok) { 
-    PkgStartActions(pkg, package, path);
+    BText sourcePath = GetFilePath(pkg->SourcePath());
+    PkgStartActions(pkg, package, sourcePath);
     return(pkg); 
   }
 //Std(BText("\nTRACE BPackage::Load 3 dirPath='")+dirPath.Name()+"'");
