@@ -23,18 +23,22 @@
     Real a = 1,
     Real b = 2
   ]];
-  Set AB = [[A1, A2]];
-  Set C = Unique(AB); 
+  NameBlock A3 = [[
+    Real a = 1,
+    Real b = 2
+  ]];
+  Set B = Unique([[A1, A2]]); 
+  Set C = Unique([[A1, A2, A3]]); 
   
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);
 
 
-  Set partialResults_ = [[ numErr0, numErr1, q1, q2]];
+  Set partialResults_ = [[ numErr0, numErr1]];
 
 //This is a messure of the success of the test 
   Real quality_ = And(numErr1 == numErr0, 
-                      numWar1 == numWar0)*q1*q2;
+                      numWar1 == numWar0, Card(B)==2, Card(C)==2);
 
 //Return the results 
   Set resultStr_ = @strTestStatus(summary_, link_, quality_,
