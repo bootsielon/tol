@@ -402,6 +402,108 @@ BDat BProbDist::InverseFib(BDat& x, BDat prob, BDat tol)
     return(x);
 }
 
+//--------------------------------------------------------------------
+  BDat BDiscreteDist::Inverse (BDat prob, BDat tolerance)
+//--------------------------------------------------------------------
+{
+  BText _MID = "BDiscreteDist::Inverse";
+  if(wrongParameter_|| prob.IsUnknown()) { return(BDat::Unknown());}
+  if(prob+1.0<1.0) { return(BDat::Unknown()); }
+  if(prob-1.0>0.0) { return(BDat::Unknown()); }
+  if(prob+1.0==1.0) { return(min_); }
+  if(prob-1.0==0.0) { return(max_); }
+  bool has_lower_bound = !min_.IsNegInf();
+  bool has_upper_bound = !max_.IsPosInf();
+  double a = min_.Value();
+  double b = max_.Value();
+  double pa = has_lower_bound ? Dist(a).Value() : 0;
+  if(prob<=pa) { return(a); }
+  double pb = 1.0;
+  double h = 1.0;
+  double h_factor = 10.0;
+  if(!has_lower_bound || !has_upper_bound)
+  {
+    double avr = round(Average().Value());
+    if(!IS_FINITE(avr))
+    {
+      Error(_MID+"Cannot handle with distribution which average is not finite."); 
+      return(BDat::Unknown());
+    }
+    double pdf_avr = Dist(avr).Value();
+    if(prob+1==pdf_avr+1) {  return(avr); }
+    else if(pdf_avr>prob)
+    {
+      b = avr;
+      pb = pdf_avr;
+      if(!has_lower_bound)
+      {
+        a = b;
+        pa = pb;
+      }
+    }
+    else // if(pdf_avr<prob)
+    {
+      a = avr;
+      pa = pdf_avr;
+      if(!has_upper_bound)
+      {
+        b = a;
+        pb = pa;
+      }
+    }   
+  };
+  has_lower_bound = IS_FINITE(a)!=0;
+  has_upper_bound = IS_FINITE(b)!=0;
+  if(!has_lower_bound || !has_upper_bound)
+  {
+    Error(_MID+"Sorry, cannot find a finite searching interval for p="+prob); 
+    return(BDat::Unknown());
+  }
+  while(pa>prob)
+  {
+    a -= h;
+    pa = Dist(a).Value(); 
+    if(prob+1==pa+1) {  return(a); }
+    h *= h_factor;
+  }
+  while(pb<prob)
+  {
+    b += h;
+    pb = Dist(b).Value(); 
+    if(prob+1==pb+1) {  return(b); }
+    h *= h_factor;
+  }
+  double pa1 = (min_>=a-1)?0.0:Dist(a-1).Value(); 
+  double pb1 =                 Dist(b-1).Value(); 
+       if((pa1 < prob) && (prob <=pa)) {  return(a); }
+  else if((pb1 < prob) && (prob <=pb)) {  return(b); }
+
+  if((a>=b)||(pa>=pb)||(pa>prob)||(pb<prob))
+  {
+    Error(_MID+"Sorry, cannot find a valid searching interval for p="+prob); 
+    return(BDat::Unknown());
+  }
+  double x;
+  double px; 
+  double px1; 
+  while(a<b-1)
+  {
+    x = round((a+b)/2);
+    px = Dist(x).Value(); 
+    px1 = Dist(x-1).Value(); 
+         if((px1 < prob) && (prob <=px)) {  return(x); }
+    else if(prob> px1)                   {  a = x; pa = px; pa1 = px1; }
+    else                                 {  b = x; pb = px; pb1 = px1; }
+  }
+       if((pa1 < prob) && (prob <= pa)) {  return(a); }
+  else if((pb1 < prob) && (prob <= pb)) {  return(b); }
+  else
+  {
+    Error(_MID+"Sorry, cannot find a valid searching interval for p="+prob); 
+    return(BDat::Unknown());
+  }
+
+}
 
 //--------------------------------------------------------------------
 BDat BDiscreteDist::Summ(BInt from, BInt until)
@@ -2056,6 +2158,7 @@ BDat BParetoDist::Varianze  ()
 }
 
 
+
 //--------------------------------------------------------------------
 BDiscreteUniformDist::BDiscreteUniformDist(BInt min, BInt max)
 //--------------------------------------------------------------------
@@ -2427,7 +2530,7 @@ BDat BPoissonDist::Dist(BDat x)
   if(wrongParameter_ || x.IsUnknown()) { return(BDat::Unknown());}
   double p, q, s, xlam, bound;
   int which, status; 
-  s = (double) x.Value();
+  s = round((double) x.Value());
   xlam = (double) fi_.Value();
   which = 1;
   cdfpoi(&which, &p, &q, &s, &xlam, &status, &bound);
@@ -2473,15 +2576,17 @@ BDat BPoissonDist::Dist(BDat x)
 
 
 //--------------------------------------------------------------------
-BDat BPoissonDist::Inverse(BDat x, BDat tolerance)
+BDat BPoissonDist::Inverse(BDat p, BDat tolerance)
 
-/*! Returns Inv(Sum{0..x}.Poisson(i,fi))
+/*! Returns the maximum x matching Poisson(x,fi) <= p
  */
 //--------------------------------------------------------------------
 {
-//return(BDiscreteDist::Inverse(x,tolerance));
-
+  return(BDiscreteDist::Inverse(p,tolerance));
+/*
   if(wrongParameter_|| x.IsUnknown()) { return(BDat::Unknown());}
+
+
   double p, q, s, xlam, bound=0.0;
   int which, status=0; 
   
@@ -2492,20 +2597,31 @@ BDat BPoissonDist::Inverse(BDat x, BDat tolerance)
   cdfpoi(&which, &p, &q, &s, &xlam, &status, &bound);
   if(status==0) 
   {
-	  return(round(s));
+	  return(s);
   }
   else if(status==1) 
   {
-	  return(0.0);
+    Warning(BText("[BPoissonDist::Dist] the answer of cdfpoi appears to be lower than lowest search bound ")+
+    "\n  p="+x.Name()+
+    "\n  s="+s+
+    "\n  status="+status+
+    "\n  bound="+bound);
+	  return(s);
   }
   else if(status==2) 
   {
+    Warning(BText("[BPoissonDist::Dist] the answer of cdfpoi appears to be higher than greatest search bound ")+
+    "\n  p="+x.Name()+
+    "\n  s="+s+
+    "\n  status="+status+
+    "\n  bound="+bound);
 	  return(BDat::PosInf());
   }
   else 
   {
     Error(BText("[BPoissonDist::Dist] cdfpoi fails at ")+
     "\n  p="+x.Name()+
+    "\n  s="+s+
     "\n  status="+status+
     "\n  bound="+bound);
 	  return(BDat::Unknown());
