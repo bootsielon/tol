@@ -105,8 +105,8 @@ public:
   static  BDat   Compare  (const BSyntaxObject* obj1,
                            const BSyntaxObject* obj2)
   {
-    Any any1 = ((BGraContensBase<Any>*)obj1)->Contens();
-    Any any2 = ((BGraContensBase<Any>*)obj2)->Contens();
+    Any& any1 = ((BGraContensBase<Any>*)obj1)->Contens();
+    Any& any2 = ((BGraContensBase<Any>*)obj2)->Contens();
     return (Any::Compare(&any1, &any2));
   }
     
