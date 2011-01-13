@@ -832,10 +832,7 @@ public :
     return(Summ((BInt)(a.Value()),(BInt)(b.Value())));
   }
 
-  BDat Inverse (BDat prob, BDat tolerance = 0.01)
-  {
-    return(Round(BProbDist::Inverse(prob, 0.01)));
-  }
+  BDat Inverse (BDat prob, BDat tolerance = 0.01);
 };
 
 
