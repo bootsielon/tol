@@ -1,0 +1,69 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  975;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="Error in DistPoissonInv";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real lambda = 1.1; //Rand(0.00001, 10000);
+
+
+  Real p0 = DistPoisson(0, lambda); 
+  Real p1 = DistPoisson(1, lambda); 
+  Real p2 = DistPoisson(2, lambda); 
+  
+  Real p00 = (0+p0)/2;
+  Real p0;
+  Real p01 = (p0+p1)/2;
+  Real p1;
+  Real p12 = (p1+p2)/2;
+  Real p2;
+  Real p23 = (p2+1)/2;
+  
+  Real x00 = DistPoissonInv(p00, lambda); 
+  Real x0  = DistPoissonInv(p0,  lambda); 
+  Real x01 = DistPoissonInv(p01, lambda); 
+  Real x1  = DistPoissonInv(p1,  lambda); 
+  Real x12 = DistPoissonInv(p12, lambda);
+  Real x2  = DistPoissonInv(p2,  lambda); 
+  Real x23 = DistPoissonInv(p23, lambda);
+
+  Set ok.all = [[  
+    Real ok00 = x00 == 0;
+    Real ok0  = x0  == 0;
+    Real ok01 = x01 == 1;
+    Real ok1  = x1  == 1;
+    Real ok12 = x12 == 2;
+    Real ok2  = x2  == 2;
+    Real ok23 = x23 == 3
+  ]];
+  
+  Real numErr1 = Copy(NError);
+  /* */
+//Extented information about test behaviour
+  Set partialResults_ = ok.all <<
+  [[
+    numErr0, numErr1
+  ]];
+
+//This is a messure of the success of the test
+  Real quality_ = Group("And",ok.all << [[numErr0 == NError]]);
+
+//Return the results
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */
+
