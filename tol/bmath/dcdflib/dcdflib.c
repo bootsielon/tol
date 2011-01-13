@@ -38,7 +38,22 @@
 //using namespace std;
 
 
+double beta_log ( double *a0, double *b0 );
+double error_fc ( int *ind, double *x );
+double beta_rcomp ( double *a, double *b, double *x, double *y );
+double beta_pser ( double *a, double *b, double *x, double *eps );
+double beta_up ( double *a, double *b, double *x, double *y, int *n, double *eps );
+double gamma_x ( double *a );
+void gamma_rat1 ( double *a, double *x, double *r, double *p, double *q, double *eps );
+double gamma_log ( double *a );
+double gamma_ln1 ( double *a );
+void gamma_inc ( double *a, double *x, double *ans, double *qans, int *ind );
+void gamma_inc_inv ( double *a, double *x, double *x0, double *p, double *q, int *ierr );
+double dpmpar ( int *i );
+double dstrem ( double *z );
 double spmpar(int *i);
+
+double eval_pol ( double a[], int *n, double *x );
 
 static double eps1 = 0;
 
