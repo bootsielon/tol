@@ -173,7 +173,7 @@ There are 387 functions in this TOL user's API about these GSL chapters
 //--------------------------------------------------------------------
 
 //Numerical representation of GSL string version
-#define GSL_VERSION_NUM 10400
+#define GSL_VERSION_NUM 10800
 
 #define DecDefIntOprDatGsl(ORD, NAME, MINARG, MAXARG, LISTARGS, DESC)   \
   DeclareContensClass(BDat, BDatTemporary, BDat_##NAME); \
