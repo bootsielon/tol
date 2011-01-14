@@ -61,7 +61,7 @@ public:
     rule<ScannerT>  
       variantSigma, constantSigma, covariance, 
       noiseName, noisePosition,
-      posSign, negSign, unknown, product,
+      posSign, negSign, unknown, infinite, posInf, negInf, knownOrInfReal, product,
       initValue, like, power2, member, nonLinearFilters,
       noiseSize, normalDist, normalNu, eq, le, ge, tolExpression,
       argumentSeparator, endOfSentence, 
@@ -157,6 +157,19 @@ public:
         ;
       unknown = str_p("?")
         ;
+      infinite = str_p("1.#INF")
+        ;
+      posInf = (eps_p | posSign) >> infinite 
+        ;
+      negInf = (negSign) >> infinite 
+        ;
+      knownReal =
+        real_p[assign_a(s.realValue)]
+        ;
+      knownOrInfReal = knownReal | 
+        posInf[assign_a(s.realValue,BDat::PosInf())]| 
+        negInf[assign_a(s.realValue,BDat::NegInf())]
+        ;
       product = str_p("*")
         ;
       member = str_p("::")
@@ -247,14 +260,6 @@ public:
         | 
         negSign[assign_neg_sign_to_ine_term_]
         ;
-      knownReal =
-        real_p[assign_a(s.realValue)]
-        ;
-      unkOrReal =
-        unknown[assign_a(s.realValue,BDat::Nan())]
-        |
-        knownReal
-        ;
       knownURealEquTerm =
         ureal_p[assign_a(s.equ_var_term_info.coef)]
         ;
@@ -296,9 +301,9 @@ public:
                     (
                       str_p("Uniform")[assign_a(s.mis.info.prior,"Uniform")] >> 
                       openParenthesys >>
-                      ((str_p("?")|real_p)[assign_missing_min_] | error_badNumber) >>
+                      ((str_p("?")|str_p("-1.#INF")|real_p)[assign_missing_min_] | error_badNumber) >>
                       argumentSeparator >>
-                      ((str_p("?")|real_p)[assign_missing_max_] | error_badNumber) >>
+                      ((str_p("?")|str_p("+1.#INF")|str_p("1.#INF")|real_p)[assign_missing_max_] | error_badNumber) >>
                       closeParenthesys
                     ) 
                   )
@@ -327,9 +332,9 @@ public:
                   argumentSeparator >>
                   (real_p[assign_a(s.mis.info.sigma2)] | error_badNumber)>>
                   argumentSeparator >>
-                  ((str_p("?")|real_p)[assign_missing_min_] | error_badNumber) >>
+                  ((str_p("?")|str_p("-1.#INF")|real_p)[assign_missing_min_] | error_badNumber) >>
                   argumentSeparator >>
-                  ((str_p("?")|real_p)[assign_missing_max_] | error_badNumber) >>
+                  ((str_p("?")|str_p("+1.#INF")|str_p("1.#INF")|real_p)[assign_missing_max_] | error_badNumber) >>
                   closeParenthesys
                 )
               ) 

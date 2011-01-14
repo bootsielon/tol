@@ -394,7 +394,7 @@ public:
   }
   void action(const std::string& str) const
   {
-    if(str=="?")
+    if((str=="?")||(str=="-1.#INF"))
     {
       action(BDat::NegInf());
     }
@@ -503,7 +503,7 @@ public:
   }
   void action(const std::string& str) const
   {
-    if(str=="?")
+    if((str=="?")||(str=="+1.#INF")||(str=="1.#INF"))
     {
       action(BDat::PosInf());
     }
