@@ -1,0 +1,20 @@
+/////////////////////////////////////////////////////////////////////////////
+// Bayesian Sparse Regression 
+/////////////////////////////////////////////////////////////////////////////
+
+$BEGIN
+
+Module.Type = master;
+Model.Name = "TMO.CRC.D_H01Mi00__1.0.Prueba";
+Model.Description = "Versión 1.0.Prueba del modelo de TMO de la ser2Model CRC en fechado Diario, \n"
+"en la hora 01 y el minuto 00.\n"
+"Se hace estimación hasta 20100421, y previsión hasta 20100531";
+Session.Name = "y2010m05d11h16i18s22.00";
+Session.Description = "Sesión creada en el instante y2010m05d11h16i18s22.00";
+Session.Authors = "user@bayesforecast.com";
+
+Modular.Schema = monophasic;
+Include primary module "./obs/TMO.CRC.D_H01Mi00/primary/primary.bsr";
+Include primary module "./pri/TMO.CRC.D_H01Mi00__Output_TMO.CRC.D__Deg0.Coef/primary/primary.bsr";
+
+$END

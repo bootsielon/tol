@@ -1,0 +1,58 @@
+/////////////////////////////////////////////////////////////////////////////
+// Bayesian Sparse Regression 
+/////////////////////////////////////////////////////////////////////////////
+
+$BEGIN
+
+Module.Type = primary;
+Model.Name = "TMO.CRC.D_H01Mi00";
+Model.Description = "Output de TMO de la ser2Model CRC en Diario en la hora 01 y el minuto 00";
+Session.Name = "y2010m05d11h16i18s22.00";
+Session.Description = "Sesión creada en el instante y2010m05d11h16i18s22.00";
+Session.Authors = "user@bayesforecast.com";
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of Regression Variables
+/////////////////////////////////////////////////////////////////////////////
+
+TMO.CRC.D_H01Mi00__Output_TMO.CRC.D__Deg0.Coef <- +0.7;
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of noise distribution
+/////////////////////////////////////////////////////////////////////////////
+
+TMO.CRC.D_H01Mi00::Noise[111 dating Daily from y2010m01d01h00i00s00.00 until y2010m04d21h23i30s00.00]
+  ~ Normal(0,SigmaBlk::TMO.CRC.D_H01Mi00::sigma2 * Cov = ArimaCovariance([[
+  @ARIMAStruct(1,1-0.1*B,1,1),
+  @ARIMAStruct(7,1,1+0.1*B^7,1-B^7)]]));
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining regression equations
+/////////////////////////////////////////////////////////////////////////////
+
+
+Output =   {$ VMatrix { Include("./Output.oza")[1] } $};
+Input =   {$ VMatrix { Include("./Input.oza")[1] } $};
+
+/////////////////////////////////////////////////////////////////////////////
+// Defining header of Regression Missing Values
+/////////////////////////////////////////////////////////////////////////////
+
+TMO.CRC.D_H01Mi00__y2010m02d21 ? 
+ at row 52 for output
+ <- +0
+ ~ Uniform(-1.#INF,+0);
+TMO.CRC.D_H01Mi00__y2010m03d20 ? 
+ at row 79 for output
+ <- +0
+ ~ Uniform(-1.#INF,+0);
+TMO.CRC.D_H01Mi00__y2010m04d04 ? 
+ at row 94 for output
+ <- +0
+ ~ Uniform(-1.#INF,+0);
+
+$END

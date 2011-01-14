@@ -1,0 +1,23 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : estim.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+//Loads general tools for BSR tests
+//////////////////////////////////////////////////////////////////////////////
+#Require BysMcmc;
+
+BysMcmc::@Config bsr.config = Include("model/master.bsr.config.oza")[1];
+Set bsr.parsed = BSR.Parse("model/master.bsr","master");
+
+BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
+  bsr.parsed, 
+  BysMcmc::@McmcPartialHandler::Null(0), 
+  bsr.config, 
+  BysMcmc::@Notifier::Null(0));
+
+BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
+
+Real estim::Run(0);
