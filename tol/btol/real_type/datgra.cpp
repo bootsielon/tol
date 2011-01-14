@@ -252,6 +252,12 @@ void BGraContensBase<BDat>::InitInstances()
 			     I2("Positive infinte",
 				      "Infinito positivo"));
 
+  BSystemDat* epsilon_  = new BSystemDat ("MachineEpsilon",	LDBL_EPSILON,
+			     I2("Real double precission machine epsilon number. "
+              "If you add a number smaller than this to 1.0, the result will be 1.0.",
+				      "Número epsilon de la máquina para los reales de doble precisión. "
+              "Si se añade a 1.0 un número máspequeño que éste, el resultado será 1.0."));
+
   BSystemDat* houseHolder_   = new BSystemDat
   (
     "HouseHolder",
