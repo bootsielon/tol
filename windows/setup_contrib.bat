@@ -7,7 +7,7 @@
 @echo =                     http://www.tol-project.org                             =
 @echo =                                                                            = 
 @echo ==============================================================================
-@set  _TOL_CONTRIB_ROOT_PATH_=!CD!\tol-contrib
+@set  _TOL_CONTRIB_ROOT_PATH_="%CD%\tol-contrib"
 @set  ATLAS_INC="%_TOL_CONTRIB_ROOT_PATH_%\atlas\include"       
 @set  ATLAS_LIB="%_TOL_CONTRIB_ROOT_PATH_%\atlas\lib"           
 @set  BOOST="%_TOL_CONTRIB_ROOT_PATH_%\boost"       
