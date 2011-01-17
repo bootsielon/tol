@@ -46,6 +46,7 @@ class BUserFunCode : public BContensCode
 //--------------------------------------------------------------------
 {
 public:
+  BUserFunCode();
   BUserFunCode(const BText& name, const BCode& aCode, const BText& desc);
   BUserFunCode(const BText& name, BStandardOperator* opr, const BText& desc);
  ~BUserFunCode() {}

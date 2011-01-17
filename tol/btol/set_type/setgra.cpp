@@ -2264,9 +2264,24 @@ BSyntaxObject* CopyMatrix(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
 //--------------------------------------------------------------------
 BSyntaxObject* CopyCode(BSyntaxObject* obj)
 {
-  BCode cod;
-  cod.Replicate(Code(obj));
-  return(new BContensCode("",cod,""));
+  BCode& cod = Code(obj);
+  BUserFunction* opr = (BUserFunction*)cod.Operator();
+  if(opr)
+  {
+    BUserFunction* usf = new BUserFunction("",opr->Grammar());
+    BUserFunCode* result = usf->GetCode();
+    usf->PutName(opr->Name());
+    usf->PutDescription(opr->Description());
+    usf->SetExpression(opr->Declaration(), opr->Definition()); 
+    result->PutName(opr->Name());
+    result->PutDescription(opr->Description());
+    return(result);
+  }
+  else
+  {
+    Error(BText("Cannot copy Code ")<<obj->Identify());
+    return(NULL);
+  }
 };
 /*
 //--------------------------------------------------------------------

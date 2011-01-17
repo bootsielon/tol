@@ -49,6 +49,13 @@ DefineContensCommonOperators(BCode, "Code");
 }
 
 //--------------------------------------------------------------------
+  BUserFunCode::BUserFunCode()
+//--------------------------------------------------------------------
+: BContensCode() 
+{
+}
+
+//--------------------------------------------------------------------
   BUserFunCode::BUserFunCode(const BText& name, 
                              const BCode& aCode, 
                              const BText& desc)

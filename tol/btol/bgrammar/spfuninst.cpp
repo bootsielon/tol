@@ -1092,22 +1092,22 @@ static BSyntaxObject* EvCopy(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 {
   static BText _name_ = "Copy";
-    BSyntaxObject* result = NIL;
-    BInt nb = BSpecialFunction::NumBranches(tre);
-    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
-    {
-	BSyntaxObject* toCopy = gra->EvaluateTree(Branch(tre,1));
-	if(toCopy)
-	{
+  BSyntaxObject* result = NIL;
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
+  {
+    BGrammar::IncLevel();
+    int stackPos = BGrammar::StackSize();
+    BSyntaxObject* toCopy = gra->EvaluateTree(Branch(tre,1));
+	  if(toCopy)
+	  {
 	    result = toCopy->CopyContens();
-	    if(result!=toCopy)
-	    {
-		SAFE_DESTROY(toCopy,result);
-	    }
-	}
-    }
-    result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
-    return(result);
+	  }
+    BGrammar::DestroyStackUntil(stackPos, result);    
+    BGrammar::DecLevel();
+  }
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
+  return(result);
 }
 
 
