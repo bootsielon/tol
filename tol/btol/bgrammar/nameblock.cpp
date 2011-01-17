@@ -633,6 +633,14 @@ const BText& BNameBlock::LocalName() const
 
     return(false);
   }
+  if(name=="_this")
+  {
+    Error(I2("Reserved member name ",
+             "Nombre de miembro reservado  ")+ name+"\n"+
+            I2("Cannot build NameBlock ",
+               "No se puede construir el NameBlock ")+Name());
+    return(false);
+  }
   BSyntaxObject* mem = Member(name);
   if(mem)
   {
@@ -729,14 +737,6 @@ const BText& BNameBlock::LocalName() const
         nt = LocalName();
       }
 
-    }
-    else if(name=="_this")
-    {
-      Error(I2("Reserved member name ",
-               "Nombre de miembro reservado  ")+ name+"\n"+
-              I2("Cannot build NameBlock ",
-                 "No se puede construir el NameBlock ")+Name());
-      return(false);
     }
     private_[name] = obj;
   }
