@@ -65,8 +65,8 @@
 #include <signal.h>
 #include <errno.h>
 #include <gsl/gsl_errno.h>
-
 #include <tol/tol_bnameblock.h>
+#include <contrib/cint/tolCint.h>
 
 
 #ifdef _DEBUG
@@ -123,17 +123,6 @@ static BText         _tolSessionPath_             = "";
 static BSystemText*   tolSessionPath_             = NULL;
 static BText         _tolSdkPath_                 = "";
 static BSystemText*   tolSdkPath_                 = NULL;
-
-int Cint_initialize(const BText& filePath);
-
-//#define DO_TRACE_CINT_DECIMAL;
-#ifdef DO_TRACE_CINT_DECIMAL 
-#include <G__ci.h>
-#define TRACE_CINT_DECIMAL \
-  G__exec_text(BText(" double x = 2.1112; printf(\"")+__FILE__+":"+__LINE__+" [x=%.15lg]\n\",x); ");
-#else
-#define TRACE_CINT_DECIMAL
-#endif
 
 
 //--------------------------------------------------------------------

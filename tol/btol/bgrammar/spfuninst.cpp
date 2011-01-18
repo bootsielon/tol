@@ -50,7 +50,8 @@
 #include <tol/tol_bparser.h>
 #include <tol/tol_bsymboltable.h>
 #include <tol/tol_bnameblock.h>
-#include <G__ci.h>
+#include <contrib/cint/tolCint.h>
+
 
 BTraceInit("spfuninst.cpp");
 
@@ -1649,7 +1650,7 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
 /* * /
     BText ups = BParser::Unparse(tre, "  ");
   //Std(ups+"\n"); 
-    if(ups=="a::fun(?)::b") 
+    if(ups=="cD::C2B") 
       printf("");
   //Std(BText("\nEvMember branch1='")+BParser::Unparse(branch1,"  ")+"'\n"); 
   //Std(BText("\nEvMember branch2='")+BParser::Unparse(branch2,"  ")+"'\n"); 
@@ -1829,9 +1830,9 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
       int ptr = 0;
       if(gra==GraReal())
       {
-        BDat cnt = G__double(G__calc(name));
+        BDat cnt = Cint_double(Cint_calc(name));
 /*
-        g = G__calc(name);
+        g = Cint_calc(name);
         bool ok = true;
         switch (g.type) 
         {
@@ -1854,9 +1855,9 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
       {
         int rows = -1, columns = -1;
         double* buffer = NULL;
-        rows = G__int(G__calc(name+".rows_"));
-        columns = G__int(G__calc(name+".columns_"));
-        buffer = (double*)G__int(G__calc(BText("(int)(")+name+".buffer_)"));
+        rows = Cint_int(Cint_calc(name+".rows_"));
+        columns = Cint_int(Cint_calc(name+".columns_"));
+        buffer = (double*)Cint_int(Cint_calc(BText("(int)(")+name+".buffer_)"));
         if(rows>0 && columns>0 && buffer!=NULL)
         {
           BMat cnt(rows, columns, (BDat*)buffer);  
@@ -1867,8 +1868,8 @@ static BSyntaxObject* EvCint_export_to_tol(BGrammar* gra, const List* tre, BBool
       {
         int length = -1;
         char* buffer = NULL;
-        length = G__int(G__calc(name+".length_"));
-        buffer = (char*)G__int(G__calc(BText("(int)(")+name+".buffer_)"));
+        length = Cint_int(Cint_calc(name+".length_"));
+        buffer = (char*)Cint_int(Cint_calc(BText("(int)(")+name+".buffer_)"));
         if(length>0 && buffer!=NULL)
         {
           BText cnt(buffer, length);  

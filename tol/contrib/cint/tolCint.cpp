@@ -21,9 +21,7 @@
    USA.
  */
 
-#if defined(_MSC_VER)
-#include <win_tolinc.h>
-#endif
+#include <contrib/cint/tolCint.h>
 
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bdatgra.h>
@@ -31,27 +29,270 @@
 #include <tol/tol_bdtegra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bsetgra.h>
+#include <ltdl.h>
 
-//#pragma pack(16)
-#include <Api.h>
-#include <G__ci.h>
-//#pragma pack(4)
+typedef void      (*G__scratch_all_t)        (void);
+typedef char*     (*G__lasterror_filename_t) (void);
+typedef int       (*G__lasterror_linenum_t)  (void);
+typedef int       (*G__init_cint_t)          (G__CONST char* command);
+typedef void      (*G__set_errmsgcallback_t) (void* p);
+typedef void      (*G__setautoconsole_t)     (int autoconsole);
+typedef void      (*G__SetCINTSYSDIR_t)      (char* cintsysdir);
+typedef int       (*G__loadfile_t)           (G__CONST char* filename);
+typedef int       (*G__unloadfile_t)         (G__CONST char* filename);
+typedef G__value  (*G__exec_tempfile_t)      (G__CONST char *file);
+typedef G__value  (*G__exec_text_t)          (G__CONST char *unnamedmacro);
+typedef long      (*G__int_t)                (G__value buf);
+typedef double    (*G__double_t)             (G__value buf);
+typedef G__value  (*G__calc_t)               (G__CONST char *expr);
+typedef int       (*G__deletevariable_t)     (G__CONST char* varname);
 
-/*
+static G__scratch_all_t         G__scratch_all_ptr          = NULL;
+static G__lasterror_filename_t  G__lasterror_filename_ptr   = NULL;
+static G__lasterror_linenum_t   G__lasterror_linenum_ptr    = NULL;
+static G__init_cint_t           G__init_cint_ptr            = NULL;
+static G__set_errmsgcallback_t  G__set_errmsgcallback_ptr   = NULL;
+static G__setautoconsole_t      G__setautoconsole_ptr       = NULL;
+static G__SetCINTSYSDIR_t       G__SetCINTSYSDIR_ptr        = NULL;
+static G__loadfile_t            G__loadfile_ptr             = NULL;
+static G__unloadfile_t          G__unloadfile_ptr           = NULL;
+static G__exec_tempfile_t       G__exec_tempfile_ptr        = NULL;
+static G__exec_text_t           G__exec_text_ptr            = NULL;
+static G__int_t                 G__int_ptr                  = NULL;
+static G__double_t              G__double_ptr               = NULL;
+static G__calc_t                G__calc_ptr                 = NULL;
+static G__deletevariable_t      G__deletevariable_ptr       = NULL;
 
-G__scratch_all()
+//--------------------------------------------------------------------
+int Cint_dynamic_linkage (void)
+//--------------------------------------------------------------------
+{
+  BText libraryName = "libcint";  
+  BText libraryPath = "";
+  #ifdef UNIX
+    libraryPath = libraryName+".so";
+  #else
+    libraryPath = libraryName+".dll";
+  #endif 
 
-*/
+  lt_dlhandle handleLib;
 
-//#define DO_TRACE_CINT_DECIMAL;
-#ifdef DO_TRACE_CINT_DECIMAL 
-#define TRACE_CINT_DECIMAL \
-  G__exec_text(BText(" double x = 2.1112; printf(\"")+__FILE__+":"+__LINE__+" [x=%.15lg]\n\",x); ");
-#else
-#define TRACE_CINT_DECIMAL
-#endif
+  // abro la DynLib
+  handleLib = lt_dlopen( libraryPath );
+  if ( !handleLib ) 
+  {
+  //Std(BText("\nTRACE BLoadDynLib::Evaluator 3 lt_dlerror='")+lt_dlerror()+"'");
+    BText reason( lt_dlerror( ) );
+    Warning(BText("[Cint_dynamic_linkage(\"")+libraryPath+"\")]"+" \n"
+    "  lt_dlopen error:'"+reason+"'");
+    return(false);
+  } 
+  G__scratch_all_ptr = reinterpret_cast<G__scratch_all_t>( lt_dlsym( handleLib, "G__scratch_all" ) );
+  G__lasterror_filename_ptr = reinterpret_cast<G__lasterror_filename_t>( lt_dlsym( handleLib, "G__lasterror_filename" ) );
+  G__lasterror_linenum_ptr = reinterpret_cast<G__lasterror_linenum_t>( lt_dlsym( handleLib, "G__lasterror_linenum" ) );
+  G__init_cint_ptr = reinterpret_cast<G__init_cint_t>( lt_dlsym( handleLib, "G__init_cint" ) );
+  G__set_errmsgcallback_ptr = reinterpret_cast<G__set_errmsgcallback_t>( lt_dlsym( handleLib, "G__set_errmsgcallback" ) );
+  G__setautoconsole_ptr = reinterpret_cast<G__setautoconsole_t>( lt_dlsym( handleLib, "G__setautoconsole" ) );
+  G__SetCINTSYSDIR_ptr = reinterpret_cast<G__SetCINTSYSDIR_t>( lt_dlsym( handleLib, "G__SetCINTSYSDIR" ) );
+  G__loadfile_ptr = reinterpret_cast<G__loadfile_t>( lt_dlsym( handleLib, "G__loadfile" ) );
+  G__unloadfile_ptr = reinterpret_cast<G__unloadfile_t>( lt_dlsym( handleLib, "G__unloadfile" ) );
+  G__exec_tempfile_ptr = reinterpret_cast<G__exec_tempfile_t>( lt_dlsym( handleLib, "G__exec_tempfile" ) );
+  G__exec_text_ptr = reinterpret_cast<G__exec_text_t>( lt_dlsym( handleLib, "G__exec_text" ) );
+  G__int_ptr = reinterpret_cast<G__int_t>( lt_dlsym( handleLib, "G__int" ) );
+  G__double_ptr = reinterpret_cast<G__double_t>( lt_dlsym( handleLib, "G__double" ) );
+  G__calc_ptr = reinterpret_cast<G__calc_t>( lt_dlsym( handleLib, "G__calc" ) );
+  G__deletevariable_ptr = reinterpret_cast<G__deletevariable_t>( lt_dlsym( handleLib, "G__deletevariable" ) );
+  return(true);
+}
 
+//--------------------------------------------------------------------
+void Cint_not_linked_message (void)
+//--------------------------------------------------------------------
+{
+  Error("Cannot use CINT due to libcint.dll is not linked.");
+}
 
+//--------------------------------------------------------------------
+void Cint_scratch_all (void)
+//--------------------------------------------------------------------
+{
+  if(!G__scratch_all_ptr) 
+  { 
+    Cint_not_linked_message(); 
+    return; 
+  } 
+  (*G__scratch_all_ptr)();
+}
+
+//--------------------------------------------------------------------
+char* Cint_lasterror_filename (void)
+//--------------------------------------------------------------------
+{
+  if(!G__lasterror_filename_ptr) 
+  { 
+    Cint_not_linked_message(); 
+    return(NULL); 
+  } 
+  return((*G__lasterror_filename_ptr)());
+}
+
+//--------------------------------------------------------------------
+int Cint_lasterror_linenum (void)
+//--------------------------------------------------------------------
+{
+  if(!G__lasterror_linenum_ptr) 
+  { 
+    return(0); 
+  } 
+  return((*G__lasterror_linenum_ptr)());
+}
+
+//--------------------------------------------------------------------
+int Cint_init_cint (G__CONST char* command)
+//--------------------------------------------------------------------
+{
+  if(!G__init_cint_ptr) 
+  { 
+    Cint_not_linked_message(); 
+    return(-1); 
+  } 
+  return((*G__init_cint_ptr)(command));
+}
+
+//--------------------------------------------------------------------
+void Cint_set_errmsgcallback (void* p)
+//--------------------------------------------------------------------
+{
+  if(!G__set_errmsgcallback_ptr) 
+  { 
+    Cint_not_linked_message(); 
+    return; 
+  } 
+  (*G__set_errmsgcallback_ptr) (p);
+}
+
+//--------------------------------------------------------------------
+void Cint_setautoconsole (int autoconsole)
+//--------------------------------------------------------------------
+{
+  if(!G__setautoconsole_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return; 
+  } 
+  (*G__setautoconsole_ptr) (autoconsole);
+}
+
+//--------------------------------------------------------------------
+void Cint_SetCINTSYSDIR (char* cintsysdir)
+//--------------------------------------------------------------------
+{
+  if(!G__SetCINTSYSDIR_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return; 
+  } 
+  (*G__SetCINTSYSDIR_ptr) (cintsysdir);
+}
+
+//--------------------------------------------------------------------
+int Cint_loadfile (G__CONST char* filename)
+//--------------------------------------------------------------------
+{
+  if(!G__loadfile_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return(0); 
+  } 
+  return((*G__loadfile_ptr) (filename));
+}
+
+//--------------------------------------------------------------------
+int Cint_unloadfile (G__CONST char* filename)
+//--------------------------------------------------------------------
+{
+  if(!G__unloadfile_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return(0); 
+  } 
+  return((*G__unloadfile_ptr) (filename));
+}
+
+//--------------------------------------------------------------------
+G__value Cint_exec_tempfile (G__CONST char *file)
+//--------------------------------------------------------------------
+{
+  static G__value gv;
+  if(!G__exec_tempfile_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return(gv); 
+  } 
+  return((*G__exec_tempfile_ptr) (file));
+}
+
+//--------------------------------------------------------------------
+G__value Cint_exec_text (G__CONST char *unnamedmacro)
+//--------------------------------------------------------------------
+{
+  static G__value gv;
+  if(!G__exec_text_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return(gv); 
+  } 
+  return((*G__exec_text_ptr) (unnamedmacro));
+}
+
+//--------------------------------------------------------------------
+long Cint_int (G__value buf)
+//--------------------------------------------------------------------
+{
+  if(!G__int_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return(0); 
+  } 
+  return((*G__int_ptr) (buf));
+}
+
+//--------------------------------------------------------------------
+double Cint_double (G__value buf)
+//--------------------------------------------------------------------
+{
+  if(!G__double_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return(BDat::Unknown().Value()); 
+  } 
+  return((*G__double_ptr) (buf));
+}
+
+//--------------------------------------------------------------------
+G__value Cint_calc (G__CONST char *expr)
+//--------------------------------------------------------------------
+{
+  static G__value gv;
+  if(!G__calc_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return(gv ); 
+  } 
+  return((*G__calc_ptr) (expr));
+}
+
+//--------------------------------------------------------------------
+int Cint_deletevariable (G__CONST char* varname)
+//--------------------------------------------------------------------
+{
+  if(!G__deletevariable_ptr)
+  { 
+    Cint_not_linked_message(); 
+    return(0); 
+  } 
+  return((*G__deletevariable_ptr) (varname));
+}
 
 //--------------------------------------------------------------------
  BText cint_url_link()
@@ -69,8 +310,8 @@ G__scratch_all()
 void Cint_errmsgcallback(char *msg)
 //--------------------------------------------------------------------
 {
-  BText filename = G__lasterror_filename();
-  BText linenum = G__lasterror_linenum();
+  BText filename = Cint_lasterror_filename();
+  BText linenum = Cint_lasterror_linenum();
   BText locInfo = "";
   if(filename.HasName()) 
   { 
@@ -99,9 +340,10 @@ int Cint_initialize(const BText& filePath)
   else
   {
     Cint_is_initialized() = true; 
+    if(!Cint_dynamic_linkage()) { return(false); }
     BText order = "cint";
     if(filePath.HasName()) { order += BText(" ")+filePath; }
-    int G__init_cint_ = G__init_cint(order);
+    int G__init_cint_ = Cint_init_cint(order);
     switch(G__init_cint_) {
     case G__INIT_CINT_SUCCESS_MAIN:
       Error("Cint called out of main should never happen G__INIT_CINT_SUCCESS_MAIN.\n");
@@ -114,15 +356,15 @@ int Cint_initialize(const BText& filePath)
     default:
       Error("Cint initialization failed G__INIT_CINT_FAILURE.\n");
     }
-    G__set_errmsgcallback(reinterpret_cast<void*>(Cint_errmsgcallback));
-    G__setautoconsole(1);
+    Cint_set_errmsgcallback(reinterpret_cast<void*>(Cint_errmsgcallback));
+    Cint_setautoconsole(1);
     TRACE_CINT_DECIMAL;
     return(G__init_cint_);
   }
 }
 
 //--------------------------------------------------------------------
-int Cint_scratch_all()
+int Cint_scratch_all_safe()
 //--------------------------------------------------------------------
 {
   if(Cint_is_initialized())
@@ -132,7 +374,8 @@ int Cint_scratch_all()
   else
   {
     Cint_is_initialized() = false;
-    return(Cint_scratch_all());
+    Cint_scratch_all();
+    return(true);
   }
 }
 
@@ -149,7 +392,7 @@ int Cint_scratch_all()
 {
   if(CheckNonDeclarativeAction("Cint.SetCINTSYSDIR")) { return; }
   BText& filePath = Text(Arg(1));
-  G__SetCINTSYSDIR(filePath);
+  Cint_SetCINTSYSDIR(filePath);
   contens_ = 1;
 }
 
@@ -187,7 +430,7 @@ int Cint_scratch_all()
 //--------------------------------------------------------------------
 {
   if(CheckNonDeclarativeAction("Cint.scratch_all")) { return; }
-  contens_ = Cint_scratch_all();
+  contens_ = Cint_scratch_all_safe();
 }
 
 
@@ -206,7 +449,7 @@ int Cint_scratch_all()
 {
   if(CheckNonDeclarativeAction("Cint.loadfile")) { return; }
   BText& filePath = Text(Arg(1));
-  contens_ = G__loadfile(filePath.String());
+  contens_ = Cint_loadfile(filePath.String());
 }
 
 //--------------------------------------------------------------------
@@ -222,7 +465,7 @@ int Cint_scratch_all()
 {
   if(CheckNonDeclarativeAction("Cint.unloadfile")) { return; }
   BText& filePath = Text(Arg(1));
-  contens_ = G__unloadfile(filePath.String());
+  contens_ = Cint_unloadfile(filePath.String());
 }
 
 //--------------------------------------------------------------------
@@ -246,7 +489,7 @@ int Cint_scratch_all()
 {
   if(CheckNonDeclarativeAction("Cint.exec_tempfile")) { return; }
   BText& filePath = Text(Arg(1));
-  G__exec_tempfile(filePath.String());
+  Cint_exec_tempfile(filePath.String());
   contens_ = true;
 }
 
@@ -273,7 +516,7 @@ int Cint_scratch_all()
 {
   if(CheckNonDeclarativeAction("Cint.exec_text")) { return; }
   BText& expression = Text(Arg(1));
-  G__exec_text(expression);
+  Cint_exec_text(expression);
   contens_ = true;
 }
 
@@ -298,9 +541,9 @@ int Cint_scratch_all()
 {
   if(CheckNonDeclarativeAction("Cint.calc")) { return; }
   BText& expression = Text(Arg(1));
-  contens_ = G__double(G__calc(expression));
+  contens_ = Cint_double(Cint_calc(expression));
 /*
-  G__value g = G__calc(expression);
+  G__value g = Cint_calc(expression);
   switch (g.type) 
   {
     case 100: contens_ = g.obj.d; break;
@@ -429,7 +672,7 @@ int Cint_scratch_all()
     expression += "\n};";
   };
 //Std(BText("\nTRACE [Cint.import_from_tol] expression=[\n")+expression+"\n]\n");
-  G__exec_text(expression);
+  Cint_exec_text(expression);
 }
 
 
@@ -478,7 +721,7 @@ int Cint_scratch_all()
     if(gra==GraText())
     {
       BText pns = prefix_+var->Name()+sufix_;
-      contens_ += G__deletevariable(pns);
+      contens_ += Cint_deletevariable(pns);
     }
   }
 }
