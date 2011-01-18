@@ -2268,14 +2268,23 @@ BSyntaxObject* CopyCode(BSyntaxObject* obj)
   BUserFunction* opr = (BUserFunction*)cod.Operator();
   if(opr)
   {
-    BUserFunction* usf = new BUserFunction("",opr->Grammar());
-    BUserFunCode* result = usf->GetCode();
-    usf->PutName(opr->Name());
-    usf->PutDescription(opr->Description());
-    usf->SetExpression(opr->Declaration(), opr->Definition()); 
-    result->PutName(opr->Name());
-    result->PutDescription(opr->Description());
-    return(result);
+    if(opr->Mode()==BBUILTINFUNMODE)
+    {
+      BCode newCod;
+      newCod.Replicate(Code(obj));
+      return(new BContensCode("",newCod,""));
+    }
+    else if(opr->Mode()==BUSERFUNMODE)
+    {
+      BUserFunction* usf = new BUserFunction("",opr->Grammar());
+      BUserFunCode* result = usf->GetCode();
+      usf->PutName(opr->Name());
+      usf->PutDescription(opr->Description());
+      usf->SetExpression(opr->Declaration(), opr->Definition()); 
+      result->PutName(opr->Name());
+      result->PutDescription(opr->Description());
+      return(result);
+    }
   }
   else
   {
