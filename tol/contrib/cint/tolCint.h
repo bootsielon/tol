@@ -37,21 +37,21 @@
 
 
 //hooks to dynamic linked functions
-void Cint_scratch_all (void);
-char* Cint_lasterror_filename (void);
-int Cint_lasterror_linenum (void);
-int Cint_init_cint (G__CONST char* command);
-void Cint_set_errmsgcallback (void* p);
-void Cint_setautoconsole (int autoconsole);
-void Cint_SetCINTSYSDIR (char* cintsysdir);
-int Cint_loadfile (G__CONST char* filename);
-int Cint_unloadfile (G__CONST char* filename);
-G__value Cint_exec_tempfile (G__CONST char *file);
-G__value Cint_exec_text (G__CONST char *unnamedmacro);
-long Cint_int (G__value buf);
-double Cint_double (G__value buf);
-G__value Cint_calc (G__CONST char *expr);
-int Cint_deletevariable (G__CONST char* varname);
+TOL_API void Cint_scratch_all (void);
+TOL_API char* Cint_lasterror_filename (void);
+TOL_API int Cint_lasterror_linenum (void);
+TOL_API int Cint_init_cint (G__CONST char* command);
+TOL_API void Cint_set_errmsgcallback (void* p);
+TOL_API void Cint_setautoconsole (int autoconsole);
+TOL_API void Cint_SetCINTSYSDIR (char* cintsysdir);
+TOL_API int Cint_loadfile (G__CONST char* filename);
+TOL_API int Cint_unloadfile (G__CONST char* filename);
+TOL_API G__value Cint_exec_tempfile (G__CONST char *file);
+TOL_API G__value Cint_exec_text (G__CONST char *unnamedmacro);
+TOL_API long Cint_int (G__value buf);
+TOL_API double Cint_double (G__value buf);
+TOL_API G__value Cint_calc (G__CONST char *expr);
+TOL_API int Cint_deletevariable (G__CONST char* varname);
 
 //TOL-CINT API initialization
 int Cint_initialize(const BText& filePath);
