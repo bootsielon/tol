@@ -37,6 +37,7 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bmatfun.h>
 #include <tol/tol_bvmat.h>
+#include <float.h>
 
 
 //--------------------------------------------------------------------
@@ -252,7 +253,7 @@ void BGraContensBase<BDat>::InitInstances()
 			     I2("Positive infinte",
 				      "Infinito positivo"));
 
-  BSystemDat* epsilon_  = new BSystemDat ("MachineEpsilon",	LDBL_EPSILON,
+  BSystemDat* epsilon_  = new BSystemDat ("MachineEpsilon",	DBL_EPSILON,
 			     I2("Real double precission machine epsilon number. "
               "If you add a number smaller than this to 1.0, the result will be 1.0.",
 				      "Número epsilon de la máquina para los reales de doble precisión. "
