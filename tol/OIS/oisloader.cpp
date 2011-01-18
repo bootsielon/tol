@@ -1282,11 +1282,20 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               BClass* cls = FindClass(className,1);
               if(!cls)
               {
-                return(NullError(
-                  I2("Cannot load from OIS NameBlock ","No se puede cargar del OIS NameBlock ")+ 
-                  name+
-                  I2("due to ascent Class ","Debido a que su ascendiente Class ")+
-                  className+I2(" doesn't exist"," no existe")));
+                if(className.BeginWith("StdLib::"))
+                {
+                  int len = className.Length();
+                  className = className.SubString(8,len-1);
+                  cls = FindClass(className,1);
+                }
+                if(!cls)
+                { 
+                  return(NullError(
+                    I2("Cannot load from OIS NameBlock ","No se puede cargar del OIS NameBlock ")+ 
+                    name+
+                    I2("due to ascent Class ","Debido a que su ascendiente Class ")+
+                    className+I2(" doesn't exist"," no existe")));
+                }
               }
               x.PutClass(cls);
             }
