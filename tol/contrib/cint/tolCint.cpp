@@ -31,6 +31,8 @@
 #include <tol/tol_bsetgra.h>
 #include <ltdl.h>
 
+static int  lt_dlinit_ =  -1;
+
 typedef void      (*G__scratch_all_t)        (void);
 typedef char*     (*G__lasterror_filename_t) (void);
 typedef int       (*G__lasterror_linenum_t)  (void);
@@ -67,6 +69,8 @@ static G__deletevariable_t      G__deletevariable_ptr       = NULL;
 int Cint_dynamic_linkage (void)
 //--------------------------------------------------------------------
 {
+  if(lt_dlinit_) 
+  { lt_dlinit_ = lt_dlinit(); }
   BText libraryName = "libcint";  
   BText libraryPath = "";
   #ifdef UNIX
@@ -75,22 +79,28 @@ int Cint_dynamic_linkage (void)
     libraryPath = libraryName+".dll";
   #endif 
 
-  lt_dlhandle handleLib;
+  lt_dlhandle handleLib=0;
 
   // abro la DynLib
   handleLib = lt_dlopen( libraryPath );
+  BText reason( lt_dlerror( ) );
   if ( !handleLib ) 
   {
   //Std(BText("\nTRACE BLoadDynLib::Evaluator 3 lt_dlerror='")+lt_dlerror()+"'");
-    BText reason( lt_dlerror( ) );
     Warning(BText("[Cint_dynamic_linkage(\"")+libraryPath+"\")]"+" \n"
     "  lt_dlopen error:'"+reason+"'");
     return(false);
   } 
+  G__init_cint_ptr = reinterpret_cast<G__init_cint_t>( lt_dlsym( handleLib, "G__init_cint" ) );
+  if(!G__init_cint_ptr)
+  {
+    Warning(BText("[Cint_dynamic_linkage(\"")+libraryPath+"\")]"+" \n"
+    "  lt_dlopen error:'"+reason+"'");
+    return(false);     
+  }
   G__scratch_all_ptr = reinterpret_cast<G__scratch_all_t>( lt_dlsym( handleLib, "G__scratch_all" ) );
   G__lasterror_filename_ptr = reinterpret_cast<G__lasterror_filename_t>( lt_dlsym( handleLib, "G__lasterror_filename" ) );
   G__lasterror_linenum_ptr = reinterpret_cast<G__lasterror_linenum_t>( lt_dlsym( handleLib, "G__lasterror_linenum" ) );
-  G__init_cint_ptr = reinterpret_cast<G__init_cint_t>( lt_dlsym( handleLib, "G__init_cint" ) );
   G__set_errmsgcallback_ptr = reinterpret_cast<G__set_errmsgcallback_t>( lt_dlsym( handleLib, "G__set_errmsgcallback" ) );
   G__setautoconsole_ptr = reinterpret_cast<G__setautoconsole_t>( lt_dlsym( handleLib, "G__setautoconsole" ) );
   G__SetCINTSYSDIR_ptr = reinterpret_cast<G__SetCINTSYSDIR_t>( lt_dlsym( handleLib, "G__SetCINTSYSDIR" ) );
