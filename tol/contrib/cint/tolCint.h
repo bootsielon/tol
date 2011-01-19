@@ -55,6 +55,7 @@ TOL_API int Cint_deletevariable (G__CONST char* varname);
 
 //TOL-CINT API initialization
 int Cint_initialize(const BText& filePath);
+int Cint_initialize_tol_variables();
 
 //#define DO_TRACE_CINT_DECIMAL;
 #ifdef DO_TRACE_CINT_DECIMAL 
