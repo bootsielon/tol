@@ -23,6 +23,7 @@
 
 #include <contrib/cint/tolCint.h>
 
+#include <tol/tol_bdir.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bdatgra.h>
 #include <tol/tol_bmatgra.h>
@@ -116,10 +117,11 @@ int Cint_dynamic_linkage (void)
 }
 
 //--------------------------------------------------------------------
-void Cint_not_linked_message (void)
+void Cint_not_linked_message (const char* function)
 //--------------------------------------------------------------------
 {
-  Error("Cannot use CINT due to libcint.dll is not linked.");
+  Error(BText("Cannot use CINT function ")+function+
+  " due to libcint.dll is not linked.");
 }
 
 //--------------------------------------------------------------------
@@ -128,7 +130,7 @@ void Cint_scratch_all (void)
 {
   if(!G__scratch_all_ptr) 
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_scratch_all"); 
     return; 
   } 
   (*G__scratch_all_ptr)();
@@ -140,7 +142,7 @@ char* Cint_lasterror_filename (void)
 {
   if(!G__lasterror_filename_ptr) 
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_lasterror_filename"); 
     return(NULL); 
   } 
   return((*G__lasterror_filename_ptr)());
@@ -152,6 +154,7 @@ int Cint_lasterror_linenum (void)
 {
   if(!G__lasterror_linenum_ptr) 
   { 
+    Cint_not_linked_message("Cint_lasterror_linenum"); 
     return(0); 
   } 
   return((*G__lasterror_linenum_ptr)());
@@ -163,7 +166,7 @@ int Cint_init_cint (G__CONST char* command)
 {
   if(!G__init_cint_ptr) 
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_init_cint"); 
     return(-1); 
   } 
   return((*G__init_cint_ptr)(command));
@@ -175,7 +178,7 @@ void Cint_set_errmsgcallback (void* p)
 {
   if(!G__set_errmsgcallback_ptr) 
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_set_errmsgcallback"); 
     return; 
   } 
   (*G__set_errmsgcallback_ptr) (p);
@@ -187,7 +190,7 @@ void Cint_setautoconsole (int autoconsole)
 {
   if(!G__setautoconsole_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_setautoconsole"); 
     return; 
   } 
   (*G__setautoconsole_ptr) (autoconsole);
@@ -199,7 +202,7 @@ void Cint_SetCINTSYSDIR (char* cintsysdir)
 {
   if(!G__SetCINTSYSDIR_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_SetCINTSYSDIR"); 
     return; 
   } 
   (*G__SetCINTSYSDIR_ptr) (cintsysdir);
@@ -211,7 +214,7 @@ int Cint_loadfile (G__CONST char* filename)
 {
   if(!G__loadfile_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_loadfile"); 
     return(0); 
   } 
   return((*G__loadfile_ptr) (filename));
@@ -223,7 +226,7 @@ int Cint_unloadfile (G__CONST char* filename)
 {
   if(!G__unloadfile_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_unloadfile"); 
     return(0); 
   } 
   return((*G__unloadfile_ptr) (filename));
@@ -236,7 +239,7 @@ G__value Cint_exec_tempfile (G__CONST char *file)
   static G__value gv;
   if(!G__exec_tempfile_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_exec_tempfile"); 
     return(gv); 
   } 
   return((*G__exec_tempfile_ptr) (file));
@@ -249,7 +252,7 @@ G__value Cint_exec_text (G__CONST char *unnamedmacro)
   static G__value gv;
   if(!G__exec_text_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_exec_text"); 
     return(gv); 
   } 
   return((*G__exec_text_ptr) (unnamedmacro));
@@ -261,7 +264,7 @@ long Cint_int (G__value buf)
 {
   if(!G__int_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_int"); 
     return(0); 
   } 
   return((*G__int_ptr) (buf));
@@ -273,7 +276,7 @@ double Cint_double (G__value buf)
 {
   if(!G__double_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_double"); 
     return(BDat::Unknown().Value()); 
   } 
   return((*G__double_ptr) (buf));
@@ -286,7 +289,7 @@ G__value Cint_calc (G__CONST char *expr)
   static G__value gv;
   if(!G__calc_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_calc"); 
     return(gv ); 
   } 
   return((*G__calc_ptr) (expr));
@@ -298,7 +301,7 @@ int Cint_deletevariable (G__CONST char* varname)
 {
   if(!G__deletevariable_ptr)
   { 
-    Cint_not_linked_message(); 
+    Cint_not_linked_message("Cint_deletevariable"); 
     return(0); 
   } 
   return((*G__deletevariable_ptr) (varname));
@@ -350,7 +353,8 @@ int Cint_initialize(const BText& filePath)
   else
   {
     Cint_is_initialized() = true; 
-    if(!Cint_dynamic_linkage()) { return(false); }
+    int linked = Cint_dynamic_linkage();
+    if(!linked) { return(false); }
     BText order = "cint";
     if(filePath.HasName()) { order += BText(" ")+filePath; }
     int G__init_cint_ = Cint_init_cint(order);
@@ -390,6 +394,17 @@ int Cint_scratch_all_safe()
 }
 
 //--------------------------------------------------------------------
+int Cint_initialize_tol_variables()
+//--------------------------------------------------------------------
+{
+  int linked = Cint_dynamic_linkage();
+  BSystemDat* linked_ = new BSystemDat("Cint_IsLinked", linked,
+	  I2("Is true if optional libcint library has been linked succesfully.",
+	     "Es cierto si la librería opcional libcint ha sido enlazada correctamente"));
+  return(linked);
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatCint_SetCINTSYSDIR);
   DefExtOpr(1, BDatCint_SetCINTSYSDIR, "Cint.SetCINTSYSDIR", 1, 1, "Text",
   "(Text CINTSYSDIR)",
@@ -401,9 +416,19 @@ int Cint_scratch_all_safe()
 //--------------------------------------------------------------------
 {
   if(CheckNonDeclarativeAction("Cint.SetCINTSYSDIR")) { return; }
-  BText& filePath = Text(Arg(1));
-  Cint_SetCINTSYSDIR(filePath);
-  contens_ = 1;
+  BText& dirPath = Text(Arg(1));
+  bool ok = G__SetCINTSYSDIR_ptr!=NULL;
+
+  if(!BDir::CheckIsDir(dirPath))
+  {
+    Error(BText("[Cint.SetCINTSYSDIR]")+" Not found path "+dirPath);
+    ok = false;
+  }
+  contens_ = ok;
+  if(ok)
+  {
+    Cint_SetCINTSYSDIR(dirPath);
+  }
 }
 
 //--------------------------------------------------------------------
