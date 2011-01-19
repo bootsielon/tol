@@ -2720,14 +2720,15 @@ void BSetTclEval::CalcContens()
   BList * result = NIL;
   BSyntaxObject * so;
   BInt status = 0;
-  const char * str_result = "Unimplemented";
+  BText str_result_ = BText("[Tcl_Eval] Unimplemented method in script=\n")+script+"\n";
+  const char* str_result = str_result_.Buffer();
   
   if (tcl_evaluator)
     status = (*tcl_evaluator)(script.Buffer(), &str_result);
   
   result = Cons(so = new BContensDat("", status), result);
   so->PutName("status");
-  result = Cons(so = new BContensText("", str_result), result);
+  result = Cons(so = new BContensText("", str_result_), result);
   so->PutName("result");
   contens_.RobElement(result);
 }
@@ -2762,14 +2763,15 @@ void BSetTclEvalEx::CalcContens()
   BList * result = NIL;
   BSyntaxObject * so;
   BInt status = 0;
-  const char *str_result = "Unimplemented";
+  BText str_result_ = BText("[Tcl_EvalEx] Unimplemented method in cmd=\n")+cmd.Dump()+"\n";
+  const char* str_result = str_result_.Buffer();
   
   if (tcl_evaluatorEx)
     status = (*tcl_evaluatorEx)(cmd, &str_result);
   
   result = Cons(so = new BContensDat("", status), result);
   so->PutName("status");
-  result = Cons(so = new BContensText("", str_result), result);
+  result = Cons(so = new BContensText("", str_result_), result);
   so->PutName("result");
   contens_.RobElement(result);
 }
