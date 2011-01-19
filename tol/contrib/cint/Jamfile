@@ -1,2 +1,4 @@
+ln-H tolCint.h ;
+
 objects objs
     : tolCint.cpp ;
