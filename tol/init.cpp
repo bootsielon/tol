@@ -875,6 +875,8 @@ BBool InitGrammars()
 	      "Contiene la información sobre la URL y el número de revisión del "
         "SVN desde el que se ha generado la presente versión de TOL."));
 
+  Cint_initialize_tol_variables();
+
   TRACE_CINT_DECIMAL;
     int BTolOprProfiler_Init();
     BTolOprProfiler_Init();
