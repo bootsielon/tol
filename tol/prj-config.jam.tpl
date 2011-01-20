@@ -7,12 +7,18 @@ configure lib : blas ;
 configure lib : lapack_atlas ;
 configure lib : lapack : <needs>lapack_atlas <search>/usr/lib/sse2 ;
 configure lib : cholmod : <prefix>/usr/local/cholmod ;
+
 configure lib 
-          : Cint 
-          :
-          <name>Cint_static 
-          <search>/home/jsperez/TOL/ExternalLibs/cint/lib
-          <include>/home/jsperez/TOL/ExternalLibs/cint/cint/inc
+          : Cint_headers 
+          : <include>/home/jsperez/TOL/ExternalLibs/cint/cint/inc ;
+
+#configure lib 
+#          : Cint 
+#          :
+#          <name>Cint_static 
+#          <search>/home/jsperez/TOL/ExternalLibs/cint/lib
+#          <include>/home/jsperez/TOL/ExternalLibs/cint/cint/inc
+
 configure lib : odbc : <name>odbc ;
 configure lib : mysql : <name>mysqlclient <include>/usr/include/mysql ;
 configure lib : pgsql : <name>pq ;
