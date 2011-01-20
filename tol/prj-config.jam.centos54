@@ -10,5 +10,8 @@ configure lib : mysql : <name>mysqlclient <search>/usr/lib/mysql <include>/usr/i
 configure lib : pgsql : <name>pq ;
 configure lib : bz2 ;
 configure lib : ziparch  : <include>/home/toldevel/tol-devel/libs/ZipArchive/ZipArchive <search>/home/toldevel/tol-devel/libs/ZipArchive/ZipArchive ;
+configure lib 
+          : Cint_headers 
+          : <include>/home/toldevel/tol-devel/libs/cint-5.16.19/inc ;
 configure lib : ANN : <prefix>/home/toldevel/tol-devel/libs/ann_1.1.2 ;
 configure build : tolodbc tolmysql tolpgsql ;
