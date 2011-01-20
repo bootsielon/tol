@@ -227,7 +227,7 @@ obj init : init.cpp
            <conditional>@obj-req
          ;
 
-config.genlib readline ;
+#config.genlib readline ;
 
 config.genlib gsl ;
 
@@ -239,7 +239,7 @@ config.genlib bz2 ;
 
 config.genlib ANN ;
 
-config.genlib Cint ;
+#config.genlib Cint ;
 
 config.genlib ziparch  ;
 alias libziparch : ziparch : <zarch>yes ;
@@ -253,7 +253,7 @@ lib ltdl ;
 
 lib dl ;
 
-all_libs = Cint gsl lapack cholmod bz2 libziparch ANN libz ltdl dl ;
+all_libs = gsl lapack cholmod bz2 libziparch ANN libz ltdl dl ;
 
 lib tol
     : init $(all-obj-aliases) $(all_libs)
@@ -263,7 +263,8 @@ lib tol
 build-project dbdrivers ;
 
 exe tolcon
-    : tol.cpp tol readline 
+    : tol.cpp tol 
+    #readline 
     ;
 
 package.install install-tol
