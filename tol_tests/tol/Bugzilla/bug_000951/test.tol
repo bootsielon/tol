@@ -66,8 +66,7 @@ Real ok = LE(-10,cs::q.001,cs::q.999,0);
   Set partialResults_ = [[ numErr0, numErr1]];
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr1 == numErr0, 
-                      numWar1 == numWar0, ok);
+  Real quality_ = And(numErr1 == numErr0, ok);
 
 //Return the results 
   Set resultStr_ = @strTestStatus(summary_, link_, quality_,
