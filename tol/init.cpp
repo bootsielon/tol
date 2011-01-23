@@ -868,6 +868,9 @@ BBool InitGrammars()
 
   //initializing tools 
     BysSparseReg::Initialize();
+#ifndef __TOL_BUILD_SVN_INFO__
+#define __TOL_BUILD_SVN_INFO__ "svn info is undefined"
+#endif
     BText svnInfo = __TOL_BUILD_SVN_INFO__;
     BSystemText* SvnInfo_ = new BSystemText
 	  ("SvnInfo", svnInfo,
