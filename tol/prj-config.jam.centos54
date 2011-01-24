@@ -1,4 +1,7 @@
 # -*- mode: conf -*-
+import os ;
+
+path HOME  : [ os.environ HOME ] ;
 configure prefix : /usr/local/tol ;
 configure lib : gsl ;
 configure lib : gslcblas ;
@@ -9,9 +12,9 @@ configure lib : odbc : <name>odbc ;
 configure lib : mysql : <name>mysqlclient <search>/usr/lib/mysql <include>/usr/include/mysql ;
 configure lib : pgsql : <name>pq ;
 configure lib : bz2 ;
-configure lib : ziparch  : <include>/home/toldevel/tol-devel/libs/ZipArchive/ZipArchive <search>/home/toldevel/tol-devel/libs/ZipArchive/ZipArchive ;
+configure lib : ziparch  : <include>$(HOME)/tol-devel/libs/ZipArchive/ZipArchive <search>$(HOME)/tol-devel/libs/ZipArchive/ZipArchive ;
 configure lib 
           : Cint_headers 
-          : <include>/home/toldevel/tol-devel/libs/cint-5.16.19/inc ;
-configure lib : ANN : <prefix>/home/toldevel/tol-devel/libs/ann_1.1.2 ;
+          : <include>$(HOME)/tol-devel/libs/cint-5.16.19/inc ;
+configure lib : ANN : <prefix>$(HOME)/tol-devel/libs/ann_1.1.2 ;
 configure build : tolodbc tolmysql tolpgsql ;
