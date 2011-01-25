@@ -32,6 +32,9 @@
 #include <tol/tol_bdir.h>
 #include <tol/tol_bstruct.h>
 
+#include <PackArchive/tol_PackArchive.h>
+#include <PackArchive/tol_StoreZipArchive.h>
+
 BTraceInit("oisapitol.cpp");
 
 
@@ -841,7 +844,24 @@ static const char* aliasSpanishDescription_ =
   void BSetOisLoad::CalcContens()
 //--------------------------------------------------------------------
 {
-  BText& root = Text(Arg(1));
+  BText& root_ = Text(Arg(1));
+  BText root = root_;
+  BText ext = GetFileExtension(root_);
+  bool needsClean = false;
+  if(ext=="oza")
+  {
+    BDir dir(Text(Arg(1)));
+    size_t fileSize = dir.Exist()? dir.Bytes() : -1;
+    needsClean = fileSize > 20*1024*1024;
+    if(needsClean)
+    {
+      root = GetFilePath(root_)+GetFilePrefix(root_);
+      GraReal()->EvaluateExpr(BText("OSDirRemove(\"")+root+"\")");
+      StoreZipArchive store;
+      store.Open(root_, 'r');
+      store.DirExtract("*",root);     
+    }
+  }
   bool doShowHierarchy     = false;
   bool doLoadData          = false;
   bool loadModeSpecified   = false;
@@ -941,6 +961,10 @@ static const char* aliasSpanishDescription_ =
       contens_.AddElement(data);
     }
     BGrammar::DestroyStackUntil(stackPos, data);    
+  }
+  if(needsClean)
+  {
+    GraReal()->EvaluateExpr(BText("OSDirRemove(\"")+root+"\")");
   }
 }  
 

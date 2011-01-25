@@ -29,7 +29,6 @@
 
 BTraceInit("oiscompress.cpp");
 
-static size_t _MaxBlockLength_ = 1024*1024;
 
 //--------------------------------------------------------------------
 // OIS compression coding functions
@@ -49,7 +48,7 @@ static size_t _MaxBlockLength_ = 1024*1024;
   }
   else //BZip2 Compress method
   {
-    char* dest = new char[destLen];
+    char* dest = AllocAuxilarBuffer(destLen);
     int cmprs = BZ2_bzBuffToBuffCompress 
     ( 
       dest, 
@@ -289,7 +288,7 @@ static size_t _MaxBlockLength_ = 1024*1024;
     }
     else
     {
-      char* source = new char[sourceLen];
+      char* source = AllocAuxilarBuffer(sourceLen);
       if(!source)
       {
         return(Error(BText("Wrong string format or not enougth memory in ")+stream->Name()));

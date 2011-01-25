@@ -52,6 +52,48 @@ PutDescription(I2(
 Ois.Store);
 //////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+  Real Ois.StoreEngine(Set data, Text path_, Text engine) 
+//////////////////////////////////////////////////////////////////////////////
+{
+  If(engine=="",
+  {
+    Ois.Store(data, path_) 
+  },
+  {
+    Text dir = GetFilePath(path_)+GetFilePrefix(path_);
+    Real ok = Ois.Store(data, dir);
+    Real PackArchive::PackFull(engine, dir);
+    Text ext = PackArchive::@Store::Extension(engine);
+    Real OSDirRemove(dir);
+    Real If(dir+ext != path_, OSFilMove(dir+ext, path_));
+    ok
+  })
+};
+//////////////////////////////////////////////////////////////////////////////
+PutDescription(I2(
+"Works like Ois.Store but OIS  store it as a plain directory, which after "
+"is archived by means of the specified compression engine. It can be usefull "
+"to handle with big files, which can give problems if there is not enough "
+"free memory. For small and medium files it's more efficient to use "
+"Ois.Store.\n"
+"In this version, allowed engines are \"ZipArchive\" and the neutral engine "
+"\"\" that does nothing.\n"
+"In order to be loadable with Include, the path must have \".zip\" or "
+"\".oza\" extension for \"ZipArchive\" engine, or no extension for neutral "
+"engine.",
+"Funciona como Ois.Store pero OIS lo guarda como un directorio normal, que "
+"después se archivará por medio del motor de compresión especificado. Puede "
+"ser útil para tratar con archivos grandes, lo cual puede dar problemas si "
+"no hay suficiente memoria libre. Para los archivos pequeños y medianos es "
+"más eficaz utilizar Ois.Store.\n"
+"En esta versión, los motores permitidos son \"ZipArchive\" y el motor "
+"neutral \"\" que no hace nada.\n"
+"Con el fin de que se pueden cargar con Incluide, la ruta de acceso debe "
+"tener \". zip\" o \".oza\" extensión para el motor \"ZipArchive\", o sin "
+"extensión para el motor neutro."),
+Ois.StoreEngine);
+//////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
   Text Ois.CheckUpdCaducity(Text tolFile, Real caducityDays)

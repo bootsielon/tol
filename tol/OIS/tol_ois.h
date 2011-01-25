@@ -600,6 +600,11 @@ protected:
 
 //Time counter
   BTimer elapsed_;
+
+//auxiliar buffer  
+  static size_t _MaxBlockLength_;
+  char* auxilarBuffer;
+  int auxilarBufferSize_;
   
 //Functions
   void  InitBuild ();
@@ -609,6 +614,7 @@ protected:
   bool  Error  (const BText& msg) const;
   bool  Warning(const BText& msg) const;
   BSyntaxObject* NullError(const BText& msg) const;
+  char* AllocAuxilarBuffer(int size);
 
 public:
   static int                  def_CLv_;

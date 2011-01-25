@@ -396,25 +396,23 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 
   if(control_.typeSizes_.sizeof_BCoefDeg_==sizeof(BCoefDegOld))
   {
-    BCoefDegOld* buf = new BCoefDegOld[s];
+    BCoefDegOld* buf = (BCoefDegOld*)AllocAuxilarBuffer(sizeof(BCoefDegOld)*s);
     Ensure(Read(buf,sizeof(BCoefDegOld),s,stream));
     for(i=0; i<x.Size(); i++)
     {
       x[i].PutDegree(buf[i].degree_);
       x[i].PutCoef  (buf[i].coefficient_.value_);
     }
-    delete [] buf;
   }
   else if(control_.typeSizes_.sizeof_BCoefDeg_==sizeof(BCoefDeg))
   {
-    BCoefDeg* buf = new BCoefDeg[s];
+    BCoefDeg* buf = (BCoefDeg*)AllocAuxilarBuffer(sizeof(BCoefDeg)*s);
     Ensure(Read(buf,sizeof(BCoefDeg),s,stream));
     for(i=0; i<x.Size(); i++)
     {
       x[i].PutDegree(buf[i].degree_);
       x[i].PutCoef  (buf[i].coefficient_);
     }
-    delete [] buf;
   }
   else
   {
@@ -1558,8 +1556,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         }
         else 
         {
-          char* contens = new char[size+1];
-          char* oldCont = new char[size+1];
           FILE* file=fopen(path.String(),"rb");
           if(!file) 
           { 
@@ -1571,6 +1567,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           }
           else
           {
+            char* contens = AllocAuxilarBuffer(2*size+2);
+            char* oldCont = contens+(size+1);
             int r = fread(contens,1,size,file);  
             contens[r]='\0';
             fclose(file);
@@ -1578,8 +1576,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             Read(oldCont,1,size,fn);
             oldCont[size]='\0';
             int cmp = memcmp(oldCont,contens,r);
-            delete [] contens;
-            delete [] oldCont;
             updated = (cmp==0);
             if(updated) 
             { 

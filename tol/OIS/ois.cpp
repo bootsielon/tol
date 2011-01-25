@@ -46,13 +46,11 @@ BText BOis::oisDefRoot_        = "";
 int BOis::def_CLv_ = 9;
 
 #ifdef __USE_ZIP_ARCHIVE__
-BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_NONE_;
+BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_BZIP2_;
 BOis::BArchiveEngine BOis::def_BAE_ = BOis::BAE_ZIPARC_;
 #else
-BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_NONE_;
-BOis::BArchiveEngine BOis::def_BAE_ = BOis::BAE_ZIPARC_;
-//BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_BZIP2_;
-//BOis::BArchiveEngine BOis::def_BAE_ = BOis::BAE_NONE_;
+BOis::BSerialEngine  BOis::def_BSE_ = BOis::BSE_BZIP2_;
+BOis::BArchiveEngine BOis::def_BAE_ = BOis::BAE_NONE_;
 #endif
 
 BDateFormat BOis::dateFmt_("%c%Y-%m-%d %h:%i:%s");
@@ -63,6 +61,8 @@ BUserSet* BOis::defDoc_      = NULL;
 bool BOis::runningUseModule_ = false;
 
 BArray<BSystemDat*> BOis::loadModeOptions_;
+
+size_t BOis::_MaxBlockLength_ = 1024*1024;
 
 #ifdef TRACE_OIS_FILE
 FILE* BOis::logWrite_ = fopen((BSys::TolAppData()+"syslog/OisLogWrite.log").String(),"w");
@@ -83,18 +83,21 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
   BOis::BOis()
 //--------------------------------------------------------------------
 : 
-  xmlParam_     (),
-  control_      (),
-  options_      (),
-  address_      (),
-  doc_          (),
-  stat_         (),
-  closed_       (false),
-  connection_   (),
-  streamHandler_(NULL),
-  source_       (),
-  packages_     ()
+  xmlParam_      (),
+  control_       (),
+  options_       (),
+  address_       (),
+  doc_           (),
+  stat_          (),
+  closed_        (false),
+  connection_    (),
+  streamHandler_ (NULL),
+  source_        (),
+  packages_      (),
+  auxilarBuffer(),
+  auxilarBufferSize_(0)
 {
+  AllocAuxilarBuffer(_MaxBlockLength_);
   InitBuild();
 }
 
@@ -104,7 +107,30 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
 //--------------------------------------------------------------------
 {
   Close();
+  if(auxilarBuffer) 
+  {
+    delete [] auxilarBuffer;
+  }
 }
+
+
+//--------------------------------------------------------------------
+ char* BOis::AllocAuxilarBuffer(int size) 
+//--------------------------------------------------------------------
+{
+  if(size>auxilarBufferSize_)
+  {
+    if(auxilarBuffer)
+    {
+      delete [] auxilarBuffer;
+      auxilarBuffer = NULL;
+    }  
+    auxilarBufferSize_ = int(double(size)*1.2);
+    auxilarBuffer = new char[auxilarBufferSize_];
+  }
+  return(auxilarBuffer);
+}
+
 
 //--------------------------------------------------------------------
   bool BOis::SetRunningUseModule(bool r) 
@@ -230,7 +256,7 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
   source_        .ReallocBuffer(0);
 
   elapsed_.Reset();
-  enable_BSE_ = false;
+  enable_BSE_ = true;
 }
 
 //--------------------------------------------------------------------
