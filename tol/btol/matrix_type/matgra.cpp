@@ -6194,8 +6194,8 @@ void BMatRandTruncatedMultNormal::CalcContens()
     }
     if(!ok)
     {
-       Error(I2("TruncatedMultiNormal: Bounds were unreachable at restrictions",
-                "TruncatedMultiNormal: No se pudieron cumplir las restriciones")+
+       Error(I2("RandTruncatedMultNormal: Bounds were unreachable at restrictions",
+                "RandTruncatedMultNormal: No se pudieron cumplir las restriciones")+
              msg);
     }
   }
