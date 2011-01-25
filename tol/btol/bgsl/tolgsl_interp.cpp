@@ -108,7 +108,15 @@ BTraceInit("tolgsl_interp.cpp");
     {
       acc = gsl_interp_accel_alloc ();
       spline = gsl_spline_alloc (t, N);
-      gsl_spline_init (spline, x, y, N);
+      if(!spline)
+      {
+        Error(BText("Cannot create GSL interpolator of type ")+
+          t->name+" with "+N+" points. Minimum number of points is "+(int)t->min_size);
+      }
+      else
+      {
+        gsl_spline_init (spline, x, y, N);
+      }
     }
     else
     {
