@@ -2724,3 +2724,17 @@ void BDatLLKR::CalcContens()
   gsl_vector_free(gsl_pAR);
   gsl_vector_free(gsl_pMA);
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatTolShowStatus);
+DefExtOpr(1, BDatTolShowStatus, "TolShowStatus", 1, 1, "Real",
+          "(Real unused)",
+          I2("Shows statistics of resouerces used by TOL",
+             "Muestra estadísticas de los recursos usados por TOL"),
+          BOperClassify::Conversion_);
+void BDatTolShowStatus::CalcContens()
+//--------------------------------------------------------------------
+{
+  void TolShowStatus();
+  TolShowStatus();
+}
