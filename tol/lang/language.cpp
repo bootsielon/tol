@@ -231,6 +231,57 @@ static BText DialogInfo()
 }
 
 //--------------------------------------------------------------------
+void TolShowStatus()
+//--------------------------------------------------------------------
+{
+  Std("\n------------------------------------------------------------------------------");
+  Std(BText("\nTOL Status "));
+  Std("\n------------------------------------------------------------------------------\n");
+
+  BTimer::PrintProcess();
+  Std("\n------------------------------------------------------------------------------");
+  Std(BText("\nStatus of hashed global symbol table "));
+  Std("\n------------------------------------------------------------------------------\n");
+  BGrammar::SymbolTable().Dump();
+
+
+  Std("\n------------------------------------------------------------------------------");
+  Std(BText("\nGeneral status"));
+  Std("\n------------------------------------------------------------------------------\n");
+  Std(DialogInfo());
+//Std(BText("\nGrammar hashing size    = ")<<BGrammarHashSize/1024.0<<" KBytes");
+  Std(BText("\nTime Set cache size     = ")<<BTimeSet::HashUsedKBytes()<<" KBytes");
+  Std(BText("\nTime Serie cache number = ")<<BData::Count());
+  Std(BText("\nTime Serie cache size   = ")<<BData::KBytes()<<" KBytes");
+  BVMat::ShowCholmodStats();
+
+#     ifdef TRACE_OPTINFO
+  Std(BText("\nOptional info. number   = ")<<BSyntaxObject::OptInfoCount()<<" of "<<(BSyntaxObject::NSyntaxObject()));
+  Std(BText("\nOptional info. named    = ")<<BSyntaxObject::OptInfoCountName());
+  Std(BText("\nOptional info. loc.nam. = ")<<BSyntaxObject::OptInfoCountExpression());
+  Std(BText("\nOptional info. desc.    = ")<<BSyntaxObject::OptInfoCountDescription());
+  Std(BText("\nOptional info. size     = ")<<BSyntaxObject::OptInfoKBytes()<<" KBytes");
+#     endif
+
+#if   (__USE_POOL__==__POOL_BFSMEM__)
+  void BFSMEM_ShowStatsOfAllInstances();
+  BFSMEM_ShowStatsOfAllInstances();
+#     endif 
+
+//#     define __USE_TOL_IEEE__
+#     ifdef __USE_TOL_IEEE__
+  BINT64& is_nan_num_call();
+  Std(BText("\nis_nan_num_call = ")<<is_nan_num_call());
+#     endif
+
+  void StatRealloc();
+  StatRealloc();
+  Std("\n------------------------------------------------------------------------------");
+  Std(BText("\nEnd of TOL Status "));
+  Std("\n------------------------------------------------------------------------------\n\n");
+}
+
+//--------------------------------------------------------------------
 void InteractiveTOL()
 
 /*! PURPOSE: Makes a terminal dialog for probe the language.
@@ -329,38 +380,7 @@ void InteractiveTOL()
     }
     else if(command=="$STATUS")
     {
-      Std("\n------------------------------------------------------------------------------");
-      Std(BText("\nStatus of hashed global symbol table "));
-      Std("\n------------------------------------------------------------------------------\n");
-      BGrammar::SymbolTable().Dump();
-
-      Std("\n------------------------------------------------------------------------------");
-      Std(BText("\nGeneral status"));
-      Std("\n------------------------------------------------------------------------------\n");
-      Std(DialogInfo());
-    //Std(BText("\nGrammar hashing size    = ")<<BGrammarHashSize/1024.0<<" KBytes");
-      Std(BText("\nTime Set cache size     = ")<<BTimeSet::HashUsedKBytes()<<" KBytes");
-      Std(BText("\nTime Serie cache number = ")<<BData::Count());
-      Std(BText("\nTime Serie cache size   = ")<<BData::KBytes()<<" KBytes");
-      BTimer::PrintProcess();
-      void StatRealloc();
-      StatRealloc();
-#if   (__USE_POOL__==__POOL_BFSMEM__)
-      void BFSMEM_ShowStatsOfAllInstances();
-      BFSMEM_ShowStatsOfAllInstances();
-#     endif 
-#     ifdef TRACE_OPTINFO
-      Std(BText("\nOptional info. number   = ")<<BSyntaxObject::OptInfoCount()<<" of "<<(BSyntaxObject::NSyntaxObject()-BDeadObject::DeadObjects()));
-      Std(BText("\nOptional info. named    = ")<<BSyntaxObject::OptInfoCountName());
-      Std(BText("\nOptional info. loc.nam. = ")<<BSyntaxObject::OptInfoCountLocalName());
-      Std(BText("\nOptional info. desc.    = ")<<BSyntaxObject::OptInfoCountDescription());
-      Std(BText("\nOptional info. size     = ")<<BSyntaxObject::OptInfoKBytes()<<" KBytes");
-#     endif
-//#     define __USE_TOL_IEEE__
-#     ifdef __USE_TOL_IEEE__
-      BINT64& is_nan_num_call();
-      Std(BText("\nis_nan_num_call = ")<<is_nan_num_call());
-#     endif
+      TolShowStatus();
     }
     else if(command=="$SHOW_CLASS_SIZES")
     {
