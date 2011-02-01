@@ -59,6 +59,262 @@ int BVMat::FUN(const BVMat& A, const BVMat& B, BVMat& C)                       \
 BVMat BVMat::FUN(const BVMat& B) const                                         \
 { return(ApplyFunR2R(fun,  f00, f0x,  NAME, B)); }                             \
 
-       
-        
+
+//#define TRACE_CHOLMOD_MEMORY
+
+#ifdef TRACE_CHOLMOD_MEMORY
+
+void TraceCholmodAllocate(const BText& type, void* ptr, double size);
+void TraceCholmodFree    (const BText& type, void* ptr, double size);
+
+#define TRACE_CHOLMOD_ALLOCATE(TYPE,PTR) \
+{ \
+  size_t size = BVMat::bytes(PTR); \
+  TraceCholmodAllocate(TYPE,PTR,size); \
+}
+
+#define TRACE_CHOLMOD_FREE(TYPE,PTR) \
+{ \
+  size_t size = BVMat::bytes(PTR); \
+  TraceCholmodFree(TYPE,PTR,size); \
+}
+
+#else
+
+#define TRACE_CHOLMOD_ALLOCATE(TYPE,PTR)
+#define TRACE_CHOLMOD_FREE(TYPE,PTR)
+
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_R_dense *CholmodAllocate_dense
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t nrow,	/* # of rows of matrix */
+    size_t ncol,	/* # of columns of matrix */
+    size_t d,		/* leading dimension */
+    int xtype,		/* CHOLMOD_REAL, _COMPLEX, or _ZOMPLEX */
+    /* --------------- */
+    cholmod_common_struct *Common
+);
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_R_sparse *CholmodAllocate_sparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t nrow,	/* # of rows of A */
+    size_t ncol,	/* # of columns of A */
+    size_t nzmax,	/* max # of nonzeros of A */
+    int sorted,		/* TRUE if columns of A sorted, FALSE otherwise */
+    int packed,		/* TRUE if A will be packed, FALSE otherwise */
+    int stype,		/* stype of A */
+    int xtype,		/* CHOLMOD_PATTERN, _REAL, _COMPLEX, or _ZOMPLEX */
+    /* --------------- */
+    cholmod_common_struct *Common
+);
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodSort
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_sparse *A,	/* matrix to sort */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_R_triplet *CholmodAllocate_triplet
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t nrow,	/* # of rows of T */
+    size_t ncol,	/* # of columns of T */
+    size_t nzmax,	/* max # of nonzeros of T */
+    int stype,		/* stype of T */
+    int xtype,		/* CHOLMOD_PATTERN, _REAL, _COMPLEX, or _ZOMPLEX */
+    /* --------------- */
+    cholmod_common_struct *Common
+);
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodReallocateTriplet
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t nznew,	/* new # of entries in T */
+    /* ---- in/out --- */
+    cholmod_triplet *T,	/* triplet matrix to modify */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_factor *CholmodAllocate_factor
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t n,		/* L is n-by-n */
+    /* --------------- */
+    cholmod_common_struct *Common
+);
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodPackFactor
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_factor *L,	/* factor to modify */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_dense *CholmodCopy_dense
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_dense *d,	/* dense to copy */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodCopy_sparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_sparse *L,	/* sparse to copy */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodCopy 
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_sparse *A,	/* matrix to copy */
+    int stype,		/* requested stype of C */
+    int mode,		/* >0: numerical, 0: pattern, <0: pattern (no diag) */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_triplet *CholmodCopy_triplet
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_triplet *L,	/* triplet to copy */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_factor *CholmodCopy_factor
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_factor *L,	/* factor to copy */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_dense *CholmodSparseToDense
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_sparse *A,	/* matrix to copy */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodDenseToSparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_dense *X,	/* matrix to copy */
+    int values,		/* TRUE if values to be copied, FALSE otherwise */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_triplet *CholmodSparseToTriplet
+(
+    /* ---- input ---- */
+    cholmod_sparse *A,	/* matrix to copy */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodTripletToSparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_triplet *T,	/* matrix to copy */
+    int nzmax,		/* allocate at least this much space in output matrix */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodFactorToSparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_factor *L,	/* factor to copy, converted to symbolic on output */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodFree_dense
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_R_dense **d,	/* dense to free, NULL on output */
+    /* --------------- */
+    cholmod_common_struct *Common
+);
+
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodFree_sparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_R_sparse **s,	/* sparse to free, NULL on output */
+    /* --------------- */
+    cholmod_common_struct *Common
+);
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodFree_triplet
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_R_triplet **t,	/* triplet to free, NULL on output */
+    /* --------------- */
+    cholmod_common_struct *Common
+);
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodFree_factor
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_R_factor **L,	/* factor to free, NULL on output */
+    /* --------------- */
+    cholmod_common_struct *Common
+);
+   
 #endif // TOL_BVMAT_IMPL_H

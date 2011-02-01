@@ -386,7 +386,7 @@ double BVMat::Quantile() const
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
-  cholmod_dense* dense = cholmod_allocate_dense
+  cholmod_dense* dense = CholmodAllocate_dense
   ( nrow, ncol, nrow, CHOLMOD_REAL, common_);
   int k;
   if(dense)
@@ -410,7 +410,7 @@ double BVMat::Quantile() const
   BUniformDist iu(-0.49999999,nrow-0.49999999);
   BUniformDist ju(-0.49999999,ncol-0.49999999);
   BIntPair p;
-  cholmod_triplet* triplet = cholmod_allocate_triplet
+  cholmod_triplet* triplet = CholmodAllocate_triplet
   ( nrow, ncol, nzmax, 0, CHOLMOD_REAL, common_);
   if(triplet)
   {
@@ -466,8 +466,8 @@ double BVMat::Quantile() const
   case(ESC_chlmRsparse ) :
     code_  = ESC_chlmRsparse;
     trp = cRt_rand(nrow,ncol,nzmax,dist);
-    s_.chlmRsparse_= cholmod_triplet_to_sparse(trp, trp->nnz, common_);
-    cholmod_free_triplet(&trp, common_);
+    s_.chlmRsparse_= CholmodTripletToSparse(trp, trp->nnz, common_);
+    CholmodFree_triplet(&trp, common_);
     break;
   default: 
     err_cannot_create("Rand",c);  }

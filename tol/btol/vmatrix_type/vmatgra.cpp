@@ -222,6 +222,21 @@ void BDatStoredCells::CalcContens()
 }
 
 //--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatStoredBytes);
+DefExtOpr(1, BDatStoredBytes, "VStoredBytes", 1, 1,
+  "VMatrix",
+  "(VMatrix V)",
+  I2("Returns the number of stored bytes in a virtual matrix.",
+     "Devuelve el numero de bytes almacenados en una matriz virtual."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BDatStoredBytes::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_ = VMat(Arg(1)).Bytes();
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatVMatDat);
   DefExtOpr(1, BDatVMatDat, "VMatDat", 3, 3, "VMatrix Real Real",
   I2("(VMatrix mat, Real row, Real column)",
@@ -975,10 +990,10 @@ void BVMatConcatCol::CalcContens()
   {
     if(!Arg(i) || (Arg(i)->Grammar()!=GraVMatrix()))
     {
-      Error(I2("Wrong argument for ConcaRows (or << operator) "
+      Error(I2("Wrong argument for ConcatColumns (or << operator) "
                "in argument number ",
-               "Argumento erroneo para ConcatRows (o el "
-               "operador << )en el argumento numero ")+
+               "Argumento erroneo para ConcatColumns (o el "
+               "operador | )en el argumento numero ")+
             i + ".");
       contens_ = BVMat::Unknown();
       return;

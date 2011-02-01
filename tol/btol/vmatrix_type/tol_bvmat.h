@@ -74,6 +74,7 @@ struct cholmod_triplet_struct;
 #define blas_C_triang     void
 #define blas_C_banded     void
 
+
 ////////////////////////////////////////////////////////////////////////////////
 class TOL_API BVMat
 
@@ -266,6 +267,10 @@ public:
 //Copy operator
   const BVMat& operator = (const BVMat& v);  
   ECode Code() const { return(code_); }
+
+  static cholmod_common_struct* Common() { return(common_); }
+
+  static void ShowCholmodStats();
   int  Check       () const;
   void Pack        ();
   void Pack        (double sparsity);
@@ -332,14 +337,21 @@ public:
   void   Scan (FILE* file);
   void   WriteMatrixMarket(FILE* file);
   size_t Bytes() const;
+
   bool   Write(BOisCreator& ois, BStream* name) const;
   bool   Read (BOisLoader& ois, BStream* stream);
   
+  static size_t BVMat::bytes(const cholmod_R_dense* a);
+  static size_t BVMat::bytes(const cholmod_R_sparse* a);
+  static size_t BVMat::bytes(const cholmod_R_factor* a);
+  static size_t BVMat::bytes(const cholmod_R_triplet* a);
   static void err_cannot_apply(const char* fName, const char* cond, 
                                const BVMat& a);
 private:
   static size_t bytes_blasRdense(int nzmax);
   static size_t bytes_chlmRsparse(int nzmax, int ncol, bool packed);
+
+
   size_t bytes_blasRdense  () const;
   size_t bytes_chlmRsparse () const;
   size_t bytes_chlmRfactor () const;

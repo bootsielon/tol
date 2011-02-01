@@ -89,7 +89,7 @@ DefineBinary (WeightQuot, fR2R_quot, false, false, "$/");
     r = A.Columns();
     c = A.Rows();
     B.code_  = ESC_blasRdense;
-    B.s_.blasRdense_ = cholmod_allocate_dense
+    B.s_.blasRdense_ = CholmodAllocate_dense
       (r, c, r, CHOLMOD_REAL, common_);
     x = (double*)(A.s_.blasRdense_->x);
     y = (double*)(B.s_.blasRdense_->x);
@@ -112,7 +112,7 @@ DefineBinary (WeightQuot, fR2R_quot, false, false, "$/");
     r = A.Rows();
     n = A.s_.chlmRtriplet_->nzmax;
     B.code_  = ESC_chlmRtriplet;
-    B.s_.chlmRtriplet_=cholmod_allocate_triplet(c,r,n,0,CHOLMOD_REAL,common_);
+    B.s_.chlmRtriplet_=CholmodAllocate_triplet(c,r,n,0,CHOLMOD_REAL,common_);
     memcpy(B.s_.chlmRtriplet_->i,A.s_.chlmRtriplet_->j, n*sizeof(int));
     memcpy(B.s_.chlmRtriplet_->j,A.s_.chlmRtriplet_->i, n*sizeof(int));
     memcpy(B.s_.chlmRtriplet_->x,A.s_.chlmRtriplet_->x, n*sizeof(double));
@@ -158,7 +158,7 @@ DefineBinary (WeightQuot, fR2R_quot, false, false, "$/");
   case(ESC_chlmRsparse ) : 
   {
     cholmod_drop(drop,s_.chlmRsparse_, common_);
-    cholmod_sort(s_.chlmRsparse_,   common_);
+    CholmodSort(s_.chlmRsparse_,   common_);
     break;
   }
   case(ESC_chlmRtriplet) : 
@@ -166,7 +166,7 @@ DefineBinary (WeightQuot, fR2R_quot, false, false, "$/");
     BVMat sprs;
     cRt2cRs(*this,sprs);
     cholmod_drop(drop,sprs.s_.chlmRsparse_, common_);
-    cholmod_sort(sprs.s_.chlmRsparse_,   common_);
+    CholmodSort(sprs.s_.chlmRsparse_,   common_);
     cRs2cRt(sprs,*this);
     break; 
   }
@@ -406,7 +406,7 @@ int BVMat::Rest(const BVMat& A, const BVMat& B, BVMat& C)
   int N  = B.Columns();
   int K  = rB;
   C.code_ = ESC_blasRdense;
-  C.s_.blasRdense_=cholmod_allocate_dense
+  C.s_.blasRdense_=CholmodAllocate_dense
   ( A.s_.blasRdense_->nrow, B.s_.blasRdense_->ncol, 
     A.s_.blasRdense_->nrow, CHOLMOD_REAL, common_);
   cblas_dgemm
@@ -429,7 +429,7 @@ int BVMat::Rest(const BVMat& A, const BVMat& B, BVMat& C)
   static double alpha_one [2] = { 1.0,  1.0 };
   static double beta_zero [2] = { 0.0,  0.0 };
   C.code_ = ESC_blasRdense;
-  C.s_.blasRdense_=cholmod_allocate_dense
+  C.s_.blasRdense_=CholmodAllocate_dense
   ( A.s_.chlmRsparse_->nrow, B.s_.blasRdense_->ncol, 
     A.s_.chlmRsparse_->nrow, CHOLMOD_REAL, common_);
   cholmod_sdmult
@@ -454,7 +454,7 @@ int BVMat::Rest(const BVMat& A, const BVMat& B, BVMat& C)
   C.code_ = ESC_blasRdense;
   BVMat Ct, At = A.T();
   Ct.code_ = ESC_blasRdense;
-  Ct.s_.blasRdense_=cholmod_allocate_dense
+  Ct.s_.blasRdense_=CholmodAllocate_dense
   ( B.s_.chlmRsparse_->ncol, A.s_.blasRdense_->nrow, 
     B.s_.chlmRsparse_->ncol, CHOLMOD_REAL, common_);
   cholmod_sdmult
@@ -486,6 +486,7 @@ int BVMat::Rest(const BVMat& A, const BVMat& B, BVMat& C)
     1,         /* if TRUE then return C with sorted columns */
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",C.s_.chlmRsparse_);
   return(0);
 };
   
@@ -651,7 +652,7 @@ int BVMat::KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C)
   switch(A.code_) {
   case(ESC_blasRdense  ) :
     B.code_ = ESC_blasRdense;
-    B.s_.blasRdense_ = cholmod_allocate_dense(c, c, c, CHOLMOD_REAL, common_);
+    B.s_.blasRdense_ = CholmodAllocate_dense(c, c, c, CHOLMOD_REAL, common_);
     x = (double*)B.s_.blasRdense_->x;
     cblas_dsyrk
     (
@@ -677,7 +678,7 @@ int BVMat::KroneckerProd(const BVMat& A, const BVMat& B, BVMat& C)
     else 
     {
       cRs_cRs_prod(tr,A,sp); 
-      B.s_.chlmRsparse_ = cholmod_copy(sp.s_.chlmRsparse_,-1,1,common_);
+      B.s_.chlmRsparse_ = CholmodCopy(sp.s_.chlmRsparse_,-1,1,common_);
     }
     break;
   default:

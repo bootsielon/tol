@@ -341,9 +341,9 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
   MM_typecode matcode;
   
   if (code_==ESC_chlmRsparse) {
-    cholmod_R_sparse *unsym = cholmod_copy(s_.chlmRsparse_, 0, 1, common_);
-    ptr_triplet = cholmod_sparse_to_triplet(unsym, common_);
-    cholmod_free_sparse(&unsym, common_); 
+    cholmod_R_sparse *unsym = CholmodCopy(s_.chlmRsparse_, 0, 1, common_);
+    ptr_triplet = CholmodSparseToTriplet(unsym, common_);
+    CholmodFree_sparse(&unsym, common_); 
     should_free = true;
   } else if (code_==ESC_chlmRtriplet) {
     ptr_triplet = s_.chlmRtriplet_;
@@ -371,7 +371,7 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
                 "%d %d %10.7g\n", Ti[i]+1, Tj[i]+1, Val[i]);
     
     if (should_free) {
-      cholmod_free_triplet(&ptr_triplet, common_);
+      CholmodFree_triplet(&ptr_triplet, common_);
     }
   }
 };
@@ -380,6 +380,8 @@ void BVMat::WriteMatrixMarket(FILE* file)
 {
 }
 #endif
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
   size_t BVMat::bytes_blasRdense(int nzmax) 
@@ -400,12 +402,59 @@ void BVMat::WriteMatrixMarket(FILE* file)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+  size_t BVMat::bytes(const cholmod_R_dense* a) 
+//Exporting method
+////////////////////////////////////////////////////////////////////////////////
+{
+  return(bytes_blasRdense(a->nzmax));
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  size_t BVMat::bytes(const cholmod_R_sparse* a) 
+//Exporting method
+////////////////////////////////////////////////////////////////////////////////
+{
+  return(bytes_chlmRsparse(a->nzmax,a->ncol,a->packed!=0));
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  size_t BVMat::bytes(const cholmod_R_factor* a) 
+//Exporting method
+////////////////////////////////////////////////////////////////////////////////
+{
+  size_t bytes = sizeof(cholmod_factor)+ 
+                 a->n * 2 * sizeof(int);
+  if (a->xtype != CHOLMOD_PATTERN && !(a->is_super))
+  {
+	//writes the contents of a simplicial numeric factor 
+    bytes+= ((1+a->n)+(2+a->n)+(2+a->n)+a->n+a->nzmax)*sizeof(int)+
+            a->nzmax*sizeof(double);
+  }
+  else if (a->is_super)
+  {
+    bytes += ((a->nsuper+1)*3+a->ssize)*sizeof(int)+
+             a->xsize*sizeof(double);
+  }
+  return(bytes);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  size_t BVMat::bytes(const cholmod_R_triplet* a) 
+//Exporting method
+////////////////////////////////////////////////////////////////////////////////
+{
+  return(sizeof(cholmod_triplet)+
+         a->nzmax*(2*sizeof(int)+sizeof(double)));
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
   size_t BVMat::bytes_blasRdense() const
 //Exporting method
 ////////////////////////////////////////////////////////////////////////////////
 {
-  cholmod_dense& a = *s_.blasRdense_;
-  return(bytes_blasRdense(a.nzmax));
+  return(bytes(s_.blasRdense_));
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -413,8 +462,7 @@ void BVMat::WriteMatrixMarket(FILE* file)
 //Exporting method
 ////////////////////////////////////////////////////////////////////////////////
 {
-  cholmod_sparse& a = *s_.chlmRsparse_;
-  return(bytes_chlmRsparse(a.nzmax,a.ncol,a.packed!=0));
+  return(bytes(s_.chlmRsparse_));
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -422,21 +470,7 @@ void BVMat::WriteMatrixMarket(FILE* file)
 //Exporting method
 ////////////////////////////////////////////////////////////////////////////////
 {
-  cholmod_factor& a = *s_.chlmRfactor_;
-  size_t bytes = sizeof(cholmod_factor)+ 
-                 a.n * 2 * sizeof(int);
-  if (a.xtype != CHOLMOD_PATTERN && !(a.is_super))
-  {
-	//writes the contents of a simplicial numeric factor 
-    bytes+= ((1+a.n)+(2+a.n)+(2+a.n)+a.n+a.nzmax)*sizeof(int)+
-            a.nzmax*sizeof(double);
-  }
-  else if (a.is_super)
-  {
-    bytes += ((a.nsuper+1)*3+a.ssize)*sizeof(int)+
-             a.xsize*sizeof(double);
-  }
-  return(bytes);
+  return(bytes(s_.chlmRfactor_));
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -444,9 +478,7 @@ void BVMat::WriteMatrixMarket(FILE* file)
 //Exporting method
 ////////////////////////////////////////////////////////////////////////////////
 {
-  cholmod_triplet& a = *s_.chlmRtriplet_;
-  return(sizeof(cholmod_triplet)+
-         a.nzmax*(2*sizeof(int)+sizeof(double)));
+  return(bytes(s_.chlmRtriplet_));
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -501,6 +533,8 @@ void BVMat::WriteMatrixMarket(FILE* file)
   Ensure(ois.Read(a.nzmax, stream));
   Ensure(ois.Read(a.dtype, stream));
   a.x = cholmod_malloc(a.nzmax, sizeof(double), common_);
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",&a);
+
   Ensure(ois.Read(a.x, a.nzmax, sizeof(double), stream));    
   a.z = NULL;
   if(!cholmod_check_dense(&a,common_))
@@ -576,6 +610,9 @@ void BVMat::WriteMatrixMarket(FILE* file)
     a.nz = NULL;
   }
   a.z = NULL;
+  if((a.nrow>10000) && (a.ncol>100) && (a.nzmax>(a.nrow*a.ncol*.10)))
+    printf("");
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",&a);
   if(!cholmod_check_sparse(&a,common_))
   {
     Error("Cannot load image OIS of a non valid VMatrix(Cholmod.R.Sparse)");
@@ -718,6 +755,7 @@ void BVMat::WriteMatrixMarket(FILE* file)
     Ensure(ois.Read(a.x,     a.xsize,    sizeof(double), stream));
   }
   a.z = NULL;
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Factor",&a);
   if(!cholmod_check_factor(&a,common_))
   {
     Error("Cannot load image OIS of a non valid VMatrix(Cholmod.R.Factor)");
@@ -776,6 +814,7 @@ void BVMat::WriteMatrixMarket(FILE* file)
   Ensure(ois.Read(a.j, a.nzmax, sizeof(int),    stream));    
   Ensure(ois.Read(a.x, a.nzmax, sizeof(double), stream)); 
   a.z = NULL;
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Triplet",&a);
   if(!cholmod_check_triplet(&a,common_))
   {
     Error("Cannot load image OIS of a non valid VMatrix(Cholmod.R.Triplet)");

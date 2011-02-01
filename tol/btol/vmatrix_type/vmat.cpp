@@ -46,12 +46,449 @@ BVMat::StrCholFac  BVMat::cholFac_        [BVMat::cholFac_numOpt];;
 cholmod_common    *BVMat::common_             = NULL;
 FILE              *BVMat::cholmod_print_file_ = NULL;
 BDat               BVMat::autoConvert_        = true;
+static cholmod_common BVMat_cholmod_common;
+
+//#define TRACE_CHOLMOD_MEMORY
+
+#ifdef TRACE_CHOLMOD_MEMORY
+static int cholmod_num_register = 0;
+static double cholmod_size_allocated = 0;
+static double cholmod_num_allocated  = 0;
+static double cholmod_size_deallocated = 0;
+static double cholmod_num_deallocated  = 0;
+static double cholmod_size_balance = 0;
+static double cholmod_num_balance  = 0;
+
+static FILE* fchlmd_ = NULL;
+
+////////////////////////////////////////////////////////////////////////////////
+void TraceCholmodInitialize()
+////////////////////////////////////////////////////////////////////////////////
+{
+  fchlmd_ = fopen("fcholmod.txt","w");
+  if(!fchlmd_)
+  {
+    Error("[TraceCholmodInitialize] cannot open file fcholmod.txt");
+  }
+  else
+  {
+    fprintf(fchlmd_,
+      "NumRegister\tOperation\tType\tPointer\tSize\tObjects\tBytes\tCholmod_malloc_count\tCholmod_memory_usage\tCholmod_memory_inuse\n");
+    cholmod_num_register = 0;
+    cholmod_size_allocated = 0;
+    cholmod_num_allocated  = 0;
+    cholmod_size_deallocated = 0;
+    cholmod_num_deallocated  = 0;
+    cholmod_size_balance = 0;
+    cholmod_num_balance  = 0;
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+void TraceCholmodAllocate(const BText& type, void* ptr, double size)
+////////////////////////////////////////////////////////////////////////////////
+{
+  cholmod_num_register++;
+  cholmod_size_allocated += size; 
+  cholmod_num_allocated += 1.0; 
+  cholmod_size_balance += size; 
+  cholmod_num_balance += 1.0; 
+  if(fchlmd_)
+  {
+    int ptr_ = (int)ptr;
+    fprintf(fchlmd_,"%ld\tALLOCATE\t%s\t%ld\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+      cholmod_num_register,type.String(),ptr_,size,
+      cholmod_num_balance,cholmod_size_balance,
+      (double)BVMat::Common()->malloc_count,
+      (double)BVMat::Common()->memory_usage,
+      (double)BVMat::Common()->memory_inuse);
+    fflush(fchlmd_);
+  }
+  else
+  {
+    Error("[TraceCholmodAllocate] file fcholmod.txt is not open");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void TraceCholmodFree(const BText& type, void* ptr, double size)
+////////////////////////////////////////////////////////////////////////////////
+{
+  cholmod_num_register++;
+  cholmod_size_deallocated += size; 
+  cholmod_num_deallocated += 1.0; 
+  cholmod_size_balance -= size; 
+  cholmod_num_balance -= 1.0; 
+  if(fchlmd_)
+  {
+    int ptr_ = (int)ptr;
+    fprintf(fchlmd_,"%ld\tFREE\t%s\t%ld\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+      cholmod_num_register,type.String(),ptr_,size,
+      cholmod_num_balance,cholmod_size_balance,
+      (double)BVMat::Common()->malloc_count,
+      (double)BVMat::Common()->memory_usage,
+      (double)BVMat::Common()->memory_inuse);
+    fflush(fchlmd_);
+  }
+  else
+  {
+    Error("[TraceCholmodAllocate] file fcholmod.txt is not open");
+  }
+}
+
+
+
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_R_dense *CholmodAllocate_dense
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t nrow,	/* # of rows of matrix */
+    size_t ncol,	/* # of columns of matrix */
+    size_t d,		/* leading dimension */
+    int xtype,		/* CHOLMOD_REAL, _COMPLEX, or _ZOMPLEX */
+    /* --------------- */
+    cholmod_common_struct *Common
+)
+{
+  cholmod_R_dense* ptr = 
+    cholmod_allocate_dense(nrow,ncol,d,xtype,Common);
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_R_sparse *CholmodAllocate_sparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t nrow,	/* # of rows of A */
+    size_t ncol,	/* # of columns of A */
+    size_t nzmax,	/* max # of nonzeros of A */
+    int sorted,		/* TRUE if columns of A sorted, FALSE otherwise */
+    int packed,		/* TRUE if A will be packed, FALSE otherwise */
+    int stype,		/* stype of A */
+    int xtype,		/* CHOLMOD_PATTERN, _REAL, _COMPLEX, or _ZOMPLEX */
+    /* --------------- */
+    cholmod_common_struct *Common
+)
+{
+  cholmod_R_sparse* ptr =
+    cholmod_allocate_sparse(nrow,ncol,nzmax,sorted,packed,stype,xtype,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodSort
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_sparse *A,	/* matrix to sort */
+    /* --------------- */
+    cholmod_common *Common
+)
+{
+  TRACE_CHOLMOD_FREE("Cholmod.R.Sparse",A);
+  int r = cholmod_sort(A,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",A);
+  return(r);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_R_triplet *CholmodAllocate_triplet
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t nrow,	/* # of rows of T */
+    size_t ncol,	/* # of columns of T */
+    size_t nzmax,	/* max # of nonzeros of T */
+    int stype,		/* stype of T */
+    int xtype,		/* CHOLMOD_PATTERN, _REAL, _COMPLEX, or _ZOMPLEX */
+    /* --------------- */
+    cholmod_common_struct *Common
+)
+{
+  cholmod_R_triplet* ptr =
+    cholmod_allocate_triplet(nrow,ncol,nzmax,stype,xtype,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Triplet",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodReallocateTriplet
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t nznew,	/* new # of entries in T */
+    /* ---- in/out --- */
+    cholmod_triplet *T,	/* triplet matrix to modify */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  TRACE_CHOLMOD_FREE("Cholmod.R.Triplet",T);
+  int r = cholmod_reallocate_triplet(nznew,T,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Triplet",T);
+  return(r);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_factor *CholmodAllocate_factor
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    size_t n,		/* L is n-by-n */
+    /* --------------- */
+    cholmod_common_struct *Common
+)
+{
+  cholmod_R_factor* ptr =
+    cholmod_allocate_factor(n,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Factor",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodPackFactor
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_factor *L,	/* factor to modify */
+    /* --------------- */
+    cholmod_common *Common
+)
+{
+  TRACE_CHOLMOD_FREE("Cholmod.R.Factor",L);
+  int r = cholmod_pack_factor(L,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Factor",L);
+  return(r);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_dense *CholmodCopy_dense
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_dense *d,	/* dense to copy */
+    /* --------------- */
+    cholmod_common *Common
+)
+{
+  cholmod_R_dense* ptr =
+    cholmod_copy_dense(d,Common);
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodCopy_sparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_sparse *s,	/* sparse to copy */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  cholmod_R_sparse* ptr =
+    cholmod_copy_sparse(s,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodCopy 
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_sparse *A,	/* matrix to copy */
+    int stype,		/* requested stype of C */
+    int mode,		/* >0: numerical, 0: pattern, <0: pattern (no diag) */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  cholmod_R_sparse* ptr =
+    cholmod_copy(A,stype,mode,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_triplet *CholmodCopy_triplet
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_triplet *t,	/* triplet to copy */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  cholmod_R_triplet* ptr =
+    cholmod_copy_triplet(t,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Triplet",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_factor *CholmodCopy_factor
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_factor *L,	/* factor to copy */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  cholmod_R_factor* ptr =
+    cholmod_copy_factor(L,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Factor",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_dense *CholmodSparseToDense
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_sparse *A,	/* matrix to copy */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  cholmod_R_dense* ptr =
+    cholmod_sparse_to_dense(A,Common);
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",ptr);
+  return(ptr);
+}
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodDenseToSparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_dense *X,	/* matrix to copy */
+    int values,		/* TRUE if values to be copied, FALSE otherwise */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  cholmod_R_sparse* ptr =
+    cholmod_dense_to_sparse(X,values,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_triplet *CholmodSparseToTriplet
+(
+    /* ---- input ---- */
+    cholmod_sparse *A,	/* matrix to copy */
+    /* --------------- */
+    cholmod_common *Common
+)
+{
+  cholmod_R_triplet* ptr =
+    cholmod_sparse_to_triplet(A,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Triplet",ptr);
+  return(ptr);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodTripletToSparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- input ---- */
+    cholmod_triplet *T,	/* matrix to copy */
+    int nzmax,		/* allocate at least this much space in output matrix */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  cholmod_R_sparse* ptr =
+    cholmod_triplet_to_sparse(T,nzmax,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+cholmod_sparse *CholmodFactorToSparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_factor *L,	/* factor to copy, converted to symbolic on output */
+    /* --------------- */
+    cholmod_common *Common
+) 
+{
+  cholmod_R_sparse* ptr =
+    cholmod_factor_to_sparse(L,Common);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",ptr);
+  return(ptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodFree_dense
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_R_dense **d,	/* dense to free, NULL on output */
+    /* --------------- */
+    cholmod_common_struct *Common
+)
+{
+  TRACE_CHOLMOD_FREE("Blas.R.Dense",*d);
+  return(cholmod_free_dense(d,Common));
+}
+////////////////////////////////////////////////////////////////////////////////
+int CholmodFree_sparse
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_R_sparse **s,	/* sparse to free, NULL on output */
+    /* --------------- */
+    cholmod_common_struct *Common
+)
+{
+  TRACE_CHOLMOD_FREE("Cholmod.R.Sparse",*s);
+  return(cholmod_free_sparse(s,Common));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodFree_triplet
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_R_triplet **t,	/* triplet to free, NULL on output */
+    /* --------------- */
+    cholmod_common_struct *Common
+)
+{
+  TRACE_CHOLMOD_FREE("Cholmod.R.Triplet",*t);
+  return(cholmod_free_triplet(t,Common));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+int CholmodFree_factor
+////////////////////////////////////////////////////////////////////////////////
+(
+    /* ---- in/out --- */
+    cholmod_R_factor **L,	/* factor to free, NULL on output */
+    /* --------------- */
+    cholmod_common_struct *Common
+)
+{
+  TRACE_CHOLMOD_FREE("Cholmod.R.Factor",*L);
+  return(cholmod_free_factor(L,Common));
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // BVMat members
 ////////////////////////////////////////////////////////////////////////////////
-
-static cholmod_common BVMat_cholmod_common;
 
 ////////////////////////////////////////////////////////////////////////////////
 BDat& BVMat::AutoConvert()
@@ -64,6 +501,9 @@ BDat& BVMat::AutoConvert()
 int BVMat::InitializeClass()
 ////////////////////////////////////////////////////////////////////////////////
 {
+#ifdef TRACE_CHOLMOD_MEMORY
+  TraceCholmodInitialize();
+#endif
   bool done = false;
   if(!done)
   {
@@ -243,10 +683,10 @@ void BVMat::restore_cholmod_common()
   if(s_.undefined_)
   {
     switch(code_)  {
-    case(ESC_blasRdense   ):cholmod_free_dense  (&s_.blasRdense_,  common_);break;
-    case(ESC_chlmRsparse  ):cholmod_free_sparse (&s_.chlmRsparse_, common_);break;
-    case(ESC_chlmRfactor  ):cholmod_free_factor (&s_.chlmRfactor_, common_);break;
-    case(ESC_chlmRtriplet ):cholmod_free_triplet(&s_.chlmRtriplet_,common_);break; 
+    case(ESC_blasRdense   ):CholmodFree_dense  (&s_.blasRdense_,  common_);break;
+    case(ESC_chlmRsparse  ):CholmodFree_sparse (&s_.chlmRsparse_, common_);break;
+    case(ESC_chlmRfactor  ):CholmodFree_factor (&s_.chlmRfactor_, common_);break;
+    case(ESC_chlmRtriplet ):CholmodFree_triplet(&s_.chlmRtriplet_,common_);break; 
     default: ; 
       Error(I2("FATAL ERROR in",
                "ERROR FATAL en")+" BVMat::Delete()"); 
@@ -255,6 +695,32 @@ void BVMat::restore_cholmod_common()
     code_ = ESC_undefined;
   }
 };
+
+////////////////////////////////////////////////////////////////////////////////
+void BVMat::ShowCholmodStats()
+////////////////////////////////////////////////////////////////////////////////
+{
+  Std("\n------------------------------------------------------------------------------");
+  Std(BText("\nCholmod statistics"));
+  Std("\n------------------------------------------------------------------------------\n");
+
+  Std(BText("fl = ")+common_->fl+ " : LL' flop count from most recent analysis \n");
+  Std(BText("lnz = ")+common_->lnz+ " : fundamental nz in L \n");
+  Std(BText("anz = ")+common_->anz+ " : nonzeros in tril(A) if A is symmetric/lower,"
+			                            " triu(A) if symmetric/upper, or tril(A*A') if "
+			                            " unsymmetric, in last call to cholmod_analyze.\n");
+  Std(BText("modfl = ")+common_->modfl+ " : flop count from most recent update/downdate/"
+			                                " rowadd/rowdel (excluding flops to modify the "
+			                                " solution to Lx=b, if computed)\n");
+  Std(BText("malloc_count = ")+(double)common_->malloc_count+ " : # of objects malloc'ed minus the # free'd \n");
+  Std(BText("memory_usage = ")+(double)common_->memory_usage+ " : peak memory usage in bytes \n");
+  Std(BText("memory_inuse = ")+(double)common_->memory_inuse+ " : current memory usage in bytes \n");
+  Std(BText("nrealloc_col = ")+common_->nrealloc_col+ " : # of column reallocations \n");
+  Std(BText("nrealloc_factor = ")+common_->lnz+ " : # of factor reallocations due to col. reallocs  \n");
+  Std(BText("ndbounds_hit = ")+common_->lnz+ " : # of times diagonal modified by dbound \n");
+  Std(BText("rowfacfl = ")+common_->rowfacfl+ " : # of flops in last call to cholmod_rowfac \n");
+  Std(BText("aatfl = ")+common_->lnz+ " : # of flops to compute A(:,f)*A(:,f)' \n");
+}
 
 ////////////////////////////////////////////////////////////////////////////////
   int BVMat::Check()const
@@ -290,8 +756,8 @@ void BVMat::restore_cholmod_common()
   if(code_ == ESC_blasRdense)
   {
     cholmod_R_sparse* old = s_.chlmRsparse_;
-    s_.chlmRsparse_ = cholmod_copy(old, 0, 1, common_);
-    cholmod_free_sparse(&old, common_);
+    s_.chlmRsparse_ = CholmodCopy(old, 0, 1, common_);
+    CholmodFree_sparse(&old, common_);
   }
 }
 
@@ -331,7 +797,7 @@ void BVMat::restore_cholmod_common()
     }
     else
     {
-      cholmod_sort(s_.chlmRsparse_,   common_);
+      CholmodSort(s_.chlmRsparse_,   common_);
     }
     break;
   }
@@ -356,7 +822,7 @@ void BVMat::restore_cholmod_common()
   }
   case(ESC_chlmRfactor ) : 
   {
-    cholmod_pack_factor(s_.chlmRfactor_,common_);
+    CholmodPackFactor(s_.chlmRfactor_,common_);
     break;
   }
   default: 
@@ -402,7 +868,7 @@ void BVMat::restore_cholmod_common()
     }
     else
     {
-      cholmod_sort(s_.chlmRsparse_,   common_);
+      CholmodSort(s_.chlmRsparse_,   common_);
     }
     break;
   }
@@ -426,7 +892,7 @@ void BVMat::restore_cholmod_common()
   }
   case(ESC_chlmRfactor ) : 
   {
-    cholmod_pack_factor(s_.chlmRfactor_,common_);
+    CholmodPackFactor(s_.chlmRfactor_,common_);
     break;
   }
   default: 
@@ -447,13 +913,13 @@ void BVMat::restore_cholmod_common()
   if(!v.s_.undefined_) { return; }
   switch(code_) {
   case(ESC_blasRdense  ) : 
-    s_.blasRdense_   = cholmod_copy_dense  (v.s_.blasRdense_,   common_); break;
+    s_.blasRdense_   = CholmodCopy_dense  (v.s_.blasRdense_,   common_); break;
   case(ESC_chlmRsparse ) : 
-    s_.chlmRsparse_  = cholmod_copy_sparse (v.s_.chlmRsparse_,  common_); break;
+    s_.chlmRsparse_  = CholmodCopy_sparse (v.s_.chlmRsparse_,  common_); break;
   case(ESC_chlmRfactor ) : 
-    s_.chlmRfactor_  = cholmod_copy_factor (v.s_.chlmRfactor_,  common_); break;
+    s_.chlmRfactor_  = CholmodCopy_factor (v.s_.chlmRfactor_,  common_); break;
   case(ESC_chlmRtriplet) : 
-    s_.chlmRtriplet_ = cholmod_copy_triplet(v.s_.chlmRtriplet_, common_); break; 
+    s_.chlmRtriplet_ = CholmodCopy_triplet(v.s_.chlmRtriplet_, common_); break; 
   default: 
     Error(I2("FATAL ERROR in",
              "ERROR FATAL en")+" BVMat::Copy(const BVMat& v)"); 
@@ -479,7 +945,7 @@ void BVMat::restore_cholmod_common()
   Delete();
   code_ = ESC_blasRdense;
   s_.blasRdense_ = 
-    cholmod_allocate_dense(nrow, ncol, nrow, CHOLMOD_REAL, common_);
+    CholmodAllocate_dense(nrow, ncol, nrow, CHOLMOD_REAL, common_);
   CheckDefined("BlasRDense");
 }  
   
@@ -508,7 +974,7 @@ void BVMat::restore_cholmod_common()
   Delete();
   code_ = ESC_chlmRsparse;
   s_.chlmRsparse_ = 
-    cholmod_allocate_sparse(nrow,ncol,nzmax,true,true,0,CHOLMOD_REAL,common_);
+    CholmodAllocate_sparse(nrow,ncol,nzmax,true,true,0,CHOLMOD_REAL,common_);
   CheckDefined("ChlmRSparse");
 }  
   
@@ -519,7 +985,7 @@ void BVMat::restore_cholmod_common()
   Delete();
   code_ = ESC_chlmRtriplet;
   s_.chlmRtriplet_ = 
-    cholmod_allocate_triplet(nrow, ncol, nzmax, 0, CHOLMOD_REAL, common_);
+    CholmodAllocate_triplet(nrow, ncol, nzmax, 0, CHOLMOD_REAL, common_);
   CheckDefined("ChlmRTriplet");
 }  
   
@@ -691,7 +1157,7 @@ static int intCmp_(const void* v1, const void* v2)
   {
     BVMat tr(*this,ESC_chlmRtriplet);
     int n = tr.s_.chlmRtriplet_->nzmax+1;
-    cholmod_reallocate_triplet(n, tr.s_.chlmRtriplet_, common_);
+    CholmodReallocateTriplet(n, tr.s_.chlmRtriplet_, common_);
     int*    i_=(int*)   tr.s_.chlmRtriplet_->i;
     int*    j_=(int*)   tr.s_.chlmRtriplet_->j;
     double* x_=(double*)tr.s_.chlmRtriplet_->x;
@@ -791,12 +1257,12 @@ static int intCmp_(const void* v1, const void* v2)
          "(Existen "+nfk+" celdas no almacenadas de "
          "la matriz sparse que serán modificadas)"),
       *this); 
-    cholmod_R_sparse* unsym = cholmod_copy(s_.chlmRsparse_, 0, 1, common_);
+    cholmod_R_sparse* unsym = CholmodCopy(s_.chlmRsparse_, 0, 1, common_);
     cholmod_R_triplet* tr_old = 
-      cholmod_sparse_to_triplet(unsym, common_);
-    cholmod_free_sparse(&unsym, common_); 
+      CholmodSparseToTriplet(unsym, common_);
+    CholmodFree_sparse(&unsym, common_); 
     cholmod_R_triplet* tr_new = 
-      cholmod_allocate_triplet(r, c, tr_old->nzmax+nfk, 0, CHOLMOD_REAL, common_);
+      CholmodAllocate_triplet(r, c, tr_old->nzmax+nfk, 0, CHOLMOD_REAL, common_);
     tr_new->nnz = tr_new->nzmax;
     int*    i_old = (int*)   tr_old->i;
     int*    j_old = (int*)   tr_old->j;
@@ -819,11 +1285,11 @@ static int intCmp_(const void* v1, const void* v2)
       x_new[c] = nfx[k];
       c++;
     }
-    cholmod_free_sparse (&s_.chlmRsparse_, common_);
-    s_.chlmRsparse_ = cholmod_triplet_to_sparse
+    CholmodFree_sparse (&s_.chlmRsparse_, common_);
+    s_.chlmRsparse_ = CholmodTripletToSparse
     (tr_new, tr_new->nnz, common_);
-    cholmod_free_triplet (&tr_old, common_);
-    cholmod_free_triplet (&tr_new, common_);
+    CholmodFree_triplet (&tr_old, common_);
+    CholmodFree_triplet (&tr_new, common_);
   }
   return(accessCode);
 };
@@ -1189,8 +1655,8 @@ void BVMat::CompactSymmetric(bool check)
     if((code_==ESC_chlmRsparse)&&(s_.chlmRsparse_ ->stype==0))
     {
       cholmod_sparse* sp = s_.chlmRsparse_;
-      s_.chlmRsparse_ = cholmod_copy(sp,-1,1,common_);
-      cholmod_free_sparse(&sp, common_);
+      s_.chlmRsparse_ = CholmodCopy(sp,-1,1,common_);
+      CholmodFree_sparse(&sp, common_);
     }
     if((code_==ESC_chlmRtriplet)&&(s_.chlmRtriplet_ ->stype==0))
     {
@@ -1419,7 +1885,7 @@ static void add_triplet
       {
         n = A.s_.chlmRsparse_->nzmax + B.s_.chlmRsparse_->nzmax;
       }
-      tr=cholmod_allocate_triplet(r,c,n,0,CHOLMOD_REAL,common_);
+      tr=CholmodAllocate_triplet(r,c,n,0,CHOLMOD_REAL,common_);
       Ti = (int*   )tr->i;
       Tj = (int*   )tr->j;
       Tx = (double*)tr->x;
@@ -1467,8 +1933,8 @@ static void add_triplet
         }
       }  
       tr->nnz = k;
-      C.s_.chlmRsparse_ = cholmod_triplet_to_sparse(tr, tr->nnz, common_);
-      cholmod_free_triplet(&tr, common_);
+      C.s_.chlmRsparse_ = CholmodTripletToSparse(tr, tr->nnz, common_);
+      CholmodFree_triplet(&tr, common_);
       break;
     default:
       err_invalid_subtype(fName,A); 

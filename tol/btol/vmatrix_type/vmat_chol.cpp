@@ -74,6 +74,7 @@
   L.code_ = ESC_chlmRfactor;
   L.s_.chlmRfactor_ = cholmod_analyze(X.s_.chlmRsparse_,common_);
   res = cholmod_factorize(X.s_.chlmRsparse_,L.s_.chlmRfactor_,common_);
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Factor",X.s_.chlmRsparse_)
   isNotPosDef = (L.s_.chlmRfactor_->minor<L.s_.chlmRfactor_->n);
   cholmod_change_factor
   (
@@ -314,6 +315,7 @@
   int BVMat::cRs_bRd_cholSolPtLLtP(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_blasRdense;
   x.s_.blasRdense_ = cholmod_solve
   (
@@ -322,6 +324,7 @@
     b.s_.blasRdense_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",x.s_.blasRdense_);
   return(0);    
 };
 
@@ -329,6 +332,7 @@
   int BVMat::cRs_bRd_cholSolLLt(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_blasRdense;
   x.s_.blasRdense_ = cholmod_solve
   (
@@ -337,6 +341,7 @@
     b.s_.blasRdense_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",x.s_.blasRdense_);
   return(0);    
 };
 
@@ -364,6 +369,7 @@
   int BVMat::cRs_bRd_cholSolL(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_blasRdense;
   x.s_.blasRdense_ = cholmod_solve
   (
@@ -372,6 +378,7 @@
     b.s_.blasRdense_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",x.s_.blasRdense_);
   return(0);    
 };
 
@@ -379,6 +386,7 @@
   int BVMat::cRs_bRd_cholSolLt(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_blasRdense;
   x.s_.blasRdense_ = cholmod_solve
   (
@@ -387,6 +395,7 @@
     b.s_.blasRdense_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",x.s_.blasRdense_);
   return(0);    
 };
 
@@ -394,6 +403,7 @@
   int BVMat::cRs_bRd_cholSolP(const BVMat& L, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_blasRdense;
   x.s_.blasRdense_ = cholmod_solve
   (
@@ -402,6 +412,7 @@
     b.s_.blasRdense_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",x.s_.blasRdense_);
   return(0);    
 };
 
@@ -409,6 +420,7 @@
   int BVMat::cRs_bRd_cholSolPt(const BVMat& L, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_blasRdense;
   x.s_.blasRdense_ = cholmod_solve
   (
@@ -417,6 +429,7 @@
     b.s_.blasRdense_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Blas.R.Dense",x.s_.blasRdense_);
   return(0);    
 };
 
@@ -424,11 +437,12 @@
   int BVMat::cRs_cRs_cholSolPtLLtP(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_chlmRsparse;
   cholmod_sparse * b_ = b.s_.chlmRsparse_;
   if(b_->stype!=0)
   {
-    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+    b_ = CholmodCopy(b.s_.chlmRsparse_, 0, 1, common_);
   }
   x.s_.chlmRsparse_ = cholmod_spsolve
   (
@@ -437,9 +451,10 @@
     b_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",x.s_.chlmRsparse_);
   if(b_ != b.s_.chlmRsparse_)
   {
-    cholmod_free_sparse(&b_, common_); 
+    CholmodFree_sparse(&b_, common_); 
   }
   return(0);    
 };
@@ -448,11 +463,12 @@
   int BVMat::cRs_cRs_cholSolLLt(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_chlmRsparse;
   cholmod_sparse * b_ = b.s_.chlmRsparse_;
   if(b_->stype!=0)
   {
-    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+    b_ = CholmodCopy(b.s_.chlmRsparse_, 0, 1, common_);
   }
   x.s_.chlmRsparse_= cholmod_spsolve
   (
@@ -461,9 +477,10 @@
     b_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",x.s_.chlmRsparse_);
   if(b_ != b.s_.chlmRsparse_)
   {
-    cholmod_free_sparse(&b_, common_); 
+    CholmodFree_sparse(&b_, common_); 
   }
   return(0);      
 };
@@ -472,11 +489,12 @@
   int BVMat::cRs_cRs_cholSolPtL(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_chlmRsparse;
   cholmod_sparse * b_ = b.s_.chlmRsparse_;
   if(b_->stype!=0)
   {
-    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+    b_ = CholmodCopy(b.s_.chlmRsparse_, 0, 1, common_);
   }
   cholmod_sparse* aux = cholmod_spsolve
   (
@@ -485,9 +503,10 @@
     b_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",aux);
   if(b_ != b.s_.chlmRsparse_)
   {
-    cholmod_free_sparse(&b_, common_); 
+    CholmodFree_sparse(&b_, common_); 
   }
   x.s_.chlmRsparse_= cholmod_spsolve
   (
@@ -496,7 +515,8 @@
     aux,
     common_
   );
-  cholmod_free_sparse(&aux, common_); 
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",x.s_.chlmRsparse_);
+  CholmodFree_sparse(&aux, common_); 
   return(0);    
 };
 
@@ -504,11 +524,12 @@
   int BVMat::cRs_cRs_cholSolLtP(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_chlmRsparse;
   cholmod_sparse * b_ = b.s_.chlmRsparse_;
   if(b_->stype!=0)
   {
-    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+    b_ = CholmodCopy(b.s_.chlmRsparse_, 0, 1, common_);
   }
   cholmod_sparse* aux = cholmod_spsolve
   (
@@ -517,9 +538,10 @@
     b_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",aux);
   if(b_ != b.s_.chlmRsparse_)
   {
-    cholmod_free_sparse(&b_, common_); 
+    CholmodFree_sparse(&b_, common_); 
   }
   x.s_.chlmRsparse_= cholmod_spsolve
   (
@@ -528,7 +550,8 @@
     aux,
     common_
   );
-  cholmod_free_sparse(&aux, common_); 
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",x.s_.chlmRsparse_);
+  CholmodFree_sparse(&aux, common_); 
   return(0);    
 };
   
@@ -536,11 +559,12 @@
   int BVMat::cRs_cRs_cholSolLt(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_chlmRsparse;
   cholmod_sparse * b_ = b.s_.chlmRsparse_;
   if(b_->stype!=0)
   {
-    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+    b_ = CholmodCopy(b.s_.chlmRsparse_, 0, 1, common_);
   }
   x.s_.chlmRsparse_ = cholmod_spsolve
   (
@@ -549,9 +573,10 @@
     b_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",x.s_.chlmRsparse_);
   if(b_ != b.s_.chlmRsparse_)
   {
-    cholmod_free_sparse(&b_, common_); 
+    CholmodFree_sparse(&b_, common_); 
   }
   return(0);    
 };
@@ -560,11 +585,12 @@
   int BVMat::cRs_cRs_cholSolL(const BVMat& factor, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_chlmRsparse;
   cholmod_sparse * b_ = b.s_.chlmRsparse_;
   if(b_->stype!=0)
   {
-    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+    b_ = CholmodCopy(b.s_.chlmRsparse_, 0, 1, common_);
   }
   x.s_.chlmRsparse_ = cholmod_spsolve
   (
@@ -573,9 +599,10 @@
     b_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",x.s_.chlmRsparse_);
   if(b_ != b.s_.chlmRsparse_)
   {
-    cholmod_free_sparse(&b_, common_); 
+    CholmodFree_sparse(&b_, common_); 
   }
   return(0);    
 };
@@ -584,11 +611,12 @@
   int BVMat::cRs_cRs_cholSolP(const BVMat& L, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_chlmRsparse;
   cholmod_sparse * b_ = b.s_.chlmRsparse_;
   if(b_->stype!=0)
   {
-    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+    b_ = CholmodCopy(b.s_.chlmRsparse_, 0, 1, common_);
   }
   x.s_.chlmRsparse_ = cholmod_spsolve
   (
@@ -597,9 +625,10 @@
     b_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",x.s_.chlmRsparse_);
   if(b_ != b.s_.chlmRsparse_)
   {
-    cholmod_free_sparse(&b_, common_); 
+    CholmodFree_sparse(&b_, common_); 
   }
   return(0);    
 };
@@ -608,11 +637,12 @@
   int BVMat::cRs_cRs_cholSolPt(const BVMat& L, const BVMat& b, BVMat& x)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  x.Delete();
   x.code_ = ESC_chlmRsparse;
   cholmod_sparse * b_ = b.s_.chlmRsparse_;
   if(b_->stype!=0)
   {
-    b_ = cholmod_copy(b.s_.chlmRsparse_, 0, 1, common_);
+    b_ = CholmodCopy(b.s_.chlmRsparse_, 0, 1, common_);
   }
   x.s_.chlmRsparse_ = cholmod_spsolve
   (
@@ -621,9 +651,10 @@
     b_,
     common_
   );
+  TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",x.s_.chlmRsparse_);
   if(b_ != b.s_.chlmRsparse_)
   {
-    cholmod_free_sparse(&b_, common_); 
+    CholmodFree_sparse(&b_, common_); 
   }
   return(0);    
 };

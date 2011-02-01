@@ -40,7 +40,7 @@
 {
   if(!sp->sorted || !sp->packed) 
   {
-    cholmod_sort(sp,common_);
+    CholmodSort(sp,common_);
   }
 };
 
@@ -76,7 +76,7 @@ int BVMat::bRd2cRs(BVMat& left, const BVMat& right)
 {
   left.code_ = ESC_chlmRsparse;
   left.s_.chlmRsparse_ = 
-    cholmod_dense_to_sparse(right.s_.blasRdense_, 1, common_);
+    CholmodDenseToSparse(right.s_.blasRdense_, 1, common_);
   if(!left.s_.undefined_) { left.code_ = ESC_undefined; }
   else { cRs_ensure_packed(left.s_.chlmRsparse_); }
   return(0);
@@ -86,10 +86,10 @@ int BVMat::bRd2cRs(BVMat& left, const BVMat& right)
 cholmod_sparse* BVMat::cRf2cRs(cholmod_factor* factor)
 ////////////////////////////////////////////////////////////////////////////////
 {
-//WARNING: Copying factor due to cholmod_factor_to_sparse can reuse memory
-  cholmod_factor* f = cholmod_copy_factor(factor, common_);
-  cholmod_sparse* sp = cholmod_factor_to_sparse(f, common_);
-  cholmod_free_factor(&f,common_);
+//WARNING: Copying factor due to CholmodFactorToSparse can reuse memory
+  cholmod_factor* f = CholmodCopy_factor(factor, common_);
+  cholmod_sparse* sp = CholmodFactorToSparse(f, common_);
+  CholmodFree_factor(&f,common_);
   return(sp);
 };
 
@@ -108,7 +108,7 @@ int BVMat::cRt2cRs(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   left.code_ = ESC_chlmRsparse;
-  left.s_.chlmRsparse_ = cholmod_triplet_to_sparse
+  left.s_.chlmRsparse_ = CholmodTripletToSparse
     (right.s_.chlmRtriplet_, right.s_.chlmRtriplet_->nnz, common_);
   if(!left.s_.undefined_) { left.code_ = ESC_undefined; }
   else { cRs_ensure_packed(left.s_.chlmRsparse_); }
@@ -119,10 +119,10 @@ int BVMat::cRs2cRt(BVMat& left, const BVMat& right)
 ////////////////////////////////////////////////////////////////////////////////
 {
   left.code_ = ESC_chlmRtriplet;
-  cholmod_R_sparse* unsym = cholmod_copy(right.s_.chlmRsparse_, 0, 1, common_);
+  cholmod_R_sparse* unsym = CholmodCopy(right.s_.chlmRsparse_, 0, 1, common_);
   left.s_.chlmRtriplet_ = 
-    cholmod_sparse_to_triplet(unsym, common_);
-  cholmod_free_sparse(&unsym, common_); 
+    CholmodSparseToTriplet(unsym, common_);
+  CholmodFree_sparse(&unsym, common_); 
   if(!left.s_.undefined_) { left.code_ = ESC_undefined; }
   return(0);
 };
@@ -132,7 +132,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
 {
   left.code_ = ESC_blasRdense;
   left.s_.blasRdense_ = 
-    cholmod_sparse_to_dense(right.s_.chlmRsparse_, common_);
+    CholmodSparseToDense(right.s_.chlmRsparse_, common_);
   if(!left.s_.undefined_) { left.code_ = ESC_undefined; }
   return(0);
 };
@@ -366,7 +366,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   code_  = ESC_blasRdense;
   int r = d.Rows();
   int c = d.Columns();
-  s_.blasRdense_ = cholmod_allocate_dense
+  s_.blasRdense_ = CholmodAllocate_dense
     (r, c, r, CHOLMOD_REAL, common_);
   double * x = (double*)(s_.blasRdense_->x);
   int i, j, k;
@@ -390,7 +390,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   code_  = ESC_blasRdense;
   int r = d.Columns();
   int c = d.Rows();
-  s_.blasRdense_ = cholmod_allocate_dense
+  s_.blasRdense_ = CholmodAllocate_dense
     (r, c, r, CHOLMOD_REAL, common_);
   double * x = (double*)(s_.blasRdense_->x);
   memcpy(x, d.Data().Buffer(), r*c*sizeof(double));
@@ -406,15 +406,15 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   int r = d.Columns();
   int c = d.Rows();
   code_  = ESC_chlmRsparse;
-  cholmod_dense* dense=cholmod_allocate_dense
+  cholmod_dense* dense=CholmodAllocate_dense
     (r, c, r, CHOLMOD_REAL, common_);
   double * x = (double*)(dense->x);
   memcpy(x, d.Data().Buffer(), r*c*sizeof(double));
-  cholmod_sparse* sparse = cholmod_dense_to_sparse
+  cholmod_sparse* sparse = CholmodDenseToSparse
     (dense, 1, common_);
-  cholmod_free_dense (&dense, common_);
+  CholmodFree_dense (&dense, common_);
   s_.chlmRsparse_ = cholmod_transpose(sparse,1,common_);
-  cholmod_free_sparse (&sparse, common_);
+  CholmodFree_sparse (&sparse, common_);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -427,13 +427,13 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   code_  = ESC_chlmRsparse;
   int r = d.Columns();
   int c = d.Rows();
-  cholmod_dense* dense=cholmod_allocate_dense
+  cholmod_dense* dense=CholmodAllocate_dense
     (r, c, r, CHOLMOD_REAL, common_);
   double * x = (double*)(dense->x);
   memcpy(x, d.Data().Buffer(), r*c*sizeof(double));
-  s_.chlmRsparse_ = cholmod_dense_to_sparse
+  s_.chlmRsparse_ = CholmodDenseToSparse
     (dense, 1, common_);
-  cholmod_free_dense (&dense, common_);
+  CholmodFree_dense (&dense, common_);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -486,7 +486,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   Delete();
   int h, k, n = ijx.Rows();
   code_  = ESC_chlmRtriplet;
-  s_.chlmRtriplet_ = cholmod_allocate_triplet
+  s_.chlmRtriplet_ = CholmodAllocate_triplet
     (nrow,ncol,n,0,CHOLMOD_REAL,common_);
   int*    r_ = (int*)   s_.chlmRtriplet_->i;
   int*    c_ = (int*)   s_.chlmRtriplet_->j;
@@ -540,7 +540,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   Delete();
   int k, n = ijx.Rows();
   code_  = ESC_chlmRtriplet;
-  s_.chlmRtriplet_ = cholmod_allocate_triplet
+  s_.chlmRtriplet_ = CholmodAllocate_triplet
     (nrow,ncol,n,0,CHOLMOD_REAL,common_);
   int*    r_ = (int*)   s_.chlmRtriplet_->i;
   int*    c_ = (int*)   s_.chlmRtriplet_->j;
@@ -584,7 +584,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   Delete();
   int k, n = ijx.Rows();
   code_  = ESC_chlmRtriplet;
-  s_.chlmRtriplet_ = cholmod_allocate_triplet
+  s_.chlmRtriplet_ = CholmodAllocate_triplet
     (nrow,ncol,n,0,CHOLMOD_REAL,common_);
   int*    r_ = (int*)   s_.chlmRtriplet_->i;
   int*    c_ = (int*)   s_.chlmRtriplet_->j;
@@ -635,7 +635,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
   {
     int nrow; 
     int ncol;
-    cholmod_triplet *all = cholmod_allocate_triplet
+    cholmod_triplet *all = CholmodAllocate_triplet
       (nrow,ncol,n,0,CHOLMOD_REAL,common_);
     int*    r_ = (int*)   s_.chlmRtriplet_->i;
     int*    c_ = (int*)   s_.chlmRtriplet_->j;
@@ -748,7 +748,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
     mon++;
   }
   mon = pol.Buffer();
-  cholmod_triplet* triplet = cholmod_allocate_triplet
+  cholmod_triplet* triplet = CholmodAllocate_triplet
     (nrow,ncol,nnz,0,CHOLMOD_REAL,common_);
   int*    r_ = (int*)   triplet->i;
   int*    c_ = (int*)   triplet->j;
@@ -779,8 +779,8 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
     mon++;
   }
 
-  s_.chlmRsparse_ = cholmod_triplet_to_sparse(triplet, nnz, common_);
-  cholmod_free_triplet(&triplet,common_);
+  s_.chlmRsparse_ = CholmodTripletToSparse(triplet, nnz, common_);
+  CholmodFree_triplet(&triplet,common_);
 }
 
 
@@ -803,18 +803,18 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
     dense = s_.blasRdense_; 
     break;
   case(ESC_chlmRsparse ) :
-    dense = cholmod_sparse_to_dense(s_.chlmRsparse_, common_); 
+    dense = CholmodSparseToDense(s_.chlmRsparse_, common_); 
     break;
   case(ESC_chlmRfactor ) :
     sp = cRf2cRs(s_.chlmRfactor_); 
-    dense = cholmod_sparse_to_dense(sp, common_);
-    cholmod_free_sparse(&sp, common_);
+    dense = CholmodSparseToDense(sp, common_);
+    CholmodFree_sparse(&sp, common_);
     break;
   case(ESC_chlmRtriplet) :
-    sp =cholmod_triplet_to_sparse
+    sp =CholmodTripletToSparse
       (s_.chlmRtriplet_, s_.chlmRtriplet_->nnz, common_); 
-    dense = cholmod_sparse_to_dense(sp, common_);
-    cholmod_free_sparse(&sp, common_);
+    dense = CholmodSparseToDense(sp, common_);
+    CholmodFree_sparse(&sp, common_);
     break;
   default: return; }
   if(dense)
@@ -824,7 +824,7 @@ int BVMat::cRs2bRd(BVMat& left, const BVMat& right)
     memcpy(d.GetData().GetBuffer(), x, d.Data().Size()*sizeof(double));  
     if(mustDelete)
     {
-      cholmod_free_dense(&dense, common_);
+      CholmodFree_dense(&dense, common_);
     }
   }
 };
@@ -904,7 +904,7 @@ BMatrix<double> BVMat::GetDMat () const
     if(n>ncol-diag) { n=ncol-diag; }
     if(n>nrow)      { n=nrow; }
   }
-  cholmod_triplet* triplet = cholmod_allocate_triplet
+  cholmod_triplet* triplet = CholmodAllocate_triplet
     (nrow,ncol,n,0,CHOLMOD_REAL,common_);
   int*    r_ = (int*)   triplet->i;
   int*    c_ = (int*)   triplet->j;
@@ -918,8 +918,8 @@ BMatrix<double> BVMat::GetDMat () const
     if(x_[i]!=0.0) { triplet->nnz++; i++; }
   }
   code_  = ESC_chlmRsparse;
-  s_.chlmRsparse_ = cholmod_triplet_to_sparse(triplet, triplet->nnz, common_);
-  cholmod_free_triplet(&triplet, common_);
+  s_.chlmRsparse_ = CholmodTripletToSparse(triplet, triplet->nnz, common_);
+  CholmodFree_triplet(&triplet, common_);
   if(v__!=&v_) { delete v__; }
 }
 
@@ -947,7 +947,7 @@ BMatrix<double> BVMat::GetDMat () const
     if(n>ncol-diag) { n=ncol-diag; }
     if(n>nrow)      { n=nrow; }
   }
-  cholmod_triplet* triplet = cholmod_allocate_triplet
+  cholmod_triplet* triplet = CholmodAllocate_triplet
     (nrow,ncol,n,0,CHOLMOD_REAL,common_);
   if(x!=0.0)
   {
@@ -963,8 +963,8 @@ BMatrix<double> BVMat::GetDMat () const
     triplet->nnz = n;
   }
   code_  = ESC_chlmRsparse;
-  s_.chlmRsparse_ = cholmod_triplet_to_sparse(triplet, triplet->nnz, common_);
-  cholmod_free_triplet(&triplet, common_);
+  s_.chlmRsparse_ = CholmodTripletToSparse(triplet, triplet->nnz, common_);
+  CholmodFree_triplet(&triplet, common_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1076,7 +1076,7 @@ BMatrix<double> BVMat::GetDMat () const
   else switch(A.code_) {
   case(ESC_blasRdense  ) :
     C.code_  = ESC_blasRdense;
-    C.s_.blasRdense_ = cholmod_allocate_dense
+    C.s_.blasRdense_ = CholmodAllocate_dense
     (r, cC , r, CHOLMOD_REAL, common_);
     xA = (double*)(A.s_.blasRdense_->x);
     xB = (double*)(B.s_.blasRdense_->x);
@@ -1088,6 +1088,7 @@ BMatrix<double> BVMat::GetDMat () const
     C.code_  = ESC_chlmRsparse;
     C.s_.chlmRsparse_= cholmod_horzcat
       (A.s_.chlmRsparse_,B.s_.chlmRsparse_,1,common_);
+    TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",C.s_.chlmRsparse_);
     break;
   default:
     err_invalid_subtype("|",A); 
@@ -1140,7 +1141,7 @@ BMatrix<double> BVMat::GetDMat () const
   switch(A.code_) {
   case(ESC_blasRdense  ) :
     C.code_  = ESC_blasRdense;
-    C.s_.blasRdense_ = cholmod_allocate_dense
+    C.s_.blasRdense_ = CholmodAllocate_dense
     (rC, c , rC, CHOLMOD_REAL, common_);
     xA = (double*)(A.s_.blasRdense_->x);
     xB = (double*)(B.s_.blasRdense_->x);
@@ -1162,6 +1163,7 @@ BMatrix<double> BVMat::GetDMat () const
     C.code_  = ESC_chlmRsparse;
     C.s_.chlmRsparse_= cholmod_vertcat
       (A.s_.chlmRsparse_,B.s_.chlmRsparse_,1,common_);
+    TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",C.s_.chlmRsparse_);
     break;
   default:
     err_invalid_subtype("<<",A); 
@@ -1205,7 +1207,7 @@ BMatrix<double> BVMat::GetDMat () const
   switch(code_) {
   case(ESC_blasRdense  ) :
     aux.code_  = ESC_blasRdense;
-    aux.s_.blasRdense_=cholmod_allocate_dense(r, c, r, CHOLMOD_REAL, common_);
+    aux.s_.blasRdense_=CholmodAllocate_dense(r, c, r, CHOLMOD_REAL, common_);
     x = (double*)(    s_.blasRdense_->x);
     y = (double*)(aux.s_.blasRdense_->x);
     for(i=0; i<r; i++)
@@ -1220,6 +1222,7 @@ BMatrix<double> BVMat::GetDMat () const
     aux.code_ = ESC_chlmRsparse;
     aux.s_.chlmRsparse_=cholmod_submatrix
     ( s_.chlmRsparse_,(int*)rows.Buffer(),r,(int*)cols.Buffer(),c,1,1,common_);
+    TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",aux.s_.chlmRsparse_);
     break;
   default:
     err_invalid_subtype("SubCells",*this); 
@@ -1296,7 +1299,7 @@ BMatrix<double> BVMat::GetDMat () const
   switch(code_) {
   case(ESC_blasRdense  ) :
     aux.code_  = ESC_blasRdense;
-    aux.s_.blasRdense_=cholmod_allocate_dense(r, c, r, CHOLMOD_REAL, common_);
+    aux.s_.blasRdense_=CholmodAllocate_dense(r, c, r, CHOLMOD_REAL, common_);
     x = (double*)(    s_.blasRdense_->x);
     y = (double*)(aux.s_.blasRdense_->x);
     for(i=0; i<r; i++)
@@ -1311,6 +1314,7 @@ BMatrix<double> BVMat::GetDMat () const
     aux.code_ = ESC_chlmRsparse;
     aux.s_.chlmRsparse_=cholmod_submatrix
     ( s_.chlmRsparse_,(int*)rows.Buffer(),r,NULL,-1,1,1,common_);
+    TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",aux.s_.chlmRsparse_);
     break;
   default:
     err_invalid_subtype("SubRows",*this); 
@@ -1353,7 +1357,7 @@ BMatrix<double> BVMat::GetDMat () const
   switch(code_) {
   case(ESC_blasRdense  ) :
     aux.code_  = ESC_blasRdense;
-    aux.s_.blasRdense_=cholmod_allocate_dense(r, c, r, CHOLMOD_REAL, common_);
+    aux.s_.blasRdense_=CholmodAllocate_dense(r, c, r, CHOLMOD_REAL, common_);
     x = (double*)(    s_.blasRdense_->x);
     y = (double*)(aux.s_.blasRdense_->x);
     for(i=0; i<r; i++)
@@ -1368,6 +1372,7 @@ BMatrix<double> BVMat::GetDMat () const
     aux.code_ = ESC_chlmRsparse;
     aux.s_.chlmRsparse_=cholmod_submatrix
     ( s_.chlmRsparse_,NULL,-1,(int*)cols.Buffer(),c,1,1,common_);
+    TRACE_CHOLMOD_ALLOCATE("Cholmod.R.Sparse",aux.s_.chlmRsparse_);
     break;
   default:
     err_invalid_subtype("SubCols",*this); 
