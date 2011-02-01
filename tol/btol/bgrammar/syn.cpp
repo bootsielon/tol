@@ -81,7 +81,7 @@ static FILE* traceMemHist_ = NULL;
 #ifdef TRACE_OPTINFO
 int    BSyntaxObject::BSynObjOptInfo::count_  = 0;
 int    BSyntaxObject::BSynObjOptInfo::countName_  = 0;
-int    BSyntaxObject::BSynObjOptInfo::countLocalName_  = 0;
+int    BSyntaxObject::BSynObjOptInfo::countExpression_  = 0;
 int    BSyntaxObject::BSynObjOptInfo::countDescription_  = 0;
 double BSyntaxObject::BSynObjOptInfo::kBytes_ = 0.0;
 #endif
