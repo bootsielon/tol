@@ -341,10 +341,10 @@ public:
   bool   Write(BOisCreator& ois, BStream* name) const;
   bool   Read (BOisLoader& ois, BStream* stream);
   
-  static size_t BVMat::bytes(const cholmod_R_dense* a);
-  static size_t BVMat::bytes(const cholmod_R_sparse* a);
-  static size_t BVMat::bytes(const cholmod_R_factor* a);
-  static size_t BVMat::bytes(const cholmod_R_triplet* a);
+  static size_t bytes(const cholmod_R_dense* a);
+  static size_t bytes(const cholmod_R_sparse* a);
+  static size_t bytes(const cholmod_R_factor* a);
+  static size_t bytes(const cholmod_R_triplet* a);
   static void err_cannot_apply(const char* fName, const char* cond, 
                                const BVMat& a);
 private:
