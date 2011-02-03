@@ -1103,7 +1103,11 @@ static BSyntaxObject* EvCopy(BGrammar* gra, const List* tre, BBool left)
 	  if(toCopy)
 	  {
 	    result = toCopy->CopyContens();
-	  }
+	    if(result!=toCopy)
+	    {
+		    SAFE_DESTROY(toCopy,result);
+	    }	
+    }
     BGrammar::DestroyStackUntil(stackPos, result);    
     BGrammar::DecLevel();
   }
