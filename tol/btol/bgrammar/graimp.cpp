@@ -851,7 +851,13 @@ BSyntaxObject* BGrammar::EvaluateTree(
   TRACE_SHOW_MEDIUM(fun,"5");
   if((UnparseNodes()>1) && result && !result->Expression().HasName()) 
   {
-    result->PutExpression(BParser::Unparse(tre, "  ", "\n"));
+    BText expr_ = BParser::Unparse(tre, "", " ");
+    expr_.Replace('\'','¬');
+    expr_.Replace('\n',' ');
+    expr_.Replace('\r',' ');
+    expr_.Replace('\t',' ');
+    BText expr_2(expr_, 0, Minimum(250,expr_.Length()));
+    result->PutExpression(expr_2);
   }
 
   TRACE_SHOW_MEDIUM(fun,"6");
