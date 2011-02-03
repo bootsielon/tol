@@ -52,6 +52,7 @@ static FILE* InitTraceMemHist()
   BText path = BSys::TolAppData()+"syslog/TRACE_MEMORY.log";
   Std(BText("InitTraceMemHist saved at ")+GetAbsolutePath(path)+"\n");
   traceMemHist = fopen(path,"w");
+/*
   BText title = BText()+
    "Address\t"+
    "Mode\t"+
@@ -65,6 +66,7 @@ static FILE* InitTraceMemHist()
    "AliveObjects\n";
   fprintf(traceMemHist,title.String());
   fflush(traceMemHist);
+*/
   return(traceMemHist);
 }
 
@@ -131,6 +133,11 @@ void BSyntaxObject::TraceMemory(const char* msg) const
 {
 
 #ifdef TRACE_MEMORY
+  static BText beginLine = "(";
+  static BText endLine = ")";
+  static BText sepField = ",";
+  static BText quotes = "'";
+  static int numEvent = 0;
   int mode = Mode();
   BBool ok = EnableTraceMemory().Value() && 
              !System() && 
@@ -142,24 +149,28 @@ void BSyntaxObject::TraceMemory(const char* msg) const
   {
     int aliveObjects = BSyntaxObject::NSyntaxObject();
     BText type = (!Grammar())?BText("NO_TYPED"):Grammar()->Name();
-    BText id   = Identify();
+    BText id = Identify();
+    id.Replace('\'','¬');
     if(Grammar()) { type = Grammar()->Name(); }
 
-    BText reg = BText("")+
-    TxtFmt(BInt(this),"%X")+"\t"+
-    ModeName()+"\t"+
-    type+"\t"+
-    "\""+id+"\""+"\t"+
-    "\""+msg+"\"\t"+
-    Level()+"\t"+
-    ((sourcePath_!=NULL)?sourcePath_->Name():BText("NO_SOURCE_PATH"))+"\t"+
-    (int)IsHashed()+"\t"+
-    NRefs()+"\t"+
-    aliveObjects+"\n";
+    BText reg = 
+    BText((numEvent==0)?"":",\n") +
+    beginLine + 
+    quotes+"PTR_"+TxtFmt(BInt(this),"%X")+quotes+sepField+
+    quotes+ModeName()+quotes+sepField+
+    quotes+type+quotes+sepField+
+    quotes+id+quotes+sepField+
+    quotes+msg+quotes+sepField+
+    Level()+sepField+
+    quotes+((sourcePath_!=NULL)?sourcePath_->Name():BText("NO_SOURCE_PATH"))+quotes+sepField+
+    (int)IsHashed()+sepField+
+    NRefs()+sepField+
+    aliveObjects+endLine;
     if(!traceMemHist_) { traceMemHist_ = InitTraceMemHist(); }
-    Std(reg);
+  //Std(reg);
     fprintf(traceMemHist_,reg.String());
     fflush(traceMemHist_);
+    numEvent++;
   }
 #endif
 }
@@ -361,8 +372,8 @@ const BText& BSyntaxObject::Identify() const
 //--------------------------------------------------------------------
 {
        if(Name       ().HasName()) { return(Name       ()); }
-  else if(LocalName  ().HasName()) { return(LocalName  ()); }
   else if(Expression ().HasName()) { return(Expression ()); }
+  else if(LocalName  ().HasName()) { return(LocalName  ()); }
   else if(Description().HasName()) { return(Description()); }
   else                             { return(tmp_); }
 }
