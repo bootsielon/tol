@@ -2729,7 +2729,7 @@ void BDatLLKR::CalcContens()
 DeclareContensClass(BDat, BDatTemporary, BDatTolShowStatus);
 DefExtOpr(1, BDatTolShowStatus, "TolShowStatus", 1, 1, "Real",
           "(Real unused)",
-          I2("Shows statistics of resouerces used by TOL",
+          I2("Shows statistics of resources used by TOL",
              "Muestra estadísticas de los recursos usados por TOL"),
           BOperClassify::Conversion_);
 void BDatTolShowStatus::CalcContens()
