@@ -364,7 +364,7 @@ int Cint_initialize(const BText& filePath)
       /* Should never happen */
       break;
     case G__INIT_CINT_SUCCESS:
-      Std("\nCint has been succesfully initialized.\n");
+    //Std("\nCint has been succesfully initialized.\n");
       break;
     case G__INIT_CINT_FAILURE:
     default:
