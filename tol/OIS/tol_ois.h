@@ -603,8 +603,10 @@ protected:
 
 //auxiliar buffer  
   static size_t _MaxBlockLength_;
-  char* auxilarBuffer;
-  int auxilarBufferSize_;
+  static int _NumAuxiliarBuffer_;
+
+  char** auxilarBuffer;
+  int* auxilarBufferSize_;
   
 //Functions
   void  InitBuild ();
@@ -614,7 +616,7 @@ protected:
   bool  Error  (const BText& msg) const;
   bool  Warning(const BText& msg) const;
   BSyntaxObject* NullError(const BText& msg) const;
-  char* AllocAuxilarBuffer(int size);
+  char* AllocAuxilarBuffer(int id, int size);
 
 public:
   static int                  def_CLv_;

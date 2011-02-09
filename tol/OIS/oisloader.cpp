@@ -396,7 +396,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 
   if(control_.typeSizes_.sizeof_BCoefDeg_==sizeof(BCoefDegOld))
   {
-    BCoefDegOld* buf = (BCoefDegOld*)AllocAuxilarBuffer(sizeof(BCoefDegOld)*s);
+    BCoefDegOld* buf = (BCoefDegOld*)AllocAuxilarBuffer(0,sizeof(BCoefDegOld)*s);
     Ensure(Read(buf,sizeof(BCoefDegOld),s,stream));
     for(i=0; i<x.Size(); i++)
     {
@@ -406,7 +406,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
   }
   else if(control_.typeSizes_.sizeof_BCoefDeg_==sizeof(BCoefDeg))
   {
-    BCoefDeg* buf = (BCoefDeg*)AllocAuxilarBuffer(sizeof(BCoefDeg)*s);
+    BCoefDeg* buf = (BCoefDeg*)AllocAuxilarBuffer(1,sizeof(BCoefDeg)*s);
     Ensure(Read(buf,sizeof(BCoefDeg),s,stream));
     for(i=0; i<x.Size(); i++)
     {
@@ -1512,74 +1512,56 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
 //--------------------------------------------------------------------
 {
   bool isOza = (options_.compressor_.fileManager_.engine_==BAE_ZIPARC_);
+  if(!isOza) { return(false); }
   BDir dir(path);
   lostSource_=!dir.Exist();
-  bool updated; 
-  if(lostSource_) 
+  if(lostSource_) { return(false); }
+  bool updated = false; 
+  BText name = BText("._tol_source_/")+PlainPath(path);
+  BStream* fn = streamHandler_->Open(name,name);
+  source_.Add(fn);  
+  if(fn) 
   {
-    updated = true; 
-  }
-  else
-  {
-    BText name = BText("._tol_source_/")+PlainPath(path);
-    BStream* fn = isOza?streamHandler_->Open(name,name):NULL;
-    source_.Add(fn);  
-    if(isOza && !fn) 
+    int size    = dir.Bytes();
+    int oldSize = (int)tolSources_[n].bytes_;
+    if(oldSize==size)
     { 
-      updated = true; 
-    }
-    else
-    {
-      int size    = dir.Bytes();
-      int oldSize = (int)tolSources_[n].bytes_;
-      if(oldSize!=size) 
+      time_t time      = dir.Time();
+      BDate  date      = BTimer::TimeToDate(time);
+      BDate  oldDate   = tolSources_[n].release_;
+      double diff      = DifInSeconds(oldDate,date);
+      if(fabs(diff)<1.0) 
       { 
-        updated = false; 
+        updated = true; 
       }
-      else
+      else 
       {
-        time_t time      = dir.Time();
-        BDate  date      = BTimer::TimeToDate(time);
-        BDate  oldDate   = tolSources_[n].release_;
-        double diff      = DifInSeconds(oldDate,date);
-        if(fabs(diff)<1.0) 
+        FILE* file=fopen(path.String(),"rb");
+        if(!file) 
         { 
-          updated = true; 
+          Warning(I2("Cannot check if source file ",
+                     "No se pudo comprobar si el fichero fuente ")+path+
+                  I2(" is synchronized with this module.",
+                     " está sincronizado con este módulo."));
         }
-        else if(!isOza)
-        { 
-          updated = false; 
-        }
-        else if(fn && fn->Bytes()!=size) 
-        { 
-          updated = false; 
-        }
-        else 
+        else
         {
-          FILE* file=fopen(path.String(),"rb");
-          if(!file) 
-          { 
-            Warning(I2("Cannot check if source file ",
-                       "No se pudo comprobar si el fichero fuente ")+path+
-                    I2(" is synchronized with this module.",
-                       " está sincronizado con este módulo."));
-            updated = true; 
-          }
-          else
+          char* contens = AllocAuxilarBuffer(7,size+1);
+          char* oldCont = AllocAuxilarBuffer(8,size+1);
+          int r = fread(contens,1,size,file);  
+          fclose(file);
+          if(r==size)
           {
-            char* contens = AllocAuxilarBuffer(2*size+2);
-            char* oldCont = contens+(size+1);
-            int r = fread(contens,1,size,file);  
-            contens[r]='\0';
-            fclose(file);
+            contens[size]='\0';
             assert(r==size);
             Read(oldCont,1,size,fn);
             oldCont[size]='\0';
-            int cmp = memcmp(oldCont,contens,r);
+            int cmp = memcmp(oldCont,contens,size);
             updated = (cmp==0);
-            if(updated) 
+            if(!updated) 
             { 
             //tolSources_[n].release_ = date; 
+              Std(BText("[OIS] File ")+path+" has changed and module should be rebuilt.\n"); 
               SetFileTime(path, BTimer::DateToTime(tolSources_[n].release_));
             }
           }

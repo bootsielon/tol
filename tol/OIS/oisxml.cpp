@@ -534,7 +534,8 @@ BTraceInit("oisxml.cpp");
           break;
         }
       }
-      if(!obsoleteSource_) { obsoleteSource_ = !CheckUpdatedSource(n, path); }
+      if(!obsoleteSource_) { 
+       obsoleteSource_ = !CheckUpdatedSource(n, path); }
     }
   }
   XMLEnsure(XMLEnsureEndTag("TOLDependencies"));

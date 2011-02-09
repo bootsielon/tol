@@ -48,7 +48,7 @@ BTraceInit("oiscompress.cpp");
   }
   else //BZip2 Compress method
   {
-    char* dest = AllocAuxilarBuffer(destLen);
+    char* dest = AllocAuxilarBuffer(5,destLen);
     int cmprs = BZ2_bzBuffToBuffCompress 
     ( 
       dest, 
@@ -288,7 +288,7 @@ BTraceInit("oiscompress.cpp");
     }
     else
     {
-      char* source = AllocAuxilarBuffer(sourceLen);
+      char* source = AllocAuxilarBuffer(6,sourceLen);
       if(!source)
       {
         return(Error(BText("Wrong string format or not enougth memory in ")+stream->Name()));

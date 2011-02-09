@@ -62,7 +62,8 @@ bool BOis::runningUseModule_ = false;
 
 BArray<BSystemDat*> BOis::loadModeOptions_;
 
-size_t BOis::_MaxBlockLength_ = 1024*1024;
+size_t BOis::_MaxBlockLength_    = 1024*1024;
+int    BOis::_NumAuxiliarBuffer_ = 9;
 
 #ifdef TRACE_OIS_FILE
 FILE* BOis::logWrite_ = fopen((BSys::TolAppData()+"syslog/OisLogWrite.log").String(),"w");
@@ -94,10 +95,17 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
   streamHandler_ (NULL),
   source_        (),
   packages_      (),
-  auxilarBuffer(),
-  auxilarBufferSize_(0)
+  auxilarBuffer  (NULL),
+  auxilarBufferSize_(NULL)
 {
-  AllocAuxilarBuffer(_MaxBlockLength_);
+  auxilarBuffer = new char*[_NumAuxiliarBuffer_];
+  auxilarBufferSize_ = new int[_NumAuxiliarBuffer_];
+  for(int i=0; i<_NumAuxiliarBuffer_; i++)
+  {
+    auxilarBufferSize_[i] = 0;
+    auxilarBuffer[i] = NULL;
+    AllocAuxilarBuffer(i,_MaxBlockLength_);
+  }
   InitBuild();
 }
 
@@ -107,28 +115,47 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
 //--------------------------------------------------------------------
 {
   Close();
-  if(auxilarBuffer) 
+  if(auxilarBuffer)
   {
+    for(int i=0; i<_NumAuxiliarBuffer_; i++)
+    {
+      if(auxilarBuffer[i])
+      {
+        delete [] auxilarBuffer[i];
+      }
+    }
     delete [] auxilarBuffer;
+    auxilarBuffer = NULL;
+  }
+  if(auxilarBufferSize_) 
+  {
+    delete [] auxilarBufferSize_;
+    auxilarBufferSize_ = NULL;
   }
 }
 
 
 //--------------------------------------------------------------------
- char* BOis::AllocAuxilarBuffer(int size) 
+ char* BOis::AllocAuxilarBuffer(int id, int size) 
 //--------------------------------------------------------------------
 {
-  if(size>auxilarBufferSize_)
+  if((id<0) || (id>=_NumAuxiliarBuffer_))
   {
-    if(auxilarBuffer)
-    {
-      delete [] auxilarBuffer;
-      auxilarBuffer = NULL;
-    }  
-    auxilarBufferSize_ = int(double(size)*1.2);
-    auxilarBuffer = new char[auxilarBufferSize_];
+    Error(BText("[OIS] FATAL ERROR IN BOis::AllocAuxilarBuffer id=")+id+
+    " out of range [0,BOis::_NumAuxiliarBuffer_="+BOis::_NumAuxiliarBuffer_+"] ");
+    exit(-1);    
   }
-  return(auxilarBuffer);
+  if(size>auxilarBufferSize_[id])
+  {
+    if(auxilarBuffer[id])
+    {
+      delete [] auxilarBuffer[id];
+      auxilarBuffer[id] = NULL;
+    }  
+    auxilarBufferSize_[id] = int(double(size)*1.2);
+    auxilarBuffer[id] = new char[auxilarBufferSize_[id] ];
+  }
+  return(auxilarBuffer[id]);
 }
 
 
@@ -167,25 +194,24 @@ FILE* BOis::tokRead_  = fopen((BSys::TolAppData()+"syslog/OisTokRead.log" ).Stri
 */
 //--------------------------------------------------------------------
 {  
-  BText dirOriPath = GetFilePath(tolFile);
+  BText absTolPath = GetStandardAbsolutePath(tolFile);
+  BText absDirPath = GetFilePath(absTolPath);
   BText filPrf = GetFilePrefix(tolFile);
-  BText dirAbsPath = Replace(RemoveLastSlash(
-    GetStandardAbsolutePath(dirOriPath)),"\\","/");
-  BText oisSubPath = PlainPath(dirAbsPath+ArchiveExtension());
+  BText oisSubPath = PlainPath(absDirPath+filPrf+ArchiveExtension());
   connection_ = Replace(oisDefRoot_,"\\","/")+"module/"+oisSubPath;
   address_.concept_  = "";
   address_.version_  = "";
-  address_.node_     = dirOriPath+filPrf;
+  address_.node_     = "";
   options_.tolSourceSearchPaths_.AllocBuffer(1);
-  options_.tolSourceSearchPaths_[0].alias_ = ToName(GetFilePrefix(dirAbsPath));
-  options_.tolSourceSearchPaths_[0].value_ = dirAbsPath;
-/*
+  options_.tolSourceSearchPaths_[0].alias_ = ToName(absDirPath);
+  options_.tolSourceSearchPaths_[0].value_ = absDirPath;
+
 //Std(BText("\nTRACE BOis::SetModulePath('")+tolFile+"'");
 //Std(BText("\nTRACE   connection_='")+connection_+"'");
 //Std(BText("\nTRACE   node_='")+address_.node_+"'");
 //Std(BText("\nTRACE   alias_='")+options_.tolSourceSearchPaths_[0].alias_+"'");
 //Std(BText("\nTRACE   value_='")+options_.tolSourceSearchPaths_[0].value_+"'");
-*/
+/* */
 }
 
 //--------------------------------------------------------------------

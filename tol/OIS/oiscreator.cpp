@@ -308,7 +308,7 @@ if(!BDir::CheckIsDir(dir))                                \
   if(!streamHandler_) { return(false); }
   FILE* file=fopen(path.String(),"rb");
   if(!file) { return(false); }
-  char* contens = AllocAuxilarBuffer(size+1);
+  char* contens = AllocAuxilarBuffer(2,size+1);
   int r = fread(contens,1,size,file);  
   contens[r]='\0';
   fclose(file);
@@ -412,7 +412,7 @@ if(!BDir::CheckIsDir(dir))                                \
   TRACE_OIS_STREAM("WRITE",stream,"BPol", x.Name());
   int s = x.Size();
   EWrite(s, stream);
-  BCoefDeg* buf = (BCoefDeg*)AllocAuxilarBuffer(sizeof(BCoefDeg)*x.Size());
+  BCoefDeg* buf = (BCoefDeg*)AllocAuxilarBuffer(3,sizeof(BCoefDeg)*x.Size());
   for(int i=0; i<x.Size(); i++)
   {
     buf[i].degree_      = x(i).Degree();
@@ -1069,7 +1069,7 @@ if(!BDir::CheckIsDir(dir))                                \
   }
   else
   {
-    BDat* buf = (BDat*)AllocAuxilarBuffer(sizeof(BDat)*r*c);
+    BDat* buf = (BDat*)AllocAuxilarBuffer(4,sizeof(BDat)*r*c);
     int i, j, k;
     for(i=k=0; i<r; i++) { for(j=0; j<c; j++) { buf[k++] = x(i,j); } }
     Ensure(Write(buf,r*c,matrix_));
