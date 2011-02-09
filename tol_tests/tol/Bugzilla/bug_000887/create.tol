@@ -1,10 +1,10 @@
 
-
-Real Ois.Create("oza1.oza", Empty, [[Real one=1]]); 
+Serie ser = CalInd(C,Mensual);
+Real Ois.Create("serie.oza", Empty, [[ser]]); 
 
 Real Ois.Store([[
   For(1, 10, Real (Real i) {
       Real Copy(i)
   })
-]],"oza2.oza");
+]],"set.oza");
 
