@@ -1087,6 +1087,7 @@ BDat BSet::Compare(const BSet* set1, const BSet* set2)
 //--------------------------------------------------------------------
 {
   BDat compare;
+  if(set1==set2) { return(0); }
   const BSet& s1 = *set1;
   const BSet& s2 = *set2;
   BBool le = s1<=s2;

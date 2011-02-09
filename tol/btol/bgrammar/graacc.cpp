@@ -902,6 +902,7 @@ BDat BGrammar::Compare(BSyntaxObject* syn1, BSyntaxObject* syn2) const
 //--------------------------------------------------------------------
 {
   assert(syn1 && syn2);
+  if(syn1==syn2) { return(0); }
   syn1->Do();
   syn2->Do();
   BDat compare;
