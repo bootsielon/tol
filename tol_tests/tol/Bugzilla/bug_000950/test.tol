@@ -21,7 +21,7 @@
 
 ////////////////////////////////////////////////////
 CASO 1  
-  Con caducidad egativa se reconstruye siempre
+  Con caducidad negativa se reconstruye siempre
   Con carga local no son accesibles los datos
 ////////////////////////////////////////////////////
   ");
@@ -71,11 +71,14 @@ CASO 4
 ////////////////////////////////////////////////////
   ");
   Real OSCmdWait("touch "+tolPath);
+  Real Sleep(2);
   Set S4 = Ois.UseCache(tolPath, 1/0);
+
   Real numErr4 = Copy(NError);
   Real numWar4 = Copy(NWarning);
   Real ig.4 = ObjectExist("Set","data");
   Real ok.4 = (numErr4==numErr3)&(numWar4==numWar3+1)&ig.4;
+
 
   Set partialResults_ = [[ 
     numErr0, numErr1, numErr2, numErr3, numErr4,
