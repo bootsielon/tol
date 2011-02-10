@@ -455,9 +455,19 @@ BText GetStandardAbsolutePath(const BText& path_)
 #ifdef WIN32
   #define maxPathLength_ 10000
   static char fName[maxPathLength_];
+  fName[0]='\0';
   TCHAR** lppPart={NULL};
   int  len = GetFullPathName(path.String(), maxPathLength_-1, fName, lppPart);
-  path.Copy(fName,len);
+  if(len==0)
+  {
+    bool ShowLastError(const BText& action, bool force);
+    ShowLastError(BText("[GetStandardAbsolutePath(\"")+path+"\")]",true);
+    path = "::INVALID::PATH::";
+  }
+  else
+  {
+    path.Copy(fName,len);
+  }
   path.Replace("\\","/");
 #else
   //VBR: hay que buscar alguna forma de estandarizar el path en linux
