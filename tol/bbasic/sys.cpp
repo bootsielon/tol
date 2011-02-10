@@ -405,7 +405,7 @@ static void OSError(const BText& msg)
 };
 
 //--------------------------------------------------------------------
-static bool ShowLastError(const BText& action, bool force)
+bool ShowLastError(const BText& action, bool force)
 //--------------------------------------------------------------------
 {
   DWORD dw = GetLastError(); 
