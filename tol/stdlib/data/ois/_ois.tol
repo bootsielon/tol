@@ -61,7 +61,7 @@ Ois.Store);
     Ois.Store(data, path_) 
   },
   {
-    Text dir = GetFilePath(path_)+GetFilePrefix(path_);
+    Text dir = TmpDir+ToName(GetFilePath(path_))+"/"+GetFilePrefix(path_);
     Real ok = Ois.Store(data, dir);
     Real PackArchive::PackFull(engine, dir);
     Text ext = PackArchive::@Store::Extension(engine);
