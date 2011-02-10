@@ -724,13 +724,21 @@ Set GetCompatibleDeepDependencies(Text tol_version, Set package.list)
 ////////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.DownloadCompatibleDeepDependencies = 
 "Downloads to a local directory all deep dependencies of a list of packages "
-"for the last version that is compatible with a tol version";
+"for the last version that is compatible with a tol version.\n"
+"Arguments : \n"
+"  Text localRoot      : Local directory where packages will be downloaded\n"
+"  Real cleanLocalRoot : If true, local directory will be cleaned before to download\n"
+"  Text tol_version    : Version of TOL comaptible with all packages\n"
+"  Set package.list    : List of packages without explicit version\n"
+"Returns true if all packages are found and downloaded.";
 Real DownloadCompatibleDeepDependencies(
   Text localRoot,
-  Text tol_version, 
+  Real cleanLocalRoot,    
+  Text tol_version,  
   Set package.list)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  Real If(cleanLocalRoot, OSDirRemove(localRoot));
   Set dep = GetCompatibleDeepDependencies(tol_version, package.list);
   SetMin(EvalSet(dep, Real(TolPackage::@VersionSynchro vsi)
   {
