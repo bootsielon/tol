@@ -173,7 +173,8 @@ proc ::TolConsole::Create { w } {
       
   # INFO CONSOLE COMPONENT
   set widgets(info) $sw3.info
-  set w_info [text $widgets(info) -wrap word -cursor ""\
+  #(pgea) se elimina  -wrap word
+  set w_info [text $widgets(info) -cursor ""\
      -state disabled -font $data(font,info)]
   $sw3 setwidget $w_info
   ::BayesText::MenuCreate $w_info
@@ -449,32 +450,80 @@ proc ::TolConsole::OnInfo { args } {
       $w_tabset select 2
     }
     default {
-      #$w_info configure -wrap none
-      foreach {icon grammar name value path desc} $args {}
-        foreach {prop val} [list "Grammar: " $grammar "Name: " $name "Value: " $value "Path: " $path] {
+      #(pgea) se modifica el mecanismo de escritura de la información
+      #(pgea) en tolbase incluyendo la información de instancia
+      proc w_insert {w_info w_text w_token w_tag} {
         set idx_start [$w_info index "end -1 chars"]
-        $w_info insert end $prop
+        $w_info insert end $w_text
+        $w_info insert end $w_token
         set idx_end   [$w_info index "end -1 chars"]
-        $w_info tag add tagLabel $idx_start $idx_end
-        if {[string equal $prop "Grammar: "]} {
-          $w_info image create end -image $icon
-          $w_info insert end "  "
+        $w_info tag add $w_tag $idx_start $idx_end
+      }
+      #$w_info configure -wrap none
+      foreach {icon grammar name content path desc objRef} $args {}
+      #(pgea) Si es NameBlock busco su clase e información de instancia
+      if {$grammar eq "NameBlock" && [string length $objRef]} {
+        set classOf [Tol_ClassOfFromReference $objRef]
+        set insInfo [Tol_InstanceInfoFromReference $objRef]
+        set insCont [Tol_InstanceContentFromReference $objRef]
+      } else {
+        set classOf ""
+        set insInfo ""
+        set insCont ""
+      }
+      if {$classOf eq ""} { 
+        w_insert $w_info Grammar ": " tagLabel
+        $w_info image create end -image $icon
+        $w_info insert end " "
+        w_insert $w_info $grammar "\n" tagValue
+      } else { 
+        w_insert $w_info Class ": " tagLabel
+        $w_info image create end -image $icon
+        $w_info insert end " "
+        w_insert $w_info $classOf "\n" tagValue
+      }
+      w_insert $w_info Name ": " tagLabel
+      w_insert $w_info $name "\n" tagValue
+      w_insert $w_info Content ": " tagLabel
+      if {$insCont ne ""} {
+        w_insert $w_info $insCont "\n" tagValue
+      } elseif {$classOf ne ""} {
+        w_insert $w_info $classOf "\n" tagValue
+      } else {
+        w_insert $w_info $content "\n" tagValue
+      }
+      if {$path ne ""} {
+        w_insert $w_info Path ": " tagLabel
+        w_insert $w_info $path "\n" tagValue
+      }
+      if {$desc ne ""} {
+        w_insert $w_info Description ":\n" tagLabel
+        w_insert $w_info $desc "\n" tagValue
+      }
+      #(pgea) se añade la información de instancia (si hay)
+      if { [string length $insInfo] } {
+        set brNeed 0
+        set attr 0
+        set lines [split $insInfo \n]
+        foreach line $lines {
+          set lineLen [string length $line]
+          set lineIni [string index $line 0]
+          set lineFin [string index $line [expr $lineLen-1]]
+          set lineIF "$lineIni$lineFin"
+          if { [string eq $lineIF {[]}] } {
+            set lineLabel [string range $line 1 [expr $lineLen-2]]
+            w_insert $w_info $lineLabel ":\n" tagLabelB
+          } elseif { [string eq $lineIF {{}}] } {
+            set lineLabel [string range $line 1 [expr $lineLen-2]]
+            w_insert $w_info $lineLabel ": " tagLabelB
+          } else {
+            w_insert $w_info $line "\n" tagValue
+          }
         }
-        $w_info insert end "$val\n"
-        $w_info tag add tagValue $idx_end [$w_info index "end -1 chars"]
       }
       $w_info tag configure tagLabel -font fnBold
       $w_info tag configure tagValue -wrap none
-      if { [string length $desc] } {
-        set idx_start [$w_info index "end -1 chars"]
-        $w_info insert end "Description\n"
-        set idx_end [$w_info index "end -1 chars"]
-        $w_info tag add tagPropLabel $idx_start $idx_end
-        $w_info insert end $desc
-        $w_info tag add tagPropValue $idx_end [$w_info index "end -1 chars"]
-        $w_info tag configure tagPropLabel -font fnBold -underline 1
-        #$w_info tag configure tagPropValue -wrap word
-      }
+      $w_info tag configure tagLabelB -font fnBold -foreground navy
       $w_tabset select 2
     }
   }
