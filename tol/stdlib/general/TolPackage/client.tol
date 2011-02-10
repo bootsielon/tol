@@ -274,25 +274,16 @@ Date RemoteReleaseDate(Text repository, Text package)
   })
 })};
 
-
 //////////////////////////////////////////////////////////////////////////////
-Text _.autodoc.member.RemoteInstallPackage = 
-"Instala desde el repositorio remoto al local un paquete determinado "
-"para que esté disponible llamando a #Require. \n"
-"En un mismo repositorio local puede haber distintas veriones de un mismo "
-"paquete que se distinguirán unas de otras por el texto posterior al "
-"primer punto. Antes del punto el nombre del paquete suele de seguir la "
-"nomenclatura tipo WIKI AaaBbb \n"
-"Si no se especifica ninguna versión se instalará la última disponible."
-"Si ya existía una copia en el repositorio local será substituida sin "
-"mayores contemplaciones por lo que el usuario debe saber lo que pide. \n"
-"Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
-"que se lancen desde ese momento podrán usarlos.";
-//////////////////////////////////////////////////////////////////////////////
-Real RemoteInstallPackage(Text repository, Text package, Real showError)
+Text _.autodoc.member.DownloadPackage = 
+"Descarga desde el repositorio remoto al path indicado, un paquete "
+"determinado\n";
+Real DownloadPackage(
+  Text repository, Text package, Real showError, Text localRoot)
 //////////////////////////////////////////////////////////////////////////////
 {
   If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, 0, {
+  Real OSDirMake(localRoot);
 //WriteLn("TRACE [RemoteInstallPackage] 1 repository='"<<repository+"'");
   Text package.version = package;
   Text If(TextFind(package,"."),
@@ -313,9 +304,9 @@ Real RemoteInstallPackage(Text repository, Text package, Real showError)
 
   Text pack = package.version+".zip";
   Text oza = package.version+"/"+package.version+".oza";
-  Text localPack = TolPackage::Client::_.localRoot+pack;
-  Text localOza = TolPackage::Client::_.localRoot+oza;
-  Text localDir = TolPackage::Client::_.localRoot+package.version;
+  Text localPack = localRoot+"/"+pack;
+  Text localOza = localRoot+"/"+oza;
+  Text localDir = localRoot+"/"+package.version;
 
   Text encoded = GetUrlContents(repository+"?"
     "action=download&"+
@@ -333,6 +324,28 @@ Real RemoteInstallPackage(Text repository, Text package, Real showError)
 //WriteLn("TRACE DownloadPackage 5");
   FileExist(localOza)  
 })};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.RemoteInstallPackage = 
+"Instala desde el repositorio remoto al local un paquete determinado "
+"para que esté disponible llamando a #Require. \n"
+"En un mismo repositorio local puede haber distintas veriones de un mismo "
+"paquete que se distinguirán unas de otras por el texto posterior al "
+"primer punto. Antes del punto el nombre del paquete suele de seguir la "
+"nomenclatura tipo WIKI AaaBbb \n"
+"Si no se especifica ninguna versión se instalará la última disponible."
+"Si ya existía una copia en el repositorio local será substituida sin "
+"mayores contemplaciones por lo que el usuario debe saber lo que pide. \n"
+"Sólo es necesario instalar una vez un paquete y todas las sesiones TOL "
+"que se lancen desde ese momento podrán usarlos.";
+//////////////////////////////////////////////////////////////////////////////
+Real RemoteInstallPackage(Text repository, Text package, Real showError)
+//////////////////////////////////////////////////////////////////////////////
+{
+  DownloadPackage( 
+    repository, package, showError,
+    TolPackage::Client::_.localRoot)
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.RemoteInstallFullRepository = 
@@ -592,7 +605,7 @@ Text _.autodoc.member.RemoteUpdateAll =
 Real RemoteUpdateAll(Real updateSyncInfo)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real If(Or(updateSyncInfo,Card(_.packSyncInfo)), 
+  Real If(Or(updateSyncInfo,!Card(_.packSyncInfo)), 
     RemoteUpdatePackSyncInfo(False));
   If(!Card(_.packForUpdate), 0,
   SetSum(EvalSet(_.packForUpdate, Real(TolPackage::@PackageSynchro pkg)
@@ -608,13 +621,121 @@ Text _.autodoc.member.RemoteUpgradeAll =
 Real RemoteUpgradeAll(Real updateSyncInfo)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real If(Or(updateSyncInfo,Card(_.packSyncInfo)), 
+  Real If(Or(updateSyncInfo,!Card(_.packSyncInfo)), 
     RemoteUpdatePackSyncInfo(False));
   If(!Card(_.packForUpgrade), 0,
   SetSum(EvalSet(_.packForUpgrade, Real(TolPackage::@PackageSynchro pkg)
   {
     RemoteInstallPackage(pkg->te_url, pkg->co_last_version_remote, True)
   })))
+};
+
+////////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetCompatibleVersion.one = 
+"Gets the latest version of a package that is compatible with a tol version.";
+Text GetCompatibleVersion.one(Text tol_version, Text package)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Real If(!Card(_.versSyncInfo), 
+   TolPackage::Client::RemoteUpdateVersSyncInfo(True));
+
+  Set sel_compatible = Select(_.versSyncInfo, Real(TolPackage::@VersionSynchro reg)
+  {
+    And(reg->co_name==package, tol_version>=reg->te_min_tol_version)
+  });
+
+  Set last_compatible = Sort(sel_compatible, Real(TolPackage::@VersionSynchro a, TolPackage::@VersionSynchro b)
+  {
+    Compare(b->co_name_version,a->co_name_version)
+  })[1];
+  last_compatible->co_name_version
+};
+
+////////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetCompatibleVersion.all = 
+"Gets the latest versions of a set of packages that are compatible with a tol "
+"version.";
+Set GetCompatibleVersion.all(Text tol_version, Set package.list)
+////////////////////////////////////////////////////////////////////////////////
+{
+  EvalSet(package.list, Text (Text pv) 
+  {
+    GetCompatibleVersion.one(tol_version, pv)
+  })
+};
+
+////////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetDeepDependencies.one = 
+"Gets the list of deep depencies of a given version of a package";
+Set GetDeepDependencies.one(Text package.version)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Real If(!Card(_.versSyncInfo), 
+   TolPackage::Client::RemoteUpdateVersSyncInfo(True));
+  Set sel = Select(_.versSyncInfo, Real(TolPackage::@VersionSynchro reg)
+  {
+    reg->co_name_version == package.version
+  });
+  If(!Card(sel), sel,
+  {
+    Text depExpr = sel[1]->te_dependencies;
+    Set dep = If(depExpr=="",Copy(Empty),
+    {
+      Tokenizer(depExpr,",")
+    });
+    Unique(SetConcat(EvalSet(dep,GetDeepDependencies.one))<<[[ sel[1]->co_name_version ]])
+  })
+};
+
+////////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetDeepDependencies.all = 
+"Gets the list of deep depencies of a list of versions of packages";
+Set GetDeepDependencies.all(Set package.version.list)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Unique(SetConcat(EvalSet(package.version.list, GetDeepDependencies.one)))
+};
+
+////////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetVersionInfo = 
+"Gets the TolPackage::@VersionSynchro related to a version of a package";
+Set GetVersionInfo(Set package.version.list)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Real If(!Card(_.versSyncInfo), 
+   TolPackage::Client::RemoteUpdateVersSyncInfo(True));
+  EvalSet(package.version.list, TolPackage::@VersionSynchro(Text pv)
+  {
+    _.versSyncInfo[pv]
+  })
+};
+
+////////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetCompatibleDeepDependencies = 
+"Gets the TolPackage::@VersionSynchro related to all deep dependencies of a "
+"list of packages for the last version that is compatible with a tol version";
+Set GetCompatibleDeepDependencies(Text tol_version, Set package.list)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Set package.version.list = GetCompatibleVersion.all(tol_version, package.list);
+  GetVersionInfo(GetDeepDependencies.all(package.version.list))
+};
+
+////////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.DownloadCompatibleDeepDependencies = 
+"Downloads to a local directory all deep dependencies of a list of packages "
+"for the last version that is compatible with a tol version";
+Real DownloadCompatibleDeepDependencies(
+  Text localRoot,
+  Text tol_version, 
+  Set package.list)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Set dep = GetCompatibleDeepDependencies(tol_version, package.list);
+  SetMin(EvalSet(dep, Real(TolPackage::@VersionSynchro vsi)
+  {
+    DownloadPackage(vsi->te_url,vsi->co_name_version,True,localRoot)
+  }))
 }
 
 ]];
