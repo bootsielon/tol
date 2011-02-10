@@ -555,9 +555,16 @@ BText GetFilePrefix(const BText& path)
   if(path.HasName())
   {
     BText name=GetFileName(path);
+    int len = name.Length();
+    int pos = name.FindAdv(".",len-1,1,-1);
+    if(pos< 0) { prefix = name; }
+    else if(pos==0) { prefix = ""; }
+    else { prefix.Copy(name,0,pos-1); }
+/*
     BArray<BText> token;
     ReadAllTokens(name,token,'.');
-    prefix=token[0];
+    prefix.Copy(name, 0, name.Length()-token[token.Size()-1].Length()-2);
+*/
   }
   return(prefix);
 }
