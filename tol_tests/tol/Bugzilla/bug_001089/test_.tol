@@ -1,0 +1,46 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  1089;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="GetFilePrefix does not work properly";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+  Text prfx.1 = GetFilePrefix("c:/temp/archivo.con.puntos.txt");
+  Text prfx.2 = GetFilePrefix("c:/temp/archivo");
+  Text prfx.3 = GetFilePrefix("c:/temp/.archivo");
+  Text prfx.4 = GetFilePrefix("c:/temp/archivo.");
+
+
+  Real ok.1 = prfx.1=="archivo.con.puntos";
+  Real ok.2 = prfx.2=="archivo";
+  Real ok.3 = prfx.3=="";
+  Real ok.4 = prfx.4=="archivo";
+
+  Real numErr1 = Copy(NError);
+  Real numWar1 = Copy(NWarning);
+
+  Set partialResults_ = [[ numErr0, numErr1, ok.1, ok.2, ok.3, ok.4]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0, 
+                      numWar1 == numWar0, ok.1, ok.2, ok.3, ok.4);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
+
