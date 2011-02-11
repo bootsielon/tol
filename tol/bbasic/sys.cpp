@@ -75,11 +75,15 @@ static BText Buil_TolAppData_()
   static BText tolAppData_;
   if(!tolAppData_.HasName())
   {
+    tolAppData_ = BSys::GetEnv("TOLHOME");
+    if(!tolAppData_.HasName())
+    {
 # if _WINDOWS
-    tolAppData_ = BSys::GetEnv("APPDATA")+"/tol/";
+      tolAppData_ = BSys::GetEnv("APPDATA")+"/tol/";
 # else
-    tolAppData_ = BSys::GetEnv("HOME")+"/.tol/";
+      tolAppData_ = BSys::GetEnv("HOME")+"/.tol/";
 #  endif
+    }
     BSys::MkDir(tolAppData_+"syslog", true);
     BSys::MkDir(tolAppData_+"OIS", true);
     BSys::MkDir(tolAppData_+"tests_results",true);
