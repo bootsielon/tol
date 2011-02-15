@@ -42,8 +42,10 @@ if [ config.should-build tolpgsql ]
         ;
 }
 
+exe listDRV : listDRV.c odbc : $(odbc_inc) ;
 exe listDSN : listDSN.c odbc : $(odbc_inc) ;
 exe testOCnn : testOCnn.c odbc : $(odbc_inc) ;
 
+explicit listDRV ;
 explicit listDSN ;
 explicit testOCnn ;
