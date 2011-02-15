@@ -58,7 +58,7 @@
 #define SQLMAXWORD 128
 #define MAX_TEXT_FIELD_LENGTH 2048
 
-//#define TRACE_DEEP 1
+#define TRACE_DEEP 1
 
 typedef struct odbcdx {
   //  char *alias;
@@ -79,6 +79,35 @@ typedef struct odbcdx {
 
 static DBOutWriter stdOutWriter = 0;
 
+void extract_error(
+    char *fn,
+    SQLHANDLE handle,
+    SQLSMALLINT type)
+{
+    SQLINTEGER   i = 0;
+    SQLINTEGER   native;
+    SQLCHAR      state[ 7 ];
+    SQLCHAR      text[256];
+    SQLSMALLINT  len;
+    SQLRETURN    ret;
+
+    fprintf(stderr,
+            "\n"
+            "The driver reported the following diagnostics whilst running "
+            "%s\n\n",
+            fn);
+
+    do
+    {
+        ret = SQLGetDiagRec(type, handle, ++i, state, &native, text,
+                            sizeof(text), &len );
+        if (SQL_SUCCEEDED(ret))
+            printf("%s:%ld:%ld:%s\n", state, i, native, text);
+    }
+    while( ret == SQL_SUCCESS );
+}
+
+
 //-------------------------------------------------------------------
 void getDiagRec(odbcd *dbd, int diagType)
 {
@@ -92,15 +121,21 @@ void getDiagRec(odbcd *dbd, int diagType)
     handleType = SQL_HANDLE_STMT;
     handle = dbd->hstmt;
   } else if(diagType==GET_DIAG_DBC) {
+#ifdef TRACE_DEEP
+  printf( "Diagnostic for SQL_HANDLE_DBC" );
+#endif
     handleType = SQL_HANDLE_DBC;
     handle = dbd->hdbc;
   }
 
+#ifdef TRACE_DEEP
+  extract_error( "TRACE_DEEP", handle, handleType );
+#endif
   i = 1;
   while ((rc = SQLGetDiagRec(handleType, handle, i, SqlState, 
 			     &NativeError, Msg, strlen((char*)Msg), 
 			     &MsgLen)) != SQL_NO_DATA) 
-    {
+  {
       if(rc==SQL_SUCCESS) {
 	char outmsg[SQL_MAX_MESSAGE_LENGTH + 50];
 	sprintf(outmsg, 
@@ -218,8 +253,9 @@ DLLEXPORT(odbcd *) odbc_Open(void **args)
 #ifdef TRACE_DEEP
   printf( "1.2: SQLSetEnvAttr\n");
 #endif
+  //SQLSetEnvAttr(env, SQL_ATTR_ODBC_VERSION, (void *) SQL_OV_ODBC3, 0);
   status = SQLSetEnvAttr(dbd->henv, SQL_ATTR_ODBC_VERSION, 
-			 (long *)SQL_OV_ODBC2, 0);
+			 (void *)SQL_OV_ODBC3, 0);
   if(!checkSQLRet(status, dbd, __LINE__, NO_DIAG)) {
     closeODBC(dbd, 1); //"1" -> last step done: SQLAllocHandle SQLHENV
     return NULL;

@@ -41,3 +41,9 @@ if [ config.should-build tolpgsql ]
         : [ config.include-feature pgsql ] <tag>@tag
         ;
 }
+
+exe listDSN : listDSN.c odbc : $(odbc_inc) ;
+exe testOCnn : testOCnn.c odbc : $(odbc_inc) ;
+
+explicit listDSN ;
+explicit testOCnn ;
