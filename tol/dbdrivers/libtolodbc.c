@@ -58,6 +58,8 @@
 #define SQLMAXWORD 128
 #define MAX_TEXT_FIELD_LENGTH 2048
 
+//#define TRACE_DEEP 1
+
 typedef struct odbcdx {
   //  char *alias;
   //  char *user;
@@ -108,7 +110,7 @@ void getDiagRec(odbcd *dbd, int diagType)
 	i++;
       } 
       else if(rc==SQL_SUCCESS_WITH_INFO) {
-#if defined(_DEBUG)
+#if defined(_DEBUG) || defined(TRACE_DEEP)
 	if(MsgLen>SQL_MAX_MESSAGE_LENGTH)
 	  stdOutWriter("The *MessageText buffer was too small to hold the "
 		       "requested diagnostic message.\n");
@@ -117,7 +119,7 @@ void getDiagRec(odbcd *dbd, int diagType)
 	break;
       } 
       else if(rc==SQL_INVALID_HANDLE) {
-#if defined(_DEBUG)
+#if defined(_DEBUG) || defined(TRACE_DEEP)
 	stdOutWriter("The handle indicated by HandleType and Handle was not "
 		     "a valid handle.\n");
 #endif
@@ -185,6 +187,9 @@ DLLEXPORT(odbcd *) odbc_Open(void **args)
   SQLRETURN status;
   odbcd *dbd;
   char *alias, *user, *pwd;
+#ifdef TRACE_DEEP
+  printf( "Entering odbc_Open\n");
+#endif
 
   dbd = (odbcd*)malloc(sizeof(odbcd));
   if(dbd==NULL) {
@@ -201,12 +206,18 @@ DLLEXPORT(odbcd *) odbc_Open(void **args)
   // 1st step: Connect to the Data Source
 
   // 1.1: SQLAllocHandle(ENV)
+#ifdef TRACE_DEEP
+  printf( "1.1: SQLAllocHandle(ENV)\n");
+#endif
   status =  SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &(dbd->henv));
   if(!checkSQLRet(status, dbd, __LINE__, GET_DIAG_ENV)) {
     return NULL;
   }
 
   // 1.2: SQLSetEnvAttr
+#ifdef TRACE_DEEP
+  printf( "1.2: SQLSetEnvAttr\n");
+#endif
   status = SQLSetEnvAttr(dbd->henv, SQL_ATTR_ODBC_VERSION, 
 			 (long *)SQL_OV_ODBC2, 0);
   if(!checkSQLRet(status, dbd, __LINE__, NO_DIAG)) {
@@ -215,17 +226,27 @@ DLLEXPORT(odbcd *) odbc_Open(void **args)
   }
 
   // 1.3: SQLAllocHandle(DBC)
-  status = SQLAllocHandle(SQL_HANDLE_DBC, dbd->henv, &(dbd->hdbc));
+#ifdef TRACE_DEEP
+  printf( "1.3: SQLAllocHandle(DBC)\n");
+#endif
+   status = SQLAllocHandle(SQL_HANDLE_DBC, dbd->henv, &(dbd->hdbc));
   if(!checkSQLRet(status, dbd, __LINE__, GET_DIAG_DBC)) {
     closeODBC(dbd, 1); //"1" -> last step done: SQLAllocHandle SQLHENV
     return NULL;
   }
 
   // 1.4: SQLConnect
+#ifdef TRACE_DEEP
+  printf( "1.4: SQLConnect\n");
+  printf( "(%s,%s,%s)\n", alias, user, pwd );
+#endif
   status = SQLConnect(dbd->hdbc, 
 		      (SQLCHAR*) alias, SQL_NTS,
 		      (SQLCHAR*) user, SQL_NTS,
 		      (SQLCHAR*) pwd, SQL_NTS);
+#ifdef TRACE_DEEP
+  printf( "Status from SQLConnect: %d\n", status );
+#endif
   if(!checkSQLRet(status, dbd, __LINE__, GET_DIAG_DBC)) {
     closeODBC(dbd, 2); //"2"-> last step done: SQLAllocHandle of SQLHDBC
     return NULL;
