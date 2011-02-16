@@ -343,29 +343,25 @@ BTraceInit("datgralg.cpp");
 }
 
 //--------------------------------------------------------------------
-BDat BDatTemporary::LogicShort(BBool(*comp)(const BDat&,const BDat&))const
+BDat BDatTemporary::LogicShort(BDat(*comp)(const BDat&,const BDat&))const
 
 /*! Returns the first argument Arg(1)
  */
 //--------------------------------------------------------------------
 {
   BInt	    n	   = 2;
-  BBool	    ok	   = 1;
+  BDat	    ok	   = 1;
   BDat	    oldDat = Dat(Arg(1));
   BDat	    dat;
-  BUserDat* uDat;
-
-  if(oldDat.IsKnown())
+  int m = NumArgs();
+  for(n=2; n<=m; n++)
   {
-    while((uDat = UDat(Arg(n))) && (dat=(uDat->Contens())).IsKnown() && ok)
-    {
-      n++;
-      ok     = (*comp)(oldDat, dat);
-      oldDat = dat;
-    }
-    if(oldDat.IsKnown()) { oldDat.PutValue(ok); }
+    dat    = Dat(Arg(n));
+    ok     = And(ok,(*comp)(oldDat, dat));
+    if(ok.IsKnown() && !ok.Value()) { break; }
+    oldDat = dat;
   }
-  return(oldDat);
+  return(ok);
 }
 
 //--------------------------------------------------------------------
@@ -377,7 +373,7 @@ BDat BDatTemporary::LogicShort(BBool(*comp)(const BDat&,const BDat&))const
   BOperClassify::Logic_);
   void BDatLt::CalcContens()
 //--------------------------------------------------------------------
-{ contens_ = LogicShort(BDat::IsLessThan); }
+{ contens_ = LogicShort(Lt); }
 
 
 //--------------------------------------------------------------------
@@ -389,7 +385,7 @@ BDat BDatTemporary::LogicShort(BBool(*comp)(const BDat&,const BDat&))const
   BOperClassify::Logic_);
   void BDatGt::CalcContens()
 //--------------------------------------------------------------------
-{ contens_ = LogicShort(BDat::IsGreaterThan); }
+{ contens_ = LogicShort(Gt); }
 
 
 //--------------------------------------------------------------------
@@ -402,7 +398,7 @@ BDat BDatTemporary::LogicShort(BBool(*comp)(const BDat&,const BDat&))const
   BOperClassify::Logic_);
   void BDatGe::CalcContens()
 //--------------------------------------------------------------------
-{ contens_ = LogicShort(BDat::IsGreaterOrEqualThan); }
+{ contens_ = LogicShort(Ge); }
 
 
 //--------------------------------------------------------------------
@@ -415,7 +411,7 @@ BDat BDatTemporary::LogicShort(BBool(*comp)(const BDat&,const BDat&))const
   BOperClassify::Logic_);
   void BDatLe::CalcContens()
 //--------------------------------------------------------------------
-{ contens_ = LogicShort(BDat::IsLessOrEqualThan); }
+{ contens_ = LogicShort(Le); }
 
 
 //--------------------------------------------------------------------
@@ -427,7 +423,7 @@ BDat BDatTemporary::LogicShort(BBool(*comp)(const BDat&,const BDat&))const
   BOperClassify::Logic_);
   void BDatEq::CalcContens()
 //--------------------------------------------------------------------
-{ contens_ = LogicShort(BDat::IsEqualAs); }
+{ contens_ = LogicShort(Eq); }
 
 
 //--------------------------------------------------------------------
@@ -439,7 +435,7 @@ BDat BDatTemporary::LogicShort(BBool(*comp)(const BDat&,const BDat&))const
   BOperClassify::Statistic_);
   void BDatNe::CalcContens()
 //--------------------------------------------------------------------
-{ contens_ = LogicShort(BDat::IsNotEqualAs); }
+{ contens_ = LogicShort(Ne); }
 
 
 //--------------------------------------------------------------------

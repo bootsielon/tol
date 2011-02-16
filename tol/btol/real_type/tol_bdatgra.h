@@ -66,7 +66,8 @@ class BDatTemporary: public BTmpContens<BDat>
     ~BDatTemporary() { }
  protected:
 #ifndef __USE_SHORT_LOGIC__
-  BDat LogicShort(BBool(*comp)(const BDat&,const BDat&))const;
+//BDat LogicShort(BBool(*comp)(const BDat&,const BDat&))const;
+  BDat LogicShort(BDat (*comp)(const BDat&,const BDat&))const;
 #endif
 };
 
