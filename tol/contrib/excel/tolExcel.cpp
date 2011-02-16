@@ -397,7 +397,6 @@ BSyntaxObject *TolExcel::GetCellAnything( const BText &err_name,
     printf( "reached bad cell (%d,%d)\n", row, col );
   }
 #endif
-  assert( cell );
   if ( cell ) {
     CellFormat fmt( *m_ptrFmtMgr, cell );
     switch ( cell->Type() ) {
@@ -421,9 +420,11 @@ BSyntaxObject *TolExcel::GetCellAnything( const BText &err_name,
         /* no se como interpretar el resultado de la formula */
         snprintf( cell_coord, 64, "(%d,%d)", row, col );        
         Warning( err_name + ": " +
-                 I2("don't know how to interpret the result in cell ",
+                 I2("don't know how to interpret the result in cell formula ",
                     "no se como interpretar el resultado en la celda " ) + cell_coord );
-        result = new BContensText( "" );
+        // OJO: aqui hay que retornar NULL y dejar que el que llama tome la decision.
+        result = NULL;
+        //result = new BContensText( "" );
       }
       break;
     default:
@@ -433,7 +434,8 @@ BSyntaxObject *TolExcel::GetCellAnything( const BText &err_name,
                I2("don't know what to do with cell ",
                   "no se que hacer con la celda " ) + cell_coord );
 #endif
-      result = new BContensText( "" );
+      result = NULL;
+      // result = new BContensText( "" );
     }
   }
   return result;
@@ -783,8 +785,9 @@ void BDteExcelReadDate::CalcContens()
 
 //---------------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetExcelReadRange);
-DefExtOpr(1, BSetExcelReadRange, "Excel.ReadRange", 3, 3, "Real Anything Anything",
-          "(Real ExcelHandler, Anything CornerLT, Anything CornerRB)",
+DefExtOpr(1, BSetExcelReadRange, "Excel.ReadRange", 3, 4,
+          "Real Anything Anything Set",
+          "(Real ExcelHandler, Anything CornerLT, Anything CornerRB [,Set ColumnTypes])",
           I2("Return the contents of the cells contained given cell's range. "
              "The cell corners delimiting the range can be given as Text or "
              "Set. For instance you can use either \"A1\" or [[1,1]].",
@@ -806,18 +809,45 @@ void BSetExcelReadRange::CalcContens()
   if ( xls ) {
     // bool status1 = ;
     // bool status2 = ;
+    BSet *ptrArgs = NULL; 
+
     if ( TolExcel::getCellCoordinates( _name_, cornerLT, r0, c0 ) &&
          TolExcel::getCellCoordinates( _name_, cornerBR, r1, c1 ) ) {
       BList*	result = NIL;
       BList*	aux    = NIL;
       size_t	r,c;
+      size_t    numColumns = c1 - c0 + 1;
+      if ( NumArgs() > 3 ) {
+        ptrArgs = &Set( Arg( 4 ) );
+        if ( numColumns == ptrArgs->Card() ) {
+          for ( c = 1; c <= ptrArgs->Card(); c++ ) {
+            BGrammar *grammar = (*ptrArgs)[c]->Grammar();
+            if ( grammar != GraText() &&
+                 grammar != GraReal() &&
+                 grammar != GraDate() ) {
+              Warning( _name_ + ": " +
+                       "Invalid type in column type specification, only Real, Date or Text is returned from excel" );
+              ptrArgs = NULL;
+              break;
+            }
+          }
+        } else {
+          char buffer[256];
+          snprintf( buffer, 256, "Expecting %d columns (%d,%d)", numColumns, c0, c1 );
+          Warning( _name_ + ": " +
+                   "The number of column's types does not match the number of columns. " + buffer);
+          ptrArgs = NULL;
+        }
+      }
       for( r = r0; r <= r1; r++ ) {
 	BList* lsta	  = NIL;
 	BList* auxa	  = NIL;
 	for( c = c0; c <= c1; c++ ) {
           BSyntaxObject *cellValue = xls->GetCellAnything( _name_, r, c );
+          // OJO: aqui hay que rellenar con el omitido segun el tipo de columna
           if ( !cellValue ) {
-            cellValue = new BContensText( "" );
+            cellValue = ptrArgs ? ((*ptrArgs)[c-c0+1])->CopyContens() :
+              new BContensText( "" );
           }
           LstFastAppend( lsta, auxa, cellValue );
         }
@@ -860,8 +890,12 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
                  I2("invalid excel object address",
                     "direccion de objecto excel invalido") );
           return NULL;
-        }    
+        }
+        // OJO, puede venir NULL
         result = xls->GetCellAnything( _name_, i_row, i_col );
+        if ( !result ) {
+          result = new BContensText( "" );
+        }
       }
     }
   }
