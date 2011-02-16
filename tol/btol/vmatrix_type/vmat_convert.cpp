@@ -1396,6 +1396,10 @@ BMatrix<double> BVMat::GetDMat () const
 ////////////////////////////////////////////////////////////////////////////////
 {
   aux.Delete();
+  int nnz,nrow,ncol, i, j, k, h;
+  int *r_,*c_,*r,*c;
+  double *x_, *x;
+
   switch(code_) {
   case(ESC_chlmRsparse ) :
     aux.code_ = ESC_chlmRsparse;
@@ -1409,6 +1413,60 @@ BMatrix<double> BVMat::GetDMat () const
       /* --------------- */
       common_
     );
+    break;
+  case(ESC_blasRdense) :
+    aux.code_ = ESC_blasRdense;
+    nrow = s_.blasRdense_->nrow;
+    ncol = s_.blasRdense_->ncol;
+    x_ = (double*)s_.blasRdense_->x;
+    aux.s_.blasRdense_ = 
+      CholmodAllocate_dense(nrow, ncol, nrow, CHOLMOD_REAL, common_);
+    x = (double*)s_.blasRdense_->x;
+    for (j=k=0; j<ncol; j++) 
+    {
+      for (i=0; i<nrow; i++, k++) 
+      {
+        h = j-i;
+        if((h>=from)&&(h<=until)) { x[k] = x_[k]; }
+        else                      { x[k] = 0;     }
+      }
+    }
+    break;
+  case(ESC_chlmRtriplet ) :
+    aux.code_ = ESC_chlmRtriplet;
+    r_ = (int*)   s_.chlmRtriplet_->i;
+    c_ = (int*)   s_.chlmRtriplet_->j;
+    x_ = (double*)s_.chlmRtriplet_->x;
+    for(k=nnz=0; k<s_.chlmRtriplet_->nnz; k++)
+    {
+      i = r_[k];
+      j = c_[k];
+      h = j-i;
+      if((h>=from)&&(h<=until)&&(x_[k]!=0.0))
+      {
+        nnz++;
+      } 
+    }
+    aux.s_.chlmRtriplet_ = CholmodAllocate_triplet
+      (s_.chlmRtriplet_->nrow,s_.chlmRtriplet_->ncol,nnz,0,CHOLMOD_REAL,common_);
+    nnz=0;
+    r = (int*)   aux.s_.chlmRtriplet_->i;
+    c = (int*)   aux.s_.chlmRtriplet_->j;
+    x = (double*)aux.s_.chlmRtriplet_->x;
+    for(k=0; k<s_.chlmRtriplet_->nnz; k++)
+    {
+      i = r_[k];
+      j = c_[k];
+      h = j-i;
+      if((h>=from)&&(h<=until)&&(x_[k]!=0.0))
+      {
+        r[nnz] = i;
+        c[nnz] = j;
+        x[nnz] = x_[k];
+        nnz++;
+      } 
+    }
+    aux.s_.chlmRtriplet_->nnz = nnz;
     break;
   default:
     err_cannot_apply("SubBand",I2("(Not implemented)",
