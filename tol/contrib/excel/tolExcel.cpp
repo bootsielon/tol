@@ -97,7 +97,7 @@ public:
       result = BDat( d );
       return true;
     }
-    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    snprintf( cell_coord, 64, "(%d,%d)", row+1, col+1 );
     Warning( err_name + ": " +
              I2("the cell ", "la celda " ) + cell_coord +
              I2(" does not contain a Real", " no contiene un Real" ) );
@@ -125,7 +125,7 @@ public:
       result = str;
       return true;
     }
-    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    snprintf( cell_coord, 64, "(%d,%d)", row+1, col+1 );
     Warning( err_name + ": " +
              I2("the cell ", "la celda " ) + cell_coord +
              I2(" does not contain a Text", " no contiene un Text" ) );
@@ -158,7 +158,7 @@ public:
       result = BDate( Y, M, D, H, Mi, S );
       return true;
     }
-    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    snprintf( cell_coord, 64, "(%d,%d)", row+1, col+1 );
     Warning( err_name + ": " +
              I2("the cell ", "la celda " ) + cell_coord +
              I2(" does not contain a date/time",
@@ -260,6 +260,9 @@ size_t TolExcel::decodeColumn( char * cellName, size_t length )
   return (c - 'A' + 1) + TolExcel::decodeColumn( cellName, length ) * 26;
 }
 
+/*
+  return de coordinate 0-based
+ */
 bool TolExcel::decodeCoordinates( char * cellName, size_t &row, size_t &column )
 {
   size_t i = 0;
@@ -286,6 +289,9 @@ bool TolExcel::decodeCoordinates( char * cellName, size_t &row, size_t &column )
   return true;
 }
 
+/*
+  returns the coordinates 0-based
+ */
 bool TolExcel::getCellCoordinates( const BText & name, BSyntaxObject *cell,
                                    size_t &row, size_t &column )
 {
@@ -295,7 +301,7 @@ bool TolExcel::getCellCoordinates( const BText & name, BSyntaxObject *cell,
     BText & cellName = Text( cell );
     
     status = TolExcel::decodeCoordinates( cellName.Buffer(),
-                                               row, column );
+                                          row, column );
     if ( !status ) {
       Error( name + ": " +
              I2( "invalid cell coordinates ",
@@ -385,7 +391,13 @@ BSyntaxObject *TolExcel::GetCellAnything( const BText &err_name,
   char cell_coord[ 64 ];
   
   BasicExcelCell *cell = GetCell( err_name, row, col  );
-  assert( !cell || ( cell && cell->Type( ) != BasicExcelCell::UNDEFINED ) );
+  //assert( !cell || ( cell && cell->Type( ) != BasicExcelCell::UNDEFINED ) );
+#ifdef EXCEL_TRACE
+  if ( !cell ) {
+    printf( "reached bad cell (%d,%d)\n", row, col );
+  }
+#endif
+  assert( cell );
   if ( cell ) {
     CellFormat fmt( *m_ptrFmtMgr, cell );
     switch ( cell->Type() ) {
@@ -415,10 +427,12 @@ BSyntaxObject *TolExcel::GetCellAnything( const BText &err_name,
       }
       break;
     default:
+#ifdef EXCEL_TRACE
       snprintf( cell_coord, 64, "(%d,%d)", row, col );        
       Warning( err_name + ": " +
                I2("don't know what to do with cell ",
                   "no se que hacer con la celda " ) + cell_coord );
+#endif
       result = new BContensText( "" );
     }
   }
@@ -435,17 +449,17 @@ BasicExcelCell *TolExcel::GetCell( const BText &err_name,
   
   BasicExcelCell *cell = ptrWS->Cell( row, col );
   if ( !cell ) {
-    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+    snprintf( cell_coord, 64, "(%d,%d)", row+1, col+1 );
     Warning( err_name + ": " +
              I2("the cell ",  "la celda " ) + cell_coord +
              I2(" does not exists", " no existe") );
-  } else if ( cell->Type() == BasicExcelCell::UNDEFINED ) {
-    snprintf( cell_coord, 64, "(%d,%d)", row, col );
+  }/* else if ( cell->Type() == BasicExcelCell::UNDEFINED ) {
+    snprintf( cell_coord, 64, "(%d,%d)", row+1, col+1 );
     Warning( err_name + ": " +
              I2("the cell ", "la celda " ) + cell_coord +
              I2(" is undefined", " no esta definida" ) );
     cell = NULL;
-  }
+    }*/
   return cell;
 }
 
@@ -801,7 +815,11 @@ void BSetExcelReadRange::CalcContens()
 	BList* lsta	  = NIL;
 	BList* auxa	  = NIL;
 	for( c = c0; c <= c1; c++ ) {
-          LstFastAppend( lsta, auxa, xls->GetCellAnything( _name_, r, c ) );
+          BSyntaxObject *cellValue = xls->GetCellAnything( _name_, r, c );
+          if ( !cellValue ) {
+            cellValue = new BContensText( "" );
+          }
+          LstFastAppend( lsta, auxa, cellValue );
         }
 	LstFastAppend( result, aux, NewSet( "", "", lsta, NIL, BSet::Generic) );
       }
