@@ -1,0 +1,26 @@
+Real handle = Excel.Open( "sample_series.xls" );
+Real If( handle != 0,
+         WriteLn( "sample_series.xls abierto satisfactoriamente" ),
+         {
+           WriteLn( "No se pudo abrir sample_series.xls" );
+           Real Stop
+         });
+
+Real Excel.ActivateWS( handle, 1 );
+
+Real cellC1 = Excel.ReadReal( handle, "C1" );
+Anything cellAnyC1 = Excel.ReadCell( handle, "C1" );
+
+Set columnTypes = [[
+  { Date fecha = UnknownDate },
+  { Real valor1 = ? },
+  { Real valor2 = ? }
+]];
+
+Set datosRango1 = Excel.ReadRange( handle, "A1", "C29" );
+
+Set datosRango2 = Excel.ReadRange( handle, "A1", "C29", columnTypes );
+
+Set seriesRango = Excel.ReadSeries( handle, "A1", "C29" );
+
+Real If( handle != 0, { Excel.Destroy( handle ); handle := 0 } );
