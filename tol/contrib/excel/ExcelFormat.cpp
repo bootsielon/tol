@@ -1,7 +1,7 @@
 /*
 	ExcelFormat.cpp
 
-	Copyright (c) 2009 Martin Fuchs <martin-fuchs@gmx.net>
+	Copyright (c) 2009, 2011 Martin Fuchs <martin-fuchs@gmx.net>
 
 	License: CPOL
 
@@ -37,7 +37,7 @@ XLSFormatManager::XLSFormatManager(BasicExcel& xls)
 	_formats[10] = L"0.00%";															// Percent
 	_formats[11] = L"0.00E+00";															// Scientific
 	_formats[12] = L"# ?/?";															// Fraction
-	_formats[13] = L"# ??/??";															// Fraction
+	_formats[13] = L"# ?\?/?\?";															// Fraction
 	_formats[14] = XLS_FORMAT_DATE;			// "M/D/YY"									// Date
 	_formats[15] = L"D-MMM-YY";															// Date
 	_formats[16] = L"D-MMM";															// Date
@@ -51,10 +51,10 @@ XLSFormatManager::XLSFormatManager(BasicExcel& xls)
 	_formats[38] = L"_(#,##0_);[Red](#,##0)";											// Account.
 	_formats[39] = L"_(#,##0.00_);(#,##0.00)";											// Account.
 	_formats[40] = L"_(#,##0.00_);[Red](#,##0.00)";										// Account.
-	_formats[41] = L"_(\"$\"* #,##0_);_(\"$\"* (#,##0);_(\"$\"* \"-\"_);_(@_)";			// Currency
-	_formats[42] = L"_(* #,##0_);_(* (#,##0);_(* \"-\"_);_(@_)";						// Currency
-	_formats[43] = L"_(\"$\"* #,##0.00_);_(\"$\"* (#,##0.00);_(\"$\"* \"-\"??_);_(@_)";	// Currency
-	_formats[44] = L"_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)";				// Currency
+	_formats[41] = L"_(* #,##0_);_(* (#,##0);_(* \"-\"_);_(@_)";						// Currency
+	_formats[42] = L"_($* #,##0_);_($* (#,##0);_($* \"-\"_);_(@_)";						// Currency
+	_formats[43] = L"_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)";				// Currency
+	_formats[44] = L"_($* #,##0.00_);_($* (#,##0.00);_($* \"-\"??_);_(@_)";				// Currency
 	_formats[45] = L"mm:ss";															// Time
 	_formats[46] = L"[h]:mm:ss";														// Time
 	_formats[47] = L"mm:ss.0";															// Time
@@ -64,7 +64,7 @@ XLSFormatManager::XLSFormatManager(BasicExcel& xls)
 	 // overwrite formats from workbook
 	size_t maxFormats = xls.workbook_.formats_.size();
 	for(size_t i=0; i<maxFormats; ++i) {
-		size_t idx = xls.workbook_.formats_[i].index_;
+		int idx = xls.workbook_.formats_[i].index_;
 
 		_formats[idx] = wstringFromLargeString(xls.workbook_.formats_[i].fmtstring_);
 
@@ -79,14 +79,14 @@ XLSFormatManager::XLSFormatManager(BasicExcel& xls)
 }
 
 
-size_t XLSFormatManager::get_font_idx(const ExcelFont& font)
+int XLSFormatManager::get_font_idx(const ExcelFont& font)
 {
-	size_t i = 0;
+	int i = 0;
 	for(vector<Workbook::Font>::const_iterator it=_xls.workbook_.fonts_.begin(); it!=_xls.workbook_.fonts_.end(); ++it,++i)
 		if (font.matches(*it))
 			return i;
 
-	size_t font_idx = _xls.workbook_.fonts_.size();
+	int font_idx = (int) _xls.workbook_.fonts_.size();
 	_xls.workbook_.fonts_.push_back(Workbook::Font());
 	Workbook::Font& new_font = _xls.workbook_.fonts_[font_idx];
 
@@ -126,7 +126,7 @@ const Workbook::Font& XLSFormatManager::get_font(const CellFormat& fmt) const
 
 wstring XLSFormatManager::get_format_string(const CellFormat& fmt) const
 {
-	size_t fmt_idx = fmt.get_fmt_idx();
+	int fmt_idx = fmt.get_fmt_idx();
 
 	FormatMap::const_iterator found = _formats.find(fmt_idx);
 
@@ -136,7 +136,7 @@ wstring XLSFormatManager::get_format_string(const CellFormat& fmt) const
 		return XLS_FORMAT_GENERAL;
 }
 
-size_t XLSFormatManager::get_format_idx(const wstring& fmt_str)
+int XLSFormatManager::get_format_idx(const wstring& fmt_str)
 {
 	FormatRevMap::const_iterator found = _formats_rev.find(fmt_str);
 
@@ -144,7 +144,7 @@ size_t XLSFormatManager::get_format_idx(const wstring& fmt_str)
 		return found->second;
 
 	 // register a new format string
-	size_t fmt_idx = _next_fmt_idx++;
+	int fmt_idx = _next_fmt_idx++;
 
 	_formats[fmt_idx] = fmt_str;
 	_formats_rev[fmt_str] = fmt_idx;
@@ -158,15 +158,15 @@ size_t XLSFormatManager::get_format_idx(const wstring& fmt_str)
 	return fmt_idx;
 }
 
-size_t XLSFormatManager::get_xf_idx(const CellFormat& fmt)
+int XLSFormatManager::get_xf_idx(const CellFormat& fmt)
 {
-	size_t i = 0;
+	int i = 0;
 	for(vector<Workbook::XF>::const_iterator it=_xls.workbook_.XFs_.begin(); it!=_xls.workbook_.XFs_.end(); ++it,++i)
 		if (fmt.matches(*it))
 			return i;
 
 	 // create a new XF
-	int xf_idx = _xls.workbook_.XFs_.size();
+	int xf_idx = (int) _xls.workbook_.XFs_.size();
 	_xls.workbook_.XFs_.push_back(Workbook::XF());
 	Workbook::XF& xf = _xls.workbook_.XFs_[xf_idx];
 

@@ -1,7 +1,7 @@
 /*
 	ExcelFormat.h
 
-	Copyright (c) 2009 Martin Fuchs <martin-fuchs@gmx.net>
+	Copyright (c) 2009, 2010, 2011 Martin Fuchs <martin-fuchs@gmx.net>
 
 	License: CPOL
 
@@ -125,6 +125,12 @@ struct ExcelFont
 		return *this;
 	}
 
+	ExcelFont& set_italic(bool italic)
+	{
+		_options = (_options&~EXCEL_FONT_ITALIC) | (italic? EXCEL_FONT_ITALIC: 0);
+		return *this;
+	}
+
 	ExcelFont& set_color_index(int color_idx)
 	{
 		_color_index = color_idx;
@@ -194,17 +200,17 @@ struct XLSFormatManager
 	wstring get_format_string(const CellFormat& fmt) const;
 	const Workbook::XF& get_XF(int xf_idx) const {return _xls.workbook_.XFs_[xf_idx];}
 
-	size_t get_font_idx(const ExcelFont& font);
-	size_t get_format_idx(const wstring& fmt_str);
-	size_t get_xf_idx(const CellFormat& fmt);
+	int get_font_idx(const ExcelFont& font);
+	int get_format_idx(const wstring& fmt_str);
+	int get_xf_idx(const CellFormat& fmt);
 
 private:
 	BasicExcel&	_xls;
 
-	size_t _next_fmt_idx;
+	int _next_fmt_idx;
 
-	typedef map<size_t, wstring> FormatMap;
-	typedef map<wstring, size_t> FormatRevMap;
+	typedef map<int, wstring> FormatMap;
+	typedef map<wstring, int> FormatRevMap;
 	FormatMap _formats;
 	FormatRevMap _formats_rev;
 };
@@ -316,7 +322,7 @@ enum BORDERLINE_FLAGS {
 24-21 01E00000H Diagonal line style
 31-26 FC000000H Fill pattern
 */
-#define MAKE_COLOR1(top, bottom, diag)	((top) | ((bottom)<<7) | ((diag)<<14))
+#define MAKE_COLOR1(top, bottom, diag, pat)	((top) | ((bottom)<<7) | ((diag)<<14) | pat)
 
  // line style constants for COLOR1
 enum COLOR1_LS { // EXCEL_LS << 21
@@ -396,7 +402,7 @@ struct CellFormat
 		set_font(font);
 	}
 
-	CellFormat(XLSFormatManager& mgr, const Workbook::XF& xf, size_t xf_idx)
+	CellFormat(XLSFormatManager& mgr, const Workbook::XF& xf, int xf_idx)
 	 :	_mgr(mgr)
 	{
 		init(xf, xf_idx);
@@ -423,12 +429,17 @@ struct CellFormat
 		return _xf_idx;
 	}
 
-	size_t get_font_idx() const
+	void flush()
+	{
+		_xf_idx = -1;	// invalidate XF index
+	}
+
+	int get_font_idx() const
 	{
 		return _font_idx;
 	}
 
-	size_t get_fmt_idx() const
+	int get_fmt_idx() const
 	{
 		return _fmt_idx;
 	}
@@ -440,7 +451,7 @@ struct CellFormat
 	CellFormat& set_font(const ExcelFont& font)
 	{
 		_font_idx = _mgr.get_font_idx(font);
-		_xf_idx = -1;	// invalidate XF index
+		flush();
 		return *this;
 	}
 
@@ -455,7 +466,7 @@ struct CellFormat
 	CellFormat& set_format_string(const wstring& fmt_str)
 	{
 		_fmt_idx = _mgr.get_format_idx(fmt_str);
-		_xf_idx = -1;	// invalidate XF index
+		flush();
 		return *this;
 	}
 
@@ -466,7 +477,7 @@ struct CellFormat
 	CellFormat& set_color1(unsigned color)
 	{
 		_color1 = color;
-		_xf_idx = -1;	// invalidate XF index
+		flush();
 		return *this;
 	}
 
@@ -477,7 +488,7 @@ struct CellFormat
 	CellFormat& set_color2(unsigned short color)
 	{
 		_color2 = color;
-		_xf_idx = -1;	// invalidate XF index
+		flush();
 		return *this;
 	}
 
@@ -494,8 +505,17 @@ struct CellFormat
 	CellFormat& set_alignment(char alignment)
 	{
 		_alignment = alignment;
-		_xf_idx = -1;	// invalidate XF index
+		flush();
 		return *this;
+	}
+
+	bool is_wrapping()
+	{
+		return (_alignment & 0x08)? true: false;
+	}
+	CellFormat& set_wrapping(bool wrap)
+	{
+		return set_alignment((_alignment&~0x08) | (wrap? 0x08: 0x00));
 	}
 
 	char get_rotation() const
@@ -505,7 +525,7 @@ struct CellFormat
 	CellFormat& set_rotation(char rotation)
 	{
 		_rotation = rotation;
-		_xf_idx = -1;	// invalidate XF index
+		flush();
 		return *this;
 	}
 
@@ -516,7 +536,7 @@ struct CellFormat
 	CellFormat& set_text_props(char text_props)
 	{
 		_text_props = text_props;
-		_xf_idx = -1;	// invalidate XF index
+		flush();
 		return *this;
 	}
 
@@ -527,7 +547,32 @@ struct CellFormat
 	CellFormat& set_borderlines(int borderlines)
 	{
 		_borderlines = borderlines;
-		_xf_idx = -1;	// invalidate XF index
+		flush();
+		return *this;
+	}
+
+	 // set borderlines using EXCEL_LS enumeration constants and colour indices
+	CellFormat& set_borderlines(
+		EXCEL_LS left, EXCEL_LS right, EXCEL_LS top, EXCEL_LS bottom,
+		unsigned idxLclr, unsigned idxRclr
+	)
+	{
+		_borderlines = MAKE_BORDERSTYLE(left, right, top, bottom, idxLclr, idxRclr);
+		flush();
+		return *this;
+	}
+
+	 // set borderlines including the top and bottom colour
+	CellFormat& set_borderlines(
+		EXCEL_LS left, EXCEL_LS right, EXCEL_LS top, EXCEL_LS bottom,
+		unsigned idxLclr, unsigned idxRclr, unsigned idxTclr, unsigned idxBclr,
+		EXCEL_LS diag,		// diagonal line style
+		COLOR1_PAT pattern	// fill pattern
+	)
+	{
+		_borderlines = MAKE_BORDERSTYLE(left, right, top, bottom, idxLclr, idxRclr);
+		_color1 = MAKE_COLOR1(idxTclr, idxBclr, diag, pattern);
+		flush();
 		return *this;
 	}
 
@@ -577,8 +622,8 @@ private:
 
 	mutable int _xf_idx;	// cached XF index
 
-	size_t	_font_idx;
-	size_t	_fmt_idx;
+	int		_font_idx;
+	int		_fmt_idx;
 
 //	char	_protectionType;
 	char	_alignment;			// alignment and text break, see EXCEL_ALIGNMENT

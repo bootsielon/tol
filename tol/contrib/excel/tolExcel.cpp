@@ -34,6 +34,7 @@ using namespace ExcelFormat;
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bspfun.h>
 #include <tol/tol_bsetgra.h>
+#include <tol/tol_btsrgra.h>
 
 class TolExcel {
 public:
@@ -787,7 +788,7 @@ void BDteExcelReadDate::CalcContens()
 DeclareContensClass(BSet, BSetTemporary, BSetExcelReadRange);
 DefExtOpr(1, BSetExcelReadRange, "Excel.ReadRange", 3, 4,
           "Real Anything Anything Set",
-          "(Real ExcelHandler, Anything CornerLT, Anything CornerRB [,Set ColumnTypes])",
+          "(Real ExcelHandler, Anything CornerLeftTop, Anything CornerRightBottom [,Set ColumnTypes])",
           I2("Return the contents of the cells contained given cell's range. "
              "The cell corners delimiting the range can be given as Text or "
              "Set. For instance you can use either \"A1\" or [[1,1]].",
@@ -839,21 +840,145 @@ void BSetExcelReadRange::CalcContens()
           ptrArgs = NULL;
         }
       }
+      BSyntaxObject *cellValue;
+      BDat realValue;
+      BDate dateValue;
+      BText textValue;
       for( r = r0; r <= r1; r++ ) {
 	BList* lsta	  = NIL;
 	BList* auxa	  = NIL;
 	for( c = c0; c <= c1; c++ ) {
-          BSyntaxObject *cellValue = xls->GetCellAnything( _name_, r, c );
-          // OJO: aqui hay que rellenar con el omitido segun el tipo de columna
-          if ( !cellValue ) {
-            cellValue = ptrArgs ? ((*ptrArgs)[c-c0+1])->CopyContens() :
-              new BContensText( "" );
+          if ( ptrArgs ) {
+            BGrammar *grammar = (*ptrArgs)[c-c0+1]->Grammar();
+            if ( grammar == GraText() ) {
+              xls->GetCellText( _name_, r, c, textValue );
+              cellValue = new BContensText( textValue );
+            } else if ( grammar == GraReal() ) {
+              xls->GetCellReal( _name_, r, c, realValue );
+              cellValue = new BContensDat( realValue );
+            } else {
+              assert( grammar == GraDate() );
+              xls->GetCellDate( _name_, r, c, dateValue );
+              cellValue = new BContensDate( dateValue );
+            }
+          } else {
+            cellValue = xls->GetCellAnything( _name_, r, c );
+            if ( !cellValue ) {
+              cellValue = new BContensText( "" );
+            }
           }
           LstFastAppend( lsta, auxa, cellValue );
         }
 	LstFastAppend( result, aux, NewSet( "", "", lsta, NIL, BSet::Generic) );
       }
       contens_.RobStruct( result, NIL, BSet::Table );
+    }
+  } else {
+    Error( _name_ +
+           I2(": invalid excel handler",
+              ": identificador de objeto excel invalido") );
+  }
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetExcelReadSeries);
+DefExtOpr(1, BSetExcelReadSeries, "Excel.ReadSeries", 3, 4,
+          "Real Anything Anything TimeSet",
+          "(Real ExcelHandler, Anything CornerLeftTop, Anything CornerRightBottom [,TimeSet Dating])",
+          I2("Return the contents of the cells contained given cell's range as a "
+             "Set of Serie. The first columne in the range is considered as the "
+             "dates supporting the data of the Series. Every column from the column "
+             "2 on is considered as the data of one Serie.\n"
+             "The cell corners delimiting the range can be given as Text or "
+             "Set. For instance you can use either \"A1\" or [[1,1]].",
+             "Retorna el contenido de las celdas contenidas en el rango de "
+             "celdas dado interpretadas como un conjunto de Series. La primera "
+             "columna del rango se interpreta como las fechas de soporte de las "
+             "Series y las columnas sucesivas una para cada Serie de datos.\n"
+             "Las esquinas del rango pueden especificarse como "
+             "Text o Set. Por ejemplo se puede usar indistintamente "
+             "\"A1\" o [[1,1]]."),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BSetExcelReadSeries::CalcContens()
+{
+  static BText _name_( "Excel.ReadSeries" );
+  double addr = Dat( Arg( 1 ) ).Value();
+  BSyntaxObject *cornerLT = Arg(2);
+  BSyntaxObject *cornerBR = Arg(3);
+  size_t c0, r0, c1, r1;
+  
+  TolExcel *xls = TolExcel::decode_addr( addr );
+  if ( xls ) {
+    // bool status1 = ;
+    // bool status2 = ;
+    BUserTimeSet *ptrTms = NULL; 
+
+    if ( TolExcel::getCellCoordinates( _name_, cornerLT, r0, c0 ) &&
+         TolExcel::getCellCoordinates( _name_, cornerBR, r1, c1 ) ) {
+      size_t    numColumns = c1 - c0 + 1;
+      if ( numColumns < 2 ) {
+        Error( _name_ + ": " +
+               I2( "the range must have at least two columns",
+                   "el rango debe tener al menos dos columnas") );
+        return;
+      }
+      if ( NumArgs() > 3 ) {
+        ptrTms = Tms( Arg( 4 ) );
+      } else {
+        ptrTms = Tms( "C" );
+      }
+      BText tmsId = ptrTms->Identify();
+      // one BData for Serie
+      std::vector<BData> seriesData(numColumns-1);
+      size_t r,c;
+      BDate  firstDate, lastDate, prevDate = BDate::Begin(), currentDate;
+      for( r = r0; r <= r1; r++ ) {
+        // for row r read first column containing the date
+        if ( !xls->GetCellDate( _name_, r, c0, currentDate ) ) {
+          // unable to read the cell
+          continue;
+        }
+        if ( !ptrTms->Contain( currentDate ) ) {
+          Warning( _name_ + ": " + currentDate.Name() +
+                   I2( " does not belong to ", " no pertenece a " ) + tmsId );
+          continue;
+        }
+        if ( r == r0 ) {
+          firstDate = currentDate;
+          prevDate  = ptrTms->Predecessor( currentDate );
+        } else if ( currentDate <= prevDate ) {
+          Warning( _name_ + ": " +
+                   I2( "strict date ordering violated at row ",
+                       "orden de fechas violado en la fila ") + BDat(r) );
+          continue;
+        }
+        prevDate  = ptrTms->Successor( prevDate );
+        // if there is no gap prevDate should be equal to currentDate,
+        // if not fill the gap with missing values
+        for ( ; prevDate < currentDate;
+              prevDate = ptrTms->Successor( prevDate ) ) {
+          for ( c = 0; c < numColumns - 1; c++ ) {
+            seriesData[c].Add( BDat::Unknown() );
+          }
+        }
+        // read the data for currentDate and put in seriesData
+	for( c = c0+1; c <= c1; c++ ) {
+          BDat cellValue;
+          xls->GetCellReal( _name_, r, c, cellValue );
+          seriesData[c-c0-1].Add( cellValue );
+        }
+      }
+      // at this point seriesData contains the data, now create de
+      // TimeSeries objects
+      BList*	result = NIL;
+      BList*	aux    = NIL;
+      for ( c = 0; c < numColumns - 1; c++ ) {
+        BTsrPrimary* serie =
+          new BTsrPrimary( "", "", ptrTms, firstDate, seriesData[c] );  
+        LstFastAppend( result, aux, serie );
+      }
+      contens_.RobElement( result );
     }
   } else {
     Error( _name_ +
