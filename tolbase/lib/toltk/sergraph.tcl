@@ -11,6 +11,30 @@ namespace eval ::SeriesGraph {
   variable tmpOpt
 }
 
+proc ::SeriesGraph::ShowSerieInfo { Instance graph x y } {
+  upvar \#0 ${Instance}::widgets widgets
+  upvar \#0 ${Instance}::data data
+  
+  if ![$graph element closest $x $y info -interpolate yes] {
+    beep
+    return
+  }
+  parray info
+}
+
+proc ::SeriesGraph::BindSerieInfo { Instance } {
+  upvar \#0 ${Instance}::widgets widgets
+  upvar \#0 ${Instance}::data data
+
+  set graph $widgets(gr,0)
+  bind closest-point-$graph <Control-ButtonPress-2>  \
+      [ string map [list %I $Instance] {
+        ::SeriesGraph::ShowSerieInfo %I %W %x %y
+      } ]
+  blt::AddBindTag $graph closest-point-$graph
+  
+}
+
 #/////////////////////////////////////////////////////////////////////////////
 proc ::SeriesGraph::Create { path list args } {
 #
@@ -37,6 +61,9 @@ proc ::SeriesGraph::Create { path list args } {
   puts "time in ::bayesGraph::Create = $t0"
   upvar \#0 ${Instance}::widgets widgets
   upvar \#0 ${Instance}::data data
+
+  #::SeriesGraph::BindSerieInfo $Instance
+  #Blt_ClosestPoint $widgets(gr,0)
 
   set data(namespace)            SeriesGraph
   set data(proc,OnGetLabel)      ::SeriesGraph::GetLabel
@@ -124,7 +151,9 @@ proc ::SeriesGraph::Create { path list args } {
         if { $j } {
           $grpath line configure l$i-$j -label ""
         } else {
-          $grpath line configure l$i-0 -label [$sergrp serie $i name]
+          set nameSerie [$sergrp serie $i name]
+          $grpath line configure l$i-0 -label $nameSerie
+          set data(labels,l$i) $nameSerie
         }
         incr j
       }
@@ -307,22 +336,22 @@ proc ::SeriesGraph::Configure {this} {
 
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::SeriesGraph::GetLabel { this bltg tick y} {
+proc ::SeriesGraph::GetLabel { this bltg name tick y} {
 # 
 #/////////////////////////////////////////////////////////////////////////////  
   upvar \#0 ${this}::data data
   set gr $data(gr,active)
 
-  if [string is int $tick] {
-    set str ""
-    catch {
-      set str [$data(gr,$gr,sergrp) dating $tick]
-    }
-    set label "t = $str, z = $y"
-  } else  {
-    set label "t = $tick, z = $y"
+  set t [ expr {round($tick)} ]
+  if { [ catch { $data(gr,$gr,sergrp) dating $t } labelTick ] } {
+    set labelTick $tick
   }
-  return $label
+  if { [ regexp {(l[0-9])+(-[0-9])*} $name ==> codeLine ] } {
+    set nameLine $data(labels,$codeLine)
+  } else {
+    set nameLine "NO LINE"    
+  }
+  return "$nameLine: ($labelTick,$y)"
 }
 
 

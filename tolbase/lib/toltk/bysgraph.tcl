@@ -542,11 +542,20 @@ proc ::bayesGraph::UpdateCursorLabel { numGraph this x y } {
 #/////////////////////////////////////////////////////////////////////////////  
   upvar \#0 ${this}::widgets widgets
   upvar \#0 ${this}::data data
-  if [$widgets(gr,$numGraph) inside $x $y] {
-    set t [expr round([$widgets(gr,$numGraph) axis invtransform x $x])]
-    set z [format "%.2f" [$widgets(gr,$numGraph) axis invtransform y $y]]
-    if [info exists ${this}::data(proc,OnGetLabel)] {
-      set label [$data(proc,OnGetLabel) $this $widgets(gr,$numGraph) $t $z]
+
+  set graph $widgets(gr,$numGraph)
+  if { [ $graph inside $x $y ] } {
+    #set t [expr round([$widgets(gr,$numGraph) axis invtransform x $x])]
+    set t [ $graph axis invtransform x $x ]
+    set z [ format "%.2f" [ $graph axis invtransform y $y ] ]
+    if { [ info exists ${this}::data(proc,OnGetLabel) ] } {
+      if { [$graph element closest $x $y infoLine -interpolate yes] } {
+        set nameLine $infoLine(name)
+      } else {
+        set nameLine ""
+      }
+      set label [$data(proc,OnGetLabel) \
+                     $this $graph $nameLine $t $z]
     } else {
       set label "X = $t, Y = $z" 
     }
