@@ -1,0 +1,66 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for Boolean Algebra Coherence
+//////////////////////////////////////////////////////////////////////////////
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text link_ = "";
+  Text summary_ = 
+    "N-Ary comparisson operations with unknowns, finite and infinite numbers";
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real DoUnparseNodes := 2;
+  Set X    = NCopy(10,"0")<<NCopy(10,"1")<<[["-1/0","1/0","?"]];
+  Set Opr2 = SetOfText("==","!=","<", ">", "<=",">=");
+  Set OprN = SetOfText("EQ","NE","LT","GT","LE","GE");
+
+  Real N= 1000;
+
+  Set report = For(1,N,Set(Real iter)
+  {
+    Real k = IntRand(2,20);
+    Real n = IntRand(1,Card(Opr2));
+    
+    Text opr2 = Opr2[n];
+    Text oprN = OprN[n];
+  
+    Set Xk = For(1,k,Text(Real j) { X[ IntRand(1,Card(X)) ] });
+    
+    Text expr.Opr2 = SetSum(For(2,k,Text(Real j)
+    {
+      If(j>2," & ","")+"(("+Xk[j-1]+") "+ opr2+ " ("+Xk[j]+"))"
+    }));
+    Text expr.OprN = oprN+"("+SetSum(For(1,k,Text(Real j)
+    {
+      If(j>1,", ","")+Xk[j]
+    }))+")";
+  
+    Real eval.Opr2 = Eval(expr.Opr2);
+    Real eval.OprN = Eval(expr.OprN);
+    Real ok = And(IsUnknown(eval.Opr2)==IsUnknown(eval.OprN), eval.Opr2==eval.OprN);
+    If(!ok, WriteLn(
+    "  "<<eval.Opr2+"="<<expr.Opr2+"\n"
+    "  "<<eval.OprN+"="<<expr.OprN+"\n"));
+    [[ expr.Opr2, expr.OprN, eval.Opr2, eval.OprN, ok ]]
+  });
+  Set ok.all = Traspose(Extract(report, 5))[1];
+  Real ok = SetMin(ok.all);
+
+
+  Set partialResults_ = 
+  [[
+    ok
+  ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr0 == NError, ok);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+/* */
