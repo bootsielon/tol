@@ -450,12 +450,15 @@ BSyntaxObject* BGrammar::LeftEvaluateTree(const List* tre)
       BGrammar* gra2 = result->Grammar();
       if (!(gra1->Name()==gra2->Name())) 
       {
-        Error(name + I2(" is not a reference.",
-                        " no es una referencia de tipo ") + gra1->Name()+
-                     I2(" but it's a reference of type ",
-                        " sino de tipo ")+gra2->Name());
-         error = true;
-         result = NIL;
+        if(BOut::IsEnabled()) 
+        { 
+          Error(name + I2(" is not a reference.",
+                          " no es una referencia de tipo ") + gra1->Name()+
+                       I2(" but it's a reference of type ",
+                          " sino de tipo ")+gra2->Name());
+        }
+        error = true;
+        DESTROY(result);
       }
     }
     if(!result && gra1)
@@ -538,6 +541,7 @@ BSyntaxObject* EvaluateMatrix(const List* tre)
 	Error(I2("Invalid matrix expression : \n",
 		 "Expresión no válida para formación de matrices : \n") +
 	      BParser::Unparse(tre, "  ", "\n"));
+      DESTROY(result);
 	return(NIL);
     }
     else
@@ -709,6 +713,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
   }
   else if((type == TYPE) && (name=="#Require"))
   {
+    DESTROY(result);
     return(NULL);  
   }
   else if((type == TYPE) && (newGrammar=TknFindGrammar(tok)))
@@ -816,22 +821,25 @@ BSyntaxObject* BGrammar::EvaluateTree(
       if(cast) { result = cast; }
       else     
       {
-        BGrammar* rg = result->Grammar();
-      //if(!rg && (name=="::"))
-        BText rgn = (rg)?rg->Name():"UNKNOWN TYPE";
-        BText tgn = this->Name();
-        BText rid = (rg)?result->Identify():BParser::Unparse(tre, "  ", "\n");
-        TRACE_SHOW_MEDIUM(fun,"3.3.1.2");
-        BText en = BText("It has not been possible to convert from ")+ 
-                   rgn+ " to "+
-                   tgn+ " for object '"+
-                   rid+"'";
-        BText es = BText("No ha sido posible convertir de ")+
-                   rgn+ " hacia "+
-                   tgn + " para el objeto '"+
-                   rid+"'";
-        Error(I2(en,es));
-        result = NIL;
+        if(BOut::IsEnabled()) 
+        { 
+          BGrammar* rg = result->Grammar();
+        //if(!rg && (name=="::"))
+          BText rgn = (rg)?rg->Name():"UNKNOWN TYPE";
+          BText tgn = this->Name();
+          BText rid = (rg)?result->Identify():BParser::Unparse(tre, "  ", "\n");
+          TRACE_SHOW_MEDIUM(fun,"3.3.1.2");
+          BText en = BText("It has not been possible to convert from ")+ 
+                     rgn+ " to "+
+                     tgn+ " for object '"+
+                     rid+"'";
+          BText es = BText("No ha sido posible convertir de ")+
+                     rgn+ " hacia "+
+                     tgn + " para el objeto '"+
+                     rid+"'";
+          Error(I2(en,es));
+        }
+        DESTROY(result);
       }
     }
   }
@@ -893,7 +901,11 @@ BSyntaxObject* BGrammar::EvaluateTree(
   if(result && (result->Mode()==BCLASSMODE))
   {
     BClass* cls = (BClass*) result;
-    if(!cls->isDefined_) { result = NULL; }
+    if(!cls->isDefined_) 
+    { 
+      DESTROY(result);
+      result = NULL; 
+    }
   }
   return(result);
 }
