@@ -385,28 +385,37 @@ GetDirHelpSection);
       -1
     },
     {
-      Real If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly,
-      {
-        0
-      },
-      { 
-        TolPackage::Client::RemoteUpdatePackSyncInfo(True)
-      });
       WriteLn(I2("Checking if TOL is updated.",
                  "Comprobando si TOL está actualizado."));
       Text WriteFile("tol_release_check.tol", 
                      "Date tol_release_check = "+
                      FormatDate(Now,"%cy%Ym%md%dh%hi%is%s")+";\n");
       Text tol_site = "https://www.tol-project.org/wiki/DownloadTol";
-      Text lastOldStableWin = GetVersionFromTolProject("oldstable");
-      Text lastOfficialWin  = GetVersionFromTolProject("official");
-      Text lastDevelopmWin  = GetVersionFromTolProject("development");
-      Real ostOK = (Text lastOldStableWin!="");
-      Real ofcOK = (Text lastOfficialWin!="");
-      Real devOK = (Text lastDevelopmWin!="");
+      Text lastOldStableWin ="";
+      Text lastOfficialWin  = "";
+      Text lastDevelopmWin  = "";
+      Real ostOK = False;
+      Real ofcOK = False;
+      Real devOK = False;
+      Real Show(False,"ALL");
+      Text lastOldStableWin := GetVersionFromTolProject("oldstable");
+      Real ostOK := (Text lastOldStableWin!="");
+      If(ostOK,
+      {
+        Text lastOfficialWin := GetVersionFromTolProject("official");
+        Real ofcOK := (Text lastOfficialWin!="");
+        If(ofcOK,
+        {
+          Text lastDevelopmWin := GetVersionFromTolProject("development");
+          Real devOK := (Text lastDevelopmWin!="")
+        })
+      });
+      Real Show(True,"ALL");
       Text msg="";
+      Real cannot_connect = False;
       Real check = If(Or(!ostOK, !ofcOK, !devOK),
       {
+        Real cannot_connect := True;
         WriteLn(msg:=I2("Cannot check TOL release.",
                         "No se pudo chequear la versión de TOL."),"W");
         -1
@@ -460,11 +469,20 @@ GetDirHelpSection);
       });
       Real ok = If(check==0, 1,
       {
-        Text doTest = TclTkMessageBox(SetOfSet(
-                        @TclArgSt("-title",   "Dialogo TclWarning"),
-                        @TclArgSt("-message", msg),
-                        @TclArgSt("-icon",    "warning")));
+        If(!cannot_connect,
+          Text doTest = TclTkMessageBox(SetOfSet(
+                          @TclArgSt("-title",   "Dialogo TclWarning"),
+                          @TclArgSt("-message", msg),
+                          @TclArgSt("-icon",    "warning"))));
         0
+      });
+    //Real If(!check|TolConfigManager::Config::Upgrading::TolPackage::LocalOnly,
+      Real If(!check|TolConfigManager::Config::Upgrading::TolPackage::LocalOnly,
+      {
+        0
+      },
+      { 
+        TolPackage::Client::RemoteUpdatePackSyncInfo(True)
       });
       check
     })
