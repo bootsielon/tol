@@ -36,6 +36,7 @@
 
 BTraceInit("syn.cpp");
 
+//#define TRACE_MEMORY
 #ifdef TRACE_MEMORY
 //Allows enabling and disabling of traces
 BDat& EnableTraceMemory()
@@ -52,21 +53,12 @@ static FILE* InitTraceMemHist()
   BText path = BSys::TolAppData()+"syslog/TRACE_MEMORY.log";
   Std(BText("InitTraceMemHist saved at ")+GetAbsolutePath(path)+"\n");
   traceMemHist = fopen(path,"w");
-/*
-  BText title = BText()+
-   "Address\t"+
-   "Mode\t"+
-   "Type\t"+
-   "Identify\t"+
-   "Message\t"+
-   "Level\t"+
-   "SourcePath\t"+
-   "IsHashed\t"+
-   "NRefs\t"+
-   "AliveObjects\n";
-  fprintf(traceMemHist,title.String());
+  fprintf(traceMemHist,
+  "TRUNCATE TABLE tol_trace_memory.events;\n"
+  "INSERT INTO tol_trace_memory.events(address, mode, type, identify,\n"
+  "message, level, sourcepath, ishashed, nrefs, aliveobjects)\n"
+  "VALUES \n");
   fflush(traceMemHist);
-*/
   return(traceMemHist);
 }
 
