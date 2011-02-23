@@ -23,11 +23,18 @@
 #include <win_tolinc.h>
 #endif
 
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_linalg.h>
+
 #include <tol/tol_bstat.h>
 #include <tol/tol_matrix.h>
+#include <tol/tol_bmfstpro.h>
+#include <tol/tol_blinalg.h>
+#include <tol/tol_gsl.h>
+#include <tol/tol_gslmat.h>
+#include <tol/tol_bsvdsep.h>
 #include <tol/tol_bratio.h>
 
-#include <gsl/gsl_math.h>
 
 BTraceInit("stat.cpp");
 
@@ -516,58 +523,58 @@ BDat Correlation(const BArray<BDat>& v1, const BArray<BDat>& v2)
 //--------------------------------------------------------------------
 void Covarianze(const BMatrix<BDat>& d, BSymMatrix<BDat>& cov)
 
-/*! Returns the correlation between rows of data
+/*! Returns the covarianze between rows of data
  */
 //--------------------------------------------------------------------
 {
-    BMatrix<BDat> data = d;
-    BInt n = data.Rows();
-    BInt N = data.Columns();
-    BInt M = 0;
-    BInt i,j,k;
-    BArray<BDat> avr;
-    avr.ReallocBuffer(n);
-    cov.Alloc(n);
-    
-    for(k=0; k<N; k++)
+  BMatrix<BDat> data = d;
+  BInt n = data.Rows();
+  BInt N = data.Columns();
+  BInt M = 0;
+  BInt i,j,k;
+  BArray<BDat> avr;
+  avr.ReallocBuffer(n);
+  cov.Alloc(n);
+  
+  for(k=0; k<N; k++)
+  {
+    BDat c = 0;
+    for(j=0; c.IsKnown() && (j<n); j++)
     {
-	BDat c = 0;
-	for(j=0; c.IsKnown() && (j<n); j++)
-	{
-	    c = data(j,k);
-	}
-	if(!c.IsKnown())
-	{
-	    for(j=0; j<n; j++)
-	    {
-		data(j,k).PutKnown(BUNKNOWN);
-	    }
-	}
-	else
-	{
-	    M++;
-	}
+      c = data(j,k);
     }
-    
-    for(i=0; i<n; i++)
+    if(!c.IsKnown())
     {
-	avr(i) = 0;
-	for(j=0; j<N; j++) { avr(i) += data(i,j); }
-	avr(i)/=BDat(N);
+      for(j=0; j<n; j++)
+      {
+        data(j,k).PutKnown(BUNKNOWN);
+      }
     }
-    
-    for(i=0; i<n; i++)
+    else
     {
-	for(j=0; j<=i; j++)
-	{
-	    BDat c = 0;
-	    for(k=0; k<N; k++)
-	    {
-		c += (data(i,k)-avr(i))*(data(j,k)-avr(j));
-	    }
-	    cov(i,j)=c/BDat(M);
-	}
+      M++;
     }
+  }
+  for(i=0; i<n; i++)
+  {
+    avr(i) = 0;
+    for(j=0; j<N; j++) { avr(i) += data(i,j); }
+    avr(i)/=BDat(N);
+  }
+  for(i=0; i<n; i++)
+  {
+    for(j=0; j<=i; j++)
+    {
+      BDat c = 0;
+      for(k=0; k<N; k++)
+      {
+        c += (data(i,k)-avr(i))*(data(j,k)-avr(j));
+      }
+      cov(i,j)=c/BDat(M);
+    }
+  }
+//Std(BText("TRACE [Covariance] d=\n")+d.Name());
+//Std(BText("TRACE [Covariance] cov=\n")+cov.Name());
 }
 
 
@@ -592,25 +599,37 @@ void CorrelationF(const BSymMatrix<BDat>& cov,
  */
 //--------------------------------------------------------------------
 {
-    BInt n = cov.Rows();
-    BInt i,j;
-    cor = cov;
-    BArray<BDat> sq; sq.ReallocBuffer(n);
-    for(i=0; i<n; i++)
+  BInt n = cov.Rows();
+  BInt i,j;
+  cor = cov;
+  BArray<BDat> sq; sq.ReallocBuffer(n);
+  for(i=0; i<n; i++)
+  {
+    sq(i) = Sqrt(cor.Get(i,i));
+  }
+  for(i=0; i<n; i++)
+  {
+    BDat sqi = sq(i);
+    for(j=0; j<i; j++)
     {
-	sq(i) = Sqrt(cor.Get(i,i));
+      BDat sqj = sq(j);
+      if((sqi!=0)&&(sqj!=0))
+      {
+        BDat cij = cor.Get(i,j);
+        BDat sij = sqi*sq(j);
+        BDat xij = cij / sij;
+        cor(i,j)=xij;
+      }
+      else
+      { 
+        cor(i,j)=0;
+      }
     }
-    for(i=0; i<n; i++)
-    {
-	for(j=0; j<i; j++)
-	{
-	    BDat cij = cor.Get(i,j);
-	    BDat sij = sq(i)*sq(j);
-	    BDat xij = cij / sij;
-	    cor(i,j)=xij;
-	}
-	cor(i,i)=1;
-    }
+    if(sqi!=0) { cor(i,i)=1; }
+    else       { cor(i,i)=0; }
+  }
+//Std(BText("TRACE [CorrelationF] cov=\n")+cov.Name());
+//Std(BText("TRACE [CorrelationF] cor=\n")+cor.Name());
 }
 
 
@@ -638,18 +657,35 @@ void PartialCorrelationF(const BSymMatrix<BDat>& cor,
 //--------------------------------------------------------------------
 {
   BInt  i,j,r=cor.Rows();
-  BSymMatrix<BDat> aux;
-  BBool ok = Inverse(cor,aux);
+  BMatrix<BDat> A = cor; 
+  BMatrix<BDat> U(r, r), V(r, r), Vt;
+  BDiagMatrix<BDat> D(r, 0), Dp;
+//gsl_SingularValueDecomposition(A,U,D,V, "Golub_Reinsch");
+//gsl_SingularValueDecomposition(A,U,D,V, "Jacobi");
+  SingularValueDecomposition(A,U,D,V);
+  Vt = V.T();
+  Dp = D.P(DEpsilon());
+  BMatrix<BDat> Ap = V * Dp * Vt;
   pcor.Alloc(r);
-  for(i=0; i<r; i++)
+  if((Ap.Rows()==r) && (Ap.Columns()==r))
   {
-    for(j=0; j<r; j++)
+    for(i=0; i<r; i++)
     {
-      pcor(i,j) = aux(i,j) / Sqrt(aux(i,i)*aux(j,j));
+      for(j=0; j<r; j++)
+      {
+        pcor(i,j) = Ap(i,j) / Sqrt(Ap(i,i)*Ap(j,j));
+      }
+      pcor(i,i) = 1;
     }
-    pcor(i,i) = 1;
   }
   pcor *= -1;
+
+//Std(BText("TRACE [PartialCorrelationF] A=\n")+A.Name());
+//Std(BText("TRACE [PartialCorrelationF] U=\n")+U.Name());
+//Std(BText("TRACE [PartialCorrelationF] D=\n")+D.Name());
+//Std(BText("TRACE [PartialCorrelationF] Dp=\n")+Dp.Name());
+//Std(BText("TRACE [PartialCorrelationF] Ap=\n")+Ap.Name());
+//Std(BText("TRACE [PartialCorrelationF] pcor=\n")+pcor.Name());
 
 /*
   Old method Using recursive formula (http://en.wikipedia.org/wiki/Partial_correlation)
