@@ -1297,8 +1297,13 @@ BSyntaxObject* BStandardOperator::Evaluate(const List* argTrees)
         {
           BGrammar* g = GrammarForArg(n,k);
           BGrammar::PutLast(g);
+          int stackPos = BGrammar::StackSize();
           var = EvaluateArgument(g,b);
-          if(!var) { BGrammar::CleanTreeCache(b, true); }
+          if(!var) 
+          { 
+            BGrammar::CleanTreeCache(b, true); 
+            BGrammar::DestroyStackUntil(stackPos, NULL);    
+          }
         }
         BOut::Enable();
         if(!var)
@@ -1709,6 +1714,21 @@ BSyntaxObject* BUserFunction::Evaluator(BList* argList) const
 #endif
 
   BGrammar::PutLevel(save_level);
+  if(result)
+  {
+    BGrammar* rg = result->Grammar();
+    if(rg && rg->IsAutoContens())
+    {
+      if((rg!=GraNameBlock())&&(rg!=GraSet())&&(rg!=GraCode()))
+      {
+        BSyntaxObject* copy = result->CopyContens();
+        if(result->HasName()) { copy->PutName(result->Name()); }
+        if(result->Description().HasName()) { copy->PutDescription(result->Description()); }
+        DESTROY(result);
+        result = copy;
+      }
+    }
+  }
   return(result);
 }
 
