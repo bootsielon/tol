@@ -1,0 +1,143 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test about Statistics
+//////////////////////////////////////////////////////////////////////////////
+
+  Text email_ = "vdebuen@tol-project.org";
+  Text link_ = "";
+  Text summary_ = "Checks Poisson distribution related functions" ;
+
+//Write here the initial test TOL code if needed
+  Real numErr0 = Copy(NError);
+
+  Real lambda = Rand(0.00001, 1000);
+
+  Real M = 100000;
+
+  Real std_dev_of_sample_avr = Sqrt(lambda/M);
+
+  Real p0 = DistPoisson(0, lambda); 
+  Real p1 = DistPoisson(1, lambda); 
+  Real p2 = DistPoisson(2, lambda); 
+  
+  Real p00 = (0+p0)/2;
+  Real p0;
+  Real p01 = (p0+p1)/2;
+  Real p1;
+  Real p12 = (p1+p2)/2;
+  Real p2;
+  Real p23 = (p2+1)/2;
+  
+  Real x00 = DistPoissonInv(p00, lambda); 
+  Real x0  = DistPoissonInv(p0,  lambda); 
+  Real x01 = DistPoissonInv(p01, lambda); 
+  Real x1  = DistPoissonInv(p1,  lambda); 
+  Real x12 = DistPoissonInv(p12, lambda);
+  Real x2  = DistPoissonInv(p2,  lambda); 
+  Real x23 = DistPoissonInv(p23, lambda);
+  
+
+  Set For(0,Round(lambda*6),Set(Real x)
+  {  
+    Real cdf = DistPoisson(x, lambda); 
+    Real gsl = gsl_cdf_poisson_P(x, lambda);
+    Real y = DistPoissonInv(cdf,lambda);
+    [[x,cdf,gsl,y]]
+  });
+
+
+  Real precision = 0.0001;
+
+  Set rnk = Range(precision,1-precision,precision);
+  Real N = Card(rnk);
+  Matrix P = SetCol(rnk);
+  Matrix X = SetCol(For(1,N,Real(Real k) 
+  {
+    DistPoissonInv(MatDat(P,k,1),lambda)
+  }));
+
+  Matrix P_cdf = SetCol(For(1,N,Real(Real k) 
+  {
+    DistPoisson(MatDat(X,k,1),lambda)
+  }));
+  Matrix P_gsl = SetCol(For(1,N,Real(Real k) 
+  {
+    gsl_cdf_poisson_P(MatDat(X,k,1),lambda)
+  }));
+ 
+  Matrix X_ = SetCol(For(1,N,Real(Real k) 
+  {
+    DistPoissonInv(MatDat(P,k,1),lambda)
+  }));
+
+  Real ok.X = MatMax(Abs(X-X_))==0;
+
+  Matrix PX = P | X;
+  Matrix XP = X | P;
+  Matrix cmpP = P | P_cdf | P_gsl;
+  Matrix cmpX = X | X_;
+  
+  Matrix poisson_cdf_sim = SetCol(For(1, N, Real(Real k){
+    Real rnd = Rand(0, 1);
+    DistPoissonInv(rnd, lambda)
+  }));
+  
+  Matrix poisson_gsl_sim = SetCol(For(1, N, Real(Real k){
+    gsl_ran_poisson(lambda)
+  }));
+  
+
+  Real lambda;
+  Real M;
+  Real std_dev_of_sample_avr;
+
+  Real poisson_cdf_avg = MatAvr(poisson_cdf_sim);
+  Real poisson_gsl_avg = MatAvr(poisson_gsl_sim);
+
+  Real poisson_cdf_avg_dif = (poisson_cdf_avg-lambda);
+  Real poisson_gsl_avg_dif = (poisson_gsl_avg-lambda);
+
+  Real poisson_lambda_refuse_prob_left  = 1-DistPoisson(lambda*M,lambda*M);
+  Real poisson_lambda_refuse_prob_right  = DistPoisson(lambda*M,lambda*M);
+
+  Real poisson_cdf_refuse_prob_left  = 1-DistPoisson(poisson_cdf_avg*M,lambda*M);
+  Real poisson_gsl_refuse_prob_left  = 1-DistPoisson(poisson_gsl_avg*M,lambda*M);
+  Real poisson_cdf_refuse_prob_right = DistPoisson(poisson_cdf_avg*M,lambda*M);
+  Real poisson_gsl_refuse_prob_right = DistPoisson(poisson_gsl_avg*M,lambda*M);
+
+  Real poisson_cdf_avg_difAbs = Abs(poisson_cdf_avg-lambda);
+  Real poisson_gsl_avg_difAbs = Abs(poisson_gsl_avg-lambda);
+  Real poisson_cdf_avg_kSig = poisson_cdf_avg_difAbs/std_dev_of_sample_avr;
+  Real poisson_gsl_avg_kSig = poisson_gsl_avg_difAbs/std_dev_of_sample_avr;
+  Real poisson_cdf_refuse_prob = 2*(1-DistNormal(poisson_cdf_avg_kSig));
+  Real poisson_gsl_refuse_prob = 2*(1-DistNormal(poisson_gsl_avg_kSig));
+  Real q = Min(1,poisson_cdf_refuse_prob/poisson_gsl_refuse_prob);
+  /* */
+//Extented information about test behaviour
+  Set partialResults_ =
+  [[
+    Real ok.X,
+    Real M,
+    Real lambda,
+    Real std_dev_of_sample_avr,
+    Real poisson_cdf_avg,
+    Real poisson_gsl_avg,
+    Real poisson_cdf_avg_kSig,
+    Real poisson_gsl_avg_kSig,
+    Real poisson_cdf_refuse_prob,
+    Real poisson_gsl_refuse_prob,
+    q
+  ]];
+
+//This is a messure of the success of the test
+  Real quality_ = And(numErr0 == NError, ok.X)*q;
+
+//Return the results
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */
