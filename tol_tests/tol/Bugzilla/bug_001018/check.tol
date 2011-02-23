@@ -1,0 +1,148 @@
+NameBlock parent = [[
+  Matrix m = Rand(1,1,1,1);
+  Real x = 2;
+  Set instancias = [[
+    NameBlock instancia = [[
+      Real GetValue(Real void) 
+      { 
+        2 
+      };
+      Matrix GetMatValue(Real void) 
+      { 
+        Constant(1,1,3) 
+      }
+    ]]
+  ]];
+  NameBlock GetInstancia(Real void) { instancias[1] };
+
+  Matrix GetValue1(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    data = m * ins::GetValue(?)
+  };
+  Matrix GetValue2(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    Real e = ins::GetValue(?);
+    data = m * e
+  };
+  Matrix GetValue3(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    data = m * {Real ins::GetValue(?)}
+  };
+  Matrix GetValue4(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    Code f = ins::GetValue;
+    data = m * {Real f(?)}
+  };
+  Matrix GetValue5(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    m * ins::GetValue(?)
+  };
+  Matrix GetValue6(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    Copy(m * ins::GetValue(?))
+  };
+  Matrix GetValue7(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    Real e = ins::GetValue(?);
+    m * e
+  };
+  Real GetValue8(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    x * ins::GetValue(?)
+  };
+  Matrix GetValue9(Real void) {
+    NameBlock ins = parent::GetInstancia(?); 
+    m * ins::GetMatValue(?)
+  }
+]];
+
+
+Real numObj0 = ?;
+Real i = 1;
+Set lostObj = { [[
+  Real numObj1 = ?;
+  Real numObj2 = ?;
+  Real numObj3 = ?;
+  Real numObj4 = ?;
+  Real numObj5 = ?;
+  Real numObj6 = ?;
+  Real numObj7 = ?;
+  Real numObj8 = ?;
+  Real numObj9 = ?
+]] };
+
+Real numObj0 := Copy(NObject);
+
+Real i := 1;
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Matrix parent::GetValue1(?);
+  Real i:=i+1
+});
+Real lostObj::numObj1 := Copy(NObject)-numObj0;
+
+Real i := 1;
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Matrix parent::GetValue2(?);
+  Real i:=i+1
+});
+Real lostObj::numObj2 := Copy(NObject)-numObj0;
+
+Real i := 1;
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Matrix parent::GetValue3(?);
+  Real i:=i+1
+});
+Real lostObj::numObj3 := Copy(NObject)-numObj0;
+
+Real i := 1;
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Matrix parent::GetValue4(?);
+  Real i:=i+1
+});
+Real lostObj::numObj4 := Copy(NObject)-numObj0;
+
+Real i := 1;
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Matrix parent::GetValue5(?);
+  Real i:=i+1
+});
+Real lostObj::numObj5 := Copy(NObject)-numObj0;
+
+Real i := 1;
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Matrix parent::GetValue6(?);
+  Real i:=i+1
+});
+Real lostObj::numObj6 := Copy(NObject)-numObj0;
+
+Real i := 1;
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Matrix parent::GetValue7(?);
+  Real i:=i+1
+});
+Real lostObj::numObj7 := Copy(NObject)-numObj0;
+
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Real parent::GetValue8(?);
+  Real i:=i+1
+});
+Real lostObj::numObj8 := Copy(NObject)-numObj0;
+
+Real i := 1;
+While(i<=10, {
+//WriteLn(""<<NObject);
+  Matrix parent::GetValue9(?);
+  Real i:=i+1
+});
+Real lostObj::numObj9 := Copy(NObject)-numObj0;
+
+Real ok.all = SetMax(lostObj)==0;
+/* */
