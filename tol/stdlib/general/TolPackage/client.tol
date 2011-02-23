@@ -232,24 +232,24 @@ Text _.autodoc.member.GetMinTolVersionForPackage =
 Text GetMinTolVersionForPackage(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE [RemoteFindRepository] 1 package='"<<package+"'");
+//WriteLn("TRACE [GetMinTolVersionForPackage] 1 package='"<<package+"'");
   If(!ChecktolProjectPing(?), "", {
-//WriteLn("TRACE [RemoteFindRepository] 2");
+//WriteLn("TRACE [GetMinTolVersionForPackage] 2");
   Set repositories = 
     TolConfigManager::Config::Upgrading::TolPackage::Repositories;
   Real K = Card(repositories); 
   Real k = 1;
   Text found = "";
-//WriteLn("TRACE [RemoteFindRepository] 3 K="<<K);
+//WriteLn("TRACE [GetMinTolVersionForPackage] 3 K="<<K);
   While(And(found=="", k<=K),
   {
-  //WriteLn("TRACE [RemoteFindRepository] 4 repositories["<<k+"]="<<repositories[k]);
+  //WriteLn("TRACE [GetMinTolVersionForPackage] 4 repositories["<<k+"]="<<repositories[k]);
     Set pkgLst = GetRepositoryInfo(repositories[k]+"?"
       "action=versions&limit=1&"+
       "package="+package);
-  //WriteLn("TRACE [RemoteFindRepository] 5 pkgInfo="<<pkgInfo);
-  //WriteLn("TRACE [RemoteFindRepository] 6 pkgLst="<<pkgLst);
-  //WriteLn("TRACE [RemoteFindRepository] 7 Card(pkgLst)="<<Card(pkgLst));
+  //WriteLn("TRACE [GetMinTolVersionForPackage] 5 pkgInfo="<<pkgInfo);
+  //WriteLn("TRACE [GetMinTolVersionForPackage] 6 pkgLst="<<pkgLst);
+  //WriteLn("TRACE [GetMinTolVersionForPackage] 7 Card(pkgLst)="<<Card(pkgLst));
     Text If(Card(pkgLst)>0, found := pkgLst[1]->te_min_tol_version);
     Real k := k+1
   });
@@ -280,7 +280,6 @@ Text RemoteFindRepository(Text package)
   //WriteLn("TRACE [RemoteFindRepository] 4 repositories["<<k+"]="<<repositories[k]);
     Set pkgLst = GetRepositoryInfo(repositories[k]+"?"
       "action=versions&limit=1&"+"package="+package+"&"+min_tol_version_cond);
-  //WriteLn("TRACE [RemoteFindRepository] 5 pkgInfo="<<pkgInfo);
   //WriteLn("TRACE [RemoteFindRepository] 6 pkgLst="<<pkgLst);
   //WriteLn("TRACE [RemoteFindRepository] 7 Card(pkgLst)="<<Card(pkgLst));
     Text If(Card(pkgLst)>0, found := repositories[k]);
@@ -323,30 +322,29 @@ Real DownloadPackage(
 {
   If(!ChecktolProjectPing(?), 0, {
   Real OSDirMake(localRoot);
-//WriteLn("TRACE [RemoteInstallPackage] 1 repository='"<<repository+"'");
-  Text package.version = package;
+//WriteLn("TRACE [DownloadPackage] 1 repository='"<<repository+"'");
   Real ok = True;
-  Text If(TextFind(package,"."),
+  Text package.orig = package;
+  Set pkg.tok = Tokenizer(package,".");
+  Real pkg.tok.num = Card(pkg.tok );
+  Text package := pkg.tok[1];
+  Text package.version = Case(
+    pkg.tok.num==3, pkg.tok[1]+"."+pkg.tok[2]+"."+pkg.tok[3], 
+    pkg.tok.num==2, pkg.tok[1]+"."+pkg.tok[2], 
+    pkg.tok.num==1, pkg.tok[1]); 
+  Set pkgLst = GetRepositoryInfo(repository+"?"
+    "action=versions&limit=1&"+
+    "package="+package.version+"&"+
+    min_tol_version_cond);
+  Real ok := Card(pkgLst);
+  Text If(ok,
   {
-    Text package := Tokenizer(package.version,".")[1]
-  },
-  {
-    Set pkgLst = GetRepositoryInfo(repository+"?"
-      "action=versions&limit=1&"+
-      "package="+package+"&"+
-      min_tol_version_cond);
-    If(!Card(pkgLst),
-    {
-      Real ok := False;
-      ""
-    },
-    {
-      Text package.version := pkgLst[1]->co_name_version
-    })
+    Text package.version := pkgLst[1]->co_name_version
   });
   If(!ok, 0, {
-//WriteLn("TRACE [RemoteInstallPackage] 2 package='"<<package+"'");
-//WriteLn("TRACE [RemoteInstallPackage] 3 package.version='"<<package.version+"'");
+//WriteLn("TRACE [DownloadPackage] 2.1 package.orig='"<<package.orig+"'");
+//WriteLn("TRACE [DownloadPackage] 2.2 package='"<<package+"'");
+//WriteLn("TRACE [DownloadPackage] 2.3 package.version='"<<package.version+"'");
 
   Text pack = package.version+".zip";
   Text oza = package.version+"/"+package.version+".oza";
@@ -358,7 +356,7 @@ Real DownloadPackage(
     "action=download&"+
     "format=base64&"+
     "package="+package.version);
-//WriteLn("TRACE [RemoteInstallPackage] 4 encoded='"<<encoded+"'");
+//WriteLn("TRACE [DownloadPackage] 3 encoded='"<<encoded+"'");
   Real DecodeBase64ToFile(localPack, encoded);
   If(!FileExist(localPack), False,
   {

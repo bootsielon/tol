@@ -1379,6 +1379,22 @@ static void PkgStartActions(
 }
 
 //--------------------------------------------------------------------
+  BText LocalLastCompatible(const BText& package)
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* lcv = GraText()->EvaluateExpr(BText(
+    "Text TolPackage::Client::LocalLastCompatible("
+    "\"")+package+"\");");
+  if(!lcv) { return(""); }
+  BText package_version = Text(lcv);
+  if(package_version=="") { package_version = package; }
+  //Std(BText("\nTRACE BPackage::Load 2.2.1 package='")+package_version+"'");
+  //Std(BText("\nTRACE BPackage::Load 2.2.2 package_version='")+package_version+"'");
+  DESTROY(lcv);
+  return(package_version);
+};
+
+//--------------------------------------------------------------------
   BSyntaxObject* BPackage::Load(
     const BText& package_version_, 
     bool retry)
@@ -1388,28 +1404,27 @@ static void PkgStartActions(
   BText package;
 //Std(BText("\nTRACE BPackage::Load 1 package_version='")+package_version+"'");
   int point = package_version.Find(".",1);
-  if(point>=0)
+  int point2 = package_version.Find(".",point+1);
+  if(point>=0 && point2>=0)
   {
     package = package_version.SubString(0,point-1);
-  //Std(BText("\nTRACE BPackage::Load 2.1 package='")+package+"'");
+  }
+  else if(point>=0 && point2<0)
+  {
+    package = package_version.SubString(0,point-1);
+    package_version = LocalLastCompatible(package_version);
+    point2 = package_version.Find(".",point+1);
   }
   else
   {
     package = package_version;
-    BSyntaxObject* lcv = GraText()->EvaluateExpr(BText(
-      "Text TolPackage::Client::LocalLastCompatible("
-      "\"")+package+"\");");
-    if(!lcv) { return(false); }
-    package_version = Text(lcv);
-    if(package_version=="") { package_version = package; }
-  //Std(BText("\nTRACE BPackage::Load 2.2.1 package='")+package_version+"'");
-  //Std(BText("\nTRACE BPackage::Load 2.2.2 package_version='")+package_version+"'");
-    DESTROY(lcv);
+    package_version = LocalLastCompatible(package);
   }
   BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
-  BText path = LocalPath(package_version);
+  BText path = (point2>=0)?LocalPath(package_version):"";
 //Std(BText("\nTRACE BPackage::Load 3 path='")+path+"'");
-  BDir dirPath = path;
+  BDir dirPath(":::");
+  if(path.HasName()) { dirPath = path; }
 
   bool ok = pkg!=NULL;
   if(ok) { 
@@ -1421,7 +1436,7 @@ static void PkgStartActions(
   if(!ok)
   {
     ok=dirPath.Exist()!=0;
-    if(!ok)
+    if(!ok & path.HasName())
     {
       BDir zipPath = path+".zip";
       if(zipPath.Exist())
@@ -1430,15 +1445,17 @@ static void PkgStartActions(
         zip.Open(zipPath.Name(),'r');
         zip.DirExtract("*",dirPath.Name());
         zip.Close();
+        dirPath = path;  
       }
-      ok=dirPath.Exist()!=0;
+      ok = dirPath.Exist();
     }
   //Std(BText("\nTRACE BPackage::Load 4 ok=")+ok);
-    if(!ok) 
+    if(!ok && retry) 
     { 
       ok = Install(package_version); 
+      package_version = LocalLastCompatible(package_version);
     //Std(BText("\nTRACE BPackage::Load 5 ok=")+ok);
-      if(ok) { return(BPackage::Load(package_version_, false)); }
+      if(ok) { return(BPackage::Load(package_version, false)); }
     }
     if(ok)
     {
@@ -1473,6 +1490,7 @@ static void PkgStartActions(
   if(!ok)
   {
   //Std(BText("\nTRACE BPackage::Load 12 dirPath='")+dirPath.Name()+"'");
+    if(path.HasName()) { dirPath = path; }
     if(!dirPath.Exist())
     {
       Error(I2("Unknown package ",
