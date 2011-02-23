@@ -1955,40 +1955,49 @@ DefExtOpr(1, BSetSelect, "Select", 2, 2, "Set Code",
 void BSetSelect::CalcContens()
 //--------------------------------------------------------------------
 {
-    //InitTotalTime("BSetSelect::CalcContens()");
-    BSyntaxObject*     objCode;
-    BSet&	       set    = Set (Arg(1));
-    BUserCode*   uCod   = UCode(Arg(2));
-    BList*	     aux    = NIL;
-    BList*	     result = NIL;
-    BText	       error;
-    BCode&       cond = uCod->Contens();
-    BGrammar* g = cond.Grammar();
-    if(g!=GraReal())
+  //InitTotalTime("BSetSelect::CalcContens()");
+  BSyntaxObject* objCode;
+  BSet& set = Set (Arg(1));
+  BUserCode* uCod = UCode(Arg(2));
+  BList* aux = NIL;
+  BList* result = NIL;
+  BText error;
+  BCode& cond = uCod->Contens();
+  BGrammar* g = cond.Grammar();
+  if(g!=GraReal())
+  {
+    Error(I2("The condition function for Select should return a Real "
+             "object",
+             "La función de condición para Select debe devolver un "
+             "objeto de tipo Real")+":\n"+
+          cond.Operator()->LexInfo());
+    return;
+  }
+  for(BInt n=1; n<=set.Card(); n++)
+  {
+    objCode  = cond.Evaluator(NCons(set[n]));
+    if(!objCode)
     {
-	Error(I2("The condition function for Select should return a Real "
-		 "object",
-		 "La función de condición para Select debe devolver un "
-     "objeto de tipo Real")+":\n"+
-     cond.Operator()->LexInfo());
-	return;
+      error = I2("[Select] Wrong condition definition.",
+                 "[Select] Condición mal definida.");
+      Error(error);
+      break;
     }
-    for(BInt n=1; n<=set.Card(); n++)
+    BDat dat = Dat(objCode);
+    BBool valid = dat!=0;
+    if(!dat.IsKnown())
     {
-	objCode  = cond.Evaluator(NCons(set[n]));
-	if(!objCode)
-	{
-	    error = I2("Wrong condition definition for Select function.",
-		       "Condición mal definida para la función Select.");
-	    Error(error);
-	    break;
-	}
-	BBool valid = Real(objCode)!=0;
-	DESTROY(objCode);
-	if(valid) { LstFastAppend(result, aux, set[n]); }
+      error = I2("[Select] condition function cannot return unknown values.",
+                 "[Select] la función de condición no puede devolver valores desconocidos.");
+      Error(error);
+      DESTROY(objCode);
+      break;
     }
-    contens_.RobElement(result);
-    //SumPartialTime;
+    DESTROY(objCode);
+    if(valid) { LstFastAppend(result, aux, set[n]); }
+  }
+  contens_.RobElement(result);
+  //SumPartialTime;
 }
 
 
@@ -2204,192 +2213,6 @@ void BSetDir::CalcContens()
     Error(I2(BText("Directory ")+path+" is not found",
 		         BText("No se encuentra el direcorio ")+path));
   }
-}
-
-//--------------------------------------------------------------------
-BSyntaxObject* CopyReal(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
-{
-    BDat dat = Dat(obj);
-    if(p.Size()) { dat = p[pos++]; }
-    return(new BContensDat("",dat,""));
-};
-
-//--------------------------------------------------------------------
-BSyntaxObject* CopyPolyn(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
-{
-    BPol pol = Pol(obj);
-    pol.Aggregate();
-    BInt j;
-    if(p.Size()&&((pol.Size()!=1)||(pol[0].Coef()!=0)))
-    {
-	for(j=0; j<pol.Size(); j++) { pol[j].PutCoef(p[pos++]); }
-    }
-    return(new BContensPol("",pol,""));
-};
-
-//--------------------------------------------------------------------
-BSyntaxObject* CopyRatio(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
-{
-    BRat rat = Rat(obj);
-    BPol num = rat.Numerator  ();
-    BPol den = rat.Denominator();
-    BInt j;
-    if(p.Size())
-    {
-	for(j=1; j<num.Size(); j++) { num[j].PutCoef(p[pos++]); }
-	for(j=1; j<den.Size(); j++) { den[j].PutCoef(p[pos++]); }
-	rat.PutNumerator  (num);
-	rat.PutDenominator(den);
-    }
-    return(new BContensRat("",rat,""));
-};
-
-//--------------------------------------------------------------------
-BSyntaxObject* CopyMatrix(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
-{
-    BMat mat = Mat(obj);
-    if(p.Size())
-    {
-	for(BInt i=0; i<mat.Rows(); i++)
-	{
-	    for(BInt j=0; j<mat.Columns(); j++)
-	    {
-		mat(i,j) = p[pos++];
-	    }
-	}
-    }
-    return(new BContensMat("",mat,""));
-};
-
-//--------------------------------------------------------------------
-BSyntaxObject* CopyCode(BSyntaxObject* obj)
-{
-  BCode& cod = Code(obj);
-  BUserFunction* opr = (BUserFunction*)cod.Operator();
-  if(opr)
-  {
-    if(opr->Mode()==BBUILTINFUNMODE)
-    {
-      BCode newCod;
-      newCod.Replicate(Code(obj));
-      return(new BContensCode("",newCod,""));
-    }
-    else if(opr->Mode()==BUSERFUNMODE)
-    {
-      BUserFunction* usf = new BUserFunction("",opr->Grammar());
-      BUserFunCode* result = usf->GetCode();
-      usf->PutName(opr->Name());
-      usf->PutDescription(opr->Description());
-      usf->SetExpression(opr->Declaration(), opr->Definition()); 
-      result->PutName(opr->Name());
-      result->PutDescription(opr->Description());
-      return(result);
-    }
-  }
-  else
-  {
-    Error(BText("Cannot copy Code ")<<obj->Identify());
-    return(NULL);
-  }
-};
-/*
-//--------------------------------------------------------------------
-BSyntaxObject* CopyNameBlock(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
-{
-  BUseerNameBlock* unb = (BUseerNameBlock*)obj
-  BNameBlock mat = unb->Contens();
-  if(p.Size())
-  {
-	  for(BInt i=0; i<mat.Rows(); i++)
-	  {
-	    for(BInt j=0; j<mat.Columns(); j++)
-	    {
-		mat(i,j) = p[pos++];
-	    }
-	}
-    }
-    return(new BContensMat("",mat,""));
-};
-*/
-
-//--------------------------------------------------------------------
-BSyntaxObject* CopySet(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos);
-
-//--------------------------------------------------------------------
-void DeepCopy(const BSet& sample,BSet& copy,const BArray<BDat>& p,BInt& pos)
-{
-  BList* lst = NIL;
-  BList* aux = NIL;
-  BInt i;
-  for(i=1; i<=sample.Card(); i++)
-  {
-    if(sample[i])
-    {
-      BSyntaxObject* obj = NIL;
-      BGrammar*	     gra = sample[i]->Grammar();
-           if(gra==GraReal   ()) { obj = CopyReal   (sample[i],p,pos); }
-      else if(gra==GraPolyn  ()) { obj = CopyPolyn  (sample[i],p,pos); }
-      else if(gra==GraRatio  ()) { obj = CopyRatio  (sample[i],p,pos); }
-      else if(gra==GraMatrix ()) { obj = CopyMatrix (sample[i],p,pos); }
-      else if(gra==GraSet    ()) { obj = CopySet    (sample[i],p,pos); }
-      else if(gra==GraCode   ()) { obj = CopyCode   (sample[i]);       }
-      else		                   { obj = sample[i]->CopyContens ();    }
-      if(obj && !obj->HasName())
-      {
-        obj->PutName(sample[i]->Name());
-      }
-      LstFastAppend(lst,aux,obj);
-    }
-  }
-  copy.RobStruct(lst,sample.Struct(),sample.SubType());
-  if(sample.HasIndexByName())
-  {
-    copy.SetIndexByName();
-  }
-};
-
-
-//--------------------------------------------------------------------
-BSyntaxObject* CopySet(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
-{
-    BSet& set = Set(obj);
-    BSet	copy;
-    DeepCopy(set,copy,p,pos);
-    copy.PutSubType(set.SubType());
-    copy.PutStruct(set.Struct());
-    return(new BContensSet("",copy,""));
-};
-
-
-//--------------------------------------------------------------------
-DeclareContensClass(BSet, BSetTemporary, BSetDeepCopy);
-DefExtOpr(1, BSetDeepCopy, "DeepCopy", 1, 2, "Set Matrix",
-	  I2("(Set sample [, Matrix matrix])",
-	     "(Set ejemplo [, Matrix matriz])"),
-	  I2("Builds a set of a given example,substituting optionaly number dates "
-	     "from matrix dates.The argument must be a row matrix with so dates "
-	     "as number dates in example set",
-	     "Construye un conjunto semejante al ejemplo dado en el que "
-	     ", opcionalmente, se sustituyen los datos numéricos por los datos de "
-	     "la matriz dada.El argumento matriz debe ser una matriz fila con tantos "
-	     "datos como datos numericos haya en el conjunto ejemplo"
-	      ),
-	  BOperClassify::Conversion_);
-
-//--------------------------------------------------------------------
-void BSetDeepCopy::CalcContens()
-//--------------------------------------------------------------------
-{
-    BSet& S = Set(Arg(1));
-    BArray<BDat> p;
-    BInt pos = -1;
-    if(Arg(2))
-    {
-	BMat M = Mat(Arg(2));
-	p	= M.Data();
-	pos = 0;
-    }
-    DeepCopy(S,contens_,p,pos);
 }
 
 //--------------------------------------------------------------------
