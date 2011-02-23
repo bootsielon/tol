@@ -1,0 +1,36 @@
+NameBlock Instance2(Set object.) {
+  // Usando un artificio en la construción de la instancia
+  // +6 NObject
+  NameBlock a = [[
+    Set data = Copy(Empty)
+  ]];
+  Set a::data := DeepCopy(object.);
+  a
+};
+
+Set matrices2 = Copy(Empty);
+
+Real no3 = ?;
+Real no4 = ?;
+Real no5 = ?;
+Real no6 = ?;
+Real chk.2 = ?; 
+Real chk.3 = ?; 
+Real chk.4 = no4 - no3; 
+
+
+Real no3 := Copy(NObject);
+Set matrices2 := EvalSet(matrices, Anything (Matrix m) {
+  NameBlock _b = Instance2([[m]]);
+  _b
+});
+Real no4 := Copy(NObject);
+Real chk.2 := no4 - no3; 
+Real no5 := Copy(NObject);
+Set matrices2 := Copy(Empty);
+Real no6 := Copy(NObject);
+Real chk.3 := no6 - no5; 
+Real chk.4 := no6 - no3; 
+
+Real ok = chk.4==0;
+

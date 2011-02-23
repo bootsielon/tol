@@ -1,0 +1,23 @@
+Real no1 = Copy(NObject);
+Set matrices = For(1, 500, Matrix (Real i) {
+  Rand(50000, 1, 0, 1)
+});
+Real no2 = Copy(NObject);
+Real ok.1 = (no2 - no1) == 507;
+
+Matrix Use1(Matrix object) {
+  Matrix nombre = Copy(object)
+};
+Matrix Use2(Matrix object) {
+  Matrix nombre = object
+};
+
+Real no3 = Copy(NObject);
+
+Set matrices2 = EvalSet(matrices, Anything (Matrix m) {
+  Matrix data = m;
+  Use2(data) 
+});
+
+Real no4 = Copy(NObject);
+Real ok.2 = (no4 - no3) == 505;

@@ -1,0 +1,22 @@
+
+//////////////////////////////////////////////////////////////////////////////
+// Creación de los datos
+
+
+Real no1 = Copy(NObject);
+
+Set matrices = For(1, 500, Matrix (Real i) {
+  Matrix return = Rand(50000, 1, 0, 1)
+});
+
+Real no2 = Copy(NObject);
+
+Real chk.1 = no2 - no1; // 507
+// RAM: + 288 MB
+
+Set chk.all = For(1,3,Set(Real k)
+{
+  Include("check.2."<<k+".tol")
+});
+
+Set ok.all = EvalSet(chk.all,Real(Set s) { s::ok });
