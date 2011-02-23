@@ -283,6 +283,11 @@ static BSyntaxObject* EvIf(BGrammar* gra, const List* tre, BBool left)
             result = gra->EvaluateTree(b3); 
           }
         }
+        else 
+        {
+          Warning(I2("[If] condition function cannot return unknown values.",
+                     "[If] la función de condición no puede devolver valores desconocidos."));
+        }
       }
     }
     if(!ok)
@@ -332,6 +337,8 @@ static BSyntaxObject* EvCase(BGrammar* gra, const List* tre, BBool left)
   if(unknowCond)
   {
     assert(!result);
+    Warning(I2("[Case] condition function cannot return unknown values.",
+               "[Case] la función de condición no puede devolver valores desconocidos."));
     result = gra->UnknownVar();
   }
   result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BFALSE);
@@ -1117,6 +1124,206 @@ static BSyntaxObject* EvCopy(BGrammar* gra, const List* tre, BBool left)
 
 
 //--------------------------------------------------------------------
+BSyntaxObject* CopyReal(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
+{
+    BDat dat = Dat(obj);
+    if(p.Size()) { dat = p[pos++]; }
+    return(new BContensDat("",dat,""));
+};
+
+//--------------------------------------------------------------------
+BSyntaxObject* CopyPolyn(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
+{
+    BPol pol = Pol(obj);
+    pol.Aggregate();
+    BInt j;
+    if(p.Size()&&((pol.Size()!=1)||(pol[0].Coef()!=0)))
+    {
+	for(j=0; j<pol.Size(); j++) { pol[j].PutCoef(p[pos++]); }
+    }
+    return(new BContensPol("",pol,""));
+};
+
+//--------------------------------------------------------------------
+BSyntaxObject* CopyRatio(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
+{
+    BRat rat = Rat(obj);
+    BPol num = rat.Numerator  ();
+    BPol den = rat.Denominator();
+    BInt j;
+    if(p.Size())
+    {
+	for(j=1; j<num.Size(); j++) { num[j].PutCoef(p[pos++]); }
+	for(j=1; j<den.Size(); j++) { den[j].PutCoef(p[pos++]); }
+	rat.PutNumerator  (num);
+	rat.PutDenominator(den);
+    }
+    return(new BContensRat("",rat,""));
+};
+
+//--------------------------------------------------------------------
+BSyntaxObject* CopyMatrix(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
+{
+    BMat mat = Mat(obj);
+    if(p.Size())
+    {
+	for(BInt i=0; i<mat.Rows(); i++)
+	{
+	    for(BInt j=0; j<mat.Columns(); j++)
+	    {
+		mat(i,j) = p[pos++];
+	    }
+	}
+    }
+    return(new BContensMat("",mat,""));
+};
+
+//--------------------------------------------------------------------
+BSyntaxObject* CopyCode(BSyntaxObject* obj)
+{
+  BCode& cod = Code(obj);
+  BUserFunction* opr = (BUserFunction*)cod.Operator();
+  if(opr)
+  {
+    if(opr->Mode()==BBUILTINFUNMODE)
+    {
+      BCode newCod;
+      newCod.Replicate(Code(obj));
+      return(new BContensCode("",newCod,""));
+    }
+    else if(opr->Mode()==BUSERFUNMODE)
+    {
+      BUserFunction* usf = new BUserFunction("",opr->Grammar());
+      BUserFunCode* result = usf->GetCode();
+      usf->PutName(opr->Name());
+      usf->PutDescription(opr->Description());
+      usf->SetExpression(opr->Declaration(), opr->Definition()); 
+      result->PutName(opr->Name());
+      result->PutDescription(opr->Description());
+      return(result);
+    }
+  }
+  else
+  {
+    Error(BText("Cannot copy Code ")<<obj->Identify());
+    return(NULL);
+  }
+};
+/*
+//--------------------------------------------------------------------
+BSyntaxObject* CopyNameBlock(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
+{
+  BUseerNameBlock* unb = (BUseerNameBlock*)obj
+  BNameBlock mat = unb->Contens();
+  if(p.Size())
+  {
+	  for(BInt i=0; i<mat.Rows(); i++)
+	  {
+	    for(BInt j=0; j<mat.Columns(); j++)
+	    {
+		mat(i,j) = p[pos++];
+	    }
+	}
+    }
+    return(new BContensMat("",mat,""));
+};
+*/
+
+//--------------------------------------------------------------------
+BSyntaxObject* CopySet(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos);
+
+//--------------------------------------------------------------------
+void DeepCopy(const BSet& sample,BSet& copy,const BArray<BDat>& p,BInt& pos)
+{
+  BList* lst = NIL;
+  BList* aux = NIL;
+  BInt i;
+  for(i=1; i<=sample.Card(); i++)
+  {
+    if(sample[i])
+    {
+      BSyntaxObject* obj = NIL;
+      BGrammar*	     gra = sample[i]->Grammar();
+           if(gra==GraReal   ()) { obj = CopyReal   (sample[i],p,pos); }
+      else if(gra==GraPolyn  ()) { obj = CopyPolyn  (sample[i],p,pos); }
+      else if(gra==GraRatio  ()) { obj = CopyRatio  (sample[i],p,pos); }
+      else if(gra==GraMatrix ()) { obj = CopyMatrix (sample[i],p,pos); }
+      else if(gra==GraSet    ()) { obj = CopySet    (sample[i],p,pos); }
+      else if(gra==GraCode   ()) { obj = CopyCode   (sample[i]);       }
+      else		                   { obj = sample[i]->CopyContens ();    }
+      if(obj && !obj->HasName())
+      {
+        obj->PutName(sample[i]->Name());
+      }
+      LstFastAppend(lst,aux,obj);
+    }
+  }
+  copy.RobStruct(lst,sample.Struct(),sample.SubType());
+  if(sample.HasIndexByName())
+  {
+    copy.SetIndexByName();
+  }
+};
+
+
+//--------------------------------------------------------------------
+BSyntaxObject* CopySet(BSyntaxObject* obj,const BArray<BDat>& p,BInt& pos)
+{
+    BSet& set = Set(obj);
+    BSet	copy;
+    DeepCopy(set,copy,p,pos);
+    copy.PutSubType(set.SubType());
+    copy.PutStruct(set.Struct());
+    return(new BContensSet("",copy,""));
+};
+
+//--------------------------------------------------------------------
+static BSyntaxObject* EvDeepCopy(BGrammar* gra, const List* tre, BBool left)
+
+/*! Evaluate Copy expressions
+*/
+//--------------------------------------------------------------------
+{
+  static BText _name_ = "DeepCopy";
+  BSyntaxObject* result = NIL;
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  if((gra==GraSet()) || (gra==GraAnything()))
+  {
+    if(BSpecialFunction::TestNumArg(_name_, 1, nb, 2))
+    {
+      BGrammar::IncLevel();
+      int stackPos = BGrammar::StackSize();
+      BSyntaxObject* toCopy = GraSet()->EvaluateTree(Branch(tre,1));
+	    if(toCopy && (toCopy->Grammar()==GraSet()))
+	    {
+        BUserSet*    uS = (BUserSet*)toCopy;
+        BContensSet* res = new BContensSet;
+        result = res;
+        BArray<BDat> p;
+        BInt pos = -1;
+        if(nb==2)
+        {
+          BUserMat* uM = (BUserMat*)GraMatrix()->EvaluateTree(Branch(tre,2)); 
+          if(uM && (uM->Grammar()==GraMatrix()))
+          { 
+            p	= uM->Contens().Data();
+            SAFE_DESTROY(uM,result);
+            pos = 0;
+          }
+        }
+        DeepCopy(uS->Contens(),res->Contens(),p,pos);
+        SAFE_DESTROY(toCopy,result);
+      }
+      BGrammar::DestroyStackUntil(stackPos, result);    
+      BGrammar::DecLevel();
+    }
+  }
+  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
+  return(result);
+}
+
+
+//--------------------------------------------------------------------
 static BSyntaxObject* EvDo(BGrammar* gra, const List* tre, BBool left)
 
 /*! Evaluate Do expressions
@@ -1575,6 +1782,7 @@ static BSyntaxObject* EvMemberArg
   BSyntaxObject* result
 )
 {
+//Std(BText("\nTRACE EvMemberArg ")+ownerName+"::"+memberName+"\n"); 
   BTokenType tt = arg2->TokenType();
   if(result && branch2->cdr())
   {
@@ -1641,6 +1849,14 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
 //--------------------------------------------------------------------
 {
   static BText _name_ = "::";
+/* * /
+    BText ups = BParser::Unparse(tre, "  ");
+  //Std(ups+"\n"); 
+  //Std(BText("\nEvMember branch1='")+BParser::Unparse(branch1,"  ")+"'\n"); 
+  //Std(BText("\nEvMember branch2='")+BParser::Unparse(branch2,"  ")+"'\n"); 
+    int nObject0 = BSyntaxObject::NSyntaxObject();
+  //Std(BText("\nTRACE EvMember BEGIN NObject=")+nObject0+" tre='"+ups+"'\n"); 
+/* */
   BSyntaxObject* result = NIL;
   int stackPos = BGrammar::StackSize();
   BInt nb = BSpecialFunction::NumBranches(tre);
@@ -1651,15 +1867,6 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   {
     List* branch1 = Branch(tre,1);
     List* branch2 = Branch(tre,2);
-/* * /
-    BText ups = BParser::Unparse(tre, "  ");
-  //Std(ups+"\n"); 
-    if(ups=="cD::C2B") 
-      printf("");
-  //Std(BText("\nEvMember branch1='")+BParser::Unparse(branch1,"  ")+"'\n"); 
-  //Std(BText("\nEvMember branch2='")+BParser::Unparse(branch2,"  ")+"'\n"); 
-    Std(BText("\nEvMember tre='")+ups+"'\n"); 
-/* */
     bool oldEnabled = BOut::Disable();
     int nObjOld = BSyntaxObject::NSyntaxObject();
     uns = GraNameBlock()->LeftEvaluateTree(branch1);
@@ -1668,8 +1875,8 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
     { 
 /* * /
       BOut::Enable();
-      Std(BText("\nEvMember branch1=")+BParser::treWrite(branch1,"  ")+"'\n"); 
-      Std(BText("\nEvMember branch2=")+BParser::treWrite(branch2,"  ")+"'\n"); 
+    //Std(BText("\nTRACE EvMember branch1=")+BParser::treWrite(branch1,"  ")+"'\n"); 
+    //Std(BText("\nTRACE EvMember branch2=")+BParser::treWrite(branch2,"  ")+"'\n"); 
       BOut::Disable();
 /* */
       if(!branch1->cdr())
@@ -1737,8 +1944,13 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
              BParser::Unparse(tre)+"'\n"+errMsg);
   }
   result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
-  if(needsDeleteUns) { SAFE_DESTROY(uns, result); }
+//if(needsDeleteUns) { SAFE_DESTROY(uns, result); }
+  SAFE_DESTROY(uns, result); 
   BGrammar::DestroyStackUntil(stackPos, result);    
+//if(result) Std(BText("\nTRACE EvMember result:'")+result->Identify()+"' numRefs="+result->NRefs()+"\n"); 
+//int nObject1 = BSyntaxObject::NSyntaxObject();
+//int nObjectDif = nObject1-nObject0;
+//Std(BText("\nTRACE EvMember END NObject=")+nObject1+" dif= "+nObjectDif+" tre='"+ups+"'\n"); 
   return(result);
 }
 
@@ -2201,14 +2413,24 @@ bool BSpecialFunction::Initialize()
 
 
   AddInstance("Copy",
-  I2("(Anything obj)",
-     "Makes a copy of an object of any type except Code, TimeSet and "
-     "infinite Series"),
-  I2("(Anything obj)",
+    "(Anything obj)",
+  I2("Makes a copy of an object of any type except Code, TimeSet and "
+     "infinite Series",
      "Hace una copia de un objeto de cualquier tipo a excepción de "
      "funciones, conjuntos temporales, y series infinitas, los cuales son "
      "imposibles de reproducir dado su carácter abstracto."),
   EvCopy);
+
+  AddInstance("DeepCopy",
+    "(Set sample [, Matrix matrix])",
+  I2("Builds a set of a given example,substituting optionaly number dates "
+	     "from matrix dates.The argument must be a row matrix with so dates "
+	     "as number dates in example set",
+	     "Construye un conjunto semejante al ejemplo dado en el que "
+	     ", opcionalmente, se sustituyen los datos numéricos por los datos de "
+	     "la matriz dada.El argumento matriz debe ser una matriz fila con tantos "
+	     "datos como datos numericos haya en el conjunto ejemplo"),
+  EvDeepCopy);
 
 
   AddInstance("Do",
