@@ -1166,19 +1166,8 @@ void BDat::PutValue(const BChar* name)
  */
 //--------------------------------------------------------------------
 {
-  static BChar* endptr;
-  if(!name || !(name[0])) { PutKnown(BUNKNOWN); }
-  else
-  {
-    BReal value;
-    value = strtod(name, &endptr);
-    BBool isNotValid = (endptr)[0];
-    if(isNotValid) { PutKnown(BUNKNOWN); }
-    else
-    {
-      PutValue(value);
-    }
-  }
+  BText txt = name;
+  PutValue(txt);
 }
 
 
@@ -1191,7 +1180,20 @@ void BDat::PutValue(const BText& name)
  */
 //--------------------------------------------------------------------
 {
-  PutValue(name.String());
+  static BChar* endptr;
+  if(!name.String() || !(name[0]) || (name=="?")) { PutKnown(BUNKNOWN); }
+  else if(name=="inf") { PutValue(BDat::PosInf()); }
+  else 
+  {
+    BReal value;
+    value = strtod(name, &endptr);
+    BBool isNotValid = (endptr)[0];
+    if(isNotValid) { PutKnown(BUNKNOWN); }
+    else
+    {
+      PutValue(value);
+    }
+  }
 }
 
 //--------------------------------------------------------------------
