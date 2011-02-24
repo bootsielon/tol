@@ -16,11 +16,11 @@ Set Results = ReportAllBatteries(SetOfSet
   @strBatteryConfig("CreationAndCopy",   "",  1),
   @strBatteryConfig("SetAlgebra",        "",  1),
   @strBatteryConfig("BooleanAlgebra",    "",  1),
-  @strBatteryConfig("Text",              "", 10),
+  @strBatteryConfig("Text",              "",  5),
   @strBatteryConfig("ImportExport",      "",  1),
   @strBatteryConfig("OIS",               "",  1),
   @strBatteryConfig("performance",       "",  1),
-  @strBatteryConfig("random_generation", "", 10),
-  @strBatteryConfig("LinearAlgebra",     "",  3)
+  @strBatteryConfig("random_generation", "",  5),
+  @strBatteryConfig("LinearAlgebra",     "",  1)
 
 ));
