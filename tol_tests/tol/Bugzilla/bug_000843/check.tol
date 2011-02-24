@@ -1,0 +1,104 @@
+
+//////////////////////////////////////////////////////////////////////////////
+// (1)
+
+// Dentro de un espacio de nombres NB se construye una clase @ClassA
+// y un método Use que usa instancias de esta clase.
+
+NameBlock NB = [[
+
+  Class @ClassA {
+    Real _.value;
+    Real GetValue(Real void) { _.value }
+  };
+  @ClassA ejA = [[ Real _.value = 1 ]];
+
+  Real Use(@ClassA ej) { ej::GetValue(?) };
+
+  Class @ClassB : @ClassA
+
+]];
+
+// También se construye una clase derivada de @ClassA llamada @ClassB
+
+NB::@ClassB ejB = [[ Real _.value = 2 ]];
+
+// Nótese que las instancias de @ClassB también los son de @ClassA
+
+Real NB::Use(ejB);
+// (OK)
+
+//////////////////////////////////////////////////////////////////////////////
+
+// Fuera de NB se intenta construir una clase derivada de @ClassA
+// pero no se crea adecuadamente.
+
+Class @ClassC : NB::@ClassA;
+
+@ClassC ejC = [[ Real _.value = 2 ]];
+
+// La clase @ClassC no se crea adecuadamente
+// No hereda de la clase @ClassA y no puede ser usado con el método Use. 
+
+Real NB::Use(ejC);
+//> ERROR: [] (ejC) no es un NameBlock instancia de @ClassA
+//> ERROR: [] Argumentos erróneos para Real Use (NameBlock ej)
+//> Warning: [] La función :: ha fallado en : NB::Use(ejC)
+
+// Tampoco se construyen sus propios atributos y métodos si se los 
+// definimos:
+
+Class @ClassC2 : NB::@ClassA {
+  Real miAtributo = 1;
+  Real miMetodo (Real void) { miAtributo }
+};
+
+@ClassC2 ejC2 = [[ Real _.value = 2 ]];
+
+Real ejC2::miMetodo(?);
+//> Warning: [] La función :: ha fallado en : ejC2::miMetodo(?)
+
+//////////////////////////////////////////////////////////////////////////////
+// (2)
+
+// Si creamos una función para convertir instancias de la clase C a la B
+// funciona correctamente: 
+
+NB::@ClassB C2B(@ClassC ejC) {
+  NB::@ClassB ejB = [[ Real _.value = ejC::_.value ]]
+};
+
+NB::@ClassB ejC2B_1 = C2B(ejC);
+//> (OK)
+
+// Si esta función se crea como método de una nueva clase falla:
+
+Class @ClassD {  
+  NB::@ClassB C2B(@ClassC ejC) {
+    NB::@ClassB ejB = [[ Real _.value = ejC::_.value ]]
+  }
+};
+@ClassD cD;
+
+
+NB::@ClassB ejC2B_2 = cD::C2B(ejC);
+//> Warning: [] La función :: ha fallado en : cD::C2B(ejC)
+//> ERROR: [] ejC2B_2 no se pudo crear.
+
+// Si modificamos la declaración del método, cambiando la salida
+// a NameBlock, ya no falla.
+
+Class @ClassE {  
+  NameBlock C2B(@ClassC ejC) {
+    NB::@ClassB ejB = [[ Real _.value = ejC::_.value ]]
+  }
+};
+@ClassE cE;
+
+NB::@ClassB ejC2B_3 = cE::C2B(ejC);
+//> (OK)
+
+//////////////////////////////////////////////////////////////////////////////
+
+
+/* */
