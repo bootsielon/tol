@@ -1,0 +1,19 @@
+NameBlock Modulo = [[
+  Class @ClaseA {
+    Real valueA
+  }
+]];
+
+Modulo::@ClaseA a = [[ Real valueA = 1]];
+
+NameBlock nb = [[
+  Set instance. = [[ Modulo::@ClaseA instance = [[ Real valueA = 1 ]] ]];
+//Modulo::@ClaseA GetInstance(Real void) { instance.[1] }
+  NameBlock GetInstance(Real void) { instance.[1] }
+]];
+
+//NameBlock nb::GetInstance(?); //<- esto no falla
+//Modulo::@ClaseA b = nb::GetInstance(?); //<- esto no falla
+//Modulo::@ClaseA nb::GetInstance(?); //<- esto falla
+Code f = nb::GetInstance;
+Modulo::@ClaseA f(?); //<- esto falla
