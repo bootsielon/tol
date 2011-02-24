@@ -183,12 +183,17 @@ NameBlock Rglpk =
       "source('"+_tolRglpk.R+"'); "
       "Rglpk_solve_LP.TOL('"+_om.bbm+"','"+_rhs.bbm+"','%A')";
 
-    Set result = Rapi::RunRScript(script, args.bbm, argList, result.names,
-                                  verbose);
-    Set [[
-          Real status     = MatDat(result[1],1,1),
-          Real objval     = MatDat(result[1],1,2),
-          Matrix solution = Sub(result[1],1,3,1,Columns(result[1])-2)]]
+    Set rrs = Rapi::RunRScript(script,args.bbm,argList,result.names,verbose);
+    If(Card(rrs), 
+    {[[
+      Real status     = MatDat(result[1],1,1),
+      Real objval     = MatDat(result[1],1,2),
+      Matrix solution = Sub(result[1],1,3,1,Columns(result[1])-2)
+    ]]},
+    {
+      WriteLn("[solveLP] Cannot run R script");
+      Copy(Empty)
+    })
   };
 
   Real _BuildBoundsInfo(Set argBounds, Text item, Text bound.bbm,

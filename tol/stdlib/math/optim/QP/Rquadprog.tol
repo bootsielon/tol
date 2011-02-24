@@ -101,11 +101,18 @@ NameBlock Rquadprog =
       "Rquadprog_solve_QP.TOL('"+_D.bbm+"','"+_d.bbm+"','"+
                                  _A.bbm+"','"+_b0.bbm+"','%A')";
 
-    Set result = Rapi::RunRScript(script, args.bbm, argList, result.names,
+    Set rrs = Rapi::RunRScript(script, args.bbm, argList, result.names,
                                   verbose);
-    [[
-      Matrix solution = result[1] 
-    ]]
+    If(Card(rrs), 
+    {[[
+      Matrix solution = rrs[1] 
+    ]]},
+    {
+      WriteLn("[solveQP] Cannot run R script");
+      Copy(Empty)
+    })
+
+    
   }
 
 ]];

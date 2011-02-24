@@ -101,9 +101,18 @@ NameBlock Rkde =
       "source('"+_tolRkde.R+"'); "
       "Rkde_density.TOL('"+_sample.bbm+"','%A')";
 
-    Set result = Rapi::RunRScript(script, args.bbm, argList, result.names,
+    Set rrs = Rapi::RunRScript(script, args.bbm, argList, result.names,
                                   verbose);
-    result[1] | result[2]
+    If(Card(rrs), 
+    {
+      result[1] | result[2]
+    },
+    {
+      WriteLn("[density] Cannot run R script");
+      Rand(0,0,0,0)
+    })
+
+    
   }
 
 ]];

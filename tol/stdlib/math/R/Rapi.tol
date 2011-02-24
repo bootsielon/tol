@@ -202,32 +202,41 @@ NameBlock Rapi =
     Text WriteFile(in.R, _script);
 
     Text R.out = Replace(_tmp.R.out, "%S", rndID);
+    Real OSFilRemove(R.out);
 
     Text oscmd = _R.cmd+" \""+in.R+"\" \""+R.out+"\"";
     If (verbose,
         WriteLn(_MID+"Executing :\n<"+oscmd));
     Real OSCmdWait(oscmd);
-    If (verbose,
-        WriteLn(_MID+"R output was :\n<"+ReadFile(R.out)));
+    If(!OSFilExist(R.out),
+    {
+      WriteLn("R or a required package seems to be not instaled. Please, "
+      "follow instructions at https://www.tol-project.org/wiki/DownloadTol","E");
+      Real Stop;
+      Copy(Empty)
+    },
+    {
+      If (verbose,
+          WriteLn(_MID+"R output was :\n<"+ReadFile(R.out)));
 
-    // Remove remporaly results
-    
-    Set EvalSet(tmps.bbm, Real(Text bbm) {
-        Real If(bbm=="", 0, OSFilRemove(bbm))
-      });
+      // Remove remporaly results
+      
+      Set EvalSet(tmps.bbm, Real(Text bbm) {
+          Real If(bbm=="", 0, OSFilRemove(bbm))
+        });
 
-    Real OSFilRemove(in.R);
-    Real OSFilRemove(args.R);
-    Real OSFilRemove(R.out);
-    
-    // Collect results
-    Set result = EvalSet(result.names, Matrix(Text result) {
-        Text res.bbm = Replace(result, "%S", rndID);
-        Matrix matres = MatReadFile(res.bbm);
-        Real OSFilRemove(res.bbm);
-        Matrix matres
-      })
+      Real OSFilRemove(in.R);
+      Real OSFilRemove(args.R);
+      Real OSFilRemove(R.out);
+      
+      // Collect results
+      Set result = EvalSet(result.names, Matrix(Text result) {
+          Text res.bbm = Replace(result, "%S", rndID);
+          Matrix matres = MatReadFile(res.bbm);
+          Real OSFilRemove(res.bbm);
+          Matrix matres
+        })
+    })
   }
-
 ]]
 

@@ -194,9 +194,12 @@ NameBlock RCODA =
       <<FormatReal(s,"%.15lg")+","
       <<FormatReal(eps,"%.15lg")
       <<")";
-    Rapi::RunRScript(script, args.bbm, "",
-                     result.names,
-                     verbose)[1]
+    Set rrs = Rapi::RunRScript(script, args.bbm, "",result.names,verbose);
+    If(Card(rrs), rrs[1],
+    {
+      WriteLn("[raftery.diag] Cannot run R script");
+      Rand(0,0,0,0)
+    })
   };
   
   //////////////////////////////////////////////////////////////////////////////
@@ -281,13 +284,18 @@ NameBlock RCODA =
       <<FormatReal(transform,   "%.0lg")+","
       <<FormatReal(autoburnin,  "%.0lg")
       <<")";
-    Set aux = Rapi::RunRScript(script, args.bbm, "",
+    Set rrs = Rapi::RunRScript(script, args.bbm, "",
                      result.names,
                      verbose);
-    [[
-      Matrix psrf=aux[1]; 
-      Real mpsrf = MatDat(aux[2],1,1)
-    ]]
+    If(Card(rrs), 
+    {[[
+      Matrix psrf=rrs[1]; 
+      Real mpsrf = MatDat(rrs[2],1,1)
+    ]]},
+    {
+      WriteLn("[gelman.diag] Cannot run R script");
+      Copy(Empty)
+    })
   };
     
   Set _def.quantiles = [[0.025, 0.25, 0.5, 0.75, 0.975]];
@@ -353,7 +361,16 @@ NameBlock RCODA =
        <<FormatReal(varByCol,"%.0lg")+","
        <<qTxt
        <<")";
-    Set Rapi::RunRScript(script, args.bbm, "", result.names, verbose)
+    Set rrs= Rapi::RunRScript(script, args.bbm, "", result.names, verbose);
+    If(Card(rrs), 
+    {
+      rrs
+    },
+    {
+      WriteLn("[summary] Cannot run R script");
+      Copy(Empty)
+    })
+
   }
 
 ]];
