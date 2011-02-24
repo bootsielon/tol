@@ -1526,8 +1526,19 @@ BOperClassify::SetAlgebra_);
 void BSetClassify::CalcContens()
 //--------------------------------------------------------------------
 {
-  BCode&  code    = Code(Arg(2));
   BList* result   = NIL;
+  BSet& orig = Set(Arg(1));
+  if(orig.Card()==0) { return; }
+  else if(orig.Card()==1)
+  {
+    BUserSet* cl = NewSet("","Class 1",orig.ToList(),
+                          NIL, BSet::Generic);
+    result = NCons(cl);
+    contens_.RobStruct(result,NIL,BSet::Generic);
+    return;
+  }
+  BSet sorted = orig;
+  BCode&  code    = Code(Arg(2));
   BList* aux      = NIL;
   BList* classLst = NIL;
   BList* classAux = NIL;
@@ -1536,16 +1547,7 @@ void BSetClassify::CalcContens()
   if(Arg(3)) { relationType = Text(Arg(3)); }
   if(relationType == "partial order")
   {
-    BSet sorted = Set(Arg(1));
     BInt m = 1;
-    if(sorted.Card()<=1)
-    {
-      BUserSet* cl = NewSet("","Class 1",sorted.ToList(),
-                            NIL, BSet::Generic);
-      result = NCons(cl);
-      contens_.RobStruct(result,NIL,BSet::Generic);
-      return;
-    }
   //Std(Out()+"\nClassifing by "+Code(Arg(2))->Name()+ " criterium");
     if(!sorted.Sort(code))
     {
