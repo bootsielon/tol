@@ -1,0 +1,36 @@
+NameBlock ModuloA = [[
+  Class @ClaseA {
+    Real valueA
+  }
+]];
+
+Class @ClaseB {
+  Real valueB;
+/* */
+  ModuloA::@ClaseA Fun1(Real void) {
+    ModuloA::@ClaseA instA = [[ 
+      Real valueA = valueB
+    ]]
+  };
+/* */
+ NameBlock Fun2(Real void) {
+    ModuloA::@ClaseA instA = [[ 
+      Real valueA = valueB * 2
+    ]]
+  };
+  ModuloA::@ClaseA Fun3(Real void) {
+    ModuloA::@ClaseA instA = [[ 
+      Real valueA = valueB * 2
+    ]]
+  };
+/* */
+  ModuloA::@ClaseA a = [[ Real valueA=5 ]]
+};
+
+/* */
+@ClaseB b = [[
+    Real valueB = 2
+]];
+
+ModuloA::@ClaseA a = b::Fun3(?);
+/* */
