@@ -101,6 +101,8 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   parent_ = parent;
   isGood_ = true;
   BToken* tok = NULL;
+//Std(BText("\nTRACE BMember::BMember(")+BParser::treWrite(branch,"  ")+"\n"); 
+
   if(parent && branch && branch->car())
   {
     tok = (BToken*)branch->car();
@@ -165,24 +167,61 @@ BMember::BMember(BMemberOwner* parent, List* branch)
         if(car && car->IsListClass())
         {
           declaration_ = BParser::Unparse((List*)car,"","");
-          if(((List*)car)->cdr() && 
-             ((List*)car)->cdr()->car() &&
-             ((List*)car)->cdr()->car()->IsListClass())
+          bool isGoodBranch = false;
+          if(((List*)car)->car() &&
+            !((List*)car)->car()->IsListClass())
           {
-            car = ((List*)((List*)car)->cdr()->car())->car();
-            tok = (BToken*)car;
-            name_ = tok->Name();
-            cdr = cdr->cdr();
-            if(cdr)
+            List* lst2 = ((List*)car);
+            BToken* tok2 = (BToken*)(lst2->car());
+            List* cdr2 = lst2->cdr();
+            if((tok2->TokenType()==TYPE) &&
+               cdr2 && cdr2->car() && cdr2->car()->IsListClass())
             {
-              car = cdr->car();
-              if(car && car->IsListClass())
+              car = ((List*)((List*)car)->cdr()->car())->car();
+              tok = (BToken*)car;
+              name_ = tok->Name();
+              isGoodBranch = true; 
+            }
+            else if((tok2->Name()=="::"))
+            {
+              List* cdr3 = cdr2->cdr();
+              if(cdr3 && cdr3->car() && (cdr3->car()->IsListClass()))
               {
-                definition_  = BParser::Unparse((List*)car,"","");
+                List* lst3 = (List*)(cdr3->car());
+                if(lst3)
+                { 
+                  List* cdr4 = lst3->cdr();
+                  if(cdr4 && cdr4->car() && (cdr4->car()->IsListClass()))
+                  { 
+                    List* lst4 = (List*)(cdr4->car());
+                    if(lst4)
+                    {
+                      BCore* car4 = lst4->car();
+                      if(car4 && !(car4->IsListClass()))
+                      { 
+                        BToken* tok4 = (BToken*)(car4);
+                        name_ = tok4->Name();
+                        isGoodBranch = true; 
+                      }
+                    }
+                  }
+                }
               }
-              else
+            }
+            if(isGoodBranch)
+            { 
+              cdr = cdr->cdr();
+              if(cdr)
               {
-                isGood_ = false;
+                car = cdr->car();
+                if(car && car->IsListClass())
+                {
+                  definition_  = BParser::Unparse((List*)car,"","");
+                }
+                else
+                {
+                  isGood_ = false;
+                }
               }
             }
           }
@@ -894,7 +933,7 @@ int MbrNumCmp(const void* v1, const void* v2)
   List* lst = NULL;
   if(memberLst)
   {
-  //Std(BText("\nBMemberOwner::AddMemberList(")+BParser::treWrite(memberLst,"  ")+"\n"); 
+  //Std(BText("\nTRACE BMemberOwner::AddMemberList(")+BParser::treWrite(memberLst,"  ")+"\n"); 
     if(memberLst->car()->IsListClass())
     {
       //If branch is a list adds all items
