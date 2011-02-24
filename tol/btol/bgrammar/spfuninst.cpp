@@ -1813,26 +1813,34 @@ static BSyntaxObject* EvMemberArg
     if(result && (tt==TYPE)&&(result->Mode()==BSTRUCTMODE))
     {
       BStruct* str = (BStruct*)result;
-      result = str->Function()->Evaluate(branch2->cdr());
-      DESTROY(str);
+      BSyntaxObject* instance = str->Function()->Evaluate(branch2->cdr());
+      if(instance)
+      {
+        result = instance;
+        DESTROY(str);
+      }
     }
     if(result && (tt==TYPE)&&(result->Mode()==BCLASSMODE))
     {
       BClass* cls = (BClass*)result;
-      result = GraNameBlock()->EvaluateTree(branch2->cdr());
-      BUserNameBlock* unb = NULL;
-      if(result && (result->Grammar()==GraNameBlock()))
-      {
-        unb = (BUserNameBlock*)result;
+      BSyntaxObject* instance = GraNameBlock()->EvaluateTree(branch2->cdr());
+      if(instance)
+      {  
+        result = instance;
+        BUserNameBlock* unb = NULL;
+        if(result && (result->Grammar()==GraNameBlock()))
+        {
+          unb = (BUserNameBlock*)result;
+        }
+        if(!unb || (unb->Contens().Class()!=cls))
+        {
+          errMsg = I2("It was expected an instance of Class ",
+                   "Se esperaba una instancia de Class ") +cls->Name();
+          DESTROY(result);
+          result=NULL;
+        }
+        DESTROY(cls);
       }
-      if(!unb || (unb->Contens().Class()!=cls))
-      {
-        errMsg = I2("It was expected an instance of Class ",
-                 "Se esperaba una instancia de Class ") +cls->Name();
-        DESTROY(result);
-        result=NULL;
-      }
-      DESTROY(cls);
     }
   }
   return(result);
@@ -1855,7 +1863,7 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   //Std(BText("\nEvMember branch1='")+BParser::Unparse(branch1,"  ")+"'\n"); 
   //Std(BText("\nEvMember branch2='")+BParser::Unparse(branch2,"  ")+"'\n"); 
     int nObject0 = BSyntaxObject::NSyntaxObject();
-  //Std(BText("\nTRACE EvMember BEGIN NObject=")+nObject0+" tre='"+ups+"'\n"); 
+    Std(BText("\nTRACE EvMember BEGIN NObject=")+nObject0+" tre='"+ups+"'\n"); 
 /* */
   BSyntaxObject* result = NIL;
   int stackPos = BGrammar::StackSize();
