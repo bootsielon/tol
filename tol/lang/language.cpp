@@ -1396,24 +1396,32 @@ static void PkgStartActions(
 
 //--------------------------------------------------------------------
   BSyntaxObject* BPackage::Load(
-    const BText& package_version_, 
+    const BText& package_identifier, 
     bool retry)
 //--------------------------------------------------------------------
 {
-  BText package_version = package_version_;
+  BText package_version = package_identifier;
   BText package;
 //Std(BText("\nTRACE BPackage::Load 1 package_version='")+package_version+"'");
   int point = package_version.Find(".",1);
   int point2 = package_version.Find(".",point+1);
-  if(point>=0 && point2>=0)
+  if(point>=0 && point2<0)
+  {
+    package_version += ".";
+    point2 = package_version.Find(".",point+1);
+  }
+  bool hasHighVersion = (point>0); 
+  bool hasLowVersion = hasHighVersion && (point2<package_version.Length()-2); 
+  if(hasLowVersion)
   {
     package = package_version.SubString(0,point-1);
   }
-  else if(point>=0 && point2<0)
+  else if(hasHighVersion)
   {
     package = package_version.SubString(0,point-1);
     package_version = LocalLastCompatible(package_version);
     point2 = package_version.Find(".",point+1);
+    hasLowVersion = (point2<=package_version.Length()-2); 
   }
   else
   {
@@ -1421,7 +1429,7 @@ static void PkgStartActions(
     package_version = LocalLastCompatible(package);
   }
   BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
-  BText path = (point2>=0)?LocalPath(package_version):"";
+  BText path = LocalPath(package_version);
 //Std(BText("\nTRACE BPackage::Load 3 path='")+path+"'");
   BDir dirPath(":::");
   if(path.HasName()) { dirPath = path; }
@@ -1494,7 +1502,7 @@ static void PkgStartActions(
     if(!dirPath.Exist())
     {
       Error(I2("Unknown package ",
-               "El paquete desconocido ")+package_version+
+               "El paquete desconocido ")+package_identifier+
             I2(" must be manually installed.",
                " debe ser instalado manualmente."));
     }

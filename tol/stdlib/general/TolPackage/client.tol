@@ -92,7 +92,7 @@ Text LocalLastCompatible(Text package)
   Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
   Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
   {
-    TextBeginWith( pkgNamVer, package+".")
+    TextBeginWith( pkgNamVer, package)
   });
   Text If(!Card(pkgSel),"",
   {
