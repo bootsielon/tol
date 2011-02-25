@@ -1,0 +1,27 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Real m=IntRand(1,100);
+  Real n=IntRand(1,100);
+  Real mn = m*n;
+  VMatrix x = Round(Rand(m,n,0.5,5.5));
+  Real r = IntRand(0,6);
+
+  VMatrix xEQr = EQ(x,r);
+  VMatrix xNEr = NE(x,r);
+  VMatrix xGEr = GE(x,r);
+  VMatrix xLEr = LE(x,r);
+  VMatrix xGTr = GT(x,r);
+  VMatrix xLTr = LT(x,r);
+
+  Set ok.all = [[
+  Real vmat.ok.1 = VMatSum(Or(xEQr,xNEr))==mn;
+  Real vmat.ok.2 = VMatSum(And(xEQr,xNEr))==0;
+  Real vmat.ok.3 = VMatSum(And(xGTr,xLTr))==0;
+  Real vmat.ok.4 = VMatSum(And(xGTr,xLEr))==0;
+  Real vmat.ok.5 = VMatSum(And(xGEr,xLTr))==0;
+  Real vmat.ok.6 = VMatSum(Or(xGTr,xEQr,xLTr))==mn
+  ]];
+

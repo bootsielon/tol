@@ -1,0 +1,27 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+  Real m=IntRand(1,100);
+  Real n=IntRand(1,100);
+  Real mn = m*n;
+  Matrix x = Round(Rand(m,n,0.5,5.5));
+  Real r = IntRand(0,6);
+
+  Matrix xEQr = EQ(x,r);
+  Matrix xNEr = NE(x,r);
+  Matrix xGEr = GE(x,r);
+  Matrix xLEr = LE(x,r);
+  Matrix xGTr = GT(x,r);
+  Matrix xLTr = LT(x,r);
+
+  Set ok.all = [[
+  Real mat.ok.1 = MatSum(Or(xEQr,xNEr))==mn;
+  Real mat.ok.2 = MatSum(And(xEQr,xNEr))==0;
+  Real mat.ok.3 = MatSum(And(xGTr,xLTr))==0;
+  Real mat.ok.4 = MatSum(And(xGTr,xLEr))==0;
+  Real mat.ok.5 = MatSum(And(xGEr,xLTr))==0;
+  Real mat.ok.6 = MatSum(Or(xGTr,xEQr,xLTr))==mn
+  ]];
+
