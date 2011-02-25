@@ -855,34 +855,8 @@ static void ApplyFunToList(BDatBinary fun,
   }
 }
 
-//--------------------------------------------------------------------
-DeclareContensClass(BMat, BMatTemporary, BMatMin);
-DefIntOpr(1, BMatMin, "Min", 1, 0,
-  "(Matrix M1 [, Matrix M2, ...])",
-  I2("Returns the minimum of all arguments.",
-     "Devuelve el minimo de todos los argumentos."),
-    BOperClassify::MatrixAlgebra_);
-//--------------------------------------------------------------------
-void BMatMin::CalcContens()
-//--------------------------------------------------------------------
-{
-  ApplyFunToList(Minimum,ArgList(),contens_);
-}
 
 
-//--------------------------------------------------------------------
-DeclareContensClass(BMat, BMatTemporary, BMatMax);
-DefIntOpr(1, BMatMax, "Max", 1, 0,
-  "(Matrix M1 [, Matrix M2, ...])",
-  I2("Returns the maximum of all arguments.",
-     "Devuelve el maximo de todos los argumentos."),
-    BOperClassify::MatrixAlgebra_);
-//--------------------------------------------------------------------
-void BMatMax::CalcContens()
-//--------------------------------------------------------------------
-{
-  ApplyFunToList(Maximum,ArgList(),contens_);
-}
 
 typedef  BDat& (BDat::*BDatAutoBinary)(const BDat&);
 //--------------------------------------------------------------------
@@ -900,17 +874,35 @@ static void ApplyAutoFunToList(BDatAutoBinary fun,
   BInt  n;
   a = Mat(args->Car());
   if(!a.Rows()||!a.Columns()) { return; }
+  BMat aux(a.Rows(),a.Columns());
   BDat dat;
   args=Cdr(args);
   for(n=2; args; n++, args=Cdr(args))
   {
-    BMat& b = Mat(args->Car());
-    if((a.Rows()!=b.Rows())||(a.Columns()!=b.Columns())) { break; }
-    for(i=0; i<a.Rows(); i++)
+    BSyntaxObject* uB = (BSyntaxObject*)(args->Car()); 
+    BMat* b = NULL;
+    if(uB)
     {
-      for(j=0; j<a.Columns(); j++)
+      BGrammar* g = uB->Grammar();
+      if(g==GraMatrix())
+      {  
+        b = &Mat(uB);
+      }
+      else if(g==GraReal())
+      {  
+        aux.SetAllValuesTo(Dat(uB));
+        b = &aux;
+      }
+    }
+    if(b)
+    {
+      if((a.Rows()!=b->Rows())||(a.Columns()!=b->Columns())) { break; }
+      for(i=0; i<a.Rows(); i++)
       {
-        (a(i,j).*fun)(b(i,j));
+        for(j=0; j<a.Columns(); j++)
+        {
+          (a(i,j).*fun)((*b)(i,j));
+        }
       }
     }
   }
@@ -918,8 +910,9 @@ static void ApplyAutoFunToList(BDatAutoBinary fun,
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatAnd);
-DefIntOpr(1, BMatAnd, "And", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefExtOpr(1, BMatAnd, "And", 1, 0,
+  "Matrix {Matrix|Real}",
+  "(Matrix M1 [, {Matrix|Real} M2, ...])",
   I2("Returns the logic AND of all arguments.",
      "Devuelve el AND logico de todos los argumentos."),
     BOperClassify::MatrixAlgebra_);
@@ -933,8 +926,9 @@ void BMatAnd::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatOr);
-DefIntOpr(1, BMatOr, "Or", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefExtOpr(1, BMatOr, "Or", 1, 0,
+  "Matrix {Matrix|Real}",
+  "(Matrix M1 [, {Matrix|Real} M2, ...])",
   I2("Returns the logic OR of all arguments.",
      "Devuelve el OR logico de todos los argumentos."),
     BOperClassify::MatrixAlgebra_);
@@ -943,6 +937,98 @@ void BMatOr::CalcContens()
 //--------------------------------------------------------------------
 {
   ApplyAutoFunToList(&BDat::Or,ArgList(),contens_);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatMin);
+DefExtOpr(1, BMatMin, "Min", 1, 0,
+  "Matrix {Matrix|Real}",
+  "(Matrix M1 [, {Matrix|Real} M2, ...])",
+  I2("Returns the minimum of all arguments.",
+     "Devuelve el minimo de todos los argumentos."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatMin::CalcContens()
+//--------------------------------------------------------------------
+{
+  ApplyFunToList(Minimum,ArgList(),contens_);
+}
+
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatMax);
+DefExtOpr(1, BMatMax, "Max", 1, 0,
+  "Matrix {Matrix|Real}",
+  "(Matrix M1 [, {Matrix|Real} M2, ...])",
+  I2("Returns the maximum of all arguments.",
+     "Devuelve el maximo de todos los argumentos."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatMax::CalcContens()
+//--------------------------------------------------------------------
+{
+  ApplyFunToList(Maximum,ArgList(),contens_);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatIfMatReal);
+DefExtOpr(1, BMatIfMatReal, "IfMat", 3, 3, 
+  "Matrix {Matrix|Real} {Matrix|Real}",
+  "(Matrix condition, {Matrix|Real} A, {Matrix|Real} B)",
+  I2("For each cell (i,j) if condition(i,j) is true returns the value of A(i,j), else B(i,j).",
+     "Para cada celda (i,j) si condition(i,j) es cierto devuelve A(i,j) y si no B(i,j)."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BMatIfMatReal::CalcContens()
+//--------------------------------------------------------------------
+{
+  BMat& C = Mat(Arg(1));
+  BMat* A_;
+  BMat* B_;
+  BMat Aconst;
+  BMat Bconst;
+  BSyntaxObject* arg2 = Arg(2);
+  BSyntaxObject* arg3 = Arg(3);
+  if(arg2->Grammar()==GraReal()) 
+  { 
+    Aconst=BMat(C.Rows(),C.Columns());
+    Aconst.SetAllValuesTo(Dat(arg2));
+    A_ = &Aconst;
+  }
+  else { A_ = &Mat(arg2); }
+  if(arg3->Grammar()==GraReal()) 
+  { 
+    Bconst=BMat(C.Rows(),C.Columns());
+    Bconst.SetAllValuesTo(Dat(arg3));
+    B_ = &Bconst;
+  }
+  else { B_ = &Mat(arg3); }
+  BMat& A = *A_;
+  BMat& B = *B_;
+  if((C.Rows   ()!=A.Rows   ()) || (C.Rows   ()!=B.Rows   ()) ||
+     (C.Columns()!=A.Columns()) || (C.Columns()!=B.Columns())    )
+  {
+    Error(I2("Invalid dimensions in IfMat function.",
+             "Dimensiones no validas en la funcion IfMat."));
+    contens_ = BMat::Unknown();
+    return;
+  }
+  contens_.Alloc(C.Rows(),C.Columns());
+  if(contens_.Rows()!=C.Rows()) { return; }
+  for(BInt i=0; i<C.Data().Size(); i++)
+  {
+    if(C.Data()(i).IsKnown())
+    {
+      if(C.Data()(i)!=0)
+      {
+        contens_.Data()(i) = A.Data()(i);
+      }
+      else
+      {
+        contens_.Data()(i) = B.Data()(i);
+      }
+    }
+  }
 }
 
 
@@ -959,32 +1045,51 @@ void ApplyCmpToList(BDatBinary cmp,
   if(!args) { return; }
   BInt i,j;
   BInt  n;
-  BMat* a = &Mat(args->Car());
-  if(!a->Rows()||!a->Columns()) { return; }
-  c.Alloc(a->Rows(),a->Columns());
-  if(c.Rows()!=a->Rows()) { return; }
+  BMat a = Mat(args->Car());
+  if(!a.Rows()||!a.Columns()) { return; }
+  c.Alloc(a.Rows(),a.Columns());
+  if(c.Rows()!=a.Rows()) { return; }
   BDat dat;
   args=Cdr(args);
-  for(i=0; i<a->Rows(); i++) for(j=0; j<a->Columns(); j++) c(i,j)=1;
+  for(i=0; i<a.Rows(); i++) for(j=0; j<a.Columns(); j++) c(i,j)=1;
+  BMat aux(a.Rows(),a.Columns());
   for(n=2; args; n++, args=Cdr(args))
   {
-    BMat* b = &Mat(args->Car());
-    if((a->Rows()!=b->Rows())||(a->Columns()!=b->Columns())) { break; }
-    for(i=0; i<a->Rows(); i++)
+    BSyntaxObject* uB = (BSyntaxObject*)(args->Car()); 
+    BMat* b = NULL;
+    if(uB)
     {
-      for(j=0; j<a->Columns(); j++)
-      {
-        c(i,j).And((*cmp)((*a)(i,j), (*b)(i,j)));
+      BGrammar* g = uB->Grammar();
+      if(g==GraMatrix())
+      {  
+        b = &Mat(uB);
+      }
+      else if(g==GraReal())
+      {  
+        aux.SetAllValuesTo(Dat(uB));
+        b = &aux;
       }
     }
-    a = b;
+    if(b)
+    {
+      if((a.Rows()!=b->Rows())||(a.Columns()!=b->Columns())) { break; }
+      for(i=0; i<a.Rows(); i++)
+      {
+        for(j=0; j<a.Columns(); j++)
+        {
+          c(i,j).And((*cmp)(a(i,j), (*b)(i,j)));
+        }
+      }
+      a = *b;
+    } 
   }
 }
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatGt);
-DefIntOpr(1, BMatGt, "GT", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefExtOpr(1, BMatGt, "GT", 2, 0, 
+  "Matrix {Matrix|Real} {Matrix|Real}",
+  "(Matrix M1, {Matrix|Real} M2 [, {Matrix|Real} M3, ...])",
   I2("Returns true if each argument is greater than the following.",
      "Devuelve cierto si cada argumento es mayor que el siguiente."),
     BOperClassify::MatrixAlgebra_);
@@ -997,8 +1102,9 @@ void BMatGt::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatLt);
-DefIntOpr(1, BMatLt, "LT", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefExtOpr(1, BMatLt, "LT", 2, 0, 
+  "Matrix {Matrix|Real} {Matrix|Real}",
+  "(Matrix M1, {Matrix|Real} M2 [, {Matrix|Real} M3, ...])",
   I2("Returns true if each argument is less than the following.",
      "Devuelve cierto si cada argumento es menor que el siguiente."),
     BOperClassify::MatrixAlgebra_);
@@ -1011,8 +1117,9 @@ void BMatLt::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatGe);
-DefIntOpr(1, BMatGe, "GE", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefExtOpr(1, BMatGe, "GE", 2, 0, 
+  "Matrix {Matrix|Real} {Matrix|Real}",
+  "(Matrix M1, {Matrix|Real} M2 [, {Matrix|Real} M3, ...])",
   I2("Returns true if each argument is greater or equal than the following.",
      "Devuelve cierto si cada argumento es mayor o igual que el siguiente."),
     BOperClassify::MatrixAlgebra_);
@@ -1025,8 +1132,9 @@ void BMatGe::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatLe);
-DefIntOpr(1, BMatLe, "LE", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefExtOpr(1, BMatLe, "LE", 2, 0, 
+  "Matrix {Matrix|Real} {Matrix|Real}",
+  "(Matrix M1, {Matrix|Real} M2 [, {Matrix|Real} M3, ...])",
   I2("Returns true if each argument is less or equal than the following.",
      "Devuelve cierto si cada argumento es menor o igual que el siguiente."),
     BOperClassify::MatrixAlgebra_);
@@ -1039,8 +1147,9 @@ void BMatLe::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatEq);
-DefIntOpr(1, BMatEq, "Eq", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefExtOpr(1, BMatEq, "Eq", 2, 0, 
+  "Matrix {Matrix|Real} {Matrix|Real}",
+  "(Matrix M1, {Matrix|Real} M2 [, {Matrix|Real} M3, ...])",
   I2("Returns true if each argument is equal than the following.\n"
      "Could also be called as EQ",
      "Devuelve cierto si cada argumento es igual que el siguiente.\n"
@@ -1055,8 +1164,9 @@ void BMatEq::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BMat, BMatTemporary, BMatNe);
-DefIntOpr(1, BMatNe, "NE", 2, 0,
-  "(Matrix M1, Matrix M2 [, Matrix M3, ...])",
+DefExtOpr(1, BMatNe, "NE", 2, 0, 
+  "Matrix {Matrix|Real} {Matrix|Real}",
+  "(Matrix M1, {Matrix|Real} M2 [, {Matrix|Real} M3, ...])",
   I2("Returns true if each argument is not equal than the following.",
      "Devuelve cierto si cada argumento no es igual que el siguiente."),
     BOperClassify::MatrixAlgebra_);
@@ -1409,46 +1519,6 @@ void BMatInvF01Real::CalcContens()
   }
 }
 
-
-//--------------------------------------------------------------------
-DeclareContensClass(BMat, BMatTemporary, BMatIfMatReal);
-DefExtOpr(1, BMatIfMatReal, "IfMat", 3, 3, "Matrix Matrix Matrix",
-  "(Matrix condition, Matrix A, Matrix B)",
-  I2("For each cell (i,j) if condition(i,j) is true returns the value of A(i,j), else B(i,j).",
-     "Para cada celda (i,j) si condition(i,j) es cierto devuelve A(i,j) y si no B(i,j)."),
-    BOperClassify::MatrixAlgebra_);
-//--------------------------------------------------------------------
-void BMatIfMatReal::CalcContens()
-//--------------------------------------------------------------------
-{
-  BMat& C = Mat(Arg(1));
-  BMat& A = Mat(Arg(2));
-  BMat& B = Mat(Arg(3));
-  if((C.Rows   ()!=A.Rows   ()) || (C.Rows   ()!=B.Rows   ()) ||
-     (C.Columns()!=A.Columns()) || (C.Columns()!=B.Columns())    )
-  {
-    Error(I2("Invalid dimensions in IfMat function.",
-             "Dimensiones no validas en la funcion IfMat."));
-    contens_ = BMat::Unknown();
-    return;
-  }
-  contens_.Alloc(C.Rows(),C.Columns());
-  if(contens_.Rows()!=C.Rows()) { return; }
-  for(BInt i=0; i<C.Data().Size(); i++)
-  {
-    if(C.Data()(i).IsKnown())
-    {
-      if(C.Data()(i)!=0)
-      {
-        contens_.Data()(i) = A.Data()(i);
-      }
-      else
-      {
-        contens_.Data()(i) = B.Data()(i);
-      }
-    }
-  }
-}
 
 
 //--------------------------------------------------------------------
