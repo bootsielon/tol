@@ -196,7 +196,7 @@ proc ::TolInspector::CreateColumns { ht } {
   #(pgea) se oculta la columna correspondiente a la referencia
   $ht column insert end Content Path Description\
       -bg white -justify left -activetitlebackground gray90 -pad 3
-  $ht column insert end Reference -hide true
+  $ht column insert end Reference -hide yes
   foreach c {Index Content Path Description} {
     $ht column configure $c -text [mc "$c"]
   }
@@ -1499,7 +1499,9 @@ proc ::TolInspector::SelectConsoleRoot { } {
   variable knownReference ""
 
   ClearHiertables
-  $ht_vars column  configure Index -hide yes
+#(pgea) se quita la línea que oculta la columna del índice y que
+#(pgea) el procedimimento anterior ClearHiertables muestra
+#  $ht_vars column  configure Index -hide yes
 #  $w_tabset tab configure Functions -state disabled
   
   foreach co [::tol::console stack list] {
