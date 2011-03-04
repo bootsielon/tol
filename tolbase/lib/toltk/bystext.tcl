@@ -994,10 +994,10 @@ proc ::BayesText::init_tolctext { w } {
     CDate CTimeSet Date Matrix NameBlock Polyn Ration Real Serie Set Special Struct \
     Text TimeSet VMatrix Class \#Embed \#Require Static ]  
 
-  ctext::addHighlightClass $w stackControl black {BinGroup Case Copy Dating\
+  ctext::addHighlightClass $w stackControl purple {BinGroup Case Copy Dating\
     Do Element Eval EvalArg Field Find Group IF If MakeGlobal PutDescription\
     PutName PutValue ReCalc TOLPath While Write WriteLn False True For\
-    EvalSet}
+    EvalSet inf \-inf \+inf \? }
 
   # Line comments:
   ctext::addHighlightClassForRegexp $w comments blue {//[^\n^\r]+}
