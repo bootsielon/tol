@@ -372,16 +372,16 @@ void BTimer::PrintProcess()
 //--------------------------------------------------------------------
 {
   Std(Out() + "\n\nTotal Program Time = " + totalProgramTime_.Txt() +
-"\n=============================================================================="
-"\nNum	|Process		       |Called	   |CPU	      |Seconds |Average	 "
-"\n==============================================================================");
+"\n====================================================================================="
+"\nNum   |Process                        |Called      |CPU        |Seconds  |Average    "
+"\n=====================================================================================");
   for(BInt n=0; n<=processNumber_; n++)
   {
     BText  pro = processRegister_[n];
-    BInt   num = *(callNumberRegister_[n]);
-    BInt   cpu = (BInt)(*(cpuTimeRegister_[n]));
-    BInt   sec = BInt(BTimer::ClockToSecond(cpu));
-    BReal  avr = round(sec/num);
+    double num = *(callNumberRegister_[n]);
+    double cpu = *(cpuTimeRegister_[n]);
+    double sec = BInt(BTimer::ClockToSecond(cpu));
+    double avr = sec/num;
     BText    nPad;   nPad << n;	    nPad =   nPad. LeftPad( 4, ' ') + " |";
     BText  proPad; proPad << pro; proPad = proPad.RightPad(29, ' ') + " |";
     BText  numPad; numPad << num; numPad = numPad. LeftPad(10, ' ') + " |";
@@ -391,5 +391,5 @@ void BTimer::PrintProcess()
     Std(Out()+"\n"+nPad+proPad+numPad+cpuPad+secPad+avrPad);
   }
  Std(
-"\n==============================================================================");
+"\n=====================================================================================");
 }
