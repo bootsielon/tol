@@ -130,6 +130,7 @@ public:
 
   BSyntaxObject* Evaluator(BList* arg) const
   { 
+  //InitTotalTime("BSetAppend::Evaluator");
     if(CheckNonDeclarativeAction("Append")) { return(NULL); }
     BList* lst = arg;
     bool incrementalIndexByName = false;
@@ -142,6 +143,7 @@ public:
     }
     uSet1->Contens().Append(uSet2->Contens(),incrementalIndexByName);
     SAFE_DESTROY(arg, uSet1);
+  //SumPartialTime;
     return(uSet1);
   }
  private:
@@ -156,8 +158,8 @@ public:
   BSetRemove()
   : BExternalOperator
     (
-      "Remove", GraSet(), "Set Real Real", NIL, 3, 3,
-      "(Set set, Real n, Real deleteOld)",
+      "Remove", GraSet(), "Set Real Real", NIL, 2, 3,
+      "(Set set, Real n [, Real deleteOld=True])",
 		  I2("Removes the n-th element of a set and tries to delete it "
          "from memory if deleteOld is true. Returns the own set "
          "with the rest of elements."
@@ -181,10 +183,17 @@ public:
     bool incrementalIndexByName = false;
     BUserSet* uSet = USet(lst->Car()); lst = lst->Cdr();
     BUserDat* uDat = UDat(lst->Car()); lst = lst->Cdr();
-    BUserDat* uDel = UDat(lst->Car()); 
+    bool do_deletion = true;
+    if(lst)
+    {
+      Deprecated("Optional argument deleteOld of function Set Remove "
+                 "will be eliminated taken true value");
+      BUserDat* uDel = UDat(lst->Car()); 
+      do_deletion = uDel->Contens().Value()!=0.0;
+    }
     uSet->Contens().Remove(
      (int)(uDat->Contens().Value())-1,
-     uDel->Contens().Value()!=0.0);
+     do_deletion);
     SAFE_DESTROY(arg, uSet);
     return(uSet);
   }
@@ -200,8 +209,8 @@ public:
   BSetReplace()
   : BExternalOperator
     (
-      "Replace", GraSet(), "Set Real Anything Real", NIL, 4, 4,
-      "(Set set, Real n, Anything new, Real deleteOld)",
+      "Replace", GraSet(), "Set Real Anything Real", NIL, 3, 4,
+      "(Set set, Real n, Anything new [, Real deleteOld])",
 		  I2("Replaces the n-th element of a set by a another new one "
          "and tries to delete the old one from memory if deleteOld "
          "is true. Returns the own set with the new changed element."
@@ -227,11 +236,18 @@ public:
     BUserSet* uSet = USet(lst->Car()); lst = lst->Cdr();
     BUserDat* uDat = UDat(lst->Car()); lst = lst->Cdr();
     BSyntaxObject* uNew = (BSyntaxObject*)(lst->Car()); lst = lst->Cdr();
-    BUserDat* uDel = UDat(lst->Car()); 
+    bool do_deletion = true;
+    if(lst)
+    {
+      Deprecated("Optional argument deleteOld of function Set Replace "
+                 "will be eliminated taken true value");
+      BUserDat* uDel = UDat(lst->Car()); 
+      do_deletion = uDel->Contens().Value()!=0.0;
+    }
     uSet->Contens().Replace(
       (int)(uDat->Contens().Value())-1, 
       uNew,
-      uDel->Contens().Value()!=0.0);
+      do_deletion);
     SAFE_DESTROY(arg, uSet);
     return(uSet);
   }
@@ -1801,6 +1817,7 @@ DefExtOpr(1, BSetFor, "For", 3, 3, "Real Real Code",
 void BSetFor::CalcContens()
 //--------------------------------------------------------------------
 {
+//InitTotalTime("BSetFor::CalcContens");
   BStandardOperator* opr  = (BStandardOperator*)GetOperator(UCode(Arg(3)));
   int from  = (int)Real(Arg(1));
   int until = (int)Real(Arg(2));
@@ -1808,35 +1825,39 @@ void BSetFor::CalcContens()
   BSyntaxObject* objCode = NIL;
   int n;
 
-  if(from>until) { return; }
-  contens_.PrepareStore(until-from+1);
-  if(!opr || (opr->MaxArg()!=1) || (opr->GrammarForArg(1)!=GraReal()))
-  {
-    Error(I2("Wrong argument function in For function calling."
-       "It must have just one argument of Real type.",
-       "Función argumento errónea en llamada a la función For."
-       "Ésta debe tener exactamente un argumento de tipo Real."));
-    return;
-  }
-  for(n = from; n<=until; n++)
-  {
-    arg = new BContensDat(n);
-    BCore::MemAssignInfo mai(arg);
-    if(objCode = opr->Evaluator(NCons(arg)))
+  if(from<=until) 
+  { 
+    contens_.PrepareStore(until-from+1);
+    if(!opr || (opr->MaxArg()!=1) || (opr->GrammarForArg(1)!=GraReal()))
     {
-      contens_.AddElement(objCode);
+      Error(I2("Wrong argument function in For function calling."
+         "It must have just one argument of Real type.",
+         "Función argumento errónea en llamada a la función For."
+         "Ésta debe tener exactamente un argumento de tipo Real."));
     }
     else
     {
-      mai.SafeDestroy();
-      char es[64];
-      char en[64];
-      sprintf(en, "<For> function failed at iteration %d.", n);
-      sprintf(es, "Fallo en función <For> en iteración %d.", n);
-      Error(I2(en ,es));
-      return;
+      for(n = from; n<=until; n++)
+      {
+        arg = new BContensDat(n);
+        BCore::MemAssignInfo mai(arg);
+        if(objCode = opr->Evaluator(NCons(arg)))
+        {
+          contens_.AddElement(objCode);
+        }
+        else
+        {
+          mai.SafeDestroy();
+          char es[64];
+          char en[64];
+          sprintf(en, "<For> function failed at iteration %d.", n);
+          sprintf(es, "Fallo en función <For> en iteración %d.", n);
+          Error(I2(en ,es));
+        }
+      }
     }
   }
+//SumPartialTime;
 }
 
 
@@ -2153,21 +2174,22 @@ DefExtOpr(1, BSetSerMat, "MatSerSet", 3, 3, "Matrix TimeSet Date",
 void BSetSerMat::CalcContens()
 //--------------------------------------------------------------------
 {
-    BMat	  mat    = Mat (Arg(1));
-    BUserTimeSet* dating = Tms (Arg(2));	if(!dating) { return; }
-    BDate	  first  = Date(Arg(3));
-    BDate	  last   = dating->Next(first,mat.Columns()-1);
-    BList*	  result = NIL;
-    BList*	  aux    = NIL;
-    BInt	  i;
-    for(i = 0; i < mat.Rows(); i++)
-    {
-	BTsrPrimary* serie = new BTsrPrimary("","",dating,first,last,
-					     mat.SubRow(i).Data());
-	serie->PutName(BText("S")+(i+1));
-	LstFastAppend(result, aux, serie);
-    }
-    contens_.RobStruct(result,NIL,BSet::Table);
+  BMat& mat = Mat (Arg(1));
+  BUserTimeSet* dating = Tms (Arg(2));	
+  if(!dating) { return; }
+  BDate& first = Date(Arg(3));
+  BDate last = dating->Next(first,mat.Columns()-1);
+  BList*	  result = NIL;
+  BList*	  aux    = NIL;
+  BInt	  i;
+  for(i=0; i<mat.Rows(); i++)
+  {
+    BTsrPrimary* serie = new BTsrPrimary(
+     "","",dating,first,last,mat.SubRow(i).Data());
+    serie->PutName(BText("S")+(i+1));
+    LstFastAppend(result, aux, serie);
+  }
+  contens_.RobStruct(result,NIL,BSet::Table);
 }
 
 
