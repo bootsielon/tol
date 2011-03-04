@@ -2738,3 +2738,41 @@ void BDatTolShowStatus::CalcContens()
   void TolShowStatus();
   TolShowStatus();
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatSameSet);
+DefExtOpr(1, BDatSameSet, "SameSet", 2, 2, "Set Set",
+"(Set a, Set b)",
+I2("Returns true if both objetcts have the same array of references. "
+   "That is, if by changing one amending the other and vice versa.",
+   "Devuelve cierto si los dos objetos contienen el mismo arreglo "
+   "de referencias. Es decir, si al modificar el uno se cambia el "
+   "otro y viceversa."),
+          BOperClassify::Conversion_);
+void BDatSameSet::CalcContens()
+//--------------------------------------------------------------------
+{
+  BNameBlock& a = ((BUserNameBlock*)Arg(1))->Contens();
+  BNameBlock& b = ((BUserNameBlock*)Arg(2))->Contens();
+  contens_ = (&a==&b);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatSameNameBlock);
+DefExtOpr(1, BDatSameNameBlock, "SameNameBlock", 2, 2, 
+"NameBlock NameBlock",
+"(NameBlock a, NameBlock b)",
+I2("Returns true if both objetcts have the same array of references. "
+   "That is, if by changing one amending the other and vice versa.",
+   "Devuelve cierto si los dos objetos contienen el mismo arreglo "
+   "de referencias. Es decir, si al modificar el uno se cambia el "
+   "otro y viceversa."),
+          BOperClassify::Conversion_);
+void BDatSameNameBlock::CalcContens()
+//--------------------------------------------------------------------
+{
+  BSet& a = Set(Arg(1));
+  BSet& b = Set(Arg(2));
+  contens_ = (&a==&b);
+}
+
