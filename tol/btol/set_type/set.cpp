@@ -435,7 +435,7 @@ void BSet::AddElement(BSyntaxObject* syn)
 }
 
 
-
+static char* key_deleted = "~#key_deleted#¬";
 //--------------------------------------------------------------------
 void BSet::Append(const BSet& set, bool incrementalIndex)
 //--------------------------------------------------------------------
@@ -446,6 +446,7 @@ void BSet::Append(const BSet& set, bool incrementalIndex)
   {
     indexByName_ = new BObjByIdxNameHash;
     SetEmptyKey((*indexByName_), NULL);
+    SetDeletedKey((*indexByName_), key_deleted);
   }
   int m=Card(), n=set.Card(), i, j=m;
   array_.ReallocBuffer(m+n);
@@ -539,12 +540,13 @@ BSyntaxObject* BSet::GetElement(BInt n)  const
   if(indexByName_) { delete indexByName_; indexByName_ = NULL; }
   indexByName_ = new BObjByIdxNameHash;
   SetEmptyKey((*indexByName_), NULL);
+  SetDeletedKey((*indexByName_), key_deleted);
 
   int i;
   if(!array_.Size())
   {
     Error(I2("Cannot index by name an empty set.",
-             "No se puede indexar por nombre un conjunto vac�o."));
+             "No se puede indexar por nombre un conjunto vacío."));
     return(false);
   }
   for(i=0; i<array_.Size(); i++)

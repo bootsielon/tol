@@ -1952,8 +1952,8 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
              BParser::Unparse(tre)+"'\n"+errMsg);
   }
   result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
-//if(needsDeleteUns) { SAFE_DESTROY(uns, result); }
-  SAFE_DESTROY(uns, result); 
+  if(needsDeleteUns) { SAFE_DESTROY(uns, result); }
+//SAFE_DESTROY(uns, result); 
   BGrammar::DestroyStackUntil(stackPos, result);    
 //if(result) Std(BText("\nTRACE EvMember result:'")+result->Identify()+"' numRefs="+result->NRefs()+"\n"); 
 //int nObject1 = BSyntaxObject::NSyntaxObject();
