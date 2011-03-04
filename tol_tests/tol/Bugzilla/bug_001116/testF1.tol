@@ -1,0 +1,37 @@
+
+WriteLn("NObject BEGIN = "<<Copy(NObject));
+Class @B;
+
+Class @A {
+  Set childs = Copy(Empty);
+  NameBlock CreateChild(Real void) {
+    @B child = [[ Real data = 1 ]];
+    NameBlock _this2 = _this;
+    Set Append(child::parent, [[_this]], 0); // ALTERNATIVA 1
+  //Set Append(child::parent, [[_this2]], 0); // ALTERNATIVA 2
+    Set Append(childs, [[ child ]], True);
+    child
+  };
+  Real RemoveChild(Real index) { 
+    NameBlock child = childs[index];
+    Set Remove(childs, index, 1);
+    NameBlock child := [[ Real null = 1 ]]; // se destruye
+    Real void = ?;
+  1}
+};
+    
+Class @B {
+  Real data;
+  Set parent = Copy(Empty);
+  Real Delete(Real void) { (parent[1])::RemoveChild(1) }
+};
+
+@A a;
+
+@B b = a::CreateChild(?);
+
+Real b::Delete(?);
+
+WriteLn("NObject END = "<<Copy(NObject));
+
+    
