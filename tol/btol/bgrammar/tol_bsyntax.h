@@ -44,11 +44,7 @@
 #pragma warning(disable : 4251)
 #endif
 
-#ifdef _DEBUG
 //#define TRACE_MEMORY
-#else
-//#define TRACE_MEMORY
-#endif
 
 #ifdef  TRACE_MEMORY
   #define TRACE_MEMORY_SHOW(OBJ, MESSAGE) OBJ->TraceMemory(MESSAGE)
