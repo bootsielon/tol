@@ -32,13 +32,13 @@ Aia.OutlierInfo.BuildFromSetInpDef);
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-  Text Aia.OutlierInfo.GetInpDefExpression(@Aia.OutlierInfo inf)
+  Text Aia.OutlierInfo.GetInpDefExpression(@Aia.OutlierInfo info)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text v = FormatReal(inf->value_,"%.15lg");
-  Text d = FormatDate(inf->date_,"%uy%Ym%md%dh%hi%is%s");
-  "Set @InputDef("+v+", Aia."+inf->shape_+"."+d+"="+
-  "RationExpand("+d+","+inf->dating_+","+inf->shape_+"));\n"
+  Text v = FormatReal(info->value_,"%.15lg");
+  Text d = FormatDate(info->date_,"%uy%Ym%md%dh%hi%is%s");
+  "Set @InputDef("+v+", Aia."+info->shape_+"."+d+"="+
+  "RationExpand("+d+","+info->dating_+","+info->shape_+"));\n"
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(
@@ -63,12 +63,12 @@ Aia.OutlierInfo.BuildFromSetInpDef);
 
 
 //////////////////////////////////////////////////////////////////////////////
-  Text Aia.OutlierInfo.GetSerExpression(@Aia.OutlierInfo inf)
+  Text Aia.OutlierInfo.GetSerExpression(@Aia.OutlierInfo info)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text v = FormatReal(inf->value_,"%.15lg");
-  Text d = FormatDate(inf->date_,"%uy%Ym%md%dh%hi%is%s");
-  "+("+v+":RationExpand("+d+","+inf->dating_+","+inf->shape_+"))"
+  Text v = FormatReal(info->value_,"%.15lg");
+  Text d = FormatDate(info->date_,"%uy%Ym%md%dh%hi%is%s");
+  "+("+v+":RationExpand("+d+","+info->dating_+","+info->shape_+"))"
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(
