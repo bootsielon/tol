@@ -664,7 +664,19 @@ static BSyntaxObject* CreateObject(      List*	   tre,
   TRACE_SHOW_LOW(fun," BEGIN");
   BSyntaxObject* result = NIL, *rightResult=NIL;
   TRACE_SHOW_MEDIUM(fun," 1");
-  if(!IsIdentifier(name)) { return(NIL); }
+  if(!IsIdentifier(name)) 
+  { 
+    Error(name+I2(" is not a valid identifier and could not be created.", 
+                  " no es un identificador válido y no se pudo crear."));
+    return(NIL); 
+  }
+  if(name=="inf") 
+  { 
+    Error(name+I2(" is a numeric constant and could not be replaced.", 
+                  " no es un identificador válido y no se pudo reemplazar."));
+    return(NIL); 
+  }
+
   TRACE_SHOW_MEDIUM(fun," 2");
   BInt level = BGrammar::Level();
 //Std(BText("\nCreating Object ") + name + " at level " + level);
