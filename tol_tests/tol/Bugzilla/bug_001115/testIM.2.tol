@@ -1,0 +1,18 @@
+
+NameBlock linked2 = [[
+  Set linkers = Copy(Empty);
+  Real AppendLinker(NameBlock linker) {
+    Set Append(linkers, [[ [[linker]] ]], False);
+  1}
+]];
+//Real TolOprProfiler.Enabled := True;
+Real t2 = Copy(Time);
+Set grafico2 = For(1, 1000, Real (Real i) {
+  Real linked2::AppendLinker(linked2);
+  Copy(Time)-t2
+});
+Real T2 = Copy(Time)-t2;
+//Real TolOprProfiler.Dump("testIM.2");
+
+
+//Real Exit(0);
