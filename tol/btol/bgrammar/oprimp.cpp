@@ -670,12 +670,6 @@ static BSyntaxObject* CreateObject(      List*	   tre,
                   " no es un identificador válido y no se pudo crear."));
     return(NIL); 
   }
-  if(name=="inf") 
-  { 
-    Error(name+I2(" is a numeric constant and could not be replaced.", 
-                  " no es un identificador válido y no se pudo reemplazar."));
-    return(NIL); 
-  }
 
   TRACE_SHOW_MEDIUM(fun," 2");
   BInt level = BGrammar::Level();

@@ -1182,7 +1182,7 @@ void BDat::PutValue(const BText& name)
 {
   static BChar* endptr;
   if(!name.String() || !(name[0]) || (name=="?")) { PutKnown(BUNKNOWN); }
-  else if(name=="inf") { PutValue(BDat::PosInf()); }
+//else if(name=="inf") { PutValue(BDat::PosInf()); }
   else 
   {
     BReal value;
