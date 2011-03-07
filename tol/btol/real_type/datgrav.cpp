@@ -2752,8 +2752,8 @@ I2("Returns true if both objetcts have the same array of references. "
 void BDatSameSet::CalcContens()
 //--------------------------------------------------------------------
 {
-  BNameBlock& a = ((BUserNameBlock*)Arg(1))->Contens();
-  BNameBlock& b = ((BUserNameBlock*)Arg(2))->Contens();
+  BSet& a = Set(Arg(1));
+  BSet& b = Set(Arg(2));
   contens_ = (&a==&b);
 }
 
@@ -2771,8 +2771,8 @@ I2("Returns true if both objetcts have the same array of references. "
 void BDatSameNameBlock::CalcContens()
 //--------------------------------------------------------------------
 {
-  BSet& a = Set(Arg(1));
-  BSet& b = Set(Arg(2));
+  BNameBlock& a = ((BUserNameBlock*)Arg(1))->Contens();
+  BNameBlock& b = ((BUserNameBlock*)Arg(2))->Contens();
   contens_ = (&a==&b);
 }
 
