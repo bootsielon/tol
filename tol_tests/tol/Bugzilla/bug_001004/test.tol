@@ -16,22 +16,30 @@
 
   WriteLn("TRACE 1 NObjects = "<<Copy(NObject));
 
-  Real x.1 = inf;
-  Real x.2 = -inf;
-  Real x.3 = +inf;
+  Real a = inf;
 
-  Real ok.1 = x.1 ==  1/0;
-  Real ok.2 = x.2 == -1/0;
-  Real ok.3 = x.3 ==  1/0;
   WriteLn("TRACE 2 NObjects = "<<Copy(NObject));
 
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);
 
+  Real inf = 2;
+  Real x.1 = inf;
+  Real x.2 = -inf;
+  Real x.3 = +inf;
+
+  Real ok.1 = x.1 ==  2;
+  Real ok.2 = x.2 == -2;
+  Real ok.3 = x.3 ==  2;
+  
+  Real numErr2 = Copy(NError);
+  Real numWar2 = Copy(NWarning);
+
+
   Set partialResults_ = [[ numErr0, numErr1,x.1,x.2,x.3,ok.1,ok.2,ok.3]];
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr0==numErr1,ok.1,ok.2,ok.3);
+  Real quality_ = And(numErr0+2==numErr1,numErr1==numErr2,ok.1,ok.2,ok.3);
 
 //Return the results 
   Set resultStr_ = @strTestStatus(summary_, link_, quality_,
@@ -42,4 +50,3 @@
   resultStr_;
 
 /* */
-
