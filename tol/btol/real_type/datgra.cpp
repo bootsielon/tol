@@ -516,10 +516,12 @@ BSyntaxObject* BGraContensBase<BDat>::FindConstant(const BText& name)
 {
     const char* expr = name.String();
     while(isspace(expr[0])) { expr++; }
+#ifdef UNIX
+    if(expr=="inf") { return(NULL); }
+#endif
     BDat dat;
     dat.PutValue(expr);
-    BUserDat* userDat = NIL;
-    
+    BUserDat* userDat = NIL;   
     if(dat.IsKnown()||(expr==BText("?"))) { userDat = new BContensDat(dat); }
   //else { Error(expr+" "+I2("is not a valid constant number","no es un número constante válido")); }
     return((BSyntaxObject*)userDat);
