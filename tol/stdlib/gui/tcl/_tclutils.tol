@@ -469,8 +469,8 @@ GetDirHelpSection);
       });
       Real ok = If(check==0, 1,
       {
-        If(!cannot_connect,
-          Text doTest = TclTkMessageBox(SetOfSet(
+        Text If(!cannot_connect,
+          TclTkMessageBox(SetOfSet(
                           @TclArgSt("-title",   "Dialogo TclWarning"),
                           @TclArgSt("-message", msg),
                           @TclArgSt("-icon",    "warning"))));
