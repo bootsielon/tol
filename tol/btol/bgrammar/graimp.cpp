@@ -392,8 +392,8 @@ void BGrammar::CleanTreeCache(const List* tre, bool forze)
 
   if(newGrammar)
   {
-    result = left?newGrammar->LeftEvaluateTree(branch):
-                  newGrammar->EvaluateTree    (branch);
+    result = left?newGrammar->LeftEvaluateTree(branch,true):
+                  newGrammar->EvaluateTree    (branch,0,true);
   }
   if(cls)
   {
@@ -419,7 +419,7 @@ void BGrammar::CleanTreeCache(const List* tre, bool forze)
 }
 
 //--------------------------------------------------------------------
-BSyntaxObject* BGrammar::LeftEvaluateTree(const List* tre)
+BSyntaxObject* BGrammar::LeftEvaluateTree(const List* tre, bool forceType)
 //--------------------------------------------------------------------
 {
   if(!tre) { return(NIL); }
@@ -519,7 +519,7 @@ BSyntaxObject* EvaluateMatrix(const List* tre)
 	    while((c = c->cdr()))
 	    {
 		List* cTre = Tree::treNode(c);
-		BSyntaxObject* obj = GraReal()->EvaluateTree(cTre);
+		BSyntaxObject* obj = GraReal()->EvaluateTree(cTre,0,true);
 		if(obj) {
 		    M(i,j) = Dat(obj);
 		    DESTROY(obj);
@@ -564,7 +564,7 @@ BSyntaxObject* EvaluateSet(const List* tre)
   while((b = b->cdr()))
   {
     List* bTre = Tree::treNode(b);
-    BSyntaxObject* obj = GraAnything()->EvaluateTree(bTre);
+    BSyntaxObject* obj = GraAnything()->EvaluateTree(bTre,0,false);
     if(obj)
     {
       LstFastAppend(lst,aux,obj);
@@ -587,7 +587,8 @@ typedef hash_map_by_size_t<BSyntaxObject*>::dense_ BLocalItems;
 //--------------------------------------------------------------------
 BSyntaxObject* BGrammar::EvaluateTree(
   const List* tre, 
-  BInt from_UF)
+  BInt from_UF,
+  bool forceType)
 //--------------------------------------------------------------------
 {
   static BEqualOperator* BNameBlock_BEqualOperator = 
@@ -682,11 +683,11 @@ BSyntaxObject* BGrammar::EvaluateTree(
         BToken* line = BParser::treToken(Tree::treNode(b));
         if(line && (line->TokenType()==TYPE) && (newGrammar=TknFindGrammar(line)))
         {
-          result = newGrammar->EvaluateTree((const List*) Tree::treNode(b));
+          result = newGrammar->EvaluateTree((const List*) Tree::treNode(b),from_UF,true);
         } 
         else 
         {
-          result = EvaluateTree((const List*) Tree::treNode(b));
+          result = EvaluateTree((const List*) Tree::treNode(b),from_UF,forceType);
         }
         if(result) 
         {
@@ -719,7 +720,8 @@ BSyntaxObject* BGrammar::EvaluateTree(
   else if((type == TYPE) && (newGrammar=TknFindGrammar(tok)))
   {
     TRACE_SHOW_MEDIUM(fun,"2.3");
-    result = newGrammar->EvaluateTree(Tree::treLeft((List*)tre));
+    result = newGrammar->EvaluateTree(Tree::treLeft((List*)tre),from_UF,false);
+    if(result && (result->Grammar()!=newGrammar)) { newGrammar=result->Grammar(); }
     enableCasting = BTRUE;
   // is an orphan object with a level_>0 and must be removed
     if((Level()>0) && result && ((result->Level()>Level()) || (result->Grammar()==GraSet())) ) 
@@ -736,7 +738,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
       BToken* leftTok  = BParser::treToken(left);
       if(leftTok && (leftTok->TokenType()!=ARGUMENT))
       { 
-        result = GraNameBlock()->EvaluateTree(Tree::treLeft((List*)tre));
+        result = GraNameBlock()->EvaluateTree(Tree::treLeft((List*)tre),from_UF,true);
       }
       if(result)
       {
@@ -768,7 +770,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
     List* args = (List*)tre->cdr();
   
     int oldObjNum = BSyntaxObject::NSyntaxObject();
-    first_arg = GraAnything()->EvaluateTree(Tree::treNode(args));
+    first_arg = GraAnything()->EvaluateTree(Tree::treNode(args),from_UF,false);
     bool delete_first_arg = (oldObjNum < BSyntaxObject::NSyntaxObject());
     //BGrammar* f_gra = NULL; // unused
     if (first_arg) 
@@ -819,7 +821,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
       TRACE_SHOW_MEDIUM(fun,"3.3.1");
       BSyntaxObject* cast = (*castingFunction_)(result);
       if(cast) { result = cast; }
-      else     
+      else if(forceType)    
       {
         if(BOut::IsEnabled()) 
         { 
@@ -911,7 +913,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
 }
 
 //--------------------------------------------------------------------
-BSyntaxObject* BGrammar::EvaluateExpr(const BText& expr)
+BSyntaxObject* BGrammar::EvaluateExpr(const BText& expr, bool forceType)
 //--------------------------------------------------------------------
 {
   BParser* parser = new BParser;
@@ -924,7 +926,7 @@ BSyntaxObject* BGrammar::EvaluateExpr(const BText& expr)
     if(realTree && !parser->HasError())
     {
       List* tre = realTree->getTree();
-      if((result = EvaluateTree(tre)))
+      if((result = EvaluateTree(tre,0,forceType)))
       {
         BGrammar::PutLast(this);
       }
@@ -948,7 +950,7 @@ BSyntaxObject* BGrammar::EvaluateExpr(const BText& expr)
 }
 
 //--------------------------------------------------------------------
-BSyntaxObject* BGrammar::LeftEvaluateExpr(const BText& expr)
+BSyntaxObject* BGrammar::LeftEvaluateExpr(const BText& expr, bool forceType)
 //--------------------------------------------------------------------
 {
   BParser* parser = new BParser;
@@ -961,7 +963,7 @@ BSyntaxObject* BGrammar::LeftEvaluateExpr(const BText& expr)
     if(realTree && !parser->HasError())
     {
       List* tre = realTree->getTree();
-      if((result = LeftEvaluateTree(tre)))
+      if((result = LeftEvaluateTree(tre,forceType)))
       {
         BGrammar::PutLast(this);
       }
@@ -994,7 +996,7 @@ BSyntaxObject* Evaluate(const BText& expr)
 //--------------------------------------------------------------------
 {
     BGrammar* gra = BGrammar::Last();
-    BSyntaxObject* result = gra->EvaluateExpr(expr);
+    BSyntaxObject* result = gra->EvaluateExpr(expr,true);
     return(result);
 }
 
@@ -1055,7 +1057,7 @@ BList* MultyEvaluate(const BText& expr)
 #   ifdef DO_PUT_EMS
     clock_t clk = clock();
 #   endif
-    if((object= gra->EvaluateTree(tre)))
+    if((object= gra->EvaluateTree(tre,0,false)))
     {
       gra = object->Grammar();
     //if(!object->System()) 
@@ -1085,7 +1087,7 @@ BList* MultyEvaluate(const BText& expr)
 #     ifdef DO_PUT_EMS
       clock_t clk = clock();
 #     endif
-      if((object=gra->EvaluateTree(Tree::treNode(branch))))
+      if((object=gra->EvaluateTree(Tree::treNode(branch),0,false)))
       {
       //if(!object->System())
         LstFastAppend(result, aux, object);

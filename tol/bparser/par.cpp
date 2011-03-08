@@ -1194,7 +1194,25 @@ Tree* BParser::ParseDelayed (Tree* tre)
       BText package = scan_->NextArgument();
       BPackage::Load(package,true);
     }
-
+    if(tre && !tre->isEmpty()  && NextArgument() && 
+       NextSymbol() && (NextSymbol()->Name()=="::")&& 
+       lastSymbol_ && (lastSymbol_->TokenType()==TYPE)&& 
+       lastSymbol_2_ && (lastSymbol_2_->Name()=="::"))
+    {
+      List* r = tre->getMostRightBranch();
+      if(r && r->car() && r->car()->IsListClass())
+      {
+        List* rc = (List*)r->car();
+        if(rc && rc->car() && !(rc->car()->IsListClass()))
+        {
+          BToken* tok = (BToken*)(rc->car());
+          if(tok && (tok->Name()=="::"))
+          {
+            tok->PutPrecedence(17);
+          }
+        }
+      }
+    }
     delayedSymbol_->PutPrecedence(9);
     Tree* branch = Tree::createMonary(delayedSymbol_,NIL);
     tre->putMostRight(branch);

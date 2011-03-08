@@ -1823,7 +1823,22 @@ static BSyntaxObject* EvMemberArg
     if(result && (tt==TYPE)&&(result->Mode()==BCLASSMODE))
     {
       BClass* cls = (BClass*)result;
-      BSyntaxObject* instance = GraNameBlock()->EvaluateTree(branch2->cdr());
+      
+      BSyntaxObject* instance = NULL;
+      List* b2cdr = branch2->cdr();
+      List* arg2 = NULL;
+      if(b2cdr)
+      {
+        if(b2cdr->car() && !b2cdr->car()->IsListClass())
+        {
+          arg2 = b2cdr;
+        }
+        else
+        {
+          arg2 = (List*)(b2cdr->car());  
+        }
+      } 
+      instance = GraNameBlock()->EvaluateTree(arg2);
       if(instance)
       {  
         result = instance;
@@ -1875,18 +1890,16 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
   {
     List* branch1 = Branch(tre,1);
     List* branch2 = Branch(tre,2);
+/* * /
+    Std(BText("\nTRACE EvMember branch1=")+BParser::treWrite(branch1,"  ")+"'\n"); 
+    Std(BText("\nTRACE EvMember branch2=")+BParser::treWrite(branch2,"  ")+"'\n"); 
+/* */
     bool oldEnabled = BOut::Disable();
     int nObjOld = BSyntaxObject::NSyntaxObject();
     uns = GraNameBlock()->LeftEvaluateTree(branch1);
     if(!uns) { uns = GraSet()->LeftEvaluateTree(branch1); }
     if(!uns) 
     { 
-/* * /
-      BOut::Enable();
-    //Std(BText("\nTRACE EvMember branch1=")+BParser::treWrite(branch1,"  ")+"'\n"); 
-    //Std(BText("\nTRACE EvMember branch2=")+BParser::treWrite(branch2,"  ")+"'\n"); 
-      BOut::Disable();
-/* */
       if(!branch1->cdr())
       {
         BToken* arg1 = BParser::treToken(branch1);

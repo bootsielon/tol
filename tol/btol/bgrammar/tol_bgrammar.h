@@ -347,10 +347,10 @@ public:
     // Implementation : graimp.cpp
 
  public:
-    BSyntaxObject* LeftEvaluateTree(const List* tre);
-    BSyntaxObject* EvaluateTree    (const List* tre, BInt from_UF = 0);
-    BSyntaxObject* LeftEvaluateExpr(const BText& txt);
-    BSyntaxObject* EvaluateExpr    (const BText& txt);
+    BSyntaxObject* LeftEvaluateTree(const List* tre, bool forceType=true);
+    BSyntaxObject* EvaluateTree    (const List* tre, BInt from_UF=0, bool forceType=true);
+    BSyntaxObject* LeftEvaluateExpr(const BText& txt, bool forceType=true);
+    BSyntaxObject* EvaluateExpr    (const BText& txt, bool forceType=true);
     BDat Compare(BSyntaxObject*,BSyntaxObject*)const;
 
     static void  CleanTreeCache(const List* tre, bool force);
