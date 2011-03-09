@@ -997,7 +997,7 @@ proc ::BayesText::init_tolctext { w } {
   ctext::addHighlightClass $w stackControl purple {BinGroup Case Copy Dating\
     Do Element Eval EvalArg Field Find Group IF If MakeGlobal PutDescription\
     PutName PutValue ReCalc TOLPath While Write WriteLn False True For\
-    EvalSet inf \-inf \+inf \? }
+    EvalSet \? }
 
   # Line comments:
   ctext::addHighlightClassForRegexp $w comments blue {//[^\n^\r]+}
