@@ -545,8 +545,6 @@ BSyntaxObject* BSet::GetElement(BInt n)  const
   int i;
   if(!array_.Size())
   {
-    Error(I2("Cannot index by name an empty set.",
-             "No se puede indexar por nombre un conjunto vacío."));
     return(false);
   }
   for(i=0; i<array_.Size(); i++)
@@ -562,6 +560,7 @@ BSyntaxObject* BSet::GetElement(BInt n)  const
 //--------------------------------------------------------------------
 {
   int indexPos = 0;
+  if(!array_.Size()) { return(0); }
   if(indexByName_) 
   { 
     BObjByIdxNameHash::const_iterator found = indexByName_->find(name);
@@ -595,6 +594,7 @@ BSyntaxObject* BSet::operator[] (const char * name) const
  */
 //--------------------------------------------------------------------
 {
+  if(!array_.Size()) { return(NULL); }
   if(indexByName_) 
   { 
     BObjByIdxNameHash::const_iterator found = indexByName_->find(name);
@@ -625,6 +625,7 @@ BSyntaxObject* BSet::GetElement(const char * name) const
  */
 //--------------------------------------------------------------------
 {
+  if(!array_.Size()) { return(NULL); }
   if(nameBlock_ && nameBlock_->EnsureIsAssigned())
   {
     Error(I2("Cannot access to NameBlock members with operator ",
@@ -649,6 +650,7 @@ BSyntaxObject* BSet::Field(const BText& fieldName) const
  */
 //--------------------------------------------------------------------
 {
+  if(!array_.Size()) { return(NULL); }
   BSyntaxObject* result = NIL;
   if(Struct(true))
   {
