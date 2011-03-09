@@ -172,6 +172,7 @@ public:
     class TypeSizes
     {
      public:     
+      short sizeof_pointer_;        
       short sizeof_char_;        
       short sizeof_short_;       
       short sizeof_int_;
@@ -183,7 +184,8 @@ public:
       short sizeof_BGrammarId_;
 
       TypeSizes() 
-      : sizeof_char_       (sizeof(char)),
+      : sizeof_pointer_    (sizeof(void*)),
+        sizeof_char_       (sizeof(char)),
         sizeof_short_      (sizeof(short)),
         sizeof_int_        (sizeof(int)),
         sizeof_BINT64_     (sizeof(BINT64)),

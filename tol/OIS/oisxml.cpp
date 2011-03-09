@@ -70,6 +70,7 @@ BTraceInit("oisxml.cpp");
   header_->Print("</tolEngine>\n");
 
   header_->Print("<typeSizes>\n");
+  header_->Print("<pointer>%d</pointer>\n",                       control_.typeSizes_.sizeof_pointer_);
   header_->Print("<char>%d</char>\n",                             control_.typeSizes_.sizeof_char_);
   header_->Print("<short>%d</short>\n",                           control_.typeSizes_.sizeof_short_);
   header_->Print("<int>%d</int>\n",                               control_.typeSizes_.sizeof_int_);
@@ -376,6 +377,8 @@ BTraceInit("oisxml.cpp");
   if(control_.oisEngine_.oisVersion_>="02.02")
   {
     XMLEnsure(XMLGetNextTagTitle(tag_, "typeSizes"));
+    if(control_.oisEngine_.oisVersion_>="02.16") {
+    XMLEnsure(XMLGetNextTagValue(tag_, value_, "pointer"));    sscanf(value_,"%hd",&control_.typeSizes_.sizeof_pointer_); }    
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "char"));       sscanf(value_,"%hd",&control_.typeSizes_.sizeof_char_);
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "short"));      sscanf(value_,"%hd",&control_.typeSizes_.sizeof_short_);
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "int"));        sscanf(value_,"%hd",&control_.typeSizes_.sizeof_int_);
@@ -390,10 +393,12 @@ BTraceInit("oisxml.cpp");
   }
   else
   {
+    control_.typeSizes_.sizeof_pointer_    =  4;
     control_.typeSizes_.sizeof_char_       =  1;
     control_.typeSizes_.sizeof_short_      =  2;
     control_.typeSizes_.sizeof_int_        =  4;
     control_.typeSizes_.sizeof_BINT64_     =  8;
+    control_.typeSizes_.sizeof_size_t_     =  4;
     control_.typeSizes_.sizeof_double_     =  8;
     control_.typeSizes_.sizeof_BDat_       = 12;
     control_.typeSizes_.sizeof_BCoefDeg_   = 16;
