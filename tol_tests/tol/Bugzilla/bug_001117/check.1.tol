@@ -1,0 +1,5 @@
+Set a = [[ Real a1 = 1 ]];
+Real SetIndexByName(a);
+Set Remove(a, 1);
+Set Copy(a);
+

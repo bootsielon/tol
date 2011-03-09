@@ -1,0 +1,2 @@
+Set b = Copy(Empty);
+Real SetIndexByName(b);
