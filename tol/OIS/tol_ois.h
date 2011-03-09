@@ -38,7 +38,7 @@
 //When the first part changes new software version is not able to
 //read old OIS files. This will be called a hard change. Then a
 //traslation utility will be available.
-#define OIS_VERSION "02.15"
+#define OIS_VERSION "02.16"
 
 #define OIS_Load_Mode_Header          0 
 #define OIS_Load_Mode_Data            1
@@ -176,6 +176,7 @@ public:
       short sizeof_short_;       
       short sizeof_int_;
       short sizeof_BINT64_;
+      short sizeof_size_t_;
       short sizeof_double_;      
       short sizeof_BDat_;
       short sizeof_BCoefDeg_;
@@ -186,6 +187,7 @@ public:
         sizeof_short_      (sizeof(short)),
         sizeof_int_        (sizeof(int)),
         sizeof_BINT64_     (sizeof(BINT64)),
+        sizeof_size_t_     (sizeof(size_t)),
         sizeof_double_     (sizeof(double)),
         sizeof_BDat_       (sizeof(BDat)),
         sizeof_BCoefDeg_   (sizeof(BCoefDeg)),

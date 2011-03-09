@@ -74,12 +74,12 @@ BTraceInit("oisxml.cpp");
   header_->Print("<short>%d</short>\n",                           control_.typeSizes_.sizeof_short_);
   header_->Print("<int>%d</int>\n",                               control_.typeSizes_.sizeof_int_);
   header_->Print("<BINT64>%d</BINT64>\n",                         control_.typeSizes_.sizeof_BINT64_);
+  header_->Print("<size_t>%d</size_t>\n",                         control_.typeSizes_.sizeof_size_t_);
   header_->Print("<double>%d</double>\n",                         control_.typeSizes_.sizeof_double_);
   header_->Print("<BDat>%d</BDat>\n",                             control_.typeSizes_.sizeof_BDat_);
   header_->Print("<BCoefDeg>%d</BCoefDeg>\n",                     control_.typeSizes_.sizeof_BCoefDeg_);
   header_->Print("<BGrammarId>%d</BGrammarId>\n",                 control_.typeSizes_.sizeof_BGrammarId_);
   header_->Print("</typeSizes>\n");
-
   header_->Print("</control>\n");
 
   header_->Print("<options>\n");
@@ -380,6 +380,8 @@ BTraceInit("oisxml.cpp");
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "short"));      sscanf(value_,"%hd",&control_.typeSizes_.sizeof_short_);
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "int"));        sscanf(value_,"%hd",&control_.typeSizes_.sizeof_int_);
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "BINT64"));     sscanf(value_,"%hd",&control_.typeSizes_.sizeof_BINT64_);
+    if(control_.oisEngine_.oisVersion_>="02.16") {
+    XMLEnsure(XMLGetNextTagValue(tag_, value_, "size_t"));     sscanf(value_,"%hd",&control_.typeSizes_.sizeof_size_t_); }    
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "double"));     sscanf(value_,"%hd",&control_.typeSizes_.sizeof_double_);
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "BDat"));       sscanf(value_,"%hd",&control_.typeSizes_.sizeof_BDat_);
     XMLEnsure(XMLGetNextTagValue(tag_, value_, "BCoefDeg"));   sscanf(value_,"%hd",&control_.typeSizes_.sizeof_BCoefDeg_);
