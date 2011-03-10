@@ -541,6 +541,46 @@ Set RunToltclTest(Real dummy)
     })
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+Real CheckMemoryLeakInCycle(
+  Real maxIter, 
+  Code code)
+////////////////////////////////////////////////////////////////////////////////
+{
+  //Creación de variables
+  Real initial_objects = ?;
+  Real lost_objects = ?;
+  Real iter = 1;
+  
+  //Conteo inicial
+  Real initial_objects := Copy(NObject);
+  
+  //Encapsulación del código
+  Real While(iter<=maxIter, 
+  {
+    //Código de pruebas susceptible de pérdida de objetos
+    Real code(?);
+    iter := iter+1
+  });
+  
+  //Recuento final
+  Real lost_objects := Copy(NObject) - initial_objects;
+  
+  WriteLn("lost objects = "<< lost_objects+" in "<<maxIter+" iterations" );
+  WriteLn("lost objects by iteration= "<< (lost_objects/maxIter) );
+  lost_objects
+};
+////////////////////////////////////////////////////////////////////////////////
+Code PutDescription(
+"Chequea si cierto código TOL se deja objetos sin borrar en un ciclo de "
+"longitud dada.\n"
+"Argumentos:\n"
+"  Real maxIter: Número de iteraciones \n"
+"  Code code:    Función de API Real(Real void) con el código sospechoso \n"
+"Retorna el número de objetos perdidos en el total de iteraciones.\n"
+,
+CheckMemoryLeakInCycle);
+////////////////////////////////////////////////////////////////////////////////
+
 /* */
-
-
