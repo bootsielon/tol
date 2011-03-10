@@ -1,0 +1,17 @@
+Real lost.1 = CheckMemoryLeakInCycle(3,Real(Real void)
+{
+  TimeSet aux = C;
+  Serie CalInd(W, aux);  
+  0
+});
+
+Real lost.2 = 
+{
+  TimeSet aux = C;
+  CheckMemoryLeakInCycle(3,Real(Real void)
+  {
+    Serie CalInd(W, aux);  
+    0
+  })
+};
+
