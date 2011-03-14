@@ -1182,10 +1182,14 @@ void BDat::PutValue(const BText& name)
 {
   
   static BChar* endptr;
-  if( !name.String() || !(name[0]) || (name=="?") ||
-     !strcasecmp(name.String(),"inf")  ||
-     !strcasecmp(name.String(),"-inf") ||
-     !strcasecmp(name.String(),"+inf") ) { PutKnown(BUNKNOWN); }
+  if( !name.String() || !(name[0]) || (name=="?")
+#ifdef __GNUC__
+      ||
+      !strcasecmp(name.String(),"inf")  ||
+      !strcasecmp(name.String(),"-inf") ||
+      !strcasecmp(name.String(),"+inf")
+#endif
+      ) { PutKnown(BUNKNOWN); }
   else
   {
     BReal value;

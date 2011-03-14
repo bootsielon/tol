@@ -1692,7 +1692,16 @@ void BSetIncludeBST::CalcContens()
               char * pEnd;
               BText expr = Compact(ftxt);
               double x = BDat::Nan();
-              if((expr=="") | (expr=="?"))
+              // check for inf because strtod from gcc consider it as
+              // a valid number
+              if((expr=="") || (expr=="?")
+#ifdef __GNUC__
+                 ||
+                 !strcasecmp(expr.String(),"inf")  ||
+                 !strcasecmp(expr.String(),"-inf") ||
+                 !strcasecmp(expr.String(),"+inf")
+#endif
+                 )
               {
                 ok = true; 
               }
