@@ -1180,10 +1180,13 @@ void BDat::PutValue(const BText& name)
  */
 //--------------------------------------------------------------------
 {
+  
   static BChar* endptr;
-  if(!name.String() || !(name[0]) || (name=="?")) { PutKnown(BUNKNOWN); }
-//else if(name=="inf") { PutValue(BDat::PosInf()); }
-  else 
+  if( !name.String() || !(name[0]) || (name=="?") ||
+     !strcasecmp(name.String(),"inf")  ||
+     !strcasecmp(name.String(),"-inf") ||
+     !strcasecmp(name.String(),"+inf") ) { PutKnown(BUNKNOWN); }
+  else
   {
     BReal value;
     value = strtod(name, &endptr);
