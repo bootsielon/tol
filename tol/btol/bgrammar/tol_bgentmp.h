@@ -59,31 +59,39 @@ public:
       result_ = NULL;
     }
   }
+  Any* GetResult() const 
+  { 
+    if(result_->Mode()!=BOBJECTMODE)
+    {
+      Error("[FATAL] Non expect mode of syntax object.");
+      return(NULL);
+    }
+    return(result_); 
+  }
  const BText& Expression  () const 
   { 
-    if(result_) { return(result_->Expression()); }
-    else        { return(this->CBTextNullRef()); }
+    if(GetResult()) { return(result_->Expression()); }
+    else            { return(this->CBTextNullRef()); }
   }
   const BText& TolPath     () const
   { 
-    if(result_) { return(result_->TolPath()); }
-    else        { return(this->CBTextNullRef()); }
+    if(GetResult()) { return(result_->TolPath()); }
+    else            { return(this->CBTextNullRef()); }
   }
   BText Dump() const 
   {
-	if(result_) { return(result_->Dump()); }
-	else	      { return("NULL"); }
+	if(GetResult()) { return(result_->Dump()); }
+	else	          { return("NULL"); }
   }
   BText Info() const 
   {
-	if(result_) { return(result_->Info()); }
-	else	      { return("NULL"); }
+	if(GetResult()) { return(result_->Info()); }
+	else	          { return("NULL"); }
   }
   void ReCalc() 
   { 
-	if(result_) { result_->ReCalc(); } 
+	if(GetResult()) { result_->ReCalc(); } 
   }
-  Any* GetResult() const { return(result_); }
 };
 
 

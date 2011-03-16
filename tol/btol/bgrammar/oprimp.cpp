@@ -676,7 +676,10 @@ static BSyntaxObject* CreateObject(      List*	   tre,
 //Std(BText("\nCreating Object ") + name + " at level " + level);
   TRACE_SHOW_MEDIUM(fun," 3");
   BGrammar::PutLast(gra);
-	if(!(rightResult = gra->EvaluateTree(tre))) 
+  rightResult = gra->EvaluateTree(tre); 
+	if(!rightResult || ((rightResult->Mode()!=BOBJECTMODE) && 
+                      (rightResult->Mode()!=BBUILTINFUNMODE) && 
+                      (rightResult->Mode()!=BUSERFUNMODE))) 
   {
     TRACE_SHOW_MEDIUM(fun," 4");
 	  if(!BGrammar::StopFlag())

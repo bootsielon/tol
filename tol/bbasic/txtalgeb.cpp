@@ -105,7 +105,8 @@ BText& BText::Copy(const BText& txt)
 //--------------------------------------------------------------------
 {
 //InitTotalTime("BText::Copy BChar*");
-  if(this!=&txt)
+  
+  if(&txt && (this!=&txt))
   {
     if(!buffer_) { AllocateBuffer(0); } 
     else if(length_) { buffer_[length_=0]='\0'; }
