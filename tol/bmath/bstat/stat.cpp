@@ -313,22 +313,19 @@ BDat Maximum(const BArray<BDat>& vec)
  */
 //--------------------------------------------------------------------
 {
-    if(!vec.Size()) { return(BDat::Unknown()); }
-    BDat result = BDat::NegInf();
+  if(!vec.Size()) { return(BDat::Unknown()); }
+  BDat result = BDat::NegInf();
   bool allUnknown = true;
-    for(BInt k = 0; k<vec.Size(); k++)
+  for(BInt k = 0; k<vec.Size(); k++)
+  {
+    if(vec(k).IsKnown())
     {
-	if(vec(k).IsKnown())
-	{
-	    if(result<vec(k))
-	    {
-		result = vec(k);
       if(allUnknown) { allUnknown=false; }
-	    }
-	}
+      if(result<vec(k)) {  result = vec(k); }
     }
-    if(allUnknown) { result = BDat::Nan(); }
-    return(result);
+  }
+  if(allUnknown) { result = BDat::Nan(); }
+  return(result);
 }
 
 
@@ -339,19 +336,19 @@ BDat Minimum(const BArray<BDat>& vec)
  */
 //--------------------------------------------------------------------
 {
-    if(!vec.Size()) { return(BDat::Unknown()); }
-    BDat result = BDat::PosInf();
+  if(!vec.Size()) { return(BDat::Unknown()); }
+  BDat result = BDat::PosInf();
   bool allUnknown = true;
-    for(BInt k = 0; k<vec.Size(); k++)
+  for(BInt k = 0; k<vec.Size(); k++)
+  {
+    if(vec(k).IsKnown())
     {
-	if(vec(k).IsKnown())
-	{
-	    if(result>vec(k)) { result = vec(k); }
       if(allUnknown) { allUnknown=false; }
-	}
+      if(result>vec(k)) { result = vec(k); }
     }
-    if(allUnknown) { result = BDat::Nan(); }
-    return(result);
+  }
+  if(allUnknown) { result = BDat::Nan(); }
+  return(result);
 }
 
 
