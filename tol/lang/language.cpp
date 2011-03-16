@@ -1329,13 +1329,26 @@ BText BPackage::help_ = I2(
   "Lea información acerca de los paquetes TOL en ")+
   "https://www.tol-project.org/wiki/TolPackageRulesAndComments\n";
 
-BText BPackage::localRoot_ = 
-  BSys::TolAppData()+"TolPackage/Client/";
+
+BText BPackage::localRoot_ = "";
 
 //--------------------------------------------------------------------
   BText BPackage::LocalPath(const BText& package_version)
 //--------------------------------------------------------------------
 {
+  if(!localRoot_.HasName())
+  {
+    BSyntaxObject* tplrc = GraText()->EvaluateExpr(
+      "TolPackage::Client::_.localRoot");
+    if(!tplrc) 
+    { 
+      localRoot_ = BSys::TolAppData()+"TolPackage/Client/"; 
+    }
+    else
+    { 
+      localRoot_ = Text(tplrc); 
+    }
+  }
   BText path = localRoot_+package_version+"/"+package_version+".oza";
   return(path);
 }

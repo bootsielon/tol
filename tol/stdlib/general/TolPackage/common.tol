@@ -13,7 +13,9 @@
   Text te_url,                  //URL of repository
   Text co_name,                 //Generic name of package
   Text co_name_version,         //Name of versioned package 
-  Text te_min_tol_version,      //Required TOL version
+  Text te_extra_info,           //Extra information
+  Text te_min_tol_version,      //Minimum compatible TOL version
+  Text te_max_tol_version,      //maximum compatible TOL version
   Text te_dependencies,         //Required packages
   Date dh_release_date_remote,  //Publication date in remote repository
   Date dh_release_date_local,   //Local installing date
@@ -28,12 +30,28 @@
   Text te_url,                  //URL of repository
   Text co_name,                 //Generic name of package
   Text te_brief,                //Brief description of package 
-  Text te_min_tol_version,      //Required TOL version
+  Text te_extra_info,           //Extra information
+  Text te_min_tol_version,      //Minimum compatible TOL version
+  Text te_max_tol_version,      //maximum compatible TOL version
   Text co_last_version_remote,  //Name of last remote version
   Text co_last_version_local,   //Name of last local version
   Date dh_release_date_remote,  //Publication date in remote repository
   Date dh_release_date_local,   //Local installing date
   Real nu_bytes                 //Size of compressed file
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//Información de chequeo de dependencias de un paquete
+  Struct @TolVerReqChk {
+//////////////////////////////////////////////////////////////////////////////
+  Text co_name_version,
+  Text te_min_tol_version,
+  Text te_max_tol_version,
+  Text te_min_tol_version_deep,
+  Text te_max_tol_version_deep,
+  Real min_ok,
+  Real max_ok,
+  Real all_ok
 };
 
 //////////////////////////////////////////////////////////////////////////////

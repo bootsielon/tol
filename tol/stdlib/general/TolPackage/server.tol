@@ -11,8 +11,7 @@ Text _.autodoc.member.Server=
 NameBlock Server = [[
 //////////////////////////////////////////////////////////////////////////////
 
-Text _.localRoot = 
-  Replace(TolAppDataPath+"TolPackage/Server/","\\","/");
+Text _.localRoot = TolPackage::_.localRoot +"Server/";
 
 Set _.supportedPlatforms =
 [[
@@ -253,6 +252,10 @@ Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
     Text bl_contents = EncodeBase64FromFile(pkg.path.zip);
     Real nu_bytes = FileBytes(pkg.path.zip);
     Real id_format = 1;
+    Text te_max_tol_version = "v999999999999999999";
+    Text te_extra_info = "";
+    Text If(ObjectExist("Text", "pkg::_.autodoc.maxTolVersion"),
+      te_max_tol_version := pkg::_.autodoc.maxTolVersion);
   //Text exist.query = 
     Text insert.query = "
     INSERT INTO package_f_contents(
@@ -260,7 +263,7 @@ Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
       te_brief, te_description, 
       te_keys, te_authors, te_min_tol_version, dh_release_date,  
       te_dependencies, te_non_tol_resources, te_version_control,
-      bl_contents, nu_bytes, id_format)
+      bl_contents, nu_bytes, id_format, te_max_tol_version, te_extra_info)
     VALUES (
      "<<(repository[1])::id_repository+", "+
      "'"+name+"', \n"+
@@ -277,7 +280,9 @@ Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
      "E'"<<verCnt+"', \n"+
      "decode('"<<bl_contents+"','base64'), \n"+
      ""<<nu_bytes+", \n"+
-     ""<<id_format+" \n"+
+     ""<<id_format+", \n"+
+     "'"<<te_max_tol_version+"', \n"+
+     "'"<<te_extra_info+"' \n"+
     ");";
   //WriteLn("TRACE "+_MID+"insert.query=\n" + insert.query);
 
@@ -380,7 +385,59 @@ Real RemovePackageVersion(
   "  nu_version_low = "<<nu_version_low+";\n");
   Real repository.db::Close(0);
   reg
-}
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.CheckTolDependencies = 
+"Comprueba que las versiones mínima y máxima especificadas para cada "
+"paquete son coherentes con las especificadas por los paquetes requeridos "
+"directa o indirectamente.\n";
+Set CheckTolDependencies(NameBlock repository.db, Real fix)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text url=TolPackage::_.official+"action=checkTolDependencies&filter=False";
+  Text pkgInfo = GetUrlContents(url);
+  Set pkgLst = IncludeText(pkgInfo);
+  Real repository.db::Open(0);
+  Set EvalSet(pkgLst,Real(TolPackage::@TolVerReqChk chk)
+  {
+    If(Not(chk->min_ok),
+    {
+      Text msg = "Minimum specified TOL version for package "<<
+        chk->co_name_version+" is "+chk->te_min_tol_version +
+        "lesser than indirectly recommended "+chk->te_min_tol_version_deep+"\n";
+      Real If(fix,
+      {
+        Text msg := msg + "Fixing field package_f_contents."
+          "te_min_tol_version to '"+chk->te_min_tol_version_deep+"' in database of repository.";
+        DBExecQuery("UPDATE package_f_contents "
+        "SET te_min_tol_version='"+chk->te_min_tol_version_deep+"'")
+      });
+      WriteLn(msg+"Please, fix it if posible in your TOL code by settting \n"+
+      "Text "+chk->co_name_version+"::te_min_tol_version = \""+
+      chk->te_min_tol_version_deep+"\";\n","W")
+    });
+    If(Not(chk->max_ok),
+    {
+      Text msg = "Maximum specified TOL version for package "<<
+        chk->co_name_version+" is "+chk->te_max_tol_version +
+        "greater than indirectly recommended "+chk->te_max_tol_version_deep+"\n";
+      Real If(fix,
+      {
+        Text msg := msg + "Fixing field package_f_contents."
+          "te_max_tol_version to '"+chk->te_max_tol_version_deep+"' in database of repository.";
+        DBExecQuery("UPDATE package_f_contents "
+        "SET te_max_tol_version='"+chk->te_max_tol_version_deep+"'")
+      });
+      WriteLn(msg,"W")
+    });
+    True
+  });
+  Real repository.db::Close(0);
+  pkgLst
+}  
+  
 
 ]];
 
