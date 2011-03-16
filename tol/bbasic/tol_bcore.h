@@ -61,48 +61,17 @@ class TOL_API BCore
 #if (__USE_POOL__==__POOL_BFSMEM__)
     virtual BFixedSizeMemoryBase* GetMemHandler() const { return(NULL); }
     virtual unsigned short  GetPageNum   () const { return(0); }
+    virtual size_t GetSizeOf() const { return(0); } 
     struct TOL_API MemAssignInfo
     {
       BCore*                address_;
+      size_t                size_;
       unsigned short        pageNum_;
 
-      MemAssignInfo(BCore* address)
-      {
-        SetAddress(address);
-      }
-
-      void SetAddress(BCore* address)
-      {
-        address_ = address;  
-        if(address)
-        {
-          pageNum_    = address_->GetPageNum();
-        }
-        else
-        {
-          pageNum_    = 0;
-        }
-      }
-
-      short IsAssigned() 
-      { 
-        if(!address_) { return(0); }
-        else 
-        { 
-          BFixedSizeMemoryBase* hnd = BFSMSingleton<sizeof(*address_)>::Handler();
-          if(!hnd) { return(-1); }
-          else     { return(hnd->IsAssigned(address_,pageNum_)); }
-        }
-      }
-
-      void SafeDestroy()
-      {
-        if(IsAssigned()>0) 
-        { 
-          address_->Destroy(); 
-          address_ = NULL;
-        }
-      }
+      MemAssignInfo(BCore* address);
+      void SetAddress(BCore* address);
+      short IsAssigned();
+      void SafeDestroy();
     };
 #else
     struct TOL_API MemAssignInfo

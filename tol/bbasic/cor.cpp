@@ -55,3 +55,45 @@ BInt BCore::NCore()
 {
     return(nCore_);
 }
+
+
+BCore::MemAssignInfo::MemAssignInfo(BCore* address)
+{
+  SetAddress(address);
+}
+
+void BCore::MemAssignInfo::SetAddress(BCore* address)
+{
+  address_ = address;  
+  if(address)
+  {
+    size_    = address_->GetSizeOf();
+    pageNum_ = address_->GetPageNum();
+    assert(size_);
+  }
+  else
+  {
+    size_    = 0;
+    pageNum_ = 0;
+  }
+}
+
+short BCore::MemAssignInfo::IsAssigned() 
+{ 
+  if(!address_) { return(0); }
+  else if(!size_) { return(0); }
+  { 
+    BFixedSizeMemoryBase* hnd = BFixedSizeMemoryBase::Instance(size_);
+    if(!hnd) { return(-1); }
+    else     { return(hnd->IsAssigned(address_,pageNum_)); }
+  }
+}
+
+void BCore::MemAssignInfo::SafeDestroy()
+{
+  if(IsAssigned()>0) 
+  { 
+    address_->Destroy(); 
+    address_ = NULL;
+  }
+}

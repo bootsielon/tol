@@ -62,6 +62,10 @@ public:	\
     assert(sizeof(ANY_)<BFSMEM_MAX_BASE_SIZE); \
     return(BFSMSingleton<sizeof(ANY_)>::Handler()); \
   } \
+  size_t GetSizeOf() const \
+  { \
+    return(sizeof(ANY_)); \
+  } \
   unsigned short GetPageNum() const \
   { \
     return(this->_bfsm_PageNum__); \
