@@ -38,7 +38,10 @@
   
     Real eval.Opr2 = Eval(expr.Opr2);
     Real eval.OprN = Eval(expr.OprN);
-    Real ok = And(IsUnknown(eval.Opr2)==IsUnknown(eval.OprN), eval.Opr2==eval.OprN);
+    Real ok = Case(
+      IsUnknown(eval.Opr2)!=IsUnknown(eval.OprN), False,
+      IsUnknown(eval.Opr2), True,
+      1==1, eval.Opr2==eval.OprN);
     If(!ok, WriteLn(
     "  "<<eval.Opr2+"="<<expr.Opr2+"\n"
     "  "<<eval.OprN+"="<<expr.OprN+"\n"));

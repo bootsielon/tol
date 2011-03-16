@@ -13,7 +13,7 @@ NameBlock nb = [[
 ]];
 
 //NameBlock nb::GetInstance(?); //<- esto no falla
-//Modulo::@ClaseA b = nb::GetInstance(?); //<- esto no falla
-//Modulo::@ClaseA nb::GetInstance(?); //<- esto falla
+Modulo::@ClaseA b = nb::GetInstance(?); //<- esto no falla
+Modulo::@ClaseA nb::GetInstance(?); //<- esto falla
 Code f = nb::GetInstance;
 Modulo::@ClaseA f(?); //<- esto falla

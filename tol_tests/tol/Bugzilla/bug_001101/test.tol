@@ -5,9 +5,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
-  Real bugNum_ =  1091;
+  Real bugNum_ =  1101;
   Text email_ = "vdebuen@tol-project.org"; 
-  Text summary_="Maximum filename length and OisStore";
+  Text summary_="Excessive and strange RAM usage";
   Text link_ = GetTolBugzillaLink(bugNum_);
 
   //Write here the initial test TOL code if needed

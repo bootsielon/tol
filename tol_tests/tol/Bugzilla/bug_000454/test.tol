@@ -32,7 +32,7 @@
   ]];
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr0+3==NError, ok);
+  Real quality_ = And(numErr0<NError, ok);
 
 //Return the results 
   Set resultStr_ = @strTestStatus(summary_, link_, quality_,
