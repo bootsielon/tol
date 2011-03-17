@@ -1,0 +1,34 @@
+
+Matrix X = Rand(1000,100,-1,1);
+
+Text root = "./root/";
+Text dir = root+"data/";
+Text file.1 = dir + "X.bmt";
+Text file.2 = dir + "X.bbm";
+
+Real OSDirRemove(root);
+Real OSDirMake(dir);
+Set BMTFile([[X]],file.1);
+Matrix MatWriteFile(file.2, X);
+
+Set ok.all = 
+[[
+  Real ok.1.0 = PackArchive::PackFull("ZipArchive", dir, True);
+  Real ok.1.1 =  OSFilExist(RemoveLastSlash(dir)+".zip");
+  Real ok.1.2 = !OSDirExist(dir);
+
+  Real ok.2.0 = PackArchive::UnpackFull("ZipArchive", dir, True);
+  Real ok.2.1 = !OSFilExist(dir+".zip");
+  Real ok.2.2 =  OSDirExist(dir);
+
+  Real ok.3.0 = PackArchive::PackFile("ZipArchive", file.1, True);
+  Real ok.3.1 =  OSFilExist(file.1+".zip");
+  Real ok.3.2 = !OSFilExist(file.1);
+
+  Real ok.4.0 = PackArchive::UnpackFile("ZipArchive", file.1, True);
+  Real ok.4.1 = !OSFilExist(file.1+".zip");
+  Real ok.4.2 =  OSFilExist(file.1)  
+]];
+
+/* */
+
