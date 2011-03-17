@@ -1151,7 +1151,7 @@ proc ::TolInspector::InsertPoolObj { } {
 }
 
 proc ::TolInspector::FilterNameBlockMember { name } {
-  set st_reg [ regexp {(.+::)?(_)?(\.)?(.*)} $name => p1 p2 p3 p4 p5]
+  set st_reg [ regexp {(.+::)?(_)?(\.)?(.*)} $name => p1 p2 p3 p4]
   if { !$st_reg } {
     list -show 1 -fcolor "black" -name $name
   } elseif { $p2 eq "_" } {
@@ -1161,7 +1161,7 @@ proc ::TolInspector::FilterNameBlockMember { name } {
         list -show 0
       } {
         # es un miembro de solo lectura
-        list -show 1 -fcolor "gray50" -name "_.$p5"
+        list -show 1 -fcolor "gray50" -name "_.$p4"
       }
     } else {
       # es un miembro oculto
