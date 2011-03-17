@@ -194,10 +194,10 @@ proc ::TolInspector::CreateColumns { ht } {
       -bg white -justify left -activetitlebackground gray90
   # columns Content Path & Description
   #(pgea) se oculta la columna correspondiente a la referencia
-  $ht column insert end Content Path Description\
+  $ht column insert end Content Description Path\
       -bg white -justify left -activetitlebackground gray90 -pad 3
   $ht column insert end Reference -hide yes
-  foreach c {Index Content Path Description} {
+  foreach c {Index Content Description Path} {
     $ht column configure $c -text [mc "$c"]
   }
   # associates the command of order to each one of the titles of the
@@ -1151,13 +1151,18 @@ proc ::TolInspector::InsertPoolObj { } {
 }
 
 proc ::TolInspector::FilterNameBlockMember { name } {
-  set st_reg [ regexp {(.+::)?(_)?(\.)?(.*)} $name => p1 p2 p3 p4 ]
+  set st_reg [ regexp {(.+::)?(_)?(\.)?(.*)} $name => p1 p2 p3 p4 p5]
   if { !$st_reg } {
     list -show 1 -fcolor "black" -name $name
   } elseif { $p2 eq "_" } {
     if { $p3 eq "." } {
-      # es un miembro de solo lectura
-      list -show 1 -fcolor "gray50" -name "_.$p4"
+      if { [string match {autodoc.member.*} $p4] } {
+        # es un elemento de autodocumentacion y no se muestra
+        list -show 0
+      } {
+        # es un miembro de solo lectura
+        list -show 1 -fcolor "gray50" -name "_.$p5"
+      }
     } else {
       # es un miembro oculto
       list -show 0
