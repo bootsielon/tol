@@ -145,6 +145,7 @@ public:
   bool AddElement(BSyntaxObject* obj, bool addToSet, bool fromOis);
   bool CheckMembers();
   bool Build();
+  bool SetAutodocMember();
   bool Fill(const BSet& set);
 
   BSyntaxObject* DeepMember   (const BText& memberName) const;

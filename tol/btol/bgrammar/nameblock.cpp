@@ -565,6 +565,7 @@ const BText& BNameBlock::LocalName() const
   if(ns_result)
   { 
     newNameBlock.CheckMembers();
+    newNameBlock.SetAutodocMember();
   }
   int numErr = (int)TOLErrorNumber().Value()-oldErr;
   if(numErr)
@@ -774,6 +775,39 @@ const BText& BNameBlock::LocalName() const
 }
 
 //--------------------------------------------------------------------
+  bool BNameBlock::SetAutodocMember()
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* obj = NULL;
+  BObjByNameHash::const_iterator iter;
+  for(iter=public_.begin(); iter!=public_.end(); iter++)
+  {
+    obj = iter->second;
+    const BText& dsc = obj->Description();
+    if(!dsc.HasName())
+    {
+      BText autodocName = BText("_.autodoc.member.")+obj->Name();
+      BSyntaxObject* autodoc = NULL;
+      if(class_)
+      {
+        autodoc = class_->FindStaticMemeber(autodocName,-1);
+      }
+      else
+      {
+        autodoc = Member(autodocName);
+      }
+      if(autodoc && autodoc->Grammar()==GraText())
+      {
+        BText& desc = Text(autodoc);
+        obj->PutDescription(desc);
+      }
+    }
+  }
+  return(true);
+}
+
+
+//--------------------------------------------------------------------
   bool BNameBlock::Build()
 //--------------------------------------------------------------------
 {
@@ -785,7 +819,9 @@ const BText& BNameBlock::LocalName() const
     obj = set_[i+1];
     AddElement(obj, false, false);
   }
-  return(CheckMembers());
+  bool ok = CheckMembers();
+  if(ok) { SetAutodocMember(); }
+  return(ok);
 }
 
 //--------------------------------------------------------------------
@@ -1179,25 +1215,6 @@ bool BNameBlock::add_using_symbol(
   for(iter=public_.begin(); iter!=public_.end(); iter++)
   {
     obj = iter->second;
-    const BText& dsc = obj->Description();
-    if(!dsc.HasName())
-    {
-      BText autodocName = BText("_.autodoc.member.")+obj->Name();
-      BSyntaxObject* autodoc = NULL;
-      if(class_)
-      {
-        autodoc = class_->FindStaticMemeber(autodocName,-1);
-      }
-      else
-      {
-        autodoc = Member(autodocName);
-      }
-      if(autodoc && autodoc->Grammar()==GraText())
-      {
-        BText& desc = Text(autodoc);
-        obj->PutDescription(desc);
-      }
-    }
     if((obj->Grammar()==GraNameBlock()) && (obj->Mode()==BOBJECTMODE))
     {
       unb = (BUserNameBlock*)obj;
