@@ -25,7 +25,7 @@ Real PackFile(Text engine, Text originalFilPath, Real remove)
 {
   Text ext = @Store::Extension(engine);
   @Store s = @Store::Create(engine, originalFilPath+ext, "w");
-  Real ok = s::FileAdd(originalDirPath);
+  Real ok = s::FileAdd([[originalFilPath]]);
   s::Close(0);
   Real If(ok & remove, OSFilRemove(originalFilPath));
   ok
@@ -42,7 +42,8 @@ Real UnpackFile(Text engine, Text originalFilPath, Real remove)
 {
   Text ext = @Store::Extension(engine);
   @Store s = @Store::Create(engine, originalFilPath+ext, "r");
-  Real ok = s::FileExtract("*",originalDirPath);
+  Real ok = s::FileExtract(GetFileName(originalFilPath),
+                           GetFilePath(originalFilPath));
   s::Close(0);
   Real If(ok & remove, OSFilRemove(originalFilPath+ext));
   ok

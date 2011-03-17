@@ -39,7 +39,7 @@
 {
  public:
   CZipArchive _zip;
-
+  int _exceptions;
   StoreZipArchive();
  ~StoreZipArchive();
 
@@ -48,7 +48,7 @@
   //Cierra el archivo
   bool Close();
   //Añade un fichero al archivo
-  bool FileAdd(BText originalFilePath);
+  bool FileAdd(BText originalFilePath, BText pathInZip);
   //Extrae un fichero del archivo
   bool FileExtract(BText originalFilePath, BText destinationDirPath);
   //Determina si existe o no un fichero dentro del archivo

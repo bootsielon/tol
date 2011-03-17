@@ -71,30 +71,33 @@ Class @Store
   };
 
   ////////////////////////////////////////////////////////////////////////////
-  //Añade un fichero al archivo
-  Real FileAdd(Set originalFilePath)
+  //Añade un conjunto de ficheros al archivo
+  Real FileAdd(Set originalFilPaths)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real If(Or(_handle<=0, _.openMode==" "),False,
-     PackArchive.FileAdd(_handle, originalFilePath))
+     SetMin(EvalSet(originalFilPaths, Real(Text originalFilPath)
+     {
+       PackArchive.FileAdd(_handle, originalFilPath, GetFileName(originalFilPath))
+     })))
   };
 
   ////////////////////////////////////////////////////////////////////////////
   //Extrae un fichero del archivo
-  Real FileExtract(Text originalFilePath, Text destinationDirPath)
+  Real FileExtract(Text originalFilPath, Text destinationDirPath)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real If(Or(_handle<=0, _.openMode==" "),False,
-     PackArchive.FileExtract(_handle, originalFilePath, destinationDirPath))
+     PackArchive.FileExtract(_handle, originalFilPath, destinationDirPath))
   };
 
   ////////////////////////////////////////////////////////////////////////////
   //Determina si existe o no un fichero dentro del archivo
-  Real FileExists(Text originalFilePath)
+  Real FileExists(Text originalFilPath)
   ////////////////////////////////////////////////////////////////////////////
   {
     Real If(Or(_handle<=0, _.openMode==" "),False,
-     PackArchive.FileExists(_handle, originalFilePath))
+     PackArchive.FileExists(_handle, originalFilPath))
   };
 
   ////////////////////////////////////////////////////////////////////////////

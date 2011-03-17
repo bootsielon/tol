@@ -27,11 +27,12 @@
 
 #include "tol_PackArchive.h"
 #include "tol_StoreZipArchive.h"
+#include "tol_bdir.h"
 
 //--------------------------------------------------------------------
 StoreZipArchive::StoreZipArchive()
 //--------------------------------------------------------------------
-: Store() 
+: Store(), _exceptions(0) 
 {
 }
 
@@ -46,6 +47,7 @@ StoreZipArchive::~StoreZipArchive()
 bool StoreZipArchive::Open(BText path, char openMode)
 //--------------------------------------------------------------------
 {
+  if(_exceptions) { return(false); }
   _errMsg[0]='\0';
   _path = path; 
   _openMode = openMode; 
@@ -55,11 +57,16 @@ bool StoreZipArchive::Open(BText path, char openMode)
     if(openMode=='w')
     {
       remove(_path); 
-      _zip.Open(_path.String(), CZipArchive::zipCreate);
+      ok = _zip.Open(_path.String(), CZipArchive::zipCreate);
     }
     else if(openMode=='r')
     {
-      _zip.Open(_path.String(), CZipArchive::zipOpenReadOnly, false);
+     ok =  _zip.Open(_path.String(), CZipArchive::zipOpenReadOnly, false);
+    }
+    if(!ok)
+    {
+      sprintf(_errMsg,"[ZipArchive] The archive %s was already opened "
+      "before or an invalid open mode was specified.",_path.String());
     }
   }
   catch(CZipException ex)
@@ -71,6 +78,7 @@ bool StoreZipArchive::Open(BText path, char openMode)
       (openMode=='r')?"reading":"writing",
       (LPCTSTR)ex.GetErrorDescription());
     _zip.Close(CZipArchive::afAfterException);
+    _exceptions ++;
   }
   if(!ok) { Error(_errMsg); }
   return(ok);
@@ -81,6 +89,7 @@ bool StoreZipArchive::Open(BText path, char openMode)
 bool StoreZipArchive::Close()
 //--------------------------------------------------------------------
 {
+  if(_exceptions) { return(false); }
   _errMsg[0]='\0';
   if(_openMode == ' ') { return(true); }
   bool ok = true;
@@ -96,6 +105,7 @@ bool StoreZipArchive::Close()
       "closing",
       (LPCTSTR)ex.GetErrorDescription());
     _zip.Close(CZipArchive::afAfterException);
+    _exceptions ++;
   }
   if(!ok) { Error(_errMsg); }
   else { _openMode = ' '; }
@@ -105,14 +115,27 @@ bool StoreZipArchive::Close()
 
 //--------------------------------------------------------------------
 //Añade un fichero al archivo
-bool StoreZipArchive::FileAdd(BText originalFilePath)
+bool StoreZipArchive::FileAdd(BText originalFilePath, BText pathInZip)
 //--------------------------------------------------------------------
 {
+  if(_exceptions) { return(false); }
   _errMsg[0]='\0';
   bool ok = true;
   try
   {
-    _zip.AddNewFile(originalFilePath.String());
+    if(pathInZip=="")
+    {
+      BText stdFilePath = GetStandardAbsolutePath(originalFilePath);
+      BText stdZipPath = GetStandardAbsolutePath(_path);
+      pathInZip = Replace(stdFilePath,stdZipPath,"");
+    }
+    ok = _zip.AddNewFile(originalFilePath.String(),pathInZip.String());
+    if(!ok)
+    {
+      sprintf(_errMsg, "[ZipArchive] Error while adding to archive %s file %s",
+        _path.String(),  
+        originalFilePath.String());
+    }
   }
   catch(CZipException ex)
   {
@@ -121,6 +144,8 @@ bool StoreZipArchive::FileAdd(BText originalFilePath)
       _path.String(),  
       originalFilePath.String(),
       (LPCTSTR)ex.GetErrorDescription());
+    _zip.Close(CZipArchive::afAfterException);
+    _exceptions ++;
   }
   if(!ok) { Error(_errMsg); }
   return(ok);
@@ -129,31 +154,46 @@ bool StoreZipArchive::FileAdd(BText originalFilePath)
 
 //--------------------------------------------------------------------
 //Extrae un fichero del archivo
-bool StoreZipArchive::FileExtract(BText originalFilePath, BText destinationDirPath)
+bool StoreZipArchive::FileExtract(BText originalFilePath, BText destinationDirPath_)
 //--------------------------------------------------------------------
 {
+  if(_exceptions) { return(false); }
   _errMsg[0]='\0';
   bool ok = true;
+  BText destinationDirPath = GetStandardAbsolutePath(destinationDirPath_+"/");
   try
   {
     int index = _zip.FindFile(originalFilePath.String());
     if((index>=0) && (index!=ZIP_FILE_INDEX_NOT_FOUND))
     {
-      _zip.ExtractFile(index, destinationDirPath.String());
+      ok = _zip.ExtractFile(index, destinationDirPath.String());
+      if(!ok)
+      {
+        sprintf(_errMsg, "[ZipArchive] Error while extracting from archive %s file %s to %s",
+          _path.String(),  
+          originalFilePath.String(),
+          destinationDirPath.String());
+      }
     }
     else
     {
-      ok = false;  
+      ok = false;
+      sprintf(_errMsg, "[ZipArchive] Error while extracting from archive %s file %s to %s: File not found in ZIP",
+        _path.String(),  
+        originalFilePath.String(),
+        destinationDirPath.String());
     }
   }
   catch(CZipException ex)
   {
     ok = false;
-    sprintf(_errMsg, "[ZipArchive] Error while extracting from archive file %s to %s%s: %s",
+    sprintf(_errMsg, "[ZipArchive] Error while extracting from archive %s file %s to %s: %s",
       _path.String(),  
       originalFilePath.String(),
       destinationDirPath.String(),
       (LPCTSTR)ex.GetErrorDescription());
+    _zip.Close(CZipArchive::afAfterException);
+    _exceptions ++;
   }
   if(!ok) { Error(_errMsg); }
   return(ok);
@@ -165,6 +205,7 @@ bool StoreZipArchive::FileExtract(BText originalFilePath, BText destinationDirPa
 bool StoreZipArchive::FileExist(BText originalFilePath)
 //--------------------------------------------------------------------
 {
+  if(_exceptions) { return(false); }
   _errMsg[0]='\0';
   int index = -1;
   bool ok = false;
@@ -176,10 +217,12 @@ bool StoreZipArchive::FileExist(BText originalFilePath)
   catch(CZipException ex)
   {
     ok = false;
-    sprintf(_errMsg, "[ZipArchive] Error while finding in archive %s file %s: %s",
+    sprintf(_errMsg, "[ZipArchive] Error while searching in archive %s file %s: %s",
       _path.String(),  
       originalFilePath.String(),
       (LPCTSTR)ex.GetErrorDescription());
+    _zip.Close(CZipArchive::afAfterException);
+    _exceptions ++;
   }
   if(!ok) { Error(_errMsg); }
   return(ok);
@@ -191,6 +234,7 @@ bool StoreZipArchive::FileExist(BText originalFilePath)
 bool StoreZipArchive::DirAdd(BText originalDirPath)
 //--------------------------------------------------------------------
 {
+  if(_exceptions) { return(false); }
   _errMsg[0]='\0';
   bool ok = true;
   try
@@ -201,7 +245,13 @@ bool StoreZipArchive::DirAdd(BText originalDirPath)
       false, 
       ZipArchiveLib::CNameFileFilter::toAll);
     // This will include empty directories
-    _zip.AddNewFiles(originalDirPath.String(), filter);
+    ok = _zip.AddNewFiles(originalDirPath.String(), filter);
+    if(!ok)
+    {
+      sprintf(_errMsg, "[ZipArchive] Error while adding to archive %s directory %s : %s",
+        _path.String(),  
+        originalDirPath.String());
+    }
   }
   catch(CZipException ex)
   {
@@ -210,6 +260,8 @@ bool StoreZipArchive::DirAdd(BText originalDirPath)
       _path.String(),  
       originalDirPath.String(),
       (LPCTSTR)ex.GetErrorDescription());
+    _zip.Close(CZipArchive::afAfterException);
+    _exceptions ++;
   }
   if(!ok) { Error(_errMsg); }
   return(ok);
@@ -221,6 +273,7 @@ bool StoreZipArchive::DirAdd(BText originalDirPath)
 bool StoreZipArchive::DirExtract(BText originalDirPath, BText destinationDirPath)
 //--------------------------------------------------------------------
 {
+  if(_exceptions) { return(false); }
   _errMsg[0]='\0';
   bool ok = true;
   try
@@ -252,6 +305,8 @@ bool StoreZipArchive::DirExtract(BText originalDirPath, BText destinationDirPath
       originalDirPath.String(),
       destinationDirPath.String(),
       (LPCTSTR)ex.GetErrorDescription());
+    _zip.Close(CZipArchive::afAfterException);
+    _exceptions ++;
   }
   if(!ok) { Error(_errMsg); }
   return(ok);
@@ -263,6 +318,7 @@ bool StoreZipArchive::DirExtract(BText originalDirPath, BText destinationDirPath
 bool StoreZipArchive::DirExist(BText originalDirPath)
 //--------------------------------------------------------------------
 {
+  if(_exceptions) { return(false); }
   _errMsg[0]='\0';
   bool ok = true;
   try
@@ -281,6 +337,8 @@ bool StoreZipArchive::DirExist(BText originalDirPath)
       _path.String(),  
       originalDirPath.String(),
       (LPCTSTR)ex.GetErrorDescription());
+    _zip.Close(CZipArchive::afAfterException);
+    _exceptions ++;
   }
   if(!ok) { Error(_errMsg); }
   return(ok);

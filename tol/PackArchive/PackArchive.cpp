@@ -139,7 +139,7 @@ bool Store::RemoveInstance(Store* store)
 
 bool Store::Open(BText path, char openMode) { return(false); };
 bool Store::Close() { return(false); };
-bool Store::FileAdd(BText originalFilePath) { return(false); };
+bool Store::FileAdd(BText originalFilePath, BText pathInZip) { return(false); };
 bool Store::FileExtract(BText originalFilePath, BText destinationDirPath) { return(false); };
 bool Store::FileExist(BText originalFilePath) { return(false); };
 bool Store::DirAdd(BText originalDirPath)  { return(false); };
@@ -184,7 +184,8 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPackArchiveClose);
-  DefExtOpr(1, BDatPackArchiveClose, "PackArchive.Close", 1, 1, "Real",
+  DefExtOpr(1, BDatPackArchiveClose, "PackArchive.Close", 
+  1, 1, "Real",
   "(Real packArchiveId)",
   I2("Closes a packed archive that was open with ",
      "Cierra archivo empaquetado que fue abierto con ")+
@@ -211,8 +212,8 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPackArchiveFileAdd);
   DefExtOpr(1, BDatPackArchiveFileAdd, "PackArchive.FileAdd",
-  1, 2, "Real Text",
-  "(Real packArchiveId, Text originalFilePath)",
+  3, 3, "Real Text Text",
+  "(Real packArchiveId, Text originalFilePath, Text pathInZip)",
   I2("Adds a file to a packed archive that was open with ",
      "Añade un fichero a un archivo empaquetado que fue abierto con ")+
      "PackArchive.Open",
@@ -225,7 +226,7 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
   Store* store = Store::FindInstance(handle);
   if(store)
   {
-    contens_ = store->FileAdd(Text(Arg(2)));
+    contens_ = store->FileAdd(Text(Arg(2)),Text(Arg(3)));
   }
   else
   {
@@ -236,7 +237,7 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPackArchiveFileExtract);
   DefExtOpr(1, BDatPackArchiveFileExtract, "PackArchive.FileExtract", 
-  1, 3, "Real Text Text",
+  3, 3, "Real Text Text",
   "(Real packArchiveId, Text originalFilePath, Text destinationDirPath)",
   I2("Extracts a file from a packed archive that was open with ",
      "Extrae un fichero de un archivo empaquetado que fue abierto con ")+
@@ -261,7 +262,7 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPackArchiveFileExist);
   DefExtOpr(1, BDatPackArchiveFileExist, "PackArchive.FileExist",
-  1, 2, "Real Text",
+  2, 2, "Real Text",
   "(Real packArchiveId, Text originalFilePath)",
   I2("Checks if there is a file into a packed archive that was open with ",
      "Comprueba si existe un fichero dentro de un archivo empaquetado "
@@ -286,7 +287,7 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPackArchiveDirAdd);
   DefExtOpr(1, BDatPackArchiveDirAdd, "PackArchive.DirAdd",
-  1, 2, "Real Text",
+  2, 2, "Real Text",
   "(Real packArchiveId, Text originalDirPath)",
   I2("Adds recursively a directory to a packed archive that was open "
      "with ",
@@ -313,7 +314,7 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPackArchiveDirExtract);
   DefExtOpr(1, BDatPackArchiveDirExtract, "PackArchive.DirExtract", 
-  1, 3, "Real Text Text",
+  3, 3, "Real Text Text",
   "(Real packArchiveId, Text originalFilePath, Text destinationDirPath)",
   I2("Extracts recursively a directory from a packed archive that was open with ",
      "Extrae recursivamente un directorio de un archivo empaquetado que fue abierto con ")+
@@ -338,7 +339,7 @@ bool Store::DirExist(BText originalDirPath)  { return(false); };
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatPackArchiveDirExist);
   DefExtOpr(1, BDatPackArchiveDirExist, "PackArchive.DirExist",
-  1, 2, "Real Text",
+  2, 2, "Real Text",
   "(Real packArchiveId, Text originalFilePath)",
   I2("Checks if there is a directory into a packed archive that was open with ",
      "Comprueba si existe un directorio dentro de un archivo empaquetado "

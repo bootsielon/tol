@@ -76,7 +76,7 @@ typedef hash_map_by_int<Store*>::dense_ HashStoreByHandle;
   //Cierra el archivo
   virtual bool Close();
   //Añade un fichero al archivo
-  virtual bool FileAdd(BText originalFilePath);
+  virtual bool FileAdd(BText originalFilePath, BText pathInZip);
   //Extrae un fichero del archivo
   virtual bool FileExtract(BText originalFilePath, BText destinationDirPath) = 0;
   //Determina si existe o no un fichero dentro del archivo
