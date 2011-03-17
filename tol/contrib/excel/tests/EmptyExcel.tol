@@ -3,4 +3,4 @@ Real statusSave = Excel.Save( xlsHandle );
 WriteLn( "Must be zero, and it is " << statusSave );
 Real statusSaveAs = Excel.SaveAs( xlsHandle, "empty.xls" );
 WriteLn( "Must be one, an it is " << statusSaveAs );
-Real Excel.Destroy( xlsHandle );
+Real Excel.Close( xlsHandle );

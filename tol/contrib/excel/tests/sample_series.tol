@@ -23,4 +23,4 @@ Set datosRango2 = Excel.ReadRange( handle, "A1", "C29", columnTypes );
 
 Set seriesRango = Excel.ReadSeries( handle, "A1", "C29" );
 
-Real If( handle != 0, { Excel.Destroy( handle ); handle := 0 } );
+Real If( handle != 0, { Excel.Close( handle ); handle := 0 } );

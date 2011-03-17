@@ -4,4 +4,4 @@ Real Excel.ActivateWS( xlsHandle, 1 );
 Real Excel.WriteCell( xlsHandle, "A1", aText );
 Real statusSaveAs = Excel.SaveAs( xlsHandle, "WriteCells.xls" );
 WriteLn( "Must be one, an it is " << statusSaveAs );
-Real Excel.Destroy( xlsHandle );
+Real Excel.Close( xlsHandle );

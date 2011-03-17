@@ -47,4 +47,4 @@ Set {
   Set View( range1, "Std" )
 };
   
-Real status = Excel.Destroy( id );
+Real status = Excel.Close( id );
