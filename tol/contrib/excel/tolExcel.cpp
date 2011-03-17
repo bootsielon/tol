@@ -27,6 +27,8 @@ using namespace ExcelFormat;
 #include <win_tolinc.h>
 #endif
 
+#include <stdint.h>
+
 #include <tol/tol_tree.h>
 #include <tol/tol_blanguag.h>
 #include <tol/tol_bdatgra.h>
@@ -36,12 +38,95 @@ using namespace ExcelFormat;
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_btsrgra.h>
 
+#include <google/dense_hash_map>
+#include <ext/hash_set>
+
+#ifdef __GNUC__
+#define HASH __gnu_cxx::hash
+#else
+#define HASH ext::hash
+#endif
+
+using google::dense_hash_map;
+
+class HandlerMap
+{
+public:
+  typedef intptr_t handler_t;
+  typedef dense_hash_map<handler_t, int, HASH<handler_t> > hash_t;
+  
+  HandlerMap()
+  {
+    this->m_hashHandlers.set_empty_key( 0 );
+    this->m_hashHandlers.set_deleted_key( -1 );
+  }
+
+  ~HandlerMap() {}
+  
+  handler_t insertHandler( handler_t h )
+  {
+    if ( h ) {
+      this->m_hashHandlers[h] = 1;
+    }
+    return h;
+  }
+
+  handler_t insertPointer( void* p )
+  {
+    if ( p ) {
+      handler_t h = (handler_t)p;
+      this->m_hashHandlers[h] = 1;
+      return h;
+    }
+    return 0;
+  }
+
+  bool removeHandler( handler_t p )
+  {
+    hash_t::iterator iter = this->m_hashHandlers.find( p );
+    if ( iter == this->m_hashHandlers.end() ) {
+      return false;
+    } else {
+      this->m_hashHandlers.erase( iter );
+      return true;
+    }
+  }
+  
+  bool removePointer( void *p )
+  {
+    return this->removeHandler( (handler_t)p );
+  }
+
+  bool isValidHandler( handler_t h )
+  {
+    return ( this->m_hashHandlers.find( h ) != this->m_hashHandlers.end() );
+  }
+  
+  bool isValidPointer( void *p )
+  {
+    return this->isValidHandler( (handler_t)p );
+  }
+    
+protected:
+  hash_t m_hashHandlers;
+};
+
 class TolExcel {
 public:
   TolExcel( );
   TolExcel( char *path );
   ~TolExcel();
 
+  bool Save()
+  {
+    return m_ptrXLS ? m_ptrXLS->Save() : false;
+  }
+  
+  bool SaveAs( const char*path )
+  {
+    return m_ptrXLS ? m_ptrXLS->SaveAs( path ) : false;
+  }
+  
   bool IsValid()
   {
     return m_ptrXLS != NULL;
@@ -75,6 +160,10 @@ public:
     return m_ptrActiveWS ? m_ptrActiveWS->GetAnsiSheetName( ) : NULL;
   }
   
+  bool SetCellAnything( const BText &err_name,
+                         size_t row, size_t col,
+                         BSyntaxObject *value);
+
   BSyntaxObject *GetCellAnything( const BText &err_name,
                                   size_t row, size_t col );
 
@@ -167,19 +256,24 @@ public:
     result = BDate::Unknown( );
     return false;
   }
-  
-  static double code_addr( TolExcel* ptr )
+
+  static HandlerMap::handler_t code_addr( TolExcel *ptr )
   {
-    double addr = 0.0;
-    *((TolExcel**)(&addr)) = ptr;
-    return addr;
+    HandlerMap::handler_t h = TolExcel::HandlerPool.insertPointer( ptr );
+    return h;
   }
   
   static TolExcel* decode_addr( double addr )
   {
-    return *((TolExcel**)(&addr));
+    HandlerMap::handler_t h = addr;
+    return ( TolExcel::HandlerPool.isValidHandler( h ) ) ? (TolExcel*)h : NULL;
   }
 
+  static void removePointer( TolExcel *ptr )
+  {
+    TolExcel::HandlerPool.removePointer( ptr );
+  }
+  
   static double ExcelSerialDateToDMY( double SerialDate, int &nDay, 
                                       int &nMonth, int &nYear);
   static double ExcelSerialTimeToHMS( double SerialTime,
@@ -212,6 +306,8 @@ public:
                                   size_t &row, size_t &column );
 
 protected:
+
+  static HandlerMap HandlerPool;  
 
   BasicExcelCell *GetCell( const BText &err_name,
                            BasicExcelWorksheet * ptrWS,
@@ -251,6 +347,8 @@ private:
   XLSFormatManager *m_ptrFmtMgr;
   BasicExcelWorksheet *m_ptrActiveWS;
 };
+
+HandlerMap TolExcel::HandlerPool;  
 
 size_t TolExcel::decodeColumn( char * cellName, size_t length )
 {
@@ -349,7 +447,7 @@ TolExcel::TolExcel( )
   m_ptrActiveWS(NULL)
 {
   m_ptrXLS = new BasicExcel;
-  m_ptrActiveWS = NULL;
+  m_ptrActiveWS = m_ptrXLS->AddWorksheet( );
   m_isOpen = false;
 }
 
@@ -364,6 +462,7 @@ TolExcel::TolExcel( char *path )
     delete m_ptrXLS;
     m_ptrXLS = NULL;
   } else {
+    m_ptrActiveWS = m_ptrXLS->GetWorksheet( 0 );
   }
   if ( m_ptrXLS ) {
     m_ptrFmtMgr = new XLSFormatManager( *m_ptrXLS );
@@ -383,6 +482,33 @@ TolExcel::~TolExcel()
   }
   m_isOpen = false;
   m_ptrXLS = NULL;
+}
+
+bool TolExcel::SetCellAnything( const BText &err_name,
+                                 size_t row, size_t col,
+                                 BSyntaxObject *value)
+{
+  BasicExcelCell *cell = GetCell( err_name, row, col  );
+  if ( !cell ) {
+    return false;
+  }
+  if ( value->Grammar() == GraReal() ) {
+    BDat &dat = Dat( value );
+    cell->SetDouble( dat.Value() );
+  } else if ( value->Grammar() == GraDate() ) {
+    BDate &date = Date( value );
+    int serialDate = TolExcel::DMYToExcelSerialDate( date.Day(),
+                                                     date.Month(),
+                                                     date.Year() );
+    cell->SetDouble( double( serialDate ) );
+  } else if ( value->Grammar() == GraText() ) {
+    BText &txt = Text( value );
+    cell->SetString( txt.Buffer() );
+  } else {
+    const BText &txt = value->Description();
+    cell->SetString( (const_cast<BText&>(txt)).Buffer() );
+  }
+  return true;
 }
 
 BSyntaxObject *TolExcel::GetCellAnything( const BText &err_name,
@@ -564,35 +690,97 @@ DefExtOpr(1, BDatExcelOpen, "Excel.Open", 1, 1, "Text", "(Text path)",
 void BDatExcelOpen::CalcContens()
 {
   BText &path = Text( Arg( 1 ) );
-  TolExcel *aux = new TolExcel( path.Buffer() );
+  TolExcel *aux =
+    path.Length() ? new TolExcel( path.Buffer() ) : new TolExcel();
   if ( !aux->IsValid() ) {
     delete aux;
     aux = NULL;
   }
-  contens_ = BDat( TolExcel::code_addr( aux ) );
+  HandlerMap::handler_t handler = TolExcel::code_addr( aux );
+  if ( !handler ) {
+    Error( BText( "Excel.Open: " ) +
+           I2("could not create excel handler",
+              "no se pudo crear el handler para excel") );
+    delete aux;
+  }
+  // contens_ = BDat( TolExcel::code_addr( aux ) );
+  contens_ = BDat( handler );
 }
 
 //---------------------------------------------------------------------------
-DeclareContensClass(BDat, BDatTemporary, BDatExcelDestroy);
-DefIntOpr(1, BDatExcelDestroy, "Excel.Destroy", 1, 1,
+DeclareContensClass(BDat, BDatTemporary, BDatExcelClose);
+DefIntOpr(1, BDatExcelClose, "Excel.Close", 1, 1,
           "(Real ExcelHandler)",
-          I2("Destroy a previously created excel handler. See also "
+          I2("Close a previously created excel handler. See also "
              "Excel.Open, Excel.Create",
              ""),
           BOperClassify::System_);
 //----------------------------------------------------------------------------
-void BDatExcelDestroy::CalcContens()
+void BDatExcelClose::CalcContens()
 {
   double addr = Dat( Arg( 1 ) ).Value();
   TolExcel *aux = TolExcel::decode_addr( addr );
-  /* debemos tener un hash de las direccion creadas con Open de forma
-     tal que podamos verificar si la direccion es valida antes de
-     hacer delete */
+  
   if ( aux ) {
+    TolExcel::removePointer( aux );
     delete aux;
     contens_ = BDat( 1.0 );
   } else {
     Error( BText( "Excel.Destroy: " ) +
+           I2("invalid excel handler",
+              "identificador de objeto excel invalido") );
+    contens_ = BDat( 0.0 );
+  }
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatExcelSave);
+DefIntOpr(1, BDatExcelSave, "Excel.Save", 1, 1,
+          "(Real ExcelHandler)",
+          I2("Save changes to the current excel file. See also "
+             "Excel.Open, Excel.Create, Excel.SaveAs",
+             ""),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BDatExcelSave::CalcContens()
+{
+  double addr = Dat( Arg( 1 ) ).Value();
+  TolExcel *xls = TolExcel::decode_addr( addr );
+  /* debemos tener un hash de las direccion creadas con Open de forma
+     tal que podamos verificar si la direccion es valida antes de
+     hacer delete */
+  if ( xls ) {
+    contens_ = BDat( xls->Save() );
+  } else {
+    Error( BText( "Excel.Save: " ) +
+           I2("invalid excel handler",
+              "identificador de objeto excel invalido") );
+    contens_ = BDat( 0.0 );
+  }
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatExcelSaveAs);
+DefExtOpr(1, BDatExcelSaveAs, "Excel.SaveAs", 2, 2,
+          "Real Text",
+          "(Real ExcelHandler, Text FileName)",
+          I2("Save changes to another excel file. See also "
+             "Excel.Open, Excel.Create, Excel.Save",
+             ""),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BDatExcelSaveAs::CalcContens()
+{
+  double addr = Dat( Arg( 1 ) ).Value();
+  TolExcel *xls = TolExcel::decode_addr( addr );
+  /* debemos tener un hash de las direccion creadas con Open de forma
+     tal que podamos verificar si la direccion es valida antes de
+     hacer delete */
+  if ( xls ) {
+    BText &path = Text( Arg( 2 ) );
+    contens_ = BDat( xls->SaveAs( path.Buffer() ) );
+  } else {
+    Error( BText( "Excel.SaveAs: " ) +
            I2("invalid excel handler",
               "identificador de objeto excel invalido") );
     contens_ = BDat( 0.0 );
@@ -673,6 +861,47 @@ void BDatExcelActivateWS::CalcContens()
     Error( I2("Excel.ActivateWS : invalid Work Sheet index, must be known",
               "Excel.ActivateWS : indice de hoja invalido, debe ser conocido") );
     contens_ = BDat( 0.0 );
+  }
+}
+
+//---------------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatExcelWriteCell);
+DefExtOpr(1, BDatExcelWriteCell, "Excel.WriteCell", 3, 3,
+          "Real Anything Anything",
+          "(Real ExcelHandler, Anything Cell, Anything Value)",
+          I2("Write a TOL object into a given cell on the active sheet. The "
+             "cell coordinates can be given as Text or Set. For instance you "
+             "can use either \"A1\" or [[1,1]]. Objects distinct than Real "
+             "Text or Date are only written as their description.\n"
+             "It returns 1 if the TOL object value can be written correctly "
+             "or 0 in other case.",
+             "Escribe un objeto TOL en una celda de la hoja activa. Las "
+             "coordenadas de la celda pueden especificarse como "
+             "Text o Set. Por ejemplo se puede usar indistintamente "
+             "\"A1\" o [[1,1]]. Los objetos distintos de Real, Text o Date se "
+             "escriben segun su descripción\n"
+             "Retorna 1 si el valor pudo escribirse correctamente o 0 en caso "
+             "contrario."),
+          BOperClassify::System_);
+//----------------------------------------------------------------------------
+void BDatExcelWriteCell::CalcContens()
+{
+  static BText _name_( "Excel.WriteCell" );
+  double addr = Dat( Arg( 1 ) ).Value();
+  size_t r, c;
+  
+  if ( TolExcel::getCellCoordinates( _name_, Arg(2), r, c ) ) {
+    TolExcel *xls = TolExcel::decode_addr( addr );
+    if ( xls ) {
+      xls->SetCellAnything( _name_, r, c, Arg( 3 ) );
+    } else {
+      Error( _name_ +
+             I2(": invalid excel handler",
+                ": identificador de objeto excel invalido") );
+      contens_ = BDat::Unknown( );
+    }
+  } else {
+    contens_ = BDat::Unknown( );
   }
 }
 
@@ -990,7 +1219,7 @@ void BSetExcelReadSeries::CalcContens()
 //--------------------------------------------------------------------
 static BSyntaxObject*
 EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
-/*! Evaluate Copy expressions
+/*! Evaluate Exce.ReadCell expressions
 */
 //--------------------------------------------------------------------
 {
