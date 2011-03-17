@@ -27,7 +27,7 @@
 
 #include "tol_PackArchive.h"
 #include "tol_StoreZipArchive.h"
-#include "tol/tol_bdir.h"
+#include <tol/tol_bdir.h>
 
 //--------------------------------------------------------------------
 StoreZipArchive::StoreZipArchive()
