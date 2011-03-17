@@ -39,12 +39,12 @@ using namespace ExcelFormat;
 #include <tol/tol_btsrgra.h>
 
 #include <google/dense_hash_map>
-#include <ext/hash_set>
+//#include <ext/hash_set>
 
 #ifdef __GNUC__
-#define HASH __gnu_cxx::hash
+//#define HASH __gnu_cxx::hash
 #else
-#define HASH ext::hash
+//#define HASH ext::hash
 #endif
 
 using google::dense_hash_map;
@@ -53,7 +53,7 @@ class HandlerMap
 {
 public:
   typedef intptr_t handler_t;
-  typedef dense_hash_map<handler_t, int, HASH<handler_t> > hash_t;
+  typedef dense_hash_map<handler_t, int > hash_t;
   
   HandlerMap()
   {
