@@ -12,34 +12,77 @@ Set _.autodoc.keys = [["Archive","Pack","Compress","Compact","zip"]];
 Set _.autodoc.authors = [["vdebuen@tol-project.org"]];
 Text _.currentTolVersion = Tokenizer(Version," ")[1];
 
-
 #Embed "Store.tol";
 
 ////////////////////////////////////////////////////////////////////////////
-//Empaqueta un directorio completo como un archivo del mismo nombre con la
-//extensión correspondiente al archivo. El argumento originalDirPath se 
-//refiere al directorio luego no lleva extensión ni barra final.
-Real PackFull(Text engine, Text originalDirPath)
+Text _.autodoc.member.PackFile = 
+"Empaqueta un archivo con un sólo fichero añadiéndole la extensión "
+"correspondiente y dejando el resulyado en el mismo directorio.\n"
+"Si el argumento 'remove' es cierto y el proceso acaba correctamente "
+"se borrará el fichero original.";
+Real PackFile(Text engine, Text originalFilPath, Real remove)
 ////////////////////////////////////////////////////////////////////////////
 {
   Text ext = @Store::Extension(engine);
-  @Store s = @Store::Create(engine, originalDirPath+ext, "w");
-  Real ok = s::DirAdd(originalDirPath);
+  @Store s = @Store::Create(engine, originalFilPath+ext, "w");
+  Real ok = s::FileAdd(originalDirPath);
   s::Close(0);
+  Real If(ok & remove, OSFilRemove(originalFilPath));
   ok
 };
 
 ////////////////////////////////////////////////////////////////////////////
-//Desempaqueta un archivo completo como un directorio del mismo nombre pero 
-//sin extensión. El argumento originalDirPath se refiere al directorio luego 
-//no lleva extensión ni barra final.
-Real UnpackFull(Text engine, Text originalDirPath)
+Text _.autodoc.member.UnpackFile = 
+"Desempaqueta un archivo que contiene un único fichero dejándo el archivo "
+"en el mismo directorio. Hay que pasarle el nombre original del archivo.\n"
+"Si el argumento 'remove' es cierto y el proceso acaba correctamente "
+"se borrará el archivo empaquetado.";
+Real UnpackFile(Text engine, Text originalFilPath, Real remove)
 ////////////////////////////////////////////////////////////////////////////
 {
+  Text ext = @Store::Extension(engine);
+  @Store s = @Store::Create(engine, originalFilPath+ext, "r");
+  Real ok = s::FileExtract("*",originalDirPath);
+  s::Close(0);
+  Real If(ok & remove, OSFilRemove(originalFilPath+ext));
+  ok
+};
+
+////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.PackFull = 
+"Empaqueta un directorio completo como un archivo del mismo nombre con la "
+"extensión correspondiente al archivo. El argumento originalDirPath se "
+"refiere al directorio luego no lleva extensión ni barra final.\n"
+"Si el argumento 'remove' es cierto y el proceso acaba correctamente "
+"se borrará el directorio original.";
+Real PackFull(Text engine, Text originalDirPath_, Real remove)
+////////////////////////////////////////////////////////////////////////////
+{
+  Text originalDirPath = RemoveLastSlash(originalDirPath_);
+  Text ext = @Store::Extension(engine);
+  @Store s = @Store::Create(engine, originalDirPath+ext, "w");
+  Real ok = s::DirAdd(originalDirPath);
+  s::Close(0);
+  Real If(ok & remove, OSDirRemove(originalDirPath_));
+  ok
+};
+
+////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.UnpackFull = 
+"Desempaqueta un archivo completo como un directorio del mismo nombre pero "
+"sin extensión. El argumento originalDirPath se refiere al directorio luego "
+"no lleva extensión ni barra final.\n"
+"Si el argumento 'remove' es cierto y el proceso acaba correctamente "
+"se borrará el archivo empaquetado.";
+Real UnpackFull(Text engine, Text originalDirPath_, Real remove)
+////////////////////////////////////////////////////////////////////////////
+{
+  Text originalDirPath = RemoveLastSlash(originalDirPath_);
   Text ext = @Store::Extension(engine);
   @Store s = @Store::Create(engine, originalDirPath+ext, "r");
   Real ok = s::DirExtract("*",originalDirPath);
   s::Close(0);
+  Real If(ok & remove, OSFilRemove(originalDirPath+ext));
   ok
 }
 

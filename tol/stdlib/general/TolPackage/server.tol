@@ -166,8 +166,7 @@ Text BuildPackage(
   Text ppr = ReplaceSlash(ppRoot_);
   Set dep = TolPackage::GetDeepDependencies(name, True);
   
-  Real PackArchive::PackFull("ZipArchive", ppr);
-  Real If(removeDir, OSDirRemove(ppRoot));
+  Real PackArchive::PackFull("ZipArchive", ppr, removeDir);
   ppRoot_+".zip"
 };
 
@@ -187,7 +186,7 @@ Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
   Set name.tok = Tokenizer(pkg.name,".");
   Real nu_version_high = Eval(name.tok[2]);
   Real nu_version_low = Eval(name.tok[3]);
-  Real PackArchive::UnpackFull("ZipArchive",root+pkg.name);
+  Real PackArchive::UnpackFull("ZipArchive",root+pkg.name,False);
   Text oza = root+pkg.name+"/"+pkg.name+".oza";
   Set pkgCnt = Include(oza);
   Date gmt = Copy(NowGmt);

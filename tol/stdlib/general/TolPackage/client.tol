@@ -162,8 +162,7 @@ Real LocalInstallPackage(Text pkg.path.zip)
   Real OSFilCopy(pkg.path.zip, _.localRoot);
   Text pkg.name.zip = GetFileName(pkg.path.zip);
   Text pkg.name = Replace(pkg.name.zip,".zip","");
-  Real PackArchive::UnpackFull("ZipArchive",_.localRoot+pkg.name);
-  Real OSFilRemove(_.localRoot+pkg.name.zip);
+  Real PackArchive::UnpackFull("ZipArchive",_.localRoot+pkg.name,True);
   FileExist(_.localRoot+pkg.name+"/"+pkg.name+".oza")
 };
 
@@ -408,8 +407,7 @@ Real DownloadPackage(
   If(!FileExist(localPack), False,
   {
   //WriteLn("TRACE DownloadPackage 4 UnpackFull("<<localDir+")");
-    Real PackArchive::UnpackFull("ZipArchive", localDir);
-    Real OSFilRemove(localPack);
+    Real PackArchive::UnpackFull("ZipArchive", localDir, True);
     True
   });
   If(!FileExist(localOza), False,

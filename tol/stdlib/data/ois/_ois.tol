@@ -63,9 +63,8 @@ Ois.Store);
   {
     Text dir = TmpDir+ToName(GetFilePath(path_))+"/"+GetFilePrefix(path_);
     Real ok = Ois.Store(data, dir);
-    Real PackArchive::PackFull(engine, dir);
+    Real PackArchive::PackFull(engine, dir, True);
     Text ext = PackArchive::@Store::Extension(engine);
-    Real OSDirRemove(dir);
     Real If(dir+ext != path_, OSFilMove(dir+ext, path_));
     ok
   })
