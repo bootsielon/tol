@@ -1,0 +1,5 @@
+Real Excel.ActivateWS( 4, 1 );
+Real h = Excel.Open( "test.xls" );
+Real Excel.Close( h );
+WriteLn( "Try to access a closed handler: " << h );
+Real Excel.ActivateWS( h, 1 );
