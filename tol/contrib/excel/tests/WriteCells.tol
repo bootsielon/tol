@@ -2,6 +2,8 @@ Real xlsHandle = Excel.Open( "" );
 Text aText = "Un texto";
 Real Excel.ActivateWS( xlsHandle, 1 );
 Real Excel.WriteCell( xlsHandle, "A1", aText );
+Date aDate = y2011m3d15;
+Real Excel.WriteCell( xlsHandle, "A2", aDate );
 Real statusSaveAs = Excel.SaveAs( xlsHandle, "WriteCells.xls" );
 WriteLn( "Must be one, an it is " << statusSaveAs );
 Real Excel.Close( xlsHandle );
