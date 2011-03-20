@@ -345,6 +345,7 @@ private:
   bool m_isOpen;
   BasicExcel *m_ptrXLS;
   XLSFormatManager *m_ptrFmtMgr;
+  CellFormat *m_ptrCellFmt;
   BasicExcelWorksheet *m_ptrActiveWS;
 };
 
@@ -444,11 +445,14 @@ TolExcel::TolExcel( )
 : m_isOpen(false),
   m_ptrXLS(NULL),
   m_ptrFmtMgr(NULL),
+  m_ptrCellFmt(NULL),
   m_ptrActiveWS(NULL)
 {
-  m_ptrXLS = new BasicExcel;
-  m_ptrActiveWS = m_ptrXLS->AddWorksheet( );
-  m_isOpen = false;
+  this->m_ptrXLS = new BasicExcel;
+  this->m_ptrActiveWS = this->m_ptrXLS->AddWorksheet( );
+  this->m_ptrFmtMgr = new XLSFormatManager( *(this->m_ptrXLS) );
+  this->m_ptrCellFmt = new CellFormat( *(this->m_ptrFmtMgr) );
+  this->m_isOpen = false;
 }
 
 TolExcel::TolExcel( char *path )
@@ -457,31 +461,35 @@ TolExcel::TolExcel( char *path )
   m_ptrFmtMgr(NULL),
   m_ptrActiveWS(NULL)
 {
-  m_ptrXLS = new BasicExcel;
-  if ( !( m_isOpen = m_ptrXLS->Load( path ) ) ) {
+  this->m_ptrXLS = new BasicExcel;
+  if ( !( this->m_isOpen = this->m_ptrXLS->Load( path ) ) ) {
     delete m_ptrXLS;
-    m_ptrXLS = NULL;
+    this->m_ptrXLS = NULL;
   } else {
-    m_ptrActiveWS = m_ptrXLS->GetWorksheet( 0 );
+    this->m_ptrActiveWS = this->m_ptrXLS->GetWorksheet( 0 );
   }
   if ( m_ptrXLS ) {
-    m_ptrFmtMgr = new XLSFormatManager( *m_ptrXLS );
+    this->m_ptrFmtMgr = new XLSFormatManager( *(this->m_ptrXLS) );
+    this->m_ptrCellFmt = new CellFormat( *(this->m_ptrFmtMgr) );
   }
   m_ptrActiveWS = NULL;
 }
 
 TolExcel::~TolExcel()
 {
-  if ( m_ptrFmtMgr ) {
-    delete m_ptrFmtMgr;
-    m_ptrFmtMgr = NULL;
+  if ( this->m_ptrCellFmt ) {
+    delete this->m_ptrCellFmt;
+    this->m_ptrCellFmt = NULL;
   }
-  if ( m_ptrXLS ) {
-    delete m_ptrXLS;
-    m_ptrXLS = NULL;
+  if ( this->m_ptrFmtMgr ) {
+    delete this->m_ptrFmtMgr;
+    this->m_ptrFmtMgr = NULL;
   }
-  m_isOpen = false;
-  m_ptrXLS = NULL;
+  if ( this->m_ptrXLS ) {
+    delete this->m_ptrXLS;
+    this->m_ptrXLS = NULL;
+  }
+  this->m_isOpen = false;
 }
 
 bool TolExcel::SetCellAnything( const BText &err_name,
@@ -497,10 +505,21 @@ bool TolExcel::SetCellAnything( const BText &err_name,
     cell->SetDouble( dat.Value() );
   } else if ( value->Grammar() == GraDate() ) {
     BDate &date = Date( value );
+    //XLSFormatManager fmt_mgr(*m_ptrXLS);
+    //CellFormat fmt(fmt_mgr);
     int serialDate = TolExcel::DMYToExcelSerialDate( date.Day(),
                                                      date.Month(),
                                                      date.Year() );
-    cell->SetDouble( double( serialDate ) );
+    this->m_ptrCellFmt->set_format_string( "DD/MM/YYYY" );
+    //fmt.set_format_string( "DD/MM/YY" );
+    BDateFormat dateFormat( "%d/%m/%y" );
+    BText txt( dateFormat.DateToText( date ) );
+    cell->Set( txt.String() );
+    //cell->SetFormat( fmt );
+    cell->SetFormat( *(this->m_ptrCellFmt) );
+    //cell->SetDouble( double( serialDate ) );
+    //cell->SetDouble( 25780 );
+    //cell->Set( "31/07/70" );
   } else if ( value->Grammar() == GraText() ) {
     BText &txt = Text( value );
     cell->SetString( txt.Buffer() );
