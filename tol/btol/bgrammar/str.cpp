@@ -35,6 +35,7 @@
 #include <tol/tol_bgrammar.h>
 #include <tol/tol_bsymboltable.h>
 #include <tol/tol_bsetgra.h>
+#include <tol/tol_bcodgra.h>
 #include <tol/tol_bnameblock.h>
 #include <tol/tol_bclass.h>
 
@@ -317,17 +318,10 @@ BStruct::~BStruct()
   TRACE_SHOW_STRUCT_STEP(fun,status,pos,"after");
   if(function_) 
   {
-	  function_->DecNRefs();
-  //VBR: This line is added to catch possible errors during a quarentine period
-#   ifndef NDEBUG
-    if(!System() && !function_->NRefs())
-    {
-      Warning(BText("\nStruct creator cannot be destroyed due to it is "
-              "already referenced ")+function_->NRefs()+ " times\n");
-    }
-#   endif
+    function_->DecNRefs();
     BGrammar::DelObject(function_);
-	  DESTROY(function_);
+    BUserFunCode* uCode = function_->GetCode();
+	  DESTROY(uCode);
   }
   BGrammar::DelObject(this);
   BParser::DefaultParser()->Scanner()->DelSymbol(Name().String());
@@ -632,19 +626,19 @@ BText BStruct::Dump() const
 //--------------------------------------------------------------------
 {
     BText dump = "Struct ";
-    dump += FullName() + " = {";
+    dump += FullName() + " {\n  ";
     if(field_->HasValue())
     {
 	BInt n;
 	BText arg = "";
 	for(n=0; n<field_->Size(); n++)
 	{
-	    if(arg.HasName()) { arg += ", "; }
+	    if(arg.HasName()) { arg += ", \n"; }
 	    arg += (*field_)[n].Dump() ;
 	}
 	dump += arg;
     }
-    dump += "}";
+    dump += "\n};";
     return(dump);
 }
 
