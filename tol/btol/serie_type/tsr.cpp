@@ -57,6 +57,7 @@ BTimeSerie::BTimeSerie()
   void BTimeSerie::CheckRefDating()
 //--------------------------------------------------------------------
 {
+  if(!dating_) { return; }
 //VBR: Si se usa el manejador de memoria es posible detectar cuando
 //     un objeto ya ha sido borrado para evitar accesos inválidos
 //Bugs afectados: 224, 428, 444, 456
@@ -69,8 +70,11 @@ BTimeSerie::BTimeSerie()
     assert(dating_);
     assert(!dating_->System());
     assert(!dating_->NameBlock());
-    assert(dating_->Level() || !dating_->HasName());
-    assert(dating_->NRefs()>0);
+    BText name = dating_->Name();
+    int level = dating_->Level();
+    int nrefs = dating_->NRefs();
+  //assert(level || !name.HasName());
+    assert(nrefs>0);
   //Std(BText(" '")+dating_->Identify()+"' NRef="<<dating_->NRefs());
     dating_->DecNRefs();
     if(!dating_->NRefs()) 

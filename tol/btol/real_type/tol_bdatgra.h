@@ -52,6 +52,7 @@ inline BReal Real(BSyntaxObject* arg) { return(Dat(arg).Value()); }
 inline BReal Real(BCore*	 arg) { return(Dat(arg).Value()); }
 inline BReal Real(const BText&	 arg) { return(Dat(arg).Value()); }
 
+TOL_API BDat  EvalReal (const BText& expr, const BDat&  defVal);
 
 //--------------------------------------------------------------------
 class BDatTemporary: public BTmpContens<BDat>

@@ -68,6 +68,25 @@ BGrammar* BGraContensBase<BDat>::ownGrammar_ = NIL;
 DefineContensCommonOperators(BDat, "Real");
 
 //--------------------------------------------------------------------
+TOL_API BDat  EvalReal(const BText& expr, const BDat& defVal) 
+//--------------------------------------------------------------------
+{
+  int stackPos = BGrammar::StackSize();
+  BSyntaxObject* obj = GraReal()->EvaluateExpr(expr);
+  BDat result = defVal;
+  BGrammar::IncLevel();
+  if(obj && (obj->Grammar()==GraReal())) 
+  { 
+    result = Dat(obj);    
+  }
+  BGrammar::DestroyStackUntil(stackPos, obj);    
+  DESTROY(obj);
+  BGrammar::DecLevel();
+  return(result);
+}
+
+
+//--------------------------------------------------------------------
   template<>
   void BGraContensBase<BDat>::Do() 
 //--------------------------------------------------------------------

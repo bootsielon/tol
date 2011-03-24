@@ -1338,15 +1338,10 @@ BText BPackage::localRoot_ = "";
 {
   if(!localRoot_.HasName())
   {
-    BSyntaxObject* tplrc = GraText()->EvaluateExpr(
-      "TolPackage::Client::_.localRoot");
-    if(!tplrc) 
+    localRoot_ = EvalText("TolPackage::Client::_.localRoot","");
+    if(!localRoot_.HasName()) 
     { 
       localRoot_ = BSys::TolAppData()+"TolPackage/Client/"; 
-    }
-    else
-    { 
-      localRoot_ = Text(tplrc); 
     }
   }
   BText path = localRoot_+package_version+"/"+package_version+".oza";
@@ -1358,14 +1353,9 @@ BText BPackage::localRoot_ = "";
 //--------------------------------------------------------------------
 {
   bool oldRunningUseModule = BOis::SetRunningUseModule(false);
-  BSyntaxObject* fai = GraReal()->EvaluateExpr(BText(
-    "Real TolPackage::Client::RemoteInstall("
-    "\"\",\"")+package_version+"\",True);");
-  BOis::SetRunningUseModule(oldRunningUseModule);
-  if(!fai) { return(false); }
-  bool ok = (bool)(Real(fai)!=0);
-  DESTROY(fai);
-  return(ok);
+  BDat ri = EvalReal(BText("Real TolPackage::Client::RemoteInstall("
+    "\"\",\"")+package_version+"\",True);",0);
+  return(ri.Value()!=0.0);
 }
 
 //--------------------------------------------------------------------
@@ -1383,11 +1373,9 @@ static void PkgStartActions(
     bool oldRunningUseModule = BOis::SetRunningUseModule(false);
     BText oldDir = BDir::GetCurrent();
     BDir::ChangeCurrent( GetFilePath(path) );
-    BSyntaxObject* startActions = GraReal()->EvaluateExpr(startActionsExpr);
+    EvalReal(startActionsExpr,0);
     BDir::ChangeCurrent(oldDir);
     BOis::SetRunningUseModule(oldRunningUseModule);
-  //Std(BText("\nTRACE startActionsExpr =")+startActionsExpr+" "+((startActions)?"OK":"FAIL")+"\n");
-    DESTROY(startActions);
   }
 }
 
@@ -1395,15 +1383,10 @@ static void PkgStartActions(
   BText LocalLastCompatible(const BText& package)
 //--------------------------------------------------------------------
 {
-  BSyntaxObject* lcv = GraText()->EvaluateExpr(BText(
+  BText package_version = EvalText(BText(
     "Text TolPackage::Client::LocalLastCompatible("
-    "\"")+package+"\");");
-  if(!lcv) { return(""); }
-  BText package_version = Text(lcv);
+    "\"")+package+"\");", "");
   if(package_version=="") { package_version = package; }
-  //Std(BText("\nTRACE BPackage::Load 2.2.1 package='")+package_version+"'");
-  //Std(BText("\nTRACE BPackage::Load 2.2.2 package_version='")+package_version+"'");
-  DESTROY(lcv);
   return(package_version);
 };
 
@@ -1432,120 +1415,130 @@ static void PkgStartActions(
   else if(hasHighVersion)
   {
     package = package_version.SubString(0,point-1);
-    package_version = LocalLastCompatible(package_version);
-    point2 = package_version.Find(".",point+1);
-    hasLowVersion = (point2<=package_version.Length()-2); 
   }
   else
   {
     package = package_version;
-    package_version = LocalLastCompatible(package);
   }
   BSyntaxObject* pkg = GraNameBlock()->FindOperand(package,false);
-  BText path = LocalPath(package_version);
-//Std(BText("\nTRACE BPackage::Load 3 path='")+path+"'");
-  BDir dirPath(":::");
-  if(path.HasName()) { dirPath = path; }
-
   bool ok = pkg!=NULL;
+  BText help = ""; 
+  BText load = "";
   if(ok) { 
     BText sourcePath = GetFilePath(pkg->SourcePath());
     PkgStartActions(pkg, package, sourcePath);
-    return(pkg); 
   }
-//Std(BText("\nTRACE BPackage::Load 3 dirPath='")+dirPath.Name()+"'");
-  if(!ok)
+  else
   {
-    ok=dirPath.Exist()!=0;
-    if(!ok & path.HasName())
+    load = I2("Loaded","Ha sido cargado");
+    if(hasHighVersion)
     {
-      BDir zipPath = path+".zip";
-      if(zipPath.Exist())
-      {
-        StoreZipArchive zip;
-        zip.Open(zipPath.Name(),'r');
-        zip.DirExtract("*",dirPath.Name());
-        zip.Close();
-        dirPath = path;  
-      }
-      ok = dirPath.Exist();
-    }
-  //Std(BText("\nTRACE BPackage::Load 4 ok=")+ok);
-    if(!ok && retry) 
-    { 
-      ok = Install(package_version); 
       package_version = LocalLastCompatible(package_version);
-    //Std(BText("\nTRACE BPackage::Load 5 ok=")+ok);
-      if(ok) { return(BPackage::Load(package_version, false)); }
-    }
-    if(ok)
-    {
-    //Std(BText("\nTRACE BPackage::Load 6 "));
-      int oldLevel = BGrammar::Level();
-      BGrammar::PutLevel(0); 
-      BSyntaxObject* aux = BOisLoader::LoadFull(path);
-      if(aux && (aux->Grammar()==GraSet()))
-      { 
-      //Std(BText("\nTRACE BPackage::Load 7 "));
-        BSet& set = Set(aux);
-        if((set.Card()==1)&&(set[1]->Grammar()==GraNameBlock()))
-        {
-        //Std(BText("\nTRACE BPackage::Load 8 "));
-          pkg = set[1];
-          pkg->IncNRefs();
-          pkg->IncNRefs();
-          required_ = Cons(pkg, required_);
-          BNameBlock::AddGlobalRequiredPackage(package);
-          PkgStartActions(pkg, package, path);
-        }
-      }      
-    //Std(BText("\nTRACE BPackage::Load 9 "));
-      BGrammar::PutLevel(oldLevel); 
-      ok = pkg!=NULL;
-    //Std(BText("\nTRACE BPackage::Load 10 ok=")+ok);
-    } 
-  }
-  BText load = I2("Loaded","Ha sido cargado");
-  BText help = ""; 
-//Std(BText("\nTRACE BPackage::Load 11 "));
-  if(!ok)
-  {
-  //Std(BText("\nTRACE BPackage::Load 12 dirPath='")+dirPath.Name()+"'");
-    if(path.HasName()) { dirPath = path; }
-    if(!dirPath.Exist())
-    {
-      Error(I2("Unknown package ",
-               "El paquete desconocido ")+package_identifier+
-            I2(" must be manually installed.",
-               " debe ser instalado manualmente."));
+      point2 = package_version.Find(".",point+1);
+      hasLowVersion = (point2<=package_version.Length()-2); 
     }
     else
     {
-      BSys::Remove(path);
-      if(retry)
+      package_version = LocalLastCompatible(package);
+    }
+
+    BText path = LocalPath(package_version);
+  //Std(BText("\nTRACE BPackage::Load 3 path='")+path+"'");
+    BDir dirPath(":::");
+    if(path.HasName()) { dirPath = path; }
+
+  //Std(BText("\nTRACE BPackage::Load 3 dirPath='")+dirPath.Name()+"'");
+    if(!ok)
+    {
+      ok=dirPath.Exist()!=0;
+      if(!ok & path.HasName())
       {
-        Error(I2("Corrupted package ",
-                 "El paquete corrupto ")+package_version+
-              I2(" has been locally removed ",
-                 " ha sido eliminado localmente ")+
-              I2("and will be reinstalled.",
-                 "y será reinstalado."));
-        return(Load(package_version, false));
+        BDir zipPath = path+".zip";
+        if(zipPath.Exist())
+        {
+          StoreZipArchive zip;
+          zip.Open(zipPath.Name(),'r');
+          zip.DirExtract("*",dirPath.Name());
+          zip.Close();
+          dirPath = path;  
+        }
+        ok = dirPath.Exist();
+      }
+    //Std(BText("\nTRACE BPackage::Load 4 ok=")+ok);
+      if(!ok && retry) 
+      { 
+        ok = Install(package_version); 
+        package_version = LocalLastCompatible(package_version);
+      //Std(BText("\nTRACE BPackage::Load 5 ok=")+ok);
+        if(ok) { return(BPackage::Load(package_version, false)); }
+      }
+      if(ok)
+      {
+      //Std(BText("\nTRACE BPackage::Load 6 "));
+        int oldLevel = BGrammar::Level();
+        BGrammar::PutLevel(0); 
+        BSyntaxObject* aux = BOisLoader::LoadFull(path);
+        if(aux && (aux->Grammar()==GraSet()))
+        { 
+        //Std(BText("\nTRACE BPackage::Load 7 "));
+          BSet& set = Set(aux);
+          if((set.Card()==1)&&(set[1]->Grammar()==GraNameBlock()))
+          {
+          //Std(BText("\nTRACE BPackage::Load 8 "));
+            pkg = set[1];
+            pkg->IncNRefs();
+            pkg->IncNRefs();
+            required_ = Cons(pkg, required_);
+            BNameBlock::AddGlobalRequiredPackage(package);
+            PkgStartActions(pkg, package, path);
+          }
+        }      
+      //Std(BText("\nTRACE BPackage::Load 9 "));
+        BGrammar::PutLevel(oldLevel); 
+        ok = pkg!=NULL;
+      //Std(BText("\nTRACE BPackage::Load 10 ok=")+ok);
       } 
+    }
+  //Std(BText("\nTRACE BPackage::Load 11 "));
+    if(!ok)
+    {
+    //Std(BText("\nTRACE BPackage::Load 12 dirPath='")+dirPath.Name()+"'");
+      if(path.HasName()) { dirPath = path; }
+      if(!dirPath.Exist())
+      {
+        Error(I2("Unknown package ",
+                 "El paquete desconocido ")+package_identifier+
+              I2(" must be manually installed.",
+                 " debe ser instalado manualmente."));
+      }
       else
       {
-        Error(I2("Corrupted package ",
-                 "El paquete corrupto ")+package_version+
-              I2(" has been locally removed ",
-                 " ha sido eliminado localmente ")+
-              I2("and it will not be reinstalled again.",
-                 "y no será reinstalado de nuevo."));
-      }  
-    } 
-    load = I2("NOT loaded","No ha sido cargado");
-    help = help_;
+        BSys::Remove(path);
+        if(retry)
+        {
+          Error(I2("Corrupted package ",
+                   "El paquete corrupto ")+package_version+
+                I2(" has been locally removed ",
+                   " ha sido eliminado localmente ")+
+                I2("and will be reinstalled.",
+                   "y será reinstalado."));
+          return(Load(package_version, false));
+        } 
+        else
+        {
+          Error(I2("Corrupted package ",
+                   "El paquete corrupto ")+package_version+
+                I2(" has been locally removed ",
+                   " ha sido eliminado localmente ")+
+                I2("and it will not be reinstalled again.",
+                   "y no será reinstalado de nuevo."));
+        }  
+      } 
+      load = I2("NOT loaded","No ha sido cargado");
+      help = help_;
+    }
+    Std(load+I2(" package ", " el paquete ")+package_version+"\n"+help);
   }
-  Std(load+I2(" package ", " el paquete ")+package_version+"\n"+help);
   if(pkg)
   {
     BUserNameBlock* nbBuilding = BNameBlock::Building();

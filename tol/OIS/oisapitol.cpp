@@ -856,7 +856,7 @@ static const char* aliasSpanishDescription_ =
     if(needsClean)
     {
       root = GetFilePath(root_)+GetFilePrefix(root_);
-      GraReal()->EvaluateExpr(BText("OSDirRemove(\"")+root+"\")");
+      EvalReal(BText("OSDirRemove(\"")+root+"\")",0);
       StoreZipArchive store;
       store.Open(root_, 'r');
       store.DirExtract("*",root);     
@@ -964,7 +964,7 @@ static const char* aliasSpanishDescription_ =
   }
   if(needsClean)
   {
-    GraReal()->EvaluateExpr(BText("OSDirRemove(\"")+root+"\")");
+    EvalReal(BText("OSDirRemove(\"")+root+"\")",0);
   }
 }  
 

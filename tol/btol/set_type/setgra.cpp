@@ -59,6 +59,25 @@
 //--------------------------------------------------------------------
 BTraceInit("setgra.cpp");
 
+
+//--------------------------------------------------------------------
+TOL_API BSet EvalSet(const BText& expr, const BSet& defVal) 
+//--------------------------------------------------------------------
+{
+  int stackPos = BGrammar::StackSize();
+  BSyntaxObject* obj = GraText()->EvaluateExpr(expr);
+  BSet result = defVal;
+  BGrammar::IncLevel();
+  if(obj && (obj->Grammar()==GraText())) 
+  { 
+    result = Set(obj);    
+  }
+  BGrammar::DestroyStackUntil(stackPos, obj);    
+  DESTROY(obj);
+  BGrammar::DecLevel();
+  return(result);
+}
+
 //--------------------------------------------------------------------
   template<>
   void BGraContensBase<BSet>::Do() 

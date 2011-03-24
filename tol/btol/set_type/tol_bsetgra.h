@@ -39,6 +39,8 @@ template class TOL_API BGraContens     < BSet >;
 template class TOL_API BTmpObject      < BUserSet >;
 template class TOL_API BTmpContens     < BSet >;
 
+TOL_API BSet  EvalSet  (const BText& expr, const BSet&  defVal); 
+
 /*
   Give warning C4661: no suitable definition provided for explicit template instantiation request
 

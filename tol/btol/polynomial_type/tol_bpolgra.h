@@ -39,6 +39,7 @@ template class TOL_API BPolyn          < BDat >;
 template class TOL_API BGraContensBase < BPol >;
 template class TOL_API BGraContens     < BPol >;
 
+TOL_API BPol  EvalPolyn(const BText& expr, const BPol&  defVal); 
 
 //--------------------------------------------------------------------
 // forward references

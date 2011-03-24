@@ -79,6 +79,24 @@ BGrammar* BGraContensBase<BText>::ownGrammar_ = NIL;
 DefineContensCommonOperators(BText, "Text");
 
 //--------------------------------------------------------------------
+TOL_API BText EvalText(const BText& expr, const BText& defVal) 
+//--------------------------------------------------------------------
+{
+  int stackPos = BGrammar::StackSize();
+  BSyntaxObject* obj = GraText()->EvaluateExpr(expr);
+  BText result = defVal;
+  BGrammar::IncLevel();
+  if(obj && (obj->Grammar()==GraText())) 
+  { 
+    result = Text(obj);    
+  }
+  BGrammar::DestroyStackUntil(stackPos, obj);    
+  DESTROY(obj);
+  BGrammar::DecLevel();
+  return(result);
+}
+
+//--------------------------------------------------------------------
   template<>
   void BGraContensBase<BText>::Do() 
 //--------------------------------------------------------------------

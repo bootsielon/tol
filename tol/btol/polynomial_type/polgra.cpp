@@ -46,6 +46,25 @@ BPol	  BPol::unknown_;  // it's defined in unitroot.cpp
 DefineContensCommonOperators(BPol, "Polyn");
 
 //--------------------------------------------------------------------
+TOL_API BPol EvalPolyn(const BText& expr, const BPol& defVal) 
+//--------------------------------------------------------------------
+{
+  int stackPos = BGrammar::StackSize();
+  BSyntaxObject* obj = GraPolyn()->EvaluateExpr(expr);
+  BPol result = defVal;
+  BGrammar::IncLevel();
+  if(obj && (obj->Grammar()==GraPolyn())) 
+  { 
+    result = Pol(obj);    
+  }
+  BGrammar::DestroyStackUntil(stackPos, obj);    
+  DESTROY(obj);
+  BGrammar::DecLevel();
+  return(result);
+}
+
+
+//--------------------------------------------------------------------
   template<>
   void BGraContensBase<BPol>::Do() 
 //--------------------------------------------------------------------
@@ -284,7 +303,7 @@ void BPolChangeB::CalcContens()
     BDat::PutRealFormat(oldFormat);
     pTxt.Replace('B','@');
     pTxt.Replace("@",xTxt);
-    contens_ =Pol(OwnGrammar()->EvaluateExpr(pTxt));
+    contens_ = EvalPolyn(pTxt,BPol::Zero());
 }
 
 
