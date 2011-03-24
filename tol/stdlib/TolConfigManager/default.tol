@@ -13,9 +13,9 @@ NameBlock Default =
   NameBlock Time =
   [[
     Text _.autodoc.member.FirstDate = "Initial date";
-    Date FirstDate = y2010;
+    Date FirstDate = DefFirst;
     Text _.autodoc.member.LastDate = "Final date";
-    Date LastDate = y2010m12d31
+    Date LastDate = DefLast
   ]];
   Text _.autodoc.member.Output = "Output window";
   NameBlock Output =
@@ -104,7 +104,7 @@ NameBlock Default =
       Text Order = "ByDate"
     ]];
     Text _.autodoc.member.Language = "User Language";
-    Text Language = "Español";
+    Text Language = "ENGLISH";
     Text _.autodoc.member.View = "Windows initial status";
     NameBlock View =
     [[
