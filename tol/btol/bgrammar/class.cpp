@@ -665,7 +665,8 @@ int MbrNumCmp(const void* v1, const void* v2)
 //! True if inherites from a Class called as given name
 //--------------------------------------------------------------------
 {
-  if(!isGood_ || !ascentHash_) { return(false); }
+  if(!isGood_ || !ascentHash_ || !name.HasName()) { return(false); }
+  if(name==getName()) { return(true); }
   BClassByNameHash::const_iterator found = ascentHash_->find(name);
   return(found!=ascentHash_->end());
 }
@@ -675,6 +676,8 @@ int MbrNumCmp(const void* v1, const void* v2)
 //! True if inherites from a Class called as given name
 //--------------------------------------------------------------------
 {
+  if(!parent) { return(false); }
+  if(this==parent) { return(true); }
   return(InheritesFrom(parent->getFullNameRef()));
 //return(InheritesFrom(parent->Name()));
 }
@@ -1120,6 +1123,11 @@ BClass::~BClass()
   BClassByNameHash::const_iterator iterC;
   BClassByNameHash& par = *(parentHash_);
   bool ok = true;
+  for(iterC=par.begin(); iterC!=par.end(); iterC++)
+  {
+    BClass* parent = iterC->second;
+    ok &= parent->DestroyInstance(instance);
+  }
   if(__destroy)
   {
     BUserFunCode* ufc= (BUserFunCode*)__destroy;
@@ -1129,14 +1137,9 @@ BClass::~BClass()
     dstryr->PutNameBlock(instance);
     BSyntaxObject* result = dstryr->Evaluator(args);
     if(!result) { ok = false; }
-    else { ok = (bool)Real(result); }
+    else { ok = Real(result)!=0.0; }
     dstryr->PutNameBlock(old);
     DESTROY(result); 
-  }
-  for(iterC=par.begin(); iterC!=par.end(); iterC++)
-  {
-    BClass* parent = iterC->second;
-    ok &= parent->DestroyInstance(instance);
   }
   return(ok);
 }
@@ -1151,7 +1154,84 @@ BClass::~BClass()
 	BText BClass::Dump() const
 //--------------------------------------------------------------------
 {
-  return(BParser::Unparse(tree_,"","\n"));
+//return(BParser::Unparse(tree_,"","\n"));
+  BText dump;
+  dump+="\n///////////////////////////////////////////////////////////////////////////////\n";  
+  dump+=BText("Class ")+FullName()+"\n";
+  int n; 
+  if(parentHash_)
+  {
+    BClassByNameHash::const_iterator iterC;
+    BClassByNameHash& par = *(parentHash_);
+    n=0;
+    for(iterC=par.begin(); iterC!=par.end(); iterC++, n++)
+    {
+      if(iterC->second)
+      {
+        if(n) { dump+=", "; }
+        else  { dump+=": "; }
+        dump += iterC->second->FullName(); 
+        n++;
+      }
+    }
+  }
+  dump+="\n///////////////////////////////////////////////////////////////////////////////\n";  
+  if(ascentHash_)
+  {
+    BClassByNameHash::const_iterator iterC;
+    BClassByNameHash& par = *(ascentHash_);
+    n=0;
+    for(iterC=par.begin(); iterC!=par.end(); iterC++, n++)
+    {
+      if(!n)
+      {
+        dump+="\n/*\n";  
+        dump += BText("Inherites directly or indirectly from these classes:\n  "); 
+      }
+      if(iterC->second)
+      {
+        if(n) { dump+="\n  "; }
+        dump += iterC->second->FullName(); 
+        n++;
+      }
+    }
+    dump+="\n*/  \n";  
+  }  
+  dump += BText("{\n  "); 
+  if(memberHash_)
+  {
+    BMbrNumByNameHash::const_iterator iterM;
+    BMbrNumByNameHash& mbr = *(memberHash_);
+    n=0;
+    for(iterM=mbr.begin(); iterM!=mbr.end(); iterM++, n++)
+    {
+      if(iterM->second)
+      {
+        const BMember* mbr = iterM->second->member_;
+        if(!mbr) { continue; }
+        const BText& name = mbr->name_;
+        if((name[0]=='_')&&(name[1]!='.')) { continue; }
+        if(name.BeginWith("_.autodoc.member.")) { continue; }
+        if(n) { dump+=";\n"; }
+        BSyntaxObject* adm = FindStaticMember(BText("_.autodoc.member.")+name, false);
+        dump+="\n/* ////////////////////////////////////////////////////////////////////////////\n";  
+        dump += 
+          BText((mbr->isStatic_)?"Static":"Non static")+ " "+
+          BText((mbr->isMethod_)?"method":"member")+ 
+          " defined at " + ((BClass*)(mbr->parent_))->FullName()+"\n";
+        if(adm) { dump+=Text(adm); } 
+        dump+="\n//////////////////////////////////////////////////////////////////////////// */\n"; 
+        dump+=mbr->declaration_;
+        if(mbr->definition_.HasName() && !(mbr->isMethod_))
+        {
+          dump+=BText(" = ")+ mbr->definition_;
+        } 
+        n++;
+      }
+    }
+  }
+  dump += BText("\n};\n"); 
+  return(dump);
 }
 //--------------------------------------------------------------------
   const BText& BClass::getFullNameRef() const 
@@ -1582,7 +1662,7 @@ BSyntaxObject* BClass::FindStaticMethod(const BText& methodName, bool fullAccess
 }
 
 //--------------------------------------------------------------------
-BSyntaxObject* BClass::FindStaticMemeber(const BText& memberName, bool fullAccess) const
+BSyntaxObject* BClass::FindStaticMember(const BText& memberName, bool fullAccess) const
 //--------------------------------------------------------------------
 {
   BSyntaxObject* result = NULL;
