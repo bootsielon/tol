@@ -398,7 +398,9 @@ void BGrammar::CleanTreeCache(const List* tre, bool forze)
   if(cls)
   {
     BUserNameBlock* unb = (BUserNameBlock*)result;
-    if(!unb || (unb->Contens().Class()!=cls))
+    const BClass* unb_cls = NULL;
+    if(unb) { unb_cls = unb->Contens().Class(); }
+    if(!unb || !unb_cls || !(unb_cls->InheritesFrom(cls)))
     {
       Error(I2("It was expected an instance of Class ",
                "Se esperaba una instancia de Class ") +name);
