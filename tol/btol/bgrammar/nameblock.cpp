@@ -271,8 +271,6 @@ const BText& BNameBlock::LocalName() const
   bool BNameBlock::IsInstanceOf(const BClass* cls) const
 //--------------------------------------------------------------------
 {
-  if(!class_) { return(false); }
-  if(cls == class_)  { return(true); }
   return(class_->InheritesFrom(cls));
 }
 
@@ -280,9 +278,6 @@ const BText& BNameBlock::LocalName() const
   bool BNameBlock::IsInstanceOf(const BText& name) const
 //--------------------------------------------------------------------
 {
-  if(!class_) { return(false); }
-//if(name == class_->FullName())  { return(true); }
-  if(name == class_->FullName())  { return(true); }
   return(class_->InheritesFrom(name));
 }
 
@@ -790,7 +785,7 @@ const BText& BNameBlock::LocalName() const
       BSyntaxObject* autodoc = NULL;
       if(class_)
       {
-        autodoc = class_->FindStaticMemeber(autodocName,-1);
+        autodoc = class_->FindStaticMember(autodocName,-1);
       }
       else
       {
