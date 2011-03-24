@@ -17,3 +17,24 @@ Modulo::@ClaseA b = nb::GetInstance(?); //<- esto no falla
 Modulo::@ClaseA nb::GetInstance(?); //<- esto falla
 Code f = nb::GetInstance;
 Modulo::@ClaseA f(?); //<- esto falla
+
+
+NameBlock NB = 
+[[
+  Class @A { Real a };
+  Class @A.Null : @A { 
+    Static @A.Null New(Real void)
+    {
+      @A.Null null = [[ Real a= 0 ]];
+      null
+    }
+  }
+]];
+  
+NB::@A A = [[ Real a = 1 ]];
+
+NB::@A A := NB::@A.Null::New(?);
+
+NB::@A A1 = NB::@A.Null::New(?);
+
+
