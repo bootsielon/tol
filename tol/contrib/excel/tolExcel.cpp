@@ -459,7 +459,8 @@ TolExcel::TolExcel( char *path )
 : m_isOpen(false),
   m_ptrXLS(NULL),
   m_ptrFmtMgr(NULL),
-  m_ptrActiveWS(NULL)
+  m_ptrActiveWS(NULL),
+  m_ptrCellFmt(NULL)
 {
   this->m_ptrXLS = new BasicExcel;
   if ( !( this->m_isOpen = this->m_ptrXLS->Load( path ) ) ) {
@@ -1089,14 +1090,15 @@ void BSetExcelReadRange::CalcContens()
         }
       }
       BSyntaxObject *cellValue;
-      BDat realValue;
-      BDate dateValue;
-      BText textValue;
       for( r = r0; r <= r1; r++ ) {
 	BList* lsta	  = NIL;
 	BList* auxa	  = NIL;
 	for( c = c0; c <= c1; c++ ) {
           if ( ptrArgs ) {
+      BDat realValue;
+      BDate dateValue;
+      BText textValue;
+
             BGrammar *grammar = (*ptrArgs)[c-c0+1]->Grammar();
             if ( grammar == GraText() ) {
               xls->GetCellText( _name_, r, c, textValue );
