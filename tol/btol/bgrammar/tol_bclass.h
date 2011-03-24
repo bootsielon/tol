@@ -216,7 +216,7 @@ public:
   BSyntaxObject* FindMethod(const BText& memberName, bool fullAccess) const;
   BSyntaxObject* FindStatic(const BText& memberName, bool fullAccess) const;
   BSyntaxObject* FindStaticMethod(const BText& memberName, bool fullAccess) const;
-  BSyntaxObject* FindStaticMemeber(const BText& memberName, bool fullAccess) const;
+  BSyntaxObject* FindStaticMember(const BText& memberName, bool fullAccess) const;
   DeclareClassNewDelete(BClass);
 };
 
