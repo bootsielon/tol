@@ -1247,9 +1247,11 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
   static BText _name_( "Excel.ReadCell" );
   BSyntaxObject* result = NIL;
   BInt nb = BSpecialFunction::NumBranches(tre);
-  if( BSpecialFunction::TestNumArg( _name_, 2, nb, 2 ) ) {
+  if( BSpecialFunction::TestNumArg( _name_, 2, nb, 2 ) ) 
+  {
     BSyntaxObject *addr = GraReal()->EvaluateTree( Branch( tre, 1 ) );
-    if ( !Dat( addr ).IsKnown( ) ) {
+    BDat& addrVal = Dat(addr);
+    if ( !addr || !addrVal.IsKnown( ) ) {
       Error( _name_ + ": " +
              I2( "invalid excel object address, must be known",
                  "direccion de objeto excel invalida, debe ser conocida" ) );
@@ -1259,7 +1261,7 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
     if ( cell ) {
       size_t i_row, i_col;
       if ( TolExcel::getCellCoordinates( _name_, cell, i_row, i_col ) ) {
-        TolExcel *xls = TolExcel::decode_addr( Dat( addr ).Value() );
+        TolExcel *xls = TolExcel::decode_addr( addrVal.Value() );
         if ( !xls ) {
           Error( _name_ + ": " +
                  I2("invalid excel object address",
@@ -1272,7 +1274,9 @@ EvExcelReadCell( BGrammar* gra, const List* tre, BBool left )
           result = new BContensText( "" );
         }
       }
+      DESTROY(cell);
     }
+    DESTROY(addr);
   }
   result = BSpecialFunction::TestResult( _name_, result, tre, NIL, BTRUE );
   return(result);
