@@ -110,6 +110,11 @@ BBool      BOut::traceTerm_;
 BBool      BOut::errorTerm_;
 BBool      BOut::warningTerm_;
 BBool      BOut::infoTerm_;
+BBool      BOut::stdLog_;
+BBool      BOut::traceLog_;
+BBool      BOut::errorLog_;
+BBool      BOut::warningLog_;
+BBool      BOut::infoLog_;
 BText      BOut::out_;
 BText      BOut::dumpFile_(StaticInit());
 FILE*      BOut::file_;
@@ -143,6 +148,11 @@ DefIsAlreadyInitilialized(BOut);
     BOut::errorTerm_   = BTRUE;
     BOut::warningTerm_ = BTRUE;
     BOut::infoTerm_    = BTRUE;
+    BOut::stdLog_     = BTRUE;
+    BOut::traceLog_   = BTRUE;
+    BOut::errorLog_   = BTRUE;
+    BOut::warningLog_ = BTRUE;
+    BOut::infoLog_    = BTRUE;
     BOut::out_         = "";
     BOut::dumpFile_    = "";
     BOut::file_        = NIL;
@@ -252,12 +262,26 @@ void  BOut::PutTraceTerm(BBool term) { traceTerm_ = term; }
 void  BOut::PutStdTerm(BBool term) { stdTerm_ = term; }
 /*! PURPOSE: Sets boolean value for infoTerm_ */
 void  BOut::PutInfoTerm(BBool term) { infoTerm_ = term; }
+/*! PURPOSE: Sets boolean value for errorLog_ */
+void  BOut::PutErrorLog(BBool log_) { errorLog_ = log_; }
+/*! PURPOSE: Sets boolean value for warningLog_ */
+void  BOut::PutWarningLog(BBool log_) { warningLog_ = log_; }
+/*! PURPOSE: Sets boolean value for traceLog_ */
+void  BOut::PutTraceLog(BBool log_) { traceLog_ = log_; }
+/*! PURPOSE: Sets boolean value for stdLog_ */
+void  BOut::PutStdLog(BBool log_) { stdLog_ = log_; }
+/*! PURPOSE: Sets boolean value for infoLog_ */
+void  BOut::PutInfoLog(BBool log_) { infoLog_ = log_; }
+
 /*! PURPOSE: Sets boolean value for all hci flags */
 void  BOut::PutAllHci(BBool hci)
 { stdHci_ = traceHci_ = errorHci_ = warningHci_ = infoHci_ = hci; }
 /*! PURPOSE: Sets boolean value for all term flags */
 void  BOut::PutAllTerm(BBool term)
 { stdTerm_ = traceTerm_ = errorTerm_ = warningTerm_ = infoTerm_ = term; }
+/*! PURPOSE: Sets boolean value for all log file flags */
+void  BOut::PutAllLog(BBool log_)
+{ stdLog_ = traceLog_ = errorLog_ = warningLog_ = infoLog_ = log_; }
 
 /*! PURPOSE: Gets boolean value of errorHci_ */
 BBool BOut::ErrorHci() { return(errorHci_); }
@@ -279,6 +303,17 @@ BBool BOut::TraceTerm() { return(traceTerm_); }
 BBool BOut::StdTerm() { return(stdTerm_); }
 /*! PURPOSE: Gets boolean value of infoTerm_ */
 BBool BOut::InfoTerm() { return(infoTerm_); }
+/*! PURPOSE: Gets boolean value of errorLog_ */
+BBool BOut::ErrorLog() { return(errorLog_); }
+/*! PURPOSE: Gets boolean value of errorLog_ */
+BBool BOut::WarningLog() { return(warningLog_); }
+/*! PURPOSE: Gets boolean value of traceLog_ */
+BBool BOut::TraceLog() { return(traceLog_); }
+/*! PURPOSE: Gets boolean value of stdLog_ */
+BBool BOut::StdLog() { return(stdLog_); }
+/*! PURPOSE: Gets boolean value of infoLog_ */
+BBool BOut::InfoLog() { return(infoLog_); }
+
 
 
 //--------------------------------------------------------------------
@@ -385,15 +420,15 @@ void Error(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled() || (!BOut::errorHci_ && !BOut::errorTerm_)) { return; }
-  if(!BOut::IsEnabled()) { return; }
+  if(!BOut::IsEnabled() || 
+     (!BOut::errorHci_ && !BOut::errorTerm_ && !BOut::errorLog_)) { return; }
   /*BText info =  "\nERROR: ";
     info += txt + "\n";*/
   TOLErrorNumber()+=1;
   BText info = 
     BOut::errorOpenTag_ + TOLErrorNumber().Format("[%.0lf] ") + txt + 
     BOut::errorCloseTag_;
-  BOut::Write(info, BOut::errorHci_, BOut::errorTerm_);
+  BOut::Write(info, BOut::errorHci_, BOut::errorTerm_, BOut::errorLog_);
   BUserFunction::ShowCallStack();
 }
 
@@ -406,14 +441,15 @@ void Warning(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled() || (!BOut::warningHci_ && !BOut::warningTerm_)) { return; }
+  if(!BOut::IsEnabled()  || 
+    (!BOut::warningHci_ && !BOut::warningTerm_ && !BOut::warningLog_)) { return; }
   /*BText info =  "\nWARNING: ";
   info += txt + "\n";*/
   TOLWarningNumber()+=1;
   BText info = 
     BOut::warningOpenTag_ + TOLWarningNumber().Format("[%.0lf] ") + txt + 
     BOut::warningCloseTag_;
-  BOut::Write(info, BOut::warningHci_, BOut::warningTerm_);
+  BOut::Write(info, BOut::warningHci_, BOut::warningTerm_, BOut::warningLog_);
 }
 
 //--------------------------------------------------------------------
@@ -424,10 +460,11 @@ void Deprecated(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled() || (!BOut::warningHci_ && !BOut::warningTerm_)) { return; }
+  if(!BOut::IsEnabled()  || 
+    (!BOut::warningHci_ && !BOut::warningTerm_ && !BOut::warningLog_)) { return; }
   BText info = I2("\nDeprecated: ","\nDesaprobado: ");
   info += txt + "\n";
-  BOut::Write(info, BOut::warningHci_, BOut::warningTerm_);
+  BOut::Write(info, BOut::warningHci_, BOut::warningTerm_, BOut::warningLog_);
 }
 
 //--------------------------------------------------------------------
@@ -438,8 +475,9 @@ void Std(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled() || (!BOut::stdHci_ && !BOut::stdTerm_)) { return; }
-  BOut::Write(txt, BOut::stdHci_, BOut::stdTerm_);
+  if(!BOut::IsEnabled() || 
+    (!BOut::stdHci_ && !BOut::stdTerm_ && !BOut::stdLog_)) { return; }
+  BOut::Write(txt, BOut::stdHci_, BOut::stdTerm_, BOut::stdLog_);
 }
 
 //--------------------------------------------------------------------
@@ -447,8 +485,9 @@ void Std(const BText& txt)
  */
 void Info(const BText& txt)
 {
-  if(!BOut::IsEnabled() || (!BOut::infoHci_ && !BOut::infoTerm_)) { return; }
-  BOut::Write(txt, BOut::infoHci_, BOut::infoTerm_);
+  if(!BOut::IsEnabled() || 
+    (!BOut::infoHci_ && !BOut::infoTerm_ && !BOut::infoLog_)) { return; }
+  BOut::Write(txt, BOut::infoHci_, BOut::infoTerm_, BOut::infoLog_);
 }
 
 //--------------------------------------------------------------------
@@ -471,9 +510,10 @@ void Trace(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled() || (!BOut::traceHci_ && !BOut::traceTerm_)) { return; }
+  if(!BOut::IsEnabled() || 
+    (!BOut::traceHci_ && !BOut::traceTerm_ && !BOut::traceLog_)) { return; }
   BText info = BText("\nTRACE ") +SystemInfo() + "\n" + txt + "\n";
-  BOut::Write(info, BOut::traceHci_, BOut::traceTerm_);
+  BOut::Write(info, BOut::traceHci_, BOut::traceTerm_, BOut::traceLog_);
 }
 
 //-------------------------------------------------------------------
@@ -488,7 +528,7 @@ void Dump(const BText& txt)
 }
 
 //--------------------------------------------------------------------
-void BOut::Write(const BText& txt, BBool hci, BBool term)
+void BOut::Write(const BText& txt, BBool hci, BBool term, BBool log_)
 
 /*! Sends a message \a txt to specified outputs (user defined and/or
  *  terminal). If log file is defined, message is also written to it.
@@ -500,7 +540,7 @@ void BOut::Write(const BText& txt, BBool hci, BBool term)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled() || (!hci && !term)) { return; }
+  if(!BOut::IsEnabled() || (!hci && !term && !log_)) { return; }
   if(hci)
   {
    HciWrite(txt);
@@ -515,7 +555,7 @@ void BOut::Write(const BText& txt, BBool hci, BBool term)
       fflush(stdout);
     }
   }
-  if(BOut::HasDumpFile() && file_)
+  if(log_ && BOut::HasDumpFile() && file_)
   {
     fprintf(file_,"%s",txt.String());
     fflush (file_);

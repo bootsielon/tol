@@ -70,20 +70,32 @@ BBool ForzeLinkerDatGraVarious() { return(BTRUE); }
 
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatShowErrors);
-  DefExtOpr(1, BDatShowErrors, "Show", 1, 2, "Real Text",
-  I2("(Real show [, Text type=\"ALL\"])",
-     "(Real mostrar [, Text type=\"ALL\"])"),
-  I2(".",
-     "A partir de la llamada a esta función el sistem mostrará o no los "
-     "mensajes del tipo dado según sea cierto o no el parámetro <mostrar>."
-     "Los tipos posibles son : ALL, STANDARD, ERROR, WARNING, USER, TRACE"
-     "Devuelve el estado anterior a la llamada."),
+  DefExtOpr(1, BDatShowErrors, "Show", 1, 3, "Real Text Real",
+  "(Real show [, Text type=\"ALL\", Real disableLogAndCounters=False])",
+  I2("Enables or disables system messages of given <type>: "
+     "ALL, STANDARD, ERROR, WARNING, USER, TRACE\n"
+     "Returns the state before the call.\n"
+     "When <show> is false and <disableLogAndCounters> is true, log file, "
+     "and error and warning counters will be disabled too.",
+     "A partir de la llamada a esta función el sistema mostrará o no los "
+     "mensajes del tipo dado según sea cierto o no el parámetro <show>.\n"
+     "Los tipos posibles son : ALL, STANDARD, ERROR, WARNING, USER, TRACE\n"
+     "Devuelve el estado anterior a la llamada.\n"
+     "Cuando <show> es falso y <disableLogAndCounters> es cierto, se "
+     "deshabilitarán las salidas al fichero de log y los contadores de "
+     "errores y warnings, en el caso de "
+     "estén afectados por <type>"),
      BOperClassify::TimeAlgebra_);
   void BDatShowErrors::CalcContens()
 //--------------------------------------------------------------------
 {
   BBool sh   = (BBool)Real(Arg(1));
   BText type = ToUpper(Text(Arg(2)));
+  BBool disableLogAndCounters = false;
+  if(Arg(3))
+  {
+    disableLogAndCounters = (BBool)Real(Arg(3));
+  }
   BBool all  = (type=="ALL");
   BBool err  = all || (type=="ERROR");
   BBool war  = all || (type=="WARNING");
@@ -96,30 +108,35 @@ BBool ForzeLinkerDatGraVarious() { return(BTRUE); }
     oldSh = oldSh && BOut::StdTerm();
     BOut::PutStdTerm(sh);
     BOut::PutStdHci(sh);
+    BOut::PutStdLog(sh || !disableLogAndCounters); 
   }
   if(err)
   {
     oldSh = oldSh && BOut::ErrorTerm();
     BOut::PutErrorTerm(sh);
     BOut::PutErrorHci(sh);
+    BOut::PutErrorLog(sh || !disableLogAndCounters); 
   }
   if(war)
   {
     oldSh = oldSh && BOut::WarningTerm();
     BOut::PutWarningTerm(sh);
     BOut::PutWarningHci(sh);
+    BOut::PutWarningLog(sh || !disableLogAndCounters); 
   }
   if(trc)
   {
     oldSh = oldSh && BOut::TraceTerm();
     BOut::PutTraceTerm(sh);
     BOut::PutTraceHci(sh);
+    BOut::PutTraceLog(sh || !disableLogAndCounters); 
   }
   if(inf)
   {
     oldSh = oldSh && BOut::InfoTerm();
     BOut::PutInfoTerm(sh);
     BOut::PutInfoHci(sh);
+    BOut::PutInfoLog(sh || !disableLogAndCounters); 
   }
   contens_ = oldSh;
 }

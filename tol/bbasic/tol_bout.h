@@ -92,8 +92,19 @@ private:
   static BBool	  warningTerm_;
   //! indicates if an INFO Level message must be sent to terminal
   static BBool	  infoTerm_;
+  //! Boolean that indicates if standard messages must be sent to the log file
+  static BBool  stdLog_;
+  //! Boolean that indicates if trace messages must be sent to the log file
+  static BBool  traceLog_;
+  //! Boolean that indicates if error messages must be sent to the log file
+  static BBool  errorLog_;
+  //! Boolean that indicates if warning messages must be sent to the log file
+  static BBool  warningLog_;
+  //! indicates if an INFO Level message must be sent to the log file
+  static BBool  infoLog_;
+
   //! Send a message to specified outputs
-  static void Write    (const BText& txt, BBool hci, BBool term);
+  static void Write    (const BText& txt, BBool hci, BBool term, BBool log_);
   //! Pointer to user defined function to write TOL messages
   static BHciWriter hciWriter_;
   static BHciWriter logHciWriter_;
@@ -177,10 +188,22 @@ public:
   static void PutStdTerm(BBool term);
   //! Sets boolean value for infoTerm_
   static void PutInfoTerm(BBool term);
+  //! Sets boolean value for errorLog_
+  static void PutErrorLog(BBool log_);
+  //! Sets boolean value for warningLog_
+  static void PutWarningLog(BBool log_);
+  //! Sets boolean value for traceLog_
+  static void PutTraceLog(BBool log_);
+  //! Sets boolean value for stdLog_
+  static void PutStdLog(BBool log_);
+  //! Sets boolean value for infoLog_
+  static void PutInfoLog(BBool log_);
   //! Sets boolean value for all terms
   static void PutAllHci(BBool hci);
   //! Sets boolean value for all hci
   static void PutAllTerm(BBool term);
+  //! Sets boolean value for all log
+  static void PutAllLog(BBool log_);
 
   static void setErrorTags(const char* openTag, const char * closeTag);
   static void setWarningTags(const char *openTag, const char *closeTag);
@@ -207,6 +230,16 @@ public:
   static BBool StdTerm();
   //! Gets boolean value of infoTerm_
   static BBool InfoTerm();
+  //! Gets boolean value of errorLog_
+  static BBool ErrorLog();
+  //! Gets boolean value of traceLog_
+  static BBool WarningLog();
+  //! Gets boolean value of traceLog_
+  static BBool TraceLog();
+  //! Gets boolean value of stdLog_
+  static BBool StdLog();
+  //! Gets boolean value of infoLog_
+  static BBool InfoLog();
 
   //! Returns a cleaned BText reference to concatenate message
   friend TOL_API BText& Out();
