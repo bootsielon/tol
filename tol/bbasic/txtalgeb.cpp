@@ -1977,4 +1977,41 @@ int base64_decode(
   return(size);
 }
 
-
+//--------------------------------------------------------------------
+  BText BText::Wrap (
+    int lineSize, 
+    const BText& wordSep_, 
+    const BText& prefix_)
+//--------------------------------------------------------------------
+{
+  const char* wordSep = wordSep_.String(); 
+  const char* prefix = prefix_.String(); 
+  const char* s = String(); 
+  const char *head = s;
+  char* w0 = new char[2*length_];
+  char* w = w0;
+  int pos, lastSpace;
+   
+  pos = lastSpace = 0;
+  while(head[pos]!=0) {
+      int isLf = (head[pos]=='\n');
+      if (isLf || pos==lineSize) {
+          if (isLf || lastSpace == 0) { lastSpace = pos; } // just cut it
+          if (prefix!=NULL) { w+=sprintf(w,"%s", prefix); }
+          while(*head!=0 && lastSpace-- > 0) { w+=sprintf(w,"%c", *head++); }
+          w+=sprintf(w,"\n");
+          if (isLf) { head++; } // jump the line feed
+          while (*head!=0 && strchr(wordSep,*head)) { head++; } // clear the leading space
+          lastSpace = pos = 0;
+      } else {
+          if (strchr(wordSep,head[pos])) { lastSpace = pos; }
+          pos++;
+      }
+  }
+  w+=sprintf(w,"%s\n", head);
+  w[0]='\0';
+  int len = w-w0+1;
+  BText wrap(w0,len);
+  delete [] w0;
+  return(wrap);
+}
