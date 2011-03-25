@@ -466,10 +466,7 @@ NameBlock ARMAProcess =
       VMatrix a = DifEq(ar/ma,_.z, z0, a0);
       _0.5_m_log2_PI_s2 - 0.5*_.m*VMatMoment(a,2)/_.s2
     }
-  ]])};
-
-  
-
+  ]])}
 ]];
 
 
