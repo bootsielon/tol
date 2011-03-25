@@ -31,7 +31,7 @@
 #define BUserTimeSerie BGraObject<BTimeSerie>
 
 //--------------------------------------------------------------------
-class BUserTimeSerieDo: public BUserTimeSerie
+class TOL_API BUserTimeSerieDo: public BUserTimeSerie
 //--------------------------------------------------------------------
 {
 public:
@@ -80,7 +80,7 @@ inline BUserTimeSerie& TsrR(BSyntaxObject* arg)
 
 
 //--------------------------------------------------------------------
-class  BTsrPrimary: public BUserTimeSerieDo
+class TOL_API BTsrPrimary: public BUserTimeSerieDo
 
 /*! Base class for each operator which result is a time serie.
  */
