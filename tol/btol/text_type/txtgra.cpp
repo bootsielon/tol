@@ -2553,3 +2553,47 @@ void BTextGranularity::CalcContens()
     contens_ = BText(base.c_str());
 }
 #endif /* __USE_TC__ */
+
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTextClassApi);
+DefExtOpr(1, BTextClassApi, "ClassApi", 1, 1, "Text",
+	  "(Text className)",
+	  I2("Returns the API of a previously defined class.",
+	     "Devuelve la API de una clase definida previamente."),
+	  BOperClassify::System_);
+void BTextClassApi::CalcContens()
+//--------------------------------------------------------------------
+{
+  BText name = Text(Arg(1));
+  BClass* cls = FindClass(name, true);
+  if(cls)
+  {
+    contens_ = cls->Dump();
+  }
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTexWrap);
+DefExtOpr(1, BTexWrap, "Wrap", 2, 4, "Text Real Text Text",
+"(Text textToWrap, Real maxLineLength [,  "
+"Text wordSeparators=" ", Text prefix=""])",
+I2("Breaks lines with more than <maxLineLength> characters.\n"
+   "Only when a character in <wordSeparators> it will insert a line break.\n"
+   "If <prefix> is not empty it will be insert after each new break line.\n",
+   "Rompe las líneas con más de <maxLineLength> caracteres.\n" 
+   "Sólo cuando se encuentre un caracter de <wordSeparators> se podrá "
+   "insertar un salto de línea. \n"
+   "Si <prefix> no está vacío será insertar después de cada salto de línea "
+   "nueva.\n"),
+	  BOperClassify::System_);
+void BTexWrap::CalcContens()
+//--------------------------------------------------------------------
+{
+  BText textToWrap = Text(Arg(1));
+  int maxLineLength = (int)Real(Arg(2));
+  BText wordSeparators = " ";
+  BText prefix = "";
+  if(Arg(3)) { wordSeparators = Text(Arg(3)); }
+  if(Arg(4)) { prefix = Text(Arg(4)); }
+  contens_ = textToWrap.Wrap(maxLineLength, wordSeparators, prefix);
+}

@@ -387,6 +387,12 @@ class TOL_API BText
   //! Checks if a given pattern matchs with the actual text
   BBool Match (const BText pattern, BBool caseSensitive=BFALSE) const;
 
+  //! Returns the wrapped text \a txt compacted
+  BText Wrap (
+    int lineSize, 
+    const BText& wordSep_, 
+    const BText& prefix_);
+
   friend ostream& operator<<(ostream& os, const BText& txt);
 
   //! Replaces all \a oldChar ocurrences by \a newChar in a text \a txt
@@ -410,6 +416,7 @@ class TOL_API BText
 
   //! Returns the text \a txt compacted
   friend BText Compact (const BText& txt);
+
 
 	friend BText TmpFileName(const BText& path=BText::None(), const BText& prefix=BText::None());
 
