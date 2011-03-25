@@ -307,6 +307,33 @@ BMember::~BMember()
 }
 
 //--------------------------------------------------------------------
+  BText BMember::Dump() const
+//--------------------------------------------------------------------
+{
+  BText dump;
+  const BText& name = name_;
+  BClass* cls = (BClass*)(parent_);
+  if(!cls) { return(dump); }
+  if((name[0]=='_')&&(name[1]!='.')) { return(dump); }
+  if(name.BeginWith("_.autodoc.member.")) { return(dump); }
+  BSyntaxObject* adm = cls->FindStaticMember(BText("_.autodoc.member.")+name, false);
+  dump+="\n/* \n";  
+  dump += 
+    BText((isStatic_)?"Static":"Non static")+ " "+
+    BText((declaration_.HasName())?"":"virtual ")+
+    BText((isMethod_)?"method":"member")+ 
+    " defined at " + cls->FullName()+"\n";
+  if(adm) { dump+=Text(adm); } 
+  dump+="\n*/ \n"; 
+  dump+=BText((isStatic_)?"Static ":"")+declaration_;
+  if(definition_.HasName() && !(isMethod_))
+  {
+    dump+=BText(" = ")+ definition_;
+  } 
+  return(dump);
+};
+
+//--------------------------------------------------------------------
   void BMember::Copy(const BMember& mbr)
 //--------------------------------------------------------------------
 {
@@ -1150,14 +1177,111 @@ BClass::~BClass()
   return(GraAnything());
 }
 
+
+//--------------------------------------------------------------------
+  int BClass::GetMembers(BArray<const BMember*>& arr) const
+//--------------------------------------------------------------------
+{
+  int  n=0;
+  arr.AllocBuffer(0);
+  if(memberHash_)
+  {
+    BMbrNumByNameHash::const_iterator iterM;
+    BMbrNumByNameHash& mbr = *(memberHash_);
+    arr.ReallocBuffer(mbr.size());
+    arr.ReallocBuffer(0);
+    for(iterM=mbr.begin(); iterM!=mbr.end(); iterM++)
+    {
+      if(iterM->second)
+      {
+        const BMember* m = iterM->second->member_;  
+        if(!m->isMethod_) { arr.Add(m); n++; }
+      }
+    }
+  }
+  return(n);
+}
+
+//--------------------------------------------------------------------
+  int BClass::GetMethods(BArray<const BMember*>& arr) const
+//--------------------------------------------------------------------
+{
+  int  n=0;
+  arr.AllocBuffer(0);
+  if(memberHash_)
+  {
+    BMbrNumByNameHash::const_iterator iterM;
+    BMbrNumByNameHash& mbr = *(memberHash_);
+    arr.ReallocBuffer(mbr.size());
+    arr.ReallocBuffer(0);
+    for(iterM=mbr.begin(); iterM!=mbr.end(); iterM++)
+    {
+      if(iterM->second)
+      {
+        const BMember* m = iterM->second->member_;  
+        if(m->isMethod_) { arr.Add(m); n++; }
+      }
+    }
+  }
+  return(n);
+}
+
+
+//--------------------------------------------------------------------
+static BInt MemberCmp(const void* v1, const void* v2)
+
+/*! Compair two atom receiving the double pointers.
+ * \param v1 first atom to caompare
+ * \param v2 second atom to compare
+ * \return returns an integer less than, equal to, or greather then zero,
+ *         if the name of \a v1is found, respectively, to be less then, to
+ *         match, or be greater then name of \a v2
+ */
+//--------------------------------------------------------------------
+{
+  const BMember* m1 = *((const BMember**)v1);
+  const BMember* m2 = *((const BMember**)v2);
+  int cmp1 = m1->isMethod_ - m2->isMethod_;
+  if(cmp1) { return(cmp1); }
+  int cmp2 = m1->isStatic_ - m2->isStatic_;
+  if(cmp2) { return(cmp2); }
+  int cmp3 = m2->definition_.HasName() - m1->definition_.HasName();
+  if(cmp3) { return(cmp3); }
+  BClass* cls1 = (BClass*)m1->parent_;
+  BClass* cls2 = (BClass*)m2->parent_;
+  BText clsNam1 = (cls1)?cls1->FullName():"~~~~~~~~~~~~~";
+  BText clsNam2 = (cls1)?cls1->FullName():"~~~~~~~~~~~~~";
+  int cmp4 = StrCmp(clsNam1, clsNam2);
+  if(cmp4) { return(cmp4); }
+  return(StrCmp(m1->name_, m2->name_));
+}
+
+//--------------------------------------------------------------------
+  int BClass::GetSortedMembers(BArray<const BMember*>& arr) const
+//--------------------------------------------------------------------
+{
+  int n = GetMembers(arr);  
+  arr.Sort(MemberCmp);
+  return(n);
+}
+
+//--------------------------------------------------------------------
+  int BClass::GetSortedMethods(BArray<const BMember*>& arr) const
+//--------------------------------------------------------------------
+{
+  int n = GetMethods(arr);  
+  arr.Sort(MemberCmp);
+  return(n);
+}
+
 //--------------------------------------------------------------------
 	BText BClass::Dump() const
 //--------------------------------------------------------------------
 {
 //return(BParser::Unparse(tree_,"","\n"));
   BText dump;
-  dump+="\n///////////////////////////////////////////////////////////////////////////////\n";  
-  dump+=BText("Class ")+FullName()+"\n";
+  dump+=BText("\n/* API for Class ")+FullName()+" */\n";  
+  dump+=BText("Class ")+FullName()+"{\n"; 
   int n; 
   if(parentHash_)
   {
@@ -1175,7 +1299,6 @@ BClass::~BClass()
       }
     }
   }
-  dump+="\n///////////////////////////////////////////////////////////////////////////////\n";  
   if(ascentHash_)
   {
     BClassByNameHash::const_iterator iterC;
@@ -1195,39 +1318,50 @@ BClass::~BClass()
         n++;
       }
     }
-    dump+="\n*/  \n";  
+    if(n)  { dump+="\n*/\n"; }
+    else   { dump+="\n"; }
   }  
-  dump += BText("{\n  "); 
-  if(memberHash_)
-  {
-    BMbrNumByNameHash::const_iterator iterM;
-    BMbrNumByNameHash& mbr = *(memberHash_);
-    n=0;
-    for(iterM=mbr.begin(); iterM!=mbr.end(); iterM++, n++)
+  BArray<const BMember*> mem;
+  BArray<const BMember*> met;
+  int num_mem = GetSortedMembers(mem);
+  int num_met = GetSortedMethods(met);
+  const BMember* m = NULL;
+  BText md;
+  bool is_empty = true;
+  if(num_met)
+  {    
+    dump += "/* Methods */";
+    for(n=0; n<num_met; n++)
     {
-      if(iterM->second)
-      {
-        const BMember* mbr = iterM->second->member_;
-        if(!mbr) { continue; }
-        const BText& name = mbr->name_;
-        if((name[0]=='_')&&(name[1]!='.')) { continue; }
-        if(name.BeginWith("_.autodoc.member.")) { continue; }
-        if(n) { dump+=";\n"; }
-        BSyntaxObject* adm = FindStaticMember(BText("_.autodoc.member.")+name, false);
-        dump+="\n/* ////////////////////////////////////////////////////////////////////////////\n";  
-        dump += 
-          BText((mbr->isStatic_)?"Static":"Non static")+ " "+
-          BText((mbr->isMethod_)?"method":"member")+ 
-          " defined at " + ((BClass*)(mbr->parent_))->FullName()+"\n";
-        if(adm) { dump+=Text(adm); } 
-        dump+="\n//////////////////////////////////////////////////////////////////////////// */\n"; 
-        dump+=mbr->declaration_;
-        if(mbr->definition_.HasName() && !(mbr->isMethod_))
+      m = met[n];
+      if(m) 
+      { 
+        md = m->Dump();  
+        if(md.HasName())
         {
-          dump+=BText(" = ")+ mbr->definition_;
-        } 
-        n++;
-      }
+          if(is_empty) { is_empty=false; }
+          else         { dump+=";\n"; }
+          dump += md; 
+        }
+      } 
+    }
+  }
+  if(num_mem)
+  {    
+    dump += "/* Members */";
+    for(n=0; n<num_mem; n++)
+    {
+      m = mem[n];
+      if(m) 
+      { 
+        md = m->Dump();  
+        if(md.HasName())
+        {
+          if(is_empty) { is_empty=false; }
+          else         { dump+=";\n"; }
+          dump += md; 
+        }
+      } 
     }
   }
   dump += BText("\n};\n"); 

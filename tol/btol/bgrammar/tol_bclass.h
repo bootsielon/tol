@@ -81,6 +81,8 @@ class TOL_API BMember
   BText FullExpression() const;
   int BuildMethod();
   int BuildStatic();
+	BText	    Dump	     () const;
+
   DeclareClassNewDelete(BMember);
 };
 
@@ -217,6 +219,12 @@ public:
   BSyntaxObject* FindStatic(const BText& memberName, bool fullAccess) const;
   BSyntaxObject* FindStaticMethod(const BText& memberName, bool fullAccess) const;
   BSyntaxObject* FindStaticMember(const BText& memberName, bool fullAccess) const;
+
+  int GetMembers(BArray<const BMember*>& arr) const;
+  int GetMethods(BArray<const BMember*>& arr) const;
+  int GetSortedMembers(BArray<const BMember*>& arr) const;
+  int GetSortedMethods(BArray<const BMember*>& arr) const;
+
   DeclareClassNewDelete(BClass);
 };
 
