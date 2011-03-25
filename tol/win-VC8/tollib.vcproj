@@ -4700,22 +4700,6 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="excel"
-					>
-					<File
-						RelativePath="..\contrib\excel\BasicExcel.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\contrib\excel\ExcelFormat.cpp"
-						>
-					</File>
-					<File
-						RelativePath="..\contrib\excel\tolExcel.cpp"
-						>
-					</File>
-				</Filter>
-				<Filter
 					Name="cint"
 					>
 					<File
