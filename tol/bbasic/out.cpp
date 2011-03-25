@@ -385,6 +385,7 @@ void Error(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
+  if(!BOut::IsEnabled() || (!BOut::errorHci_ && !BOut::errorTerm_)) { return; }
   if(!BOut::IsEnabled()) { return; }
   /*BText info =  "\nERROR: ";
     info += txt + "\n";*/
@@ -405,7 +406,7 @@ void Warning(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled()) { return; }
+  if(!BOut::IsEnabled() || (!BOut::warningHci_ && !BOut::warningTerm_)) { return; }
   /*BText info =  "\nWARNING: ";
   info += txt + "\n";*/
   TOLWarningNumber()+=1;
@@ -423,7 +424,7 @@ void Deprecated(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled()) { return; }
+  if(!BOut::IsEnabled() || (!BOut::warningHci_ && !BOut::warningTerm_)) { return; }
   BText info = I2("\nDeprecated: ","\nDesaprobado: ");
   info += txt + "\n";
   BOut::Write(info, BOut::warningHci_, BOut::warningTerm_);
@@ -437,7 +438,7 @@ void Std(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled()) { return; }
+  if(!BOut::IsEnabled() || (!BOut::stdHci_ && !BOut::stdTerm_)) { return; }
   BOut::Write(txt, BOut::stdHci_, BOut::stdTerm_);
 }
 
@@ -446,7 +447,7 @@ void Std(const BText& txt)
  */
 void Info(const BText& txt)
 {
-  if(!BOut::IsEnabled()) { return; }
+  if(!BOut::IsEnabled() || (!BOut::infoHci_ && !BOut::infoTerm_)) { return; }
   BOut::Write(txt, BOut::infoHci_, BOut::infoTerm_);
 }
 
@@ -470,7 +471,7 @@ void Trace(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled()) { return; }
+  if(!BOut::IsEnabled() || (!BOut::traceHci_ && !BOut::traceTerm_)) { return; }
   BText info = BText("\nTRACE ") +SystemInfo() + "\n" + txt + "\n";
   BOut::Write(info, BOut::traceHci_, BOut::traceTerm_);
 }
@@ -499,7 +500,7 @@ void BOut::Write(const BText& txt, BBool hci, BBool term)
  */
 //--------------------------------------------------------------------
 {
-  if(!BOut::IsEnabled()) { return; }
+  if(!BOut::IsEnabled() || (!hci && !term)) { return; }
   if(hci)
   {
    HciWrite(txt);
@@ -514,13 +515,12 @@ void BOut::Write(const BText& txt, BBool hci, BBool term)
       fflush(stdout);
     }
   }
-  if(BOut::HasDumpFile()&&file_)
+  if(BOut::HasDumpFile() && file_)
   {
     fprintf(file_,"%s",txt.String());
     fflush (file_);
   }
 }
-
 
 //--------------------------------------------------------------------
 void BOut::HciWrite(const BText& txt)
