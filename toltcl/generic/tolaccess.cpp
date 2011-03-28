@@ -2436,7 +2436,39 @@ int Tol_GetAddressFromObject( Tcl_Interp * interp,
     return TCL_ERROR;
   }
   BText addr = syn->GetAddressFromObject( );
-  Tcl_AppendStringsToObj( obj_result, addr.Buffer( ), NULL );
+  Tcl_SetStringObj( obj_result, addr.Buffer( ), -1 );
+  return TCL_OK;
+}
+                            
+/*
+ * Fill in obj_result the specific type for an Anything object, could
+ * be: Struct, Class or Anything.
+ */
+int Tol_GetAnythingType( Tcl_Interp * interp,
+                         Tcl_Obj * obj_ref,
+                         Tcl_Obj * obj_result)
+{
+  const BSyntaxObject *syn ;
+
+#ifndef _NDEBUG
+  //#define _PRINT_ANYTHING_OBJREF_
+#endif
+
+#ifdef _PRINT_ANYTHING_OBJREF_
+  printf( "obj_ref = %s\n", Tcl_GetString( obj_ref ) );
+#endif
+
+  if ( !( syn = Tol_ResolveObject( interp, obj_ref, obj_result ) ) ) {
+    return TCL_ERROR;
+  }
+  
+  if ( syn->Mode() == BCLASSMODE ) {
+    Tcl_SetStringObj( obj_result, "Class", -1 );
+  } else if ( syn->Mode() == BSTRUCTMODE ) {
+    Tcl_SetStringObj( obj_result, "Struct", -1 );
+  } else {
+    Tcl_SetStringObj( obj_result, "Anything", -1 );
+  }
   return TCL_OK;
 }
                             

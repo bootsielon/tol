@@ -123,6 +123,14 @@ int Tol_GetReference(Tcl_Interp *interp, int objc,
 extern int Tol_GetAddressFromObject _ANSI_ARGS_( (Tcl_Interp * interp,
                                                  Tcl_Obj * obj_ref,
                                                  Tcl_Obj * obj_result));
+/*
+ * Fill in obj_result the specific type for an Anything object, could
+ * be: Struct, Class or Anything.
+ */
+extern int Tol_GetAnythingType _ANSI_ARGS_( (Tcl_Interp * interp,
+                                             Tcl_Obj * obj_ref,
+                                             Tcl_Obj * obj_result));
+
 /*! Return the path of a set if it is a file, trigger an error in other case
  */
 extern int Tol_GetSetPath _ANSI_ARGS_(( Tcl_Interp * interp,
