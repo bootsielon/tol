@@ -109,7 +109,9 @@ NameBlock Default =
     NameBlock View =
     [[
       Text _.autodoc.member.ObjectInspector = "Object Inspector";
-      Real ObjectInspector = True
+      Real ObjectInspector = True;
+      Text _.autodoc.member.PrivateMembers = "Show private members in object inspector";
+      Real PrivateMembers = False
     ]]
   ]]
 ]];
