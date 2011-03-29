@@ -1241,18 +1241,16 @@ static BInt MemberCmp(const void* v1, const void* v2)
 {
   const BMember* m1 = *((const BMember**)v1);
   const BMember* m2 = *((const BMember**)v2);
-  int cmp1 = m1->isMethod_ - m2->isMethod_;
-  if(cmp1) { return(cmp1); }
-  int cmp2 = m1->isStatic_ - m2->isStatic_;
-  if(cmp2) { return(cmp2); }
-  int cmp3 = m2->definition_.HasName() - m1->definition_.HasName();
-  if(cmp3) { return(cmp3); }
-  BClass* cls1 = (BClass*)m1->parent_;
-  BClass* cls2 = (BClass*)m2->parent_;
-  BText clsNam1 = (cls1)?cls1->FullName():"~~~~~~~~~~~~~";
-  BText clsNam2 = (cls1)?cls1->FullName():"~~~~~~~~~~~~~";
-  int cmp4 = StrCmp(clsNam1, clsNam2);
-  if(cmp4) { return(cmp4); }
+  int cmp_met = m1->isMethod_ - m2->isMethod_;
+  if(cmp_met) { return(cmp_met); }
+  bool isPub1 = m1->name_[0]!='_';
+  bool isPub2 = m2->name_[0]!='_';
+  int cmp_pub = isPub2 - isPub1;
+  if(cmp_pub) { return(cmp_pub); }
+  int cmp_stt = m1->isStatic_ - m2->isStatic_;
+  if(cmp_stt) { return(cmp_stt); }
+  int cmp_def = m1->definition_.HasName() - m2->definition_.HasName();
+  if(cmp_def) { return(cmp_def); }
   return(StrCmp(m1->name_, m2->name_));
 }
 
@@ -1328,12 +1326,12 @@ static BInt MemberCmp(const void* v1, const void* v2)
   const BMember* m = NULL;
   BText md;
   bool is_empty = true;
-  if(num_met)
+  if(num_mem)
   {    
-    dump += "/* Methods */";
-    for(n=0; n<num_met; n++)
+    dump += "/* Members */";
+    for(n=0; n<num_mem; n++)
     {
-      m = met[n];
+      m = mem[n];
       if(m) 
       { 
         md = m->Dump();  
@@ -1346,12 +1344,12 @@ static BInt MemberCmp(const void* v1, const void* v2)
       } 
     }
   }
-  if(num_mem)
+  if(num_met)
   {    
-    dump += "/* Members */";
-    for(n=0; n<num_mem; n++)
+    dump += "/* Methods */";
+    for(n=0; n<num_met; n++)
     {
-      m = mem[n];
+      m = met[n];
       if(m) 
       { 
         md = m->Dump();  
@@ -1741,7 +1739,7 @@ BClass* FindClass(const BText& name, int defined)
       cls = (BClass*)result;
     }
   }
-  if(cls && (defined>=0) && (cls->isDefined_!=defined))
+  if(cls && (defined>=0) && (cls->isDefined_!=(defined!=0)))
   {
     cls = NULL;
   }
