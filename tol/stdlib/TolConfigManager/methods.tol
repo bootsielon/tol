@@ -64,7 +64,7 @@ Real Save(Real unused)
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.MergeOptions=
 "Merge default and user configurations";
-NameBlock MergeOptions(NameBlock a, NameBlock b)
+NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
 //////////////////////////////////////////////////////////////////////////////
 {
   Set a_set = NameBlockToSet(a);
@@ -73,6 +73,7 @@ NameBlock MergeOptions(NameBlock a, NameBlock b)
   {
     Text gra = Grammar(element);
     Text name = Name(element);
+    Text fullName = prefix+FullName(a)+"::"+name;
     Case(
     TextBeginWith(name, "_.autodoc.member."), 
     {
@@ -80,8 +81,15 @@ NameBlock MergeOptions(NameBlock a, NameBlock b)
     },
     !ObjectExist(gra,"b::"+name),             
     {
-      WriteLn("[MergeOptions] New configuration option "<<gra+" "+name+
-      " will be set as default value \n"<<element ,"W");
+      WriteLn("[MergeOptions] New configuration option \n"<<
+      "\n  "+gra+" "+fullName+"="<<element+";\n\n"+
+      "You can use this default value or change it running \n"+
+      "\n  "+gra+" "+fullName+":= Copy(<new_value>); \n\n"+
+      "Then you must run this line to avoid this messages at future\n"+
+      "\n  Real TolConfigManager::Save(?); \n\n"
+      ,"W");
+
+
       element
     },
     gra!="NameBlock",                         
@@ -90,7 +98,7 @@ NameBlock MergeOptions(NameBlock a, NameBlock b)
     },
     1==1,                                     
     {
-      MergeOptions(element,Eval(gra+" b::"+name))
+      MergeOptions(element,Eval(gra+" b::"+name),prefix+FullName(a)+"::")
     })
   });
   Eval(Name(b)+"=SetToNameBlock(c_set)")
@@ -110,7 +118,8 @@ NameBlock LoadConfig(Real void)
   1==1,
   {
     NameBlock Config = 
-      MergeOptions(TolConfigManager::Default, { Include(_.path)[1] });
+      MergeOptions(TolConfigManager::Default, { Include(_.path)[1] },
+     "TolConfigManager::Config::");
     Real SaveConfig(Config);
     Config
   })
