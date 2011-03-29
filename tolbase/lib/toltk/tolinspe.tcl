@@ -1170,8 +1170,9 @@ proc ::TolInspector::FilterNameBlockMember { name } {
         list -show 1 -fcolor "gray50" -name "_.$p4"
       }
     } else {
-      # es un miembro oculto
-      list -show 0
+      # es un miembro oculto, 
+      set showPrivate [ Tol_GetViewPrivateMembers ]
+      list -show $showPrivate -fcolor "gray75" -name "_$p4"
     }
   } else {
     list -show 1 -fcolor "black" -name $p4
@@ -1964,6 +1965,23 @@ proc ::TolInspector::NotBusy { } {
   if { [string length $OnBusyCmd] } {
     eval $OnBusyCmd 0
   }
+}
+
+proc Tol_GetViewPrivateMembers { } {
+  set viewOpt 0
+  catch {
+    # no funciona 
+    tol::console eval {
+      Real __getViewPrivateMembers_tmp__ =
+      TolConfigManager::Config::Various::View::PrivateMembers;
+    }
+    set x [ lindex [ tol::info variable { Real __getViewPrivateMembers_tmp__ } ] 2 ]
+    tol::console stack release __getViewPrivateMembers_tmp__
+    set viewOpt [ expr { int( $x ) } ]
+    
+  } msg
+  #puts "Tol_GetViewPrivateMembers: $msg"
+  return $viewOpt
 }
 
 proc Tol_ObjIsClassOf { obj_addr cls_name } {
