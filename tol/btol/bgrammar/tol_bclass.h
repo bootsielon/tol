@@ -116,7 +116,7 @@ public:
   // Constructors and destructors: bgrammar\class.cpp
   BMemberOwner();
   BMemberOwner(const BMemberOwner& mbrOwn);
- ~BMemberOwner();
+  virtual ~BMemberOwner();
 
   void CreateMemberHashes();
   void CreateParentHashes();
