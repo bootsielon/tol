@@ -119,6 +119,7 @@ namespace eval ::TolInspector {
   variable at_set
   variable node_prefix
 
+  variable iterSet ""
   variable knownReference ""
 
   variable gra_parent ""
@@ -733,6 +734,14 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
 
   #upvar \#0 ::TolTk::Images Images
 
+  if { $knownReference eq "" } {
+    set objRef $iterSet
+    lappend objRef $item_id
+  } else {
+    puts "knownReference = $knownReference"
+    set objRef $knownReference
+  }
+
   if { $gra_parent eq "NameBlock" } {
     array set info_member [ FilterNameBlockMember $name ]
     if { !$info_member(-show) } {
@@ -790,16 +799,9 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
     if {$grammar eq "Set"} {
       set icon_grammar [SubTypeImage [lindex $args 2]]
     } else {
-      if { $knownReference eq "" } {
-        set objRef $iterSet
-        lappend objRef $item_id
-      } else {
-        puts "knownReference = $knownReference"
-        set objRef $knownReference
-      }
       #(pgea) se reemplaza el valor de la referencia en data
       set data [lreplace $data 9 9 $objRef]  
-      #(pgea) se utiliza la información de instancia
+      #(pgea) se utiliza la informacon de instancia
       set classOf [Tol_ClassOfFromReference $objRef]
       set insCont [Tol_InstanceContentFromReference $objRef]
       if {$insCont ne ""} {
@@ -810,9 +812,13 @@ proc ::TolInspector::Insert_HTItem {ht tree grammar name content path desc args}
       set objAddress [ tol::info address $objRef ]
       set icon_grammar [ ::ImageManager::getIconForInstance $objAddress ]
     }
+  } elseif { $grammar eq "Anything" } {
+    set item "item$item_id"
+    set anyType [ tol::info anything $objRef ]
+    set icon_grammar [ ::Bitmap::get $anyType ]
   } else {
     set item "item$item_id"
-    set icon_grammar [::Bitmap::get $grammar]
+    set icon_grammar [ ::Bitmap::get $grammar ]
   }
   set idnew [$tree insert 0 -label $item]
   set label [OneLine $name]
@@ -1504,7 +1510,7 @@ proc ::TolInspector::SelectConsoleRoot { } {
   variable knownReference ""
 
   ClearHiertables
-#(pgea) se quita la línea que oculta la columna del índice y que
+#(pgea) se quita la linea que oculta la columna del indice y que
 #(pgea) el procedimimento anterior ClearHiertables muestra
 #  $ht_vars column  configure Index -hide yes
 #  $w_tabset tab configure Functions -state disabled
@@ -1827,7 +1833,7 @@ proc ::TolInspector::SelectItem { ht } {
       set name [$ht entry cget $entry -label] ;# name of item
       set itemid $aryData(Index)              ;# id of item
       set path   $aryData(Path)               ;# path of file of item
-      #(pgea) se añade la propiedad Reference
+      #(pgea) se anyade la propiedad Reference
       set objRef $aryData(Reference)          ;# info of item
       set full_data $item_data($itemid) ;# {value} {desc} {grammar}       
       set value [lindex $full_data 0]   ;# value of item PE:
@@ -1859,7 +1865,7 @@ proc ::TolInspector::SelectItem { ht } {
 }
 
 #/////////////////////////////////////////////////////////////////////////////
-#(pgea) ¿se usa?
+#(pgea) se usa?
 proc ::TolInspector::FillText { ht entry } {
 #/////////////////////////////////////////////////////////////////////////////
   variable w_text
@@ -1989,7 +1995,7 @@ proc Tol_ClassOfFromReference { objReference } {
   return [ Tol_ClassOf $addr ]
 }
 
-#(pgea) nueva función para obtener la información de instancia
+#(pgea) nueva funcion para obtener la informacion de instancia
 proc Tol_InstanceInfo { obj_addr } {
   tol::console eval [ string map [ list %A $obj_addr ] {
     Text __gui_instanceinfo__ = {
@@ -2004,13 +2010,13 @@ proc Tol_InstanceInfo { obj_addr } {
   set x
 }
 
-#(pgea) nueva función para obtener la información de instancia
+#(pgea) nueva funcion para obtener la informacion de instancia
 proc Tol_InstanceInfoFromReference { objReference } {
   set addr [ ::tol::info address $objReference ]
   return [ Tol_InstanceInfo $addr ]
 }
 
-#(pgea) nueva función para obtener el contenido de la instancia
+#(pgea) nueva funcion para obtener el contenido de la instancia
 proc Tol_InstanceContent { obj_addr } {
   tol::console eval [ string map [ list %A $obj_addr ] {
     Text __gui_instancecontent__ = {
@@ -2025,7 +2031,7 @@ proc Tol_InstanceContent { obj_addr } {
   set x
 }
 
-#(pgea) nueva función para obtener el contenido de la instancia
+#(pgea) nueva funcion para obtener el contenido de la instancia
 proc Tol_InstanceContentFromReference { objReference } {
   set addr [ ::tol::info address $objReference ]
   return [ Tol_InstanceContent $addr ]

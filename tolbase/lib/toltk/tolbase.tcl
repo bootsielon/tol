@@ -137,6 +137,7 @@ proc ::TolConsole::Create { w } {
 		    -highlightthickness 0]
   set sw2 [ScrolledWindow $w_tabset.sw2 -auto both]
   set sw3 [ScrolledWindow $w_tabset.sw3 -auto both]
+  set widgets(tabset,info) $sw3
     
   $w_tabset insert end \
      Eval   -text "[mc Eval]   <Ctrl+A>" -selectbackground \#d9d9d9 -bg gray75 -pady 0\
@@ -172,13 +173,17 @@ proc ::TolConsole::Create { w } {
   bind $w_output <Delete>    [list ::BayesText::Delete $w_output]
       
   # INFO CONSOLE COMPONENT
-  set widgets(info) $sw3.info
+  set widgets(info,text) $sw3.info1
   #(pgea) se elimina  -wrap word
-  set w_info [text $widgets(info) -cursor ""\
+  set w_info [text $widgets(info,text) -cursor ""\
      -state disabled -font $data(font,info)]
   $sw3 setwidget $w_info
   ::BayesText::MenuCreate $w_info
-    
+  set widgets(info,hltext) $sw3.info2
+  ::BayesText::CreateHLText $widgets(info,hltext) tol -font $data(font,eval) \
+      -state disabled
+  set widgets(info) $widgets(info,text)
+
   set def_font [$w_info cget -font]
   if { [lsearch -exact [font names] fnBold] == -1 } {
     if {[string length [lindex $def_font 1]]} {
@@ -437,21 +442,27 @@ proc ::TolConsole::OnInfo { args } {
 #/////////////////////////////////////////////////////////////////////////////        
   variable widgets
   
-  set w_info $widgets(info)
   set w_tabset $widgets(tabset)
-  $w_info configure -state normal
-  $w_info delete 1.0 end
-  switch [llength $args] {
-    0 {
-    }
+  foreach type { text hltext } {
+    $widgets(info,$type) configure -state normal
+    $widgets(info,$type) delete 1.0 end
+  }
+  set ll [llength $args]
+  switch $ll {
+    0 -
     1 {
-      #$w_info configure -wrap word
-      $w_info insert end [lindex $args 0]
-      $w_tabset select 2
+      $widgets(tabset,info) setwidget $widgets(info,text)
+      if { $ll == 1 } {
+        #$w_info configure -wrap word
+        $widgets(tabset,info) setwidget $widgets(info,text)
+        $widgets(info,text) insert end [lindex $args 0]
+      }
+      $widgets(tabset) select 2
+      $widgets(info,text) configure -state disabled
     }
     default {
-      #(pgea) se modifica el mecanismo de escritura de la información
-      #(pgea) en tolbase incluyendo la información de instancia
+      #(pgea) se modifica el mecanismo de escritura de la informacion
+      #(pgea) en tolbase incluyendo la informacion de instancia
       proc w_insert {w_info w_text w_token w_tag} {
         set idx_start [$w_info index "end -1 chars"]
         $w_info insert end $w_text
@@ -459,8 +470,22 @@ proc ::TolConsole::OnInfo { args } {
         set idx_end   [$w_info index "end -1 chars"]
         $w_info tag add $w_tag $idx_start $idx_end
       }
+
       #$w_info configure -wrap none
       foreach {icon grammar name content path desc objRef} $args {}
+      set w_info $widgets(info,text)
+
+      if { $grammar eq "Anything" } {
+        if { [ regexp {/+\sClass\s} $content ] } {
+          $widgets(tabset,info) setwidget $widgets(info,hltext)
+          $widgets(info,hltext) insert end $content
+          $widgets(tabset) select 2
+          $widgets(info,hltext) configure -state disabled
+          return
+        }
+      }
+
+      $widgets(tabset,info) setwidget $widgets(info,text)
       #(pgea) Si es NameBlock busco su clase e información de instancia
       if {$grammar eq "NameBlock" && [string length $objRef]} {
         set classOf [Tol_ClassOfFromReference $objRef]
@@ -525,9 +550,9 @@ proc ::TolConsole::OnInfo { args } {
       $w_info tag configure tagValue -wrap none
       $w_info tag configure tagLabelB -font fnBold -foreground navy
       $w_tabset select 2
+      $w_info configure -state disabled
     }
   }
-  $w_info configure -state disabled
 }
 
 #/////////////////////////////////////////////////////////////////////////////      
