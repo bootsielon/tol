@@ -271,6 +271,7 @@ const BText& BNameBlock::LocalName() const
   bool BNameBlock::IsInstanceOf(const BClass* cls) const
 //--------------------------------------------------------------------
 {
+  if(!class_) { return(false); }
   return(class_->InheritesFrom(cls));
 }
 
@@ -278,6 +279,7 @@ const BText& BNameBlock::LocalName() const
   bool BNameBlock::IsInstanceOf(const BText& name) const
 //--------------------------------------------------------------------
 {
+  if(!class_) { return(false); }
   return(class_->InheritesFrom(name));
 }
 
