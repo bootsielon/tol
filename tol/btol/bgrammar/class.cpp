@@ -317,14 +317,17 @@ BMember::~BMember()
   if((name[0]=='_')&&(name[1]!='.')) { return(dump); }
   if(name.BeginWith("_.autodoc.member.")) { return(dump); }
   BSyntaxObject* adm = cls->FindStaticMember(BText("_.autodoc.member.")+name, false);
-  dump+="\n/* \n";  
-  dump += 
+  dump += BText("//")+
     BText((isStatic_)?"Static":"Non static")+ " "+
     BText((declaration_.HasName())?"":"virtual ")+
     BText((isMethod_)?"method":"member")+ 
     " defined at " + cls->FullName()+"\n";
-  if(adm) { dump+=Text(adm); } 
-  dump+="\n*/ \n"; 
+  if(adm) 
+  { 
+    dump+="/* ";  
+    dump+=Text(adm);  
+    dump+=" */\n"; 
+  }
   dump+=BText((isStatic_)?"Static ":"")+declaration_;
   if(definition_.HasName() && !(isMethod_))
   {
@@ -1279,7 +1282,7 @@ static BInt MemberCmp(const void* v1, const void* v2)
 //return(BParser::Unparse(tree_,"","\n"));
   BText dump;
   dump+=BText("\n/* API for Class ")+FullName()+" */\n";  
-  dump+=BText("Class ")+FullName()+"{\n"; 
+  dump+=BText("Class ")+Name()+" "; 
   int n; 
   if(parentHash_)
   {
@@ -1306,19 +1309,19 @@ static BInt MemberCmp(const void* v1, const void* v2)
     {
       if(!n)
       {
-        dump+="\n/*\n";  
-        dump += BText("Inherites directly or indirectly from these classes:\n  "); 
+        dump += "\n/////////////////////////////////////////////////////////";
+        dump += "\n//Inherites directly or indirectly from these classes: //"; 
+        dump += "\n/////////////////////////////////////////////////////////\n";
       }
       if(iterC->second)
       {
-        if(n) { dump+="\n  "; }
-        dump += iterC->second->FullName(); 
+        dump+="//  "; 
+        dump += iterC->second->FullName() + "\n"; 
         n++;
       }
     }
-    if(n)  { dump+="\n*/\n"; }
-    else   { dump+="\n"; }
   }  
+  dump += "{";
   BArray<const BMember*> mem;
   BArray<const BMember*> met;
   int num_mem = GetSortedMembers(mem);
@@ -1328,7 +1331,9 @@ static BInt MemberCmp(const void* v1, const void* v2)
   bool is_empty = true;
   if(num_mem)
   {    
-    dump += "/* Members */";
+    dump += "\n/////////////";
+    dump += "\n//Members: //";
+    dump += "\n/////////////\n";
     for(n=0; n<num_mem; n++)
     {
       m = mem[n];
@@ -1346,7 +1351,14 @@ static BInt MemberCmp(const void* v1, const void* v2)
   }
   if(num_met)
   {    
-    dump += "/* Methods */";
+    if(!is_empty) 
+    { 
+      dump+=";\n"; 
+      is_empty=true;
+    }
+    dump += "\n/////////////";
+    dump += "\n//Methods: //";
+    dump += "\n/////////////\n";
     for(n=0; n<num_met; n++)
     {
       m = met[n];
