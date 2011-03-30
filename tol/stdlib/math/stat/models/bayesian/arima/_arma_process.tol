@@ -32,7 +32,7 @@ NameBlock ARMAProcess =
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.PACF =
   "Returns theoretical partial autocorrelation function from 0 to given order";
-  Matrix ACF(Polyn ar, Polyn ma, Real order)
+  Matrix PACF(Polyn ar, Polyn ma, Real order)
   ////////////////////////////////////////////////////////////////////////////
   {
     Matrix acov = ARMATACov(ar,ma,order+1);
