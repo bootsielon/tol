@@ -456,8 +456,8 @@ proc ::TolConsole::OnInfo { args } {
         #$w_info configure -wrap word
         $widgets(tabset,info) setwidget $widgets(info,text)
         $widgets(info,text) insert end [lindex $args 0]
+        $widgets(tabset) select 2
       }
-      $widgets(tabset) select 2
       $widgets(info,text) configure -state disabled
     }
     default {
