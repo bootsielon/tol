@@ -515,9 +515,8 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
       if(parent)
       {
         mbr = parent->FindMember(name);
-        assert(mbr);
       }
-      else
+      if(!mbr)
       {
         NullError(
           I2("Cannot load from OIS member ","No se puede cargar del OIS el miembro ")+ 
