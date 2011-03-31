@@ -1397,6 +1397,7 @@ static BInt MemberCmp(const void* v1, const void* v2)
   int n=0;
   for(n=0; ok && (n<member_.Size()); n++)
   {
+    if(!member_[n]) { continue; }
     BMember& mbr = *(member_[n]->member_);
     BSyntaxObject* obj = NULL;
     if(mbr.name_.BeginWith("_.autodoc.member."))
