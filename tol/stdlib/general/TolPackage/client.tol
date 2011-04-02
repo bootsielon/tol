@@ -836,7 +836,39 @@ Real DownloadCompatibleDeepDependencies(
   {
     DownloadPackage(vsi->te_url,vsi->co_name_version,True,localRoot)
   }))
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  Text CppTools.Path(NameBlock package)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Text packageName = package::_.autodoc.name;
+  Text dllPath.rel = GetAbsolutePath("CppTools/"+ GetHardSoftPlattform(0));
+  Text dllPath.deb = dllPath.rel+"_dbg";
+  Text dllFile.rel = dllPath.rel+"/"+packageName+"."+GetSharedLibExt(0);
+  Text dllFile.deb = dllPath.deb+"/"+packageName+"."+GetSharedLibExt(0);
+  If(!TextEndAt(Version,"{DEBUG}"),dllFile.rel,
+  {
+    If(OSDirExist(dllFile.deb),dllFile.deb,
+    {
+      WriteLn("Cannot find debug library "+dllFile.deb+
+              ".\n Trying to load "+dllFile.rel);
+      dllFile.rel
+    })
+  })
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  Real CppTools.Check(NameBlock package, Text dllFile, Text chechMethod)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Text packageName = package::_.autodoc.name;
+  Real ok = ObjectExist("Code","package::CppTools::"+chechMethod);
+  WriteLn("["+packageName+"] Loading library "+dllFile+
+          " -> "<<If(ok,"OK","FAIL"),If(ok,"S","E"));
+  ok
 }
+
 
 ]];
 
