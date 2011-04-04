@@ -696,7 +696,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 //--------------------------------------------------------------------
 {
   if(!isGood_ || !ascentHash_ || !name.HasName()) { return(false); }
-  if(name==getName()) { return(true); }
+  if(name==getFullName()) { return(true); }
   BClassByNameHash::const_iterator found = ascentHash_->find(name);
   return(found!=ascentHash_->end());
 }
