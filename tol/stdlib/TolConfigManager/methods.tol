@@ -69,7 +69,8 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
 {
   Set a_set = NameBlockToSet(a);
   Set b_set = NameBlockToSet(b);
-  Set c_set = EvalSet(a_set, Anything(Anything element)
+  Real aGTb = Card(a_set) > Card(b_set);
+  Set c_set = If(aGTb, EvalSet(a_set, Anything(Anything element)
   {
     Text gra = Grammar(element);
     Text name = Name(element);
@@ -81,15 +82,14 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
     },
     !ObjectExist(gra,"b::"+name),             
     {
+      If(showWarn,
       WriteLn("[MergeOptions] New configuration option \n"<<
       "\n  "+gra+" "+fullName+"="<<element+";\n\n"+
       "You can use this default value or change it running \n"+
       "\n  "+gra+" "+fullName+":= Copy(<new_value>); \n\n"+
       "Then you must run this line to avoid this messages at future\n"+
       "\n  Real TolConfigManager::Save(?); \n\n"
-      ,"W");
-
-
+      ,"W"));
       element
     },
     gra!="NameBlock",                         
@@ -100,7 +100,29 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
     {
       MergeOptions(element,Eval(gra+" b::"+name),prefix+FullName(a)+"::")
     })
-  });
+  }),
+  EvalSet(b_set, Anything(Anything element)
+  {
+    Text gra = Grammar(element);
+    Text name = Name(element);
+    Case(
+    TextBeginWith(name, "_.autodoc.member."), 
+    {
+      element
+    },
+    !ObjectExist(gra,"a::"+name),             
+    {
+      element
+    },
+    gra!="NameBlock",                         
+    {
+      element
+    },
+    1==1,                                     
+    {
+      MergeOptions(element,Eval(gra+" b::"+name),prefix+FullName(a)+"::")
+    })
+  }));
   Eval(Name(b)+"=SetToNameBlock(c_set)")
 };
 
