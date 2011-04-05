@@ -852,7 +852,7 @@ Real DownloadCompatibleDeepDependencies(
     If(OSDirExist(dllFile.deb),dllFile.deb,
     {
       WriteLn("Cannot find debug library "+dllFile.deb+
-              ".\n Trying to load "+dllFile.rel);
+              ".\n Trying to load "+dllFile.rel,"W");
       dllFile.rel
     })
   })
