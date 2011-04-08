@@ -1,5 +1,10 @@
 @Rem Author: Jorge <josp.jorge@gmail.com>
 
+
+..\..\tol\win-VC8\release\build_date_gen.exe
+
+touch ..\..\tol\init.cpp
+
 @Echo Off
 Rem Actualiza desde el SVN el contenido de build_tools (este directorio)
 Rem Luego procede a ejecutar _uptol.bat
