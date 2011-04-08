@@ -1475,8 +1475,7 @@ static void PkgStartActions(
       if(ok)
       {
       //Std(BText("\nTRACE BPackage::Load 6 "));
-        int oldLevel = BGrammar::Level();
-        BGrammar::PutLevel(0); 
+        BGrammar::IncLevel();
         BSyntaxObject* aux = BOisLoader::LoadFull(path);
         if(aux && (aux->Grammar()==GraSet()))
         { 
@@ -1486,6 +1485,8 @@ static void PkgStartActions(
           {
           //Std(BText("\nTRACE BPackage::Load 8 "));
             pkg = set[1];
+            pkg->PutLevel(0);
+            BGrammar::AddObject(pkg);
             pkg->IncNRefs();
             pkg->IncNRefs();
             required_ = Cons(pkg, required_);
@@ -1494,7 +1495,7 @@ static void PkgStartActions(
           }
         }      
       //Std(BText("\nTRACE BPackage::Load 9 "));
-        BGrammar::PutLevel(oldLevel); 
+        BGrammar::DecLevel(); 
         ok = pkg!=NULL;
       //Std(BText("\nTRACE BPackage::Load 10 ok=")+ok);
       } 
