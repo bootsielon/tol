@@ -1485,8 +1485,11 @@ static void PkgStartActions(
           {
           //Std(BText("\nTRACE BPackage::Load 8 "));
             pkg = set[1];
+            int oldLevel = BGrammar::Level();
             pkg->PutLevel(0);
+            BGrammar::PutLevel(0);
             BGrammar::AddObject(pkg);
+            BGrammar::PutLevel(oldLevel);
             pkg->IncNRefs();
             pkg->IncNRefs();
             required_ = Cons(pkg, required_);
