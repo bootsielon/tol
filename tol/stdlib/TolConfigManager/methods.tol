@@ -69,7 +69,8 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
 {
   Set a_set = NameBlockToSet(a);
   Set b_set = NameBlockToSet(b);
-  Real aGTb = Card(a_set) > Card(b_set);
+  Real aGTb = Card(a_set) >= Card(b_set);
+//WriteLn("TRACE [MergeOptions] 1 a="<<Name(a)+"("<<Card(a_set)+") b="<<Name(b)+"("<<Card(b_set)+")  prefix="<<prefix);
   Set c_set = If(aGTb, EvalSet(a_set, Anything(Anything element)
   {
     Text gra = Grammar(element);
@@ -82,14 +83,13 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
     },
     !ObjectExist(gra,"b::"+name),             
     {
-      If(showWarn,
       WriteLn("[MergeOptions] New configuration option \n"<<
       "\n  "+gra+" "+fullName+"="<<element+";\n\n"+
       "You can use this default value or change it running \n"+
       "\n  "+gra+" "+fullName+":= Copy(<new_value>); \n\n"+
       "Then you must run this line to avoid this messages at future\n"+
       "\n  Real TolConfigManager::Save(?); \n\n"
-      ,"W"));
+      ,"W");
       element
     },
     gra!="NameBlock",                         
@@ -120,7 +120,7 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
     },
     1==1,                                     
     {
-      MergeOptions(element,Eval(gra+" b::"+name),prefix+FullName(a)+"::")
+      MergeOptions(Eval(gra+" a::"+name),element,prefix+FullName(a)+"::")
     })
   }));
   Eval(Name(b)+"=SetToNameBlock(c_set)")
@@ -132,13 +132,16 @@ Text _.autodoc.member.LoadConfig=
 NameBlock LoadConfig(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
+  WriteLn("TRACE [LoadConfig] 1");
   Case(!FileExist(_.path),
   {
+  WriteLn("TRACE [LoadConfig] 2.1");
     Real SaveConfig(Default);
     Include(_.path)[1]
   },
   1==1,
   {
+    WriteLn("TRACE [LoadConfig] 2.2");
     NameBlock Config = 
       MergeOptions(TolConfigManager::Default, { Include(_.path)[1] },
      "TolConfigManager::Config::");
