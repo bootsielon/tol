@@ -128,11 +128,12 @@ public:
   //! Returns double NaN value
   static BReal Nan()     { return(nan_); }
   //! Return \a unknown_ attribute
-  static BDat& Unknown ()      { return(unknown_); }
+  static BDat Unknown ()      { return(unknown_); }
+//static const BDat& Unknown ()      { return(unknown_=); }
   //! Return \a piNumber_ attribute
-  static BDat& Pi ()           { return(piNumber_); }
+  static BDat Pi ()           { return(piNumber_); }
   //! Return \a eNumber_ attribute
-  static BDat& E ()            { return(eNumber_); }
+  static BDat E ()            { return(eNumber_); }
   //! Return \a maxIter_ attribute
   static BDat& MaxIter ()      { return(maxIter_); }
   //! Return \a tolerance_ attribute
@@ -140,7 +141,7 @@ public:
   //! Return \a reltolerance_ attribute
   static BDat& RelTolerance () { return(relTolerance_); }
   //! Return \a zero_ attribute
-  static BDat& Zero ()         { return(zero_); }
+  static BDat Zero ()         { return(zero_); }
 
   //! Saves the number of the committed error
   static void  Matherr (int type, char* name);
