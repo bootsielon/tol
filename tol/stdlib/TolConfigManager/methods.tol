@@ -64,24 +64,24 @@ Real Save(Real unused)
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.MergeOptions=
 "Merge default and user configurations";
-NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
+NameBlock MergeOptions(NameBlock default, NameBlock config, Text prefix)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set a_set = NameBlockToSet(a);
-  Set b_set = NameBlockToSet(b);
-  Real aGTb = Card(a_set) >= Card(b_set);
-//WriteLn("TRACE [MergeOptions] 1 a="<<Name(a)+"("<<Card(a_set)+") b="<<Name(b)+"("<<Card(b_set)+")  prefix="<<prefix);
-  Set c_set = If(aGTb, EvalSet(a_set, Anything(Anything element)
+  Set default_set = NameBlockToSet(default);
+  Set config_set = NameBlockToSet(config);
+  Real aGTb = Card(default_set) >= Card(config_set);
+//WriteLn("TRACE [MergeOptions] 1 default="<<Name(default)+"("<<Card(default_set)+") config="<<Name(config)+"("<<Card(config_set)+")  prefix="<<prefix);
+  Set c_set = If(aGTb, EvalSet(default_set, Anything(Anything element)
   {
     Text gra = Grammar(element);
     Text name = Name(element);
-    Text fullName = prefix+FullName(a)+"::"+name;
+    Text fullName = prefix+FullName(default)+"::"+name;
     Case(
     TextBeginWith(name, "_.autodoc.member."), 
     {
       element
     },
-    !ObjectExist(gra,"b::"+name),             
+    !ObjectExist(gra,"config::"+name),             
     {
       WriteLn("[MergeOptions] New configuration option \n"<<
       "\n  "+gra+" "+fullName+"="<<element+";\n\n"+
@@ -94,14 +94,14 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
     },
     gra!="NameBlock",                         
     {
-      Eval(gra+" b::"+name)
+      Eval(gra+" config::"+name)
     },
     1==1,                                     
     {
-      MergeOptions(element,Eval(gra+" b::"+name),prefix+FullName(a)+"::")
+      MergeOptions(element,Eval(gra+" config::"+name),prefix+FullName(default)+"::")
     })
   }),
-  EvalSet(b_set, Anything(Anything element)
+  EvalSet(config_set, Anything(Anything element)
   {
     Text gra = Grammar(element);
     Text name = Name(element);
@@ -110,7 +110,7 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
     {
       element
     },
-    !ObjectExist(gra,"a::"+name),             
+    !ObjectExist(gra,"default::"+name),             
     {
       element
     },
@@ -120,10 +120,10 @@ NameBlock MergeOptions(NameBlock a, NameBlock b, Text prefix)
     },
     1==1,                                     
     {
-      MergeOptions(Eval(gra+" a::"+name),element,prefix+FullName(a)+"::")
+      MergeOptions(Eval(gra+" default::"+name),element,prefix+FullName(default)+"::")
     })
   }));
-  Eval(Name(b)+"=SetToNameBlock(c_set)")
+  Eval(Name(config)+"=SetToNameBlock(c_set)")
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -132,10 +132,10 @@ Text _.autodoc.member.LoadConfig=
 NameBlock LoadConfig(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  WriteLn("TRACE [LoadConfig] 1");
+//WriteLn("TRACE [LoadConfig] 1");
   Case(!FileExist(_.path),
   {
-  WriteLn("TRACE [LoadConfig] 2.1");
+//WriteLn("TRACE [LoadConfig] 2.1");
     Real SaveConfig(Default);
     Include(_.path)[1]
   },
