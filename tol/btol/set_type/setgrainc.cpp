@@ -1828,13 +1828,41 @@ BUserSet* IncludeFile(const BText& fileName)
     return(set);
 }
 
+
 //--------------------------------------------------------------------
 BSyntaxObject* IncludeEvaluator(BList* arg)
 //--------------------------------------------------------------------
 {
+  static BSyntaxObject* show_msg_including_so = NULL;
+  static bool show_msg_including = true;
+  static BSyntaxObject* show_msg_included_so = NULL;
+  static bool show_msg_included = true;
+  if(!show_msg_including_so)
+  {
+    show_msg_including_so = BNameBlock::FindPublicMember(GraReal(),
+     "TolConfigManager::Config::Various::Verbose::IncludingFile");
+  }
+  if(!show_msg_included_so)
+  {
+    show_msg_included_so = BNameBlock::FindPublicMember(GraReal(),
+     "TolConfigManager::Config::Various::Verbose::IncludedFile");
+  }
+  if(show_msg_including_so)
+  {
+    show_msg_including = Real(show_msg_including_so)!=0.0;
+  }
+  if(show_msg_included_so)
+  {
+    show_msg_included = Real(show_msg_included_so)!=0.0;
+  }
+
   BTimer tm;
   BSyntaxObject* result = NIL;
   BText name = Text((BSyntaxObject*)Car(arg));
+  if(show_msg_including)
+  {
+    Std(I2("Including ","Incluyendo ")+GetStandardAbsolutePath(name)+"\n");
+  }
   BText extension = ToLower(GetFileExtension(name));
   BText autoPath = BOis::AutoPath(name);
   BBool isOis = false;
@@ -1892,7 +1920,10 @@ BSyntaxObject* IncludeEvaluator(BList* arg)
       p = name;
       ok = I2("NOT included","No ha sido incluido");
     }
-    Std(ok+I2(" file ", " el fichero ")+p+" ["+BDat((double)tm.MSec()/1000.0).Format("%.3lf")+" sec.]\n");
+    if(show_msg_included)
+    {
+      Std(ok+I2(" file ", " el fichero ")+p+" ["+BDat((double)tm.MSec()/1000.0).Format("%.3lf")+" sec.]\n");
+    }
   }
   return(result);
 }

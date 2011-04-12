@@ -108,10 +108,22 @@ NameBlock Default =
     Text _.autodoc.member.View = "Windows initial status";
     NameBlock View =
     [[
-      Text _.autodoc.member.ObjectInspector = "Object Inspector";
+      Text _.autodoc.member.ObjectInspector = "Show Object Inspector";
       Real ObjectInspector = True;
       Text _.autodoc.member.PrivateMembers = "Show private members in object inspector";
       Real PrivateMembers = False
+    ]];
+    Text _.autodoc.member.Verbose = "Enables/disables some types of system messages";
+    NameBlock Verbose = 
+    [[
+      Text _.autodoc.member.IncludingFile = 
+      "Enables/disables system messages of type 'Including file ... '"+
+      "\n Changes in this option do not take effect until next TOL session";
+      Real IncludingFile = 1;
+      Text _.autodoc.member.IncludedFile = 
+      "Enables/disables system messages of type 'Included file ... '"+
+      "\n Changes in this option do not take effect until next TOL session";
+      Real IncludedFile = 1
     ]]
   ]]
 ]];
