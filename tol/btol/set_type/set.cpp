@@ -514,15 +514,19 @@ BSyntaxObject* BSet::GetElement(BInt n)  const
  */
 //--------------------------------------------------------------------
 {
-  if(nameBlock_ && nameBlock_->EnsureIsAssigned())
-  {
-    Error(I2("Cannot access to NameBlock members with operator ",
-             "No se puede acceder a los miembros de un NameBlock con el operador ")+
-             "[...]\n"+
-             nameBlock_->Name()+"["+n+"]");
-    return NIL;
+  BSyntaxObject* result = NULL;
+  if(array_.Size()) 
+  { 
+    if(nameBlock_ && nameBlock_->EnsureIsAssigned())
+    {
+      Error(I2("Cannot access to NameBlock members with operator ",
+               "No se puede acceder a los miembros de un NameBlock con el operador ")+
+               "[...]\n"+
+               nameBlock_->Name()+"["+n+"]");
+      return NIL;
+    }
+    result = operator[](n);
   }
-  BSyntaxObject* result = operator[](n);
   if(!result)
   {
 	  Error(I2(BText("Attempt to access ")+n+"-th element of a set with "+
@@ -625,16 +629,19 @@ BSyntaxObject* BSet::GetElement(const char * name) const
  */
 //--------------------------------------------------------------------
 {
-  if(!array_.Size()) { return(NULL); }
-  if(nameBlock_ && nameBlock_->EnsureIsAssigned())
-  {
-    Error(I2("Cannot access to NameBlock members with operator ",
-             "No se puede acceder a los miembros de un NameBlock con el operador ")+
-             "[\"...\"]\n"+
-             nameBlock_->Name()+"[\""+name+"\"]");
-    return NIL;
+  BSyntaxObject* result = NULL;
+  if(array_.Size()) 
+  { 
+    if(nameBlock_ && nameBlock_->EnsureIsAssigned())
+    {
+      Error(I2("Cannot access to NameBlock members with operator ",
+               "No se puede acceder a los miembros de un NameBlock con el operador ")+
+               "[\"...\"]\n"+
+               nameBlock_->Name()+"[\""+name+"\"]");
+      return NIL;
+    }
+    result = operator[](name);
   }
-  BSyntaxObject* result = operator[](name);
   if(!result)
   {
     Error(I2(BText("No element found with name ") + name,
