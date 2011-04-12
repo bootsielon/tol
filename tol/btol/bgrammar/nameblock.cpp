@@ -1341,6 +1341,8 @@ bool BRequiredPackage::AddRequiredPackage(const BText& name)
 }
 
 //--------------------------------------------------------------------
+//fast accessing to recursive member expressions as 
+// a::b:: ... ::z
 BSyntaxObject* BNameBlock::FindPublicMember(
   const BGrammar* gra,
   const BText& memberExpression)
