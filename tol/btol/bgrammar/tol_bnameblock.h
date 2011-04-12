@@ -166,6 +166,9 @@ public:
   static int CountGlobalRequiredPackage();
   static const BText& GetGlobalRequiredPackage(int k);
 
+  static BSyntaxObject* FindPublicMember(
+    const BGrammar* gra,const BText& memberExpression);
+
   DeclareClassNewDelete(BNameBlock);
 
 private:

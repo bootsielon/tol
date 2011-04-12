@@ -1340,7 +1340,34 @@ bool BRequiredPackage::AddRequiredPackage(const BText& name)
   return(globalRequiredPackages_.GetRequiredPackage(k));
 }
 
-
+//--------------------------------------------------------------------
+BSyntaxObject* BNameBlock::FindPublicMember(
+  const BGrammar* gra,
+  const BText& memberExpression)
+//--------------------------------------------------------------------
+{
+  BArray<BText> tok;
+  BText expression = memberExpression;
+  expression.Replace("::","¬");
+  ReadAllTokens(expression, tok, '¬');
+  if(tok.Size()<2) { return(NULL); }
+  BSyntaxObject* unb = GraNameBlock()->FindOperand(tok[0],false);
+  if(!unb) { return(NULL); }
+  int i;
+  for(i=1; i<tok.Size()-1; i++)
+  {
+    BNameBlock& nb = NameBlock(unb);
+    unb = nb.PublicMember(tok[i]);
+    if(!unb || unb->Grammar()!=GraNameBlock()) { return(NULL); }
+  }
+  BNameBlock& nb = NameBlock(unb);
+  BSyntaxObject* result = nb.PublicMember(tok[i]); 
+  if(gra&&result&&(gra!=GraAnything())&&(gra!=result->Grammar()))
+  {
+    result = NULL;
+  }
+  return(result);
+}
 
 //--------------------------------------------------------------------
 //Gramatical items
@@ -1512,6 +1539,7 @@ public:
   DeclareClassNewDelete(BDatUsingNameBlock);
 };
 DeclareEvaluator(BDatUsingNameBlock);
+
 
 //--------------------------------------------------------------------
   DefExtOpr(1, BDatUsingNameBlock, "UsingNameBlock",1,3,
