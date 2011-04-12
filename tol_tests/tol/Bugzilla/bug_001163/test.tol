@@ -1,0 +1,47 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+  Real bugNum_ =  1165;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="Llamada de un elemento de un conjunto vacío por su nombre";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  //Write here the initial test TOL code if needed
+
+Set cjto.1 = Empty;
+Set cjto.2 = [[1]];
+
+Real numErr.0 = Copy(NError);
+Anything  cjto.1["NombreObject"];
+//No se produce ningun error pero tampoco ninguna salida
+Real numErr.1 = Copy(NError)-numErr.0;
+Anything  cjto.1[1];
+//Si se produce error.
+Real numErr.2 = Copy(NError)-numErr.1;
+Anything  cjto.2[2];
+//Si se produce error.
+Real numErr.3 = Copy(NError)-numErr.2;
+Anything  cjto.2["NombreObject"];
+//Sí se produce error
+Real numErr.4 = Copy(NError)-numErr.3;
+
+
+  Set partialResults_ = [[ numErr.1,numErr.2,numErr.3,numErr.4 ]];
+
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr.1,numErr.2,numErr.3,numErr.4);
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_;
+
+/* */
+
