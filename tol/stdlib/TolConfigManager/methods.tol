@@ -71,11 +71,12 @@ NameBlock MergeOptions(NameBlock default, NameBlock config, Text prefix)
   Set config_set = NameBlockToSet(config);
   Real aGTb = Card(default_set) >= Card(config_set);
 //WriteLn("TRACE [MergeOptions] 1 default="<<Name(default)+"("<<Card(default_set)+") config="<<Name(config)+"("<<Card(config_set)+")  prefix="<<prefix);
-  Set c_set = If(aGTb, EvalSet(default_set, Anything(Anything element)
+  Set c_set = If(aGTb, 
+  EvalSet(default_set, Anything(Anything element)
   {
     Text gra = Grammar(element);
     Text name = Name(element);
-    Text fullName = prefix+FullName(default)+"::"+name;
+    Text fullName = prefix+name;
     Case(
     TextBeginWith(name, "_.autodoc.member."), 
     {
@@ -89,6 +90,7 @@ NameBlock MergeOptions(NameBlock default, NameBlock config, Text prefix)
       "\n  "+gra+" "+fullName+":= Copy(<new_value>); \n\n"+
       "Then you must run this line to avoid this messages at future\n"+
       "\n  Real TolConfigManager::Save(?); \n\n"
+      "NOTE: Changing some options do not take effect until next TOL session."
       ,"W");
       element
     },
@@ -98,7 +100,7 @@ NameBlock MergeOptions(NameBlock default, NameBlock config, Text prefix)
     },
     1==1,                                     
     {
-      MergeOptions(element,Eval(gra+" config::"+name),prefix+FullName(default)+"::")
+      MergeOptions(element,Eval(gra+" config::"+name),fullName+"::")
     })
   }),
   EvalSet(config_set, Anything(Anything element)
@@ -120,7 +122,7 @@ NameBlock MergeOptions(NameBlock default, NameBlock config, Text prefix)
     },
     1==1,                                     
     {
-      MergeOptions(Eval(gra+" default::"+name),element,prefix+FullName(default)+"::")
+      MergeOptions(Eval(gra+" default::"+name),element,fullName+"::")
     })
   }));
   Eval(Name(config)+"=SetToNameBlock(c_set)")
@@ -141,7 +143,7 @@ NameBlock LoadConfig(Real void)
   },
   1==1,
   {
-    WriteLn("TRACE [LoadConfig] 2.2");
+  //WriteLn("TRACE [LoadConfig] 2.2");
     NameBlock Config = 
       MergeOptions(TolConfigManager::Default, { Include(_.path)[1] },
      "TolConfigManager::Config::");
