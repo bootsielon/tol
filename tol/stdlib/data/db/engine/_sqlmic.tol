@@ -42,10 +42,14 @@ Text SqlMicFormatReal(Real rea)
 {
   Real isUnk = IsUnknown(rea);
   Real isInf = IsInfinite(rea);
-  Real filRea = If(LT(-SqlMicDefaultPrecision, rea, SqlMicDefaultPrecision),
-   rea, Sign(rea)*SqlMicDefaultPrecision);
   If(Or(isUnk, isInf), "convert(float, null)", 
-   FormatReal(filRea,SqlMicFormatRealTol2Sql))
+  {  
+    Real filRea = If(LT(-SqlMicDefaultPrecision, rea, SqlMicDefaultPrecision),
+      rea, 
+      Sign(rea)*SqlMicDefaultPrecision
+    );
+    FormatReal(filRea,SqlMicFormatRealTol2Sql)
+  })
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription(
