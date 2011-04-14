@@ -835,7 +835,7 @@ BList* BGrammar::GetOperators() const
     if(!unb->Contens().Class() && unb->HasName() )
     {
     //Std(BText("\n")+Name()+"::GetOperators() Exploring NameBlock "+unb->FullName());
-      unb->Contens().RebuildFullNameDeep( unb->Name(), "" );
+      unb->Contens().RebuildFullNameDeep("", unb->Name());
       lst_opr = unb->Contens().SelectMembersDeep(lst_opr, oc);
     }
     lst_unb = lst_unb->Cdr();
