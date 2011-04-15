@@ -1498,6 +1498,7 @@ void BNameBlockToSet::CalcContens()
 {
   const BNameBlock& nb = ((BUserNameBlock*)(Arg(1)))->Contens();
   contens_ = nb.Set();
+  contens_.PutNameBlock(NULL);
 }
 
 //--------------------------------------------------------------------
