@@ -1065,6 +1065,10 @@ void BTxtGrammar::CalcContens()
   {
     contens_ = "Struct";
   }
+  else if(arg->Mode()==BCLASSMODE)
+  {
+    contens_ = "Class";
+  }
   else
   {
     BGrammar* gra = arg->Grammar();
