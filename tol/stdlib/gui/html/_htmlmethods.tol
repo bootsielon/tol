@@ -375,29 +375,6 @@ Real TransformacionBoxCox      = 5;
 
 
 //////////////////////////////////////////////////////////////////////////////
-   Text HtmlLinReg(Set series)
-
-// PURPOSE: Creates an HTML text width a linear regression report of series
-//
-//////////////////////////////////////////////////////////////////////////////
-{
-  Real n = Card(series); 
-  If
-  (
-    n<2,
-    {
-      WriteLn("Error: Son necesarias al menos dos series para calcular "+
-              "la regresión lineal.");
-      "Número de series = " + IntText(n)
-    },
-    {
-      HtmlLinearRegression(series, Periodicity(series[1]))
-    }
-  ) 
-};
-
-
-//////////////////////////////////////////////////////////////////////////////
   Text HtmlAutoReg(Set  series,
                    Real periodicidad,
                    Real numeroDePrevisiones,
@@ -590,9 +567,6 @@ Set CovarMet =
 
 Set ComponentsMet = 
   @SeriesMethodStruct("Componentes" , Copy(HtmlSeriesComponents), Empty);
-
-Set LinRegMet = 
-  @SeriesMethodStruct("Regresión lineal" , Copy(HtmlLinReg), Empty);
 
 
 //////////////////////////////////////////////////////////////////////////////

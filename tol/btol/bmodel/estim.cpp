@@ -899,7 +899,7 @@ void BSetProbit::CalcContens()
   contens_.RobElement(lst);
 }
 
-
+/*
 //--------------------------------------------------------------------
 DeclareContensClass(BPol, BPolTemporary, BPolAutoReg);
 DefExtOpr(1, BPolAutoReg, "AutoReg", 1, 4, "Serie Real Real Real",
@@ -925,7 +925,7 @@ void BPolAutoReg::CalcContens()
   contens_ = IdentifyAutoReg(zTable.Data().Data(),period,minOrd,maxOrd);
 }
 
-
+/*
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BSetAutoRegInt);
 DefExtOpr(1, BSetAutoRegInt, "AutoRegInt", 1, 2, "Serie Real",
@@ -951,7 +951,7 @@ void BSetAutoRegInt::CalcContens()
     NCons(BContensPol::New("", ar,	BText("AR(") +z->Identify()+")")))
   );
 }
-
+*/
 
 
 #if !defined(USE_DELAY_INIT)
