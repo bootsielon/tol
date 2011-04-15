@@ -818,17 +818,18 @@ Set TableColumns(Anything qry_OR_cto){
   // ------------
     enOtroCaso,
   {
-    WriteLn("<E>ERROR DBTableColumns: gramática de qry_OR_cto, '"+
+    WriteLn("<E>ERROR TableColumns: gramática de qry_OR_cto, '"+
             qry_OR_cto.gram +
             "' no contemplada</E>");
     Empty
   });
 
   // ---------------------------
-  Text identidad(Text algo){ 
+  Text toText(Anything algo){
   // ---------------------------
-    algo
+     ""<< algo
   };
+  // ---------------------------
 
   // ---------------------------
   Real posicion(Set cto, Text elto){
@@ -840,48 +841,21 @@ Set TableColumns(Anything qry_OR_cto){
 
     Real While(condicion,
     {
-      Real {cont := cont+1};
-      Text {elto_i := cto[cont]};
-      Real {condicion := And(elto_i!=elto, LT(cont, card))};
+      Real (cont := cont+1);
+      Text (elto_i := Copy(cto[cont]));
+      Real (condicion := And(elto_i!=elto, LT(cont, card)));
       1
     });
-    If(elto_i==elto, cont, 0)
+    If(elto_i==elto, Copy(cont), 0)
   };
+  // ---------------------------
 
   Real card = Card(ctoDatos);
-
-  Set  ctoGram = If(Not(card), 
-    SetOfText("", "", ""), 
-    If(NE(Card(ctoDatos[1]), 3), 
-      {WriteLn("<E>ERROR TableColumns: La consulta debe tener tres campos</E>");
-       SetOfText("", "", "")
-      }, 
-      SetOfText(Grammar(ctoDatos[1][1]), 
-                Grammar(ctoDatos[1][2]), 
-                Grammar(ctoDatos[1][3])))
-   );
-
-
-  Text gram_pre = ctoGram[1];
-  Text gram_ind = ctoGram[2];
-  Text gram_dat = ctoGram[3];
-
-  Code funcionText_pre = Case(gram_pre=="Real", FormatReal,
-                              gram_pre=="Date", FormatDate,
-                              enOtroCaso      , identidad);
-
-  Code funcionText_ind = Case(gram_ind=="Real", FormatReal,
-                              gram_ind=="Date", FormatDate,
-                              enOtroCaso      , identidad);
-
-  Code funcionText_dat = Case(gram_dat=="Real", FormatReal,
-                              gram_dat=="Date", FormatDate,
-                              enOtroCaso      , identidad);
 
   Set indices = {
     Set c01 = Extract(ctoDatos, 2);
     Set c02 = For(1, card, Text(Real i){
-       funcionText_ind(c01[i][1])
+       toText(c01[i][1])
     });
     Set c03 = Unique(c02);
     Sort(c03, Real(Text t1, Text t2){ Compare(t1, t2) })
@@ -890,26 +864,33 @@ Set TableColumns(Anything qry_OR_cto){
   Set prefijos = {
     Set c01 = Extract(ctoDatos, 1);
     Set c02 = For(1, card, Text(Real i){
-       funcionText_pre(c01[i][1])
+       toText(c01[i][1])
     });
     Set c03 = Unique(c02);
     Sort(c03, Real(Text t1, Text t2){ Compare(t1, t2) })
   };
 
   Set prefijos_indices = For(1, Card(indices), Set(Real i){
-    Set cto = For(1, Card(prefijos), Text(Real j){ "" });
+    Set cto = For(1, Card(prefijos), Text(Real j){ Copy("") });
     cto
   });
 
   Set EvalSet(ctoDatos, Real(Set reg){
-    Text reg_pre = funcionText_pre(reg[1]);
-    Text reg_ind = funcionText_ind(reg[2]);
-    Text reg_dat = funcionText_dat(reg[3]);
+    Text reg_pre = toText(reg[1]);
+    Text reg_ind = toText(reg[2]);
+    Text reg_dat = {
+      Set subCto = ExtractByIndex(reg, Range(3, Card(reg), 1));
+      If(Eq(Card(subCto), 1),
+        toText(subCto[1]),
+        toText(subCto)
+      )
+    };
 
     Real pos_i = posicion(indices, reg_ind);
     Real pos_j = posicion(prefijos, reg_pre);
     Text elto  = reg_dat;
-    Text {prefijos_indices[pos_i][pos_j] := Copy(elto)};
+    Text (prefijos_indices[pos_i][pos_j] := Copy(elto));
+
     1
   });
 
@@ -921,16 +902,16 @@ Set TableColumns(Anything qry_OR_cto){
 };
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("
-Dada una consulta que devuelve tres campos y sólo tres, crea un conjunto-tabla
-donde las columnas serán el primer campo (prefijo), y las filas serán el segundo
-(índice).
-
-La primera fila del Set resultante serán los nombres de los prefijos.
-La primera columna del Set resultante serán los nombres de los índices.
-¡¡¡ TODO lo que se devuelve dentro del conjunto es de tipo Text !!!, por lo tanto, el 
-orden que se sigue tanto en los prefijos como en los índices es el lexicográfico;
-las máscaras utilizadas en FormatReal() y en FormatDate son las que usa Tol por 
-defecto.
+Dada una consulta que devuelve al menos tres campos, crea un conjunto-tabla
+donde las columnas serán el primer campo (prefijo), y las filas serán el 
+segundo (índice).
+La primera fila del Set resultante tendrá los nombres de los prefijos.
+La primera columna del Set resultante tendrá los nombres de los índices.
+¡¡¡ TODO lo que se devuelve dentro del conjunto es de tipo Text !!!, por lo 
+tanto, el orden que se sigue tanto en los prefijos como en los índices es el 
+lexicográfico.
+Las máscaras utilizadas en FormatReal() y en FormatDate() son las que usa Tol 
+por defecto.
 ", TableColumns);
 //////////////////////////////////////////////////////////////////////////////
 
