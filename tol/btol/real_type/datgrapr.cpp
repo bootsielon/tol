@@ -269,6 +269,25 @@ BTraceInit("datgrapr.cpp");
 
 
 //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatNormalLogDens);
+  DefIntOpr(1, BDatNormalLogDens, "LogDensNormal", 1, 3,
+  "(Real x [, Real nu=0, Real sigma=1])",
+  I2("Logarithm of density of probability distribution Normal(nu,sigma)",
+     "Logaritmo de la densidad de probabilidad normal N(nu,sigma) donde "
+     "nu es la media de la distribución y sigma su desviación.\n"
+     "Los parámetros entre corchetes pueden omitirse, en cuyo caso se toman "
+     "los valores por defecto."),
+  BOperClassify::Probability_);
+  void BDatNormalLogDens::CalcContens()
+//--------------------------------------------------------------------
+{
+  BDat x     = Dat(Arg(1));
+  BDat nu    = 0; if(Arg(2)) { nu    = Dat(Arg(2)); }
+  BDat sigma = 1; if(Arg(3)) { sigma = Dat(Arg(3)); }
+  contens_ = -0.5*Log(2*BDat::Pi())-Log(sigma)-0.5*(((x-nu)/sigma)^2);
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatNormalDens);
   DefIntOpr(1, BDatNormalDens, "DensNormal", 1, 3,
   "(Real x [, Real nu=0, Real sigma=1])",
