@@ -27,6 +27,7 @@
 #endif
 
 #include <tol/tol_bclass.h>
+#include <tol/tol_bstruct.h>
 #include <tol/tol_btoken.h>
 #include <tol/tol_bscanner.h>
 #include <tol/tol_bparser.h>
@@ -37,6 +38,7 @@
 #include <tol/tol_bcodgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdatgra.h>
+#include <tol/tol_bsetgra.h>
 
 
 //--------------------------------------------------------------------
@@ -46,6 +48,7 @@
 BTraceInit("class.cpp");
 const BClass* BClass::currentClassBuildingInstance_ = NULL;
 const BClass* BClass::currentStatic_ = NULL;
+static BStruct* strClassMemberInfo_  = NULL;
 
 //--------------------------------------------------------------------
 BMember::BMember()
@@ -1833,3 +1836,87 @@ BSyntaxObject* BClass::FindStatic(const BText& methodName, bool fullAccess) cons
   return(result);
 }
 
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BClassMembers);
+DefExtOpr(1, BClassMembers, "ClassMembers", 1, 2, "Text Real",
+ "(Text className [, Real static=?] )",
+ I2("Returns a set with a register of information about each member "
+    " of a class. If static==0 then only registers about non static "
+    "elements will be returned. If static==1 only registers about "
+    "static elements will be returned. In other case all registers "
+    "will be returned.",
+    "Devuelve un con conjunto con un registro de información acerca "
+    "de cada uno de los miembros de una clase. Si static==0 sólo se "
+    "devolverán los registros acerca de elementos no estáticos. Si "
+    "static==1 sólo se devolverán los registros acerca de elementos "
+    "estáticos. En otro caso se devolverán todos los registros."),
+ BOperClassify::System_);
+//--------------------------------------------------------------------
+void BClassMembers::CalcContens()
+//--------------------------------------------------------------------
+{
+  if(!strClassMemberInfo_)
+  {
+    strClassMemberInfo_ = FindStruct("@ClassMemberInfo");
+  }
+  assert(strClassMemberInfo_);
+  const BText& clsName = Text(Arg(1));
+  BDat static_ = 2;
+  if(Arg(2)) { static_ = Dat(Arg(2)); }
+  int i;
+  const BClass* cls = FindClass(clsName,true);
+  if(!cls) { return; }
+  contens_.PrepareStore(cls->member_.Size());
+  for(i=0; i<cls->member_.Size(); i++)
+  {
+    BMember* mbr = NULL;
+    if(cls->member_[i]) 
+    { 
+      BMbrNum* mn = cls->member_[i];
+      if(mn) { mbr = mn->member_; }
+    }
+    if(!mbr) { continue; }
+    if(!static_.IsUnknown())
+    {
+      if(static_==0 &&  mbr->isStatic_) { continue; }
+      if(static_==1 && !mbr->isStatic_) { continue; }
+    }
+    const BText& name = mbr->name_;
+    if(name.BeginWith("_.autodoc.member.")) { continue; }
+    BSet reg;
+    reg.PrepareStore(6);
+
+    BText declare = BText(" ")+Compact(mbr->declaration_)+" ";
+    declare = Replace(declare,BText(" ")+name+" "," ");
+    declare.Compact();
+
+    BText access = "Public";
+    if(name[0]=='_')
+    {
+      if(name[1]=='.') { access = "Read only"; }
+      else             { access = "Private"; }
+    }
+
+    BText definedAtClass = "";
+    if(mbr && mbr->parent_) 
+    { 
+      definedAtClass = mbr->parent_->getFullName();
+    }
+
+    BText desc ="";
+    BSyntaxObject* adoc = cls->FindStaticMember(BText("_.autodoc.member.")+name, false);
+    if(adoc) { desc = Text(adoc); }
+
+    reg.AddElement(new BContensDat ("",mbr->isStatic_,""));
+    reg.AddElement(new BContensDat ("",mbr->isMethod_,""));
+    reg.AddElement(new BContensText("",declare,""));
+    reg.AddElement(new BContensText("",name,""));
+    reg.AddElement(new BContensText("",access,""));
+    reg.AddElement(new BContensText("",definedAtClass,""));
+    reg.AddElement(new BContensText("",desc,""));
+
+    reg.PutStruct(strClassMemberInfo_);
+    contens_.AddElement(new BSetTuple("", reg));
+  }
+}

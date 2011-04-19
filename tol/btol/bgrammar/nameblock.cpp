@@ -60,6 +60,9 @@ const BNameBlock*         BNameBlock::current_  = NULL;
 static BFixedSizeMemoryBase* BFSMEM_Hndlr = 
  BFSMSingleton<sizeof(BNameBlock)>::Handler();
 
+static BStruct* strNameBlockMemberInfo_  = NULL;
+static BStruct* strClassMemberInfo_  = NULL;
+
 //--------------------------------------------------------------------
 //BNameBlock members
 //--------------------------------------------------------------------
@@ -84,6 +87,23 @@ static bool BNameBlock_IsInitialized()
   SetEmptyKey  (usingSymbolsByClass_, BObjClassify::null_);
   SetEmptyKey  (usingSymbols_,        NULL);
   SetDeletedKey(usingSymbols_,        name_del_key());
+
+  strNameBlockMemberInfo_ = NewStruct("@NameBlockMemberInfo", 
+  "Text:Type,"
+  "Text:Name,"
+  "Text:Access,"
+  "Text:DefinedAtClass,"
+  "Text:Description");
+
+ strClassMemberInfo_  = NewStruct("@ClassMemberInfo", 
+  "Real:Static,"
+  "Real:Method,"
+  "Text:Declaration,"
+  "Text:Name,"
+  "Text:Access,"
+  "Text:DefinedAtClass,"
+  "Text:Description");
+
   return(true);
 }
 
@@ -1485,6 +1505,7 @@ void BSetToNameBlock::CalcContens()
     contens_.RebuildFullNameDeep(currentFullName,"");
   }
 }
+
 //--------------------------------------------------------------------
 DeclareContensClass(BSet, BSetTemporary, BNameBlockToSet);
 DefExtOpr(1, BNameBlockToSet, "NameBlockToSet", 1, 1, "NameBlock",
@@ -1499,6 +1520,62 @@ void BNameBlockToSet::CalcContens()
   const BNameBlock& nb = ((BUserNameBlock*)(Arg(1)))->Contens();
   contens_ = nb.Set();
   contens_.PutNameBlock(NULL);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BNameBlockMembers);
+DefExtOpr(1, BNameBlockMembers, "Members", 1, 1, "NameBlock",
+ "(NameBlock nameBlock)",
+ I2("Returns a set with a register of information about each member "
+    " of a NameBlock",
+    "Devuelve un con conjunto con un registro de información acerca "
+    "de cada uno de los miembros de un NameBlock"),
+ BOperClassify::System_);
+//--------------------------------------------------------------------
+void BNameBlockMembers::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BNameBlock& nb = ((BUserNameBlock*)(Arg(1)))->Contens();
+  const BSet& members = nb.Set();
+  int i;
+  contens_.PrepareStore(members.Card());
+  const BClass* cls = nb.Class();
+  for(i=1; i<=members.Card(); i++)
+  {
+    BSyntaxObject* mbr = members[i];
+    if(!mbr) { continue; }
+    const BText& name = mbr->Name();
+    if(name.BeginWith("_.autodoc.member.")) { continue; }
+    BText grammar;
+    int mode = mbr->Mode();
+         if(mode==BSTRUCTMODE) { grammar="Struct"; }
+    else if(mode==BCLASSMODE)  { grammar="Class"; }
+    else                       { grammar=mbr->Grammar()->Name(); }
+    BSet reg;
+    reg.PrepareStore(5);
+    BText access = "Public";
+    if(name[0]=='_')
+    {
+      if(name[1]=='.') { access = "Read only"; }
+      else             { access = "Private"; }
+    }
+    BText definedAtClass = "";
+    if(cls)
+    {
+      BMember* clsMbr = cls->FindMember(name);
+      if(clsMbr && clsMbr->parent_) 
+      { 
+        definedAtClass = clsMbr->parent_->getFullName();
+      }
+    }
+    reg.AddElement(new BContensText("",grammar,""));
+    reg.AddElement(new BContensText("",name,""));
+    reg.AddElement(new BContensText("",access,""));
+    reg.AddElement(new BContensText("",definedAtClass,""));
+    reg.AddElement(new BContensText("",mbr->Description(),""));
+    reg.PutStruct(strNameBlockMemberInfo_);
+    contens_.AddElement(new BSetTuple("", reg));
+  }
 }
 
 //--------------------------------------------------------------------
