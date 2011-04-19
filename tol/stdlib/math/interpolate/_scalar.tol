@@ -15,15 +15,9 @@ NameBlock buildHandler(Matrix x, Matrix y, Text method_, Real order)
     Real eval(Real r) { _interpolation(0,x_) };
     Matrix evalMat(Matrix X) 
     { 
-      ForMat(Rows(X), Columns(X), Real(Real i, Real j) 
-      { 
-        eval(MatDat(X,i,j)) 
-      })
+      EvalMat(X,eval)
     }
-  ]]},
-  {[[
-    //AlgLib interpolation
-    Code eval = AlgLib.Interp.Scalar(method,x,y);
+/*
     Matrix evalMat(Matrix X) 
     { 
       ForMat(Rows(X), Columns(X), Real(Real i, Real j) 
@@ -31,6 +25,24 @@ NameBlock buildHandler(Matrix x, Matrix y, Text method_, Real order)
         eval(MatDat(X,i,j)) 
       })
     }
+*/
+  ]]},
+  {[[
+    //AlgLib interpolation
+    Code eval = AlgLib.Interp.Scalar(method,x,y);
+    Matrix evalMat(Matrix X) 
+    { 
+      EvalMat(X,eval)
+    }
+/*
+    Matrix evalMat(Matrix X) 
+    { 
+      ForMat(Rows(X), Columns(X), Real(Real i, Real j) 
+      { 
+        eval(MatDat(X,i,j)) 
+      })
+    }
+*/
   ]]})
 };
 //////////////////////////////////////////////////////////////////////////////
