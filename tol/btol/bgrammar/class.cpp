@@ -1846,7 +1846,7 @@ DefExtOpr(1, BClassMembers, "ClassMembers", 1, 2, "Text Real",
     "elements will be returned. If static==1 only registers about "
     "static elements will be returned. In other case all registers "
     "will be returned. The information is returned using structure\n",
-    "Devuelve un con conjunto con un registro de información acerca "
+    "Devuelve un conjunto con un registro de información acerca "
     "de cada uno de los miembros de una clase. Si static==0 sólo se "
     "devolverán los registros acerca de elementos no estáticos. Si "
     "static==1 sólo se devolverán los registros acerca de elementos "
