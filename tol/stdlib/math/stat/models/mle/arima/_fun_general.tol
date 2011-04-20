@@ -1036,6 +1036,7 @@ ARIMAEstimModel);
 Set GetArimaFromLabel(Text label)
 //////////////////////////////////////////////////////////////////////////////
 {
+  If(label=="PDIFARMA", Copy(Empty), 
   Real lon    = TextLength(label);
 
   Real posP   = TextFind(label, "P");
@@ -1123,7 +1124,7 @@ Set GetArimaFromLabel(Text label)
     })
   });
   arima
-};
+})};
 //////////////////////////////////////////////////////////////////////////////
 PutDescription("Retorna un conjunto tabular con estructura @ARIMAStruct 
 resultado de evaluar una mascara de texto con el formato
