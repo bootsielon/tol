@@ -1527,9 +1527,16 @@ DeclareContensClass(BSet, BSetTemporary, BNameBlockMembers);
 DefExtOpr(1, BNameBlockMembers, "Members", 1, 1, "NameBlock",
  "(NameBlock nameBlock)",
  I2("Returns a set with a register of information about each member "
-    " of a NameBlock",
+    " of a NameBlock by mean of structure",
     "Devuelve un con conjunto con un registro de información acerca "
-    "de cada uno de los miembros de un NameBlock"),
+    "de cada uno de los miembros de un NameBlock mediante la "
+    "estructura")+"\n"
+    "  @NameBlockMemberInfo {\n" 
+    "    Text Type,\n"
+    "    Text Name,\n"
+    "    Text Access,\n"
+    "    Text DefinedAtClass,\n"
+    "    Text Description\n}\n",
  BOperClassify::System_);
 //--------------------------------------------------------------------
 void BNameBlockMembers::CalcContens()

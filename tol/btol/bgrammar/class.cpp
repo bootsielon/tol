@@ -1845,12 +1845,21 @@ DefExtOpr(1, BClassMembers, "ClassMembers", 1, 2, "Text Real",
     " of a class. If static==0 then only registers about non static "
     "elements will be returned. If static==1 only registers about "
     "static elements will be returned. In other case all registers "
-    "will be returned.",
+    "will be returned. The information is returned using structure\n",
     "Devuelve un con conjunto con un registro de información acerca "
     "de cada uno de los miembros de una clase. Si static==0 sólo se "
     "devolverán los registros acerca de elementos no estáticos. Si "
     "static==1 sólo se devolverán los registros acerca de elementos "
-    "estáticos. En otro caso se devolverán todos los registros."),
+    "estáticos. En otro caso se devolverán todos los registros. La "
+    "información se devuelve usando la estructura:\n")+
+    "  @ClassMemberInfo { \n"
+    "    Real Static,\n"
+    "    Real Method,\n"
+    "    Text Declaration,\n"
+    "    Text Name,\n"
+    "    Text Access,\n"
+    "    Text DefinedAtClass,\n"
+    "    Text Description }\n",
  BOperClassify::System_);
 //--------------------------------------------------------------------
 void BClassMembers::CalcContens()
