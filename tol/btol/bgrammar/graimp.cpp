@@ -905,11 +905,7 @@ BSyntaxObject* BGrammar::EvaluateTree(
   if(result && (result->Mode()==BCLASSMODE))
   {
     BClass* cls = (BClass*) result;
-    if(!cls->isDefined_) 
-    { 
-      DESTROY(result);
-      result = NULL; 
-    }
+    if(!cls->isDefined_) { result = NULL; }
   }
   return(result);
 }
