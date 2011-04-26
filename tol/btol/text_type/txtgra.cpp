@@ -973,22 +973,53 @@ void BTxtIdentify::CalcContens()
 { 
     contens_=Arg(1)->Identify(); 
 }
-
-
+/*
 //--------------------------------------------------------------------
+DeclareContensClass(BText, BTxtTemporary, BTxtDescription);
+DefExtOpr(1, BTxtDescription, "Description",	 1, 2, "Anything Real",
+	  "(Anything var [, Real userType=False])",
+	  I2("Returns the description of a variable. "
+       "If first parameter <var> is a text and optional parameter "
+       "<userType> is true then searches the Class or Struct which "
+       "name is the contens of <var> and returns its description.",
+	     "Devuelve la descripción de una variable. Si el argumento "
+       "<var> es un texto y el arguemnto opcional <userType> es "
+       "cierto, entonces busca el tipo de usuario, Struct o Class, "
+       "cuyo nombre es el contenido de <var>"),
+	  BOperClassify::General_);
+*/
 DeclareContensClass(BText, BTxtTemporary, BTxtDescription);
 DefExtOpr(1, BTxtDescription, "Description",	 1, 1, "Anything",
 	  "(Anything var)",
-	  I2("Returns the description of a variable",
-	     "Devuelve la descripción de una variable"),
+	  I2("Returns the description of a variable. "
+       "If first parameter <var> is a constant string true then "
+       "searches the Class or Struct which "
+       "name is the contens of <var> and returns its description.",
+	     "Devuelve la descripción de una variable. Si el argumento "
+       "<var> es una cadena constante, entonces busca el tipo de "
+       "usuario, Struct o Class, cuyo nombre es el contenido de "
+       "<var>"),
 	  BOperClassify::General_);
-
 //--------------------------------------------------------------------
 void BTxtDescription::CalcContens()
 //--------------------------------------------------------------------
 {
   BSyntaxObject* arg1 = Arg(1);
   contens_=arg1->Description();
+
+  if(!contens_.HasName() && 
+      (arg1->Grammar()==GraText()) && 
+      (!arg1->HasName()))
+  {
+    BText& txt = Text(arg1);
+    BClass* cls = FindClass(txt,-1);
+    if(cls) { contens_ = cls->Description(); }
+    else
+    {
+      BStruct* str = FindStruct(txt);
+      if(str) { contens_ = str->Description(); }
+    }  
+  }
   if(!contens_.HasName() && 
       (arg1->Grammar()==GraCode()) && 
       (arg1->Mode()==BOBJECTMODE))
