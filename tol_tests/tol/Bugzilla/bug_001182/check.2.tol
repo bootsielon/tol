@@ -1,0 +1,12 @@
+NameBlock aux = [[
+Class @Ejemplo;
+
+@Ejemplo Funcion(Real valor) {
+  @Ejemplo ejemplo = [[ Real _.valor = valor ]]
+};
+
+Class @Ejemplo {
+  Real _.valor
+}
+]];
+
