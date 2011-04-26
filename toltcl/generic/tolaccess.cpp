@@ -1542,7 +1542,7 @@ int Tol_GetMatrixContent(Tcl_Interp * interp,
   Tcl_Obj * items[4];
   Tcl_Obj ** subitems;
   int r, Rows, c, Cols;
-  BDat & dat = BDat::Unknown();
+  // BDat & dat = BDat::Unknown();
   
   //BMatrix<BDat> & mat = (BMatrix<BDat>&)(((BUserMat*)tol_obj)->Contens());
   
@@ -1557,7 +1557,7 @@ int Tol_GetMatrixContent(Tcl_Interp * interp,
   subitems = (Tcl_Obj**)Tcl_Alloc( sizeof(Tcl_Obj*)*Rows*Cols );
   for ( r = 0; r < Rows; ++r )
     for ( c = 0; c < Cols; ++c ) {
-      dat = theMat(r,c);
+      BDat dat = theMat(r,c);
       if (dat.IsKnown())
         subitems[r*Cols+c] = Tcl_NewDoubleObj(dat.Value());
       else
