@@ -2155,7 +2155,26 @@ bool BSpecialFunction::Initialize()
   I2("(Text newName, Anything object)",
      "(Text nuevoNombre, Anything objeto)"),
   I2("Puts a new name to an object",
-     "Pone un nuevo nombre a un objeto."),
+     "Pone un nuevo nombre a un objeto."
+     "El uso de PutName no debe interaccionar nunca con el reconocedor sintáctico. "
+     "No se debe cambiar el nombre de variables usadas en el lenguaje, ni locales "
+     "ni globales ni miembros. Los efectos secundarios de PutName son inevitables "
+     "si se hace un mal uso de esta funcionalidad.\n"
+     "Digamos que sólo debe cambiar el nombre de elementos de conjuntos no accesibles "
+     "desde el lenguaje y por alguno de estos motivos:\n"
+     " * A efectos decorativos, para que salgan los títulos en gráficas, tablas, etc.\n"
+     " * Para poder reconocer los elementos de conjuntos sin tener que usar estructuras.\n"
+     " * Para indexar por nombre y poder hacer luego búsquedas rápidas por nombre.\n"
+     " * Ocasionalmente es posible querer cambiar el nombre de una variable local que "
+     "ya no va a ser usada en el ámbito de creación pero que es la salida de un EvalSet "
+     "o un For y va a formar parte de un Set. Es lo mismo que cambiar el nombre después "
+     "y puede ser más rápido y cómodo.\n"
+     "Ejemplo de uso: \n"
+     "Set s = [[2,\"a\",y2011]];\n"
+     "Real PutName(\"s1\",s[1]);\n"
+     "Text PutName(\"s2\",s[2]);\n"
+     "Date PutName(\"s3\",s[3]);\n"
+     "\n"),
   EvPutName);
 
   AddInstance("PutDescription",
