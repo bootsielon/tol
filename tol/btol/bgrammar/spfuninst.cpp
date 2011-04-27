@@ -985,11 +985,19 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
 //--------------------------------------------------------------------
 {
   static BText _name_ = "PutDescription";
+  static BText third_arg_error =
+    I2("Optional third argument of PutDescription must be the name of a member "
+       "of the class specified in second one",
+       "El tercer argumento opcional de PutDescription debe ser el nombre de "
+       "un miembro de la clase especificada en el segundo argumento");
+
 //if(CheckNonDeclarativeAction(_name_)) { return(NULL); }
   BInt nb = BSpecialFunction::NumBranches(tre);
-  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 2))
+  if(BSpecialFunction::TestNumArg(_name_, 2, nb, 3))
   {
     BSyntaxObject* desObj = GraText    ()->EvaluateTree(Branch(tre,1));
+    if(!desObj) { return(NULL); }
+    BText desc = Text(desObj);
     BGrammar::PutLast(gra);
     BText tokenName = BParser::treToken(Branch(tre,2))->Name();
     BSyntaxObject* obj = NULL;
@@ -997,19 +1005,51 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
     {
       tokenName = tokenName.SubString(1,tokenName.Length());
       obj = FindStruct(tokenName);
+      if(obj && nb==3)
+      {  
+        Error(third_arg_error);
+      }
       if(!obj)
       {
         obj = FindClass(tokenName,-1);
+        if(obj && nb==3)
+        {
+          BText memberName = BParser::treToken(Branch(tre,3))->Name();
+          if(memberName[0]=='\"')
+          {
+            memberName = memberName.SubString(1,memberName.Length());
+            BClass* cls = (BClass*)obj;
+            BMember* mbr = cls->FindMember(memberName);
+            if(!mbr)
+            {  
+              Error(third_arg_error);
+            }
+            else 
+            { 
+              BSyntaxObject* adoc = cls->FindStaticMember(BText("_.autodoc.member.")+memberName, false);
+              if(adoc) { Text(adoc)=desc; }
+              if(mbr->method_) { obj=mbr->method_; } 
+              else if(mbr->static_) { obj=mbr->static_; } 
+            }
+          }
+          else
+          {  
+            Error(third_arg_error);
+          }
+        } 
       }
+    }
+    else if (nb==3)
+    {
+      Error(third_arg_error);
     }
     if(!obj)
     {
       obj = GraAnything()->LeftEvaluateTree(Branch(tre,2));
     };
     BGrammar::PutLast(gra);
-    if(desObj && obj)
+    if(obj)
     {
-      BText desc = Text(desObj);
       obj->PutDescription(desc);
       if(obj->Grammar()==GraCode())
       {
