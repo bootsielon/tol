@@ -950,8 +950,8 @@ static BSyntaxObject* EvPutName(BGrammar* gra, const List* tre, BBool left)
 	{
 	    BText newName = Text(namObj);
 	    BText oldName = obj->Name();
-
-	    if (gra->FindVariable(newName)!=NIL) {
+      BSyntaxObject* found = gra->FindVariable(newName);
+	    if (found && found->Level()==BGrammar::Level()) {
 		Error(I2("Cannot make ","No se puede hacer ") + 
 		      "PutName : "+newName+
 		      I2(" already exists", " existe todavía"));
