@@ -2225,7 +2225,11 @@ bool BSpecialFunction::Initialize()
      "passing its name between quotes.",
      "Pone una nueva descripción a un objeto. Es posible modificar "
      "la descripción de un Struct o un Class pasándo el nombre de "
-     "la misma entre comillas dobles"),
+     "la misma entre comillas dobles")+
+  I2("Optional third argument of PutDescription must be the name of a member "
+     "of the class specified in second one",
+     "El tercer argumento opcional de PutDescription debe ser el nombre de "
+     "un miembro de la clase especificada en el segundo argumento"),
   EvPutDescription);
 
   AddInstance("PutValue",
