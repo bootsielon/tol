@@ -553,7 +553,7 @@ BDat& BDat::operator ^=(const BDat& dat)
 //--------------------------------------------------------------------
 {
   double v = dat.Value();
-  if(IsUnknown()||dat.IsUnknown())    { return(*this=unknown_); }
+  if(IsUnknown()||dat.IsUnknown())    { return(*this=nan_); }
   if((value_==0)&&(v==0))   { return(*this=1); }
   if((value_==0)&&(v<0) )   { return(*this=PosInf()); }
   if((value_==0)&&(v>0) )   { return(*this=0); }
