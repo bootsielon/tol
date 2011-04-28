@@ -284,7 +284,7 @@ BDat BTsrCalendary::GetDat(const BDate& dte)
       BDate prev = next - Dating();
       if(prev.HasValue())
       {
-        BHash hash; center_->GetHashBetween(hash, dte, next);
+        BHash hash; center_->GetHashBetween(hash, prev, next);
         dat = hash.Size();
         if(hash[hash.Size()-1]==next.Hash()) { dat -= 1; }
       }

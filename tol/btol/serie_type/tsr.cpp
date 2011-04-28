@@ -257,9 +257,8 @@ BInt BTimeSerie::GetIndex(const BDate& dte) const
   ser->ReadData();
   if(!Dating()) { return(-1); }
   BInt index = -1;
-
-  if(FirstDate().HasValue()) index = Dating()->Difference(FirstDate(),dte);
-
+  BDate d = Dating()->Prev(Dating()->Next(dte));
+  if(FirstDate().HasValue()) index = Dating()->Difference(FirstDate(),d);
   return(index);
 }
 
