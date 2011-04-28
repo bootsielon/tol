@@ -820,6 +820,29 @@ const BText& BNameBlock::LocalName() const
       }
     }
   }
+  for(iter=private_.begin(); iter!=private_.end(); iter++)
+  {
+    obj = iter->second;
+    const BText& dsc = obj->Description();
+    if(!dsc.HasName())
+    {
+      BText autodocName = BText("_.autodoc.member.")+obj->Name();
+      BSyntaxObject* autodoc = NULL;
+      if(class_)
+      {
+        autodoc = class_->FindStaticMember(autodocName,-1);
+      }
+      else
+      {
+        autodoc = Member(autodocName);
+      }
+      if(autodoc && autodoc->Grammar()==GraText())
+      {
+        BText& desc = Text(autodoc);
+        obj->PutDescription(desc);
+      }
+    }
+  }
   return(true);
 }
 
