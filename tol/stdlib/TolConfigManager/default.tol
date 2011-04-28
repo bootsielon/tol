@@ -62,7 +62,11 @@ NameBlock Default =
     Text _.autodoc.member.PdfViewer = "PDF viewer";
     Text PdfViewer = "";
     Text _.autodoc.member.Helper = "Helper program";
-    Text Helper = ""
+    Text Helper = "";
+    Text _.autodoc.member.UrlDownloader = "Method used by GetUrlContents in "
+    "order to download contents from remote URL's. Valid methods are tcl:uri "
+    "and sys:wget";
+    Text UrlDownloader = "tcl:uri"
   ]];
   Text _.autodoc.member.Upgrading = "Automated check and upgrade of "
   "versions of TOL and packages";

@@ -1168,10 +1168,10 @@ Quita los acentos de la palabra
 };
 
 //////////////////////////////////////////////////////////////////////////////
-Text GetUrlContents(Text url)
+Text GetUrlContents.tcl.uri(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  WriteLn("Downloading from \""+url+"\" ...");
+  WriteLn("[GetUrlContents.tcl.uri]Downloading from \""+url+"\" ...");
   Text tcl_helper = "
 package require uri
 
@@ -1200,6 +1200,44 @@ proc ::get_url_contens { url } {
       WriteLn(result0["result"], "W");
       Text ""
     })
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents.tcl.curl(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("[GetUrlContents.tcl.cur] Sorry, not implemented method.","E");
+  ""
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents.sys.wget(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  WriteLn("[GetUrlContents.sys.wget]Downloading from \""+url+"\" ...");
+  Text tmp = TmpDir+"wget."<<IntRand(111111111,999999999)+".tmp";
+  Text order = "wget -O"+tmp+" "+url;
+  Real OSCmdWait(order);
+  Text txt = ReadFile(tmp);
+  Real OSFilRemove(tmp);
+  txt
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text GetUrlContents(Text url)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text method = TolConfigManager::Config::ExternalTools::UrlDownloader;
+  Case(
+  method=="tcl:uri",  GetUrlContents.tcl.uri (url),
+//method=="tcl:curl", GetUrlContents.tcl.curl(url),
+  method=="sys:wget", GetUrlContents.sys.wget(url),
+  1==1, {
+    WriteLn("[GetUrlContents] Invalid option value at "
+    "TolConfigManager::Config::ExternalTools::UrlDownloader=\""+method+"\"\n"+
+    Description(TolConfigManager::Config::ExternalTools::UrlDownloader),"E");
+    ""
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
