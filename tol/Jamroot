@@ -36,7 +36,7 @@ if $(os) = UNIX
   os-reqs = <define>UNIX ;
   build-date = [ trim-nl [ SHELL "date +%F" ] ] ;
   build-time = [ trim-nl [ SHELL "date '+%T %z %Z'" ] ] ;
-  svn-info = [ SHELL "svn info" ] ;
+  svn-info = [ SHELL "_svn info" ] ;
   svn0 = [ string.words $(svn-info) : "
 " ] ;
   build-svn-info = [ string.join $(svn0) : "\\n" ] ;
@@ -48,7 +48,7 @@ if $(os) = UNIX
 # configure version 1.1.6 ;
 #
 
-constant TOL_VERSION : 2.0.1 ;
+constant TOL_VERSION : 2.0.2 ;
 
 # Configure a feature hash_map which can take the following values:
 #   msvc   ==>  __USE_HASH_MAP__=__HASH_MAP_NATIVE__
