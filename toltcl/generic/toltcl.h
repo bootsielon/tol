@@ -33,11 +33,11 @@
 
 #define TOLTCL_MAJOR_VERSION 	2
 #define TOLTCL_MINOR_VERSION 	0
-#define TOLTCL_RELEASE_SERIAL	1
+#define TOLTCL_RELEASE_SERIAL	2
 #ifdef PACKAGE_VERSION
  #define TOLTCL_VERSION PACKAGE_VERSION
 #else
- #define TOLTCL_VERSION          "2.0.1"
+ #define TOLTCL_VERSION          "2.0.2"
 #endif
 
 #ifdef BUILD_TOLTCL
