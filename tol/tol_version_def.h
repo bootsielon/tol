@@ -23,8 +23,8 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #define VERSION_MAJOR   2
 #define VERSION_MINOR   0
-#define VERSION_RELEASE 1
-#define VERSION_BUILD   "0.65.alpha"
+#define VERSION_RELEASE 2
+#define VERSION_BUILD   "0.1.alpha"
 
 #if defined(_MSC_VER)
 #include "tol_build_date.h"
