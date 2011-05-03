@@ -381,7 +381,7 @@ proc ::tolsh::run { cmdline } {
   # Load Toltcl (+tol) and initLibrary if required
   #
   if {$options(runmode) != "server" && $options(runmode) != "shared"} {
-    package require -exact Toltcl 2.0.1
+    package require -exact Toltcl 2.0.2
     tol::initkernel $options(lang) $options(vmode)
 
     if {$options(initlib)} {
