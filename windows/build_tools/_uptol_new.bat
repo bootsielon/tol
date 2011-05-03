@@ -405,9 +405,9 @@ If "%_dodist%"=="1" (
     cd NSIS
     ..\ActiveTOL\bin\tol -v create_tag_build.tol
     call create_tag_build.bat
-    Echo copiando last_development_tol_release_win.txt hacia www.tol-project.org
-    ..\ActiveTOL\bin\tol -v -c"Text WriteFile(\"last_development_tol_release_win.txt\",Version);"
-    pscp last_development_tol_release_win.txt tdt@cvs.tol-project.org:/home/bayes/pub/bin/win/.
+    Echo copiando last_official_tol_release_win.txt hacia www.tol-project.org
+    ..\ActiveTOL\bin\tol -v -c"Text WriteFile(\"last_official_tol_release_win.txt\",Version);"
+    pscp last_official_tol_release_win.txt tdt@cvs.tol-project.org:/home/bayes/pub/bin/win/.
     Echo copiando Tolbase hacia http://www.tol-project.org
     pscp Tolbase*.exe tdt@cvs.tol-project.org:/home/bayes/pub/bin/win/.
     If "%_branchid%"=="trunk" (

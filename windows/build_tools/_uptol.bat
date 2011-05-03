@@ -408,9 +408,9 @@ If "%_dodist%"=="1" (
     cd ..\NSIS
     REM ..\ActiveTOL\bin\tol -v create_tag_build.tol
     REM call create_tag_build.bat
-    REM Echo copiando last_development_tol_release_win.txt hacia www.tol-project.org
-    REM ..\ActiveTOL\bin\tol -v -c"Text WriteFile(\"last_development_tol_release_win.txt\",Version);"
-    REM pscp last_development_tol_release_win.txt toldevel@tolp.localbayes.es:.
+    REM Echo copiando last_official_tol_release_win.txt hacia www.tol-project.org
+    REM ..\ActiveTOL\bin\tol -v -c"Text WriteFile(\"last_official_tol_release_win.txt\",Version);"
+    REM pscp last_official_tol_release_win.txt toldevel@tolp.localbayes.es:.
     Echo copiando Tolbase hacia www.tol-project.org
     pscp Tolbase*.exe toldevel@tolp.localbayes.es:/var/www/packages/win32/.
     If "%_branchid%"=="REMtrunkREM" (

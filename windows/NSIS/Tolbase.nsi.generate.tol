@@ -3,7 +3,7 @@
 // Genera el archivo de creación del instalador de tolbase 
 //////////////////////////////////////////////////////////////////////////////
 
-Set Include("../build_tools\build_tol_sdk\build_tol_sdk.tol");
+Set Include("../build_tools/build_tol_sdk/build_tol_sdk.tol");
 
 //////////////////////////////////////////////////////////////////////////////
   Text tolbase.nsi.create(Text name, Real isFile)
