@@ -30,9 +30,10 @@
  */
 #define DEFAULT_INIT_PRIORITY 30
 
-#include <tol/tol_bout.h>
-#include <tol/tol_bqfile.h>
 #include <tol/tol_bdatgra.h>
+#include <tol/tol_bout.h>
+#include <tol/tol_init.h>
+#include <tol/tol_bqfile.h>
 #include <tol/tol_btsrgrp.h>
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bmatfun.h>
@@ -231,6 +232,10 @@ void BGraContensBase<BDat>::InitInstances()
   BDatNObject*  numObject_   = new BDatNObject;
   BDatNError*   numError_    = new BDatNError;
   BDatNWarning* numWarning_  = new BDatNWarning;
+
+  BSystemDat* tolTclIsEnabled_ = new BSystemDat("TolTclIsEnabled",	TolTclIsEnabled(),
+			     I2("Indicates if TCL API is available in TOL",
+				      "Indica si la API TCL está accesible desde TOL"));
 
   BSystemDat* unknown_ = new BSystemDat("?",	 BDat::Unknown(),
 			     I2("Unknown value",
@@ -519,6 +524,20 @@ void BGraContensBase<BDat>::InitInstances()
        "Si es cierto, los operadores de VMatrix intentarán convertir "
        "los subtipos de lso operandos para poder ejecutar operaciones "
        "que no sean posibles con los actuales subipos.")
+  );
+
+  BParamDat* showStackAtError_	 = new BParamDat
+  (
+    "ShowStackAtError",
+    BOut::showStackAtError,
+    "Enables/disables call stack tracing of error messages"
+  );
+
+  BParamDat* showStackAtWarning_	 = new BParamDat
+  (
+    "ShowStackAtWarning",
+    BOut::showStackAtWarning,
+    "Enables/disables call stack tracing of warning messages"
   );
 
   OwnGrammar()->PutDefect(unknown_);

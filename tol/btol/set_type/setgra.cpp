@@ -23,6 +23,8 @@
 #include <win_tolinc.h>
 #endif
 
+#include <tol/tol_bsetgra.h>
+#include <tol/tol_init.h>
 #include <tol/tol_tree.h>
 #include <tol/tol_bdir.h>
 #include <tol/tol_bsys.h>
@@ -31,7 +33,6 @@
 #include <tol/tol_btoken.h>
 #include <tol/tol_bparser.h>
 #include <tol/tol_boper.h>
-#include <tol/tol_bsetgra.h>
 #include <tol/tol_bmatgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bdtegra.h>
@@ -2543,7 +2544,16 @@ void BSetParse::CalcContens()
 static
 Tcl_EvalPtr tcl_evaluator = NULL;
 
+//--------------------------------------------------------------------
+int TolTclIsEnabled()
+//--------------------------------------------------------------------
+{
+  return(tcl_evaluator!=NULL);
+}
+
+//--------------------------------------------------------------------
 Tcl_EvalPtr InstallTclEval(Tcl_EvalPtr new_evaluator)
+//--------------------------------------------------------------------
 {
   Tcl_EvalPtr old_evaluator = tcl_evaluator;
 
@@ -2554,7 +2564,9 @@ Tcl_EvalPtr InstallTclEval(Tcl_EvalPtr new_evaluator)
 static
 Tcl_EvalExPtr tcl_evaluatorEx = NULL;
 
+//--------------------------------------------------------------------
 Tcl_EvalExPtr InstallTclEvalEx(Tcl_EvalExPtr new_evaluator)
+//--------------------------------------------------------------------
 {
   Tcl_EvalExPtr old_evaluator = tcl_evaluatorEx;
 

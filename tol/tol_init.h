@@ -57,6 +57,7 @@ TOL_API int  TOLHasBeenInitialized();
 TOL_API int  TOLHasBeenEnded();
 TOL_API void SetTOLEnd();
 TOL_API void UnexpectedTolEnd(void);
+TOL_API int TolTclIsEnabled();
 
 END_DECLS
 
