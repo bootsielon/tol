@@ -12,7 +12,8 @@ NameBlock TolConfigManager =
   Text _.path=TolAppDataPath+".tolConfig."+Tokenizer(Version," ")[1]+".tol";
   #Embed "default.tol";
   #Embed "methods.tol";
-  NameBlock Config = LoadConfig(0)
+  NameBlock Config = [[ Real void = ?]];
+  Real _loaded = LoadConfig(0)
 ]];
 
 

@@ -47,7 +47,7 @@ Real Apply(Real unused)
   Date PutDefaultDates(
     TolConfigManager::Config::Time::FirstDate,
     TolConfigManager::Config::Time::LastDate);
-  Text PutLanguage(TolConfigManager::Config::Language);
+  Text PutLanguage(TolConfigManager::Config::Various::Language);
   Real ShowStackAtError := 
     TolConfigManager::Config::Various::Verbose::ShowStackAtError;
   Real ShowStackAtWarning := 
@@ -135,25 +135,27 @@ NameBlock MergeOptions(NameBlock default, NameBlock config, Text prefix)
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.LoadConfig=
 "Loads configuration file. If not exists creates it with default values.";
-NameBlock LoadConfig(Real void)
+Real LoadConfig(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE [LoadConfig] 1");
-  Case(!FileExist(_.path),
+  Real Case(!FileExist(_.path),
   {
 //WriteLn("TRACE [LoadConfig] 2.1");
     Real SaveConfig(Default);
-    Include(_.path)[1]
+    NameBlock Config := Include(_.path)[1];
+    True
   },
   1==1,
   {
   //WriteLn("TRACE [LoadConfig] 2.2");
-    NameBlock Config = 
+    NameBlock Config := 
       MergeOptions(TolConfigManager::Default, { Include(_.path)[1] },
      "TolConfigManager::Config::");
-    Real SaveConfig(Config);
-    Config
-  })
+    Real SaveConfig(Config)
+  });
+  Real Apply(?);
+  True
 };
 
 //////////////////////////////////////////////////////////////////////////////
