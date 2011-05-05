@@ -4,7 +4,7 @@ Real OSCmdWait("pscp tolbase-"+TolVersionId+"-setup.exe toldevel@tolp.localbayes
 Real OSCmdWait("pscp development_tol_release_win.txt toldevel@tolp.localbayes.es:/var/www/packages/win32/.");
 Text remote_cp = " plink toldevel@tolp.localbayes.es \"cp "
   "/var/www/packages/win32/tolbase-"+TolVersionId+"-setup.exe "
-  "/var/www/packages/win32/tolbase-"+ToName(Version)+"-setup.exe \" ";
+  "/var/www/packages/win32/"+TolVersionId+"/tolbase-"+ToName(Version)+"-setup.exe \" ";
 
 Real OSCmdWait(remote_cp);
 
