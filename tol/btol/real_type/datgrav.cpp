@@ -24,6 +24,7 @@
 #endif
 
 #include <tol/tol_bdatgra.h>
+#include <tol/tol_init.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_bdir.h>
 #include <tol/tol_bstruct.h>
@@ -2032,7 +2033,7 @@ void BDatTextToReal::CalcContens()
 //--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatMatchText);
   DefExtOpr(1, BDatMatchText, "TextMatch", 2, 3, "Text Text Real",
-  I2("(Text chain, Text pattern [, Real case = 0 ])",
+  I2("(Text string, Text pattern [, Real case = 0 ])",
      "(Text cadena, Text modelo [, Real modo = 0 ])"),
   I2(
      "Returns true if the pattern makes match with the given chain."
@@ -2071,9 +2072,26 @@ void BDatTextToReal::CalcContens()
   void BDatMatchText::CalcContens()
 //--------------------------------------------------------------------
 {
+  BText& string  = Text(Arg(1));
+  BText& pattern = Text(Arg(2));
   BInt mode = 0;
   if(Arg(3)) { mode = (BInt)Real(Arg(3)); }
-  contens_ = (BReal)(Text(Arg(1)).Match(Text(Arg(2)), mode));
+  if(TolTclIsEnabled())
+  {
+    BText expr = BText("TextMatch_Tcl(\"")+string+"\",\""+pattern+"\","+mode+")";
+    BSyntaxObject* uMatch = GraReal()->EvaluateExpr(expr);
+    if(uMatch)
+    { 
+      contens_ = Real(uMatch)!=0;
+      DESTROY(uMatch);
+    }
+  }
+  else
+  {
+    Warning("Using internal version of TextMatch could cause invalid results. "
+    "Please use a TCL version of TOL like tolsh or tolbase.");
+    contens_ = (BReal)(string.Match(pattern, mode));
+  }
 }
 
 
