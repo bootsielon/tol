@@ -1334,8 +1334,8 @@ void BARIMA::OutputDataUpdated()
   }
   aCor_.ReallocBuffer(N+1);
   int k;
-//k = Levinson      (aCor_, w, x, aCorI_, paCor_, aCorLogDet, period);
-  k = LevinsonARMA  (aCor_, w, x, aCorI_, paCor_, aCorLogDet, period, prod_.ar_, prod_.ma_);
+  k = Levinson      (aCor_, w, x, aCorI_, paCor_, aCorLogDet, period);
+//k = LevinsonARMA  (aCor_, w, x, aCorI_, paCor_, aCorLogDet, period, prod_.ar_, prod_.ma_);
   aCor_ .ReallocBuffer(N);
   aCorI_.ReallocBuffer(N); 
   paCor_.ReallocBuffer(N);
@@ -1365,6 +1365,7 @@ void BARIMA::OutputDataUpdated()
     //Std(BText("\ncovWW0=")<<covWW0.Name());
     //Std(BText("\naCoviw_=")<<aCoviw_.Name());
     //Std(BText("\nuB_=")<<w0_.Name());
+/*
       a0_.Alloc(mpq,1);
       BMatrix<BDat> W = w0_ << w_;
       BMatrix<BDat> A = a0_ << a_;
@@ -1385,6 +1386,13 @@ void BARIMA::OutputDataUpdated()
         aux /= prod_.ma_[prod_.ma_.Size()-1].Coef();
         a0_(k,0) = A(k,0) = aux;
       }
+*/
+      BPolyn<BDat> psi;
+      psi = (prod_.ma_/prod_.ar_).Expand(mpq,BFALSE); 
+      bool Pol2Mat(const BPol& pol, int r, int c, BMat& contens_);
+      BMat PSI0;
+      Pol2Mat(psi, mpq, N, PSI0);
+      a0_ = PSI0*aCoviw_;
     //Std(BText("\naB_=")<<a0_.Name());
     }
     ata_ = (a_.Rows()&&a_.Columns())?MtMSqr(a_)(0,0):BDat::Unknown();
