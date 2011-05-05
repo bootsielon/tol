@@ -123,6 +123,9 @@ BText      BOut::errorCloseTag_(StaticInit());
 BText      BOut::warningOpenTag_(StaticInit());
 BText      BOut::warningCloseTag_(StaticInit());
 
+BDat       BOut::showStackAtError;
+BDat       BOut::showStackAtWarning;
+
 
 DefIsAlreadyInitilialized(BOut);
 
@@ -153,6 +156,9 @@ DefIsAlreadyInitilialized(BOut);
     BOut::errorLog_   = BTRUE;
     BOut::warningLog_ = BTRUE;
     BOut::infoLog_    = BTRUE;
+    BOut::showStackAtError = BTRUE;
+    BOut::showStackAtWarning = BFALSE;
+
     BOut::out_         = "";
     BOut::dumpFile_    = "";
     BOut::file_        = NIL;
@@ -429,7 +435,7 @@ void Error(const BText& txt)
     BOut::errorOpenTag_ + TOLErrorNumber().Format("[%.0lf] ") + txt + 
     BOut::errorCloseTag_;
   BOut::Write(info, BOut::errorHci_, BOut::errorTerm_, BOut::errorLog_);
-  BUserFunction::ShowCallStack();
+  if(BOut::showStackAtError!=0) { BUserFunction::ShowCallStack(); }
 }
 
 
@@ -450,6 +456,7 @@ void Warning(const BText& txt)
     BOut::warningOpenTag_ + TOLWarningNumber().Format("[%.0lf] ") + txt + 
     BOut::warningCloseTag_;
   BOut::Write(info, BOut::warningHci_, BOut::warningTerm_, BOut::warningLog_);
+  if(BOut::showStackAtWarning!=0) { BUserFunction::ShowCallStack(); }
 }
 
 //--------------------------------------------------------------------

@@ -48,6 +48,10 @@ Real Apply(Real unused)
     TolConfigManager::Config::Time::FirstDate,
     TolConfigManager::Config::Time::LastDate);
   Text PutLanguage(TolConfigManager::Config::Language);
+  Real ShowStackAtError := 
+    TolConfigManager::Config::Various::Verbose::ShowStackAtError;
+  Real ShowStackAtWarning := 
+    TolConfigManager::Config::Various::Verbose::ShowStackAtWarning;
   True
 };
 

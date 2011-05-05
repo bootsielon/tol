@@ -127,7 +127,15 @@ NameBlock Default =
       Text _.autodoc.member.IncludedFile = 
       "Enables/disables system messages of type 'Included file ... '"+
       "\n Changes in this option do not take effect until next TOL session";
-      Real IncludedFile = 1
+      Real IncludedFile = 1;
+      Text _.autodoc.member.ShowStackAtError = 
+      "Enables/disables call stack tracing of error messages"+
+      "\n Changes in this option do not take effect until next TOL session";
+      Real ShowStackAtError = 1;
+      Text _.autodoc.member.ShowStackAtWarning = 
+      "Enables/disables call stack tracing of warning messages"+
+      "\n Changes in this option do not take effect until next TOL session";
+      Real ShowStackAtWarning = 0
     ]]
   ]]
 ]];

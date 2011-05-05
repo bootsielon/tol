@@ -90,7 +90,6 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 #ifdef DO_WARN_INEF_USE
   static BText aux_ = "Probably ineficient use. ";
   Warning(aux_+msg);
-  BUserFunction::ShowCallStack();
 #endif
 }
 

@@ -702,7 +702,6 @@ static BSyntaxObject* CreateObject(      List*	   tre,
                   I2("hides published NameBlock member",
                      "oculta el miembro de NameBlock publicado")+
                   " "+result->FullName());
-          BUserFunction::ShowCallStack();
           result = NULL; 
         }
       }
@@ -724,7 +723,6 @@ static BSyntaxObject* CreateObject(      List*	   tre,
                 I2("hides published NameBlock member",
                    "oculta el miembro de NameBlock publicado")+
                 " "+result->FullName());
-        BUserFunction::ShowCallStack();
         result = NULL;
       }
     }
@@ -971,7 +969,6 @@ BSyntaxObject* BUserFunctionCreator::Evaluate(const List* argList)
               I2("hides published NameBlock member",
                  "oculta el miembro de NameBlock publicado")+
               " "+result->FullName());
-      BUserFunction::ShowCallStack();
       result = NULL;
     }
     if(result && BNameBlock::Building())

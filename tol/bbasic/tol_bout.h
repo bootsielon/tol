@@ -102,7 +102,6 @@ private:
   static BBool  warningLog_;
   //! indicates if an INFO Level message must be sent to the log file
   static BBool  infoLog_;
-
   //! Send a message to specified outputs
   static void Write    (const BText& txt, BBool hci, BBool term, BBool log_);
   //! Pointer to user defined function to write TOL messages
@@ -117,6 +116,11 @@ private:
   static BText warningOpenTag_; static BText warningCloseTag_;
 
 public:
+  //!Enables/disables call stack tracing of error messages
+  static BDat showStackAtError;
+  //!Enables/disables call stack tracing of warning messages
+  static BDat showStackAtWarning;
+
   // Access and manipulation: inline
 
   //! Disable output

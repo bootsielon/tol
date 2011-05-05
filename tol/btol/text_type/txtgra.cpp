@@ -29,7 +29,7 @@
 #define DEFAULT_INIT_PRIORITY 10
 
 //#define USETRAZEOBJECTS
-
+  
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_bnameblock.h>
