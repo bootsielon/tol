@@ -123,8 +123,8 @@ BText      BOut::errorCloseTag_(StaticInit());
 BText      BOut::warningOpenTag_(StaticInit());
 BText      BOut::warningCloseTag_(StaticInit());
 
-BDat       BOut::showStackAtError;
-BDat       BOut::showStackAtWarning;
+BDat       BOut::showStackAtError = 1;
+BDat       BOut::showStackAtWarning = 0;
 
 
 DefIsAlreadyInitilialized(BOut);
