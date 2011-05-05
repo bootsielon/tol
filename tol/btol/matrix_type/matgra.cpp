@@ -3075,34 +3075,16 @@ void BMatPolMat::CalcContens()
 */
 
 //--------------------------------------------------------------------
-DeclareContensClass(BMat, BMatTemporary, BMatPolMat);
-DefExtOpr(1, BMatPolMat,   "PolMat", 3, 3, "Polyn Real Real",
-  I2("(Polyn pol,Real rows, Real columns)",
-     "(Polyn pol,Real filas, Real columnas)"),
-  I2("Returns the matrix representation of a backshift polynomial.",
-     "Devuelve la representacion matricial de un polinomio de retardos."
-     "Si el polinomio no contiene términos en F, entonces "
-     "se trata de una matriz triangular inferior que tiene todos los "
-     "valores de la diagonal principal iguales al coeficiente de grado 0 "
-     "del polinomio, y los de las diagonales inferiores iguales al "
-     "coeficiente del grado correspondiente. "
-     "Si tiene térmnos en F, ocurre de forma análoga con las diagonales "
-     "superiores"),
-    BOperClassify::Conversion_);
-//--------------------------------------------------------------------
-void BMatPolMat::CalcContens()
+bool Pol2Mat(const BPol& pol, int r, int c, BMat& contens_)
 //--------------------------------------------------------------------
 {
-  BPol& pol = Pol(Arg(1));
   register int d;
   register int i;
   register int j;
   register int m = pol.Size();
-  register int r = (BInt)Real(Arg(2));
-  register int c = (BInt)Real(Arg(3));
   contens_.Alloc(r,c);
-  if(contens_.Rows()!=r) { return; }
-  if(!r||!c) { return; }
+  if(contens_.Rows()!=r) { return false; }
+  if(!r||!c) { return false; }
   contens_.SetAllValuesTo(0);
   register double* y0 = (double*)contens_.GetData().GetBuffer();
   register double* y1 = (double*)contens_.GetData().GetBuffer()+(r*c);
@@ -3136,12 +3118,37 @@ void BMatPolMat::CalcContens()
               " i="+i+
               " j="+d+
               " i*c+j="+(i*c+j));
-        return;
+        return false;
       }
       (*y)=pk->coef;
       y += (c+1); 
     }
   }
+  return true;
+}
+//--------------------------------------------------------------------
+DeclareContensClass(BMat, BMatTemporary, BMatPolMat);
+DefExtOpr(1, BMatPolMat,   "PolMat", 3, 3, "Polyn Real Real",
+  I2("(Polyn pol,Real rows, Real columns)",
+     "(Polyn pol,Real filas, Real columnas)"),
+  I2("Returns the matrix representation of a backshift polynomial.",
+     "Devuelve la representacion matricial de un polinomio de retardos."
+     "Si el polinomio no contiene términos en F, entonces "
+     "se trata de una matriz triangular inferior que tiene todos los "
+     "valores de la diagonal principal iguales al coeficiente de grado 0 "
+     "del polinomio, y los de las diagonales inferiores iguales al "
+     "coeficiente del grado correspondiente. "
+     "Si tiene térmnos en F, ocurre de forma análoga con las diagonales "
+     "superiores"),
+    BOperClassify::Conversion_);
+//--------------------------------------------------------------------
+void BMatPolMat::CalcContens()
+//--------------------------------------------------------------------
+{
+  BPol& pol = Pol(Arg(1));
+  register int r = (BInt)Real(Arg(2));
+  register int c = (BInt)Real(Arg(3));
+  Pol2Mat(pol,r,c,contens_);
 }
 /* */
 
