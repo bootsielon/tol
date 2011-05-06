@@ -47,7 +47,7 @@ Real Apply(Real unused)
   Date PutDefaultDates(
     TolConfigManager::Config::Time::FirstDate,
     TolConfigManager::Config::Time::LastDate);
-  Text PutLanguage(TolConfigManager::Config::Various::Language);
+  Text PutLanguage(ToUpper(TolConfigManager::Config::Various::Language));
   Real ShowStackAtError := 
     TolConfigManager::Config::Various::Verbose::ShowStackAtError;
   Real ShowStackAtWarning := 
