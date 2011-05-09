@@ -422,6 +422,10 @@ public:
   { 
     hash.DeleteBuffer();
   }
+
+  BBool Contain	      (const BDate&)		 const { return(BFALSE); }
+  BInt	PeriodsBetween(const BDate& d1, const BDate& d2) const  {  return(0); }
+
 protected:
   BBool Includes    (const BDate& dte) const { return(BFALSE); }
   BDate CalcInf() const { return(BDate::End  ()); }
