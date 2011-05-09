@@ -1,0 +1,4 @@
+
+Set data = { Include("data.oza") };
+Serie S2 = SubSer( CalInd( W, Daily ), y2000, y2013 );
+Real check = MaxS( S2 );

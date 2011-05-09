@@ -1,0 +1,14 @@
+
+Set GenOza(Real cut)
+{
+Serie ser = SubSer(Gaussian(10, 1, Daily), y2006, y2008m12d31);
+//Serie serCut = DatCh(ser, Eval("D("<<If(cut == 1, cut, cut -1)+")"), FirstS); 
+  Serie serCut = DatCh(ser, D(If(cut == 1, cut, cut -1)), FirstS);  
+SetOfSerie
+(
+serCut
+)
+};
+Set data = GenOza(16);
+Real Ois.Store(data, "data.oza");
+Set Dates(W,y2010,y2011);

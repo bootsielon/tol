@@ -1,7 +1,8 @@
-Serie S1 = SubSer( CalInd( W, Daily ), y2010, y2011m12 );
+//Serie S1 = SubSer( CalInd( W, Daily ), y2010, y2011m12 );
 Set { Include( "VC1.C56.22_data.oza" ) };
 Serie S2 = SubSer( CalInd( W, Daily ), y2010, y2011m12 );
-
+Real check = MaxS( S2 );
+/*
 Serie S3 = S2 - S1;
 Real check = MaxS( S3 );
 WriteLn( "check must be 0 and it is " << check );
