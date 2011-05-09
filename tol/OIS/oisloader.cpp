@@ -1418,15 +1418,22 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               return(NullError(BText("Cannot load syntax tree TimeSet (name='")+
                      name+"' description='"+description+"')")); 
             }
-            bool oldEnabled = BOut::Disable();
+            BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
+          //bool oldEnabled = BOut::Disable();
+            BDat numErr0 = TOLErrorNumber();
             x = (BUserTimeSet*)GraTimeSet()->EvaluateTree(tree); 
-            if(oldEnabled) { BOut::Enable(); }
+            BDat numErr1 = TOLErrorNumber();
+            if(numErr0<numErr1) { DESTROY(x); }
+          //if(oldEnabled) { BOut::Enable(); }
             if(x) 
             { 
               assert(s || (tree!=NULL));
-              if(s && (control_.oisEngine_.oisVersion_>="02.03"))
+              if(!x->System())
               {
-                x->PutCache(h, beginCache, endCache);
+                if(s && (control_.oisEngine_.oisVersion_>="02.03"))
+                {
+                  x->PutCache(h, beginCache, endCache);
+                }
               }
               x->PutOisTree(tree); 
               tree->Destroy();
