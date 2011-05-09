@@ -1,218 +1,218 @@
-==28106== Memcheck, a memory error detector
-==28106== Copyright (C) 2002-2009, and GNU GPL'd, by Julian Seward et al.
-==28106== Using Valgrind-3.5.0 and LibVEX; rerun with -h for copyright info
-==28106== Command: /usr/local/tol-gcc-debug/bin/tolcon -v check.tol
-==28106== 
---28106-- Valgrind options:
---28106--    --tool=memcheck
---28106--    -v
---28106-- Contents of /proc/version:
---28106--   Linux version 2.6.18-194.11.4.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-48)) #1 SMP Tue Sep 21 05:04:09 EDT 2010
---28106-- Arch and hwcaps: X86, x86-sse1-sse2
---28106-- Page sizes: currently 4096, max supported 4096
---28106-- Valgrind library directory: /usr/lib/valgrind
---28106-- Reading syms from /lib/ld-2.5.so (0x804000)
---28106-- Reading syms from /usr/local/tol-gcc-debug/bin/tolcon (0x8048000)
---28106-- Reading syms from /usr/lib/valgrind/memcheck-x86-linux (0x38000000)
---28106--    object doesn't have a dynamic symbol table
---28106-- Reading suppressions file: /usr/lib/valgrind/default.supp
---28106-- REDIR: 0x819730 (index) redirected to 0x3803e483 (vgPlain_x86_linux_REDIR_FOR_index)
---28106-- Reading syms from /usr/lib/valgrind/vgpreload_core-x86-linux.so (0x4c6c000)
---28106-- Reading syms from /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so (0x4c6e000)
-==28106== WARNING: new redirection conflicts with existing -- ignoring it
---28106--     new: 0x00819730 (index               ) R-> 0x04c71640 index
---28106-- REDIR: 0x8198d0 (strlen) redirected to 0x4c71820 (strlen)
---28106-- Reading syms from /usr/local/tol-gcc-debug/lib/libtol2.0.2.so (0x884a000)
---28106-- Reading syms from /usr/lib/libstdc++.so.6.0.10 (0x7cf5000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /lib/libm-2.5.so (0xa8c000)
---28106-- Reading syms from /lib/libgcc_s-4.1.2-20080825.so.1 (0x7df6000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /lib/libc-2.5.so (0x823000)
---28106-- Reading syms from /lib/libdl-2.5.so (0x999000)
---28106-- Reading syms from /usr/lib/libltdl.so.3.1.4 (0x7e0e000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /usr/lib/libz.so.1.2.3 (0xc58000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /usr/lib/libbz2.so.1.0.3 (0x7e21000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /usr/local/lib/libcholmod.so (0x7e3b000)
---28106-- Reading syms from /usr/lib/atlas-sse2/liblapack.so.3.0 (0x9c79000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /usr/lib/libgsl.so.0.14.0 (0xa11d000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /usr/local/lib/libblapi.so (0x7f67000)
---28106-- Reading syms from /usr/lib/libgfortran.so.1.0.0 (0x9d6000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /usr/lib/atlas-sse2/libf77blas.so.3.0 (0x7fac000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /usr/lib/atlas-sse2/libcblas.so.3.0 (0x7fcb000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /usr/lib/atlas-sse2/libatlas.so.3.0 (0xa2f5000)
---28106--    object doesn't have a symbol table
---28106-- Reading syms from /lib/libpthread-2.5.so (0x97e000)
---28106-- REDIR: 0x894540 (memset) redirected to 0x4c71b80 (memset)
---28106-- REDIR: 0x894a30 (memcpy) redirected to 0x4c72a70 (memcpy)
---28106-- REDIR: 0x8936a0 (rindex) redirected to 0x4c71550 (rindex)
---28106-- REDIR: 0x893300 (strlen) redirected to 0x4c71800 (strlen)
---28106-- REDIR: 0x88ee30 (malloc) redirected to 0x4c7087e (malloc)
---28106-- REDIR: 0x8945a0 (mempcpy) redirected to 0x4c722d0 (mempcpy)
---28106-- REDIR: 0x7dadda0 (operator new[](unsigned int)) redirected to 0x4c70ca1 (operator new[](unsigned int))
---28106-- REDIR: 0x7dadc50 (operator new(unsigned int)) redirected to 0x4c71049 (operator new(unsigned int))
---28106-- REDIR: 0x88c990 (free) redirected to 0x4c70498 (free)
---28106-- REDIR: 0x8934f0 (strncmp) redirected to 0x4c71860 (strncmp)
---28106-- REDIR: 0x892da0 (strcmp) redirected to 0x4c718d0 (strcmp)
---28106-- REDIR: 0x892c30 (index) redirected to 0x4c715e0 (index)
---28106-- REDIR: 0x7dabfb0 (operator delete[](void*)) redirected to 0x4c6fe31 (operator delete[](void*))
---28106-- REDIR: 0x892e10 (strcpy) redirected to 0x4c72d00 (strcpy)
---28106-- REDIR: 0x8952e0 (rawmemchr) redirected to 0x4c71c90 (rawmemchr)
---28106-- REDIR: 0x88eaf0 (calloc) redirected to 0x4c6fb8e (calloc)
---28106-- Reading syms from /usr/lib/atlas/libf77blas.so.3.0 (0xaa96000)
---28106--    object doesn't have a symbol table
---28106-- REDIR: 0x892a80 (strcat) redirected to 0x4c72000 (strcat)
---28106-- Reading syms from /usr/lib/atlas/liblapack.so.3.0 (0xaab9000)
---28106--    object doesn't have a symbol table
-==28106== Conditional jump or move depends on uninitialised value(s)
-==28106==    at 0x93524A8: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:962)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x812162: call_init (in /lib/ld-2.5.so)
-==28106==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
-==28106== 
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
-==28106==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
-==28106==    by 0x9344EA9: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_empty(unsigned int) const (densehashtable.h:462)
-==28106==    by 0x934502A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106== 
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
-==28106==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
-==28106==    by 0x9344FB1: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
-==28106==    by 0x934A72C: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:892)
-==28106==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106== 
-==28106== Conditional jump or move depends on uninitialised value(s)
-==28106==    at 0x933FD0D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
-==28106==    by 0x934A801: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
-==28106==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106== 
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x933FD1A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
-==28106==    by 0x934A801: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
-==28106==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106== 
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x933CA61: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x812162: call_init (in /lib/ld-2.5.so)
-==28106==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
-==28106==    by 0x80484E: ??? (in /lib/ld-2.5.so)
-==28106== 
-==28106== Conditional jump or move depends on uninitialised value(s)
-==28106==    at 0x934502D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x812162: call_init (in /lib/ld-2.5.so)
-==28106== 
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
-==28106==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
-==28106==    by 0x9344FB1: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
-==28106==    by 0x934508A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:819)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106== 
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
-==28106==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
-==28106==    by 0x93450BC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106== 
-==28106== Conditional jump or move depends on uninitialised value(s)
-==28106==    at 0x93450DB: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x812162: call_init (in /lib/ld-2.5.so)
-==28106== 
---28106-- REDIR: 0x88f2a0 (realloc) redirected to 0x4c7092d (realloc)
---28106-- REDIR: 0x894730 (stpcpy) redirected to 0x4c72550 (stpcpy)
+==30264== Memcheck, a memory error detector
+==30264== Copyright (C) 2002-2009, and GNU GPL'd, by Julian Seward et al.
+==30264== Using Valgrind-3.5.0 and LibVEX; rerun with -h for copyright info
+==30264== Command: /usr/local/tol-gcc-debug/bin/tolcon -v check.tol
+==30264== 
+--30264-- Valgrind options:
+--30264--    --tool=memcheck
+--30264--    -v
+--30264-- Contents of /proc/version:
+--30264--   Linux version 2.6.18-194.11.4.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-48)) #1 SMP Tue Sep 21 05:04:09 EDT 2010
+--30264-- Arch and hwcaps: X86, x86-sse1-sse2
+--30264-- Page sizes: currently 4096, max supported 4096
+--30264-- Valgrind library directory: /usr/lib/valgrind
+--30264-- Reading syms from /lib/ld-2.5.so (0x804000)
+--30264-- Reading syms from /usr/local/tol-gcc-debug/bin/tolcon (0x8048000)
+--30264-- Reading syms from /usr/lib/valgrind/memcheck-x86-linux (0x38000000)
+--30264--    object doesn't have a dynamic symbol table
+--30264-- Reading suppressions file: /usr/lib/valgrind/default.supp
+--30264-- REDIR: 0x819730 (index) redirected to 0x3803e483 (vgPlain_x86_linux_REDIR_FOR_index)
+--30264-- Reading syms from /usr/lib/valgrind/vgpreload_core-x86-linux.so (0x4c6c000)
+--30264-- Reading syms from /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so (0x4c6e000)
+==30264== WARNING: new redirection conflicts with existing -- ignoring it
+--30264--     new: 0x00819730 (index               ) R-> 0x04c71640 index
+--30264-- REDIR: 0x8198d0 (strlen) redirected to 0x4c71820 (strlen)
+--30264-- Reading syms from /usr/local/tol-gcc-debug/lib/libtol2.0.2.so (0x884a000)
+--30264-- Reading syms from /usr/lib/libstdc++.so.6.0.10 (0x7cf5000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /lib/libm-2.5.so (0xa8c000)
+--30264-- Reading syms from /lib/libgcc_s-4.1.2-20080825.so.1 (0x7df6000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /lib/libc-2.5.so (0x823000)
+--30264-- Reading syms from /lib/libdl-2.5.so (0x999000)
+--30264-- Reading syms from /usr/lib/libltdl.so.3.1.4 (0x7e0e000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /usr/lib/libz.so.1.2.3 (0xc58000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /usr/lib/libbz2.so.1.0.3 (0x7e21000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /usr/local/lib/libcholmod.so (0x7e3b000)
+--30264-- Reading syms from /usr/lib/atlas-sse2/liblapack.so.3.0 (0x9c7a000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /usr/lib/libgsl.so.0.14.0 (0xa11e000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /usr/local/lib/libblapi.so (0x7f67000)
+--30264-- Reading syms from /usr/lib/libgfortran.so.1.0.0 (0x9d6000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /usr/lib/atlas-sse2/libf77blas.so.3.0 (0x7fac000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /usr/lib/atlas-sse2/libcblas.so.3.0 (0x7fcb000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /usr/lib/atlas-sse2/libatlas.so.3.0 (0xa2f6000)
+--30264--    object doesn't have a symbol table
+--30264-- Reading syms from /lib/libpthread-2.5.so (0x97e000)
+--30264-- REDIR: 0x894540 (memset) redirected to 0x4c71b80 (memset)
+--30264-- REDIR: 0x894a30 (memcpy) redirected to 0x4c72a70 (memcpy)
+--30264-- REDIR: 0x8936a0 (rindex) redirected to 0x4c71550 (rindex)
+--30264-- REDIR: 0x893300 (strlen) redirected to 0x4c71800 (strlen)
+--30264-- REDIR: 0x88ee30 (malloc) redirected to 0x4c7087e (malloc)
+--30264-- REDIR: 0x8945a0 (mempcpy) redirected to 0x4c722d0 (mempcpy)
+--30264-- REDIR: 0x7dadda0 (operator new[](unsigned int)) redirected to 0x4c70ca1 (operator new[](unsigned int))
+--30264-- REDIR: 0x7dadc50 (operator new(unsigned int)) redirected to 0x4c71049 (operator new(unsigned int))
+--30264-- REDIR: 0x88c990 (free) redirected to 0x4c70498 (free)
+--30264-- REDIR: 0x8934f0 (strncmp) redirected to 0x4c71860 (strncmp)
+--30264-- REDIR: 0x892da0 (strcmp) redirected to 0x4c718d0 (strcmp)
+--30264-- REDIR: 0x892c30 (index) redirected to 0x4c715e0 (index)
+--30264-- REDIR: 0x7dabfb0 (operator delete[](void*)) redirected to 0x4c6fe31 (operator delete[](void*))
+--30264-- REDIR: 0x892e10 (strcpy) redirected to 0x4c72d00 (strcpy)
+--30264-- REDIR: 0x8952e0 (rawmemchr) redirected to 0x4c71c90 (rawmemchr)
+--30264-- REDIR: 0x88eaf0 (calloc) redirected to 0x4c6fb8e (calloc)
+--30264-- Reading syms from /usr/lib/atlas/libf77blas.so.3.0 (0xaa93000)
+--30264--    object doesn't have a symbol table
+--30264-- REDIR: 0x892a80 (strcat) redirected to 0x4c72000 (strcat)
+--30264-- Reading syms from /usr/lib/atlas/liblapack.so.3.0 (0xaab6000)
+--30264--    object doesn't have a symbol table
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9352604: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:962)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==30264==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
+==30264== 
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x93407AE: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==30264==    by 0x93407DC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==30264==    by 0x9345005: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_empty(unsigned int) const (densehashtable.h:462)
+==30264==    by 0x9345186: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264== 
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x93407AE: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==30264==    by 0x93407DC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==30264==    by 0x934510D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
+==30264==    by 0x934A888: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:892)
+==30264==    by 0x9352788: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x933FE69: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
+==30264==    by 0x934A95D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
+==30264==    by 0x9352788: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264== 
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x933FE76: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
+==30264==    by 0x934A95D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
+==30264==    by 0x9352788: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264== 
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x933CBBD: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==30264==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
+==30264==    by 0x80484E: ??? (in /lib/ld-2.5.so)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9345189: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==30264== 
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x93407AE: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==30264==    by 0x93407DC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==30264==    by 0x934510D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
+==30264==    by 0x93451E6: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:819)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264== 
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x93407AE: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==30264==    by 0x93407DC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==30264==    by 0x9345218: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9345237: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==30264== 
+--30264-- REDIR: 0x88f2a0 (realloc) redirected to 0x4c7092d (realloc)
+--30264-- REDIR: 0x894730 (stpcpy) redirected to 0x4c72550 (stpcpy)
 
 Initializing Bayes Fixed Sise Memory Pool 
 Initializing static member of basic classes 
@@ -235,9 +235,9 @@ Warning: [4] BVMat::common_->error_handler has been modified</W>
 Warning: [5] BVMat::common_->supernodal has been modified</W>
 <W>
 Warning: [6] BVMat::common_->final_ll has been modified</W>
-OIS: versión implementada: 02.16--28106-- REDIR: 0x7dabf50 (operator delete(void*)) redirected to 0x4c701af (operator delete(void*))
---28106-- REDIR: 0x894040 (memchr) redirected to 0x4c719f0 (memchr)
---28106-- REDIR: 0x8944d0 (memmove) redirected to 0x4c71be0 (memmove)
+OIS: versión implementada: 02.16--30264-- REDIR: 0x7dabf50 (operator delete(void*)) redirected to 0x4c701af (operator delete(void*))
+--30264-- REDIR: 0x894040 (memchr) redirected to 0x4c719f0 (memchr)
+--30264-- REDIR: 0x8944d0 (memmove) redirected to 0x4c71be0 (memmove)
 <W>
 Warning: [7] [Cint_dynamic_linkage("libcint.so")] 
   lt_dlopen error:'libcint.so: cannot open shared object file: No such file or directory'</W>
@@ -248,44 +248,442 @@ Incluyendo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/TolConf
 Ha sido incrustado el archivo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/default.tol
 Ha sido incrustado el archivo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/methods.tol
 Incluyendo /home/toldevel/.tol/.tolConfig.v2.0.2.tol
-Ha sido incluido el fichero /home/toldevel/.tol/.tolConfig.v2.0.2.tol [0.790 sec.]
-Ha sido incluido el fichero /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/TolConfigManager.tol [6.930 sec.]
-OIS: Cargando el módulo stdlib::_packages.tol
-Incluyendo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_tools.tol
-Ha sido incluido el fichero /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_tools.tol [0.310 sec.]
-Ha sido incluido el fichero /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/_init_stdlib.tol [52.660 sec.]
-Incluyendo /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/check.tol
-Incluyendo /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/VC1.C56.22_data.oza
+Ha sido incluido el fichero /home/toldevel/.tol/.tolConfig.v2.0.2.tol [0.830 sec.]
 <W>
-Warning: [8] OIS: 
+Warning: [8] [MergeOptions] New configuration option 
+
+  Real TolConfigManager::Config::Various::Verbose::ShowStackAtError=1;
+
+You can use this default value or change it running 
+
+  Real TolConfigManager::Config::Various::Verbose::ShowStackAtError:= Copy(<new_value>); 
+
+Then you must run this line to avoid this messages at future
+
+  Real TolConfigManager::Save(?); 
+
+NOTE: Changing some options do not take effect until next TOL session.
+</W>
+<W>
+Warning: [9] [MergeOptions] New configuration option 
+
+  Real TolConfigManager::Config::Various::Verbose::ShowStackAtWarning=0;
+
+You can use this default value or change it running 
+
+  Real TolConfigManager::Config::Various::Verbose::ShowStackAtWarning:= Copy(<new_value>); 
+
+Then you must run this line to avoid this messages at future
+
+  Real TolConfigManager::Save(?); 
+
+NOTE: Changing some options do not take effect until next TOL session.
+</W>
+Ha sido incluido file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/TolConfigManager.tol [7.660 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/_packages.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/_init_general.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/_constant.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/_constant.tol [1.820 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/_structs.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/_structs.tol [0.230 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_init_grammars.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_anything.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_anything.tol [0.280 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_text.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_text.tol [5.940 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_ratio.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_ratio.tol [0.020 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_date.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_date.tol [0.440 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_matrix.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_matrix.tol [2.020 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_polyn.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_polyn.tol [1.590 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_real.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_real.tol [4.540 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_serie.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_serie.tol [9.780 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_set.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_set.tol [6.790 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_timeset.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_timeset.tol [0.150 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/grammars/_init_grammars.tol [31.630 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/_init_system.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/_system.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/_system.tol [1.780 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/_deprecated.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/_deprecated.tol [0.070 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/recursive_dir/_init_recursive_dir.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/recursive_dir/_structs.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/recursive_dir/_structs.tol [0.080 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/recursive_dir/_functions.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/recursive_dir/_functions.tol [1.640 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/recursive_dir/_init_recursive_dir.tol [1.740 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/tpa/_init_tpa.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/tpa/_server.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/tpa/_server.tol [1.900 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/tpa/_cycle.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/tpa/_cycle.tol [0.440 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/tpa/_init_tpa.tol [2.670 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_init_cmsg.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_structs.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_structs.tol [0.100 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_cmsg.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_trace.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_phase.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_coded.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_log.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_coded_argFunChk.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_coded_argFunChk.tol [1.130 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_cmsg.tol [2.600 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/cmsg/_init_cmsg.tol [2.730 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/CurlApi/CurlApi.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/CurlApi/CurlFunctions.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/CurlApi/CurlApi.tol [0.330 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/PackArchive/PackArchive.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/PackArchive/Store.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/PackArchive/PackArchive.tol [1.240 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/system/_init_system.tol [10.610 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_init_various.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_sortselect.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_sortselect.tol [0.290 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_plotter.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_plotter.tol [0.790 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_axistimeset.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_axistimeset.tol [0.240 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_tools.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_tools.tol [0.310 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/regexp.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/regexp.tol [0.180 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_timer.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_timer.tol [0.120 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_init_various.tol [1.980 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/tol_tests/_init_tol_tests.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/tol_tests/_testStruct.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/tol_tests/_testStruct.tol [0.280 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/tol_tests/_testConfig.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/tol_tests/_testConfig.tol [0.160 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/tol_tests/_testFunc.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/tol_tests/_testFunc.tol [3.380 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/tol_tests/_init_tol_tests.tol [3.850 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/TolPackage/TolPackage.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/TolPackage/common.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/TolPackage/client.tol
+Embedded file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/TolPackage/server.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/TolPackage/TolPackage.tol [8.400 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/_init_general.tol [58.620 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/_init_data.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/ois/_init_ois.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/ois/_ois.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/ois/_ois.tol [1.640 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/ois/_init_ois.tol [1.660 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/_init_db.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/_db_connect.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/_db_connect.tol [0.810 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_ini_engine.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_constants.tol
+<W>
+Warning: [10] common/functions/sql/_constants.tol
+ No hay definido gestor!
+</W>
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_constants.tol [0.210 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqltools.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqltools.tol [3.480 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlpos.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlpos.tol [1.680 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlora.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlora.tol [1.650 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlmic.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlmic.tol [1.110 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlmys.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlmys.tol [0.970 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlred.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlred.tol [1.700 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlter.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sqlter.tol [1.650 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sql.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_sql.tol [8.650 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/engine/_ini_engine.tol [24.870 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/db/_init_db.tol [25.700 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/data/_init_data.tol [27.370 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/_init_gui.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_init_tcl.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_tclutils.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_tclutils.tol [2.260 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_chart.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_chart.tol [1.130 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_progressbar.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_progressbar.tol [0.240 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_buttonbar.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_buttonbar.tol [0.620 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_entry.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_entry.tol [1.640 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_messagebox.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_messagebox.tol [0.820 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_tabulate.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_tabulate.tol [0.750 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_guifunction.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_guifunction.tol [2.360 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/tcl/_init_tcl.tol [9.890 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/xls/_init_xls.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/xls/_init_xls.tol [0.180 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/html/_init_html.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/html/_htmlmethods.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/html/_htmlmethods.tol [3.060 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/html/_htmlutil.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/html/_htmlutil.tol [2.400 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/html/_init_html.tol [5.470 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/gui/_init_gui.tol [15.580 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/_inialgebra.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algebra.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algebra.tol [4.140 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algebragui.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algebragui.tol [0.890 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algMetSqlDep.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algMetSqlDep.tol [0.560 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algMetSqlDepSet.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algMetSqlDepSet.tol [0.490 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algMetSqlDepDBT.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algMetSqlDepDBT.tol [0.440 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algebraUtils.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/algebraUtils.tol [0.340 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/alg_name/_inialgebra.tol [6.930 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/_init_math.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/linalg/_init_linalg.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/linalg/_solve_precond_sym.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/linalg/_solve_precond_sym.tol [0.740 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/linalg/_solve_precond_unsym.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/linalg/_solve_precond_unsym.tol [0.820 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/linalg/_init_linalg.tol [1.590 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/interpolate/_interpolate.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/interpolate/_scalar.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/interpolate/_scalar.tol [0.550 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/interpolate/_interpolate.tol [0.600 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/_init_optim.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/_marquardt.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/_marquardt.tol [0.790 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/_factpolyn.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/_factpolyn.tol [0.860 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/LP/_init_LP.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/LP/Rglpk.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/LP/Rglpk.tol [0.730 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/LP/polytope.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/LP/polytope.tol [1.550 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/LP/_init_LP.tol [2.300 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/QP/_init_QP.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/QP/Rquadprog.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/QP/Rquadprog.tol [0.520 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/QP/_init_QP.tol [0.530 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/optim/_init_optim.tol [4.520 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/_init_stat.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/descriptive_stats/_init_descriptive_stats.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/descriptive_stats/_init_descriptive_stats.tol [1.120 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/hypothesis_tests/_init_hypothesis_tests.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/hypothesis_tests/_confidence_intervals.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/hypothesis_tests/_confidence_intervals.tol [1.210 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/hypothesis_tests/_init_hypothesis_tests.tol [1.220 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/diagnostics/_init_diagnostics.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/diagnostics/_binaryModel.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/diagnostics/_binaryModel.tol [0.360 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/diagnostics/_init_diagnostics.tol [0.410 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/kde/_init_kde.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/kde/_rkde.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/kde/_rkde.tol [0.550 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/kde/_init_kde.tol [0.560 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/_init_models.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/_init_mle.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_init_arima.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_structs.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_diagbounds.bst
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_diagbounds.bst [0.120 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_structs.tol [0.940 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_constants.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_constants.tol [0.050 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_general.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_general.tol [8.930 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_transformation.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_transformation.tol [0.840 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_forecasting.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_forecasting.tol [0.640 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_decision.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_decision.tol [0.270 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_isolate.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_isolate.tol [0.680 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_simulate.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_simulate.tol [1.820 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_init_aia.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_structs.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_structs.tol [0.240 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_constants.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_constants.tol [0.130 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_functions.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_functions.tol [0.360 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_build_model.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_build_model.tol [1.220 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_step_searcher.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_step_searcher.tol [0.230 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/aia/_init_aia.tol [2.240 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_combination.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_fun_combination.tol [3.280 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/arima/_init_arima.tol [19.760 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/mle/_init_mle.tol [19.780 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/_init_bayesian.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_init_linear.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blr_functions.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blr_functions.tol [1.580 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blr_struct.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blr_struct.tol [0.270 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blr_kernel.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blr_kernel.tol [1.630 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blrc_kernel.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blrc_kernel.tol [2.520 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blr_add.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_blr_add.tol [2.390 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/linear/_init_linear.tol [8.450 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/generalized_linear/_init_generalized_linear.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/generalized_linear/_bprobit.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/generalized_linear/_bprobit.tol [1.330 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/generalized_linear/_init_generalized_linear.tol [1.340 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/arima/_init_arima.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/arima/_arma_process.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/arima/_arma_process.tol [2.540 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/arima/_bmtsarima.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/arima/_bmtsarima.tol [3.420 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/arima/_init_arima.tol [5.990 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/diagnosis/_init_diagnosis.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/diagnosis/_rcoda.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/diagnosis/_rcoda.tol [1.510 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/diagnosis/_init_diagnosis.tol [1.520 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/multiTryMetropolis/_multiTryMetropolis.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/multiTryMetropolis/_multiTryMetropolis.tol [2.120 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/bayesian/_init_bayesian.tol [19.480 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/models/_init_models.tol [39.290 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/stat/_init_stat.tol [42.660 sec.]
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/R/_init_Rapi.tol
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/R/Rapi.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/R/Rapi.tol [1.180 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/R/_init_Rapi.tol [1.190 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/math/_init_math.tol [50.700 sec.]
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/_packages.tol [159.260 sec.]
+OIS: Creating module stdlib::_packages.tol
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710FB4: fill_window (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97113C3: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FEAAA: ZipArchiveLib::CDeflateCompressor::Compress(void const*, unsigned int) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E327E: CZipArchive::WriteNewFile(void const*, unsigned int) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC075: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96AC879: BOisCreator::Flush() (oiscreator.cpp:1144)
+==30264==    by 0x96B3E7B: BOisCreator::Build() (oiscreator.cpp:1126)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264==    by 0x90E5E01: BStandardOperator::Evaluator(BList*) const (tol_boper.h:305)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710B21: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96AC879: BOisCreator::Flush() (oiscreator.cpp:1144)
+==30264==    by 0x96B3E7B: BOisCreator::Build() (oiscreator.cpp:1126)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264==    by 0x90E5E01: BStandardOperator::Evaluator(BList*) const (tol_boper.h:305)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710C28: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96AC879: BOisCreator::Flush() (oiscreator.cpp:1144)
+==30264==    by 0x96B3E7B: BOisCreator::Build() (oiscreator.cpp:1126)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264==    by 0x90E5E01: BStandardOperator::Evaluator(BList*) const (tol_boper.h:305)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710BA8: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96B2111: BOisCreator::WriteSource(int, int, BText const&) (oiscreator.cpp:319)
+==30264==    by 0x9690DB0: BOisCreator::WriteHeader() (oisxml.cpp:194)
+==30264==    by 0x96B3E96: BOisCreator::Build() (oiscreator.cpp:1128)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710BC4: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96B2111: BOisCreator::WriteSource(int, int, BText const&) (oiscreator.cpp:319)
+==30264==    by 0x9690DB0: BOisCreator::WriteHeader() (oisxml.cpp:194)
+==30264==    by 0x96B3E96: BOisCreator::Build() (oiscreator.cpp:1128)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710BE0: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96B2111: BOisCreator::WriteSource(int, int, BText const&) (oiscreator.cpp:319)
+==30264==    by 0x9690DB0: BOisCreator::WriteHeader() (oisxml.cpp:194)
+==30264==    by 0x96B3E96: BOisCreator::Build() (oiscreator.cpp:1128)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264== 
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710C10: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96913C9: BOisCreator::WriteHeader() (oisxml.cpp:246)
+==30264==    by 0x96B3E96: BOisCreator::Build() (oiscreator.cpp:1128)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264==    by 0x90E5E01: BStandardOperator::Evaluator(BList*) const (tol_boper.h:305)
+==30264== 
+Including /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_tools.tol
+Included file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_tools.tol [0.310 sec.]
+Ha sido incluido file /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/_init_stdlib.tol [217.330 sec.]
+Including /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/check.tol
+Including /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/VC1.C56.22_data.oza
+<W>
+Warning: [11] OIS: 
 Cannot rebuild virtual expression of non bounded TimeSet =D(corte)
 Only cached dates will be accessible between [y1999m11d22,y2010m01d22]
 To avoid this problem save just bounded time sets </W>
 <W>
-Warning: [9] OIS: 
+Warning: [12] OIS: 
 Cannot rebuild virtual expression of non bounded TimeSet =D(corte+1)
 Only cached dates will be accessible between [y2000m01d01,y2010m01d01]
 To avoid this problem save just bounded time sets </W>
 <W>
-Warning: [10] OIS: 
+Warning: [13] OIS: 
 Cannot rebuild virtual expression of non bounded Serie Pre_minMes_pC=B:DatCh(Pre_minMes, tsPc, FirstS)
 Only cached data will be accessible between [y2006m01d23,y2008m11d23]
 To avoid this problem save just bounded time series </W>
-<W>
-Warning: [11] OIS: 
-Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
-Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
-To avoid this problem save just bounded time sets </W>
-<W>
-Warning: [12] OIS: 
-Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
-Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
-To avoid this problem save just bounded time sets </W>
-<W>
-Warning: [13] OIS: 
-Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
-Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
-To avoid this problem save just bounded time sets </W>
 <W>
 Warning: [14] OIS: 
 Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
@@ -321,186 +719,313 @@ Warning: [20] OIS:
 Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
 Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
 To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [21] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [22] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [23] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
 check must be 0 and it is 1
-Ha sido incluido el fichero /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/check.tol [2.660 sec.]
-==28106== 
-==28106== HEAP SUMMARY:
-==28106==     in use at exit: 36,356,905 bytes in 42,993 blocks
-==28106==   total heap usage: 82,638 allocs, 39,645 frees, 6,185,758,497 bytes allocated
-==28106== 
-==28106== Searching for pointers to 42,993 not-freed blocks
-==28106== Checked 40,371,400 bytes
-==28106== 
-==28106== LEAK SUMMARY:
-==28106==    definitely lost: 2,891 bytes in 36 blocks
-==28106==    indirectly lost: 24,987 bytes in 12 blocks
-==28106==      possibly lost: 9,901,668 bytes in 27,111 blocks
-==28106==    still reachable: 26,427,359 bytes in 15,834 blocks
-==28106==         suppressed: 0 bytes in 0 blocks
-==28106== Rerun with --leak-check=full to see details of leaked memory
-==28106== 
-==28106== Use --track-origins=yes to see where uninitialised values come from
-==28106== ERROR SUMMARY: 29 errors from 10 contexts (suppressed: 45 from 10)
-==28106== 
-==28106== 1 errors in context 1 of 10:
-==28106== Conditional jump or move depends on uninitialised value(s)
-==28106==    at 0x93450DB: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x812162: call_init (in /lib/ld-2.5.so)
-==28106== 
-==28106== 
-==28106== 1 errors in context 2 of 10:
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
-==28106==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
-==28106==    by 0x93450BC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106== 
-==28106== 
-==28106== 1 errors in context 3 of 10:
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
-==28106==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
-==28106==    by 0x9344FB1: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
-==28106==    by 0x934508A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:819)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106== 
-==28106== 
-==28106== 1 errors in context 4 of 10:
-==28106== Conditional jump or move depends on uninitialised value(s)
-==28106==    at 0x934502D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x812162: call_init (in /lib/ld-2.5.so)
-==28106== 
-==28106== 
-==28106== 4 errors in context 5 of 10:
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x933CA61: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x812162: call_init (in /lib/ld-2.5.so)
-==28106==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
-==28106==    by 0x80484E: ??? (in /lib/ld-2.5.so)
-==28106== 
-==28106== 
-==28106== 4 errors in context 6 of 10:
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x933FD1A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
-==28106==    by 0x934A801: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
-==28106==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106== 
-==28106== 
-==28106== 4 errors in context 7 of 10:
-==28106== Conditional jump or move depends on uninitialised value(s)
-==28106==    at 0x933FD0D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
-==28106==    by 0x934A801: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
-==28106==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106== 
-==28106== 
-==28106== 4 errors in context 8 of 10:
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
-==28106==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
-==28106==    by 0x9344FB1: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
-==28106==    by 0x934A72C: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:892)
-==28106==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106== 
-==28106== 
-==28106== 4 errors in context 9 of 10:
-==28106== Conditional jump or move depends on uninitialised value(s)
-==28106==    at 0x93524A8: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:962)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
-==28106==    by 0x812162: call_init (in /lib/ld-2.5.so)
-==28106==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
-==28106== 
-==28106== 
-==28106== 5 errors in context 10 of 10:
-==28106== Use of uninitialised value of size 4
-==28106==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
-==28106==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
-==28106==    by 0x9344EA9: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_empty(unsigned int) const (densehashtable.h:462)
-==28106==    by 0x934502A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
-==28106==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
-==28106==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
-==28106==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
-==28106==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
-==28106==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
-==28106==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
-==28106==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
-==28106==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
-==28106== 
---28106-- 
---28106-- used_suppression:     45 dl-hack3
-==28106== 
-==28106== ERROR SUMMARY: 29 errors from 10 contexts (suppressed: 45 from 10)
+Included file /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/check.tol [2.720 sec.]
+==30264== 
+==30264== HEAP SUMMARY:
+==30264==     in use at exit: 47,975,342 bytes in 46,829 blocks
+==30264==   total heap usage: 136,101 allocs, 89,272 frees, 27,351,741,348 bytes allocated
+==30264== 
+==30264== Searching for pointers to 46,829 not-freed blocks
+==30264== Checked 51,948,064 bytes
+==30264== 
+==30264== LEAK SUMMARY:
+==30264==    definitely lost: 2,907 bytes in 41 blocks
+==30264==    indirectly lost: 7,643 bytes in 12 blocks
+==30264==      possibly lost: 13,480,877 bytes in 30,908 blocks
+==30264==    still reachable: 34,483,915 bytes in 15,868 blocks
+==30264==         suppressed: 0 bytes in 0 blocks
+==30264== Rerun with --leak-check=full to see details of leaked memory
+==30264== 
+==30264== Use --track-origins=yes to see where uninitialised values come from
+==30264== ERROR SUMMARY: 7456 errors from 17 contexts (suppressed: 45 from 10)
+==30264== 
+==30264== 1 errors in context 1 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710C10: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96913C9: BOisCreator::WriteHeader() (oisxml.cpp:246)
+==30264==    by 0x96B3E96: BOisCreator::Build() (oiscreator.cpp:1128)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264==    by 0x90E5E01: BStandardOperator::Evaluator(BList*) const (tol_boper.h:305)
+==30264== 
+==30264== 
+==30264== 1 errors in context 2 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9345237: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==30264== 
+==30264== 
+==30264== 1 errors in context 3 of 17:
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x93407AE: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==30264==    by 0x93407DC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==30264==    by 0x9345218: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264== 
+==30264== 
+==30264== 1 errors in context 4 of 17:
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x93407AE: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==30264==    by 0x93407DC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==30264==    by 0x934510D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
+==30264==    by 0x93451E6: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:819)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264== 
+==30264== 
+==30264== 1 errors in context 5 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9345189: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==30264== 
+==30264== 
+==30264== 2 errors in context 6 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710C28: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96AC879: BOisCreator::Flush() (oiscreator.cpp:1144)
+==30264==    by 0x96B3E7B: BOisCreator::Build() (oiscreator.cpp:1126)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264==    by 0x90E5E01: BStandardOperator::Evaluator(BList*) const (tol_boper.h:305)
+==30264== 
+==30264== 
+==30264== 4 errors in context 7 of 17:
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x933CBBD: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==30264==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
+==30264==    by 0x80484E: ??? (in /lib/ld-2.5.so)
+==30264== 
+==30264== 
+==30264== 4 errors in context 8 of 17:
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x933FE76: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
+==30264==    by 0x934A95D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
+==30264==    by 0x9352788: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264== 
+==30264== 
+==30264== 4 errors in context 9 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x933FE69: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
+==30264==    by 0x934A95D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
+==30264==    by 0x9352788: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264== 
+==30264== 
+==30264== 4 errors in context 10 of 17:
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x93407AE: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==30264==    by 0x93407DC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==30264==    by 0x934510D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
+==30264==    by 0x934A888: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:892)
+==30264==    by 0x9352788: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264== 
+==30264== 
+==30264== 4 errors in context 11 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9352604: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:962)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264==    by 0x97191E5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x8EFCCA8: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==30264==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
+==30264== 
+==30264== 
+==30264== 5 errors in context 12 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710BE0: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96B2111: BOisCreator::WriteSource(int, int, BText const&) (oiscreator.cpp:319)
+==30264==    by 0x9690DB0: BOisCreator::WriteHeader() (oisxml.cpp:194)
+==30264==    by 0x96B3E96: BOisCreator::Build() (oiscreator.cpp:1128)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264== 
+==30264== 
+==30264== 5 errors in context 13 of 17:
+==30264== Use of uninitialised value of size 4
+==30264==    at 0x93407AE: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==30264==    by 0x93407DC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==30264==    by 0x9345005: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_empty(unsigned int) const (densehashtable.h:462)
+==30264==    by 0x9345186: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
+==30264==    by 0x935267C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==30264==    by 0x93527C7: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==30264==    by 0x933CBB7: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==30264==    by 0x933DA09: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==30264==    by 0x931CAF8: BVMat::InitializeClass() (vmat.cpp:517)
+==30264==    by 0x8F597DC: InitializeOrderedClasses() (init.cpp:417)
+==30264==    by 0x96D5C24: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==30264==    by 0x96D5E08: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_713355246ignoreE (PackArchive.cpp:363)
+==30264== 
+==30264== 
+==30264== 8 errors in context 14 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710BC4: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96B2111: BOisCreator::WriteSource(int, int, BText const&) (oiscreator.cpp:319)
+==30264==    by 0x9690DB0: BOisCreator::WriteHeader() (oisxml.cpp:194)
+==30264==    by 0x96B3E96: BOisCreator::Build() (oiscreator.cpp:1128)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264== 
+==30264== 
+==30264== 13 errors in context 15 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710BA8: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96B2111: BOisCreator::WriteSource(int, int, BText const&) (oiscreator.cpp:319)
+==30264==    by 0x9690DB0: BOisCreator::WriteHeader() (oisxml.cpp:194)
+==30264==    by 0x96B3E96: BOisCreator::Build() (oiscreator.cpp:1128)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264== 
+==30264== 
+==30264== 28 errors in context 16 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710B21: longest_match (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97114E0: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FE93E: ZipArchiveLib::CDeflateCompressor::FinishCompression(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E7E1D: CZipArchive::CloseNewFile(bool) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC2CF: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96AC879: BOisCreator::Flush() (oiscreator.cpp:1144)
+==30264==    by 0x96B3E7B: BOisCreator::Build() (oiscreator.cpp:1126)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264==    by 0x90E5E01: BStandardOperator::Evaluator(BList*) const (tol_boper.h:305)
+==30264== 
+==30264== 
+==30264== 7370 errors in context 17 of 17:
+==30264== Conditional jump or move depends on uninitialised value(s)
+==30264==    at 0x9710FB4: fill_window (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x97113C3: zarch_deflate_fast (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x9710277: zarch_deflate (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96FEAAA: ZipArchiveLib::CDeflateCompressor::Compress(void const*, unsigned int) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96E327E: CZipArchive::WriteNewFile(void const*, unsigned int) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC075: CZipArchive::AddNewFile(CZipAddNewFileInfo&) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96EC4D0: CZipArchive::AddNewFile(CZipAbstractFile&, char const*, int, int, unsigned long) (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==30264==    by 0x96CFCF8: BZipStream::Flush() (oisstream_zip.cpp:232)
+==30264==    by 0x96AC879: BOisCreator::Flush() (oiscreator.cpp:1144)
+==30264==    by 0x96B3E7B: BOisCreator::Build() (oiscreator.cpp:1126)
+==30264==    by 0x96C2220: OisUseModuleEvaluator(BList*) (oisapitol.cpp:1179)
+==30264==    by 0x90E5E01: BStandardOperator::Evaluator(BList*) const (tol_boper.h:305)
+==30264== 
+--30264-- 
+--30264-- used_suppression:     45 dl-hack3
+==30264== 
+==30264== ERROR SUMMARY: 7456 errors from 17 contexts (suppressed: 45 from 10)
