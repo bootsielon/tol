@@ -1,0 +1,505 @@
+==28089== Memcheck, a memory error detector
+==28089== Copyright (C) 2002-2009, and GNU GPL'd, by Julian Seward et al.
+==28089== Using Valgrind-3.5.0 and LibVEX; rerun with -h for copyright info
+==28089== Command: /usr/local/tol-gcc-debug/bin/tolcon -v check.tol
+==28089== 
+--28089-- Valgrind options:
+--28089--    -v
+--28089-- Contents of /proc/version:
+--28089--   Linux version 2.6.18-194.11.4.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-48)) #1 SMP Tue Sep 21 05:04:09 EDT 2010
+--28089-- Arch and hwcaps: X86, x86-sse1-sse2
+--28089-- Page sizes: currently 4096, max supported 4096
+--28089-- Valgrind library directory: /usr/lib/valgrind
+--28089-- Reading syms from /lib/ld-2.5.so (0x804000)
+--28089-- Reading syms from /usr/local/tol-gcc-debug/bin/tolcon (0x8048000)
+--28089-- Reading syms from /usr/lib/valgrind/memcheck-x86-linux (0x38000000)
+--28089--    object doesn't have a dynamic symbol table
+--28089-- Reading suppressions file: /usr/lib/valgrind/default.supp
+--28089-- REDIR: 0x819730 (index) redirected to 0x3803e483 (vgPlain_x86_linux_REDIR_FOR_index)
+--28089-- Reading syms from /usr/lib/valgrind/vgpreload_core-x86-linux.so (0x4c6c000)
+--28089-- Reading syms from /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so (0x4c6e000)
+==28089== WARNING: new redirection conflicts with existing -- ignoring it
+--28089--     new: 0x00819730 (index               ) R-> 0x04c71640 index
+--28089-- REDIR: 0x8198d0 (strlen) redirected to 0x4c71820 (strlen)
+--28089-- Reading syms from /usr/local/tol-gcc-debug/lib/libtol2.0.2.so (0x884a000)
+--28089-- Reading syms from /usr/lib/libstdc++.so.6.0.10 (0x7cf5000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /lib/libm-2.5.so (0xa8c000)
+--28089-- Reading syms from /lib/libgcc_s-4.1.2-20080825.so.1 (0x7df6000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /lib/libc-2.5.so (0x823000)
+--28089-- Reading syms from /lib/libdl-2.5.so (0x999000)
+--28089-- Reading syms from /usr/lib/libltdl.so.3.1.4 (0x7e0e000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /usr/lib/libz.so.1.2.3 (0xc58000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /usr/lib/libbz2.so.1.0.3 (0x7e21000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /usr/local/lib/libcholmod.so (0x7e3b000)
+--28089-- Reading syms from /usr/lib/atlas-sse2/liblapack.so.3.0 (0x9c79000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /usr/lib/libgsl.so.0.14.0 (0xa11d000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /usr/local/lib/libblapi.so (0x7f67000)
+--28089-- Reading syms from /usr/lib/libgfortran.so.1.0.0 (0x9d6000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /usr/lib/atlas-sse2/libf77blas.so.3.0 (0x7fac000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /usr/lib/atlas-sse2/libcblas.so.3.0 (0x7fcb000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /usr/lib/atlas-sse2/libatlas.so.3.0 (0xa2f5000)
+--28089--    object doesn't have a symbol table
+--28089-- Reading syms from /lib/libpthread-2.5.so (0x97e000)
+--28089-- REDIR: 0x894540 (memset) redirected to 0x4c71b80 (memset)
+--28089-- REDIR: 0x894a30 (memcpy) redirected to 0x4c72a70 (memcpy)
+--28089-- REDIR: 0x8936a0 (rindex) redirected to 0x4c71550 (rindex)
+--28089-- REDIR: 0x893300 (strlen) redirected to 0x4c71800 (strlen)
+--28089-- REDIR: 0x88ee30 (malloc) redirected to 0x4c7087e (malloc)
+--28089-- REDIR: 0x8945a0 (mempcpy) redirected to 0x4c722d0 (mempcpy)
+--28089-- REDIR: 0x7dadda0 (operator new[](unsigned int)) redirected to 0x4c70ca1 (operator new[](unsigned int))
+--28089-- REDIR: 0x7dadc50 (operator new(unsigned int)) redirected to 0x4c71049 (operator new(unsigned int))
+--28089-- REDIR: 0x88c990 (free) redirected to 0x4c70498 (free)
+--28089-- REDIR: 0x8934f0 (strncmp) redirected to 0x4c71860 (strncmp)
+--28089-- REDIR: 0x892da0 (strcmp) redirected to 0x4c718d0 (strcmp)
+--28089-- REDIR: 0x892c30 (index) redirected to 0x4c715e0 (index)
+--28089-- REDIR: 0x7dabfb0 (operator delete[](void*)) redirected to 0x4c6fe31 (operator delete[](void*))
+--28089-- REDIR: 0x892e10 (strcpy) redirected to 0x4c72d00 (strcpy)
+--28089-- REDIR: 0x8952e0 (rawmemchr) redirected to 0x4c71c90 (rawmemchr)
+--28089-- REDIR: 0x88eaf0 (calloc) redirected to 0x4c6fb8e (calloc)
+--28089-- Reading syms from /usr/lib/atlas/libf77blas.so.3.0 (0xaa96000)
+--28089--    object doesn't have a symbol table
+--28089-- REDIR: 0x892a80 (strcat) redirected to 0x4c72000 (strcat)
+--28089-- Reading syms from /usr/lib/atlas/liblapack.so.3.0 (0xaab9000)
+--28089--    object doesn't have a symbol table
+==28089== Conditional jump or move depends on uninitialised value(s)
+==28089==    at 0x93524A8: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:962)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==28089==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
+==28089== 
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==28089==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==28089==    by 0x9344EA9: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_empty(unsigned int) const (densehashtable.h:462)
+==28089==    by 0x934502A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089== 
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==28089==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==28089==    by 0x9344FB1: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
+==28089==    by 0x934A72C: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:892)
+==28089==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089== 
+==28089== Conditional jump or move depends on uninitialised value(s)
+==28089==    at 0x933FD0D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
+==28089==    by 0x934A801: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
+==28089==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089== 
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x933FD1A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
+==28089==    by 0x934A801: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
+==28089==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089== 
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x933CA61: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==28089==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
+==28089==    by 0x80484E: ??? (in /lib/ld-2.5.so)
+==28089== 
+==28089== Conditional jump or move depends on uninitialised value(s)
+==28089==    at 0x934502D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==28089== 
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==28089==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==28089==    by 0x9344FB1: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
+==28089==    by 0x934508A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:819)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089== 
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==28089==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==28089==    by 0x93450BC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089== 
+==28089== Conditional jump or move depends on uninitialised value(s)
+==28089==    at 0x93450DB: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==28089== 
+--28089-- REDIR: 0x88f2a0 (realloc) redirected to 0x4c7092d (realloc)
+--28089-- REDIR: 0x894730 (stpcpy) redirected to 0x4c72550 (stpcpy)
+
+Initializing Bayes Fixed Sise Memory Pool 
+Initializing static member of basic classes 
+Initializing class BText
+Initializing class BOut
+Initializing class BDate
+Initializing class BDateFormat
+Initializing class BProbDist
+Initializing class BDat<W>
+Warning: [1] [Cint_dynamic_linkage("libcint.so")] 
+  lt_dlopen error:'libcint.so: cannot open shared object file: No such file or directory'</W>
+
+Initializing TOL <W>
+Warning: [2] BVMat::common_->print has been modified</W>
+<W>
+Warning: [3] BVMat::common_->print_function has been modified</W>
+<W>
+Warning: [4] BVMat::common_->error_handler has been modified</W>
+<W>
+Warning: [5] BVMat::common_->supernodal has been modified</W>
+<W>
+Warning: [6] BVMat::common_->final_ll has been modified</W>
+OIS: versión implementada: 02.16--28089-- REDIR: 0x7dabf50 (operator delete(void*)) redirected to 0x4c701af (operator delete(void*))
+--28089-- REDIR: 0x894040 (memchr) redirected to 0x4c719f0 (memchr)
+--28089-- REDIR: 0x8944d0 (memmove) redirected to 0x4c71be0 (memmove)
+<W>
+Warning: [7] [Cint_dynamic_linkage("libcint.so")] 
+  lt_dlopen error:'libcint.so: cannot open shared object file: No such file or directory'</W>
+
+Cargando la libreria estandar de TOL /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/_init_stdlib.tol
+Incluyendo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/_init_stdlib.tol
+Incluyendo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/TolConfigManager.tol
+Ha sido incrustado el archivo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/default.tol
+Ha sido incrustado el archivo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/methods.tol
+Incluyendo /home/toldevel/.tol/.tolConfig.v2.0.2.tol
+Ha sido incluido el fichero /home/toldevel/.tol/.tolConfig.v2.0.2.tol [0.850 sec.]
+Ha sido incluido el fichero /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/TolConfigManager/TolConfigManager.tol [7.190 sec.]
+OIS: Cargando el módulo stdlib::_packages.tol
+Incluyendo /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_tools.tol
+Ha sido incluido el fichero /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/general/various/_tools.tol [0.320 sec.]
+Ha sido incluido el fichero /usr/local/tol-gcc-debug/lib/tol2.0.2/stdlib/_init_stdlib.tol [55.210 sec.]
+Incluyendo /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/check.tol
+Incluyendo /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/VC1.C56.22_data.oza
+<W>
+Warning: [8] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet =D(corte)
+Only cached dates will be accessible between [y1999m11d22,y2010m01d22]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [9] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet =D(corte+1)
+Only cached dates will be accessible between [y2000m01d01,y2010m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [10] OIS: 
+Cannot rebuild virtual expression of non bounded Serie Pre_minMes_pC=B:DatCh(Pre_minMes, tsPc, FirstS)
+Only cached data will be accessible between [y2006m01d23,y2008m11d23]
+To avoid this problem save just bounded time series </W>
+<W>
+Warning: [11] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [12] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [13] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [14] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [15] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [16] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [17] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [18] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [19] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+<W>
+Warning: [20] OIS: 
+Cannot rebuild virtual expression of non bounded TimeSet Diario=dtn
+Only cached dates will be accessible between [y1996m06d06,y2100m01d01]
+To avoid this problem save just bounded time sets </W>
+check must be 0 and it is 1
+Ha sido incluido el fichero /home/toldevel/tol-devel/trunk/tol_tests/tol/Bugzilla/bug_001199/check.tol [2.650 sec.]
+==28089== 
+==28089== HEAP SUMMARY:
+==28089==     in use at exit: 36,366,681 bytes in 42,997 blocks
+==28089==   total heap usage: 82,636 allocs, 39,639 frees, 6,185,765,865 bytes allocated
+==28089== 
+==28089== Searching for pointers to 42,997 not-freed blocks
+==28089== Checked 40,397,560 bytes
+==28089== 
+==28089== LEAK SUMMARY:
+==28089==    definitely lost: 2,891 bytes in 36 blocks
+==28089==    indirectly lost: 8,603 bytes in 11 blocks
+==28089==      possibly lost: 9,894,021 bytes in 27,102 blocks
+==28089==    still reachable: 26,461,166 bytes in 15,848 blocks
+==28089==         suppressed: 0 bytes in 0 blocks
+==28089== Rerun with --leak-check=full to see details of leaked memory
+==28089== 
+==28089== Use --track-origins=yes to see where uninitialised values come from
+==28089== ERROR SUMMARY: 29 errors from 10 contexts (suppressed: 45 from 10)
+==28089== 
+==28089== 1 errors in context 1 of 10:
+==28089== Conditional jump or move depends on uninitialised value(s)
+==28089==    at 0x93450DB: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==28089== 
+==28089== 
+==28089== 1 errors in context 2 of 10:
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==28089==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==28089==    by 0x93450BC: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:823)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089== 
+==28089== 
+==28089== 1 errors in context 3 of 10:
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==28089==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==28089==    by 0x9344FB1: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
+==28089==    by 0x934508A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:819)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089== 
+==28089== 
+==28089== 1 errors in context 4 of 10:
+==28089== Conditional jump or move depends on uninitialised value(s)
+==28089==    at 0x934502D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==28089== 
+==28089== 
+==28089== 4 errors in context 5 of 10:
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x933CA61: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==28089==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
+==28089==    by 0x80484E: ??? (in /lib/ld-2.5.so)
+==28089== 
+==28089== 
+==28089== 4 errors in context 6 of 10:
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x933FD1A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
+==28089==    by 0x934A801: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
+==28089==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089== 
+==28089== 
+==28089== 4 errors in context 7 of 10:
+==28089== Conditional jump or move depends on uninitialised value(s)
+==28089==    at 0x933FD0D: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::set_value(std::pair<int const, BVMat::StrDefCode*>*, std::pair<int const, BVMat::StrDefCode*> const&) (densehashtable.h:354)
+==28089==    by 0x934A801: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:901)
+==28089==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089== 
+==28089== 
+==28089== 4 errors in context 8 of 10:
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==28089==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==28089==    by 0x9344FB1: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_deleted(unsigned int) const (densehashtable.h:409)
+==28089==    by 0x934A72C: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::insert_at(std::pair<int const, BVMat::StrDefCode*> const&, unsigned int) (densehashtable.h:892)
+==28089==    by 0x935262C: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:974)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089== 
+==28089== 
+==28089== 4 errors in context 9 of 10:
+==28089== Conditional jump or move depends on uninitialised value(s)
+==28089==    at 0x93524A8: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:962)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089==    by 0x97188C5: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x8EFCC04: ??? (in /usr/local/tol-gcc-debug/lib/libtol2.0.2.so)
+==28089==    by 0x812162: call_init (in /lib/ld-2.5.so)
+==28089==    by 0x812272: _dl_init (in /lib/ld-2.5.so)
+==28089== 
+==28089== 
+==28089== 5 errors in context 10 of 10:
+==28089== Use of uninitialised value of size 4
+==28089==    at 0x9340652: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::KeyInfo::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1193)
+==28089==    by 0x9340680: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::get_key(std::pair<int const, BVMat::StrDefCode*> const&) const (densehashtable.h:1215)
+==28089==    by 0x9344EA9: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::test_empty(unsigned int) const (densehashtable.h:462)
+==28089==    by 0x934502A: google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_position(int const&) const (densehashtable.h:813)
+==28089==    by 0x9352520: std::pair<int const, BVMat::StrDefCode*>& google::dense_hashtable<std::pair<int const, BVMat::StrDefCode*>, int, std::tr1::hash<int>, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SelectKey, google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::SetKey, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::find_or_insert<google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::DefaultValue>(int const&) (densehashtable.h:966)
+==28089==    by 0x935266B: google::dense_hash_map<int, BVMat::StrDefCode*, std::tr1::hash<int>, std::equal_to<int>, google::libc_allocator_with_realloc<std::pair<int const, BVMat::StrDefCode*> > >::operator[](int const&) (dense_hash_map:269)
+==28089==    by 0x933CA5B: BVMat::defCodeAdd(BVMat::StrDefCode&) (vmat_subtypes.cpp:132)
+==28089==    by 0x933D8AD: BVMat::initializeIdentifiers() (vmat_subtypes.cpp:263)
+==28089==    by 0x931C99C: BVMat::InitializeClass() (vmat.cpp:517)
+==28089==    by 0x8F5972C: InitializeOrderedClasses() (init.cpp:417)
+==28089==    by 0x96D52F8: __static_initialization_and_destruction_0(int, int) (PackArchive.cpp:44)
+==28089==    by 0x96D54DC: global constructors keyed to _ZNSt3tr156_GLOBAL__N_PackArchive_PackArchive.cpp_7FE610FD_03F4E1A66ignoreE (PackArchive.cpp:363)
+==28089== 
+--28089-- 
+--28089-- used_suppression:     45 dl-hack3
+==28089== 
+==28089== ERROR SUMMARY: 29 errors from 10 contexts (suppressed: 45 from 10)
