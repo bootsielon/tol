@@ -460,6 +460,7 @@ const BText& BSyntaxObject::Description() const
   }
 }
 
+
 //--------------------------------------------------------------------
 union BIntPointerMask
 //--------------------------------------------------------------------
@@ -467,7 +468,9 @@ union BIntPointerMask
   BIntPair                    pair_;
   const BSyntaxObject*        obj_;
   const BGrammar*             gra_;
+#if (__USE_POOL__==__POOL_BFSMEM__)
   const BFixedSizeMemoryBase* mhn_;
+#endif
 };
 
 
@@ -495,7 +498,9 @@ union BIntPointerMask
      (objMask.obj_->Mode() == mode) &&
      (sizeof(objMask.obj_) == size) &&
      (objMask.obj_->GetPageNum() == pageNum)&&
+#if (__USE_POOL__==__POOL_BFSMEM__)
      (objMask.obj_->GetMemHandler() == mhnMask.mhn_)&&
+#endif
      (objMask.obj_->IsAssigned()!=0))
   {
     obj = objMask.obj_;
@@ -517,7 +522,9 @@ union BIntPointerMask
   mhnMask.pair_.c_ = 0;
   objMask.obj_ = this;
   graMask.gra_ = Grammar();
+#if (__USE_POOL__==__POOL_BFSMEM__)
   mhnMask.mhn_ = GetMemHandler();
+#endif
   int mode = Mode();
   int size = sizeof(this);
   int pageNum = GetPageNum();
@@ -533,3 +540,4 @@ union BIntPointerMask
     pageNum);
   return(BText(address));
 }
+

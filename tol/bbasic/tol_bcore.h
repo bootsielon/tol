@@ -58,10 +58,6 @@ class TOL_API BCore
     //information in inherited classes to have non -1 result.
     //See on tol_bfsmem.h a sample of Memory Handler
     virtual short IsAssigned() const { return(-1); }
-#if (__USE_POOL__==__POOL_BFSMEM__)
-    virtual BFixedSizeMemoryBase* GetMemHandler() const { return(NULL); }
-    virtual unsigned short  GetPageNum   () const { return(0); }
-    virtual size_t GetSizeOf() const { return(0); } 
     struct TOL_API MemAssignInfo
     {
       BCore*                address_;
@@ -73,14 +69,11 @@ class TOL_API BCore
       short IsAssigned();
       void SafeDestroy();
     };
-#else
-    struct TOL_API MemAssignInfo
-    {
-      short IsAssigned() { return(-1); }
-      void SafeDestroy() { }
-      MemAssignInfo(BCore* adress) { }
-    };
+#if (__USE_POOL__==__POOL_BFSMEM__)
+    virtual BFixedSizeMemoryBase* GetMemHandler() const { return(NULL); }
 #endif
+    virtual unsigned short  GetPageNum   () const { return(0); }
+    virtual size_t GetSizeOf() const { return(0); } 
 };
 
 

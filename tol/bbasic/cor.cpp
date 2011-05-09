@@ -56,6 +56,30 @@ BInt BCore::NCore()
     return(nCore_);
 }
 
+#if (__USE_POOL__!=__POOL_BFSMEM__)
+
+BCore::MemAssignInfo::MemAssignInfo(BCore* address)
+{
+  SetAddress(address);
+}
+
+void BCore::MemAssignInfo::SetAddress(BCore* address)
+{
+  address_ = address;  
+  size_    = 0;
+  pageNum_ = 0;
+}
+
+short BCore::MemAssignInfo::IsAssigned() 
+{ 
+  return(-1); 
+}
+
+void BCore::MemAssignInfo::SafeDestroy()
+{
+}
+
+#else
 
 BCore::MemAssignInfo::MemAssignInfo(BCore* address)
 {
@@ -97,3 +121,5 @@ void BCore::MemAssignInfo::SafeDestroy()
     address_ = NULL;
   }
 }
+
+#endif

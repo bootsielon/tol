@@ -56,10 +56,12 @@ void DoubleArray::Alloc(int size)
     Free();
     size_ = size;
     _bfsm_BaseSize__ = sizeof(double)*size_;
-
+#if (__USE_POOL__==__POOL_BFSMEM__)
     buffer_ = (double*)BFixedSizeMemoryBase::
               Instance(_bfsm_BaseSize__)->New(_bfsm_BaseSize__,_bfsm_VectorPageNum__); 
-//  buffer_ = new double[size_];
+#else
+    buffer_ = new double[size_];
+#endif
   }
   else
   {
@@ -73,8 +75,11 @@ void DoubleArray::Free()
 {
   if(buffer_)
   {
+#if (__USE_POOL__==__POOL_BFSMEM__)
     BFixedSizeMemoryBase::Instance(_bfsm_BaseSize__)->Delete(buffer_,_bfsm_VectorPageNum__);
-  //delete buffer_;
+#else
+    delete buffer_;
+#endif
     buffer_ = NULL; 
     size_ = 0; 
   }
@@ -89,9 +94,12 @@ void IntArray::Alloc(int size)
     Free();
     size_ = size;
     _bfsm_BaseSize__ = sizeof(int)*size_;
+#if (__USE_POOL__==__POOL_BFSMEM__)
     buffer_ = (int*)BFixedSizeMemoryBase::
               Instance(_bfsm_BaseSize__)->New(_bfsm_BaseSize__,_bfsm_VectorPageNum__); 
-  //buffer_ = new int[size_];
+#else
+    buffer_ = new int[size_];
+#endif
   }
   else
   {
@@ -105,8 +113,11 @@ void IntArray::Free()
 {
   if(buffer_)
   {
+#if (__USE_POOL__==__POOL_BFSMEM__)
     BFixedSizeMemoryBase::Instance(_bfsm_BaseSize__)->Delete(buffer_,_bfsm_VectorPageNum__);
-  //delete buffer_;
+#else
+    delete buffer_;
+#endif
     buffer_ = NULL; 
     size_ = 0; 
   }

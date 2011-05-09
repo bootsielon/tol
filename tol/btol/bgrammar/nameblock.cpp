@@ -57,9 +57,10 @@ const BNameBlock*         BNameBlock::current_  = NULL;
       BObjByClassNameHash BNameBlock::usingSymbolsByClass_;
       BRequiredPackage    BNameBlock::globalRequiredPackages_;
 
+#if (__USE_POOL__==__POOL_BFSMEM__)
 static BFixedSizeMemoryBase* BFSMEM_Hndlr = 
  BFSMSingleton<sizeof(BNameBlock)>::Handler();
-
+#endif
 static BStruct* strNameBlockMemberInfo_  = NULL;
 static BStruct* strClassMemberInfo_  = NULL;
 
@@ -127,7 +128,11 @@ static bool BNameBlock_IsInitialized()
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
+#if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
+#else
+  short isAssigned = -1;
+#endif
   createdWithNew_ = isAssigned==1;
 }
 
@@ -151,7 +156,11 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
 {
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
+#if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
+#else
+  short isAssigned = -1;
+#endif
   createdWithNew_ = isAssigned==1;
 }
 
@@ -173,7 +182,11 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   doingRebuildFullNameDeep(false),
   startedPackage(false)
 {
+#if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
+#else
+  short isAssigned = -1;
+#endif
   createdWithNew_ = isAssigned!=-1;
   *this = ns;
 }  
@@ -276,12 +289,14 @@ const BText& BNameBlock::LocalName() const
   short BNameBlock::EnsureIsAssigned() const
 //--------------------------------------------------------------------
 {
+#if (__USE_POOL__==__POOL_BFSMEM__)
   if(createdWithNew_) 
   { 
     short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
     return(isAssigned); 
   }
-  else                
+  else        
+#endif       
   { 
     return(true); 
   }
@@ -320,6 +335,7 @@ const BText& BNameBlock::LocalName() const
   const BNameBlock* BNameBlock::Current() 
 //--------------------------------------------------------------------
 { 
+#if (__USE_POOL__==__POOL_BFSMEM__)
   if(current_ && 
      current_->createdWithNew_ &&
      !(BFSMEM_Hndlr->IsAssigned(current_,current_->_bfsm_PageNum__)))
@@ -327,6 +343,7 @@ const BText& BNameBlock::LocalName() const
     BFSMEM_Hndlr->IsAssigned(current_,current_->_bfsm_PageNum__);
     current_ = NULL;
   }
+#endif
   return(current_); 
 }
 
@@ -343,6 +360,7 @@ const BText& BNameBlock::LocalName() const
   BUserNameBlock* BNameBlock::Building() 
 //--------------------------------------------------------------------
 { 
+#if (__USE_POOL__==__POOL_BFSMEM__)
   if(building_ && 
      building_->Contens().createdWithNew_ &&
      !(BFSMEM_Hndlr->IsAssigned(&building_->Contens(),
@@ -352,6 +370,7 @@ const BText& BNameBlock::LocalName() const
                              building_->Contens()._bfsm_PageNum__);
     building_ = NULL;
   }
+#endif
   return(building_); 
 }
 
