@@ -35,6 +35,8 @@
 class BDat;
 TOL_API BDat& TOLErrorNumber();
 TOL_API BDat& TOLWarningNumber();
+TOL_API BDat& TOLErrorTryNumber();
+TOL_API BDat& TOLWarningTryNumber();
 
 //--------------------------------------------------------------------
 // macroes

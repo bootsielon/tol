@@ -232,6 +232,22 @@ BDat& TOLWarningNumber()
   return(aux_);
 };
 
+//--------------------------------------------------------------------
+BDat& TOLErrorTryNumber()
+//--------------------------------------------------------------------
+{
+  static BDat aux_ = 0;
+  return(aux_);
+};
+
+//--------------------------------------------------------------------
+BDat& TOLWarningTryNumber()
+//--------------------------------------------------------------------
+{
+  static BDat aux_ = 0;
+  return(aux_);
+};
+
 
 //--------------------------------------------------------------------
 void  BOut::FlushAll()
@@ -426,6 +442,7 @@ void Error(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
+  TOLErrorTryNumber()+=1;
   if(!BOut::IsEnabled() || 
      (!BOut::errorHci_ && !BOut::errorTerm_ && !BOut::errorLog_)) { return; }
   /*BText info =  "\nERROR: ";
@@ -447,6 +464,7 @@ void Warning(const BText& txt)
  */
 //--------------------------------------------------------------------
 {
+  TOLWarningTryNumber()+=1;
   if(!BOut::IsEnabled()  || 
     (!BOut::warningHci_ && !BOut::warningTerm_ && !BOut::warningLog_)) { return; }
   /*BText info =  "\nWARNING: ";

@@ -1418,13 +1418,12 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               return(NullError(BText("Cannot load syntax tree TimeSet (name='")+
                      name+"' description='"+description+"')")); 
             }
-            BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
-          //bool oldEnabled = BOut::Disable();
-            BDat numErr0 = TOLErrorNumber();
+            bool oldEnabled = BOut::Disable();
+            BDat numErr0 = TOLErrorTryNumber();
             x = (BUserTimeSet*)GraTimeSet()->EvaluateTree(tree); 
-            BDat numErr1 = TOLErrorNumber();
+            BDat numErr1 = TOLErrorTryNumber();
             if(numErr0<numErr1) { DESTROY(x); }
-          //if(oldEnabled) { BOut::Enable(); }
+            if(oldEnabled) { BOut::Enable(); }
             if(x) 
             { 
               assert(s || (tree!=NULL));
@@ -1434,20 +1433,20 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                 {
                   x->PutCache(h, beginCache, endCache);
                 }
+                x->PutOisTree(tree); 
               }
-              x->PutOisTree(tree); 
               tree->Destroy();
             }
             else 
             {
               BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
-             #ifndef NDEBUG
+              if(name.HasName()) { expr = name+" = "+expr; }
               Warning(BText("Cannot rebuild virtual expression of non "
-                      "bounded TimeSet ")+name+"="+expr+ "\nOnly cached "
+                      "bounded TimeSet ")+expr+ "\nOnly cached "
                       "dates will be accessible between ["+beginCache+","+
                       endCache+"]\nTo avoid this problem save just "
-                      "bounded time sets " );
-             #endif
+                      "bounded time sets or use expressions that could "
+                      "be evaluated at OIS loading time." );
               if(tree) { tree->Destroy(); }
             } 
           }

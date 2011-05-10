@@ -1033,13 +1033,38 @@ if(!BDir::CheckIsDir(dir))                                \
     if(!tree)
     {
       EWrite(saveTree,timeset_); 
-      #ifdef WARNING_NON_TREE_NOR_BOUNDED
       Warning(I2("Cannot save virtual definition non bounded TimeSet ",
                  "No se puede salvar la definición virtual del TimeSet ")+v->Identify()+
               I2(" due to its expression is unknown at this evaluation level.",
                  " no acotado porque su expresión es desconocida en este nivel de evaluación.")); 
-      #endif
     }  
+    else
+    {
+      int oldLevel = BGrammar::Level();
+      BGrammar::PutLevel(0);
+      bool oldEnabled = BOut::Disable();
+      BDat numErr0 = TOLErrorTryNumber();
+      BUserTimeSet* aux = (BUserTimeSet*)GraTimeSet()->EvaluateTree(tree); 
+      BDat numErr1 = TOLErrorTryNumber(); 
+      if(oldEnabled) { BOut::Enable(); }
+      DESTROY(aux);
+      if(numErr1>numErr0)
+      {
+        BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
+        if(v->HasName()) { expr = v->Name()+" = "+expr; }
+        Warning(I2("Expression of non bounded TimeSet ",
+                   "La expresión del TimeSet no acotado ")+ 
+                "\n"+expr+";\n"+
+                I2("seems to be dependent on non globally accessible symbols.\n"
+                   "So, just cached data will be available at OIS loading time.\n"
+                   "Current cache interval is ",
+                   "parece depender de símbolos que no son accesibles globalmente.\n"
+                   "Por este motivo, a la hora de cargar el OIS, sólo podrán usarse "
+                   "los datos de la caché, que actualmente abarca el intervalo ")+
+                   "["+beginCache+","+endCache+"]"); 
+      }           
+      BGrammar::PutLevel(oldLevel);
+    }
     saveTree = true;
     EWrite(saveTree,timeset_);
     Ensure(WriteTree(tree,timeset_)); 
