@@ -1052,16 +1052,13 @@ if(!BDir::CheckIsDir(dir))                                \
       {
         BText expr = Compact(BParser::Unparse(tree,"  ","\n"));
         if(v->HasName()) { expr = v->Name()+" = "+expr; }
-        Warning(I2("Expression of non bounded TimeSet ",
-                   "La expresión del TimeSet no acotado ")+ 
-                "\n"+expr+";\n"+
-                I2("seems to be dependent on non globally accessible symbols.\n"
-                   "So, just cached data will be available at OIS loading time.\n"
-                   "Current cache interval is ",
-                   "parece depender de símbolos que no son accesibles globalmente.\n"
-                   "Por este motivo, a la hora de cargar el OIS, sólo podrán usarse "
-                   "los datos de la caché, que actualmente abarca el intervalo ")+
-                   "["+beginCache+","+endCache+"]"); 
+
+        Warning(I2(BText("Unbounded TimeSet \n")+expr+";\n depends on symbol not visible "
+          "globally. Only cached data in ["+beginCache+","+endCache+"] will be available "
+          "when loaded back.",
+          BText("El TimeSet no acotado \n")+expr+";\n depende de símbolos no visibles "
+          "globalmente. Sólo los datos almacenados en la cache en "
+          "["+beginCache+","+endCache+"] estarán accesibles cuando sea cargado"));
       }           
       BGrammar::PutLevel(oldLevel);
     }
