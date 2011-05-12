@@ -47,7 +47,11 @@ Real Apply(Real unused)
   Date PutDefaultDates(
     TolConfigManager::Config::Time::FirstDate,
     TolConfigManager::Config::Time::LastDate);
-  Text PutLanguage(ToUpper(TolConfigManager::Config::Various::Language));
+  Text TolConfigManager::Config::Various::Language := 
+    ToUpper(TolConfigManager::Config::Various::Language);
+  Text PutLanguage(TolConfigManager::Config::Various::Language);
+  Text WriteFile(TOLSH_PATH+"language.txt",""<<If( 
+    TolConfigManager::Config::Various::Language=="CASTELLANO",1,0));
   Real ShowStackAtError := 
     TolConfigManager::Config::Various::Verbose::ShowStackAtError;
   Real ShowStackAtWarning := 

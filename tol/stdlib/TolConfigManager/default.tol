@@ -108,7 +108,7 @@ NameBlock Default =
       Text Order = "ByDate"
     ]];
     Text _.autodoc.member.Language = "User Language";
-    Text Language = "ENGLISH";
+    Text Language = "CASTELLANO";
     Text _.autodoc.member.View = "Windows initial status";
     NameBlock View =
     [[
