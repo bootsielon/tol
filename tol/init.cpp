@@ -926,10 +926,22 @@ BBool InitGrammars(char* calledProgram)
   I2("The path of the TOL executable",
      "Ubicación del ejecutable TOL."));
 
-  TOLHasBeenInitialized_ = true;
+  #ifdef UNIX
+  // OJO: si tol se ejecuta desde el raiz del fuente entonces el
+  // stdlib se asume relativo a ese sitio y entonces el include que se
+  // forma aqui no es correcto.
+  BText stdlibPath = GetFilePath( initTolPath.Name() );
+  _tolSdkPath_ = GetStandardAbsolutePath( stdlibPath + "../../../include/" );
+  #else
+  BText binPath = GetFilePath( _tolSessionPath_ );
+  _tolSdkPath_ = GetStandardAbsolutePath( binPath+"../tol_sdk_win/" );
+  #endif
+  tolSdkPath_ = new BSystemText("TOLSDKPath", _tolSdkPath_,
+    I2("The path of the TOL headers.",
+	     "El camino de las cabeceras de TOL."));
 
-    TOLHasBeenInitialized_ = true;
-    return(initGrammars_);
+  TOLHasBeenInitialized_ = true;
+  return(initGrammars_);
 }
 
 
@@ -1217,19 +1229,6 @@ void LoadInitLibrary()
   {
     InitTOLFile(initTolPath.Name());
   }
-  #ifdef UNIX
-  // OJO: si tol se ejecuta desde el raiz del fuente entonces el
-  // stdlib se asume relativo a ese sitio y entonces el include que se
-  // forma aqui no es correcto.
-  BText stdlibPath = GetFilePath( initTolPath.Name() );
-  _tolSdkPath_ = GetStandardAbsolutePath( stdlibPath + "../../../include/" );
-  #else
-  BText binPath = GetFilePath( _tolSessionPath_ );
-  _tolSdkPath_ = GetStandardAbsolutePath( binPath+"../tol_sdk_win/" );
-  #endif
-  tolSdkPath_ = new BSystemText("TOLSDKPath", _tolSdkPath_,
-    I2("The path of the TOL headers.",
-	     "El camino de las cabeceras de TOL."));
   TRACE_CINT_DECIMAL;
 }
 
