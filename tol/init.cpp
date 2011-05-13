@@ -901,12 +901,12 @@ BBool InitGrammars(char* calledProgram)
   int blnk_pos_2 = _tolVersion_.Find(' ', blnk_pos_1+1);
 
   BSystemText* TolReleaseId_ = new BSystemText("TolReleaseId", 
-  BText(_tolVersion_,0,blnk_pos_1-1),
+  BText(_tolVersion_,0,blnk_pos_2-1),
   I2("Time Oriented Language release identifier.",
      "Identificador de la publicación de la versión Time Oriented Language."));
 
   BSystemText* TolVersionId_ = new BSystemText("TolVersionId", 
-  BText(_tolVersion_,0,blnk_pos_2-1),
+  BText(_tolVersion_,0,blnk_pos_1-1),
   I2("Time Oriented Language version identifier.",
      "Identificador de la versión Time Oriented Language."));
 
