@@ -220,7 +220,7 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
    * Initialize kernel
    */
 
-  InitTolKernel(lang, vmode&&vmode[0]?vmode:NULL);
+  InitTolKernel(Tcl_GetNameOfExecutable(), lang, vmode&&vmode[0]?vmode:NULL);
 
   /*
    * this should only be called to find out where the GSL errors are generated
@@ -320,7 +320,7 @@ Tol_InitLibraryCmd(clientData, interp, objc, objv)
                      Tcl_GetString(objv[0]),"\"", NULL);
     return TCL_ERROR;
   }
-  LoadInitLibrary(Tcl_GetNameOfExecutable());
+  LoadInitLibrary();
   return TCL_OK;
 }
 
