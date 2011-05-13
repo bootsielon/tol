@@ -906,7 +906,7 @@ BBool InitGrammars(char* calledProgram)
      "Identificador de la publicación de la versión Time Oriented Language."));
 
   BSystemText* TolVersionId_ = new BSystemText("TolVersionId", 
-  BText(_tolVersion_,blnk_pos_1+1,blnk_pos_2-1),
+  BText(_tolVersion_,0,blnk_pos_2-1),
   I2("Time Oriented Language version identifier.",
      "Identificador de la versión Time Oriented Language."));
 
