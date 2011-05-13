@@ -14,31 +14,13 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-//Tol Release identifier
-Text TolReleaseId = 
-{
-  Set tok = Tokenizer(Version," ");
-  tok[1]+" "+tok[2]
-};
+//Set Include("TolConfigManager/TolConfigManager.tol");
 
-//Tol Version identifier
-Text TolVersionId = 
-{
-  Set tok = Tokenizer(Version," ");
-  tok[1]
-};
 
-//The name of the TOL executable
-Text TOLAppName = ToLower(GetFilePrefix(TOLSessionPath));
-//The path of tolsh to call it via system
-Text TOLSH_PATH  = 
-{
-  Text aux0 = GetEnv("TOLSH_PATH");
-  If(aux0!="", aux0, GetFilePath(TOLSessionPath))
-};
-
-Set Include("TolConfigManager/TolConfigManager.tol");
-
+NameBlock If(ObjectExist("NameBlock","TolConfigManager"),
+  TolConfigManager,
+  Include("TolConfigManager/TolConfigManager.tol")[1]
+);
 
 //////////////////////////////////////////////////////////////////////////////
 //OIS doc info

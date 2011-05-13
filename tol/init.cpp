@@ -117,6 +117,7 @@ static bool           TOLHasBeenInitialized_      = false;
 static bool           TOLHasBeenEnded_            = false;
 static BSyntaxObject* initTol_                    = NULL;
 static BText         _tolVersion_                 = "";
+static BSystemText*   version_                    = NULL;
 static BText         _tolCredits_                 = ""; 
 static BText         _tolContribAcknowledgements_ = "";
 static BText         _tolSessionPath_             = "";
@@ -426,7 +427,7 @@ BBool BLAPI_Init()
 
 
 //--------------------------------------------------------------------
-BBool InitGrammars()
+BBool InitGrammars(char* calledProgram)
 //--------------------------------------------------------------------
 {
   static BBool initGrammars_ = BFALSE;
@@ -884,6 +885,49 @@ BBool InitGrammars()
     int BTolOprProfiler_Init();
     BTolOprProfiler_Init();
   TRACE_CINT_DECIMAL;
+
+  _tolVersion_ = TOLVersion();
+  version_=new BSystemText("Version", _tolVersion_,
+  I2("Time Oriented Language Version full identifier.",
+     "Identificador completo de la versión de Time Oriented Language."));
+  _tolSessionPath_ = Replace(TolFindExecutable(calledProgram),"\\","/");
+  tolSessionPath_ = new BSystemText("TOLSessionPath", _tolSessionPath_,
+    I2("The path of the TOL program that is being executed in this session."
+       "It's usefull, for example, to call TOL using operative system.",
+	     "El camino del programa TOL que esta siendo ejecutado en este momento."
+       "Es util, por ejemplo, para llamar a TOL usando el sistema operativo."));
+
+  int blnk_pos_1 = _tolVersion_.Find(' ');
+  int blnk_pos_2 = _tolVersion_.Find(' ', blnk_pos_1+1);
+
+  BSystemText* TolReleaseId_ = new BSystemText("TolReleaseId", 
+  BText(_tolVersion_,0,blnk_pos_1-1),
+  I2("Time Oriented Language release identifier.",
+     "Identificador de la publicación de la versión Time Oriented Language."));
+
+  BSystemText* TolVersionId_ = new BSystemText("TolVersionId", 
+  BText(_tolVersion_,blnk_pos_1+1,blnk_pos_2-1),
+  I2("Time Oriented Language version identifier.",
+     "Identificador de la versión Time Oriented Language."));
+
+  BText TOLAppName = ToLower(GetFilePrefix(_tolSessionPath_));
+  BSystemText* TOLAppName_ = new BSystemText("TOLAppName", 
+  TOLAppName,
+  I2("The name of the TOL executable",
+     "Nombre del ejecutable TOL."));
+
+  BText TOLSH_PATH = BSys::GetEnv("TOLSH_PATH");
+  if(!TOLSH_PATH.HasName())
+  {
+    TOLSH_PATH = GetFilePath(_tolSessionPath_);
+  }
+  BSystemText* TOLSH_PATH_  = new BSystemText("TOLSH_PATH", 
+  TOLSH_PATH,
+  I2("The path of the TOL executable",
+     "Ubicación del ejecutable TOL."));
+
+  TOLHasBeenInitialized_ = true;
+
     TOLHasBeenInitialized_ = true;
     return(initGrammars_);
 }
@@ -1138,27 +1182,13 @@ const char * TOLContribAcknowledgements()
 };
 
 //--------------------------------------------------------------------
-void LoadInitLibrary(char* calledProgram)
+void LoadInitLibrary()
 //--------------------------------------------------------------------
 {
   TRACE_CINT_DECIMAL;
   static bool done_ = false;
-  static BSystemText* version_ = NULL;
   if(done_) { return; }
   else      { done_ = true; }
-  _tolVersion_ = TOLVersion();
-  TOLHasBeenInitialized_ = false;
-  version_=new BSystemText("Version", _tolVersion_,
-  I2("Time Oriented Language Version Identifier.",
-     "Identificador de la versión de Time Oriented Language."));
-  _tolSessionPath_ = Replace(TolFindExecutable(calledProgram),"\\","/");
-  tolSessionPath_ = new BSystemText("TOLSessionPath", _tolSessionPath_,
-    I2("The path of the TOL program that is being executed in this session."
-       "It's usefull, for example, to call TOL using operative system.",
-	     "El camino del programa TOL que esta siendo ejecutado en este momento."
-       "Es util, por ejemplo, para llamar a TOL usando el sistema operativo."));
-
-  TOLHasBeenInitialized_ = true;
   TRACE_CINT_DECIMAL;
 
   BText initpath = GetFilePath(_tolSessionPath_)+  "stdlib";
@@ -1409,7 +1439,7 @@ static void ChangeVerboseMode(const char* vmode)
 }
 
 //--------------------------------------------------------------------
-void InitTolKernel( int lang, const char* vmode ) 
+void InitTolKernel(char* calledProgram, int lang, const char* vmode ) 
 //--------------------------------------------------------------------
 {
   InitCint();
@@ -1435,7 +1465,7 @@ void InitTolKernel( int lang, const char* vmode )
     }
     free(mode);
   }
-  InitGrammars();
+  InitGrammars(calledProgram);
 }
 
 
@@ -1485,8 +1515,8 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
         else if  (com == 'h') { helpMode = BTRUE; }
         else if  (com == 'c')
         {
-          InitGrammars();
-          if(initTOL) { LoadInitLibrary(argv[0]); }
+          InitGrammars(argv[0]);
+          if(initTOL) { LoadInitLibrary(); }
           Trace(I2("\nCompiling command line argument -c :\n",
                    "\nCompilando argumento -c de la línea de comandos :\n  ") + par+"\n");
           BList* result = MultyEvaluate(par);
@@ -1515,8 +1545,8 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
       }
       else
       {
-        InitGrammars();
-        if(initTOL) { LoadInitLibrary(argv[0]); }
+        InitGrammars(argv[0]);
+        if(initTOL) { LoadInitLibrary(); }
         if(arg.HasName()) {
           BText fName = argv[i];
           fName = Replace(fName,"\n","/n");
@@ -1618,9 +1648,9 @@ void InitializeFromMainArgs(int argc, char *argv[], char *env[])
   }
   if(dialogMode)
   {
-    InitGrammars();
+    InitGrammars(argv[0]);
     aliveObjects_1 = AliveObjects();
-    if(initTOL) { LoadInitLibrary(argv[0]); }
+    if(initTOL) { LoadInitLibrary(); }
     aliveObjects_2 = AliveObjects();
     BOut::PutAllTerm(BTRUE);
     Dialog();

@@ -131,9 +131,9 @@ int main( int argc, char*argv[] )
   char *vmode = NULL;
   const char *name = "Tester";
   BOut::PutHciWriterEx( Tol_HciWriterEx, (void*)name );
-  InitTolKernel( lang, vmode );
+  InitTolKernel( argv[ 0 ], lang, vmode );
   std::cout << "\n";
-  LoadInitLibrary( argv[ 0 ] );
+  LoadInitLibrary( );
 
   if ( !strcasecmp( "MultiEval", argv[ 1 ] ) ) {
     TestMultyEvaluate( argc, argv );
