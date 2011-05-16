@@ -215,11 +215,13 @@ public:
 
   static BDat GetMaxIter   () { return(maxIter_); }
   static BDat GetOutOfRange() { return(outOfRange_); }
+  static BDat GetCutRangeFactor() { return(cutRangeFactor_); }
   bool AbortedMessageSended() const { return(abortedMessageSended_); }
 
 protected:
   static BDat& MaxIter   () { return(maxIter_); }
   static BDat& OutOfRange() { return(outOfRange_); }
+  static BDat& CutRangeFactor() { return(cutRangeFactor_); }
 
   const BDate& EnsureNotAbortedSuccessor  (const BDate& dte) const;
   const BDate& EnsureNotAbortedPredecessor(const BDate& dte) const;
