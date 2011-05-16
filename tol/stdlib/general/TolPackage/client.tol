@@ -116,7 +116,8 @@ Text LocalLastCompatible(Text package)
   });
   Text If(!Card(pkgSel),"",
   {
-    Set pkgSort = Sort(pkgSel, Real(Text a, Text b) { Compare(b, a) });
+    Set pkgSort = Sort(pkgSel, Real(Text a, Text b) { 
+      Compare.VersionString(b, a) });
     pkgSort[1]
   })
 };
@@ -615,7 +616,8 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
       False
     },
     {
-      Set ord = Sort(cls,Real ev.sort(Text a, Text b) { Compare(b, a) });
+      Set ord = Sort(cls,Real ev.sort(Text a, Text b) { 
+        Compare.VersionString(b, a) });
       Text ver = ord[1];
       Date gmt = Copy(NowGmt);
       Date loc = Copy(Now);
@@ -738,7 +740,7 @@ Text GetCompatibleVersion.one(Text tol_version, Text package)
   Set last_compatible = Sort(sel_compatible, 
   Real(TolPackage::@VersionSynchro a, TolPackage::@VersionSynchro b)
   {
-    Compare(b->co_name_version,a->co_name_version)
+    Compare.VersionString(b->co_name_version,a->co_name_version)
   })[1];
   last_compatible->co_name_version
 };

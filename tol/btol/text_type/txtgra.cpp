@@ -63,6 +63,7 @@
 #endif
 
 #include <locale.h>
+#include <stdlib.h>
 
 /*! key used to force that Sub be initialized before than Sub of matrix
  *  the default is 100 (see default argument for key in delay_init.h)
@@ -2631,4 +2632,47 @@ void BTexWrap::CalcContens()
   if(Arg(3)) { wordSeparators = Text(Arg(3)); }
   if(Arg(4)) { prefix = Text(Arg(4)); }
   contens_ = textToWrap.Wrap(maxLineLength, wordSeparators, prefix);
+}
+
+
+//--------------------------------------------------------------------
+BInt CompareVersionString(const BText* txt1, const BText* txt2) 
+//--------------------------------------------------------------------
+{
+  BChar sep = '.';
+  BArray<BText> tok1, tok2;
+  ReadAllTokens(*txt1, tok1, sep);
+  ReadAllTokens(*txt2, tok2, sep);
+  int n1 = tok1.Size();
+  int n2 = tok2.Size();
+  int n = Minimum(n1,n2);
+  int k, t1, t2;
+  int cmp = 0;
+
+  for(k=0; (k<n) && !cmp; k++)
+  {
+    t1 = atoi(tok1[k].String());
+    t2 = atoi(tok2[k].String());
+    cmp = t1-t2;
+  }
+  if(!cmp) { cmp = n1-n2; }
+  return (cmp);
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatCompareVersionString);
+DefExtOpr(1, BDatCompareVersionString, "Compare.VersionString", 2, 2, 
+"Text Text",
+"(Text a, Text b)",
+I2("Compares two version strings with an arbitrary number of numeric "
+    "tokens separated by the point character. For example 1.9 would "
+    "be prior to 1.10 while it is the reverse alphabetical order.",
+    "Compara dos cadenas de version con un número arbitrario de tokens "
+    "numéricos separados por el caracter punto. Por ejemplo 1.9 sería "
+    "anterior a 1.10 mientras que alfabéticamente es al revés.\n"),
+	  BOperClassify::System_);
+void BDatCompareVersionString::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_ = CompareVersionString(&Text(Arg(1)),&Text(Arg(2)));
 }
