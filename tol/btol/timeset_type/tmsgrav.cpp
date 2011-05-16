@@ -40,9 +40,9 @@ BBool ForzeLinkerTmsGraVarious() { return(BTRUE); }
 // static members
 //--------------------------------------------------------------------
 BTraceInit("tmsgrav.cpp");
-BDat  BTmsAbortable::maxIter_    = 100000;
-BDat  BTmsAbortable::outOfRange_ =  10000;
-
+BDat BTmsAbortable::maxIter_ = 100000;
+BDat BTmsAbortable::outOfRange_ = 10000;
+BDat BTmsAbortable::cutRangeFactor_ = 100;
 
 template<>
 BArray<BCacheInfo> BTmsStaticCached<BTmsTemporary, BI_NONE>::cacheInfo_(1);
@@ -337,15 +337,15 @@ static BDate& NCDate(const BDate& dte)
 {
   if(!abortedMessageSended_)
   {
-    int N = (int)MaxIter().Value();
+    BText id = Identify();
+    if(id=="$tmp$") { id = ""; }
+    else { id = I2(" for TimeSet "," para el TimeSet ")+id; };
     Warning(function +
-            I2(" has been aborted after ",
-               " ha sido abortado después de ")+N+
-            I2(" iterations for TimeSet ",
-               " iteraciones para el TimeSet ")+Identify()+
+            I2(" has been aborted ",
+               " ha sido abortado ")+id+
             I2(" operating between dates "," operando entre las fechas [")+d1+","+d2+"]"+"\n"+
-            I2("Bounded TimeSet resulting behaviour will be assumed.",
-               "Se asumirá en los resultados el comportamiento de TimeSet acotado."));
+            I2("Probably this is an expression of empty time set.",
+               "Probablemente se trata de una expresión del conjunto temporal vacío."));
     ((BTmsAbortable*)(this))->abortedMessageSended_ = true;
   }
   AbortSaveInfo(d1,d2, sign);
@@ -361,18 +361,15 @@ static BDate& NCDate(const BDate& dte)
   if(!abortedMessageSended_)
   {
     int M = (int)OutOfRange().Value();
+    BText id = Identify();
+    if(id=="$tmp$") { id = ""; }
+    else { id = I2(" for TimeSet "," para el TimeSet ")+id; };
     Warning(function +
             I2(" has been aborted because it has fall out of calculation range ",
-               " ha sido abortado porque se ha salido del rango de cálculo ")+
-          //" ["+CurrentCalcFirstDate()+ ","+CurrentCalcLastDate()+"] "+
-            M+
-            I2(" times ",
-               " veces ")+ 
-            I2(" for TimeSet ",
-               " para el TimeSet ")+Identify()+
+               " ha sido abortado porque se ha salido del rango de cálculo ")+id+
             I2(" operating between dates "," operando entre las fechas [")+d1+","+d2+"]"+"\n"+
-            I2("Bounded TimeSet resulting behaviour will be assumed.",
-               "Se asumirá en los resultados el comportamiento de TimeSet acotado."));
+            I2("Probably this is an expression of empty time set.",
+               "Probablemente se trata de una expresión del conjunto temporal vacío."));
     ((BTmsAbortable*)(this))->abortedMessageSended_ = true;
   }
   AbortSaveInfo(d1,d2,sign);
@@ -698,6 +695,8 @@ BDate	BTmsIntersection::SafeSuccessor(const BDate& dte_) const
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcLastDate();
   if(!curLimit.HasValue()) { curLimit = BDate::DefaultLast(); }
+  double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
+  BDate cutLimit = curLimit+((1+defaultRange)*cutRangeFactor_.Value());
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedSuccessor(dte);
@@ -706,7 +705,7 @@ BDate	BTmsIntersection::SafeSuccessor(const BDate& dte_) const
 
     if(curLimit<dte) 
     { 
-      if(n>M)
+      if((n>M) || (cutLimit<dte))
       {
         AbortMessageOutOfRange("BTmsIntersection::Successor",dte_,dte,1); 
         return(BDate::End());
@@ -748,6 +747,8 @@ BDate BTmsIntersection::SafePredecessor(const BDate& dte_) const
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcFirstDate();
   if(curLimit==BDate::Begin()) { curLimit = BDate::DefaultFirst(); }
+  double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
+  BDate cutLimit = curLimit-((1+defaultRange)*cutRangeFactor_.Value());
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedPredecessor(dte);
@@ -755,7 +756,7 @@ BDate BTmsIntersection::SafePredecessor(const BDate& dte_) const
     if(dte<=Inf()) { return(BDate::Begin()); }
     if(curLimit>dte) 
     { 
-      if(n>M)
+      if((n>M) || (cutLimit>dte))
       {
         AbortMessageOutOfRange("BTmsIntersection::Predecessor",dte_,dte,-1); 
         return(BDate::Begin());
@@ -846,6 +847,8 @@ BDate	 BTmsDifference::SafeSuccessor(const BDate& dte_) const
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcLastDate();
   if(!curLimit.HasValue()) { curLimit = BDate::DefaultLast(); }
+  double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
+  BDate cutLimit = curLimit+((1+defaultRange)*cutRangeFactor_.Value());
   if(a_!=b_)
   {
     for(n=iter=0; iter<N; iter++)
@@ -855,7 +858,7 @@ BDate	 BTmsDifference::SafeSuccessor(const BDate& dte_) const
       if(dte>=Sup()) { return(BDate::End()); }
       if(curLimit<dte) 
       { 
-        if(n>M)
+        if((n>M) || (cutLimit<dte))
         {
           AbortMessageOutOfRange("BTmsDifference::Successor",dte_,dte,1); 
           return(BDate::End());
@@ -898,6 +901,8 @@ BDate BTmsDifference::SafePredecessor(const BDate& dte_) const
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcFirstDate();
   if(curLimit==BDate::Begin()) { curLimit = BDate::DefaultFirst(); }
+  double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
+  BDate cutLimit = curLimit-((1+defaultRange)*cutRangeFactor_.Value());
   if(a_!=b_)
   {
     for(n=iter=0; iter<N; iter++)
@@ -907,7 +912,7 @@ BDate BTmsDifference::SafePredecessor(const BDate& dte_) const
       if(dte<=Inf()) { return(BDate::Begin()); }
       if(curLimit>dte) 
       { 
-        if(n>M)
+        if((n>M) || (cutLimit>dte))
         {
           AbortMessageOutOfRange("BTmsDifference::Predecessor",dte_,dte,-1); 
           return(BDate::Begin());
@@ -1185,6 +1190,8 @@ BDate BTmsAllIntersection::SafeSuccessor(const BDate& dte_) const
   BArray<BDate> D(NumArgs());
   BDate curLimit = CurrentCalcLastDate();
   if(!curLimit.HasValue()) { curLimit = BDate::DefaultLast(); }
+  double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
+  BDate cutLimit = curLimit+((1+defaultRange)*cutRangeFactor_.Value());
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedSuccessor(dte);
@@ -1192,7 +1199,7 @@ BDate BTmsAllIntersection::SafeSuccessor(const BDate& dte_) const
     if(dte>=Sup()) { return(BDate::End()); }
     if(curLimit<dte) 
     { 
-      if(n>M)
+      if((n>M)||(cutLimit<dte))
       {
         AbortMessageOutOfRange("BTmsAllIntersection::Successor",dte_,dte,1); 
         return(BDate::End());
@@ -1248,6 +1255,8 @@ BDate BTmsAllIntersection::SafePredecessor(const BDate& dte_) const
   BArray<BDate> D(NumArgs());
   BDate curLimit = CurrentCalcFirstDate();
   if(curLimit==BDate::Begin()) { curLimit = BDate::DefaultFirst(); }
+  double defaultRange =  BDate::DefaultLast() -  BDate::DefaultFirst();
+  BDate cutLimit = curLimit+((1+defaultRange)*cutRangeFactor_.Value());
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedPredecessor(dte);
@@ -1255,7 +1264,7 @@ BDate BTmsAllIntersection::SafePredecessor(const BDate& dte_) const
     if(dte<=Inf()) { return(BDate::Begin()); }
     if(curLimit>dte) 
     { 
-      if(n>M)
+      if((n>M)||(cutLimit>dte))
       {
         AbortMessageOutOfRange("BTmsAllIntersection::Predecessor",dte_,dte,-1); 
         return(BDate::Begin());

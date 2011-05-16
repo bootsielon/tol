@@ -196,6 +196,7 @@ class BTmsAbortable: public BTmsCached
 protected:
   static BDat  maxIter_;
   static BDat  outOfRange_;
+  static BDat  cutRangeFactor_;
   bool  abortedMessageSended_;
   BDate abortSuccFirst_;
   BDate abortSuccLast_;
