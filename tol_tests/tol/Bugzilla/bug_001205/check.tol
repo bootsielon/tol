@@ -1,0 +1,28 @@
+
+TimeSet ConfUniversal        = D(1)*M(1) - WD(7);
+TimeSet Tiradentes           = D(21)*M(4) - WD(7);
+TimeSet DiaDoTrabalho        = D(1)*M(5) - WD(7);
+TimeSet IndepBras            = D(7)*M(9) - WD(7);
+TimeSet NossaSenApar         = D(12)*M(10) - WD(7);
+TimeSet Finados              = D(2)*M(11) - WD(7);
+TimeSet ProclamacaoRepublica = D(15)*M(11) - WD(7);
+TimeSet Natal                = D(25)*M(12) - WD(7);
+ 
+TimeSet TercaCarnaval = Succ(Easter,-47);
+TimeSet Paixao                = Succ(Easter,-2);
+TimeSet Corpus   = Succ(Easter,60);
+ 
+TimeSet ConcienciaNegra      = D(20)*M(11) - WD(7); // Municipal SP
+TimeSet CidadeSaoPaulo       = D(25)*M(1) - WD(7);  // Municipal SP
+TimeSet RevolConst           = D(9)*M(7) - WD(7);   // Estadual SP
+TimeSet FinA = D(31)*M(12) - WD(7);   //no es festivo, posiblemente la gente trabaja, pero tiene comportamiento similar al festivo.
+
+
+TimeSet festivos = ConfUniversal  + FinA       +Tiradentes+DiaDoTrabalho 
+       +IndepBras            +NossaSenApar         +Finados             
+ +ProclamacaoRepublica +Natal                +TercaCarnaval +Paixao               
+ +Corpus   +ConcienciaNegra      +CidadeSaoPaulo       +RevolConst + FinA;  
+ 
+TimeSet festivodomingo = festivos * WD(7);
+Serie Diafestivodomingo = CalInd(festivodomingo, Diario);
+
