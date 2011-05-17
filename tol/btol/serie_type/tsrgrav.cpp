@@ -140,6 +140,29 @@ BDat BTsrGaussian::GetDat(const BDate& dte)
 }
 
 
+//--------------------------------------------------------------------
+BTsrDummy::BTsrDummy(const BDate& center,
+          BUserTimeSet* dating) : BTsrTemporary(NULL) 
+//--------------------------------------------------------------------
+{
+  PutDating(dating);
+  center_ = center;
+  postCenter_ = Center() + Dating();
+//if(Dating()) { Dating()->ForceCache(); }
+}
+
+//--------------------------------------------------------------------
+BTsrDummy::BTsrDummy(BList* arg) : BTsrTemporary(arg) 
+//--------------------------------------------------------------------
+{
+  BUserTimeSet* dating = NIL;
+  if(Arg(2))   { dating = Tms(Arg(2)); }
+  if(!dating)  { dating = Tms("C"); }
+  PutDating(dating);
+  center_ = Date(Arg(1));
+  postCenter_ = Center() + Dating();
+//if(Dating()) { Dating()->ForceCache(); }
+}
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrPulse, "Pulse", 1, 2, "Date TimeSet",
@@ -228,6 +251,18 @@ BDat BTsrTrend::GetDat(const BDate& dte)
 }
 
 
+//--------------------------------------------------------------------
+BTsrLine::BTsrLine(BList* arg)
+//--------------------------------------------------------------------
+: BTsrTemporary(arg)
+{
+  d0=Date(Arg(1));
+  y0=Real(Arg(2));
+  d1=Date(Arg(3));
+  y1=Real(Arg(4));
+  PutDating(DefaultDating(Arg(5)));
+//if(Dating()) { Dating()->ForceCache(); }
+}
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrLine, "Line", 4, 5, "Date Real Date Real TimeSet",
@@ -259,6 +294,16 @@ BDat BTsrLine::GetDat(const BDate& dte)
   return(dat);
 }
 
+//--------------------------------------------------------------------
+BTsrCalendary::BTsrCalendary(BList* arg)
+//--------------------------------------------------------------------
+: BTsrTemporary(arg) 
+{
+  center_ = Tms(Arg(1));
+  PutDating(DefaultDating(Arg(2)));
+//if(Dating()) { Dating()->ForceCache(); }
+//if(center_ ) { center_ ->ForceCache(); }
+}
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrCalendary, "CalVar", 1, 2, "TimeSet TimeSet",
@@ -297,6 +342,16 @@ BDat BTsrCalendary::GetDat(const BDate& dte)
   return(dat);
 }
 
+//--------------------------------------------------------------------
+BTsrIndicator::BTsrIndicator(BList* arg) 
+//--------------------------------------------------------------------
+: BTsrTemporary(arg) 
+{
+  center_ = Tms(Arg(1));
+  PutDating(DefaultDating(Arg(2)));
+//if(Dating()) { Dating()->ForceCache(); }
+//if(center_ ) { center_ ->ForceCache(); }
+}
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrIndicator, "CalInd", 1, 2, "TimeSet TimeSet",
@@ -320,6 +375,30 @@ BDat BTsrIndicator::GetDat(const BDate& dte)
   return(dat);
 }
 
+//--------------------------------------------------------------------
+BTsrDatingChange::BTsrDatingChange(BList* arg)
+//--------------------------------------------------------------------
+: BTsrTemporary(arg) 
+{
+  harmonical_ = BTRUE;
+  if(//(Stat()->MinArg()!=1)			   ||
+     (Stat()->MaxArg()!=3)			 ||
+     !Stat()->Grammar() ||
+     (Stat()->Grammar()->Name()!="Real")	 ||
+     (Stat()->GrammarForArg(1)->Name()!="Serie") ||
+     (Stat()->GrammarForArg(2)->Name()!="Date")	 ||
+     (Stat()->GrammarForArg(2)->Name()!="Date")	   )
+  {
+    Error(Stat()->Grammar()->Name()+" "+Stat()->Name()+" "+Stat()->Arguments()+
+    I2(" is not a valid statistic for time series. Expected delaration was: \n",
+       " no es un estadístico válido para series temporales. LA declaración que se esperaba era:\n")+
+     "  Real "+Stat()->Name()+"(Series ser, Date datIni, Date datEnd)");
+  }
+  PutDating(DefaultDating(Tms(Arg(2))));
+//if(Ser() && Ser()->Dating()) { Ser()->Dating()->ForceCache(); }
+//if(                Dating()) {        Dating()->ForceCache(); }
+//Do();
+}
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrDatingChange, "DatCh", 3, 3, "Serie TimeSet Code",
@@ -415,6 +494,15 @@ BDat BTsrDatingChange::GetDat(const BDate& dte)
   return(dat);
 }
 
+//--------------------------------------------------------------------
+BTsrInverseDatingChange::BTsrInverseDatingChange(BList* arg)
+//--------------------------------------------------------------------
+: BTsrTemporary(arg) 
+{ 
+  PutDating(Ser(2)->Dating());
+//if(Dating()) { Dating()->ForceCache(); }
+//Do();
+}
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrInverseDatingChange, "InvCh", 2, 2, "Serie Serie",
@@ -470,6 +558,15 @@ BDat BTsrInverseDatingChange::GetDat(const BDate& dte)
 }
 
 
+//--------------------------------------------------------------------
+BTsrExpand::BTsrExpand (BList* arg)
+//--------------------------------------------------------------------
+: BTsrTemporary(arg) 
+{
+  PutDating(Ser()->Dating());
+//if(Dating()) { Dating()->ForceCache(); }
+//Do();
+}
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrExpand, "Expand", 1, 2, "Serie Real",
@@ -562,7 +659,7 @@ BTsrSubSerie::BTsrSubSerie(BList* arg)
   }
   NCDate(firstDate_) = first;
   NCDate(lastDate_ ) = last;
-  Do();
+//Do();
 }
 
 //--------------------------------------------------------------------

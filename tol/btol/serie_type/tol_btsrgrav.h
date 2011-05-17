@@ -53,23 +53,8 @@ protected:
 
 public:
   BTsrDummy(const BDate& center,
-            BUserTimeSet* dating) : BTsrTemporary(NULL) 
-  {
-    PutDating(dating);
-    center_ = center;
-    postCenter_ = Center() + Dating();
-    if(Dating()) { Dating()->ForceCache(); }
-  }
-  BTsrDummy(BList* arg) : BTsrTemporary(arg) 
-  {
-    BUserTimeSet* dating = NIL;
-    if(Arg(2))   { dating = Tms(Arg(2)); }
-    if(!dating)  { dating = Tms("C"); }
-    PutDating(dating);
-    center_ = Date(Arg(1));
-    postCenter_ = Center() + Dating();
-    if(Dating()) { Dating()->ForceCache(); }
-  }
+            BUserTimeSet* dating);
+  BTsrDummy(BList* arg);
   void CalcObject() {}
   BDate Center	  () const { return(center_); }
   BDate PostCenter() const { return(postCenter_); }
@@ -103,15 +88,7 @@ private:
   BDate d1;
   BReal y1;
 public:
-  BTsrLine(BList* arg) : BTsrTemporary(arg)
-  {
-    d0=Date(Arg(1));
-    y0=Real(Arg(2));
-    d1=Date(Arg(3));
-    y1=Real(Arg(4));
-    PutDating(DefaultDating(Arg(5)));
-    if(Dating()) { Dating()->ForceCache(); }
-  }
+  BTsrLine(BList* arg);
   void CalcObject() {}
   BDat operator[] (const BDate& dte) { return(GetDat(dte)); }
   BDat GetDat(const BDate& dte);
@@ -127,13 +104,7 @@ class BTsrCalendary : public BTsrTemporary
 private:
   BUserTimeSet* center_;
 public:
-  BTsrCalendary(BList* arg) : BTsrTemporary(arg) 
-  {
-    center_ = Tms(Arg(1));
-    PutDating(DefaultDating(Arg(2)));
-    if(Dating()) { Dating()->ForceCache(); }
-    if(center_ ) { center_ ->ForceCache(); }
-  }
+  BTsrCalendary(BList* arg);
   void CalcObject() { }
   BDat operator[] (const BDate& dte) { return(GetDat(dte)); }
   BDat GetDat(const BDate& dte);
@@ -149,13 +120,7 @@ class BTsrIndicator : public BTsrTemporary
 private:
   BUserTimeSet* center_;
 public:
-  BTsrIndicator(BList* arg) : BTsrTemporary(arg) 
-  {
-    center_ = Tms(Arg(1));
-    PutDating(DefaultDating(Arg(2)));
-    if(Dating()) { Dating()->ForceCache(); }
-    if(center_ ) { center_ ->ForceCache(); }
-  }
+  BTsrIndicator(BList* arg);
   void CalcObject() { }
   BDat operator[] (const BDate& dte) { return(GetDat(dte)); }
   BDat GetDat(const BDate& dte);
@@ -171,27 +136,7 @@ class BTsrDatingChange : public BTsrTemporary
 private:
   BBool harmonical_;
 public:
-  BTsrDatingChange(BList* arg) : BTsrTemporary(arg) 
-  {
-    harmonical_ = BTRUE;
-    if(//(Stat()->MinArg()!=1)			   ||
-       (Stat()->MaxArg()!=3)			 ||
-       !Stat()->Grammar() ||
-       (Stat()->Grammar()->Name()!="Real")	 ||
-       (Stat()->GrammarForArg(1)->Name()!="Serie") ||
-       (Stat()->GrammarForArg(2)->Name()!="Date")	 ||
-       (Stat()->GrammarForArg(2)->Name()!="Date")	   )
-    {
-      Error(Stat()->Grammar()->Name()+" "+Stat()->Name()+" "+Stat()->Arguments()+
-	    I2(" is not a valid statistic for time series. Expected delaration was: \n",
-	       " no es un estadístico válido para series temporales. LA declaración que se esperaba era:\n")+
-       "  Real "+Stat()->Name()+"(Series ser, Date datIni, Date datEnd)");
-    }
-    PutDating(DefaultDating(Tms(Arg(2))));
-    if(Ser() && Ser()->Dating()) { Ser()->Dating()->ForceCache(); }
-    if(                Dating()) {        Dating()->ForceCache(); }
-    Do();
-  }
+  BTsrDatingChange(BList* arg);
   void CalcObject() {}
   BUserTimeSerie*    Ser ()	 const { return(Tsr(Arg(1))); }
   BStandardOperator* Stat()	 const ;
@@ -208,13 +153,7 @@ class BTsrInverseDatingChange : public BTsrTemporary
 //--------------------------------------------------------------------
 {
 public:
-  BTsrInverseDatingChange(BList* arg)
-  : BTsrTemporary(arg) 
-  { 
-    PutDating(Ser(2)->Dating());
-    if(Dating()) { Dating()->ForceCache(); }
-    Do();
-  }
+  BTsrInverseDatingChange(BList* arg);
   BUserTimeSerie* Ser(BInt n) const { return(Tsr(Arg(n))); }
   BDate FirstDate() const;
   BDate LastDate()  const;
@@ -229,12 +168,7 @@ class BTsrExpand : public BTsrTemporary
 //--------------------------------------------------------------------
 {
 public:
-  BTsrExpand (BList* arg) : BTsrTemporary(arg) 
-  {
-    PutDating(Ser()->Dating());
-    if(Dating()) { Dating()->ForceCache(); }
-    Do();
-  }
+  BTsrExpand (BList* arg);
   BUserTimeSerie* Ser()	      const { return(Tsr(Arg(1))); }
   BDate		  FirstDate() const { return(Ser()->FirstDate()); }
   BDate		  LastDate()  const { return(Ser()->LastDate()); }
