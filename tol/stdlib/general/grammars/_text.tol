@@ -1171,35 +1171,40 @@ Quita los acentos de la palabra
 Text GetUrlContents.tcl.uri(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  WriteLn("[GetUrlContents.tcl.uri]Downloading from \""+url+"\" ...");
-  Text tcl_helper = "
-package require uri
-
-proc ::get_url_contens { url } {
-
-  array set uri_info [ uri::split $url ]
-  if { $uri_info(scheme) eq \"http\" } {
-    set url_content [ uri::geturl $url ]
-    set ${url_content}(body)
-  } elseif { $uri_info(scheme) eq \"ftp\" } {
-    uri::geturl $url
-  }
-}";
-  
+  Write("[GetUrlContents.tcl.uri] Downloading from \""+url+"\" ... ");
+  Text tcl_helper = 
+    "package require uri\n"+
+    "\n"+
+    "proc ::get_url_contens { url } {\n"+
+    "\n"+
+    "  array set uri_info [ uri::split $url ]\n"+
+    "  if { $uri_info(scheme) eq \"http\" } {\n"+
+    "    set url_content [ uri::geturl $url ]\n"+
+    "    set ${url_content}(body)\n"+
+    "  } elseif { $uri_info(scheme) eq \"ftp\" } {\n"+
+    "    uri::geturl $url\n"+
+    "  }\n"+
+    "}";  
   Set result0 = Tcl_Eval(tcl_helper);
-  Text If(result0["status"], Text {
-      
-      Set result = Tcl_Eval("::get_url_contens " + url);
-      Text If(result["status"], Text result["result"],
-        {
-          WriteLn(result["result"], "W");
-          Text ""
-        })
+  Text If(result0["status"],  
+  {
+    Set result = Tcl_Eval("::get_url_contens " + url);
+    Text If(result["status"], 
+    {
+      WriteLn("OK");
+      Text result["result"]
     },
     {
-      WriteLn(result0["result"], "W");
+      WriteLn("FAIL");
+      WriteLn(result["result"], "W");
       Text ""
     })
+  },
+  {
+    WriteLn("FAIL");
+    WriteLn(result0["result"], "W");
+    Text ""
+  })
 };
 
 //////////////////////////////////////////////////////////////////////////////
