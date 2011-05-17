@@ -27,17 +27,35 @@ Set _.packInstalled = Copy(Empty);
 
 Text common_php_arguments = "";
 
+Real  trace_max_level = 0;
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member._trace = 
+"Muestra la traza especificada";
+Real _trace(Text method, Text message, Real level)
+//////////////////////////////////////////////////////////////////////////////
+{
+//WriteLn("[TolPackage::Client::_trace] ("+method+","+message+" "<<level+") trace_max_level="<<trace_max_level);
+  If(level > trace_max_level, 0, 
+  {
+    WriteLn("[TolPackage::Client::"+method+"] "+message);
+    1
+  })
+};
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.Initialize = 
 "Inicializa el cliente del servicio de paquetes TOL";
 Real Initialize(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("Initialize", "Begin", 1);
   Real TolPackage::Initialize(void);
   Text common_php_arguments := 
     "tol_package_version="<<TolPackage::_.version+
     "&tol_version="+Replace(TolPackage::_.currentTolVersion," ","%20");
   Real OSDirMake(_.localRoot);
+  Real _trace("Initialize", "End", 1);
   True
 };
 
@@ -48,11 +66,12 @@ Text _.autodoc.member.AddRepository =
 Real AddRepository(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE [TolPackage::Client::Initialize] ");
+  Real _trace("AddRepository", "Begin", 1);
   Set TolConfigManager::Config::Upgrading::TolPackage::Repositories :=
     Unique(TolConfigManager::Config::Upgrading::TolPackage::Repositories <<
            [[url]]);
   Real TolConfigManager::SaveConfig(TolConfigManager::Config);
+  Real _trace("AddRepository", "End", 1);
   True
 };
 
@@ -74,11 +93,13 @@ Text _.autodoc.member.DoRequirements=
 Real DoRequirements(Set packages)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("DoRequirements", "Begin", 1);
   Set EvalSet(packages,Real(Text required)
   {
     Set IncludeText("#Require "+required+";\nReal True;");
     True
   });
+  Real _trace("DoRequirements", "End", 1);
   True
 };
 
@@ -89,14 +110,14 @@ Text _.autodoc.member.LocalLastCompatible =
 Text LocalLastCompatible(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE LocalLastCompatible 1 package="<<package);
+  Real _trace("LocalLastCompatible", "Begin", 1);
   Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
   Text vsi.path = _.localRoot+"/VersSyncInfo.oza";
   Real If(!FileExist(vsi.path), RemoteUpdateVersSyncInfo(false));
   Set vsi = If(!FileExist(vsi.path), Copy(Empty), { Include(vsi.path) });
   Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
   {
-  //WriteLn("TRACE LocalLastCompatible 2 checking version ="<<pkgNamVer);
+  //WriteLn("_trace LocalLastCompatible 2 checking version ="<<pkgNamVer);
     Real ok1 = TextBeginWith(pkgNamVer, package);
     If(!ok1, False,
     {
@@ -106,20 +127,22 @@ Text LocalLastCompatible(Text package)
         Real ok2 = And(
          vsi[idx]->te_min_tol_version <= TolPackage::_.currentTolVersion,
          vsi[idx]->te_max_tol_version >= TolPackage::_.currentTolVersion);
-      //WriteLn("TRACE LocalLastCompatible 3 min="<<vsi[idx]->te_min_tol_version);
-      //WriteLn("TRACE LocalLastCompatible 4 cur="<<TolPackage::_.currentTolVersion);
-      //WriteLn("TRACE LocalLastCompatible 5 max="<<vsi[idx]->te_max_tol_version);
-      //WriteLn("TRACE LocalLastCompatible 6 ok2="<<ok2);
+      //WriteLn("_trace LocalLastCompatible 3 min="<<vsi[idx]->te_min_tol_version);
+      //WriteLn("_trace LocalLastCompatible 4 cur="<<TolPackage::_.currentTolVersion);
+      //WriteLn("_trace LocalLastCompatible 5 max="<<vsi[idx]->te_max_tol_version);
+      //WriteLn("_trace LocalLastCompatible 6 ok2="<<ok2);
         ok2
       }) 
     })
   });
-  Text If(!Card(pkgSel),"",
+  Text last = If(!Card(pkgSel),"",
   {
     Set pkgSort = Sort(pkgSel, Real(Text a, Text b) { 
       Compare.VersionString(b, a) });
     pkgSort[1]
-  })
+  });
+  Real _trace("LocalLastCompatible", "End", 1);
+  last
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -160,10 +183,12 @@ Text _.autodoc.member.LocalInstallPackage =
 Real LocalInstallPackage(Text pkg.path.zip)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("LocalInstallPackage", "Begin", 1);
   Real OSFilCopy(pkg.path.zip, _.localRoot);
   Text pkg.name.zip = GetFileName(pkg.path.zip);
   Text pkg.name = Replace(pkg.name.zip,".zip","");
   Real PackArchive::UnpackFull("ZipArchive",_.localRoot+pkg.name,True);
+  Real _trace("LocalInstallPackage", "End", 1);
   FileExist(_.localRoot+pkg.name+"/"+pkg.name+".oza")
 };
 
@@ -175,7 +200,8 @@ Text _.autodoc.member.LocalClean =
 Real LocalClean(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real If(TextFind(package,"."),
+  Real _trace("LocalClean", "Begin", 1);
+  Real ok = If(TextFind(package,"."),
   {
     Real OSDirRemove(_.localRoot+package)
   },
@@ -189,7 +215,9 @@ Real LocalClean(Text package)
     {
       OSDirRemove(_.localRoot+pkg)
     }))
-  })
+  });
+  Real _trace("LocalClean", "End", 1);
+  ok
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -206,17 +234,12 @@ Real LocalCleanAll(Text unused)
   Set GetRepositoryInfo(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("GetRepositoryInfo", "Begin", 1);
   Text pkgInfo = GetUrlContents(url);
   Real old.show = Show(False,"ALL");
   Set pkgLst = IncludeText(pkgInfo);
   Real Show(old.show,"ALL");
-/*
-  Text If(Card(pkgLst)==0, 
-  {
-    WriteLn("[TolPackage::Client::GetRepositoryInfo] "
-    "Cannot connect to \n"+url,"W")
-  });
-*/
+  Real _trace("GetRepositoryInfo", "End", 1);
   pkgLst
 };
 
@@ -225,7 +248,8 @@ Real LocalCleanAll(Text unused)
   Real CheckRepositoryPing(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, False, 
+  Real _trace("CheckRepositoryPing", "Begin", 1);
+  Real ok = If(TolConfigManager::Config::Upgrading::TolPackage::LocalOnly, False, 
   {
     Real key = IntRand(111111111,999999999);
     Set info = GetRepositoryInfo(url+"?"+common_php_arguments+
@@ -234,9 +258,11 @@ Real LocalCleanAll(Text unused)
       !Card(info),False, 
       Grammar(info[1])!="Real",False,
       1==1, info[1]==key);
-  //WriteLn("TRACE [CheckRepositoryPing] url="<<url+" info="<<info+" ok="<<ok);
+  //WriteLn("_trace [CheckRepositoryPing] url="<<url+" info="<<info+" ok="<<ok);
     ok
-  })
+  });
+  Real _trace("CheckRepositoryPing", "End", 1);
+  ok
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -253,28 +279,33 @@ Text _.autodoc.member.GetMinTolVersionForPackage =
 Text GetMinTolVersionForPackage(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE [GetMinTolVersionForPackage] 1 package='"<<package+"'");
-  If(!ChecktolProjectPing(?), "", {
-//WriteLn("TRACE [GetMinTolVersionForPackage] 2");
-  Set repositories = 
-    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
-  Real K = Card(repositories); 
-  Real k = 1;
-  Text found = "";
-//WriteLn("TRACE [GetMinTolVersionForPackage] 3 K="<<K);
-  While(And(found=="", k<=K),
+  Real _trace("GetMinTolVersionForPackage", "Begin", 1);
+//WriteLn("_trace [GetMinTolVersionForPackage] 1 package='"<<package+"'");
+  Text found = If(!ChecktolProjectPing(?), "", 
   {
-  //WriteLn("TRACE [GetMinTolVersionForPackage] 4 repositories["<<k+"]="<<repositories[k]);
-    Set pkgLst = GetRepositoryInfo(repositories[k]+"?"+common_php_arguments+
-      "&action=versions&limit=1&package="+package);
-  //WriteLn("TRACE [GetMinTolVersionForPackage] 5 pkgInfo="<<pkgInfo);
-  //WriteLn("TRACE [GetMinTolVersionForPackage] 6 pkgLst="<<pkgLst);
-  //WriteLn("TRACE [GetMinTolVersionForPackage] 7 Card(pkgLst)="<<Card(pkgLst));
-    Text If(Card(pkgLst)>0, found := pkgLst[1]->te_min_tol_version);
-    Real k := k+1
+  //WriteLn("_trace [GetMinTolVersionForPackage] 2");
+    Set repositories = 
+      TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+    Real K = Card(repositories); 
+    Real k = 1;
+    Text found = "";
+  //WriteLn("_trace [GetMinTolVersionForPackage] 3 K="<<K);
+    While(And(found=="", k<=K),
+    {
+    //WriteLn("_trace [GetMinTolVersionForPackage] 4 repositories["<<k+"]="<<repositories[k]);
+      Set pkgLst = GetRepositoryInfo(repositories[k]+"?"+common_php_arguments+
+        "&action=versions&limit=1&package="+package);
+    //WriteLn("_trace [GetMinTolVersionForPackage] 5 pkgInfo="<<pkgInfo);
+    //WriteLn("_trace [GetMinTolVersionForPackage] 6 pkgLst="<<pkgLst);
+    //WriteLn("_trace [GetMinTolVersionForPackage] 7 Card(pkgLst)="<<Card(pkgLst));
+      Text If(Card(pkgLst)>0, found := pkgLst[1]->te_min_tol_version);
+      Real k := k+1
+    });
+    found
   });
+  Real _trace("GetMinTolVersionForPackage", "End", 1);
   found
-})};
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetMaxTolVersionForPackage = 
@@ -283,28 +314,33 @@ Text _.autodoc.member.GetMaxTolVersionForPackage =
 Text GetMaxTolVersionForPackage(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE [GetMaxTolVersionForPackage] 1 package='"<<package+"'");
-  If(!ChecktolProjectPing(?), "", {
-//WriteLn("TRACE [GetMaxTolVersionForPackage] 2");
-  Set repositories = 
-    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
-  Real K = Card(repositories); 
-  Real k = 1;
-  Text found = "";
-//WriteLn("TRACE [GetMaxTolVersionForPackage] 3 K="<<K);
-  While(And(found=="", k<=K),
+  Real _trace("GetMaxTolVersionForPackage", "Begin", 1);
+//WriteLn("_trace [GetMaxTolVersionForPackage] 1 package='"<<package+"'");
+  Text found = If(!ChecktolProjectPing(?), "", 
   {
-  //WriteLn("TRACE [GetMaxTolVersionForPackage] 4 repositories["<<k+"]="<<repositories[k]);
-    Set pkgLst = GetRepositoryInfo(repositories[k]+"?"+common_php_arguments+
-      "&action=versions&limit=1&package="+package);
-  //WriteLn("TRACE [GetMaxTolVersionForPackage] 5 pkgInfo="<<pkgInfo);
-  //WriteLn("TRACE [GetMaxTolVersionForPackage] 6 pkgLst="<<pkgLst);
-  //WriteLn("TRACE [GetMaxTolVersionForPackage] 7 Card(pkgLst)="<<Card(pkgLst));
-    Text If(Card(pkgLst)>0, found := pkgLst[1]->te_max_tol_version);
-    Real k := k+1
+  //WriteLn("_trace [GetMaxTolVersionForPackage] 2");
+    Set repositories = 
+      TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+    Real K = Card(repositories); 
+    Real k = 1;
+    Text found = "";
+  //WriteLn("_trace [GetMaxTolVersionForPackage] 3 K="<<K);
+    While(And(found=="", k<=K),
+    {
+    //WriteLn("_trace [GetMaxTolVersionForPackage] 4 repositories["<<k+"]="<<repositories[k]);
+      Set pkgLst = GetRepositoryInfo(repositories[k]+"?"+common_php_arguments+
+        "&action=versions&limit=1&package="+package);
+    //WriteLn("_trace [GetMaxTolVersionForPackage] 5 pkgInfo="<<pkgInfo);
+    //WriteLn("_trace [GetMaxTolVersionForPackage] 6 pkgLst="<<pkgLst);
+    //WriteLn("_trace [GetMaxTolVersionForPackage] 7 Card(pkgLst)="<<Card(pkgLst));
+      Text If(Card(pkgLst)>0, found := pkgLst[1]->te_max_tol_version);
+      Real k := k+1
+    });
+    found
   });
+  Real _trace("GetMaxTolVersionForPackage", "End", 1);
   found
-})};
+};
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -317,27 +353,32 @@ Text _.autodoc.member.RemoteFindRepository =
 Text RemoteFindRepository(Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE [RemoteFindRepository] 1 package='"<<package+"'");
-  If(!ChecktolProjectPing(?), "", {
-//WriteLn("TRACE [RemoteFindRepository] 2");
-  Set repositories = 
-    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
-  Real K = Card(repositories); 
-  Real k = 1;
-  Text found = "";
-//WriteLn("TRACE [RemoteFindRepository] 3 K="<<K);
-  While(And(found=="", k<=K),
+  Real _trace("RemoteFindRepository", "Begin", 1);
+//WriteLn("_trace [RemoteFindRepository] 1 package='"<<package+"'");
+  Text found = If(!ChecktolProjectPing(?), "", 
   {
-  //WriteLn("TRACE [RemoteFindRepository] 4 repositories["<<k+"]="<<repositories[k]);
-    Set pkgLst = GetRepositoryInfo(repositories[k]+"?"+common_php_arguments+
-      "&action=versions&limit=1&package="+package);
-  //WriteLn("TRACE [RemoteFindRepository] 6 pkgLst="<<pkgLst);
-  //WriteLn("TRACE [RemoteFindRepository] 7 Card(pkgLst)="<<Card(pkgLst));
-    Text If(Card(pkgLst)>0, found := repositories[k]);
-    Real k := k+1
+  //WriteLn("_trace [RemoteFindRepository] 2");
+    Set repositories = 
+      TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+    Real K = Card(repositories); 
+    Real k = 1;
+    Text found = "";
+  //WriteLn("_trace [RemoteFindRepository] 3 K="<<K);
+    While(And(found=="", k<=K),
+    {
+    //WriteLn("_trace [RemoteFindRepository] 4 repositories["<<k+"]="<<repositories[k]);
+      Set pkgLst = GetRepositoryInfo(repositories[k]+"?"+common_php_arguments+
+        "&action=versions&limit=1&package="+package);
+    //WriteLn("_trace [RemoteFindRepository] 6 pkgLst="<<pkgLst);
+    //WriteLn("_trace [RemoteFindRepository] 7 Card(pkgLst)="<<Card(pkgLst));
+      Text If(Card(pkgLst)>0, found := repositories[k]);
+      Real k := k+1
+    });
+    found 
   });
+  Real _trace("RemoteFindRepository", "Begin", 1);
   found
-})};
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.RemoteReleaseDate = 
@@ -350,16 +391,21 @@ Text _.autodoc.member.RemoteReleaseDate =
 Date RemoteReleaseDate(Text repository, Text package)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(!ChecktolProjectPing(?), UnknownDate, {
-  Text rep = If(repository=="",repository,RemoteFindRepository(package));
-  If(rep=="", UnknownDate,
+  Real _trace("RemoteReleaseDate", "Begin", 1);
+  Date dte =If(!ChecktolProjectPing(?), UnknownDate, 
   {
-    Set pkgLst = GetRepositoryInfo(rep+"?"+common_php_arguments+
-      "&action=versions&limit=1&package="+package);
-    If(!Card(pkgLst), TheEnd,
-      pkgLst[1]->dh_release_date_remote)
-  })
-})};
+    Text rep = If(repository=="",repository,RemoteFindRepository(package));
+    If(rep=="", UnknownDate,
+    {
+      Set pkgLst = GetRepositoryInfo(rep+"?"+common_php_arguments+
+        "&action=versions&limit=1&package="+package);
+      If(!Card(pkgLst), TheEnd,
+        pkgLst[1]->dh_release_date_remote)
+    })
+  });
+  Real _trace("RemoteReleaseDate", "End", 1);
+  dte
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.DownloadPackage = 
@@ -369,55 +415,60 @@ Real DownloadPackage(
   Text repository, Text package, Real showError, Text localRoot)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(!ChecktolProjectPing(?), 0, {
-  Real OSDirMake(localRoot);
-//WriteLn("TRACE [DownloadPackage] 1 repository='"<<repository+"'");
-  Real ok = True;
-  Text package.orig = package;
-  Set pkg.tok = Tokenizer(package,".");
-  Real pkg.tok.num = Card(pkg.tok );
-  Text package := pkg.tok[1];
-  Text package.version = Case(
-    pkg.tok.num==3, pkg.tok[1]+"."+pkg.tok[2]+"."+pkg.tok[3], 
-    pkg.tok.num==2, pkg.tok[1]+"."+pkg.tok[2], 
-    pkg.tok.num==1, pkg.tok[1]); 
-  Set pkgLst = GetRepositoryInfo(repository+"?"+common_php_arguments+
-    "&action=versions&limit=1&package="+package.version);
-  Real ok := Card(pkgLst);
-  Text If(ok,
+  Real _trace("DownloadPackage", "Begin", 1);
+  Real ok = If(!ChecktolProjectPing(?), 0, 
   {
-    Text package.version := pkgLst[1]->co_name_version
-  });
-  If(!ok, 0, {
-//WriteLn("TRACE [DownloadPackage] 2.1 package.orig='"<<package.orig+"'");
-//WriteLn("TRACE [DownloadPackage] 2.2 package='"<<package+"'");
-//WriteLn("TRACE [DownloadPackage] 2.3 package.version='"<<package.version+"'");
+    Real OSDirMake(localRoot);
+  //WriteLn("_trace [DownloadPackage] 1 repository='"<<repository+"'");
+    Real ok = True;
+    Text package.orig = package;
+    Set pkg.tok = Tokenizer(package,".");
+    Real pkg.tok.num = Card(pkg.tok );
+    Text package := pkg.tok[1];
+    Text package.version = Case(
+      pkg.tok.num==3, pkg.tok[1]+"."+pkg.tok[2]+"."+pkg.tok[3], 
+      pkg.tok.num==2, pkg.tok[1]+"."+pkg.tok[2], 
+      pkg.tok.num==1, pkg.tok[1]); 
+    Set pkgLst = GetRepositoryInfo(repository+"?"+common_php_arguments+
+      "&action=versions&limit=1&package="+package.version);
+    Real ok := Card(pkgLst);
+    Text If(ok,
+    {
+      Text package.version := pkgLst[1]->co_name_version
+    });
+    If(!ok, 0, {
+  //WriteLn("_trace [DownloadPackage] 2.1 package.orig='"<<package.orig+"'");
+  //WriteLn("_trace [DownloadPackage] 2.2 package='"<<package+"'");
+  //WriteLn("_trace [DownloadPackage] 2.3 package.version='"<<package.version+"'");
 
-  Text pack = package.version+".zip";
-  Text oza = package.version+"/"+package.version+".oza";
-  Text localPack = localRoot+"/"+pack;
-  Text localOza = localRoot+"/"+oza;
-  Text localDir = localRoot+"/"+package.version;
+    Text pack = package.version+".zip";
+    Text oza = package.version+"/"+package.version+".oza";
+    Text localPack = localRoot+"/"+pack;
+    Text localOza = localRoot+"/"+oza;
+    Text localDir = localRoot+"/"+package.version;
 
-  Text encoded = GetUrlContents(repository+"?"+common_php_arguments+
-    "&action=download"+
-    "&format=base64"+
-    "&package="+package.version);
-//WriteLn("TRACE [DownloadPackage] 3 encoded='"<<encoded+"'");
-  Real DecodeBase64ToFile(localPack, encoded);
-  If(!FileExist(localPack), False,
-  {
-  //WriteLn("TRACE DownloadPackage 4 UnpackFull("<<localDir+")");
-    Real PackArchive::UnpackFull("ZipArchive", localDir, True);
-    True
-  });
-  If(!FileExist(localOza), False,
-  {
-  //WriteLn("TRACE DownloadPackage 5");
-    Real RemoteUpdateVersSyncInfo(?);
-    True
-  })
- })})};
+    Text encoded = GetUrlContents(repository+"?"+common_php_arguments+
+      "&action=download"+
+      "&format=base64"+
+      "&package="+package.version);
+  //WriteLn("_trace [DownloadPackage] 3 encoded='"<<encoded+"'");
+    Real DecodeBase64ToFile(localPack, encoded);
+    If(!FileExist(localPack), False,
+    {
+    //WriteLn("_trace DownloadPackage 4 UnpackFull("<<localDir+")");
+      Real PackArchive::UnpackFull("ZipArchive", localDir, True);
+      True
+    });
+    If(!FileExist(localOza), False,
+    {
+    //WriteLn("_trace DownloadPackage 5");
+      Real RemoteUpdateVersSyncInfo(?);
+      True
+    })
+  })});
+  Real _trace("DownloadPackage", "End", 1);
+  ok
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.RemoteInstallPackage = 
@@ -449,15 +500,20 @@ Text _.autodoc.member.RemoteInstallFullRepository =
 Real RemoteInstallFullRepository(Text repository, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(!ChecktolProjectPing(?), 0, {
-  Set pkgLst = GetRepositoryInfo(repository+"?"+common_php_arguments+
-    "&action=versions");
-  If(!Card(pkgLst), False,
-  SetMin(EvalSet(pkgLst, Real(Set pkg)
+  Real _trace("RemoteInstallFullRepository", "Begin", 1);
+  Real ok = If(!ChecktolProjectPing(?), 0, 
   {
-    RemoteInstallPackage(repository, pkg->co_name_version, showError)
-  })))
-})};
+    Set pkgLst = GetRepositoryInfo(repository+"?"+common_php_arguments+
+      "&action=versions");
+    If(!Card(pkgLst), False,
+    SetMin(EvalSet(pkgLst, Real(Set pkg)
+    {
+      RemoteInstallPackage(repository, pkg->co_name_version, showError)
+    })))
+  });
+  Real _trace("RemoteInstallFullRepository", "End", 1);
+  ok
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.RemoteInstall = 
@@ -481,60 +537,65 @@ Text _.autodoc.member.RemoteInstall =
 Real RemoteInstall(Text repository, Text package, Real showError)
 //////////////////////////////////////////////////////////////////////////////
 {
-//WriteLn("TRACE [RemoteInstall] 1 repository='"<<repository+"'");
-//WriteLn("TRACE [RemoteInstall] 2 package='"<<package+"'");
-  If(!ChecktolProjectPing(?), 0, {
-  Case(
-  And(repository!="",package!=""),
+  Real _trace("RemoteInstall", "Begin", 1);
+//WriteLn("_trace [RemoteInstall] 1 repository='"<<repository+"'");
+//WriteLn("_trace [RemoteInstall] 2 package='"<<package+"'");
+  Real ok = If(!ChecktolProjectPing(?), 0, 
   {
-  //WriteLn("TRACE [RemoteInstall] 3.1");
-    RemoteInstallPackage(repository, package, showError)
-  },
-  And(repository=="",package!=""),
-  {
-  //WriteLn("TRACE [RemoteInstall] 3.2");
-    Text rep = If(repository!="",repository,RemoteFindRepository(package));
-  //WriteLn("TRACE [RemoteInstall] 3.2.1 rep ="<<rep);
-    If(rep=="", 
+    Case(
+    And(repository!="",package!=""),
     {
-      If(showError,
+    //WriteLn("_trace [RemoteInstall] 3.1");
+      RemoteInstallPackage(repository, package, showError)
+    },
+    And(repository=="",package!=""),
+    {
+    //WriteLn("_trace [RemoteInstall] 3.2");
+      Text rep = If(repository!="",repository,RemoteFindRepository(package));
+    //WriteLn("_trace [RemoteInstall] 3.2.1 rep ="<<rep);
+      If(rep=="", 
       {
-        Text minTolVersion = GetMinTolVersionForPackage(package);
-        If(minTolVersion=="", 
-        Error(I2(
-          "Cannot find package "+package+" in any repository for any TOL "
-          "version.",
-          "No se encuentra el paquete "+package+" en ningún repositorio "
-          "para ninguna versión de TOL.")),
-        Error(I2(
-          "Cannot find package "+package+" in any repository for current "
-          "TOL version ",
-          "No se encuentra el paquete "+package+" en ningún repositorio "
-          "para la versión de TOL en curso ")+TolPackage::_.currentTolVersion+
-          ".\n"+I2("You needs to use ", "Es necesario usar ")+minTolVersion))
+        If(showError,
+        {
+          Text minTolVersion = GetMinTolVersionForPackage(package);
+          If(minTolVersion=="", 
+          Error(I2(
+            "Cannot find package "+package+" in any repository for any TOL "
+            "version.",
+            "No se encuentra el paquete "+package+" en ningún repositorio "
+            "para ninguna versión de TOL.")),
+          Error(I2(
+            "Cannot find package "+package+" in any repository for current "
+            "TOL version ",
+            "No se encuentra el paquete "+package+" en ningún repositorio "
+            "para la versión de TOL en curso ")+TolPackage::_.currentTolVersion+
+            ".\n"+I2("You needs to use ", "Es necesario usar ")+minTolVersion))
+        })
+      },
+      {
+      //WriteLn("_trace [RemoteInstall] 3.2.2 ");
+        RemoteInstallPackage(rep, package, showError)
       })
     },
+    And(repository!="",package==""),
     {
-    //WriteLn("TRACE [RemoteInstall] 3.2.2 ");
-      RemoteInstallPackage(rep, package, showError)
+    //WriteLn("_trace [RemoteInstall] 3.3");
+      RemoteInstallFullRepository(repository, showError)
+    },
+    And(repository=="",package==""),
+    {
+    //WriteLn("_trace [RemoteInstall] 3.4");
+      Set repositories = 
+        TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+      SetMin(EvalSet(repositories, Real(Text rep)
+      {
+        RemoteInstallFullRepository(rep, showError)
+      }))
     })
-  },
-  And(repository!="",package==""),
-  {
-  //WriteLn("TRACE [RemoteInstall] 3.3");
-    RemoteInstallFullRepository(repository, showError)
-  },
-  And(repository=="",package==""),
-  {
-  //WriteLn("TRACE [RemoteInstall] 3.4");
-    Set repositories = 
-      TolConfigManager::Config::Upgrading::TolPackage::Repositories;
-    SetMin(EvalSet(repositories, Real(Text rep)
-    {
-      RemoteInstallFullRepository(rep, showError)
-    }))
-  })
-})};
+  });
+  Real _trace("RemoteInstall", "End", 1);
+  ok
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.RemoteUpdateVersSyncInfo = 
@@ -546,37 +607,42 @@ Text _.autodoc.member.RemoteUpdateVersSyncInfo =
 Real RemoteUpdateVersSyncInfo(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
-  If(!ChecktolProjectPing(?), 0, {
-  Set repositories = 
-    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
-  Set _.versSyncInfo := SetConcat(EvalSet(repositories,Set(Text rep)
+  Real _trace("RemoteUpdateVersSyncInfo", "Begin", 1);
+  Real ok = If(!ChecktolProjectPing(?), 0, 
   {
-    GetRepositoryInfo(rep+"?"+common_php_arguments+"&action=versions")
-  }));
-  Real SetIndexByName(_.versSyncInfo);
-  Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
-  Set EvalSet(pkgLst, Real(Text pkg)
-  {
-    Real found = FindIndexByName(_.versSyncInfo, pkg);
-    Date If(!found, WriteLn("[RemoteUpdateVersSyncInfo] "+I2(
-      "Cannot find remote image of local package "+pkg+
-      " in any repository." ,
-      "No se encuentra la imagen remota del paquete local "+pkg+
-      " en ningún repositorio"),"W"),
+    Set repositories = 
+      TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+    Set _.versSyncInfo := SetConcat(EvalSet(repositories,Set(Text rep)
     {
-      Date gmt = Copy(NowGmt);
-      Date loc = Copy(Now);
-      Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
-      Text oza = TolPackage::Client::_.localRoot+pkg+"/"+pkg+".oza";
-      Date release.loc = FileTime(oza);
-      Date release.gmt = Succ(release.loc,S(0),lag);
-      _.versSyncInfo[found]->dh_release_date_local := release.gmt
+      GetRepositoryInfo(rep+"?"+common_php_arguments+"&action=versions")
+    }));
+    Real SetIndexByName(_.versSyncInfo);
+    Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
+    Set EvalSet(pkgLst, Real(Text pkg)
+    {
+      Real found = FindIndexByName(_.versSyncInfo, pkg);
+      Date If(!found, WriteLn("[RemoteUpdateVersSyncInfo] "+I2(
+        "Cannot find remote image of local package "+pkg+
+        " in any repository." ,
+        "No se encuentra la imagen remota del paquete local "+pkg+
+        " en ningún repositorio"),"W"),
+      {
+        Date gmt = Copy(NowGmt);
+        Date loc = Copy(Now);
+        Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
+        Text oza = TolPackage::Client::_.localRoot+pkg+"/"+pkg+".oza";
+        Date release.loc = FileTime(oza);
+        Date release.gmt = Succ(release.loc,S(0),lag);
+        _.versSyncInfo[found]->dh_release_date_local := release.gmt
+      });
+      True
     });
-    True
+    Real Ois.Store(_.versSyncInfo,_.localRoot+"/VersSyncInfo.oza");
+    Card(_.versSyncInfo)
   });
-  Real Ois.Store(_.versSyncInfo,_.localRoot+"/VersSyncInfo.oza");
-  Card(_.versSyncInfo)
-})};
+  Real _trace("RemoteUpdateVersSyncInfo", "End", 1);
+  ok
+};
 
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.RemoteUpdatePackSyncInfo = 
@@ -587,105 +653,111 @@ Text _.autodoc.member.RemoteUpdatePackSyncInfo =
 Real RemoteUpdatePackSyncInfo(Real showWarnings)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Text _MID = "TolPackage::Client::[RemoteUpdatePackSyncInfo] ";
-  If(!ChecktolProjectPing(?), 0, {
-  Set repositories = 
-    TolConfigManager::Config::Upgrading::TolPackage::Repositories;
-  Set _.packSyncInfo := SetConcat(EvalSet(repositories,Set ev.rep(Text rep)
+  Real _trace("RemoteUpdateVersSyncInfo", "Begin", 1);
+  Text _MID = "[RemoteUpdatePackSyncInfo] ";
+  Real ok = If(!ChecktolProjectPing(?), 0, 
   {
-    GetRepositoryInfo(rep+"?"+common_php_arguments+"&action=packages")
-  }));
-  Real SetIndexByName(_.packSyncInfo);
-  Set verLst = GetDir(TolPackage::Client::_.localRoot)[2];
-  Set verCls = Classify(verLst,Real ev.class(Text a, Text b)
-  {
-    Compare(Tokenizer(a,".")[1], Tokenizer(b,".")[1])
-  });
-  Set EvalSet(verCls, Real ev.check(Set cls)
-  {
-    Text pkg = Tokenizer(cls[1],".")[1];
-    Real found = FindIndexByName(_.packSyncInfo, pkg);
-    Real If(!found, 
+    Set repositories = 
+      TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+    Set _.packSyncInfo := SetConcat(EvalSet(repositories,Set ev.rep(Text rep)
     {
-      If(showWarnings,
-        WriteLn(_MID+I2(
-        "Cannot find remote image of local package "+pkg+
-        " in any repository." ,
-        "No se encuentra la imagen remota del paquete local "+pkg+
-        " en ningún repositorio"),"W"));
-      False
-    },
+      GetRepositoryInfo(rep+"?"+common_php_arguments+"&action=packages")
+    }));
+    Real SetIndexByName(_.packSyncInfo);
+    Set verLst = GetDir(TolPackage::Client::_.localRoot)[2];
+    Set verCls = Classify(verLst,Real ev.class(Text a, Text b)
     {
-      Set ord = Sort(cls,Real ev.sort(Text a, Text b) { 
-        Compare.VersionString(b, a) });
-      Text ver = ord[1];
-      Date gmt = Copy(NowGmt);
-      Date loc = Copy(Now);
-      Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
-      Text oza = TolPackage::Client::_.localRoot+ver+"/"+ver+".oza";
-      Date release.loc = FileTime(oza);
-      Date release.gmt = Succ(release.loc,S(0),lag);
-      Date _.packSyncInfo[found]->co_last_version_local := ver;
-      Date _.packSyncInfo[found]->dh_release_date_local := release.gmt;
+      Compare(Tokenizer(a,".")[1], Tokenizer(b,".")[1])
+    });
+    Set EvalSet(verCls, Real ev.check(Set cls)
+    {
+      Text pkg = Tokenizer(cls[1],".")[1];
+      Real found = FindIndexByName(_.packSyncInfo, pkg);
+      Real If(!found, 
+      {
+        If(showWarnings,
+          WriteLn(_MID+I2(
+          "Cannot find remote image of local package "+pkg+
+          " in any repository." ,
+          "No se encuentra la imagen remota del paquete local "+pkg+
+          " en ningún repositorio"),"W"));
+        False
+      },
+      {
+        Set ord = Sort(cls,Real ev.sort(Text a, Text b) { 
+          Compare.VersionString(b, a) });
+        Text ver = ord[1];
+        Date gmt = Copy(NowGmt);
+        Date loc = Copy(Now);
+        Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
+        Text oza = TolPackage::Client::_.localRoot+ver+"/"+ver+".oza";
+        Date release.loc = FileTime(oza);
+        Date release.gmt = Succ(release.loc,S(0),lag);
+        Date _.packSyncInfo[found]->co_last_version_local := ver;
+        Date _.packSyncInfo[found]->dh_release_date_local := release.gmt;
+        True
+      });
       True
     });
-    True
-  });
-  Set _.packForUpdate := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
-  {
-    Real need = And(pkg->co_last_version_local != "",
-        pkg->co_last_version_local == pkg->co_last_version_remote,  
-        pkg->dh_release_date_local <  pkg->dh_release_date_remote);
-    If(And(showWarnings,need),
+    Set _.packForUpdate := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
     {
-      WriteLn("  Local package "<<pkg->co_last_version_local+
-              " created at "<<pkg->dh_release_date_local+
-              " could be updated to newer remote patch since "<<pkg->dh_release_date_remote)
+      Real need = And(pkg->co_last_version_local != "",
+          pkg->co_last_version_local == pkg->co_last_version_remote,  
+          pkg->dh_release_date_local <  pkg->dh_release_date_remote);
+      If(And(showWarnings,need),
+      {
+        WriteLn("  Local package "<<pkg->co_last_version_local+
+                " created at "<<pkg->dh_release_date_local+
+                " could be updated to newer remote patch since "<<pkg->dh_release_date_remote)
+      });
+      need
     });
-    need
-  });
-  If(And(showWarnings,Card(_.packForUpdate)),
-  {
-    WriteLn(_MID+"There are "<<Card(_.packForUpdate)+" packages that you could update "
-            "from remote repositories to new patches of the same version.\n"
-            "You can view them at:\n "
-            "  Set TolPackage::Client::_.packForUpdate\n"
-            "You could update all them running this TOL sentence: \n"
-            "  Real TolPackage::Client::RemoteUpdateAll(0)\n",
-            "W")
-  });
-  Set _.packForUpgrade := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
-  {
-    Real need = And(pkg->co_last_version_local != "",
-        pkg->co_last_version_local < pkg->co_last_version_remote);
-    If(And(showWarnings,need),
+    If(And(showWarnings,Card(_.packForUpdate)),
     {
-      WriteLn("  Local package "<<pkg->co_last_version_local+
-              " could be upgraded to "<<pkg->co_last_version_remote)
+      WriteLn(_MID+"There are "<<Card(_.packForUpdate)+" packages that you could update "
+              "from remote repositories to new patches of the same version.\n"
+              "You can view them at:\n "
+              "  Set TolPackage::Client::_.packForUpdate\n"
+              "You could update all them running this TOL sentence: \n"
+              "  Real TolPackage::Client::RemoteUpdateAll(0)\n",
+              "W")
     });
-    need
+    Set _.packForUpgrade := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
+    {
+      Real need = And(pkg->co_last_version_local != "",
+          Compare.VersionString(pkg->co_last_version_local,pkg->co_last_version_remote)<0);
+          Compare.VersionString
+      If(And(showWarnings,need),
+      {
+        WriteLn("  Local package "<<pkg->co_last_version_local+
+                " could be upgraded to "<<pkg->co_last_version_remote)
+      });
+      need
+    });
+    If(And(showWarnings,Card(_.packForUpgrade)),
+    {
+      WriteLn(_MID+"There are "<<Card(_.packForUpgrade)+" packages that you could upgrade "
+              "from remote repositories to new versions.\n"
+              "You can view them at:\n "
+              "  Set TolPackage::Client::_.packForUpgrade\n"
+              "You can upgrade all them running this TOL sentence: \n"
+              "  Real TolPackage::Client::RemoteUpgradeAll(0)\n",
+              "W")
+    });
+    Set _.packForInstall := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
+    {
+      pkg->co_last_version_local == ""  
+    });
+    Set _.packInstalled := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
+    {
+      pkg->co_last_version_local != ""  
+    });
+    Real Ois.Store(_.packSyncInfo,_.localRoot+"/PackSyncInfo.oza");
+    Card(_.packSyncInfo)
   });
-  If(And(showWarnings,Card(_.packForUpgrade)),
-  {
-    WriteLn(_MID+"There are "<<Card(_.packForUpgrade)+" packages that you could upgrade "
-            "from remote repositories to new versions.\n"
-            "You can view them at:\n "
-            "  Set TolPackage::Client::_.packForUpgrade\n"
-            "You can upgrade all them running this TOL sentence: \n"
-            "  Real TolPackage::Client::RemoteUpgradeAll(0)\n",
-            "W")
-  });
-  Set _.packForInstall := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
-  {
-    pkg->co_last_version_local == ""  
-  });
-  Set _.packInstalled := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
-  {
-    pkg->co_last_version_local != ""  
-  });
-  Real Ois.Store(_.packSyncInfo,_.localRoot+"/PackSyncInfo.oza");
-  Card(_.packSyncInfo)
-})};
+  Real _trace("RemoteUpdateVersSyncInfo", "End", 1);
+  ok
+};
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -695,13 +767,16 @@ Text _.autodoc.member.RemoteUpdateAll =
 Real RemoteUpdateAll(Real updateSyncInfo)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("RemoteUpdateAll", "Begin", 1);
   Real If(Or(updateSyncInfo,!Card(_.packSyncInfo)), 
     RemoteUpdatePackSyncInfo(False));
-  If(!Card(_.packForUpdate), 0,
+  Real ok = If(!Card(_.packForUpdate), 0,
   SetSum(EvalSet(_.packForUpdate, Real(TolPackage::@PackageSynchro pkg)
   {
     RemoteInstallPackage(pkg->te_url, pkg->co_last_version_remote, True)
-  })))
+  })));
+  Real _trace("RemoteUpdateAll", "End", 1);
+  ok
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -711,13 +786,16 @@ Text _.autodoc.member.RemoteUpgradeAll =
 Real RemoteUpgradeAll(Real updateSyncInfo)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("RemoteUpgradeAll", "Begin", 1);
   Real If(Or(updateSyncInfo,!Card(_.packSyncInfo)), 
     RemoteUpdatePackSyncInfo(False));
-  If(!Card(_.packForUpgrade), 0,
+  Real ok = If(!Card(_.packForUpgrade), 0,
   SetSum(EvalSet(_.packForUpgrade, Real(TolPackage::@PackageSynchro pkg)
   {
     RemoteInstallPackage(pkg->te_url, pkg->co_last_version_remote, True)
-  })))
+  })));
+  Real _trace("RemoteUpgradeAll", "End", 1);
+  ok
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -726,6 +804,7 @@ Text _.autodoc.member.GetCompatibleVersion.one =
 Text GetCompatibleVersion.one(Text tol_version, Text package)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("GetCompatibleVersion.one", "Begin", 1);
   Real If(!Card(_.versSyncInfo), 
    TolPackage::Client::RemoteUpdateVersSyncInfo(True));
 
@@ -742,6 +821,7 @@ Text GetCompatibleVersion.one(Text tol_version, Text package)
   {
     Compare.VersionString(b->co_name_version,a->co_name_version)
   })[1];
+  Real _trace("GetCompatibleVersion.one", "End", 1);
   last_compatible->co_name_version
 };
 
@@ -764,13 +844,14 @@ Text _.autodoc.member.GetDeepDependencies.one =
 Set GetDeepDependencies.one(Text package.version)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("GetDeepDependencies.one", "Begin", 1);
   Real If(!Card(_.versSyncInfo), 
    TolPackage::Client::RemoteUpdateVersSyncInfo(True));
   Set sel = Select(_.versSyncInfo, Real(TolPackage::@VersionSynchro reg)
   {
     reg->co_name_version == package.version
   });
-  If(!Card(sel), sel,
+  Set s = If(!Card(sel), sel,
   {
     Text depExpr = sel[1]->te_dependencies;
     Set dep = If(depExpr=="",Copy(Empty),
@@ -778,7 +859,9 @@ Set GetDeepDependencies.one(Text package.version)
       Tokenizer(depExpr,",")
     });
     Unique(SetConcat(EvalSet(dep,GetDeepDependencies.one))<<[[ sel[1]->co_name_version ]])
-  })
+  });
+  Real _trace("GetDeepDependencies.one", "End", 1);
+  s
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -796,12 +879,15 @@ Text _.autodoc.member.GetVersionInfo =
 Set GetVersionInfo(Set package.version.list)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("GetVersionInfo", "Begin", 1);
   Real If(!Card(_.versSyncInfo), 
    TolPackage::Client::RemoteUpdateVersSyncInfo(True));
-  EvalSet(package.version.list, TolPackage::@VersionSynchro(Text pv)
+  Set s = EvalSet(package.version.list, TolPackage::@VersionSynchro(Text pv)
   {
     _.versSyncInfo[pv]
-  })
+  });
+  Real _trace("GetVersionInfo", "End", 1);
+  s
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -832,12 +918,15 @@ Real DownloadCompatibleDeepDependencies(
   Set package.list)
 ////////////////////////////////////////////////////////////////////////////////
 {
+  Real _trace("DownloadCompatibleDeepDependencies", "Begin", 1);
   Real If(cleanLocalRoot, OSDirRemove(localRoot));
   Set dep = GetCompatibleDeepDependencies(tol_version, package.list);
-  SetMin(EvalSet(dep, Real(TolPackage::@VersionSynchro vsi)
+  Real ok = SetMin(EvalSet(dep, Real(TolPackage::@VersionSynchro vsi)
   {
     DownloadPackage(vsi->te_url,vsi->co_name_version,True,localRoot)
-  }))
+  }));
+  Real _trace("DownloadCompatibleDeepDependencies", "End", 1);
+  ok
 };
 
 ////////////////////////////////////////////////////////////////////////////////
