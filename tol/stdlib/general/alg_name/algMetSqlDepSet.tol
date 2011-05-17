@@ -24,16 +24,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // STRUCTURES and Pseudo-structures
 //////////////////////////////////////////////////////////////////////////////
-Set AlgMetSqlDepSetSt(
-  Code NamFun, // Función que construye exp_name
-  Code DatFun, // Función que construye exp_date
-  Code ValFun, // Función que construye exp_value
-  Code FroFun, // Función que construye exp_from
-  Code WheFun, // Función que construye exp_where
-  Code FecFun)
-{
-  AlgMetSqlDepSetExtSt(NamFun, DatFun, ValFun, FroFun, WheFun, FecFun, FunEmpty)
-};
 
 Struct @AlgMetSqlDepSetExtSt
 {
@@ -48,6 +38,17 @@ Struct @AlgMetSqlDepSetExtSt
                  // -defVal: determinar el valor por defecto de DBSeries
                  // -traQry: Para trazar o no la query
                  // -traTms: Para trazar el tiempo que tarda la query
+};
+
+Set AlgMetSqlDepSetSt(
+  Code NamFun, // Función que construye exp_name
+  Code DatFun, // Función que construye exp_date
+  Code ValFun, // Función que construye exp_value
+  Code FroFun, // Función que construye exp_from
+  Code WheFun, // Función que construye exp_where
+  Code FecFun)
+{
+  Set @AlgMetSqlDepSetExtSt(NamFun, DatFun, ValFun, FroFun, WheFun, FecFun, FunEmpty)
 };
 
 Set defParamsForMetSqlDepSet = SetOfSet(

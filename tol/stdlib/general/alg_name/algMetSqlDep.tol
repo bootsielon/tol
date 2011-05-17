@@ -21,15 +21,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // STRUCTURES and Pseudo-structures
 //////////////////////////////////////////////////////////////////////////////
-Set AlgMetSqlDepSt(
-  Code DatFun, // Función que construye exp_date
-  Code ValFun, // Función que construye exp_value
-  Code FroFun, // Función que construye exp_from
-  Code WheFun, // Función que construye exp_where
-  Code FecFun)
-{
-  AlgMetSqlDepExtSt(DatFun, ValFun, FroFun, WheFun, FecFun, FunEmpty)
-};
+
 
 Struct @AlgMetSqlDepExtSt
 {
@@ -44,6 +36,16 @@ Struct @AlgMetSqlDepExtSt
                  // -traQry: Para trazar o no la query
                  // -traTms: Para trazar el tiempo que tarda la query
                  // -doGrBy: Para realizar el group by en la query 
+};
+
+Set AlgMetSqlDepSt(
+  Code DatFun, // Función que construye exp_date
+  Code ValFun, // Función que construye exp_value
+  Code FroFun, // Función que construye exp_from
+  Code WheFun, // Función que construye exp_where
+  Code FecFun)
+{
+  Set @AlgMetSqlDepExtSt(DatFun, ValFun, FroFun, WheFun, FecFun, FunEmpty)
 };
 
 Struct @AlgMetSqlFroSt
