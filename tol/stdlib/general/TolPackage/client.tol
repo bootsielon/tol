@@ -726,7 +726,6 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
     {
       Real need = And(pkg->co_last_version_local != "",
           Compare.VersionString(pkg->co_last_version_local,pkg->co_last_version_remote)<0);
-          Compare.VersionString
       If(And(showWarnings,need),
       {
         WriteLn("  Local package "<<pkg->co_last_version_local+
