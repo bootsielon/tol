@@ -317,6 +317,35 @@ static void signal_assign()
 }
 
 //--------------------------------------------------------------------
+BText InitTolPath()
+//--------------------------------------------------------------------
+{
+  BText initpath = GetFilePath(_tolSessionPath_)+  "stdlib";
+  BDir initTolPath = initpath + "/_init_stdlib.tol";
+  if(!initTolPath.Exist()) 
+  {
+    initpath = "./stdlib";
+    initTolPath = initpath + "/_init_stdlib.tol";
+    if(!initTolPath.Exist()) 
+    {
+      initpath = BSys::GetEnv( "TOL_LIBRARY" );
+      if(initpath != "") 
+      {
+        initTolPath = initpath + "/_init_stdlib.tol";
+      }
+#ifdef TOLINIT_LIB_DIR
+      if (!initTolPath.Exist()) 
+      {
+        initpath = TOLINIT_LIB_DIR;
+        initTolPath =  initpath + "/_init_stdlib.tol";
+      }
+#endif
+    }
+  }
+  return(initTolPath.Name());
+}
+
+//--------------------------------------------------------------------
 void InitCommonInstances(BGrammar* gra)
 //--------------------------------------------------------------------
 {
@@ -930,7 +959,7 @@ BBool InitGrammars(char* calledProgram)
   // OJO: si tol se ejecuta desde el raiz del fuente entonces el
   // stdlib se asume relativo a ese sitio y entonces el include que se
   // forma aqui no es correcto.
-  BText stdlibPath = GetFilePath( initTolPath.Name() );
+  BText stdlibPath = GetFilePath( InitTolPath() );
   _tolSdkPath_ = GetStandardAbsolutePath( stdlibPath + "../../../include/" );
   #else
   BText binPath = GetFilePath( _tolSessionPath_ );
@@ -1203,28 +1232,7 @@ void LoadInitLibrary()
   else      { done_ = true; }
   TRACE_CINT_DECIMAL;
 
-  BText initpath = GetFilePath(_tolSessionPath_)+  "stdlib";
-  BDir initTolPath = initpath + "/_init_stdlib.tol";
-  if(!initTolPath.Exist()) 
-  {
-    initpath = "./stdlib";
-    initTolPath = initpath + "/_init_stdlib.tol";
-    if(!initTolPath.Exist()) 
-    {
-      initpath = BSys::GetEnv( "TOL_LIBRARY" );
-      if(initpath != "") 
-      {
-        initTolPath = initpath + "/_init_stdlib.tol";
-      }
-#ifdef TOLINIT_LIB_DIR
-      if (!initTolPath.Exist()) 
-      {
-        initpath = TOLINIT_LIB_DIR;
-        initTolPath =  initpath + "/_init_stdlib.tol";
-      }
-#endif
-    }
-  }
+  BDir initTolPath = InitTolPath();
   if (initTolPath.Exist()) 
   {
     InitTOLFile(initTolPath.Name());
