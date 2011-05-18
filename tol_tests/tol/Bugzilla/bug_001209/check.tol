@@ -1,0 +1,13 @@
+NameBlock modulo = [[
+  NameBlock submodulo = [[
+    Real Funcion(Real a) { 2*a }
+  ]];
+  NameBlock GetSubmodulo(Real void) {
+    WriteLn("Estás accediendo al submódulo.", "W");
+    submodulo
+  }
+]];
+
+Real modulo::GetSubmodulo(?)::Funcion(3);
+
+NameBlock modulo::GetSubmodulo(?);
