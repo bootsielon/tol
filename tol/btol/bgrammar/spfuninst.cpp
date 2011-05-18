@@ -1955,20 +1955,23 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
     if(!uns)
     {
       uns = GraAnything()->LeftEvaluateTree(branch1,false);
-      BGrammar* uns_gra = uns->Grammar();
-      if(uns && (uns_gra!=GraNameBlock()) && (uns_gra!=GraSet()))
+      if(uns)
       {
-        int mode = uns->Mode();
-        if(mode!=BCLASSMODE)
+        BGrammar* uns_gra = uns->Grammar();
+        if(uns && (uns_gra!=GraNameBlock()) && (uns_gra!=GraSet()))
         {
-          Error(I2("Evaluating expression ",
-                   "Evaluando la expresión ")+
-                   gra->Name()+" '"+BParser::Unparse(tre)+"'\n"+
-                I2("Left term is not a valid Set or NameBlock but a ",
-                   "El término a la izquierda no es un Set ni un NameBlock sino un ")+
-                   uns_gra->Name()+" '"+BParser::Unparse(branch1)+"'\n");
-          DESTROY(uns);
-          return(NULL);
+          int mode = uns->Mode();
+          if(mode!=BCLASSMODE)
+          {
+            Error(I2("Evaluating expression ",
+                     "Evaluando la expresión ")+
+                     gra->Name()+" '"+BParser::Unparse(tre)+"'\n"+
+                  I2("Left term is not a valid Set or NameBlock but a ",
+                     "El término a la izquierda no es un Set ni un NameBlock sino un ")+
+                     uns_gra->Name()+" '"+BParser::Unparse(branch1)+"'\n");
+            DESTROY(uns);
+            return(NULL);
+          }
         }
       }
     }
