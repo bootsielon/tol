@@ -1936,12 +1936,20 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
 /* */
     int nObjOld = BSyntaxObject::NSyntaxObject();
     BToken* arg1 = BParser::treToken(branch1);
-    if(arg1->TokenType()==ARGUMENT)
+    if(!branch1->cdr())
     {
-      uns = GraNameBlock()->FindOperand(arg1->Name(),false);
-      if(!uns)
+      if(arg1->TokenType()==ARGUMENT)
       {
-        uns = GraSet()->FindOperand(arg1->Name(),false);
+        uns = GraNameBlock()->FindOperand(arg1->Name(),false);
+        if(!uns)
+        {
+          uns = GraSet()->FindOperand(arg1->Name(),false);
+        }
+      }
+      else if(arg1->TokenType()==TYPE)
+      {
+        BTypeToken* tt = (BTypeToken*)arg1;
+        uns = FindClass(tt->Name(),1); 
       }
     }
     if(!uns)
@@ -1950,24 +1958,17 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
       BGrammar* uns_gra = uns->Grammar();
       if(uns && (uns_gra!=GraNameBlock()) && (uns_gra!=GraSet()))
       {
-        Error(I2("Evaluating expression ",
-                 "Evaluando la expresión ")+
-                 gra->Name()+" '"+BParser::Unparse(tre)+"'\n"+
-              I2("Left term is not a valid Set or NameBlock but a ",
-                 "El término a la izquierda no es un Set ni un NameBlock sino un")+
-                 uns_gra->Name()+" '"+BParser::Unparse(branch1)+"'\n");
-        DESTROY(uns);
-        return(NULL);
-      }
-    }
-    if(!uns) 
-    { 
-      if(!branch1->cdr())
-      {
-        if(arg1->TokenType()==TYPE)
+        int mode = uns->Mode();
+        if(mode!=BCLASSMODE)
         {
-          BTypeToken* tt = (BTypeToken*)arg1;
-          uns = FindClass(tt->Name(),1); 
+          Error(I2("Evaluating expression ",
+                   "Evaluando la expresión ")+
+                   gra->Name()+" '"+BParser::Unparse(tre)+"'\n"+
+                I2("Left term is not a valid Set or NameBlock but a ",
+                   "El término a la izquierda no es un Set ni un NameBlock sino un ")+
+                   uns_gra->Name()+" '"+BParser::Unparse(branch1)+"'\n");
+          DESTROY(uns);
+          return(NULL);
         }
       }
     }
