@@ -1931,18 +1931,39 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
     List* branch1 = Branch(tre,1);
     List* branch2 = Branch(tre,2);
 /* * /
-    Std(BText("\nTRACE EvMember branch1=")+BParser::treWrite(branch1,"  ")+"'\n"); 
-    Std(BText("\nTRACE EvMember branch2=")+BParser::treWrite(branch2,"  ")+"'\n"); 
+    printf((BText("\nTRACE EvMember branch1=")+BParser::treWrite(branch1,"  ")+"'\n").String()); 
+    printf((BText("\nTRACE EvMember branch2=")+BParser::treWrite(branch2,"  ")+"'\n").String()); 
 /* */
-    bool oldEnabled = BOut::Disable();
     int nObjOld = BSyntaxObject::NSyntaxObject();
-    uns = GraNameBlock()->LeftEvaluateTree(branch1);
-    if(!uns) { uns = GraSet()->LeftEvaluateTree(branch1); }
+    BToken* arg1 = BParser::treToken(branch1);
+    if(arg1->TokenType()==ARGUMENT)
+    {
+      uns = GraNameBlock()->FindOperand(arg1->Name(),false);
+      if(!uns)
+      {
+        uns = GraSet()->FindOperand(arg1->Name(),false);
+      }
+    }
+    if(!uns)
+    {
+      uns = GraAnything()->LeftEvaluateTree(branch1,false);
+      BGrammar* uns_gra = uns->Grammar();
+      if(uns && (uns_gra!=GraNameBlock()) && (uns_gra!=GraSet()))
+      {
+        Error(I2("Evaluating expression ",
+                 "Evaluando la expresión ")+
+                 gra->Name()+" '"+BParser::Unparse(tre)+"'\n"+
+              I2("Left term is not a valid Set or NameBlock but a ",
+                 "El término a la izquierda no es un Set ni un NameBlock sino un")+
+                 uns_gra->Name()+" '"+BParser::Unparse(branch1)+"'\n");
+        DESTROY(uns);
+        return(NULL);
+      }
+    }
     if(!uns) 
     { 
       if(!branch1->cdr())
       {
-        BToken* arg1 = BParser::treToken(branch1);
         if(arg1->TokenType()==TYPE)
         {
           BTypeToken* tt = (BTypeToken*)arg1;
@@ -1952,7 +1973,6 @@ static BSyntaxObject* EvMember(BGrammar* gra, const List* tre, BBool left)
     }
     int nObjNew = BSyntaxObject::NSyntaxObject();
     needsDeleteUns = (uns!=NULL) && (nObjNew>nObjOld);
-    if(oldEnabled) { BOut::Enable(); }
     BToken* arg2 = BParser::treToken(branch2);
     if(uns && arg2)
     {
