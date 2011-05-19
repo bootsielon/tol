@@ -50,7 +50,7 @@ Real Apply(Real unused)
   Text TolConfigManager::Config::Various::Language := 
     ToUpper(TolConfigManager::Config::Various::Language);
   Text PutLanguage(TolConfigManager::Config::Various::Language);
-  Text WriteFile(TOLSH_PATH+"language.txt",""<<If( 
+  Text WriteFile(TolAppDataPath+"language.txt",""<<If( 
     TolConfigManager::Config::Various::Language=="CASTELLANO",1,0));
   Real ShowStackAtError := 
     TolConfigManager::Config::Various::Verbose::ShowStackAtError;

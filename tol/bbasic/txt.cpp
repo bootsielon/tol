@@ -27,6 +27,7 @@
 
 #include <tol/tol_bout.h>
 #include <tol/tol_btimer.h>
+#include <tol/tol_bsys.h>
 #include <assert.h>
 
 //--------------------------------------------------------------------
@@ -70,7 +71,17 @@ static BBool ReadLanguage()
 //--------------------------------------------------------------------
 {
   int language = 1;
-  FILE* lan = fopen("language.txt","r");
+  FILE* lan = fopen(BSys::TolAppData()+"language.txt","r");
+  if(!lan)
+  {
+    lan = fopen("language.txt","r");
+    if(lan)
+    {
+      fclose(lan); 
+      BSys::Copy("language.txt", BSys::TolAppData()+"language.txt");
+      lan = fopen(BSys::TolAppData()+"language.txt","r");
+    }
+  }
   if(lan)
   {
     fscanf(lan,"%d",&language);
