@@ -843,13 +843,30 @@ static void ApplyFunToList(BDatBinary fun,
   args=Cdr(args);
   for(n=2; args; n++, args=Cdr(args))
   {
-    BMat& b = Mat(args->Car());
-    if((a.Rows()!=b.Rows())||(a.Columns()!=b.Columns())) { break; }
-    for(i=0; i<a.Rows(); i++)
-    {
-      for(j=0; j<a.Columns(); j++)
+    BSyntaxObject* arg = (BSyntaxObject*)args->Car();
+    if(!arg) { continue; }
+    BGrammar* g = arg->Grammar();
+    if(g==GraMatrix()) 
+    { 
+      BMat& b = Mat(arg); 
+      if((a.Rows()!=b.Rows())||(a.Columns()!=b.Columns())) { break; }
+      for(i=0; i<a.Rows(); i++)
       {
-        a(i,j) = (*fun)(a(i,j), b(i,j));
+        for(j=0; j<a.Columns(); j++)
+        {
+          a(i,j) = (*fun)(a(i,j), b(i,j));
+        }
+      }
+    }
+    else if(g==GraReal())
+    {
+      BDat& b = Dat(arg); 
+      for(i=0; i<a.Rows(); i++)
+      {
+        for(j=0; j<a.Columns(); j++)
+        {
+          a(i,j) = (*fun)(a(i,j), b);
+        }
       }
     }
   }
