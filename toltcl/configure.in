@@ -168,7 +168,7 @@ AC_ARG_ENABLE([ZipArchive],[AC_HELP_STRING([--enable-ZipArchive],[Turn on ZipArc
 AC_ARG_ENABLE([pool],[AC_HELP_STRING([--enable-pool],[Still no description])],[pool=true])
 
 TOLTCL_REQUIRE_PACKAGE([gsl],[GNU Scientific Library],[gsl/gsl_errno.h],[gsl])
-TOLTCL_REQUIRE_PACKAGE([tol],[TOL Language],[tol/tol_bcommon.h],[tol2.0.2])
+TOLTCL_REQUIRE_PACKAGE([tol],[TOL Language],[tol/tol_bcommon.h],[tol])
 TOLTCL_REQUIRE_PACKAGE([readline],[Readline],[readline/readline.h],[readline])
 
 AC_DEFINE([__USE_NAMEBLOCK__],[1],[No description])
