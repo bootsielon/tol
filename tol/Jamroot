@@ -257,7 +257,7 @@ all_libs = gsl lapack cholmod bz2 libziparch ANN libz ltdl dl ;
 
 lib tol
     : init $(all-obj-aliases) $(all_libs)
-    : <tag>@tag-lib 
+    #: <tag>@tag-lib 
     ;
 
 build-project dbdrivers ;
