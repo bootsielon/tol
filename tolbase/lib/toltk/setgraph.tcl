@@ -774,7 +774,7 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
   if {![string equal [$data(tableset) info header] "generic"] } {
     set data(var,listX) [lsort -index 1 $data(var,listX)]
   }
-  set data(var,listX) [lsort $data(var,listX)]  
+  #set data(var,listX) [lsort $data(var,listX)]  
 
   # fill data(var,listY)
   set data(var,listY) {}
@@ -784,7 +784,7 @@ proc ::SetGraphDialog::OnDestroyGraph {list} {
   if {![string equal [$data(tableset) info header] "generic"] } {
     set data(var,listY) [lsort -index 1 $data(var,listY)]
   }
-  set data(var,listY) [lsort $data(var,listY)]
+  #set data(var,listY) [lsort $data(var,listY)]
 }
 
 
@@ -887,6 +887,7 @@ Tolcon_Trace "X. No se puede graficar [lindex $data(var,listX) $indexX]: $firLin
   variable tmpOpt
   variable data
   # travel all columuns
+  #puts "DEBUG: ::SetGraphDialog::GrapthEvenUneven"
   set row 0
   for {set i 0} {$i<[expr [llength $data(var,listY)] - 1]} {incr i 2} {
     set colX [lindex [lindex $data(var,listY) $i] 0]
@@ -1169,6 +1170,7 @@ Tolcon_Trace "X. No se puede graficar: $colX"
   variable tmpOpt
   variable data
  
+  #puts "DEBUG: ::SetGraphDialog::SetSelection"
   set colX [lindex [lindex $data(selected) 0] 0]
   # Si la columna que fija el X del primer elemento es genérica o de tipo 2
   # (será la misma para todas)
