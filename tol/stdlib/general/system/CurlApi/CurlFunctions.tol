@@ -16,20 +16,70 @@ Real _InitTclCode( Real void )
     } )
 };
 
+Text _.autodoc.member.GetUrl =
+  "Download an URL.\n"
+  "Arguments:\n"
+  "Args is a NameBlock containing the named arguments for this function, which are:\n"
+  "  - Text url : the target url, this is a required argument\n"
+  "  - Text file : the destination file, this is an optional argument, if this argument is not given then the url contents is returned in the result of the funnction.\n"
+  "  - Real timeout : set the maximum time in seconds that you allow the transfer operation to take. Do note that normally, name lookups may take a considerable time and that limiting the operation to less than a few minutes risks aborting perfectly normal operations. This is an optional argument, it defaults to 0 which means no timeout.\n"
+  "  - Real connectiontimeout : set the maximum time in seconds that you allow the connection to the server to take. This only limits the connection phase, once it has connected, this option is of no more use. This is an optional argument, it defaults to 0 which means no timeout.\n"
+  "  - Real verbose : when True display a lot of verbose information about its operations. Very useful for protocol debugging and understanding.\n"
+  "Result:\n"
+  "The result is a Set containing information about the transfer. If the transfer is successful it returns a Set with the following fields:\n"
+  "  - Real connectTime : the time, in seconds, it took from the start until the connect to the remote host (or proxy) was completed.\n" 
+  "  - Real fileTime: the remote time of the retrieved document (in number of seconds since 1 jan 1970 in the GMT/UTC time zone). If you get -1, it can be because of many reasons (unknown, the server hides it or the server doesn't support the command that tells document time etc) and the time of the document is unknown.\n"
+  "  - Real totalTime : the total transaction time, in seconds, for the transfer, including name resolving, TCP connect etc.\n"
+  "  - Real sizeDownload : the total amount of bytes that were downloaded.\n"
+  "  - Real speedDownload : the average download speed, measured in bytes/second, for the complete download.\n"
+  "  - Text nameData : the name of the field containing the downloaded data. It could take two values, \"file\" if the download was requested to be saved into a file or \"bodyData\" if no file destination was specified in the invocation.\n"
+  "  - Text file : the file where the downloaded data where saved.\n"
+  "  - Text bodyData : the downloaded data if no destination file was specified.\n"
+  "If the transfer failed the result is a Set with the following fields:\n"
+  "  - Real failStatus : the error code.\n"
+  "  - Text explain : a string with a description of the error.\n"
+  "Examples:\n
+  // Ex. 1: request an http url and return the result in a variable.
+  Set result1 = CurlApi::GetUrl( [[ Text url = \"http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php?tol_package_version=1.1&tol_version=v2.0.1%20b.4&action=ping&key=658184943\", Real verbose=1, Real connecttimeout=3 ]] );
+  If( result1::failStatus, {
+    WriteLn( \"CurlApi::GetUrl error: \"<<result1::details )
+    }, {
+    WriteLn( \"CurlApi::GetUrl ok, the result is: \"<<result1::bodyData )
+  } );
+
+  // Ex. 2: request an http url and download the result into a file
+  Set result2 = CurlApi::GetUrl( [[ Text url = \"http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php?action=download&format=attachment&package=BysMcmc.4.4\", Text file=\"/tmp/BysMcmc.4.4.zip\", Real verbose=1, Real connecttimeout=3 ]] );
+  If( result2::failStatus, {
+    WriteLn( \"CurlApi::GetUrl error: \"<<result2::details )
+    }, {
+    WriteLn( \"CurlApi::GetUrl ok, the result was downloaded to: \"<<result2::file )
+  } );
+
+  // Ex. 3: request an ftp url and download the result into a file
+  Set result3 = CurlApi::GetUrl( [[ Text url = \"ftp://ftp.rediris.es//pub/OpenBSD/README\", Text file=\"/tmp/README\", Real verbose=1, Real connecttimeout=30 ]] );
+  "
+  ;
 Set GetUrl( NameBlock args )
 {
   // Esta inicializacion deberia desaparecer
   Real _InitTclCode(?);
   
   Text url = args::url;
-  Text file = args::file;
-  // otros argumentos opcionales seran tratados mas adelante
+  //Text file = getOptArg::file;
+  Text file = getOptArg( args, "file", "" );
   Real verbose = getOptArg( args, "verbose", 0 );
-  Set cmd = [[ "::TolCurl::getUrl", url, file ]];
+  Real connecttimeout = getOptArg( args, "connecttimeout", 5 );
+  // un paquete no debe tardar mas de 60 segundos en bajar
+  Real timeout = getOptArg( args, "timeout", 60 );
+  // otros argumentos opcionales seran tratados mas adelante
+  Set cmd = [[ "::TolCurl::getUrl", url,
+               "-file", file, "-verbose", If( verbose, "1", "0" ),
+               "-connecttimeout", FormatReal(connecttimeout, "%.0f"),
+               "-timeout", FormatReal(timeout, "%.0f") ]];
   Set tclResult = Tcl_EvalEx( cmd );
   Real status = tclResult["status"];
   Set If( status, {
-      Set curlResult = {
+      Set curlResult = { 
         Eval( tclResult["result"] )
       }
     }, {
@@ -37,3 +87,5 @@ Set GetUrl( NameBlock args )
       Set Copy( Empty ) /* Tcl Code is wrong!!! */
     } )
 };
+
+// Set result = CurlApi::GetUrl( [[ Text url = "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php?tol_package_version=1.1&tol_version=v2.0.1%20b.4&action=ping&key=658184943", Real verbose=1, Real connecttimeout=3 ]] );
