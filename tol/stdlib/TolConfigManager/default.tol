@@ -66,7 +66,27 @@ NameBlock Default =
     Text _.autodoc.member.UrlDownloader = "Method used by GetUrlContents in "
     "order to download contents from remote URL's. Valid methods are tcl:uri "
     "and sys:wget";
-    Text UrlDownloader = "tcl:uri"
+    Text UrlDownloader = "tcl:curl";
+    Text _.autodoc.member.CurlApiCfg = "Configuración por defecto de CurlApi";
+    NameBlock CurlApiCfg =
+    [[
+      Text _.autodoc.member.verbose = "When True display a lot of verbose "
+      "information about its operations. Very useful for protocol debugging "
+      "and understanding.";
+      Real verbose = 0;
+      Text _.autodoc.member.connecttimeout = "Set the maximum time in seconds "
+      "that you allow the connection to the server to take. This only limits "
+      "the connection phase, once it has connected, this option is of no more "
+      "use. This is an optional argument, it defaults to 0 which means no "
+      "timeout.";
+      Real connecttimeout = 5;
+      Text _.autodoc.member.timeout = "Set the maximum time in seconds that "
+      "you allow the transfer operation to take. Do note that normally, name "
+      "lookups may take a considerable time and that limiting the operation "
+      "to less than a few minutes risks aborting perfectly normal operations. "
+      "This is an optional argument, it defaults to 0 which means no timeout.";
+      Real timeout = 0
+    ]]
   ]];
   Text _.autodoc.member.Upgrading = "Automated check and upgrade of "
   "versions of TOL and packages";

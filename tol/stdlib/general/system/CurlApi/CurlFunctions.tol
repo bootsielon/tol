@@ -67,10 +67,9 @@ Set GetUrl( NameBlock args )
   Text url = args::url;
   //Text file = getOptArg::file;
   Text file = getOptArg( args, "file", "" );
-  Real verbose = getOptArg( args, "verbose", 0 );
-  Real connecttimeout = getOptArg( args, "connecttimeout", 5 );
-  // un paquete no debe tardar mas de 60 segundos en bajar
-  Real timeout = getOptArg( args, "timeout", 60 );
+  Real verbose = getOptArg( args, "verbose", TolConfigManager::Config::ExternalTools::CurlApiCfg::verbose );
+  Real connecttimeout = getOptArg( args, "connecttimeout", TolConfigManager::Config::ExternalTools::CurlApiCfg::connecttimeout );
+  Real timeout = getOptArg( args, "timeout", TolConfigManager::Config::ExternalTools::CurlApiCfg::timeout );
   // otros argumentos opcionales seran tratados mas adelante
   Set cmd = [[ "::TolCurl::getUrl", url,
                "-file", file, "-verbose", If( verbose, "1", "0" ),
