@@ -1,0 +1,15 @@
+Class @Ejemplo {
+  Text _.autodoc.member.ConAutodoc = "";
+  Real ConAutodoc(Real void) { 1 };
+  Real SinAutodoc(Real void) { 2 }
+};
+
+Anything PutDescription("Con autodoc", "@Ejemplo", "ConAutodoc");
+Anything PutDescription("Sin autodoc", "@Ejemplo", "SinAutodoc");
+Set members = ClassMembers("@Ejemplo");
+Text members[1][7]; //> "Con autodoc"
+Text members[2][7]; //> ""
+
+Real ok.1 = members[1][7]=="Con autodoc";
+Real ok.2 = members[1][7]=="Sin autodoc";
+
