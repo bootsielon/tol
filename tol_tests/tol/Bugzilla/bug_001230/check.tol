@@ -1,0 +1,9 @@
+
+Set example = { Include("ErrorEnAIA.oza") };
+
+Set aia = AIA(example::residuals,example::piw,example::outliers, 2); 
+
+//Reconstruyo la serie original para echarle un vistazo
+Ratio psiw = (1/1) : example::piw;
+Serie original = DifEq(psiw, example::residuals);
+
