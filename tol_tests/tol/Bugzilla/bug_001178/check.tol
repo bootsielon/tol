@@ -1,0 +1,29 @@
+Class @A
+{
+  Real x=?;
+  Real f(Real void) { ? };
+  Static Real static_member = 3
+};
+
+@A a = [[ Real x=1 ]];
+
+Text old.desc.x = Description(a::x);
+Text old.desc.f = Description(a::f);
+
+Real PutDescription("Descripción nueva de x","@A","x");
+Real PutDescription("Descripción nueva de f","@A","f");
+
+@A b = [[ Real x=2 ]];
+
+//Permanece sin descripción porque es un miembro sin _.autodoc.member
+Text new.desc.x = Description(b::x);
+//Sí tiene la descripción porque es un miembro aunque no tenga _.autodoc.member
+Text new.desc.f = Description(b::f);
+
+Set ok.all = [[
+  Real old.desc.x.ok = old.desc.x == "";
+  Real old.desc.f.ok = old.desc.f == "";
+  Real new.desc.x.ok = new.desc.x == "Descripción nueva de x";
+  Real new.desc.f.ok = new.desc.f == "Descripción nueva de f"
+]];
+
