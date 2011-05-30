@@ -1,0 +1,91 @@
+
+//Registra el contador de errores antes de empezar
+Real numErr0 = Copy(NError);
+//Registra el contador de warnings antes de empezar
+Real numWar0 = Copy(NWarning);
+
+Class @A {
+  Text _.autodoc.member._.A = "Atributo @A::_.A";
+  Real _.A = 1;
+
+  Text _.autodoc.member.GetA = "Devuelve el valor de @A::_.A";
+  Real GetA(Real void) { _.A }
+};
+
+Class @B : @A {
+
+  Text _.autodoc.member._.B = "Atributo @B::_.B";
+  Real _.B = 2;
+
+  //No da ningún problema. Se modifica la descripción en @B y heredadas
+  //pero no en @A
+  Text _.autodoc.member.GetA = "Devuelve el valor de @B::_.A";
+  Real GetA(Real void) { _.A/2 };
+
+  Text _.autodoc.member.GetB = "Devuelve el valor de @B::_.B";
+  Real GetB(Real void) { b }
+};
+
+Class @C : @B {
+
+  //Salta un warning [1] porque no se puede modificar la descrición de un 
+  //miembro heredado que no es un método
+  //Text _.autodoc.member._.A = "Atributo @B::_.A";
+
+  //Sólo se puede modificar el valor por defecto de miembro heredado 
+  //que no es un método
+  Real _.A = 4;
+
+  Real _.B = 2;
+
+  //Salta un warning [2] porque no se puede modificar la descrición de un 
+  //miembro heredado que no es un método
+  Text _.autodoc.member._.B = "Atributo @B::_.B";
+
+  //Salta un warning [3] porque no se puede modificar la descrición de un 
+  //método heredado no sobrecargado
+  Text _.autodoc.member.GetA = "Devuelve el valor de @C::_.A";
+
+  //No da ningún problema. Se modifica la descripción en @C pero no en @B
+  Text _.autodoc.member.GetB = "Devuelve el valor de @C::_.B";
+  Real GetB(Real void) { b }
+};
+
+@A a;
+@B b;
+@C c;
+
+Text desc.a.A    = Description(a::_.A); 
+Text desc.a.GetA = Description(a::GetA);
+Text desc.b.A    = Description(b::_.A);
+Text desc.b.B    = Description(b::_.B);
+Text desc.b.GetA = Description(b::GetA);
+Text desc.b.GetB = Description(b::GetB);
+Text desc.c.A    = Description(c::_.A);
+Text desc.c.B    = Description(c::_.B);
+Text desc.c.GetA = Description(c::GetA);
+Text desc.c.GetB = Description(c::GetB);
+
+//Registra el contador de errores al final, que debe ser igual que al principio
+Real numErr1 = Copy(NError);
+
+//Registra el contador de warnings al final, que debe ser 3 más que al principio
+Real numWar1 = Copy(NWarning);
+
+Set ok.all = [[
+  Real ok.error       = numErr1 == numErr0;
+  Real ok.warning     = numWar1 == numWar0+3;
+  Real ok.desc.a.A    = desc.a.A    == "Atributo @A::_.A";
+  Real ok.desc.a.GetA = desc.a.GetA == "Devuelve el valor de @A::_.A";
+  Real ok.desc.b.A    = desc.b.A    == "Atributo @A::_.A";
+  Real ok.desc.b.GetA = desc.b.GetA == "Devuelve el valor de @B::_.A";
+  Real ok.desc.b.B    = desc.b.B    == "Atributo @B::_.B";
+  Real ok.desc.b.GetB = desc.b.GetB == "Devuelve el valor de @B::_.B";
+  Real ok.desc.c.A    = desc.c.A    == "Atributo @A::_.A";
+  Real ok.desc.c.GetA = desc.c.GetA == "Devuelve el valor de @B::_.A";
+  Real ok.desc.c.B    = desc.c.B    == "Atributo @B::_.B";
+  Real ok.desc.c.GetB = desc.c.GetB == "Devuelve el valor de @C::_.B"
+]];
+
+
+
