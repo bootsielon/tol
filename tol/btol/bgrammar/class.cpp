@@ -1557,7 +1557,7 @@ static BInt MemberCmp(const void* v1, const void* v2)
               getFullNameRef()+"::"+name);
     }
   }
-  else if(0 && (mbr->method_ || mbr->static_ ) && mbr->description_==desc) 
+  else if((mbr->method_ || mbr->static_ ) && mbr->description_==desc) 
   { 
     return(true); 
   }
