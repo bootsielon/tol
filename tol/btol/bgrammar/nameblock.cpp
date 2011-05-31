@@ -822,20 +822,21 @@ const BText& BNameBlock::LocalName() const
     const BText& dsc = obj->Description();
     if(!dsc.HasName())
     {
-      BText autodocName = BText("_.autodoc.member.")+obj->Name();
-      BSyntaxObject* autodoc = NULL;
       if(class_)
       {
-        autodoc = class_->FindStaticMember(autodocName,-1);
+        BMember* mbr = class_->FindMember(obj->Name());
+        if(mbr) { obj->PutDescription(mbr->description_); }
       }
       else
       {
+        BText autodocName = BText("_.autodoc.member.")+obj->Name();
+        BSyntaxObject* autodoc = NULL;
         autodoc = Member(autodocName);
-      }
-      if(autodoc && autodoc->Grammar()==GraText())
-      {
-        BText& desc = Text(autodoc);
-        obj->PutDescription(desc);
+        if(autodoc && autodoc->Grammar()==GraText())
+        {
+          BText& desc = Text(autodoc);
+          obj->PutDescription(desc);
+        }
       }
     }
   }
@@ -845,20 +846,21 @@ const BText& BNameBlock::LocalName() const
     const BText& dsc = obj->Description();
     if(!dsc.HasName())
     {
-      BText autodocName = BText("_.autodoc.member.")+obj->Name();
-      BSyntaxObject* autodoc = NULL;
       if(class_)
       {
-        autodoc = class_->FindStaticMember(autodocName,-1);
+        BMember* mbr = class_->FindMember(obj->Name());
+        if(mbr) { obj->PutDescription(mbr->description_); }
       }
       else
       {
+        BText autodocName = BText("_.autodoc.member.")+obj->Name();
+        BSyntaxObject* autodoc = NULL;
         autodoc = Member(autodocName);
-      }
-      if(autodoc && autodoc->Grammar()==GraText())
-      {
-        BText& desc = Text(autodoc);
-        obj->PutDescription(desc);
+        if(autodoc && autodoc->Grammar()==GraText())
+        {
+          BText& desc = Text(autodoc);
+          obj->PutDescription(desc);
+        }
       }
     }
   }

@@ -1019,18 +1019,12 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
           {
             memberName = memberName.SubString(1,memberName.Length());
             BClass* cls = (BClass*)obj;
-            BMember* mbr = cls->FindMember(memberName);
-            if(!mbr)
-            {  
-              Error(third_arg_error);
+            if(!cls->PutMemberDescription(memberName, desc, false))
+            {
+              BSpecialFunction::TestResult(_name_,NIL,tre,NIL,BTRUE);
             }
-            else 
-            { 
-              BSyntaxObject* adoc = cls->FindStaticMember(BText("_.autodoc.member.")+memberName, false);
-              if(adoc) { Text(adoc)=desc; }
-              if(mbr->method_) { obj=mbr->method_; } 
-              else if(mbr->static_) { obj=mbr->static_; } 
-            }
+            SAFE_DESTROY(desObj,obj);
+            return(NULL);
           }
           else
           {  
@@ -2242,8 +2236,8 @@ bool BSpecialFunction::Initialize()
   EvPutName);
 
   AddInstance("PutDescription",
-  I2("(Text newDescription, Anything object)",
-     "(Text nuevaDescripción, Anything objeto)"),
+  I2("(Text newDescription, Anything object [, Text member])",
+     "(Text nuevaDescripción, Anything objeto [, Text miembro])"),
   I2("Puts a new description to an object. "
      "You also can modify description of a Struct or a Class by "
      "passing its name between quotes.",

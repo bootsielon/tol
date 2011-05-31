@@ -60,10 +60,12 @@ BMember::BMember()
   definition_  (""),
   isMethod_    (false),
   method_      (NULL),
+  firstParent_ (NULL),
   parent_      (NULL),
   deleteBranch_(false),
   isStatic_    (false),
-  static_      (NULL) 
+  static_      (NULL),
+  description_ ("") 
 {
 }
 
@@ -77,10 +79,12 @@ BMember::BMember(const BMember& mbr)
   definition_  (""),
   isMethod_    (false),
   method_      (NULL),
+  firstParent_ (NULL),
   parent_      (NULL),
   deleteBranch_(false),
   isStatic_    (false),
-  static_      (NULL)  
+  static_      (NULL),
+  description_ ("") 
 { 
   Copy(mbr); 
 }
@@ -94,13 +98,16 @@ BMember::BMember(BMemberOwner* parent, List* branch)
   definition_  (""),
   isMethod_    (false),
   method_      (NULL),
+  firstParent_ (NULL),
   parent_      (NULL),
   deleteBranch_(false),
   isStatic_    (false),
-  static_      (NULL) 
+  static_      (NULL),
+  description_ ("") 
 {
   List* cdr;
   BCore* car;
+  firstParent_ = parent;
   parent_ = parent;
   isGood_ = true;
   BToken* tok = NULL;
@@ -318,17 +325,15 @@ BMember::~BMember()
   BClass* cls = (BClass*)(parent_);
   if(!cls) { return(dump); }
   if((name[0]=='_')&&(name[1]!='.')) { return(dump); }
-  if(name.BeginWith("_.autodoc.member.")) { return(dump); }
-  BSyntaxObject* adm = cls->FindStaticMember(BText("_.autodoc.member.")+name, false);
   dump += BText("//")+
     BText((isStatic_)?"Static":"Non static")+ " "+
     BText((declaration_.HasName())?"":"virtual ")+
     BText((isMethod_)?"method":"member")+ 
     " defined at " + cls->FullName()+"\n";
-  if(adm) 
+  if(description_.HasName()) 
   { 
     dump+="/* ";  
-    dump+=Text(adm);  
+    dump+=description_;  
     dump+=" */\n"; 
   }
   dump+=BText((isStatic_)?"Static ":"")+declaration_;
@@ -349,6 +354,7 @@ BMember::~BMember()
   declaration_  = mbr.declaration_; 
   definition_   = mbr.definition_;  
   isMethod_     = mbr.isMethod_;    
+  firstParent_  = mbr.firstParent_;
   parent_       = mbr.parent_; 
   method_       = mbr.method_; 
   isStatic_     = mbr.isStatic_; 
@@ -506,7 +512,9 @@ BMemberOwner::BMemberOwner()
   mbrDefHash_  (NULL),
   memberHash_  (NULL),
   lastPosition_(0),
-  notImplementedMethods_(0)
+  notImplementedMethods_(0),
+  docMbrHash_(NULL),
+  docMbr_(0)
 {
 }
 
@@ -521,7 +529,9 @@ BMemberOwner::BMemberOwner(const BMemberOwner& mbrOwn)
   mbrDefHash_  (NULL),
   memberHash_  (NULL),
   lastPosition_(0),
-  notImplementedMethods_(0)
+  notImplementedMethods_(0),
+  docMbrHash_(NULL),
+  docMbr_(0)
 { 
   Copy(mbrOwn); 
 }
@@ -550,12 +560,15 @@ void BMemberOwner::CreateMemberHashes()
   mbrDecHash_  = new BMemberByNameHash;
   mbrDefHash_  = new BMemberByNameHash;
   memberHash_  = new BMbrNumByNameHash;
+  docMbrHash_  = new BAutodocMemberHash;
   SetEmptyKey  ((*mbrDecHash_), NULL);
   SetEmptyKey  ((*mbrDefHash_), NULL);
   SetEmptyKey  ((*memberHash_), NULL);
+  SetEmptyKey  ((*docMbrHash_), NULL);
   SetDeletedKey((*mbrDecHash_), name_del_key());
   SetDeletedKey((*mbrDefHash_), name_del_key());
   SetDeletedKey((*memberHash_), name_del_key());
+  SetDeletedKey((*docMbrHash_), name_del_key());
 }
 
 //--------------------------------------------------------------------
@@ -632,12 +645,18 @@ void BMemberOwner::CreateParentHashes()
       delete iterM->second;
     }
   }
+  for(n=0; n<=docMbr_.Size(); n++)
+  {
+    delete docMbr_[n];
+  }
   if(mbrDecHash_) { delete mbrDecHash_; }
   if(mbrDefHash_) { delete mbrDefHash_; }
   if(memberHash_) { delete memberHash_; }
+  if(docMbrHash_) { delete docMbrHash_; }
   mbrDecHash_ = NULL;
   mbrDefHash_ = NULL;
   memberHash_ = NULL;
+  docMbrHash_ = NULL;
 }
 
 //--------------------------------------------------------------------
@@ -762,6 +781,22 @@ int MbrNumCmp(const void* v1, const void* v2)
 //#define USE_STATIC_INHERITAGE
 
 //--------------------------------------------------------------------
+bool BMemberOwner::AddAutodocMember(
+  const BText& name, const BText& desc, const BMemberOwner* parent)
+//--------------------------------------------------------------------
+{
+  return(true);
+}
+
+//--------------------------------------------------------------------
+  bool BMemberOwner::AddAutodocMember(BMember* mbrPtr)
+//--------------------------------------------------------------------
+{
+  return(true);
+}
+
+
+//--------------------------------------------------------------------
   bool BMemberOwner::AddMember(BMember* newMember)
 //! Adds a new member if it's compatible with existant ones
 //--------------------------------------------------------------------
@@ -770,6 +805,16 @@ int MbrNumCmp(const void* v1, const void* v2)
   const BText& dec  = newMember->declaration_;
   const BText& name = newMember->name_;
   assert(name.HasName()&& dec.HasName());
+
+  if(OwnerType()==BCLASS)
+  {
+    if(name.BeginWith("_.autodoc.member."))
+    {
+      bool ok = AddAutodocMember(newMember);
+      delete newMember;
+      return(ok);
+    }
+  }
 #ifndef USE_STATIC_INHERITAGE
   if(newMember->isStatic_ && (newMember->parent_!=this)) 
   {
@@ -837,6 +882,7 @@ int MbrNumCmp(const void* v1, const void* v2)
       assert(!FindDefMember(dec));
       (*memberHash_)[name] = newMbrNum;
       (*mbrDefHash_)[dec ] = newMember;
+      newMember->firstParent_ = mbrDef->firstParent_;
     }
     else if(mbrDec)
     {
@@ -853,6 +899,7 @@ int MbrNumCmp(const void* v1, const void* v2)
         assert(notImplementedMethods_>0);
         notImplementedMethods_--; 
       }
+      newMember->firstParent_ = mbrDec->firstParent_;
     }
   }
   else if(mbrDef)
@@ -876,6 +923,10 @@ int MbrNumCmp(const void* v1, const void* v2)
             "\n"+mbrDef->FullExpression()+"\n"+
             I2(" by declaration ", " por la declaración ")+
             "\n"+newMember->FullExpression()+"\n");
+    }
+    else
+    {
+      newMember->firstParent_ = mbrDef->firstParent_;
     }
   }
   //If new member nor old one with same name and declaration has no default 
@@ -912,10 +963,14 @@ int MbrNumCmp(const void* v1, const void* v2)
     //Adds class to hashed map of parents
     (*parentHash_)[name] = parent;
     //Adds parent members to 
-    n=0;
     for(n=0; n<parent->member_.Size(); n++)
     {
       ok = ok && AddMember(parent->member_[n]->member_);
+    }
+    for(n=0; n<parent->docMbr_.Size(); n++)
+    {
+      BAutoDocInf& a = *(parent->docMbr_[n]);
+      ok = ok && AddAutodocMember(a.name_,a.desc_,a.parent_);
     }
   }
   found = ascentHash_->find(name);
@@ -1094,6 +1149,7 @@ int MbrNumCmp(const void* v1, const void* v2)
 { 
   return(nb_->LocalName()); 
 }
+
 
 //--------------------------------------------------------------------
   BText BNameBlockMemberOwner::getFullName() const 
@@ -1393,63 +1449,191 @@ static BInt MemberCmp(const void* v1, const void* v2)
 }
 
 //--------------------------------------------------------------------
+  bool BClass::AddAutodocMember(const BText& name, const BText& desc, const BMemberOwner* parent)
+//! Adds a new member if it's compatible with existant ones
+//--------------------------------------------------------------------
+{
+  bool ok = true;
+  BAutodocMemberHash::const_iterator found = docMbrHash_->find(name);
+  if(found!=docMbrHash_->end())
+  {
+    int s = found->second;
+    BClass* cls = (BClass*)parent;
+    BClass* oldCls = (BClass*)docMbr_[s]->parent_;
+    if(cls==oldCls)
+    {
+      Error(I2("Special documentation member ",
+             "El miembro especial de documentación ")+
+          cls->getFullNameRef()+"::"+name+
+          I2(" is already defined.",
+             " ya está definido."));
+      ok=false;
+    }
+    else
+    { 
+/*
+      Std(BText("TRACE Changing inherited _.autodoc_member from ")+
+        oldCls->getFullNameRef()+"::"+name+"='"+docMbr_[s]->desc_+"' to "+
+        cls->getFullNameRef()+"::"+name+"='"+desc+"'\n");
+*/
+      docMbr_[s]->desc_ = desc;
+      docMbr_[s]->parent_ = parent;
+    }
+  }
+  else
+  {
+    int s = docMbr_.Size();
+/*
+    BClass* cls = (BClass*)parent;
+    Std(BText("TRACE Adding [")+s+"] _.autodoc_member "+
+        cls->getFullNameRef()+"::"+name+"='"+desc+"'\n");
+*/
+    docMbr_.Add(new BAutoDocInf(name, desc, parent));
+    (*docMbrHash_)[docMbr_[s]->name_] = s;
+  }
+  return(ok);
+}
+
+//--------------------------------------------------------------------
+  bool BClass::AddAutodocMember(BMember* mbrPtr)
+//! Adds a new member if it's compatible with existant ones
+//--------------------------------------------------------------------
+{
+  BMember& mbr = *mbrPtr;
+  bool ok = true;
+  if(!mbr.static_)
+  {
+    Error(I2("Special documentation member ",
+             "El miembro especial de documentación ")+
+          getFullNameRef()+"::"+mbr.name_+
+          I2(" is corrupted or it didn't have declared as static.",
+             " está corrupto o no se declaró como static."));
+    ok = false;
+  }
+  else if(mbr.static_->Grammar()!=GraText())
+  {
+    Error(I2("Special documentation member ",
+             "El miembro especial de documentación ")+
+          getFullNameRef()+"::"+mbr.name_+
+          I2(" should be a Text instead of a ",
+             " debería ser un Text en lugar de un ")+
+          mbr.static_->Grammar()->Name());
+    ok = false;
+  }
+  else
+  {
+    BText desc = Text(mbr.static_);
+    BText name = mbr.name_.SubString(17,mbr.name_.Length());
+    ok = AddAutodocMember(name, desc, this);
+  }
+  return(true);
+}
+
+//--------------------------------------------------------------------
+  bool BClass::PutMemberDescription(
+    const BText& name, 
+    const BText& desc,
+    bool autodoc)
+//--------------------------------------------------------------------
+{
+  bool ok = true;
+  BMember* mbr = FindMember(name);
+  if(!mbr)
+  {
+    ok = false;
+    if(autodoc)
+    {
+      Warning(I2("Special documentation member ",
+                 "El miembro especial de documentación ")+
+              getFullNameRef()+"::_.autodoc.member."+name+
+              I2(" is irrelevant due it doesn't exist a member nor method called ",
+                 " es irrelevante porque no existe ningún miembro ni método llamado ")+
+              name);
+    }
+    else
+    {
+      Warning(I2("Cannot apply PutDescription to inexistent member ",
+                 "No se puede aplicar PutDescription al miembro inexistente ")+
+              getFullNameRef()+"::"+name);
+    }
+  }
+  else
+  {
+    BSyntaxObject* obj = NULL;
+/*
+    if(mbr->description_.HasName())
+    {
+      Warning(I2("Description of member ","La descripción del miembro ")+
+              getFullNameRef()+"::"+name+
+              I2(" is already defined in"," ya ha sido definida en ")+
+              parent->getFullNameRef());
+    }
+    else
+    {
+      mbr->description_ = desc;
+    }
+*/
+    BClass* parent = (BClass*)mbr->parent_;
+    BClass* firstParent = (BClass*)mbr->firstParent_;
+    if(( mbr->method_ && (parent     ==this)) || 
+       (!mbr->method_ && (firstParent==mbr->parent_)) )
+       
+    {
+      mbr->description_ = desc;
+      if(mbr->method_) { obj = mbr->method_; } 
+      else if(mbr->static_) { obj = mbr->static_; } 
+      if(obj)
+      {
+        obj->PutDescription(desc);
+      } 
+    }
+    else 
+    {
+      if(!mbr->method_)
+      {
+        mbr->description_ = firstParent->FindMember(name)->description_;
+      }
+      else
+      {
+        mbr->description_ = desc;
+      }
+      ok = false;
+      if(mbr->method_)
+      {
+        Warning(I2("Cannot change to non overloaded method ",
+                   "No se puede cambiar la descripción de un método no sobrecargado ")+
+                getFullNameRef()+"::"+name+
+                I2(" inherited from "," heredado de ")+
+                parent->getFullNameRef()+"::"+name);
+      }
+      else
+      {
+        Warning(I2("Cannot change to non method member ",
+                   "No se puede cambiar la descripción de un miembro que no es un método ")+
+                getFullNameRef()+"::"+name+
+                I2(" originally inherited from "," heredado originalmente de ")+
+                firstParent->getFullNameRef()+"::"+name);
+      }
+    }  
+  }
+  return(ok);
+};
+
+//--------------------------------------------------------------------
   bool BClass::CheckAutoDoc()
 //--------------------------------------------------------------------
 {
   bool ok = true;
   int n=0;
-  for(n=0; ok && (n<member_.Size()); n++)
+  BAutodocMemberHash::const_iterator iterC;
+  BAutodocMemberHash& dmh = *docMbrHash_;
+  for(iterC=dmh.begin(); iterC!=dmh.end(); iterC++, n++)
   {
-    if(!member_[n]) { continue; }
-    BMember& mbr = *(member_[n]->member_);
-    BSyntaxObject* obj = NULL;
-    if(mbr.name_.BeginWith("_.autodoc.member."))
-    {
-      if(!mbr.static_)
-      {
-        Error(I2("Special documentation member ",
-                 "El miembro especial de documentación ")+
-              getFullNameRef()+"::"+mbr.name_+
-              I2(" is corrupted or it didn't have declared as static.",
-                 " está corrupto o no se declaró como static."));
-        ok = false;
-      }
-      else if(mbr.static_->Grammar()!=GraText())
-      {
-        Error(I2("Special documentation member ",
-                 "El miembro especial de documentación ")+
-              getFullNameRef()+"::"+mbr.name_+
-              I2(" should be a Text instead of a ",
-                 " debería ser un Text en lugar de un ")+
-              mbr.static_->Grammar()->Name());
-        ok = false;
-      }
-      else
-      {
-        BText& desc = Text(mbr.static_);
-        BText auxName = mbr.name_.SubString(17,mbr.name_.Length());
-        BMember* auxMember = FindMember(auxName);
-        if(!auxMember)
-        {
-          Warning(I2("Special documentation member ",
-                     "El miembro especial de documentación ")+
-                  getFullNameRef()+"::"+mbr.name_+
-                  I2(" is irrelevant due it doesn't exist a member nor method called ",
-                     " es irrelevante porque no existe ningún miembro ni método llamado ")+
-                  auxName);
-        }
-        else
-        {
-          if(auxMember->method_) { obj = auxMember->method_; } 
-          else if(auxMember->static_) { obj = auxMember->static_; } 
-          if(obj)
-          {
-            obj->PutDescription(desc);
-          }  
-        }
-      }
-    }
-  }  
+    int s = iterC->second;
+    const BText& name = docMbr_[s]->name_;
+    const BText& desc = docMbr_[s]->desc_;
+    PutMemberDescription(name, desc, true);
+  };
   return(ok);
 };
 
@@ -1892,7 +2076,7 @@ void BClassMembers::CalcContens()
       if(static_==1 && !mbr->isStatic_) { continue; }
     }
     const BText& name = mbr->name_;
-    if(name.BeginWith("_.autodoc.member.")) { continue; }
+  //if(name.BeginWith("_.autodoc.member.")) { continue; }
     BSet reg;
     reg.PrepareStore(6);
 
@@ -1913,17 +2097,13 @@ void BClassMembers::CalcContens()
       definedAtClass = mbr->parent_->getFullName();
     }
 
-    BText desc ="";
-    BSyntaxObject* adoc = cls->FindStaticMember(BText("_.autodoc.member.")+name, false);
-    if(adoc) { desc = Text(adoc); }
-
     reg.AddElement(new BContensDat ("",mbr->isStatic_,""));
     reg.AddElement(new BContensDat ("",mbr->isMethod_,""));
     reg.AddElement(new BContensText("",declare,""));
     reg.AddElement(new BContensText("",name,""));
     reg.AddElement(new BContensText("",access,""));
     reg.AddElement(new BContensText("",definedAtClass,""));
-    reg.AddElement(new BContensText("",desc,""));
+    reg.AddElement(new BContensText("",mbr->description_,""));
 
     reg.PutStruct(strClassMemberInfo_);
     contens_.AddElement(new BSetTuple("", reg));

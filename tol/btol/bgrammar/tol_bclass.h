@@ -34,9 +34,27 @@ class TOL_API BMember;
 class TOL_API BMemberOwner;
 class TOL_API BClass;
 struct TOL_API BMbrNum;
+
+class TOL_API BAutoDocInf
+{
+ public:
+  BText name_;
+  BText desc_;
+  const BMemberOwner* parent_;
+  BAutoDocInf(const BText& name, const BText& desc, const BMemberOwner* parent)
+  : name_(name), desc_(desc), parent_(parent)
+  { }
+  BAutoDocInf(const BAutoDocInf* a)
+  : name_(a->name_), desc_(a->desc_), parent_(a->parent_)
+  { }
+};
+
 template class TOL_API BArray<BClass*>;
 template class TOL_API BArray<BMember*>;
 template class TOL_API BArray<BMbrNum*>;
+template class TOL_API BArray<BMemberOwner*>;
+template class TOL_API BArray<BAutoDocInf*>;
+
 //template class TOL_API BArray<BMember*>;
 
 struct TOL_API BMbrNum
@@ -53,6 +71,7 @@ class TOL_API BMember
  public:
   List*          branch_;       //!< Parser branch of the member
   bool           isGood_;       //!< False when there are some error
+  BMemberOwner*  firstParent_;  //!< First Member owner (Class or NameBlock)
   BMemberOwner*  parent_;       //!< Member owner (Class or NameBlock)
   BText          name_;         //!< Member name
   BText          declaration_;  //!< Declaration canonical expression
@@ -62,6 +81,7 @@ class TOL_API BMember
   bool           isStatic_;     //!< Flag for static Class members and methods
   BSyntaxObject* method_;       //!< Store for Class member
   BSyntaxObject* static_;       //!< Store for Class static member or method
+  BText          description_;  //!< Store for Class member description
  public:
   // Constructors and destructors: bgrammar\class.cpp
   BMember();
@@ -99,18 +119,24 @@ public:
   typedef hash_map_by_name<BClass*>::dense_ BClassByNameHash;
   //! Type for store searchable and sortable members
   typedef hash_map_by_name<BMbrNum*>::dense_ BMbrNumByNameHash;
+  
+  //! Type for store searchable and sortable names
+  typedef hash_map_by_name<int>::dense_ BAutodocMemberHash;
+
 
   //! Type of member owner
   enum BOwnerType { BNONE=0, BCLASS=1, BNAMEBLOCK=2 };
 
   List* tree_;  //!< Parser branch of the Class 
-  bool isGood_;                   //!< False when there are som error
-  BClassByNameHash*  parentHash_; //!< Classes which inherites from
-  BClassByNameHash*  ascentHash_; //!< Classes which recursively inherites from
-  BMemberByNameHash* mbrDecHash_; //!< Members with just declaration 
-  BMemberByNameHash* mbrDefHash_; //!< Members with default value
-  BMbrNumByNameHash* memberHash_; //!< All members hashed by name
-  BArray<BMbrNum*>   member_;
+  bool isGood_;                    //!< False when there are som error
+  BClassByNameHash*    parentHash_; //!< Classes which inherites from
+  BClassByNameHash*    ascentHash_; //!< Classes which recursively inherites from
+  BMemberByNameHash*   mbrDecHash_; //!< Members with just declaration 
+  BMemberByNameHash*   mbrDefHash_; //!< Members with default value
+  BMbrNumByNameHash*   memberHash_; //!< All members hashed by name
+  BAutodocMemberHash*  docMbrHash_; //!< Autodoc members
+  BArray<BMbrNum*>     member_;
+  BArray<BAutoDocInf*> docMbr_;
   int notImplementedMethods_;
 public:
   // Constructors and destructors: bgrammar\class.cpp
@@ -147,6 +173,9 @@ public:
   BMember* FindDefMember  (const BText& declaration) const;
   //! Searchs a member with given declaration without default value
   BMember* FindDecMember  (const BText& declaration) const;
+  //! Adds a new autodoc member
+  virtual bool AddAutodocMember(const BText& name, const BText& desc, const BMemberOwner* parent);
+  virtual bool AddAutodocMember(BMember* mbrPtr);
   //! Adds a new member
   bool AddMember(BMember* member);
   //! Adds a new parent class
@@ -196,6 +225,10 @@ public:
   BClass(const BText& name);
  ~BClass();
 
+  //! Adds a new autodoc member
+  bool AddAutodocMember(const BText& name, const BText& desc, const BMemberOwner* parent);
+  bool AddAutodocMember(BMember* mbrPtr);
+
   // Access & Manipulation: inline
   BOwnerType OwnerType() const { return(BCLASS); }
   const BText& getName() const { return(Name()); }
@@ -224,6 +257,11 @@ public:
   int GetMethods(BArray<const BMember*>& arr) const;
   int GetSortedMembers(BArray<const BMember*>& arr) const;
   int GetSortedMethods(BArray<const BMember*>& arr) const;
+
+  bool PutMemberDescription(
+    const BText& name, 
+    const BText& desc,
+    bool autodoc);
 
   DeclareClassNewDelete(BClass);
 };
