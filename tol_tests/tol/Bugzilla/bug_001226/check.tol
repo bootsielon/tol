@@ -1,0 +1,49 @@
+
+//Registra el contador de errores antes de empezar
+Real numErr0 = Copy(NError);
+//Registra el contador de warnings antes de empezar
+Real numWar0 = Copy(NWarning);
+
+Class @A {
+  Real _.A = 1;
+  Real GetA(Real void) { _.A }
+};
+
+@A a;
+//Antes de llamar PutDescription ni _.A ni GetA tienen descripción
+Text desc.a.A.0    = Description(a::_.A); 
+Text desc.a.GetA.0 = Description(a::GetA);
+
+Real PutDescription("Atributo @A::_.A",            "@A","_.A");
+Real PutDescription("Devuelve el valor de @A::_.A","@A","GetA");
+
+//Tras llamar a PutDescription los atributos de las instancias creadas anteriormente
+//siguen sin descripción pues los atributos son objetos autónomos a los que ya 
+//no es posible acceder desde la clase. En cambio los métodos tienen descripción
+//pues en realidad sólo hay un objeto método para toda la clase.
+Text desc.a.A    = Description(a::_.A); 
+Text desc.a.GetA = Description(a::GetA);
+
+@A b;
+//Para las instancias creadas tras llamar a PutDescription tanto los atributos
+//como los métodos tienen descripción
+Text desc.b.A    = Description(b::_.A); 
+Text desc.b.GetA = Description(b::GetA);
+
+//Registra el contador de errores al final, que debe ser igual que al principio
+Real numErr1 = Copy(NError);
+
+//Registra el contador de warnings al final, que debe ser 3 más que al principio
+Real numWar1 = Copy(NWarning);
+
+Set ok.all = [[
+  Real ok.error         = numErr1 == numErr0;
+  Real ok.warning       = numWar1 == numWar0;
+  Real ok.desc.a.A.0    = desc.a.A.0    == "";
+  Real ok.desc.a.GetA.0 = desc.a.GetA.0 == "";
+  Real ok.desc.a.A      = desc.a.A      == "";
+  Real ok.desc.a.GetA   = desc.a.GetA   == "Devuelve el valor de @A::_.A";
+  Real ok.desc.b.A      = desc.b.A      == "Atributo @A::_.A";
+  Real ok.desc.b.GetA   = desc.b.GetA   == "Devuelve el valor de @A::_.A"
+]];
+
