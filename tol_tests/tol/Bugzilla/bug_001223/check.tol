@@ -9,7 +9,11 @@ Class @A {
   Real _.A = 1;
 
   Text _.autodoc.member.GetA = "Devuelve el valor de @A::_.A";
-  Real GetA(Real void) { _.A }
+  Real GetA(Real void) { _.A };
+
+  Text _.autodoc.member.GetA2 = "Devuelve el valor de @A::_.A al cuadrado";
+  Real GetA2(Real void) { _.A^2 }
+
 };
 
 Class @B : @A {
