@@ -29,18 +29,17 @@ Class @B : @A {
 Class @C : @B {
 
   //Salta un warning [1] porque no se puede modificar la descrición de un 
-  //miembro heredado que no es un método
-  //Text _.autodoc.member._.A = "Atributo @B::_.A";
+  //atributo con descripción
+  Text _.autodoc.member._.A = "Atributo @B::_.A";
 
   //Sólo se puede modificar el valor por defecto de miembro heredado 
   //que no es un método
   Real _.A = 4;
 
-  Real _.B = 2;
-
   //Salta un warning [2] porque no se puede modificar la descrición de un 
   //miembro heredado que no es un método
   Text _.autodoc.member._.B = "Atributo @B::_.B";
+  Real _.B = 2;
 
   //Salta un warning [3] porque no se puede modificar la descrición de un 
   //método heredado no sobrecargado
