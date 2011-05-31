@@ -20,11 +20,13 @@
     TimeSet DatingA = D(1)
   );
   
+  Set modelDef = BSR.Parse("Delta/master.bsr", "master");
+
   //////////////////////////////////////////////////////////////////////////////
   // BSR.Probit
   
   BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCyclerFromParsed(
-    BSR.Parse("Delta/master.bsr", "master");
+    modelDef;
     BysMcmc::@McmcPartialHandler::New(
       // A escoger uno:
       // (1) un parámetro lineal
