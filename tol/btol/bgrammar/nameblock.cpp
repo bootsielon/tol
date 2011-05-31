@@ -1591,9 +1591,37 @@ void BNameBlockMembers::CalcContens()
   int i;
   contens_.PrepareStore(members.Card());
   const BClass* cls = nb.Class();
-  for(i=1; i<=members.Card(); i++)
+  int nu_members_instance =(cls)?cls->member_.Size():0;
+  int nu_members_non_instance = members.Card();
+  int nu_members = nu_members_instance + nu_members_non_instance;
+  for(i=1; i<=nu_members; i++)
   {
-    BSyntaxObject* mbr = members[i];
+    BSyntaxObject* mbr = NULL;
+    if(i<=nu_members_instance) 
+    {
+      BMember* clsMbr = cls->member_[i-1]->member_;
+      if(clsMbr->static_) 
+      { 
+        continue; 
+      }
+      else if(clsMbr->method_) 
+      { 
+        mbr = clsMbr->method_; 
+      }
+      else if(clsMbr->name_[0]!='_')
+      { 
+        mbr = nb.PublicMember(clsMbr->name_); 
+      }
+      else if(clsMbr->name_[1]=='.')
+      {
+        mbr = nb.PrivateMember(clsMbr->name_);
+      }
+    }
+    else
+    {
+      mbr = members[i-nu_members_instance];
+      if(cls && mbr && cls->FindMember(mbr->Name())) { mbr = NULL; }
+    }
     if(!mbr) { continue; }
     const BText& name = mbr->Name();
     if(name.BeginWith("_.autodoc.member.")) { continue; }
