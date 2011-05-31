@@ -1,0 +1,47 @@
+
+//Registra el contador de errores antes de empezar
+Real numErr0 = Copy(NError);
+//Registra el contador de warnings antes de empezar
+Real numWar0 = Copy(NWarning);
+
+Class @A {
+  Static Real static_attribute = 1;
+  Static Real static_method(Real void) {static_attribute};
+  Real _.A;
+  Real GetA(Real void) { _.A }
+};
+
+Class @B : @A{
+  Text _.autodoc.member._.B = "Atributo @B::_.B";
+  Real _.B;
+  Text _.autodoc.member.GetB = "Devuelve el valor de @B::_.B";
+  Real GetB(Real void) { _.B }
+};
+
+Real PutDescription("Atributo @A::_.A",            "@A","_.A");
+Real PutDescription("Devuelve el valor de @A::_.A","@A","GetA");
+
+@B b = [[
+  Real _.A = 1;
+  Real _.B = 2;
+  Real miembro_propio = 3
+]];
+
+//Devuelve información sobre todos los miembros no estáticos de la instancia,
+//tanto los miembros propios como los de instancia de todas las clases de las
+//que hereda.
+Set membersInfo = Members(b);
+
+//Registra el contador de errores al final, que debe ser igual que al principio
+Real numErr1 = Copy(NError);
+
+//Registra el contador de warnings al final, que debe ser 3 más que al principio
+Real numWar1 = Copy(NWarning);
+
+Set ok.all = [[
+  Real ok.error         = numErr1 == numErr0;
+  Real ok.warning       = numWar1 == numWar0;
+  Real ok.m             = Card(membersInfo)==5
+]];
+
+/* */
