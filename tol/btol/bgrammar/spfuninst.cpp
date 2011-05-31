@@ -995,7 +995,7 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
   BInt nb = BSpecialFunction::NumBranches(tre);
   if(BSpecialFunction::TestNumArg(_name_, 2, nb, 3))
   {
-    BSyntaxObject* desObj = GraText    ()->EvaluateTree(Branch(tre,1));
+    BSyntaxObject* desObj = GraText()->EvaluateTree(Branch(tre,1));
     if(!desObj) { return(NULL); }
     BText desc = Text(desObj);
     BGrammar::PutLast(gra);
@@ -1004,33 +1004,33 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
     if(tokenName[0]=='\"')
     {
       tokenName = tokenName.SubString(1,tokenName.Length());
-      obj = FindStruct(tokenName);
+      obj = FindClass(tokenName,-1);
       if(obj && nb==3)
-      {  
+      {
+        BText memberName = BParser::treToken(Branch(tre,3))->Name();
+        if(memberName[0]=='\"')
+        {
+          memberName = memberName.SubString(1,memberName.Length());
+          BClass* cls = (BClass*)obj;
+          if(!cls->PutMemberDescription(memberName, desc, false))
+          {
+            BSpecialFunction::TestResult(_name_,NIL,tre,NIL,BTRUE);
+          }
+          SAFE_DESTROY(desObj,obj);
+          return(NULL);
+        }
+        else
+        {  
+          Error(third_arg_error);
+        }
+      } 
+      else if(nb==3)
+      {
         Error(third_arg_error);
       }
-      if(!obj)
+      else
       {
-        obj = FindClass(tokenName,-1);
-        if(obj && nb==3)
-        {
-          BText memberName = BParser::treToken(Branch(tre,3))->Name();
-          if(memberName[0]=='\"')
-          {
-            memberName = memberName.SubString(1,memberName.Length());
-            BClass* cls = (BClass*)obj;
-            if(!cls->PutMemberDescription(memberName, desc, false))
-            {
-              BSpecialFunction::TestResult(_name_,NIL,tre,NIL,BTRUE);
-            }
-            SAFE_DESTROY(desObj,obj);
-            return(NULL);
-          }
-          else
-          {  
-            Error(third_arg_error);
-          }
-        } 
+        obj = gra->LeftEvaluateExpr(tokenName);      
       }
     }
     else if (nb==3)
@@ -1039,7 +1039,7 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
     }
     if(!obj)
     {
-      obj = GraAnything()->LeftEvaluateTree(Branch(tre,2));
+      obj = gra->LeftEvaluateTree(Branch(tre,2));
     };
     BGrammar::PutLast(gra);
     if(obj)
