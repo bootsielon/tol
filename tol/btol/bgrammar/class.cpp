@@ -1557,22 +1557,13 @@ static BInt MemberCmp(const void* v1, const void* v2)
               getFullNameRef()+"::"+name);
     }
   }
+  else if(0 && (mbr->method_ || mbr->static_ ) && mbr->description_==desc) 
+  { 
+    return(true); 
+  }
   else
   {
     BSyntaxObject* obj = NULL;
-/*
-    if(mbr->description_.HasName())
-    {
-      Warning(I2("Description of member ","La descripción del miembro ")+
-              getFullNameRef()+"::"+name+
-              I2(" is already defined in"," ya ha sido definida en ")+
-              parent->getFullNameRef());
-    }
-    else
-    {
-      mbr->description_ = desc;
-    }
-*/
     BClass* parent = (BClass*)mbr->parent_;
     BClass* firstParent = (BClass*)mbr->firstParent_;
     if(( mbr->method_ && (parent     ==this)) || 
@@ -1600,7 +1591,7 @@ static BInt MemberCmp(const void* v1, const void* v2)
       ok = false;
       if(mbr->method_)
       {
-        Warning(I2("Cannot change to non overloaded method ",
+        Warning(I2("Cannot change description of non overloaded method ",
                    "No se puede cambiar la descripción de un método no sobrecargado ")+
                 getFullNameRef()+"::"+name+
                 I2(" inherited from "," heredado de ")+
@@ -1608,7 +1599,7 @@ static BInt MemberCmp(const void* v1, const void* v2)
       }
       else
       {
-        Warning(I2("Cannot change to non method member ",
+        Warning(I2("Cannot change description of non method member ",
                    "No se puede cambiar la descripción de un miembro que no es un método ")+
                 getFullNameRef()+"::"+name+
                 I2(" originally inherited from "," heredado originalmente de ")+
