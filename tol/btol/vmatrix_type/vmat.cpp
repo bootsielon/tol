@@ -1251,12 +1251,14 @@ static int intCmp_(const void* v1, const void* v2)
   }
   if(nfk)
   {
+#ifndef NDEBUG   
     warn_cannot_apply("PutVMatBlock",
       I2("(There are "+nfk+" non stored cells of sparse "
          "matrix that will be be modified)",
          "(Existen "+nfk+" celdas no almacenadas de "
          "la matriz sparse que serán modificadas)"),
       *this); 
+#endif
     cholmod_R_sparse* unsym = CholmodCopy(s_.chlmRsparse_, 0, 1, common_);
     cholmod_R_triplet* tr_old = 
       CholmodSparseToTriplet(unsym, common_);

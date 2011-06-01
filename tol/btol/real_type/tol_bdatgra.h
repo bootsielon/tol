@@ -22,14 +22,13 @@
 #ifndef TOL_BDATGRA_H
 #define TOL_BDATGRA_H 1
 
+#include <tol/tol_bdat.h>
 #include <tol/tol_bdate.h>
 #include <tol/tol_bgencon.h>
 
 #ifdef __USE_TC__
 #  include <tol/tol_bctime.h>
 #endif
-
-class BDat;
 
 //#define __USE_SHORT_LOGIC__
 

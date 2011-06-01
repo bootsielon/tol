@@ -1,5 +1,5 @@
 /* tol_baia.h: Automatic Intervention Analysis
-               GNU/TOL Language.
+  GNU/TOL Language.
 
    Copyright (C) 2003 - Bayes Decision, SL (Spain [EU])
 
@@ -23,6 +23,7 @@
 #define TOL_BMAIA_H 1
 
 #include <tol/tol_baia.h>
+#include <tol/tol_bvmat.h>
 
 //--------------------------------------------------------------------
 // forward references
@@ -57,21 +58,23 @@ public:
   friend bool operator == (const BInput& a, const BInput& b)
   {
     bool ok = (a.outlier_ == b.outlier_) &&
-              (a.t_       == b.t_      );
+ (a.t_       == b.t_      );
     return(ok);
   }
   friend bool operator != (const BInput& a, const BInput& b)
   {
     bool ok = (a.outlier_ != b.outlier_) ||
-              (a.t_       != b.t_      );
+ (a.t_       != b.t_      );
     return(ok);
   }
   static int CompareBicPtr(const void* v1, const void* v2);
 
   BArray<BInput> input_;
-  BMatrix<BDat> x_;
-  BMatrix<BDat> w_;
-  BMatrix<BDat> e_;
+  BVMat x_;
+  BVMat w_;
+  BVMat e_;
+  BVMat LF_;
+  BVMat L_;
   BDat sigma_;
   BDat resLogDens_;
   BDat nonZeroParamLogProb_;
@@ -93,8 +96,8 @@ public:
   void Add(int index, BOutlier* outlier, int t, BDat w);
   void Add(const BMultOutlier& mo);
   void Copy(const BMultOutlier& mo);
-  bool Estimate(const BMatrix<BDat>& y, const BMatrix<BDat>& C, int n0,
-                BDat optMaxEigenValueRelativeRange_);
+  bool Estimate(const BVMat& y, const BVMat& C, int n0,
+   BDat optMaxEigenValueRelativeRange_);
   bool Estimate(const BMultAia& aia);
 };
 
@@ -129,28 +132,29 @@ class BMultAia: public BAia
     BDat bic_;
   };
 
-  BMatrix<BDat>     y_;
-  BMatrix<BDat>     constant_;
-  int               optMaxOrder_;
-  int               optMaxCrossNum_;
-  BDat              optMinNonZeroParamProb_;
-  BDat              optMaxEigenValueRelativeRange_;
-  BDat	            resLogDens_;
-  BDat              nonZeroParamLogProb_;
-  BDat              minNonZeroParamProb_;
-  BDat              logDens_;
-  BDat              bic_;
-  BMultOutlier      mo_;
+  BVMat y_;
+  BVMat constant_;
+  int optMaxOrder_;
+  int optMaxCrossNum_;
+  BDat optMinNonZeroParamProb_;
+  BDat optMaxEigenValueRelativeRange_;
+  BDat resLogDens_;
+  BDat nonZeroParamLogProb_;
+  BDat minNonZeroParamProb_;
+  BDat logDens_;
+  BDat bic_;
+  BMultOutlier mo_;
  public:
   BMultAia(      BUserTimeSerie*    res,
-           const BRat&              rat,
+           const BRat& rat,
            const BArray<BOutlier*>& userOutliers,
-                 int                optMaxOrder,
-                 int                optMaxCrossNum,
-                 BDat               optMinNonZeroParamProb,
-                 BDat               optMaxEigenValueRelativeRange);
+    int   optMaxOrder,
+    int   optMaxCrossNum,
+    BDat  optMinNonZeroParamProb,
+    BDat  optMaxEigenValueRelativeRange);
  ~BMultAia() {}
   void SetResiduals         (const BArray<BDat>& y);
+  void SetResiduals         (const BVMat& y);
   void Initialize           ();
   bool SearchMaxAbsRes      (BArray<BMaxRes>& mr);
   bool SearchRefObs         (BArray<BMultOutlier>& mo);

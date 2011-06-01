@@ -75,6 +75,8 @@ static BMultOutlier::BInput _inputConstant_ =
     has = input_[j].t_ == t &&
           input_[j].outlier_ == outlier;
   }
+//VBR: check colinearity with stored iputs solving a linear system
+//if(a.input_.Size() && !has)  { }
   TRACE_SHOW_HIGH(fun, GetExpression()+"\n versus \n"+
    outlier->GetExpression(t,0)
    +"\n -> "+has+"\n");
@@ -109,16 +111,13 @@ static BMultOutlier::BInput _inputConstant_ =
 void  BMultOutlier::Add(int index, BOutlier* outlier, int t, BDat w)
 //--------------------------------------------------------------------
 {
-  if(!HasInput(outlier, t))
-  {
-    int s = input_.Size();
-    input_.ReallocBuffer(s+1);
-    input_[s].index_   = index;
-    input_[s].outlier_ = outlier;
-    input_[s].t_       = t;
-    input_[s].w0_      = w;
-    if(maxIndex_<index) { maxIndex_ = index; }
-  }
+  int s = input_.Size();
+  input_.ReallocBuffer(s+1);
+  input_[s].index_   = index;
+  input_[s].outlier_ = outlier;
+  input_[s].t_       = t;
+  input_[s].w0_      = w;
+  if(maxIndex_<index) { maxIndex_ = index; }
 }
 
 
@@ -133,13 +132,16 @@ void  BMultOutlier::Add(const BMultOutlier& mo)
   input_.ReallocBuffer(s1);
   for(int i=0; i<s2; i++) 
   { 
-    Add
-    (
-      mo.input_[i].index_, 
-      mo.input_[i].outlier_, 
-      mo.input_[i].t_, 
-      mo.input_[i].w0_
-    );
+    if(!HasInput(mo.input_[i].outlier_, mo.input_[i].t_))
+    {
+      Add
+      (
+        mo.input_[i].index_, 
+        mo.input_[i].outlier_, 
+        mo.input_[i].t_, 
+        mo.input_[i].w0_
+      );
+    }
   }
 }
 
@@ -179,8 +181,8 @@ static double _logInv2_ = log(0.5);
 
 
 //--------------------------------------------------------------------
-bool BMultOutlier::Estimate(const BMatrix<BDat>& y, 
-                            const BMatrix<BDat>& C, 
+bool BMultOutlier::Estimate(const BVMat& y, 
+                            const BVMat& C, 
                             int n0,
                             BDat optMaxEigenValueRelativeRange_)
 /*! Estimates the coefient w0 of this outlier at index t for the
@@ -197,6 +199,8 @@ bool BMultOutlier::Estimate(const BMatrix<BDat>& y,
   int s = input_.Size();
   int n = n0+s;
   int N = y.Rows();
+  double N_2 = 0.5*N;
+
   if(!s||!N||
      (y.Columns()!=1)||
      (C.Columns()!=1)||
@@ -213,30 +217,25 @@ bool BMultOutlier::Estimate(const BMatrix<BDat>& y,
   { 
     input_[i].outlier_->Evaluate(input_[i].t_, xt, i, input_[i].sqrSum_);
   }
-  for(i=0; i<N; i++) { xt(s,i)=C(i,0); }
-  x_ = xt.T();
-  w_ = gsl_MinimumResidualsSolve(x_,y);
+  for(i=0; i<N; i++) { xt(s,i)=C.GetCell(i,0); }
+  x_.DMat2VMat((BMatrix<double>&)xt, true);
+  LF_ = x_.CholeskiFactor(BVMat::ECFO_XtX, true, true, false);
+  if(LF_.code_==BVMat::ESC_undefined || (LF_.Rows()!=s+1) || !LF_.Check()) 
+  { return(false); }
+  BVMat xty = (y.T()*x_).T();
+  w_ = LF_.CholeskiSolve(xty, BVMat::ECSS_PtLLtP);
   e_ = y-x_*w_;
+  sigma_ = e_.StDs();
+  BDat S2 = e_.Moment(2);
+  L_.Convert(LF_,BVMat::ESC_chlmRsparse);
+  resLogDens_ = _logInv2_+LogGamma(N_2)-N_2*(_logPi_+Log(S2/2));
+  BTStudentDist tProbDist(N-s);
+  minNonZeroParamProb_ = BDat::Unknown();
 
   TRACE_SHOW_TOP(fun,BText("  x=")<<    x_.Name());
   TRACE_SHOW_TOP(fun,BText("  y=")<<    y .Name());
   TRACE_SHOW_TOP(fun,BText("  w=")<<    w_.Name());
   TRACE_SHOW_TOP(fun,BText("  e=")<<    e_.Name());
-
-  sigma_ = StandardDeviation(e_.Data());
-  BDat S2 = Moment(e_.Data(),2);
-  double N_2 = 0.5*N;
-  resLogDens_ = _logInv2_+LogGamma(N_2)-N_2*(_logPi_+Log(S2/2));
-  BTStudentDist tProbDist(N-s);
-  minNonZeroParamProb_ = BDat::Unknown();
-  BSymMatrix<BDat> M;
-  BMatrix<BDat> L;
-  MTMSquare(x_,M);
-  {
-    BLowTrMatrix<BDat> L_;
-    Choleski(M,L_);
-    L = L_;
-  }
   TRACE_SHOW_HIGH(fun,BText("  M=\n")+M.Name());
   TRACE_SHOW_HIGH(fun,BText("  L=\n")+L.Name());
 
@@ -246,25 +245,23 @@ bool BMultOutlier::Estimate(const BMatrix<BDat>& y,
   BDat minEigenVal;
   BDat maxEigenVal;
   BDat eigenValueRelativeRange;
-  BMat t(0,0);
-  if(L.Rows())
+  BVMat t;
+  logDetL = 0;
+  BDat minLogEigenVal;
+  BDat maxLogEigenVal;
+  BVMat Lt = L_.T();
+  for(i=0; i<s; i++) 
   { 
-    logDetL = 0;
-    BDat minLogEigenVal;
-    BDat maxLogEigenVal;
-    for(i=0; i<s; i++) 
-    { 
-      BDat lev = 2*Log(L(i,i));
-      logDetL += lev;
-      if(!i) { minLogEigenVal = maxLogEigenVal = lev; }
-      else if(lev < minLogEigenVal) { minLogEigenVal = lev; }
-      else if(lev > maxLogEigenVal) { maxLogEigenVal = lev; }
-    }
-    eigenValueRelativeRange = Exp(maxLogEigenVal-minLogEigenVal);
-    detL = Exp(logDetL);
-    t = L.T()*w_/sigma_;
-    TRACE_SHOW_HIGH(fun,BText("  t=\n")+t.Name());
+    BDat lev = 2*Log(L_.GetCell(i,i));
+    logDetL += lev;
+    if(!i) { minLogEigenVal = maxLogEigenVal = lev; }
+    else if(lev < minLogEigenVal) { minLogEigenVal = lev; }
+    else if(lev > maxLogEigenVal) { maxLogEigenVal = lev; }
   }
+  eigenValueRelativeRange = Exp(maxLogEigenVal-minLogEigenVal);
+  detL = Exp(logDetL);
+  t = Lt*w_ / sigma_.Value();
+  //TRACE_SHOW_HIGH(fun,BText("  t=\n")+t.Name());
   TRACE_SHOW_HIGH(fun,BText("  logDetL=")+logDetL);
   TRACE_SHOW_HIGH(fun,BText("  DetL=\n")+detL);
   TRACE_SHOW_HIGH(fun,BText("  eigenValueRelativeRange=\n")+eigenValueRelativeRange);
@@ -281,10 +278,10 @@ bool BMultOutlier::Estimate(const BMatrix<BDat>& y,
     nonZeroParamLogProb_ = 0;
     for(i=0; i<s; i++) 
     { 
-      input_[i].w0_ = w_(i,0);
+      input_[i].w0_ = w_.GetCell(i,0);
       input_[i].tStudent_ = input_[i].w0_/(sigma_/Sqrt(input_[i].sqrSum_));
     //BDat tDens = tProbDist.Dens(input_[i].tStudent_);
-      BDat tAbs  = Abs(t(i,0));
+      BDat tAbs  = Abs(t.GetCell(i,0));
       BDat tProbNonZero = 1.0-2.0*tProbDist.Dist(-tAbs);
       nonZeroParamLogProb_ += Log(tProbNonZero);
       if(minNonZeroParamProb_.IsUnknown() || (tProbNonZero<minNonZeroParamProb_)) 
@@ -400,10 +397,12 @@ void BMultAia::SetResiduals(const BArray<BDat>& y)
 #endif
   assert(y.Size()==res_->Data().Size());
   avr_   = Average(y);
-  for(int i=0; i<N_; i++) { y_(i,0) = y[i]; }
-  res_->GetDataBuffer() = y_.Data(); 
+  for(int i=0; i<N_; i++) { y_.PutCell(i,0,y[i].Value()); }
+  BMat Y;
+  y_.GetDMat((BMatrix<double>&)Y);
+  res_->GetDataBuffer() = Y.Data(); 
   double N_2    = 0.5*N_;
-  sigma_        = StandardDeviation(y_.Data());
+  sigma_        = StandardDeviation(Y.Data());
   resLogDens_   = _logInv2_+LogGamma(N_2)-N_2*(_logPi_+2.0*Log(sigma_));
   nonZeroParamLogProb_ = 0;
   minNonZeroParamProb_ = 1;
@@ -418,6 +417,18 @@ void BMultAia::SetResiduals(const BArray<BDat>& y)
 }
 
 //--------------------------------------------------------------------
+void BMultAia::SetResiduals(const BVMat& y)
+
+/*! Put aia_ member to this for each used BOutlier.
+ */
+//--------------------------------------------------------------------
+{
+  BMatrix<BDat> Y;
+  y.GetDMat((BMatrix<double>&)Y);
+  SetResiduals(Y.Data());
+};
+
+//--------------------------------------------------------------------
 void BMultAia::Initialize()
 
 /*! Put aia_ member to this for each used BOutlier.
@@ -430,7 +441,7 @@ void BMultAia::Initialize()
   n_ = 0;
 //Std(BText("\nResiduous dates ")+res_->FirstDate().Name()+", "+
 //          res_->LastDate ().Name()+", "+N_);
-  y_.Alloc(N_,1);
+  y_.BlasRDense(N_,1);
   SetResiduals(res_->Data());
 
 //Std("\nUsing outlier's types: ");
@@ -446,7 +457,7 @@ void BMultAia::Initialize()
   BDat sqrSum;
   BMatrix<BDat> ct(1,N_);
   BAia::stepOut_->Evaluate(0,ct,0,sqrSum);
-  constant_=ct.T();
+  constant_.DMat2VMat((BMatrix<double>&)ct,true);
 }
 
 
@@ -462,8 +473,7 @@ void BMultAia::RecalcResiduous(const BMultOutlier& mo)
 #endif
   int s = mo.input_.Size();
   n_+=s;
-  BMatrix<BDat> res = mo.e_;//+mo.w_(s,0);
-  SetResiduals(res.Data());
+  SetResiduals(mo.e_);
 /*
   sigma_        = mo.sigma_;
   resLogDens_   = mo.resLogDens_;
@@ -492,7 +502,7 @@ bool BMultAia::SearchMaxAbsRes(BArray<BMaxRes>& mr)
   }
   for(t=0; t<N_; t++)
   {
-    BDat absRes = Abs(y_(t,0));
+    BDat absRes = Abs(y_.GetCell(t,0));
     TRACE_SHOW_HIGH(fun,BText("   ")+absRes);
     for(i=0; i<optMaxOrder_; i++)
     {
@@ -751,7 +761,7 @@ BList* BMultAia::Input()
   {
     BInt i, iter;
     BMultOutlier minMo;
-    BMatrix<BDat> y0 = y_;
+    BVMat y0 = y_;
     for(iter=0; iter<N_-2; iter++)
     { 
       if(n_+optMaxOrder_>=N_) { break; }
@@ -775,7 +785,7 @@ BList* BMultAia::Input()
       #ifdef BMAIA_REESTIMATE_ITER
       SetResiduals(mo_.e_.Data());
       #else
-      SetResiduals(minMo.e_.Data());
+      SetResiduals(minMo.e_);
       #endif
       if(sigma_<=Sqrt(DEpsilon())) { break; }
     }
