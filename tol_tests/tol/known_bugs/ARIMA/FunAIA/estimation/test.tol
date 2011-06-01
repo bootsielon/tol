@@ -22,6 +22,7 @@
   Real mem3 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];
 
   Set massive_aia = Include("massive_aia.tol");
+
   Real t4 = Copy(Time);
   WriteLn("t4="+Time);
   Real mem4 = MemoryStatus(0)["TotalPhys"]-MemoryStatus(0)["AvailPhys"];

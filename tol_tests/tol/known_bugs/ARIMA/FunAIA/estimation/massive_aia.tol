@@ -20,7 +20,7 @@ Real DoDiagnostics := 0;
   Set DoAIAFromOIS(Set s)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Set   s           = data[1];
+//Set   s           = data[1];
   Text  name        = Name(s);
   Serie ser         = s[1]-AvrS(s[1]);
   Set   aiaModInf   = [[Aia.SelectModel(name,ser,Aia.OptionsDef)]];
