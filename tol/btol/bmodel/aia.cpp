@@ -88,7 +88,10 @@ BOutlier::BOutlier(const BText& name, const BRat& rat)
 //--------------------------------------------------------------------
 :BObject(name), responseFunction_(rat), aia_(NIL), enabled_(BTRUE)
 {
-//Std(BText("\nCreating outlier ")+name+" = " +rat.Name());
+#ifdef TRACE_LEVEL
+  BText fun = BText("  BOutlier::BOutlier");
+#endif
+  TRACE_SHOW_TOP(fun,BText("\nCreating outlier ")+name+" = " +rat.Name());
   if(name.HasName())
   {
     instances_ = Cons((BCore*)this, instances_);
@@ -119,8 +122,11 @@ void BOutlier::CalcExpand(BInt n)
  */
 //--------------------------------------------------------------------
 {
+#ifdef TRACE_LEVEL
+  BText fun = BText("  BOutlier::CalcExpand");
+#endif
   expand_[n] = responseFunction_.Numerator().Coef(n);
-//Std(BText("\n   Expand[")+n+",0]="+expand_[n].Name());
+  TRACE_SHOW_TOP(fun,BText("\n   Expand[")+n+",0]="+expand_[n].Name());
   BInt i=n;
   if(responseFunction_.Denominator().Degree()<n)
   { 
@@ -129,7 +135,7 @@ void BOutlier::CalcExpand(BInt n)
   for (;i>0;i--)
   {
     expand_[n] -= expand_[n-i]*responseFunction_.Denominator().Coef(i);
-  //Std(BText("\n  Expand[")+n+","+i+"]="+expand_[n].Name());
+    TRACE_SHOW_TOP(fun,BText("\n  Expand[")+n+","+i+"]="+expand_[n].Name());
   }
   expand_[n] /= responseFunction_.Denominator()[0].Coef();
 }
@@ -142,6 +148,9 @@ BDat BOutlier::Expand(BInt n)
  */
 //--------------------------------------------------------------------
 {
+#ifdef TRACE_LEVEL
+  BText fun = BText("  BOutlier::Expand");
+#endif
   if((responseFunction_.Denominator().Degree()==0) &&
      (responseFunction_.Denominator()[0].Coef()!=0))
   {
@@ -154,7 +163,7 @@ BDat BOutlier::Expand(BInt n)
     BInt size = expand_.Size();
     if(n>=size)
     {
-    //Std(BText("\nExpand : n = ")+n+", Size = "+ size +", MaxSize = "+expand_.MaxSize());
+      TRACE_SHOW_TOP(fun,BText("\nExpand : n = ")+n+", Size = "+ size +", MaxSize = "+expand_.MaxSize());
       if(n>=expand_.MaxSize()) { expand_.ReallocBuffer(2*(n+1)); }
       if(n>=expand_.MaxSize()) { expand_.ReallocBuffer(2*(n+1)); }
       expand_.ReallocBuffer(n+1);
@@ -206,12 +215,15 @@ void   BOutlier::PutAia(BAia* aia)
  */
 //--------------------------------------------------------------------
 {
+#ifdef TRACE_LEVEL
+  BText fun = BText("  BOutlier::PutAia");
+#endif
   int i, j;
   int length = aia->N_;
   aia_ = aia;
   rat_    = responseFunction_;
   rat_*=aia_->rat_;
-//Std(BText("\n   Length      = ")+length);
+  TRACE_SHOW_TOP(fun,BText("\n   Length      = ")+length);
   BPol expand = rat_ % (length+1);
   x_.ReallocBuffer(length);
   xx_.ReallocBuffer(length);
@@ -236,7 +248,7 @@ void   BOutlier::PutAia(BAia* aia)
     }
   }
   nearMaxAbs_.AllocBuffer(j);
-//Std(BText("\n   Ratio = ")+rat_.Name()+ " max (" + maxRelative_ +")="+max);
+  TRACE_SHOW_TOP(fun,BText("\n   Ratio = ")+rat_.Name()+ " max (" + maxRelative_ +")="+max);
 }
 
 
@@ -354,17 +366,20 @@ BSyntaxObject* BOutlier::RecalcResiduous(BInt t, BReal w) const
  */
 //--------------------------------------------------------------------
 {
+#ifdef TRACE_LEVEL
+  BText fun = BText("  BOutlier::RecalcResiduous");
+#endif
   if(!aia_) { return(NIL); }
   t-=maxRelative_;
   BInt i=t, j=0;
   BDat sigma = 0;
   BInt length = aia_->N_;
-//Std(BText("\nRecalcResiduous(")+Name()+","+t+","+w+")");
+  TRACE_SHOW_TOP(fun,BText("\nRecalcResiduous(")+Name()+","+t+","+w+")");
   for(; i<length; i++, j++)
   {
     aia_->res_->Data()[i]-=w*x_[j];
-  //Std(BText("\n  x[")+j+"]="+x_[j].Name());
-  //Std(BText("; Res[")+i+"]="+aia_->res_->Data()[i]);
+    TRACE_SHOW_TOP(fun,BText("\n  x[")+j+"]="+x_[j].Name());
+    TRACE_SHOW_TOP(fun,BText("; Res[")+i+"]="+aia_->res_->Data()[i]);
   }
   aia_->sigma_ = StandardDeviation(aia_->res_->Data()).Value();
 /*
@@ -422,17 +437,20 @@ void BAia::Initialize()
  */
 //--------------------------------------------------------------------
 {
+#ifdef TRACE_LEVEL
+  BText fun = BText("  BAia::Initialize");
+#endif
   BInt o;
   BDat f   = (*res_)[res_->FirstDate()]; //Forzes residuous calculation
   N_  = res_->Data().Size();
-//Std(BText("\nResiduous dates ")+res_->FirstDate().Name()+", "+
-//          res_->LastDate ().Name()+", "+N_);
+  TRACE_SHOW_TOP(fun,BText("\nResiduous dates ")+res_->FirstDate().Name()+", "+
+             res_->LastDate ().Name()+", "+N_);
   sigma_    = StandardDeviation(res_->Data()).Value();
 //Std("\nUsing outlier's types: ");
   for(o=0; o<userOutliers_.Size(); o++)
   {
     userOutliers_[o]->PutAia(this);
-  //Std(BText("\n  ")+userOutliers_[o]->Name());
+    TRACE_SHOW_TOP(fun,BText("\n  ")+userOutliers_[o]->Name());
   }
 }
 
@@ -452,7 +470,7 @@ bool BAia::SearchNextOutlier()
   for(t=0; t<N_; t++)
   {
     BReal absRes = Abs(res_->Data()[t]).Value();
-  //Std(BText("\n   ")+absRes+ " <=> " + max);
+    TRACE_SHOW_TOP(fun,BText("\n   ")+absRes+ " <=> " + max);
     if(absRes>max)
     {
       max    = absRes;

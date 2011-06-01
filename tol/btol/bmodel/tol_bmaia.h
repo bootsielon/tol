@@ -87,8 +87,9 @@ public:
     Copy(a);
     return(*this);
   }
-  bool IsDisjoint(const BMultOutlier& a);
-  BText GetExpression();
+  bool HasInput(BOutlier* outlier, int t) const;
+  bool IsDisjoint(const BMultOutlier& a) const;
+  BText GetExpression() const;
   void Add(int index, BOutlier* outlier, int t, BDat w);
   void Add(const BMultOutlier& mo);
   void Copy(const BMultOutlier& mo);

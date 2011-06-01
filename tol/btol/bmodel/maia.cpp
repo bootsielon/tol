@@ -62,9 +62,32 @@ static BMultOutlier::BInput _inputConstant_ =
 };
 
 //--------------------------------------------------------------------
-  bool BMultOutlier::IsDisjoint(const BMultOutlier& a)
+  bool BMultOutlier::HasInput(BOutlier* outlier, int t) const
 //--------------------------------------------------------------------
 {
+#ifdef TRACE_LEVEL
+  BText fun = BText("  BMultOutlier::HasInput");
+#endif
+  int j;
+  bool has = false;
+  for(j=0; !has&&(j<input_.Size()); j++)
+  {
+    has = input_[j].t_ == t &&
+          input_[j].outlier_ == outlier;
+  }
+  TRACE_SHOW_HIGH(fun, GetExpression()+"\n versus \n"+
+   outlier->GetExpression(t,0)
+   +"\n -> "+has+"\n");
+  return(has);
+};
+
+//--------------------------------------------------------------------
+  bool BMultOutlier::IsDisjoint(const BMultOutlier& a) const
+//--------------------------------------------------------------------
+{
+#ifdef TRACE_LEVEL
+  BText fun = BText("  BMultOutlier::IsDisjoint");
+#endif
   int i, j;
   bool ok = true;
   for(j=0; ok&&(j<a.input_.Size()); j++)
@@ -78,6 +101,7 @@ static BMultOutlier::BInput _inputConstant_ =
       ok = input_[i]!=a.input_[j];
     }
   }
+  TRACE_SHOW_HIGH(fun, GetExpression()+"\n versus \n"+a.GetExpression()+"\n -> "+ok+"\n");
   return(ok);
 }
 
@@ -85,13 +109,16 @@ static BMultOutlier::BInput _inputConstant_ =
 void  BMultOutlier::Add(int index, BOutlier* outlier, int t, BDat w)
 //--------------------------------------------------------------------
 {
-  int s = input_.Size();
-  input_.ReallocBuffer(s+1);
-  input_[s].index_   = index;
-  input_[s].outlier_ = outlier;
-  input_[s].t_       = t;
-  input_[s].w0_      = w;
-  if(maxIndex_<index) { maxIndex_ = index; }
+  if(!HasInput(outlier, t))
+  {
+    int s = input_.Size();
+    input_.ReallocBuffer(s+1);
+    input_[s].index_   = index;
+    input_[s].outlier_ = outlier;
+    input_[s].t_       = t;
+    input_[s].w0_      = w;
+    if(maxIndex_<index) { maxIndex_ = index; }
+  }
 }
 
 
@@ -133,7 +160,7 @@ void  BMultOutlier::Copy(const BMultOutlier& mo)
 }
 
 //--------------------------------------------------------------------
-  BText BMultOutlier::GetExpression()
+  BText BMultOutlier::GetExpression() const
 //--------------------------------------------------------------------
 {
   int s = input_.Size();
@@ -163,7 +190,7 @@ bool BMultOutlier::Estimate(const BMatrix<BDat>& y,
 //--------------------------------------------------------------------
 {
 #ifdef TRACE_LEVEL
-  BText fun = BText("  BOutlier::Estimate");
+  BText fun = BText("  BMultOutlier::Estimate");
 #endif
   TRACE_SHOW_HIGH(fun,"BEGIN");
   int i;
@@ -369,7 +396,7 @@ void BMultAia::SetResiduals(const BArray<BDat>& y)
 //--------------------------------------------------------------------
 {
 #ifdef TRACE_LEVEL
-  BText fun = BText("  BOutlier::SetResiduals");
+  BText fun = BText("  BMultAia::SetResiduals");
 #endif
   assert(y.Size()==res_->Data().Size());
   avr_   = Average(y);
@@ -431,7 +458,7 @@ void BMultAia::RecalcResiduous(const BMultOutlier& mo)
 //--------------------------------------------------------------------
 {
 #ifdef TRACE_LEVEL
-  BText fun = BText("  BOutlier::RecalcResiduous");
+  BText fun = BText("  BMultAia::RecalcResiduous");
 #endif
   int s = mo.input_.Size();
   n_+=s;
@@ -453,7 +480,7 @@ bool BMultAia::SearchMaxAbsRes(BArray<BMaxRes>& mr)
 //--------------------------------------------------------------------
 {
 #ifdef TRACE_LEVEL
-  BText fun = BText("  BAia::SearchMaxAbsRes");
+  BText fun = BText("  BMultAia::SearchMaxAbsRes");
 #endif
   if(optMaxOrder_>=N_) { return(false); }
   mr.AllocBuffer(optMaxOrder_);
@@ -496,7 +523,7 @@ bool BMultAia::SearchRefObs(BArray<BMultOutlier>& mo)
 //--------------------------------------------------------------------
 {
 #ifdef TRACE_LEVEL
-  BText fun = BText("  BAia::SearchRefObs");
+  BText fun = BText("  BMultAia::SearchRefObs");
 #endif
   int maxNearRefObs = 3;
   int i,j,k,r;
@@ -515,8 +542,10 @@ bool BMultAia::SearchRefObs(BArray<BMultOutlier>& mo)
         {
           BMultOutlier& mor = mo[r];
           int t = mr[i].t_-userOutliers_[j]->nearMaxAbs_[k];
-          mor.Add(r,userOutliers_[j],t,0);
-          r++;
+          if(!mor.HasInput(userOutliers_[j],t))
+          {
+            mor.Add(r++,userOutliers_[j],t,0);
+          }
         }
       }
     }
@@ -531,7 +560,7 @@ bool BMultAia::SearchNextMultOutlier(BMultOutlier& minMo)
 //--------------------------------------------------------------------
 {
 #ifdef TRACE_LEVEL
-  BText fun = BText("  BAia::SearchNextMultOutlier");
+  BText fun = BText("  BMultAia::SearchNextMultOutlier");
 #endif
   BComparingInfo minimum;
   minimum.o_=-1;
@@ -716,7 +745,7 @@ BList* BMultAia::Input()
 //--------------------------------------------------------------------
 {
 #ifdef TRACE_LEVEL
-  BText fun = BText("  BAia::Input");
+  BText fun = BText("  BMultAia::Input");
 #endif
   if(!input_)
   {
