@@ -1024,11 +1024,11 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
           Error(third_arg_error);
         }
       } 
-      else if(nb==3)
+      else if(!obj && (nb==3))
       {
         Error(third_arg_error);
       }
-      else
+      else if(!obj)
       {
         obj = gra->LeftEvaluateExpr(tokenName);      
       }
