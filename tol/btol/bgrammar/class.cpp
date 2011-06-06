@@ -1566,9 +1566,9 @@ static BInt MemberCmp(const void* v1, const void* v2)
     BSyntaxObject* obj = NULL;
     BClass* parent = (BClass*)mbr->parent_;
     BClass* firstParent = (BClass*)mbr->firstParent_;
+    if(!parent || !firstParent) { return(false); }
     if(( mbr->method_ && (parent     ==this)) || 
        (!mbr->method_ && (firstParent==mbr->parent_)) )
-       
     {
       mbr->description_ = desc;
       if(mbr->method_) { obj = mbr->method_; } 
