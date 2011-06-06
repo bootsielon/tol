@@ -42,7 +42,7 @@ Text _.autodoc.member.GetUrl =
   // Ex. 1: request an http url and return the result in a variable.
   Set result1 = CurlApi::GetUrl( [[ Text url = \"http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php?tol_package_version=1.1&tol_version=v2.0.1%20b.4&action=ping&key=658184943\", Real verbose=1, Real connecttimeout=3 ]] );
   If( result1::failStatus, {
-    WriteLn( \"CurlApi::GetUrl error: \"<<result1::details )
+    WriteLn( \"CurlApi::GetUrl error: \"<<result1::explain )
     }, {
     WriteLn( \"CurlApi::GetUrl ok, the result is: \"<<result1::bodyData )
   } );
@@ -50,7 +50,7 @@ Text _.autodoc.member.GetUrl =
   // Ex. 2: request an http url and download the result into a file
   Set result2 = CurlApi::GetUrl( [[ Text url = \"http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php?action=download&format=attachment&package=BysMcmc.4.4\", Text file=\"/tmp/BysMcmc.4.4.zip\", Real verbose=1, Real connecttimeout=3 ]] );
   If( result2::failStatus, {
-    WriteLn( \"CurlApi::GetUrl error: \"<<result2::details )
+    WriteLn( \"CurlApi::GetUrl error: \"<<result2::explain )
     }, {
     WriteLn( \"CurlApi::GetUrl ok, the result was downloaded to: \"<<result2::file )
   } );

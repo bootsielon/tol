@@ -1216,7 +1216,7 @@ Text GetUrlContents.tcl.curl(Text url_)
   If( result1::failStatus, 
   {
     WriteLn("FAIL");
-    WriteLn( "[GetUrlContents.tcl.curl] error: "<<result1::details,"W");
+    WriteLn( "[GetUrlContents.tcl.curl] error: "<<result1::explain,"W");
     ""
   }, 
   {
