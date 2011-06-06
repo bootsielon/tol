@@ -65,7 +65,7 @@ NameBlock Default =
     Text Helper = "";
     Text _.autodoc.member.UrlDownloader = "Method used by GetUrlContents in "
     "order to download contents from remote URL's. Valid methods are tcl:uri "
-    "and sys:wget";
+    "tcl:curl and sys:wget";
     Text UrlDownloader = "tcl:curl";
     Text _.autodoc.member.CurlApiCfg = "Configuración por defecto de CurlApi";
     NameBlock CurlApiCfg =
