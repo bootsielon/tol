@@ -179,7 +179,8 @@ proc ::TolCurl::getUrl { url args } {
   set textItems [list]
   foreach {key value} $details {
     set item [ expr { [string is double $value] ?
-                      "Real $key=$value" : "Text $key=\"$value\""} ]
+                      "Real $key=$value" : 
+                      "Text $key=\"[regsub -all \" $value \\\"]\""} ]
     lappend textItems $item
   }
   set joinedItems [ join $textItems "," ]
