@@ -6,14 +6,23 @@ Real numWar0 = Copy(NWarning);
 
 NameBlock modulo = [[
   Real publico = 1;
-  Real _privado = 2
+  Real _privado = 2;
+  Class @clase { Real member };
+  Struct @struct { Real member }
 ]];
 
+Text desc.clase.1 = Description("modulo::@clase");
+Anything PutDescription("Descripción de clase de modulo", "modulo::@clase");
+Text desc.clase.2 = Description("modulo::@clase");
+
+Text desc.struct.1 = Description("modulo::@struct");
+Anything PutDescription("Descripción de struct de modulo", "modulo::@struct");
+Text desc.struct.2 = Description("modulo::@struct");
+
 Text desc.publico.1 = Description(modulo::publico);
-
 Real PutDescription("Descripción del miembro publico de modulo", "modulo::publico");
-
 Text desc.publico.2 = Description(modulo::publico);
+
 
 //Registra el contador de errores al final, que debe ser igual que al principio
 Real numErr1 = Copy(NError);
@@ -25,12 +34,18 @@ Real PutDescription("Descripción del miembro privado de modulo", "modulo::_priva
 Real numErr2 = Copy(NError);
 Real numWar2 = Copy(NWarning);
 
+Anything PutDescription("La clase", "modulo::@clase");
+
 Set ok.all = [[
   Real ok.error.1   = numErr1 == numErr0;
   Real ok.warning.1 = numWar1 == numWar0;
   Real ok.error.2   = numErr2 == numErr0+2;
   Real ok.warning.2 = numWar2 == numWar0+2;
-  Real ok.desc.publico.1  = desc.publico.1    == "";
+  Real ok.desc.clase.1  = desc.clase.1 == "";
+  Real ok.desc.clase.2  = desc.clase.2 == "Descripción de clase de modulo";
+  Real ok.desc.struct.1  = desc.struct.1 == "@struct;member;";
+  Real ok.desc.struct.2  = desc.struct.2 == "Descripción de struct de modulo";
+  Real ok.desc.publico.1  = desc.publico.1 == "";
   Real ok.desc.publico.2  = desc.publico.2 == "Descripción del miembro publico de modulo"
 ]];
 

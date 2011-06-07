@@ -5,9 +5,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 //Sets the bugzilla identifier number, your e-mail and the bug´s summary
-  Real bugNum_ =  1223;
+  Real bugNum_ =  1224;
   Text email_ = "vdebuen@tol-project.org"; 
-  Text summary_="Attribute description inheritance doesn't work";
+  Text summary_="Managing Descriptions. PutDescription extended";
   Text link_ = GetTolBugzillaLink(bugNum_);
 
   //Write here the initial test TOL code if needed
