@@ -1030,7 +1030,8 @@ static BSyntaxObject* EvPutDescription(      BGrammar* gra,
       }
       else if(!obj)
       {
-        obj = gra->LeftEvaluateExpr(tokenName);      
+        obj = FindStruct(tokenName);
+        if(!obj) { obj = gra->LeftEvaluateExpr(tokenName); }
       }
     }
     else if (nb==3)

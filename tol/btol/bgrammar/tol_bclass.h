@@ -101,8 +101,8 @@ class TOL_API BMember
   BText FullExpression() const;
   int BuildMethod();
   int BuildStatic();
-	BText	    Dump	     () const;
-
+	BText	Dump () const;
+  void PutDescription(const BText& desc);
   DeclareClassNewDelete(BMember);
 };
 

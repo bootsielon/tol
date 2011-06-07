@@ -502,6 +502,22 @@ BMember::~BMember()
 }
 
 //--------------------------------------------------------------------
+  void BMember::PutDescription(const BText& desc)
+//--------------------------------------------------------------------
+{
+//if(desc=="Devuelve el valor de @C::_.A")
+//  printf("");
+  BSyntaxObject* obj = NULL;
+  description_ = desc;
+  if(method_) { obj = method_; } 
+  else if(static_) { obj = static_; } 
+  if(obj)
+  {
+    obj->PutDescription(desc);
+  } 
+}
+
+//--------------------------------------------------------------------
 BMemberOwner::BMemberOwner()
 //--------------------------------------------------------------------
 : isGood_      (true),
@@ -1566,31 +1582,28 @@ static BInt MemberCmp(const void* v1, const void* v2)
     BSyntaxObject* obj = NULL;
     BClass* parent = (BClass*)mbr->parent_;
     BClass* firstParent = (BClass*)mbr->firstParent_;
-    if(!parent || !firstParent) { return(false); }
-    if(( mbr->method_ && (parent     ==this)) || 
-       (!mbr->method_ && (firstParent==mbr->parent_)) )
-    {
-      mbr->description_ = desc;
-      if(mbr->method_) { obj = mbr->method_; } 
-      else if(mbr->static_) { obj = mbr->static_; } 
-      if(obj)
+    if(!parent || !firstParent) 
+    { 
+      if(mbr->description_.HasName() && mbr->description_!=desc)
       {
-        obj->PutDescription(desc);
-      } 
-    }
-    else 
-    {
-      if(!mbr->method_)
-      {
-        mbr->description_ = firstParent->FindMember(name)->description_;
+        return(false); 
       }
       else
       {
-        mbr->description_ = desc;
+        mbr->PutDescription(desc);
+        return(true); 
       }
-      ok = false;
+    }
+    if(( mbr->method_ && (parent     ==this)) || 
+       (!mbr->method_ && (firstParent==mbr->parent_)) )
+    {
+      mbr->PutDescription(desc);
+    }
+    else 
+    {
       if(mbr->method_)
       {
+        ok = false;
         Warning(I2("Cannot change description of non overloaded method ",
                    "No se puede cambiar la descripción de un método no sobrecargado ")+
                 getFullNameRef()+"::"+name+
@@ -1599,8 +1612,22 @@ static BInt MemberCmp(const void* v1, const void* v2)
       }
       else
       {
+        BMember* inherited = firstParent->FindMember(name);
+        ok = false;
+        if(!inherited)
+        {
+          Warning(I2("Cannot find attribute ",
+                     "No se encuentra el atributo ")+
+                  getFullNameRef()+"::"+name+
+                  I2(" inherited from "," heredado de ")+
+                  firstParent->getFullNameRef()+"::"+name);
+        }
+        else 
+        {
+          mbr->PutDescription(inherited->description_);
+        }
         Warning(I2("Cannot change description of non method member ",
-                   "No se puede cambiar la descripción de un miembro que no es un método ")+
+                   "No se puede cambiar la descripción de un atrib ")+
                 getFullNameRef()+"::"+name+
                 I2(" originally inherited from "," heredado originalmente de ")+
                 firstParent->getFullNameRef()+"::"+name);
