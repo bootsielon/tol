@@ -1421,7 +1421,8 @@ BMatrix<double> BVMat::GetDMat () const
     x_ = (double*)s_.blasRdense_->x;
     aux.s_.blasRdense_ = 
       CholmodAllocate_dense(nrow, ncol, nrow, CHOLMOD_REAL, common_);
-    x = (double*)s_.blasRdense_->x;
+    x = (double*)aux.s_.blasRdense_->x;
+//  memset(x,0,nrow*ncol*sizeof(double));
     for (j=k=0; j<ncol; j++) 
     {
       for (i=0; i<nrow; i++, k++) 
@@ -1431,6 +1432,7 @@ BMatrix<double> BVMat::GetDMat () const
         else                      { x[k] = 0;     }
       }
     }
+
     break;
   case(ESC_chlmRtriplet ) :
     aux.code_ = ESC_chlmRtriplet;
