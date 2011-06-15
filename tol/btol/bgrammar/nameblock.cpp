@@ -1478,11 +1478,9 @@ void BGraContensBase<BNameBlock>::InitInstances()
 {
   BNameBlock::Initialize();
   BTraceInit("BGraContens<BNameBlock>::InitInstances");
-  BSystemNameBlock* unknown_ = new BSystemNameBlock;
-  unknown_->PutName("UNKNOWN");
-  unknown_->PutDescription(I2("Unknown NameBlock", 
-                    "NameBlock desconocido."));
-  GraNameBlock()->AddObject(unknown_);
+  BNameBlock empty;
+  new BSystemNameBlock("NoNameBlock",empty,
+    I2("Unknown NameBlock", "NameBlock desconocido."));
 
 }
 
