@@ -282,6 +282,13 @@ BModel::BModel(BSet& set)
 		    return;
       }
 	    transfer_[n] = Pol(inp[1]);
+      if( transfer_[n][0].Degree()<0)
+      {
+    		Error(I2("Transfer function cannot have negative degree terms (F)",
+		          	 "la función de transferencia no puede tener términos de grado negativo (F)"));
+		    aborted_ = BTRUE;
+		    return;
+      }
 	    inpName_ [n] = inp[2]->Identify();
 	    inpName_ [n].Replace('\n',' ');
 	    inpName_ [n].Compact();
