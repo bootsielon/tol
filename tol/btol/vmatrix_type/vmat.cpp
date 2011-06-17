@@ -1518,7 +1518,13 @@ static int intCmp_(const void* v1, const void* v2)
       { 
         assert((*i>=0)&&(*i<r));
         *rIdx = (int)cx[*i]-1; 
-        assert((*rIdx>=0)&&(*rIdx<nrow));
+        if((*rIdx<0)||(*rIdx>=nrow))
+        {
+          err_cannot_create(fName, 
+            BText("Invalid row index ")+((*rIdx)+1)+" out of range [1,"+nrow+"]");
+          result = -7;
+          break;
+        }
       }
       nnz   += a_[n]->s_.chlmRtriplet_->nnz;
       nzmax += K;
