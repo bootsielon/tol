@@ -954,7 +954,7 @@ void BTsrConcat::CalcDating  ()
     if(!dating) { dating = right; }
     else if(dating!=right)
     {
-      if(!dating->IsCompatibleWith(*right))
+      if(!dating->IsCompatibleWith(*right,FirstDate(),LastDate()))
       {
         dating = NULL;
       }
@@ -962,15 +962,23 @@ void BTsrConcat::CalcDating  ()
     if(!dating)
     {
       BText no_dating = "NO_DATING";
-      BText lName = left ?left ->Identify():no_dating;
-      BText rName = right?right->Identify():no_dating;
+      BText lName = left ?left ->Identify():no_dating+";";
+      BText rName = right?right->Identify():no_dating+";";
+      if(!left->Inf().HasValue() || !right->Sup().HasValue())
+      {
+        lName += BText(" //Expression is finite or has been truncated to interval [")<<left->Inf().Name()+","+left->Sup().Name()+"]";
+      }
+      if(!right->Inf().HasValue() || !right->Sup().HasValue())
+      {
+        rName += BText(" //Expression is finite or has been truncated to interval [")<<right->Inf().Name()+","+right->Sup().Name()+"]";
+      }
       Error(I2("Cannot concat series with incompatible dating or without "
          "dating.",
          "No se puede concatenar series con fechado incompatible "
          "o sin fechado.")+
       "\nSeries:\n" +
-      LeftSer ()->Identify() + " -> "+lName+";\n"+
-      RightSer()->Identify() + " -> "+rName+";\n");
+      LeftSer ()->Identify() + " -> "+lName+"\n"+
+      RightSer()->Identify() + " -> "+rName+"\n");
     }
     PutDating(dating);
   }

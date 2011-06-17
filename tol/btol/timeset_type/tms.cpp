@@ -524,8 +524,9 @@ BBool BTimeSet::IsCompatibleWith(const BTimeSet& tms,
   CheckCache(this);
   if(!first.HasValue()) { first = BDate::DefaultFirst(); }
   if(!last .HasValue()) { last	= BDate::DefaultLast (); }
-  BDate d1  = FirstNoGreat(first);
+  BDate d1 = FirstNoGreat(first);
   BDate d2 = tms.FirstNoGreat(first);
+  if(d1!=d2) { return(BFALSE); }
   while(d1<=last)
   {
     d1 = Successor(d1);
