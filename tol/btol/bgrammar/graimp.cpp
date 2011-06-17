@@ -872,15 +872,6 @@ BSyntaxObject* BGrammar::EvaluateTree(
     result->PutExpression(expr_2);
   }
 
-  TRACE_SHOW_MEDIUM(fun,"6");
-  if(result && !result->GetOisTree()) 
-  { 
-    TRACE_SHOW_MEDIUM(fun,"6.1");
-    result->PutOisTree(tre); 
-  }
-
-//TRACE_SHOW_LOW(fun,BText("End with result type: ")<<BText((result!=NULL)?result->Grammar()->Name():BText("NULL")));
-  TRACE_SHOW_LOW(fun,"END");
   if(result && (result->Grammar()==GraNameBlock()))
   {
     BUserNameBlock* unb = (BUserNameBlock*)result;
@@ -907,6 +898,13 @@ BSyntaxObject* BGrammar::EvaluateTree(
     BClass* cls = (BClass*) result;
     if(!cls->isDefined_) { result = NULL; }
   }
+  if(result && !result->GetOisTree()) 
+  { 
+    TRACE_SHOW_MEDIUM(fun,"6.1");
+    result->PutOisTree(tre); 
+  }
+//TRACE_SHOW_LOW(fun,BText("End with result type: ")<<BText((result!=NULL)?result->Grammar()->Name():BText("NULL")));
+  TRACE_SHOW_LOW(fun,"END");
   return(result);
 }
 

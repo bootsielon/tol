@@ -1362,7 +1362,10 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               { 
                 x->GetDataBuffer() = d;
                 x->PutFirstCache(beginCache);
-                x->PutOisTree(tree);
+                if(!x->GetOisTree())
+                {
+                  x->PutOisTree(tree);
+                }
                 tree->Destroy();
               }
               else 
@@ -1398,6 +1401,9 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
         {
           BINT64 offset;
           ERead(offset, object_);
+                    if(name=="Cuatrimestral")
+                      printf("");
+
           timeset_->SetPos(offset);
           BDate inf, sup, beginCache, endCache;
           ERead(inf,        timeset_);
@@ -1410,9 +1416,10 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           BUserTimeSet* x = NULL;
           char loadTree;
           ERead(loadTree,timeset_);
+          List* tree = NULL;
           if(loadTree)
           {
-            List* tree = ReadTree(timeset_);
+            tree = ReadTree(timeset_);
             if(!tree) 
             { 
               return(NullError(BText("Cannot load syntax tree TimeSet (name='")+
@@ -1433,9 +1440,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                 {
                   x->PutCache(h, beginCache, endCache);
                 }
-                x->PutOisTree(tree); 
               }
-              tree->Destroy();
             }
             else 
             {
@@ -1447,7 +1452,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                       endCache+"]\nTo avoid this problem save just "
                       "bounded time sets or use expressions that could "
                       "be evaluated at OIS loading time." );
-              if(tree) { tree->Destroy(); }
             } 
           }
           if(!x)
@@ -1460,7 +1464,14 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             result=PutVariableName(result,name,is_referenceable);
           }
           else                
-          { result = x; }
+          { 
+            result = x; 
+          }
+          if(tree) 
+          {
+            if(result && !result->GetOisTree()) { result->PutOisTree(tree); }
+            tree->Destroy(); 
+          }
         }
         BNameBlock::SetBuilding(oldBuilding);
       }

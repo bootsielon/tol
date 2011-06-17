@@ -824,7 +824,7 @@ static BSyntaxObject* CreateObject(      List*	   tre,
         result=gra->New(name,rightResult);
       }
       TRACE_SHOW_MEDIUM(fun," 24");
-      if(result)
+      if(result && !result->GetOisTree())
       {
         result->PutOisTree(tre); 
       }
