@@ -1308,6 +1308,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           serie_->SetPos(offset);
           ERead(offset, serie_);
           BUserTimeSerie* x = NULL;  
+          List* tree = NULL;
           if(!offset)
           {
             BDat d;
@@ -1349,7 +1350,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             ERead(loadTree,serie_);
             if(loadTree)
             {
-              List* tree = ReadTree(serie_);
+              tree = ReadTree(serie_);
               if(!tree) 
               { 
                 return(NullError(BText("Cannot load syntax tree of Serie (name='")+
@@ -1362,11 +1363,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
               { 
                 x->GetDataBuffer() = d;
                 x->PutFirstCache(beginCache);
-                if(!x->GetOisTree())
-                {
-                  x->PutOisTree(tree);
-                }
-                tree->Destroy();
               }
               else 
               {
@@ -1380,7 +1376,6 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
                               "\nTo avoid this problem save just "
                               "bounded time series "); 
                #endif  
-                if(tree) { tree->Destroy(); }
               }
             }
             if(!x)
@@ -1396,14 +1391,16 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           }
           else                
           { result = x; }
+          if(tree) 
+          {
+            if(result && !result->GetOisTree()) { result->PutOisTree(tree); }
+            tree->Destroy(); 
+          }
         }
         else if(tol_type == BGI_TimeSet) 
         {
           BINT64 offset;
           ERead(offset, object_);
-                    if(name=="Cuatrimestral")
-                      printf("");
-
           timeset_->SetPos(offset);
           BDate inf, sup, beginCache, endCache;
           ERead(inf,        timeset_);
