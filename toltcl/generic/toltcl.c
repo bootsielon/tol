@@ -315,13 +315,19 @@ Tol_InitLibraryCmd(clientData, interp, objc, objv)
      int objc;               /* Number of arguments */
      Tcl_Obj *CONST objv[];  /* Argument objects */
 {
-  if ( objc != 1 ) {
+  int loadIni;
+  int status;
+
+  if ( objc != 2 ) {
     Tcl_AppendResult(interp, "wrong # args: should be \"",
-                     Tcl_GetString(objv[0]),"\"", NULL);
+                     Tcl_GetString(objv[0]), " 0|1\"", NULL);
     return TCL_ERROR;
   }
-  LoadInitLibrary(1);
-  return TCL_OK;
+  
+  if ( (status = Tcl_GetIntFromObj( interp, objv[1], &loadIni )) == TCL_OK ) {
+    LoadInitLibrary( loadIni );
+  }
+  return status;
 }
 
 

@@ -164,7 +164,7 @@ namespace eval ::project {
     ::TolInspector::Busy
   }
 #   update
-  tol::initlibrary
+  tol::initlibrary $data(iniproject)
   foreach prj $projects(Project,names) {
     set prjname $projects(${prj},name)
     if { [string length $prjname] } { eval ${prjname}::InitTol }

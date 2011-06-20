@@ -290,9 +290,12 @@ LoadPackages
 Tolcon_Trace "toltk_script_path=$toltk_script_path"
 # Load project
 namespace import project::*
+set project::data(iniproject) 1
 foreach option $argv {
   if { [string equal $option "-b"] } {
     set project::data(oculto) 1
+  } elseif { $option eq "-np" } {
+    set project::data(iniproject) 0
   }
 }
 project::project $infoProjects

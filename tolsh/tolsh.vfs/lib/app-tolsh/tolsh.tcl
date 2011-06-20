@@ -31,6 +31,7 @@ namespace eval ::tolsh {
   #
   set options(lang)    0
   set options(initlib) 1
+  set options(iniproject) 1
   set options(compile) ""
   set options(vmode)   ""
   set options(out,enabled) no
@@ -45,6 +46,7 @@ namespace eval ::tolsh {
 #  The command line accepted by tolsh is:
 #
 #    -i       --> do not include initLibrary
+#    -np      --> do not load _iniproject.tol
 #    -c"..."  --> compile a tol expression
 #    -c "..." --> compile a tol expression
 #    -v?A?    --> enable all output
@@ -91,6 +93,8 @@ proc ::tolsh::getoptions { cmdline } {
         # initLibrary should not be loaded
         # 
         set options(initlib) 0
+      } elseif {$opt eq "np"} {
+        set $options(iniproject) 0
       } elseif {[string index $opt 0] eq "c"} {
         if {[string length $opt]>1} {
           # The tol expression is part of the option
@@ -225,6 +229,7 @@ proc ::tolsh::show_usage { } {
   puts "[get_app_name] \[options] filename ...\noptions:"
   puts {
     -i file  --> include a file but not initLibrary
+    -np      --> do not load _iniproject.tol
     -c"..."  --> compile a tol expression
     -c "..." --> compile a tol expression
     -v?A?    --> enable all output
@@ -385,7 +390,7 @@ proc ::tolsh::run { cmdline } {
     tol::initkernel $options(lang) $options(vmode)
 
     if {$options(initlib)} {
-      tol::initlibrary
+      tol::initlibrary $options(iniproject)
     }
 
     set appdata [string trim \
