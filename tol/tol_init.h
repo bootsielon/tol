@@ -34,7 +34,7 @@ BEGIN_DECLS
 //calledProgram should be argv[0] in main function
 TOL_API void  InitCint              ();
 TOL_API void  InitializeFromMainArgs(int argc, char *argv[], char *env[]);
-TOL_API void  LoadInitLibrary       ();
+TOL_API void  LoadInitLibrary       (int loadInitProject);
 TOL_API void  InitTolKernel         (char* calledProgram, int lang, const char* vmode);
 
 typedef void tgsl_error_handler 

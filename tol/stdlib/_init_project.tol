@@ -1,0 +1,16 @@
+//////////////////////////////////////////////////////////////////////////////
+// Check exists '_iniproject' to load user specific initialization files
+//////////////////////////////////////////////////////////////////////////////
+Set DefaultInitialProject = Case
+(
+  FileExist(GetEnv("HOME")+"/.tol/_iniproject.tol"),
+    Include(GetEnv("HOME")+"/.tol/_iniproject.tol"),
+  FileExist("../_iniproject.tol"),
+    Include("../_iniproject.tol"),
+  FileExist("../../_iniproject.tol"), 
+    Include("../../_iniproject.tol"),
+  FileExist("../../../_iniproject.tol"), 
+    Include("../../../_iniproject.tol"),
+  1==1,
+    Empty
+);

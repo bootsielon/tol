@@ -320,7 +320,7 @@ Tol_InitLibraryCmd(clientData, interp, objc, objv)
                      Tcl_GetString(objv[0]),"\"", NULL);
     return TCL_ERROR;
   }
-  LoadInitLibrary();
+  LoadInitLibrary(1);
   return TCL_OK;
 }
 

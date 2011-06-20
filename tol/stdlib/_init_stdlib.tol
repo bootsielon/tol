@@ -107,23 +107,6 @@ Set { Tpa.Hosts = If(TOLAppName!="tolsh",Copy(Empty),
 //////////////////////////////////////////////////////////////////////////////
 Real TolPackage::Client::Initialize(0);
 
-//////////////////////////////////////////////////////////////////////////////
-// Check exists '_iniproject' to load user specific initialization files
-//////////////////////////////////////////////////////////////////////////////
-Set DefaultInitialProject = Case
-(
-  FileExist(GetEnv("HOME")+"/.tol/_iniproject.tol"),
-    Include(GetEnv("HOME")+"/.tol/_iniproject.tol"),
-  FileExist("../_iniproject.tol"),
-    Include("../_iniproject.tol"),
-  FileExist("../../_iniproject.tol"), 
-    Include("../../_iniproject.tol"),
-  FileExist("../../../_iniproject.tol"), 
-    Include("../../../_iniproject.tol"),
-  1==1,
-    Empty
-);
-
 
 //////////////////////////////////////////////////////////////////////////////
 //Checks TOL release every day to detect obsolete versions
