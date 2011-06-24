@@ -1,0 +1,64 @@
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: Test de coherencia de DistTruncatedNormal
+//////////////////////////////////////////////////////////////////////////////
+
+  Real bugNum_ =  1264;
+  Text email_ = "vdebuen@tol-project.org"; 
+  Text summary_="Test de coherencia de DistTruncatedNormal";
+  Text link_ = GetTolBugzillaLink(bugNum_);
+
+  Real PutRandomSeed(385342106);
+  Real rnd_seed=GetRandomSeed(0);
+  WriteLn("rnd_seed "+IntText(rnd_seed));
+
+  Real numErr0 = Copy(NError);
+
+  Set chk.all = For(1,1000,Set(Real iter)  {[[
+    Real s = 1; //Rand(0.1,10);
+    Real A = If(IntRand(0,1),-1/0,Rand(-5*s,5*s));
+    Real B = If(IntRand(0,1),+1/0,If(A==-1/0,0,A)+Rand(1,10*s));
+    Real nu = Rand(If(A==-1/0,0,A)-5*s, If(B==+1/0,0,B)+5*s);
+    Real r = Rand(0,1);
+
+    Real x = DistTruncatedNormalInv(r,A,B,nu,s);
+    Real Fx = DistNormal(x,nu,s);
+    Real r0 = DistTruncatedNormal(x,A,B,nu,s);
+  //WriteLn("ok.r0="<<ok.r0);
+    Real FA = DistNormal(A,nu,s);
+    Real FB = DistNormal(B,nu,s);
+    Real FAB = FB-FA;
+    Real u1 = FA+r*FAB;
+    Real x1 = DistNormalInv(u1,nu,s);
+    Real u1_ = DistNormal(x1,nu,s);
+    Real r1 = (u1_-FA)/FAB;
+    Real ok.r0 = 1 - Abs(r-r0);
+    Real ok.r1 = 1 - Abs(r-r1);
+    Real ok.x1 = 1 - Abs(x-x1)
+  ]]});
+  
+  Real c = Card(chk.all[1]);
+  Real ok = SetMin(Traspose(Extract(chk.all,c-2)<<Extract(chk.all,c-1)<<Extract(chk.all,c))[1]);
+
+  Real numErr1 = Copy(NError);
+
+//Extented information about test behaviour
+  Set partialResults_ = 
+  [[
+    numErr0,
+    numErr1,
+    ok
+  ]];
+//This is a messure of the success of the test 
+  Real quality_ = And(numErr1 == numErr0)*ok;
+
+//Return the results 
+  Set resultStr_ = @strTestStatus(summary_, link_, quality_,
+                    "Partial results = "<<partialResults_,
+                    "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                    email_);
+  WriteLn(""<<resultStr_);
+  resultStr_
+
+/* */
+
