@@ -773,7 +773,7 @@ BDat BLogNormalDist::Dist(BDat x)
   { 
     fA_  = NonTruncated().Dens( A_); 
     FA_  = NonTruncated().Dist( A_); 
-    F1A_ = NonTruncated().Dist(-A_); 
+    F1A_ = 1.0-NonTruncated().Dist(A_); 
   }   
   if(B_>=NonTruncated().Max()) 
   { 
@@ -786,10 +786,10 @@ BDat BLogNormalDist::Dist(BDat x)
   { 
     fB_  = NonTruncated().Dens( B_); 
     FB_  = NonTruncated().Dist( B_); 
-    F1B_ = NonTruncated().Dist(-B_); 
+    F1B_ = 1.0-NonTruncated().Dist(B_); 
   }   
-  useLeft_ = (A_<=NonTruncated().Average())!=0;
-  if(A_<=0)
+  useLeft_ = fB_ <= fA_;
+  if(useLeft_)
   {
     FAB_ = FB_-FA_;
   }
@@ -812,7 +812,13 @@ BDat BTruncatedDist::Dist(BDat x)
   else if(x<A_) { return(0); }
   else if(x>B_) { return(1); }
   else if(!FAB_) { return((x-A_)/(B_-A_)); }
-  else { return(NonTruncated().Dist(x)/FAB_); } 
+  else 
+  { 
+    BDat Fx = NonTruncated().Dist(x);
+    return((Fx-FA_)/FAB_); 
+  } 
+//else if(useLeft_) { return((NonTruncated().Dist(x)-FA_)/FAB_); } 
+//else              { return(1.0-(FB_-NonTruncated().Dist(x))/FAB_); } 
 }
 
 //--------------------------------------------------------------------
@@ -845,8 +851,8 @@ BDat BTruncatedDist::Inverse(BDat prob, BDat tolerance)
       return(prob*(b-a)+a); 
     }
   }
-  if(useLeft_) { return( NonTruncated().Inverse( FA_+prob*FAB_)); }
-  else         { return(-NonTruncated().Inverse(F1A_-prob*FAB_)); }
+  if(useLeft_) { return(NonTruncated().Inverse(FA_+     prob *FAB_)); }
+  else         { return(NonTruncated().Inverse(FB_-(1.0-prob)*FAB_)); }
 }
 
 //--------------------------------------------------------------------
