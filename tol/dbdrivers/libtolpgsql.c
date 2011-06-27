@@ -29,7 +29,7 @@
 
 #ifdef UNIX
 #  define DLLEXPORT(f) f
-#  include <postgresql/libpq-fe.h>
+#  include <libpq-fe.h>
 #else
 #  include <libpq-fe.h>
 #  include <windows.h>
