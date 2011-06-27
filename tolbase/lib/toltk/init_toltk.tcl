@@ -143,17 +143,17 @@ set trace 0
   set dirPrjIni "[file normalize $dir]/../../../"
   set fileProject [file join $dirPrjIni "project.ini"]
   if {[file exists $fileProject]} {
-    set ok 1
+    set ok [ file writable $fileProject ] 
   } else {
     set fileProject [file join $dir "project.ini"]
     if {[file exists $fileProject]} {
-      set ok 1  
+      set ok [ file writable $fileProject ]  
     }
   }
   # exists project.ini ?
   if {$ok} {
     set id [iniparse:openfile $fileProject]
-    ::iniFile::Create $fileProject
+    catch { ::iniFile::Create $fileProject }
     set values {}
     foreach prj $iniparse($id,sections) {
       if { $prj eq "Project" } {
