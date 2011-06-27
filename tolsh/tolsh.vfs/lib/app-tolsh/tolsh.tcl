@@ -288,6 +288,7 @@ proc ::tolsh::std { msg } {
 #puts "argv0 = $argv0"
 
 proc ::tolsh::setup_pkg { pkg } {
+  #puts ":tolsh::setup_pkg $pkg [namespace exist ::starkit] "
   if {[lsearch [package names] $pkg]==-1} {
     if {[namespace exist ::starkit]} {
       set bindir [file dir $starkit::topdir]
@@ -295,17 +296,22 @@ proc ::tolsh::setup_pkg { pkg } {
       set pkg_dirs [glob -nocomplain -dir $libdir ${pkg}*]
       if {[llength $pkg_dirs]} {
         lappend ::auto_path [file normalize $libdir]
+      } elseif { $::tcl_platform(platform) eq "unix" && 
+          $::tcl_platform(machine) eq "x86_64" } {
+          if { [ lsearch $::auto_path "/usr/lib" ] == -1 } {
+            lappend ::auto_path "/usr/lib"
+          }
       } else {
-        set tclsh [auto_execok tclsh]
-        if {![catch {
-          exec echo puts {$::auto_path} | $tclsh
-        } ext_auto_path]} {
-          foreach p $ext_auto_path {
-            if {[lsearch $::auto_path $p]==-1} {
-              lappend ::auto_path $p
+          set tclsh [auto_execok tclsh]
+          if {![catch {
+            exec echo puts {$::auto_path} | $tclsh
+          } ext_auto_path]} {
+            foreach p $ext_auto_path {
+              if {[lsearch $::auto_path $p]==-1} {
+                lappend ::auto_path $p
+              }
             }
           }
-        }
       } 
       tclPkgUnknown ${pkg}+1 ""
     } else {
@@ -564,7 +570,7 @@ proc ::tolsh::stdin_handler {} {
 }
 
 proc logtmp { msg } {
-  return 
+  #return 
   set user [ exec whoami ]
   set fd [ open "/tmp/tolsh.${user}.log" a ]
   puts $fd $msg
