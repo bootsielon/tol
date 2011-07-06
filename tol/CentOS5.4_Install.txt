@@ -239,7 +239,9 @@ sudo make install
 
 # compilo una version 32 bit de wish que se usara para arrancar tolbase
 gcc -m32 /usr/share/tk8.4/tkAppInit.c -ltcl -ltk -o wish8.4_i386
+gcc -m32 /usr/share/tcl8.4/tclAppInit.c -ltcl -o tclsh8.4_i386
 sudo mv wish8.4_i386 /usr/bin/.
+sudo mv tclsh8.4_i386 /usr/bin/.
 
 # copio los scripts de tolbase a /usr/lib
 sudo mkdir /usr/lib/tolbase2.0.2
