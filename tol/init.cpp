@@ -1097,13 +1097,13 @@ const char * TOLVersionShortName()
 const char * TOLVersion()
 //--------------------------------------------------------------------
 {
-  static char aux_  [64];
+  static char aux_  [128];
   static bool init_ = false;
   if(!init_)
   {
     snprintf
     (
-     aux_, 64,
+     aux_, 128,
       "v%d.%d.%d %s"
 # ifndef NDEBUG
       " {DEBUG}"
