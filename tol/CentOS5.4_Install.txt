@@ -21,7 +21,7 @@ sudo rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/x86_64/epel-release-5
 sudo yum install xauth
 
 # Instalamos los paquetes base
-sudo yum install bc unzip wget cvs subversion gcc-g++ glibc-devel gcc-gfortran libstdc++-devel autoconf make bzip2-devel.i386 gsl-devel.i386 boost-devel.i386 mysql-devel.i386 postgresql-devel.i386 unixODBC-devel.i386 tcl-devel.i386 tcl-devel.i386 tk.i386 openssl-devel.i386 zlib-devel.i386 libtool-ltdl-devel.i386 libX11-devel.i386
+sudo yum install bc unzip wget cvs subversion gcc-g++ glibc-devel gcc-gfortran libstdc++-devel autoconf make bzip2-devel.i386 gsl-devel.i386 boost-devel.i386 mysql-devel.i386 postgresql-devel.i386 unixODBC-devel.i386 tcl-devel.i386 tk-devel.i386 tk.i386 openssl-devel.i386 zlib-devel.i386 libtool-ltdl-devel.i386 libX11-devel.i386
 
 #
 # instalamos atlas/blas/lapack, estos pasos parten de la base que el
@@ -41,7 +41,7 @@ sudo ln -s /usr/lib/atlas/libf77blas.so.3 /usr/lib/libblas.so
 #
 mkdir ${TOLROOT}/tools
 mkdir ${TOLROOT}/contribs
-mkdir ${TOLROOT}/contribs/rpms
+mkdir -p ${TOLROOT}/contribs/rpms
 
 #
 # instalamos R-project
