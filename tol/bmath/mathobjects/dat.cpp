@@ -1118,30 +1118,38 @@ BText BDat::Format(const BText& format) const
  */
 //--------------------------------------------------------------------
 {
-  BText txt, bformat_out;
-  char format_in[80], format_out[80], str_in[1024], str_out[1024];
   if(Known())
   {
-    int i,j;
-    setlocale( LC_NUMERIC, TOL_lc_numeric());
-    strcpy(format_in, format.String());
-    for(i=0, j=0; format_in[i]!='\0'; i++)
-    {
-      if(format_in[i]!='\'') 
-      { format_out[j++] = format_in[i]; }
+    if ( IsFinite() ) {
+      BText txt, bformat_out;
+      char format_in[80], format_out[80], str_in[1024], str_out[1024];
+      int i,j;
+      setlocale( LC_NUMERIC, TOL_lc_numeric());
+      strcpy(format_in, format.String());
+      for(i=0, j=0; format_in[i]!='\0'; i++)
+        {
+          if(format_in[i]!='\'') 
+            { format_out[j++] = format_in[i]; }
+        }
+      format_out[j++] = '\0';
+      bformat_out = format_out;
+      //txt.Copy(Value(), format.String());
+      txt.Copy(Value(), bformat_out);
+      strcpy(str_in, txt.Buffer());
+      markThousands(str_out, str_in);
+      txt = str_out;
+      setlocale( LC_NUMERIC, "C");
+      //  if(Value()==floor(Value())) { txt.Copy(BInt(Value())); }
+      return txt;
+    } else if ( IsPosInf() ) {
+      return "1/0";
+    } else if ( IsNegInf() ) {
+      return "-1/0";
+    } else {
+      return "?";
     }
-    format_out[j++] = '\0';
-    bformat_out = format_out;
-    //txt.Copy(Value(), format.String());
-    txt.Copy(Value(), bformat_out);
-    strcpy(str_in, txt.Buffer());
-    markThousands(str_out, str_in);
-    txt = str_out;
-    setlocale( LC_NUMERIC, "C");
-    //  if(Value()==floor(Value())) { txt.Copy(BInt(Value())); }
   }
-  else { txt="?"; }
-  return(txt);
+  else { return "?"; }
 }
 
 
