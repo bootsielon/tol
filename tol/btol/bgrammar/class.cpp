@@ -1069,7 +1069,7 @@ bool BMemberOwner::AddAutodocMember(
       {
         //If branch is a separator adds all child items
         lst = memberLst->cdr();
-        while(ok && lst)
+        while(ok && lst && lst->car())
         {
           if(ok = lst->car()->IsListClass()!=0)
           {
@@ -1094,13 +1094,13 @@ bool BMemberOwner::AddAutodocMember(
       }
     }
   }
+  isGood_ = ok;
   if(!ok)
   {
     Error(I2("Wrong syntax on member area of declaration ",
              "Sintaxis errónea en el área de de miembros de "
              "declaración de ")+ getDump());
   }
-  isGood_ = ok;
   return(ok);
 }
 
@@ -1355,6 +1355,7 @@ static BInt MemberCmp(const void* v1, const void* v2)
 //--------------------------------------------------------------------
 {
 //return(BParser::Unparse(tree_,"","\n"));
+  if(!isGood_) { return(BText("Class ")+Name()+" "); }
   BText dump;
   dump+=BText("\n/* API for Class ")+FullName()+" */\n";  
   dump+=BText("Class ")+Name()+" "; 
