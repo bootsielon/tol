@@ -75,11 +75,13 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
   return rc;
 }
 
+#ifndef NDEBUG 
 #define DO_WARN_INEF_USE
+#endif
 #ifdef DO_WARN_INEF_USE
   #define DO_WARN_INEF_USE_all2bRd
-//#define DO_WARN_INEF_USEall_all2cRs
-//#define DO_WARN_INEF_USE_2cRt
+  #define DO_WARN_INEF_USEall_all2cRs
+  #define DO_WARN_INEF_USE_2cRt
 #endif
 
 
@@ -99,7 +101,7 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 ////////////////////////////////////////////////////////////////////////////////
 {
 #ifdef DO_WARN_INEF_USE_2cRt
-  static double minStoredCells_ = 1000.0;
+  static double minStoredCells_ = 50000.0;
   double storedCells = a.StoredCells();
   if(storedCells>=minStoredCells_)
   {
@@ -118,7 +120,7 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 ////////////////////////////////////////////////////////////////////////////////
 {
 #ifdef DO_WARN_INEF_USEall_all2cRs
-  static double minStoredCells_ = 1000.0;
+  static double minStoredCells_ = 50000.0;
   double storedCells = a.StoredCells();
   if(storedCells>=minStoredCells_)
   {
@@ -137,7 +139,7 @@ void BVMat::cholmod_error_handler(int status,char *file,int line,char *message)
 ////////////////////////////////////////////////////////////////////////////////
 {
 #ifdef DO_WARN_INEF_USE_all2bRd
-  static double minLostCells_ = 1000.0;
+  static double minLostCells_ = 50000.0;
   int    r = a.Rows();
   int    c = a.Columns();
   double storedCells = a.StoredCells();
