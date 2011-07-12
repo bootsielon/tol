@@ -1343,6 +1343,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
             ERead(last,  serie_);
             ERead(beginCache, serie_);
             ERead(endCache,   serie_);
+          //Std(BText("\n[OIS] Reading time series ")+name+" with beginCache="+beginCache+", first="+first+", last="+last+", endCache="+endCache+"\n");
             ERead(s,serie_);
             BData d(s);
             Ensure(Read(d.GetBuffer(),s,serie_));
@@ -1407,6 +1408,7 @@ bool BOisLoader::Read(BDate& v, BStream* stream)
           ERead(sup,        timeset_);
           ERead(beginCache, timeset_);
           ERead(endCache,   timeset_);
+        //Std(BText("\n[OIS] Reading time set ")+name+" with beginCache="+beginCache+", inf="+inf+", sup="+sup+", endCache="+endCache+"\n");
           ERead(s,          timeset_);
           BHash h(s);
           Ensure(Read(h.GetBuffer(),sizeof(double),h.Size(),timeset_));
