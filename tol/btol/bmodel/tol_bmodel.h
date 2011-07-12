@@ -250,7 +250,7 @@ public:
   BBool CheckData();
 
 //BDat	CalcRestrictionPenalization();
-  void	CalcResiduous		   (BArray<BDat>&  res);
+  void	CalcResiduous		   (BArray<BDat>&  res, int method=1);
   void	CleanInterruptions	   (BMatrix<BDat>& A, BBool recalculate);
   void	CleanInterruptions();
   void	Evaluate(BArray<BDat>&res, const BArray<BDat>& p);

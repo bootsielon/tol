@@ -861,10 +861,8 @@ void BModel::CopyInfToSet(BSet& set)
   {
 //  BTimer tm("Residual Series");
     DESTROY(res_);
-    BMat A__;
-    MatBackwardDifEq(ar_/ma_,Z0_,Z_,A0_,A__);
-    BMat A = A0_.Sub(A0_.Rows()-q_,0,q_,1) << A__;
-
+    BMat A0 = A0_.Sub(A0_.Rows()-q_,0,q_,1);
+    BMat A =  A0_ << A_;
     res_ = new BTsrPrimary
     (
       "",
@@ -891,7 +889,6 @@ void BModel::CopyInfToSet(BSet& set)
     j = interruptionIndex_[i];
     interruptionValue_[j] = fullData_[j];
   }
-
   BTsrPrimary* transformed = new BTsrPrimary
   (
     "",

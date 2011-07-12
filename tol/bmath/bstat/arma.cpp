@@ -1387,12 +1387,14 @@ void BARIMA::OutputDataUpdated()
         a0_(k,0) = A(k,0) = aux;
       }
 */
-      BPolyn<BDat> psi;
-      psi = (prod_.ma_/prod_.ar_).Expand(mpq,BFALSE); 
+      BPolyn<BDat> psi_B, psi_F;
+      psi_B = (prod_.ma_/prod_.ar_).Expand(N+mpq,BFALSE); 
+      psi_F.ChangeBF(psi_B);
       bool Pol2Mat(const BPol& pol, int r, int c, BMat& contens_);
-      BMat PSI0;
-      Pol2Mat(psi, mpq, N, PSI0);
-      a0_ = PSI0*aCoviw_;
+      BMat PSI_t, PSI_t_a0w;
+      Pol2Mat(psi_F, mpq, N+mpq, PSI_t);
+      PSI_t_a0w = PSI_t.Sub(0,mpq,mpq,N); 
+      a0_ = PSI_t_a0w*aCoviw_;
     //Std(BText("\naB_=")<<a0_.Name());
     }
     ata_ = (a_.Rows()&&a_.Columns())?MtMSqr(a_)(0,0):BDat::Unknown();
@@ -1486,14 +1488,6 @@ void BARIMA::OutputDataUpdated()
   //Std(BText("\nTRACE BARIMA::CalcLikelihood_Almagrocov_zz=\n")<<cov_zz.GetDMat().Name());
     BVMat cov_aa; cov_aa.Eye(q_);
 
-/* TOL Expression
-    Polyn psi = ChangeBF(Expand(_.ma/_.ar,Max(_.p,_.q)))*B^Max(0,_.q-_.p);
-    VMatrix cov_za = If(_.q>=_.p, 
-      Pol2VMat(psi, _.q, _.p), 
-      Zeros(_.q, _.p-_.q) | Pol2VMat(psi, _.q, _.q));
-    VMatrix cov_az = Tra(cov_za);
-*/
-
     BPolyn<BDat> psi_;
     psi_.ChangeBF(psi);
     psi_ = psi_ * (BPolyn<BDat>::B()^Maximum(0,q_-p_));
@@ -1573,6 +1567,4 @@ void BARIMA::OutputDataUpdated()
   return(CalcLikelihood_Levinson(sigma));
 //return(CalcLikelihood_Almagro (sigma));
 }
-
-
 
