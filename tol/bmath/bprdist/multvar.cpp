@@ -272,9 +272,10 @@ bool RandTruncatedMultNormal(         BMatrix<BDat>& tn,
     tn.Alloc(0,0);
     return(false);
   }
-  tn.Alloc(n,num);
   BDat s = Sqrt(s2);
-  BMat a=(A-nu)/s, b=(B-nu)/s, y=(tn-nu)/s, x;
+  BMat a=(A-nu)/s, b=(B-nu)/s, x, y;
+  tn.Alloc(n,num);
+  y.Alloc(n,1);
   for(k=0; k<num; k++)
   {
     for(i=0; i<n; i++)
