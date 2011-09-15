@@ -230,7 +230,6 @@ proc ::tolsh::show_usage { } {
   puts {
     -i file  --> include a file but not initLibrary
     -np      --> do not load _iniproject.tol
-    -c"..."  --> compile a tol expression
     -c "..." --> compile a tol expression
     -v?A?    --> enable all output
     -vE      --> enable error output
@@ -302,17 +301,17 @@ proc ::tolsh::setup_pkg { pkg } {
             lappend ::auto_path "/usr/lib"
           }
       } else {
-          set tclsh [auto_execok tclsh]
-          if {![catch {
-            exec echo puts {$::auto_path} | $tclsh
-          } ext_auto_path]} {
-            foreach p $ext_auto_path {
-              if {[lsearch $::auto_path $p]==-1} {
-                lappend ::auto_path $p
-              }
+        set tclsh [auto_execok tclsh]
+        if {![catch {
+          exec echo puts {$::auto_path} | $tclsh
+        } ext_auto_path]} {
+          foreach p $ext_auto_path {
+            if {[lsearch $::auto_path $p]==-1} {
+              lappend ::auto_path $p
             }
           }
-      } 
+        }
+      }
       tclPkgUnknown ${pkg}+1 ""
     } else {
       set pkg_dev_dir [file normalize [file join .. $pkg]]
@@ -575,7 +574,7 @@ proc ::tolsh::stdin_handler {} {
 }
 
 proc logtmp { msg } {
-  #return 
+  return 
   set user $::tcl_platform(user)
   set fd [ open "/tmp/tolsh.${user}.log" a ]
   puts $fd $msg
