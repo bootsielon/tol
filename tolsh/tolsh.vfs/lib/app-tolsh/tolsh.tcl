@@ -576,7 +576,7 @@ proc ::tolsh::stdin_handler {} {
 
 proc logtmp { msg } {
   #return 
-  set user [ exec whoami ]
+  set user $::tcl_platform(user)
   set fd [ open "/tmp/tolsh.${user}.log" a ]
   puts $fd $msg
   flush $fd
