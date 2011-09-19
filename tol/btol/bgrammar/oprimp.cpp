@@ -581,7 +581,8 @@ BGrammar* GetLeft(BGrammar* grammar,
   {
   //BText expr = BParser::Unparse(left);
   //Std(BText("Unparse(left)=\n")<<BParser::Unparse(left)+"\n");
-    List* nbLst = Tree::treLeft (left);
+    List* nbLst = Tree::treLeft(left);
+  //Std(BText("Unparse(nbLst)=\n")<<BParser::Unparse(nbLst)+"\n");
     BUserNameBlock* unb = (BUserNameBlock*)GraNameBlock()->LeftEvaluateTree(nbLst);
     BText err_msg = 
       I2("Data type identifier was expected instead of",
@@ -619,20 +620,6 @@ BGrammar* GetLeft(BGrammar* grammar,
       }
     }
 
-/*
-    left = Tree::treRight(left);
-    if((tok->TokenType()==BINARY)&&(tok->Name()=="::"))
-  //Std(BText("Unparse(nbLst)=\n")<<BParser::Unparse(nbLst)+"\n");
-    BUserNameBlock* unb = (BUserNameBlock*)GraNameBlock()->LeftEvaluateTree(nbLst);
-    if(unb)
-    {
-      const BNameBlock* oldNameBlock = BNameBlock::SetCurrent(&unb->Contens());
-      left = Tree::treRight(left);
-      gra=GetLeft(grammar,left,name,rest,str, cls);
-      BNameBlock::SetCurrent(oldNameBlock);
-      return(gra);
-    }
-*/
   }
   else if(tok->TokenType()!=FUNCTION) 
   {
@@ -899,16 +886,14 @@ BSyntaxObject* BEqualOperator::Evaluate(const List* argList)
   static int trace_counter = 0;
   bool carIsList = argList->car()->IsListClass();
   List* dec = carIsList?Tree::treNode((List*) argList):(List*)argList;
-/*
+/* * /
   if(BParser::Unparse(dec,"")=="nb::@InputDef ll")
   {
     printf("");
-    Std(BText("\nTRACE BEqualOperator::Evaluate 1 argList:")+BParser::Unparse(argList,"")+"\n"+BParser::treWrite((List*)argList,"  ",false));
-    Std(BText("\nTRACE BEqualOperator::Evaluate 2 dec:'")+BParser::Unparse(dec,"")+"'\n"+BParser::treWrite(dec,"  ",false));
+    Std(BText("\nTRACE BEqualOperator::Evaluate dec:'")+
+        BParser::Unparse(dec,"")+"'\n"+BParser::treWrite(dec,"  ",false));
   }
-*/
-//if(BParser::Unparse(dec,"")=="Point P")
-  //printf("");
+/* */
   BGrammar* gra = GetLeft(Grammar(), dec, name, rest, str, cls);
   List* left = NULL;
   bool defInst = false;
