@@ -1,0 +1,12 @@
+
+ NameBlock nb1 = [[
+   NameBlock nb2 = [[
+    Class @InputDef {
+       Real a = 1
+    }
+   ]]
+ ]];
+
+ nb1::nb2::@InputDef ll = [[ Real a = 1 ]];
+
+

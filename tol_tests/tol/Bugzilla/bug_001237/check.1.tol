@@ -1,0 +1,11 @@
+
+ NameBlock nb = [[
+  Class @InputDef {
+     Real a = 1
+  }
+ ]];
+
+ nb::@InputDef ll = [[ Real a = 1 ]];
+
+
+/* */
