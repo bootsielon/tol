@@ -579,6 +579,8 @@ BGrammar* GetLeft(BGrammar* grammar,
   } 
   else if((tok->TokenType()==BINARY)&&(tok->Name()=="::"))
   {
+    if(BParser::Unparse(left_orig)=="BysMcmc::NameBlock config")
+      printf("");
   //BText expr = BParser::Unparse(left);
   //Std(BText("Unparse(left)=\n")<<BParser::Unparse(left)+"\n");
     List* nbLst = Tree::treLeft(left);
@@ -593,33 +595,44 @@ BGrammar* GetLeft(BGrammar* grammar,
     while(unb)
     {
       tok = BParser::treToken(left);
-      BSyntaxObject* member = unb->Contens().Member(tok->Name());
-      if(!member) { Error(err_msg); }
-      else if(member->Mode()== BSTRUCTMODE)
+      const BText& tokName = tok->Name();
+      //VBR: Misteriosamente aprecen en los OIS expresiones como BysMcmc::NameBlock
+      BGrammar* g = BGrammar::FindByName(tokName,false);
+      if(g)
       {
-        str = (BStruct*)member;
-        gra = GraSet(); 
+        gra = g;
         unb = NULL;
         left = Tree::treLeft(left);
-      }
-      else if(member->Mode() == BCLASSMODE)
-      {
-        cls = (BClass*)member;
-        gra = GraNameBlock();
-        unb = NULL;
-        left = Tree::treLeft(left);
-      }
-      else if((member->Mode() == BOBJECTMODE) && (member->Grammar() == GraNameBlock()))
-      {
-        unb = (BUserNameBlock*)member;
-        left = Tree::treRight(left);
       }
       else
       {
-        Error(err_msg);
+        BSyntaxObject* member = unb->Contens().Member(tokName);
+        if(!member) { Error(err_msg); }
+        else if(member->Mode()== BSTRUCTMODE)
+        {
+          str = (BStruct*)member;
+          gra = GraSet(); 
+          unb = NULL;
+          left = Tree::treLeft(left);
+        }
+        else if(member->Mode() == BCLASSMODE)
+        {
+          cls = (BClass*)member;
+          gra = GraNameBlock();
+          unb = NULL;
+          left = Tree::treLeft(left);
+        }
+        else if((member->Mode() == BOBJECTMODE) && (member->Grammar() == GraNameBlock()))
+        {
+          unb = (BUserNameBlock*)member;
+          left = Tree::treRight(left);
+        }
+        else
+        {
+          Error(err_msg);
+        }
       }
     }
-
   }
   else if(tok->TokenType()!=FUNCTION) 
   {
