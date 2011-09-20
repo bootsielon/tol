@@ -607,7 +607,20 @@ BGrammar* GetLeft(BGrammar* grammar,
       else
       {
         BSyntaxObject* member = unb->Contens().Member(tokName);
-        if(!member) { Error(err_msg); }
+        if(!member) 
+        { 
+          cls = FindClass(tokName,0);
+          if(cls)
+          {
+            gra = GraNameBlock();
+            unb = NULL;
+            left = Tree::treLeft(left);
+          }
+          else 
+          {
+            Error(err_msg); 
+          }
+        }
         else if(member->Mode()== BSTRUCTMODE)
         {
           str = (BStruct*)member;
