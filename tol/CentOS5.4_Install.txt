@@ -253,7 +253,7 @@ sudo find /usr/lib/tolbase2.0.2  -name .svn | sudo xargs rm -r
 echo '#!/bin/sh' > /tmp/tolbase2.0.2
 echo exec /usr/bin/wish8.4_i386 /usr/lib/tolbase2.0.2/toltk/init_toltk.tcl '${1+"$@"}' >> /tmp/tolbase2.0.2
 chmod a+x /tmp/tolbase2.0.2
-sudo mv /tmp/tolbase /usr/bin/tolbase2.0.2
+sudo mv /tmp/tolbase2.0.2 /usr/bin/tolbase2.0.2
 
 
 #
