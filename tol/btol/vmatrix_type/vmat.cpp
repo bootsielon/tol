@@ -954,6 +954,7 @@ void BVMat::ShowCholmodStats()
 ////////////////////////////////////////////////////////////////////////////////
 {
   BlasRDense(nrow, ncol);
+  if(!s_.blasRdense_) { return; }
   double* x = (double*)s_.blasRdense_->x;
   if(x)
   {
