@@ -772,7 +772,7 @@ Real RemoteUpdateAll(Real updateSyncInfo)
   Real ok = If(!Card(_.packForUpdate), 0,
   SetSum(EvalSet(_.packForUpdate, Real(TolPackage::@PackageSynchro pkg)
   {
-    RemoteInstallPackage(pkg->te_url, pkg->co_last_version_remote, True)
+    RemoteInstallPackage(pkg->te_url, pkg->co_last_version_local, True)
   })));
   Real _trace("RemoteUpdateAll", "End", 1);
   ok
