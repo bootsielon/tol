@@ -791,11 +791,11 @@ BDat BLogNormalDist::Dist(BDat x)
   useLeft_ = fB_ <= fA_;
   if(useLeft_)
   {
-    FAB_ = FB_-FA_;
+    FAB_ = (FB_-FA_+1.E+4)-1.E+4;
   }
   else
   {
-    FAB_ = F1A_-F1B_;
+    FAB_ = (F1A_-F1B_+1.E+4)-1.E+4;
   }
   if(FAB_<0)
   {
@@ -837,12 +837,12 @@ BDat BTruncatedDist::Inverse(BDat prob, BDat tolerance)
 //--------------------------------------------------------------------
 {
   if(wrongParameter_ || prob.IsUnknown()) { return(BDat::Unknown()); }
-  if(A_==B_)  { return(A_); }
-  if(!FAB_) 
+  if(A_+1.0==B_+1.0)  { return(A_); }
+  if(FAB_<1.E-8) 
   { 
     BDat C = NonTruncated().Average();
-         if(A_>C) { return(A_); }
-    else if(B_<C) { return(B_); }
+         if(A_+1.0>C+1.0) { return(A_); }
+    else if(B_+1.0<C+1.0) { return(B_); }
     {
       BDat a = A_;
       BDat b = B_;
@@ -859,7 +859,7 @@ BDat BTruncatedDist::Inverse(BDat prob, BDat tolerance)
 BDat BTruncatedDist::Random()
 //--------------------------------------------------------------------
 { 
-  if(A_==B_)  { return(A_); }
+  if(A_+1.0==B_+1.0)  { return(A_); }
   return(Inverse(BUniformDist::Random01())); 
 }
 
