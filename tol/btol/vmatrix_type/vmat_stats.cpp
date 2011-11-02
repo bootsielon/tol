@@ -679,16 +679,24 @@ double BVMat::Quantile() const
       }
     }
 # ifdef USE_BTruncatedNormalDist
-    if(lower>=upper)
+    if(lower==upper)
     {
       zj = lower;
     }
     else if((lower>negInf)||(upper<posInf))
     {
-      BTruncatedNormalDist tn(lower,upper);
-      zj = tn.Random().Value();
-      assert((lower<=zj) && (zj<=upper));
-    //Std(BText("\nBTruncatedNormalDist z[")+j+"]="+zj);
+      if((lower>10) || (upper<-10))
+      {
+        double r = BUniformDist::Random01().Value();
+        zj = r*lower+(1-r)*upper;
+      }
+      else
+      {
+        BTruncatedNormalDist tn(lower,upper);
+        zj = tn.Random().Value();
+        assert((lower<=zj) && (zj<=upper));
+      //Std(BText("\nBTruncatedNormalDist z[")+j+"]="+zj);
+      }
     }
     else
     {
