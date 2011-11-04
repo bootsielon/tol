@@ -216,18 +216,24 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
   }
   lang = (objc == 1 || !strcasecmp("es", Tcl_GetString(objv[1])));
   vmode = objc == 3 ? Tcl_GetString(objv[2]) :  NULL;
-  /*
-   * Initialize kernel
-   */
 
-  InitTolKernel(Tcl_GetNameOfExecutable(), lang, vmode&&vmode[0]?vmode:NULL);
-
-  /*
-   * this should only be called to find out where the GSL errors are generated
-   */
-
-  Tol_gsl_set_error_handler(&TT_gsl_error_handler);
-
+  if ( !Tol_IsInitialized( ) ) {
+    //printf( "TOL no esta inicializado\n" );
+    /*
+     * Initialize kernel
+     */
+    
+    InitTolKernel(Tcl_GetNameOfExecutable(), lang, vmode&&vmode[0]?vmode:NULL);
+    
+    /*
+     * this should only be called to find out where the GSL errors are generated
+     */
+    
+    Tol_gsl_set_error_handler(&TT_gsl_error_handler);
+  } else {
+    //printf( "TOL esta inicializado\n" );
+  }
+  
   /*
    * Install tol::* commands
    */

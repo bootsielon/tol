@@ -38,11 +38,13 @@
 #endif
 #endif
 
-
 BEGIN_C_DECLS
 
-
 extern Tcl_Interp * TT_interp;
+
+/*! Check if TOL kernel has being initialized
+ */
+extern int Tol_IsInitialized ();
 
 /*! Fill in obj_result the version info corresponding to tol
  *   {major MajorNum minor MinorNum release ReleaseNum coment Comment}
