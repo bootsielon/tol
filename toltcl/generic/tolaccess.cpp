@@ -143,11 +143,6 @@ int BList2TclList( Tcl_Interp * interp,
   return TCL_OK;
 }
 
-int Tol_IsInitialized( )
-{
-  return BGrammar::Exists( "Real" );
-}
-
 /*
  * Fill in obj_result the result of avaluating in TOL the given
  * string.
