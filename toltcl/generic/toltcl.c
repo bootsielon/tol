@@ -218,7 +218,7 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
   vmode = objc == 3 ? Tcl_GetString(objv[2]) :  NULL;
 
   if ( !TOLHasBeenInitialized( ) ) {
-    printf( "TOL no esta inicializado\n" );
+    //printf( "TOL no esta inicializado\n" );
     /*
      * Initialize kernel
      */
@@ -231,7 +231,7 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
     
     Tol_gsl_set_error_handler(&TT_gsl_error_handler);
   } else {
-    printf( "TOL esta inicializado\n" );
+    //printf( "TOL esta inicializado\n" );
   }
   
   /*
@@ -1565,7 +1565,9 @@ Toltcl_Init(Tcl_Interp *interp)
    */
   
   //InitTolKernel();
-  Tol_InstallHciWriter();
+  if ( !TOLHasBeenInitialized( ) ) {
+    Tol_InstallHciWriter();
+  }
   Tol_InstallMethodsHook();
  
   return TCL_OK;
