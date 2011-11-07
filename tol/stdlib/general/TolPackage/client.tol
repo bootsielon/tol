@@ -118,7 +118,7 @@ Text LocalLastCompatible(Text package)
   Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
   {
   //WriteLn("_trace LocalLastCompatible 2 checking version ="<<pkgNamVer);
-    Real ok1 = TextBeginWith(pkgNamVer, package);
+    Real ok1 = TextBeginWith(pkgNamVer, package+".");
     If(!ok1, False,
     {
       Real idx = FindIndexByName(vsi, pkgNamVer);
