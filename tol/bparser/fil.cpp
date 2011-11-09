@@ -644,7 +644,7 @@ BText BFilter::Transform(const BText& original) const
   //Std(BText("BFilter::Transform 1 : '")<<s20<<"'");
     if(s20.BeginWith("#Embed"))
     {
-      expression = BText("Write ( \" \" ) ; ") << expression;
+      expression = BText("Write ( \"\" ) ; ") << expression;
     };
     return expression;
   }
