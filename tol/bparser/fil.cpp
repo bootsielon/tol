@@ -604,39 +604,50 @@ void BFilter::CleanQuotes(BText& expression) const
  */
 BText BFilter::Transform(const BText& original) const 
 {
-    error_ = false;
-    errorMsg_ = "";
-    BText expression = original;
-    BTextBlock block;
-    GetBlocks(expression, block);
-    expression = "";
-    BText cleaned = "";
-    for(BInt k = 0; k<block.Size(); k++) {
-	BInt blockClass=ClassifyBlock(block[k].text.Buffer());
-	
-	if((blockClass==NormalBlock)) {
-	    cleaned += block[k].text + " ";
-	}
-
-	if(blockClass==QuotesBlock) {
-	    Clean(cleaned);
-	    CleanQuotes(block[k].text);
-	    expression += cleaned + " " + block[k].text + " ";
-	    cleaned = "";
-	}
+  error_ = false;
+  errorMsg_ = "";
+  BText expression = original;
+  BTextBlock block;
+  GetBlocks(expression, block);
+  expression = "";
+  BText cleaned = "";
+  for(BInt k = 0; k<block.Size(); k++) 
+  {
+    BInt blockClass=ClassifyBlock(block[k].text.Buffer());
+    if((blockClass==NormalBlock)) 
+    {
+      cleaned += block[k].text + " ";
     }
-
-    if(cleaned.HasName()) {
-	Clean(cleaned);
-	expression += cleaned;
+    if(blockClass==QuotesBlock) 
+    {
+      Clean(cleaned);
+      CleanQuotes(block[k].text);
+      expression += cleaned + " " + block[k].text + " ";
+      cleaned = "";
     }
+  }
+  if(cleaned.HasName()) 
+  {
+    Clean(cleaned);
+    expression += cleaned;
+  }
 
-    while(expression.Length() && strchr(" \t\n;",expression.Last())) {
-	expression.PutLength(expression.Length()-1); 
-    }
-
-    if(error_) return errorMsg_;
-    else return expression;
+  while(expression.Length() && strchr(" \t\n;",expression.Last())) 
+  {
+    expression.PutLength(expression.Length()-1); 
+  }
+  if(error_) { return errorMsg_; }
+  else 
+  {
+    BText s20(expression,0,20);
+    s20.Compact();
+  //Std(BText("BFilter::Transform 1 : '")<<s20<<"'");
+    if(s20.BeginWith("#Embed"))
+    {
+      expression = BText("Write ( \" \" ) ; ") << expression;
+    };
+    return expression;
+  }
 }
 
 
