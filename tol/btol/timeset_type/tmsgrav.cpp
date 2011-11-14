@@ -2456,7 +2456,7 @@ BBool BTmsOfSerie::Includes(const BDate& dte) const
 //--------------------------------------------------------------------
 {
   BUserTimeSerie* ser = Tsr(Arg(1));
-  return(ser->Dating() &&
+  return(ser && ser->Dating() &&
     	   ser->Dating()->Contain(dte) &&
 	       (
 	         (dte<ser->FirstDate()) ||
@@ -2483,8 +2483,11 @@ BBool BTmsOfSerie::Includes(const BDate& dte) const
 //--------------------------------------------------------------------
 {
   BUserTimeSerie* ser = Tsr(Arg(1));
+  if(!ser) { return; }
+  BUserTimeSet* tms = ser->Dating();
+  if(!tms) { return; }
   BHash aux;
-  ser->Dating()->GetHashBetween(aux,  first, last);
+  tms->GetHashBetween(aux,  first, last);
   BTmsTemporary::GetHashBetween(hash, first, last);
 }
 
@@ -2493,6 +2496,10 @@ BBool BTmsOfSerie::Includes(const BDate& dte) const
 BDate BTmsOfSerie::SafeSuccessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
+  BUserTimeSerie* ser = Tsr(Arg(1));
+  if(!ser) { return(BDate::End()); }
+  BUserTimeSet* tms = ser->Dating();
+  if(!tms) { return(BDate::End()); }
   BDate dte = EnsureNotAbortedSuccessor(dte_);
   EnsureLimitsSuccessor(dte);
   PREPARE_CACHE(dte);
@@ -2501,7 +2508,6 @@ BDate BTmsOfSerie::SafeSuccessor(const BDate& dte_) const
   BDate curLimit = CurrentCalcLastDate();
   if(!curLimit.HasValue()) { curLimit = BDate::DefaultLast(); }
 //Std(Out()+"\nBTmsOfSerie::Successor of "+ser->Identify()+" "+dte);
-  BUserTimeSerie* ser = Tsr(Arg(1));
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedSuccessor(dte);
@@ -2520,7 +2526,7 @@ BDate BTmsOfSerie::SafeSuccessor(const BDate& dte_) const
         n++;
       }
     }
-  	dte += ser->Dating();
+  	dte += tms;
     if(Contain(dte)) { return(dte); }
     if(dte>ser->LastDate()) { return(BDate::End()); }
   }
@@ -2532,6 +2538,10 @@ BDate BTmsOfSerie::SafeSuccessor(const BDate& dte_) const
 BDate BTmsOfSerie::SafePredecessor(const BDate& dte_) const
 //--------------------------------------------------------------------
 {
+  BUserTimeSerie* ser = Tsr(Arg(1));
+  if(!ser) { return(BDate::Begin()); }
+  BUserTimeSet* tms = ser->Dating();
+  if(!tms) { return(BDate::Begin()); }
   BDate dte = EnsureNotAbortedPredecessor(dte_);
   EnsureLimitsPredecessor(dte);
   PREPARE_CACHE(dte);
@@ -2539,7 +2549,6 @@ BDate BTmsOfSerie::SafePredecessor(const BDate& dte_) const
   int iter, n, N = (int)MaxIter().Value(), M = (int)OutOfRange().Value();
   BDate curLimit = CurrentCalcFirstDate();
   if(curLimit==BDate::Begin()) { curLimit = BDate::DefaultFirst(); }
-  BUserTimeSerie* ser = Tsr(Arg(1));
   for(n=iter=0; iter<N; iter++)
   {
     dte = EnsureNotAbortedPredecessor(dte);
@@ -2557,7 +2566,7 @@ BDate BTmsOfSerie::SafePredecessor(const BDate& dte_) const
         n++;
       }
     }
-  	dte -= ser->Dating();
+  	dte -= tms;
     if(Contain(dte)) { return(dte); }
     if(dte>ser->LastDate()) { return(BDate::End()); }
   }
