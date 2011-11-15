@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "stdafx.h"
 #include "ap.h"
 #include <string.h>
+#include <stdio.h>
 
 /********************************************************************
 Optimized ABLAS interface
