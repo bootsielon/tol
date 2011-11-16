@@ -125,8 +125,8 @@ Text LocalLastCompatible(Text package)
       If(idx<=0, True,
       {
         Real ok2 = And(
-         vsi[idx]->te_min_tol_version <= TolPackage::_.currentTolVersion,
-         vsi[idx]->te_max_tol_version >= TolPackage::_.currentTolVersion);
+         Compare.VersionString(vsi[idx]->te_min_tol_version,TolPackage::_.currentTolVersion)<=0,
+         Compare.VersionString(vsi[idx]->te_max_tol_version,TolPackage::_.currentTolVersion)>=0;
       //WriteLn("_trace LocalLastCompatible 3 min="<<vsi[idx]->te_min_tol_version);
       //WriteLn("_trace LocalLastCompatible 4 cur="<<TolPackage::_.currentTolVersion);
       //WriteLn("_trace LocalLastCompatible 5 max="<<vsi[idx]->te_max_tol_version);
@@ -933,7 +933,7 @@ Real DownloadCompatibleDeepDependencies(
 ////////////////////////////////////////////////////////////////////////////////
 {
   Real _trace("DownloadCompatibleDeepDependencies", "Begin", 1);
-  If(tol_version>TolPackage::_.currentTolVersion,
+  If(Compare.VersionString(tol_version,TolPackage::_.currentTolVersion)>0,
   {
     WriteLn("[DownloadCompatibleDeepDependencies] Cannot download packages for "
     "TOL "+tol_version+" using TOL "+TolPackage::_.currentTolVersion,"E");
