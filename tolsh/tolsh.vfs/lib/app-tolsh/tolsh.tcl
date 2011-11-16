@@ -295,8 +295,12 @@ proc ::tolsh::setup_pkg { pkg } {
       set pkg_dirs [glob -nocomplain -dir $libdir ${pkg}*]
       if {[llength $pkg_dirs]} {
         lappend ::auto_path [file normalize $libdir]
-      } elseif { $::tcl_platform(platform) eq "unix" && 
-          $::tcl_platform(machine) eq "x86_64" } {
+      } elseif { $::tcl_platform(platform) eq "unix" } {
+          set activeTcl "/opt/ActiveTcl-8.4/lib"
+          if { [ file exists $activeTcl ] &&
+	       [ lsearch $::auto_path $activeTcl ] == -1 } {
+            lappend ::auto_path $activeTcl
+          }
           if { [ lsearch $::auto_path "/usr/lib" ] == -1 } {
             lappend ::auto_path "/usr/lib"
           }
