@@ -84,9 +84,14 @@ DefExtOpr(1, BTsrRandom, "Rand", 2, 3, "Real Real TimeSet",
 BDat BTsrRandom::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-    if(!Dating()) { return(BDat::Unknown()); }
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
     BUniformDist var(Real(Arg(1)),Real(Arg(2)));
-    return(var.Random());
+    dat = var.Random();
+  }
+  return(dat);
 }
 
 
@@ -124,19 +129,23 @@ BTsrGaussian::BTsrGaussian(BList* arg)
 //--------------------------------------------------------------------
 BDat BTsrGaussian::GetDat(const BDate& dte)
 {
-    BDat newValue;
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
     std::map<double, BDat>::const_iterator keyIterator;
-
-    if(!Dating()) newValue = BDat::Unknown();
-    else {
-  keyIterator = valuesMap_.find(dte.Hash());
-  if(keyIterator == valuesMap_.end()) {
-      newValue = dist_.Random();
-      valuesMap_.insert(std::pair<double, BDat>(dte.Hash(), newValue));
-  } else newValue = keyIterator->second;
+    keyIterator = valuesMap_.find(dte.Hash());
+    if(keyIterator == valuesMap_.end()) 
+    {
+      dat = dist_.Random();
+      valuesMap_.insert(std::pair<double, BDat>(dte.Hash(), dat));
+    } 
+    else 
+    {
+      dat = keyIterator->second;
     }
-
-    return(newValue);
+  }
+  return(dat);
 }
 
 
@@ -178,11 +187,16 @@ DefExtOpr(1, BTsrPulse, "Pulse", 1, 2, "Date TimeSet",
 BDat BTsrPulse::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
-  if(dte == Center()) { return(BDat(1.0)); }
-  else          { return(BDat(0.0)); }
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
+    if(!Dating()) { return(BDat::Unknown()); }
+    if(dte == Center()) { return(BDat(1.0)); }
+    else          { return(BDat(0.0)); }
+  }
+  return(dat);
 }
-
 
 //--------------------------------------------------------------------
 DefExtOpr(1, BTsrCompens, "Compens", 1, 2, "Date TimeSet",
@@ -198,10 +212,15 @@ DefExtOpr(1, BTsrCompens, "Compens", 1, 2, "Date TimeSet",
 BDat BTsrCompens::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
-       if(dte == Center())     { return(BDat( 1.0)); }
-  else if(dte == PostCenter()) { return(BDat(-1.0)); }
-  else             { return(BDat( 0.0)); }
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
+         if(dte == Center())     { return(BDat( 1.0)); }
+    else if(dte == PostCenter()) { return(BDat(-1.0)); }
+    else             { return(BDat( 0.0)); }
+  }
+  return(dat);
 }
 
 
@@ -219,9 +238,15 @@ DefExtOpr(1, BTsrStep, "Step", 1, 2, "Date TimeSet",
 BDat BTsrStep::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
-  if(dte >= Center()) { return(BDat(1.0)); }
-  else          { return(BDat(0.0)); }
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
+    if(dte >= Center()) { return(BDat(1.0)); }
+    else          { return(BDat(0.0)); }
+  }
+  return(dat);
+
 }
 
 
@@ -241,13 +266,19 @@ DefExtOpr(1, BTsrTrend, "Trend", 1, 2, "Date TimeSet",
 BDat BTsrTrend::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  BDate d;
-  if(!Dating()) { return(BDat::Unknown()); }
-  if(dte<Center()) { return(BDat(0.0)); }
-  else {
-   d = Dating()->FirstNoLess (Center());
-   return(Dating()->Difference(d, dte)+1);
- }
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
+    BDate d;
+    if(dte<Center()) { return(BDat(0.0)); }
+    else 
+    {
+      d = dating->FirstNoLess (Center());
+      return(dating->Difference(d, dte)+1);
+    }
+  }
+  return(dat);
 }
 
 
@@ -277,18 +308,21 @@ DefExtOpr(1, BTsrLine, "Line", 4, 5, "Date Real Date Real TimeSet",
 BDat BTsrLine::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
   BDat dat;
-  if(d0!=d1)
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
   {
-    if(y1!=y0)
+    if(d0!=d1)
     {
-      BReal pendient = (y1-y0)/Dating()->Difference(d0, d1);
-      dat = y0 + pendient*Dating()->Difference(d0, dte);
-    }
-    else
-    {
-      dat = y0;
+      if(y1!=y0)
+      {
+        BReal pendient = (y1-y0)/Dating()->Difference(d0, d1);
+        dat = y0 + pendient*Dating()->Difference(d0, dte);
+      }
+      else
+      {
+        dat = y0;
+      }
     }
   }
   return(dat);
@@ -319,14 +353,15 @@ DefExtOpr(1, BTsrCalendary, "CalVar", 1, 2, "TimeSet TimeSet",
 BDat BTsrCalendary::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
   BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte) && center_)
   if(center_)
   {
-    BDate next = dte  + Dating();
+    BDate next = dte  + dating;
     if(next.HasValue())
     {
-      BDate prev = next - Dating();
+      BDate prev = next - dating;
       if(prev.HasValue())
       {
         BHash hash; center_->GetHashBetween(hash, prev, next);
@@ -366,9 +401,9 @@ DefExtOpr(1, BTsrIndicator, "CalInd", 1, 2, "TimeSet TimeSet",
 BDat BTsrIndicator::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
   BDat dat;
-  if(center_)
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte) && center_)
   {
     dat = center_->Contain(dte);
   }
@@ -477,19 +512,20 @@ BStandardOperator* BTsrDatingChange::Stat()  const
 BDat BTsrDatingChange::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()||!Ser()||!Ser()->Dating()) { return(BDat::Unknown()); }
-  BDate dte2 = dte  + Dating() - Ser()->Dating();
-
-  BUserDate* uDte1 = new BContensDate(dte );
-  BUserDate* uDte2 = new BContensDate(dte2);
-
-  BList* lst = Cons(Ser(),Cons(uDte1,NCons(uDte2)));
-  BDatStatistic* uDat = (BDatStatistic*)(Stat()->Evaluator(lst));
   BDat dat;
-  if(uDat)
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte) && Ser() && Ser()->Dating())
   {
-    dat = uDat->Contens();
-    DESTROY(uDat);
+    BDate dte2 = dte  + Dating() - Ser()->Dating();
+    BUserDate* uDte1 = new BContensDate(dte );
+    BUserDate* uDte2 = new BContensDate(dte2);
+    BList* lst = Cons(Ser(),Cons(uDte1,NCons(uDte2)));
+    BDatStatistic* uDat = (BDatStatistic*)(Stat()->Evaluator(lst));
+    if(uDat)
+    {
+      dat = uDat->Contens();
+      DESTROY(uDat);
+    }
   }
   return(dat);
 }
@@ -547,14 +583,17 @@ BDate BTsrInverseDatingChange::LastDate()  const
 BDat BTsrInverseDatingChange::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-    if(!Dating()) { return(BDat::Unknown()); }
-    BDat dat;
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
     if(Ser(1)&&Ser(2))
     {
-  if(Ser(1)->Dating()->Contain(dte)) { dat = (*Ser(1))[dte]; }
-  else           { dat = (*Ser(2))[dte]; }
+      if(Ser(1)->Dating()->Contain(dte)) { dat = (*Ser(1))[dte]; }
+      else                               { dat = (*Ser(2))[dte]; }
     }
-    return(dat);
+  }
+  return(dat);
 }
 
 
@@ -581,38 +620,38 @@ BDat BTsrExpand::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
 //InitTotalTime("BTsrExpand::GetDat");
-  if(!Dating()) { return(BDat::Unknown()); }
   BDat dat;
-  BDat val = 0;
-  if(Arg(2)) { val = Dat(Arg(2)); }
-  if(Dating() && (dte>=FirstDate()) && dte<=LastDate())
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
   {
-    if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
-    else
+    BDat val = 0;
+    if(Arg(2)) { val = Dat(Arg(2)); }
+    if(Dating() && (dte>=FirstDate()) && dte<=LastDate())
     {
-      BInt n=0;
-      BDate d=FirstDate();
-      BDat  lastNotEqual = val;
-
-      GetLength();
-      Ser()->GetData(data_, FirstDate(),LastDate(),Length());
-
-      BHash hash; Dating()->GetHashBetween(hash, FirstDate(),LastDate());
-      BReal h = dte.Hash();
-      for(; n<Length(); n++)
+      if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
+      else
       {
-  if(data_[n]==val)
-  {
-    data_[n] = lastNotEqual;
-  }
-  else      { lastNotEqual = data_[n];   }
-  if(hash[n]==h) { dat = data_[n]; }
-  d+=Dating();
+        BInt n=0;
+        BDate d=FirstDate();
+        BDat  lastNotEqual = val;
+        GetLength();
+        Ser()->GetData(data_, FirstDate(),LastDate(),Length());
+        BHash hash; Dating()->GetHashBetween(hash, FirstDate(),LastDate());
+        BReal h = dte.Hash();
+        for(; n<Length(); n++)
+        {
+          if(data_[n]==val)
+          {
+            data_[n] = lastNotEqual;
+          }
+          else      { lastNotEqual = data_[n];   }
+          if(hash[n]==h) { dat = data_[n]; }
+          d+=Dating();
+        }
       }
     }
   }
 //SumPartialTime;
-
   return(dat);
 }
 
@@ -688,44 +727,47 @@ BDate   BTsrSubSerie::LastDate()  const
 BDat BTsrSubSerie::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
   BDat dat;
-  if((dte>=FirstDate()) && (dte<=LastDate()))
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
   {
-    if(!IsStochastic())
+    if((dte>=FirstDate()) && (dte<=LastDate()))
     {
-      dat =  Ser()->GetDat(dte);
-    }
-    else if(Data().HasValue()) 
-    { 
-      bool wasTheBegin = false;
-      if(FirstDate()==BDate::Begin()) 
+      if(!IsStochastic())
       {
-        wasTheBegin = true;
-        firstDate_ = BDate::DefaultFirst();
+        dat =  Ser()->GetDat(dte);
       }
-      dat = data_[GetIndex(dte)]; 
-      if(wasTheBegin) firstDate_ = BDate::Begin();
-    }
-    else
-    {
-      GetLength();
-      Ser()->GetData(data_,FirstDate(),LastDate(),Length());
-      
-      BInt n=0;
-      BDate d = FirstDate();
-      if(d==BDate::Begin()) d = BDate::DefaultFirst();
-      BHash hash; Dating()->GetHashBetween(hash, FirstDate(),LastDate());
-      BReal h = dte.Hash();
-      
-      for(; n<hash.Size(); n++) 
+      else if(Data().HasValue()) 
+      { 
+        bool wasTheBegin = false;
+        if(FirstDate()==BDate::Begin()) 
+        {
+          wasTheBegin = true;
+          firstDate_ = BDate::DefaultFirst();
+        }
+        dat = data_[GetIndex(dte)]; 
+        if(wasTheBegin) firstDate_ = BDate::Begin();
+      }
+      else
       {
-        hash[n] = d.Hash();
-        if(hash[n]==h) { dat = data_[n]; }
-        d+=Dating();
+        GetLength();
+        Ser()->GetData(data_,FirstDate(),LastDate(),Length());
+        
+        BInt n=0;
+        BDate d = FirstDate();
+        if(d==BDate::Begin()) d = BDate::DefaultFirst();
+        BHash hash; Dating()->GetHashBetween(hash, FirstDate(),LastDate());
+        BReal h = dte.Hash();
+        
+        for(; n<hash.Size(); n++) 
+        {
+          hash[n] = d.Hash();
+          if(hash[n]==h) { dat = data_[n]; }
+          d+=Dating();
+        }
+        length_ = hash.Size();
+        CompactData();
       }
-      length_ = hash.Size();
-      CompactData();
     }
   }
   return(dat);
@@ -786,46 +828,49 @@ BDat BTsrPolyn::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
 //InitTotalTime("BTsrPolyn::GetDat");
-  if(!Dating()) { return(BDat::Unknown()); }
   BDat dat;
-  if(!Length())
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
   {
-    dat = 0.0;
-    for(BInt n = 0; n<pol_.Size(); n++)
+    if(!Length())
     {
-      BDate d = ser_->Dating()->Prev(dte, pol_[n].Degree());
-      BDat  x = (*ser_)[d];
-      dat    += pol_[n].Coef()*x;
-    }
-  }
-  else if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
-  else if((dte>=firstDate_) && dte<=lastDate_)
-  {
-    BData serData;
-    ser_->GetData(serData);
-
-
-    BHash hash; Dating()->GetHashBetween(hash, firstDate_,lastDate_);
-    Realloc(hash.Size());
-    BInt  n;
-    BDate d;
-    BReal h = dte.Hash();
-
-    for(n=0; n<Length(); n++)
-    {
-      data_[n] = 0.0;
-      for(BInt p = 0; p<pol_.Size(); p++)
+      dat = 0.0;
+      for(BInt n = 0; n<pol_.Size(); n++)
       {
-  BInt m    = n-pol_[p].Degree()+backward_;
-  BDat  x    = serData[m];
-  data_[n] += pol_[p].Coef()*x;
+        BDate d = ser_->Dating()->Prev(dte, pol_[n].Degree());
+        BDat  x = (*ser_)[d];
+        dat    += pol_[n].Coef()*x;
       }
-      if(hash[n]==h) { dat = data_[n]; }
-
     }
-    CompactData();
+    else if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
+    else if((dte>=firstDate_) && dte<=lastDate_)
+    {
+      BData serData;
+      ser_->GetData(serData);
+
+
+      BHash hash; Dating()->GetHashBetween(hash, firstDate_,lastDate_);
+      Realloc(hash.Size());
+      BInt  n;
+      BDate d;
+      BReal h = dte.Hash();
+
+      for(n=0; n<Length(); n++)
+      {
+        data_[n] = 0.0;
+        for(BInt p = 0; p<pol_.Size(); p++)
+        {
+    BInt m    = n-pol_[p].Degree()+backward_;
+    BDat  x    = serData[m];
+    data_[n] += pol_[p].Coef()*x;
+        }
+        if(hash[n]==h) { dat = data_[n]; }
+
+      }
+      CompactData();
+    }
   }
-//SumPartialTime;
+  //SumPartialTime;
   return(dat);
 }
 
@@ -902,38 +947,41 @@ BDat BTsrDifEq::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
 //nitTotalTime("BTsrDifEq::GetDat");
-  if(!Dating()) { return(BDat::Unknown()); }
   BDat dat;
-  if(firstDate_.HasValue() && lastDate_.HasValue() &&
-     (dte>=firstDate_) && (dte<=lastDate_))
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
   {
-    if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
-    else
+    if(firstDate_.HasValue() && lastDate_.HasValue() &&
+       (dte>=firstDate_) && (dte<=lastDate_))
     {
-      BInt n=0;
-      BHash hash; Dating()->GetHashBetween(hash, firstDate_,lastDate_);
-      Realloc(hash.Size());
-      BReal h0 = ser_->FirstDate().Hash();
-      BReal h  = dte.Hash();
-
-      for(n=0; (n<Length()) && (hash[n]<h0); n++)
+      if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
+      else
       {
-  data_[n] = (*ini_)[HashToDte(hash[n])];
-  if(hash[n]==h) { dat = data_[n]; }
-      }
+        BInt n=0;
+        BHash hash; Dating()->GetHashBetween(hash, firstDate_,lastDate_);
+        Realloc(hash.Size());
+        BReal h0 = ser_->FirstDate().Hash();
+        BReal h  = dte.Hash();
 
-      for(; n<Length(); n++)
-      {
-  data_[n] = (*ser_)[HashToDte(hash[n])];
-  for(BInt p = 0; p<pol_.Size(); p++)
-  {
-    BInt m    = n-pol_[p].Degree();
-    BDat  x   = data_[m];
-    data_[n] += pol_[p].Coef()*x;
-  }
-  if(hash[n]==h) { dat = data_[n]; }
+        for(n=0; (n<Length()) && (hash[n]<h0); n++)
+        {
+    data_[n] = (*ini_)[HashToDte(hash[n])];
+    if(hash[n]==h) { dat = data_[n]; }
+        }
+
+        for(; n<Length(); n++)
+        {
+    data_[n] = (*ser_)[HashToDte(hash[n])];
+    for(BInt p = 0; p<pol_.Size(); p++)
+    {
+      BInt m    = n-pol_[p].Degree();
+      BDat  x   = data_[m];
+      data_[n] += pol_[p].Coef()*x;
+    }
+    if(hash[n]==h) { dat = data_[n]; }
+        }
+        CompactData();
       }
-      CompactData();
     }
   }
 //SumPartialTime;
@@ -1016,10 +1064,15 @@ DefExtOpr(1, BTsrCenterConcat, "Concat", 3, 3, "Serie Serie Date",
 BDat BTsrCenterConcat::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
-  if(!LeftSer() || !RightSer()) { return(BDat::Unknown()); }
-  if(dte<=Center())    { return((*LeftSer()) [dte]); }
-  else        { return((*RightSer())[dte]); }
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
+    if(!LeftSer() || !RightSer()) { return(BDat::Unknown()); }
+    if(dte<=Center())    { return((*LeftSer()) [dte]); }
+    else        { return((*RightSer())[dte]); }
+  }
+  return(dat);
 }
 
 
@@ -1059,10 +1112,16 @@ DefExtOpr(1, BTsrLeftConcat, "<<", 2, 2, "Serie Serie",
 BDat BTsrLeftConcat::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
-  if(!LeftSer() || !RightSer())     { return(BDat::Unknown()); }
-  if(dte>=RightSer()->FirstDate()) { return((*RightSer())[dte]); }
-  else           { return((*LeftSer ())[dte]); }
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
+    if(!Dating()) { return(BDat::Unknown()); }
+    if(!LeftSer() || !RightSer())     { return(BDat::Unknown()); }
+    if(dte>=RightSer()->FirstDate()) { return((*RightSer())[dte]); }
+    else           { return((*LeftSer ())[dte]); }
+  }
+  return(dat);
 }
 
 
@@ -1102,10 +1161,16 @@ DefExtOpr(1, BTsrRightConcat, ">>", 2, 2, "Serie Serie",
 BDat BTsrRightConcat::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
-  if(!LeftSer() || !RightSer())   { return(BDat::Unknown()); }
-  if(dte<=LeftSer()->LastDate()) { return((*LeftSer ())[dte]); }
-  else         { return((*RightSer())[dte]); }
+  BDat dat;
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
+  {
+    if(!Dating()) { return(BDat::Unknown()); }
+    if(!LeftSer() || !RightSer())   { return(BDat::Unknown()); }
+    if(dte<=LeftSer()->LastDate()) { return((*LeftSer ())[dte]); }
+    else         { return((*RightSer())[dte]); }
+  }
+  return(dat);
 }
 
 
@@ -1147,43 +1212,46 @@ DefExtOpr(1, BTsrOmmitFilter, "OmmitFilter", 3, 3, "Ratio Serie Serie",
 BDat BTsrOmmitFilter::GetDat(const BDate& dte)
 //--------------------------------------------------------------------
 {
-  if(!Dating()) { return(BDat::Unknown()); }
   BDat dat;
-  if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
-  else
+  BUserTimeSet* dating = Dating();
+  if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
   {
-    BInt len = GetLength();
-    Realloc(len);
-    BDate d;
-    BInt  n;
-    BInt  ind=-1;
-    BData expand(len);
-    BPol  p  = rat_ % (len-1);
-    BHash hash; Dating()->GetHashBetween(hash, FirstDate(),LastDate());
-    BReal h = dte.Hash();
-  //Std("\nExpansion = ");
-    for(n=0; n<len; n++)
+    if(Data().HasValue()) { dat = data_[GetIndex(dte)]; }
+    else
     {
-      expand[n] = p.Coef(n);
-      data_[n]=(*ser_)[HashToDte(hash[n])];
-    //Std(expand[n].Name());
-    //Std(data_[n].Name());
-    }
-    for(n=0; n<len; n++)
-    {
-    //Std(BText("\nOmmit[")+d+"]="+(*ommit_)[d]);
-      if((*ommit_)[d]!=0)
+      BInt len = GetLength();
+      Realloc(len);
+      BDate d;
+      BInt  n;
+      BInt  ind=-1;
+      BData expand(len);
+      BPol  p  = rat_ % (len-1);
+      BHash hash; Dating()->GetHashBetween(hash, FirstDate(),LastDate());
+      BReal h = dte.Hash();
+    //Std("\nExpansion = ");
+      for(n=0; n<len; n++)
       {
-        BDat pivot = data_[n];
-        for(BInt m=n; m<Length(); m++)
-        {
-          data_[m] -= expand[m-n]*pivot;
-        }
-    //Std(BText("\ndata_[")+n+"]="+data_[n].Name());
+        expand[n] = p.Coef(n);
+        data_[n]=(*ser_)[HashToDte(hash[n])];
+      //Std(expand[n].Name());
+      //Std(data_[n].Name());
       }
-      if(hash[n]==h) { ind = n; }
+      for(n=0; n<len; n++)
+      {
+      //Std(BText("\nOmmit[")+d+"]="+(*ommit_)[d]);
+        if((*ommit_)[d]!=0)
+        {
+          BDat pivot = data_[n];
+          for(BInt m=n; m<Length(); m++)
+          {
+            data_[m] -= expand[m-n]*pivot;
+          }
+      //Std(BText("\ndata_[")+n+"]="+data_[n].Name());
+        }
+        if(hash[n]==h) { ind = n; }
+      }
+      if(ind>=0) { dat = data_[ind]; }
     }
-    if(ind>=0) { dat = data_[ind]; }
   }
   return(dat);
 }
