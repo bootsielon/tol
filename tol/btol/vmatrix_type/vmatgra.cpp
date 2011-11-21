@@ -2510,9 +2510,10 @@ void BVMatGaussian::CalcContens()
 
 //--------------------------------------------------------------------
 DeclareContensClass(BVMat, BVMatTemporary, BVMatTruncStdGaussian);
-DefExtOpr(1, BVMatTruncStdGaussian, "TruncStdGaussian", 3, 5, 
-  "VMatrix VMatrix VMatrix Real Real",
-  "(VMatrix D, VMatrix d, VMatrix z0 [, Real ncol=1, Real burnin=0])",
+DefExtOpr(1, BVMatTruncStdGaussian, "TruncStdGaussian", 3, 6, 
+  "VMatrix VMatrix VMatrix Real Real Real",
+  "(VMatrix D, VMatrix d, VMatrix z0 "
+  "[, Real ncol=1, Real burnin=0, Real borderDistance=0.001])",
   I2("Creates a random virtual matrix X which ncol columns are distributed as "
      "independent standard normal truncated into a polytope",
      "Devuelve una matriz virtual X cuyas columnas se distribuiran como "
@@ -2540,9 +2541,11 @@ void BVMatTruncStdGaussian::CalcContens()
   BVMat& z0   = VMat(Arg(3));
   int ncol = 1;
   int burn = 0;
+  double borderDistance = 0.001;
   if(Arg(4)) { ncol = (int)Real(Arg(4)); }
   if(Arg(5)) { burn = (int)Real(Arg(5)); }
-  contens_.TruncStdGaussian(D,d,z0,ncol,burn);
+  if(Arg(6)) { burn = (int)Real(Arg(6)); }
+  contens_.TruncStdGaussian(D,d,z0,ncol,burn,borderDistance);
   assert(contens_.Check());
 }
 

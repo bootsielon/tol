@@ -543,7 +543,7 @@ public:
                                        double& lower,
                                        double& upper);
   void TruncStdGaussian(const BVMat& D, const BVMat& d_, 
-                        const BVMat& z0_, int ncol, int burnin);
+    const BVMat& z0_, int ncol, int burnin, double borderDistance);
   void Histogram(const BVMat& M, int parts);
   void Histogram(const BVMat& M, int parts, double min, double max);
 private:
@@ -554,7 +554,8 @@ private:
   static int trunc_std_gaussian(const BVMat& D, 
                                 const BVMat& d, 
                                       BVMat& b, 
-                                      BVMat& z);
+                                      BVMat& z,
+                                double borderDistance);
   void Histogram_bRd(const BVMat& M, int parts);
   void Histogram_bRd(const BVMat& M, int parts, double min, double max);
   

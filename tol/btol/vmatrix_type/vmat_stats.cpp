@@ -572,9 +572,9 @@ double BVMat::Quantile() const
     }
   }
 //Std(BText("\nlower=")<<lower<<"\tupper="<<upper);
-  double length = lower-upper;
+  double length = upper-lower;
   int length_sign = gsl_fcmp(length+1.0,1.0,vmat_trunc_eps);
-  if(length_sign>=0)
+  if(length_sign<=0)
   {
     if(length_sign==0)
     {
@@ -596,7 +596,8 @@ double BVMat::Quantile() const
   int BVMat::trunc_std_gaussian(const BVMat& D, 
                                 const BVMat& d, 
                                       BVMat& b, 
-                                      BVMat& z)
+                                      BVMat& z,
+                                double borderDistance)
 // Generates a set of standarized multinormal z constrained to
 //   D*z <= d  
 // Value od d-D*z is stored in b and must be initialized by the caller function
@@ -645,64 +646,200 @@ double BVMat::Quantile() const
       if(Dij_sign!=0)
       {
         bx[i] += Dij*zj;
+        aux = bx[i]/Dij;
       //Std(BText("\n  D[")+i+","+j+"]="+BDat(Dij)+"\tz["+j+"]="+BDat(zj)+"\tb["+i+"]="+BDat(bx[i])+"\td["+i+"]="+BDat(dx[i]));
         if(Dij_sign<0) 
         {
-          aux = bx[i]/Dij;
           if(lower<aux) { lower = aux; }
-        //Std(BText("\n  aux=")+BDat(aux)+"\tlower="<<BDat(lower));
         }
         else //if(Dij_sign>0) 
         {
-          aux = bx[i]/Dij;
           if(upper>aux) { upper = aux; }
-        //Std(BText("\n  aux=")+BDat(aux)+"\tupper="<<BDat(upper));
         }
       }
     }
   //Std(BText("\nlower=")<<BDat(lower)<<"\tupper="<<BDat(upper));
-    double length = lower-upper;
-    int length_sign = gsl_fcmp(length+1.0,1.0, vmat_trunc_eps);
-    if(length_sign>=0)
+    double length = upper-lower;
+    if(fabs(length)<=1.E-8)
     {
-      if(length_sign==0)
-      {
-        lower = upper;
-      }
-      else
-      {
-        warn_cannot_apply("(I) TruncStdGaussian",
-          I2("(empty interval",
-          "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+
-                                   BDat(upper).Format("%.16lg")+"])",z);
-        return(-1);
-      }
+      //Si el intervalo es cuasi-vacío estamos rondando la frontera pero
+      //el punto es prácticamente factible.  
+      Std(BText("(I) TruncStdGaussian [Case A] ")<<
+        I2("(cuasi-empty interval",
+        "(intervalo cuasi-vacio")+" ["+BDat(lower).Format("%.16lg")+","+
+                                       BDat(upper).Format("%.16lg")+"])");
+      zj = (lower+upper)*0.5;
+    }
+    else if(length<0)
+    {
+      //Si el intervalo es vacío estamos fuera de la región factible 
+      warn_cannot_apply("(I) TruncStdGaussian [Case B] ",
+        I2("(empty interval",
+        "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+
+                                 BDat(upper).Format("%.16lg")+"])",z);
+      return(-1);
     }
 # ifdef USE_BTruncatedNormalDist
-    if(lower==upper)
-    {
-      zj = lower;
-    }
     else if((lower>negInf)||(upper<posInf))
     {
-      if((lower>10) || (upper<-10))
-      {
+      //A continuación se generará una N(0,1) truncada estrictamente en el
+      //interior del intevalo de dominio abierto (lower, upper) para evitar
+      //problemas numéricos de frontera.
+
+      //Máximo valor absoluto para el que se usará la distribución N(0,1)
+      double K = 6;
+      //La probabilidad de estar una N(0,1) fuera del intervalo [-K,K] es 
+      //con K=6 es p=1.973175400848959e-009 ~ 1 entre 500 mil millones, por lo que 
+      //es despreciable cualquier valor fuera del mismo y nos evitamos problemas 
+      //numéricos, pues tanto la cumulativa como su inversa funcionan bien 
+      //en este intervalo pero empiezan a fallar a partir de K=8. 
+      //Quizás podría ponerse K=7 pero se toma K=6 por dar un margen y porque
+      //la pérdida de precisión es irrelevante tan lejos de la moda.
+      //Fuera de ahí la distribución se aproximará por la raíz cuadrada de una 
+      //uniforme en el dominio reducido interior al original de tal forma que 
+      //el que el cociente de verosimilitudes entre los extremos sea menor o 
+      //igual a 100, pues en ese rango resulta una buena aproximación de la 
+      //normal truncada y es al mismo tiempo tratable numéricamente.
+      // 
+      //El cociente de densidades entre dos puntos x,y ~ N(0,1) es 
+      // 
+      //  f(x)/f(y) = Exp(-0.5*(x^2-y^2))
+      // 
+      //Si queremos un punto y que sea h veces menos probable que x entonces 
+      // 
+      //  Log(h) = -0.5*(x^2-y^2)
+      //  y^2 = x^2 + 2*Log(h)
+      //
+      //Estas operaciones no comportan riesgos numéricos incluso para valores
+      //muy grandes.
+      double lowMrg = lower;
+      double uppMrg = upper;
+      if(lower>=K)
+      { 
+        //Si todo el dominio está por encima de K tomamos como nuevos límites
+        //tentativos los puntos con densidad 1.1 y 110 veces las del límite inferior.
+        //De esta forma el nuevo límite inferior es por construcción 100 veces más 
+        //probable que el superior 
+        double lowMrg_ = sqrt(pow(lower,2) + 2.0 * log(  1.1) );
+        double uppMrg_ = sqrt(pow(upper,2) + 2.0 * log(110.0) );
+        //Si los límites tentativos se salen del dominio hay que meterlos dentro 
+        if(lowMrg_>=upper)
+        {
+          lowMrg = 0.99*lower+0.01*upper;
+          uppMrg = 0.99*upper+0.01*lower;
+        }
+        else 
+        {
+          lowMrg = lowMrg_;
+          if(uppMrg_>=upper)
+          {
+            uppMrg = 0.99*upper+0.01*lowMrg;
+          }
+          else
+          {
+            uppMrg = uppMrg_;
+          }
+        }
+        //Tomamos un r uniforme
         double r = BUniformDist::Random01().Value();
-        zj = r*lower+(1-r)*upper;
+        //y calculamos su raíz cuadrada como valor de ponderación de los límites
+        //para forzar puntos más cercanos al nuevo límite inferior.
+        double u = sqrt(r);
+        zj = u*lowMrg + (1.0-u)*uppMrg;
+        if((zj<=lower) ||(zj>=upper))
+        { 
+          warn_cannot_apply("(I) TruncStdGaussian [Case C.1] ", 
+            BText(" j=")<<j<<
+            " domain:["<<lower<<","<<upper<<"] -> "<<
+            " interior domain: ["<<lowMrg<<","<<uppMrg<<"] -> "<<zj,z);
+          return(-1);
+        }
+      }
+      else if(upper<=-K)
+      {
+        //Si todo el dominio está por debajo de -K tomamos como nuevos límites
+        //tentativos los puntos con densidad 1.1 y 110 veces las del límite superior.
+        //De esta forma el nuevo límite superior es por construcción 100 veces más 
+        //probable que el inferior 
+        double uppMrg_ = -sqrt(pow(upper,2) + 2.0 * log(  1.1) );
+        double lowMrg_ = -sqrt(pow(lower,2) + 2.0 * log(110.0) );
+        //Si los límites tentativos se salen del dominio hay que meterlos dentro 
+        if(uppMrg_<=lower)
+        {
+          lowMrg = 0.99*lower+0.01*upper;
+          uppMrg = 0.99*upper+0.01*lower;
+        }
+        else 
+        {
+          uppMrg = uppMrg_;
+          if(lowMrg_<=lower)
+          {
+            lowMrg = 0.99*lower+0.01*uppMrg;
+          }
+          else
+          {
+            lowMrg = lowMrg_;
+          }
+        }
+        //Tomamos un r uniforme
+        double r = BUniformDist::Random01().Value();
+        //y calculamos su raíz cuadrada como valor de ponderación de los límites
+        //para forzar puntos más cercanos al nuevo límite inferior.
+        double u = sqrt(r);
+        zj = u*uppMrg + (1.0-u)*lowMrg;
+        if((zj<=lower) ||(zj>=upper))
+        { 
+          warn_cannot_apply("(I) TruncStdGaussian [Case C.2] ", 
+            BText(" j=")<<j<<
+            " domain:["<<lower<<","<<upper<<"] -> "<<
+            " interior domain: ["<<lowMrg<<","<<uppMrg<<"] -> "<<zj,z);
+          return(-1);
+        }
       }
       else
       {
-        BTruncatedNormalDist tn(lower,upper);
-        zj = tn.Random().Value();
-        assert((lower<=zj) && (zj<=upper));
-      //Std(BText("\nBTruncatedNormalDist z[")+j+"]="+zj);
+        //Si alguno de los límites cae fuera de [-K,K] hacemos la intersección
+        if(lower<-K) { lowMrg=-K; }
+        if(upper>+K) { uppMrg=+K; }
+        BNormalDist u01(0,1);
+        //Calculamos los cuantiles de la N(0,1) en los extremos
+        double lowF01 = u01.Dist(lowMrg).Value();
+        double uppF01 = u01.Dist(uppMrg).Value();
+        //Calculamos el desplazamiento en la métrica probabilística
+        double difF01 = borderDistance*(uppF01-lowF01);
+        //Desplazamos los límites hacia el interior
+        double lowF01_ = lowF01+difF01;
+        double uppF01_ = uppF01-difF01;
+        //Tomamos un r uniforme
+        double r = BUniformDist::Random01().Value();
+        //Tomamos un u normal truncado en el dominio interior
+        double u = r*uppF01_ + (1.0-r)*lowF01_;
+        //Volvemos a la métrica normalizada   
+        zj = u01.Inverse(u).Value(); 
+        if((zj<=lower) ||(zj>=upper))
+        { 
+          warn_cannot_apply("(I) TruncStdGaussian [Case C.1] ", 
+            BText(" j=")<<j<<
+            " domain:["<<lower<<","<<upper<<"] -> "<<
+            " Prob domain["<<lowF01<<","<<uppF01<<"] -> "<<
+            " Prob interior domain["<<lowF01_<<","<<uppF01_<<"] -> "<<zj,z);
+          return(-1);
+        }
       }
     }
     else
     {
-      zx[j] = BNormalDist::Random01().Value();
-    //Std(BText("\nBNormalDist z[")+j+"]="+zj);
+      zj = BNormalDist::Random01().Value();
+      if((zj<=lower) ||(zj>=upper))
+      { 
+        warn_cannot_apply("(I) TruncStdGaussian [Case D] ",
+          I2("(empty interval",
+          "(intervalo vacio")+" ["+BDat(lower).Format("%.16lg")+","+
+                                   BDat(upper).Format("%.16lg")+"])",z);
+      }
     }
+
+
 # else
     zj = gsl_rtabnorm_combo(getGslRng(), 0.0, 1.0,
                      lower, upper, 10);
@@ -730,7 +867,8 @@ double BVMat::Quantile() const
 
 ////////////////////////////////////////////////////////////////////////////////
   void BVMat::TruncStdGaussian(const BVMat& D, const BVMat& d_, 
-                               const BVMat& z0, int ncol, int burnin)
+                               const BVMat& z0, int ncol, int burnin,
+                               double borderDistance)
 //Matrix instances
 ////////////////////////////////////////////////////////////////////////////////
 {
@@ -767,7 +905,7 @@ double BVMat::Quantile() const
          "(valor inicial no factible)"),z0);
     return;
   }
-  if(burnin<=0 ) { burnin = 1; }
+  if(burnin<0 ) { burnin = 0; }
   BVMat burn;
   burn.Zeros(nrow, burnin, ESC_blasRdense);
   Zeros(nrow, ncol, ESC_blasRdense);
@@ -778,13 +916,13 @@ double BVMat::Quantile() const
     aux = (double*)burn.s_.blasRdense_->x;
     for(k=0; k<burnin; k++, aux+=nrow)
     {
-      if(trunc_std_gaussian(D, d, b, z)!=0) { return; }  
+      if(trunc_std_gaussian(D, d, b, z, borderDistance)!=0) { return; }  
       memcpy(aux, z.s_.blasRdense_->x, size_row);
     }
     aux = (double*)s_.blasRdense_->x;
     for(k=0; k<ncol; k++, aux+=nrow)
     {
-      if(trunc_std_gaussian(D, d, b, z)!=0) { return; }  
+      if(trunc_std_gaussian(D, d, b, z, borderDistance)!=0) { return; }  
       memcpy(aux, z.s_.blasRdense_->x, size_row);
     }
     break;
