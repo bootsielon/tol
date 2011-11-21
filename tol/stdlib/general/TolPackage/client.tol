@@ -126,7 +126,7 @@ Text LocalLastCompatible(Text package)
       {
         Real ok2 = And(
          Compare.VersionString(vsi[idx]->te_min_tol_version,TolPackage::_.currentTolVersion)<=0,
-         Compare.VersionString(vsi[idx]->te_max_tol_version,TolPackage::_.currentTolVersion)>=0;
+         Compare.VersionString(vsi[idx]->te_max_tol_version,TolPackage::_.currentTolVersion)>=0);
       //WriteLn("_trace LocalLastCompatible 3 min="<<vsi[idx]->te_min_tol_version);
       //WriteLn("_trace LocalLastCompatible 4 cur="<<TolPackage::_.currentTolVersion);
       //WriteLn("_trace LocalLastCompatible 5 max="<<vsi[idx]->te_max_tol_version);
