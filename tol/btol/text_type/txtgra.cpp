@@ -2687,9 +2687,16 @@ BInt CompareVersionString(const BText* txt1, const BText* txt2)
 
   for(k=0; (k<n) && !cmp; k++)
   {
-    t1 = atoi(tok1[k].String());
-    t2 = atoi(tok2[k].String());
-    cmp = t1-t2;
+    if(isdigit(tok1[k][0]))
+    {
+      t1 = atoi(tok1[k].String());
+      t2 = atoi(tok2[k].String());
+      cmp = t1-t2;
+    }
+    else
+    {
+      cmp = strcmp(tok1[k].String(),tok2[k].String());
+    }  
   }
   if(!cmp) { cmp = n1-n2; }
   return (cmp);
@@ -2710,5 +2717,7 @@ I2("Compares two version strings with an arbitrary number of numeric "
 void BDatCompareVersionString::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = CompareVersionString(&Text(Arg(1)),&Text(Arg(2)));
+  const BText& v1 = Text(Arg(1));
+  const BText& v2 = Text(Arg(2));
+  contens_ = CompareVersionString(&v1,&v2);
 }
