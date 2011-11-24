@@ -714,26 +714,27 @@ double BVMat::Quantile() const
       //muy grandes.
       double lowMrg = lower;
       double uppMrg = upper;
-      if(lower>=K)
+      if(lowMrg>K)
       { 
+        if(uppMrg>=2*lowMrg) { uppMrg=2*lowMrg; }
         //Si todo el dominio está por encima de K tomamos como nuevos límites
         //tentativos los puntos con densidad 1.1 y 110 veces las del límite inferior.
         //De esta forma el nuevo límite inferior es por construcción 100 veces más 
         //probable que el superior 
-        double lowMrg_ = sqrt(pow(lower,2) + 2.0 * log(  1.1) );
-        double uppMrg_ = sqrt(pow(upper,2) + 2.0 * log(110.0) );
+        double lowMrg_ = sqrt(pow(lowMrg,2) + 2.0 * log(  1.1) );
+        double uppMrg_ = sqrt(pow(uppMrg,2) + 2.0 * log(110.0) );
         //Si los límites tentativos se salen del dominio hay que meterlos dentro 
         if(lowMrg_>=upper)
         {
-          lowMrg = 0.99*lower+0.01*upper;
-          uppMrg = 0.99*upper+0.01*lower;
+          lowMrg = 0.99*lowMrg+0.01*uppMrg;
+          uppMrg = 0.99*uppMrg+0.01*lowMrg;
         }
         else 
         {
           lowMrg = lowMrg_;
           if(uppMrg_>=upper)
           {
-            uppMrg = 0.99*upper+0.01*lowMrg;
+            uppMrg = 0.99*uppMrg+0.01*lowMrg;
           }
           else
           {
@@ -755,26 +756,27 @@ double BVMat::Quantile() const
           return(-1);
         }
       }
-      else if(upper<=-K)
+      else if(upper<-K)
       {
+        if(lowMrg<=2*uppMrg) { lowMrg=2*uppMrg; }
         //Si todo el dominio está por debajo de -K tomamos como nuevos límites
         //tentativos los puntos con densidad 1.1 y 110 veces las del límite superior.
         //De esta forma el nuevo límite superior es por construcción 100 veces más 
         //probable que el inferior 
-        double uppMrg_ = -sqrt(pow(upper,2) + 2.0 * log(  1.1) );
-        double lowMrg_ = -sqrt(pow(lower,2) + 2.0 * log(110.0) );
+        double uppMrg_ = -sqrt(pow(uppMrg,2) + 2.0 * log(  1.1) );
+        double lowMrg_ = -sqrt(pow(lowMrg,2) + 2.0 * log(110.0) );
         //Si los límites tentativos se salen del dominio hay que meterlos dentro 
         if(uppMrg_<=lower)
         {
-          lowMrg = 0.99*lower+0.01*upper;
-          uppMrg = 0.99*upper+0.01*lower;
+          lowMrg = 0.99*lowMrg+0.01*uppMrg;
+          uppMrg = 0.99*uppMrg+0.01*lowMrg;
         }
         else 
         {
           uppMrg = uppMrg_;
           if(lowMrg_<=lower)
           {
-            lowMrg = 0.99*lower+0.01*uppMrg;
+            lowMrg = 0.99*lowMrg+0.01*uppMrg;
           }
           else
           {
