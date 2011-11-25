@@ -682,6 +682,10 @@ double BVMat::Quantile() const
 # ifdef USE_BTruncatedNormalDist
     else if((lower>negInf)||(upper<posInf))
     {
+      //Checking different cases
+      //lower = 66.8902; upper = posInf;
+      //upper = -66.8902; lower = negInf;
+
       //A continuación se generará una N(0,1) truncada estrictamente en el
       //interior del intevalo de dominio abierto (lower, upper) para evitar
       //problemas numéricos de frontera.
@@ -722,7 +726,7 @@ double BVMat::Quantile() const
         //De esta forma el nuevo límite inferior es por construcción 100 veces más 
         //probable que el superior 
         double lowMrg_ = sqrt(pow(lowMrg,2) + 2.0 * log(  1.1) );
-        double uppMrg_ = sqrt(pow(uppMrg,2) + 2.0 * log(110.0) );
+        double uppMrg_ = sqrt(pow(lowMrg,2) + 2.0 * log(110.0) );
         //Si los límites tentativos se salen del dominio hay que meterlos dentro 
         if(lowMrg_>=upper)
         {
@@ -764,7 +768,7 @@ double BVMat::Quantile() const
         //De esta forma el nuevo límite superior es por construcción 100 veces más 
         //probable que el inferior 
         double uppMrg_ = -sqrt(pow(uppMrg,2) + 2.0 * log(  1.1) );
-        double lowMrg_ = -sqrt(pow(lowMrg,2) + 2.0 * log(110.0) );
+        double lowMrg_ = -sqrt(pow(uppMrg,2) + 2.0 * log(110.0) );
         //Si los límites tentativos se salen del dominio hay que meterlos dentro 
         if(uppMrg_<=lower)
         {
