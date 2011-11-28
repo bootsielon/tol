@@ -516,6 +516,32 @@ Real RemoteInstallFullRepository(Text repository, Real showError)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _msg.cannotFindPackage(Text package)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text minTolVersion = GetMinTolVersionForPackage(package);
+  If(minTolVersion=="", 
+  {
+    Set rep = TolConfigManager::Config::Upgrading::TolPackage::Repositories;
+    I2(
+    "Cannot find package "+package+" in any repository for any TOL "
+    "version.",
+    "No se encuentra el paquete "+package+" en ningún repositorio "
+    "para ninguna versión de TOL.")+"\n"+
+    I2("Instaled repositories","Repositorios instalados")+" : \n"+
+    SetSum(EvalSet(rep,Text(Text r) { "  "<<r+"\n" }))
+  },
+  { 
+    I2(
+    "Cannot find package "+package+" for current TOL version ",
+    "No se encuentra el paquete "+package+" "
+    "para la versión de TOL en curso ")+TolPackage::_.currentTolVersion+
+    ".\n"+I2("You needs to use ", "Es necesario usar ")+minTolVersion
+  })
+};
+
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.RemoteInstall = 
 "Instala desde el repositorio remoto al local un paquete determinado "
 "para que esté disponible llamando a #Require. \n"
@@ -557,20 +583,9 @@ Real RemoteInstall(Text repository, Text package, Real showError)
       {
         If(showError,
         {
-          Text minTolVersion = GetMinTolVersionForPackage(package);
-          If(minTolVersion=="", 
-          Error(I2(
-            "Cannot find package "+package+" in any repository for any TOL "
-            "version.",
-            "No se encuentra el paquete "+package+" en ningún repositorio "
-            "para ninguna versión de TOL.")),
-          Error(I2(
-            "Cannot find package "+package+" in any repository for current "
-            "TOL version ",
-            "No se encuentra el paquete "+package+" en ningún repositorio "
-            "para la versión de TOL en curso ")+TolPackage::_.currentTolVersion+
-            ".\n"+I2("You needs to use ", "Es necesario usar ")+minTolVersion))
-        })
+          Error("[RemoteInstall ] "+_msg.cannotFindPackage(package))
+        });
+        false
       },
       {
       //WriteLn("_trace [RemoteInstall] 3.2.2 ");
@@ -621,11 +636,7 @@ Real RemoteUpdateVersSyncInfo(Real void)
     Set EvalSet(pkgLst, Real(Text pkg)
     {
       Real found = FindIndexByName(_.versSyncInfo, pkg);
-      Date If(!found, WriteLn("[RemoteUpdateVersSyncInfo] "+I2(
-        "Cannot find remote image of local package "+pkg+
-        " in any repository." ,
-        "No se encuentra la imagen remota del paquete local "+pkg+
-        " en ningún repositorio"),"W"),
+      Date If(found, 
       {
         Date gmt = Copy(NowGmt);
         Date loc = Copy(Now);
@@ -673,16 +684,7 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
     {
       Text pkg = Tokenizer(cls[1],".")[1];
       Real found = FindIndexByName(_.packSyncInfo, pkg);
-      Real If(!found, 
-      {
-        If(showWarnings,
-          WriteLn(_MID+I2(
-          "Cannot find remote image of local package "+pkg+
-          " in any repository." ,
-          "No se encuentra la imagen remota del paquete local "+pkg+
-          " en ningún repositorio"),"W"));
-        False
-      },
+      Real If(found, 
       {
         Set ord = Sort(cls,Real ev.sort(Text a, Text b) { 
           Compare.VersionString(b, a) });
