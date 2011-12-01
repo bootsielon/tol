@@ -771,21 +771,31 @@ BSyntaxObject* BGrammar::EvaluateTree(
     BSyntaxObject * first_arg;
     List* args = (List*)tre->cdr();
   
-    int oldObjNum = BSyntaxObject::NSyntaxObject();
-    first_arg = GraAnything()->EvaluateTree(Tree::treNode(args),from_UF,false);
-    bool delete_first_arg = (oldObjNum < BSyntaxObject::NSyntaxObject());
-    //BGrammar* f_gra = NULL; // unused
-    if (first_arg) 
+    BToken* leftTok  = BParser::treToken(args);
+    BGrammar* f_gra = NULL;
+    if(leftTok->TokenType()==TYPE)
     {
-      BGrammar* f_gra = first_arg->Grammar();
-      if(delete_first_arg) 
-      { 
-        SAFE_DESTROY(first_arg, result); 
-      }
-      // find BINARY in Grammar of first_arg.
-      BOperator * ope = TknFindOperator(f_gra,tok,error);
-      if (ope) { result = ope->Evaluate(args); }
+      BText f_gra_name = leftTok->Name();
+      f_gra = BGrammar::FindByName(f_gra_name);
     }
+    if(!f_gra)
+    {
+      int oldObjNum = BSyntaxObject::NSyntaxObject();
+      first_arg = GraAnything()->EvaluateTree(Tree::treNode(args),from_UF,false);
+      bool delete_first_arg = (oldObjNum < BSyntaxObject::NSyntaxObject());
+      //BGrammar* f_gra = NULL; // unused
+      if (first_arg) 
+      {
+        f_gra = first_arg->Grammar();
+        if(delete_first_arg) 
+        { 
+          SAFE_DESTROY(first_arg, result); 
+        }
+      }
+    }
+    // find BINARY in Grammar of first_arg.
+    BOperator * ope = TknFindOperator(f_gra,tok,error);
+    if (ope) { result = ope->Evaluate(args); }
   }
   else 
   {
