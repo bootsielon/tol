@@ -116,11 +116,13 @@ snit::widgetadaptor renderpane {
         set options(-missingimage) $defaultMissingImage
 
         # Next, create the rotext pane.
+      
+        # setgrid option makes conflict with tolbase geometry
+        #-setgrid true 
         installhull using text \
             -insertwidth 0 \
             -borderwidth 5 \
             -relief flat \
-            -setgrid true \
             -wrap word \
             -cursor xterm
 
@@ -151,6 +153,7 @@ snit::widgetadaptor renderpane {
         }
 
         # Next, add the markup tags, using the user preferences.
+
         $self UsePreferences
 
         # Next, copy the default Text bindings to the renderpane,

@@ -16,7 +16,7 @@
 package require snit
 package require renderpane
 
-package require autoscroll
+package require autoscroll 1.1
 
 snit::widget markupviewer {
     # A command to use for outputting messages.  The message will be
@@ -80,6 +80,7 @@ snit::widget markupviewer {
         set db $options(-db)
 
         # Create the renderpane.
+
         install rp using renderpane $win.rp \
             -yscrollcommand "$win.scroll set" \
             -querycommand      [mymethod pageexists] \
@@ -91,10 +92,9 @@ snit::widget markupviewer {
 
         scrollbar $win.scroll \
             -command "$win.rp yview"
-        ::autoscroll::autoscroll $win.scroll
 
         # grid them in.
-        
+        # josp: use grid and autoscroll
         if { 0 } {
           pack $win.scroll  -side right -fill y    -expand false
           pack $rp          -side top   -fill both -expand true
@@ -104,6 +104,7 @@ snit::widget markupviewer {
         grid $win.scroll -row 0 -column 1 -sticky "ns"
         grid rowconfigure $win 0 -weight 1
         grid columnconfigure $win 0 -weight 1
+        ::autoscroll::autoscroll $win.scroll
 
         #---------------------------------------------------------------
         # User Interactions
@@ -119,6 +120,7 @@ snit::widget markupviewer {
         bind $rp <BackSpace> [list $self backpage]
 
         # User Menu.
+        # josp: no user menu considered
         if { 0 } {
           menu $rp.user -tearoff no -postcommand [mymethod PostUserMenu]
           
@@ -148,10 +150,15 @@ snit::widget markupviewer {
         catch {prefs unregister $selfns}
     }
 
-    method UsePreferences {} {
-      # Update the display when the preferences change.
-      $self showpage
+    delegate method UsePreferences to rp
+    # josp: delegate UsePreferences on renderpane
+    if { 0 } {
+      method UsePreferences {} {
+        # Update the display when the preferences change.
+        $self showpage
+      }
     }
+
     #-------------------------------------------------------------------
     # Public Methods
 
@@ -340,12 +347,14 @@ snit::widget markupviewer {
           $rp render "" $pagetext
         }
         
+        # josp: don't known what is it for
         if { 0 } {
           $rp searchfor [$self searchtext]
         }
         # NEXT, give the renderpane the focus so that we don't
         # need to click in it.
-        $self focus -friendly
+
+        #$self focus -friendly
 
         $self setpos $ypos
 
