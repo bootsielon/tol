@@ -46,6 +46,9 @@ if { 0 } {
     }
 }
 
+package require nbdbmanager
+package require markupviewer
+
 global tcl_platform
 if { [string equal $tcl_platform(platform) "unix"] } {
   source [file join $toltk_script_path "panedw.tcl"]
@@ -77,6 +80,15 @@ namespace eval ::TolConsole {
     zh Chinese]
 }
 
+proc ::TolConsole::CGetFont { font } {
+  if { [lsearch -exact [font names] $font ] != -1 } {
+    set family [ font configure $font -family ]
+    set size [ font configure $font -size ]
+  } else {
+    foreach { family size } $font break
+  }
+  return [ list -family $family -size $size ]
+}
 
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolConsole::Create { w } {
@@ -90,8 +102,12 @@ proc ::TolConsole::Create { w } {
 # RETURN: path of widget inspector
 #
 #/////////////////////////////////////////////////////////////////////////////
+
   variable widgets
   variable data
+
+  set data(nbdbmanager) [ nbdbmanagerType create %AUTO% ]
+  set data(notebookdb) [ $data(nbdbmanager) create "__tmp_info__" ]
 
   # connection BODBC
   set data(bodbc) [$::project::data(bodbc) connection \
@@ -133,8 +149,8 @@ proc ::TolConsole::Create { w } {
   # tabset for eval, output & description
   set widgets(tabset) $pane2.ts
   set w_tabset [::blt::tabset $widgets(tabset) -side top -relief flat \
-		    -bd 0 -outerpad 0 -tier 2 -slant right -textside right \
-		    -highlightthickness 0]
+		    -bd 0 -outerpad 0 -tearoff 0  -slant right -textside right \
+		    -highlightthickness 0 ]
   set sw2 [ScrolledWindow $w_tabset.sw2 -auto both]
   set sw3 [ScrolledWindow $w_tabset.sw3 -auto both]
   set widgets(tabset,info) $sw3
@@ -184,6 +200,9 @@ proc ::TolConsole::Create { w } {
       -state disabled
   set widgets(info) $widgets(info,text)
 
+  set widgets(info,markupviewer) [ markupviewer $w_tabset.mv \
+                                       -db $data(notebookdb) -showtitle 0 ]
+
   set def_font [$w_info cget -font]
   if { [lsearch -exact [font names] fnBold] == -1 } {
     if {[string length [lindex $def_font 1]]} {
@@ -193,6 +212,23 @@ proc ::TolConsole::Create { w } {
        font create fnBold -family [lindex $def_font 0] -size 10 -weight bold
     }
   }
+  
+  # force renderpane to use the same or similar font
+  if { [lsearch -exact [font names] "ctfnNormal"] != -1 } {
+    array set normalProps [ CGetFont "ctfnNormal" ]
+  } else {
+    array set normalProps [ CGetFont [ $widgets(output) cget -font ] ]
+  }
+  if { $normalProps(-size) == 9 } {
+    # { Times 9 } does not look good on Linux
+    set normalProps(-size) 10
+  }
+  prefs set bodytext "Times $normalProps(-size)"
+  prefs set monotext "Courier $normalProps(-size)"
+  foreach {f ds p} {header1 4 bold header2 2 bold header3 0 bold title 8 {} small -4 {}} {
+    prefs set ${f}text  "Helvetica [ expr {$normalProps(-size) + $ds} ] $p"
+  }
+  prefs NotifyObservers
 
   # teclas acceso rapido solapas de Informacion
   $path bind <Control-F4> +[list $path kill]
@@ -436,10 +472,154 @@ proc ::TolConsole::Configure {} {
   return $val
 }
 
+proc ::TolConsole::ActivateInfoWidget { id } {
+  variable widgets
+
+  if { $id eq "text" } {
+    set w $widgets(tabset,info)
+  } elseif { $id eq "markup" } {
+    set w $widgets(info,markupviewer)
+  } else {
+    error "unknown id '$id' in ::TolConsole::ActivateInfoWidget"
+  }
+  if { [ $widgets(tabset) tab cget Info -window ] ne $w } {
+    $widgets(tabset) tab configure Info  -window $w -fill both -padx 0
+  }
+  $widgets(tabset) select 2
+}
+
+namespace eval ::MarkupHelper {
+  variable markup
+
+  proc Init { } {
+    variable markup {}
+  }
+
+  proc Verbatim { text } {
+    return [ string map {\n \n<br>} $text ]
+  }
+
+  proc Escape { text } {
+    set specialChars {
+      [  &lb;
+      ]  &rb;
+      <  &lt;
+      >  &gt;
+    }
+    return [ string map $specialChars $text ]
+  }
+
+  proc Preprocess { text } {
+    set idx [ string first ";" $text ]
+    set ismarkup 0
+    if { $idx != -1 } {
+      set header [ string range $text 0 [ expr { $idx -1 } ] ]
+      if { [ string range [ string trimleft $header ] 0 3 ] eq "#!NB" } {
+        set ismarkup 1
+        set body [ string range $text [ expr { $idx +1 } ] end ]
+      } else {
+        set body $text
+      }
+    } else {
+      set body $text
+    }
+    if { $ismarkup } {
+      return $body
+    } else {
+      return [ Verbatim [ Escape $body ] ]
+    }
+  }
+
+  proc GetText { } {
+    variable markup
+
+    return $markup
+  }
+
+  proc Text { text args } {
+    variable markup
+
+    array set opts { -tags {} -br 0 }
+    array set opts $args
+    foreach t $opts(-tags) {
+      append markup "<$t>"
+    }
+    append markup $text
+    foreach t [ lreverse $opts(-tags) ] {
+      append markup "</$t>"
+    }
+    BR $opts(-br)
+  }
+
+  proc Image { image {br 0} } {
+    variable markup
+
+    append markup "\[!image $image !\]"
+    BR $br
+  }
+
+  proc LabelValue { name value {br 0}} {
+    variable markup
+
+    append markup "<b>$name:</b> "
+    append markup "$value"
+    BR $br
+  }
+  
+  proc InlineHeader { text } {
+    Text $text -tags h
+  }
+
+  proc Header1 { text } {
+    variable markup
+    
+    NeedNewLine
+    append markup "= $text =\n"
+  }
+
+  proc Header2 { text } {
+    variable markup
+    
+    append markup "\n\n== $text ==\n"
+  }
+
+  proc Header3 { text } {
+    variable markup
+    
+    append markup "\n\n=== $text ===\n"
+  }
+
+  proc BR { { br 1 } } {
+    variable markup
+
+    if { $br } {
+      append markup " <br>"
+    }
+  }
+
+  proc NeedNewLine { } {
+    variable markup
+
+    if { [ string index $markup end ] ne "\n" } {
+      append markup "\n"
+    }
+  }
+   
+  proc Line { } {
+    variable markup
+
+    if { [ string index $markup end ] ne "\n" } {
+      append markup "\n"
+    }
+    append markup "#---\n"
+  }
+}
+
 #/////////////////////////////////////////////////////////////////////////////      
 proc ::TolConsole::OnInfo { args } {
 #  
 #/////////////////////////////////////////////////////////////////////////////        
+  variable data
   variable widgets
   
   set w_tabset $widgets(tabset)
@@ -451,14 +631,23 @@ proc ::TolConsole::OnInfo { args } {
   switch $ll {
     0 -
     1 {
-      $widgets(tabset,info) setwidget $widgets(info,text)
-      if { $ll == 1 } {
-        #$w_info configure -wrap word
+      if { 0 } {
         $widgets(tabset,info) setwidget $widgets(info,text)
-        $widgets(info,text) insert end [lindex $args 0]
+        if { $ll == 1 } {
+          #$w_info configure -wrap word
+          $widgets(tabset,info) setwidget $widgets(info,text)
+          $widgets(info,text) insert end [lindex $args 0]
+          $widgets(tabset) select 2
+        }
+        $widgets(info,text) configure -state disabled
+      }
+      ActivateInfoWidget "markup"
+      $data(notebookdb) set "info" \
+          [ MarkupHelper::Preprocess [ lindex $args 0 ] ]
+      $widgets(info,markupviewer) showpage "info"
+      if { $ll == 1 } {
         $widgets(tabset) select 2
       }
-      $widgets(info,text) configure -state disabled
     }
     default {
       #(pgea) se modifica el mecanismo de escritura de la informacion
@@ -477,15 +666,17 @@ proc ::TolConsole::OnInfo { args } {
 
       if { $grammar eq "Anything" } {
         if { [ regexp {/+\sClass\s} $content ] } {
+          ActivateInfoWidget "text"
           $widgets(tabset,info) setwidget $widgets(info,hltext)
           $widgets(info,hltext) insert end $content
-          $widgets(tabset) select 2
           $widgets(info,hltext) configure -state disabled
           return
         }
       }
-
-      $widgets(tabset,info) setwidget $widgets(info,text)
+      ActivateInfoWidget "markup"
+      if { 0 } {
+        $widgets(tabset,info) setwidget $widgets(info,text)
+      }
       #(pgea) Si es NameBlock busco su clase e información de instancia
       if {$grammar eq "NameBlock" && [string length $objRef]} {
         set classOf [Tol_ClassOfFromReference $objRef]
@@ -496,6 +687,55 @@ proc ::TolConsole::OnInfo { args } {
         set insInfo ""
         set insCont ""
       }
+      MarkupHelper::Init
+      MarkupHelper::Text "Grammar: " -tags b
+      MarkupHelper::Image $icon
+      if {$classOf eq ""} {
+        MarkupHelper::Text " $grammar"
+      } else {
+        MarkupHelper::Text " $classOf"
+      }
+      MarkupHelper::BR
+      MarkupHelper::LabelValue "Name" $name
+      if {$insCont ne ""} {
+        set _content $insCont
+      } elseif {$classOf ne ""} {
+        set _content $classOf
+      } else {
+        set _content $content
+      }
+      MarkupHelper::BR
+      MarkupHelper::LabelValue "Content" [ MarkupHelper::Escape $_content ]
+      if {$path ne ""} {
+        MarkupHelper::BR
+        MarkupHelper::LabelValue "Path" $path
+      }
+      if {$desc ne ""} {
+        MarkupHelper::BR
+        MarkupHelper::Text "Description:" -tags b -br 1
+        MarkupHelper::Text \
+            [ MarkupHelper::Preprocess [ string trimright $desc ] ]
+      }
+      if { $insInfo ne "" } {
+        MarkupHelper::Header2 "Instance's Info"
+        foreach line [ split $insInfo \n ] {
+          set s [ string index $line 0 ]
+          set e [ string index $line end ]
+          if { $s eq "\[" && $e eq "\]" } {
+            MarkupHelper::Text "[ string range $line 1 end-1 ]:" \
+                -tags {b i} -br 1
+          } elseif { $s eq "{" && $e eq "}" } {
+            MarkupHelper::Text "[ string range $line 1 end-1 ]: " -tags {b i}
+          } else {
+            MarkupHelper::Text \
+                [ MarkupHelper::Preprocess [ string trimright $line ] ] -br 1
+          }
+        }
+      }
+      $data(notebookdb) set "info" [ MarkupHelper::GetText ]
+      $widgets(info,markupviewer) showpage "info"
+      return
+      if { 0 } {
       if {$classOf eq ""} { 
         w_insert $w_info Grammar ": " tagLabel
         $w_info image create end -image $icon
@@ -507,6 +747,7 @@ proc ::TolConsole::OnInfo { args } {
         $w_info insert end " "
         w_insert $w_info $classOf "\n" tagValue
       }
+
       w_insert $w_info Name ": " tagLabel
       w_insert $w_info $name "\n" tagValue
       w_insert $w_info Content ": " tagLabel
@@ -524,6 +765,7 @@ proc ::TolConsole::OnInfo { args } {
       if {$desc ne ""} {
         w_insert $w_info Description ":\n" tagLabel
         w_insert $w_info $desc "\n" tagValue
+      }
       }
       #(pgea) se añade la información de instancia (si hay)
       if { [string length $insInfo] } {
