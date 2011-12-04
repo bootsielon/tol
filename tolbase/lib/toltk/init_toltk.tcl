@@ -53,6 +53,11 @@ set trace 0
   update
 }
 
+proc TraceMainGeometry { msg } {
+  puts "== $msg == wm geometry . == [wm geometry .]"
+  puts "== $msg == winfo geometry . == [winfo geometry .]"
+}
+
 #/////////////////////////////////////////////////////////////////////////////
   proc LoadPackages {} {
 #
@@ -65,6 +70,7 @@ set trace 0
   namespace import msgcat::*
   package require Tktable
   package require -exact BLT 2.4
+  package require autoscroll 1.1
   package require tclodbc
   if {[info exist ::env(USE_TOLTCL)]} {
     puts "requested to load Toltcl from $::env(USE_TOLTCL)"
