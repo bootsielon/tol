@@ -641,12 +641,11 @@ proc ::TolConsole::OnInfo { args } {
         }
         $widgets(info,text) configure -state disabled
       }
-      ActivateInfoWidget "markup"
-      $data(notebookdb) set "info" \
-          [ MarkupHelper::Preprocess [ lindex $args 0 ] ]
-      $widgets(info,markupviewer) showpage "info"
-      if { $ll == 1 } {
-        $widgets(tabset) select 2
+      if { $ll } {
+        ActivateInfoWidget "markup"
+        $data(notebookdb) set "info" \
+            [ MarkupHelper::Preprocess [ lindex $args 0 ] ]
+        $widgets(info,markupviewer) showpage "info"
       }
     }
     default {
