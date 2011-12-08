@@ -144,20 +144,20 @@ If Not Defined _sln (
   Set _msg_error=Error interno variable _sln no definida en COMPILE
   Goto ERROR
 )
-If Not Exist ..\..\%_mod%\win-VC9\%_sln% (
-  Set _msg_error=No se puede compilar, el archivo %_mod%\win-VC9\%_sln% no existe
+If Not Exist ..\..\%_mod%\%winSrc%\%_sln% (
+  Set _msg_error=No se puede compilar, el archivo %_mod%\%winSrc%\%_sln% no existe
   Goto ERROR
 )
 If "%_vsvars32%"=="" (
-  If Defined VS90COMNTOOLS (
-    call "%VS90COMNTOOLS%vsvars32"
+  If Defined VSCOMNTOOLS (
+    call "%VSCOMNTOOLS%vsvars32"
     If errorlevel 1 (
       Set _msg_error=No se pudo ejecutar vsvars32
       Goto ERROR
     )
     Set _vsvars32=1
   ) else (
-    Echo VS90COMNTOOLS no esta definida intentanto vsvars32 desde el PATH
+    Echo VSCOMNTOOLS no esta definida intentanto vsvars32 desde el PATH
     call vsvars32
     If errorlevel 1 (
       Set _msg_error=No se pudo ejecutar vsvars32
@@ -168,10 +168,10 @@ If "%_vsvars32%"=="" (
   Echo vsvars32 ya ha sido invocado
 )
 Rem Verifico postbuild.bat: aseguro que existe. postbuild copia la compilacion a ActiveTOL
-If Not Exist ..\..\%_mod%\win-VC9\postbuild.bat (
-  xcopy /F /Y postbuild.bat %_mod%\win-VC9
+If Not Exist ..\..\%_mod%\%winSrc%\postbuild.bat (
+  xcopy /F /Y postbuild.bat %_mod%\%winSrc%
 )
-vcbuild %_rbopt% /useenv ..\..\%_mod%\win-VC9\%_sln% "Release|Win32"
+vcbuild %_rbopt% /useenv ..\..\%_mod%\%winSrc%\%_sln% "Release|Win32"
 If errorlevel 1 (
   Set _msg_error=Fallo en vcbuild con la solucion %_sln%
   Goto ERROR
@@ -246,58 +246,60 @@ Goto UP_SCRIPTS
 :RET_CPTL
 Rem copiamos pkgIndex.tcl de toltcl
 xcopy ..\..\toltcl\pkgIndex.tcl ..\ActiveTOL\lib\toltcl\ /F /Y /I
+xcopy ..\..\toltcl\library\toltcl.tcl ..\ActiveTOL\lib\toltcl\ /F /Y /I
 If errorlevel 1 (
   Set _msg_error=Error copiando toltcl\pkgIndex.tcl hacia ActiveTOL
   Goto ERROR
 )
-Rem Copia de scripts tcl, byswidget, toltk y rmtps_client
-Rem byswidget
-Set _dir_src=..\..\tolbase\lib\byswidget
-Set _dir_dest=..\ActiveTOL\lib\byswidget
-Set  _ret=RET_CPBYS
-Goto UP_SCRIPTS
-:RET_CPBYS
-Rem toltk
-Set _dir_src=..\..\tolbase\lib\toltk
-Set _dir_dest=..\ActiveTOL\lib\toltk
-Set  _ret=RET_CPTTK
-Goto UP_SCRIPTS
-:RET_CPTTK
-Rem rmtps_client
-Set _dir_src=..\..\tolbase\lib\rmtps_client
-Set _dir_dest=..\ActiveTOL\lib\rmtps_client
-Set  _ret=RET_CPRMT
-Goto UP_SCRIPTS
-:RET_CPRMT
+
+Rem Copia de scripts tcl: autoscroll, byswidget, markupparser, markupviewer,
+Rem mimetex, mkWidgets1.3 ndbmanager, notebookdb, renderpane, rmtps_client,
+Rem toltk, trycatch, wtree
+
+For %%x in (autoscroll byswidget markupparser markupviewer mimetex mkWidgets1.3 nbdbmanager notebookdb renderpane toltk trycatch wtree) do (
+  Set _dir_src=..\..\tolbase\lib\%%x
+  Set _dir_dest=..\ActiveTOL\lib\%%x
+
+  If Exist !_dir_dest!\nul (
+    Echo Borrando scripts antiguos de !_dir_dest!
+    Rmdir /S /Q !_dir_dest%!
+  )
+  Echo Copiando scripts nuevos de !_dir_src! a !_dir_dest!
+  xcopy !_dir_src! !_dir_dest! /S /F /Y /I /EXCLUDE:exclude.lst
+  If errorlevel 1  (
+    Set _msg_error=Error copiando !_dir_src! hacia !_dir_dest!
+    Goto ERROR
+  )
+)
 
 Rem Recupero ficheros perdidos por cualquier causa
 If Not Exist ..\ActiveTOL\bin\tol.exe (
   Echo Recuperando ejecutable perdido ..\ActiveTOL\bin\tol.exe
-  copy ..\..\tol\win-VC9\release\tol.exe ..\ActiveTOL\bin\tol.exe
+  copy ..\..\tol\%winSrc%\release\tol.exe ..\ActiveTOL\bin\tol.exe
 )
 If Not Exist ..\ActiveTOL\bin\tol.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\tol.dll
-  copy ..\..\tol\win-VC9\release\tol.dll ..\ActiveTOL\bin\tol.dll
+  copy ..\..\tol\%winSrc%\release\tol.dll ..\ActiveTOL\bin\tol.dll
 )
 If Not Exist ..\ActiveTOL\bin\tolodbc*.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\tolodbc*.dll
-  copy ..\..\tol\win-VC9\libtolodbc\Release\*.dll ..\ActiveTOL\bin
+  copy ..\..\tol\%winSrc%\libtolodbc\Release\*.dll ..\ActiveTOL\bin
 )  
 If Not Exist ..\ActiveTOL\bin\tolmysql*.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\tolmysql*.dll
-  copy ..\..\tol\win-VC9\libtolmysql\Release\*.dll ..\ActiveTOL\bin
+  copy ..\..\tol\%winSrc%\libtolmysql\Release\*.dll ..\ActiveTOL\bin
 )  
 If Not Exist ..\ActiveTOL\bin\tolpgsql*.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\tolpgsql*.dll
-  copy ..\..\tol\win-VC9\libtolpgsql\Release\*.dll ..\ActiveTOL\bin
+  copy ..\..\tol\%winSrc%\libtolpgsql\Release\*.dll ..\ActiveTOL\bin
 )  
 If Not Exist ..\ActiveTOL\lib\toltcl\toltcl.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\lib\toltcl\toltcl.dll
-  copy ..\..\toltcl\win-VC9\Release\toltcl.dll ..\ActiveTOL\lib\toltcl\toltcl.dll
+  copy ..\..\toltcl\%winSrc%\Release\toltcl.dll ..\ActiveTOL\lib\toltcl\toltcl.dll
 )
 If Not Exist ..\ActiveTOL\bin\vbtol.dll (
   Echo Recuperando librería perdida ..\ActiveTOL\bin\vbtol.dll
-  copy ..\..\vbtol\win-VC9\Release\vbtol.dll ..\ActiveTOL\bin\vbtol.dll
+  copy ..\..\vbtol\%winSrc%\Release\vbtol.dll ..\ActiveTOL\bin\vbtol.dll
 )
 
 Rem Ejecuto los tests si me lo han pedido

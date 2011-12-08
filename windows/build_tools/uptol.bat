@@ -1,11 +1,9 @@
 @Rem Author: Jorge <josp.jorge@gmail.com>
-
+@Echo Off
 
 ..\..\tol\win-VC8\release\build_date_gen.exe
-
 touch ..\..\tol\init.cpp
 
-@Echo Off
 Rem Actualiza desde el SVN el contenido de build_tools (este directorio)
 Rem Luego procede a ejecutar _uptol.bat
 
@@ -35,6 +33,19 @@ If Not Exist ..\tol-contrib\nul (
   Echo y ya podrá ejecutar UPTOL sin problemas
   Echo ############################################################################
   
+  Goto END
+)
+
+If Defined VS80COMNTOOLS (
+  Echo Reconocido el entorno de desarrollo VS80
+  Set VSCOMNTOOLS=%VS80COMNTOOLS%
+  Set winSrc=win-VC8
+) Else If Defined VS90COMNTOOLS (
+  Echo Reconocido el entorno de desarrollo VS90
+  Set VSCOMNTOOLS=%VS90COMNTOOLS%
+  Set winSrc=win-VC9
+) Else (
+  Echo No hemos encontrado un entorno de desarrollo reconocido. Los entornos reconocidos con VS80 or VS90
   Goto END
 )
 
