@@ -1,5 +1,20 @@
-#
-# Tcl package index file
-#
+# Tcl package index file, version 1.1
+
+proc LoadToltcl { version dir } {
+  global tcl_platform
+  
+  set suffix [info sharedlibextension]
+  if {$tcl_platform(platform) eq "unix"} {
+    set name libtoltcl${version}[info sharedlibextension]
+  } else  {
+    set name toltcl.dll
+  }
+  load [file join $dir $name] Toltcl
+}
+
 package ifneeded Toltcl @PACKAGE_VERSION@ \
-    [list load [file join $dir @PKG_LIB_FILE@] @PACKAGE_NAME@]
+    [ string map [list %d $dir] {
+      LoadToltcl @PACKAGE_VERSION@ %d
+      source [ file join %d toltcl.tcl ]
+    } ]
+
