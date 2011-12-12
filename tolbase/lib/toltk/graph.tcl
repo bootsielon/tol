@@ -74,6 +74,16 @@ proc Blt_ViewMode { graph mode } {
   }
 }
 
+proc blt::RemoveBindTag { widget args } {
+  set oldTagList [bindtags $widget]
+  foreach tag $args {
+    set index [lsearch $oldTagList $tag]
+    if { $index >= 0 } {
+	bindtags $widget [lreplace $oldTagList $index $index]
+    }
+  }
+}
+
 proc blt::InitStack { graph {mode zoom-frame} } {
     global zoomInfo
   
@@ -244,4 +254,22 @@ proc blt::Scroll { graph } {
   }
   set zoomInfo($graph,A,x) $zoomInfo($graph,B,x)
   set zoomInfo($graph,A,y) $zoomInfo($graph,B,y)
+}
+
+proc blt::ResetScroll { graph } {
+  global zoomInfo
+
+  eval $graph marker delete [$graph marker names "scroll*"]
+  blt::RemoveBindTag $graph scroll-region-$graph
+  set zoomInfo($graph,corner) A  
+}
+
+proc blt::ScrollTitle { graph } {
+    if { [$graph cget -invertxy] } {
+	set coords "-Inf -Inf"
+    } else {
+	set coords "-Inf Inf"
+    }
+    $graph marker create text -name "scrollTitle" -text "scrolling ..." \
+	-coords $coords -bindtags "" -anchor nw
 }
