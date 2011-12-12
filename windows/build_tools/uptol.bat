@@ -36,14 +36,14 @@ If Not Exist ..\tol-contrib\nul (
   Goto END
 )
 
-If Defined VS80COMNTOOLS (
-  Echo Reconocido el entorno de desarrollo VS80
-  Set VSCOMNTOOLS=%VS80COMNTOOLS%
-  Set winSrc=win-VC8
-) Else If Defined VS90COMNTOOLS (
+If Defined VS90COMNTOOLS (
   Echo Reconocido el entorno de desarrollo VS90
   Set VSCOMNTOOLS=%VS90COMNTOOLS%
   Set winSrc=win-VC9
+) Else If Defined VS80COMNTOOLS (
+  Echo Reconocido el entorno de desarrollo VS80
+  Set VSCOMNTOOLS=%VS80COMNTOOLS%
+  Set winSrc=win-VC8
 ) Else (
   Echo No hemos encontrado un entorno de desarrollo reconocido. Los entornos reconocidos con VS80 or VS90
   Goto END
