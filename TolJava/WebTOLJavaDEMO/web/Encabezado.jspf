@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    Document   : Encabezado
+    Created on : Nov 28, 2010, 2:48:13 PM
+    Author     : hcarralero
+-->
+<div style="height: 48px; width: 100%; -rave-layout: grid" xmlns:f="http://java.sun.com/jsf/core" xmlns:h="http://java.sun.com/jsf/html" xmlns:webuijsf="http://www.sun.com/webui/webuijsf">
+    <f:subview id="Encabezado">
+        <h:panelGrid columns="2" id="gridPanel1" style="background-color: #ffffcc; border-bottom-color: navy; border-bottom-style: solid; height: 48px; left: 0px; top: 0px; position: absolute; width: 100%">
+            <webuijsf:staticText id="staticText1" style="color: navy; font-family: fantasy; font-size: 24px; font-weight: bolder" text="TOLJava: Biblioteca para el Acceso a TOL desde Java"/>
+            <h:panelGrid id="gridPanel2" style="text-align: center">
+                <webuijsf:staticText id="staticText2" text="Desarrollado por"/>
+                <webuijsf:hyperlink actionExpression="#{Encabezado.hyperlink1_action}" id="hyperlink1" style="font-size: 12px; font-weight: bolder"
+                    target="_blank" text="Humberto Andrés Carralero López" url="http://www.hcarralero.com"/>
+            </h:panelGrid>
+        </h:panelGrid>
+    </f:subview>
+</div>

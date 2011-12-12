@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    Document   : MenuIzquierdo
+    Created on : Nov 28, 2010, 1:52:25 PM
+    Author     : hcarralero
+-->
+<div style="height: 100%; width: 200px; -rave-layout: grid" xmlns:f="http://java.sun.com/jsf/core" xmlns:webuijsf="http://www.sun.com/webui/webuijsf">
+    <f:subview id="MenuIzquierdo">
+        <webuijsf:tree binding="#{MenuIzquierdo.trMenuIzquierdo}" id="trMenuIzquierdo"
+            style="border: 1px solid navy; left: 0px; top: 0px; position: absolute; width: 196px" text="Menú Principal">
+            <webuijsf:treeNode id="tnInicio" text="Inicio" url="/faces/Inicio.jsp">
+                <f:facet name="image">
+                    <webuijsf:image icon="TREE_DOCUMENT" id="image5"/>
+                </f:facet>
+            </webuijsf:treeNode>
+            <webuijsf:treeNode expanded="true" id="tnDemo" text="Demostración" url="/faces/Explorador.jsp">
+                <f:facet name="image">
+                    <webuijsf:image icon="TREE_FOLDER" id="image1"/>
+                </f:facet>
+                <webuijsf:treeNode id="tnInterprete" text="Intérprete" toolTip="Acceso a un Intérprete de TOL" url="/faces/Interprete.jsp">
+                    <f:facet name="image">
+                        <webuijsf:image icon="TREE_DOCUMENT" id="image3"/>
+                    </f:facet>
+                </webuijsf:treeNode>
+                <webuijsf:treeNode id="tnExplorador" text="Explorador" toolTip="Explorador de Variables de TOL" url="/faces/Explorador.jsp">
+                    <f:facet name="image">
+                        <webuijsf:image icon="TREE_DOCUMENT" id="image4"/>
+                    </f:facet>
+                </webuijsf:treeNode>
+            </webuijsf:treeNode>
+            <webuijsf:treeNode expanded="true" id="tnDocs" text="Documentación" toolTip="Visualización de la documentación de TOLJava" url="/faces/Docs.jsp">
+                <f:facet name="image">
+                    <webuijsf:image icon="TREE_DOCUMENT" id="image2"/>
+                </f:facet>
+            </webuijsf:treeNode>
+            <webuijsf:treeNode id="tnEjemplos" text="Ejemplos" url="/faces/Ejemplos.jsp">
+                <f:facet name="image">
+                    <webuijsf:image icon="TREE_DOCUMENT" id="image6"/>
+                </f:facet>
+            </webuijsf:treeNode>
+            <webuijsf:treeNode id="treeNode1" text="Descargas" url="/faces/Descargas.jsp">
+                <f:facet name="image">
+                    <webuijsf:image icon="TREE_DOCUMENT" id="image7"/>
+                </f:facet>
+            </webuijsf:treeNode>
+        </webuijsf:tree>
+    </f:subview>
+</div>
