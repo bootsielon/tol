@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded bfunctions 1.0 [list source [file join $dir bflistbox.tcl]]\n[list source [file join $dir bflist.tcl]]\n[list source [file join $dir bfobjects.tcl]]\n[list source [file join $dir bfstring.tcl]]\n[list source [file join $dir bfunctions.tcl]]\n[list source [file join $dir autoscroll.tcl]]\n[list source [file join $dir bftoltcl.tcl]]\n[list source [file join $dir bfsql.tcl]]\n[list source [file join $dir progressbar.tcl]]\n[list source [file join $dir bltSend.tcl]]\n[list source [file join $dir bfmessages.tcl]]
+package ifneeded bfunctions 1.0 [list source [file join $dir bflistbox.tcl]]\n[list source [file join $dir bflist.tcl]]\n[list source [file join $dir bfobjects.tcl]]\n[list source [file join $dir bfstring.tcl]]\n[list source [file join $dir bfunctions.tcl]]\n[list source [file join $dir bftoltcl.tcl]]\n[list source [file join $dir bfsql.tcl]]\n[list source [file join $dir progressbar.tcl]]\n[list source [file join $dir bltSend.tcl]]\n[list source [file join $dir bfmessages.tcl]]
