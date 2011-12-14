@@ -330,20 +330,22 @@ template <class Any>
 BPolyn<Any> BPolyn<Any>::NextSchur() const
 //--------------------------------------------------------------------
 {
-    BInt n = Degree();
-    Any first = (*this).Coef(0);
-    Any last  = (*this).Coef(n);
+  BInt n = Degree();
+  Any first = (*this).Coef(0);
+  Any last  = (*this).Coef(n);
+//Std(BText("\nNextSchur this=")+Name());
 //Std(BText("\n       First : ")+first.Name()   + ";  Last : "+last.Name());
-    BPolyn<Any> next;
-    next.ReallocBuffer(n);
-    for(BInt i=1; i<=n; i++)
-    {
+  BPolyn<Any> next;
+  next.ReallocBuffer(n);
+  for(BInt i=1; i<=n; i++)
+  {
     next(i-1).PutDegree(i-1);
-//Std(BText("\n       i     : ")+Coef(i).Name() + ";  n-i    : "+Coef(n-i).Name());
     next(i-1).PutCoef(last*Coef(i) - first*Coef(n-i));
-    }
-    next.Aggregate();
-    return(next);
+  //Std(BText("\n       Coef(i)     : ")+Coef(i).Name() + ";  Coef(n-i)    : "+Coef(n-i).Name() + ";  next(i-1)    : "+next.Coef(i-1).Name());
+  }
+  next.Aggregate();
+//Std(BText("\nNextSchur next=")+next.Name());
+  return(next);
 }
 
 
@@ -358,10 +360,6 @@ Any BPolyn<Any>::Schur(BBool complete) const
 //  Std(BText("\n  Schur      : ")+Name());
     if(Degree()==0) { return(-1); }
     else
-
-
-
-
     {
     Any a = Abs((*this)(       0).Coef());
     Any b = Abs((*this)(this->Size()-1).Coef());
@@ -379,20 +377,22 @@ Any BPolyn<Any>::Schur(BBool complete) const
 template <class Any>
 Any BPolyn<Any>::StationaryValue(BBool complete) const
 
-/*! Returns true if all roots in this polyn are outside of the unit
+/*! Returns a value great than 1 if all roots in this polyn are 
  *  circle
  */
 //--------------------------------------------------------------------
 {
-    BInt n = this->Size();
+    BInt n = this->Degree();
     BPolyn sym;
-    sym.ReallocBuffer(n);
-    for(BInt i=0; i<n; i++)
+    sym.ReallocBuffer(n+1);
+    for(BInt i=0; i<=n; i++)
     {
-    sym(i).PutDegree(i);
-    sym(i).PutCoef((*this)(n-1-i).Coef());
+      sym(i).PutDegree(i);
+      Any v = this->Coef(n-i);
+      if(v>-3.925e-323 && v<=0) { v=-3.925e-323; }
+      if(v<+3.925e-323 && v>=0) { v=+3.925e-323; }
+      sym(i).PutCoef(v);
     }
-
 //Std(BText("\nStationary : ")+Name());
     return(sym.Schur(complete));
 }
