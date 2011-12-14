@@ -11,6 +11,17 @@ NameBlock ARMAProcess =
   Text _.autodoc.description = "Methods related with ARMA process";
   
   ////////////////////////////////////////////////////////////////////////////
+  Text _.autodoc.member.changeZeroCoefficient =
+  "Change zero coefficients of a polynomial by a given value";
+  Polyn changeZeroCoefficient(Polyn pol, Real nonZeroValue)
+  ////////////////////////////////////////////////////////////////////////////
+  {
+    Matrix M = PolMat(pol, Degree(pol)+1, 1);
+    Matrix M_ = M + Not(M)*nonZeroValue;
+    MatPol(Tra(M_))
+  };
+  
+  ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.ACOV =
   "Returns theoretical autocovariance function from 0 to given order";
   Matrix ACOV(Polyn ar, Polyn ma, Real order)
@@ -94,11 +105,19 @@ NameBlock ARMAProcess =
   {
   //WriteLn("TRACE CholeskiFactorCov("+FullName(cov)+") VRows(cov)="<<VRows(cov)+" Sparsity(cov)="<<Real(VNonNullCells(cov)/VRows(cov)^2));
     VMatrix c = Drop(cov,1.E-16*VRows(cov)^2);
-    VMatrix L = CholeskiFactor(c,"X",True);
-  //WriteLn("TRACE CholeskiFactorCov L:"<<L);
-    VMatrix pL = Pack(L,1);
-  //WriteLn("TRACE CholeskiFactorCov pL:"<<pL);
-    pL
+    VMatrix L = CholeskiFactor(c,"X",True,False);
+    If(VRows(L)==VRows(cov),
+    {
+    //WriteLn("TRACE CholeskiFactorCov L:"<<L);
+      VMatrix pL = Pack(L,1);
+    //WriteLn("TRACE CholeskiFactorCov pL:"<<pL);
+      pL
+    },
+    {
+      Warning("[StdLib::ARMAProcess::CholeskiFactorCov] No es posible "
+       "aplicar CholeskiFactor a una matriz virtual no definida positiva");
+      L
+    })
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -290,9 +309,14 @@ NameBlock ARMAProcess =
     Real drop = 1.E-16/m^2;
   //WriteLn("TRACE Eval.Almagro Begin "+Time); 
   //WriteLn("TRACE Eval.Almagro(p"<<p+",q="<<q+",m="<<m);
-    If(!p & !q, [[
+  //Polyn   _.ar    = ARMAProcess::changeZeroCoefficient(ar,1E-5);
+  //Polyn   _.ma    = ARMAProcess::changeZeroCoefficient(ma,1E-5);
     Polyn   _.ar    = ar;
-    Polyn   _.ma    = ma; 
+    Polyn   _.ma    = ma;
+
+    NameBlock neutral = [[
+    Polyn   _.ar;
+    Polyn   _.ma;
     VMatrix _.z     = z_;
     VMatrix _.z0    = Rand(0,0,0,0);
     VMatrix _.a0    = Rand(0,0,0,0);
@@ -309,9 +333,76 @@ NameBlock ARMAProcess =
     Real _.det_cov_G = 0;
     Real _0.5_m_log2_PI_s2 = -0.5*_.m*Log(2*PI*_.s2);
     Real _.logLH = _0.5_m_log2_PI_s2 - 0.5*_.m* VMatMoment(_.a,2)/_.s2
-    ]],[[
-    Polyn   _.ar    = ar;
-    Polyn   _.ma    = ma; 
+    ]];
+    NameBlock nonStationary = [[
+    ////////////////////////////////////////////////////////////////////////////
+    Real LogLH.Z(VMatrix z)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      VMatrix _.z := z;
+      VMatrix _.pi_z := DifEq(_.ar/_.ma,_.z);
+      VMatrix _.G_pi_z := Tra(Tra(_.pi_z)*_.G);
+    //Real _trc.8 = { WriteLn("TRACE Eval.Almagro Creating various "+Time); 0 };
+      VMatrix _.u := CholeskiSolve(_.L_G, _.G_pi_z,"PtLLtP");
+      VMatrix _.z0 := Get.Z0(_.u);
+      VMatrix _.a0 := Get.A0(_.u);
+      VMatrix _.v := CholeskiSolve(_.L_u, _.u,"PtL");
+      VMatrix _.a := DifEq(_.ar/_.ma, _.z, _.z0, _.a0);
+
+      Real aa = MatDat(VMat2Mat( Tra(_.a)*_.a), 1,1);     
+      Real uu = MatDat(VMat2Mat( Tra(_.u)*_.covi_u*_.u),1,1);
+      Real _.logLH := _0.5_m_log2_PI_s2 - 0.5*(_.det_cov_z+(aa+uu)/_.s2);
+      _.logLH
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix Draw.U_cond_Z(Real unused)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      VMatrix u01 = Gaussian(_.q_p,1,0,_.sigma);
+      _.u + CholeskiSolve(_.L_G, u01,"LtP")
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    Real LogLH.Z_cond_U(Polyn ar, Polyn ma, VMatrix z0, VMatrix a0)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      -_highValue
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix Get.Z0(VMatrix u)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      Sub(u, 1, 1, _.p, 1)
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix Get.A0(VMatrix u)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      Sub(u, _.p+1, 1, _.q, 1)
+    };
+    Real _highValue = 10000*sigma;
+    Polyn   _.ar;
+    Polyn   _.ma; 
+    VMatrix _.z     = z_;
+    VMatrix _.z0    = Rand(0,0,_highValue,_highValue);
+    VMatrix _.a0    = Rand(0,0,_highValue,_highValue);
+    Real    _.sigma = sigma;
+    Real    _.s2    = _.sigma*_.sigma;
+    Real    _.m     = m;
+    Real    _.p     = p;
+    Real    _.q     = q;
+    Real    _.q_p   = _.q+_.p;
+    Real    _.mxpq  = Max(_.p,_.q);
+    VMatrix _.a     = z_*_highValue;
+    Real _.det_cov_z = _highValue;
+    Real _.det_cov_u = _highValue;
+    Real _.det_cov_G = _highValue;
+    Real _.logLH = _highValue
+    ]];
+
+    If(!p & !q, neutral, {
+
+    Polyn   _.ar;
+    Polyn   _.ma; 
     VMatrix _.z     = z_;
     Real    _.sigma = sigma;
     Real    _.s2    = _.sigma*_.sigma;
@@ -321,24 +412,6 @@ NameBlock ARMAProcess =
     Real    _.q_p   = _.q+_.p;
     Real    _.mxpq  = Max(_.p,_.q);
 
-    ////////////////////////////////////////////////////////////////////////////
-    VMatrix solve.LLt(VMatrix L, VMatrix b)
-    ////////////////////////////////////////////////////////////////////////////
-    {
-      CholeskiSolve(L,b,"PtLLtP")
-    };
-    ////////////////////////////////////////////////////////////////////////////
-    VMatrix solve.L(VMatrix L, VMatrix b)
-    ////////////////////////////////////////////////////////////////////////////
-    {
-      CholeskiSolve(L,b,"PtL")
-    };
-    ////////////////////////////////////////////////////////////////////////////
-    VMatrix solve.Lt(VMatrix L, VMatrix b)
-    ////////////////////////////////////////////////////////////////////////////
-    {
-      CholeskiSolve(L,b,"LtP")
-    };
 
   //Real _trc.1 = { WriteLn("TRACE Eval.Almagro Creating _.cov_u "+Time); 0 };
     VMatrix _.cov_u = Case(
@@ -347,14 +420,27 @@ NameBlock ARMAProcess =
       VMatrix cov_zz = Drop(Pol2VMat(ARMATACov(_.ar,_.ma,_.p), _.p, _.p),drop);
     //WriteLn("TRACE _.cov_zz = "<<_.cov_zz);
       VMatrix cov_aa = Eye(_.q);
-      Polyn psi = ChangeBF(Expand(_.ma/_.ar,Max(_.p,_.q)))*B^Max(0,_.q-_.p);
-      VMatrix cov_za = If(_.q>=_.p, Pol2VMat(psi, _.q, _.p), 
-                            Zeros(_.q, _.p-_.q) | Pol2VMat(psi, _.q, _.q));
-      VMatrix cov_az = Tra(cov_za);
+
+      Polyn psi = Expand(_.ma/_.ar,Max(_.p,_.q));
+
+      Polyn psi_F = ChangeBF(psi)*B^Max(0,_.q-_.p);
+      VMatrix cov_az = If(_.q>=_.p, Pol2VMat(psi_F, _.q, _.p), 
+                            Zeros(_.q, _.p-_.q) | Pol2VMat(psi_F, _.q, _.q));
+      VMatrix cov_za = Tra(cov_az);
+/*
+      VMatrix cov_za_ = Mat2VMat(ForMat(_.p,_.q,Real(Real a, Real b)
+      {
+        Real k = _.p + 1 - a;
+        Real i = _.q + 1 - b;
+        Coef(psi,i-k)
+      }));
+     VMatrix cov_za_dif = cov_za-cov_za_;
+     Real cov_za.ok = 1-VMatMax(Abs(cov_za_dif));
+*/
     //WriteLn("TRACE _.cov_za = "<<_.cov_za);
 
-      (cov_zz | cov_az ) <<
-      (cov_za | cov_aa )
+      (cov_zz | cov_za ) <<
+      (cov_az | cov_aa )
     },
     _.p & !_.q,
     {
@@ -368,10 +454,16 @@ NameBlock ARMAProcess =
   //Real _trc.2 = { WriteLn("TRACE Eval.Almagro Creating _.L_u "+Time); 0 };
   //WriteLn("_.cov_u = "<<_.cov_u);
     VMatrix _.L_u  = ARMAProcess::CholeskiFactorCov(_.cov_u);
+    If(!VRows(_.L_u), {
+    WriteLn("[ARMAProcess::Eval.Almagro] Cannot create _.L_u with \n"+
+      "AR="<<_.ar+"\n"+
+      "MA="<<_.ma+"\n");
+    nonStationary
+    },{
   //Real _trc.3 = { WriteLn("TRACE Eval.Almagro Creating _.covi_u "+Time); 0 };
     VMatrix _.covi_u = 
     {
-      aux = solve.LLt(_.L_u,Eye(_.q_p));
+      aux = CholeskiSolve(_.L_u,Eye(_.q_p),"PtLLtP");
       Drop(ARMAProcess::AvoidSymRoundErr(aux),drop)
     };
   //Real _trc.4 = { WriteLn("TRACE Eval.Almagro Creating _.L_u_sp "+Time); 0 };
@@ -395,12 +487,48 @@ NameBlock ARMAProcess =
     VMatrix _.cov_G = _.covi_u + _.GtG;
   //Real _trc.6 = { WriteLn("TRACE Eval.Almagro Creating _.L_G "+Time); 0 };
     VMatrix _.L_G   = ARMAProcess::CholeskiFactorCov(_.cov_G);
-  //Real _trc.7 = { WriteLn("TRACE Eval.Almagro Creating _.L_G_sp "+Time); 0 };
-    VMatrix _.L_G_sp = Drop(Convert(_.L_G,"Cholmod.R.Sparse"),drop);
-    Real _.det_cov_G = 2*VMatSum(Log(SubDiag(_.L_G_sp,0)));
-    Real _.det_cov_z = _.det_cov_u + _.det_cov_G;
-    Real _0.5_m_log2_PI_s2 = -0.5*_.m*Log(2*PI*_.s2);
 
+    If(!VRows(_.L_G), {
+    WriteLn("[ARMAProcess::Eval.Almagro] Cannot create _.L_G with \n"+
+      "AR="<<_.ar+"\n"+
+      "MA="<<_.ma+"\n");
+    nonStationary
+    },{ [[
+
+    ////////////////////////////////////////////////////////////////////////////
+    Real LogLH.Z(VMatrix z)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      VMatrix _.z := z;
+      VMatrix _.pi_z := DifEq(_.ar/_.ma,_.z);
+      VMatrix _.G_pi_z := Tra(Tra(_.pi_z)*_.G);
+    //Real _trc.8 = { WriteLn("TRACE Eval.Almagro Creating various "+Time); 0 };
+      VMatrix _.u := CholeskiSolve(_.L_G, _.G_pi_z,"PtLLtP");
+      VMatrix _.z0 := Get.Z0(_.u);
+      VMatrix _.a0 := Get.A0(_.u);
+      VMatrix _.v := CholeskiSolve(_.L_u, _.u,"PtL");
+      VMatrix _.a := DifEq(_.ar/_.ma, _.z, _.z0, _.a0);
+
+      Real aa = MatDat(VMat2Mat( Tra(_.a)*_.a), 1,1);     
+      Real uu = MatDat(VMat2Mat( Tra(_.u)*_.covi_u*_.u),1,1);
+      Real _.logLH := _0.5_m_log2_PI_s2 - 0.5*(_.det_cov_z+(aa+uu)/_.s2);
+      _.logLH
+    };
+    ////////////////////////////////////////////////////////////////////////////
+    VMatrix Draw.U_cond_Z(Real unused)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      VMatrix u01 = Gaussian(_.q_p,1,0,_.sigma);
+      _.u + CholeskiSolve(_.L_G, u01,"LtP")
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+    Real LogLH.Z_cond_U(Polyn ar, Polyn ma, VMatrix z0, VMatrix a0)
+    ////////////////////////////////////////////////////////////////////////////
+    {
+      VMatrix a = DifEq(ar/ma,_.z, z0, a0);
+      _0.5_m_log2_PI_s2 - 0.5*_.m*VMatMoment(a,2)/_.s2
+    };
     ////////////////////////////////////////////////////////////////////////////
     VMatrix Get.Z0(VMatrix u)
     ////////////////////////////////////////////////////////////////////////////
@@ -414,7 +542,35 @@ NameBlock ARMAProcess =
       Sub(u, _.p+1, 1, _.q, 1)
     };
 
+    Polyn   _.ar;
+    Polyn   _.ma; 
+    VMatrix _.z;
+    Real    _.sigma;
+    Real    _.s2;
+    Real    _.m;
+    Real    _.p;
+    Real    _.q;
+    Real    _.q_p;
+    Real    _.mxpq;
+    VMatrix _.cov_u;
+    VMatrix _.L_u;
+    VMatrix _.covi_u;
+    VMatrix _.L_u_sp;
+    Real _.det_cov_u;
+    VMatrix _.H1;
+    VMatrix _.H2;
+    VMatrix _.H;
+    VMatrix _.G;
+    VMatrix _.GtG;
+    VMatrix _.cov_G;
+    VMatrix _.L_G;
 
+
+  //Real _trc.7 = { WriteLn("TRACE Eval.Almagro Creating _.L_G_sp "+Time); 0 };
+    VMatrix _.L_G_sp = Drop(Convert(_.L_G,"Cholmod.R.Sparse"),drop);
+    Real _.det_cov_G = 2*VMatSum(Log(SubDiag(_.L_G_sp,0)));
+    Real _.det_cov_z = _.det_cov_u + _.det_cov_G;
+    Real _0.5_m_log2_PI_s2 = -0.5*_.m*Log(2*PI*_.s2);
     VMatrix _.pi_z = Rand(0,0,0,0);
     VMatrix _.G_pi_z = Rand(0,0,0,0);
     VMatrix _.u = Rand(0,0,0,0);
@@ -423,50 +579,16 @@ NameBlock ARMAProcess =
     VMatrix _.v = Rand(0,0,0,0);
     VMatrix _.a = Rand(0,0,0,0);
 
-    Real _.logLH = ?;
-
-    ////////////////////////////////////////////////////////////////////////////
-    Real LogLH.Z(VMatrix z)
-    ////////////////////////////////////////////////////////////////////////////
-    {
-      VMatrix _.z := z;
-      VMatrix _.pi_z := DifEq(_.ar/_.ma,_.z);
-      VMatrix _.G_pi_z := Tra(Tra(_.pi_z)*_.G);
-    //Real _trc.8 = { WriteLn("TRACE Eval.Almagro Creating various "+Time); 0 };
-      VMatrix _.u := solve.LLt(_.L_G, _.G_pi_z);
-      VMatrix _.z0 := Get.Z0(_.u);
-      VMatrix _.a0 := Get.A0(_.u);
-      VMatrix _.v := solve.L(_.L_u, _.u); 
-      VMatrix _.a := DifEq(_.ar/_.ma, _.z, _.z0, _.a0);
-
-      Real aa = MatDat(VMat2Mat( Tra(_.a)*_.a), 1,1);     
-      Real uu = MatDat(VMat2Mat( Tra(_.u)*_.covi_u*_.u),1,1);
-      Real _.logLH := _0.5_m_log2_PI_s2 - 0.5*(_.det_cov_z+(aa+uu)/_.s2);
-      _.logLH
-    };
-  //Real _trc.9 = { WriteLn("TRACE Eval.Almagro End "+Time); 0 };
-
-    Real _logLH = LogLH.Z(_.z);
-
-    ////////////////////////////////////////////////////////////////////////////
-    VMatrix Draw.U_cond_Z(Real unused)
-    ////////////////////////////////////////////////////////////////////////////
-    {
-      VMatrix u01 = Gaussian(_.q_p,1,0,_.sigma);
-      _.u + solve.Lt(_.L_G, u01)
-    };
-
     VMatrix _R0100 = Rand(0,  1,0,0);
     VMatrix _Rq100 = Rand(_.q,1,0,0);
 
-    ////////////////////////////////////////////////////////////////////////////
-    Real LogLH.Z_cond_U(Polyn ar, Polyn ma, VMatrix z0, VMatrix a0)
-    ////////////////////////////////////////////////////////////////////////////
-    {
-      VMatrix a = DifEq(ar/ma,_.z, z0, a0);
-      _0.5_m_log2_PI_s2 - 0.5*_.m*VMatMoment(a,2)/_.s2
-    }
-  ]])}
+    Real _.logLH = ?;
+  //Real _trc.9 = { WriteLn("TRACE Eval.Almagro End "+Time); 0 };
+    Real _logLH = LogLH.Z(_.z)
+
+
+  ]]}) }) }) }
+
 ]];
 
 
