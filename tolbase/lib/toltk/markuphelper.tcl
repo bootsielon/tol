@@ -124,17 +124,23 @@ namespace eval ::MarkupHelper {
     append markup "#---\n"
   }
 
-  proc BuildTolbaseInfo { args } {
-    foreach {icon grammar name content path desc objRef} $args {}
+  # esto deberia recibir un ObjectAddress
+  proc BuildTolbaseInfo {icon grammar name content path desc args } {
+    array set opts $args
 
-    if {$grammar eq "NameBlock" && [string length $objRef]} {
-      set classOf [Tol_ClassOfFromReference $objRef]
-      set insInfo [Tol_InstanceInfoFromReference $objRef]
-      set insCont [Tol_InstanceContentFromReference $objRef]
-    } else {
-      set classOf ""
-      set insInfo ""
-      set insCont ""
+    foreach {classOf insInfo insCont} {{} {} {}} break
+    if { $grammar eq "NameBlock" } {
+      if { [ info exists opts(-objref) ] } {
+        set objRef $opts(-objref)
+        set classOf [Tol_ClassOfFromReference $objRef]
+        set insInfo [Tol_InstanceInfoFromReference $objRef]
+        set insCont [Tol_InstanceContentFromReference $objRef]
+      } elseif { [ info exists opts(-objaddr) ] } {
+        set objAddr $opts(-objaddr)
+        set classOf [Tol_ClassOf $objAddr]
+        set insInfo [Tol_InstanceInfo $objAddr]
+        set insCont [Tol_InstanceContent $objAddr]
+      }
     }
     Text "Grammar: " -tags b
     Image $icon

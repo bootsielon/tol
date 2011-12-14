@@ -56,6 +56,10 @@ if { [string equal $tcl_platform(platform) "unix"] } {
   source [file join $toltk_script_path "panedw.tcl"]
 }
 
+source [file join $toltk_script_path "markuphelper.tcl"]
+source [file join $toltk_script_path "tolpkg.tcl"]
+source [file join $toltk_script_path "tolpkg_gui.tcl"]
+
 #source [file join $toltk_script_path "scrollw.tcl"]
 
 namespace eval ::TolConsole {
@@ -488,133 +492,6 @@ proc ::TolConsole::ActivateInfoWidget { id } {
   $widgets(tabset) select 2
 }
 
-namespace eval ::MarkupHelper {
-  variable markup
-
-  proc Init { } {
-    variable markup {}
-  }
-
-  proc Verbatim { text } {
-    return [ string map {\n \n<br>} $text ]
-  }
-
-  proc Escape { text } {
-    set specialChars {
-      [  &lb;
-      ]  &rb;
-      <  &lt;
-      >  &gt;
-    }
-    return [ string map $specialChars $text ]
-  }
-
-  proc Preprocess { text } {
-    set idx [ string first ";" $text ]
-    set ismarkup 0
-    if { $idx != -1 } {
-      set header [ string range $text 0 [ expr { $idx -1 } ] ]
-      if { [ string range [ string trimleft $header ] 0 3 ] eq "#!NB" } {
-        set ismarkup 1
-        set body [ string range $text [ expr { $idx +1 } ] end ]
-      } else {
-        set body $text
-      }
-    } else {
-      set body $text
-    }
-    if { $ismarkup } {
-      return $body
-    } else {
-      return [ Verbatim [ Escape $body ] ]
-    }
-  }
-
-  proc GetText { } {
-    variable markup
-
-    return $markup
-  }
-
-  proc Text { text args } {
-    variable markup
-
-    array set opts { -tags {} -br 0 }
-    array set opts $args
-    foreach t $opts(-tags) {
-      append markup "<$t>"
-    }
-    append markup $text
-    foreach t [ lreverse $opts(-tags) ] {
-      append markup "</$t>"
-    }
-    BR $opts(-br)
-  }
-
-  proc Image { image {br 0} } {
-    variable markup
-
-    append markup "\[!image $image !\]"
-    BR $br
-  }
-
-  proc LabelValue { name value {br 0}} {
-    variable markup
-
-    append markup "<b>$name:</b> "
-    append markup "$value"
-    BR $br
-  }
-  
-  proc InlineHeader { text } {
-    Text $text -tags h
-  }
-
-  proc Header1 { text } {
-    variable markup
-    
-    NeedNewLine
-    append markup "= $text =\n"
-  }
-
-  proc Header2 { text } {
-    variable markup
-    
-    append markup "\n\n== $text ==\n"
-  }
-
-  proc Header3 { text } {
-    variable markup
-    
-    append markup "\n\n=== $text ===\n"
-  }
-
-  proc BR { { br 1 } } {
-    variable markup
-
-    if { $br } {
-      append markup " <br>"
-    }
-  }
-
-  proc NeedNewLine { } {
-    variable markup
-
-    if { [ string index $markup end ] ne "\n" } {
-      append markup "\n"
-    }
-  }
-   
-  proc Line { } {
-    variable markup
-
-    if { [ string index $markup end ] ne "\n" } {
-      append markup "\n"
-    }
-    append markup "#---\n"
-  }
-}
-
 #/////////////////////////////////////////////////////////////////////////////      
 proc ::TolConsole::OnInfo { args } {
 #  
@@ -649,19 +526,7 @@ proc ::TolConsole::OnInfo { args } {
       }
     }
     default {
-      #(pgea) se modifica el mecanismo de escritura de la informacion
-      #(pgea) en tolbase incluyendo la informacion de instancia
-      proc w_insert {w_info w_text w_token w_tag} {
-        set idx_start [$w_info index "end -1 chars"]
-        $w_info insert end $w_text
-        $w_info insert end $w_token
-        set idx_end   [$w_info index "end -1 chars"]
-        $w_info tag add $w_tag $idx_start $idx_end
-      }
-
-      #$w_info configure -wrap none
       foreach {icon grammar name content path desc objRef} $args {}
-      set w_info $widgets(info,text)
 
       if { $grammar eq "Anything" } {
         if { [ regexp {/+\sClass\s} $content ] } {
@@ -672,126 +537,12 @@ proc ::TolConsole::OnInfo { args } {
           return
         }
       }
-      ActivateInfoWidget "markup"
-      if { 0 } {
-        $widgets(tabset,info) setwidget $widgets(info,text)
-      }
-      #(pgea) Si es NameBlock busco su clase e información de instancia
-      if {$grammar eq "NameBlock" && [string length $objRef]} {
-        set classOf [Tol_ClassOfFromReference $objRef]
-        set insInfo [Tol_InstanceInfoFromReference $objRef]
-        set insCont [Tol_InstanceContentFromReference $objRef]
-      } else {
-        set classOf ""
-        set insInfo ""
-        set insCont ""
-      }
       MarkupHelper::Init
-      MarkupHelper::Text "Grammar: " -tags b
-      MarkupHelper::Image $icon
-      if {$classOf eq ""} {
-        MarkupHelper::Text " $grammar"
-      } else {
-        MarkupHelper::Text " $classOf"
-      }
-      MarkupHelper::BR
-      MarkupHelper::LabelValue "Name" $name
-      if {$insCont ne ""} {
-        set _content $insCont
-      } elseif {$classOf ne ""} {
-        set _content $classOf
-      } else {
-        set _content $content
-      }
-      MarkupHelper::BR
-      MarkupHelper::LabelValue "Content" [ MarkupHelper::Escape $_content ]
-      if {$path ne ""} {
-        MarkupHelper::BR
-        MarkupHelper::LabelValue "Path" $path
-      }
-      if {$desc ne ""} {
-        MarkupHelper::BR
-        MarkupHelper::Text "Description:" -tags b -br 1
-        MarkupHelper::Text \
-            [ MarkupHelper::Preprocess [ string trimright $desc ] ]
-      }
-      if { $insInfo ne "" } {
-        MarkupHelper::Header2 "Instance's Info"
-        foreach line [ split $insInfo \n ] {
-          set s [ string index $line 0 ]
-          set e [ string index $line end ]
-          if { $s eq "\[" && $e eq "\]" } {
-            MarkupHelper::Text "[ string range $line 1 end-1 ]:" \
-                -tags {b i} -br 1
-          } elseif { $s eq "{" && $e eq "}" } {
-            MarkupHelper::Text "[ string range $line 1 end-1 ]: " -tags {b i}
-          } else {
-            MarkupHelper::Text \
-                [ MarkupHelper::Preprocess [ string trimright $line ] ] -br 1
-          }
-        }
-      }
-      $data(notebookdb) set "info" [ MarkupHelper::GetText ]
+      $data(notebookdb) set "info" \
+          [ MarkupHelper::BuildTolbaseInfo \
+                $icon $grammar $name $content $path $desc -objref $objRef ]
       $widgets(info,markupviewer) showpage "info"
-      return
-      if { 0 } {
-      if {$classOf eq ""} { 
-        w_insert $w_info Grammar ": " tagLabel
-        $w_info image create end -image $icon
-        $w_info insert end " "
-        w_insert $w_info $grammar "\n" tagValue
-      } else { 
-        w_insert $w_info Class ": " tagLabel
-        $w_info image create end -image $icon
-        $w_info insert end " "
-        w_insert $w_info $classOf "\n" tagValue
-      }
-
-      w_insert $w_info Name ": " tagLabel
-      w_insert $w_info $name "\n" tagValue
-      w_insert $w_info Content ": " tagLabel
-      if {$insCont ne ""} {
-        w_insert $w_info $insCont "\n" tagValue
-      } elseif {$classOf ne ""} {
-        w_insert $w_info $classOf "\n" tagValue
-      } else {
-        w_insert $w_info $content "\n" tagValue
-      }
-      if {$path ne ""} {
-        w_insert $w_info Path ": " tagLabel
-        w_insert $w_info $path "\n" tagValue
-      }
-      if {$desc ne ""} {
-        w_insert $w_info Description ":\n" tagLabel
-        w_insert $w_info $desc "\n" tagValue
-      }
-      }
-      #(pgea) se añade la información de instancia (si hay)
-      if { [string length $insInfo] } {
-        set brNeed 0
-        set attr 0
-        set lines [split $insInfo \n]
-        foreach line $lines {
-          set lineLen [string length $line]
-          set lineIni [string index $line 0]
-          set lineFin [string index $line [expr $lineLen-1]]
-          set lineIF "$lineIni$lineFin"
-          if { [string eq $lineIF {[]}] } {
-            set lineLabel [string range $line 1 [expr $lineLen-2]]
-            w_insert $w_info $lineLabel ":\n" tagLabelB
-          } elseif { [string eq $lineIF {{}}] } {
-            set lineLabel [string range $line 1 [expr $lineLen-2]]
-            w_insert $w_info $lineLabel ": " tagLabelB
-          } else {
-            w_insert $w_info $line "\n" tagValue
-          }
-        }
-      }
-      $w_info tag configure tagLabel -font fnBold
-      $w_info tag configure tagValue -wrap none
-      $w_info tag configure tagLabelB -font fnBold -foreground navy
-      $w_tabset select 2
-      $w_info configure -state disabled
+      ActivateInfoWidget "markup"
     }
   }
 }
@@ -2568,6 +2319,8 @@ proc ::TolConsole::WriteIni {} {
       -command "::TolProject::Open"
   
   $md add $id separator
+  $md add $id command -label "[mc {Manage Packages}]..." \
+      -command ::TolPkgGUI::Show
   set cid [$md add $id cascade -label [mc "Analysis Tools"]]
   set cid2 [$md add $cid cascade -label [mc "ARIMA"]]
   $md add $cid2 command -label [mc "Draw ACF and PACF of ARIMA Models"] \
