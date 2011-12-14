@@ -97,6 +97,10 @@ snit::type nbdbmanagerType {
         mms,wiki https://trac.localbayes.es/mms/wiki
         mms,milestone https://www.tol-project.org/mms/milestone
         mms,ticket https://www.tol-project.org/mms/ticket
+        tol,browser https://www.tol-project.org/browser/tolp
+        tol,browser,default trunk
+        mms,browser https://trac.localbayes.es/mms/browser
+        mms,browser,default trunk
       }
       
       # [@url mms howto/5 "HOWTO 5" wiki @]
@@ -126,6 +130,25 @@ snit::type nbdbmanagerType {
 
       proc tol { path args } {
         return [ eval url tol $path $args ]
+      }
+
+      # [@src tol tol/init.cpp init.cpp trunk@]
+      # [@src tol tol/init.cpp init.cpp@]
+      # [@src tol tol/init.cpp@]
+      # [@src mms MMS/definition/01_variable/def_variable.tol def_variable.tol@]
+      proc src { where path args } {
+        foreach { label release } {"" ""} break
+        foreach { label release } $args break
+        if { $release eq "" } {
+          set release "trunk"
+        }
+        set urlroot $::urlConf(${where},browser)
+        set url "${urlroot}/${release}/${path}"
+        if { $label eq "" } {
+          return "\[${url}\]"
+        } else {
+          return "\[$label | ${url}\]"
+        }
       }
     }
   }
