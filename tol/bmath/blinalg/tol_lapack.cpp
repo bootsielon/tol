@@ -69,6 +69,7 @@ int dpotrf(const enum CBLAS_UPLO Uplo,
 /////////////////////////////////////////////////////////////////////////////
 {
   X = S; 
+  if(!X.GetData().Size()) { return(0); } 
   int n = S.Columns();
   double* X_ = X.GetData().GetBuffer();
   int res = clapack_dpotrf(CblasRowMajor, Uplo, n, X_, n);
@@ -103,6 +104,7 @@ int dpotri(const enum CBLAS_UPLO Uplo,
 /////////////////////////////////////////////////////////////////////////////
 {
   X = A; 
+  if(!X.GetData().Size()) { return(0); } 
   int n = A.Columns();
   double* X_ = X.GetData().GetBuffer();
   int res = clapack_dpotri(CblasRowMajor, Uplo, n, X_, n);
