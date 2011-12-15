@@ -1,14 +1,21 @@
 package require wtree
 package require BWidget
+package require msgcat
 
 namespace eval ::TolPkgGUI {
+
+  namespace import ::msgcat::*
 
   variable widgets
 
   variable cwd [ file normalize [ file dir [ info script ] ] ]
 
   variable urlmap
-  variable localInfo
+  
+  variable localPackageInfo
+  variable localVersionInfo
+  variable nodesInfo
+
   variable localSortedNames
   variable treeParents
 
@@ -644,7 +651,7 @@ proc ::TolPkgGUI::FillTreeInfo_0 { T } {
     set localNames [ lsort -decreasing -command ::TolPkgGUI::SortVersion \
                          [ array names localInfo ] ]
   }
-  array set treeParents {}
+  array unset treeParents
   foreach n $localNames {
     array set pkg $localInfo($n)
     set pkgRoot $pkg(name)
@@ -671,6 +678,7 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
   variable localPackageInfo
   variable localVersionInfo
   variable treeParents
+  variable nodesInfo
 
   $T configure -table no -filter yes -columns {
     { {image text} -tags NAME -label "Name" }
@@ -679,7 +687,8 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
   foreach p [ ::TolPkg::GetPkgSyncInfo ] {
     array set localPackageInfo $p
   }
-  array set treeParents {}
+  array unset treeParents
+  array unset nodesInfo
   # insert package information
   foreach p [ array names localPackageInfo ] {
     array set pkg $localPackageInfo($p)
@@ -690,18 +699,29 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
         set treeParents($pkgRepo) [ $T insert [ list [ list database_1_16 $pkgRepo ] ] \
                                         -at end -relative root \
                                         -button auto ]
+        set nodesInfo($treeParents($pkgRepo),type) repo
       }
       set lastremote $pkg(lastremote)
       set lastlocal $pkg(lastlocal)
       if { $lastlocal eq "" } {
         set img "package_down_16"
+        set nodeStatus new
       } else {
         set idx [ SortVersion $lastremote $lastlocal ]
-        set img [ lindex { cdr_tick_16 software_update_16 } $idx ] 
+        if { $idx <= 0 } {
+          # could be -1 (because of date error)
+          set img "cdr_tick_16"
+          set nodeStatus ok
+        } else {
+          set img "software_update_16"
+          set nodeStatus upgrade
+        }
       }
       set treeParents($p) [ $T insert [ list [ list $img $p ] ] \
                                 -at end -relative $treeParents($pkgRepo) \
                                 -button auto ]
+      set nodesInfo($treeParents($p),type) pkg
+      set nodesInfo($treeParents($p),status) $nodeStatus
     }
   }
   foreach pv [ ::TolPkg::GetVersSyncInfo ] {
@@ -722,28 +742,37 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
         puts "repository root '$pkgRepo' must be already created, creating ..."
         set treeParents($pkgRepo) [ $T insert [ list [ list database_1_16 $pkgRepo ] ] \
                                         -at end -relative root -button auto ]
+        set nodesInfo($treeParents($pkgRepo),type) repo
       }
       set treeParents($pkgRoot) [ $T insert [ list [ list {} $pkgRoot ] ] \
                                       -at end -relative $treeParents($pkgRepo) \
                                       -button auto ]
+      set nodesInfo($treeParents($pkgRoot),type) pkg
     }
     set dateremote $pkg(dateremote)
     set datelocal $pkg(datelocal)
     if { $datelocal eq "TheBegin" } {
       set img "package_down_16"
+      set nodesStatus new
     } else {
       set idx [ string compare $dateremote $datelocal ]
-      if { $idx == -1 } {
+      if { $idx <= 0 } {
+        # could be -1 (because of date error)
         set img "cdr_tick_16"
+        set nodeStatus ok
       } else {
-        set img [ lindex { cdr_tick_16 software_update_16 } $idx ]
+        set img "software_update_16"
+        set nodeStatus update
       }
     }
     set nid [ $T insert [ list [ list $img $pv ] ] \
                   -at end -relative $treeParents($pkgRoot) -button auto ]
+    set nodesInfo($nid,type) pkgver
+    set nodesInfo($nid,status) $nodeStatus
     foreach d $pkg(dependencies) {
-      $T insert [ list [ list back_to_ou_16 $d ] ] \
-                  -at end -relative $nid -button no
+      set nid [ $T insert [ list [ list back_to_ou_16 $d ] ] \
+                    -at end -relative $nid -button no ]
+      set nodesInfo($nid,type) pkgdep
     }
   }
 }
@@ -844,6 +873,7 @@ proc ::TolPkgGUI::CreateTreeInfoTab { { t treeinfo } } {
   
   CreateToolBar $t
 
+  if { 0 } {
   AddToolButton $t refresh \
       -image database_refresh_32 -text  [ msgcat::mc "Refresh" ] -compound top \
       -command ::TolPkgGUI::Refresh
@@ -856,10 +886,134 @@ proc ::TolPkgGUI::CreateTreeInfoTab { { t treeinfo } } {
 
   AddToolButton $t installzip \
       -image install_zip_32 -text [ msgcat::mc "Install Zip" ] -compound top
+  }
 
   CreateTree $t
 
   FillTreeInfo [ GetTree $t ]
+  set T [ GetTree $t ]
+  menu $T.cmenu -tearoff 0 \
+      -postcommand [ list ::TolPkgGUI::PostContextMenu $T $T.cmenu ]
+  $T configure -contextmenu $T.cmenu
+}
+
+proc ::TolPkgGUI::PostContextMenu { T w } {
+  variable nodesInfo
+
+  $w delete 0 end
+  array set selectionInfo {
+    repo   ""
+    pkg    ""
+    pkgver ""
+  }
+  foreach nid [ $T selection get ] {
+    lappend selectionInfo($nodesInfo($nid,type)) $nid
+  }
+  $w add command  -label "[ mc {Add New} ]..." \
+      -command ::TolPkgGUI::AddNewRepository
+  set lenRepo [ llength $selectionInfo(repo) ]
+  if { $lenRepo } {
+    $w add cascade  -label "[ mc {Check Repository} ]" \
+        -menu $w.check
+    if { [ winfo exists $w.check ] } {
+      $w.check delete 0 end
+    } else {
+      menu $w.check -tearoff 0
+    }
+    if { $lenRepo > 1 } {
+      set labelCheck [ mc "Selected" ]
+    } else {
+      set labelCheck [ $T item text [ lindex $selectionInfo(repo) 0 ] 0 ]
+    }
+    $w.check add command -label $labelCheck \
+        -command "::TolPkgGUI::CheckRepository $labelCheck $lenRepo"
+    $w.check add command -label [ mc "All" ] \
+        -command "::TolPkgGUI::CheckRepository ALL -1"
+  }
+  $w add command -label [ mc "Sync with servers" ] \
+      -command "::TolPkgGUI::SyncServers"
+  $w add separator
+  set lenPkg    [ llength $selectionInfo(pkg) ]
+  set lenPkgVer [ llength $selectionInfo(pkgver) ]
+  set lenPkgAll [ expr { $lenPkg + $lenPkgVer } ]
+  if { $lenPkgAll } {
+    if { $lenPkgAll == 1 } {
+      if { $lenPkg } {
+        # process a single node pkg
+        set nid [ lindex $selectionInfo(pkg) 0 ]
+        set pkg [ $T item text $nid 0 ]
+        set status $nodesInfo($nid,status)
+        if { $status eq "new" } {
+          $w add command -label [ mc "Install %s" $pkg ] \
+              -command "::TolPkgGUI::InstallPackage $pkg"
+        } elseif { $status eq "upgrade" } {
+          $w add command -label [ mc "Upgrade %s" $pkg ] \
+              -command "::TolPkgGUI::UpgradePackage $pkg"
+          $w add command -label [ mc "Upgrade all" ] \
+              -command "::TolPkgGUI::UpgradePackage"
+        } elseif { $status ne "ok" } {
+          puts "unexpected status $status for pkg $pkg"
+        }
+      } else {
+        # process a single node pkgver
+        set nid [ lindex $selectionInfo(pkgver) 0 ]
+        set pkgver [ $T item text $nid 0 ]
+        puts "process a single node pkgver $pkgver"
+        set status $nodesInfo($nid,status)
+        if { $status eq "new" } {
+          $w add command -label [ mc "Install %s" $pkgver ] \
+              -command "::TolPkgGUI::InstallPackage $pkgver"
+        } elseif { $status eq "update" } {
+          $w add command -label [ mc "Update version %s" $pkgver ] \
+              -command "::TolPkgGUI::UpdatePackageVersion $pkgver"
+          $w add command -label [ mc "Update all" ] \
+              -command "::TolPkgGUI::UpdatePackageVersion"
+        } elseif { $status ne "ok" } {
+          puts "unexpected status $status for pkgver $pkgver"
+        }
+      }
+    } else {
+      # there is a multiple selection of pkg and pkgver
+    }
+  } else {
+    # there is no pkg nor pkgver selected
+  }
+  $w add command -label "[ mc {Install ZIP} ]..." \
+      -command "::TolPkgGUI::InstallZip"
+  $w add separator
+  # export options
+  
+  set selection [$T selection get]
+  set has_selection [ llength $selection ]
+  puts "selction = $selection"
+  puts [ $T item text [ lindex $selection 0 ] 0 ]
+  return
+  $w add command -label [ mc "Update" ] \
+      -command ::TolPkgGUI::Update
+  $w add command -label [ mc "" ] \
+      -command ::TolPkgGUI::Update
+
+}
+
+proc ::TolPkgGUI::AddNewRepository { } {
+}
+
+proc ::TolPkgGUI::CheckRepository { repo length } {
+}
+
+proc ::TolPkgGUI::SyncServers { } {
+}
+
+proc ::TolPkgGUI::InstallPackage { p } {
+}
+
+proc ::TolPkgGUI::UpgradePackage { {p ""} } {
+}
+
+proc ::TolPkgGUI::UpdatePackageVersion { {p ""} } {
+}
+
+proc ::TolPkgGUI::InstallZip { } {
 }
 
 proc ::TolPkgGUI::Clear { } {
