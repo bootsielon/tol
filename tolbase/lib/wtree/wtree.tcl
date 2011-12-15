@@ -500,6 +500,23 @@ snit::widget wtree {
     $self _setNormalCursor
   }
  
+  method _filterNodesMatching { } {
+    if { [ llength $listFilterOff ] } {
+      $tree item configure [ list list $listFilterOff ] -visible 0
+      set listFilterOff [ list ]
+    }
+    if { [ llength $listFilterOn ] } {
+      $tree item configure [ list list $listFilterOn ] -visible 1
+      if { !$options(-table) } {
+        foreach nid $listFilterOn {
+          $tree item configure \
+              [ list list [ $tree item ancestors $nid ] ] -visible 1
+        }
+      }
+      set listFilterOn [ list ]
+    }
+  }
+
   method _filterNodeSet { nodes positiveWords negativeRegExp } {
     #puts "filterNodeSet '$nodes' '$positiveWords'"
     # recorro cada uno de los nodos
@@ -511,35 +528,28 @@ snit::widget wtree {
         return 0
       }
 
+      $self _filterNode $n $positiveWords $negativeRegExp
+      # desciendo a los hijos
+      $self _filterNodeSet [ $tree item children $n ] \
+          $positiveWords $negativeRegExp
+      
+      if { 0 } {
       if { [ $self _filterNode $n $positiveWords $negativeRegExp ] } {
         # si el resultado es visible desciendo y filtro a los hijos
         $self _filterNodeSet [ $tree item children $n ] \
             $positiveWords $negativeRegExp
+      }
       }
 
       # esto es para el filtrado automatico incremental
       incr numItemsFiltered
       if { !$breakFilter && !( $numItemsFiltered % 1000 ) } {
         # refresco la cola de eventos
-        if { [ llength $listFilterOn ] } {
-          $tree item configure [ list list $listFilterOn ] -visible 1
-          set listFilterOn [ list ]
-        }
-        if { [ llength $listFilterOff ] } {
-          $tree item configure [ list list $listFilterOff ] -visible 0
-          set listFilterOff [ list ]
-        }
+        $self _filterNodesMatching
         update
       }
     }
-    if { [ llength $listFilterOn ] } {
-      $tree item configure [ list list $listFilterOn ] -visible 1
-      set listFilterOn [ list ]
-    }
-    if { [ llength $listFilterOff ] } {
-      $tree item configure [ list list $listFilterOff ] -visible 0
-      set listFilterOff [ list ]
-    }
+    $self _filterNodesMatching
     return 1
   }
 
