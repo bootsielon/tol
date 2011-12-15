@@ -915,9 +915,7 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         puts "unexpected status $status for pkg $pkg"
       }
     }
-    if { $pkgInfo(lastlocal) ne "" } {
-      lappend listEXP $pkgInfo(lastlocal)
-    }
+    lappend listEXP [ list $pkgInfo(lastremote) $nodesInfo($nid,status) ]
   }
   # next process the list of pkgver
   foreach nid $selectionInfo(pkgver) {
@@ -937,11 +935,9 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         puts "unexpected status $status for pkg $pkg"
       }
     }
-    if { [ lsearch $listEXP $pkg ] == -1 && 
-         $nodesInfo($nid,status) ne "new"} {
-      lappend listEXP $pkg
+    if { [ lsearch $listEXP $pkg ] == -1 } {
+      lappend listEXP [ list $pkg $nodesInfo($nid,status) ]
     }
-
   }
   # install list
   if { [ llength $listNEW ] == 1 } {
@@ -976,7 +972,7 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
   # export options
   $w add separator
   if { [ llength $listEXP ] == 1 } {
-    $w add command -label [ mc "Export %s" [ lindex $listEXP 0 ] ] \
+    $w add command -label [ mc "Export %s" [ lindex [ lindex $listEXP 0 ] 0 ] ] \
         -command [ list ::TolPkgGUI::ExportPackageVersion [ lindex $listEXP 0 ] ]
   } elseif { [ llength $listEXP ] > 1 } {
     $w add command -label [ mc "Export selected" ] \
