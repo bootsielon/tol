@@ -1314,7 +1314,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatStationaryValue::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = Pol(Arg(1)).StationaryValue(BFALSE);
+  contens_ = Pol(Arg(1)).StationaryValue(BTRUE);
 }
 
 
