@@ -107,18 +107,31 @@ Real DoRequirements(Set packages)
 Text _.autodoc.member.LocalLastCompatible = 
 "Devuelve la última versión de un paquete disponible localmente que es "
 "compatible con la versión actual de TOL.";
-Text LocalLastCompatible(Text package)
+Text LocalLastCompatible(Text package_)
 //////////////////////////////////////////////////////////////////////////////
 {
+  Set tok  = Tokenizer(package_,".");
+  Real tokCard = Card(tok);
+  Real endAtPoint = TextEndAt(package_,".");
+  Text package = Case(
+    tokCard==1,package_+".",
+    tokCard==4,tok[1]+"."+tok[2]+"."+tok[3],
+    endAtPoint,package_,
+    1==1,      package_+".");
   Real _trace("LocalLastCompatible", "Begin", 1);
+  Real _trace("LocalLastCompatible", "package_='"<<package_+"'", 5);
+  Real _trace("LocalLastCompatible", "tok={"<<tok+"}", 5);
+  Real _trace("LocalLastCompatible", "tokCard="<<tokCard, 5);
+  Real _trace("LocalLastCompatible", "endAtPoint="<<endAtPoint, 5);
+  Real _trace("LocalLastCompatible", "package='"<<package+"'", 1);
   Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
   Text vsi.path = _.localRoot+"/VersSyncInfo.oza";
   Real If(!FileExist(vsi.path), RemoteUpdateVersSyncInfo(false));
   Set vsi = If(!FileExist(vsi.path), Copy(Empty), { Include(vsi.path) });
   Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
   {
-  //WriteLn("_trace LocalLastCompatible 2 checking version ="<<pkgNamVer);
-    Real ok1 = TextBeginWith(pkgNamVer, package+".");
+    WriteLn("_trace LocalLastCompatible 2 checking version ="<<pkgNamVer);
+    Real ok1 = TextBeginWith(pkgNamVer, package);
     If(!ok1, False,
     {
       Real idx = FindIndexByName(vsi, pkgNamVer);
