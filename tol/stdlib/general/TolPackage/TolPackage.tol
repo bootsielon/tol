@@ -19,7 +19,8 @@ Text _.localRoot =
 
 #Embed "common.tol";
 #Embed "client.tol";
-#Embed "server.tol"
+#Embed "server.tol";
+#Embed "builder.tol"
 
 ]];
 
