@@ -119,4 +119,123 @@ Set GetDeepDependencies(Text packageName, Real specificVersion)
     });
     Unique(SetConcat(aux))
   }) 
-}
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.PackageInfo.Extract = 
+"Extrae la información documental de un paquete.";
+Set PackageInfo.Extract(NameBlock pkg)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Set info = [[
+    Text _.autodoc.name            = pkg::_.autodoc.name;
+    Text _.autodoc.brief           = pkg::_.autodoc.brief;
+    Text _.autodoc.description     = pkg::_.autodoc.description;
+    Text _.autodoc.url             = pkg::_.autodoc.url;
+    Set  _.autodoc.keys            = pkg::_.autodoc.keys;
+    Set  _.autodoc.authors         = pkg::_.autodoc.authors;
+    Text _.autodoc.minTolVersion   = pkg::_.autodoc.minTolVersion;
+    Text _.autodoc.maxTolVersion   = pkg::_.autodoc.maxTolVersion;
+    Real _.autodoc.version.high    = pkg::_.autodoc.version.high;
+    Real _.autodoc.version.low     = pkg::_.autodoc.version.low;
+    Date _.autodoc.releaseDate     = pkg::_.autodoc.releaseDate;
+    Set  _.autodoc.dependencies    = pkg::_.autodoc.dependencies;
+    Set  _.autodoc.nonTolResources = pkg::_.autodoc.nonTolResources;
+    Text _.autodoc.versionControl  = pkg::_.autodoc.versionControl;
+    Text _.autodoc.extra_info      = pkg::_.autodoc.extra_info
+  ]];
+  Real SetIndexByName(info);
+  info
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.PackageInfo.AutoFill = 
+"Rellena automaticamente algunos campos de información documental del "
+"paquete añadiendo los miembros que falten y cambiando su valor si es "
+"necesario.";
+Set PackageInfo.AutoFill(NameBlock pkg, Date releaseDate)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text name = Name(pkg);
+  Text name.version = name+"."<<
+    pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
+  Set dep = TolPackage::GetDeepDependencies(name, True);
+
+  Real If(!ObjectExist("Text", "pkg::_.autodoc.name"),
+  {
+    AddMember(pkg,{Text _.autodoc.name = name })
+  },
+  {
+    Text pkg::_.autodoc.name := name;
+    True
+  });
+  Real If(!ObjectExist("Set", "pkg::_.autodoc.dependencies"),
+  {
+    AddMember(pkg,{Set _.autodoc.dependencies = dep })
+  },
+  {
+    Set pkg::_.autodoc.dependencies := dep;
+    True
+  });
+  Real If(!ObjectExist("Date","pkg::_.autodoc.releaseDate"),
+  {
+    Real AddMember(pkg,{Date _.autodoc.releaseDate = releaseDate})
+  },
+  {
+    Date pkg::_.autodoc.releaseDate := releaseDate;
+    True
+  });
+  Real If(!ObjectExist("Set", "pkg::_.autodoc.authors"),
+  {
+    AddMember(pkg,{Set _.autodoc.authors = Copy(Empty) })
+  });
+  Real If(!ObjectExist("Set", "pkg::_.autodoc.keys"),
+  {
+    AddMember(pkg,{Set _.autodoc.keys = Copy(Empty) })
+  });
+  Real If(!ObjectExist("Set", "pkg::_.autodoc.nonTolResources"),
+  {
+    AddMember(pkg,{Set _.autodoc.nonTolResources = Copy(Empty) })
+  });
+  Real If(!ObjectExist("Text", "pkg::_.autodoc.versionControl"),
+  {
+    AddMember(pkg,{Text _.autodoc.versionControl = "" })
+  });
+  Real If(!ObjectExist("Text", "pkg::_.autodoc.maxTolVersion"),
+  {
+    Real AddMember(pkg,{Text _.autodoc.maxTolVersion = "v999999999999999999" })
+  });
+  Real If(!ObjectExist("Text", "pkg::_.autodoc.extra_info"),
+  {
+    Real AddMember(pkg,{Text _.autodoc.extra_info = "" })
+  });
+  PackageInfo.Extract(pkg)
+};
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.PackageInfo.Build = 
+"Builds the info.oza file with documental information about a loaded "
+"package.";
+Real PackageInfo.Build(NameBlock pkg, Text dirPath, Date releaseDate_)    
+//////////////////////////////////////////////////////////////////////////////
+{
+  Date releaseDate = Date If(""<<releaseDate_!="Unknown",
+  {
+    releaseDate_
+  },
+  {
+    Text name = Name(pkg);
+    Text name.version = name+"."<<
+     pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
+    Date gmt = Copy(NowGmt);
+    Date loc = Copy(Now);
+    Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
+    Text oza = dirPath+name.version+".oza";
+    Date local = FileTime(oza);
+    Succ(local,S(0),lag)
+  });
+  Set info = PackageInfo.AutoFill(pkg,releaseDate);
+  Real OSDirMake(dirPath);
+  Real Ois.Store(info,dirPath+"info.oza")
+};
+

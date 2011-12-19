@@ -95,6 +95,7 @@ Text SqlFormatSetOfText(Set set)
 };
 
 
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.BuildPackage = 
 "Construye el archivo comprimido correspondiente a un paquete TOL a partir "
@@ -113,20 +114,21 @@ Text BuildPackage(
   Real removeDir)    //Si es cierto se borra el directorio descomprimido
 //////////////////////////////////////////////////////////////////////////////
 {
+  Date release.gmt = Copy(NowGmt);
   Text _MID = "[BuildPackage] ";
   WriteLn(_MID+sourceRoot+name+" -> "+destination);
   Set pkgCnt = Eval("Set IncludeTOL(\""+
      sourceRoot+name+"/"+name+".tol\",True)");
   NameBlock pkg = pkgCnt[1];
-  Text name.version = TolPackage::GetCurrentNameVersion(name,True);
-  Set dependencies = TolPackage::GetDeepDependencies(name, True);
-  Set nonTolResources=If(!ObjectExist("Set",name+"::_.autodoc.nonTolResources"),
-    Copy(Empty),pkg::_.autodoc.nonTolResources);
-
+  Text name.version = name+"."<<
+    pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
   Text ppRoot_ = destination+name.version;
   Text ppRoot = ppRoot_+"/";
-  Real Ois.Store(pkgCnt,ppRoot+name.version+".oza");
+  Real TolPackage::PackageInfo.Build(pkg,ppRoot,release.gmt);
+  Set nonTolResources = pkg::_.autodoc.nonTolResources;
+
   Real OSDirMake(ppRoot);
+  Real Ois.Store(pkgCnt,ppRoot+name.version+".oza");
 
   Real cleanResource(Text dest)
   {
@@ -142,6 +144,7 @@ Text BuildPackage(
     });
     True
   };
+
   Real processResourceText(Text resource)
   {
     Text orig = sourceRoot+"/"+name+"/"+resource;
@@ -163,9 +166,7 @@ Text BuildPackage(
     WriteLn(_MID+"Processing resource "+gra+" "<<res);
     Eval("processResource"+gra+"(res)")
   });
-  Text ppr = ReplaceSlash(ppRoot_);
-  Set dep = TolPackage::GetDeepDependencies(name, True);
-  
+  Text ppr = ReplaceSlash(ppRoot_); 
   Real PackArchive::PackFull("ZipArchive", ppr, removeDir);
   ppRoot_+".zip"
 };
@@ -189,12 +190,6 @@ Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
   Real PackArchive::UnpackFull("ZipArchive",root+pkg.name,False);
   Text oza = root+pkg.name+"/"+pkg.name+".oza";
   Set pkgCnt = Include(oza);
-  Date gmt = Copy(NowGmt);
-  Date loc = Copy(Now);
-  Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
-  Date release.loc = FileTime(oza);
-  Date release.gmt = Succ(release.loc,S(0),lag);
-  
   NameBlock pkg = pkgCnt[1];
   Text name = Name(pkgCnt[1]);
   Real If(pkg::_.autodoc.version.high!=nu_version_high,
@@ -233,28 +228,19 @@ Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
     False
   },
   {
-    Set dep = TolPackage::GetDeepDependencies(name, True);
-    Set aut = If(!ObjectExist("Set","pkg::_.autodoc.authors"),
-      Copy(Empty),
-      pkg::_.autodoc.authors);
-    Set key = If(!ObjectExist("Set","pkg::_.autodoc.keys"),
-      Copy(Empty),
-      pkg::_.autodoc.keys);
-    Set res = If(!ObjectExist("Set","pkg::_.autodoc.nonTolResources"),
-      Copy(Empty),
-      pkg::_.autodoc.nonTolResources);
-    Text verCnt = If(!ObjectExist("Text","pkg::_.autodoc.versionControl"),"",
-      ReplaceTable(pkg::_.autodoc.versionControl,[[
+    Set dep = pkg::_.autodoc.dependencies;
+    Set aut = pkg::_.autodoc.authors;
+    Set key = pkg::_.autodoc.keys;
+    Set res = pkg::_.autodoc.nonTolResources;
+    Text verCnt = ReplaceTable(pkg::_.autodoc.versionControl,[[
       [["\n","<BR>"]],
       [["'","\""]] ,
-      [[";",","]] ]]));
+      [[";",","]] ]]);
     Text bl_contents = EncodeBase64FromFile(pkg.path.zip);
     Real nu_bytes = FileBytes(pkg.path.zip);
     Real id_format = 1;
-    Text te_max_tol_version = "v999999999999999999";
+    Text te_max_tol_version = pkg::_.autodoc.maxTolVersion;
     Text te_extra_info = "";
-    Text If(ObjectExist("Text", "pkg::_.autodoc.maxTolVersion"),
-      te_max_tol_version := pkg::_.autodoc.maxTolVersion);
   //Text exist.query = 
     Text insert.query = "
     INSERT INTO package_f_contents(
@@ -273,7 +259,7 @@ Real UploadPackage(NameBlock repository.db, Text pkg.path.zip)
      "'"<<TolPackage::Server::SqlFormatSetOfText(pkg::_.autodoc.keys)+"', \n"+
      "'"<<TolPackage::Server::SqlFormatSetOfText(pkg::_.autodoc.authors)+"', \n"+
      "'"<<pkg::_.autodoc.minTolVersion+"', \n"+
-     "'"<<FormatDate(release.gmt,"%c%Y-%m-%d %h:%i:%s")+"', \n"+
+     "'"<<FormatDate(pkg::_.autodoc.releaseDate,"%c%Y-%m-%d %h:%i:%s")+"', \n"+
      "'"<<TolPackage::Server::SqlFormatSetOfText(dep)+"', \n"+
      "'"<<TolPackage::Server::FormatSet(res)+"', \n"+
      "E'"<<verCnt+"', \n"+

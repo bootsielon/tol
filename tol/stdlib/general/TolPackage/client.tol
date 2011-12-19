@@ -103,6 +103,23 @@ Real DoRequirements(Set packages)
   True
 };
 
+
+//////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalInfo = 
+"Devuelve la información local disponible acerca de un paquete.";
+Set LocalInfo(Text name.version)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text root = TolPackage::Client::_.localRoot+"/"+name.version+"/";
+  Text info.path=root+"info.oza";
+  Real If(!OSFilExist(info.path), 
+  { 
+    Set pkgCnt = Ois.Load(root+name.version+".oza")[1];
+    TolPackage::PackageInfo.Build(pkgCnt[1], root, UnknownDate)
+  });
+  Ois.Load(info.path)[1]
+};
+
 //////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.LocalLastCompatible = 
 "Devuelve la última versión de un paquete disponible localmente que es "
@@ -125,27 +142,17 @@ Text LocalLastCompatible(Text package_)
   Real _trace("LocalLastCompatible", "endAtPoint="<<endAtPoint, 5);
   Real _trace("LocalLastCompatible", "package='"<<package+"'", 1);
   Set pkgLst = GetDir(TolPackage::Client::_.localRoot)[2];
-  Text vsi.path = _.localRoot+"/VersSyncInfo.oza";
-  Real If(!FileExist(vsi.path), RemoteUpdateVersSyncInfo(false));
-  Set vsi = If(!FileExist(vsi.path), Copy(Empty), { Include(vsi.path) });
   Set pkgSel = Select(pkgLst,Real(Text pkgNamVer)
   {
-    WriteLn("_trace LocalLastCompatible 2 checking version ="<<pkgNamVer);
+    Real _trace("LocalLastCompatible", "checking version ="<<pkgNamVer, 5);
     Real ok1 = TextBeginWith(pkgNamVer, package);
     If(!ok1, False,
     {
-      Real idx = FindIndexByName(vsi, pkgNamVer);
-      If(idx<=0, True,
-      {
-        Real ok2 = And(
-         Compare.VersionString(vsi[idx]->te_min_tol_version,TolPackage::_.currentTolVersion)<=0,
-         Compare.VersionString(vsi[idx]->te_max_tol_version,TolPackage::_.currentTolVersion)>=0);
-      //WriteLn("_trace LocalLastCompatible 3 min="<<vsi[idx]->te_min_tol_version);
-      //WriteLn("_trace LocalLastCompatible 4 cur="<<TolPackage::_.currentTolVersion);
-      //WriteLn("_trace LocalLastCompatible 5 max="<<vsi[idx]->te_max_tol_version);
-      //WriteLn("_trace LocalLastCompatible 6 ok2="<<ok2);
+      Set info = TolPackage::Client::LocalInfo(pkgNamVer);
+      Real ok2 = And(
+       Compare.VersionString(info::_.autodoc.minTolVersion,TolPackage::_.currentTolVersion)<=0,
+       Compare.VersionString(info::_.autodoc.maxTolVersion,TolPackage::_.currentTolVersion)>=0);
         ok2
-      }) 
     })
   });
   Text last = If(!Card(pkgSel),"",
@@ -197,9 +204,13 @@ Real LocalInstallPackage(Text pkg.path.zip)
 //////////////////////////////////////////////////////////////////////////////
 {
   Real _trace("LocalInstallPackage", "Begin", 1);
+  Real _trace("LocalInstallPackage", "pkg.path.zip='"+pkg.path.zip+"'", 5);
   Real OSFilCopy(pkg.path.zip, _.localRoot);
   Text pkg.name.zip = GetFileName(pkg.path.zip);
+  Real _trace("LocalInstallPackage", "pkg.name.zip='"+pkg.name.zip+"'", 5);
   Text pkg.name = Replace(pkg.name.zip,".zip","");
+  Real _trace("LocalInstallPackage", "pkg.name='"+pkg.name+"'", 5);
+  Real OSDirRemove(_.localRoot+pkg.name);
   Real PackArchive::UnpackFull("ZipArchive",_.localRoot+pkg.name,True);
   Real _trace("LocalInstallPackage", "End", 1);
   FileExist(_.localRoot+pkg.name+"/"+pkg.name+".oza")
@@ -651,13 +662,8 @@ Real RemoteUpdateVersSyncInfo(Real void)
       Real found = FindIndexByName(_.versSyncInfo, pkg);
       Date If(found, 
       {
-        Date gmt = Copy(NowGmt);
-        Date loc = Copy(Now);
-        Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
-        Text oza = TolPackage::Client::_.localRoot+pkg+"/"+pkg+".oza";
-        Date release.loc = FileTime(oza);
-        Date release.gmt = Succ(release.loc,S(0),lag);
-        _.versSyncInfo[found]->dh_release_date_local := release.gmt
+        Set info = LocalInfo(pkg);
+        _.versSyncInfo[found]->dh_release_date_local := info::_.autodoc.releaseDate
       });
       True
     });
@@ -702,23 +708,24 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
         Set ord = Sort(cls,Real ev.sort(Text a, Text b) { 
           Compare.VersionString(b, a) });
         Text ver = ord[1];
-        Date gmt = Copy(NowGmt);
-        Date loc = Copy(Now);
-        Real lag = Round(DateDif(S(0),loc,gmt)/10)*10;
-        Text oza = TolPackage::Client::_.localRoot+ver+"/"+ver+".oza";
-        Date release.loc = FileTime(oza);
-        Date release.gmt = Succ(release.loc,S(0),lag);
-        Date _.packSyncInfo[found]->co_last_version_local := ver;
-        Date _.packSyncInfo[found]->dh_release_date_local := release.gmt;
+        Set info = LocalInfo(ver);
+        Date _.packSyncInfo[found]->co_last_version_local := 
+          pkg+"."<<info::_.autodoc.version.high+"."<<info::_.autodoc.version.low;
+        Date _.packSyncInfo[found]->dh_release_date_local := info::_.autodoc.releaseDate;
         True
       });
       True
     });
     Set _.packForUpdate := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
     {
-      Real need = And(pkg->co_last_version_local != "",
-          pkg->co_last_version_local == pkg->co_last_version_remote,  
-          pkg->dh_release_date_local <  pkg->dh_release_date_remote);
+      Real _trace("RemoteUpdateVersSyncInfo", "pkg="<<pkg, 5);
+      Real need = Case(
+        pkg->co_last_version_local == "", False,
+        pkg->co_last_version_local != pkg->co_last_version_remote, False,
+        pkg->dh_release_date_local == TheBegin, False,
+        DateDif(S(0),pkg->dh_release_date_remote,pkg->dh_release_date_local) <= 2, False,
+        1==1, True);
+      Real _trace("RemoteUpdateVersSyncInfo", "need="<<need, 5);
       If(And(showWarnings,need),
       {
         WriteLn("  Local package "<<pkg->co_last_version_local+
