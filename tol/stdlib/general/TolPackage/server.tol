@@ -124,7 +124,7 @@ Text BuildPackage(
     pkg::_.autodoc.version.high+"."<<pkg::_.autodoc.version.low;
   Text ppRoot_ = destination+name.version;
   Text ppRoot = ppRoot_+"/";
-  Real TolPackage::PackageInfo.Build(pkg,ppRoot,release.gmt);
+  Real TolPackage::PackageInfo.Build(pkgCnt[1],ppRoot,release.gmt);
   Set nonTolResources = pkg::_.autodoc.nonTolResources;
 
   Real OSDirMake(ppRoot);

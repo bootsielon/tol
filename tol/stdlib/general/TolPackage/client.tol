@@ -683,7 +683,7 @@ Text _.autodoc.member.RemoteUpdatePackSyncInfo =
 Real RemoteUpdatePackSyncInfo(Real showWarnings)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Real _trace("RemoteUpdateVersSyncInfo", "Begin", 1);
+  Real _trace("RemoteUpdatePackSyncInfo", "Begin", 1);
   Text _MID = "[RemoteUpdatePackSyncInfo] ";
   Real ok = If(!ChecktolProjectPing(?), 0, 
   {
@@ -718,14 +718,14 @@ Real RemoteUpdatePackSyncInfo(Real showWarnings)
     });
     Set _.packForUpdate := Select(_.packSyncInfo, Real(TolPackage::@PackageSynchro pkg)
     {
-      Real _trace("RemoteUpdateVersSyncInfo", "pkg="<<pkg, 5);
+      Real _trace("RemoteUpdatePackSyncInfo", "pkg="<<pkg, 5);
       Real need = Case(
         pkg->co_last_version_local == "", False,
         pkg->co_last_version_local != pkg->co_last_version_remote, False,
         pkg->dh_release_date_local == TheBegin, False,
         DateDif(S(0),pkg->dh_release_date_remote,pkg->dh_release_date_local) <= 2, False,
         1==1, True);
-      Real _trace("RemoteUpdateVersSyncInfo", "need="<<need, 5);
+      Real _trace("RemoteUpdatePackSyncInfo", "need="<<need, 5);
       If(And(showWarnings,need),
       {
         WriteLn("  Local package "<<pkg->co_last_version_local+
