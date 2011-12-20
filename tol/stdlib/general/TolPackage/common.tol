@@ -106,11 +106,13 @@ Set GetDeepDependencies(Text packageName, Real specificVersion)
 {
 //WriteLn("TRACE GetDeepDependencies 1");
   NameBlock p = Eval(packageName);
+  Set dep = If(!ObjectExist("Set","p::_.autodoc.dependencies"),Empty,
+   p::_.autodoc.dependencies); 
 //WriteLn("TRACE GetDeepDependencies 2");
 //WriteLn("TRACE GetDeepDependencies 3");
-  If(!Card(p::_.autodoc.dependencies), Copy(Empty),
+  If(!Card(dep), Copy(Empty),
   {
-    Set aux=EvalSet(p::_.autodoc.dependencies, Set(Text r)
+    Set aux=EvalSet(dep, Set(Text r)
     {
       Text name.version = 
         TolPackage::GetCurrentNameVersion(r, specificVersion);
