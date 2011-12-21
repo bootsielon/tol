@@ -2348,10 +2348,13 @@ proc ::TolInspector::PostVariable { x y } {
             }
             NameBlock {
               # entradas desde MenuManager
+              if 0 {
               TolGui_InsertEntriesFromMenuManager \
                   $data_menu(main) \
                   $options_selected(NameBlock)
+              }
               # entradas desde @MenuDesc
+              # @MenuDesc sera reemplazado, ver https://www.tol-project.org/ticket/1372
               set sel_length [ llength $options_selected(NameBlock) ]
               if { $sel_length } {
                 set idx_current [ lsearch $vars_selected $node_act ]
@@ -2477,6 +2480,13 @@ proc ::TolInspector::PostVariable { x y } {
               }            
             }
           } ;# end del switch
+          # inserto las opciones definidas en MenuManager
+          if { $grammar ne "Anything" } {
+            TolGui_InsertEntriesFromMenuManager \
+                $data_menu(main) \
+                $options_selected($grammar)
+          }
+
           $data_menu(main) add separator
           puts "grammar = $grammar"
           $data_menu(main) add cascade -label [mc "Functions"] \
