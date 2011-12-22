@@ -791,6 +791,7 @@ const BText& BNameBlock::LocalName() const
     }
   }
   if(addToSet) { set_.AddElement(obj); }
+  return(true);
 }  
 
 //--------------------------------------------------------------------
