@@ -1789,3 +1789,40 @@ void BTxtFullName::CalcContens()
 }
 
 
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatAddMember);
+DefExtOpr(1, BDatAddMember, "AddMember", 2, 2, "NameBlock Anything",
+	  "(NameBlock nb, Anything member)",
+	  I2("Adds a new member to a NameBlock. You cannot add an object "
+       "withoput a valid and non previously used name inside the "
+       "NameBlock.\n"
+       "To avoid problems it is best to create the new member in a "
+       "local environment:\n"
+       "  Real AddMember(nb,{Real _.newMember=2}); \n"
+       "If used on an instance of a class, the new member will "
+       "only affect that instance.\n"
+       "Returns True if success. Otherwise, the consequences could "
+       "be unpredictable, so it is not advisable to use this "
+       "function except for expert users and for cause.",
+	     "Añade un nuevo miembro a un NameBlock. No se puede añadir "
+       "un objeto sin un nombre válido y no usado previamente "
+       "dentro del NameBlock.\n"
+       "Para evitar problemas es mejor crear el nuevo miembro en "
+       "un entorno local:\n"
+       "  Real AddMember(nb,{Real _.newMember=2}); \n"
+       "Si se utiliza sobre una instancia de una clase el nuevo "
+       "miembro sólo afectará a esa instancia.\n" 
+       "Devuelve True en caso de éxito. En caso contrario las "
+       "consecuencias son imprevisibles, por lo que no se aconseja "
+       "el uso de esta función salvo para usuarios expertos y con "
+       "causa justificada. "),
+	  BOperClassify::System_);
+//--------------------------------------------------------------------
+void BDatAddMember::CalcContens()
+//--------------------------------------------------------------------
+{
+  BNameBlock& nb = ((BUserNameBlock*)(Arg(1)))->Contens();
+  contens_ = nb.AddElement(Arg(2), true, false);  
+}
+
+
