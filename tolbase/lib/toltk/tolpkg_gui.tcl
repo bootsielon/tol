@@ -11,6 +11,11 @@ namespace eval ::TolPkgGUI {
   variable cwd [ file normalize [ file dir [ info script ] ] ]
 
   variable urlmap
+
+  array set urlmap {
+    http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php OTAN
+    http://packages.localbayes.es/BayesPrivateTolPackages/repository.php BPTP
+  }
   
   variable packSyncInfo
   variable versSyncInfo
@@ -562,62 +567,6 @@ namespace eval ::TolPkgGUI {
 
 source [ file join $::TolPkgGUI::cwd tolpkg.tcl ]
 
-proc ::TolPkgGUI::FillRepositories { T } {
-  variable urlmap
-
-  $T configure -table yes -columns {
-    { text -tags ID -label "Identifier" }
-    { text -tags SHORT -label "Short Name" }
-    { text -tags Name -label "Name" }
-    { text -tags TYPE -label "Type" }
-    { text -tags DESC -label Description }
-    { text -tags DESC -label Authors }
-    { text -tags URL -label Url }
-  }
-  foreach r [ ::TolPkg::GetKnownRepositories ] {
-    set rinfo [ list ]
-    set rinfo_ [ ::TolPkg::GetRepositoryInfo $r ]
-    set urlmap($r) [ lindex $rinfo_ 0 ]
-    foreach i $rinfo_ {
-      lappend rinfo [ list $i ]
-    }
-    lappend rinfo [ list $r ]
-    $T insert $rinfo
-  }
-}
-
-proc ::TolPkgGUI::FillPackages { T } {
-  variable urlmap
-
-  $T configure -table yes -filter yes -columns {
-    { {image text} -tags NAME -label "Name" }
-    { text -tags LASTREMOTE -label "Installed" }
-    { text -tags DESC -label "Description" }
-    { text -tags TOLVER -label "Minimun TOL" }
-    { text -tags LASTREMOTE -label "Last Available" }
-    { text -tags REPO -label "Repository" }
-  }
-  set pkginfo [ list ]
-  foreach i [ ::TolPkg::GetPackagesInfo ] {
-    set available [ lindex $i 6 ]
-    set installed [ lindex $i 7 ]
-    if { $installed eq "" } {
-      set img "package_down_16"
-    } else {
-      set img [ lindex {cdr_tick_16 software_update_16} \
-                    [ string compare $available $installed ] ]
-    }
-    set reg [ list \
-                  [ list $img [ lindex $i 1 ] ] \
-                  [list [ lindex $i 7 ] ] \
-                  [list [ lindex $i 2 ] ] \
-                  [list [ lindex $i 4 ] ] \
-                  [list [ lindex $i 6 ] ] \
-                  $urlmap([lindex $i 0]) ]
-    $T insert $reg
-  }
-}
-
 proc ::TolPkgGUI::CmpVersion { v1 v2 } {
   foreach { v11 v12 } { {} {} } break
   foreach { n1 v11 v12 } [ split $v1 . ] break
@@ -658,7 +607,8 @@ proc ::TolPkgGUI::ReadLocalVersionInfo { } {
   }
 }
 
-proc ::TolPkgGUI::GetPkgNode { T repo p } {
+proc ::TolPkgGUI::GetPkgNode { T url p } {
+  variable urlmap
   variable treeParents
   variable nodesInfo
   variable packSyncInfo
@@ -666,12 +616,9 @@ proc ::TolPkgGUI::GetPkgNode { T repo p } {
   if { [ info exists treeParents($p) ] } {
     return treeParents($p)
   }
-  if { ![ info exists treeParents($repo) ] } {
-    set treeParents($repo) [ $T insert [ list [ list database_1_16 $repo ] "" ] \
-                                    -at end -relative root \
-                                    -button auto ]
-    set nodesInfo($treeParents($repo),type) repo
-  }
+  set url [ expr { [ string range $url end-13 end ] eq "repository.php" ?
+                   $url : "${url}repository.php" } ]
+  set repo $urlmap($url)
   if { [ info exists packSyncInfo($p) ] } {
     array set packSync $packSyncInfo($p)
     set lastlocal $packSync(lastlocal)
@@ -699,10 +646,10 @@ proc ::TolPkgGUI::GetPkgNode { T repo p } {
     set nodeStatus unknown
     set statusLabel "unknown"
  }
-  set treeParents($p) [ $T insert [ list [ list $img $p ] [ list $statusLabel ] ] \
-                            -at end -relative $treeParents($repo) \
-                            -button auto ]
-  set nodesInfo($treeParents($p),type) pkg
+  set treeParents($p) [ $T insert [ list [ list $img $p ] [ list $statusLabel ] \
+                                        [ list $repo ] ] -at end -relative root \
+                                        -button auto ]
+                        set nodesInfo($treeParents($p),type) pkg
   set nodesInfo($treeParents($p),status) $nodeStatus
 }
 
@@ -723,6 +670,7 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
   $T configure -table no -filter yes -columns {
     { {image text} -tags NAME -label "Name" }
     { {text} -tags STATUS -label "Status" }
+    { {text} -tags REPO -label "Repository" }
   }
 
   # insert package information
@@ -790,124 +738,24 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
   }
 }
 
-proc ::TolPkgGUI::CreateToolBar { page } {
-  set f [ ::TolPkgGUI::GetToolbar $page ]
-  frame $f
-  grid $f -row 0 -column 0 -sticky "snew"
-}
+proc ::TolPkgGUI::CreateTreeWidget { t } {
+  variable tree $t
 
-proc ::TolPkgGUI::AddToolButton { page name args } {
-  set f [ ::TolPkgGUI::GetToolbar $page ]
-  set c [ llength [ grid slaves $f ] ]
-  set w [ eval button $f.b$name $args ]
-  grid columnconfigure $f $c -weight 0 -uniform buttons
-  grid $w -row 0 -column $c -sticky snew
-  incr c
-  grid columnconfigure $f $c -weight 1
-}
-
-proc ::TolPkgGUI::GetToolbar { PageOrWin } {
-  variable widgets
-
-  if { [ winfo exists $PageOrWin ] } {
-    set f $PageOrWin
-  } else {
-    set f [ $widgets(notebook) getframe $PageOrWin ]
-  }
-  return $f.tbar
-}
-
-proc ::TolPkgGUI::CreateTree { page } {
-  set T [ GetTree $page ]
-  wtree $T
-  grid $T -row 1 -column 0 -sticky "snew"
-  set f [ winfo parent $T ]
+  wtree $t
+  grid $t -row 1 -column 0 -sticky "snew"
+  set f [ winfo parent $t ]
   grid rowconfigure $f 1 -weight 1
   grid columnconfigure $f 0 -weight 1
 }
 
-proc ::TolPkgGUI::GetTree { PageOrWin } {
-  variable widgets
-  
-  if { [ winfo exist $PageOrWin ] } {
-    set f $PageOrWin
-  } else {
-    set f [ $widgets(notebook) getframe $page ]
-  }
-  return $f.tree
-}
-
-proc ::TolPkgGUI::CreateRepositoryTab { } {
+proc ::TolPkgGUI::CreateTree { t } {
   variable widgets
 
-  $widgets(notebook) insert end repos -text [ msgcat::mc Repositories ]
+  CreateTreeWidget $t
 
-  CreateToolBar repos
-
-  AddToolButton repos refresh \
-      -image database_refresh_32 -text  [ msgcat::mc "Refresh" ] -compound top \
-      -command ::TolPkgGUI::Refresh
-  AddToolButton repos addrepo \
-      -image database_add_32 -text  [ msgcat::mc "Add Repository" ] -compound top
-
-  AddToolButton repos checkrepo \
-      -image check_connection_32 -text  [ msgcat::mc "Check Selected" ] -compound top
-
-  CreateTree repos
-
-  FillRepositories [ GetTree repos ]
-}
-
-proc ::TolPkgGUI::CreatePackagesTab { } {
-  variable widgets
-
-  $widgets(notebook) insert end pkgs -text [ msgcat::mc Packages ]
-  
-  CreateToolBar pkgs
-
-  AddToolButton pkgs update \
-      -image product_update_32 -text [ msgcat::mc "Update" ] -compound top
-  AddToolButton pkgs upgrade \
-      -image system_upgrade_32 -text [ msgcat::mc "Upgrade" ] -compound top
-  AddToolButton pkgs remove \
-      -image file_remove_32 -text [ msgcat::mc "Remove" ] -compound top
-  AddToolButton pkgs installzip \
-      -image install_zip_32 -text [ msgcat::mc "Install Zip" ] -compound top
-
-  CreateTree pkgs
-
-  FillPackages [ GetTree pkgs ]
-}
-
-proc ::TolPkgGUI::CreateTreeInfoTab { { t treeinfo } } {
-  variable widgets
-
-  #$widgets(notebook) insert end treeinfo -text [ msgcat::mc "Tree Info" ]
-  
-  CreateToolBar $t
-
-  if { 0 } {
-  AddToolButton $t refresh \
-      -image database_refresh_32 -text  [ msgcat::mc "Refresh" ] -compound top \
-      -command ::TolPkgGUI::Refresh
-
-  AddToolButton $t addrepo \
-      -image database_add_32 -text  [ msgcat::mc "Add Repository" ] -compound top
-
-  AddToolButton $t checkrepo \
-      -image check_connection_32 -text  [ msgcat::mc "Check Selected" ] -compound top
-
-  AddToolButton $t installzip \
-      -image install_zip_32 -text [ msgcat::mc "Install Zip" ] -compound top
-  }
-
-  CreateTree $t
-
-  FillTreeInfo [ GetTree $t ]
-  set T [ GetTree $t ]
-  menu $T.cmenu -tearoff 0 \
-      -postcommand [ list ::TolPkgGUI::PostContextMenu $T $T.cmenu ]
-  $T configure -contextmenu $T.cmenu
+  menu $t.cmenu -tearoff 0 \
+      -postcommand [ list ::TolPkgGUI::PostContextMenu $t $t.cmenu ]
+  $t configure -contextmenu $t.cmenu
 }
 
 proc ::TolPkgGUI::PostContextMenu { T w } {
@@ -1037,13 +885,13 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
   # export options
   $w add separator
   if { [ llength $listEXP ] == 1 } {
-    $w add command -label [ mc "Export %s" [ lindex [ lindex $listEXP 0 ] 0 ] ] \
+    $w add command -label [ mc "Export %s" [ lindex [ lindex $listEXP 0 ] 0 ] ]... \
         -command [ list ::TolPkgGUI::ExportPackageVersion [ lindex $listEXP 0 ] ]
   } elseif { [ llength $listEXP ] > 1 } {
-    $w add command -label [ mc "Export selected" ] \
+    $w add command -label [ mc "Export selected" ]... \
         -command [ list ::TolPkgGUI::ExportPackageVersion $listEXP ]
   }  
-  $w add command -label [ mc "Export all" ] \
+  $w add command -label [ mc "Export all" ]... \
       -command [ list ::TolPkgGUI::ExportPackageVersion ]
   # SyncInfo import/export
   $w add separator
@@ -1061,7 +909,11 @@ proc ::TolPkgGUI::CheckRepository { repo length } {
 }
 
 proc ::TolPkgGUI::SyncServers { } {
+  variable tree
+  update
   ::TolPkg::UpdateRepositoryInfo
+  $tree item delete all
+  FillTreeInfo $tree
 }
 
 proc ::TolPkgGUI::InstallPackage { p } {
@@ -1096,71 +948,6 @@ proc ::TolPkgGUI::ExportPackageVersion { {p ""} } {
   
 }
 
-proc ::TolPkgGUI::Clear { } {
-  foreach t "repos pkgs" {
-    set T [ GetTree $t ]
-    $T item delete all
-  }
-}
-
-proc ::TolPkgGUI::Refresh { } {
-  return
-  # this must updated to new GUI
-  ::TolPkg::UpdateRepositoryInfo
-  Clear
-  FillRepositories [ GetTree repos ]
-  FillPackages [ GetTree pkgs ]
-}
-
-proc ::TolPkgGUI::Create_0 { parent } {
-  variable widgets
-
-  set w $parent
-
-  # create the tabwindow
-  
-  set nb [ NoteBook $w.nb ]
-  set widgets(notebook) $nb
-  
-  # repository tab
-  
-  #CreateRepositoryTab
-
-  # package tab
-
-  #CreatePackagesTab
-
-  # unified tab
-
-  CreateTreeInfoTab
-  
-  # gridding
-  
-  grid $w.nb -row 0 -column 0 -sticky snew
-  grid rowconfigure $w 0 -weight 1
-  grid columnconfigure $w 0 -weight 1
-
-  #$w.nb raise 0
-}
-
-proc ::TolPkgGUI::Create { parent } {
-  variable widgets
-
-  set w $parent
-
-
-  CreateTreeInfoTab $w
-  
-  return
-  # gridding
-  
-  grid $w.nb -row 0 -column 0 -sticky snew
-  grid rowconfigure $w 0 -weight 1
-  grid columnconfigure $w 0 -weight 1
-
-  #$w.nb raise 0
-}
-
 proc ::TolPkgGUI::Show { } {
   set w .tolpkg
 
@@ -1169,15 +956,15 @@ proc ::TolPkgGUI::Show { } {
   } else {
     toplevel $w
     wm state $w withdrawn
-    ::TolPkgGUI::Create $w
+    CreateTree $w.tree
+    FillTreeInfo $w.tree
     wm state $w normal
   }
 }
 
 proc ::TolPkgGUI::test { } {
-  destroy .t
-  toplevel .t
-  ::TolPkgGUI::Create .t
+  destroy .tolpkg
+  ::TolPkgGUI::Show
 }
 
 if { 0 } {
