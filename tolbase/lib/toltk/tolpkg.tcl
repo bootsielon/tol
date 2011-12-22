@@ -39,8 +39,11 @@ if { 0 } {
 proc ::TolPkg::GetPkgSyncInfo { } {
   set localRoot [ file normalize \
                       [ toltcl::eval { Text TolPackage::_.localRoot } ] ]
-  set ozaSyncInfo [ file join $localRoot "Client/PackSyncInfo.oza" ]
-  set tolScript [ string map [ list "%O" $ozaSyncInfo ] {
+  set oza [ file join $localRoot "Client/PackSyncInfo.oza" ]
+  if { ![ file exists $oza ] || ![ file readable $oza ] } {
+    return {}
+  }
+  set tolScript [ string map [ list "%O" $oza ] {
     Set { Ois.Load( "%O" )[1] }
   } ]
   # return a dictionary
@@ -77,8 +80,11 @@ if { 0 } {
 proc ::TolPkg::GetVersSyncInfo { } {
   set localRoot [ file normalize \
                       [ toltcl::eval { Text TolPackage::_.localRoot } ] ]
-  set ozaSyncInfo [ file join $localRoot "Client/VersSyncInfo.oza" ]
-  set tolScript [ string map [ list "%O" $ozaSyncInfo ] {
+  set oza [ file join $localRoot "Client/VersSyncInfo.oza" ]
+  if { ![ file exists $oza ] || ![ file readable $oza ] } {
+    return {}
+  }
+  set tolScript [ string map [ list "%O" $oza ] {
     Set { Ois.Load( "%O" )[1] }
   } ]
   # return a dictionary
@@ -108,12 +114,16 @@ proc ::TolPkg::GetLocalPackages { } {
   set dirs [ glob -tail -dir $clientRoot -types {d r} * ]
   set pkgsInfo {}
   foreach d $dirs {
-    set check [ file join $clientRoot $d ${d}.oza ]
-    if { [ file exists $check ] } {
-      lappend pkgsInfo [ GetPackageInfoFromOZA $check ]
-    }
+    lappend pkgsInfo [ list $d [ GetLocalPackageInfo $d ] ]
   }
   return $pkgsInfo
+}
+
+proc ::TolPkg::GetLocalPackageInfo { p } {
+  set tolScript [ string map [ list %p $p ] {
+    Set TolPackage::Client::LocalInfo( "%p" );
+  } ]
+  return [ lindex [ toltcl::eval $tolScript -named 1 ] 1 ]
 }
 
 proc ::TolPkg::GetPackageInfoFromOZA { oza } {

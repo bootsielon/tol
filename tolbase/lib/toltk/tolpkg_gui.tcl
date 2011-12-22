@@ -12,11 +12,12 @@ namespace eval ::TolPkgGUI {
 
   variable urlmap
   
-  variable localPackageInfo
+  variable packSyncInfo
+  variable versSyncInfo
   variable localVersionInfo
-  variable nodesInfo
+  variable localMostRecent
 
-  variable localSortedNames
+  variable nodesInfo
   variable treeParents
 
   if { ![ info exists localInfo ] } {
@@ -630,105 +631,161 @@ proc ::TolPkgGUI::CmpVersion { v1 v2 } {
   }
 }
 
-proc ::TolPkgGUI::FillTreeInfo { T } {
-  variable localPackageInfo
-  variable localVersionInfo
-  variable treeParents
-  variable nodesInfo
+proc ::TolPkgGUI::ReadPackSyncInfo { } {
+  variable packSyncInfo
 
-  $T configure -table no -filter yes -columns {
-    { {image text} -tags NAME -label "Name" }
-  }
-
+  array unset packSyncInfo
   foreach p [ ::TolPkg::GetPkgSyncInfo ] {
-    array set localPackageInfo $p
+    array set packSyncInfo $p
   }
-  array unset treeParents
-  array unset nodesInfo
-  # insert package information
-  foreach p [ array names localPackageInfo ] {
-    array set pkg $localPackageInfo($p)
-    set pkgRepo [ expr { [ string range $pkg(url) end-13 end ] eq "repository.php" ?
-                         $pkg(url) : "$pkg(url)repository.php" } ]
-    if { ![ info exists treeParents($p) ] } {
-      if { ![ info exists treeParents($pkgRepo) ] } {
-        set treeParents($pkgRepo) [ $T insert [ list [ list database_1_16 $pkgRepo ] ] \
-                                        -at end -relative root \
-                                        -button auto ]
-        set nodesInfo($treeParents($pkgRepo),type) repo
-      }
-      set lastremote $pkg(lastremote)
-      set lastlocal $pkg(lastlocal)
-      if { $lastlocal eq "" } {
-        set img "package_down_16"
-        set nodeStatus new
-      } else {
-        set idx [ CmpVersion $lastremote $lastlocal ]
-        if { $idx <= 0 } {
-          # could be -1 (because of date error)
-          set img "cdr_tick_16"
-          set nodeStatus ok
-        } else {
-          set img "software_update_16"
-          set nodeStatus upgrade
-        }
-      }
-      set treeParents($p) [ $T insert [ list [ list $img $p ] ] \
-                                -at end -relative $treeParents($pkgRepo) \
-                                -button auto ]
-      set nodesInfo($treeParents($p),type) pkg
-      set nodesInfo($treeParents($p),status) $nodeStatus
-    }
+}
+
+proc ::TolPkgGUI::ReadVersSyncInfo { } {
+  variable versSyncInfo
+
+  array unset versSyncInfo
+  foreach p [ ::TolPkg::GetVersSyncInfo ] {
+    array set versSyncInfo $p
   }
-  foreach pv [ ::TolPkg::GetVersSyncInfo ] {
+}
+
+proc ::TolPkgGUI::ReadLocalVersionInfo { } {
+  variable localVersionInfo
+
+  array unset localVersionInfo
+  foreach pv [ ::TolPkg::GetLocalPackages ] {
     array set localVersionInfo $pv
   }
-  set localVersionNames [ lsort -decreasing -command ::TolPkgGUI::CmpVersion \
-                              [ array names localVersionInfo ] ]
-  # insert version information
-  array unset pkg
-  foreach pv $localVersionNames {
-    array set pkg $localVersionInfo($pv)
-    set pkgRoot $pkg(name)
-    set pkgRepo [ expr { [ string range $pkg(url) end-13 end ] eq "repository.php" ?
-                         $pkg(url) : "$pkg(url)repository.php" } ]
-    if { ![ info exists treeParents($pkgRoot) ] } {
-      puts "package root '$pkgRoot' must be already created, creating ..."
-      if { ![ info exists treeParents($pkgRepo) ] } {
-        puts "repository root '$pkgRepo' must be already created, creating ..."
-        set treeParents($pkgRepo) [ $T insert [ list [ list database_1_16 $pkgRepo ] ] \
-                                        -at end -relative root -button auto ]
-        set nodesInfo($treeParents($pkgRepo),type) repo
-      }
-      set treeParents($pkgRoot) [ $T insert [ list [ list {} $pkgRoot ] ] \
-                                      -at end -relative $treeParents($pkgRepo) \
-                                      -button auto ]
-      set nodesInfo($treeParents($pkgRoot),type) pkg
-    }
-    set dateremote $pkg(dateremote)
-    set datelocal $pkg(datelocal)
-    if { $datelocal eq "TheBegin" } {
+}
+
+proc ::TolPkgGUI::GetPkgNode { T repo p } {
+  variable treeParents
+  variable nodesInfo
+  variable packSyncInfo
+
+  if { [ info exists treeParents($p) ] } {
+    return treeParents($p)
+  }
+  if { ![ info exists treeParents($repo) ] } {
+    set treeParents($repo) [ $T insert [ list [ list database_1_16 $repo ] "" ] \
+                                    -at end -relative root \
+                                    -button auto ]
+    set nodesInfo($treeParents($repo),type) repo
+  }
+  if { [ info exists packSyncInfo($p) ] } {
+    array set packSync $packSyncInfo($p)
+    set lastlocal $packSync(lastlocal)
+    set lastremote $packSync(lastremote)
+    if { $lastlocal eq "" } {
       set img "package_down_16"
       set nodeStatus new
+      set statusLabel "new ($lastremote)"
     } else {
-      set idx [ string compare $dateremote $datelocal ]
+      set idx [ CmpVersion $lastremote $lastlocal ]
       if { $idx <= 0 } {
         # could be -1 (because of date error)
         set img "cdr_tick_16"
         set nodeStatus ok
+        set statusLabel "ok"
       } else {
+        puts "$lastremote > $lastlocal"
         set img "software_update_16"
-        set nodeStatus update
+        set nodeStatus upgrade
+        set statusLabel "upgrade ($lastremote)"
       }
     }
-    set nid [ $T insert [ list [ list $img $pv ] ] \
+  } else {
+    set img ""
+    set nodeStatus unknown
+    set statusLabel "unknown"
+ }
+  set treeParents($p) [ $T insert [ list [ list $img $p ] [ list $statusLabel ] ] \
+                            -at end -relative $treeParents($repo) \
+                            -button auto ]
+  set nodesInfo($treeParents($p),type) pkg
+  set nodesInfo($treeParents($p),status) $nodeStatus
+}
+
+proc ::TolPkgGUI::FillTreeInfo { T } {
+  variable packSyncInfo
+  variable versSyncInfo
+  variable localVersionInfo
+  variable treeParents
+  variable nodesInfo
+  variable localMostRecent
+
+  array unset treeParents
+  array unset nodesInfo
+  ReadPackSyncInfo
+  ReadVersSyncInfo
+  ReadLocalVersionInfo
+
+  $T configure -table no -filter yes -columns {
+    { {image text} -tags NAME -label "Name" }
+    { {text} -tags STATUS -label "Status" }
+  }
+
+  # insert package information
+  foreach p [ lsort [ array names packSyncInfo ] ] {
+    array unset pkg
+    array set pkg $packSyncInfo($p)
+    set url $pkg(url)
+    set pkgRepo [ expr { [ string range $url end-13 end ] eq "repository.php" ?
+                         $url : "${url}repository.php" } ]
+    GetPkgNode $T $pkgRepo $p
+  }
+  
+  set localVersionNames [ lsort -decreasing -command ::TolPkgGUI::CmpVersion \
+                              [ array names localVersionInfo ] ]
+
+  array unset localMostRecent
+  # insert version information
+  foreach pv $localVersionNames {
+    array unset pkg
+    array set pkg $localVersionInfo($pv)
+    set pkgRoot [ lindex [ split $pv . ] 0 ]
+    set url $pkg(_.autodoc.url)
+    set pkgRepo [ expr { [ string range $url end-13 end ] eq "repository.php" ?
+                         $url : "${url}repository.php" } ]
+    GetPkgNode $T $pkgRepo $pkgRoot 
+
+    if { ![ info exists localMostRecent($pkgRoot) ] } {
+      # will be used in contextual menu
+      set localMostRecent($pkgRoot) $pv
+    }
+    if { [ info exists versSyncInfo($pv) ] } {
+      array set versSync $versSyncInfo($pv)
+      set dateremote $versSync(dateremote)
+      set datelocal $versSync(datelocal)
+      if { $datelocal eq "TheBegin" } {
+        set img "package_down_16"
+        set nodeStatus new
+        set statusLabel "new"
+      } else {
+        set idx [ string compare $dateremote $datelocal ]
+        if { $idx <= 0 } {
+          # could be -1 (because of date error)
+          set img "cdr_tick_16"
+          set nodeStatus ok
+          set statusLabel "ok"
+        } else {
+          set img "software_update_16"
+          set nodeStatus update
+          set statusLabel "outdated"
+        }
+      }
+    } else {
+      set img ""
+      set nodeStatus unknown
+    }
+    set nid [ $T insert [ list [ list $img $pv ] [ list $statusLabel ] ] \
                   -at end -relative $treeParents($pkgRoot) -button auto ]
     set nodesInfo($nid,type) pkgver
     set nodesInfo($nid,status) $nodeStatus
-    foreach d $pkg(dependencies) {
-      set nid [ $T insert [ list [ list back_to_ou_16 $d ] ] \
+    foreach {{} d} $pkg(_.autodoc.dependencies) {
+      set _nid [ $T insert [ list [ list back_to_ou_16 $d ] ] \
                     -at end -relative $nid -button no ]
-      set nodesInfo($nid,type) pkgdep
+      set nodesInfo($_nid,type) pkgdep
     }
   }
 }
@@ -855,8 +912,10 @@ proc ::TolPkgGUI::CreateTreeInfoTab { { t treeinfo } } {
 
 proc ::TolPkgGUI::PostContextMenu { T w } {
   variable nodesInfo
-  variable localPackageInfo
+  variable packSyncInfo
+  variable versSyncInfo
   variable localVersionInfo
+  variable localMostRecent
 
   $w delete 0 end
   array set selectionInfo {
@@ -867,7 +926,7 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
   foreach nid [ $T selection get ] {
     lappend selectionInfo($nodesInfo($nid,type)) $nid
   }
-  $w add command  -label "[ mc {Add New} ]..." \
+  $w add command  -label "[ mc {Add New Repository} ]..." \
       -command ::TolPkgGUI::AddNewRepository
   set lenRepo [ llength $selectionInfo(repo) ]
   if { $lenRepo } {
@@ -901,7 +960,11 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
   foreach nid $selectionInfo(pkg) {
     set pkg [ $T item text $nid 0 ]
     array unset pkgInfo
-    array set pkgInfo $localPackageInfo($pkg)
+    if { [ info exists packSyncInfo($pkg) ] } {
+      array set pkgInfo $packSyncInfo($pkg)
+    } else {
+      set pkgInfo(lastremote) $localMostRecent($pkg)
+    }
     switch -exact $nodesInfo($nid,status) {
       "new" {
         lappend listNEW $pkgInfo(lastremote)
@@ -910,6 +973,8 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         lappend listUPG $pkg
       }
       "ok" {
+      }
+      "unknown" {
       }
       default {
         puts "unexpected status $status for pkg $pkg"
@@ -980,6 +1045,13 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
   }  
   $w add command -label [ mc "Export all" ] \
       -command [ list ::TolPkgGUI::ExportPackageVersion ]
+  # SyncInfo import/export
+  $w add separator
+  $w add command -label [ mc "Import SyncInfo" ]... \
+      -command [ list ::TolPkgGUI::ImportSyncInfo ]
+  $w add command -label [ mc "Export SyncInfo" ]... \
+      -command [ list ::TolPkgGUI::ExportSyncInfo ]
+  
 }
 
 proc ::TolPkgGUI::AddNewRepository { } {
@@ -989,6 +1061,7 @@ proc ::TolPkgGUI::CheckRepository { repo length } {
 }
 
 proc ::TolPkgGUI::SyncServers { } {
+  ::TolPkg::UpdateRepositoryInfo
 }
 
 proc ::TolPkgGUI::InstallPackage { p } {
@@ -1003,7 +1076,24 @@ proc ::TolPkgGUI::UpgradePackage { {p ""} } {
 proc ::TolPkgGUI::UpdatePackageVersion { {p ""} } {
 }
 
+proc ::TolPkgGUI::ImportSyncInfo { } {
+}
+
+proc ::TolPkgGUI::ExportSyncInfo { } {
+}
+
+##
+# Export packages --
+#
+# p == "" then the last installed version of every package is
+# exported,
+#
+# [ llength $p ]>0 then all specified package is exported, if some
+# packages is not installed then it is requested from the remote
+# repository.
+#
 proc ::TolPkgGUI::ExportPackageVersion { {p ""} } {
+  
 }
 
 proc ::TolPkgGUI::Clear { } {
