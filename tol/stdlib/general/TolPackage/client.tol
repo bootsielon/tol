@@ -895,15 +895,38 @@ Set GetDeepDependencies.one(Text package.version)
 
 ////////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.GetDeepDependencies.all = 
-"Gets the list of deep depencies of a list of versions of packages";
+"Gets the list of deep depencies of a list of all versions of required "
+"packages.";
 Set GetDeepDependencies.all(Set package.version.list)
 ////////////////////////////////////////////////////////////////////////////////
 {
   Real _trace("GetDeepDependencies.all", "Begin", 1);
   Set tab = EvalSet(package.version.list, GetDeepDependencies.one);
-  Set uni = Unique(SetConcat(tab));
+  Set all = Unique(SetConcat(tab));
   Real _trace("GetDeepDependencies.all", "End", 1);
-  uni
+  all
+};
+
+////////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.GetDeepDependencies.all.last = 
+"Gets the list of deep depencies of a list of last versions of required "
+"packages.";
+Set GetDeepDependencies.all.last(Set package.version.list)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Real _trace("GetDeepDependencies.all.last", "Begin", 1);
+  Set tab = SetConcat(EvalSet(package.version.list, GetDeepDependencies.one));
+  Set cls = Classify(tab,Real(Text a, Text b)
+  {
+    Compare(Tokenizer(a,".")[1],Tokenizer(b,".")[1])
+  });
+  Set srt = EvalSet(cls,Set(Set c)
+  {
+    Sort(c,Real(Text a, Text b) { Compare.VersionString(b,a) })
+  });
+  Set last = EvalSet(srt,Text(Set c) { c[1] });
+  Real _trace("GetDeepDependencies.all.last", "End", 1);
+  last
 };
 
 ////////////////////////////////////////////////////////////////////////////////
