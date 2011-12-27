@@ -217,6 +217,30 @@ Real LocalInstallPackage(Text pkg.path.zip)
 };
 
 //////////////////////////////////////////////////////////////////////////////
+Text _.autodoc.member.LocalExportPackage = 
+"Exports a locally installed package to a zip file.\n"
+"This is usefull to move packages from one machine to other\n";
+Real LocalExportPackage(Text pkg.ver, Text dir.dest)
+//////////////////////////////////////////////////////////////////////////////
+{
+  Text dir.loc = ReplaceSlash(_.localRoot);
+  Text pkg.loc = dir.loc+pkg.ver;
+  Text zip.loc = pkg.loc+".zip";
+  Text zip.dest = dir.dest+pkg.ver+".zip";
+
+  //Ensures that local.oza is locally created
+  Set LocalInfo(pkg.ver);
+
+  //Compacts the package as a ZIP file
+  Real PackArchive::PackFull("ZipArchive", pkg.loc, False);
+
+  //Moves the ZIP file to destination directory
+  Real OSFilMove(zip.loc, zip.dest);
+
+  FileExist(zip.dest)
+};
+
+//////////////////////////////////////////////////////////////////////////////
 Text _.autodoc.member.LocalClean = 
 "Elimina un paquete local concreto.\n"
 "Si no se especifica número de versión se borrarán todas las versiones "
