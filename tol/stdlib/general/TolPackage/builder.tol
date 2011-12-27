@@ -23,6 +23,7 @@ NameBlock Builder =
   Text _.localPath = Server::_.localRoot;
   Set _.sources = Copy(Empty);
   Set _.repositories = Copy(Empty);
+  NameBlock _Server = Server;
 
   ////////////////////////////////////////////////////////////////////////////
   Text _.autodoc.member.FindSource = 
@@ -164,7 +165,7 @@ NameBlock Builder =
     If(DirExist(path<<package), {
       Set If(FileExist(path<<package<<"/_pre_"<<package<<".tol"), 
         IncludeTOL(path<<package<<"/_pre_"<<package<<".tol"));
-      Text packageZip = Server::BuildPackage(package, path, 
+      Text packageZip = _Server::BuildPackage(package, path, 
         _.localPath, True);
       Real nErr2 = Copy(NError);
       If(nErr2>nErr1, {
@@ -280,11 +281,11 @@ NameBlock Builder =
         // Se elimina el que hay en el repositorio
         Real If(mode==1, {
           Set names = Tokenizer(package.X.X, ".");
-          Real Server::RemovePackageVersion(names[1], 
+          Real _Server::RemovePackageVersion(names[1], 
             Eval(names[2]), Eval(names[3]), repository.db);
         1}, 0);
         // Se sube el paquete al repositorio
-        Real Server::UploadPackage(repository.db, packageZip);
+        Real _Server::UploadPackage(repository.db, packageZip);
         Real nErr3 = Copy(NError);
         If(nErr3>nErr2, { 
           WriteLn("El paquete "<<package.X.X<<" no se ha subido al "
@@ -310,7 +311,7 @@ NameBlock Builder =
         "E");
     0}, {
       Set names = Tokenizer(package.X.X, ".");
-      Real Server::RemovePackageVersion(names[1], 
+      Real _Server::RemovePackageVersion(names[1], 
         Eval(names[2]), Eval(names[3]), repository.db)
     })
   };
