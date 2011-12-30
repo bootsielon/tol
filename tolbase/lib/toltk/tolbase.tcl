@@ -59,6 +59,8 @@ if { [string equal $tcl_platform(platform) "unix"] } {
 source [file join $toltk_script_path "markuphelper.tcl"]
 source [file join $toltk_script_path "tolpkg.tcl"]
 source [file join $toltk_script_path "tolpkg_gui.tcl"]
+source [file join $toltk_script_path "tolconfig.tcl"]
+source [file join $toltk_script_path "tolconfig_gui.tcl"]
 
 #source [file join $toltk_script_path "scrollw.tcl"]
 
