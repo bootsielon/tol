@@ -1,4 +1,6 @@
+package require BWidget
 package require wtree
+package require msgcat
 
 namespace eval ::TolConfigGUI {
 
@@ -59,12 +61,18 @@ proc ::TolConfigGUI::FillTree { member secParent value } {
 
 proc ::TolConfigGUI::FillTreeConfig { } {
   variable win
+  variable tree
   variable treeInfo
 
   array unset treeInfo
   set treeInfo(node,) root
+  $tree item delete all
   FillTree TolConfigManager::Config "" [ ::TolConfig::GetConfig ]
 
+}
+
+proc ::TolConfigGUI::AcceptConfig { } {
+  puts AcceptConfig
 }
 
 proc ::TolConfigGUI::Show { } {
@@ -72,22 +80,28 @@ proc ::TolConfigGUI::Show { } {
   variable tree
 
   set win .tolconfig
-
-  if { [ winfo exists $win ] } {
-    raise $win
-  } else {
-    toplevel $win
-    wm state $win withdrawn
-    set tree $win.tree
+  if { ![ winfo exists $win ] } {
+    Dialog $win -title [ mc "Tol configuration"] \
+        -modal local
+    $win add -text Ok
+    $win add -text Cancel
+    
+    set f [ $win getframe ]
+    grid rowconfigure $f 0 -weight 1
+    grid columnconfigure $f 0 -weight 1
+    set tree $f.tree
     wtree  $tree
     $tree configure -table no -filter yes -columns {
       { {image text} -tags NAME -label "Name" }
       { {text} -tags STATUS -label "Value" -editable yes }
     }
-    grid $tree -row 1 -column 0 -sticky "snew"
+    grid $tree -row 0 -column 0 -sticky "snew"
     grid rowconfigure $win 1 -weight 1
     grid columnconfigure $win 0 -weight 1
-    FillTreeConfig
-    wm state $win normal
+  }
+  FillTreeConfig
+  set ans [ $win draw ]
+  if { $ans == 0 } {
+    AcceptConfig
   }
 }
