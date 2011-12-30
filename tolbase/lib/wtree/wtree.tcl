@@ -888,19 +888,34 @@ snit::widget wtree {
       return
     }
     
-    foreach { item itemNum column columnNum elem elemName } $treeInfo { }
+    foreach { item I column C elem E } $treeInfo { }
     
     #puts "OnButtonPress1: $treeInfo"
     if { $item == "item" && \
              $column == "column" && \
              $elem == "elem" && \
-             [ $tree selection includes $itemNum ] } {
+             [ $tree selection includes $I ] } {
 
       #puts "$itemNum = [$tree selection includes $itemNum ]"
 
-      set idx_info $column_info(MAPIDX,$columnNum)
+      set idx_info $column_info(MAPIDX,$C)
 
-      if { $column_info($idx_info,-editable) && $elemName eq "eTXT"} {
+      if { $column_info($idx_info,-editable) && $E eq "eTXT"} {
+        set exists [winfo exists $tree.entry]
+        ::TreeCtrl::EntryOpen $tree $I $C $E
+        if {!$exists} {
+          $tree.entry configure -borderwidth 1 -justify center  \
+              -background white -relief sunken
+          update idletask
+        }
+        $tree.entry selection clear
+        scan [$tree item bbox $I $C $E] "%d %d %d %d" x1 y1 x2 y2
+        set left $x1
+        set right $x2
+        place $tree.entry -y $y1 -x $left -width [expr {$right - $left + 4}]
+        $tree.entry icursor [$tree.entry index @[expr {$x - ($x1 + 1)}]]
+        return -code break
+
         ::TreeCtrl::ButtonPress1 $tree $x $y
         update
         ::TreeCtrl::EntryOpen $tree $itemNum $columnNum $elemName
