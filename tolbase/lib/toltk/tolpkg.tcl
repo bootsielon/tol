@@ -176,6 +176,60 @@ proc ::TolPkg::GetRepositoryInfo { repo } {
   return [ lindex $result 0 ]
 }
 
+proc ::TolPkg::AddRepository { url } {
+  set tolexpr [ string map [ list %u $url ] {
+    Real TolPackage::Client::AddRepository( "%u" );
+  } ]
+  toltcl::eval $tolexpr
+}
+
+proc ::TolPkg::ZipInstall { pkg.zip } {
+  puts "::TolPkg::ZipInstall ${pkg.zip}"
+  set tolexpr [ string map [ list %p ${pkg.zip} ] {
+    Real TolPackage::Client::LocalInstallPackage( "%p" )
+  } ]
+  return [ toltcl::eval $tolexpr ]
+}
+
+proc ::TolPkg::RemoteInstall { pkg repo } {
+  puts "::TolPkg::RemoteInstall $pkg $repo"
+  set tolexpr [ string map [ list %p $pkg %r $repo ] {
+    Real TolPackage::Client::RemoteInstall( "%r", "%p", 1 )
+  } ]
+  return [ toltcl::eval $tolexpr ]
+}
+
+proc ::TolPkg::ExportPackage { pkg dest } {
+  puts "::TolPkg::ExportPackage $pkg to $dest"
+  set tolexpr [ string map [ list %p $pkg %d $dest ] {
+    Real TolPackage::Client::LocalExportPackage( "%p", "%d/" )
+  } ]
+  return [ toltcl::eval $tolexpr ]
+}
+
+proc ::TolPkg::CheckPackagesToInstall { pkgs } {
+  set members {}
+  foreach p $pkgs {
+    lappend members \"${p}\"
+  }
+  set tolexpr [ string map [ list %s "\[\[ [ join $members , ] \]\]" ] {
+    Set TolPackage::Client::GetDeepDependencies.all.last( %s );
+  } ]
+  return [ lindex [ toltcl::eval $tolexpr ] 0 ]
+}
+
+proc ::TolPkg::GetUpgradeConfig { } {
+  set tolexpr {
+    Set { 
+      [[ 
+        Real checkTOL = TolConfigManager::Config::Upgrading::TolVersion::CheckAllowed;
+        Real localPKG = TolConfigManager::Config::Upgrading::TolPackage::LocalOnly
+       ]]
+    }
+  }
+  return [ lindex [ toltcl::eval $tolexpr -named 1 ] 1 ]
+}
+
 proc ::TolPkg::GetKnownRepositories { } {
   return [ lindex [ toltcl::eval \
                         {Set TolConfigManager::Config::Upgrading::TolPackage::Repositories} ] 0 ]

@@ -14,9 +14,13 @@ namespace eval ::TolPkgGUI {
 
   array set urlmap {
     http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php OTAN
+    OTAN http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php
     http://packages.localbayes.es/BayesPrivateTolPackages/repository.php BPTP
+    BPTP http://packages.localbayes.es/BayesPrivateTolPackages/repository.php
   }
   
+  variable win
+
   variable packSyncInfo
   variable versSyncInfo
   variable localVersionInfo
@@ -563,6 +567,21 @@ namespace eval ::TolPkgGUI {
       R0PeOkcbGBgagjtDQzNHOOwyRxkBAQnM+Pn5gQA7
     }
   }
+
+  if { [ lsearch [ image names ] folder_yellow_16 ] == -1 } {
+    image create photo folder_yellow_16 -data {
+      R0lGODlhEAAQAPYAAK+KGLGMGLOOGbKNGrKMG7OMG7OOG7SOGbSPGbWPH7SQGaOFI8GLNMmJN8Se
+      MMSXOcSfO9eQOuOePN6xLcOhN8WgNMahNcehNcmjNMijN8mmNcukN8ulN8umNsumN8KgOMeiOMei
+      OcemPMekPselPsemPtGnN9uqNeG9K+K4LeO/LOS8LeW/LeytO/G5OeTALPTHN/XMNvTBOffQNcun
+      QtGtQtCuSd6+Q922Sum8S/TCTvjETvjITvjOTe/USO7USfrTTfzaS/veTPzgTPzkTfzmUfvpXd3A
+      ZurTg/rrhvLgl/nrqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5
+      BAEAAEwALAAAAAAQABAAAAeSgEyCg4SFhoeGBwgICgGIggYTKSssAgqXlwiEAC4yMDEzKi8vKioo
+      A4MALScYGxwesLAdFRcgTAASJj9GSUu+v0tKFkwEERlCREW8wEtIIUwFDTVAQUPJy75HggUMODw9
+      1NbKvTbbDzk7O9/h1w7bEDrp6evVPhqCCTTy++s3gwsfSJQoQWIEiYIjRFB4xLAhoUAAOw==
+    }
+  }
 }
 
 source [ file join $::TolPkgGUI::cwd tolpkg.tcl ]
@@ -607,6 +626,16 @@ proc ::TolPkgGUI::ReadLocalVersionInfo { } {
   }
 }
 
+proc ::TolPkgGUI::GetRepoId { url } {
+  variable urlmap
+
+  set url [ expr { [ string range $url end-13 end ] eq "repository.php" ?
+                   $url : "${url}repository.php" } ]
+  set repo [ expr { [ info exists urlmap($url) ] ? $urlmap($url) : "unknown" } ]  
+
+  return $repo
+}
+
 proc ::TolPkgGUI::GetPkgNode { T url p } {
   variable urlmap
   variable treeParents
@@ -618,7 +647,7 @@ proc ::TolPkgGUI::GetPkgNode { T url p } {
   }
   set url [ expr { [ string range $url end-13 end ] eq "repository.php" ?
                    $url : "${url}repository.php" } ]
-  set repo $urlmap($url)
+  set repo [ expr { [ info exists urlmap($url) ] ? $urlmap($url) : "unknown" } ]
   if { [ info exists packSyncInfo($p) ] } {
     array set packSync $packSyncInfo($p)
     set lastlocal $packSync(lastlocal)
@@ -649,7 +678,7 @@ proc ::TolPkgGUI::GetPkgNode { T url p } {
   set treeParents($p) [ $T insert [ list [ list $img $p ] [ list $statusLabel ] \
                                         [ list $repo ] ] -at end -relative root \
                                         -button auto ]
-                        set nodesInfo($treeParents($p),type) pkg
+  set nodesInfo($treeParents($p),type) pkg
   set nodesInfo($treeParents($p),status) $nodeStatus
 }
 
@@ -726,7 +755,8 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
       set img ""
       set nodeStatus unknown
     }
-    set nid [ $T insert [ list [ list $img $pv ] [ list $statusLabel ] ] \
+    set repo [ GetRepoId $pkgRepo ]
+    set nid [ $T insert [ list [ list $img $pv ] [ list $statusLabel ] [ list $repo ] ] \
                   -at end -relative $treeParents($pkgRoot) -button auto ]
     set nodesInfo($nid,type) pkgver
     set nodesInfo($nid,status) $nodeStatus
@@ -815,10 +845,10 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
     }
     switch -exact $nodesInfo($nid,status) {
       "new" {
-        lappend listNEW $pkgInfo(lastremote)
+        lappend listNEW [ list $pkgInfo(lastremote) $nid ]
       }
       "upgrade" {
-        lappend listUPG $pkg
+        lappend listUPG [ list $pkg $nid ]
       }
       "ok" {
       }
@@ -828,7 +858,7 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         puts "unexpected status $status for pkg $pkg"
       }
     }
-    lappend listEXP [ list $pkgInfo(lastremote) $nodesInfo($nid,status) ]
+    lappend listEXP [ list $pkgInfo(lastremote) $nodesInfo($nid,status) $nid ]
   }
   # next process the list of pkgver
   foreach nid $selectionInfo(pkgver) {
@@ -836,11 +866,11 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
     switch -exact $nodesInfo($nid,status) {
       "new" {
         if { [ lsearch $listNEW $pkg ] == -1 } {
-          lappend listNEW $pkg
+          lappend listNEW [ list $pkg $nid ]
         }
       }
       "update" {
-        lappend listUPD $pkg
+        lappend listUPD [ list $pkg $nid ]
       }
       "ok" {
       }
@@ -849,23 +879,24 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
       }
     }
     if { [ lsearch $listEXP $pkg ] == -1 } {
-      lappend listEXP [ list $pkg $nodesInfo($nid,status) ]
+      lappend listEXP [ list $pkg $nodesInfo($nid,status) $nid ]
     }
   }
   # install list
   if { [ llength $listNEW ] == 1 } {
-    $w add command -label [ mc "Install %s" [ lindex $listNEW 0 ] ] \
-        -command [ list ::TolPkgGUI::InstallPackage [ lindex $listNEW 0 ] ]
+    $w add command -label [ mc "Install %s" [ lindex [ lindex $listNEW 0 ] 0 ] ] \
+        -command [ list ::TolPkgGUI::InstallPackages $listNEW ]
   } elseif { [ llength $listNEW ] > 1 } {
     $w add command -label [ mc "Install selected" ] \
-        -command [ list ::TolPkgGUI::InstallPackage $listNEW ]
+        -command [ list ::TolPkgGUI::InstallPackages $listNEW ]
   }
   $w add command -label "[ mc {Install ZIP} ]..." \
       -command "::TolPkgGUI::InstallZip"
   # update list
   if { [ llength $listUPD ] == 1 } {
-    $w add command -label [ mc "Update %s" [ lindex $listUPD 0 ] ] \
-        -command [ list ::TolPkgGUI::UpdatePackageVersion [ lindex $listUPD 0 ] ]
+    $w add command \
+        -label [ mc "Update %s" [ lindex [ lindex $listUPD 0 ] 0 ] ] \
+        -command [ list ::TolPkgGUI::UpdatePackageVersion $listUPD ]
   } elseif { [ llength $listUPD ] > 1 } {
     $w add command -label [ mc "Update selected" ] \
         -command [ list ::TolPkgGUI::UpdatePackageVersion $listUPD ]
@@ -874,19 +905,20 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
       -command "::TolPkgGUI::UpdatePackageVersion"
   # upgrade list
   if { [ llength $listUPG ] == 1 } {
-    $w add command -label [ mc "Upgrade %s" [ lindex $listUPG 0 ] ] \
-        -command "::TolPkgGUI::UpgradePackage [ lindex $listUPG 0 ]"
+    $w add command \
+        -label [ mc "Upgrade %s" [ lindex [ lindex $listUPG 0 ] 0 ] ] \
+        -command [ list ::TolPkgGUI::UpgradePackages $listUPG ]
   } elseif { [ llength $listUPG ] > 1 } {
     $w add command -label [ mc "Upgrade selected" ] \
-        -command [ list ::TolPkgGUI::UpgradePackage $listUPG ]
+        -command [ list ::TolPkgGUI::UpgradePackages $listUPG ]
   }
   $w add command -label [ mc "Upgrade all" ] \
-      -command "::TolPkgGUI::UpgradePackage"
+      -command "::TolPkgGUI::UpgradePackages"
   # export options
   $w add separator
   if { [ llength $listEXP ] == 1 } {
     $w add command -label [ mc "Export %s" [ lindex [ lindex $listEXP 0 ] 0 ] ]... \
-        -command [ list ::TolPkgGUI::ExportPackageVersion [ lindex $listEXP 0 ] ]
+        -command [ list ::TolPkgGUI::ExportPackageVersion $listEXP ]
   } elseif { [ llength $listEXP ] > 1 } {
     $w add command -label [ mc "Export selected" ]... \
         -command [ list ::TolPkgGUI::ExportPackageVersion $listEXP ]
@@ -903,9 +935,37 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
 }
 
 proc ::TolPkgGUI::AddNewRepository { } {
-}
+  variable win
+  variable urlmap
 
-proc ::TolPkgGUI::CheckRepository { repo length } {
+  set w $win.dlgAdd
+  if { ![ winfo exist $w ] } {
+    Dialog $w -title [ mc "Add repository"] \
+        -parent $win -modal local
+    set f [ $w getframe ]
+    label $f.lb -text [ mc "Repository" ]:
+    ComboBox $f.cb -values BPTP
+    grid $f.lb -row 0 -column 0 -sticky ew
+    grid $f.cb -row 0 -column 1 -sticky ew
+    grid columnconfigure $f 1 -weight 1
+    $w add -text Ok
+    $w add -text Cancel
+  }
+  set ans [ $w draw ]
+  if { $ans == 0 } {
+    set repo [ string trim [ [$w getframe].cb get ] ]
+    if { [ string range $repo 0 3 ] eq "http" } {
+      set url $repo
+    } else {
+      if { [ info exists urlmap($repo) ] } {
+        set url $urlmap($repo)
+      } else {
+        
+      }
+    }
+    puts "::TolPkg::AddRepository $url"
+    ::TolPkg::AddRepository $url
+  }
 }
 
 proc ::TolPkgGUI::SyncServers { } {
@@ -916,16 +976,370 @@ proc ::TolPkgGUI::SyncServers { } {
   FillTreeInfo $tree
 }
 
-proc ::TolPkgGUI::InstallPackage { p } {
+proc ::TolPkgGUI::StartProgressBar { } {
+  variable win
+  variable Progress
+
+  set Progress(status) "working"
+  set Progress(state) 0
+  $win configure -cursor watch
+  foreach wc [ winfo children $win.dlgInstall ] {
+    catch { $wc configure -cursor watch }
+  }
+}
+
+proc ::TolPkgGUI::DoneProgress { } {
+  variable win
+  variable Progress 
+
+  set Progress(status) "stopped"
+  Dialog::enddialog $win.dlgInstall 1
+  $win configure -cursor ""
+  foreach wc [ winfo children $win.dlgInstall ] {
+    catch { $wc configure -cursor "" }
+  }
+}
+
+proc ::TolPkgGUI::AdvanceProgress { x } {
+  variable Progress
+
+  if { $Progress(status) eq "working" } {
+    set Progress(state) $x
+    update
+  }
+}
+
+proc ::TolPkgGUI::InstallBtn1 { remote } {
+  variable win
+  variable Progress
+
+  set w $win.dlgInstall
+  $w itemconfigure 0 -state disabled
+  $w itemconfigure 1 -command ::TolPkgGUI::DoneProgress
+  set f [ $w getframe ]
+  $f.lb1 configure -text [ mc "Installing" ]...
+  InstallTask $remote
+}
+
+proc ::TolPkgGUI::DlgProcessBtn1 { } {
+  variable win
+  variable DlgProcessData
+
+  set w [ DlgProcessGetWin ]
+  # disable button Ok
+  $w itemconfigure 0 -state disabled
+  # set cancel to finish progress
+  $w itemconfigure 1 -command ::TolPkgGUI::DlgProcessStop
+  eval $DlgProcessData(-beforestart)
+  DlgProcessTask 
+}
+
+proc ::TolPkgGUI::DlgProcess { pkgs args } {
+  variable win
+  variable DlgProcessData
+
+  array unset DlgProcessData
+  array set DlgProcessData {
+    -title "Process packages"
+    -beforestart ""
+    -cmditem ""
+    -cmdlabelitem ""
+    -customgui ""
+  }
+  set DlgProcessData(-label) [ mc "You are about to process"]:
+  array set DlgProcessData $args
+  set DlgProcessData(items) $pkgs
+  set DlgProcessData(status) "stopped"
+  set DlgProcessData(state) ""
+  set w [ DlgProcessGetWin ]
+  if { ![ winfo exists $w ] } {
+    Dialog $w -title $DlgProcessData(-title) \
+        -parent $win -modal local -cancel 1 -separator 1
+    set f [ $w getframe ]
+    label $f.lb1
+    listbox $f.list -selectmode single -background white \
+        -relief flat -borderwidth 1 -highlightthickness 0 \
+        -selectbackground #c3c3ff
+    ProgressBar $f.pbar
+    $w add -text Ok 
+    $w add -text Cancel
+    grid $f.lb1 -row 0 -column 0 -sticky w
+    grid $f.list -row 1 -column 0 -sticky snew
+    grid $f.pbar -row 2 -column 0 -sticky e
+    grid columnconfigure $f 0 -weight 1
+    grid rowconfigure $f 1 -weight 1
+    if { $DlgProcessData(-customgui) ne "" } {
+      eval $DlgProcessData(-customgui) $f 3
+    }
+  } else {
+    set f [ DlgProcessGetFrame ]
+  }
+  $f.pbar configure -maximum 1 \
+      -variable ::TolPkgGUI::DlgProcessData(state,0)
+  $f.pbar configure -variable ::TolPkgGUI::DlgProcessData(state)
+  
+  $f.lb1 configure -text $DlgProcessData(-label)
+  $w itemconfigure 0 -state normal \
+      -command [ list ::TolPkgGUI::DlgProcessBtn1 ]
+  $w itemconfigure 1 -command "Dialog::enddialog $w 1"
+  set lb [ DlgProcessGetList ]
+  $lb delete 0 end
+  foreach it $DlgProcessData(items) {
+    if { $DlgProcessData(-cmdlabelitem) ne "" } {
+      set labelIt [ $DlgProcessData(-cmdlabelitems) $it ]
+    } else {
+      set labelIt $it
+    }
+    $f.list insert end $it
+  }
+  set DlgProcessData(state) ""
+  $w draw
+}
+
+proc ::TolPkgGUI::DlgProcessGetCurrentIndex { } {
+  variable DlgProcessData
+
+  return $DlgProcessData(current)
+}
+
+proc ::TolPkgGUI::DlgProcessStart { } {
+  variable win
+  variable DlgProcessData
+
+  set lb [ DlgProcessGetList ]
+  set total [ llength $DlgProcessData(items) ]
+  set DlgProcessData(current) 0
+  $lb selection clear 0 end
+  $lb selection set 0
+  $lb see 0
+  set DlgProcessData(status) "working"
+  set DlgProcessData(state) 0
+  $win configure -cursor watch
+  set w [ DlgProcessGetWin ]
+  foreach wc [ winfo children $w ] {
+    catch { $wc configure -cursor watch }
+  }
+}
+
+proc ::TolPkgGUI::DlgProcessAdvance { } {
+  variable DlgProcessData
+
+  set i [ incr DlgProcessData(current) ]
+  set lb [ DlgProcessGetList ]
+  set total [ llength $DlgProcessData(items) ]
+  $lb selection set $i
+  $lb selection anchor $i
+  $lb see $i
+  if { $DlgProcessData(status) eq "working" } {
+    set DlgProcessData(state) [ expr { double($i) / $total } ]
+    update
+  }
+}
+
+proc ::TolPkgGUI::DlgProcessItem { p } {
+  variable DlgProcessData
+
+  if { $DlgProcessData(-cmditem) ne "" } {
+    $DlgProcessData(-cmditem) $p
+  }
+}
+
+proc ::TolPkgGUI::DlgProcessStop { } {
+  variable win
+  variable DlgProcessData
+  
+  set w [ DlgProcessGetWin ]
+  $win configure -cursor ""
+  foreach wc [ winfo children $w ] {
+    catch { $wc configure -cursor "" }
+  }
+  set DlgProcessData(status) "stopped"
+  Dialog::enddialog $w 1
+}
+
+proc ::TolPkgGUI::DlgProcessGetWin { } {
+  variable win
+
+  return $win.dlgProcess
+}
+
+proc ::TolPkgGUI::DlgProcessGetFrame { } {
+  variable win
+
+  set w [ DlgProcessGetWin ]
+  return [ $w getframe ]
+}
+
+proc ::TolPkgGUI::DlgProcessGetList { } {
+  variable win
+
+  set w [ DlgProcessGetFrame ]
+  return $w.list
+}
+
+proc ::TolPkgGUI::DlgProcessSetLabel { text } {
+  variable win
+  
+  set f [ DlgProcessGetFrame ]
+  $f.lb1 configure -text $text
+}
+
+proc ::TolPkgGUI::InstallPackages { pkgs } {
+  variable win
+  variable installData
+
+  puts "InstallPackages: $pkgs"
+  array unset installData
+  foreach p $pkgs {
+    array set installData $p
+    lappend _pkgs [ lindex $p 0 ]
+  }
+  set InstallList [ TolPkg::CheckPackagesToInstall $_pkgs ]
+  if { ![ llength $InstallList ] } {
+    set ans [ MessageDlg $win.ask -title [ mc "Install packages" ] \
+                  -icon error \
+                  -parent $win \
+                  -type ok -aspect 75 \
+                  -message [ mc "Could not connect with remote repository" ] ]
+    return
+  }
+  puts "InstallPackages: $InstallList"
+  DlgProcess $InstallList -title [ mc "Export packages" ] \
+      -label [ mc "You are about to export"]: \
+      -beforestart ::TolPkgGUI::Installing \
+      -cmditem "InstallThisPackage"
+  
+}
+
+proc ::TolPkgGUI::DlgProcessGetVariableName { name } {
+  return ::TolPkgGUI::DlgProcessData($name)
+}
+
+proc ::TolPkgGUI::DlgProcessGetVariable { name } {
+  variable DlgProcessData
+
+  return $DlgProcessData($name)
+}
+
+proc ::TolPkgGUI::DlgProcessTask { } {
+  variable win
+  variable Progress
+  variable DlgProcessData
+  
+  DlgProcessStart 
+  foreach p $DlgProcessData(items) {
+    if { $DlgProcessData(status) ne "working" } break
+    DlgProcessItem $p
+    DlgProcessAdvance
+  }
+  DlgProcessStop  
+}
+
+proc ::TolPkgGUI::InstallTask { remote } {
+  variable win
+  variable Progress
+  variable InstallList
+  
+  set w $win.dlgInstall
+  set f [ $w getframe ]
+  set total [ llength $InstallList ]
+  set i 0
+  $f.list selection clear 0 end
+  $f.list selection set 0
+  $f.list see 0
+  StartProgressBar
+  foreach p $InstallList {
+    if { $Progress(status) ne "working" } break
+    if { $remote } {
+      TolPkg::RemoteInstall $p
+    } else {
+      TolPkg::ZipInstall $p
+    }
+    incr i
+    $f.list selection set $i
+    $f.list selection anchor $i
+    $f.list see $i
+    AdvanceProgress [ expr { double($i) / $total } ]
+  }
+  DoneProgress
+  
 }
 
 proc ::TolPkgGUI::InstallZip { } {
+  variable win
+  variable installZipData
+
+  set installZipData [ tk_getOpenFile -defaultextension .zip -multiple 1 \
+                           -parent $win -title [ mc "Select zip" ] \
+                           -filetypes {{zip {.zip}}} ]
+  if { $installZipData ne "" } {
+    foreach f $installZipData {
+      lappend zipList [ file tail $f ]
+    }
+    DlgProcess $zipList -title [ mc "Install Zip's" ] \
+        -label [ mc "You are about to install zip"]: \
+        -beforestart ::TolPkgGUI::InstallingZip \
+        -cmditem InstallThisZip
+  }
 }
 
-proc ::TolPkgGUI::UpgradePackage { {p ""} } {
+proc ::TolPkgGUI::CheckConnectionConfig { } {
+  variable win
+
+  array set connConfig [ ::TolPkg::GetUpgradeConfig ]
+  if { $connConfig(localPKG) } {
+    MessageDlg $win.ask -title [ mc "Warning" ] \
+        -icon warning \
+        -type ok \
+        -message [ mc "Can not continue. You have configured to use only local packages. Check the value of\nTolConfigManager::Config::Upgrading::TolPackage::LocalOnly." ]
+    return 0
+  }
+  return 1
 }
 
-proc ::TolPkgGUI::UpdatePackageVersion { {p ""} } {
+proc ::TolPkgGUI::UpgradePackages { { pkgs {} } } {
+  variable installData
+
+  puts "UpgradePackages: $pkgs"
+  if { ![ CheckConnectionConfig ] } {
+    return 
+  }
+  array unset installData
+  if { [ llength $pkgs ] } {
+    foreach p $pkgs {
+      array set installData $p
+      lappend upgradeList [ lindex $p 0 ]
+    }
+  } else {
+    # upgrade all, look for the list
+  }
+  DlgProcess $upgradeList -title [ mc "Upgrade packages" ] \
+      -label [ mc "You are about to upgrade"]: \
+      -beforestart ::TolPkgGUI::Upgrading \
+      -cmditem "InstallThisPackage"
+}
+
+proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
+  variable installData
+
+  puts "UpdatePackageVersion: $pkgs"
+  if { ![ CheckConnectionConfig ] } {
+    return 
+  }
+  
+  array unset installData
+  if { [ llength $pkgs ] } {
+    foreach p $pkgs {
+      array set installData $p
+      lappend updateList [ lindex $p 0 ]
+    }
+  } else {
+    # upgrade all, look for the list
+  }
+  DlgProcess $updateList -title [ mc "Update packages" ] \
+      -label [ mc "You are about to update"]: \
+      -beforestart ::TolPkgGUI::Updating \
+      -cmditem "InstallThisPackage"
 }
 
 proc ::TolPkgGUI::ImportSyncInfo { } {
@@ -944,21 +1358,162 @@ proc ::TolPkgGUI::ExportSyncInfo { } {
 # packages is not installed then it is requested from the remote
 # repository.
 #
-proc ::TolPkgGUI::ExportPackageVersion { {p ""} } {
+
+# Funciones que hacen falta:
+#
+#  1- Crear un zip de un paquete local
+#  2- Descargar un zip de un paquete remoto
+#
+proc ::TolPkgGUI::ExportPackageVersion { {pkgs ""} } {
+  variable win
+
+  if { ![ CheckConnectionConfig ] } {
+    return 
+  }
+  set remote {}
+  set local {}
+  foreach _p $pkgs {
+    foreach { p s } $_p break
+    if { $s eq "upgrade" || $s eq "new" } {
+      lappend remote $p
+    } else {
+      lappend local $p
+    }
+  }
+  if { [ llength $remote ] } {
+    set ans [ MessageDlg $win.ask -title [ mc "Export packages" ] \
+                  -icon warning \
+                  -type okcancel -aspect 75 \
+                  -message [ mc "The following package can not be exported because they are not installed:\n%s\n\nContinue?" $remote ] ]
+    if { $ans == 1 } {
+      return
+    }
+  }
+  puts "ExportPackageVersion: $local"
+  if { [ llength $local ] } {
+    DlgProcess $local -title [ mc "Export packages" ] \
+        -label [ mc "You are about to export"]: \
+        -beforestart ::TolPkgGUI::Exporting \
+        -customgui "CreateSelectDir" \
+        -cmditem "ExportThisPackage"
+  }
+}
+
+proc ::TolPkgGUI::Exporting { } {
+  DlgProcessSetLabel [ mc "Exporting" ]...
+}
+
+proc ::TolPkgGUI::Installing { } {
+  DlgProcessSetLabel [ mc "Installing" ]...
+}
+
+proc ::TolPkgGUI::Upgrading { } {
+  DlgProcessSetLabel [ mc "Upgrading" ]...
+}
+
+proc ::TolPkgGUI::Updating { } {
+  DlgProcessSetLabel [ mc "Updating" ]...
+}
+
+proc ::TolPkgGUI::InstallingZip { } {
+  DlgProcessSetLabel [ mc "Installing Zip" ]...
+}
+
+proc ::TolPkgGUI::CreateSelectDir { f row } {
+  set varname [ DlgProcessGetVariableName "directory" ]
+  upvar \#0 $varname var
+
+
+  if { ![ info exists $varname ] } {
+    trace add variable $varname write ::TolPkgGUI::OnChangeDirectory
+  }
+  frame $f.fdir
+  label $f.fdir.lb -text [ mc "Output directory" ]:
+  entry $f.fdir.ent -textvariable $varname
+  button $f.fdir.btn -image folder_yellow_16 \
+      -command "::TolPkgGUI::ChooseDir $varname"
+  grid $f.fdir.lb -row 0 -column 0 -sticky w
+  grid $f.fdir.ent -row 0 -column 1 -sticky ew
+  grid $f.fdir.btn -row 0 -column 2 -sticky ew
+  grid columnconfigure $f.fdir 1 -weight 1
+  grid $f.fdir -row $row -column 0 -sticky ew
+  if { $var eq "" } {
+    set var [ pwd ]
+  } else {
+    set var $var
+  }
+}
+
+proc ::TolPkgGUI::OnChangeDirectory { args } {
+  set w [ DlgProcessGetWin ]
+  set dir [ DlgProcessGetVariable directory ]
+  if { [ file exists $dir ] && [ file writable $dir ] } {
+    $w itemconfigure 0 -state normal
+  } else {
+    $w itemconfigure 0 -state disabled
+  }
+}
+
+proc ::TolPkgGUI::ChooseDir { varname } {
+  variable win
   
+  puts "upvar \#0 $varname var"
+  upvar \#0 $varname var
+
+  set res [ tk_chooseDirectory -parent $win -initialdir $var \
+                -mustexist 1 -title [ mc "Select output directory" ] ]
+  if { $res ne "" } {
+    set var $res
+  }
+}
+
+proc ::TolPkgGUI::ExportThisPackage { p } {
+  set status [ TolPkg::ExportPackage $p [ DlgProcessGetVariable "directory" ] ]
+  puts "::TolPkgGUI::ExportThisPackage $p ==> $status"
+}
+
+proc ::TolPkgGUI::InstallThisPackage { p } {
+  variable win
+  variable urlmap
+  variable installData
+  
+  if { [ info exists installData($p) ] } {
+    set nid $installData($p)
+    set REPO [ $win.tree item text $nid REPO ]
+    set repo $urlmap($REPO)
+  } else {
+    # packages requested as a dependencie
+    set repo ""
+  }
+  set result [ TolPkg::RemoteInstall $p $repo ]
+  puts "TolPkg::RemoteInstall $p: $result"
+}
+
+proc ::TolPkgGUI::InstallThisZip { p } {
+  variable win
+  variable urlmap
+  variable installZipData
+  
+  puts "::TolPkgGUI::InstallThisZip $p"
+  set idx [ DlgProcessGetCurrentIndex ]
+  set thisZip [ lindex $installZipData $idx ]
+  set result [ TolPkg::ZipInstall $thisZip ]
+  puts "::TolPkgGUI::InstallThisZip $p: $result"
 }
 
 proc ::TolPkgGUI::Show { } {
-  set w .tolpkg
+  variable win
 
-  if { [ winfo exists $w ] } {
-    raise $w
+  set win .tolpkg
+
+  if { [ winfo exists $win ] } {
+    raise $win
   } else {
-    toplevel $w
-    wm state $w withdrawn
-    CreateTree $w.tree
-    FillTreeInfo $w.tree
-    wm state $w normal
+    toplevel $win
+    wm state $win withdrawn
+    CreateTree $win.tree
+    FillTreeInfo $win.tree
+    wm state $win normal
   }
 }
 
