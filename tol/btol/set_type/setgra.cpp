@@ -2795,6 +2795,7 @@ DefExtOpr(1, BSetPOpen, "POpen", 1, 1,
 	     "Ejecuta un programa externo. la salida del programa se retorna en el miembro ouput del conjunto resultado."),
 	  BOperClassify::System_);
 
+#define POPEN
 #ifdef POPEN
 //--------------------------------------------------------------------
 void BSetPOpen::CalcContens()
@@ -2807,7 +2808,6 @@ void BSetPOpen::CalcContens()
     BText cmd;
     int badArg = 0;
     for ( int i = 1; i <= args.Card(); i++ ) {
-      cmd += '"';
       BSyntaxObject* arg  = args[ i ];
       if ( arg->Grammar() != GraText() ) {
         status = 0;
@@ -2816,10 +2816,31 @@ void BSetPOpen::CalcContens()
         badArg = 1;
       }
       const BText &txt = Text( arg );
+	  /*
+	  char *start = txt.Buffer();
+	  char *end ;
+	  char *tmp = new char[ txt.Length() ];
+	  do {
+		end = start;
+		int bs = 0;
+		while ( *end ) {
+		  if ( !bs && isspace( *end ) ) break;
+		  bs = *end == '\\';
+		  ++end
+		}
+	  }
+	  while ( *end ) {
+	    cmd += strncpy( tmp, start, end - start );
+		cmd += "\\ ";
+		start = end + 1;
+	  }
+	  delete []tmp;
+	  */
       cmd += txt;
-      cmd += "\" ";
+      cmd += " ";
     }
     if ( !badArg ) {
+      //Std( BText( "*** '" ) + cmd + "' ***" );
       FILE* pipe = popen(cmd, "r");
       if ( pipe ) {
         char buffer[128];
