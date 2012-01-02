@@ -52,6 +52,10 @@
 
 #include "llkarma.h"
 
+#ifdef WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
 
 //static const char* bayesVersionId =
 
@@ -2781,3 +2785,72 @@ void BSetClassAscentOf::CalcContens()
     }
   }
 }
+
+//--------------------------------------------------------------------
+DeclareContensClass(BSet, BSetTemporary, BSetPOpen);
+DefExtOpr(1, BSetPOpen, "POpen", 1, 1,
+	  "Set", 
+	  "(Set Args)",
+	  I2("Execute an external program. The output of the program is returned in the member output.",
+	     "Ejecuta un programa externo. la salida del programa se retorna en el miembro ouput del conjunto resultado."),
+	  BOperClassify::System_);
+
+#ifdef POPEN
+//--------------------------------------------------------------------
+void BSetPOpen::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BSet& args = Set(Arg(1));
+  BDat status;
+  BText desc, output;
+  if ( args.Card() ) {
+    BText cmd;
+    int badArg = 0;
+    for ( int i = 1; i <= args.Card(); i++ ) {
+      cmd += '"';
+      BSyntaxObject* arg  = args[ i ];
+      if ( arg->Grammar() != GraText() ) {
+        status = 0;
+        desc = I2( "all argument must be of type Text",
+                   "todos los argumentos deben ser de tipo texto" );
+        badArg = 1;
+      }
+      const BText &txt = Text( arg );
+      cmd += txt;
+      cmd += "\" ";
+    }
+    if ( !badArg ) {
+      FILE* pipe = popen(cmd, "r");
+      if ( pipe ) {
+        char buffer[128];
+        output = "";
+        while( !feof( pipe ) ) {
+          if( fgets( buffer, 128, pipe ) != NULL )
+            output += buffer;
+        }
+        status = 1;
+        desc = "";
+        pclose( pipe );
+      }
+    } else {
+      status = 0;
+      BText desc = I2( "Could not execute: ", "No se pudo ejecutar: " );
+      desc += cmd; 
+      BText output = "";
+    }
+  } else {
+    status = 0;
+    BText desc = I2( "Nothing to execute", "Nada que ejecutar" );
+    BText output = "";
+  }
+  BList * result = NIL;
+  BSyntaxObject * so;
+  result = Cons(so = new BContensDat("", status), result);
+  so->PutName("status");
+  result = Cons(so = new BContensText("", desc), result);
+  so->PutName("description");
+  result = Cons(so = new BContensText("", output), result);
+  so->PutName("output");
+  contens_.RobElement(result);  
+}
+#endif
