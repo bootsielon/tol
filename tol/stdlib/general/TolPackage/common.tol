@@ -92,7 +92,7 @@ Text _.autodoc.member.GetCurrentNameVersion =
   Text GetCurrentNameVersion(Text packageName, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
-  NameBlock p = Eval(packageName);
+  NameBlock p = Eval(Tokenizer(packageName,".")[1]);
   Text name.version = If(!specificVersion,packageName,
     packageName+"."<<p::_.autodoc.version.high+"."<<p::_.autodoc.version.low)
 };
@@ -105,7 +105,7 @@ Set GetDeepDependencies(Text packageName, Real specificVersion)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE GetDeepDependencies 1");
-  NameBlock p = Eval(packageName);
+  NameBlock p = Eval(Tokenizer(packageName,".")[1]);
   Set dep = If(!ObjectExist("Set","p::_.autodoc.dependencies"),Empty,
    p::_.autodoc.dependencies); 
 //WriteLn("TRACE GetDeepDependencies 2");
