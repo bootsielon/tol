@@ -2811,6 +2811,7 @@ void escapeCmdArg( const char *input, BText &output )
     ++pCh;
   }
   if ( need ) {
+    //Std( BText( "Needs protection\n" ) );
     output = "\"";
     output += input;
     output += "\"";
