@@ -2787,18 +2787,58 @@ void BSetClassAscentOf::CalcContens()
 }
 
 //--------------------------------------------------------------------
-DeclareContensClass(BSet, BSetTemporary, BSetPOpen);
-DefExtOpr(1, BSetPOpen, "POpen", 1, 1,
+DeclareContensClass(BSet, BSetTemporary, BSetPExec);
+DefExtOpr(1, BSetPExec, "PExec", 1, 1,
 	  "Set", 
 	  "(Set Args)",
 	  I2("Execute an external program. The output of the program is returned in the member output.",
 	     "Ejecuta un programa externo. la salida del programa se retorna en el miembro ouput del conjunto resultado."),
 	  BOperClassify::System_);
 
-#define POPEN
-#ifdef POPEN
+#ifdef WIN32
+void escapeCmdArg( const char *input, BText &output )
+{
+  const char *pCh = input;
+  int bs = 0;
+  int need = 0;
+  
+  while ( *pCh ) {
+    if ( !bs && *pCh == ' ' ) {
+      need = 1;
+      break;
+    }
+    bs = ((*pCh == '\\') && !bs);
+    ++pCh;
+  }
+  if ( need ) {
+    output = "\"";
+    output += input;
+    output += "\"";
+  } else {
+    output = input;
+  }
+}
+#else
+void escapeCmdArg( const char *input, BText &output )
+{
+  const char *pCh = input;
+  output = "";
+  int bs = 0;
+  
+  while ( *pCh ) {
+    if ( !bs && *pCh == ' ' ) {
+      output += "\\ ";
+    } else {
+      output += *pCh;
+    }
+    bs = ((*pCh == '\\') && !bs);
+    ++pCh;
+  }
+}
+#endif
+
 //--------------------------------------------------------------------
-void BSetPOpen::CalcContens()
+void BSetPExec::CalcContens()
 //--------------------------------------------------------------------
 {
   const BSet& args = Set(Arg(1));
@@ -2815,29 +2855,12 @@ void BSetPOpen::CalcContens()
                    "todos los argumentos deben ser de tipo texto" );
         badArg = 1;
       }
-      const BText &txt = Text( arg );
-	  /*
-	  char *start = txt.Buffer();
-	  char *end ;
-	  char *tmp = new char[ txt.Length() ];
-	  do {
-		end = start;
-		int bs = 0;
-		while ( *end ) {
-		  if ( !bs && isspace( *end ) ) break;
-		  bs = *end == '\\';
-		  ++end
-		}
-	  }
-	  while ( *end ) {
-	    cmd += strncpy( tmp, start, end - start );
-		cmd += "\\ ";
-		start = end + 1;
-	  }
-	  delete []tmp;
-	  */
-      cmd += txt;
-      cmd += " ";
+      BText &_arg = Text( arg ), escapedArg;
+      escapeCmdArg( _arg, escapedArg );
+      if ( i > 1 ) {
+        cmd += " ";
+      }
+      cmd += escapedArg;
     }
     if ( !badArg ) {
       //Std( BText( "*** '" ) + cmd + "' ***" );
@@ -2874,4 +2897,3 @@ void BSetPOpen::CalcContens()
   so->PutName("output");
   contens_.RobElement(result);  
 }
-#endif
