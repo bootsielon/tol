@@ -1,15 +1,3 @@
-package require Toltcl
-
-if { ![ llength [ info commands Tol_HciWriter ] ] } {
-  tol::initkernel
-
-  proc Tol_HciWriter { msg } {
-    puts [ string trim $msg ]
-  }
-
-  tol::initlibrary 1
-}
-
 namespace eval ::TolPkg {
   variable cwd [ file normalize [ file dir [ info script ] ] ]
 }
