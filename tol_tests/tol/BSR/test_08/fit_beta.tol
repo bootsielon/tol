@@ -39,5 +39,8 @@ Set frq_dens = {
     [[x,frq,dens]]
   })
 };
-Text chart = TclChartSet(frq_dens,Empty)
+Text title = "Fit["<<k+"]: Beta("<<
+  FormatReal(a,"%.4lf")+","<<FormatReal(b,"%.4lf")+")";
+Text chart = TclChartSet(frq_dens,SetOfSet(
+   @TclArgSt("-title",    title) ))
 ]]});
