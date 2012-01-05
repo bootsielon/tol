@@ -1,0 +1,43 @@
+Matrix mcmc = bsr.oneNode.estim::report::mcmc;
+
+//Input matrix
+Matrix X;
+//Montecarlo Markov Chain of linear filter
+Matrix mcmc;
+//Number of parts in frequency charts
+Real parts = 50;
+//Set of observation indexes to be fitted
+Set K = Range(100,110,1);
+
+//Number of simulations
+Real M = Rows(mcmc);
+//Fit of beta distribution for all observations
+Set fit_all_beta = EvalSet(K,Set(Real k_) {[[
+//Observation identifier
+Real k = k_;
+//Model probability of Y[k]=1
+Matrix Zk = F01(mcmc*Tra(SubRow(X,[[k]])));
+//Average of probability of Y[k]=1
+Real avr = MatAvr(Zk);
+//Sample variance of probability of Y[k]=1
+Real var = MatSum((Zk-avr)^2)/(M-1);
+//Auxiliar value: the sum of two parameters of beta distribution
+Real v = (avr*(1-avr)/var-1);
+//Estimated first parameter of beta distribution
+Real a = avr*v;
+//Estimated second parameter of beta distribution
+Real b = (1-avr)*v;
+//Fit table to see the adjustment chart
+Set frq_dens = {
+  Matrix FZk = Frequency(Zk,parts);
+  Real displacement = (MatDat(FZk,2,1)-MatDat(FZk,1,1))/2;
+  Set aux = For(1,parts,Set(Real i)
+  {
+    Real x = MatDat(FZk,i,1)-displacement;
+    Real frq = MatDat(FZk,i,2)/M;
+    Real dens = gsl_ran_beta_pdf(x,a,b)*2*displacement;
+    [[x,frq,dens]]
+  })
+};
+Text chart = TclChartSet(frq_dens,Empty)
+]]});

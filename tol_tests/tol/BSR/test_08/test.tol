@@ -25,44 +25,54 @@ WriteLn("Current Random Seed = "<<rndSeed);
 Real m = 1000;
 Matrix zero = Rand(m,1,0,0);
 Matrix one = zero+1;
-//Original supplied data 
-Matrix X1 = Rand(m, 5, -.3, .3);
-//Deived inputs
-Matrix X2 = SubCol(X1,[[1]]) $* SubCol(X1,[[2]]);
-//Constant input
-Matrix X3 = Rand(Rows(X1),1,1,1);
 //Full input matrix
-Matrix X  = X1|X2|X3;
-//Real parameters of linear block
+Matrix X  = {
+  Matrix X1 = Round(Rand(m, 5, -0.5, 1.5));
+  //Matrix X2 = SubCol(X1,[[1]]) $* SubCol(X1,[[2]]);
+  Matrix X2 = Round(Rand(m, 1, -0.5, 2.5));
+  //Constant input
+  Matrix X3 = Rand(m,1,1,1);
+  Matrix X_ = X1|X2|X3
+};
+
+  //Real parameters of linear block
 Matrix b  = {Col(
-  Param_1=Rand(-2,0),
-  Param_2=Rand(-2,0),
+  Param_1=Rand(-1,0),
+  Param_2=Rand( 0,1),
   Param_3=Rand(-2,0),
-  Param_4=Rand( 0,1),
+  Param_4=Rand( 0,0.2),
   Param_5=Rand(Param_4,2),
   Param_6=Rand(Param_5,3),
   Param_7=Rand(-2,2))};
 //Real standard normal independent residuals
 Matrix e  = Gaussian(Rows(X),1,0,1);
 //Real filter matrix
-Matrix F = X*b;
+Matrix Xb = X*b;
 //Latent linear output
-Matrix Z = F+e;
+Matrix z = Xb+e;
 //Real output probabilities
-Matrix Yp = F01(Z);
+Matrix Yp = F01(Xb);
 //Simulated probit model
-Matrix Y  = GE(Z,zero);
+Matrix Y  = GE(z,zero);
+Real Y_avr = MatAvr(Y);
+Matrix Xb_e = Xb | e;
+Matrix Yp_Ype = Yp | F01(Xb+e);
+
+Real success  = MatAvr(EQ(Y,GE(Yp,    0.5)));
+
+/* */
 
 Set mh.estim = Probit(Y, X);
 Matrix b.mh = mh.estim[1];
-
+Matrix Xb.mh = X*b.mh;
+Matrix Yp.mh = F01(Xb.mh);
 //////////////////////////////////////////////////////////////////////////////
 //These is the only information that will be known in real world problems
 //////////////////////////////////////////////////////////////////////////////
 //Data matrix containing full output and input
-Matrix data.mat = Y|X1;
+Matrix data.mat = Y|X;
 //Set of names of columns in data.mat
-Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
+Set data.name = [["Output"]]<<For(1,Columns(X),Text(Real j)
 { "Input_"+IntText(j)} );
 
 
@@ -97,11 +107,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   //Checks unique names and indexes them
   Real _check_data.orig = SetIndexByName(_.data.orig);
 
-  Set _.data.handler = _.data.orig <<
-  {[[
-    Matrix Input_Prod_1_2 = _.data.orig::Input_1 $* _.data.orig::Input_2;
-    Matrix Constant = Rand(Rows(_.data.orig[1]),1,1,1)
-  ]]};
+  Set _.data.handler = _.data.orig;
 
   Real _check_data.handler = SetIndexByName(_.data.handler);
 
@@ -118,12 +124,12 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   [[
     //   Variable      initVal   min    max     priAvg   priSig  priSigWeight
     LPI("Input_1",           0, -1/0,     0,         ?,       ?,          ?),
-    LPI("Input_2",           0, -1/0,     0,         ?,       ?,          ?),
+    LPI("Input_2",           0,    0,  +1/0,         ?,       ?,          ?),
     LPI("Input_3",           0, -1/0,     0,         ?,       ?,          ?),
     LPI("Input_4",           0,    0,  +1/0,         ?,       ?,          ?),
     LPI("Input_5",           0,    0,  +1/0,         ?,       ?,          ?),
-    LPI("Input_Prod_1_2",    0,    0,  +1/0,         ?,       ?,          ?),
-    LPI("Constant" ,  _.cteAvg, -1/0,  +1/0,  _.cteAvg,    0.25,       0.90) 
+    LPI("Input_6",           0,    0,  +1/0,         ?,       ?,          ?),
+    LPI("Input_7" ,   _.cteAvg, -1/0,  +1/0,         ?,       ?,          ?) 
   ]]};
   //Input matrix
   VMatrix _.X = Group("ConcatColumns",
@@ -139,7 +145,7 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
   Set _.orderRelation = [[
     //                      lower        <=  upper  
     BysMcmc::@Bsr.OrderRelation.Info("Input_4",       "Input_5"),
-    BysMcmc::@Bsr.OrderRelation.Info("Input_5",       "Input_Prod_1_2")
+    BysMcmc::@Bsr.OrderRelation.Info("Input_5",       "Input_6")
   ]]
 
 ]];
@@ -150,18 +156,18 @@ Set data.name = [["Output"]]<<For(1,Columns(X1),Text(Real j)
 BysMcmc::@Config bsr.config = [[
 //////////////////////////////////////////////////////////////////////////////
 //MCMC dimensions
-  Real mcmc.burnin        =  1000; 
-  Real mcmc.sampleLength  =  4000;
-  Real mcmc.thinning      =     2; //Probit mcmc have high alternance
-  Real mcmc.cacheLength   =   100;
-    Real bsr.iniVal.try.findFeasible = 1;
-    Real bsr.iniVal.try.zero = 2;
-    Real bsr.iniVal.try.givenByUser = 3;
+  Real mcmc.burnin        =   2000; 
+  Real mcmc.sampleLength  =  10000;
+  Real mcmc.thinning      =  1; //Probit mcmc have high alternance
+  Real mcmc.cacheLength   =  If(mcmc.sampleLength>=2000,100,1);
+    Real bsr.iniVal.try.givenByUser = 1;
+    Real bsr.iniVal.try.cnstrMLE = 2;
+    Real bsr.iniVal.try.zero = 3;
+    Real bsr.iniVal.try.findFeasible = 4;
     Real bsr.iniVal.try.cnstrMinNorm = 5;
-    Real bsr.iniVal.try.cnstrMLE = 4;
 //Generic flags
   Real do.resume          =  0;
-  Real do.report          =  True;
+  Real do.report          =  mcmc.sampleLength>=2000;
   Real do.eval            =  False; //Has no sense for probit models
   Real do.linear.effects  =  False  //Has no sense for probit models
 ]];
@@ -186,35 +192,38 @@ Matrix X_ = VMat2Mat(bsr.oneNode.data::_.X) |
             Rand(VRows(bsr.oneNode.data::_.X),
                  Rows(b_full)-VColumns(bsr.oneNode.data::_.X),0,0);
 
-//Output probabilities for given input matrix integrated over all simulated 
-//vectors of parameters (Bayesian inference by exact method)
-Matrix outProbExcBys = bsr.oneNode.probit::GetProb(X_);
-//Output probabilities for given input matrix and average vector of 
-//simulated parameters (Bayesian inference by aproximation method)
-Matrix outProbAprBys = bsr.oneNode.probit::GetProbAvg(X_);
+Matrix Xb_ = X*b_;
+Matrix Yp_ = F01(Xb_);
 
-Matrix outExcBys = GE(outProbExcBys,one*0.5);
-Matrix outAprBys = GE(outProbAprBys,one*0.5);
+Matrix CompareBeta = b | b.mh | b_;
+Matrix CompareFilter = Xb | Xb.mh | Xb_;
+Matrix CompareProb = Yp| Yp.mh | Yp_;
 
-Matrix CompareBeta = b | b_ | b.mh;
-Matrix CompareProb = Yp|outProbExcBys|outProbAprBys;
-Matrix SuccessExcBys = EQ(Y,outExcBys);
-Matrix SuccessAprBys = EQ(Y,outAprBys);
+Real success.mh = MatAvr(EQ(Y,GE(Yp.mh, 0.5)));
+Real success_   = MatAvr(EQ(Y,GE(Yp_,   0.5)));
 
-//Success table for Bayesian inference by exact method
-Set STExcBys = Diagnostics::BinaryModel::SuccessTable(
-  Diagnostics::BinaryModel::CutValRng(outProbExcBys,.01),
-  VMat2Mat(bsr.oneNode.data::_.Y),
-  outProbExcBys);
-//Success table for Bayesian inference by aproximation method
-Set STAprBys = Diagnostics::BinaryModel::SuccessTable(
-  Diagnostics::BinaryModel::CutValRng(outProbAprBys,.01),
-  VMat2Mat(bsr.oneNode.data::_.Y),
-  outProbAprBys);
+
+Set residuals_cache = ((bsr.oneNode.cycler::_.sampler::_.nonLinBlk)[1])::
+  _.filter::_.residuals_cache;
+
+Set residuals_cache_stats = For(1,Card(residuals_cache),Set(Real k)
+{
+  Matrix ek = residuals_cache[k]; 
+  Real nu = MatAvr(ek);
+  Real sig = Sqrt(MatAvr(ek$*ek));
+  Matrix frq = Frequency(ek,30,-3,3);
+  [[k,nu,sig,frq]]
+});
+Set rc = ExtractByIndex(residuals_cache,Range(10,Card(residuals_cache),1));
+Matrix e_ = SetSum(rc)*1/Card(rc);
+Real nu_ = MatAvr(e_);
+Real sig_ = Sqrt(MatAvr(e_$*e_));
+Matrix frq_ = Frequency(e_,30,-3,3);
+
 
 Real numErr1 = Copy(NError);
 
-Real quality = MatAvr(SuccessExcBys);
+Real quality = Min(1,success_/success);
 //Extented information about test behaviour
 Set partialResults_ = 
 [[
@@ -232,5 +241,30 @@ Set resultStr_ = @strTestStatus(summary_, link_, quality_,
                   email_);
 WriteLn(""<<resultStr_);
 resultStr_
+
+/*
+//Output probabilities for given input matrix integrated over all simulated 
+//vectors of parameters (Bayesian inference by exact method)
+Matrix outProbExcBys = bsr.oneNode.probit::GetProb(X_);
+//Output probabilities for given input matrix and average vector of 
+//simulated parameters (Bayesian inference by aproximation method)
+Matrix outProbAprBys = bsr.oneNode.probit::GetProbAvg(X_);
+
+Matrix outExcBys = GE(outProbExcBys,one*0.5);
+Matrix outAprBys = GE(outProbAprBys,one*0.5);
+
+Matrix SuccessExcBys = EQ(Y,outExcBys);
+Matrix SuccessAprBys = EQ(Y,outAprBys);
+
+//Success table for Bayesian inference by exact method
+Set STExcBys = Diagnostics::BinaryModel::SuccessTable(
+  Diagnostics::BinaryModel::CutValRng(outProbExcBys,.01),
+  VMat2Mat(bsr.oneNode.data::_.Y),
+  outProbExcBys);
+//Success table for Bayesian inference by aproximation method
+Set STAprBys = Diagnostics::BinaryModel::SuccessTable(
+  Diagnostics::BinaryModel::CutValRng(outProbAprBys,.01),
+  VMat2Mat(bsr.oneNode.data::_.Y),
+  outProbAprBys);
 
 /* */  
