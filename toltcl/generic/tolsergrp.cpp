@@ -81,6 +81,128 @@ static int Tol_CreateSerieGrpData(Tcl_Interp * interp,
 #define TICK_TOL  2
 #define GROW_TICK_DATA 10
 
+typedef BDat (*StatFunc)(BSyntaxObject *);
+
+struct SerieStats {
+  const char * name;
+  StatFunc func;
+};
+
+static SerieStats
+stats_data[] = {
+  {"Count",     StatCount},
+  {"Maximun",   StatMax},
+  {"Minimun",   StatMin},
+  {"Sum",       StatSum},
+  {"Average",   StatAverage},
+  {"Std. Dev.", StatStDs},
+  {"Varianze",  StatVarianze},
+  {"Asimetry",  StatAsimetry},
+  {"Kurtosis",  StatKurtosis},
+  {"Median",    StatMedian}
+};
+
+#define NUMSTATS sizeof(stats_data)/sizeof(stats_data[0])
+
+static
+Tcl_Obj * Tol_GetAllSerieStats( BUserTimeSerie * uts )
+{
+  const int listsize = 2*NUMSTATS;
+  Tcl_Obj * stats[listsize];
+  BDat dat;
+  for ( size_t i = 0; i < NUMSTATS; i++ ) {
+    stats[2*i] = Tcl_NewStringObj(stats_data[i].name,-1);
+    dat = (*(stats_data[i].func))(uts);
+    if ( dat.IsKnown() )
+      stats[2*i+1] = Tcl_NewDoubleObj(dat.Value());
+    else {
+      BText name(dat.Name());
+      stats[2*i+1] = Tcl_NewStringObj(name,-1);
+    }
+  }
+  return Tcl_NewListObj( listsize, stats );
+}
+                       
+/*
+ *----------------------------------------------------------------------
+ *
+ * Tol_ComputeSerieStat --
+ *
+ *       Implements the new Tcl "::tol::seriestat" command.
+ *
+ *       tol::seriestat serieref      
+ *           -> {serie-name {list of stats names & values}}
+ *
+ *       tol::seriestat serieref statname ?args?
+ *            -> return the stat value. (not implemented yet)
+ *
+ * Results:
+ *       
+ *
+ * Side effects:
+ *       None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+int Tol_ComputeSerieStat(Tcl_Interp * interp,
+                         int objc, Tcl_Obj *CONST objv[],
+                         Tcl_Obj * obj_result)
+{
+  BUserTimeSerie * uts;
+  bool found;
+  
+  // uts = Tol_GetTimeSerie( interp, objv[0] );
+  uts = (BUserTimeSerie*)Tol_ResolveObject(interp, objv[0],
+                                           obj_result/*,GraSerie()*/);
+  if ( !uts ) {
+    return TCL_ERROR;
+  }
+  Tcl_Obj * listv[2];
+  if ( objc > 1 ) {
+    Tcl_Obj **stats;
+    stats = (Tcl_Obj**)Tcl_Alloc( sizeof(Tcl_Obj*)*2*(objc-1) );
+    //const int listsize = 2*(objc-1);
+    //Tcl_Obj * stats[listsize];
+    BDat dat;
+
+    listv[0] = Tcl_NewStringObj(uts->Identify(),-1);
+    for ( size_t i = 0; i < size_t(objc-1); i++ ) {
+      found = false;
+      for ( size_t j = 0; j < NUMSTATS; j++ ) {
+        if (strcmp(Tcl_GetString(objv[i+1]),stats_data[j].name) == 0) {
+          found = true;
+          stats[2*i] = Tcl_NewStringObj(stats_data[j].name,-1);
+          dat = (*(stats_data[j].func))(uts);
+          if ( dat.IsKnown() )
+            stats[2*i+1] = Tcl_NewDoubleObj(dat.Value());
+          else {
+            BText name(dat.Name());
+            stats[2*i+1] = Tcl_NewStringObj(name,-1);
+          }
+        }
+      }
+      if (found == false) {
+        Tcl_AppendStringsToObj(obj_result, "bad statistics name '",
+                          Tcl_GetString(objv[i+1]),"'", NULL);
+        Tcl_Free((char*)(stats));
+        return TCL_ERROR;
+      }      
+    }
+    listv[1] = Tcl_NewListObj(2*(objc-1), stats);
+    Tcl_SetListObj(obj_result, 2, listv);
+    Tcl_Free((char*)(stats));
+    return TCL_OK;
+
+  } else {  
+    // {Count 20 ... Median 0.23}
+    listv[0] = Tcl_NewStringObj(uts->Identify(),-1);
+    listv[1] = Tol_GetAllSerieStats( uts );
+    Tcl_SetListObj(obj_result, 2, listv);
+    return TCL_OK;
+  }
+}
+
 struct Tol_TicksData {
   /* set of ticks marker at integer indexes */
 
@@ -410,6 +532,7 @@ struct Tol_SerieData {
 #else
     Tcl_Obj ** X, ** Y;
 #endif
+  Tcl_Obj *stats;
   char * name;
   /* name of the syntax object, may be equal to name */
   char * obj_name;
@@ -418,6 +541,16 @@ struct Tol_SerieData {
   int add_segment(int * x, double * y, int n,
                   Tcl_Interp * interp,
                   Tol_SerieCursor * tsc);
+  void ComputeStats( BUserTimeSerie * uts )
+  {
+    if ( uts ) {
+      if ( stats ) {
+        Tcl_DecrRefCount( stats );
+      }
+      stats = Tol_GetAllSerieStats( uts );
+      Tcl_IncrRefCount( stats );
+    }
+  }
 };
 
 static Tol_SerieData * Tol_AllocSerieData _ANSI_ARGS_((void));
@@ -760,7 +893,7 @@ int Tol_CreateSerieGrp(Tcl_Interp * interp,
                        int objc, Tcl_Obj *CONST series[], Tcl_Obj * obj_result)
 {
   int tcl_code;
-  Tol_SerieGroup * sgrp;
+  Tol_SerieGroup * sgrp = NULL;
   Tcl_CmdInfo cmd_info;
   char * sgrp_name = Tcl_GetString(series[0]);
   
@@ -858,6 +991,7 @@ int Tol_CreateSerieGrp(Tcl_Interp * interp,
   Tcl_SetStringObj(obj_result,sgrp_name,-1);
   return TCL_OK;
 }
+
 
 /*
  *  Tol_CreateSerieGrp --
@@ -969,7 +1103,9 @@ int Tol_DestroySerieGrp (Tcl_Interp * interp,
  *                             dating, * the second one is a vector
  *                             with corresponding values.
  *
- *      seriegrp serie idx reference -> return  
+ *      seriegrp serie idx reference -> return
+ *
+ *      seriegrp serie idx stats -> return the statistics for the serie
  *
  *      seriegrp format ?strfmt?
  *
@@ -1072,6 +1208,10 @@ int Tol_SerieGrpObjCmd (ClientData clientData,
       }
       if (!strcmp(arg,"reference")) {
         Tcl_AppendResult(interp,sdata->name,NULL);
+        return TCL_OK;
+      }
+      if ( !strcmp(arg,"stats") ) {
+        Tcl_SetObjResult( interp, sdata->stats );
         return TCL_OK;
       }
       if (strcmp(arg,"data")) {
@@ -1201,6 +1341,8 @@ Tol_SerieData * Tol_AllocSerieData(void)
     tsd->name = NULL;
     tsd->obj_name = NULL;
     tsd->tms_obj = NULL;
+    tsd->stats = Tcl_NewObj();
+    Tcl_IncrRefCount( tsd->stats );
   }
   return tsd;
 }
@@ -1226,6 +1368,7 @@ void Tol_FreeSerieData(Tol_SerieData *tsd)
       Tcl_Free(tsd->name);
     if (tsd->obj_name)
       Tcl_Free(tsd->obj_name);
+    Tcl_DecrRefCount( tsd->stats );
     Tcl_Free((char*)tsd);
   }
 }
@@ -1646,6 +1789,8 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
       Tcl_AppendStringsToObj(obj_result,"invalid range of dates",NULL);
       return TCL_ERROR;
     }
+    tsd->ComputeStats( uts );
+
     if ( flagDating == 0 ) {
       flagDating = 1;
       firstDating = uts->Dating();
@@ -1865,6 +2010,9 @@ int Tol_CreateSerieGrpData (Tcl_Interp * interp,
 
     tsd->tms_obj = uts;
 
+    tsd->ComputeStats( uts );
+
+
     /* then alloc corresponding cursor */
     
     tsc = cursors.data[i] = Tol_AllocSerieCursor();
@@ -2037,7 +2185,7 @@ int Tol_GetAutoCorr( Tcl_Interp * interp,
 {
   char * type_name;
   int acf_type;
-  char * valid_types[] = { "ACF", "PACF", "IACF", "IPACF" };
+  const char * valid_types[] = { "ACF", "PACF", "IACF", "IPACF" };
 #define NTYPES sizeof(valid_types)/sizeof(valid_types[0])
   size_t i;
   int tcl_code;
@@ -2163,121 +2311,3 @@ int Tol_GetAutoCorr( Tcl_Interp * interp,
   return TCL_OK;
 }
 
-typedef BDat (*StatFunc)(BSyntaxObject *);
-
-struct SerieStats {
-  char * name;
-  StatFunc func;
-};
-
-static SerieStats
-stats_data[] = {
-  {"Count",     StatCount},
-  {"Maximun",   StatMax},
-  {"Minimun",   StatMin},
-  {"Sum",       StatSum},
-  {"Average",   StatAverage},
-  {"Std. Dev.", StatStDs},
-  {"Varianze",  StatVarianze},
-  {"Asimetry",  StatAsimetry},
-  {"Kurtosis",  StatKurtosis},
-  {"Median",    StatMedian}
-};
-
-#define NUMSTATS sizeof(stats_data)/sizeof(stats_data[0])
-
-
-/*
- *----------------------------------------------------------------------
- *
- * Tol_ComputeSerieStat --
- *
- *       Implements the new Tcl "::tol::seriestat" command.
- *
- *       tol::seriestat serieref      
- *           -> {serie-name {list of stats names & values}}
- *
- *       tol::seriestat serieref statname ?args?
- *            -> return the stat value. (not implemented yet)
- *
- * Results:
- *       
- *
- * Side effects:
- *       None.
- *
- *----------------------------------------------------------------------
- */
-
-int Tol_ComputeSerieStat(Tcl_Interp * interp,
-                         int objc, Tcl_Obj *CONST objv[],
-                         Tcl_Obj * obj_result)
-{
-  BUserTimeSerie * uts;
-  bool found;
-  
-  // uts = Tol_GetTimeSerie( interp, objv[0] );
-  uts = (BUserTimeSerie*)Tol_ResolveObject(interp, objv[0],
-                                           obj_result/*,GraSerie()*/);
-  if ( !uts ) {
-    return TCL_ERROR;
-  }
-  Tcl_Obj * listv[2];
-  if ( objc > 1 ) {
-    Tcl_Obj **stats;
-    stats = (Tcl_Obj**)Tcl_Alloc( sizeof(Tcl_Obj*)*2*(objc-1) );
-    //const int listsize = 2*(objc-1);
-    //Tcl_Obj * stats[listsize];
-    BDat dat;
-
-    listv[0] = Tcl_NewStringObj(uts->Identify(),-1);
-    for ( size_t i = 0; i < size_t(objc-1); i++ ) {
-      found = false;
-      for ( size_t j = 0; j < NUMSTATS; j++ ) {
-        if (strcmp(Tcl_GetString(objv[i+1]),stats_data[j].name) == 0) {
-          found = true;
-          stats[2*i] = Tcl_NewStringObj(stats_data[j].name,-1);
-          dat = (*(stats_data[j].func))(uts);
-          if ( dat.IsKnown() )
-            stats[2*i+1] = Tcl_NewDoubleObj(dat.Value());
-          else {
-            BText name(dat.Name());
-            stats[2*i+1] = Tcl_NewStringObj(name,-1);
-          }
-        }
-      }
-      if (found == false) {
-        Tcl_AppendStringsToObj(obj_result, "bad statistics name '",
-                          Tcl_GetString(objv[i+1]),"'", NULL);
-        Tcl_Free((char*)(stats));
-        return TCL_ERROR;
-      }      
-    }
-    listv[1] = Tcl_NewListObj(2*(objc-1), stats);
-    Tcl_SetListObj(obj_result, 2, listv);
-    Tcl_Free((char*)(stats));
-    return TCL_OK;
-
-  } else {  
-    // {Count 20 ... Median 0.23}
-    const int listsize = 2*NUMSTATS;
-    Tcl_Obj * stats[listsize];
-    BDat dat;
-
-    listv[0] = Tcl_NewStringObj(uts->Identify(),-1);
-    for ( size_t i = 0; i < NUMSTATS; i++ ) {
-      stats[2*i] = Tcl_NewStringObj(stats_data[i].name,-1);
-      dat = (*(stats_data[i].func))(uts);
-      if ( dat.IsKnown() )
-        stats[2*i+1] = Tcl_NewDoubleObj(dat.Value());
-      else {
-        BText name(dat.Name());
-        stats[2*i+1] = Tcl_NewStringObj(name,-1);
-      }
-    }
-    listv[1] = Tcl_NewListObj(listsize, stats);
-    Tcl_SetListObj(obj_result, 2, listv);
-    return TCL_OK;
-  }
-
-}

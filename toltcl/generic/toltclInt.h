@@ -280,8 +280,8 @@ int Tol_GetAutoCorr _ANSI_ARGS_((Tcl_Interp * interp,
  */
 extern 
 int Tol_ComputeSerieStat _ANSI_ARGS_((Tcl_Interp * interp,
-                                      int objc, Tcl_Obj *CONST objv[],
-                                      Tcl_Obj * obj_result));
+                                  int objc, Tcl_Obj *CONST objv[],
+                                  Tcl_Obj * obj_result));
 extern
 int Tol_StopEvaluation _ANSI_ARGS_(());
 
