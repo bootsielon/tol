@@ -1890,7 +1890,7 @@ void BSetFor::CalcContens()
 //--------------------------------------------------------------------
 DeclareNoLazzyClass(BSet, BSetTemporary, BSetEvalSet);
 DefExtOpr(1, BSetEvalSet, "EvalSet", 2, 2, "Set Code",
-	  I2("(Set set, Code doit)", "(Set cto, Code hacer)"),
+	  "(Set set, Code doit)",
 	  I2("Returns the set of the successive evaluations of a "
 	     "function, taking as argument each element of a set.",
 	     "Devuelve el conjunto de las evaluaciones sucesivas de "
@@ -1905,7 +1905,7 @@ void BSetEvalSet::CalcContens()
   BSyntaxObject*     objCode;
   BSet&		     set    = Set (Arg(1));
   BCode&	     code   = Code(Arg(2));
-  BGrammar*	     gra    = code.Grammar();
+  BGrammar*	   gra    = code.Grammar();
   BList*	     aux    = NIL;
   BList*	     result = NIL;
   BInt		     n	    = 1;
@@ -1934,6 +1934,80 @@ void BSetEvalSet::CalcContens()
 	    n++;
 	  }
 	  while(n<=set.Card());
+  }
+  contens_.RobElement(result);
+}
+
+//--------------------------------------------------------------------
+DeclareNoLazzyClass(BSet, BSetTemporary, BSetEvalSetNth);
+DefExtOpr(1, BSetEvalSetNth, "EvalSetNth", 4, 4, "Real Set Set Code",
+    "(Real nth, Set args, Set set, Code doit)",
+    I2("Returns the set of the successive evaluations of a "
+       "function, taking as the k-th argument each element of a set."
+       "The rest of arguments are fixed.",
+       "Devuelve el conjunto de las evaluaciones sucesivas de "
+       "una función, tomando como k-ésimo argumento cada elemento de "
+       "un conjunto. El resto de argumentos permanecen fijos."),
+    BOperClassify::SetAlgebra_);
+
+//--------------------------------------------------------------------
+void BSetEvalSetNth::CalcContens()
+//--------------------------------------------------------------------
+{
+  BSyntaxObject* objCode, *arg;
+  int n = (int)Real (Arg(1));
+  BSet& args = Set (Arg(2));
+  BSet& set = Set (Arg(3));
+  BCode& code = Code(Arg(4));
+  BGrammar* gra = code.Grammar();
+  BList* aux1 = NIL;
+  BList* aux2 = NIL;
+  BList* aux3 = NIL;
+  BList* result = NIL;
+  int i;
+  int k = 1;
+  int m = args.Card();
+  int K = set.Card();
+  bool okArg = code.Operator()!=NULL;
+  int minArg = 0;
+  int maxArg = 0;
+  if(okArg)
+  {
+    minArg = code.Operator()->MinArg();
+    maxArg = code.Operator()->MaxArg();
+    okArg = (minArg<=m) && (m<=maxArg);
+  }
+  if(!okArg)
+  {
+    Error(I2("Wrong argument function in EvalSetNth function calling."
+             "It must admit "+m+" arguments.",
+             "Función argumento errónea en llamada a la función EvalSetNth."
+             "Ésta debe admitir "+m+" argumentos."));
+    return;
+  }
+  if(K)
+  {
+    do
+    {
+      aux1 = NIL;
+      aux2 = NIL;
+      for(i=1;i<=m;i++)
+      {
+        if(i==n) { arg = set[k]; }
+        else     { arg = args[i]; }
+        LstFastAppend(aux1, aux2, arg);
+      }
+      objCode = code.Evaluator(aux1);
+      if(!objCode)
+      {
+        Error(I2("EvalSetNth failed.","Fallo en EvalSetNth."));
+        DESTROY(result);
+        return;
+      }
+      LstFastAppend(result, aux3, objCode);
+      k++;
+    }
+    while(k<=K);
   }
   contens_.RobElement(result);
 }
