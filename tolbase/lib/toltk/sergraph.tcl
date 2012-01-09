@@ -1266,7 +1266,8 @@ proc ::SeriesGraph::OptionsApplyXMarkers {this lstXMarkers lstColors lstDashes l
   foreach {key name} $marker { }
   for {set i 0} {$i < [$sergrp serie size]} {incr i} {
     if $ary(${pre},yMarker$key) {
-      set y [lindex [lindex [::tol::seriestat [$sergrp serie $i reference] $name] 1] 1]
+      array set stats [ $sergrp serie $i stats ]
+      set y $stats($name)
       if {[string equal $y "?"]} {
         tk_messageBox -parent $g -type ok -title [mc "Warning"] \
           -message [mc "Cant draw %1\$s y marker because its value is ?" [mc $name]]
@@ -1311,11 +1312,12 @@ proc ::SeriesGraph::OptionsApplyYMarkerNDev {this var pre} {
 
   for {set i 0} {$i < [$sergrp serie size]} {incr i} {
     if $ary(${pre},yMarkerDev) {
-      set dev [lindex [lindex [::tol::seriestat [$sergrp serie $i reference] "Std. Dev."] 1] 1]
-      set avg [lindex [lindex [::tol::seriestat [$sergrp serie $i reference] "Average"] 1] 1]
-      if {[expr [string equal $dev "?"] || [string equal $avg "?"]]} {
+      array set stats [ $sergrp serie $i stats ]
+      set dev $stats(Std. Dev.)
+      set avg $stats(Average)
+      if { $dev eq "?" || $avg eq "?" } {
         tk_messageBox -parent $g -type ok -title [mc "Warning"] \
-         -message [mc "Cant draw '%1\$s' y marker because its value is ?" [mc {Std. Dev.}]]
+            -message [mc "Cant draw '%1\$s' y marker because its value is ?" [mc {Std. Dev.}]]
       } else {
         set y1 [expr $avg + $ary(${pre},yMarkerNDev) * $dev]
         set y2 [expr $avg - $ary(${pre},yMarkerNDev) * $dev]

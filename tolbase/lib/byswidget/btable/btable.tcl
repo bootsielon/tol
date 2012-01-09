@@ -4150,23 +4150,23 @@ if { [string equal $tcl_platform(platform) "windows"] } {
     Tolcon_Trace "SERGRP de fillStatistics method --> $sergrp"
 
     # insert the series into the table
-    set numCols [$sergrp serie size]
-    set list  [lindex [::tol::seriestat [$sergrp serie 0 reference]] 1]
-    foreach {name value} $list {
-      lappend stat $name
+    set stats0  [ $sergrp serie 0 stats ]
+    set numRows [ llength $stats0 ]
+    set numCols [ $sergrp serie size ]
+
+    set row 1
+    foreach {name value} $stats0 {
+      set matrix($row,0) [ mc $name ]
+      incr row
     }
-    set numRows [llength $stat]
     
-    for {set i 0} {$i < $numRows} {incr i} {
-      set matrix([expr $i+1],0) [mc [lindex $stat $i]]
-    }
-  
-    for {set j 0} {$j < $numCols} {incr j} {
-      set matrix(0,[expr $j+1]) [$sergrp serie $j name]
-      set values [lindex [::tol::seriestat [$sergrp serie $j reference]] 1]
-      for {set i 0} {$i < $numRows} {incr i} {
-        set matrix([expr $i+1],[expr $j+1]) \
-                  [lindex $values [expr 2*$i+1]]
+    for { set j 0 } { $j < $numCols } { incr j } {
+      set col [ expr { $j + 1 } ]
+      set matrix(0,$col) [ $sergrp serie $j name ]
+      set row 1
+      foreach { s v } [ $sergrp serie $j stats ] {
+        set matrix($row,$col) $v
+        incr row
       }
     }
     
