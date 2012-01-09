@@ -746,6 +746,7 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
           set nodeStatus ok
           set statusLabel "ok"
         } else {
+          puts "$pv OUTDATED : $dateremote > $datelocal"
           set img "software_update_16"
           set nodeStatus update
           set statusLabel "outdated"
@@ -1188,7 +1189,6 @@ proc ::TolPkgGUI::InstallPackages { pkgs } {
   variable win
   variable installData
 
-  puts "InstallPackages: $pkgs"
   array unset installData
   foreach p $pkgs {
     array set installData $p
@@ -1300,7 +1300,6 @@ proc ::TolPkgGUI::CheckConnectionConfig { } {
 proc ::TolPkgGUI::UpgradePackages { { pkgs {} } } {
   variable installData
 
-  puts "UpgradePackages: $pkgs"
   if { ![ CheckConnectionConfig ] } {
     return 
   }
@@ -1312,6 +1311,8 @@ proc ::TolPkgGUI::UpgradePackages { { pkgs {} } } {
     }
   } else {
     # upgrade all, look for the list
+    Unimplemented "Upgrade all packages"
+    return
   }
   DlgProcess $upgradeList -title [ mc "Upgrade packages" ] \
       -label [ mc "You are about to upgrade"]: \
@@ -1335,6 +1336,8 @@ proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
     }
   } else {
     # upgrade all, look for the list
+    Unimplemented "Update all packages"
+    return
   }
   DlgProcess $updateList -title [ mc "Update packages" ] \
       -label [ mc "You are about to update"]: \
@@ -1343,9 +1346,19 @@ proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
 }
 
 proc ::TolPkgGUI::ImportSyncInfo { } {
+  Unimplemented "Import Sync Info"
+}
+
+proc ::TolPkgGUI::Unimplemented { title } {
+  variable win
+
+  MessageDlg $win.ask -parent $win -title [ mc $title ] \
+      -icon warning \
+      -type ok -message [ mc "Unimplemented option" ]
 }
 
 proc ::TolPkgGUI::ExportSyncInfo { } {
+  Unimplemented "Export Sync Info"
 }
 
 ##
@@ -1369,6 +1382,10 @@ proc ::TolPkgGUI::ExportPackageVersion { {pkgs ""} } {
 
   if { ![ CheckConnectionConfig ] } {
     return 
+  }
+  if { ![ llength $pkgs ] } {
+    Unimplemented "Export all packages"
+    return
   }
   set remote {}
   set local {}
