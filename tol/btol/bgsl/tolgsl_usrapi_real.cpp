@@ -166,6 +166,7 @@ There are 387 functions in this TOL user's API about these GSL chapters
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
+#include <tol/tol_bmatgra.h>
 
 
 //--------------------------------------------------------------------
@@ -178,6 +179,10 @@ There are 387 functions in this TOL user's API about these GSL chapters
 #define DecDefIntOprDatGsl(ORD, NAME, MINARG, MAXARG, LISTARGS, DESC)   \
   DeclareContensClass(BDat, BDatTemporary, BDat_##NAME); \
   DefIntOpr(ORD, BDat_##NAME, #NAME, MINARG, MAXARG, LISTARGS, DESC, BOperClassify::RealArythmetic_GSL_);
+
+#define DecDefIntOprMatGsl(ORD, NAME, MINARG, MAXARG, LISTARGS, DESC)   \
+  DeclareContensClass(BMat, BMatTemporary, BMat_##NAME); \
+  DefIntOpr(ORD, BMat_##NAME, #NAME, MINARG, MAXARG, LISTARGS, DESC, BOperClassify::RealArythmetic_GSL_);
 
 #define  ErrorGslFVer(GSLFVER, funName) \
   Error(I2("Needed GSL version ", "Se necesita la version de GSL ") << GSLFVER<< \
@@ -4343,6 +4348,73 @@ BTraceInit("tolgsl_usrapi_real.cpp");
 #else
   ErrorGslFVer(10600,"gsl_cdf_beta_Pinv");
 #endif
+}
+
+#define dMat(arg) ((DMat&)Mat(arg))
+#define b2dMat(M) ((DMat&)(M))
+
+//--------------------------------------------------------------------
+  DecDefIntOprMatGsl(1, gsl_M_cdf_beta_P, 3, 3, 
+  "(Matrix P, Matrix a, Matrix b)",
+  "[GSL: GNU Scientific Library] [C2_ProbDistFun] [The Beta Distribution]\n"
+  "GSL chapter: Random Number Distributions \n"
+  "  http://www.gnu.org/software/gsl/manual/html_node/Random-Number-Distributions.html\n"
+  "You can see a description of correspondent C function at GSL manual page: \n"
+  "  http://www.gnu.org/software/gsl/manual/html_node/The-Beta-Distribution.html\n"
+  "Mathematical concepts about this function are exposed at : \n"
+  "  http://en.wikipedia.org/wiki/Beta_distribution");
+  void BMat_gsl_M_cdf_beta_P::CalcContens()
+//--------------------------------------------------------------------
+{ 
+  DMat& P = dMat(Arg(1));
+  DMat& A = dMat(Arg(2));
+  DMat& B = dMat(Arg(3));
+  double *p, *a, *b, *q;
+  int i;
+  int r = P.Rows();
+  int c = P.Columns();
+  int n = r*c;
+  b2dMat(contens_) = P;
+  p = P.GetData().GetBuffer();
+  a = A.GetData().GetBuffer();
+  b = B.GetData().GetBuffer();
+  q = b2dMat(contens_).GetData().GetBuffer();
+  for(i=0; i<r; i++, p++, a++, b++, q++)
+  {
+    *q = gsl_cdf_beta_P(*p, *a, *b);
+  }
+}
+
+//--------------------------------------------------------------------
+  DecDefIntOprMatGsl(1, gsl_M_cdf_beta_Pinv, 3, 3, 
+  "(Matrix P, Matrix a, Matrix b)",
+  "[GSL: GNU Scientific Library] [C2_ProbDistFun] [The Beta Distribution]\n"
+  "GSL chapter: Random Number Distributions \n"
+  "  http://www.gnu.org/software/gsl/manual/html_node/Random-Number-Distributions.html\n"
+  "You can see a description of correspondent C function at GSL manual page: \n"
+  "  http://www.gnu.org/software/gsl/manual/html_node/The-Beta-Distribution.html\n"
+  "Mathematical concepts about this function are exposed at : \n"
+  "  http://en.wikipedia.org/wiki/Beta_distribution");
+  void BMat_gsl_M_cdf_beta_Pinv::CalcContens()
+//--------------------------------------------------------------------
+{ 
+  DMat& P = dMat(Arg(1));
+  DMat& A = dMat(Arg(2));
+  DMat& B = dMat(Arg(3));
+  double *p, *a, *b, *q;
+  int i;
+  int r = P.Rows();
+  int c = P.Columns();
+  int n = r*c;
+  b2dMat(contens_) = P;
+  p = P.GetData().GetBuffer();
+  a = A.GetData().GetBuffer();
+  b = B.GetData().GetBuffer();
+  q = b2dMat(contens_).GetData().GetBuffer();
+  for(i=0; i<r; i++, p++, a++, b++, q++)
+  {
+    *q = gsl_cdf_beta_Pinv(*p, *a, *b);
+  }
 }
 
 //--------------------------------------------------------------------
