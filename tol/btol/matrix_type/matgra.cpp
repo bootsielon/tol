@@ -3192,13 +3192,17 @@ void BMatConcatCol::CalcContens()
 {
   BInt  i, j, k=0, l;
   BInt  numCol = 0;
-  BInt  numRow = Mat(Arg(1)).Rows();
+  BInt  numRow = 0;
   BInt  numMat = NumArgs();
   for(i=1; i<=numMat; i++)
   {
     BMat& Mi = Mat(Arg(i));
     numCol+=Mi.Columns();
-    if(!numRow) { numRow=Mi.Rows(); }
+    if(numRow<Mi.Rows()) { numRow = Mi.Rows(); }
+  }
+  for(i=1; i<=numMat; i++)
+  {
+    BMat& Mi = Mat(Arg(i));
     if(Mi.Columns() && (Mi.Rows()!=numRow))
     {
       Error(I2("Wrong number of rows for ConcatColumns (or | operator) "
@@ -3215,11 +3219,14 @@ void BMatConcatCol::CalcContens()
   for(i=1; i<=numMat; i++)
   {
     DMat& Mi = dMat(Arg(i));
-    for(j=0; j < Mi.Columns(); j++, k++)
+    if(Mi.Columns() && (Mi.Rows()==numRow))
     {
-      for(l=0; l < numRow; l++)
+      for(j=0; j < Mi.Columns(); j++, k++)
       {
-        b2dMat(contens_)(l,k)=Mi(l,j);
+        for(l=0; l < numRow; l++)
+        {
+          b2dMat(contens_)(l,k)=Mi(l,j);
+        }
       }
     }
   }
@@ -3248,14 +3255,18 @@ void BMatConcatRow::CalcContens()
 //--------------------------------------------------------------------
 {
   BInt  i, j, k=0, l;
-  BInt  numCol = Mat(Arg(1)).Columns();
+  BInt  numCol = 0;
   BInt  numRow = 0;
   BInt  numMat = NumArgs();
   for(i=1; i<=numMat; i++)
   {
     BMat& Mi = Mat(Arg(i));
     numRow+=Mi.Rows();
-    if(!numCol) { numRow=Mi.Columns(); }
+    if(numCol<Mi.Columns()) { numCol = Mi.Columns(); }
+  }
+  for(i=1; i<=numMat; i++)
+  {
+    BMat& Mi = Mat(Arg(i));
     if(Mi.Rows() && (Mi.Columns()!=numCol))
     {
       Error(I2("Wrong number of columns for ConcatRows ( or << "
@@ -3272,12 +3283,15 @@ void BMatConcatRow::CalcContens()
   for(i=1; i <= numMat; i++) 
   {
     DMat& Mi = dMat(Arg(i));
-    for(j=0; j < Mi.Rows(); j++, k++) 
+    if(Mi.Rows() && (Mi.Columns()==numCol))
     {
-      for(l=0; l < numCol; l++) 
+      for(j=0; j < Mi.Rows(); j++, k++) 
       {
-       b2dMat(contens_)(k,l)=Mi(j,l); 
-      } 
+        for(l=0; l < numCol; l++) 
+        {
+          b2dMat(contens_)(k,l)=Mi(j,l); 
+        } 
+      }
     }
   }
 }
