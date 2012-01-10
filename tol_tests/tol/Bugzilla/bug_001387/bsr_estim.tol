@@ -1,0 +1,139 @@
+
+
+//////////////////////////////////////////////////////////////////////////////
+//These is the only information that will be known in real world problems
+//////////////////////////////////////////////////////////////////////////////
+//Data matrix containing full output and input
+Matrix data.mat = Y|X;
+//Set of names of columns in data.mat
+Set data.name = [["Output"]]<<For(1,Columns(X),Text(Real j)
+{ "Input_"+IntText(j)} );
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Model definition for BSR one node API
+    BysMcmc::Bsr::OneNode::@ModelData bsr.oneNode.data =
+//////////////////////////////////////////////////////////////////////////////
+[[
+  //##Documentation about the model
+  Set  _.docInfo = @BSR.DocInfo (
+    Text Model.Name = 
+      "OneNodeProbit",
+    Text Model.Description = 
+      "Randomly generated probit model";
+    Text Session.Name = "SES_"+Model.Name+".01";
+    Text Session.Description = 
+      "Random seed "<<rndSeed;
+    Text Session.Authors = 
+      "vdebuen@tol-project.org;";
+    Date Session.Creation = Copy(Now);
+    Text Path = Ois.DefRoot+"BSR/" );
+  //##Observational node name
+  Text _.segmentName = "Obs";
+
+  //#Original data storer by columns with names 
+  Set _.data.orig = For(1, Card(data.name), Matrix(Real j)
+  {
+    Matrix aux = SubCol(data.mat,[[j]]);
+    Eval(data.name[j]+"=aux")
+  });
+
+  //Checks unique names and indexes them
+  Real _check_data.orig = SetIndexByName(_.data.orig);
+
+  Set _.data.handler = _.data.orig;
+
+  Real _check_data.handler = SetIndexByName(_.data.handler);
+
+  //Output vector
+  VMatrix _.Y = Mat2VMat(_.data.handler::Output, False, 1, 0);
+  //Normal standarized transformation of frequency of ones in output should be
+  //a good average prior for constant parameter 
+  Real _.cteAvg = DistNormalInv(VMatAvr(_.Y));
+
+  //Linear block definition with domain and prior restrictions
+  Set _.linearParamInfo = {
+  //Tool function to reduce registers length in _.linearParamInfo
+  Code LPI = BysMcmc::Bsr::OneNode::LPI;
+  [[
+    //   Variable      initVal   min    max     priAvg   priSig  priSigWeight
+    LPI("Input_1",           0, -1/0,     0,         ?,       ?,          ?),
+    LPI("Input_2",           0,    0,  +1/0,         ?,       ?,          ?),
+    LPI("Input_3",           0, -1/0,     0,         ?,       ?,          ?),
+    LPI("Input_4",           0,    0,  +1/0,         ?,       ?,          ?),
+    LPI("Input_5",           0,    0,  +1/0,         ?,       ?,          ?),
+    LPI("Input_6",           0,    0,  +1/0,         ?,       ?,          ?),
+    LPI("Input_7" ,   _.cteAvg, -1/0,  +1/0,         ?,       ?,          ?) 
+  ]]};
+  //Input matrix
+  VMatrix _.X = Group("ConcatColumns",
+  EvalSet(_.linearParamInfo, VMatrix(BysMcmc::@Bsr.OneNode.LinearParamInfo lpi)
+  {
+    Mat2VMat(_.data.handler[lpi->Name])
+  }));
+  //A BSR probit model must have sigma=1
+  Real _.sigma = 1;
+  //Non mandatory members
+  //Order relations between linear parameters. This member can be Empty or 
+  //simply not exist if there are no known order relation
+  Set _.orderRelation = [[
+    //                      lower        <=  upper  
+    BysMcmc::@Bsr.OrderRelation.Info("Input_4",       "Input_5"),
+    BysMcmc::@Bsr.OrderRelation.Info("Input_5",       "Input_6")
+  ]];
+
+  Set _.output.prior.BetaTruncated = If(
+    !ObjectExist("Set","output.prior.BetaTruncated"),Copy(Empty),
+    output.prior.BetaTruncated)
+
+]];
+  
+/* */
+//////////////////////////////////////////////////////////////////////////////
+//BSR generic configuration parameters
+BysMcmc::@Config bsr.config = [[
+//////////////////////////////////////////////////////////////////////////////
+//MCMC dimensions
+  Real mcmc.burnin        =  1000; 
+  Real mcmc.sampleLength  =  5000;
+  Real mcmc.thinning      =  1; //Probit mcmc have high alternance
+  Real mcmc.cacheLength   =  If(mcmc.sampleLength>=2000,100,1);
+    Real bsr.iniVal.try.givenByUser = 1;
+    Real bsr.iniVal.try.cnstrMLE = 2;
+    Real bsr.iniVal.try.zero = 3;
+    Real bsr.iniVal.try.findFeasible = 4;
+    Real bsr.iniVal.try.cnstrMinNorm = 5;
+//Generic flags
+  Real do.resume          =  0;
+  Real do.report          =  True; //mcmc.sampleLength>=2000;
+  Real do.eval            =  False; //Has no sense for probit models
+  Real do.linear.effects  =  False  //Has no sense for probit models
+]];
+
+
+BysMcmc::@Cycler bsr.oneNode.cycler = 
+  BysMcmc::Bsr::OneNode::GetCyclerProbit(bsr.oneNode.data, bsr.config);
+
+//Real bsr.oneNode.cycler::initialize(0);
+
+/* */
+
+BysMcmc::@Estimation bsr.oneNode.estim = BysMcmc::@Estimation::New(bsr.oneNode.cycler);
+Real bsr.oneNode.estim::Run(0);
+
+BysMcmc::Bsr::OneNode::@Probit bsr.oneNode.probit = 
+  BysMcmc::Bsr::OneNode::GetProbit(bsr.oneNode.estim);
+
+Matrix b_full = bsr.oneNode.probit::_.param;
+Matrix b_ = Sub(b_full,1,1,Rows(b),1);
+Matrix X_ = VMat2Mat(bsr.oneNode.data::_.X) | 
+            Rand(VRows(bsr.oneNode.data::_.X),
+                 Rows(b_full)-VColumns(bsr.oneNode.data::_.X),0,0);
+
+Matrix Xb_ = X*b_;
+Matrix Yp_ = F01(Xb_);
+
+Matrix CompareBeta = b | b_;
+Matrix CompareFilter = X*b | Xb_;
+
+/* */

@@ -1,0 +1,35 @@
+
+//Joint refused rows
+Matrix refused = GE(X.f * Col(-1,1,-1,1,1,1,0),4);
+//Refused ratio 
+Real refused_ratio = MatAvr(refused);
+//Failure average in refused rows
+Real refused_failure = MatAvr(Y.f$*refused) / refused_ratio;
+
+Set refused.k = MatQuery::SelectRowsWithValue(Mat2VMat(refused),1);
+Set accepted.k = Range(1,m,1)-refused.k ;
+
+Matrix Y.r = SubRow(Y.f,refused.k);
+Matrix X.r = SubRow(X.f,refused.k);
+Matrix Y.a = SubRow(Y.f,accepted.k);
+Matrix X.a = SubRow(X.f,accepted.k);
+
+//Failure average
+Real Y.a_failure = MatAvr(Y.a);
+
+//Failure average
+Real Y.r_failure = MatAvr(Y.r);
+
+/* */
+Set model_accepted =
+{
+  Matrix Y = Y.a;
+  Matrix X = X.a;
+  Include("bsr_estim.tol") << 
+  [[
+    Real rightGuess = MatAvr(EQ(Y.a,GE(Yp_, 0.5))) 
+  ]]
+};
+
+
+/* */

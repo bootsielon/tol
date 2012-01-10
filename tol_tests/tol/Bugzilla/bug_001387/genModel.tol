@@ -1,0 +1,69 @@
+
+#Require MatQuery;
+
+//Random seed setting
+Real PutRandomSeed(0);
+Real rndSeed = GetRandomSeed(0);
+WriteLn("Current Random Seed = "<<rndSeed);
+
+
+//////////////////////////////////////////////////////////////////////////////
+//Randomly generated probit model to allow contrast with model estimations
+//These information is unknown in real world problems
+//////////////////////////////////////////////////////////////////////////////
+
+//Sample size
+Real m = 3000;
+
+//Auxiliar matrices
+Matrix zero = Rand(m,1,0,0);
+Matrix one = zero+1;
+
+//Full input matrix
+Matrix X.f  = {
+  Matrix X1 = Round(Rand(m, 5, -0.5, 1.5));
+  //Matrix X2 = SubCol(X1,[[1]]) $* SubCol(X1,[[2]]);
+  Matrix X2 = Round(Rand(m, 1, -0.5, 2.5));
+  //Constant input
+  Matrix X3 = Rand(m,1,1,1);
+  Matrix X_ = X1|X2|X3
+};
+
+//Real parameters of linear block
+Matrix b  = {Col(
+  Param_1=Rand(-2,-1),  
+  Param_2=Rand( 1, 2),
+  Param_3=Rand(-2,-1),       
+  Param_4=Rand( 0.5, 1),
+  Param_5=Rand(Param_4,1.5),
+  Param_6=Rand(Param_5,2),
+  Param_7=Rand(-5,-4))};
+
+//Real lineal filter matrix
+Matrix Xb = X.f*b;
+
+//Real output probabilities
+Matrix Yp = F01(Xb);
+
+//Real standard normal independent residuals
+Matrix e  = Gaussian(Rows(Yp),1,0,1);
+
+//Latent linear output
+Matrix z = Xb+e;
+
+//Full binary output
+Matrix Y.f = GE(z,zero);
+
+//Failure average
+Real Y_failure = MatAvr(Y.f);
+
+//Comparing auxiliar matrices
+Matrix Xb_e = Xb | e;
+Matrix Yp_Ype = Yp | F01(Xb+e);
+
+//Right guess of both success and failures
+Real rightGuess = MatAvr(EQ(Y.f,GE(Yp, 0.5)));
+
+
+
+	

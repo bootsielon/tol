@@ -1,0 +1,16 @@
+
+
+/* */
+Set model_all =
+{
+  Matrix Y = Y.f;
+  Matrix X = X.f;
+  Include("bsr_estim.tol") << 
+  [[
+    Real rightGuess = MatAvr(EQ(Y.f,GE(Yp_, 0.5))) 
+  ]]
+};
+/* */
+
+
+

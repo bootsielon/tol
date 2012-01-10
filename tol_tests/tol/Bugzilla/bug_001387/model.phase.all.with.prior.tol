@@ -1,0 +1,70 @@
+
+//Failure average
+Real LowerBound = 0; //MatAvr(Y.a)*5;
+Real UpperBound = 1;
+
+//Number of parts in frequency charts
+Real parts = 50;
+
+Matrix mcmc = model_accepted::bsr.oneNode.estim::report::mcmc;
+//Number of simulations
+Real M = Rows(mcmc);
+
+Set output.prior.BetaTruncated = EvalSet(refused.k,Set(Real k) {
+//Real k = refused.k[2];
+  Matrix Zk = F01(mcmc*Tra(SubRow(X.f,[[k]])));
+  
+  //Average of probability of Y[k]=1
+  Real avr = MatAvr(Zk);
+  //Sample variance of probability of Y[k]=1
+  Real var = MatSum((Zk-avr)^2)/(M-1);
+  //Auxiliar value: the sum of two parameters of beta distribution
+  Real v = (avr*(1-avr)/var-1);
+  //Estimated first parameter of beta distribution
+  Real a = avr*v;
+  //Estimated second parameter of beta distribution
+  Real b = (1-avr)*v;
+
+/* * /
+//Fit table to see the adjustment chart
+Set frq_dens = {
+  Matrix FZk = Frequency(Zk,parts);
+  Real displacement = (MatDat(FZk,2,1)-MatDat(FZk,1,1))/2;
+  Set aux = For(1,parts,Set(Real i)
+  {
+    Real x = MatDat(FZk,i,1)-displacement;
+    Real frq = MatDat(FZk,i,2)/M;
+    Real dens = gsl_ran_beta_pdf(x,a,b)*2*displacement;
+    [[x,frq,dens]]
+  })
+};
+Text title = "Fit["<<k+"]: Beta("<<
+  FormatReal(a,"%.4lf")+","<<FormatReal(b,"%.4lf")+")";
+Text chart = TclChartSet(frq_dens,SetOfSet(
+   @TclArgSt("-title",    title) ))
+/* */
+ 
+  Set BysPrior::@PsbTrnBetaUnfSclDst
+  (
+    Real k,          // Unique identidier of the unknown output row
+    Real a,          // First parameter of Beta (0 for uniform)
+    Real b,          // Second parameter of Beta (0 for uniform)
+    Real LowerBound, // 0, -1/0 or ? if there is no lower bound
+    Real UpperBound  // 1, +1/0 or ? if there is no upper bound
+  )
+});
+  
+
+Matrix Y.fo = IfMat(refused,Y.f*0+0.5,Y.f);
+
+Set model_with_prior =
+{
+  Matrix Y = Copy(Y.fo);
+  Matrix X = Copy(X.f);
+  Include("bsr_estim.tol") << 
+  [[
+    Real rightGuess = MatAvr(EQ(Y.f,GE(Yp_, 0.5))) 
+  ]]
+};
+
+/* */
