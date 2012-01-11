@@ -24,6 +24,41 @@ if { 0 } {
 10 -- 1154572
 }
 
+proc ::TolPkg::GetPkgDirectory { p } {
+  set localRoot [ file normalize \
+                      [ toltcl::eval { Text TolPackage::_.localRoot } ] ]
+  return [ file join $localRoot "Client" $p ]
+}
+
+proc ::TolPkg::BackupPackage { p {delete 0}} {
+  set path [ GetPkgDirectory $p ]
+  if { [ file exists $path ] } {
+    set bak "${path}.bak"
+    set op [ expr { $delete ? "rename" : "copy" } ]
+    puts "file $op -force $path $bak"
+    return [ file $op -force $path $bak ]
+  } else {
+    return 0
+  }
+}
+
+proc ::TolPkg::RestoreBackup { p { delete 0 } } {
+  set path [ GetPkgDirectory $p ]
+  set bak "${path}.bak"
+  if { [ file exists $bak ] } {
+    set op [ expr { $delete ? "rename" : "copy" } ]
+    return [ file $op -force $bak $path ]
+  } else {
+    return 0
+  }
+}
+
+proc ::TolPkg::DeleteBackup { p } {
+  set path [ GetPkgDirectory $p ]
+  set bak "${path}.bak"
+  return [ file delete -force $bak ]
+}
+
 proc ::TolPkg::GetPkgSyncInfo { } {
   set localRoot [ file normalize \
                       [ toltcl::eval { Text TolPackage::_.localRoot } ] ]
@@ -181,10 +216,17 @@ proc ::TolPkg::ZipInstall { pkg.zip } {
 
 proc ::TolPkg::RemoteInstall { pkg repo } {
   puts "::TolPkg::RemoteInstall $pkg $repo"
+  BackupPackage $pkg 1
   set tolexpr [ string map [ list %p $pkg %r $repo ] {
     Real TolPackage::Client::RemoteInstall( "%r", "%p", 1 )
   } ]
-  return [ toltcl::eval $tolexpr ]
+  set result [ toltcl::eval $tolexpr ]
+  if { [ string is boolean $result ] && $result } {
+    DeleteBackup $pkg
+  } else {
+    RestoreBackup $pkg
+  }
+  return $result
 }
 
 proc ::TolPkg::ExportPackage { pkg dest } {
