@@ -220,11 +220,13 @@ proc ::TolPkg::RemoteInstall { pkg repo } {
   set tolexpr [ string map [ list %p $pkg %r $repo ] {
     Real TolPackage::Client::RemoteInstall( "%r", "%p", 1 )
   } ]
-  set result [ toltcl::eval $tolexpr ]
+  if { [ catch  { toltcl::eval $tolexpr } result ] } {
+    set result 0
+  }
   if { [ string is boolean $result ] && $result } {
     DeleteBackup $pkg
   } else {
-    RestoreBackup $pkg
+    RestoreBackup $pkg 1
   }
   return $result
 }

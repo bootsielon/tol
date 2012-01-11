@@ -680,6 +680,7 @@ proc ::TolPkgGUI::GetPkgNode { T url p } {
                                         -button auto ]
   set nodesInfo($treeParents($p),type) pkg
   set nodesInfo($treeParents($p),status) $nodeStatus
+  lappend nodesInfo($nodeStatus) $treeParents($p)
 }
 
 proc ::TolPkgGUI::FillTreeInfo { T } {
@@ -761,6 +762,7 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
                   -at end -relative $treeParents($pkgRoot) -button auto ]
     set nodesInfo($nid,type) pkgver
     set nodesInfo($nid,status) $nodeStatus
+    lappend nodesInfo($nodeStatus) $nid
     foreach {{} d} $pkg(_.autodoc.dependencies) {
       set _nid [ $T insert [ list [ list back_to_ou_16 $d ] ] \
                     -at end -relative $nid -button no ]
@@ -787,6 +789,16 @@ proc ::TolPkgGUI::CreateTree { t } {
   menu $t.cmenu -tearoff 0 \
       -postcommand [ list ::TolPkgGUI::PostContextMenu $t $t.cmenu ]
   $t configure -contextmenu $t.cmenu
+}
+
+proc ::TolPkgGUI::EntryState { listName } {
+  upvar $listName v
+
+  if { [ info exists v ] && [ llength $v ] } {
+    return "normal"
+  } else {
+    return "disabled"
+  }
 }
 
 proc ::TolPkgGUI::PostContextMenu { T w } {
@@ -903,7 +915,8 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         -command [ list ::TolPkgGUI::UpdatePackageVersion $listUPD ]
   }
   $w add command -label [ mc "Update all" ] \
-      -command "::TolPkgGUI::UpdatePackageVersion"
+      -command "::TolPkgGUI::UpdatePackageVersion" \
+      -state [ EntryState nodesInfo(update) ]
   # upgrade list
   if { [ llength $listUPG ] == 1 } {
     $w add command \
@@ -914,7 +927,9 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         -command [ list ::TolPkgGUI::UpgradePackages $listUPG ]
   }
   $w add command -label [ mc "Upgrade all" ] \
-      -command "::TolPkgGUI::UpgradePackages"
+      -command "::TolPkgGUI::UpgradePackages" \
+      -state [ EntryState nodesInfo(upgrade) ]
+
   # export options
   $w add separator
   if { [ llength $listEXP ] == 1 } {
@@ -1299,6 +1314,8 @@ proc ::TolPkgGUI::CheckConnectionConfig { } {
 
 proc ::TolPkgGUI::UpgradePackages { { pkgs {} } } {
   variable installData
+  variable nodesInfo
+  variable tree
 
   if { ![ CheckConnectionConfig ] } {
     return 
@@ -1311,8 +1328,15 @@ proc ::TolPkgGUI::UpgradePackages { { pkgs {} } } {
     }
   } else {
     # upgrade all, look for the list
-    Unimplemented "Upgrade all packages"
-    return
+    if { [ info exists nodesInfo(upgrade) ] } {
+      foreach nid $nodesInfo(upgrade) {
+        set p [ $tree item text $nid 0 ]
+        lappend upgradeList $p
+        set installData($p) $nid
+      }
+    } else {
+      return
+    }
   }
   DlgProcess $upgradeList -title [ mc "Upgrade packages" ] \
       -label [ mc "You are about to upgrade"]: \
@@ -1322,6 +1346,8 @@ proc ::TolPkgGUI::UpgradePackages { { pkgs {} } } {
 
 proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
   variable installData
+  variable nodesInfo
+  variable tree
 
   puts "UpdatePackageVersion: $pkgs"
   if { ![ CheckConnectionConfig ] } {
@@ -1329,15 +1355,23 @@ proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
   }
   
   array unset installData
+  set updateList {}
   if { [ llength $pkgs ] } {
     foreach p $pkgs {
       array set installData $p
       lappend updateList [ lindex $p 0 ]
     }
   } else {
-    # upgrade all, look for the list
-    Unimplemented "Update all packages"
-    return
+    # update all, look for the list
+    if { [ info exists nodesInfo(update) ] } {
+      foreach nid $nodesInfo(update) {
+        set p [ $tree item text $nid 0 ]
+        lappend updateList $p
+        set installData($p) $nid
+      }
+    } else {
+      return
+    }
   }
   DlgProcess $updateList -title [ mc "Update packages" ] \
       -label [ mc "You are about to update"]: \
