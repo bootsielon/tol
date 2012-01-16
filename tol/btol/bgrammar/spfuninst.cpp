@@ -2044,19 +2044,17 @@ static BSyntaxObject* EvGlobalFind(BGrammar* gra, const List* tre, BBool left)
   static BText _name_ = "::";
   BSyntaxObject* result = NIL;
   BInt nb = BSpecialFunction::NumBranches(tre);
+  List* branch = Branch(tre,1);
+  BToken* arg = BParser::treToken(branch);
+  const BText& globalName = arg->Name();
   BText errMsg;
   if(gra==GraAnything())
   {
-    errMsg = I2("Cannot apply monary global find operator ::<global_variable> "
-    "to type Anything",
-    "No se puede aplicar el operador de búsqueda global ::<variable_global> "
-    "al tipo Anything");
+    result = gra->FindOperand(globalName, false);
+    if(!result) { result = gra->FindOperator(globalName); }
   }
   else if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
   {
-    List* branch = Branch(tre,1);
-    BToken* arg = BParser::treToken(branch);
-    const BText& globalName = arg->Name();
     BObjClassify oc(gra,BOBJECTMODE);
     result = BGrammar::SymbolTable().Search(oc, globalName);
   }
