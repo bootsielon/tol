@@ -212,7 +212,10 @@ rule includes ( pkg ? )
     {
         if $(.libs.$(p).include)
         {
-            feature += <include>$(.libs.$(p).include) ;
+            for local i in $(.libs.$(p).include)
+            {
+              feature += <include>$(i) ;
+            }
         }
         else
         {
