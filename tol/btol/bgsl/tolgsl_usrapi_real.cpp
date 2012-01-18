@@ -4414,6 +4414,10 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   for(i=0; i<r; i++, p++, a++, b++, q++)
   {
     *q = gsl_cdf_beta_Pinv(*p, *a, *b);
+    if(IS_NAN(*q))
+    {
+      Std(BText("\nTRACE [gsl_M_cdf_beta_Pinv] gsl_cdf_beta_Pinv(")+BDat(*p).Name()+", "+BDat(*a).Name()+", "+BDat(*b).Name()+")="+BDat(*q).Name());
+    }
   }
 }
 
