@@ -88,7 +88,7 @@ snit::widgetadaptor renderpane {
     # Escape character substitutions
     # TBD: Some of this should probably be done as part of markup parsing.
     variable escapeMapping \
-        "&lt; < &gt; > &lb; \[ &rb; \] &amp; &"
+        "&lt; < &gt; > &lb; \[ &rb; \] &amp; & &ap; '"
 
     # Image List -- loaded images, for later destruction
     variable imageList {}

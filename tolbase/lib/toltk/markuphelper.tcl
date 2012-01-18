@@ -15,6 +15,8 @@ namespace eval ::MarkupHelper {
       ]  &rb;
       <  &lt;
       >  &gt;
+      '  &ap;
+      &  &amp;
     }
     return [ string map $specialChars $text ]
   }
@@ -186,6 +188,6 @@ namespace eval ::MarkupHelper {
         }
       }
     }
-    return [ GetText ]
+    return "<m>[ GetText ]</m>"
   }
 }
