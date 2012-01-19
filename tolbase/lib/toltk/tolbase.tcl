@@ -225,11 +225,7 @@ proc ::TolConsole::Create { w } {
   } else {
     array set normalProps [ CGetFont [ $widgets(output) cget -font ] ]
   }
-  if { $normalProps(-size) == 9 } {
-    # { Times 9 } does not look good on Linux
-    set normalProps(-size) 10
-  }
-  prefs set bodytext "Times $normalProps(-size)"
+  prefs set bodytext "$normalProps(-family) $normalProps(-size)"
   prefs set monotext "Courier $normalProps(-size)"
   foreach {f ds p} {header1 4 bold header2 2 bold header3 0 bold title 8 {} small -4 {}} {
     prefs set ${f}text  "Helvetica [ expr {$normalProps(-size) + $ds} ] $p"
@@ -540,9 +536,10 @@ proc ::TolConsole::OnInfo { args } {
         }
       }
       MarkupHelper::Init
-      $data(notebookdb) set "info" \
-          [ MarkupHelper::BuildTolbaseInfo \
+      set fmtInfo [ MarkupHelper::BuildTolbaseInfo \
                 $icon $grammar $name $content $path $desc -objref $objRef ]
+      $data(notebookdb) set "info" $fmtInfo
+          
       $widgets(info,markupviewer) showpage "info"
       ActivateInfoWidget "markup"
     }

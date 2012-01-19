@@ -179,15 +179,15 @@ namespace eval ::MarkupHelper {
         set e [ string index $line end ]
         if { $s eq "\[" && $e eq "\]" } {
           Text "[ string range $line 1 end-1 ]:" \
-              -tags {b i} -br 1
+              -tags {b} -br 1
         } elseif { $s eq "{" && $e eq "}" } {
-          Text "[ string range $line 1 end-1 ]: " -tags {b i}
+          Text "[ string range $line 1 end-1 ]: " -tags {b}
         } else {
           Text \
               [ Preprocess [ string trimright $line ] ] -br 1
         }
       }
     }
-    return "<m>[ GetText ]</m>"
+    return [ GetText ]
   }
 }
