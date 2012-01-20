@@ -96,6 +96,23 @@ proc ::TolConsole::CGetFont { font } {
   return [ list -family $family -size $size ]
 }
 
+proc ::TolConsole::MarkupMenu { w } {
+  set m [ menu $w.m -tearoff 0 ]
+  
+  $m add command -label "[mc Find]..." -accelerator CTRL+F \
+          -command [ list ::BayesText::FindShow $w ]
+  $m add command -label [mc "Copy"] -accelerator CTRL+C \
+          -command [list ::BayesText::Copy $w]
+  $m add command -label [mc "Select all"] -accelerator CTRL+E \
+          -command [list ::BayesText::SelectAll $w]
+  $m add command -label "[mc Font]..." -accelerator CTRL+T \
+          -command [list ::BayesText::FontChange $w]
+
+  bind $w <Button-3> "tk_popup $m %X %Y"
+
+  
+}
+
 #/////////////////////////////////////////////////////////////////////////////
 proc ::TolConsole::Create { w } {
 #
@@ -208,6 +225,8 @@ proc ::TolConsole::Create { w } {
 
   set widgets(info,markupviewer) [ markupviewer $w_tabset.mv \
                                        -db $data(notebookdb) -showtitle 0 ]
+
+  MarkupMenu $widgets(info,markupviewer)
 
   set def_font [$w_info cget -font]
   if { [lsearch -exact [font names] fnBold] == -1 } {
