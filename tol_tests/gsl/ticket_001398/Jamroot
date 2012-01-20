@@ -1,0 +1,4 @@
+lib gsl ;
+lib gslcblas ;
+
+exe test_cdf_beta : test_cdf_beta.c gsl gslcblas ;
