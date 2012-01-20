@@ -4413,7 +4413,8 @@ BTraceInit("tolgsl_usrapi_real.cpp");
   q = b2dMat(contens_).GetData().GetBuffer();
   for(i=0; i<r; i++, p++, a++, b++, q++)
   {
-    *q = gsl_cdf_beta_Pinv(*p, *a, *b);
+  //*q = gsl_cdf_beta_Pinv(*p, *a, *b);
+    *q = BBetaDist::InvInc(*p,*a,*b).Value();
   }
 }
 
