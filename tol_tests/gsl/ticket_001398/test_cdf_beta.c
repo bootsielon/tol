@@ -28,9 +28,12 @@ int main()
     };
 
   for ( i = 0; sizeof( test_args ) / sizeof( test_args[ 0 ] ); ++i ) {
+    printf( "gsl_cdf_beta_Pinv(%g,%g,%g)=",
+             test_args[i].x, test_args[i].a, test_args[i].b );
     double p = gsl_cdf_beta_Pinv( test_args[i].x,
                                   test_args[i].a,
                                   test_args[i].b );
+    printf( "%g\n", p );
   }
   return 0;
 }
