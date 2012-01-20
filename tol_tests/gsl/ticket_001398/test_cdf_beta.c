@@ -27,7 +27,7 @@ int main()
       {0.9999999868417623,24.95643274099755,918.6566331776214}
     };
 
-  for ( i = 0; sizeof( test_args ) / sizeof( test_args[ 0 ] ); ++i ) {
+  for ( i = 0; i < sizeof( test_args ) / sizeof( test_args[ 0 ] ); ++i ) {
     printf( "gsl_cdf_beta_Pinv(%g,%g,%g)=",
              test_args[i].x, test_args[i].a, test_args[i].b );
     double p = gsl_cdf_beta_Pinv( test_args[i].x,
