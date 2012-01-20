@@ -150,6 +150,18 @@ snit::widget markupviewer {
         catch {prefs unregister $selfns}
     }
 
+    # josp: delegate methods in order to use it as text
+    delegate method tag to rp
+    delegate method index to rp
+    delegate method search to rp
+    delegate method compare to rp
+    delegate method mark to rp
+    delegate method see to rp
+    delegate method edit to rp
+    delegate method get to rp
+    delegate option -autoseparators to rp
+    delegate option -font to rp
+
     delegate method UsePreferences to rp
     # josp: delegate UsePreferences on renderpane
     if { 0 } {
