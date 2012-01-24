@@ -244,10 +244,10 @@ proc ::TolConsole::Create { w } {
   } else {
     array set normalProps [ CGetFont [ $widgets(output) cget -font ] ]
   }
-  prefs set bodytext "$normalProps(-family) $normalProps(-size)"
-  prefs set monotext "Courier $normalProps(-size)"
+  prefs set bodytext [ list $normalProps(-family) $normalProps(-size) ]
+  prefs set monotext [ list Courier $normalProps(-size) ]
   foreach {f ds p} {header1 4 bold header2 2 bold header3 0 bold title 8 {} small -4 {}} {
-    prefs set ${f}text  "Helvetica [ expr {$normalProps(-size) + $ds} ] $p"
+      prefs set ${f}text  [ list Helvetica [ expr {$normalProps(-size) + $ds} ] $p ]
   }
   prefs NotifyObservers
 
