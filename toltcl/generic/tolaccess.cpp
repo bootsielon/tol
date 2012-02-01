@@ -1784,7 +1784,7 @@ int Tol_GetLanguage(Tcl_Interp * interp, Tcl_Obj * obj_result)
 
 int Tol_InfoVersion( Tcl_Interp * interp,  Tcl_Obj * obj_result )
 {
-#define VERSION_INFO_SIZE 4*2
+#define VERSION_INFO_SIZE 3*2
  
   Tcl_Obj * items[VERSION_INFO_SIZE];
   char buffer[64];
@@ -1795,13 +1795,9 @@ int Tol_InfoVersion( Tcl_Interp * interp,  Tcl_Obj * obj_result )
   /* Minor Info */
   items[2] = Tcl_NewStringObj( "minor", -1 );
   items[3] = Tcl_NewIntObj( VERSION_MINOR );
-  /* Release Info */
-  items[4] = Tcl_NewStringObj( "release", -1 );
-  sprintf(buffer,"%d", VERSION_RELEASE);
-  items[5] = Tcl_NewStringObj(buffer, -1);
   /* Comment Info */
-  items[6] = Tcl_NewStringObj( "comment", -1 );
-  items[7] = Tcl_NewStringObj(TOLVersionBuild(), -1 );
+  items[4] = Tcl_NewStringObj( "comment", -1 );
+  items[5] = Tcl_NewStringObj(TOLVersionBuild(), -1 );
   /* asign the items to the result list */
   Tcl_SetListObj( obj_result, VERSION_INFO_SIZE, items ); 
   return TCL_OK;
