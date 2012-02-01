@@ -143,18 +143,38 @@ Real LoadConfig(Real void)
 //////////////////////////////////////////////////////////////////////////////
 {
 //WriteLn("TRACE [LoadConfig] 1");
-  Real Case(!FileExist(_.path),
+  Text lastPath = If(FileExist(_.path),_.path,
   {
-//WriteLn("TRACE [LoadConfig] 2.1");
+    Set tolAppFiles = GetDir(TolAppDataPath)[1];
+    Set tolAppConfig = Select(tolAppFiles,Real(Text fName)
+    {
+      TextBeginWith(fName,".tolConfig.") &
+      TextEndAt    (fName,".tol")
+    });
+    Set versions = EvalSet(tolAppConfig,Text(Text fName)
+    {
+      Replace(Replace(fName,".tolConfig.",""),".tol","")
+    });
+    Set versions.sort = Sort(versions, Real(Text a, Text b)
+    {
+      Compare.VersionString(b,a)
+    });
+    TolAppDataPath+".tolConfig."+versions.sort[1]+".tol"
+  });
+//WriteLn("TRACE [LoadConfig] 2 _.path='"+_.path+"'");
+//WriteLn("TRACE [LoadConfig] 3 lastPath='"+lastPath+"'");
+  Real Case(!FileExist(lastPath),
+  {
+  //WriteLn("TRACE [LoadConfig] 4.1");
     Real SaveConfig(Default);
     NameBlock Config := Include(_.path)[1];
     True
   },
   1==1,
   {
-  //WriteLn("TRACE [LoadConfig] 2.2");
+  //WriteLn("TRACE [LoadConfig] 4.2");
     NameBlock Config := 
-      MergeOptions(TolConfigManager::Default, { Include(_.path)[1] },
+      MergeOptions(TolConfigManager::Default, { Include(lastPath)[1] },
      "TolConfigManager::Config::");
     Real SaveConfig(Config)
   });
