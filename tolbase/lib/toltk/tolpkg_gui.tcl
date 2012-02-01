@@ -984,12 +984,18 @@ proc ::TolPkgGUI::AddNewRepository { } {
   }
 }
 
+proc ::TolPkgGUI::RefreshTree { } {
+  variable tree
+
+  $tree item delete all
+  FillTreeInfo $tree
+}
+
 proc ::TolPkgGUI::SyncServers { } {
   variable tree
   update
   ::TolPkg::UpdateRepositoryInfo
-  $tree item delete all
-  FillTreeInfo $tree
+  RefreshTree
 }
 
 proc ::TolPkgGUI::StartProgressBar { } {
@@ -1061,6 +1067,7 @@ proc ::TolPkgGUI::DlgProcess { pkgs args } {
     -cmditem ""
     -cmdlabelitem ""
     -customgui ""
+    -refreshtree 0
   }
   set DlgProcessData(-label) [ mc "You are about to process"]:
   array set DlgProcessData $args
@@ -1219,10 +1226,10 @@ proc ::TolPkgGUI::InstallPackages { pkgs } {
     return
   }
   puts "InstallPackages: $InstallList"
-  DlgProcess $InstallList -title [ mc "Export packages" ] \
-      -label [ mc "You are about to export"]: \
+  DlgProcess $InstallList -title [ mc "Install packages" ] \
+      -label [ mc "You are about to install"]: \
       -beforestart ::TolPkgGUI::Installing \
-      -cmditem "InstallThisPackage"
+      -cmditem "InstallThisPackage" -refreshtree 1
   
 }
 
@@ -1241,13 +1248,18 @@ proc ::TolPkgGUI::DlgProcessTask { } {
   variable Progress
   variable DlgProcessData
   
-  DlgProcessStart 
+  DlgProcessStart
+  set hasProcessed 0
   foreach p $DlgProcessData(items) {
     if { $DlgProcessData(status) ne "working" } break
     DlgProcessItem $p
     DlgProcessAdvance
+    set hasProcessed 1
   }
-  DlgProcessStop  
+  DlgProcessStop
+  if { $DlgProcessData(-refreshtree) && $hasProcessed } {
+    after idle ::TolPkgGUI::RefreshTree
+  }
 }
 
 proc ::TolPkgGUI::InstallTask { remote } {
@@ -1285,7 +1297,7 @@ proc ::TolPkgGUI::InstallZip { } {
   variable installZipData
 
   set installZipData [ tk_getOpenFile -defaultextension .zip -multiple 1 \
-                           -parent $win -title [ mc "Select zip" ] \
+                           -parent $win -title [ mc "Select zip packages" ] \
                            -filetypes {{zip {.zip}}} ]
   if { $installZipData ne "" } {
     foreach f $installZipData {
@@ -1294,7 +1306,7 @@ proc ::TolPkgGUI::InstallZip { } {
     DlgProcess $zipList -title [ mc "Install Zip's" ] \
         -label [ mc "You are about to install zip"]: \
         -beforestart ::TolPkgGUI::InstallingZip \
-        -cmditem InstallThisZip
+        -cmditem InstallThisZip -refreshtree 1
   }
 }
 
@@ -1341,7 +1353,7 @@ proc ::TolPkgGUI::UpgradePackages { { pkgs {} } } {
   DlgProcess $upgradeList -title [ mc "Upgrade packages" ] \
       -label [ mc "You are about to upgrade"]: \
       -beforestart ::TolPkgGUI::Upgrading \
-      -cmditem "InstallThisPackage"
+      -cmditem "InstallThisPackage" -refreshtree 1
 }
 
 proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
@@ -1376,11 +1388,15 @@ proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
   DlgProcess $updateList -title [ mc "Update packages" ] \
       -label [ mc "You are about to update"]: \
       -beforestart ::TolPkgGUI::Updating \
-      -cmditem "InstallThisPackage"
+      -cmditem "InstallThisPackage" -refreshtree 1
 }
 
 proc ::TolPkgGUI::ImportSyncInfo { } {
   Unimplemented "Import Sync Info"
+}
+
+proc ::TolPkgGUI::ExportSyncInfo { } {
+  Unimplemented "Export Sync Info"
 }
 
 proc ::TolPkgGUI::Unimplemented { title } {
@@ -1389,10 +1405,6 @@ proc ::TolPkgGUI::Unimplemented { title } {
   MessageDlg $win.ask -parent $win -title [ mc $title ] \
       -icon warning \
       -type ok -message [ mc "Unimplemented option" ]
-}
-
-proc ::TolPkgGUI::ExportSyncInfo { } {
-  Unimplemented "Export Sync Info"
 }
 
 ##
@@ -1446,7 +1458,7 @@ proc ::TolPkgGUI::ExportPackageVersion { {pkgs ""} } {
         -label [ mc "You are about to export"]: \
         -beforestart ::TolPkgGUI::Exporting \
         -customgui "CreateSelectDir" \
-        -cmditem "ExportThisPackage"
+        -cmditem "ExportThisPackage" -refreshtree 0
   }
 }
 

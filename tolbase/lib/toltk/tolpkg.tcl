@@ -31,6 +31,8 @@ proc ::TolPkg::GetPkgDirectory { p } {
 }
 
 proc ::TolPkg::BackupPackage { p {delete 0}} {
+  # backup is not working, some problem has being reported on Windows 7
+  return 1
   set path [ GetPkgDirectory $p ]
   if { [ file exists $path ] } {
     set bak "${path}.bak"
@@ -43,6 +45,8 @@ proc ::TolPkg::BackupPackage { p {delete 0}} {
 }
 
 proc ::TolPkg::RestoreBackup { p { delete 0 } } {
+  # backup is not working, some problem has being reported on Windows 7
+  return 1
   set path [ GetPkgDirectory $p ]
   set bak "${path}.bak"
   if { [ file exists $bak ] } {
@@ -54,6 +58,8 @@ proc ::TolPkg::RestoreBackup { p { delete 0 } } {
 }
 
 proc ::TolPkg::DeleteBackup { p } {
+  # backup is not working, some problem has being reported on Windows 7
+  return 1
   set path [ GetPkgDirectory $p ]
   set bak "${path}.bak"
   return [ file delete -force $bak ]
