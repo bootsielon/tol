@@ -1315,7 +1315,7 @@ proc ::TolConsole::ApplyViewMode {{change 1}} {
   label $w.lsplash -image $img -relief ridge -bd 2
   array set TolVersionInfo [::tol::info version]
   label $w.lversion -bg black -fg white -text \
-    "[mc {TOL Version}]: $TolVersionInfo(major).$TolVersionInfo(minor).$TolVersionInfo(release) ($TolVersionInfo(comment))"
+      "[mc {TOL Version}]: [ lindex [ toltcl::eval {Text Version} ] 0 ]"
   label $w.laddress -bg black -fg white -text {
     Bayes Forecast: dynamic modelling of operations and markets
     Voice: (+34) 91.5327440; Fax: (+34) 91.5322636
