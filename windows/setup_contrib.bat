@@ -2,7 +2,7 @@
 @echo =                                                                            = 
 @echo =                 TOL - GNU/GPL Time Oriented Language                       =
 @echo =                                                                            = 
-@echo =       Complementary External Resources for TOL 2.0.1 in MS Windows         =
+@echo =       Complementary External Resources for TOL 2.0.2 in MS Windows         =
 @echo =                                                                            = 
 @echo =                     http://www.tol-project.org                             =
 @echo =                                                                            = 
