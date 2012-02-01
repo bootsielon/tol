@@ -1083,10 +1083,9 @@ const char * TOLVersionShortName()
     snprintf
     (
      aux_, 64,
-      "v%d_%d_%d"
+      "v%d_%d"
      ,VERSION_MAJOR,
-      VERSION_MINOR,
-      VERSION_RELEASE
+      VERSION_MINOR
     );
     init_ = true;
   }
@@ -1104,13 +1103,12 @@ const char * TOLVersion()
     snprintf
     (
      aux_, 128,
-      "v%d.%d.%d %s"
+      "v%d.%d %s"
 # ifndef NDEBUG
       " {DEBUG}"
 # endif
      ,VERSION_MAJOR,
       VERSION_MINOR,
-      VERSION_RELEASE,
       TOLVersionBuild()
     );
     init_ = true;
