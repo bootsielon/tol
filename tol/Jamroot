@@ -36,7 +36,7 @@ if $(os) = UNIX
   os-reqs = <define>UNIX ;
   build-date = [ trim-nl [ SHELL "date +%F" ] ] ;
   build-time = [ trim-nl [ SHELL "date '+%T %z %Z'" ] ] ;
-  svn-info = [ SHELL "_svn info" ] ;
+  svn-info = [ SHELL "svn info" ] ;
   svn0 = [ string.words $(svn-info) : "
 " ] ;
   build-svn-info = [ string.join $(svn0) : "\\n" ] ;
