@@ -304,8 +304,10 @@ snit::type bodbc {
 #Tolcon_Trace "ConnectDlg  ..."
 #    variable widget
     # wait
-    blt::busy hold $widget(dlg)
-    update
+    if { 0 } {
+      blt::busy hold $widget(dlg)
+      update
+    }
     # _Connect
     set mamMod [BfoGetText $widget(module)]
     # get module
@@ -325,7 +327,9 @@ snit::type bodbc {
       $widget(dlg) enddialog ok
     }
     # end wait
-    blt::busy release $widget(dlg)
+    if { 0 } {
+      blt::busy release $widget(dlg)
+    }
   }
 
   #///////////////////////////////////////////////////////////////////////////
