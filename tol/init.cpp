@@ -1062,7 +1062,7 @@ const char * TOLVersionBuild()
    #elif defined UNIX
     const char* tolBuildPlatform = "i686-linux-gnu";
    #endif
-    snprintf(aux_, sizeof(aux_), "b.%s %s %s %s",
+    snprintf(aux_, sizeof(aux_), "%s %s %s %s",
             VERSION_BUILD,
             tolBuildDate,
             tolBuildTime,
