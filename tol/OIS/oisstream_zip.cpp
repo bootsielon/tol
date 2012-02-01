@@ -30,7 +30,7 @@
 #include <tol/tol_bdir.h>
 #include <tol/tol_btimer.h>
 #include <tol/tol_oisstream_zip.h>
-#include <zlib/zlib.h>
+#include <zlib.h>
 
 #if defined(UNIX)
 #include <unistd.h>
