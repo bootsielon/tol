@@ -2,7 +2,7 @@
 @echo =                                                                            = 
 @echo =                 TOL - GNU/GPL Time Oriented Language                       =
 @echo =                                                                            = 
-@echo =       Complementary External Resources for TOL 2.0.2 in MS Windows         =
+@echo =       Complementary External Resources for TOL 3.1 in MS Windows         =
 @echo =                                                                            = 
 @echo =                     http://www.tol-project.org                             =
 @echo =                                                                            = 
@@ -30,7 +30,7 @@
 @set  LTDL_INC="%_TOL_CONTRIB_ROOT_PATH_%\libltdl\include"
 @set  CINT_LIB="%_TOL_CONTRIB_ROOT_PATH_%\cint\lib"
 @set  CINT_INC="%_TOL_CONTRIB_ROOT_PATH_%\cint\inc"
-@echo Environment variables needed to compile TOL 2.0.2 in windows:
+@echo Environment variables needed to compile TOL 3.1 in windows:
 @set  _TOL_CONTRIB_ROOT_PATH_
 @set  ATLAS_INC
 @set  ATLAS_LIB
