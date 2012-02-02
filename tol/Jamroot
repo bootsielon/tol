@@ -48,7 +48,7 @@ if $(os) = UNIX
 # configure version 1.1.6 ;
 #
 
-constant TOL_VERSION : 2.0.2 ;
+constant TOL_VERSION : 3.1 ;
 
 # Configure a feature hash_map which can take the following values:
 #   msvc   ==>  __USE_HASH_MAP__=__HASH_MAP_NATIVE__
@@ -214,7 +214,6 @@ local config-prefix = [ config.get-prefix tol ] ;
 local libdir = [ config.get-libdir tol ] ;
 local stdlib-location = [ path.join $(libdir) tol$(TOL_VERSION) stdlib ] ;
 
-ECHO HOOOOLAAAAAA ;
 ECHO stdlib-location es $(stdlib-location) ;
 ECHO EL PREFIX DE TOL ES  $(config-prefix) ;
 
