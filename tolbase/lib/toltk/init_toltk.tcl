@@ -76,7 +76,7 @@ proc TraceMainGeometry { msg } {
     puts "requested to load Toltcl from $::env(USE_TOLTCL)"
     load $::env(USE_TOLTCL)
   } else {
-    package require Toltcl 2.0.2
+    package require Toltcl 3.1
   }
   package require rmtps_client
   package require byswidget
@@ -133,7 +133,7 @@ proc TraceMainGeometry { msg } {
 
 
 #/////////////////////////////////////////////////////////////////////////////
-  proc loadInfoProjects { dir } {
+  proc loadInfoProjects { prjini } {
 #
 # PURPOSE: Loads in a list the name and paths of each project to load
 #
@@ -144,23 +144,41 @@ proc TraceMainGeometry { msg } {
   global toltk_library
   global toltk_script_path
   
+  set values {}
   # File exists ?
   set ok 0
-  set dirPrjIni "[file normalize $dir]/../../../"
-  set fileProject [file join $dirPrjIni "project.ini"]
-  if {[file exists $fileProject]} {
-    set ok [ file writable $fileProject ] 
+  if { [ file isfile $prjini ] } {
+    if { [ file readable $prjini ] } {
+      set ok 1
+      set fileProject [ file normalize $prjini ]
+      # se intentara leer el iniproject.tol desde este sitio
+      lappend values Project,path,root [ file dir $fileProject ]
+    } else {
+      tk_messageBox -default ok -icon error \
+          -message [ mc "The project does not exist, file not found or not readable: %s" $prj ] \
+          -parent . -title "Error" -type ok
+      return ""
+    }
   } else {
-    set fileProject [file join $dir "project.ini"]
+    # comportamiento anterior, pudiera limpiarse
+    lappend values Project,path,root ""
+    set pathInitTol ""
+    set dir $prjini
+    set dirPrjIni "[file normalize $dir]/../../../"
+    set fileProject [file join $dirPrjIni "project.ini"]
     if {[file exists $fileProject]} {
-      set ok [ file writable $fileProject ]  
+      set ok [ file writable $fileProject ] 
+    } else {
+      set fileProject [file join $dir "project.ini"]
+      if {[file exists $fileProject]} {
+        set ok [ file writable $fileProject ]  
+      }
     }
   }
   # exists project.ini ?
   if {$ok} {
     set id [iniparse:openfile $fileProject]
     catch { ::iniFile::Create $fileProject }
-    set values {}
     foreach prj $iniparse($id,sections) {
       if { $prj eq "Project" } {
         lappend values Project,title [::iniFile::Read Project title {}]
@@ -210,9 +228,8 @@ proc TraceMainGeometry { msg } {
       }
     }
     iniparse:closefile $id
-    return $values
   }
-  return ""
+  return $values
 }
 
 if {[info exist ::env(DEBUG_TOLTCL)] && $::env(DEBUG_TOLTCL) eq "yes"} {
@@ -279,8 +296,43 @@ if {[lsearch $auto_path $toltk_library] == -1} {
   set auto_path [linsert $auto_path end $byswidget_library]
 }
 
+# Load project
+namespace import project::*
+set project::data(iniproject) 1
+set state ""
+set project::data(-project) $toltk_script_path
+foreach option $argv {
+  if { $state eq "" } {
+    switch -- $option {
+      -b {
+        set project::data(oculto) 1
+      }
+      -np {
+        set project::data(iniproject) 0
+      }
+      -project {
+        set state "project"
+      }
+      default {
+        puts "unknown option $option"
+      }
+    }
+  } else {
+    switch $state {
+      project {
+        set project::data(-project) [ file normalize $option ]
+      }
+      default {
+        puts "unknown state $state"
+      }
+    }
+    set state ""
+  }
+}
+
 # Get info about project
-set infoProjects [loadInfoProjects $toltk_script_path]
+set infoProjects [ loadInfoProjects $project::data(-project) ]
+project::project $infoProjects
 
 # load iniFile
 ::iniFile::Create [file join $home_path "tolcon.ini"]
@@ -294,18 +346,6 @@ set lang [::iniFile::Read TolConsole language es]
 LoadPackages
 
 Tolcon_Trace "toltk_script_path=$toltk_script_path"
-# Load project
-namespace import project::*
-set project::data(iniproject) 1
-foreach option $argv {
-  if { [string equal $option "-b"] } {
-    set project::data(oculto) 1
-  } elseif { $option eq "-np" } {
-    set project::data(iniproject) 0
-  }
-}
-project::project $infoProjects
-
 
 Tolcon_Trace "begin"
 if { [winfo exists .__debugwin] } {

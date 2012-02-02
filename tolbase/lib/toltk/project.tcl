@@ -164,7 +164,18 @@ namespace eval ::project {
     ::TolInspector::Busy
   }
 #   update
-  tol::initlibrary $data(iniproject)
+  if { $projects(Project,path,root) ne "" } {
+    set initol 0
+    set iniproject [ file join $projects(Project,path,root) "_iniproject.tol" ]
+  } else {
+    set initol $data(iniproject)
+    set iniproject ""
+  }
+  tol::initlibrary $initol
+  if { $iniproject ne "" } {
+    # incluyo _iniproject.tol relativo a -project
+    tol::include $iniproject
+  }
   foreach prj $projects(Project,names) {
     set prjname $projects(${prj},name)
     if { [string length $prjname] } { eval ${prjname}::InitTol }
