@@ -43,7 +43,7 @@ NameBlock Builder =
   {
     Real index = FindIndexByName(_.sources, name);
     If(index, _.sources[index], {
-      WriteLn("No se encuentra el roigne de código '"<<name<<"'.", "E");
+      WriteLn("No se encuentra el origen de código '"<<name<<"'.", "E");
       If(False, ?)
     })
   };
