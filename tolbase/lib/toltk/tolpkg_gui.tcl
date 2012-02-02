@@ -900,10 +900,10 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
     $w add command -label [ mc "Install %s" [ lindex [ lindex $listNEW 0 ] 0 ] ] \
         -command [ list ::TolPkgGUI::InstallPackages $listNEW ]
   } elseif { [ llength $listNEW ] > 1 } {
-    $w add command -label [ mc "Install selected" ] \
+    $w add command -label [ mc "Install selected" ]... \
         -command [ list ::TolPkgGUI::InstallPackages $listNEW ]
   }
-  $w add command -label "[ mc {Install ZIP} ]..." \
+  $w add command -label [ mc "Install ZIP" ]... \
       -command "::TolPkgGUI::InstallZip"
   # update list
   if { [ llength $listUPD ] == 1 } {
@@ -911,10 +911,10 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         -label [ mc "Update %s" [ lindex [ lindex $listUPD 0 ] 0 ] ] \
         -command [ list ::TolPkgGUI::UpdatePackageVersion $listUPD ]
   } elseif { [ llength $listUPD ] > 1 } {
-    $w add command -label [ mc "Update selected" ] \
+    $w add command -label [ mc "Update selected" ]... \
         -command [ list ::TolPkgGUI::UpdatePackageVersion $listUPD ]
   }
-  $w add command -label [ mc "Update all" ] \
+  $w add command -label [ mc "Update all" ]... \
       -command "::TolPkgGUI::UpdatePackageVersion" \
       -state [ EntryState nodesInfo(update) ]
   # upgrade list
@@ -923,10 +923,10 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         -label [ mc "Upgrade %s" [ lindex [ lindex $listUPG 0 ] 0 ] ] \
         -command [ list ::TolPkgGUI::UpgradePackages $listUPG ]
   } elseif { [ llength $listUPG ] > 1 } {
-    $w add command -label [ mc "Upgrade selected" ] \
+    $w add command -label [ mc "Upgrade selected" ]... \
         -command [ list ::TolPkgGUI::UpgradePackages $listUPG ]
   }
-  $w add command -label [ mc "Upgrade all" ] \
+  $w add command -label [ mc "Upgrade all" ]... \
       -command "::TolPkgGUI::UpgradePackages" \
       -state [ EntryState nodesInfo(upgrade) ]
 
@@ -1083,6 +1083,7 @@ proc ::TolPkgGUI::DlgProcess { pkgs args } {
     listbox $f.list -selectmode single -background white \
         -relief flat -borderwidth 1 -highlightthickness 0 \
         -selectbackground #c3c3ff
+    frame $f.cgui
     ProgressBar $f.pbar
     $w add -text Ok 
     $w add -text Cancel
@@ -1091,11 +1092,16 @@ proc ::TolPkgGUI::DlgProcess { pkgs args } {
     grid $f.pbar -row 2 -column 0 -sticky e
     grid columnconfigure $f 0 -weight 1
     grid rowconfigure $f 1 -weight 1
-    if { $DlgProcessData(-customgui) ne "" } {
-      eval $DlgProcessData(-customgui) $f 3
-    }
   } else {
+    wm title $w $DlgProcessData(-title)
     set f [ DlgProcessGetFrame ]
+  }
+  if { $DlgProcessData(-customgui) ne "" } {
+    grid $f.cgui -row 3 -column 0 -sticky snew
+    eval $DlgProcessData(-customgui) $f.cgui
+  } else {
+    grid remove $f.cgui
+    grid rowconfigure $f 3 -weight 0
   }
   $f.pbar configure -maximum 1 \
       -variable ::TolPkgGUI::DlgProcessData(state,0)
@@ -1117,6 +1123,9 @@ proc ::TolPkgGUI::DlgProcess { pkgs args } {
   }
   set DlgProcessData(state) ""
   $w draw
+  foreach wc [ winfo children $f.cgui ] {
+    destroy $wc
+  }
 }
 
 proc ::TolPkgGUI::DlgProcessGetCurrentIndex { } {
@@ -1482,7 +1491,7 @@ proc ::TolPkgGUI::InstallingZip { } {
   DlgProcessSetLabel [ mc "Installing Zip" ]...
 }
 
-proc ::TolPkgGUI::CreateSelectDir { f row } {
+proc ::TolPkgGUI::CreateSelectDir { f } {
   set varname [ DlgProcessGetVariableName "directory" ]
   upvar \#0 $varname var
 
@@ -1490,16 +1499,14 @@ proc ::TolPkgGUI::CreateSelectDir { f row } {
   if { ![ info exists $varname ] } {
     trace add variable $varname write ::TolPkgGUI::OnChangeDirectory
   }
-  frame $f.fdir
-  label $f.fdir.lb -text [ mc "Output directory" ]:
-  entry $f.fdir.ent -textvariable $varname
-  button $f.fdir.btn -image folder_yellow_16 \
+  label $f.lb -text [ mc "Output directory" ]:
+  entry $f.ent -textvariable $varname
+  button $f.btn -image folder_yellow_16 \
       -command "::TolPkgGUI::ChooseDir $varname"
-  grid $f.fdir.lb -row 0 -column 0 -sticky w
-  grid $f.fdir.ent -row 0 -column 1 -sticky ew
-  grid $f.fdir.btn -row 0 -column 2 -sticky ew
-  grid columnconfigure $f.fdir 1 -weight 1
-  grid $f.fdir -row $row -column 0 -sticky ew
+  grid $f.lb -row 0 -column 0 -sticky w
+  grid $f.ent -row 0 -column 1 -sticky ew
+  grid $f.btn -row 0 -column 2 -sticky ew
+  grid columnconfigure $f 1 -weight 1
   if { $var eq "" } {
     set var [ pwd ]
   } else {
