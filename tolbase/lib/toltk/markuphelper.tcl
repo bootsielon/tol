@@ -161,7 +161,7 @@ namespace eval ::MarkupHelper {
       set _content $content
     }
     BR
-    LabelValue "Content" [ Escape $_content ]
+    LabelValue "Content" [ Verbatim [ Escape $_content ] ]
     if {$path ne ""} {
       BR
       LabelValue "Path" $path
