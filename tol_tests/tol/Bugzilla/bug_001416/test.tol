@@ -16,17 +16,17 @@ Text link_ = GetTolBugzillaLink(bugNum_);
 //Write here the initial test TOL code if needed
 Set X = [[ For(1, 10, Set(Real k){ [[k]] } ) ]];
 Text tad = GetAddressFromObject( X[1] );
+Real ok.1 = AddressIsAlive(tad);
 Set obj = GetObjectFromAddress( tad );
-
-Real ok = ObjectExist("Set","obj");
+Real ok.2 = ObjectExist("Set","obj");
 
 Real numErr1 = Copy(NError);
 Real numWar1 = Copy(NWarning);
 
-Set partialResults_ = [[ numErr0,numErr1,numWar1,numWar0]];
+Set partialResults_ = [[ numErr0,numErr1,numWar1,numWar0,ok.1,ok.2]];
 
 //This is a messure of the success of the test 
-Real quality_ = And(numErr0 == numErr1,numWar0 == numWar1,ok);
+Real quality_ = And(numErr0 == numErr1,numWar0 == numWar1,ok.1,ok.2);
 
 //Return the results 
 Set resultStr_ =
