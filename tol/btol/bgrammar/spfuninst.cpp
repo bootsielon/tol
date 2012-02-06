@@ -1461,7 +1461,7 @@ static BSyntaxObject* EvGetObjectFromAddress(
     }
   }
   SAFE_DESTROY(uTxt,result);
-  result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
+//result=BSpecialFunction::TestResult(_name_,result,tre,NIL,BTRUE);
   return(result);
 }
 

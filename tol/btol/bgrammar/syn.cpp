@@ -494,16 +494,21 @@ union BIntPointerMask
     &size,
     &pageNum);
   if( objMask.obj_ &&
+      (pageNum >= 0) && (pageNum <= 65535) && 
+      (mode >= 1) && (mode < BLASTMODE) && 
+      (size >= 1) && (sizeof(objMask.obj_) == size))
+  {
+    if(
+     (objMask.obj_->GetPageNum() == pageNum) &&
      (objMask.obj_->Grammar() == graMask.gra_) &&
      (objMask.obj_->Mode() == mode) &&
-     (sizeof(objMask.obj_) == size) &&
-     (objMask.obj_->GetPageNum() == pageNum)&&
 #if (__USE_POOL__==__POOL_BFSMEM__)
      (objMask.obj_->GetMemHandler() == mhnMask.mhn_)&&
 #endif
      (objMask.obj_->IsAssigned()!=0))
-  {
-    obj = objMask.obj_;
+    {
+      obj = objMask.obj_;
+    }
   }
   return((BSyntaxObject*)obj);
 }

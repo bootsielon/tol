@@ -94,6 +94,10 @@ public:	\
 
 #define UndeclareClassNewDelete \
 public:	\
+  short IsAssigned() const  \
+  { \
+    return(-1); \
+  } \
   static void* operator new(size_t size) \
   { \
     return(malloc(size)); \

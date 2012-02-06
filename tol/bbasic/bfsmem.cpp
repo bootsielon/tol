@@ -352,6 +352,12 @@ void BFixedSizeMemoryHandler::BPage::Delete(BYTE* address)
 //--------------------------------------------------------------------
 {
   BYTE2 p = (address-pool_)/baseSize_;
+  if(available_>=pageSize_)
+  {
+    printf("\nBPage()::Delete() available_:%u  pageSize_:%u ",
+           available_, 
+           pageSize_); 
+  }
 # ifdef BFSMEM_DEBUG_PAGE
   assert(available_<pageSize_);
   assert(p>=0);
@@ -365,7 +371,7 @@ void BFixedSizeMemoryHandler::BPage::Delete(BYTE* address)
   printf("\nBPage(%u,%u)::Delete(%ld)",
          baseSize_, 
          pageSize_, 
-         p); div
+         p);
 # endif
   avail_[available_++] = p; 
 };

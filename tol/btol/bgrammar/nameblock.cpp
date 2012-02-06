@@ -129,7 +129,7 @@ static bool BNameBlock_IsInitialized()
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
 #if (__USE_POOL__==__POOL_BFSMEM__)
-  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
+  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
   short isAssigned = -1;
 #endif
@@ -157,7 +157,7 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   SetEmptyKey(public_ ,NULL);
   SetEmptyKey(private_,NULL);
 #if (__USE_POOL__==__POOL_BFSMEM__)
-  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
+  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
   short isAssigned = -1;
 #endif
@@ -183,7 +183,7 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   startedPackage(false)
 {
 #if (__USE_POOL__==__POOL_BFSMEM__)
-  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
+  short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
   short isAssigned = -1;
 #endif
@@ -292,7 +292,7 @@ const BText& BNameBlock::LocalName() const
 #if (__USE_POOL__==__POOL_BFSMEM__)
   if(createdWithNew_) 
   { 
-    short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->_bfsm_PageNum__);
+    short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
     return(isAssigned); 
   }
   else        
@@ -338,9 +338,9 @@ const BText& BNameBlock::LocalName() const
 #if (__USE_POOL__==__POOL_BFSMEM__)
   if(current_ && 
      current_->createdWithNew_ &&
-     !(BFSMEM_Hndlr->IsAssigned(current_,current_->_bfsm_PageNum__)))
+     !(BFSMEM_Hndlr->IsAssigned(current_,current_->GetPageNum())))
   {
-    BFSMEM_Hndlr->IsAssigned(current_,current_->_bfsm_PageNum__);
+    BFSMEM_Hndlr->IsAssigned(current_,current_->GetPageNum());
     current_ = NULL;
   }
 #endif
@@ -364,10 +364,10 @@ const BText& BNameBlock::LocalName() const
   if(building_ && 
      building_->Contens().createdWithNew_ &&
      !(BFSMEM_Hndlr->IsAssigned(&building_->Contens(),
-                                building_->Contens()._bfsm_PageNum__)))
+                                building_->Contens().GetPageNum())))
   {
     BFSMEM_Hndlr->IsAssigned(&building_->Contens(),
-                             building_->Contens()._bfsm_PageNum__);
+                             building_->Contens().GetPageNum());
     building_ = NULL;
   }
 #endif

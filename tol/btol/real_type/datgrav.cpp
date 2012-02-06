@@ -865,6 +865,25 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
 }
 
 //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatAddressIsAlive);
+  DefExtOpr(1, BDatAddressIsAlive, "AddressIsAlive", 1, 1, "Text",
+  "(Text address)",
+  I2("Returns true if the address given matches for an alive TOL object."
+     "The address must be obtained by mean of calling GetAddressFromObject",
+     "Devuelve verdadero si la dirección dada por el argumento 'address' "
+     "corresponde efectivamente a un objeto TOL vivo."
+     "Dicha dirección interna se habrá obtenido previamente llamando a "
+     "la función GetAddressFromObject."),
+     BOperClassify::System_);
+  void BDatAddressIsAlive::CalcContens()
+//--------------------------------------------------------------------
+{
+  const BText&  address = Text(Arg(1));
+  BSyntaxObject* result = BSyntaxObject::GetObjectFromAddress(address);
+  contens_ = result!=NULL;
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatObjectExist);
   DefExtOpr(1, BDatObjectExist, "ObjectExist", 2, 2, "Text Text",
   I2("(Text grammar, Text name)","(Text gramatica, Text nombre)"),
