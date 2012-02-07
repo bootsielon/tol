@@ -31,13 +31,12 @@
  * BUILD_TOLTCL should be undefined for Unix.
  */
 
-#define TOLTCL_MAJOR_VERSION 	2
-#define TOLTCL_MINOR_VERSION 	0
-#define TOLTCL_RELEASE_SERIAL	2
+#define TOLTCL_MAJOR_VERSION 	3
+#define TOLTCL_MINOR_VERSION 	1
 #ifdef PACKAGE_VERSION
  #define TOLTCL_VERSION PACKAGE_VERSION
 #else
- #define TOLTCL_VERSION          "2.0.2"
+ #define TOLTCL_VERSION          "3.1"
 #endif
 
 #ifdef BUILD_TOLTCL
