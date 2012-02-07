@@ -1,7 +1,7 @@
 #!/bin/sh
 
 tclkit=tclkitsh-8.5.8
-version=2.0.2
+version=3.1
 sys=`uname`
 case $sys in
 Linux)

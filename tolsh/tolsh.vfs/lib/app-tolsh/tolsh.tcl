@@ -399,7 +399,7 @@ proc ::tolsh::run { cmdline } {
       puts "requested to load Toltcl from $::env(USE_TOLTCL_202)"
       load $::env(USE_TOLTCL_202)
     } else {
-      package require -exact Toltcl 2.0.2
+      package require -exact Toltcl 3.1
     }
     tol::initkernel $options(lang) $options(vmode)
 
