@@ -666,7 +666,7 @@ class TOL_API BTmpContens: public BTmpObject< BGraContens<Any> >
     }
     return(this->contens_);
   }
-  RedeclareClassNewDelete(BTmpContens<Any>);
+  UndeclareClassNewDelete;
 };
 
 
