@@ -1,3 +1,4 @@
+#-*-mode: TCL; coding: utf-8;-*-
 #/////////////////////////////////////////////////////////////////////////////
 # Object Inspector Messages
 #/////////////////////////////////////////////////////////////////////////////
@@ -38,7 +39,7 @@ mcset en "ForNumOpc:f" \
           where the number of y's is determined by the precision (default: 6).\n\
           If the precision is 0 then no decimal point is output"
 mcset en "ForNumOpc:e" \
-         "Convert floating-point number to scientific notation in the form x.yyye±zz,\n\
+         "Convert floating-point number to scientific notation in the form x.yyyeÂ±zz,\n\
           where the number of y's is determined by the precision (default: 6).\n\
           If the precision is 0 then no decimal point is output.\n\
           If the E form is used then E is printed instead of e"

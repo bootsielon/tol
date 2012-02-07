@@ -1,3 +1,4 @@
+#-*-mode: TCL; coding: utf-8;-*-
 mcset zh January     \u4e00
 mcset zh February    \u4e8c
 mcset zh March       \u4e09

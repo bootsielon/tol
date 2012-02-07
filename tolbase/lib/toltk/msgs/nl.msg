@@ -1,3 +1,4 @@
+#-*-mode: TCL; coding: utf-8;-*-
 mcset nl January     januari
 mcset nl February    februari
 mcset nl March       maart

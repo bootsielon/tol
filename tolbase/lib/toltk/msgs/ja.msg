@@ -1,3 +1,4 @@
+#-*-mode: TCL; coding: utf-8;-*-
 mcset ja January       "1"
 mcset ja February      "2"
 mcset ja March         "3"

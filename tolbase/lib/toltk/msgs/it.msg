@@ -1,3 +1,4 @@
+#-*-mode: TCL; coding: utf-8;-*-
 mcset it January     Gennaio
 mcset it February    Febraio
 mcset it March       Marte
