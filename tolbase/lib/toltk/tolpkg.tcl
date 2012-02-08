@@ -138,9 +138,9 @@ proc ::TolPkg::GetVersSyncInfo { } {
 
 proc ::TolPkg::GetLocalPackages { } {
   set localRoot [ file normalize \
-                      [ toltcl::eval { Text TolPackage::_.localRoot } ] ]
+                      [ lindex [ toltcl::eval { Text TolPackage::_.localRoot } ] 0 ] ]
   set clientRoot [ file join $localRoot Client ]
-  set dirs [ glob -tail -dir $clientRoot -types {d r} * ]
+  set dirs [ glob -nocomplain -tail -dir $clientRoot -types {d r} * ]
   set pkgsInfo {}
   foreach d $dirs {
     lappend pkgsInfo [ list $d [ GetLocalPackageInfo $d ] ]

@@ -791,6 +791,30 @@ snit::widget wtree {
     array set columnsToFilter [ array get _columnsToFilter ]
   }
 
+  method itemcolumn { item col args } {
+    set colid [ $tree column id $col ]
+    if { $colid eq "" } {
+      puts "$col does not reference a valid column"
+      return
+    }
+    set ret {}
+    foreach elemdata $args {
+      set v ""
+      foreach { e v } $elemdata break
+      if { $v eq "" } {
+        array set def_prop {
+          text -text
+          image -image
+        }
+        lappend ret [ list $e [ $tree item element cget $item $colid $elements($e) $def_prop($e) ] ]
+      } else {
+        set e_conf [ $self _build_element_config $e $v ]
+        eval $tree item element configure $item $colid $e_conf
+      }
+    }
+    return $ret
+  }
+
   method insert { data args } {
     array set insopt {
       -at end
@@ -1019,5 +1043,7 @@ Serie AlgGetData(
     return $T
   }
 }
+
+msgcat::mcload [ file join [ file dir [ info script ] ] msgs ]
 
 package provide wtree 1.0

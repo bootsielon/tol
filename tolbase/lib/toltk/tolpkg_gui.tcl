@@ -369,100 +369,6 @@ namespace eval ::TolPkgGUI {
       5STzQsB6EPRHPPH8QVDLARu0iD76LFLzzhAFBAA7
     }
   }
-  if { [ lsearch [ image names ] product_update_32 ] == -1 } {
-    image create photo product_update_32 -data {
-      R0lGODlhIAAgAOf/AAAjAgEkAAQwBhM1DQM8AAA/AAs+Dhk7EwpCAxhAEQBKAQNOACVBHxRJCgBS
-      ABJNDipHJAVYABlQGABdAC5NLx9WHUVHRClTKABoAABvAAZtBjZbNRZyAEJgPEBiN0FjOCFxDhB4
-      ACtuJTFvM0RpQz1tOSt1JACGAACHACh5IDxxNhp/ERCDB2FjYE5sRyZ/HQCPAEF3PByJEWlraACZ
-      BAGcADSLKCCUElGBTA2fAEOKOCiUJ0CLPnd5dmOCW3V6fGGDYlCLR0uQN2CGXlWORBilGXx+e3uA
-      ghisACOoEBGtFEiYRH6DhYGDgFuWUi2oKQy1ECiuJDioMoiKh1ufWG+YYyK7BI2RlFmpU2yiYzu5
-      JmWqT0q1N12wUi3DJSvGGm+rZUy5Q2SvYHmoale5RG6wYnqrc1u4Uj7FMzDOJXiyeD7MJHi0bVHF
-      RZeplnS5cKKnqUHRNKaopU/MQ1/ISXDBaT7XMIu4hqesrpuyl17NXDreK62vrKuwsnrFdHPKape8
-      jLCyr4zBjWHUU1DdQE3dSUngOVXbUKG9m5fCiovIf5LFi33OdXDUZGHcUnbUa1zfTJjKkLLAtK3E
-      qbDDr3DebKvHpI3TiILZd2XmU4fYfl/qTX/dc1btT1rtR17rVlHxSnHma2DtWKjQpbjKt2zpZb7I
-      w7zKvnvmbJvZj8HMupTfjKrYpITodsDQtqDcn2H2V77VuqDhnbjXuqPhl6fgnWz4Y8DYvLHfq4P0
-      cZ3plbbfs8/U18bZxc/Wy4/wi73hvKzoq5L1iIH8d9Lb1sjgxL3mud3a39fc36bynrTtqs7izeLb
-      59rf4tfh3N7g3Nzh5L/uutPm0s3o0uLg5MPtwLfztcjtyN/k57L5rOni79Ts0Ofl6dDw0uPo6ubp
-      5eHr5uXq7e7n8+vp7ffp9+zu6+/t8env8ffs8+vx5vTt+dL8z+b058/+yezy9PPw9e/y7vL08fbz
-      +PD19+P83/3y+fvz//n3+/P5+/f59vX88Pf9//v9+v78//3//P///yH+EUNyZWF0ZWQgd2l0aCBH
-      SU1QACH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGDBwP5W8iwocOHC6ckhEiRH798+PDlm+eP
-      ycR9FS1azIcxX7x57jpObLjPYr+XMO+R3BgPnrt9RyaKdNmPH7117dbRy3fvHkp4SPnlNKhwZz99
-      2XLZggWrU6ZKwdjdc/cO3jmcOvn18xcNkh07hjZ12kToC5Iwu+B9O3cOn5Gw/mRZgYIEjSNUrUId
-      QnMjgggcPsyFszsxn79dMFCwkLKqWzp46a49kqLiQQEElMzNu2uQj79+8UQsqKADV7979d6ps1cv
-      lZQuNzLcUTfvx8E+C90AYDDiVb93riKlWqRKXa1GmDApefJNXo+Dpv11ELChTD90iSD+2RqWbBAi
-      adY01fmD5I4936X9fRsAoQSrfpO8GKpU7doeLaao8802yvixiDzwFWSaLwl4EMQ09mxBQxSRvHNJ
-      EjWMMQ43HHIDzTkJEmRaOafEcks58AjhwAuW3MOGDRM4saEzzjxDzTnXxXdPP/XI8845RLiQBylm
-      9KIAAVWI00sWQ5AgyTshDoSHP8WMMosv6KgDCAcgrBDCLSZgMIk4o8RAQQBP5liQHP6w8gQPVAgS
-      yzNbnJADFFHcAAY14rzxwQEJEDNOlALh0Q84SbTBCBZLqEGNInQ4Qscix2hTDA8UAAAEN96oSZAc
-      +dQjBgpc/BEGLuRo8wwxzWijzTL+WFxgAAKn3EjoP3Lg8w4lC0Rggg5k4IKNq9o0s8sZKWiQARjc
-      NDPaQXDMEw42F0jQQAM7oFHJKrSswskcReTwlo3e7NPEQXK44804lJDyhgw0eFHIJ6KwtcYXaTTi
-      DKfnqGQQHO94g80443zDih5xGOKJJ6AsXEot1HATzjkpeTpQuthgAw001KgKjC6/CCNMMsY8ow03
-      3yAFjz8zQGuOxtA0I/MxzDBzzM01U+NNOe7YdBNCcpyz8czNIGO00TdHPM477jQ9TzkIwTGOzDIf
-      jfQxzWDjzTk2wYOPP/ksVRo+4YTjjTeccno21/jwAxI/8/ByBUICtdDEEXjnbQQS3kY0McXfUzQx
-      gwV0F2644QEBADs=
-    }
-  }
-  if { [ lsearch [ image names ] file_remove_32 ] == -1 } {
-    image create photo file_remove_32 -data {
-      R0lGODlhIAAgAOf/AMIABToqFMMWGMUaIFZBH1pFI11HJcYpKcYpL19JJ8gqKmBKKGFLKExOS2NM
-      JMIvLmVNJmZOJlFTUGlRKWxTJW5VJ3BXKcc9Os48PXhZLHBaPNE+P3ddL19hXntdNnpgMYFgLtFH
-      R4RjMHRnUWhqZ4hmM9FPT4VuT5JuNYtvQJNvNpRwN5VxOJZyOZdzOnZ4dZh0O5p1PIJ4bJt2PZx3
-      Pp14P555QJ96QKB7QYh+cs5qa4OAcqF8QqJ9Q8ttbKN+RKJ+SsxubaR/RZ2AUKN/S6aARqWATKeB
-      R6GDTaiCSKKETqmDSY6GgKWFSaOFT6qESqWGUKuFS5qIZ6yGTImLiK2HTaiJU66ITq2IVLCJT9l6
-      eLGKUJONjN95erKLUbGMV7OMUo+Rjq2OV7SNU7ONWbWOU6yPZLaPVLWPWt9/fZKUkbGRVKKTfLOS
-      VZmUkraRXOGBf7OTXLWUV7SUXbiTXeKDhrWVXrqUXraWX5ial7iXWreXYK2ZceGIibmZYaybfqib
-      irqaY+SLi7ycZL2dZZ+hnr6eZr+fZ8CgaOSSkMGhacChb8KiasOja+CWl8KjceaVmcSkbMalbcOl
-      eaeppcembsWmdKiqp+Sam8inb+Ccm8mocMiodsqpccmpd8uqcs2sc8yses+tdc2te7Cyruejoc2v
-      gsixgs+wfc6wg+mlo7K0sbO1su2opsa2n9G0s8y2ssi7qby+u+izsr2/vL7BvcHDv8LEwcPFwsTG
-      w8XHxMbIxdHFxeq+wcfJxu2/vMjKx9THx8nLyNTJvNXIyMrMye/CxenExcvOys3Py+3HyM7QzdvO
-      z+/JytHT0NLU0djT0tPV0t/S0tXX1OHU1NvW1NbY1enU19ja1t7Z2Nnb19rc2dze293f3N7g3d/h
-      3ubh3+Hk4Ojj4uPl4eTm4+Xn5Ozm5ebo5efp5ujq5+nr6Ors6fDr6evu6u3v6+7w7e/x7vXw7vDy
-      7/Hz8Pjy8fL08fP18vT38/b49Pf59vj69/n7+Pr8+fv9+v3//P///yH+EUNyZWF0ZWQgd2l0aCBH
-      SU1QACH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGDCAXWQkjFG7qEEHGhe1jQ1jhv7ihCLEgJ
-      XTp46brlEehN3blv796F2VjQWbp079y1a+fw3bpz4eDBY8WS4LN06tbNa5dxHLyM5+bNE9ZzYLSg
-      7ea5ewcv3Dx569Ldu4etqcBo64i+mwdPnrp59o7m0/fN679pRKfWk4d2Hr6r+/Spcwt3Krx69e7h
-      y7cPH75++OS5xeZ3XmDC/Pr587dP6WKqdO9BnjwZH9GejEaFGoXKlGlTqFKdNp3q1ClLnDwtSlhJ
-      lG3bnzbp3pQpUyVJwCU1YsSo0SPalX4DbzRckSJEhw4ZIkQo0KRhyc6p05bsIHTp1AP+iQ+0pzye
-      83RcYUMHz7E9e/N2ESy/5zweO3PmxEGD5kyZMmOAEYs26phDVz32xENPPV0JhIUVUESohBJIGGGh
-      hUBkyEd215SijFLxGKNMPPPIMlAVRRTxw4or8uDiizzcMg01iSQCyTHszKJKK7/M804HAolRRRVT
-      TBHFkU88scQSTSRhBi3dgKNJHX0IgomNmDTjIyUCtQHgGAF6scUWWWQxZBV/5MLNOOA40kUacFDZ
-      C13vICOQHnTkyR9/ZPRJxpiA4KJNOOFQY8IGGISgRTrrvNPONALJsd8ZXoY5pplVsHHJLs8QgwAA
-      oIIaRDfeYOOLQGW0YWmZQxqZpBTWheTCywOhDhCqDt5Mw9M/YmJKZBRKLpHEEUUMoYYtsAggKjQX
-      gHpANtFQIRCRrgo7bIoquijDKr68IoAP2GDD7AHMTHOqQEpem2KLPOBwww02pMCFLcUEM0242lQj
-      zTTJkDAQtj+86K4NNtRAwwwxxHCCG7cAk0w0907zDDLSDiQwvDUYjLALHLfAwgoe7ECKLsAIg0wx
-      skhQUAwF03BwDBy74PEKKqiAwgoulKDBCDkw8UIDBxVQggggfMBBBhZUQMEEEUDgwNMQMLBAAgYQ
-      EIBbWB8UEAA7
-    }
-  }
-  if { [ lsearch [ image names ] check_connection_32 ] == -1 } {
-    image create photo check_connection_32 -data {
-      R0lGODlhIAAgAOeWAGhoaGlpaQCUAGxsbACYAG5ubgCbAHFxcQCeAHNzcwChAACiAHR0dHV1dXZ2
-      dgClAHd3d3h4eACoAHl5eQumC3p6egCrAHt7ewCsAA6nDnx8fA+oD319fQCvAH5+foCAgACzAIGB
-      gQC1AIKCggC2AIODgwC4AEKeQoSEhAC5AIWFhYaGhoeHhwC9AImJiYqKioyMjI2NjY6Ojo+Pj5CQ
-      kJGRkZKSkpOTk5SUlJWVlZaWlpiYmJmZmVS3VJubm5ycnJ6enlS8VJ+fn6GhoaKioqOjo2y9bKen
-      p6ioqJSylKurq6ysrK6urq+vr7CwsLKysrOzs7S0tLW1tbe3t7i4uIfPh7y8vL29vb+/v8PDw8TE
-      xMXFxcbGxsfHx8jIyMnJycrKysvLy8zMzM3Nzc7Ozs/Pz9DQ0NHR0dLS0rrcutPT09TU1NXV1dbW
-      1tfX19jY2NnZ2dra2tvb28jjyNzc3N3d3d7e3t/f3+Dg4OHh4eLi4uLj4uPj4+Tk5OXl5ebm5ufn
-      5+jo6Onp6erq6uvr6+zs7O3t7e7u7u/v7/Dw8PHx8fLy8vPz8/T09PX19fb29vf39/j4+Pr6+vn7
-      +fv7+/z8/P//////////////////////////////////////////////////////////////////
-      ////////////////////////////////////////////////////////////////////////////
-      ////////////////////////////////////////////////////////////////////////////
-      ////////////////////////////////////////////////////////////////////////////
-      ////////////////////////////////////////////////////////////////////////////
-      /////////////////////////////////////////////////////yH+EUNyZWF0ZWQgd2l0aCBH
-      SU1QACH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGDCBMqXMiwoUOFLJCsMAjgocEYY9qooUGQ
-      RgCLBF+YWYPmjRwfXdZsqQFyoAs0cAqRKUMHzxEwcVoKZKGmDp0/isygsfPnyBudKtjkgYPmzqCg
-      SvX8aFnCTZ8/kNyoyVNI0Zk3fOSosDiiDSCihiC9YdMHkSI0cf6YsfiEUCM9awQhUvsG6KKhb4o0
-      rEDjRhtFlPi0IaQIEhw5ghopGqMFCEMOdCwJ4aGGUeI3hxhFimNHkJwtShhWaFMpUCMcO8o8Siwn
-      kaNIbtZoWcLwgplIlCrFYQRDxxhIlfrYYaSIThYmDCd8abToUSVJcAKNuOFFUvI6b7T+NNHAMEtj
-      OIIYVcJd50INLpQWmcnixMNAAQivHDr0SG2gRZU80gYaDchAhRv0cTAQAQwaNAUhd9xRyCOOmJVI
-      JYyo0cUBGtCwRAgDGSCiiATN8McgFZb2CCNr+GHIJHOEYcUEL9gnEAI44liQB1f0EdoadADyyFt7
-      BJFBGljwQJACCzS5wEElTJHHIYqoIYcfkCDSwwMPbJAECgNxKSZCDHzQxB2HJHJGHHxAUoUEcFJA
-      EJxwKjTCBEjAcYghZcCBxyFGYCCoBQIJKuhCb1SQABFoHELIGHKEIcUJHVRqaaUMxQFGBAX4IMYh
-      gHgRRQz/gGDqqSAwVMMWa3QBwQAtOWjRBRQzDCQCCbiSwFAAHA3kwAAqDGFDQSakkEJDFRXkgAMK
-      GtSCTtBG+1BAADs=
-    }
-  }
   if { [ lsearch [ image names ] package_down_16 ] == -1 } {
     image create photo package_down_16 -data {
       R0lGODlhEAAQAPcAADJwKjZ6MUFqIkNsJ0ZvJkBvK096LVyAPUePQEuPQUqMRUuNRk2PSFeNQ1CS
@@ -486,19 +392,26 @@ namespace eval ::TolPkgGUI {
       CAkIiBgQADs=
     }
   }
-  if { [ lsearch [ image names ] software_update_16 ] == -1 } {
-    image create photo software_update_16 -data {
-      R0lGODlhEAAQAPYAAM5cAM5dAM9dAM5dAc9dAc9eAc9eAs9fAs9eA89fBNBeAdBfAtBfA9FhBNFh
-      BdBhBtBiB9FjCNFjCtFkCtJkCtNlC9RlCNJmDdJnD9ptDdJoENNoENNpEt1xENhzHN96IN97IuF/
-      JfaDE/WEEvaFE/aGFfaFF/aKGfKIH/eNH/iQG/iRHfiSH9+FMeKAJu6FIO+FIfCHIvCHI/OKIPaL
-      I/KNK/iWIfWSL+OOPPGTNPSWN/iYMfmeMviaNPmhOfmhPfqmPvafRfahRvmiQfqnQPqoQfemTvSm
-      UveoUPWrV/u0V/u3XvayYvSzZvW0aPa3a/q0avq0a/u3bfa4bPm4aPu6cfu6cvm9cfrAdPvBdPzB
-      df7kv//qzQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5
-      BAEAAF0ALAAAAAAQABAAAAeYgF2Cg4SFhoIHCYeGBy04C4tdEhwGE1dYGgQYFwCFG1pTTUtKTk9Z
-      HoYBTEVEW1tEQFQIhQURRz42XFw2PEkVkIIEIEZDLCq6Kis/SC4GggYfQT1WurpVO0IhzoICEDkp
-      UrpSJzoUCoY1JSRRUCQjNwOGDjQyLyYiMDE0FoYMEAUMUMxwUOBBg06HBGTocC7SoAIEHEoUFAgA
-      Ow==
+  if { [ lsearch [ image names ] system_software_update_16 ] == -1 } {
+    image create photo system_software_update_16 -data {
+      R0lGODlhEAAQAPcAANpuFd5uFtVwFd1xFedyFedyFul7Fel8FuBxGOd2H+Z6G+l+G99yJ9x/IOBz
+      JeZ6Ieh7JOJ3LeJ4K+h/Leh7Meh7Muh8Mul+P+R/QOh/QcmBGM2GGd+AGt2LHdiRG9qTHN+YHd+a
+      HuWAH+CPHeOMH+iHJuyMJ+uOK+qdKOiCPOiFPuqOOuuOO+2WPeycPe2hLO+kP/CtPueGR+mCROmL
+      SuqMS+mMTOuOT+OZQeqRSOuSS+qQTuyZTueLU+mQVeqRVeybVeuTWO6qTvCwQvK3T/K4UuuQYeiS
+      YOuSY+uUYeqYZ+ued++oYOuheu6meeuhfO6kfvC1cvG3ffPCeu2mgO6ngO+uhe6ujfK9hfC1jO2s
+      kO+ukO2uku+xlO6xl+6ymPG6kPK+lfK/lvC4nvC5oPK+ovK/ovG9pfG9pvG9p/XJiPPAkPXJnPbO
+      nfXMoPTGq/LDrvTKr/TLsfjetfbWufbUuvbUvPbWvPbVvvfavfjevfnhu/bVxfbYwvjexPbXyPbW
+      yfbXyffZyPbZzffe0frmyfrny/jj1fji1vji1/nm1vjg2Pjh2fjl2vnk2/rp2frr2frs2/no4fvu
+      5Pz08AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAJUALAAAAAAQABAA
+      AAjJACsJHEiwoMFKWrx84XJw4JItY9CkIdPlycEjVM4AWsRoEJwrTQpiUFLGUaM/fBJJCmSmB0EZ
+      VhAJqoLECBRClOT4GMjARpxDTmZcyJDkjZ0sNCIIdLCjD54bFihUSFEjyA8VEgQGeJBDx4QEBQgQ
+      gACmTg4EAgEoABJGDI8FBg6wuENnxYCBIqRMUsTkhIkWax5hKSFgYIMoeiL5ccMmD6Q2LjgUxCFk
+      ypxChvaogUHiYAcUMYgUGfJiRMNKGjyACPFhw+nXAgMCADs=
     }
   }
   if { [ lsearch [ image names ] check_green_16 ] == -1 } {
@@ -582,6 +495,43 @@ namespace eval ::TolPkgGUI {
       1NbKvTbbDzk7O9/h1w7bEDrp6evVPhqCCTTy++s3gwsfSJQoQWIEiYIjRFB4xLAhoUAAOw==
     }
   }
+  if { [ lsearch [ image names ] software_update_urgent_16 ] == -1 } {
+    image create photo software_update_urgent_16 -data {
+      R0lGODlhEAAQAPYAAHgXF6wiIqUtLa8vL7AjI+EXF+AZGeIaGuUdHdQoKNUpKdYrK9ctLdcvL8ox
+      Mco5OdgxMdg1Ndg2Ntk/P+giIu4nJ+gqKu4oKO4qKustLewxMe8wMO8zM+80NO44OO84OOk+PvA6
+      OvA7O/A8PPA+PsFCQshHR9hTU95YWOpHR+5FRe9FRetISOxKSvBCQvBDQ/BERPFGRvFMTOtSUuVe
+      Xu9YWPBQUPBTU/JWVvNbW/JcXPNcXPJeXvNeXulhYfR8fPV+fvR/f+mAgOqFhfWAgPjR0fjV1fzY
+      2Pje3vzf3/zn5/rq6vzu7v309P729v34+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5
+      BAEAAFAALAAAAAAQABAAAAdzgFCCg4SFhoeIEIIFBoiDDRUHT08WUAmIkAhLTBoVCokXFEhKHRUL
+      iBIbGUZJHBgMhg8TKSEeRUcfHCARDoUzMC8uQUQkIyIshgE1MipCQysxNgSHAjwtTU43OAOOJT0/
+      QDomjoInOzko5IM0PuqEAO7qgQA7
+    }
+  }
+  if { [ lsearch [ image names ] view_refresh_16 ] == -1 } {
+    image create photo view_refresh_16 -data {
+      R0lGODlhEAAQAPeiAChAYClBYipDZSxIbixIby9LcS9Mcy9MdC9NdS9NdjBMcjBMczZSdzZSeDZS
+      eTZTeTdTeTdTejdUelBtlVBtllFvl1BvmFFvmFJvmFRxmFVymSxtxCltyC1wyyxwzDJxxjZzxzZ0
+      xjZ1yz56yzl5zj580EB+0GqJs2uJs2uLtmyLt22MuHCPuHKQunWTu0eBzkiAzEyCzE6DzEyDzk+F
+      zU+Fz0mD0U2H00yG1E+I1FGI1FGJ1FOL1VSL1FSL1VWM1VuN0FmO11mP11qP11yQ11+S2GaV1WuY
+      1GCT2GOV2WSW2WWW2WqZ2Wqa22yb222c23Ce3Hih13Wg2nSh3XWh3Xai3nih2Xih2n6l2Xmj3Xij
+      3nmk3nmk332n34ekzYqnzoem0Iin0Iin0Y6q0Yqv35Ov1ZWx1p643J+53YCp4Ias4Yiu4o2x446z
+      45a24Ze45p664J+74Zi55py75J6+55++56O94KO94aC84qK+46e/4KC+5qS/5KTA5afB5KjB4ajB
+      463F5qTB6afE6ajE6avG6qvG667H6a3H667I67HI57LJ6LXN7bfO7rjP7r/U78DU78fX7cLV8Mja
+      8cnb8svc8szc8tvn9uDq+OHr+OLr+Pf6/fj6/fr7/Pv8/v39/f7+/v7+/////wAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAKMALAAAAAAQABAA
+      AAjyAEcJFKggwYIFCRQMXCgQQosyihaZcRGB4SgEGPy0odLkSZc3gTQgWFiBUBIfVBIN4rIEyqEM
+      AyHkIXJDUihRojxNKsIEkINRClakKdRIFCU5dSqJEqSDDIuCYoZcEpXpyRQtUxA56mFkjEE+JiBx
+      srSmiZMmStgwmfHnIJ8SPnDsEFIEiRpMoubA0IMwDA8Siejk4PEjiKZPkYB8Sagii4c1ohhV2fII
+      lJsjWFAolBDHRgdDm3B26vNBBpoHAy/secFBhJQrIzbEwDNh4QELcKzUABGCRpQzFAwwFNAgBZg7
+      drycYBDAosAABAoUGACAYUAAOw==
+    }
+  }
 }
 
 source [ file join $::TolPkgGUI::cwd tolpkg.tcl ]
@@ -655,31 +605,35 @@ proc ::TolPkgGUI::GetPkgNode { T url p } {
     if { $lastlocal eq "" } {
       set img "package_down_16"
       set nodeStatus new
-      set statusLabel "new ($lastremote)"
+      set statusLabel [ mc "new (%s)" $lastremote ]
     } else {
       set idx [ CmpVersion $lastremote $lastlocal ]
       if { $idx <= 0 } {
         # could be -1 (because of date error)
         set img "cdr_tick_16"
         set nodeStatus ok
-        set statusLabel "ok"
+        set statusLabel [ mc "ok" ]
       } else {
         puts "$lastremote > $lastlocal"
-        set img "software_update_16"
+        set img "system_software_update_16"
         set nodeStatus upgrade
-        set statusLabel "upgrade ($lastremote)"
+        set statusLabel [ mc "upgrade (%s)" $lastremote ]
       }
     }
   } else {
     set img ""
     set nodeStatus unknown
-    set statusLabel "unknown"
- }
-  set treeParents($p) [ $T insert [ list [ list $img $p ] [ list $statusLabel ] \
-                                        [ list $repo ] ] -at end -relative root \
-                                        -button auto ]
-  set nodesInfo($treeParents($p),type) pkg
-  set nodesInfo($treeParents($p),status) $nodeStatus
+    set statusLabel [ mc "unknown" ]
+  }
+  set nid [ $T insert [ list [ list $img $p ] [ list $statusLabel ] \
+                            [ list $repo ] ] -at end -relative root \
+                -button auto ]
+  set treeParents($p) $nid
+  set nodesInfo($nid,type) pkg
+  set nodesInfo($nid,status) $nodeStatus
+  foreach st {new ok update upgrade unknown} {
+    set nodesInfo($nid,children,$st) 0
+  }
   lappend nodesInfo($nodeStatus) $treeParents($p)
 }
 
@@ -738,30 +692,48 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
       if { $datelocal eq "TheBegin" } {
         set img "package_down_16"
         set nodeStatus new
-        set statusLabel "new"
+        set statusLabel [ mc "new" ]
       } else {
         set idx [ string compare $dateremote $datelocal ]
         if { $idx <= 0 } {
           # could be -1 (because of date error)
           set img "cdr_tick_16"
           set nodeStatus ok
-          set statusLabel "ok"
+          set statusLabel [ mc "ok" ]
         } else {
           puts "$pv OUTDATED : $dateremote > $datelocal"
-          set img "software_update_16"
+          set img "view_refresh_16"
           set nodeStatus update
-          set statusLabel "outdated"
+          set statusLabel [ mc "update" ]
         }
       }
     } else {
       set img ""
       set nodeStatus unknown
+      set statusLabel [ mc "unknown" ]
     }
     set repo [ GetRepoId $pkgRepo ]
+    set parent $treeParents($pkgRoot)
     set nid [ $T insert [ list [ list $img $pv ] [ list $statusLabel ] [ list $repo ] ] \
-                  -at end -relative $treeParents($pkgRoot) -button auto ]
+                  -at end -relative $parent -button auto ]
     set nodesInfo($nid,type) pkgver
     set nodesInfo($nid,status) $nodeStatus
+    incr nodesInfo($parent,children,$nodeStatus)
+    if { $nodeStatus eq "update" } {
+      if { $nodesInfo($parent,status) ne "update" } {
+        if { $nodesInfo($parent,status) eq "upgrade" } {
+          set nodesInfo($parent,status) "upgupd"
+          $T itemcolumn $parent NAME {image "software_update_urgent_16"}
+          set txtUpgrade [ lindex [ lindex [ $T itemcolumn $parent STATUS text ] 0 ] 1 ]
+          $T itemcolumn $parent STATUS \
+              [ list text [ mc "update/%s" $txtUpgrade ] ]
+        } elseif { $nodesInfo($parent,status) ne "upgupd"} {
+          set $nodesInfo($parent,status) "update"
+          $T itemcolumn $parent NAME {image "view_refresh_16"}
+          $T itemcolumn $parent STATUS [list text [ mc "update" ] ]
+        }
+      }
+    }
     lappend nodesInfo($nodeStatus) $nid
     foreach {{} d} $pkg(_.autodoc.dependencies) {
       set _nid [ $T insert [ list [ list back_to_ou_16 $d ] ] \
@@ -817,11 +789,11 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
   foreach nid [ $T selection get ] {
     lappend selectionInfo($nodesInfo($nid,type)) $nid
   }
-  $w add command  -label "[ mc {Add New Repository} ]..." \
+  $w add command  -label [ mc "Add New Repository" ]... \
       -command ::TolPkgGUI::AddNewRepository
   set lenRepo [ llength $selectionInfo(repo) ]
   if { $lenRepo } {
-    $w add cascade  -label "[ mc {Check Repository} ]" \
+    $w add cascade  -label [ mc "Check Repository" ] \
         -menu $w.check
     if { [ winfo exists $w.check ] } {
       $w.check delete 0 end
@@ -860,15 +832,28 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
       "new" {
         lappend listNEW [ list $pkgInfo(lastremote) $nid ]
       }
-      "upgrade" {
-        lappend listUPG [ list $pkg $nid ]
-      }
+      "upgrade" -
+      "update" -
+      "upgupd" {
+        if { $nodesInfo($nid,status) eq "upgrade" ||
+             $nodesInfo($nid,status) eq "upgupd" } {
+          lappend listUPG [ list $pkg $nid ]
+        }
+        if { $nodesInfo($nid,status) eq "update" ||
+             $nodesInfo($nid,status) eq "upgupd" } {
+          foreach chId [ $T item children $nid ] {
+            if { $nodesInfo($chId,status) eq "update" } {
+              lappend listUPD [ list [ $T item text $chId 0 ] $chId ]
+            }
+          }
+        }
+      } 
       "ok" {
       }
       "unknown" {
       }
       default {
-        puts "unexpected status $status for pkg $pkg"
+        puts "unexpected status $nodesInfo($nid,status) for pkg $pkg"
       }
     }
     lappend listEXP [ list $pkgInfo(lastremote) $nodesInfo($nid,status) $nid ]
@@ -888,7 +873,7 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
       "ok" {
       }
       default {
-        puts "unexpected status $status for pkg $pkg"
+        puts "unexpected status $nodesInfo($nid,status) for pkg $pkg"
       }
     }
     if { [ lsearch $listEXP $pkg ] == -1 } {
