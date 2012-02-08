@@ -63,6 +63,7 @@ static BFixedSizeMemoryBase* BFSMEM_Hndlr =
 #endif
 static BStruct* strNameBlockMemberInfo_  = NULL;
 static BStruct* strClassMemberInfo_  = NULL;
+static char* emptyHashKey_ = NULL;
 
 //--------------------------------------------------------------------
 //BNameBlock members
@@ -84,9 +85,11 @@ static bool BNameBlock_IsInitialized()
 { 
   if(BNameBlock_IsInitialized()) { return(false); }
   unknown_ = new BNameBlock;
-  SetEmptyKey  (using_,               NULL);
+//emptyHashKey_ = new char(64);
+//sprintf(emptyHashKey_, "_#_&¬!?_NameBlock_empty_hash_key_");
+  SetEmptyKey  (using_,               emptyHashKey_);
   SetEmptyKey  (usingSymbolsByClass_, BObjClassify::null_);
-  SetEmptyKey  (usingSymbols_,        NULL);
+  SetEmptyKey  (usingSymbols_,        emptyHashKey_);
   SetDeletedKey(usingSymbols_,        name_del_key());
 
   strNameBlockMemberInfo_ = NewStruct("@NameBlockMemberInfo", 
@@ -126,8 +129,8 @@ static bool BNameBlock_IsInitialized()
   doingRebuildFullNameDeep(false),
   startedPackage(false)
 {
-  SetEmptyKey(public_ ,NULL);
-  SetEmptyKey(private_,NULL);
+  SetEmptyKey(public_ ,emptyHashKey_);
+  SetEmptyKey(private_,emptyHashKey_);
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
@@ -154,8 +157,8 @@ BNameBlock::BNameBlock(const BText& fullName, const BText& localName)
   doingRebuildFullNameDeep(false),
   startedPackage(false)
 {
-  SetEmptyKey(public_ ,NULL);
-  SetEmptyKey(private_,NULL);
+  SetEmptyKey(public_ ,emptyHashKey_);
+  SetEmptyKey(private_,emptyHashKey_);
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
@@ -182,6 +185,8 @@ BNameBlock::BNameBlock(const BNameBlock& ns)
   doingRebuildFullNameDeep(false),
   startedPackage(false)
 {
+  SetEmptyKey(public_ ,emptyHashKey_);
+  SetEmptyKey(private_,emptyHashKey_);
 #if (__USE_POOL__==__POOL_BFSMEM__)
   short isAssigned = BFSMEM_Hndlr->IsAssigned(this,this->GetPageNum());
 #else
@@ -579,7 +584,7 @@ const BText& BNameBlock::LocalName() const
 /*
         if(cls && cls->Name()=="BlockSamplerStdLinear" && name=="aux")
         {
-          Std(BText("\nTRACE BNameBlock::EvaluateTree member [")+(n+1)+"]"+
+        //Std(BText("\nTRACE BNameBlock::EvaluateTree member [")+(n+1)+"]"+
             fullName+"::"+mbr->name_+
             "  position_="+(memberOwner.member_[n]->position_+1)+"\n");
           if(mbr->name_=="_do_buildWorkSpace")
