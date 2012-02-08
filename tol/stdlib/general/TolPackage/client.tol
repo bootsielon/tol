@@ -511,6 +511,7 @@ Real DownloadPackage(
     {
     //WriteLn("_trace DownloadPackage 5");
       Real RemoteUpdateVersSyncInfo(?);
+      Real RemoteUpdatePackSyncInfo(?);
       True
     })
   })});
