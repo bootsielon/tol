@@ -20,7 +20,7 @@ Real numErr0 = Copy(NError);
 #Require BysMcmc;
 
 //Random seed setting
-Real PutRandomSeed(0);
+Real PutRandomSeed(66101450);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -65,7 +65,6 @@ BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
   bsr.config, 
   BysMcmc::@Notifier::Null(0));
 
-//Real cycler::initialize(0);
 
 BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
 

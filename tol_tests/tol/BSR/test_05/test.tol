@@ -324,6 +324,10 @@ BysMcmc::@Config bsr.config = [[
   Real do.linear.effects  =  False
 ]];
 
+  Real bsr.config::bsr.linBlk.MH.useAfterIter := 1;
+  Real bsr.config::bsr.linBlk.MH.maxRejected := 1/0;
+  Real bsr.config::bsr.linBlk.MH.maxConsecutive := 1/0;
+
 
 BysMcmc::@Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
 (
@@ -334,6 +338,7 @@ BysMcmc::@Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
   series.handler,
   bsr.config
 );
+
 //Real cycler::initialize(0);
 BysMcmc::@Estimation bsr.estim = BysMcmc::@Estimation::New(cycler);
 //Real TolOprProfiler.Enabled := True;

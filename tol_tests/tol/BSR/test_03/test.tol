@@ -36,6 +36,7 @@ BysMcmc::@Config bsr.config = [[
   Real mcmc.sampleLength = 2000;
   Real mcmc.cacheLength = 100;
   Real mcmc.burnin = 100;
+//Real bsr.iniVal.try.cnstrMLE = 1;
   Real bsr.linBlk.MH.useAfterIter = 1/0;
   Real bsr.arimaStoreInitialValues = True;
   Real do.resume = 0;
@@ -56,7 +57,6 @@ BysMcmc::@Cycler cycler = BysMcmc::Bsr::Gibbs::GetCycler(
 //Real cycler::_.sampler::_.arm.blk::refreshFrequency    := 0.25;
 //Real cycler::_.sampler::_.inpMis.blk::refreshFrequency := 0.25;
 //Real cycler::_.sampler::_.outMis.blk::refreshFrequency := 0.25;
-
 
 BysMcmc::@Estimation estim = BysMcmc::@Estimation::New(cycler);
 

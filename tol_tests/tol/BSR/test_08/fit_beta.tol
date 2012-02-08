@@ -15,7 +15,7 @@ Real M = Rows(mcmc);
 Set fit_all_beta = EvalSet(K,Set(Real k_) {[[
 //Observation identifier
 Real k = k_;
-//Model probability of Y[k]=1
+//Markov chain of model probabilities of Y[k]=1
 Matrix Zk = F01(mcmc*Tra(SubRow(X,[[k]])));
 //Average of probability of Y[k]=1
 Real avr = MatAvr(Zk);

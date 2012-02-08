@@ -18,7 +18,7 @@ Set Include("../general/general.tol");
 Set Include("../general/NonLinearFilter/_LogAditiveEffect.tol");
 
 //Random seed setting
-Real PutRandomSeed(0);
+Real PutRandomSeed(183084191);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
 
@@ -82,8 +82,7 @@ Real BysMcmc::Bsr::DynHlm::DBApi::Mod.Delete(
 //Descripción de la sesión o implementación
 //Se recomienda introducir un comentario sobre los cambios introducidos con
 //respecto a la última sesión
-Text ds_session =  "Modelo de un año en diario con función de transferencia "
-" omega_1/(1-delta_1*B) y un input de nivel";
+Text ds_session =  "pruebas";
 
 //Autores
 //Deben firmar al menos los que han hecho los cambios de la presente sesión,
@@ -391,6 +390,7 @@ BysMcmc::@Cycler cycler = BysMcmc::Bsr::DynHlm::DBApi::GetCycler
   series.handler,
   bsr.config
 );
+
 //Real cycler::initialize(0);
 BysMcmc::@Estimation bsr.estim = BysMcmc::@Estimation::New(cycler);
 //Real TolOprProfiler.Enabled := True;
@@ -466,3 +466,4 @@ Set resultStr_ = @strTestStatus(summary_, link_, quality_,
 WriteLn(""<<resultStr_);
 resultStr_
 
+/* */

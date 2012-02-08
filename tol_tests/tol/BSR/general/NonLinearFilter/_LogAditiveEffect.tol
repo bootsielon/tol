@@ -152,8 +152,7 @@ NameBlock LogAditiveEffect
     //WriteLn("TRACE "+_MID+"::get.bounds localBounds::upper"<<localBounds::Upper);
       Real lower = Max(userBounds::_.minimum, localBounds::Lower);
       Real upper = Min(userBounds::_.maximum, localBounds::Upper);
-    //WriteLn("TRACE "+_MID+"::get.bounds lower"<<lower);
-    //WriteLn("TRACE "+_MID+"::get.bounds upper"<<upper);
+    //WriteLn("TRACE "+_MID+"::get.bounds ("<<paramIdx+") ["<<lower+","<<upper+"]");
       [[lower, upper]]
     })
   };
