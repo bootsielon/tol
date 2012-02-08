@@ -318,7 +318,25 @@ DefIntOpr(1, BPolChangeBF, "ChangeBF", 1, 1,
 void BPolChangeBF::CalcContens()
 //--------------------------------------------------------------------
 {
-    contens_.ChangeBF(Pol(Arg(1)));
+  contens_.ChangeBF(Pol(Arg(1)));
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BPol, BPolTemporary, BPolInverseRoots);
+DefIntOpr(1, BPolInverseRoots, "InverseRoots", 1, 1,
+  "(Polyn p)",
+  I2("Returns a polynomial q which have inverse roots of given one by "
+     "mean of this formulae:",
+     "Devuelve un polinomio q cuyas raíces son las inversas de las del "
+     "polinomio dado por medio de esta fórmula:")+"\n"+
+     " p(x) = Sum(a[k]*x^k,     k=0...n) "
+     " q(x) = Sum(a[k]*x^(n-k), k=0...n) ",
+	  BOperClassify::RetardPolynomial_);
+//--------------------------------------------------------------------
+void BPolInverseRoots::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_.InverseRoots(Pol(Arg(1)));
 }
 
 

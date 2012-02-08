@@ -1322,6 +1322,21 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
 
 
 //--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatPolPeriod);
+  DefExtOpr(1, BDatPolPeriod, "PolPeriod", 1, 1, "Polyn",
+  "(Polyn pol)",
+  I2("Returns the period of a polynomial, i.e. the greatest common "
+     "divisor of the degrees of all its monomials.",
+     "Devuelve el periodo de un polinomio, entendido como el máximo "
+     "común divisor de los grados de todos sus monomios."),
+     BOperClassify::RetardPolynomial_);
+  void BDatPolPeriod::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_ = Pol(Arg(1)).Period();
+}
+
+//--------------------------------------------------------------------
   DeclareContensClass(BDat, BDatTemporary, BDatStationaryValue);
   DefExtOpr(1, BDatStationaryValue, "StationaryValue", 1, 1, "Polyn",
   "(Polyn pol)",
@@ -1333,7 +1348,7 @@ static BSyntaxObject* classGra_  = (BSyntaxObject*)classFinder_;
   void BDatStationaryValue::CalcContens()
 //--------------------------------------------------------------------
 {
-  contens_ = Pol(Arg(1)).StationaryValue(BTRUE);
+  contens_ = Pol(Arg(1)).StationaryValue(BFALSE);
 }
 
 
