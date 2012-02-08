@@ -1171,7 +1171,8 @@ Quita los acentos de la palabra
 Text GetUrlContents.tcl.uri(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Write("[GetUrlContents.tcl.uri] Downloading from \""+url+"\" ... ");
+  If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+  Write("[GetUrlContents.tcl.uri] Downloading from \""+url+"\" ... "));
   Text tcl_helper = 
     "package require uri\n"+
     "\n"+
@@ -1191,7 +1192,8 @@ Text GetUrlContents.tcl.uri(Text url)
     Set result = Tcl_Eval("::get_url_contens " + url);
     Text If(result["status"], 
     {
-      WriteLn("OK");
+      If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+      WriteLn("OK"));
       Text result["result"]
     },
     {
@@ -1211,7 +1213,8 @@ Text GetUrlContents.tcl.uri(Text url)
 Text GetUrlContents.tcl.curl(Text url_)
 //////////////////////////////////////////////////////////////////////////////
 {
-  Write("[GetUrlContents.tcl.curl] Downloading from \""+url_+"\" ... ");
+  If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+  Write("[GetUrlContents.tcl.curl] Downloading from \""+url_+"\" ... "));
   Set result1 = CurlApi::GetUrl( [[ Text url = url_ ]] );
   If( result1::failStatus, 
   {
@@ -1220,7 +1223,8 @@ Text GetUrlContents.tcl.curl(Text url_)
     ""
   }, 
   {
-    WriteLn("OK");
+    If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+    WriteLn("OK"));
     result1::bodyData
   })
 };
@@ -1229,7 +1233,8 @@ Text GetUrlContents.tcl.curl(Text url_)
 Text GetUrlContents.sys.wget(Text url)
 //////////////////////////////////////////////////////////////////////////////
 {
-  WriteLn("[GetUrlContents.sys.wget]Downloading from \""+url+"\" ...");
+  If(TolConfigManager::Config::Various::Verbose::DownloadingUrl,
+  WriteLn("[GetUrlContents.sys.wget]Downloading from \""+url+"\" ..."));
   Text tmp = TmpDir+"wget."<<IntRand(111111111,999999999)+".tmp";
   Text order = "wget -O"+tmp+" "+url;
   Real OSCmdWait(order);

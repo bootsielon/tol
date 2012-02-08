@@ -155,7 +155,11 @@ NameBlock Default =
       Text _.autodoc.member.ShowStackAtWarning = 
       "Enables/disables call stack tracing of warning messages"+
       "\n Changes in this option do not take effect until next TOL session";
-      Real ShowStackAtWarning = 0
+      Real ShowStackAtWarning = 0;
+      Text _.autodoc.member.DownloadingUrl = 
+      "Enables/disables tracing of URL downloads"+
+      "\n Changes in this option do not take effect until next TOL session";
+      Real DownloadingUrl = 0
     ]]
   ]]
 ]];
