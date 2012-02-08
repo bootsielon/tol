@@ -336,7 +336,7 @@ void BPolyn<Any>::InverseRoots(const BPolyn<Any>& pol)
   int n = pol.Degree();
   int i, j, deg;
   Any coef;
-  ReallocBuffer(s);
+  this->ReallocBuffer(s);
   for(i=0; i<s; i++)
   {
     j = s-1-i;
