@@ -115,6 +115,7 @@ BysMcmc::@Cycler bsr.oneNode.cycler =
   BysMcmc::Bsr::OneNode::GetCyclerProbit(bsr.oneNode.data, bsr.config);
 
 //Real bsr.oneNode.cycler::initialize(0);
+//Matrix Yp_ = Y.f;
 
 /* */
 

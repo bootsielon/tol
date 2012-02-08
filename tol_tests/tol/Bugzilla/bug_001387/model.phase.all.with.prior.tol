@@ -55,7 +55,7 @@ Text chart = TclChartSet(frq_dens,SetOfSet(
 });
   
 
-Matrix Y.fo = IfMat(refused,Y.f*0+0.5,Y.f);
+Matrix Y.fo = IfMat(refused,Y.f*0+?,Y.f);
 
 Set model_with_prior =
 {

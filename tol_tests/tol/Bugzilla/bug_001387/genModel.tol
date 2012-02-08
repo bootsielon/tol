@@ -2,6 +2,7 @@
 #Require MatQuery;
 
 //Random seed setting
+//1136880548
 Real PutRandomSeed(0);
 Real rndSeed = GetRandomSeed(0);
 WriteLn("Current Random Seed = "<<rndSeed);
