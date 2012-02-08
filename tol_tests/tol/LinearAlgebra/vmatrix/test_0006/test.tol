@@ -11,7 +11,7 @@
   Real numErr0 = Copy(NError);
   WriteLn("TRACE 1");
 
-  Real size = 1000;
+  Real size = 10000;
   Real burning = 1;
 
   Set Cases = 
@@ -89,6 +89,18 @@
 //Matrix getAllSamples(1);
 
   Set TruncatedSamples = For(1,Card(Cases), getAllSamples);
+  Set Feasible.ok = For(1,Card(Cases), Real(Real k)
+  {
+//  Real k= 1;
+    Set     case = Cases[k];
+    VMatrix B    = Mat2VMat(case::B);
+    VMatrix b    = Mat2VMat(case::b);
+    VMatrix x = Mat2VMat(TruncatedSamples[k]);
+    VMatrix b_ = Group("ConcatColumns",NCopy(VRows(x),b));
+    VMatrix g = B*Tra(x)-b_;
+    Real G = VMatMax(g);
+    G<0
+  });
     
   Matrix FullDivUnion = Group("ConcatRows", FullDividing);
   Matrix TruncatedUnion = Group("ConcatRows", TruncatedSamples);
@@ -119,10 +131,10 @@
   [[
     eqMinProb,
     neMaxProb
-  ]];
+  ]] << Feasible.ok;
 
 //This is a messure of the success of the test 
-  Real quality_ = And(numErr0 == NError)*eqMinProb;
+  Real quality_ = And(numErr0 == NError)*eqMinProb*SetMin(Feasible.ok);
 
 //Return the results 
   Set resultStr_ = @strTestStatus(summary_, link_, quality_,
