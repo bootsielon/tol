@@ -18,6 +18,8 @@
   Serie UnknownSerie;
   TimeSet t = SerTms(UnknownSerie);
   Serie ser = DatCh(CalInd(C, Diario), t, FirstS);
+  Serie ser.1 = CalInd(C, W);
+  Serie ser.2 = SubSer(CalInd(C, W), y2011,y2012);
 
   Real numErr1 = Copy(NError);
   Real numWar1 = Copy(NWarning);
