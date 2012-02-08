@@ -38,6 +38,7 @@
 #include <tol/tol_bsetgra.h>
 #include <tol/tol_bmatfun.h>
 #include <tol/tol_bvmat.h>
+#include <tol/tol_barith.h>
 #include <float.h>
 
 
@@ -1074,4 +1075,56 @@ BSyntaxObject* BGraContensBase<BDat>::New(FILE* fil)
 { contens_ = Mod(Dat(Arg(1)),Dat(Arg(2))); }
 
 
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatGreatestCommonDivisor);
+  DefIntOpr(1, BDatGreatestCommonDivisor, "GreatestCommonDivisor", 1, 0,
+  "(Real x1, [ Real x2 , ...])",
+  I2("Returns the Greatest Common Divisor of a list of positive "
+     "integer numbers. If any given number is unklnown or is not "
+     "integer and positive the unknown value will be returned.",
+     "Devuelve el Máximo Común Divisor de una lista de números "
+     "enteros positivos. Si algún número es desconocido o no es entero "
+     "y positivo se devolverá el valor desconocido."),
+  BOperClassify::RealArythmetic_);
+  void BDatGreatestCommonDivisor::CalcContens()
+//--------------------------------------------------------------------
+{ 
+  int gcd = -1;
+  int n;
+  for(n=1; n<=NumArgs(); n++)
+  {
+    BDat& x = Dat(Arg(n));
+    if(x.IsUnknown() || (x<=0) || !x.IsInteger()) { return; }
+    if(gcd == -1) { gcd = (int)x.Value(); }
+    else          { gcd = GreatestCommonDivisor(gcd, (int)x.Value()); }
+  }
+  contens_ = gcd;
+}
+
+//--------------------------------------------------------------------
+  DeclareContensClass(BDat, BDatTemporary, BDatLeastCommonMultiple);
+  DefIntOpr(1, BDatLeastCommonMultiple, "LeastCommonMultiple", 1, 0,
+  "(Real x1, [ Real x2 , ...])",
+  I2("Returns the Greatest Common Divisor of a list of positive "
+     "integer numbers. If any given number is unklnown or is not "
+     "integer and positive the unknown value will be returned.",
+     "Devuelve el Máximo Común Divisor de una lista de números "
+     "enteros positivos. Si algún número es desconocido o no es entero "
+     "y positivo se devolverá el valor desconocido."),
+  BOperClassify::RealArythmetic_);
+  void BDatLeastCommonMultiple::CalcContens()
+//--------------------------------------------------------------------
+{ 
+  int lcm = -1;
+  int n;
+  for(n=1; n<=NumArgs(); n++)
+  {
+    BDat& x = Dat(Arg(n));
+    if(x.IsUnknown() || (x<=0) || !x.IsInteger()) { return; }
+    if(lcm == -1) { lcm = (int)x.Value(); }
+    else          { lcm = LeastCommonMultiple(lcm, (int)x.Value()); }
+  }
+  contens_ = lcm;
+}
 

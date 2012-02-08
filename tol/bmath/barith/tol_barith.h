@@ -49,6 +49,11 @@ TOL_API BInt IsPrime(BInt n);
 TOL_API BInt FirstPrimeAfter(BInt n);
 TOL_API void FirstPrimes(BInt n, BArray<BInt>& p);
 
+TOL_API int GreatestCommonDivisor(int a, int b);
+TOL_API int LeastCommonMultiple(int a, int b);
+TOL_API int GreatestCommonDivisor(const BArray<int>& a);
+TOL_API int LeastCommonMultiple(const BArray<int>& a);
+
 inline ldouble Abs	(BInt a)  { return(fabsl(a)); }
 inline ldouble Sqrt	(BInt a)  { return(sqrtl(a)); }
 

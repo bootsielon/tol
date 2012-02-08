@@ -26,6 +26,7 @@
 #include <gsl/gsl_math.h>
 #include <tol/tol_bout.h>
 #include <tol/tol_barith.h>
+#include <boost/math/common_factor_rt.hpp>
 
 BTraceInit("arith.cpp");
 
@@ -264,3 +265,62 @@ void FirstPrimes(BInt n, BArray<BInt>& p)
     }
     while(N<n);
 }
+
+
+//--------------------------------------------------------------------
+int GreatestCommonDivisor(int a, int b)
+
+/*! Return the Greatest Common Divisor of two integers
+ */
+//--------------------------------------------------------------------
+{
+  return(boost::math::gcd(a,b));
+}
+
+//--------------------------------------------------------------------
+int LeastCommonMultiple(int a, int b)
+
+/*! Return the Least Common Multiple of two integers
+ */
+//--------------------------------------------------------------------
+{
+  return(boost::math::lcm(a,b));
+}
+
+//--------------------------------------------------------------------
+int GreatestCommonDivisor(const BArray<int>& a)
+
+/*! Return the Greatest Common Divisor of an array of integers
+ */
+//--------------------------------------------------------------------
+{
+  int s = a.Size();
+  if(!s) { return(0); }
+  int i;
+  int gcd = a[0];
+  for(i=1; i<s; i++)
+  {
+    gcd = boost::math::gcd(gcd,a[i]);
+  }
+  return(gcd);
+}
+
+//--------------------------------------------------------------------
+int LeastCommonMultiple(const BArray<int>& a)
+
+/*! Return the Least Common Multiple of an array of integers
+ */
+//--------------------------------------------------------------------
+{
+  int s = a.Size();
+  if(!s) { return(0); }
+  int i;
+  int lcm = a[0];
+  for(i=1; i<s; i++)
+  {
+    lcm = boost::math::lcm(lcm,a[i]);
+  }
+  return(lcm);
+}
+
+
