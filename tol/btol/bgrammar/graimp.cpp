@@ -159,6 +159,11 @@ int eval_depth_t::level = -1;
                                        bool& error)
 //--------------------------------------------------------------------
 {
+  if(!g)
+  {
+    Error("[TknFindOperand] Null grammar not allowed !");
+    return(NULL);
+  }
 #ifdef TRACE_LEVEL
   BText fun = BText("TknFindOperand(")+g->Name()+","+tok->Name();
 #endif
@@ -230,6 +235,11 @@ int eval_depth_t::level = -1;
   static BOperator* TknFindOperator(BGrammar* g, BToken* tok, bool& error)
 //--------------------------------------------------------------------
 {
+  if(!g)
+  {
+    Error("[TknFindOperator] Null grammar not allowed !");
+    return(NULL);
+  }
 #ifdef TRACE_LEVEL
   BText fun = BText("TknFindOperator(")+g->Name()+","+tok->Name()+")";
 #endif
@@ -794,7 +804,8 @@ BSyntaxObject* BGrammar::EvaluateTree(
       }
     }
     // find BINARY in Grammar of first_arg.
-    BOperator * ope = TknFindOperator(f_gra,tok,error);
+    BOperator * ope = NULL;
+    if(f_gra) { ope = TknFindOperator(f_gra,tok,error); }
     if (ope) { result = ope->Evaluate(args); }
   }
   else 
