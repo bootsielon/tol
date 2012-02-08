@@ -1238,11 +1238,8 @@ BSyntaxObject* CopyCode(BSyntaxObject* obj)
       return(result);
     }
   }
-  else
-  {
-    Error(BText("Cannot copy Code ")<<obj->Identify());
-    return(NULL);
-  }
+  Error(BText("Cannot copy Code ")<<obj->Identify());
+  return(NULL);
 };
 /*
 //--------------------------------------------------------------------
