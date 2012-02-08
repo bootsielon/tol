@@ -24,10 +24,17 @@ if { 0 } {
 10 -- 1154572
 }
 
+proc ::TolPkg::GetLocalRoot { } {
+  return [ file normalize \
+               [ lindex [ toltcl::eval { Text TolPackage::_.localRoot } ] 0 ] ]
+}
+
+proc ::TolPkg::GetClientPath { } {
+  return [ file join [ GetLocalRoot ] "Client" ]
+}
+
 proc ::TolPkg::GetPkgDirectory { p } {
-  set localRoot [ file normalize \
-                      [ toltcl::eval { Text TolPackage::_.localRoot } ] ]
-  return [ file join $localRoot "Client" $p ]
+  return [ file join [ GetClientPath ] $p ]
 }
 
 proc ::TolPkg::BackupPackage { p {delete 0}} {
@@ -66,9 +73,7 @@ proc ::TolPkg::DeleteBackup { p } {
 }
 
 proc ::TolPkg::GetPkgSyncInfo { } {
-  set localRoot [ file normalize \
-                      [ toltcl::eval { Text TolPackage::_.localRoot } ] ]
-  set oza [ file join $localRoot "Client/PackSyncInfo.oza" ]
+  set oza [ file join [ GetClientPath ] "PackSyncInfo.oza" ]
   if { ![ file exists $oza ] || ![ file readable $oza ] } {
     return {}
   }
@@ -107,9 +112,7 @@ if { 0 } {
 }
 
 proc ::TolPkg::GetVersSyncInfo { } {
-  set localRoot [ file normalize \
-                      [ toltcl::eval { Text TolPackage::_.localRoot } ] ]
-  set oza [ file join $localRoot "Client/VersSyncInfo.oza" ]
+  set oza [ file join [ GetClientPath ] "VersSyncInfo.oza" ]
   if { ![ file exists $oza ] || ![ file readable $oza ] } {
     return {}
   }
@@ -137,9 +140,7 @@ proc ::TolPkg::GetVersSyncInfo { } {
 }
 
 proc ::TolPkg::GetLocalPackages { } {
-  set localRoot [ file normalize \
-                      [ lindex [ toltcl::eval { Text TolPackage::_.localRoot } ] 0 ] ]
-  set clientRoot [ file join $localRoot Client ]
+  set clientRoot [ GetClientPath ]
   set dirs [ glob -nocomplain -tail -dir $clientRoot -types {d r} * ]
   set pkgsInfo {}
   foreach d $dirs {

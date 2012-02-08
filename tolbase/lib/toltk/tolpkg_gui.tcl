@@ -728,7 +728,7 @@ proc ::TolPkgGUI::FillTreeInfo { T } {
           $T itemcolumn $parent STATUS \
               [ list text [ mc "update/%s" $txtUpgrade ] ]
         } elseif { $nodesInfo($parent,status) ne "upgupd"} {
-          set $nodesInfo($parent,status) "update"
+          set nodesInfo($parent,status) "update"
           $T itemcolumn $parent NAME {image "view_refresh_16"}
           $T itemcolumn $parent STATUS [list text [ mc "update" ] ]
         }
