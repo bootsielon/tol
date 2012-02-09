@@ -1021,15 +1021,18 @@ Real DownloadCompatibleDeepDependencies(
   })
 };
 
+
 ////////////////////////////////////////////////////////////////////////////////
-  Text CppTools.Path(NameBlock package)
+  Text CppTools.CalcPath(Text packageFullName)
 ////////////////////////////////////////////////////////////////////////////////
 {
-  Text packageName = package::_.autodoc.name;
-  Text dllPath.rel = GetAbsolutePath("CppTools/"+ GetHardSoftPlattform(0));
-  Text dllPath.deb = dllPath.rel+"_dbg";
-  Text dllFile.rel = dllPath.rel+"/"+packageName+"."+GetSharedLibExt(0);
-  Text dllFile.deb = dllPath.deb+"/"+packageName+"."+GetSharedLibExt(0);
+  Text packageName = Tokenizer(packageFullName,".")[1];
+  Text dllRoot.rel = GetAbsolutePath(
+     _.localRoot+packageFullName+
+     "/CppTools/"+ GetHardSoftPlattform(0));
+  Text dllRoot.deb = dllRoot.rel+"_dbg";
+  Text dllFile.rel = dllRoot.rel+"/"+packageName+"."+GetSharedLibExt(0);
+  Text dllFile.deb = dllRoot.deb+"/"+packageName+"."+GetSharedLibExt(0);
   If(!TextEndAt(Version,"{DEBUG}"),dllFile.rel,
   {
     If(OSDirExist(dllFile.deb),dllFile.deb,
@@ -1042,6 +1045,17 @@ Real DownloadCompatibleDeepDependencies(
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+  Text CppTools.Path(NameBlock pkg)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Text packageFullName = 
+    pkg::_.autodoc.name+"."<<
+    pkg::_.autodoc.version.high+"."<<
+    pkg::_.autodoc.version.low;
+  CppTools.CalcPath(packageFullName)
+};
+
+////////////////////////////////////////////////////////////////////////////////
   Real CppTools.Check(NameBlock package, Text dllFile, Text chechMethod)
 ////////////////////////////////////////////////////////////////////////////////
 {
@@ -1050,7 +1064,29 @@ Real DownloadCompatibleDeepDependencies(
   WriteLn("["+packageName+"] Loading library "+dllFile+
           " -> "<<If(ok,"OK","FAIL"),If(ok,"S","E"));
   ok
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  Real CppTools.HasDll(Text packageFullName)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Text dllFile = CppTools.CalcPath(packageFullName);
+  OSFilExist(dllFile)
+};
+
+////////////////////////////////////////////////////////////////////////////////
+  Real CppTools.HasLockedDll(Text packageFullName)
+////////////////////////////////////////////////////////////////////////////////
+{
+  Text dllFile = CppTools.CalcPath(packageFullName);
+  If(!OSFilExist(dllFile), False,
+  {
+    Real open = FOpen(dllFile,"r+b",True,False);
+    If(open, FClose(open));
+    Not(open)
+  })
 }
+
 
 
 ]];
