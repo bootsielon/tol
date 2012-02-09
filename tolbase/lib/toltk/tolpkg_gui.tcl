@@ -1448,6 +1448,8 @@ proc ::TolPkgGUI::RemovePackageVersion { { pkgs {} } { matchPkg {} } } {
         lappend removeList $_p
       }
     }
+  } elseif { $matchPkg ne "" } {
+    return
   } else {
     foreach nid [ $tree item id {depth 2} ] {
       lappend removeList [ $tree item text $nid 0 ]
