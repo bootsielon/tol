@@ -1449,7 +1449,9 @@ proc ::TolPkgGUI::RemovePackageVersion { { pkgs {} } { matchPkg {} } } {
       }
     }
   } else {
-    Unimplemented "Remove all not implemented yet"
+    foreach nid [ $tree item id {depth 2} ] {
+      lappend removeList [ $tree item text $nid 0 ]
+    }
   }
   if { ![ llength $removeList ] } {
     return
