@@ -221,6 +221,13 @@ proc ::TolPkg::ZipInstall { pkg.zip } {
   return [ toltcl::eval $tolexpr ]
 }
 
+proc ::TolPkg::RemovePackage { pkg } {
+  set tolexpr [ string map [ list %p ${pkg} ] {
+    Real TolPackage::Client::LocalClean( "%p" )
+  } ]
+  return [ toltcl::eval $tolexpr ]
+}
+
 proc ::TolPkg::RemoteInstall { pkg repo } {
   puts "::TolPkg::RemoteInstall $pkg $repo"
   BackupPackage $pkg 1

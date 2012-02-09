@@ -549,6 +549,16 @@ proc ::TolPkgGUI::CmpVersion { v1 v2 } {
   }
 }
 
+proc ::TolPkgGUI::lsearchi { i l it } {
+  set _i 0
+  foreach _it $l {
+    if { $it eq [ lindex $_it $i ] } {
+      return $_i
+    }
+  }
+  return -1
+}
+
 proc ::TolPkgGUI::ReadPackSyncInfo { } {
   variable packSyncInfo
 
@@ -812,16 +822,26 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
   }
   $w add command -label [ mc "Sync with servers" ] \
       -command "::TolPkgGUI::SyncServers"
-  $w add separator
   # preprocess selection of packages
+  # list of new packages available
   set listNEW {}
+  # list of package to remove including all installed versions
+  set listDEL {}
+  # list of individual package selected to remove
+  set listDEL0 {}
+  # list of packages selected needing update
   set listUPD {}
+  # list of packages selected needing upgrade
   set listUPG {}
+  # list of packages selected that can be exported  
   set listEXP {}
   
   # process first the list of pkg
   foreach nid $selectionInfo(pkg) {
     set pkg [ $T item text $nid 0 ]
+    if { $nodesInfo($nid,status) ne "new" } {
+      lappend listDEL [ list $pkg $nid ]
+    }
     array unset pkgInfo
     if { [ info exists packSyncInfo($pkg) ] } {
       array set pkgInfo $packSyncInfo($pkg)
@@ -856,6 +876,9 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         puts "unexpected status $nodesInfo($nid,status) for pkg $pkg"
       }
     }
+    foreach chId [ $T item children $nid ] {
+      lappend listDEL0 [ list [ $T item text $chId 0 ] $chId ]
+    }
     lappend listEXP [ list $pkgInfo(lastremote) $nodesInfo($nid,status) $nid ]
   }
   # next process the list of pkgver
@@ -863,12 +886,15 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
     set pkg [ $T item text $nid 0 ]
     switch -exact $nodesInfo($nid,status) {
       "new" {
-        if { [ lsearch $listNEW $pkg ] == -1 } {
+        puts "OJO: he encontrado un estado new en un pkgver $pkg"
+        if { [ lsearchi 0 $listNEW $pkg ] == -1 } {
           lappend listNEW [ list $pkg $nid ]
         }
       }
       "update" {
-        lappend listUPD [ list $pkg $nid ]
+        if { [ lsearchi 0 $listUPD $pkg ] == -1 } {
+          lappend listUPD [ list $pkg $nid ]
+        }
       }
       "ok" {
       }
@@ -876,11 +902,15 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
         puts "unexpected status $nodesInfo($nid,status) for pkg $pkg"
       }
     }
-    if { [ lsearch $listEXP $pkg ] == -1 } {
+    if { [ lsearchi 0 $listDEL0 $pkg ] == -1 } {
+      lappend listDEL0 [ list $pkg $nid ]
+    }
+    if { [ lsearchi 0 $listEXP $pkg ] == -1 } {
       lappend listEXP [ list $pkg $nodesInfo($nid,status) $nid ]
     }
   }
   # install list
+  $w add separator
   if { [ llength $listNEW ] == 1 } {
     $w add command -label [ mc "Install %s" [ lindex [ lindex $listNEW 0 ] 0 ] ] \
         -command [ list ::TolPkgGUI::InstallPackages $listNEW ]
@@ -903,6 +933,7 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
       -command "::TolPkgGUI::UpdatePackageVersion" \
       -state [ EntryState nodesInfo(update) ]
   # upgrade list
+  $w add separator
   if { [ llength $listUPG ] == 1 } {
     $w add command \
         -label [ mc "Upgrade %s" [ lindex [ lindex $listUPG 0 ] 0 ] ] \
@@ -926,6 +957,25 @@ proc ::TolPkgGUI::PostContextMenu { T w } {
   }  
   $w add command -label [ mc "Export all" ]... \
       -command [ list ::TolPkgGUI::ExportPackageVersion ]
+  # Remove options
+  $w add separator
+  if { [ llength $listDEL ] == 1 } {
+    set _tmppkg [ lindex [ lindex $listDEL 0 ] 0 ]
+    $w add command \
+        -label [ mc "Remove all %s" $_tmppkg ]... \
+        -command [ list ::TolPkgGUI::RemovePackageVersion $listDEL0 $_tmppkg ]
+  } elseif { [ llength $listDEL0 ] == 1 } {
+    set _tmppkg [ lindex [ lindex $listDEL0 0 ] 0 ]
+    $w add command \
+        -label [ mc "Remove %s" $_tmppkg ]... \
+        -command [ list ::TolPkgGUI::RemovePackageVersion $listDEL0 ]
+  } elseif { [ llength $listDEL0 ] > 1 } {
+    $w add command -label [ mc "Remove selected" ]... \
+        -command [ list ::TolPkgGUI::RemovePackageVersion $listDEL0 ]
+  }  
+  $w add command -label [ mc "Remove all" ]... \
+      -command [ list ::TolPkgGUI::RemovePackageVersion ]
+  
   # SyncInfo import/export
   $w add separator
   $w add command -label [ mc "Import SyncInfo" ]... \
@@ -1385,6 +1435,32 @@ proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
       -cmditem "InstallThisPackage" -refreshtree 1
 }
 
+proc ::TolPkgGUI::RemovePackageVersion { { pkgs {} } { matchPkg {} } } {
+  variable installData
+  variable tree
+
+  set removeList {}
+  if { [ llength $pkgs ] } {
+    foreach p $pkgs {
+      set _p [ lindex $p 0 ]
+      if { $matchPkg eq "" || [ regexp "^${matchPkg}\\.(\\d+)\\.(\\d+)\$" \
+                                    $_p ] } {
+        lappend removeList $_p
+      }
+    }
+  } else {
+    Unimplemented "Remove all not implemented yet"
+  }
+  if { ![ llength $removeList ] } {
+    return
+  }
+  array unset installData
+  DlgProcess $removeList -title [ mc "Remove packages" ] \
+      -label [ mc "You are about to remove"]: \
+      -beforestart ::TolPkgGUI::Removing \
+      -cmditem "RemoveThisPackage" -refreshtree 1
+}
+
 proc ::TolPkgGUI::ImportSyncInfo { } {
   Unimplemented "Import Sync Info"
 }
@@ -1431,7 +1507,7 @@ proc ::TolPkgGUI::ExportPackageVersion { {pkgs ""} } {
   set local {}
   foreach _p $pkgs {
     foreach { p s } $_p break
-    if { $s eq "upgrade" || $s eq "new" } {
+    if {  $s eq "upgupd" || $s eq "upgrade" || $s eq "new" } {
       lappend remote $p
     } else {
       lappend local $p
@@ -1466,6 +1542,10 @@ proc ::TolPkgGUI::Installing { } {
 
 proc ::TolPkgGUI::Upgrading { } {
   DlgProcessSetLabel [ mc "Upgrading" ]...
+}
+
+proc ::TolPkgGUI::Removing { } {
+  DlgProcessSetLabel [ mc "Removing" ]...
 }
 
 proc ::TolPkgGUI::Updating { } {
@@ -1542,6 +1622,13 @@ proc ::TolPkgGUI::InstallThisPackage { p } {
   }
   set result [ TolPkg::RemoteInstall $p $repo ]
   puts "TolPkg::RemoteInstall $p: $result"
+  return $result
+}
+
+proc ::TolPkgGUI::RemoveThisPackage { p } {
+  set result [ TolPkg::RemovePackage $p ]
+  puts "TolPkg::RemovePackage $p: $result"
+  return $result
 }
 
 proc ::TolPkgGUI::InstallThisZip { p } {
