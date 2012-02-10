@@ -26,10 +26,9 @@ Set matrices = For(1, 10, Matrix (Real i) {
 });
 Set ren = EvalSet(matrices, Fun);
 
-Set ok = EvalSet(ren, Real(Matrix m)
+Set ok = For(1,Card(ren), Real(Real i)
 {
-  Real i = MatDat(m,1,1);
-  Name(m)=="V."<<i
+  Name(ren[i])=="V."<<i
 });
 
 Real ok.all = SetMin(ok);
