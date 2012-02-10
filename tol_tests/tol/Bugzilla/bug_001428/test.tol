@@ -1,0 +1,55 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+Real bugNum_ =  1428;
+Text email_ = "vdebuen@tol-project.com"; 
+Text summary_="Uso de PutName en ciclos";
+Text link_ = GetTolBugzillaLink(bugNum_);
+
+  Real numErr0 = Copy(NError);
+  Real numWar0 = Copy(NWarning);
+
+Matrix Fun(Matrix m) {
+  Real i = MatDat(m,1,1);
+  If(i > 5, PutName("V."<<i, m), {
+    Matrix m2 = m * 2;
+    PutName("V."<<i, m2)
+  })
+};
+
+Set matrices = For(1, 10, Matrix (Real i) {
+  Eval("Matrix "<<Char(64+i)<<" = Row(i)")
+});
+Set ren = EvalSet(matrices, Fun);
+
+Set ok = EvalSet(ren, Real(Matrix m)
+{
+  Real i = MatDat(m,1,1);
+  Name(m)=="V."<<i
+});
+
+Real ok.all = SetMin(ok);
+
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Set partialResults_ = [[ numErr0,numErr1,numWar1,numWar0]]<<ok;
+
+//This is a messure of the success of the test 
+Real quality_ = And(numErr0 == numErr1,numWar0 == numWar1,ok.all);
+
+//Return the results 
+Set resultStr_ =
+  @strTestStatus(summary_, link_, quality_,
+                 "Partial results = "<<partialResults_,
+                 "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                 email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
