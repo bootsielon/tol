@@ -1103,6 +1103,7 @@ proc ::TolPkgGUI::DlgProcess { pkgs args } {
     -cmdlabelitem ""
     -customgui ""
     -refreshtree 0
+    -syncservers 0
   }
   set DlgProcessData(-label) [ mc "You are about to process"]:
   array set DlgProcessData $args
@@ -1273,8 +1274,8 @@ proc ::TolPkgGUI::InstallPackages { pkgs } {
   DlgProcess $InstallList -title [ mc "Install packages" ] \
       -label [ mc "You are about to install"]: \
       -beforestart ::TolPkgGUI::Installing \
-      -cmditem "InstallThisPackage" -refreshtree 1
-  
+      -cmditem "InstallThisPackage" \
+      -syncservers 1
 }
 
 proc ::TolPkgGUI::DlgProcessGetVariableName { name } {
@@ -1301,8 +1302,14 @@ proc ::TolPkgGUI::DlgProcessTask { } {
     set hasProcessed 1
   }
   DlgProcessStop
-  if { $DlgProcessData(-refreshtree) && $hasProcessed } {
-    after idle ::TolPkgGUI::RefreshTree
+  if { $hasProcessed } {
+    if { $DlgProcessData(-syncservers) } {
+      ::TolPkg::UpdateRepositoryInfo
+      set DlgProcessData(-refreshtree) 1
+    }
+    if { $DlgProcessData(-refreshtree) } {
+      after idle ::TolPkgGUI::RefreshTree
+    }
   }
 }
 
@@ -1350,7 +1357,7 @@ proc ::TolPkgGUI::InstallZip { } {
     DlgProcess $zipList -title [ mc "Install Zip's" ] \
         -label [ mc "You are about to install zip"]: \
         -beforestart ::TolPkgGUI::InstallingZip \
-        -cmditem InstallThisZip -refreshtree 1
+        -cmditem InstallThisZip -syncservers 1
   }
 }
 
@@ -1397,7 +1404,7 @@ proc ::TolPkgGUI::UpgradePackages { { pkgs {} } } {
   DlgProcess $upgradeList -title [ mc "Upgrade packages" ] \
       -label [ mc "You are about to upgrade"]: \
       -beforestart ::TolPkgGUI::Upgrading \
-      -cmditem "InstallThisPackage" -refreshtree 1
+      -cmditem "InstallThisPackage" -syncservers 1
 }
 
 proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
@@ -1432,7 +1439,7 @@ proc ::TolPkgGUI::UpdatePackageVersion { { pkgs {} } } {
   DlgProcess $updateList -title [ mc "Update packages" ] \
       -label [ mc "You are about to update"]: \
       -beforestart ::TolPkgGUI::Updating \
-      -cmditem "InstallThisPackage" -refreshtree 1
+      -cmditem "InstallThisPackage" -syncservers 1
 }
 
 proc ::TolPkgGUI::RemovePackageVersion { { pkgs {} } { matchPkg {} } } {
@@ -1462,7 +1469,7 @@ proc ::TolPkgGUI::RemovePackageVersion { { pkgs {} } { matchPkg {} } } {
   DlgProcess $removeList -title [ mc "Remove packages" ] \
       -label [ mc "You are about to remove"]: \
       -beforestart ::TolPkgGUI::Removing \
-      -cmditem "RemoveThisPackage" -refreshtree 1
+      -cmditem "RemoveThisPackage" -syncservers 1
 }
 
 proc ::TolPkgGUI::ImportSyncInfo { } {
@@ -1532,7 +1539,7 @@ proc ::TolPkgGUI::ExportPackageVersion { {pkgs ""} } {
         -label [ mc "You are about to export"]: \
         -beforestart ::TolPkgGUI::Exporting \
         -customgui "CreateSelectDir" \
-        -cmditem "ExportThisPackage" -refreshtree 0
+        -cmditem "ExportThisPackage"
   }
 }
 
@@ -1658,6 +1665,7 @@ proc ::TolPkgGUI::Show { } {
     toplevel $win
     wm state $win withdrawn
     CreateTree $win.tree
+    ::TolPkg::UpdateRepositoryInfo
     FillTreeInfo $win.tree
     wm state $win normal
   }
