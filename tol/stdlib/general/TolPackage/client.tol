@@ -510,8 +510,8 @@ Real DownloadPackage(
     If(!FileExist(localOza), False,
     {
     //WriteLn("_trace DownloadPackage 5");
-      Real RemoteUpdateVersSyncInfo(showError);
-      Real RemoteUpdatePackSyncInfo(showError);
+    //Real RemoteUpdateVersSyncInfo(showError);
+    //Real RemoteUpdatePackSyncInfo(showError);
       True
     })
   })});
