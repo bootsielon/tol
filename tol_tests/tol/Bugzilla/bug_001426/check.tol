@@ -1,0 +1,13 @@
+Set list3 = Include("list3Q.oza");
+Serie Fun(Serie s, Real k) { s * k };
+
+Real Dt2 = {
+  Real t1 = Copy(Time);
+  Set EvalSet(list3, Serie (Set s) {
+    Serie s2 = s[1];
+    Fun(s2, 2)
+  });
+  Real t2 = Copy(Time);
+  Real t21 = t2-t1
+};
+
