@@ -1,0 +1,34 @@
+NameBlock repository.db = DBConnect::Create (
+   "bysforofitol", "toldevel", "tol!116.", 
+   "PostgreSQL", "bysforofitol", "p-pgsql01.localbayes.es", 
+   "Almacén de repositorios de paquetes TOL de Bayes"
+);
+
+Text sourceRoot = "./";
+
+Text repository.url = 
+  "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php",
+
+Text checkInstallMode = "remote";
+
+/* */
+//Real TolPackage::Server::RemovePackageVersion( "ToltclLinux32", 3, 1, repository.db );
+Set packages = [["ToltclLinux32"]];
+
+/* * /
+//Real TolPackage::Server::RemovePackageVersion( "ToltclWin32", 3, 1, repository.db );
+Set packages = [["ToltclWin32"]];
+
+/* */
+
+Set EvalSet(packages, Real(Text name)
+{
+  TolPackage::Server::BuildAndUploadPackage(
+    Text name, 
+    Text sourceRoot,
+    Text repository.url,
+    NameBlock repository.db, 
+    Text checkInstallMode)
+});
+
+/* */

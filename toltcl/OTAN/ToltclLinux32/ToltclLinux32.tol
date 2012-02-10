@@ -1,0 +1,41 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : ToltclLinux32.tol
+// PURPOSE: Defines Package ToltclLinux32
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+NameBlock ToltclLinux32 = [[
+//////////////////////////////////////////////////////////////////////////////
+                       
+Text _.autodoc.name = "ToltclLinux32";
+Text _.autodoc.brief = "Support package to load Toltcl binaries on Linux32";
+Text _.autodoc.description = "This package load the Toltcl package on Linux which is compatible with the TOL 3.1";
+Text _.autodoc.url = "http://packages.tol-project.org/OfficialTolArchiveNetwork/repository.php";
+Set _.autodoc.keys = [["Tcl","Core", "Toltcl"]];
+Set _.autodoc.authors = [[ "josp@tol-project.org" ]];
+Text _.autodoc.minTolVersion =  "v3.1";
+Text _.autodoc.maxTolVersion =  "v3.1 p.999";
+Real _.autodoc.version.high = 3;
+Real _.autodoc.version.low = 1;
+Set _.autodoc.dependencies = Copy(Empty);
+Set _.autodoc.nonTolResources = { [[
+  Text lib="lib"
+]] };
+Text _.autodoc.versionControl = AvoidErr.NonDecAct(OSSvnInfo("."));
+
+Text _.libDir = "";
+
+Text GetLibDir( Real void )
+{
+  Text _.libDir
+};
+
+////////////////////////////////////////////////////////////////////////////
+Real StartActions(Real void)
+////////////////////////////////////////////////////////////////////////////
+{
+  Text _.libDir := GetAbsolutePath( "." ) + "/lib/";
+  Real True
+}
+]];
