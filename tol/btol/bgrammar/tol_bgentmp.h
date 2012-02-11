@@ -113,6 +113,10 @@ public:
   { 
     localName_ = locNam; 
   } 
+  void PutName (const BText&   name  )
+  { 
+    this->GetResult()->PutName(name);
+  } 
 
 public:
   // Constructors and destructors: inline
