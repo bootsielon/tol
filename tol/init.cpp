@@ -1476,7 +1476,7 @@ void InitTolKernel(char* calledProgram, int lang, const char* vmode )
 //--------------------------------------------------------------------
 {
   InitCint();
-  BText::PutLanguage(lang);
+  if(lang>=0) { BText::PutLanguage(lang); }
   InitVerboseMode();
   /* Aqui hay que particionar vmode e iterar invocando
      ChangeVerboseMode. Las diferentes opciones vienen separadas por
