@@ -187,7 +187,7 @@ BSyntaxObject* BTsrRenamed::New(const BText& name, BSyntaxObject* d)
 //VBR: this new line is equivalent to write +x instead of x because 
 //BTsrIdentity is the unary + operator. Now the renamed time serie 
 //is saved from changes in new created one
-  d = new BTsrIdentity(NCons(d));
+//d = new BTsrIdentity(NCons(d));
 
 //This is the original behaviour
   return((BSyntaxObject*)(new BTsrRenamed(name, d)));
