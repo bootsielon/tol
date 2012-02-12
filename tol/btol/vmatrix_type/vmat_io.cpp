@@ -25,6 +25,8 @@
 #include <tol/tol_bvmat_impl.h>
 #include <tol/tol_oiscreator.h>
 #include <tol/tol_oisloader.h>
+#include <tol/tol_oisstream_dir.h>
+#include <tol/tol_bdir.h>
 #include <stdarg.h>
 
 //#define _USE_MM_IO_
@@ -857,3 +859,52 @@ void BVMat::WriteMatrixMarket(FILE* file)
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+  bool BVMat::Write(const BText& filePath) const
+//Exporting method
+////////////////////////////////////////////////////////////////////////////////
+{
+  BText dirPath = GetFilePath(filePath);
+  BText fileName = GetFileName(filePath);
+  BDirStreamHandler dir;
+  if(!dir.Connect(dirPath,BStreamHandler::BSHOM_WRITE,true)) { return(false); }
+  BStream* stream = dir.Open(fileName, fileName, -1);
+  BOisCreator ois;
+  ois.SetControl();
+  ois.options_.compressor_.serialization_.engine_ = BOis::BSE_NONE_;
+  char* buf = ois.control_.oisEngine_.oisVersion_.Buffer();
+  int len = ois.control_.oisEngine_.oisVersion_.Length();
+  stream->Write(&len, sizeof(int), 1);
+  stream->Write(buf, 1, len+1);
+  stream->Write(&ois.control_.machine_.isLittleEndian_, sizeof(bool), 1);
+  stream->Write(&ois.options_.compressor_.serialization_.engine_, sizeof(BOis::BSerialEngine), 1);
+  stream->Write(&ois.options_.compressor_.serialization_.minSizeCmprs_, sizeof(int), 1);
+  stream->Write(&ois.options_.compressor_.serialization_.level_, sizeof(int), 1);
+  bool ok = Write(ois,stream);
+  stream->Close();
+  return(ok);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+  bool BVMat::Read(const BText& filePath) 
+//Exporting method
+////////////////////////////////////////////////////////////////////////////////
+{
+  BText dirPath = GetFilePath(filePath);
+  BText fileName = GetFileName(filePath);
+  BDirStreamHandler dir;
+  if(!dir.Connect(dirPath,BStreamHandler::BSHOM_READ,true)) { return(false); }
+  BStream* stream = dir.Open(fileName, fileName, -1);
+  BOisLoader ois;
+  int len;
+  stream->Read(&len, sizeof(int), 1);
+  ois.control_.oisEngine_.oisVersion_.PutLength(len);
+  stream->Read( ois.control_.oisEngine_.oisVersion_.Buffer(), 1, len+1);
+  stream->Read(&ois.control_.machine_.isLittleEndian_, sizeof(bool), 1);
+  stream->Read(&ois.options_.compressor_.serialization_.engine_, sizeof(BOis::BSerialEngine), 1);
+  stream->Read(&ois.options_.compressor_.serialization_.minSizeCmprs_, sizeof(int), 1);
+  stream->Read(&ois.options_.compressor_.serialization_.level_, sizeof(int), 1);
+  bool ok = Read(ois,stream);
+  stream->Close();
+  return(ok);
+}

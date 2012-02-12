@@ -341,6 +341,9 @@ public:
   bool   Write(BOisCreator& ois, BStream* name) const;
   bool   Read (BOisLoader& ois, BStream* stream);
   
+  bool Write(const BText& filePath) const;
+  bool Read(const BText& filePath);
+
   static size_t bytes(const cholmod_R_dense* a);
   static size_t bytes(const cholmod_R_sparse* a);
   static size_t bytes(const cholmod_R_factor* a);

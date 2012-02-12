@@ -2703,6 +2703,35 @@ void BVMatHistogram::CalcContens()
 //contens_.Pack(0.5)
 }
 
+//--------------------------------------------------------------------
+DeclareContensClass(BDat, BDatTemporary, BDatVMatWriteFile);
+DefExtOpr(1, BDatVMatWriteFile, "VMatWriteFile", 2, 2,
+  "Text VMatrix",
+  "(Text filePath, VMatrix V)",
+  I2("Writes a virtual matrix into a binary file.",
+     "Escribe una matriz virtual en un fichero binario."),
+    BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BDatVMatWriteFile::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_=VMat(Arg(2)).Write(Text(Arg(1)));
+}
+
+//--------------------------------------------------------------------
+DeclareContensClass(BVMat, BVMatTemporary, BVMatReadFile);
+DefExtOpr(1, BVMatReadFile,  "VMatReadFile", 1, 1, "Text",
+  "(Text filePath)",
+  I2("Reads a virtual matrix from a binary file.",
+     "Lee una matriz virtual desde un fichero binario."),
+BOperClassify::MatrixAlgebra_);
+//--------------------------------------------------------------------
+void BVMatReadFile::CalcContens()
+//--------------------------------------------------------------------
+{
+  contens_.Read(Text(Arg(1)));
+}
+
 /*
 //--------------------------------------------------------------------
 class BSetMergeTriplet: public BExternalOperator
