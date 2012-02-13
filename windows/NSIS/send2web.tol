@@ -1,4 +1,4 @@
-Text version_type = If(TextFind(Version,".alpha "),"development","official");
+Text version_type = If(TextBeginWith(Tokenizer(Version," ")[2],"b"),"development","official");
 Text WriteFile(version_type+"_tol_release_win.txt",Version);
 
 Real OSDirMake("history/"+TolVersionId);
