@@ -155,8 +155,14 @@ BDat BSetIncludeBDT::fillValue_    = 0;
   void BSourcePath::AddEmbed(const BText& txt)
 //--------------------------------------------------------------------
 {
-  assert(current_);
-  ((BSourcePath*)current_)->embeded_.Add(txt);
+  if(current_)
+  {
+    ((BSourcePath*)current_)->embeded_.Add(txt);
+  }
+  else
+  {
+    Error("Cannot use #Embed out of a TOL file.");
+  }
 }
 
 //--------------------------------------------------------------------
