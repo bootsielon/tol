@@ -72,9 +72,9 @@ proc TraceMainGeometry { msg } {
   package require -exact BLT 2.4
   package require autoscroll 1.1
   package require tclodbc
-  if {[info exist ::env(USE_TOLTCL)]} {
-    puts "requested to load Toltcl from $::env(USE_TOLTCL)"
-    load $::env(USE_TOLTCL)
+  if {[info exist ::env(USE_TOLTCL_31)]} {
+    puts "requested to load Toltcl from $::env(USE_TOLTCL_31)"
+    load $::env(USE_TOLTCL_31)
   } else {
     package require Toltcl 3.1
   }
