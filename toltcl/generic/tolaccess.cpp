@@ -41,6 +41,7 @@
 #include <tol/tol_btsrgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bmethodhook.h>
+#include <tol/tol_bparser.h>
 
 #include <toltclInt.h>
 #include <tt_pool.h>
@@ -1875,6 +1876,29 @@ int Tol_InfoFile(Tcl_Interp * interp, Tcl_Obj * file,
   /* STRUCTURE */
   info[5] = Tcl_NewStringObj( NULL, 0 );
   Tcl_SetListObj(obj_result, 6, info);
+  return TCL_OK;
+}
+
+int Tol_CheckSyntax(Tcl_Interp * interp,
+                    Tcl_Obj    * obj_expr,
+                    Tcl_Obj    * obj_result)
+{
+  Tcl_DString dstr;
+  BText tol_expr;
+
+  Tcl_DStringInit(&dstr);
+  tol_expr = Tcl_UtfToExternalDString( NULL, Tcl_GetString( obj_expr ),
+                                       -1, &dstr );
+  Tcl_DStringFree(&dstr);
+  
+  BBool stat = BOut::ErrorHci();
+  BOut::PutErrorHci(BFALSE);
+  BParser* parser = new BParser;
+  Tree* tree = parser->Parsing( tol_expr );
+  Tcl_SetStringObj( obj_result, parser->MessageError(), -1 );
+  delete parser;
+  BOut::PutErrorHci( stat );
+  DESTROY(tree);
   return TCL_OK;
 }
 

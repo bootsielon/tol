@@ -42,6 +42,10 @@ static int Tol_InitLibraryCmd _ANSI_ARGS_((ClientData clientData,
                                            Tcl_Interp *interp,
                                            int objc, Tcl_Obj *CONST objv[]));
 
+static int Tol_CheckSyntaxCmd _ANSI_ARGS_((ClientData clientData,
+                                           Tcl_Interp *interp,
+                                           int objc, Tcl_Obj *CONST objv[]));
+
 static int Tol_IncludeCmd _ANSI_ARGS_((ClientData clientData,
                                        Tcl_Interp *interp,
                                        int objc, Tcl_Obj *CONST objv[]));
@@ -256,6 +260,9 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
   Tcl_CreateObjCommand( interp, "::tol::initlibrary", Tol_InitLibraryCmd,
                         (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL );
 
+  Tcl_CreateObjCommand( interp, "::tol::checksyntax", Tol_CheckSyntaxCmd,
+                        (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL );
+
   Tcl_CreateObjCommand( interp, "::tol::include", Tol_IncludeCmd,
                         (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL );
 
@@ -349,6 +356,47 @@ Tol_InitLibraryCmd(clientData, interp, objc, objv)
     LoadInitLibrary( loadIni );
   }
   return status;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * Tol_CheckSyntaxCmd --
+ *
+ *      Implements the new Tcl "::tol::checksyntax" command.
+ *
+ * Results:
+ *
+ *      Returns the syntax error found in the tol expression given as
+ *      argument. If no error is found then the empty string is
+ *      returned.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+Tol_CheckSyntaxCmd(clientData, interp, objc, objv)
+     ClientData clientData;  /* Not used. */
+     Tcl_Interp *interp;             /* Current interpreter */
+     int objc;                                 /* Number of arguments */
+     Tcl_Obj *CONST objv[];  /* Argument objects */
+{
+  Tcl_Obj * obj_result= Tcl_NewObj();
+  int tcl_result;
+  
+  if (objc != 2) {
+    Tcl_SetStringObj(obj_result,
+                     "wrong # args: should be \"::tol::checksyntax tolcode\"",
+                     -1);
+    tcl_result = TCL_ERROR;
+  } else
+    tcl_result = Tol_CheckSyntax( interp, objv[1], obj_result );
+  Tcl_SetObjResult( interp, obj_result );
+  return tcl_result;
 }
 
 

@@ -60,6 +60,13 @@ extern int Tol_SetLanguage _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * lang,
 extern int Tol_GetLanguage _ANSI_ARGS_((Tcl_Interp * interp,
                                         Tcl_Obj * obj_result));
 
+
+/*! Check the syntax of a given expresion.
+ */
+extern int Tol_CheckSyntax _ANSI_ARGS_((Tcl_Interp * interp,
+                                        Tcl_Obj * obj_expr,
+                                        Tcl_Obj * obj_result));
+
 /*! Fill in obj_result the result of evaluating including the file
  *  given as argument: the absolute path.
  */
