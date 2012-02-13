@@ -217,7 +217,10 @@ void BNameBlock::Clean()
   owner_ = NULL;
   for(n=1; n<=set_.Card(); n++)
 	{
-    set_[n]->PutNameBlock(NULL);
+    if(set_[n])
+    { 
+      set_[n]->PutNameBlock(NULL);
+    }
   }
   public_.clear();
   private_.clear();
