@@ -214,11 +214,26 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
                      Tcl_GetString(objv[0]),"?lang ?vmode??\"", NULL);
     return TCL_ERROR;
   }
-  lang = (objc == 1 || !strcasecmp("es", Tcl_GetString(objv[1])));
-  vmode = objc == 3 ? Tcl_GetString(objv[2]) :  NULL;
+  if ( objc >= 2 ) {
+    if ( !strcasecmp("es", Tcl_GetString( objv[1] ) ) ) {
+      lang = 1;
+    } else if ( !strcasecmp("en", Tcl_GetString( objv[1] ) ) ) {
+      lang = 0;
+    } else {
+      lang = -1;
+    }
+    if ( objc == 3 ) {
+      vmode = Tcl_GetString( objv[2] );
+    } else {
+      vmode = NULL;
+    }
+  } else {
+    lang = -1;
+    vmode = NULL;
+  }
 
   if ( !TOLHasBeenInitialized( ) ) {
-    //printf( "TOL no esta inicializado\n" );
+    /* printf( "****TOL no esta inicializado %d****\n", lang ); */
     /*
      * Initialize kernel
      */
@@ -231,7 +246,7 @@ Tol_InitKernelCmd(clientData, interp, objc, objv)
     
     Tol_gsl_set_error_handler(&TT_gsl_error_handler);
   } else {
-    //printf( "TOL esta inicializado\n" );
+    /* printf( "****TOL esta inicializado****\n" ); */
   }
   
   /*
@@ -943,12 +958,11 @@ Tol_InfoCmd(clientData, interp, objc, objv)
         tcl_result = TCL_ERROR;
       }
     } else if (!strncasecmp("reference", arg, length)) {
-//      if (objc > 4 || objc < 3) {
+      /* if (objc > 4 || objc < 3) { */
       if (objc != 3) {
         Tcl_AppendStringsToObj(obj_result,
                                "wrong # args: should be '",
                                Tcl_GetString(objv[0]),
-//                               " reference ?grammar? obj'",
                                " reference {grammar|container objname ?indexes?}'",
                                NULL);
         tcl_result = TCL_ERROR;	
@@ -1218,7 +1232,6 @@ Tcl_Interp *interp;             /* Current interpreter */
      Tcl_Obj *CONST objv[];  /* Argument objects */
      Tcl_Obj * obj_result;
 {
-//  if ( objc < 2 || objc > 3 ) {
   if ( objc != 2 ) {
     Tcl_AppendStringsToObj(obj_result,
                      "wrong # args: should be '",
@@ -1227,8 +1240,6 @@ Tcl_Interp *interp;             /* Current interpreter */
                      NULL);
     return TCL_ERROR;
   }
-//  return  objc == 2 ? Tol_SetVariablesObj(interp, objv[1], obj_result) :
-//    Tol_SetVariableInfoObj(objv[1], objv[2], obj_result);
   return  Tol_SetVariablesObj(interp, objv[1], obj_result);
 }
 
@@ -1564,7 +1575,6 @@ Toltcl_Init(Tcl_Interp *interp)
    *
    */
   
-  //InitTolKernel();
   if ( !TOLHasBeenInitialized( ) ) {
     Tol_InstallHciWriter();
   }
