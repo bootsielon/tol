@@ -161,7 +161,7 @@ BDat BSetIncludeBDT::fillValue_    = 0;
   }
   else
   {
-    Error("Cannot use #Embed out of a TOL file.");
+  //Error("Cannot use #Embed out of a TOL file.");
   }
 }
 
