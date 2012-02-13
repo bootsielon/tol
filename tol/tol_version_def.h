@@ -23,7 +23,7 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #define VERSION_MAJOR   3
 #define VERSION_MINOR   1
-#define VERSION_BUILD   "b025"
+#define VERSION_BUILD   "b026"
 
 #if defined(_MSC_VER)
 #include "tol_build_date.h"
