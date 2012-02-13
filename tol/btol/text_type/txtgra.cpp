@@ -98,6 +98,21 @@ TOL_API BText EvalText(const BText& expr, const BText& defVal)
 }
 
 //--------------------------------------------------------------------
+TOL_API BText CheckSyntax( const BText& expr ) 
+//--------------------------------------------------------------------
+{
+  BBool stat = BOut::ErrorHci();
+  BOut::PutErrorHci(BFALSE);
+  BParser* parser = new BParser;
+  Tree* tree = parser->Parsing( expr );
+  BText result = parser->MessageError();
+  delete parser;
+  BOut::PutErrorHci( stat );
+  DESTROY(tree);
+  return result;
+}
+
+//--------------------------------------------------------------------
   template<>
   void BGraContensBase<BText>::Do() 
 //--------------------------------------------------------------------
@@ -2597,15 +2612,8 @@ DefExtOpr(1, BTextParseError, "ParseError", 1, 1, "Text",
 void BTextParseError::CalcContens()
 //--------------------------------------------------------------------
 {
-    BText expr = Text(Arg(1));
-    BBool stat = BOut::ErrorHci();
-    BOut::PutErrorHci(BFALSE);
-    BParser* parser = new BParser;
-    Tree* tree = parser->Parsing(expr);
-    contens_ = parser->MessageError();
-    delete parser;
-    BOut::PutErrorHci(stat);
-    DESTROY(tree);
+  BText &expr = Text(Arg(1));
+  contens_ = CheckSyntax( expr );
 }
 
 #ifdef __USE_TC__

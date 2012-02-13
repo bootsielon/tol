@@ -37,7 +37,8 @@
 template class TOL_API BGraContensBase < BText >;
 template class TOL_API BGraContens     < BText >;
 
-TOL_API BText EvalText (const BText& expr, const BText& defVal); 
+TOL_API BText EvalText (const BText& expr, const BText& defVal);
+TOL_API BText CheckSyntax( const BText &expr );
 
 //--------------------------------------------------------------------
 // inline functions
