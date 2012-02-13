@@ -41,7 +41,6 @@
 #include <tol/tol_btsrgra.h>
 #include <tol/tol_btxtgra.h>
 #include <tol/tol_bmethodhook.h>
-#include <tol/tol_bparser.h>
 
 #include <toltclInt.h>
 #include <tt_pool.h>
@@ -1890,15 +1889,8 @@ int Tol_CheckSyntax(Tcl_Interp * interp,
   tol_expr = Tcl_UtfToExternalDString( NULL, Tcl_GetString( obj_expr ),
                                        -1, &dstr );
   Tcl_DStringFree(&dstr);
-  
-  BBool stat = BOut::ErrorHci();
-  BOut::PutErrorHci(BFALSE);
-  BParser* parser = new BParser;
-  Tree* tree = parser->Parsing( tol_expr );
-  Tcl_SetStringObj( obj_result, parser->MessageError(), -1 );
-  delete parser;
-  BOut::PutErrorHci( stat );
-  DESTROY(tree);
+  BText result = CheckSyntax( tol_expr );
+  Tcl_SetStringObj( obj_result, result.String(), -1 );
   return TCL_OK;
 }
 
