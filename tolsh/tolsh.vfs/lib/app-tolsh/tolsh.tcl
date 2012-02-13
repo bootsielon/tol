@@ -29,7 +29,7 @@ namespace eval ::tolsh {
 
   # By default load initLibrary
   #
-  set options(lang)    0
+  set options(lang)    ""
   set options(initlib) 1
   set options(iniproject) 1
   set options(compile) ""
@@ -82,19 +82,20 @@ proc ::tolsh::getoptions { cmdline } {
   set delayed_msg ""
   set i 0
   while {$i < $num} {
+    logtmp "set item [lindex $cmdline $i]"
     set item [lindex $cmdline $i]
     if {[string index $item 0] eq "-"} {
       set opt [string range $item 1 end]
       if {$opt eq "e" || $opt eq "en"} {
-        set $options(lang) 0
+        set options(lang) "en"
       } elseif {$opt eq "s" || $opt eq "sp"} {
-        set $options(lang) 1
+        set options(lang) "es"
       } elseif {$opt eq "i"} {
         # initLibrary should not be loaded
         # 
         set options(initlib) 0
       } elseif {$opt eq "np"} {
-        set $options(iniproject) 0
+        set options(iniproject) 0
       } elseif {[string index $opt 0] eq "c"} {
         if {[string length $opt]>1} {
           # The tol expression is part of the option
@@ -395,18 +396,22 @@ proc ::tolsh::run { cmdline } {
   # Load Toltcl (+tol) and initLibrary if required
   #
   if {$options(runmode) != "server" && $options(runmode) != "shared"} {
-    if {[info exist ::env(USE_TOLTCL_202)]} {
-      puts "requested to load Toltcl from $::env(USE_TOLTCL_202)"
+    if {[info exist ::env(USE_TOLTCL_31)]} {
+      puts "requested to load Toltcl from $::env(USE_TOLTCL_31)"
       load $::env(USE_TOLTCL_202)
     } else {
       package require -exact Toltcl 3.1
     }
+    #puts "tol::initkernel $options(lang) $options(vmode)"
     tol::initkernel $options(lang) $options(vmode)
 
     if {$options(initlib)} {
       tol::initlibrary $options(iniproject)
     }
-
+    # why should I do that?
+    if { $options(lang) ne "" } {
+      ::tol::language $options(lang)
+    }
     set appdata [string trim \
                [lindex [::tol::info var [list Text TolAppDataPath]] 2] \"]
     logtmp "appdata = $appdata"
@@ -464,15 +469,15 @@ proc ::tolsh::run { cmdline } {
     vwait __forever__
     
   } elseif {$options(runmode) eq "server"} {
-    puts "runmode=server"
+    #puts "runmode=server"
     run_as_server $tolcomm_dir
     
   } elseif {$options(runmode) eq "shared"} {
-    puts "runmode=shared"
+    #puts "runmode=shared"
     run_as_shared $tolcomm_dir
   
   } elseif {$options(runmode) eq "slave"} {
-    puts "runmode=slave"
+    #puts "runmode=slave"
     run_as_slave $tolcomm_dir   
   }
 }
@@ -578,7 +583,7 @@ proc ::tolsh::stdin_handler {} {
 }
 
 proc logtmp { msg } {
-  return 
+  return
   set user $::tcl_platform(user)
   set fd [ open "/tmp/tolsh.${user}.log" a ]
   puts $fd $msg
