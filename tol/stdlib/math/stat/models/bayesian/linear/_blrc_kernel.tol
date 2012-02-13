@@ -281,8 +281,6 @@ Text CheckConstraint(Matrix B, Matrix b, Matrix x)
   Text If(Real MatSum(check)==Rows(check), "OK", "FAIL")
 };
 
-Real solo_uno = 0;
-
 //////////////////////////////////////////////////////////////////////////////
 Matrix BLRC_MHGenBetaBlock
 (
