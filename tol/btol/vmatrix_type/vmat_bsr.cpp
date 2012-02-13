@@ -144,7 +144,7 @@ int bys_sparse_reg::getMissing(
 /////////////////////////////////////////////////////////////////////////////
 {
   int i,j,k;
-  Std(BSR()+"Setting input and output missing block\n");
+//Std(BSR()+"Setting input and output missing block\n");
   int inputMisSize = 0;
   int outputMisSize = 0;
   for(i=0; i<mis.vec.size(); i++)

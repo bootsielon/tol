@@ -590,12 +590,12 @@ public:
     int m = numEqu_;
     int r = ine_vec.size();
     if(!n && !X_.Rows()) { X_.BlasRDense(m,0); }
-    Std(BSR()+" Building model definition of primary module\n");
+  //Std(BSR()+" Building model definition of primary module\n");
     int result = checkDimensions(m);
     if(result) { return(result); }
     linearInfo_  = var.vec;
     noiseInfo_   = noise.vec;
-    Std(BSR()+" Building noise "+noiseInfo_[0].name.c_str()+"\n");
+  //Std(BSR()+" Building noise "+noiseInfo_[0].name.c_str()+"\n");
     for(i=1; i<=m; i++)
     {
       noiseInfo_[0].equIdx.push_back(i);
@@ -624,9 +624,9 @@ public:
       Y = Y_;
       X = X_;
       BVMat A_;
-      Std(BSR()+" Allocating dense inequation border with "+r+" cells\n");
+    //Std(BSR()+" Allocating dense inequation border with "+r+" cells\n");
       a_.BlasRDense(r,1);
-      Std(BSR()+" Allocating triplet sparse inequation coefficeints with "+Anzmax_+" cells\n");
+    //Std(BSR()+" Allocating triplet sparse inequation coefficeints with "+Anzmax_+" cells\n");
       A_.ChlmRTriplet(r,n,Anzmax_);
       size_t& An = A_.s_.chlmRtriplet_->nnz;
       double* ax = (double*)a_.s_.blasRdense_->x;
@@ -635,14 +635,14 @@ public:
       int*    Aj = (int*)A_.s_.chlmRtriplet_->j;
       int oldRatio = 0;
       An = 0;
-      Std(BSR()+"Building "+r+"constrain inequations with "+n+" variables\n");
+    //Std(BSR()+"Building "+r+"constrain inequations with "+n+" variables\n");
       for(i=0; i<r; i++)
       {
         int ratio = i/r;
         if((ratio!=oldRatio) && !(ratio%5))
         {
           oldRatio = ratio;
-          Std(".");
+        //Std(".");
         }
         double sign = (ine_vec[i].isGE)?1.0:-1.0;
         ax[i] = ine_vec[i].a*sign;
@@ -655,8 +655,8 @@ public:
           An++;
         }
       }
-      Std("\n");
-      Std(BSR()+"Converting constrain inequations from triplet to sparse\n");
+    //Std("\n");
+    //Std(BSR()+"Converting constrain inequations from triplet to sparse\n");
       A.Convert(A_,BVMat::ESC_chlmRsparse);
       result = getMissing(Y,X,inputMissingInfo_, outputMissingInfo_);
     }

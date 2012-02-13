@@ -275,7 +275,7 @@ public:
   trace_msg(std::string& msg) : msg_(msg) {}
   void action(const std::string& str) const
   {
-    Std(BSR()+"TRACE "+msg_.c_str()+" : '"+str.c_str()+"'");
+    //Std(BSR()+"TRACE "+msg_.c_str()+" : '"+str.c_str()+"'");
   }
   void operator()(const std::string& str) const
   {
@@ -648,7 +648,7 @@ public:
     t->noise_info_->firstDate = "";
     if(!(*numEqu_))
     {
-      Std(BSR()+" Parsed "+*(t->var_count_)+" linear block variables \n");
+    //Std(BSR()+" Parsed "+*(t->var_count_)+" linear block variables \n");
     }
     *(t->numEqu_) += size;
   }
@@ -1675,9 +1675,9 @@ public:
     if(!n) 
     { 
       iniTime_ = (double)time(0); 
-      Std(BSR()+" Parsed "+(*mis_count_)+" missing variables \n");
-      Std(BSR()+" Parsed "+(*sig_count_)+" sigma variables \n");
-      Std(BSR()+" Parsed "+(*noise_count_)+" vectors of noise  \n");
+    //Std(BSR()+" Parsed "+(*mis_count_)+" missing variables \n");
+    //Std(BSR()+" Parsed "+(*sig_count_)+" sigma variables \n");
+    //Std(BSR()+" Parsed "+(*noise_count_)+" vectors of noise  \n");
     }
     if(equ_vec_->capacity()<n+1) { equ_vec_->reserve(int((n+1)*1.20)); }
     equ_vec_->resize(n+1);
@@ -1696,8 +1696,8 @@ public:
       oldRatio_ = ratio;
       double elapsed = time(0) - iniTime_;
       double remain  = elapsed*double((*numEqu_)-n)/double(n);
-      Std(BSR()+" Parsed "+n+" equations of "+(*numEqu_)+" ["+ratio+"%] "
-          "in "+elapsed+" seconds (remaining "+remain+" s.)\n");
+    //Std(BSR()+" Parsed "+n+" equations of "+(*numEqu_)+" ["+ratio+"%] "
+    //    "in "+elapsed+" seconds (remaining "+remain+" s.)\n");
     }
   }
   void  operator()(const char& str) const { action();  }
@@ -1738,7 +1738,7 @@ public:
     ine_->A.clear();
     if(n && !(n%1000))
     {
-      Std(BSR()+" Parsed "+n+" inequations \n");
+    //Std(BSR()+" Parsed "+n+" inequations \n");
     }
   }
   void  operator()(const char& str) const { action();  }

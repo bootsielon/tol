@@ -588,28 +588,28 @@ public:
     int b = noise.vec.size();
     int m = equ_vec.size();
     int r = ine_vec.size();
-    Std(BSR()+" Parsed "+r+" inequations \n");
-    Std(BSR()+" Building model definition  of joint module\n");
+  //Std(BSR()+" Parsed "+r+" inequations \n");
+  //Std(BSR()+" Building model definition  of joint module\n");
     int result = checkDimensions(m);
     if(result) { return(result); }
     linearInfo_ = var.vec;
     noiseInfo_  = noise.vec;
     for(i=0; i<noiseInfo_.size(); i++)
     {
-      Std(BSR()+" Building noise "+noiseInfo_[i].name.c_str()+"\n");
+    //Std(BSR()+" Building noise "+noiseInfo_[i].name.c_str()+"\n");
       if(expand2AllEqu_covAndFactors(noiseInfo_[i]))
       {
         return(-6);
       }
     }
     BVMat X_, A_;
-    Std(BSR()+" Allocating dense output with "+m+" cells\n");
+  //Std(BSR()+" Allocating dense output with "+m+" cells\n");
     Y.BlasRDense(m,1);
-    Std(BSR()+" Allocating triplet sparse input with "+Xnzmax_+" non null cells\n");
+  //Std(BSR()+" Allocating triplet sparse input with "+Xnzmax_+" non null cells\n");
     X_.ChlmRTriplet(m,n,Xnzmax_);
-    Std(BSR()+" Allocating dense inequation border with "+r+" cells\n");
+  //Std(BSR()+" Allocating dense inequation border with "+r+" cells\n");
     a_.BlasRDense(r,1);
-    Std(BSR()+" Allocating triplet sparse inequation coefficeints with "+Anzmax_+" cells\n");
+  //Std(BSR()+" Allocating triplet sparse inequation coefficeints with "+Anzmax_+" cells\n");
     A_.ChlmRTriplet(r,n,Anzmax_);
     size_t& Xn = X_.s_.chlmRtriplet_->nnz;
     size_t& An = A_.s_.chlmRtriplet_->nnz;
@@ -623,14 +623,14 @@ public:
     int*    Aj = (int*)A_.s_.chlmRtriplet_->j;
     int oldRatio = 0;
     Xn = 0;
-    Std(BSR()+"Building regression "+m+" equations with "+n+" variables\n");
+  //Std(BSR()+"Building regression "+m+" equations with "+n+" variables\n");
     for(i=0; i<m; i++)
     {
       int ratio = i/m;
       if((ratio!=oldRatio) && !(ratio%5))
       {
         oldRatio = ratio;
-        Std(".");
+      //Std(".");
       }
       lin_reg_equation& eq =equ_vec[i]; 
       noise_info& noise_inf = noise.vec[eq.resIndex-1];
@@ -645,19 +645,19 @@ public:
         Xn++;
       }
     }
-    Std("\n");
-    Std(BSR()+"Converting regression equations from triplet to sparse\n");
+  //Std("\n");
+  //Std(BSR()+"Converting regression equations from triplet to sparse\n");
     X.Convert(X_,BVMat::ESC_chlmRsparse);
     oldRatio = 0;
     An = 0;
-    Std(BSR()+"Building "+r+" constrain inequations with "+n+" variables\n");
+  //Std(BSR()+"Building "+r+" constrain inequations with "+n+" variables\n");
     for(i=0; i<r; i++)
     {
       int ratio = i/r;
       if((ratio!=oldRatio) && !(ratio%5))
       {
         oldRatio = ratio;
-        Std(".");
+      //Std(".");
       }
       double sign = (ine_vec[i].isGE)?1.0:-1.0;
       ax[i] = ine_vec[i].a*sign;
@@ -670,8 +670,8 @@ public:
         An++;
       }
     }
-    Std("\n");
-    Std(BSR()+"Converting constrain inequations from triplet to sparse\n");
+  //Std("\n");
+  //Std(BSR()+"Converting constrain inequations from triplet to sparse\n");
     A.Convert(A_,BVMat::ESC_chlmRsparse);
     result = getMissing(Y,X,inputMissingInfo_, outputMissingInfo_);
     if(!result) { Std(BSR()+"Succesfully build\n"); }
