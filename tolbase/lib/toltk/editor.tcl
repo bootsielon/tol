@@ -1570,7 +1570,7 @@ proc ::Editor::CmdDecompile {this} {
 proc ::Editor::CmdSyntaxCheck {this} {
 #/////////////////////////////////////////////////////////////////////////////  
   upvar \#0 ${this}::data data
-  ::BayesText::TolSyntaxCheck $data(txt)
+  ::BayesText::TolSyntaxCheck $data(txt) [ file dir $data(nameFile) ]
 }
 
 

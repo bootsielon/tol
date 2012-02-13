@@ -794,30 +794,28 @@ proc ::BayesText::OnControlKey {editor keysym keycode} {
 
 
 #/////////////////////////////////////////////////////////////////////////////
-proc ::BayesText::TolSyntaxCheck {editor} {
+proc ::BayesText::TolSyntaxCheck { editor {dir ""} } {
 #/////////////////////////////////////////////////////////////////////////////
   global toltk_script_path
-  # guardamos el archivo en un temporal
-  set path [file join $::env(HOME) __check__.tol]
-  set texto [GetSelectionOrAll $editor]
-  set ok [::BayesText::SaveTxt $texto $path]
-  if {$ok} {
-    # evaluamos el archivo
-    set check [TolFileSyntaxCheck $path]
-    if {[lindex $check 0]} {
-      tk_messageBox -type ok -icon info -title [mc "Syntax Check"] -parent $editor \
-        -message [mc "Syntax check done successfully"]
-    } else  {
-      # hay errores
-	  #puts "TolSyntaxCheck (hay errores)"
-      ShowSyntaxErrors $editor [lindex $check 1]
-    }
-    # borrar el archivo
-    catch "file delete $path" error
-  } else  {
-    tk_messageBox -type ok -icon warning -title [mc Editor] -parent $editor \
-                -message [mc "Syntax check cannot be done"]
+
+  set buffer [ GetSelectionOrAll $editor ]
+  if { $dir ne "" } {
+    set cwd [ pwd ]
+    cd $dir
   }
+
+  if { [ catch { tol::checksyntax $buffer } check ] } {
+    Tolcon_Trace "within ::BayesText::TolSyntaxCheck($editor,$dir): $check"
+    return 0
+  }
+  set check [ string trim $check ]
+  if { $check eq "" } {
+    tk_messageBox -type ok -icon info -title [mc "Syntax Check"] \
+        -parent $editor -message [mc "Syntax check done successfully"]
+  } else {
+    ShowSyntaxErrors $editor $check
+  }
+  return 1
 }
 
 
