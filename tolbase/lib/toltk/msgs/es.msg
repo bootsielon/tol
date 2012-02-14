@@ -788,7 +788,7 @@ mcset es "Syntax check done successfully"   \
   "Revisión sintáctica realizada satisfactoriamente"
 mcset es "Syntax check cannot be done"      \
   "No se ha podido realizar la revisión sintáctica"
-mcset es "File allready opened!"            \
+mcset es "File already opened!"            \
   "¡El fichero ya está abierto!"
 mcset es "has been changed externally!"     \
   "ha sido modificado externamente."

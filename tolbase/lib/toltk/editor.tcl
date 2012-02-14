@@ -1059,7 +1059,7 @@ proc ::Editor::PreProc {this args} {
       if {[string equal $data(nameFile) $path]} {
         $data(f) raise
 		set resp [tk_messageBox -type ok -icon warning \
-		  -message [mc "The file is allready opened!"] ]
+		  -message [mc "The file is already opened!"] ]
         return
       }
     }
