@@ -2129,7 +2129,7 @@ proc TolGui_InvokeMethod { method obj_addr } {
 proc TclList2SetOfText { lst } {
   set result [ list ]
   foreach i $lst {
-    lappend result \"$i\"
+    lappend result \"[string map {\" \\\"} $i]\"
   }
   return "SetOfText([join $result ,])"
 }
