@@ -633,9 +633,9 @@ proc ::BayesText::Refresh {editor} {
 
 
 #///////////////////////////////////////////////////////////////////////////// 
-proc ::BayesText::Ident {editor chars} {
+proc ::BayesText::Indent {editor chars} {
 #
-# PURPOSE: Ident text
+# PURPOSE: Indent text
 #
 #/////////////////////////////////////////////////////////////////////////////   
   if ![catch {set ini [$editor index sel.first]}] {
@@ -654,9 +654,9 @@ proc ::BayesText::Ident {editor chars} {
 
 
 #///////////////////////////////////////////////////////////////////////////// 
-proc ::BayesText::UnIdent {editor chars} {
+proc ::BayesText::UnIndent {editor chars} {
 #
-# PURPOSE: UnIdent text
+# PURPOSE: UnIndent text
 #
 #/////////////////////////////////////////////////////////////////////////////   
   if ![catch {set ini [$editor index sel.first]}] {

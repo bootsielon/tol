@@ -453,8 +453,8 @@ proc ::Editor::OnConfigure { this w h } {
      "findnext"    "CmdFindNext" "[mc [list Find next]] (F3)" \
      "funsearch"   "CmdSearch"   "[mc {Search function}] (CTRL+G)" \
      "sep4"        "--"          ""\
-     "unident"     "CmdUnIdent"  "[mc Unident] (CTRL+U)" \
-     "ident"       "CmdIdent"    "[mc Ident] (CTRL+I)" \
+     "unindent"     "CmdUnIndent"  "[mc Unindent] (CTRL+U)" \
+     "indent"       "CmdIndent"    "[mc Indent] (CTRL+I)" \
      "sep5"        "--"          ""\
      "bprint"      "CmdPrint"    "[mc Print]" \
      "font"        "CmdFont"     "[mc Font] (CTRL+T)" \
@@ -750,12 +750,12 @@ proc ::Editor::BalloonHlp {this w arg {fixed 0} {posx 0} {posy 0} {special 0}} {
     E { ::Editor::CmdSelectAll $this }
     F { ::Editor::CmdFind      $this }
     G { ::Editor::CmdSearch    $this }
-    I { ::Editor::CmdIdent     $this }
+    I { ::Editor::CmdIndent     $this }
     N { ::Editor::CmdNew       $this }
     R { ::Editor::CmdReplace   $this }
     S { ::Editor::CmdSave      $this }
     T { ::Editor::CmdFont      $this }
-    U { ::Editor::CmdUnIdent   $this }
+    U { ::Editor::CmdUnIndent   $this }
     X { ::Editor::CmdCut       $this }
     Y { ::Editor::CmdRedo      $this }
     Z { ::Editor::CmdUndo      $this }
@@ -1353,16 +1353,16 @@ proc ::Editor::CmdReplace {this} {
   ::BayesText::ReplaceShow $data(txt,ctext)
 }
 
-proc ::Editor::CmdIdent {this} {
+proc ::Editor::CmdIndent {this} {
   upvar \#0 ${this}::data data
   variable options
-  ::BayesText::Ident $data(txt,ctext) $options(charsIdent)
+  ::BayesText::Indent $data(txt,ctext) $options(charsIndent)
 }
 
-proc ::Editor::CmdUnIdent {this} {
+proc ::Editor::CmdUnIndent {this} {
   upvar \#0 ${this}::data data
   variable options
-  ::BayesText::UnIdent $data(txt,ctext) $options(charsIdent)
+  ::BayesText::UnIndent $data(txt,ctext) $options(charsIndent)
 }
 
 
@@ -1748,16 +1748,16 @@ proc ::Editor::OptionsCreateOthers {this w} {
           -textvariable ::Editor::tmpOpt(var,posLine)
   label $f1.lChars -text [mc characters]
   
-  label $f1.lCharsIdent -text [mc "Characters to ident"]
-  SpinBox $f1.sbCharsIdent -justify right -width 4 \
+  label $f1.lCharsIndent -text [mc "Characters to indent"]
+  SpinBox $f1.sbCharsIndent -justify right -width 4 \
           -editable 0 -range {1 8} \
-          -textvariable ::Editor::tmpOpt(var,charsIdent)
+          -textvariable ::Editor::tmpOpt(var,charsIndent)
 
   frame $f1.f -width 25
     
   grid $f1.f $f1.chEdited     $f1.sbEdited     $f1.lFiles -sticky nw -padx 2
   grid ^     $f1.chLine       $f1.sbLinePos    $f1.lChars -sticky nw -padx 2
-  grid ^     $f1.lCharsIdent  $f1.sbCharsIdent         -sticky nw -padx 2
+  grid ^     $f1.lCharsIndent  $f1.sbCharsIndent         -sticky nw -padx 2
   grid rowconfigure    $f1 2 -weight 1
   grid columnconfigure $f1 3 -weight 1
     
@@ -1781,7 +1781,7 @@ proc ::Editor::OptionsGet {this} {
   set tmpOpt(var,funcH)      $options(funcH)
   set tmpOpt(var,chLine)     $options(chLine)
   set tmpOpt(var,posLine)    $options(posLine)
-  set tmpOpt(var,charsIdent) $options(charsIdent)
+  set tmpOpt(var,charsIndent) $options(charsIndent)
 }
 
 
@@ -1880,7 +1880,15 @@ proc ::Editor::ReadIni {} {
   set options(lastDir)    [$rini Editor lastDir  ""]
   set options(chLine)     [$rini Editor chLine    1]
   set options(posLine)    [$rini Editor posLine  78]
-  set options(charsIdent) [$rini Editor charsIdent 2]
+  # ticket https://www.tol-project.org/ticket/1168
+  set cindent [$rini Editor charsIndent -1] 
+  if { $cindent == -1 } {
+    # no aparecia la clave charsIndent, pregunto por la vieja
+    set options(charsIndent) [$rini Editor charsIdent 2]
+  } else {
+    # aparecia la clave, hay que pasar al nombre Indent
+    set options(charsIndent) $cindent
+  }
 }
 
 
@@ -1907,7 +1915,7 @@ proc ::Editor::ReadIni {} {
   $wini Editor lastDir      $options(lastDir)
   $wini Editor chLine       $options(chLine)
   $wini Editor posLine      $options(posLine)
-  $wini Editor charsIdent   $options(charsIdent)
+  $wini Editor charsIndent   $options(charsIndent)
   ::iniFile::Flush
 }
 

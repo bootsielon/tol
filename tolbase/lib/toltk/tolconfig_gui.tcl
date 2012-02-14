@@ -89,11 +89,15 @@ proc ::TolConfigGUI::Show { } {
     set f [ $win getframe ]
     grid rowconfigure $f 0 -weight 1
     grid columnconfigure $f 0 -weight 1
+    set pw [ PanedWindow $f.pw -side bottom -pad 0 -width 4 ]
+    set paneLeft  [ $pwMain add ]
+    set paneRight [ $pwMain add ]
+
     set tree $f.tree
     wtree  $tree
     $tree configure -table no -filter yes -columns {
       { {image text} -tags NAME -label "Name" }
-      { {text} -tags STATUS -label "Value" -editable yes }
+      { {text} -tags STATUS -label "Value" }
     }
     grid $tree -row 0 -column 0 -sticky "snew"
     grid rowconfigure $win 1 -weight 1

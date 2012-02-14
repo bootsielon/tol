@@ -56,6 +56,7 @@ if { [string equal $tcl_platform(platform) "unix"] } {
   source [file join $toltk_script_path "panedw.tcl"]
 }
 
+source [file join $toltk_script_path "editor.tcl"]
 source [file join $toltk_script_path "markuphelper.tcl"]
 source [file join $toltk_script_path "tolpkg.tcl"]
 source [file join $toltk_script_path "tolpkg_gui.tcl"]
@@ -292,6 +293,7 @@ proc ::TolConsole::CreateEvalWindow {w} {
   set sw1 [ScrolledWindow $feval.sw1 -auto both]
   set widgets(eval) $sw1.eval
 
+  # aseguramos que se lean las opciones de Editor que vamos a compartir
   #Creamos text con resaltado TOL
   set w_eval [::BayesText::CreateHLText $widgets(eval) tol \
     -font $data(font,eval)]
@@ -317,6 +319,16 @@ proc ::TolConsole::CreateEvalWindow {w} {
   bind $w_eval <F5> "::BayesText::Refresh $w_eval ; break"
   bind $w_eval <F7> "::BayesText::TolSyntaxCheck $w_eval ; break"
   bind $w_eval <F10> "::TolConsole::OpenEval ; break"
+
+  bind $w_eval <Control-Key-i> {
+    ::BayesText::Indent %W $::Editor::options(charsIndent)
+    break
+  }
+
+  bind $w_eval <Control-Key-u> {
+    ::BayesText::UnIndent %W $::Editor::options(charsIndent)
+    break
+  } 
   
   ## 1) Create a horizontal toolbar frame...
   set TF [::toolbar::ToolbarFrame $feval.toolbarFrame]
