@@ -969,6 +969,8 @@ BBool InitGrammars(char* calledProgram)
     I2("The path of the TOL headers.",
 	     "El camino de las cabeceras de TOL."));
 
+  InitRefStructs();
+
   TOLHasBeenInitialized_ = true;
   return(initGrammars_);
 }
