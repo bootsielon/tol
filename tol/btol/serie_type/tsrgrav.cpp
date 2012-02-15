@@ -634,11 +634,11 @@ BDat BTsrExpand::GetDat(const BDate& dte)
         BInt n=0;
         BDate d=FirstDate();
         BDat  lastNotEqual = val;
-        GetLength();
-        Ser()->GetData(data_, FirstDate(),LastDate(),Length());
+        int len = GetLength();
+        Ser()->GetData(data_, FirstDate(),LastDate(),len);
         BHash hash; Dating()->GetHashBetween(hash, FirstDate(),LastDate());
         BReal h = dte.Hash();
-        for(; n<Length(); n++)
+        for(; n<len; n++)
         {
           if(data_[n]==val)
           {
@@ -750,8 +750,8 @@ BDat BTsrSubSerie::GetDat(const BDate& dte)
       }
       else
       {
-        GetLength();
-        Ser()->GetData(data_,FirstDate(),LastDate(),Length());
+        int len = GetLength();
+        Ser()->GetData(data_,FirstDate(),LastDate(),len);
         
         BInt n=0;
         BDate d = FirstDate();
@@ -832,7 +832,8 @@ BDat BTsrPolyn::GetDat(const BDate& dte)
   BUserTimeSet* dating = Dating();
   if(dating && (dating->Inf()<=dte) && (dating->Sup()>=dte))
   {
-    if(!Length())
+    int len = GetLength();
+    if(!len)
     {
       dat = 0.0;
       for(BInt n = 0; n<pol_.Size(); n++)
@@ -847,25 +848,27 @@ BDat BTsrPolyn::GetDat(const BDate& dte)
     {
       BData serData;
       ser_->GetData(serData);
-
-
       BHash hash; Dating()->GetHashBetween(hash, firstDate_,lastDate_);
       Realloc(hash.Size());
-      BInt  n;
+      BInt  n, p, m;
       BDate d;
       BReal h = dte.Hash();
-
-      for(n=0; n<Length(); n++)
+      BDat x;
+      int len = GetLength();
+      for(n=0; n<len; n++)
       {
         data_[n] = 0.0;
-        for(BInt p = 0; p<pol_.Size(); p++)
+      }
+      for(p=0; p<pol_.Size(); p++)
+      {
+        BMonome<BDat>& mon = pol_[p];
+        for(n=0; n<len; n++)
         {
-    BInt m    = n-pol_[p].Degree()+backward_;
-    BDat  x    = serData[m];
-    data_[n] += pol_[p].Coef()*x;
+          m    = n-mon.Degree()+backward_;
+          x    = serData[m];
+          data_[n] += mon.Coef()*x;
         }
         if(hash[n]==h) { dat = data_[n]; }
-
       }
       CompactData();
     }
@@ -962,14 +965,14 @@ BDat BTsrDifEq::GetDat(const BDate& dte)
         Realloc(hash.Size());
         BReal h0 = ser_->FirstDate().Hash();
         BReal h  = dte.Hash();
-
-        for(n=0; (n<Length()) && (hash[n]<h0); n++)
+        int len = GetLength();
+        for(n=0; (n<len) && (hash[n]<h0); n++)
         {
     data_[n] = (*ini_)[HashToDte(hash[n])];
     if(hash[n]==h) { dat = data_[n]; }
         }
 
-        for(; n<Length(); n++)
+        for(; n<len; n++)
         {
     data_[n] = (*ser_)[HashToDte(hash[n])];
     for(BInt p = 0; p<pol_.Size(); p++)
@@ -1242,7 +1245,8 @@ BDat BTsrOmmitFilter::GetDat(const BDate& dte)
         if((*ommit_)[d]!=0)
         {
           BDat pivot = data_[n];
-          for(BInt m=n; m<Length(); m++)
+          int len = GetLength();
+          for(BInt m=n; m<len; m++)
           {
             data_[m] -= expand[m-n]*pivot;
           }
