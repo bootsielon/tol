@@ -462,7 +462,7 @@ proc ::Editor::OnConfigure { this w h } {
      "eval"        "CmdCompile"  "[mc Compile] (F11)" \
      "savecom"     "CmdSaveCompile" "[mc [list Save and Compile]] (F9)" \
      "decom"       "CmdDecompile"  "[mc Decompile] (F8)" \
-     "syntaxcheck" "CmdSyntaxCheck" "[mc [list Syntax Check]] (F7)" \
+     "syntaxcheck" "CmdSyntaxCheck" "[mc [list Syntax check]] (F7)" \
      "refresh"     "CmdRefresh" "[mc Refresh] (F5)"\
      "balloon"     "CmdBalloon"    "[mc BalloonHelp]" \
      "sep7"        "--"          ""\
@@ -548,6 +548,8 @@ proc ::Editor::OnConfigure { this w h } {
   $m add command -label "[mc [list Save as]] ..." \
                  -command [list ::Editor::CmdSaveAs $this]
   $m add separator
+  $m add command -label [ mc "Escape text" ]... \
+      -command [ list ::BayesText::DlgEscapeText $data(txt) ]
   $m add command -label "[mc Find]..." -accelerator CTRL+F \
                  -command [list ::Editor::CmdFind $this]
   $m add command -label [mc "Find next"] -accelerator F3 \

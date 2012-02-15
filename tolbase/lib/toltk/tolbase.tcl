@@ -303,7 +303,7 @@ proc ::TolConsole::CreateEvalWindow {w} {
   $m insert 0 separator
   $m insert 0 command -label [mc Refresh]   -accelerator F5\
      -command [list ::BayesText::Refresh $w_eval]
-  $m insert 0 command -label [mc "Syntax Check"] -accelerator F7 \
+  $m insert 0 command -label [mc "Syntax check"] -accelerator F7 \
      -command [list ::BayesText::TolSyntaxCheck $w_eval]
   $m insert 0 command -label [mc Decompile] -accelerator F8\
      -command ::TolConsole::ClearConsole
@@ -314,6 +314,9 @@ proc ::TolConsole::CreateEvalWindow {w} {
   $m insert 0 separator
   $m insert 0 command -label [mc "Delete all"] \
      -command [list ::BayesText::DeleteAll $w_eval]
+  $m add command -label [ mc "Escape text" ]... \
+      -command [ list ::BayesText::DlgEscapeText $w_eval ]
+
   bind $w_eval <F9> "::TolConsole::Compile ; break"
   bind $w_eval <F8> "::TolConsole::ClearConsole ; break"
   bind $w_eval <F5> "::BayesText::Refresh $w_eval ; break"

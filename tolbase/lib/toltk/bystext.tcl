@@ -7,6 +7,9 @@
 # TESTING
 #/////////////////////////////////////////////////////////////////////////////
 # Put if {1} for testing this file.
+
+package require snit
+
 if {0} {
   package require Tk
   package require BWidget
@@ -18,6 +21,32 @@ if {0} {
  
 }
 
+::snit::widgetadaptor rotext {
+
+  constructor {args} {
+    # Turn off the insert cursor
+    #installhull using text $self -insertwidth 0
+    # DDG the $self gaves an error at least with 0.97 onwards
+    installhull using text -insertwidth 0
+    
+    # Apply an options passed at creation time.
+    $self configurelist $args
+  }
+  
+  # Disable the insert and delete methods, to make this readonly.
+  method insert {args} {}
+  method delete {args} {}
+  
+  # Enable ins and del as synonyms, so the program can insert and
+  # delete.
+  delegate method ins to hull as insert
+  delegate method del to hull as delete
+  
+  # Pass all other methods and options to the real text widget, so
+  # that the remaining behavior is as expected.
+  delegate method * to hull
+  delegate option * to hull
+}
 
 #/////////////////////////////////////////////////////////////////////////////
 # NAMESPACE
@@ -792,6 +821,70 @@ proc ::BayesText::OnControlKey {editor keysym keycode} {
   }
 }
 
+proc ::BayesText::TolEscape { buffer } {
+  return [ string map [ list \n \\n \t \\t \" \\\" \\ \\\\ ] $buffer ]
+}
+
+proc ::BayesText::DlgEscapeTextApply { editor } {
+  set w .dlgescape
+
+  set idxs [ $editor tag ranges sel ]
+  if { [ llength $idxs ] } {
+    foreach {i0 i1} $idxs break
+    $editor configure -undo 0
+    $editor delete $i0 $i1
+    $editor configure -undo 1
+    set f [ $w getframe ]
+    set buffer [ $f.t get 1.0 "end -1 char" ]
+    set len [ string length $buffer ]
+    $editor insert $i0 $buffer
+    $editor tag add sel $i0 "$i0 + $len char"
+  }
+}
+
+proc ::BayesText::DlgEscapeText { editor } {
+  set w .dlgescape
+  if { [ winfo exists $w ] } {
+    set f [ $w getframe ]
+    raise $w
+    focus $f.o
+  } else {
+    Dialog $w -title [ mc "Escape text" ] \
+        -default 2 -modal none -parent $editor -separator 1
+    $w add -text [ mc "Close" ] -command "destroy $w"
+    $w add -text [ mc "Apply" ]
+    set f [ $w getframe ]
+    label $f.lo -text [ mc "Original:" ]
+    text $f.o -width 40 -height 4
+    label $f.lt -text [ mc "Transformed:" ]
+    rotext $f.t -width 40 -height 4
+    bind $f.o <<Modified>> {
+      if { [ %W edit modified ] == 1 } {
+        set f [ winfo parent %W ]
+        set tt $f.t
+        set buffer [ %W get 1.0 "end -1 char" ]
+        $tt del 1.0 end
+        $tt ins end [ ::BayesText::TolEscape $buffer ]
+        %W edit modified 0
+      }
+    }
+    grid $f.lo -row 0 -column 0 -sticky w
+    grid $f.o -row 1 -column 0 -sticky snew
+    grid $f.lt -row 0 -column 1 -sticky w
+    grid $f.t -row 1 -column 1 -sticky snew
+    foreach c {0 1} {
+      grid columnconfigure $f $c -weight 1
+    }
+    grid rowconfigure $f 1 -weight 1
+    $w draw
+  }
+  $f.o delete 1.0 end
+  set idxs [ $editor tag ranges sel ]
+  if { [ llength $idxs ] } {
+    $f.o insert end [ $editor get [ lindex $idxs 0 ] [ lindex $idxs 1 ] ]
+  }
+  $w itemconfigure 1 -command [ list ::BayesText::DlgEscapeTextApply $editor ]
+}
 
 #/////////////////////////////////////////////////////////////////////////////
 proc ::BayesText::TolSyntaxCheck { editor {dir ""} } {
