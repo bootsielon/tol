@@ -1,8 +1,56 @@
 namespace eval ::MarkupHelper {
-  variable markup
+  variable markup {}
+  variable backup {}
+  variable indent 0
 
   proc Init { } {
     variable markup {}
+    variable restore {}
+    variable indent 0
+  }
+
+  proc SetIndent { n } {
+    variable indent
+
+    if { $n >= 0 && n <= 9 } {
+      set indent n
+    }
+    return $indent
+  }
+
+  proc IncrIndent { d } {
+    variable indent
+
+    set n [ incr indent $d ]
+    if { $indent < 0 } {
+      set indent 0
+    } elseif { $indent > 9 } {
+      set indent 9
+    }
+    return $indent
+  }
+
+  proc Indent { } {
+    variable indent
+    variable markup
+
+    append markup [ string repeat ":" $indent ]
+  }
+
+  proc Backup { } {
+    variable markup
+    variable backup $markup
+
+    return $backup
+  }
+
+  proc Restore { } {
+    variable markup
+    variable backup
+
+    set old $markup
+    set markup $backup
+    return $old
   }
 
   proc Verbatim { text } {
@@ -51,6 +99,9 @@ namespace eval ::MarkupHelper {
   proc Text { text args } {
     variable markup
 
+    if { $markup eq "" } {
+      Indent
+    }
     array set opts { -tags {} -br 0 }
     array set opts $args
     foreach t $opts(-tags) {
@@ -101,11 +152,23 @@ namespace eval ::MarkupHelper {
     append markup "\n\n=== $text ===\n"
   }
 
-  proc BR { { br 1 } } {
+  proc CR { } {
     variable markup
 
+    append markup "\n"
+  }
+
+  proc BR { { br 1 } } {
+    variable markup
+    variable indent
+
     if { $br } {
-      append markup " <br>"
+      if { $indent } {
+        append markup "\n"
+        Indent
+      } else {
+        append markup " <br>\n"
+      }
     }
   }
 
@@ -126,10 +189,17 @@ namespace eval ::MarkupHelper {
     append markup "#---\n"
   }
 
+  proc AppendHT { htBuffer } {
+    variable markup
+
+    append markup $htBuffer
+  }
+
   # esto deberia recibir un ObjectAddress
   proc BuildTolbaseInfo {icon grammar name content path desc args } {
     array set opts $args
 
+    set extraHTInfo {}
     foreach {classOf insInfo insCont} {{} {} {}} break
     if { $grammar eq "NameBlock" } {
       if { [ info exists opts(-objref) ] } {
@@ -142,6 +212,62 @@ namespace eval ::MarkupHelper {
         set classOf [Tol_ClassOf $objAddr]
         set insInfo [Tol_InstanceInfo $objAddr]
         set insCont [Tol_InstanceContent $objAddr]
+      }
+      if { $insInfo ne "" } {
+        Backup
+        Init
+        Header2 [ mc "Instance's Info" ]
+        foreach line [ split $insInfo \n ] {
+          set s [ string index $line 0 ]
+          set e [ string index $line end ]
+          if { $s eq "\[" && $e eq "\]" } {
+            Text "[ string range $line 1 end-1 ]:" \
+                -tags {b} -br 1
+          } elseif { $s eq "{" && $e eq "}" } {
+            Text "[ string range $line 1 end-1 ]: " -tags {b}
+          } else {
+            Text \
+                [ Preprocess [ string trimright $line ] ] -br 1
+          }
+        }
+        set extraHTInfo [ Restore ]
+      }
+    } elseif { $grammar eq "Set" } {
+      if { [ info exists opts(-objref) ] } {
+        set objRef $opts(-objref)
+        set classOf [Tol_StructOfFromReference $objRef]
+      } elseif { [ info exists opts(-objaddr) ] } {
+        set objAddr $opts(-objaddr)
+        set classOf [Tol_StructOf $objAddr]
+      }
+      if { $classOf ne "" } {
+        Backup
+        Init
+        BR
+        Text [ mc "Definition:" ] -tags b
+        CR
+        IncrIndent 1
+        BR
+        Text "Struct" -tags b
+        Text " $classOf {"
+        IncrIndent 1
+        BR
+        set fields [ tol::info struct $classOf ]
+        set ll0 [ llength $fields ]
+        set ll1 [ expr { $ll0 -1 } ]
+        for { set fi 0 } { $fi < $ll0 } { incr fi } {
+          foreach {n t} [ lindex $fields $fi ] break
+          Text "$t" -tags b
+          Text " ${n};"
+          if { $fi == $ll1 } {
+            IncrIndent -1
+          }
+          BR
+        }
+        Text "}"
+        IncrIndent -1
+        BR
+        set extraHTInfo [ Restore ]
       }
     }
     Text "Grammar: " -tags b
@@ -172,22 +298,7 @@ namespace eval ::MarkupHelper {
       Text \
           [ Preprocess [ string trimright $desc ] ]
     }
-    if { $insInfo ne "" } {
-      Header2 "Instance's Info"
-      foreach line [ split $insInfo \n ] {
-        set s [ string index $line 0 ]
-        set e [ string index $line end ]
-        if { $s eq "\[" && $e eq "\]" } {
-          Text "[ string range $line 1 end-1 ]:" \
-              -tags {b} -br 1
-        } elseif { $s eq "{" && $e eq "}" } {
-          Text "[ string range $line 1 end-1 ]: " -tags {b}
-        } else {
-          Text \
-              [ Preprocess [ string trimright $line ] ] -br 1
-        }
-      }
-    }
+    AppendHT $extraHTInfo
     return [ GetText ]
   }
 }

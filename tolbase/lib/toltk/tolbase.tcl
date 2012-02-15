@@ -556,7 +556,6 @@ proc ::TolConsole::OnInfo { args } {
     }
     default {
       foreach {icon grammar name content path desc objRef} $args {}
-
       if { $grammar eq "Anything" } {
         if { [ regexp {/+\sClass\s} $content ] } {
           ActivateInfoWidget "text"

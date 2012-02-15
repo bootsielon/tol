@@ -2013,6 +2013,22 @@ proc Tol_ClassOfFromReference { objReference } {
   return [ Tol_ClassOf $addr ]
 }
 
+proc Tol_StructOf { obj_addr } {
+  set tolcode [ string map [ list %A $obj_addr ]  {
+    Text {
+      Anything obj = GetObjectFromAddress( "%A" );
+      // WriteLn( "Tol_StructOf " << Grammar( obj ) );
+      Text If( Grammar( obj ) == "Set", StructName( obj ), "" )
+    }
+  } ]
+  return [ lindex [ toltcl::eval $tolcode ] 0 ]
+}
+
+proc Tol_StructOfFromReference { objReference } {
+  set addr [ ::tol::info address $objReference ]
+  return [ Tol_StructOf $addr ]
+}
+
 #(pgea) nueva funcion para obtener la informacion de instancia
 proc Tol_InstanceInfo { obj_addr } {
   tol::console eval [ string map [ list %A $obj_addr ] {
