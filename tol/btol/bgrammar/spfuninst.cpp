@@ -736,6 +736,124 @@ static BSyntaxObject* EvField(BGrammar* gra, const List* tre, BBool left)
   return(result);
 }
 
+//--------------------------------------------------------------------
+/*! Evaluate Element expressions
+ */
+static BSyntaxObject* EvRef(BGrammar* gra, const List* tre, BBool left)
+//--------------------------------------------------------------------
+{
+  static BText _name_ = BText("$");
+  static BText _str_list_ = 
+  "  @Anything,@Code,@Date,@Polyn,@Ratio,@Real,@Complex,\n"
+  "  @Matrix,@VMatrix,@Set,@NameBlock,@Text,@TimeSet,@Serie\n";
+  static BText _error_any_eng = BText("Operator $ applies only over "
+  "sets with one of these referential structures:\n") + _str_list_;
+  static BText _error_any_esp = BText("El operador $ se aplica sólo sobre "
+  "conjuntos con una de estas estructuras referenciales:\n") + _str_list_;
+
+  assert(gra != NIL);
+  BSyntaxObject* result = NIL;
+  BSyntaxObject* uSet  = NIL;
+  BSyntaxObject * uIndex = NIL;
+  BInt nb = BSpecialFunction::NumBranches(tre);
+  bool deleteUIndex = false;
+  bool needCleanTree = false;
+/*Std(BText("EvElement(")+gra->Name()+","+
+      BParser::Unparse(tre,"","")+","+(int)left+")\n\n"+
+      BParser::treWrite((List*)tre,"  ",false));  */
+  if(BSpecialFunction::TestNumArg(_name_, 1, nb, 1))
+  {
+  //Std(BText("\nEvElement tre=")+BParser::Unparse(tre));
+    uSet = GraSet()->LeftEvaluateTree(Branch(tre,1));
+    if (uSet) 
+    {
+      BSet& set = Set(uSet);
+      BStruct* str = set.Struct();
+      if(!str)
+      {
+        Error(I2("Cannot apply operator $ over a non structured ",
+                 "No se puede aplicar el operador $ sobre "
+                 "un conjunto sin estructura ")+"\n"+
+              I2("It was expected a set with referential structure ",
+                 "Se esperaba un conjunto con estructura ")+
+              "@"+gra->Name()+I2(" or "," o ")+"@Anything");
+      }
+      else if(gra==GraAnything())
+      {
+        if(str==RefAnything() ||
+           str==RefCode() ||
+           str==RefDate() ||
+           str==RefPolyn() ||
+           str==RefRatio() ||
+           str==RefReal() ||
+           str==RefComplex() ||
+           str==RefMatrix() ||
+           str==RefVMatrix() ||
+           str==RefSet() ||
+           str==RefNameBlock() ||
+           str==RefText() ||
+           str==RefTimeSet() ||
+           str==RefSerie())
+        {
+          result = set[1];
+        }
+        else
+        {
+          Error(I2("Cannot apply operator $ over structure ",
+                   "No se puede aplicar el operador $ sobre la estructura ")+
+                str->Name()+"\n"+
+                I2(_error_any_eng,_error_any_esp));
+        }
+      }
+      else if(str==RefAnything())
+      {
+        result = set[1];
+      }
+      else if((gra==GraCode()      && str==RefCode()) ||
+              (gra==GraDate()      && str==RefDate()) ||
+              (gra==GraPolyn()     && str==RefPolyn()) ||
+              (gra==GraRatio()     && str==RefRatio()) ||
+              (gra==GraReal()      && str==RefReal()) ||
+              (gra==GraComplex()   && str==RefComplex()) ||
+              (gra==GraMatrix()    && str==RefMatrix()) ||
+              (gra==GraVMatrix()   && str==RefVMatrix()) ||
+              (gra==GraSet()       && str==RefSet()) ||
+              (gra==GraNameBlock() && str==RefNameBlock()) ||
+              (gra==GraText()      && str==RefText()) ||
+              (gra==GraTimeSet()   && str==RefTimeSet()) ||
+              (gra==GraSerie()     && str==RefSerie()))
+      {
+        result = set[1];
+      }
+      else
+      {
+        Error(I2("Cannot apply operator $ over structure ",
+                 "No se puede aplicar el operador $ sobre la estructura ")+
+                 str->Name()+"\n"+
+              I2("It was expected a set with referential structure ",
+                 "Se esperaba un conjunto con estructura ")+
+              "@"+gra->Name()+I2(" or "," o ")+"@Anything");
+      }
+    }
+  }
+  result = BSpecialFunction::TestResult(_name_, result, tre, NIL, BFALSE);
+  BText resGraName = (result)?result->Grammar()->Name():"";
+  if (result && gra!=GraAnything() && result->Grammar() != gra) 
+  {
+  	BSyntaxObject *cast = gra->Casting(result);
+	  if(cast) result = cast;
+	  else 
+    {
+	    BText msg(_name_);
+	    Error(I2("Incompatible types in " ,"Tipos incompatibles en ") + 
+		  msg + ": " + result->Identify() + I2(" is a ", " es de tipo ") +
+		  result->Grammar()->Name() +
+		  I2(" but not a ", ", pero no de tipo ") + gra->Name() + ".");
+	    result = NIL;
+	  }
+  }
+  return(result);
+}
 
 //--------------------------------------------------------------------
 /*! Evaluate Element expressions
@@ -2317,7 +2435,7 @@ bool BSpecialFunction::Initialize()
 
   AddLeftInstance("Element",
   "(Set s, Real n)",
-  I2("Returns the umpteenth element of a set. Also it can be used "
+  I2("Returns the n-th element of a set. Also it can be used "
      "the brackets []\n\n"
      "Example:\n"
      "Set s = SetOfAnything(a,b);\n"
@@ -2337,6 +2455,17 @@ bool BSpecialFunction::Initialize()
      "y == b"),
   EvElement);
 
+  AddLeftInstance("$",
+  "(Set s)",
+  I2("Returns the first element of a set used as an object referencer.\n"
+     "Example:\n",
+     "Devuelve el primer elemento de un conjunto usado como un "
+     "referenciador de objetos.\n"
+     "Ejemplo:\n")+
+     "Real a = 3;\n"
+     "Set s = @Real(a);\n"
+     "Real x = $s + 2;\n",
+  EvRef);
 
   AddLeftInstance("#E#",
   "(Set s, Real n)",
