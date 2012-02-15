@@ -29,6 +29,7 @@ class BText;
 class BDate;
 class BSyntaxObject;
 class BGrammar;
+class BStruct;
 
 //--------------------------------------------------------------------
 enum tolType { 
@@ -46,11 +47,6 @@ typedef enum tolType TolType;
 TOL_API BGrammar* GraAnything();
 TOL_API BGrammar* GraCode();
 TOL_API BGrammar* GraDate();
-#ifdef __USE_TC__
-TOL_API BGrammar* GraCTime();
-TOL_API BGrammar* GraCTimeSet();
-TOL_API BGrammar* GraCSeries();
-#endif /* __USE_TC__ */
 TOL_API BGrammar* GraPolyn();
 TOL_API BGrammar* GraRatio();
 TOL_API BGrammar* GraReal();
@@ -62,6 +58,23 @@ TOL_API BGrammar* GraNameBlock();
 TOL_API BGrammar* GraText();
 TOL_API BGrammar* GraTimeSet();
 TOL_API BGrammar* GraSerie();
+
+TOL_API BStruct* RefAnything();
+TOL_API BStruct* RefCode();
+TOL_API BStruct* RefDate();
+TOL_API BStruct* RefPolyn();
+TOL_API BStruct* RefRatio();
+TOL_API BStruct* RefReal();
+TOL_API BStruct* RefComplex();
+TOL_API BStruct* RefMatrix();
+TOL_API BStruct* RefVMatrix();
+TOL_API BStruct* RefSet();
+TOL_API BStruct* RefNameBlock();
+TOL_API BStruct* RefText();
+TOL_API BStruct* RefTimeSet();
+TOL_API BStruct* RefSerie();
+
+bool InitRefStructs();
 
 TOL_API int  AliveObjects();
 TOL_API void TestAliveObjects(int before, int after, const BText& step);
