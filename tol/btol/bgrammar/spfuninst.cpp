@@ -2457,14 +2457,35 @@ bool BSpecialFunction::Initialize()
 
   AddLeftInstance("$",
   "(Set s)",
-  I2("Returns the first element of a set used as an object referencer.\n"
-     "Example:\n",
-     "Devuelve el primer elemento de un conjunto usado como un "
-     "referenciador de objetos.\n"
-     "Ejemplo:\n")+
-     "Real a = 3;\n"
-     "Set s = @Real(a);\n"
-     "Real x = $s + 2;\n",
+  I2("Returns the referenced object used as a referencer set, i.e.,"
+     " a set with a referential structure called as character '@' "
+     "followed by a native TOL type as "
+     "@Real, @Date, @Anything, @Code, ...\n"
+     "You can create a referencer set as\n"
+     "  @<type> R = [[ <type_ref> ]];\n"
+     "where <type_ref> is a reference of an object of the specified type, i.e.,"
+     "the name of an object, an element of a Set, a member of a NameBlock, or "
+     "any TOL expression returning one of those.",
+     "Devuelve el objeto referenciado por un conjunto referenciador, esto es, "
+     "un conjunto con una estructura espcial nombrada como el caracter '@' "
+     "seguido por el nombre de un tipo nativo de TOL, como "
+     "@Real, @Date, @Anything, @Code, ...\n"
+     "Se puede crear un conjunto referencial\n"
+     "  @<type> R = [[ <type_ref> ]];\n"
+     "donde <type_ref> es unaa referencia de un objeto del tipo especificado, o sea,"
+     "el nomb re de un objeto, un elemento de un Set, un mimebro of a NameBlock, or "
+     "any TOL expression returning one of those."
+     )+".\n"+
+     I2("Examples:\n","Ejemplos:\n")+
+     "  Set s = SetOfAnything(1,2,\"txt\");\n"+
+     "  @Real     R1 = [[ s[1] ]];\n"+
+     "  @Anything R2 = [[ s[2] ]];\n"+
+     "  @Text     R3 = [[ s[3] ]];\n"+
+     "  Real x = $R1-1;\n"+
+     "  Real y = $R2;\n"+
+     "  Text z = $R3;\n"+
+     "  Real y := 5;\n"+
+     "  Real $R1 := 6;\n",
   EvRef);
 
   AddLeftInstance("#E#",
