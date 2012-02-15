@@ -1,0 +1,68 @@
+/* -*- mode: C++ -*- */
+//////////////////////////////////////////////////////////////////////////////
+// FILE   : test.tol
+// PURPOSE: test for a resolved bug
+//////////////////////////////////////////////////////////////////////////////
+
+//Sets the bugzilla identifier number, your e-mail and the bug´s summary
+Real bugNum_ =  1431;
+Text email_ = "vdebuen@tol-project.com"; 
+Text summary_="Reference Assignment Operator";
+Text link_ = GetTolBugzillaLink(bugNum_);
+
+Real numErr0 = Copy(NError);
+Real numWar0 = Copy(NWarning);
+
+Set s = SetOfAnything(1,2,"hola");
+
+@Real R1 = @Real(s[1]);
+@Anything R2 = @Anything(s[2]);
+@Text R3 = @Text(s[3]);
+
+Real x = $R1-1;
+Real y = $R2;
+Text z = $R3;
+Real y := 5;
+Real $R1 := 6;
+
+//x es s[1]-1 = 1-1 = 0
+Real ok.1 = x == 0;
+Real ok.2 = s[1] == 6;
+Real ok.3 = $R1 == 6;
+Real ok.4 = s[2] == 2;
+Real ok.5 = $R2 == 2;
+Real ok.6 = s[3] == z;
+Real ok.7 = $R3 == z;
+
+Real numErr1 = Copy(NError);
+Real numWar1 = Copy(NWarning);
+
+Real $R3;
+Real numErr2 = Copy(NError);
+
+Real $s;
+Real numErr3 = Copy(NError);
+
+Set partialResults_ = [[ 
+  numErr0,numErr1,numErr2,numErr3,numWar1,numWar0,
+  ok.1,ok.2,ok.3,ok.4,ok.5,ok.6,ok.7]];
+
+//This is a messure of the success of the test 
+Real quality_ = And(
+  numWar0 == numWar1,
+  numErr1 == numErr0,
+  numErr2 >  numErr1,
+  numErr3 >  numErr2,
+  ok.1, ok.2, ok.3, ok.4, ok.5, ok.6, ok.7);
+
+//Return the results 
+Set resultStr_ =
+  @strTestStatus(summary_, link_, quality_,
+                 "Partial results = "<<partialResults_,
+                 "NO DBServerType", "NO DBServerHost", "NO DBAlias",
+                 email_);
+WriteLn(""<<resultStr_);
+resultStr_;
+
+/* */
+
