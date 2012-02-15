@@ -341,6 +341,7 @@ static BMonaryToken defMon_[] =
   BMonaryToken("-", &(defBin_[16])),
   BMonaryToken("~"),
   BMonaryToken("!"),
+  BMonaryToken("$"),
   BMonaryToken("Do"),
   BMonaryToken("Struct"),
   BMonaryToken("Class"),
