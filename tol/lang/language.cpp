@@ -122,6 +122,56 @@ BGrammar* GraTimeSet  () { return(BUserTimeSet    ::OwnGrammar()); }
 BGrammar* GraSerie    () { return(BUserTimeSerie  ::OwnGrammar()); }
 BGrammar* GraNameBlock() { return(BUserNameBlock  ::OwnGrammar()); }
 
+static BStruct* _str_ref_Anything  = NULL;
+static BStruct* _str_ref_Code      = NULL;
+static BStruct* _str_ref_Date      = NULL;
+static BStruct* _str_ref_Polyn     = NULL;
+static BStruct* _str_ref_Ratio     = NULL;
+static BStruct* _str_ref_Real      = NULL;
+static BStruct* _str_ref_Complex   = NULL;
+static BStruct* _str_ref_Matrix    = NULL;
+static BStruct* _str_ref_VMatrix   = NULL;
+static BStruct* _str_ref_Set       = NULL;
+static BStruct* _str_ref_NameBlock = NULL;
+static BStruct* _str_ref_Text      = NULL;
+static BStruct* _str_ref_TimeSet   = NULL;
+static BStruct* _str_ref_Serie     = NULL;
+
+BStruct* RefAnything()  { return(_str_ref_Anything); }
+BStruct* RefCode()      { return(_str_ref_Code); }
+BStruct* RefDate()      { return(_str_ref_Date); }
+BStruct* RefPolyn()     { return(_str_ref_Polyn); }
+BStruct* RefRatio()     { return(_str_ref_Ratio); }
+BStruct* RefReal()      { return(_str_ref_Real); }
+BStruct* RefComplex()   { return(_str_ref_Complex); }
+BStruct* RefMatrix()    { return(_str_ref_Matrix); }
+BStruct* RefVMatrix()   { return(_str_ref_VMatrix); }
+BStruct* RefSet()       { return(_str_ref_Set); }
+BStruct* RefNameBlock() { return(_str_ref_NameBlock); }
+BStruct* RefText()      { return(_str_ref_Text); }
+BStruct* RefTimeSet()   { return(_str_ref_TimeSet); }
+BStruct* RefSerie()     { return(_str_ref_Serie); }
+
+//--------------------------------------------------------------------
+bool InitRefStructs()
+//--------------------------------------------------------------------
+{
+  if(_str_ref_Anything) { return(false); }
+  _str_ref_Anything = NewStructSymbol("@Anything","Anything:V");
+  _str_ref_Code = NewStructSymbol("@Code","Code:V");
+  _str_ref_Date = NewStructSymbol("@Date","Date:V");
+  _str_ref_Polyn = NewStructSymbol("@Polyn","Polyn:V");
+  _str_ref_Ratio = NewStructSymbol("@Ratio","Ratio:V");
+  _str_ref_Real = NewStructSymbol("@Real","Real:V");
+  _str_ref_Complex = NewStructSymbol("@Complex","Complex:V");
+  _str_ref_Matrix = NewStructSymbol("@Matrix","Matrix:V");
+  _str_ref_VMatrix = NewStructSymbol("@VMatrix","VMatrix:V");
+  _str_ref_Set = NewStructSymbol("@Set","Set:V");
+  _str_ref_NameBlock = NewStructSymbol("@NameBlock","NameBlock:V");
+  _str_ref_Text = NewStructSymbol("@Text","Text:V");
+  _str_ref_TimeSet = NewStructSymbol("@TimeSet","TimeSet:V");
+  _str_ref_Serie = NewStructSymbol("@Serie","Serie:V");
+}
 
 
 //--------------------------------------------------------------------
