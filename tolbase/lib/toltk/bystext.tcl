@@ -842,7 +842,25 @@ proc ::BayesText::DlgEscapeTextApply { editor } {
   }
 }
 
+proc ::BayesText::DlgEscapeTextIdle { w } {
+  variable DlgEscapeTextData
+
+  if { [ winfo exists $w ] } {
+    set f [ $w getframe ]
+    set buffer [ $f.o get 1.0 "end -1 char" ]
+    if { $buffer ne $DlgEscapeTextData(buffer) } {
+      $f.t del 1.0 end
+      $f.t ins end [ ::BayesText::TolEscape $buffer ]
+      set DlgEscapeTextData(buffer) $buffer
+    }
+    update
+    after idle [ list ::BayesText::DlgEscapeTextIdle $w ]
+  }
+}
+
 proc ::BayesText::DlgEscapeText { editor } {
+  variable DlgEscapeTextData
+
   set w .dlgescape
   if { [ winfo exists $w ] } {
     set f [ $w getframe ]
@@ -858,16 +876,6 @@ proc ::BayesText::DlgEscapeText { editor } {
     text $f.o -width 40 -height 4
     label $f.lt -text [ mc "Transformed:" ]
     rotext $f.t -width 40 -height 4
-    bind $f.o <<Modified>> {
-      if { [ %W edit modified ] == 1 } {
-        set f [ winfo parent %W ]
-        set tt $f.t
-        set buffer [ %W get 1.0 "end -1 char" ]
-        $tt del 1.0 end
-        $tt ins end [ ::BayesText::TolEscape $buffer ]
-        %W edit modified 0
-      }
-    }
     grid $f.lo -row 0 -column 0 -sticky w
     grid $f.o -row 1 -column 0 -sticky snew
     grid $f.lt -row 0 -column 1 -sticky w
@@ -879,11 +887,15 @@ proc ::BayesText::DlgEscapeText { editor } {
     $w draw
   }
   $f.o delete 1.0 end
+  $f.t del 1.0 end
+  set DlgEscapeTextData(buffer) ""
   set idxs [ $editor tag ranges sel ]
   if { [ llength $idxs ] } {
     $f.o insert end [ $editor get [ lindex $idxs 0 ] [ lindex $idxs 1 ] ]
   }
   $w itemconfigure 1 -command [ list ::BayesText::DlgEscapeTextApply $editor ]
+  update
+  after idle [ list ::BayesText::DlgEscapeTextIdle $w ]
 }
 
 #/////////////////////////////////////////////////////////////////////////////
