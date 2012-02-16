@@ -396,11 +396,11 @@ proc ::tolsh::run { cmdline } {
   # Load Toltcl (+tol) and initLibrary if required
   #
   if {$options(runmode) != "server" && $options(runmode) != "shared"} {
-    if {[info exist ::env(USE_TOLTCL_31)]} {
-      puts "requested to load Toltcl from $::env(USE_TOLTCL_31)"
-      load $::env(USE_TOLTCL_202)
+    if {[info exist ::env(USE_TOLTCL_32)]} {
+      puts "requested to load Toltcl from $::env(USE_TOLTCL_32)"
+      load $::env(USE_TOLTCL_32)
     } else {
-      package require -exact Toltcl 3.1
+      package require -exact Toltcl 3.2
     }
     #puts "tol::initkernel $options(lang) $options(vmode)"
     tol::initkernel $options(lang) $options(vmode)
