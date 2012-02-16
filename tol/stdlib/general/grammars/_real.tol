@@ -986,43 +986,6 @@ Real Msg(Text nameCode, Text msg)
 PutDescription("Saca un mensaje por pantalla anadiendo el Time.", Msg);
 //////////////////////////////////////////////////////////////////////////////
 
-Text GetVersionFromTolProject(Text branch)
-{
-  Text tcl_helper = "
-package require http
-
-proc ::check_url_error { url data } {
-  if {![regexp {v\d\.\d\.\d b\.\d+} $data]} {
-    error \"url $url is not available or has an invalid contents\"
-  }
-}
-
-proc ::get_win_release { {branch {official}} } {
-  set name ${branch}_tol_release_win.txt
-  set url \"http://packages.tol-project.org/win32/${name}\"
-  
-  set data [http::data [http::geturl $url]]
-  check_url_error $url $data
-  set data
-}";
-  
-  Set result0 = Tcl_Eval(tcl_helper);
-  Text If(result0["status"], Text {
-      
-      Set result = Tcl_Eval("::get_win_release " + branch);
-      Text If(result["status"], Text result["result"],
-        {
-          WriteLn(result["result"], "W");
-          Text ""
-        })
-    },
-    {
-      WriteLn(result0["result"], "W");
-      Text ""
-    })  
-};
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 Real DeterministicPseudoRandomInteger(Real seed)
