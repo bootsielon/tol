@@ -11,11 +11,11 @@ Text repository.url =
 
 Text checkInstallMode = "remote";
 
-/* */
+/* * /
 //Real TolPackage::Server::RemovePackageVersion( "ToltclLinux32", 3, 1, repository.db );
 Set packages = [["ToltclLinux32"]];
 
-/* * /
+/* */
 //Real TolPackage::Server::RemovePackageVersion( "ToltclWin32", 3, 1, repository.db );
 Set packages = [["ToltclWin32"]];
 

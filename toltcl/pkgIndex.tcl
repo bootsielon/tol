@@ -12,9 +12,9 @@ proc LoadToltcl { version dir } {
   load [file join $dir $name] Toltcl
 }
 
-package ifneeded Toltcl 3.1 \
+package ifneeded Toltcl 3.2 \
     [ string map [list %d $dir] {
-      LoadToltcl 3.1 {%d}
+      LoadToltcl 3.2 {%d}
       source [ file join {%d} toltcl.tcl ]
     } ]
 
