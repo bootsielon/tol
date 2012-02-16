@@ -850,24 +850,21 @@ BDat BTsrPolyn::GetDat(const BDate& dte)
       ser_->GetData(serData);
       BHash hash; Dating()->GetHashBetween(hash, firstDate_,lastDate_);
       Realloc(hash.Size());
-      BInt  n, p, m;
+      BInt  n, m, p;
       BDate d;
+      BDat y;
+      const BMonome<BDat>* mon = NULL;
       BReal h = dte.Hash();
-      BDat x;
-      int len = GetLength();
-      for(n=0; n<len; n++)
+      for(n=0; n<Length(); n++)
       {
-        data_[n] = 0.0;
-      }
-      for(p=0; p<pol_.Size(); p++)
-      {
-        BMonome<BDat>& mon = pol_[p];
-        for(n=0; n<len; n++)
+        y = 0.0;
+        mon = pol_.Buffer();
+        for(p = 0; p<pol_.Size(); p++, mon++)
         {
-          m    = n-mon.Degree()+backward_;
-          x    = serData[m];
-          data_[n] += mon.Coef()*x;
+          m  = n-mon->Degree()+backward_;
+          y += mon->Coef()*serData[m];
         }
+        data_[n] = y;
         if(hash[n]==h) { dat = data_[n]; }
       }
       CompactData();
